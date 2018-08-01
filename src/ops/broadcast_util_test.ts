@@ -69,6 +69,34 @@ describe('broadcast_util.getBroadcastShape', () => {
     const res = broadcast_util.assertAndGetBroadcastShape([4, 1, 7], [1, 3, 1]);
     expect(res).toEqual([4, 3, 7]);
   });
+
+  it('[0] and [1] = [0]', () => {
+    const res = broadcast_util.assertAndGetBroadcastShape([0], [1]);
+    expect(res).toEqual([0]);
+
+    const res2 = broadcast_util.assertAndGetBroadcastShape([1], [0]);
+    expect(res2).toEqual([0]);
+  });
+
+  it('[0] and [0] = [0]', () => {
+    const res = broadcast_util.assertAndGetBroadcastShape([0], [0]);
+    expect(res).toEqual([0]);
+  });
+
+  it('[0, 1] and [1, 3] = [0, 3]', () => {
+    const res = broadcast_util.assertAndGetBroadcastShape([0, 1], [1, 3]);
+    expect(res).toEqual([0, 3]);
+  });
+
+  it('[5, 0, 3] and [5, 1, 1] = [5, 0, 3]', () => {
+    const res = broadcast_util.assertAndGetBroadcastShape([5, 0, 3], [5, 1, 1]);
+    expect(res).toEqual([5, 0, 3]);
+  });
+
+  it('[1] and [0, 0, 4] = [0, 0, 4]', () => {
+    const res = broadcast_util.assertAndGetBroadcastShape([1], [0, 0, 4]);
+    expect(res).toEqual([0, 0, 4]);
+  });
 });
 
 describe('broadcast_util.getBroadcastDims', () => {

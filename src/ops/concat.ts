@@ -156,8 +156,9 @@ function concat4d_(tensors: Tensor4D[]|TensorLike[], axis: number): Tensor4D {
 /** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function concat_<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): T {
   assert(tensors.length >= 1, 'Pass at least one tensor to concat');
-  const $tensors = convertToTensorArray(tensors, 'tensors', 'concat');
-
+  let $tensors = convertToTensorArray(tensors, 'tensors', 'concat');
+  // Keep only non-empty tensors (ignore tensors with 0 in their shape).
+  $tensors = $tensors.filter(t => t.size > 0);
   let result = $tensors[0] as T;
   if ($tensors.length === 1) {
     return result;

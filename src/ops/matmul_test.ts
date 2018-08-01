@@ -384,6 +384,28 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     expect(c.shape).toEqual([2, 2]);
     expectArraysClose(c, [0, 8, -3, 20]);
   });
+
+  it('a * b where a has zero in its shape', () => {
+    const a = tf.tensor2d([], [0, 3]);
+    const b = tf.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
+    const c = tf.matMul(a, b);
+    expect(c.shape).toEqual([0, 2]);
+    expect(c.rank).toBe(2);
+    expect(c.size).toBe(0);
+    expectArraysClose(c, []);
+  });
+
+  it('(a * b) * c where a has zero in its shape, so a*b does also', () => {
+    const a = tf.tensor2d([], [0, 3]);
+    const b = tf.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
+    const ab = tf.matMul(a, b);
+    expect(ab.shape).toEqual([0, 2]);
+    expectArraysClose(ab, []);
+    const c = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const res = tf.matMul(ab, c);
+    expect(res.shape).toEqual([0, 3]);
+    expectArraysClose(res, []);
+  });
 });
 
 describeWithFlags('matmul webgl-only', WEBGL_ENVS, () => {

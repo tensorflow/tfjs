@@ -29,6 +29,7 @@ import {range, tensor} from '../ops/tensor_ops';
 import {DataId, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {DataType, DataTypeMap, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../types';
 import * as util from '../util';
+import {getTypedArrayFromDType} from '../util';
 
 import {KernelBackend} from './backend';
 import * as backend_util from './backend_util';
@@ -1250,6 +1251,13 @@ export class MathBackendWebGL implements KernelBackend {
       pageToCpu = true): K {
     if (output == null) {
       output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
+    }
+    if (output.size === 0) {
+      // Short-circuit the computation since the result is empty (has 0 in its
+      // shape).
+      this.texData.get(output.dataId).values =
+          getTypedArrayFromDType(output.dtype, 0);
+      return output;
     }
     const inputsData: Array<TensorData<T>> = inputs.map(tensor => {
       const texData = this.texData.get(tensor.dataId);

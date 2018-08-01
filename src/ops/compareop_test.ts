@@ -2029,6 +2029,15 @@ describeWithFlags('greater', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, 1, 0]);
   });
+
+  it('works with 0 sized tensors', () => {
+    const a = tf.tensor2d([], [0, 5]);
+    const b = tf.tensor1d([1, 2, 3, 4, 5]);
+    const res = tf.greater(a, b);
+    expect(res.dtype).toBe('bool');
+    expect(res.shape).toEqual([0, 5]);
+    expectArraysClose(res, []);
+  });
 });
 
 describeWithFlags('greaterStrict', ALL_ENVS, () => {

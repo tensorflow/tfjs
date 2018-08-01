@@ -73,17 +73,28 @@ export function broadcastDimsAreOuter(dims: number[]): boolean {
 export function assertAndGetBroadcastShape(
     shapeA: number[], shapeB: number[]): number[] {
   const result: number[] = [];
-  const errMsg = `Operands could not be broadcast together with shapes ` +
-      `${shapeA} and ${shapeB}.`;
   const l = Math.max(shapeA.length, shapeB.length);
 
   for (let i = 0; i < l; i++) {
-    const a = shapeA[shapeA.length - i - 1] || 1;
-    const b = shapeB[shapeB.length - i - 1] || 1;
-    if (a > 1 && b > 1 && a !== b) {
-      throw Error(errMsg);
+    let a = shapeA[shapeA.length - i - 1];
+    if (a == null) {
+      a = 1;
     }
-    result.unshift(Math.max(a, b));
+    let b = shapeB[shapeB.length - i - 1];
+    if (b == null) {
+      b = 1;
+    }
+    if (a === 1) {
+      result.unshift(b);
+    } else if (b === 1) {
+      result.unshift(a);
+    } else if (a !== b) {
+      const errMsg = `Operands could not be broadcast together with shapes ` +
+          `${shapeA} and ${shapeB}.`;
+      throw Error(errMsg);
+    } else {
+      result.unshift(a);
+    }
   }
   return result;
 }
