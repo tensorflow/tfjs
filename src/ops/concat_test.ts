@@ -314,6 +314,14 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
     expect(values.shape).toEqual([2, 1, 3]);
     expectArraysClose(values, [1, 2, 3, 4, 5, 6]);
   });
+
+  it('concat tensors with 0 in their shape', () => {
+    const tensor1 = tf.tensor3d([1, 2, 3, 4, 5, 6], [2, 3, 1]);
+    const tensor2 = tf.tensor3d([], [0, 3, 1]);
+    const values = tf.concat3d([tensor1, tensor2], 0);
+    expect(values.shape).toEqual([2, 3, 1]);
+    expectArraysClose(values, [1, 2, 3, 4, 5, 6]);
+  });
 });
 
 describeWithFlags('concat throws for non-tensors', ALL_ENVS, () => {

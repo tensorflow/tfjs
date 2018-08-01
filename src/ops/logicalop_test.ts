@@ -692,8 +692,11 @@ describeWithFlags('whereAsync', ALL_ENVS, () => {
 
   it('3d tensor', async () => {
     const condition = tf.tensor3d(
-        [[[true, false, false], [false, true, true]],
-         [[false, false, false], [true, true, false]]], [2, 2, 3], 'bool');
+        [
+          [[true, false, false], [false, true, true]],
+          [[false, false, false], [true, true, false]]
+        ],
+        [2, 2, 3], 'bool');
     const res = await tf.whereAsync(condition);
     expect(res.dtype).toBe('int32');
     expect(res.shape).toEqual([5, 3]);
@@ -718,5 +721,13 @@ describeWithFlags('whereAsync', ALL_ENVS, () => {
     } catch (ex) {
       expect(ex.message).toBe('Condition must be of type bool.');
     }
+  });
+
+  it('returns tensor with 0 in shape when no values are true', async () => {
+    const condition = [[[false]], [[false]], [[false]]];
+    const res = await tf.whereAsync(condition);
+    expect(res.dtype).toBe('int32');
+    expect(res.shape).toEqual([0, 3]);
+    expectArraysClose(res, []);
   });
 });

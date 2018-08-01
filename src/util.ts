@@ -253,17 +253,17 @@ export function inferFromImplicitShape(
   let implicitIdx = -1;
 
   for (let i = 0; i < shape.length; ++i) {
-    if (shape[i] > 0) {
+    if (shape[i] >= 0) {
       shapeProd *= shape[i];
     } else if (shape[i] === -1) {
       if (implicitIdx !== -1) {
         throw Error(
             `Shapes can only have 1 implicit size. ` +
-            `Found - 1 at dim ${implicitIdx} and dim ${i}`);
+            `Found -1 at dim ${implicitIdx} and dim ${i}`);
       }
       implicitIdx = i;
-    } else if (shape[i] <= 0) {
-      throw Error(`Shapes can not be <= 0. Found ${shape[i]} at dim ${i}`);
+    } else if (shape[i] < 0) {
+      throw Error(`Shapes can not be < 0. Found ${shape[i]} at dim ${i}`);
     }
   }
 
@@ -274,6 +274,11 @@ export function inferFromImplicitShape(
     return shape;
   }
 
+  if (shapeProd === 0) {
+    throw Error(
+        `Cannot infer the missing size in [${shape}] when ` +
+        `there are 0 elements`);
+  }
   if (size % shapeProd !== 0) {
     throw Error(
         `The implicit shape can't be a fractional number. ` +

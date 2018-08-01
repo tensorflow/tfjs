@@ -19,7 +19,6 @@ import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {ALL_ENVS, BROWSER_ENVS, expectArraysClose, expectArraysEqual, expectPromiseToFail, expectValuesInRange, NODE_ENVS, WEBGL_ENVS} from '../test_util';
 import * as util from '../util';
-
 import {expectArrayInMeanStdRange, jarqueBeraNormalityTest} from './rand_util';
 
 describeWithFlags('zeros', ALL_ENVS, () => {
@@ -2967,6 +2966,21 @@ describeWithFlags('expandDims', ALL_ENVS, () => {
     const res = tf.expandDims(7);
     expect(res.shape).toEqual([1]);
     expectArraysClose(res, [7]);
+  });
+
+  it('works with 0 in shape', () => {
+    const a = tf.tensor2d([], [0, 3]);
+    const res = a.expandDims();
+    expect(res.shape).toEqual([1, 0, 3]);
+    expectArraysClose(res, []);
+
+    const res2 = a.expandDims(1);
+    expect(res2.shape).toEqual([0, 1, 3]);
+    expectArraysClose(res2, []);
+
+    const res3 = a.expandDims(2);
+    expect(res3.shape).toEqual([0, 3, 1]);
+    expectArraysClose(res3, []);
   });
 });
 

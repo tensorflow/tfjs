@@ -915,6 +915,14 @@ describeWithFlags('add', ALL_ENVS, () => {
     expectArraysClose(res, expectedResult);
   });
 
+  it('add tensors with 0 in shape', () => {
+    const a = tf.tensor1d([1]);
+    const b = tf.tensor3d([], [0, 0, 5]);
+    const res = tf.add(a, b);
+    expect(res.shape).toEqual([0, 0, 5]);
+    expectArraysEqual(res, []);
+  });
+
   it('gradient: scalar + 1D broadcast', () => {
     const a = tf.scalar(2);
     const b = tf.tensor1d([3, 4, 5]);
