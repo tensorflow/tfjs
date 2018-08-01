@@ -939,6 +939,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expectArraysClose(res, [4, 2, 1]);
   });
 
+  it('squeeze a zero-sized tensor', () => {
+    const a = tf.tensor3d([], [0, 1, 0]);
+    const res = tf.squeeze(a);
+    expect(res.shape).toEqual([0, 0]);
+  });
+
   it('scalar -> 2d', () => {
     const a = tf.scalar(4, 'int32');
     const b = a.as2D(1, 1);

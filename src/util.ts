@@ -298,7 +298,7 @@ export function squeezeShape(shape: number[], axis?: number[]):
   let j = 0;
   for (let i = 0; i < shape.length; ++i) {
     if (axis != null) {
-      if (axis[j] === i && shape[i] > 1) {
+      if (axis[j] === i && shape[i] !== 1) {
         throw new Error(
             `Can't squeeze axis ${i} since its dim '${shape[i]}' is not 1`);
       }
@@ -310,7 +310,7 @@ export function squeezeShape(shape: number[], axis?: number[]):
         j++;
       }
     }
-    if (shape[i] > 1) {
+    if (shape[i] !== 1) {
       newShape.push(shape[i]);
       keptDims.push(i);
     }
