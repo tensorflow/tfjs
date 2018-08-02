@@ -16,13 +16,13 @@
  */
 import * as tf from '@tensorflow/tfjs-core';
 
-import {BenchmarkTest, LAST_RUN_CPU_CUTOFF_MS} from './benchmark';
-import * as benchmark_util from './benchmark_util';
+import {BenchmarkTest} from './types';
+import * as util from './util';
 
 export class MatmulCPUBenchmark implements BenchmarkTest {
   lastRunTimeMs: number;
   async run(size: number): Promise<number> {
-    if (this.lastRunTimeMs > LAST_RUN_CPU_CUTOFF_MS) {
+    if (this.lastRunTimeMs > util.LAST_RUN_CPU_CUTOFF_MS) {
       return new Promise<number>((resolve, reject) => {
         resolve(-1);
       });
@@ -48,7 +48,7 @@ export class MatmulGPUBenchmark implements BenchmarkTest {
 
     const benchmark = () => tf.matMul(a, b);
 
-    const time = await benchmark_util.warmupAndBenchmarkGPU(benchmark);
+    const time = await util.warmupAndBenchmarkGPU(benchmark);
 
     a.dispose();
     b.dispose();

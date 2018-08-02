@@ -17,8 +17,8 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 
-import {BenchmarkTest} from './benchmark';
-import * as benchmark_util from './benchmark_util';
+import {BenchmarkTest} from './types';
+import * as util from './util';
 
 function getUnaryOp(option: string) {
   switch (option) {
@@ -127,7 +127,7 @@ export class UnaryOpsGPUBenchmark implements BenchmarkTest {
 
     const benchmark = () => op(input);
 
-    const time = await benchmark_util.warmupAndBenchmarkGPU(benchmark);
+    const time = await util.warmupAndBenchmarkGPU(benchmark);
 
     input.dispose();
     return time;

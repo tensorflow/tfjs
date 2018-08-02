@@ -17,8 +17,8 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 
-import {BenchmarkTest} from './benchmark';
-import * as benchmark_util from './benchmark_util';
+import {BenchmarkTest} from './types';
+import * as benchmark_util from './util';
 
 export interface ConvParams {
   inDepth: number;
@@ -27,9 +27,13 @@ export interface ConvParams {
   pad: 'valid'|'same'|number;
 }
 
-export interface RegularConvParams extends ConvParams { outDepth: number; }
+export interface RegularConvParams extends ConvParams {
+  outDepth: number;
+}
 
-export interface DepthwiseConvParams extends ConvParams { channelMul: number; }
+export interface DepthwiseConvParams extends ConvParams {
+  channelMul: number;
+}
 
 export class ConvGPUBenchmark implements BenchmarkTest {
   async run(size: number, opType: string, params: ConvParams): Promise<number> {

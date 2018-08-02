@@ -2,11 +2,28 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
-    "lib": ["es2015", "dom"],
+    "noImplicitAny": true,
     "sourceMap": true,
-    "outDir": "./dist"
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "declaration": true,
+    "target": "es5",
+    "lib": ["es2015", "dom"],
+    "outDir": "./dist",
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedParameters": false,
+    "pretty": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "esModuleInterop": true
   },
   "include": [
-    "*.ts"
+    "*.ts",
+  ],
+  "exclude": [
+    "ui/**/*.ts"
   ]
 }
