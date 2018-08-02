@@ -15,21 +15,20 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs-core';
+export interface ApplicationConfig {
+  apiKey?: string;
+  authDomain?: string;
+  databaseURL?: string;
+  projectId?: string;
+  storageBucket?: string;
+  messagingSenderId?: string;
+}
 
-export async function warmupAndBenchmarkGPU(benchmark: () => tf.Tensor):
-    Promise<number> {
-  // Warmup.
-  const out = benchmark();
-  await out.data();
-  out.dispose();
-
-  // Use normal performance.now() timing until query timers are enabled again.
-  const start = performance.now();
-  const result = benchmark();
-  await result.data();
-  return performance.now() - start;
-
-  // Uncomment this once query timers are enabled again.
-  // return (await tf.time(benchmark)).kernelMs;
+export interface BenchmarkEntry {
+  userAgent: string;
+  timestamp: number;
+  runs: {[params: string]: BenchmarkRunEntry};
+}
+export interface BenchmarkRunEntry {
+  averageTimeMs: number;
 }

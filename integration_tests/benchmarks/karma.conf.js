@@ -24,11 +24,19 @@ module.exports = function(config) {
   if (config.grep) {
     args.push('--grep', config.grep);
   }
+  if (config.firebaseKey) {
+    args.push('--firebaseKey', config.firebaseKey);
+  }
+  if (config.travis) {
+    args.push('--travis');
+  }
 
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
-    files: [{pattern: '*.ts'}],
-    exclude: ['polymer-spec.ts', 'benchmarks.ts'],
+    files: [
+      {pattern: '*.ts'}
+    ],
+    include: ['*.ts'],
     preprocessors: {
       '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
     },
