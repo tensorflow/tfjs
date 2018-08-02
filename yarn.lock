@@ -82,10 +82,13 @@
     lodash "^4.17.5"
     to-fast-properties "^2.0.0"
 
-"@tensorflow/tfjs-core@~0.12.1":
-  version "0.12.1"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.12.1.tgz#3d83f5676900b815a09cf8baa77862369e26f9bb"
+"@tensorflow/tfjs-core@~0.12.8":
+  version "0.12.8"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.12.8.tgz#d7bb5fb17da080374a4918aa5cd423378c0cdc0c"
   dependencies:
+    "@types/seedrandom" "~2.4.27"
+    "@types/webgl-ext" "~0.0.29"
+    "@types/webgl2" "~0.0.4"
     seedrandom "~2.4.3"
 
 "@types/bindings@~1.3.0":
@@ -126,6 +129,18 @@
   dependencies:
     "@types/glob" "*"
     "@types/node" "*"
+
+"@types/seedrandom@~2.4.27":
+  version "2.4.27"
+  resolved "https://registry.yarnpkg.com/@types/seedrandom/-/seedrandom-2.4.27.tgz#9db563937dd86915f69092bc43259d2f48578e41"
+
+"@types/webgl-ext@~0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@types/webgl-ext/-/webgl-ext-0.0.29.tgz#4d479baf1124795f53d54bdc85b386e0f194d90a"
+
+"@types/webgl2@~0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@types/webgl2/-/webgl2-0.0.4.tgz#c3b0f9d6b465c66138e84e64cb3bdf8373c2c279"
 
 align-text@^0.1.1, align-text@^0.1.3:
   version "0.1.4"
