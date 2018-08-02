@@ -99,11 +99,12 @@ export function getRunGroups(): BenchmarkRunGroup[] {
     max: 1024,
     stepToSizeTransformation: (step: number) => Math.max(1, step),
     options: [
-      'abs', 'acos', 'acosh', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos',
-      'cosh', 'elu', 'erf', 'exp', 'expm1', 'floor', 'leakyRelu', 'log',
-      'log1p', 'logSigmoid', 'neg', 'prelu', 'reciprocal', 'relu', 'round',
-      'rsqrt', 'selu', 'sigmoid', 'sign', 'sin', 'sinh', 'softplus', 'sqrt',
-      'square', 'step', 'tan', 'tanh'
+      'abs',        'acos',  'acosh',   'asin',       'asinh', 'atan',
+      'atanh',      'ceil',  'cos',     'cosh',       'elu',   'erf',
+      'exp',        'expm1', 'floor',   'leakyRelu',  'log',   'log1p',
+      'logSigmoid', 'neg',   'prelu',   'reciprocal', 'relu',  'round',
+      'rsqrt',      'selu',  'sigmoid', 'sign',       'sin',   'sinh',
+      'softplus',   'sqrt',  'square',  'step',       'tan',   'tanh'
     ],
     selectedOption: 'log',
     stepSize: 64,
@@ -115,7 +116,7 @@ export function getRunGroups(): BenchmarkRunGroup[] {
   });
 
   groups.push({
-    name: 'Reduction Ops: input [size, size]',
+    name: 'Reduction Ops: input [size * size]',
     min: 0,
     max: 1024,
     stepToSizeTransformation: (step: number) => Math.max(1, step),
