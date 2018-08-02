@@ -19,6 +19,7 @@
 import {BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, rsqrt, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D} from '@tensorflow/tfjs-core';
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
+import {isNullOrUndefined} from 'util';
 
 import {createTypeOpAttr, getTFDType} from './ops/op_utils';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
@@ -240,6 +241,19 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput('Add', opAttrs, [a, b]);
   }
 
+  select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
+    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.executeSingleOutput('Select', opAttrs, [condition, a, b]);
+  }
+
+  addN<T extends Tensor>(tensors: T[]): T {
+    const opAttrs = [
+      createTypeOpAttr('T', tensors[0].dtype),
+      {name: 'N', type: this.binding.TF_ATTR_INT, value: tensors.length}
+    ];
+    return this.executeSingleOutput('AddN', opAttrs, tensors) as T;
+  }
+
   subtract(a: Tensor, b: Tensor): Tensor {
     const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Sub', opAttrs, [a, b]);
@@ -342,10 +356,8 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput('LogicalOr', [], [a, b]);
   }
 
-  where(condition: Tensor, a: Tensor, b: Tensor, dtype: DataType): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    // 'Select' Op is where with additional inputs.
-    return this.executeSingleOutput('Select', opAttrs, [condition, a, b]);
+  where(condition: Tensor): Tensor2D {
+    return this.executeSingleOutput('Where', [], [condition]) as Tensor2D;
   }
 
   topKValues<T extends Tensor>(x: T, k: number): Tensor1D {
@@ -354,6 +366,20 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   topKIndices(x: Tensor, k: number): Tensor1D {
     throw new Error('Method not implemented.');
+  }
+
+  topk<T extends Tensor>(x: T, k?: number, sorted?: boolean): [T, T] {
+    const kCount = isNullOrUndefined(k) ? 1 : k;
+    const isSorted = isNullOrUndefined(sorted) ? true : sorted;
+    const opAttrs = [
+      {name: 'sorted', type: this.binding.TF_ATTR_BOOL, value: isSorted},
+      createTypeOpAttr('T', x.dtype),
+    ];
+    const kTensor = scalar(kCount, 'int32');
+
+    // 'TopKV2' has two-hard coded output attributes:
+    return this.executeMultipleOutputs(
+               'TopKV2', opAttrs, [x, kTensor], 2) as [T, T];
   }
 
   min(x: Tensor, axes: number[]): Tensor {
@@ -553,10 +579,10 @@ export class NodeJSKernelBackend implements KernelBackend {
   step<T extends Tensor>(x: T, alpha: number): T {
     const dtype = x.dtype;
     const nans = this.isNaN(x);
-    const stepNoNans = this.where(
+    const stepNoNans = this.select(
         this.greater(x, scalar(0, dtype)), ones(x.shape),
-        fill(x.shape, alpha, dtype), dtype);
-    return this.where(nans, x, stepNoNans, dtype) as T;
+        fill(x.shape, alpha, dtype));
+    return this.select(nans, x, stepNoNans) as T;
   }
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
@@ -867,6 +893,34 @@ export class NodeJSKernelBackend implements KernelBackend {
                'GatherV2', opAttrs, [x, indices, axisTensor]) as T;
   }
 
+  batchToSpaceND<T extends Tensor>(
+      x: T, blockShape: number[], crops: number[][]): T {
+    const blockShapeTensor = tensor1d(blockShape, 'int32');
+    const cropsTensor =
+        tensor2d(crops, [crops.length, crops[0].length], 'int32');
+    const opAttrs = [
+      createTypeOpAttr('T', x.dtype), createTypeOpAttr('Tblock_shape', 'int32'),
+      createTypeOpAttr('Tcrops', cropsTensor.dtype)
+    ];
+    return this.executeSingleOutput(
+               'BatchToSpaceND', opAttrs, [x, blockShapeTensor, cropsTensor]) as
+        T;
+  }
+
+  spaceToBatchND<T extends Tensor>(
+      x: T, blockShape: number[], paddings: number[][]): T {
+    const blockShapeTensor = tensor1d(blockShape, 'int32');
+    const paddingsTensor =
+        tensor2d(paddings, [paddings.length, paddings[0].length], 'int32');
+    const opAttrs = [
+      createTypeOpAttr('T', x.dtype), createTypeOpAttr('Tblock_shape', 'int32'),
+      createTypeOpAttr('Tpaddings', paddingsTensor.dtype)
+    ];
+    return this.executeSingleOutput(
+               'SpaceToBatchND', opAttrs,
+               [x, blockShapeTensor, paddingsTensor]) as T;
+  }
+
   resizeBilinear(
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D {
@@ -981,6 +1035,20 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput('LRN', opAttrs, [x]) as Tensor4D;
   }
 
+  LRNGrad(
+      dy: Tensor4D, inputImage: Tensor4D, outputImage: Tensor4D, radius: number,
+      bias: number, alpha: number, beta: number): Tensor4D {
+    const opAttrs = [
+      createTypeOpAttr('T', dy.dtype),
+      {name: 'depth_radius', type: this.binding.TF_ATTR_INT, value: radius},
+      {name: 'bias', type: this.binding.TF_ATTR_FLOAT, value: bias},
+      {name: 'alpha', type: this.binding.TF_ATTR_FLOAT, value: alpha},
+      {name: 'beta', type: this.binding.TF_ATTR_FLOAT, value: beta},
+    ];
+    return this.executeSingleOutput(
+               'LRNGrad', opAttrs, [dy, inputImage, outputImage]) as Tensor4D;
+  }
+
   multinomial(
       logits: Tensor2D, normalized: boolean, numSamples: number,
       seed: number): Tensor2D {
@@ -1026,6 +1094,20 @@ export class NodeJSKernelBackend implements KernelBackend {
       createTypeOpAttr('T', x.dtype), createTypeOpAttr('Tidx', 'int32')
     ];
     return this.executeSingleOutput('Cumsum', opAttrs, [x, axisTensor]);
+  }
+
+  nonMaxSuppression(
+      boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
+      iouThreshold?: number, scoreThreshold?: number): Tensor1D {
+    const opAttrs = [] as TFEOpAttr[];
+
+    const maxOutputSizeTensor = scalar(maxOutputSize, 'int32');
+    const iouThresholdTensor = scalar(iouThreshold);
+    const scoreThresholdTensor = scalar(scoreThreshold);
+    return this.executeSingleOutput('NonMaxSuppressionV3', opAttrs, [
+      boxes, scores, maxOutputSizeTensor, iouThresholdTensor,
+      scoreThresholdTensor
+    ]) as Tensor1D;
   }
 
   fromPixels(
