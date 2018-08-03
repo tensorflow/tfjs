@@ -22,6 +22,8 @@ import * as path from 'path';
 import * as rimraf from 'rimraf';
 import {promisify} from 'util';
 
+import * as tfn from '../index';
+
 describe('File system IOHandler', () => {
   const mkdtemp = promisify(fs.mkdtemp);
   const readFile = promisify(fs.readFile);
@@ -292,5 +294,11 @@ describe('File system IOHandler', () => {
               .toMatch(/Weight file .*weights\.2\.bin does not exist/);
           done();
         });
+  });
+
+  it('Exported file-system handler class exists', () => {
+    const handler = new tfn.io.NodeFileSystem(testDir);
+    expect(typeof handler.save).toEqual('function');
+    expect(typeof handler.load).toEqual('function');
   });
 });

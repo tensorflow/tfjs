@@ -18,6 +18,7 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import {nodeFileSystemRouter} from './io/file_system';
+import * as io from './io/index';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 // tslint:disable-next-line:no-require-imports
@@ -38,3 +39,4 @@ tfc.io.registerSaveRouter(nodeFileSystemRouter);
 tfc.io.registerLoadRouter(nodeFileSystemRouter);
 
 export {version} from './version';
+export {io};
