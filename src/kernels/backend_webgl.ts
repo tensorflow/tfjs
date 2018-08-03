@@ -444,15 +444,19 @@ export class MathBackendWebGL implements KernelBackend {
 
   stridedSlice<T extends Tensor>(
       x: T, begin: number[], end: number[], strides: number[],
-      beginMask: number, endMask: number): T {
-    const [beginIndex, size] =
-        getStridedSlicedInfo(x.shape, begin, end, strides, beginMask, endMask);
+      beginMask: number, endMask: number, ellipsisMask: number,
+      newAxisMask: number, shrinkAxisMask: number): T {
+    const [beginIndex, size, shrinkAxis] = getStridedSlicedInfo(
+        x.shape, begin, end, strides, beginMask, endMask, ellipsisMask,
+        newAxisMask, shrinkAxisMask);
 
-    if (size.some(axis => axis === 0)) {
-      return tensor([], size) as T;
+    const shape = size.filter((v, index) => shrinkAxis.indexOf(index) === -1);
+    if (shape.some(axis => axis === 0)) {
+      return tensor([], shape) as T;
     }
 
-    const program = new StridedSliceProgram(beginIndex, strides, size);
+    const program =
+        new StridedSliceProgram(beginIndex, strides, size, shrinkAxis);
     return this.compileAndRun(program, [x]);
   }
 

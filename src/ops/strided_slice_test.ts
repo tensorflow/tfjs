@@ -17,9 +17,27 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
+// tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('stridedSlice', ALL_ENVS, () => {
+  it('stridedSlice should fail if new axis mask is set', () => {
+    const tensor = tf.tensor1d([0, 1, 2, 3]);
+    expect(() => tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 0, 1)).toThrow();
+  });
+
+  it('stridedSlice should fail if ellipsis mask is set', () => {
+    const tensor = tf.tensor1d([0, 1, 2, 3]);
+    expect(() => tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 1)).toThrow();
+  });
+
+  it('stridedSlice should suport 1d tensor', () => {
+    const tensor = tf.tensor1d([0, 1, 2, 3]);
+    const output = tf.stridedSlice(tensor, [0], [3], [2]);
+    expect(output.shape).toEqual([2]);
+    expectArraysClose(output, [0, 2]);
+  });
+
   it('stridedSlice should suport 1d tensor', () => {
     const tensor = tf.tensor1d([0, 1, 2, 3]);
     const output = tf.stridedSlice(tensor, [0], [3], [2]);
@@ -115,6 +133,13 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(output, [1, 2, 3]);
   });
 
+  it('stridedSlice should suport 1d tensor shrink axis mask', () => {
+    const tensor = tf.tensor1d([0, 1, 2, 3]);
+    const output = tf.stridedSlice(tensor, [1], [3], [1], 0, 0, 0, 0, 1);
+    expect(output.shape).toEqual([]);
+    expectArraysClose(output, [1]);
+  });
+
   it('stridedSlice should suport 1d tensor negative stride', () => {
     const tensor = tf.tensor1d([0, 1, 2, 3]);
     const output = tf.stridedSlice(tensor, [-1], [-4], [-1]);
@@ -150,18 +175,18 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(output, [4, 5]);
   });
 
-  it('stridedSlice with 2d tensor should be used by tensor directly', () => {
-    const t = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-    const output = t.stridedSlice([1, 0], [2, 2], [1, 1]);
-    expect(output.shape).toEqual([1, 2]);
-    expectArraysClose(output, [4, 5]);
-  });
-
   it('stridedSlice should suport 2d tensor strides', () => {
     const tensor = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const output = tf.stridedSlice(tensor, [0, 0], [2, 3], [2, 2]);
     expect(output.shape).toEqual([1, 2]);
     expectArraysClose(output, [1, 3]);
+  });
+
+  it('stridedSlice with 2d tensor should be used by tensor directly', () => {
+    const t = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const output = t.stridedSlice([1, 0], [2, 2], [1, 1]);
+    expect(output.shape).toEqual([1, 2]);
+    expectArraysClose(output, [4, 5]);
   });
 
   it('stridedSlice should suport 2d tensor negative strides', () => {
@@ -176,6 +201,14 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     const output = tf.stridedSlice(tensor, [1, 0], [2, 2], [1, 1], 1);
     expect(output.shape).toEqual([2, 2]);
     expectArraysClose(output, [1, 2, 4, 5]);
+  });
+
+  it('stridedSlice should suport 2d tensor shrink mask', () => {
+    const tensor = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const output =
+        tf.stridedSlice(tensor, [1, 0], [2, 2], [1, 1], 0, 0, 0, 0, 1);
+    expect(output.shape).toEqual([2]);
+    expectArraysClose(output, [4, 5]);
   });
 
   it('stridedSlice should suport 2d tensor end mask', () => {
@@ -226,6 +259,15 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     const output = tf.stridedSlice(tensor, [0, 0, 0], [2, 3, 2], [2, 2, 2]);
     expect(output.shape).toEqual([1, 2, 1]);
     expectArraysClose(output, [1, 5]);
+  });
+
+  it('stridedSlice should suport 3d tensor shrink mask', () => {
+    const tensor =
+        tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 3, 2]);
+    const output =
+        tf.stridedSlice(tensor, [0, 0, 0], [2, 3, 2], [1, 1, 1], 0, 0, 0, 0, 1);
+    expect(output.shape).toEqual([3, 2]);
+    expectArraysClose(output, [1, 2, 3, 4, 5, 6]);
   });
 
   it('stridedSlice should throw when passed a non-tensor', () => {

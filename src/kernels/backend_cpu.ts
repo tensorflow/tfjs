@@ -186,12 +186,16 @@ export class MathBackendCPU implements KernelBackend {
 
   stridedSlice<T extends Tensor>(
       x: T, begin: number[], end: number[], strides: number[],
-      beginMask: number, endMask: number): T {
-    const [beginIndex, size] =
-        getStridedSlicedInfo(x.shape, begin, end, strides, beginMask, endMask);
+      beginMask: number, endMask: number, ellipsisMask: number,
+      newAxisMask: number, shrinkAxisMask: number): T {
+    const [beginIndex, size, shrinkAxis] = getStridedSlicedInfo(
+        x.shape, begin, end, strides, beginMask, endMask, ellipsisMask,
+        newAxisMask, shrinkAxisMask);
 
-    if (size.some(axis => axis === 0)) {
-      return ops.tensor([], size) as T;
+    const shape = size.filter((v, index) => shrinkAxis.indexOf(index) === -1);
+
+    if (shape.some(axis => axis === 0)) {
+      return ops.tensor([], shape) as T;
     }
 
     const buffer = ops.buffer(size, x.dtype);
@@ -206,7 +210,7 @@ export class MathBackendCPU implements KernelBackend {
       buffer.set(x.get(...newLoc), ...loc);
     }
 
-    return buffer.toTensor() as T;
+    return buffer.toTensor().reshape(shape) as T;
   }
 
   reverse<T extends Tensor>(x: T, axis: number[]): T {
