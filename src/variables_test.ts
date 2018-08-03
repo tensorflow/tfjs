@@ -12,7 +12,6 @@
  * Unit tests for LayerVariables.
  */
 
-// tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
 import {randomUniform, scalar, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 
@@ -21,7 +20,6 @@ import {nameScope} from './common';
 import * as tfl from './index';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 import * as V from './variables';
-// tslint:enable:max-line-length
 
 
 /**

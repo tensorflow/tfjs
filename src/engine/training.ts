@@ -10,7 +10,6 @@
 
 /* Original Source: engine/training.py */
 
-// tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
 import {io, ModelPredictConfig, Optimizer, Scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
 
@@ -33,7 +32,6 @@ import {Container, ContainerConfig} from './container';
 import {execute, FeedDict} from './executor';
 import {SymbolicTensor} from './topology';
 
-// tslint:enable:max-line-length
 
 /**
  * Helper function for polymorphic input data: 1. singleton Tensor.
@@ -1854,7 +1852,6 @@ export class Model extends Container implements tfc.InferenceModel {
     return namedWeights;
   }
 
-  // tslint:disable:max-line-length
   /**
    * Save the configuration and/or weights of the Model.
    *
@@ -1933,7 +1930,6 @@ export class Model extends Container implements tfc.InferenceModel {
   /**
    * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
    */
-  // tslint:enable:max-line-length
   async save(handlerOrURL: io.IOHandler|string, config?: io.SaveConfig):
       Promise<io.SaveResult> {
     if (typeof handlerOrURL === 'string') {

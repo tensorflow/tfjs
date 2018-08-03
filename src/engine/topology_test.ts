@@ -8,7 +8,6 @@
  * =============================================================================
  */
 
-// tslint:disable:max-line-length
 import {eye, ones, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 import * as tfl from '../index';
 import * as initializers from '../initializers';
@@ -18,7 +17,6 @@ import {LayerVariable, onesVariable, zerosVariable} from '../variables';
 
 import {loadWeightsFromJson, loadWeightsFromNamedTensorMap} from './container';
 import {InputSpec, Layer, LayerConfig, Node} from './topology';
-// tslint:enable:max-line-length
 
 class LayerForTest extends tfl.layers.Layer {
   static className = 'LayerForTest';

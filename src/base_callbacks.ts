@@ -10,14 +10,12 @@
 
 /* Original source: keras/callbacks.py */
 
-// tslint:disable:max-line-length
 import {add, div, keep, mul, nextFrame, Scalar, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {getScalar} from './backend/state';
 import {Container} from './engine/container';
 import {Logs, resolveScalarsInLogs, UnresolvedLogs} from './logs';
 import * as generic_utils from './utils/generic_utils';
-// tslint:enable:max-line-length
 
 export type Params = {
   [key: string]: number|string|boolean|number[]|string[]|boolean[];

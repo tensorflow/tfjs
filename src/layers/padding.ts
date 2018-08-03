@@ -15,7 +15,6 @@
 // Porting Note: In Python Keras, the padding layers are in convolutional.py,
 //   but we decided to put them in a separate file (padding.ts) for clarity.
 
-// tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
@@ -26,7 +25,6 @@ import {ValueError} from '../errors';
 import {Kwargs, Shape} from '../types';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 
-// tslint:enable:max-line-length
 
 /**
  * Pads the middle dimension of a 3D tensor.

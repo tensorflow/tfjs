@@ -10,7 +10,6 @@
 
 /* Original source: utils/generic_utils.py */
 
-// tslint:disable:max-line-length
 import {DataType, serialization} from '@tensorflow/tfjs-core';
 
 import {AssertionError, ValueError} from '../errors';

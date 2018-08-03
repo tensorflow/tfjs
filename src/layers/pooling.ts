@@ -12,7 +12,6 @@
  * TensorFlow.js Layers: Pooling Layers.
  */
 
-// tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, Tensor3D, Tensor4D, tidy} from '@tensorflow/tfjs-core';
 
@@ -28,7 +27,6 @@ import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 
 import {preprocessConv2DInput} from './convolutional';
 
-// tslint:enable:max-line-length
 
 /**
  * 2D pooling.

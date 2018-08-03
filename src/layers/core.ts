@@ -14,7 +14,6 @@
 
 import {Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
-// tslint:disable:max-line-length
 import {Activation as ActivationFn, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
@@ -28,7 +27,6 @@ import * as math_utils from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
-// tslint:enable:max-line-length
 
 export interface DropoutLayerConfig extends LayerConfig {
   /** Float between 0 and 1. Fraction of the input units to drop. */

@@ -12,7 +12,6 @@
  * Layers that augment the functionality of a base layer.
  */
 
-// tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
@@ -30,7 +29,6 @@ import {LayerVariable} from '../variables';
 import {rnn, RNN, standardizeArgs} from './recurrent';
 import {deserialize} from './serialization';
 
-// tslint:enable:max-line-length
 
 export interface WrapperLayerConfig extends LayerConfig {
   /**

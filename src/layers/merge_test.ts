@@ -12,7 +12,6 @@
  * Unit tests for core.ts.
  */
 
-// tslint:disable:max-line-length
 import {ones, serialization, Tensor, Tensor2D, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
 import {Layer} from '../engine/topology';
@@ -24,7 +23,6 @@ import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../uti
 
 import {Add, Average, Concatenate, Maximum, Minimum, Multiply} from './merge';
 
-// tslint:enable:max-line-length
 
 describeMathCPU('Merge Layers Except Concatenate: Symbolic', () => {
   const layers = [Add, Average, Multiply, Maximum, Minimum];

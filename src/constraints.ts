@@ -10,14 +10,12 @@
 
 /* Original source: keras/contraints.py */
 
-// tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import {epsilon} from './backend/common';
 import {getScalar} from './backend/state';
 import {deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
-// tslint:enable:max-line-length
 
 /**
  * Helper function used by many of the Constraints to find the L2Norms.

@@ -10,14 +10,12 @@
 
 /* original source: keras/regularizers.py */
 
-// tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
 import {abs, add, Scalar, serialization, sum, Tensor, tidy, zeros} from '@tensorflow/tfjs-core';
 
 import {getScalar} from './backend/state';
 import * as K from './backend/tfjs_backend';
 import {deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
-// tslint:enable:max-line-length
 
 /**
  * Regularizer base class.

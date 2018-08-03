@@ -12,13 +12,11 @@
  * Unit tests for optimizers.ts.
  */
 
-// tslint:disable:max-line-length
 import {AdagradOptimizer, AdadeltaOptimizer, AdamOptimizer, AdamaxOptimizer, RMSPropOptimizer, SGDOptimizer} from '@tensorflow/tfjs-core';
 
 import {getOptimizer} from './optimizers';
 import {describeMathCPU} from './utils/test_utils';
 
-// tslint:enable:max-line-length
 
 describeMathCPU('getOptimizer', () => {
   // TODO(nsthorat): Assert defaults by getting config from the optimizer.

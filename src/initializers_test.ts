@@ -12,7 +12,6 @@
  * Unit tests for initializers.
  */
 
-// tslint:disable:max-line-length
 import {eye, serialization, Tensor2D, tensor2d} from '@tensorflow/tfjs-core';
 
 import * as tfl from './index';
@@ -20,7 +19,6 @@ import {checkDistribution, checkFanMode, getInitializer, serializeInitializer, V
 import * as math_utils from './utils/math_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectNoLeakedTensors, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
 
-// tslint:enable:max-line-length
 
 describeMathCPU('Zeros initializer', () => {
   it('1D', () => {

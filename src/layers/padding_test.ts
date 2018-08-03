@@ -12,7 +12,6 @@
  * Unit Tests for Padding Layers.
  */
 
-// tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
 import {Tensor, tensor3d} from '@tensorflow/tfjs-core';
 
@@ -24,7 +23,6 @@ import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../uti
 
 import {spatial2dPadding, temporalPadding, ZeroPadding2D, ZeroPadding2DLayerConfig} from './padding';
 
-// tslint:enable:max-line-length
 
 describeMathCPUAndGPU('temporalPadding', () => {
   it('default padding 1-1', () => {

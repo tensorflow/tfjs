@@ -12,7 +12,6 @@
  * Built-in metrics.
  */
 
-// tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
 import {Tensor, tidy} from '@tensorflow/tfjs-core';
 
@@ -22,7 +21,6 @@ import {NotImplementedError, ValueError} from './errors';
 import {categoricalCrossentropy as categoricalCrossentropyLoss, cosineProximity, meanAbsoluteError, meanAbsolutePercentageError, meanSquaredError, sparseCategoricalCrossentropy as sparseCategoricalCrossentropyLoss} from './losses';
 import {binaryCrossentropy as lossBinaryCrossentropy} from './losses';
 import {LossOrMetricFn} from './types';
-// tslint:enable:max-line-length
 
 /**
  * Binary accuracy metric function.

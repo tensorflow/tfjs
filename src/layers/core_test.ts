@@ -12,7 +12,6 @@
  * Unit tests for core.ts.
  */
 
-// tslint:disable:max-line-length
 import {mul, ones, scalar, Tensor, tensor2d, tensor3d, tensor4d, zeros} from '@tensorflow/tfjs-core';
 
 import {ActivationIdentifier} from '../activations';
@@ -25,7 +24,6 @@ import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_u
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Activation, RepeatVector, Reshape} from './core';
-// tslint:enable:max-line-length
 
 describe('Dropout Layer: Symbolic', () => {
   const dropoutRates = [0, 0.5];
