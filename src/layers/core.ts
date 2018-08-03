@@ -12,18 +12,18 @@
  * TensorFlow.js Layers: Basic Layers.
  */
 
-import {Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
+import {Scalar, serialization, Tensor, tidy, transpose, util} from '@tensorflow/tfjs-core';
 
 import {Activation as ActivationFn, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
+import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
-import {Layer, LayerConfig} from '../engine/topology';
-import {getScalar} from '../backend/state';
+import {InputSpec, Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs, Shape} from '../types';
-import * as math_utils from '../utils/math_utils';
+import {arrayProd, range} from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
@@ -352,7 +352,7 @@ export class Flatten extends Layer {
             `layer in your model.`);
       }
     }
-    return [inputShape[0], math_utils.arrayProd(inputShape, 1)];
+    return [inputShape[0], arrayProd(inputShape, 1)];
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
@@ -556,7 +556,7 @@ export class Reshape extends Layer {
       }
     }
 
-    const originalSize = math_utils.arrayProd(inputShape);
+    const originalSize = arrayProd(inputShape);
     if (unknown !== null) {
       if (known === 0 || originalSize % known !== 0) {
         throw new ValueError(errorMsg);
@@ -607,3 +607,94 @@ export class Reshape extends Layer {
   }
 }
 serialization.SerializationMap.register(Reshape);
+
+export interface PermuteLayerConfig extends LayerConfig {
+  /**
+   * Array of integers. Permutation pattern. Does not include the
+   * sample (batch) dimension. Index starts at 1.
+   * For instance, `[2, 1]` permutes the first and second dimensions
+   * of the input.
+   */
+  dims: number[];
+}
+
+/**
+ * Permutes the dimensions of the input according to a given pattern.
+ *
+ * Useful for, e.g., connecting RNNs and convnets together.
+ *
+ * Example:
+ *
+ * ```js
+ * const model = tf.Sequential();
+ * model.add(tf.layers.permute({
+ *   dims: [2, 1],
+ *   inputShape: [10, 64]
+ * }));
+ * console.log(model.outputShape);
+ * // Now model's output shape is [null, 64, 10], where null is the
+ * // unpermuted sample (batch) dimension.
+ * ```
+ *
+ * Input shape:
+ *   Arbitrary. Use the configuration field `inputShape` when using this
+ *   layer as othe first layer in a model.
+ *
+ * Output shape:
+ *   Same rank as the input shape, but with the dimensions re-ordered (i.e.,
+ *   permuted) according to the `dims` configuration of this layer.
+ */
+export class Permute extends Layer {
+  static className = 'Permute';
+  readonly dims: number[];
+  private readonly dimsIncludingBatch: number[];
+
+  constructor(config: PermuteLayerConfig) {
+    super(config);
+    if (config.dims == null) {
+      throw new Error(
+          'Required configuration field `dims` is missing during Permute ' +
+          'constructor call.');
+    }
+    if (!Array.isArray(config.dims)) {
+      throw new Error(
+          'Permute constructor requires `dims` to be an Array, but received ' +
+          `${config.dims} instead.`);
+    }
+
+    // Check the validity of the permutation indices.
+    const expectedSortedIndices = range(1, config.dims.length + 1);
+    if (!util.arraysEqual(config.dims.slice().sort(), expectedSortedIndices)) {
+      throw new Error(
+          'Invalid permutation `dims`: ' + JSON.stringify(config.dims) +
+          ' `dims` must contain consecutive integers starting from 1.');
+    }
+
+    this.dims = config.dims;
+    this.dimsIncludingBatch = [0].concat(this.dims);
+    this.inputSpec = [new InputSpec({ndim: this.dims.length + 1})];
+  }
+
+  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+    inputShape = getExactlyOneShape(inputShape);
+    const outputShape = inputShape.slice();
+    this.dims.forEach((dim: number, i: number) => {
+      outputShape[i + 1] = (inputShape as Shape)[dim];
+    });
+    return outputShape;
+  }
+
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+    return transpose(getExactlyOneTensor(inputs), this.dimsIncludingBatch);
+  }
+
+  getConfig(): serialization.ConfigDict {
+    const config = {
+      dims: this.dims,
+    };
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
+  }
+}
+serialization.SerializationMap.register(Permute);
