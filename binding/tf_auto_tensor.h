@@ -18,7 +18,7 @@
 #ifndef TF_NODEJS_TF_AUTO_TENSOR_H_
 #define TF_NODEJS_TF_AUTO_TENSOR_H_
 
-#include "../deps/tensorflow/include/tensorflow/c/c_api.h"
+#include "../deps/include/tensorflow/c/c_api.h"
 
 namespace tfnodejs {
 

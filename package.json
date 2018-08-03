@@ -11,8 +11,8 @@
   "scripts": {
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
     "build": "tsc",
-    "clean-deps": "rm -rf deps/tensorflow/*",
-    "enable-gpu": "yarn clean-deps && ./scripts/download-libtensorflow.sh linux-gpu && yarn",
+    "clean-deps": "rm -rf deps",
+    "enable-gpu": "yarn clean-deps && node scripts/get_libtensorflow.js linux-gpu && yarn",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "build-npm": "./scripts/build-npm.sh",
     "lint": "tslint -p . -t verbose",
@@ -36,7 +36,8 @@
     "yalc": "~1.0.0-pre.21"
   },
   "dependencies": {
-    "bindings": "~1.3.0"
+    "bindings": "~1.3.0",
+    "tar": "^4.4.6"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "~0.12.8"
