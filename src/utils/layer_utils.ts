@@ -76,6 +76,17 @@ export function printSummary(
 
   // tslint:disable-next-line:no-any
   (model as any).checkTrainableWeightsConsistency();
+
+  const trainableCount = countTrainableParams(model);
+  const nonTrainableCount = countParamsInWeights(model.nonTrainableWeights);
+
+  printFn(`Total params: ${trainableCount + nonTrainableCount}`);
+  printFn(`Trainable params: ${trainableCount}`);
+  printFn(`Non-trainable params: ${nonTrainableCount}`);
+  printFn('_'.repeat(lineLength));
+}
+
+function countTrainableParams(model: Container): number {
   let trainableCount: number;
   // tslint:disable:no-any
   if ((model as any).collectedTrainableWeights != null) {
@@ -85,12 +96,7 @@ export function printSummary(
     trainableCount = countParamsInWeights(model.trainableWeights);
   }
   // tslint:enable:no-any
-  const nonTrainableCount = countParamsInWeights(model.nonTrainableWeights);
-
-  printFn(`Total params: ${trainableCount + nonTrainableCount}`);
-  printFn(`Trainable params: ${trainableCount}`);
-  printFn(`Non-trainable params: ${nonTrainableCount}`);
-  printFn('_'.repeat(lineLength));
+  return trainableCount;
 }
 
 function isModelSequentialLike(model: Container): boolean {
