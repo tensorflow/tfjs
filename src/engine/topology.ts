@@ -10,7 +10,6 @@
 
 /* Original source: keras/engine/topology.py */
 
-// tslint:disable:max-line-length
 import {DataType, Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {getNextUniqueTensorId, getUid} from '../backend/state';
@@ -24,7 +23,6 @@ import * as generic_utils from '../utils/generic_utils';
 import * as types_utils from '../utils/types_utils';
 import * as variable_utils from '../utils/variable_utils';
 import {batchGetValue, batchSetValue, LayerVariable} from '../variables';
-// tslint:enable:max-line-length
 
 // TODO(michaelterry): This is a stub until it's defined.
 export type Op = (x: LayerVariable) => LayerVariable;

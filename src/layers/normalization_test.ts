@@ -12,7 +12,6 @@
  * Unit tests for normalization layers.
  */
 
-// tslint:disable:max-line-length
 import {onesLike, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
@@ -20,7 +19,6 @@ import {SymbolicTensor} from '../engine/topology';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 import {batchNormalization, normalizeBatchInTraining} from './normalization';
 
-// tslint:enable:max-line-length
 
 describeMathCPUAndGPU('normalizeBatchInTraining', () => {
   // The reference values for assertion below can be obtained with Python code

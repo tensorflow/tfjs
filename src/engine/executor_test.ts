@@ -12,7 +12,6 @@
  * Unit tests for executor_test.ts.
  */
 
-// tslint:disable:max-line-length
 import {ones, Tensor, tensor1d, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';

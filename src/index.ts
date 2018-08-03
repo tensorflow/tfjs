@@ -10,7 +10,6 @@
 
 // This file lists all exports of TensorFlow.js Layers
 
-// tslint:disable:max-line-length
 import * as constraints from './exports_constraints';
 import * as initializers from './exports_initializers';
 import * as layers from './exports_layers';
@@ -21,7 +20,6 @@ export {CallbackList, CustomCallback, CustomCallbackConfig, History} from './bas
 export {Callback} from './callbacks';
 export {SymbolicTensor} from './engine/topology';
 export {Model, ModelCompileConfig, ModelEvaluateConfig, ModelFitConfig} from './engine/training';
-// tslint:enable:max-line-length
 
 export {input, loadModel, model, sequential} from './exports';
 // tslint:disable-next-line:max-line-length

@@ -10,7 +10,6 @@
 
 /* Original source: keras/engine/topology.py */
 
-// tslint:disable:max-line-length
 import {Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {getUid} from '../backend/state';
@@ -25,7 +24,6 @@ import {version as layersVersion} from '../version';
 
 import {InputLayer} from './input_layer';
 import {Layer, Node, SymbolicTensor} from './topology';
-// tslint:enable:max-line-length
 
 /**
  * Converts layers weights to a format suitable for TensorFlow.js Layers.

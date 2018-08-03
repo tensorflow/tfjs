@@ -12,7 +12,6 @@
  * Exported functions.
  */
 
-// tslint:disable:max-line-length
 import {io} from '@tensorflow/tfjs-core';
 
 import {ContainerConfig} from './engine/container';
@@ -21,7 +20,6 @@ import {SymbolicTensor} from './engine/topology';
 import {Model} from './engine/training';
 import {loadModelInternal, Sequential, SequentialConfig} from './models';
 
-// tslint:enable:max-line-length
 
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable

@@ -12,7 +12,6 @@
  * Unit tests for convolutional.ts.
  */
 
-// tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
 import {scalar, Tensor, tensor1d, tensor3d, Tensor4D, tensor4d, util} from '@tensorflow/tfjs-core';
 
@@ -24,7 +23,6 @@ import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsCl
 
 import {conv1d, conv1dWithBias, conv2d, conv2dWithBias} from './convolutional';
 
-// tslint:enable:max-line-length
 
 describeMathCPUAndGPU('conv1dWithBias', () => {
   const xLength4Data = [10, 20, 40, 80];

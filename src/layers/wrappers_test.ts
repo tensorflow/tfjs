@@ -12,7 +12,6 @@
  * Unit tests for wrapper layers.
  */
 
-// tslint:disable:max-line-length
 import {ones, scalar, serialization, Tensor, tensor2d, Tensor3D, tensor3d} from '@tensorflow/tfjs-core';
 
 import {Layer, SymbolicTensor} from '../engine/topology';
@@ -26,7 +25,6 @@ import {RNN, SimpleRNN} from './recurrent';
 import {deserialize} from './serialization';
 import {Bidirectional, BidirectionalMergeMode, checkBidirectionalMergeMode, TimeDistributed, VALID_BIDIRECTIONAL_MERGE_MODES} from './wrappers';
 
-// tslint:enable:max-line-length
 
 describeMathCPU('TimeDistributed Layer: Symbolic', () => {
   it('3D input: Dense', () => {

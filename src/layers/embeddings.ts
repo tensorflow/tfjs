@@ -15,7 +15,6 @@
  */
 import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
-// tslint:disable:max-line-length
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {Layer, LayerConfig} from '../engine/topology';
@@ -27,7 +26,6 @@ import * as generic_utils from '../utils/generic_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
-// tslint:enable:max-line-length
 
 export interface EmbeddingLayerConfig extends LayerConfig {
   /**

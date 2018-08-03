@@ -13,7 +13,6 @@
 // tfjs-layers's internal Config TS-Centric format and PyKeras's
 // serialized Python Config format.
 
-// tslint:disable:max-line-length
 import {serialization} from '@tensorflow/tfjs-core';
 
 import {JsonValue} from '../types';

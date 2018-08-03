@@ -12,7 +12,6 @@
  * Normalization layers.
  */
 
-// tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 
@@ -28,7 +27,6 @@ import * as math_utils from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
-// tslint:enable:max-line-length
 
 /**
  * Applies batch normalization on x given mean, var, beta and gamma.

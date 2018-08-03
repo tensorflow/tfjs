@@ -12,7 +12,6 @@
  * Unit tests for convolutional_depthwise.ts.
  */
 
-// tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
 import {Tensor, tensor4d, Tensor4D} from '@tensorflow/tfjs-core';
 
@@ -24,7 +23,6 @@ import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../uti
 
 import {depthwiseConv2d} from './convolutional_depthwise';
 
-// tslint:enable:max-line-length
 describeMathCPUAndGPU('depthwiseConv2d', () => {
   const x4by4Data = [[[
     [10, 30, 50, 70], [20, 40, 60, 80], [-10, -30, -50, -70],

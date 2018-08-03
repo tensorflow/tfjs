@@ -7,7 +7,6 @@
  * https://opensource.org/licenses/MIT.
  * =============================================================================
  */
-// tslint:disable:max-line-length
 
 import {InputLayer, InputLayerConfig} from './engine/input_layer';
 import {Layer, LayerConfig} from './engine/topology';
@@ -25,7 +24,6 @@ import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCe
 import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, Wrapper, WrapperLayerConfig} from './layers/wrappers';
 
 
-// tslint:enable:max-line-length
 
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable

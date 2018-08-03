@@ -12,7 +12,6 @@
  * Unit tests for callbacks.
  */
 
-// tslint:disable:max-line-length
 import {scalar} from '@tensorflow/tfjs-core';
 
 import {BaseLogger, CallbackList, History} from './base_callbacks';
@@ -21,7 +20,6 @@ import {Model} from './engine/training';
 import {disposeTensorsInLogs, resolveScalarsInLogs, UnresolvedLogs} from './logs';
 import {describeMathCPUAndGPU} from './utils/test_utils';
 
-// tslint:enable:max-line-length
 
 describe('BaseLogger Callback', () => {
   it('Records and averages losses in an epoch', async done => {

@@ -10,7 +10,6 @@
 
 /* Original source keras/models.py */
 
-// tslint:disable:max-line-length
 import {io, Scalar, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import {getUid} from './backend/state';
@@ -25,7 +24,6 @@ import {JsonDict} from './types';
 import * as generic_utils from './utils/generic_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
 import {getExactlyOneShape} from './utils/types_utils';
-// tslint:enable:max-line-length
 
 /**
  * Parses a JSON model configuration file and returns a model instance.
@@ -118,7 +116,6 @@ export interface ModelPredictConfig {
   verbose?: boolean;
 }
 
-// tslint:disable:max-line-length
 /**
  * Load a model, including its topology and optionally weights.  See the
  * Tutorial named "How to import a Keras Model" for usage examples.
@@ -198,7 +195,7 @@ export interface ModelPredictConfig {
  *
  * @returns A `Promise` of `Model`, with the topology and weights loaded.
  */
-// tslint:enable:max-line-length
+
 export async function loadModelInternal(pathOrIOHandler: string|
                                         io.IOHandler): Promise<Model> {
   if (typeof pathOrIOHandler === 'string') {

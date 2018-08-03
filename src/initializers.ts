@@ -8,7 +8,6 @@
  * =============================================================================
  */
 
-// tslint:disable:max-line-length
 import {DataType, eye, linalg, mul, ones, randomUniform, scalar, Scalar, serialization, Tensor, Tensor2D, tidy, truncatedNormal, zeros} from '@tensorflow/tfjs-core';
 
 import {getScalar} from './backend/state';
@@ -19,7 +18,6 @@ import {Shape} from './types';
 import {checkStringTypeUnionValue, deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
 import {arrayProd} from './utils/math_utils';
 
-// tslint:enable:max-line-length
 
 /** @docinline */
 export type FanMode = 'fanIn'|'fanOut'|'fanAvg';

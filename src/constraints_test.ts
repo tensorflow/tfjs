@@ -10,14 +10,12 @@
 
 /* Unit tests for constraints */
 
-// tslint:disable:max-line-length
 import {serialization, Tensor1D, tensor1d} from '@tensorflow/tfjs-core';
 
 import {ConstraintIdentifier, deserializeConstraint, getConstraint, serializeConstraint} from './constraints';
 import * as tfl from './index';
 import {describeMathCPU, expectNoLeakedTensors, expectTensorsClose} from './utils/test_utils';
 
-// tslint:enable:max-line-length
 
 describeMathCPU('Built-in Constraints', () => {
   let initVals: Tensor1D;

@@ -12,10 +12,8 @@
  * Unit tests for common.ts.
  */
 
-// tslint:disable:max-line-length
 import {checkDataFormat, checkPaddingMode, checkPoolMode, getUniqueTensorName, isValidTensorName, VALID_DATA_FORMAT_VALUES, VALID_PADDING_MODE_VALUES, VALID_POOL_MODE_VALUES} from './common';
 
-// tslint:enable:max-line-length
 
 describe('checkDataFormat', () => {
   it('Valid values', () => {

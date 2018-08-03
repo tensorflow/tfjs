@@ -12,7 +12,6 @@
  * Unit tests for embedding.ts.
  */
 
-// tslint:disable:max-line-length
 import {DataType, Tensor, tensor2d, tensor3d, test_util} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
@@ -20,7 +19,6 @@ import {describeMathCPU} from '../utils/test_utils';
 
 const expectArraysClose = test_util.expectArraysClose;
 
-// tslint:enable:max-line-length
 
 describeMathCPU('Embedding Layers: Symbolic 1D, 2D & 3D', () => {
   const inputShapes = [[1], [5], [1, 20], [2, 3, 4]];
