@@ -14,7 +14,7 @@ import {input} from './exports';
 import {ELU, ELULayerConfig, LeakyReLU, LeakyReLULayerConfig, Softmax, SoftmaxLayerConfig, ThresholdedReLU, ThresholdedReLULayerConfig} from './layers/advanced_activations';
 import {Conv1D, Conv2D, Conv2DTranspose, ConvLayerConfig, Cropping2D, Cropping2DLayerConfig, SeparableConv2D, SeparableConvLayerConfig, UpSampling2D, UpSampling2DLayerConfig} from './layers/convolutional';
 import {DepthwiseConv2D, DepthwiseConv2DLayerConfig} from './layers/convolutional_depthwise';
-import {Activation, ActivationLayerConfig, Dense, DenseLayerConfig, Dropout, DropoutLayerConfig, Flatten, RepeatVector, RepeatVectorLayerConfig, Reshape, ReshapeLayerConfig} from './layers/core';
+import {Activation, ActivationLayerConfig, Dense, DenseLayerConfig, Dropout, DropoutLayerConfig, Flatten, Permute, PermuteLayerConfig, RepeatVector, RepeatVectorLayerConfig, Reshape, ReshapeLayerConfig} from './layers/core';
 import {Embedding, EmbeddingLayerConfig} from './layers/embeddings';
 import {Add, Average, Concatenate, ConcatenateLayerConfig, Maximum, Minimum, Multiply} from './layers/merge';
 import {BatchNormalization, BatchNormalizationLayerConfig} from './layers/normalization';
@@ -271,6 +271,19 @@ export function repeatVector(config: RepeatVectorLayerConfig): Layer {
  */
 export function reshape(config: ReshapeLayerConfig): Layer {
   return new Reshape(config);
+}
+
+/**
+ * @doc{
+ *   heading: 'Layers',
+ *   subheading: 'Basic',
+ *   namespace: 'layers',
+ *   useDocsFrom: 'Permute',
+ *   configParamIndices: [0]
+ * }
+ */
+export function permute(config: PermuteLayerConfig): Layer {
+  return new Permute(config);
 }
 
 /**

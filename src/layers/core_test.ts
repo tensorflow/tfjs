@@ -23,8 +23,6 @@ import {arrayProd} from '../utils/math_utils';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {Activation, RepeatVector, Reshape} from './core';
-
 describe('Dropout Layer: Symbolic', () => {
   const dropoutRates = [0, 0.5];
   const symbolicInputs = [
@@ -375,7 +373,7 @@ describeMathCPUAndGPU('Activation Layer: Tensor', () => {
 
   it('linear', () => {
     const x = mul(scalar(10), ones(inputShape));
-    const layer = new Activation({activation: 'linear'});
+    const layer = tfl.layers.activation({activation: 'linear'});
     const output = layer.apply(x) as Tensor;
     expectTensorsClose(output, x);
   });
@@ -383,7 +381,7 @@ describeMathCPUAndGPU('Activation Layer: Tensor', () => {
   it('relu', () => {
     const x = mul(scalar(-5), ones(inputShape));
     const expectedValue = zeros(inputShape);
-    const layer = new Activation({activation: 'relu'});
+    const layer = tfl.layers.activation({activation: 'relu'});
     const output = layer.apply(x) as Tensor;
     expectTensorsClose(output, expectedValue);
   });
@@ -391,9 +389,9 @@ describeMathCPUAndGPU('Activation Layer: Tensor', () => {
   it('sigmoid', () => {
     const val = 10;
     const x = mul(scalar(val), ones(inputShape));
-    const expectedValue = mul(
-        scalar(1 / (1 + Math.exp(-1 * val))), ones(inputShape));
-    const layer = new Activation({activation: 'sigmoid'});
+    const expectedValue =
+        mul(scalar(1 / (1 + Math.exp(-1 * val))), ones(inputShape));
+    const layer = tfl.layers.activation({activation: 'sigmoid'});
     const output = layer.apply(x) as Tensor;
     expectTensorsClose(output, expectedValue);
   });
@@ -401,7 +399,7 @@ describeMathCPUAndGPU('Activation Layer: Tensor', () => {
   it('softmax', () => {
     const x = mul(scalar(10), ones(inputShape));
     const expectedValue = ones(inputShape);
-    const layer = new Activation({activation: 'softmax'});
+    const layer = tfl.layers.activation({activation: 'softmax'});
     const output = layer.apply(x) as Tensor;
     expectTensorsClose(output, expectedValue);
   });
@@ -420,7 +418,7 @@ describe('RepeatVector Layer: Symbolic', () => {
   it('All dimensions known.', () => {
     const symbolicInput =
         new tfl.SymbolicTensor('float32', [3, 4], null, [], null);
-    const repeatVectorLayer = new RepeatVector({n: 2});
+    const repeatVectorLayer = tfl.layers.repeatVector({n: 2});
     const output = repeatVectorLayer.apply(symbolicInput) as tfl.SymbolicTensor;
     expect(output.shape).toEqual([3, 2, 4]);
     expect(output.sourceLayer).toEqual(repeatVectorLayer);
@@ -430,7 +428,7 @@ describe('RepeatVector Layer: Symbolic', () => {
 
 describeMathCPUAndGPU('RepeatVector Layer: Tensor', () => {
   it('With 2D tensor', () => {
-    const repeatVectorLayer = new RepeatVector({n: 3});
+    const repeatVectorLayer = tfl.layers.repeatVector({n: 3});
     const x = tensor2d([[10, 20], [30, 40]], [2, 2]);
     const expectedOutput = tensor3d(
         [[[10, 20], [10, 20], [10, 20]], [[30, 40], [30, 40], [30, 40]]],
@@ -445,7 +443,7 @@ describe('Reshape Layer: Symbolic', () => {
     const symbolicInput =
         new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null);
     const targetShape = [5, 8];
-    const flattenLayer = new Reshape({targetShape});
+    const flattenLayer = tfl.layers.reshape({targetShape});
     const output = flattenLayer.apply(symbolicInput) as tfl.SymbolicTensor;
     expect(output.shape).toEqual([12, 5, 8]);
     expect(output.sourceLayer).toEqual(flattenLayer);
@@ -456,7 +454,7 @@ describe('Reshape Layer: Symbolic', () => {
     const symbolicInput =
         new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null);
     const targetShape = [5, null];
-    const flattenLayer = new Reshape({targetShape});
+    const flattenLayer = tfl.layers.reshape({targetShape});
     const output = flattenLayer.apply(symbolicInput) as tfl.SymbolicTensor;
     expect(output.shape).toEqual([12, 5, 8]);
     expect(output.sourceLayer).toEqual(flattenLayer);
@@ -467,7 +465,7 @@ describe('Reshape Layer: Symbolic', () => {
     const symbolicInput =
         new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null);
     const targetShape = [8, 8];
-    const flattenLayer = new Reshape({targetShape});
+    const flattenLayer = tfl.layers.reshape({targetShape});
     expect(() => flattenLayer.apply(symbolicInput))
         .toThrowError(/Total size of new array must be unchanged/);
   });
@@ -476,7 +474,7 @@ describe('Reshape Layer: Symbolic', () => {
     const symbolicInput =
         new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null);
     const targetShape: number[] = [null, null];
-    const flattenLayer = new Reshape({targetShape});
+    const flattenLayer = tfl.layers.reshape({targetShape});
     expect(() => flattenLayer.apply(symbolicInput))
         .toThrowError(/Can only specifiy one unknown dimension/);
   });
@@ -485,7 +483,7 @@ describe('Reshape Layer: Symbolic', () => {
     const symbolicInput =
         new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null);
     const targetShape = [7, null];
-    const flattenLayer = new Reshape({targetShape});
+    const flattenLayer = tfl.layers.reshape({targetShape});
     expect(() => flattenLayer.apply(symbolicInput))
         .toThrowError(/Total size of new array must be unchanged/);
   });
@@ -502,7 +500,7 @@ describe('Reshape Layer: Symbolic', () => {
 
 describeMathCPUAndGPU('Reshape Layer: Tensor', () => {
   it('Reshape Tensor3D to Tensor3D: All dimensions known', () => {
-    const reshapeLayer = new Reshape({targetShape: [4, 1]});
+    const reshapeLayer = tfl.layers.reshape({targetShape: [4, 1]});
     const x =
         tensor3d([[[10, 20], [30, 40]], [[-10, -20], [-30, -40]]], [2, 2, 2]);
     const expectedOutput =
@@ -511,7 +509,7 @@ describeMathCPUAndGPU('Reshape Layer: Tensor', () => {
   });
 
   it('Reshape Tensor3D to Tensor2D: All dimensions known', () => {
-    const reshapeLayer = new Reshape({targetShape: [4]});
+    const reshapeLayer = tfl.layers.reshape({targetShape: [4]});
     const x =
         tensor3d([[[10, 20], [30, 40]], [[-10, -20], [-30, -40]]], [2, 2, 2]);
     const expectedOutput =
@@ -520,7 +518,7 @@ describeMathCPUAndGPU('Reshape Layer: Tensor', () => {
   });
 
   it('Reshape Tensor2D to Tensor3D: All dimensions known', () => {
-    const reshapeLayer = new Reshape({targetShape: [3, 2]});
+    const reshapeLayer = tfl.layers.reshape({targetShape: [3, 2]});
     const x = tensor2d(
         [[10, 20, 30, 40, 50, 60], [-10, -20, -30, -40, -50, -60]], [2, 6]);
     const expectedOutput = tensor3d(
@@ -531,7 +529,8 @@ describeMathCPUAndGPU('Reshape Layer: Tensor', () => {
   for (const unknownDim of [-1, null]) {
     it(`Reshape Tensor2D to Tensor3D: Last dimension unknown as ${unknownDim}`,
        () => {
-         const reshapeLayer = new Reshape({targetShape: [3, unknownDim]});
+         const reshapeLayer =
+             tfl.layers.reshape({targetShape: [3, unknownDim]});
          const x = tensor2d(
              [[10, 20, 30, 40, 50, 60], [-10, -20, -30, -40, -50, -60]],
              [2, 6]);
@@ -543,7 +542,8 @@ describeMathCPUAndGPU('Reshape Layer: Tensor', () => {
 
     it(`Reshape Tensor2D to Tensor3D: First dimension unknown as ${unknownDim}`,
        () => {
-         const reshapeLayer = new Reshape({targetShape: [unknownDim, 3]});
+         const reshapeLayer =
+             tfl.layers.reshape({targetShape: [unknownDim, 3]});
          const x = tensor2d(
              [[10, 20, 30, 40, 50, 60], [-10, -20, -30, -40, -50, -60]],
              [2, 6]);
@@ -555,7 +555,7 @@ describeMathCPUAndGPU('Reshape Layer: Tensor', () => {
   }
 
   it('Known but incompatible dimensions', () => {
-    const reshapeLayer = new Reshape({targetShape: [3, 3]});
+    const reshapeLayer = tfl.layers.reshape({targetShape: [3, 3]});
     const x =
         tensor3d([[[10, 20], [30, 40]], [[-10, -20], [-30, -40]]], [2, 2, 2]);
     expect(() => reshapeLayer.apply(x, null))
@@ -563,7 +563,7 @@ describeMathCPUAndGPU('Reshape Layer: Tensor', () => {
   });
 
   it('Unknown and incompatible dimensions', () => {
-    const reshapeLayer = new Reshape({targetShape: [3, null]});
+    const reshapeLayer = tfl.layers.reshape({targetShape: [3, null]});
     const x =
         tensor3d([[[10, 20], [30, 40]], [[-10, -20], [-30, -40]]], [2, 2, 2]);
     expect(() => reshapeLayer.apply(x, null))
@@ -571,10 +571,91 @@ describeMathCPUAndGPU('Reshape Layer: Tensor', () => {
   });
 
   it('More than one unknown dimension.', () => {
-    const reshapeLayer = new Reshape({targetShape: [null, null]});
+    const reshapeLayer = tfl.layers.reshape({targetShape: [null, null]});
     const x =
         tensor3d([[[10, 20], [30, 40]], [[-10, -20], [-30, -40]]], [2, 2, 2]);
     expect(() => reshapeLayer.apply(x, null))
         .toThrowError(/Can only specifiy one unknown dimension/);
+  });
+});
+
+describe('Permute Layer: Symbolic', () => {
+  it('1D Trivial', () => {
+    const symbolicInput =
+        new tfl.SymbolicTensor('float32', [null, 4], null, [], null);
+    const dims = [1];
+    const permuteLayer = tfl.layers.permute({dims});
+    const output = permuteLayer.apply(symbolicInput) as tfl.SymbolicTensor;
+    expect(output.shape).toEqual([null, 4]);
+    expect(output.sourceLayer).toEqual(permuteLayer);
+    expect(output.inputs).toEqual([symbolicInput]);
+  });
+
+  it('2D', () => {
+    const symbolicInput =
+        new tfl.SymbolicTensor('float32', [null, 4, 6], null, [], null);
+    const dims = [2, 1];
+    const permuteLayer = tfl.layers.permute({dims});
+    const output = permuteLayer.apply(symbolicInput) as tfl.SymbolicTensor;
+    expect(output.shape).toEqual([null, 6, 4]);
+    expect(output.sourceLayer).toEqual(permuteLayer);
+    expect(output.inputs).toEqual([symbolicInput]);
+  });
+
+  it('3D', () => {
+    const symbolicInput =
+        new tfl.SymbolicTensor('float32', [null, 4, 6, 8], null, [], null);
+    const dims = [3, 1, 2];
+    const permuteLayer = tfl.layers.permute({dims});
+    const output = permuteLayer.apply(symbolicInput) as tfl.SymbolicTensor;
+    expect(output.shape).toEqual([null, 8, 4, 6]);
+    expect(output.sourceLayer).toEqual(permuteLayer);
+    expect(output.inputs).toEqual([symbolicInput]);
+  });
+
+  it('Missing dims config leads to Error', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tfl.layers.permute({} as any)).toThrowError(/dims.* missing/);
+  });
+
+  it('Non-Array dims config leads to Error', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tfl.layers.permute({dims: 1} as any))
+        .toThrowError(/requires.*dims.* to be an Array/);
+  });
+
+  it('Non-consecutive dims values leads to Error', () => {
+    expect(() => tfl.layers.permute({dims: [1, 3]}))
+        .toThrowError(/Invalid permutation .*dims/);
+  });
+
+  it('Repeating dims values leads to Error', () => {
+    expect(() => tfl.layers.permute({dims: [1, 1, 3]}))
+        .toThrowError(/Invalid permutation .*dims/);
+  });
+
+  it('Dims values containing 0 leads to Error', () => {
+    expect(() => tfl.layers.permute({dims: [0, 1, 2]}))
+        .toThrowError(/Invalid permutation .*dims/);
+  });
+
+  it('Serialization round-trip', () => {
+    const layer = tfl.layers.permute({dims: [1, 3, 2]});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.permute(tsConfig);
+    expect(layerPrime.getConfig().dims).toEqual([1, 3, 2]);
+  });
+});
+
+describeMathCPUAndGPU('Permute Layer: Tensor', () => {
+  it('2D', () => {
+    const permuteLayer = tfl.layers.permute({dims: [2, 1]});
+    const x =
+        tensor3d([[[10, 20], [30, 40]], [[-10, -20], [-30, -40]]], [2, 2, 2]);
+    const expectedOutput =
+        tensor3d([[[10, 30], [20, 40]], [[-10, -30], [-20, -40]]], [2, 2, 2]);
+    expectTensorsClose(permuteLayer.apply(x) as Tensor, expectedOutput);
   });
 });
