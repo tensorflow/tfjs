@@ -24,7 +24,7 @@
 #include <set>
 #include <string>
 #include <vector>
-#include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
+#include "../deps/include/tensorflow/c/eager/c_api.h"
 #include "tf_auto_status.h"
 #include "tf_auto_tensor.h"
 #include "utils.h"

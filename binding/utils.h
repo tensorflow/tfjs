@@ -23,7 +23,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <vector>
-#include "../deps/tensorflow/include/tensorflow/c/c_api.h"
+#include "../deps/include/tensorflow/c/c_api.h"
 #include "tf_auto_status.h"
 #include "tfjs_backend.h"
 

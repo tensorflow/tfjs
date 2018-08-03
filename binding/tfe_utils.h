@@ -19,7 +19,7 @@
 #define TF_NODEJS_TFE_UTILS_H_
 
 #include <node_api.h>
-#include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
+#include "../deps/include/tensorflow/c/eager/c_api.h"
 
 namespace tfnodejs {
 
