@@ -56,6 +56,47 @@
           }
         }
       ],
+      [
+        'OS=="win"', {
+          'defines': ['COMPILER_MSVC'],
+          'libraries': ['tensorflow'],
+          'library_dirs' : ['<(INTERMEDIATE_DIR)'],
+          'variables': {
+            'tensorflow-library-target': 'windows'
+          },
+          'actions': [
+            {
+              'action_name': 'generate_def',
+              'inputs': [
+                '<(module_root_dir)/scripts/generate_defs.js',
+                '<@(tensorflow_headers)'
+              ],
+              'outputs': [
+                '<(INTERMEDIATE_DIR)/tensorflow.def'
+              ],
+              'action': [
+                'cmd',
+                '/c node <@(_inputs) > <@(_outputs)'
+              ]
+            },
+            {
+              'action_name': 'build-tensorflow-lib',
+              'inputs': [
+                '<(INTERMEDIATE_DIR)/tensorflow.def'
+              ],
+              'outputs': [
+                '<(INTERMEDIATE_DIR)/tensorflow.lib'
+              ],
+              'action': [
+                'lib',
+                '/def:<@(_inputs)',
+                '/out:<@(_outputs)',
+                '/machine:<@(target_arch)'
+              ]
+            },
+          ],
+        },
+      ]
     ],
     'actions': [
       {
