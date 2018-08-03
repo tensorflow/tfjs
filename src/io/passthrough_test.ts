@@ -81,7 +81,8 @@ describeWithFlags('Passthrough Saver', BROWSER_ENVS, () => {
     const testStartDate = new Date();
     let savedArtifacts: tf.io.ModelArtifacts = null;
 
-    function saveHandler(artifacts: tf.io.ModelArtifacts): tf.io.SaveResult {
+    async function saveHandler(artifacts: tf.io.ModelArtifacts):
+        Promise<tf.io.SaveResult> {
       savedArtifacts = artifacts;
       return {
         modelArtifactsInfo: {

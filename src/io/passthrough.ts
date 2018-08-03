@@ -44,8 +44,8 @@ class PassthroughLoader implements IOHandler {
 
 class PassthroughSaver implements IOHandler {
   constructor(
-      private readonly saveHandler: (artifacts: ModelArtifacts) => SaveResult) {
-  }
+      private readonly saveHandler:
+          (artifacts: ModelArtifacts) => Promise<SaveResult>) {}
 
   async save(modelArtifacts: ModelArtifacts) {
     return this.saveHandler(modelArtifacts);
@@ -94,6 +94,7 @@ export function fromMemory(
  *     `SaveResult`.
  */
 export function withSaveHandler(
-    saveHandler: (artifacts: ModelArtifacts) => SaveResult): IOHandler {
+    saveHandler: (artifacts: ModelArtifacts) =>
+        Promise<SaveResult>): IOHandler {
   return new PassthroughSaver(saveHandler);
 }
