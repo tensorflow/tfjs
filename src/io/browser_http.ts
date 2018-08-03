@@ -28,18 +28,24 @@ import {IOHandler, ModelArtifacts, SaveResult, WeightsManifestConfig, WeightsMan
 import {loadWeightsAsArrayBuffer} from './weights_loader';
 
 export class BrowserHTTPRequest implements IOHandler {
-  protected readonly path: string;
+  protected readonly path: string|string[];
   protected readonly requestInit: RequestInit;
 
   readonly DEFAULT_METHOD = 'POST';
 
   static readonly URL_SCHEMES = ['http://', 'https://'];
 
-  constructor(path: string, requestInit?: RequestInit) {
+  constructor(path: string|string[], requestInit?: RequestInit) {
     if (typeof fetch === 'undefined') {
       throw new Error(
           // tslint:disable-next-line:max-line-length
           'browserHTTPRequest is not supported outside the web browser without a fetch polyfill.');
+    }
+
+    if (Array.isArray(path)) {
+      throw new Error(
+          `Handling of multiple ${path.length} HTTP URLs (e.g., ` +
+          `for loading FrozenModel) is not implemented yet.`);
     }
 
     assert(
@@ -89,7 +95,7 @@ export class BrowserHTTPRequest implements IOHandler {
           'model.weights.bin');
     }
 
-    const response = await fetch(this.path, init);
+    const response = await fetch(this.path as string, init);
 
     if (response.status === 200) {
       return {
@@ -112,7 +118,8 @@ export class BrowserHTTPRequest implements IOHandler {
    * @returns The loaded model artifacts (if loading succeeds).
    */
   async load(): Promise<ModelArtifacts> {
-    const modelConfigRequest = await fetch(this.path, this.requestInit);
+    const modelConfigRequest =
+        await fetch(this.path as string, this.requestInit);
     const modelConfig = await modelConfigRequest.json();
     const modelTopology = modelConfig['modelTopology'];
     const weightsManifest = modelConfig['weightsManifest'];
@@ -134,7 +141,8 @@ export class BrowserHTTPRequest implements IOHandler {
         weightSpecs.push(...entry.weights);
       }
 
-      let pathPrefix = this.path.substring(0, this.path.lastIndexOf('/'));
+      let pathPrefix =
+          (this.path as string).substring(0, this.path.lastIndexOf('/'));
       if (!pathPrefix.endsWith('/')) {
         pathPrefix = pathPrefix + '/';
       }
@@ -291,7 +299,10 @@ IORouterRegistry.registerLoadRouter(httpRequestRouter);
  *   main()
  * ```
  *
- * @param path URL path. Can be an absolute HTTP path (e.g.,
+ * @param path A single URL path or an Array of URL  paths.
+ *   Currently, only a single URL path is supported. Array input is reserved
+ *   for future development.
+ *   Can be an absolute HTTP path (e.g.,
  *   'http://localhost:8000/model-upload)') or a relative path (e.g.,
  *   './model-upload').
  * @param requestInit Request configurations to be used when sending
@@ -306,6 +317,6 @@ IORouterRegistry.registerLoadRouter(httpRequestRouter);
  * @returns An instance of `IOHandler`.
  */
 export function browserHTTPRequest(
-    path: string, requestInit?: RequestInit): IOHandler {
+    path: string|string[], requestInit?: RequestInit): IOHandler {
   return new BrowserHTTPRequest(path, requestInit);
 }
