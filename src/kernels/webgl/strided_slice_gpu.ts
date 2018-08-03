@@ -22,25 +22,38 @@ export class StridedSliceProgram implements GPGPUProgram {
   variableNames = ['x'];
   outputShape: number[];
   userCode: string;
-  rank: number;
 
-  constructor(begin: number[], strides: number[], shape: number[]) {
+  constructor(
+      begin: number[], strides: number[], size: number[],
+      shrinkAxis: number[]) {
+    const shape = size.filter((v, index) => shrinkAxis.indexOf(index) === -1);
     this.outputShape = shape;
-    this.rank = shape.length;
-    const dtype = getCoordsDataType(this.rank);
+    const rank = size.length;
+    const inputDtype = getCoordsDataType(size.length);
+    const dtype = getCoordsDataType(shape.length);
 
     let newCoords = '';
-    if (this.rank === 1) {
+    if (rank === 1) {
       newCoords = 'coords * strides + begin';
     } else {
+      let outputAxis = 0;
       newCoords =
-          shape.map((_, i) => `coords[${i}] * strides[${i}] + begin[${i}]`)
+          size.map((_, i) => {
+                if (shrinkAxis.indexOf(i) === -1) {
+                  outputAxis++;
+                  return shape.length === 1 ?
+                      `coords * strides[${i}] + begin[${i}]` :
+                      `coords[${outputAxis - 1}] * strides[${i}] + begin[${i}]`;
+                } else {
+                  return `begin[${i}]`;
+                }
+              })
               .join(',');
     }
 
     this.userCode = `
-      ${dtype} begin = ${dtype}(${begin});
-      ${dtype} strides = ${dtype}(${strides});
+      ${inputDtype} begin = ${inputDtype}(${begin});
+      ${inputDtype} strides = ${inputDtype}(${strides});
 
       void main() {
         ${dtype} coords = getOutputCoords();
