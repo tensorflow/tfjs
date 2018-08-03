@@ -16,35 +16,47 @@
  */
 const https = require('https');
 const fs = require('fs');
-const path = require('path');
+let path = require('path');
 const tar = require('tar');
 const util = require('util');
+const zip = require('adm-zip');
 
+const copy = util.promisify(fs.copyFile);
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
 const symlink = util.promisify(fs.symlink);
+const unlink = util.promisify(fs.unlink);
 
 const BASE_URI = 'https://storage.googleapis.com/tf-builds/';
 const CPU_DARWIN = 'libtensorflow_r1_9_darwin.tar.gz';
 const CPU_LINUX = 'libtensorflow_r1_9_linux_cpu.tar.gz';
 const GPU_LINUX = 'libtensorflow_r1_9_linux_gpu.tar.gz';
+const CPU_WINDOWS = 'libtensorflow_r1_9_windows_cpu.zip';
 
 const platform = process.argv[2];
-const targetDir = process.argv[3];
+let targetDir = process.argv[3];
 
 // TODO(kreeger): Handle windows (dll) support:
 // https://github.com/tensorflow/tfjs/issues/549
 let targetUri = BASE_URI;
-let libName = 'libtensorflow';
+let libName = 'libtensorflow.so';
 if (platform === 'linux-cpu') {
   targetUri += CPU_LINUX;
-  libName += '.so';
 } else if (platform === 'linux-gpu') {
   targetUri += GPU_LINUX;
-  libName += '.so';
 } else if (platform === 'darwin') {
   targetUri += CPU_DARWIN;
-  libName += '.so';
+} else if (platform.endsWith('windows')) {
+  targetUri += CPU_WINDOWS;
+  libName = 'tensorflow.dll';
+
+  // Some windows machines contain a trailing " char:
+  if (targetDir.endsWith('"')) {
+    targetDir = targetDir.substr(0, targetDir.length - 1);
+  }
+
+  // Use windows path
+  path = path.win32;
 } else {
   throw new Error(`Unsupported platform: ${platform}`);
 }
@@ -64,10 +76,17 @@ async function ensureDir(dirPath) {
 }
 
 /**
- * Symlinks the extracted libtensorflow library to the desired directory.
+ * Symlinks the extracted libtensorflow library to the desired directory. If the
+ * symlink fails, a copy of the path is made.
  */
 async function symlinkDepsLib() {
-  await symlink(depsLibPath, destLibPath);
+  try {
+    await symlink(depsLibPath, destLibPath);
+  } catch (e) {
+    console.error(
+        `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
+    await copy(depsLibPath, destLibPath);
+  }
 }
 
 /**
@@ -77,16 +96,37 @@ async function downloadLibtensorflow(shouldSymlink) {
   // The deps folder and resources do not exist, download and symlink as
   // needed:
   console.error('  * Downloading libtensorflow');
+
   const request = https.get(targetUri, response => {
-    response
-        .pipe(tar.x({
-          C: depsPath,
-        }))
-        .on('close', async () => {
+    if (platform.endsWith('windows')) {
+      // Windows stores builds in a zip file. Save to disk, extract, and delete
+      // the downloaded archive.
+      const tempFileName = path.join(__dirname, '_libtensorflow.zip');
+      const outputFile = fs.createWriteStream(tempFileName);
+      const request = https.get(targetUri, response => {
+        response.pipe(outputFile).on('close', async () => {
+          const zipFile = new zip(tempFileName);
+          zipFile.extractAllTo(depsPath, true /* overwrite */);
+          await unlink(tempFileName);
+
           if (shouldSymlink) {
             await symlinkDepsLib();
           }
         });
+        request.end();
+      });
+    } else {
+      // All other platforms use a tarball:
+      response
+          .pipe(tar.x({
+            C: depsPath,
+          }))
+          .on('close', async () => {
+            if (shouldSymlink) {
+              await symlinkDepsLib();
+            }
+          });
+    }
     request.end();
   });
 }
