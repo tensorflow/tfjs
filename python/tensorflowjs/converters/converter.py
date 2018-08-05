@@ -34,7 +34,8 @@ from tensorflowjs.converters import tf_saved_model_conversion
 
 
 def dispatch_keras_h5_to_tensorflowjs_conversion(
-    h5_path, output_dir=None, quantization_dtype=None):
+    h5_path, output_dir=None, quantization_dtype=None,
+    split_weights_by_layer=False):
   """Converts a Keras HDF5 saved-model file to TensorFlow.js format.
 
   Auto-detects saved_model versus weights-only and generates the correct
@@ -49,6 +50,11 @@ def dispatch_keras_h5_to_tensorflowjs_conversion(
     output_dir: Output directory to which the TensorFlow.js-format model JSON
       file and weights files will be written. If the directory does not exist,
       it will be created.
+    quantization_dtype: The quantized data type to store the weights in
+      (Default: `None`).
+    split_weights_by_layer: Whether to split the weights into separate weight
+      groups (corresponding to separate binary weight files) layer by layer
+      (Default: `False`).
 
   Returns:
     (model_json, groups)
@@ -62,10 +68,11 @@ def dispatch_keras_h5_to_tensorflowjs_conversion(
   h5_file = h5py.File(h5_path)
   if 'layer_names' in h5_file.attrs:
     model_json = None
-    groups = converter.h5_weights_to_tfjs_format(h5_file)
+    groups = converter.h5_weights_to_tfjs_format(
+        h5_file, split_by_layer=split_weights_by_layer)
   else:
     model_json, groups = converter.h5_merged_saved_model_to_tfjs_format(
-        h5_file)
+        h5_file, split_by_layer=split_weights_by_layer)
 
   if output_dir:
     if os.path.isfile(output_dir):
@@ -178,6 +185,12 @@ def main():
       'and 2-byte quantizaton is supported. The default (unquantized) size is '
       '4 bytes.')
   parser.add_argument(
+      '--split_weights_by_layer',
+      action='store_true',
+      help='Applicable to keras input_format only: Whether the weights from '
+      'different layers are to be stored in separate weight groups, '
+      'corresponding to separate binary weight files. Default: False.')
+  parser.add_argument(
       '--version',
       '-v',
       dest='show_version',
@@ -230,7 +243,8 @@ def main():
   if FLAGS.input_format == 'keras' and FLAGS.output_format == 'tensorflowjs':
     dispatch_keras_h5_to_tensorflowjs_conversion(
         FLAGS.input_path, output_dir=FLAGS.output_path,
-        quantization_dtype=quantization_dtype)
+        quantization_dtype=quantization_dtype,
+        split_weights_by_layer=FLAGS.split_weights_by_layer)
 
   elif (FLAGS.input_format == 'tf_saved_model' and
         FLAGS.output_format == 'tensorflowjs'):
