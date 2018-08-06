@@ -26,7 +26,7 @@ import 'firebase/database';
 import {ApplicationConfig, BenchmarkRunEntry, BenchmarkEntry} from './firebase_types';
 
 // TODO(nsthorat): Support more than Chrome + mac;
-const DEVICE = 'chrome_mac';
+const DEVICE = 'chrome_mac_webgl';
 
 const karmaFlags = parseKarmaFlags(__karma__.config.args);
 
@@ -49,11 +49,11 @@ try {
 export async function logBenchmarkRun(
     benchmarkName: string, logs: BenchmarkLog[]): Promise<void> {
   const date = new Date();
-  let month = date.getMonth().toString();
+  let month = (date.getMonth() + 1).toString();
   if (month.length === 1) {
     month = '0' + month;
   }
-  let day = date.getDay().toString();
+  let day = date.getDate().toString();
   if (day.length === 1) {
     day = '0' + day;
   }
