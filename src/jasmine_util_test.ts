@@ -46,7 +46,7 @@ describe('jasmine_util.parseKarmaFlags', () => {
   it('--backend cpu', () => {
     const res = parseKarmaFlags(['--backend', 'cpu']);
     expect(res.name).toBe('cpu');
-    expect(res.features).toEqual({});
+    expect(res.features).toEqual({'HAS_WEBGL': false});
     expect(res.factory() instanceof MathBackendCPU).toBe(true);
   });
 

@@ -867,7 +867,8 @@ export class MathBackendCPU implements KernelBackend {
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = Math.min(max, Math.max(min, values[i]));
+      const v = values[i];
+      resultValues[i] = v > max ? max : (v < min ? min : v);
     }
     return Tensor.make(x.shape, {values: resultValues}) as T;
   }
@@ -1091,36 +1092,42 @@ export class MathBackendCPU implements KernelBackend {
     const padTop = convInfo.padInfo.top;
     const y = ops.buffer<Rank.R4>(convInfo.outShape, x.dtype);
 
+    const xVals = x.dataSync();
+    const wVals = filter.dataSync();
+    const yVals = y.values;
+
     for (let b = 0; b < convInfo.batchSize; ++b) {
-      for (let d2 = 0; d2 < convInfo.outChannels; ++d2) {
-        for (let yR = 0; yR < convInfo.outHeight; ++yR) {
-          const xRCorner = yR * convInfo.strideHeight - padLeft;
+      const xOffset1 = b * x.strides[0];
+      const yOffset1 = b * y.strides[0];
+      for (let yR = 0; yR < convInfo.outHeight; ++yR) {
+        const yOffset2 = yOffset1 + yR * y.strides[1];
+        const xRCorner = yR * convInfo.strideHeight - padLeft;
+        for (let wR = 0; wR < filterHeight; wR++) {
+          const xR = xRCorner + wR * dilationHeight;
+          if (xR < 0 || xR >= convInfo.inHeight) {
+            continue;
+          }
+          const wOffset1 = wR * filter.strides[0];
+          const xOffset2 = xOffset1 + xR * x.strides[1];
           for (let yC = 0; yC < convInfo.outWidth; ++yC) {
+            const yOffset3 = yOffset2 + yC * convInfo.outChannels;
             const xCCorner = yC * convInfo.strideWidth - padTop;
-
-            let dotProd = 0;
-            for (let wR = 0; wR < filterHeight; wR++) {
-              const xR = xRCorner + wR * dilationHeight;
-
-              if (xR < 0 || xR >= convInfo.inHeight) {
+            for (let wC = 0; wC < filterWidth; wC++) {
+              const xC = xCCorner + wC * dilationWidth;
+              if (xC < 0 || xC >= convInfo.inWidth) {
                 continue;
               }
-
-              for (let wC = 0; wC < filterWidth; wC++) {
-                const xC = xCCorner + wC * dilationWidth;
-
-                if (xC < 0 || xC >= convInfo.inWidth) {
-                  continue;
+              const wOffset2 = wOffset1 + wC * filter.strides[1];
+              const xOffset3 = xOffset2 + xC * convInfo.inChannels;
+              let wOffset3 = wOffset2;
+              for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
+                const xVal = xVals[xOffset3 + d1];
+                for (let d2 = 0; d2 < convInfo.outChannels; ++d2) {
+                  yVals[yOffset3 + d2] += xVal * wVals[wOffset3 + d2];
                 }
-
-                for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
-                  const pixel = x.get(b, xR, xC, d1);
-                  const weight = filter.get(wR, wC, d1, d2);
-                  dotProd += pixel * weight;
-                }
+                wOffset3 += convInfo.outChannels;
               }
             }
-            y.set(dotProd, b, yR, yC, d2);
           }
         }
       }
@@ -1243,35 +1250,43 @@ export class MathBackendCPU implements KernelBackend {
     const padTop = convInfo.padInfo.top;
     const chMul = convInfo.outChannels / convInfo.inChannels;
     const y = ops.buffer<Rank.R4>(convInfo.outShape, x.dtype);
+    const xVals = x.dataSync();
+    const wVals = filter.dataSync();
+    const yVals = y.values;
 
     for (let b = 0; b < convInfo.batchSize; ++b) {
-      for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
-        for (let yR = 0; yR < convInfo.outHeight; ++yR) {
-          const xRCorner = yR * convInfo.strideHeight - padLeft;
+      const xOffset1 = b * x.strides[0];
+      const yOffset1 = b * y.strides[0];
+      for (let yR = 0; yR < convInfo.outHeight; ++yR) {
+        const yOffset2 = yOffset1 + yR * y.strides[1];
+        const xRCorner = yR * convInfo.strideHeight - padLeft;
+        for (let wR = 0; wR < filterHeight; ++wR) {
+          const xR = xRCorner + wR * dilationHeight;
+          if (xR < 0 || xR >= convInfo.inHeight) {
+            continue;
+          }
+          const wOffset1 = wR * filter.strides[0];
+          const xOffset2 = xOffset1 + xR * x.strides[1];
           for (let yC = 0; yC < convInfo.outWidth; ++yC) {
+            const yOffset3 = yOffset2 + yC * y.strides[2];
             const xCCorner = yC * convInfo.strideWidth - padTop;
-            for (let q = 0; q < chMul; ++q) {
-              let dotProd = 0;
-              for (let wR = 0; wR < filterHeight; ++wR) {
-                const xR = xRCorner + wR * dilationHeight;
-
-                if (xR < 0 || xR >= convInfo.inHeight) {
-                  continue;
-                }
-
-                for (let wC = 0; wC < filterWidth; ++wC) {
-                  const xC = xCCorner + wC * dilationWidth;
-
-                  if (xC < 0 || xC >= convInfo.inWidth) {
-                    continue;
-                  }
-
-                  const pixel = x.get(b, xR, xC, d1);
-                  const weight = filter.get(wR, wC, d1, q);
-                  dotProd += pixel * weight;
-                }
+            for (let wC = 0; wC < filterWidth; ++wC) {
+              const xC = xCCorner + wC * dilationWidth;
+              if (xC < 0 || xC >= convInfo.inWidth) {
+                continue;
               }
-              y.set(dotProd, b, yR, yC, d1 * chMul + q);
+              const wOffset2 = wOffset1 + wC * filter.strides[1];
+              const xOffset3 = xOffset2 + xC * convInfo.inChannels;
+              let yOffset4 = yOffset3;
+              let wOffset3 = wOffset2;
+              for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
+                const xVal = xVals[xOffset3 + d1];
+                for (let q = 0; q < chMul; ++q) {
+                  yVals[yOffset4 + q] += xVal * wVals[wOffset3 + q];
+                }
+                yOffset4 += chMul;
+                wOffset3 += chMul;
+              }
             }
           }
         }
@@ -1527,6 +1542,11 @@ export class MathBackendCPU implements KernelBackend {
     const y = ops.buffer<Rank.R4>(convInfo.outShape, 'float32');
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
+
+    const initialValue =
+        (poolType === 'max' ? Number.NEGATIVE_INFINITY :
+                              Number.POSITIVE_INFINITY);
+
     for (let b = 0; b < convInfo.batchSize; ++b) {
       for (let d = 0; d < convInfo.inChannels; ++d) {
         for (let yR = 0; yR < convInfo.outHeight; ++yR) {
@@ -1537,10 +1557,7 @@ export class MathBackendCPU implements KernelBackend {
             const xCCorner = yC * strideWidth - padLeft;
             const xCMin = Math.max(0, xCCorner);
             const xCMax = Math.min(convInfo.inWidth, filterWidth + xCCorner);
-
-            let minMaxValue =
-                (poolType === 'max' ? Number.NEGATIVE_INFINITY :
-                                      Number.POSITIVE_INFINITY);
+            let minMaxValue = initialValue;
             let avgValue = 0;
             let count = 0;
             for (let xR = xRMin; xR < xRMax; ++xR) {
@@ -1983,21 +2000,40 @@ export class MathBackendCPU implements KernelBackend {
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
       varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
       offset?: Tensor4D|Tensor1D): Tensor4D {
-    const xValues = x.dataSync();
-    const meanValues = mean.dataSync();
-    const varianceValues = variance.dataSync();
-    const scaleValues = scale ? scale.dataSync() : new Float32Array([1]);
-    const offsetValues = offset ? offset.dataSync() : new Float32Array([0]);
-    const outValues = new Float32Array(xValues.length);
+    const xVals = x.dataSync();
+    const mVals = mean.dataSync();
+    const varVals = variance.dataSync();
+    const sVals = scale ? scale.dataSync() : new Float32Array([1]);
+    const offVals = offset ? offset.dataSync() : new Float32Array([0]);
+    const outVals = new Float32Array(xVals.length);
 
-    for (let i = 0; i < xValues.length; i++) {
-      outValues[i] = offsetValues[i % offsetValues.length] +
-          (xValues[i] - meanValues[i % meanValues.length]) *
-              scaleValues[i % scaleValues.length] /
-              Math.sqrt(
-                  varianceValues[i % varianceValues.length] + varianceEpsilon);
+    const offValsLength = offVals.length;
+    const sValsLength = sVals.length;
+    const varValsLength = varVals.length;
+    const mValsLength = mVals.length;
+
+    let offi = 0;
+    let mi = 0;
+    let si = 0;
+    let vi = 0;
+    for (let i = 0; i < xVals.length; ++i) {
+      outVals[i] = offVals[offi++] +
+          (xVals[i] - mVals[mi++]) * sVals[si++] /
+              Math.sqrt(varVals[vi++] + varianceEpsilon);
+      if (offi >= offValsLength) {
+        offi = 0;
+      }
+      if (mi >= mValsLength) {
+        mi = 0;
+      }
+      if (si >= sValsLength) {
+        si = 0;
+      }
+      if (vi >= varValsLength) {
+        vi = 0;
+      }
     }
-    return tensor4d(outValues, x.shape);
+    return tensor4d(outVals, x.shape);
   }
 
   localResponseNormalization4D(
@@ -2137,29 +2173,36 @@ export class MathBackendCPU implements KernelBackend {
     const newShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const result = ops.buffer(newShape, dtype);
-    const aValues = a.dataSync();
-    const bValues = b.dataSync();
-
+    const aVals = a.dataSync();
+    const bVals = b.dataSync();
     const aBroadcastDims = broadcast_util.getBroadcastDims(a.shape, newShape);
     const bBroadcastDims = broadcast_util.getBroadcastDims(b.shape, newShape);
 
-    const aBuf = a.buffer();
-    const bBuf = b.buffer();
-    for (let i = 0; i < result.values.length; ++i) {
-      const loc = result.indexToLoc(i);
+    const resVals = result.values;
+    if (aBroadcastDims.length + bBroadcastDims.length === 0) {
+      for (let i = 0; i < resVals.length; ++i) {
+        resVals[i] = op(aVals[i % aVals.length], bVals[i % bVals.length]);
+      }
+    } else {
+      const aBuf = a.buffer();
+      const bBuf = b.buffer();
+      for (let i = 0; i < resVals.length; ++i) {
+        const loc = result.indexToLoc(i);
 
-      const aLoc = loc.slice(-a.rank);
-      aBroadcastDims.forEach(d => aLoc[d] = 0);
-      const aIndex = aBuf.locToIndex(aLoc);
+        const aLoc = loc.slice(-a.rank);
+        aBroadcastDims.forEach(d => aLoc[d] = 0);
+        const aIndex = aBuf.locToIndex(aLoc);
 
-      const bLoc = loc.slice(-b.rank);
-      bBroadcastDims.forEach(d => bLoc[d] = 0);
-      const bIndex = bBuf.locToIndex(bLoc);
+        const bLoc = loc.slice(-b.rank);
+        bBroadcastDims.forEach(d => bLoc[d] = 0);
+        const bIndex = bBuf.locToIndex(bLoc);
 
-      result.values[i] = op(aValues[aIndex], bValues[bIndex]);
+        resVals[i] = op(aVals[aIndex], bVals[bIndex]);
+      }
     }
     return result.toTensor();
   }
+
   dispose() {}
 }
 

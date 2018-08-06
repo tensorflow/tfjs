@@ -50,6 +50,8 @@ export function parseKarmaFlags(args: string[]): TestEnv {
       name = type;
       if (type.toLowerCase() === 'cpu') {
         backend = () => new MathBackendCPU();
+        features = features || {};
+        features['HAS_WEBGL'] = false;
       } else if (type.toLowerCase() === 'webgl') {
         backend = () => new MathBackendWebGL();
       } else {
