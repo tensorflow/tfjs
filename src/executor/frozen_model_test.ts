@@ -62,9 +62,41 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
   versions: {producer: 1.0, minConsumer: 3}
 };
 
+const CONTROL_FLOW_MODEL: tensorflow.IGraphDef = {
+  node: [
+    {
+      name: 'Input',
+      op: 'Placeholder',
+      attr: {
+        dtype: {
+          type: tensorflow.DataType.DT_INT32,
+        },
+        shape: {shape: {dim: [{size: -1}, {size: 1}]}}
+      }
+    },
+    {name: 'Enter', op: 'Enter', attr: {}},
+  ],
+  versions: {producer: 1.0, minConsumer: 3}
+};
+
+const DYNAMIC_SHAPE_MODEL: tensorflow.IGraphDef = {
+  node: [
+    {
+      name: 'Input',
+      op: 'Placeholder',
+      attr: {
+        dtype: {
+          type: tensorflow.DataType.DT_INT32,
+        },
+        shape: {shape: {dim: [{size: -1}, {size: 1}]}}
+      }
+    },
+    {name: 'Where', op: 'Where', attr: {}}
+  ],
+  versions: {producer: 1.0, minConsumer: 3}
+};
 describe('Model', () => {
   beforeEach(() => {
-    spyOn(tensorflow.GraphDef, 'decode').and.returnValue(SIMPLE_MODEL);
     const weightPromise = new Promise((resolve => resolve(WEIGHT_MAP)));
     spyOn(tfc.io, 'loadWeights').and.returnValue(weightPromise);
     model = new FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
@@ -76,184 +108,247 @@ describe('Model', () => {
   });
   afterEach(() => {});
 
-  it('load', async () => {
-    const loaded = await model.load();
-    expect(loaded).toBe(true);
-  });
-
-  describe('getPathPrefix', () => {
-    it('no path prefix, absolute URL', async () => {
-      const modelUrl = 'http://example.org/model.pb';
-      const weightsUrl = 'http://example.org/weights_manifest.json';
-      model = new FrozenModel(modelUrl, weightsUrl);
-      expect(model.getPathPrefix()).toEqual('http://example.org/');
-    });
-
-    it('some path prefix, absolute URL', async () => {
-      const modelUrl = 'http://example.org/some/path/model.pb';
-      const weightsUrl = 'http://example.org/some/path/weights_manifest.json';
-      model = new FrozenModel(modelUrl, weightsUrl);
-      expect(model.getPathPrefix()).toEqual('http://example.org/some/path/');
-    });
-
-    it('no path prefix, relative URL', async () => {
-      const modelUrl = 'model.pb';
-      const weightsUrl = 'weights_manifest.json';
-      const model = new FrozenModel(modelUrl, weightsUrl);
-      expect(model.getPathPrefix()).toEqual('/');
-    });
-
-    it('some path prefix, relative URL', async () => {
-      const modelUrl = '/some/path/model.pb';
-      const weightsUrl = '/some/path/weights_manifest.json';
-      model = new FrozenModel(modelUrl, weightsUrl);
-      expect(model.getPathPrefix()).toEqual('/some/path/');
-    });
-
-    it('path prefix with query string, relative URL', async () => {
-      const modelUrl = '/some/path/model.pb?hello=/a/b';
-      const weightsUrl = '/some/path/weights_manifest.json?hello=/a/b';
-      model = new FrozenModel(modelUrl, weightsUrl);
-      expect(model.getPathPrefix()).toEqual('/some/path/');
-    });
-
-    it('path prefix with hash string, relative URL', async () => {
-      const modelUrl = '/some/path/model.pb#hello=/a/b';
-      const weightsUrl = '/some/path/weights_manifest.json#hello=/a/b';
-      model = new FrozenModel(modelUrl, weightsUrl);
-      expect(model.getPathPrefix()).toEqual('/some/path/');
-    });
-  });
-  describe('predict', () => {
-    it('should generate the output for single tensor', async () => {
-      await model.load();
-      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
-      const output = model.predict(input);
-      expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
-    });
-
-    it('should generate the output for tensor array', async () => {
-      await model.load();
-      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
-      const output = model.predict([input]);
-      expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
-    });
-
-    it('should generate the output for tensor map', async () => {
-      await model.load();
-      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
-      const output = model.predict({'Input': input});
-      expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
-    });
-
-    it('should throw error if input size mismatch', async () => {
-      await model.load();
-      const input = tfc.tensor1d([1], 'int32');
-      expect(() => model.predict([input, input])).toThrow();
-    });
-
-    it('should throw exception if inputs shapes do not match', () => {
-      const input = tfc.tensor2d([1, 1], [1, 2], 'int32');
-      expect(() => model.predict([input])).toThrow();
-    });
-
-    it('should throw exception if inputs dtype does not match graph', () => {
-      const input = tfc.tensor1d([1], 'float32');
-      expect(() => model.predict([input])).toThrow();
-    });
-  });
-
-  describe('execute', () => {
-    it('should generate the default output', async () => {
-      await model.load();
-      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
-      const output = model.execute({'Input': input});
-      expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
-    });
-    it('should generate the output array', async () => {
-      await model.load();
-      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
-      const output = model.execute({'Input': input}, ['Add', 'Const']);
-      expect(Array.isArray(output)).toBeTruthy();
-      expect((output as tfc.Tensor[])[0].dataSync()[0]).toEqual(2);
-      expect((output as tfc.Tensor[])[1].dataSync()[0]).toEqual(1);
-    });
-    it('should throw exception if inputs shapes do not match', () => {
-      const input = tfc.tensor2d([1, 1], [1, 2], 'int32');
-      expect(() => model.execute([input])).toThrow();
-    });
-
-    it('should throw exception if inputs dtype does not match graph', () => {
-      const input = tfc.tensor2d([1, 1], [2, 1], 'float32');
-      expect(() => model.predict([input])).toThrow();
-    });
-
-    it('should throw error if input size mismatch', async () => {
-      await model.load();
-      const input = tfc.tensor1d([1], 'int32');
-      expect(() => model.execute([input, input])).toThrow();
-    });
-  });
-
-  describe('dispose', () => {
-    it('should dispose the weights', async () => {
-      model = new FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
-      spyOn(bias, 'dispose');
-
-      await model.load();
-      model.dispose();
-
-      expect(bias.dispose).toHaveBeenCalled();
-    });
-  });
-
-  describe('getVersion', () => {
-    it('should return the version info from the tf model', async () => {
-      await model.load();
-      expect(model.modelVersion).toEqual('1.3');
-    });
-  });
-
-  describe('relative path', () => {
+  describe('simple model', () => {
     beforeEach(() => {
-      model = new FrozenModel(RELATIVE_MODEL_URL, RELATIVE_WEIGHT_MANIFEST_URL);
+      spyOn(tensorflow.GraphDef, 'decode').and.returnValue(SIMPLE_MODEL);
     });
 
     it('load', async () => {
       const loaded = await model.load();
       expect(loaded).toBe(true);
     });
-  });
 
-  it('should loadFrozenModel', async () => {
-    const model = await loadFrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
-    expect(model).not.toBeUndefined();
-  });
+    describe('getPathPrefix', () => {
+      it('no path prefix, absolute URL', async () => {
+        const modelUrl = 'http://example.org/model.pb';
+        const weightsUrl = 'http://example.org/weights_manifest.json';
+        model = new FrozenModel(modelUrl, weightsUrl);
+        expect(model.getPathPrefix()).toEqual('http://example.org/');
+      });
 
-  it('should loadFrozenModel with request options', async () => {
-    const model = await loadFrozenModel(
-        MODEL_URL, WEIGHT_MANIFEST_URL, {credentials: 'include'});
-    expect(window.fetch).toHaveBeenCalledWith(MODEL_URL, {
-      credentials: 'include'
+      it('some path prefix, absolute URL', async () => {
+        const modelUrl = 'http://example.org/some/path/model.pb';
+        const weightsUrl = 'http://example.org/some/path/weights_manifest.json';
+        model = new FrozenModel(modelUrl, weightsUrl);
+        expect(model.getPathPrefix()).toEqual('http://example.org/some/path/');
+      });
+
+      it('no path prefix, relative URL', async () => {
+        const modelUrl = 'model.pb';
+        const weightsUrl = 'weights_manifest.json';
+        const model = new FrozenModel(modelUrl, weightsUrl);
+        expect(model.getPathPrefix()).toEqual('/');
+      });
+
+      it('some path prefix, relative URL', async () => {
+        const modelUrl = '/some/path/model.pb';
+        const weightsUrl = '/some/path/weights_manifest.json';
+        model = new FrozenModel(modelUrl, weightsUrl);
+        expect(model.getPathPrefix()).toEqual('/some/path/');
+      });
+
+      it('path prefix with query string, relative URL', async () => {
+        const modelUrl = '/some/path/model.pb?hello=/a/b';
+        const weightsUrl = '/some/path/weights_manifest.json?hello=/a/b';
+        model = new FrozenModel(modelUrl, weightsUrl);
+        expect(model.getPathPrefix()).toEqual('/some/path/');
+      });
+
+      it('path prefix with hash string, relative URL', async () => {
+        const modelUrl = '/some/path/model.pb#hello=/a/b';
+        const weightsUrl = '/some/path/weights_manifest.json#hello=/a/b';
+        model = new FrozenModel(modelUrl, weightsUrl);
+        expect(model.getPathPrefix()).toEqual('/some/path/');
+      });
     });
-    expect(window.fetch).toHaveBeenCalledWith(WEIGHT_MANIFEST_URL, {
-      credentials: 'include'
+
+    describe('predict', () => {
+      it('should generate the output for single tensor', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+        const output = model.predict(input);
+        expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
+      });
+
+      it('should generate the output for tensor array', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+        const output = model.predict([input]);
+        expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
+      });
+
+      it('should generate the output for tensor map', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+        const output = model.predict({'Input': input});
+        expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
+      });
+
+      it('should throw error if input size mismatch', async () => {
+        await model.load();
+        const input = tfc.tensor1d([1], 'int32');
+        expect(() => model.predict([input, input])).toThrow();
+      });
+
+      it('should throw exception if inputs shapes do not match', () => {
+        const input = tfc.tensor2d([1, 1], [1, 2], 'int32');
+        expect(() => model.predict([input])).toThrow();
+      });
+
+      it('should throw exception if inputs dtype does not match graph', () => {
+        const input = tfc.tensor1d([1], 'float32');
+        expect(() => model.predict([input])).toThrow();
+      });
     });
-    expect(model).not.toBeUndefined();
+
+    describe('execute', () => {
+      it('should generate the default output', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+        const output = model.execute({'Input': input});
+        expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
+      });
+      it('should generate the output array', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+        const output = model.execute({'Input': input}, ['Add', 'Const']);
+        expect(Array.isArray(output)).toBeTruthy();
+        expect((output as tfc.Tensor[])[0].dataSync()[0]).toEqual(2);
+        expect((output as tfc.Tensor[])[1].dataSync()[0]).toEqual(1);
+      });
+      it('should throw exception if inputs shapes do not match', () => {
+        const input = tfc.tensor2d([1, 1], [1, 2], 'int32');
+        expect(() => model.execute([input])).toThrow();
+      });
+
+      it('should throw exception if inputs dtype does not match graph', () => {
+        const input = tfc.tensor2d([1, 1], [2, 1], 'float32');
+        expect(() => model.predict([input])).toThrow();
+      });
+
+      it('should throw error if input size mismatch', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+
+        expect(() => model.execute([input, input])).toThrow();
+      });
+    });
+
+    describe('dispose', () => {
+      it('should dispose the weights', async () => {
+        model = new FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
+        spyOn(bias, 'dispose');
+
+        await model.load();
+        model.dispose();
+
+        expect(bias.dispose).toHaveBeenCalled();
+      });
+    });
+
+    describe('getVersion', () => {
+      it('should return the version info from the tf model', async () => {
+        await model.load();
+        expect(model.modelVersion).toEqual('1.3');
+      });
+    });
+
+    describe('relative path', () => {
+      beforeEach(() => {
+        model =
+            new FrozenModel(RELATIVE_MODEL_URL, RELATIVE_WEIGHT_MANIFEST_URL);
+      });
+
+      it('load', async () => {
+        const loaded = await model.load();
+        expect(loaded).toBe(true);
+      });
+    });
+
+    it('should loadFrozenModel', async () => {
+      const model = await loadFrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
+      expect(model).not.toBeUndefined();
+    });
+
+    it('should loadFrozenModel with request options', async () => {
+      const model = await loadFrozenModel(
+          MODEL_URL, WEIGHT_MANIFEST_URL, {credentials: 'include'});
+      expect(window.fetch).toHaveBeenCalledWith(MODEL_URL, {
+        credentials: 'include'
+      });
+      expect(window.fetch).toHaveBeenCalledWith(WEIGHT_MANIFEST_URL, {
+        credentials: 'include'
+      });
+      expect(model).not.toBeUndefined();
+    });
+
+    describe('InferenceModel interface', () => {
+      it('should expose inputs', async () => {
+        await model.load();
+        expect(model.inputs).toEqual([
+          {name: 'Input', shape: [-1, 1], dtype: 'int32'}
+        ]);
+      });
+      it('should expose outputs', async () => {
+        await model.load();
+        expect(model.outputs).toEqual([
+          {name: 'Add', shape: undefined, dtype: undefined}
+        ]);
+      });
+    });
   });
 
-  describe('InferenceModel interface', () => {
-    it('should expose inputs', async () => {
+  describe('control flow model', () => {
+    beforeEach(() => {
+      spyOn(tensorflow.GraphDef, 'decode').and.returnValue(CONTROL_FLOW_MODEL);
+    });
+
+    it('should throw error if call predict directly', async () => {
       await model.load();
-      expect(model.inputs).toEqual([
-        {name: 'Input', shape: [-1, 1], dtype: 'int32'}
-      ]);
+      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+
+      expect(() => model.predict([input])).toThrow();
     });
-    it('should expose outputs', async () => {
+
+    it('should throw error if call execute directly', async () => {
       await model.load();
-      expect(model.outputs).toEqual([
-        {name: 'Add', shape: undefined, dtype: undefined}
-      ]);
+      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+
+      expect(() => model.predict([input])).toThrow();
+    });
+
+    it('should be success if call executeAsync', async () => {
+      await model.load();
+      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+
+      expect(() => model.executeAsync([input])).not.toThrow();
+    });
+  });
+
+  describe('dynamic shape model', () => {
+    beforeEach(() => {
+      spyOn(tensorflow.GraphDef, 'decode').and.returnValue(DYNAMIC_SHAPE_MODEL);
+    });
+
+    it('should throw error if call predict directly', async () => {
+      await model.load();
+      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+
+      expect(() => model.predict([input])).toThrow();
+    });
+
+    it('should throw error if call execute directly', async () => {
+      await model.load();
+      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+
+      expect(() => model.execute([input])).toThrow();
+    });
+
+    it('should be success if call executeAsync', async () => {
+      await model.load();
+      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+
+      expect(() => model.executeAsync([input])).not.toThrow();
     });
   });
 });
