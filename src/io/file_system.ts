@@ -28,8 +28,8 @@ const mkdir = promisify(fs.mkdir);
 // tslint:disable-next-line:max-line-length
 import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
 
-function doesNotExistHandler(name: string):
-    (e: NodeJS.ErrnoException) => never {
+function doesNotExistHandler(name: string): (e: NodeJS.ErrnoException) =>
+    never {
   return e => {
     switch (e.code) {
       case 'ENOENT':
@@ -47,6 +47,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
 
   readonly MODEL_JSON_FILENAME = 'model.json';
   readonly WEIGHTS_BINARY_FILENAME = 'weights.bin';
+  readonly MODEL_BINARY_FILENAME = 'tensorflowjs.pb';
 
   /**
    * Constructor of the NodeFileSystem IOHandler.
@@ -63,10 +64,14 @@ export class NodeFileSystem implements tfc.io.IOHandler {
    *     - If the model has binary (protocol buffer GraphDef) topology,
    *       an Array of two paths is expected: the first path should point to the
    *       .pb file and the second path should point to the weight manifest
-   *       JSON file. This option is *not implemented yet*.
+   *       JSON file.
    */
   constructor(path: string|string[]) {
     if (Array.isArray(path)) {
+      tfc.util.assert(
+          path.length === 2,
+          'file paths must have a length of 2, ' +
+              `(actual length is ${path.length}).`);
       this.path = path.map(p => resolve(p));
     } else {
       this.path = resolve(path);
@@ -110,39 +115,61 @@ export class NodeFileSystem implements tfc.io.IOHandler {
       };
     }
   }
-
   async load(): Promise<tfc.io.ModelArtifacts> {
-    if (Array.isArray(this.path)) {
-      throw new Error('Loading from multiple paths is not supported yet.');
-      // TODO(cais, nkreeger): Implement this. See
-      //   https://github.com/tensorflow/tfjs/issues/343
-    }
+    return Array.isArray(this.path) ? this.loadBinaryModel() :
+                                      this.loadJSONModel();
+  }
 
-    const info = await stat(this.path).catch(doesNotExistHandler('Path'));
+  protected async loadBinaryModel(): Promise<tfc.io.ModelArtifacts> {
+    const topologyPath = this.path[0];
+    const weightManifestPath = this.path[1];
+    const topology =
+        await stat(topologyPath).catch(doesNotExistHandler('Topology Path'));
+    const weightManifest =
+        await stat(weightManifestPath)
+            .catch(doesNotExistHandler('Weight Manifest Path'));
 
     // `this.path` can be either a directory or a file. If it is a file, assume
     // it is model.json file.
+    if (!topology.isFile()) {
+      throw new Error('File specified for topology is not a file!');
+    }
+    if (!weightManifest.isFile()) {
+      throw new Error('File specified for the weight manifest is not a file!');
+    }
+
+    const modelTopology = await readFile(this.path[0]);
+    const weightsManifest = JSON.parse(await readFile(this.path[1], 'utf8'));
+
+    const modelArtifacts: tfc.io.ModelArtifacts = {
+      modelTopology,
+    };
+    const [weightSpecs, weightData] =
+        await this.loadWeights(weightsManifest, this.path[1]);
+
+    modelArtifacts.weightSpecs = weightSpecs;
+    modelArtifacts.weightData = weightData;
+
+    return modelArtifacts;
+  }
+
+  protected async loadJSONModel(): Promise<tfc.io.ModelArtifacts> {
+    const path = this.path as string;
+    const info = await stat(path).catch(doesNotExistHandler('Path'));
+
+    // `path` can be either a directory or a file. If it is a file, assume
+    // it is model.json file.
     if (info.isFile()) {
-      const modelJSON = JSON.parse(await readFile(this.path, 'utf8'));
+      const modelJSON = JSON.parse(await readFile(path, 'utf8'));
 
       const modelArtifacts: tfc.io.ModelArtifacts = {
         modelTopology: modelJSON.modelTopology,
       };
       if (modelJSON.weightsManifest != null) {
-        const dirName = dirname(this.path);
-        const buffers: Buffer[] = [];
-        const weightSpecs: tfc.io.WeightsManifestEntry[] = [];
-        for (const group of modelJSON.weightsManifest) {
-          for (const path of group.paths) {
-            const weightFilePath = join(dirName, path);
-            const buffer = await readFile(weightFilePath)
-              .catch(doesNotExistHandler('Weight file'));
-            buffers.push(buffer);
-          }
-          weightSpecs.push(...group.weights);
-        }
+        const [weightSpecs, weightData] =
+            await this.loadWeights(modelJSON.weightsManifest, path);
         modelArtifacts.weightSpecs = weightSpecs;
-        modelArtifacts.weightData = toArrayBuffer(buffers);
+        modelArtifacts.weightData = weightData;
       }
       return modelArtifacts;
     } else {
@@ -150,6 +177,24 @@ export class NodeFileSystem implements tfc.io.IOHandler {
           'The path to load from must be a file. Loading from a directory ' +
           'is not supported.');
     }
+  }
+
+  private async loadWeights(
+      weightsManifest: tfc.io.WeightsManifestConfig,
+      path: string): Promise<[tfc.io.WeightsManifestEntry[], ArrayBuffer]> {
+    const dirName = dirname(path);
+    const buffers: Buffer[] = [];
+    const weightSpecs: tfc.io.WeightsManifestEntry[] = [];
+    for (const group of weightsManifest) {
+      for (const path of group.paths) {
+        const weightFilePath = join(dirName, path);
+        const buffer = await readFile(weightFilePath)
+                           .catch(doesNotExistHandler('Weight file'));
+        buffers.push(buffer);
+      }
+      weightSpecs.push(...group.weights);
+    }
+    return [weightSpecs, toArrayBuffer(buffers)];
   }
 
   /**
@@ -165,8 +210,8 @@ export class NodeFileSystem implements tfc.io.IOHandler {
         if (e.code === 'EEXIST') {
           if ((await stat(path)).isFile()) {
             throw new Error(
-              `Path ${path} exists as a file. The path must be ` +
-              `nonexistent or point to a directory.`);
+                `Path ${path} exists as a file. The path must be ` +
+                `nonexistent or point to a directory.`);
           }
           // else continue, the directory exists
         } else {
