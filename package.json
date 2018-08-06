@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "0.12.0",
+    "@tensorflow/tfjs-core": "0.12.4",
     "@types/fetch-mock": "^6.0.1",
     "@types/jasmine": "~2.5.53",
     "@types/seedrandom": "^2.4.27",
@@ -46,11 +46,12 @@
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "test": "karma start",
+    "test-node": "ts-node src/test_node.ts",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
     "lint": "tslint -p . --type-check -t verbose"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "0.12.0"
+    "@tensorflow/tfjs-core": "0.12.4"
   },
   "dependencies": {
     "seedrandom": "~2.4.3",
