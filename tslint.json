@@ -25,7 +25,7 @@
     "forin": false,
     "label-position": true,
     "max-line-length": {
-      "options": {"limit": 80, "ignore-pattern": "^import |^export "}
+      "options": {"limit": 80, "ignore-pattern": "^import |^export |https?://"}
     },
     "new-parens": true,
     "no-angle-bracket-type-assertion": true,
