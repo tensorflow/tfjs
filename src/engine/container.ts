@@ -23,7 +23,7 @@ import {batchSetValue, LayerVariable} from '../variables';
 import {version as layersVersion} from '../version';
 
 import {InputLayer} from './input_layer';
-import {Layer, Node, SymbolicTensor} from './topology';
+import {Layer, Node, SymbolicTensor, DisposeResult} from './topology';
 
 /**
  * Converts layers weights to a format suitable for TensorFlow.js Layers.
@@ -628,6 +628,54 @@ export abstract class Container extends Layer {
       outputShapes: this.outputs.map(x => x.shape)
     });
     this.built = true;
+    this._refCount = 1;  // The ref count of a container always start at 1.
+  }
+
+  protected assertNotDisposed() {
+    if (this._refCount === 0) {
+      throw new Error(`Container '${this.name}' is already disposed.`);
+    }
+  }
+
+  /**
+   * Attempt to dispose a Model's weights.
+   *
+   * This method decrease the reference count of the Model object by 1.
+   *
+   * A Model is reference-counted. Its reference count is incremented by 1
+   * when it is first constructed and when it is used as a Layer of another
+   * Model.
+   *
+   * If the reference count of a Model becomes 0, the `dispose` method of
+   * all its constituent `Layer`s will be called.
+   *
+   * Note: If the reference count is greater than 0 after the decrement, the
+   * `dispose` method of its constituent `Layer`s will *not* be called.
+   *
+   * After a Model is disposed, it cannot be used in calls such as
+   * 'predict`, `evaluate` or `fit` anymore.
+   *
+   * @returns A DisposeResult Object with the following fields:
+   *   - refCountAfterDispose: The reference count of the Model after this
+   *     `dispose()` call.
+   *   - numDisposedVariables: Number of `tf.Variable`s (i.e., weights) disposed
+   *     during this `dispose()` call.
+   * @throws {Error} If the layer is not built yet, or if the Model has
+   *   already been disposed.
+   */
+  dispose(): DisposeResult {
+    this.assertNotDisposed();
+    const result: DisposeResult = {
+      refCountAfterDispose: null,
+      numDisposedVariables: 0
+    };
+    if (--this._refCount === 0) {
+      for (const layer of this.layers) {
+        result.numDisposedVariables += layer.dispose().numDisposedVariables;
+      }
+    }
+    result.refCountAfterDispose = this._refCount;
+    return result;
   }
 
   get trainableWeights(): LayerVariable[] {

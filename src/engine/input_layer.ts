@@ -14,7 +14,7 @@ import {getUid} from '../backend/state';
 import {ValueError} from '../errors';
 import {Kwargs, Shape} from '../types';
 
-import {Layer, Node, SymbolicTensor} from './topology';
+import {Layer, Node, SymbolicTensor, DisposeResult} from './topology';
 
 /**
  * Constructor arguments for InputLayer.
@@ -136,6 +136,14 @@ export class InputLayer extends Layer {
     throw new ValueError(
         'Cannot pass any input to an ' +
         `InputLayer's apply() method. InputLayer name: ${this.name}`);
+  }
+
+  dispose(): DisposeResult {
+    // dispose() for InputLayer is overridden as no-op.
+    return {
+      refCountAfterDispose: this._refCount,
+      numDisposedVariables: 0
+    };
   }
 
   getConfig(): serialization.ConfigDict {
