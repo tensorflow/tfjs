@@ -79,6 +79,7 @@ export class LayerVariable {
    * be reflected by future calls to this method.
    */
   read(): Tensor {
+    this.assertNotDisposed();
     return this.val;
   }
 
@@ -91,12 +92,27 @@ export class LayerVariable {
    */
   write(newVal: Tensor) {
     // TODO(cais): Once  TF.js Core supports Tensor.dtype, check dtype match.
+    this.assertNotDisposed();
     checkShapesMatch(this.val, newVal);
     this.val.assign(newVal);
     if (this.constraint != null) {
       this.val.assign(this.constraint.apply(this.val));
     }
     return this;
+  }
+
+  /**
+   * Dispose this LayersVariable instance from memory.
+   */
+  dispose(): void {
+    this.assertNotDisposed();
+    this.val.dispose();
+  }
+
+  protected assertNotDisposed(): void {
+    if (this.val.isDisposed) {
+      throw new Error(`LayersVariable ${this.name} is already disposed.`);
+    }
   }
 }
 

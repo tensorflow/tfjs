@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import {ones, scalar, Tensor, zeros} from '@tensorflow/tfjs-core';
+import {memory, ones, scalar, Tensor, zeros} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
 import {describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
@@ -465,5 +465,185 @@ describe('getSourceInputs()', () => {
     const output2 = layer.apply(input2) as tfl.SymbolicTensor;
     expect(getSourceInputs(output1)).toEqual([input1]);
     expect(getSourceInputs(output2)).toEqual([input2]);
+  });
+});
+
+describeMathCPUAndGPU('Model-dispose', () => {
+  it('Dispose Sequential model frees memory', () => {
+    const model = tfl.sequential();
+    model.add(
+        tfl.layers.dense({units: 2, inputShape: [3], activation: 'relu'}));
+    model.add(tfl.layers.dense({units: 1}));
+    model.build([3, 3]);
+
+    const numTensors0 = memory().numTensors;
+    const result = model.dispose();
+
+    expect(result.refCountAfterDispose).toEqual(0);
+    expect(result.numDisposedVariables).toEqual(4);
+    // The four weight variables of the two layers should have been disposed.
+    expect(memory().numTensors).toEqual(numTensors0 - 4);
+  });
+
+  it('Dispose Sequential model twice leads to Error', () => {
+    const model = tfl.sequential();
+    model.add(
+        tfl.layers.dense({units: 2, inputShape: [3], activation: 'relu'}));
+    model.add(tfl.layers.dense({units: 1}));
+    model.build([3, 3]);
+
+    model.dispose();
+    expect(() => model.dispose()).toThrowError(/Container .* already disposed/);
+  });
+
+  it('Using disposed Sequential model leads to Error', async () => {
+    const model = tfl.sequential();
+    model.add(
+        tfl.layers.dense({units: 2, inputShape: [3], activation: 'relu'}));
+    model.add(tfl.layers.dense({units: 1, activation: 'sigmoid'}));
+    model.build([3, 3]);
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+    model.dispose();
+
+    const xs = zeros([3, 3]);
+    const ys = zeros([3, 1]);
+    expect(() => model.predict(xs)).toThrowError(/already disposed/);
+    expect(() => model.evaluate(xs, ys)).toThrowError(/already disposed/);
+    let errorCaughtDuringFit = false;
+    try {
+      await model.fit(xs, ys);
+    } catch (err) {
+      errorCaughtDuringFit = true;
+    }
+    expect(errorCaughtDuringFit).toEqual(true);
+  });
+
+  it('Dispose functional model frees memory', () => {
+    const input = tfl.input({shape: [4]});
+    const dense1 =
+        tfl.layers.dense({units: 3}).apply(input) as tfl.SymbolicTensor;
+    const dense2 = tfl.layers.dense({units: 2, useBias: false}).apply(input) as
+        tfl.SymbolicTensor;
+    const model = tfl.model({inputs: [input], outputs: [dense1, dense2]});
+    // Call predict once to make sure that the model's weights are initialized.
+    model.predict(zeros([2, 4]));
+
+    const numTensors0 = memory().numTensors;
+    const result = model.dispose();
+
+    expect(result.refCountAfterDispose).toEqual(0);
+    expect(result.numDisposedVariables).toEqual(3);
+    // The 2 + 1 = 3 weight variables of the two layers should have been
+    // disposed.
+    expect(memory().numTensors).toEqual(numTensors0 - 3);
+  });
+
+  it('Dispose functional model twice leads to Error', () => {
+    const input = tfl.input({shape: [4]});
+    const dense1 =
+        tfl.layers.dense({units: 3}).apply(input) as tfl.SymbolicTensor;
+    const dense2 = tfl.layers.dense({units: 2, useBias: false}).apply(input) as
+        tfl.SymbolicTensor;
+    const model = tfl.model({inputs: [input], outputs: [dense1, dense2]});
+    // Call predict once to make sure that the model's weights are  initialized.
+    model.predict(zeros([2, 4]));
+
+    model.dispose();
+    expect(() => model.dispose()).toThrowError(/Container .* already disposed/);
+  });
+
+  it('Layer shared between two functional models is not disposed', () => {
+    const input1 = tfl.input({shape: [4]});
+    const input2 = tfl.input({shape: [4]});
+    const sharedDenseLayer = tfl.layers.dense({units: 3, activation: 'relu'});
+    const nonSharedDenseLayer1 = tfl.layers.dense({units: 1, useBias: false});
+    const nonSharedDenseLayer2 = tfl.layers.dense({units: 1, useBias: false});
+    const output1 = nonSharedDenseLayer1.apply(
+                        sharedDenseLayer.apply(input1)) as tfl.SymbolicTensor;
+    const output2 = nonSharedDenseLayer2.apply(
+                        sharedDenseLayer.apply(input2)) as tfl.SymbolicTensor;
+
+    const model1 = tfl.model({inputs: [input1], outputs: [output1]});
+    const model2 = tfl.model({inputs: [input2], outputs: [output2]});
+
+    // Call predict once to make sure that both models' weights are initialized.
+    model1.predict(zeros([2, 4]));
+    model2.predict(zeros([2, 4]));
+    const xs = zeros([2, 4]);
+
+    const numTensors0 = memory().numTensors;
+    const result1 = model1.dispose();
+
+    expect(result1.refCountAfterDispose).toEqual(0);
+    expect(result1.numDisposedVariables).toEqual(1);
+    // After model1 is disposed, only the single weight of
+    // `nonSharedDenseLayer1` should have been freed.
+    expect(memory().numTensors).toEqual(numTensors0 - 1);
+
+    // At this point, calling predict() on model1 should fail, but doing the
+    // same on model2 should still work.
+    expect(() => model1.predict(xs)).toThrowError(/already disposed/);
+    const ys = model2.predict(xs) as Tensor;
+    expect(ys.shape).toEqual([2, 1]);
+    ys.dispose();
+
+    const result2 = model2.dispose();
+
+    expect(result2.refCountAfterDispose).toEqual(0);
+    expect(result2.numDisposedVariables).toEqual(3) ;
+    // After model2 is disposed, the single weight of `nonSharedDenseLayer2`
+    // and the two weights o `sharedDenseLayer` should be freed.
+    expect(memory().numTensors).toEqual(numTensors0 - 4);
+
+    // At this point, calling predict() on both model1 and model2 should fail.
+    expect(() => model1.predict(xs)).toThrowError(/already disposed/);
+    expect(() => model2.predict(xs)).toThrowError(/already disposed/);
+  });
+
+  it('Disposing nested sequential model preserves the inner model', () => {
+    const innerModel = tfl.sequential();
+    innerModel.add(tfl.layers.reshape({targetShape: [10], inputShape: [2, 5]}));
+    innerModel.add(tfl.layers.dense({units: 6, activation: 'relu'}));
+    innerModel.add(tfl.layers.dense({units: 4, activation: 'relu'}));
+
+    const outerModel = tfl.sequential();
+    outerModel.add(
+        tfl.layers.reshape({targetShape: [2, 5], inputShape: [5, 2]}));
+    outerModel.add(innerModel);
+    outerModel.add(tfl.layers.dense({units: 3, activation: 'softmax'}));
+
+    const xsOuter = zeros([1, 5, 2]);
+    const xsInner = zeros([1, 2, 5]);
+    outerModel.predict(xsOuter);  // Call predict() to initialize the weights.
+    const numTensors0 = memory().numTensors;
+
+    const result1 = outerModel.dispose();
+
+    expect(result1.refCountAfterDispose).toEqual(0);
+    expect(result1.numDisposedVariables).toEqual(2);
+    // Calling dispose on the outer model should have freed the two weights that
+    // belong to only the outer model and not to the inner model.
+    expect(memory().numTensors).toEqual(numTensors0 - 2);
+
+    // Calling dispose on the outer model again should lead to Error.
+    expect(() => outerModel.dispose())
+        .toThrowError(/Container .* already disposed/);
+    // Calling predict on the outer model should fail.
+    expect(() => outerModel.predict(xsOuter)).toThrowError(/already disposed/);
+
+    // At this point, the inner model is still usable.
+    const ysInner = innerModel.predict(xsInner) as Tensor;
+    expect(ysInner.shape).toEqual([1, 4]);
+    ysInner.dispose();
+
+    // Calling dispose on innerModel should finally freed all the weights.
+    const result2 = innerModel.dispose();
+
+    expect(result2.refCountAfterDispose).toEqual(0);
+    expect(result2.numDisposedVariables).toEqual(4);
+    expect(memory().numTensors).toEqual(numTensors0 - 6);
+
+    // At this point, the inner model should have become unusable.
+    expect(() => innerModel.predict(xsInner)).toThrowError(/already disposed/);
   });
 });
