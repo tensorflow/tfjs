@@ -162,10 +162,13 @@ export function loadWeightsFromJson(
  *
  * @param weights The named tensor map mapping names of weights to weight
  *   values.
+ * @param strict Require that the provided weights exactly match those required
+ *   by the layers.  Default true.  Passing false means that both extra weights
+ *   and missing weights will be silently ignored.
  * @param layers An array of target layers.
  */
 export function loadWeightsFromNamedTensorMap(
-    weights: NamedTensorMap, layers: Layer[]): void {
+    weights: NamedTensorMap, layers: Layer[], strict = true): void {
   // Make a dictionary mapping weight name to weight.
   const nameToWeight: {[name: string]: LayerVariable} = {};
   let totalWeightsCount = 0;
@@ -181,19 +184,26 @@ export function loadWeightsFromNamedTensorMap(
 
   const weightValueTuples: Array<[LayerVariable, Tensor]> = [];
   for (const name in weights) {
-    weightValueTuples.push([nameToWeight[name], weights[name]]);
+    if (nameToWeight[name] != null) {
+      weightValueTuples.push([nameToWeight[name], weights[name]]);
+    } else if (strict) {
+      throw new ValueError(
+          `Provided weight data has no target variable: ${name}`);
+    }
     delete nameToWeight[name];
   }
 
-  // Check that all weights are set.
-  const unsetNames: string[] = [];
-  for (const name in nameToWeight) {
-    unsetNames.push(name);
-  }
-  if (unsetNames.length > 0) {
-    throw new ValueError(
-        `${unsetNames.length} of ${totalWeightsCount} weights are not set: ` +
-        `${unsetNames}`);
+  if (strict) {
+    // Check that all weights are set.
+    const unsetNames: string[] = [];
+    for (const name in nameToWeight) {
+      unsetNames.push(name);
+    }
+    if (unsetNames.length > 0) {
+      throw new ValueError(
+          `${unsetNames.length} of ${totalWeightsCount} weights are not set: ` +
+          `${unsetNames}`);
+    }
   }
 
   batchSetValue(weightValueTuples);
@@ -735,17 +745,21 @@ export abstract class Container extends Layer {
    *   weight (only valid when `by_name`=True).
    * @param isNamedTensorMap Whether the 1st argument (`weightsJSON`) is a
    *   `NamedTensorMap`.
+   * @param strict Require that the provided weights exactly match those
+   *   required by the container.  Default true.  Passing false means that both
+   *   extra weights and missing weights will be silently ignored.
    */
   loadWeights(
       weightsJSON: JsonDict|NamedTensorMap, skipMismatch = false,
-      isNamedTensorMap = false) {
+      isNamedTensorMap = false, strict = true) {
     // TODO(cais): Maybe the JsonDict support should be removed after serving
     //   weights from XHR is working. If so, the `loadWeightsFromJson` flag
     //   should be removed as well. (b/74015805)
     // TODO(cais): See if we can use smarter type resolution to avoid sending
     //   the type info as a separate arg (isNamedTensormap).
     if (isNamedTensorMap) {
-      loadWeightsFromNamedTensorMap(weightsJSON as NamedTensorMap, this.layers);
+      loadWeightsFromNamedTensorMap(
+          weightsJSON as NamedTensorMap, this.layers, strict);
     } else {
       loadWeightsFromJson(weightsJSON as JsonDict, this.layers, skipMismatch);
     }

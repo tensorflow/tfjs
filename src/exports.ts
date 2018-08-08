@@ -143,9 +143,9 @@ export function sequential(config?: SequentialConfig): Sequential {
  *   useDocsFrom: 'loadModelInternal'
  * }
  */
-export function loadModel(pathOrIOHandler: string|
-                          io.IOHandler): Promise<Model> {
-  return loadModelInternal(pathOrIOHandler);
+export function loadModel(
+    pathOrIOHandler: string|io.IOHandler, strict = true): Promise<Model> {
+  return loadModelInternal(pathOrIOHandler, strict);
 }
 
 /**

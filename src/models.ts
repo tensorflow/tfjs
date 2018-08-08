@@ -189,15 +189,17 @@ export interface ModelPredictConfig {
  *      - 'weightsManifest': A TensorFlow.js weights manifest.
  *      See the Python converter function `save_model()` for more details.
  *      It is also assumed that model weights can be accessed from relative
- * paths described by the `paths` fields in weights manifest.
+ *      paths described by the `paths` fields in weights manifest.
  *   2. An `tf.io.IOHandler` object that loads model artifacts with its `load`
  *      method.
+ * @param strict Require that the provided weights exactly match those required
+ *   by the layers.  Default true.  Passing false means that both extra weights
+ *   and missing weights will be silently ignored.
  *
  * @returns A `Promise` of `Model`, with the topology and weights loaded.
  */
-
-export async function loadModelInternal(pathOrIOHandler: string|
-                                        io.IOHandler): Promise<Model> {
+export async function loadModelInternal(
+    pathOrIOHandler: string|io.IOHandler, strict = true): Promise<Model> {
   if (typeof pathOrIOHandler === 'string') {
     const handlers = io.getLoadHandlers(pathOrIOHandler);
     if (handlers.length === 0) {
@@ -211,15 +213,16 @@ export async function loadModelInternal(pathOrIOHandler: string|
     }
     pathOrIOHandler = handlers[0];
   }
-  return loadModelFromIOHandler(pathOrIOHandler as io.IOHandler);
+  return loadModelFromIOHandler(
+      pathOrIOHandler as io.IOHandler, undefined, strict);
 }
 
 /**
  * Load a model and optionally its weights, using an IOHandler object.
  */
 export async function loadModelFromIOHandler(
-    handler: io.IOHandler,
-    customObjects?: serialization.ConfigDict): Promise<Model> {
+    handler: io.IOHandler, customObjects?: serialization.ConfigDict,
+    strict = true): Promise<Model> {
   if (handler.load == null) {
     throw new ValueError(
         'Cannot proceed with model loading because the IOHandler provided ' +
@@ -248,7 +251,7 @@ export async function loadModelFromIOHandler(
     const isNamedTensorMap = true;
     model.loadWeights(
         io.decodeWeights(artifacts.weightData, artifacts.weightSpecs),
-        skipMismatch, isNamedTensorMap);
+        skipMismatch, isNamedTensorMap, strict);
   }
   return model;
 }
