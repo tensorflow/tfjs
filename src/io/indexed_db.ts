@@ -206,11 +206,11 @@ export class BrowserIndexedDB implements IOHandler {
   }
 }
 
-export const indexedDBRouter: IORouter = (url: string) => {
+export const indexedDBRouter: IORouter = (url: string|string[]) => {
   if (!ENV.get('IS_BROWSER')) {
     return null;
   } else {
-    if (url.startsWith(BrowserIndexedDB.URL_SCHEME)) {
+    if (!Array.isArray(url) && url.startsWith(BrowserIndexedDB.URL_SCHEME)) {
       return browserIndexedDB(url.slice(BrowserIndexedDB.URL_SCHEME.length));
     } else {
       return null;

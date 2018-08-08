@@ -357,6 +357,19 @@ describeWithFlags('browserHTTPRequest-save', CHROME_ENVS, () => {
         });
   });
 
+  it('getLoadHandlers with one URL string', () => {
+    const handlers = tf.io.getLoadHandlers('http://foo/model.json');
+    expect(handlers.length).toEqual(1);
+    expect(handlers[0] instanceof BrowserHTTPRequest).toEqual(true);
+  });
+  
+  it('getLoadHandlers with two URL strings', () => {
+    const handlers = tf.io.getLoadHandlers([
+        'https://foo/graph.pb', 'https://foo/weights_manifest.json']);
+    expect(handlers.length).toEqual(1);
+    expect(handlers[0] instanceof BrowserHTTPRequest).toEqual(true);
+  });
+
   it('Existing body leads to Error', () => {
     expect(() => tf.io.browserHTTPRequest('model-upload-test', {
       body: 'existing body'
