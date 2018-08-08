@@ -12,7 +12,7 @@
  * Unit tests for math_utils.
  */
 
-import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
+import * as tfc from '@tensorflow/tfjs-core';
 
 import * as math_utils from './math_utils';
 import {describeMathCPU} from './test_utils';
@@ -121,7 +121,7 @@ describeMathCPU('median', () => {
   it('does not mutate input array', () => {
     const numbers = [-100, -200, 150, 50];
     math_utils.median(numbers);
-    expectArraysClose(numbers, [-100, -200, 150, 50]);
+    tfc.test_util.expectArraysClose(numbers, [-100, -200, 150, 50]);
   });
 });
 
