@@ -33,7 +33,7 @@ export class BrowserHTTPRequest implements IOHandler {
 
   readonly DEFAULT_METHOD = 'POST';
 
-  static readonly URL_SCHEMES = ['http://', 'https://'];
+  static readonly URL_SCHEME_REGEX = /^https?:\/\//;
 
   constructor(path: string|string[], requestInit?: RequestInit) {
     if (typeof fetch === 'undefined') {
@@ -206,19 +206,27 @@ export class BrowserHTTPRequest implements IOHandler {
   }
 }
 
-export const httpRequestRouter: IORouter = (url: string) => {
+function isHTTPScheme(url: string): boolean {
+  return url.match(BrowserHTTPRequest.URL_SCHEME_REGEX) != null;
+}
+
+export const httpRequestRouter: IORouter = (url: string|string[]) => {
   if (typeof fetch === 'undefined') {
     // browserHTTPRequest uses `fetch`, if one wants to use it in node.js
     // they have to setup a global fetch polyfill.
     return null;
   } else {
-    for (const scheme of BrowserHTTPRequest.URL_SCHEMES) {
-      if (url.startsWith(scheme)) {
-        return browserHTTPRequest(url);
-      }
+    let isHTTP = true;
+    if (Array.isArray(url)) {
+      isHTTP = url.every(urlItem => isHTTPScheme(urlItem));
+    } else {
+      isHTTP = isHTTPScheme(url);
     }
-    return null;
+    if (isHTTP) {
+      return browserHTTPRequest(url);
+    }
   }
+  return null;
 };
 IORouterRegistry.registerSaveRouter(httpRequestRouter);
 IORouterRegistry.registerLoadRouter(httpRequestRouter);

@@ -17,7 +17,7 @@
 
 import {IOHandler} from './types';
 
-export type IORouter = (url: string) => IOHandler;
+export type IORouter = (url: string|string[]) => IOHandler;
 
 export class IORouterRegistry {
   // Singleton instance.
@@ -66,7 +66,7 @@ export class IORouterRegistry {
    * `save` method defined. If no match is found, `null`.
    * @throws Error, if more than one match is found.
    */
-  static getSaveHandlers(url: string): IOHandler[] {
+  static getSaveHandlers(url: string|string[]): IOHandler[] {
     return IORouterRegistry.getHandlers(url, 'save');
   }
 
@@ -77,11 +77,11 @@ export class IORouterRegistry {
    * @returns All valid handlers for `url`, given the currently registered
    *   handler routers.
    */
-  static getLoadHandlers(url: string): IOHandler[] {
+  static getLoadHandlers(url: string|string[]): IOHandler[] {
     return IORouterRegistry.getHandlers(url, 'load');
   }
 
-  private static getHandlers(url: string, handlerType: 'save'|'load'):
+  private static getHandlers(url: string|string[], handlerType: 'save'|'load'):
       IOHandler[] {
     const validHandlers: IOHandler[] = [];
     const routers = handlerType === 'load' ? this.getInstance().loadRouters :

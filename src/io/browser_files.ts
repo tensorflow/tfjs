@@ -235,11 +235,11 @@ class BrowserFiles implements IOHandler {
   }
 }
 
-export const browserDownloadsRouter: IORouter = (url: string) => {
+export const browserDownloadsRouter: IORouter = (url: string|string[]) => {
   if (!ENV.get('IS_BROWSER')) {
     return null;
   } else {
-    if (url.startsWith(BrowserDownloads.URL_SCHEME)) {
+    if (!Array.isArray(url) && url.startsWith(BrowserDownloads.URL_SCHEME)) {
       return browserDownloads(url.slice(BrowserDownloads.URL_SCHEME.length));
     } else {
       return null;

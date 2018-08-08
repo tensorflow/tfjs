@@ -21,6 +21,7 @@ import {BROWSER_ENVS} from '../test_util';
 import {BrowserIndexedDB, browserIndexedDB} from './indexed_db';
 import {BrowserLocalStorage, browserLocalStorage} from './local_storage';
 import {IORouterRegistry} from './router_registry';
+import {IOHandler} from './types';
 
 describeWithFlags('IORouterRegistry', BROWSER_ENVS, () => {
   const localStorageRouter = (url: string) => {
@@ -36,6 +37,23 @@ describeWithFlags('IORouterRegistry', BROWSER_ENVS, () => {
     const scheme = 'indexeddb://';
     if (url.startsWith(scheme)) {
       return browserIndexedDB(url.slice(scheme.length));
+    } else {
+      return null;
+    }
+  };
+
+  class FakeIOHandler implements IOHandler {
+    constructor(url1: string, url2: string) {}
+  }
+
+  const fakeMultiStringRouter = (url: string|string[]) => {
+    const scheme = 'foo://';
+    if (Array.isArray(url) && url.length === 2) {
+      if (url[0].startsWith(scheme) && url[1].startsWith(scheme)) {
+        return new FakeIOHandler(url[0], url[1]);
+      } else {
+        return null;
+      }
     } else {
       return null;
     }
@@ -77,6 +95,18 @@ describeWithFlags('IORouterRegistry', BROWSER_ENVS, () => {
     const out2 = tf.io.getLoadHandlers('indexeddb://foo-model');
     expect(out2.length).toEqual(1);
     expect(out2[0] instanceof BrowserIndexedDB).toEqual(true);
+  });
+
+  it('getLoadHandler with string array argument succeeds', () => {
+    IORouterRegistry.registerLoadRouter(fakeMultiStringRouter);
+    const loadHandler =
+        IORouterRegistry.getLoadHandlers(['foo:///123', 'foo:///456']);
+    expect(loadHandler[0] instanceof FakeIOHandler).toEqual(true);
+
+    expect(IORouterRegistry.getLoadHandlers(['foo:///123', 'bar:///456']))
+        .toEqual([]);
+    expect(IORouterRegistry.getLoadHandlers(['foo:///123'])).toEqual([]);
+    expect(IORouterRegistry.getLoadHandlers('foo:///123')).toEqual([]);
   });
 
   it('getSaveHandler fails', () => {

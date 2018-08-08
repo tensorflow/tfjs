@@ -219,11 +219,12 @@ export class BrowserLocalStorage implements IOHandler {
   }
 }
 
-export const localStorageRouter: IORouter = (url: string) => {
+export const localStorageRouter: IORouter = (url: string|string[]) => {
   if (!ENV.get('IS_BROWSER')) {
     return null;
   } else {
-    if (url.startsWith(BrowserLocalStorage.URL_SCHEME)) {
+    if (!Array.isArray(url) &&
+        url.startsWith(BrowserLocalStorage.URL_SCHEME)) {
       return browserLocalStorage(
           url.slice(BrowserLocalStorage.URL_SCHEME.length));
     } else {
