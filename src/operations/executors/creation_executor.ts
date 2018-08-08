@@ -31,8 +31,10 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
     case 'fill': {
       const shape =
           getParamValue('shape', node, tensorMap, context) as number[];
+      const dtype =
+          getParamValue('dtype', node, tensorMap, context) as tfc.DataType;
       const value = getParamValue('value', node, tensorMap, context) as number;
-      return [tfc.fill(shape, value)];
+      return [tfc.fill(shape, value, dtype)];
     }
     case 'linspace': {
       const start = getParamValue('start', node, tensorMap, context) as number;
