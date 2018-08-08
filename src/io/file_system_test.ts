@@ -23,7 +23,7 @@ import * as rimraf from 'rimraf';
 import {promisify} from 'util';
 
 import * as tfn from '../index';
-import {NodeFileSystem} from './file_system';
+import {NodeFileSystem, nodeFileSystemRouter} from './file_system';
 
 describe('File system IOHandler', () => {
   const mkdtemp = promisify(fs.mkdtemp);
@@ -449,5 +449,27 @@ describe('File system IOHandler', () => {
     const handler = new tfn.io.NodeFileSystem(testDir);
     expect(typeof handler.save).toEqual('function');
     expect(typeof handler.load).toEqual('function');
+  });
+
+  describe('nodeFileSystemRouter', () => {
+    it('should handle single path', () => {
+      expect(nodeFileSystemRouter('file://model.json')).toBeDefined();
+    });
+
+    it('should handle multiple paths', () => {
+      expect(nodeFileSystemRouter([
+        'file://model.json', 'file://weights.json'
+      ])).toBeDefined();
+    });
+
+    it('should return null for non file path', () => {
+      expect(nodeFileSystemRouter('http://model.json')).toBeNull();
+    });
+
+    it('should return null for multiple paths with mismatched scheme', () => {
+      expect(nodeFileSystemRouter([
+        'file://model.json', 'http://weights.json'
+      ])).toBeNull();
+    });
   });
 });
