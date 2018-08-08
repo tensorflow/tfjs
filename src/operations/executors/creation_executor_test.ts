@@ -17,11 +17,12 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
+import * as creation from '../op_list/creation';
+import {Node, OpMapper} from '../types';
 
 import {executeOp} from './creation_executor';
 // tslint:disable-next-line:max-line-length
-import {createDtypeAttr, createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr} from './test_helper';
+import {createDtypeAttr, createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
 
 describe('creation', () => {
   let node: Node;
@@ -36,7 +37,7 @@ describe('creation', () => {
       category: 'creation',
       inputNames: ['input1', 'input2'],
       inputs: [],
-      params: {x: createTensorAttr(0)},
+      params: {},
       children: []
     };
   });
@@ -48,10 +49,19 @@ describe('creation', () => {
         node.op = 'fill';
         node.params['shape'] = createNumericArrayAttrFromIndex(0);
         node.params['value'] = createNumberAttrFromIndex(1);
+        node.params['dtype'] = createDtypeAttr('int32');
 
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.fill).toHaveBeenCalledWith([1, 2, 3], 1);
+        expect(tfc.fill).toHaveBeenCalledWith([1, 2, 3], 1, 'int32');
+      });
+      it('should match json def', () => {
+        node.op = 'fill';
+        node.params['shape'] = createNumericArrayAttrFromIndex(0);
+        node.params['value'] = createNumberAttrFromIndex(1);
+        node.params['dtype'] = createDtypeAttr('int32');
+
+        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
       });
     });
     describe('linspace', () => {
@@ -68,12 +78,20 @@ describe('creation', () => {
 
         expect(tfc.linspace).toHaveBeenCalledWith(0, 1, 2);
       });
+      it('should match json def', () => {
+        node.op = 'linspace';
+        node.params['start'] = createNumberAttrFromIndex(0);
+        node.params['stop'] = createNumberAttrFromIndex(1);
+        node.params['num'] = createNumberAttrFromIndex(2);
+
+        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+      });
     });
     describe('oneHot', () => {
       it('should call tfc.oneHot', () => {
         spyOn(tfc, 'oneHot');
         node.op = 'oneHot';
-        node.params['indices'] = createNumericArrayAttrFromIndex(0);
+        node.params['indices'] = createTensorAttr(0);
         node.params['depth'] = createNumberAttrFromIndex(1);
         node.params['onValue'] = createNumberAttrFromIndex(2);
         node.params['offValue'] = createNumberAttrFromIndex(3);
@@ -83,7 +101,16 @@ describe('creation', () => {
         const input4 = [tfc.scalar(3)];
         executeOp(node, {input, input2, input3, input4}, context);
 
-        expect(tfc.oneHot).toHaveBeenCalledWith([0], 1, 2, 3);
+        expect(tfc.oneHot).toHaveBeenCalledWith(input[0], 1, 2, 3);
+      });
+      it('should match json def', () => {
+        node.op = 'oneHot';
+        node.params['indices'] = createTensorAttr(0);
+        node.params['depth'] = createNumberAttrFromIndex(1);
+        node.params['onValue'] = createNumberAttrFromIndex(2);
+        node.params['offValue'] = createNumberAttrFromIndex(3);
+
+        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
       });
     });
     describe('ones', () => {
@@ -96,14 +123,28 @@ describe('creation', () => {
 
         expect(tfc.ones).toHaveBeenCalledWith([1, 2, 3], 'float32');
       });
+      it('should match json def', () => {
+        node.op = 'ones';
+        node.params['shape'] = createNumericArrayAttrFromIndex(0);
+        node.params['dtype'] = createDtypeAttr('float32');
+
+        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+      });
     });
     describe('onesLike', () => {
       it('should call tfc.onesLike', () => {
         spyOn(tfc, 'onesLike');
         node.op = 'onesLike';
+        node.params['x'] = createTensorAttr(0);
         executeOp(node, {input1}, context);
 
         expect(tfc.onesLike).toHaveBeenCalledWith(input1[0]);
+      });
+      it('should match json def', () => {
+        node.op = 'onesLike';
+        node.params['x'] = createTensorAttr(0);
+
+        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
       });
     });
     describe('range', () => {
@@ -111,8 +152,8 @@ describe('creation', () => {
         spyOn(tfc, 'range');
         node.op = 'range';
         node.params['start'] = createNumberAttrFromIndex(0);
-        node.params['stop'] = createNumberAttr(1);
-        node.params['step'] = createNumberAttr(2);
+        node.params['stop'] = createNumberAttrFromIndex(1);
+        node.params['step'] = createNumberAttrFromIndex(2);
         node.params['dtype'] = createDtypeAttr('float32');
         node.inputNames = ['input', 'input2', 'input3'];
         const input = [tfc.scalar(0)];
@@ -120,6 +161,15 @@ describe('creation', () => {
         executeOp(node, {input, input2, input3}, context);
 
         expect(tfc.range).toHaveBeenCalledWith(0, 1, 2, 'float32');
+      });
+      it('should match json def', () => {
+        node.op = 'range';
+        node.params['start'] = createNumberAttrFromIndex(0);
+        node.params['stop'] = createNumberAttrFromIndex(1);
+        node.params['step'] = createNumberAttrFromIndex(2);
+        node.params['dtype'] = createDtypeAttr('float32');
+
+        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
       });
     });
     describe('randomUniform', () => {
@@ -138,6 +188,17 @@ describe('creation', () => {
         expect(tfc.randomUniform)
             .toHaveBeenCalledWith([1, 2, 3], 0, 1, 'float32');
       });
+      it('should match json def', () => {
+        node.op = 'randomUniform';
+        node.params['shape'] = createNumericArrayAttrFromIndex(0);
+        node.inputNames = ['input1'];
+        node.params['maxval'] = createNumberAttr(1);
+        node.params['minval'] = createNumberAttr(0);
+        node.params['dtype'] = createDtypeAttr('float32');
+        node.params['seed'] = createNumberAttr(0);
+
+        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+      });
     });
     describe('truncatedNormal', () => {
       it('should call tfc.truncatedNormal', () => {
@@ -155,6 +216,17 @@ describe('creation', () => {
         expect(tfc.truncatedNormal)
             .toHaveBeenCalledWith([1, 2, 3], 0, 1, 'float32', 0);
       });
+      it('should match json def', () => {
+        node.op = 'truncatedNormal';
+        node.params['shape'] = createNumericArrayAttrFromIndex(0);
+        node.inputNames = ['input1'];
+        node.params['stdDev'] = createNumberAttr(1);
+        node.params['mean'] = createNumberAttr(0);
+        node.params['dtype'] = createDtypeAttr('float32');
+        node.params['seed'] = createNumberAttr(0);
+
+        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+      });
     });
     describe('zeros', () => {
       it('should call tfc.zeros', () => {
@@ -166,14 +238,26 @@ describe('creation', () => {
 
         expect(tfc.zeros).toHaveBeenCalledWith([1, 2, 3], 'float32');
       });
+      it('should match json def', () => {
+        node.op = 'zeros';
+        node.params['shape'] = createNumericArrayAttrFromIndex(0);
+        node.params['dtype'] = createDtypeAttr('float32');
+        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+      });
     });
     describe('zerosLike', () => {
       it('should call tfc.zerosLike', () => {
         spyOn(tfc, 'zerosLike');
         node.op = 'zerosLike';
+        node.params['x'] = createTensorAttr(0);
         executeOp(node, {input1}, context);
 
         expect(tfc.zerosLike).toHaveBeenCalledWith(input1[0]);
+      });
+      it('should match json def', () => {
+        node.op = 'zerosLike';
+        node.params['x'] = createTensorAttr(0);
+        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
       });
     });
   });

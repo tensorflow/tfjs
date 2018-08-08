@@ -156,10 +156,13 @@ describe('slice join', () => {
         node.params.strides = createNumericArrayAttr([3]);
         node.params.beginMask = createNumberAttr(4);
         node.params.endMask = createNumberAttr(5);
+        node.params.ellipsisMask = createNumberAttr(1);
+        node.params.newAxisMask = createNumberAttr(2);
+        node.params.shrinkAxisMask = createNumberAttr(3);
         executeOp(node, {input1}, context);
 
         expect(tfc.stridedSlice)
-            .toHaveBeenCalledWith(input1[0], [1], [2], [3], 4, 5);
+            .toHaveBeenCalledWith(input1[0], [1], [2], [3], 4, 5, 1, 2, 3);
       });
 
       it('should call tfc.gather', () => {

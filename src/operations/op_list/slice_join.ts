@@ -125,6 +125,24 @@ export const json = [
         'dlParamName': 'endMask',
         'type': 'number',
         'defaultValue': 0
+      },
+      {
+        'tfParamName': 'new_axis_mask',
+        'dlParamName': 'newAxisMask',
+        'type': 'number',
+        'defaultValue': 0
+      },
+      {
+        'tfParamName': 'ellipsis_mask',
+        'dlParamName': 'ellipsisMask',
+        'type': 'number',
+        'defaultValue': 0
+      },
+      {
+        'tfParamName': 'shrink_axis_mask',
+        'dlParamName': 'shrinkAxisMask',
+        'type': 'number',
+        'defaultValue': 0
       }
     ]
   },

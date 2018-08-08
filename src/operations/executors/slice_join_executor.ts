@@ -65,6 +65,12 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('beginMask', node, tensorMap, context) as number;
       const endMask =
           getParamValue('endMask', node, tensorMap, context) as number;
+      const ellipsisMask =
+          getParamValue('ellipsisMask', node, tensorMap, context) as number;
+      const newAxisMask =
+          getParamValue('newAxisMask', node, tensorMap, context) as number;
+      const shrinkAxisMask =
+          getParamValue('shrinkAxisMask', node, tensorMap, context) as number;
       const tensor = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
       if (begin.length === 1 && tensor.shape.length > 1) {
         for (let i = 1; i < tensor.shape.length; i++) {
@@ -74,7 +80,8 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
         }
       }
       return [tfc.stridedSlice(
-          tensor, begin, end, strides, beginMask, endMask)];
+          tensor, begin, end, strides, beginMask, endMask, ellipsisMask,
+          newAxisMask, shrinkAxisMask)];
     }
     case 'stack': {
       return tfc.tidy(() => {

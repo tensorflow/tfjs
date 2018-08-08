@@ -22,12 +22,8 @@ export const json = [
     'category': 'creation',
     'params': [
       {'tfInputIndex': 0, 'dlParamName': 'shape', 'type': 'number[]'},
-      {'tfInputIndex': 1, 'dlParamName': 'value', 'type': 'number'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+      {'tfInputIndex': 1, 'dlParamName': 'value', 'type': 'number'},
+      {'tfParamName': 'T', 'dlParamName': 'dtype', 'type': 'dtype'}
     ]
   },
   {

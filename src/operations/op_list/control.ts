@@ -177,7 +177,7 @@ export const json = [
     'params': [
       {'tfInputIndex': 0, 'dlParamName': 'tensorArrayId', 'type': 'number'},
       {'tfInputIndex': 1, 'dlParamName': 'indices', 'type': 'number[]'},
-      {'tfInputIndex': 2, 'dlParamName': 'tensor', 'type': 'number[]'},
+      {'tfInputIndex': 2, 'dlParamName': 'tensor', 'type': 'tensor'},
       {'tfInputIndex': 3, 'dlParamName': 'flowIn', 'type': 'number'},
       {'tfParamName': 'T', 'dlParamName': 'dtype', 'type': 'dtype'}
     ]

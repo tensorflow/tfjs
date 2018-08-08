@@ -35,12 +35,12 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
               'float32' | 'bool')];
     }
     case 'expandDims': {
-      const axis = node.params['axis'].value as number;
+      const axis = getParamValue('axis', node, tensorMap, context) as number;
       return [tfc.expandDims(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis)];
     }
     case 'squeeze': {
-      const axis = node.params['axis'].value as number[];
+      const axis = getParamValue('axis', node, tensorMap, context) as number[];
       return [tfc.squeeze(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis)];
     }

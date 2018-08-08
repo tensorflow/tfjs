@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ParamValue} from '../types';
+import {OpMapper, ParamValue} from '../types';
+import {Node} from '../types';
 
 export function createNumberAttr(value: number): ParamValue {
   return {value, type: 'number'};
@@ -32,6 +33,9 @@ export function createBoolAttr(value: boolean): ParamValue {
   return {value, type: 'bool'};
 }
 
+export function createTensorShapeAttr(value: number[]): ParamValue {
+  return {value, type: 'shape'};
+}
 export function createNumericArrayAttr(value: number[]): ParamValue {
   return {value, type: 'number[]'};
 }
@@ -52,4 +56,15 @@ export function createTensorsAttr(
 
 export function createDtypeAttr(dtype: string): ParamValue {
   return {value: dtype, type: 'dtype'};
+}
+
+export function validateParam(node: Node, opMappers: OpMapper[]) {
+  const opMapper = opMappers.find(mapper => mapper.dlOpName === node.op);
+
+  return Object.keys(node.params).every(key => {
+    const value = node.params[key];
+    const def = opMapper.params.find(param => param.dlParamName === key);
+    return def && def.type === value.type &&
+        def.tfInputIndex === value.inputIndex;
+  });
 }
