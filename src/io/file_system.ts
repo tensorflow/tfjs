@@ -222,11 +222,21 @@ export class NodeFileSystem implements tfc.io.IOHandler {
   }
 }
 
-export const nodeFileSystemRouter = (url: string) => {
-  if (url.startsWith(NodeFileSystem.URL_SCHEME)) {
-    return new NodeFileSystem(url.slice(NodeFileSystem.URL_SCHEME.length));
+export const nodeFileSystemRouter = (url: string|string[]) => {
+  if (Array.isArray(url)) {
+    if (url.every(
+            urlElement => urlElement.startsWith(NodeFileSystem.URL_SCHEME))) {
+      return new NodeFileSystem(url.map(
+          urlElement => urlElement.slice(NodeFileSystem.URL_SCHEME.length)));
+    } else {
+      return null;
+    }
   } else {
-    return null;
+    if (url.startsWith(NodeFileSystem.URL_SCHEME)) {
+      return new NodeFileSystem(url.slice(NodeFileSystem.URL_SCHEME.length));
+    } else {
+      return null;
+    }
   }
 };
 // Registration of `nodeFileSystemRouter` is done in index.ts.

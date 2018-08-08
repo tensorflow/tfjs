@@ -185,17 +185,29 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   stridedSlice<T extends Tensor>(
       x: T, begin: number[], end: number[], strides: number[],
-      beginMask: number, endMask: number): T {
+      beginMask: number, endMask: number, ellipsisMask: number,
+      newAxisMask: number, shrinkAxisMask: number): T {
     const beginTensor = tensor1d(begin, 'int32');
     const endTensor = tensor1d(end, 'int32');
     const stridesTensor = tensor1d(strides, 'int32');
     const opAttrs = [
       createTypeOpAttr('T', x.dtype), createTypeOpAttr('Index', 'int32'),
       {name: 'begin_mask', type: this.binding.TF_ATTR_INT, value: beginMask},
-      {name: 'end_mask', type: this.binding.TF_ATTR_INT, value: endMask},
-      {name: 'ellipsis_mask', type: this.binding.TF_ATTR_INT, value: 0},
-      {name: 'new_axis_mask', type: this.binding.TF_ATTR_INT, value: 0},
-      {name: 'shrink_axis_mask', type: this.binding.TF_ATTR_INT, value: 0}
+      {name: 'end_mask', type: this.binding.TF_ATTR_INT, value: endMask}, {
+        name: 'ellipsis_mask',
+        type: this.binding.TF_ATTR_INT,
+        value: ellipsisMask
+      },
+      {
+        name: 'new_axis_mask',
+        type: this.binding.TF_ATTR_INT,
+        value: newAxisMask
+      },
+      {
+        name: 'shrink_axis_mask',
+        type: this.binding.TF_ATTR_INT,
+        value: shrinkAxisMask
+      }
     ];
     return this.executeSingleOutput(
                'StridedSlice', opAttrs,
