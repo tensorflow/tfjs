@@ -31,6 +31,27 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     expectArraysClose(c, [0, 8, -3, 20]);
   });
 
+  it('big A x A^t', () => {
+    const rows = 64;
+    const cols = 64;
+    const a = tf.randomUniform([cols, rows], -1, 1) as tf.Tensor2D;
+
+    // for an orthonomal matrix, its transpose is its inverse
+    // so aOrtho x aOrtho^t should be the identity matrix
+    const aOrtho = tf.linalg.gramSchmidt(a) as tf.Tensor2D;
+    const aat = tf.matMul(aOrtho, aOrtho, false, true);
+    expect(aat.shape).toEqual([cols, rows]);
+
+    const identityValues = new Array(cols * rows).fill(0).map((_, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / rows);
+      return col === row ? 1.0 : 0.0;
+    });
+
+    const identity = tf.tensor2d(identityValues, [128, 128]);
+    expectArraysClose(aat, identity);
+  });
+
   it('A x B^t', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([1, 0, 2, 4, 3, 0], [2, 3]);
