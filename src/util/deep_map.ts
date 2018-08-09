@@ -92,7 +92,7 @@ function deepMapInternal(
     containedIn.delete(input);
     return mappedIterable;
   } else {
-    throw new Error('Can\'t recurse into non-iterable type: ' + input);
+    throw new Error(`Can't recurse into non-iterable type: ${input}`);
   }
 }
 

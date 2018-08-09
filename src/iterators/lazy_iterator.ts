@@ -16,11 +16,9 @@
  * =============================================================================
  */
 
-// tslint:disable:max-line-length
 import * as tf from '@tensorflow/tfjs-core';
 import {getTensorsInContainer, isTensorInList} from '@tensorflow/tfjs-core/dist/tensor_util';
 import * as seedrandom from 'seedrandom';
-// tslint:enable:max-line-length
 
 import {DataElement, IteratorContainer} from '../types';
 import {deepMapAndAwaitAll, DeepMapAsyncResult} from '../util/deep_map';
@@ -358,7 +356,7 @@ class FunctionCallIterator<T> extends LazyIterator<T> {
     } catch (e) {
       // Modify the error message but leave the stack trace intact
       e.message =
-          'Error thrown while iterating through a dataset: ' + e.message;
+          `Error thrown while iterating through a dataset: ${e.message}`;
       throw e;
     }
   }

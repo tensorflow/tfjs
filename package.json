@@ -32,7 +32,7 @@
     "rollup-plugin-typescript2": "0.13.0",
     "rollup-plugin-uglify": "~3.0.0",
     "tsify": "~3.0.1",
-    "tslint": "~5.6.0",
+    "tslint": "~5.11.0",
     "typedoc": "~0.8.0",
     "typescript": "2.7.2",
     "uglify-js": "~3.0.28",
@@ -48,7 +48,7 @@
     "test": "karma start",
     "test-node": "ts-node src/test_node.ts",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
-    "lint": "tslint -p . --type-check -t verbose"
+    "lint": "tslint -p . -t verbose"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "0.12.4"
