@@ -41,7 +41,24 @@
           'library_dirs' : ['<(PRODUCT_DIR)'],
           'variables': {
             'tensorflow-library-target': 'linux-cpu'
-          }
+          },
+          'actions': [
+            {
+              'action_name': 'get_libtensorflow',
+              'inputs': [
+                '<(module_root_dir)/scripts/get_libtensorflow.js'
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)/libtensorflow.so',
+              ],
+              'action': [
+                'node',
+                '<@(_inputs)',
+                '<(tensorflow-library-target)',
+                '<(PRODUCT_DIR)',
+              ]
+            }
+          ],
         }
       ],
       [
@@ -53,7 +70,24 @@
           'library_dirs' : ['<(PRODUCT_DIR)'],
           'variables': {
             'tensorflow-library-target': 'darwin'
-          }
+          },
+          'actions': [
+            {
+              'action_name': 'get_libtensorflow',
+              'inputs': [
+                '<(module_root_dir)/scripts/get_libtensorflow.js'
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)/libtensorflow.so',
+              ],
+              'action': [
+                'node',
+                '<@(_inputs)',
+                '<(tensorflow-library-target)',
+                '<(PRODUCT_DIR)',
+              ]
+            }
+          ],
         }
       ],
       [
@@ -66,10 +100,26 @@
           },
           'actions': [
             {
+              'action_name': 'get_libtensorflow',
+              'inputs': [
+                '<(module_root_dir)/scripts/get_libtensorflow.js'
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)/tensorflow.dll',
+              ],
+              'action': [
+                'node',
+                '<@(_inputs)',
+                '<(tensorflow-library-target)',
+                '<(PRODUCT_DIR)',
+              ]
+            },
+            {
               'action_name': 'generate_def',
               'inputs': [
                 '<(module_root_dir)/scripts/generate_defs.js',
-                '<@(tensorflow_headers)'
+                '<@(tensorflow_headers)',
+                "<(PRODUCT_DIR)/tensorflow.dll"
               ],
               'outputs': [
                 '<(INTERMEDIATE_DIR)/tensorflow.def'
@@ -97,23 +147,6 @@
           ],
         },
       ]
-    ],
-    'actions': [
-      {
-        'action_name': 'get_libtensorflow',
-        'inputs': [
-          '<(module_root_dir)/scripts/get_libtensorflow.js'
-        ],
-        'outputs': [
-          '<(PRODUCT_DIR)/libtensorflow.so',
-        ],
-        'action': [
-          'node',
-          '<@(_inputs)',
-          '<(tensorflow-library-target)',
-          '<(PRODUCT_DIR)',
-        ]
-      }
     ],
   }]
 }
