@@ -333,8 +333,9 @@ describeMathCPUAndGPU('OnesLike', () => {
 });
 
 describeMathCPUAndGPU('eye (I-matrix builder)', () => {
-  it('Variable Zero sized 2D matrix', () => {
-    expect(() => V.eyeVariable(0)).toThrowError(/Shapes can not be <= 0./);
+  it('Variable Zero sized 2D matrix works', () => {
+    const v = V.eyeVariable(0);
+    expect(v.shape).toEqual([0, 0]);
   });
   it('Variable 1 sized 2D matrix', () => {
     const I = V.eyeVariable(1);
