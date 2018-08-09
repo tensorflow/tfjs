@@ -51,7 +51,7 @@ if (platform === 'linux-cpu') {
   libName = 'tensorflow.dll';
 
   // Some windows machines contain a trailing " char:
-  if (targetDir.endsWith('"')) {
+  if (targetDir != undefined && targetDir.endsWith('"')) {
     targetDir = targetDir.substr(0, targetDir.length - 1);
   }
 
