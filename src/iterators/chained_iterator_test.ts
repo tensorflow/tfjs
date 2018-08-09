@@ -24,7 +24,7 @@ const SHORT_STREAM_LENGTH = 15;
 
 describe('ChainedIterator', () => {
   it('produces a single underlying stream as expected', done => {
-    const chainedIterator = ChainedIterator.create(
+    const chainedIterator = new ChainedIterator(
         iteratorFromItems([new TestIntegerIterator(SHORT_STREAM_LENGTH)]));
 
     const expectedResult: number[] = [];
@@ -42,7 +42,7 @@ describe('ChainedIterator', () => {
         .catch(done.fail);
   });
   it('produces multiple underlying streams as expected', done => {
-    const chainedIterator = ChainedIterator.create(iteratorFromItems([
+    const chainedIterator = new ChainedIterator(iteratorFromItems([
       new TestIntegerIterator(SHORT_STREAM_LENGTH),
       new TestIntegerIterator(SHORT_STREAM_LENGTH),
       new TestIntegerIterator(SHORT_STREAM_LENGTH)

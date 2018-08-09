@@ -51,7 +51,7 @@ describe('ShuffleIterator', () => {
   });
 
   it('shuffles a single chained stream without replacement', done => {
-    const baseIterator = ChainedIterator.create(
+    const baseIterator = new ChainedIterator(
         iteratorFromItems([new TestIntegerIterator(SHORT_STREAM_LENGTH)]));
     const shuffleIterator = new ShuffleIterator(baseIterator, 1000);
     const notExpectedResult: number[] = [];

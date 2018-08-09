@@ -230,6 +230,57 @@ describe('LazyIterator', () => {
         .catch(done.fail);
   });
 
+  it('can selectively ignore upstream errors', async () => {
+    const readIterator = new TestIntegerIterator().take(10).map(x => {
+      if (x % 2 === 0) {
+        throw new Error('Oh no, an even number!');
+      }
+      return x;
+    });
+    // The 'true' response means the iterator should continue.
+    const errorIgnoringIterator = readIterator.handleErrors((e) => true);
+    const result = await errorIgnoringIterator.collect();
+    expect(result).toEqual([1, 3, 5, 7, 9]);
+  });
+
+  it('can terminate cleanly based on upstream errors', async () => {
+    const readIterator = new TestIntegerIterator().map(x => {
+      if (x % 2 === 0) {
+        throw new Error(`Oh no, an even number: ${x}`);
+      }
+      return x;
+    });
+    // The 'true' response means the iterator should continue.
+    // But in the case of 10, return false, terminating the stream.
+    const errorHandlingIterator = readIterator.handleErrors(
+        (e) => e.message !== 'Oh no, an even number: 10');
+    const result = await errorHandlingIterator.collect();
+    expect(result).toEqual([1, 3, 5, 7, 9]);
+  });
+
+  it('can selectively propagate upstream errors', done => {
+    const readIterator = new TestIntegerIterator().map(x => {
+      if (x % 2 === 0) {
+        throw new Error(`Oh no, an even number: ${x}`);
+      }
+      return x;
+    });
+    const errorHandlingIterator = readIterator.handleErrors((e) => {
+      if (e.message === 'Oh no, an even number: 2') {
+        throw e;
+      }
+      return true;
+    });
+    errorHandlingIterator.collect()
+        .then(
+            () =>
+                done.fail('collect should have propagated the upstream error'))
+        .catch((e) => {
+          expect(e.message).toEqual('Oh no, an even number: 2');
+          done();
+        });
+  });
+
   it('can be created from an array', done => {
     const readIterator = iteratorFromItems([1, 2, 3, 4, 5, 6]);
     readIterator.collect()
@@ -433,8 +484,8 @@ describe('LazyIterator', () => {
      });
 
   /**
-   * This test demonstrates behavior that is intrinsic to the tf.data zip() API,
-   * but that may not be what users ultimately want when zipping dicts.
+   * This test demonstrates behavior that is intrinsic to the tf.data zip()
+   * API, but that may not be what users ultimately want when zipping dicts.
    * This may merit a convenience function (e.g., maybe flatZip()).
    */
   it('zipping DataElement streams requires manual merge', async done => {
