@@ -16,13 +16,11 @@
  * =============================================================================
  */
 
-// tslint:disable:max-line-length
 import {DataElement, DataElementArray, DataElementObject} from '../types';
 import {iteratorFromIncrementing, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './lazy_iterator';
 import {iteratorFromConcatenated} from './lazy_iterator';
 import {iteratorFromConcatenatedFunction} from './lazy_iterator';
 import {iteratorFromFunction, iteratorFromItems} from './lazy_iterator';
-// tslint:enable:max-line-length
 
 export class TestIntegerIterator extends LazyIterator<number> {
   currentIndex = 0;
@@ -312,7 +310,7 @@ describe('LazyIterator', () => {
     try {
       const a = new TestIntegerIterator();
       const b = new TestIntegerIterator().map(x => x * 10);
-      const c = new TestIntegerIterator().map(x => 'string ' + x);
+      const c = new TestIntegerIterator().map(x => `string ${x}`);
       const readStream = iteratorFromZipped([a, b, c]);
       const result = await readStream.collect();
       expect(result.length).toEqual(100);
@@ -322,7 +320,7 @@ describe('LazyIterator', () => {
       for (const e of result) {
         const ee = e as DataElementArray;
         expect(ee[1]).toEqual(ee[0] as number * 10);
-        expect(ee[2]).toEqual('string ' + ee[0]);
+        expect(ee[2]).toEqual(`string ${ee[0]}`);
       }
       done();
     } catch (e) {
@@ -334,7 +332,7 @@ describe('LazyIterator', () => {
     try {
       const a = new TestIntegerIterator();
       const b = new TestIntegerIterator().map(x => x * 10);
-      const c = new TestIntegerIterator().map(x => 'string ' + x);
+      const c = new TestIntegerIterator().map(x => `string ${x}`);
       const readStream = iteratorFromZipped({a, b, c});
       const result = await readStream.collect();
       expect(result.length).toEqual(100);
@@ -344,7 +342,7 @@ describe('LazyIterator', () => {
       for (const e of result) {
         const ee = e as DataElementObject;
         expect(ee['b']).toEqual(ee['a'] as number * 10);
-        expect(ee['c']).toEqual('string ' + ee['a']);
+        expect(ee['c']).toEqual(`string ${ee['a']}`);
       }
       done();
     } catch (e) {
@@ -357,7 +355,7 @@ describe('LazyIterator', () => {
       const a = new TestIntegerIterator().map(x => ({'a': x, 'constant': 12}));
       const b = new TestIntegerIterator().map(
           x => ({'b': x * 10, 'array': [x * 100, x * 200]}));
-      const c = new TestIntegerIterator().map(x => ({'c': 'string ' + x}));
+      const c = new TestIntegerIterator().map(x => ({'c': `string ${x}`}));
       const readStream = iteratorFromZipped([a, b, c]);
       const result = await readStream.collect();
       expect(result.length).toEqual(100);
@@ -379,7 +377,7 @@ describe('LazyIterator', () => {
         expect(bb['array']).toEqual([
           aa['a'] as number * 100, aa['a'] as number * 200
         ]);
-        expect(cc['c']).toEqual('string ' + aa['a']);
+        expect(cc['c']).toEqual(`string ${aa['a']}`);
       }
       done();
     } catch (e) {
@@ -452,7 +450,7 @@ describe('LazyIterator', () => {
     try {
       const a = new TestIntegerIterator().map(x => ({'a': x}));
       const b = new TestIntegerIterator().map(x => ({'b': x * 10}));
-      const c = new TestIntegerIterator().map(x => ({'c': 'string ' + x}));
+      const c = new TestIntegerIterator().map(x => ({'c': `string ${x}`}));
       const zippedStream = iteratorFromZipped([a, b, c]);
       // At first, each result has the form
       // [{a: x}, {b: x * 10}, {c: 'string ' + x}]
@@ -467,7 +465,7 @@ describe('LazyIterator', () => {
       for (const e of result) {
         const ee = e as DataElementObject;
         expect(ee['b']).toEqual(ee['a'] as number * 10);
-        expect(ee['c']).toEqual('string ' + ee['a']);
+        expect(ee['c']).toEqual(`string ${ee['a']}`);
       }
       done();
     } catch (e) {

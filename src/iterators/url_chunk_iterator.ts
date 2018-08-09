@@ -16,9 +16,7 @@
  * =============================================================================
  */
 
-// tslint:disable:max-line-length
 import {FileChunkIterator, FileChunkIteratorOptions} from './file_chunk_iterator';
-// tslint:enable:max-line-length
 
 /**
  * Provide a stream of chunks from a URL.

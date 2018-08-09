@@ -16,13 +16,11 @@
  * =============================================================================
  */
 
-// tslint:disable:max-line-length
 import * as tf from '@tensorflow/tfjs-core';
 import {TensorContainer, TensorContainerArray, TensorContainerObject} from '@tensorflow/tfjs-core/dist/tensor_types';
 
 import {Dataset} from '.';
 import {LazyIterator} from './iterators/lazy_iterator';
-// tslint:enable:max-line-length
 
 // TODO(soergel): clean up the |string union type throughout when Tensor
 // supports string.

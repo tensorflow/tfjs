@@ -19,12 +19,9 @@
 import * as tf from '@tensorflow/tfjs-core';
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-// tslint:disable:max-line-length
 import {Dataset, datasetFromElements, datasetFromIteratorFn, zip} from './dataset';
 import {iteratorFromFunction, iteratorFromItems, LazyIterator} from './iterators/lazy_iterator';
 import {DataElementObject, DatasetContainer} from './types';
-
-// tslint:enable:max-line-length
 
 class TestObjectIterator extends LazyIterator<{}> {
   data = Array.from({length: 100}, (v, k) => k);
