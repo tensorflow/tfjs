@@ -94,9 +94,12 @@ export class LayerVariable {
     // TODO(cais): Once  TF.js Core supports Tensor.dtype, check dtype match.
     this.assertNotDisposed();
     checkShapesMatch(this.val, newVal);
-    this.val.assign(newVal);
-    if (this.constraint != null) {
-      this.val.assign(this.constraint.apply(this.val));
+    // Skip updating if this is the exact same tensor.
+    if (this.val.id !== newVal.id) {
+      this.val.assign(newVal);
+      if (this.constraint != null) {
+        this.val.assign(this.constraint.apply(this.val));
+      }
     }
     return this;
   }

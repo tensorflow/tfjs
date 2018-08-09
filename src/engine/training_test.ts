@@ -1086,6 +1086,36 @@ describeMathCPUAndGPU('Model.fit', () => {
         });
   });
 
+  it('and then set weights to new weights', async done => {
+    createDenseModelAndData(false, 'l1l2');
+    model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+    model.fit(inputs, targets, {batchSize: numSamples, epochs: 2})
+        .then(history => {
+          const w = zeros([4, 1]);
+          model.layers[1].setWeights([w]);
+          expectTensorsClose(model.layers[1].getWeights()[0], w);
+          done();
+        })
+        .catch(err => {
+          done.fail(err.stack);
+        });
+  });
+
+  it('and then set weights to own weights', async done => {
+    createDenseModelAndData(false, 'l1l2');
+    model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+    model.fit(inputs, targets, {batchSize: numSamples, epochs: 2})
+        .then(history => {
+          const w = model.layers[1].getWeights()[0];
+          model.layers[1].setWeights([w]);
+          expectTensorsClose(model.layers[1].getWeights()[0], w);
+          done();
+        })
+        .catch(err => {
+          done.fail(err.stack);
+        });
+  });
+
   class StopAfterNEpochs extends tfl.Callback {
     private readonly epochsToTrain: number;
     constructor(epochsToTrain: number) {
