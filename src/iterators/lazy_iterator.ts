@@ -205,6 +205,22 @@ export abstract class LazyIterator<T> {
   }
 
   /**
+   * Draw items from the stream until it is exhausted, or a predicate fails.
+   *
+   * This can be useful when the stream has side effects but no output.  In
+   * that case, calling this function guarantees that the stream will be
+   * fully processed.
+   */
+  async resolveWhile(predicate: (r: T) => boolean): Promise<void> {
+    let x = await this.next();
+    let shouldContinue = predicate(x.value);
+    while ((!x.done) && shouldContinue) {
+      x = await this.next();
+      shouldContinue = predicate(x.value);
+    }
+  }
+
+  /**
    * Handles errors thrown on this stream using a provided handler function.
    *
    * @param handler A function that handles any `Error` thrown during a `next()`
@@ -259,6 +275,18 @@ export abstract class LazyIterator<T> {
   }
 
   /**
+   * Maps this stream through a 1-to-1 transform, forcing serial execution.
+   *
+   * @param predicate A function mapping a stream element to a transformed
+   *   element.
+   *
+   * @returns A `LazyIterator` of transformed elements.
+   */
+  serialMapAsync<O>(transform: (value: T) => Promise<O>): LazyIterator<O> {
+    return new AsyncMapIterator(this, transform).serial();
+  }
+
+  /**
    * Maps this stream through a 1-to-many transform.
    *
    * @param predicate A function mapping a stream element to an array of
@@ -277,6 +305,17 @@ export abstract class LazyIterator<T> {
    */
   async forEach(f: (value: T) => void): Promise<void> {
     return this.map(f).resolveFully();
+  }
+
+  /**
+   * Apply a function to every element of the stream, forcing serial execution.
+   *
+   * @param f A function to apply to each stream element.  Should return 'true'
+   *   to indicate that the stream should continue, or 'false' to cause it to
+   *   terminate.
+   */
+  async serialForEach(f: (value: T) => Promise<boolean>): Promise<void> {
+    return this.serialMapAsync(f).resolveWhile(x => (x === true));
   }
 
   /**
@@ -362,6 +401,14 @@ export abstract class LazyIterator<T> {
   shuffle(windowSize: number, seed?: string): LazyIterator<T> {
     return new ShuffleIterator(this, windowSize, seed);
   }
+
+  /**
+   * Force an iterator to execute serially: each next() call will await the
+   * prior one, so that they cannot execute concurrently.
+   */
+  serial(): LazyIterator<T> {
+    return new SerialIterator(this);
+  }
 }
 
 // ============================================================================
@@ -404,6 +451,30 @@ class FunctionCallIterator<T> extends LazyIterator<T> {
           `Error thrown while iterating through a dataset: ${e.message}`;
       throw e;
     }
+  }
+}
+
+class SerialIterator<T> extends LazyIterator<T> {
+  // Strict Promise execution order:
+  // a next() call may not even begin until the previous one completes.
+  private lastRead: Promise<IteratorResult<T>>;
+
+  constructor(protected upstream: LazyIterator<T>) {
+    super();
+    this.lastRead = Promise.resolve({value: null, done: false});
+  }
+
+  async next(): Promise<IteratorResult<T>> {
+    // This sets this.lastRead to a new Promise right away, as opposed to
+    // saying `await this.lastRead; this.lastRead = this.serialNext();` which
+    // would not work because this.nextRead would be updated only after the
+    // promise resolves.
+    this.lastRead = this.lastRead.then(() => this.serialNext());
+    return this.lastRead;
+  }
+
+  private async serialNext(): Promise<IteratorResult<T>> {
+    return this.upstream.next();
   }
 }
 

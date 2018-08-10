@@ -307,6 +307,41 @@ describe('LazyIterator', () => {
         });
   });
 
+  it('can be forced to execute serially', async () => {
+    // This is like FilterIterator, except that it does not enforce serial
+    // execution.  For testing.
+    class ParallelFilterIterator<T> extends LazyIterator<T> {
+      constructor(
+          protected upstream: LazyIterator<T>,
+          protected predicate: (value: T) => boolean) {
+        super();
+      }
+
+      async next(): Promise<IteratorResult<T>> {
+        while (true) {
+          const item = await this.upstream.next();
+          if (item.done || this.predicate(item.value)) {
+            return item;
+          }
+        }
+      }
+    }
+
+    const newReadIterator = () =>
+        new ParallelFilterIterator((new TestIntegerIterator()).take(10), x => {
+          return x % 2 === 0;
+        });
+
+    // Without enforcing serial execution, order gets scrambled; consequently
+    // the done signal arrives before any of the accepted elements!
+    const badResult = await newReadIterator().collect();
+    expect(badResult).toEqual([0]);
+
+    // But with serial execution, everything is fine.
+    const goodResult = await newReadIterator().serial().collect();
+    expect(goodResult).toEqual([0, 2, 4, 6, 8]);
+  });
+
   it('can be created from an array', done => {
     const readIterator = iteratorFromItems([1, 2, 3, 4, 5, 6]);
     readIterator.collect()
