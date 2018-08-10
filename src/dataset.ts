@@ -89,6 +89,25 @@ export abstract class Dataset<T extends DataElement> {
   }
 
   /**
+   * Maps this dataset through an async 1-to-1 transform.
+   *
+   * @param transform A function mapping a dataset element to a `Promise` for a
+   *   transformed dataset element.  This transform is responsible for disposing
+   *   any intermediate `Tensor`s, i.e. by wrapping its computation in
+   *   `tf.tidy()`; that cannot be automated here (as it is in the synchronous
+   *   `map()` case).
+   *
+   * @returns A `Dataset` of transformed elements.
+   */
+  mapAsync<O extends DataElement>(transform: (value: T) => Promise<O>):
+      Dataset<O> {
+    const base = this;
+    return datasetFromIteratorFn(async () => {
+      return (await base.iterator()).mapAsync(transform);
+    });
+  }
+
+  /**
    * Groups elements into batches and arranges their values in columnar form.
    *
    * It is assumed that each of the incoming dataset elements has the same set
@@ -295,12 +314,13 @@ export function datasetFromElements<T extends DataElement>(items: T[]):
  *
  * const ds4 = ds3.map(x=>{a: x[0].a, b: x[1].b});
  */
-export function zip(datasets: DatasetContainer): Dataset<DataElement> {
+export function zip<O extends DataElement>(datasets: DatasetContainer):
+    Dataset<O> {
   // manually type-check the argument for JS users
   if (!isIterable(datasets)) {
     throw new Error('The argument to zip() must be an object or array.');
   }
-  return datasetFromIteratorFn(async () => {
+  return datasetFromIteratorFn<O>(async () => {
     const streams = await deepMapAndAwaitAll(datasets, d => {
       if (d instanceof Dataset) {
         return {value: d.iterator(), recurse: false};
@@ -312,6 +332,6 @@ export function zip(datasets: DatasetContainer): Dataset<DataElement> {
             'not primitives.');
       }
     });
-    return iteratorFromZipped(streams, ZipMismatchMode.SHORTEST);
+    return iteratorFromZipped<O>(streams, ZipMismatchMode.SHORTEST);
   });
 }
