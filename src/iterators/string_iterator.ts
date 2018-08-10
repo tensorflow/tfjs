@@ -56,9 +56,13 @@ export abstract class StringIterator extends LazyIterator<string> {
 class SplitIterator extends StringIterator {
   private impl: SplitIteratorImpl;
 
-  constructor(upstream: LazyIterator<string>, separator: string) {
+  constructor(protected upstream: LazyIterator<string>, separator: string) {
     super();
     this.impl = new SplitIteratorImpl(upstream, separator);
+  }
+
+  summary() {
+    return this.impl.summary();
   }
 
   async next() {
@@ -73,6 +77,10 @@ class SplitIteratorImpl extends OneToManyIterator<string> {
   constructor(
       protected upstream: LazyIterator<string>, protected separator: string) {
     super();
+  }
+
+  summary() {
+    return `${this.upstream.summary()} -> Split('${this.separator}')`;
   }
 
   async pump(): Promise<boolean> {

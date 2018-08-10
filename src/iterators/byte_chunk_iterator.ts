@@ -50,9 +50,13 @@ export abstract class ByteChunkIterator extends LazyIterator<Uint8Array> {
 class Utf8Iterator extends StringIterator {
   private impl: Utf8IteratorImpl;
 
-  constructor(upstream: LazyIterator<Uint8Array>) {
+  constructor(protected upstream: LazyIterator<Uint8Array>) {
     super();
     this.impl = new Utf8IteratorImpl(upstream);
+  }
+
+  summary() {
+    return this.impl.summary();
   }
 
   async next() {
@@ -89,6 +93,9 @@ class Utf8IteratorImpl extends OneToManyIterator<string> {
 
   constructor(protected readonly upstream: LazyIterator<Uint8Array>) {
     super();
+  }
+  summary() {
+    return `${this.upstream.summary()} -> Utf8`;
   }
 
   async pump(): Promise<boolean> {

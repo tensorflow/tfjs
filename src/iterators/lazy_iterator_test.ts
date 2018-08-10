@@ -31,6 +31,10 @@ export class TestIntegerIterator extends LazyIterator<number> {
     this.data = Array.from({length}, (v, k) => k);
   }
 
+  summary() {
+    return `TestIntegers`;
+  }
+
   async next(): Promise<IteratorResult<number>> {
     if (this.currentIndex >= this.length) {
       return {value: null, done: true};
@@ -315,6 +319,10 @@ describe('LazyIterator', () => {
           protected upstream: LazyIterator<T>,
           protected predicate: (value: T) => boolean) {
         super();
+      }
+
+      summary() {
+        return `${this.upstream.summary} -> ParallelFilterIterator`;
       }
 
       async next(): Promise<IteratorResult<T>> {

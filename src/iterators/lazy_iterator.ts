@@ -149,6 +149,8 @@ export abstract class LazyIterator<T> {
   // TypeScript --downlevelIteration flag to enable that.
   properties: IteratorProperties;
 
+  abstract summary(): string;
+
   /**
    * Returns a `Promise` for the next element in the stream.
    *
@@ -265,8 +267,8 @@ export abstract class LazyIterator<T> {
   /**
    * Maps this stream through an async 1-to-1 transform.
    *
-   * @param predicate A function mapping a stream element to a transformed
-   *   element.
+   * @param transform A function mapping a stream element to a `Promise` for a
+   *   transformed stream element.
    *
    * @returns A `LazyIterator` of transformed elements.
    */
@@ -337,8 +339,8 @@ export abstract class LazyIterator<T> {
    * @param iterator A `LazyIterator` to be concatenated onto this one.
    * @param baseErrorHandler An optional function that can intercept `Error`s
    *   raised during a `next()` call on the base stream.  This function can
-   * decide whether the error should be propagated, whether the error should be
-   *   ignored, or whether the base stream should be terminated.
+   *   decide whether the error should be propagated, whether the error should
+   *   be ignored, or whether the base stream should be terminated.
    * @returns A `LazyIterator`.
    */
   concatenate(
@@ -426,6 +428,10 @@ class ArrayIterator<T> extends LazyIterator<T> {
     super();
   }
 
+  summary() {
+    return `Array of ${this.items.length} items`;
+  }
+
   async next(): Promise<IteratorResult<T>> {
     if (this.trav >= this.items.length) {
       return {value: null, done: true};
@@ -440,6 +446,10 @@ class FunctionCallIterator<T> extends LazyIterator<T> {
   constructor(
       protected nextFn: () => IteratorResult<T>| Promise<IteratorResult<T>>) {
     super();
+  }
+
+  summary() {
+    return `Function call`;
   }
 
   async next(): Promise<IteratorResult<T>> {
@@ -462,6 +472,10 @@ class SerialIterator<T> extends LazyIterator<T> {
   constructor(protected upstream: LazyIterator<T>) {
     super();
     this.lastRead = Promise.resolve({value: null, done: false});
+  }
+
+  summary() {
+    return `${this.upstream.summary()} -> Serial`;
   }
 
   async next(): Promise<IteratorResult<T>> {
@@ -491,6 +505,10 @@ class SkipIterator<T> extends LazyIterator<T> {
     this.lastRead = Promise.resolve({value: null, done: false});
   }
 
+  summary() {
+    return `${this.upstream.summary()} -> Skip`;
+  }
+
   async next(): Promise<IteratorResult<T>> {
     // This sets this.lastRead to a new Promise right away, as opposed to
     // saying `await this.lastRead; this.lastRead = this.serialNext();` which
@@ -501,9 +519,10 @@ class SkipIterator<T> extends LazyIterator<T> {
   }
 
   private async serialNext(): Promise<IteratorResult<T>> {
-    // TODO(soergel): consider tradeoffs of reading in parallel, eg. collecting
-    // next() promises in an Array and then waiting for Promise.all() of those.
-    // Benefit: pseudo-parallel execution.  Drawback: maybe delayed GC.
+    // TODO(soergel): consider tradeoffs of reading in parallel, eg.
+    // collecting next() promises in an Array and then waiting for
+    // Promise.all() of those. Benefit: pseudo-parallel execution.  Drawback:
+    // maybe delayed GC.
     while (this.count++ < this.maxCount) {
       const skipped = await this.upstream.next();
       // short-circuit if upstream is already empty
@@ -522,6 +541,10 @@ class TakeIterator<T> extends LazyIterator<T> {
     super();
   }
 
+  summary() {
+    return `${this.upstream.summary()} -> Take`;
+  }
+
   async next(): Promise<IteratorResult<T>> {
     if (this.count++ >= this.maxCount) {
       return {value: null, done: true};
@@ -530,6 +553,9 @@ class TakeIterator<T> extends LazyIterator<T> {
   }
 }
 
+// Note this batch just groups items into row-wise element arrays.
+// Rotating these to a column-wise representation happens only at the dataset
+// level.
 class BatchIterator<T> extends LazyIterator<T[]> {
   // Strict Promise execution order:
   // a next() call may not even begin until the previous one completes.
@@ -540,6 +566,10 @@ class BatchIterator<T> extends LazyIterator<T[]> {
       protected enableSmallLastBatch = true) {
     super();
     this.lastRead = Promise.resolve({value: null, done: false});
+  }
+
+  summary() {
+    return `${this.upstream.summary()} -> Batch`;
   }
 
   async next(): Promise<IteratorResult<T[]>> {
@@ -579,6 +609,10 @@ class FilterIterator<T> extends LazyIterator<T> {
     this.lastRead = Promise.resolve({value: null, done: false});
   }
 
+  summary() {
+    return `${this.upstream.summary()} -> Filter`;
+  }
+
   async next(): Promise<IteratorResult<T>> {
     // This sets this.lastRead to a new Promise right away, as opposed to
     // saying `await this.lastRead; this.lastRead = this.serialNext();` which
@@ -605,6 +639,11 @@ class MapIterator<I, O> extends LazyIterator<O> {
       protected transform: (value: I) => O) {
     super();
   }
+
+  summary() {
+    return `${this.upstream.summary()} -> Map`;
+  }
+
   async next(): Promise<IteratorResult<O>> {
     const item = await this.upstream.next();
     if (item.done) {
@@ -619,6 +658,7 @@ class MapIterator<I, O> extends LazyIterator<O> {
     // inputs.
     const mapped = this.transform(item.value);
     const outputTensors = getTensorsInContainer(mapped as {});
+
     // TODO(soergel) faster intersection
     // TODO(soergel) move to tf.disposeExcept(in, out)?
     for (const t of inputTensors) {
@@ -629,6 +669,7 @@ class MapIterator<I, O> extends LazyIterator<O> {
     return {value: mapped, done: false};
   }
 }
+
 class ErrorHandlingLazyIterator<T> extends LazyIterator<T> {
   count = 0;
   constructor(
@@ -636,6 +677,10 @@ class ErrorHandlingLazyIterator<T> extends LazyIterator<T> {
       protected handler: (error: Error) => boolean) {
     super();
     this.lastRead = Promise.resolve({value: null, done: false});
+  }
+
+  summary() {
+    return `${this.upstream.summary()} -> handleErrors`;
   }
 
   // Strict Promise execution order:
@@ -675,6 +720,11 @@ class AsyncMapIterator<I, O> extends LazyIterator<O> {
       protected transform: (value: I) => Promise<O>) {
     super();
   }
+
+  summary() {
+    return `${this.upstream.summary()} -> AsyncMap`;
+  }
+
   async next(): Promise<IteratorResult<O>> {
     const item = await this.upstream.next();
     if (item.done) {
@@ -689,6 +739,7 @@ class AsyncMapIterator<I, O> extends LazyIterator<O> {
     // inputs.
     const mapped = await this.transform(item.value);
     const outputTensors = getTensorsInContainer(mapped as {});
+
     // TODO(soergel) faster intersection
     // TODO(soergel) move to tf.disposeExcept(in, out)?
     for (const t of inputTensors) {
@@ -768,6 +819,10 @@ class FlatmapIterator<I, O> extends OneToManyIterator<O> {
     super();
   }
 
+  summary() {
+    return `${this.upstream.summary()} -> Flatmap`;
+  }
+
   async pump(): Promise<boolean> {
     const item = await this.upstream.next();
     if (item.done) {
@@ -794,6 +849,7 @@ class FlatmapIterator<I, O> extends OneToManyIterator<O> {
     return true;
   }
 }
+
 /**
  * Provides a `LazyIterator` that concatenates a stream of underlying
  * streams.
@@ -817,6 +873,11 @@ export class ChainedIterator<T> extends LazyIterator<T> {
       private readonly baseErrorHandler?: (e: Error) => boolean) {
     super();
     this.moreIterators = iterators;
+  }
+
+  summary() {
+    const upstreamSummaries = 'TODO: fill in upstream of chained summaries';
+    return `${upstreamSummaries} -> Chained`;
   }
 
   async next(): Promise<IteratorResult<T>> {
@@ -897,6 +958,11 @@ class ZipIterator<O extends DataElement> extends LazyIterator<O> {
     super();
   }
 
+  summary() {
+    const upstreamSummaries = 'TODO: fill in upstream of zip summaries';
+    return `{${upstreamSummaries}} -> Zip`;
+  }
+
   private async nextState(afterState: Promise<IteratorResult<O>>):
       Promise<IteratorResult<O>> {
     // This chaining ensures that the underlying next() are not even called
@@ -969,12 +1035,14 @@ class ZipIterator<O extends DataElement> extends LazyIterator<O> {
 export class PrefetchIterator<T> extends LazyIterator<T> {
   protected buffer: RingBuffer<Promise<IteratorResult<T>>>;
 
-  total = 0;
-
   constructor(
       protected upstream: LazyIterator<T>, protected bufferSize: number) {
     super();
     this.buffer = new RingBuffer<Promise<IteratorResult<T>>>(bufferSize);
+  }
+
+  summary() {
+    return `${this.upstream.summary()} -> Prefetch`;
   }
 
   /**

@@ -27,6 +27,10 @@ class TestObjectIterator extends LazyIterator<{}> {
   data = Array.from({length: 100}, (v, k) => k);
   currentIndex = 0;
 
+  summary() {
+    return `TestObjects`;
+  }
+
   async next(): Promise<IteratorResult<{}>> {
     if (this.currentIndex >= 100) {
       return {value: null, done: true};
