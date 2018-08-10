@@ -118,11 +118,10 @@ export function iteratorFromConcatenatedFunction<T>(
  * `ZipMismatchMode.LONGEST` causes the zipped stream to continue, filling
  * in nulls for the exhausted streams, until all streams are exhausted.
  */
-export function iteratorFromZipped(
+export function iteratorFromZipped<O extends DataElement>(
     iterators: IteratorContainer,
-    mismatchMode: ZipMismatchMode =
-        ZipMismatchMode.FAIL): LazyIterator<DataElement> {
-  return new ZipIterator(iterators, mismatchMode);
+    mismatchMode: ZipMismatchMode = ZipMismatchMode.FAIL): LazyIterator<O> {
+  return new ZipIterator<O>(iterators, mismatchMode);
 }
 
 export class IteratorProperties {
@@ -245,6 +244,18 @@ export abstract class LazyIterator<T> {
    */
   map<O>(transform: (value: T) => O): LazyIterator<O> {
     return new MapIterator(this, transform);
+  }
+
+  /**
+   * Maps this stream through an async 1-to-1 transform.
+   *
+   * @param predicate A function mapping a stream element to a transformed
+   *   element.
+   *
+   * @returns A `LazyIterator` of transformed elements.
+   */
+  mapAsync<O>(transform: (value: T) => Promise<O>): LazyIterator<O> {
+    return new AsyncMapIterator(this, transform);
   }
 
   /**
@@ -530,12 +541,10 @@ class MapIterator<I, O> extends LazyIterator<O> {
     }
     const inputTensors = getTensorsInContainer(item.value as {});
     // Careful: the transform may mutate the item in place.
-    // that's why we have to remember the input Tensors above, and then
-    // below
-    // dispose only those that were not passed through to the output.
+    // That's why we have to remember the input Tensors above, and then
+    // below dispose only those that were not passed through to the output.
     // Note too that the transform function is responsible for tidying
-    // any
-    // intermediate Tensors.  Here we are concerned only about the
+    // any intermediate Tensors.  Here we are concerned only about the
     // inputs.
     const mapped = this.transform(item.value);
     const outputTensors = getTensorsInContainer(mapped as {});
@@ -586,6 +595,37 @@ class ErrorHandlingLazyIterator<T> extends LazyIterator<T> {
         // the correct behavior-- it's up to the handler to decide when to stop.
       }
     }
+  }
+}
+
+class AsyncMapIterator<I, O> extends LazyIterator<O> {
+  constructor(
+      protected upstream: LazyIterator<I>,
+      protected transform: (value: I) => Promise<O>) {
+    super();
+  }
+  async next(): Promise<IteratorResult<O>> {
+    const item = await this.upstream.next();
+    if (item.done) {
+      return {value: null, done: true};
+    }
+    const inputTensors = getTensorsInContainer(item.value as {});
+    // Careful: the transform may mutate the item in place.
+    // That's why we have to remember the input Tensors above, and then
+    // below dispose only those that were not passed through to the output.
+    // Note too that the transform function is responsible for tidying
+    // any intermediate Tensors.  Here we are concerned only about the
+    // inputs.
+    const mapped = await this.transform(item.value);
+    const outputTensors = getTensorsInContainer(mapped as {});
+    // TODO(soergel) faster intersection
+    // TODO(soergel) move to tf.disposeExcept(in, out)?
+    for (const t of inputTensors) {
+      if (!isTensorInList(t, outputTensors)) {
+        t.dispose();
+      }
+    }
+    return {value: mapped, done: false};
   }
 }
 
@@ -776,9 +816,9 @@ export enum ZipMismatchMode {
  * `ZipMismatchMode.LONGEST` causes the zipped stream to continue, filling
  * in nulls for the exhausted streams, until all streams are exhausted.
  */
-class ZipIterator extends LazyIterator<DataElement> {
+class ZipIterator<O extends DataElement> extends LazyIterator<O> {
   private count = 0;
-  private currentPromise: Promise<IteratorResult<DataElement>> = null;
+  private currentPromise: Promise<IteratorResult<O>> = null;
 
   constructor(
       protected readonly iterators: IteratorContainer,
@@ -786,8 +826,8 @@ class ZipIterator extends LazyIterator<DataElement> {
     super();
   }
 
-  private async nextState(afterState: Promise<IteratorResult<DataElement>>):
-      Promise<IteratorResult<DataElement>> {
+  private async nextState(afterState: Promise<IteratorResult<O>>):
+      Promise<IteratorResult<O>> {
     // This chaining ensures that the underlying next() are not even called
     // before the previous ones have resolved.
     await afterState;
@@ -815,7 +855,7 @@ class ZipIterator extends LazyIterator<DataElement> {
       }
     }
 
-    const mapped = await deepMapAndAwaitAll(this.iterators, getNext);
+    const mapped: O = await deepMapAndAwaitAll(this.iterators, getNext);
 
     if (numIterators === iteratorsDone) {
       // The streams have all ended.
@@ -839,7 +879,7 @@ class ZipIterator extends LazyIterator<DataElement> {
     return {value: mapped, done: false};
   }
 
-  async next(): Promise<IteratorResult<DataElement>> {
+  async next(): Promise<IteratorResult<O>> {
     this.currentPromise = this.nextState(this.currentPromise);
     return (await this.currentPromise);
   }
