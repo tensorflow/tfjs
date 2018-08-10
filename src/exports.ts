@@ -48,7 +48,7 @@ import {loadModelInternal, Sequential, SequentialConfig} from './models';
  * // First dense layer uses relu activation.
  * const denseLayer1 = tf.layers.dense({units: 10, activation: 'relu'});
  * // Second dense layer uses softmax activation.
- * const denseLayer2 = tf.layers.dense({units: 2, activation: 'softmax'});
+ * const denseLayer2 = tf.layers.dense({units: 4, activation: 'softmax'});
  *
  * // Obtain the output symbolic tensor by applying the layers on the input.
  * const output = denseLayer2.apply(denseLayer1.apply(input));
