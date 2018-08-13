@@ -16,9 +16,11 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+
 import {tensorflow} from '../data/compiled_api';
 import {NamedTensorsMap, TensorInfo} from '../data/types';
 import {OperationMapper} from '../operations/operation_mapper';
+
 import {GraphExecutor} from './graph_executor';
 
 /**
@@ -30,8 +32,7 @@ import {GraphExecutor} from './graph_executor';
 export class FrozenModel implements tfc.InferenceModel {
   private executor: GraphExecutor;
   private version = 'n/a';
-  private weightManifest: tfc.io.WeightsManifestConfig;
-  private pathPrefix: string;
+  private handler: tfc.io.IOHandler;
   // Returns the version information for the tensorflow model GraphDef.
   get modelVersion(): string {
     return this.version;
@@ -67,67 +68,45 @@ export class FrozenModel implements tfc.InferenceModel {
    */
   constructor(
       private modelUrl: string, private weightManifestUrl: string,
-      private requestOption?: RequestInit) {
-    this.pathPrefix = this.getPathPrefix();
-  }
+      private requestOption?: RequestInit) {}
 
-  /**
-   * Returns the path prefix for this.weightManifestUrl.
-   */
-  getPathPrefix() {
-    let lastIndex = this.weightManifestUrl.length;
-    const queryIndex = this.weightManifestUrl.indexOf('?');
-    const hashIndex = this.weightManifestUrl.indexOf('#');
-    if (queryIndex >= 0) {
-      lastIndex = queryIndex;
-    }
-    if (hashIndex >= 0) {
-      lastIndex = Math.min(lastIndex, hashIndex);
-    }
-    const url = this.weightManifestUrl.slice(0, lastIndex);
-    const end = url.lastIndexOf('/');
-    return end >= 0 ? url.slice(0, end) + '/' : '/';
-  }
-
-  /**
-   * Loads the model topology file and build the in memory graph of the model.
-   */
-  private async loadRemoteProtoFile(): Promise<tensorflow.GraphDef> {
-    try {
-      const response = await fetch(this.modelUrl, this.requestOption);
-      const buffer = await response.arrayBuffer();
-      return tensorflow.GraphDef.decode(new Uint8Array(buffer));
-    } catch (error) {
-      throw new Error(`${this.modelUrl} not found. ${error}`);
+  private findIOHandler() {
+    const path = [this.modelUrl, this.weightManifestUrl];
+    if (this.requestOption) {
+      this.handler = tfc.io.browserHTTPRequest(path, this.requestOption);
+    } else {
+      const handlers = tfc.io.getLoadHandlers(path);
+      if (handlers.length === 0) {
+        // For backward compatibility: if no load handler can be found,
+        // assume it is a relative http path.
+        handlers.push(tfc.io.browserHTTPRequest(path, this.requestOption));
+      } else if (handlers.length > 1) {
+        throw new Error(
+            `Found more than one (${handlers.length}) load handlers for ` +
+            `URL '${[path]}'`);
+      }
+      this.handler = handlers[0];
     }
   }
 
-  /**
-   * Loads and parses the weight manifest JSON file from the url, weight loader
-   * uses the manifest config to download the set of weight files.
-   */
-  private async loadWeightManifest(): Promise<void> {
-    try {
-      const manifest = await fetch(this.weightManifestUrl, this.requestOption);
-      this.weightManifest = await manifest.clone().json();
-    } catch (error) {
-      throw new Error(`${this.weightManifestUrl} not found. ${error}`);
-    }
-  }
   /**
    * Loads the model and weight files, construct the in memory weight map and
    * compile the inference graph.
    */
   async load(): Promise<boolean> {
-    const graphPromise = this.loadRemoteProtoFile();
-    const manifestPromise = this.loadWeightManifest();
-
-    const res = await Promise.all([graphPromise, manifestPromise]);
-    const graph = res[0];
+    this.findIOHandler();
+    if (this.handler.load == null) {
+      throw new Error(
+          'Cannot proceed with model loading because the IOHandler provided ' +
+          'does not have the `load` method implemented.');
+    }
+    const artifacts = await this.handler.load();
+    const graph = tensorflow.GraphDef.decode(
+        new Uint8Array(artifacts.modelTopology as ArrayBuffer));
 
     this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
-    const weightMap = await tfc.io.loadWeights(
-        this.weightManifest, this.pathPrefix, undefined, this.requestOption);
+    const weightMap =
+        tfc.io.decodeWeights(artifacts.weightData, artifacts.weightSpecs);
     this.executor =
         new GraphExecutor(OperationMapper.Instance.transformGraph(graph));
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
