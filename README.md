@@ -153,6 +153,27 @@ const model = await loadFrozenModel(MODEL_URL, WEIGHTS_URL,
 
 Please see [fetch() documentation](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) for details.
 
+### Native File System
+
+TensorFlow.js can be used from Node.js. See
+[the tfjs-node project](https://github.com/tensorflow/tfjs-node) for more details.
+Unlike web browsers, Node.js can access the local file system directly.
+Therefore, you can load the same frozen model from local file system into
+a Node.js program running TensorFlow.js. This is done by calling `laodFrozenModel` with the path
+to the model files:
+
+```js
+// Load the tfjs-node binding
+import '@tensorflow/tfjs-node';
+
+const MODEL_PATH = 'file:///tmp/mobilenet/web_model.pb';
+const WEIGHTS_PATH = 'file:///tmp/mobilenet/weights_manifest.json';
+const model = await tf.loadFrozenModel(MODEL_PATH, WEIGHTS_PATH);
+```
+
+You can also load the remote model files the same way as in browser, but you might need to polyfill
+the fetch() method.
+
 ## Supported operations
 
 Currently TensorFlow.js only supports a limited set of TensorFlow Ops. See the
