@@ -38,6 +38,14 @@ const IGNORE_LIST: string[] = [
   'separableConv2d',  // Requires space_to_batch() for dilation > 1.
 ];
 
+// Windows has two failing tests:
+// https://github.com/tensorflow/tfjs/issues/598
+if (process.platform === 'win32') {
+  IGNORE_LIST.push('clip test-tensorflow {} propagates NaNs');
+  IGNORE_LIST.push(
+      'maxPool test-tensorflow {} [x=[3,3,1] f=[2,2] s=1 ignores NaNs');
+}
+
 const runner = new jasmineCtor();
 runner.loadConfig({
   spec_files: [
