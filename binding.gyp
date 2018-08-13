@@ -101,6 +101,12 @@
           'variables': {
             'tensorflow-library-target': 'windows'
           },
+          'msvs_disabled_warnings': [
+            # Warning	C4190: 'TF_NewWhile' has C-linkage specified, but returns
+            # UDT 'TF_WhileParams' which is incompatible with C.
+            # (in include/tensorflow/c/c_api.h)
+            4190
+          ],
           'actions': [
             {
               'action_name': 'get_libtensorflow',

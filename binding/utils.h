@@ -38,7 +38,7 @@
 #define DEBUG_LOG(message, file, lineNumber)                             \
   do {                                                                   \
     if (DEBUG)                                                           \
-      fprintf(stderr, "** -%s:%lu\n-- %s\n", file, lineNumber, message); \
+      fprintf(stderr, "** -%s:%zu\n-- %s\n", file, lineNumber, message); \
   } while (0)
 
 namespace tfnodejs {
