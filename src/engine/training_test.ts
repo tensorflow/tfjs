@@ -541,6 +541,23 @@ describeMathCPUAndGPU('Model.fit', () => {
     });
   });
 
+  it('Calling fit twice in a row leads to Error', async () => {
+    createDenseModelAndData();
+    model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+    // Do not use `await` in the following `model.fit` call, so that
+    // the two model.fit() calls may interleave.
+    model.fit(inputs, targets, {batchSize: numSamples, epochs: 8});
+    let errorCaught: Error;
+    try {
+      await model.fit(inputs, targets);
+    } catch (err) {
+      errorCaught = err;
+    }
+    expect(errorCaught.message)
+        .toEqual(
+            'Cannot start training because another fit() call is ongoing.');
+  });
+
   const validationSplits = [0.2, 0.01];
   for (const validationSplit of validationSplits) {
     const testTitle =
@@ -593,8 +610,7 @@ describeMathCPUAndGPU('Model.fit', () => {
            .fit(inputs, targets, {
              batchSize: numSamples,
              epochs: 2,
-             validationData:
-                 [zeros(inputs.shape as [number, number]), targets]
+             validationData: [zeros(inputs.shape as [number, number]), targets]
            })
            .then(history => {
              expect(history.epoch).toEqual([0, 1]);
@@ -1185,6 +1201,33 @@ describeMathCPUAndGPU('Model.fit', () => {
         .catch(err => done.fail(err.stack));
   });
 
+  it('Stop Model.fit() using non-class object callback function', async () => {
+    createDenseModelAndData();
+
+    model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+
+    let numEpochsDone = 0;
+    const epochs = 8;
+    const stopAfterEpoch = 3;
+    let history = await model.fit(inputs, targets, {
+      epochs,
+      callbacks: {
+        onEpochEnd: async (epoch, logs) => {
+          numEpochsDone++;
+          if (epoch === stopAfterEpoch) {
+            model.stopTraining = true;
+          }
+        }
+      }
+    });
+    expect(numEpochsDone).toEqual(stopAfterEpoch + 1);
+    expect(history.history.loss.length).toEqual(stopAfterEpoch + 1);
+
+    // Check that model.fit can still be called after force stopping.
+    history = await model.fit(inputs, targets, {epochs: 2});
+    expect(history.history.loss.length).toEqual(2);
+  });
+
   it('Invalid dict loss: nonexistent output name', () => {
     createDenseModelAndData();
     expect(() => model.compile({
@@ -1645,14 +1688,14 @@ describeMathCPUAndGPU('Model.fit: No memory leak', () => {
            }
          });
          for (let epochIndex = 0; epochIndex < epochs; ++epochIndex) {
-           // Get the tensor counts within an epoch (i.e., from the first batch
-           // till the penultimate one.) Assert that the counts are constant,
-           // i.e., no increase in the tensor count within the epoch.
-           // N.B.: Even though the tensor count is expected to be constant
-           // across batches, across epochs, the count will increase, due to the
-           // per-epoch loss and metric values stored for the returned history
-           // object, which are currently downloaded via data() calls only at
-           // the end of the fit() call.
+           // Get the tensor counts within an epoch (i.e., from the first
+           // batch till the penultimate one.) Assert that the counts are
+           // constant, i.e., no increase in the tensor count within the
+           // epoch. N.B.: Even though the tensor count is expected to be
+           // constant across batches, across epochs, the count will increase,
+           // due to the per-epoch loss and metric values stored for the
+           // returned history object, which are currently downloaded via
+           // data() calls only at the end of the fit() call.
            const beginBatch = batchesPerEpoch * epochIndex;
            const endBatch = batchesPerEpoch * (epochIndex + 1);
            const inEpochTensorCounts =

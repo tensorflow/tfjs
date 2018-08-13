@@ -17,7 +17,7 @@ import {deserialize} from './layers/serialization';
 import {loadModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
 import {JsonDict} from './types';
 import {convertPythonicToTs} from './utils/serialization_utils';
-import {describeMathCPU, expectTensorsClose, describeMathCPUAndGPU} from './utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 import {version as layersVersion} from './version';
 
 
@@ -214,8 +214,7 @@ describeMathCPU('Nested model topology', () => {
     const outerModel = tfl.sequential({
       layers: [
         innerModel,
-        tfl.layers.dense(
-            {units: 1, kernelInitializer: 'zeros', useBias: false})
+        tfl.layers.dense({units: 1, kernelInitializer: 'zeros', useBias: false})
       ]
     });
 
@@ -766,11 +765,9 @@ describeMathCPU('loadModel from URL', () => {
          const weightsManifest: io.WeightsManifestConfig = [
            {
              'paths': ['weight_0'],
-             'weights': [{
-               'name': `dense_6/kernel`,
-               'dtype': 'float32',
-               'shape': [32, 32]
-             }],
+             'weights': [
+               {'name': `dense_6/kernel`, 'dtype': 'float32', 'shape': [32, 32]}
+             ],
            },
            {
              'paths': ['weight_1'],
@@ -1147,8 +1144,8 @@ describeMathCPUAndGPU('Sequential', () => {
   for (const dtype of dtypes) {
     it(`predict() works with input dtype ${dtype}.`, () => {
       const embModel = tfl.sequential();
-      embModel.add(tfl.layers.embedding(
-        {inputShape: [1], inputDim: 10, outputDim: 2}));
+      embModel.add(
+          tfl.layers.embedding({inputShape: [1], inputDim: 10, outputDim: 2}));
       const x = tensor2d([[0], [0], [1]], [3, 1], dtype as DataType);
       const y = embModel.predict(x) as Tensor;
       expect(y.dtype).toBe('float32');
@@ -1156,12 +1153,12 @@ describeMathCPUAndGPU('Sequential', () => {
 
     it(`fit() works with input dtype ${dtype}.`, () => {
       const embModel = tfl.sequential();
-      embModel.add(tfl.layers.embedding(
-        {inputShape: [1], inputDim: 10, outputDim: 2}));
-        embModel.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
-        const x = tensor2d([[0]], [1, 1], dtype as DataType);
-        const y = tensor2d([[0.5, 0.5]], [1, 2], 'float32');
-        embModel.fit(x, y);
+      embModel.add(
+          tfl.layers.embedding({inputShape: [1], inputDim: 10, outputDim: 2}));
+      embModel.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
+      const x = tensor2d([[0]], [1, 1], dtype as DataType);
+      const y = tensor2d([[0.5, 0.5]], [1, 2], 'float32');
+      embModel.fit(x, y);
     });
   }
 
@@ -1200,6 +1197,61 @@ describeMathCPUAndGPU('Sequential', () => {
     const history = await model.fit(xs, ys, {batchSize, epochs: 2});
     expect(history.history['loss'][0]).toBe(121);
     expect(history.history['loss'][1]).toBeCloseTo(0.015178224071860313);
+  });
+
+  it('calling fit twice in a row leads to error', async () => {
+    const batchSize = 5;
+    const inputSize = 4;
+    const xs = ones([batchSize, inputSize]);
+    const ys = ones([batchSize, 1]);
+    const denseLayer1 = tfl.layers.dense({units: 3, inputShape: [inputSize]});
+    const denseLayer2 = tfl.layers.dense({units: 1});
+    const model = tfl.sequential({layers: [denseLayer1, denseLayer2]});
+    model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
+    // Do not call `await` below, so the two fit() calls may interleave.
+    model.fit(xs, ys, {batchSize, epochs: 8});
+
+    let errorCaught: Error;
+    try {
+      await model.fit(xs, ys);
+    } catch (err) {
+      errorCaught = err;
+    }
+    expect(errorCaught.message)
+        .toEqual(
+            'Cannot start training because another fit() call is ongoing.');
+  });
+
+  it('Stop Sequential.fit() using non-class callback function', async () => {
+    const batchSize = 5;
+    const inputSize = 4;
+    const xs = ones([batchSize, inputSize]);
+    const ys = ones([batchSize, 1]);
+    const denseLayer1 = tfl.layers.dense({units: 3, inputShape: [inputSize]});
+    const denseLayer2 = tfl.layers.dense({units: 1});
+    const model = tfl.sequential({layers: [denseLayer1, denseLayer2]});
+    model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
+
+    let numEpochsDone = 0;
+    const epochs = 8;
+    const stopAfterEpoch = 3;
+    let history = await model.fit(xs, ys, {
+      epochs,
+      callbacks: {
+        onEpochEnd: async (epoch, logs) => {
+          numEpochsDone++;
+          if (epoch === stopAfterEpoch) {
+            model.stopTraining = true;
+          }
+        }
+      }
+    });
+    expect(numEpochsDone).toEqual(stopAfterEpoch + 1);
+    expect(history.history.loss.length).toEqual(stopAfterEpoch + 1);
+
+    // Check that model.fit can still be called after force stopping.
+    history = await model.fit(xs, ys, {epochs: 2});
+    expect(history.history.loss.length).toEqual(2);
   });
 
   it('Calling evaluate before compile leads to error', () => {
