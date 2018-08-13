@@ -21,15 +21,19 @@ import {tensorflow} from '../data/compiled_api';
 
 import {FrozenModel, loadFrozenModel} from './frozen_model';
 
-const MODEL_URL = 'http://example.org/model.pb';
-const WEIGHT_MANIFEST_URL = 'http://example.org/weights_manifest.json';
+const HOST = 'http://example.org';
+const MODEL_URL = `${HOST}/model.pb`;
+const WEIGHT_MANIFEST_URL = `${HOST}/weights_manifest.json`;
 const RELATIVE_MODEL_URL = '/path/model.pb';
 const RELATIVE_WEIGHT_MANIFEST_URL = '/path/weights_manifest.json';
 let model: FrozenModel;
 const bias = tfc.tensor1d([1], 'int32');
-const WEIGHT_MAP = {
-  'Const': bias
-};
+
+const weightsManifest: tfc.io.WeightsManifestConfig = [{
+  'paths': ['weight_0'],
+  'weights': [{'name': 'Const', 'dtype': 'int32', 'shape': [1]}],
+}];
+
 const SIMPLE_MODEL: tensorflow.IGraphDef = {
   node: [
     {
@@ -97,14 +101,20 @@ const DYNAMIC_SHAPE_MODEL: tensorflow.IGraphDef = {
 };
 describe('Model', () => {
   beforeEach(() => {
-    const weightPromise = new Promise((resolve => resolve(WEIGHT_MAP)));
-    spyOn(tfc.io, 'loadWeights').and.returnValue(weightPromise);
     model = new FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
-    spyOn(window, 'fetch')
-        .and.callFake(
-            () => new Promise(
-                (resolve =>
-                     resolve(new Response(JSON.stringify({json: 'ok!'}))))));
+    spyOn(window, 'fetch').and.callFake((path: string) => {
+      if (path === MODEL_URL || path === RELATIVE_MODEL_URL) {
+        return new Response(new Uint8Array([1, 2, 3]));
+      } else if (
+          path === WEIGHT_MANIFEST_URL ||
+          path === RELATIVE_WEIGHT_MANIFEST_URL) {
+        return new Response(JSON.stringify(weightsManifest));
+      } else if (path === `${HOST}/weight_0` || path === '/path/weight_0') {
+        return new Response(bias.dataSync() as Int32Array);
+      } else {
+        throw new Error(`Invalid path: ${path}`);
+      }
+    });
   });
   afterEach(() => {});
 
@@ -116,50 +126,6 @@ describe('Model', () => {
     it('load', async () => {
       const loaded = await model.load();
       expect(loaded).toBe(true);
-    });
-
-    describe('getPathPrefix', () => {
-      it('no path prefix, absolute URL', async () => {
-        const modelUrl = 'http://example.org/model.pb';
-        const weightsUrl = 'http://example.org/weights_manifest.json';
-        model = new FrozenModel(modelUrl, weightsUrl);
-        expect(model.getPathPrefix()).toEqual('http://example.org/');
-      });
-
-      it('some path prefix, absolute URL', async () => {
-        const modelUrl = 'http://example.org/some/path/model.pb';
-        const weightsUrl = 'http://example.org/some/path/weights_manifest.json';
-        model = new FrozenModel(modelUrl, weightsUrl);
-        expect(model.getPathPrefix()).toEqual('http://example.org/some/path/');
-      });
-
-      it('no path prefix, relative URL', async () => {
-        const modelUrl = 'model.pb';
-        const weightsUrl = 'weights_manifest.json';
-        const model = new FrozenModel(modelUrl, weightsUrl);
-        expect(model.getPathPrefix()).toEqual('/');
-      });
-
-      it('some path prefix, relative URL', async () => {
-        const modelUrl = '/some/path/model.pb';
-        const weightsUrl = '/some/path/weights_manifest.json';
-        model = new FrozenModel(modelUrl, weightsUrl);
-        expect(model.getPathPrefix()).toEqual('/some/path/');
-      });
-
-      it('path prefix with query string, relative URL', async () => {
-        const modelUrl = '/some/path/model.pb?hello=/a/b';
-        const weightsUrl = '/some/path/weights_manifest.json?hello=/a/b';
-        model = new FrozenModel(modelUrl, weightsUrl);
-        expect(model.getPathPrefix()).toEqual('/some/path/');
-      });
-
-      it('path prefix with hash string, relative URL', async () => {
-        const modelUrl = '/some/path/model.pb#hello=/a/b';
-        const weightsUrl = '/some/path/weights_manifest.json#hello=/a/b';
-        model = new FrozenModel(modelUrl, weightsUrl);
-        expect(model.getPathPrefix()).toEqual('/some/path/');
-      });
     });
 
     describe('predict', () => {
@@ -236,13 +202,13 @@ describe('Model', () => {
 
     describe('dispose', () => {
       it('should dispose the weights', async () => {
+        const numOfTensors = tfc.memory().numTensors;
         model = new FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
-        spyOn(bias, 'dispose');
 
         await model.load();
         model.dispose();
 
-        expect(bias.dispose).toHaveBeenCalled();
+        expect(tfc.memory().numTensors).toEqual(numOfTensors);
       });
     });
 
