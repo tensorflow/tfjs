@@ -80,27 +80,61 @@ export function decodeWeights(
     const name = spec.name;
     const dtype = spec.dtype;
     const shape = spec.shape;
+    const size = sizeFromShape(shape);
+    let typedArray: TypedArray;
 
-    if (spec.quantization != null) {
-      throw new Error(
-          `decodeWeights does not support quantization yet, but encountered ` +
-          `weight '${name} with quantization.'`);
+    if ('quantization' in spec) {
+      const quantization = spec.quantization;
+      if (quantization.dtype !== 'uint8' && quantization.dtype !== 'uint16') {
+        throw new Error(
+            `Weight ${spec.name} has unknown ` +
+            `quantization dtype ${quantization.dtype}. ` +
+            `Supported quantization dtypes are: 'uint8' and 'uint16'.`);
+      }
+      const quantizationSizeFactor = DTYPE_VALUE_SIZE_MAP[quantization.dtype];
+      const byteBuffer =
+          buffer.slice(offset, offset + size * quantizationSizeFactor);
+      const quantizedArray = (quantization.dtype === 'uint8') ?
+          new Uint8Array(byteBuffer) :
+          new Uint16Array(byteBuffer);
+      if (dtype === 'float32') {
+        typedArray = Float32Array.from(
+            quantizedArray, v => v * quantization.scale + quantization.min);
+      } else if (dtype === 'int32') {
+        typedArray = Int32Array.from(
+            quantizedArray,
+            v => Math.round(v * quantization.scale + quantization.min));
+      } else {
+        throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
+      }
+      offset += size * quantizationSizeFactor;
+    } else {
+      const dtypeFactor = DTYPE_VALUE_SIZE_MAP[dtype];
+      const byteBuffer = buffer.slice(offset, offset + size * dtypeFactor);
+
+      if (dtype === 'float32') {
+        typedArray = new Float32Array(byteBuffer);
+      } else if (dtype === 'int32') {
+        typedArray = new Int32Array(byteBuffer);
+      } else if (dtype === 'bool') {
+        typedArray = new Uint8Array(byteBuffer);
+      } else {
+        throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
+      }
+      offset += size * dtypeFactor;
     }
 
-    const size = sizeFromShape(shape);
     let value: Tensor;
     if (dtype === 'float32') {
-      value = tensor(new Float32Array(buffer, offset, size), shape, 'float32');
+      value = tensor(typedArray, shape, 'float32');
     } else if (dtype === 'int32') {
-      value = tensor(new Int32Array(buffer, offset, size), shape, 'int32');
+      value = tensor(typedArray, shape, 'int32');
     } else if (dtype === 'bool') {
-      value = tensor(new Uint8Array(buffer, offset, size), shape, 'bool');
+      value = tensor(typedArray, shape, 'bool');
     } else {
       throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
     }
     out[name] = value;
-
-    offset += size * DTYPE_VALUE_SIZE_MAP[dtype];
   }
   return out;
 }
