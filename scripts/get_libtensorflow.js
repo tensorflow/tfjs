@@ -177,6 +177,7 @@ async function run() {
       await symlinkDepsLib();
     } else {
       // Library has not been downloaded, download and symlink:
+      await cleanDeps();
       await downloadLibtensorflow(symlinkDepsLib);
     }
   } else if (action === 'move') {
