@@ -261,10 +261,16 @@ inline bool IsExceptionPending(napi_env env) {
   return has_exception;
 }
 
-inline bool EnsureValueIsNotNull(napi_env env, TFJSBackend* value) {
+#define ENSURE_VALUE_IS_NOT_NULL(env, value) \
+  if (!EnsureValueIsNotNull(env, value, __FILE__, __LINE__)) return;
+#define ENSURE_VALUE_IS_NOT_NULL_RETVAL(env, value, retval) \
+  if (!EnsureValueIsNotNull(env, value, __FILE__, __LINE__)) return retval;
+
+inline bool EnsureValueIsNotNull(napi_env env, TFJSBackend* value,
+                                 const char* file, const size_t lineNumber) {
   bool is_null = value == nullptr;
   if (is_null) {
-    NAPI_THROW_ERROR(env, "Argument is null!");
+    NapiThrowError(env, "Argument is null!", file, lineNumber);
   }
   return !is_null;
 }
