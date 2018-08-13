@@ -655,7 +655,8 @@ export class Model extends Container implements tfc.InferenceModel {
 
   // A public property that can be set by Callbacks to order early stopping
   // during `fit()` calls.
-  stopTraining: boolean;
+  private stopTraining_: boolean;
+  private isTraining: boolean;
 
   metrics: string[]|{[outputName: string]: string};
   metricsNames: string[];
@@ -671,6 +672,7 @@ export class Model extends Container implements tfc.InferenceModel {
 
   constructor(config: ContainerConfig) {
     super(config);
+    this.isTraining = false;
   }
 
   /**
@@ -1394,7 +1396,7 @@ export class Model extends Container implements tfc.InferenceModel {
       metrics: callbackMetrics,
     });
     await callbackList.onTrainBegin();
-    this.stopTraining = false;
+    this.stopTraining_ = false;
     // TODO(cais): Take care of callbacks.validation_data as in PyKeras.
 
     // TODO(cais): Pre-convert feeds for performance as in PyKeras.
@@ -1460,7 +1462,7 @@ export class Model extends Container implements tfc.InferenceModel {
           await callbackList.onBatchEnd(batchIndex, batchLogs);
           disposeTensorsInLogs(batchLogs);
 
-          if (this.stopTraining) {
+          if (this.stopTraining_) {
             break;
           }
           // TODO(cais): return outs as list of Tensor.
@@ -1470,7 +1472,7 @@ export class Model extends Container implements tfc.InferenceModel {
       }
       // TODO(cais): Run validation at the end of the epoch.
       await callbackList.onEpochEnd(epoch, epochLogs);
-      if (this.stopTraining) {
+      if (this.stopTraining_) {
         break;
       }
     }
@@ -1634,6 +1636,11 @@ export class Model extends Container implements tfc.InferenceModel {
       x: Tensor|Tensor[]|{[inputName: string]: Tensor},
       y: Tensor|Tensor[]|{[inputName: string]: Tensor},
       config: ModelFitConfig = {}): Promise<History> {
+    if (this.isTraining) {
+      throw new Error(
+          'Cannot start training because another fit() call is ongoing.');
+    }
+    this.isTraining = true;
     const batchSize = config.batchSize == null ? 32 : config.batchSize;
 
     // Validate user data.
@@ -1823,6 +1830,7 @@ export class Model extends Container implements tfc.InferenceModel {
       inputs.forEach(tensor => tensor.dispose());
       targets.forEach(tensor => tensor.dispose());
     }
+    this.isTraining = false;
     return out;
     // TODO(cais): Add value to outLabels.
   }
@@ -1850,6 +1858,39 @@ export class Model extends Container implements tfc.InferenceModel {
       namedWeights[weights[i].originalName] = weightValues[i];
     }
     return namedWeights;
+  }
+
+  /**
+   * Setter used for force stopping of Model.fit() (i.e., training).
+   *
+   * Example:
+   *
+   * ```js
+   * const input = tf.input({shape: [10]});
+   * const output = tf.layers.dense({units: 1}).apply(input);
+   * const model = tf.model({inputs: [input], outputs: [output]});
+   * model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+   * const xs = tf.ones([8, 10]);
+   * const ys = tf.zeros([8, 1]);
+   *
+   * const history = await model.fit(xs, ys, {
+   *   epochs: 10,
+   *   callbacks: {
+   *     onEpochEnd: async (epoch, logs) => {
+   *       if (epoch === 2) {
+   *         model.stopTraining = true;
+   *       }
+   *     }
+   *   }
+   * });
+   *
+   * // There should be only 3 values in the loss array, instead of 10 values,
+   * // due to the stopping after 3 epochs.
+   * console.log(history.history.loss);
+   * ```
+   */
+  set stopTraining(stop: boolean) {
+    this.stopTraining_ = stop;
   }
 
   /**

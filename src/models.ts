@@ -754,6 +754,40 @@ export class Sequential extends Model {
     return model;
   }
 
+  /**
+   * Setter used for force stopping of Model.fit() (i.e., training).
+   *
+   * Example:
+   *
+   * ```js
+   * const model = tf.sequential();
+   * model.add(tf.layers.dense({units: 1, inputShape: [10]}));
+   * model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+   * const xs = tf.ones([8, 10]);
+   * const ys = tf.zeros([8, 1]);
+   *
+   * const history = await model.fit(xs, ys, {
+   *   epochs: 10,
+   *   callbacks: {
+   *     onEpochEnd: async (epoch, logs) => {
+   *       if (epoch === 2) {
+   *         model.stopTraining = true;
+   *       }
+   *     }
+   *   }
+   * });
+   *
+   * // There should be only 3 values in the loss array, instead of 10 values,
+   * // due to the stopping after 3 epochs.
+   * console.log(history.history.loss);
+   * ```
+   */
+  set stopTraining(stop: boolean) {
+    // TODO(cais): When refactoring to remove the composition pattern happens,
+    // remove this method overriding.
+    this.model.stopTraining = stop;
+  }
+
   // TODO(cais): Override get trainableWeights() here
 
   // tslint:disable-next-line:no-any
