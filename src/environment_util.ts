@@ -51,6 +51,9 @@ export interface Features {
   'IS_CHROME'?: boolean;
   // True if running unit tests.
   'IS_TEST'?: boolean;
+  // Smallest positive value used to make ops like division and log numerically
+  // stable.
+  'EPSILON'?: number;
 }
 
 export enum Type {
@@ -67,7 +70,7 @@ export const URL_PROPERTIES: URLProperty[] = [
   {name: 'WEBGL_RENDER_FLOAT32_ENABLED', type: Type.BOOLEAN},
   {name: 'WEBGL_DOWNLOAD_FLOAT_ENABLED', type: Type.BOOLEAN},
   {name: 'WEBGL_FENCE_API_ENABLED', type: Type.BOOLEAN},
-  {name: 'BACKEND', type: Type.STRING}
+  {name: 'BACKEND', type: Type.STRING}, {name: 'EPSILON', type: Type.NUMBER}
 ];
 
 export interface URLProperty {
@@ -132,11 +135,8 @@ export function isRenderToFloatTextureEnabled(
     }
   }
 
-  createFloatTextureAndBindToFramebuffer(gl, webGLVersion);
-
   const isFrameBufferComplete =
-      gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
-
+      createFloatTextureAndBindToFramebuffer(gl, webGLVersion);
   loseContext(gl);
   return isFrameBufferComplete;
 }
@@ -153,20 +153,19 @@ export function isDownloadFloatTextureEnabled(
     if (!hasExtension(gl, 'OES_texture_float')) {
       return false;
     }
+    if (!hasExtension(gl, 'WEBGL_color_buffer_float')) {
+      return false;
+    }
   } else {
     if (!hasExtension(gl, 'EXT_color_buffer_float')) {
       return false;
     }
   }
 
-  createFloatTextureAndBindToFramebuffer(gl, webGLVersion);
-  gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, new Float32Array(4));
-
-  const readPixelsNoError = gl.getError() === gl.NO_ERROR;
-
+  const isFrameBufferComplete =
+      createFloatTextureAndBindToFramebuffer(gl, webGLVersion);
   loseContext(gl);
-
-  return readPixelsNoError;
+  return isFrameBufferComplete;
 }
 
 export function isWebGLFenceEnabled(webGLVersion: number, isBrowser: boolean) {
@@ -261,7 +260,7 @@ function loseContext(gl: WebGLRenderingContext) {
 }
 
 function createFloatTextureAndBindToFramebuffer(
-    gl: WebGLRenderingContext, webGLVersion: number) {
+    gl: WebGLRenderingContext, webGLVersion: number): boolean {
   const frameBuffer = gl.createFramebuffer();
   const texture = gl.createTexture();
 
@@ -275,6 +274,16 @@ function createFloatTextureAndBindToFramebuffer(
   gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
   gl.framebufferTexture2D(
       gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+
+  const isFrameBufferComplete =
+      gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.deleteTexture(texture);
+  gl.deleteFramebuffer(frameBuffer);
+
+  return isFrameBufferComplete;
 }
 
 export function getQueryParams(queryString: string): {[key: string]: string} {

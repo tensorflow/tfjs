@@ -23,8 +23,11 @@ import {setTensorTracker, Tensor, TensorTracker} from './tensor';
 import {TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
 
-const TEST_EPSILON_FLOAT32_ENABLED = 1e-3;
-const TEST_EPSILON_FLOAT32_DISABLED = 1e-1;
+const EPSILON_FLOAT16 = 1e-4;
+const TEST_EPSILON_FLOAT16 = 1e-1;
+
+const EPSILON_FLOAT32 = 1e-8;
+const TEST_EPSILON_FLOAT32 = 1e-3;
 
 export class Environment {
   private features: Features = {};
@@ -32,7 +35,6 @@ export class Environment {
   private registry:
       {[id: string]: {backend: KernelBackend, priority: number}} = {};
   backendName: string;
-  backend: KernelBackend;
 
   constructor(features?: Features) {
     if (features != null) {
@@ -313,10 +315,15 @@ export class Environment {
       return isWebGLFenceEnabled(
           this.get('WEBGL_VERSION'), this.get('IS_BROWSER'));
     } else if (feature === 'TEST_EPSILON') {
-      if (this.get('WEBGL_RENDER_FLOAT32_ENABLED')) {
-        return TEST_EPSILON_FLOAT32_ENABLED;
+      if (this.backend.floatPrecision() === 32) {
+        return TEST_EPSILON_FLOAT32;
       }
-      return TEST_EPSILON_FLOAT32_DISABLED;
+      return TEST_EPSILON_FLOAT16;
+    } else if (feature === 'EPSILON') {
+      if (this.backend.floatPrecision() === 16) {
+        return EPSILON_FLOAT32;
+      }
+      return EPSILON_FLOAT16;
     }
     throw new Error(`Unknown feature ${feature}.`);
   }
@@ -334,9 +341,12 @@ export class Environment {
 
   private initBackend(backendName?: string, safeMode = false) {
     this.backendName = backendName;
-    this.backend = this.findBackend(backendName);
-    this.globalEngine =
-        new Engine(this.backend, safeMode, () => this.get('DEBUG'));
+    const backend = this.findBackend(backendName);
+    this.globalEngine = new Engine(backend, safeMode, () => this.get('DEBUG'));
+  }
+
+  get backend(): KernelBackend {
+    return this.engine.backend;
   }
 
   findBackend(name: string): KernelBackend {

@@ -21,7 +21,7 @@ import {MathBackendCPU} from './kernels/backend_cpu';
 import {MathBackendWebGL} from './kernels/backend_webgl';
 import {WEBGL_ENVS} from './test_util';
 
-describe('jasmine_util.envSatisfiesConstraints', () => {
+describeWithFlags('jasmine_util.envSatisfiesConstraints', {}, () => {
   it('ENV satisfies empty constraints', () => {
     expect(envSatisfiesConstraints({})).toBe(true);
   });

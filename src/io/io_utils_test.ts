@@ -16,6 +16,7 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 import {scalar, tensor1d, tensor2d} from '../ops/ops';
 import {NamedTensorMap} from '../tensor_types';
 import {expectArraysEqual} from '../test_util';
@@ -347,7 +348,7 @@ describe('encodeWeights', () => {
   });
 });
 
-describe('decodeWeights', () => {
+describeWithFlags('decodeWeights', {}, () => {
   it('Mixed dtype tensors', async done => {
     const tensors: NamedTensorMap = {
       x1: tensor2d([[10, 20], [30, 40]], [2, 2], 'int32'),
