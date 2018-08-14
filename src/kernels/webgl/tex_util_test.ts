@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import {expectArraysClose} from '../../test_util';
+import {describeWithFlags} from '../../jasmine_util';
+import {expectArraysClose, WEBGL_ENVS} from '../../test_util';
+
 import * as tex_util from './tex_util';
 
 describe('tex_util getUnpackedMatrixTextureShapeWidthHeight', () => {
@@ -85,55 +87,57 @@ describe('tex_util getPackedMatrixTextureShapeWidthHeight', () => {
   });
 });
 
-describe('tex_util encodeMatrixToUnpackedArray, channels = 4', () => {
-  it('1x1 writes the only matrix array value to the only texel', () => {
-    const matrix = new Float32Array([1]);
-    const unpackedRGBA = new Float32Array([0, 0, 0, 0]);
-    tex_util.encodeMatrixToUnpackedArray(matrix, unpackedRGBA, 4);
-    expectArraysClose(unpackedRGBA, new Float32Array([1, 0, 0, 0]));
-  });
+describeWithFlags(
+    'tex_util encodeMatrixToUnpackedArray, channels = 4', WEBGL_ENVS, () => {
+      it('1x1 writes the only matrix array value to the only texel', () => {
+        const matrix = new Float32Array([1]);
+        const unpackedRGBA = new Float32Array([0, 0, 0, 0]);
+        tex_util.encodeMatrixToUnpackedArray(matrix, unpackedRGBA, 4);
+        expectArraysClose(unpackedRGBA, new Float32Array([1, 0, 0, 0]));
+      });
 
-  it('1x1 can upload texels with values greater than 1', () => {
-    const matrix = new Float32Array([100]);
-    const unpackedRGBA = new Float32Array([0, 0, 0, 0]);
-    tex_util.encodeMatrixToUnpackedArray(matrix, unpackedRGBA, 4);
-    expectArraysClose(unpackedRGBA, new Float32Array([100, 0, 0, 0]));
-  });
+      it('1x1 can upload texels with values greater than 1', () => {
+        const matrix = new Float32Array([100]);
+        const unpackedRGBA = new Float32Array([0, 0, 0, 0]);
+        tex_util.encodeMatrixToUnpackedArray(matrix, unpackedRGBA, 4);
+        expectArraysClose(unpackedRGBA, new Float32Array([100, 0, 0, 0]));
+      });
 
-  it('1x4 each texel has 4 elements with matrix value in R channel', () => {
-    const matrix = new Float32Array([1, 2, 3, 4]);
-    const unpackedRGBA = new Float32Array(16);
-    tex_util.encodeMatrixToUnpackedArray(matrix, unpackedRGBA, 4);
-    expectArraysClose(
-        unpackedRGBA,
-        new Float32Array([1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0]));
-  });
-});
+      it('1x4 each texel has 4 elements with matrix value in R channel', () => {
+        const matrix = new Float32Array([1, 2, 3, 4]);
+        const unpackedRGBA = new Float32Array(16);
+        tex_util.encodeMatrixToUnpackedArray(matrix, unpackedRGBA, 4);
+        expectArraysClose(
+            unpackedRGBA,
+            new Float32Array([1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0]));
+      });
+    });
 
-describe('tex_util encodeMatrixToUnpackedArray, channels = 1', () => {
-  it('1x1 writes the only matrix array value to the only texel', () => {
-    const matrix = new Float32Array([1]);
-    const unpackedRGBA = new Float32Array([0]);
-    tex_util.encodeMatrixToUnpackedArray(matrix, unpackedRGBA, 1);
-    expectArraysClose(unpackedRGBA, new Float32Array([1]));
-  });
+describeWithFlags(
+    'tex_util encodeMatrixToUnpackedArray, channels = 1', WEBGL_ENVS, () => {
+      it('1x1 writes the only matrix array value to the only texel', () => {
+        const matrix = new Float32Array([1]);
+        const unpackedRGBA = new Float32Array([0]);
+        tex_util.encodeMatrixToUnpackedArray(matrix, unpackedRGBA, 1);
+        expectArraysClose(unpackedRGBA, new Float32Array([1]));
+      });
 
-  it('1x1 can upload texels with values greater than 1', () => {
-    const matrix = new Float32Array([100]);
-    const unpackedRGBA = new Float32Array([0]);
-    tex_util.encodeMatrixToUnpackedArray(matrix, unpackedRGBA, 1);
-    expectArraysClose(unpackedRGBA, new Float32Array([100]));
-  });
+      it('1x1 can upload texels with values greater than 1', () => {
+        const matrix = new Float32Array([100]);
+        const unpackedRGBA = new Float32Array([0]);
+        tex_util.encodeMatrixToUnpackedArray(matrix, unpackedRGBA, 1);
+        expectArraysClose(unpackedRGBA, new Float32Array([100]));
+      });
 
-  it('1x4 each texel has 4 elements with matrix value in R channel', () => {
-    const matrix = new Float32Array([1, 2, 3, 4]);
-    const unpackedRGBA = new Float32Array(4);
-    tex_util.encodeMatrixToUnpackedArray(matrix, unpackedRGBA, 1);
-    expectArraysClose(unpackedRGBA, new Float32Array([1, 2, 3, 4]));
-  });
-});
+      it('1x4 each texel has 4 elements with matrix value in R channel', () => {
+        const matrix = new Float32Array([1, 2, 3, 4]);
+        const unpackedRGBA = new Float32Array(4);
+        tex_util.encodeMatrixToUnpackedArray(matrix, unpackedRGBA, 1);
+        expectArraysClose(unpackedRGBA, new Float32Array([1, 2, 3, 4]));
+      });
+    });
 
-describe('tex_util decodeMatrixFromUnpackedArray', () => {
+describeWithFlags('tex_util decodeMatrixFromUnpackedArray', WEBGL_ENVS, () => {
   it('1x1 writes the only matrix array value to the first element', () => {
     const unpackedRGBA = new Float32Array([1, 0, 0, 0]);
     const matrix = new Float32Array(1);
@@ -151,7 +155,7 @@ describe('tex_util decodeMatrixFromUnpackedArray', () => {
   });
 });
 
-describe('tex_util encodeMatrixToPackedRGBA', () => {
+describeWithFlags('tex_util encodeMatrixToPackedRGBA', WEBGL_ENVS, () => {
   it('1x1 loads the element into R and 0\'s into GBA', () => {
     const matrix = new Float32Array([1]);
     const packedRGBA = new Float32Array(4);
@@ -224,7 +228,7 @@ describe('tex_util encodeMatrixToPackedRGBA', () => {
   });
 });
 
-describe('tex_util decodeMatrixFromPackedRGBA', () => {
+describeWithFlags('tex_util decodeMatrixFromPackedRGBA', WEBGL_ENVS, () => {
   it('1x1 matrix only loads R component from only texel', () => {
     const packedRGBA = new Float32Array([1, 0, 0, 0]);
     const matrix = new Float32Array(1);

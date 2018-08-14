@@ -47,6 +47,9 @@ export interface BackendTimer {
  * methods).
  */
 export interface KernelBackend extends TensorStorage, BackendTimer {
+  /** Returns the highest precision for floats in bits (e.g. 16 or 32) */
+  floatPrecision(): number;
+
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D;
 

@@ -2212,6 +2212,10 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   dispose() {}
+
+  floatPrecision() {
+    return 32;
+  }
 }
 
 ENV.registerBackend(

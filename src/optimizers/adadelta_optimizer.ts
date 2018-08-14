@@ -22,7 +22,6 @@ import {ConfigDict, Serializable, SerializableConstructor, SerializationMap} fro
 import {Scalar} from '../tensor';
 import {NamedVariableMap} from '../tensor_types';
 import {Optimizer} from './optimizer';
-import * as optimizer_utils from './optimizer_utils';
 
 /** @doclink Optimizer */
 export class AdadeltaOptimizer extends Optimizer {
@@ -45,7 +44,7 @@ export class AdadeltaOptimizer extends Optimizer {
     this.oneMinusRho = keep(scalar(1 - rho));
 
     if (epsilon === null) {
-      epsilon = optimizer_utils.getOptimizerDefaultEpsilonValue();
+      epsilon = ENV.get('EPSILON');
     }
 
     this.epsilonScalar = keep(scalar(epsilon));
