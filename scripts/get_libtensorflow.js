@@ -31,10 +31,10 @@ const symlink = util.promisify(fs.symlink);
 const unlink = util.promisify(fs.unlink);
 
 const BASE_URI = 'https://storage.googleapis.com/tf-builds/';
-const CPU_DARWIN = 'libtensorflow_r1_9_darwin.tar.gz';
-const CPU_LINUX = 'libtensorflow_r1_9_linux_cpu.tar.gz';
-const GPU_LINUX = 'libtensorflow_r1_9_linux_gpu.tar.gz';
-const CPU_WINDOWS = 'libtensorflow_r1_9_windows_cpu.zip';
+const CPU_DARWIN = 'libtensorflow_r1_10_darwin.tar.gz';
+const CPU_LINUX = 'libtensorflow_r1_10_linux_cpu.tar.gz';
+const GPU_LINUX = 'libtensorflow_r1_10_linux_gpu.tar.gz';
+const CPU_WINDOWS = 'libtensorflow_r1_10_windows_cpu.zip';
 
 const platform = process.argv[2];
 let action = process.argv[3];
@@ -151,7 +151,9 @@ async function downloadLibtensorflow(callback) {
     } else {
       // All other platforms use a tarball:
       response.pipe(tar.x({C: depsPath, strict: true})).on('close', () => {
-        callback();
+        if (callback !== undefined) {
+          callback();
+        }
       });
     }
     request.end();

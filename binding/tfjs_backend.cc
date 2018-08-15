@@ -17,6 +17,7 @@
 
 #include "tfjs_backend.h"
 #include <memory>
+#include "tf_scoped_strings.h"
 #include "tfe_auto_op.h"
 #include "tfe_utils.h"
 #include "utils.h"
@@ -184,12 +185,17 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   nstatus = napi_get_array_length(env, op_attr_inputs, &op_attrs_length);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
+  // Some Ops require heap-based string attributes, manage those scoped here:
+  // TODO(kreeger): Drop this class when 1.11 TensorFlow is released:
+  // https://github.com/tensorflow/tfjs-node/pull/146#discussion_r210160129
+  TF_ScopedStrings scoped_strings;
+
   for (uint32_t i = 0; i < op_attrs_length; i++) {
     napi_value cur_op_attr;
     nstatus = napi_get_element(env, op_attr_inputs, i, &cur_op_attr);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-    AssignOpAttr(env, tfe_op.op, cur_op_attr);
+    AssignOpAttr(env, tfe_op.op, cur_op_attr, &scoped_strings);
 
     // Check to see if an exception exists, if so return a failure.
     if (IsExceptionPending(env)) {

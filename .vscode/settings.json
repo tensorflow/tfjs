@@ -23,7 +23,9 @@
     "array": "cpp",
     "initializer_list": "cpp",
     "string_view": "cpp",
-    "utility": "cpp"
+    "utility": "cpp",
+    "xstring": "cpp",
+    "string": "cpp"
   },
   "search.exclude": {
     "**/node_modules": true,
