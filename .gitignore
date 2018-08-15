@@ -1,0 +1,13 @@
+node_modules
+coverage/
+npm-debug.log
+yarn-error.log
+.DS_Store
+dist/
+.idea/
+*.tgz
+.yalc/
+yalc.lock
+.rpt2_cache/
+package/
+.cache
