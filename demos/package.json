@@ -1,0 +1,17 @@
+{
+  "name": "demos",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "watch-api": "NODE_ENV=development parcel ./api/index.html --no-hmr --open --no-autoinstall"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "parcel-bundler": "^1.9.7"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^0.12.4"
+  }
+}
