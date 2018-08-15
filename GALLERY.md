@@ -26,6 +26,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [Complementary Color Prediction](http://stelling.cc/complementary-color-prediction/) by Roberto Stelling
 - [Mars at Home](https://github.com/MarsAtHome/marsjs) - Mars@Home client for Firefox & Chrome - Labels image from Unsplash in browser
 - [Nxt Word](https://github.com/rajveermalviya/language-modeling) - Next Word Predictor - by Rajveer Malviya
+- [Interactive Classification](https://github.com/poloclub/interactive-classification) - Modify images and see how deep learning classifiers respond
 
 ## Tutorials
 
