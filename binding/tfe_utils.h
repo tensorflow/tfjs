@@ -18,6 +18,8 @@
 #ifndef TF_NODEJS_TFE_UTILS_H_
 #define TF_NODEJS_TFE_UTILS_H_
 
+#include "tf_scoped_strings.h"
+
 #include <node_api.h>
 #include "../deps/include/tensorflow/c/eager/c_api.h"
 
@@ -50,7 +52,8 @@ void GetTFE_TensorHandleType(napi_env env, TFE_TensorHandle* handle,
                              napi_value* result);
 
 // Assigns attributes to an Op from a given list of inputs attributes.
-void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value);
+void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value,
+                  tfnodejs::TF_ScopedStrings* scoped_strings);
 
 }  // namespace tfnodejs
 

@@ -237,7 +237,8 @@ void GetTFE_TensorHandleType(napi_env env, TFE_TensorHandle *handle,
   ENSURE_NAPI_OK(env, nstatus);
 }
 
-void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
+void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value,
+                  tfnodejs::TF_ScopedStrings* scoped_strings) {
   napi_status nstatus;
 
   napi_value attr_name_value;
@@ -270,12 +271,14 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     case TF_ATTR_STRING: {
       // NOTE: String attribute values do not have to be utf8 encoded strings
       // (could be arbitrary byte sequences).
-      char value[NAPI_STRING_SIZE];
-      nstatus = napi_get_value_string_utf8(env, js_value, value,
-                                           NAPI_STRING_SIZE, nullptr);
-      ENSURE_NAPI_OK(env, nstatus);
+      // TODO(kreeger): Drop this class when 1.11 TensorFlow is released:
+      // https://github.com/tensorflow/tfjs-node/pull/146#discussion_r210160129
+      ENSURE_VALUE_IS_NOT_NULL(env, scoped_strings);
+      std::string *str_value = scoped_strings->GetString(env, js_value);
+      ENSURE_VALUE_IS_NOT_NULL(env, str_value);
 
-      TFE_OpSetAttrString(tfe_op, attr_name, value);
+      TFE_OpSetAttrString(tfe_op, attr_name, str_value->c_str(),
+                          str_value->size());
       break;
     }
 
