@@ -12,10 +12,46 @@
  * Unit Tests for Advanced Activation Layers.
  */
 
-import {Tensor, tensor2d} from '@tensorflow/tfjs-core';
+import {Tensor, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
+import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+
+
+describeMathCPU('ReLU: Symbolic', () => {
+  it('Correct output shape', () => {
+    const layer = tfl.layers.reLU({});
+    const x = new tfl.SymbolicTensor('float32', [2, 3, 4], null, null, null);
+    const y = layer.apply(x) as tfl.SymbolicTensor;
+    expect(y.shape).toEqual(x.shape);
+  });
+
+  it('Serialization round trip', () => {
+    const layer = tfl.layers.reLU({maxValue: 28});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.reLU(tsConfig);
+    expect(layerPrime.getConfig().maxValue).toEqual(28);
+  });
+});
+
+describeMathCPUAndGPU('ReLU: Tensor', () => {
+  it('No maxValue', () => {
+    const layer = tfl.layers.reLU();
+    const x = tensor2d([[-100, -200], [0, 300], [200, 200]]);
+    const y = layer.apply(x) as Tensor;
+    expectTensorsClose(y, tensor2d([[0, 0], [0, 300], [200, 200]]));
+  });
+
+  it('Finite maxValue', () => {
+    const layer = tfl.layers.reLU({maxValue: 250});
+    const x = tensor1d([-100, -200, 0, 300, 200, 200]);
+    const y = layer.apply(x) as Tensor;
+    expectTensorsClose(y, tensor1d([0, 0, 0, 250, 200, 200]));
+  });
+});
 
 describeMathCPU('leakyReLU: Symbolic', () => {
   it('Correct output shape', () => {

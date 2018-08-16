@@ -12,7 +12,7 @@
  *  Advanced activation layers.
  */
 
-import {elu, leakyRelu, serialization, Tensor} from '@tensorflow/tfjs-core';
+import {elu, leakyRelu, relu, serialization, Tensor, clipByValue} from '@tensorflow/tfjs-core';
 
 import {Softmax as softmaxActivation} from '../activations';
 import {cast} from '../backend/tfjs_backend';
@@ -21,6 +21,58 @@ import {getScalar} from '../backend/state';
 import {NotImplementedError} from '../errors';
 import {Kwargs, Shape} from '../types';
 import {getExactlyOneTensor} from '../utils/types_utils';
+
+export interface ReLULayerConfig extends LayerConfig {
+  /**
+   * Float, the maximum output value.
+   */
+  maxValue?: number;
+}
+
+/**
+ * Rectified Linear Unit activation function.
+ *
+ * Input shape:
+ *   Arbitrary. Use the config field `inputShape` (Array of integers, does
+ *   not include the sample axis) when using this layer as the first layer
+ *   in a model.
+ *
+ * Output shape:
+ *   Same shape as the input.
+ */
+export class ReLU extends Layer {
+  static className = 'ReLU';
+  maxValue: number;
+
+  constructor(config?: ReLULayerConfig) {
+    super(config == null ? {} : config);
+    this.supportsMasking = true;
+    if (config != null) {
+      this.maxValue = config.maxValue;
+    }
+  }
+
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+    inputs = getExactlyOneTensor(inputs);
+    let output = relu(inputs);
+    if (this.maxValue != null) {
+      output = clipByValue(output, 0, this.maxValue);
+    }
+    return output;
+  }
+
+  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+    return inputShape;
+  }
+
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {maxValue: this.maxValue};
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
+  }
+}
+serialization.SerializationMap.register(ReLU);
 
 export interface LeakyReLULayerConfig extends LayerConfig {
   /**
