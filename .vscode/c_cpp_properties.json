@@ -37,7 +37,8 @@
                 "/usr/local/include",
                 "${workspaceFolder}",
                 "${workspaceFolder}/../../.node-gyp/10.1.0/include/node",
-                "/usr/local/google/home/kreeger/.node-gyp/10.5.0/include/node"
+                "${workspaceFolder}/../../.node-gyp/8.11.3/include/node",
+                "${workspaceFolder}/deps/include"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
@@ -46,9 +47,10 @@
                     "/usr/include",
                     "/usr/local/include",
                     "${workspaceFolder}",
-                    "${workspaceFolder}/deps/tensorflow/include/tensorflow/c",
-                    "${workspaceFolder}/deps/tensorflow/include/tensorflow/c/eager",
-                    "${workspaceFolder}/../../.node-gyp/10.1.0/include/node"
+                    "${workspaceFolder}/deps/include/tensorflow/c",
+                    "${workspaceFolder}/deps/include/tensorflow/c/eager",
+                    "${workspaceFolder}/../../.node-gyp/10.1.0/include/node",
+                    "${workspaceFolder}/../../.node-gyp/8.11.3/include/node"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
