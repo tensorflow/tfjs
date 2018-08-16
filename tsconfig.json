@@ -24,7 +24,8 @@
     "allowUnreachableCode": false,
     "experimentalDecorators": true,
     "jsx": "react",
-    "jsxFactory": "h"
+    "jsxFactory": "h",
+    "esModuleInterop": true
   },
   "include": [
     "src"

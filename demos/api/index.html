@@ -16,6 +16,27 @@
 
 <head>
   <meta charset="utf-8">
+  <!-- <script src="../../dist/tfjs-vis.umd.js"></script> -->
+  <script src="./index.js"></script>
+
+
+  <style>
+    article {
+      max-width: 960px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      padding: 40px;
+    }
+
+    script.show-script {
+      display: block;
+      max-width: 720px;
+      background-color: floralwhite;
+      font-family: "Lucida Console", Monaco, "Courier New", Courier, monospace;
+      font-size: 12px;
+      margin-left: -40px;
+      white-space: pre;
+    }
+  </style>
 </head>
 
 <body>
@@ -27,9 +48,95 @@
         tfjs-vis is a small set of visualization utilities to make it easier to understand what is going on with your tfjs models.
         It is designed in a way to work along side regular web apps. This page is a testbed for the api.
       </p>
+      <script class='show-script' type="module">
+        // import * as tfvis from 'tfjs-vis'
+      </script>
     </section>
+
+    <section>
+      <h2>Visor</h2>
+      <script class='show-script'>
+        function showVisor() {
+          visorInstance = tfvis.visor();
+          visorInstance.surface({ name: 'Surface 1' });
+          visorInstance.surface({ name: 'Surface 2' });
+
+          visorInstance.surface({ name: 'Surface 3', tab: 'Tab 2' });
+        }
+        showVisor();
+      </script>
+    </section>
+
+    <hr>
+
+    <section>
+      <h2>Render Functions</h2>
+
+      <h3>render.barchart(data, container, options)</h3>
+      <div id='barchart-cont'></div>
+      <script class='show-script'>
+        function renderBarchart() {
+          const data = [
+            { index: 0, value: 50 },
+            { index: 1, value: 100 },
+            { index: 2, value: 150 },
+          ];
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Barchart', tab: 'Charts' });
+          tfvis.render.barchart(data, surface, {});
+
+          // Render to page
+          const container = document.getElementById('barchart-cont');
+          tfvis.render.barchart(data, container, {
+            xLabel: 'my x axis',
+            yLabel: 'values',
+            width: 500,
+            height: 250,
+          });
+        }
+        renderBarchart();
+
+      </script>
+
+      <h4>Re-rendering</h4>
+      <p>You can update a bar chart by calling
+        <code>render.barchart</code> again with the same
+        <code>container</code>.
+      </p>
+
+      <div id='barchart-multi'></div>
+      <script class='show-script'>
+        async function renderBarchartMultipleTimes(numRenders, numVals) {
+          const genData = function (numVals) {
+            return Array(numVals).fill(0).map((d, i) => {
+              return { index: i, value: (Math.random() * 50) + 50 };
+            });
+          };
+
+          console.time(`renderBarchart:${numVals}:${numRenders}`);
+          for (let i = 0; i < numRenders; i++) {
+            const data = genData(numVals);
+            const container = document.getElementById('barchart-multi');
+            await tfvis.render.barchart(data, container, {
+              xLabel: 'my x axis',
+              yLabel: 'values',
+              width: 800,
+              height: 250,
+            });
+          }
+          console.timeEnd(`renderBarchart:${numVals}:${numRenders}`);
+
+        }
+
+        const numRenders = 10;
+        const numVals = 100;
+        renderBarchartMultipleTimes(numRenders, numVals);
+      </script>
+    </section>
+
   </article>
-  <script src="./index.js"></script>
+
 </body>
 
 </html>
