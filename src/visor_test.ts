@@ -19,11 +19,11 @@ import {visor} from './index';
 
 const tick = (ms = 1) => new Promise(resolve => setTimeout(resolve, ms));
 
-afterEach(() => {
-  document.body.innerHTML = '';
-});
-
 describe('Visor Singleton', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
   it('renders an empty visor', () => {
     visor();
     expect(document.querySelectorAll('.visor').length).toBe(1);

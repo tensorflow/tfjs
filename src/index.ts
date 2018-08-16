@@ -15,4 +15,11 @@
  * =============================================================================
  */
 
+import {renderBarchart} from './render/barchart';
+
+const render = {
+  barchart: renderBarchart
+};
+
 export {visor} from './visor';
+export {render};

@@ -20,6 +20,7 @@ var path = require('path');
 module.exports = {
   mode: 'production',
   entry: './dist/index.js',
+  devtool: 'source-map',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'tfjs-vis.umd.js',
