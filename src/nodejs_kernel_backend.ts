@@ -100,6 +100,10 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput(name, opAttrs, [input]);
   }
 
+  floatPrecision(): number {
+    return 32;
+  }
+
   /**
    * Executes a TensorFlow Eager Op that provides one output Tensor.
    * @param name The name of the Op to execute.

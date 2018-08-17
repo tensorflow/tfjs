@@ -82,9 +82,9 @@
     lodash "^4.17.5"
     to-fast-properties "^2.0.0"
 
-"@tensorflow/tfjs-core@~0.12.10":
-  version "0.12.10"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.12.10.tgz#8c13b787ea22e085090b1cacb652ad96ae38b74d"
+"@tensorflow/tfjs-core@~0.12.12":
+  version "0.12.12"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.12.12.tgz#f6e35698e2dc4998586c0dfcdeec735557da9666"
   dependencies:
     "@types/seedrandom" "~2.4.27"
     "@types/webgl-ext" "~0.0.29"
