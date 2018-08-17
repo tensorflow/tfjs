@@ -198,7 +198,18 @@ export class GraphExecutor {
     });
     const tensorMap = {...this.weightMap, ...inputs};
     const added: {[key: string]: boolean} = {};
+    while (stack.length > 0) {
+      const promises = this.processStack(stack, context, tensorMap, added);
+      await Promise.all(promises);
+    }
 
+    return tensorMap;
+  }
+
+  private processStack(
+      stack: NodeWithContexts[], context: ExecutionContext,
+      tensorMap: NamedTensorsMap, added: {[key: string]: boolean}) {
+    const promises: Array<Promise<Tensor[]>> = [];
     while (stack.length > 0) {
       const item = stack.pop();
       context.currentContext = item.contexts;
@@ -211,35 +222,49 @@ export class GraphExecutor {
         [nodeName] = getNodeNameAndIndex(item.node.name, context);
       }
       const tensors = executeOp(item.node, tensorMap, context);
-
       if (!nodeName) {
         [nodeName] = getNodeNameAndIndex(item.node.name, context);
       }
 
-      tensorMap[nodeName] = await tensors;
-      item.node.children.forEach((childNode) => {
-        const [nodeName, ] = getNodeNameAndIndex(childNode.name, context);
-        if (!added[nodeName]) {
-          // Merge op can be pushed if any of its inputs has value.
-          if (childNode.op === 'merge') {
-            if (childNode.inputNames.some(name => {
-                  return !!getTensor(name, tensorMap, context);
-                })) {
-              added[nodeName] = true;
-              stack.push({contexts: context.currentContext, node: childNode});
-            }
-          } else  // Otherwise all inputs must to have value.
-              if (childNode.inputNames.every(name => {
-                    return !!getTensor(name, tensorMap, context);
-                  })) {
+      const currentContext = context.currentContext;
+      if (tensors instanceof Promise) {
+        promises.push(tensors.then(t => {
+          tensorMap[nodeName] = t;
+          context.currentContext = currentContext;
+          this.processChildNodes(item.node, stack, context, tensorMap, added);
+          return t;
+        }));
+      } else {
+        tensorMap[nodeName] = tensors;
+        this.processChildNodes(item.node, stack, context, tensorMap, added);
+      }
+    }
+    return promises;
+  }
+
+  private processChildNodes(
+      node: Node, stack: NodeWithContexts[], context: ExecutionContext,
+      tensorMap: NamedTensorsMap, added: {[key: string]: boolean}) {
+    node.children.forEach((childNode) => {
+      const [nodeName, ] = getNodeNameAndIndex(childNode.name, context);
+      if (!added[nodeName]) {
+        // Merge op can be pushed if any of its inputs has value.
+        if (childNode.op === 'merge') {
+          if (childNode.inputNames.some(name => {
+                return !!getTensor(name, tensorMap, context);
+              })) {
             added[nodeName] = true;
             stack.push({contexts: context.currentContext, node: childNode});
           }
+        } else  // Otherwise all inputs must to have value.
+            if (childNode.inputNames.every(name => {
+                  return !!getTensor(name, tensorMap, context);
+                })) {
+          added[nodeName] = true;
+          stack.push({contexts: context.currentContext, node: childNode});
         }
-      });
-    }
-
-    return tensorMap;
+      }
+    });
   }
 
   private findOutputs(
