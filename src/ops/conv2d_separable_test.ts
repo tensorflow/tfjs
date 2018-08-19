@@ -54,6 +54,40 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
             [1, 2, 2, outDepth]));
   });
 
+  it('input=1x3x3x1,f=2,s=1,d=1,p=valid,chMul=1,outDepth=2 in tensor', () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const stride = 1;
+    const chMul = 1;
+    const inDepth = 1;
+    const outDepth = 2;
+
+    const x = tf.tensor4d(
+        [
+          0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
+          0.0741907, 0.409265, 0.351377
+        ],
+        [1, 3, 3, inDepth]);
+    const depthwiseFilter = tf.tensor4d(
+        [0.303873, 0.229223, 0.144333, 0.803373],
+        [fSize, fSize, inDepth, chMul],
+    );
+    const pointwiseFilter =
+        tf.tensor4d([0.1, -0.2], [1, 1, inDepth * chMul, outDepth]);
+
+    const result =
+        x.separableConv2d(depthwiseFilter, pointwiseFilter, stride, pad);
+
+    expectArraysClose(
+        result,
+        tf.tensor4d(
+            [
+              0.10702161, -0.21404321, 0.10316753, -0.20633507, 0.06704096,
+              -0.13408193, 0.07788632, -0.15577264
+            ],
+            [1, 2, 2, outDepth]));
+  });
+
   it('input=1x3x3x1,f=2,s=1,d=1,p=valid,chMul=2,outDepth=2', () => {
     const fSize = 2;
     const pad = 'valid';
