@@ -23,7 +23,7 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 import * as axis_util from './axis_util';
 import {op} from './operation';
-import {ones, scalar} from './tensor_ops';
+import {ones, scalar, zerosLike} from './tensor_ops';
 
 /**
  * Computes the log(sum(exp(elements across the reduction dimensions)).
@@ -335,8 +335,11 @@ function argMin_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
     $x = $x.transpose(permutedAxes);
     axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
   }
-  return ENV.engine.runKernel(backend => backend.argMin($x, axes[0]), {$x}) as
-      T;
+  const grad = (dy: T) => {
+    return {$x: () => zerosLike($x)};
+  };
+  return ENV.engine.runKernel(backend => backend.argMin($x, axes[0]), {$x},
+      grad) as T;
 }
 
 /**
@@ -374,8 +377,11 @@ function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
     $x = $x.transpose(permutedAxes);
     axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
   }
-  return ENV.engine.runKernel(backend => backend.argMax($x, axes[0]), {$x}) as
-      T;
+  const grad = (dy: T) => {
+    return {$x: () => zerosLike($x)};
+  };
+  return ENV.engine.runKernel(backend => backend.argMax($x, axes[0]), {$x},
+    grad) as T;
 }
 
 /**
