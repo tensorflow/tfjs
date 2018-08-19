@@ -125,7 +125,7 @@ function slice_<R extends Rank, T extends Tensor<R>>(
   } else if (begin.length < $x.rank) {
     begin_ = begin.concat(new Array($x.rank - begin.length).fill(0));
   } else {
-    begin_ = begin;
+    begin_ = begin.slice();
   }
   let size_: number[];
   if (size == null) {

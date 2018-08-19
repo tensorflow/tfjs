@@ -293,9 +293,12 @@ function oneHot_(
   if (depth < 2) {
     throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
   }
+  const grad = (dy: Tensor2D) => {
+    return {$indices: () => zerosLike($indices)};
+  };
   return ENV.engine.runKernel(
       backend => backend.oneHot($indices, depth, onValue, offValue),
-      {$indices});
+      {$indices}, grad);
 }
 
 /**
