@@ -33,7 +33,7 @@ import {op} from './operation';
  * If two elements are equal, the lower-index element appears first.
  *
  * ```js
- * const a = tensor2d([[1, 5], [4, 3]]);
+ * const a = tf.tensor2d([[1, 5], [4, 3]]);
  * const {values, indices} = tf.topk(a);
  * values.print();
  * indices.print();
