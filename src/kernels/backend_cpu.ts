@@ -2045,73 +2045,73 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   localResponseNormalization4D(
-      x: Tensor4D, radius: number, bias: number, alpha: number,
+      x: Tensor4D, depthRadius: number, bias: number, alpha: number,
       beta: number): Tensor4D {
-    const output = ops.buffer<Rank.R4>(x.shape, 'float32');
-    const rad = radius;
-    const maxD = output.shape[3] - 1;
+    const channels = x.shape[3];
+    const maxD = channels - 1;
+    const xValues = x.dataSync();
+    const size = util.sizeFromShape(x.shape);
+    const result = new Float32Array(size);
 
-    function sumAcrossChannels(
-        b: number, r: number, c: number, d: number): number {
+    function sumAcrossChannels(offset: number) {
+      const currentChannel = offset % channels;
+      let beginSumOffset =
+          offset - currentChannel + Math.max(0, currentChannel - depthRadius);
+      const endSumOffset = offset - currentChannel +
+          Math.min(currentChannel + depthRadius, maxD);
+
       let sum = 0.0;
-      for (let j = Math.max(0, d - rad); j <= Math.min(d + rad, maxD); j++) {
-        const z = x.get(b, r, c, j);
+      for (; beginSumOffset <= endSumOffset; beginSumOffset++) {
+        const z = xValues[beginSumOffset];
         sum += z * z;
       }
       return sum;
     }
 
-    for (let b = 0; b < output.shape[0]; b++) {
-      for (let r = 0; r <= output.shape[1]; r++) {
-        for (let c = 0; c < output.shape[2]; c++) {
-          for (let d = 0; d < output.shape[3]; d++) {
-            const sum = sumAcrossChannels(b, r, c, d);
-            const val = x.get(b, r, c, d) * Math.pow(bias + alpha * sum, -beta);
-            output.set(val, b, r, c, d);
-          }
-        }
-      }
+    for (let offset = 0; offset < size; offset++) {
+      const sum = sumAcrossChannels(offset);
+      const val = xValues[offset] * Math.pow(bias + alpha * sum, -beta);
+      result[offset] = val;
     }
 
-    return output.toTensor();
+    return ops.tensor4d(result, x.shape);
   }
 
   LRNGrad(
       dy: Tensor4D, inputImage: Tensor4D, outputImage: Tensor4D,
       depthRadius: number, bias: number, alpha: number,
       beta: number): Tensor4D {
-    const batch = dy.shape[0];
-    const rows = dy.shape[1];
-    const cols = dy.shape[2];
-    const depth = dy.shape[3];
-    const output = ops.buffer<Rank.R4>([batch, rows, cols, depth], 'float32');
+    const channels = dy.shape[3];
+    const dyValues = dy.dataSync();
+    const inputImageValues = inputImage.dataSync();
+    const outputImageValues = outputImage.dataSync();
+    const result = new Float32Array(util.sizeFromShape(dy.shape));
+    const size = util.sizeFromShape(dy.shape);
 
-    for (let b = 0; b < batch; ++b) {
-      for (let r = 0; r < rows; ++r) {
-        for (let c = 0; c < cols; ++c) {
-          for (let d = 0; d < depth; ++d) {
-            const depthBegin = Math.max(0, d - depthRadius);
-            const depthEnd = Math.min(depth, d + depthRadius + 1);
+    for (let offset = 0; offset < size; offset++) {
+      const currentChannel = offset % channels;
+      const depthBegin =
+          (offset - currentChannel) + Math.max(0, currentChannel - depthRadius);
+      const depthEnd = (offset - currentChannel) +
+          Math.min(channels, currentChannel + depthRadius + 1);
 
-            let norm = 0;
-            for (let k = depthBegin; k < depthEnd; ++k) {
-              norm += inputImage.get(b, r, c, k) * inputImage.get(b, r, c, k);
-            }
-            norm = alpha * norm + bias;
-            for (let k = depthBegin; k < depthEnd; ++k) {
-              let dyi = -2 * alpha * beta * inputImage.get(b, r, c, k) *
-                  outputImage.get(b, r, c, d) / norm;
-              if (d === k) {
-                dyi += Math.pow(norm, -beta);
-              }
-              dyi *= dy.get(b, r, c, d);
-              output.set(dyi + output.get(b, r, c, k), b, r, c, k);
-            }
-          }
+      let norm = 0;
+      for (let k = depthBegin; k < depthEnd; k++) {
+        norm += Math.pow(inputImageValues[k], 2);
+      }
+      norm = alpha * norm + bias;
+
+      for (let k = depthBegin; k < depthEnd; k++) {
+        let dyi = -2 * alpha * beta * inputImageValues[k] *
+            outputImageValues[offset] / norm;
+        if (offset === k) {
+          dyi += Math.pow(norm, -beta);
         }
+        dyi *= dyValues[offset];
+        result[k] += dyi;
       }
     }
-    return output.toTensor();
+    return ops.tensor4d(result, dy.shape);
   }
 
   multinomial(
