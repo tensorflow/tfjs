@@ -258,6 +258,14 @@ describeWithFlags('zerosLike', ALL_ENVS, () => {
     expectArraysClose(b, [0, 0, 0]);
   });
 
+  it('chainable 1D default dtype', () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const b = a.zerosLike();
+    expect(b.dtype).toBe('float32');
+    expect(b.shape).toEqual([3]);
+    expectArraysClose(b, [0, 0, 0]);
+  });
+
   it('1D float32 dtype', () => {
     const a = tf.tensor1d([1, 2, 3], 'float32');
     const b = tf.zerosLike(a);
@@ -466,6 +474,14 @@ describeWithFlags('onesLike', ALL_ENVS, () => {
   it('1D default dtype', () => {
     const a = tf.tensor1d([1, 2, 3]);
     const b = tf.onesLike(a);
+    expect(b.dtype).toBe('float32');
+    expect(b.shape).toEqual([3]);
+    expectArraysClose(b, [1, 1, 1]);
+  });
+
+  it('chainable 1D default dtype', () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const b = a.onesLike();
     expect(b.dtype).toBe('float32');
     expect(b.shape).toEqual([3]);
     expectArraysClose(b, [1, 1, 1]);

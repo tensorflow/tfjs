@@ -246,6 +246,8 @@ export interface OpHandler {
   sigmoid<T extends Tensor>(x: T): T;
   logSigmoid<T extends Tensor>(x: T): T;
   softplus<T extends Tensor>(x: T): T;
+  zerosLike<T extends Tensor>(x: T): T;
+  onesLike<T extends Tensor>(x: T): T;
   sin<T extends Tensor>(x: T): T;
   cos<T extends Tensor>(x: T): T;
   tan<T extends Tensor>(x: T): T;
@@ -1028,6 +1030,14 @@ export class Tensor<R extends Rank = Rank> {
   softplus<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
     return opHandler.softplus(this);
+  }
+  zerosLike<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return opHandler.zerosLike(this);
+  }
+  onesLike<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return opHandler.onesLike(this);
   }
   sin<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
