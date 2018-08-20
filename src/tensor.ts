@@ -189,6 +189,7 @@ export interface OpHandler {
   argMax<T extends Tensor>(x: Tensor, axis: number): T;
   add<T extends Tensor>(a: Tensor, b: Tensor): T;
   addStrict<T extends Tensor>(a: T, b: T): T;
+  atan2<T extends Tensor>(a: Tensor, b: Tensor): T;
   sub<T extends Tensor>(a: Tensor, b: Tensor): T;
   subStrict<T extends Tensor>(a: T, b: T): T;
   pow<T extends Tensor>(base: T, exp: Tensor): T;
@@ -781,6 +782,10 @@ export class Tensor<R extends Rank = Rank> {
   addStrict<T extends this>(this: T, x: T): T {
     this.throwIfDisposed();
     return opHandler.addStrict(this, x) as T;
+  }
+  atan2<T extends this>(this: T, x: T): T {
+    this.throwIfDisposed();
+    return opHandler.atan2(this, x) as T;
   }
   sub<T extends Tensor>(x: Tensor): T {
     this.throwIfDisposed();

@@ -739,6 +739,22 @@ describeWithFlags('atan2', ALL_ENVS, () => {
     expectArraysClose(r, expected);
   });
 
+  it('uses chaining', () => {
+    const aValues = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    const bValues = [1.0, 2.5, 3.5, 4.5, 2.0, 5.0];
+
+    const a = tf.tensor2d(aValues, [2, 3]);
+    const b = tf.tensor2d(bValues, [2, 3]);
+
+    const r = a.atan2(b);
+    const expected = [];
+
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = Math.atan2(aValues[i], bValues[i]);
+    }
+    expectArraysClose(r, expected);
+  });
+
   it('propagates NaNs', () => {
     const a = tf.tensor2d([1.0, 2.0], [2, 1]);
     const c = tf.tensor2d([3.0, NaN], [2, 1]);
