@@ -446,7 +446,7 @@ describe('File system IOHandler', () => {
   });
 
   it('Exported file-system handler class exists', () => {
-    const handler = new tfn.io.NodeFileSystem(testDir);
+    const handler = tfn.io.fileSystem(testDir);
     expect(typeof handler.save).toEqual('function');
     expect(typeof handler.load).toEqual('function');
   });
