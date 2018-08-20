@@ -167,7 +167,7 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
   it('Loading nonexistent model fails.', done => {
     const handler = tf.io.getSaveHandlers('localstorage://NonexistentModel')[0];
     handler.load()
-        .then(aritfacts => {
+        .then(artifacts => {
           fail('Loading nonexistent model succeeded unexpectedly.');
         })
         .catch(err => {
@@ -189,7 +189,7 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
 
           const handler2 = tf.io.getLoadHandlers('localstorage://FooModel')[0];
           handler2.load()
-              .then(aritfacts => {
+              .then(artifacts => {
                 fail(
                     'Loading of model with missing topology succeeded ' +
                     'unexpectedly.');
@@ -217,7 +217,7 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
 
           const handler2 = tf.io.getLoadHandlers('localstorage://FooModel')[0];
           handler2.load()
-              .then(aritfacts => {
+              .then(artifacts => {
                 fail(
                     'Loading of model with missing weight specs succeeded ' +
                     'unexpectedly.');
@@ -245,7 +245,7 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
 
           const handler2 = tf.io.getLoadHandlers('localstorage://FooModel')[0];
           handler2.load()
-              .then(aritfacts => {
+              .then(artifacts => {
                 fail(
                     'Loading of model with missing weight data succeeded ' +
                     'unexpectedly.');

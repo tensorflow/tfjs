@@ -48,7 +48,7 @@ export interface InferenceModel {
    * Execute the inference for the input tensors.
    *
    * @param input The input tensors, when there is single input for the model,
-   * inputs param should be a Tensor. For models with mutliple inputs, inputs
+   * inputs param should be a Tensor. For models with multiple inputs, inputs
    * params should be in either Tensor[] if the input order is fixed, or
    * otherwise NamedTensorMap format.
    * For batch inference execution, the tensors for each input need to be
@@ -71,7 +71,7 @@ export interface InferenceModel {
    * values for specified output node names without batching.
    *
    * @param input The input tensors, when there is single input for the model,
-   * inputs param should be a Tensor. For models with mutliple inputs, inputs
+   * inputs param should be a Tensor. For models with multiple inputs, inputs
    * params should be in either Tensor[] if the input order is fixed, or
    * otherwise NamedTensorMap format.
    *
