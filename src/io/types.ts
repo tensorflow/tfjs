@@ -135,7 +135,7 @@ export declare interface ModelArtifactsInfo {
    *   - JSON: JSON config (human-readable, e.g., Keras JSON).
    *   - GraphDef: TensorFlow
    *     [GraphDef](https://www.tensorflow.org/extend/tool_developers/#graphdef)
-   *     protocal buffer (binary).
+   *     protocol buffer (binary).
    */
   modelTopologyType: 'JSON'|'GraphDef';
 
