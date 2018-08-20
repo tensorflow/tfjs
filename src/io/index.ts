@@ -19,4 +19,4 @@
  * Public exports from the `io` module.
  */
 
-export {NodeFileSystem} from './file_system';
+export {fileSystem} from './file_system';

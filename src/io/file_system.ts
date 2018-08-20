@@ -54,7 +54,8 @@ export class NodeFileSystem implements tfc.io.IOHandler {
    * @param path A single path or an Array of paths.
    *   For saving: expects a single path pointing to an existing or nonexistent
    *     directory. If the directory does not exist, it will be
-   *     created. For loading:
+   *     created.
+   *   For loading:
    *     - If the model has JSON topology (e.g., `tf.Model`), a single path
    *       pointing to the JSON file (usually named `model.json`) is expected.
    *       The JSON file is expected to contain `modelTopology` and/or
@@ -240,3 +241,26 @@ export const nodeFileSystemRouter = (url: string|string[]) => {
   }
 };
 // Registration of `nodeFileSystemRouter` is done in index.ts.
+
+/**
+ * Factory function for Node.js native file system IO Handler.
+ *
+ * @param path A single path or an Array of paths.
+ *   For saving: expects a single path pointing to an existing or nonexistent
+ *     directory. If the directory does not exist, it will be
+ *     created.
+ *   For loading:
+ *     - If the model has JSON topology (e.g., `tf.Model`), a single path
+ *       pointing to the JSON file (usually named `model.json`) is expected.
+ *       The JSON file is expected to contain `modelTopology` and/or
+ *       `weightsManifest`. If `weightManifest` exists, the values of the
+ *       weights will be loaded from relative paths (relative to the directory
+ *       of `model.json`) as contained in `weightManifest`.
+ *     - If the model has binary (protocol buffer GraphDef) topology,
+ *       an Array of two paths is expected: the first path should point to the
+ *        .pb file and the second path should point to the weight manifest
+ *       JSON file.
+ */
+export function fileSystem(path: string|string[]): NodeFileSystem {
+  return new NodeFileSystem(path);
+}
