@@ -180,6 +180,14 @@ describe('TensorArray', () => {
       expect(() => tensorArray.scatter([1, 2], input)).toThrow();
     });
 
+    it('should not fail if tensor array shape is -1', () => {
+      tensorArray = new TensorArray(
+          NAME, DTYPE, SIZE, [-1, 1], IDENTICAL_SHAPE, DYNAMIC_SIZE,
+          CLEAR_AFTER_READ);
+      const input = tensor3d([1, 2, 3], [3, 1, 1], 'int32');
+      expect(() => tensorArray.scatter([1, 2, 3], input)).not.toThrow();
+    });
+
     it('should fail if max index > array max size', () => {
       const input = tensor3d([1, 2, 3], [3, 1, 1], 'int32');
       expect(() => tensorArray.scatter([1, 2, 11], input)).toThrow();
@@ -212,6 +220,14 @@ describe('TensorArray', () => {
     });
 
     it('should fail if indices and tensor shapes do not matched', () => {
+      const input = tensor3d([1, 2, 3], [3, 1, 1], 'int32');
+      expect(() => tensorArray.split([1, 1], input)).toThrow();
+    });
+
+    it('should not fail if indices and tensor shapes is -1', () => {
+      tensorArray = new TensorArray(
+          NAME, DTYPE, SIZE, [-1, 1], IDENTICAL_SHAPE, DYNAMIC_SIZE,
+          CLEAR_AFTER_READ);
       const input = tensor3d([1, 2, 3], [3, 1, 1], 'int32');
       expect(() => tensorArray.split([1, 1], input)).toThrow();
     });

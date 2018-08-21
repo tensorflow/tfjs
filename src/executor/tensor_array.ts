@@ -124,7 +124,7 @@ export class TensorArray {
       this.elementShape = tensor.shape;
     }
 
-    util.assertShapesMatch(
+    this.assertShapesMatch(
         this.elementShape, tensor.shape,
         `TensorArray ${this.name}: Could not write to TensorArray index ${
             index}.`);
@@ -191,7 +191,7 @@ export class TensorArray {
     // their memory.
     const tensors = this.readMany(indices);
 
-    util.assertShapesMatch(
+    this.assertShapesMatch(
         this.elementShape, tensors[0].shape, 'TensorArray shape mismatch: ');
 
     return stack(tensors, 0);
@@ -217,7 +217,7 @@ export class TensorArray {
     // Collect all the tensors from the tensors array.
     const tensors = this.readMany(indices);
 
-    util.assertShapesMatch(
+    this.assertShapesMatch(
         this.elementShape, tensors[0].shape,
         `TensorArray shape mismatch: tensor array shape (${
             this.elementShape}) vs first tensor shape (${tensors[0].shape})`);
@@ -299,5 +299,24 @@ export class TensorArray {
       indices[i] = i;
     }
     this.writeMany(indices, tensors);
+  }
+
+  private assertShapesMatch(
+      shapeA: number[], shapeB: number[], errorMessagePrefix = ''): void {
+    util.assert(
+        this.arraysEqual(shapeA, shapeB),
+        errorMessagePrefix + ` Shapes ${shapeA} and ${shapeB} must match`);
+  }
+
+  private arraysEqual(n1: number[], n2: number[]) {
+    if (n1.length !== n2.length) {
+      return false;
+    }
+    for (let i = 0; i < n1.length; i++) {
+      if (n1[i] !== -1 && n2[i] !== -1 && n1[i] !== n2[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 }
