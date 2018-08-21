@@ -48,7 +48,7 @@ export const json = [
     'category': 'matrices',
     'params': [
       {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfParamName': 'perm', 'dlParamName': 'perm', 'type': 'number[]'}, {
+      {'tfInputIndex': 1, 'dlParamName': 'perm', 'type': 'number[]'}, {
         'tfParamName': 'T',
         'dlParamName': 'dtype',
         'type': 'dtype',
