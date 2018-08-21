@@ -46,7 +46,10 @@ export function getTFDType(dataType: tfc.DataType): number {
   }
 }
 
-/** Creates a TFEOpAttr for a 'type' OpDef attribute. */
+/**
+ * Creates a TFEOpAttr for a 'type' OpDef attribute.
+ * @deprecated Please use createTensorsTypeOpAttr() going forward.
+ */
 export function createTypeOpAttr(
     attrName: string, dtype: tfc.DataType): TFEOpAttr {
   return {
@@ -56,8 +59,24 @@ export function createTypeOpAttr(
   };
 }
 
+/**
+ * Creates a TFEOpAttr for a 'type' OpDef attribute from a Tensor or list of
+ * Tensors.
+ */
+export function createTensorsTypeOpAttr(
+    attrName: string, tensors: tfc.Tensor|tfc.Tensor[]) {
+  if (isNullOrUndefined(tensors)) {
+    throw new Error('Invalid input tensors value.');
+  }
+  return {
+    name: attrName,
+    type: nodeBackend().binding.TF_ATTR_TYPE,
+    value: getTFDTypeForInputs(tensors)
+  };
+}
+
 /** Returns the dtype number for a single or list of input Tensors. */
-export function getTFDTypeForInputs(tensors: tfc.Tensor|tfc.Tensor[]): number {
+function getTFDTypeForInputs(tensors: tfc.Tensor|tfc.Tensor[]): number {
   if (isNullOrUndefined(tensors)) {
     throw new Error('Invalid input tensors value.');
   }
