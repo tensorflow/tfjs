@@ -15,9 +15,9 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
+import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig, SymbolicTensor} from '../engine/topology';
-import {getScalar} from '../backend/state';
 import {NotImplementedError, ValueError} from '../errors';
 import {Kwargs, Shape} from '../types';
 import * as generic_utils from '../utils/generic_utils';
@@ -256,9 +256,9 @@ export class Add extends Merge {
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
-      let output = tfc.zeros(inputs[0].shape);
-      for (const input of inputs) {
-        output = tfc.add(output, input);
+      let output = inputs[0].clone();
+      for (let i = 1; i < inputs.length; ++i) {
+        output = tfc.add(output, inputs[i]);
       }
       return output;
     });
@@ -348,9 +348,9 @@ export class Multiply extends Merge {
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
-      let output = tfc.ones(inputs[0].shape);
-      for (const input of inputs) {
-        output = tfc.mul(output, input);
+      let output = inputs[0].clone();
+      for (let i = 1; i < inputs.length; ++i) {
+        output = tfc.mul(output, inputs[i]);
       }
       return output;
     });
@@ -439,9 +439,9 @@ export class Average extends Merge {
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
-      let output = tfc.zeros(inputs[0].shape);
-      for (const input of inputs) {
-        output = tfc.add(output, input);
+      let output = inputs[0].clone();
+      for (let i = 1; i < inputs.length; ++i) {
+        output = tfc.add(output, inputs[i]);
       }
       return tfc.mul(getScalar(1 / inputs.length), output);
     });
