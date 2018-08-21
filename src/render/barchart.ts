@@ -26,11 +26,11 @@ import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
  * Renders a barchart.
  *
  * @param data Data in the following format, (an array of objects)
- *              [ {index: number, value: number} ... ]
- * @param container An HTMLElement in which to draw the histogram. Note that
- *                    this chart expects to have complete control over the
- *                    contents of the container and can clear its contents
- *                    at will.
+ *    [ {index: number, value: number} ... ]
+ * @param container An `HTMLElement` or `Surface` in which to draw the bar
+ *    chart. Note that the chart expects to have complete control over
+ *    the contents of the container and can clear its contents at will.
+ *
  * @param opts optional parameters
  * @param opts.width width of chart in px
  * @param opts.height height of chart in px
