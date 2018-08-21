@@ -20,7 +20,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 // tslint:disable-next-line:max-line-length
-import {createTypeOpAttr, getTFDType, getTFDTypeForInputs, nodeBackend} from './op_utils';
+import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType, nodeBackend} from './op_utils';
 
 describe('Exposes Backend for internal Op execution.', () => {
   it('Provides the Node backend over a function', () => {
@@ -65,22 +65,27 @@ describe('createTypeOpAttr()', () => {
   });
 });
 
-describe('Returns TFDtype values for Tensor or list of Tensors', () => {
+describe('Returns TFEOpAttr for a Tensor or list of Tensors', () => {
   const binding = nodeBackend().binding;
 
   it('handles a single Tensor', () => {
-    expect(getTFDTypeForInputs(tfc.scalar(13, 'float32')))
-        .toBe(binding.TF_FLOAT);
+    const result = createTensorsTypeOpAttr('T', tfc.scalar(13, 'float32'));
+    expect(result.name).toBe('T');
+    expect(result.type).toBe(binding.TF_ATTR_TYPE);
+    expect(result.value).toBe(binding.TF_FLOAT);
   });
   it('handles a list of Tensors', () => {
-    const inputs = [tfc.scalar(1, 'int32'), tfc.scalar(20.1, 'float32')];
-    expect(getTFDTypeForInputs(inputs)).toBe(binding.TF_INT32);
+    const tensors = [tfc.scalar(1, 'int32'), tfc.scalar(20.1, 'float32')];
+    const result = createTensorsTypeOpAttr('T', tensors);
+    expect(result.name).toBe('T');
+    expect(result.type).toBe(binding.TF_ATTR_TYPE);
+    expect(result.value).toBe(binding.TF_INT32);
   });
   it('handles null', () => {
-    expect(() => getTFDTypeForInputs(null)).toThrowError();
+    expect(() => createTensorsTypeOpAttr('T', null)).toThrowError();
   });
   it('handles list of null', () => {
     const inputs = [null, null] as tfc.Tensor[];
-    expect(() => getTFDTypeForInputs(inputs)).toThrowError();
+    expect(() => createTensorsTypeOpAttr('T', inputs)).toThrowError();
   });
 });
