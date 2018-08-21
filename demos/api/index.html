@@ -36,6 +36,14 @@
       margin-left: -40px;
       white-space: pre;
     }
+
+    article div {
+      margin-bottom: 25px;
+    }
+
+    h3 {
+      margin-top: 60px;
+    }
   </style>
 </head>
 
@@ -133,6 +141,64 @@
         const numVals = 100;
         renderBarchartMultipleTimes(numRenders, numVals);
       </script>
+
+      <hr>
+
+      <h3>render.table(data, container)</h3>
+
+      <div id='table-cont'></div>
+
+      <script class='show-script'>
+        function renderTable() {
+          const headers = [
+            'Col1',
+            'Col 2',
+            '<em>Column 3</em>',
+          ];
+
+          const values = [
+            [1, 2, 3],
+            ['4', '5', '6'],
+            ['<strong>7</strong>', true, false],
+          ];
+
+          const container = document.getElementById('table-cont');
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Table', tab: 'Charts' });
+          tfvis.render.table({ headers, values }, surface);
+
+          // Render to page
+          tfvis.render.table({ headers, values }, container);
+        }
+        renderTable();
+      </script>
+
+      <hr>
+
+      <h3>render.histogram(data, container, opts)</h3>
+
+      <div id='histogram-cont'></div>
+
+      <script class='show-script'>
+        function renderHistogram() {
+          const data = Array(100).fill(0)
+            .map(x => Math.random() * 100 - (Math.random() * 50))
+            .map(x => ({ value: x }));
+          const container = document.getElementById('histogram-cont');
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Histogram', tab: 'Charts' });
+          tfvis.render.histogram(data, surface);
+
+          // Render to page
+          tfvis.render.histogram(data, container);
+        }
+        renderHistogram();
+      </script>
+
+      <hr>
+
     </section>
 
   </article>

@@ -16,9 +16,13 @@
  */
 
 import {renderBarchart} from './render/barchart';
+import {renderHistogram} from './render/histogram';
+import {renderTable} from './render/table';
 
 const render = {
-  barchart: renderBarchart
+  barchart: renderBarchart,
+  table: renderTable,
+  histogram: renderHistogram,
 };
 
 export {visor} from './visor';

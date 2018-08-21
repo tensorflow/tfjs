@@ -17,7 +17,7 @@
 
 import {renderBarchart} from './barchart';
 
-describe('Visor Singleton', () => {
+describe('renderBarChart', () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="container"></div>';
   });

@@ -17,9 +17,7 @@
 
 const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
-  // Disable coverage reports and instrumentation by default for tests
-  coverageOptions: {instrumentation: false},
-  reports: {}
+  reports: {},
 };
 
 // Enable coverage reports and instrumentation under KARMA_COVERAGE=1 env
