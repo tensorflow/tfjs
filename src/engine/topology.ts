@@ -702,6 +702,21 @@ export abstract class Layer extends serialization.Serializable {
   }
 
   /**
+   * Reset the states of the layer.
+   *
+   * This method of the baee Layer class is essentially a no-op.
+   * Subclasses that are stateful (e.g., stateful RNNs) should override this
+   * method.
+   */
+  resetStates(): void {
+    if (!this.stateful) {
+      throw new Error(
+          'Cannot call the resetStates() method of a non-stateful Layer ' +
+          'object.');
+    }
+  }
+
+  /**
    * Checks compatibility between the layer and provided inputs.
    *
    * This checks that the tensor(s) `input`
