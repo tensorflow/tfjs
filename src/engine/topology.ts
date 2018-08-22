@@ -704,7 +704,7 @@ export abstract class Layer extends serialization.Serializable {
   /**
    * Reset the states of the layer.
    *
-   * This method of the baee Layer class is essentially a no-op.
+   * This method of the base Layer class is essentially a no-op.
    * Subclasses that are stateful (e.g., stateful RNNs) should override this
    * method.
    */
