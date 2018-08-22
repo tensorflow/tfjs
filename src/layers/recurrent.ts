@@ -254,8 +254,31 @@ export interface BaseRNNLayerConfig extends LayerConfig {
    * If `true`, the last state for each sample at index i in a batch will be
    * used as initial state of the sample of index i in the following batch
    * (default: `false`).
+   *
+   * You can set RNN layers to be "stateful", which means that the states
+   * computed for the samples in one batch will be reused as initial states
+   * for the samples in the next batch. This assumes a one-to-one mapping
+   * between samples in different successive batches.
+   *
+   * To enable "statefulness":
+   *   - specify `stateful: true` in the layer constructor.
+   *   - specify a fixed batch size for your model, by passing
+   *     - if sequential model:
+   *       `batchInputShape: [...]` to the first layer in your model.
+   *     - else for functional model with 1 or more Input layers:
+   *       `batchShape: [...]` to all the first layers in your model.
+   *     This is the expected shape of your inputs
+   *     *including the batch size*.
+   *     It should be a tuple of integers, e.g., `[32, 10, 100]`.
+   *   - specify `shuffle: false` when calling `Model.fit()`.
+   *
+   * To reset the state of your model, call `resetStates()` on either the
+   * specific layer or on the entire model.
    */
   stateful?: boolean;
+  // TODO(cais): Explore whether we can warn users when they fail to set
+  //   `shuffle: false` when training a model consisting of stateful RNNs
+  //   and any stateful Layers in general.
 
   /**
    * If `true`, the network will be unrolled, else a symbolic loop will be
@@ -364,6 +387,13 @@ export class RNN extends Layer {
   public stateSpec: InputSpec[];
   public states: Tensor[];
 
+  // NOTE(cais): For stateful RNNs, the old states cannot be disposed right
+  // away when new states are set, because the old states may need to be used
+  // later for backpropagation through time (BPTT) and other purposes. So we
+  // keep them here for final disposal when the state is reset completely
+  // (i.e., through no-arg call to `resetStates()`).
+  private keptStates: Tensor[][];
+
   private numConstants: number;
 
   constructor(config: RNNLayerConfig) {
@@ -398,6 +428,8 @@ export class RNN extends Layer {
     this.numConstants = null;
     // TODO(cais): Look into the use of initial_state in the kwargs of the
     //   constructor.
+
+    this.keptStates = [];
   }
 
   // Porting Note: This is the equivalent of `RNN.states` property getter in
@@ -503,11 +535,7 @@ export class RNN extends Layer {
           stateSize.map(dim => new InputSpec({shape: [null, dim]}));
     }
     if (this.stateful) {
-      throw new NotImplementedError(
-          'stateful RNN layer is not implemented yet');
-      // TODO(cais): Uncomment the following line once stateful = true is
-      //   implemented.
-      // this.resetStates();
+      this.resetStates();
     }
   }
 
@@ -515,7 +543,7 @@ export class RNN extends Layer {
     tidy(() => {
       if (!this.stateful) {
         throw new AttributeError(
-            'Cannot call resetState() on an RNN Layer that is not stateful.');
+            'Cannot call resetStates() on an RNN Layer that is not stateful.');
       }
       const batchSize = this.inputSpec[0].shape[0];
       if (batchSize == null) {
@@ -536,6 +564,14 @@ export class RNN extends Layer {
           this.states = [tfc.zeros([batchSize, this.cell.stateSize])];
         }
       } else if (states == null) {
+        // Dispose old state tensors.
+        tfc.dispose(this.states);
+        // For stateful RNNs, fully dispose kept old states.
+        if (this.keptStates != null) {
+          tfc.dispose(this.keptStates);
+          this.keptStates = [];
+        }
+
         if (Array.isArray(this.cell.stateSize)) {
           this.states =
               this.cell.stateSize.map(dim => tfc.zeros([batchSize, dim]));
@@ -543,6 +579,12 @@ export class RNN extends Layer {
           this.states[0] = tfc.zeros([batchSize, this.cell.stateSize]);
         }
       } else {
+        // Store old state tensors for complete disposal later, i.e., during
+        // the next no-arg call to this method. We do not dispose the old
+        // states immediately because that BPTT (among other things) require
+        // them.
+        this.keptStates.push(this.states.slice());
+
         if (!Array.isArray(states)) {
           states = [states];
         }
@@ -567,6 +609,7 @@ export class RNN extends Layer {
           this.states[index] = value;
         }
       }
+      this.states.forEach(state => tfc.keep(state));
     });
   }
 
@@ -644,8 +687,7 @@ export class RNN extends Layer {
       inputs = getExactlyOneTensor(inputs);
       if (initialState == null) {
         if (this.stateful) {
-          throw new NotImplementedError(
-              'stateful RNN layer is not implemented yet.');
+          initialState = this.states;
         } else {
           initialState = this.getInitialState(inputs);
         }
@@ -692,8 +734,7 @@ export class RNN extends Layer {
       const states = rnnOutputs[2];
 
       if (this.stateful) {
-        throw new NotImplementedError(
-            'stateful RNN layer is not implemented yet');
+        this.resetStates(states);
       }
 
       const output = this.returnSequences ? outputs : lastOutput;

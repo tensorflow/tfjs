@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {randomNormal, Scalar, scalar, Tensor, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
+import {randomNormal, Scalar, scalar, Tensor, tensor2d, tensor3d, tensor4d, test_util} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
@@ -24,6 +24,8 @@ import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_u
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {GRU, LSTM, rnn, RNN, RNNCell} from './recurrent';
+
+const expectArraysClose = test_util.expectArraysClose;
 
 /**
  * A simplistic RNN step function for testing.
@@ -207,7 +209,6 @@ class RNNCellForTest extends RNNCell {
 describeMathCPU('RNN-Layer', () => {
   // TODO(cais): Add tests for stacked RNN cell (i.e., multiple cells) once it
   //   implemented.
-  // TODO(cais): Add tests for stateful RNN once it is implemented.
   // TODO(cais): Add tests for masks once implemented.
   // TODO(cais): Add tests for constants once implemented.
 
@@ -688,7 +689,149 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
         expectTensorsClose(finalState, outputT1.reshape([batchSize, units]));
       }
     });
+
+    it('stateful missing batchInputShape leads to error' , () => {
+      const sequenceLength = 3;
+      const simpleRNN = tfl.layers.simpleRNN({
+        units,
+        kernelInitializer: 'ones',
+        recurrentInitializer: 'ones',
+        biasInitializer: 'zeros',
+        activation: 'linear',
+        stateful: true,
+        inputShape: [sequenceLength, inputSize]
+      }) as RNN;
+      const model = tfl.sequential();
+      expect(() => model.add(simpleRNN)).toThrowError(
+          /needs to know its batch size/);
+    });
+
+    // The reference values below can be obtained with PyKeras code:
+    // ```python
+    // import keras
+    // import numpy as np
+    //
+    // units = 5
+    // batch_size = 4
+    // input_size = 2
+    // sequence_length = 3
+    //
+    // rnn = keras.layers.SimpleRNN(units,
+    //                             kernel_initializer='ones',
+    //                             recurrent_initializer='ones',
+    //                             bias_initializer='zeros',
+    //                             activation='linear',
+    //                             stateful=True,
+    //                             batch_input_shape=[batch_size,
+    //                                                 sequence_length,
+    //                                                 input_size])
+    //
+    // x = np.ones([batch_size, sequence_length, input_size])
+    //
+    // model = keras.Sequential()
+    // model.add(rnn)
+    // print(model.predict(x))
+    // print(model.predict(x))
+    // model.reset_states()
+    // print(model.predict(x))
+    // print(model.predict(x))
+    // ```
+    it('stateful forward', () => {
+      const sequenceLength = 3;
+      const rnn = tfl.layers.simpleRNN({
+        units,
+        kernelInitializer: 'ones',
+        recurrentInitializer: 'ones',
+        biasInitializer: 'zeros',
+        activation: 'linear',
+        stateful: true,
+        batchInputShape: [batchSize, sequenceLength, inputSize]
+      });
+      const model = tfl.sequential();
+      model.add(rnn);
+      const x = tfc.ones([batchSize, sequenceLength, inputSize]);
+      const scalar1 = tfc.scalar(62);
+      const scalar2 = tfc.scalar(7812);
+      let y1: Tensor;
+      let y2: Tensor;
+      tfc.tidy(() => {
+        y1 = model.predict(x) as Tensor;
+        expectArraysClose(y1, tfc.ones([batchSize, units]).mul(scalar1));
+        y2 = model.predict(x) as Tensor;
+        expectArraysClose(y2, tfc.ones([batchSize, units]).mul(scalar2));
+      });
+      model.resetStates();
+      const numTensors0 = tfc.memory().numTensors;
+
+      tfc.tidy(() => {
+        y1 = model.predict(x) as Tensor;
+        expectArraysClose(y1, tfc.ones([batchSize, units]).mul(scalar1));
+        y2 = model.predict(x) as Tensor;
+        expectArraysClose(y2, tfc.ones([batchSize, units]).mul(scalar2));
+      });
+      model.resetStates();
+      // Assert no memory leak.
+      expect(tfc.memory().numTensors).toEqual(numTensors0);
+    });
   }
+
+  // The reference values can be obtained with the following PyKeras code:
+  // ```python
+  // import keras
+  // import numpy as np
+  //
+  // batch_size = 4
+  // sequence_length = 3
+  // input_size = 2
+  //
+  // model = keras.Sequential()
+  // model.add(keras.layers.SimpleRNN(
+  //     units=5,
+  //     batch_input_shape=[batch_size, sequence_length, input_size],
+  //     kernel_initializer='ones',
+  //     recurrent_initializer='ones',
+  //     bias_initializer='zeros',
+  //     stateful=True))
+  // model.add(keras.layers.Dense(1,
+  //                              kernel_initializer='zeros',
+  //                              use_bias=False))
+  // model.compile(loss='mean_squared_error', optimizer='sgd')
+  //
+  // xs_1 = np.ones([batch_size, sequence_length, input_size])
+  // xs_2 = np.zeros([batch_size, sequence_length, input_size])
+  // xs = np.concatenate([xs_1, xs_2], 0)
+  // ys = np.array([[-1], [-2], [0], [1], [1], [2], [0], [-1]])
+  //
+  // history = model.fit(xs, ys, batch_size=batch_size, shuffle=False)
+  // print(history.history)
+  // ```
+  it('stateful BPTT', async () => {
+    const sequenceLength = 3;
+    const model = tfl.sequential();
+    model.add(tfl.layers.simpleRNN({
+      units,
+      kernelInitializer: 'ones',
+      recurrentInitializer: 'ones',
+      biasInitializer: 'zeros',
+      stateful: true,
+      batchInputShape: [batchSize, sequenceLength, inputSize]
+    }));
+    model.add(tfl.layers.dense({
+      units: 1,
+      kernelInitializer: 'zeros',
+      useBias: false
+    }));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    const xs1 = tfc.ones([batchSize, sequenceLength, inputSize]);
+    const xs2 = tfc.ones([batchSize, sequenceLength, inputSize]);
+    const xs = tfc.concat([xs1, xs2], 0);
+    const ys = tfc.tensor2d([[-1], [-2], [0], [1], [1], [2], [0], [-1]]);
+
+    const history = await model.fit(xs, ys, {batchSize, shuffle: false});
+    // See code snippet above for the code used to obtain this loss value.
+    expect(history.history.loss[0]).toBeCloseTo(1.5262475);
+  });
 
   it('BPTT', () => {
     // The following golden values for assertion can be obtained with the
@@ -998,6 +1141,132 @@ describeMathCPUAndGPU('GRU Tensor', () => {
       }
     }
   }
+
+  // The reference values below can be obtained with PyKeras code:
+  // ```python
+  // import keras
+  // import numpy as np
+  //
+  // units = 5
+  // batch_size = 4
+  // input_size = 2
+  // sequence_length = 3
+  //
+  // rnn = keras.layers.GRU(units,
+  //                        kernel_initializer='ones',
+  //                        recurrent_initializer='zeros',
+  //                        bias_initializer='zeros',
+  //                        activation='linear',
+  //                        stateful=True,
+  //                        batch_input_shape=[batch_size,
+  //                                           sequence_length,
+  //                                           input_size])
+  //
+  // x = np.ones([batch_size, sequence_length, input_size])
+  //
+  // model = keras.Sequential()
+  // model.add(rnn)
+  // print(model.predict(x))
+  // print(model.predict(x))
+  // model.reset_states()
+  // print(model.predict(x))
+  // print(model.predict(x))
+  // ```
+  it('stateful forward', () => {
+    const sequenceLength = 3;
+    const rnn = tfl.layers.gru({
+      units,
+      kernelInitializer: 'ones',
+      recurrentInitializer: 'zeros',
+      biasInitializer: 'zeros',
+      activation: 'linear',
+      stateful: true,
+      batchInputShape: [batchSize, sequenceLength, inputSize]
+    });
+    const model = tfl.sequential();
+    model.add(rnn);
+    const x = tfc.ones([batchSize, sequenceLength, inputSize]);
+    tfc.tidy(() => {
+      const y1 = model.predict(x) as Tensor;
+      expectArraysClose(
+          y1, tfc.ones([batchSize, units]).mul(tfc.scalar(0.542)));
+      const y2 = model.predict(x) as Tensor;
+      expectArraysClose(
+          y2, tfc.ones([batchSize, units]).mul(tfc.scalar(0.9371182)));
+    });
+    model.resetStates();
+    const numTensors0 = tfc.memory().numTensors;
+
+    tfc.tidy(() => {
+      const y3 = model.predict(x) as Tensor;
+      expectArraysClose(
+          y3, tfc.ones([batchSize, units]).mul(tfc.scalar(0.542)));
+      const y4 = model.predict(x) as Tensor;
+      expectArraysClose(
+          y4, tfc.ones([batchSize, units]).mul(tfc.scalar(0.9371182)));
+    });
+    model.resetStates();
+    // Assert no memory leak.
+    expect(tfc.memory().numTensors).toEqual(numTensors0);
+  });
+
+  // The reference values can be obtained with the following PyKeras code:
+  // ```python
+  // import keras
+  // import numpy as np
+  //
+  // batch_size = 4
+  // sequence_length = 3
+  // input_size = 2
+  //
+  // model = keras.Sequential()
+  // model.add(keras.layers.GRU(
+  //     units=5,
+  //     batch_input_shape=[batch_size, sequence_length, input_size],
+  //     kernel_initializer='ones',
+  //     recurrent_initializer='ones',
+  //     bias_initializer='zeros',
+  //     stateful=True))
+  // model.add(keras.layers.Dense(1,
+  //                              kernel_initializer='zeros',
+  //                              use_bias=False))
+  // model.compile(loss='mean_squared_error', optimizer='sgd')
+  //
+  // xs_1 = np.ones([batch_size, sequence_length, input_size])
+  // xs_2 = np.zeros([batch_size, sequence_length, input_size])
+  // xs = np.concatenate([xs_1, xs_2], 0)
+  // ys = np.array([[-1], [-2], [0], [1], [1], [2], [0], [-1]])
+  //
+  // history = model.fit(xs, ys, batch_size=batch_size, shuffle=False)
+  // print(history.history)
+  // ```
+  it('stateful BPTT', async () => {
+    const sequenceLength = 3;
+    const model = tfl.sequential();
+    model.add(tfl.layers.gru({
+      units,
+      kernelInitializer: 'ones',
+      recurrentInitializer: 'ones',
+      biasInitializer: 'zeros',
+      stateful: true,
+      batchInputShape: [batchSize, sequenceLength, inputSize]
+    }));
+    model.add(tfl.layers.dense({
+      units: 1,
+      kernelInitializer: 'zeros',
+      useBias: false
+    }));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    const xs1 = tfc.ones([batchSize, sequenceLength, inputSize]);
+    const xs2 = tfc.ones([batchSize, sequenceLength, inputSize]);
+    const xs = tfc.concat([xs1, xs2], 0);
+    const ys = tfc.tensor2d([[-1], [-2], [0], [1], [1], [2], [0], [-1]]);
+
+    const history = await model.fit(xs, ys, {batchSize, shuffle: false});
+    // See code snippet above for the code used to obtain this loss value.
+    expect(history.history.loss[0]).toBeCloseTo(1.501);
+  });
 
   it('BPTT', () => {
     // The following golden values for assertion can be obtained with the
@@ -1344,6 +1613,131 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
         });
       }
     }
+
+    // The reference values below can be obtained with PyKeras code:
+    // ```python
+    // import keras
+    // import numpy as np
+    //
+    // units = 5
+    // batch_size = 4
+    // input_size = 2
+    // sequence_length = 3
+    //
+    // rnn = keras.layers.LSTM(units,
+    //                         kernel_initializer='ones',
+    //                         recurrent_initializer='ones',
+    //                         bias_initializer='ones',
+    //                         stateful=True,
+    //                         batch_input_shape=[batch_size,
+    //                                            sequence_length,
+    //                                            input_size])
+    //
+    // x = np.ones([batch_size, sequence_length, input_size])
+    //
+    // model = keras.Sequential()
+    // model.add(rnn)
+    // print(model.predict(x))
+    // print(model.predict(x))
+    // model.reset_states()
+    // print(model.predict(x))
+    // print(model.predict(x))
+    // ```
+    it('stateful forward', () => {
+      const sequenceLength = 3;
+      const rnn = tfl.layers.lstm({
+        units,
+        kernelInitializer: 'ones',
+        recurrentInitializer: 'ones',
+        biasInitializer: 'ones',
+        stateful: true,
+        batchInputShape: [batchSize, sequenceLength, inputSize]
+      });
+      const model = tfl.sequential();
+      model.add(rnn);
+      const x = tfc.ones([batchSize, sequenceLength, inputSize]);
+
+      tfc.tidy(() => {
+        const y1 = model.predict(x) as Tensor;
+        expectArraysClose(
+            y1, tfc.ones([batchSize, units]).mul(tfc.scalar(0.995)));
+        const y2 = model.predict(x) as Tensor;
+        expectArraysClose(
+            y2, tfc.ones([batchSize, units]).mul(tfc.scalar(0.99998766)));
+      });
+      model.resetStates();
+      const numTensors0 = tfc.memory().numTensors;
+
+      tfc.tidy(() => {
+        const y1 = model.predict(x) as Tensor;
+        expectArraysClose(
+            y1, tfc.ones([batchSize, units]).mul(tfc.scalar(0.995)));
+        const y2 = model.predict(x) as Tensor;
+        expectArraysClose(
+            y2, tfc.ones([batchSize, units]).mul(tfc.scalar(0.99998766)));
+      });
+      model.resetStates();
+      // Assert no memory leak.
+      expect(tfc.memory().numTensors).toEqual(numTensors0);
+    });
+
+    // The reference values can be obtained with the following PyKeras code:
+    // ```python
+    // import keras
+    // import numpy as np
+    //
+    // batch_size = 4
+    // sequence_length = 3
+    // input_size = 2
+    //
+    // model = keras.Sequential()
+    // model.add(keras.layers.LSTM(
+    //     5,
+    //     batch_input_shape=[batch_size, sequence_length, input_size],
+    //     kernel_initializer='ones',
+    //     recurrent_initializer='ones',
+    //     bias_initializer='ones',
+    //     stateful=True))
+    // model.add(keras.layers.Dense(1,
+    //                              kernel_initializer='ones',
+    //                              use_bias=False))
+    // model.compile(loss='mean_squared_error', optimizer='sgd')
+    //
+    // xs_1 = np.ones([batch_size, sequence_length, input_size])
+    // xs_2 = np.ones([batch_size, sequence_length, input_size])
+    // xs = np.concatenate([xs_1, xs_2], 0)
+    // ys = np.array([[1], [2], [3], [4], [5], [6], [7], [8]])
+    //
+    // history = model.fit(xs, ys, batch_size=batch_size, shuffle=False)
+    // print(history.history)
+    // ```
+    it('stateful BPTT', async () => {
+      const sequenceLength = 3;
+      const model = tfl.sequential();
+      model.add(tfl.layers.lstm({
+        units,
+        kernelInitializer: 'ones',
+        recurrentInitializer: 'ones',
+        biasInitializer: 'ones',
+        stateful: true,
+        batchInputShape: [batchSize, sequenceLength, inputSize]
+      }));
+      model.add(tfl.layers.dense({
+        units: 1,
+        kernelInitializer: 'ones',
+        useBias: false
+      }));
+      model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+      const xs1 = tfc.ones([batchSize, sequenceLength, inputSize]);
+      const xs2 = tfc.ones([batchSize, sequenceLength, inputSize]);
+      const xs = tfc.concat([xs1, xs2], 0);
+      const ys = tfc.tensor2d([[1], [2], [3], [4], [5], [6], [7], [8]]);
+
+      const history = await model.fit(xs, ys, {batchSize, shuffle: false});
+      // See code snippet above for the code used to obtain this loss value.
+      expect(history.history.loss[0]).toBeCloseTo(5.8377);
+    });
 
     it('BPTT', () => {
       // The following golden values for assertion can be obtained with the
