@@ -70,6 +70,6 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 
 - [ML5](https://ml5js.org/) - Friendly machine learning for the web
 - [magenta.js](https://magenta.tensorflow.org/js) - Music and Art Generation with Machine Intelligence in the Browser.
-- [SeeClarke.js](https://github.com/labofoz/SeeClarke.js) - A library for adding face-controlled pointers to your site.
+- [Handsfree.js](https://github.com/handsfreejs/handsfree) - A library for adding face-controlled pointers to your site.
 - [face-api.js](https://github.com/justadudewhohacks/face-api.js) - A JavaScript API for face detection and face recognition in the browser.
 - [TensorFlow.js GPU-accelerated t-SNE](https://github.com/tensorflow/tfjs-tsne) - A linear t-SNE for the web.
