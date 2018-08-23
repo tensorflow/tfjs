@@ -24,8 +24,6 @@ export class ClipProgram implements GPGPUProgram {
 
   constructor(aShape: number[], min: number, max: number) {
     this.outputShape = aShape;
-    const minFixed = min.toFixed(20);
-    const maxFixed = max.toFixed(20);
     this.userCode = `
       void main() {
         float value = getAAtOutCoords();
@@ -34,7 +32,7 @@ export class ClipProgram implements GPGPUProgram {
           return;
         }
 
-        setOutput(clamp(value, ${minFixed}, ${maxFixed}));
+        setOutput(clamp(value, float(${min}), float(${max})));
       }
     `;
   }
