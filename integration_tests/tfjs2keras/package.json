@@ -4,9 +4,9 @@
   "description": "Testing sending models from tfjs-layers to Keras",
   "private": false,
   "dependencies": {
-    "@tensorflow/tfjs-core": "~0.12.13",
+    "@tensorflow/tfjs-core": "~0.12.14",
     "@tensorflow/tfjs-layers": "*",
-    "@tensorflow/tfjs-node": "~0.1.12",
+    "@tensorflow/tfjs-node": "~0.1.13",
     "clang-format": "~1.2.2",
     "tsify": "~3.0.1",
     "tslint": "~5.6.0",

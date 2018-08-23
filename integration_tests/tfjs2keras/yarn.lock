@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@~0.12.13":
-  version "0.12.13"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.12.13.tgz#458c2957f1cfd6f425a1462da10c0ebf9cfb2005"
+"@tensorflow/tfjs-core@~0.12.14":
+  version "0.12.14"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.12.14.tgz#cb7ab5e2fe5bc548a3ace9f8803546b18ad48b8a"
   dependencies:
     "@types/seedrandom" "~2.4.27"
     "@types/webgl-ext" "~0.0.29"
@@ -15,9 +15,9 @@
   version "0.7.2"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.7.2.tgz#3a8c083255c72da272245ae5b435c66af9573eb8"
 
-"@tensorflow/tfjs-node@~0.1.12":
-  version "0.1.12"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-0.1.12.tgz#8cab02b31340ffe1750e8f83fe4ac9e2da5ecb64"
+"@tensorflow/tfjs-node@~0.1.13":
+  version "0.1.13"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-0.1.13.tgz#5a680a332dafcb4b88dae17b6b68760bc6727d6a"
   dependencies:
     adm-zip "^0.4.11"
     bindings "~1.3.0"
