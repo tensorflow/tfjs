@@ -16,7 +16,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {abs, mean, memory, mul, NamedTensorMap, ones, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, util, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
-import {CustomCallback, CustomCallbackConfig, ModelTrainingYielder} from '../base_callbacks';
+import {CustomCallback, CustomCallbackConfig, ModelTrainingYielder, Params} from '../base_callbacks';
 import * as tfl from '../index';
 import {Logs, UnresolvedLogs} from '../logs';
 import {Regularizer} from '../regularizers';
@@ -1130,6 +1130,60 @@ describeMathCPUAndGPU('Model.fit', () => {
         .catch(err => {
           done.fail(err.stack);
         });
+  });
+
+  class CustomCallbackForTest extends tfl.CustomCallback {
+    constructor(readonly recordedParams: Params[]) {
+      super({
+        onTrainBegin: async () => {
+          console.log('this.params:', this.params);
+          recordedParams.push(this.params);
+        }
+      });
+    }
+  }
+
+  it('Custom callback params: no validation', async () => {
+    createDenseModelAndData();
+    model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+    const recordedParams: Params[] = [];
+    const epochs = 3;
+    const batchSize = 2;
+    await model.fit(inputs, targets, {
+      epochs,
+      batchSize,
+      callbacks: new CustomCallbackForTest(recordedParams)
+    });
+    expect(recordedParams[0].epochs).toEqual(epochs);
+    expect(recordedParams[0].initialEpoch).toEqual(0);
+    expect(recordedParams[0].samples).toEqual(inputs.shape[0]);
+    expect(recordedParams[0].steps).toEqual(null);
+    expect(recordedParams[0].batchSize).toEqual(batchSize);
+    expect(recordedParams[0].doValidation).toEqual(false);
+    expect(recordedParams[0].metrics).toEqual(['loss']);
+  });
+
+  it('Custom callback params: has validation', async () => {
+    createDenseModelAndData();
+    model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+    const recordedParams: Params[] = [];
+    const epochs = 3;
+    const batchSize = 2;
+    const validationSplit = 0.2;
+    await model.fit(inputs, targets, {
+      epochs,
+      batchSize,
+      validationSplit,
+      callbacks: new CustomCallbackForTest(recordedParams)
+    });
+    expect(recordedParams[0].epochs).toEqual(epochs);
+    expect(recordedParams[0].initialEpoch).toEqual(0);
+    expect(recordedParams[0].samples).toEqual(
+        Math.round(inputs.shape[0] * (1 - validationSplit)));
+    expect(recordedParams[0].steps).toEqual(null);
+    expect(recordedParams[0].batchSize).toEqual(batchSize);
+    expect(recordedParams[0].doValidation).toEqual(true);
+    expect(recordedParams[0].metrics).toEqual(['loss', 'val_loss']);
   });
 
   class StopAfterNEpochs extends tfl.Callback {

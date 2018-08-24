@@ -1390,7 +1390,9 @@ export class Model extends Container implements tfc.InferenceModel {
     callbackList.setParams({
       epochs,
       initialEpoch,
+      samples: numTrainSamples,
       steps: stepsPerEpoch,
+      batchSize,
       verbose,
       doValidation,
       metrics: callbackMetrics,
