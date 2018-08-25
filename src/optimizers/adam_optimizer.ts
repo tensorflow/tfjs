@@ -18,7 +18,7 @@
 import {ENV} from '../environment';
 import {keep, tidy} from '../globals';
 import {scalar, zerosLike} from '../ops/ops';
-import {ConfigDict, Serializable, SerializableConstructor, SerializationMap} from '../serialization';
+import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {Scalar, Variable} from '../tensor';
 import {NamedVariableMap} from '../tensor_types';
 import {Optimizer} from './optimizer';
@@ -144,4 +144,4 @@ export class AdamOptimizer extends Optimizer {
         config.learningRate, config.beta1, config.beta2, config.epsilon);
   }
 }
-SerializationMap.register(AdamOptimizer);
+registerClass(AdamOptimizer);

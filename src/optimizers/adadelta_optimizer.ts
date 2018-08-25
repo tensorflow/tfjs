@@ -18,7 +18,7 @@
 import {ENV} from '../environment';
 import {keep, tidy} from '../globals';
 import {scalar, zerosLike} from '../ops/ops';
-import {ConfigDict, Serializable, SerializableConstructor, SerializationMap} from '../serialization';
+import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {Scalar} from '../tensor';
 import {NamedVariableMap} from '../tensor_types';
 import {Optimizer} from './optimizer';
@@ -119,4 +119,4 @@ export class AdadeltaOptimizer extends Optimizer {
     return new cls(config.learningRate, config.rho, config.epsilon);
   }
 }
-SerializationMap.register(AdadeltaOptimizer);
+registerClass(AdadeltaOptimizer);
