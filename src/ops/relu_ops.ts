@@ -26,7 +26,7 @@ import {SELU_SCALE, SELU_SCALEALPHA} from './selu_util';
 import {scalar} from './tensor_ops';
 
 /**
- * Computes rectified linear element-wise: `max(x, 0)`
+ * Computes rectified linear element-wise: `max(x, 0)`.
  *
  * ```js
  * const x = tf.tensor1d([-1, 2, -3, 4]);
@@ -51,7 +51,7 @@ function relu_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes exponential linear element-wise, `x > 0 ? e ^ x - 1 : 0`
+ * Computes exponential linear element-wise: `x > 0 ? e ^ x - 1 : 0`.
  *
  * ```js
  * const x = tf.tensor1d([-1, 1, -3, 2]);

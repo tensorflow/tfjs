@@ -17,7 +17,7 @@
 
 /**
  * Gets the new shape of the input Tensor after it's been reshaped
- * to :
+ * to:
  * [blockShape[0], ..., blockShape[M-1], batch / prod(blockShape),
  * inputShape[1], ..., inputShape[N-1]]
  *
@@ -120,7 +120,7 @@ export function getReshapedPermuted(
 
 /**
  * Converts the crops argument into the beginning coordinates of a slice
- * operation
+ * operation.
  */
 export function getSliceBeginCoords(
     crops: number[][], blockShape: number): number[] {
@@ -132,7 +132,7 @@ export function getSliceBeginCoords(
 }
 
 /**
- * converts the crops argument into the size of a slice operation.  When
+ * Converts the crops argument into the size of a slice operation.  When
  * combined with getSliceBeginCoords this function allows the reshaped and
  * permuted Tensor to be cropped to its final output shape of:
  *

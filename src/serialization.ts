@@ -43,7 +43,7 @@ export interface ConfigDictArray extends Array<ConfigDictValue> {}
  * Type to represent the class-type of Serializable objects.
  *
  * Ie the class prototype with access to the constructor and any
- * static members/methods.  Instance methods are not listed here.
+ * static members/methods. Instance methods are not listed here.
  *
  * Source for this idea: https://stackoverflow.com/a/43607255
  */
@@ -66,7 +66,7 @@ export abstract class Serializable {
    *
    * Generally speaking this will be the same thing that constructor.name
    * would have returned.  However, the class name needs to be robust
-   * against minification for serialization/deserialazation to work properly.
+   * against minification for serialization/deserialization to work properly.
    *
    * There's also places such as initializers.VarianceScaling, where
    * implementation details between different languages led to different

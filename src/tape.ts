@@ -35,6 +35,7 @@ export type NamedGradientMap = {
 /**
  * Computes a list of TapeNodes that connect x to y, filtering everything else
  * out and preserving the order of the original tape elements.
+ *
  * @param tape The tape elements to filter.
  * @param xs The input Tensors.
  * @param y The output Tensor.
@@ -71,7 +72,7 @@ export function getFilteredNodesXToY(
     }
   }
 
-  // Backwards pass to find all of the nodes and Tensors that lead to y.
+  // Backward pass to find all of the nodes and Tensors that lead to y.
   const tensorsLeadToY: {[tensorId: number]: boolean} = {};
   tensorsLeadToY[y.id] = true;
   const nodesToY: {[nodeId: number]: boolean} = {};
@@ -124,6 +125,7 @@ export function getFilteredNodesXToY(
 
 /**
  * Backpropagate gradients through the filtered TapeNodes.
+ *
  * @param tensorAccumulatedGradientMap A map of Tensor to its gradient. This map
  * is mutated by this method.
  * @param filteredTape The filtered TapeNodes to backprop through.
@@ -131,7 +133,7 @@ export function getFilteredNodesXToY(
 export function backpropagateGradients(
     tensorAccumulatedGradientMap: {[tensorId: number]: Tensor},
     filteredTape: TapeNode[]) {
-  // Walk the tape backwards and keep a map of Tensor to its gradient.
+  // Walk the tape backward and keep a map of Tensor to its gradient.
   for (let i = filteredTape.length - 1; i >= 0; i--) {
     const node = filteredTape[i];
 

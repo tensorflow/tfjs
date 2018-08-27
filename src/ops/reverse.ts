@@ -36,7 +36,7 @@ function reverse1d_(x: Tensor1D|TensorLike): Tensor1D {
 }
 
 /**
- * Reverses a `Tensor2D` along a specified axis
+ * Reverses a `Tensor2D` along a specified axis.
  *
  * @param x The input tensor.
  * @param axis The set of dimensions to reverse. Must be in the
@@ -50,7 +50,7 @@ function reverse2d_(x: Tensor2D|TensorLike, axis?: number|number[]): Tensor2D {
 }
 
 /**
- * Reverses a `Tensor3D` along a specified axis
+ * Reverses a `Tensor3D` along a specified axis.
  *
  * @param x The input tensor.
  * @param axis The set of dimensions to reverse. Must be in the
@@ -64,7 +64,7 @@ function reverse3d_(x: Tensor3D|TensorLike, axis?: number|number[]): Tensor3D {
 }
 
 /**
- * Reverses a `Tensor4D` along a specified axis
+ * Reverses a `Tensor4D` along a specified axis.
  *
  * @param x The input tensor.
  * @param axis The set of dimensions to reverse. Must be in the

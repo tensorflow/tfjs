@@ -67,8 +67,7 @@ export class OptimizerConstructors {
   }
 
   /**
-   * Constructs a `MomentumOptimizer` that uses momentum gradient
-   * descent.
+   * Constructs a `MomentumOptimizer` that uses momentum gradient descent.
    *
    * See
    * [http://proceedings.mlr.press/v28/sutskever13.pdf](

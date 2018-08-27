@@ -42,13 +42,19 @@ export function clamp(min: number, x: number, max: number): number {
   return Math.max(min, Math.min(x, max));
 }
 
-/** Returns a sample from a uniform [a, b] distribution. */
+/**
+ * Returns a sample from a uniform [a, b) distribution.
+ *
+ * @param a The minimum support (inclusive).
+ * @param b The maximum support (exclusive).
+ * @return A pseudorandom number on the half-open interval [a,b).
+ */
 export function randUniform(a: number, b: number) {
   const r = Math.random();
   return (b*r) + (1-r)*a;
 }
 
-/** Returns squared eucledian distance between two vectors. */
+/** Returns the squared Euclidean distance between two vectors. */
 export function distSquared(a: FlatVector, b: FlatVector): number {
   let result = 0;
   for (let i = 0; i < a.length; i++) {
@@ -498,7 +504,7 @@ export function now(): number {
     return time[0] * 1000 + time[1] / 1000000;
   } else {
     throw new Error(
-        'Can not measure time in this environment. You should run tf.js ' +
+        'Cannot measure time in this environment. You should run tf.js ' +
         'in the browser or in Node.js');
   }
 }

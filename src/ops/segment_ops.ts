@@ -39,10 +39,10 @@ import {ones, scalar, zerosLike} from './tensor_ops';
  * x.unsortedSegmentSum(segmentIds, numSegments).print()
  * //or tf.unsortedSegmentSum(x, segmentIds, numSegments)
  * ```
- * @param x The `Tensor` that will be summed along its segments
+ * @param x The `Tensor` that will be summed along its segments.
  * @param segmentIds A `Tensor1D` whose rank is equal to the rank of `x`'s
  * dimension along the `axis`.  Maps each element of `x` to a segment.
- * @param numSegments The number of distinct `segmentIds`
+ * @param numSegments The number of distinct `segmentIds`.
  */
 /** @doc {heading: 'Operations', subheading: 'Segment'} */
 function unsortedSegmentSum_<T extends Tensor>(

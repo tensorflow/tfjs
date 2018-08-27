@@ -278,7 +278,7 @@ function multinomial_(
  *
  * @param indices `Tensor1D` of indices with dtype `int32`.
  * @param depth The depth of the one hot dimension.
- * @param onValue A number used to fill in output when the index matches
+ * @param onValue A number used to fill in the output when the index matches
  * the location.
  * @param offValue A number used to fill in the output when the index does
  *     not match the location.
@@ -436,7 +436,7 @@ async function toPixels(
 /**
  * Reshapes a `Tensor` to a given shape.
  *
- * Given a input tensor, returns a new tensor with the same values as the
+ * Given an input tensor, returns a new tensor with the same values as the
  * input tensor with shape `shape`.
  *
  * If one component of shape is the special value -1, the size of that
@@ -514,7 +514,7 @@ function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
 }
 
 /**
- * Construct an tensor by repeating it the number of times given by reps.
+ * Construct a tensor by repeating it the number of times given by reps.
  *
  * This operation creates a new tensor by replicating `input` `reps`
  * times. The output tensor's i'th dimension has `input.shape[i] *
@@ -1069,7 +1069,7 @@ function expandDims_<R2 extends Rank>(
 /**
  * Creates an empty `TensorBuffer` with the specified `shape` and `dtype`.
  *
- * The values are stored in cpu as `TypedArray`. Fill the buffer using
+ * The values are stored in CPU as `TypedArray`. Fill the buffer using
  * `buffer.set()`, or by modifying directly `buffer.values`.
  *
  * When done, call `buffer.toTensor()` to get an immutable `Tensor` with
