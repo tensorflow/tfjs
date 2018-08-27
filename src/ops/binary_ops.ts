@@ -99,7 +99,7 @@ function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
 function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
   util.assert(
       Array.isArray(tensors),
-      () => 'The param passed to tf.addN() must be a list of tensors');
+      () => 'The argument passed to tf.addN() must be a list of tensors');
   util.assert(
       tensors.length >= 1,
       () => `Must pass at least one tensor to tf.addN(), but got ` +
@@ -673,7 +673,7 @@ function maximum_<T extends Tensor>(
  * @param b The second tensor. Must have the same dtype as `a`.
  */
 function maximumStrict_<T extends Tensor>(a: T, b: T): T {
-  util.assertShapesMatch(a.shape, b.shape, 'Error in minimumStrict: ');
+  util.assertShapesMatch(a.shape, b.shape, 'Error in maximumStrict: ');
   return a.maximum(b);
 }
 

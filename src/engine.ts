@@ -27,7 +27,7 @@ import {makeOnesTypedArray, now, sizeFromShape} from './util';
 
 /**
  * A function that computes an output. The save function is for saving tensors
- * computed in the forward pass, that we need in the backwards pass.
+ * computed in the forward pass, that we need in the backward pass.
  */
 export type ForwardFunc<T> =
     (backend: KernelBackend, save?: <S extends Tensor>(tensor: S) => S) => T;

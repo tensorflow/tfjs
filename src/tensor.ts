@@ -1254,7 +1254,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
   name: string;
 
   /**
-   * Private constructor since we can not add logic before calling `super()`.
+   * Private constructor since we cannot add logic before calling `super()`.
    * Instead, we expose static `Variable.variable` method below, which will be
    * added to global namespace.
    */

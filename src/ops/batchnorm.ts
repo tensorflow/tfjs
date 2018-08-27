@@ -200,8 +200,7 @@ function batchNormalization4d_(
  * As described in
  * [http://arxiv.org/abs/1502.03167](http://arxiv.org/abs/1502.03167).
  *
- * Mean, variance, scale, and offset can be of two
- * shapes:
+ * Mean, variance, scale, and offset can be of two shapes:
  *   - The same shape as the input.
  *   - In the common case, the depth dimension is the last dimension of x, so
  *     the values would be an `Tensor1D` of shape [depth].

@@ -1023,7 +1023,7 @@ describeWithFlags('addN', ALL_ENVS, () => {
     // tslint:disable-next-line:no-any
     expect(() => tf.addN(tf.scalar(3) as any))
         .toThrowError(
-            /The param passed to tf.addN\(\) must be a list of tensors/);
+            /The argument passed to tf.addN\(\) must be a list of tensors/);
   });
 
   it('errors if arguments not of same dtype', () => {

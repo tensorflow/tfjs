@@ -26,6 +26,7 @@ export abstract class Optimizer extends Serializable {
    * Executes `f()` and minimizes the scalar output of `f()` by computing
    * gradients of y with respect to the list of trainable variables provided by
    * `varList`. If no list is provided, it defaults to all trainable variables.
+   *
    * @param f The function to execute and whose output to minimize.
    * @param returnCost Whether to return the scalar cost value produced by
    * executing `f()`.
@@ -56,6 +57,7 @@ export abstract class Optimizer extends Serializable {
    * Executes f() and computes the gradient of the scalar output of f() with
    * respect to the list of trainable variables provided by `varList`. If no
    * list is provided, it defaults to all trainable variables.
+   *
    * @param f The function to execute and whose output to use for computing
    * gradients with respect to variables.
    * @param varList An optional list of variables to compute gradients with
@@ -69,6 +71,7 @@ export abstract class Optimizer extends Serializable {
 
   /**
    * Updates variables by using the computed gradients.
+   *
    * @param variableGradients A mapping of variable name to its gradient value.
    */
   abstract applyGradients(variableGradients: NamedTensorMap): void;

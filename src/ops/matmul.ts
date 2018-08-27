@@ -96,7 +96,7 @@ function matMul_(
  * tf.outerProduct(a, b).print();
  * ```
  * @param v1 The first vector in the outer product operation.
- * @param v2 The second vector in the dot product operation.
+ * @param v2 The second vector in the outer product operation.
  */
 /** @doc {heading: 'Operations', subheading: 'Matrices'} */
 function outerProduct_(
