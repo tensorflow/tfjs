@@ -172,7 +172,8 @@ export interface ModelPredictConfig {
  *
  * ```js
  * const model = await
- *     tf.loadModel('https://storage.googleapis.com/tfjs-models/tfjs/iris_v1/model.json')
+ *     tf.loadModel('https://storage.googleapis.com/tfjs-models/tfjs/iris_v1/model.json');
+ * model.summary();
  * ```
  *
  * @param pathOrIOHandler Can be either of the two formats
