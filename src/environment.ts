@@ -31,6 +31,7 @@ const TEST_EPSILON_FLOAT32 = 1e-3;
 
 export class Environment {
   private features: Features = {};
+  private engines: {[id: string]: Engine} = {};
   private globalEngine: Engine;
   private registry:
       {[id: string]: {backend: KernelBackend, priority: number}} = {};
@@ -337,8 +338,14 @@ export class Environment {
 
   private initBackend(backendName?: string, safeMode = false) {
     this.backendName = backendName;
-    const backend = this.findBackend(backendName);
-    this.globalEngine = new Engine(backend, safeMode, () => this.get('DEBUG'));
+    if (this.engines[backendName]) {
+      this.globalEngine = this.engines[backendName];
+    } else {
+      const backend = this.findBackend(backendName);
+      this.globalEngine =
+          new Engine(backend, safeMode, () => this.get('DEBUG'));
+      this.engines[backendName] = this.globalEngine;
+    }
   }
 
   get backend(): KernelBackend {
@@ -392,6 +399,10 @@ export class Environment {
     }
     this.registry[name].backend.dispose();
     delete this.registry[name];
+
+    if (name in this.engines) {
+      delete this.engines[name];
+    }
   }
 
   get engine(): Engine {
