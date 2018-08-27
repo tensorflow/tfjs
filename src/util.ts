@@ -44,7 +44,8 @@ export function clamp(min: number, x: number, max: number): number {
 
 /** Returns a sample from a uniform [a, b] distribution. */
 export function randUniform(a: number, b: number) {
-  return Math.random() * (b - a) + a;
+  const r = Math.random();
+  return (b*r) + (1-r)*a;
 }
 
 /** Returns squared eucledian distance between two vectors. */
