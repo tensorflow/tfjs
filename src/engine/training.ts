@@ -626,6 +626,12 @@ export interface ModelCompileConfig {
   //   targetTensors.
 }
 
+function checkBatchSize(batchSize: number) {
+  tfc.util.assert(
+      batchSize > 0 && Number.isInteger(batchSize),
+      `batchSize is required to be a positive integer, but got ${batchSize}`);
+}
+
 /**
  * A `Model` is a directed, acyclic graph of `Layer`s plus methods for
  * training, evaluation, prediction and saving.
@@ -993,6 +999,7 @@ export class Model extends Container implements tfc.InferenceModel {
       x: Tensor|Tensor[], y: Tensor|Tensor[],
       config: ModelEvaluateConfig = {}): Scalar|Scalar[] {
     const batchSize = config.batchSize == null ? 32 : config.batchSize;
+    checkBatchSize(batchSize);
 
     // TODO(cais): Standardize `config.sampleWeights` as well.
     // Validate user data.
@@ -1235,6 +1242,7 @@ export class Model extends Container implements tfc.InferenceModel {
     // TODO(cais): Take care of the learning_phase boolean flag.
     //   if (this.useLearningPhase) ...
     const batchSize = config.batchSize == null ? 32 : config.batchSize;
+    checkBatchSize(batchSize);
     return this.predictLoop(x, batchSize);
   }
 
@@ -1643,197 +1651,202 @@ export class Model extends Container implements tfc.InferenceModel {
           'Cannot start training because another fit() call is ongoing.');
     }
     this.isTraining = true;
-    const batchSize = config.batchSize == null ? 32 : config.batchSize;
+    try {
+      const batchSize = config.batchSize == null ? 32 : config.batchSize;
+      checkBatchSize(batchSize);
 
-    // Validate user data.
-    // TODO(cais): Add sampleWeight and  classWeight.
-    const standardizedOuts = this.standardizeUserData(x, y, false, batchSize);
-    let inputs = standardizedOuts[0];
-    let targets = standardizedOuts[1];
-    // TODO(cais): Make use of sampleWeights in standardizedOuts[2] when
-    //   available.
+      // Validate user data.
+      // TODO(cais): Add sampleWeight and  classWeight.
+      const standardizedOuts = this.standardizeUserData(x, y, false, batchSize);
+      let inputs = standardizedOuts[0];
+      let targets = standardizedOuts[1];
+      // TODO(cais): Make use of sampleWeights in standardizedOuts[2] when
+      //   available.
 
-    // Prepare validation data.
-    let doValidation = false;
-    let valX: Tensor|Tensor[];
-    let valY: Tensor|Tensor[];
-    let valIns: Tensor[];
-    // A flag to keep track of whether `valIns`, `inputs` and `targets` need
-    // to be memory-disposed prior to returning from this method. This is the
-    // case if `config.validationSplit` is set to a number between 0 and 1, in
-    // which case the input `x` and `y` tensors will be sliced, leading to
-    // allocation of new tensor memory.
-    let needValidationDisposal = false;
-    if (config.validationData != null && config.validationData.length > 0) {
-      doValidation = true;
-      if (config.validationData.length === 2) {
-        // config.validationData consists of valX and valY.
-        valX = config.validationData[0];
-        valY = config.validationData[1];
-      } else if (config.validationData.length === 3) {
-        throw new NotImplementedError(
-            'validationData including sample weights is not supported yet.');
-      } else {
-        throw new ValueError(
-            `When passing validation data, it must contain 2 (valX, valY) ` +
-            `or 3 (valX, valY, valSampleWeight) items; ` +
-            `${config.validationData} is invalid.`);
+      // Prepare validation data.
+      let doValidation = false;
+      let valX: Tensor|Tensor[];
+      let valY: Tensor|Tensor[];
+      let valIns: Tensor[];
+      // A flag to keep track of whether `valIns`, `inputs` and `targets` need
+      // to be memory-disposed prior to returning from this method. This is the
+      // case if `config.validationSplit` is set to a number between 0 and 1, in
+      // which case the input `x` and `y` tensors will be sliced, leading to
+      // allocation of new tensor memory.
+      let needValidationDisposal = false;
+      if (config.validationData != null && config.validationData.length > 0) {
+        doValidation = true;
+        if (config.validationData.length === 2) {
+          // config.validationData consists of valX and valY.
+          valX = config.validationData[0];
+          valY = config.validationData[1];
+        } else if (config.validationData.length === 3) {
+          throw new NotImplementedError(
+              'validationData including sample weights is not supported yet.');
+        } else {
+          throw new ValueError(
+              `When passing validation data, it must contain 2 (valX, valY) ` +
+              `or 3 (valX, valY, valSampleWeight) items; ` +
+              `${config.validationData} is invalid.`);
+        }
+
+        const valStandardized =
+            this.standardizeUserData(valX, valY, true, batchSize);
+        valX = valStandardized[0] as Tensor[];
+        valY = valStandardized[1] as Tensor[];
+        // TODO(cais): Use validation sample weights in valStandardized[2] once
+        //   it becomes available.
+        valIns = valX.concat(valY);
+        // TODO(cais): Add useLearningPhase data properly.
+      } else if (
+          config.validationSplit != null && config.validationSplit > 0 &&
+          config.validationSplit < 1) {
+        doValidation = true;
+        // Porting Note: In tfjs-layers, inputs[0] is always an Tensor.
+        const splitAt =
+            Math.floor(inputs[0].shape[0] * (1 - config.validationSplit));
+        const originalBatchSize = inputs[0].shape[0];
+        valX = sliceArrays(inputs, splitAt, originalBatchSize) as Tensor[];
+        inputs = sliceArrays(inputs, 0, splitAt) as Tensor[];
+        valY = sliceArrays(targets, splitAt, originalBatchSize) as Tensor[];
+        targets = sliceArrays(targets, 0, splitAt) as Tensor[];
+        needValidationDisposal = true;
+        // TODO(cais): Once sampleWeights becomes available, slice it to get
+        //   valSampleWeights.
+        valIns = valX.concat(valY);
+
+        // TODO(cais): Add useLearningPhase data properly.
+      } else if (config.validationSteps != null) {
+        doValidation = true;
+        // TODO(cais): Add useLearningPhase.
       }
 
-      const valStandardized =
-          this.standardizeUserData(valX, valY, true, batchSize);
-      valX = valStandardized[0] as Tensor[];
-      valY = valStandardized[1] as Tensor[];
-      // TODO(cais): Use validation sample weights in valStandardized[2] once
-      //   it becomes available.
-      valIns = valX.concat(valY);
-      // TODO(cais): Add useLearningPhase data properly.
-    } else if (
-        config.validationSplit != null && config.validationSplit > 0 &&
-        config.validationSplit < 1) {
-      doValidation = true;
-      // Porting Note: In tfjs-layers, inputs[0] is always an Tensor.
-      const splitAt =
-          Math.floor(inputs[0].shape[0] * (1 - config.validationSplit));
-      const originalBatchSize = inputs[0].shape[0];
-      valX = sliceArrays(inputs, splitAt, originalBatchSize) as Tensor[];
-      inputs = sliceArrays(inputs, 0, splitAt) as Tensor[];
-      valY = sliceArrays(targets, splitAt, originalBatchSize) as Tensor[];
-      targets = sliceArrays(targets, 0, splitAt) as Tensor[];
-      needValidationDisposal = true;
-      // TODO(cais): Once sampleWeights becomes available, slice it to get
-      //   valSampleWeights.
-      valIns = valX.concat(valY);
+      const ins = inputs.concat(targets);
 
-      // TODO(cais): Add useLearningPhase data properly.
-    } else if (config.validationSteps != null) {
-      doValidation = true;
-      // TODO(cais): Add useLearningPhase.
-    }
+      this.checkTrainableWeightsConsistency();
 
-    const ins = inputs.concat(targets);
+      // TODO(cais): Handle use_learning_phase and learning_phase?
 
-    this.checkTrainableWeightsConsistency();
+      // Porting Note: Here we see a key deviation of tfjs-layers from Keras.
+      //  Due to the imperative nature of tfjs-layers' backend (tfjs-core),
+      //  we do not construct symbolic computation graphs to embody the training
+      //  process. Instead, we define a function that performs the training
+      //  action.
+      //  In PyKeras, the data (inputs and targets) are fed through graph
+      //  placeholders. In tfjs-layers, the data are fed as function arguments.
+      //  Since the function are defined below in the scope, we don't have
+      //  equivalents of PyKeras's `_make_train_funciton`.
 
-    // TODO(cais): Handle use_learning_phase and learning_phase?
+      // Creat a function that performs the following actions:
+      //   1) computes the losses,
+      //   2) add them to get the total loss,
+      //   3) call the optimizer computes the gradients of the Model's trainable
+      //      weights w.r.t. the total loss and update the variables.
+      //   4) calculate the metrics
+      //   5) return the values of the losses and metrics.
+      const trainFunction = (data: Tensor[]) => {
+        const losses: Tensor[] = [];
+        const lossValues: Scalar[] = [];
 
-    // Porting Note: Here we see a key deviation of tfjs-layers from Keras.
-    //  Due to the imperative nature of tfjs-layers' backend (tfjs-core),
-    //  we do not construct symbolic computation graphs to embody the training
-    //  process. Instead, we define a function that performs the training
-    //  action.
-    //  In PyKeras, the data (inputs and targets) are fed through graph
-    //  placeholders. In tfjs-layers, the data are fed as function arguments.
-    //  Since the function are defined below in the scope, we don't have
-    //  equivalents of PyKeras's `_make_train_funciton`.
+        const inputs = data.slice(0, this.inputs.length);
+        const targets = data.slice(
+            this.inputs.length, this.inputs.length + this.outputs.length);
 
-    // Creat a function that performs the following actions:
-    //   1) computes the losses,
-    //   2) add them to get the total loss,
-    //   3) call the optimizer computes the gradients of the Model's trainable
-    //      weights w.r.t. the total loss and update the variables.
-    //   4) calculate the metrics
-    //   5) return the values of the losses and metrics.
-    const trainFunction = (data: Tensor[]) => {
-      const losses: Tensor[] = [];
-      const lossValues: Scalar[] = [];
+        const metricsValues: Scalar[] = [];
 
-      const inputs = data.slice(0, this.inputs.length);
-      const targets = data.slice(
-          this.inputs.length, this.inputs.length + this.outputs.length);
-
-      const metricsValues: Scalar[] = [];
-
-      // Create a function that computes the total loss based on the inputs.
-      // This function is used for obtaining gradients through backprop.
-      const totalLossFunction = () => {
-        const feeds = [];
-        for (let i = 0; i < this.inputs.length; ++i) {
-          feeds.push({key: this.inputs[i], value: inputs[i]});
-        }
-        const feedDict = new FeedDict(feeds);
-        const outputs =
-            execute(this.outputs, feedDict, {'training': true}) as Tensor[];
-        // TODO(cais): Take care of the case of multiple outputs from a
-        //   single layer?
-
-        let totalLoss: Tensor;
-        for (let i = 0; i < this.lossFunctions.length; ++i) {
-          const lossFunction = this.lossFunctions[i];
-          const loss = lossFunction(targets[i], outputs[i]);
-          losses.push(loss);
-          // TODO(cais): push Scalar instead.
-          const meanLoss = tfc.mean(loss) as Scalar;
-          // TODO(cais): Use a scope() instead, to avoid ownership.
-          lossValues.push(meanLoss);
-          if (i === 0) {
-            totalLoss = loss;
-          } else {
-            totalLoss = tfc.add(totalLoss, loss);
+        // Create a function that computes the total loss based on the inputs.
+        // This function is used for obtaining gradients through backprop.
+        const totalLossFunction = () => {
+          const feeds = [];
+          for (let i = 0; i < this.inputs.length; ++i) {
+            feeds.push({key: this.inputs[i], value: inputs[i]});
           }
-        }
+          const feedDict = new FeedDict(feeds);
+          const outputs =
+              execute(this.outputs, feedDict, {'training': true}) as Tensor[];
+          // TODO(cais): Take care of the case of multiple outputs from a
+          //   single layer?
 
-        // Compute the metrics.
-        // TODO(cais): These should probably be calculated outside
-        //   totalLossFunction to benefit speed?
-        for (let i = 0; i < this.metricsTensors.length; ++i) {
-          const metric = this.metricsTensors[i][0];
-          const outputIndex = this.metricsTensors[i][1];
-          // TODO(cais): Replace K.mean() with a proper weighting function.
-          const meanMetric =
-              tfc.mean(metric(targets[outputIndex], outputs[outputIndex])) as
-              Scalar;
-          tfc.keep(meanMetric);
-          // TODO(cais): Use a scope() instead, to avoid ownership.
-          metricsValues.push(meanMetric);
-        }
+          let totalLoss: Tensor;
+          for (let i = 0; i < this.lossFunctions.length; ++i) {
+            const lossFunction = this.lossFunctions[i];
+            const loss = lossFunction(targets[i], outputs[i]);
+            losses.push(loss);
+            // TODO(cais): push Scalar instead.
+            const meanLoss = tfc.mean(loss) as Scalar;
+            // TODO(cais): Use a scope() instead, to avoid ownership.
+            lossValues.push(meanLoss);
+            if (i === 0) {
+              totalLoss = loss;
+            } else {
+              totalLoss = tfc.add(totalLoss, loss);
+            }
+          }
 
-        totalLoss = tfc.mean(totalLoss);
+          // Compute the metrics.
+          // TODO(cais): These should probably be calculated outside
+          //   totalLossFunction to benefit speed?
+          for (let i = 0; i < this.metricsTensors.length; ++i) {
+            const metric = this.metricsTensors[i][0];
+            const outputIndex = this.metricsTensors[i][1];
+            // TODO(cais): Replace K.mean() with a proper weighting function.
+            const meanMetric =
+                tfc.mean(metric(targets[outputIndex], outputs[outputIndex])) as
+                Scalar;
+            tfc.keep(meanMetric);
+            // TODO(cais): Use a scope() instead, to avoid ownership.
+            metricsValues.push(meanMetric);
+          }
 
-        // Add regularizer penalties.
-        this.calculateLosses().forEach(regularizerLoss => {
-          totalLoss = tfc.add(totalLoss, regularizerLoss);
-        });
+          totalLoss = tfc.mean(totalLoss);
 
-        return totalLoss as Scalar;
+          // Add regularizer penalties.
+          this.calculateLosses().forEach(regularizerLoss => {
+            totalLoss = tfc.add(totalLoss, regularizerLoss);
+          });
+
+          return totalLoss as Scalar;
+        };
+
+        const variables = this.collectedTrainableWeights.map(
+            param => param.read() as tfc.Variable);
+        const returnCost = true;
+        const totalLossValue =
+            this.optimizer.minimize(totalLossFunction, returnCost, variables);
+
+        return [totalLossValue].concat(metricsValues);
       };
 
-      const variables = this.collectedTrainableWeights.map(
-          param => param.read() as tfc.Variable);
-      const returnCost = true;
-      const totalLossValue =
-          this.optimizer.minimize(totalLossFunction, returnCost, variables);
+      const outLabels = this.getDedupedMetricsNames();
 
-      return [totalLossValue].concat(metricsValues);
-    };
+      let valFunction: (data: Tensor[]) => Scalar[];
+      let callbackMetrics: string[];
+      if (doValidation) {
+        this.makeTestFunction();
+        valFunction = this.testFunction;
+        callbackMetrics =
+            outLabels.slice().concat(outLabels.map(n => 'val_' + n));
+      } else {
+        valFunction = null;
+        valIns = [];
+        callbackMetrics = outLabels.slice();
+      }
 
-    const outLabels = this.getDedupedMetricsNames();
-
-    let valFunction: (data: Tensor[]) => Scalar[];
-    let callbackMetrics: string[];
-    if (doValidation) {
-      this.makeTestFunction();
-      valFunction = this.testFunction;
-      callbackMetrics =
-          outLabels.slice().concat(outLabels.map(n => 'val_' + n));
-    } else {
-      valFunction = null;
-      valIns = [];
-      callbackMetrics = outLabels.slice();
+      const callbacks = standardizeCallbacks(config.callbacks);
+      const out = await this.fitLoop(
+          trainFunction, ins, outLabels, batchSize, config.epochs,
+          config.verbose, callbacks, valFunction, valIns, config.shuffle,
+          callbackMetrics, config.initialEpoch, null, null, config.yieldEvery);
+      if (needValidationDisposal) {
+        valIns.forEach(tensor => tensor.dispose());
+        inputs.forEach(tensor => tensor.dispose());
+        targets.forEach(tensor => tensor.dispose());
+      }
+      this.isTraining = false;
+      return out;
+    } finally {
+      this.isTraining = false;
     }
-
-    const callbacks = standardizeCallbacks(config.callbacks);
-    const out = await this.fitLoop(
-        trainFunction, ins, outLabels, batchSize, config.epochs, config.verbose,
-        callbacks, valFunction, valIns, config.shuffle, callbackMetrics,
-        config.initialEpoch, null, null, config.yieldEvery);
-    if (needValidationDisposal) {
-      valIns.forEach(tensor => tensor.dispose());
-      inputs.forEach(tensor => tensor.dispose());
-      targets.forEach(tensor => tensor.dispose());
-    }
-    this.isTraining = false;
-    return out;
     // TODO(cais): Add value to outLabels.
   }
 
