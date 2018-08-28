@@ -18,7 +18,7 @@ set -e
 
 # The binding builds with a symlink by default, for NPM packages change the
 # download option to move libtensorflow next to the prebuilt binary.
-sed -i -e s/symlink/move/ binding.gyp
+sed -i -e 's/symlink/move/' binding.gyp
 
 # Build CPU:
 rimraf dist/
@@ -29,8 +29,8 @@ npm pack
 
 # Build GPU:
 sed -i -e 's/tfjs-node"/tfjs-node-gpu"/' package.json
-sed -i -e s/linux-cpu/linux-gpu/ binding.gyp
-sed -i -e s/darwin/unsupported/ binding.gyp
+sed -i -e 's/install.js"/install.js gpu download"/' package.json
+rimraf deps/
 rimraf dist/
 yarn
 yarn prep
