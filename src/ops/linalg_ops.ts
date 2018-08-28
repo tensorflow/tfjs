@@ -32,6 +32,16 @@ import {tensor2d} from './tensor_ops';
 /**
  * Gram-Schmidt orthogonalization.
  *
+ * ```js
+ * const x = tf.tensor2d([[1, 2], [3, 4]]);
+ * let y = tf.linalg.gramSchmidt(x);
+ * y.print();
+ * console.log('Othogonalized:');
+ * y.dot(y.transpose()).print();  // should be nearly the identity matrix.
+ * console.log('First row direction maintained:');
+ * console.log(y.get(0, 1) / y.get(0, 0));  // should be nearly 2.
+ * ```
+ *
  * @param xs The vectors to be orthogonalized, in one of the two following
  *   formats:
  *   - An Array of `Tensor1D`.
@@ -44,7 +54,11 @@ import {tensor2d} from './tensor_ops';
  *   are orthogonal (zero inner products). Normalization means that each
  *   vector or each row of the matrix has an L2 norm that equals `1`.
  */
-/** @doc {heading: 'Operations', subheading: 'Linear Algebra'} */
+/**
+ * @doc {heading:'Operations',
+ *       subheading:'Linear Algebra',
+ *       namespace:'linalg'}
+ */
 function gramSchmidt_(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
   let inputIsTensor2D: boolean;
   if (Array.isArray(xs)) {
@@ -98,12 +112,25 @@ function gramSchmidt_(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
  *   [http://www.cs.cornell.edu/~bindel/class/cs6210-f09/lec18.pdf]
  * (http://www.cs.cornell.edu/~bindel/class/cs6210-f09/lec18.pdf)
  *
+ * ```js
+ * const a = tf.tensor2d([[1, 2], [3, 4]]);
+ * let [q, r] = tf.linalg.qr(a);
+ * console.log('Q');
+ * q.print();
+ * console.log('R');
+ * r.print();
+ * console.log('Orthogonalized');
+ * q.dot(q.transpose()).print()  // should be nearly the identity matrix.
+ * console.log('Reconstructed');
+ * q.dot(r).print(); // should be nearly [[1, 2], [3, 4]];
+ * ```
+ *
  * @param x The `Tensor` to be QR-decomposed. Must have rank >= 2. Suppose
  *   it has the shape `[..., M, N]`.
  * @param fullMatrices An optional boolean parameter. Defaults to `false`.
  *   If `true`, compute full-sized `Q`. If `false` (the default),
  *   compute only the leading N columns of `Q` and `R`.
- * @return An `Array` of two `Tensor`s: `[Q, R]`. `Q` is a unitary matrix,
+ * @returns An `Array` of two `Tensor`s: `[Q, R]`. `Q` is a unitary matrix,
  *   i.e., its columns all have unit norm and are mutually orthogonal.
  *   If `M >= N`,
  *     If `fullMatrices` is `false` (default),
@@ -117,7 +144,11 @@ function gramSchmidt_(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
  *     - `R` has a shape of `[..., M, N]`.
  * @throws If the rank of `x` is less than 2.
  */
-/** @doc {heading: 'Operations', subheading: 'Linear Algebra'} */
+/**
+ * @doc {heading:'Operations',
+ *       subheading:'Linear Algebra',
+ *       namespace:'linalg'}
+ */
 function qr_(x: Tensor, fullMatrices = false): [Tensor, Tensor] {
   if (x.rank < 2) {
     throw new Error(
