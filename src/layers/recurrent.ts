@@ -355,7 +355,7 @@ export interface RNNLayerConfig extends BaseRNNLayerConfig {
  *       It should be a tuple of integers, e.g. `(32, 10, 100)`.
  *     - specify `shuffle=False` when calling fit().
  *
- *   To reset the states of your model, call `.reset_states()` on either
+ *   To reset the states of your model, call `.resetStates()` on either
  *   a specific layer, or on your entire model.
  *
  * Note on specifying the initial state of RNNs
