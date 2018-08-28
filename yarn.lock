@@ -58,25 +58,25 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
 
-"@tensorflow/tfjs-converter@0.5.7":
-  version "0.5.7"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-0.5.7.tgz#b4b1a49cf90b5106a4351f1941c77c52f3f22ce9"
+"@tensorflow/tfjs-converter@0.5.9":
+  version "0.5.9"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-0.5.9.tgz#76913bd916bbd940b6435e9e3ec63f963c786b95"
   dependencies:
     "@types/long" "~3.0.32"
     protobufjs "~6.8.6"
 
-"@tensorflow/tfjs-core@0.12.11":
-  version "0.12.11"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.12.11.tgz#8da98fae720e58a484315d2e72d0c858991e4aee"
+"@tensorflow/tfjs-core@0.12.15":
+  version "0.12.15"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.12.15.tgz#b6c09dfe99cffd298745a694347b29a2c5aa9871"
   dependencies:
     "@types/seedrandom" "~2.4.27"
     "@types/webgl-ext" "~0.0.29"
     "@types/webgl2" "~0.0.4"
     seedrandom "~2.4.3"
 
-"@tensorflow/tfjs-layers@0.7.4":
-  version "0.7.4"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.7.4.tgz#575a3bc2c895501c619b4b7102b4e17256c30835"
+"@tensorflow/tfjs-layers@0.7.5":
+  version "0.7.5"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.7.5.tgz#54241110e0a6e194eafbbd18babca0978788e930"
 
 "@types/estree@0.0.38":
   version "0.0.38"
