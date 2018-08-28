@@ -40,14 +40,11 @@
             '-ltensorflow',
           ],
           'library_dirs' : ['<(PRODUCT_DIR)'],
-          'variables': {
-            'tensorflow-library-target': 'linux-cpu',
-          },
           'actions': [
             {
-              'action_name': 'get_libtensorflow',
+              'action_name': 'deps-stage',
               'inputs': [
-                '<(module_root_dir)/scripts/get_libtensorflow.js'
+                '<(module_root_dir)/scripts/deps-stage.js'
               ],
               'outputs': [
                 '<(PRODUCT_DIR)/libtensorflow.so',
@@ -55,9 +52,8 @@
               'action': [
                 'node',
                 '<@(_inputs)',
-                '<(tensorflow-library-target)',
-                '<(tensorflow-library-action)',
-                '<(PRODUCT_DIR)',
+                '<@(tensorflow-library-action)',
+                '<(PRODUCT_DIR)'
               ]
             }
           ],
@@ -70,14 +66,11 @@
             '-ltensorflow',
           ],
           'library_dirs' : ['<(PRODUCT_DIR)'],
-          'variables': {
-            'tensorflow-library-target': 'darwin'
-          },
           'actions': [
             {
-              'action_name': 'get_libtensorflow',
+              'action_name': 'deps-stage',
               'inputs': [
-                '<(module_root_dir)/scripts/get_libtensorflow.js'
+                '<(module_root_dir)/scripts/deps-stage.js'
               ],
               'outputs': [
                 '<(PRODUCT_DIR)/libtensorflow.so',
@@ -85,9 +78,8 @@
               'action': [
                 'node',
                 '<@(_inputs)',
-                '<(tensorflow-library-target)',
-                '<(tensorflow-library-action)',
-                '<(PRODUCT_DIR)',
+                '<@(tensorflow-library-action)',
+                '<(PRODUCT_DIR)'
               ]
             }
           ],
@@ -109,9 +101,9 @@
           ],
           'actions': [
             {
-              'action_name': 'get_libtensorflow',
+              'action_name': 'deps-stage',
               'inputs': [
-                '<(module_root_dir)/scripts/get_libtensorflow.js'
+                '<(module_root_dir)/scripts/deps-stage.js'
               ],
               'outputs': [
                 '<(PRODUCT_DIR)/tensorflow.dll',
@@ -119,9 +111,8 @@
               'action': [
                 'node',
                 '<@(_inputs)',
-                '<(tensorflow-library-target)',
-                '<(tensorflow-library-action)',
-                '<(PRODUCT_DIR)',
+                '<@(tensorflow-library-action)',
+                '<(PRODUCT_DIR)'
               ]
             },
             {
