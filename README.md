@@ -173,6 +173,7 @@ The library exposes a `render` namespace that provides a number of functions tha
 
 Renders a barchart.
 
+
 * @param data Data in the following format:
   * `[ {index: number, value: number} ... ]`
 * @param container A `Surface` or `HTMLElement` in which to draw the barchart. Note thatthis chart expects to have complete control over the contents of the container and can clear its contents at will.
@@ -189,10 +190,7 @@ Renders a barchart.
 Renders a table.
 
 * @param data Data in the following format
-  * {
-    headers: string[],
-    values:  any[][],
-  }
+  * `{ headers: string[], values:  any[][] }`
   * data.headers are the column names
   * data.values is an array of arrays (one for  each row). The inner
   array length usually matches the length of data.headers else there will be
@@ -204,13 +202,13 @@ Renders a table.
                    the contents of the container and can clear its contents
                    at will.
 
-## render.histogram(data: [], container: Surface|HTMLElement, opts: {}) => void
+## render.histogram(data: [], container: Surface|HTMLElement, opts: {}) => Promise<void>
 
 Renders a Histogram.
 
-* @param data Data in the following format, (an array of objects)
+* @param data Data in the following format:
   * `[ {value: number}, ... ]` or `[number]` or `TypedArray`
-* @param container An `HTMLElement` or `Surface` in which to draw the histogram
+* @param container An `HTMLElement` or `Surface` in which to draw the chart
 * @param opts optional parameters
 * @param opts.width width of chart in px
 * @param opts.height height of chart in px
@@ -230,3 +228,82 @@ Renders a Histogram.
         numNans?: number
       }
 
+## render.linechart(data: [], container: Surface|HTMLElement, opts: {}) => Promise<void>
+
+Renders a Line Chart.
+
+* @param data Data in the following format
+  ```ts
+  {
+    // A nested array of objects each with an x and y property,
+    // one per series.
+    // If you only have one series to render you can just pass an array
+    // of objects with x, y properties
+    values: {x: number, y: number}[][]
+
+    // An array of strings with the names of each series passed above.
+    // Optional
+    series: string[]
+  }
+  ```
+* @param container An HTMLElement in which to draw the chart
+* @param opts optional parameters
+* @param opts.width width of chart in px
+* @param opts.height height of chart in px
+* @param opts.xLabel label for x axis
+* @param opts.yLabel label for y axis
+
+
+## render.scatterplot(data: [], container: Surface|HTMLElement, opts: {}) => Promise<void>
+
+Renders a Scatter Plot.
+
+* @param data Data in the following format
+  ```ts
+  {
+    // A nested array of objects each with an x and y property,
+    // one per series.
+    // If you only have one series to render you can just pass an array
+    // of objects with x, y properties
+    values: {x: number, y: number}[][]
+
+    // An array of strings with the names of each series passed above.
+    // Optional
+    series: string[]
+  }
+  ```
+* @param container An HTMLElement in which to draw the chart
+* @param opts optional parameters
+* @param opts.width width of chart in px
+* @param opts.height height of chart in px
+* @param opts.xLabel label for x axis
+* @param opts.yLabel label for y axis
+
+## render.confusionMatrix(data: {}, container: Surface|HTMLElement, opts: {}) => Promise<void>
+
+Renders a confusion matrix
+
+* @param data Data consists of an object with a 'values' property
+  and a 'labels' property.
+  ```ts
+  {
+    values: number[][],
+    // a matrix of numbers representing counts for each (label, prediction) pair
+
+    labels?: string[]
+    // Human readable labels for each class in the matrix. Optional
+  }
+  ```
+  e.g.
+  ```js
+  {
+    values: [[80, 23], [56, 94]],
+    labels: ['dog', 'cat'],
+  }
+  ```
+* @param container An `HTMLElement` or `Surface` in which to draw the chart
+* @param opts optional parameters
+* @param opts.shadeDiagonal boolean that controls whether or not to color cells
+* on the diagonal. Defaults to false
+* @param opts.width width of chart in px
+* @param opts.height height of chart in px

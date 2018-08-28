@@ -64,14 +64,13 @@
     <section>
       <h2>Visor</h2>
       <script class='show-script'>
-        function showVisor() {
+        {
           visorInstance = tfvis.visor();
           visorInstance.surface({ name: 'Surface 1' });
           visorInstance.surface({ name: 'Surface 2' });
 
           visorInstance.surface({ name: 'Surface 3', tab: 'Tab 2' });
         }
-        showVisor();
       </script>
     </section>
 
@@ -83,7 +82,7 @@
       <h3>render.barchart(data, container, options)</h3>
       <div id='barchart-cont'></div>
       <script class='show-script'>
-        function renderBarchart() {
+        {
           const data = [
             { index: 0, value: 50 },
             { index: 1, value: 100 },
@@ -103,14 +102,16 @@
             height: 250,
           });
         }
-        renderBarchart();
-
       </script>
 
       <h4>Re-rendering</h4>
       <p>You can update a bar chart by calling
         <code>render.barchart</code> again with the same
         <code>container</code>.
+      </p>
+
+      <p>
+        This is also true for any render.* function, to re-render or update just call the function with new data and the same container.
       </p>
 
       <div id='barchart-multi'></div>
@@ -149,7 +150,7 @@
       <div id='table-cont'></div>
 
       <script class='show-script'>
-        function renderTable() {
+        {
           const headers = [
             'Col1',
             'Col 2',
@@ -162,16 +163,15 @@
             ['<strong>7</strong>', true, false],
           ];
 
-          const container = document.getElementById('table-cont');
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Table', tab: 'Charts' });
           tfvis.render.table({ headers, values }, surface);
 
           // Render to page
+          const container = document.getElementById('table-cont');
           tfvis.render.table({ headers, values }, container);
         }
-        renderTable();
       </script>
 
       <hr>
@@ -181,20 +181,131 @@
       <div id='histogram-cont'></div>
 
       <script class='show-script'>
-        function renderHistogram() {
+        {
           const data = Array(100).fill(0)
             .map(x => Math.random() * 100 - (Math.random() * 50))
             .map(x => ({ value: x }));
-          const container = document.getElementById('histogram-cont');
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Histogram', tab: 'Charts' });
           tfvis.render.histogram(data, surface);
 
           // Render to page
+          const container = document.getElementById('histogram-cont');
           tfvis.render.histogram(data, container);
         }
-        renderHistogram();
+      </script>
+
+      <hr>
+
+      <h3>render.linechart(data, container, opts)</h3>
+
+      <div id='linechart-cont'></div>
+
+      <script class='show-script'>
+        {
+          const series1 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 50))
+            .map((y, x) => ({ x, y, }));
+
+          const series2 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 150))
+            .map((y, x) => ({ x, y, }));
+
+
+          const series = ['First', 'Second'];
+          const data = { values: [series1, series2], series }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Linechart', tab: 'Charts' });
+          tfvis.render.linechart(data, surface);
+
+          // Render to page
+          const container = document.getElementById('linechart-cont');
+          tfvis.render.linechart(data, container);
+        }
+      </script>
+
+      <hr>
+
+      <h3>render.scatterplot(data, container, opts)</h3>
+
+      <div id='scatterplot-cont'></div>
+
+      <script class='show-script'>
+        {
+          const series1 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 50))
+            .map((y, x) => ({ x, y, }));
+
+          const series2 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 150))
+            .map((y, x) => ({ x, y, }));
+
+
+          const series = ['First', 'Second'];
+          const data = { values: [series1, series2], series }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Scatterplot', tab: 'Charts' });
+          tfvis.render.scatterplot(data, surface);
+
+          // Render to page
+          const container = document.getElementById('scatterplot-cont');
+          tfvis.render.scatterplot(data, container, { width: 500, height: 500 });
+        }
+      </script>
+
+      <hr>
+
+      <h3>render.confusionMatrix(data, container, opts)</h3>
+
+      <div id='confmatrix-cont'></div>
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
+            labels: ['cheese', 'pig', 'font'],
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Confusion Matrix', tab: 'Charts' });
+          tfvis.render.confusionMatrix(data, surface);
+
+          // Render to page
+          const container = document.getElementById('confmatrix-cont');
+          tfvis.render.confusionMatrix(data, container, { width: 500, height: 500 });
+        }
+      </script>
+
+      <p>The diagonal can also be shaded.</p>
+
+      <div id='confmatrix-cont2'></div>
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
+            // We also generate 'labels' if none are passed.
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({
+            name: 'Confusion Matrix with Diagonal', tab: 'Charts'
+          });
+          tfvis.render.confusionMatrix(data, surface, {
+            shadeDiagonal: true
+          });
+
+          // Render to page
+          const container = document.getElementById('confmatrix-cont2');
+          tfvis.render.confusionMatrix(data, container, {
+            width: 500,
+            height: 500,
+            shadeDiagonal: true,
+          });
+        }
       </script>
 
       <hr>

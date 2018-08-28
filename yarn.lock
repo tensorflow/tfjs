@@ -4013,9 +4013,13 @@ seedrandom@~2.4.3:
   version "2.4.4"
   resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-2.4.4.tgz#b25ea98632c73e45f58b77cfaa931678df01f9ba"
 
-"semver@2 || 3 || 4 || 5", semver@^5.3.0, semver@^5.5.0:
+"semver@2 || 3 || 4 || 5", semver@^5.3.0:
   version "5.5.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.5.0.tgz#dc4bbc7a6ca9d916dee5d43516f0092b58f7b8ab"
+
+semver@^5.5.0:
+  version "5.5.1"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-5.5.1.tgz#7dfdd8814bdb7cabc7be0fb1d734cfb66c940477"
 
 semver@~5.0.1:
   version "5.0.3"
@@ -4962,8 +4966,8 @@ vega-transforms@^2.2.0:
     vega-util "^1.7.0"
 
 vega-typings@*, vega-typings@^0.3.17, vega-typings@^0.3.4:
-  version "0.3.39"
-  resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.39.tgz#6543badd259f377c7773cdcc40f28464acc1063e"
+  version "0.3.40"
+  resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.40.tgz#45737e2ff8ca4d70963b2d1f97c71c80ad597def"
   dependencies:
     vega-util "^1.7.0"
 

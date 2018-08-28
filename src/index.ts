@@ -16,13 +16,19 @@
  */
 
 import {renderBarchart} from './render/barchart';
+import {renderConfusionMatrix} from './render/confusion_matrix';
 import {renderHistogram} from './render/histogram';
+import {renderLinechart} from './render/linechart';
+import {renderScatterplot} from './render/scatterplot';
 import {renderTable} from './render/table';
 
 const render = {
   barchart: renderBarchart,
   table: renderTable,
   histogram: renderHistogram,
+  linechart: renderLinechart,
+  scatterplot: renderScatterplot,
+  confusionMatrix: renderConfusionMatrix,
 };
 
 export {visor} from './visor';
