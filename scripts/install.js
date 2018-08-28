@@ -93,13 +93,13 @@ async function downloadLibtensorflow(callback) {
   await getTargetUri();
   // The deps folder and resources do not exist, download and callback as
   // needed:
-  console.error('  * Downloading libtensorflow');
+  console.error('* Downloading libtensorflow');
 
   // Ensure dependencies staged directory is available:
   await ensureDir(depsPath);
 
   const request = https.get(targetUri, response => {
-    const bar = new ProgressBar('downloading [:bar] :rate/bps :percent :etas', {
+    const bar = new ProgressBar('[:bar] :rate/bps :percent :etas', {
       complete: '=',
       incomplete: ' ',
       width: 30,
@@ -111,24 +111,21 @@ async function downloadLibtensorflow(callback) {
       // the downloaded archive.
       const tempFileName = path.join(__dirname, '_libtensorflow.zip');
       const outputFile = fs.createWriteStream(tempFileName);
-      const request = https.get(targetUri, response => {
-        response
-            .on('data',
-                (chunk) => {
-                  bar.tick(chunk.length);
-                })
-            .pipe(outputFile)
-            .on('close', async () => {
-              const zipFile = new zip(tempFileName);
-              zipFile.extractAllTo(depsPath, true /* overwrite */);
-              await unlink(tempFileName);
+      response
+          .on('data',
+              (chunk) => {
+                bar.tick(chunk.length);
+              })
+          .pipe(outputFile)
+          .on('close', async () => {
+            const zipFile = new zip(tempFileName);
+            zipFile.extractAllTo(depsPath, true /* overwrite */);
+            await unlink(tempFileName);
 
-              if (callback !== undefined) {
-                callback();
-              }
-            });
-        request.end();
-      });
+            if (callback !== undefined) {
+              callback();
+            }
+          });
     } else {
       // All other platforms use a tarball:
       response
@@ -151,6 +148,7 @@ async function downloadLibtensorflow(callback) {
  * Calls node-gyp for Node.js Tensorflow binding after lib is downloaded.
  */
 async function build() {
+  console.error('* Building TensorFlow Node.js bindings');
   cp.exec('node-gyp rebuild', (err) => {
     if (err) {
       throw new Error('node-gyp rebuild failed with: ' + err);
