@@ -13,7 +13,8 @@ TensorFlow.js for Node currently supports the following platforms:
 - Mac OS X CPU (10.12.6 Siera or higher)
 - Linux CPU (Ubuntu 14.04 or higher)
 - Linux GPU (Ubuntu 14.04 or higher and Cuda 9.0 w/ CUDNN v7) ([see installation instructions](https://www.tensorflow.org/install/install_linux))
-- Windows 7 or later (Currently, [CPU only](https://github.com/tensorflow/tfjs/issues/602))
+- Windows CPU (Win 7 or higher)
+- Windows GPU (Win 7 or higher and Cuda 9.0 w/ CUDNN v7) ([see installation instructions](https://www.tensorflow.org/install/install_windows))
 
 *Other Linux variants might also work but this project matches [core TensorFlow installation requirements](https://www.tensorflow.org/install/install_linux).*
 
@@ -25,7 +26,7 @@ npm install @tensorflow/tfjs-node
 yarn add @tensorflow/tfjs-node
 ```
 
-#### Installing Linux GPU TensorFlow.js for Node:
+#### Installing Linux/Windows GPU TensorFlow.js for Node:
 
 ```sh
 npm install @tensorflow/tfjs-node-gpu
