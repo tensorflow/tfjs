@@ -19,7 +19,7 @@
  * Unit tests for passthrough IOHandlers.
  */
 
-import * as tf from '..';
+import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {BROWSER_ENVS} from '../test_util';
 

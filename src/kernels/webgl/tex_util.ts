@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {Tensor} from '../../tensor';
 import {DataType, DataTypeMap} from '../../types';
 
 export enum TextureUsage {
@@ -32,6 +33,11 @@ export enum PhysicalTextureType {
 
 export interface TextureData {
   texture: WebGLTexture;
+  // For complex numbers, the real and imaginary parts are stored as their own
+  // individual tensors, with a parent joining the two with the
+  // complexTensors field. When this is defined, texture will be null.
+  complexTensors?: {real: Tensor, imag: Tensor};
+
   shape: number[];
   /** [rows, columns] shape of the texture. */
   texShape: [number, number];
