@@ -297,8 +297,8 @@ function oneHot_(
     return {$indices: () => zerosLike($indices)};
   };
   return ENV.engine.runKernel(
-      backend => backend.oneHot($indices, depth, onValue, offValue),
-      {$indices}, grad);
+      backend => backend.oneHot($indices, depth, onValue, offValue), {$indices},
+      grad);
 }
 
 /**
@@ -867,19 +867,29 @@ function spaceToBatchND_<T extends Tensor>(
 
   util.assert(
       $x.rank >= 1 + blockShape.length,
-      `input rank should be > than [blockShape] but got ${$x.rank}`);
+      `input rank ${$x.rank} should be > than [blockShape] ${
+          blockShape.length}`);
 
   util.assert(
       paddings.length === blockShape.length,
-      `paddings.shape[0] must be equal to [blockShape], got ${
-          paddings.length}`);
+      `paddings.shape[0] ${paddings.length} must be equal to [blockShape] ${
+          blockShape.length}`);
 
-  util.assert($x.shape.reduce((a, b, i) => {
-    if (i > 0 && i <= blockShape.length) {
-      return a && (b % blockShape[i - 1] === 0);
-    }
-    return a;
-  }, true), `input spatial dimensions must be divisible by blockShapes`);
+  util.assert(
+      $x.shape.reduce(
+          (a, b, i) => {
+            if (i > 0 && i <= blockShape.length) {
+              return a &&
+                  ((b + paddings[i - 1][0] + paddings[i - 1][1]) %
+                       blockShape[i - 1] ===
+                   0);
+            }
+            return a;
+          },
+          true),
+      `input spatial dimensions ${$x.shape.slice(1)} with paddings ${
+          paddings.toString()} must be divisible by blockShapes ${
+          blockShape.toString()}`);
 
   const grad = (dy: T) => {
     return {$x: () => dy.batchToSpaceND(blockShape, paddings)};

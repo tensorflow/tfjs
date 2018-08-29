@@ -3351,7 +3351,7 @@ describeWithFlags('spaceToBatchND', ALL_ENVS, () => {
     ]);
   });
 
-  it('tensor2d, blockShape [1]', () => {
+  it('tensor2d, blockShape [2]', () => {
     const t = tf.tensor2d([1, 3, 2, 4], [1, 4]);
     const blockShape = [2];
     const paddings = [[0, 0]];
@@ -3367,7 +3367,7 @@ describeWithFlags('spaceToBatchND', ALL_ENVS, () => {
     const paddings = [[0, 0], [0, 0], [0, 0], [0, 0]];
 
     expect(() => tf.spaceToBatchND(t, blockShape, paddings))
-        .toThrowError('input rank should be > than [blockShape] but got 4');
+        .toThrowError('input rank 4 should be > than [blockShape] 4');
   });
 
   it('throws when paddings row dimension not equal to blockshape', () => {
@@ -3376,11 +3376,10 @@ describeWithFlags('spaceToBatchND', ALL_ENVS, () => {
     const paddings = [[0, 0]];
 
     expect(() => tf.spaceToBatchND(t, blockShape, paddings))
-        .toThrowError('paddings.shape[0] must be equal to [blockShape], got 1');
+        .toThrowError('paddings.shape[0] 1 must be equal to [blockShape] 2');
   });
 
-  it('throws when input tensor spatial dimension not divisible by \
-  blockshapes',
+  it('throws when input tensor spatial dimension not divisible by blockshapes',
      () => {
        const t = tf.tensor4d([1, 2, 3, 4, 5, 6], [1, 2, 3, 1]);
        const blockShape = [2, 2];
@@ -3388,7 +3387,8 @@ describeWithFlags('spaceToBatchND', ALL_ENVS, () => {
 
        expect(() => tf.spaceToBatchND(t, blockShape, paddings))
            .toThrowError(
-               'input spatial dimensions must be divisible by blockShapes');
+               'input spatial dimensions 2,3,1 with paddings 0,0,0,0 must be '
+               + 'divisible by blockShapes 2,2');
      });
 
   it('accepts a tensor-like object', () => {
