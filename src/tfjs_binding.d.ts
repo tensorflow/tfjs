@@ -24,7 +24,7 @@ declare class TensorMetadata {
 declare class TFEOpAttr {
   name: string;
   type: number;
-  value: boolean|number|object|string|Array<number>;
+  value: boolean|number|object|string|number[];
 }
 
 export interface TFJSBinding {
