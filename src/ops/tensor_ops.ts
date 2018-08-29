@@ -21,6 +21,8 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TensorLike6D} from '../types';
 import {ArrayData, DataType, Rank, ShapeMap} from '../types';
 import {assertNonNull, assertShapesMatch, getTypedArrayFromDType, inferShape, isTypedArray, makeOnesTypedArray, makeZerosTypedArray, sizeFromShape, toTypedArray} from '../util';
+
+import {complex} from './complex_ops';
 import {op} from './operation';
 
 /**
@@ -52,6 +54,11 @@ import {op} from './operation';
 function tensor<R extends Rank>(
     values: TensorLike, shape?: ShapeMap[R],
     dtype: DataType = 'float32'): Tensor<R> {
+  if (dtype === 'complex64') {
+    throw new Error(
+        `Cannot construct a complex64 tensor directly. ` +
+        `Please use tf.complex(real, imag).`);
+  }
   if (!isTypedArray(values) && !Array.isArray(values) &&
       typeof values !== 'number' && typeof values !== 'boolean') {
     throw new Error(
@@ -92,8 +99,10 @@ function tensor<R extends Rank>(
  * @param dtype The data type.
  */
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function scalar(value: number|boolean, dtype: DataType = 'float32'): Scalar {
-  if (isTypedArray(value) || Array.isArray(value)) {
+function scalar(
+    value: number|boolean|[number, number],
+    dtype: DataType = 'float32'): Scalar {
+  if ((isTypedArray(value) || Array.isArray(value)) && dtype !== 'complex64') {
     throw new Error(
         'Error creating a new Scalar: value must be a primitive ' +
         '(number|boolean)');
@@ -357,6 +366,11 @@ function tensor6d(
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function ones<R extends Rank>(
     shape: ShapeMap[R], dtype: DataType = 'float32'): Tensor<R> {
+  if (dtype === 'complex64') {
+    const real = ones(shape, 'float32');
+    const imag = ones(shape, 'float32');
+    return complex(real, imag);
+  }
   const values = makeOnesTypedArray(sizeFromShape(shape), dtype);
   return Tensor.make(shape, {values}, dtype);
 }
@@ -375,6 +389,11 @@ function ones<R extends Rank>(
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function zeros<R extends Rank>(
     shape: ShapeMap[R], dtype: DataType = 'float32'): Tensor<R> {
+  if (dtype === 'complex64') {
+    const real = zeros(shape, 'float32');
+    const imag = zeros(shape, 'float32');
+    return complex(real, imag);
+  }
   const values = makeZerosTypedArray(sizeFromShape(shape), dtype);
   return Tensor.make(shape, {values}, dtype);
 }

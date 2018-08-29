@@ -22,7 +22,7 @@ import {assert} from './util';
 export function assertTypesMatch(a: Tensor, b: Tensor): void {
   assert(
       a.dtype === b.dtype,
-      ` The dtypes of the first(${a.dtype}) and` +
+      `The dtypes of the first(${a.dtype}) and` +
           ` second(${b.dtype}) input must match`);
 }
 

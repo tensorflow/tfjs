@@ -16,6 +16,7 @@
  */
 
 import * as seedrandom from 'seedrandom';
+
 import {ENV} from '../environment';
 import {warn} from '../log';
 import * as array_ops_util from '../ops/array_ops_util';
@@ -32,16 +33,27 @@ import {DataId, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D
 import {DataType, DataTypeMap, Rank, ShapeMap, TypedArray, upcastType} from '../types';
 import * as util from '../util';
 import {now} from '../util';
+
 import {BackendTimingInfo, KernelBackend} from './backend';
 import * as backend_util from './backend_util';
+import * as complex_util from './complex_util';
 import {nonMaxSuppressionImpl} from './non_max_suppression_impl';
 import {topkImpl} from './topk_impl';
 import {whereImpl} from './where_impl';
 
+interface TensorData<T extends DataType> {
+  values?: DataTypeMap[T];
+  dtype: T;
+  // For complex numbers, the real and imaginary parts are stored as their own
+  // individual tensors, with a parent joining the two with the
+  // complexTensors field. When this is defined, texture will be null.
+  complexTensors?: {real: Tensor, imag: Tensor};
+}
+
 export class MathBackendCPU implements KernelBackend {
   public blockSize = 48;
 
-  private data = new WeakMap<DataId, DataTypeMap[DataType]>();
+  private data = new WeakMap<DataId, TensorData<DataType>>();
   private canvas: HTMLCanvasElement;
   private firstUse = true;
 
@@ -71,14 +83,14 @@ export class MathBackendCPU implements KernelBackend {
     if (this.data.has(dataId)) {
       throw new Error(`Data buffer is already registered`);
     }
-    this.data.set(dataId, null);
+    this.data.set(dataId, {dtype});
   }
   write(dataId: DataId, values: TypedArray): void {
     if (values == null) {
       throw new Error('MathBackendCPU.write(): values can not be null');
     }
     this.throwIfNoData(dataId);
-    this.data.set(dataId, values);
+    this.data.get(dataId).values = values;
   }
   fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
@@ -144,11 +156,22 @@ export class MathBackendCPU implements KernelBackend {
   }
   readSync(dataId: DataId): TypedArray {
     this.throwIfNoData(dataId);
-    return this.data.get(dataId);
+    const {dtype, complexTensors} = this.data.get(dataId);
+    if (dtype === 'complex64') {
+      const realValues = complexTensors.real.dataSync() as Float32Array;
+      const imagValues = complexTensors.imag.dataSync() as Float32Array;
+      return complex_util.mergeRealAndImagArrays(realValues, imagValues);
+    }
+    return this.data.get(dataId).values;
   }
 
   disposeData(dataId: DataId): void {
     if (this.data.has(dataId)) {
+      const {complexTensors} = this.data.get(dataId);
+      if (complexTensors != null) {
+        complexTensors.real.dispose();
+        complexTensors.imag.dispose();
+      }
       this.data.delete(dataId);
     }
   }
@@ -175,7 +198,45 @@ export class MathBackendCPU implements KernelBackend {
     }
   }
 
+  complex<T extends Tensor>(real: T, imag: T): T {
+    const result = Tensor.make(real.shape, {}, 'complex64') as T;
+
+    const resultData = this.data.get(result.dataId);
+    // The backend owns the reference to the underlying real and imaginary
+    // clones. These will explicitly get disposed when the complex tensor is
+    // disposed.
+    resultData.complexTensors = {
+      real: ENV.engine.keep(real.clone()),
+      imag: ENV.engine.keep(imag.clone())
+    };
+
+    return result;
+  }
+  real<T extends Tensor>(input: T): T {
+    const resultData = this.data.get(input.dataId);
+    return resultData.complexTensors.real.clone() as T;
+  }
+  imag<T extends Tensor>(input: T): T {
+    const resultData = this.data.get(input.dataId);
+    return resultData.complexTensors.imag.clone() as T;
+  }
+
+  private assertNotComplex(tensor: Tensor|Tensor[], opName: string) {
+    if (!Array.isArray(tensor)) {
+      tensor = [tensor];
+    }
+    tensor.forEach(t => {
+      if (t != null) {
+        util.assert(
+            t.dtype !== 'complex64',
+            `${opName} does not support complex64 tensors.`);
+      }
+    });
+  }
+
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
+    this.assertNotComplex(x, 'slice');
+
     const buffer = ops.buffer(size, x.dtype);
 
     for (let i = 0; i < buffer.size; ++i) {
@@ -190,6 +251,8 @@ export class MathBackendCPU implements KernelBackend {
       x: T, begin: number[], end: number[], strides: number[],
       beginMask: number, endMask: number, ellipsisMask: number,
       newAxisMask: number, shrinkAxisMask: number): T {
+    this.assertNotComplex(x, 'stridedSlice');
+
     const [beginIndex, size, shrinkAxis] = getStridedSlicedInfo(
         x.shape, begin, end, strides, beginMask, endMask, ellipsisMask,
         newAxisMask, shrinkAxisMask);
@@ -216,6 +279,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   reverse<T extends Tensor>(x: T, axis: number[]): T {
+    this.assertNotComplex(x, 'reverse');
+
     const buffer = ops.buffer(x.shape, x.dtype);
     const xBuffer = x.buffer();
 
@@ -231,6 +296,8 @@ export class MathBackendCPU implements KernelBackend {
 
   // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
   concat(a: Tensor2D, b: Tensor2D): Tensor2D {
+    this.assertNotComplex([a, b], 'concat');
+
     const outShape = concat_util.computeOutShape(
                          [a.shape, b.shape], 1 /* axis */) as [number, number];
     const buffer = ops.buffer<Rank.R2>(outShape, a.dtype);
@@ -257,16 +324,28 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   neg<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'neg');
+
     return this.multiply(ops.scalar(-1), x) as T;
   }
 
   add(a: Tensor, b: Tensor): Tensor {
+    if (a.dtype === 'complex64' || b.dtype === 'complex64') {
+      return this.broadcastedBinaryComplexOp(
+                 a.cast('complex64'), b.cast('complex64'),
+                 (aReal, aImag, bReal, bImag) => {
+                   return {real: aReal + bReal, imag: aImag + bImag};
+                 }) as Tensor;
+    }
+
     return this.broadcastedBinaryOp(
                a, b, upcastType(a.dtype, b.dtype),
                (aValue, bValue) => aValue + bValue) as Tensor;
   }
 
   addN<T extends Tensor>(tensors: T[]): T {
+    this.assertNotComplex(tensors, 'addN');
+
     const vals = tensors.map(t => t.dataSync());
     const result = ops.buffer(tensors[0].shape, tensors[0].dtype);
     const resultVals = result.values;
@@ -280,12 +359,22 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   subtract(a: Tensor, b: Tensor): Tensor {
+    if (a.dtype === 'complex64' || b.dtype === 'complex64') {
+      return this.broadcastedBinaryComplexOp(
+                 a.cast('complex64'), b.cast('complex64'),
+                 (aReal, aImag, bReal, bImag) => {
+                   return {real: aReal - bReal, imag: aImag - bImag};
+                 }) as Tensor;
+    }
+
     return this.broadcastedBinaryOp(
                a, b, upcastType(a.dtype, b.dtype),
                (aValue, bValue) => aValue - bValue) as Tensor;
   }
 
   pow<T extends Tensor>(a: T, b: Tensor): T {
+    this.assertNotComplex([a, b], 'pow');
+
     return this.broadcastedBinaryOp(
                a, b, a.dtype, (aValue, bValue) => Math.pow(aValue, bValue)) as
         T;
@@ -293,6 +382,8 @@ export class MathBackendCPU implements KernelBackend {
 
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
+    this.assertNotComplex([a, b], 'matMul');
+
     const sharedDim = transposeA ? a.shape[0] : a.shape[1];
     const leftDim = transposeA ? a.shape[1] : a.shape[0];
     const rightDim = transposeB ? b.shape[0] : b.shape[1];
@@ -334,24 +425,41 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   multiply(a: Tensor, b: Tensor): Tensor {
+    if (a.dtype === 'complex64' || b.dtype === 'complex64') {
+      return this.broadcastedBinaryComplexOp(
+                 a.cast('complex64'), b.cast('complex64'),
+                 (aReal, aImag, bReal, bImag) => {
+                   return {
+                     real: aReal * bReal - aImag * bImag,
+                     imag: aReal * bImag + aImag * bReal
+                   };
+                 }) as Tensor;
+    }
+
     return this.broadcastedBinaryOp(
                a, b, upcastType(a.dtype, b.dtype),
                (aValue, bValue) => aValue * bValue) as Tensor;
   }
 
   realDivide(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'realDivide');
+
     const op = (a: number, b: number) => a / b;
     const outputDtype = 'float32';
     return this.broadcastedBinaryOp(a, b, outputDtype, op) as Tensor;
   }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'floorDiv');
+
     const op = (a: number, b: number) => Math.floor(a / b);
     const outputDtype = 'int32';
     return this.broadcastedBinaryOp(a, b, outputDtype, op) as Tensor;
   }
 
   sum(x: Tensor, axes: number[]): Tensor {
+    this.assertNotComplex(x, 'sum');
+
     axis_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -374,6 +482,8 @@ export class MathBackendCPU implements KernelBackend {
 
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
+    this.assertNotComplex(x, 'unsortedSegmentSum');
+
     const res = [];
 
     // Reshape the segment id's so that they can be broadcast with
@@ -394,6 +504,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   argMin(x: Tensor, axis: number): Tensor {
+    this.assertNotComplex(x, 'argMin');
+
     const axes = [axis];
     axis_util.assertAxesAreInnerMostDims('argMin', axes, x.rank);
     const [outShape, reduceShape] =
@@ -420,6 +532,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   argMax(x: Tensor, axis: number): Tensor {
+    this.assertNotComplex(x, 'argMax');
+
     const axes = [axis];
     axis_util.assertAxesAreInnerMostDims('argMax', axes, x.rank);
     const [outShape, reduceShape] =
@@ -447,6 +561,8 @@ export class MathBackendCPU implements KernelBackend {
 
   cumsum(x: Tensor, axis: number, exclusive: boolean, reverse: boolean):
       Tensor {
+    this.assertNotComplex(x, 'cumsum');
+
     if (axis !== x.rank - 1) {
       throw new Error(
           `backend.cumsum in CPU expects an inner-most axis=${x.rank - 1} ` +
@@ -477,42 +593,56 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   equal(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'equal');
+
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
       return (aVal === bVal) ? 1 : 0;
     });
   }
 
   notEqual(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'notEqual');
+
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
       return (aVal !== bVal) ? 1 : 0;
     });
   }
 
   less(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'less');
+
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
       return (aVal < bVal) ? 1 : 0;
     });
   }
 
   lessEqual(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'lessEqual');
+
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
       return (aVal <= bVal) ? 1 : 0;
     });
   }
 
   greater(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'greater');
+
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
       return (aVal > bVal) ? 1 : 0;
     });
   }
 
   greaterEqual(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'greaterEqual');
+
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
       return (aVal >= bVal) ? 1 : 0;
     });
   }
 
   logicalNot<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'logicalNot');
+
     const values = x.dataSync();
     const newValues = new Int32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
@@ -522,18 +652,24 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   logicalAnd(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'logicalAnd');
+
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
       return aVal && bVal;
     });
   }
 
   logicalOr(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'logicalOr');
+
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
       return aVal || bVal;
     });
   }
 
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([condition, a, b], 'select');
+
     const values = condition.dataSync();
     const aValues = a.dataSync();
     const bValues = b.dataSync();
@@ -557,16 +693,22 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   where(condition: Tensor): Tensor2D {
+    this.assertNotComplex([condition], 'where');
+
     const condVals = condition.dataSync();
     return whereImpl(condition.shape, condVals);
   }
 
   topk<T extends Tensor>(x: T, k: number, sorted: boolean): [T, T] {
+    this.assertNotComplex(x, 'topk');
+
     const xVals = x.dataSync();
     return topkImpl(xVals, x.shape, x.dtype, k, sorted);
   }
 
   min(x: Tensor, axes: number[]): Tensor {
+    this.assertNotComplex(x, 'min');
+
     axis_util.assertAxesAreInnerMostDims('min', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -590,11 +732,15 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   minimum(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'minimum');
+
     return this.broadcastedBinaryOp(
         a, b, a.dtype, (aVal, bVal) => Math.min(aVal, bVal));
   }
 
   mod(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'mod');
+
     return this.broadcastedBinaryOp(a, b, a.dtype, (aVal, bVal) => {
       const rem = aVal % bVal;
       if ((aVal < 0 && bVal < 0) || (aVal >= 0 && bVal >= 0)) {
@@ -606,6 +752,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   max(x: Tensor, axes: number[]): Tensor {
+    this.assertNotComplex(x, 'max');
+
     axis_util.assertAxesAreInnerMostDims('max', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -629,11 +777,15 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   maximum(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'maximum');
+
     return this.broadcastedBinaryOp(
         a, b, a.dtype, (aVal, bVal) => Math.max(aVal, bVal));
   }
 
   all(x: Tensor, axes: number[]): Tensor {
+    this.assertNotComplex(x, 'all');
+
     axis_util.assertAxesAreInnerMostDims('all', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -655,6 +807,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   any(x: Tensor, axes: number[]): Tensor {
+    this.assertNotComplex(x, 'any');
+
     axis_util.assertAxesAreInnerMostDims('any', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -676,6 +830,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   squaredDifference(a: Tensor, b: Tensor): Tensor {
+    this.assertNotComplex([a, b], 'squaredDifference');
+
     return this.broadcastedBinaryOp(a, b, a.dtype, (aVal, bVal) => {
       const diff = aVal - bVal;
       return diff * diff;
@@ -683,6 +839,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   ceil<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'ceil');
+
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
@@ -692,6 +850,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   floor<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'floor');
+
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
@@ -701,6 +861,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   sign<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'x');
+
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
@@ -716,6 +878,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   round<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'round');
+
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
@@ -737,6 +901,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   exp<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'exp');
+
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
@@ -746,6 +912,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   expm1<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'expm1');
+
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
@@ -755,6 +923,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   log<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'log');
+
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
@@ -765,6 +935,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   log1p<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'log1p');
+
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
@@ -775,6 +947,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   sqrt<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'sqrt');
+
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
@@ -785,6 +959,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   rsqrt<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'rsqrt');
+
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
@@ -795,6 +971,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   square<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'square');
+
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
@@ -805,6 +983,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   reciprocal<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'reciprocal');
+
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
@@ -814,6 +994,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   relu<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'relu');
+
     const res = ops.zeros(x.shape, x.dtype);
     const resVals = res.dataSync();
     const inVals = x.dataSync();
@@ -824,6 +1006,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   elu<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'elu');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -838,6 +1022,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   eluDer<T extends Tensor>(dy: T, y: T): T {
+    this.assertNotComplex([dy, y], 'eluDer');
+
     const resultValues = new Float32Array(y.size);
     const values = y.dataSync();
     const dyValues = dy.dataSync();
@@ -853,6 +1039,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   selu<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'selu');
+
     // Stable and Attracting Fixed Point (0, 1) for Normalized Weights.
     // see: https://arxiv.org/abs/1706.02515
     const scaleAlpha = selu_util.SELU_SCALEALPHA;
@@ -872,6 +1060,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   clip<T extends Tensor>(x: T, min: number, max: number): T {
+    this.assertNotComplex(x, 'clip');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -882,6 +1072,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   abs<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'abs');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -891,6 +1083,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   int<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'int');
+
     const resultValues = new Int32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -900,6 +1094,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   sigmoid<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'sigmoid');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -909,6 +1105,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   softplus<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'softplus');
+
     // mirrors the implementation of tf.nn.softplus: https://goo.gl/vkcvwX
 
     // epsilon is the difference between 1.0 and the next representable float.
@@ -945,6 +1143,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   sin<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'sin');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -954,6 +1154,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   cos<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'cos');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -963,6 +1165,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   tan<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'tan');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -972,6 +1176,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   asin<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'asin');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -981,6 +1187,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   acos<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'acos');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -990,6 +1198,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   atan<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'atan');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -999,12 +1209,16 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   atan2<T extends Tensor>(a: T, b: T): T {
+    this.assertNotComplex([a, b], 'atan2');
+
     return this.broadcastedBinaryOp(
                a, b, a.dtype, (aValue, bValue) => Math.atan2(aValue, bValue)) as
         T;
   }
 
   sinh<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'sinh');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -1014,6 +1228,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   cosh<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'cosh');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -1023,6 +1239,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   tanh<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'tanh');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -1032,6 +1250,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   asinh<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'asinh');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -1041,6 +1261,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   acosh<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'acosh');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -1050,6 +1272,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   atanh<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'atanh');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -1059,6 +1283,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   erf<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'erf');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     const p = erf_util.ERF_P;
@@ -1078,6 +1304,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   step<T extends Tensor>(x: T, alpha = 0): T {
+    this.assertNotComplex(x, 'step');
+
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -1092,6 +1320,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+    this.assertNotComplex([x, filter], 'conv2d');
+
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
     const dilationHeight = convInfo.dilationHeight;
@@ -1145,6 +1375,8 @@ export class MathBackendCPU implements KernelBackend {
 
   conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
+    this.assertNotComplex([dy, filter], 'conv2dDerInput');
+
     const dx = ops.buffer<Rank.R4>(convInfo.inShape, 'float32');
     const dxValues = dx.values;
     const [dxS0, dxS1, dxS2] = dx.strides;
@@ -1208,6 +1440,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+    this.assertNotComplex([x, dy], 'conv2dDerFilter');
+
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
     const filterHeight = convInfo.filterHeight;
@@ -1250,6 +1484,8 @@ export class MathBackendCPU implements KernelBackend {
 
   depthwiseConv2D(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
+    this.assertNotComplex([x, filter], 'depthwiseConv2D');
+
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
     const dilationHeight = convInfo.dilationHeight;
@@ -1306,6 +1542,8 @@ export class MathBackendCPU implements KernelBackend {
 
   depthwiseConv2DDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
+    this.assertNotComplex([dy, filter], 'depthwiseConv2DDerInput');
+
     const dx = ops.buffer<Rank.R4>(convInfo.inShape, 'float32');
     const dxValues = dx.values;
     const [dxS0, dxS1, dxS2] = dx.strides;
@@ -1372,6 +1610,8 @@ export class MathBackendCPU implements KernelBackend {
 
   depthwiseConv2DDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
+    this.assertNotComplex([x, dy], 'depthwiseConv2DDerFilter');
+
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
     const filterHeight = convInfo.filterHeight;
@@ -1414,6 +1654,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   tile<T extends Tensor>(x: T, reps: number[]): T {
+    this.assertNotComplex(x, 'tile');
+
     const newShape: number[] = new Array(x.rank);
     for (let i = 0; i < newShape.length; i++) {
       newShape[i] = x.shape[i] * reps[i];
@@ -1437,6 +1679,8 @@ export class MathBackendCPU implements KernelBackend {
 
   pad<T extends Tensor>(
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
+    this.assertNotComplex(x, 'pad');
+
     const outShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
     const start = paddings.map(p => p[0]);
@@ -1455,6 +1699,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   transpose<T extends Tensor>(x: T, perm: number[]): T {
+    this.assertNotComplex(x, 'transpose');
+
     const newShape: number[] = new Array(x.rank);
     for (let i = 0; i < newShape.length; i++) {
       newShape[i] = x.shape[perm[i]];
@@ -1479,6 +1725,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
+    this.assertNotComplex([x, indices], 'gather');
+
     const newShape: number[] = x.shape.slice();
     const indicesValues = indices.dataSync();
     newShape[axis] = indicesValues.length;
@@ -1499,6 +1747,8 @@ export class MathBackendCPU implements KernelBackend {
 
   batchToSpaceND<T extends Tensor>(
       x: T, blockShape: number[], crops: number[][]): T {
+    this.assertNotComplex([x], 'batchToSpaceND');
+
     const prod = blockShape.reduce((a, b) => a * b);
 
     const reshaped = array_ops_util.getReshaped(x.shape, blockShape, prod);
@@ -1519,6 +1769,8 @@ export class MathBackendCPU implements KernelBackend {
 
   spaceToBatchND<T extends Tensor>(
       x: T, blockShape: number[], paddings: Array<[number, number]>): T {
+    this.assertNotComplex([x], 'spaceToBatchND');
+
     const prod = blockShape.reduce((a, b) => a * b);
 
     const completePaddings: Array<[number, number]> = [[0, 0]];
@@ -1543,6 +1795,8 @@ export class MathBackendCPU implements KernelBackend {
 
   private pool(x: Tensor4D, convInfo: Conv2DInfo, poolType: 'max'|'avg'):
       Tensor4D {
+    this.assertNotComplex(x, 'pool');
+
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
     const filterHeight = convInfo.filterHeight;
@@ -1638,6 +1892,8 @@ export class MathBackendCPU implements KernelBackend {
 
   maxPoolBackprop(dy: Tensor4D, x: Tensor4D, y: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
+    this.assertNotComplex([x, y], 'maxPoolBackprop');
+
     const maxPositions = this.maxPoolPositions(x, convInfo);
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
@@ -1689,6 +1945,8 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+    this.assertNotComplex([dy, x], 'avgPoolBackprop');
+
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
     const filterHeight = convInfo.filterHeight;
@@ -1741,12 +1999,16 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   avgPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+    this.assertNotComplex(x, 'avgPool');
+
     return this.pool(x, convInfo, 'avg').toFloat();
   }
 
   resizeBilinear(
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D {
+    this.assertNotComplex(x, 'resizeBilinear');
+
     const [batch, oldHeight, oldWidth, numChannels] = x.shape;
     const output =
         ops.buffer<Rank.R4>([batch, newHeight, newWidth, numChannels], x.dtype);
@@ -1801,15 +2063,18 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   resizeBilinearBackprop(dy: Tensor4D, x: Tensor4D, alignCorners: boolean) {
+    this.assertNotComplex([dy, x], 'resizeBilinearBackprop');
+
     const [batch, xHeight, xWidth, depth] = x.shape;
     const [, yHeight, yWidth] = dy.shape;
 
     const output =
         ops.buffer<Rank.R4>([batch, xHeight, xWidth, depth], x.dtype);
 
-    // In the backwards pass, we want to find the pixels that were generated for
-    // each pixel in the input image the forward pass and add the corresponding
-    // coefficient from dy to the gradient (with some interpolation).
+    // In the backwards pass, we want to find the pixels that were generated
+    // for each pixel in the input image the forward pass and add the
+    // corresponding coefficient from dy to the gradient (with some
+    // interpolation).
 
     const effectiveXSize: [number, number] = [
       (alignCorners && yHeight > 1) ? xHeight - 1 : xHeight,
@@ -1846,19 +2111,22 @@ export class MathBackendCPU implements KernelBackend {
           for (let d = 0; d < depth; d++) {
             const dyVal = dy.get(b, r, c, d);
 
-            let topLeft = output.get(b, topDxRIndex, leftDxCIndex, d);
+            let topLeft = output.get(b, topDxRIndex, leftDxCIndex, d) as number;
             topLeft += dyVal * inverseDxRLerp * inverseDxCLerp;
             output.set(topLeft, b, topDxRIndex, leftDxCIndex, d);
 
-            let topRight = output.get(b, topDxRIndex, rightDxCIndex, d);
+            let topRight =
+                output.get(b, topDxRIndex, rightDxCIndex, d) as number;
             topRight += dyVal * inverseDxRLerp * dxCLerp;
             output.set(topRight, b, topDxRIndex, rightDxCIndex, d);
 
-            let bottomLeft = output.get(b, bottomDxRIndex, leftDxCIndex, d);
+            let bottomLeft =
+                output.get(b, bottomDxRIndex, leftDxCIndex, d) as number;
             bottomLeft += dyVal * dxRLerp * inverseDxCLerp;
             output.set(bottomLeft, b, bottomDxRIndex, leftDxCIndex, d);
 
-            let bottomRight = output.get(b, bottomDxRIndex, rightDxCIndex, d);
+            let bottomRight =
+                output.get(b, bottomDxRIndex, rightDxCIndex, d) as number;
             bottomRight += dyVal * dxRLerp * dxCLerp;
             output.set(bottomRight, b, bottomDxRIndex, rightDxCIndex, d);
           }
@@ -1872,6 +2140,8 @@ export class MathBackendCPU implements KernelBackend {
   resizeNearestNeighbor(
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D {
+    this.assertNotComplex(x, 'resizeNearestNeighbor');
+
     const [batch, oldHeight, oldWidth, numChannels] = x.shape;
     const output =
         ops.buffer<Rank.R4>([batch, newHeight, newWidth, numChannels], x.dtype);
@@ -1916,14 +2186,16 @@ export class MathBackendCPU implements KernelBackend {
 
   resizeNearestNeighborBackprop(
       dy: Tensor4D, x: Tensor4D, alignCorners: boolean) {
+    this.assertNotComplex([dy, x], 'resizeNearestNeighborBackprop');
+
     const [batch, xHeight, xWidth, depth] = x.shape;
     const [, yHeight, yWidth] = dy.shape;
 
     const output =
         ops.buffer<Rank.R4>([batch, xHeight, xWidth, depth], x.dtype);
 
-    // In the backwards pass, we want to find the pixels that were generated for
-    // each pixel in the input image the forward pass
+    // In the backwards pass, we want to find the pixels that were generated
+    // for each pixel in the input image the forward pass
 
     const effectiveXSize: [number, number] = [
       (alignCorners && yHeight > 1) ? xHeight - 1 : xHeight,
@@ -2008,6 +2280,9 @@ export class MathBackendCPU implements KernelBackend {
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
       varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
       offset?: Tensor4D|Tensor1D): Tensor4D {
+    this.assertNotComplex(
+        [x, mean, variance, scale, offset], 'batchNormalization');
+
     const xVals = x.dataSync();
     const mVals = mean.dataSync();
     const varVals = variance.dataSync();
@@ -2047,6 +2322,8 @@ export class MathBackendCPU implements KernelBackend {
   localResponseNormalization4D(
       x: Tensor4D, depthRadius: number, bias: number, alpha: number,
       beta: number): Tensor4D {
+    this.assertNotComplex(x, 'localResponseNormalization4D');
+
     const channels = x.shape[3];
     const maxD = channels - 1;
     const xValues = x.dataSync();
@@ -2081,6 +2358,7 @@ export class MathBackendCPU implements KernelBackend {
       dy: Tensor4D, inputImage: Tensor4D, outputImage: Tensor4D,
       depthRadius: number, bias: number, alpha: number,
       beta: number): Tensor4D {
+    this.assertNotComplex(dy, 'LRNGrad');
     const channels = dy.shape[3];
     const dyValues = dy.dataSync();
     const inputImageValues = inputImage.dataSync();
@@ -2117,6 +2395,8 @@ export class MathBackendCPU implements KernelBackend {
   multinomial(
       logits: Tensor2D, normalized: boolean, numSamples: number,
       seed: number): Tensor2D {
+    this.assertNotComplex(logits, 'multinomial');
+
     const probabilities = normalized ? logits : ops.softmax(logits);
     const batchSize = probabilities.shape[0];
     const numEvents = probabilities.shape[1];
@@ -2155,6 +2435,8 @@ export class MathBackendCPU implements KernelBackend {
 
   oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
       Tensor2D {
+    this.assertNotComplex(indices, 'oneHot');
+
     const res = new Float32Array(indices.size * depth);
     res.fill(offValue);
 
@@ -2169,6 +2451,8 @@ export class MathBackendCPU implements KernelBackend {
   nonMaxSuppression(
       boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
       iouThreshold: number, scoreThreshold: number): Tensor1D {
+    this.assertNotComplex(boxes, 'nonMaxSuppression');
+
     const boxesVals = boxes.dataSync();
     const scoresVals = scores.dataSync();
     return nonMaxSuppressionImpl(
@@ -2254,6 +2538,61 @@ export class MathBackendCPU implements KernelBackend {
       }
     }
     return result.toTensor();
+  }
+
+  private broadcastedBinaryComplexOp(
+      a: Tensor, b: Tensor,
+      op:
+          (aReal: number, aImag: number, bReal: number,
+           bImag: number) => {real: number, imag: number}): Tensor {
+    const newShape =
+        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    const realResult = ops.buffer(newShape, 'float32');
+    const imagResult = ops.buffer(newShape, 'float32');
+
+    const aVals = a.dataSync();
+    const bVals = b.dataSync();
+    const aBroadcastDims = broadcast_util.getBroadcastDims(a.shape, newShape);
+    const bBroadcastDims = broadcast_util.getBroadcastDims(b.shape, newShape);
+
+    const realVals = realResult.values;
+    const imagVals = imagResult.values;
+
+    if (aBroadcastDims.length + bBroadcastDims.length === 0) {
+      for (let i = 0; i < realVals.length; i++) {
+        const aIdx = i % aVals.length;
+        const bIdx = i % bVals.length;
+
+        const result =
+            op(aVals[aIdx * 2], aVals[aIdx * 2 + 1], bVals[bIdx * 2],
+               bVals[bIdx * 2 + 1]);
+
+        realVals[i] = result.real;
+        imagVals[i] = result.imag;
+      }
+    } else {
+      const aRealBuf = this.data.get(a.dataId).complexTensors.real.buffer();
+      const bRealBuf = this.data.get(b.dataId).complexTensors.real.buffer();
+      for (let i = 0; i < realVals.length; i++) {
+        const loc = realResult.indexToLoc(i);
+
+        const aLoc = loc.slice(-a.rank);
+        aBroadcastDims.forEach(d => aLoc[d] = 0);
+        const aIndex = aRealBuf.locToIndex(aLoc);
+
+        const bLoc = loc.slice(-b.rank);
+        bBroadcastDims.forEach(d => bLoc[d] = 0);
+        const bIndex = bRealBuf.locToIndex(bLoc);
+
+        const opResult =
+            op(aVals[aIndex * 2], aVals[aIndex * 2 + 1], bVals[bIndex * 2],
+               bVals[bIndex * 2 + 1]);
+
+        realVals[i] = opResult.real;
+        imagVals[i] = opResult.imag;
+      }
+    }
+    return this.complex(realResult.toTensor(), imagResult.toTensor());
   }
 
   dispose() {}

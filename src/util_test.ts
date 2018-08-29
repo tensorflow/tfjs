@@ -235,16 +235,32 @@ describe('util.checkConversionForNaN', () => {
 });
 
 describe('util.hasEncodingLoss', () => {
+  it('complex64 to any', () => {
+    expect(util.hasEncodingLoss('complex64', 'complex64')).toBe(false);
+    expect(util.hasEncodingLoss('complex64', 'float32')).toBe(true);
+    expect(util.hasEncodingLoss('complex64', 'int32')).toBe(true);
+    expect(util.hasEncodingLoss('complex64', 'bool')).toBe(true);
+  });
+
+  it('any to complex64', () => {
+    expect(util.hasEncodingLoss('bool', 'complex64')).toBe(false);
+    expect(util.hasEncodingLoss('int32', 'complex64')).toBe(false);
+    expect(util.hasEncodingLoss('float32', 'complex64')).toBe(false);
+    expect(util.hasEncodingLoss('complex64', 'complex64')).toBe(false);
+  });
+
   it('any to float32', () => {
     expect(util.hasEncodingLoss('bool', 'float32')).toBe(false);
     expect(util.hasEncodingLoss('int32', 'float32')).toBe(false);
     expect(util.hasEncodingLoss('float32', 'float32')).toBe(false);
+    expect(util.hasEncodingLoss('complex64', 'float32')).toBe(true);
   });
 
   it('float32 to any', () => {
     expect(util.hasEncodingLoss('float32', 'float32')).toBe(false);
     expect(util.hasEncodingLoss('float32', 'int32')).toBe(true);
     expect(util.hasEncodingLoss('float32', 'bool')).toBe(true);
+    expect(util.hasEncodingLoss('float32', 'complex64')).toBe(false);
   });
 
   it('int32 to lower', () => {

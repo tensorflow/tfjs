@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {scalar} from '../ops/tensor_ops';
+import {scalar, zeros} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
 import {Rank} from '../types';
 import {DataType, ShapeMap} from '../types';
@@ -24,15 +24,36 @@ import {KernelBackend} from './backend';
 
 export function castTensor<T extends Tensor>(
     x: T, dtype: DataType, backend: KernelBackend): T {
+  if (dtype === 'complex64') {
+    if (x.dtype === 'complex64') {
+      return x.clone();
+    }
+    const zerosTensor = zeros(x.shape);
+    const floatX = x.toFloat();
+    const result = backend.complex(floatX, zerosTensor);
+    zerosTensor.dispose();
+    floatX.dispose();
+    return result as T;
+  }
+
   if (!hasEncodingLoss(x.dtype, dtype)) {
     // We don't change the underlying data, since we cast to higher
     // precision.
     return Tensor.make(x.shape, {dataId: x.dataId}, dtype) as T;
   }
+  if (x.dtype === 'complex64') {
+    const real = backend.real(x);
+    const result = real.cast(dtype);
+    real.dispose();
+    return result;
+  }
   if (dtype === 'int32') {
     return backend.int(x);
   } else if (dtype === 'bool') {
-    return backend.notEqual(x, scalar(0, x.dtype)) as T;
+    const zero = scalar(0, x.dtype);
+    const result = backend.notEqual(x, zero) as T;
+    zero.dispose();
+    return result;
   } else {
     throw new Error(`Error in Cast: unknown dtype argument (${dtype})`);
   }

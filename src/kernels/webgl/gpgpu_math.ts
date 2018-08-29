@@ -16,6 +16,7 @@
  */
 
 import {Tensor} from '../../tensor';
+import {TypedArray} from '../../types';
 import * as util from '../../util';
 
 import {GPGPUContext} from './gpgpu_context';
@@ -40,19 +41,20 @@ export interface GPGPUBinary {
   outShapeInfo: ShapeInfo;
 }
 
-export interface TensorData<T extends Tensor> {
-  tensor: T;
+export interface TensorData {
+  shape: number[];
   texData: TextureData;
   isUniform: boolean;
+  uniformValues?: TypedArray;
 }
 
 export function compileProgram<T extends Tensor, K extends Tensor>(
-    gpgpu: GPGPUContext, program: GPGPUProgram, inputs: Array<TensorData<T>>,
-    output: TensorData<K>): GPGPUBinary {
+    gpgpu: GPGPUContext, program: GPGPUProgram, inputs: TensorData[],
+    output: TensorData): GPGPUBinary {
   const userCode = program.userCode;
   const inputInfos: InputInfo[] = inputs.map((input, i) => {
     const shapeInfo = {
-      logicalShape: input.tensor.shape,
+      logicalShape: input.shape,
       texShape: input.isUniform ? null : input.texData.texShape,
       isUniform: input.isUniform
     };
@@ -60,7 +62,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
   });
   const inShapeInfos = inputInfos.map(x => x.shapeInfo);
   const outShapeInfo = {
-    logicalShape: output.tensor.shape,
+    logicalShape: output.shape,
     texShape: output.texData.texShape,
     isUniform: false
   };
@@ -90,7 +92,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
 }
 
 function validateBinaryAndProgram(
-    shapeInfos: ShapeInfo[], inputs: Array<TensorData<Tensor>>) {
+    shapeInfos: ShapeInfo[], inputs: TensorData[]) {
   if (shapeInfos.length !== inputs.length) {
     throw Error(
         `Binary was compiled with ${shapeInfos.length} inputs, but ` +
@@ -100,7 +102,7 @@ function validateBinaryAndProgram(
   shapeInfos.forEach((s, i) => {
     const shapeA = s.logicalShape;
     const input = inputs[i];
-    const shapeB = input.tensor.shape;
+    const shapeB = input.shape;
 
     if (!util.arraysEqual(shapeA, shapeB)) {
       throw Error(
@@ -123,7 +125,7 @@ function validateBinaryAndProgram(
 }
 
 export function runProgram<T extends Tensor, K extends Tensor>(
-    binary: GPGPUBinary, inputs: Array<TensorData<T>>, output: TensorData<K>,
+    binary: GPGPUBinary, inputs: TensorData[], output: TensorData,
     customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) =>
         void): void {
   validateBinaryAndProgram(binary.inShapeInfos, inputs);
@@ -139,11 +141,10 @@ export function runProgram<T extends Tensor, K extends Tensor>(
     const variableUniformLocation = binary.uniformLocations[variableName];
     if (variableUniformLocation != null) {
       if (input.isUniform) {
-        if (input.tensor.size === 1) {
-          gpgpu.gl.uniform1f(
-              variableUniformLocation, input.tensor.dataSync()[0]);
+        if (util.sizeFromShape(input.shape) === 1) {
+          gpgpu.gl.uniform1f(variableUniformLocation, input.uniformValues[0]);
         } else {
-          let vals = input.tensor.dataSync();
+          let vals = input.uniformValues;
           if (!(vals instanceof Float32Array)) {
             vals = new Float32Array(vals);
           }
@@ -163,12 +164,10 @@ export function runProgram<T extends Tensor, K extends Tensor>(
 }
 
 export function makeShaderKey(
-    program: GPGPUProgram, inputs: Array<TensorData<Tensor>>,
-    output: TensorData<Tensor>): string {
+    program: GPGPUProgram, inputs: TensorData[], output: TensorData): string {
   let keyInputs = '';
   inputs.concat(output).forEach(x => {
-    keyInputs +=
-        `${x.tensor.shape}_${x.isUniform ? 'uniform' : x.texData.texShape}`;
+    keyInputs += `${x.shape}_${x.isUniform ? 'uniform' : x.texData.texShape}`;
   });
   const keyUserCode = program.userCode;
   const keyBroadcast = (program.supportsBroadcasting === true).toString();

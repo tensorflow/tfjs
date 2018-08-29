@@ -740,6 +740,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const b = a.reshape([1, 1]);
     expect(b.dtype).toBe('float32');
     expect(b.shape).toEqual([1, 1]);
+    expectArraysClose(a.dataSync(), b.dataSync());
   });
 
   it('Scalar float32 dtype', () => {
@@ -761,6 +762,16 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const b = a.reshape([1, 1, 1]);
     expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([1, 1, 1]);
+    expectArraysClose(a.dataSync(), b.dataSync());
+  });
+
+  it('Scalar complex64 dtype', () => {
+    const a = tf.complex(4, 5);
+    const b = a.reshape([1, 1]);
+    expectArraysClose(a, [4, 5]);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([1, 1]);
+    expectArraysClose(a.dataSync(), b.dataSync());
   });
 
   it('Tensor1D default dtype', () => {
@@ -768,6 +779,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const b = a.reshape([2, 2]);
     expect(b.dtype).toBe('float32');
     expect(b.shape).toEqual([2, 2]);
+    expectArraysClose(a.dataSync(), b.dataSync());
   });
 
   it('Tensor1D float32 dtype', () => {
@@ -782,6 +794,15 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const b = a.reshape([2, 2]);
     expect(b.dtype).toBe('int32');
     expect(b.shape).toEqual([2, 2]);
+    expectArraysClose(a.dataSync(), b.dataSync());
+  });
+
+  it('Tensor1D complex64 dtype', () => {
+    const a = tf.complex([1, 3, 5, 7], [2, 4, 6, 8]);
+    const b = a.reshape([2, 2]);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([2, 2]);
+    expectArraysClose(a.dataSync(), b.dataSync());
   });
 
   it('Tensor2D default dtype', () => {
@@ -789,6 +810,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const b = a.reshape([6]);
     expect(b.dtype).toBe('float32');
     expect(b.shape).toEqual([6]);
+    expectArraysClose(a.dataSync(), b.dataSync());
   });
 
   it('Tensor2D float32 dtype', () => {
@@ -810,6 +832,15 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const b = a.reshape([6]);
     expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([6]);
+    expectArraysClose(a.dataSync(), b.dataSync());
+  });
+
+  it('Tensor2D complex64 dtype', () => {
+    const a = tf.complex([[1, 3, 5], [7, 9, 11]], [[2, 4, 6], [8, 10, 12]]);
+    const b = a.reshape([6]);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([6]);
+    expectArraysClose(a.dataSync(), b.dataSync());
   });
 
   it('Tensor3D default dtype', () => {
@@ -817,6 +848,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const b = a.reshape([6]);
     expect(b.dtype).toBe('float32');
     expect(b.shape).toEqual([6]);
+    expectArraysClose(a.dataSync(), b.dataSync());
   });
 
   it('Tensor3D float32 dtype', () => {
@@ -838,6 +870,17 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const b = a.reshape([6]);
     expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([6]);
+    expectArraysClose(a.dataSync(), b.dataSync());
+  });
+
+  it('Tensor3D complex64 dtype', () => {
+    const a = tf.complex(
+        [[[1], [3], [5]], [[7], [9], [11]]],
+        [[[2], [4], [6]], [[8], [10], [12]]]);
+    const b = a.reshape([6]);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([6]);
+    expectArraysClose(a.dataSync(), b.dataSync());
   });
 
   it('Tensor4D default dtype', () => {
@@ -845,6 +888,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const b = a.reshape([2, 3]);
     expect(b.dtype).toBe('float32');
     expect(b.shape).toEqual([2, 3]);
+    expectArraysClose(a.dataSync(), b.dataSync());
   });
 
   it('Tensor4D float32 dtype', () => {
@@ -859,6 +903,17 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const b = a.reshape([3, 2]);
     expect(b.dtype).toBe('int32');
     expect(b.shape).toEqual([3, 2]);
+    expectArraysClose(a.dataSync(), b.dataSync());
+  });
+
+  it('Tensor4D complex64 dtype', () => {
+    const a = tf.complex(
+        [[[[1]], [[3]], [[5]]], [[[7]], [[9]], [[11]]]],
+        [[[[2]], [[4]], [[6]]], [[[8]], [[10]], [[12]]]]);
+    const b = a.reshape([3, 2]);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([3, 2]);
+    expectArraysClose(a.dataSync(), b.dataSync());
   });
 
   it('Tensor4D bool dtype', () => {
@@ -932,6 +987,30 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   it('cast float32 -> float32', () => {
     const a = tf.tensor1d([1.0, 2.0]);
     expect(a.cast('float32').dtype).toEqual('float32');
+  });
+
+  it('cast complex64 -> float32', () => {
+    const a = tf.complex([1.0, 2.0], [3.0, 4.0]);
+    const result = a.cast('float32');
+
+    expect(result.dtype).toEqual('float32');
+    expectArraysClose(result, [1.0, 2.0]);
+  });
+
+  it('cast complex64 -> int32', () => {
+    const a = tf.complex([1.0, 2.0], [3.0, 4.0]);
+    const result = a.cast('int32');
+
+    expect(result.dtype).toEqual('int32');
+    expectArraysEqual(result, [1, 2]);
+  });
+
+  it('cast complex64 -> bool', () => {
+    const a = tf.complex([1.0, 0.0], [1.0, 1.0]);
+    const result = a.cast('bool');
+
+    expect(result.dtype).toEqual('bool');
+    expectArraysEqual(result, [true, false]);
   });
 
   it('cast throws when passed a non-tensor', () => {
@@ -1033,6 +1112,13 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const a = tf.tensor3d([], [0, 1, 0]);
     const res = tf.squeeze(a);
     expect(res.shape).toEqual([0, 0]);
+  });
+
+  it('squeeze a complex64 tensor', () => {
+    const a = tf.complex([[4], [1], [5]], [[2], [3], [6]]);
+    const b = a.squeeze();
+    expect(b.shape).toEqual([3]);
+    expectArraysClose(b, [4, 2, 1, 3, 5, 6]);
   });
 
   it('scalar -> 2d', () => {
@@ -1246,6 +1332,188 @@ describe('tensor.toString', () => {
         '     [0.6696132, 0.4825962, 2.75     ],\n' +
         '     [1.9910001, 0.0640865, 0.2983858]]');
   });
+
+  it('scalar complex64 verbose', () => {
+    const verbose = true;
+    const str = tf.complex(5, 6).toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: complex64\n' +
+        '  rank: 0\n' +
+        '  shape: []\n' +
+        '  values:\n' +
+        '    5 + 6j');
+  });
+
+  it('1d complex64 tensor verbose', () => {
+    const verbose = true;
+    const str = tf.complex([3, 5], [4, 6]).toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: complex64\n' +
+        '  rank: 1\n' +
+        '  shape: [2]\n' +
+        '  values:\n' +
+        '    [3 + 4j, 5 + 6j]');
+  });
+
+  it('2d complex64 tensor verbose', () => {
+    const verbose = true;
+    const str = tf.zeros([3, 3], 'complex64').toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: complex64\n' +
+        '  rank: 2\n' +
+        '  shape: [3,3]\n' +
+        '  values:\n' +
+        '    [[0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j]]');
+  });
+
+  it('3d complex64 tensor verbose', () => {
+    const verbose = true;
+    const str = tf.zeros([3, 3, 2], 'complex64').toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: complex64\n' +
+        '  rank: 3\n' +
+        '  shape: [3,3,2]\n' +
+        '  values:\n' +
+        '    [[[0 + 0j, 0 + 0j],\n' +
+        '      [0 + 0j, 0 + 0j],\n' +
+        '      [0 + 0j, 0 + 0j]],\n\n' +
+        '     [[0 + 0j, 0 + 0j],\n' +
+        '      [0 + 0j, 0 + 0j],\n' +
+        '      [0 + 0j, 0 + 0j]],\n\n' +
+        '     [[0 + 0j, 0 + 0j],\n' +
+        '      [0 + 0j, 0 + 0j],\n' +
+        '      [0 + 0j, 0 + 0j]]]');
+  });
+
+  it('1d long tensor verbose', () => {
+    const verbose = true;
+    const str = tf.zeros([100], 'complex64').toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: complex64\n' +
+        '  rank: 1\n' +
+        '  shape: [100]\n' +
+        '  values:\n' +
+        '    [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j]');
+  });
+
+  it('2d long tensor verbose', () => {
+    const verbose = true;
+    const str = tf.zeros([100, 100], 'complex64').toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: complex64\n' +
+        '  rank: 2\n' +
+        '  shape: [100,100]\n' +
+        '  values:\n' +
+        '    [[0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     ...,\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j]]');
+  });
+
+  it('2d complex64 with padding to align columns verbose', () => {
+    const verbose = true;
+
+    const str = tf.complex(
+                      [
+                        [0.8597712, 3, 0.2740789], [0.6696132, 0.4825962, 2.75],
+                        [1.991, 0.0640865, 0.2983858]
+                      ],
+                      [[1, 1.0102332, 3], [2, 5, 2.34424], [1.23, 2, 0.123]])
+                    .toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: complex64\n' +
+        '  rank: 2\n' +
+        '  shape: [3,3]\n' +
+        '  values:\n' +
+        '    [[0.8597712 + 1j   , 3 + 1.0102332j, 0.2740789 + 3j    ],\n' +
+        '     [0.6696132 + 2j   , 0.4825962 + 5j, 2.75 + 2.34424j   ],\n' +
+        '     [1.9910001 + 1.23j, 0.0640865 + 2j, 0.2983858 + 0.123j]]');
+  });
+
+  it('scalar complex64', () => {
+    const str = tf.complex(5, 4).toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '    5 + 4j');
+  });
+
+  it('1d complex64 tensor', () => {
+    const str = tf.zeros([4], 'complex64').toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '    [0 + 0j, 0 + 0j, 0 + 0j, 0 + 0j]');
+  });
+
+  it('2d complex64 tensor', () => {
+    const str = tf.zeros([3, 3], 'complex64').toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '    [[0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j]]');
+  });
+
+  it('3d complex64 tensor', () => {
+    const str = tf.zeros([3, 3, 2], 'complex64').toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '    [[[0 + 0j, 0 + 0j],\n' +
+        '      [0 + 0j, 0 + 0j],\n' +
+        '      [0 + 0j, 0 + 0j]],\n\n' +
+        '     [[0 + 0j, 0 + 0j],\n' +
+        '      [0 + 0j, 0 + 0j],\n' +
+        '      [0 + 0j, 0 + 0j]],\n\n' +
+        '     [[0 + 0j, 0 + 0j],\n' +
+        '      [0 + 0j, 0 + 0j],\n' +
+        '      [0 + 0j, 0 + 0j]]]');
+  });
+
+  it('1d long complex64 tensor', () => {
+    const str = tf.zeros([100], 'complex64').toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '    [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j]');
+  });
+
+  it('2d long complex64 tensor', () => {
+    const str = tf.zeros([100, 100], 'complex64').toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '    [[0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     ...,\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j]]');
+  });
+
+  it('2d complex64 with padding to align columns', () => {
+    const str = tf.complex(
+                      [
+                        [0.8597712, 3, 0.2740789], [0.6696132, 0.4825962, 2.75],
+                        [1.991, 0.0640865, 0.2983858]
+                      ],
+                      [[1, 1.0102332, 3], [2, 5, 2.34424], [1.23, 2, 0.123]])
+                    .toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '    [[0.8597712 + 1j   , 3 + 1.0102332j, 0.2740789 + 3j    ],\n' +
+        '     [0.6696132 + 2j   , 0.4825962 + 5j, 2.75 + 2.34424j   ],\n' +
+        '     [1.9910001 + 1.23j, 0.0640865 + 2j, 0.2983858 + 0.123j]]');
+  });
 });
 
 describeWithFlags('tensor grad', ALL_ENVS, () => {
@@ -1352,10 +1620,10 @@ describeWithFlags('tensor with 0 in shape', ALL_ENVS, () => {
   it('1d throws when values are not empty', () => {
     const values = new Float32Array([1, 2, 3]);
     // Have to use Tensor.make since tensor1d() does not let us provide a shape.
-    expect(() => Tensor.make([0], {values}))
+    expect(() => Tensor.make([0], {values}, 'float32'))
         .toThrowError(
-            'Based on the provided shape, [0], the tensor should ' +
-            'have 0 values but has 3');
+            'Based on the provided shape, [0], and dtype float32, the tensor ' +
+            'should have 0 values but has 3');
   });
 
   it('2d of shape [0, 5]', () => {
@@ -1368,10 +1636,10 @@ describeWithFlags('tensor with 0 in shape', ALL_ENVS, () => {
 
   it('2d throws when values are not empty', () => {
     const values = [1, 2, 3, 4];
-    expect(() => tf.tensor2d(values, [0, 5]))
+    expect(() => tf.tensor2d(values, [0, 5], 'float32'))
         .toThrowError(
-            'Based on the provided shape, [0,5], the tensor should ' +
-            'have 0 values but has 4');
+            'Based on the provided shape, [0,5], and dtype float32, the ' +
+            'tensor should have 0 values but has 4');
   });
 
   it('3d of shape [0, 3, 0]', () => {
@@ -1384,10 +1652,10 @@ describeWithFlags('tensor with 0 in shape', ALL_ENVS, () => {
 
   it('3d throws when values are not empty', () => {
     const values = [1, 2, 3];
-    expect(() => tf.tensor3d(values, [0, 3, 0]))
+    expect(() => tf.tensor3d(values, [0, 3, 0], 'float32'))
         .toThrowError(
-            'Based on the provided shape, [0,3,0], the tensor should ' +
-            'have 0 values but has 3');
+            'Based on the provided shape, [0,3,0], and dtype float32, the ' +
+            'tensor should have 0 values but has 3');
   });
 
   it('4d of shape [1, 3, 0, 5]', () => {
@@ -1400,9 +1668,34 @@ describeWithFlags('tensor with 0 in shape', ALL_ENVS, () => {
 
   it('4d throws when values are not empty', () => {
     const values = [1, 2, 3];
-    expect(() => tf.tensor4d(values, [1, 3, 0, 5]))
+    expect(() => tf.tensor4d(values, [1, 3, 0, 5], 'float32'))
         .toThrowError(
-            'Based on the provided shape, [1,3,0,5], the tensor should ' +
-            'have 0 values but has 3');
+            'Based on the provided shape, [1,3,0,5], and dtype float32, the ' +
+            'tensor should have 0 values but has 3');
+  });
+
+  it('complex64 with 0 in shape', () => {
+    const areal = tf.tensor2d([], [0, 5]);
+    const breal = tf.tensor2d([], [0, 5]);
+    const a = tf.complex(areal, breal);
+    expect(a.dtype).toBe('complex64');
+    expect(a.rank).toBe(2);
+    expect(a.shape).toEqual([0, 5]);
+    expectArraysEqual(a, []);
+  });
+});
+
+describeWithFlags('buffer', ALL_ENVS, () => {
+  it('float32', () => {
+    const buff = tf.buffer([1, 2, 3], 'float32');
+    buff.set(1, 0, 0, 0);
+    buff.set(2, 0, 1, 0);
+    expect(buff.get(0, 0, 0)).toEqual(1);
+    expect(buff.get(0, 0, 1)).toEqual(0);
+    expect(buff.get(0, 0, 2)).toEqual(0);
+    expect(buff.get(0, 1, 0)).toEqual(2);
+    expect(buff.get(0, 1, 1)).toEqual(0);
+    expect(buff.get(0, 1, 2)).toEqual(0);
+    expectArraysClose(buff.toTensor(), [1, 0, 0, 2, 0, 0]);
   });
 });

@@ -1743,6 +1743,14 @@ describeWithFlags('clone', ALL_ENVS, () => {
     expectArraysEqual(b, [1, 1, 0]);
   });
 
+  it('1D complex64 dtype', () => {
+    const a = tf.complex([1], [1]);
+    const b = tf.clone(a);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([1]);
+    expectArraysEqual(b, [1, 1]);
+  });
+
   it('2D default dtype', () => {
     const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
     const b = tf.clone(a);
@@ -1773,6 +1781,14 @@ describeWithFlags('clone', ALL_ENVS, () => {
     expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([2, 2]);
     expectArraysEqual(b, [1, 1, 1, 0]);
+  });
+
+  it('2D complex64 dtype', () => {
+    const a = tf.complex([[1, 3], [5, 7]], [[2, 4], [6, 8]]);
+    const b = tf.clone(a);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([2, 2]);
+    expectArraysEqual(b, [1, 2, 3, 4, 5, 6, 7, 8]);
   });
 
   it('3D default dtype', () => {
@@ -1807,6 +1823,14 @@ describeWithFlags('clone', ALL_ENVS, () => {
     expectArraysEqual(b, [1, 1, 1, 0]);
   });
 
+  it('3D complex64 dtype', () => {
+    const a = tf.complex([[[1], [3]], [[5], [7]]], [[[2], [4]], [[6], [8]]]);
+    const b = tf.clone(a);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([2, 2, 1]);
+    expectArraysEqual(b, [1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+
   it('4D default dtype', () => {
     const a = tf.tensor4d([1, 2, 3, 4], [2, 2, 1, 1]);
     const b = tf.clone(a);
@@ -1837,6 +1861,15 @@ describeWithFlags('clone', ALL_ENVS, () => {
     expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([2, 2, 1, 1]);
     expectArraysEqual(b, [1, 1, 1, 0]);
+  });
+
+  it('4D complex64 dtype', () => {
+    const a = tf.complex(
+      [[[[1]], [[3]]], [[[5]], [[7]]]], [[[[2]], [[4]]], [[[6]], [[8]]]]);
+    const b = tf.clone(a);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([2, 2, 1, 1]);
+    expectArraysEqual(b, [1, 2, 3, 4, 5, 6, 7, 8]);
   });
 
   it('gradient: 1D', () => {
