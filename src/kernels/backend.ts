@@ -250,4 +250,6 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
       iouThreshold: number, scoreThreshold?: number): Tensor1D;
 
   dispose(): void;
+
+  depthToSpace(x: Tensor4D, blockSize: number, dataFormat: string): Tensor4D;
 }
