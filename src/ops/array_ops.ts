@@ -17,7 +17,7 @@
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
 import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
-import {DataType, Rank, ShapeMap, TensorLike, TensorLike1D, TypedArray} from '../types';
+import {DataType, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike4D, TypedArray} from '../types';
 import * as util from '../util';
 import {getAxesPermutation, getInnerMostAxes, parseAxisParam} from './axis_util';
 import {concat} from './concat';
@@ -1067,6 +1067,73 @@ function expandDims_<R2 extends Rank>(
 }
 
 /**
+ * Rearranges data from depth into blocks of spatial data. More specifically,
+ * this op outputs a copy of the input tensor where values from the `depth`
+ * dimension are moved in spatial blocks to the `height` and `width` dimensions.
+ * The attr `blockSize` indicates the input block size and how the data is
+ * moved.
+ *
+ *  - Chunks of data of size `blockSize * blockSize` from depth are rearranged
+ * into non-overlapping blocks of size `blockSize x blockSize`
+ *
+ *  - The width the output tensor is `inputWidth * blockSize`, whereas the
+ * height is `inputHeight * blockSize`
+ *
+ *  - The Y, X coordinates within each block of the output image are determined
+ * by the high order component of the input channel index
+ *
+ *  - The depth of the input tensor must be divisible by `blockSize *
+ * blockSize`
+ *
+ * The `dataFormat` attr specifies the layout of the input and output tensors
+ * with the following options: "NHWC": [ `batch, height, width, channels` ]
+ * "NCHW": [ `batch, channels, height, width` ]
+ *
+ * ```js
+ * const x = tf.tensor4d([1, 2, 3, 4], [1, 1, 1, 4]);
+ * const blockSize = 2;
+ * const dataFormat = "NHWC";
+ *
+ * tf.depthToSpace(x, blockSize, dataFormat).print();
+ * ```
+ *
+ * @param x The input tensor of rank 4
+ * @param blockSIze  An `int` that is `>= 2`. The size of the spatial block
+ * @param dataFormat An optional string from: "NHWC", "NCHW". Defaults to "NHWC"
+ */
+/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
+function depthToSpace_(
+    x: Tensor4D|TensorLike4D, blockSize: number,
+    dataFormat: 'NHWC'|'NCHW' = 'NHWC'): Tensor4D {
+  const $x = convertToTensor(x, 'x', 'depthToSpace');
+
+  const inputHeight = (dataFormat === 'NHWC') ? $x.shape[1] : $x.shape[2];
+  const inputWidth = (dataFormat === 'NHWC') ? $x.shape[2] : $x.shape[3];
+  const inputDepth = (dataFormat === 'NHWC') ? $x.shape[3] : $x.shape[1];
+
+  util.assert(
+      inputHeight * blockSize >= 0,
+      `Negative dimension size caused by overflow when multiplying
+      ${inputHeight} and ${blockSize}  for depthToSpace with input shape
+      ${$x.shape}`);
+
+  util.assert(
+      inputWidth * blockSize >= 0,
+      `Negative dimension size caused by overflow when multiplying
+      ${inputWidth} and ${blockSize} for depthToSpace with input shape
+          ${$x.shape}`);
+
+  util.assert(
+      (inputDepth % (blockSize * blockSize) === 0),
+      `Dimension size must be evenly divisible by ${
+          blockSize * blockSize} but is ${
+          inputDepth} for depthToSpace with input shape ${$x.shape}`);
+
+  return ENV.engine.runKernel(
+      backend => backend.depthToSpace($x, blockSize, dataFormat), {$x});
+}
+
+/**
  * Creates an empty `TensorBuffer` with the specified `shape` and `dtype`.
  *
  * The values are stored in CPU as `TypedArray`. Fill the buffer using
@@ -1119,9 +1186,11 @@ export {
   print      // Not wrapped in op() since no need to increase stack trace.
 };
 
+export const batchToSpaceND = op({batchToSpaceND_});
 export const cast = op({cast_});
 export const clone = op({clone_});
 export const cumsum = op({cumsum_});
+export const depthToSpace = op({depthToSpace_});
 export const expandDims = op({expandDims_});
 export const eye = op({eye_});
 export const fromPixels = op({fromPixels_});
@@ -1136,11 +1205,10 @@ export const rand = op({rand_});
 export const randomNormal = op({randomNormal_});
 export const randomUniform = op({randomUniform_});
 export const reshape = op({reshape_});
+export const spaceToBatchND = op({spaceToBatchND_});
 export const split = op({split_});
 export const squeeze = op({squeeze_});
 export const stack = op({stack_});
 export const tile = op({tile_});
 export const truncatedNormal = op({truncatedNormal_});
 export const unstack = op({unstack_});
-export const batchToSpaceND = op({batchToSpaceND_});
-export const spaceToBatchND = op({spaceToBatchND_});

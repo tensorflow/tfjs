@@ -48,6 +48,7 @@ import {DepthwiseConv2DDerFilterProgram, DepthwiseConv2DDerInputProgram} from '.
 import {Conv2DProgram} from './webgl/conv_gpu';
 import {DepthwiseConv2DProgram} from './webgl/conv_gpu_depthwise';
 import {CumSumProgram} from './webgl/cumsum_gpu';
+import {DepthToSpaceProgram} from './webgl/depth_to_space_gpu';
 import {EncodeFloatProgram} from './webgl/encode_float_gpu';
 import {FromPixelsProgram} from './webgl/from_pixels_gpu';
 import {GatherProgram} from './webgl/gather_gpu';
@@ -1243,6 +1244,29 @@ export class MathBackendWebGL implements KernelBackend {
     const scoresVals = scores.dataSync();
     return nonMaxSuppressionImpl(
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
+  }
+
+  depthToSpace(x: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):
+      Tensor4D {
+    util.assert(
+        blockSize > 1,
+        `blockSize should be > 1 for depthToSpace, but was: ${blockSize}`);
+
+    const batchSize = x.shape[0];
+    const inputHeight = (dataFormat === 'NHWC') ? x.shape[1] : x.shape[2];
+    const inputWidth = (dataFormat === 'NHWC') ? x.shape[2] : x.shape[3];
+    const inputDepth = (dataFormat === 'NHWC') ? x.shape[3] : x.shape[1];
+
+    const outputHeight = inputHeight * blockSize;
+    const outputWidth = inputWidth * blockSize;
+    const outputDepth = inputDepth / (blockSize * blockSize);
+
+    const outputShape = (dataFormat === 'NHWC') ?
+        [batchSize, outputHeight, outputWidth, outputDepth] :
+        [batchSize, outputDepth, outputHeight, outputWidth];
+
+    const program = new DepthToSpaceProgram(outputShape, blockSize, dataFormat);
+    return this.compileAndRun(program, [x]);
   }
 
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):

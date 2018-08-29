@@ -2175,6 +2175,51 @@ export class MathBackendCPU implements KernelBackend {
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
+  depthToSpace(x: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):
+      Tensor4D {
+    util.assert(
+        dataFormat === 'NHWC',
+        `Only NHWC dataFormat supported on CPU for depthToSpace. Got ${
+            dataFormat}`);
+    util.assert(
+        blockSize > 1,
+        `blockSize should be > 1 for depthToSpace, but was: ${blockSize}`);
+
+    const batchSize = x.shape[0];
+    const inputHeight = x.shape[1];
+    const inputWidth = x.shape[2];
+    const inputDepth = x.shape[3];
+
+    const outputHeight = inputHeight * blockSize;
+    const outputWidth = inputWidth * blockSize;
+    const outputDepth = inputDepth / (blockSize * blockSize);
+
+    const xValues = x.dataSync();
+    const result =
+        new Float32Array(batchSize * outputHeight * outputWidth * outputDepth);
+
+    let outputIdx = 0;
+    for (let b = 0; b < batchSize; ++b) {
+      for (let h = 0; h < outputHeight; ++h) {
+        const inH = Math.floor(h / blockSize);
+        const offsetH = (h % blockSize);
+        for (let w = 0; w < outputWidth; ++w) {
+          const inW = Math.floor(w / blockSize);
+          const offsetW = (w % blockSize);
+          const offsetD = (offsetH * blockSize + offsetW) * outputDepth;
+          for (let d = 0; d < outputDepth; ++d) {
+            const inD = d + offsetD;
+            const inputIdx =
+                inD + inputDepth * (inW + inputWidth * (inH + inputHeight * b));
+            result[outputIdx++] = xValues[inputIdx];
+          }
+        }
+      }
+    }
+    return ops.tensor4d(
+        result, [batchSize, outputHeight, outputWidth, outputDepth]);
+  }
+
   private broadcastedBinaryOp(
       a: Tensor, b: Tensor, dtype: DataType,
       op: (a: number, b: number) => number): Tensor {

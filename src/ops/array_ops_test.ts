@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, BROWSER_ENVS, expectArraysClose, expectArraysEqual, expectPromiseToFail, expectValuesInRange, NODE_ENVS, WEBGL_ENVS} from '../test_util';
+import {ALL_ENVS, BROWSER_ENVS, CPU_ENVS, expectArraysClose, expectArraysEqual, expectPromiseToFail, expectValuesInRange, NODE_ENVS, WEBGL_ENVS} from '../test_util';
 import * as util from '../util';
 import {expectArrayInMeanStdRange, jarqueBeraNormalityTest} from './rand_util';
 
@@ -3492,5 +3492,124 @@ describeWithFlags('batchToSpaceND X spaceToBatchND', ALL_ENVS, () => {
     expect(gradient.shape).toEqual([2, 2, 4, 1]);
     expectArraysClose(
         gradient, [2, 8, 3, 9, 14, 20, 15, 21, 5, 11, 6, 12, 17, 23, 18, 24]);
+  });
+});
+
+describeWithFlags('depthToSpace', ALL_ENVS, () => {
+  it('tensor4d, input shape=[1, 1, 1, 4], blockSize=2, format=NHWC', () => {
+    const t = tf.tensor4d([[[[1, 2, 3, 4]]]]);
+    const blockSize = 2;
+    const dataFormat = 'NHWC';
+
+    const res = tf.depthToSpace(t, blockSize, dataFormat);
+    expect(res.shape).toEqual([1, 2, 2, 1]);
+    expectArraysClose(res, [1, 2, 3, 4]);
+  });
+
+  it('tensor4d, input shape=[1, 1, 1, 12], blockSize=2, format=NHWC', () => {
+    const t = tf.tensor4d([[[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]]]]);
+    const blockSize = 2;
+    const dataFormat = 'NHWC';
+
+    const res = tf.depthToSpace(t, blockSize, dataFormat);
+    expect(res.shape).toEqual([1, 2, 2, 3]);
+    expectArraysClose(res, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  });
+
+  it('tensor4d, input shape=[1, 2, 2, 4], blockSize=2, format=NHWC', () => {
+    const t = tf.tensor4d(
+        [[[[1, 2, 3, 4], [5, 6, 7, 8]], [[9, 10, 11, 12], [13, 14, 15, 16]]]]);
+    const blockSize = 2;
+    const dataFormat = 'NHWC';
+
+    const res = tf.depthToSpace(t, blockSize, dataFormat);
+    expect(res.shape).toEqual([1, 4, 4, 1]);
+    expectArraysClose(
+        res, [1, 2, 5, 6, 3, 4, 7, 8, 9, 10, 13, 14, 11, 12, 15, 16]);
+  });
+
+  it('throws when depth not divisible by blockSize * blockSize', () => {
+    const t = tf.tensor4d([1, 2, 3, 4], [1, 1, 1, 4]);
+    const blockSize = 3;
+
+    expect(() => tf.depthToSpace(t, blockSize))
+        .toThrowError(`Dimension size must be evenly divisible by ${
+            blockSize * blockSize} but is ${
+            t.shape[3]} for depthToSpace with input shape ${t.shape}`);
+  });
+
+  it('throws when blocksize < 2', () => {
+    const t = tf.tensor4d([1, 2, 3, 4], [1, 1, 1, 4]);
+    const blockSize = 1;
+
+    expect(() => tf.depthToSpace(t, blockSize))
+        .toThrowError(
+            `blockSize should be > 1 for depthToSpace, but was: ${blockSize}`);
+  });
+});
+
+describeWithFlags('depthToSpace', CPU_ENVS, () => {
+  it('throws when CPU backend used with data format NCHW', () => {
+    const t = tf.tensor4d([1, 2, 3, 4], [1, 4, 1, 1]);
+    const blockSize = 2;
+    const dataFormat = 'NCHW';
+
+    expect(() => tf.depthToSpace(t, blockSize, dataFormat))
+        .toThrowError(
+            `Only NHWC dataFormat supported on CPU for depthToSpace. Got ${
+                dataFormat}`);
+  });
+});
+
+describeWithFlags('depthToSpace', WEBGL_ENVS, () => {
+  it('tensor4d, input shape=[1, 4, 1, 1], blockSize=2, format=NCHW', () => {
+    const t = tf.tensor4d([1, 2, 3, 4], [1, 4, 1, 1]);
+    const blockSize = 2;
+    const dataFormat = 'NCHW';
+
+    const res = tf.depthToSpace(t, blockSize, dataFormat);
+    expect(res.shape).toEqual([1, 1, 2, 2]);
+    expectArraysClose(res, [1, 2, 3, 4]);
+  });
+
+  it('tensor4d, input shape=[1, 12, 1, 1], blockSize=2, format=NCHW', () => {
+    const t =
+        tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [1, 12, 1, 1]);
+    const blockSize = 2;
+    const dataFormat = 'NCHW';
+
+    const res = tf.depthToSpace(t, blockSize, dataFormat);
+    expect(res.shape).toEqual([1, 3, 2, 2]);
+    expectArraysClose(res, [1, 4, 7, 10, 2, 5, 8, 11, 3, 6, 9, 12]);
+  });
+
+  it('tensor4d, input shape=[1, 4, 2, 2], blockSize=2, format=NCHW', () => {
+    const t = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [1, 4, 2, 2]);
+    const blockSize = 2;
+    const dataFormat = 'NCHW';
+
+    const res = tf.depthToSpace(t, blockSize, dataFormat);
+    expect(res.shape).toEqual([1, 1, 4, 4]);
+    expectArraysClose(
+        res, [1, 5, 2, 6, 9, 13, 10, 14, 3, 7, 4, 8, 11, 15, 12, 16]);
+  });
+
+  it('tensor4d, input shape=[1, 8, 2, 2], blockSize=2, format=NCHW', () => {
+    const t = tf.tensor4d(
+        [
+          1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
+          17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32
+        ],
+        [1, 8, 2, 2]);
+    const blockSize = 2;
+    const dataFormat = 'NCHW';
+
+    const res = tf.depthToSpace(t, blockSize, dataFormat);
+    expect(res.shape).toEqual([1, 2, 4, 4]);
+    expectArraysClose(res, [
+      1, 9,  2, 10, 17, 25, 18, 26, 3, 11, 4, 12, 19, 27, 20, 28,
+      5, 13, 6, 14, 21, 29, 22, 30, 7, 15, 8, 16, 23, 31, 24, 32
+    ]);
   });
 });
