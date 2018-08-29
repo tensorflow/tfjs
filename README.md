@@ -307,3 +307,47 @@ Renders a confusion matrix
 * on the diagonal. Defaults to false
 * @param opts.width width of chart in px
 * @param opts.height height of chart in px
+
+
+## Metrics
+
+The `metrics` namespace contains a few utility functions for computing quality metrics
+like accuracy or creating confusion matrices.
+
+## metrics.confusionMatrix(labels: Tensor1D, predictions: Tensor1D, numClasses?: number, weights?: Tensor1D) => Promise<number[][]>
+
+Computes a confusion matrix from predictions and labels. Each value in
+labels and predictions should correspond to some output class. It is assumed
+that these values go from 0 to numClasses - 1.
+
+The result will be a 2D array of size numClasses * numClasses
+
+
+* @param labels 1D tensor of true values
+* @param predictions 1D tensor of predicted values
+* @param numClasses Number of distinct classes. Optional. If not passed in
+ numClasses will equal the highest number in either labels or predictions
+ plus 1
+* @param weights 1d tensor that is the same size as predictions.
+  If weights is passed in then each prediction contributes its corresponding
+  weight to the total value of the confusion matrix cell.
+
+
+## metrics.perClassAccuracy(labels: Tensor1D, predictions: Tensor1D, numClasses?: number, weights?: Tensor1D) => Promise<number[]>
+
+Computes per class accuracy between prediction and labels. Each value in labels and predictions should correspond to some output class. It is assumed that these values go from 0 to  numClasses - 1.
+
+
+* @param labels 1D tensor of true values
+* @param predictions 1D tensor of predicted values
+* @param numClasses Number of distinct classes. Optional. If not passed in
+ numClasses will equal the highest number in either labels or predictions
+ plus 1
+
+
+## metrics.accuracy(labels: Tensor, predictions: Tensor) => Promise<number>
+
+Computes how often predictions matches labels.
+
+* @param labels tensor of true values
+* @param predictions tensor of predicted values
