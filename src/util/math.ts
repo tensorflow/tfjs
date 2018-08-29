@@ -239,21 +239,18 @@ export async function perClassAccuracy(
       labels.size === predictions.size,
       'labels and predictions must be the same length');
 
-  let numClasses_: number;
   if (numClasses == null) {
-    numClasses_ = tidy(() => {
+    numClasses = tidy(() => {
       return maximum(labels.max(), predictions.max()).dataSync()[0] + 1;
     });
-  } else {
-    numClasses_ = numClasses;
   }
 
   return Promise.all([labels.data(), predictions.data()])
       .then(([labelsArray, predsArray]) => {
         // Per class total counts
-        const count: number[] = Array(numClasses_).fill(0);
+        const count: number[] = Array(numClasses).fill(0);
         // Per class accuracy
-        const result: number[] = Array(numClasses_).fill(0);
+        const result: number[] = Array(numClasses).fill(0);
 
         for (let i = 0; i < labelsArray.length; i++) {
           const label = labelsArray[i];
