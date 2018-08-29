@@ -502,6 +502,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expectArraysClose(a, [0, 0, 1]);
   });
 
+  it('float32 dtype from boolean[]', () => {
+    const a = tf.tensor1d([false, false, true], 'float32');
+    expect(a.dtype).toBe('float32');
+    expectArraysClose(a, [0, 0, 1]);
+  });
+
   it('int32 dtype from boolean[]', () => {
     const a = tf.tensor1d([false, false, true], 'int32');
     expect(a.dtype).toBe('int32');
@@ -522,7 +528,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   });
 
   it('float32 dtype', () => {
-    const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+    const a = tf.tensor2d([1, 2, 3, 4], [2, 2], 'float32');
     expect(a.dtype).toBe('float32');
     expect(a.shape).toEqual([2, 2]);
     expectArraysClose(a, [1, 2, 3, 4]);
@@ -565,6 +571,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expectArraysClose(a, [0, 0, 1, 0]);
   });
 
+  it('float32 dtype from boolean[]', () => {
+    const a = tf.tensor2d([[false, false], [true, false]], [2, 2], 'float32');
+    expect(a.dtype).toBe('float32');
+    expectArraysEqual(a, [0, 0, 1, 0]);
+  });
+
   it('int32 dtype from boolean[]', () => {
     const a = tf.tensor2d([[false, false], [true, false]], [2, 2], 'int32');
     expect(a.dtype).toBe('int32');
@@ -576,6 +588,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(a.dtype).toBe('bool');
     expectArraysEqual(a, [0, 0, 1, 0]);
   });
+
   it('default dtype', () => {
     const a = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
     expect(a.dtype).toBe('float32');
@@ -584,7 +597,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   });
 
   it('float32 dtype', () => {
-    const a = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
+    const a = tf.tensor3d([1, 2, 3, 4], [2, 2, 1], 'float32');
     expect(a.dtype).toBe('float32');
     expect(a.shape).toEqual([2, 2, 1]);
     expectArraysClose(a, [1, 2, 3, 4]);
@@ -627,6 +640,13 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expectArraysClose(a, [0, 0, 1, 0]);
   });
 
+  it('float32 dtype from boolean[]', () => {
+    const a = tf.tensor3d(
+      [[[false], [false]], [[true], [false]]], [2, 2, 1], 'float32');
+    expect(a.dtype).toBe('float32');
+    expectArraysClose(a, [0, 0, 1, 0]);
+  });
+
   it('int32 dtype from boolean[]', () => {
     const a = tf.tensor3d(
         [[[false], [false]], [[true], [false]]], [2, 2, 1], 'int32');
@@ -649,7 +669,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   });
 
   it('float32 dtype', () => {
-    const a = tf.tensor4d([1, 2, 3, 4], [2, 2, 1, 1]);
+    const a = tf.tensor4d([1, 2, 3, 4], [2, 2, 1, 1], 'float32');
     expect(a.dtype).toBe('float32');
     expect(a.shape).toEqual([2, 2, 1, 1]);
     expectArraysClose(a, [1, 2, 3, 4]);
@@ -694,6 +714,13 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expectArraysClose(a, [0, 0, 1, 0]);
   });
 
+  it('float32 dtype from boolean[]', () => {
+    const a = tf.tensor4d(
+        [[[[false], [false]], [[true], [false]]]], [1, 2, 2, 1], 'float32');
+    expect(a.dtype).toBe('float32');
+    expectArraysClose(a, [0, 0, 1, 0]);
+  });
+
   it('int32 dtype from boolean[]', () => {
     const a = tf.tensor4d(
         [[[[false], [false]], [[true], [false]]]], [1, 2, 2, 1], 'int32');
@@ -715,6 +742,20 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(b.shape).toEqual([1, 1]);
   });
 
+  it('Scalar float32 dtype', () => {
+    const a = tf.scalar(4, 'float32');
+    const b = a.reshape([1, 1]);
+    expect(b.dtype).toBe('float32');
+    expect(b.shape).toEqual([1, 1]);
+  });
+
+  it('Scalar int32 dtype', () => {
+    const a = tf.scalar(4, 'int32');
+    const b = a.reshape([1, 1]);
+    expect(b.dtype).toBe('int32');
+    expect(b.shape).toEqual([1, 1]);
+  });
+
   it('Scalar bool dtype', () => {
     const a = tf.scalar(4, 'bool');
     const b = a.reshape([1, 1, 1]);
@@ -724,6 +765,13 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('Tensor1D default dtype', () => {
     const a = tf.tensor1d([1, 2, 3, 4]);
+    const b = a.reshape([2, 2]);
+    expect(b.dtype).toBe('float32');
+    expect(b.shape).toEqual([2, 2]);
+  });
+
+  it('Tensor1D float32 dtype', () => {
+    const a = tf.tensor1d([1, 2, 3, 4], 'float32');
     const b = a.reshape([2, 2]);
     expect(b.dtype).toBe('float32');
     expect(b.shape).toEqual([2, 2]);
@@ -743,6 +791,20 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(b.shape).toEqual([6]);
   });
 
+  it('Tensor2D float32 dtype', () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3], 'float32');
+    const b = a.reshape([6]);
+    expect(b.dtype).toBe('float32');
+    expect(b.shape).toEqual([6]);
+  });
+
+  it('Tensor2D int32 dtype', () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3], 'int32');
+    const b = a.reshape([6]);
+    expect(b.dtype).toBe('int32');
+    expect(b.shape).toEqual([6]);
+  });
+
   it('Tensor2D bool dtype', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3], 'bool');
     const b = a.reshape([6]);
@@ -754,6 +816,20 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const a = tf.tensor3d([1, 2, 3, 4, 5, 6], [2, 3, 1]);
     const b = a.reshape([6]);
     expect(b.dtype).toBe('float32');
+    expect(b.shape).toEqual([6]);
+  });
+
+  it('Tensor3D float32 dtype', () => {
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6], [2, 3, 1], 'float32');
+    const b = a.reshape([6]);
+    expect(b.dtype).toBe('float32');
+    expect(b.shape).toEqual([6]);
+  });
+
+  it('Tensor3D int32 dtype', () => {
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6], [2, 3, 1], 'int32');
+    const b = a.reshape([6]);
+    expect(b.dtype).toBe('int32');
     expect(b.shape).toEqual([6]);
   });
 
@@ -771,10 +847,24 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(b.shape).toEqual([2, 3]);
   });
 
+  it('Tensor4D float32 dtype', () => {
+    const a = tf.tensor4d([1, 2, 3, 4, 5, 6], [2, 3, 1, 1], 'float32');
+    const b = a.reshape([2, 3]);
+    expect(b.dtype).toBe('float32');
+    expect(b.shape).toEqual([2, 3]);
+  });
+
   it('Tensor4D int32 dtype', () => {
     const a = tf.tensor4d([1, 2, 3, 4, 5, 6], [2, 3, 1, 1], 'int32');
     const b = a.reshape([3, 2]);
     expect(b.dtype).toBe('int32');
+    expect(b.shape).toEqual([3, 2]);
+  });
+
+  it('Tensor4D bool dtype', () => {
+    const a = tf.tensor4d([1, 2, 3, 4, 5, 6], [2, 3, 1, 1], 'bool');
+    const b = a.reshape([3, 2]);
+    expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([3, 2]);
   });
 
