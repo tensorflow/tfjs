@@ -21,6 +21,7 @@ import {renderHistogram} from './render/histogram';
 import {renderLinechart} from './render/linechart';
 import {renderScatterplot} from './render/scatterplot';
 import {renderTable} from './render/table';
+import {accuracy, confusionMatrix, perClassAccuracy} from './util/math';
 
 const render = {
   barchart: renderBarchart,
@@ -31,5 +32,12 @@ const render = {
   confusionMatrix: renderConfusionMatrix,
 };
 
+const metrics = {
+  accuracy,
+  perClassAccuracy,
+  confusionMatrix,
+};
+
 export {visor} from './visor';
 export {render};
+export {metrics};
