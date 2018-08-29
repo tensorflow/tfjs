@@ -40,9 +40,9 @@ export class TensorBuffer<R extends Rank> {
   values: TypedArray;
 
   constructor(shape: ShapeMap[R], public dtype: DataType, values: TypedArray) {
+    const size = util.sizeFromShape(shape);
     if (values != null) {
       const n = values.length;
-      const size = util.sizeFromShape(shape);
       util.assert(
           n === size,
           `Length of values '${n}' does not match the size ` +
@@ -50,9 +50,9 @@ export class TensorBuffer<R extends Rank> {
     }
     this.shape = shape.slice();
     this.values =
-        values || util.getTypedArrayFromDType(dtype, util.sizeFromShape(shape));
+        values || util.getTypedArrayFromDType(dtype, size);
     this.strides = computeStrides(shape);
-    this.size = util.sizeFromShape(shape);
+    this.size = size;
   }
 
   /**
