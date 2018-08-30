@@ -241,6 +241,13 @@ describeWithFlags('Reduction: argmax', ALL_ENVS, () => {
     expect(result.get()).toBe(2);
   });
 
+  it('accepts tensor with bool values', () => {
+    const t = tf.tensor1d([0, 1], 'bool');
+    const result = tf.argMax(t);
+    expect(result.dtype).toBe('int32');
+    expect(result.get()).toBe(1);
+  });
+
   it('has gradient', () => {
     const a = tf.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
     const dy = tf.ones([3], 'float32') as tf.Tensor1D;
@@ -317,6 +324,13 @@ describeWithFlags('Reduction: argmin', ALL_ENVS, () => {
   it('accepts a tensor-like object', () => {
     const result = tf.argMin([1, 0, 3, 2]);
     expect(result.get()).toBe(1);
+  });
+
+  it('accepts tensor with bool values', () => {
+    const t = tf.tensor1d([0, 1], 'bool');
+    const result = tf.argMin(t);
+    expect(result.dtype).toBe('int32');
+    expect(result.get()).toBe(0);
   });
 
   it('has gradient', () => {
