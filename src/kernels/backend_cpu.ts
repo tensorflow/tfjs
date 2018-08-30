@@ -380,48 +380,56 @@ export class MathBackendCPU implements KernelBackend {
         T;
   }
 
-  matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
-      Tensor2D {
+  batchMatMul(
+      a: Tensor3D, b: Tensor3D, transposeA: boolean,
+      transposeB: boolean): Tensor3D {
     this.assertNotComplex([a, b], 'matMul');
 
-    const sharedDim = transposeA ? a.shape[0] : a.shape[1];
-    const leftDim = transposeA ? a.shape[1] : a.shape[0];
-    const rightDim = transposeB ? b.shape[0] : b.shape[1];
+    const sharedDim = transposeA ? a.shape[1] : a.shape[2];
+    const leftDim = transposeA ? a.shape[2] : a.shape[1];
+    const rightDim = transposeB ? b.shape[1] : b.shape[2];
+    const batchDim = a.shape[0];
 
     const aValues = a.dataSync();
     const bValues = b.dataSync();
-    const [aOuterStep, aInnerStep] =
-        transposeA ? [1, a.strides[0]] : [a.strides[0], 1];
-    const [bOuterStep, bInnerStep] =
-        transposeB ? [b.strides[0], 1] : [1, b.strides[0]];
+    const [aBatch, aOuterStep, aInnerStep] = transposeA ?
+        [a.strides[0], 1, a.strides[1]] :
+        [a.strides[0], a.strides[1], 1];
+    const [bInnerStep, bOuterStep, bBatch] = transposeB ?
+        [1, b.strides[1], b.strides[0]] :
+        [b.strides[1], 1, b.strides[0]];
 
-    const result = new Float32Array(leftDim * rightDim);
+    const size = leftDim * rightDim;
+    const result = new Float32Array(batchDim * size);
 
     const blockSize = this.blockSize;
 
-    for (let i0 = 0; i0 < leftDim; i0 += blockSize) {
-      for (let j0 = 0; j0 < rightDim; j0 += blockSize) {
-        for (let k0 = 0; k0 < sharedDim; k0 += blockSize) {
-          // for when blockSize doesn't evenly divide the input
-          const iBlock = Math.min(i0 + blockSize, leftDim);
-          const jBlock = Math.min(j0 + blockSize, rightDim);
-          const kBlock = Math.min(k0 + blockSize, sharedDim);
+    for (let b = 0; b < batchDim; b++) {
+      for (let i0 = 0; i0 < leftDim; i0 += blockSize) {
+        for (let j0 = 0; j0 < rightDim; j0 += blockSize) {
+          for (let k0 = 0; k0 < sharedDim; k0 += blockSize) {
+            // for when blockSize doesn't evenly divide the input
+            const iBlock = Math.min(i0 + blockSize, leftDim);
+            const jBlock = Math.min(j0 + blockSize, rightDim);
+            const kBlock = Math.min(k0 + blockSize, sharedDim);
 
-          for (let i = i0; i < iBlock; i++) {
-            for (let j = j0; j < jBlock; j++) {
-              let sum = 0.0;
+            for (let i = i0; i < iBlock; i++) {
+              for (let j = j0; j < jBlock; j++) {
+                let sum = 0.0;
 
-              for (let k = k0; k < kBlock; k++) {
-                sum += aValues[i * aOuterStep + k * aInnerStep] *
-                    bValues[k * bInnerStep + j * bOuterStep];
+                for (let k = k0; k < kBlock; k++) {
+                  sum += aValues[b * aBatch + i * aOuterStep + k * aInnerStep] *
+                      bValues[k * bInnerStep + j * bOuterStep + b * bBatch];
+                }
+                result[b * size + (i * rightDim + j)] += sum;
               }
-              result[i * rightDim + j] += sum;
             }
           }
         }
       }
     }
-    return ops.tensor2d(result, [leftDim, rightDim]);
+
+    return ops.tensor3d(result, [batchDim, leftDim, rightDim]);
   }
 
   multiply(a: Tensor, b: Tensor): Tensor {

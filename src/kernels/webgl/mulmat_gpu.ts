@@ -23,24 +23,25 @@ export class MatMulProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(
-      aShape: [number, number], bShape: [number, number], transposeA = false,
-      transposeB = false) {
-    const outerShapeA = transposeA ? aShape[1] : aShape[0];
-    const outerShapeB = transposeB ? bShape[0] : bShape[1];
-    const sharedDim = transposeA ? aShape[0] : aShape[1];
-    this.outputShape = [outerShapeA, outerShapeB];
+      aShape: [number, number, number], bShape: [number, number, number],
+      transposeA = false, transposeB = false) {
+    const batchSize = aShape[0];
+    const outerShapeA = transposeA ? aShape[2] : aShape[1];
+    const outerShapeB = transposeB ? bShape[1] : bShape[2];
+    const sharedDim = transposeA ? aShape[1] : aShape[2];
+    this.outputShape = [batchSize, outerShapeA, outerShapeB];
 
     const aSnippetFromOffset = (vec4Offset: number, indexVar: string|number) =>
-        transposeA ? `${indexVar} + ${vec4Offset}, aRow` :
-                     `aRow, ${indexVar} + ${vec4Offset}`;
+        transposeA ? `batch, ${indexVar} + ${vec4Offset}, aRow` :
+                     `batch, aRow, ${indexVar} + ${vec4Offset}`;
     const bSnippetFromOffset = (vec4Offset: number, indexVar: string|number) =>
-        transposeB ? `bCol, ${indexVar} + ${vec4Offset}` :
-                     `${indexVar} + ${vec4Offset}, bCol`;
+        transposeB ? `batch, bCol, ${indexVar} + ${vec4Offset}` :
+                     `batch, ${indexVar} + ${vec4Offset}, bCol`;
 
     const sharedDimNearestVec4 = Math.floor(sharedDim / 4) * 4;
     const sharedDimVec4Remainder = sharedDim % 4;
 
-    this.userCode = ` float dotARowBCol(int aRow, int bCol) {
+    this.userCode = ` float dotARowBCol(int batch, int aRow, int bCol) {
       float result = 0.0;
       for (int i = 0; i < ${sharedDimNearestVec4}; i += 4) {
         vec4 a = vec4(
@@ -90,8 +91,8 @@ export class MatMulProgram implements GPGPUProgram {
     }
 
     void main() {
-      ivec2 resRC = getOutputCoords();
-      setOutput(dotARowBCol(resRC.x, resRC.y));
+      ivec3 resBRC = getOutputCoords();
+      setOutput(dotARowBCol(resBRC.x, resBRC.y, resBRC.z));
     }
     `;
   }
