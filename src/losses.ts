@@ -13,8 +13,8 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {scalar, Tensor, Tensor1D, tidy} from '@tensorflow/tfjs-core';
 
 import {epsilon} from './backend/common';
-import * as K from './backend/tfjs_backend';
 import {getScalar} from './backend/state';
+import * as K from './backend/tfjs_backend';
 import {ValueError} from './errors';
 import {LossOrMetricFn} from './types';
 
@@ -338,7 +338,13 @@ export function get(identifierOrFn: string|LossOrMetricFn): LossOrMetricFn {
     if (identifierOrFn in lossesMap) {
       return lossesMap[identifierOrFn];
     }
-    throw new ValueError(`Unknown loss ${identifierOrFn}`);
+    let errMsg = `Unknown loss ${identifierOrFn}`;
+    if (identifierOrFn.toLowerCase().includes('softmaxcrossentropy')) {
+      errMsg = `Unknown loss ${identifierOrFn}. ` +
+          'Use "categoricalCrossentropy" as the string name for ' +
+          'tf.losses.softmaxCrossEntropy';
+    }
+    throw new ValueError(errMsg);
   } else {
     return identifierOrFn;
   }
