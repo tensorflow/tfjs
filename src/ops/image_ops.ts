@@ -228,7 +228,80 @@ function nonMaxSuppSanityCheck(
   return {maxOutputSize, iouThreshold, scoreThreshold};
 }
 
+/**
+ * Extracts crops from the input image tensor and resizes them using bilinear
+ * sampling or nearest neighbor sampling (possibly with aspect ratio change)
+ * to a common output size specified by crop_size.
+ *
+ * @param image 4d tensor of shape `[batch,imageHeight,imageWidth, depth]`,
+ *     where imageHeight and imageWidth must be positive, specifying the
+ *     batch of images from which to take crops
+ * @param boxes 2d float32 tensor of shape `[numBoxes, 4]`. Each entry is
+ *     `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the normalized
+ *     coordinates of the box in the boxInd[i]'th image in the batch
+ * @param boxInd 1d int32 tensor of shape `[numBoxes]` with values in range
+ *     `[0, batch)` that specifies the image that the `i`-th box refers to.
+ * @param cropSize 1d int32 tensor of 2 elements `[cropHeigh, cropWidth]`
+ *     specifying the size to which all crops are resized to.
+ * @param method Optional string from `'bilinear' | 'nearest'`,
+ *     defaults to bilinear, which specifies the sampling method for resizing
+ * @param extrapolationValue A threshold for deciding when to remove boxes based
+ *     on score. Defaults to 0.
+ * @return A 4D tensor of the shape `[numBoxes,cropHeight,cropWidth,depth]`
+ */
+/** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
+function cropAndResize_(
+  image: Tensor4D|TensorLike,
+  boxes: Tensor2D|TensorLike,
+  boxInd: Tensor1D|TensorLike,
+  cropSize: [number, number],
+  method?: 'bilinear'|'nearest',
+  extrapolationValue?: number,
+) {
+  const $image = convertToTensor(image, 'image', 'cropAndResize', 'float32');
+  const $boxes = convertToTensor(boxes, 'boxes', 'cropAndResize', 'float32');
+  const $boxInd = convertToTensor(boxInd, 'boxInd', 'cropAndResize', 'int32');
+  method = method || 'bilinear';
+  extrapolationValue = extrapolationValue || 0;
+
+  const numBoxes = $boxes.shape[0];
+
+  util.assert(
+      $image.rank === 4, 'Error in cropAndResize: image must be rank 4,' +
+          `but got rank ${$image.rank}.`);
+  util.assert(
+      $boxes.rank === 2 && $boxes.shape[1] === 4,
+      `Error in cropAndResize: boxes must be have size [${numBoxes},4] ` +
+          `but had shape ${$boxes.shape}.`);
+  util.assert(
+      $boxInd.rank === 1 && $boxInd.shape[0] === numBoxes,
+      `Error in cropAndResize: boxInd must be have size [${numBoxes}] ` +
+          `but had shape ${$boxes.shape}.`);
+  util.assert(
+      $boxInd.dtype === 'int32',
+      `Error in cropAndResize: boxInd must be of dtype int32, but got dtype ` +
+          `${$boxInd.dtype}.`);
+  util.assert(
+      cropSize.length === 2,
+      `Error in cropAndResize: cropSize must be of length 2, but got length ` +
+          `${cropSize.length}.`);
+  util.assert(
+      cropSize[0] >= 1 && cropSize[1] >= 1,
+      `cropSize must be atleast [1,1], but was ${cropSize}`);
+  util.assert(
+      method === 'bilinear' || method === 'nearest',
+      `method must be bilinear or nearest, but was ${method}`);
+
+  const forward: ForwardFunc<Tensor4D> = (backend, save) =>
+      backend.cropAndResize(
+          $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
+
+  const res = ENV.engine.runKernel(forward, {$image, $boxes});
+  return res as Tensor4D;
+}
+
 export const resizeBilinear = op({resizeBilinear_});
 export const resizeNearestNeighbor = op({resizeNearestNeighbor_});
 export const nonMaxSuppression = op({nonMaxSuppression_});
 export const nonMaxSuppressionAsync = nonMaxSuppressionAsync_;
+export const cropAndResize = cropAndResize_;
