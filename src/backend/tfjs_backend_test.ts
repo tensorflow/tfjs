@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {DataType, scalar, tensor1d, tensor2d, tensor3d, tensor4d, zeros} from '@tensorflow/tfjs-core';
+import {DataType, scalar, tensor1d, tensor2d, tensor3d, tensor4d, tensor5d, tensor6d, zeros} from '@tensorflow/tfjs-core';
 
 import {SymbolicTensor} from '../engine/topology';
 import {range} from '../utils/math_utils';
@@ -543,7 +543,7 @@ describeMathCPUAndGPU('dot', () => {
   it('2D x 2D: Incompatible dimensions', () => {
     const x = tensor2d([[1, 0], [0, -1]], [2, 2]);
     const y = tensor2d([[3], [4], [5]], [3, 1]);
-    expect(() => K.dot(x, y)).toThrowError();
+    expect(() => K.dot(x, y)).toThrowError(/inner shapes.*must match/);
   });
   it('3D x 2D', () => {
     const x = tensor3d([[[1, 0], [0, -1]], [[-2, 0], [0, -2]]], [2, 2, 2]);
@@ -551,20 +551,55 @@ describeMathCPUAndGPU('dot', () => {
     expectTensorsClose(
         K.dot(x, y), tensor3d([[[-1], [-1]], [[2], [-2]]], [2, 2, 1]));
   });
+  it('4D x 2D', () => {
+    const x = tensor4d([1, 2, 3, 6], [1, 1, 2, 2]);
+    const y = tensor2d([-1, 1], [2, 1]);
+    expectTensorsClose(K.dot(x, y), tensor4d([1, 3], [1, 1, 2, 1]));
+  });
+  it('5D x 2D', () => {
+    const x = tensor5d([1, 2, 3, 6], [1, 1, 1, 2, 2]);
+    const y = tensor2d([-1, 1], [2, 1]);
+    expectTensorsClose(K.dot(x, y), tensor5d([1, 3], [1, 1, 1, 2, 1]));
+  });
+  it('5D x 3D', () => {
+    const x = tensor5d([1, 2, 3, 6], [1, 1, 1, 2, 2]);
+    const y = tensor3d([-1, 1], [1, 2, 1]);
+    expectTensorsClose(K.dot(x, y), tensor6d([1, 3], [1, 1, 1, 2, 1, 1]));
+  });
+  it('4D x 4D', () => {
+    const x = tensor4d([1, 2, 3, 4], [1, 2, 1, 2]);
+    const y = tensor4d([1, 3], [1, 1, 2, 1]);
+    expectTensorsClose(K.dot(x, y), tensor6d([7, 15], [1, 2, 1, 1, 1, 1]));
+  });
+  it('5D x 3D incompatible shapes yields error', () => {
+    const x = tensor5d([1, 2, 3, 4], [1, 1, 1, 2, 2]);
+    const y = tensor3d([-1, 1, 3], [1, 3, 1]);
+    expect(() => K.dot(x, y))
+        .toThrowError(/the second last dim of y must equal the last dim of x/);
+  });
   it('2D x 1D leads to error', () => {
     const x = tensor2d([[1, 0], [0, -1]], [2, 2]);
     const y = tensor1d([3, 4]);
-    expect(() => K.dot(x, y)).toThrowError();
+    expect(() => K.dot(x, y))
+        .toThrowError(/dot requires both inputs to be rank >= 2/);
+  });
+  it(`1D x 2D leads to error`, () => {
+    const x = tensor1d([3, 4]);
+    const y = tensor2d([[1, 0], [0, -1]], [2, 2]);
+    expect(() => K.dot(x, y))
+        .toThrowError(/dot requires both inputs to be rank >= 2/);
   });
   it('2D x Scalar leads to error', () => {
     const x = tensor2d([[1]], [1, 1]);
     const y = scalar(10);
-    expect(() => K.dot(x, y)).toThrowError();
+    expect(() => K.dot(x, y))
+        .toThrowError(/dot requires both inputs to be rank >= 2/);
   });
   it('1D x 1D leads to error', () => {
     const x = tensor1d([1, 2]);
     const y = tensor1d([3, 4]);
-    expect(() => K.dot(x, y)).toThrowError();
+    expect(() => K.dot(x, y))
+        .toThrowError(/dot requires both inputs to be rank >= 2/);
   });
 });
 

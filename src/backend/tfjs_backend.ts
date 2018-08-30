@@ -369,33 +369,62 @@ export function randomNormal(
  *
  * For 2D tensors, this is equivalent to matrix multiplication (matMul).
  * For tensors of higher ranks, it follows the Theano behavior,
- * (e.g. `(2, 3) * (4, 3, 5) -> (2, 4, 5)`).
+ * (e.g. `(2, 3) * (4, 3, 5) -> (2, 4, 5)`).  From the Theano documentation:
+ *
+ * For N dimensions it is a sum product over the last axis of x and the
+ * second-to-last of y:
  *
  * @param x A tensor of at least rank 2.
  * @param y A tensor of at least rank 2.
  * @return Result of the dot operation.
  */
 export function dot(x: Tensor, y: Tensor): Tensor {
-  if (y.rank !== 2) {
+  if ((x.rank < 2) || (y.rank < 2)) {
     throw new NotImplementedError(
-        `dot support for y other than rank 2 is not yet implemented: ` +
-        `y shape = ${y.shape}`);
-  } else {
-    if (x.rank === 2) {
-      return tfc.matMul(x as Tensor2D, y as Tensor2D);
-    } else if (x.rank === 3) {
-      const xShape0 = x.shape[0];
-      const xShape1 = x.shape[1];
-      const xShape2 = x.shape[2];
-      x = x.reshape([xShape0 * xShape1, xShape2]);
-      return tfc.matMul(x as Tensor2D, y as Tensor2D).reshape([
-        xShape0, xShape1, y.shape[1]
-      ]);
-    } else {
+        `dot requires both inputs to be rank >= 2` +
+        ` but got x shape = ${x.shape} and y shape = ${y.shape}`);
+  }
+  if (y.rank >= 3) {
+    const xLastDim = x.shape.slice(-1)[0];
+    const ySecondLastDim = y.shape.slice(-2)[0];
+    if (xLastDim !== ySecondLastDim) {
       throw new NotImplementedError(
-          `dot support for x of rank ${x.rank} is not yet implemented: ` +
-          `x shape = ${x.shape}`);
+          `If rank y >= 3, then the second last dim` +
+          ` of y must equal the last dim of x but got x shape = ${
+              x.shape} and ` +
+          ` y shape = ${y.shape}`);
     }
+  }
+  // Handle basic 2D x 2D case.
+  if ((x.rank === 2) && (y.rank === 2)) {
+    return tfc.matMul(x as Tensor2D, y as Tensor2D);
+  } else {
+    // Reshape x into the analogous 2D Tensor.
+    const xFirstDims = x.shape.slice();  // Holds all but the last dim of x.
+    const xLastDim = xFirstDims.pop();
+    x = x.reshape([-1, xLastDim]);
+
+    // Reshape y into the analogous 2D Tensor, and keep track of the
+    // required dimensions to reproduce the output shape.
+    const yShape = y.shape.slice();
+    const yLastDim = yShape.pop();
+    const ySecondLastDim = yShape.pop();
+    const yOtherDims = [...yShape, yLastDim];
+    // permutation should be like [r-2, 0, 1, 2, ... r-4, r-3, r-1]
+    // where r is the rank of y.
+    const perm = Array.from({length: y.rank}, (_, i) => {
+      if (i === 0) {
+        return y.rank - 2;
+      } else if (i <= y.rank - 2) {
+        return i - 1;
+      }
+      return i;
+    });
+    y = y.transpose(perm).reshape([ySecondLastDim, -1]);
+
+    // Multiply x and y as 2D Tensors, and then reshape back to original.
+    const outputShape = [...xFirstDims, ...yOtherDims];
+    return tfc.matMul(x as Tensor2D, y as Tensor2D).reshape(outputShape);
   }
 }
 
