@@ -2600,6 +2600,147 @@ export class MathBackendCPU implements KernelBackend {
   floatPrecision() {
     return 32;
   }
+
+  cropAndResize(
+      images: Tensor4D,
+      boxes: Tensor2D,
+      boxIndex: Tensor1D,
+      cropSize: [number, number],
+      method: string,
+      extrapolationValue: number,
+  ) {
+    const [batch, imageHeight, imageWidth, numChannels] = images.shape;
+    const numBoxes = boxes.shape[0];
+
+    const [cropHeight, cropWidth] = cropSize;
+    const output =
+        ops.buffer<Rank.R4>([numBoxes, cropHeight, cropWidth, numChannels]);
+
+    const boxVals = boxes.dataSync();
+    const boxIndVals = boxIndex.dataSync();
+    const imageVals = images.dataSync();
+
+    const inStride = images.strides; // to calculate flat indexes into image
+    const outStride = output.strides; // to calculate flat indexes into output
+
+    // Reference implementation
+    // tslint:disable-next-line:max-line-length
+    // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/crop_and_resize_op.cc
+    for (let b = 0; b < numBoxes; b++) {
+      const startInd = b * 4;
+      const y1 = boxVals[startInd];
+      const x1 = boxVals[startInd + 1];
+      const y2 = boxVals[startInd + 2];
+      const x2 = boxVals[startInd + 3];
+
+      const bInd: number = boxIndVals[b];
+      if (bInd >= batch) {
+        continue;
+      }
+
+      const heightScale = (cropHeight > 1) ?
+        (y2 - y1) * (imageHeight - 1) / (cropHeight - 1) :
+        0;
+      const widthScale = (cropWidth > 1) ?
+        (x2 - x1) * (imageWidth - 1) / (cropWidth - 1) :
+        0;
+
+      for (let y = 0; y < cropHeight; y++) {
+
+        const yInd: number = (cropHeight > 1) ?
+            y1 * (imageHeight - 1) + y * (heightScale) :
+            0.5 * (y1 + y2) * (imageHeight - 1);
+
+        if (yInd < 0 || yInd > imageHeight - 1) {
+          for (let x = 0; x < cropWidth; x++) {
+            for (let c = 0; c < numChannels; c++) {
+              const ind = c + x * outStride[2] + y * outStride[1] +
+                  b * outStride[0];
+              output.values[ind] = extrapolationValue;
+            }
+          }
+          continue;
+        }
+
+        if (method === 'bilinear') {
+          const topInd = Math.floor(yInd);
+          const bottomInd = Math.ceil(yInd);
+          const yLerp = yInd - topInd;
+
+          for (let x = 0; x < cropWidth; x++) {
+
+            const xInd = (cropWidth > 1) ?
+                x1 * (imageWidth - 1) + x * widthScale :
+                0.5 * (x1 + x2) * (imageWidth - 1);
+
+            if (xInd < 0 || xInd > imageWidth - 1) {
+              for (let c = 0; c < numChannels; c++) {
+                const ind = c + x * outStride[2] + y * outStride[1] +
+                    b * outStride[0];
+                output.values[ind] = extrapolationValue;
+              }
+              continue;
+            }
+
+            const leftInd = Math.floor(xInd);
+            const rightInd = Math.ceil(xInd);
+            const xLerp = xInd - leftInd;
+
+            for (let c = 0; c < numChannels; c++) {
+              let ind = c + leftInd * inStride[2] + topInd * inStride[1] +
+                  bInd * inStride[0];
+              const topLeft = imageVals[ind];
+
+              ind = c + rightInd * inStride[2] + topInd * inStride[1] +
+                  bInd * inStride[0];
+              const topRight = imageVals[ind];
+
+              ind = c + leftInd * inStride[2] + bottomInd * inStride[1] +
+                  bInd * inStride[0];
+              const bottomLeft = imageVals[ind];
+
+              ind = c + rightInd * inStride[2] + bottomInd * inStride[1] +
+                  bInd * inStride[0];
+              const bottomRight = imageVals[ind];
+
+              const top = topLeft + (topRight - topLeft) * xLerp;
+              const bottom = bottomLeft + (bottomRight - bottomLeft) * xLerp;
+
+              ind = c + x * outStride[2] + y * outStride[1] +
+                    b * outStride[0];
+              output.values[ind] = top + ((bottom - top) * yLerp);
+            }
+          }
+        } else {  // method == "nearest"
+          for (let x = 0; x < cropWidth; ++x) {
+            const xInd = (cropWidth > 1) ?
+                x1 * (imageWidth - 1) + x * widthScale :
+                0.5 * (x1 + x2) * (imageWidth - 1);
+
+            if (xInd < 0 || xInd > imageWidth - 1) {
+              for (let c = 0; c < numChannels; c++) {
+                const ind = c + x * outStride[2] + y * outStride[1] +
+                    b * outStride[0];
+                output.values[ind] = extrapolationValue;
+              }
+              continue;
+            }
+
+            const closestX = Math.round(xInd);
+            const closestY = Math.round(yInd);
+            for (let c = 0; c < numChannels; c++) {
+              const inInd = c + closestX * inStride[2]
+                  + closestY * inStride[1] + bInd * inStride[0];
+              const outInd = c + x * outStride[2] + y * outStride[1] +
+                  b * outStride[0];
+              output.values[outInd] = imageVals[inInd];
+            }
+          }
+        }
+      }
+    }
+    return output.toTensor();
+  }
 }
 
 ENV.registerBackend(

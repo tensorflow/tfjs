@@ -49,6 +49,7 @@ import {ConcatProgram} from './webgl/concat_gpu';
 import {Conv2DDerFilterProgram, Conv2DDerInputProgram} from './webgl/conv_backprop_gpu';
 import {DepthwiseConv2DDerFilterProgram, DepthwiseConv2DDerInputProgram} from './webgl/conv_backprop_gpu_depthwise';
 import {Conv2DProgram} from './webgl/conv_gpu';
+import {CropAndResizeProgram} from './webgl/crop_and_resize_gpu';
 import {DepthwiseConv2DProgram} from './webgl/conv_gpu_depthwise';
 import {CumSumProgram} from './webgl/cumsum_gpu';
 import {DepthToSpaceProgram} from './webgl/depth_to_space_gpu';
@@ -1371,6 +1372,15 @@ export class MathBackendWebGL implements KernelBackend {
     const scoresVals = scores.dataSync();
     return nonMaxSuppressionImpl(
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
+  }
+
+  cropAndResize(
+      image: Tensor4D, boxes: Tensor2D, boxIndex: Tensor1D,
+      cropSize: [number, number], method: 'bilinear'|'nearest',
+      extrapolationValue: number): Tensor4D {
+    const program = new CropAndResizeProgram(
+        image.shape, boxes.shape, cropSize, method, extrapolationValue);
+    return this.compileAndRun(program, [image, boxes, boxIndex]);
   }
 
   depthToSpace(x: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):
