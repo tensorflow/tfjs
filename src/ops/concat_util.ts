@@ -17,25 +17,29 @@
 
 import * as util from '../util';
 
-export function assertParams(aShape: number[], bShape: number[], axis: number) {
-  const aRank = aShape.length;
-  const bRank = bShape.length;
-  util.assert(
-      aShape.length === bShape.length,
-      `Error in concat${aRank}D: rank of x1 (${aRank}) and x2 (${bRank}) ` +
-          `must be the same.`);
-
-  util.assert(
-      axis >= 0 && axis < aRank,
-      `Error in concat${aRank}D: axis must be ` +
-          `between 0 and ${aRank - 1}.`);
-
-  for (let i = 0; i < aRank; i++) {
+export function assertParamsConsistent(shapes: number[][], axis: number) {
+  const rank = shapes[0].length;
+  shapes.forEach((shape, i) => {
     util.assert(
-        (i === axis) || (aShape[i] === bShape[i]),
-        `Error in concat${aRank}D: Shape (${aShape}) does not match ` +
-            `(${bShape}) along the non-concatenated axis ${i}.`);
-  }
+        shape.length === rank,
+        `Error in concat${rank}D: rank of tensors[${i}] must be the same ` +
+            `as the rank of the rest (${rank})`);
+  });
+
+  util.assert(
+      axis >= 0 && axis < rank,
+      `Error in concat${rank}D: axis must be between 0 and ${rank - 1}.`);
+
+  const firstShape = shapes[0];
+  shapes.forEach((shape, i) => {
+    for (let r = 0; r < rank; r++) {
+      util.assert(
+          (r === axis) || (shape[r] === firstShape[r]),
+          `Error in concat${rank}D: Shape of tensors[${i}] (${shape}) ` +
+              `does not match the shape of the rest (${firstShape}) ` +
+              `along the non-concatenated axis ${i}.`);
+    }
+  });
 }
 
 export function computeOutShape(shapes: number[][], axis: number): number[] {
@@ -44,14 +48,4 @@ export function computeOutShape(shapes: number[][], axis: number): number[] {
     outputShape[axis] += shapes[i][axis];
   }
   return outputShape;
-}
-
-export function computeGradientSliceShapes(
-    aShape: [number, number], bShape: [number, number]) {
-  return {
-    aBegin: [0, 0] as [number, number],
-    aSize: aShape,
-    bBegin: [0, aShape[1]] as [number, number],
-    bSize: bShape
-  };
 }

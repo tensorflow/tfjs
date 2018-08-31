@@ -14,13 +14,14 @@
  * limitations under the License.
  * =============================================================================
  */
+
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
 import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
 import {DataType, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike4D, TypedArray} from '../types';
 import * as util from '../util';
-import {getAxesPermutation, getInnerMostAxes, parseAxisParam} from './axis_util';
-import {concat} from './concat';
+import {getAxesPermutation, getInnerMostAxes} from './axis_util';
+import {concat} from './concat_split';
 import {op} from './operation';
 import {MPRandGauss} from './rand';
 import {zerosLike} from './tensor_ops';
@@ -937,66 +938,6 @@ function unstack_<T extends Tensor>(x: T|TensorLike, axis = 0): Tensor[] {
 }
 
 /**
- * Splits a `Tensor` into sub tensors.
- *
- * If `numOrSizeSplits` is a number, splits `x` along dimension `axis`
- * into `numOrSizeSplits` smaller tensors.
- * Requires that `numOrSizeSplits` evenly divides `x.shape[axis]`.
- *
- * If `numOrSizeSplits` is a number array, splits `x` into
- * `(numOrSizeSplits.length` pieces. The shape of the `i`-th piece has the
- * same size as `x` except along dimension `axis` where the size is
- * `numOrSizeSplits[i]`.
- *
- * ```js
- * const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
- * const [a, b] = tf.split(x, 2, 1);
- * a.print();
- * b.print();
- *
- * const [c, d, e] = tf.split(x, [1, 2, 1], 1);
- * c.print();
- * d.print();
- * e.print();
- * ```
- *
- * @param x The input tensor to split.
- * @param numOrSizeSplits Either an integer indicating the number of
- * splits along the axis or an array of integers containing the sizes of
- * each output tensor along the axis. If a number then it must evenly divide
- * `x.shape[axis]`; otherwise the sum of sizes must match `x.shape[axis]`.
- * @param axis The dimension along which to split. Defaults to 0 (the first
- * dim).
- */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
-function split_<T extends Tensor>(
-    x: T|TensorLike, numOrSizeSplits: number[]|number, axis = 0): T[] {
-  const $x = convertToTensor(x, 'x', 'split');
-
-  axis = parseAxisParam(axis, $x.shape)[0];
-  let splitSizes: number[];
-  if (typeof (numOrSizeSplits) === 'number') {
-    util.assert(
-        $x.shape[axis] % numOrSizeSplits === 0,
-        'Number of splits must evenly divide the axis.');
-    splitSizes = Array(numOrSizeSplits).fill($x.shape[axis] / numOrSizeSplits);
-  } else {
-    util.assert(
-        $x.shape[axis] === numOrSizeSplits.reduce((a, b) => a + b),
-        'The sum of sizes must match the size of the axis dimension.');
-    splitSizes = numOrSizeSplits;
-  }
-  const begin = Array($x.rank).fill(0);
-  const size = $x.shape.slice();
-  return splitSizes.map(s => {
-    size[axis] = s;
-    const slice = $x.slice(begin, size);
-    begin[axis] += s;
-    return slice;
-  });
-}
-
-/**
  * Computes the cumulative sum of a `Tensor` along `axis`.
  *
  * ```js
@@ -1216,7 +1157,6 @@ export const randomNormal = op({randomNormal_});
 export const randomUniform = op({randomUniform_});
 export const reshape = op({reshape_});
 export const spaceToBatchND = op({spaceToBatchND_});
-export const split = op({split_});
 export const squeeze = op({squeeze_});
 export const stack = op({stack_});
 export const tile = op({tile_});

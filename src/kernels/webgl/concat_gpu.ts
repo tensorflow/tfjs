@@ -23,7 +23,7 @@ export class ConcatProgram implements GPGPUProgram {
   outputShape: number[] = [];
   userCode: string;
 
-  // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
+  // Concats 2d tensors along axis=1. See comments in MathBackendWebGL.concat().
   constructor(aShape: [number, number], bShape: [number, number]) {
     this.outputShape =
         concat_util.computeOutShape([aShape, bShape], 1 /* axis */);

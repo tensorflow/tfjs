@@ -175,8 +175,7 @@ export class Engine implements TensorManager {
         id: this.nextTapeNodeId++,
         name: scopeName,
         inputs,
-        // Keep gradient records only for the first output.
-        output: Array.isArray(result) ? result[0] : result
+        outputs: Array.isArray(result) ? result : [result] as Tensor[]
       };
       if (backwardsFunc != null) {
         tapeNode.gradient =
@@ -287,7 +286,7 @@ export class Engine implements TensorManager {
       id: this.nextTapeNodeId++,
       name: this.activeScope.name,
       inputs: inputsMap,
-      output: result,
+      outputs: [result],
       gradient
     };
     this.activeTape.push(tapeNode);
