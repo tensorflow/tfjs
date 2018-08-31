@@ -1,6 +1,7 @@
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
-import {Drawable, VisOptions, XYVal} from '../types';
+import {Drawable, Point2D, VisOptions} from '../types';
+
 import {getDrawArea} from './render_utils';
 
 /**
@@ -26,14 +27,14 @@ import {getDrawArea} from './render_utils';
  * @param opts.yLabel label for y axis
  */
 export async function renderLinechart(
-    data: {values: XYVal[][]|XYVal[], series?: string[]}, container: Drawable,
-    opts: VisOptions = {}): Promise<void> {
+    data: {values: Point2D[][]|Point2D[], series?: string[]},
+    container: Drawable, opts: VisOptions = {}): Promise<void> {
   let inputArray = data.values;
   const _series = data.series == null ? [] : data.series;
 
   // Nest data if necessary before further processing
-  inputArray = Array.isArray(inputArray[0]) ? inputArray as XYVal[][] :
-                                              [inputArray] as XYVal[][];
+  inputArray = Array.isArray(inputArray[0]) ? inputArray as Point2D[][] :
+                                              [inputArray] as Point2D[][];
 
   const values = inputArray.reduce((memo, seriesData, i) => {
     const seriesName: string =
@@ -113,7 +114,7 @@ export async function renderLinechart(
         'encoding': {
           'x': {
             'type': options.xType,
-            'field': 'index',
+            'field': 'x',
           }
         }
       },
@@ -130,7 +131,7 @@ export async function renderLinechart(
         'encoding': Object.assign({}, encodings, {
           'text': {
             'type': options.xType,
-            'field': 'value',
+            'field': 'y',
             'format': '.6f',
           },
           // Unset text color to improve readability
@@ -146,8 +147,8 @@ export async function renderLinechart(
 }
 
 const defaultOpts = {
-  xLabel: 'Index',
-  yLabel: 'Value',
+  xLabel: 'x',
+  yLabel: 'y',
   xType: 'quantitative',
   yType: 'quantitative',
 };

@@ -135,9 +135,24 @@ export interface CSSOptions {
   maxHeight: string;
 }
 
-export type Drawable = HTMLElement|Surface|{
+export type Drawable = HTMLElement|Surface|SurfaceInfo|{
   drawArea: HTMLElement;
 };
+
+export function isSurfaceInfo(drawable: Drawable): drawable is SurfaceInfo {
+  if ((drawable as SurfaceInfo).name != null) {
+    return true;
+  }
+  return false;
+}
+
+export function isSurface(drawable: Drawable): drawable is Surface {
+  if ((drawable as Surface).drawArea instanceof HTMLElement) {
+    return true;
+  }
+  return false;
+}
+
 
 /**
  * Common visualisation options for '.render' functions.
@@ -181,6 +196,6 @@ export interface ConfusionMatrixData {
 /**
  * Datum format for scatter and line plots
  */
-export type XYVal = {
+export type Point2D = {
   x: number; y: number;
 };

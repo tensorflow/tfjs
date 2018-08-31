@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "watch-api": "NODE_ENV=development parcel ./api/index.html --no-hmr --open --no-autoinstall"
+    "watch-api": "NODE_ENV=development parcel ./api/index.html --no-hmr --open --no-autoinstall",
+    "watch-mnist": "NODE_ENV=development parcel ./mnist/index.html --no-hmr --open --no-autoinstall"
   },
   "author": "",
   "license": "Apache-2.0",
