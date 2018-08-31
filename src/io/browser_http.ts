@@ -139,8 +139,8 @@ export class BrowserHTTPRequest implements IOHandler {
     const graphPromise = this.loadBinaryTopology();
     const manifestPromise = await fetch(this.path[1], this.requestInit);
 
-    const [modelTopology, weightsManifestResponse] =
-        await Promise.all([graphPromise, manifestPromise]);
+    const results = await Promise.all([graphPromise, manifestPromise]);
+    const [modelTopology, weightsManifestResponse] = results;
 
     const weightsManifest =
         await weightsManifestResponse.json() as WeightsManifestConfig;
@@ -148,7 +148,8 @@ export class BrowserHTTPRequest implements IOHandler {
     let weightSpecs: WeightsManifestEntry[];
     let weightData: ArrayBuffer;
     if (weightsManifest != null) {
-      [weightSpecs, weightData] = await this.loadWeights(weightsManifest);
+      const results = await this.loadWeights(weightsManifest);
+      [weightSpecs, weightData] = results;
     }
 
     return {modelTopology, weightSpecs, weightData};
@@ -173,7 +174,8 @@ export class BrowserHTTPRequest implements IOHandler {
     if (weightsManifest != null) {
       const weightsManifest =
           modelConfig['weightsManifest'] as WeightsManifestConfig;
-      [weightSpecs, weightData] = await this.loadWeights(weightsManifest);
+      const results = await this.loadWeights(weightsManifest);
+      [weightSpecs, weightData] = results;
     }
 
     return {modelTopology, weightSpecs, weightData};
