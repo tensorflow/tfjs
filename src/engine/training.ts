@@ -1050,7 +1050,7 @@ export class Model extends Container implements tfc.InferenceModel {
   }
 
   /**
-   * Execute intrenal tensors of the model with input data feed.
+   * Execute internal tensors of the model with input data feed.
    * @param inputs Input data feed. Must match the inputs of the model.
    * @param outputs Names of the output tensors to be fetched. Must match
    *   names of the SymbolicTensors that belong to the graph.
