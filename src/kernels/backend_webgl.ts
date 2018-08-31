@@ -21,6 +21,7 @@ import {tidy} from '../globals';
 import {warn} from '../log';
 import * as array_ops_util from '../ops/array_ops_util';
 import * as axis_util from '../ops/axis_util';
+import {computeOutShape} from '../ops/concat_util';
 import {Conv2DInfo} from '../ops/conv_util';
 import * as reduce_util from '../ops/reduce_util';
 import * as segment_util from '../ops/segment_util';
@@ -30,12 +31,12 @@ import {range, scalar, tensor} from '../ops/tensor_ops';
 import {DataId, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {DataType, DataTypeMap, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../types';
 import * as util from '../util';
-import {getTypedArrayFromDType} from '../util';
-
+import {getTypedArrayFromDType, sizeFromShape} from '../util';
 import {KernelBackend} from './backend';
 import * as backend_util from './backend_util';
 import {mergeRealAndImagArrays} from './complex_util';
 import {nonMaxSuppressionImpl} from './non_max_suppression_impl';
+import {split} from './split_shared';
 import {topkImpl} from './topk_impl';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
 import {AvgPool2DBackpropProgram} from './webgl/avg_pool_backprop_gpu';
@@ -521,10 +522,31 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
-  concat(a: Tensor2D, b: Tensor2D): Tensor2D {
-    const program = new ConcatProgram(a.shape, b.shape);
-    return this.compileAndRun(program, [a, b]);
+  private concat2Tensors<T extends Tensor>(a: T, b: T, axis: number): T {
+    // Any concat of n-dimensional tensors across any axis can be reduced to
+    // a concatenation of two-dimensional tensors across the axis 1 by first
+    // partitioning the axes of the original tensors into those less than the
+    // axis to be concatenated and the rest. Then reshape the tensors
+    // into a two-dimensional tensor by collapsing these two sets of axes and
+    // concatenate the resulting matrices across the axis 1, finally reshaping
+    // the result to have the proper shape.
+    const outShape = computeOutShape([a.shape, b.shape], axis);
+    const a2D = a.as2D(-1, sizeFromShape(a.shape.slice(axis)));
+    const b2D = b.as2D(-1, sizeFromShape(b.shape.slice(axis)));
+    const program = new ConcatProgram(a2D.shape, b2D.shape);
+    const res = this.compileAndRun(program, [a2D, b2D]);
+    return res.reshape(outShape) as T;
+  }
+
+  concat(tensors: Tensor[], axis: number): Tensor {
+    if (tensors.length === 1) {
+      return tensors[0];
+    }
+    let result = tensors[0];
+    for (let i = 1; i < tensors.length; ++i) {
+      result = this.concat2Tensors(result, tensors[i], axis);
+    }
+    return result;
   }
 
   neg<T extends Tensor>(x: T): T {
@@ -1405,6 +1427,10 @@ export class MathBackendWebGL implements KernelBackend {
 
     const program = new DepthToSpaceProgram(outputShape, blockSize, dataFormat);
     return this.compileAndRun(program, [x]);
+  }
+
+  split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
+    return split(x, sizeSplits, axis);
   }
 
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):

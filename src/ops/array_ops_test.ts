@@ -2938,9 +2938,17 @@ describeWithFlags('split', ALL_ENVS, () => {
     expectArraysClose(res[1], [3, 4, 7, 8]);
   });
 
-  it('should have proper gradient', () => {
+  it('gradient of 1st output', () => {
     const a = tf.tensor1d([1, 2, 3]);
-    const da = tf.grad(x => tf.split(x, [ 1, 2 ])[1])(a);
+    const da = tf.grad(x => tf.split(x, [1,2])[0])(a);
+
+    expect(da.shape).toEqual([3]);
+    expectArraysClose(da, [1, 0, 0]);
+  });
+
+  it('gradient of 2nd output', () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const da = tf.grad(x => tf.split(x, [1,2])[1])(a);
 
     expect(da.shape).toEqual([3]);
     expectArraysClose(da, [0, 1, 1]);

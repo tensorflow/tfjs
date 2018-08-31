@@ -61,17 +61,7 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
       newAxisMask: number, shrinkAxisMask: number): T;
   reverse<T extends Tensor>(a: T, axis: number[]): T;
 
-  // Any concat of n-dimensional tensors across any axis can be reduced to
-  // a concatenation of two-dimensional tensors across the axis 1 by first
-  // partitioning the axes of the original tensors into those less than the axis
-  // to be concatenated across and the rest. Then reshape the tensors into a
-  // two-dimensional tensor by collapsing these two sets of axes and concatenate
-  // the resulting matrices across the axis 1, finally reshaping the result to
-  // have the proper shape.
-  // This method always take a rank-2 tensor (i.e a matrix) and concatenate it
-  // along the axis 1 ("putting them next to each other" as opposed to
-  // "putting them on top of one another").
-  concat(a: Tensor2D, b: Tensor2D): Tensor2D;
+  concat(tensors: Tensor[], axis: number): Tensor;
 
   neg<T extends Tensor>(a: T): T;
 
@@ -254,12 +244,15 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
   real<T extends Tensor>(input: T): T;
   imag<T extends Tensor>(input: T): T;
 
-  dispose(): void;
-
   cropAndResize(
-    image: Tensor4D, boxes: Tensor2D, boxIndex: Tensor1D,
-    cropSize: [number, number], method: 'bilinear' | 'nearest',
-    extrapolationValue: number): Tensor4D;
+      image: Tensor4D, boxes: Tensor2D, boxIndex: Tensor1D,
+      cropSize: [number, number], method: 'bilinear'|'nearest',
+      extrapolationValue: number): Tensor4D;
 
   depthToSpace(x: Tensor4D, blockSize: number, dataFormat: string): Tensor4D;
+
+  // Aligns with the "SplitV" kernel in TensorFlow.
+  split<T extends Tensor>(value: T, sizeSplits: number[], axis: number): T[];
+
+  dispose(): void;
 }

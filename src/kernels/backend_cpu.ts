@@ -16,7 +16,6 @@
  */
 
 import * as seedrandom from 'seedrandom';
-
 import {ENV} from '../environment';
 import {warn} from '../log';
 import * as array_ops_util from '../ops/array_ops_util';
@@ -26,18 +25,18 @@ import * as concat_util from '../ops/concat_util';
 import {Conv2DInfo} from '../ops/conv_util';
 import * as erf_util from '../ops/erf_util';
 import * as ops from '../ops/ops';
-import {buffer, tensor3d, tensor4d} from '../ops/ops';
+import {buffer, tensor, tensor3d, tensor4d} from '../ops/ops';
 import * as selu_util from '../ops/selu_util';
 import {getStridedSlicedInfo} from '../ops/slice_util';
 import {DataId, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {DataType, DataTypeMap, Rank, ShapeMap, TypedArray, upcastType} from '../types';
 import * as util from '../util';
 import {now} from '../util';
-
 import {BackendTimingInfo, KernelBackend} from './backend';
 import * as backend_util from './backend_util';
 import * as complex_util from './complex_util';
 import {nonMaxSuppressionImpl} from './non_max_suppression_impl';
+import {split} from './split_shared';
 import {topkImpl} from './topk_impl';
 import {whereImpl} from './where_impl';
 
@@ -294,33 +293,41 @@ export class MathBackendCPU implements KernelBackend {
     return buffer.toTensor() as T;
   }
 
-  // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
-  concat(a: Tensor2D, b: Tensor2D): Tensor2D {
-    this.assertNotComplex([a, b], 'concat');
-
-    const outShape = concat_util.computeOutShape(
-                         [a.shape, b.shape], 1 /* axis */) as [number, number];
-    const buffer = ops.buffer<Rank.R2>(outShape, a.dtype);
-
-    if (a.shape[0] === 1 && b.shape[0] === 1) {
+  concat(tensors: Tensor[], axis: number): Tensor {
+    this.assertNotComplex(tensors, 'concat');
+    const tensors2D = tensors.map(t => {
+      const innerSize = util.sizeFromShape(t.shape.slice(axis));
+      return t.as2D(-1, innerSize);
+    });
+    const outShape =
+        concat_util.computeOutShape(tensors2D.map(t => t.shape), 1 /* axis */);
+    const values =
+        ops.buffer<Rank.R2>(outShape as [number, number], tensors[0].dtype)
+            .values;
+    if (tensors2D[0].shape[0] === 1) {
       // Use built-in TypedArray.set() method for speed.
-      const aVals = a.dataSync();
-      const bVals = b.dataSync();
-      const vals = buffer.values;
-      vals.set(aVals, 0);
-      vals.set(bVals, a.size);
-      return buffer.toTensor();
+      let offset = 0;
+      tensors2D.forEach(t => {
+        values.set(t.dataSync(), offset);
+        offset += t.size;
+      });
+    } else {
+      let colOffset = 0;
+      tensors2D.forEach(t => {
+        const tVals = t.dataSync();
+        let tIdx = 0;
+        for (let row = 0; row < t.shape[0]; ++row) {
+          const resIdx = row * outShape[1] + colOffset;
+          for (let col = 0; col < t.shape[1]; ++col) {
+            values[resIdx + col] = tVals[tIdx++];
+          }
+        }
+        colOffset += t.shape[1];
+      });
     }
-
-    for (let i = 0; i < outShape[0]; ++i) {
-      for (let j = 0; j < a.shape[1]; ++j) {
-        buffer.set(a.get(i, j), i, j);
-      }
-      for (let j = 0; j < b.shape[1]; ++j) {
-        buffer.set(b.get(i, j), i, j + a.shape[1]);
-      }
-    }
-    return buffer.toTensor();
+    const finalOutShape =
+        concat_util.computeOutShape(tensors.map(t => t.shape), axis);
+    return tensor(values, finalOutShape, tensors[0].dtype);
   }
 
   neg<T extends Tensor>(x: T): T {
@@ -2601,6 +2608,10 @@ export class MathBackendCPU implements KernelBackend {
       }
     }
     return this.complex(realResult.toTensor(), imagResult.toTensor());
+  }
+
+  split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
+    return split(x, sizeSplits, axis);
   }
 
   dispose() {}
