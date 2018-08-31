@@ -27,12 +27,13 @@ export async function history(
   let values: Point2D[][];
   if (Array.isArray(history)) {
     values = metrics.map(metric => {
-      return history.reduce((points: Point2D[], log: Logs, x: number) => {
+      const points: Point2D[] = [];
+      history.forEach((log: Logs, x: number) => {
         if (log[metric] != null) {
           points.push({x, y: log[metric]});
         }
-        return points;
-      }, []);
+      });
+      return points;
     });
   } else {
     values = metrics.map(metric => {
@@ -90,12 +91,11 @@ export function fitCallbacks(
     };
   }
 
-  return callbackNames.reduce(
-      (callbacks: FitCallbackHandlers, name: string) => {
-        callbacks[name] = makeCallbackFor(name);
-        return callbacks;
-      },
-      {});
+  const callbacks: FitCallbackHandlers = {};
+  callbackNames.forEach((name: string) => {
+    callbacks[name] = makeCallbackFor(name);
+  });
+  return callbacks;
 }
 
 type HistoryLike = Logs[]|{

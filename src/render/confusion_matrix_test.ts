@@ -38,7 +38,7 @@ describe('renderConfusionMatrix', () => {
     const data = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
       labels: ['cheese', 'pig', 'font'],
-    }
+    };
 
     const container = document.getElementById('container') as HTMLElement;
     await renderConfusionMatrix(data, container, {shadeDiagonal: true});
@@ -61,7 +61,7 @@ describe('renderConfusionMatrix', () => {
     let data = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
       labels: ['cheese', 'pig', 'font'],
-    }
+    };
 
     const container = document.getElementById('container') as HTMLElement;
 
@@ -71,7 +71,7 @@ describe('renderConfusionMatrix', () => {
     data = {
       values: [[43, 2, 8], [1, 7, 2], [3, 3, 20]],
       labels: ['cheese', 'pig', 'font'],
-    }
+    };
 
     await renderConfusionMatrix(data, container);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);

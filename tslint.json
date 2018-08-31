@@ -33,7 +33,14 @@
       ],
       [
         "xitFakeAsync"
-      ]
+      ],
+      {
+        "name": [
+          "*",
+          "reduce"
+        ],
+        "message": "Use forEach or a regular for loop instead."
+      }
     ],
     "ban-types": [
       true,

@@ -36,13 +36,14 @@ export async function renderScatterplot(
   _values = Array.isArray(_values[0]) ? _values as Point2D[][] :
                                         [_values] as Point2D[][];
 
-  const values = _values.reduce((memo, seriesData, i) => {
+  const values: Point2D[] = [];
+  _values.forEach((seriesData, i) => {
     const seriesName: string =
         _series[i] != null ? _series[i] : `Series ${i + 1}`;
     const seriesVals =
         seriesData.map(v => Object.assign({}, v, {series: seriesName}));
-    return memo.concat(seriesVals);
-  }, []);
+    values.push(...seriesVals);
+  });
 
   const drawArea = getDrawArea(container);
   const options = Object.assign({}, defaultOpts, opts);
