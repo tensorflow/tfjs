@@ -1,0 +1,289 @@
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="./tufte.css" />
+  <script src="./index.js"></script>
+
+  <style>
+    .lang-javascript {
+      width: 60%;
+      padding-left: 15px;
+      font-family: monospace;
+    }
+
+    script.show-script {
+      display: block;
+      max-width: 720px;
+      background-color: floralwhite;
+      font-family: "Lucida Console", Monaco, "Courier New", Courier, monospace;
+      font-size: 12px;
+      margin-left: -40px;
+      white-space: pre;
+      margin-top: 2em;
+    }
+
+    code {
+      background-color: #eee;
+      padding: 2px 4px 2px 4px;
+    }
+  </style>
+
+  <style>
+  </style>
+</head>
+
+<body>
+  <article>
+    <h1>Visualizaing training with tfjs-vis</h1>
+
+    <section>
+      <p>
+        tfjs-vis is a small set of visualization utilities to make it easier to understand what is going on with your tfjs models.
+        It is designed in a way to work along side regular web apps. This page will use some of the features of tfjs to illustrate
+        what is going on with a convolutional model that will be trained (in the browser) to recognize handwritten digits.
+      </p>
+
+      <p>
+        tfjs-vis provides 2 main things:
+        <ol>
+          <li>A place to put visualizations that tries not to interfere with your web page. We call this place a
+            <em>visor.</em>
+          </li>
+          <li>Some built in visualizations that we have found to be useful when working with TensorFlow.js
+          </li>
+        </ol>
+      </p>
+    </section>
+
+    <section>
+      <h2>The Visor</h2>
+      <p>
+        Let's take a look at the first. Calling <code>tfvis.visor()</code> will create a visor if it doesn't exist or return
+        the existing one. Click the button below to show the
+        <em>visor.</em>
+      </p>
+      <button id='show-visor'>Show Visor</button>
+      <p>
+        Notice the panel that is now displayed on the right. It hovers over your pages content and shouldn't disturb the flow of
+        your page's DOM Elements. You can see a few controls for showing or hiding the visor, but by default it also supports
+        the following keyboard shortcuts:
+        <ul>
+          <li>
+            <strong>`</strong> (backtick): Shows or hides the visor</li>
+          <li>
+            <strong>~</strong> (tilde, shift+backtick): Toggles betweeen the two sizes the visor supports</li>
+        </ul>
+        The API allows you to disable (unbind) these keyboard shortcuts.
+      </p>
+
+      <h3>Surfaces</h3>
+      <p>
+        To add content to the visor we need a
+        <em>surface</em>. We make a surface with the following function call:
+        <script type='text' class='show-script'>
+          tfVis.visor().surface({name: 'My First Surface', tab: 'Input Data'});
+        </script>
+      </p>
+      <button id='make-first-surface'>Make a surface</button>
+      <p>
+        To create a surface we must give is a name, we can also optionally specify a tab name that the surface should be put on.
+        <code>visor().surface()</code> allows us to create a surface if it doesn't exist or fetch it if it does. This API
+        returns an object that has a pointer to 3 DOM elements:
+        <ul>
+          <li>
+            <strong>container:</strong> The containing DOM element for the surface</li>
+          <li>
+            <strong>label:</strong> The label element </li>
+          <li>
+            <strong>drawArea:</strong> A DOM Element where we can render visualizations or other content.
+          </li>
+        </ul>
+      </p>
+    </section>
+
+    <section>
+      <h2>Our Data</h2>
+      <p>
+        We will use the MNIST database as our training set, it is comprised of a set of about 60k images of handwritten digits, all
+        cropped to 28x28 px. Lets take a look at a few examples, we'll use the surface we created earlier.
+      </p>
+      <button id='load-data'>Load Data</button>
+      &nbsp;&nbsp;&nbsp;
+      <button id='show-examples' disabled>Show Example Digits</button>
+
+      <p>
+        The code to render these examples isn't built into tfjs. But because you have full access to the DOM element for each surface,
+        you can draw whatever you would like into them. This allows easy integration of custom visualizations into the visor.
+
+        <p>
+          Here is the code for the "Show Example Digits" button above:
+        </p>
+
+        <script class='show-script'>
+          async function showExamples() {
+
+            // Get a surface
+            const surface =
+              tfvis.visor().surface({ name: 'My First Surface', tab: 'Input Data' });
+            const drawArea = surface.drawArea;
+
+            // Get the examples
+            const examples = data.nextTestBatch(20);
+            const numExamples = examples.xs.shape[0];
+            for (let i = 0; i < numExamples; i++) {
+              const imageTensor = tf.tidy(() => {
+                return examples.xs.slice([i, 0], [1, examples.xs.shape[1]]).reshape([
+                  28, 28, 1
+                ]);
+              });
+
+              // Create a canvas element to render each example
+              const canvas = document.createElement('canvas');
+              canvas.width = 28;
+              canvas.height = 28;
+              canvas.style = 'margin: 4px;';
+              await tf.toPixels(imageTensor, canvas);
+              drawArea.appendChild(canvas);
+
+              imageTensor.dispose();
+            }
+          }
+
+          document.querySelector('#show-examples')
+            .addEventListener('click', async (e) => showExamples());
+        </script>
+
+    </section>
+
+    <section>
+      <h2>Training Our Model</h2>
+      <p>
+        Out goal is to train a model to recognize similar digits. We have already written a tutorial on how to do so. So in this
+        article we are going to focus on monitoring that training and also look at how well our model performs.
+      </p>
+
+      <p>First let us define a helper function to do our training.</p>
+
+      <script class='show-script'>
+        async function train(model, data, fitCallbacks) {
+          const BATCH_SIZE = 64;
+          const trainDataSize = 500;
+          const testDataSize = 100;
+
+          const [trainXs, trainYs] = tf.tidy(() => {
+            const d = data.nextTrainBatch(trainDataSize);
+            return [
+              d.xs.reshape([trainDataSize, 28, 28, 1]),
+              d.labels
+            ]
+          });
+
+          const [testXs, testYs] = tf.tidy(() => {
+            const d = data.nextTestBatch(testDataSize);
+            return [
+              d.xs.reshape([testDataSize, 28, 28, 1]),
+              d.labels
+            ]
+          });
+
+          return model.fit(trainXs, trainYs, {
+            batchSize: BATCH_SIZE,
+            validationData: [testXs, testYs],
+            epochs: 10,
+            shuffle: true,
+            callbacks: fitCallbacks
+          });
+        }
+      </script>
+
+      <p>
+        We can use the <code>show.fitCallbacks</code> method to get functions that will plot the loss after every batch and
+        epoch.
+      </p>
+
+      <button id='start-training-1' disabled>Start Training</button>
+
+      <script class='show-script'>
+        async function watchTraining1() {
+          const metrics = ['loss', 'acc', 'val_loss', 'val_acc'];
+          const container = { name: 'model.fit metrics', tab: 'Training' };
+          const callbacks = tfvis.show.fitCallbacks(container, metrics);
+          return train(model, data, callbacks);
+        }
+
+        document.querySelector('#start-training-1')
+          .addEventListener('click', () => watchTraining1());
+      </script>
+
+      <p>
+        We can also use the <code>show.history</code> method to get more control over what we want plotted.
+      </p>
+
+      <button id='start-training-2' disabled>Start Training</button>
+
+      <script class='show-script'>
+        async function watchTraining2() {
+          // We need to keep accumulate the log objects from
+          // the tf.Model.fit callbacks
+          const batchLoss = [];
+          const epochAccHistory = [];
+
+          const callbacks = {
+            onBatchEnd: async (batch, h) => {
+              batchLoss.push(h);
+              tfvis.show.history(
+                { name: 'Loss on Batch End', tab: 'Training' },
+                batchLoss,
+                ['loss']
+              );
+
+              await tf.nextFrame();
+            },
+            onEpochEnd: async (epoch, h) => {
+              epochAccHistory.push(h);
+              tfvis.show.history(
+                { name: 'Accuracy on Epoch End', tab: 'Training' },
+                epochAccHistory,
+                ['acc', 'val_acc']
+              );
+
+            }
+          };
+
+          return train(model, data, callbacks);
+        }
+
+        document.querySelector('#start-training-2')
+          .addEventListener('click', () => watchTraining2());
+      </script>
+
+      <p>
+        A final option is to wait for the training to complete and render the loss curve when it is done.
+      </p>
+
+      <button id='start-training-3' disabled>Start Training</button>
+
+      <script class='show-script'>
+        async function showTrainingHistory() {
+          const trainingHistory = await train(model, data);
+          tfvis.show.history({ name: 'Training History', tab: 'Training' },
+            trainingHistory, ['loss', 'acc']);
+        }
+
+        document.querySelector('#start-training-3')
+          .addEventListener('click', () => showTrainingHistory());
+      </script>
+
+
+
+    </section>
+
+  </article>
+
+
+
+
+</body>
+
+</html>

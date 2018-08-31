@@ -1,6 +1,6 @@
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
-import {Drawable, VisOptions, XYVal} from '../types';
+import {Drawable, Point2D, VisOptions} from '../types';
 
 import {getDrawArea} from './render_utils';
 
@@ -27,14 +27,14 @@ import {getDrawArea} from './render_utils';
  * @param opts.yLabel label for y axis
  */
 export async function renderScatterplot(
-    data: {values: XYVal[][]|XYVal[], series?: string[]}, container: Drawable,
-    opts: VisOptions = {}): Promise<void> {
+    data: {values: Point2D[][]|Point2D[], series?: string[]},
+    container: Drawable, opts: VisOptions = {}): Promise<void> {
   let _values = data.values;
   const _series = data.series == null ? [] : data.series;
 
   // Nest data if necessary before further processing
-  _values =
-      Array.isArray(_values[0]) ? _values as XYVal[][] : [_values] as XYVal[][];
+  _values = Array.isArray(_values[0]) ? _values as Point2D[][] :
+                                        [_values] as Point2D[][];
 
   const values = _values.reduce((memo, seriesData, i) => {
     const seriesName: string =

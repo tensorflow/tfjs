@@ -1,10 +1,15 @@
-import {Drawable} from '../types';
+import {Drawable, isSurface, isSurfaceInfo} from '../types';
+import {visor} from '../visor';
 
 export function getDrawArea(drawable: Drawable): HTMLElement {
   if (drawable instanceof HTMLElement) {
     return drawable;
-  } else if (drawable.drawArea instanceof HTMLElement) {
+  } else if (isSurface(drawable)) {
     return drawable.drawArea;
+  } else if (isSurfaceInfo(drawable)) {
+    const surface = visor().surface(
+        {name: drawable.name, tab: drawable.tab, styles: drawable.styles});
+    return surface.drawArea;
   } else {
     throw new Error('Not a drawable');
   }

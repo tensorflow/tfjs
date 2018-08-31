@@ -21,6 +21,7 @@ import {renderHistogram} from './render/histogram';
 import {renderLinechart} from './render/linechart';
 import {renderScatterplot} from './render/scatterplot';
 import {renderTable} from './render/table';
+import {fitCallbacks, history} from './show/history';
 import {accuracy, confusionMatrix, perClassAccuracy} from './util/math';
 
 const render = {
@@ -38,6 +39,12 @@ const metrics = {
   confusionMatrix,
 };
 
+const show = {
+  history,
+  fitCallbacks
+};
+
 export {visor} from './visor';
 export {render};
 export {metrics};
+export {show};
