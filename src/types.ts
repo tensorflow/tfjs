@@ -153,7 +153,6 @@ export function isSurface(drawable: Drawable): drawable is Surface {
   return false;
 }
 
-
 /**
  * Common visualisation options for '.render' functions.
  */
