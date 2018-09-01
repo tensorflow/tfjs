@@ -54,6 +54,7 @@ export declare interface Graph {
   placeholders: Node[];
   inputs: Node[];
   outputs: Node[];
+  weights: Node[];
   withControlFlow: boolean;
   withDynamicShape: boolean;
 }

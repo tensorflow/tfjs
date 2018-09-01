@@ -81,11 +81,13 @@ export class OperationMapper {
     let withControlFlow = false;
     let withDynamicShape = false;
     const placeholders: Node[] = [];
+    const weights: Node[] = [];
     const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
       map[node.name] = this.mapNode(node);
       if (this.isControlFlow(node)) withControlFlow = true;
       if (this.isDynamicShape(node)) withDynamicShape = true;
       if (node.op === 'Placeholder') placeholders.push(map[node.name]);
+      if (node.op === 'Const') weights.push(map[node.name]);
       return map;
     }, {});
 
@@ -105,10 +107,12 @@ export class OperationMapper {
       const node = nodes[key];
       if (node.children.length === 0) outputs.push(node);
     });
+
     return {
       nodes,
       inputs,
       outputs,
+      weights,
       placeholders,
       withControlFlow,
       withDynamicShape

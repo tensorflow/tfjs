@@ -125,6 +125,15 @@ export class FrozenModel implements tfc.InferenceModel {
    * input type, if you use Tensor[], the order of the array needs to follow the
    * order of inputNodes array. @see {@link FrozenModel.inputNodes}
    *
+   * You can also feed any intermediate nodes using the NamedTensorMap as the
+   * input type. For example, given the graph
+   *    InputNode => Intermediate => OutputNode,
+   * you can execute the subgraph Intermediate => OutputNode by calling
+   *    frozenModel.execute('IntermediateNode' : tf.tensor(...));
+   *
+   * This is useful for models that uses tf.dynamic_rnn, where the intermediate
+   * state needs to be fed manually.
+   *
    * For batch inference execution, the tensors for each input need to be
    * concatenated together. For example with mobilenet, the required input shape
    * is [1, 244, 244, 3], which represents the [batch, height, width, channel].
@@ -143,7 +152,7 @@ export class FrozenModel implements tfc.InferenceModel {
       inputs: tfc.Tensor|tfc.Tensor[]|tfc.NamedTensorMap,
       config?: tfc.ModelPredictConfig): tfc.Tensor
       |tfc.Tensor[]|tfc.NamedTensorMap {
-    return this.execute(inputs, this.outputNodes);
+    return this.execute_(inputs, true, this.outputNodes);
   }
 
   private constructTensorMap(inputs: tfc.Tensor|tfc.Tensor[]) {
@@ -176,6 +185,13 @@ export class FrozenModel implements tfc.InferenceModel {
   execute(
       inputs: tfc.Tensor|tfc.Tensor[]|tfc.NamedTensorMap,
       outputs?: string|string[]): tfc.Tensor|tfc.Tensor[] {
+    return this.execute_(inputs, false, outputs);
+  }
+
+  private execute_(
+      inputs: tfc.Tensor|tfc.Tensor[]|tfc.NamedTensorMap,
+      strictInputCheck = true, outputs?: string|string[]): tfc.Tensor
+      |tfc.Tensor[] {
     outputs = outputs || this.outputNodes;
     if (inputs instanceof tfc.Tensor || Array.isArray(inputs)) {
       inputs = this.constructTensorMap(inputs);
@@ -186,13 +202,12 @@ export class FrozenModel implements tfc.InferenceModel {
           'please use executeAsync method');
     }
     const result = this.executor.execute(
-        this.convertTensorMapToTensorsMap(inputs), outputs);
+        this.convertTensorMapToTensorsMap(inputs), strictInputCheck, outputs);
     const keys = Object.keys(result);
     return (Array.isArray(outputs) && outputs.length > 1) ?
         outputs.map(node => result[node]) :
         result[keys[0]];
   }
-
   /**
    * Executes inference for the model for given input tensors in async
    * fashion, use this method when your model contains control flow ops.
