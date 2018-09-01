@@ -403,7 +403,7 @@ export function multiply(config?: LayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function batchNormalization(config: BatchNormalizationLayerConfig):
+export function batchNormalization(config?: BatchNormalizationLayerConfig):
     Layer {
   return new BatchNormalization(config);
 }

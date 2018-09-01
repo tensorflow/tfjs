@@ -292,8 +292,12 @@ export class BatchNormalization extends Layer {
   private movingVariance: LayerVariable;
   private stepCount: number;
 
-  constructor(config: BatchNormalizationLayerConfig) {
+  constructor(config?: BatchNormalizationLayerConfig) {
+    if (config == null) {
+      config = {};
+    }
     super(config);
+
     this.supportsMasking = true;
     this.axis = config.axis == null ? -1 : config.axis;
     this.momentum = config.momentum == null ? 0.99 : config.momentum;
