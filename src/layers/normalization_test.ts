@@ -312,6 +312,11 @@ describeMathCPU('BatchNormalization Layers: Symbolic', () => {
         .toThrowError(
             /Axis 0 of input tensor should have a defined dimension.*/);
   });
+
+  it('batchNormalization constructor works without arg', () => {
+    const layer = tfl.layers.batchNormalization();
+    expect(layer.getConfig().axis).toEqual(-1);
+  });
 });
 
 describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
