@@ -138,6 +138,12 @@ describe('operationMapper', () => {
         ]);
       });
 
+      it('should find the graph weight nodes', () => {
+        expect(graph.weights.map(node => node.name)).toEqual([
+          'Const', 'Shape', 'Value'
+        ]);
+      });
+
       it('should convert nodes', () => {
         expect(Object.keys(graph.nodes)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
