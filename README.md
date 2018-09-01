@@ -107,7 +107,7 @@ $ tensorflowjs_converter \
 
 The conversion script above produces 3 types of files:
 
-* `web_model.pb` (the dataflow graph)
+* `tensorflowjs_model.pb` (the dataflow graph)
 * `weights_manifest.json` (weight manifest file)
 * `group1-shard\*of\*` (collection of binary weight files)
 
@@ -134,7 +134,7 @@ following location:
 import * as tf from '@tensorflow/tfjs';
 import {loadFrozenModel} from '@tensorflow/tfjs-converter';
 
-const MODEL_URL = 'https://.../mobilenet/web_model.pb';
+const MODEL_URL = 'https://.../mobilenet/tensorflowjs_model.pb';
 const WEIGHTS_URL = 'https://.../mobilenet/weights_manifest.json';
 
 const model = await loadFrozenModel(MODEL_URL, WEIGHTS_URL);
@@ -166,7 +166,7 @@ to the model files:
 // Load the tfjs-node binding
 import '@tensorflow/tfjs-node';
 
-const MODEL_PATH = 'file:///tmp/mobilenet/web_model.pb';
+const MODEL_PATH = 'file:///tmp/mobilenet/tensorflowjs_model.pb';
 const WEIGHTS_PATH = 'file:///tmp/mobilenet/weights_manifest.json';
 const model = await tf.loadFrozenModel(MODEL_PATH, WEIGHTS_PATH);
 ```
