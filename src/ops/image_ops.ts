@@ -251,13 +251,13 @@ function nonMaxSuppSanityCheck(
  */
 /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
 function cropAndResize_(
-  image: Tensor4D|TensorLike,
-  boxes: Tensor2D|TensorLike,
-  boxInd: Tensor1D|TensorLike,
-  cropSize: [number, number],
-  method?: 'bilinear'|'nearest',
-  extrapolationValue?: number,
-) {
+    image: Tensor4D|TensorLike,
+    boxes: Tensor2D|TensorLike,
+    boxInd: Tensor1D|TensorLike,
+    cropSize: [number, number],
+    method?: 'bilinear'|'nearest',
+    extrapolationValue?: number,
+    ): Tensor4D {
   const $image = convertToTensor(image, 'image', 'cropAndResize', 'float32');
   const $boxes = convertToTensor(boxes, 'boxes', 'cropAndResize', 'float32');
   const $boxInd = convertToTensor(boxInd, 'boxInd', 'cropAndResize', 'int32');
@@ -267,7 +267,8 @@ function cropAndResize_(
   const numBoxes = $boxes.shape[0];
 
   util.assert(
-      $image.rank === 4, 'Error in cropAndResize: image must be rank 4,' +
+      $image.rank === 4,
+      'Error in cropAndResize: image must be rank 4,' +
           `but got rank ${$image.rank}.`);
   util.assert(
       $boxes.rank === 2 && $boxes.shape[1] === 4,
