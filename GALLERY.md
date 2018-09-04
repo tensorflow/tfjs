@@ -27,6 +27,10 @@ Please reach out to us if you'd like to put your project on the list.
 - [Mars at Home](https://github.com/MarsAtHome/marsjs) - Mars@Home client for Firefox & Chrome - Labels image from Unsplash in browser
 - [Nxt Word](https://github.com/rajveermalviya/language-modeling) - Next Word Predictor - by Rajveer Malviya
 - [Interactive Classification](https://github.com/poloclub/interactive-classification) - Modify images and see how deep learning classifiers respond
+- [Hidden Markov Model with Gaussian emissions](https://github.com/nearform/node-hidden-markov-model-tf) - A trainable Hidden Markov Model with Gaussian emissions using TensorFlow.js. Used in [Node Clinic](https://clinicjs.org/blog/clinic-doctor-just-got-more-advanced-with-tensorflow-js/)
+- [Emotion Extractor](https://brendansudol.com/faces/) by Brendan Sudol
+- [Aida](https://aida.dor.ai/) Named entity recognition and text classification pipeline for creating chatbots by Rodrigo Pimentel
+
 
 ## Tutorials
 
