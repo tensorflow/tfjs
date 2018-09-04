@@ -1127,6 +1127,37 @@ describeMathCPUAndGPU('Sequential', () => {
     expect(() => model.pop()).toThrowError(/There are no layers in the model/);
   });
 
+  it('throws error if first layer would result in negative shape', () => {
+    const model = tfl.sequential();
+    const layer = tfl.layers.conv2d({
+      filters: 1,
+      kernelSize: [10, 10],
+      strides: 1,
+      padding: 'valid',
+      dataFormat: 'channelsLast',
+      inputShape: [4, 4, 1]
+    });
+    // Adding the layer would result in a shpae of [null, -5, -5, 1]
+    expect(() => model.add(layer)).toThrowError(/Negative dimension size/);
+  });
+
+  it('throws error if adding layer would result in negative shape', () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.activation({
+      inputShape: [4, 4, 1],
+      activation: 'relu'
+    }));
+    const layer = tfl.layers.conv2d({
+      filters: 1,
+      kernelSize: [10, 10],
+      strides: 1,
+      padding: 'valid',
+      dataFormat: 'channelsLast',
+    });
+    // Adding the layer would result in a shpae of [null, -5, -5, 1]
+    expect(() => model.add(layer)).toThrowError(/Negative dimension size/);
+  });
+
   it('apply() threads data through the model.', () => {
     const model = tfl.sequential({layers});
     expectTensorsClose(

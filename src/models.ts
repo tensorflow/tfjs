@@ -316,6 +316,18 @@ export class Sequential extends Model {
     }
   }
 
+  // Helper function to Sequential.add  Throws if the new output shape will be
+  // invalid.
+  private checkShape(layer: Layer) {
+    const shape = layer.inboundNodes[0].outputTensors[0].shape;
+    if (shape.some(x => x < 0)) {
+      throw new ValueError(
+          'Negative dimension size caused by adding layer ' +
+          `${layer.name} with input shape [` +
+          `${layer.inboundNodes[0].inputTensors[0].shape}]`);
+    }
+  }
+
   /**
    * Adds a layer instance on top of the layer stack.
    *
@@ -329,8 +341,8 @@ export class Sequential extends Model {
    * ```
    * @param layer Layer instance.
    *
-   * @exception ValueError In case the `layer` argument does not know its input
-   *   shape.
+   * @exception ValueError In case the `layer` argument does not know its
+   * input shape.
    * @exception ValueError In case the `layer` argument has multiple output
    *   tensors, or is already connected somewhere else (forbidden in
    *   `Sequential` models).
@@ -397,6 +409,7 @@ export class Sequential extends Model {
               'For multi-output layers, ' +
               'use the functional API.');
         }
+        this.checkShape(layer);
         this.outputs = [layer.inboundNodes[0].outputTensors[0]];
         this.inputs = getSourceInputs(this.outputs[0]);
       }
@@ -428,6 +441,7 @@ export class Sequential extends Model {
             'For multi-output layers, ' +
             'use the functional API.');
       }
+      this.checkShape(layer);
       this.outputs = [outputTensor as SymbolicTensor];
       // update self.inbound_nodes
       this.inboundNodes[0].outputTensors = this.outputs;
@@ -521,7 +535,8 @@ export class Sequential extends Model {
    * - Name and type of all layers that comprise the model.
    * - Output shape(s) of the layers
    * - Number of weight parameters of each layer
-   * - The total number of trainable and non-trainable parameters of the model.
+   * - The total number of trainable and non-trainable parameters of the
+   * model.
    *
    * ```js
    * const model = tf.sequential();
