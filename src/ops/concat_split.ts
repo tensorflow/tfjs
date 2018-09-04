@@ -158,6 +158,7 @@ function concat4d_(tensors: Tensor4D[]|TensorLike[], axis: number): Tensor4D {
 function concat_<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): T {
   assert(tensors.length >= 1, 'Pass at least one tensor to concat');
   let $tensors = convertToTensorArray(tensors, 'tensors', 'concat');
+  axis = parseAxisParam(axis, $tensors[0].shape)[0];
   const outShape = computeOutShape($tensors.map(t => t.shape), axis);
   if (sizeFromShape(outShape) === 0) {
     return tensor([], outShape) as T;
@@ -167,9 +168,9 @@ function concat_<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): T {
   if ($tensors.length === 1) {
     return $tensors[0];
   }
-  const axes = parseAxisParam(axis, $tensors[0].shape)[0];
+
   const shapes = $tensors.map(t => t.shape);
-  assertParamsConsistent(shapes, axes);
+  assertParamsConsistent(shapes, axis);
   const der = (dy: T) => {
     const sizeSplits = shapes.map(s => s[axis]);
     const derTensors = split(dy, sizeSplits, axis);
@@ -177,7 +178,7 @@ function concat_<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): T {
   };
   const inputs = $tensors as {};
   return ENV.engine.runKernel(
-      backend => backend.concat($tensors, axes) as T, inputs, der);
+      backend => backend.concat($tensors, axis) as T, inputs, der);
 }
 
 /**
