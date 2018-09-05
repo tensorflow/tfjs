@@ -197,7 +197,7 @@ on how to pass in callback functions to the training process.
 * @param metrics An array of strings representing training [metrics](https://js.tensorflow.org/api/latest/#tf.Model.compile) of a [tf.model](https://js.tensorflow.org/api/latest/#class:Model)
 
 
-## show.perClassAccuracy(container: Drawable, classAccuracy: {accuracy: number[], count: number[]}, classLabels?: string[]) => void
+## show.perClassAccuracy(container: Drawable, classAccuracy: {accuracy: number[], count: number[]}, classLabels?: string[]) => Promise<void>
 
 
 Renders a per class accuracy table for classification task evaluation
@@ -210,7 +210,7 @@ generate this object.
 * @param classLabels An array of string labels for the classes in
   `classAccuracy`. Optional.
 
-## show.confusionMatrix(container: Drawable, confusionMatrix: number[][], classLabels?: string[]) => void
+## show.confusionMatrix(container: Drawable, confusionMatrix: number[][], classLabels?: string[]) => Promise<void>
 
 
 Renders a confusion matrix for classification task evaluation
