@@ -64,9 +64,18 @@ export async function renderConfusionMatrix(
       const prediction = labels ? labels[j] : `Class ${j}`;
       const count = inputArray[i][j];
       if (i === j && !options.shadeDiagonal) {
-        values.push({label, prediction, diagCount: count});
+        values.push({
+          label,
+          prediction,
+          diagCount: count,
+          noFill: true,
+        });
       } else {
-        values.push({label, prediction, count});
+        values.push({
+          label,
+          prediction,
+          count,
+        });
       }
     }
   }
@@ -87,55 +96,62 @@ export async function renderConfusionMatrix(
     },
     'data': {'values': values},
     'encoding': {
-      'x': {'field': 'prediction', 'type': 'nominal'},
-      'y': {'field': 'label', 'type': 'nominal'},
+      'x': {
+        'field': 'prediction',
+        'type': 'ordinal',
+        // Maintain sort order of the axis if labels is passed in
+        'scale': {'domain': labels},
+      },
+      'y': {
+        'field': 'label',
+        'type': 'ordinal',
+        // Maintain sort order of the axis if labels is passed in
+        'scale': {'domain': labels},
+      },
     },
     'layer': [
       {
         // The matrix
-        'mark': 'rect',
+        'mark': {
+          'type': 'rect',
+        },
         'encoding': {
-          'color': {
+          'fill': {
+            'condition': {
+              'test': 'datum["noFill"] == true',
+              'value': 'white',
+            },
             'field': 'count',
             'type': 'quantitative',
             'scale': {'scheme': 'blues'},
           },
-          'tooltip': {'field': 'count', 'type': 'quantitative'},
-        }
+          'tooltip': {
+            'condition': {
+              'test': 'datum["noFill"] == true',
+              'field': 'diagCount',
+              'type': 'nominal',
+            },
+            'field': 'count',
+            'type': 'nominal',
+          }
+        },
+
       },
       {
         // The text labels
         'mark': {'type': 'text', 'baseline': 'middle'},
         'encoding': {
-          'text': {'field': 'count', 'type': 'nominal'},
-          'opacity': {
-            // Hide the text if count is null
-            'condition': {
-              'test': 'datum["count"] == null',
-              'value': 0,
-            },
-            'value': 1
-          }
-        }
-      },
-      {
-        // Draw text labels for diagonal if they are not shaded
-        // and thus don't have a count
-        'mark': {'type': 'text', 'baseline': 'middle'},
-        'encoding': {
           'text': {
-            'field': 'diagCount',
+            'condition': {
+              'test': 'datum["noFill"] == true',
+              'field': 'diagCount',
+              'type': 'nominal',
+            },
+            'field': 'count',
             'type': 'nominal',
           },
-          'opacity': {
-            'condition': {
-              'test': 'datum["diagCount"] == null',
-              'value': 0,
-            },
-            'value': 1
-          }
         }
-      }
+      },
     ]
   };
 

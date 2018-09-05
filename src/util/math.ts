@@ -224,6 +224,9 @@ export async function accuracy(
  * labels and predictions should correspond to some output class. It is assumed
  * that these values go from 0 to numClasses - 1.
  *
+ * Returns an object with an `accuracy` and a `count` property that contain
+ * arrays with per class accuracies and counts respectively
+ *
  * @param labels 1D tensor of true values
  * @param predictions 1D tensor of predicted values
  * @param numClasses Number of distinct classes. Optional. If not passed in
@@ -232,7 +235,7 @@ export async function accuracy(
  */
 export async function perClassAccuracy(
     labels: Tensor1D, predictions: Tensor1D,
-    numClasses?: number): Promise<number[]> {
+    numClasses?: number): Promise<{accuracy: number[], count: number[]}> {
   assert(labels.rank === 1, 'labels must be a 1D tensor');
   assert(predictions.rank === 1, 'predictions must be a 1D tensor');
   assert(
@@ -250,7 +253,7 @@ export async function perClassAccuracy(
         // Per class total counts
         const count: number[] = Array(numClasses).fill(0);
         // Per class accuracy
-        const result: number[] = Array(numClasses).fill(0);
+        const accuracy: number[] = Array(numClasses).fill(0);
 
         for (let i = 0; i < labelsArray.length; i++) {
           const label = labelsArray[i];
@@ -258,14 +261,17 @@ export async function perClassAccuracy(
 
           count[label] += 1;
           if (label === pred) {
-            result[label] += 1;
+            accuracy[label] += 1;
           }
         }
 
-        for (let i = 0; i < result.length; i++) {
-          result[i] = count[i] === 0 ? 0 : result[i] / count[i];
+        for (let i = 0; i < accuracy.length; i++) {
+          accuracy[i] = count[i] === 0 ? 0 : accuracy[i] / count[i];
         }
 
-        return result;
+        return {
+          accuracy,
+          count,
+        };
       });
 }
