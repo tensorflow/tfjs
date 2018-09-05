@@ -14,7 +14,7 @@ import {ConfusionMatrixData, Drawable} from '../types';
  * @param classLabels An array of string labels for the classes in
  * `classAccuracy`. Optional.
  */
-export function perClassAccuracy(
+export async function perClassAccuracy(
     container: Drawable, classAccuracy: {accuracy: number[], count: number[]},
     classLabels?: string[]) {
   const drawArea = getDrawArea(container);
@@ -33,7 +33,7 @@ export function perClassAccuracy(
     values.push([label, acc, count]);
   }
 
-  renderTable({headers, values}, drawArea);
+  return renderTable({headers, values}, drawArea);
 }
 
 /**
@@ -46,7 +46,7 @@ export function perClassAccuracy(
  * @param classLabels An array of string labels for the classes in
  * `confusionMatrix`. Optional.
  */
-export function confusionMatrix(
+export async function confusionMatrix(
     container: Drawable, confusionMatrix: number[][], classLabels?: string[]) {
   const drawArea = getDrawArea(container);
 
@@ -55,7 +55,7 @@ export function confusionMatrix(
     labels: classLabels,
   };
 
-  renderConfusionMatrix(confusionMatrixData, drawArea, {
+  return renderConfusionMatrix(confusionMatrixData, drawArea, {
     height: 450,
   });
 }
