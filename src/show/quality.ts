@@ -3,6 +3,17 @@ import {getDrawArea} from '../render/render_utils';
 import {renderTable} from '../render/table';
 import {ConfusionMatrixData, Drawable} from '../types';
 
+/**
+ * Renders a per class accuracy table for classification task evaluation
+ *
+ * @param container A `{name: string, tab?: string}` object specifying which
+ * surface to render to.
+ * @param classAccuracy A `{accuracy: number[], count: number[]}` object with
+ * the accuracy data. See metrics.perClassAccuracy for details on how to
+ * generate this object.
+ * @param classLabels An array of string labels for the classes in
+ * `classAccuracy`. Optional.
+ */
 export function perClassAccuracy(
     container: Drawable, classAccuracy: {accuracy: number[], count: number[]},
     classLabels?: string[]) {
@@ -25,6 +36,16 @@ export function perClassAccuracy(
   renderTable({headers, values}, drawArea);
 }
 
+/**
+ * Renders a confusion matrix for classification task evaluation
+ *
+ * @param container A `{name: string, tab?: string}` object specifying which
+ * surface to render to.
+ * @param confusionMatrix A nested array of numbers with the confusion matrix
+ * values. See metrics.confusionMatrix for details on how to generate this.
+ * @param classLabels An array of string labels for the classes in
+ * `confusionMatrix`. Optional.
+ */
 export function confusionMatrix(
     container: Drawable, confusionMatrix: number[][], classLabels?: string[]) {
   const drawArea = getDrawArea(container);
