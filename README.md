@@ -366,10 +366,11 @@ The result will be a 2D array of size numClasses * numClasses
   weight to the total value of the confusion matrix cell.
 
 
-## metrics.perClassAccuracy(labels: Tensor1D, predictions: Tensor1D, numClasses?: number, weights?: Tensor1D) => Promise<number[]>
+## metrics.perClassAccuracy(labels: Tensor1D, predictions: Tensor1D, numClasses?: number, weights?: Tensor1D) => Promise<{accuracy: number[], count: number[]}>
 
 Computes per class accuracy between prediction and labels. Each value in labels and predictions should correspond to some output class. It is assumed that these values go from 0 to  numClasses - 1.
 
+Returns an object with an `accuracy` and a `count` property that contain arrays with per class accuracies and counts respectively.
 
 * @param labels 1D tensor of true values
 * @param predictions 1D tensor of predicted values

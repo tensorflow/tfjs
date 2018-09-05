@@ -336,7 +336,8 @@ describe('per class accuracy', () => {
     const predictions = tf.tensor1d([0, 0, 0, 2, 1, 1]);
 
     const result = await perClassAccuracy(labels, predictions);
-    expect(result).toEqual([1, 0, 1 / 3]);
+    expect(result.accuracy).toEqual([1, 0, 1 / 3]);
+    expect(result.count).toEqual([2, 1, 3]);
   });
 
   it('computes per class accuracy, no matches', async () => {
@@ -344,7 +345,8 @@ describe('per class accuracy', () => {
     const predictions = tf.tensor1d([0, 0, 0, 0, 0]);
 
     const result = await perClassAccuracy(labels, predictions);
-    expect(result).toEqual([0, 0]);
+    expect(result.accuracy).toEqual([0, 0]);
+    expect(result.count).toEqual([0, 5]);
   });
 
   it('computes per class accuracy, all matches', async () => {
@@ -352,7 +354,8 @@ describe('per class accuracy', () => {
     const predictions = tf.tensor1d([0, 1, 2, 3, 3, 3]);
 
     const result = await perClassAccuracy(labels, predictions);
-    expect(result).toEqual([1, 1, 1, 1]);
+    expect(result.accuracy).toEqual([1, 1, 1, 1]);
+    expect(result.count).toEqual([1, 1, 1, 3]);
   });
 
   it('computes per class accuracy, explicit numClasses', async () => {
@@ -360,7 +363,8 @@ describe('per class accuracy', () => {
     const predictions = tf.tensor1d([0, 1, 2, 1]);
 
     const result = await perClassAccuracy(labels, predictions, 5);
-    expect(result).toEqual([1, 1, 0.5, 0, 0]);
+    expect(result.accuracy).toEqual([1, 1, 0.5, 0, 0]);
+    expect(result.count).toEqual([1, 1, 2, 0, 0]);
   });
 
   it('errors on non 1d label tensor', async () => {
