@@ -968,6 +968,24 @@ describe('Cropping2D Layer', () => {
 
     expectTensorsClose(layer.apply(x, null) as Tensor, y);
   });
+
+  it('check with non-square tensor', () => {
+    const layer = tfl.layers.cropping2D(
+        {cropping: [[1, 1], [1, 1]], dataFormat: 'channelsFirst'});
+    const x = tensor4d(
+        [
+          [[[1, 2, 3, 4], [3, 4, 5, 6], [6, 7, 8, 9]]],
+        ],
+        [1, 1, 3, 4]);
+    const y = tensor4d(
+        [
+          [[[4, 5]]],
+        ],
+        [1, 1, 1, 2]);
+      
+    expect(layer.computeOutputShape(x.shape)).toEqual(y.shape);
+    expectTensorsClose(layer.apply(x, null) as Tensor, y);
+  });
 });
 
 describeMathCPU('UpSampling2D Layer: Symbolic', () => {

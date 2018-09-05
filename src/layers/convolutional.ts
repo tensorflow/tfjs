@@ -1122,15 +1122,17 @@ export class Cropping2D extends Layer {
   computeOutputShape(inputShape: Shape): Shape {
     if (this.dataFormat === 'channelsFirst')
       return [
-        inputShape[0], inputShape[1],
+        inputShape[0],
+        inputShape[1],
         inputShape[2] - this.cropping[0][0] - this.cropping[0][1],
-        inputShape[2] - this.cropping[1][0] - this.cropping[1][1]
+        inputShape[3] - this.cropping[1][0] - this.cropping[1][1]
       ];
     else
       return [
         inputShape[0],
         inputShape[1] - this.cropping[0][0] - this.cropping[0][1],
-        inputShape[2] - this.cropping[1][0] - this.cropping[1][1], inputShape[3]
+        inputShape[2] - this.cropping[1][0] - this.cropping[1][1],
+        inputShape[3]
       ];
   }
 
