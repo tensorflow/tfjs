@@ -35,7 +35,7 @@
 
 <body>
   <article>
-    <h1>Visualizaing training with tfjs-vis</h1>
+    <h1>Visualizing training with tfjs-vis</h1>
 
     <section>
       <p>
@@ -159,7 +159,7 @@
     <section>
       <h2>Training Our Model</h2>
       <p>
-        Out goal is to train a model to recognize similar digits. We have already written a tutorial on how to do so. So in this
+        Our goal is to train a model to recognize similar digits. We have already written a tutorial on how to do so. So in this
         article we are going to focus on monitoring that training and also look at how well our model performs.
       </p>
 
@@ -274,7 +274,58 @@
         document.querySelector('#start-training-3')
           .addEventListener('click', () => showTrainingHistory());
       </script>
+    </section>
 
+    <section>
+      <h2>Evaluating Our Model</h2>
+      <p>
+        Now that our model is trained we should evalute its performance. For a classification task like this one we can use the `perClassAccuracy`
+        and `confusionMatrix` functions. These are demonstrated below.
+      </p>
+
+      <p><button id='show-accuracy'>Show per-class accuracy</button></p>
+      <p><button id='show-confusion'>Show confusion matrix</button></p>
+
+      <script class='show-script'>
+        {
+          const classNames = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five',
+            'Six', 'Seven', 'Eight', 'Nine'];
+
+          function doPrediction(testDataSize = 500) {
+            const testData = data.nextTestBatch(testDataSize);
+            const testxs = testData.xs.reshape([testDataSize, 28, 28, 1]);
+            const labels = testData.labels.argMax([-1]);
+            const preds = model.predict(testxs).argMax([-1]);
+
+            testxs.dispose();
+            return [preds, labels];
+          }
+
+          async function showAccuracy() {
+            const [preds, labels] = doPrediction();
+            const classAccuracy = await tfvis.metrics.perClassAccuracy(labels, preds);
+            const container = { name: 'Accuracy', tab: 'Evaluation' };
+            tfvis.show.perClassAccuracy(container, classAccuracy, classNames);
+
+            labels.dispose();
+          }
+
+          async function showConfusion() {
+            const [preds, labels] = doPrediction();
+            const confusionMatrix = await tfvis.metrics.confusionMatrix(labels, preds);
+            const container = { name: 'Confusion Matrix', tab: 'Evaluation' };
+            tfvis.show.confusionMatrix(container, confusionMatrix, classNames);
+
+            labels.dispose();
+          }
+
+          document.querySelector('#show-accuracy')
+            .addEventListener('click', () => showAccuracy());
+
+          document.querySelector('#show-confusion')
+            .addEventListener('click', () => showConfusion());
+        }
+      </script>
 
 
     </section>
