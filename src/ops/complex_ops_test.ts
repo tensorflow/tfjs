@@ -16,7 +16,7 @@
  */
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
+import {ALL_ENVS, BROWSER_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('complex64', ALL_ENVS, () => {
   it('tf.complex', () => {
@@ -58,7 +58,7 @@ describeWithFlags('complex64', ALL_ENVS, () => {
 });
 
 const BYTES_PER_COMPLEX_ELEMENT = 4 * 2;
-describeWithFlags('complex64 memory', ALL_ENVS, () => {
+describeWithFlags('complex64 memory', BROWSER_ENVS, () => {
   it('usage', () => {
     let numTensors = tf.memory().numTensors;
     let numBuffers = tf.memory().numDataBuffers;
