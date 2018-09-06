@@ -101,7 +101,7 @@ export class MaxNorm extends Constraint {
     return {maxValue: this.maxValue, axis: this.axis};
   }
 }
-serialization.SerializationMap.register(MaxNorm);
+serialization.registerClass(MaxNorm);
 
 export interface UnitNormConfig {
   /**
@@ -143,7 +143,7 @@ export class UnitNorm extends Constraint {
     return {axis: this.axis};
   }
 }
-serialization.SerializationMap.register(UnitNorm);
+serialization.registerClass(UnitNorm);
 
 /**
  * Constains the weight to be non-negative.
@@ -155,7 +155,7 @@ export class NonNeg extends Constraint {
     return tfc.relu(w);
   }
 }
-serialization.SerializationMap.register(NonNeg);
+serialization.registerClass(NonNeg);
 
 export interface MinMaxNormConfig {
   /**
@@ -233,7 +233,7 @@ export class MinMaxNorm extends Constraint {
     };
   }
 }
-serialization.SerializationMap.register(MinMaxNorm);
+serialization.registerClass(MinMaxNorm);
 
 /** @docinline */
 export type ConstraintIdentifier =

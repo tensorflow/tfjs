@@ -72,7 +72,7 @@ export class ReLU extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(ReLU);
+serialization.registerClass(ReLU);
 
 export interface LeakyReLULayerConfig extends LayerConfig {
   /**
@@ -126,7 +126,7 @@ export class LeakyReLU extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(LeakyReLU);
+serialization.registerClass(LeakyReLU);
 
 // TODO(cais): Implement PReLU
 
@@ -192,7 +192,7 @@ export class ELU extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(ELU);
+serialization.registerClass(ELU);
 
 export interface ThresholdedReLULayerConfig extends LayerConfig {
   /**
@@ -252,7 +252,7 @@ export class ThresholdedReLU extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(ThresholdedReLU);
+serialization.registerClass(ThresholdedReLU);
 
 export interface SoftmaxLayerConfig extends LayerConfig {
   /**
@@ -303,4 +303,4 @@ export class Softmax extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(Softmax);
+serialization.registerClass(Softmax);

@@ -238,7 +238,7 @@ export class TimeDistributed extends Wrapper {
     });
   }
 }
-serialization.SerializationMap.register(TimeDistributed);
+serialization.registerClass(TimeDistributed);
 
 export type BidirectionalMergeMode = 'sum'|'mul'|'concat'|'ave';
 export const VALID_BIDIRECTIONAL_MERGE_MODES = ['sum', 'mul', 'concat', 'ave'];
@@ -575,4 +575,4 @@ export class Bidirectional extends Wrapper {
     return new cls(newConfig);
   }
 }
-serialization.SerializationMap.register(Bidirectional);
+serialization.registerClass(Bidirectional);

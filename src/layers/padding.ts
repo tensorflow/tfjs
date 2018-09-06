@@ -257,4 +257,4 @@ export class ZeroPadding2D extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(ZeroPadding2D);
+serialization.registerClass(ZeroPadding2D);

@@ -822,4 +822,4 @@ export class Sequential extends Model {
     return config;
   }
 }
-serialization.SerializationMap.register(Sequential);
+serialization.registerClass(Sequential);

@@ -444,4 +444,4 @@ export class BatchNormalization extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(BatchNormalization);
+serialization.registerClass(BatchNormalization);

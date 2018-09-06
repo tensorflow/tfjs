@@ -264,7 +264,7 @@ export class Add extends Merge {
     });
   }
 }
-serialization.SerializationMap.register(Add);
+serialization.registerClass(Add);
 
 /**
  * Calculate the element-wise sum of inputs, which all have the same shape.
@@ -356,7 +356,7 @@ export class Multiply extends Merge {
     });
   }
 }
-serialization.SerializationMap.register(Multiply);
+serialization.registerClass(Multiply);
 
 /**
  * Calculate the element-wise product of inputs, which all have the same shape.
@@ -447,7 +447,7 @@ export class Average extends Merge {
     });
   }
 }
-serialization.SerializationMap.register(Average);
+serialization.registerClass(Average);
 
 /**
  * Calculate the element-wise arithmetic mean of inputs, which all have the same
@@ -539,7 +539,7 @@ export class Maximum extends Merge {
     });
   }
 }
-serialization.SerializationMap.register(Maximum);
+serialization.registerClass(Maximum);
 
 /**
  * Calculate the element-wise maximum of inputs, which all have the same shape.
@@ -630,7 +630,7 @@ export class Minimum extends Merge {
     });
   }
 }
-serialization.SerializationMap.register(Minimum);
+serialization.registerClass(Minimum);
 
 /**
  * Calculate the element-wise minimum of inputs, which all have the same shape.
@@ -810,7 +810,7 @@ export class Concatenate extends Merge {
     return config;
   }
 }
-serialization.SerializationMap.register(Concatenate);
+serialization.registerClass(Concatenate);
 
 /**
  * Concatenate an `Array` of inputs.

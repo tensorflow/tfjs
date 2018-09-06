@@ -155,7 +155,7 @@ export class InputLayer extends Layer {
     };
   }
 }
-serialization.SerializationMap.register(InputLayer);
+serialization.registerClass(InputLayer);
 
 /**
  * Config for the Input function.

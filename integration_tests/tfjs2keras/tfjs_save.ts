@@ -9,8 +9,8 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import * as tfjsNode from '@tensorflow/tfjs-node';
 import * as tfl from '@tensorflow/tfjs-layers';
+import * as tfjsNode from '@tensorflow/tfjs-node';
 import * as fs from 'fs';
 import {join} from 'path';
 
@@ -28,8 +28,7 @@ import {join} from 'path';
  */
 async function saveModelAndRandomInputsAndOutputs(
     model: tfl.Model, exportPathprefix: string, inputIntegerMax?: number) {
-
-  await model.save(new tfjsNode.io.NodeFileSystem(`${exportPathprefix}`));
+  await model.save(tfjsNode.io.fileSystem(`${exportPathprefix}`));
 
   const xs: tfc.Tensor[] = [];
   const xsData: number[][] = [];
@@ -173,7 +172,8 @@ async function exportTimeDistributedLSTMModel(exportPath: string) {
   model.add(tfl.layers.embedding({inputDim, outputDim: 20, inputShape: [10]}));
   model.add(tfl.layers.lstm({units: 4, returnSequences: true}));
   model.add(tfl.layers.timeDistributed({
-    layer: tfl.layers.dense({units: 2, useBias: false, activation: 'softmax'})
+    layer:
+        tfl.layers.dense({units: 2, useBias: false, activation: 'softmax'})
   }));
 
   await saveModelAndRandomInputsAndOutputs(model, exportPath, inputDim);
@@ -208,7 +208,8 @@ async function exportFunctionalMergeModel(exportPath: string) {
       tfl.layers.dense({units: 5}).apply(reshaped2) as tfl.SymbolicTensor;
   const dense3 =
       tfl.layers.dense({units: 5}).apply(input3) as tfl.SymbolicTensor;
-  const avg = tfl.layers.average().apply([dense1, dense2]) as tfl.SymbolicTensor;
+  const avg =
+      tfl.layers.average().apply([dense1, dense2]) as tfl.SymbolicTensor;
   const concat = tfl.layers.concatenate({axis: -1}).apply([avg, dense3]) as
       tfl.SymbolicTensor;
   const output =

@@ -574,7 +574,7 @@ export class Conv2D extends Conv {
           `length 1 or 2, but received ${JSON.stringify(config.kernelSize)}.`);
   }
 }
-serialization.SerializationMap.register(Conv2D);
+serialization.registerClass(Conv2D);
 
 /**
  * Transposed convolutional layer (sometimes called Deconvolution).
@@ -755,8 +755,7 @@ export class Conv2DTranspose extends Conv2D {
     return config;
   }
 }
-serialization.SerializationMap.register(Conv2DTranspose);
-
+serialization.registerClass(Conv2DTranspose);
 
 export interface SeparableConvLayerConfig extends ConvLayerConfig {
   /**
@@ -990,7 +989,7 @@ export class SeparableConv2D extends SeparableConv {
     super(2, config);
   }
 }
-serialization.SerializationMap.register(SeparableConv2D);
+serialization.registerClass(SeparableConv2D);
 
 /**
  * 1D convolution layer (e.g., temporal convolution).
@@ -1035,7 +1034,7 @@ export class Conv1D extends Conv {
           `length 1, but received ${JSON.stringify(config.kernelSize)}.`);
   }
 }
-serialization.SerializationMap.register(Conv1D);
+serialization.registerClass(Conv1D);
 
 export interface Cropping2DLayerConfig extends LayerConfig {
   /**
@@ -1165,7 +1164,7 @@ export class Cropping2D extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(Cropping2D);
+serialization.registerClass(Cropping2D);
 
 export interface UpSampling2DLayerConfig extends LayerConfig {
   /**
@@ -1265,4 +1264,4 @@ export class UpSampling2D extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(UpSampling2D);
+serialization.registerClass(UpSampling2D);

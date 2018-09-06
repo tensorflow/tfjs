@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@0.12.15":
-  version "0.12.15"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.12.15.tgz#b6c09dfe99cffd298745a694347b29a2c5aa9871"
+"@tensorflow/tfjs-core@0.12.18":
+  version "0.12.18"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.12.18.tgz#659f59d36134cdbc454eaacc245bb5aad5168a09"
   dependencies:
     "@types/seedrandom" "~2.4.27"
     "@types/webgl-ext" "~0.0.29"
@@ -15,12 +15,13 @@
   version "0.7.2"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.7.2.tgz#3a8c083255c72da272245ae5b435c66af9573eb8"
 
-"@tensorflow/tfjs-node@~0.1.13":
-  version "0.1.13"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-0.1.13.tgz#5a680a332dafcb4b88dae17b6b68760bc6727d6a"
+"@tensorflow/tfjs-node@0.1.14":
+  version "0.1.14"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-0.1.14.tgz#570c9227e0723f06faf6c43c1ddf349ef418385d"
   dependencies:
     adm-zip "^0.4.11"
     bindings "~1.3.0"
+    progress "^2.0.0"
     rimraf "^2.6.2"
     tar "^4.4.6"
 
@@ -249,6 +250,10 @@ path-parse@^1.0.5:
 process-nextick-args@~2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/process-nextick-args/-/process-nextick-args-2.0.0.tgz#a37d732f4271b4ab1ad070d35508e8290788ffaa"
+
+progress@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/progress/-/progress-2.0.0.tgz#8a1be366bf8fc23db2bd23f10c6fe920b4389d1f"
 
 readable-stream@^2.1.5:
   version "2.3.6"
