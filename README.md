@@ -204,9 +204,9 @@ Renders a per class accuracy table for classification task evaluation
 
 * @param container A `{name: string, tab?: string}` object specifying which
   surface to render to.
-* @param classAccuracy A `{accuracy: number[], count: number[]}` object with
+* @param classAccuracy An `Array<{accuracy: number, count: number}>` array with
   the accuracy data. See metrics.perClassAccuracy for details on how to
-generate this object.
+  generate this object.
 * @param classLabels An array of string labels for the classes in
   `classAccuracy`. Optional.
 
@@ -396,7 +396,7 @@ The result will be a 2D array of size numClasses * numClasses
 
 Computes per class accuracy between prediction and labels. Each value in labels and predictions should correspond to some output class. It is assumed that these values go from 0 to  numClasses - 1.
 
-Returns an object with an `accuracy` and a `count` property that contain arrays with per class accuracies and counts respectively.
+Returns an array of objects that each have an an `accuracy` and a `count` property for each class.
 
 * @param labels 1D tensor of true values
 * @param predictions 1D tensor of predicted values

@@ -224,8 +224,8 @@ export async function accuracy(
  * labels and predictions should correspond to some output class. It is assumed
  * that these values go from 0 to numClasses - 1.
  *
- * Returns an object with an `accuracy` and a `count` property that contain
- * arrays with per class accuracies and counts respectively
+ * Returns an array of objects that each have an an `accuracy` and a `count`
+ * property for each class.
  *
  * @param labels 1D tensor of true values
  * @param predictions 1D tensor of predicted values
@@ -235,7 +235,7 @@ export async function accuracy(
  */
 export async function perClassAccuracy(
     labels: Tensor1D, predictions: Tensor1D,
-    numClasses?: number): Promise<{accuracy: number[], count: number[]}> {
+    numClasses?: number): Promise<Array<{accuracy: number, count: number}>> {
   assert(labels.rank === 1, 'labels must be a 1D tensor');
   assert(predictions.rank === 1, 'predictions must be a 1D tensor');
   assert(
@@ -251,7 +251,7 @@ export async function perClassAccuracy(
   return Promise.all([labels.data(), predictions.data()])
       .then(([labelsArray, predsArray]) => {
         // Per class total counts
-        const count: number[] = Array(numClasses).fill(0);
+        const counts: number[] = Array(numClasses).fill(0);
         // Per class accuracy
         const accuracy: number[] = Array(numClasses).fill(0);
 
@@ -259,19 +259,20 @@ export async function perClassAccuracy(
           const label = labelsArray[i];
           const pred = predsArray[i];
 
-          count[label] += 1;
+          counts[label] += 1;
           if (label === pred) {
             accuracy[label] += 1;
           }
         }
 
-        for (let i = 0; i < accuracy.length; i++) {
-          accuracy[i] = count[i] === 0 ? 0 : accuracy[i] / count[i];
+        const results: Array<{accuracy: number, count: number}> = [];
+        for (let i = 0; i < counts.length; i++) {
+          results.push({
+            count: counts[i],
+            accuracy: counts[i] === 0 ? 0 : accuracy[i] / counts[i],
+          });
         }
 
-        return {
-          accuracy,
-          count,
-        };
+        return results;
       });
 }

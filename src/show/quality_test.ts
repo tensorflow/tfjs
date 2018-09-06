@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {confusionMatrix, perClassAccuracy} from './quality';
+import {showConfusionMatrix, showPerClassAccuracy} from './quality';
 
 describe('perClassAccuracy', () => {
   beforeEach(() => {
@@ -24,23 +24,23 @@ describe('perClassAccuracy', () => {
 
   it('renders perClassAccuracy', async () => {
     const container = {name: 'Test'};
-    const acc = {
-      accuracy: [0.5, 0.8],
-      count: [10, 10],
-    };
+    const acc = [
+      {accuracy: 0.5, count: 10},
+      {accuracy: 0.8, count: 10},
+    ];
 
     const labels = ['cat', 'dog'];
-    await perClassAccuracy(container, acc, labels);
+    await showPerClassAccuracy(container, acc, labels);
     expect(document.querySelectorAll('table').length).toBe(1);
   });
 
   it('renders perClassAccuracy without explicit labels', async () => {
     const container = {name: 'Test'};
-    const acc = {
-      accuracy: [0.5, 0.8],
-      count: [10, 10],
-    };
-    await perClassAccuracy(container, acc);
+    const acc = [
+      {accuracy: 0.5, count: 10},
+      {accuracy: 0.8, count: 10},
+    ];
+    await showPerClassAccuracy(container, acc);
     expect(document.querySelectorAll('table').length).toBe(1);
   });
 });
@@ -57,7 +57,7 @@ describe('confusionMatrix', () => {
       [6, 32],
     ];
     const labels = ['cat', 'dog'];
-    await confusionMatrix(container, matrix, labels);
+    await showConfusionMatrix(container, matrix, labels);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
 
@@ -67,7 +67,7 @@ describe('confusionMatrix', () => {
       [20, 3],
       [6, 32],
     ];
-    await confusionMatrix(container, matrix);
+    await showConfusionMatrix(container, matrix);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
 });
