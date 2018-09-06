@@ -157,6 +157,7 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   EXPORT_INT_PROPERTY(TF_FLOAT);
   EXPORT_INT_PROPERTY(TF_INT32);
   EXPORT_INT_PROPERTY(TF_BOOL);
+  EXPORT_INT_PROPERTY(TF_COMPLEX64);
 
   // Op AttrType
   EXPORT_INT_PROPERTY(TF_ATTR_STRING);
