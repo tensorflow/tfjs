@@ -27,13 +27,18 @@ import {ElementArray, TabularRecord} from './types';
 // length histogram, etc.
 // Collecting only numeric min and max is just the bare minimum for now.
 
-export type NumericColumnStatistics = {
-  min: number; max: number;
-};
+export interface NumericColumnStatistics {
+  min: number;
+  max: number;
+  mean: number;
+  variance: number;
+  stddev: number;
+  length: number;
+}
 
-export type DatasetStatistics = {
-  [key: string]: NumericColumnStatistics
-};
+export interface DatasetStatistics {
+  [key: string]: NumericColumnStatistics;
+}
 
 /**
  * Provides a function that scales numeric values into the [0, 1] interval.
@@ -79,35 +84,85 @@ export async function computeDatasetStatistics(
   const result: DatasetStatistics = {};
 
   await sampleDataset.forEach(e => {
-    for (const key in e) {
+    for (const key of Object.keys(e)) {
       const value = e[key];
       if (typeof (value) === 'string') {
       } else {
-        let recordMin: number;
-        let recordMax: number;
-        if (value instanceof tf.Tensor) {
-          recordMin = value.min().dataSync()[0];
-          recordMax = value.max().dataSync()[0];
-        } else if (value instanceof Array) {
-          recordMin = value.reduce((a, b) => Math.min(a, b));
-          recordMax = value.reduce((a, b) => Math.max(a, b));
-        } else if (!isNaN(value) && isFinite(value)) {
-          recordMin = value;
-          recordMax = value;
-        } else {
-          // TODO(soergel): don't throw; instead record the stats as "unknown".
-          throw new Error(`Cannot compute statistics: ${key} = ${value}`);
-        }
+        let previousMean = 0;
+        let previousLength = 0;
+        let previousVariance = 0;
         let columnStats: NumericColumnStatistics = result[key];
         if (columnStats == null) {
           columnStats = {
             min: Number.POSITIVE_INFINITY,
-            max: Number.NEGATIVE_INFINITY
+            max: Number.NEGATIVE_INFINITY,
+            mean: 0,
+            variance: 0,
+            stddev: 0,
+            length: 0
           };
           result[key] = columnStats;
+        } else {
+          previousMean = columnStats.mean;
+          previousLength = columnStats.length;
+          previousVariance = columnStats.variance;
         }
+        let recordMin: number;
+        let recordMax: number;
+
+        // Calculate accumulated mean and variance following tf.Transform
+        // implementation
+        let valueLength = 0;
+        let valueMean = 0;
+        let valueVariance = 0;
+        let combinedLength = 0;
+        let combinedMean = 0;
+        let combinedVariance = 0;
+
+        if (value instanceof tf.Tensor) {
+          recordMin = value.min().dataSync()[0];
+          recordMax = value.max().dataSync()[0];
+          const valueMoment = tf.moments(value);
+          valueMean = valueMoment.mean.get();
+          valueVariance = valueMoment.variance.get();
+          valueLength = value.size;
+
+
+
+        } else if (value instanceof Array) {
+          recordMin = value.reduce((a, b) => Math.min(a, b));
+          recordMax = value.reduce((a, b) => Math.max(a, b));
+          const valueMoment = tf.moments(value);
+          valueMean = valueMoment.mean.get();
+          valueVariance = valueMoment.variance.get();
+          valueLength = value.length;
+
+        } else if (!isNaN(value) && isFinite(value)) {
+          recordMin = value;
+          recordMax = value;
+          valueMean = value;
+          valueVariance = 0;
+          valueLength = 1;
+
+        } else {
+          columnStats = null;
+          continue;
+        }
+        combinedLength = previousLength + valueLength;
+        combinedMean = previousMean +
+            (valueLength / combinedLength) * (valueMean - previousMean);
+        combinedVariance = previousVariance +
+            (valueLength / combinedLength) *
+                (valueVariance +
+                 ((valueMean - combinedMean) * (valueMean - previousMean)) -
+                 previousVariance);
+
         columnStats.min = Math.min(columnStats.min, recordMin);
         columnStats.max = Math.max(columnStats.max, recordMax);
+        columnStats.length = combinedLength;
+        columnStats.mean = combinedMean;
+        columnStats.variance = combinedVariance;
+        columnStats.stddev = Math.sqrt(combinedVariance);
       }
     }
   });

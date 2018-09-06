@@ -85,19 +85,9 @@
   version "3.0.32"
   resolved "https://registry.yarnpkg.com/@types/long/-/long-3.0.32.tgz#f4e5af31e9e9b196d8e5fca8a5e2e20aa3d60b69"
 
-"@types/node@*":
-  version "10.7.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.7.1.tgz#b704d7c259aa40ee052eec678758a68d07132a2e"
-
 "@types/node@^10.1.0":
   version "10.5.2"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.5.2.tgz#f19f05314d5421fe37e74153254201a7bf00a707"
-
-"@types/papaparse@^4.5.2":
-  version "4.5.2"
-  resolved "https://registry.yarnpkg.com/@types/papaparse/-/papaparse-4.5.2.tgz#46a369e3d0dce6e1ee9d172bc6c73efd82ebc114"
-  dependencies:
-    "@types/node" "*"
 
 "@types/seedrandom@~2.4.27":
   version "2.4.27"
@@ -2855,10 +2845,6 @@ pako@~1.0.5:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.6.tgz#0101211baa70c4bca4a0f63f2206e97b7dfaf258"
 
-papaparse@^4.6.0:
-  version "4.6.0"
-  resolved "https://registry.yarnpkg.com/papaparse/-/papaparse-4.6.0.tgz#4e3b8d6bf9f7900da437912794ec292207526867"
-
 parcel-bundler@~1.8.1:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/parcel-bundler/-/parcel-bundler-1.8.1.tgz#ac62d0690786f51d7f309694bab6856f685a6986"
@@ -4170,7 +4156,7 @@ vega-hierarchy@^3.0.3:
     vega-voronoi "^3.0.0"
     vega-wordcloud "^3.0.0"
 
-vega-lite@^2.3.1, vega-lite@^2.6.0:
+vega-lite@^2.6.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/vega-lite/-/vega-lite-2.6.0.tgz#ce79c2db0311b0b920afdf2cd7384556a334e2f0"
   dependencies:
