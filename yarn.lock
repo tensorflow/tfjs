@@ -189,6 +189,12 @@
   version "10.9.4"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.9.4.tgz#0f4cb2dc7c1de6096055357f70179043c33e9897"
 
+"@types/progress@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@types/progress/-/progress-2.0.1.tgz#af866001a836dbd28a6656e4b335d333bad7faf2"
+  dependencies:
+    "@types/node" "*"
+
 "@types/rimraf@~2.0.2":
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/@types/rimraf/-/rimraf-2.0.2.tgz#7f0fc3cf0ff0ad2a99bb723ae1764f30acaf8b6e"
@@ -1969,7 +1975,7 @@ trim-right@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/trim-right/-/trim-right-1.0.1.tgz#cb2e1203067e0c8de1f614094b9fe45704ea6003"
 
-ts-node@~5.0.0:
+ts-node@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-5.0.1.tgz#78e5d1cb3f704de1b641e43b76be2d4094f06f81"
   dependencies:
