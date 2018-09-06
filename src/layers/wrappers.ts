@@ -226,7 +226,10 @@ export class TimeDistributed extends Wrapper {
       // dimension, which is why we always use the K.rnn approach here.
       const step: RnnStepFunction = (inputs: Tensor, states: Tensor[]) => {
         // TODO(cais): Add useLearningPhase.
-        const output = this.layer.call(inputs, kwargs) as Tensor;
+        // NOTE(cais): `layer.call` may return a length-1 array of Tensor in
+        //   some cases (e.g., `layer` is a `Sequential` instance), which is
+        //   why `getExactlyOneTensor` is used below.
+        const output = getExactlyOneTensor(this.layer.call(inputs, kwargs));
         return [output, []];
       };
       const rnnOutputs =
