@@ -138,8 +138,10 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
   }
 
   // Determine the type of the array
+  TF_DataType tensor_data_type = TFE_TensorHandleDataType(tfe_tensor_handle);
   napi_typedarray_type array_type;
-  switch (TFE_TensorHandleDataType(tfe_tensor_handle)) {
+  switch (tensor_data_type) {
+    case TF_COMPLEX64:
     case TF_FLOAT:
       array_type = napi_float32_array;
       break;
@@ -162,6 +164,7 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
   ENSURE_TF_OK(env, tf_status);
 
   // Determine the length of the array based on the shape of the tensor.
+  // TODO(kreeger): Audit Python Eager usage for a better approach:
   size_t length = 0;
   uint32_t num_dims = TF_NumDims(tensor.tensor);
   if (num_dims == 0) {
@@ -174,6 +177,11 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
         length *= TF_Dim(tensor.tensor, i);
       }
     }
+  }
+
+  if (tensor_data_type == TF_COMPLEX64) {
+    // Length will be double for Complex 64.
+    length *= 2;
   }
 
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
@@ -238,7 +246,7 @@ void GetTFE_TensorHandleType(napi_env env, TFE_TensorHandle *handle,
 }
 
 void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value,
-                  tfnodejs::TF_ScopedStrings* scoped_strings) {
+                  tfnodejs::TF_ScopedStrings *scoped_strings) {
   napi_status nstatus;
 
   napi_value attr_name_value;

@@ -21,7 +21,8 @@ import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
 
-import {createTypeOpAttr, getTFDType} from './ops/op_utils';
+// tslint:disable-next-line:max-line-length
+import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType} from './ops/op_utils';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorInfo = {
@@ -62,6 +63,9 @@ export class NodeJSKernelBackend implements KernelBackend {
         break;
       case this.binding.TF_BOOL:
         dtype = 'bool';
+        break;
+      case this.binding.TF_COMPLEX64:
+        dtype = 'complex64';
         break;
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
@@ -177,16 +181,6 @@ export class NodeJSKernelBackend implements KernelBackend {
     }
   }
 
-  matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
-      Tensor2D {
-    const opAttrs = [
-      {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value: transposeA},
-      {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
-      createTypeOpAttr('T', upcastType(a.dtype, b.dtype))
-    ];
-    return this.executeSingleOutput('MatMul', opAttrs, [a, b]) as Tensor2D;
-  }
-
   stridedSlice<T extends Tensor>(
       x: T, begin: number[], end: number[], strides: number[],
       beginMask: number, endMask: number, ellipsisMask: number,
@@ -218,6 +212,18 @@ export class NodeJSKernelBackend implements KernelBackend {
                [x, beginTensor, endTensor, stridesTensor]) as T;
   }
 
+  batchMatMul(
+      a: Tensor<Rank.R3>, b: Tensor<Rank.R3>, transposeA: boolean,
+      transposeB: boolean): Tensor<Rank.R3> {
+    const opAttrs = [
+      createTypeOpAttr('T', a.dtype),
+      {name: 'adj_x', type: this.binding.TF_ATTR_BOOL, value: transposeA},
+      {name: 'adj_y', type: this.binding.TF_ATTR_BOOL, value: transposeB}
+    ];
+    return this.executeSingleOutput('BatchMatMul', opAttrs, [a, b]) as
+        Tensor<Rank.R3>;
+  }
+
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
     const opAttrs =
         [createTypeOpAttr('T', x.dtype), createTypeOpAttr('Index', 'int32')];
@@ -237,15 +243,19 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput('ReverseV2', opAttrs, [a, axisTensor]) as T;
   }
 
-  concat(a: Tensor2D, b: Tensor2D): Tensor2D {
+  concat(tensors: Tensor[], axis: number): Tensor {
     const opAttrs = [
-      {name: 'N', type: this.binding.TF_ATTR_INT, value: 2},
-      createTypeOpAttr('Tidx', 'int32'), createTypeOpAttr('T', a.dtype)
+      {name: 'N', type: this.binding.TF_ATTR_INT, value: tensors.length}, {
+        name: 'Tidx',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_INT32
+      },
+      createTensorsTypeOpAttr('T', tensors)
     ];
-    // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
-    const axisTensor = scalar(1, 'int32');
-    return this.executeSingleOutput('ConcatV2', opAttrs, [a, b, axisTensor]) as
-        Tensor2D;
+
+    const inputs = Array.from(tensors);
+    inputs.push(scalar(axis, 'int32'));
+    return this.executeSingleOutput('ConcatV2', opAttrs, inputs);
   }
 
   neg<T extends Tensor>(a: T): T {
@@ -313,21 +323,23 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   argMin(x: Tensor, axis: number): Tensor {
+    const xInput = x.dtype === 'bool' ? x.toInt() : x;
     const axisScalar = scalar(axis, 'int32');
     const opAttrs = [
-      createTypeOpAttr('T', x.dtype), createTypeOpAttr('Tidx', 'int32'),
+      createTypeOpAttr('T', xInput.dtype), createTypeOpAttr('Tidx', 'int32'),
       createTypeOpAttr('output_type', 'int32')
     ];
-    return this.executeSingleOutput('ArgMin', opAttrs, [x, axisScalar]);
+    return this.executeSingleOutput('ArgMin', opAttrs, [xInput, axisScalar]);
   }
 
   argMax(x: Tensor, axis: number): Tensor {
+    const xInput = x.dtype === 'bool' ? x.toInt() : x;
     const axisScalar = scalar(axis, 'int32');
     const opAttrs = [
-      createTypeOpAttr('T', x.dtype), createTypeOpAttr('Tidx', 'int32'),
+      createTypeOpAttr('T', xInput.dtype), createTypeOpAttr('Tidx', 'int32'),
       createTypeOpAttr('output_type', 'int32')
     ];
-    return this.executeSingleOutput('ArgMax', opAttrs, [x, axisScalar]);
+    return this.executeSingleOutput('ArgMax', opAttrs, [xInput, axisScalar]);
   }
 
   equal(a: Tensor, b: Tensor): Tensor {
@@ -1124,6 +1136,106 @@ export class NodeJSKernelBackend implements KernelBackend {
       boxes, scores, maxOutputSizeTensor, iouThresholdTensor,
       scoreThresholdTensor
     ]) as Tensor1D;
+  }
+
+  complex<T extends Tensor<Rank>>(real: T, imag: T): T {
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', real),
+      {
+        name: 'Tout',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_COMPLEX64
+      },
+    ];
+    const inputs = [real, imag];
+    return this.executeSingleOutput('Complex', opAttrs, inputs) as T;
+  }
+
+  real<T extends Tensor<Rank>>(input: T): T {
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', input), {
+        name: 'Tout',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_FLOAT
+      }
+    ];
+    const inputs = [input];
+    return this.executeSingleOutput('Real', opAttrs, inputs) as T;
+  }
+
+  imag<T extends Tensor<Rank>>(input: T): T {
+    const opAttrs = [
+      {
+        name: 'T',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_COMPLEX64
+      },
+      {
+        name: 'Tout',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_FLOAT
+      }
+    ];
+    const inputs = [input];
+    return this.executeSingleOutput('Imag', opAttrs, inputs) as T;
+  }
+
+  cropAndResize(
+      image: Tensor<Rank.R4>, boxes: Tensor<Rank.R2>, boxIndex: Tensor<Rank.R1>,
+      cropSize: [number, number], method: 'bilinear'|'nearest',
+      extrapolationValue: number): Tensor<Rank.R4> {
+    const opAttrs = [
+      createTypeOpAttr('T', image.dtype),
+      {name: 'method', type: this.binding.TF_ATTR_STRING, value: method}, {
+        name: 'extrapolation_value',
+        type: this.binding.TF_ATTR_FLOAT,
+        value: extrapolationValue
+      }
+    ];
+    const cropSizeTensor = tensor1d(cropSize, 'int32');
+    return this.executeSingleOutput(
+               'CropAndResize', opAttrs,
+               [image, boxes, boxIndex, cropSizeTensor]) as Tensor<Rank.R4>;
+  }
+
+  depthToSpace(x: Tensor<Rank.R4>, blockSize: number, dataFormat: string):
+      Tensor<Rank.R4> {
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', x), {
+        name: 'block_size',
+        type: this.binding.TF_ATTR_INT,
+        value: blockSize < 2 ? 2 : blockSize
+      },
+      {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      }
+    ];
+    const inputs = [x];
+    return this.executeSingleOutput('DepthToSpace', opAttrs, inputs) as
+        Tensor<Rank.R4>;
+  }
+
+  split<T extends Tensor<Rank>>(value: T, sizeSplits: number[], axis: number):
+      T[] {
+    const opAttrs = [
+      {
+        name: 'num_split',
+        type: this.binding.TF_ATTR_INT,
+        value: sizeSplits.length
+      },
+      createTensorsTypeOpAttr('T', value), {
+        name: 'Tlen',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_INT32
+      }
+    ];
+    const inputs = [value];
+    inputs.push(tensor1d(sizeSplits, 'int32') as T);
+    inputs.push(scalar(axis, 'int32') as T);
+    return this.executeMultipleOutputs(
+               'SplitV', opAttrs, inputs, sizeSplits.length) as T[];
   }
 
   fromPixels(
