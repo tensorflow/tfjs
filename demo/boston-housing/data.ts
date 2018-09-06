@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
-import {zip} from '../../src/dataset';
+import {Dataset, zip} from '../../src/dataset';
 import {CSVDataset, CsvHeaderConfig} from '../../src/datasets/csv_dataset';
 import {URLDataSource} from '../../src/sources/url_data_source';
+import {DataElement} from '../../src/types';
 
 // Boston Housing data constants:
 const BASE_URL =
@@ -30,20 +31,11 @@ const TEST_TARGET_FILENAME = 'test-target.csv';
 
 /** Helper class to handle loading training and test data. */
 export class BostonHousingDataset {
-  trainFeatures: number[][];
-  trainTarget: number[][];
-  testFeatures: number[][];
-  testTarget: number[][];
-  numFeatures: number;
+  trainDataset: Dataset<DataElement> = null;
+  testDataset: Dataset<DataElement> = null;
+  numFeatures: number = null;
 
-  private constructor() {
-    // Arrays to hold the data.
-    this.trainFeatures = null;
-    this.trainTarget = null;
-    this.testFeatures = null;
-    this.testTarget = null;
-    this.numFeatures = null;
-  }
+  private constructor() {}
 
   static async create() {
     const result = new BostonHousingDataset();
@@ -84,29 +76,13 @@ export class BostonHousingDataset {
     const testFeaturesDataset = await this.loadCsv(TEST_FEATURES_FILENAME);
     const testTargetDataset = await this.loadCsv(TEST_TARGET_FILENAME);
 
-    // TODO(kangyizhang): Remove usage of iterator.collect() when
-    // model.fitDataset(dataset) is available.
-
-    const trainIter =
-        await zip({features: trainFeaturesDataset, target: trainTargetDataset})
-            .shuffle(1000)
-            .iterator();
-    const trainData = await trainIter.collect() as
-        Array<{features: number[], target: number[]}>;
-    const testIter =
-        await zip({features: testFeaturesDataset, target: testTargetDataset})
-            .shuffle(1000)
-            .iterator();
-    const testData = await testIter.collect() as
-        Array<{features: number[], target: number[]}>;
-
-    this.trainFeatures = trainData.map(
-        (row: {features: number[], target: number[]}) => row.features);
-    this.trainTarget = trainData.map(
-        (row: {features: number[], target: number[]}) => row.target);
-    this.testFeatures = testData.map(
-        (row: {features: number[], target: number[]}) => row.features);
-    this.testTarget = testData.map(
-        (row: {features: number[], target: number[]}) => row.target);
+    this.trainDataset = await zip({
+                          features: trainFeaturesDataset,
+                          target: trainTargetDataset
+                        }).shuffle(1000);
+    this.testDataset = await zip({
+                         features: testFeaturesDataset,
+                         target: testTargetDataset
+                       }).shuffle(1000);
   }
 }

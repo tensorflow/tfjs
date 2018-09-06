@@ -16,10 +16,13 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import {Tensor, Tensor1D, Tensor2D} from '@tensorflow/tfjs-core';
+import {Tensor, Tensor2D} from '@tensorflow/tfjs-core';
+
+import {Dataset} from '../../src/dataset';
+import {computeDatasetStatistics, DatasetStatistics} from '../../src/statistics';
+import {TabularRecord} from '../../src/types';
 
 import {BostonHousingDataset} from './data';
-import * as normalization from './normalization';
 import * as ui from './ui';
 
 // Some hyperparameters for model training.
@@ -27,45 +30,73 @@ const NUM_EPOCHS = 250;
 const BATCH_SIZE = 40;
 const LEARNING_RATE = 0.01;
 
-interface Tensors {
-  rawTrainFeatures: Tensor2D;
-  trainFeatures: Tensor2D;
+interface PreparedData {
+  normalizedTrainFeatures: Tensor2D;
   trainTarget: Tensor2D;
-  rawTestFeatures: Tensor2D;
-  testFeatures: Tensor2D;
+  normalizedTestFeatures: Tensor2D;
   testTarget: Tensor2D;
 }
 
-const tensors: Tensors = {
-  rawTrainFeatures: null,
-  trainFeatures: null,
+const preparedData: PreparedData = {
+  normalizedTrainFeatures: null,
   trainTarget: null,
-  rawTestFeatures: null,
-  testFeatures: null,
+  normalizedTestFeatures: null,
   testTarget: null
 };
 
 let bostonData: BostonHousingDataset;
+let stats: DatasetStatistics;
 
 // TODO(kangyizhang): Remove this function when model.fitDataset(dataset) is
 //  available. This work should be done by dataset class itself.
 
-// Convert loaded data into tensors and creates normalized versions of the
+// Converts loaded data into tensors and creates normalized versions of the
 // features.
-export const arraysToTensors = () => {
-  tensors.rawTrainFeatures = tf.tensor2d(bostonData.trainFeatures);
-  tensors.trainTarget = tf.tensor2d(bostonData.trainTarget);
-  tensors.rawTestFeatures = tf.tensor2d(bostonData.testFeatures);
-  tensors.testTarget = tf.tensor2d(bostonData.testTarget);
-  // Normalize mean and standard deviation of data.
-  const {dataMean, dataStd} =
-      normalization.determineMeanAndStddev(tensors.rawTrainFeatures) as
-      {dataMean: Tensor1D, dataStd: Tensor1D};
-  tensors.trainFeatures = normalization.normalizeTensor(
-      tensors.rawTrainFeatures, dataMean, dataStd);
-  tensors.testFeatures =
-      normalization.normalizeTensor(tensors.rawTestFeatures, dataMean, dataStd);
-};
+export async function loadDataAndNormalize() {
+  // TODO(kangyizhang): Statistics should be generated from trainDataset
+  // directly. Update following codes after
+  // https://github.com/tensorflow/tfjs-data/issues/32 is resolved.
+
+  // Gets mean and standard deviation of data.
+  stats = await computeDatasetStatistics(
+      await bostonData.trainDataset.map(
+          (row: {features: {key: number}, target: {key: number}}) =>
+              row.features) as Dataset<TabularRecord>);
+
+  // Normalizes features data.
+  const normalizedTrainData = bostonData.trainDataset.map(normalizeFeatures);
+  const normalizedTestData = bostonData.testDataset.map(normalizeFeatures);
+
+  // Materializes data into arrays. Following codes should be removed once
+  // model.fitDataset is available.
+  const trainIter = await normalizedTrainData.iterator();
+  const trainData = await trainIter.collect();
+  const testIter = await normalizedTestData.iterator();
+  const testData = await testIter.collect();
+
+  preparedData.normalizedTrainFeatures = tf.tensor2d(trainData.map(
+      (row: {normalizedFeatures: number[], target: number[]}) =>
+          row.normalizedFeatures));
+  preparedData.trainTarget = tf.tensor2d(trainData.map(
+      (row: {normalizedFeatures: number[], target: number[]}) => row.target));
+  preparedData.normalizedTestFeatures = tf.tensor2d(testData.map(
+      (row: {normalizedFeatures: number[], target: number[]}) =>
+          row.normalizedFeatures));
+  preparedData.testTarget = tf.tensor2d(testData.map(
+      (row: {normalizedFeatures: number[], target: number[]}) => row.target));
+}
+
+/**
+ * Normalizes features with statistics and returns a new object.
+ */
+function normalizeFeatures(row: {features: number[], target: number[]}) {
+  const features = row.features;
+  const normalizedFeatures: number[] = [];
+  features.forEach(
+      (value, index) => normalizedFeatures.push(
+          (value - stats[index].mean) / stats[index].stddev));
+  return {normalizedFeatures, target: row.target};
+}
 
 /**
  * Builds and returns Linear Regression Model.
@@ -112,24 +143,27 @@ export const run = async (model: tf.Sequential) => {
   let trainLoss: number;
   let valLoss: number;
   await ui.updateStatus('Starting training process...');
-  await model.fit(tensors.trainFeatures, tensors.trainTarget, {
-    batchSize: BATCH_SIZE,
-    epochs: NUM_EPOCHS,
-    validationSplit: 0.2,
-    callbacks: {
-      onEpochEnd: async (epoch, logs) => {
-        await ui.updateStatus(`Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`);
-        trainLoss = logs.loss;
-        valLoss = logs.val_loss;
-        await ui.plotData(epoch, trainLoss, valLoss);
-      }
-    }
-  });
+  await model.fit(
+      preparedData.normalizedTrainFeatures, preparedData.trainTarget, {
+        batchSize: BATCH_SIZE,
+        epochs: NUM_EPOCHS,
+        validationSplit: 0.2,
+        callbacks: {
+          onEpochEnd: async (epoch, logs) => {
+            await ui.updateStatus(
+                `Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`);
+            trainLoss = logs.loss;
+            valLoss = logs.val_loss;
+            await ui.plotData(epoch, trainLoss, valLoss);
+          }
+        }
+      });
 
   await ui.updateStatus('Running on test data...');
-  const result = model.evaluate(
-                     tensors.testFeatures, tensors.testTarget,
-                     {batchSize: BATCH_SIZE}) as Tensor;
+  const result =
+      model.evaluate(
+          preparedData.normalizedTestFeatures, preparedData.testTarget,
+          {batchSize: BATCH_SIZE}) as Tensor;
   const testLoss = result.dataSync()[0];
   await ui.updateStatus(
       `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
@@ -138,9 +172,10 @@ export const run = async (model: tf.Sequential) => {
 };
 
 export const computeBaseline = () => {
-  const avgPrice = tf.mean(tensors.trainTarget);
+  const avgPrice = tf.mean(preparedData.trainTarget);
   console.log(`Average price: ${avgPrice.dataSync()}`);
-  const baseline = tf.mean(tf.pow(tf.sub(tensors.testTarget, avgPrice), 2));
+  const baseline =
+      tf.mean(tf.pow(tf.sub(preparedData.testTarget, avgPrice), 2));
   console.log(`Baseline loss: ${baseline.dataSync()}`);
   const baselineMsg = `Baseline loss (meanSquaredError) is ${
       baseline.dataSync()[0].toFixed(2)}`;
@@ -150,7 +185,7 @@ export const computeBaseline = () => {
 document.addEventListener('DOMContentLoaded', async () => {
   bostonData = await BostonHousingDataset.create();
   ui.updateStatus('Data loaded, converting to tensors');
-  arraysToTensors();
+  await loadDataAndNormalize();
   ui.updateStatus(
       'Data is now available as tensors.\n' +
       'Click a train button to begin.');
