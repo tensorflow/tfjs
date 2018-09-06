@@ -243,8 +243,10 @@ export function truncatedNormalVariable(
     name = 'truncatedNormal'): LayerVariable {
   // TODO(cais): Implement logic for dtype and seed once they are supported
   // by deeplearn.js.
-  if (dtype === 'bool') {
-    throw new NotImplementedError(`randomNormal does not support dType bool.`);
+  dtype = dtype || 'float32';
+  if (dtype !== 'float32' && dtype !== 'int32') {
+    throw new NotImplementedError(
+        `randomNormal does not support dType ${dtype}.`);
   }
   return new LayerVariable(
       tfc.truncatedNormal(shape, mean, stddev, dtype, seed), dtype, name);
@@ -262,9 +264,10 @@ export function truncatedNormalVariable(
 export function randomNormalVariable(
     shape: Shape, mean = 0.0, stddev = 1.0, dtype?: DataType, seed?: number,
     name = 'randomNormal'): LayerVariable {
-  if (dtype === 'bool') {
+  dtype = dtype || 'float32';
+  if (dtype !== 'float32' && dtype !== 'int32') {
     throw new NotImplementedError(
-        `randomNormalVariable does not support dType bool.`);
+        `randomNormalVariable does not support dType ${dtype}.`);
   }
   return new LayerVariable(
       tfc.randomNormal(shape, mean, stddev, dtype, seed), dtype, name);

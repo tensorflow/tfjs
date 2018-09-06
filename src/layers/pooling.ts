@@ -209,7 +209,7 @@ export class MaxPooling1D extends Pooling1D {
     return pool2d(inputs, poolSize, strides, padding, dataFormat, 'max');
   }
 }
-serialization.SerializationMap.register(MaxPooling1D);
+serialization.registerClass(MaxPooling1D);
 
 /**
  * Average pooling operation for spatial data.
@@ -234,7 +234,7 @@ export class AveragePooling1D extends Pooling1D {
     return pool2d(inputs, poolSize, strides, padding, dataFormat, 'avg');
   }
 }
-serialization.SerializationMap.register(AveragePooling1D);
+serialization.registerClass(AveragePooling1D);
 
 export interface Pooling2DLayerConfig extends LayerConfig {
   /**
@@ -378,7 +378,7 @@ export class MaxPooling2D extends Pooling2D {
     return pool2d(inputs, poolSize, strides, padding, dataFormat, 'max');
   }
 }
-serialization.SerializationMap.register(MaxPooling2D);
+serialization.registerClass(MaxPooling2D);
 
 /**
  * Average pooling operation for spatial data.
@@ -415,7 +415,7 @@ export class AveragePooling2D extends Pooling2D {
     return pool2d(inputs, poolSize, strides, padding, dataFormat, 'avg');
   }
 }
-serialization.SerializationMap.register(AveragePooling2D);
+serialization.registerClass(AveragePooling2D);
 
 /**
  * Abstract class for different global pooling 1D layers.
@@ -455,7 +455,7 @@ export class GlobalAveragePooling1D extends GlobalPooling1D {
     });
   }
 }
-serialization.SerializationMap.register(GlobalAveragePooling1D);
+serialization.registerClass(GlobalAveragePooling1D);
 
 /**
  * Global max pooling operation for temporal data.
@@ -477,7 +477,7 @@ export class GlobalMaxPooling1D extends GlobalPooling1D {
     });
   }
 }
-serialization.SerializationMap.register(GlobalMaxPooling1D);
+serialization.registerClass(GlobalMaxPooling1D);
 
 export interface GlobalPooling2DLayerConfig extends LayerConfig {
   /**
@@ -551,7 +551,7 @@ export class GlobalAveragePooling2D extends GlobalPooling2D {
     });
   }
 }
-serialization.SerializationMap.register(GlobalAveragePooling2D);
+serialization.registerClass(GlobalAveragePooling2D);
 
 /**
  * Global max pooling operation for spatial data.
@@ -579,4 +579,4 @@ export class GlobalMaxPooling2D extends GlobalPooling2D {
     });
   }
 }
-serialization.SerializationMap.register(GlobalMaxPooling2D);
+serialization.registerClass(GlobalMaxPooling2D);

@@ -66,7 +66,7 @@ export class Zeros extends Initializer {
     return zeros(shape, dtype);
   }
 }
-serialization.SerializationMap.register(Zeros);
+serialization.registerClass(Zeros);
 
 /**
  * Initializer that generates tensors initialized to 1.
@@ -78,7 +78,7 @@ export class Ones extends Initializer {
     return ones(shape, dtype);
   }
 }
-serialization.SerializationMap.register(Ones);
+serialization.registerClass(Ones);
 
 export interface ConstantConfig {
   /** The value for each element in the variable. */
@@ -113,7 +113,7 @@ export class Constant extends Initializer {
     };
   }
 }
-serialization.SerializationMap.register(Constant);
+serialization.registerClass(Constant);
 
 export interface RandomUniformConfig {
   /** Lower bound of the range of random values to generate. */
@@ -154,7 +154,7 @@ export class RandomUniform extends Initializer {
     return {minval: this.minval, maxval: this.maxval, seed: this.seed};
   }
 }
-serialization.SerializationMap.register(RandomUniform);
+serialization.registerClass(RandomUniform);
 
 export interface RandomNormalConfig {
   /** Mean of the random values to generate. */
@@ -185,10 +185,12 @@ export class RandomNormal extends Initializer {
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
-    if (dtype === 'bool') {
+    dtype = dtype || 'float32';
+    if (dtype !== 'float32' && dtype !== 'int32') {
       throw new NotImplementedError(
-          `randomNormal does not support dType bool.`);
+          `randomNormal does not support dType ${dtype}.`);
     }
+
     return K.randomNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
@@ -196,7 +198,7 @@ export class RandomNormal extends Initializer {
     return {mean: this.mean, stddev: this.stddev, seed: this.seed};
   }
 }
-serialization.SerializationMap.register(RandomNormal);
+serialization.registerClass(RandomNormal);
 
 export interface TruncatedNormalConfig {
   /** Mean of the random values to generate. */
@@ -232,9 +234,10 @@ export class TruncatedNormal extends Initializer {
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
-    if (dtype === 'bool') {
+    dtype = dtype || 'float32';
+    if (dtype !== 'float32' && dtype !== 'int32') {
       throw new NotImplementedError(
-          `truncatedNormal does not support dType bool.`);
+          `truncatedNormal does not support dType ${dtype}.`);
     }
     return truncatedNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
@@ -243,7 +246,7 @@ export class TruncatedNormal extends Initializer {
     return {mean: this.mean, stddev: this.stddev, seed: this.seed};
   }
 }
-serialization.SerializationMap.register(TruncatedNormal);
+serialization.registerClass(TruncatedNormal);
 
 export interface IdentityConfig {
   /**
@@ -280,7 +283,7 @@ export class Identity extends Initializer {
     return {gain: this.gain.get()};
   }
 }
-serialization.SerializationMap.register(Identity);
+serialization.registerClass(Identity);
 
 /**
  * Computes the number of input and output units for a weight shape.
@@ -383,9 +386,10 @@ export class VarianceScaling extends Initializer {
 
     if (this.distribution === 'normal') {
       const stddev = Math.sqrt(scale);
-      if (dtype === 'bool') {
+      dtype = dtype || 'float32';
+      if (dtype !== 'float32' && dtype !== 'int32') {
         throw new NotImplementedError(
-            `${this.getClassName()} does not support dType bool.`);
+            `${this.getClassName()} does not support dType ${dtype}.`);
       }
       return truncatedNormal(shape, 0, stddev, dtype, this.seed);
     } else {
@@ -403,7 +407,7 @@ export class VarianceScaling extends Initializer {
     };
   }
 }
-serialization.SerializationMap.register(VarianceScaling);
+serialization.registerClass(VarianceScaling);
 
 export interface SeedOnlyInitializerConfig {
   /** Random number generator seed. */
@@ -601,7 +605,7 @@ export class Orthogonal extends Initializer {
     };
   }
 }
-serialization.SerializationMap.register(Orthogonal);
+serialization.registerClass(Orthogonal);
 
 /** @docinline */
 export type InitializerIdentifier = 'constant'|'glorotNormal'|'glorotUniform'|

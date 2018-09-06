@@ -51,7 +51,7 @@ export class Elu extends Activation {
     return K.elu(x, alpha);
   }
 }
-serialization.SerializationMap.register(Elu);
+serialization.registerClass(Elu);
 
 /**
  * Scaled Exponential Linear Unit. (Klambauer et al., 2017).
@@ -66,7 +66,7 @@ export class Selu extends Activation {
     return tfc.selu(x);
   }
 }
-serialization.SerializationMap.register(Selu);
+serialization.registerClass(Selu);
 
 /**
  *  Rectified linear unit
@@ -77,7 +77,7 @@ export class Relu extends Activation {
     return tfc.relu(x);
   }
 }
-serialization.SerializationMap.register(Relu);
+serialization.registerClass(Relu);
 
 /**
  * Rectified linear unit activation maxing out at 6.0.
@@ -88,7 +88,7 @@ export class Relu6 extends Activation {
     return tidy(() => tfc.minimum(getScalar(6.0), tfc.relu(x)));
   }
 }
-serialization.SerializationMap.register(Relu6);
+serialization.registerClass(Relu6);
 
 //* Linear activation (no-op) */
 export class Linear extends Activation {
@@ -97,7 +97,7 @@ export class Linear extends Activation {
     return x;
   }
 }
-serialization.SerializationMap.register(Linear);
+serialization.registerClass(Linear);
 
 /**
  * Sigmoid activation function.
@@ -108,7 +108,7 @@ export class Sigmoid extends Activation {
     return tfc.sigmoid(x);
   }
 }
-serialization.SerializationMap.register(Sigmoid);
+serialization.registerClass(Sigmoid);
 
 /**
  * Segment-wise linear approximation of sigmoid.
@@ -119,7 +119,7 @@ export class HardSigmoid extends Activation {
     return K.hardSigmoid(x);
   }
 }
-serialization.SerializationMap.register(HardSigmoid);
+serialization.registerClass(HardSigmoid);
 
 /**
  * Softplus activation function.
@@ -130,7 +130,7 @@ export class Softplus extends Activation {
     return tfc.softplus(x);
   }
 }
-serialization.SerializationMap.register(Softplus);
+serialization.registerClass(Softplus);
 
 /**
  * Softsign activation function.
@@ -141,7 +141,7 @@ export class Softsign extends Activation {
     return K.softsign(x);
   }
 }
-serialization.SerializationMap.register(Softsign);
+serialization.registerClass(Softsign);
 
 /**
  * Hyperbolic tangent function.
@@ -152,7 +152,7 @@ export class Tanh extends Activation {
     return tfc.tanh(x);
   }
 }
-serialization.SerializationMap.register(Tanh);
+serialization.registerClass(Tanh);
 
 /**
  * Softmax activation function
@@ -175,7 +175,7 @@ export class Softmax extends Activation {
     return tfc.softmax(x, axis);
   }
 }
-serialization.SerializationMap.register(Softmax);
+serialization.registerClass(Softmax);
 
 export function serializeActivation(activation: Activation): string {
   return activation.getClassName();

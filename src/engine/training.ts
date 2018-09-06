@@ -2020,5 +2020,4 @@ export class Model extends Container implements tfc.InferenceModel {
     });
   }
 }
-
-serialization.SerializationMap.register(Model);
+serialization.registerClass(Model);

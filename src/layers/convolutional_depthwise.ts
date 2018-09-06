@@ -215,4 +215,4 @@ export class DepthwiseConv2D extends BaseConv {
     return config;
   }
 }
-serialization.SerializationMap.register(DepthwiseConv2D);
+serialization.registerClass(DepthwiseConv2D);

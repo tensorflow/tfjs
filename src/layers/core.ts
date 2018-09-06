@@ -124,7 +124,7 @@ export class Dropout extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(Dropout);
+serialization.registerClass(Dropout);
 
 export interface DenseLayerConfig extends LayerConfig {
   /** Positive integer, dimensionality of the output space. */
@@ -315,7 +315,7 @@ export class Dense extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(Dense);
+serialization.registerClass(Dense);
 
 /**
  * Flattens the input. Does not affect the batch size.
@@ -362,7 +362,7 @@ export class Flatten extends Layer {
     });
   }
 }
-serialization.SerializationMap.register(Flatten);
+serialization.registerClass(Flatten);
 
 export interface ActivationLayerConfig extends LayerConfig {
   /**
@@ -426,7 +426,7 @@ export class Activation extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(Activation);
+serialization.registerClass(Activation);
 
 export interface ReshapeLayerConfig extends LayerConfig {
   /** The target shape. Does not include the batch axis. */
@@ -482,7 +482,7 @@ export class RepeatVector extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(RepeatVector);
+serialization.registerClass(RepeatVector);
 
 /**
  * Reshapes an input to a certain shape.
@@ -606,7 +606,7 @@ export class Reshape extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(Reshape);
+serialization.registerClass(Reshape);
 
 export interface PermuteLayerConfig extends LayerConfig {
   /**
@@ -697,4 +697,4 @@ export class Permute extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(Permute);
+serialization.registerClass(Permute);

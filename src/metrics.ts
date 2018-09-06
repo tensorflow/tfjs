@@ -15,8 +15,8 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {Tensor, tidy} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/tfjs_backend';
 import {getScalar} from './backend/state';
+import * as K from './backend/tfjs_backend';
 import {NotImplementedError, ValueError} from './errors';
 import {categoricalCrossentropy as categoricalCrossentropyLoss, cosineProximity, meanAbsoluteError, meanAbsolutePercentageError, meanSquaredError, sparseCategoricalCrossentropy as sparseCategoricalCrossentropyLoss} from './losses';
 import {binaryCrossentropy as lossBinaryCrossentropy} from './losses';

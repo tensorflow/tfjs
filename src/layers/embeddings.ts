@@ -206,5 +206,4 @@ export class Embedding extends Layer {
     return config;
   }
 }
-
-serialization.SerializationMap.register(Embedding);
+serialization.registerClass(Embedding);

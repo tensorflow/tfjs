@@ -806,7 +806,7 @@ export class RNN extends Layer {
     return config;
   }
 }
-serialization.SerializationMap.register(RNN);
+serialization.registerClass(RNN);
 
 /**
  * An RNNCell layer.
@@ -1111,7 +1111,7 @@ export class SimpleRNNCell extends RNNCell {
     return config;
   }
 }
-serialization.SerializationMap.register(SimpleRNNCell);
+serialization.registerClass(SimpleRNNCell);
 
 export interface SimpleRNNLayerConfig extends BaseRNNLayerConfig {
   /**
@@ -1323,7 +1323,7 @@ export class SimpleRNN extends RNN {
     return config;
   }
 }
-serialization.SerializationMap.register(SimpleRNN);
+serialization.registerClass(SimpleRNN);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we extend
 //   that interface instead of repeating the fields.
@@ -1644,7 +1644,7 @@ export class GRUCell extends RNNCell {
     return config;
   }
 }
-serialization.SerializationMap.register(GRUCell);
+serialization.registerClass(GRUCell);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we inherit
 //   from that interface instead of repeating the fields here.
@@ -1822,7 +1822,7 @@ export class GRU extends RNN {
     return new cls(config);
   }
 }
-serialization.SerializationMap.register(GRU);
+serialization.registerClass(GRU);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we extend
 //   that interface instead of repeating the fields.
@@ -2184,7 +2184,7 @@ export class LSTMCell extends RNNCell {
     return config;
   }
 }
-serialization.SerializationMap.register(LSTMCell);
+serialization.registerClass(LSTMCell);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we inherit
 //   from that interface instead of repeating the fields here.
@@ -2374,7 +2374,7 @@ export class LSTM extends RNN {
     return new cls(config);
   }
 }
-serialization.SerializationMap.register(LSTM);
+serialization.registerClass(LSTM);
 
 export interface StackedRNNCellsConfig extends LayerConfig {
   /**
@@ -2559,7 +2559,7 @@ export class StackedRNNCells extends RNNCell {
 
   // TODO(cais): Maybe implemnt `losses` and `getLossesFor`.
 }
-serialization.SerializationMap.register(StackedRNNCells);
+serialization.registerClass(StackedRNNCells);
 
 function generateDropoutMask(
     ones: () => Tensor, rate: number, training: boolean = null,

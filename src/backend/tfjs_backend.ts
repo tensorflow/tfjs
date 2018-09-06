@@ -72,7 +72,7 @@ export function countParams(x: HasShape): number {
  * @param dtype String: 'float32'|'int32'|'bool'.
  * @returns Tensor of the specified `dtype`.
  */
-export function cast(x: Tensor, dtype: 'float32'|'int32'|'bool'): Tensor {
+export function cast(x: Tensor, dtype: tfc.DataType): Tensor {
   return x.asType(dtype);
 }
 

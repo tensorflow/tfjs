@@ -95,7 +95,7 @@ export class L1L2 extends Regularizer {
     return new cls({l1: config.l1 as number, l2: config.l2 as number});
   }
 }
-serialization.SerializationMap.register(L1L2);
+serialization.registerClass(L1L2);
 
 /**
  * Regularizer for L1 regularization.
