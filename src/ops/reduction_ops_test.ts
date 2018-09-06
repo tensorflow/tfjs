@@ -84,6 +84,128 @@ describeWithFlags('Reduction: min', ALL_ENVS, () => {
   it('accepts a tensor-like object', () => {
     expectNumbersClose(tf.min([3, -1, 0, 100, -7, 2]).get(), -7);
   });
+
+  it('min gradient: Scalar', () => {
+    const x = tf.scalar(42);
+    const dy = tf.scalar(-1);
+    const gradients = tf.grad(v => tf.min(v))(x, dy);
+    expectArraysClose(gradients, tf.scalar(-1));
+  });
+
+  it('min gradient: 1D, ties', () => {
+    const x = tf.tensor1d([-1, -3, -7, -7]);
+    const dy = tf.scalar(-1);
+    const gradients = tf.grad(v => tf.min(v))(x, dy);
+    expectArraysClose(gradients, tf.tensor1d([0, 0, -1, -1]));
+  });
+
+  it('min gradient: 2D, axes=-1, keepDims=false', () => {
+    const x = tf.tensor2d([[-0, -20, -10], [10, 30, 20]]);
+    const dy = tf.tensor1d([-1, -1]);
+    const axis = -1;
+    const gradients = tf.grad(v => tf.min(v, axis))(x, dy);
+    expectArraysClose(gradients, tf.tensor2d([[0, -1, 0], [-1, 0, 0]]));
+  });
+
+  it('min gradient: ties, 2D, axes=-1, keepDims=false', () => {
+    const x = tf.tensor2d([[0, -20, -20], [10, 30, 10]]);
+    const dy = tf.tensor1d([-1, -1]);
+    const axis = -1;
+    const gradients = tf.grad(v => tf.min(v, axis))(x, dy);
+    expectArraysClose(gradients, tf.tensor2d([[0, -1, -1], [-1, 0, -1]]));
+  });
+
+  it('min gradient: 2D, axes=0, keepDims=false', () => {
+    const x = tf.tensor2d([[0, 20, 10], [-10, -30, 20]]);
+    const dy = tf.tensor1d([-1, -1, -1]);
+    const axis = 0;
+    const gradients = tf.grad(v => tf.max(v, axis))(x, dy);
+    expectArraysClose(gradients, tf.tensor2d([[-1, -1, 0], [0, 0, -1]]));
+  });
+
+  it('min gradient: 2D, axes=-1, keepDims=true', () => {
+    const x = tf.tensor2d([[0, -20, -10], [10, 30, 20]]);
+    const dy = tf.tensor2d([[-1], [-1]]);
+    const axis = -1;
+    const keepDims = true;
+    const gradients = tf.grad(v => tf.min(v, axis, keepDims))(x, dy);
+    expectArraysClose(gradients, tf.tensor2d([[0, -1, 0], [-1, 0, 0]]));
+  });
+
+  it('min gradient: 2D, axes=0, keepDims=true', () => {
+    const x = tf.tensor2d([[0, -20, -10], [10, 30, -20]]);
+    const dy = tf.tensor2d([[-1, -1, -1]]);
+    const axis = 0;
+    const keepDims = true;
+    const gradients = tf.grad(v => tf.min(v, axis, keepDims))(x, dy);
+    expectArraysClose(gradients, tf.tensor2d([[-1, -1, 0], [0, 0, -1]]));
+  });
+
+  it('min gradient: 3D, axes=[1, 2], keepDims=false', () => {
+    const x = tf.tensor3d([[[0, -20], [-10, -15]], [[10, 30], [20, 15]]]);
+    const dy = tf.tensor1d([-1, -1]);
+    const axis = [1, 2];
+    const gradients = tf.grad(v => tf.min(v, axis))(x, dy);
+    expectArraysClose(
+        gradients, tf.tensor3d([[[0, -1], [0, 0]], [[-1, 0], [0, 0]]]));
+  });
+
+  it('min gradient: ties, 3D, axes=[1, 2], keepDims=false', () => {
+    const x = tf.tensor3d([[[0, -20], [-20, -20]], [[10, 30], [10, 15]]]);
+    const dy = tf.tensor1d([-1, -1]);
+    const axis = [1, 2];
+    const gradients = tf.grad(v => tf.min(v, axis))(x, dy);
+    expectArraysClose(
+        gradients, tf.tensor3d([[[0, -1], [-1, -1]], [[-1, 0], [-1, 0]]]));
+  });
+
+  it('min gradient: 3D, axes=2, keepDims=false', () => {
+    const x = tf.tensor3d([[[0, -20], [-10, -15]], [[10, 30], [20, 15]]]);
+    const dy = tf.tensor2d([[-1, -1], [-1, -1]]);
+    const axis = 2;
+    const gradients = tf.grad(v => tf.min(v, axis))(x, dy);
+    expectArraysClose(
+        gradients, tf.tensor3d([[[0, -1], [0, -1]], [[-1, 0], [0, -1]]]));
+  });
+
+  it('min gradient: 3D, axes=2, keepDims=true', () => {
+    const x = tf.tensor3d([[[0, -20], [-10, -15]], [[10, 30], [20, 15]]]);
+    const dy = tf.tensor3d([[[-1], [-1]], [[-1], [-1]]]);
+    const axis = 2;
+    const keepDims = true;
+    const gradients = tf.grad(v => tf.min(v, axis, keepDims))(x, dy);
+    expectArraysClose(
+        gradients, tf.tensor3d([[[0, -1], [0, -1]], [[-1, 0], [0, -1]]]));
+  });
+
+  it('min gradient: ties, 4D, axes=[1, 2, 3], keepDims=false', () => {
+    const x = tf.tensor4d([
+      [[[0, -20], [-20, -20]], [[10, 30], [10, 30]]],
+      [[[0, 20], [20, 20]], [[-10, -30], [-10, -30]]]
+    ]);
+    const dy = tf.tensor1d([-1, -1]);
+    const axis = [1, 2, 3];
+    const gradients = tf.grad(v => tf.min(v, axis))(x, dy);
+    expectArraysClose(gradients, tf.tensor4d([
+      [[[0, -1], [-1, -1]], [[0, 0], [0, 0]]],
+      [[[0, 0], [0, 0]], [[0, -1], [0, -1]]]
+    ]));
+  });
+
+  it('min gradient: ties, 4D, axes=[2, 3], keepDims=true', () => {
+    const x = tf.tensor4d([
+      [[[0, -20], [-20, -20]], [[10, 30], [10, 30]]],
+      [[[0, 20], [20, 20]], [[-10, -30], [-10, -30]]]
+    ]);
+    const dy = tf.tensor4d([[[[-1]], [[-2]]], [[[-3]], [[-4]]]]);
+    const axis = [2, 3];
+    const keepDims = true;
+    const gradients = tf.grad(v => tf.min(v, axis, keepDims))(x, dy);
+    expectArraysClose(gradients, tf.tensor4d([
+      [[[0, -1], [-1, -1]], [[-2, 0], [-2, 0]]],
+      [[[-3, 0], [0, 0]], [[0, -4], [0, -4]]]
+    ]));
+  });
 });
 
 describeWithFlags('Reduction: max', ALL_ENVS, () => {
@@ -165,6 +287,128 @@ describeWithFlags('Reduction: max', ALL_ENVS, () => {
   it('accepts a tensor-like object', () => {
     const r = tf.max([3, -1, 0, 100, -7, 2]);
     expectNumbersClose(r.get(), 100);
+  });
+
+  it('max gradient: Scalar', () => {
+    const x = tf.scalar(42);
+    const dy = tf.scalar(-1);
+    const gradients = tf.grad(v => tf.max(v))(x, dy);
+    expectArraysClose(gradients, tf.scalar(-1));
+  });
+
+  it('max gradient: 1D, ties', () => {
+    const x = tf.tensor1d([1, 3, 7, 7]);
+    const dy = tf.scalar(-1);
+    const gradients = tf.grad(v => tf.max(v))(x, dy);
+    expectArraysClose(gradients, tf.tensor1d([0, 0, -1, -1]));
+  });
+
+  it('max gradient: 2D, axes=-1, keepDims=false', () => {
+    const x = tf.tensor2d([[0, 20, 10], [-10, -30, -20]]);
+    const dy = tf.tensor1d([-1, -1]);
+    const axis = -1;
+    const gradients = tf.grad(v => tf.max(v, axis))(x, dy);
+    expectArraysClose(gradients, tf.tensor2d([[0, -1, 0], [-1, 0, 0]]));
+  });
+
+  it('max gradient: ties, 2D, axes=-1, keepDims=false', () => {
+    const x = tf.tensor2d([[0, 20, 20], [-10, -30, -10]]);
+    const dy = tf.tensor1d([-1, -1]);
+    const axis = -1;
+    const gradients = tf.grad(v => tf.max(v, axis))(x, dy);
+    expectArraysClose(gradients, tf.tensor2d([[0, -1, -1], [-1, 0, -1]]));
+  });
+
+  it('max gradient: 2D, axes=0, keepDims=false', () => {
+    const x = tf.tensor2d([[0, 20, 10], [-10, -30, 20]]);
+    const dy = tf.tensor1d([-1, -1, -1]);
+    const axis = 0;
+    const gradients = tf.grad(v => tf.max(v, axis))(x, dy);
+    expectArraysClose(gradients, tf.tensor2d([[-1, -1, 0], [0, 0, -1]]));
+  });
+
+  it('max gradient: 2D, axes=-1, keepDims=true', () => {
+    const x = tf.tensor2d([[0, 20, 10], [-10, -30, -20]]);
+    const dy = tf.tensor2d([[-1], [-1]]);
+    const axis = -1;
+    const keepDims = true;
+    const gradients = tf.grad(v => tf.max(v, axis, keepDims))(x, dy);
+    expectArraysClose(gradients, tf.tensor2d([[0, -1, 0], [-1, 0, 0]]));
+  });
+
+  it('max gradient: 2D, axes=0, keepDims=true', () => {
+    const x = tf.tensor2d([[0, 20, 10], [-10, -30, 20]]);
+    const dy = tf.tensor2d([[-1, -1, -1]]);
+    const axis = 0;
+    const keepDims = true;
+    const gradients = tf.grad(v => tf.max(v, axis, keepDims))(x, dy);
+    expectArraysClose(gradients, tf.tensor2d([[-1, -1, 0], [0, 0, -1]]));
+  });
+
+  it('max gradient: 3D, axes=[1, 2], keepDims=false', () => {
+    const x = tf.tensor3d([[[0, 20], [10, 15]], [[-10, -30], [-20, -15]]]);
+    const dy = tf.tensor1d([-1, -1]);
+    const axis = [1, 2];
+    const gradients = tf.grad(v => tf.max(v, axis))(x, dy);
+    expectArraysClose(
+        gradients, tf.tensor3d([[[0, -1], [0, 0]], [[-1, 0], [0, 0]]]));
+  });
+
+  it('max gradient: ties, 3D, axes=[1, 2], keepDims=false', () => {
+    const x = tf.tensor3d([[[0, 20], [20, 20]], [[-10, -30], [-10, -15]]]);
+    const dy = tf.tensor1d([-1, -1]);
+    const axis = [1, 2];
+    const gradients = tf.grad(v => tf.max(v, axis))(x, dy);
+    expectArraysClose(
+        gradients, tf.tensor3d([[[0, -1], [-1, -1]], [[-1, 0], [-1, 0]]]));
+  });
+
+  it('max gradient: 3D, axes=2, keepDims=false', () => {
+    const x = tf.tensor3d([[[0, 20], [10, 15]], [[-10, -30], [-20, -15]]]);
+    const dy = tf.tensor2d([[-1, -1], [-1, -1]]);
+    const axis = 2;
+    const gradients = tf.grad(v => tf.max(v, axis))(x, dy);
+    expectArraysClose(
+        gradients, tf.tensor3d([[[0, -1], [0, -1]], [[-1, 0], [0, -1]]]));
+  });
+
+  it('max gradient: 3D, axes=2, keepDims=true', () => {
+    const x = tf.tensor3d([[[0, 20], [10, 15]], [[-10, -30], [-20, -15]]]);
+    const dy = tf.tensor3d([[[-1], [-1]], [[-1], [-1]]]);
+    const axis = 2;
+    const keepDims = true;
+    const gradients = tf.grad(v => tf.max(v, axis, keepDims))(x, dy);
+    expectArraysClose(
+        gradients, tf.tensor3d([[[0, -1], [0, -1]], [[-1, 0], [0, -1]]]));
+  });
+
+  it('max gradient: ties, 4D, axes=[1, 2, 3], keepDims=false', () => {
+    const x = tf.tensor4d([
+      [[[0, 20], [20, 20]], [[-10, -30], [-10, -30]]],
+      [[[0, -20], [-20, -20]], [[10, 30], [10, 30]]]
+    ]);
+    const dy = tf.tensor1d([-1, -1]);
+    const axis = [1, 2, 3];
+    const gradients = tf.grad(v => tf.max(v, axis))(x, dy);
+    expectArraysClose(gradients, tf.tensor4d([
+      [[[0, -1], [-1, -1]], [[0, 0], [0, 0]]],
+      [[[0, 0], [0, 0]], [[0, -1], [0, -1]]]
+    ]));
+  });
+
+  it('max gradient: ties, 4D, axes=[2, 3], keepDims=true', () => {
+    const x = tf.tensor4d([
+      [[[0, 20], [20, 20]], [[-10, -30], [-10, -30]]],
+      [[[0, -20], [-20, -20]], [[10, 30], [10, 30]]]
+    ]);
+    const dy = tf.tensor4d([[[[-1]], [[-2]]], [[[-3]], [[-4]]]]);
+    const axis = [2, 3];
+    const keepDims = true;
+    const gradients = tf.grad(v => tf.max(v, axis, keepDims))(x, dy);
+    expectArraysClose(gradients, tf.tensor4d([
+      [[[0, -1], [-1, -1]], [[-2, 0], [-2, 0]]],
+      [[[-3, 0], [0, 0]], [[0, -4], [0, -4]]]
+    ]));
   });
 });
 
