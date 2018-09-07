@@ -22,3 +22,4 @@ export const tidy = Environment.tidy;
 export const keep = Environment.keep;
 export const dispose = Environment.dispose;
 export const time = Environment.time;
+export const profile = Environment.profile;
