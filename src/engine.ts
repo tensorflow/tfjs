@@ -45,6 +45,20 @@ export type MemoryInfo = {
   unreliable?: boolean;
 };
 
+type KernelProfile = {
+  name: string; bytesAdded: number; totalBytesSnapshot: number;
+  tensorsAdded: number;
+  totalTensorsSnapshot: number;
+  inputShapes: number[][];
+  outputShape: number[] | number[][];
+};
+
+export type ProfileInfo = {
+  newBytes: number; newTensors: number; peakBytes: number;
+  kernels: KernelProfile[];
+  result: TensorContainer;
+};
+
 export interface TimingInfo extends BackendTimingInfo {
   wallMs: number;
 }
@@ -74,6 +88,9 @@ export class Engine implements TensorManager {
   private numTensors = 0;
   private numDataBuffers = 0;
 
+  private profiling = false;
+  private activeProfile: ProfileInfo;
+
   private activeTape: TapeNode[];
   private gradientScopeCount = 0;
   private customGradientDepth = 0;
@@ -91,6 +108,8 @@ export class Engine implements TensorManager {
     this.activeScope = {track: [], name: 'default scope'};
     this.scopeStack = [this.activeScope];
     this.profiler = new Profiler(backend);
+    this.activeProfile =
+        {newBytes: 0, newTensors: 0, peakBytes: 0, kernels: [], result: null};
   }
 
   tidy<T extends TensorContainer>(
@@ -157,6 +176,8 @@ export class Engine implements TensorManager {
       return x;
     };
     const scopeName = this.activeScope.name;
+    const startingBytecount = this.numBytes;
+    const startingNumTensors = this.numTensors;
 
     // Stop recording to a tape when running a kernel.
     this.scopedRun(
@@ -184,6 +205,21 @@ export class Engine implements TensorManager {
       }
       this.activeTape.push(tapeNode);
     }
+
+    if (this.profiling) {
+      this.activeProfile.kernels.push({
+        name: scopeName,
+        bytesAdded: this.numBytes - startingBytecount,
+        totalBytesSnapshot: this.numBytes,
+        tensorsAdded: this.numTensors - startingNumTensors,
+        totalTensorsSnapshot: this.numTensors,
+        inputShapes: Object.keys(inputs).map(key => inputs[key].shape),
+        outputShape: Array.isArray(result) ?
+            (result as Tensor[]).map(item => (item as Tensor).shape) :
+            (result as Tensor).shape
+      });
+    }
+
     return result;
   }
 
@@ -259,6 +295,24 @@ export class Engine implements TensorManager {
     info.numDataBuffers = this.numDataBuffers;
     info.numBytes = this.numBytes;
     return info;
+  }
+
+  async profile(query: () => TensorContainer): Promise<ProfileInfo> {
+    this.profiling = true;
+
+    const startBytes = this.numBytes;
+    const startNumTensors = this.numTensors;
+
+    this.activeProfile.kernels = [];
+    this.activeProfile.result = query();
+
+    this.profiling = false;
+
+    this.activeProfile.peakBytes =
+        Math.max(...this.activeProfile.kernels.map(d => d.totalBytesSnapshot));
+    this.activeProfile.newBytes = this.numBytes - startBytes;
+    this.activeProfile.newTensors = this.numTensors - startNumTensors;
+    return this.activeProfile;
   }
 
   private shouldRecord(): boolean {
