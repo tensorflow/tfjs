@@ -49,7 +49,13 @@ describeMathCPUAndGPU('rnn', () => {
     const inputs = tensor3d(
         [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
     const initialStates = [tfc.zeros([2, 4])];
-    const rnnOutputs = rnn(rnnStepForTest, inputs, initialStates);
+    const rnnOutputs = rnn(
+        rnnStepForTest, inputs, initialStates,
+        false /* goBackwards */,
+        null /* mask */,
+        null /* constants */,
+        false /* unroll */,
+        true /* needPerStepOutputs */);
     const lastOutput = rnnOutputs[0];
     const outputs = rnnOutputs[1];
     const newStates = rnnOutputs[2];
@@ -88,7 +94,13 @@ describeMathCPUAndGPU('rnn', () => {
         [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
     // The two state tensors have different shapes.
     const initialStates = [tfc.zeros([2, 4]), tfc.ones([2, 3])];
-    const rnnOutputs = rnn(rnnStepForTest, inputs, initialStates);
+    const rnnOutputs = rnn(
+        rnnStepForTest, inputs, initialStates,
+        false /* goBackwards */,
+        null /* mask */,
+        null /* constants */,
+        false /* unroll */,
+        true /* needPerStepOutputs */);
     const lastOutput = rnnOutputs[0];
     const outputs = rnnOutputs[1];
     const newStates = rnnOutputs[2];
@@ -134,7 +146,13 @@ describeMathCPUAndGPU('rnn', () => {
         [2, 3, 2, 1]);
     // The two state tensors have different shapes.
     const initialStates = [tfc.zeros([2, 4]), tfc.ones([2, 3])];
-    const rnnOutputs = rnn(rnnStepForTest, inputs, initialStates);
+    const rnnOutputs = rnn(
+        rnnStepForTest, inputs, initialStates,
+        false /* goBackwards */,
+        null /* mask */,
+        null /* constants */,
+        false /* unroll */,
+        true /* needPerStepOutputs */);
     const lastOutput = rnnOutputs[0];
     const outputs = rnnOutputs[1];
     const newStates = rnnOutputs[2];

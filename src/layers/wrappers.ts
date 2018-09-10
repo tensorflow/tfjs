@@ -233,7 +233,9 @@ export class TimeDistributed extends Wrapper {
         return [output, []];
       };
       const rnnOutputs =
-          rnn(step, inputs, [], false, null, null, false, inputs.shape[1]);
+          rnn(step, inputs, [], false /* goBackwards */, null /* mask */,
+              null /* constants */, false /* unroll */,
+              true /* needPerStepOutputs */);
       const y = rnnOutputs[1];
       // TODO(cais): Add activity regularization.
       // TODO(cais): Add useLearningPhase.
@@ -257,9 +259,9 @@ export interface BidirectionalLayerConfig extends WrapperLayerConfig {
   layer: RNN;
 
   /**
-   * Mode by which outputs of the forward and backward RNNs are combinied.
-   * If `null` or `undefined`, the output will not be combined, they will be
-   * returned as an `Array`.
+   * Mode by which outputs of the forward and backward RNNs are
+   * combinied. If `null` or `undefined`, the output will not be
+   * combined, they will be returned as an `Array`.
    */
   mergeMode?: BidirectionalMergeMode;
 }
@@ -278,13 +280,13 @@ export class Bidirectional extends Wrapper {
     super(config);
 
     // Note: When creating `this.forwardLayer`, the original Layer object
-    //   (`config.layer`) ought to be cloned. This is why we call `getConfig()`
-    //   followed by `deserialize()`. Without this cloning, the layer names
-    //   saved during serialization will incorrectly contain the 'forward_'
-    //   prefix.
-    //   In Python Keras, this is done using `copy.copy` (shallow copy), which
-    //   does not have a simple equivalent in JavaScript. JavaScript's
-    //   `Object.assign()` does not copy methods.
+    //   (`config.layer`) ought to be cloned. This is why we call
+    //   `getConfig()` followed by `deserialize()`. Without this cloning,
+    //   the layer names saved during serialization will incorrectly contain
+    //   the 'forward_' prefix. In Python Keras, this is done using
+    //   `copy.copy` (shallow copy), which does not have a simple equivalent
+    //   in JavaScript. JavaScript's `Object.assign()` does not copy
+    //   methods.
     const layerConfig = config.layer.getConfig();
     this.forwardLayer =
         deserialize(
@@ -441,12 +443,12 @@ export class Bidirectional extends Wrapper {
       const fullInput = [inputs].concat(additionalInputs);
       const fullInputSpec = this.inputSpec.concat(additionalSpecs);
       // Perform the call temporarily and replace inputSpec.
-      // Note: with initial states symbolic calls and non-symbolic calls to this
-      // method differ in how the initial states are passed. For symbolic calls,
-      // the initial states are passed in the first arg, as an Array of
-      // SymbolicTensors; for non-symbolic calls, they are passed in the second
-      // arg as a part of the kwargs. Hence the need to temporarily modify
-      // inputSpec here.
+      // Note: with initial states symbolic calls and non-symbolic calls to
+      // this method differ in how the initial states are passed. For
+      // symbolic calls, the initial states are passed in the first arg, as
+      // an Array of SymbolicTensors; for non-symbolic calls, they are
+      // passed in the second arg as a part of the kwargs. Hence the need to
+      // temporarily modify inputSpec here.
       // TODO(cais): Make refactoring so that this hacky code below is no
       // longer needed.
       const originalInputSpec = this.inputSpec;

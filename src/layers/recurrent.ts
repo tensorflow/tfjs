@@ -118,12 +118,19 @@ export function standardizeArgs(
  * @param constants An Array of constant values passed at each step.
  * @param unroll Whether to unroll the RNN or to use a symbolic loop. *Not*
  *   applicable to this imperative deeplearn.js backend. Its value is ignored.
- * @param inputLength Not relevant in this deeplearn.js backend.
+ * @param needPerStepOutputs Whether the per-step outputs are to be
+ *   concatenated into a single tensor and returned (as the second return
+ *   value). Default: `false`. This arg is included so that the relatively
+ *   expensive concatenation of the stepwise outputs can be omitted unless
+ *   the stepwise outputs need to be kept (e.g., for an LSTM layer of which
+ *   `returnSequence` is `true`.)
  * @returns An Array: `[lastOutput, outputs, newStates]`.
  *   lastOutput: the lastest output of the RNN, of shape `[samples, ...]`.
  *   outputs: tensor with shape `[samples, time, ...]` where each entry
  *     `output[s, t]` is the output of the step function at time `t` for sample
- *     `s`.
+ *     `s`. This return value is provided if and only if the
+ *     `needPerStepOutputs` is set as `true`. If it is set as `false`, this
+ *     return value will be `undefined`.
  *   newStates: Array of tensors, latest states returned by the step function,
  *      of shape `(samples, ...)`.
  * @throws ValueError If input dimension is less than 3.
@@ -133,7 +140,7 @@ export function standardizeArgs(
 export function rnn(
     stepFunction: RnnStepFunction, inputs: Tensor, initialStates: Tensor[],
     goBackwards = false, mask?: Tensor, constants?: Tensor[], unroll = false,
-    inputLength?: number): [Tensor, Tensor, Tensor[]] {
+    needPerStepOutputs = false): [Tensor, Tensor, Tensor[]] {
   const ndim = inputs.shape.length;
   if (ndim < 3) {
     throw new ValueError(`Input should be at least 3D, but is ${ndim}D.`);
@@ -186,25 +193,22 @@ export function rnn(
   for (let t = 0; t < timeSteps; ++t) {
     let currentInput = K.sliceAlongFirstAxis(inputs, t, 1);
     currentInput = currentInput.reshape(currentInput.shape.slice(1));
-    const stepOutputs = stepFunction(currentInput, states);
+    const stepOutputs = tfc.tidy(() => stepFunction(currentInput, states));
     lastOutput = stepOutputs[0];
-    if (t === 0) {
-      outputs = lastOutput.expandDims(1);
-    } else {
-      const newOutputs = tfc.concat([outputs, lastOutput.expandDims(1)], 1);
-      outputs.dispose();
-      outputs = newOutputs;
+    if (needPerStepOutputs) {
+      if (t === 0) {
+        outputs = lastOutput.expandDims(1);
+      } else {
+        const newOutputs = tfc.concat([outputs, lastOutput.expandDims(1)], 1);
+        outputs.dispose();
+        outputs = newOutputs;
+      }
     }
     // TODO(soergel): Call K.concatenate() to perform only one concatenation
     // at the end, once the backend function is available.
     states = stepOutputs[1];
   }
-
-  return [
-    lastOutput,
-    outputs,
-    states
-  ];
+  return [lastOutput, outputs, states];
 }
 
 
@@ -704,8 +708,6 @@ export class RNN extends Layer {
             `RNN Layer has ${numStates} state(s) but was passed ` +
             `${initialState.length} initial state(s).`);
       }
-      const inputShape = inputs.shape;
-      const timesteps = inputShape[1];
       if (this.unroll) {
         console.warn(
             'Ignoring unroll = true for RNN layer, due to imperative backend.');
@@ -728,7 +730,7 @@ export class RNN extends Layer {
 
       const rnnOutputs =
           rnn(step, inputs, initialState, this.goBackwards, null, null,
-              this.unroll, timesteps);
+              this.unroll, this.returnSequences);
       const lastOutput = rnnOutputs[0];
       const outputs = rnnOutputs[1];
       const states = rnnOutputs[2];
