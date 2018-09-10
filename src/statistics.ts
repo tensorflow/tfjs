@@ -127,8 +127,6 @@ export async function computeDatasetStatistics(
           valueVariance = valueMoment.variance.get();
           valueLength = value.size;
 
-
-
         } else if (value instanceof Array) {
           recordMin = value.reduce((a, b) => Math.min(a, b));
           recordMax = value.reduce((a, b) => Math.max(a, b));
