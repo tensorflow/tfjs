@@ -48,23 +48,24 @@ describeWithFlags('makeDatasetStatistics', tf.test_util.ALL_ENVS, () => {
        expect(stats['number'].mean).toEqual(4.5);
        expect(stats['number'].variance).toEqual(8.25);
        expect(stats['number'].stddev).toEqual(2.8722813232690143);
+
        // The TestDataset includes cubes of the indices
        expect(stats['numberArray'].min).toEqual(0);
        expect(stats['numberArray'].max).toEqual(729);
        tf.test_util.expectNumbersClose(
            stats['numberArray'].mean, 78.50000066757202);
        tf.test_util.expectNumbersClose(
-           stats['numberArray'].variance, 26971.849851671857);
+           stats['numberArray'].variance, 26971.849851671857, 0.1);
        tf.test_util.expectNumbersClose(
            stats['numberArray'].stddev, 164.2310867396056);
+
        expect(stats['Tensor'].min).toEqual(0);
        expect(stats['Tensor'].max).toEqual(729);
+       tf.test_util.expectNumbersClose(stats['Tensor'].mean, 78.50000066757202);
        tf.test_util.expectNumbersClose(
-           stats['numberArray'].mean, 78.50000066757202);
+           stats['Tensor'].variance, 26971.849851671857, 0.1);
        tf.test_util.expectNumbersClose(
-           stats['numberArray'].variance, 26971.849851671857);
-       tf.test_util.expectNumbersClose(
-           stats['numberArray'].stddev, 164.2310867396056);
+           stats['Tensor'].stddev, 164.2310867396056);
      });
 });
 
