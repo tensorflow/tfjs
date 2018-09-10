@@ -17,6 +17,6 @@ matrix:
       node_js: "8"
       stage: integ
       script:
-        - echo 'yarn test-integ is disabled currently (https://github.com/tensorflow/tfjs/issues/679)'
+        - yarn test-integ
       git:
         depth: 5
