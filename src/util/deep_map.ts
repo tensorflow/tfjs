@@ -96,6 +96,88 @@ function deepMapInternal(
   }
 }
 
+// TODO(soergel, kangyizhang) Reconsider naming of deepZip() to avoid confusion
+// with zip()
+
+/**
+ * Zip nested structures together in a recursive manner.
+ *
+ * This has the effect of transposing or pivoting data, e.g. converting it from
+ * a row-major representation to a column-major representation.
+ *
+ * For example, `deepZip([{a: 1, b: 2}, {a: 3, b: 4}])` returns
+ * `{a: [1, 3], b: [2, 4]}`.
+ *
+ * The inputs should all have the same nested structure (i.e., of arrays and
+ * dicts).  The result is a single object with the same nested structure, where
+ * the leaves are arrays collecting the values of the inputs at that location
+ * (or, optionally, the result of a custom function applied to those arrays).
+ *
+ * @param inputs: An array of the objects to zip together.
+ * @param zipFn: (optional) A function that expects an array of elements at a
+ *   single node of the object tree, and returns a `DeepMapResult`.  The
+ *   `DeepMapResult` either provides a result value for that node (i.e.,
+ *   representing the subtree), or indicates that the node should be processed
+ *   recursively.  The default zipFn recurses as far as possible and places
+ *   arrays at the leaves.
+ */
+export function deepZip(
+    inputs: any[], zipFn: (xs: any[]) => DeepMapResult = zipToList): any|any[] {
+  return deepZipInternal(inputs, zipFn);
+}
+
+/**
+ * @param containedIn: An set containing objects on the reference path currently
+ *   being processed (used to detect cycles).
+ */
+function deepZipInternal(
+    inputs: any[], zipFn: (xs: any[]) => DeepMapResult,
+    containedIn: Set<{}> = new Set()): any|any[] {
+  // The recursion follows the structure of input 0; it's assumed that all the
+  // other inputs have the same structure.
+  const input = inputs[0];
+  if (containedIn.has(input)) {
+    throw new Error('Circular references are not supported.');
+  }
+  const result = zipFn(inputs);
+
+  if (result.recurse && result.value !== null) {
+    throw new Error(
+        'A deep zip function may not return both a value and recurse=true.');
+  }
+
+  if (!result.recurse) {
+    return result.value;
+  } else if (isIterable(input)) {
+    // tslint:disable-next-line:no-any
+    const mappedIterable: any|any[] = Array.isArray(input) ? [] : {};
+    containedIn.add(input);
+    for (const k in input) {
+      const children = inputs.map(x => x[k]);
+      const childResult = deepZipInternal(children, zipFn, containedIn);
+      mappedIterable[k] = childResult;
+    }
+    containedIn.delete(input);
+    return mappedIterable;
+  } else {
+    throw new Error(`Can't recurse into non-iterable type: ${input}`);
+  }
+}
+
+// tslint:disable-next-line:no-any
+function zipToList(x: any[]): DeepMapResult {
+  if (x === null) {
+    return null;
+  }
+  // TODO(soergel): validate array type?
+
+  if (isIterable(x[0])) {
+    return {value: null, recurse: true};
+  } else {
+    return {value: x, recurse: false};
+  }
+}
+
 /**
  * A return value for an async map function for use with deepMapAndAwaitAll.
  *
@@ -157,5 +239,5 @@ export async function deepMapAndAwaitAll(
 
 // tslint:disable-next-line:no-any
 export function isIterable(obj: any): boolean {
-  return Array.isArray(obj) || typeof obj === 'object';
+  return obj != null && (Array.isArray(obj) || typeof obj === 'object');
 }
