@@ -141,6 +141,62 @@ describeMathCPUAndGPU('categoricalCrossentropy metric', () => {
   });
 });
 
+describeMathCPUAndGPU('precision metric', () => {
+  it('1D', () => {
+    const x = tensor1d([0, 0, 0, 1]);
+    const y = tensor1d([0, 0, 0, 1]);
+    const precision = tfl.metrics.precision(x, y);
+    expect(precision.dtype).toEqual('float32');
+    expectTensorsClose(precision, scalar(1));
+  });
+  it('2D', () => {
+    // Use the following Python code to generate the reference values:
+    // ```python
+    //
+    // import tensorflow as tf
+    // import numpy as np
+    //
+    // with tf.Session() as session:
+    //     labels = tf.constant([
+    //       [0, 0, 1],
+    //       [0, 0, 1],
+    //       [1, 0, 0],
+    //       [0, 1, 0]
+    //     ])
+    //     prediction = tf.constant([
+    //       [0, 0, 1],
+    //       [1, 0, 0],
+    //       [1, 0, 0],
+    //       [0, 1, 0]
+    //     ])
+    //
+    //     output = tf.metrics.precision(
+    //       labels,
+    //       prediction
+    //     )
+    //
+    //     init = tf.local_variables_initializer()
+    //     session.run(init)
+    //
+    //     result = session.run(output)
+    //     print(result[0])
+    // ```
+    const x = tensor2d([[0, 0, 1], [0, 0, 1], [1, 0, 0], [0, 1, 0]]);
+    const y = tensor2d([[0, 0, 1], [1, 0, 0], [1, 0, 0], [0, 1, 0]]);
+    const precision = tfl.metrics.precision(x, y);
+    expect(precision.dtype).toEqual('float32');
+    expectTensorsClose(precision, scalar(0.75));
+  });
+
+  it('2D edge case', () => {
+    const x = tensor2d([[0, 0, 1], [0, 0, 1], [1, 0, 0], [0, 1, 0]]);
+    const y = tensor2d([[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]);
+    const precision = tfl.metrics.precision(x, y);
+    expect(precision.dtype).toEqual('float32');
+    expectTensorsClose(precision, scalar(0));
+  });
+});
+
 describe('metrics.get', () => {
   it('valid name, not alias', () => {
     expect(get('binaryAccuracy') === get('categoricalAccuracy')).toEqual(false);

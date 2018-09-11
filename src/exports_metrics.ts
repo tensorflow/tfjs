@@ -60,6 +60,17 @@ export function categoricalCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
  * @doc {
  *   heading: 'Metrics',
  *   namespace: 'metrics',
+ *   useDocsFrom: 'precision'
+ * }
+ */
+export function precision(yTrue: Tensor, yPred: Tensor): Tensor {
+  return metrics.precision(yTrue, yPred);
+}
+
+/**
+ * @doc {
+ *   heading: 'Metrics',
+ *   namespace: 'metrics',
  *   useDocsFrom: 'cosineProximity'
  * }
  */
