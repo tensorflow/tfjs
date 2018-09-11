@@ -17,7 +17,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {deepMap, deepMapAndAwaitAll, DeepMapAsyncResult, DeepMapResult, isIterable} from './deep_map';
+import {deepMap, deepMapAndAwaitAll, DeepMapAsyncResult, DeepMapResult, deepZip, isIterable} from './deep_map';
 
 const integerNames = [
   'zero', 'one', 'two', 'three', ['an array representing', 'four'],
@@ -220,5 +220,49 @@ describe('asyncDeepMap', () => {
     } catch (e) {
       done();
     }
+  });
+});
+
+describe('deepZip', () => {
+  it('zips arrays of primitives', () => {
+    expect(deepZip([1, 2, 3])).toEqual([1, 2, 3]);
+    expect(deepZip([null, 1])).toEqual([null, 1]);
+    expect(deepZip([1, 'hello', 3, null])).toEqual([1, 'hello', 3, null]);
+  });
+  it('zips objects containing simple fields', () => {
+    expect(deepZip([
+      {a: 1, b: 2}, {a: 3, b: 4}
+    ])).toEqual({a: [1, 3], b: [2, 4]});
+    expect(deepZip([
+      {a: 1, b: 'hello', c: 4, d: null}, {a: 2, b: 'world', c: 5, d: 7},
+      {a: 3, b: '!', c: 6, d: null}
+    ])).toEqual({
+      a: [1, 2, 3],
+      b: ['hello', 'world', '!'],
+      c: [4, 5, 6],
+      d: [null, 7, null]
+    });
+  });
+  it('zips arrays containing simple fields', () => {
+    expect(deepZip([[1, 2], [3, 4]])).toEqual([[1, 3], [2, 4]]);
+  });
+  it('zips nested structures', () => {
+    const input = [
+      {a: 'plums', b: [1, 2, null, {ba: 3, bb: 'sweet'}]},
+      {a: 'icebox', b: [3, 4, 5, {ba: 6, bb: 'cold'}]}
+    ];
+    const expected = {
+      a: ['plums', 'icebox'],
+      b: [[1, 3], [2, 4], [null, 5], {ba: [3, 6], bb: ['sweet', 'cold']}]
+    };
+    expect(deepZip(input)).toEqual(expected);
+  });
+  it('detects and rejects cycles', () => {
+    // tslint:disable-next-line:no-any
+    const b: any[] = [2, 3, null, {ba: 0, bb: 'world'}];
+    const c = {a: 'hello', b};
+    b[4] = c;
+    const input = [b, c];
+    expect(() => deepZip(input)).toThrowError();
   });
 });
