@@ -700,7 +700,7 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   matMul<T extends Tensor>(
-    this: T, b: T, transposeA = false, transposeB = false): T {
+      this: T, b: T, transposeA = false, transposeB = false): T {
     this.throwIfDisposed();
     return opHandler.matMul(this, b, transposeA, transposeB);
   }

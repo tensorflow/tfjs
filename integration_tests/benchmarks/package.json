@@ -28,6 +28,7 @@
     "http-server": "^0.11.1"
   },
   "scripts": {
+    "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
     "benchmark": "karma start --firebaseKey $FIREBASE_KEY",
     "benchmark-travis": "./benchmark_travis.sh"

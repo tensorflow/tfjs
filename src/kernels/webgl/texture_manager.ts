@@ -52,14 +52,17 @@ export class TextureManager {
     this.log();
 
     let newTexture: WebGLTexture;
-    if (physicalTexType === PhysicalTextureType.FLOAT32) {
+    if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT32) {
+      newTexture = this.gpgpu.createPackedMatrixTexture(shapeRC[0], shapeRC[1]);
+    } else if (physicalTexType === PhysicalTextureType.UNPACKED_FLOAT32) {
       newTexture =
           this.gpgpu.createFloat32MatrixTexture(shapeRC[0], shapeRC[1]);
-    } else if (physicalTexType === PhysicalTextureType.FLOAT16) {
+    } else if (physicalTexType === PhysicalTextureType.UNPACKED_FLOAT16) {
       newTexture =
           this.gpgpu.createFloat16MatrixTexture(shapeRC[0], shapeRC[1]);
 
-    } else if (physicalTexType === PhysicalTextureType.UNSIGNED_BYTE) {
+    } else if (
+        physicalTexType === PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE) {
       newTexture =
           this.gpgpu.createUnsignedBytesMatrixTexture(shapeRC[0], shapeRC[1]);
     }
@@ -134,13 +137,15 @@ function getPhysicalFromLogicalTextureType(logicalTexType: TextureUsage):
     PhysicalTextureType {
   if (logicalTexType === TextureUsage.DOWNLOAD ||
       logicalTexType === TextureUsage.PIXELS) {
-    return PhysicalTextureType.UNSIGNED_BYTE;
+    return PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE;
   } else if (logicalTexType === TextureUsage.UPLOAD) {
-    return PhysicalTextureType.FLOAT32;
+    return PhysicalTextureType.UNPACKED_FLOAT32;
   } else if (logicalTexType === TextureUsage.RENDER) {
     return ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') ?
-        PhysicalTextureType.FLOAT32 :
-        PhysicalTextureType.FLOAT16;
+        PhysicalTextureType.UNPACKED_FLOAT32 :
+        PhysicalTextureType.UNPACKED_FLOAT16;
+  } else if (logicalTexType === TextureUsage.PACK) {
+    return PhysicalTextureType.PACKED_2X2_FLOAT32;
   }
   throw new Error(`Unknown logical texture type ${logicalTexType}`);
 }

@@ -50,8 +50,8 @@ import {ConcatProgram} from './webgl/concat_gpu';
 import {Conv2DDerFilterProgram, Conv2DDerInputProgram} from './webgl/conv_backprop_gpu';
 import {DepthwiseConv2DDerFilterProgram, DepthwiseConv2DDerInputProgram} from './webgl/conv_backprop_gpu_depthwise';
 import {Conv2DProgram} from './webgl/conv_gpu';
-import {CropAndResizeProgram} from './webgl/crop_and_resize_gpu';
 import {DepthwiseConv2DProgram} from './webgl/conv_gpu_depthwise';
+import {CropAndResizeProgram} from './webgl/crop_and_resize_gpu';
 import {CumSumProgram} from './webgl/cumsum_gpu';
 import {DepthToSpaceProgram} from './webgl/depth_to_space_gpu';
 import {EncodeFloatProgram} from './webgl/encode_float_gpu';
@@ -65,8 +65,10 @@ import {LRNProgram} from './webgl/lrn_gpu';
 import {LRNGradProgram} from './webgl/lrn_grad_gpu';
 import {MaxPool2DBackpropProgram} from './webgl/max_pool_backprop_gpu';
 import {MatMulProgram} from './webgl/mulmat_gpu';
+import {MatMulPackedProgram} from './webgl/mulmat_packed_gpu';
 import {MultinomialProgram} from './webgl/multinomial_gpu';
 import {OneHotProgram} from './webgl/onehot_gpu';
+import {PackProgram} from './webgl/pack_gpu';
 import {PadProgram} from './webgl/pad_gpu';
 import {Pool2DProgram} from './webgl/pool_gpu';
 import {ReduceProgram} from './webgl/reduce_gpu';
@@ -85,6 +87,7 @@ import {TileProgram} from './webgl/tile_gpu';
 import {TransposeProgram} from './webgl/transpose_gpu';
 import * as unary_op from './webgl/unaryop_gpu';
 import {UnaryOpProgram} from './webgl/unaryop_gpu';
+import {UnpackProgram} from './webgl/unpack_gpu';
 import * as webgl_util from './webgl/webgl_util';
 import {whereImpl} from './where_impl';
 
@@ -323,8 +326,13 @@ export class MathBackendWebGL implements KernelBackend {
       texture: WebGLTexture, dataId: DataId, dtype: DataType,
       texShape: [number, number], shape: number[]): Float32Array {
     if (ENV.get('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
-      return this.gpgpu.downloadFloat32MatrixFromOutputTexture(
-          texture, texShape[0], texShape[1]);
+      if (this.texData.get(dataId).usage === TextureUsage.PACK) {
+        return this.gpgpu.downloadMatrixFromPackedTexture(
+            texture, texShape[0], texShape[1]);
+      } else {
+        return this.gpgpu.downloadFloat32MatrixFromOutputTexture(
+            texture, texShape[0], texShape[1]);
+      }
     }
 
     const tmpTarget = Tensor.make(shape, {});
@@ -557,8 +565,55 @@ export class MathBackendWebGL implements KernelBackend {
   batchMatMul(
       a: Tensor3D, b: Tensor3D, transposeA: boolean,
       transposeB: boolean): Tensor3D {
-    const program = new MatMulProgram(a.shape, b.shape, transposeA, transposeB);
-    return this.compileAndRun<Tensor3D>(program, [a, b]);
+    const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
+    const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
+
+    // TODO(annxingyuan): Support 3D tensors
+    // We're restricting packed matMul to these conditions because for now, our
+    // pack shader needs its input to be a 2D matrix, and our unpack shader
+    // needs its input to be a 2D matrix whose physical dimensions match its
+    // logical dimensions.
+    if (ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') && a.shape[0] === 1 &&
+        b.shape[0] === 1 &&
+        util.arraysEqual(
+            webgl_util.getTextureShapeFromLogicalShape(
+                this.gpgpu.gl, [outerShapeA, outerShapeB]),
+            [outerShapeA, outerShapeB])) {
+      const aSqueezed = a.as2D(a.shape[1], a.shape[2]);
+      const bSqueezed = b.as2D(b.shape[1], b.shape[2]);
+
+      const packProgramA = new PackProgram(aSqueezed.shape);
+      const packedAOutput = Tensor.make<Tensor2D>(aSqueezed.shape, {});
+      this.texData.get(packedAOutput.dataId).usage = TextureUsage.PACK;
+      const packedA = this.compileAndRun<Tensor2D>(
+          packProgramA, [aSqueezed], packedAOutput);
+
+      const packProgramB = new PackProgram(bSqueezed.shape);
+      const packedBOutput = Tensor.make<Tensor2D>(bSqueezed.shape, {});
+      this.texData.get(packedBOutput.dataId).usage = TextureUsage.PACK;
+      const packedB = this.compileAndRun<Tensor2D>(
+          packProgramB, [bSqueezed], packedBOutput);
+
+      const program = new MatMulPackedProgram(
+          packedA.shape, packedB.shape, [outerShapeA, outerShapeB], transposeA,
+          transposeB);
+      const packedMatMulOutput = Tensor.make(program.outputShape, {});
+      this.texData.get(packedMatMulOutput.dataId).usage = TextureUsage.PACK;
+      const result =
+          this.compileAndRun(program, [packedA, packedB], packedMatMulOutput);
+
+      const unpackProgram = new UnpackProgram(result.shape);
+      const unpacked = this.compileAndRun(unpackProgram, [result]);
+
+      packedAOutput.dispose();
+      packedBOutput.dispose();
+      packedMatMulOutput.dispose();
+
+      return unpacked.reshape([1, result.shape[0], result.shape[1]]);
+    } else {
+      return this.compileAndRun(
+          new MatMulProgram(a.shape, b.shape, transposeA, transposeB), [a, b]);
+    }
   }
 
   multiply(a: Tensor, b: Tensor): Tensor {

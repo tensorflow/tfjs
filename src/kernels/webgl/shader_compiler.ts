@@ -20,7 +20,8 @@ import * as util from '../../util';
 export type ShapeInfo = {
   logicalShape: number[],
   texShape: [number, number],
-  isUniform: boolean
+  isUniform: boolean,
+  isPacked: boolean
 };
 
 export type InputInfo = {
@@ -43,8 +44,16 @@ export function makeShader(
       inputsInfo.map(x => getInputSamplingSnippet(x, outputShape, broadcast))
           .join('\n');
   const outTexShape = outputShape.texShape;
-  const outputSamplingSnippet =
-      getOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
+  let outputSamplingSnippet: string;
+
+  if (outputShape.isPacked) {
+    outputSamplingSnippet =
+        getPackedOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
+  } else {
+    outputSamplingSnippet =
+        getOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
+  }
+
   const source = [
     SHADER_PREFIX, FLOAT_TEXTURE_SAMPLE_SNIPPET,
     FLOAT_TEXTURE_SETOUTPUT_SNIPPET, inputPrefixSnippet, outputSamplingSnippet,
@@ -91,6 +100,19 @@ function getInputSamplingSnippet(
     res += getSamplerAtOutputCoords(inInfo, outShapeInfo, broadcast);
   }
   return res;
+}
+
+function getPackedOutputSamplingSnippet(
+    outShape: number[], outTexShape: [number, number]): string {
+  switch (outShape.length) {
+    case 0:
+      return getOutputScalarCoords();
+    case 2:
+      return getOutputPacked2DCoords(outShape as [number, number], outTexShape);
+    default:
+      throw new Error(
+          `${outShape.length}-D output packed sampling is not yet supported`);
+  }
 }
 
 function getOutputSamplingSnippet(
@@ -405,6 +427,16 @@ function getOutput6DCoords(
 
       ivec6 result = ivec6(r, c, d, d2, d3, d4);
       return result;
+    }
+  `;
+}
+
+function getOutputPacked2DCoords(
+    shape: [number, number], texShape: [number, number]): string {
+  return `
+    ivec2 getOutputCoords() {
+      return 2 * ivec2(resultUV.yx * vec2(${Math.ceil(texShape[0] / 2)}, ${
+      Math.ceil(texShape[1] / 2)}));
     }
   `;
 }

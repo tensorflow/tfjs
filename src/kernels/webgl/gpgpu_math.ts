@@ -22,7 +22,7 @@ import * as util from '../../util';
 import {GPGPUContext} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';
 import {InputInfo, ShapeInfo} from './shader_compiler';
-import {TextureData} from './tex_util';
+import {TextureData, TextureUsage} from './tex_util';
 
 export interface GPGPUProgram {
   variableNames: string[];
@@ -56,7 +56,9 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     const shapeInfo = {
       logicalShape: input.shape,
       texShape: input.isUniform ? null : input.texData.texShape,
-      isUniform: input.isUniform
+      isUniform: input.isUniform,
+      isPacked: input.isUniform ? false :
+                                  input.texData.usage === TextureUsage.PACK
     };
     return {name: program.variableNames[i], shapeInfo};
   });
@@ -64,7 +66,8 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
   const outShapeInfo = {
     logicalShape: output.shape,
     texShape: output.texData.texShape,
-    isUniform: false
+    isUniform: false,
+    isPacked: output.texData.usage === TextureUsage.PACK
   };
   const source = shader_compiler.makeShader(
       inputInfos, outShapeInfo, userCode,
@@ -134,7 +137,11 @@ export function runProgram<T extends Tensor, K extends Tensor>(
   const outTex = output.texData.texture;
   const outTexShape = output.texData.texShape;
   const gpgpu = binary.gpgpu;
-  gpgpu.setOutputMatrixTexture(outTex, outTexShape[0], outTexShape[1]);
+  if (output.texData.usage === TextureUsage.PACK) {
+    gpgpu.setOutputPackedMatrixTexture(outTex, outTexShape[0], outTexShape[1]);
+  } else {
+    gpgpu.setOutputMatrixTexture(outTex, outTexShape[0], outTexShape[1]);
+  }
   gpgpu.setProgram(binary.webGLProgram);
   inputs.forEach((input, i) => {
     const variableName = binary.program.variableNames[i];
