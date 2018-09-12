@@ -15,7 +15,7 @@ import {io, ModelPredictConfig, Optimizer, Scalar, serialization, Tensor, Tensor
 
 import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
-import {BaseCallback, BaseLogger, CallbackList, CustomCallbackConfig, History, standardizeCallbacks, YieldEveryOptions} from '../base_callbacks';
+import {BaseCallback, BaseLogger, CallbackConstructorRegistry, CallbackList, CustomCallbackConfig, History, standardizeCallbacks, YieldEveryOptions} from '../base_callbacks';
 import {nameScope} from '../common';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
 import {disposeTensorsInLogs, UnresolvedLogs} from '../logs';
@@ -501,6 +501,17 @@ export interface ModelFitConfig {
   /** The number of times to iterate over the training data arrays. */
   epochs?: number;
 
+  /**
+   * Verbosity level.
+   *
+   * Expected to be 0, 1, or 2. Default: 1.
+   *
+   * 0 - No printed message during fit() call.
+   * 1 - In Node.js (tfjs-node), prints the progress bar, together with
+   *     real-time updates of loss and metric values and training speed.
+   *     In the browser: no action. This is the default.
+   * 2 - Not implemented yet.
+   */
   verbose?: ModelLoggingVerbosity;
 
   /**
@@ -1317,7 +1328,7 @@ export class Model extends Container implements tfc.InferenceModel {
    * @param outLabels List of strings, display names of the outputs of `f`.
    * @param batchSize Integer batch size or `== null` if unknown.
    * @param epochs Number of times to iterate over the data.
-   * @param verbose Verbosity mode: 0, 1, or 2.
+   * @param verbose Verbosity mode: 0, 1, or 2. Default: 1.
    * @param callbacks List of callbacks to be called during training.
    * @param valF Function to call for validation.
    * @param valIns List of tensors to be fed to `valF`.
@@ -1378,19 +1389,20 @@ export class Model extends Container implements tfc.InferenceModel {
       indexArray = range(0, numTrainSamples);
     }
 
-    this.history = new History();
-    const baseLogger = new BaseLogger(yieldEvery);
-    if (callbacks == null) {
-      callbacks = [baseLogger];
-    } else {
-      callbacks = ([baseLogger] as BaseCallback[]).concat(callbacks);
+    if (verbose == null) {
+      verbose = 1;
     }
-    callbacks = callbacks.concat([this.history]);
 
-    if (verbose > 0) {
-      throw new NotImplementedError('Verbose mode is not implemented yet.');
+    this.history = new History();
+    const actualCallbacks: BaseCallback[] = [
+      new BaseLogger(yieldEvery),
+      ...CallbackConstructorRegistry.createCallbacks(verbose)
+    ];
+    if (callbacks != null) {
+      actualCallbacks.push(...callbacks);
     }
-    const callbackList = new CallbackList(callbacks);
+    actualCallbacks.push(this.history);
+    const callbackList = new CallbackList(actualCallbacks);
 
     // TODO(cais): Figure out when this Model instance can have a dynamically
     //   set property called 'callback_model' as in PyKeras.

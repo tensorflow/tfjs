@@ -14,6 +14,7 @@ import {add, div, keep, mul, nextFrame, Scalar, Tensor, tidy, util} from '@tenso
 
 import {getScalar} from './backend/state';
 import {Container} from './engine/container';
+import {ValueError} from './errors';
 import {Logs, resolveScalarsInLogs, UnresolvedLogs} from './logs';
 import * as generic_utils from './utils/generic_utils';
 
@@ -556,4 +557,85 @@ export function standardizeCallbacks(callbacks: BaseCallback|BaseCallback[]|
       generic_utils.toList(callbacks) as CustomCallbackConfig[];
   return callbackConfigs.map(
       callbackConfig => new CustomCallback(callbackConfig));
+}
+
+export declare type BaseCallbackConstructor = {
+  new (): BaseCallback
+};
+
+/**
+ * A global registry for callback constructors to be used during Model.fit().
+ */
+export class CallbackConstructorRegistry {
+  private static constructors:
+      {[verbosityLevel: number]: BaseCallbackConstructor[]};
+
+  /**
+   * Blocks public access to constructor.
+   */
+  private constructor() {}
+
+  /**
+   * Register a tf.Model.fit() callback constructor.
+   *
+   * The registered callback constructor will be used to instantiate
+   * callbacks for every tf.Model.fit() call afterwards.
+   *
+   * @param verbosityLevel Level of verbosity at which the `callbackConstructor`
+   *   is to be reigstered.
+   * @param callbackConstructor A no-arg constructor for `tf.Callback`.
+   * @throws Error, if the same callbackConstructor has been registered before,
+   *   either at the same or a different `verbosityLevel`.
+   */
+  static registerCallbackConstructor(
+      verbosityLevel: number, callbackConstructor: BaseCallbackConstructor) {
+    util.assert(
+        verbosityLevel >= 0 && Number.isInteger(verbosityLevel),
+        `Verbosity level is expected to be an integer >= 0, ` +
+            `but got ${verbosityLevel}`);
+    CallbackConstructorRegistry.checkForDuplicate(callbackConstructor);
+    if (CallbackConstructorRegistry.constructors[verbosityLevel] == null) {
+      CallbackConstructorRegistry.constructors[verbosityLevel] = [];
+    }
+    CallbackConstructorRegistry.constructors[verbosityLevel].push(
+        callbackConstructor);
+  }
+
+  private static checkForDuplicate(callbackConstructor:
+                                       BaseCallbackConstructor) {
+    for (const levelName in CallbackConstructorRegistry.constructors) {
+      const constructors = CallbackConstructorRegistry.constructors[+levelName];
+      constructors.forEach(ctor => {
+        if (ctor === callbackConstructor) {
+          throw new ValueError('Duplicate callback constructor.');
+        }
+      });
+    }
+  }
+
+  /**
+   * Clear all registered callback constructors.
+   */
+  protected static clear() {
+    CallbackConstructorRegistry.constructors = {};
+  }
+
+  /**
+   * Create callbacks using the registered callback constructors.
+   *
+   * Given `verbosityLevel`, all constructors registered at that level or above
+   * will be called and the instantiated callbacks will be used.
+   *
+   * @param verbosityLevel: Level of verbosity.
+   */
+  static createCallbacks(verbosityLevel: number): BaseCallback[] {
+    const constructors: BaseCallbackConstructor[] = [];
+    for (const levelName in CallbackConstructorRegistry.constructors) {
+      const level = +levelName;
+      if (verbosityLevel >= level) {
+        constructors.push(...CallbackConstructorRegistry.constructors[level]);
+      }
+    }
+    return constructors.map(ctor => new ctor());
+  }
 }

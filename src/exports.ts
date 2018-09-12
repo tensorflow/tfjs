@@ -19,6 +19,7 @@ import {Input, InputConfig,} from './engine/input_layer';
 import {SymbolicTensor} from './engine/topology';
 import {Model} from './engine/training';
 import {loadModelInternal, Sequential, SequentialConfig} from './models';
+import {BaseCallbackConstructor, CallbackConstructorRegistry} from './base_callbacks';
 
 
 // TODO(cais): Add doc string to all the public static functions in this
@@ -158,4 +159,11 @@ export function loadModel(
  */
 export function input(config: InputConfig): SymbolicTensor {
   return Input(config);
+}
+
+export function registerCallbackConstructor(
+    verbosityLevel: number,
+    callbackConstructor: BaseCallbackConstructor): void {
+  CallbackConstructorRegistry.registerCallbackConstructor(
+      verbosityLevel, callbackConstructor);
 }
