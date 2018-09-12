@@ -12,12 +12,13 @@
  * Unit tests for callbacks.
  */
 
-import {scalar} from '@tensorflow/tfjs-core';
+import {scalar, zeros} from '@tensorflow/tfjs-core';
 
-import {BaseLogger, CallbackList, History} from './base_callbacks';
+import {BaseCallback, BaseLogger, CallbackConstructorRegistry, CallbackList, History} from './base_callbacks';
 import {Callback} from './callbacks';
 import {Model} from './engine/training';
-import {disposeTensorsInLogs, resolveScalarsInLogs, UnresolvedLogs} from './logs';
+import * as tfl from './index';
+import {disposeTensorsInLogs, resolveScalarsInLogs, UnresolvedLogs, Logs} from './logs';
 import {describeMathCPUAndGPU} from './utils/test_utils';
 
 
@@ -217,5 +218,164 @@ describe('CallbackList', () => {
     callbackList.setModel(model);
     expect(mockCallback1.model).toEqual(model);
     expect(mockCallback2.model).toEqual(model);
+  });
+});
+
+let fake1Epochs: number[];
+class FakeCallback1 extends BaseCallback {
+  constructor() {
+    super();
+    fake1Epochs = [];
+  }
+  async onEpochEnd(epoch: number, logs: Logs) {
+    fake1Epochs.push(epoch);
+  }
+}
+
+let fake2Epochs: number[];
+class FakeCallback2 extends BaseCallback {
+  constructor() {
+    super();
+    fake2Epochs = [];
+  }
+  async onEpochEnd(epoch: number, logs: Logs) {
+    fake2Epochs.push(epoch);
+  }
+}
+
+describe('CallbackConstructorRegistry', () => {
+  beforeEach(() => {
+    // tslint:disable-next-line:no-any
+    (CallbackConstructorRegistry as any).clear();
+  });
+
+  it('Empty registry creates empty list of callbacks', () => {
+    expect(CallbackConstructorRegistry.createCallbacks(0)).toEqual([]);
+    expect(CallbackConstructorRegistry.createCallbacks(1)).toEqual([]);
+    expect(CallbackConstructorRegistry.createCallbacks(2)).toEqual([]);
+  });
+
+  it('Registry with one element', () => {
+    tfl.registerCallbackConstructor(1, FakeCallback1);
+
+    let callbacks = CallbackConstructorRegistry.createCallbacks(0);
+    expect(callbacks.length).toEqual(0);
+
+    callbacks = CallbackConstructorRegistry.createCallbacks(1);
+    expect(callbacks.length).toEqual(1);
+    expect(callbacks[0] instanceof FakeCallback1).toEqual(true);
+
+    callbacks = CallbackConstructorRegistry.createCallbacks(2);
+    expect(callbacks.length).toEqual(1);
+    expect(callbacks[0] instanceof FakeCallback1).toEqual(true);
+  });
+
+  it('Registry with two elements on two levels', () => {
+    tfl.registerCallbackConstructor(1, FakeCallback1);
+    tfl.registerCallbackConstructor(2, FakeCallback2);
+
+    let callbacks = CallbackConstructorRegistry.createCallbacks(0);
+    expect(callbacks.length).toEqual(0);
+
+    callbacks = CallbackConstructorRegistry.createCallbacks(1);
+    expect(callbacks.length).toEqual(1);
+    expect(callbacks[0] instanceof FakeCallback1).toEqual(true);
+
+    callbacks = CallbackConstructorRegistry.createCallbacks(2);
+    expect(callbacks.length).toEqual(2);
+    expect(callbacks[0] instanceof FakeCallback1).toEqual(true);
+    expect(callbacks[1] instanceof FakeCallback2).toEqual(true);
+  });
+
+  it('Registry with two elements on the same level', () => {
+    tfl.registerCallbackConstructor(2, FakeCallback1);
+    tfl.registerCallbackConstructor(2, FakeCallback2);
+
+    let callbacks = CallbackConstructorRegistry.createCallbacks(0);
+    expect(callbacks.length).toEqual(0);
+
+    callbacks = CallbackConstructorRegistry.createCallbacks(1);
+    expect(callbacks.length).toEqual(0);
+
+    callbacks = CallbackConstructorRegistry.createCallbacks(2);
+    expect(callbacks.length).toEqual(2);
+    expect(callbacks[0] instanceof FakeCallback1).toEqual(true);
+    expect(callbacks[1] instanceof FakeCallback2).toEqual(true);
+  });
+
+  it('Duplicate registration on same level leads to Error', () => {
+    tfl.registerCallbackConstructor(1, FakeCallback1);
+    expect(() => tfl.registerCallbackConstructor(1, FakeCallback1))
+        .toThrowError(/Duplicate callback constructor/);
+  });
+
+  it('Duplicate registration on different level leads to Error', () => {
+    tfl.registerCallbackConstructor(1, FakeCallback1);
+    expect(() => tfl.registerCallbackConstructor(2, FakeCallback1))
+        .toThrowError(/Duplicate callback constructor/);
+  });
+
+  it('Invalid verbosityLevel leads to Error', () => {
+    expect(() => tfl.registerCallbackConstructor(-1, FakeCallback1))
+        .toThrowError(/is expected to be an integer >= 0/);
+    expect(() => tfl.registerCallbackConstructor(0.5, FakeCallback1))
+        .toThrowError(/is expected to be an integer >= 0/);
+    expect(() => tfl.registerCallbackConstructor(NaN, FakeCallback1))
+        .toThrowError(/is expected to be an integer >= 0/);
+  });
+});
+
+describeMathCPUAndGPU('Model.fit and CallbackConstructorRegistry', () => {
+  beforeEach(() => {
+    // tslint:disable-next-line:no-any
+    (CallbackConstructorRegistry as any).clear();
+    fake1Epochs = [];
+    fake2Epochs = [];
+  });
+
+  it('Model.fit call with no callback ctor registered', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 1, inputShape: [1]}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+    const xs = zeros([4, 1]);
+    const ys = zeros([4, 1]);
+    await model.fit(xs, ys, {epochs: 3});
+
+    expect(fake1Epochs).toEqual([]);
+  });
+
+  it('Model.fit call with one callback ctor registered', async () => {
+    tfl.registerCallbackConstructor(1, FakeCallback1);
+
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 1, inputShape: [1]}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+    const xs = zeros([4, 1]);
+    const ys = zeros([4, 1]);
+    await model.fit(xs, ys, {epochs: 3});
+
+    expect(fake1Epochs).toEqual([0, 1, 2]);
+  });
+
+  it('Model.fit call with two callback ctor registered', async () => {
+    tfl.registerCallbackConstructor(1, FakeCallback1);
+    tfl.registerCallbackConstructor(2, FakeCallback2);
+
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 1, inputShape: [1]}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+    const xs = zeros([4, 1]);
+    const ys = zeros([4, 1]);
+
+    await model.fit(xs, ys, {epochs: 3, verbose: 2});
+    expect(fake1Epochs).toEqual([0, 1, 2]);
+    expect(fake2Epochs).toEqual([0, 1, 2]);
+
+    fake1Epochs = [];
+    fake2Epochs = [];
+
+    await model.fit(xs, ys, {epochs: 3, verbose: 1});
+    expect(fake1Epochs).toEqual([0, 1, 2]);
+    expect(fake2Epochs).toEqual([]);
   });
 });

@@ -21,7 +21,7 @@ export {Callback} from './callbacks';
 export {SymbolicTensor} from './engine/topology';
 export {Model, ModelCompileConfig, ModelEvaluateConfig, ModelFitConfig} from './engine/training';
 
-export {input, loadModel, model, sequential} from './exports';
+export {input, loadModel, model, registerCallbackConstructor, sequential} from './exports';
 // tslint:disable-next-line:max-line-length
 export {GRUCellLayerConfig, GRULayerConfig, LSTMCellLayerConfig, LSTMLayerConfig, RNN, RNNLayerConfig, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig} from './layers/recurrent';
 export {Logs} from './logs';
