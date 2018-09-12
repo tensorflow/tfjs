@@ -400,58 +400,28 @@ describeWithFlags('profile', ALL_ENVS, () => {
     ]);
   });
 
-  it('matMul', async () => {
+  it('squaring without disposing', async () => {
     const profile = await tf.profile(() => {
-      const a = tf.tensor2d([1, 2], [1, 2]);
-      const b = tf.tensor2d([1, 2, 3, 4], [2, 2]);
-      const c = a.matMul(b);
-      return c;
+      const x = tf.tensor1d([1, 2, 3]);
+      const x2 = x.square();
+      return x2;
     });
 
     const result = profile.result as Tensor;
 
-    expect(profile.newBytes).toBe(32);
-    expect(profile.peakBytes).toBe(32);
-    expect(profile.newTensors).toBe(3);
-    expectArraysClose(result, [7, 10]);
-    expect(profile.kernels).toEqual([
-      {
-        'name': 'reshape',
-        'bytesAdded': 0,
-        'totalBytesSnapshot': 24,
-        'tensorsAdded': 1,
-        'totalTensorsSnapshot': 3,
-        'inputShapes': [[1, 2]],
-        'outputShape': [1, 1, 2]
-      },
-      {
-        'name': 'reshape',
-        'bytesAdded': 0,
-        'totalBytesSnapshot': 24,
-        'tensorsAdded': 1,
-        'totalTensorsSnapshot': 4,
-        'inputShapes': [[2, 2]],
-        'outputShape': [1, 2, 2]
-      },
-      {
-        'name': 'matMul',
-        'bytesAdded': 8,
-        'totalBytesSnapshot': 32,
-        'tensorsAdded': 1,
-        'totalTensorsSnapshot': 5,
-        'inputShapes': [[1, 1, 2], [1, 2, 2]],
-        'outputShape': [1, 1, 2]
-      },
-      {
-        'name': 'reshape',
-        'bytesAdded': 0,
-        'totalBytesSnapshot': 32,
-        'tensorsAdded': 1,
-        'totalTensorsSnapshot': 6,
-        'inputShapes': [[1, 1, 2]],
-        'outputShape': [1, 2]
-      }
-    ]);
+    expect(profile.newBytes).toBe(24);
+    expect(profile.peakBytes).toBe(24);
+    expect(profile.newTensors).toBe(2);
+    expectArraysClose(result, [1, 4, 9]);
+    expect(profile.kernels).toEqual([{
+      'name': 'square',
+      'bytesAdded': 12,
+      'totalBytesSnapshot': 24,
+      'tensorsAdded': 1,
+      'totalTensorsSnapshot': 2,
+      'inputShapes': [[3]],
+      'outputShape': [3]
+    }]);
   });
 });
 
