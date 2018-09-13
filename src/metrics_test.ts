@@ -197,6 +197,62 @@ describeMathCPUAndGPU('precision metric', () => {
   });
 });
 
+describeMathCPUAndGPU('recall metric', () => {
+  it('1D', () => {
+    const x = tensor1d([1, 0, 1, 0, 0, 0, 1]);
+    const y = tensor1d([0, 0, 1, 1, 1, 1, 0]);
+    const recall = tfl.metrics.recall(x, y);
+    expect(recall.dtype).toEqual('float32');
+    expectTensorsClose(recall, scalar(0.33333334));
+  });
+  it('2D', () => {
+    // Use the following Python code to generate the reference values:
+    // ```python
+    //
+    // import tensorflow as tf
+    // import numpy as np
+    //
+    // with tf.Session() as session:
+    //     labels = tf.constant([
+    //       [0, 0, 1],
+    //       [0, 0, 1],
+    //       [1, 0, 0],
+    //       [0, 1, 0]
+    //     ])
+    //     prediction = tf.constant([
+    //       [0, 0, 1],
+    //       [1, 0, 0],
+    //       [1, 0, 0],
+    //       [0, 1, 0]
+    //     ])
+    //
+    //     output = tf.metrics.recall(
+    //       labels,
+    //       prediction
+    //     )
+    //
+    //     init = tf.local_variables_initializer()
+    //     session.run(init)
+    //
+    //     result = session.run(output)
+    //     print(result[0])
+    // ```
+    const x = tensor2d([[0, 0, 1], [0, 0, 1], [1, 0, 0], [0, 1, 0]]);
+    const y = tensor2d([[0, 0, 1], [1, 0, 0], [1, 0, 0], [0, 1, 0]]);
+    const recall = tfl.metrics.recall(x, y);
+    expect(recall.dtype).toEqual('float32');
+    expectTensorsClose(recall, scalar(0.75));
+  });
+
+  it('2D edge case', () => {
+    const x = tensor2d([[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]);
+    const y = tensor2d([[0, 0, 1], [1, 0, 0], [1, 0, 0], [0, 1, 0]]);
+    const recall = tfl.metrics.recall(x, y);
+    expect(recall.dtype).toEqual('float32');
+    expectTensorsClose(recall, scalar(0));
+  });
+});
+
 describe('metrics.get', () => {
   it('valid name, not alias', () => {
     expect(get('binaryAccuracy') === get('categoricalAccuracy')).toEqual(false);
