@@ -481,7 +481,7 @@ export class Bidirectional extends Wrapper {
         const backwardState = initialState.slice(initialState.length / 2);
         y = this.forwardLayer.call(
             inputs, Object.assign(kwargs, {initialState: forwardState}));
-        yRev = this.forwardLayer.call(
+        yRev = this.backwardLayer.call(
             inputs, Object.assign(kwargs, {initialState: backwardState}));
       }
 
