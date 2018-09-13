@@ -145,7 +145,7 @@
   version "0.7.5"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.7.5.tgz#54241110e0a6e194eafbbd18babca0978788e930"
 
-"@tensorflow/tfjs@0.12.7":
+"@tensorflow/tfjs@^0.12.7":
   version "0.12.7"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.12.7.tgz#2fb643f503dada14b7f0ca43d2a41082b626f92a"
   dependencies:
