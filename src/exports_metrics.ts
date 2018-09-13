@@ -71,6 +71,17 @@ export function precision(yTrue: Tensor, yPred: Tensor): Tensor {
  * @doc {
  *   heading: 'Metrics',
  *   namespace: 'metrics',
+ *   useDocsFrom: 'recall'
+ * }
+ */
+export function recall(yTrue: Tensor, yPred: Tensor): Tensor {
+  return metrics.recall(yTrue, yPred);
+}
+
+/**
+ * @doc {
+ *   heading: 'Metrics',
+ *   namespace: 'metrics',
  *   useDocsFrom: 'cosineProximity'
  * }
  */

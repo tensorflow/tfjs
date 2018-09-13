@@ -79,7 +79,6 @@ export function categoricalAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
           tfc.equal(tfc.argMax(yTrue, -1), tfc.argMax(yPred, -1)), 'float32'));
 }
 
-
 function truePositives(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
     const one = getScalar(1);
@@ -89,6 +88,15 @@ function truePositives(yTrue: Tensor, yPred: Tensor): Tensor {
   });
 }
 
+function falseNegatives(yTrue: Tensor, yPred: Tensor): Tensor {
+  return tidy(() => {
+    const one = getScalar(1);
+    const zero = getScalar(0);
+    return tfc.logicalAnd(yTrue.equal(one), yPred.equal(zero))
+        .sum()
+        .cast('float32');
+  });
+}
 
 function falsePositives(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
@@ -141,6 +149,53 @@ export function precision(yTrue: Tensor, yPred: Tensor): Tensor {
     const fp = falsePositives(yTrue, yPred);
 
     const denominator = tp.add(fp);
+
+    return tfc.where(tfc.greater(denominator, zero), tp.div(denominator), zero)
+        .cast('float32');
+  });
+}
+
+/**
+ * Computes the recall of the predictions with respect to the labels.
+ *
+ * Example:
+ * ```js
+ * const x = tensor2d(
+ *    [
+ *      [0, 0, 0, 1],
+ *      [0, 1, 0, 0],
+ *      [0, 0, 0, 1].
+ *      [1, 0, 0, 0],
+ *      [0, 0, 1, 0]
+ *    ]
+ * );
+ *
+ * const y = tensor2d(
+ *    [
+ *      [0, 0, 1, 0],
+ *      [0, 1, 0, 0],
+ *      [0, 0, 0, 1].
+ *      [0, 1, 0, 0],
+ *      [0, 1, 0, 0]
+ *    ]
+ * );
+ *
+ * const recall = tf.metrics.recall(x, y);
+ * recall.print();
+ * ```
+ *
+ * @param yTrue The ground truth values. Expected to be contain only 0-1 values.
+ * @param yPred The predicted values. Expected to be contain only 0-1 values.
+ * @return Recall Tensor.
+ */
+export function recall(yTrue: Tensor, yPred: Tensor): Tensor {
+  return tidy(() => {
+    const zero = getScalar(0);
+
+    const tp = truePositives(yTrue, yPred);
+    const fn = falseNegatives(yTrue, yPred);
+
+    const denominator = tp.add(fn);
 
     return tfc.where(tfc.greater(denominator, zero), tp.div(denominator), zero)
         .cast('float32');
