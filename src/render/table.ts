@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {format as d3Format} from 'd3-format';
 import {select as d3Select} from 'd3-selection';
 import {css} from 'glamor';
 import {tachyons as tac} from 'glamor-tachyons';
@@ -87,6 +88,8 @@ export function renderTable(
   //
   // Add the data rows
   //
+  const format = d3Format(',.4~f');
+
   const rows = table.select('tbody').selectAll('tr').data(data.values);
   const rowsEnter = rows.enter().append('tr');
 
@@ -94,7 +97,7 @@ export function renderTable(
   const cellStyle = css({...tac('pa1 bb b--black-20')});
   const cells = rows.merge(rowsEnter).selectAll('td').data(d => d);
   const cellsEnter = cells.enter().append('td').attr('class', `${cellStyle}`);
-  cells.merge(cellsEnter).html(d => d);
+  cells.merge(cellsEnter).html(d => typeof d === 'number' ? format(d) : d);
 
   cells.exit().remove();
   rows.exit().remove();

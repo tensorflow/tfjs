@@ -34,24 +34,10 @@ function initModel() {
 }
 
 function setupListeners() {
-  document.querySelector('#show-visor').addEventListener('click', () => {
-    const visorInstance = tfvis.visor();
-    if (!visorInstance.isOpen()) {
-      visorInstance.toggle();
-    }
-  });
-
-  document.querySelector('#make-first-surface')
-      .addEventListener('click', () => {
-        tfvis.visor().surface({name: 'My First Surface', tab: 'Input Data'});
-      });
-
   document.querySelector('#load-data').addEventListener('click', async (e) => {
     await initData();
     document.querySelector('#show-examples').disabled = false;
     document.querySelector('#start-training-1').disabled = false;
-    document.querySelector('#start-training-2').disabled = false;
-    document.querySelector('#start-training-3').disabled = false;
     e.target.disabled = true;
   });
 }

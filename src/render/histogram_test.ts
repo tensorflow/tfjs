@@ -37,9 +37,9 @@ describe('renderHistogram', () => {
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('table').length).toBe(1);
     expect(document.querySelectorAll('table thead tr').length).toBe(1);
-    expect(document.querySelectorAll('table thead th').length).toBe(5);
+    expect(document.querySelectorAll('table thead th').length).toBe(6);
     expect(document.querySelectorAll('table tbody tr').length).toBe(1);
-    expect(document.querySelectorAll('table tbody td').length).toBe(5);
+    expect(document.querySelectorAll('table tbody td').length).toBe(6);
   });
 
   it('renders a histogram with number array', async () => {
@@ -51,9 +51,9 @@ describe('renderHistogram', () => {
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('table').length).toBe(1);
     expect(document.querySelectorAll('table thead tr').length).toBe(1);
-    expect(document.querySelectorAll('table thead th').length).toBe(5);
+    expect(document.querySelectorAll('table thead th').length).toBe(6);
     expect(document.querySelectorAll('table tbody tr').length).toBe(1);
-    expect(document.querySelectorAll('table tbody td').length).toBe(5);
+    expect(document.querySelectorAll('table tbody td').length).toBe(6);
   });
 
   it('renders a histogram with typed array', async () => {
@@ -65,9 +65,9 @@ describe('renderHistogram', () => {
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('table').length).toBe(1);
     expect(document.querySelectorAll('table thead tr').length).toBe(1);
-    expect(document.querySelectorAll('table thead th').length).toBe(5);
+    expect(document.querySelectorAll('table thead th').length).toBe(6);
     expect(document.querySelectorAll('table tbody tr').length).toBe(1);
-    expect(document.querySelectorAll('table tbody td').length).toBe(5);
+    expect(document.querySelectorAll('table tbody td').length).toBe(6);
   });
 
   it('re-renders a histogram', async () => {
@@ -128,7 +128,7 @@ describe('renderHistogram', () => {
     expect(document.querySelectorAll('table tbody tr').length).toBe(1);
 
     const statsEls = document.querySelectorAll('table tbody td');
-    expect(statsEls.length).toBe(5);
+    expect(statsEls.length).toBe(6);
     expect(statsEls[0].textContent).toEqual('8');
     expect(statsEls[1].textContent).toEqual('-100');
     expect(statsEls[2].textContent).toEqual('200');

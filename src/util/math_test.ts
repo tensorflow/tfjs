@@ -78,6 +78,17 @@ describe('arrayStats', () => {
     expect(stats.numNans).toBe(4);
     expect(stats.numZeros).toBe(0);
   });
+
+  it('computes correct stats — some infs', () => {
+    const data = [10, 4, Infinity, -Infinity, NaN];
+    const stats = arrayStats(data);
+    expect(stats.max).toBe(Infinity);
+    expect(stats.min).toBe(-Infinity);
+    expect(stats.numVals).toBe(5);
+    expect(stats.numNans).toBe(1);
+    expect(stats.numZeros).toBe(0);
+    expect(stats.numInfs).toBe(2);
+  });
 });
 
 //
@@ -123,6 +134,17 @@ describe('tensorStats', () => {
     expect(stats.numVals).toBe(4);
     expect(stats.numNans).toBe(4);
     expect(stats.numZeros).toBe(0);
+  });
+
+  it('computes correct stats — some infs', async () => {
+    const data = tf.tensor([10, 4, Infinity, -Infinity, NaN]);
+    const stats = await tensorStats(data);
+    expect(stats.max).toBe(Infinity);
+    expect(stats.min).toBe(-Infinity);
+    expect(stats.numVals).toBe(5);
+    expect(stats.numNans).toBe(1);
+    expect(stats.numZeros).toBe(0);
+    expect(stats.numInfs).toBe(2);
   });
 });
 

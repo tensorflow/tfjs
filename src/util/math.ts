@@ -45,6 +45,7 @@ export function arrayStats(input: number[]): HistogramStats {
   let min = Infinity;
   let numZeros = 0;
   let numNans = 0;
+  let numInfs = 0;
 
   for (let i = 0; i < numVals; i++) {
     const curr = input[i];
@@ -62,6 +63,9 @@ export function arrayStats(input: number[]): HistogramStats {
 
     if (isNaN(curr)) {
       numNans += 1;
+    } else if (!isFinite(curr)) {
+      // Make sure NaNs are not double counted as Infs
+      numInfs += 1;
     }
   }
 
@@ -71,6 +75,7 @@ export function arrayStats(input: number[]): HistogramStats {
     numNans,
     max,
     min,
+    numInfs,
   };
 
   // Handle all NaN input
@@ -109,10 +114,14 @@ export async function tensorStats(input: Tensor): Promise<HistogramStats> {
         // We currently need to count NaNs on CPU.
         const numVals = tensorVal.length;
         let numNans = 0;
+        let numInfs = 0;
         for (let i = 0; i < numVals; i++) {
           const curr = tensorVal[i];
           if (isNaN(curr)) {
             numNans += 1;
+          } else if (!isFinite(curr)) {
+            // Make sure NaNs are not double counted as Infs
+            numInfs += 1;
           }
         }
 
@@ -130,6 +139,7 @@ export async function tensorStats(input: Tensor): Promise<HistogramStats> {
           numNans,
           min: trueMin,
           max: trueMax,
+          numInfs,
         };
 
         return stats;

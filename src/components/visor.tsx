@@ -215,7 +215,7 @@ export class VisorComponent extends Component<VisorProps, VisorState> {
     const { surfaceList } = this.props;
     const tabNames = Array.from(this.getTabs().values());
 
-    const SMALL_WIDTH = '500px';
+    const SMALL_WIDTH = '550px';
     const LARGE_WIDTH = '90vw';
 
     const width = isFullscreen ? LARGE_WIDTH : SMALL_WIDTH;
