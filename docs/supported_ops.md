@@ -159,6 +159,7 @@
 |Print|print|
 |Rank|rank|
 |Shape|shape|
+|ShapeN|shapeN|
 |Size|size|
 |Snapshot|snapshot|
 |StopGradient|stopGradient|

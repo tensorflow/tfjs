@@ -93,6 +93,18 @@ describe('graph', () => {
             .toEqual([1, 2, 3]);
       });
     });
+    describe('shapeN', () => {
+      it('should return shapeN', () => {
+        node.inputNames = ['input1', 'input3'];
+        node.params.x = createTensorsAttr(0, 0);
+        node.op = 'shapeN';
+        expect((executeOp(node, {input1, input3}, context) as tfc.Tensor[])
+                   .map(t => {
+                     return Array.prototype.slice.call(t.dataSync());
+                   }))
+            .toEqual([[1], [1, 2, 3]]);
+      });
+    });
     describe('size', () => {
       it('should return size', () => {
         node.inputNames = ['input'];

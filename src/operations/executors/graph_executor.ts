@@ -47,6 +47,9 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
       return [tfc.tensor1d(
           (getParamValue('x', node, tensorMap, context) as tfc.Tensor).shape,
           'int32')];
+    case 'shapeN':
+      return (getParamValue('x', node, tensorMap, context) as tfc.Tensor[])
+          .map((t: tfc.Tensor) => tfc.tensor1d(t.shape));
     case 'size':
       return [tfc.scalar(
           (getParamValue('x', node, tensorMap, context) as tfc.Tensor).size,

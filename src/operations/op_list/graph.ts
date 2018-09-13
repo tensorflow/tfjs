@@ -66,6 +66,17 @@ export const json = [
     'params': [{'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}]
   },
   {
+    'tfOpName': 'ShapeN',
+    'dlOpName': 'shapeN',
+    'category': 'graph',
+    'params': [{
+      'tfInputIndex': 0,
+      'tfInputParamLength': 0,
+      'dlParamName': 'x',
+      'type': 'tensors'
+    }]
+  },
+  {
     'tfOpName': 'Print',
     'dlOpName': 'print',
     'category': 'graph',
