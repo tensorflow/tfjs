@@ -9,8 +9,8 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-core": "^0.12.12",
-    "@tensorflow/tfjs-layers": "^0.7.4",
+    "@tensorflow/tfjs-core": "^0.13.0",
+    "@tensorflow/tfjs-layers": "^0.7.5",
     "vega-embed": "~3.0.0"
   },
   "scripts": {
