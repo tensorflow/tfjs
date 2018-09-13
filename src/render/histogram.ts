@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright 2018 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
 import {format as d3Format} from 'd3-format';
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
@@ -117,7 +134,7 @@ function renderStats(stats: HistogramStats, container: HTMLElement) {
   }
 
   if (stats.numZeros != null) {
-    headers.push('Zero Count');
+    headers.push('# Zeros');
     let zeroPct = '';
     if (stats.numVals) {
       zeroPct = stats.numZeros > 0 ?
@@ -129,7 +146,7 @@ function renderStats(stats: HistogramStats, container: HTMLElement) {
   }
 
   if (stats.numNans != null) {
-    headers.push('NaN Count');
+    headers.push('# NaNs');
     let nanPct = '';
     if (stats.numVals) {
       nanPct = stats.numNans > 0 ?
@@ -138,6 +155,18 @@ function renderStats(stats: HistogramStats, container: HTMLElement) {
     }
 
     vals.push(`${format(stats.numNans)} ${nanPct}`);
+  }
+
+  if (stats.numInfs != null) {
+    headers.push('# Infinity');
+    let infPct = '';
+    if (stats.numVals) {
+      infPct = stats.numInfs > 0 ?
+          `(${pctFormat(stats.numInfs / stats.numVals)})` :
+          '';
+    }
+
+    vals.push(`${format(stats.numInfs)} ${infPct}`);
   }
 
   renderTable({headers, values: [vals]}, container);

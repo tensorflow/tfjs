@@ -183,7 +183,6 @@ training respectively.
 
 ## show.fitCallbacks(container: Surface  metrics: string[]) => {[key: string]: (iteration: number, log: Logs) => Promise<void>}
 
-
 Returns a collection of callbacks to pass to [model.fit](https://js.tensorflow.org/api/latest/#tf.Model.fit).
 Callbacks are returned for the following events, `onBatchEnd` & `onEpochEnd`.
 
@@ -199,7 +198,6 @@ on how to pass in callback functions to the training process.
 
 ## show.perClassAccuracy(container: Drawable, classAccuracy: {accuracy: number[], count: number[]}, classLabels?: string[]) => Promise<void>
 
-
 Renders a per class accuracy table for classification task evaluation
 
 * @param container A `{name: string, tab?: string}` object specifying which
@@ -212,7 +210,6 @@ Renders a per class accuracy table for classification task evaluation
 
 ## show.confusionMatrix(container: Drawable, confusionMatrix: number[][], classLabels?: string[]) => Promise<void>
 
-
 Renders a confusion matrix for classification task evaluation
 
 * @param container A `{name: string, tab?: string}` object specifying which
@@ -222,7 +219,29 @@ Renders a confusion matrix for classification task evaluation
 * @param classLabels An array of string labels for the classes in
   `classAccuracy`. Optional.
 
+## show.valuesDistribution(container: Drawable, tensor: Tensor) => Promise<void>
 
+Renders a histogram showing the distribution of all values in a tensor.
+
+* @param container A `{name: string, tab?: string}` object specifying which
+  surface to render to.
+* @param tensor a `Tensor`
+
+## show.modelSummary(container: Drawable, model: tf.Model) => Promise<void>
+
+Renders a summary of a `tf.Model`. Displays a table with layer information.
+
+* @param container A `{name: string, tab?: string}` object specifying which
+  surface to render to.
+* @param model a `tf.Model`
+
+## show.layer(container: Drawable, layer: Layer) => Promise<void>
+
+Renders summary information about a layer and a histogram of parameter values in that layer.
+
+* @param container A `{name: string, tab?: string}` object specifying which
+  surface to render to.
+* @param layer a `tf.layers.Layer`
 
 ## Renderers
 

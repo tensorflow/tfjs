@@ -22,7 +22,9 @@ import {renderLinechart} from './render/linechart';
 import {renderScatterplot} from './render/scatterplot';
 import {renderTable} from './render/table';
 import {fitCallbacks, history} from './show/history';
+import {layer, modelSummary} from './show/model';
 import {showConfusionMatrix, showPerClassAccuracy} from './show/quality';
+import {valuesDistribution} from './show/tensor';
 import {accuracy, confusionMatrix, perClassAccuracy} from './util/math';
 
 const render = {
@@ -45,6 +47,9 @@ const show = {
   fitCallbacks,
   perClassAccuracy: showPerClassAccuracy,
   confusionMatrix: showConfusionMatrix,
+  valuesDistribution,
+  layer,
+  modelSummary,
 };
 
 export {visor} from './visor';

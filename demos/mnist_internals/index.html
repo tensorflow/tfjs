@@ -1,0 +1,195 @@
+<!-- /**
+ * @license
+ * Copyright 2018 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */ -->
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="./tufte.css" />
+  <script src="./index.js"></script>
+
+  <style>
+    .lang-javascript {
+      width: 60%;
+      padding-left: 15px;
+      font-family: monospace;
+    }
+
+    script.show-script {
+      display: block;
+      max-width: 720px;
+      background-color: floralwhite;
+      font-family: "Lucida Console", Monaco, "Courier New", Courier, monospace;
+      font-size: 12px;
+      margin-left: -40px;
+      white-space: pre;
+      margin-top: 2em;
+    }
+
+    code {
+      background-color: #eee;
+      padding: 2px 4px 2px 4px;
+    }
+  </style>
+
+  <style>
+  </style>
+</head>
+
+<body>
+  <article>
+    <h1>Looking inside a digit recognizer</h1>
+
+    <section>
+      <p>
+        Let's take a look at the internals of the model we trained on the MNIST dataset
+        <a href="https://github.com/tensorflow/tfjs-vis/tree/master/demos/mnist">previously</a>.
+      </p>
+    </section>
+
+    <section>
+      <h2>Setup</h2>
+      <p>
+        We'll load our data and train our model from scratch since it trains pretty quickly.
+      </p>
+      <p>
+        <button id='load-data'>Load Data</button>
+        <button id='show-examples' disabled>Show Example Digits</button>
+        <button id='start-training-1' disabled>Start Training</button>
+      </p>
+
+      <script>
+        async function showExamples() {
+
+          // Get a surface
+          const surface =
+            tfvis.visor().surface({ name: 'My First Surface', tab: 'Input Data' });
+          const drawArea = surface.drawArea;
+
+          // Get the examples
+          const examples = data.nextTestBatch(20);
+          const numExamples = examples.xs.shape[0];
+          for (let i = 0; i < numExamples; i++) {
+            const imageTensor = tf.tidy(() => {
+              return examples.xs.slice([i, 0], [1, examples.xs.shape[1]]).reshape([
+                28, 28, 1
+              ]);
+            });
+
+            // Create a canvas element to render each example
+            const canvas = document.createElement('canvas');
+            canvas.width = 28;
+            canvas.height = 28;
+            canvas.style = 'margin: 4px;';
+            await tf.toPixels(imageTensor, canvas);
+            drawArea.appendChild(canvas);
+
+            imageTensor.dispose();
+          }
+        }
+
+        document.querySelector('#show-examples')
+          .addEventListener('click', async (e) => showExamples());
+      </script>
+
+      <script>
+        async function train(model, data, fitCallbacks) {
+          const BATCH_SIZE = 64;
+          const trainDataSize = 500;
+          const testDataSize = 100;
+
+          const [trainXs, trainYs] = tf.tidy(() => {
+            const d = data.nextTrainBatch(trainDataSize);
+            return [
+              d.xs.reshape([trainDataSize, 28, 28, 1]),
+              d.labels
+            ]
+          });
+
+          const [testXs, testYs] = tf.tidy(() => {
+            const d = data.nextTestBatch(testDataSize);
+            return [
+              d.xs.reshape([testDataSize, 28, 28, 1]),
+              d.labels
+            ]
+          });
+
+          return model.fit(trainXs, trainYs, {
+            batchSize: BATCH_SIZE,
+            validationData: [testXs, testYs],
+            epochs: 10,
+            shuffle: true,
+            callbacks: fitCallbacks
+          });
+        }
+      </script>
+
+      <script>
+        async function watchTraining1() {
+          const metrics = ['acc'];
+          const container = { name: 'Model Accuracy', tab: 'Model' };
+          const callbacks = tfvis.show.fitCallbacks(container, metrics);
+          return train(model, data, callbacks);
+        }
+
+        document.querySelector('#start-training-1')
+          .addEventListener('click', () => watchTraining1());
+      </script>
+
+    </section>
+
+    <section>
+      <h2>Our Model</h2>
+      <p>
+        We can use the `show.modelSummary` to see a summary of the layers present in our model.
+      </p>
+      <p><button id='show-model'>Show Model</button></p>
+
+      <script class='show-script'>
+        async function showModel() {
+          const surface = { name: 'Model Summary', tab: 'Model' };
+          tfvis.show.modelSummary(surface, model);
+        }
+
+        document.querySelector('#show-model').addEventListener('click', showModel);
+      </script>
+
+      <p>
+        From the table shown, we see 3 layers of interest, 2 'Conv2d' layers and 1 'Dense' layer. We can use `show.layer` to get
+        a bit more detail on each.
+      </p>
+
+      <p><button id='show-layers'>Show Layer Details</button></p>
+
+      <script class='show-script'>
+        async function showModel() {
+          const conv1Surface = { name: 'Conv2D1 Details', tab: 'Model' };
+          const conv2Surface = { name: 'Conv2D2 Details', tab: 'Model' };
+          const denseSurface = { name: 'Dense Details', tab: 'Model' };
+
+          tfvis.show.layer(conv1Surface, model.getLayer('conv2d_Conv2D1'));
+          tfvis.show.layer(conv2Surface, model.getLayer('conv2d_Conv2D2'));
+          tfvis.show.layer(denseSurface, model.getLayer('dense_Dense1'));
+        }
+
+        document.querySelector('#show-layers').addEventListener('click', showModel);
+      </script>
+    </section>
+
+  </article>
+</body>
+
+</html>

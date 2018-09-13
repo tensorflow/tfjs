@@ -182,6 +182,7 @@ export interface HistogramStats {
   max?: number;
   numNans?: number;
   numZeros?: number;
+  numInfs?: number;
 }
 
 export type TypedArray = Int8Array|Uint8Array|Int16Array|Uint16Array|Int32Array|
