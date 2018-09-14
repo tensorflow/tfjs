@@ -61,36 +61,27 @@ export class TestDataset extends Dataset<DataElementObject> {
 }
 
 describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
-  it('can be concatenated', done => {
+  it('can be concatenated', async () => {
     const a = datasetFromElements([{'item': 1}, {'item': 2}, {'item': 3}]);
     const b = datasetFromElements([{'item': 4}, {'item': 5}, {'item': 6}]);
-    a.concatenate(b)
-        .collectAll()
-        .then(result => {
-          expect(result).toEqual([
-            {'item': 1}, {'item': 2}, {'item': 3}, {'item': 4}, {'item': 5},
-            {'item': 6}
-          ]);
-        })
-        .then(done)
-        .catch(done.fail);
+    const result = await a.concatenate(b).collectAll();
+    expect(result).toEqual([
+      {'item': 1}, {'item': 2}, {'item': 3}, {'item': 4}, {'item': 5},
+      {'item': 6}
+    ]);
   });
 
   it('can be created by concatenating multiple underlying datasets via reduce',
-     async done => {
+     async () => {
        const a = datasetFromElements([{'item': 1}, {'item': 2}]);
        const b = datasetFromElements([{'item': 3}, {'item': 4}]);
        const c = datasetFromElements([{'item': 5}, {'item': 6}]);
        const concatenated = [a, b, c].reduce((a, b) => a.concatenate(b));
-       concatenated.collectAll()
-           .then(result => {
-             expect(result).toEqual([
-               {'item': 1}, {'item': 2}, {'item': 3}, {'item': 4}, {'item': 5},
-               {'item': 6}
-             ]);
-           })
-           .then(done)
-           .catch(done.fail);
+       const result = await concatenated.collectAll();
+       expect(result).toEqual([
+         {'item': 1}, {'item': 2}, {'item': 3}, {'item': 4}, {'item': 5},
+         {'item': 6}
+       ]);
      });
 
   it('can be created by zipping an array of datasets with primitive elements',
@@ -222,53 +213,57 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
        }
      });
 
-  it('can be repeated a fixed number of times', done => {
+  it('can be repeated a fixed number of times', async () => {
     const a = datasetFromElements([{'item': 1}, {'item': 2}, {'item': 3}]);
-    a.repeat(4)
-        .collectAll()
-        .then(result => {
-          expect(result).toEqual([
-            {'item': 1},
-            {'item': 2},
-            {'item': 3},
-            {'item': 1},
-            {'item': 2},
-            {'item': 3},
-            {'item': 1},
-            {'item': 2},
-            {'item': 3},
-            {'item': 1},
-            {'item': 2},
-            {'item': 3},
-          ]);
-        })
-        .then(done)
-        .catch(done.fail);
+    const result = await a.repeat(4).collectAll();
+    expect(result).toEqual([
+      {'item': 1},
+      {'item': 2},
+      {'item': 3},
+      {'item': 1},
+      {'item': 2},
+      {'item': 3},
+      {'item': 1},
+      {'item': 2},
+      {'item': 3},
+      {'item': 1},
+      {'item': 2},
+      {'item': 3},
+    ]);
   });
 
-  it('can be repeated indefinitely', done => {
-    const a = datasetFromElements([{'item': 1}, {'item': 2}, {'item': 3}]);
-    a.repeat().take(234).collectAll().then(done).catch(done.fail);
-    done();
-  });
-
-  it('can be repeated with state in a closure', done => {
-    // This tests a tricky bug having to do with 'this' being set properly.
-    // See
-    // https://github.com/Microsoft/TypeScript/wiki/%27this%27-in-TypeScript
-
-    class CustomDataset extends Dataset<{}> {
-      state = {val: 1};
-      async iterator() {
-        const result = iteratorFromItems([
-          {'item': this.state.val++}, {'item': this.state.val++},
-          {'item': this.state.val++}
-        ]);
-        return result;
-      }
+  it('can be repeated indefinitely', async done => {
+    try {
+      const a = datasetFromElements([{'item': 1}, {'item': 2}, {'item': 3}]);
+      await a.repeat().take(234).collectAll();
+      done();
+    } catch (e) {
+      done.fail(e);
     }
-    const a = new CustomDataset();
-    a.repeat().take(1234).collectAll().then(done).catch(done.fail);
+  });
+
+  it('can be repeated with state in a closure', async done => {
+    try {
+      // This tests a tricky bug having to do with 'this' being set properly.
+      // See
+      // https://github.com/Microsoft/TypeScript/wiki/%27this%27-in-TypeScript
+
+      class CustomDataset extends Dataset<{}> {
+        state = {val: 1};
+        async iterator() {
+          const result = iteratorFromItems([
+            {'item': this.state.val++}, {'item': this.state.val++},
+            {'item': this.state.val++}
+          ]);
+          return result;
+        }
+      }
+      const a = new CustomDataset();
+      await a.repeat().take(1234).collectAll();
+      done();
+    } catch (e) {
+      done.fail(e);
+    }
   });
 
   it('can collect all items into memory', async done => {

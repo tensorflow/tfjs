@@ -23,7 +23,7 @@ import {TestIntegerIterator} from './lazy_iterator_test';
 const SHORT_STREAM_LENGTH = 15;
 
 describe('ChainedIterator', () => {
-  it('produces a single underlying stream as expected', done => {
+  it('produces a single underlying stream as expected', async () => {
     const chainedIterator = new ChainedIterator(
         iteratorFromItems([new TestIntegerIterator(SHORT_STREAM_LENGTH)]));
 
@@ -34,14 +34,10 @@ describe('ChainedIterator', () => {
       }
     }
 
-    chainedIterator.collect()
-        .then(result => {
-          expect(result).toEqual(expectedResult);
-        })
-        .then(done)
-        .catch(done.fail);
+    const result = await chainedIterator.collect();
+    expect(result).toEqual(expectedResult);
   });
-  it('produces multiple underlying streams as expected', done => {
+  it('produces multiple underlying streams as expected', async () => {
     const chainedIterator = new ChainedIterator(iteratorFromItems([
       new TestIntegerIterator(SHORT_STREAM_LENGTH),
       new TestIntegerIterator(SHORT_STREAM_LENGTH),
@@ -55,11 +51,7 @@ describe('ChainedIterator', () => {
       }
     }
 
-    chainedIterator.collect()
-        .then(result => {
-          expect(result).toEqual(expectedResult);
-        })
-        .then(done)
-        .catch(done.fail);
+    const result = await chainedIterator.collect();
+    expect(result).toEqual(expectedResult);
   });
 });

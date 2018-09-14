@@ -21,7 +21,7 @@ import {PrefetchIterator} from './lazy_iterator';
 import {TestIntegerIterator} from './lazy_iterator_test';
 
 describe('PrefetchIterator', () => {
-  it('fetches a stream completely (stream size < buffer size)', done => {
+  it('fetches a stream completely (stream size < buffer size)', async () => {
     const prefetchIterator =
         new PrefetchIterator(new TestIntegerIterator(), 500);
     const expectedResult: number[] = [];
@@ -29,16 +29,12 @@ describe('PrefetchIterator', () => {
       expectedResult[j] = j;
     }
 
-    prefetchIterator.collect()
-        .then(result => {
-          expect(result).toEqual(expectedResult);
-        })
-        .then(done)
-        .catch(done.fail);
+    const result = await prefetchIterator.collect();
+    expect(result).toEqual(expectedResult);
   });
 
   it('fetches a chained stream completely (stream size < buffer size)',
-     async done => {
+     async () => {
        const baseIterator = iteratorFromConcatenatedFunction(
            () => ({value: new TestIntegerIterator(), done: false}), 3);
 
@@ -51,16 +47,12 @@ describe('PrefetchIterator', () => {
          }
        }
 
-       prefetchIterator.collect()
-           .then(result => {
-             expect(result).toEqual(expectedResult);
-           })
-           .then(done)
-           .catch(done.fail);
+       const result = await prefetchIterator.collect();
+       expect(result).toEqual(expectedResult);
      });
 
   it('fetches a chained stream completely (stream size > buffer size)',
-     done => {
+     async () => {
        const baseIterator = iteratorFromConcatenatedFunction(
            () => ({value: new TestIntegerIterator(), done: false}), 3);
 
@@ -72,11 +64,7 @@ describe('PrefetchIterator', () => {
          }
        }
 
-       prefetchIterator.collect()
-           .then(result => {
-             expect(result).toEqual(expectedResult);
-           })
-           .then(done)
-           .catch(done.fail);
+       const result = await prefetchIterator.collect();
+       expect(result).toEqual(expectedResult);
      });
 });

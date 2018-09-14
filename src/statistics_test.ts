@@ -70,17 +70,13 @@ describeWithFlags('makeDatasetStatistics', tf.test_util.ALL_ENVS, () => {
 });
 
 describeWithFlags('scaleTo01', tf.test_util.ALL_ENVS, () => {
-  it('scales numeric data to the [0, 1] interval', done => {
+  it('scales numeric data to the [0, 1] interval', async () => {
     const ds = new TestDataset().skip(55) as Dataset<TabularRecord>;
     const scaleFn = scaleTo01(55, 99 * 99 * 99);
     const scaledDataset = ds.map(x => ({'Tensor': scaleFn(x['Tensor'])}));
 
-    computeDatasetStatistics(scaledDataset)
-        .then(stats => {
-          expect(stats['Tensor'].min).toBeCloseTo(0);
-          expect(stats['Tensor'].max).toBeCloseTo(1);
-        })
-        .then(done)
-        .catch(done.fail);
+    const stats = await computeDatasetStatistics(scaledDataset);
+    expect(stats['Tensor'].min).toBeCloseTo(0);
+    expect(stats['Tensor'].max).toBeCloseTo(1);
   });
 });

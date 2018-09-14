@@ -25,7 +25,7 @@ const LONG_STREAM_LENGTH = 100;
 const SHORT_STREAM_LENGTH = 15;
 
 describe('ShuffleIterator', () => {
-  it('shuffles a stream without replacement', done => {
+  it('shuffles a stream without replacement', async () => {
     const baseIterator = new TestIntegerIterator(LONG_STREAM_LENGTH);
     const shuffleIterator = new ShuffleIterator(baseIterator, 1000);
     const notExpectedResult: number[] = [];
@@ -34,23 +34,19 @@ describe('ShuffleIterator', () => {
         notExpectedResult[i * LONG_STREAM_LENGTH + j] = j;
       }
     }
-    shuffleIterator.collect()
-        .then(result => {
-          expect(result).not.toEqual(notExpectedResult);
-          expect(result.length).toEqual(LONG_STREAM_LENGTH);
-          const counts = new Array<number>(LONG_STREAM_LENGTH);
-          result.forEach((x) => {
-            counts[x] = (counts[x] || 0) + 1;
-          });
-          for (let i = 0; i < LONG_STREAM_LENGTH; i++) {
-            expect(counts[i]).toEqual(1);
-          }
-        })
-        .then(done)
-        .catch(done.fail);
+    const result = await shuffleIterator.collect();
+    expect(result).not.toEqual(notExpectedResult);
+    expect(result.length).toEqual(LONG_STREAM_LENGTH);
+    const counts = new Array<number>(LONG_STREAM_LENGTH);
+    result.forEach((x) => {
+      counts[x] = (counts[x] || 0) + 1;
+    });
+    for (let i = 0; i < LONG_STREAM_LENGTH; i++) {
+      expect(counts[i]).toEqual(1);
+    }
   });
 
-  it('shuffles a single chained stream without replacement', done => {
+  it('shuffles a single chained stream without replacement', async () => {
     const baseIterator = new ChainedIterator(
         iteratorFromItems([new TestIntegerIterator(SHORT_STREAM_LENGTH)]));
     const shuffleIterator = new ShuffleIterator(baseIterator, 1000);
@@ -60,23 +56,19 @@ describe('ShuffleIterator', () => {
         notExpectedResult[i * SHORT_STREAM_LENGTH + j] = j;
       }
     }
-    shuffleIterator.collect()
-        .then(result => {
-          expect(result).not.toEqual(notExpectedResult);
-          expect(result.length).toEqual(SHORT_STREAM_LENGTH);
-          const counts = new Array<number>(SHORT_STREAM_LENGTH);
-          result.forEach((x) => {
-            counts[x] = (counts[x] || 0) + 1;
-          });
-          for (let i = 0; i < SHORT_STREAM_LENGTH; i++) {
-            expect(counts[i]).toEqual(1);
-          }
-        })
-        .then(done)
-        .catch(done.fail);
+    const result = await shuffleIterator.collect();
+    expect(result).not.toEqual(notExpectedResult);
+    expect(result.length).toEqual(SHORT_STREAM_LENGTH);
+    const counts = new Array<number>(SHORT_STREAM_LENGTH);
+    result.forEach((x) => {
+      counts[x] = (counts[x] || 0) + 1;
+    });
+    for (let i = 0; i < SHORT_STREAM_LENGTH; i++) {
+      expect(counts[i]).toEqual(1);
+    }
   });
 
-  it('shuffles multiple chained streams without replacement', done => {
+  it('shuffles multiple chained streams without replacement', async () => {
     const baseIterator = iteratorFromConcatenatedFunction(
         () => (
             {value: new TestIntegerIterator(SHORT_STREAM_LENGTH), done: false}),
@@ -88,19 +80,15 @@ describe('ShuffleIterator', () => {
         notExpectedResult[i * SHORT_STREAM_LENGTH + j] = j;
       }
     }
-    shuffleIterator.collect()
-        .then(result => {
-          expect(result).not.toEqual(notExpectedResult);
-          expect(result.length).toEqual(3 * SHORT_STREAM_LENGTH);
-          const counts = new Array<number>(SHORT_STREAM_LENGTH);
-          result.forEach((x) => {
-            counts[x] = (counts[x] || 0) + 1;
-          });
-          for (let i = 0; i < SHORT_STREAM_LENGTH; i++) {
-            expect(counts[i]).toEqual(3);
-          }
-        })
-        .then(done)
-        .catch(done.fail);
+    const result = await shuffleIterator.collect();
+    expect(result).not.toEqual(notExpectedResult);
+    expect(result.length).toEqual(3 * SHORT_STREAM_LENGTH);
+    const counts = new Array<number>(SHORT_STREAM_LENGTH);
+    result.forEach((x) => {
+      counts[x] = (counts[x] || 0) + 1;
+    });
+    for (let i = 0; i < SHORT_STREAM_LENGTH; i++) {
+      expect(counts[i]).toEqual(3);
+    }
   });
 });
