@@ -186,6 +186,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|BatchMatMul|matMul|
 |MatMul|matMul|
 |Transpose|transpose|
 |Not mapped|dot|
@@ -208,6 +209,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|CropAndResize|cropAndResize|
 |ResizeBilinear|resizeBilinear|
 |ResizeNearestNeighbor|resizeNearestNeighbor|
 

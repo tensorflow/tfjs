@@ -48,6 +48,25 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           images as tfc.Tensor3D | tfc.Tensor4D, [size[0], size[1]],
           alignCorners)];
     }
+    case 'cropAndResize': {
+      const image =
+          getParamValue('image', node, tensorMap, context) as tfc.Tensor;
+      const boxes =
+          getParamValue('boxes', node, tensorMap, context) as tfc.Tensor;
+      const boxInd =
+          getParamValue('boxInd', node, tensorMap, context) as tfc.Tensor;
+      const cropSize =
+          getParamValue('cropSize', node, tensorMap, context) as number[];
+      const method =
+          getParamValue('method', node, tensorMap, context) as string;
+      const extrapolationValue =
+          getParamValue('extrapolationValue', node, tensorMap, context) as
+          number;
+      return [tfc.image.cropAndResize(
+          image as tfc.Tensor4D, boxes as tfc.Tensor2D, boxInd as tfc.Tensor1D,
+          cropSize as [number, number], method as 'bilinear' | 'nearest',
+          extrapolationValue)];
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }

@@ -17,11 +17,12 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
+import * as image from '../op_list/image';
+import {Node, OpMapper} from '../types';
 
 import {executeOp} from './image_executor';
 // tslint:disable-next-line:max-line-length
-import {createBoolAttr, createNumericArrayAttr, createTensorAttr} from './test_helper';
+import {createBoolAttr, createNumberAttr, createNumericArrayAttrFromIndex, createStrAttr, createTensorAttr, validateParam} from './test_helper';
 
 describe('image', () => {
   let node: Node;
@@ -45,24 +46,79 @@ describe('image', () => {
       it('should return input', () => {
         node.op = 'resizeBilinear';
         node.params['images'] = createTensorAttr(0);
-        node.params['size'] = createNumericArrayAttr([1, 2]);
+        node.params['size'] = createNumericArrayAttrFromIndex(1);
         node.params['alignCorners'] = createBoolAttr(true);
+        node.inputNames = ['input1', 'input2'];
+        const input2 = [tfc.tensor1d([1, 2])];
         spyOn(tfc.image, 'resizeBilinear');
-        executeOp(node, {input1}, context);
+        executeOp(node, {input1, input2}, context);
         expect(tfc.image.resizeBilinear)
             .toHaveBeenCalledWith(input1[0], [1, 2], true);
+      });
+      it('should match json def', () => {
+        node.op = 'resizeBilinear';
+        node.params['images'] = createTensorAttr(0);
+        node.params['size'] = createNumericArrayAttrFromIndex(1);
+        node.params['alignCorners'] = createBoolAttr(true);
+
+        expect(validateParam(node, image.json as OpMapper[])).toBeTruthy();
       });
     });
     describe('resizeNearestNeighbor', () => {
       it('should return input', () => {
         node.op = 'resizeNearestNeighbor';
         node.params['images'] = createTensorAttr(0);
-        node.params['size'] = createNumericArrayAttr([1, 2]);
+        node.params['size'] = createNumericArrayAttrFromIndex(1);
         node.params['alignCorners'] = createBoolAttr(true);
+        node.inputNames = ['input1', 'input2'];
+        const input2 = [tfc.tensor1d([1, 2])];
         spyOn(tfc.image, 'resizeNearestNeighbor');
-        executeOp(node, {input1}, context);
+        executeOp(node, {input1, input2}, context);
         expect(tfc.image.resizeNearestNeighbor)
             .toHaveBeenCalledWith(input1[0], [1, 2], true);
+      });
+      it('should match json def', () => {
+        node.op = 'resizeNearestNeighbor';
+        node.params['images'] = createTensorAttr(0);
+        node.params['size'] = createNumericArrayAttrFromIndex(1);
+        node.params['alignCorners'] = createBoolAttr(true);
+
+        expect(validateParam(node, image.json as OpMapper[])).toBeTruthy();
+      });
+    });
+    describe('cropAndResize', () => {
+      it('should return input', () => {
+        node.op = 'cropAndResize';
+        node.params['image'] = createTensorAttr(0);
+        node.params['boxes'] = createTensorAttr(1);
+        node.params['boxInd'] = createTensorAttr(2);
+        node.params['cropSize'] = createNumericArrayAttrFromIndex(3);
+        node.params['method'] = createStrAttr('bilinear');
+        node.params['extrapolationValue'] = createNumberAttr(0.5);
+        node.inputNames = ['input1', 'input2', 'input3', 'input4'];
+
+        spyOn(tfc.image, 'cropAndResize');
+        const input2 = [tfc.tensor1d([2])];
+        const input3 = [tfc.tensor1d([3])];
+        const input4 = [tfc.tensor1d([4, 5])];
+
+        executeOp(node, {input1, input2, input3, input4}, context);
+        expect(tfc.image.cropAndResize)
+            .toHaveBeenCalledWith(
+                input1[0], input2[0], input3[0], [4, 5], 'bilinear', 0.5);
+      });
+
+      it('should match json def', () => {
+        node.op = 'cropAndResize';
+        node.params['image'] = createTensorAttr(0);
+        node.params['boxes'] = createTensorAttr(1);
+        node.params['boxInd'] = createTensorAttr(2);
+        node.params['cropSize'] = createNumericArrayAttrFromIndex(3);
+        node.params['method'] = createStrAttr('bilinear');
+        node.params['extrapolationValue'] = createNumberAttr(0.5);
+        node.inputNames = ['input1', 'input2', 'input3', 'input4'];
+
+        expect(validateParam(node, image.json as OpMapper[])).toBeTruthy();
       });
     });
   });
