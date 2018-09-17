@@ -218,5 +218,20 @@ export const json = [
         'defaultValue': 1
       }
     ]
+  },
+  {
+    'tfOpName': 'SplitV',
+    'dlOpName': 'split',
+    'category': 'slice_join',
+    'params': [
+      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
+      {'tfInputIndex': 1, 'dlParamName': 'numOrSizeSplits', 'type': 'number[]'},
+      {
+        'tfInputIndex': 2,
+        'dlParamName': 'axis',
+        'type': 'number',
+        'defaultValue': 0
+      }
+    ]
   }
 ];

@@ -118,7 +118,8 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
     case 'split': {
       const axis = getParamValue('axis', node, tensorMap, context) as number;
       const numOrSizeSplits =
-          getParamValue('numOrSizeSplits', node, tensorMap, context) as number;
+          getParamValue('numOrSizeSplits', node, tensorMap, context) as number |
+          number[];
       return tfc.split(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           numOrSizeSplits, axis);
