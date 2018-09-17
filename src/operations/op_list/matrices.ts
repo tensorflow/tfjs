@@ -43,6 +43,32 @@ export const json = [
     ]
   },
   {
+    'tfOpName': 'BatchMatMul',
+    'dlOpName': 'matMul',
+    'category': 'matrices',
+    'params': [
+      {'tfInputIndex': 0, 'dlParamName': 'a', 'type': 'tensor'},
+      {'tfInputIndex': 1, 'dlParamName': 'b', 'type': 'tensor'}, {
+        'tfParamName': 'adj_x',
+        'dlParamName': 'transposeA',
+        'type': 'bool',
+        'defaultValue': false
+      },
+      {
+        'tfParamName': 'adj_y',
+        'dlParamName': 'transposeB',
+        'type': 'bool',
+        'defaultValue': false
+      },
+      {
+        'tfParamName': 'T',
+        'dlParamName': 'dtype',
+        'type': 'dtype',
+        'notSupported': true
+      }
+    ]
+  },
+  {
     'tfOpName': 'Transpose',
     'dlOpName': 'transpose',
     'category': 'matrices',
