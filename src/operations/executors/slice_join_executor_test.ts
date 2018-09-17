@@ -21,7 +21,7 @@ import {Node} from '../types';
 
 import {executeOp} from './slice_join_executor';
 // tslint:disable-next-line:max-line-length
-import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttr, createTensorAttr, createTensorsAttr} from './test_helper';
+import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttr, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr} from './test_helper';
 
 describe('slice join', () => {
   let node: Node;
@@ -186,6 +186,17 @@ describe('slice join', () => {
         executeOp(node, {input1, input2}, context);
 
         expect(tfc.split).toHaveBeenCalledWith(input2[0], 2, 1);
+      });
+      it('should call tfc.split', () => {
+        spyOn(tfc, 'split');
+        node.op = 'split';
+        node.params.x = createTensorAttr(0);
+        node.params.numOrSizeSplits = createNumericArrayAttrFromIndex(1);
+        node.params.axis = createNumberAttrFromIndex(2);
+        node.inputNames = ['input1', 'input2', 'input3'];
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(tfc.split).toHaveBeenCalledWith(input1[0], [2], 3);
       });
     });
   });
