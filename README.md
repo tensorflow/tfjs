@@ -26,9 +26,12 @@ or using yarn with
 yarn add @tensorflow/tfjs-vis
 ```
 
-You can also load it via script tag using the following tag
+You can also load it via script tag using the following tag, however you need
+to have TensorFlow.js also loaded on the page to work. Including both is shown
+below.
 
 ```
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
 ```
 
@@ -62,7 +65,7 @@ or
 npm run build
 ```
 
-This should produce a `tfjs-vis.umd.js` file in the `dist` folder that you can
+This should produce a `tfjs-vis.umd.min.js` file in the `dist` folder that you can
 use.
 
 ## Sample Usage

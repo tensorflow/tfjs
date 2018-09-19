@@ -23,7 +23,7 @@ module.exports = {
   devtool: 'source-map',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'tfjs-vis.umd.js',
+    filename: 'tfjs-vis.umd.min.js',
     libraryTarget: 'umd',
     library: 'tfvis',
   },

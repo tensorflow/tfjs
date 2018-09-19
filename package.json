@@ -1,13 +1,13 @@
 {
   "name": "@tensorflow/tfjs-vis",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Utilities for in browser visualization with TensorFlow.js",
   "repository": "https://github.com/tensorflow/tfjs-vis",
   "license": "Apache-2.0",
   "private": false,
   "main": "dist/index.js",
-  "jsdelivr": "dist/tf-vis.umd.js",
-  "unpkg": "dist/tf-vis.umd.js",
+  "jsdelivr": "dist/tfjs-vis.umd.min.js",
+  "unpkg": "dist/tfjs-vis.umd.min.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "yarn lint && tsc && NODE_ENV=production webpack",
