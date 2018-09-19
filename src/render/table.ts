@@ -64,8 +64,8 @@ export function renderTable(
 
     table.attr('class', ` ${tableStyle} tf-table`);
 
-    table.append('thead').append('tr').attr('class');
-    table.append('tbody').attr('class', 'lh-copy');
+    table.append('thead').append('tr');
+    table.append('tbody');
   }
 
   if (table.size() !== 1) {

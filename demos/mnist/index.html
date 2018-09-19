@@ -222,7 +222,7 @@
 
       <script class='show-script'>
         async function watchTraining1() {
-          const metrics = ['loss', 'acc', 'val_loss', 'val_acc'];
+          const metrics = ['loss', 'acc', 'val_acc'];
           const container = { name: 'model.fit metrics', tab: 'Training' };
           const callbacks = tfvis.show.fitCallbacks(container, metrics);
           return train(model, data, callbacks);

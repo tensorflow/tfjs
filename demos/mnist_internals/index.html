@@ -19,6 +19,7 @@
 <head>
   <meta charset="utf-8">
   <link rel="stylesheet" href="./tufte.css" />
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/5.7.0/d3.js'></script>
   <script src="./index.js"></script>
 
   <style>
@@ -42,6 +43,10 @@
     code {
       background-color: #eee;
       padding: 2px 4px 2px 4px;
+    }
+
+    #mnist-examples {
+      max-width: 720px;
     }
   </style>
 
@@ -67,43 +72,10 @@
       </p>
       <p>
         <button id='load-data'>Load Data</button>
-        <button id='show-examples' disabled>Show Example Digits</button>
         <button id='start-training-1' disabled>Start Training</button>
       </p>
 
-      <script>
-        async function showExamples() {
-
-          // Get a surface
-          const surface =
-            tfvis.visor().surface({ name: 'My First Surface', tab: 'Input Data' });
-          const drawArea = surface.drawArea;
-
-          // Get the examples
-          const examples = data.nextTestBatch(20);
-          const numExamples = examples.xs.shape[0];
-          for (let i = 0; i < numExamples; i++) {
-            const imageTensor = tf.tidy(() => {
-              return examples.xs.slice([i, 0], [1, examples.xs.shape[1]]).reshape([
-                28, 28, 1
-              ]);
-            });
-
-            // Create a canvas element to render each example
-            const canvas = document.createElement('canvas');
-            canvas.width = 28;
-            canvas.height = 28;
-            canvas.style = 'margin: 4px;';
-            await tf.toPixels(imageTensor, canvas);
-            drawArea.appendChild(canvas);
-
-            imageTensor.dispose();
-          }
-        }
-
-        document.querySelector('#show-examples')
-          .addEventListener('click', async (e) => showExamples());
-      </script>
+      <div id='mnist-examples'></div>
 
       <script>
         async function train(model, data, fitCallbacks) {
@@ -140,7 +112,7 @@
       <script>
         async function watchTraining1() {
           const metrics = ['acc'];
-          const container = { name: 'Model Accuracy', tab: 'Model' };
+          const container = { name: 'Model Accuracy', tab: 'Training' };
           const callbacks = tfvis.show.fitCallbacks(container, metrics);
           return train(model, data, callbacks);
         }
@@ -154,7 +126,7 @@
     <section>
       <h2>Our Model</h2>
       <p>
-        We can use the `show.modelSummary` to see a summary of the layers present in our model.
+        We can use the <code>show.modelSummary</code> to see a summary of the layers present in our model.
       </p>
       <p><button id='show-model'>Show Model</button></p>
 
@@ -168,25 +140,322 @@
       </script>
 
       <p>
-        From the table shown, we see 3 layers of interest, 2 'Conv2d' layers and 1 'Dense' layer. We can use `show.layer` to get
-        a bit more detail on each.
+        This model is a 'convolutional' model, a common model type for image processing applications. They get their name from the
+        'convolution' operation implemented by some of their layers. There are 3 layers of interest we will focus on in this
+        example:
+      </p>
+      <ul>
+        <li>
+          <strong>conv2d_Conv2D1:</strong> The first convolution layer.
+        </li>
+        <li>
+          <strong>conv2d_Conv2D2:</strong> The second convolution layer.
+        </li>
+        <li>
+          <strong>dense_Dense1:</strong> The 'dense' layer that gives us our final classification.
+        </li>
+      </ul>
+
+    </section>
+
+    <section>
+      <h3>Conv2d1: The first convolution</h3>
+
+      <p>
+        Convolutional layers are able to capture local spatial patterns in images due to how the convolution operation works. Convolution
+        works similarly to image filters in common image editing tools or
+        <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/filter">css filters.</a> In this case they are applied
+        to the image to extract information useful for classification. You can learn more about how convolution works from
+        this
+        <a href="http://setosa.io/ev/image-kernels/">interactive explanation.</a> The training process learns appropriate
+        'filters' to help with the digit recognition task.
       </p>
 
-      <p><button id='show-layers'>Show Layer Details</button></p>
+      <p>
+        Before we take an in depth look at the filters we can get some summary information about this layer using the <code>show.layer</code>        api.
+      </p>
+
+      <p><button id='show-conv1'>Show conv2d_Conv2D1 Details</button></p>
 
       <script class='show-script'>
-        async function showModel() {
+        async function showConv2d1() {
           const conv1Surface = { name: 'Conv2D1 Details', tab: 'Model' };
-          const conv2Surface = { name: 'Conv2D2 Details', tab: 'Model' };
-          const denseSurface = { name: 'Dense Details', tab: 'Model' };
-
           tfvis.show.layer(conv1Surface, model.getLayer('conv2d_Conv2D1'));
-          tfvis.show.layer(conv2Surface, model.getLayer('conv2d_Conv2D2'));
+        }
+
+        document.querySelector('#show-conv1').addEventListener('click', showConv2d1);
+      </script>
+
+      <p>
+        The <em>conv2d_Conv2D1/kernel</em> weight represents the filters used in this convolution. Lets take a look at these
+        filters and how they transform the output.
+      </p>
+
+      <p>
+        First we will define some helper functions.
+      </p>
+
+      <script class='show-script'>
+        // An 'activation' is the output of any of the internal layers of the
+        // network.
+        function getActivation(input, model, layer) {
+          const activationModel = tf.model({
+            inputs: model.input,
+            outputs: layer.output,
+          });
+
+          return activationModel.predict(input);
+        }
+
+        // Render a tensor as an image on canvas object. We will render the
+        // activations from the convolutional layers.
+        async function renderImage(container, tensor, imageOpts) {
+          const resized = tf.tidy(() =>
+            tf.image.resizeNearestNeighbor(tensor,
+              [imageOpts.height, imageOpts.width]).clipByValue(0.0, 1.0)
+          );
+
+          const canvas = container.querySelector('canvas') || document.createElement('canvas');
+          canvas.width = imageOpts.width;
+          canvas.height = imageOpts.height;
+          canvas.style = `margin: 4px; width:${imageOpts.width}px; height:${imageOpts.height}px`;
+          container.appendChild(canvas);
+          await tf.toPixels(resized, canvas);
+          resized.dispose();
+        }
+
+        // Render a table of images, we will show the output for each filter
+        // in the convolution.
+        function renderImageTable(container, headerData, data) {
+          let table = d3.select(container).select('table');
+          if (table.size() === 0) {
+            table = d3.select(container).append('table');
+            table.append('thead').append('tr');
+            table.append('tbody');
+          }
+
+          const headers = table.select('thead').select('tr').selectAll('th').data(headerData);
+          const headersEnter = headers.enter().append('th')
+          headers.merge(headersEnter).each((d, i, group) => {
+            const node = group[i];
+            if (typeof d == 'string') {
+              node.innerHTML = d;
+            } else {
+              renderImage(node, d, { width: 25, height: 25 });
+            }
+          });
+
+          const rows = table.select('tbody').selectAll('tr').data(data);
+          const rowsEnter = rows.enter().append('tr');
+
+          const cells = rows.merge(rowsEnter).selectAll('td').data(d => d);
+          const cellsEnter = cells.enter().append('td');
+          cells.merge(cellsEnter).each((d, i, group) => {
+            const node = group[i];
+            renderImage(node, d, { width: 40, height: 40 });
+          })
+
+          cells.exit().remove();
+          rows.exit().remove();
+        }
+
+        function getActivationTable(layerName) {
+          const exampleImageSize = 28;
+
+          const layer = model.getLayer(layerName);
+
+          // Get the filters
+          let filters = tf.tidy(() => layer.kernel.val.transpose([3, 0, 1, 2]).unstack());
+          // It is hard to draw high dimensional filters so we just use a string
+          if (filters[0].shape[2] > 3) {
+            filters = filters.map((d, i) => `Filter ${i + 1}`);
+          }
+          filters.unshift('Input');
+
+          // Get the inputs
+          const numExamples = examples.xs.shape[0];
+          const xs = examples.xs.reshape([numExamples, exampleImageSize, exampleImageSize, 1]);
+
+          // Get the activations
+          const activations = tf.tidy(() => {
+            return getActivation(xs, model, layer).unstack();
+          });
+          const activationImageSize = activations[0].shape[0]; // e.g. 24
+          const numFilters = activations[0].shape[2]; // e.g. 8
+
+
+          const filterActivations = activations.map((activation, i) => {
+            // activation has shape [activationImageSize, activationImageSize, i];
+            const unpackedActivations = Array(numFilters).fill(0).map((_, i) =>
+              activation.slice([0, 0, i], [activationImageSize, activationImageSize, 1])
+            );
+
+            // prepend the input image
+            const inputExample = tf.tidy(() =>
+              xs.slice([i], [1]).reshape([exampleImageSize, exampleImageSize, 1]));
+
+            unpackedActivations.unshift(inputExample);
+            return unpackedActivations;
+          });
+
+          return {
+            filters,
+            filterActivations,
+          };
+        }
+      </script>
+
+      <p>With that we can look at how this layer transforms some example images.</p>
+
+      <p><button id='conv1'>Conv Layer 1 Activations</button></p>
+
+      <script class='show-script'>
+
+        async function conv2d1ActivationTable() {
+          const surface =
+            tfvis.visor().surface({
+              name: 'Conv2D1 Activations', tab: 'Model',
+              styles: {
+                height: 650,
+              },
+            });
+          const drawArea = surface.drawArea;
+
+          const { filters, filterActivations } = getActivationTable('conv2d_Conv2D1');
+
+          renderImageTable(drawArea, filters, filterActivations);
+        }
+
+        document.querySelector('#conv1').addEventListener('click', conv2d1ActivationTable);
+      </script>
+
+      <p>This layer learns filters that tends to detect lower level features like edges.</p>
+
+    </section>
+
+    <section>
+      <h3>Conv2d2: The second convolution</h3>
+
+      <p>
+        The second convolutional layer extracts higher level features from the output of the prior layer. This layer has twice as
+        many filters as the previous convolutional layer. 16 different 'images' will be produced for each input tensor to
+        this layer. We can see a summary of this layer and then look at the resulting activations.
+      </p>
+
+      <p><button id='show-conv2'>Show conv2d_Conv2D2 Details</button></p>
+
+      <script class='show-script'>
+        async function showConv2d2() {
+          const conv1Surface = { name: 'Conv2D2 Details', tab: 'Model' };
+          tfvis.show.layer(conv1Surface, model.getLayer('conv2d_Conv2D2'));
+        }
+
+        document.querySelector('#show-conv2').addEventListener('click', showConv2d2);
+      </script>
+
+      <p><button id='conv2'>Conv Layer 2 Activations</button></p>
+      <script class='show-script'>
+        async function conv2d2ActivationTable() {
+          const surface =
+            tfvis.visor().surface({
+              name: 'Conv2D2 Activations',
+              tab: 'Model',
+              styles: {
+                width: 1000,
+                height: 650,
+              },
+            });
+          const drawArea = surface.drawArea;
+
+          const { filters, filterActivations } = getActivationTable('conv2d_Conv2D2');
+
+          renderImageTable(drawArea, filters, filterActivations);
+        }
+
+        document.querySelector('#conv2').addEventListener('click', conv2d2ActivationTable);
+      </script>
+    </section>
+
+    <section>
+      <h3>dense_Dense1: The Dense layer</h3>
+
+      <p>
+        The dense layer is responsible for combining all the information from previous layers by multipying those values with its
+        weights to generate the final prediction.
+      </p>
+
+      <p><button id='show-dense'>Show dense_Dense1 Details</button></p>
+
+      <script class='show-script'>
+        async function showDense() {
+          const denseSurface = { name: 'Dense1 Details', tab: 'Model' };
           tfvis.show.layer(denseSurface, model.getLayer('dense_Dense1'));
         }
 
-        document.querySelector('#show-layers').addEventListener('click', showModel);
+        document.querySelector('#show-dense').addEventListener('click', showDense);
       </script>
+
+      <p>
+        The 'activations' from this layer are actually our models final output. 10 values are output that represent the probablility
+        that the image represents that digit (0-9).
+      </p>
+
+      <p><button id='dense1'>Show Dense activations</button></p>
+      <script class='show-script'>
+        async function denseWeights() {
+          const surface =
+            tfvis.visor().surface({
+              name: 'Dense Activations',
+              tab: 'Model',
+              styles: {
+                height: 650,
+              },
+            });
+          const drawArea = surface.drawArea;
+          drawArea.innerHTML = '';
+
+          const exampleImageSize = 28;
+          const numExamples = examples.xs.shape[0];
+          const xs = examples.xs.reshape([numExamples, exampleImageSize, exampleImageSize, 1]);
+
+          const denseAct = getActivation(xs, model, model.getLayer('dense_Dense1'));
+
+          for (let i = 0; i < numExamples; i++) {
+            // Get the activation frot this example
+            const activation = denseAct.slice([i], [1]);
+
+
+            // Get the individual example image
+            const imageTensor = xs.slice([i], [1]).reshape([exampleImageSize, exampleImageSize, 1]);
+            // Make a div to render the image and bar chart into
+            const container = document.createElement('div');
+            container.innerHTML = '<span class="image"></span><span class="chart"></span>';
+            surface.drawArea.appendChild(container);
+            const imageSurface = container.querySelector('.image');
+            const chartSurface = container.querySelector('.chart');
+
+            const barchartData = Array.from(activation.dataSync())
+              .map((d, i) => {
+                return { index: i, value: d };
+              });
+            renderImage(imageSurface, imageTensor, { width: 50, height: 50 });
+            tfvis.render.barchart(barchartData, chartSurface, { width: 375, height: 60 });
+          }
+        }
+
+        document.querySelector('#dense1').addEventListener('click', denseWeights);
+      </script>
+
+
+    </section>
+
+    <section>
+      <h2>That's it</h2>
+      <p>
+        An interesting exercise for you is to reload this page, load the data and then look at the activations <em>before</em>
+        training the model, this will show you what those actications look like when the model is randomly initialized. Compare what
+        these look like to activations produced after the model is trained.
+      </p>
     </section>
 
   </article>
