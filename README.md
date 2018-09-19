@@ -14,9 +14,24 @@ custom visualizations using tools of your choosing, such as d3, Chart.js or plot
 
 ## Installation
 
-Eventually you will be able to install this library via npm. But for now
-you should build the library and copy `dist/tfjs-vis.umd.js` to your project
-and import it as a standard UMD bundle. The global name exposed is `tfvis`.
+You can install this using npm with
+
+```
+npm install @tensorflow/tfjs-vis
+```
+
+or using yarn with
+
+```
+yarn add @tensorflow/tfjs-vis
+```
+
+You can also load it via script tag using the following tag
+
+```
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
+```
+
 
 ## Building from source
 
