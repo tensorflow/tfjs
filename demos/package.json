@@ -6,7 +6,8 @@
   "scripts": {
     "watch-api": "NODE_ENV=development parcel ./api/index.html --no-hmr --open --no-autoinstall",
     "watch-mnist": "NODE_ENV=development parcel ./mnist/index.html --no-hmr --open --no-autoinstall",
-    "watch-mnist-internals": "NODE_ENV=development parcel ./mnist_internals/index.html --no-hmr --open --no-autoinstall"
+    "watch-mnist-internals": "NODE_ENV=development parcel ./mnist_internals/index.html --no-hmr --open --no-autoinstall",
+    "build-demo": "NODE_ENV=production parcel build --no-minify --public-url ./"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -14,7 +15,8 @@
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.7.0",
-    "parcel-bundler": "^1.9.7"
+    "parcel-bundler": "^1.9.7",
+    "rimraf": "^2.6.2"
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.12.4"
