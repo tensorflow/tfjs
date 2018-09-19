@@ -27,16 +27,46 @@ window.model;
 
 async function initData() {
   window.data = await loadData();
+  window.examples = data.nextTestBatch(10)
+
+  showExamples(document.querySelector('#mnist-examples'), 200);
 }
 
 function initModel() {
   window.model = getModel();
 }
 
+async function showExamples(drawArea, numExamples) {
+  // Get the examples
+  const examples = data.nextTestBatch(numExamples);
+  const tensorsToDispose = [];
+  const drawPromises = [];
+  for (let i = 0; i < numExamples; i++) {
+    const imageTensor = tf.tidy(() => {
+      return examples.xs.slice([i, 0], [1, examples.xs.shape[1]]).reshape([
+        28, 28, 1
+      ]);
+    });
+
+    // Create a canvas element to render each example
+    const canvas = document.createElement('canvas');
+    canvas.width = 28;
+    canvas.height = 28;
+    canvas.style = 'margin: 4px;';
+    const drawPromise = tf.toPixels(imageTensor, canvas);
+    drawArea.appendChild(canvas);
+
+    tensorsToDispose.push(imageTensor);
+    drawPromises.push(drawPromise);
+  }
+
+  await Promise.all(drawPromises);
+  tf.dispose(tensorsToDispose);
+}
+
 function setupListeners() {
   document.querySelector('#load-data').addEventListener('click', async (e) => {
     await initData();
-    document.querySelector('#show-examples').disabled = false;
     document.querySelector('#start-training-1').disabled = false;
     e.target.disabled = true;
   });

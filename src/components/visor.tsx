@@ -273,7 +273,7 @@ export class VisorComponent extends Component<VisorProps, VisorState> {
                 key={surfaceInfo.name + surfaceInfo.tab}
                 name={surfaceInfo.name}
                 tab={surfaceInfo.tab}
-                // styles={surfaceInfo.styles}
+                styles={surfaceInfo.styles}
                 registerSurface={this.registerSurface.bind(this)}
                 visible={activeTab === surfaceInfo.tab}
               />
