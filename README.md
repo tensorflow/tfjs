@@ -30,6 +30,8 @@ two packages:
 
 If you care about bundle size, you can import those packages individually.
 
+If you are looking for Node.js support, check out the [TensorFlow.js Node repository](https://github.com/tensorflow/tfjs-node).
+
 ## Examples
 
 Check out our
