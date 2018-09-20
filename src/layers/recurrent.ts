@@ -1333,7 +1333,7 @@ export interface GRUCellLayerConfig extends SimpleRNNCellLayerConfig {
   /**
    * Activation function to use for the recurrent step.
    *
-   * Defaults to hard sigmoid (`hardSigomid`).
+   * Defaults to hard sigmoid (`hardSigmoid`).
    *
    * If `null`, no activation is applied.
    */
@@ -1654,7 +1654,7 @@ export interface GRULayerConfig extends SimpleRNNLayerConfig {
   /**
    * Activation function to use for the recurrent step.
    *
-   * Defaults to hard sigmoid (`hardSigomid`).
+   * Defaults to hard sigmoid (`hardSigmoid`).
    *
    * If `null`, no activation is applied.
    */
@@ -1832,7 +1832,7 @@ export interface LSTMCellLayerConfig extends SimpleRNNCellLayerConfig {
   /**
    * Activation function to use for the recurrent step.
    *
-   * Defaults to hard sigmoid (`hardSigomid`).
+   * Defaults to hard sigmoid (`hardSigmoid`).
    *
    * If `null`, no activation is applied.
    */
@@ -2194,7 +2194,7 @@ export interface LSTMLayerConfig extends SimpleRNNLayerConfig {
   /**
    * Activation function to use for the recurrent step.
    *
-   * Defaults to hard sigmoid (`hardSigomid`).
+   * Defaults to hard sigmoid (`hardSigmoid`).
    *
    * If `null`, no activation is applied.
    */
