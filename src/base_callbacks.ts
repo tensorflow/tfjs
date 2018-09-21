@@ -568,7 +568,7 @@ export declare type BaseCallbackConstructor = {
  */
 export class CallbackConstructorRegistry {
   private static constructors:
-      {[verbosityLevel: number]: BaseCallbackConstructor[]};
+      {[verbosityLevel: number]: BaseCallbackConstructor[]} = {};
 
   /**
    * Blocks public access to constructor.

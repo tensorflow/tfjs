@@ -18,7 +18,7 @@ import {BaseCallback, BaseLogger, CallbackConstructorRegistry, CallbackList, His
 import {Callback} from './callbacks';
 import {Model} from './engine/training';
 import * as tfl from './index';
-import {disposeTensorsInLogs, resolveScalarsInLogs, UnresolvedLogs, Logs} from './logs';
+import {disposeTensorsInLogs, Logs, resolveScalarsInLogs, UnresolvedLogs} from './logs';
 import {describeMathCPUAndGPU} from './utils/test_utils';
 
 
@@ -322,6 +322,12 @@ describe('CallbackConstructorRegistry', () => {
         .toThrowError(/is expected to be an integer >= 0/);
     expect(() => tfl.registerCallbackConstructor(NaN, FakeCallback1))
         .toThrowError(/is expected to be an integer >= 0/);
+  });
+});
+
+describeMathCPUAndGPU('CallbackConstructorRegistry initialization', () => {
+  it('CallbackConstructorRegistry is initialized properly', () => {
+    expect(CallbackConstructorRegistry.createCallbacks(1)).toEqual([]);
   });
 });
 
