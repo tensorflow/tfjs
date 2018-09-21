@@ -3,7 +3,7 @@ node_js:
   - '8'
   - '10'
 script:
-  - cd integration_tests/benchmarks && yarn && yarn benchmark-travis && cd ../../
+  - cd integration_tests/benchmarks && yarn && yarn lint && yarn benchmark-travis && cd ../../
   - yarn && yarn build && yarn lint && if [[ $(node -v) = *v10* ]]; then yarn test-all; fi
 cache: yarn
 git:

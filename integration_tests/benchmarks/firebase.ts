@@ -57,7 +57,7 @@ export async function logBenchmarkRun(
   if (day.length === 1) {
     day = '0' + day;
   }
-  const humanReadableDate = date.getFullYear() + '-' + month + '-' + day;
+  const humanReadableDate = `${date.getFullYear}-${month}-${day}`;
 
   const runs: {[params: string]: BenchmarkRunEntry} = {};
   logs.forEach(log => {
