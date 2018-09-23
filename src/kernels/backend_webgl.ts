@@ -463,11 +463,14 @@ export class MathBackendWebGL implements KernelBackend {
     } else {
       this.gpgpuCreatedLocally = false;
     }
-    // Use the device screen's resolution as a heuristic to decide on the
-    // maximum memory allocated on the GPU before starting to page.
-    this.NUM_BYTES_BEFORE_PAGING =
-        (window.screen.height * window.screen.width * window.devicePixelRatio) *
-        BEFORE_PAGING_CONSTANT;
+    if (ENV.get('WEBGL_PAGING_ENABLED')) {
+      // Use the device screen's resolution as a heuristic to decide on the
+      // maximum memory allocated on the GPU before starting to page.
+      this.NUM_BYTES_BEFORE_PAGING =
+          (window.screen.height * window.screen.width *
+           window.devicePixelRatio) *
+          BEFORE_PAGING_CONSTANT;
+    }
     this.textureManager = new TextureManager(this.gpgpu);
   }
 
@@ -1551,7 +1554,8 @@ export class MathBackendWebGL implements KernelBackend {
 
     gpgpu_math.runProgram(binary, inputsData, outputData, customSetup);
 
-    if (pageToCpu && this.numBytesInGPU > this.NUM_BYTES_BEFORE_PAGING) {
+    if (ENV.get('WEBGL_PAGING_ENABLED') && pageToCpu &&
+        this.numBytesInGPU > this.NUM_BYTES_BEFORE_PAGING) {
       let numBytesToPage = this.numBytesInGPU - this.NUM_BYTES_BEFORE_PAGING;
       while (numBytesToPage > 0 && this.lruDataGPU.length > 0) {
         const dataId = this.lruDataGPU.shift();
@@ -1622,7 +1626,7 @@ export class MathBackendWebGL implements KernelBackend {
     this.throwIfNoData(dataId);
     const texData = this.texData.get(dataId);
     const {shape, values, texture, dtype, usage} = texData;
-    if (texture != null) {
+    if (ENV.get('WEBGL_PAGING_ENABLED') && texture != null) {
       // Array is already on GPU. No-op.
       // Touching the texture.
       const index = this.lruDataGPU.indexOf(dataId);
@@ -1677,9 +1681,12 @@ export class MathBackendWebGL implements KernelBackend {
       dataId: DataId, texture: WebGLTexture, texShape: [number, number],
       texType: TextureUsage) {
     const {shape, dtype} = this.texData.get(dataId);
-    const idx = this.lruDataGPU.indexOf(dataId);
-    if (idx >= 0) {
-      this.lruDataGPU.splice(idx, 1);
+
+    if (ENV.get('WEBGL_PAGING_ENABLED')) {
+      const idx = this.lruDataGPU.indexOf(dataId);
+      if (idx >= 0) {
+        this.lruDataGPU.splice(idx, 1);
+      }
     }
     this.numBytesInGPU -= this.computeBytes(shape, dtype);
     this.textureManager.releaseTexture(texture, texShape, texType);
@@ -1689,7 +1696,9 @@ export class MathBackendWebGL implements KernelBackend {
       dataId: DataId, texShape: [number, number],
       texType: TextureUsage): WebGLTexture {
     const {shape, dtype} = this.texData.get(dataId);
-    this.lruDataGPU.push(dataId);
+    if (ENV.get('WEBGL_PAGING_ENABLED')) {
+      this.lruDataGPU.push(dataId);
+    }
     this.numBytesInGPU += this.computeBytes(shape, dtype);
     return this.textureManager.acquireTexture(texShape, texType);
   }
