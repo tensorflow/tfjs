@@ -22,6 +22,8 @@ export interface Features {
   'IS_BROWSER'?: boolean;
   // Whether we are in the Node.js environment.
   'IS_NODE'?: boolean;
+  // Whether we will perform memory paging.
+  'WEBGL_PAGING_ENABLED'?: boolean;
   // The disjoint_query_timer extension version.
   // 0: disabled, 1: EXT_disjoint_timer_query, 2:
   // EXT_disjoint_timer_query_webgl2.
@@ -64,6 +66,7 @@ export enum Type {
 
 export const URL_PROPERTIES: URLProperty[] = [
   {name: 'DEBUG', type: Type.BOOLEAN}, {name: 'IS_BROWSER', type: Type.BOOLEAN},
+  {name: 'WEBGL_PAGING_ENABLED', type: Type.BOOLEAN},
   {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', type: Type.NUMBER},
   {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', type: Type.BOOLEAN},
   {name: 'WEBGL_VERSION', type: Type.NUMBER},
