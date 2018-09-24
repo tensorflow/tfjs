@@ -318,12 +318,6 @@ export class Environment {
       if (webGLVersion === 0) {
         return 0;
       }
-      // Remove this and reenable this extension when the
-      // EXT_disjoint_query_timer extension is reenabled in chrome.
-      // https://github.com/tensorflow/tfjs/issues/544
-      if (webGLVersion > 0) {
-        return 0;
-      }
       return getWebGLDisjointQueryTimerVersion(
           webGLVersion, this.get('IS_BROWSER'));
     } else if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') {
