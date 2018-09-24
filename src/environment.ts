@@ -19,7 +19,7 @@ import * as device_util from './device_util';
 import {Engine, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo} from './engine';
 import {Features, getFeaturesFromURL, getWebGLDisjointQueryTimerVersion, isChrome, isDownloadFloatTextureEnabled, isRenderToFloatTextureEnabled, isWebGLFenceEnabled, isWebGLVersionEnabled} from './environment_util';
 import {KernelBackend} from './kernels/backend';
-import {setTensorTracker, Tensor, TensorTracker} from './tensor';
+import {DataId, setTensorTracker, Tensor, TensorTracker} from './tensor';
 import {TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
 
@@ -31,7 +31,6 @@ const TEST_EPSILON_FLOAT32 = 1e-3;
 
 export class Environment {
   private features: Features = {};
-  private engines: {[id: string]: Engine} = {};
   private globalEngine: Engine;
   private registry:
       {[id: string]: {backend: KernelBackend, priority: number}} = {};
@@ -70,7 +69,8 @@ export class Environment {
     if (!(backendName in ENV.registry)) {
       throw new Error(`Backend name '${backendName}' not found in registry`);
     }
-    ENV.initBackend(backendName, safeMode);
+    ENV.engine.backend = ENV.findBackend(backendName);
+    ENV.backendName = backendName;
   }
 
   /**
@@ -79,7 +79,7 @@ export class Environment {
    */
   /** @doc {heading: 'Environment'} */
   static getBackend(): string {
-    ENV.initDefaultBackend();
+    ENV.initEngine();
     return ENV.backendName;
   }
 
@@ -147,10 +147,8 @@ export class Environment {
   /**
    * Executes the provided function `fn` and after it is executed, cleans up all
    * intermediate tensors allocated by `fn` except those returned by `fn`.
-   * `f` must not return a Promise (async functions not allowed).
-   * The returned result can be a complex object, however tidy only walks the
-   * top-level properties (depth 1) of that object to search for tensors, or
-   * lists of tensors that need to be tracked in the parent scope.
+   * `fn` must not return a Promise (async functions not allowed). The returned
+   * result can be a complex object.
    *
    * Using this method helps avoid memory leaks. In general, wrap calls to
    * operations in `tidy` for automatic memory cleanup.
@@ -370,18 +368,6 @@ export class Environment {
     }
   }
 
-  private initBackend(backendName?: string, safeMode = false) {
-    this.backendName = backendName;
-    if (this.engines[backendName]) {
-      this.globalEngine = this.engines[backendName];
-    } else {
-      const backend = this.findBackend(backendName);
-      this.globalEngine =
-          new Engine(backend, safeMode, () => this.get('DEBUG'));
-      this.engines[backendName] = this.globalEngine;
-    }
-  }
-
   get backend(): KernelBackend {
     return this.engine.backend;
   }
@@ -418,6 +404,8 @@ export class Environment {
     }
     try {
       const backend = factory();
+      backend.setDataMover(
+          {moveData: (dataId: DataId) => this.engine.moveData(dataId)});
       this.registry[name] = {backend, priority};
       return true;
     } catch (err) {
@@ -433,20 +421,19 @@ export class Environment {
     }
     this.registry[name].backend.dispose();
     delete this.registry[name];
-
-    if (name in this.engines) {
-      delete this.engines[name];
-    }
   }
 
   get engine(): Engine {
-    this.initDefaultBackend();
+    this.initEngine();
     return this.globalEngine;
   }
 
-  private initDefaultBackend() {
+  private initEngine() {
     if (this.globalEngine == null) {
-      this.initBackend(this.get('BACKEND'), false /* safeMode */);
+      this.backendName = this.get('BACKEND');
+      const backend = this.findBackend(this.backendName);
+      this.globalEngine =
+          new Engine(backend, false /* safeMode */, () => this.get('DEBUG'));
     }
   }
 }

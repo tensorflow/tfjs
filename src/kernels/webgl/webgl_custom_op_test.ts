@@ -60,10 +60,10 @@ describeWithFlags('custom-op webgl', WEBGL_ENVS, () => {
       const program = new SquareAndAddKernel(x.shape);
       const backpropProgram = new SquareAndAddBackpropKernel(x.shape);
 
-      const value = webglBackend.compileAndRun(program, [x]);
+      const value = webglBackend.compileAndRun(program, [x]) as tf.Tensor;
 
       const gradFunc = (dy: T) =>
-          webglBackend.compileAndRun(backpropProgram, [x]).mul(dy) as T;
+          (webglBackend.compileAndRun(backpropProgram, [x]) as T).mul(dy);
       return {value, gradFunc};
     });
     return fn(x) as T;
