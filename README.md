@@ -44,6 +44,8 @@ $ xcode-select --install
 
 After that operation completes, re-run `yarn add` or `npm install` for the `@tensorflow/tfjs-node` package.
 
+You only need to include `@tensorflow/tfjs-node` or `@tensorflow/tfjs-node-gpu` in the package.json file, since those packages ship with `@tensorflow/tfjs` already.
+
 ## Using the binding
 
 Before executing any TensorFlow.js code, import the node package:
