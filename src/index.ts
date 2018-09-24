@@ -72,7 +72,7 @@ export {nextFrame};
 export {environment, io, serialization, test_util, util, webgl};
 
 // Backend specific.
-export {KernelBackend, BackendTimingInfo} from './kernels/backend';
+export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './kernels/backend';
 
 import * as ops from './ops/ops';
 setOpHandler(ops);

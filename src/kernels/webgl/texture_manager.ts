@@ -74,6 +74,10 @@ export class TextureManager {
   releaseTexture(
       texture: WebGLTexture, shape: [number, number],
       logicalTexType: TextureUsage): void {
+    if (this.freeTextures == null) {
+      // Already disposed.
+      return;
+    }
     const physicalTexType = getPhysicalFromLogicalTextureType(logicalTexType);
     const shapeKey = getKeyFromTextureShape(shape, physicalTexType);
     if (!(shapeKey in this.freeTextures)) {
