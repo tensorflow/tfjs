@@ -18,7 +18,7 @@ import * as regularizers from './exports_regularizers';
 
 export {CallbackList, CustomCallback, CustomCallbackConfig, History} from './base_callbacks';
 export {Callback} from './callbacks';
-export {SymbolicTensor} from './engine/topology';
+export {InputSpec, SymbolicTensor} from './engine/topology';
 export {Model, ModelCompileConfig, ModelEvaluateConfig, ModelFitConfig} from './engine/training';
 
 export {input, loadModel, model, registerCallbackConstructor, sequential} from './exports';

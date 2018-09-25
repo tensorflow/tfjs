@@ -1111,6 +1111,7 @@ export abstract class Layer extends serialization.Serializable {
    * @throws AttributeError: if the layer is connected to more than one incoming
    *   nodes.
    */
+  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   get outputShape(): Shape|Shape[] {
     if (this.inboundNodes == null || this.inboundNodes.length === 0) {
       throw new AttributeError(
@@ -1150,6 +1151,7 @@ export abstract class Layer extends serialization.Serializable {
    * @throws RuntimeError: If the layer is not built yet (in which case its
    *   weights are not defined yet.)
    */
+  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   countParams(): number {
     if (!this.built) {
       throw new RuntimeError(
@@ -1169,6 +1171,7 @@ export abstract class Layer extends serialization.Serializable {
    *
    * @param inputShape A `Shape` or array of `Shape` (unused).
    */
+  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   build(inputShape: Shape|Shape[]) {
     this.built = true;
   }
@@ -1179,6 +1182,7 @@ export abstract class Layer extends serialization.Serializable {
    * @param trainableOnly Whether to get the values of only trainable weights.
    * @returns Weight values as an `Array` of `Tensor`s.
    */
+  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   getWeights(trainableOnly = false): Tensor[] {
     return batchGetValue(trainableOnly ? this.trainableWeights : this.weights);
   }
@@ -1193,6 +1197,7 @@ export abstract class Layer extends serialization.Serializable {
    * @exception ValueError If the provided weights list does not match the
    *   layer's specifications.
    */
+  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   setWeights(weights: Tensor[]): void {
     tidy(() => {
       const params = this.weights;
@@ -1240,6 +1245,7 @@ export abstract class Layer extends serialization.Serializable {
    * @param constraint An optional trainable.
    * @return The created weight variable.
    */
+  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   protected addWeight(
       name: string, shape: Shape, dtype?: DataType, initializer?: Initializer,
       regularizer?: Regularizer, trainable?: boolean,
@@ -1277,6 +1283,7 @@ export abstract class Layer extends serialization.Serializable {
    * The loss may potentionally be conditional on some inputs tensors,
    * for instance activity losses are conditional on the layer's inputs.
    */
+  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   addLoss(losses: RegularizerFn|RegularizerFn[]): void {
     if (losses == null || Array.isArray(losses) && losses.length === 0) {
       return;
@@ -1297,6 +1304,7 @@ export abstract class Layer extends serialization.Serializable {
    *   (one per output tensor of the layer). Shape tuples can include null for
    *   free dimensions, instead of an integer.
    */
+  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
@@ -1422,6 +1430,7 @@ export abstract class Layer extends serialization.Serializable {
    *
    * @returns TS dictionary of configuration.
    */
+  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   getConfig(): serialization.ConfigDict {
     const config:
         serialization.ConfigDict = {name: this.name, trainable: this.trainable};
@@ -1478,6 +1487,7 @@ export abstract class Layer extends serialization.Serializable {
    * @throws {Error} If the layer is not built yet, or if the layer has already
    *   been disposed.
    */
+  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   dispose(): DisposeResult {
     if (!this.built) {
       throw new Error(
@@ -1498,10 +1508,7 @@ export abstract class Layer extends serialization.Serializable {
       numDisposedVariables = this.disposeWeights();
     }
 
-    return {
-      refCountAfterDispose: this._refCount,
-      numDisposedVariables
-    };
+    return {refCountAfterDispose: this._refCount, numDisposedVariables};
   }
 }
 
