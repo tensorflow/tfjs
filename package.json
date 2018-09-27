@@ -37,7 +37,7 @@
     "yalc": "~1.0.0-pre.21"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.13.0",
+    "@tensorflow/tfjs": "^0.13.1",
     "adm-zip": "^0.4.11",
     "bindings": "~1.3.0",
     "progress": "^2.0.0",
