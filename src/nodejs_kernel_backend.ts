@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, rsqrt, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D} from '@tensorflow/tfjs-core';
+import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D} from '@tensorflow/tfjs-core';
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
@@ -40,6 +40,10 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   constructor(binding: TFJSBinding) {
     this.binding = binding;
+  }
+
+  setDataMover(dataMover: DataMover): void {
+    // TODO(kreeger, smilkov): Implement this.
   }
 
   // Creates a new Tensor and maps the dataId to the passed in ID.
