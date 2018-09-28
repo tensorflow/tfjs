@@ -439,6 +439,18 @@ describeWithFlags('Reduction: argmax', ALL_ENVS, () => {
     expect(result.get()).toBe(n - 1);
   });
 
+  it('max index corresponds to start of a non-initial window', () => {
+    const n = reduce_util.PARALLELIZE_THRESHOLD * 2;
+    const windowSize = reduce_util.computeOptimalWindowSize(n);
+    const values = new Float32Array(n);
+    const index = windowSize * 2;
+    values[index] = 1;
+    const a = tf.tensor1d(values);
+    const result = tf.argMax(a);
+    expect(result.dtype).toBe('int32');
+    expect(result.get()).toBe(index);
+  });
+
   it('ignores NaNs', () => {
     const a = tf.tensor1d([0, 3, 5, NaN, 3]);
     const res = tf.argMax(a);
@@ -526,6 +538,18 @@ describeWithFlags('Reduction: argmin', ALL_ENVS, () => {
     const result = tf.argMin(a);
     expect(result.dtype).toBe('int32');
     expect(result.get()).toBe(n - 1);
+  });
+
+  it('min index corresponds to start of a non-initial window', () => {
+    const n = reduce_util.PARALLELIZE_THRESHOLD * 2;
+    const windowSize = reduce_util.computeOptimalWindowSize(n);
+    const values = new Float32Array(n);
+    const index = windowSize * 2;
+    values[index] = -1;
+    const a = tf.tensor1d(values);
+    const result = tf.argMin(a);
+    expect(result.dtype).toBe('int32');
+    expect(result.get()).toBe(index);
   });
 
   it('ignores NaNs', () => {
