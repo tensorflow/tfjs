@@ -151,8 +151,18 @@ describe('LazyIterator', () => {
     }
   });
 
-  it('batches elements', async () => {
-    const readIterator = new TestIntegerIterator().batch(8);
+  it('batches elements to a row-major representation', async () => {
+    const readIterator = new TestIntegerIterator().rowMajorBatch(8);
+    const result = await readIterator.collect();
+    expect(result.length).toEqual(13);
+    for (let i = 0; i < 12; i++) {
+      expect(result[i]).toEqual(Array.from({length: 8}, (v, k) => (i * 8) + k));
+    }
+    expect(result[12]).toEqual([96, 97, 98, 99]);
+  });
+
+  it('batches elements to a column-major representation', async () => {
+    const readIterator = new TestIntegerIterator().columnMajorBatch(8);
     const result = await readIterator.collect();
     expect(result.length).toEqual(13);
     for (let i = 0; i < 12; i++) {
