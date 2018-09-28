@@ -19,7 +19,7 @@
 import {Dataset} from '../dataset';
 import {DataSource} from '../datasource';
 import {LazyIterator} from '../iterators/lazy_iterator';
-import {DataElement, ElementArray} from '../types';
+import {DataElement} from '../types';
 
 import {TextLineDataset} from './text_line_dataset';
 
@@ -117,7 +117,7 @@ export class CSVDataset extends Dataset<DataElement> {
     // TODO(soergel): proper CSV parsing with escaping, quotes, etc.
     // TODO(soergel): alternate separators, e.g. for TSV
     const values = line.split(',');
-    const result: {[key: string]: ElementArray} = {};
+    const result: {[key: string]: DataElement} = {};
     for (let i = 0; i < this._csvColumnNames.length; i++) {
       const value = values[i];
       // TODO(soergel): specify data type using a schema

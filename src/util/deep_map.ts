@@ -16,6 +16,8 @@
  * =============================================================================
  */
 
+import * as tf from '@tensorflow/tfjs-core';
+
 // tslint:disable:no-any
 
 /**
@@ -165,7 +167,7 @@ function deepZipInternal(
 }
 
 // tslint:disable-next-line:no-any
-function zipToList(x: any[]): DeepMapResult {
+export function zipToList(x: any[]): DeepMapResult {
   if (x === null) {
     return null;
   }
@@ -237,7 +239,31 @@ export async function deepMapAndAwaitAll(
   return result;
 }
 
+/**
+ * Determine whether the argument is iterable.
+ *
+ * @returns true if the argument is an array or any non-Tensor object.
+ */
 // tslint:disable-next-line:no-any
 export function isIterable(obj: any): boolean {
-  return obj != null && (Array.isArray(obj) || typeof obj === 'object');
+  return obj != null &&
+      (Array.isArray(obj) ||
+       (typeof obj === 'object' && !(obj instanceof tf.Tensor)));
+}
+
+/**
+ * Determine whether any child of the argument is iterable.
+ *
+ * Assumes that the argument is itself iterable.
+ *
+ * @returns true if any child of the argument is iterable; false otherwise.
+ */
+// tslint:disable-next-line:no-any
+export function isSubIterable(obj: any): boolean {
+  for (const k in obj) {
+    if (isIterable(obj[k])) {
+      return true;
+    }
+  }
+  return false;
 }

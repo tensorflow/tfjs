@@ -18,6 +18,7 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {TensorContainerObject} from '@tensorflow/tfjs-core/dist/tensor_types';
 
 import {Dataset, datasetFromElements, datasetFromIteratorFn, zip} from './dataset';
 import {iteratorFromFunction, iteratorFromItems, LazyIterator} from './iterators/lazy_iterator';
@@ -58,6 +59,24 @@ export class TestDataset extends Dataset<DataElementObject> {
   async iterator(): Promise<LazyIterator<{}>> {
     return new TestObjectIterator();
   }
+}
+
+// tslint:disable-next-line:no-any
+function complexifyExample(simple: any): {} {
+  const v = simple['number'];
+  const w = simple['numberArray'];
+  const x = simple['Tensor'];
+  const y = simple['Tensor2'];
+  const z = simple['string'];
+  return {
+    a: [v, w, {aa: [x, y, z], ab: [v, w, x]}],
+    b: {
+      ba: {baa: y, bab: z, bac: v},
+      bb: {bba: w, bbb: x, bbc: y},
+      bc: {bca: z, bcb: v, bcc: w}
+    },
+    c: [[x, y, z], [v, w, x], [y, z, v]]
+  };
 }
 
 describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
@@ -277,6 +296,149 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     } catch (e) {
       done.fail(e);
     }
+  });
+
+  it('batches entries into column-oriented batches', async () => {
+    const ds = new TestDataset();
+    const bds = ds.batch(8);
+    const batchIterator = await bds.iterator();
+    const result = await batchIterator.collect();
+
+    expect(result.length).toEqual(13);
+    result.slice(0, 12).forEach(batch => {
+      const b = batch as TensorContainerObject;
+      expect((b['number'] as tf.Tensor).shape).toEqual([8]);
+      expect((b['numberArray'] as tf.Tensor).shape).toEqual([8, 3]);
+      expect((b['Tensor'] as tf.Tensor).shape).toEqual([8, 3]);
+      expect((b['Tensor2'] as tf.Tensor).shape).toEqual([8, 2, 2]);
+      expect((b['string'] as string[]).length).toEqual(8);
+    });
+    tf.dispose(result);
+    expect(tf.ENV.engine.memory().numTensors).toBe(0);
+  });
+
+  it('batches entries without leaking Tensors', async () => {
+    // The prior test confirms this too, but this formulation is more specific.
+
+    // First show that an unbatched test iterator creates 2 Tensors per element.
+    const ds = new TestDataset();
+    const iter = await ds.iterator();
+    const element = await iter.next();
+    expect(tf.ENV.engine.memory().numTensors).toBe(2);
+    tf.dispose(element.value);
+    expect(tf.ENV.engine.memory().numTensors).toBe(0);
+
+    // Now obtain batches, which should contain 4 Tensors each.
+    const bDs = new TestDataset().batch(8);
+    const bIter = await bDs.iterator();
+    const bElement = await bIter.next();
+    // The batch element contains four Tensors, and the 8*2 Tensors in the
+    // original unbatched elements have already been disposed.
+    expect(tf.ENV.engine.memory().numTensors).toBe(4);
+    tf.dispose(bElement.value);
+    expect(tf.ENV.engine.memory().numTensors).toBe(0);
+  });
+
+  it('batches complex nested entries into column-oriented batches',
+     async () => {
+       // Our "complexified" examples map the simple examples into a deep
+       // nested structure. This test shows that batching complexified examples
+       // produces the same result as complexifying batches of simple examples.
+
+       const complexThenBatch =
+           new TestDataset().map(complexifyExample).batch(8);
+       const batchThenComplex =
+           new TestDataset().batch(8).map(complexifyExample);
+
+       const compareDataset = zip({complexThenBatch, batchThenComplex});
+
+       const result = await (await compareDataset.iterator()).collect();
+
+       expect(result.length).toEqual(13);
+       // tslint:disable-next-line:no-any
+       result.slice(0, 12).forEach((compare: any) => {
+         // TODO(soergel): could use deepMap to implement deep compare.
+         // For now, just spot-check a few deep entries.
+         expect(compare.complexThenBatch.a[0].shape)
+             .toEqual(compare.batchThenComplex.a[0].shape);
+         expect(compare.complexThenBatch.a[0].dataSync())
+             .toEqual(compare.batchThenComplex.a[0].dataSync());
+
+         expect(compare.complexThenBatch.a[2].ab[2].shape)
+             .toEqual(compare.batchThenComplex.a[2].ab[2].shape);
+         expect(compare.complexThenBatch.a[2].ab[2].dataSync())
+             .toEqual(compare.batchThenComplex.a[2].ab[2].dataSync());
+
+         expect(compare.complexThenBatch.b.bb.bbb.shape)
+             .toEqual(compare.batchThenComplex.b.bb.bbb.shape);
+         expect(compare.complexThenBatch.b.bb.bbb.dataSync())
+             .toEqual(compare.batchThenComplex.b.bb.bbb.dataSync());
+
+         expect(compare.complexThenBatch.c[1][1].shape)
+             .toEqual(compare.batchThenComplex.c[1][1].shape);
+         expect(compare.complexThenBatch.c[1][1].dataSync())
+             .toEqual(compare.batchThenComplex.c[1][1].dataSync());
+       });
+       tf.dispose(result);
+       expect(tf.ENV.engine.memory().numTensors).toBe(0);
+     });
+
+  it('batch creates a small last batch', async () => {
+    const ds = new TestDataset();
+    const bds = ds.batch(8);
+    const batchIterator = await bds.iterator();
+    const result = await batchIterator.collect();
+    const lastBatch = result[result.length - 1] as TensorContainerObject;
+    expect((lastBatch['number'] as tf.Tensor).shape).toEqual([4]);
+    expect((lastBatch['numberArray'] as tf.Tensor).shape).toEqual([4, 3]);
+    expect((lastBatch['Tensor'] as tf.Tensor).shape).toEqual([4, 3]);
+    expect((lastBatch['Tensor2'] as tf.Tensor).shape).toEqual([4, 2, 2]);
+    expect((lastBatch['string'] as string[]).length).toEqual(4);
+
+    const expectedNumberLastBatch = tf.tensor1d([96, 97, 98, 99]);
+    tf.test_util.expectArraysClose(
+        lastBatch['number'] as tf.Tensor, expectedNumberLastBatch);
+
+    const expectedNumberArrayLastBatch = tf.tensor2d(
+        [
+          [96, 96 ** 2, 96 ** 3], [97, 97 ** 2, 97 ** 3],
+          [98, 98 ** 2, 98 ** 3], [99, 99 ** 2, 99 ** 3]
+        ],
+        [4, 3]);
+    tf.test_util.expectArraysClose(
+        lastBatch['numberArray'] as tf.Tensor, expectedNumberArrayLastBatch);
+
+    const expectedTensorLastBatch = tf.tensor2d(
+        [
+          [96, 96 ** 2, 96 ** 3], [97, 97 ** 2, 97 ** 3],
+          [98, 98 ** 2, 98 ** 3], [99, 99 ** 2, 99 ** 3]
+        ],
+        [4, 3]);
+    tf.test_util.expectArraysClose(
+        lastBatch['Tensor'] as tf.Tensor, expectedTensorLastBatch);
+
+    const expectedTensor2LastBatch = tf.tensor3d(
+        [
+          [[96, 96 ** 2], [96 ** 3, 96 ** 4]],
+          [[97, 97 ** 2], [97 ** 3, 97 ** 4]],
+          [[98, 98 ** 2], [98 ** 3, 98 ** 4]],
+          [[99, 99 ** 2], [99 ** 3, 99 ** 4]],
+        ],
+        [4, 2, 2]);
+    tf.test_util.expectArraysClose(
+        lastBatch['Tensor2'] as tf.Tensor, expectedTensor2LastBatch);
+
+    const expectedStringLastBatch =
+        ['Item 96', 'Item 97', 'Item 98', 'Item 99'];
+    expect(lastBatch['string'] as string[]).toEqual(expectedStringLastBatch);
+
+    tf.dispose(result);
+    tf.dispose(expectedNumberLastBatch);
+    tf.dispose(expectedNumberArrayLastBatch);
+    tf.dispose(expectedTensorLastBatch);
+    tf.dispose(expectedTensor2LastBatch);
+
+    expect(tf.ENV.engine.memory().numTensors).toBe(0);
   });
 
   it('skip does not leak Tensors', async done => {

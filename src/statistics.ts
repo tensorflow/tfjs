@@ -19,9 +19,26 @@
 import * as tf from '@tensorflow/tfjs-core';
 
 import {Dataset} from './dataset';
-import {ElementArray, TabularRecord} from './types';
 
-// TODO(soergel): Flesh out collected statistics.
+// TODO(kangyizhang): eliminate the need for ElementArray and TabularRecord, by
+// computing stats on nested structures via deepMap/deepZip.
+
+/**
+ * The value associated with a given key for a single element.
+ *
+ * Such a value may not have a batch dimension.  A value may be a scalar or an
+ * n-dimensional array.
+ */
+export type ElementArray = number|number[]|tf.Tensor|string;
+
+/**
+ * A map from string keys (aka column names) to values for a single element.
+ */
+export type TabularRecord = {
+  [key: string]: ElementArray
+};
+
+// TODO(kangyizhang): Flesh out collected statistics.
 // For numeric columns we should provide mean, stddev, histogram, etc.
 // For string columns we should provide a vocabulary (at least, top-k), maybe a
 // length histogram, etc.

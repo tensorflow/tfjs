@@ -21,7 +21,7 @@ import {getTensorsInContainer, isTensorInList} from '@tensorflow/tfjs-core/dist/
 import * as seedrandom from 'seedrandom';
 
 import {DataElement, IteratorContainer} from '../types';
-import {deepMapAndAwaitAll, DeepMapAsyncResult} from '../util/deep_map';
+import {deepMapAndAwaitAll, DeepMapAsyncResult, DeepMapResult, deepZip, zipToList} from '../util/deep_map';
 import {GrowingRingBuffer} from '../util/growing_ring_buffer';
 import {RingBuffer} from '../util/ring_buffer';
 
@@ -124,22 +124,6 @@ export function iteratorFromZipped<O extends DataElement>(
   return new ZipIterator<O>(iterators, mismatchMode);
 }
 
-export class IteratorProperties {
-  // Is each returned item an independent unit (such as an example or a
-  // batch), as opposed to a stream segment (like a chunk of a file)?
-  independent: boolean;
-
-  // Is the iteration order meaningful?
-  ordered: boolean;
-
-  // How many initial dimensions of contained Tensors are batch dimensions.
-  // i.e. 0 means we have independent examples, 1 means we have normal
-  // batches, 2 means we have batches of batches.
-  batchDimensions: number;
-
-  columnarBatchDimensions: number;
-}
-
 /**
  * An asynchronous iterator, providing lazy access to a potentially
  * unbounded stream of elements.
@@ -147,7 +131,6 @@ export class IteratorProperties {
 export abstract class LazyIterator<T> {
   // This class implements AsyncIterator<T>, but we have not yet set the
   // TypeScript --downlevelIteration flag to enable that.
-  properties: IteratorProperties;
 
   abstract summary(): string;
 
@@ -321,7 +304,16 @@ export abstract class LazyIterator<T> {
   }
 
   /**
-   * Groups elements into batches.
+   * Groups elements into batches, represented as arrays of elements.
+   *
+   * We can think of the elements of this iterator as 'rows' (even if they are
+   * nested structures).  By the same token, consecutive values for a given
+   * key within the elements form a 'column'.  This matches the usual sense of
+   * 'row' and 'column' when processing tabular data (e.g., parsing a CSV).
+   *
+   * Thus, "Row-major" means that the resulting batch is simply a collection of
+   * rows: `[row1, row2, row3, ...]`.  This is contrast to the column-major
+   * form, which is needed for vectorized computation.
    *
    * @param batchSize The number of elements desired per batch.
    * @param smallLastBatch Whether to emit the final batch when it has fewer
@@ -329,8 +321,52 @@ export abstract class LazyIterator<T> {
    * @returns A `LazyIterator` of batches of elements, represented as arrays
    *   of the original element type.
    */
-  batch(batchSize: number, smallLastBatch = true): LazyIterator<T[]> {
-    return new BatchIterator(this, batchSize, smallLastBatch);
+  rowMajorBatch(batchSize: number, smallLastBatch = true): LazyIterator<T[]> {
+    return new RowMajorBatchIterator(this, batchSize, smallLastBatch);
+  }
+
+  /**
+   * Groups elements into batches, represented in column-major form.
+   *
+   * We can think of the elements of this iterator as 'rows' (even if they are
+   * nested structures).  By the same token, consecutive values for a given
+   * key within the elements form a 'column'.  This matches the usual sense of
+   * 'row' and 'column' when processing tabular data (e.g., parsing a CSV).
+   *
+   * Thus, "column-major" means that the resulting batch is a (potentially
+   * nested) structure representing the columns.  Each column entry, then,
+   * contains a collection of the values found in that column for a range of
+   * input elements.  This representation allows for vectorized computation, in
+   * contrast to the row-major form.
+   *
+   * The inputs should all have the same nested structure (i.e., of arrays and
+   * dicts).  The result is a single object with the same nested structure,
+   * where the leaves are arrays collecting the values of the inputs at that
+   * location (or, optionally, the result of a custom function applied to those
+   * arrays).
+   *
+   * @param batchSize The number of elements desired per batch.
+   * @param smallLastBatch Whether to emit the final batch when it has fewer
+   *   than batchSize elements. Default true.
+   * @param zipFn: (optional) A function that expects an array of elements at a
+   *   single node of the object tree, and returns a `DeepMapResult`.  The
+   *   `DeepMapResult` either provides a result value for that node (i.e.,
+   *   representing the subtree), or indicates that the node should be processed
+   *   recursively.  The default zipFn recurses as far as possible and places
+   *   arrays at the leaves.
+   * @returns A `LazyIterator` of batches of elements, represented as an object
+   *   with collections at the leaves.
+   */
+  columnMajorBatch(
+      batchSize: number, smallLastBatch = true,
+      // tslint:disable-next-line:no-any
+      zipFn: (xs: any[]) => DeepMapResult = zipToList):
+      LazyIterator<DataElement> {
+    // First collect the desired number of input elements as a row-major batch.
+    const rowBatches = this.rowMajorBatch(batchSize, smallLastBatch);
+    // Now 'rotate' or 'pivot' the data, collecting all values from each column
+    // in the batch (i.e., for each key within the elements) into an array.
+    return rowBatches.map(x => deepZip(x, zipFn));
   }
 
   /**
@@ -556,7 +592,7 @@ class TakeIterator<T> extends LazyIterator<T> {
 // Note this batch just groups items into row-wise element arrays.
 // Rotating these to a column-wise representation happens only at the dataset
 // level.
-class BatchIterator<T> extends LazyIterator<T[]> {
+class RowMajorBatchIterator<T> extends LazyIterator<T[]> {
   // Strict Promise execution order:
   // a next() call may not even begin until the previous one completes.
   private lastRead: Promise<IteratorResult<T[]>>;
@@ -569,7 +605,7 @@ class BatchIterator<T> extends LazyIterator<T[]> {
   }
 
   summary() {
-    return `${this.upstream.summary()} -> Batch`;
+    return `${this.upstream.summary()} -> RowMajorBatch`;
   }
 
   async next(): Promise<IteratorResult<T[]>> {

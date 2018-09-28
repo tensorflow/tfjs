@@ -19,13 +19,11 @@
 import * as tf from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
 
-import {BatchDataset} from './batch_dataset';
-
 import {iteratorFromFunction, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './iterators/lazy_iterator';
 import {iteratorFromConcatenated} from './iterators/lazy_iterator';
 import {iteratorFromItems} from './iterators/lazy_iterator';
 import {DataElement, DatasetContainer} from './types';
-import {deepMapAndAwaitAll, isIterable} from './util/deep_map';
+import {deepMapAndAwaitAll, DeepMapResult, isIterable, isSubIterable} from './util/deep_map';
 
 // TODO(soergel): consider vectorized operations within the pipeline.
 
@@ -48,7 +46,7 @@ export abstract class Dataset<T extends DataElement> {
    *
    * CAUTION: Any Tensors contained within the elements returned from
    * this stream *must* be manually disposed to avoid a GPU memory leak.
-   * The tf.tidy() approach cannot be used in a asynchronous context.
+   * The tf.tidy() approach cannot be used in an asynchronous context.
    */
   abstract async iterator(): Promise<LazyIterator<T>>;
 
@@ -123,8 +121,12 @@ export abstract class Dataset<T extends DataElement> {
    *   than batchSize elements. Default true.
    * @returns A `BatchDataset`, from which a stream of batches can be obtained.
    */
-  batch(batchSize: number, smallLastBatch = true): BatchDataset {
-    return new BatchDataset(this, batchSize, smallLastBatch);
+  batch(batchSize: number, smallLastBatch = true): Dataset<DataElement> {
+    const base = this;
+    return datasetFromIteratorFn(async () => {
+      return (await base.iterator())
+          .columnMajorBatch(batchSize, smallLastBatch, deepBatchConcat);
+    });
   }
 
   /**
@@ -334,4 +336,72 @@ export function zip<O extends DataElement>(datasets: DatasetContainer):
     });
     return iteratorFromZipped<O>(streams, ZipMismatchMode.SHORTEST);
   });
+}
+
+/**
+ * A zip function for use with deepZip, passed via the columnMajorBatch call.
+ *
+ * Accepts an array of identically-structured nested elements and either batches
+ * them (if they are primitives, numeric arrays, or Tensors) or requests
+ * recursion (if not).
+ */
+// tslint:disable-next-line:no-any
+function deepBatchConcat(x: any[]): DeepMapResult {
+  if (x === null) {
+    return null;
+  }
+  // TODO(soergel): validate array type?
+  // TODO(soergel): performance: avoid testing each item twice
+  if (isIterable(x[0]) && isSubIterable(x[0])) {
+    return {value: null, recurse: true};
+  } else if (typeof (x[0]) === 'string') {
+    // TODO(soergel): clean up the string special case when Tensor supports it.
+    return {value: x, recurse: false};
+  } else {
+    return {value: batchConcat(x), recurse: false};
+  }
+}
+
+/**
+ * Assembles a list of same-shaped numbers, number arrays, or Tensors
+ * into a single new Tensor where axis 0 is the batch dimension.
+ */
+function batchConcat(arrays: Array<number|number[]|tf.Tensor>): tf.Tensor {
+  // Should we use GPU-enabled concat ops in deeplearn's math.ts?
+  // Probably not; the GPU roundtrip is not worth it for a trivial
+  // operation.
+  const [elementShape, ] = shapeAndValues(arrays[0]);
+  const batchShape = [arrays.length].concat(elementShape);
+  const resultVals = new Float32Array(batchShape.reduce((x, y) => x * y));
+
+  let offset = 0;
+  for (const a of arrays) {
+    const [aShape, aVals] = shapeAndValues(a);
+    if (!tf.util.arraysEqual(aShape, elementShape)) {
+      throw new Error('Elements must have the same shape to be batched');
+    }
+    resultVals.set(aVals, offset);
+    offset += aVals.length;
+  }
+  return tf.Tensor.make(batchShape, {values: resultVals});
+}
+
+/**
+ * Extracts the shape and values from the argument, whether array or Tensor.
+ *
+ * If the argument is a Tensor, this performs a 'dataSync()' to obtain the
+ * values as a typed Array.
+ *
+ * @returns a tuple where the first element is a number[] describing the shape
+ * and the second is a number[] or a TypedArray containing the values.
+ */
+function shapeAndValues(array: number|number[]|tf.Tensor):
+    [number[], number[]|Float32Array|Int32Array|Uint8Array] {
+  if (array instanceof tf.Tensor) {
+    return [array.shape, array.dataSync()];
+  } else if (Array.isArray(array)) {
+    return [[array.length], array];
+  } else {
+    return [[], [array]];
+  }
 }

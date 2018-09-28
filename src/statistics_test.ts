@@ -20,8 +20,7 @@ import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {Dataset} from './dataset';
 import {TestDataset} from './dataset_test';
-import {computeDatasetStatistics, scaleTo01} from './statistics';
-import {TabularRecord} from './types';
+import {computeDatasetStatistics, scaleTo01, TabularRecord} from './statistics';
 
 describeWithFlags('makeDatasetStatistics', tf.test_util.ALL_ENVS, () => {
   it('computes numeric min and max over numbers, arrays, and Tensors',
