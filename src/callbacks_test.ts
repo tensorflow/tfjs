@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {progressBarHelper, ProgbarLogger} from './callbacks';
+import {progressBarHelper} from './callbacks';
 
 describe('progbarLogger', () => {
   // Fake progbar class written for testing.
@@ -31,7 +31,7 @@ describe('progbarLogger', () => {
     }
   }
 
-  it('Model.fit with loss, no metric and no validation', async () => {
+  it('Model.fit with loss, no metric, no validation, verobse = 1', async () => {
     const fakeProgbars: FakeProgbar[] = [];
     spyOn(progressBarHelper, 'ProgressBar')
         .and.callFake((specs: string, config: {}) => {
@@ -55,8 +55,7 @@ describe('progbarLogger', () => {
     const batchSize = 8;
     const xs = tf.randomNormal([numSamples, 8]);
     const ys = tf.randomNormal([numSamples, 1]);
-    await model.fit(
-        xs, ys, {epochs, batchSize, callbacks: [new ProgbarLogger()]});
+    await model.fit(xs, ys, {epochs, batchSize, verbose: 1});
 
     // A progbar object is created for each epoch.
     expect(fakeProgbars.length).toEqual(3);
@@ -83,7 +82,7 @@ describe('progbarLogger', () => {
     expect(consoleMessages[5]).toMatch(/.*ms .*us\/step - loss=.*/);
   });
 
-  it('Model.fit with loss, metric and validation', async () => {
+  it('Model.fit with loss, metric and validation, verbose = 2', async () => {
     const fakeProgbars: FakeProgbar[] = [];
     spyOn(progressBarHelper, 'ProgressBar')
         .and.callFake((specs: string, config: {}) => {
@@ -109,9 +108,7 @@ describe('progbarLogger', () => {
     const validationSplit = 0.15;
     const xs = tf.randomNormal([numSamples, 8]);
     const ys = tf.randomNormal([numSamples, 1]);
-    await model.fit(
-        xs, ys,
-        {epochs, batchSize, validationSplit, callbacks: new ProgbarLogger()});
+    await model.fit(xs, ys, {epochs, batchSize, validationSplit, verbose: 2});
 
     // A progbar object is created for each epoch.
     expect(fakeProgbars.length).toEqual(2);
@@ -136,5 +133,36 @@ describe('progbarLogger', () => {
     expect(consoleMessages[2]).toEqual('Epoch 2 / 2');
     expect(consoleMessages[3])
         .toMatch(/.*ms .*us\/step - acc=.* loss=.* val_acc=.* val_loss=.*/);
+  });
+
+  it('Model.fit does not create ProgbarLogger if verbose is 0', async () => {
+    const fakeProgbars: FakeProgbar[] = [];
+    spyOn(progressBarHelper, 'ProgressBar')
+        .and.callFake((specs: string, config: {}) => {
+          const fakeProgbar = new FakeProgbar(specs, config);
+          fakeProgbars.push(fakeProgbar);
+          return fakeProgbar;
+        });
+    const consoleMessages: string[] = [];
+    spyOn(progressBarHelper, 'log').and.callFake((message: string) => {
+      consoleMessages.push(message);
+    });
+
+    const model = tf.sequential();
+    model.add(
+        tf.layers.dense({units: 10, inputShape: [8], activation: 'relu'}));
+    model.add(tf.layers.dense({units: 1}));
+    model.compile(
+        {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['acc']});
+
+    const numSamples = 40;
+    const epochs = 2;
+    const batchSize = 8;
+    const validationSplit = 0.15;
+    const xs = tf.randomNormal([numSamples, 8]);
+    const ys = tf.randomNormal([numSamples, 1]);
+    await model.fit(xs, ys, {epochs, batchSize, validationSplit, verbose: 0});
+
+    expect(fakeProgbars.length).toEqual(0);
   });
 });
