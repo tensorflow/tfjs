@@ -34,6 +34,10 @@ npm install @tensorflow/tfjs-node-gpu
 yarn add @tensorflow/tfjs-node-gpu
 ```
 
+#### Windows Requires Python 2.7
+
+Windows build support for `node-gyp` requires Python 2.7. Be sure to have this version before installing `@tensorflow/tfjs-node` or `@tensorflow/tfjs-node-gpu`. Machines with Python 3.x will not install the bindings properly.
+
 #### Mac OS X Requires Xcode
 
 If you do not have Xcode setup on your machine, please run the following commands:
