@@ -108,6 +108,7 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
   floorDiv(a: Tensor, b: Tensor): Tensor;
 
   sum(x: Tensor, axes: number[]): Tensor;
+  prod(x: Tensor, axes: number[]): Tensor;
 
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D, numSegments: number): Tensor;

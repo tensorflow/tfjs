@@ -852,6 +852,105 @@ describeWithFlags('Reduction: sum', ALL_ENVS, () => {
   });
 });
 
+describeWithFlags('Reduction: prod', ALL_ENVS, () => {
+  it('basic', () => {
+    const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
+    const result = tf.prod(a);
+    expectNumbersClose(result.get(), 0);
+  });
+
+  it('propagates NaNs', () => {
+    const a = tf.tensor2d([1, 2, 3, NaN, 0, 1], [3, 2]);
+    expect(tf.prod(a).get()).toEqual(NaN);
+  });
+
+  it('prod over dtype int32', () => {
+    const a = tf.tensor1d([1, 5, 7, 3], 'int32');
+    const prod = tf.prod(a);
+    expect(prod.get()).toBe(105);
+  });
+
+  it('prod over dtype bool', () => {
+    const a = tf.tensor1d([true, false, false, true, true], 'bool');
+    const prod = tf.prod(a);
+    expect(prod.get()).toBe(0);
+  });
+
+  it('prods all values in 2D array with keep dim', () => {
+    const a = tf.tensor2d([1, 2, 3, 1, 0, 1], [3, 2]);
+    const res = tf.prod(a, null, true /* keepDims */);
+
+    expect(res.shape).toEqual([1, 1]);
+    expectArraysClose(res, [0]);
+  });
+
+  it('prods across axis=0 in 2D array', () => {
+    const a = tf.tensor2d([1, 2, 3, 1, 0, 1], [3, 2]);
+    const res = tf.prod(a, [0]);
+
+    expect(res.shape).toEqual([2]);
+    expectArraysClose(res, [0, 2]);
+  });
+
+  it('prods across axis=0 in 2D array, keepDims', () => {
+    const a = tf.tensor2d([1, 2, 3, 1, 0, 1], [3, 2]);
+    const res = tf.prod(a, [0], true /* keepDims */);
+
+    expect(res.shape).toEqual([1, 2]);
+    expectArraysClose(res, [0, 2]);
+  });
+
+  it('prods across axis=1 in 2D array', () => {
+    const a = tf.tensor2d([1, 2, 3, 1, 1, 1], [3, 2]);
+    const res = tf.prod(a, [1]);
+
+    expect(res.shape).toEqual([3]);
+    expectArraysClose(res, [2, 3, 1]);
+  });
+
+  it('2D, axis=1 provided as number', () => {
+    const a = tf.tensor2d([1, 2, 3, 1, 1, 1], [2, 3]);
+    const res = tf.prod(a, 1);
+
+    expect(res.shape).toEqual([2]);
+    expectArraysClose(res, [6, 1]);
+  });
+
+  it('2D, axis = -1 provided as number', () => {
+    const a = tf.tensor2d([1, 2, 3, 1, 1, 1], [2, 3]);
+    const res = tf.prod(a, -1);
+
+    expect(res.shape).toEqual([2]);
+    expectArraysClose(res, [6, 1]);
+  });
+
+  it('prods across axis=0,1 in 2D array', () => {
+    const a = tf.tensor2d([1, 2, 3, 1, 1, 1], [3, 2]);
+    const res = tf.prod(a, [0, 1]);
+
+    expect(res.shape).toEqual([]);
+    expectArraysClose(res, [6]);
+  });
+
+  it('2D, axis=[-1,-2] in 2D array', () => {
+    const a = tf.tensor2d([1, 2, 3, 1, 1, 1], [3, 2]);
+    const res = tf.prod(a, [-1, -2]);
+
+    expect(res.shape).toEqual([]);
+    expectArraysClose(res, [6]);
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.prod({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'prod' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const result = tf.prod([[1, 2], [3, 1], [1, 1]]);
+    expectNumbersClose(result.get(), 6);
+  });
+});
+
 describeWithFlags('Reduction: mean', ALL_ENVS, () => {
   it('basic', () => {
     const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);

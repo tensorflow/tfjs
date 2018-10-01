@@ -24,7 +24,8 @@ export class ReduceProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(
-      reduceInfo: ReduceInfo, reduceType: 'all'|'any'|'max'|'min'|'sum') {
+      reduceInfo: ReduceInfo,
+      reduceType: 'all'|'any'|'max'|'min'|'sum'|'prod') {
     const windowSize = reduceInfo.windowSize;
     const batchSize = reduceInfo.batchSize;
     const inSize = reduceInfo.inSize;
@@ -34,7 +35,9 @@ export class ReduceProgram implements GPGPUProgram {
     let initializationValue = '0.0';
     let compareOp = ``;
 
-    if (reduceType === 'min') {
+    if (reduceType === 'prod') {
+      initializationValue = '1.0';
+    } else if (reduceType === 'min') {
       initializationValue = '1.0 / 0.0';
       compareOp = `min`;
     } else if (reduceType === 'max') {
@@ -47,6 +50,8 @@ export class ReduceProgram implements GPGPUProgram {
 
     if (reduceType === 'sum') {
       returnValue = `sumValue`;
+    } else if (reduceType === 'prod') {
+      returnValue = `prodValue`;
     } else if (reduceType === 'all') {
       returnValue = `allValue`;
     } else if (reduceType === 'any') {
@@ -59,6 +64,9 @@ export class ReduceProgram implements GPGPUProgram {
     let updateSnippet = `
       if (${reduceType === 'sum'}) {
         sumValue += dot(values, ones);
+      } else if (${reduceType === 'prod'}) {
+        vec2 tmp = vec2(values[0], values[1]) * vec2(values[2], values[3]);
+        prodValue *= tmp[0] * tmp[1];
       } else {
         minMaxValue = ${compareOp}(values, minMaxValue);
       }
@@ -108,6 +116,7 @@ export class ReduceProgram implements GPGPUProgram {
         int inOffset = outIdx * ${windowSize};
 
         vec4 minMaxValue = vec4(${initializationValue});
+        float prodValue = 1.0;
         float sumValue = 0.0;
         float allValue = 1.0;
         float anyValue = 0.0;

@@ -143,6 +143,60 @@ function sum_<T extends Tensor>(
 }
 
 /**
+ * Computes the product of elements across dimensions of a `Tensor`.
+ *
+ * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
+ * is true, the rank of the `Tensor` is reduced by 1 for each entry in `axes`.
+ * If `keepDims` is true, the reduced dimensions are retained with length 1.
+ * If `axes` has no entries, all dimensions are reduced, and a `Tensor` with a
+ * single element is returned.
+ *
+ * ```js
+ * const x = tf.tensor1d([1, 2, 3]);
+ *
+ * x.prod().print();  // or tf.prod(x)
+ * ```
+ *
+ * ```js
+ * const x = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+ *
+ * const axis = 1;
+ * x.prod(axis).print();  // or tf.prod(x, axis)
+ * ```
+ *
+ * @param x The input tensor to compute the product over. If the dtype is `bool`
+ *   it will be converted to `int32` and the output dtype will be `int32`.
+ * @param axis The dimension(s) to reduce. By default it reduces
+ *     all dimensions.
+ * @param keepDims If true, retains reduced dimensions with size 1.
+ */
+/** @doc {heading: 'Operations', subheading: 'Reduction'} */
+function prod_<T extends Tensor>(
+    x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
+  let $x = convertToTensor(x, 'x', 'prod');
+
+  if ($x.dtype === 'bool') {
+    $x = $x.toInt();
+  }
+  const axes = axis_util.parseAxisParam(axis, $x.shape);
+
+  const permutation = axis_util.getAxesPermutation(axes, $x.rank);
+  let reductionAxes = axes;
+  let permutedX = $x;
+  if (permutation != null) {
+    permutedX = $x.transpose(permutation);
+    reductionAxes = axis_util.getInnerMostAxes(reductionAxes.length, $x.rank);
+  }
+  let value = ENV.engine.runKernel(
+      backend => backend.prod(permutedX, reductionAxes), {permutedX});
+  if (keepDims) {
+    const newShape = axis_util.expandShapeToKeepDim(value.shape, axes);
+    value = value.reshape(newShape);
+  }
+
+  return value as T;
+}
+/**
  * Computes the mean of elements across dimensions of a `Tensor`.
  *
  * Reduces `x` along the dimensions given in `axis`. Unless `keepDims` is
@@ -554,3 +608,4 @@ export const mean = op({mean_});
 export const min = op({min_});
 export const moments = op({moments_});
 export const sum = op({sum_});
+export const prod = op({prod_});
