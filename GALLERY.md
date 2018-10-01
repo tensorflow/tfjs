@@ -32,7 +32,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [Aida](https://aida.dor.ai/) Named entity recognition and text classification pipeline for creating chatbots by Rodrigo Pimentel
 - [GAN Lab](https://poloclub.github.io/ganlab/) - An Interactive Visualization Tool for Playing with Generative Adversarial Networks (GANs)!
 - [Canvas Friends](https://www.y8.com/games/canvas_friends) - Half game, half experiment to see if software can improve the drawing and artistic skills of people.
-- [High School Level Tensorflowjs](http://rocksetta.com/tensorflowjs/) - Greater than 40 demos that can be online edited made as simply as possible using single web pages. All examples use the <script> tag so no installation is needed - By Jeremy Ellis.
+- [High School Level Tensorflowjs](http://rocksetta.com/tensorflowjs/) - Greater than 40 demos that can be online edited made as simply as possible using single web pages. All examples use the <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> tag so no installation is needed - By Jeremy Ellis.
 
 ## Tutorials
 
