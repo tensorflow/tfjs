@@ -489,6 +489,28 @@ export class MathBackendCPU implements KernelBackend {
     return result;
   }
 
+  prod(x: Tensor, axes: number[]): Tensor {
+    this.assertNotComplex(x, 'sum');
+
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(x.shape, axes);
+    const resultDtype = upcastType(x.dtype, 'int32');
+    const result = ops.zeros(outShape, resultDtype);
+    const reduceSize = util.sizeFromShape(reduceShape);
+    const vals = result.dataSync();
+
+    const aVals = x.dataSync();
+    for (let i = 0; i < vals.length; ++i) {
+      const offset = i * reduceSize;
+      let prod = 1;
+      for (let j = 0; j < reduceSize; ++j) {
+        prod *= aVals[offset + j];
+      }
+      vals[i] = prod;
+    }
+    return result;
+  }
+
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
     this.assertNotComplex(x, 'unsortedSegmentSum');
