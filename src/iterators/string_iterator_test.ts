@@ -16,6 +16,7 @@
  * =============================================================================
  */
 
+import {ENV} from '@tensorflow/tfjs-core';
 import {FileChunkIterator} from './file_chunk_iterator';
 
 const lorem = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
@@ -25,11 +26,11 @@ consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
 dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,
 sunt in culpa qui officia deserunt mollit anim id est laborum.`;
 
-const testBlob = new Blob([lorem]);
+const testData = ENV.get('IS_BROWSER') ? new Blob([lorem]) : Buffer.from(lorem);
 
 describe('StringIterator.split()', () => {
   it('Correctly splits lines', async () => {
-    const byteIterator = new FileChunkIterator(testBlob, {chunkSize: 50});
+    const byteIterator = new FileChunkIterator(testData, {chunkSize: 50});
     const utf8Iterator = byteIterator.decodeUTF8();
     const lineIterator = utf8Iterator.split('\n');
     const expected = lorem.split('\n');
@@ -45,7 +46,9 @@ describe('StringIterator.split()', () => {
   it('Correctly splits strings even when separators fall on chunk boundaries',
      async () => {
        const byteIterator = new FileChunkIterator(
-           new Blob(['ab def hi      pq']), {chunkSize: 3});
+           ENV.get('IS_BROWSER') ? new Blob(['ab def hi      pq']) :
+                                   Buffer.from(['ab def hi      pq']),
+           {chunkSize: 3});
        // Note the initial chunking will be
        //   ['ab ', 'def', ' hi', '   ', '   ', 'pq],
        // so here we are testing for correct behavior when

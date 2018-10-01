@@ -40,8 +40,8 @@ export class URLDataSource extends DataSource {
 
   // TODO(soergel): provide appropriate caching options.  Currently this
   // will download the URL anew for each call to iterator().  Since we have
-  // to treat the downloaded file as a blob anyway, we may as well retain it--
-  // but that raises GC issues.  Also we may want a persistent disk cache.
+  // to treat the downloaded file as a blob/buffer anyway, we may as well retain
+  // it-- but that raises GC issues.  Also we may want a persistent disk cache.
   async iterator(): Promise<ByteChunkIterator> {
     return urlChunkIterator(this.url, this.fileOptions);
   }
