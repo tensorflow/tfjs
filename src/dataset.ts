@@ -210,7 +210,7 @@ export abstract class Dataset<T extends DataElement> {
   shuffle(bufferSize: number, seed?: string, reshuffleEachIteration = true):
       Dataset<T> {
     const base = this;
-    const random = seedrandom.alea(seed || performance.now().toString());
+    const random = seedrandom.alea(seed || tf.util.now().toString());
     return datasetFromIteratorFn(async () => {
       let seed2 = random.int32();
       if (reshuffleEachIteration) {

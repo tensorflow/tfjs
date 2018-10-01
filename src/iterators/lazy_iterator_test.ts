@@ -126,7 +126,7 @@ describe('LazyIterator', () => {
              {foo: `foo ${x} B`, bar: `bar ${x} B`},
              {foo: `foo ${x} C`, bar: `bar ${x} C`},
     ]);
-    const result = await readStream.collect()
+    const result = await readStream.collect();
     expect(result.length).toEqual(300);
     for (let i = 0; i < 100; i++) {
       expect(result[3 * i + 0]).toEqual({foo: `foo ${i} A`, bar: `bar ${i} A`});

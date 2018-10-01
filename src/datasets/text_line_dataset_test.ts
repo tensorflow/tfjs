@@ -16,6 +16,7 @@
  * =============================================================================
  */
 
+import {ENV} from '@tensorflow/tfjs-core';
 import {FileDataSource} from '../sources/file_data_source';
 import {TextLineDataset} from './text_line_dataset';
 
@@ -23,7 +24,7 @@ const runes = `ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷ�
 ᛋᚳᛖᚪᛚ᛫ᚦᛖᚪᚻ᛫ᛗᚪᚾᚾᚪ᛫ᚷᛖᚻᚹᛦᛚᚳ᛫ᛗᛁᚳᛚᚢᚾ᛫ᚻᛦᛏ᛫ᛞᚫᛚᚪᚾ
 ᚷᛁᚠ᛫ᚻᛖ᛫ᚹᛁᛚᛖ᛫ᚠᚩᚱ᛫ᛞᚱᛁᚻᛏᚾᛖ᛫ᛞᚩᛗᛖᛋ᛫ᚻᛚᛇᛏᚪᚾ᛬`;
 
-const testBlob = new Blob([runes]);
+const testBlob = ENV.get('IS_BROWSER') ? new Blob([runes]) : Buffer.from(runes);
 
 describe('TextLineDataset', () => {
   it('Produces a stream of strings containing UTF8-decoded text lines',

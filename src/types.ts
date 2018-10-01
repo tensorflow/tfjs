@@ -51,3 +51,8 @@ export type DatasetContainer = Container<Dataset<DataElement>>;
  * A nested structure of LazyIterators, used as the input to zip().
  */
 export type IteratorContainer = Container<LazyIterator<DataElement>>;
+
+/**
+ * Types supported by FileChunkIterator in both Browser and Node Environment.
+ */
+export type FileElement = File|Blob|Uint8Array;

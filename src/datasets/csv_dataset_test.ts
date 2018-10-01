@@ -16,11 +16,12 @@
  * =============================================================================
  */
 
+import {ENV} from '@tensorflow/tfjs-core';
 import {FileDataSource} from '../sources/file_data_source';
 
 import {CSVDataset, CsvHeaderConfig} from './csv_dataset';
 
-const csvData = `ab,cd,ef
+const csvString = `ab,cd,ef
 ghi,,jkl
 ,mn,op
 1.4,7.8,12
@@ -28,14 +29,17 @@ qrs,tu,
 v,w,x
 y,z`;
 
-const csvDataWithHeaders = `foo,bar,baz
-` + csvData;
+const csvStringWithHeaders = `foo,bar,baz
+` + csvString;
 
-const csvBlob = new Blob([csvData]);
+const csvData =
+    ENV.get('IS_BROWSER') ? new Blob([csvString]) : Buffer.from(csvString);
 
-const csvBlobWithHeaders = new Blob([csvDataWithHeaders]);
+const csvDataWithHeaders = ENV.get('IS_BROWSER') ?
+    new Blob([csvStringWithHeaders]) :
+    Buffer.from(csvStringWithHeaders);
 
-const csvDataExtra = `A,B,C
+const csvStringExtra = `A,B,C
 1,2,3
 2,2,3
 3,2,3
@@ -44,12 +48,12 @@ const csvDataExtra = `A,B,C
 6,2,3
 7,2,3`;
 
-const csvBlobWithHeadersExtra = new Blob([csvDataExtra]);
+const csvDataWithHeadersExtra = Buffer.from(csvStringExtra);
 
 describe('CSVDataset', () => {
   it('produces a stream of dicts containing UTF8-decoded csv data',
      async () => {
-       const source = new FileDataSource(csvBlob, {chunkSize: 10});
+       const source = new FileDataSource(csvData, {chunkSize: 10});
        const dataset = await CSVDataset.create(source, ['foo', 'bar', 'baz']);
 
        expect(dataset.csvColumnNames).toEqual(['foo', 'bar', 'baz']);
@@ -69,7 +73,7 @@ describe('CSVDataset', () => {
      });
 
   it('reads CSV column headers when requested', async () => {
-    const source = new FileDataSource(csvBlobWithHeaders, {chunkSize: 10});
+    const source = new FileDataSource(csvDataWithHeaders, {chunkSize: 10});
     const dataset =
         await CSVDataset.create(source, CsvHeaderConfig.READ_FIRST_LINE);
 
@@ -89,7 +93,7 @@ describe('CSVDataset', () => {
   });
 
   it('numbers CSV columns by default', async () => {
-    const source = new FileDataSource(csvBlob, {chunkSize: 10});
+    const source = new FileDataSource(csvData, {chunkSize: 10});
     const dataset = await CSVDataset.create(source);
     expect(dataset.csvColumnNames).toEqual(['0', '1', '2']);
     const iter = await dataset.iterator();
@@ -107,7 +111,7 @@ describe('CSVDataset', () => {
   });
 
   it('emits rows in order despite async requests', async () => {
-    const source = new FileDataSource(csvBlobWithHeadersExtra, {chunkSize: 10});
+    const source = new FileDataSource(csvDataWithHeadersExtra, {chunkSize: 10});
     const ds = await CSVDataset.create(source, CsvHeaderConfig.READ_FIRST_LINE);
     expect(ds.csvColumnNames).toEqual(['A', 'B', 'C']);
     const csvIterator = await ds.iterator();

@@ -17,13 +17,20 @@
  */
 
 import * as fetchMock from 'fetch-mock';
+import * as nock from 'nock';
 
 import {urlChunkIterator} from './url_chunk_iterator';
 
 const testString = 'abcdefghijklmnopqrstuvwxyz';
 
-const url = 'mock_url';
+// node-fetch requires absolute url syntax even though the response is mocked.
+const url = 'http://google.com/';
+
+// fetch-mock is for browser env, and nock is for node env.
 fetchMock.get('*', testString);
+
+// Call .times() so that nock could repeat the response for all tests.
+nock(url).get('/').times(3).reply(200, testString);
 
 describe('URLChunkIterator', () => {
   it('Reads the entire file and then closes the stream', async () => {

@@ -1121,7 +1121,7 @@ export class ShuffleIterator<T> extends PrefetchIterator<T> {
       protected upstream: LazyIterator<T>, protected windowSize: number,
       seed?: string) {
     super(upstream, windowSize);
-    this.random = seedrandom.alea(seed || performance.now().toString());
+    this.random = seedrandom.alea(seed || tf.util.now().toString());
     this.lastRead = Promise.resolve({value: null, done: false});
   }
 
