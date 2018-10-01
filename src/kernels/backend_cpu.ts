@@ -2468,6 +2468,70 @@ export class MathBackendCPU implements KernelBackend {
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
+  fft(input: Tensor1D): Tensor1D {
+    util.assert(input.shape.length > 0, 'input must have at least one rank.');
+    const n = input.shape[0];
+
+    if (this.is_exponent_of_2(n)) {
+      return this.fftRadix2(input, n);
+    } else {
+      const data = input.dataSync();
+      const rawOutput = this.fourierTransformByMatmul(data, n) as Float32Array;
+      const output = complex_util.splitRealAndImagArrays(rawOutput);
+      return ops.complex(output.real, output.imag).as1D();
+    }
+  }
+
+  private is_exponent_of_2(size: number): boolean {
+    return (size & size - 1) === 0;
+  }
+
+  // FFT using Cooley-Tukey algorithm on radix 2 dimensional input.
+  private fftRadix2(input: Tensor1D, size: number): Tensor1D {
+    if (size === 1) {
+      return input;
+    }
+    const data = input.dataSync() as Float32Array;
+    const half = size / 2;
+    const evenComplex = complex_util.complexWithEvenIndex(data);
+    let evenTensor = ops.complex(evenComplex.real, evenComplex.imag).as1D();
+    const oddComplex = complex_util.complexWithOddIndex(data);
+    let oddTensor = ops.complex(oddComplex.real, oddComplex.imag).as1D();
+
+    // Recursive call for half part of original input.
+    evenTensor = this.fftRadix2(evenTensor, half);
+    oddTensor = this.fftRadix2(oddTensor, half);
+
+    const e = complex_util.exponents(size);
+    const exponent = ops.complex(e.real, e.imag).mul(oddTensor);
+
+    const addPart = evenTensor.add(exponent);
+    const subPart = evenTensor.sub(exponent);
+
+    const realTensor = ops.real(addPart).concat(ops.real(subPart));
+    const imagTensor = ops.imag(addPart).concat(ops.imag(subPart));
+
+    return ops.complex(realTensor, imagTensor).as1D();
+  }
+
+  // Calculate fourier transform by multplying sinusoid matrix.
+  private fourierTransformByMatmul(data: TypedArray, size: number): TypedArray {
+    const ret = new Float32Array(size * 2);
+    // TODO: Use matmul instead once it supports complex64 type.
+    for (let r = 0; r < size; r++) {
+      let real = 0.0;
+      let imag = 0.0;
+      for (let c = 0; c < size; c++) {
+        const e = complex_util.exponent(r * c, size);
+        const term = complex_util.getComplexWithIndex(data as Float32Array, c);
+        real += term.real * e.real - term.imag * e.imag;
+        imag += term.real * e.imag + term.imag * e.real;
+      }
+      complex_util.assignToTypedArray(ret, real, imag, r);
+    }
+    return ret;
+  }
+
   depthToSpace(x: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):
       Tensor4D {
     util.assert(
