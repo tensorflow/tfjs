@@ -15,6 +15,8 @@
  * =============================================================================
  */
 import * as complex_util from './complex_util';
+import {expectArraysClose, ALL_ENVS} from '../test_util';
+import {describeWithFlags} from '../jasmine_util';
 
 describe('complex_util', () => {
   it('mergeRealAndImagArrays', () => {
@@ -29,5 +31,38 @@ describe('complex_util', () => {
     const result = complex_util.splitRealAndImagArrays(complex);
     expect(result.real).toEqual(new Float32Array([1, 2, 3]));
     expect(result.imag).toEqual(new Float32Array([4, 5, 6]));
+  });
+
+  it('complexWithEvenIndex', () => {
+    const complex = new Float32Array([1, 2, 3, 4, 5, 6]);
+    const result = complex_util.complexWithEvenIndex(complex);
+    expect(result.real).toEqual(new Float32Array([1, 5]));
+    expect(result.imag).toEqual(new Float32Array([2, 6]));
+  });
+
+  it('complexWithOddIndex', () => {
+    const complex = new Float32Array([1, 2, 3, 4, 5, 6]);
+    const result = complex_util.complexWithOddIndex(complex);
+    expect(result.real).toEqual(new Float32Array([3]));
+    expect(result.imag).toEqual(new Float32Array([4]));
+  });
+});
+
+describeWithFlags('complex_util exponents', ALL_ENVS, () => {
+  it('exponents', () => {
+    const result = complex_util.exponents(5);
+    expectArraysClose(result.real, new Float32Array([1, 0.30901700258255005]));
+    expectArraysClose(result.imag, new Float32Array([0, -0.9510565400123596]));
+  });
+});
+
+describeWithFlags('complex_util assignment', ALL_ENVS, () => {
+  it('assign complex value in TypedArray', () => {
+    const t = new Float32Array(4);
+
+    complex_util.assignToTypedArray(t, 1, 2, 0);
+    complex_util.assignToTypedArray(t, 3, 4, 1);
+
+    expectArraysClose(t, new Float32Array([1, 2, 3, 4]));
   });
 });

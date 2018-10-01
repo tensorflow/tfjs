@@ -55,6 +55,8 @@ import {CropAndResizeProgram} from './webgl/crop_and_resize_gpu';
 import {CumSumProgram} from './webgl/cumsum_gpu';
 import {DepthToSpaceProgram} from './webgl/depth_to_space_gpu';
 import {EncodeFloatProgram} from './webgl/encode_float_gpu';
+import {FFTProgram} from './webgl/fft_gpu';
+import * as fft_gpu from './webgl/fft_gpu';
 import {FromPixelsProgram} from './webgl/from_pixels_gpu';
 import {GatherProgram} from './webgl/gather_gpu';
 import {GPGPUContext} from './webgl/gpgpu_context';
@@ -1492,6 +1494,24 @@ export class MathBackendWebGL implements KernelBackend {
 
   split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
     return split(x, sizeSplits, axis);
+  }
+
+  fft(x: Tensor1D): Tensor1D {
+    const xData = this.texData.get(x.dataId);
+
+    const realProgram = new FFTProgram(fft_gpu.COMPLEX_FFT.REAL, x.shape);
+    const imagProgram = new FFTProgram(fft_gpu.COMPLEX_FFT.IMAG, x.shape);
+    const inputs = [
+      this.makeComplexComponentTensorHandle(x, xData.complexTensors.real),
+      this.makeComplexComponentTensorHandle(x, xData.complexTensors.imag),
+    ];
+
+    const real = this.compileAndRun<Tensor>(realProgram, inputs);
+    const imag = this.compileAndRun<Tensor>(imagProgram, inputs);
+    const complex = this.complex(real, imag).as1D();
+    real.dispose();
+    imag.dispose();
+    return complex;
   }
 
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
