@@ -80,61 +80,54 @@ describeWithFlags('transpose', ALL_ENVS, () => {
     expectArraysClose(t2, [1, 3, 2, 4, 11, 33, 22, 44]);
   });
 
-  it('5D [r, c, d, e, f] => [r, c, f, e, d]', () => {
-    const t = tf.tensor5d([1, 11, 2, 22, 3, 33, 4, 44], [1, 1, 2, 2, 2]);
-    const t2 = tf.transpose(t, [0, 1, 4, 3, 2]);
-
-    expect(t2.shape).toEqual([1, 1, 2, 2, 2]);
-    expectArraysClose(t2, [1, 3, 2, 4, 11, 33, 22, 44]);
-  });
-
   it('5D [r, c, d, e, f] => [r, c, d, f, e]', () => {
-    const t = tf.tensor5d([1, 11, 2, 22, 3, 33, 4, 44], [1, 1, 2, 2, 2]);
-    const t2 = tf.transpose(t, [0, 1, 4, 2, 3]);
+    const t = tf.tensor5d(
+        new Array(32).fill(0).map((x, i) => i + 1), [2, 2, 2, 2, 2]);
+    const t2 = tf.transpose(t, [0, 1, 2, 4, 3]);
 
-    expect(t2.shape).toEqual([1, 1, 2, 2, 2]);
-    expectArraysClose(t2, [1, 2, 3, 4, 11, 22, 33, 44]);
+    expect(t2.shape).toEqual([2, 2, 2, 2, 2]);
+    expectArraysClose(t2, [
+      1,  3,  2,  4,  5,  7,  6,  8,  9,  11, 10, 12, 13, 15, 14, 16,
+      17, 19, 18, 20, 21, 23, 22, 24, 25, 27, 26, 28, 29, 31, 30, 32
+    ]);
   });
 
   it('5D [r, c, d, e, f] => [c, r, d, e, f]', () => {
-    const t = tf.tensor5d([1, 11, 2, 22, 3, 33, 4, 44], [1, 1, 2, 2, 2]);
+    const t = tf.tensor5d(
+        new Array(32).fill(0).map((x, i) => i + 1), [2, 2, 2, 2, 2]);
     const t2 = tf.transpose(t, [1, 0, 2, 3, 4]);
 
-    expect(t2.shape).toEqual([1, 1, 2, 2, 2]);
-    expectArraysClose(t2, [1, 11, 2, 22, 3, 33, 4, 44]);
+    expect(t2.shape).toEqual([2, 2, 2, 2, 2]);
+    expectArraysClose(t2, [
+      1, 2,  3,  4,  5,  6,  7,  8,  17, 18, 19, 20, 21, 22, 23, 24,
+      9, 10, 11, 12, 13, 14, 15, 16, 25, 26, 27, 28, 29, 30, 31, 32
+    ]);
   });
 
-  it('6D [r, c, d, e, f, g] => [g, c, f, e, d, r]', () => {
+  it('6D [r, c, d, e, f] => [r, c, d, f, e]', () => {
     const t = tf.tensor6d(
-        [1, 11, 2, 22, 3, 33, 4, 44, 1, 12, 3, 23, 4, 34, 5, 45],
-        [1, 1, 2, 2, 2, 2]);
-    const t2 = tf.transpose(t, [5, 1, 4, 3, 2, 0]);
-
-    expect(t2.shape).toEqual([2, 1, 2, 2, 2, 1]);
-    expectArraysClose(
-        t2, [1, 1, 3, 4, 2, 3, 4, 5, 11, 12, 33, 34, 22, 23, 44, 45]);
+        new Array(64).fill(0).map((x, i) => i + 1), [2, 2, 2, 2, 2, 2]);
+    const t2 = tf.transpose(t, [0, 1, 2, 3, 5, 4]);
+    expect(t2.shape).toEqual([2, 2, 2, 2, 2, 2]);
+    expectArraysClose(t2, [
+      1,  3,  2,  4,  5,  7,  6,  8,  9,  11, 10, 12, 13, 15, 14, 16,
+      17, 19, 18, 20, 21, 23, 22, 24, 25, 27, 26, 28, 29, 31, 30, 32,
+      33, 35, 34, 36, 37, 39, 38, 40, 41, 43, 42, 44, 45, 47, 46, 48,
+      49, 51, 50, 52, 53, 55, 54, 56, 57, 59, 58, 60, 61, 63, 62, 64
+    ]);
   });
 
-  it('6D [r, c, d, e, f, g] => [r, c, d, f, g, e]', () => {
+  it('6D [r, c, d, e, f, g] => [c, r, d, e, f, g]', () => {
     const t = tf.tensor6d(
-        [1, 11, 2, 22, 3, 33, 4, 44, 1, 12, 3, 23, 4, 34, 5, 45],
-        [1, 1, 2, 2, 2, 2]);
-    const t2 = tf.transpose(t, [0, 1, 5, 2, 3, 4]);
-
-    expect(t2.shape).toEqual([1, 1, 2, 2, 2, 2]);
-    expectArraysClose(
-        t2, [1, 2, 3, 4, 1, 3, 4, 5, 11, 22, 33, 44, 12, 23, 34, 45]);
-  });
-
-  it('6D [r, c, d, e, f, g] => [c, r, g, e, f, d]', () => {
-    const t = tf.tensor6d(
-        [1, 11, 2, 22, 3, 33, 4, 44, 1, 12, 3, 23, 4, 34, 5, 45],
-        [1, 1, 2, 2, 2, 2]);
-    const t2 = tf.transpose(t, [1, 0, 5, 3, 4, 2]);
-
-    expect(t2.shape).toEqual([1, 1, 2, 2, 2, 2]);
-    expectArraysClose(
-        t2, [1, 1, 2, 3, 3, 4, 4, 5, 11, 12, 22, 23, 33, 34, 44, 45]);
+        new Array(64).fill(0).map((x, i) => i + 1), [2, 2, 2, 2, 2, 2]);
+    const t2 = tf.transpose(t, [1, 0, 2, 3, 4, 5]);
+    expect(t2.shape).toEqual([2, 2, 2, 2, 2, 2]);
+    expectArraysClose(t2, [
+      1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
+      33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
+      17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+      49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64
+    ]);
   });
 
   it('gradient 3D [r, c, d] => [d, c, r]', () => {

@@ -537,10 +537,11 @@ function getSampler2D(inputInfo: InputInfo): string {
   }
 
   if (inputInfo.shapeInfo.isUniform) {
+    // Uniform arrays will be less than 65505 (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col) {
-        int index = row * ${shape[1]} + col;
-        return ${funcName}Flat(index);
+        float index = dot(vec2(row, col), vec2(${shape[1]}, 1));
+        return ${funcName}Flat(round(index));
       }
     `;
   }
@@ -548,19 +549,21 @@ function getSampler2D(inputInfo: InputInfo): string {
   const texNumR = texShape[0];
   const texNumC = texShape[1];
   if (texNumC === 1) {
+    // index is used directly as physical (no risk of float16 overflow).
     return `
     float ${funcName}(int row, int col) {
-      int index = row * ${shape[1]} + col;
-      vec2 uv = vec2(0.5, (float(index) + 0.5) / ${texNumR}.0);
+      float index = dot(vec2(row, col), vec2(${shape[1]}, 1));
+      vec2 uv = vec2(0.5, (index + 0.5) / ${texNumR}.0);
       return sampleTexture(${texName}, uv);
     }
   `;
   }
   if (texNumR === 1) {
+    // index is used directly as physical (no risk of float16 overflow).
     return `
     float ${funcName}(int row, int col) {
-      int index = row * ${shape[1]} + col;
-      vec2 uv = vec2((float(index) + 0.5) / ${texNumC}.0, 0.5);
+      float index = dot(vec2(row, col), vec2(${shape[1]}, 1));
+      vec2 uv = vec2((index + 0.5) / ${texNumC}.0, 0.5);
       return sampleTexture(${texName}, uv);
     }
   `;
@@ -594,10 +597,12 @@ function getSampler3D(inputInfo: InputInfo): string {
   }
 
   if (inputInfo.shapeInfo.isUniform) {
+    // Uniform arrays will be less than 65505 (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col, int depth) {
-        int index = row * ${stride0} + col * ${stride1} + depth;
-        return ${funcName}Flat(index);
+        float index = dot(vec3(row, col, depth),
+                          vec3(${stride0}, ${stride1}, 1));
+        return ${funcName}Flat(round(index));
       }
     `;
   }
@@ -606,10 +611,11 @@ function getSampler3D(inputInfo: InputInfo): string {
   const texNumR = texShape[0];
   const texNumC = texShape[1];
   if (texNumC === stride0) {
+    // texC is used directly as physical (no risk of float16 overflow).
     return `
         float ${funcName}(int row, int col, int depth) {
-          int texR = row;
-          int texC = col * ${stride1} + depth;
+          float texR = float(row);
+          float texC = dot(vec2(col, depth), vec2(${stride1}, 1));
           vec2 uv = (vec2(texC, texR) + halfCR) /
                      vec2(${texNumC}.0, ${texNumR}.0);
           return sampleTexture(${texName}, uv);
@@ -618,10 +624,11 @@ function getSampler3D(inputInfo: InputInfo): string {
   }
 
   if (texNumC === stride1) {
+    // texR is used directly as physical (no risk of float16 overflow).
     return `
     float ${funcName}(int row, int col, int depth) {
-      int texR = row * ${shape[1]} + col;
-      int texC = depth;
+      float texR = dot(vec2(row, col), vec2(${shape[1]}, 1));
+      float texC = float(depth);
       vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${texNumC}.0, ${texNumR}.0);
       return sampleTexture(${texName}, uv);
     }
@@ -658,11 +665,12 @@ function getSampler4D(inputInfo: InputInfo): string {
   }
 
   if (inputInfo.shapeInfo.isUniform) {
+    // Uniform arrays will be less than 65505 (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col, int depth, int depth2) {
-        int index = row * ${stride0} + col * ${stride1} +
-            depth * ${stride2} + depth2;
-        return ${funcName}Flat(index);
+        float index = dot(vec4(row, col, depth, depth2),
+                          vec4(${stride0}, ${stride1}, ${stride2}, 1));
+        return ${funcName}Flat(round(index));
       }
     `;
   }
@@ -671,10 +679,12 @@ function getSampler4D(inputInfo: InputInfo): string {
   const texNumR = texShape[0];
   const texNumC = texShape[1];
   if (texNumC === stride0) {
+    // texC is used directly as physical (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col, int depth, int depth2) {
-        int texR = row;
-        int texC = col * ${stride1} + depth * ${stride2} + depth2;
+        float texR = float(row);
+        float texC =
+            dot(vec3(col, depth, depth2), vec3(${stride1}, ${stride2}, 1));
         vec2 uv = (vec2(texC, texR) + halfCR) /
                    vec2(${texNumC}.0, ${texNumR}.0);
         return sampleTexture(${texName}, uv);
@@ -682,10 +692,12 @@ function getSampler4D(inputInfo: InputInfo): string {
     `;
   }
   if (texNumC === stride2) {
+    // texR is used directly as physical (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col, int depth, int depth2) {
-        int texR = row * ${shape[1] * shape[2]} + col * ${shape[2]} + depth;
-        int texC = depth2;
+        float texR = dot(vec3(row, col, depth),
+                         vec3(${shape[1] * shape[2]}, ${shape[2]}, 1));
+        float texC = float(depth2);
         vec2 uv = (vec2(texC, texR) + halfCR) /
                   vec2(${texNumC}.0, ${texNumR}.0);
         return sampleTexture(${texName}, uv);
@@ -723,10 +735,13 @@ function getSampler5D(inputInfo: InputInfo): string {
   }
 
   if (inputInfo.shapeInfo.isUniform) {
+    // Uniform arrays will be less than 65505 (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col, int depth, int depth2, int depth3) {
-        int index = row * ${stride0} + col * ${stride1} +
-            depth * ${stride2} + depth2 * ${stride3} + depth3;
+        float index = dot(
+          vec4(row, col, depth, depth2),
+          vec4(${stride0}, ${stride1}, ${stride2}, ${stride3})) +
+          depth3;
         return ${funcName}Flat(index);
       }
     `;
@@ -737,11 +752,13 @@ function getSampler5D(inputInfo: InputInfo): string {
   const texNumC = texShape[1];
 
   if (texNumC === stride0) {
+    // texC is used directly as physical (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col, int depth, int depth2, int depth3) {
         int texR = row;
-        int texC = col * ${stride1} + depth * ${stride2} +
-                   depth2 * ${stride3} + depth3;
+        float texC = dot(
+          vec4(col, depth, depth2, depth3),
+          vec4(${stride1}, ${stride2}, ${stride3}, 1));
         vec2 uv = (vec2(texC, texR) + halfCR) /
                    vec2(${texNumC}.0, ${texNumR}.0);
         return sampleTexture(${texName}, uv);
@@ -750,10 +767,13 @@ function getSampler5D(inputInfo: InputInfo): string {
   }
 
   if (texNumC === stride3) {
+    // texR is used directly as physical (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col, int depth, int depth2, int depth3) {
-        int texR = row * ${shape[1] * shape[2]} + col * ${shape[2]} +
-                   depth * ${shape[3]} + depth2;
+        float texR = dot(
+          vec4(row, col, depth, depth2),
+          vec4(${shape[1] * shape[2] * shape[3]}, ${shape[2] * shape[3]},
+            ${shape[3]}, 1));
         int texC = depth3;
         vec2 uv = (vec2(texC, texR) + halfCR) /
                   vec2(${texNumC}.0, ${texNumR}.0);
@@ -794,12 +814,16 @@ function getSampler6D(inputInfo: InputInfo): string {
   }
 
   if (inputInfo.shapeInfo.isUniform) {
+    // Uniform arrays will be less than 65505 (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col, int depth,
                   int depth2, int depth3, int depth4) {
-        int index = row * ${stride0} + col * ${stride1} +
-            depth * ${stride2} + depth2 * ${stride3} + depth3 * ${stride3}
-            + depth4
+        float index = dot(
+          vec4(row, col, depth, depth2),
+          vec4(${stride0}, ${stride1}, ${stride2}, ${stride3})) +
+          dot(
+            vec2(depth3, depth4),
+            vec2(${stride4}, 1));
         return ${funcName}Flat(index);
       }
     `;
@@ -809,11 +833,14 @@ function getSampler6D(inputInfo: InputInfo): string {
   const texNumR = texShape[0];
   const texNumC = texShape[1];
   if (texNumC === stride0) {
+    // texC is used directly as physical (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col, int depth,
                     int depth2, int depth3, int depth4) {
         int texR = row;
-        int texC = col * ${stride1} + depth * ${stride2} + depth2;
+        float texC = dot(
+          vec4(col, depth, depth2, depth3),
+          vec4(${stride1}, ${stride2}, ${stride3}, ${stride4})) + depth4;
         vec2 uv = (vec2(texC, texR) + halfCR) /
                    vec2(${texNumC}.0, ${texNumR}.0);
         return sampleTexture(${texName}, uv);
@@ -821,10 +848,16 @@ function getSampler6D(inputInfo: InputInfo): string {
     `;
   }
   if (texNumC === stride4) {
+    // texR is used directly as physical (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col, int depth,
                     int depth2, int depth3, int depth4) {
-        int texR = row * ${shape[1] * shape[2]} + col * ${shape[2]} + depth;
+        float texR = dot(
+          vec4(row, col, depth, depth2),
+          vec4(${shape[1] * shape[2] * shape[3] * shape[4]},
+               ${shape[2] * shape[3] * shape[4]},
+               ${shape[3] * shape[4]},
+               ${shape[4]})) + depth3;
         int texC = depth4;
         vec2 uv = (vec2(texC, texR) + halfCR) /
                   vec2(${texNumC}.0, ${texNumR}.0);

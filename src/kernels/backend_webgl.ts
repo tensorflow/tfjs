@@ -121,7 +121,7 @@ export interface TensorHandle {
 // before we start paging. The bytes are this constant * screen area * dpi.
 const BEFORE_PAGING_CONSTANT = 300;
 // Tensors with size <= than this will be uploaded as uniforms, not textures.
-export const SIZE_UPLOAD_UNIFORM = 32;
+export const SIZE_UPLOAD_UNIFORM = 4;
 
 export class MathBackendWebGL implements KernelBackend {
   private texData: DataStorage<TextureData>;
@@ -1555,9 +1555,11 @@ export class MathBackendWebGL implements KernelBackend {
 
       const texData = this.texData.get(input.dataId);
       // Upload small tensors that live on the CPU as uniforms, not as
-      // textures.
+      // textures. Do this only when the environment supports 32bit floats due
+      // to problems when comparing 16bit floats with 32bit floats.
       if (texData.texture == null &&
-          util.sizeFromShape(input.shape) <= SIZE_UPLOAD_UNIFORM) {
+          util.sizeFromShape(input.shape) <= SIZE_UPLOAD_UNIFORM &&
+          ENV.get('WEBGL_RENDER_FLOAT32_ENABLED')) {
         return {
           shape: input.shape,
           texData: null,

@@ -810,7 +810,7 @@ describeWithFlags('pow', ALL_ENVS, () => {
 
   it('negative base and fract exponent NaN', () => {
     const a = tf.tensor1d([-2, -3, -4], 'float32');
-    const b = tf.tensor1d([2.1, -3.01, 4.001], 'float32');
+    const b = tf.tensor1d([2.1, -3.01, 4.1], 'float32');
 
     const expected = [NaN, NaN, NaN];
     const result = tf.pow(a, b);
