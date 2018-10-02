@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {WEBGL_ENVS} from '../../test_util';
 import {describeWithFlags} from '../../jasmine_util';
+import {WEBGL_ENVS} from '../../test_util';
 import * as gpgpu_util from './gpgpu_util';
 import * as webgl_util from './webgl_util';
 
@@ -52,7 +52,13 @@ describeWithFlags(
       it('3d 2x3x4', () => {
         const texShape =
             webgl_util.getTextureShapeFromLogicalShape(gl, [2, 3, 4]);
-        expect(texShape).toEqual([2, 12]);
+        expect(texShape).toEqual([6, 4]);
+      });
+
+      it('3d 3x256x256', () => {
+        const texShape =
+            webgl_util.getTextureShapeFromLogicalShape(gl, [3, 256, 256]);
+        expect(texShape).toEqual([3 * 256, 256]);
       });
 
       it('3d 2x1x4 got squeezed', () => {
@@ -65,6 +71,12 @@ describeWithFlags(
         const texShape =
             webgl_util.getTextureShapeFromLogicalShape(gl, [1, 8, 2]);
         expect(texShape).toEqual([8, 2]);
+      });
+
+      it('4d 2x2x256x256 got squeezed', () => {
+        const texShape =
+            webgl_util.getTextureShapeFromLogicalShape(gl, [2, 2, 256, 256]);
+        expect(texShape).toEqual([2 * 2 * 256, 256]);
       });
 
       it('4d 1x8x1x3 got squeezed', () => {

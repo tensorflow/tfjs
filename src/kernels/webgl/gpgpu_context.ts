@@ -527,6 +527,7 @@ export class GPGPUContext {
       return this.itemsToPoll.length === 0;
     });
   }
+
   private bindTextureToFrameBuffer(texture: WebGLTexture) {
     this.throwIfDisposed();
     webgl_util.bindColorTextureToFramebuffer(

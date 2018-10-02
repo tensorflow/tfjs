@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, BROWSER_ENVS, expectArraysClose, expectArraysEqual, expectPromiseToFail, expectValuesInRange, NODE_ENVS, WEBGL_ENVS, CPU_ENVS} from '../test_util';
+import {ALL_ENVS, BROWSER_ENVS, CPU_ENVS, expectArraysClose, expectArraysEqual, expectPromiseToFail, expectValuesInRange, NODE_ENVS, WEBGL_ENVS} from '../test_util';
 import * as util from '../util';
 import {expectArrayInMeanStdRange, jarqueBeraNormalityTest} from './rand_util';
 
@@ -1392,12 +1392,13 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
 
 describeWithFlags('toPixels no canvas', ALL_ENVS, () => {
   it('draws a rank-2 float32 tensor', done => {
-    const x = tf.tensor2d([.1, .2], [2, 1], 'float32');
+    const x = tf.tensor2d([.15, .2], [2, 1], 'float32');
 
     tf.toPixels(x).then(data => {
       const expected = new Uint8ClampedArray([
-        Math.round(.1 * 255), Math.round(.1 * 255), Math.round(.1 * 255), 255,
-        Math.round(.2 * 255), Math.round(.2 * 255), Math.round(.2 * 255), 255
+        Math.round(.15 * 255), Math.round(.15 * 255), Math.round(.15 * 255),
+        255, Math.round(.2 * 255), Math.round(.2 * 255), Math.round(.2 * 255),
+        255
       ]);
       expect(data).toEqual(expected);
 
@@ -1418,12 +1419,13 @@ describeWithFlags('toPixels no canvas', ALL_ENVS, () => {
   });
 
   it('draws a rank-3 float32 tensor, 1 channel', done => {
-    const x = tf.tensor3d([.1, .2], [2, 1, 1], 'float32');
+    const x = tf.tensor3d([.15, .2], [2, 1, 1], 'float32');
 
     tf.toPixels(x).then(data => {
       const expected = new Uint8ClampedArray([
-        Math.round(.1 * 255), Math.round(.1 * 255), Math.round(.1 * 255), 255,
-        Math.round(.2 * 255), Math.round(.2 * 255), Math.round(.2 * 255), 255
+        Math.round(.15 * 255), Math.round(.15 * 255), Math.round(.15 * 255),
+        255, Math.round(.2 * 255), Math.round(.2 * 255), Math.round(.2 * 255),
+        255
       ]);
       expect(data).toEqual(expected);
       done();
@@ -1443,12 +1445,17 @@ describeWithFlags('toPixels no canvas', ALL_ENVS, () => {
   });
 
   it('draws a rank-3 float32 tensor, 3 channel', done => {
-    const x = tf.tensor3d([.05, .1, .15, .2, .25, .3], [2, 1, 3], 'float32');
+    // 0.1 and 0.3 are changed to 0.1001 and 0.3001 to avoid boundary conditions
+    // such as Math.round(~25.5) which on Mobile Safari gives 25 and Desktop
+    // gives 26.
+    const x =
+        tf.tensor3d([.05, .1001, .15, .2, .25, .3001], [2, 1, 3], 'float32');
 
     tf.toPixels(x).then(data => {
       const expected = new Uint8ClampedArray([
-        Math.round(.05 * 255), Math.round(.1 * 255), Math.round(.15 * 255), 255,
-        Math.round(.2 * 255), Math.round(.25 * 255), Math.round(.30 * 255), 255
+        Math.round(.05 * 255), Math.round(.1001 * 255), Math.round(.15 * 255),
+        255, Math.round(.2 * 255), Math.round(.25 * 255),
+        Math.round(.3001 * 255), 255
       ]);
       expect(data).toEqual(expected);
 
@@ -1470,12 +1477,13 @@ describeWithFlags('toPixels no canvas', ALL_ENVS, () => {
 
   it('draws a rank-3 float32 tensor, 4 channel', done => {
     const x =
-        tf.tensor3d([.05, .1, .15, .2, .25, .3, .35, .4], [2, 1, 4], 'float32');
+      tf.tensor3d([.05, .1001, .15, .2, .25, .3001, .35, .4], [2, 1, 4],
+        'float32');
 
     tf.toPixels(x).then(data => {
       const expected = new Uint8ClampedArray([
-        Math.round(.05 * 255), Math.round(.1 * 255), Math.round(.15 * 255),
-        Math.round(.20 * 255), Math.round(.25 * 255), Math.round(.30 * 255),
+        Math.round(.05 * 255), Math.round(.1001 * 255), Math.round(.15 * 255),
+        Math.round(.20 * 255), Math.round(.25 * 255), Math.round(.3001 * 255),
         Math.round(.35 * 255), Math.round(.4 * 255)
       ]);
       expect(data).toEqual(expected);
@@ -1544,13 +1552,14 @@ describeWithFlags('toPixels no canvas', ALL_ENVS, () => {
 
 describeWithFlags('toPixels', WEBGL_ENVS, () => {
   it('draws a rank-2 float32 tensor, canvas', done => {
-    const x = tf.tensor2d([.1, .2], [2, 1], 'float32');
+    const x = tf.tensor2d([.15, .2], [2, 1], 'float32');
     const canvas = document.createElement('canvas');
 
     tf.toPixels(x, canvas).then(data => {
       const expected = new Uint8ClampedArray([
-        Math.round(.1 * 255), Math.round(.1 * 255), Math.round(.1 * 255), 255,
-        Math.round(.2 * 255), Math.round(.2 * 255), Math.round(.2 * 255), 255
+        Math.round(.15 * 255), Math.round(.15 * 255), Math.round(.15 * 255),
+        255, Math.round(.2 * 255), Math.round(.2 * 255), Math.round(.2 * 255),
+        255
       ]);
       expect(data).toEqual(expected);
 
@@ -1580,13 +1589,14 @@ describeWithFlags('toPixels', WEBGL_ENVS, () => {
   });
 
   it('draws a rank-3 float32 tensor, 1 channel, canvas', done => {
-    const x = tf.tensor3d([.1, .2], [2, 1, 1], 'float32');
+    const x = tf.tensor3d([.15, .2], [2, 1, 1], 'float32');
     const canvas = document.createElement('canvas');
 
     tf.toPixels(x, canvas).then(data => {
       const expected = new Uint8ClampedArray([
-        Math.round(.1 * 255), Math.round(.1 * 255), Math.round(.1 * 255), 255,
-        Math.round(.2 * 255), Math.round(.2 * 255), Math.round(.2 * 255), 255
+        Math.round(.15 * 255), Math.round(.15 * 255), Math.round(.15 * 255),
+        255, Math.round(.2 * 255), Math.round(.2 * 255), Math.round(.2 * 255),
+        255
       ]);
       expect(data).toEqual(expected);
 
@@ -1616,13 +1626,15 @@ describeWithFlags('toPixels', WEBGL_ENVS, () => {
   });
 
   it('draws a rank-3 float32 tensor, 3 channel, canvas', done => {
-    const x = tf.tensor3d([.05, .1, .15, .20, .25, .30], [2, 1, 3], 'float32');
+    const x =
+        tf.tensor3d([.05, .1001, .15, .20, .25, .3001], [2, 1, 3], 'float32');
     const canvas = document.createElement('canvas');
 
     tf.toPixels(x, canvas).then(data => {
       const expected = new Uint8ClampedArray([
-        Math.round(.05 * 255), Math.round(.1 * 255), Math.round(.15 * 255), 255,
-        Math.round(.2 * 255), Math.round(.25 * 255), Math.round(.3 * 255), 255
+        Math.round(.05 * 255), Math.round(.1001 * 255), Math.round(.15 * 255),
+        255, Math.round(.2 * 255), Math.round(.25 * 255),
+        Math.round(.3001 * 255), 255
       ]);
       expect(data).toEqual(expected);
 
@@ -1654,14 +1666,15 @@ describeWithFlags('toPixels', WEBGL_ENVS, () => {
     // ImageData roundtrips are lossy because of pre-multiplied alphas, so we
     // use an alpha = 1 to avoid losing precision on r, g, b channels in these
     // tests https://www.w3.org/TR/2dcontext/
-    const x =
-        tf.tensor3d([.05, .1, .15, 1, .20, .25, .30, 1], [2, 1, 4], 'float32');
+    const x = tf.tensor3d(
+        [.05, .1001, .15, 1, .20, .25, .3001, 1], [2, 1, 4], 'float32');
     const canvas = document.createElement('canvas');
 
     tf.toPixels(x, canvas).then(data => {
       const expected = new Uint8ClampedArray([
-        Math.round(.05 * 255), Math.round(.1 * 255), Math.round(.15 * 255), 255,
-        Math.round(.20 * 255), Math.round(.25 * 255), Math.round(.30 * 255), 255
+        Math.round(.05 * 255), Math.round(.1001 * 255), Math.round(.15 * 255),
+        255, Math.round(.20 * 255), Math.round(.25 * 255),
+        Math.round(.3001 * 255), 255
       ]);
       expect(data).toEqual(expected);
 
@@ -1865,7 +1878,7 @@ describeWithFlags('clone', ALL_ENVS, () => {
 
   it('4D complex64 dtype', () => {
     const a = tf.complex(
-      [[[[1]], [[3]]], [[[5]], [[7]]]], [[[[2]], [[4]]], [[[6]], [[8]]]]);
+        [[[[1]], [[3]]], [[[5]], [[7]]]], [[[[2]], [[4]]], [[[6]], [[8]]]]);
     const b = tf.clone(a);
     expect(b.dtype).toBe('complex64');
     expect(b.shape).toEqual([2, 2, 1, 1]);
@@ -2940,7 +2953,7 @@ describeWithFlags('split', ALL_ENVS, () => {
 
   it('gradient of 1st output', () => {
     const a = tf.tensor1d([1, 2, 3]);
-    const da = tf.grad(x => tf.split(x, [1,2])[0])(a);
+    const da = tf.grad(x => tf.split(x, [1, 2])[0])(a);
 
     expect(da.shape).toEqual([3]);
     expectArraysClose(da, [1, 0, 0]);
@@ -2948,7 +2961,7 @@ describeWithFlags('split', ALL_ENVS, () => {
 
   it('gradient of 2nd output', () => {
     const a = tf.tensor1d([1, 2, 3]);
-    const da = tf.grad(x => tf.split(x, [1,2])[1])(a);
+    const da = tf.grad(x => tf.split(x, [1, 2])[1])(a);
 
     expect(da.shape).toEqual([3]);
     expectArraysClose(da, [0, 1, 1]);
@@ -3428,8 +3441,8 @@ describeWithFlags('spaceToBatchND', ALL_ENVS, () => {
 
        expect(() => tf.spaceToBatchND(t, blockShape, paddings))
            .toThrowError(
-               'input spatial dimensions 2,3,1 with paddings 0,0,0,0 must be '
-               + 'divisible by blockShapes 2,2');
+               'input spatial dimensions 2,3,1 with paddings 0,0,0,0 must be ' +
+               'divisible by blockShapes 2,2');
      });
 
   it('accepts a tensor-like object', () => {
