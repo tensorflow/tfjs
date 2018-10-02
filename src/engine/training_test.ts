@@ -26,7 +26,8 @@ import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsCl
 
 // TODO(bileschi): Use external version of Layer.
 import {Layer, SymbolicTensor} from './topology';
-import {checkArrayLengths, isDataArray, isDataDict, isDataTensor, makeBatches, sliceArraysByIndices, standardizeInputData} from './training';
+import {checkArrayLengths, isDataArray, isDataDict, isDataTensor, standardizeInputData} from './training';
+import {makeBatches, sliceArraysByIndices} from './training_tensors';
 
 
 describeMathCPU('isDataTensor', () => {
@@ -1285,7 +1286,7 @@ describeMathCPUAndGPU('Model.fit', () => {
     let history = await model.fit(inputs, targets, {
       epochs,
       callbacks: {
-        onEpochEnd: async (epoch, logs) => {
+        onEpochEnd: async (epoch: number, logs?: UnresolvedLogs) => {
           numEpochsDone++;
           if (epoch === stopAfterEpoch) {
             model.stopTraining = true;
@@ -1799,12 +1800,12 @@ describeMathCPUAndGPU('Model.fit: No memory leak', () => {
            // Now, assert that the amount of increase in the number of tensors
            // at the end of the epoch equals the expected value.
            if (epochIndex < epochs - 1) {
-             // The expected increase of 4 comes from the fact that the fit()
-             // call here generates 4 additional scalars and will store them
+             // The expected increase of 2 comes from the fact that the fit()
+             // call here generates 2 additional scalars and will store them
              // till the end of the fit() call:
              //   loss, val_loss, mse and val_mse.
              expect(tensorCounts[endBatch] - tensorCounts[beginBatch])
-                 .toEqual(4);
+                 .toEqual(2);
            }
          }
          expect(tensorCounts.length).toEqual(batchesPerEpoch * epochs);

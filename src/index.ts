@@ -19,7 +19,9 @@ import * as regularizers from './exports_regularizers';
 export {CallbackList, CustomCallback, CustomCallbackConfig, History} from './base_callbacks';
 export {Callback} from './callbacks';
 export {InputSpec, SymbolicTensor} from './engine/topology';
-export {Model, ModelCompileConfig, ModelEvaluateConfig, ModelFitConfig} from './engine/training';
+export {Model, ModelCompileConfig, ModelEvaluateConfig} from './engine/training';
+export {ModelFitDatasetConfig} from './engine/training_dataset';
+export {ModelFitConfig} from './engine/training_tensors';
 
 export {input, loadModel, model, registerCallbackConstructor, sequential} from './exports';
 // tslint:disable-next-line:max-line-length
