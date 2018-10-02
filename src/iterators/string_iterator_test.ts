@@ -47,7 +47,7 @@ describe('StringIterator.split()', () => {
      async () => {
        const byteIterator = new FileChunkIterator(
            ENV.get('IS_BROWSER') ? new Blob(['ab def hi      pq']) :
-                                   Buffer.from(['ab def hi      pq']),
+                                   Buffer.from('ab def hi      pq'),
            {chunkSize: 3});
        // Note the initial chunking will be
        //   ['ab ', 'def', ' hi', '   ', '   ', 'pq],

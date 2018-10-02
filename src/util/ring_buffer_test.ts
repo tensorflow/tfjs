@@ -19,7 +19,7 @@
 import {RingBuffer} from './ring_buffer';
 
 describe('RingBuffer', () => {
-  it('Works as a stack (LIFO)', done => {
+  it('Works as a stack (LIFO)', () => {
     const ring = new RingBuffer<number>(10);
     expect(ring.length()).toEqual(0);
 
@@ -34,11 +34,9 @@ describe('RingBuffer', () => {
     }
     expect(result).toEqual([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
     expect(ring.length()).toEqual(0);
-
-    done();
   });
 
-  it('Works as a queue (FIFO)', done => {
+  it('Works as a queue (FIFO)', () => {
     const ring = new RingBuffer<number>(10);
     expect(ring.length()).toEqual(0);
 
@@ -66,11 +64,9 @@ describe('RingBuffer', () => {
     }
     expect(result2).toEqual([7, 8, 9, 10, 11, 12, 13, 14]);
     expect(ring.length()).toEqual(0);
-
-    done();
   });
 
-  it('Works as a reverse stack (LIFO)', done => {
+  it('Works as a reverse stack (LIFO)', () => {
     const ring = new RingBuffer<number>(10);
     expect(ring.length()).toEqual(0);
 
@@ -85,11 +81,9 @@ describe('RingBuffer', () => {
     }
     expect(result).toEqual([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
     expect(ring.length()).toEqual(0);
-
-    done();
   });
 
-  it('Works as a reverse queue (FIFO)', done => {
+  it('Works as a reverse queue (FIFO)', () => {
     const ring = new RingBuffer<number>(10);
     expect(ring.length()).toEqual(0);
 
@@ -104,11 +98,9 @@ describe('RingBuffer', () => {
     }
     expect(result).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     expect(ring.length()).toEqual(0);
-
-    done();
   });
 
-  it('Works as a shuffling queue', done => {
+  it('Works as a shuffling queue', () => {
     const ring = new RingBuffer<number>(10);
     expect(ring.length()).toEqual(0);
 
@@ -128,11 +120,9 @@ describe('RingBuffer', () => {
     // next-to-last element(8).
     expect(result).toEqual([0, 1, 2, 9, 4, 5, 8, 7]);
     expect(ring.length()).toEqual(0);
-
-    done();
   });
 
-  it('Throws error on push over capacity', done => {
+  it('Throws error on push over capacity', () => {
     const ring = new RingBuffer<number>(10);
     expect(ring.length()).toEqual(0);
 
@@ -140,18 +130,16 @@ describe('RingBuffer', () => {
       ring.push(i);
     }
     expect(() => ring.push(10)).toThrowError(/full/);
-    done();
   });
 
-  it('Throws error on pop when empty', done => {
+  it('Throws error on pop when empty', () => {
     const ring = new RingBuffer<number>(10);
     expect(ring.length()).toEqual(0);
 
     expect(() => ring.pop()).toThrowError(/empty/);
-    done();
   });
 
-  it('Throws error on unshift over capacity', done => {
+  it('Throws error on unshift over capacity', () => {
     const ring = new RingBuffer<number>(10);
     expect(ring.length()).toEqual(0);
 
@@ -159,14 +147,12 @@ describe('RingBuffer', () => {
       ring.unshift(i);
     }
     expect(() => ring.unshift(10)).toThrowError(/full/);
-    done();
   });
 
-  it('Throws error on shift when empty', done => {
+  it('Throws error on shift when empty', () => {
     const ring = new RingBuffer<number>(10);
     expect(ring.length()).toEqual(0);
 
     expect(() => ring.shift()).toThrowError(/empty/);
-    done();
   });
 });
