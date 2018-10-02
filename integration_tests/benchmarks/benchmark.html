@@ -1,0 +1,321 @@
+<html>
+
+<head>
+  <title>TensorFlow.js Model Benchmark</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+  <style>
+    html,
+    body {
+      font-family: 'Roboto', sans-serif;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    body {
+      margin: 30px 0 0 30px;
+    }
+
+    #container {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    .box {
+      margin-right: 20px;
+      margin-bottom: 20px;
+    }
+
+    .box pre {
+      margin: 0;
+      border: 1px solid #ccc;
+      padding: 8px;
+      font-size: 10px;
+    }
+
+    #modal-msg {
+      border-radius: 5px;
+      background-color: black;
+      color: white;
+      padding: 7px;
+      top: 15px;
+      left: 45%;
+      display: none;
+      position: absolute;
+    }
+
+    .table {
+      margin-right: 20px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-collapse: collapse;
+      border-spacing: 0;
+    }
+
+    .table tr {
+      border-bottom: 1px solid #ddd;
+    }
+
+    .table tr:nth-child(even) {
+      background-color: #f1f1f1;
+    }
+
+    .table th {
+      font-weight: bold;
+    }
+
+    .table td,
+    th {
+      padding: 8px 8px;
+      font-size: 13px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .table td:first-child,
+    th:first-child {
+      padding-left: 16px;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.2/dat.gui.min.js"></script>
+</head>
+
+<body>
+  <h2>TensorFlow.js Model Benchmark</h2>
+  <div id="modal-msg"></div>
+  <div id="container">
+    <div class="box">
+      <pre id="env"></pre>
+    </div>
+    <table class="table" id="timings">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <table class="table" id="kernels">
+      <thead>
+        <tr>
+          <th>Kernel</th>
+          <th>Time(ms)</th>
+          <th>Output</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <script src="https://unpkg.com/@tensorflow/tfjs-core/dist/tf-core.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-layers/dist/tf-layers.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-converter/dist/tf-converter.js"></script>
+  <script>
+    'use strict';
+    async function load() {
+      //////////////////////////////////
+      // Place model loading code here.
+      //////////////////////////////////
+      return await tf.loadFrozenModel(
+        'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/tensorflowjs_model.pb',
+        'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/weights_manifest.json');
+    }
+
+    const zeros = tf.zeros([1, 224, 224, 3]);
+    function predict(model) {
+      //////////////////////////////////
+      // Place model prediction code here.
+      //////////////////////////////////
+      return model.predict(zeros);
+    }
+  </script>
+  <script>
+    'use strict';
+    const state = {
+      numRuns: 20,
+
+    };
+    const modalDiv = document.getElementById('modal-msg');
+    const timeTable = document.querySelector('#timings tbody');
+    const envDiv = document.getElementById('env');
+    let model;
+
+    async function showMsg(message) {
+      if (message != null) {
+        modalDiv.innerHTML = message + '...';
+        modalDiv.style.display = 'block';
+      } else {
+        modalDiv.style.display = 'none';
+      }
+      await tf.nextFrame();
+      await tf.nextFrame();
+    }
+
+    function showVersions() {
+      envDiv.innerHTML = JSON.stringify({
+        core: tf.version_core,
+        layers: tf.version_layers,
+        converter: tf.version_converter
+      }, null, 2);
+    }
+
+    async function showEnvironment() {
+      await tf.time(() => tf.square(3).data());
+      envDiv.innerHTML += `<br/>${JSON.stringify(tf.ENV.features, null, 2)}`;
+    }
+
+    function printMemory(bytes) {
+      if (bytes < 1024) {
+        return bytes + ' B';
+      } else if (bytes < 1024 * 1024) {
+        return (bytes / 1024).toFixed(2) + ' KB';
+      } else {
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+      }
+    }
+
+    function appendRow(tbody, ...cells) {
+      const tr = document.createElement('tr');
+      cells.forEach(c => {
+        const td = document.createElement('td');
+        if (c instanceof HTMLElement) {
+          td.appendChild(c);
+        } else {
+          td.textContent = c;
+        }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+
+    async function warmUpAndRecordTime() {
+      await showMsg('Warming up');
+      const start = performance.now();
+      let res = predict(model);
+      if (res instanceof Promise) {
+        res = await res;
+      }
+      if (res instanceof tf.Tensor) {
+        await res.data();
+      }
+      const elapsed = performance.now() - start;
+      await showMsg(null);
+      appendRow(timeTable, 'Warmup', elapsed.toFixed(1) + ' ms');
+    }
+
+    function sleep(timeMs) {
+      return new Promise(resolve => setTimeout(resolve, timeMs));
+    }
+
+    async function loadAndRecordTime() {
+      await showMsg('Loading the model');
+      const start = performance.now();
+      model = await load();
+      const elapsed = performance.now() - start;
+      await showMsg(null);
+      appendRow(timeTable, 'Model load', elapsed.toFixed(1) + ' ms');
+    }
+
+    async function measureAveragePredictTime() {
+      await showMsg(`Running predict ${state.numRuns} times`);
+      const start = performance.now();
+      let res;
+      for (let i = 0; i < state.numRuns; i++) {
+        res = predict(model);
+      }
+      if (res instanceof Promise) {
+        res = await res;
+      }
+      if (res instanceof tf.Tensor) {
+        res.dataSync();
+      }
+      const elapsed = (performance.now() - start) / state.numRuns;
+      await showMsg(null);
+      appendRow(timeTable, `Predict (${state.numRuns} runs)`, elapsed.toFixed(1) + ' ms');
+    }
+
+    async function profileMemory() {
+      await showMsg('Profile memory');
+      const data = await tf.profile(() => predict(model));
+      await showMsg(null);
+      appendRow(timeTable, 'Peak memory', printMemory(data.peakBytes));
+    }
+
+    function showKernelTime(kernels) {
+      const tbody = document.querySelector('#kernels tbody');
+      kernels.forEach(k => {
+        const nameSpan = document.createElement('span');
+        nameSpan.setAttribute('title', k.scopes.slice(0, -1).join(' --> '));
+        nameSpan.textContent = k.scopes[k.scopes.length - 1];
+        appendRow(tbody, nameSpan, k.time.toFixed(2), k.output);
+      });
+    }
+
+    async function profileKernelTime() {
+      await showMsg('Profiling kernels');
+      ENV.set('DEBUG', true);
+      const oldLog = console.log;
+      let kernels = [];
+      console.log = msg => {
+        const parts = msg.split('\t').map(x => x.slice(2));
+        const scopes = parts[0].trim()
+          .split('||')
+          .filter(s => s !== 'unnamed scope');
+        kernels.push({
+          scopes: scopes,
+          time: Number.parseFloat(parts[1]),
+          output: parts[2].trim()
+        });
+      }
+      let res = predict(model);
+      if (res instanceof Promise) {
+        res = await res;
+      }
+      if (res instanceof tf.Tensor) {
+        res.dataSync();
+      }
+      await showMsg(null);
+      await sleep(10);
+      kernels = kernels.sort((a, b) => b.time - a.time);
+      appendRow(timeTable, 'Number of kernels', kernels.length);
+      showKernelTime(kernels);
+      ENV.set('DEBUG', false);
+      // Switch back to the old log;
+      console.log = oldLog;
+    }
+
+    function queryTimerIsEnabled() {
+      return ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0;
+    }
+
+    async function onPageLoad() {
+      var gui = new dat.gui.GUI();
+      //gui.remember(obj);
+      gui.add(state, 'numRuns').onChange(v => {
+        measureAveragePredictTime();
+      });
+      showVersions();
+      await showEnvironment();
+      await loadAndRecordTime();
+      await warmUpAndRecordTime();
+      await showMsg('Waiting for GC');
+      await sleep(1000);
+      await profileMemory();
+      await sleep(200);
+      await measureAveragePredictTime();
+      await sleep(200);
+      if (queryTimerIsEnabled()) {
+        await profileKernelTime();
+      } else {
+        showMsg('Skipping kernel times since query timer extension is not ' +
+                'available. <br/> Use Chrome 70+.');
+      };
+    }
+    onPageLoad();
+  </script>
+</body>
+</html>
