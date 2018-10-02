@@ -12,13 +12,13 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import {io, ModelPredictConfig, Optimizer, Scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
+import {TensorContainer} from '@tensorflow/tfjs-core/dist/tensor_types';
 
-import {getScalar} from '../backend/state';
+import {getScalar,} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
-import {BaseCallback, BaseLogger, CallbackConstructorRegistry, CallbackList, CustomCallbackConfig, History, standardizeCallbacks, YieldEveryOptions} from '../base_callbacks';
+import {History, ModelLoggingVerbosity} from '../base_callbacks';
 import {nameScope} from '../common';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
-import {disposeTensorsInLogs, UnresolvedLogs} from '../logs';
 import * as losses from '../losses';
 import * as Metrics from '../metrics';
 import * as optimizers from '../optimizers';
@@ -29,9 +29,11 @@ import {range} from '../utils/math_utils';
 import {LayerVariable} from '../variables';
 
 import {Container, ContainerConfig} from './container';
+import {Dataset} from './dataset_stub';
 import {execute, FeedDict} from './executor';
 import {SymbolicTensor} from './topology';
-
+import {fitDataset, ModelFitDatasetConfig} from './training_dataset';
+import {checkBatchSize, fitTensors, makeBatches, ModelFitConfig, sliceArrays, sliceArraysByIndices} from './training_tensors';
 
 /**
  * Helper function for polymorphic input data: 1. singleton Tensor.
@@ -259,85 +261,6 @@ function checkLossAndTargetCompatibility(
 }
 
 /**
- * Returns a list of batch indices (tuples of indices).
- * @param size: Integer, total size of the data to slice into batches.
- * @param batchSize: Integer, batch size.
- * @returns An Array of [batchStart, batchEnd] tuples. batchStart is
- *   inclusive; batchEnd is exclusive. I.e., each batch consists of indices x
- *   that satisfy batchStart <= x < batchEnd.
- */
-export function makeBatches(
-    size: number, batchSize: number): Array<[number, number]> {
-  const output: Array<[number, number]> = [];
-  let batchStart = 0;
-  let batchEnd: number = null;
-  while (batchStart < size) {
-    batchEnd = batchStart + batchSize;
-    if (batchEnd >= size) {
-      batchEnd = size;
-    }
-    output.push([batchStart, batchEnd]);
-    batchStart = batchEnd;
-  }
-  return output;
-}
-
-/**
- * Slice an Tensor or an Array of Tensors, by start and stop indices.
- *
- * Porting Note: The `_slice_arrays` function in PyKeras is covered by this
- *   function and `sliceArraysByIndices()` together.
- *
- * @param arrays: the input.
- * @param start: the starting index (inclusive).
- * @param stop: the stopping index (exclusive).
- * @returns The result of the slicing. If `arrays` is an `Array` of
- *   `Tensor`s, the slicing will be applied to all elements of the `Array`
- *   in the same way.
- */
-function sliceArrays(
-    arrays: Tensor|Tensor[], start: number, stop: number): Tensor|Tensor[] {
-  if (arrays == null) {
-    return [null];
-  } else if (Array.isArray(arrays)) {
-    return arrays.map(
-        array => K.sliceAlongFirstAxis(array, start, stop - start));
-  } else {  // Tensor.
-    return K.sliceAlongFirstAxis(arrays, start, stop - start);
-  }
-}
-
-/**
- * Slice an Tensor or an Array of Tensors, by random-order indices.
- *
- * Porting Note: The `_slice_arrays` function in PyKeras is covered by this
- *   function and `sliceArrays()` together.
- *
- * @param arrays The input `Tensor` or `Array` of `Tensor`s to slice.
- *   If an `Array` of `Tensor`s, all `Tensor`s will be sliced in the
- *   same fashion.
- * @param indices The indices to use for slicing along the first (batch)
- *   dimension.
- * @returns Result(s) of the slicing.
- */
-export function sliceArraysByIndices(
-    arrays: Tensor|Tensor[], indices: Tensor1D): Tensor|Tensor[] {
-  return tfc.tidy(() => {
-    if (arrays == null) {
-      return null;
-    } else if (Array.isArray(arrays)) {
-      return arrays.map(
-          array => (sliceArraysByIndices(array, indices) as Tensor));
-    } else {
-      // TODO(cais): indices should be a pre-constructed Tensor1D to avoid
-      //   tensor1d() calls.
-      return K.gather(
-          arrays, indices.dtype === 'int32' ? indices : indices.toInt());
-    }
-  });
-}
-
-/**
  * Check inputs provided by the user.
  *
  * Porting Note: This corresponds to _standardize_input_data() in Python
@@ -457,12 +380,6 @@ function collectMetrics(
   }
 }
 
-/** Verbosity logging level when fitting a model. */
-export enum ModelLoggingVerbosity {
-  SILENT = 0,
-  VERBOSE = 1
-}
-
 export interface ModelEvaluateConfig {
   /**
    * Batch size (Integer). If unspecified, it will default to 32.
@@ -486,124 +403,6 @@ export interface ModelEvaluateConfig {
    * value of `undefined`.
    */
   steps?: number;
-}
-
-/**
- * Interface for specifying data to fit a model to data.
- */
-export interface ModelFitConfig {
-  /**
-   * Number of samples per gradient update. If unspecified, it
-   * will default to 32.
-   */
-  batchSize?: number;
-
-  /** The number of times to iterate over the training data arrays. */
-  epochs?: number;
-
-  /**
-   * Verbosity level.
-   *
-   * Expected to be 0, 1, or 2. Default: 1.
-   *
-   * 0 - No printed message during fit() call.
-   * 1 - In Node.js (tfjs-node), prints the progress bar, together with
-   *     real-time updates of loss and metric values and training speed.
-   *     In the browser: no action. This is the default.
-   * 2 - Not implemented yet.
-   */
-  verbose?: ModelLoggingVerbosity;
-
-  /**
-   * List of callbacks to be called during training.
-   * Can consist of one or more of the following fields: `onTrainBegin`,
-   * `onTrainEnd`, `onEpochBegin`, `onEpochEnd`, `onBatchBegin`, `onBatchEnd`.
-   */
-  callbacks?: BaseCallback[]|CustomCallbackConfig|CustomCallbackConfig[];
-
-  /**
-   * Float between 0 and 1: fraction of the training data
-   * to be used as validation data. The model will set apart this fraction of
-   * the training data, will not train on it, and will evaluate the loss and
-   * any model metrics on this data at the end of each epoch.
-   * The validation data is selected from the last samples in the `x` and `y`
-   * data provided, before shuffling.
-   */
-  validationSplit?: number;
-
-  /**
-   * Data on which to evaluate the loss and any model
-   * metrics at the end of each epoch. The model will not be trained on this
-   * data. This could be a tuple [xVal, yVal] or a tuple [xVal, yVal,
-   * valSampleWeights]. The model will not be trained on this data.
-   * `validationData` will override `validationSplit`.
-   */
-  validationData?: [
-    Tensor|Tensor[], Tensor|Tensor[]
-  ]|[Tensor | Tensor[], Tensor|Tensor[], Tensor|Tensor[]];
-
-  /**
-   * Whether to shuffle the training data before each epoch. Has
-   * no effect when `stepsPerEpoch` is not `null`.
-   */
-  shuffle?: boolean;
-
-  /**
-   * Optional dictionary mapping class indices (integers) to
-   * a weight (float) to apply to the model's loss for the samples from this
-   * class during training. This can be useful to tell the model to "pay more
-   * attention" to samples from an under-represented class.
-   */
-  classWeight?: {[classIndex: string]: number};
-
-  /**
-   * Optional array of the same length as x, containing
-   * weights to apply to the model's loss for each sample. In the case of
-   * temporal data, you can pass a 2D array with shape (samples,
-   * sequenceLength), to apply a different weight to every timestep of every
-   * sample. In this case you should make sure to specify
-   * sampleWeightMode="temporal" in compile().
-   */
-  sampleWeight?: Tensor;
-
-  /**
-   * Epoch at which to start training (useful for resuming a previous training
-   * run).
-   */
-  initialEpoch?: number;
-
-  /**
-   * Total number of steps (batches of samples) before
-   * declaring one epoch finished and starting the next epoch. When training
-   * with Input Tensors such as TensorFlow data tensors, the default `null` is
-   * equal to the number of unique samples in your dataset divided by the
-   * batch size, or 1 if that cannot be determined.
-   */
-  stepsPerEpoch?: number;
-
-  /**
-   * Only relevant if `stepsPerEpoch` is specified. Total number of steps
-   * (batches of samples) to validate before stopping.
-   */
-  validationSteps?: number;
-
-  /**
-   * Configures the frequency of yielding the main thread to other tasks.
-   *
-   * In the browser environment, yielding the main thread can improve the
-   * responsiveness of the page during training. In the Node.js environment,
-   * it can ensure tasks queued in the event loop can be handled in a timely
-   * manner.
-   *
-   * - The value can be one of the following strings:
-   *   - 'auto': automatically determine how frequently the yielding happens
-   *     by measuring the duration of each batch of training (default).
-   *   - 'batch': yield every batch.
-   *   - 'epoch': yield every epoch.
-   *   - 'never': never yield. (But yielding can still happen through `await
-   *      nextFrame()` calls in custom callbacks.)
-   */
-  yieldEvery?: YieldEveryOptions;
 }
 
 /**
@@ -637,12 +436,6 @@ export interface ModelCompileConfig {
   //   targetTensors.
 }
 
-function checkBatchSize(batchSize: number) {
-  tfc.util.assert(
-      batchSize > 0 && Number.isInteger(batchSize),
-      `batchSize is required to be a positive integer, but got ${batchSize}`);
-}
-
 /**
  * A `Model` is a directed, acyclic graph of `Layer`s plus methods for
  * training, evaluation, prediction and saving.
@@ -672,8 +465,8 @@ export class Model extends Container implements tfc.InferenceModel {
 
   // A public property that can be set by Callbacks to order early stopping
   // during `fit()` calls.
-  private stopTraining_: boolean;
-  private isTraining: boolean;
+  protected stopTraining_: boolean;
+  protected isTraining: boolean;
 
   metrics: string[]|{[outputName: string]: string};
   metricsNames: string[];
@@ -961,7 +754,7 @@ export class Model extends Container implements tfc.InferenceModel {
    * Inconsistency will typically arise when one modifies `model.trainable`
    * without calling `model.compile()` again.
    */
-  private checkTrainableWeightsConsistency(): void {
+  protected checkTrainableWeightsConsistency(): void {
     if (this.collectedTrainableWeights == null) {
       return;
     }
@@ -1321,197 +1114,14 @@ export class Model extends Container implements tfc.InferenceModel {
   }
 
   /**
-   * Abstract fit function for `f(ins)`.
-   * @param f A Function returning a list of tensors. For training, this
-   *   function is expected to perform the updates to the variables.
-   * @param ins List of tensors to be fed to `f`.
-   * @param outLabels List of strings, display names of the outputs of `f`.
-   * @param batchSize Integer batch size or `== null` if unknown.
-   * @param epochs Number of times to iterate over the data.
-   * @param verbose Verbosity mode: 0, 1, or 2. Default: 1.
-   * @param callbacks List of callbacks to be called during training.
-   * @param valF Function to call for validation.
-   * @param valIns List of tensors to be fed to `valF`.
-   * @param shuffle Whether to shuffle the data at the beginning of every
-   * epoch.
-   * @param callbackMetrics List of strings, the display names of the metrics
-   *   passed to the callbacks. They should be the concatenation of the
-   *   display names of the outputs of `f` and the list of display names
-   *   of the outputs of `valF`.
-   * @param initialEpoch Epoch at which to start training (useful for
-   *   resuming a previous training run).
-   * @param stepsPerEpoch Total number of steps (batches on samples) before
-   *   declaring one epoch finished and starting the next epoch. Ignored with
-   *   the default value of `undefined` or `null`.
-   * @param validationSteps Number of steps to run validation for (only if
-   *   doing validation from data tensors). Not applicable for tfjs-layers.
-   * @returns A `History` object.
-   */
-  private async fitLoop(
-      f: (data: Tensor[]) => Scalar[], ins: Tensor[], outLabels?: string[],
-      batchSize?: number, epochs?: number, verbose?: number,
-      callbacks?: BaseCallback[], valF?: (data: Tensor[]) => Scalar[],
-      valIns?: Tensor[], shuffle?: boolean|string, callbackMetrics?: string[],
-      initialEpoch?: number, stepsPerEpoch?: number, validationSteps?: number,
-      yieldEvery?: YieldEveryOptions): Promise<History> {
-    if (batchSize == null) {
-      batchSize = 32;
-    }
-    if (epochs == null) {
-      epochs = 1;
-    }
-    if (shuffle == null) {
-      shuffle = true;
-    }
-    if (initialEpoch == null) {
-      initialEpoch = 0;
-    }
-
-    // TODO(cais): Change const to let below when implementing validation.
-    let doValidation = false;
-    if (valF != null && valIns != null) {
-      doValidation = true;
-      // TODO(cais): verbose message.
-    }
-    if (validationSteps != null) {
-      doValidation = true;
-      if (stepsPerEpoch == null) {
-        throw new ValueError(
-            'Can only use `validationSteps` when doing step-wise training, ' +
-            'i.e., `stepsPerEpoch` must be set.');
-      }
-    }
-
-    const numTrainSamples =
-        this.checkNumSamples(ins, batchSize, stepsPerEpoch, 'steps_per_epoch');
-    let indexArray: number[];
-    if (numTrainSamples != null) {
-      indexArray = range(0, numTrainSamples);
-    }
-
-    if (verbose == null) {
-      verbose = 1;
-    }
-
-    this.history = new History();
-    const actualCallbacks: BaseCallback[] = [
-      new BaseLogger(yieldEvery),
-      ...CallbackConstructorRegistry.createCallbacks(verbose)
-    ];
-    if (callbacks != null) {
-      actualCallbacks.push(...callbacks);
-    }
-    actualCallbacks.push(this.history);
-    const callbackList = new CallbackList(actualCallbacks);
-
-    // TODO(cais): Figure out when this Model instance can have a dynamically
-    //   set property called 'callback_model' as in PyKeras.
-    callbackList.setModel(this);
-    callbackList.setParams({
-      epochs,
-      initialEpoch,
-      samples: numTrainSamples,
-      steps: stepsPerEpoch,
-      batchSize,
-      verbose,
-      doValidation,
-      metrics: callbackMetrics,
-    });
-    await callbackList.onTrainBegin();
-    this.stopTraining_ = false;
-    // TODO(cais): Take care of callbacks.validation_data as in PyKeras.
-
-    // TODO(cais): Pre-convert feeds for performance as in PyKeras.
-
-    for (let epoch = initialEpoch; epoch < epochs; ++epoch) {
-      await callbackList.onEpochBegin(epoch);
-      const epochLogs: UnresolvedLogs = {};
-      if (stepsPerEpoch != null) {
-        throw new NotImplementedError(
-            'stepsPerEpoch mode is not implemented yet.');
-      } else {
-        if (shuffle === 'batch') {
-          throw new NotImplementedError(
-              'batch shuffling is not implemneted yet');
-        } else if (shuffle) {
-          util.shuffle(indexArray);
-        }
-        // Convert the potentially shuffled indices to Tensor1D, to avoid the
-        // cost of repeated creation of Array1Ds later on.
-        const epochIndexArray1D = tensor1d(indexArray);
-
-        const batches = makeBatches(numTrainSamples, batchSize);
-        for (let batchIndex = 0; batchIndex < batches.length; ++batchIndex) {
-          const batchLogs: UnresolvedLogs = {};
-          await callbackList.onBatchBegin(batchIndex, batchLogs);
-
-          tfc.tidy(() => {
-            const batchStart = batches[batchIndex][0];
-            const batchEnd = batches[batchIndex][1];
-            const batchIds = K.sliceAlongFirstAxis(
-                                 epochIndexArray1D, batchStart,
-                                 batchEnd - batchStart) as Tensor1D;
-            batchLogs['batch'] = batchIndex;
-            batchLogs['size'] = batchEnd - batchStart;
-
-            // TODO(cais): In ins, train flag can be a number, instead of an
-            //   Tensor? Do we need to handle this in tfjs-layers?
-            const insBatch = sliceArraysByIndices(ins, batchIds) as Tensor[];
-            const outs = f(insBatch);
-            for (let i = 0; i < outLabels.length; ++i) {
-              const label = outLabels[i];
-              const out = outs[i];
-              batchLogs[label] = out;
-              tfc.keep(out);
-              // TODO(cais): Use scope() to avoid ownership.
-            }
-
-            if (batchIndex === batches.length - 1) {  // Last batch.
-              if (doValidation) {
-                const valOuts = this.testLoop(valF, valIns, batchSize);
-                // Porting Notes: In tfjs-layers, valOuts is always an Array.
-                for (let i = 0; i < outLabels.length; ++i) {
-                  const label = outLabels[i];
-                  const out = valOuts[i];
-                  tfc.keep(out);
-                  // TODO(cais): Use scope() to avoid ownership.
-                  epochLogs['val_' + label] = out;
-                }
-              }
-            }
-          });
-
-          await callbackList.onBatchEnd(batchIndex, batchLogs);
-          disposeTensorsInLogs(batchLogs);
-
-          if (this.stopTraining_) {
-            break;
-          }
-          // TODO(cais): return outs as list of Tensor.
-        }
-
-        epochIndexArray1D.dispose();
-      }
-      // TODO(cais): Run validation at the end of the epoch.
-      await callbackList.onEpochEnd(epoch, epochLogs);
-      if (this.stopTraining_) {
-        break;
-      }
-    }
-    await callbackList.onTrainEnd();
-
-    await this.history.syncData();
-    return this.history;
-  }
-
-  /**
    * Loop over some test data in batches.
    * @param f A Function returning a list of tensors.
    * @param ins Array of tensors to be fed to `f`.
    * @param batchSize Integer batch size or `null` / `undefined`.
    * @param verbose verbosity mode.
-   * @param steps Total number of steps (batches of samples) before declaring
-   *   test finished. Ignored with the default value of `null` / `undefined`.
+   * @param steps Total number of steps (batches of samples) before
+   * declaring test finished. Ignored with the default value of `null` /
+   * `undefined`.
    * @returns Array of Scalars.
    */
   private testLoop(
@@ -1562,10 +1172,10 @@ export class Model extends Container implements tfc.InferenceModel {
     });
   }
 
-  private getDedupedMetricsNames(): string[] {
+  protected getDedupedMetricsNames(): string[] {
     const outLabels = this.metricsNames;
-    // Rename duplicated metrics names (can happen with an output layer shared
-    // among multiple dataflows).
+    // Rename duplicated metrics names (can happen with an output layer
+    // shared among multiple dataflows).
     const dedupedOutLabels = [];
     for (let i = 0; i < outLabels.length; ++i) {
       const label = outLabels[i];
@@ -1579,6 +1189,98 @@ export class Model extends Container implements tfc.InferenceModel {
     return dedupedOutLabels;
   }
 
+  /**
+   * Creates a function that performs the following actions:
+   *
+   * 1. computes the losses
+   * 2. sums them to get the total loss
+   * 3. call the optimizer computes the gradients of the Model's
+   *    trainable weights w.r.t. the total loss and update the variables
+   * 4. calculates the metrics
+   * 5. returns the values of the losses and metrics.
+   */
+  protected makeTrainFunction(): (data: Tensor[]) => Scalar[] {
+    return (data: Tensor[]) => {
+      const losses: Tensor[] = [];
+      const lossValues: Scalar[] = [];
+
+      const inputs = data.slice(0, this.inputs.length);
+      const targets = data.slice(
+          this.inputs.length, this.inputs.length + this.outputs.length);
+
+      const metricsValues: Scalar[] = [];
+
+      // Create a function that computes the total loss based on the
+      // inputs. This function is used for obtaining gradients through
+      // backprop.
+      const totalLossFunction = () => {
+        const feeds = [];
+        for (let i = 0; i < this.inputs.length; ++i) {
+          feeds.push({key: this.inputs[i], value: inputs[i]});
+        }
+        const feedDict = new FeedDict(feeds);
+        const outputs =
+            execute(this.outputs, feedDict, {'training': true}) as Tensor[];
+        // TODO(cais): Take care of the case of multiple outputs from a
+        //   single layer?
+
+        let totalLoss: Tensor;
+        for (let i = 0; i < this.lossFunctions.length; ++i) {
+          const lossFunction = this.lossFunctions[i];
+          const loss = lossFunction(targets[i], outputs[i]);
+          losses.push(loss);
+          // TODO(cais): push Scalar instead.
+          const meanLoss = tfc.mean(loss) as Scalar;
+          // TODO(cais): Use a scope() instead, to avoid ownership.
+          lossValues.push(meanLoss);
+          if (i === 0) {
+            totalLoss = loss;
+          } else {
+            totalLoss = tfc.add(totalLoss, loss);
+          }
+        }
+
+        // Compute the metrics.
+        // TODO(cais): These should probably be calculated outside
+        //   totalLossFunction to benefit speed?
+        for (let i = 0; i < this.metricsTensors.length; ++i) {
+          const metric = this.metricsTensors[i][0];
+          const outputIndex = this.metricsTensors[i][1];
+          // TODO(cais): Replace K.mean() with a proper weighting
+          // function.
+          const meanMetric =
+              tfc.mean(metric(targets[outputIndex], outputs[outputIndex])) as
+              Scalar;
+          tfc.keep(meanMetric);
+          // TODO(cais): Use a scope() instead, to avoid ownership.
+          metricsValues.push(meanMetric);
+        }
+
+        totalLoss = tfc.mean(totalLoss);
+
+        // Add regularizer penalties.
+        this.calculateLosses().forEach(regularizerLoss => {
+          totalLoss = tfc.add(totalLoss, regularizerLoss);
+        });
+
+        return totalLoss as Scalar;
+      };
+
+      const variables = this.collectedTrainableWeights.map(
+          param => param.read() as tfc.Variable);
+      const returnCost = true;
+      const totalLossValue =
+          this.optimizer.minimize(totalLossFunction, returnCost, variables);
+
+      return [totalLossValue].concat(metricsValues);
+    };
+  }
+
+  /**
+   * Create a function which, when invoked with an array of `Tensor`s as a
+   * batch of inputs, returns the prespecified loss and metrics of the model
+   * under the batch of input data.
+   */
   private makeTestFunction() {
     this.testFunction = (data: Tensor[]) => {
       return tfc.tidy(() => {
@@ -1621,7 +1323,8 @@ export class Model extends Container implements tfc.InferenceModel {
   }
 
   /**
-   * Trains the model for a fixed number of epochs (iterations on a dataset).
+   * Trains the model for a fixed number of epochs (iterations on a
+   * dataset).
    *
    * ```js
    * const model = tf.sequential({
@@ -1637,19 +1340,19 @@ export class Model extends Container implements tfc.InferenceModel {
    * }
    * ```
    *
-   * @param x `Tensor` of training data, or an array of `Tensor`s if the model
-   *   has multiple inputs. If all inputs in the model are named, you can also
-   *   pass a dictionary mapping input names to `Tensor`s.
-   * @param y `Tensor` of target (label) data, or an array of `Tensor`s if the
-   *   model has multiple outputs. If all outputs in the model are named, you
-   *  can also pass a dictionary mapping output names to `Tensor`s.
+   * @param x `Tensor` of training data, or an array of `Tensor`s if the
+   * model has multiple inputs. If all inputs in the model are named, you
+   * can also pass a dictionary mapping input names to `Tensor`s.
+   * @param y `Tensor` of target (label) data, or an array of `Tensor`s if
+   * the model has multiple outputs. If all outputs in the model are named,
+   * you can also pass a dictionary mapping output names to `Tensor`s.
    * @param config A `ModelFitConfig`, containing optional fields.
    *
    * @return A `History` instance. Its `history` attribute contains all
    *   information collected during training.
    *
-   * @exception ValueError In case of mismatch between the provided input data
-   *   and what the model expects.
+   * @exception ValueError In case of mismatch between the provided input
+   * data and what the model expects.
    */
   /**
    * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
@@ -1658,208 +1361,28 @@ export class Model extends Container implements tfc.InferenceModel {
       x: Tensor|Tensor[]|{[inputName: string]: Tensor},
       y: Tensor|Tensor[]|{[inputName: string]: Tensor},
       config: ModelFitConfig = {}): Promise<History> {
-    if (this.isTraining) {
-      throw new Error(
-          'Cannot start training because another fit() call is ongoing.');
-    }
-    this.isTraining = true;
-    try {
-      const batchSize = config.batchSize == null ? 32 : config.batchSize;
-      checkBatchSize(batchSize);
+    return fitTensors(this, x, y, config);
+  }
 
-      // Validate user data.
-      // TODO(cais): Add sampleWeight and  classWeight.
-      const standardizedOuts = this.standardizeUserData(x, y, false, batchSize);
-      let inputs = standardizedOuts[0];
-      let targets = standardizedOuts[1];
-      // TODO(cais): Make use of sampleWeights in standardizedOuts[2] when
-      //   available.
-
-      // Prepare validation data.
-      let doValidation = false;
-      let valX: Tensor|Tensor[];
-      let valY: Tensor|Tensor[];
-      let valIns: Tensor[];
-      // A flag to keep track of whether `valIns`, `inputs` and `targets` need
-      // to be memory-disposed prior to returning from this method. This is the
-      // case if `config.validationSplit` is set to a number between 0 and 1, in
-      // which case the input `x` and `y` tensors will be sliced, leading to
-      // allocation of new tensor memory.
-      let needValidationDisposal = false;
-      if (config.validationData != null && config.validationData.length > 0) {
-        doValidation = true;
-        if (config.validationData.length === 2) {
-          // config.validationData consists of valX and valY.
-          valX = config.validationData[0];
-          valY = config.validationData[1];
-        } else if (config.validationData.length === 3) {
-          throw new NotImplementedError(
-              'validationData including sample weights is not supported yet.');
-        } else {
-          throw new ValueError(
-              `When passing validation data, it must contain 2 (valX, valY) ` +
-              `or 3 (valX, valY, valSampleWeight) items; ` +
-              `${config.validationData} is invalid.`);
-        }
-
-        const valStandardized =
-            this.standardizeUserData(valX, valY, true, batchSize);
-        valX = valStandardized[0] as Tensor[];
-        valY = valStandardized[1] as Tensor[];
-        // TODO(cais): Use validation sample weights in valStandardized[2] once
-        //   it becomes available.
-        valIns = valX.concat(valY);
-        // TODO(cais): Add useLearningPhase data properly.
-      } else if (
-          config.validationSplit != null && config.validationSplit > 0 &&
-          config.validationSplit < 1) {
-        doValidation = true;
-        // Porting Note: In tfjs-layers, inputs[0] is always an Tensor.
-        const splitAt =
-            Math.floor(inputs[0].shape[0] * (1 - config.validationSplit));
-        const originalBatchSize = inputs[0].shape[0];
-        valX = sliceArrays(inputs, splitAt, originalBatchSize) as Tensor[];
-        inputs = sliceArrays(inputs, 0, splitAt) as Tensor[];
-        valY = sliceArrays(targets, splitAt, originalBatchSize) as Tensor[];
-        targets = sliceArrays(targets, 0, splitAt) as Tensor[];
-        needValidationDisposal = true;
-        // TODO(cais): Once sampleWeights becomes available, slice it to get
-        //   valSampleWeights.
-        valIns = valX.concat(valY);
-
-        // TODO(cais): Add useLearningPhase data properly.
-      } else if (config.validationSteps != null) {
-        doValidation = true;
-        // TODO(cais): Add useLearningPhase.
-      }
-
-      const ins = inputs.concat(targets);
-
-      this.checkTrainableWeightsConsistency();
-
-      // TODO(cais): Handle use_learning_phase and learning_phase?
-
-      // Porting Note: Here we see a key deviation of tfjs-layers from Keras.
-      //  Due to the imperative nature of tfjs-layers' backend (tfjs-core),
-      //  we do not construct symbolic computation graphs to embody the training
-      //  process. Instead, we define a function that performs the training
-      //  action.
-      //  In PyKeras, the data (inputs and targets) are fed through graph
-      //  placeholders. In tfjs-layers, the data are fed as function arguments.
-      //  Since the function are defined below in the scope, we don't have
-      //  equivalents of PyKeras's `_make_train_funciton`.
-
-      // Creat a function that performs the following actions:
-      //   1) computes the losses,
-      //   2) add them to get the total loss,
-      //   3) call the optimizer computes the gradients of the Model's trainable
-      //      weights w.r.t. the total loss and update the variables.
-      //   4) calculate the metrics
-      //   5) return the values of the losses and metrics.
-      const trainFunction = (data: Tensor[]) => {
-        const losses: Tensor[] = [];
-        const lossValues: Scalar[] = [];
-
-        const inputs = data.slice(0, this.inputs.length);
-        const targets = data.slice(
-            this.inputs.length, this.inputs.length + this.outputs.length);
-
-        const metricsValues: Scalar[] = [];
-
-        // Create a function that computes the total loss based on the inputs.
-        // This function is used for obtaining gradients through backprop.
-        const totalLossFunction = () => {
-          const feeds = [];
-          for (let i = 0; i < this.inputs.length; ++i) {
-            feeds.push({key: this.inputs[i], value: inputs[i]});
-          }
-          const feedDict = new FeedDict(feeds);
-          const outputs =
-              execute(this.outputs, feedDict, {'training': true}) as Tensor[];
-          // TODO(cais): Take care of the case of multiple outputs from a
-          //   single layer?
-
-          let totalLoss: Tensor;
-          for (let i = 0; i < this.lossFunctions.length; ++i) {
-            const lossFunction = this.lossFunctions[i];
-            const loss = lossFunction(targets[i], outputs[i]);
-            losses.push(loss);
-            // TODO(cais): push Scalar instead.
-            const meanLoss = tfc.mean(loss) as Scalar;
-            // TODO(cais): Use a scope() instead, to avoid ownership.
-            lossValues.push(meanLoss);
-            if (i === 0) {
-              totalLoss = loss;
-            } else {
-              totalLoss = tfc.add(totalLoss, loss);
-            }
-          }
-
-          // Compute the metrics.
-          // TODO(cais): These should probably be calculated outside
-          //   totalLossFunction to benefit speed?
-          for (let i = 0; i < this.metricsTensors.length; ++i) {
-            const metric = this.metricsTensors[i][0];
-            const outputIndex = this.metricsTensors[i][1];
-            // TODO(cais): Replace K.mean() with a proper weighting function.
-            const meanMetric =
-                tfc.mean(metric(targets[outputIndex], outputs[outputIndex])) as
-                Scalar;
-            tfc.keep(meanMetric);
-            // TODO(cais): Use a scope() instead, to avoid ownership.
-            metricsValues.push(meanMetric);
-          }
-
-          totalLoss = tfc.mean(totalLoss);
-
-          // Add regularizer penalties.
-          this.calculateLosses().forEach(regularizerLoss => {
-            totalLoss = tfc.add(totalLoss, regularizerLoss);
-          });
-
-          return totalLoss as Scalar;
-        };
-
-        const variables = this.collectedTrainableWeights.map(
-            param => param.read() as tfc.Variable);
-        const returnCost = true;
-        const totalLossValue =
-            this.optimizer.minimize(totalLossFunction, returnCost, variables);
-
-        return [totalLossValue].concat(metricsValues);
-      };
-
-      const outLabels = this.getDedupedMetricsNames();
-
-      let valFunction: (data: Tensor[]) => Scalar[];
-      let callbackMetrics: string[];
-      if (doValidation) {
-        this.makeTestFunction();
-        valFunction = this.testFunction;
-        callbackMetrics =
-            outLabels.slice().concat(outLabels.map(n => 'val_' + n));
-      } else {
-        valFunction = null;
-        valIns = [];
-        callbackMetrics = outLabels.slice();
-      }
-
-      const callbacks = standardizeCallbacks(config.callbacks);
-      const out = await this.fitLoop(
-          trainFunction, ins, outLabels, batchSize, config.epochs,
-          config.verbose, callbacks, valFunction, valIns, config.shuffle,
-          callbackMetrics, config.initialEpoch, null, null, config.yieldEvery);
-      if (needValidationDisposal) {
-        valIns.forEach(tensor => tensor.dispose());
-        inputs.forEach(tensor => tensor.dispose());
-        targets.forEach(tensor => tensor.dispose());
-      }
-      this.isTraining = false;
-      return out;
-    } finally {
-      this.isTraining = false;
-    }
-    // TODO(cais): Add value to outLabels.
+  // TODO(cais): Add code snippet below when it's possible to instantiate
+  //   actual dataset objects.
+  /**
+   * Trains the model using a dataset object.
+   *
+   * @param dataset A dataset object. Its `iterator()` method is expected
+   *   to generate a dataset iterator object, the `next()` method of which
+   *   is expected to produce data batches for training.
+   * @param config A `ModelFitDatasetConfig`, containing optional fields.
+   *
+   * @return A `History` instance. Its `history` attribute contains all
+   *   information collected during training.
+   */
+  /**
+   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   */
+  async fitDataset<T extends TensorContainer>(
+      dataset: Dataset<T>, config: ModelFitDatasetConfig<T>): Promise<History> {
+    return fitDataset(this, dataset, config);
   }
 
   /**
@@ -1911,7 +1434,8 @@ export class Model extends Container implements tfc.InferenceModel {
    *   }
    * });
    *
-   * // There should be only 3 values in the loss array, instead of 10 values,
+   * // There should be only 3 values in the loss array, instead of 10
+   * values,
    * // due to the stopping after 3 epochs.
    * console.log(history.history.loss);
    * ```
@@ -1924,16 +1448,18 @@ export class Model extends Container implements tfc.InferenceModel {
    * Save the configuration and/or weights of the Model.
    *
    * An `IOHandler` is an object that has a `save` method of the proper
-   * signature defined. The `save` method manages the storing or transmission
-   * of serialized data ("artifacts") that represent the model's topology and
-   * weights onto or via a specific medium, such as file downloads, local
-   * storage, IndexedDB in the web browser and HTTP requests to a server.
-   * TensorFlow.js provides `IOHandler` implementations for a number of
-   * frequently used saving mediums, such as `tf.io.browserDownloads` and
-   * `tf.io.browserLocalStorage`. See `tf.io` for more details.
+   * signature defined. The `save` method manages the storing or
+   * transmission of serialized data ("artifacts") that represent the
+   * model's topology and weights onto or via a specific medium, such as
+   * file downloads, local storage, IndexedDB in the web browser and HTTP
+   * requests to a server. TensorFlow.js provides `IOHandler`
+   * implementations for a number of frequently used saving mediums, such as
+   * `tf.io.browserDownloads` and `tf.io.browserLocalStorage`. See `tf.io`
+   * for more details.
    *
-   * This method also allows you to refer to certain types of `IOHandler`s as
-   * URL-like string shortcuts, such as 'localstorage://' and 'indexeddb://'.
+   * This method also allows you to refer to certain types of `IOHandler`s
+   * as URL-like string shortcuts, such as 'localstorage://' and
+   * 'indexeddb://'.
    *
    * Example 1: Save `model`'s topology and weights to browser [local
    * storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage);
@@ -1970,7 +1496,8 @@ export class Model extends Container implements tfc.InferenceModel {
    * ```
    *
    * Example 3. Saving `model`'s topology and weights as two files
-   * (`my-model-1.json` and `my-model-1.weights.bin`) downloaded from browser.
+   * (`my-model-1.json` and `my-model-1.weights.bin`) downloaded from
+   * browser.
    *
    * ```js
    * const model = tf.sequential(
@@ -1980,7 +1507,8 @@ export class Model extends Container implements tfc.InferenceModel {
    *
    * Example 4. Send  `model`'s topology and weights to an HTTP server.
    * See the documentation of `tf.io.browserHTTPRequests` for more details
-   * including specifying request parameters and implementation of the server.
+   * including specifying request parameters and implementation of the
+   * server.
    *
    * ```js
    * const model = tf.sequential(
@@ -1991,8 +1519,8 @@ export class Model extends Container implements tfc.InferenceModel {
    * @param handlerOrURL An instance of `IOHandler` or a URL-like,
    * scheme-based string shortcut for `IOHandler`.
    * @param config Options for saving the model.
-   * @returns A `Promise` of `SaveResult`, which summarizes the result of the
-   *   saving, such as byte sizes of the saved artifacts for the model's
+   * @returns A `Promise` of `SaveResult`, which summarizes the result of
+   * the saving, such as byte sizes of the saved artifacts for the model's
    *   topology and weight values.
    */
   /**

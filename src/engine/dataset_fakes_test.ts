@@ -11,8 +11,8 @@
 import {Tensor} from '@tensorflow/tfjs-core';
 
 import {describeMathCPUAndGPU} from '../utils/test_utils';
-
-import {FakeNumericDataset, TensorMap} from './dataset_stub';
+import {FakeNumericDataset} from './dataset_fakes';
+import {TensorMap} from './dataset_stub';
 
 describeMathCPUAndGPU('FakeNumericDataset', () => {
   it('1D features, 1D targets', async () => {

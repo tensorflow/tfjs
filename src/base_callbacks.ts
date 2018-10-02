@@ -18,6 +18,12 @@ import {ValueError} from './errors';
 import {Logs, resolveScalarsInLogs, UnresolvedLogs} from './logs';
 import * as generic_utils from './utils/generic_utils';
 
+/** Verbosity logging level when fitting a model. */
+export enum ModelLoggingVerbosity {
+  SILENT = 0,
+  VERBOSE = 1
+}
+
 export type Params = {
   [key: string]: number|string|boolean|number[]|string[]|boolean[];
 };
@@ -173,6 +179,7 @@ export class CallbackList {
     if (logs == null) {
       logs = {};
     }
+    await resolveScalarsInLogs(logs);
     for (const callback of this.callbacks) {
       await callback.onBatchEnd(batch, logs);
     }
@@ -638,4 +645,37 @@ export class CallbackConstructorRegistry {
     }
     return constructors.map(ctor => new ctor());
   }
+}
+
+export function configureCallbacks(
+    callbacks: BaseCallback[], yieldEvery: YieldEveryOptions,
+    verbose: ModelLoggingVerbosity, epochs: number, initialEpoch: number,
+    numTrainSamples: number, stepsPerEpoch: number, batchSize: number,
+    doValidation: boolean,
+    callbackMetrics: string[]): {callbackList: CallbackList, history: History} {
+  const history = new History();
+  const actualCallbacks: BaseCallback[] = [
+    new BaseLogger(yieldEvery),
+    ...CallbackConstructorRegistry.createCallbacks(verbose)
+  ];
+  if (callbacks != null) {
+    actualCallbacks.push(...callbacks);
+  }
+  actualCallbacks.push(history);
+  const callbackList = new CallbackList(actualCallbacks);
+
+  // TODO(cais): Figure out when this Model instance can have a dynamically
+  //   set property called 'callback_model' as in PyKeras.
+
+  callbackList.setParams({
+    epochs,
+    initialEpoch,
+    samples: numTrainSamples,
+    steps: stepsPerEpoch,
+    batchSize,
+    verbose,
+    doValidation,
+    metrics: callbackMetrics,
+  });
+  return {callbackList, history};
 }

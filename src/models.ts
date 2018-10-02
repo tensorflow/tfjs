@@ -11,12 +11,16 @@
 /* Original source keras/models.py */
 
 import {io, Scalar, serialization, Tensor} from '@tensorflow/tfjs-core';
+import {TensorContainer} from '@tensorflow/tfjs-core/dist/tensor_types';
 
 import {getUid} from './backend/state';
 import {History} from './base_callbacks';
+import {Dataset} from './engine/dataset_stub';
 import {Input} from './engine/input_layer';
 import {getSourceInputs, Layer, Node, SymbolicTensor} from './engine/topology';
-import {Model, ModelCompileConfig, ModelEvaluateConfig, ModelFitConfig} from './engine/training';
+import {Model, ModelCompileConfig, ModelEvaluateConfig} from './engine/training';
+import {ModelFitDatasetConfig} from './engine/training_dataset';
+import {ModelFitConfig} from './engine/training_tensors';
 import {RuntimeError, ValueError} from './errors';
 import {deserialize} from './layers/serialization';
 import {Kwargs, NamedTensorMap, Shape} from './types';
@@ -745,6 +749,32 @@ export class Sequential extends Model {
           'being used.');
     }
     return this.model.fit(x, y, config);
+  }
+
+  // TODO(cais): Add code snippet below when it's possible to instantiate
+  //   actual dataset objects.
+  /**
+   * Trains the model using a dataset object.
+   *
+   * @param dataset A dataset object. Its `iterator()` method is expected
+   *   to generate a dataset iterator object, the `next()` method of which
+   *   is expected to produce data batches for training.
+   * @param config A `ModelFitDatasetConfig`, containing optional fields.
+   *
+   * @return A `History` instance. Its `history` attribute contains all
+   *   information collected during training.
+   */
+  /**
+   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   */
+  async fitDataset<T extends TensorContainer>(
+      dataset: Dataset<T>, config: ModelFitDatasetConfig<T>): Promise<History> {
+    if (!this.built) {
+      throw new RuntimeError(
+          'The model needs to be compiled before ' +
+          'being used.');
+    }
+    return this.model.fitDataset(dataset, config);
   }
 
   /* See parent class for JsDoc */
