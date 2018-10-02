@@ -17,6 +17,7 @@
  */
 
 // inspired by https://github.com/maxogden/filereader-stream
+import {ENV} from '@tensorflow/tfjs-core';
 import {assert} from '@tensorflow/tfjs-core/dist/util';
 
 import {FileElement} from '../types';
@@ -46,8 +47,10 @@ export class FileChunkIterator extends ByteChunkIterator {
       protected options: FileChunkIteratorOptions = {}) {
     super();
     assert(
-        (file instanceof File || file instanceof Blob ||
-         file instanceof Uint8Array),
+        (file instanceof Uint8Array) ||
+            (ENV.get('IS_BROWSER') ?
+                 (file instanceof File || file instanceof Blob) :
+                 false),
         'FileChunkIterator only supports File, Blob and Uint8Array right now.');
     this.offset = options.offset || 0;
     // default 1MB chunk has tolerable perf on large files

@@ -60,9 +60,11 @@ describe('FileChunkIterator', () => {
 
   it('Provides mistyped data throws error', () => {
     expect(() => {
+      // tslint:disable-next-line:no-unused-expression
       new FileChunkIterator(null);
     })
         .toThrowError(
-            'FileChunkIterator only supports File, Blob and Uint8Array right now.');
+            'FileChunkIterator only supports File, Blob and Uint8Array right ' +
+            'now.');
   });
 });

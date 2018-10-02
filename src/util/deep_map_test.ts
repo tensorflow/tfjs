@@ -50,39 +50,35 @@ function asyncTransform(x: any): DeepMapAsyncResult {
 }
 
 describe('deepMap', () => {
-  it('maps single mappable objects', done => {
+  it('maps single mappable objects', () => {
     expect(deepMap(null, transform)).toEqual(null);
     expect(deepMap(1, transform)).toEqual('one');
     expect(deepMap(3, transform)).toEqual('three');
     expect(deepMap('hello', transform)).toEqual('hello');
-    done();
   });
-  it('maps arrays of mappable objects', done => {
+  it('maps arrays of mappable objects', () => {
     expect(deepMap([null, 1], transform)).toEqual([null, 'one']);
     expect(deepMap([1, 2, 3], transform)).toEqual(['one', 'two', 'three']);
     expect(deepMap([1, 'hello', 3, null], transform)).toEqual([
       'one', 'hello', 'three', null
     ]);
-    done();
   });
-  it('maps objects containing mappable fields', done => {
+  it('maps objects containing mappable fields', () => {
     expect(deepMap({a: null, b: 1}, transform)).toEqual({a: null, b: 'one'});
     expect(deepMap({a: 1, b: 2, c: 3}, transform))
         .toEqual({a: 'one', b: 'two', c: 'three'});
     expect(deepMap({a: 1, b: 'hello', c: 3, d: null}, transform))
         .toEqual({a: 'one', b: 'hello', c: 'three', d: null});
-    done();
   });
-  it('maps nested structures containing mappable fields', done => {
+  it('maps nested structures containing mappable fields', () => {
     const input = {a: 'hello', b: [2, 3, null, {ba: 0, bb: 'world'}]};
     const expected = {
       a: 'hello',
       b: ['two', 'three', null, {ba: 'zero', bb: 'world'}]
     };
     expect(deepMap(input, transform)).toEqual(expected);
-    done();
   });
-  it('maps elements that produce arrays or objects', done => {
+  it('maps elements that produce arrays or objects', () => {
     const input = {a: 'hello', b: [2, 4, null, {ba: 5, bb: 'world'}]};
     const expected = {
       a: 'hello',
@@ -92,9 +88,8 @@ describe('deepMap', () => {
       ]
     };
     expect(deepMap(input, transform)).toEqual(expected);
-    done();
   });
-  it('handles repetitions', done => {
+  it('handles repetitions', () => {
     const input = {a1: 4, a2: 4, b1: 5, b2: 5};
     const result = deepMap(input, transform);
     expect(result).toEqual({
@@ -106,107 +101,74 @@ describe('deepMap', () => {
     const b1Mapped = result.b1;
     const b2Mapped = result.b2;
     expect(b2Mapped).toBe(b1Mapped);
-    done();
   });
-  it('detects and rejects cycles', done => {
+  it('detects and rejects cycles', () => {
     // tslint:disable-next-line:no-any
     const b: any[] = [2, 3, null, {ba: 0, bb: 'world'}];
     const c = {a: 'hello', b};
     b[4] = c;
     const input = [b, c];
     expect(() => deepMap(input, transform)).toThrowError();
-    done();
   });
 });
 
 describe('asyncDeepMap', () => {
-  it('Maps single mappable objects', async done => {
-    try {
-      expect(await deepMapAndAwaitAll(null, asyncTransform)).toEqual(null);
-      expect(await deepMapAndAwaitAll(1, asyncTransform)).toEqual('one');
-      expect(await deepMapAndAwaitAll(3, asyncTransform)).toEqual('three');
-      expect(await deepMapAndAwaitAll('hello', asyncTransform))
-          .toEqual('hello');
-      done();
-    } catch (e) {
-      done.fail(e);
-    }
+  it('Maps single mappable objects', async () => {
+    expect(await deepMapAndAwaitAll(null, asyncTransform)).toEqual(null);
+    expect(await deepMapAndAwaitAll(1, asyncTransform)).toEqual('one');
+    expect(await deepMapAndAwaitAll(3, asyncTransform)).toEqual('three');
+    expect(await deepMapAndAwaitAll('hello', asyncTransform)).toEqual('hello');
   });
-  it('Maps arrays of mappable objects', async done => {
-    try {
-      expect(await deepMapAndAwaitAll([null, 1], asyncTransform)).toEqual([
-        null, 'one'
-      ]);
-      expect(await deepMapAndAwaitAll([1, 2, 3], asyncTransform)).toEqual([
-        'one', 'two', 'three'
-      ]);
-      expect(await deepMapAndAwaitAll([1, 'hello', 3, null], asyncTransform))
-          .toEqual(['one', 'hello', 'three', null]);
-      done();
-    } catch (e) {
-      done.fail(e);
-    }
+  it('Maps arrays of mappable objects', async () => {
+    expect(await deepMapAndAwaitAll([null, 1], asyncTransform)).toEqual([
+      null, 'one'
+    ]);
+    expect(await deepMapAndAwaitAll([1, 2, 3], asyncTransform)).toEqual([
+      'one', 'two', 'three'
+    ]);
+    expect(await deepMapAndAwaitAll([1, 'hello', 3, null], asyncTransform))
+        .toEqual(['one', 'hello', 'three', null]);
   });
-  it('Maps objects containing mappable fields', async done => {
-    try {
-      expect(await deepMapAndAwaitAll({a: null, b: 1}, asyncTransform))
-          .toEqual({a: null, b: 'one'});
-      expect(await deepMapAndAwaitAll({a: 1, b: 2, c: 3}, asyncTransform))
-          .toEqual({a: 'one', b: 'two', c: 'three'});
-      expect(await deepMapAndAwaitAll(
-                 {a: 1, b: 'hello', c: 3, d: null}, asyncTransform))
-          .toEqual({a: 'one', b: 'hello', c: 'three', d: null});
-      done();
-    } catch (e) {
-      done.fail(e);
-    }
+  it('Maps objects containing mappable fields', async () => {
+    expect(await deepMapAndAwaitAll({a: null, b: 1}, asyncTransform))
+        .toEqual({a: null, b: 'one'});
+    expect(await deepMapAndAwaitAll({a: 1, b: 2, c: 3}, asyncTransform))
+        .toEqual({a: 'one', b: 'two', c: 'three'});
+    expect(await deepMapAndAwaitAll(
+               {a: 1, b: 'hello', c: 3, d: null}, asyncTransform))
+        .toEqual({a: 'one', b: 'hello', c: 'three', d: null});
   });
-  it('Maps nested structures containing mappable fields', async done => {
-    try {
-      const input = {a: 'hello', b: [2, 3, null, {ba: 0, bb: 'world'}]};
-      const expected = {
-        a: 'hello',
-        b: ['two', 'three', null, {ba: 'zero', bb: 'world'}]
-      };
-      expect(await deepMapAndAwaitAll(input, asyncTransform)).toEqual(expected);
-      done();
-    } catch (e) {
-      done.fail(e);
-    }
+  it('Maps nested structures containing mappable fields', async () => {
+    const input = {a: 'hello', b: [2, 3, null, {ba: 0, bb: 'world'}]};
+    const expected = {
+      a: 'hello',
+      b: ['two', 'three', null, {ba: 'zero', bb: 'world'}]
+    };
+    expect(await deepMapAndAwaitAll(input, asyncTransform)).toEqual(expected);
   });
-  it('maps elements that produce arrays or objects', async done => {
-    try {
-      const input = {a: 'hello', b: [2, 4, null, {ba: 5, bb: 'world'}]};
-      const expected = {
-        a: 'hello',
-        b: [
-          'two', ['an array representing', 'four'], null,
-          {ba: {five: 'I am a dict'}, bb: 'world'}
-        ]
-      };
-      expect(await deepMapAndAwaitAll(input, asyncTransform)).toEqual(expected);
-      done();
-    } catch (e) {
-      done.fail(e);
-    }
+  it('maps elements that produce arrays or objects', async () => {
+    const input = {a: 'hello', b: [2, 4, null, {ba: 5, bb: 'world'}]};
+    const expected = {
+      a: 'hello',
+      b: [
+        'two', ['an array representing', 'four'], null,
+        {ba: {five: 'I am a dict'}, bb: 'world'}
+      ]
+    };
+    expect(await deepMapAndAwaitAll(input, asyncTransform)).toEqual(expected);
   });
-  it('handles repetitions', async done => {
-    try {
-      const input = {a1: 4, a2: 4, b1: 5, b2: 5};
-      const result = await deepMapAndAwaitAll(input, asyncTransform);
-      expect(result).toEqual({
-        a1: ['an array representing', 'four'],
-        a2: ['an array representing', 'four'],
-        b1: {five: 'I am a dict'},
-        b2: {five: 'I am a dict'}
-      });
-      const b1Mapped = result.b1;
-      const b2Mapped = result.b2;
-      expect(b2Mapped).toBe(b1Mapped);
-      done();
-    } catch (e) {
-      done.fail(e);
-    }
+  it('handles repetitions', async () => {
+    const input = {a1: 4, a2: 4, b1: 5, b2: 5};
+    const result = await deepMapAndAwaitAll(input, asyncTransform);
+    expect(result).toEqual({
+      a1: ['an array representing', 'four'],
+      a2: ['an array representing', 'four'],
+      b1: {five: 'I am a dict'},
+      b2: {five: 'I am a dict'}
+    });
+    const b1Mapped = result.b1;
+    const b2Mapped = result.b2;
+    expect(b2Mapped).toBe(b1Mapped);
   });
   it('detects and rejects cycles', async done => {
     try {
@@ -216,8 +178,9 @@ describe('asyncDeepMap', () => {
       b[4] = c;
       const input = [b, c];
       await deepMapAndAwaitAll(input, asyncTransform);
-      done.fail('Expected error on detected cycle.');
+      done.fail();
     } catch (e) {
+      expect(e.message).toBe('Circular references are not supported.');
       done();
     }
   });
