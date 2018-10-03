@@ -795,15 +795,20 @@ function batchToSpaceND_<T extends Tensor>(
 
   util.assert(
       $x.rank >= 1 + blockShape.length,
-      `input rank should be > than [blockShape] but got ${$x.rank}`);
+      `input rank is ${$x.rank} but should be > than blockShape.length ${
+          blockShape.length}`);
 
   util.assert(
       crops.length === blockShape.length,
-      `crops.shape[0] must be equal to [blockShape] but got ${crops.length}`);
+      `crops.length is ${
+          crops.length} but should be equal to blockShape.length  ${
+          blockShape.length}`);
 
   util.assert(
       $x.shape[0] % prod === 0,
-      `input tensor batch must be divisible by prod( blockShape )`);
+      `input tensor batch is ${
+          $x.shape[0]} but is not divisible by the product of ` +
+          `the elements of blockShape ${blockShape.join(' * ')} === ${prod}`);
 
   const grad = (dy: T) => {
     return {$x: () => dy.spaceToBatchND(blockShape, crops)};
