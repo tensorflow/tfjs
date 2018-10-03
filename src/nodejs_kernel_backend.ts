@@ -879,8 +879,10 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   cast<T extends Tensor>(x: T, dtype: DataType): T {
-    const opAttrs =
-        [createTypeOpAttr('SrcT', x.dtype), createTypeOpAttr('DstT', dtype)];
+    const opAttrs = [
+      createTypeOpAttr('SrcT', x.dtype), createTypeOpAttr('DstT', dtype),
+      {name: 'Truncate', type: this.binding.TF_ATTR_BOOL, value: false}
+    ];
     return this.executeSingleOutput('Cast', opAttrs, [x]) as T;
   }
 

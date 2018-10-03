@@ -56,8 +56,7 @@ TFJSBackend::~TFJSBackend() {
     TFE_DeleteTensorHandle(kv.second);
   }
   if (tfe_context_ != nullptr) {
-    TF_AutoStatus tf_status;
-    TFE_DeleteContext(tfe_context_, tf_status.status);
+    TFE_DeleteContext(tfe_context_);
   }
 }
 
@@ -149,13 +148,12 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
                                   napi_value num_output_values) {
   napi_status nstatus;
 
-  char op_name[NAPI_STRING_SIZE];
-  nstatus = napi_get_value_string_utf8(env, op_name_value, op_name,
-                                       NAPI_STRING_SIZE, nullptr);
+  std::string op_name;
+  nstatus = GetStringParam(env, op_name_value, op_name);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   TF_AutoStatus tf_status;
-  TFE_AutoOp tfe_op(TFE_NewOp(tfe_context_, op_name, tf_status.status));
+  TFE_AutoOp tfe_op(TFE_NewOp(tfe_context_, op_name.c_str(), tf_status.status));
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
   uint32_t num_input_ids;
