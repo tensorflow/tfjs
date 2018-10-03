@@ -258,7 +258,7 @@ class ConvertTest(unittest.TestCase):
     weights = [{
         'paths': ['group1-shard1of1'],
         'weights': [{
-            'shape': [4, 2],
+            'shape': [2, 2, 2],
             'name': 'Softmax',
             'dtype': 'float32'
         }]
