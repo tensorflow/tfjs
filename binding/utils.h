@@ -26,13 +26,13 @@
 #include "../deps/include/tensorflow/c/c_api.h"
 #include "tf_auto_status.h"
 
-#define NAPI_STRING_SIZE 512
-
 #define MAX_TENSOR_SHAPE 4
 
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 
+#ifndef DEBUG
 #define DEBUG 0
+#endif
 
 #define DEBUG_LOG(message, file, lineNumber)                             \
   do {                                                                   \
@@ -272,6 +272,29 @@ inline bool EnsureValueIsNotNull(napi_env env, void* value, const char* file,
     NapiThrowError(env, "Argument is null!", file, lineNumber);
   }
   return !is_null;
+}
+
+inline napi_status GetStringParam(napi_env env, napi_value string_value,
+                                  std::string& string) {
+  ENSURE_VALUE_IS_STRING_RETVAL(env, string_value, napi_invalid_arg);
+
+  napi_status nstatus;
+
+  size_t str_length;
+  nstatus =
+      napi_get_value_string_utf8(env, string_value, nullptr, 0, &str_length);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nstatus);
+
+  char* buffer = (char*)(malloc(sizeof(char) * (str_length + 1)));
+  ENSURE_VALUE_IS_NOT_NULL_RETVAL(env, buffer, napi_generic_failure);
+
+  nstatus = napi_get_value_string_utf8(env, string_value, buffer,
+                                       str_length + 1, &str_length);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nstatus);
+
+  string.assign(buffer, str_length);
+  free(buffer);
+  return napi_ok;
 }
 
 }  // namespace tfnodejs

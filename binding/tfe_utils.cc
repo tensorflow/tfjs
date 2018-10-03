@@ -253,14 +253,14 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value,
   nstatus = napi_get_named_property(env, attr_value, "name", &attr_name_value);
   ENSURE_NAPI_OK(env, nstatus);
 
-  char attr_name_string[NAPI_STRING_SIZE];
-  nstatus = napi_get_value_string_utf8(env, attr_name_value, attr_name_string,
-                                       NAPI_STRING_SIZE, nullptr);
+  std::string attr_name_string;
+  nstatus = GetStringParam(env, attr_name_value, attr_name_string);
   ENSURE_NAPI_OK(env, nstatus);
 
   // OpAttr will be used beyond the scope of this function call. Stash ops in a
   // set for re-use instead of dynamically reallocating strings for operations.
-  const char *attr_name = ATTR_NAME_SET.insert(attr_name_string).first->c_str();
+  const char *attr_name =
+      ATTR_NAME_SET.insert(attr_name_string.c_str()).first->c_str();
 
   napi_value attr_type_value;
   nstatus = napi_get_named_property(env, attr_value, "type", &attr_type_value);
