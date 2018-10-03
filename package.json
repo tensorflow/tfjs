@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-converter",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Tensorflow model converter for javascript",
   "main": "dist/src/index.js",
   "jsnext:main": "dist/tf-converter.esm.js",
