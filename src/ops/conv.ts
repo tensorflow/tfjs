@@ -193,10 +193,11 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-      convInfo.padInfo.type === 'SAME') {
+      (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
     const x2d = x4D.reshape([-1, convInfo.inChannels]) as Tensor2D;
     const w2d = $filter.reshape([convInfo.inChannels, convInfo.outChannels]) as
         Tensor2D;
+
     res = matMul(x2d, w2d).reshape<Rank.R4>(convInfo.outShape);
   } else {
     const grad = (dy: Tensor4D) => {

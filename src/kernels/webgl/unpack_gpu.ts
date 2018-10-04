@@ -31,9 +31,7 @@ export class UnpackProgram implements GPGPUProgram {
       void main() {
         ivec2 rc = getOutputCoords();
         vec2 modCoord = mod(vec2(rc.y, rc.x), 2.);
-
-        vec4 packedInput = texture2D(A,
-          resultUV - step(1., modCoord) * onePixel);
+        vec4 packedInput = getA(rc.x, rc.y);
 
         setOutput(
           modCoord.x == 0. ?

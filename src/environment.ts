@@ -306,6 +306,8 @@ export class Environment {
           (typeof process.versions.node !== 'undefined');
     } else if (feature === 'IS_CHROME') {
       return isChrome();
+    } else if (feature === 'WEBGL_CONV_IM2COL') {
+      return false;
     } else if (feature === 'WEBGL_PAGING_ENABLED') {
       return this.get('IS_BROWSER');
     } else if (feature === 'IS_TEST') {
