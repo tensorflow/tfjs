@@ -124,20 +124,15 @@ following location:
 
 ## Step 2: Loading and running in the browser
 
-1. Install the tfjs-converter npm package
-
-`yarn add @tensorflow/tfjs-converter` or `npm install @tensorflow/tfjs-converter`
-
-2. Instantiate the [FrozenModel class](./src/executor/frozen_model.ts) and run inference.
+Instantiate the [FrozenModel class](./src/executor/frozen_model.ts) and run inference.
 
 ```typescript
 import * as tf from '@tensorflow/tfjs';
-import {loadFrozenModel} from '@tensorflow/tfjs-converter';
 
 const MODEL_URL = 'https://.../mobilenet/tensorflowjs_model.pb';
 const WEIGHTS_URL = 'https://.../mobilenet/weights_manifest.json';
 
-const model = await loadFrozenModel(MODEL_URL, WEIGHTS_URL);
+const model = await tf.loadFrozenModel(MODEL_URL, WEIGHTS_URL);
 const cat = document.getElementById('cat');
 model.execute({input: tf.fromPixels(cat)});
 ```
