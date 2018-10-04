@@ -16,7 +16,7 @@ import {Conv1D, Conv2D, Conv2DTranspose, ConvLayerConfig, Cropping2D, Cropping2D
 import {DepthwiseConv2D, DepthwiseConv2DLayerConfig} from './layers/convolutional_depthwise';
 import {Activation, ActivationLayerConfig, Dense, DenseLayerConfig, Dropout, DropoutLayerConfig, Flatten, Permute, PermuteLayerConfig, RepeatVector, RepeatVectorLayerConfig, Reshape, ReshapeLayerConfig} from './layers/core';
 import {Embedding, EmbeddingLayerConfig} from './layers/embeddings';
-import {Add, Average, Concatenate, ConcatenateLayerConfig, Maximum, Minimum, Multiply} from './layers/merge';
+import {Add, Average, Concatenate, ConcatenateLayerConfig, Dot, DotLayerConfig, Maximum, Minimum, Multiply} from './layers/merge';
 import {BatchNormalization, BatchNormalizationLayerConfig} from './layers/normalization';
 import {ZeroPadding2D, ZeroPadding2DLayerConfig} from './layers/padding';
 import {AveragePooling1D, AveragePooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerConfig, MaxPooling1D, MaxPooling2D, Pooling1DLayerConfig, Pooling2DLayerConfig} from './layers/pooling';
@@ -390,6 +390,19 @@ export function minimum(config?: LayerConfig): Layer {
  */
 export function multiply(config?: LayerConfig): Layer {
   return new Multiply(config);
+}
+
+/**
+ * @doc {
+ *   heading: 'Layers',
+ *   subheading: 'Merge',
+ *   namespace: 'layers',
+ *   useDocsFrom: 'Dot',
+ *   configParamIndices: [0]
+ * }
+ */
+export function dot(config: DotLayerConfig): Layer {
+  return new Dot(config);
 }
 
 // Normalization Layers.
