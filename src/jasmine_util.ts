@@ -74,7 +74,7 @@ export function parseKarmaFlags(args: string[]): TestEnv {
 }
 
 export function describeWithFlags(
-    name: string, constraints: Features, tests: () => void) {
+    name: string, constraints: Features, tests: (env: TestEnv) => void) {
   TEST_ENVS.forEach(testEnv => {
     ENV.setFeatures(testEnv.features);
     if (envSatisfiesConstraints(constraints)) {
@@ -122,7 +122,8 @@ export function setTestEnvs(testEnvs: TestEnv[]) {
   TEST_ENVS = testEnvs;
 }
 
-function executeTests(testName: string, tests: () => void, testEnv: TestEnv) {
+function executeTests(
+    testName: string, tests: (env: TestEnv) => void, testEnv: TestEnv) {
   describe(testName, () => {
     const backendName = 'test-' + testEnv.name;
 
@@ -148,6 +149,6 @@ function executeTests(testName: string, tests: () => void, testEnv: TestEnv) {
       ENV.reset();
     });
 
-    tests();
+    tests(testEnv);
   });
 }

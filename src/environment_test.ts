@@ -23,7 +23,7 @@ import {describeWithFlags} from './jasmine_util';
 import {KernelBackend} from './kernels/backend';
 import {MathBackendCPU} from './kernels/backend_cpu';
 import {MathBackendWebGL} from './kernels/backend_webgl';
-import {WEBGL_ENVS} from './test_util';
+import {expectArraysClose, WEBGL_ENVS} from './test_util';
 
 describeWithFlags('disjoint query timer enabled', WEBGL_ENVS, () => {
   afterEach(() => {
@@ -125,9 +125,10 @@ describeWithFlags(
       });
     });
 
-describeWithFlags('WEBGL_PAGING_ENABLED', WEBGL_ENVS, () => {
+describeWithFlags('WEBGL_PAGING_ENABLED', WEBGL_ENVS, testEnv => {
   afterEach(() => {
     ENV.reset();
+    ENV.setFeatures(testEnv.features);
   });
 
   it('should be true if in a browser', () => {
@@ -136,6 +137,17 @@ describeWithFlags('WEBGL_PAGING_ENABLED', WEBGL_ENVS, () => {
     const env = new Environment(features);
 
     expect(env.get('WEBGL_PAGING_ENABLED')).toBe(true);
+  });
+
+  it('should not cause errors when paging is turned off', () => {
+    ENV.set('WEBGL_PAGING_ENABLED', false);
+
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+
+    const c = tf.matMul(a, b);
+
+    expectArraysClose(c, [0, 8, -3, 20]);
   });
 });
 
