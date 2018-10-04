@@ -40,6 +40,7 @@ export function makeShader(
     return `uniform sampler2D ${x.name};`;
   });
   inputPrefixSnippet = inputPrefixSnippet.join('\n');
+
   const inputSamplingSnippet =
       inputsInfo.map(x => getInputSamplingSnippet(x, outputShape, broadcast))
           .join('\n');
@@ -86,10 +87,26 @@ function getSamplerFromInInfo(inInfo: InputInfo): string {
   }
 }
 
+function getPackedSamplerFromInInfo(inInfo: InputInfo): string {
+  const shape = inInfo.shapeInfo.logicalShape;
+  switch (shape.length) {
+    case 2:
+      return getPackedSampler2D(inInfo);
+    default:
+      throw new Error(
+          `Packed ${shape.length}-D input sampling` +
+          ` is not yet supported`);
+  }
+}
+
 function getInputSamplingSnippet(
     inInfo: InputInfo, outShapeInfo: ShapeInfo, broadcast: boolean): string {
   let res = getSamplerFlat(inInfo);
-  res += getSamplerFromInInfo(inInfo);
+  if (inInfo.shapeInfo.isPacked) {
+    res += getPackedSamplerFromInInfo(inInfo);
+  } else {
+    res += getSamplerFromInInfo(inInfo);
+  }
 
   // If input and output have matching logical shapes, add
   // getTexNameAtOutCoord() method that samples the input
@@ -433,10 +450,29 @@ function getOutput6DCoords(
 
 function getOutputPacked2DCoords(
     shape: [number, number], texShape: [number, number]): string {
+  const packedTexShape =
+      [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
+  if (util.arraysEqual(shape, texShape)) {
+    return `
+      ivec2 getOutputCoords() {
+        return 2 * ivec2(resultUV.yx * vec2(${packedTexShape[0]}, ${
+        packedTexShape[1]}));
+      }
+    `;
+  }
+
+  const valuesPerRow = texShape[1] * 2;
+
   return `
     ivec2 getOutputCoords() {
-      return 2 * ivec2(resultUV.yx * vec2(${Math.ceil(texShape[0] / 2)}, ${
-      Math.ceil(texShape[1] / 2)}));
+      ivec2 resTexRC = ivec2(resultUV.yx *
+                             vec2(${packedTexShape[0]}, ${packedTexShape[1]}));
+
+      int index = resTexRC.x * ${valuesPerRow} + (resTexRC.y * 2);
+
+      int r = index / ${shape[1]};
+      int c = index - r * ${shape[1]};
+      return ivec2(r, c);
     }
   `;
 }
@@ -502,6 +538,23 @@ function getSampler1D(inputInfo: InputInfo): string {
   return `
     float ${funcName}(int index) {
       return ${funcName}Flat(index);
+    }
+  `;
+}
+
+function getPackedSampler2D(inputInfo: InputInfo): string {
+  const texName = inputInfo.name;
+  const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
+  const texShape = inputInfo.shapeInfo.texShape;
+
+  // for now, packed texture logical shape always equals physical shape
+  const texNumR = texShape[0];
+  const texNumC = texShape[1];
+  return `
+    vec4 ${funcName}(int row, int col) {
+      vec2 uv = (vec2(col, row)) / vec2(${texNumC}.0, ${texNumR}.0);
+
+      return texture2D(${texName}, uv);
     }
   `;
 }
