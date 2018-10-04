@@ -63,7 +63,12 @@ inline bool EnsureNapiOK(napi_env env, napi_status status, const char* file,
     napi_get_last_error_info(env, &error_info);
 
     std::ostringstream oss;
-    oss << "Invalid napi_status: " << error_info->error_message;
+    oss << "Invalid napi_status: ";
+    if (error_info->error_message) {
+      oss << error_info->error_message;
+    } else {
+      oss << status;
+    }
     NapiThrowError(env, oss.str().c_str(), file, lineNumber);
   }
   return status == napi_ok;
