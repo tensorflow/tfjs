@@ -12,6 +12,11 @@ It's main features are:
 The library also aims to be flexible and make it easy for you to incorporate
 custom visualizations using tools of your choosing, such as d3, Chart.js or plotly.js.
 
+## Demos
+
+- [Visualizing Training widh tfjs-vis](https://storage.googleapis.com/tfjs-vis/mnist/dist/index.html)
+- [Looking inside a digit recognizer](https://storage.googleapis.com/tfjs-vis/mnist_internals/dist/index.html)
+
 ## Installation
 
 You can install this using npm with
