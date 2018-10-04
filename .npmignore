@@ -10,6 +10,7 @@ package/
 **/node_modules/
 karma.conf.js
 dist/demos/
+dist/**/*_fakes.js
 dist/**/*_test.js
 dist/**/*_test.d.ts
 integration_tests/

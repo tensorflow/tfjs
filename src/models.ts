@@ -19,7 +19,7 @@ import {Dataset} from './engine/dataset_stub';
 import {Input} from './engine/input_layer';
 import {getSourceInputs, Layer, Node, SymbolicTensor} from './engine/topology';
 import {Model, ModelCompileConfig, ModelEvaluateConfig} from './engine/training';
-import {ModelFitDatasetConfig} from './engine/training_dataset';
+import {ModelFitDatasetConfig, ModelEvaluateDatasetConfig} from './engine/training_dataset';
 import {ModelFitConfig} from './engine/training_tensors';
 import {RuntimeError, ValueError} from './errors';
 import {deserialize} from './layers/serialization';
@@ -639,6 +639,39 @@ export class Sequential extends Model {
     return this.model.evaluate(x, y, config);
   }
 
+  // TODO(cais): Add code snippet below once real dataset objects are
+  //   available.
+  /**
+   * Evaluate model using a dataset object.
+   * 
+   * Note: Unlike `evaluate()`, this method is asynchronous (`async`);
+   * 
+   * @param dataset A dataset object. Its `iterator()` method is expected
+   *   to generate a dataset iterator object, the `next()` method of which
+   *   is expected to produce data batches for evaluation. The return value
+   *   of the `next()` call ought to contain a boolean `done` field and a
+   *   `value` field. The `value` field is expected to be an array of two
+   *   `Tensor`s or an array of two nested `Tensor` structures. The former
+   *   case is for models with exactly one input and one output (e.g..
+   *   a sequential model). The latter case is for models with multiple
+   *   inputs and/or multiple outputs. Of the two items in the array, the
+   *   first is the input feature(s) and the second is the output target(s).
+   * @param config A configuration object for the dataset-based evaluation.
+   * @returns Loss and metric values as an Array of `Scalar` objects.
+   */
+  /**
+   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   */
+  async evaluateDataset<T extends TensorContainer>(
+    dataset: Dataset<T>, config: ModelEvaluateDatasetConfig):
+    Promise<Scalar|Scalar[]> {
+    if (!this.built) {
+      throw new RuntimeError(
+          'The model needs to be compiled before being used.');
+    }
+    return this.model.evaluateDataset(dataset, config);
+  }
+
   /**
    * Generates output predictions for the input samples.
    *
@@ -758,7 +791,14 @@ export class Sequential extends Model {
    *
    * @param dataset A dataset object. Its `iterator()` method is expected
    *   to generate a dataset iterator object, the `next()` method of which
-   *   is expected to produce data batches for training.
+   *   is expected to produce data batches for evaluation. The return value
+   *   of the `next()` call ought to contain a boolean `done` field and a
+   *   `value` field. The `value` field is expected to be an array of two
+   *   `Tensor`s or an array of two nested `Tensor` structures. The former
+   *   case is for models with exactly one input and one output (e.g..
+   *   a sequential model). The latter case is for models with multiple
+   *   inputs and/or multiple outputs. Of the two items in the array, the
+   *   first is the input feature(s) and the second is the output target(s).
    * @param config A `ModelFitDatasetConfig`, containing optional fields.
    *
    * @return A `History` instance. Its `history` attribute contains all
