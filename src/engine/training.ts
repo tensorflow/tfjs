@@ -32,7 +32,7 @@ import {Container, ContainerConfig} from './container';
 import {Dataset} from './dataset_stub';
 import {execute, FeedDict} from './executor';
 import {SymbolicTensor} from './topology';
-import {fitDataset, ModelFitDatasetConfig} from './training_dataset';
+import {evaluateDataset, fitDataset, ModelEvaluateDatasetConfig, ModelFitDatasetConfig} from './training_dataset';
 import {checkBatchSize, fitTensors, makeBatches, ModelFitConfig, sliceArrays, sliceArraysByIndices} from './training_tensors';
 
 /**
@@ -818,13 +818,43 @@ export class Model extends Container implements tfc.InferenceModel {
     return singletonOrArray(testOuts);
   }
 
+  // TODO(cais): Add code snippet below once real dataset objects are
+  //   available.
+  /**
+   * Evaluate model using a dataset object.
+   * 
+   * Note: Unlike `evaluate()`, this method is asynchronous (`async`);
+   * 
+   * @param dataset A dataset object. Its `iterator()` method is expected
+   *   to generate a dataset iterator object, the `next()` method of which
+   *   is expected to produce data batches for evaluation. The return value
+   *   of the `next()` call ought to contain a boolean `done` field and a
+   *   `value` field. The `value` field is expected to be an array of two
+   *   `Tensor`s or an array of two nested `Tensor` structures. The former
+   *   case is for models with exactly one input and one output (e.g..
+   *   a sequential model). The latter case is for models with multiple
+   *   inputs and/or multiple outputs. Of the two items in the array, the
+   *   first is the input feature(s) and the second is the output target(s).
+   * @param config A configuration object for the dataset-based evaluation.
+   * @returns Loss and metric values as an Array of `Scalar` objects.
+   */
+  /**
+   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   */
+  async evaluateDataset<T extends TensorContainer>(
+      dataset: Dataset<T>, config: ModelEvaluateDatasetConfig):
+      Promise<Scalar|Scalar[]> {
+    this.makeTestFunction();
+    return evaluateDataset(this, dataset, config);
+  }
+
   /**
    * Get number of samples provided for training, evaluation or prediction.
    *
    * @param ins Input `Tensor`.
    * @param batchSize Integer batch size, optional.
-   * @param steps Total number of steps (batches of samples) before declaring
-   *   loop finished. Optional.
+   * @param steps Total number of steps (batches of samples) before
+   * declaring loop finished. Optional.
    * @param stepsName The public API's parameter name for `steps`.
    * @returns Number of samples provided.
    */
@@ -1130,7 +1160,7 @@ export class Model extends Container implements tfc.InferenceModel {
     return tfc.tidy(() => {
       const numSamples = this.checkNumSamples(ins, batchSize, steps, 'steps');
       const outs: Scalar[] = [];
-      if (verbose === 1) {
+      if (verbose > 0) {
         throw new NotImplementedError('Verbose mode is not implemented yet.');
       }
       // TODO(cais): Use `indicesForConversionToDense' to prevent slow down.
@@ -1371,7 +1401,15 @@ export class Model extends Container implements tfc.InferenceModel {
    *
    * @param dataset A dataset object. Its `iterator()` method is expected
    *   to generate a dataset iterator object, the `next()` method of which
-   *   is expected to produce data batches for training.
+   *   is expected to produce data batches for training. The return value
+   *   of the `next()` call ought to contain a boolean `done` field and a
+   *   `value` field. The `value` field is expected to be an array of two
+   *   `Tensor`s or an array of two nested `Tensor` structures.
+   *   case is for models with exactly one input and one output (e.g..
+   *   a sequential model). The latter case is for models with multiple
+   *   inputs and/or multiple outputs.
+   *   Of the two items in the array, the first is the input feature(s) and
+   *   the second is the output target(s).
    * @param config A `ModelFitDatasetConfig`, containing optional fields.
    *
    * @return A `History` instance. Its `history` attribute contains all
