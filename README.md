@@ -14,7 +14,7 @@ custom visualizations using tools of your choosing, such as d3, Chart.js or plot
 
 ## Demos
 
-- [Visualizing Training widh tfjs-vis](https://storage.googleapis.com/tfjs-vis/mnist/dist/index.html)
+- [Visualizing Training with tfjs-vis](https://storage.googleapis.com/tfjs-vis/mnist/dist/index.html)
 - [Looking inside a digit recognizer](https://storage.googleapis.com/tfjs-vis/mnist_internals/dist/index.html)
 
 ## Installation
