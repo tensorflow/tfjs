@@ -1652,13 +1652,15 @@ export class MathBackendWebGL implements KernelBackend {
   private uploadToGPU(dataId: DataId): void {
     const texData = this.texData.get(dataId);
     const {shape, values, texture, dtype, usage} = texData;
-    if (ENV.get('WEBGL_PAGING_ENABLED') && texture != null) {
+    if (texture != null) {
       // Array is already on GPU. No-op.
       // Touching the texture.
-      const index = this.lruDataGPU.indexOf(dataId);
-      if (index >= 0) {
-        this.lruDataGPU.splice(this.lruDataGPU.indexOf(dataId), 1);
-        this.lruDataGPU.push(dataId);
+      if (ENV.get('WEBGL_PAGING_ENABLED')) {
+        const index = this.lruDataGPU.indexOf(dataId);
+        if (index >= 0) {
+          this.lruDataGPU.splice(this.lruDataGPU.indexOf(dataId), 1);
+          this.lruDataGPU.push(dataId);
+        }
       }
       return;
     }
