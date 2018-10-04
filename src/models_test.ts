@@ -9,6 +9,7 @@
  */
 
 import {DataType, io, ones, randomNormal, Scalar, scalar, serialization, sum, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
+import {ConfigDict} from '@tensorflow/tfjs-core/dist/serialization';
 
 import {Model} from './engine/training';
 import * as tfl from './index';
@@ -489,6 +490,51 @@ describeMathCPU('modelFromJSON', () => {
     expect(serializedModel['keras_version'])
         .toEqual(`tfjs-layers ${layersVersion}`);
   });
+
+  it('Load sequential model with non-array config', async () => {
+    const modelTopology: {} = {
+      'class_name': 'Sequential',
+      'keras_version': '2.1.6-tf',
+      'config': {
+        'name': 'BarSequential123',
+        'layers': [{
+          'class_name': 'Dense',
+          'config': {
+            'kernel_initializer': {
+              'class_name': 'VarianceScaling',
+              'config': {
+                'distribution': 'uniform',
+                'scale': 1.0,
+                'seed': null,
+                'mode': 'fan_avg'
+              }
+            },
+            'name': 'dense_1',
+            'kernel_constraint': null,
+            'bias_regularizer': null,
+            'bias_constraint': null,
+            'dtype': 'float32',
+            'activation': 'sigmoid',
+            'trainable': true,
+            'kernel_regularizer': null,
+            'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+            'units': 1,
+            'batch_input_shape': [null, 4],
+            'use_bias': true,
+            'activity_regularizer': null
+          }
+        }]
+      },
+      'backend': 'tensorflow'
+    };
+    const model =
+        deserialize(convertPythonicToTs(modelTopology) as ConfigDict) as Model;
+    expect(model.name.indexOf('BarSequential123')).toEqual(0);
+    expect(model.inputs.length).toEqual(1);
+    expect(model.inputs[0].shape).toEqual([null, 4]);
+    expect(model.outputs.length).toEqual(1);
+    expect(model.outputs[0].shape).toEqual([null, 1]);
+  });
 });
 
 describeMathCPU('loadModel from URL', () => {
@@ -680,6 +726,72 @@ describeMathCPU('loadModel from URL', () => {
              done.fail(err.stack);
            });
      });
+
+  it('load topology and weights: non-array Sequential config', async done => {
+    const modelTopology =
+        JSON.parse(JSON.stringify(fakeNonArrayConfigSequentialModelFromHDF5))
+            .modelTopology;
+    const weightsManifest: io.WeightsManifestConfig = [
+      {
+        'paths': ['weight_0'],
+        'weights':
+            [{'name': `dense_1/kernel`, 'dtype': 'float32', 'shape': [10, 2]}],
+      },
+      {
+        'paths': ['weight_1'],
+        'weights': [{'name': `dense_1/bias`, 'dtype': 'float32', 'shape': [2]}],
+      },
+      {
+        'paths': ['weight_2'],
+        'weights':
+            [{'name': `dense_2/kernel`, 'dtype': 'float32', 'shape': [2, 1]}],
+      },
+      {
+        'paths': ['weight_3'],
+        'weights': [{'name': `dense_2/bias`, 'dtype': 'float32', 'shape': [1]}],
+      }
+    ];
+    spyOn(window, 'fetch').and.callFake((path: string) => {
+      if (path === 'model/model.json') {
+        return new Response(JSON.stringify({
+          modelTopology,
+          weightsManifest,
+        }));
+      } else if (path === 'model/weight_0') {
+        return new Response(
+            ones([10, 2], 'float32').dataSync() as Float32Array);
+      } else if (path === 'model/weight_1') {
+        return new Response(zeros([2], 'float32').dataSync() as Float32Array);
+      } else if (path === 'model/weight_2') {
+        return new Response(
+            zeros([2, 1], 'float32').dataSync() as Float32Array);
+      } else if (path === 'model/weight_3') {
+        return new Response(ones([1], 'float32').dataSync() as Float32Array);
+      } else {
+        throw new Error(`Invalid path: ${path}`);
+      }
+    });
+
+    loadModelInternal('model/model.json')
+        .then(model => {
+          expect(model.name.indexOf('Foo123Sequential')).toEqual(0);
+          expect(model.layers.length).toEqual(2);
+          expect(model.inputs.length).toEqual(1);
+          expect(model.inputs[0].shape).toEqual([null, 10]);
+          expect(model.outputs.length).toEqual(1);
+          expect(model.outputs[0].shape).toEqual([null, 1]);
+          const weightValues = model.getWeights();
+          expect(weightValues.length).toEqual(4);
+          expectTensorsClose(weightValues[0], ones([10, 2]));
+          expectTensorsClose(weightValues[1], zeros([2]));
+          expectTensorsClose(weightValues[2], zeros([2, 1]));
+          expectTensorsClose(weightValues[3], ones([1]));
+          done();
+        })
+        .catch(err => {
+          done.fail(err.stack);
+        });
+  });
 
 
   it('load topology and weights with browserHTTPRequest with requestInit',
@@ -1143,10 +1255,8 @@ describeMathCPUAndGPU('Sequential', () => {
 
   it('throws error if adding layer would result in negative shape', () => {
     const model = tfl.sequential();
-    model.add(tfl.layers.activation({
-      inputShape: [4, 4, 1],
-      activation: 'relu'
-    }));
+    model.add(
+        tfl.layers.activation({inputShape: [4, 4, 1], activation: 'relu'}));
     const layer = tfl.layers.conv2d({
       filters: 1,
       kernelSize: [10, 10],
@@ -1439,6 +1549,73 @@ const fakeSequentialModelFromHDF5: ModelAndWeightsConfig = {
         }
       ]
     },
+  }
+};
+
+const fakeNonArrayConfigSequentialModelFromHDF5: ModelAndWeightsConfig = {
+  modelTopology: {
+    'backend': 'tensorflow',
+    'keras_version': '2.1.6-tf',
+    'model_config': {
+      'class_name': 'Sequential',
+      'config': {
+        'name': 'Foo123Sequential',
+        'layers': [
+          {
+            'class_name': 'Dense',
+            'config': {
+              'kernel_initializer': {
+                'class_name': 'VarianceScaling',
+                'config': {
+                  'distribution': 'uniform',
+                  'scale': 1.0,
+                  'seed': null,
+                  'mode': 'fan_avg'
+                }
+              },
+              'name': 'dense_1',
+              'kernel_constraint': null,
+              'bias_regularizer': null,
+              'bias_constraint': null,
+              'dtype': 'float32',
+              'activation': 'relu',
+              'trainable': true,
+              'kernel_regularizer': null,
+              'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+              'units': 2,
+              'batch_input_shape': [null, 10],
+              'use_bias': true,
+              'activity_regularizer': null
+            }
+          },
+          {
+            'class_name': 'Dense',
+            'config': {
+              'kernel_initializer': {
+                'class_name': 'VarianceScaling',
+                'config': {
+                  'distribution': 'uniform',
+                  'scale': 1.0,
+                  'seed': null,
+                  'mode': 'fan_avg'
+                }
+              },
+              'name': 'dense_2',
+              'kernel_constraint': null,
+              'bias_regularizer': null,
+              'bias_constraint': null,
+              'activation': 'sigmoid',
+              'trainable': true,
+              'kernel_regularizer': null,
+              'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+              'units': 1,
+              'use_bias': true,
+              'activity_regularizer': null
+            }
+          }
+        ]
+      },
+    }
   }
 };
 

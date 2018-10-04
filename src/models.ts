@@ -10,7 +10,7 @@
 
 /* Original source keras/models.py */
 
-import {io, Scalar, serialization, Tensor} from '@tensorflow/tfjs-core';
+import {io, Scalar, serialization, Tensor, util} from '@tensorflow/tfjs-core';
 import {TensorContainer} from '@tensorflow/tfjs-core/dist/tensor_types';
 
 import {getUid} from './backend/state';
@@ -21,7 +21,7 @@ import {getSourceInputs, Layer, Node, SymbolicTensor} from './engine/topology';
 import {Model, ModelCompileConfig, ModelEvaluateConfig} from './engine/training';
 import {ModelFitDatasetConfig, ModelEvaluateDatasetConfig} from './engine/training_dataset';
 import {ModelFitConfig} from './engine/training_tensors';
-import {RuntimeError, ValueError} from './errors';
+import {RuntimeError, ValueError, NotImplementedError} from './errors';
 import {deserialize} from './layers/serialization';
 import {Kwargs, NamedTensorMap, Shape} from './types';
 import {JsonDict} from './types';
@@ -821,19 +821,31 @@ export class Sequential extends Model {
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict): T {
-    const model = new cls({});
+    let configArray: serialization.ConfigDictArray;
+    let extraModelConfig: serialization.ConfigDict = {};
+    if (config instanceof Array) {
+      if (!(config[0].className != null) ||
+            config[0]['className'] === 'Merge') {
+        throw new ValueError('Legacy serialization format not supported yet.');
+      }
+      configArray = config;
+    } else {
+      util.assert(
+          config['layers'] != null, 
+          `When the config data for a Sequential model is not an Array, ` +
+          `it must be an Object that contains the 'layers' field.`);
+      configArray = config['layers'] as serialization.ConfigDictArray;
+      delete config['layers'];
+      extraModelConfig = config;
+    }
+
+    const model = new cls(extraModelConfig);
     if (!(model instanceof Sequential)) {
-      throw new ValueError(
+      throw new NotImplementedError(
           `Sequential.fromConfig called on non-Sequential input: ${model}`);
     }
-    if (!(config instanceof Array)) {
-      throw new ValueError(
-          `Sequential.fromConfig called without an array of configs`);
-    }
-    if (!(config[0].className != null) || config[0]['className'] === 'Merge') {
-      throw new ValueError('Legacy serialization format not supported yet.');
-    }
-    for (const conf of config as serialization.ConfigDictArray) {
+
+    for (const conf of configArray) {
       const layer = deserialize(conf as serialization.ConfigDict) as Layer;
       model.add(layer);
     }
