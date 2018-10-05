@@ -18,8 +18,11 @@
 import {renderScatterplot} from './scatterplot';
 
 describe('renderScatterplot', () => {
+  let pixelRatio: number;
+
   beforeEach(() => {
     document.body.innerHTML = '<div id="container"></div>';
+    pixelRatio = window.devicePixelRatio;
   });
 
   it('renders a scatterplot', async () => {
@@ -143,7 +146,7 @@ describe('renderScatterplot', () => {
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
-    expect(document.querySelector('canvas')!.style.width).toBe('400px');
+    expect(document.querySelector('canvas')!.width).toBe(400 * pixelRatio);
   });
 
   it('sets height of chart', async () => {
@@ -160,6 +163,6 @@ describe('renderScatterplot', () => {
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
-    expect(document.querySelector('canvas')!.style.height).toBe('200px');
+    expect(document.querySelector('canvas')!.height).toBe(200 * pixelRatio);
   });
 });
