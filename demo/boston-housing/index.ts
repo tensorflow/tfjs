@@ -20,7 +20,6 @@ import {Tensor, Tensor2D} from '@tensorflow/tfjs-core';
 
 import {Dataset} from '../../src/dataset';
 import {computeDatasetStatistics, DatasetStatistics} from '../../src/statistics';
-import {TabularRecord} from '../../src/types';
 
 import {BostonHousingDataset} from './data';
 import * as ui from './ui';
@@ -58,10 +57,8 @@ export async function loadDataAndNormalize() {
   // https://github.com/tensorflow/tfjs-data/issues/32 is resolved.
 
   // Gets mean and standard deviation of data.
-  stats = await computeDatasetStatistics(
-      await bostonData.trainDataset.map(
-          (row: {features: {key: number}, target: {key: number}}) =>
-              row.features) as Dataset<TabularRecord>);
+  stats = await computeDatasetStatistics(await bostonData.trainDataset.map(
+      (row: {features: {key: number}, target: {key: number}}) => row.features));
 
   // Normalizes features data.
   const normalizedTrainData = bostonData.trainDataset.map(normalizeFeatures);
