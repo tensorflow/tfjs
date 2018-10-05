@@ -175,10 +175,11 @@ export async function confusionMatrix(
   }
 
   if (numClasses == null) {
-    numClasses =
-        tidy(() => {
-          return maximum(labels.max(), predictions.max()).dataSync()[0] + 1;
-        }) as number;
+    numClasses = tidy(() => {
+                   const max =
+                       maximum(labels.max(), predictions.max()).cast('int32');
+                   return max.dataSync()[0] + 1;
+                 }) as number;
   }
 
   let weightsPromise: Promise<null|TypedArray> = Promise.resolve(null);
