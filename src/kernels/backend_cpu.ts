@@ -2041,8 +2041,9 @@ export class MathBackendCPU implements KernelBackend {
     this.assertNotComplex(x, 'resizeBilinear');
 
     const [batch, oldHeight, oldWidth, numChannels] = x.shape;
-    const output =
-        ops.buffer<Rank.R4>([batch, newHeight, newWidth, numChannels], x.dtype);
+    const xValues = x.dataSync();
+    const result = new Float32Array(
+        util.sizeFromShape([batch, newHeight, newWidth, numChannels]));
 
     const effectiveInputSize: [number, number] = [
       (alignCorners && newHeight > 1) ? oldHeight - 1 : oldHeight,
@@ -2053,44 +2054,48 @@ export class MathBackendCPU implements KernelBackend {
       (alignCorners && newHeight > 1) ? newHeight - 1 : newHeight,
       (alignCorners && newWidth > 1) ? newWidth - 1 : newWidth
     ];
-
+    let outputIdx = 0;
+    const effectiveRowSizeRatio =
+        effectiveInputSize[0] / effectiveOutputSize[0];
+    const effectiveColSizeRatio =
+        effectiveInputSize[1] / effectiveOutputSize[1];
     for (let b = 0; b < batch; b++) {
       for (let r = 0; r < newHeight; r++) {
+        const sourceFracRow = effectiveRowSizeRatio * r;
+        const sourceRowFloor = Math.floor(sourceFracRow);
+        const rowFrac = sourceFracRow - sourceRowFloor;
+        const sourceRowCeil = Math.min(oldHeight - 1, Math.ceil(sourceFracRow));
+        const topRowOffset = b * x.strides[0] + sourceRowFloor * x.strides[1];
+        const botRowOffset = b * x.strides[0] + sourceRowCeil * x.strides[1];
         for (let c = 0; c < newWidth; c++) {
+          const sourceFracCol = effectiveColSizeRatio * c;
+          const sourceColFloor = Math.floor(sourceFracCol);
+          const colFrac = sourceFracCol - sourceColFloor;
+          const sourceColCeil =
+              Math.min(oldWidth - 1, Math.ceil(sourceFracCol));
+          const topLeftOffest = topRowOffset + sourceColFloor * x.strides[2];
+          const botLeftOffset = botRowOffset + sourceColFloor * x.strides[2];
+          const topRightOffset = topRowOffset + +sourceColCeil * x.strides[2];
+          const botRightOffest = botRowOffset + sourceColCeil * x.strides[2];
           for (let d = 0; d < numChannels; d++) {
             // Begin shader.
 
             // Compute the fractional index of the source.
-            const sourceFracRow =
-                (effectiveInputSize[0]) * r / (effectiveOutputSize[0]);
-            const sourceFracCol =
-                (effectiveInputSize[1]) * c / (effectiveOutputSize[1]);
-
-            const sourceRowFloor = Math.floor(sourceFracRow);
-            const sourceRowCeil =
-                Math.min(oldHeight - 1, Math.ceil(sourceFracRow));
-            const sourceColFloor = Math.floor(sourceFracCol);
-            const sourceColCeil =
-                Math.min(oldWidth - 1, Math.ceil(sourceFracCol));
-
-            const topLeft = x.get(b, sourceRowFloor, sourceColFloor, d);
-            const bottomLeft = x.get(b, sourceRowCeil, sourceColFloor, d);
-            const topRight = x.get(b, sourceRowFloor, sourceColCeil, d);
-            const bottomRight = x.get(b, sourceRowCeil, sourceColCeil, d);
-
-            const rowFrac = sourceFracRow - sourceRowFloor;
-            const colFrac = sourceFracCol - sourceColFloor;
+            const topLeft = xValues[topLeftOffest + d];
+            const bottomLeft = xValues[botLeftOffset + d];
+            const topRight = xValues[topRightOffset + d];
+            const bottomRight = xValues[botRightOffest + d];
 
             const top = topLeft + (topRight - topLeft) * colFrac;
             const bottom = bottomLeft + (bottomRight - bottomLeft) * colFrac;
             const newValue = top + (bottom - top) * rowFrac;
 
-            output.set(newValue, b, r, c, d);
+            result[outputIdx++] = newValue;
           }
         }
       }
     }
-    return output.toTensor();
+    return ops.tensor(result, [batch, newHeight, newWidth, numChannels]);
   }
 
   resizeBilinearBackprop(dy: Tensor4D, x: Tensor4D, alignCorners: boolean) {
