@@ -27,6 +27,13 @@ describeWithFlags('FFT', ALL_ENVS, () => {
     expectArraysClose(tf.fft(t1), [3, 2, -1, 0]);
   });
 
+  it('should calculate FFT from Tensor directly', () => {
+    const t1Real = tf.tensor1d([1, 2]);
+    const t1Imag = tf.tensor1d([1, 1]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    expectArraysClose(t1.fft(), [3, 2, -1, 0]);
+  });
+
   it('should return the same value as TensorFlow (3 elements)', () => {
     const t1Real = tf.tensor1d([1, 2, 3]);
     const t1Imag = tf.tensor1d([0, 0, 0]);
