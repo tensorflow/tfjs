@@ -46,7 +46,7 @@ function slice2d_(
   const $x = convertToTensor(x, 'x', 'slice2d');
   util.assert(
       $x.rank === 2,
-      `slice1d expects a rank-2 tensor, but got a rank-${$x.rank} tensor`);
+      `slice2d expects a rank-2 tensor, but got a rank-${$x.rank} tensor`);
   return slice($x, begin, size);
 }
 
@@ -60,7 +60,7 @@ function slice3d_(
   const $x = convertToTensor(x, 'x', 'slice3d');
   util.assert(
       $x.rank === 3,
-      `slice1d expects a rank-3 tensor, but got a rank-${$x.rank} tensor`);
+      `slice3d expects a rank-3 tensor, but got a rank-${$x.rank} tensor`);
   return slice($x, begin, size);
 }
 
@@ -74,7 +74,7 @@ function slice4d_(
   const $x = convertToTensor(x, 'x', 'slice4d');
   util.assert(
       $x.rank === 4,
-      `slice1d expects a rank-4 tensor, but got a rank-${$x.rank} tensor`);
+      `slice4d expects a rank-4 tensor, but got a rank-${$x.rank} tensor`);
   return slice($x, begin, size);
 }
 
