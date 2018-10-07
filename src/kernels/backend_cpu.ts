@@ -2104,8 +2104,7 @@ export class MathBackendCPU implements KernelBackend {
     const [batch, xHeight, xWidth, depth] = x.shape;
     const [, yHeight, yWidth] = dy.shape;
 
-    const output =
-        ops.buffer<Rank.R4>([batch, xHeight, xWidth, depth], x.dtype);
+    const output = new Float32Array(batch * xHeight * xWidth * depth);
 
     // In the backwards pass, we want to find the pixels that were generated
     // for each pixel in the input image the forward pass and add the
@@ -2129,14 +2128,20 @@ export class MathBackendCPU implements KernelBackend {
     // tslint:disable-next-line:max-line-length
     // https://github.com/tensorflow/tensorflow/blob/3039375c86a5bbc9610c7725dcaa95d635f87ba2/tensorflow/core/kernels/resize_bilinear_op.cc#L275
 
+    const dyValues = dy.dataSync();
+    let offset = 0;
     for (let b = 0; b < batch; b++) {
+      const bOffset = b * x.strides[0];
       for (let r = 0; r < yHeight; r++) {
         const dxR = r * heightScale;
         const topDxRIndex = Math.floor(dxR);
         const bottomDxRIndex = Math.min(Math.ceil(dxR), xHeight - 1);
+
+        const topDxROffset = bOffset + topDxRIndex * x.strides[1];
+        const bottomDxROffset = bOffset + bottomDxRIndex * x.strides[1];
+
         const dxRLerp = dxR - topDxRIndex;
         const inverseDxRLerp = 1.0 - dxRLerp;
-
         for (let c = 0; c < yWidth; c++) {
           const dxC = c * widthScale;
           const leftDxCIndex = Math.floor(dxC);
@@ -2144,33 +2149,31 @@ export class MathBackendCPU implements KernelBackend {
           const dxCLerp = dxC - leftDxCIndex;
           const inverseDxCLerp = 1.0 - dxCLerp;
 
+          const topLeftRCOffset = topDxROffset + leftDxCIndex * x.strides[2];
+          const topRightRCOffset = topDxROffset + rightDxCIndex * x.strides[2];
+          const bottomLeftRCOffset =
+              bottomDxROffset + leftDxCIndex * x.strides[2];
+          const bottomRightRCOffset =
+              bottomDxROffset + rightDxCIndex * x.strides[2];
+
+          const inverseDxRLerpTimesInverseDxCLerp =
+              inverseDxRLerp * inverseDxCLerp;
+          const inverseDxRLerpTimesDxCLerp = inverseDxRLerp * dxCLerp;
+          const dxRLerpTimesInverseDxCLerp = dxRLerp * inverseDxCLerp;
+          const dxRLerpTimesDxCLerp = dxRLerp * dxCLerp;
           for (let d = 0; d < depth; d++) {
-            const dyVal = dy.get(b, r, c, d);
-
-            let topLeft = output.get(b, topDxRIndex, leftDxCIndex, d) as number;
-            topLeft += dyVal * inverseDxRLerp * inverseDxCLerp;
-            output.set(topLeft, b, topDxRIndex, leftDxCIndex, d);
-
-            let topRight =
-                output.get(b, topDxRIndex, rightDxCIndex, d) as number;
-            topRight += dyVal * inverseDxRLerp * dxCLerp;
-            output.set(topRight, b, topDxRIndex, rightDxCIndex, d);
-
-            let bottomLeft =
-                output.get(b, bottomDxRIndex, leftDxCIndex, d) as number;
-            bottomLeft += dyVal * dxRLerp * inverseDxCLerp;
-            output.set(bottomLeft, b, bottomDxRIndex, leftDxCIndex, d);
-
-            let bottomRight =
-                output.get(b, bottomDxRIndex, rightDxCIndex, d) as number;
-            bottomRight += dyVal * dxRLerp * dxCLerp;
-            output.set(bottomRight, b, bottomDxRIndex, rightDxCIndex, d);
+            const dyVal = dyValues[offset++];
+            output[topLeftRCOffset + d] +=
+                dyVal * inverseDxRLerpTimesInverseDxCLerp;
+            output[topRightRCOffset + d] += dyVal * inverseDxRLerpTimesDxCLerp;
+            output[bottomLeftRCOffset + d] +=
+                dyVal * dxRLerpTimesInverseDxCLerp;
+            output[bottomRightRCOffset + d] += dyVal * dxRLerpTimesDxCLerp;
           }
         }
       }
     }
-
-    return output.toTensor();
+    return ops.tensor4d(output, [batch, xWidth, xHeight, depth], x.dtype);
   }
 
   resizeNearestNeighbor(
