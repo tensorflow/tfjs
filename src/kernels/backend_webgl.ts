@@ -1646,8 +1646,8 @@ export class MathBackendWebGL implements KernelBackend {
       // textures. Do this only when the environment supports 32bit floats due
       // to problems when comparing 16bit floats with 32bit floats.
       if (texData.texture == null &&
-          util.sizeFromShape(input.shape) <= SIZE_UPLOAD_UNIFORM &&
-          ENV.get('WEBGL_RENDER_FLOAT32_ENABLED')) {
+          util.sizeFromShape(input.shape) <=
+              ENV.get('WEBGL_SIZE_UPLOAD_UNIFORM')) {
         return {
           shape: input.shape,
           texData: null,

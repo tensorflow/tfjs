@@ -17,8 +17,56 @@
 
 import {ENV} from './environment';
 import {Tensor} from './tensor';
-import {ArrayData, DataType, TensorLike} from './types';
-import {inferShape, isTypedArray, toTypedArray} from './util';
+import {ArrayData, DataType, RegularArray, TensorLike, TypedArray} from './types';
+import {assert, isTypedArray, toTypedArray} from './util';
+
+export function inferShape(val: TypedArray|number|boolean|RegularArray<number>|
+                           RegularArray<boolean>): number[] {
+  let firstElem: typeof val = val;
+
+  if (isTypedArray(val)) {
+    return [(val as TypedArray).length];
+  }
+  if (!Array.isArray(val)) {
+    return [];  // Scalar.
+  }
+  const shape: number[] = [];
+
+  while (firstElem instanceof Array) {
+    shape.push(firstElem.length);
+    firstElem = firstElem[0];
+  }
+  if (val instanceof Array && ENV.get('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')) {
+    deepAssertShapeConsistency(val, shape, []);
+  }
+
+  return shape;
+}
+
+function deepAssertShapeConsistency(
+    val: number|boolean|RegularArray<number>|RegularArray<boolean>,
+    shape: number[], indices: number[]) {
+  indices = indices || [];
+  if (!(val instanceof Array)) {
+    assert(
+        shape.length === 0,
+        () => `Element arr[${indices.join('][')}] is a primitive, ` +
+            `but should be an array of ${shape[0]} elements`);
+    return;
+  }
+  assert(
+      shape.length > 0,
+      () => `Element arr[${indices.join('][')}] should be a primitive, ` +
+          `but is an array of ${val.length} elements`);
+  assert(
+      val.length === shape[0],
+      () => `Element arr[${indices.join('][')}] should have ${shape[0]} ` +
+          `elements, but has ${val.length} elements`);
+  const subShape = shape.slice(1);
+  for (let i = 0; i < val.length; ++i) {
+    deepAssertShapeConsistency(val[i], subShape, indices.concat(i));
+  }
+}
 
 export function convertToTensor<T extends Tensor>(
     x: T|TensorLike, argName: string, functionName: string,
