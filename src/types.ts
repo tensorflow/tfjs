@@ -31,8 +31,6 @@ export type DataElementObject = TensorContainerObject;
 
 export type DataElementArray = TensorContainerArray;
 
-export type PrimitiveOrT<T> = void|string|number|boolean|T;
-
 // Maybe this should be called 'NestedContainer'-- that's just a bit unwieldy.
 export type Container<T> = ContainerObject<T>|ContainerArray<T>;
 
