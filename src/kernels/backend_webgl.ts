@@ -24,6 +24,7 @@ import * as axis_util from '../ops/axis_util';
 import {computeOutShape} from '../ops/concat_util';
 import {Conv2DInfo} from '../ops/conv_util';
 import * as reduce_util from '../ops/reduce_util';
+import * as scatter_nd_util from '../ops/scatter_nd_util';
 import * as segment_util from '../ops/segment_util';
 import {getStridedSlicedInfo} from '../ops/slice_util';
 import {softmax} from '../ops/softmax';
@@ -81,6 +82,7 @@ import {ResizeBilinearProgram} from './webgl/resize_bilinear_gpu';
 import {ResizeNearestNeigborBackpropProgram} from './webgl/resize_nearest_neighbor_backprop_gpu';
 import {ResizeNearestNeighborProgram} from './webgl/resize_nearest_neighbor_gpu';
 import {ReverseProgram} from './webgl/reverse_gpu';
+import {ScatterNDProgram} from './webgl/scatter_nd_gpu';
 import {SegmentOpProgram} from './webgl/segment_gpu';
 import {SelectProgram} from './webgl/select_gpu';
 import {SliceProgram} from './webgl/slice_gpu';
@@ -1585,6 +1587,24 @@ export class MathBackendWebGL implements KernelBackend {
 
   split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
     return split(x, sizeSplits, axis);
+  }
+
+  scatterND<R extends Rank>(
+      indices: Tensor, updates: Tensor, shape: ShapeMap[R]): Tensor<R> {
+    const [sliceDim, numUpdates, sliceSize, strides, outputSize] =
+        scatter_nd_util.prepareAndValidate(updates, indices, shape);
+
+    const flattenShape = [outputSize / sliceSize, sliceSize];
+    const flattenIndices = indices.reshape([numUpdates, sliceDim]);
+    const flattenX = updates.reshape([numUpdates, sliceSize]);
+
+    if (outputSize === 0) {
+      return backend_util.reshapeTensor(tensor([]), shape);
+    }
+    const program =
+        new ScatterNDProgram(numUpdates, sliceDim, strides, flattenShape);
+    return (this.compileAndRun(program, [flattenX, flattenIndices]) as Tensor)
+        .reshape(shape);
   }
 
   fft(x: Tensor1D): Tensor1D {
