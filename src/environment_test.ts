@@ -23,16 +23,12 @@ import {describeWithFlags} from './jasmine_util';
 import {KernelBackend} from './kernels/backend';
 import {MathBackendCPU} from './kernels/backend_cpu';
 import {MathBackendWebGL} from './kernels/backend_webgl';
-import {expectArraysClose, WEBGL_ENVS} from './test_util';
+import {ALL_ENVS, expectArraysClose, WEBGL_ENVS} from './test_util';
 
 describeWithFlags('disjoint query timer enabled', WEBGL_ENVS, () => {
-  afterEach(() => {
-    ENV.reset();
-  });
-
   it('no webgl', () => {
-    ENV.setFeatures({'WEBGL_VERSION': 0});
-    expect(ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION')).toBe(0);
+    const env = new Environment({'WEBGL_VERSION': 0});
+    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION')).toBe(0);
   });
 
   it('webgl 1', () => {
@@ -56,8 +52,8 @@ describeWithFlags('disjoint query timer enabled', WEBGL_ENVS, () => {
       }
     });
 
-    ENV.setFeatures(features);
-    expect(ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION')).toBe(1);
+    const env = new Environment(features);
+    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION')).toBe(1);
   });
 
   it('webgl 2', () => {
@@ -81,17 +77,13 @@ describeWithFlags('disjoint query timer enabled', WEBGL_ENVS, () => {
       }
     });
 
-    ENV.setFeatures(features);
-    expect(ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION')).toBe(2);
+    const env = new Environment(features);
+    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION')).toBe(2);
   });
 });
 
 describeWithFlags(
     'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', WEBGL_ENVS, () => {
-      afterEach(() => {
-        ENV.reset();
-      });
-
       it('disjoint query timer disabled', () => {
         const features:
             Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION': 0};
@@ -133,9 +125,7 @@ describeWithFlags('WEBGL_PAGING_ENABLED', WEBGL_ENVS, testEnv => {
 
   it('should be true if in a browser', () => {
     const features: Features = {'IS_BROWSER': true};
-
     const env = new Environment(features);
-
     expect(env.get('WEBGL_PAGING_ENABLED')).toBe(true);
   });
 
@@ -149,13 +139,16 @@ describeWithFlags('WEBGL_PAGING_ENABLED', WEBGL_ENVS, testEnv => {
 
     expectArraysClose(c, [0, 8, -3, 20]);
   });
+
+  it('should be false when the environment is prod', () => {
+    const features: Features = {'IS_BROWSER': true};
+    const env = new Environment(features);
+    env.set('PROD', true);
+    expect(env.get('WEBGL_PAGING_ENABLED')).toBe(false);
+  });
 });
 
 describeWithFlags('WEBGL_FENCE_API_ENABLED', WEBGL_ENVS, () => {
-  afterEach(() => {
-    ENV.reset();
-  });
-
   beforeEach(() => {
     spyOn(document, 'createElement').and.returnValue({
       getContext: (context: string) => {
@@ -195,10 +188,6 @@ describeWithFlags('WEBGL_FENCE_API_ENABLED', WEBGL_ENVS, () => {
 });
 
 describeWithFlags('WebGL version', WEBGL_ENVS, () => {
-  afterEach(() => {
-    ENV.reset();
-  });
-
   it('webgl 1', () => {
     spyOn(document, 'createElement').and.returnValue({
       getContext: (context: string) => {
@@ -314,5 +303,33 @@ describeWithFlags('epsilon', {}, () => {
 
   it('abs(epsilon) > 0', () => {
     expect(tf.abs(ENV.get('EPSILON')).get()).toBeGreaterThan(0);
+  });
+});
+
+describeWithFlags('TENSORLIKE_CHECK_SHAPE_CONSISTENCY', ALL_ENVS, () => {
+  it('disabled when prod is enabled', () => {
+    const env = new Environment();
+    env.set('PROD', true);
+    expect(env.get('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')).toBe(false);
+  });
+
+  it('enabled when prod is disabled', () => {
+    const env = new Environment();
+    env.set('PROD', false);
+    expect(env.get('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')).toBe(true);
+  });
+});
+
+describeWithFlags('WEBGL_SIZE_UPLOAD_UNIFORM', WEBGL_ENVS, () => {
+  it('is 0 when there is no float32 bit support', () => {
+    const env = new Environment();
+    env.set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+    expect(env.get('WEBGL_SIZE_UPLOAD_UNIFORM')).toBe(0);
+  });
+
+  it('is > 0 when there is float32 bit support', () => {
+    const env = new Environment();
+    env.set('WEBGL_RENDER_FLOAT32_ENABLED', true);
+    expect(env.get('WEBGL_SIZE_UPLOAD_UNIFORM')).toBeGreaterThan(0);
   });
 });
