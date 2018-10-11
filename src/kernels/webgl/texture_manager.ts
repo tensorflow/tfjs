@@ -54,6 +54,9 @@ export class TextureManager {
     let newTexture: WebGLTexture;
     if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT32) {
       newTexture = this.gpgpu.createPackedMatrixTexture(shapeRC[0], shapeRC[1]);
+    } else if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT16) {
+      newTexture =
+          this.gpgpu.createFloat16PackedMatrixTexture(shapeRC[0], shapeRC[1]);
     } else if (physicalTexType === PhysicalTextureType.UNPACKED_FLOAT32) {
       newTexture =
           this.gpgpu.createFloat32MatrixTexture(shapeRC[0], shapeRC[1]);
@@ -149,7 +152,9 @@ function getPhysicalFromLogicalTextureType(logicalTexType: TextureUsage):
         PhysicalTextureType.UNPACKED_FLOAT32 :
         PhysicalTextureType.UNPACKED_FLOAT16;
   } else if (logicalTexType === TextureUsage.PACK) {
-    return PhysicalTextureType.PACKED_2X2_FLOAT32;
+    return ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') ?
+        PhysicalTextureType.PACKED_2X2_FLOAT32 :
+        PhysicalTextureType.PACKED_2X2_FLOAT16;
   }
   throw new Error(`Unknown logical texture type ${logicalTexType}`);
 }

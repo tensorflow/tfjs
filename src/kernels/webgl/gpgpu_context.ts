@@ -148,6 +148,13 @@ export class GPGPUContext {
     gpgpu_util.uploadPixelDataToTexture(this.gl, texture, pixels);
   }
 
+  public createFloat16PackedMatrixTexture(rows: number, columns: number):
+      WebGLTexture {
+    this.throwIfDisposed();
+    return gpgpu_util.createFloat16PackedMatrixTexture(
+        this.gl, rows, columns, this.textureConfig);
+  }
+
   public createPackedMatrixTexture(rows: number, columns: number):
       WebGLTexture {
     this.throwIfDisposed();

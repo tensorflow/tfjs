@@ -30,7 +30,8 @@ export enum PhysicalTextureType {
   UNPACKED_FLOAT16,
   UNPACKED_FLOAT32,
   PACKED_4X1_UNSIGNED_BYTE,
-  PACKED_2X2_FLOAT32
+  PACKED_2X2_FLOAT32,
+  PACKED_2X2_FLOAT16
 }
 
 export interface TextureData {
