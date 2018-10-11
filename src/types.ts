@@ -71,6 +71,11 @@ export interface Visor {
    * Binds the default keyboard shortcuts
    */
   bindKeys: () => void;
+
+  /**
+   * Set the current tab
+   */
+  setActiveTab: (tabName: string) => void;
 }
 
 /**

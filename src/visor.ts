@@ -101,12 +101,15 @@ export function visor(): Visor {
     open: () => visorComponentInstance.open(),
     toggle: () => visorComponentInstance.toggle(),
     toggleFullScreen: () => visorComponentInstance.toggleFullScreen(),
-    bindKeys: () => {
-      throw new Error('Not yet implemented');
-    },
-    unbindKeys: () => {
-      throw new Error('Not yet implemented');
-    },
+    bindKeys: () => visorComponentInstance.bindKeys(),
+    unbindKeys: () => visorComponentInstance.unbindKeys(),
+    setActiveTab: (tabName: string) => {
+      const tabs = visorComponentInstance.state.tabs;
+      if (!tabs.has(tabName)) {
+        throw new Error(`Tab '${tabName}' does not exist`);
+      }
+      visorComponentInstance.setState({activeTab: tabName});
+    }
   };
 
   return visorSingleton;
