@@ -210,6 +210,16 @@ export function createPackedMatrixTexture(
       gl.FLOAT);
 }
 
+export function createFloat16PackedMatrixTexture(
+    gl: WebGLRenderingContext, rows: number, columns: number,
+    textureConfig: TextureConfig): WebGLTexture {
+  const [width, height] =
+      tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
+  return createAndConfigureTexture(
+      gl, width, height, textureConfig.internalFormatHalfFloat, gl.RGBA,
+      textureConfig.textureTypeHalfFloat);
+}
+
 export function bindVertexProgramAttributeStreams(
     gl: WebGLRenderingContext, program: WebGLProgram,
     vertexBuffer: WebGLBuffer): boolean {
