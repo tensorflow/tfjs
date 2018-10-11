@@ -15,11 +15,16 @@
  * =============================================================================
  */
 
+import * as tf from '../../index';
 import {describeWithFlags} from '../../jasmine_util';
-import {WEBGL_ENVS} from '../../test_util';
+import {expectArraysClose, WEBGL_ENVS} from '../../test_util';
 
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_util from './gpgpu_util';
+
+const DOWNLOAD_FLOAT_ENVS = {
+  'WEBGL_DOWNLOAD_FLOAT_ENABLED': true
+};
 
 describeWithFlags('gpgpu_util createWebGLContext', WEBGL_ENVS, () => {
   let gpgpu: GPGPUContext;
@@ -128,3 +133,47 @@ describeWithFlags('gpgpu_util createPackedMatrixTexture', WEBGL_ENVS, () => {
     gpgpu.dispose();
   });
 });
+
+describeWithFlags(
+    'gpgpu_util downloadMatrixFromPackedOutputTexture', DOWNLOAD_FLOAT_ENVS,
+    () => {
+      it('should work when texture shape != logical shape', () => {
+        const gpgpu = new GPGPUContext();
+        const textureConfig = gpgpu_util.getTextureConfig(gpgpu.gl);
+
+        const tex =
+            gpgpu_util.createPackedMatrixTexture(gpgpu.gl, 4, 6, textureConfig);
+
+        const mat =
+            tf.tensor2d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [1, 12]);
+        /*
+        This is how the tensor is arranged in a 2x3 packed texture
+
+        0|1   2|3   4|5
+        –––   –––   –––
+        x|x   x|x   x|x
+
+        6|7   8|9  10|11
+        –––   –––   –––
+        x|x   x|x   x|x
+
+        Each group of four is one texel. x's represent empty channels. To
+        obtain the flattened representation in the call to gl.texSubImage2D
+        below, one moves through the texels from left to right, top to bottom,
+        reading off the 4 channels for each texel (x's become 0's).
+         */
+
+        gpgpu.gl.bindTexture(gpgpu.gl.TEXTURE_2D, tex);
+        gpgpu.gl.texSubImage2D(
+            gpgpu.gl.TEXTURE_2D, 0, 0, 0, 3, 2, gpgpu.gl.RGBA, gpgpu.gl.FLOAT,
+            new Float32Array([
+              0, 1, 0, 0, 2, 3, 0, 0, 4,  5,  0, 0,
+              6, 7, 0, 0, 8, 9, 0, 0, 10, 11, 0, 0
+            ]));
+
+        const result =
+            gpgpu.downloadMatrixFromPackedTexture(tex, mat.shape, 4, 6);
+
+        expectArraysClose(result, mat.dataSync());
+      });
+    });

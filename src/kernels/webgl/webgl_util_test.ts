@@ -15,86 +15,98 @@
  * =============================================================================
  */
 
+import * as tf from '../../index';
 import {describeWithFlags} from '../../jasmine_util';
 import {WEBGL_ENVS} from '../../test_util';
+import * as util from '../../util';
 
-import * as gpgpu_util from './gpgpu_util';
 import {TextureUsage} from './tex_util';
 import * as webgl_util from './webgl_util';
 
 describeWithFlags('getTextureShapeFromLogicalShape', WEBGL_ENVS, () => {
-  let gl: WebGLRenderingContext;
-
-  beforeEach(() => {
-    gl = gpgpu_util.createWebGLContext();
-  });
-
   it('scalar', () => {
-    const texShape = webgl_util.getTextureShapeFromLogicalShape(gl, []);
+    const texShape = webgl_util.getTextureShapeFromLogicalShape([]);
     expect(texShape).toEqual([1, 1]);
   });
 
   it('1d', () => {
-    const texShape = webgl_util.getTextureShapeFromLogicalShape(gl, [4]);
+    const texShape = webgl_util.getTextureShapeFromLogicalShape([4]);
     expect(texShape).toEqual([4, 1]);
   });
 
   it('2d stays same', () => {
-    let texShape = webgl_util.getTextureShapeFromLogicalShape(gl, [5, 2]);
+    let texShape = webgl_util.getTextureShapeFromLogicalShape([5, 2]);
     expect(texShape).toEqual([5, 2]);
 
-    texShape = webgl_util.getTextureShapeFromLogicalShape(gl, [5, 1]);
+    texShape = webgl_util.getTextureShapeFromLogicalShape([5, 1]);
     expect(texShape).toEqual([5, 1]);
 
-    texShape = webgl_util.getTextureShapeFromLogicalShape(gl, [1, 5]);
+    texShape = webgl_util.getTextureShapeFromLogicalShape([1, 5]);
     expect(texShape).toEqual([1, 5]);
   });
 
   it('3d 2x3x4', () => {
-    const texShape = webgl_util.getTextureShapeFromLogicalShape(gl, [2, 3, 4]);
+    const texShape = webgl_util.getTextureShapeFromLogicalShape([2, 3, 4]);
     expect(texShape).toEqual([6, 4]);
   });
 
   it('3d 3x256x256', () => {
-    const texShape =
-        webgl_util.getTextureShapeFromLogicalShape(gl, [3, 256, 256]);
+    const texShape = webgl_util.getTextureShapeFromLogicalShape([3, 256, 256]);
     expect(texShape).toEqual([3 * 256, 256]);
   });
 
   it('3d 2x1x4 got squeezed', () => {
-    const texShape = webgl_util.getTextureShapeFromLogicalShape(gl, [2, 1, 4]);
+    const texShape = webgl_util.getTextureShapeFromLogicalShape([2, 1, 4]);
     expect(texShape).toEqual([2, 4]);
   });
 
   it('3d 1x8x2 got squeezed', () => {
-    const texShape = webgl_util.getTextureShapeFromLogicalShape(gl, [1, 8, 2]);
+    const texShape = webgl_util.getTextureShapeFromLogicalShape([1, 8, 2]);
     expect(texShape).toEqual([8, 2]);
   });
 
   it('4d 2x2x256x256 got squeezed', () => {
     const texShape =
-        webgl_util.getTextureShapeFromLogicalShape(gl, [2, 2, 256, 256]);
+        webgl_util.getTextureShapeFromLogicalShape([2, 2, 256, 256]);
     expect(texShape).toEqual([2 * 2 * 256, 256]);
   });
 
   it('4d 1x8x1x3 got squeezed', () => {
-    const texShape =
-        webgl_util.getTextureShapeFromLogicalShape(gl, [1, 8, 1, 3]);
+    const texShape = webgl_util.getTextureShapeFromLogicalShape([1, 8, 1, 3]);
     expect(texShape).toEqual([8, 3]);
   });
 
   it('4d 1x3x1x8 got squeezed', () => {
-    const texShape =
-        webgl_util.getTextureShapeFromLogicalShape(gl, [1, 3, 1, 8]);
+    const texShape = webgl_util.getTextureShapeFromLogicalShape([1, 3, 1, 8]);
     expect(texShape).toEqual([3, 8]);
   });
+});
 
-  it('packed textures less than 2x max size of platform do not get squeezed',
-     () => {
-       const max = webgl_util.queryMaxTextureSize(gl);
-       const logicalShape = [2, max + 1];
-       const texShape = webgl_util.getTextureShapeFromLogicalShape(
-           gl, logicalShape, TextureUsage.PACK);
-       expect(texShape).toEqual(logicalShape);
-     });
+describeWithFlags('getTextureShapeFromLogicalShape packed', WEBGL_ENVS, () => {
+  it('textures less than 2x max size of platform preserve their shapes', () => {
+    const logicalShape =
+        [2, util.nearestLargerEven(tf.ENV.get('WEBGL_MAX_TEXTURE_SIZE') + 1)];
+    const texShape = webgl_util.getTextureShapeFromLogicalShape(
+        logicalShape, TextureUsage.PACK);
+    expect(texShape).toEqual(logicalShape);
+  });
+
+  it('rows/columns do not get squeezed', () => {
+    const logicalShape = [1, 1, 1];
+    const texShape = webgl_util.getTextureShapeFromLogicalShape(
+        logicalShape, TextureUsage.PACK);
+    expect(texShape).toEqual([2, 2]);
+  });
+
+  it('squarified texture shapes account for packing constraints', () => {
+    const max = tf.ENV.get('WEBGL_MAX_TEXTURE_SIZE');
+
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
+    const logicalShape = [1, 12];
+    const texShape = webgl_util.getTextureShapeFromLogicalShape(
+        logicalShape, TextureUsage.PACK);
+
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', max);
+    expect(texShape).toEqual([4, 6]);
+  });
 });

@@ -46,7 +46,7 @@ describeWithFlags('packed matmul', WEBGL_ENVS, () => {
         [46, 52, 58, 64, 70, 100, 115, 130, 145, 160, 154, 178, 202, 226, 250]);
   });
 
-  it('should work when texture shape != physical shape', () => {
+  it('should work when output texture shape != physical shape', () => {
     const sharedDim = 16000;
     const a = tf.buffer<Rank.R2>([2, sharedDim], 'float32');
     const b = tf.buffer<Rank.R2>([sharedDim, 2], 'float32');
@@ -60,6 +60,19 @@ describeWithFlags('packed matmul', WEBGL_ENVS, () => {
     const c = tf.matMul(a.toTensor(), b.toTensor());
     const expected = [2, 0, 1, 0];
     expectArraysClose(c, expected);
+  });
+
+  it('should work when input texture shapes != physical shape', () => {
+    const maxTextureSize = tf.ENV.get('WEBGL_MAX_TEXTURE_SIZE');
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
+    const a = tf.tensor2d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [1, 12]);
+    const b = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [12, 1]);
+
+    const c = tf.matMul(a, b);
+
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
+
+    expectArraysClose(c, [572]);
   });
 
   it('A x B', () => {

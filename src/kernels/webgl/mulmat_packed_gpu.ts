@@ -30,21 +30,19 @@ export class MatMulPackedProgram implements GPGPUProgram {
     const sharedDim = transposeA ? aShape[0] : aShape[1];
     const sharedDimensionPacked = Math.ceil(sharedDim / 2);
 
-    const aSample = transposeA ? 'resultUV.t, center' : 'center, resultUV.t';
-    const bSample = transposeB ? 'center, resultUV.s' : 'resultUV.s, center';
+    const aSample = transposeA ? 'i * 2, rc.x' : 'rc.x, i * 2';
+    const bSample = transposeB ? 'rc.y, i * 2' : 'i * 2, rc.y';
     const aSwizzle = transposeA ? ['a.xxyy', 'a.zzww'] : ['a.xxzz', 'a.yyww'];
     const bSwizzle = transposeB ? ['b.xzxz', 'b.ywyw'] : ['b.xyxy', 'b.zwzw'];
 
     this.userCode = `
       const float sharedDimension = ${sharedDimensionPacked}.0;
 
-      vec4 dot2x2ARowBCol() {
+      vec4 dot2x2ARowBCol(ivec2 rc) {
         vec4 result = vec4(0);
-        for (int ii = 0; ii < ${sharedDimensionPacked}; ii++) {
-          float i = float(ii);
-          float center = (i + 0.5) / sharedDimension;
-          vec4 a = texture2D(matrixA, vec2(${aSample}));
-          vec4 b = texture2D(matrixB, vec2(${bSample}));
+        for (int i = 0; i < ${sharedDimensionPacked}; i++) {
+          vec4 a = getMatrixA(${aSample});
+          vec4 b = getMatrixB(${bSample});
 
           result += (${aSwizzle[0]} * ${bSwizzle[0]}) + (${aSwizzle[1]} * ${
         bSwizzle[1]});
@@ -53,7 +51,8 @@ export class MatMulPackedProgram implements GPGPUProgram {
       }
 
       void main() {
-        gl_FragColor = dot2x2ARowBCol();
+        ivec2 rc = getOutputCoords();
+        gl_FragColor = dot2x2ARowBCol(rc);
       }
     `;
   }

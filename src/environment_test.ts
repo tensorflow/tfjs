@@ -295,6 +295,12 @@ describe('environment_util.getQueryParams', () => {
   });
 });
 
+describeWithFlags('max texture size', WEBGL_ENVS, () => {
+  it('should not throw exception', () => {
+    expect(() => ENV.get('WEBGL_MAX_TEXTURE_SIZE')).not.toThrow();
+  });
+});
+
 describeWithFlags('epsilon', {}, () => {
   it('Epsilon is a function of float precision', () => {
     const epsilonValue = ENV.backend.floatPrecision() === 32 ? 1e-7 : 1e-3;
