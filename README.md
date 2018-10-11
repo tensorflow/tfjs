@@ -108,8 +108,7 @@ Initially calling visor() will create a panel that is displayed on the right. It
  * __~__ (tilde, shift+backtick): Toggles betweeen full width and smaller width view of the visor.
 
 The returned object has the following properties, documented here with the
-prefix `visor()` and annotated with type information. You can call visor() as much as you want or store a reference
-to the returned object.
+prefix `visor()` and annotated with type information. You can call visor() as much as you want or store a reference to the returned object.
 
 #### visor().el: HTMLElement
 
@@ -168,6 +167,18 @@ Toggles the visor open and closed.
 #### visor().toggleFullScreen() => void;
 
 Toggles the fullscreen mode of the visor.
+
+#### visor().setActiveTab(tabName: string) => void;
+
+Set the currently active tab. tabName must be the name of an existing tab.
+
+#### visor().unbindKeys() => void;
+
+Removes the default keyboard handlers that control visor visibility.
+
+#### visor().bindKeys() => void;
+
+Restores the default keyboard handlers that control visor visiblity.
 
 ### Surface
 

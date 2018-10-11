@@ -95,6 +95,8 @@ export class VisorComponent extends Component<VisorProps, VisorState> {
       activeTab: null,
       tabs: new Set<string>()
     };
+
+    this.keyHandler = this.keyHandler.bind(this);
   }
 
   // These public methods are exposed via an imperative interface
@@ -141,7 +143,11 @@ export class VisorComponent extends Component<VisorProps, VisorState> {
   }
 
   bindKeys() {
-    document.addEventListener('keydown', this.keyHandler.bind(this), false);
+    document.addEventListener('keydown', this.keyHandler, false);
+  }
+
+  unbindKeys() {
+    document.removeEventListener('keydown', this.keyHandler);
   }
 
   private surfaceId(label: string, tab: string): string {
