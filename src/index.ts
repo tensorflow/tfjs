@@ -56,3 +56,5 @@ export {visor} from './visor';
 export {render};
 export {metrics};
 export {show};
+
+export {Visor, Surface, SurfaceInfo, StyleOptions, Drawable,} from './types';
