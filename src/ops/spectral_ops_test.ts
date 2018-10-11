@@ -17,14 +17,14 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {expectArraysClose, ALL_ENVS} from '../test_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('FFT', ALL_ENVS, () => {
   it('should return the same value with TensorFlow (2 elements)', () => {
     const t1Real = tf.tensor1d([1, 2]);
     const t1Imag = tf.tensor1d([1, 1]);
     const t1 = tf.complex(t1Real, t1Imag);
-    expectArraysClose(tf.fft(t1), [3, 2, -1, 0]);
+    expectArraysClose(tf.spectral.fft(t1), [3, 2, -1, 0]);
   });
 
   it('should calculate FFT from Tensor directly', () => {
@@ -38,38 +38,41 @@ describeWithFlags('FFT', ALL_ENVS, () => {
     const t1Real = tf.tensor1d([1, 2, 3]);
     const t1Imag = tf.tensor1d([0, 0, 0]);
     const t1 = tf.complex(t1Real, t1Imag);
-    expectArraysClose(tf.fft(t1), [6, 0, -1.5, 0.866025, -1.5, -0.866025]);
+    expectArraysClose(
+        tf.spectral.fft(t1), [6, 0, -1.5, 0.866025, -1.5, -0.866025]);
   });
 
   it('should return the same value as TensorFlow with imaginary (3 elements)',
-      () => {
-    const t1Real = tf.tensor1d([1, 2, 3]);
-    const t1Imag = tf.tensor1d([1, 2, 3]);
-    const t1 = tf.complex(t1Real, t1Imag);
-    expectArraysClose(
-        tf.fft(t1), [6, 6, -2.3660252, -0.63397473, -0.6339747, -2.3660254]);
-  });
+     () => {
+       const t1Real = tf.tensor1d([1, 2, 3]);
+       const t1Imag = tf.tensor1d([1, 2, 3]);
+       const t1 = tf.complex(t1Real, t1Imag);
+       expectArraysClose(
+           tf.spectral.fft(t1),
+           [6, 6, -2.3660252, -0.63397473, -0.6339747, -2.3660254]);
+     });
 
   it('should return the same value as TensorFlow (negative 3 elements)', () => {
     const t1Real = tf.tensor1d([-1, -2, -3]);
     const t1Imag = tf.tensor1d([-1, -2, -3]);
     const t1 = tf.complex(t1Real, t1Imag);
-    expectArraysClose(tf.fft(t1),
-      [-5.9999995, -6, 2.3660252, 0.63397473, 0.6339747, 2.3660254]);
+    expectArraysClose(
+        tf.spectral.fft(t1),
+        [-5.9999995, -6, 2.3660252, 0.63397473, 0.6339747, 2.3660254]);
   });
 
   it('should return the same value with TensorFlow (4 elements)', () => {
     const t1Real = tf.tensor1d([1, 2, 3, 4]);
     const t1Imag = tf.tensor1d([0, 0, 0, 0]);
     const t1 = tf.complex(t1Real, t1Imag);
-    expectArraysClose(tf.fft(t1), [10, 0, -2, 2, -2, 0, -2, -2]);
+    expectArraysClose(tf.spectral.fft(t1), [10, 0, -2, 2, -2, 0, -2, -2]);
   });
 
   it('should return the same value as TensorFlow with imaginary (4 elements)',
-      () => {
-    const t1Real = tf.tensor1d([1, 2, 3, 4]);
-    const t1Imag = tf.tensor1d([1, 2, 3, 4]);
-    const t1 = tf.complex(t1Real, t1Imag);
-    expectArraysClose(tf.fft(t1), [10, 10, -4, 0, -2, -2, 0, -4]);
-  });
+     () => {
+       const t1Real = tf.tensor1d([1, 2, 3, 4]);
+       const t1Imag = tf.tensor1d([1, 2, 3, 4]);
+       const t1 = tf.complex(t1Real, t1Imag);
+       expectArraysClose(tf.spectral.fft(t1), [10, 10, -4, 0, -2, -2, 0, -4]);
+     });
 });
