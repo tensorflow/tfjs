@@ -29,9 +29,12 @@ import {assert} from '../util';
  * const imag = tf.tensor1d([1, 2, 3]);
  * const x = tf.complex(real, imag);
  *
- * x.fft().print();
+ * x.fft().print();  // tf.spectral.fft(x).print();
  * ```
  * @param input The complex input to compute an fft over.
+ */
+/**
+ * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
  */
 function fft_(input: Tensor1D): Tensor1D {
   assert(input.dtype === 'complex64', 'dtype must be complex64');
