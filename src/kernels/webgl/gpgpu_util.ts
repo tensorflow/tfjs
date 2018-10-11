@@ -149,7 +149,7 @@ function createAndConfigureTexture(
     gl: WebGLRenderingContext, width: number, height: number,
     internalFormat: number, textureFormat: number,
     textureType: number): WebGLTexture {
-  webgl_util.validateTextureSize(gl, width, height);
+  webgl_util.validateTextureSize(width, height);
   const texture = webgl_util.createTexture(gl);
 
   const tex2d = gl.TEXTURE_2D;
@@ -249,7 +249,7 @@ export function uploadPixelDataToTexture(
 function uploadDataToTexture(
     gl: WebGLRenderingContext, texture: WebGLTexture, width: number,
     height: number, data: Float32Array, textureFormat: number) {
-  webgl_util.validateTextureSize(gl, width, height);
+  webgl_util.validateTextureSize(width, height);
   webgl_util.callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, texture));
   webgl_util.callAndCheck(
       gl,
@@ -396,13 +396,17 @@ export function downloadByteEncodedFloatMatrixFromOutputTexture(
 }
 
 export function downloadMatrixFromPackedOutputTexture(
-    gl: WebGLRenderingContext, rows: number, columns: number,
+    gl: WebGLRenderingContext, logicalRows: number, logicalCols: number,
+    physicalRows: number, physicalCols: number,
     textureConfig: TextureConfig): Float32Array {
-  const [w, h] = tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
-  const packedRGBA = new Float32Array(
-      tex_util.getPackedRGBAArraySizeFromMatrixShape(rows, columns));
+  const [w, h] = tex_util.getPackedMatrixTextureShapeWidthHeight(
+      physicalRows, physicalCols);
+  const packedRGBA =
+      new Float32Array(tex_util.getPackedRGBAArraySizeFromMatrixShape(
+          physicalRows, physicalCols));
   webgl_util.callAndCheck(
       gl, () => gl.readPixels(0, 0, w, h, gl.RGBA, gl.FLOAT, packedRGBA));
-  const matrix = new Float32Array(rows * columns);
-  return tex_util.decodeMatrixFromPackedRGBA(packedRGBA, rows, columns, matrix);
+  const matrix = new Float32Array(logicalRows * logicalCols);
+  return tex_util.decodeMatrixFromPackedRGBA(
+      packedRGBA, logicalRows, logicalCols, matrix);
 }

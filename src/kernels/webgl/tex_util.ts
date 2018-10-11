@@ -219,7 +219,7 @@ export function decodeMatrixFromPackedRGBA(
     packedRGBA: Float32Array, rows: number, columns: number,
     matrix: Float32Array): Float32Array {
   const requiredSize = rows * columns;
-  if (requiredSize < matrix.length) {
+  if (matrix.length < requiredSize) {
     throw new Error(
         `matrix length (${matrix.length}) must be >= ${requiredSize}`);
   }
@@ -273,11 +273,11 @@ export function decodeMatrixFromPackedRGBA(
       matrix[dst++] = packedRGBA[src++];
       src += 2;
     }
-  }
 
-  // fill in bottom-right cell
-  if (oddWidth && oddHeight) {
-    matrix[matrix.length - 1] = packedRGBA[packedRGBA.length - 4];
+    // fill in bottom-right cell
+    if (oddWidth) {
+      matrix[dst] = packedRGBA[src];
+    }
   }
 
   return matrix;

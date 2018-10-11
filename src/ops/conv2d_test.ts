@@ -88,31 +88,64 @@ describeWithFlags('conv im2row', WEBGL_ENVS, () => {
     expectArraysClose(result, [20]);
   });
 
-  it('should work when texture shape does not equal physical shape', () => {
-    const inputDepth = 3;
-    const inputSize = 300;
-    const filterSize = 3;
-    const outputDepth = 24;
+  it('should work when output texture shape does not equal logical shape',
+     () => {
+       const inputDepth = 3;
+       const inputSize = 300;
+       const filterSize = 3;
+       const outputDepth = 24;
 
-    const xData = new Float32Array(1 * inputSize * inputSize * inputDepth);
-    const wData =
-        new Float32Array(filterSize * filterSize * inputDepth * outputDepth);
+       const xData = new Float32Array(1 * inputSize * inputSize * inputDepth);
+       const wData =
+           new Float32Array(filterSize * filterSize * inputDepth * outputDepth);
 
-    xData[0] = 1;
-    xData[100] = 1;
-    wData[0] = 1;
-    wData[100] = 1;
+       xData[0] = 1;
+       xData[100] = 1;
+       wData[0] = 1;
+       wData[100] = 1;
 
-    const x = tf.tensor4d(xData, [1, inputSize, inputSize, inputDepth]);
-    const w =
-        tf.tensor4d(wData, [filterSize, filterSize, inputDepth, outputDepth]);
+       const x = tf.tensor4d(xData, [1, inputSize, inputSize, inputDepth]);
+       const w = tf.tensor4d(
+           wData, [filterSize, filterSize, inputDepth, outputDepth]);
 
-    const result = tf.conv2d(x, w, 2, 'same');
-    const resultData = result.dataSync();
+       const result = tf.conv2d(x, w, 2, 'same');
+       const resultData = result.dataSync();
 
-    expect(resultData[0]).toEqual(1);
-    expect(resultData[388]).toEqual(1);
-  });
+       expect(resultData[0]).toEqual(1);
+       expect(resultData[388]).toEqual(1);
+     });
+
+  it('should work when input texture shapes do not equal logical shapes',
+     () => {
+       const webglMaxTextureSize = tf.ENV.get('WEBGL_MAX_TEXTURE_SIZE');
+       tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 10);
+
+       const inputDepth = 1;
+       const inputSize = 5;
+       const filterSize = 2;
+       const outputDepth = 1;
+
+       const x = tf.tensor3d(
+           [
+             0.4,  0.75, 0.65, 0.98, 0.1,  0.41, 0.01, 0.46, 0.49,
+             0.4,  0.11, 0.76, 0.73, 0.86, 0.34, 0.34, 0.71, 0.68,
+             0.62, 0.87, 0.64, 0.38, 0.29, 0.55, 0.95
+           ],
+           [inputSize, inputSize, inputDepth]);
+       const w = tf.tensor4d(
+           [0.57, 0.64, 0.18, 0.18],
+           [filterSize, filterSize, inputDepth, outputDepth]);
+
+       const result = tf.conv2d(x, w, 1, 'same');
+
+       tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', webglMaxTextureSize);
+
+       expectArraysClose(result, [
+         0.7836, 0.9281, 1.1687, 0.7828, 0.129,  0.3967, 0.5683, 0.862,  0.7513,
+         0.2892, 0.7381, 1.1506, 1.2005, 0.976,  0.3504, 0.8318, 0.9605, 0.9356,
+         1.1802, 0.6669, 0.608,  0.4022, 0.5173, 0.9215, 0.5415
+       ]);
+     });
 });
 
 describeWithFlags('conv2d', ALL_ENVS, () => {

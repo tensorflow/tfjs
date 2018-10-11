@@ -341,7 +341,7 @@ export class MathBackendWebGL implements KernelBackend {
     if (ENV.get('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
       if (this.texData.get(dataId).usage === TextureUsage.PACK) {
         return this.gpgpu.downloadMatrixFromPackedTexture(
-            texture, texShape[0], texShape[1]);
+            texture, shape, texShape[0], texShape[1]);
       } else {
         return this.gpgpu.downloadFloat32MatrixFromOutputTexture(
             texture, texShape[0], texShape[1]);
@@ -560,21 +560,6 @@ export class MathBackendWebGL implements KernelBackend {
     return res.reshape(outShape) as T;
   }
 
-  /**
-   * Returns a boolean indicating whether a tensor can be stored on the GPU with
-   * a texture whose physical dimensions match the tensor's logical dimensions.
-   *
-   * @param shape The tensor's shape.
-   * @param usage The tensor's TextureUsage type, which matters for deciding
-   * what the maximum texture size should be.
-   */
-  private textureCanMatchShape(
-      shape: number[], usage: TextureUsage = TextureUsage.UPLOAD): boolean {
-    return util.arraysEqual(
-        webgl_util.getTextureShapeFromLogicalShape(this.gpgpu.gl, shape, usage),
-        shape);
-  }
-
   concat(tensors: Tensor[], axis: number): Tensor {
     if (tensors.length === 1) {
       return tensors[0];
@@ -598,14 +583,7 @@ export class MathBackendWebGL implements KernelBackend {
     const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
 
     // TODO(https://github.com/tensorflow/tfjs/issues/693): Support 3D tensors
-    // We're restricting packed matMul to these conditions because for now, our
-    // packed matMul shader needs its inputs to be 2D matrices whose physical
-    // dimensions match their logical dimensions.
-    if (a.shape[0] === 1 && b.shape[0] === 1 &&
-        this.textureCanMatchShape(
-            [a.shape[1], a.shape[2]], TextureUsage.PACK) &&
-        this.textureCanMatchShape(
-            [b.shape[1], b.shape[2]], TextureUsage.PACK)) {
+    if (a.shape[0] === 1 && b.shape[0] === 1) {
       const aSqueezed = a.as2D(a.shape[1], a.shape[2]);
       const bSqueezed = b.as2D(b.shape[1], b.shape[2]);
       const packProgramA = new PackProgram(aSqueezed.shape);
@@ -1396,22 +1374,7 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
-    const {
-      filterWidth,
-      filterHeight,
-      inChannels,
-      outWidth,
-      outHeight,
-    } = convInfo;
-
-    const sharedDim = filterWidth * filterHeight * inChannels;
-    const numCols = outHeight * outWidth;
-    const x2ColShape = [sharedDim, numCols];
-    const w2RowShape = [convInfo.outChannels, sharedDim];
-
-    if (ENV.get('WEBGL_CONV_IM2COL') && x.shape[0] === 1 &&
-        this.textureCanMatchShape(x2ColShape, TextureUsage.PACK) &&
-        this.textureCanMatchShape(w2RowShape, TextureUsage.PACK)) {
+    if (ENV.get('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
       return this.conv2dWithIm2Row(x, filter, convInfo);
     }
     const program = new Conv2DProgram(convInfo);
@@ -1792,8 +1755,7 @@ export class MathBackendWebGL implements KernelBackend {
     if (shouldTimeProgram) {
       start = performance.now();
     }
-    const texShape =
-        webgl_util.getTextureShapeFromLogicalShape(this.gpgpu.gl, shape, usage);
+    const texShape = webgl_util.getTextureShapeFromLogicalShape(shape, usage);
     texData.texShape = texShape;
     const newTexture = this.acquireTexture(dataId, texShape, usage);
     texData.texture = newTexture;
