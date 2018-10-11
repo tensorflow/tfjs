@@ -23,6 +23,7 @@ import * as array_ops_util from '../ops/array_ops_util';
 import * as axis_util from '../ops/axis_util';
 import {computeOutShape} from '../ops/concat_util';
 import {Conv2DInfo} from '../ops/conv_util';
+import * as gather_nd_util from '../ops/gather_nd_util';
 import * as reduce_util from '../ops/reduce_util';
 import * as scatter_nd_util from '../ops/scatter_nd_util';
 import * as segment_util from '../ops/segment_util';
@@ -61,6 +62,7 @@ import * as fft_gpu from './webgl/fft_gpu';
 import {FFTProgram} from './webgl/fft_gpu';
 import {FromPixelsProgram} from './webgl/from_pixels_gpu';
 import {GatherProgram} from './webgl/gather_gpu';
+import {GatherNDProgram} from './webgl/gather_nd_gpu';
 import {GPGPUContext} from './webgl/gpgpu_context';
 import * as gpgpu_math from './webgl/gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './webgl/gpgpu_math';
@@ -1621,6 +1623,21 @@ export class MathBackendWebGL implements KernelBackend {
     real.dispose();
     imag.dispose();
     return complex;
+  }
+
+  gatherND(x: Tensor, indices: Tensor): Tensor<Rank> {
+    const indicesShape = indices.shape;
+    const sliceRank = indicesShape[indicesShape.length - 1];
+
+    const [resultShape, numSlices, sliceSize, strides] =
+        gather_nd_util.prepareAndValidate(x, indices);
+
+    const flattenIndices = indices.reshape([numSlices, sliceRank]);
+    const flattenX = x.reshape([x.size / sliceSize, sliceSize]);
+    const program =
+        new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize]);
+    return (this.compileAndRun(program, [flattenX, flattenIndices]) as Tensor)
+        .reshape(resultShape);
   }
 
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):

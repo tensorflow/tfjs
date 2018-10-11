@@ -25,6 +25,7 @@ import * as broadcast_util from '../ops/broadcast_util';
 import * as concat_util from '../ops/concat_util';
 import {Conv2DInfo} from '../ops/conv_util';
 import * as erf_util from '../ops/erf_util';
+import * as gather_nd_util from '../ops/gather_nd_util';
 import * as ops from '../ops/ops';
 import {buffer, tensor, tensor3d, tensor4d} from '../ops/ops';
 import * as scatter_nd_util from '../ops/scatter_nd_util';
@@ -2848,6 +2849,40 @@ export class MathBackendCPU implements KernelBackend {
     return output.toTensor();
   }
 
+  gatherND(x: Tensor, indices: Tensor): Tensor<Rank> {
+    const indicesShape = indices.shape;
+    const sliceRank = indicesShape[indicesShape.length - 1];
+
+    const [resultShape, numSlices, sliceSize, strides] =
+        gather_nd_util.prepareAndValidate(x, indices);
+    if (numSlices === 0) {
+      return tensor([], resultShape, x.dtype);
+    }
+
+    const buffer = new TensorBuffer([numSlices, sliceSize], x.dtype);
+    const indicesData = indices.dataSync();
+    const xData = x.dataSync();
+
+    for (let i = 0; i < numSlices; i++) {
+      const index = [];
+      let flattenIndex = 0;
+      for (let j = 0; j < sliceRank; j++) {
+        const dim = indicesData[i * sliceRank + j]; 
+        flattenIndex += dim * strides[j];
+        index.push(dim);
+      }
+      if (flattenIndex < 0 || flattenIndex >= x.size / sliceSize) {
+        throw new Error(
+            `Invalid indices: ${index} does not index into ${x.shape}`);
+      }
+
+      for (let k = 0; k < sliceSize; k++) {
+        buffer.values[i * sliceSize + k] = xData[flattenIndex * sliceSize + k];
+      }
+    }
+    return buffer.toTensor().reshape(resultShape);        
+  }
+  
   scatterND<R extends Rank>(
       indices: Tensor, updates: Tensor, shape: ShapeMap[R]): Tensor<R> {
     const [sliceRank, numUpdates, sliceSize, strides, outputSize] =
