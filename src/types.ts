@@ -19,7 +19,7 @@
 import {TensorContainer, TensorContainerArray, TensorContainerObject} from '@tensorflow/tfjs-core/dist/tensor_types';
 import {DType} from '@tensorflow/tfjs-core/dist/types';
 
-import {Dataset} from '.';
+import {Dataset} from './dataset';
 import {LazyIterator} from './iterators/lazy_iterator';
 
 /**
@@ -56,6 +56,12 @@ export type IteratorContainer = Container<LazyIterator<DataElement>>;
  */
 export type FileElement = File|Blob|Uint8Array;
 
+/**
+ * A dictionary containing column level configurations when reading and decoding
+ * CSV file(s) csv source.
+ */
+
+/** @doc {heading: 'Data', subheading: 'Types'} */
 export interface ColumnConfig {
   required?: boolean;
   dtype?: DType;
