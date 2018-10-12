@@ -115,11 +115,19 @@ export function isWebGLVersionEnabled(webGLVersion: 1|2, isBrowser: boolean) {
   return false;
 }
 
-export function getWebGLMaxTextureSize(
-    webGLVersion: number, isBrowser: boolean): number {
-  const gl = getWebGLRenderingContext(webGLVersion, isBrowser);
-  return gl.getParameter(gl.MAX_TEXTURE_SIZE);
-}
+export const getWebGLMaxTextureSize = (() => {
+  // Caching MAX_TEXTURE_SIZE here because the environment gets reset between
+  // unit tests and we don't want to constantly query the WebGLContext for
+  // MAX_TEXTURE_SIZE.
+  let MAX_TEXTURE_SIZE: number = null;
+  return (webGLVersion: number, isBrowser: boolean): number => {
+    if (MAX_TEXTURE_SIZE === null) {
+      const gl = getWebGLRenderingContext(webGLVersion, isBrowser);
+      MAX_TEXTURE_SIZE = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    }
+    return MAX_TEXTURE_SIZE;
+  };
+})();
 
 export function getWebGLDisjointQueryTimerVersion(
     webGLVersion: number, isBrowser: boolean): number {
