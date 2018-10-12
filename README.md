@@ -154,7 +154,7 @@ TensorFlow.js can be used from Node.js. See
 [the tfjs-node project](https://github.com/tensorflow/tfjs-node) for more details.
 Unlike web browsers, Node.js can access the local file system directly.
 Therefore, you can load the same frozen model from local file system into
-a Node.js program running TensorFlow.js. This is done by calling `laodFrozenModel` with the path
+a Node.js program running TensorFlow.js. This is done by calling `loadFrozenModel` with the path
 to the model files:
 
 ```js
