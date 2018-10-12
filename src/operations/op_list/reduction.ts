@@ -93,5 +93,18 @@ export const json = [
       {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
       {'tfInputIndex': 1, 'dlParamName': 'axis', 'type': 'number'}
     ]
+  },
+  {
+    'tfOpName': 'Prod',
+    'dlOpName': 'prod',
+    'category': 'reduction',
+    'params': [
+      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
+      {'tfInputIndex': 1, 'dlParamName': 'axis', 'type': 'number[]'}, {
+        'tfParamName': 'keep_dims',
+        'dlParamName': 'keepDims',
+        'type': 'bool'
+      }
+    ]
   }
 ];

@@ -225,6 +225,7 @@
 |Max|max|
 |Mean|mean|
 |Min|min|
+|Prod|prod|
 |Sum|sum|
 |Not mapped|logSumExp|
 

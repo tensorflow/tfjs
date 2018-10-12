@@ -86,6 +86,14 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
       return [tfc.argMin(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis)];
     }
+    case 'prod': {
+      const axis = getParamValue('axis', node, tensorMap, context) as number[];
+      const keepDims =
+          getParamValue('keepDims', node, tensorMap, context) as boolean;
+      return [tfc.prod(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis,
+          keepDims)];
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
