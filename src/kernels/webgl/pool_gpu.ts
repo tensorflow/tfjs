@@ -29,10 +29,14 @@ export class Pool2DProgram implements GPGPUProgram {
       throw new Error('Cannot compute positions for average pool.');
     }
 
-    const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
     this.outputShape = convInfo.outShape;
@@ -67,14 +71,16 @@ export class Pool2DProgram implements GPGPUProgram {
           int minMaxPosition = 0;
           float avgValue = 0.0;
 
-          for (int wR = 0; wR < ${filterHeight}; wR++) {
+          for (int wR = 0; wR < ${effectiveFilterHeight};
+              wR += ${dilationHeight}) {
             int xR = xRCorner + wR;
 
             if (xR < 0 || xR >= ${convInfo.inHeight}) {
               continue;
             }
 
-            for (int wC = 0; wC < ${filterWidth}; wC++) {
+            for (int wC = 0; wC < ${effectiveFilterWidth};
+                wC += ${dilationWidth}) {
               int xC = xCCorner + wC;
 
               if (xC < 0 || xC >= ${convInfo.inWidth}) {
@@ -90,7 +96,7 @@ export class Pool2DProgram implements GPGPUProgram {
               if (value ${compareOp} currMinMaxValue) {
                 minMaxValue = value;
                 minMaxValueFound = 1.0;
-                minMaxPosition = wR * ${filterWidth} + wC;
+                minMaxPosition = wR * ${effectiveFilterWidth} + wC;
               }
             }
           }
@@ -150,7 +156,8 @@ export class Pool2DProgram implements GPGPUProgram {
         float avgValue = 0.0;
         count = 0.0;
 
-        for (int wR = 0; wR < ${filterHeight}; wR++) {
+        for (int wR = 0; wR < ${effectiveFilterHeight};
+            wR += ${dilationHeight}) {
           int xR = xRCorner + wR;
 
           if (xR < 0 || xR >= ${convInfo.inHeight}) {
@@ -158,13 +165,13 @@ export class Pool2DProgram implements GPGPUProgram {
           }
 
           for (int wC = 0; wC < ${filterWidthNearestVec4}; wC += 4) {
-            int xC = xCCorner + wC;
+            int xC = xCCorner + wC * ${dilationWidth};
 
             vec4 values = vec4(
               getValue(batch, xR, xC, d),
-              getValue(batch, xR, xC + 1, d),
-              getValue(batch, xR, xC + 2, d),
-              getValue(batch, xR, xC + 3, d)
+              getValue(batch, xR, xC + ${dilationWidth}, d),
+              getValue(batch, xR, xC + 2 * ${dilationWidth}, d),
+              getValue(batch, xR, xC + 3 * ${dilationWidth}, d)
             );
 
             ${updateSnippet}
@@ -183,7 +190,7 @@ export class Pool2DProgram implements GPGPUProgram {
           } else if (${filterWidthVec4Remainder === 2}) {
             vec4 values = vec4(
               getValue(batch, xR, xC, d),
-              getValue(batch, xR, xC + 1, d),
+              getValue(batch, xR, xC + ${dilationWidth}, d),
               initializationValue,
               initializationValue
             );
@@ -192,8 +199,8 @@ export class Pool2DProgram implements GPGPUProgram {
           } else if (${filterWidthVec4Remainder === 3}) {
             vec4 values = vec4(
               getValue(batch, xR, xC, d),
-              getValue(batch, xR, xC + 1, d),
-              getValue(batch, xR, xC + 2, d),
+              getValue(batch, xR, xC + ${dilationWidth}, d),
+              getValue(batch, xR, xC + 2 * ${dilationWidth}, d),
               initializationValue
             );
 

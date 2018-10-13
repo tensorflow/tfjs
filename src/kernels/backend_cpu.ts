@@ -1834,8 +1834,10 @@ export class MathBackendCPU implements KernelBackend {
 
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
-    const filterHeight = convInfo.filterHeight;
-    const filterWidth = convInfo.filterWidth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
     const y = ops.buffer<Rank.R4>(convInfo.outShape, 'float32');
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
@@ -1849,16 +1851,18 @@ export class MathBackendCPU implements KernelBackend {
         for (let yR = 0; yR < convInfo.outHeight; ++yR) {
           const xRCorner = yR * strideHeight - padTop;
           const xRMin = Math.max(0, xRCorner);
-          const xRMax = Math.min(convInfo.inHeight, filterHeight + xRCorner);
+          const xRMax =
+              Math.min(convInfo.inHeight, effectiveFilterHeight + xRCorner);
           for (let yC = 0; yC < convInfo.outWidth; ++yC) {
             const xCCorner = yC * strideWidth - padLeft;
             const xCMin = Math.max(0, xCCorner);
-            const xCMax = Math.min(convInfo.inWidth, filterWidth + xCCorner);
+            const xCMax =
+                Math.min(convInfo.inWidth, effectiveFilterWidth + xCCorner);
             let minMaxValue = initialValue;
             let avgValue = 0;
             let count = 0;
-            for (let xR = xRMin; xR < xRMax; ++xR) {
-              for (let xC = xCMin; xC < xCMax; ++xC) {
+            for (let xR = xRMin; xR < xRMax; xR += dilationHeight) {
+              for (let xC = xCMin; xC < xCMax; xC += dilationWidth) {
                 const pixel = x.get(b, xR, xC, d);
                 if ((poolType === 'max' && pixel > minMaxValue)) {
                   minMaxValue = pixel;
@@ -1889,8 +1893,10 @@ export class MathBackendCPU implements KernelBackend {
     const maxPositions = ops.buffer<Rank.R4>(convInfo.outShape, 'int32');
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
-    const filterHeight = convInfo.filterHeight;
-    const filterWidth = convInfo.filterWidth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
 
@@ -1898,22 +1904,32 @@ export class MathBackendCPU implements KernelBackend {
       for (let d = 0; d < convInfo.inChannels; ++d) {
         for (let yR = 0; yR < convInfo.outHeight; ++yR) {
           const xRCorner = yR * strideHeight - padTop;
-          const xRMin = Math.max(0, xRCorner);
-          const xRMax = Math.min(convInfo.inHeight, filterHeight + xRCorner);
+          let xRMin = xRCorner;
+          while (xRMin < 0) {
+            xRMin += dilationHeight;
+          }
+          // const xRMin = Math.max(0, xRCorner);
+          const xRMax =
+              Math.min(convInfo.inHeight, effectiveFilterHeight + xRCorner);
           for (let yC = 0; yC < convInfo.outWidth; ++yC) {
             const xCCorner = yC * strideWidth - padLeft;
-            const xCMin = Math.max(0, xCCorner);
-            const xCMax = Math.min(convInfo.inWidth, filterWidth + xCCorner);
+            let xCMin = xCCorner;
+            while (xCMin < 0) {
+              xCMin += dilationWidth;
+            }
+            const xCMax =
+                Math.min(convInfo.inWidth, effectiveFilterWidth + xCCorner);
             let maxValue = Number.NEGATIVE_INFINITY;
             let maxPosition = -1;
-            for (let xR = xRMin; xR < xRMax; ++xR) {
+
+            for (let xR = xRMin; xR < xRMax; xR += dilationHeight) {
               const wR = xR - xRCorner;
-              for (let xC = xCMin; xC < xCMax; ++xC) {
+              for (let xC = xCMin; xC < xCMax; xC += dilationWidth) {
                 const wC = xC - xCCorner;
                 const pixel = x.get(b, xR, xC, d);
                 if (pixel > maxValue) {
                   maxValue = pixel;
-                  maxPosition = wR * filterWidth + wC;
+                  maxPosition = wR * effectiveFilterWidth + wC;
                 }
               }
             }
@@ -1932,10 +1948,12 @@ export class MathBackendCPU implements KernelBackend {
     const maxPositions = this.maxPoolPositions(x, convInfo);
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
-    const filterHeight = convInfo.filterHeight;
-    const filterWidth = convInfo.filterWidth;
-    const padLeft = filterWidth - 1 - convInfo.padInfo.left;
-    const padTop = filterHeight - 1 - convInfo.padInfo.top;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+    const padLeft = effectiveFilterWidth - 1 - convInfo.padInfo.left;
+    const padTop = effectiveFilterHeight - 1 - convInfo.padInfo.top;
     const dx = ops.buffer<Rank.R4>(x.shape, 'float32');
 
     for (let b = 0; b < convInfo.batchSize; ++b) {
@@ -1946,21 +1964,21 @@ export class MathBackendCPU implements KernelBackend {
             const dyRCorner = dxR - padTop;
             const dyCCorner = dxC - padLeft;
             let dotProd = 0;
-            for (let wR = 0; wR < filterHeight; ++wR) {
+            for (let wR = 0; wR < effectiveFilterHeight; wR += dilationHeight) {
               const dyR = (dyRCorner + wR) / strideHeight;
               if (dyR < 0 || dyR >= convInfo.outHeight ||
                   Math.floor(dyR) !== dyR) {
                 continue;
               }
-              for (let wC = 0; wC < filterWidth; ++wC) {
+              for (let wC = 0; wC < effectiveFilterWidth; wC += dilationWidth) {
                 const dyC = (dyCCorner + wC) / strideWidth;
                 if (dyC < 0 || dyC >= convInfo.outWidth ||
                     Math.floor(dyC) !== dyC) {
                   continue;
                 }
-                const maxPos = filterHeight * filterWidth - 1 -
-                    maxPositions.get(b, dyR, dyC, d);
-                const curPos = wR * filterWidth + wC;
+                const maxPos = effectiveFilterHeight * effectiveFilterWidth -
+                    1 - maxPositions.get(b, dyR, dyC, d);
+                const curPos = wR * effectiveFilterWidth + wC;
 
                 const mask = maxPos === curPos ? 1 : 0;
                 if (mask === 0) {
@@ -1986,8 +2004,12 @@ export class MathBackendCPU implements KernelBackend {
     const strideWidth = convInfo.strideWidth;
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
-    const padLeft = filterWidth - 1 - convInfo.padInfo.left;
-    const padTop = filterHeight - 1 - convInfo.padInfo.top;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+    const padLeft = effectiveFilterWidth - 1 - convInfo.padInfo.left;
+    const padTop = effectiveFilterHeight - 1 - convInfo.padInfo.top;
     const dx = ops.buffer<Rank.R4>(x.shape, 'float32');
 
     const avgMultiplier = 1 / (filterHeight * filterWidth);
@@ -2000,13 +2022,13 @@ export class MathBackendCPU implements KernelBackend {
             const dyRCorner = dxR - padTop;
             const dyCCorner = dxC - padLeft;
             let dotProd = 0;
-            for (let wR = 0; wR < filterHeight; ++wR) {
+            for (let wR = 0; wR < effectiveFilterHeight; wR += dilationHeight) {
               const dyR = (dyRCorner + wR) / strideHeight;
               if (dyR < 0 || dyR >= convInfo.outHeight ||
                   Math.floor(dyR) !== dyR) {
                 continue;
               }
-              for (let wC = 0; wC < filterWidth; ++wC) {
+              for (let wC = 0; wC < effectiveFilterWidth; wC += dilationWidth) {
                 const dyC = (dyCCorner + wC) / strideWidth;
                 if (dyC < 0 || dyC >= convInfo.outWidth ||
                     Math.floor(dyC) !== dyC) {

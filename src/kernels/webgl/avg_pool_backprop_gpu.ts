@@ -30,9 +30,13 @@ export class AvgPool2DBackpropProgram implements GPGPUProgram {
     const filterWidth = convInfo.filterWidth;
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
 
-    const padTop = filterHeight - 1 - convInfo.padInfo.top;
-    const padLeft = filterWidth - 1 - convInfo.padInfo.left;
+    const padTop = effectiveFilterHeight - 1 - convInfo.padInfo.top;
+    const padLeft = effectiveFilterWidth - 1 - convInfo.padInfo.left;
 
     const avgMultiplier = 1 / (filterHeight * filterWidth);
 
@@ -52,7 +56,8 @@ export class AvgPool2DBackpropProgram implements GPGPUProgram {
         // Convolve dy(?, ?, d) with pos mask(:, :, d) to get dx(xR, xC, d).
         // ? = to be determined. : = across all values in that axis.
         float dotProd = 0.0;
-        for (int wR = 0; wR < ${filterHeight}; wR++) {
+        for (int wR = 0; wR < ${effectiveFilterHeight};
+            wR += ${dilationHeight}) {
           float dyR = float(dyRCorner + wR) / ${strideHeight}.0;
 
           if (dyR < 0.0 || dyR >= ${convInfo.outHeight}.0 || fract(dyR) > 0.0) {
@@ -60,7 +65,8 @@ export class AvgPool2DBackpropProgram implements GPGPUProgram {
           }
           int idyR = int(dyR);
 
-          for (int wC = 0; wC < ${filterWidth}; wC++) {
+          for (int wC = 0; wC < ${effectiveFilterWidth};
+            wC+= ${dilationWidth}) {
             float dyC = float(dyCCorner + wC) / ${strideWidth}.0;
 
             if (dyC < 0.0 || dyC >= ${convInfo.outWidth}.0 ||

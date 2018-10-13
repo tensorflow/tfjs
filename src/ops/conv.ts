@@ -85,7 +85,7 @@ function conv1d_<T extends Tensor2D|Tensor3D>(
       `Error in conv1d: depth of input (${x3D.shape[2]}) must match ` +
           `input depth for filter ${$filter.shape[1]}.`);
   util.assert(
-      eitherStridesOrDilationsAreOne(stride, dilation),
+      conv_util.eitherStridesOrDilationsAreOne(stride, dilation),
       'Error in conv1D: Either stride or dilation must be 1. ' +
           `Got stride ${stride} and dilation '${dilation}'`);
   util.assert(
@@ -178,7 +178,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
       `Error in conv2d: depth of input (${x4D.shape[3]}) must match ` +
           `input depth for filter ${$filter.shape[2]}.`);
   util.assert(
-      eitherStridesOrDilationsAreOne(strides, dilations),
+      conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
       'Error in conv2D: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
   util.assert(
@@ -202,7 +202,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
   } else {
     const grad = (dy: Tensor4D) => {
       util.assert(
-          tupleValuesAreOne(dilations),
+          conv_util.tupleValuesAreOne(dilations),
           'Error in gradient of conv2D: dilation rates greater than 1 are not' +
               `yet supported in gradients. Got dilations '${dilations}'`);
 
@@ -476,7 +476,7 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
     dilations = [1, 1];
   }
   util.assert(
-      eitherStridesOrDilationsAreOne(strides, dilations),
+      conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
       'Error in depthwiseConv2d: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
 
@@ -493,7 +493,7 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
 
   const grad = (dy: Tensor4D) => {
     util.assert(
-        tupleValuesAreOne(dilations),
+        conv_util.tupleValuesAreOne(dilations),
         'Error in gradient of depthwiseConv2d: dilation rates greater than ' +
             `1 are not yet supported. Got dilations '${dilations}'`);
     return {
@@ -617,21 +617,6 @@ function separableConv2d_<T extends Tensor3D|Tensor4D>(
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
   return res as T;
-}
-
-function parseTupleParam(param: number|[number, number]): [number, number] {
-  return typeof param === 'number' ? [param, param] : param;
-}
-
-function tupleValuesAreOne(param: number|[number, number]): boolean {
-  const [dimA, dimB] = parseTupleParam(param);
-  return dimA === 1 && dimB === 1;
-}
-
-function eitherStridesOrDilationsAreOne(
-    strides: number|[number, number],
-    dilations: number|[number, number]): boolean {
-  return tupleValuesAreOne(strides) || tupleValuesAreOne(dilations);
 }
 
 function depthwiseConv2dDerInput<T extends Tensor3D|Tensor4D>(
