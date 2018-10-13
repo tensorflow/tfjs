@@ -315,6 +315,10 @@ export interface OpHandler {
       x: T, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T;
+  pool<T extends Tensor3D|Tensor4D>(
+      input: T, windowShape: [number, number]|number, poolingType: 'avg'|'max',
+      padding: 'valid'|'same'|number, diationRate?: [number, number]|number,
+      strides?: [number, number]|number): T;
   localResponseNormalization<T extends Tensor3D|Tensor4D>(
       x: T, depthRadius: number, bias: number, alpha: number, beta: number): T;
   unsortedSegmentSum<T extends Tensor>(
@@ -1206,6 +1210,14 @@ export class Tensor<R extends Rank = Rank> {
       this: T, radius = 5, bias = 1, alpha = 1, beta = 0.5): T {
     return opHandler.localResponseNormalization(
         this, radius, bias, alpha, beta);
+  }
+  pool<T extends Tensor3D|Tensor4D>(
+      this: T, windowShape: [number, number]|number, poolingType: 'max'|'avg',
+      padding: 'valid'|'same'|number, dilationRate?: [number, number]|number,
+      strides?: [number, number]|number): T {
+    (this as Tensor).throwIfDisposed();
+    return opHandler.pool(
+        this, windowShape, poolingType, padding, dilationRate, strides);
   }
 
   variable(trainable = true, name?: string, dtype?: DataType): Variable<R> {

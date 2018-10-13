@@ -28,6 +28,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(1);
     expect(convInfo.outWidth).toEqual(1);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(1);
+    expect(convInfo.effectiveFilterHeight).toEqual(1);
   });
 
   it('2x2 conv over 3x3 array with same pad', () => {
@@ -40,6 +42,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(3);
     expect(convInfo.outWidth).toEqual(3);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
     // Should produce non-even padding with extra pixel at the right/bottom.
     expect(convInfo.padInfo.left).toBe(0);
     expect(convInfo.padInfo.right).toBe(1);
@@ -57,6 +61,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(3);
     expect(convInfo.outWidth).toEqual(3);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
   });
 
   it('2x2 conv over 3x3 array with valid pad', () => {
@@ -69,6 +75,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(2);
     expect(convInfo.outWidth).toEqual(2);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
   });
 
   it('3x3 conv over 5x5 array with same pad with stride 2', () => {
@@ -81,6 +89,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(3);
     expect(convInfo.outWidth).toEqual(3);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(3);
+    expect(convInfo.effectiveFilterHeight).toEqual(3);
 
     expect(convInfo.padInfo.left).toBe(1);
     expect(convInfo.padInfo.right).toBe(1);
@@ -98,6 +108,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(1);
     expect(convInfo.outWidth).toEqual(1);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
   });
 
   it('2x1 conv over 3x3 array with valid pad with stride 1', () => {
@@ -110,6 +122,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(2);
     expect(convInfo.outWidth).toEqual(3);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(1);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
   });
 
   it('2x1 conv over 3x3 array with valid pad with strides h=2, w=1', () => {
@@ -122,6 +136,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(1);
     expect(convInfo.outWidth).toEqual(3);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(1);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
   });
 
   it('1x2 conv over 3x3 array with valid pad with stride 1', () => {
@@ -134,6 +150,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(3);
     expect(convInfo.outWidth).toEqual(2);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(1);
   });
 
   it('1x2 conv over 3x3 array with valid pad with stride 1, batch=5', () => {
@@ -146,6 +164,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(3);
     expect(convInfo.outWidth).toEqual(2);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(1);
   });
 
   it('2x2 conv over 3x3 array with same pad with dilations 2', () => {
@@ -163,6 +183,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.padInfo.right).toBe(1);
     expect(convInfo.padInfo.top).toBe(1);
     expect(convInfo.padInfo.bottom).toBe(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(3);
+    expect(convInfo.effectiveFilterHeight).toEqual(3);
   });
 
   it('2x1 conv over 3x3 array with same pad with dilations 2', () => {
@@ -180,6 +202,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.padInfo.right).toBe(0);
     expect(convInfo.padInfo.top).toBe(1);
     expect(convInfo.padInfo.bottom).toBe(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(1);
+    expect(convInfo.effectiveFilterHeight).toEqual(3);
   });
 
   it('3x4 conv over 8x8 array with same pad with dilations h=4 w=3', () => {
@@ -192,6 +216,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(8);
     expect(convInfo.outWidth).toEqual(8);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(10);
+    expect(convInfo.effectiveFilterHeight).toEqual(9);
 
     expect(convInfo.padInfo.left).toBe(4);
     expect(convInfo.padInfo.right).toBe(5);
@@ -209,6 +235,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(1);
     expect(convInfo.outWidth).toEqual(3);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(1);
+    expect(convInfo.effectiveFilterHeight).toEqual(3);
   });
 
   it('2x2 conv over 3x3 array with valid pad with dilations 2', () => {
@@ -221,6 +249,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(1);
     expect(convInfo.outWidth).toEqual(1);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(3);
+    expect(convInfo.effectiveFilterHeight).toEqual(3);
   });
 
   it('2x2 conv over 4x4 array with valid pad with dilations 2', () => {
@@ -233,6 +263,8 @@ describe('conv_util computeConvInfo', () => {
     expect(convInfo.outHeight).toEqual(2);
     expect(convInfo.outWidth).toEqual(2);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(3);
+    expect(convInfo.effectiveFilterHeight).toEqual(3);
   });
 });
 
@@ -252,6 +284,8 @@ describe('conv_util computeConv2DInfo with depthwise=true', () => {
     expect(convInfo.outHeight).toEqual(1);
     expect(convInfo.outWidth).toEqual(1);
     expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(1);
+    expect(convInfo.effectiveFilterHeight).toEqual(1);
   });
 
   it('2x2 filter over 3x3 array with same pad, chMul=3, depth=2', () => {
@@ -272,6 +306,8 @@ describe('conv_util computeConv2DInfo with depthwise=true', () => {
     expect(convInfo.outHeight).toEqual(3);
     expect(convInfo.outWidth).toEqual(3);
     expect(convInfo.outChannels).toEqual(6);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
   });
 
   it('2x2 filter over 3x3 array with valid pad, chMul=3, depth=2', () => {
@@ -292,6 +328,8 @@ describe('conv_util computeConv2DInfo with depthwise=true', () => {
     expect(convInfo.outHeight).toEqual(2);
     expect(convInfo.outWidth).toEqual(2);
     expect(convInfo.outChannels).toEqual(6);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
   });
 });
 
@@ -310,6 +348,8 @@ describe('conv_util computeConvInfo channelsFirst', () => {
     expect(convInfo.outWidth).toEqual(3);
     expect(convInfo.outChannels).toEqual(4);
     expect(convInfo.outShape).toEqual([1, 4, 3, 3]);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
     // Should produce non-even padding with extra pixel at the right/bottom.
     expect(convInfo.padInfo.left).toBe(0);
     expect(convInfo.padInfo.right).toBe(1);
@@ -331,6 +371,8 @@ describe('conv_util computeConvInfo channelsFirst', () => {
     expect(convInfo.outWidth).toEqual(2);
     expect(convInfo.outChannels).toEqual(16);
     expect(convInfo.outShape).toEqual([1, 16, 2, 2]);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
     // Should produce no padding.
     expect(convInfo.padInfo.left).toBe(0);
     expect(convInfo.padInfo.right).toBe(0);
@@ -391,31 +433,33 @@ describe('conv_util computePoolInfo roundingMode', () => {
       [batchSize, inSize, inSize, inChannels];
   const fSize = 2;
   const stride = 2;
+  const dilation = 1;
   const pad = 1;
 
   it('should fail computing the output dimension of Pool Layer', () => {
     expect(
-        () => conv_util.computePool2DInfo(inShape, [fSize, fSize], stride, pad))
+        () => conv_util.computePool2DInfo(
+            inShape, [fSize, fSize], stride, dilation, pad))
         .toThrowError();
   });
 
   it('Floor the output dimension of Pool Layer', () => {
     const poolInfo = conv_util.computePool2DInfo(
-        inShape, [fSize, fSize], stride, pad, 'floor');
+        inShape, [fSize, fSize], stride, pad, dilation, 'floor');
 
     expect(poolInfo.outShape).toEqual([batchSize, 3, 3, inChannels]);
   });
 
   it('Round the output dimension of Pool Layer', () => {
     const poolInfo = conv_util.computePool2DInfo(
-        inShape, [fSize, fSize], stride, pad, 'round');
+        inShape, [fSize, fSize], stride, pad, dilation, 'round');
 
     expect(poolInfo.outShape).toEqual([batchSize, 4, 4, inChannels]);
   });
 
   it('Ceil the output dimension of Pool Layer', () => {
     const poolInfo = conv_util.computePool2DInfo(
-        inShape, [fSize, fSize], stride, pad, 'ceil');
+        inShape, [fSize, fSize], stride, pad, dilation, 'ceil');
 
     expect(poolInfo.outShape).toEqual([batchSize, 4, 4, inChannels]);
   });
