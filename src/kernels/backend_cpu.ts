@@ -2208,8 +2208,8 @@ export class MathBackendCPU implements KernelBackend {
     this.assertNotComplex(x, 'resizeNearestNeighbor');
 
     const [batch, oldHeight, oldWidth, numChannels] = x.shape;
-    const output =
-        ops.buffer<Rank.R4>([batch, newHeight, newWidth, numChannels], x.dtype);
+    const xValues = x.dataSync();
+    const output = new Float32Array(batch * newHeight * newWidth * numChannels);
 
     const effectiveInputSize: [number, number] = [
       (alignCorners && newHeight > 1) ? oldHeight - 1 : oldHeight,
@@ -2221,32 +2221,39 @@ export class MathBackendCPU implements KernelBackend {
       (alignCorners && newWidth > 1) ? newWidth - 1 : newWidth
     ];
 
+    const effectiveRowSizeRatio =
+        effectiveInputSize[0] / effectiveOutputSize[0];
+    const effectiveColSizeRatio =
+        effectiveInputSize[1] / effectiveOutputSize[1];
+
+    let outputOffset = 0;
     for (let b = 0; b < batch; b++) {
+      const batchOffset = b * x.strides[0];
       for (let r = 0; r < newHeight; r++) {
+        const sourceFracRow = effectiveRowSizeRatio * r;
+        const sourceNearestRow = Math.min(
+            oldHeight - 1,
+            alignCorners ? Math.round(sourceFracRow) :
+                           Math.floor(sourceFracRow));
+        const rowOffset = batchOffset + sourceNearestRow * x.strides[1];
         for (let c = 0; c < newWidth; c++) {
+          const sourceFracCol = effectiveColSizeRatio * c;
+          const sourceNearestCol = Math.min(
+              oldWidth - 1,
+              alignCorners ? Math.round(sourceFracCol) :
+                             Math.floor(sourceFracCol));
+          const colOffset = rowOffset + sourceNearestCol * x.strides[2];
           for (let d = 0; d < numChannels; d++) {
             // Begin shader.
             // Compute the fractional index of the source.
-            const sourceFracRow =
-                (effectiveInputSize[0]) * r / (effectiveOutputSize[0]);
-            const sourceFracCol =
-                (effectiveInputSize[1]) * c / (effectiveOutputSize[1]);
-            const sourceNearestRow = Math.min(
-                oldHeight - 1,
-                alignCorners ? Math.round(sourceFracRow) :
-                               Math.floor(sourceFracRow));
-            const sourceNearestCol = Math.min(
-                oldWidth - 1,
-                alignCorners ? Math.round(sourceFracCol) :
-                               Math.floor(sourceFracCol));
-            const newValue = x.get(b, sourceNearestRow, sourceNearestCol, d);
-            output.set(newValue, b, r, c, d);
+            const newVal = xValues[colOffset + d];
+            output[outputOffset++] = newVal;
           }
         }
       }
     }
-
-    return output.toTensor();
+    return ops.tensor(
+        output, [batch, newHeight, newWidth, numChannels], x.dtype);
   }
 
   resizeNearestNeighborBackprop(
@@ -2889,7 +2896,7 @@ export class MathBackendCPU implements KernelBackend {
       const index = [];
       let flattenIndex = 0;
       for (let j = 0; j < sliceRank; j++) {
-        const dim = indicesData[i * sliceRank + j]; 
+        const dim = indicesData[i * sliceRank + j];
         flattenIndex += dim * strides[j];
         index.push(dim);
       }
@@ -2902,9 +2909,9 @@ export class MathBackendCPU implements KernelBackend {
         buffer.values[i * sliceSize + k] = xData[flattenIndex * sliceSize + k];
       }
     }
-    return buffer.toTensor().reshape(resultShape);        
+    return buffer.toTensor().reshape(resultShape);
   }
-  
+
   scatterND<R extends Rank>(
       indices: Tensor, updates: Tensor, shape: ShapeMap[R]): Tensor<R> {
     const [sliceRank, numUpdates, sliceSize, strides, outputSize] =
