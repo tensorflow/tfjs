@@ -16,7 +16,7 @@
  */
 
 import {Conv2DInfo} from '../ops/conv_util';
-import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
+import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {DataType, Rank, ShapeMap, TypedArray} from '../types';
 
 // Required information for all backends.
@@ -296,6 +296,9 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
   // Aligns with the "SplitV" kernel in TensorFlow.
   split<T extends Tensor>(value: T, sizeSplits: number[], axis: number): T[];
 
+  sparseToDense<R extends Rank>(
+      sparseIndices: Tensor, sparseValues: Tensor, outputShape: ShapeMap[R],
+      defaultValue: Scalar): Tensor<R>;
   /**
    * Sets the data mover for this backend. Backends should use the mover to
    * move data from other backends to this backend.
