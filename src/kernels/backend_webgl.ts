@@ -30,7 +30,7 @@ import * as segment_util from '../ops/segment_util';
 import {getStridedSlicedInfo} from '../ops/slice_util';
 import {softmax} from '../ops/softmax';
 import {range, scalar, tensor} from '../ops/tensor_ops';
-import {DataId, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
+import {DataId, Scalar, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {DataType, DataTypeMap, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../types';
 import * as util from '../util';
 import {getTypedArrayFromDType, sizeFromShape} from '../util';
@@ -84,7 +84,7 @@ import {ResizeBilinearProgram} from './webgl/resize_bilinear_gpu';
 import {ResizeNearestNeigborBackpropProgram} from './webgl/resize_nearest_neighbor_backprop_gpu';
 import {ResizeNearestNeighborProgram} from './webgl/resize_nearest_neighbor_gpu';
 import {ReverseProgram} from './webgl/reverse_gpu';
-import {ScatterNDProgram} from './webgl/scatter_nd_gpu';
+import {ScatterProgram} from './webgl/scatter_gpu';
 import {SegmentOpProgram} from './webgl/segment_gpu';
 import {SelectProgram} from './webgl/select_gpu';
 import {SliceProgram} from './webgl/slice_gpu';
@@ -1554,20 +1554,39 @@ export class MathBackendWebGL implements KernelBackend {
 
   scatterND<R extends Rank>(
       indices: Tensor, updates: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    const [sliceDim, numUpdates, sliceSize, strides, outputSize] =
-        scatter_nd_util.prepareAndValidate(updates, indices, shape);
+    const {sliceRank, numUpdates, sliceSize, strides, outputSize} =
+        scatter_nd_util.calculateShapes(updates, indices, shape);
 
     const flattenShape = [outputSize / sliceSize, sliceSize];
-    const flattenIndices = indices.reshape([numUpdates, sliceDim]);
+    const flattenIndices = indices.reshape([numUpdates, sliceRank]);
     const flattenX = updates.reshape([numUpdates, sliceSize]);
 
     if (outputSize === 0) {
       return backend_util.reshapeTensor(tensor([]), shape);
     }
-    const program =
-        new ScatterNDProgram(numUpdates, sliceDim, strides, flattenShape);
-    return (this.compileAndRun(program, [flattenX, flattenIndices]) as Tensor)
+    const defaultValue = scalar(0);
+    const program = new ScatterProgram(
+        numUpdates, sliceRank, flattenIndices.rank, flattenX.rank, strides,
+        flattenShape);
+    return (this.compileAndRun(
+                program, [flattenX, flattenIndices, defaultValue]) as Tensor)
         .reshape(shape);
+  }
+
+  sparseToDense<R extends Rank>(
+      sparseIndices: Tensor, sparseValues: Tensor, outputShape: ShapeMap[R],
+      defaultValue: Scalar): Tensor<R> {
+    const {sliceRank, numUpdates, strides, outputSize} =
+        scatter_nd_util.calculateShapes(
+            sparseValues, sparseIndices, outputShape);
+
+    const sumDupeIndices = false;
+    const program = new ScatterProgram(
+        numUpdates, sliceRank, sparseIndices.rank, sparseValues.rank, strides,
+        [outputSize, 1], sumDupeIndices);
+    return (this.compileAndRun(
+                program, [sparseValues, sparseIndices, defaultValue]) as Tensor)
+        .reshape(outputShape);
   }
 
   fft(x: Tensor1D): Tensor1D {

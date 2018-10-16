@@ -64,18 +64,22 @@ export function validateUpdateShape(
   }
 }
 
+export interface ScatterShapeInfo {
+  sliceRank: number;
+  numUpdates: number;
+  sliceSize: number;
+  strides: number[];
+  outputSize: number;
+}
 /**
  * Validate scatter nd inputs.
  *
  * @param update The tensor contains the update values.
  * @param indices The tensor contains the indices for the update values.
  * @param shape The shape of the output tensor.
- *
- * @returns [sliceDim, numUpdates, sliceSize, strides, outputSize]
  */
-export function prepareAndValidate(
-    updates: Tensor, indices: Tensor,
-    shape: number[]): [number, number, number, number[], number] {
+export function validateInput(
+    updates: Tensor, indices: Tensor, shape: number[]) {
   if (indices.rank < 1) {
     throw new Error(
         'tf.scatterND() expects the indices to be rank 1 or higher,' +
@@ -107,9 +111,21 @@ export function prepareAndValidate(
   }
 
   validateUpdateShape(shape, indices, updates);
+}
 
+/**
+ * Calculate the shape information for the output.
+ *
+ * @param update The tensor contains the update values.
+ * @param indices The tensor contains the indices for the update values.
+ * @param shape The shape of the output tensor.
+ *
+ * @returns ScatterShapeInfo
+ */
+export function calculateShapes(
+    updates: Tensor, indices: Tensor, shape: number[]): ScatterShapeInfo {
   // Calculate the number of dimensions in indices
-  const sliceDim = (indices.rank > 1) ? indices.shape[indices.rank - 1] : 1;
+  const sliceRank = (indices.rank > 1) ? indices.shape[indices.rank - 1] : 1;
 
   // Calculate the number of elements that make up each slice of our updated
   // tensor. This allows us to work with flattened tensors and copy over whole
@@ -117,15 +133,16 @@ export function prepareAndValidate(
   const totalNd = shape.length;
 
   let sliceSize = 1;
-  for (let i = sliceDim; i < totalNd; ++i) {
+  for (let i = sliceRank; i < totalNd; ++i) {
     sliceSize *= shape[i];
   }
 
-  const safeSliceDim = (sliceDim < 1) ? 1 : sliceDim;
+  const safeSliceDim = (sliceRank < 1) ? 1 : sliceRank;
   const numUpdates = indices.size / safeSliceDim;
 
   const outputStrides = [...computeStrides(shape), 1];
-  const sliceStrides = outputStrides.slice(
-      outputStrides.length - sliceDim, outputStrides.length);
-  return [sliceDim, numUpdates, sliceSize, sliceStrides, sizeFromShape(shape)];
+  const strides = outputStrides.slice(
+      outputStrides.length - sliceRank, outputStrides.length);
+  const outputSize = sizeFromShape(shape);
+  return {sliceRank, numUpdates, sliceSize, strides, outputSize};
 }
