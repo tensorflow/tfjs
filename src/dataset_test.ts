@@ -62,7 +62,7 @@ export class TestDataset extends Dataset<DataElementObject> {
 }
 
 // tslint:disable-next-line:no-any
-function complexifyExample(simple: any): {} {
+function complexifyExampleAsDict(simple: any): {} {
   const v = simple['number'];
   const w = simple['numberArray'];
   const x = simple['Tensor'];
@@ -77,6 +77,16 @@ function complexifyExample(simple: any): {} {
     },
     c: [[x, y, z], [v, w, x], [y, z, v]]
   };
+}
+
+// tslint:disable-next-line:no-any
+function complexifyExampleAsArray(simple: any): {} {
+  const v = simple['number'];
+  const w = simple['numberArray'];
+  const x = simple['Tensor'];
+  const y = simple['Tensor2'];
+  const z = simple['string'];
+  return [{a: v, b: w}, {ca: [x, y, z], cb: [v, w, x]}];
 }
 
 describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
@@ -324,16 +334,16 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     expect(tf.ENV.engine.memory().numTensors).toBe(0);
   });
 
-  it('batches complex nested entries into column-oriented batches',
+  it('batches complex nested objects into column-oriented batches',
      async () => {
        // Our "complexified" examples map the simple examples into a deep
        // nested structure. This test shows that batching complexified examples
        // produces the same result as complexifying batches of simple examples.
 
        const complexThenBatch =
-           new TestDataset().map(complexifyExample).batch(8);
+           new TestDataset().map(complexifyExampleAsDict).batch(8);
        const batchThenComplex =
-           new TestDataset().batch(8).map(complexifyExample);
+           new TestDataset().batch(8).map(complexifyExampleAsDict);
 
        const compareDataset = zip({complexThenBatch, batchThenComplex});
 
@@ -367,6 +377,54 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
        tf.dispose(result);
        expect(tf.ENV.engine.memory().numTensors).toBe(0);
      });
+
+  it('batches complex nested arrays into column-oriented batches', async () => {
+    // Our "complexified" examples map the simple examples into a deep
+    // nested structure. This test shows that batching complexified examples
+    // produces the same result as complexifying batches of simple examples.
+
+    const complexThenBatch =
+        new TestDataset().map(complexifyExampleAsArray).batch(8);
+    const batchThenComplex =
+        new TestDataset().batch(8).map(complexifyExampleAsArray);
+
+    const compareDataset = zip({complexThenBatch, batchThenComplex});
+
+    const result = await (await compareDataset.iterator()).collect();
+
+    expect(result.length).toEqual(13);
+    // tslint:disable-next-line:no-any
+    result.slice(0, 12).forEach((compare: any) => {
+      // TODO(soergel): could use deepMap to implement deep compare.
+      // For now, just spot-check a few deep entries.
+      expect(compare.complexThenBatch[0].a.shape)
+          .toEqual(compare.batchThenComplex[0].a.shape);
+      expect(compare.complexThenBatch[0].a.dataSync())
+          .toEqual(compare.batchThenComplex[0].a.dataSync());
+
+      expect(compare.complexThenBatch[0].b.shape)
+          .toEqual(compare.batchThenComplex[0].b.shape);
+      expect(compare.complexThenBatch[0].b.dataSync())
+          .toEqual(compare.batchThenComplex[0].b.dataSync());
+
+      expect(compare.complexThenBatch[1].ca[0].shape)
+          .toEqual(compare.batchThenComplex[1].ca[0].shape);
+      expect(compare.complexThenBatch[1].ca[0].dataSync())
+          .toEqual(compare.batchThenComplex[1].ca[0].dataSync());
+
+      expect(compare.complexThenBatch[1].ca[1].shape)
+          .toEqual(compare.batchThenComplex[1].ca[1].shape);
+      expect(compare.complexThenBatch[1].ca[1].dataSync())
+          .toEqual(compare.batchThenComplex[1].ca[1].dataSync());
+
+      expect(compare.complexThenBatch[1].ca[2].length)
+          .toEqual(compare.batchThenComplex[1].ca[2].length);
+      expect(compare.complexThenBatch[1].ca[2])
+          .toEqual(compare.batchThenComplex[1].ca[2]);
+    });
+    tf.dispose(result);
+    expect(tf.ENV.engine.memory().numTensors).toBe(0);
+  });
 
   it('batch creates a small last batch', async () => {
     const ds = new TestDataset();

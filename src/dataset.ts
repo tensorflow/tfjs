@@ -23,7 +23,7 @@ import {iteratorFromFunction, iteratorFromZipped, LazyIterator, ZipMismatchMode}
 import {iteratorFromConcatenated} from './iterators/lazy_iterator';
 import {iteratorFromItems} from './iterators/lazy_iterator';
 import {DataElement, DatasetContainer} from './types';
-import {deepMapAndAwaitAll, DeepMapResult, isIterable, isSubIterable} from './util/deep_map';
+import {deepMapAndAwaitAll, DeepMapResult, isIterable, isNumericArray} from './util/deep_map';
 
 // TODO(soergel): consider vectorized operations within the pipeline.
 
@@ -346,20 +346,34 @@ export function zip<O extends DataElement>(datasets: DatasetContainer):
  * recursion (if not).
  */
 // tslint:disable-next-line:no-any
-function deepBatchConcat(x: any[]): DeepMapResult {
-  if (x === null) {
+function deepBatchConcat(rows: any[]): DeepMapResult {
+  if (rows === null) {
     return null;
   }
-  // TODO(soergel): validate array type?
-  // TODO(soergel): performance: avoid testing each item twice
-  if (isIterable(x[0]) && isSubIterable(x[0])) {
-    return {value: null, recurse: true};
-  } else if (typeof (x[0]) === 'string') {
+
+  // use the first item to decide whether to recurse or batch here.
+  const exampleRow = rows[0];
+
+  if (typeof (exampleRow) === 'string') {
+    // rows is an array of strings, so it's already 'batched'.
     // TODO(soergel): clean up the string special case when Tensor supports it.
-    return {value: x, recurse: false};
-  } else {
-    return {value: batchConcat(x), recurse: false};
+    return {value: rows, recurse: false};
   }
+
+  if (!isIterable(exampleRow)) {
+    // rows is an array of non-string primitives or Tensors, so batch them.
+    const value = batchConcat(rows);
+    return {value, recurse: false};
+  }
+
+  if (isNumericArray(exampleRow)) {
+    // interpret an array of numbers as a leaf, so batching produces a 2d Tensor
+    const value = batchConcat(rows);
+    return {value, recurse: false};
+  }
+
+  // the example row is itself iterable, but not numeric, so recurse into it.
+  return {value: null, recurse: true};
 }
 
 /**

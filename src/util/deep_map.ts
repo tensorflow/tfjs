@@ -252,18 +252,23 @@ export function isIterable(obj: any): boolean {
 }
 
 /**
- * Determine whether any child of the argument is iterable.
+ * Determine whether the argument is an array of numbers.
  *
- * Assumes that the argument is itself iterable.
- *
- * @returns true if any child of the argument is iterable; false otherwise.
+ * @returns true if the argument is an array and all of its children are
+ *   numbers; false otherwise.
  */
 // tslint:disable-next-line:no-any
-export function isSubIterable(obj: any): boolean {
+export function isNumericArray(obj: any): boolean {
+  if (obj == null) {
+    return false;
+  }
+  if (!Array.isArray(obj)) {
+    return false;
+  }
   for (const k in obj) {
-    if (isIterable(obj[k])) {
-      return true;
+    if (typeof obj[k] !== 'number') {
+      return false;
     }
   }
-  return false;
+  return true;
 }
