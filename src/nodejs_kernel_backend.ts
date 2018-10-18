@@ -326,6 +326,15 @@ export class NodeJSKernelBackend implements KernelBackend {
         'Sum', this.createReductionOpAttrs(x), [x, axisTensor]);
   }
 
+  prod(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
+    const axesTensor = tensor1d(axes, 'int32');
+    const opAttrs = [
+      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
+      createTypeOpAttr('T', x.dtype), createTypeOpAttr('Tidx', 'int32')
+    ];
+    return this.executeSingleOutput('Prod', opAttrs, [x, axesTensor]);
+  }
+
   argMin(x: Tensor, axis: number): Tensor {
     const xInput = x.dtype === 'bool' ? x.toInt() : x;
     const axisScalar = scalar(axis, 'int32');
@@ -927,6 +936,27 @@ export class NodeJSKernelBackend implements KernelBackend {
                'GatherV2', opAttrs, [x, indices, axisTensor]) as T;
   }
 
+  gatherND(x: Tensor<Rank>, indices: Tensor<Rank>): Tensor<Rank> {
+    const opAttrs = [
+      createTypeOpAttr('Tparams', x.dtype),
+      createTypeOpAttr('Tindices', 'int32')
+    ];
+    return this.executeSingleOutput('GatherNd', opAttrs, [x, indices]);
+  }
+
+  scatterND<R extends Rank>(
+      indices: Tensor<Rank>, updates: Tensor<Rank>,
+      shape: ShapeMap[R]): Tensor<R> {
+    const opAttrs = [
+      createTypeOpAttr('T', updates.dtype),
+      createTypeOpAttr('Tindices', 'int32')
+    ];
+    const shapeTensor = tensor1d(shape, 'int32');
+    return this.executeSingleOutput(
+               'ScatterNd', opAttrs, [indices, updates, shapeTensor]) as
+        Tensor<R>;
+  }
+
   batchToSpaceND<T extends Tensor>(
       x: T, blockShape: number[], crops: number[][]): T {
     const blockShapeTensor = tensor1d(blockShape, 'int32');
@@ -1142,6 +1172,11 @@ export class NodeJSKernelBackend implements KernelBackend {
       boxes, scores, maxOutputSizeTensor, iouThresholdTensor,
       scoreThresholdTensor
     ]) as Tensor1D;
+  }
+
+  fft(x: Tensor<Rank.R1>): Tensor<Rank.R1> {
+    const opAttrs = [createTypeOpAttr('Tcomplex', 'complex64')];
+    return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R1>;
   }
 
   complex<T extends Tensor<Rank>>(real: T, imag: T): T {

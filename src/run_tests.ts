@@ -41,6 +41,12 @@ const IGNORE_LIST: string[] = [
   'depthToSpace test-tensorflow {} throws when blocksize < 2',
   // tslint:disable-next-line:max-line-length
   'depthToSpace test-tensorflow {} throws when CPU backend used with data format NCHW',
+  // See https://github.com/tensorflow/tfjs/issues/806
+  'scatterND test-tensorflow {} should work for 2d',
+  'scatterND test-tensorflow {} should work for simple 1d',
+  'scatterND test-tensorflow {} should work for multiple 1d',
+  'scatterND test-tensorflow {} should sum the duplicated indices',
+  'scatterND test-tensorflow {} should work for tensorLike input'
 ];
 
 // Windows has two failing tests:
