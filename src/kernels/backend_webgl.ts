@@ -49,6 +49,7 @@ import {BinaryOpComplexProgram} from './webgl/binaryop_complex_gpu';
 import * as binaryop_gpu from './webgl/binaryop_gpu';
 import {BinaryOpProgram} from './webgl/binaryop_gpu';
 import {ClipProgram} from './webgl/clip_gpu';
+import {ComplexAbsProgram} from './webgl/complex_abs_gpu';
 import {ConcatProgram} from './webgl/concat_gpu';
 import {Conv2DDerFilterProgram, Conv2DDerInputProgram} from './webgl/conv_backprop_gpu';
 import {DepthwiseConv2DDerFilterProgram, DepthwiseConv2DDerInputProgram} from './webgl/conv_backprop_gpu_depthwise';
@@ -1231,6 +1232,17 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   abs<T extends Tensor>(x: T): T {
+    if (x.dtype === 'complex64') {
+      const xData = this.texData.get(x.dataId);
+
+      const program = new ComplexAbsProgram(x.shape);
+      const inputs = [
+        this.makeComplexComponentTensorHandle(x, xData.complexTensors.real),
+        this.makeComplexComponentTensorHandle(x, xData.complexTensors.imag),
+      ];
+
+      return this.compileAndRun<Tensor>(program, inputs) as T;
+    }
     const program = new UnaryOpProgram(x.shape, unary_op.ABS);
     return this.compileAndRun(program, [x]) as T;
   }

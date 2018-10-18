@@ -132,6 +132,42 @@ describeWithFlags('abs', ALL_ENVS, () => {
     expectArraysClose(result, [1, 2, 5, 3, 1, 4, 7, 8]);
   });
 
+  it('complex64 rank-1', () => {
+    const a = tf.complex([-2, -1, 0, 1, 2], [1, 2, 3, 0, -1]);
+    const result = tf.abs(a);
+    expectArraysClose(result, [
+      Math.sqrt(-2 * -2 + 1 * 1), Math.sqrt(-1 * -1 + 2 * 2),
+      Math.sqrt(0 * 0 + 3 * 3), Math.sqrt(1 * 1 + 0 * 0),
+      Math.sqrt(2 * 2 + -1 * -1)
+    ]);
+    expect(result.shape).toEqual([5]);
+  });
+
+  it('complex64 rank-2', () => {
+    const a = tf.complex([[-3, -2, -1], [0, 1, 2]], [[4, 1, 2], [3, 0, -1]]);
+    const result = tf.abs(a);
+    expectArraysClose(result, [
+      Math.sqrt(-3 * -3 + 4 * 4), Math.sqrt(-2 * -2 + 1 * 1),
+      Math.sqrt(-1 * -1 + 2 * 2), Math.sqrt(0 * 0 + 3 * 3),
+      Math.sqrt(1 * 1 + 0 * 0), Math.sqrt(2 * 2 + -1 * -1)
+    ]);
+    expect(result.shape).toEqual([2, 3]);
+  });
+
+  it('complex64 rank-3', () => {
+    const a = tf.complex(
+        [[[-3, -2], [-1, 0]], [[1, 2], [3, 4]]],
+        [[[4, 1], [2, 3]], [[0, -1], [-3, -4]]]);
+    const result = tf.abs(a);
+    expectArraysClose(result, [
+      Math.sqrt(-3 * -3 + 4 * 4), Math.sqrt(-2 * -2 + 1 * 1),
+      Math.sqrt(-1 * -1 + 2 * 2), Math.sqrt(0 * 0 + 3 * 3),
+      Math.sqrt(1 * 1 + 0 * 0), Math.sqrt(2 * 2 + -1 * -1),
+      Math.sqrt(3 * 3 + -3 * -3), Math.sqrt(4 * 4 + -4 * -4)
+    ]);
+    expect(result.shape).toEqual([2, 2, 2]);
+  });
+
   it('propagates NaNs', () => {
     const a = tf.tensor1d([1, -2, 0, 3, -0.1, NaN]);
     const result = tf.abs(a);
