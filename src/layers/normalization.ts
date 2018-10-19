@@ -64,7 +64,7 @@ export function batchNormalization(
         beta as Tensor4D | Tensor1D);
   } else {
     throw new NotImplementedError(
-        `batchNormalization is not implememnted for array of rank ${x.rank} ` +
+        `batchNormalization is not implemented for array of rank ${x.rank} ` +
         `yet`);
   }
   return out;
