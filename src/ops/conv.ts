@@ -292,10 +292,21 @@ function conv2dDerInput_<T extends Tensor3D|Tensor4D>(
 
   const dilations = 1;
 
+  const grad = (ddx: Tensor4D) => {
+    const dataFormat = 'NHWC';
+    return {
+      dy4D: () => conv2d(
+          ddx, filter, strides, pad, dataFormat, dilations, dimRoundingMode),
+      filter: () => conv2dDerFilter(
+          ddx, dy4D, filter.shape, strides, pad, dimRoundingMode)
+    };
+  };
+
   const convInfo = conv_util.computeConv2DInfo(
       xShape4D, filter.shape, strides, dilations, pad, dimRoundingMode);
   const res = ENV.engine.runKernel(
-      backend => backend.conv2dDerInput(dy4D, filter, convInfo), {dy4D});
+      backend => backend.conv2dDerInput(dy4D, filter, convInfo), {dy4D, filter},
+      grad);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
@@ -655,6 +666,7 @@ function depthwiseConv2dDerFilter<T extends Tensor3D|Tensor4D>(
 
 export const conv1d = op({conv1d_});
 export const conv2d = op({conv2d_});
+export const conv2dDerFilter = op({conv2dDerFilter_});
 export const depthwiseConv2d = op({depthwiseConv2d_});
 export const separableConv2d = op({separableConv2d_});
 export const conv2dTranspose = op({conv2dTranspose_});
