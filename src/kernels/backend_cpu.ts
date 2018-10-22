@@ -2271,8 +2271,8 @@ export class MathBackendCPU implements KernelBackend {
     const [batch, xHeight, xWidth, depth] = x.shape;
     const [, yHeight, yWidth] = dy.shape;
 
-    const output =
-        ops.buffer<Rank.R4>([batch, xHeight, xWidth, depth], x.dtype);
+    const output = new Float32Array(batch * xHeight * xWidth * depth);
+    const dyValues = dy.dataSync();
 
     // In the backwards pass, we want to find the pixels that were generated
     // for each pixel in the input image the forward pass
@@ -2300,12 +2300,17 @@ export class MathBackendCPU implements KernelBackend {
 
     // Loop over the output space.
     for (let b = 0; b < batch; b++) {
+      const batchOffset = b * x.strides[0];
       for (let r = 0; r < xHeight; r++) {
-        for (let c = 0; c < xWidth; c++) {
-          // Compute bounds for where in dy we will look
-          const startRLerp = Math.floor(r * invHeightScale);
-          const startDyR = Math.floor(startRLerp - (winHeight / 2));
+        const rowOffset = batchOffset + r * x.strides[1];
 
+        // Compute bounds for where in dy we will look
+        const startRLerp = Math.floor(r * invHeightScale);
+        const startDyR = Math.floor(startRLerp - (winHeight / 2));
+        for (let c = 0; c < xWidth; c++) {
+          const colOffset = rowOffset + c * x.strides[2];
+
+          // Compute bounds for where in dy we will look
           const startCLerp = Math.floor(c * invWidthScale);
           const startDyC = Math.floor(startCLerp - (winWidth / 2));
 
@@ -2313,47 +2318,47 @@ export class MathBackendCPU implements KernelBackend {
             let accum = 0;
             // loop over dy
 
-            for (let dyROffset = 0; dyROffset < winHeight; dyROffset++) {
-              const dyR = dyROffset + startDyR;
+            for (let dyRIndex = 0; dyRIndex < winHeight; dyRIndex++) {
+              const dyR = dyRIndex + startDyR;
               // Guard against the window exceeding the bounds of dy
               if (dyR < 0 || dyR >= yHeight) {
                 continue;
               }
 
-              for (let dyCOffSet = 0; dyCOffSet < winWidth; dyCOffSet++) {
-                const dyC = dyCOffSet + startDyC;
+              const dyROffset = batchOffset + dyR * dy.strides[1];
+              const sourceFracRow = dyR * heightScale;
+              const sourceNearestRow = Math.min(
+                  xHeight - 1,
+                  alignCorners ? Math.round(sourceFracRow) :
+                                 Math.floor(sourceFracRow));
+              if (r !== sourceNearestRow) {
+                continue;
+              }
+              for (let dyCIndex = 0; dyCIndex < winWidth; dyCIndex++) {
+                const dyC = dyCIndex + startDyC;
                 // Guard against the window exceeding the bounds of dy
                 if (dyC < 0 || dyC >= yWidth) {
                   continue;
                 }
 
-                const sourceFracRow =
-                    effectiveXSize[0] * (dyR / effectiveYSize[0]);
-                const sourceFracCol =
-                    effectiveXSize[1] * (dyC / effectiveYSize[1]);
-
-                const sourceNearestRow = Math.min(
-                    xHeight - 1,
-                    alignCorners ? Math.round(sourceFracRow) :
-                                   Math.floor(sourceFracRow));
-
+                const dyCOffset = dyROffset + dyC * dy.strides[2];
+                const sourceFracCol = dyC * widthScale;
                 const sourceNearestCol = Math.min(
                     xWidth - 1,
                     alignCorners ? Math.round(sourceFracCol) :
                                    Math.floor(sourceFracCol));
 
-                if (r === sourceNearestRow && c === sourceNearestCol) {
-                  accum += dy.get(b, dyR, dyC, d);
+                if (c === sourceNearestCol) {
+                  accum += dyValues[dyCOffset + d];
                 }
               }
             }
-
-            output.set(accum, b, r, c, d);
+            output[colOffset + d] = accum;
           }
         }
       }
     }
-    return output.toTensor();
+    return ops.tensor4d(output, x.shape, x.dtype);
   }
 
   batchNormalization(
