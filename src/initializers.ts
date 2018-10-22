@@ -426,6 +426,8 @@ export interface SeedOnlyInitializerConfig {
  *       http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf.
  */
 export class GlorotUniform extends VarianceScaling {
+  static className = 'GlorotUniform';
+
   /**
    * Constructor of GlorotUniform
    * @param scale
@@ -449,6 +451,7 @@ export class GlorotUniform extends VarianceScaling {
     return VarianceScaling.className;
   }
 }
+serialization.registerClass(GlorotUniform);
 
 /**
  * Glorot normal initializer, also called Xavier normal initializer.
@@ -462,6 +465,8 @@ export class GlorotUniform extends VarianceScaling {
  *       http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf
  */
 export class GlorotNormal extends VarianceScaling {
+  static className = 'GlorotNormal';
+
   /**
    * Constructor of GlorotNormal.
    * @param scale
@@ -485,6 +490,7 @@ export class GlorotNormal extends VarianceScaling {
     return VarianceScaling.className;
   }
 }
+serialization.registerClass(GlorotNormal);
 
 /**
  * He normal initializer.
@@ -497,6 +503,8 @@ export class GlorotNormal extends VarianceScaling {
  *     He et al., http://arxiv.org/abs/1502.01852
  */
 export class HeNormal extends VarianceScaling {
+  static className = 'HeNormal';
+
   constructor(config?: SeedOnlyInitializerConfig) {
     super({
       scale: 2.0,
@@ -513,6 +521,7 @@ export class HeNormal extends VarianceScaling {
     return VarianceScaling.className;
   }
 }
+serialization.registerClass(HeNormal);
 
 /**
  * LeCun normal initializer.
@@ -526,6 +535,8 @@ export class HeNormal extends VarianceScaling {
  *   [Efficient Backprop](http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf)
  */
 export class LeCunNormal extends VarianceScaling {
+  static className = 'LeCunNormal';
+
   constructor(config?: SeedOnlyInitializerConfig) {
     super({
       scale: 1.0,
@@ -542,6 +553,7 @@ export class LeCunNormal extends VarianceScaling {
     return VarianceScaling.className;
   }
 }
+serialization.registerClass(LeCunNormal);
 
 export interface OrthogonalConfig extends SeedOnlyInitializerConfig {
   /**

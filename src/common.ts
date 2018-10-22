@@ -112,7 +112,7 @@ export function getUniqueTensorName(scopedName: string): string {
   }
 }
 
-const tensorNameRegex = new RegExp(/^[A-Za-z][A-Za-z0-9\._\/]*$/);
+const tensorNameRegex = new RegExp(/^[A-Za-z][-A-Za-z0-9\._\/]*$/);
 
 /**
  * Determine whether a string is a valid tensor name.
