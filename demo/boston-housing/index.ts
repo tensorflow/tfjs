@@ -18,7 +18,6 @@
 import * as tf from '@tensorflow/tfjs';
 import {Tensor, Tensor2D} from '@tensorflow/tfjs-core';
 
-import {Dataset} from '../../src/dataset';
 import {computeDatasetStatistics, DatasetStatistics} from '../../src/statistics';
 
 import {BostonHousingDataset} from './data';
@@ -146,7 +145,7 @@ export const run = async (model: tf.Sequential) => {
         epochs: NUM_EPOCHS,
         validationSplit: 0.2,
         callbacks: {
-          onEpochEnd: async (epoch, logs) => {
+          onEpochEnd: async (epoch: number, logs) => {
             await ui.updateStatus(
                 `Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`);
             trainLoss = logs.loss;

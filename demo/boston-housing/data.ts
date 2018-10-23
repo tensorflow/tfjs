@@ -15,23 +15,21 @@
  * =============================================================================
  */
 
-import {Dataset, zip} from '../../src/dataset';
-import * as tfd from '../../src/readers';
-import {DataElement} from '../../src/types';
+import {train} from '@tensorflow/tfjs-core';
+
+import * as tfd from '../../src/index';
 
 // Boston Housing data constants:
 const BASE_URL =
-  'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/';
+    'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/';
 
-const TRAIN_FEATURES_FILENAME = 'train-data.csv';
-const TRAIN_TARGET_FILENAME = 'train-target.csv';
-const TEST_FEATURES_FILENAME = 'test-data.csv';
-const TEST_TARGET_FILENAME = 'test-target.csv';
+const TRAIN_FILENAME = 'boston-housing-train.csv';
+const TEST_FILENAME = 'boston-housing-test.csv';
 
 /** Helper class to handle loading training and test data. */
 export class BostonHousingDataset {
-  trainDataset: Dataset<DataElement> = null;
-  testDataset: Dataset<DataElement> = null;
+  trainDataset: tfd.Dataset<tfd.DataElement> = null;
+  testDataset: tfd.Dataset<tfd.DataElement> = null;
   numFeatures: number = null;
 
   private constructor() {}
@@ -46,37 +44,38 @@ export class BostonHousingDataset {
    * Downloads, converts and shuffles the data.
    */
   private async loadData() {
-    const fileUrls = [
-      `${BASE_URL}${TRAIN_FEATURES_FILENAME}`,
-      `${BASE_URL}${TRAIN_TARGET_FILENAME}`,
-      `${BASE_URL}${TEST_FEATURES_FILENAME}`,
-      `${BASE_URL}${TEST_TARGET_FILENAME}`
-    ];
     console.log('* Downloading data *');
-    const csvDatasets = fileUrls.map(url => tfd.csv(url, /* header */ true));
 
-    // Sets number of features so it can be used in the model.
-    this.numFeatures = (await csvDatasets[0]).csvColumnNames.length;
+    const trainData = await this.prepareDataset(`${BASE_URL}${TRAIN_FILENAME}`);
+    // Sets number of features so it can be used in the model. Need to exclude
+    // the column of label.
+    this.trainDataset = trainData.dataset;
+    this.numFeatures = trainData.numFeatures;
+    this.testDataset =
+        (await this.prepareDataset(`${BASE_URL}${TEST_FILENAME}`)).dataset;
+  }
+
+  /**
+   * Prepare dataset from provided url.
+   */
+  private async prepareDataset(url: string) {
+    // We want to predict the column "medv", which represents a median value of
+    // a home (in $1000s), so we mark it as a label.
+    const csvDataset = tfd.csv(url, {columnConfigs: {medv: {isLabel: true}}});
 
     // Reduces the object-type data to an array of numbers.
-    const convertedDatasets = csvDatasets.map(
-      async (dataset) =>
-        (await dataset).map((row: {[key: string]: string}) => {
-          return Object.keys(row).sort().map(key => Number(row[key]));
-        }));
-
-    const trainFeaturesDataset = await convertedDatasets[0];
-    const trainTargetDataset = await convertedDatasets[1];
-    const testFeaturesDataset = await convertedDatasets[2];
-    const testTargetDataset = await convertedDatasets[3];
-
-    this.trainDataset = await zip({
-      features: trainFeaturesDataset,
-      target: trainTargetDataset
-    }).shuffle(1000);
-    this.testDataset = await zip({
-      features: testFeaturesDataset,
-      target: testTargetDataset
-    }).shuffle(1000);
+    const convertedDataset =
+        csvDataset.map((row: Array<{[key: string]: number}>) => {
+          const [rawFeatures, rawLabel] = row;
+          const convertedFeatures =
+              Object.keys(rawFeatures).sort().map(key => rawFeatures[key]);
+          const convertedLabel =
+              Object.keys(rawLabel).sort().map(key => rawLabel[key]);
+          return {features: convertedFeatures, target: convertedLabel};
+        });
+    return {
+      dataset: convertedDataset,
+      numFeatures: (await csvDataset.columnNames()).length - 1
+    };
   }
 }

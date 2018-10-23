@@ -18,34 +18,37 @@
 
 import {CSVDataset} from './datasets/csv_dataset';
 import {URLDataSource} from './sources/url_data_source';
-import {ColumnConfig} from './types';
+import {CSVConfig} from './types';
 
 /**
  * Create a `CSVDataset` by reading and decoding CSV file(s) from provided URLs.
  *
  * @param source URL to fetch CSV file.
- * @param header (Optional) A boolean value that indicates whether the first row
- *     of provided CSV file is a header line with column names, and should not
- *     be included in the data. Defaults to `False`.
- * @param columnNames (Optional) A list of strings that corresponds to
- *     the CSV column names, in order. If this is not provided, infers the
- *     column names from the first row of the records if there is header line,
- *     otherwise throw an error.
- * @param columnConfigs (Optional) A dictionary whose key is column names, value
+ * @param csvConfig (Optional) A CSVConfig object that contains configurations
+ *     of reading and decoding from CSV file(s).
+ *
+ *     hasHeader: (Optional) A boolean value that indicates whether the first
+ *     row of provided CSV file is a header line with column names, and should
+ *     not be included in the data. Defaults to `true`.
+ *
+ *     columnNames: (Optional) A list of strings that corresponds to
+ *     the CSV column names, in order. If provided, it ignores the column names
+ *     inferred from the header row. If not provided, infers the column names
+ *     from the first row of the records. If `hasHeader` is false and
+ *     `columnNames` is not provided, this method will throw an error.
+ *
+ *     columnConfigs: (Optional) A dictionary whose key is column names, value
  *     is an object stating if this column is required, column's data type,
  *     default value, and if this column is label. If provided, keys must
- *     correspond to names provided in column_names or inferred from the file
+ *     correspond to names provided in `columnNames` or inferred from the file
  *     header lines.
- * @param configuredColumnsOnly (Optional) A boolean value specifies if only
- *     parsing and returning columns which exist in columnConfigs.
- * @param delimiter (Optional) The string used to parse each line of the input
+ *
+ *     configuredColumnsOnly (Optional) If true, only columns provided in
+ *     `columnConfigs` will be parsed and provided during iteration.
+ *
+ *     delimiter (Optional) The string used to parse each line of the input
  *     file. Defaults to `,`.
  */
-export function csv(
-    source: string, header = false, columnNames?: string[],
-    columnConfigs?: {[key: string]: ColumnConfig},
-    configuredColumnsOnly = false, delimiter = ','): Promise<CSVDataset> {
-  return CSVDataset.create(
-      new URLDataSource(source), header, columnNames, columnConfigs,
-      configuredColumnsOnly, delimiter);
+export function csv(source: string, csvConfig: CSVConfig = {}): CSVDataset {
+  return new CSVDataset(new URLDataSource(source), csvConfig);
 }
