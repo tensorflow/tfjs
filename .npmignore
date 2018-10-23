@@ -23,6 +23,7 @@ DEVELOPMENT.md
 ISSUE_TEMPLATE.md
 pull_request_template.md
 tslint.json
+tsconfig.json
 rollup.config.js
 WORKSPACE
 yarn.lock
