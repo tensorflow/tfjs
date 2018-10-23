@@ -46,19 +46,21 @@ export function makeShader(
           .join('\n');
   const outTexShape = outputShape.texShape;
   let outputSamplingSnippet: string;
+  let floatTextureSetOutputSnippet: string;
 
   if (outputShape.isPacked) {
     outputSamplingSnippet =
         getPackedOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
+    floatTextureSetOutputSnippet = FLOAT_TEXTURE_SET_RGBA_SNIPPET;
   } else {
     outputSamplingSnippet =
         getOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
+    floatTextureSetOutputSnippet = FLOAT_TEXTURE_SET_R_SNIPPET;
   }
 
   const source = [
-    SHADER_PREFIX, FLOAT_TEXTURE_SAMPLE_SNIPPET,
-    FLOAT_TEXTURE_SETOUTPUT_SNIPPET, inputPrefixSnippet, outputSamplingSnippet,
-    inputSamplingSnippet, userCode
+    SHADER_PREFIX, FLOAT_TEXTURE_SAMPLE_SNIPPET, floatTextureSetOutputSnippet,
+    inputPrefixSnippet, outputSamplingSnippet, inputSamplingSnippet, userCode
   ].join('\n');
   return source;
 }
@@ -90,8 +92,12 @@ function getSamplerFromInInfo(inInfo: InputInfo): string {
 function getPackedSamplerFromInInfo(inInfo: InputInfo): string {
   const shape = inInfo.shapeInfo.logicalShape;
   switch (shape.length) {
+    case 1:
+      return getPackedSampler1D(inInfo);
     case 2:
       return getPackedSampler2D(inInfo);
+    case 4:
+      return getPackedSampler4D(inInfo);
     default:
       throw new Error(
           `Packed ${shape.length}-D input sampling` +
@@ -124,8 +130,13 @@ function getPackedOutputSamplingSnippet(
   switch (outShape.length) {
     case 0:
       return getOutputScalarCoords();
+    case 1:
+      return getOutputPacked1DCoords(outShape as [number], outTexShape);
     case 2:
       return getOutputPacked2DCoords(outShape as [number, number], outTexShape);
+    case 4:
+      return getOutputPacked4DCoords(
+          outShape as [number, number, number, number], outTexShape);
     default:
       throw new Error(
           `${outShape.length}-D output packed sampling is not yet supported`);
@@ -164,6 +175,12 @@ const SAMPLE_1D_SNIPPET = `
 vec2 UVfrom1D(int texNumR, int texNumC, int index) {
   int texR = index / texNumC;
   int texC = index - texR * texNumC;
+  return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
+}
+vec2 packedUVfrom1D(int texNumR, int texNumC, int index) {
+  int texelIndex = index / 2;
+  int texR = texelIndex / texNumC;
+  int texC = texelIndex - texR * texNumC;
   return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
 }
 `;
@@ -205,6 +222,15 @@ vec2 UVfrom4D(int texNumR, int texNumC, int stride0,
   int texC = index - texR * texNumC;
   return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
 }
+vec2 packedUVfrom4D(int texNumR, int texNumC, int texelsInBatch2,
+    int texelsInBatch, int texelsInLogicalRow, int b2, int b,
+    int row, int col) {
+  int index = b2 * texelsInBatch2 + b * texelsInBatch +
+    (row / 2) * texelsInLogicalRow + (col / 2);
+  int texR = index / texNumC;
+  int texC = index - texR * texNumC;
+  return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
+}
 `;
 
 const SAMPLE_5D_SNIPPET = `
@@ -239,9 +265,15 @@ const FLOAT_TEXTURE_SAMPLE_SNIPPET = `
   }
 `;
 
-const FLOAT_TEXTURE_SETOUTPUT_SNIPPET = `
+const FLOAT_TEXTURE_SET_R_SNIPPET = `
   void setOutput(float val) {
     gl_FragColor = vec4(val, 0, 0, 0);
+  }
+`;
+
+const FLOAT_TEXTURE_SET_RGBA_SNIPPET = `
+  void setOutput(vec4 val) {
+    gl_FragColor = val;
   }
 `;
 
@@ -318,6 +350,35 @@ function getOutputScalarCoords() {
   `;
 }
 
+function getOutputPacked1DCoords(
+    shape: [number], texShape: [number, number]): string {
+  const packedTexShape =
+      [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
+  if (texShape[0] === 1) {
+    return `
+      int getOutputCoords() {
+        return 2 * int(resultUV.x * ${packedTexShape[1]}.0);
+      }
+    `;
+  }
+
+  if (texShape[1] === 1) {
+    return `
+      int getOutputCoords() {
+        return 2 * int(resultUV.y * ${packedTexShape[0]}.0);
+      }
+    `;
+  }
+
+  return `
+    int getOutputCoords() {
+      ivec2 resTexRC = ivec2(resultUV.yx *
+                             vec2(${packedTexShape[0]}, ${packedTexShape[1]}));
+      return resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
+    }
+  `;
+}
+
 function getOutput1DCoords(
     shape: [number], texShape: [number, number]): string {
   if (texShape[0] === 1) {
@@ -357,6 +418,36 @@ function getOutput3DCoords(
       int c = index / ${stride1};
       int d = index - c * ${stride1};
       return ivec3(r, c, d);
+    }
+  `;
+}
+
+function getOutputPacked4DCoords(
+    shape: [number, number, number, number],
+    texShape: [number, number]): string {
+  const packedTexShape =
+      [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
+
+  const texelsInLogicalRow = Math.ceil(shape[3] / 2);
+  const texelsInBatch = texelsInLogicalRow * Math.ceil(shape[2] / 2);
+  const texelsInBatch2 = texelsInBatch * shape[1];
+
+  return `
+    ivec4 getOutputCoords() {
+      ivec2 resTexRC = ivec2(resultUV.yx *
+                             vec2(${packedTexShape[0]}, ${packedTexShape[1]}));
+      int index = resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
+
+      int b2 = index / ${texelsInBatch2};
+      index -= b2 * ${texelsInBatch2};
+
+      int b = index / ${texelsInBatch};
+      index -= b * ${texelsInBatch};
+
+      int r = 2 * (index / ${texelsInLogicalRow});
+      int c = int(mod(float(index), ${texelsInLogicalRow}.)) * 2;
+
+      return ivec4(b2, b, r, c);
     }
   `;
 }
@@ -548,6 +639,22 @@ function getSamplerScalar(inputInfo: InputInfo): string {
   `;
 }
 
+function getPackedSampler1D(inputInfo: InputInfo): string {
+  const texName = inputInfo.name;
+  const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
+  const texShape = inputInfo.shapeInfo.texShape;
+  const packedTexShape =
+      [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
+
+  return `
+    vec4 ${funcName}(int index) {
+      vec2 uv = packedUVfrom1D(
+        ${packedTexShape[0]}, ${packedTexShape[1]}, index);
+      return texture2D(${texName}, uv);
+    }
+  `;
+}
+
 function getSampler1D(inputInfo: InputInfo): string {
   const texName = inputInfo.name;
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
@@ -725,6 +832,30 @@ function getSampler3D(inputInfo: InputInfo): string {
             ${texNumR}, ${texNumC}, ${stride0}, ${stride1}, row, col, depth);
         return sampleTexture(${texName}, uv);
       }
+  `;
+}
+
+function getPackedSampler4D(inputInfo: InputInfo): string {
+  const shape = inputInfo.shapeInfo.logicalShape;
+  const texName = inputInfo.name;
+  const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
+  const texShape = inputInfo.shapeInfo.texShape;
+  const packedTexShape =
+      [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
+  const texNumR = packedTexShape[0];
+  const texNumC = packedTexShape[1];
+
+  const valuesPerRow = Math.ceil(shape[3] / 2);
+  const texelsInBatch = valuesPerRow * Math.ceil(shape[2] / 2);
+  const texelsInBatch2 = texelsInBatch * shape[1];
+
+  return `
+    vec4 ${funcName}(int b2, int b, int row, int col) {
+      vec2 uv = packedUVfrom4D(
+        ${texNumR}, ${texNumC}, ${texelsInBatch2},
+        ${texelsInBatch}, ${valuesPerRow}, b2, b, row, col);
+      return texture2D(${texName}, uv);
+    }
   `;
 }
 

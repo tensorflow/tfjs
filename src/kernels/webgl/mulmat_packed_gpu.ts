@@ -52,7 +52,7 @@ export class MatMulPackedProgram implements GPGPUProgram {
 
       void main() {
         ivec2 rc = getOutputCoords();
-        gl_FragColor = dot2x2ARowBCol(rc);
+        setOutput(dot2x2ARowBCol(rc));
       }
     `;
   }
