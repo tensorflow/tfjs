@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
+import commonjs from 'rollup-plugin-commonjs';
 import node from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
-import commonjs from 'rollup-plugin-commonjs';
 import uglify from 'rollup-plugin-uglify';
 
 const PREAMBLE = `/**
@@ -38,44 +38,41 @@ const PREAMBLE = `/**
  */`;
 
 function minify() {
-  return uglify({
-    output: {preamble: PREAMBLE}
-  });
+  return uglify({output: {preamble: PREAMBLE}});
 }
 
 function config({plugins = [], output = {}, external = []}) {
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript({
-        tsconfigOverride: {compilerOptions: {module: 'ES2015'}}
-      }),
+      typescript({tsconfigOverride: {compilerOptions: {module: 'ES2015'}}}),
       node(),
       // Polyfill require() from dependencies.
       commonjs({
-        ignore: ["crypto"],
+        ignore: ['crypto', 'node-fetch'],
         include: 'node_modules/**',
         namedExports: {
           './node_modules/seedrandom/index.js': ['alea'],
+          './node_modules/utf8/utf8.js': ['decode'],
         },
       }),
       ...plugins
     ],
     output: {
       banner: PREAMBLE,
+      globals: {
+        'node-fetch': 'nodeFetch',
+        '@tensorflow/tfjs-core': 'tf',
+        '@tensorflow/tfjs-layers': 'tf'
+      },
       ...output
     },
     external: [
-      'crypto',
-      ...external
+      // node-fetch is only used in node. Browsers have native "fetch".
+      'node-fetch', 'crypto', '@tensorflow/tfjs-core',
+      '@tensorflow/tfjs-layers', ...external
     ],
     onwarn: warning => {
-      let {code} = warning;
-      if (code === 'CIRCULAR_DEPENDENCY' ||
-          code === 'CIRCULAR' ||
-          code === 'THIS_IS_UNDEFINED') {
-        return;
-      }
       console.warn('WARNING: ', warning.toString());
     }
   };
@@ -85,25 +82,22 @@ export default [
   config({
     output: {
       format: 'umd',
-      name: 'tf',
+      name: 'tf.data',
       extend: true,
-      file: 'dist/tfjs-data.js'
+      file: 'dist/tf-data.js'
     }
   }),
   config({
     plugins: [minify()],
     output: {
       format: 'umd',
-      name: 'tf',
+      name: 'tf.data',
       extend: true,
-      file: 'dist/tfjs-data.min.js'
+      file: 'dist/tf-data.min.js'
     }
   }),
   config({
     plugins: [minify()],
-    output: {
-      format: 'es',
-      file: 'dist/tfjs-data.esm.js'
-    }
+    output: {format: 'es', file: 'dist/tf-data.esm.js'}
   })
 ];
