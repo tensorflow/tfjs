@@ -1633,7 +1633,7 @@ export class MathBackendWebGL implements KernelBackend {
         .reshape(outputShape);
   }
 
-  fft(x: Tensor1D): Tensor1D {
+  fft(x: Tensor2D): Tensor2D {
     const xData = this.texData.get(x.dataId);
 
     const realProgram = new FFTProgram(fft_gpu.COMPLEX_FFT.REAL, x.shape);
@@ -1645,7 +1645,7 @@ export class MathBackendWebGL implements KernelBackend {
 
     const real = this.compileAndRun<Tensor>(realProgram, inputs);
     const imag = this.compileAndRun<Tensor>(imagProgram, inputs);
-    const complex = this.complex(real, imag).as1D();
+    const complex = this.complex(real, imag).as2D(x.shape[0], x.shape[1]);
     real.dispose();
     imag.dispose();
     return complex;

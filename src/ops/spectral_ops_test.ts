@@ -17,9 +17,9 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
+import {ALL_ENVS, BROWSER_CPU_ENVS, expectArraysClose, WEBGL_ENVS} from '../test_util';
 
-describeWithFlags('FFT', ALL_ENVS, () => {
+describeWithFlags('1D FFT', ALL_ENVS, () => {
   it('should return the same value with TensorFlow (2 elements)', () => {
     const t1Real = tf.tensor1d([1, 2]);
     const t1Imag = tf.tensor1d([1, 1]);
@@ -75,4 +75,42 @@ describeWithFlags('FFT', ALL_ENVS, () => {
        const t1 = tf.complex(t1Real, t1Imag);
        expectArraysClose(tf.spectral.fft(t1), [10, 10, -4, 0, -2, -2, 0, -4]);
      });
+});
+
+describeWithFlags('FFT', WEBGL_ENVS, () => {
+  it('2D: should return the same value as TensorFlow', () => {
+    const t1Real = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+    const t1Imag = tf.tensor2d([5, 6, 7, 8], [2, 2]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    const y = tf.spectral.fft(t1);
+    expectArraysClose(y, [3, 11, -1, -1, 7, 15, -1, -1]);
+    expect(y.shape).toEqual(t1Real.shape);
+  });
+
+  it('3D: should return the same value as TensorFlow', () => {
+    const t1Real = tf.tensor3d([1, 2, 3, 4, -1, -2, -3, -4], [2, 2, 2]);
+    const t1Imag = tf.tensor3d([5, 6, 7, 8, -5, -6, -7, -8], [2, 2, 2]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    const y = tf.spectral.fft(t1);
+    expectArraysClose(
+        y, [3, 11, -1, -1, 7, 15, -1, -1, -3, -11, 1, 1, -7, -15, 1, 1]);
+    expect(y.shape).toEqual(t1Real.shape);
+  });
+});
+
+// TODO: Remove this once we support higher-dimensional FFTs on CPU.
+describeWithFlags('FFT CPU', BROWSER_CPU_ENVS, () => {
+  it('2D throws', () => {
+    const t1Real = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+    const t1Imag = tf.tensor2d([5, 6, 7, 8], [2, 2]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    expect(() => tf.spectral.fft(t1)).toThrow();
+  });
+
+  it('3D throws', () => {
+    const t1Real = tf.tensor3d([1, 2, 3, 4, -1, -2, -3, -4], [2, 2, 2]);
+    const t1Imag = tf.tensor3d([5, 6, 7, 8, -5, -6, -7, -8], [2, 2, 2]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    expect(() => tf.spectral.fft(t1)).toThrow();
+  });
 });

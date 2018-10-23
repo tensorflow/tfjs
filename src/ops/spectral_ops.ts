@@ -17,7 +17,7 @@
 
 import {ENV} from '../environment';
 import {op} from '../ops/operation';
-import {Tensor1D} from '../tensor';
+import {Tensor} from '../tensor';
 import {assert} from '../util';
 
 /**
@@ -36,11 +36,20 @@ import {assert} from '../util';
 /**
  * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
  */
-function fft_(input: Tensor1D): Tensor1D {
-  assert(input.dtype === 'complex64', 'dtype must be complex64');
-  assert(input.rank === 1, 'input rank must be 1');
-  const ret = ENV.engine.runKernel(backend => backend.fft(input), {input});
-  return ret;
+function fft_(input: Tensor): Tensor {
+  assert(
+      input.dtype === 'complex64',
+      `The dtype for tf.spectral.fft() must be complex64 ` +
+          `but got ${input.dtype}.`);
+
+  // Collapse all outer dimensions to a single batch dimension.
+  const innerDimensionSize = input.shape[input.shape.length - 1];
+  const batch = input.size / innerDimensionSize;
+  const input2D = input.as2D(batch, innerDimensionSize);
+
+  const ret = ENV.engine.runKernel(backend => backend.fft(input2D), {input});
+
+  return ret.reshape(input.shape);
 }
 
 export const fft = op({fft_});

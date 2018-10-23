@@ -37,6 +37,10 @@ export const BROWSER_ENVS: Features = {
 export const CPU_ENVS: Features = {
   'HAS_WEBGL': false
 };
+export const BROWSER_CPU_ENVS: Features = {
+  'BACKEND': 'test-cpu'
+};
+
 export const ALL_ENVS: Features = {};
 
 export function expectArraysClose(
