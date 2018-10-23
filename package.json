@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "0.12.18",
+    "@tensorflow/tfjs-core": "0.13.6",
     "@types/fetch-mock": "^6.0.1",
     "@types/jasmine": "~2.5.53",
     "@types/nock": "9.3.0",
@@ -32,21 +32,22 @@
     "rollup-plugin-uglify": "~3.0.0",
     "ts-node": "~7.0.0",
     "tslint": "~5.11.0",
-    "typescript": "2.8.3"
+    "typescript": "2.8.3",
+    "yalc": "^1.0.0-pre.23"
   },
   "scripts": {
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
     "publish-npm": "./scripts/publish-npm.sh",
     "link-local": "yalc link",
-    "publish-local": "yarn build-npm && yalc push",
+    "publish-local": "rimraf dist/ && yarn build && yalc push",
     "test": "karma start",
     "test-node": "ts-node src/test_node.ts",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
     "lint": "tslint -p . -t verbose"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "0.12.18"
+    "@tensorflow/tfjs-core": "0.13.6"
   },
   "dependencies": {
     "@types/node-fetch": "^2.1.2",

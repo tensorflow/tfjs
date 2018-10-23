@@ -9,6 +9,14 @@ $ npm install
 $ yarn
 ```
 
+Temporary (before we move to tfjs-examples):
+```sh
+cd ../../
+yarn publish-local
+cd demo/boston-housing
+yarn link-local @tensorflow/tfjs-data
+```
+
 To build and watch the example, run:
 ```sh
 $ yarn watch
