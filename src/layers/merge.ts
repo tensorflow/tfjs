@@ -1099,8 +1099,8 @@ export class Dot extends Merge {
         Array.isArray(inputShape) && inputShape.length === 2 &&
             Array.isArray(inputShape[0]) && Array.isArray(inputShape[1]),
         'A `Dot` layer should be called on a list of exactly 2 inputs.');
-    const shape1 = inputShape[0] as Shape;
-    const shape2 = inputShape[1] as Shape;
+    const shape1 = (inputShape[0] as Shape).slice();
+    const shape2 = (inputShape[1] as Shape).slice();
     if (shape1.length > 3 || shape2.length > 3) {
       throw new NotImplementedError(
           'Dot layer does not support tensors of 4D or higher rank yet.');
