@@ -54,8 +54,8 @@ export async function loadDataAndNormalize() {
   // https://github.com/tensorflow/tfjs-data/issues/32 is resolved.
 
   // Gets mean and standard deviation of data.
-  stats = await computeDatasetStatistics(await bostonData.trainDataset.map(
-      (row: {features: {key: number}, target: {key: number}}) => row.features));
+  stats = await computeDatasetStatistics(
+      bostonData.trainDataset.map((row: Array<{key: number}>) => row[0]));
 
   // Normalizes features data.
   const normalizedTrainData = bostonData.trainDataset.map(normalizeFeatures);
@@ -83,13 +83,13 @@ export async function loadDataAndNormalize() {
 /**
  * Normalizes features with statistics and returns a new object.
  */
-function normalizeFeatures(row: {features: number[], target: number[]}) {
-  const features = row.features;
+function normalizeFeatures(row: number[][]) {
+  const features = row[0];
   const normalizedFeatures: number[] = [];
   features.forEach(
       (value, index) => normalizedFeatures.push(
           (value - stats[index].mean) / stats[index].stddev));
-  return {normalizedFeatures, target: row.target};
+  return {normalizedFeatures, target: row[1]};
 }
 
 /**

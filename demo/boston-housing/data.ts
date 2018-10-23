@@ -65,14 +65,12 @@ export class BostonHousingDataset {
     const convertedDataset =
         csvDataset.map((row: Array<{[key: string]: number}>) => {
           const [rawFeatures, rawLabel] = row;
-          const convertedFeatures =
-              Object.keys(rawFeatures).sort().map(key => rawFeatures[key]);
-          const convertedLabel =
-              Object.keys(rawLabel).sort().map(key => rawLabel[key]);
-          return {features: convertedFeatures, target: convertedLabel};
+          const convertedFeatures = Object.values(rawFeatures);
+          const convertedLabel = [rawLabel['medv']];
+          return [convertedFeatures, convertedLabel];
         });
     return {
-      dataset: convertedDataset,
+      dataset: convertedDataset.shuffle(100),
       numFeatures: (await csvDataset.columnNames()).length - 1
     };
   }
