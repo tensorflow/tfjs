@@ -82,10 +82,10 @@ describe('CSVDataset', () => {
   it('produces a stream of dicts containing UTF8-decoded csv data',
      async () => {
        const source = new FileDataSource(csvData, {chunkSize: 10});
-       const dataset =
-           await CSVDataset.create(source, false, ['foo', 'bar', 'baz']);
+       const dataset = new CSVDataset(
+           source, {hasHeader: false, columnNames: ['foo', 'bar', 'baz']});
 
-       expect(dataset.csvColumnNames).toEqual(['foo', 'bar', 'baz']);
+       expect(await dataset.columnNames()).toEqual(['foo', 'bar', 'baz']);
 
        const iter = await dataset.iterator();
        const result = await iter.collect();
@@ -103,9 +103,9 @@ describe('CSVDataset', () => {
 
   it('reads CSV column headers when requested', async () => {
     const source = new FileDataSource(csvDataWithHeaders, {chunkSize: 10});
-    const dataset = await CSVDataset.create(source, true);
+    const dataset = new CSVDataset(source);
 
-    expect(dataset.csvColumnNames).toEqual(['foo', 'bar', 'baz']);
+    expect(await dataset.columnNames()).toEqual(['foo', 'bar', 'baz']);
     const iter = await dataset.iterator();
     const result = await iter.collect();
 
@@ -123,11 +123,18 @@ describe('CSVDataset', () => {
   it('throw error when column configs mismatch column names', async done => {
     try {
       const source = new FileDataSource(csvData, {chunkSize: 10});
-      await CSVDataset.create(
-          source, false, ['foo', 'bar', 'baz'], {'A': {required: true}});
+      const dataset = new CSVDataset(source, {
+        hasHeader: false,
+        columnNames: ['foo', 'bar', 'baz'],
+        columnConfigs: {'A': {required: true}}
+      });
+      await dataset.columnNames();
       done.fail();
     } catch (error) {
-      expect(error.message).toBe('Column config does not match column names.');
+      expect(error.message)
+          .toBe(
+              'The key "A" provided in columnConfigs does not ' +
+              'match any of the column names (foo,bar,baz).');
       done();
     }
   });
@@ -136,7 +143,8 @@ describe('CSVDataset', () => {
      async done => {
        try {
          const source = new FileDataSource(csvData, {chunkSize: 10});
-         await CSVDataset.create(source);
+         const dataset = new CSVDataset(source, {hasHeader: false});
+         await dataset.columnNames();
          done.fail();
        } catch (error) {
          expect(error.message)
@@ -145,10 +153,28 @@ describe('CSVDataset', () => {
        }
      });
 
+  it('take first line as columnNames by default', async () => {
+    const source = new FileDataSource(csvDataWithHeaders, {chunkSize: 10});
+    const dataset = new CSVDataset(source);
+    expect(await dataset.columnNames()).toEqual(['foo', 'bar', 'baz']);
+    const iter = await dataset.iterator();
+    const result = await iter.collect();
+
+    expect(result).toEqual([
+      {'foo': 'ab', 'bar': 'cd', 'baz': 'ef'},
+      {'foo': 'ghi', 'bar': undefined, 'baz': 'jkl'},
+      {'foo': undefined, 'bar': 'mn', 'baz': 'op'},
+      {'foo': 1.4, 'bar': 7.8, 'baz': 12},
+      {'foo': 'qrs', 'bar': 'tu', 'baz': undefined},
+      {'foo': 'v', 'bar': 'w', 'baz': 'x'},
+      {'foo': 'y', 'bar': 'z', 'baz': undefined},
+    ]);
+  });
+
   it('emits rows in order despite async requests', async () => {
     const source = new FileDataSource(csvDataWithHeadersExtra, {chunkSize: 10});
-    const ds = await CSVDataset.create(source, true);
-    expect(ds.csvColumnNames).toEqual(['A', 'B', 'C']);
+    const ds = new CSVDataset(source);
+    expect(await ds.columnNames()).toEqual(['A', 'B', 'C']);
     const csvIterator = await ds.iterator();
     const promises = [
       csvIterator.next(), csvIterator.next(), csvIterator.next(),
@@ -165,9 +191,12 @@ describe('CSVDataset', () => {
   it('throw error when required column is empty', async done => {
     try {
       const source = new FileDataSource(csvData, {chunkSize: 10});
-      const dataset = await CSVDataset.create(
-          source, false, ['foo', 'bar', 'baz'], {'foo': {required: true}});
-      expect(dataset.csvColumnNames).toEqual(['foo', 'bar', 'baz']);
+      const dataset = new CSVDataset(source, {
+        hasHeader: false,
+        columnNames: ['foo', 'bar', 'baz'],
+        columnConfigs: {'foo': {required: true}}
+      });
+      expect(await dataset.columnNames()).toEqual(['foo', 'bar', 'baz']);
       const iter = await dataset.iterator();
       await iter.collect();
       done.fail();
@@ -180,11 +209,13 @@ describe('CSVDataset', () => {
 
   it('fill default value when provided', async () => {
     const source = new FileDataSource(csvData, {chunkSize: 10});
-    const dataset = await CSVDataset.create(
-        source, false, ['foo', 'bar', 'baz'],
-        {'foo': {default: 'abc'}, 'baz': {default: 123}});
+    const dataset = new CSVDataset(source, {
+      hasHeader: false,
+      columnNames: ['foo', 'bar', 'baz'],
+      columnConfigs: {'foo': {default: 'abc'}, 'baz': {default: 123}}
+    });
 
-    expect(dataset.csvColumnNames).toEqual(['foo', 'bar', 'baz']);
+    expect(await dataset.columnNames()).toEqual(['foo', 'bar', 'baz']);
     const iter = await dataset.iterator();
     const result = await iter.collect();
 
@@ -201,9 +232,8 @@ describe('CSVDataset', () => {
 
   it('provide delimiter through parameter', async () => {
     const source = new FileDataSource(csvBlobWithSemicolon, {chunkSize: 10});
-    const dataset =
-        await CSVDataset.create(source, true, null, null, false, ';');
-    expect(dataset.csvColumnNames).toEqual(['A', 'B', 'C']);
+    const dataset = new CSVDataset(source, {delimiter: ';'});
+    expect(await dataset.columnNames()).toEqual(['A', 'B', 'C']);
     const iter = await dataset.iterator();
     const result = await iter.collect();
 
@@ -217,13 +247,15 @@ describe('CSVDataset', () => {
   it('provide datatype through parameter to parse different types',
      async () => {
        const source = new FileDataSource(csvBlobWithMixedType, {chunkSize: 10});
-       const dataset = await CSVDataset.create(source, true, null, {
-         'A': {dtype: DType.int32},
-         'B': {dtype: DType.bool},
-         'C': {dtype: DType.int32},
-         'D': {dtype: DType.bool}
+       const dataset = new CSVDataset(source, {
+         columnConfigs: {
+           'A': {dtype: DType.int32},
+           'B': {dtype: DType.bool},
+           'C': {dtype: DType.int32},
+           'D': {dtype: DType.bool}
+         }
        });
-       expect(dataset.csvColumnNames).toEqual(['A', 'B', 'C', 'D']);
+       expect(await dataset.columnNames()).toEqual(['A', 'B', 'C', 'D']);
        const iter = await dataset.iterator();
        const result = await iter.collect();
 
@@ -237,10 +269,11 @@ describe('CSVDataset', () => {
 
   it('reads CSV with selected column in order', async () => {
     const source = new FileDataSource(csvDataWithHeaders, {chunkSize: 10});
-    const dataset = await CSVDataset.create(
-        source, true, null, {'bar': {}, 'foo': {}}, true);
+    const dataset = new CSVDataset(
+        source,
+        {columnConfigs: {'bar': {}, 'foo': {}}, configuredColumnsOnly: true});
 
-    expect(dataset.csvColumnNames).toEqual(['bar', 'foo']);
+    expect(await dataset.columnNames()).toEqual(['bar', 'foo']);
     const iter = await dataset.iterator();
     const result = await iter.collect();
 
@@ -258,21 +291,42 @@ describe('CSVDataset', () => {
   it('reads CSV with wrong column', async done => {
     try {
       const source = new FileDataSource(csvDataWithHeaders, {chunkSize: 10});
-      await CSVDataset.create(source, true, ['bar', 'foooooooo']);
+      const dataset =
+          new CSVDataset(source, {columnNames: ['bar', 'foooooooo']});
+      await dataset.columnNames();
       done.fail();
     } catch (e) {
       expect(e.message).toEqual(
-          'Provided column names does not match header line.');
+          'The length of provided columnNames (2) does not match the length ' +
+          'of the header line read from file (3).');
       done();
     }
+  });
+
+  it('reads CSV with column names override header', async () => {
+    const source = new FileDataSource(csvDataWithHeaders, {chunkSize: 10});
+    const dataset = new CSVDataset(source, {columnNames: ['a', 'b', 'c']});
+    expect(await dataset.columnNames()).toEqual(['a', 'b', 'c']);
+    const iter = await dataset.iterator();
+    const result = await iter.collect();
+
+    expect(result).toEqual([
+      {'a': 'ab', 'b': 'cd', 'c': 'ef'},
+      {'a': 'ghi', 'b': undefined, 'c': 'jkl'},
+      {'a': undefined, 'b': 'mn', 'c': 'op'},
+      {'a': 1.4, 'b': 7.8, 'c': 12},
+      {'a': 'qrs', 'b': 'tu', 'c': undefined},
+      {'a': 'v', 'b': 'w', 'c': 'x'},
+      {'a': 'y', 'b': 'z', 'c': undefined},
+    ]);
   });
 
   it('reads CSV with missing label value', async done => {
     try {
       const source = new FileDataSource(csvDataWithHeaders, {chunkSize: 10});
       const dataset =
-          await CSVDataset.create(source, true, null, {'baz': {isLabel: true}});
-      expect(dataset.csvColumnNames).toEqual(['foo', 'bar', 'baz']);
+          new CSVDataset(source, {columnConfigs: {'baz': {isLabel: true}}});
+      expect(await dataset.columnNames()).toEqual(['foo', 'bar', 'baz']);
       const iter = await dataset.iterator();
       await iter.collect(1000, 0);
       done.fail();
@@ -286,8 +340,8 @@ describe('CSVDataset', () => {
   it('reads CSV with label column', async () => {
     const source = new FileDataSource(csvDataWithHeadersExtra, {chunkSize: 10});
     const dataset =
-        await CSVDataset.create(source, true, null, {'C': {isLabel: true}});
-    expect(dataset.csvColumnNames).toEqual(['A', 'B', 'C']);
+        new CSVDataset(source, {columnConfigs: {'C': {isLabel: true}}});
+    expect(await dataset.columnNames()).toEqual(['A', 'B', 'C']);
     const iter = await dataset.iterator();
     const result = await iter.collect();
 

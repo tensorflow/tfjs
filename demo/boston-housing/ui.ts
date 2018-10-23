@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import renderChart from 'vega-embed';
+import renderChart, {Result} from 'vega-embed';
 import {VisualizationSpec} from 'vega-embed';
 
 import {linearRegressionModel, multiLayerPerceptronRegressionModel, run} from './index';
@@ -49,8 +49,8 @@ export const setup = async () => {
 };
 
 let losses = [{}];
-export const plotData =
-    async (epoch: number, trainLoss: number, valLoss: number) => {
+export const plotData = async (
+    epoch: number, trainLoss: number, valLoss: number, result?: Result) => {
   losses.push({'epoch': epoch, 'loss': trainLoss, 'split': 'Train Loss'});
   losses.push({'epoch': epoch, 'loss': valLoss, 'split': 'Validation Loss'});
 

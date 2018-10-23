@@ -27,19 +27,34 @@ There are two ways to import TensorFlow.js Data
 Reading a CSV file
 
 ```js
-import * as tf from '@tensorflow/tfjs-data';
+import * as tf from '@tensorflow/tfjs';
 
-...
+const csvUrl = 'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/boston-housing-train.csv';
 
-const csvFeatureDataset = await tf.data.csv(csv_feature_url, /* header */ true);
-const csvTargetDataset = await tf.data.csv(csv_target_url, /* header */ true);
+// We want to predict the column "medv", which represents a median value of a
+// home (in $1000s), so we mark it as a label.
+const csvDataset = tf.data.csv(
+  csvUrl, {columnConfigs: {medv: {isLabel: true}}});
 
-const numFeatures = csvFeatureDataset.csvColumnNames.length;
+const numOfFeatures = (await csvDataset.getColumnNames()).length - 1;
 
-const trainDataset = await tf.zip([csvFeatureDataset, csvTargetDataset]).shuffle(100);
+const flattenedDataset =
+    csvDataset
+        .map(row => {
+          const [rawFeatures, rawLabel] = row;
+          const features = Object.values(rawFeatures);
+          const label = [rawLabel['medv']];
+          return [features, label];
+        })
+        .batch(10);
 
-await model.fitDataset(trainDataset, modelFitDatasetConfig);
-...
+const model = tf.sequential();
+model.add(tf.layers.dense(
+      {inputShape: [numOfFeatures], units: 1}));
+model.compile({optimizer: tf.train.sgd(0.000001), loss: 'meanSquaredError'});
+
+await model.fitDataset(flattenedDataset, {epochs: 10, batchesPerEpoch: 100});
+
 ```
 
 ## For more information
