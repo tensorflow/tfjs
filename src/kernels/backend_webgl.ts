@@ -16,7 +16,7 @@
  */
 
 import {MemoryInfo, TimingInfo} from '../engine';
-import {ENV} from '../environment';
+import {ENV, Environment} from '../environment';
 import {tidy} from '../globals';
 import {warn} from '../log';
 import * as array_ops_util from '../ops/array_ops_util';
@@ -44,6 +44,7 @@ import {topkImpl} from './topk_impl';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
 import {AvgPool2DBackpropProgram} from './webgl/avg_pool_backprop_gpu';
 import {BatchNormProgram} from './webgl/batchnorm_gpu';
+import {BatchNormPackedProgram} from './webgl/batchnorm_packed_gpu';
 import * as binaryop_complex_gpu from './webgl/binaryop_complex_gpu';
 import {BinaryOpComplexProgram} from './webgl/binaryop_complex_gpu';
 import * as binaryop_gpu from './webgl/binaryop_gpu';
@@ -587,15 +588,8 @@ export class MathBackendWebGL implements KernelBackend {
     if (a.shape[0] === 1 && b.shape[0] === 1) {
       const aSqueezed = a.as2D(a.shape[1], a.shape[2]);
       const bSqueezed = b.as2D(b.shape[1], b.shape[2]);
-      const packProgramA = new PackProgram(aSqueezed.shape);
-      const packedA = this.compileAndRun<Tensor2D>(
-          packProgramA, [aSqueezed],
-          this.makePackedTensor<Tensor2D>(aSqueezed.shape));
-
-      const packProgramB = new PackProgram(bSqueezed.shape);
-      const packedB = this.compileAndRun<Tensor2D>(
-          packProgramB, [bSqueezed],
-          this.makePackedTensor<Tensor2D>(bSqueezed.shape));
+      const packedA = this.packTensor(aSqueezed);
+      const packedB = this.packTensor(bSqueezed);
 
       const program = new MatMulPackedProgram(
           packedA.shape, packedB.shape, [outerShapeA, outerShapeB], transposeA,
@@ -604,8 +598,7 @@ export class MathBackendWebGL implements KernelBackend {
           program, [packedA, packedB],
           this.makePackedTensor<Tensor2D>(program.outputShape));
 
-      const unpackProgram = new UnpackProgram(result.shape);
-      const unpacked = this.compileAndRun(unpackProgram, [result]) as Tensor;
+      const unpacked = this.unpackTensor(result);
 
       packedA.dispose();
       packedB.dispose();
@@ -648,10 +641,53 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [a, b], output) as Tensor;
   }
 
+  batchNormalizationPacked(
+      x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
+      varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
+      offset?: Tensor4D|Tensor1D): Tensor4D {
+    const packedX = this.packTensor(x);
+    const packedMean = this.packTensor(mean);
+    const packedVariance = this.packTensor(variance);
+
+    const packedInputs = [packedX, packedMean, packedVariance];
+
+    let offsetShape = null;
+    if (offset != null) {
+      const packedOffset = this.packTensor(offset);
+      packedInputs.push(packedOffset);
+      offsetShape = packedOffset.shape;
+    }
+
+    let scaleShape = null;
+    if (scale != null) {
+      const packedScale = this.packTensor(scale);
+      packedInputs.push(packedScale);
+      scaleShape = packedScale.shape;
+    }
+
+    const batchNormProgram = new BatchNormPackedProgram(
+        packedX.shape, packedMean.shape, packedVariance.shape, offsetShape,
+        scaleShape, varianceEpsilon);
+    const batchNorm = this.compileAndRun(
+        batchNormProgram, packedInputs,
+        this.makePackedTensor<Tensor4D>(packedX.shape));
+
+    const unpacked = this.unpackTensor(batchNorm);
+
+    Environment.dispose([packedInputs, batchNorm]);
+
+    return unpacked;
+  }
+
   batchNormalization(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
       varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
       offset?: Tensor4D|Tensor1D): Tensor4D {
+    if (ENV.get('WEBGL_PACK_BATCHNORMALIZATION')) {
+      return this.batchNormalizationPacked(
+          x, mean, variance, varianceEpsilon, scale, offset);
+    }
+
     const inputs = [x, mean, variance];
 
     let offsetShape = null;
@@ -1355,7 +1391,7 @@ export class MathBackendWebGL implements KernelBackend {
     const x2ColShape = [sharedDim, numCols];
 
     const xSqueezed = x.squeeze([0]);
-    const w2Row = filter.reshape([sharedDim, -1]);
+    const w2Row = filter.reshape([sharedDim, -1]) as Tensor2D;
 
     const im2ColProgram =
         new Im2ColProgram(x2ColShape, xSqueezed.shape, convInfo);
@@ -1363,10 +1399,7 @@ export class MathBackendWebGL implements KernelBackend {
         im2ColProgram, [xSqueezed],
         this.makePackedTensor<Tensor2D>(x2ColShape));
 
-    const packedW2RowProgram = new PackProgram(w2Row.shape);
-    const packedW2Row = this.compileAndRun(
-        packedW2RowProgram, [w2Row],
-        this.makePackedTensor<Tensor2D>(w2Row.shape));
+    const packedW2Row = this.packTensor<Tensor2D>(w2Row);
 
     const matmulProgram = new MatMulPackedProgram(
         im2Col.shape, packedW2Row.shape, [numCols, convInfo.outChannels], true,
@@ -1375,8 +1408,7 @@ export class MathBackendWebGL implements KernelBackend {
         matmulProgram, [im2Col, packedW2Row],
         this.makePackedTensor<Tensor2D>(matmulProgram.outputShape));
 
-    const unpackProgram = new UnpackProgram(product.shape);
-    const unpacked = this.compileAndRun(unpackProgram, [product]) as Tensor;
+    const unpacked = this.unpackTensor(product);
 
     im2Col.dispose();
     packedW2Row.dispose();
@@ -1643,6 +1675,17 @@ export class MathBackendWebGL implements KernelBackend {
     const packedTensor = Tensor.make(shape, {});
     this.texData.get(packedTensor.dataId).usage = TextureUsage.PACK;
     return packedTensor as T;
+  }
+
+  private packTensor<T extends Tensor>(x: T): T {
+    const packProgram = new PackProgram(x.shape);
+    return this.compileAndRun(
+               packProgram, [x], this.makePackedTensor(x.shape)) as T;
+  }
+
+  private unpackTensor<T extends Tensor>(x: T): T {
+    const unpackProgram = new UnpackProgram(x.shape);
+    return this.compileAndRun(unpackProgram, [x]) as T;
   }
 
   public compileAndRun<
