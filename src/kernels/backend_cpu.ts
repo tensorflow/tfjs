@@ -2544,21 +2544,26 @@ export class MathBackendCPU implements KernelBackend {
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
-  fft(input: Tensor1D): Tensor1D {
-    util.assert(input.shape.length > 0, 'input must have at least one rank.');
-    const n = input.shape[0];
+  fft(input: Tensor2D): Tensor2D {
+    if (input.shape[0] !== 1) {
+      throw new Error(`tf.fft() on CPU only supports vectors.`);
+    }
+    const input1D = input.as1D();
 
-    if (this.is_exponent_of_2(n)) {
-      return this.fftRadix2(input, n);
+    const n = input1D.size;
+
+    if (this.isExponentOf2(n)) {
+      return this.fftRadix2(input1D, n).as2D(input.shape[0], input.shape[1]);
     } else {
       const data = input.dataSync();
       const rawOutput = this.fourierTransformByMatmul(data, n) as Float32Array;
       const output = complex_util.splitRealAndImagArrays(rawOutput);
-      return ops.complex(output.real, output.imag).as1D();
+      return ops.complex(output.real, output.imag)
+          .as2D(input.shape[0], input.shape[1]);
     }
   }
 
-  private is_exponent_of_2(size: number): boolean {
+  private isExponentOf2(size: number): boolean {
     return (size & size - 1) === 0;
   }
 
