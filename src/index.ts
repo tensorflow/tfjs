@@ -27,6 +27,7 @@ import {Environment} from './environment';
 
 // Serialization.
 import * as io from './io/io';
+import * as math from './math';
 import * as serialization from './serialization';
 import {setOpHandler} from './tensor';
 import * as test_util from './test_util';
@@ -69,7 +70,7 @@ export {version as version_core};
 export {nextFrame};
 
 // Second level exports.
-export {environment, io, serialization, test_util, util, webgl};
+export {environment, io, math, serialization, test_util, util, webgl};
 
 // Backend specific.
 export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './kernels/backend';
