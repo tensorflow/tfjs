@@ -643,9 +643,9 @@ export class Sequential extends Model {
   //   available.
   /**
    * Evaluate model using a dataset object.
-   * 
+   *
    * Note: Unlike `evaluate()`, this method is asynchronous (`async`);
-   * 
+   *
    * @param dataset A dataset object. Its `iterator()` method is expected
    *   to generate a dataset iterator object, the `next()` method of which
    *   is expected to produce data batches for evaluation. The return value
@@ -831,7 +831,7 @@ export class Sequential extends Model {
       configArray = config;
     } else {
       util.assert(
-          config['layers'] != null, 
+          config['layers'] != null,
           `When the config data for a Sequential model is not an Array, ` +
           `it must be an Object that contains the 'layers' field.`);
       configArray = config['layers'] as serialization.ConfigDictArray;

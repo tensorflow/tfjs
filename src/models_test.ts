@@ -17,7 +17,7 @@ import {Reshape} from './layers/core';
 import {deserialize} from './layers/serialization';
 import {loadModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
 import {JsonDict} from './types';
-import {convertPythonicToTs} from './utils/serialization_utils';
+import {convertPythonicToTs, convertTsToPythonic} from './utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 import {version as layersVersion} from './version';
 
@@ -2265,3 +2265,86 @@ const fakeRoundtripModel: ModelAndWeightsConfig = {
     }
   }
 };
+
+describeMathCPU('Functional-model saving and loading', () => {
+  it('Save-load round trip: multi-node layer', async () => {
+    const input1 = tfl.input({shape: [2, 3]});
+    const input2 = tfl.input({shape: [3, 2]});
+
+    const reshape = tfl.layers.reshape({targetShape: [6]});
+    const output1 = reshape.apply(input1) as tfl.SymbolicTensor;
+    const output2 = reshape.apply(input2) as tfl.SymbolicTensor;
+
+    const model1 =
+        tfl.model({inputs: [input1, input2], outputs: [output1, output2]});
+
+    const model1JSON = model1.toJSON(null, false) as JsonDict;
+    const model2 =
+        await modelFromJSON({modelTopology: model1JSON}) as tfl.Model;
+
+    expect(model2.inputs.length).toEqual(model1.inputs.length);
+    expect(model2.inputs[0].shape).toEqual(model1.inputs[0].shape);
+    expect(model2.inputs[1].shape).toEqual(model1.inputs[1].shape);
+    expect(model2.outputs.length).toEqual(model1.outputs.length);
+    expect(model2.outputs[0].shape).toEqual(model1.outputs[0].shape);
+    expect(model2.outputs[1].shape).toEqual(model1.outputs[1].shape);
+    expect(model2.toJSON(null, false)).toEqual(model1JSON);
+
+    const x1 = randomNormal([1, 2, 3]);
+    const x2 = randomNormal([1, 3, 2]);
+    const ys1 = model1.apply([x1, x2]) as Tensor[];
+
+    const ys2 = model2.apply([x1, x2]) as Tensor[];
+
+    expectTensorsClose(ys1[0], ys2[0]);
+    expectTensorsClose(ys1[1], ys2[1]);
+  });
+
+  it('Save-load round trip: layer with loopy invocation', async () => {
+    const input = tfl.layers.input({shape: [1]});
+    const dense = tfl.layers.dense(
+        {units: 1, kernelInitializer: 'ones', biasInitializer: 'ones'});
+    let output = dense.apply(input) as tfl.SymbolicTensor;
+    for (let i = 0; i < 3; ++i) {
+      output = dense.apply(output) as tfl.SymbolicTensor;
+    }
+    const model1 = tfl.model({inputs: input, outputs: output});
+
+    const xs = ones([10, 1]);
+    const ys1 = model1.predict(xs) as Tensor;
+
+    const model1JSON = model1.toJSON(null, false) as JsonDict;
+    const model2 =
+        await modelFromJSON({modelTopology: model1JSON}) as tfl.Model;
+    expect(model2.toJSON(null, false)).toEqual(model1JSON);
+
+    const ys2 = model2.predict(xs) as Tensor;
+    expectTensorsClose(ys1, ys2);
+  });
+
+  it('Load attention model', async () => {
+    // From https://github.com/tensorflow/tfjs/issues/794
+    const modelJSON = JSON.parse(
+        // tslint:disable-next-line:max-line-length
+        `{"modelTopology":{"keras_version":"2.1.6","backend":"tensorflow","model_config":{"class_name":"Model","config":{"input_layers":[["input_1",0,0],["s0",0,0],["c0",0,0]],"name":"model_1","layers":[{"class_name":"InputLayer","inbound_nodes":[],"name":"input_1","config":{"dtype":"float32","name":"input_1","sparse":false,"batch_input_shape":[null,30,38]}},{"class_name":"InputLayer","inbound_nodes":[],"name":"s0","config":{"dtype":"float32","name":"s0","sparse":false,"batch_input_shape":[null,64]}},{"class_name":"Bidirectional","inbound_nodes":[[["input_1",0,0,{}]]],"name":"bidirectional_1","config":{"trainable":true,"name":"bidirectional_1","merge_mode":"concat","layer":{"class_name":"LSTM","config":{"stateful":false,"units":32,"activation":"tanh","recurrent_activation":"hard_sigmoid","dropout":0,"recurrent_dropout":0,"use_bias":true,"trainable":true,"recurrent_initializer":{"class_name":"Orthogonal","config":{"seed":null,"gain":1}},"bias_constraint":null,"unroll":false,"kernel_initializer":{"class_name":"VarianceScaling","config":{"seed":null,"distribution":"uniform","mode":"fan_avg","scale":1}},"unit_forget_bias":true,"bias_initializer":{"class_name":"Zeros","config":{}},"kernel_constraint":null,"activity_regularizer":null,"return_sequences":true,"recurrent_constraint":null,"recurrent_regularizer":null,"bias_regularizer":null,"go_backwards":false,"implementation":1,"name":"lstm_2","kernel_regularizer":null,"return_state":false}}}},{"class_name":"RepeatVector","inbound_nodes":[[["s0",0,0,{}]],[["lstm_1",0,0,{}]],[["lstm_1",1,0,{}]],[["lstm_1",2,0,{}]],[["lstm_1",3,0,{}]],[["lstm_1",4,0,{}]],[["lstm_1",5,0,{}]],[["lstm_1",6,0,{}]],[["lstm_1",7,0,{}]],[["lstm_1",8,0,{}]]],"name":"repeat_vector_1","config":{"n":30,"trainable":true,"name":"repeat_vector_1"}},{"class_name":"Concatenate","inbound_nodes":[[["bidirectional_1",0,0,{}],["repeat_vector_1",0,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",1,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",2,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",3,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",4,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",5,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",6,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",7,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",8,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",9,0,{}]]],"name":"concatenate_1","config":{"trainable":true,"name":"concatenate_1","axis":-1}},{"class_name":"Dense","inbound_nodes":[[["concatenate_1",0,0,{}]],[["concatenate_1",1,0,{}]],[["concatenate_1",2,0,{}]],[["concatenate_1",3,0,{}]],[["concatenate_1",4,0,{}]],[["concatenate_1",5,0,{}]],[["concatenate_1",6,0,{}]],[["concatenate_1",7,0,{}]],[["concatenate_1",8,0,{}]],[["concatenate_1",9,0,{}]]],"name":"dense_1","config":{"bias_constraint":null,"kernel_constraint":null,"units":10,"activity_regularizer":null,"use_bias":true,"bias_regularizer":null,"trainable":true,"activation":"tanh","name":"dense_1","kernel_initializer":{"class_name":"VarianceScaling","config":{"seed":null,"distribution":"uniform","mode":"fan_avg","scale":1}},"kernel_regularizer":null,"bias_initializer":{"class_name":"Zeros","config":{}}}},{"class_name":"Dense","inbound_nodes":[[["dense_1",0,0,{}]],[["dense_1",1,0,{}]],[["dense_1",2,0,{}]],[["dense_1",3,0,{}]],[["dense_1",4,0,{}]],[["dense_1",5,0,{}]],[["dense_1",6,0,{}]],[["dense_1",7,0,{}]],[["dense_1",8,0,{}]],[["dense_1",9,0,{}]]],"name":"dense_2","config":{"bias_constraint":null,"kernel_constraint":null,"units":1,"activity_regularizer":null,"use_bias":true,"bias_regularizer":null,"trainable":true,"activation":"relu","name":"dense_2","kernel_initializer":{"class_name":"VarianceScaling","config":{"seed":null,"distribution":"uniform","mode":"fan_avg","scale":1}},"kernel_regularizer":null,"bias_initializer":{"class_name":"Zeros","config":{}}}},{"class_name":"Activation","inbound_nodes":[[["dense_2",0,0,{}]],[["dense_2",1,0,{}]],[["dense_2",2,0,{}]],[["dense_2",3,0,{}]],[["dense_2",4,0,{}]],[["dense_2",5,0,{}]],[["dense_2",6,0,{}]],[["dense_2",7,0,{}]],[["dense_2",8,0,{}]],[["dense_2",9,0,{}]]],"name":"attention_weights","config":{"trainable":true,"activation":"softmax","name":"attention_weights"}},{"class_name":"Dot","inbound_nodes":[[["attention_weights",0,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",1,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",2,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",3,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",4,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",5,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",6,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",7,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",8,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",9,0,{}],["bidirectional_1",0,0,{}]]],"name":"dot_1","config":{"trainable":true,"name":"dot_1","normalize":false,"axes":1}},{"class_name":"InputLayer","inbound_nodes":[],"name":"c0","config":{"dtype":"float32","name":"c0","sparse":false,"batch_input_shape":[null,64]}},{"class_name":"LSTM","inbound_nodes":[[["dot_1",0,0,{}],["s0",0,0,{}],["c0",0,0,{}]],[["dot_1",1,0,{}],["lstm_1",0,0,{}],["lstm_1",0,2,{}]],[["dot_1",2,0,{}],["lstm_1",1,0,{}],["lstm_1",1,2,{}]],[["dot_1",3,0,{}],["lstm_1",2,0,{}],["lstm_1",2,2,{}]],[["dot_1",4,0,{}],["lstm_1",3,0,{}],["lstm_1",3,2,{}]],[["dot_1",5,0,{}],["lstm_1",4,0,{}],["lstm_1",4,2,{}]],[["dot_1",6,0,{}],["lstm_1",5,0,{}],["lstm_1",5,2,{}]],[["dot_1",7,0,{}],["lstm_1",6,0,{}],["lstm_1",6,2,{}]],[["dot_1",8,0,{}],["lstm_1",7,0,{}],["lstm_1",7,2,{}]],[["dot_1",9,0,{}],["lstm_1",8,0,{}],["lstm_1",8,2,{}]]],"name":"lstm_1","config":{"stateful":false,"units":64,"activation":"tanh","recurrent_activation":"hard_sigmoid","dropout":0,"recurrent_dropout":0,"use_bias":true,"trainable":true,"recurrent_initializer":{"class_name":"Orthogonal","config":{"seed":null,"gain":1}},"bias_constraint":null,"unroll":false,"kernel_initializer":{"class_name":"VarianceScaling","config":{"seed":null,"distribution":"uniform","mode":"fan_avg","scale":1}},"unit_forget_bias":true,"bias_initializer":{"class_name":"Zeros","config":{}},"kernel_constraint":null,"activity_regularizer":null,"return_sequences":false,"recurrent_constraint":null,"recurrent_regularizer":null,"bias_regularizer":null,"go_backwards":false,"implementation":1,"name":"lstm_1","kernel_regularizer":null,"return_state":true}},{"class_name":"Dense","inbound_nodes":[[["lstm_1",0,0,{}]],[["lstm_1",1,0,{}]],[["lstm_1",2,0,{}]],[["lstm_1",3,0,{}]],[["lstm_1",4,0,{}]],[["lstm_1",5,0,{}]],[["lstm_1",6,0,{}]],[["lstm_1",7,0,{}]],[["lstm_1",8,0,{}]],[["lstm_1",9,0,{}]]],"name":"dense_3","config":{"bias_constraint":null,"kernel_constraint":null,"units":11,"activity_regularizer":null,"use_bias":true,"bias_regularizer":null,"trainable":true,"activation":"softmax","name":"dense_3","kernel_initializer":{"class_name":"VarianceScaling","config":{"seed":null,"distribution":"uniform","mode":"fan_avg","scale":1}},"kernel_regularizer":null,"bias_initializer":{"class_name":"Zeros","config":{}}}}],"output_layers":[["dense_3",0,0],["dense_3",1,0],["dense_3",2,0],["dense_3",3,0],["dense_3",4,0],["dense_3",5,0],["dense_3",6,0],["dense_3",7,0],["dense_3",8,0],["dense_3",9,0]]}},"training_config":{"loss":"categorical_crossentropy","sample_weight_mode":null,"metrics":["accuracy"],"optimizer_config":{"class_name":"Adam","config":{"beta_1":0.8999999761581421,"decay":0.009999999776482582,"beta_2":0.9990000128746033,"lr":0.004999999888241291,"amsgrad":false,"epsilon":1e-7}},"loss_weights":null}},"weightsManifest":[{"paths":["group1-shard1of1"],"weights":[{"shape":[38,128],"dtype":"float32","name":"bidirectional_1/forward_lstm_2/kernel"},{"shape":[32,128],"dtype":"float32","name":"bidirectional_1/forward_lstm_2/recurrent_kernel"},{"shape":[128],"dtype":"float32","name":"bidirectional_1/forward_lstm_2/bias"},{"shape":[38,128],"dtype":"float32","name":"bidirectional_1/backward_lstm_2/kernel"},{"shape":[32,128],"dtype":"float32","name":"bidirectional_1/backward_lstm_2/recurrent_kernel"},{"shape":[128],"dtype":"float32","name":"bidirectional_1/backward_lstm_2/bias"},{"shape":[128,10],"dtype":"float32","name":"dense_1/kernel"},{"shape":[10],"dtype":"float32","name":"dense_1/bias"},{"shape":[10,1],"dtype":"float32","name":"dense_2/kernel"},{"shape":[1],"dtype":"float32","name":"dense_2/bias"},{"shape":[64,11],"dtype":"float32","name":"dense_3/kernel"},{"shape":[11],"dtype":"float32","name":"dense_3/bias"},{"shape":[64,256],"dtype":"float32","name":"lstm_1/kernel"},{"shape":[64,256],"dtype":"float32","name":"lstm_1/recurrent_kernel"},{"shape":[256],"dtype":"float32","name":"lstm_1/bias"}]}]}`);
+    const modelTopology = modelJSON.modelTopology;
+    const model = await modelFromJSON({modelTopology}) as tfl.Model;
+
+    expect(model.inputs.length).toEqual(3);
+    expect(model.inputs[0].shape).toEqual([null, 30, 38]);
+    expect(model.inputs[1].shape).toEqual([null, 64]);
+    expect(model.inputs[2].shape).toEqual([null, 64]);
+    expect(model.outputs.length).toEqual(10);
+    for (const output of model.outputs) {
+      expect(output.shape).toEqual([null, 11]);
+    }
+    expect(convertTsToPythonic(model.getConfig()))
+        .toEqual(modelTopology['model_config']['config']);
+
+    const x = randomNormal([2, 30, 38]);
+    const s = randomNormal([2, 64]);
+    const c = randomNormal([2, 64]);
+    const output = model.predict([x, s, c]) as Tensor[];
+    expect(output.length).toEqual(10);
+  });
+});

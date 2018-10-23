@@ -24,7 +24,6 @@ import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCe
 import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, Wrapper, WrapperLayerConfig} from './layers/wrappers';
 
 
-
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable
 //   (b/74074458).

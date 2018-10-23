@@ -1069,7 +1069,7 @@ export abstract class Container extends Layer {
       for (let originalNodeIndex = 0;
            originalNodeIndex < layer.inboundNodes.length; originalNodeIndex++) {
         const nodeKey = Container.nodeKey(layer, originalNodeIndex);
-        if (nodeKey in this.containerNodes) {
+        if (this.containerNodes.has(nodeKey)) {
           // i.e. we mark it to be saved
           nodeConversionMap[nodeKey] = keptNodes;
           keptNodes += 1;
@@ -1193,7 +1193,7 @@ export abstract class Container extends Layer {
               const tensorIndex = node.tensorIndices[i];
               const nodeKey = Container.nodeKey(inboundLayer, nodeIndex);
               let newNodeIndex = nodeConversionMap[nodeKey];
-              if (newNodeIndex === null || newNodeIndex === undefined) {
+              if (newNodeIndex == null) {
                 newNodeIndex = 0;
               }
               nodeData.push(
@@ -1349,7 +1349,7 @@ export abstract class Container extends Layer {
       }
     }
 
-    // First, we create all layers and enqueue nodes to be processed
+    // First, we create all layers and enqueue nodes to be processed.
     const name = config.name;
     const layersFromConfig = config.layers as serialization.ConfigDict[];
     for (const layerData of layersFromConfig) {
@@ -1364,13 +1364,15 @@ export abstract class Container extends Layer {
       for (const layerData of layersFromConfig) {
         const layer = createdLayers[layerData.name as string];
         if (layer.name in unprocessedNodes) {
-          for (const nodeData of unprocessedNodes[layer.name]) {
+          const currentUnprocessedNodesForLayer = unprocessedNodes[layer.name];
+          delete unprocessedNodes[layer.name];
+          for (const nodeData of currentUnprocessedNodesForLayer) {
             processNode(layer, nodeData);
           }
-          delete unprocessedNodes[layer.name];
         }
       }
     }
+
     const inputTensors: SymbolicTensor[] = [];
     const outputTensors: SymbolicTensor[] = [];
     const inputLayersFromConfig =

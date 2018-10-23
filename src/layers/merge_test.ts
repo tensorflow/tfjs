@@ -626,6 +626,16 @@ describeMathCPU('Dot-Layer: Symbolic', () => {
     expect(y2.shape).toEqual([null, 4]);
   });
 
+  it('computeOutputShape() does not alter input shape', () => {
+    const dotLayer = tfl.layers.dot({axes: 1});
+    const inputShape1: Shape = [null, 3, 4];
+    const inputShape2: Shape = [null, 3];
+    const outputShape = dotLayer.computeOutputShape([inputShape1, inputShape2]);
+    expect(outputShape).toEqual([null, 4]);
+    expect(inputShape1).toEqual([null, 3, 4]);
+    expect(inputShape2).toEqual([null, 3]);
+  });
+
   // TODO(cais): Uncomment the follow test case when 4D and higher is supported
   //   by the Dot layer.
   // it('4D x 4D, axes = -1', () => {
