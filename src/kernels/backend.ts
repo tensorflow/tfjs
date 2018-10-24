@@ -22,6 +22,8 @@ import {DataType, Rank, ShapeMap, TypedArray} from '../types';
 // Required information for all backends.
 export interface BackendTimingInfo {
   kernelMs: number;
+  getExtraProfileInfo?(): string;  // a field for additional timing information
+                                   // e.g. packing / unpacking for WebGL backend
 }
 
 export interface TensorStorage {

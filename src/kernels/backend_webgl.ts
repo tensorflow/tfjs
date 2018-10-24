@@ -101,7 +101,11 @@ import {UnpackProgram} from './webgl/unpack_gpu';
 import * as webgl_util from './webgl/webgl_util';
 import {whereImpl} from './where_impl';
 
-type TimerNode = RecursiveArray<Promise<number>>|Promise<number>;
+type KernelInfo = {
+  name: string; query: Promise<number>;
+};
+
+export type TimerNode = RecursiveArray<KernelInfo>|KernelInfo;
 export interface CPUTimerQuery {
   startMs: number;
   endMs?: number;
@@ -385,22 +389,30 @@ export class MathBackendWebGL implements KernelBackend {
 
     f();
 
-    const flattenedActiveTimers = util.flatten(this.activeTimers);
+    // needing to split these up because util.flatten only accepts certain types
+    const flattenedActiveTimerQueries =
+        util.flatten(this.activeTimers.map((d: KernelInfo) => d.query))
+            .filter(d => d != null);
+    const flattenedActiveTimerNames =
+        util.flatten(this.activeTimers.map((d: KernelInfo) => d.name))
+            .filter(d => d != null);
+
     this.activeTimers = oldActiveTimers;
 
     if (outerMostTime) {
       this.programTimersStack = null;
     }
 
-    const kernelMs = await Promise.all(flattenedActiveTimers).then(results => {
-      let sum = 0;
-      results.forEach(result => sum += result);
-      return sum;
-    });
+    const kernelMs = await Promise.all(flattenedActiveTimerQueries);
+
     const res: WebGLTimingInfo = {
       uploadWaitMs: this.uploadWaitMs,
       downloadWaitMs: this.downloadWaitMs,
-      kernelMs,
+      kernelMs: util.sum(kernelMs),
+      getExtraProfileInfo: () =>
+          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
+              .map(d => `${d.name}: ${d.ms}`)
+              .join(', '),
       wallMs: null  // will be filled by the engine
     };
     this.uploadWaitMs = 0;
@@ -1724,7 +1736,8 @@ export class MathBackendWebGL implements KernelBackend {
 
     if (shouldTimeProgram) {
       query = this.endTimer(query);
-      this.activeTimers.push(this.getQueryTime(query));
+      this.activeTimers.push(
+          {name: program.constructor.name, query: this.getQueryTime(query)});
     }
     return output;
   }
@@ -1796,10 +1809,18 @@ export class MathBackendWebGL implements KernelBackend {
     const newTexture = this.acquireTexture(dataId, texShape, usage, isPacked);
     texData.texture = newTexture;
     if (values != null) {
-      this.gpgpu.uploadMatrixToTexture(
-          newTexture, texShape[0],
-          // TODO(smilkov): Propagate the original typed array to gpgpu.
-          texShape[1], typedArrayToFloat32(values, dtype));
+      // TODO(smilkov): Propagate the original typed array to gpgpu.
+      if (isPacked) {
+        const batch = util.sizeFromShape(shape.slice(0, shape.length - 2));
+        const rows = shape.length > 1 ? shape[shape.length - 2] : 1;
+        const cols = shape[shape.length - 1];
+        this.gpgpu.uploadMatrixToPackedTexture(
+            newTexture, batch, rows, cols, typedArrayToFloat32(values, dtype));
+      } else {
+        this.gpgpu.uploadMatrixToTexture(
+            newTexture, texShape[0], texShape[1],
+            typedArrayToFloat32(values, dtype));
+      }
       // Once uploaded, don't store the values on cpu.
       texData.values = null;
       if (shouldTimeProgram) {

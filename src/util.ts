@@ -46,6 +46,14 @@ export function nearestLargerEven(val: number): number {
   return val % 2 === 0 ? val : val + 1;
 }
 
+export function sum(arr: number[]): number {
+  let sum = 0;
+  for (let i = 0; i < arr.length; i++) {
+    sum += arr[i];
+  }
+  return sum;
+}
+
 /**
  * Returns a sample from a uniform [a, b) distribution.
  *
@@ -90,7 +98,7 @@ export function assertNonNull(a: TensorLike): void {
 // NOTE: We explicitly type out what T extends instead of any so that
 // util.flatten on a nested array of number doesn't try to infer T as a
 // number[][], causing us to explicitly type util.flatten<number>().
-export function flatten<T extends number|boolean|Promise<number>>(
+export function flatten<T extends number|boolean|Promise<number>|string>(
     arr: T|RecursiveArray<T>, ret: T[] = []): T[] {
   if (Array.isArray(arr)) {
     for (let i = 0; i < arr.length; ++i) {

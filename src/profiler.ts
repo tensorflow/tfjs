@@ -42,7 +42,12 @@ export class Profiler {
       util.checkComputationForNaN(vals, r.dtype, name);
 
       timer.then(timing => {
-        this.logger.logKernelProfile(name, r, vals, timing.kernelMs);
+        let extraInfo = '';
+        if (timing.getExtraProfileInfo != null) {
+          extraInfo = timing.getExtraProfileInfo();
+        }
+
+        this.logger.logKernelProfile(name, r, vals, timing.kernelMs, extraInfo);
       });
     });
 
@@ -52,14 +57,18 @@ export class Profiler {
 
 export class Logger {
   logKernelProfile(
-      name: string, result: Tensor, vals: TypedArray, timeMs: number) {
+      name: string, result: Tensor, vals: TypedArray, timeMs: number,
+      extraInfo?: string) {
     const time = util.rightPad(`${timeMs}ms`, 9);
     const paddedName = util.rightPad(name, 25);
     const rank = result.rank;
     const size = result.size;
     const shape = util.rightPad(result.shape.toString(), 14);
+
     console.log(
-        `%c${paddedName}\t%c${time}\t%c${rank}D ${shape}\t%c${size}`,
-        'font-weight:bold', 'color:red', 'color:blue', 'color: orange');
+        `%c${paddedName}\t%c${time}\t%c${rank}D ${shape}\t%c${size}\t%c${
+            extraInfo}`,
+        'font-weight:bold', 'color:red', 'color:blue', 'color: orange',
+        'color: green');
   }
 }
