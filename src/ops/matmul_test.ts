@@ -120,6 +120,26 @@ describeWithFlags('packed matmul', WEBGL_ENVS, () => {
     const expected = [11, 13, 14, 20];
     expectArraysClose(c, expected);
   });
+
+  it('should work when followed by an op that requires unpacked inputs', () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+
+    const c = tf.matMul(a, b);
+    const d = tf.add(c, 1);
+
+    expectArraysClose(d, [1, 9, -2, 21]);
+  });
+
+  it('should work when preceded by an op that requires packed inputs', () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+
+    const c = tf.add(a, 1);
+    const d = tf.matMul(b, c);
+
+    expectArraysClose(d, [5, 6, 7, 4, 3, 2, 9, 12, 15]);
+  });
 });
 
 describeWithFlags('matmul', ALL_ENVS, () => {

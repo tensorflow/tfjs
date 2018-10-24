@@ -22,7 +22,7 @@ import {getCoordsDataType} from './shader_compiler';
 
 export class UnpackProgram implements GPGPUProgram {
   variableNames = ['A'];
-  packedInputs = true;
+  usesPackedTextures = true;
   outputShape: number[];
   userCode: string;
 

@@ -17,7 +17,6 @@
 
 import {ENV} from '../../environment';
 import * as util from '../../util';
-import {TextureUsage} from '../webgl/tex_util';
 
 export function createWebGLRenderingContext(attributes: WebGLContextAttributes):
     WebGLRenderingContext {
@@ -357,10 +356,9 @@ function validateTextureUnit(gl: WebGLRenderingContext, textureUnit: number) {
 }
 
 export function getTextureShapeFromLogicalShape(
-    logShape: number[],
-    usage: TextureUsage = TextureUsage.UPLOAD): [number, number] {
+    logShape: number[], isPacked = false): [number, number] {
   let maxTexSize = ENV.get('WEBGL_MAX_TEXTURE_SIZE');
-  if (usage === TextureUsage.PACK) {
+  if (isPacked) {
     maxTexSize = maxTexSize * 2;
 
     // This logic ensures we accurately count the number of packed texels needed

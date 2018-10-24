@@ -23,8 +23,7 @@ export enum TextureUsage {
   RENDER,
   UPLOAD,
   PIXELS,
-  DOWNLOAD,
-  PACK
+  DOWNLOAD
 }
 
 export enum PhysicalTextureType {
@@ -48,6 +47,7 @@ export interface TextureData {
   dtype: DataType;
   values: DataTypeMap[DataType];
   usage: TextureUsage;
+  isPacked: boolean;
 }
 
 export function getUnpackedMatrixTextureShapeWidthHeight(
