@@ -16,6 +16,7 @@
  */
 
 import {ENV} from '../../environment';
+import * as util from '../../util';
 
 import * as tex_util from './tex_util';
 import * as webgl_util from './webgl_util';
@@ -283,12 +284,13 @@ export function uploadMatrixToTexture(
 }
 
 export function uploadMatrixToPackedTexture(
-    gl: WebGLRenderingContext, texture: WebGLTexture, rows: number,
-    columns: number, matrix: Float32Array, textureConfig: TextureConfig) {
+    gl: WebGLRenderingContext, texture: WebGLTexture, batch: number,
+    rows: number, columns: number, matrix: Float32Array,
+    textureConfig: TextureConfig) {
   const [w, h] = tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
   const packedRGBA = new Float32Array(
       tex_util.getPackedRGBAArraySizeFromMatrixShape(rows, columns));
-  tex_util.encodeMatrixToPackedRGBA(matrix, rows, columns, packedRGBA);
+  tex_util.encodeMatrixToPackedRGBA(matrix, batch, rows, columns, packedRGBA);
   uploadDataToTexture(gl, texture, w, h, packedRGBA, gl.RGBA);
 }
 
@@ -396,17 +398,18 @@ export function downloadByteEncodedFloatMatrixFromOutputTexture(
 }
 
 export function downloadMatrixFromPackedOutputTexture(
-    gl: WebGLRenderingContext, logicalRows: number, logicalCols: number,
+    gl: WebGLRenderingContext, batch: number, rows: number, cols: number,
     physicalRows: number, physicalCols: number,
     textureConfig: TextureConfig): Float32Array {
   const [w, h] = tex_util.getPackedMatrixTextureShapeWidthHeight(
       physicalRows, physicalCols);
+
   const packedRGBA =
       new Float32Array(tex_util.getPackedRGBAArraySizeFromMatrixShape(
           physicalRows, physicalCols));
   webgl_util.callAndCheck(
       gl, () => gl.readPixels(0, 0, w, h, gl.RGBA, gl.FLOAT, packedRGBA));
-  const matrix = new Float32Array(logicalRows * logicalCols);
+  const matrix = new Float32Array(util.sizeFromShape([batch, rows, cols]));
   return tex_util.decodeMatrixFromPackedRGBA(
-      packedRGBA, logicalRows, logicalCols, matrix);
+      packedRGBA, batch, rows, cols, matrix);
 }
