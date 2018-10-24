@@ -29,10 +29,12 @@ export class TextureManager {
 
   constructor(private gpgpu: GPGPUContext) {}
 
-  acquireTexture(shapeRC: [number, number], usage: TextureUsage): WebGLTexture {
-    const physicalTexType = getPhysicalFromLogicalTextureType(usage);
+  acquireTexture(
+      shapeRC: [number, number], usage: TextureUsage,
+      isPacked: boolean): WebGLTexture {
+    const physicalTexType = getPhysicalFromLogicalTextureType(usage, isPacked);
 
-    const shapeKey = getKeyFromTextureShape(shapeRC, physicalTexType);
+    const shapeKey = getKeyFromTextureShape(shapeRC, physicalTexType, isPacked);
     if (!(shapeKey in this.freeTextures)) {
       this.freeTextures[shapeKey] = [];
     }
@@ -76,13 +78,14 @@ export class TextureManager {
 
   releaseTexture(
       texture: WebGLTexture, shape: [number, number],
-      logicalTexType: TextureUsage): void {
+      logicalTexType: TextureUsage, isPacked: boolean): void {
     if (this.freeTextures == null) {
       // Already disposed.
       return;
     }
-    const physicalTexType = getPhysicalFromLogicalTextureType(logicalTexType);
-    const shapeKey = getKeyFromTextureShape(shape, physicalTexType);
+    const physicalTexType =
+        getPhysicalFromLogicalTextureType(logicalTexType, isPacked);
+    const shapeKey = getKeyFromTextureShape(shape, physicalTexType, isPacked);
     if (!(shapeKey in this.freeTextures)) {
       this.freeTextures[shapeKey] = [];
     }
@@ -140,9 +143,14 @@ export class TextureManager {
   }
 }
 
-function getPhysicalFromLogicalTextureType(logicalTexType: TextureUsage):
-    PhysicalTextureType {
-  if (logicalTexType === TextureUsage.DOWNLOAD ||
+function getPhysicalFromLogicalTextureType(
+    logicalTexType: TextureUsage, isPacked: boolean): PhysicalTextureType {
+  if (isPacked) {
+    return ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') ?
+        PhysicalTextureType.PACKED_2X2_FLOAT32 :
+        PhysicalTextureType.PACKED_2X2_FLOAT16;
+  } else if (
+      logicalTexType === TextureUsage.DOWNLOAD ||
       logicalTexType === TextureUsage.PIXELS) {
     return PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE;
   } else if (logicalTexType === TextureUsage.UPLOAD) {
@@ -151,16 +159,12 @@ function getPhysicalFromLogicalTextureType(logicalTexType: TextureUsage):
     return ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') ?
         PhysicalTextureType.UNPACKED_FLOAT32 :
         PhysicalTextureType.UNPACKED_FLOAT16;
-  } else if (logicalTexType === TextureUsage.PACK) {
-    return ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') ?
-        PhysicalTextureType.PACKED_2X2_FLOAT32 :
-        PhysicalTextureType.PACKED_2X2_FLOAT16;
   }
   throw new Error(`Unknown logical texture type ${logicalTexType}`);
 }
 
 function getKeyFromTextureShape(
-    shapeRowsCol: [number, number],
-    physicalTexType: PhysicalTextureType): string {
-  return `${shapeRowsCol[0]}_${shapeRowsCol[1]}_${physicalTexType}`;
+    shapeRowsCol: [number, number], physicalTexType: PhysicalTextureType,
+    isPacked: boolean): string {
+  return `${shapeRowsCol[0]}_${shapeRowsCol[1]}_${physicalTexType}_${isPacked}`;
 }

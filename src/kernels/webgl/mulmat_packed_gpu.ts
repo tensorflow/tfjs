@@ -19,6 +19,7 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class MatMulPackedProgram implements GPGPUProgram {
   variableNames = ['matrixA', 'matrixB'];
+  usesPackedTextures = true;
   outputShape: number[];
   userCode: string;
 
