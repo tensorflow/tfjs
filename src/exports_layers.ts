@@ -33,7 +33,7 @@ import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, Wrapper, Wrapp
  * @doc {
  *   heading: 'Layers',
  *   subheading: 'Inputs',
- *    namespace: 'layers',
+ *   namespace: 'layers',
  *   useDocsFrom: 'InputLayer',
  *   configParamIndices: [0]
  * }
