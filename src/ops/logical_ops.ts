@@ -185,7 +185,15 @@ function where_<T extends Tensor>(
  * the output tensor can vary depending on how many true values there are in
  * input. Indices are output in row-major order. The resulting tensor has the
  * shape `[numTrueElems, condition.rank]`.
+ *
+ * This is analogous to calling the python tf.where(cond) without an x or y.
+ *
+ * ```js
+ * const cond = tf.tensor1d([false, false, true], 'bool');
+ * tf.whereAsync(cond).then(result => result.print());
+ * ```
  */
+/** @doc {heading: 'Operations', subheading: 'Logical'} */
 async function whereAsync_(condition: Tensor|TensorLike): Promise<Tensor2D> {
   const $condition = convertToTensor(condition, 'condition', 'where', 'bool');
   assert($condition.dtype === 'bool', 'Condition must be of type bool.');
