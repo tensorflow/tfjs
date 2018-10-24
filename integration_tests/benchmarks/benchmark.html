@@ -106,6 +106,7 @@
           <th>Kernel</th>
           <th>Time(ms)</th>
           <th>Output</th>
+          <th>GPUPrograms</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -251,7 +252,7 @@
         const nameSpan = document.createElement('span');
         nameSpan.setAttribute('title', k.scopes.slice(0, -1).join(' --> '));
         nameSpan.textContent = k.scopes[k.scopes.length - 1];
-        appendRow(tbody, nameSpan, k.time.toFixed(2), k.output);
+        appendRow(tbody, nameSpan, k.time.toFixed(2), k.output, k.gpuProgramsInfo);
       });
     }
 
@@ -262,14 +263,17 @@
       let kernels = [];
       console.log = msg => {
         const parts = msg.split('\t').map(x => x.slice(2));
-        const scopes = parts[0].trim()
-          .split('||')
-          .filter(s => s !== 'unnamed scope');
-        kernels.push({
-          scopes: scopes,
-          time: Number.parseFloat(parts[1]),
-          output: parts[2].trim()
-        });
+        if(parts.length) {
+          const scopes = parts[0].trim()
+            .split('||')
+            .filter(s => s !== 'unnamed scope');
+          kernels.push({
+            scopes: scopes,
+            time: Number.parseFloat(parts[1]),
+            output: parts[2].trim(),
+            gpuProgramsInfo: parts[4]
+          });
+        }
       }
       let res = predict(model);
       if (res instanceof Promise) {
