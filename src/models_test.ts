@@ -376,6 +376,25 @@ describeMathCPU('modelFromJSON', () => {
         })
         .catch(done.fail);
   });
+
+  it('modelFromJSON with only model topology (no weights)', async () => {
+    const model = await modelFromJSON(fakeSequentialModel.modelTopology);
+    expect(model.name).toEqual('test');
+    expect(model.layers.length).toEqual(2);
+    expect(model.inputs.length).toEqual(1);
+    expect(model.inputs[0].shape).toEqual([null, 32]);
+    expect(model.outputs.length).toEqual(1);
+    expect(model.outputs[0].shape).toEqual([null, 32]);
+  });
+
+  it('toJSON and modelFromJSON', async () => {
+    const model1 = tfl.sequential();
+    model1.add(tfl.layers.repeatVector({inputShape: [2], n: 4}));
+    const model1JSON = model1.toJSON(null, false) as JsonDict;
+    const model2 = await tfl.models.modelFromJSON(model1JSON);
+    expect(model2.toJSON(null, false)).toEqual(model1JSON);
+  });
+
   // TODO(bileschi): Uncomment once we are able to load the full RNN model.
   /*
   it('reconstitutes rnn model', done => {

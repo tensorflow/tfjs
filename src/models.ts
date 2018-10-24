@@ -31,17 +31,45 @@ import {getExactlyOneShape} from './utils/types_utils';
 
 /**
  * Parses a JSON model configuration file and returns a model instance.
+ * 
+ * ```js
+ * // This example shows how to serialize a model using `toJSON()` and
+ * // deserialize it as another model using `tf.models.modelFROMJSON()`.
+ * // Note: this example serializes and deserializes only the topology
+ * // of the model; the weights of the loaded model will be different
+ * // from those of the the original model, due to random weight
+ * // initialization.
+ * // To load the topology and weights of a model, use `tf.loadModel()`.
+ * const model1 = tf.sequential();
+ * model1.add(tf.layers.repeatVector({inputShape: [2], n: 4}));
+ * // Serialize `model1` as a JSON object.
+ * const model1JSON = model1.toJSON(null, false);
+ * model1.summary();
+ * 
+ * const model2 = await tf.models.modelFromJSON(model1JSON);
+ * model2.summary();
+ * ```
+ * 
  *  @param modelAndWeightsConfig JSON object or string encoding a model and
- *       weights configuration.
+ *       weights configuration. It can also be only the topology JSON of the
+ *       model, in which case the weights will not be loaded.
  *  @param custom_objects Optional dictionary mapping names
  *       (strings) to custom classes or functions to be
  *       considered during deserialization.
  * @returns A TensorFlow.js Layers `Model` instance (uncompiled).
  */
+/**
+ * @doc {heading: 'Models',subheading: 'Loading'}
+ */
 export async function modelFromJSON(
-    modelAndWeightsConfig: ModelAndWeightsConfig,
+    modelAndWeightsConfig: ModelAndWeightsConfig|JsonDict,
     customObjects?: serialization.ConfigDict): Promise<Model> {
-  let modelTopology = modelAndWeightsConfig.modelTopology;
+  if (!('modelTopology' in modelAndWeightsConfig)) {
+    modelAndWeightsConfig = {modelTopology: modelAndWeightsConfig as JsonDict};
+  }
+  modelAndWeightsConfig = modelAndWeightsConfig as ModelAndWeightsConfig;
+
+  let modelTopology = modelAndWeightsConfig.modelTopology as JsonDict;
   if (modelTopology['model_config'] != null) {
     // If the model-topology JSON contains a 'model_config' field, then it is
     // a full model JSON (e.g., from `keras.Model.save()`), which contains
