@@ -14,7 +14,7 @@ import {getUid} from '../backend/state';
 import {ValueError} from '../errors';
 import {Kwargs, Shape} from '../types';
 
-import {Layer, Node, SymbolicTensor, DisposeResult} from './topology';
+import {DisposeResult, Layer, Node, SymbolicTensor} from './topology';
 
 /**
  * Constructor arguments for InputLayer.
@@ -46,16 +46,31 @@ export interface InputLayerConfig {
  *
  * `InputLayer` is generated automatically for `Sequential` models by specifying
  * the `inputshape` or `batchInputShape` for the first layer.  It should not be
- * specified explicitly.
+ * specified explicitly. However, it can be useful sometimes, e.g., when
+ * constructing a sequential model from a subset of another sequential model's
+ * layers. Like the code snippet below shows.
  *
  * ```js
  * // Define a model which simply adds two inputs.
- * const inputA = tf.input({shape: [3]});
- * const inputB = tf.input({shape: [3]});
- * const sum = tf.layers.add().apply([inputA, inputB]);
- * const model = tf.model({inputs: [inputA, inputB], outputs: sum});
- * const batchSize = 2;
- * model.predict([tf.ones([batchSize, 3]), tf.ones([batchSize, 3])]).print();
+ * const model1 = tf.sequential();
+ * model1.add(tf.layers.dense({inputShape: [4], units: 3, activation: 'relu'}));
+ * model1.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
+ * model1.summary();
+ * model1.preidct(tf.zeros([1, 4])).print();
+ *
+ * // Construct another model, reusing the second layer of `model1` while
+ * // not using the first layer of `model1`. Note that you cannot add the second
+ * // layer of `model` directly as the first layer of the new sequential model,
+ * // because doing so will lead to an error related to the fact that the layer
+ * // is not an input layer. Instead, you need to create an `inputLayer` and add
+ * // it to the new sequential model before adding the reused layer.
+ * const model2 = tf.sequential();
+ * // Use an inputShape that matches the input shape of `model1`'s second
+ * // layer.
+ * model2.add(tf.layers.inputLayer({inputShape: [3]}));
+ * model2.add(model1.layers[1]);
+ * model2.summary();
+ * model2.preidct(tf.zeros([1, 3])).print();
  * ```
  */
 export class InputLayer extends Layer {
@@ -140,10 +155,7 @@ export class InputLayer extends Layer {
 
   dispose(): DisposeResult {
     // dispose() for InputLayer is overridden as no-op.
-    return {
-      refCountAfterDispose: this._refCount,
-      numDisposedVariables: 0
-    };
+    return {refCountAfterDispose: this._refCount, numDisposedVariables: 0};
   }
 
   getConfig(): serialization.ConfigDict {
