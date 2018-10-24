@@ -22,17 +22,17 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-9.6.21.tgz#4563c26a53531c5aca943065fcdf2dd562f63cd4"
   integrity sha512-zQS6mHzxEstR8Vvnpc3JDUCDGWnHFzMTcBu9UCZoVLuj1Uvkkk0qFKJQEhlvbsX34m3xt12ejV09eO/ljZcn7A==
 
-"@types/seedrandom@~2.4.27":
+"@types/seedrandom@2.4.27":
   version "2.4.27"
   resolved "https://registry.yarnpkg.com/@types/seedrandom/-/seedrandom-2.4.27.tgz#9db563937dd86915f69092bc43259d2f48578e41"
   integrity sha1-nbVjk33YaRX2kJK8QyWdL0hXjkE=
 
-"@types/webgl-ext@~0.0.30":
+"@types/webgl-ext@0.0.30":
   version "0.0.30"
   resolved "https://registry.yarnpkg.com/@types/webgl-ext/-/webgl-ext-0.0.30.tgz#0ce498c16a41a23d15289e0b844d945b25f0fb9d"
   integrity sha512-LKVgNmBxN0BbljJrVUwkxwRYqzsAEPcZOe6S2T6ZaBDIrFp0qu4FNlpc5sM1tGbXUYFgdVQIoeLk1Y1UoblyEg==
 
-"@types/webgl2@~0.0.4":
+"@types/webgl2@0.0.4":
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/@types/webgl2/-/webgl2-0.0.4.tgz#c3b0f9d6b465c66138e84e64cb3bdf8373c2c279"
   integrity sha512-PACt1xdErJbMUOUweSrbVM7gSIYm1vTncW2hF6Os/EeWi6TXYAYMPp+8v6rzHmypE5gHrxaxZNXgMkJVIdZpHw==
@@ -3931,7 +3931,7 @@ sax@^1.2.4:
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
   integrity sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==
 
-seedrandom@~2.4.3:
+seedrandom@2.4.3:
   version "2.4.3"
   resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-2.4.3.tgz#2438504dad33917314bff18ac4d794f16d6aaecc"
   integrity sha1-JDhQTa0zkXMUv/GKxNeU8W1qrsw=
