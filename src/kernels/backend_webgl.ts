@@ -607,9 +607,9 @@ export class MathBackendWebGL implements KernelBackend {
       const program = new MatMulPackedProgram(
           aSqueezed.shape, bSqueezed.shape, [outerShapeA, outerShapeB],
           transposeA, transposeB);
-      const result = this.compileAndRun(
+      const result = this.unpackTensor(this.compileAndRun(
           program, [aSqueezed, bSqueezed],
-          this.makePackedTensor<Tensor2D>(program.outputShape));
+          this.makePackedTensor<Tensor2D>(program.outputShape)));
 
       return result.reshape([1, result.shape[0], result.shape[1]]);
     } else {
@@ -1374,9 +1374,9 @@ export class MathBackendWebGL implements KernelBackend {
     const matmulProgram = new MatMulPackedProgram(
         im2Col.shape, w2Row.shape, [numCols, convInfo.outChannels], true,
         false);
-    const product = this.compileAndRun(
+    const product = this.unpackTensor(this.compileAndRun(
         matmulProgram, [im2Col, w2Row],
-        this.makePackedTensor<Tensor2D>(matmulProgram.outputShape));
+        this.makePackedTensor<Tensor2D>(matmulProgram.outputShape)));
 
     return product.reshape([1, outHeight, outWidth, convInfo.outChannels]);
   }
@@ -1639,6 +1639,11 @@ export class MathBackendWebGL implements KernelBackend {
     const packedTensor = Tensor.make(shape, {});
     this.texData.get(packedTensor.dataId).isPacked = true;
     return packedTensor as T;
+  }
+
+  private unpackTensor<T extends Tensor>(input: T): T {
+    const program = new UnpackProgram(input.shape);
+    return this.compileAndRun(program, [input]);
   }
 
   public compileAndRun<
