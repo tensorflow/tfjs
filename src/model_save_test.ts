@@ -27,61 +27,45 @@ describeMathCPUAndGPU('Model.save', () => {
 
   class EmptyIOHandler implements io.IOHandler {}
 
-  it('Saving all weights succeeds', async done => {
+  it('Saving all weights succeeds', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.dense({units: 3, inputShape: [5]}));
     const handler = new IOHandlerForTest();
 
-    model.save(handler)
-        .then(saveResult => {
-          expect(handler.savedArtifacts.modelTopology)
-              .toEqual(model.toJSON(null, false));
-          expect(handler.savedArtifacts.weightSpecs.length).toEqual(2);
-          expect(handler.savedArtifacts.weightSpecs[0].name.indexOf('/kernel'))
-              .toBeGreaterThan(0);
-          expect(handler.savedArtifacts.weightSpecs[0].shape).toEqual([5, 3]);
-          expect(handler.savedArtifacts.weightSpecs[0].dtype)
-              .toEqual('float32');
-          expect(handler.savedArtifacts.weightSpecs[1].name.indexOf('/bias'))
-              .toBeGreaterThan(0);
-          expect(handler.savedArtifacts.weightSpecs[1].shape).toEqual([3]);
-          expect(handler.savedArtifacts.weightSpecs[1].dtype)
-              .toEqual('float32');
-          done();
-        })
-        .catch(err => {
-          console.error(err.stack);
-        });
+    await model.save(handler);
+    expect(handler.savedArtifacts.modelTopology)
+        .toEqual(model.toJSON(null, false));
+    expect(handler.savedArtifacts.weightSpecs.length).toEqual(2);
+    expect(handler.savedArtifacts.weightSpecs[0].name.indexOf('/kernel'))
+        .toBeGreaterThan(0);
+    expect(handler.savedArtifacts.weightSpecs[0].shape).toEqual([5, 3]);
+    expect(handler.savedArtifacts.weightSpecs[0].dtype).toEqual('float32');
+    expect(handler.savedArtifacts.weightSpecs[1].name.indexOf('/bias'))
+        .toBeGreaterThan(0);
+    expect(handler.savedArtifacts.weightSpecs[1].shape).toEqual([3]);
+    expect(handler.savedArtifacts.weightSpecs[1].dtype).toEqual('float32');
   });
 
-  it('Saving only trainable weights succeeds', async done => {
+  it('Saving only trainable weights succeeds', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.dense({units: 3, inputShape: [5], trainable: false}));
     model.add(tfl.layers.dense({units: 2}));
     const handler = new IOHandlerForTest();
 
-    model.save(handler, {trainableOnly: true})
-        .then(saveResult => {
-          expect(handler.savedArtifacts.modelTopology)
-              .toEqual(model.toJSON(null, false));
-          // Verify that only the trainable weights (i.e., weights from the
-          // 2nd, trainable Dense layer) are saved.
-          expect(handler.savedArtifacts.weightSpecs.length).toEqual(2);
-          expect(handler.savedArtifacts.weightSpecs[0].name.indexOf('/kernel'))
-              .toBeGreaterThan(0);
-          expect(handler.savedArtifacts.weightSpecs[0].shape).toEqual([3, 2]);
-          expect(handler.savedArtifacts.weightSpecs[0].dtype)
-              .toEqual('float32');
-          expect(handler.savedArtifacts.weightSpecs[1].name.indexOf('/bias'))
-              .toBeGreaterThan(0);
-          expect(handler.savedArtifacts.weightSpecs[1].shape).toEqual([2]);
-          expect(handler.savedArtifacts.weightSpecs[1].dtype)
-              .toEqual('float32');
-          done();
-        })
-        .catch(err => {
-          console.error(err.stack);
-        });
+    await model.save(handler, {trainableOnly: true});
+    expect(handler.savedArtifacts.modelTopology)
+        .toEqual(model.toJSON(null, false));
+    // Verify that only the trainable weights (i.e., weights from the
+    // 2nd, trainable Dense layer) are saved.
+    expect(handler.savedArtifacts.weightSpecs.length).toEqual(2);
+    expect(handler.savedArtifacts.weightSpecs[0].name.indexOf('/kernel'))
+        .toBeGreaterThan(0);
+    expect(handler.savedArtifacts.weightSpecs[0].shape).toEqual([3, 2]);
+    expect(handler.savedArtifacts.weightSpecs[0].dtype).toEqual('float32');
+    expect(handler.savedArtifacts.weightSpecs[1].name.indexOf('/bias'))
+        .toBeGreaterThan(0);
+    expect(handler.savedArtifacts.weightSpecs[1].shape).toEqual([2]);
+    expect(handler.savedArtifacts.weightSpecs[1].dtype).toEqual('float32');
   });
 
   it('Saving to a handler without save method fails', async done => {

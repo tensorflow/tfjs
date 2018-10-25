@@ -23,7 +23,7 @@ import {describeMathCPUAndGPU} from './utils/test_utils';
 
 
 describe('BaseLogger Callback', () => {
-  it('Records and averages losses in an epoch', async done => {
+  it('Records and averages losses in an epoch', async () => {
     const baseLogger = new BaseLogger();
     baseLogger.setParams({metrics: ['loss', 'val_loss']});
     await baseLogger.onTrainBegin();
@@ -39,7 +39,6 @@ describe('BaseLogger Callback', () => {
     expect(epochLog['val_loss'] as number).toEqual(3);
     expect(epochLog['loss'] as number)
         .toBeCloseTo((10 * 5 + 10 * 6 + 5 * 7) / (10 + 10 + 5));
-    done();
   });
   it('Forgets old epochs', async () => {
     const baseLogger = new BaseLogger();
@@ -69,11 +68,10 @@ describe('BaseLogger Callback', () => {
 });
 
 describe('CallbackList', () => {
-  it('Constructor with empty arg', async done => {
+  it('Constructor with empty arg', async () => {
     const callbackList = new CallbackList();
     await callbackList.onTrainBegin();
     await callbackList.onTrainEnd();
-    done();
   });
   it('Constructor and setParams with array of callbacks', () => {
     const history1 = new History();
@@ -84,7 +82,7 @@ describe('CallbackList', () => {
     expect(history1.params).toEqual(params);
     expect(history2.params).toEqual(params);
   });
-  it('onTrainBegin', async done => {
+  it('onTrainBegin', async () => {
     const history1 = new History();
     const history2 = new History();
     const callbackList = new CallbackList([history1, history2]);
@@ -93,9 +91,8 @@ describe('CallbackList', () => {
     expect(history1.history).toEqual({});
     expect(history2.epoch).toEqual([]);
     expect(history2.history).toEqual({});
-    done();
   });
-  it('onEpochEnd', async done => {
+  it('onEpochEnd', async () => {
     const history1 = new History();
     const history2 = new History();
     const callbackList = new CallbackList([history1, history2]);
@@ -112,9 +109,8 @@ describe('CallbackList', () => {
     expect(history2.epoch).toEqual([100, 101]);
     expect(history2.history)
         .toEqual({'val_loss': [10, 9.5], 'val_accuracy': [0.1, 0.2]});
-    done();
   });
-  it('append', async done => {
+  it('append', async () => {
     const history1 = new History();
     const history2 = new History();
     const callbackList = new CallbackList([history1]);
@@ -125,12 +121,11 @@ describe('CallbackList', () => {
     await callbackList.onTrainBegin();
     expect(history2.epoch).toEqual([]);
     expect(history2.history).toEqual({});
-    done();
   });
 });
 
 describeMathCPUAndGPU('resolveScalarsInLogs', () => {
-  it('Resolve mixed numbers and scalars', async done => {
+  it('Resolve mixed numbers and scalars', async () => {
     const logs: UnresolvedLogs = {
       'a': 1,
       'b': scalar(2),
@@ -142,21 +137,18 @@ describeMathCPUAndGPU('resolveScalarsInLogs', () => {
     expect(logs['b']).toEqual(2);
     expect(logs['c']).toEqual(-3);
     expect(logs['d']).toEqual(-4);
-    done();
   });
 
-  it('Resolve null works fine', async done => {
+  it('Resolve null works fine', async () => {
     const logs: UnresolvedLogs = null;
     await resolveScalarsInLogs(logs);
     expect(logs).toEqual(null);
-    done();
   });
 
-  it('Resolve empty works fine', async done => {
+  it('Resolve empty works fine', async () => {
     const logs: UnresolvedLogs = {};
     await resolveScalarsInLogs(logs);
     expect(logs).toEqual({});
-    done();
   });
 });
 
@@ -180,14 +172,13 @@ describeMathCPUAndGPU('disposeTensorsInLogs', () => {
 
 
 describe('History Callback', () => {
-  it('onTrainBegin', async done => {
+  it('onTrainBegin', async () => {
     const history = new History();
     await history.onTrainBegin();
     expect(history.epoch).toEqual([]);
     expect(history.history).toEqual({});
-    done();
   });
-  it('onEpochEnd', async done => {
+  it('onEpochEnd', async () => {
     const history = new History();
     await history.onTrainBegin();
     await history.onEpochEnd(0, {'val_loss': 10, 'val_accuracy': 0.1});
@@ -197,7 +188,6 @@ describe('History Callback', () => {
     expect(history.epoch).toEqual([0, 1]);
     expect(history.history)
         .toEqual({'val_loss': [10, 9.5], 'val_accuracy': [0.1, 0.2]});
-    done();
   });
 });
 
