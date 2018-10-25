@@ -277,6 +277,10 @@ const FLOAT_TEXTURE_SET_RGBA_SNIPPET = `
   }
 `;
 
+/*
+Previous NaN check '(val < 0.0 || 0.0 < val || val == 0.0) ? false : true' does
+not work on iOS 12
+ */
 const SHADER_PREFIX = `
   precision highp float;
   precision highp int;
@@ -303,7 +307,7 @@ const SHADER_PREFIX = `
   };
 
   bool isNaN(float val) {
-    return (val < 0.0 || 0.0 < val || val == 0.0) ? false : true;
+    return (val < 1.0 || 0.0 < val || val == 0.0) ? false : true;
   }
 
   bool hasNaN(vec4 values) {
