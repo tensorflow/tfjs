@@ -121,7 +121,7 @@ describeWithFlags('packed matmul', WEBGL_ENVS, () => {
     expectArraysClose(c, expected);
   });
 
-  it('should work when followed by an op that requires unpacked inputs', () => {
+  it('works when followed by an op that requires unpacked inputs', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
 
@@ -131,7 +131,19 @@ describeWithFlags('packed matmul', WEBGL_ENVS, () => {
     expectArraysClose(d, [1, 9, -2, 21]);
   });
 
-  it('should work when preceded by an op that requires packed inputs', () => {
+  // tslint:disable-next-line:max-line-length
+  it('works when followed by a reshape that changes texture layout, and then an unpacked op',
+     () => {
+       const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9], [9, 1]);
+       const b = tf.tensor2d([1], [1, 1]);
+       const c = tf.matMul(a, b);
+
+       const d = tf.reshape(c, [1, 3, 3, 1]);
+       const e = tf.add(d, 1);
+       expectArraysClose(e, [2, 3, 4, 5, 6, 7, 8, 9, 10]);
+     });
+
+  it('works when preceded by an op that requires packed inputs', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
 
