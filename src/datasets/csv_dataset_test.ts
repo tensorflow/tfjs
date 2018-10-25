@@ -69,14 +69,25 @@ const csvMixedType = `A,B,C,D
 1,True,3,1
 2,False,2,0`;
 
+const csvWithQuote = `A,B,C
+1,"2",3
+2,2,3
+3,"""2",3
+4,"2,",
+"5"",2,3
+6,2,"345"123,456""
+7,"2",3`;
+
 const csvDataWithHeadersExtra = ENV.get('IS_BROWSER') ?
     new Blob([csvDataExtra]) :
     Buffer.from(csvDataExtra);
-const csvBlobWithSemicolon = ENV.get('IS_BROWSER') ?
+const csvDataWithSemicolon = ENV.get('IS_BROWSER') ?
     new Blob([csvDataSemicolon]) :
     Buffer.from(csvDataSemicolon);
-const csvBlobWithMixedType = ENV.get('IS_BROWSER') ? new Blob([csvMixedType]) :
+const csvDataWithMixedType = ENV.get('IS_BROWSER') ? new Blob([csvMixedType]) :
                                                      Buffer.from(csvMixedType);
+const csvDataWithQuote = ENV.get('IS_BROWSER') ? new Blob([csvWithQuote]) :
+                                                 Buffer.from(csvWithQuote);
 
 describe('CSVDataset', () => {
   it('produces a stream of dicts containing UTF8-decoded csv data',
@@ -231,7 +242,7 @@ describe('CSVDataset', () => {
   });
 
   it('provide delimiter through parameter', async () => {
-    const source = new FileDataSource(csvBlobWithSemicolon, {chunkSize: 10});
+    const source = new FileDataSource(csvDataWithSemicolon, {chunkSize: 10});
     const dataset = new CSVDataset(source, {delimiter: ';'});
     expect(await dataset.columnNames()).toEqual(['A', 'B', 'C']);
     const iter = await dataset.iterator();
@@ -246,7 +257,7 @@ describe('CSVDataset', () => {
 
   it('provide datatype through parameter to parse different types',
      async () => {
-       const source = new FileDataSource(csvBlobWithMixedType, {chunkSize: 10});
+       const source = new FileDataSource(csvDataWithMixedType, {chunkSize: 10});
        const dataset = new CSVDataset(source, {
          columnConfigs: {
            'A': {dtype: DType.int32},
@@ -350,6 +361,21 @@ describe('CSVDataset', () => {
       [{'A': 3, 'B': 2}, {'C': 3}], [{'A': 4, 'B': 2}, {'C': 3}],
       [{'A': 5, 'B': 2}, {'C': 3}], [{'A': 6, 'B': 2}, {'C': 3}],
       [{'A': 7, 'B': 2}, {'C': 3}]
+    ]);
+  });
+
+  it('reads CSV with quote', async () => {
+    const source = new FileDataSource(csvDataWithQuote, {chunkSize: 10});
+    const dataset = new CSVDataset(source);
+    expect(await dataset.columnNames()).toEqual(['A', 'B', 'C']);
+    const iter = await dataset.iterator();
+    const result = await iter.collect();
+
+    expect(result).toEqual([
+      {'A': 1, 'B': 2, 'C': 3}, {'A': 2, 'B': 2, 'C': 3},
+      {'A': 3, 'B': '""2', 'C': 3}, {'A': 4, 'B': '2,', 'C': undefined},
+      {'A': '"5""', 'B': 2, 'C': 3}, {'A': 6, 'B': 2, 'C': '345"123,456"'},
+      {'A': 7, 'B': 2, 'C': 3}
     ]);
   });
 });

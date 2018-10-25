@@ -25,6 +25,13 @@ import {ColumnConfig, CSVConfig, DataElement} from '../types';
 
 import {TextLineDataset} from './text_line_dataset';
 
+const CODE_QUOTE = '"';
+const STATE_OUT = Symbol('out');
+const STATE_FIELD = Symbol('field');
+const STATE_QUOTE = Symbol('quote');
+const STATE_QUOTE_AFTER_QUOTE = Symbol('quoteafterquote');
+const STATE_WITHIN_QUOTE_IN_QUOTE = Symbol('quoteinquote');
+
 /**
  * Represents a potentially large collection of delimited text records.
  *
@@ -168,8 +175,7 @@ export class CSVDataset extends Dataset<DataElement> {
   }
 
   makeDataElement(line: string): DataElement {
-    // TODO(soergel): proper CSV parsing with escaping, quotes, etc.
-    const values = line.split(this.delimiter);
+    const values = this.parseRow(line);
     const features: {[key: string]: DataElement} = {};
     const labels: {[key: string]: DataElement} = {};
 
@@ -248,6 +254,98 @@ export class CSVDataset extends Dataset<DataElement> {
     } else {
       return 0;
     }
+  }
+
+  // adapted from https://beta.observablehq.com/@mbostock/streaming-csv
+  private parseRow(line: string): string[] {
+    const result: string[] = [];
+    let readOffset = 0;
+    const readLength = line.length;
+    let currentState = STATE_FIELD;
+    // Goes through the line to parse quote.
+    for (let i = 0; i < readLength; i++) {
+      switch (currentState) {
+        // Before enter a new field
+        case STATE_OUT:
+          switch (line.charAt(i)) {
+            // Enter a quoted field
+            case CODE_QUOTE:
+              readOffset = i + 1;
+              currentState = STATE_QUOTE;
+              break;
+            // Read an empty field
+            case this.delimiter:
+              result.push('');
+              currentState = STATE_OUT;
+              readOffset = i + 1;
+              break;
+            // Enter an unquoted field
+            default:
+              currentState = STATE_FIELD;
+              readOffset = i;
+              break;
+          }
+          break;
+        // In an unquoted field
+        case STATE_FIELD:
+          switch (line.charAt(i)) {
+            // Exit an unquoted field, add it to result
+            case this.delimiter:
+              result.push(line.substring(readOffset, i));
+              currentState = STATE_OUT;
+              readOffset = i + 1;
+              break;
+            default:
+          }
+          break;
+        // In a quoted field
+        case STATE_QUOTE:
+          switch (line.charAt(i)) {
+            // Read a quote after a quote
+            case CODE_QUOTE:
+              currentState = STATE_QUOTE_AFTER_QUOTE;
+              break;
+            default:
+          }
+          break;
+        // This state means it's right after a second quote in a field
+        case STATE_QUOTE_AFTER_QUOTE:
+          switch (line.charAt(i)) {
+            // Finished a quoted field
+            case this.delimiter:
+              result.push(line.substring(readOffset, i - 1));
+              currentState = STATE_OUT;
+              readOffset = i + 1;
+              break;
+            // Finished a quoted part in a quoted field
+            case CODE_QUOTE:
+              currentState = STATE_QUOTE;
+              break;
+            // In a quoted part in a quoted field
+            default:
+              currentState = STATE_WITHIN_QUOTE_IN_QUOTE;
+              break;
+          }
+          break;
+        case STATE_WITHIN_QUOTE_IN_QUOTE:
+          switch (line.charAt(i)) {
+            // Exit a quoted part in a quoted field
+            case CODE_QUOTE:
+              currentState = STATE_QUOTE;
+              break;
+            default:
+          }
+          break;
+        default:
+      }
+    }
+    // Adds last item based on if it is quoted.
+    if (currentState === STATE_QUOTE_AFTER_QUOTE) {
+      result.push(line.substring(readOffset, readLength - 1));
+    } else {
+      result.push(line.substring(readOffset));
+    }
+    return result;
   }
 }
 
