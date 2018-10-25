@@ -36,6 +36,7 @@ import {TextLineDataset} from './text_line_dataset';
  *
  * The results are not batched.
  */
+/** @doc {heading: 'Data', subheading: 'Classes'} */
 export class CSVDataset extends Dataset<DataElement> {
   base: TextLineDataset;
   private hasHeader = true;

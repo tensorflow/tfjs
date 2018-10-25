@@ -20,7 +20,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {TensorContainerObject} from '@tensorflow/tfjs-core/dist/tensor_types';
 
-import {Dataset, datasetFromElements, datasetFromIteratorFn, zip} from './dataset';
+import * as tfd from './index';
 import {iteratorFromFunction, iteratorFromItems, LazyIterator} from './iterators/lazy_iterator';
 import {DataElementObject, DatasetContainer} from './types';
 
@@ -55,7 +55,7 @@ class TestObjectIterator extends LazyIterator<{}> {
   }
 }
 
-export class TestDataset extends Dataset<DataElementObject> {
+export class TestDataset extends tfd.Dataset<DataElementObject> {
   async iterator(): Promise<LazyIterator<{}>> {
     return new TestObjectIterator();
   }
@@ -91,8 +91,8 @@ function complexifyExampleAsArray(simple: any): {} {
 
 describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
   it('can be concatenated', async () => {
-    const a = datasetFromElements([{'item': 1}, {'item': 2}, {'item': 3}]);
-    const b = datasetFromElements([{'item': 4}, {'item': 5}, {'item': 6}]);
+    const a = tfd.array([{'item': 1}, {'item': 2}, {'item': 3}]);
+    const b = tfd.array([{'item': 4}, {'item': 5}, {'item': 6}]);
     const result = await a.concatenate(b).collectAll();
     expect(result).toEqual([
       {'item': 1}, {'item': 2}, {'item': 3}, {'item': 4}, {'item': 5},
@@ -102,9 +102,9 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
 
   it('can be created by concatenating multiple underlying datasets via reduce',
      async () => {
-       const a = datasetFromElements([{'item': 1}, {'item': 2}]);
-       const b = datasetFromElements([{'item': 3}, {'item': 4}]);
-       const c = datasetFromElements([{'item': 5}, {'item': 6}]);
+       const a = tfd.array([{'item': 1}, {'item': 2}]);
+       const b = tfd.array([{'item': 3}, {'item': 4}]);
+       const c = tfd.array([{'item': 5}, {'item': 6}]);
        const concatenated = [a, b, c].reduce((a, b) => a.concatenate(b));
        const result = await concatenated.collectAll();
        expect(result).toEqual([
@@ -115,36 +115,36 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
 
   it('can be created by zipping an array of datasets with primitive elements',
      async () => {
-       const a = datasetFromElements([1, 2, 3]);
-       const b = datasetFromElements([4, 5, 6]);
-       const result = await zip([a, b]).collectAll();
+       const a = tfd.array([1, 2, 3]);
+       const b = tfd.array([4, 5, 6]);
+       const result = await tfd.zip([a, b]).collectAll();
        expect(result).toEqual([[1, 4], [2, 5], [3, 6]]);
      });
 
   it('can be created by zipping an array of datasets with object elements',
      async () => {
-       const a = datasetFromElements([{a: 1}, {a: 2}, {a: 3}]);
-       const b = datasetFromElements([{b: 4}, {b: 5}, {b: 6}]);
-       const result = await zip([a, b]).collectAll();
+       const a = tfd.array([{a: 1}, {a: 2}, {a: 3}]);
+       const b = tfd.array([{b: 4}, {b: 5}, {b: 6}]);
+       const result = await tfd.zip([a, b]).collectAll();
        expect(result).toEqual(
            [[{a: 1}, {b: 4}], [{a: 2}, {b: 5}], [{a: 3}, {b: 6}]]);
      });
 
   it('can be created by zipping a dict of datasets', async () => {
-    const a = datasetFromElements([{a: 1}, {a: 2}, {a: 3}]);
-    const b = datasetFromElements([{b: 4}, {b: 5}, {b: 6}]);
-    const result = await zip({c: a, d: b}).collectAll();
+    const a = tfd.array([{a: 1}, {a: 2}, {a: 3}]);
+    const b = tfd.array([{b: 4}, {b: 5}, {b: 6}]);
+    const result = await tfd.zip({c: a, d: b}).collectAll();
     expect(result).toEqual([
       {c: {a: 1}, d: {b: 4}}, {c: {a: 2}, d: {b: 5}}, {c: {a: 3}, d: {b: 6}}
     ]);
   });
 
   it('can be created by zipping a nested structure of datasets', async () => {
-    const a = datasetFromElements([1, 2, 3]);
-    const b = datasetFromElements([4, 5, 6]);
-    const c = datasetFromElements([7, 8, 9]);
-    const d = datasetFromElements([10, 11, 12]);
-    const result = await zip({a, bcd: [b, {c, d}]}).collectAll();
+    const a = tfd.array([1, 2, 3]);
+    const b = tfd.array([4, 5, 6]);
+    const c = tfd.array([7, 8, 9]);
+    const d = tfd.array([10, 11, 12]);
+    const result = await tfd.zip({a, bcd: [b, {c, d}]}).collectAll();
 
     expect(result).toEqual([
       {a: 1, bcd: [4, {c: 7, d: 10}]},
@@ -154,16 +154,16 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
   });
 
   it('can be created by zipping datasets of different sizes', async () => {
-    const a = datasetFromElements([1, 2]);
-    const b = datasetFromElements([3, 4, 5, 6]);
-    const result = await zip([a, b]).collectAll();
+    const a = tfd.array([1, 2]);
+    const b = tfd.array([3, 4, 5, 6]);
+    const result = await tfd.zip([a, b]).collectAll();
     expect(result).toEqual([[1, 3], [2, 4]]);
   });
 
   it('zipping a native string throws an error', async done => {
     try {
       // tslint:disable-next-line:no-any no-construct
-      await zip('test' as any);
+      await tfd.zip('test' as any);
       done.fail();
     } catch (e) {
       expect(e.message).toEqual(
@@ -175,7 +175,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
   it('zipping a string object throws a meaningful error', async done => {
     try {
       // tslint:disable-next-line:no-any no-construct
-      await zip(new String('test') as any).iterator();
+      await tfd.zip(new String('test') as any).iterator();
       done.fail();
     } catch (e) {
       // This error is not specific to the error case arising from
@@ -191,11 +191,11 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
   });
 
   it('zipping a structure with repeated elements works', async () => {
-    const a = datasetFromElements([1, 2, 3]);
-    const b = datasetFromElements([4, 5, 6]);
-    const c = datasetFromElements([7, 8, 9]);
-    const d = datasetFromElements([10, 11, 12]);
-    const result = await zip({a, abacd: [a, b, {a, c, d}]}).collectAll();
+    const a = tfd.array([1, 2, 3]);
+    const b = tfd.array([4, 5, 6]);
+    const c = tfd.array([7, 8, 9]);
+    const d = tfd.array([10, 11, 12]);
+    const result = await tfd.zip({a, abacd: [a, b, {a, c, d}]}).collectAll();
 
     expect(result).toEqual([
       {a: 1, abacd: [1, 4, {a: 1, c: 7, d: 10}]},
@@ -207,12 +207,12 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
   it('zipping a structure with cycles throws an error', async done => {
     try {
       // tslint:disable-next-line:no-any
-      const a = datasetFromElements([1, 2, 3]);
-      const b = datasetFromElements([4, 5, 6]);
-      const c: DatasetContainer = [datasetFromElements([7, 8, 9])];
+      const a = tfd.array([1, 2, 3]);
+      const b = tfd.array([4, 5, 6]);
+      const c: DatasetContainer = [tfd.array([7, 8, 9])];
       const abc: DatasetContainer = [a, b, c];
       c.push(abc);
-      await zip({a, abc}).iterator();
+      await tfd.zip({a, abc}).iterator();
       done.fail();
     } catch (e) {
       expect(e.message).toEqual('Circular references are not supported.');
@@ -225,15 +225,15 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
        try {
          let count = 0;
          const a =
-             datasetFromIteratorFn(async () => iteratorFromFunction(() => {
-                                     if (count > 2) {
-                                       throw new Error('propagate me!');
-                                     }
-                                     return {value: count++, done: false};
-                                   }));
-         const b = datasetFromElements([3, 4, 5, 6]);
+             tfd.datasetFromIteratorFn(async () => iteratorFromFunction(() => {
+                                         if (count > 2) {
+                                           throw new Error('propagate me!');
+                                         }
+                                         return {value: count++, done: false};
+                                       }));
+         const b = tfd.array([3, 4, 5, 6]);
          // tslint:disable-next-line:no-any
-         await (await zip([a, b]).iterator()).collect(1000, 0);
+         await (await tfd.zip([a, b]).iterator()).collect(1000, 0);
          done.fail();
        } catch (e) {
          expect(e.message).toEqual(
@@ -243,7 +243,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
      });
 
   it('can be repeated a fixed number of times', async () => {
-    const a = datasetFromElements([{'item': 1}, {'item': 2}, {'item': 3}]);
+    const a = tfd.array([{'item': 1}, {'item': 2}, {'item': 3}]);
     const result = await a.repeat(4).collectAll();
     expect(result).toEqual([
       {'item': 1},
@@ -262,7 +262,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
   });
 
   it('can be repeated indefinitely', async () => {
-    const a = datasetFromElements([{'item': 1}, {'item': 2}, {'item': 3}]);
+    const a = tfd.array([{'item': 1}, {'item': 2}, {'item': 3}]);
     await a.repeat().take(234).collectAll();
   });
 
@@ -271,7 +271,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     // See
     // https://github.com/Microsoft/TypeScript/wiki/%27this%27-in-TypeScript
 
-    class CustomDataset extends Dataset<{}> {
+    class CustomDataset extends tfd.Dataset<{}> {
       state = {val: 1};
       async iterator() {
         const result = iteratorFromItems([
@@ -345,7 +345,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
        const batchThenComplex =
            new TestDataset().batch(8).map(complexifyExampleAsDict);
 
-       const compareDataset = zip({complexThenBatch, batchThenComplex});
+       const compareDataset = tfd.zip({complexThenBatch, batchThenComplex});
 
        const result = await (await compareDataset.iterator()).collect();
 
@@ -388,7 +388,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     const batchThenComplex =
         new TestDataset().batch(8).map(complexifyExampleAsArray);
 
-    const compareDataset = zip({complexThenBatch, batchThenComplex});
+    const compareDataset = tfd.zip({complexThenBatch, batchThenComplex});
 
     const result = await (await compareDataset.iterator()).collect();
 

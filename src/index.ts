@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-export {Dataset, datasetFromElements, zip} from './dataset';
+export {array, Dataset, datasetFromIteratorFn, zip} from './dataset';
 export {CSVDataset} from './datasets/csv_dataset';
 export {TextLineDataset} from './datasets/text_line_dataset';
 export {csv} from './readers';

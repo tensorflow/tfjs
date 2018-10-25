@@ -39,6 +39,7 @@ import {deepMapAndAwaitAll, DeepMapResult, isIterable, isNumericArray} from './u
  * must come last in the pipeline because there are (so far) no batch-enabled
  * transformations.
  */
+/** @doc {heading: 'Data', subheading: 'Classes'} */
 export abstract class Dataset<T extends DataElement> {
   /*
    * Provide a new stream of elements.  Note this will also start new streams
@@ -285,9 +286,18 @@ export function datasetFromIteratorFn<T extends DataElement>(
 
 /**
  * Create a `Dataset` from an array of elements.
+ *
+ * ```js
+ * const a = tf.data.array([{'item': 1}, {'item': 2}, {'item': 3}]);
+ * a.forEach(e => console.log(e));
+ *
+ * const b = tf.data.array([4, 5, 6]);
+ * b.forEach(e => console.log(e));
+ * ```
+ * @param items An array of elements that will be parsed as items in a dataset.
  */
-export function datasetFromElements<T extends DataElement>(items: T[]):
-    Dataset<T> {
+/** @doc {heading: 'Data', subheading: 'Creation'} */
+export function array<T extends DataElement>(items: T[]): Dataset<T> {
   return datasetFromIteratorFn(async () => iteratorFromItems(items));
 }
 
@@ -307,15 +317,19 @@ export function datasetFromElements<T extends DataElement>(items: T[]):
  * elements, the result is a dataset that produces elements that are arrays
  * of two dicts:
  *
- * const ds1 : Dataset = ...;  // produces elements like {a: ...}
- * const ds1 : Dataset = ...;  // produces elements like {b: ...}
- * const ds3 = zip([ds1, ds2]);  // produces elements like [{a: ...}, {b: ...}]
+ * ```js
+ * const ds1: Dataset = tf.data.array([{a: 1}, {a: 2}, {a: 3}]);
+ * const ds2: Dataset = tf.data.array([{b: 4}, {b: 5}, {b: 6}]);
+ * const ds3 = tf.data.zip([ds1, ds2]);
+ * ds3.forEach(e => console.log(e));
  *
- * If the goal is to merge the dicts in order to produce elements like
- * {a: ..., b: ...}, this requires a second step such as:
- *
- * const ds4 = ds3.map(x=>{a: x[0].a, b: x[1].b});
+ * // If the goal is to merge the dicts in order to produce elements like
+ * // {a: ..., b: ...}, this requires a second step such as:
+ * const ds4 = ds3.map(x => {return {a: x[0].a, b: x[1].b}});
+ * ds4.forEach(e => console.log(e));
+ * ```
  */
+/** @doc {heading: 'Data', subheading: 'Operations'} */
 export function zip<O extends DataElement>(datasets: DatasetContainer):
     Dataset<O> {
   // manually type-check the argument for JS users
