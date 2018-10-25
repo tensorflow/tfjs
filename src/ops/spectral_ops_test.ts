@@ -77,7 +77,7 @@ describeWithFlags('1D FFT', ALL_ENVS, () => {
      });
 });
 
-describeWithFlags('FFT', WEBGL_ENVS, () => {
+describeWithFlags('2D FFT', WEBGL_ENVS, () => {
   it('2D: should return the same value as TensorFlow', () => {
     const t1Real = tf.tensor2d([1, 2, 3, 4], [2, 2]);
     const t1Imag = tf.tensor2d([5, 6, 7, 8], [2, 2]);
@@ -112,5 +112,106 @@ describeWithFlags('FFT CPU', BROWSER_CPU_ENVS, () => {
     const t1Imag = tf.tensor3d([5, 6, 7, 8, -5, -6, -7, -8], [2, 2, 2]);
     const t1 = tf.complex(t1Real, t1Imag);
     expect(() => tf.spectral.fft(t1)).toThrow();
+  });
+});
+
+describeWithFlags('1D IFFT', ALL_ENVS, () => {
+  it('should return the same value with TensorFlow (2 elements)', () => {
+    const t1Real = tf.tensor1d([1, 2]);
+    const t1Imag = tf.tensor1d([1, 1]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    expectArraysClose(tf.spectral.ifft(t1), [1.5, 1, -0.5, 0]);
+  });
+
+  it('should calculate FFT from Tensor directly', () => {
+    const t1Real = tf.tensor1d([1, 2]);
+    const t1Imag = tf.tensor1d([1, 1]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    expectArraysClose(t1.ifft(), [1.5, 1, -0.5, 0]);
+  });
+
+  it('should return the same value as TensorFlow (3 elements)', () => {
+    const t1Real = tf.tensor1d([1, 2, 3]);
+    const t1Imag = tf.tensor1d([0, 0, 0]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    expectArraysClose(tf.spectral.ifft(t1), [
+      2, -3.9736431e-08, -0.49999997, -.28867507, -0.49999994, 2.8867519e-01
+    ]);
+  });
+
+  it('should return the same value as TensorFlow with imaginary (3 elements)',
+     () => {
+       const t1Real = tf.tensor1d([1, 2, 3]);
+       const t1Imag = tf.tensor1d([1, 2, 3]);
+       const t1 = tf.complex(t1Real, t1Imag);
+       expectArraysClose(
+           tf.spectral.ifft(t1),
+           [2, 1.9999999, -0.21132492, -0.78867507, -0.7886752, -0.2113249]);
+     });
+
+  it('should return the same value as TensorFlow (negative 3 elements)', () => {
+    const t1Real = tf.tensor1d([-1, -2, -3]);
+    const t1Imag = tf.tensor1d([-1, -2, -3]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    expectArraysClose(
+        tf.spectral.ifft(t1),
+        [-2, -1.9999999, 0.21132492, 0.78867507, 0.7886752, 0.2113249]);
+  });
+
+  it('should return the same value with TensorFlow (4 elements)', () => {
+    const t1Real = tf.tensor1d([1, 2, 3, 4]);
+    const t1Imag = tf.tensor1d([0, 0, 0, 0]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    expectArraysClose(
+        tf.spectral.ifft(t1), [2.5, 0, -0.5, -0.5, -0.5, 0, -0.5, 0.5]);
+  });
+
+  it('should return the same value as TensorFlow with imaginary (4 elements)',
+     () => {
+       const t1Real = tf.tensor1d([1, 2, 3, 4]);
+       const t1Imag = tf.tensor1d([1, 2, 3, 4]);
+       const t1 = tf.complex(t1Real, t1Imag);
+       expectArraysClose(
+           tf.spectral.ifft(t1), [2.5, 2.5, 0, -1, -0.5, -0.5, -1, 0]);
+     });
+});
+
+describeWithFlags('2D IFFT', WEBGL_ENVS, () => {
+  it('2D: should return the same value as TensorFlow', () => {
+    const t1Real = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+    const t1Imag = tf.tensor2d([5, 6, 7, 8], [2, 2]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    const y = tf.spectral.ifft(t1);
+    expectArraysClose(y, [1.5, 5.5, -0.5, -0.5, 3.5, 7.5, -0.5, -0.5]);
+    expect(y.shape).toEqual(t1Real.shape);
+  });
+
+  it('3D: should return the same value as TensorFlow', () => {
+    const t1Real = tf.tensor3d([1, 2, 3, 4, -1, -2, -3, -4], [2, 2, 2]);
+    const t1Imag = tf.tensor3d([5, 6, 7, 8, -5, -6, -7, -8], [2, 2, 2]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    const y = tf.spectral.ifft(t1);
+    expectArraysClose(y, [
+      1.5, 5.5, -0.5, -0.5, 3.5, 7.5, -0.5, -0.5, -1.5, -5.5, 0.5, 0.5, -3.5,
+      -7.5, 0.5, 0.5
+    ]);
+    expect(y.shape).toEqual(t1Real.shape);
+  });
+});
+
+// TODO: Remove this once we support higher-dimensional FFTs on CPU.
+describeWithFlags('IFFT CPU', BROWSER_CPU_ENVS, () => {
+  it('2D throws', () => {
+    const t1Real = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+    const t1Imag = tf.tensor2d([5, 6, 7, 8], [2, 2]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    expect(() => tf.spectral.ifft(t1)).toThrow();
+  });
+
+  it('3D throws', () => {
+    const t1Real = tf.tensor3d([1, 2, 3, 4, -1, -2, -3, -4], [2, 2, 2]);
+    const t1Imag = tf.tensor3d([5, 6, 7, 8, -5, -6, -7, -8], [2, 2, 2]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    expect(() => tf.spectral.ifft(t1)).toThrow();
   });
 });

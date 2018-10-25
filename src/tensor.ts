@@ -333,7 +333,7 @@ export interface OpHandler {
       x: T, begin: number[], end: number[], strides: number[],
       beginMask: number, endMask: number): T;
   depthToSpace(x: Tensor4D, blockSize: number, dataFormat: string): Tensor4D;
-  spectral: {fft(x: Tensor): Tensor;};
+  spectral: {fft(x: Tensor): Tensor; ifft(x: Tensor): Tensor;};
 }
 
 // For tracking tensor creation and disposal.
@@ -1266,6 +1266,11 @@ export class Tensor<R extends Rank = Rank> {
   fft(this: Tensor): Tensor {
     this.throwIfDisposed();
     return opHandler.spectral.fft(this);
+  }
+
+  ifft(this: Tensor): Tensor {
+    this.throwIfDisposed();
+    return opHandler.spectral.ifft(this);
   }
 }
 Object.defineProperty(Tensor, Symbol.hasInstance, {

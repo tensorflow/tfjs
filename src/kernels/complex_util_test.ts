@@ -14,9 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as complex_util from './complex_util';
-import {expectArraysClose, ALL_ENVS} from '../test_util';
 import {describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
+
+import * as complex_util from './complex_util';
 
 describe('complex_util', () => {
   it('mergeRealAndImagArrays', () => {
@@ -49,10 +50,17 @@ describe('complex_util', () => {
 });
 
 describeWithFlags('complex_util exponents', ALL_ENVS, () => {
-  it('exponents', () => {
-    const result = complex_util.exponents(5);
+  it('exponents inverse=false', () => {
+    const inverse = false;
+    const result = complex_util.exponents(5, inverse);
     expectArraysClose(result.real, new Float32Array([1, 0.30901700258255005]));
     expectArraysClose(result.imag, new Float32Array([0, -0.9510565400123596]));
+  });
+  it('exponents inverse=true', () => {
+    const inverse = true;
+    const result = complex_util.exponents(5, inverse);
+    expectArraysClose(result.real, new Float32Array([1, 0.30901700258255005]));
+    expectArraysClose(result.imag, new Float32Array([0, 0.9510565400123596]));
   });
 });
 
