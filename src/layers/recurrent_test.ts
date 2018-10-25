@@ -1830,17 +1830,12 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
 });
 
 describeMathCPU('LSTM-deserialization', () => {
-  it('modelFromConfig', async done => {
-    modelFromJSON(fakeLSTMModel)
-        .then(model => {
-          const encoderInputs = tfc.zeros([1, 3, 71], 'float32');
-          const decoderInputs = tfc.zeros([1, 3, 94], 'float32');
-          const outputs =
-              model.predict([encoderInputs, decoderInputs]) as Tensor;
-          expect(outputs.shape).toEqual([1, 3, 94]);
-          done();
-        })
-        .catch(done.fail);
+  it('modelFromConfig', async () => {
+    const model = await modelFromJSON(fakeLSTMModel);
+    const encoderInputs = tfc.zeros([1, 3, 71], 'float32');
+    const decoderInputs = tfc.zeros([1, 3, 94], 'float32');
+    const outputs = model.predict([encoderInputs, decoderInputs]) as Tensor;
+    expect(outputs.shape).toEqual([1, 3, 94]);
   });
 
   it('Default recurrentActivation round trip', () => {

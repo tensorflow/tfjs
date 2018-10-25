@@ -409,29 +409,25 @@ describeMathCPUAndGPU('Model.fit', () => {
   }
 
   it('1 input, 1 output, dense, 1 weight, string optimizer, 1 batch',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
        // Use batchSize === numSamples to get exactly one batch.
-       model.fit(inputs, targets, {batchSize: numSamples, epochs: 1})
-           .then(history => {
-             expect(history.epoch).toEqual([0]);
-             const newWeightsValue = model.trainableWeights[0].read();
+       const history =
+           await model.fit(inputs, targets, {batchSize: numSamples, epochs: 1});
 
-             const lr = 0.01;  // This is the default learning rate of SGD.
-             const expectedValueArray =
-                 pyListRepeat([1.0 - (inputSize - 1) * 2 * lr], inputSize);
-             expectTensorsClose(
-                 newWeightsValue, tensor2d(expectedValueArray, [inputSize, 1]));
-             done();
-           })
-           .catch(err => {
-             done.fail(err.stack);
-           });
+       expect(history.epoch).toEqual([0]);
+       const newWeightsValue = model.trainableWeights[0].read();
+
+       const lr = 0.01;  // This is the default learning rate of SGD.
+       const expectedValueArray =
+           pyListRepeat([1.0 - (inputSize - 1) * 2 * lr], inputSize);
+       expectTensorsClose(
+           newWeightsValue, tensor2d(expectedValueArray, [inputSize, 1]));
      });
 
-  it('training with custom loss', async done => {
+  it('training with custom loss', async () => {
     // Use the following Python code snippet to get reference values
     // for assertion:
     //
@@ -463,85 +459,59 @@ describeMathCPUAndGPU('Model.fit', () => {
 
     model.compile({optimizer: 'SGD', loss: absDiffLoss});
     // Use batchSize === numSamples to get exactly one batch.
-    model
-        .fit(
-            inputs, targets,
-            {batchSize: numSamples, epochs: 2, validationSplit: 0.2})
-        .then(history => {
-          test_util.expectArraysClose(
-              history.history['loss'] as number[], [3, 2.96]);
-          test_util.expectArraysClose(
-              history.history['val_loss'] as number[], [2.96, 2.92]);
-          done();
-        })
-        .catch(err => {
-          done.fail(err.stack);
-        });
+    const history = await model.fit(
+        inputs, targets,
+        {batchSize: numSamples, epochs: 2, validationSplit: 0.2});
+    test_util.expectArraysClose(history.history['loss'] as number[], [3, 2.96]);
+    test_util.expectArraysClose(
+        history.history['val_loss'] as number[], [2.96, 2.92]);
   });
 
-  it('Using only x and y input arguments', async done => {
+  it('Using only x and y input arguments', async () => {
     createDenseModelAndData();
 
     model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
-    model.fit(inputs, targets, {epochs: 100})
-        .then(history => {
-          expect(history.epoch.length).toEqual(100);
-          // 100 is the default number of epochs.
-          for (let i = 0; i < 100; ++i) {
-            expect(history.epoch[i]).toEqual(i);
-          }
-          done();
-        })
-        .catch(err => {
-          done.fail(err.stack);
-        });
+    const history = await model.fit(inputs, targets, {epochs: 10});
+    // 100 is the default number of epochs.
+    expect(history.epoch.length).toEqual(10);
+    for (let i = 0; i < 10; ++i) {
+      expect(history.epoch[i]).toEqual(i);
+    }
   });
 
-  it('Default Model.fit epochs is 1', async done => {
+  it('Default Model.fit epochs is 1', async () => {
     createDenseModelAndData();
 
     model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
-    model.fit(inputs, targets)
-        .then(history => {
-          expect(history.epoch.length).toEqual(1);
-          expect(history.epoch[0]).toEqual(0);
-          done();
-        })
-        .catch(err => {
-          done.fail(err.stack);
-        });
+    const history = await model.fit(inputs, targets);
+    expect(history.epoch.length).toEqual(1);
+    expect(history.epoch[0]).toEqual(0);
   });
 
   it('1 input, 1 output, dense, 1 weight, string optimizer, 2 epochs',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
-       model.fit(inputs, targets, {batchSize: numSamples, epochs: 2})
-           .then(history => {
-             expect(history.epoch).toEqual([0, 1]);
-             done();
-           });
+       const history =
+           await model.fit(inputs, targets, {batchSize: numSamples, epochs: 2});
+       expect(history.epoch).toEqual([0, 1]);
      });
 
   it('1 input, 1 output, dense, 1 weight, string optimizer, 2 epochs, ' +
          '1 initialEpoch',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
-       model
-           .fit(
-               inputs, targets,
-               {batchSize: numSamples, epochs: 2, initialEpoch: 1})
-           .then(history => {
-             expect(history.epoch).toEqual([1]);
-             expect(history.history.loss.length).toEqual(1);
-             done();
-           });
+       const history = await model.fit(
+           inputs, targets,
+           {batchSize: numSamples, epochs: 2, initialEpoch: 1});
+       expect(history.epoch).toEqual([1]);
+       expect(history.history.loss.length).toEqual(1);
      });
 
-  it('Training with Dropout layer', async done => {
+  it('Training with Dropout layer', async () => {
     const inputSize = 2;
     const batchSize = 4;
     const input = tfl.layers.input({shape: [inputSize]});
@@ -556,9 +526,7 @@ describeMathCPUAndGPU('Model.fit', () => {
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
     const x = ones([batchSize, inputSize]);
     const y = ones([batchSize, 1]);
-    model.fit(x, y, {batchSize, epochs: 1}).then(history => {
-      done();
-    });
+    await model.fit(x, y, {batchSize, epochs: 1});
   });
 
   it('Calling fit twice in a row leads to Error', async () => {
@@ -583,94 +551,81 @@ describeMathCPUAndGPU('Model.fit', () => {
     const testTitle =
         '1 input, 1 output, dense, 1 weight, string optimizer, 2 epochs, ' +
         `validationSplit=${validationSplit}`;
-    it(testTitle, async done => {
+    it(testTitle, async () => {
       createDenseModelAndData();
       model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
-      model
-          .fit(
-              inputs, targets,
-              {batchSize: numSamples, epochs: 2, validationSplit})
-          .then(history => {
-            expect(history.epoch).toEqual([0, 1]);
-            const losses = history.history['loss'];
-            expect(losses.length).toEqual(2);
-            const valLosses = history.history['val_loss'];
-            expect(valLosses.length).toEqual(2);
-            // Reference values of the losses can be obtained from PyKeras:
-            // ```python
-            // import keras
-            // import numpy as np
-            // input1 = keras.Input(shape=[4])
-            // layer = keras.layers.Dense(
-            //     units=1, use_bias=False, kernel_initializer='ones')
-            // output = layer(input1)
-            // model = keras.Model(input1, output)
-            // model.compile(optimizer='SGD', loss='mean_squared_error')
-            // inputs = np.ones([5, 4])
-            // targets = np.ones([5])
-            // history = model.fit(
-            //     inputs, targets, batch_size=5, epochs=2,
-            //     validation_split=0.2)
-            // print(history.history)
-            // ```
-            expectTensorsClose(losses as number[], [9, 7.617599964141846]);
-            expectTensorsClose(
-                valLosses as number[], [7.617599964141846, 6.447536945343018]);
-            done();
-          });
+      const history = await model.fit(
+          inputs, targets, {batchSize: numSamples, epochs: 2, validationSplit});
+      expect(history.epoch).toEqual([0, 1]);
+      const losses = history.history['loss'];
+      expect(losses.length).toEqual(2);
+      const valLosses = history.history['val_loss'];
+      expect(valLosses.length).toEqual(2);
+      // Reference values of the losses can be obtained from PyKeras:
+      // ```python
+      // import keras
+      // import numpy as np
+      // input1 = keras.Input(shape=[4])
+      // layer = keras.layers.Dense(
+      //     units=1, use_bias=False, kernel_initializer='ones')
+      // output = layer(input1)
+      // model = keras.Model(input1, output)
+      // model.compile(optimizer='SGD', loss='mean_squared_error')
+      // inputs = np.ones([5, 4])
+      // targets = np.ones([5])
+      // history = model.fit(
+      //     inputs, targets, batch_size=5, epochs=2,
+      //     validation_split=0.2)
+      // print(history.history)
+      // ```
+      expectTensorsClose(losses as number[], [9, 7.617599964141846]);
+      expectTensorsClose(
+          valLosses as number[], [7.617599964141846, 6.447536945343018]);
     });
   }
 
   it('1 input, 1 output, dense, 1 weight, string optimizer, 2 epochs, ' +
          'use validationData',
-     async done => {
+     async () => {
        createDenseModelAndData();
        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
-       model
-           .fit(inputs, targets, {
-             batchSize: numSamples,
-             epochs: 2,
-             validationData:
-                 [zeros(inputs.shape as [number, number]), targets]
-           })
-           .then(history => {
-             expect(history.epoch).toEqual([0, 1]);
-             const losses = history.history['loss'];
-             expect(losses.length).toEqual(2);
-             const valLosses = history.history['val_loss'];
-             expect(valLosses.length).toEqual(2);
-             expectTensorsClose(losses as number[], [9, 7.617599964141846]);
-             done();
-           });
+       const history = await model.fit(inputs, targets, {
+         batchSize: numSamples,
+         epochs: 2,
+         validationData: [zeros(inputs.shape as [number, number]), targets]
+       });
+       expect(history.epoch).toEqual([0, 1]);
+       const losses = history.history['loss'];
+       expect(losses.length).toEqual(2);
+       const valLosses = history.history['val_loss'];
+       expect(valLosses.length).toEqual(2);
+       expectTensorsClose(losses as number[], [9, 7.617599964141846]);
      });
 
   it('1 input, 1 output, dense, 1 weight, string optimizer, 2 epochs, ' +
          'validationSplit = 0.2, with additional metric',
-     async done => {
+     async () => {
        createDenseModelAndData();
        model.compile(
            {optimizer: 'SGD', loss: 'meanSquaredError', metrics: ['accuracy']});
        expect(model.metricsNames).toEqual(['loss', 'acc']);
-       model
-           .fit(inputs, targets, {
-             batchSize: numSamples,
-             epochs: 2,
-             validationSplit: 0.2,
-           })
-           .then(history => {
-             expect(history.epoch).toEqual([0, 1]);
-             const losses = history.history['loss'];
-             expect(losses.length).toEqual(2);
-             const valLosses = history.history['val_loss'];
-             expect(valLosses.length).toEqual(2);
-             expectTensorsClose(losses as number[], [9, 7.617599964141846]);
-             expectTensorsClose(
-                 valLosses as number[], [7.617599964141846, 6.447536945343018]);
-             done();
-           });
+       const history = await model.fit(inputs, targets, {
+         batchSize: numSamples,
+         epochs: 2,
+         validationSplit: 0.2,
+       });
+
+       expect(history.epoch).toEqual([0, 1]);
+       const losses = history.history['loss'];
+       expect(losses.length).toEqual(2);
+       const valLosses = history.history['val_loss'];
+       expect(valLosses.length).toEqual(2);
+       expectTensorsClose(losses as number[], [9, 7.617599964141846]);
+       expectTensorsClose(
+           valLosses as number[], [7.617599964141846, 6.447536945343018]);
      });
 
-  it('Return sequences; Fit with metric', async done => {
+  it('Return sequences; Fit with metric', async () => {
     // The golden values for history used in the assertion below can be obtained
     // with the following Python Keras code.
     // Ran with Python Keras verion 2.1.2 and TensorFlow (CPU) version
@@ -754,7 +709,6 @@ describeMathCPUAndGPU('Model.fit', () => {
         history.history['val_loss'] as number[], [1.3862943649291992]);
     expectTensorsClose(history.history['acc'] as number[], [1.0]);
     expectTensorsClose(history.history['val_acc'] as number[], [1.0]);
-    done();
   });
 
   // TODO(cais): Test metric as a "dict", for models with >1 outputs.
@@ -764,7 +718,7 @@ describeMathCPUAndGPU('Model.fit', () => {
   for (const metrics of metricsToTest) {
     const testTitle = `categoricalCrossentropy model, validationSplit = 0.2, ` +
         `${JSON.stringify(metrics)}`;
-    it(testTitle, async done => {
+    it(testTitle, async () => {
       createDenseCategoricalModelAndData();
       model.compile(
           {optimizer: 'SGD', loss: 'categoricalCrossentropy', metrics});
@@ -774,28 +728,23 @@ describeMathCPUAndGPU('Model.fit', () => {
       } else if (stringsEqual(metrics, ['acc', 'accuracy'])) {
         expect(model.metricsNames).toEqual(['loss', 'acc', 'acc']);
       }
-      model
-          .fit(
-              inputs, targets,
-              {batchSize: numSamples, epochs: 2, validationSplit: 0.2})
-          .then(history => {
-            const losses = history.history['loss'];
-            expectTensorsClose(
-                losses as number[], [0.6931471824645996, 0.6918979287147522]);
-            const valLosses = history.history['val_loss'];
-            expectTensorsClose(
-                valLosses as number[],
-                [0.6918979287147522, 0.6906517744064331]);
-            const acc = history.history['acc'];
-            expectTensorsClose(acc as number[], [0, 1]);
-            const valAcc = history.history['val_acc'];
-            expectTensorsClose(valAcc as number[], [1, 1]);
-            done();
-          });
+      const history = await model.fit(
+          inputs, targets,
+          {batchSize: numSamples, epochs: 2, validationSplit: 0.2});
+      const losses = history.history['loss'];
+      expectTensorsClose(
+          losses as number[], [0.6931471824645996, 0.6918979287147522]);
+      const valLosses = history.history['val_loss'];
+      expectTensorsClose(
+          valLosses as number[], [0.6918979287147522, 0.6906517744064331]);
+      const acc = history.history['acc'];
+      expectTensorsClose(acc as number[], [0, 1]);
+      const valAcc = history.history['val_acc'];
+      expectTensorsClose(valAcc as number[], [1, 1]);
     });
   }
 
-  it('Two layers, freeze one layer', async done => {
+  it('Two layers, freeze one layer', async () => {
     // The golden values used below can be obtained with the following PyKeras
     // code.
     // ```python
@@ -878,7 +827,6 @@ describeMathCPUAndGPU('Model.fit', () => {
     // Expect change in the value of layer2's kernel.
     expectTensorsClose(
         layer2.getWeights()[0], mul(scalar(-0.11295), ones([10, 1])));
-    done();
   });
 
   it('Unknown metric', () => {
@@ -891,50 +839,46 @@ describeMathCPUAndGPU('Model.fit', () => {
   });
 
   it('1 input, 1 output, dense, 2 weights, string optimizer, 1 batch',
-     async done => {
+     async () => {
        createDenseModelAndData(true);
 
        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
-       model.fit(inputs, targets, {batchSize: numSamples, epochs: 1})
-           .then(history => {
-             expect(history.epoch).toEqual([0]);
+       const history =
+           await model.fit(inputs, targets, {batchSize: numSamples, epochs: 1});
+       expect(history.epoch).toEqual([0]);
 
-             expect(model.trainableWeights.length).toEqual(2);
-             const lr = 0.01;  // This is the default learning rate of SGD.
-             const newKernelValue = model.trainableWeights[0].read();
-             const expectedKernelArray =
-                 pyListRepeat([1.0 - (inputSize - 1) * 2 * lr], inputSize);
-             expectTensorsClose(
-                 newKernelValue, tensor2d(expectedKernelArray, [inputSize, 1]));
-             const newBiasValue = model.trainableWeights[1].read();
-             const expectedBiasArray = [0.0 - (inputSize - 1) * 2 * lr];
-             expectTensorsClose(newBiasValue, tensor1d(expectedBiasArray));
-             done();
-           });
+       expect(model.trainableWeights.length).toEqual(2);
+       const lr = 0.01;  // This is the default learning rate of SGD.
+       const newKernelValue = model.trainableWeights[0].read();
+       const expectedKernelArray =
+           pyListRepeat([1.0 - (inputSize - 1) * 2 * lr], inputSize);
+       expectTensorsClose(
+           newKernelValue, tensor2d(expectedKernelArray, [inputSize, 1]));
+       const newBiasValue = model.trainableWeights[1].read();
+       const expectedBiasArray = [0.0 - (inputSize - 1) * 2 * lr];
+       expectTensorsClose(newBiasValue, tensor1d(expectedBiasArray));
      });
 
   it('1 input, 1 output, dense, 1 weight, optimizer object, 1 batch',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        // Use a custom learning rate for SGD.
        const lr = 0.025;
        model.compile(
            {optimizer: new SGDOptimizer(lr), loss: 'meanSquaredError'});
-       model.fit(inputs, targets, {batchSize: numSamples, epochs: 1})
-           .then(history => {
-             expect(history.epoch).toEqual([0]);
-             const newWeightsValue = model.trainableWeights[0].read();
+       const history =
+           await model.fit(inputs, targets, {batchSize: numSamples, epochs: 1});
+       expect(history.epoch).toEqual([0]);
+       const newWeightsValue = model.trainableWeights[0].read();
 
-             const expectedValueArray =
-                 pyListRepeat([1.0 - (inputSize - 1) * 2 * lr], inputSize);
-             expectTensorsClose(
-                 newWeightsValue, tensor2d(expectedValueArray, [inputSize, 1]));
-             done();
-           });
+       const expectedValueArray =
+           pyListRepeat([1.0 - (inputSize - 1) * 2 * lr], inputSize);
+       expectTensorsClose(
+           newWeightsValue, tensor2d(expectedValueArray, [inputSize, 1]));
      });
 
-  it('2 inputs, 2 outputs, dense, optimizer object, 1 batch', async done => {
+  it('2 inputs, 2 outputs, dense, optimizer object, 1 batch', async () => {
     createDenseModelWithTwoOutputsAndData();
 
     const lr = 0.01;
@@ -945,30 +889,25 @@ describeMathCPUAndGPU('Model.fit', () => {
     const trainableWeights = twoOutputModel.trainableWeights;
     let newWeightsValue1 = trainableWeights[0].read();
     let newWeightsValue2 = trainableWeights[1].read();
-    twoOutputModel
-        .fit(
-            [inputs1, inputs2], [targets1, targets2],
-            {batchSize: numSamples, epochs: 1})
-        .then(history => {
-          expect(history.epoch).toEqual([0]);
+    await twoOutputModel.fit(
+        [inputs1, inputs2], [targets1, targets2],
+        {batchSize: numSamples, epochs: 1});
 
-          expect(twoOutputModel.trainableWeights.length).toEqual(2);
-          newWeightsValue1 = twoOutputModel.trainableWeights[0].read();
-          newWeightsValue2 = twoOutputModel.trainableWeights[1].read();
+    expect(twoOutputModel.trainableWeights.length).toEqual(2);
+    newWeightsValue1 = twoOutputModel.trainableWeights[0].read();
+    newWeightsValue2 = twoOutputModel.trainableWeights[1].read();
 
-          // Check the weight updates to layer1.
-          const expectedValueArray1 =
-              pyListRepeat([1.0 - (inputSize1 - 1) * 2 * lr], inputSize1);
-          expectTensorsClose(
-              newWeightsValue1, tensor2d(expectedValueArray1, [inputSize1, 1]));
-          // Check the weight updates to layer2 (different from those to
-          // layer1).
-          const expectedValueArray2 =
-              pyListRepeat([1.0 - (inputSize2 - 1) * 2 * lr], inputSize2);
-          expectTensorsClose(
-              newWeightsValue2, tensor2d(expectedValueArray2, [inputSize2, 1]));
-          done();
-        });
+    // Check the weight updates to layer1.
+    const expectedValueArray1 =
+        pyListRepeat([1.0 - (inputSize1 - 1) * 2 * lr], inputSize1);
+    expectTensorsClose(
+        newWeightsValue1, tensor2d(expectedValueArray1, [inputSize1, 1]));
+    // Check the weight updates to layer2 (different from those to
+    // layer1).
+    const expectedValueArray2 =
+        pyListRepeat([1.0 - (inputSize2 - 1) * 2 * lr], inputSize2);
+    expectTensorsClose(
+        newWeightsValue2, tensor2d(expectedValueArray2, [inputSize2, 1]));
   });
 
   const isCustomCallbackConfig = [false, true];
@@ -977,7 +916,7 @@ describeMathCPUAndGPU('Model.fit', () => {
     for (const isArray of isCustomCallbackArray) {
       const testTitle = `Fit with custom callback object: isConfig=${
           isConfig}, isArray=${isArray}`;
-      it(testTitle, async done => {
+      it(testTitle, async () => {
         createDenseModelAndData();
         const trainBeginLogs: Logs[] = [];
         const trainEndLogs: Logs[] = [];
@@ -1034,12 +973,11 @@ describeMathCPUAndGPU('Model.fit', () => {
         }
         expect(epochEndLosses.length).toEqual(2);
         expect(epochEndLosses[1]).toBeLessThan(epochEndLosses[0]);
-        done();
       });
     }
   }
 
-  it('Using custom regularizer', async done => {
+  it('Using custom regularizer', async () => {
     // The golden values used for assertion can be obtained with PyKeras code:
     //
     // ```python
@@ -1066,22 +1004,17 @@ describeMathCPUAndGPU('Model.fit', () => {
 
     model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
     // Use batchSize === numSamples to get exactly one batch.
-    model.fit(inputs, targets, {batchSize: numSamples, epochs: 2})
-        .then(history => {
-          expectTensorsClose(
-              model.layers[1].getWeights()[0],
-              tensor2d([0.829, 0.829, 0.829, 0.829], [4, 1]));
-          expect(history.history.loss.length).toEqual(2);
-          expect(history.history.loss[0]).toBeCloseTo(17);
-          expect(history.history.loss[1]).toBeCloseTo(13.92);
-          done();
-        })
-        .catch(err => {
-          done.fail(err.stack);
-        });
+    const history =
+        await model.fit(inputs, targets, {batchSize: numSamples, epochs: 2});
+    expectTensorsClose(
+        model.layers[1].getWeights()[0],
+        tensor2d([0.829, 0.829, 0.829, 0.829], [4, 1]));
+    expect(history.history.loss.length).toEqual(2);
+    expect(history.history.loss[0]).toBeCloseTo(17);
+    expect(history.history.loss[1]).toBeCloseTo(13.92);
   });
 
-  it('Using string regularizer', async done => {
+  it('Using string regularizer', async () => {
     // The golden values used for assertion can be obtained with PyKeras code:
     //
     // ```python
@@ -1108,49 +1041,32 @@ describeMathCPUAndGPU('Model.fit', () => {
 
     model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
     // Use batchSize === numSamples to get exactly one batch.
-    model.fit(inputs, targets, {batchSize: numSamples, epochs: 2})
-        .then(history => {
-          expectTensorsClose(
-              model.layers[1].getWeights()[0],
-              tensor2d([0.884, 0.884, 0.884, 0.884], [4, 1]));
-          expect(history.history.loss.length).toEqual(2);
-          expect(history.history.loss[0]).toBeCloseTo(9.08);
-          expect(history.history.loss[1]).toBeCloseTo(7.68);
-          done();
-        })
-        .catch(err => {
-          done.fail(err.stack);
-        });
+    const history =
+        await model.fit(inputs, targets, {batchSize: numSamples, epochs: 2});
+    expectTensorsClose(
+        model.layers[1].getWeights()[0],
+        tensor2d([0.884, 0.884, 0.884, 0.884], [4, 1]));
+    expect(history.history.loss.length).toEqual(2);
+    expect(history.history.loss[0]).toBeCloseTo(9.08);
+    expect(history.history.loss[1]).toBeCloseTo(7.68);
   });
 
-  it('and then set weights to new weights', async done => {
+  it('and then set weights to new weights', async () => {
     createDenseModelAndData(false, 'l1l2');
     model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
-    model.fit(inputs, targets, {batchSize: numSamples, epochs: 2})
-        .then(history => {
-          const w = zeros([4, 1]);
-          model.layers[1].setWeights([w]);
-          expectTensorsClose(model.layers[1].getWeights()[0], w);
-          done();
-        })
-        .catch(err => {
-          done.fail(err.stack);
-        });
+    await model.fit(inputs, targets, {batchSize: numSamples, epochs: 2});
+    const w = zeros([4, 1]);
+    model.layers[1].setWeights([w]);
+    expectTensorsClose(model.layers[1].getWeights()[0], w);
   });
 
-  it('and then set weights to own weights', async done => {
+  it('and then set weights to own weights', async () => {
     createDenseModelAndData(false, 'l1l2');
     model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
-    model.fit(inputs, targets, {batchSize: numSamples, epochs: 2})
-        .then(history => {
-          const w = model.layers[1].getWeights()[0];
-          model.layers[1].setWeights([w]);
-          expectTensorsClose(model.layers[1].getWeights()[0], w);
-          done();
-        })
-        .catch(err => {
-          done.fail(err.stack);
-        });
+    await model.fit(inputs, targets, {batchSize: numSamples, epochs: 2});
+    const w = model.layers[1].getWeights()[0];
+    model.layers[1].setWeights([w]);
+    expectTensorsClose(model.layers[1].getWeights()[0], w);
   });
 
   class CustomCallbackForTest extends tfl.CustomCallback {
@@ -1220,22 +1136,17 @@ describeMathCPUAndGPU('Model.fit', () => {
     }
   }
 
-  it('Stop training at the end of an epoch: Functional model', done => {
+  it('Stop training at the end of an epoch: Functional model', async () => {
     createDenseModelAndData(true);
     model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
     // Order 10 epochs of training, but the training should stop after two
     // epochs due to the callback.
-    model
-        .fit(inputs, targets, {
-          batchSize: numSamples,
-          epochs: 10,
-          callbacks: [new StopAfterNEpochs(2)]
-        })
-        .then(history => {
-          expect(history.history.loss.length).toEqual(2);
-          done();
-        })
-        .catch(err => done.fail(err.stack));
+    const history = await model.fit(inputs, targets, {
+      batchSize: numSamples,
+      epochs: 10,
+      callbacks: [new StopAfterNEpochs(2)]
+    });
+    expect(history.history.loss.length).toEqual(2);
   });
 
   class StopAfterNBatches extends tfl.Callback {
@@ -1252,7 +1163,7 @@ describeMathCPUAndGPU('Model.fit', () => {
     }
   }
 
-  it('Stop training at the end of a batch: Sequential model', done => {
+  it('Stop training at the end of a batch: Sequential model', async () => {
     const sequentialModel = tfl.sequential();
     sequentialModel.add(tfl.layers.dense(
         {units: 1, kernelInitializer: 'ones', inputShape: [inputSize]}));
@@ -1264,15 +1175,10 @@ describeMathCPUAndGPU('Model.fit', () => {
     // epochs due to the callback that orders the training to stop after two
     // batches. The first epoch should have five batches  due to a batchSize
     // of 1.
-    sequentialModel
-        .fit(
-            inputs, targets,
-            {batchSize: 1, epochs: 10, callbacks: [new StopAfterNBatches(2)]})
-        .then(history => {
-          expect(history.history.loss.length).toEqual(1);
-          done();
-        })
-        .catch(err => done.fail(err.stack));
+    const history = await sequentialModel.fit(
+        inputs, targets,
+        {batchSize: 1, epochs: 10, callbacks: [new StopAfterNBatches(2)]});
+    expect(history.history.loss.length).toEqual(1);
   });
 
   it('Stop Model.fit() using non-class object callback function', async () => {
@@ -1346,7 +1252,7 @@ describeMathCPUAndGPU('Model.fit', () => {
 });
 
 describeMathCPUAndGPU('Model.fit with training-sensitive layers', () => {
-  it('Correct training arg during fit/evaluate/predict', async done => {
+  it('Correct training arg during fit/evaluate/predict', async () => {
     const inputTensor =
         tfl.layers.input({shape: [1], name: 'inputLayer1', dtype: 'float32'});
     const layer1 = tfl.layers.dense({units: 1});
@@ -1370,11 +1276,7 @@ describeMathCPUAndGPU('Model.fit with training-sensitive layers', () => {
 
     // 1. Call fit: Dropout layer should be called twice, with training as
     // true.
-    try {
-      await model.fit(xs, ys, {epochs: 2, batchSize: 4});
-    } catch (err) {
-      done.fail(err.stack);
-    }
+    await model.fit(xs, ys, {epochs: 2, batchSize: 4});
     expect(dropoutLayerTrainingFlags).toEqual([true, true]);
 
     // 2. Call evaluate, Dropout layer should be called once, without
@@ -1388,8 +1290,6 @@ describeMathCPUAndGPU('Model.fit with training-sensitive layers', () => {
     expect(dropoutLayerTrainingFlags).toEqual([
       true, true, undefined, undefined
     ]);
-
-    done();
   });
 });
 
@@ -1529,7 +1429,7 @@ describeMathCPUAndGPU('Model.fit: No memory leak', () => {
   }
 
   it('Repeated fit calls leads to no memory leak: no validation or metrics',
-     async done => {
+     async (done) => {
        createDenseModelAndData();
 
        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
