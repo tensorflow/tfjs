@@ -107,10 +107,10 @@ export function complexWithOddIndex(complex: Float32Array):
  * @param complex The complex tensor values.
  * @param index An index of the target complex value.
  */
-export function getComplexWithIndex(complex: Float32Array, index: number):
-    {real: number, imag: number} {
-  const real = complex[index*2];
-  const imag = complex[index*2+1];
+export function getComplexWithIndex(
+    complex: Float32Array, index: number): {real: number, imag: number} {
+  const real = complex[index * 2];
+  const imag = complex[index * 2 + 1];
   return {real, imag};
 }
 
@@ -120,21 +120,21 @@ export function getComplexWithIndex(complex: Float32Array, index: number):
  * @param c The complex value to be inserted.
  * @param index An index of the target complex value.
  */
-export function assignToTypedArray(data: TypedArray,
-    real: number, imag: number, index: number) {
-  data[index*2] = real;
-  data[index*2+1] = imag;
+export function assignToTypedArray(
+    data: TypedArray, real: number, imag: number, index: number) {
+  data[index * 2] = real;
+  data[index * 2 + 1] = imag;
 }
 
 /**
  * Make the list of exponent terms used by FFT.
  */
-export function exponents(n: number):
-    {real: Float32Array, imag: Float32Array} {
+export function exponents(
+    n: number, inverse: boolean): {real: Float32Array, imag: Float32Array} {
   const real = new Float32Array(n / 2);
   const imag = new Float32Array(n / 2);
-  for (let i = 0; i < Math.ceil(n/2); i++) {
-    const x = -2 * Math.PI * (i / n);
+  for (let i = 0; i < Math.ceil(n / 2); i++) {
+    const x = (inverse ? 2 : -2) * Math.PI * (i / n);
     real[i] = Math.cos(x);
     imag[i] = Math.sin(x);
   }
@@ -144,9 +144,9 @@ export function exponents(n: number):
 /**
  * Make the exponent term used by FFT.
  */
-export function exponent(k: number, n: number):
-    {real: number, imag: number} {
-  const x = -2 * Math.PI * (k / n);
+export function exponent(
+    k: number, n: number, inverse: boolean): {real: number, imag: number} {
+  const x = (inverse ? 2 : -2) * Math.PI * (k / n);
   const real = Math.cos(x);
   const imag = Math.sin(x);
   return {real, imag};

@@ -1598,10 +1598,22 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   fft(x: Tensor2D): Tensor2D {
+    const inverse = false;
+    return this.fftImpl(x, inverse);
+  }
+
+  ifft(x: Tensor2D): Tensor2D {
+    const inverse = true;
+    return this.fftImpl(x, inverse);
+  }
+
+  private fftImpl(x: Tensor2D, inverse: boolean): Tensor2D {
     const xData = this.texData.get(x.dataId);
 
-    const realProgram = new FFTProgram(fft_gpu.COMPLEX_FFT.REAL, x.shape);
-    const imagProgram = new FFTProgram(fft_gpu.COMPLEX_FFT.IMAG, x.shape);
+    const realProgram =
+        new FFTProgram(fft_gpu.COMPLEX_FFT.REAL, x.shape, inverse);
+    const imagProgram =
+        new FFTProgram(fft_gpu.COMPLEX_FFT.IMAG, x.shape, inverse);
     const inputs = [
       this.makeComplexComponentTensorHandle(x, xData.complexTensors.real),
       this.makeComplexComponentTensorHandle(x, xData.complexTensors.imag),

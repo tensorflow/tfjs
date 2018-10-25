@@ -2544,22 +2544,41 @@ export class MathBackendCPU implements KernelBackend {
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
-  fft(input: Tensor2D): Tensor2D {
-    if (input.shape[0] !== 1) {
+  fft(x: Tensor2D): Tensor2D {
+    if (x.shape[0] !== 1) {
       throw new Error(`tf.fft() on CPU only supports vectors.`);
     }
-    const input1D = input.as1D();
+    const inverse = false;
+    return this.fftImpl(x, inverse);
+  }
 
-    const n = input1D.size;
+  ifft(x: Tensor2D): Tensor2D {
+    if (x.shape[0] !== 1) {
+      throw new Error(`tf.ifft() on CPU only supports vectors.`);
+    }
+    const inverse = true;
+    return this.fftImpl(x, inverse);
+  }
+
+  private fftImpl(x: Tensor2D, inverse: boolean): Tensor2D {
+    const x1D = x.as1D();
+
+    const n = x1D.size;
 
     if (this.isExponentOf2(n)) {
-      return this.fftRadix2(input1D, n).as2D(input.shape[0], input.shape[1]);
+      let result = this.fftRadix2(x1D, n, inverse).as2D(x.shape[0], x.shape[1]);
+      if (inverse) {
+        result = ops.complex(
+                     ops.real(result).div(scalar(n)),
+                     ops.imag(result).div(scalar(n))) as Tensor2D;
+      }
+      return result;
     } else {
-      const data = input.dataSync();
-      const rawOutput = this.fourierTransformByMatmul(data, n) as Float32Array;
+      const data = x.dataSync();
+      const rawOutput =
+          this.fourierTransformByMatmul(data, n, inverse) as Float32Array;
       const output = complex_util.splitRealAndImagArrays(rawOutput);
-      return ops.complex(output.real, output.imag)
-          .as2D(input.shape[0], input.shape[1]);
+      return ops.complex(output.real, output.imag).as2D(x.shape[0], x.shape[1]);
     }
   }
 
@@ -2568,7 +2587,7 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   // FFT using Cooley-Tukey algorithm on radix 2 dimensional input.
-  private fftRadix2(input: Tensor1D, size: number): Tensor1D {
+  private fftRadix2(input: Tensor1D, size: number, inverse: boolean): Tensor1D {
     if (size === 1) {
       return input;
     }
@@ -2580,10 +2599,10 @@ export class MathBackendCPU implements KernelBackend {
     let oddTensor = ops.complex(oddComplex.real, oddComplex.imag).as1D();
 
     // Recursive call for half part of original input.
-    evenTensor = this.fftRadix2(evenTensor, half);
-    oddTensor = this.fftRadix2(oddTensor, half);
+    evenTensor = this.fftRadix2(evenTensor, half, inverse);
+    oddTensor = this.fftRadix2(oddTensor, half, inverse);
 
-    const e = complex_util.exponents(size);
+    const e = complex_util.exponents(size, inverse);
     const exponent = ops.complex(e.real, e.imag).mul(oddTensor);
 
     const addPart = evenTensor.add(exponent);
@@ -2596,17 +2615,22 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   // Calculate fourier transform by multplying sinusoid matrix.
-  private fourierTransformByMatmul(data: TypedArray, size: number): TypedArray {
+  private fourierTransformByMatmul(
+      data: TypedArray, size: number, inverse: boolean): TypedArray {
     const ret = new Float32Array(size * 2);
     // TODO: Use matmul instead once it supports complex64 type.
     for (let r = 0; r < size; r++) {
       let real = 0.0;
       let imag = 0.0;
       for (let c = 0; c < size; c++) {
-        const e = complex_util.exponent(r * c, size);
+        const e = complex_util.exponent(r * c, size, inverse);
         const term = complex_util.getComplexWithIndex(data as Float32Array, c);
         real += term.real * e.real - term.imag * e.imag;
         imag += term.real * e.imag + term.imag * e.real;
+      }
+      if (inverse) {
+        real /= size;
+        imag /= size;
       }
       complex_util.assignToTypedArray(ret, real, imag, r);
     }

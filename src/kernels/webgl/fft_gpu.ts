@@ -27,12 +27,16 @@ export class FFTProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(op: string, inputShape: [number, number]) {
+  constructor(op: string, inputShape: [number, number], inverse: boolean) {
     const innerDim = inputShape[1];
     this.outputShape = inputShape;
 
+    const exponentMultiplierSnippet =
+        inverse ? `2.0 * ${Math.PI}` : `-2.0 * ${Math.PI}`;
+    const resultDenominator = inverse ? `${innerDim}.0` : '1.0';
+
     this.userCode = `
-      const float negativeTwoPi = -2.0 * 3.1415926535897932384626433832795;
+      const float exponentMultiplier = ${exponentMultiplierSnippet};
 
       float unaryOpComplex(float real, float expR, float imag, float expI) {
         ${op}
@@ -40,19 +44,21 @@ export class FFTProgram implements GPGPUProgram {
 
       float mulMatDFT(int batch, int index) {
         float indexRatio = float(index) / float(${innerDim});
-        float negativeTwoPiTimesIndexRatio = negativeTwoPi * indexRatio;
+        float exponentMultiplierTimesIndexRatio =
+            exponentMultiplier * indexRatio;
 
         float result = 0.0;
 
         for (int i = 0; i < ${innerDim}; i++) {
-          // x = (-2 * PI / N) * index * i;
-          float x = negativeTwoPiTimesIndexRatio * float(i);
+          // x = (-2|2 * PI / N) * index * i;
+          float x = exponentMultiplierTimesIndexRatio * float(i);
           float expR = cos(x);
           float expI = sin(x);
           float real = getReal(batch, i);
           float imag = getImag(batch, i);
 
-          result += unaryOpComplex(real, expR, imag, expI);
+          result +=
+              unaryOpComplex(real, expR, imag, expI) / ${resultDenominator};
         }
 
         return result;
