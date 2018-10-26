@@ -16,7 +16,6 @@
  */
 
 import * as seedrandom from 'seedrandom';
-
 import {ENV} from '../environment';
 import {warn} from '../log';
 import * as array_ops_util from '../ops/array_ops_util';
@@ -35,7 +34,6 @@ import {DataId, Scalar, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, 
 import {DataType, DataTypeMap, Rank, ShapeMap, TypedArray, upcastType} from '../types';
 import * as util from '../util';
 import {now} from '../util';
-
 import {BackendTimingInfo, DataMover, DataStorage, KernelBackend} from './backend';
 import * as backend_util from './backend_util';
 import * as complex_util from './complex_util';
@@ -57,12 +55,13 @@ export class MathBackendCPU implements KernelBackend {
   public blockSize = 48;
 
   private data: DataStorage<TensorData<DataType>>;
-  private canvas: HTMLCanvasElement;
+  private fromPixels2DContext: CanvasRenderingContext2D;
   private firstUse = true;
 
   constructor() {
     if (ENV.get('IS_BROWSER')) {
-      this.canvas = document.createElement('canvas');
+      this.fromPixels2DContext =
+          document.createElement('canvas').getContext('2d');
     }
   }
 
@@ -123,16 +122,16 @@ export class MathBackendCPU implements KernelBackend {
     } else if (
         pixels instanceof HTMLImageElement ||
         pixels instanceof HTMLVideoElement) {
-      if (this.canvas == null) {
+      if (this.fromPixels2DContext == null) {
         throw new Error(
             'Can\'t read pixels from HTMLImageElement outside ' +
             'the browser.');
       }
-      this.canvas.width = pixels.width;
-      this.canvas.height = pixels.height;
-      this.canvas.getContext('2d').drawImage(
+      this.fromPixels2DContext.canvas.width = pixels.width;
+      this.fromPixels2DContext.canvas.height = pixels.height;
+      this.fromPixels2DContext.drawImage(
           pixels, 0, 0, pixels.width, pixels.height);
-      vals = this.canvas.getContext('2d')
+      vals = this.fromPixels2DContext
                  .getImageData(0, 0, pixels.width, pixels.height)
                  .data;
     } else {

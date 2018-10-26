@@ -18,34 +18,6 @@
 import {ENV} from '../../environment';
 import * as util from '../../util';
 
-export function createWebGLRenderingContext(attributes: WebGLContextAttributes):
-    WebGLRenderingContext {
-  const canvas = document.createElement('canvas');
-  canvas.width = 1;
-  canvas.height = 1;
-  return createWebGLRenderingContextFromCanvas(canvas, attributes);
-}
-
-export function createWebGLRenderingContextFromCanvas(
-    canvas: HTMLCanvasElement,
-    attributes: WebGLContextAttributes): WebGLRenderingContext {
-  let gl: WebGLRenderingContext;
-
-  const webglVersion = ENV.get('WEBGL_VERSION');
-  if (webglVersion === 2) {
-    gl = canvas.getContext('webgl2', attributes) as WebGLRenderingContext;
-  } else if (webglVersion === 1) {
-    gl = (canvas.getContext('webgl', attributes) ||
-          canvas.getContext('experimental-webgl', attributes)) as
-        WebGLRenderingContext;
-  }
-
-  if (webglVersion === 0 || gl == null) {
-    throw new Error('This browser does not support WebGL.');
-  }
-  return gl;
-}
-
 export function callAndCheck<T>(gl: WebGLRenderingContext, func: () => T): T {
   const returnValue = func();
   checkWebGLError(gl);

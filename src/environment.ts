@@ -313,8 +313,7 @@ export class Environment {
     } else if (feature === 'WEBGL_PAGING_ENABLED') {
       return this.get('IS_BROWSER') && !this.get('PROD');
     } else if (feature === 'WEBGL_MAX_TEXTURE_SIZE') {
-      return getWebGLMaxTextureSize(
-          this.get('WEBGL_VERSION'), this.get('IS_BROWSER'));
+      return getWebGLMaxTextureSize(this.get('WEBGL_VERSION'));
     } else if (feature === 'IS_TEST') {
       return false;
     } else if (feature === 'BACKEND') {
@@ -325,29 +324,25 @@ export class Environment {
       if (webGLVersion === 0) {
         return 0;
       }
-      return getWebGLDisjointQueryTimerVersion(
-          webGLVersion, this.get('IS_BROWSER'));
+      return getWebGLDisjointQueryTimerVersion(webGLVersion);
     } else if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') {
       return this.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0 &&
           !device_util.isMobile();
     } else if (feature === 'HAS_WEBGL') {
       return this.get('WEBGL_VERSION') > 0;
     } else if (feature === 'WEBGL_VERSION') {
-      if (isWebGLVersionEnabled(2, this.get('IS_BROWSER'))) {
+      if (isWebGLVersionEnabled(2)) {
         return 2;
-      } else if (isWebGLVersionEnabled(1, this.get('IS_BROWSER'))) {
+      } else if (isWebGLVersionEnabled(1)) {
         return 1;
       }
       return 0;
     } else if (feature === 'WEBGL_RENDER_FLOAT32_ENABLED') {
-      return isRenderToFloatTextureEnabled(
-          this.get('WEBGL_VERSION'), this.get('IS_BROWSER'));
+      return isRenderToFloatTextureEnabled(this.get('WEBGL_VERSION'));
     } else if (feature === 'WEBGL_DOWNLOAD_FLOAT_ENABLED') {
-      return isDownloadFloatTextureEnabled(
-          this.get('WEBGL_VERSION'), this.get('IS_BROWSER'));
+      return isDownloadFloatTextureEnabled(this.get('WEBGL_VERSION'));
     } else if (feature === 'WEBGL_FENCE_API_ENABLED') {
-      return isWebGLFenceEnabled(
-          this.get('WEBGL_VERSION'), this.get('IS_BROWSER'));
+      return isWebGLFenceEnabled(this.get('WEBGL_VERSION'));
     } else if (feature === 'WEBGL_SIZE_UPLOAD_UNIFORM') {
       // Use uniform uploads only when 32bit floats are supported. In 16bit
       // environments there are problems with comparing a 16bit texture value

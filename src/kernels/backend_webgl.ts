@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {getWebGLContext} from '../canvas_util';
 import {MemoryInfo, TimingInfo} from '../engine';
 import {ENV} from '../environment';
 import {tidy} from '../globals';
@@ -34,7 +35,6 @@ import {DataId, Scalar, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, 
 import {DataType, DataTypeMap, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../types';
 import * as util from '../util';
 import {getTypedArrayFromDType, sizeFromShape} from '../util';
-
 import {DataMover, DataStorage, KernelBackend} from './backend';
 import * as backend_util from './backend_util';
 import {mergeRealAndImagArrays} from './complex_util';
@@ -68,7 +68,6 @@ import {GatherNDProgram} from './webgl/gather_nd_gpu';
 import {GPGPUContext} from './webgl/gpgpu_context';
 import * as gpgpu_math from './webgl/gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './webgl/gpgpu_math';
-import * as gpgpu_util from './webgl/gpgpu_util';
 import {Im2ColProgram} from './webgl/im2col_gpu';
 import {LRNProgram} from './webgl/lrn_gpu';
 import {LRNGradProgram} from './webgl/lrn_grad_gpu';
@@ -153,7 +152,7 @@ export class MathBackendWebGL implements KernelBackend {
   private NUM_BYTES_BEFORE_PAGING: number;
 
   private canvas: HTMLCanvasElement;
-  private fromPixelsCanvas: HTMLCanvasElement;
+  private fromPixels2DContext: CanvasRenderingContext2D;
 
   private programTimersStack: TimerNode[];
   private activeTimers: TimerNode[];
@@ -201,7 +200,7 @@ export class MathBackendWebGL implements KernelBackend {
           `ImageData, but was ${(pixels as {}).constructor.name}`);
     }
     if (pixels instanceof HTMLVideoElement) {
-      if (this.fromPixelsCanvas == null) {
+      if (this.fromPixels2DContext == null) {
         if (!ENV.get('IS_BROWSER')) {
           throw new Error(
               'Can\'t read pixels from HTMLImageElement outside the browser.');
@@ -212,13 +211,14 @@ export class MathBackendWebGL implements KernelBackend {
               'once the DOM is ready. One way to do that is to add an event ' +
               'listener for `DOMContentLoaded` on the document object');
         }
-        this.fromPixelsCanvas = document.createElement('canvas');
+        this.fromPixels2DContext =
+            document.createElement('canvas').getContext('2d');
       }
-      this.fromPixelsCanvas.width = pixels.width;
-      this.fromPixelsCanvas.height = pixels.height;
-      this.fromPixelsCanvas.getContext('2d').drawImage(
+      this.fromPixels2DContext.canvas.width = pixels.width;
+      this.fromPixels2DContext.canvas.height = pixels.height;
+      this.fromPixels2DContext.drawImage(
           pixels, 0, 0, pixels.width, pixels.height);
-      pixels = this.fromPixelsCanvas;
+      pixels = this.fromPixels2DContext.canvas;
     }
     const tempPixelHandle = this.makeTensorHandle(texShape, 'int32');
     // This is a byte texture with pixels.
@@ -483,14 +483,15 @@ export class MathBackendWebGL implements KernelBackend {
     if (ENV.get('WEBGL_VERSION') < 1) {
       throw new Error('WebGL is not supported on this device');
     }
-    if (ENV.get('IS_BROWSER')) {
-      this.canvas = document.createElement('canvas');
-    }
+
     if (gpgpu == null) {
-      this.gpgpu = new GPGPUContext(gpgpu_util.createWebGLContext(this.canvas));
+      const gl = getWebGLContext(ENV.get('WEBGL_VERSION'));
+      this.gpgpu = new GPGPUContext(gl);
+      this.canvas = gl.canvas;
       this.gpgpuCreatedLocally = true;
     } else {
       this.gpgpuCreatedLocally = false;
+      this.canvas = gpgpu.gl.canvas;
     }
     if (ENV.get('WEBGL_PAGING_ENABLED')) {
       // Use the device screen's resolution as a heuristic to decide on the
@@ -1782,8 +1783,8 @@ export class MathBackendWebGL implements KernelBackend {
     }
     this.textureManager.dispose();
     this.canvas.remove();
-    if (this.fromPixelsCanvas != null) {
-      this.fromPixelsCanvas.remove();
+    if (this.fromPixels2DContext != null) {
+      this.fromPixels2DContext.canvas.remove();
     }
     if (this.gpgpuCreatedLocally) {
       this.gpgpu.dispose();
