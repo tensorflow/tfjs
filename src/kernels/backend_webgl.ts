@@ -1241,19 +1241,20 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   abs<T extends Tensor>(x: T): T {
-    if (x.dtype === 'complex64') {
-      const xData = this.texData.get(x.dataId);
-
-      const program = new ComplexAbsProgram(x.shape);
-      const inputs = [
-        this.makeComplexComponentTensorHandle(x, xData.complexTensors.real),
-        this.makeComplexComponentTensorHandle(x, xData.complexTensors.imag),
-      ];
-
-      return this.compileAndRun<Tensor>(program, inputs) as T;
-    }
     const program = new UnaryOpProgram(x.shape, unary_op.ABS);
     return this.compileAndRun(program, [x]) as T;
+  }
+
+  complexAbs<T extends Tensor>(x: T): T {
+    const xData = this.texData.get(x.dataId);
+
+    const program = new ComplexAbsProgram(x.shape);
+    const inputs = [
+      this.makeComplexComponentTensorHandle(x, xData.complexTensors.real),
+      this.makeComplexComponentTensorHandle(x, xData.complexTensors.imag),
+    ];
+
+    return this.compileAndRun<Tensor>(program, inputs) as T;
   }
 
   sigmoid<T extends Tensor>(x: T): T {

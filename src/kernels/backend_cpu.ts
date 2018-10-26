@@ -1108,19 +1108,22 @@ export class MathBackendCPU implements KernelBackend {
   abs<T extends Tensor>(x: T): T {
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
-
-    if (x.dtype === 'complex64') {
-      for (let i = 0; i < x.size; ++i) {
-        const real = values[i * 2];
-        const imag = values[i * 2 + 1];
-        resultValues[i] = Math.sqrt(real * real + imag * imag);
-      }
-    } else {
-      for (let i = 0; i < values.length; ++i) {
-        resultValues[i] = Math.abs(values[i]);
-      }
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = Math.abs(values[i]);
     }
 
+    return Tensor.make(x.shape, {values: resultValues}) as T;
+  }
+
+  complexAbs<T extends Tensor>(x: T): T {
+    const resultValues = new Float32Array(x.size);
+    const values = x.dataSync();
+
+    for (let i = 0; i < x.size; ++i) {
+      const real = values[i * 2];
+      const imag = values[i * 2 + 1];
+      resultValues[i] = Math.sqrt(real * real + imag * imag);
+    }
     return Tensor.make(x.shape, {values: resultValues}) as T;
   }
 

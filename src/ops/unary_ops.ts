@@ -310,6 +310,10 @@ function reciprocal_<T extends Tensor>(x: T|TensorLike): T {
 function abs_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'abs');
 
+  if ($x.dtype === 'complex64') {
+    return ENV.engine.runKernel(backend => backend.complexAbs($x), {$x});
+  }
+
   const grad = (dy: T) => {
     return {$x: () => dy.mulStrict($x.toFloat().step(-1))};
   };

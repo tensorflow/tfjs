@@ -175,6 +175,7 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
   clip<T extends Tensor>(x: T, min: number, max: number): T;
 
   abs<T extends Tensor>(x: T): T;
+  complexAbs<T extends Tensor>(x: T): T;
 
   sigmoid<T extends Tensor>(x: T): T;
 
