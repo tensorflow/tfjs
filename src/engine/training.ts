@@ -822,9 +822,9 @@ export class Model extends Container implements tfc.InferenceModel {
   //   available.
   /**
    * Evaluate model using a dataset object.
-   * 
+   *
    * Note: Unlike `evaluate()`, this method is asynchronous (`async`);
-   * 
+   *
    * @param dataset A dataset object. Its `iterator()` method is expected
    *   to generate a dataset iterator object, the `next()` method of which
    *   is expected to produce data batches for evaluation. The return value
@@ -842,8 +842,8 @@ export class Model extends Container implements tfc.InferenceModel {
    * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
    */
   async evaluateDataset<T extends TensorContainer>(
-      dataset: Dataset<T>, config: ModelEvaluateDatasetConfig):
-      Promise<Scalar|Scalar[]> {
+      dataset: Dataset<T>,
+      config: ModelEvaluateDatasetConfig): Promise<Scalar|Scalar[]> {
     this.makeTestFunction();
     return evaluateDataset(this, dataset, config);
   }

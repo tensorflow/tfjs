@@ -273,14 +273,15 @@ export async function fitDataset<T extends TensorContainer>(
     let valXs: tfc.Tensor|tfc.Tensor[];
     let valYs: tfc.Tensor|tfc.Tensor[];
     if (doValidation) {
-      if (config.validationData instanceof Dataset) {
+      if (isDatasetObject(config.validationData)) {
         tfc.util.assert(
             config.validationBatches > 0 &&
                 Number.isInteger(config.validationBatches),
             `For fitDataset() with dataset-based validation, ` +
                 `config.validationBatches is expected to be a ` +
                 `positive integer, but got ${config.validationBatches}`);
-        validationDataIterator = await config.validationData.iterator();
+        validationDataIterator =
+            await (config.validationData as Dataset<T>).iterator();
       } else {
         const validationData = standardizeTensorValidationData(
             config.validationData as
@@ -362,7 +363,7 @@ export async function fitDataset<T extends TensorContainer>(
         // Epoch finished. Perform validation.
         if (stepsDone >= config.batchesPerEpoch && doValidation) {
           let valOuts: tfc.Scalar[];
-          if (config.validationData instanceof Dataset) {
+          if (isDatasetObject(config.validationData)) {
             valOuts = toList(await model.evaluateDataset(
                 validationDataIterator, {batches: config.validationBatches}));
           } else {
@@ -395,6 +396,25 @@ export async function fitDataset<T extends TensorContainer>(
   }
 }
 
+// Check if provided object is a Dataset object by checking it's .iterator
+// element.
+function isDatasetObject<T extends TensorContainer>(
+    dataset:
+        [
+          tfc.Tensor|tfc.Tensor[]|TensorMap, tfc.Tensor|tfc.Tensor[]|TensorMap
+        ]|[tfc.Tensor | tfc.Tensor[] | TensorMap,
+           tfc.Tensor | tfc.Tensor[] | TensorMap,
+           tfc.Tensor | tfc.Tensor[] | TensorMap]|Dataset<T>): boolean {
+  return (typeof (dataset as Dataset<T>).iterator === 'function');
+}
+
+// Check if provided object is a LazyIterator object by checking it's .next
+// element.
+function isLazyIteratorObject<T extends TensorContainer>(
+    iterator: Dataset<T>|LazyIterator<T>): boolean {
+  return (typeof (iterator as LazyIterator<T>).next === 'function');
+}
+
 export async function evaluateDataset<T extends TensorContainer>(
     // Type `model` as `any` here to avoid circular dependency w/ training.ts.
     // tslint:disable-next-line:no-any
@@ -409,8 +429,9 @@ export async function evaluateDataset<T extends TensorContainer>(
       config.batches > 0 && Number.isInteger(config.batches),
       'Test loop expects `batches` to be a positive integer, but ' +
           `received ${JSON.stringify(config.batches)}`);
-  const dataIterator =
-      dataset instanceof LazyIterator ? dataset : await dataset.iterator();
+  const dataIterator = isLazyIteratorObject(dataset) ?
+      dataset as LazyIterator<T>:
+      await (dataset as Dataset<T>).iterator();
   // Keeps track of number of examples used in this evaluation.
   let numExamples = 0;
   for (let batch = 0; batch < config.batches; ++batch) {
