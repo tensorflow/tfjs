@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {getWebGLContext} from '../../canvas_util';
 import {ENV} from '../../environment';
 import * as util from '../../util';
 import * as gpgpu_util from './gpgpu_util';
@@ -35,7 +36,6 @@ export class GPGPUContext {
   colorBufferFloatExtension: {};
   colorBufferHalfFloatExtension: {};
   getBufferSubDataAsyncExtension: {};
-  loseContextExtension: WEBGL_lose_context;
   disjointQueryTimerExtension: WebGL2DisjointQueryTimerExtension|
       WebGL1DisjointQueryTimerExtension;
   vertexBuffer: WebGLBuffer;
@@ -52,7 +52,7 @@ export class GPGPUContext {
     if (gl != null) {
       this.gl = gl;
     } else {
-      this.gl = gpgpu_util.createWebGLContext();
+      this.gl = getWebGLContext(ENV.get('WEBGL_VERSION'));
     }
     // WebGL 2.0 enables texture floats without an extension.
     if (ENV.get('WEBGL_VERSION') === 1) {
@@ -71,10 +71,6 @@ export class GPGPUContext {
       this.colorBufferFloatExtension =
           webgl_util.getExtensionOrThrow(this.gl, 'EXT_color_buffer_float');
     }
-
-    this.loseContextExtension =
-        webgl_util.getExtensionOrThrow(this.gl, 'WEBGL_lose_context') as
-        WEBGL_lose_context;
 
     this.vertexBuffer = gpgpu_util.createVertexBuffer(this.gl);
     this.indexBuffer = gpgpu_util.createIndexBuffer(this.gl);
@@ -106,11 +102,9 @@ export class GPGPUContext {
     webgl_util.callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, null));
     webgl_util.callAndCheck(gl, () => gl.deleteFramebuffer(this.framebuffer));
     webgl_util.callAndCheck(gl, () => gl.bindBuffer(gl.ARRAY_BUFFER, null));
-    webgl_util.callAndCheck(gl, () => gl.deleteBuffer(this.vertexBuffer));
     webgl_util.callAndCheck(
         gl, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null));
     webgl_util.callAndCheck(gl, () => gl.deleteBuffer(this.indexBuffer));
-    this.loseContextExtension.loseContext();
     this.disposed = true;
   }
 

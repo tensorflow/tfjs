@@ -21,18 +21,6 @@ import * as util from '../../util';
 import * as tex_util from './tex_util';
 import * as webgl_util from './webgl_util';
 
-export function getWebGLContextAttributes(): WebGLContextAttributes {
-  return {
-    alpha: false,
-    antialias: false,
-    premultipliedAlpha: false,
-    preserveDrawingBuffer: false,
-    depth: false,
-    stencil: false,
-    failIfMajorPerformanceCaveat: true
-  };
-}
-
 export interface TextureConfig {
   internalFormatFloat: number;
   textureFormatFloat: number;
@@ -46,27 +34,6 @@ export interface TextureConfig {
 
   defaultNumChannels: number;
   textureTypeHalfFloat: number;
-}
-
-export function createWebGLContext(canvas?: HTMLCanvasElement) {
-  const attributes = getWebGLContextAttributes();
-  let gl: WebGLRenderingContext;
-  if (canvas != null) {
-    gl = webgl_util.createWebGLRenderingContextFromCanvas(canvas, attributes);
-  } else {
-    gl = webgl_util.createWebGLRenderingContext(attributes);
-  }
-  webgl_util.callAndCheck(gl, () => gl.disable(gl.DEPTH_TEST));
-  webgl_util.callAndCheck(gl, () => gl.disable(gl.STENCIL_TEST));
-  webgl_util.callAndCheck(gl, () => gl.disable(gl.BLEND));
-  webgl_util.callAndCheck(gl, () => gl.disable(gl.DITHER));
-  webgl_util.callAndCheck(gl, () => gl.disable(gl.POLYGON_OFFSET_FILL));
-  webgl_util.callAndCheck(gl, () => gl.disable(gl.SAMPLE_COVERAGE));
-  webgl_util.callAndCheck(gl, () => gl.enable(gl.SCISSOR_TEST));
-  webgl_util.callAndCheck(gl, () => gl.enable(gl.CULL_FACE));
-  webgl_util.callAndCheck(gl, () => gl.cullFace(gl.BACK));
-
-  return gl;
 }
 
 export function createVertexShader(gl: WebGLRenderingContext): WebGLShader {
