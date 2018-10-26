@@ -46,7 +46,7 @@
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
-    "publish-local": "yarn build-npm && yalc push",
+    "publish-local": "rimraf dist/ && yarn build && yalc push",
     "lint": "tslint -p . -t verbose",
     "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
     "test": "karma start",
