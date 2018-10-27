@@ -27,7 +27,6 @@
   'targets' : [{
     'target_name' : 'tfjs_binding',
     'sources' : [
-      'binding/tfe_utils.cc',
       'binding/tfjs_backend.cc',
       'binding/tfjs_binding.cc'
     ],
