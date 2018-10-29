@@ -124,6 +124,21 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           numOrSizeSplits, axis);
     }
+    case 'scatterNd': {
+      const indices =
+          getParamValue('indices', node, tensorMap, context) as tfc.Tensor;
+      const values =
+          getParamValue('values', node, tensorMap, context) as tfc.Tensor;
+      const shape =
+          getParamValue('shape', node, tensorMap, context) as number[];
+      return [tfc.scatterND(indices, values, shape)];
+    }
+    case 'gatherNd': {
+      const x = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
+      const indices =
+          getParamValue('indices', node, tensorMap, context) as tfc.Tensor;
+      return [tfc.gatherND(x, indices)];
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }

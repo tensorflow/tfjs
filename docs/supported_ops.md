@@ -237,10 +237,12 @@
 |Concat|concat|
 |ConcatV2|concat|
 |Gather|gather|
+|GatherNd|gatherND|
 |GatherV2|gather|
 |Pack|stack|
 |Reverse|reverse|
 |ReverseV2|reverse|
+|ScatterNd|scatterND|
 |Slice|slice|
 |Split|split|
 |StridedSlice|stridedSlice|

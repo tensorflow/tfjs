@@ -198,6 +198,27 @@ describe('slice join', () => {
 
         expect(tfc.split).toHaveBeenCalledWith(input1[0], [2], 3);
       });
+      it('should call tfc.scatterND', () => {
+        spyOn(tfc, 'scatterND');
+        node.op = 'scatterNd';
+        node.params.indices = createTensorAttr(0);
+        node.params.values = createTensorAttr(1);
+        node.params.shape = createNumericArrayAttrFromIndex(2);
+        node.inputNames = ['input1', 'input2', 'input3'];
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(tfc.scatterND).toHaveBeenCalledWith(input1[0], input2[0], [3]);
+      });
+      it('should call tfc.gatherND', () => {
+        spyOn(tfc, 'gatherND');
+        node.op = 'gatherNd';
+        node.params.x = createTensorAttr(0);
+        node.params.indices = createTensorAttr(1);
+        node.inputNames = ['input1', 'input2'];
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.gatherND).toHaveBeenCalledWith(input1[0], input2[0]);
+      });
     });
   });
 });
