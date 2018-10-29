@@ -3,9 +3,15 @@ os:
   - osx
 language: node_js
 node_js: "8"
-
 script:
-  - yarn
-  - yarn build
-  - yarn lint
-  - yarn test
+  - ./scripts/test-travis.sh
+cache: yarn
+git:
+  depth: 5
+notifications:
+  email:
+    recipients:
+      - tensorflowjs-build@google.com
+    on_success: never
+    on_failure: always
+    on_pull_requests: false
