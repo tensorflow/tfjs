@@ -38,7 +38,9 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
     case 'identity':
     case 'stopGradient':
     case 'fakeQuantWithMinMaxVars':  // This op is currently ignored.
-      return [getParamValue('x', node, tensorMap, context) as tfc.Tensor];
+      return [
+        (getParamValue('x', node, tensorMap, context) as tfc.Tensor).clone()
+      ];
     case 'snapshot':
       const snapshot =
           (getParamValue('x', node, tensorMap, context) as tfc.Tensor);

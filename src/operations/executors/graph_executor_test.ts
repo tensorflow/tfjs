@@ -67,7 +67,9 @@ describe('graph', () => {
         node.inputNames = ['input'];
         node.params.x = createTensorAttr(0);
         node.op = 'identity';
-        expect(executeOp(node, {input: input1}, context)).toEqual(input1);
+        test_util.expectArraysEqual(
+            (executeOp(node, {input: input1}, context) as tfc.Tensor[])[0],
+            input1[0]);
       });
     });
     describe('snapshot', () => {
@@ -158,7 +160,9 @@ describe('graph', () => {
       node.inputNames = ['input'];
       node.params.x = createTensorAttr(0);
       node.op = 'stopGradient';
-      expect(executeOp(node, {input: input1}, context)).toEqual(input1);
+      test_util.expectArraysClose(
+          (executeOp(node, {input: input1}, context) as tfc.Tensor[])[0],
+          input1[0]);
     });
   });
   describe('fakeQuantWithMinMaxVars', () => {
@@ -166,7 +170,9 @@ describe('graph', () => {
       node.inputNames = ['input'];
       node.params.x = createTensorAttr(0);
       node.op = 'fakeQuantWithMinMaxVars';
-      expect(executeOp(node, {input: input1}, context)).toEqual(input1);
+      test_util.expectArraysClose(
+          (executeOp(node, {input: input1}, context) as tfc.Tensor[])[0],
+          input1[0]);
     });
   });
 });

@@ -30,19 +30,23 @@ export async function executeOp(
     context: ExecutionContext): Promise<tfc.Tensor[]> {
   switch (node.op) {
     case 'loopCond':
-      return [getParamValue('pred', node, tensorMap, context) as tfc.Tensor];
+      return [
+        (getParamValue('pred', node, tensorMap, context) as tfc.Tensor).clone()
+      ];
     case 'switch': {
       const pred =
           getParamValue('pred', node, tensorMap, context) as tfc.Tensor;
       const data =
           getParamValue('data', node, tensorMap, context) as tfc.Tensor;
       // Outputs nodes :0 => false, :1 => true
-      return (await pred.data())[0] ? [undefined, data] : [data, undefined];
+      return (await pred.data())[0] ? [undefined, data.clone()] :
+                                      [data.clone(), undefined];
     }
     case 'merge':
       const inputName = node.inputNames.find(
           name => getTensor(name, tensorMap, context) !== undefined);
-      return inputName ? [getTensor(inputName, tensorMap, context)] : undefined;
+      return inputName ? [getTensor(inputName, tensorMap, context).clone()] :
+                         undefined;
 
     case 'enter':
       const frameId =
@@ -50,19 +54,19 @@ export async function executeOp(
       const data =
           getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
       context.enterFrame(frameId);
-      return [data];
+      return [data.clone()];
 
     case 'exit':
       const tensor =
           getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
       context.exitFrame();
-      return [tensor];
+      return [tensor.clone()];
 
     case 'nextIteration':
       const input =
           getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
       context.nextIteration();
-      return [input];
+      return [input.clone()];
 
     case 'tensorArray':
       const size = getParamValue('size', node, tensorMap, context) as number;
