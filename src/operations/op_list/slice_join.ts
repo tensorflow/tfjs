@@ -233,5 +233,24 @@ export const json = [
         'defaultValue': 0
       }
     ]
+  },
+  {
+    'tfOpName': 'ScatterNd',
+    'dlOpName': 'scatterNd',
+    'category': 'slice_join',
+    'params': [
+      {'tfInputIndex': 0, 'dlParamName': 'indices', 'type': 'tensor'},
+      {'tfInputIndex': 1, 'dlParamName': 'values', 'type': 'tensor'},
+      {'tfInputIndex': 2, 'dlParamName': 'shape', 'type': 'number[]'}
+    ]
+  },
+  {
+    'tfOpName': 'GatherNd',
+    'dlOpName': 'gatherNd',
+    'category': 'slice_join',
+    'params': [
+      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
+      {'tfInputIndex': 1, 'dlParamName': 'indices', 'type': 'tensor'}
+    ]
   }
 ];
