@@ -18,3 +18,10 @@ matrix:
         - yarn test-integ
       git:
         depth: 5
+notifications:
+  email:
+    recipients:
+      - tensorflowjs-build@google.com
+    on_success: never
+    on_failure: always
+    on_pull_requests: false
