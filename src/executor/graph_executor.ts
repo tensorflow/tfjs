@@ -20,7 +20,7 @@ import {DataType, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:max-line-length
 import {NamedTensorMap, NamedTensorsMap, TensorArrayMap, TensorInfo} from '../data/types';
 // tslint:disable-next-line:max-line-length
-import {getNodeNameAndIndex, getParamValue, getTensor} from '../operations/executors/utils';
+import {getNodeNameAndIndex, getParamValue, getTensor, getTensorsForCurrentContenxt} from '../operations/executors/utils';
 import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
 
@@ -157,12 +157,18 @@ export class GraphExecutor {
     const result = tidy(() => {
       const context = new ExecutionContext(this._weightMap, tensorArrayMap);
       const tensorMap = {...this.weightMap, ...inputs};
+      const tensorsToKeep = this.getFrozenTensorIds(tensorMap);
+      const intermediateTensorConsumerCount: {[key: number]: number} = {};
+
       const compiledNodes = this.compiledMap.get(names.join(this.SEPERATOR));
       for (let i = 0; i < compiledNodes.length; i++) {
         const node = compiledNodes[i];
         if (!tensorMap[node.name]) {
           tensorMap[node.name] =
               executeOp(node, tensorMap, context) as Tensor[];
+          this.checkTensorForDisposal(
+              node.name, node, tensorMap, context, tensorsToKeep,
+              intermediateTensorConsumerCount);
         }
         // stop the execution if all outputs are found.
         if (outputNames.every(name => !!tensorMap[name])) {
@@ -174,6 +180,53 @@ export class GraphExecutor {
     return result;
   }
 
+  private getFrozenTensorIds(tensorMap: NamedTensorsMap): Set<number> {
+    const ids = Object.keys(tensorMap)
+                    .map(key => tensorMap[key])
+                    .map(tensors => tensors.map(tensor => tensor.id));
+    return new Set(...ids);
+  }
+  private checkTensorForDisposal(
+      nodeName: string, node: Node, tensorMap: NamedTensorsMap,
+      context: ExecutionContext, tensorsToKeep: Set<number>,
+      intermediateTensorConsumerCount: {[key: string]: number}) {
+    // Skip any control flow nodes, since its dependency is tricky to track
+    // correctly.
+    if (node.category === 'control') {
+      return;
+    }
+
+    tensorMap[nodeName].forEach(tensor => {
+      if (tensor != null) {
+        intermediateTensorConsumerCount[tensor.id] =
+            (intermediateTensorConsumerCount[tensor.id] || 0) +
+            node.children.length;
+      }
+    });
+    node.inputs.forEach(input => {
+      // Skip any control flow nodes, since its dependency is tricky to track
+      // correctly.
+      if (input.category !== 'control') {
+        const tensors =
+            getTensorsForCurrentContenxt(input.name, tensorMap, context);
+        if (tensors != null) {
+          tensors.forEach(tensor => {
+            if (tensor && !tensorsToKeep.has(tensor.id)) {
+              const count = intermediateTensorConsumerCount[tensor.id];
+              if (count === 1) {
+                tensor.dispose();
+                delete intermediateTensorConsumerCount[tensor.id];
+              } else if (count != null) {
+                // only intermediate nodes has count set, inputs and weights are
+                // not.
+                intermediateTensorConsumerCount[tensor.id]--;
+              }
+            }
+          });
+        }
+      }
+    });
+  }
   /**
    * Executes the inference for given input tensors in Async fashion.
    * @param inputs Tensor map for the model inputs, keyed by the input node
@@ -229,10 +282,13 @@ export class GraphExecutor {
           return {node, contexts: context.currentContext};
         });
     const tensorMap = {...this.weightMap, ...inputs};
+    const intermediateTensorConsumerCount: {[key: number]: number} = {};
+    const tensorsToKeep = this.getFrozenTensorIds(tensorMap);
     const added: {[key: string]: boolean} = {};
     while (stack.length > 0) {
-      const promises =
-          this.processStack(inputNodes, stack, context, tensorMap, added);
+      const promises = this.processStack(
+          inputNodes, stack, context, tensorMap, added, tensorsToKeep,
+          intermediateTensorConsumerCount);
       await Promise.all(promises);
     }
 
@@ -241,7 +297,9 @@ export class GraphExecutor {
 
   private processStack(
       inputNodes: Node[], stack: NodeWithContexts[], context: ExecutionContext,
-      tensorMap: NamedTensorsMap, added: {[key: string]: boolean}) {
+      tensorMap: NamedTensorsMap, added: {[key: string]: boolean},
+      tensorsToKeep: Set<number>,
+      intermediateTensorConsumerCount: {[key: number]: number}) {
     const promises: Array<Promise<Tensor[]>> = [];
     while (stack.length > 0) {
       const item = stack.pop();
@@ -267,11 +325,17 @@ export class GraphExecutor {
           promises.push(tensors.then(t => {
             tensorMap[nodeName] = t;
             context.currentContext = currentContext;
+            this.checkTensorForDisposal(
+                nodeName, item.node, tensorMap, context, tensorsToKeep,
+                intermediateTensorConsumerCount);
             this.processChildNodes(item.node, stack, context, tensorMap, added);
             return t;
           }));
         } else {
           tensorMap[nodeName] = tensors;
+          this.checkTensorForDisposal(
+              nodeName, item.node, tensorMap, context, tensorsToKeep,
+              intermediateTensorConsumerCount);
           this.processChildNodes(item.node, stack, context, tensorMap, added);
         }
       } else {

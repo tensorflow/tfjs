@@ -68,6 +68,17 @@ export function getTensor(
 }
 
 /**
+ * Retrieve the tensors based on input name for current context.
+ * @param name Node input name
+ * @param tensorsMap Tensors map keyed by the node
+ */
+export function getTensorsForCurrentContenxt(
+    name: string, tensorsMap: NamedTensorsMap,
+    context: ExecutionContext): tfc.Tensor[] {
+  return tensorsMap[getNodeNameWithContextId(name, context.currentContextId)];
+}
+
+/**
  * Returns the node name and index from the Node input name.
  * @param inputName The input name of the node, in format of
  * node_name:output_index, i.e. MatMul:0, if the output_index is not set, it is
