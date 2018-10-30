@@ -787,8 +787,7 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
         y2 = model.predict(x) as Tensor;
         expectArraysClose(y2, tfc.ones([batchSize, units]).mul(scalar2));
       });
-      model.resetStates();
-      // Assert no memory leak.
+      // Assert no memory leak, even without resetStates() being called.
       expect(tfc.memory().numTensors).toEqual(numTensors0);
     });
   }
@@ -1223,8 +1222,7 @@ describeMathCPUAndGPU('GRU Tensor', () => {
       expectArraysClose(
           y4, tfc.ones([batchSize, units]).mul(tfc.scalar(0.9371182)));
     });
-    model.resetStates();
-    // Assert no memory leak.
+    // Assert no memory leak, even without resetStates() being called.
     expect(tfc.memory().numTensors).toEqual(numTensors0);
   });
 
@@ -1694,8 +1692,7 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
         expectArraysClose(
             y2, tfc.ones([batchSize, units]).mul(tfc.scalar(0.99998766)));
       });
-      model.resetStates();
-      // Assert no memory leak.
+      // Assert no memory leak, even without resetStates() being called.
       expect(tfc.memory().numTensors).toEqual(numTensors0);
     });
 
