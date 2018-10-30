@@ -64,10 +64,11 @@ function sparseToDense_<R extends Rank>(
       convertToTensor(sparseIndices, 'sparseIndices', 'sparseToDense', 'int32');
   const $sparseValues =
       convertToTensor(sparseValues, 'sparseValues', 'sparseToDense');
-  const $defaultValue =
-      convertToTensor(defaultValue, 'defaultValue', 'sparseToDense');
+  const $defaultValue = convertToTensor(
+      defaultValue, 'defaultValue', 'sparseToDense', $sparseValues.dtype);
 
-  sparse_to_dense.validateInput($sparseIndices, $sparseValues, outputShape);
+  sparse_to_dense.validateInput(
+      $sparseIndices, $sparseValues, outputShape, $defaultValue);
 
   return ENV.engine.runKernel(
       backend => backend.sparseToDense(

@@ -30,7 +30,8 @@ import {Tensor} from '../tensor';
  * will be thrown if it is set.
  */
 export function validateInput(
-    sparseIndices: Tensor, sparseValues: Tensor, outputShape: number[]) {
+    sparseIndices: Tensor, sparseValues: Tensor, outputShape: number[],
+    defaultValues: Tensor) {
   if (sparseIndices.dtype !== 'int32') {
     throw new Error(
         'tf.sparseToDense() expects the indices to be int32 type,' +
@@ -57,5 +58,9 @@ export function validateInput(
     throw new Error(
         'sparseValues has incorrect shape ' +
         `${sparseValues.shape}, should be [] or [${numElems}]`);
+  }
+
+  if (sparseValues.dtype !== defaultValues.dtype) {
+    throw new Error('sparseValues.dtype must match defaultValues.dtype');
   }
 }
