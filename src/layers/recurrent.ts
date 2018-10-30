@@ -543,7 +543,24 @@ export class RNN extends Layer {
     }
   }
 
-  resetStates(states?: Tensor|Tensor[]): void {
+  /**
+   * Reset the state tensors of the RNN.
+   *
+   * If the `states` argument is `undefined` or `null`, will set the
+   * state tensor(s) of the RNN to all-zero tensors of the appropriate
+   * shape(s).
+   *
+   * If `states` is provided, will set the state tensors of the RNN to its
+   * value.
+   *
+   * @param states Optional externally-provided initial states.
+   * @param training Whether this call is done during training. For stateful
+   *   RNNs, this affects whether the old states are kept or discarded. In
+   *   particular, if `training` is `true`, the old states will be kept so
+   *   that subsequent backpropgataion through time (BPTT) may work properly.
+   *   Else, the old states will be discarded.
+   */
+  resetStates(states?: Tensor|Tensor[], training = false): void {
     tidy(() => {
       if (!this.stateful) {
         throw new AttributeError(
@@ -583,12 +600,6 @@ export class RNN extends Layer {
           this.states[0] = tfc.zeros([batchSize, this.cell.stateSize]);
         }
       } else {
-        // Store old state tensors for complete disposal later, i.e., during
-        // the next no-arg call to this method. We do not dispose the old
-        // states immediately because that BPTT (among other things) require
-        // them.
-        this.keptStates.push(this.states.slice());
-
         if (!Array.isArray(states)) {
           states = [states];
         }
@@ -598,6 +609,17 @@ export class RNN extends Layer {
               `but it received ${states.length} state value(s). Input ` +
               `received: ${states}`);
         }
+
+        if (training === true) {
+          // Store old state tensors for complete disposal later, i.e., during
+          // the next no-arg call to this method. We do not dispose the old
+          // states immediately because that BPTT (among other things) require
+          // them.
+          this.keptStates.push(this.states.slice());
+        } else {
+          tfc.dispose(this.states);
+        }
+
         for (let index = 0; index < this.states.length; ++index) {
           const value = states[index];
           const dim = Array.isArray(this.cell.stateSize) ?
@@ -736,7 +758,7 @@ export class RNN extends Layer {
       const states = rnnOutputs[2];
 
       if (this.stateful) {
-        this.resetStates(states);
+        this.resetStates(states, training);
       }
 
       const output = this.returnSequences ? outputs : lastOutput;
