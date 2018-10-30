@@ -23,7 +23,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {scalar, Tensor1D, tensor1d} from '@tensorflow/tfjs-core';
 import {ValueError} from '../errors';
 
-export type ArrayTypes = Uint8Array|Int32Array|Float32Array;
+export type ArrayTypes = Uint8Array | Int32Array | Float32Array;
 
 /**
  * Determine if a number is an integer.
@@ -40,7 +40,7 @@ export function isInteger(x: number): boolean {
  * @return The product.
  */
 export function arrayProd(
-    array: number[]|ArrayTypes, begin?: number, end?: number): number {
+  array: number[] | ArrayTypes, begin?: number, end?: number): number {
   if (begin == null) {
     begin = 0;
   }
@@ -60,7 +60,7 @@ export function arrayProd(
  * so the return value can be fed directly into various TF.js Core functions.
  * @param array
  */
-function toArray1D(array: number[]|Float32Array): Tensor1D {
+function toArray1D(array: number[] | Float32Array): Tensor1D {
   array = Array.isArray(array) ? new Float32Array(array) : array;
   return tensor1d(array);
 }
@@ -70,7 +70,7 @@ function toArray1D(array: number[]|Float32Array): Tensor1D {
  * @param array
  * @return minimum value.
  */
-export function min(array: number[]|Float32Array): number {
+export function min(array: number[] | Float32Array): number {
   return tfc.min(toArray1D(array)).dataSync()[0];
 }
 
@@ -79,7 +79,7 @@ export function min(array: number[]|Float32Array): number {
  * @param array
  * @return maximum value
  */
-export function max(array: number[]|Float32Array): number {
+export function max(array: number[] | Float32Array): number {
   return tfc.max(toArray1D(array)).dataSync()[0];
 }
 
@@ -88,7 +88,7 @@ export function max(array: number[]|Float32Array): number {
  * @param array
  * @return The sum.
  */
-export function sum(array: number[]|Float32Array): number {
+export function sum(array: number[] | Float32Array): number {
   return tfc.sum(toArray1D(array)).dataSync()[0];
 }
 
@@ -97,7 +97,7 @@ export function sum(array: number[]|Float32Array): number {
  * @param array
  * @return The mean.
  */
-export function mean(array: number[]|Float32Array): number {
+export function mean(array: number[] | Float32Array): number {
   return sum(array) / array.length;
 }
 
@@ -106,7 +106,7 @@ export function mean(array: number[]|Float32Array): number {
  * @param array
  * @return The variance.
  */
-export function variance(array: number[]|Float32Array): number {
+export function variance(array: number[] | Float32Array): number {
   const demeaned = tfc.sub(toArray1D(array), scalar(mean(array)));
   const sumSquare = tfc.sum(tfc.mulStrict(demeaned, demeaned)).dataSync()[0];
   return sumSquare / array.length;
@@ -117,7 +117,7 @@ export function variance(array: number[]|Float32Array): number {
  * @param array
  * @return The median value.
  */
-export function median(array: number[]|Float32Array): number {
+export function median(array: number[] | Float32Array): number {
   const arraySorted = array.slice().sort((a, b) => a - b);
   const lowIdx = Math.floor((arraySorted.length - 1) / 2);
   const highIdx = Math.ceil((arraySorted.length - 1) / 2);
@@ -130,7 +130,7 @@ export function median(array: number[]|Float32Array): number {
 /**
  * Generate an array of integers in [begin, end).
  * @param begin Beginning integer, inclusive.
- * @param end Ending integer, inclusive.
+ * @param end Ending integer, exclusive.
  * @returns Range array.
  * @throws ValueError, iff `end` < `begin`.
  */
