@@ -23,7 +23,7 @@ import {scalar, tensor1d, tensor2d, tensor3d} from './tensor_ops';
 
 let defaultValue: Scalar;
 describeWithFlags('sparseToDense', ALL_ENVS, () => {
-  beforeEach(() => defaultValue = scalar(0));
+  beforeEach(() => defaultValue = scalar(0, 'int32'));
   it('should work for scalar indices', () => {
     const indices = scalar(2, 'int32');
     const values = scalar(100, 'int32');
@@ -55,10 +55,19 @@ describeWithFlags('sparseToDense', ALL_ENVS, () => {
     const indices = tensor2d([0, 1, 1, 1], [2, 2], 'int32');
     const values = tensor1d([5, 6], 'float32');
     const shape = [2, 2];
-    const result = sparseToDense(indices, values, shape, defaultValue);
+    const result =
+        sparseToDense(indices, values, shape, defaultValue.toFloat());
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(values.dtype);
     expectArraysClose(result, [0, 5, 0, 6]);
+  });
+
+  it('should throw exception if default value does not match dtype', () => {
+    const indices = tensor2d([0, 1, 1, 1], [2, 2], 'int32');
+    const values = tensor1d([5, 6], 'float32');
+    const shape = [2, 2];
+    expect(() => sparseToDense(indices, values, shape, scalar(1, 'int32')))
+        .toThrowError();
   });
 
   it('should allow setting default value', () => {
@@ -75,7 +84,8 @@ describeWithFlags('sparseToDense', ALL_ENVS, () => {
     const indices = [[0, 1], [1, 1]];
     const values = [5, 6];
     const shape = [2, 2];
-    const result = sparseToDense(indices, values, shape, defaultValue);
+    const result =
+        sparseToDense(indices, values, shape, defaultValue.toFloat());
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual('float32');
     expectArraysClose(result, [0, 5, 0, 6]);
