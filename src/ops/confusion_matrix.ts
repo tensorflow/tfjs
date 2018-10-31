@@ -46,7 +46,7 @@ import {op} from './operation';
  * @param numClasses Number of all classes, as an integer.
  *   Its value must be larger than the largest element in `labels` and
  *   `predictions`.
- * @returns The confusion matrix as a 2D tensor. The value at
+ * @returns The confusion matrix as a int32-type 2D tensor. The value at
  *   row `r` and column `c` is the number of times examples of actual class
  *   `r` were predicted as class `c`.
  */
@@ -80,9 +80,9 @@ export function confusionMatrix_(
   // TODO(cais): In the future, if oneHot supports tensors inputs for
   //   `numClasses`, `confusionMatrix` can make `numClasses` optional.
 
-  const oneHotLabels = oneHot($labels, numClasses);
-  const oneHotPredictions = oneHot($predictions, numClasses);
-  return oneHotLabels.transpose().matMul(oneHotPredictions);
+  const oneHotLabels = oneHot($labels.asType('int32'), numClasses);
+  const oneHotPredictions = oneHot($predictions.asType('int32'), numClasses);
+  return oneHotLabels.transpose().matMul(oneHotPredictions).asType('int32');
 }
 
 export const confusionMatrix = op({confusionMatrix_});

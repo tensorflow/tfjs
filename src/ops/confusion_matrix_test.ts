@@ -42,7 +42,17 @@ describeWithFlags('confusionMatrix', ALL_ENVS, () => {
     const predictions = tf.tensor1d([0, 2, 2, 1, 0], 'int32');
     const numClasses = 3;
     const out = tf.math.confusionMatrix(labels, predictions, numClasses);
-    expectArraysEqual(out, tf.tensor2d([[2, 0, 0], [0, 1, 1], [0, 0, 1]]));
+    expectArraysEqual(
+        out, tf.tensor2d([[2, 0, 0], [0, 1, 1], [0, 0, 1]], [3, 3], 'int32'));
+  });
+
+  it('float32 arguments are accepted', () => {
+    const labels = tf.tensor1d([0, 1, 2, 1, 0], 'float32');
+    const predictions = tf.tensor1d([0, 2, 2, 1, 0], 'float32');
+    const numClasses = 3;
+    const out = tf.math.confusionMatrix(labels, predictions, numClasses);
+    expectArraysEqual(
+        out, tf.tensor2d([[2, 0, 0], [0, 1, 1], [0, 0, 1]], [3, 3], 'int32'));
   });
 
   // Reference (Python) TensorFlow code:
@@ -65,7 +75,9 @@ describeWithFlags('confusionMatrix', ALL_ENVS, () => {
     const out = tf.math.confusionMatrix(labels, predictions, numClasses);
     expectArraysEqual(
         out,
-        tf.tensor2d([[2, 0, 0, 0], [2, 0, 0, 0], [0, 0, 2, 0], [0, 0, 2, 0]]));
+        tf.tensor2d(
+            [[2, 0, 0, 0], [2, 0, 0, 0], [0, 0, 2, 0], [0, 0, 2, 0]], [4, 4],
+            'int32'));
   });
 
   it('4x4 all cases present in predictions, but not labels', () => {
@@ -75,7 +87,9 @@ describeWithFlags('confusionMatrix', ALL_ENVS, () => {
     const out = tf.math.confusionMatrix(labels, predictions, numClasses);
     expectArraysEqual(
         out,
-        tf.tensor2d([[2, 2, 0, 0], [0, 0, 0, 0], [0, 0, 2, 2], [0, 0, 0, 0]]));
+        tf.tensor2d(
+            [[2, 2, 0, 0], [0, 0, 0, 0], [0, 0, 2, 2], [0, 0, 0, 0]], [4, 4],
+            'int32'));
   });
 
   it('Plain arrays as inputs', () => {
@@ -85,7 +99,9 @@ describeWithFlags('confusionMatrix', ALL_ENVS, () => {
     const out = tf.math.confusionMatrix(labels, predictions, numClasses);
     expectArraysEqual(
         out,
-        tf.tensor2d([[2, 0, 0, 0], [2, 0, 0, 0], [0, 0, 2, 0], [0, 0, 2, 0]]));
+        tf.tensor2d(
+            [[2, 0, 0, 0], [2, 0, 0, 0], [0, 0, 2, 0], [0, 0, 2, 0]], [4, 4],
+            'int32'));
   });
 
   it('Int32Arrays as inputs', () => {
@@ -95,7 +111,9 @@ describeWithFlags('confusionMatrix', ALL_ENVS, () => {
     const out = tf.math.confusionMatrix(labels, predictions, numClasses);
     expectArraysEqual(
         out,
-        tf.tensor2d([[2, 0, 0, 0], [2, 0, 0, 0], [0, 0, 2, 0], [0, 0, 2, 0]]));
+        tf.tensor2d(
+            [[2, 0, 0, 0], [2, 0, 0, 0], [0, 0, 2, 0], [0, 0, 2, 0]], [4, 4],
+            'int32'));
   });
 
   // Reference (Python) TensorFlow code:
@@ -116,10 +134,14 @@ describeWithFlags('confusionMatrix', ALL_ENVS, () => {
     const predictions = tf.tensor1d([4, 0], 'int32');
     const numClasses = 5;
     const out = tf.math.confusionMatrix(labels, predictions, numClasses);
-    expectArraysEqual(out, tf.tensor2d([
-      [0, 0, 0, 0, 1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0],
-      [1, 0, 0, 0, 0]
-    ]));
+    expectArraysEqual(
+        out,
+        tf.tensor2d(
+            [
+              [0, 0, 0, 0, 1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0], [1, 0, 0, 0, 0]
+            ],
+            [5, 5], 'int32'));
   });
 
   it('Invalid numClasses leads to Error', () => {
