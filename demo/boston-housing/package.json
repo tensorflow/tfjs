@@ -23,7 +23,7 @@
     "babel-preset-env": "~1.6.1",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
-    "parcel-bundler": "~1.8.1",
+    "parcel-bundler": "~1.10.3",
     "ts-node": "~6.0.2",
     "tslint": "~5.9.1",
     "typescript": "~2.8.3",
