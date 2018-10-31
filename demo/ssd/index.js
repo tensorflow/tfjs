@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-
+import 'babel-polyfill';
 import * as tf from '@tensorflow/tfjs';
 import {CLASSES} from './classes';
 import imageURL from './image1.jpg';
