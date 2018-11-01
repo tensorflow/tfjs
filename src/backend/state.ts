@@ -15,7 +15,7 @@
 import {DataType, keep, Scalar, scalar} from '@tensorflow/tfjs-core';
 
 /**
- * An ID to track `SymbolicTensor`s and derived classes.
+ * An ID to track `tf.SymbolicTensor`s and derived classes.
  * Required in different places in engine/topology.ts to identify unique
  * tensors.
  */

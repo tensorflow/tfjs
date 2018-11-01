@@ -192,7 +192,7 @@ export interface DenseLayerConfig extends LayerConfig {
  *
  * **Input shape:**
  *
- *   nD `Tensor` with shape: `(batchSize, ..., inputDim)`.
+ *   nD `tf.Tensor` with shape: `(batchSize, ..., inputDim)`.
  *
  *   The most common situation would be
  *   a 2D input with shape `(batchSize, inputDim)`.

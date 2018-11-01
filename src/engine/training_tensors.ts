@@ -22,7 +22,7 @@ import {disposeTensorsInLogs, UnresolvedLogs} from '../logs';
 import {range} from '../utils/math_utils';
 
 /**
- * Interface configuration model training based on data as `Tensor`s.
+ * Interface configuration model training based on data as `tf.Tensor`s.
  */
 export interface ModelFitConfig {
   /**
@@ -156,7 +156,7 @@ export function checkBatchSize(batchSize: number) {
  * @param start: the starting index (inclusive).
  * @param stop: the stopping index (exclusive).
  * @returns The result of the slicing. If `arrays` is an `Array` of
- *   `Tensor`s, the slicing will be applied to all elements of the `Array`
+ *   `tf.Tensor`s, the slicing will be applied to all elements of the `Array`
  *   in the same way.
  */
 export function sliceArrays(
@@ -176,8 +176,8 @@ export function sliceArrays(
  * Porting Note: The `_slice_arrays` function in PyKeras is covered by this
  *   function and `sliceArrays()` together.
  *
- * @param arrays The input `Tensor` or `Array` of `Tensor`s to slice.
- *   If an `Array` of `Tensor`s, all `Tensor`s will be sliced in the
+ * @param arrays The input `tf.Tensor` or `Array` of `tf.Tensor`s to slice.
+ *   If an `Array` of `tf.Tensor`s, all `tf.Tensor`s will be sliced in the
  *   same fashion.
  * @param indices The indices to use for slicing along the first (batch)
  *   dimension.

@@ -41,8 +41,8 @@ export function normalizeShapeList(x: Shape|Shape[]): Shape[] {
 
 /**
  * Helper function to obtain exactly one Tensor.
- * @param xs: A single `Tensor` or an `Array` of `Tensor`s.
- * @return A single `Tensor`. If `xs` is an `Array`, return the first one.
+ * @param xs: A single `tf.Tensor` or an `Array` of `tf.Tensor`s.
+ * @return A single `tf.Tensor`. If `xs` is an `Array`, return the first one.
  * @throws ValueError: If `xs` is an `Array` and its length is not 1.
  */
 export function getExactlyOneTensor(xs: Tensor|Tensor[]): Tensor {

@@ -329,7 +329,7 @@ export interface RNNLayerConfig extends BaseRNNLayerConfig {
  *   3D tensor with shape `[batchSize, timeSteps, inputDim]`.
  *
  * Output shape:
- *   - if `returnState`, an Array of tensors (i.e., `Tensor`s). The first
+ *   - if `returnState`, an Array of tensors (i.e., `tf.Tensor`s). The first
  *     tensor is the output. The remaining tensors are the states at the
  *     last time step, each with shape `[batchSize, units]`.
  *   - if `returnSequences`, the output will have shape
@@ -658,7 +658,7 @@ export class RNN extends Layer {
     constants = standardized.constants;
 
     // If any of `initial_state` or `constants` are specified and are
-    // `SymbolicTensor`s, then add them to the inputs and temporarily modify the
+    // `tf.SymbolicTensor`s, then add them to the inputs and temporarily modify the
     // input_spec to include them.
 
     let additionalInputs: Array<Tensor|SymbolicTensor> = [];
@@ -740,7 +740,7 @@ export class RNN extends Layer {
       // TODO(cais): Add support for constants.
       const step = (inputs: Tensor, states: Tensor[]) => {
         // `inputs` and `states` are concatenated to form a single `Array` of
-        // `Tensor`s as the input to `cell.call()`.
+        // `tf.Tensor`s as the input to `cell.call()`.
         const outputs =
             this.cell.call([inputs].concat(states), cellCallKwargs) as Tensor[];
         // Marshall the return value into output and new states.
@@ -2553,7 +2553,7 @@ export class StackedRNNCells extends RNNCell {
   /**
    * Retrieve the weights of a the model.
    *
-   * @returns A flat `Array` of `Tensor`s.
+   * @returns A flat `Array` of `tf.Tensor`s.
    */
   getWeights(): Tensor[] {
     const weights: LayerVariable[] = [];
@@ -2566,7 +2566,7 @@ export class StackedRNNCells extends RNNCell {
   /**
    * Set the weights of the model.
    *
-   * @param weights An `Array` of `Tensor`s with shapes and types matching the
+   * @param weights An `Array` of `tf.Tensor`s with shapes and types matching the
    *   output of `getWeights()`.
    */
   setWeights(weights: Tensor[]): void {

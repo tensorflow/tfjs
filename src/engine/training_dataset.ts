@@ -67,15 +67,15 @@ export interface ModelFitDatasetConfig<T extends TensorContainer> {
    * metrics at the end of each epoch. The model will not be trained on this
    * data. This could be any of the following:
    *
-   *   - an Array of `Tensor` objects: [xVal, yVal]
-   *   - an Array of `Tensor` objects:
+   *   - an Array of `tf.Tensor` objects: [xVal, yVal]
+   *   - an Array of `tf.Tensor` objects:
    *       [xVal, yVal, valSampleWeights] (not implemented yet).
    *   - a dataset object.
    *
-   * If `validationData` is an Array of Tensor objects, the `Tensor` will be
+   * If `validationData` is an Array of Tensor objects, the `tf.Tensor` will be
    * sliced into batches during validation, using the parameter
    * `validationBatchSize` (which defaults to 32). The entirety of the
-   * `Tensor` objects will be used in the validation.
+   * `tf.Tensor` objects will be used in the validation.
    *
    * If `validationData` is a dataset object, the `validationBatches` parameter
    * must be specified. The validation will use `validationBatches` batches
@@ -93,7 +93,7 @@ export interface ModelFitDatasetConfig<T extends TensorContainer> {
   /**
    * Optional batch size for validation.
    *
-   * Used only if `validationData` is an array of `Tensor` objects, i.e., not
+   * Used only if `validationData` is an array of `tf.Tensor` objects, i.e., not
    * a dataset object.
    *
    * If not specified, its value defaults to 32.
@@ -155,12 +155,12 @@ const DEFAULT_VALIDATION_BATCH_SIZE = 32;
 /**
  * Standardize the output of a dataset iterator for use by Model.fitDataset().
  *
- * @param model: A `Model` object.
+ * @param model: A `tf.Model` object.
  * @param iteratorOut The output of a dataset iterator. It is required to be
  *   an array of two tensor containers. Each of the two elements of the array
- *   must be a single `Tensor` or a map from string names to `Tensor`s.
- * @returns A flat array of `Tensor` objects: the input `Tensor`s followed
- *   by the target `Tensor`s.
+ *   must be a single `tf.Tensor` or a map from string names to `tf.Tensor`s.
+ * @returns A flat array of `tf.Tensor` objects: the input `tf.Tensor`s followed
+ *   by the target `tf.Tensor`s.
  */
 function standardizeDataIteratorOutput(
     // Type `model` as `any` here to avoid circular dependency w/ training.ts.

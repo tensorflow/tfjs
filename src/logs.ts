@@ -52,8 +52,8 @@ export async function resolveScalarsInLogs(logs: UnresolvedLogs) {
 /**
  * Dispose all Tensors in an UnresolvedLogs object.
  *
- * @param logs An `UnresolvedLogs` object potentially containing `Tensor`s in
- *   places where the values can be `Tensor` or `number`.
+ * @param logs An `UnresolvedLogs` object potentially containing `tf.Tensor`s in
+ *   places where the values can be `tf.Tensor` or `number`.
  */
 export function disposeTensorsInLogs(logs: UnresolvedLogs) {
   if (logs == null) {

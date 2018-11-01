@@ -14,12 +14,12 @@
 
 import {io} from '@tensorflow/tfjs-core';
 
+import {BaseCallbackConstructor, CallbackConstructorRegistry} from './base_callbacks';
 import {ContainerConfig} from './engine/container';
 import {Input, InputConfig,} from './engine/input_layer';
 import {SymbolicTensor} from './engine/topology';
 import {Model} from './engine/training';
 import {loadModelInternal, Sequential, SequentialConfig} from './models';
-import {BaseCallbackConstructor, CallbackConstructorRegistry} from './base_callbacks';
 
 
 // TODO(cais): Add doc string to all the public static functions in this
@@ -32,11 +32,11 @@ import {BaseCallbackConstructor, CallbackConstructorRegistry} from './base_callb
  * A model is a data structure that consists of `Layers` and defines inputs
  * and outputs.
  *
- * The key difference between `model` and `sequential` is that `model`
+ * The key difference between `tf.model` and `tf.sequential` is that `tf.model`
  * is more generic, supporting an arbitrary graph (without cycles) of layers.
- * `sequential` is less generic and supports only a linear stack of layers.
+ * `tf.sequential` is less generic and supports only a linear stack of layers.
  *
- * When creating a `Model`, specify its input(s) and output(s). Layers
+ * When creating a `tf.Model`, specify its input(s) and output(s). Layers
  * are used to wire input(s) to output(s).
  *
  * For example, the following code snippet defines a model consisting of
@@ -63,7 +63,7 @@ import {BaseCallbackConstructor, CallbackConstructorRegistry} from './base_callb
  * model.predict(tf.ones([2, 5])).print();
  * ```
  * See also:
- *   `sequential`, `loadModel`.
+ *   `tf.sequential`, `tf.loadModel`.
  */
 
 /**
@@ -74,18 +74,19 @@ export function model(config: ContainerConfig): Model {
 }
 
 /**
- * Creates a `Sequential` model.  A sequential model is any model where the
+ * Creates a `tf.Sequential` model.  A sequential model is any model where the
  * outputs of one layer are the inputs to the next layer, i.e. the model
  * topology is a simple 'stack' of layers, with no branching or skipping.
  *
- * This means that the first layer passed to a Sequential model should have a
- * defined input shape. What that means is that it should have received an
+ * This means that the first layer passed to a `tf.Sequential` model should have
+ * a defined input shape. What that means is that it should have received an
  * `inputShape` or `batchInputShape` argument, or for some type of layers
  * (recurrent, Dense...) an `inputDim` argument.
  *
- * The key difference between `model` and `sequential` is that `sequential`
- * is less generic, supporting only a linear stack of layers. `model` is
- * more generic and supports an arbitrary graph (without cycles) of layers.
+ * The key difference between `tf.model` and `tf.sequential` is that
+ * `tf.sequential` is less generic, supporting only a linear stack of layers.
+ * `tf.model` is more generic and supports an arbitrary graph (without cycles)
+ * of layers.
  *
  * Examples:
  *
@@ -120,7 +121,7 @@ export function model(config: ContainerConfig): Model {
  * ```
  *
  * You can also use an `Array` of already-constructed `Layer`s to create
- * a `Sequential` model:
+ * a `tf.Sequential` model:
  *
  * ```js
  * const model = tf.sequential({

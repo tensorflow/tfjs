@@ -737,7 +737,7 @@ export abstract class Container extends Layer {
    *
    * @param weightsJSON A JSON mapping weight names to weight values as nested
    *   arrays of numbers, or a `NamedTensorMap`, i.e., a JSON mapping weight
-   *   names to `Tensor` objects.
+   *   names to `tf.Tensor` objects.
    * @param skipMismatch Whether to skip loading of layers where there is a
    *   mismatch in the number of weights, or a mismatch in the shape of the
    *   weight (only valid when `by_name`=True).

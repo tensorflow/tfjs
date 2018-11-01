@@ -38,7 +38,7 @@ export type RegularizerFn = () => Scalar;
  * The return values are:
  *   - outputs: tensor with shape `[samples, outputDim]` (no time dimension).
  *   - newStates: Array of tensors. The `Array` has the same length as `states`
- *     in the input arguments. Each `Tensor` has the same shape as the
+ *     in the input arguments. Each `tf.Tensor` has the same shape as the
  *     corresponding element in `states`.
  */
 export type RnnStepFunction =

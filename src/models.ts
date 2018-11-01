@@ -19,9 +19,9 @@ import {Dataset} from './engine/dataset_stub';
 import {Input} from './engine/input_layer';
 import {getSourceInputs, Layer, Node, SymbolicTensor} from './engine/topology';
 import {Model, ModelCompileConfig, ModelEvaluateConfig} from './engine/training';
-import {ModelFitDatasetConfig, ModelEvaluateDatasetConfig} from './engine/training_dataset';
+import {ModelEvaluateDatasetConfig, ModelFitDatasetConfig} from './engine/training_dataset';
 import {ModelFitConfig} from './engine/training_tensors';
-import {RuntimeError, ValueError, NotImplementedError} from './errors';
+import {NotImplementedError, RuntimeError, ValueError} from './errors';
 import {deserialize} from './layers/serialization';
 import {Kwargs, NamedTensorMap, Shape} from './types';
 import {JsonDict} from './types';
@@ -29,9 +29,10 @@ import * as generic_utils from './utils/generic_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
 import {getExactlyOneShape} from './utils/types_utils';
 
+
 /**
  * Parses a JSON model configuration file and returns a model instance.
- * 
+ *
  * ```js
  * // This example shows how to serialize a model using `toJSON()` and
  * // deserialize it as another model using `tf.models.modelFROMJSON()`.
@@ -45,18 +46,18 @@ import {getExactlyOneShape} from './utils/types_utils';
  * // Serialize `model1` as a JSON object.
  * const model1JSON = model1.toJSON(null, false);
  * model1.summary();
- * 
+ *
  * const model2 = await tf.models.modelFromJSON(model1JSON);
  * model2.summary();
  * ```
- * 
+ *
  *  @param modelAndWeightsConfig JSON object or string encoding a model and
  *       weights configuration. It can also be only the topology JSON of the
  *       model, in which case the weights will not be loaded.
  *  @param custom_objects Optional dictionary mapping names
  *       (strings) to custom classes or functions to be
  *       considered during deserialization.
- * @returns A TensorFlow.js Layers `Model` instance (uncompiled).
+ * @returns A TensorFlow.js Layers `tf.Model` instance (uncompiled).
  */
 /**
  * @doc {heading: 'Models',subheading: 'Loading'}
@@ -229,7 +230,7 @@ export interface ModelPredictConfig {
  *   by the layers.  Default true.  Passing false means that both extra weights
  *   and missing weights will be silently ignored.
  *
- * @returns A `Promise` of `Model`, with the topology and weights loaded.
+ * @returns A `Promise` of `tf.Model`, with the topology and weights loaded.
  */
 export async function loadModelInternal(
     pathOrIOHandler: string|io.IOHandler, strict = true): Promise<Model> {
@@ -303,8 +304,8 @@ export interface SequentialConfig {
 /**
  * A model with a stack of layers, feeding linearly from one to the next.
  *
- * `sequential` is a factory function that creates an instance of
- * `Sequential`.
+ * `tf.sequential` is a factory function that creates an instance of
+ * `tf.Sequential`.
  *
  * ```js
  *  // Define a model for linear regression.
@@ -643,10 +644,10 @@ export class Sequential extends Model {
    * result.print();
    * ```
    *
-   * @param x `Tensor` of test data, or an `Array` of `Tensor`s if the model
-   * has multiple inputs.
-   * @param y `Tensor` of target data, or an `Array` of `Tensor`s if the model
-   *   has multiple outputs.
+   * @param x `tf.Tensor` of test data, or an `Array` of `tf.Tensor`s if the
+   * model has multiple inputs.
+   * @param y `tf.Tensor` of target data, or an `Array` of `tf.Tensor`s if the
+   * model has multiple outputs.
    * @param config A `ModelEvaluateConfig`, containing optional fields.
    *
    * @return `Scalar` test loss (if the model has a single output and no
@@ -679,7 +680,7 @@ export class Sequential extends Model {
    *   is expected to produce data batches for evaluation. The return value
    *   of the `next()` call ought to contain a boolean `done` field and a
    *   `value` field. The `value` field is expected to be an array of two
-   *   `Tensor`s or an array of two nested `Tensor` structures. The former
+   *   `tf.Tensor`s or an array of two nested `tf.Tensor` structures. The former
    *   case is for models with exactly one input and one output (e.g..
    *   a sequential model). The latter case is for models with multiple
    *   inputs and/or multiple outputs. Of the two items in the array, the
@@ -691,8 +692,8 @@ export class Sequential extends Model {
    * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
    */
   async evaluateDataset<T extends TensorContainer>(
-    dataset: Dataset<T>, config: ModelEvaluateDatasetConfig):
-    Promise<Scalar|Scalar[]> {
+      dataset: Dataset<T>,
+      config: ModelEvaluateDatasetConfig): Promise<Scalar|Scalar[]> {
     if (!this.built) {
       throw new RuntimeError(
           'The model needs to be compiled before being used.');
@@ -715,11 +716,11 @@ export class Sequential extends Model {
    * model.predict(tf.ones([2, 10])).print();
    * ```
    *
-   * @param x The input data, as an Tensor, or an `Array` of `Tensor`s if
+   * @param x The input data, as an Tensor, or an `Array` of `tf.Tensor`s if
    *   the model has multiple inputs.
    * @param conifg A `ModelPredictConfig` object containing optional fields.
    *
-   * @return `Tensor`(s) of predictions.
+   * @return `tf.Tensor`(s) of predictions.
    *
    * @exception ValueError In case of mismatch between the provided input data
    *   and the model's expectations, or in case a stateful model receives a
@@ -783,12 +784,12 @@ export class Sequential extends Model {
    * console.log(history.history.loss[0]);
    * ```
    *
-   * @param x `Tensor` of training data, or an array of `Tensor`s if the model
-   *   has multiple inputs. If all inputs in the model are named, you can also
-   *   pass a dictionary mapping input names to `Tensor`s.
-   * @param y `Tensor` of target (label) data, or an array of `Tensor`s if the
-   *   model has multiple outputs. If all outputs in the model are named, you
-   *  can also pass a dictionary mapping output names to `Tensor`s.
+   * @param x `tf.Tensor` of training data, or an array of `tf.Tensor`s if the
+   * model has multiple inputs. If all inputs in the model are named, you can
+   * also pass a dictionary mapping input names to `tf.Tensor`s.
+   * @param y `tf.Tensor` of target (label) data, or an array of `tf.Tensor`s if
+   * the model has multiple outputs. If all outputs in the model are named, you
+   *  can also pass a dictionary mapping output names to `tf.Tensor`s.
    * @param config  A `ModelFitConfig`, containing optional fields.
    *
    * @return A `History` instance. Its `history` attribute contains all
@@ -822,7 +823,7 @@ export class Sequential extends Model {
    *   is expected to produce data batches for evaluation. The return value
    *   of the `next()` call ought to contain a boolean `done` field and a
    *   `value` field. The `value` field is expected to be an array of two
-   *   `Tensor`s or an array of two nested `Tensor` structures. The former
+   *   `tf.Tensor`s or an array of two nested `tf.Tensor` structures. The former
    *   case is for models with exactly one input and one output (e.g..
    *   a sequential model). The latter case is for models with multiple
    *   inputs and/or multiple outputs. Of the two items in the array, the
@@ -853,7 +854,7 @@ export class Sequential extends Model {
     let extraModelConfig: serialization.ConfigDict = {};
     if (config instanceof Array) {
       if (!(config[0].className != null) ||
-            config[0]['className'] === 'Merge') {
+          config[0]['className'] === 'Merge') {
         throw new ValueError('Legacy serialization format not supported yet.');
       }
       configArray = config;
@@ -861,7 +862,7 @@ export class Sequential extends Model {
       util.assert(
           config['layers'] != null,
           `When the config data for a Sequential model is not an Array, ` +
-          `it must be an Object that contains the 'layers' field.`);
+              `it must be an Object that contains the 'layers' field.`);
       configArray = config['layers'] as serialization.ConfigDictArray;
       delete config['layers'];
       extraModelConfig = config;

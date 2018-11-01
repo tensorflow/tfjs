@@ -178,9 +178,9 @@ export function standardizeInputData(
 
 /**
  * User input validation for Tensors.
- * @param inputs `Array` of `Tensor`s for inputs.
- * @param targets `Array` of `Tensor`s for targets.
- * @param weights Optional `Array` of `Tensor`s for sample weights.
+ * @param inputs `Array` of `tf.Tensor`s for inputs.
+ * @param targets `Array` of `tf.Tensor`s for targets.
+ * @param weights Optional `Array` of `tf.Tensor`s for sample weights.
  * @throws ValueError: in case of incorrectly formatted data.
  */
 export function checkArrayLengths(
@@ -215,7 +215,7 @@ export function checkArrayLengths(
  *
  * This helps prevent users from using loss functions incorrectly.
  *
- * @param targets `Array` of `Tensor`s of targets.
+ * @param targets `Array` of `tf.Tensor`s of targets.
  * @param lossFns `Array` of loss functions.
  * @param outputShapes `Array` of shapes of model outputs.
  */
@@ -271,7 +271,7 @@ function checkLossAndTargetCompatibility(
  *      widely popular javascript/typesdcript equivalent of pandas (so far).
  *      If one becomes available in the future, we can add support.
  *   2) in PyKeras, inputs can be Python dict. But here we are stipulating
- * that the data is either a single `Tensor` or an Array of `Tensor`s. We
+ * that the data is either a single `tf.Tensor` or an Array of `tf.Tensor`s. We
  * may add support for `Object` data inputs in the future when the need
  * arises.
  *
@@ -437,14 +437,14 @@ export interface ModelCompileConfig {
 }
 
 /**
- * A `Model` is a directed, acyclic graph of `Layer`s plus methods for
+ * A `tf.Model` is a directed, acyclic graph of `tf.Layer`s plus methods for
  * training, evaluation, prediction and saving.
  *
- * `Model` is the basic unit of training, inference and evaluation in
- * TensorFlow.js. To create a `Model`, use `model`.
+ * `tf.Model` is the basic unit of training, inference and evaluation in
+ * TensorFlow.js. To create a `tf.Model`, use `tf.model`.
  *
  * See also:
- *   `Sequential`, `loadModel`.
+ *   `tf.Sequential`, `tf.loadModel`.
  */
 /** @doc {heading: 'Models', subheading: 'Classes'} */
 export class Model extends Container implements tfc.InferenceModel {
@@ -785,10 +785,10 @@ export class Model extends Container implements tfc.InferenceModel {
    * result.print();
    * ```
    *
-   * @param x `Tensor` of test data, or an `Array` of `Tensor`s if the model has
-   *   multiple inputs.
-   * @param y `Tensor` of target data, or an `Array` of `Tensor`s if the model
-   *   has multiple outputs.
+   * @param x `tf.Tensor` of test data, or an `Array` of `tf.Tensor`s if the
+   * model has multiple inputs.
+   * @param y `tf.Tensor` of target data, or an `Array` of `tf.Tensor`s if the
+   * model has multiple outputs.
    * @param config A `ModelEvaluateConfig`, containing optional fields.
    *
    * @return `Scalar` test loss (if the model has a single output and no
@@ -830,7 +830,7 @@ export class Model extends Container implements tfc.InferenceModel {
    *   is expected to produce data batches for evaluation. The return value
    *   of the `next()` call ought to contain a boolean `done` field and a
    *   `value` field. The `value` field is expected to be an array of two
-   *   `Tensor`s or an array of two nested `Tensor` structures. The former
+   *   `tf.Tensor`s or an array of two nested `tf.Tensor` structures. The former
    *   case is for models with exactly one input and one output (e.g..
    *   a sequential model). The latter case is for models with multiple
    *   inputs and/or multiple outputs. Of the two items in the array, the
@@ -851,7 +851,7 @@ export class Model extends Container implements tfc.InferenceModel {
   /**
    * Get number of samples provided for training, evaluation or prediction.
    *
-   * @param ins Input `Tensor`.
+   * @param ins Input `tf.Tensor`.
    * @param batchSize Integer batch size, optional.
    * @param steps Total number of steps (batches of samples) before
    * declaring loop finished. Optional.
@@ -985,8 +985,8 @@ export class Model extends Container implements tfc.InferenceModel {
    * @param ins: input data
    * @param batchSize: integer batch size.
    * @param verbose: verbosity model
-   * @returns: Predictions as `Tensor` (if a single output) or an `Array` of
-   *   `Tensor` (if multipe outputs).
+   * @returns: Predictions as `tf.Tensor` (if a single output) or an `Array` of
+   *   `tf.Tensor` (if multipe outputs).
    */
   private predictLoop(ins: Tensor|Tensor[], batchSize = 32, verbose = false):
       Tensor|Tensor[] {
@@ -1055,11 +1055,11 @@ export class Model extends Container implements tfc.InferenceModel {
    * model.predict(tf.ones([8, 10]), {batchSize: 4}).print();
    * ```
    *
-   * @param x The input data, as an Tensor, or an `Array` of `Tensor`s if
+   * @param x The input data, as an Tensor, or an `Array` of `tf.Tensor`s if
    *   the model has multiple inputs.
    * @param config A `ModelPredictConfig` object containing optional fields.
    *
-   * @return Prediction results as a `Tensor`(s).
+   * @return Prediction results as a `tf.Tensor`(s).
    *
    * @exception ValueError In case of mismatch between the provided input data
    *   and the model's expectations, or in case a stateful model receives a
@@ -1307,7 +1307,7 @@ export class Model extends Container implements tfc.InferenceModel {
   }
 
   /**
-   * Create a function which, when invoked with an array of `Tensor`s as a
+   * Create a function which, when invoked with an array of `tf.Tensor`s as a
    * batch of inputs, returns the prespecified loss and metrics of the model
    * under the batch of input data.
    */
@@ -1370,12 +1370,12 @@ export class Model extends Container implements tfc.InferenceModel {
    * }
    * ```
    *
-   * @param x `Tensor` of training data, or an array of `Tensor`s if the
+   * @param x `tf.Tensor` of training data, or an array of `tf.Tensor`s if the
    * model has multiple inputs. If all inputs in the model are named, you
-   * can also pass a dictionary mapping input names to `Tensor`s.
-   * @param y `Tensor` of target (label) data, or an array of `Tensor`s if
+   * can also pass a dictionary mapping input names to `tf.Tensor`s.
+   * @param y `tf.Tensor` of target (label) data, or an array of `tf.Tensor`s if
    * the model has multiple outputs. If all outputs in the model are named,
-   * you can also pass a dictionary mapping output names to `Tensor`s.
+   * you can also pass a dictionary mapping output names to `tf.Tensor`s.
    * @param config A `ModelFitConfig`, containing optional fields.
    *
    * @return A `History` instance. Its `history` attribute contains all
@@ -1404,7 +1404,7 @@ export class Model extends Container implements tfc.InferenceModel {
    *   is expected to produce data batches for training. The return value
    *   of the `next()` call ought to contain a boolean `done` field and a
    *   `value` field. The `value` field is expected to be an array of two
-   *   `Tensor`s or an array of two nested `Tensor` structures.
+   *   `tf.Tensor`s or an array of two nested `tf.Tensor` structures.
    *   case is for models with exactly one input and one output (e.g..
    *   a sequential model). The latter case is for models with multiple
    *   inputs and/or multiple outputs.

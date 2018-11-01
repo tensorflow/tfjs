@@ -20,9 +20,10 @@ import {HasShape, Shape} from './types';
 const DEFAULT_VARIABLE_NAME_PREFIX = 'Variable';
 
 /**
- * A `LayerVariable` is similar to a `Tensor` in that it has a dtype and shape,
- * but its value is mutable.  The value is itself represented as a `Tensor`, and
- * can be read with the `read()` method and updated with the `write()` method.
+ * A `tf.layers.LayerVariable` is similar to a `tf.Tensor` in that it has a
+ * dtype and shape, but its value is mutable.  The value is itself represented
+ * as a`tf.Tensor`, and can be read with the `read()` method and updated with
+ * the `write()` method.
  */
 export class LayerVariable {
   readonly dtype: DataType;
@@ -40,7 +41,7 @@ export class LayerVariable {
   protected readonly val: tfc.Variable;
   readonly constraint: Constraint;
   /**
-   * Construct Variable from a Tensor.
+   * Construct Variable from a `tf.Tensor`.
    *
    * If not explicitly named, the Variable will be given a name with the
    * prefix 'Variable'. Variable names are unique. In the case of name
@@ -307,7 +308,7 @@ export function updateSub(x: LayerVariable, decrement: Tensor): LayerVariable {
  * Get the values of an array of Variables.
  *
  * @param tensors An `Array` of `Variable`s to get the values of.
- * @return The values of the inputs, as an `Array` of `Tensor`s.
+ * @return The values of the inputs, as an `Array` of`tf.Tensor`s.
  */
 export function batchGetValue(xs: LayerVariable[]): Tensor[] {
   return xs.map(x => x.read());
