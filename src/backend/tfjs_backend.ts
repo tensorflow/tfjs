@@ -143,11 +143,11 @@ export function batchFlatten(x: Tensor): Tensor {
 
 /**
  * Do slicing along the first axis.
- * @param array input `Tensor`.
+ * @param array input `tf.Tensor`.
  * @param start starting index, inclusive.
  * @param size size of the slice along the first axis.
  * @returns result of the slicing.
- * @throws ValueError: If `array` is of an unsupported subtype of `Tensor`.
+ * @throws ValueError: If `array` is of an unsupported subtype of `tf.Tensor`.
  */
 export function sliceAlongFirstAxis(
     array: Tensor, start: number, size: number): Tensor {
@@ -176,11 +176,11 @@ export function sliceAlongFirstAxis(
 
 /**
  * Do slicing along the last axis.
- * @param array input `Tensor`.
+ * @param array input `tf.Tensor`.
  * @param start starting index, inclusive.
  * @param size size of the slice along the last axis.
  * @returns result of the slicing.
- * @throws ValueError: If `array` is of an unsupported subtype of `Tensor`.
+ * @throws ValueError: If `array` is of an unsupported subtype of `tf.Tensor`.
  */
 export function sliceAlongLastAxis(
     array: Tensor, start: number, size: number): Tensor {
@@ -209,12 +209,12 @@ export function sliceAlongLastAxis(
 
 /**
  * Do slicing along the sepcified axis.
- * @param array input `Tensor`.
+ * @param array input `tf.Tensor`.
  * @param start starting index, inclusive.
  * @param size of the slice along the chosen axis.
  * @param choose an axis.
  * @returns result of the slicing.
- * @throws ValueError: If `array` is of an unsupported subtype of `Tensor`.
+ * @throws ValueError: If `array` is of an unsupported subtype of `tf.Tensor`.
  */
 export function sliceAlongAxis(
     array: Tensor, start: number, size: number, axis: number): Tensor {
@@ -302,10 +302,10 @@ export function concatenate(tensors: Tensor[], axis = -1): Tensor {
 
 /**
  * Concatenate two arrays along the first dimension.
- * @param a The 1st `Tensor` to concatenate.
- * @param b The 2nd `Tensor` to concatenate.
+ * @param a The 1st `tf.Tensor` to concatenate.
+ * @param b The 2nd `tf.Tensor` to concatenate.
  * @returns Result of the concatenation.
- * @throws ValueError: If `a` is of an unsupported subtype of `Tensor`.
+ * @throws ValueError: If `a` is of an unsupported subtype of `tf.Tensor`.
  */
 export function concatAlongFirstAxis(a: Tensor, b: Tensor): Tensor {
   switch (a.rank) {
@@ -431,12 +431,12 @@ export function dot(x: Tensor, y: Tensor): Tensor {
 /**
  * Compute the sign Tensor of an input Tensor.
  *
- * Elements of the input `Tensor` that are === 0 are mapped to 0.
- * Elements of the input `Tensor` that are > 0 are mapped to 1.
- * Elements of the input `Tensor` that are < 0 are mapped to -1.
+ * Elements of the input `tf.Tensor` that are === 0 are mapped to 0.
+ * Elements of the input `tf.Tensor` that are > 0 are mapped to 1.
+ * Elements of the input `tf.Tensor` that are < 0 are mapped to -1.
  *
- * @param x Input `Tensor`.
- * @return The sign `Tensor`.
+ * @param x Input `tf.Tensor`.
+ * @return The sign `tf.Tensor`.
  */
 export function sign(x: Tensor): Tensor {
   // TODO(cais): Move to the core.

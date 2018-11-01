@@ -278,7 +278,7 @@ serialization.registerClass(Add);
  *
  * 1. Construct an instance of `Add` layer, by using no input argument
  *    or a single configuration argument. The resultant `Add` layer can then
- *    be used on `SymbolicTensor`s or `Tensor`s. For example:
+ *    be used on `tf.SymbolicTensor`s or `tf.Tensor`s. For example:
  *
  * ```js
  * const addLayer = tf.layers.add();
@@ -292,9 +292,9 @@ serialization.registerClass(Add);
  * // dimension.
  * ```
  *
- * 2. Invoke directly on an `Array` of `SymbolicTensor`s. This constructs
+ * 2. Invoke directly on an `Array` of `tf.SymbolicTensor`s. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `SymbolicTensor`. For example:
+ *    generating a new `tf.SymbolicTensor`. For example:
  *
  * ```js
  * const input1 = tf.input({shape: [2, 2]});
@@ -305,9 +305,9 @@ serialization.registerClass(Add);
  * // dimension.
  * ```
  *
- * 3. Invoke directly on `Tensor`s, i.e., concrete values. This constructs
+ * 3. Invoke directly on `tf.Tensor`s, i.e., concrete values. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `Tensor` as the result of the computation. For example:
+ *    generating a new `tf.Tensor` as the result of the computation. For example:
  *
  * ```js
  * const input1 = tf.tensor2d([1, 2, 3, 4], [2, 2]);
@@ -370,7 +370,7 @@ serialization.registerClass(Multiply);
  *
  * 1. Construct an instance of `Multiply` layer, by using no input argument
  *    or a single configuration argument. The resultant `Multiply` layer can
- *    then be used on `SymbolicTensor`s or `Tensor`s. For example:
+ *    then be used on `tf.SymbolicTensor`s or `tf.Tensor`s. For example:
  *
  * ```js
  * const multiplyLayer = tf.layers.multiply();
@@ -384,9 +384,9 @@ serialization.registerClass(Multiply);
  * // dimension.
  * ```
  *
- * 2. Invoke directly on an `Array` of `SymbolicTensor`s. This constructs
+ * 2. Invoke directly on an `Array` of `tf.SymbolicTensor`s. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `SymbolicTensor`. For example:
+ *    generating a new `tf.SymbolicTensor`. For example:
  *
  * ```js
  * const input1 = tf.input({shape: [2, 2]});
@@ -397,9 +397,9 @@ serialization.registerClass(Multiply);
  * // dimension.
  * ```
  *
- * 3. Invoke directly on `Tensor`s, i.e., concrete values. This constructs
+ * 3. Invoke directly on `tf.Tensor`s, i.e., concrete values. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `Tensor` as the result of the computation. For example:
+ *    generating a new `tf.Tensor` as the result of the computation. For example:
  *
  * ```js
  * const input1 = tf.tensor2d([1, 2, 3, 4], [2, 2]);
@@ -462,7 +462,7 @@ serialization.registerClass(Average);
  *
  * 1. Construct an instance of `Average` layer, by using no input argument
  *    or a single configuration argument. The resultant `Average` layer can then
- *    be used on `SymbolicTensor`s or `Tensor`s. For example:
+ *    be used on `tf.SymbolicTensor`s or `tf.Tensor`s. For example:
  *
  * ```js
  * const averageLayer = tf.layers.average();
@@ -476,9 +476,9 @@ serialization.registerClass(Average);
  * // dimension.
  * ```
  *
- * 2. Invoke directly on an `Array` of `SymbolicTensor`s. This constructs
+ * 2. Invoke directly on an `Array` of `tf.SymbolicTensor`s. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `SymbolicTensor`. For example:
+ *    generating a new `tf.SymbolicTensor`. For example:
  *
  * ```js
  * const input1 = tf.input({shape: [2, 2]});
@@ -489,9 +489,9 @@ serialization.registerClass(Average);
  * // dimension.
  * ```
  *
- * 3. Invoke directly on `Tensor`s, i.e., concrete values. This constructs
+ * 3. Invoke directly on `tf.Tensor`s, i.e., concrete values. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `Tensor` as the result of the computation. For example:
+ *    generating a new `tf.Tensor` as the result of the computation. For example:
  *
  * ```js
  * const input1 = tf.tensor2d([1, 2, 3, 4], [2, 2]);
@@ -553,7 +553,7 @@ serialization.registerClass(Maximum);
  *
  * 1. Construct an instance of `Maximum` layer, by using no input argument
  *    or a single configuration argument. The resultant `Maximum` layer can then
- *    be used on `SymbolicTensor`s or `Tensor`s. For example:
+ *    be used on `tf.SymbolicTensor`s or `tf.Tensor`s. For example:
  *
  * ```js
  * const maximumLayer = tf.layers.maximum();
@@ -567,9 +567,9 @@ serialization.registerClass(Maximum);
  * // dimension.
  * ```
  *
- * 2. Invoke directly on an `Array` of `SymbolicTensor`s. This constructs
+ * 2. Invoke directly on an `Array` of `tf.SymbolicTensor`s. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `SymbolicTensor`. For example:
+ *    generating a new `tf.SymbolicTensor`. For example:
  *
  * ```js
  * const input1 = tf.input({shape: [2, 2]});
@@ -580,9 +580,9 @@ serialization.registerClass(Maximum);
  * // dimension.
  * ```
  *
- * 3. Invoke directly on `Tensor`s, i.e., concrete values. This constructs
+ * 3. Invoke directly on `tf.Tensor`s, i.e., concrete values. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `Tensor` as the result of the computation. For example:
+ *    generating a new `tf.Tensor` as the result of the computation. For example:
  *
  * ```js
  * const input1 = tf.tensor2d([1, 20, 3, 40], [2, 2]);
@@ -644,7 +644,7 @@ serialization.registerClass(Minimum);
  *
  * 1. Construct an instance of `Minimum` layer, by using no input argument
  *    or a single configuration argument. The resultant `Minimum` layer can then
- *    be used on `SymbolicTensor`s or `Tensor`s. For example:
+ *    be used on `tf.SymbolicTensor`s or `tf.Tensor`s. For example:
  *
  * ```js
  * const minimumLayer = tf.layers.minimum();
@@ -658,9 +658,9 @@ serialization.registerClass(Minimum);
  * // dimension.
  * ```
  *
- * 2. Invoke directly on an `Array` of `SymbolicTensor`s. This constructs
+ * 2. Invoke directly on an `Array` of `tf.SymbolicTensor`s. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `SymbolicTensor`. For example:
+ *    generating a new `tf.SymbolicTensor`. For example:
  *
  * ```js
  * const input1 = tf.input({shape: [2, 2]});
@@ -671,9 +671,9 @@ serialization.registerClass(Minimum);
  * // dimension.
  * ```
  *
- * 3. Invoke directly on `Tensor`s, i.e., concrete values. This constructs
+ * 3. Invoke directly on `tf.Tensor`s, i.e., concrete values. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `Tensor` as the result of the computation. For example:
+ *    generating a new `tf.Tensor` as the result of the computation. For example:
  *
  * ```js
  * const input1 = tf.tensor2d([1, 20, 3, 40], [2, 2]);
@@ -828,7 +828,7 @@ serialization.registerClass(Concatenate);
  *
  * 1. Construct an instance of `Concatenate` layer, by using no input argument
  *    or a single configuration argument. The resultant `Concatenate` layer can
- *    then be used on `SymbolicTensor`s or `Tensor`s. For example:
+ *    then be used on `tf.SymbolicTensor`s or `tf.Tensor`s. For example:
  *
  * ```js
  * const concatLayer = tf.layers.concatenate();
@@ -843,9 +843,9 @@ serialization.registerClass(Concatenate);
  * // last dimensions of the two inputs.
  * ```
  *
- * 2. Invoke directly on an `Array` of `SymbolicTensor`s. This constructs
+ * 2. Invoke directly on an `Array` of `tf.SymbolicTensor`s. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `SymbolicTensor`. For example:
+ *    generating a new `tf.SymbolicTensor`. For example:
  *
  * ```js
  * const input1 = tf.input({shape: [2, 3]});
@@ -857,9 +857,9 @@ serialization.registerClass(Concatenate);
  * // last dimensions of the two inputs.
  * ```
  *
- * 3. Invoke directly on `Tensor`s, i.e., concrete values. This constructs
+ * 3. Invoke directly on `tf.Tensor`s, i.e., concrete values. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `Tensor` as the result of the computation. For example:
+ *    generating a new `tf.Tensor` as the result of the computation. For example:
  *
  * ```js
  * const input1 = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);

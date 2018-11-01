@@ -66,7 +66,7 @@ export interface Feed {
 
 /**
  * FeedDict: A mapping from unique SymbolicTensors to feed values for them.
- * A feed value is a concrete value represented as an `Tensor`.
+ * A feed value is a concrete value represented as an `tf.Tensor`.
  */
 export class FeedDict {
   private id2Value: {[id: number]: Tensor} = {};
@@ -96,7 +96,7 @@ export class FeedDict {
    * @param key The key of the feed.
    * @param value The value of the feed.
    * @returns This `FeedDict`.
-   * @throws ValueError: If the key `SymbolicTensor` already exists in the
+   * @throws ValueError: If the key `tf.SymbolicTensor` already exists in the
    *   `FeedDict`.
    */
   add(key: SymbolicTensor, value: Tensor): FeedDict {
@@ -143,20 +143,20 @@ export class FeedDict {
 /**
  * Execute a SymbolicTensor by using concrete feed values.
  *
- * A `SymbolicTensor` object is a node in a computation graph of TF.js
+ * A `tf.SymbolicTensor` object is a node in a computation graph of TF.js
  * Layers. The object is backed by a source layer and input
- * `SymbolicTensor`s to the source layer. This method evaluates
+ * `tf.SymbolicTensor`s to the source layer. This method evaluates
  * the `call()` method of the source layer, using concrete values of the inputs
  * obtained from either
  * * `feedDict`, if the input key exists in `feedDict`, or else,
  * * a recursive call to `execute()` itself.
  *
- * @param x: The `SymbolicTensor` to execute.
+ * @param x: The `tf.SymbolicTensor` to execute.
  * @param feedDict: The feed values, as base condition of the recursion.
  *   execution.
  * @param kwargs: Optional keyword arguments.
  * @returns Result of the execution.
- * @throws ValueError: If any `SymbolicTensor`s from `InputLayer`s
+ * @throws ValueError: If any `tf.SymbolicTensor`s from `InputLayer`s
  *   encountered during the execution lacks a feed value in `feedDict`.
  */
 export function execute(

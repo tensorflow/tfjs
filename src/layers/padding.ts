@@ -29,10 +29,10 @@ import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 /**
  * Pads the middle dimension of a 3D tensor.
  *
- * @param x Input `Tensor` to be padded.
+ * @param x Input `tf.Tensor` to be padded.
  * @param padding `Array` of 2 integers, how many zeros to add at the start and
  *   end of the middle dimension (i.e., dimension 1).
- * @return A padded 3D `Tensor`.
+ * @return A padded 3D `tf.Tensor`.
  */
 export function temporalPadding(x: Tensor, padding?: [number, number]): Tensor {
   return tidy(() => {
@@ -59,12 +59,12 @@ export function temporalPadding(x: Tensor, padding?: [number, number]): Tensor {
 /**
  * Pads the 2nd and 3rd dimensions of a 4D tensor.
  *
- * @param x Input `Tensor` to be padded.
+ * @param x Input `tf.Tensor` to be padded.
  * @param padding `Array` of two `Array`s, each of which is an `Array` of two
  *   integers. The amount of padding at the beginning and end of the 2nd and 3rd
  *   dimensions, respectively.
  * @param dataFormat 'channelsLast' (default) or 'channelsFirst'.
- * @return Padded 4D `Tensor`.
+ * @return Padded 4D `tf.Tensor`.
  */
 export function spatial2dPadding(
     x: Tensor, padding?: [[number, number], [number, number]],
