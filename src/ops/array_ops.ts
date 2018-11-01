@@ -57,7 +57,7 @@ function clone_<T extends Tensor>(x: T|TensorLike): T {
  * @param numRows Number of rows.
  * @param numColumns Number of columns. Defaults to `numRows`.
  * @param batchShape If provided, will add the batch shape to the beginning
- *   of the shape of the returned `Tensor` by repeating the identity
+ *   of the shape of the returned `tf.Tensor` by repeating the identity
  *   matrix.
  * @param dtype Data type.
  * @returns Identity matrix of the specified size and data type, possibly
@@ -104,7 +104,7 @@ function eye_(
 }
 
 /**
- * Creates a `Tensor` with values sampled from a normal distribution.
+ * Creates a `tf.Tensor` with values sampled from a normal distribution.
  *
  * ```js
  * tf.randomNormal([2, 2]).print();
@@ -133,7 +133,7 @@ function randomNormal_<R extends Rank>(
 }
 
 /**
- * Creates a `Tensor` with values sampled from a truncated normal
+ * Creates a `tf.Tensor` with values sampled from a truncated normal
  * distribution.
  *
  * ```js
@@ -167,7 +167,7 @@ function truncatedNormal_<R extends Rank>(
 }
 
 /**
- * Creates a `Tensor` with values sampled from a uniform distribution.
+ * Creates a `tf.Tensor` with values sampled from a uniform distribution.
  *
  * The generated values follow a uniform distribution in the range [minval,
  * maxval). The lower bound minval is included in the range, while the upper
@@ -196,7 +196,7 @@ function randomUniform_<R extends Rank>(
 }
 
 /**
- * Creates a `Tensor` with values sampled from a random number generator
+ * Creates a `tf.Tensor` with values sampled from a random number generator
  * function defined by the user.
  *
  * @param shape An array of integers defining the output tensor shape.
@@ -227,7 +227,7 @@ function rand_<R extends Rank>(
 }
 
 /**
- * Creates a `Tensor` with values drawn from a multinomial distribution.
+ * Creates a `tf.Tensor` with values drawn from a multinomial distribution.
  *
  * ```js
  * const probs = tf.tensor([.75, .25]);
@@ -269,7 +269,7 @@ function multinomial_(
 }
 
 /**
- * Creates a one-hot `Tensor`. The locations represented by `indices` take
+ * Creates a one-hot `tf.Tensor`. The locations represented by `indices` take
  * value `onValue` (defaults to 1), while all other locations take value
  * `offValue` (defaults to 0).
  *
@@ -277,7 +277,7 @@ function multinomial_(
  * tf.oneHot(tf.tensor1d([0, 1], 'int32'), 3).print();
  * ```
  *
- * @param indices `Tensor1D` of indices with dtype `int32`.
+ * @param indices `tf.Tensor1D` of indices with dtype `int32`.
  * @param depth The depth of the one hot dimension.
  * @param onValue A number used to fill in the output when the index matches
  * the location.
@@ -303,7 +303,7 @@ function oneHot_(
 }
 
 /**
- * Creates a `Tensor` from an image.
+ * Creates a `tf.Tensor` from an image.
  *
  * ```js
  * const image = new ImageData(1, 1);
@@ -333,7 +333,7 @@ function fromPixels_(
 }
 
 /**
- * Draws a `Tensor` of pixel values to a byte array or optionally a
+ * Draws a `tf.Tensor` of pixel values to a byte array or optionally a
  * canvas.
  *
  * When the dtype of the input is 'float32', we assume values in the range
@@ -435,7 +435,7 @@ async function toPixels(
 }
 
 /**
- * Reshapes a `Tensor` to a given shape.
+ * Reshapes a `tf.Tensor` to a given shape.
  *
  * Given an input tensor, returns a new tensor with the same values as the
  * input tensor with shape `shape`.
@@ -475,7 +475,7 @@ function reshape_<R2 extends Rank>(
 }
 
 /**
- * Removes dimensions of size 1 from the shape of a `Tensor`.
+ * Removes dimensions of size 1 from the shape of a `tf.Tensor`.
  *
  * ```js
  * const x = tf.tensor([1, 2, 3, 4], [1, 1, 4]);
@@ -494,7 +494,7 @@ function squeeze_<T extends Tensor>(x: Tensor|TensorLike, axis?: number[]): T {
 }
 
 /**
- * Casts a `Tensor` to a new dtype.
+ * Casts a `tf.Tensor` to a new dtype.
  *
  * ```js
  * const x = tf.tensor1d([1.5, 2.5, 3]);
@@ -600,7 +600,7 @@ function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
 }
 
 /**
- * Pads a `Tensor1D` with a given value and paddings. See `pad` for details.
+ * Pads a `tf.Tensor1D` with a given value and paddings. See `pad` for details.
  */
 function pad1d_(
     x: Tensor1D|TensorLike, paddings: [number, number],
@@ -612,7 +612,7 @@ function pad1d_(
 }
 
 /**
- * Pads a `Tensor2D` with a given value and paddings. See `pad` for details.
+ * Pads a `tf.Tensor2D` with a given value and paddings. See `pad` for details.
  */
 function pad2d_(
     x: Tensor2D|TensorLike, paddings: [[number, number], [number, number]],
@@ -625,7 +625,7 @@ function pad2d_(
 }
 
 /**
- * Pads a `Tensor3D` with a given value and paddings. See `pad` for details.
+ * Pads a `tf.Tensor3D` with a given value and paddings. See `pad` for details.
  */
 function pad3d_(
     x: Tensor3D|TensorLike,
@@ -639,14 +639,13 @@ function pad3d_(
 }
 
 /**
- * Pads a `Tensor4D` with a given value and paddings. See `pad` for details.
+ * Pads a `tf.Tensor4D` with a given value and paddings. See `pad` for details.
  */
 function pad4d_(
     x: Tensor4D|TensorLike,
     paddings:
         [
-          [number, number], [number, number], [number, number],
-          [number, number]
+          [number, number], [number, number], [number, number], [number, number]
         ],
     constantValue = 0): Tensor4D {
   util.assert(
@@ -658,7 +657,7 @@ function pad4d_(
 }
 
 /**
- * Pads a `Tensor` with a given value and paddings.
+ * Pads a `tf.Tensor` with a given value and paddings.
  *
  * This operation currently only implements the `CONSTANT` mode.
  *
@@ -699,7 +698,7 @@ function pad_<T extends Tensor>(
 }
 
 /**
- * Stacks a list of rank-`R` `Tensor`s into one rank-`(R+1)` `Tensor`.
+ * Stacks a list of rank-`R` `tf.Tensor`s into one rank-`(R+1)` `tf.Tensor`.
  *
  * ```js
  * const a = tf.tensor1d([1, 2]);
@@ -746,7 +745,7 @@ function stack_<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): Tensor {
  * defined by the spatial dimensions `[1, ..., M]`, to obtain a result with
  * the same rank as the input. The spatial dimensions of this intermediate
  * result are then optionally cropped according to `crops` to produce the
- * output. This is the reverse of `spaceToBatchND`. See below for a precise
+ * output. This is the reverse of `tf.spaceToBatchND`. See below for a precise
  * description.
  *
  * ```js
@@ -757,7 +756,7 @@ function stack_<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): Tensor {
  * x.batchToSpaceND(blockShape, crops).print();
  * ```
  *
- * @param x A `Tensor`. N-D with `x.shape` = `[batch] + spatialShape +
+ * @param x A `tf.Tensor`. N-D with `x.shape` = `[batch] + spatialShape +
  * remainingShape`, where spatialShape has `M` dimensions.
  * @param blockShape A 1-D array. Must be one of the following types: `int32`,
  * `int64`. Must have shape `[M]`, all values must be >= 1.
@@ -836,7 +835,7 @@ function batchToSpaceND_<T extends Tensor>(
  * x.spaceToBatchND(blockShape, paddings).print();
  * ```
  *
- * @param x A `Tensor`. N-D with `x.shape` = `[batch] + spatialShape +
+ * @param x A `tf.Tensor`. N-D with `x.shape` = `[batch] + spatialShape +
  * remainingShape`, where spatialShape has `M` dimensions.
  * @param blockShape A 1-D array. Must be one of the following types: `int32`,
  * `int64`. Must have shape `[M]`, all values must be >= 1.
@@ -906,7 +905,7 @@ function spaceToBatchND_<T extends Tensor>(
 }
 
 /**
- * Unstacks a `Tensor` of rank-`R` into a list of rank-`(R-1)` `Tensor`s.
+ * Unstacks a `tf.Tensor` of rank-`R` into a list of rank-`(R-1)` `tf.Tensor`s.
  *
  * ```js
  * const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
@@ -943,7 +942,7 @@ function unstack_<T extends Tensor>(x: T|TensorLike, axis = 0): Tensor[] {
 }
 
 /**
- * Computes the cumulative sum of a `Tensor` along `axis`.
+ * Computes the cumulative sum of a `tf.Tensor` along `axis`.
  *
  * ```js
  * const x = tf.tensor([1, 2, 3, 4]);
@@ -991,7 +990,7 @@ function cumsum_<T extends Tensor>(
 }
 
 /**
- * Returns a `Tensor` that has expanded rank, by inserting a dimension
+ * Returns a `tf.Tensor` that has expanded rank, by inserting a dimension
  * into the tensor's shape.
  *
  * ```js
@@ -1090,12 +1089,12 @@ function depthToSpace_(
 }
 
 /**
- * Creates an empty `TensorBuffer` with the specified `shape` and `dtype`.
+ * Creates an empty `tf.TensorBuffer` with the specified `shape` and `dtype`.
  *
  * The values are stored in CPU as `TypedArray`. Fill the buffer using
  * `buffer.set()`, or by modifying directly `buffer.values`.
  *
- * When done, call `buffer.toTensor()` to get an immutable `Tensor` with
+ * When done, call `buffer.toTensor()` to get an immutable `tf.Tensor` with
  * those values.
  *
  * ```js
@@ -1121,7 +1120,7 @@ function buffer<R extends Rank>(
 }
 
 /**
- * Prints information about the `Tensor` including its data.
+ * Prints information about the `tf.Tensor` including its data.
  *
  * ```js
  * const verbose = true;

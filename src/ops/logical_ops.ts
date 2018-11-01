@@ -45,7 +45,7 @@ function logicalNot_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Returns the truth value of a AND b element-wise. Supports broadcasting.
+ * Returns the truth value of `a AND b` element-wise. Supports broadcasting.
  *
  * ```js
  * const a = tf.tensor1d([false, false, true, true], 'bool');
@@ -186,7 +186,7 @@ function where_<T extends Tensor>(
  * input. Indices are output in row-major order. The resulting tensor has the
  * shape `[numTrueElems, condition.rank]`.
  *
- * This is analogous to calling the python tf.where(cond) without an x or y.
+ * This is analogous to calling the python `tf.where(cond)` without an x or y.
  *
  * ```js
  * const cond = tf.tensor1d([false, false, true], 'bool');

@@ -26,14 +26,14 @@ import {op} from './operation';
 import {tensor} from './tensor_ops';
 
 /**
- * Concatenates a list of `Tensor1D`s along an axis. See `concat` for details.
+ * Concatenates a list of`tf.Tensor1D`s along an axis. See `concat` for details.
  *
  * For example, if:
  * A: shape(3) = |r1, g1, b1|
  * B: shape(2) = |r2, g2|
  * C = tf.concat1d([A, B]) == |r1, g1, b1, r2, g2|
  *
- * @param tensors A list of `Tensor`s to concatenate.
+ * @param tensors A list of`tf.Tensor`s to concatenate.
  * @return The concatenated array.
  */
 function concat1d_(tensors: Tensor1D[]|TensorLike[]): Tensor1D {
@@ -41,7 +41,7 @@ function concat1d_(tensors: Tensor1D[]|TensorLike[]): Tensor1D {
 }
 
 /**
- * Concatenates a list of `Tensor2D`s along an axis. See `concat` for details.
+ * Concatenates a list of`tf.Tensor2D`s along an axis. See `concat` for details.
  *
  * For example, if:
  * A: shape(2, 3) = | r1, g1, b1 |
@@ -63,7 +63,7 @@ function concat1d_(tensors: Tensor1D[]|TensorLike[]): Tensor1D {
  *                   | r2, g2, b2, r4, g4, b4 |
  *
  *
- * @param tensors A list of `Tensor`s to concatenate.
+ * @param tensors A list of`tf.Tensor`s to concatenate.
  * @param axis The axis to concatenate along.
  * @return The concatenated array.
  */
@@ -72,7 +72,7 @@ function concat2d_(tensors: Tensor2D[]|TensorLike[], axis: number): Tensor2D {
 }
 
 /**
- * Concatenates a list of `Tensor3D`s along an axis. See `concat` for details.
+ * Concatenates a list of`tf.Tensor3D`s along an axis. See `concat` for details.
  *
  * For example, if:
  * A: shape(2, 1, 3) = | r1, g1, b1 |
@@ -97,7 +97,7 @@ function concat2d_(tensors: Tensor2D[]|TensorLike[], axis: number): Tensor2D {
  * C = shape(2, 1, 6) = | r1, g1, b1, r3, g3, b3 |
  *                      | r2, g2, b2, r4, g4, b4 |
  *
- * @param tensors A list of `Tensor`s to concatenate.
+ * @param tensors A list of`tf.Tensor`s to concatenate.
  * @param axis The axis to concate along.
  * @return The concatenated array.
  */
@@ -106,9 +106,9 @@ function concat3d_(tensors: Tensor3D[]|TensorLike[], axis: number): Tensor3D {
 }
 
 /**
- * Concatenates a list of `Tensor4D`s along an axis. See `concat` for details.
+ * Concatenates a list of`tf.Tensor4D`s along an axis. See `concat` for details.
  *
- * @param tensors A list of `Tensor`s to concatenate.
+ * @param tensors A list of`tf.Tensor`s to concatenate.
  * @param axis The axis to concate along.
  * @return The concatenated array.
  */
@@ -117,7 +117,7 @@ function concat4d_(tensors: Tensor4D[]|TensorLike[], axis: number): Tensor4D {
 }
 
 /**
- * Concatenates a list of `Tensor`s along a given axis.
+ * Concatenates a list of`tf.Tensor`s along a given axis.
  *
  * The tensors ranks and types must match, and their sizes must match in all
  * dimensions except `axis`.
@@ -182,7 +182,7 @@ function concat_<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): T {
 }
 
 /**
- * Splits a `Tensor` into sub tensors.
+ * Splits a`tf.Tensor` into sub tensors.
  *
  * If `numOrSizeSplits` is a number, splits `x` along dimension `axis`
  * into `numOrSizeSplits` smaller tensors.

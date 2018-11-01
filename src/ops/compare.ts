@@ -28,8 +28,8 @@ import {zerosLike} from './tensor_ops';
 /**
  * Returns the truth value of (a != b) element-wise. Supports broadcasting.
  *
- * We also expose `notEqualStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
+ * We also expose `tf.notEqualStrict` which has the same signature as this op
+ * and asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
  * const a = tf.tensor1d([1, 2, 3]);
@@ -52,7 +52,7 @@ function notEqual_<T extends Tensor>(
 }
 
 /**
- * Strict version of `notEqual` that forces `a` and `b` to be of the same
+ * Strict version of `tf.notEqual` that forces `a` and `b` to be of the same
  * shape.
  *
  * @param a The first input tensor.
@@ -70,7 +70,7 @@ function notEqualStrict_<T extends Tensor>(
 /**
  * Returns the truth value of (a < b) element-wise. Supports broadcasting.
  *
- * We also expose `lessStrict` which has the same signature as this op and
+ * We also expose `tf.lessStrict` which has the same signature as this op and
  * asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
@@ -94,7 +94,7 @@ function less_<T extends Tensor>(
 }
 
 /**
- * Strict version of `less` that forces `a` and `b` to be of the same
+ * Strict version of `tf.less` that forces `a` and `b` to be of the same
  * shape.
  *
  * @param a The first input tensor.
@@ -111,7 +111,7 @@ function lessStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 /**
  * Returns the truth value of (a == b) element-wise. Supports broadcasting.
  *
- * We also expose `equalStrict` which has the same signature as this op
+ * We also expose `tf.equalStrict` which has the same signature as this op
  * and asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
@@ -145,7 +145,7 @@ function equalStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 /**
  * Returns the truth value of (a <= b) element-wise. Supports broadcasting.
  *
- * We also expose `lessEqualStrict` which has the same signature as this op
+ * We also expose `tf.lessEqualStrict` which has the same signature as this op
  * and asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
@@ -181,7 +181,7 @@ function lessEqualStrict_<T extends Tensor>(
 /**
  * Returns the truth value of (a > b) element-wise. Supports broadcasting.
  *
- * We also expose `greaterStrict` which has the same signature as this
+ * We also expose `tf.greaterStrict` which has the same signature as this
  * op and asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
@@ -216,7 +216,7 @@ function greaterStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 /**
  * Returns the truth value of (a >= b) element-wise. Supports broadcasting.
  *
- * We also expose `greaterEqualStrict` which has the same signature as this
+ * We also expose `tf.greaterEqualStrict` which has the same signature as this
  * op and asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js

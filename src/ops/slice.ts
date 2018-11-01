@@ -79,7 +79,7 @@ function slice4d_(
 }
 
 /**
- * Extracts a slice from a `Tensor` starting at coordinates `begin`
+ * Extracts a slice from a `tf.Tensor` starting at coordinates `begin`
  * and is of size `size`.
  *
  * Also available are stricter rank-specific methods with the same signature
@@ -100,7 +100,7 @@ function slice4d_(
  *
  * x.slice([1, 0], [1, 2]).print();
  * ```
- * @param x The input `Tensor` to slice from.
+ * @param x The input `tf.Tensor` to slice from.
  * @param begin The coordinates to start the slice from. The length can be
  *     less than the rank of x - the rest of the axes will have implicit 0 as
  *     start. Can also be a single number, in which case it specifies the

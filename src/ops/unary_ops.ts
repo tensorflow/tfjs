@@ -46,7 +46,7 @@ function neg_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes ceiling of input `Tensor` element-wise: `ceil(x)`
+ * Computes ceiling of input `tf.Tensor` element-wise: `ceil(x)`
  *
  * ```js
  * const x = tf.tensor1d([.6, 1.1, -3.3]);
@@ -67,7 +67,7 @@ function ceil_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes floor of input `Tensor` element-wise: `floor(x)`.
+ * Computes floor of input `tf.Tensor` element-wise: `floor(x)`.
  *
  * ```js
  * const x = tf.tensor1d([.6, 1.1, -3.3]);
@@ -109,7 +109,7 @@ function sign_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes round of input `Tensor` element-wise: `round(x)`.
+ * Computes round of input `tf.Tensor` element-wise: `round(x)`.
  * It implements banker's rounding.
  *
  * ```js
@@ -132,7 +132,7 @@ function round_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes exponential of the input `Tensor` element-wise. `e ^ x`
+ * Computes exponential of the input `tf.Tensor` element-wise. `e ^ x`
  *
  * ```js
  * const x = tf.tensor1d([1, 2, -3]);
@@ -154,7 +154,7 @@ function exp_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes exponential of the input `Tensor` minus one element-wise.
+ * Computes exponential of the input `tf.Tensor` minus one element-wise.
  * `e ^ x - 1`
  *
  * ```js
@@ -175,7 +175,7 @@ function expm1_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes natural logarithm of the input `Tensor` element-wise: `ln(x)`
+ * Computes natural logarithm of the input `tf.Tensor` element-wise: `ln(x)`
  *
  * ```js
  * const x = tf.tensor1d([1, 2, Math.E]);
@@ -195,7 +195,7 @@ function log_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes natural logarithm of the input `Tensor` plus one
+ * Computes natural logarithm of the input `tf.Tensor` plus one
  * element-wise: `ln(1 + x)`
  *
  * ```js
@@ -216,7 +216,7 @@ function log1p_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes square root of the input `Tensor` element-wise: `y = sqrt(x)`
+ * Computes square root of the input `tf.Tensor` element-wise: `y = sqrt(x)`
  *
  * ```js
  * const x = tf.tensor1d([1, 2, 4, -1]);
@@ -236,7 +236,7 @@ function sqrt_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes reciprocal of square root of the input `Tensor` element-wise:
+ * Computes reciprocal of square root of the input `tf.Tensor` element-wise:
  * `y = 1 / sqrt(x)`
  *
  * ```js
@@ -304,7 +304,7 @@ function reciprocal_<T extends Tensor>(x: T|TensorLike): T {
  *
  * x.abs().print();  // or tf.abs(x)
  * ```
- * @param x The input `Tensor`.
+ * @param x The input `tf.Tensor`.
  */
 /** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function abs_<T extends Tensor>(x: T|TensorLike): T {
@@ -376,7 +376,7 @@ function sigmoid_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes log sigmoid of the input `Tensor` element-wise:
+ * Computes log sigmoid of the input `tf.Tensor` element-wise:
  * `logSigmoid(x)`. For numerical stability, we use `-tf.softplus(-x)`.
  *
  * ```js
@@ -398,7 +398,7 @@ function logSigmoid_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes softplus of the input `Tensor` element-wise: `log(exp(x) + 1)`
+ * Computes softplus of the input `tf.Tensor` element-wise: `log(exp(x) + 1)`
  *
  * ```js
  * const x = tf.tensor1d([0, 1, -1, .7]);
@@ -438,7 +438,7 @@ function sin_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes cos of the input `Tensor` element-wise: `cos(x)`
+ * Computes cos of the input `tf.Tensor` element-wise: `cos(x)`
  *
  * ```js
  * const x = tf.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
@@ -458,7 +458,7 @@ function cos_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes tan of the input `Tensor` element-wise, `tan(x)`
+ * Computes tan of the input `tf.Tensor` element-wise, `tan(x)`
  *
  * ```js
  * const x = tf.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
@@ -478,7 +478,7 @@ function tan_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes asin of the input `Tensor` element-wise: `asin(x)`
+ * Computes asin of the input `tf.Tensor` element-wise: `asin(x)`
  *
  * ```js
  * const x = tf.tensor1d([0, 1, -1, .7]);
@@ -500,7 +500,7 @@ function asin_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes acos of the input `Tensor` element-wise: `acos(x)`
+ * Computes acos of the input `tf.Tensor` element-wise: `acos(x)`
  *
  * ```js
  * const x = tf.tensor1d([0, 1, -1, .7]);
@@ -523,7 +523,7 @@ function acos_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes atan of the input `Tensor` element-wise: `atan(x)`
+ * Computes atan of the input `tf.Tensor` element-wise: `atan(x)`
  *
  * ```js
  * const x = tf.tensor1d([0, 1, -1, .7]);
@@ -543,7 +543,7 @@ function atan_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes hyperbolic sin of the input `Tensor` element-wise: `sinh(x)`
+ * Computes hyperbolic sin of the input `tf.Tensor` element-wise: `sinh(x)`
  *
  * ```js
  * const x = tf.tensor1d([0, 1, -1, .7]);
@@ -563,7 +563,7 @@ function sinh_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes hyperbolic cos of the input `Tensor` element-wise: `cosh(x)`
+ * Computes hyperbolic cos of the input `tf.Tensor` element-wise: `cosh(x)`
  *
  * ```js
  * const x = tf.tensor1d([0, 1, -1, .7]);
@@ -583,7 +583,7 @@ function cosh_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes hyperbolic tangent of the input `Tensor` element-wise: `tanh(x)`
+ * Computes hyperbolic tangent of the input `tf.Tensor` element-wise: `tanh(x)`
  *
  * ```js
  * const x = tf.tensor1d([0, 1, -1, 70]);
@@ -605,7 +605,7 @@ function tanh_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes inverse hyperbolic sin of the input `Tensor` element-wise:
+ * Computes inverse hyperbolic sin of the input `tf.Tensor` element-wise:
  * `asinh(x)`
  *
  * ```js
@@ -628,7 +628,7 @@ function asinh_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes the inverse hyperbolic cos of the input `Tensor` element-wise:
+ * Computes the inverse hyperbolic cos of the input `tf.Tensor` element-wise:
  * `acosh(x)`
  *
  * ```js
@@ -651,7 +651,7 @@ function acosh_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes inverse hyperbolic tan of the input `Tensor` element-wise:
+ * Computes inverse hyperbolic tan of the input `tf.Tensor` element-wise:
  * `atanh(x)`
  *
  * ```js
@@ -672,7 +672,7 @@ function atanh_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes gause error function of the input `Tensor` element-wise:
+ * Computes gause error function of the input `tf.Tensor` element-wise:
  * `erf(x)`
  *
  * ```js
@@ -703,7 +703,7 @@ function erf_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes step of the input `Tensor` element-wise: `x > 0 ? 1 : alpha * x`
+ * Computes step of the input `tf.Tensor` element-wise: `x > 0 ? 1 : alpha * x`
  *
  * ```js
  * const x = tf.tensor1d([0, 2, -1, -3]);

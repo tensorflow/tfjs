@@ -24,12 +24,12 @@ import * as axis_util from './axis_util';
 import {op} from './operation';
 
 /**
- * Transposes the `Tensor`. Permutes the dimensions according to `perm`.
+ * Transposes the `tf.Tensor`. Permutes the dimensions according to `perm`.
  *
- * The returned `Tensor`'s dimension `i` will correspond to the input
+ * The returned `tf.Tensor`'s dimension `i` will correspond to the input
  * dimension `perm[i]`. If `perm` is not given, it is set to `[n-1...0]`,
- * where `n` is the rank of the input `Tensor`. Hence by default, this
- * operation performs a regular matrix transpose on 2-D input `Tensor`s.
+ * where `n` is the rank of the input `tf.Tensor`. Hence by default, this
+ * operation performs a regular matrix transpose on 2-D input `tf.Tensor`s.
  *
  * ```js
  * const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);

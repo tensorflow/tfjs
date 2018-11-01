@@ -29,7 +29,7 @@ import {op} from './operation';
 import {ones, scalar, zerosLike} from './tensor_ops';
 
 /**
- * Computes the sum along segments of a `Tensor`.
+ * Computes the sum along segments of a `tf.Tensor`.
  *
  * ```js
  * const x = tf.tensor1d([1, 2, 3, 4]);
@@ -39,8 +39,8 @@ import {ones, scalar, zerosLike} from './tensor_ops';
  * x.unsortedSegmentSum(segmentIds, numSegments).print()
  * //or tf.unsortedSegmentSum(x, segmentIds, numSegments)
  * ```
- * @param x The `Tensor` that will be summed along its segments.
- * @param segmentIds A `Tensor1D` whose rank is equal to the rank of `x`'s
+ * @param x The `tf.Tensor` that will be summed along its segments.
+ * @param segmentIds A `tf.Tensor1D` whose rank is equal to the rank of `x`'s
  * dimension along the `axis`.  Maps each element of `x` to a segment.
  * @param numSegments The number of distinct `segmentIds`.
  */
