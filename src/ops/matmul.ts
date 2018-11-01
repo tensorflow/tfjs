@@ -114,7 +114,7 @@ function matMul_<T extends Tensor>(
 }
 
 /**
- * Computes the outer product of two vectors, v1 and v2.
+ * Computes the outer product of two vectors, `v1` and `v2`.
  *
  * ```js
  * const a = tf.tensor1d([1, 2, 3]);
@@ -140,7 +140,7 @@ function outerProduct_(
 }
 
 /**
- * Computes the dot product of two matrices and/or vectors, t1 and t2.
+ * Computes the dot product of two matrices and/or vectors, `t1` and `t2`.
  *
  * ```js
  * const a = tf.tensor1d([1, 2]);

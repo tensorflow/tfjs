@@ -43,7 +43,7 @@ function gradScope<T extends TensorContainer>(
  *
  * If `dy` is provided, the gradient of `f(x).mul(dy).sum()` with respect to
  * `x` is computed instead. `f(x)` must take a single tensor `x` and return a
- * single tensor `y`. If `f()` takes multiple inputs, use `grads` instead.
+ * single tensor `y`. If `f()` takes multiple inputs, use `tf.grads` instead.
  *
  * ```js
  * // f(x) = x ^ 2
@@ -101,7 +101,7 @@ function grad<I extends Tensor, O extends Tensor>(f: (x: I) => O): (
  * If `dy` is passed when calling `g()`, the gradient of
  * `f(x1,...).mul(dy).sum()` with respect to each input is computed instead.
  * The provided `f` must take one or more tensors and return a single tensor
- * `y`. If `f()` takes a single input, we recommend using `grad` instead.
+ * `y`. If `f()` takes a single input, we recommend using `tf.grad` instead.
  *
  * ```js
  * // f(a, b) = a * b
@@ -147,11 +147,11 @@ function grads<O extends Tensor>(f: (...args: Tensor[]) => O): (
 }
 
 /**
- * Like `grad`, but also returns the value of `f()`. Useful when `f()`
+ * Like `tf.grad`, but also returns the value of `f()`. Useful when `f()`
  * returns a metric you want to show.
  *
  * The result is a rich object with the following properties:
- * - grad: The gradient of `f(x)` w.r.t `x` (result of `grad`).
+ * - grad: The gradient of `f(x)` w.r.t `x` (result of `tf.grad`).
  * - value: The value returned by `f(x)`.
  *
  * ```js
@@ -191,11 +191,11 @@ function valueAndGrad<I extends Tensor, O extends Tensor>(f: (x: I) => O): (
 }
 
 /**
- * Like `grads`, but returns also the value of `f()`. Useful when `f()`
+ * Like `tf.grads`, but returns also the value of `f()`. Useful when `f()`
  * returns a metric you want to show.
  *
  * The result is a rich object with the following properties:
- * - grads: The gradients of `f()` w.r.t each input (result of `grads`).
+ * - grads: The gradients of `f()` w.r.t each input (result of `tf.grads`).
  * - value: The value returned by `f(x)`.
  *
  * ```js

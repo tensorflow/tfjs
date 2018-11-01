@@ -38,7 +38,7 @@ import {op} from './operation';
  * values.print();
  * indices.print();
  * ```
- * @param x 1-D or higher `Tensor` with last dimension being at least `k`.
+ * @param x 1-D or higher `tf.Tensor` with last dimension being at least `k`.
  * @param k Number of top elements to look for along the last dimension.
  * @param sorted If true, the resulting `k` elements will be sorted by the
  *     values in descending order.

@@ -151,10 +151,10 @@ export class Environment {
    * result can be a complex object.
    *
    * Using this method helps avoid memory leaks. In general, wrap calls to
-   * operations in `tidy` for automatic memory cleanup.
+   * operations in `tf.tidy` for automatic memory cleanup.
    *
-   * When in safe mode, you must enclose all `Tensor` creation and ops
-   * inside a `tidy` to prevent memory leaks.
+   * When in safe mode, you must enclose all `tf.Tensor` creation and ops
+   * inside a `tf.tidy` to prevent memory leaks.
    *
    * ```js
    * // y = 2 ^ 2 + 1
@@ -188,11 +188,11 @@ export class Environment {
   }
 
   /**
-   * Disposes any `Tensor`s found within the provided object.
+   * Disposes any `tf.Tensor`s found within the provided object.
    *
-   * @param container an object that may be a `Tensor` or may directly contain
-   *     `Tensor`s, such as a `Tensor[]` or `{key: Tensor, ...}`. If the
-   *     object is not a `Tensor` or does not contain `Tensors`, nothing
+   * @param container an object that may be a `tf.Tensor` or may directly
+   *     contain `tf.Tensor`s, such as a `Tensor[]` or `{key: Tensor, ...}`. If
+   *     the object is not a `tf.Tensor` or does not contain `Tensors`, nothing
    *     happens. In general it is safe to pass any object here, except that
    *     `Promise`s are not supported.
    */
@@ -203,7 +203,7 @@ export class Environment {
   }
 
   /**
-   * Keeps a `Tensor` generated inside a `tidy` from being disposed
+   * Keeps a `tf.Tensor` generated inside a `tf.tidy` from being disposed
    * automatically.
    *
    * ```js

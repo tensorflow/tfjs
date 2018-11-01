@@ -26,7 +26,7 @@ import * as scatter_nd_util from './scatter_nd_util';
 /**
  * Creates a new tensor by applying sparse updates to individual
  * values or slices within a zero tensor of the given shape tensor according to
- * indices. This operator is the inverse of the `gatherND` operator which
+ * indices. This operator is the inverse of the `tf.gatherND` operator which
  * extracts values or slices from a given tensor.
  *
  * ```js

@@ -29,9 +29,9 @@ import {scalar} from './tensor_ops';
 import {neg} from './unary_ops';
 
 /**
- * Adds two `Tensor`s element-wise, A + B. Supports broadcasting.
+ * Adds two `tf.Tensor`s element-wise, A + B. Supports broadcasting.
  *
- * We also expose `addStrict` which has the same signature as this op and
+ * We also expose `tf.addStrict` which has the same signature as this op and
  * asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
@@ -48,8 +48,8 @@ import {neg} from './unary_ops';
  *
  * a.add(b).print();  // or tf.add(a, b)
  * ```
- * @param a The first `Tensor` to add.
- * @param b The second `Tensor` to add. Must have the same type as `a`.
+ * @param a The first `tf.Tensor` to add.
+ * @param b The second `tf.Tensor` to add. Must have the same type as `a`.
  */
 /** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
@@ -84,7 +84,7 @@ function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
 }
 
 /**
- * Adds a list of `Tensor`s element-wise, each with the same shape and dtype.
+ * Adds a list of `tf.Tensor`s element-wise, each with the same shape and dtype.
  *
  * ```js
  * const a = tf.tensor1d([1, 2]);
@@ -132,7 +132,7 @@ function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
 }
 
 /**
- * Adds two `Tensor`s element-wise, A + B.
+ * Adds two `tf.Tensor`s element-wise, A + B.
  *
  * Inputs must be the same shape. For broadcasting support, use add() instead.
  *
@@ -145,9 +145,9 @@ function addStrict_<T extends Tensor>(a: T, b: T): T {
 }
 
 /**
- * Subtracts two `Tensor`s element-wise, A - B. Supports broadcasting.
+ * Subtracts two `tf.Tensor`s element-wise, A - B. Supports broadcasting.
  *
- * We also expose `subStrict` which has the same signature as this op and
+ * We also expose `tf.subStrict` which has the same signature as this op and
  * asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
@@ -164,8 +164,8 @@ function addStrict_<T extends Tensor>(a: T, b: T): T {
  *
  * a.sub(b).print();  // or tf.sub(a, b)
  * ```
- * @param a The first `Tensor` to subtract from.
- * @param b The second `Tensor` to be subtracted. Must have the same dtype as
+ * @param a The first `tf.Tensor` to subtract from.
+ * @param b The second `tf.Tensor` to be subtracted. Must have the same dtype as
  * `a`.
  */
 /** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
@@ -201,10 +201,10 @@ function sub_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
 }
 
 /**
- * Subtracts two `Tensor`s element-wise, A - B. Inputs must
+ * Subtracts two `tf.Tensor`s element-wise, A - B. Inputs must
  * be the same shape.
  *
- * For broadcasting support, use sub() instead.
+ * For broadcasting support, use `tf.sub` instead.
  *
  * @param a The first Tensor to subtract element-wise.
  * @param b The second Tensor to subtract element-wise.
@@ -215,9 +215,9 @@ function subStrict_<T extends Tensor>(a: T, b: T): T {
 }
 
 /**
- * Computes the power of one `Tensor` to another. Supports broadcasting.
+ * Computes the power of one `tf.Tensor` to another. Supports broadcasting.
  *
- * Given a `Tensor` x and a `Tensor` y, this operation computes x^y for
+ * Given a `tf.Tensor` x and a `tf.Tensor` y, this operation computes x^y for
  * corresponding elements in x and y. The result's dtype will be the upcasted
  * type of the `base` and `exp` dtypes.
  *
@@ -237,8 +237,8 @@ function subStrict_<T extends Tensor>(a: T, b: T): T {
  * We also expose `powStrict` which has the same signature as this op and
  * asserts that `base` and `exp` are the same shape (does not broadcast).
  *
- * @param base The base `Tensor` to pow element-wise.
- * @param exp The exponent `Tensor` to pow element-wise.
+ * @param base The base `tf.Tensor` to pow element-wise.
+ * @param exp The exponent `tf.Tensor` to pow element-wise.
  */
 /** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function pow_<T extends Tensor>(base: T|TensorLike, exp: Tensor|TensorLike): T {
@@ -275,10 +275,10 @@ function pow_<T extends Tensor>(base: T|TensorLike, exp: Tensor|TensorLike): T {
 }
 
 /**
- * Computes the power of one `Tensor` to another. Inputs must
+ * Computes the power of one `tf.Tensor` to another. Inputs must
  * be the same shape.
  *
- * For broadcasting support, use pow() instead.
+ * For broadcasting support, use `tf.pow` instead.
  *
  * @param base The base tensor to pow element-wise.
  * @param exp The exponent tensor to pow element-wise.
@@ -289,9 +289,9 @@ function powStrict_<T extends Tensor>(base: T, exp: Tensor): T {
 }
 
 /**
- * Multiplies two `Tensor`s element-wise, A * B. Supports broadcasting.
+ * Multiplies two `tf.Tensor`s element-wise, A * B. Supports broadcasting.
  *
- * We also expose `mulStrict` which has the same signature as this op and
+ * We also expose `tf.mulStrict` which has the same signature as this op and
  * asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
@@ -344,9 +344,9 @@ function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
 }
 
 /**
- * Multiplies two `Tensor`s element-wise, A * B.
+ * Multiplies two `tf.Tensor`s element-wise, A * B.
  *
- * Inputs must be the same shape. For broadcasting support, use mul().
+ * Inputs must be the same shape. For broadcasting support, use `tf.mul`.
  *
  * @param a The first tensor to multiply.
  * @param b The first tensor to multiply. Must have the same
@@ -358,9 +358,9 @@ function mulStrict_<T extends Tensor>(a: T, b: T): T {
 }
 
 /**
- * Divides two `Tensor`s element-wise, A / B. Supports broadcasting.
+ * Divides two `tf.Tensor`s element-wise, A / B. Supports broadcasting.
  *
- * We also expose `divStrict` which has the same signature as this op and
+ * We also expose `tf.divStrict` which has the same signature as this op and
  * asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
@@ -421,7 +421,7 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
 }
 
 /**
- * Divides two `Tensor`s element-wise, A / B. Supports broadcasting.
+ * Divides two `tf.Tensor`s element-wise, A / B. Supports broadcasting.
  * The result is rounded with floor function.
  *
  *
@@ -478,7 +478,7 @@ function floorDiv_<T extends Tensor>(
 }
 
 /**
- * Divides two `Tensor`s element-wise, A / B. Inputs must
+ * Divides two `tf.Tensor`s element-wise, A / B. Inputs must
  * be the same shape.
  *
  * @param a The first tensor as the numerator for element-wise division.
@@ -494,7 +494,7 @@ function divStrict_<T extends Tensor>(a: T, b: T): T {
  * `floor(x / y) * y + mod(x, y) = x`
  * Supports broadcasting.
  *
- * We also expose `modStrict` which has the same signature as this op and
+ * We also expose `tf.modStrict` which has the same signature as this op and
  * asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
@@ -621,7 +621,7 @@ function minimumStrict_<T extends Tensor>(a: T, b: T): T {
  * Returns the max of a and b (`a > b ? a : b`) element-wise.
  * Supports broadcasting.
  *
- * We also expose `maximumStrict` which has the same signature as this op and
+ * We also expose `tf.maximumStrict` which has the same signature as this op and
  * asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
@@ -681,7 +681,7 @@ function maximumStrict_<T extends Tensor>(a: T, b: T): T {
  * Returns (a - b) * (a - b) element-wise.
  * Supports broadcasting.
  *
- * We also expose `squaredDifferenceStrict` which has the same signature as
+ * We also expose `tf.squaredDifferenceStrict` which has the same signature as
  * this op and asserts that `a` and `b` are the same shape (does not
  * broadcast).
  *
@@ -725,7 +725,7 @@ function squaredDifference_<T extends Tensor>(
  * Returns (a - b) * (a - b) element-wise.
  *
  * Inputs must be the same shape. For broadcasting support, use
- * squaredDifference() instead.
+ * `tf.squaredDifference` instead.
  *
  * @param a The first tensor.
  * @param b The second tensor. Must have the same type as `a`.
@@ -737,7 +737,7 @@ function squaredDifferenceStrict_<T extends Tensor>(a: T, b: T): T {
 }
 
 /**
- * Computes arctangent of `Tensor`s a / b element-wise: `atan2(a, b)`.
+ * Computes arctangent of `tf.Tensor`s a / b element-wise: `atan2(a, b)`.
  * Supports broadcasting.
  *
  * ```js

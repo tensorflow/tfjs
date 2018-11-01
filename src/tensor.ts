@@ -27,10 +27,10 @@ export interface TensorData {
 }
 
 /**
- * A mutable object, similar to `Tensor`, that allows users to set values
- * at locations before converting to an immutable `Tensor`.
+ * A mutable object, similar to `tf.Tensor`, that allows users to set values
+ * at locations before converting to an immutable `tf.Tensor`.
  *
- * See `buffer` for creating a tensor buffer.
+ * See `tf.buffer` for creating a tensor buffer.
  */
 /** @doc {heading: 'Tensors', subheading: 'Classes'} */
 export class TensorBuffer<R extends Rank> {
@@ -131,7 +131,7 @@ export class TensorBuffer<R extends Rank> {
   }
 
   /**
-   * Creates an immutable `Tensor` object from the buffer.
+   * Creates an immutable `tf.Tensor` object from the buffer.
    */
   /** @doc {heading: 'Tensors', subheading: 'Creation'} */
   toTensor(): Tensor<R> {
@@ -371,10 +371,10 @@ export function setOpHandler(handler: OpHandler) {
 export type DataId = object;  // object instead of {} to force non-primitive.
 
 /**
- * A `Tensor` object represents an immutable, multidimensional array of numbers
- * that has a shape and a data type.
+ * A `tf.Tensor` object represents an immutable, multidimensional array of
+ * numbers that has a shape and a data type.
  *
- * See `tensor` for details on how to create a `Tensor`.
+ * See `tf.tensor` for details on how to create a `tf.Tensor`.
  */
 /** @doc {heading: 'Tensors', subheading: 'Classes'} */
 export class Tensor<R extends Rank = Rank> {
@@ -442,7 +442,7 @@ export class Tensor<R extends Rank = Rank> {
     return this.as1D();
   }
 
-  /** Converts a size-1 `Tensor` to a `Scalar`. */
+  /** Converts a size-1 `tf.Tensor` to a `tf.Scalar`. */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   asScalar(): Scalar {
     this.throwIfDisposed();
@@ -450,7 +450,7 @@ export class Tensor<R extends Rank = Rank> {
     return this.reshape<Rank.R0>([]);
   }
 
-  /** Converts a `Tensor` to a `Tensor1D`. */
+  /** Converts a `tf.Tensor` to a `tf.Tensor1D`. */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   as1D(): Tensor1D {
     this.throwIfDisposed();
@@ -458,10 +458,10 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Converts a `Tensor` to a `Tensor2D`.
+   * Converts a `tf.Tensor` to a `tf.Tensor2D`.
    *
-   * @param rows Number of rows in `Tensor2D`.
-   * @param columns Number of columns in `Tensor2D`.
+   * @param rows Number of rows in `tf.Tensor2D`.
+   * @param columns Number of columns in `tf.Tensor2D`.
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   as2D(rows: number, columns: number): Tensor2D {
@@ -470,11 +470,11 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Converts a `Tensor` to a `Tensor3D`.
+   * Converts a `tf.Tensor` to a `tf.Tensor3D`.
    *
-   * @param rows Number of rows in `Tensor3D`.
-   * @param columns Number of columns in `Tensor3D`.
-   * @param depth Depth of `Tensor3D`.
+   * @param rows Number of rows in `tf.Tensor3D`.
+   * @param columns Number of columns in `tf.Tensor3D`.
+   * @param depth Depth of `tf.Tensor3D`.
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   as3D(rows: number, columns: number, depth: number): Tensor3D {
@@ -483,12 +483,12 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Converts a `Tensor` to a `Tensor4D`.
+   * Converts a `tf.Tensor` to a `tf.Tensor4D`.
    *
-   * @param rows Number of rows in `Tensor4D`.
-   * @param columns Number of columns in `Tensor4D`.
-   * @param depth Depth of `Tensor4D`.
-   * @param depth2 4th dimension of `Tensor4D`.
+   * @param rows Number of rows in `tf.Tensor4D`.
+   * @param columns Number of columns in `tf.Tensor4D`.
+   * @param depth Depth of `tf.Tensor4D`.
+   * @param depth2 4th dimension of `tf.Tensor4D`.
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   as4D(rows: number, columns: number, depth: number, depth2: number): Tensor4D {
@@ -497,7 +497,7 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Casts a `Tensor` to a specified dtype.
+   * Casts a `tf.Tensor` to a specified dtype.
    *
    * @param dtype Data-type to cast the tensor to.
    */
@@ -536,15 +536,15 @@ export class Tensor<R extends Rank = Rank> {
     return this.dataSync()[index];
   }
 
-  /** Returns a `TensorBuffer` that holds the underlying data. */
+  /** Returns a `tf.TensorBuffer` that holds the underlying data. */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   buffer(): TensorBuffer<R> {
     return opHandler.buffer(this.shape, this.dtype, this.dataSync());
   }
 
   /**
-   * Asynchronously downloads the values from the `Tensor`. Returns a promise of
-   * `TypedArray` that resolves when the computation has finished.
+   * Asynchronously downloads the values from the `tf.Tensor`. Returns a promise
+   * of `TypedArray` that resolves when the computation has finished.
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   async data(): Promise<TypedArray> {
@@ -553,7 +553,7 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Synchronously downloads the values from the `Tensor`. This blocks the UI
+   * Synchronously downloads the values from the `tf.Tensor`. This blocks the UI
    * thread until the values are ready, which can cause performance issues.
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
@@ -563,7 +563,7 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Disposes `Tensor` from memory.
+   * Disposes `tf.Tensor` from memory.
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   dispose(): void {
@@ -604,7 +604,7 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Prints the `Tensor`. See `print` for details.
+   * Prints the `tf.Tensor`. See `tf.print` for details.
    *
    * @param verbose Whether to print verbose information about the tensor,
    *    including dtype and size.
@@ -616,7 +616,7 @@ export class Tensor<R extends Rank = Rank> {
 
   /**
    * Reshapes the tensor into the provided shape.
-   * See `reshape` for more details.
+   * See `tf.reshape` for more details.
    *
    * @param newShape An array of integers defining the output tensor shape.
    */
@@ -638,8 +638,8 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Returns a `Tensor` that has expanded rank, by inserting a dimension
-   * into the tensor's shape. See `expandDims` for details.
+   * Returns a `tf.Tensor` that has expanded rank, by inserting a dimension
+   * into the tensor's shape. See `tf.expandDims` for details.
    *
    * @param axis The dimension index at which to insert shape of 1. Defaults to
    *    0 (the first dimension).
@@ -650,7 +650,7 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Returns the cumulative sum of the `Tensor` along `axis`.
+   * Returns the cumulative sum of the `tf.Tensor` along `axis`.
    *
    * @param axis The axis along which to sum. Optional. Defaults to 0.
    * @param exclusive Whether to perform exclusive cumulative sum. Defaults to
@@ -666,8 +666,8 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Returns a `Tensor` with dimensions of size 1 removed from the shape.
-   * See `squeeze` for more details.
+   * Returns a `tf.Tensor` with dimensions of size 1 removed from the shape.
+   * See `tf.squeeze` for more details.
    *
    * @param axis A list of numbers. If specified, only squeezes the
    *    dimensions listed. The dimension index starts at 0. It is an error to
@@ -679,7 +679,7 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.squeeze(this, axis);
   }
 
-  /** Returns a copy of the tensor. See `clone` for details. */
+  /** Returns a copy of the tensor. See `tf.clone` for details. */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   clone<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
@@ -1295,7 +1295,7 @@ export type Tensor5D = Tensor<Rank.R5>;
 export type Tensor6D = Tensor<Rank.R6>;
 
 /**
- * A mutable `Tensor`, useful for persisting state, e.g. for training.
+ * A mutable `tf.Tensor`, useful for persisting state, e.g. for training.
  */
 /** @doc {heading: 'Tensors', subheading: 'Classes'} */
 export class Variable<R extends Rank = Rank> extends Tensor<R> {
@@ -1348,8 +1348,8 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
   }
 
   /**
-   * Assign a new `Tensor` to this variable. The new `Tensor` must have the
-   * same shape and dtype as the old `Tensor`.
+   * Assign a new `tf.Tensor` to this variable. The new `tf.Tensor` must have
+   * the same shape and dtype as the old `tf.Tensor`.
    *
    * @param newValue New tensor to be assigned to this variable.
    */

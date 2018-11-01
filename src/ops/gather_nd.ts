@@ -29,8 +29,8 @@ import {op} from './operation';
  * slice of input:
  * output[\\(i_0, ..., i_{K-2}\\)] = input[indices[\\(i_0, ..., i_{K-2}\\)]]
  *
- * Whereas in `gather` `indices` defines slices into the first dimension of
- * input, in `gatherND`, `indices` defines slices into the first N dimensions
+ * Whereas in `tf.gather`, `indices` defines slices into the first dimension of
+ * input, in `tf.gatherND`, `indices` defines slices into the first N dimensions
  * of input, where N = indices.shape[-1].
  *
  * The last dimension of indices can be at most the rank of input:

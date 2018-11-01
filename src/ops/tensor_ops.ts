@@ -26,7 +26,7 @@ import {complex} from './complex_ops';
 import {op} from './operation';
 
 /**
- * Creates a `Tensor` with the provided values, shape and dtype.
+ * Creates a `tf.Tensor` with the provided values, shape and dtype.
  *
  * ```js
  * // Pass an array of values to create a vector.
@@ -86,10 +86,10 @@ function tensor<R extends Rank>(
 }
 
 /**
- * Creates rank-0 `Tensor` (scalar) with the provided value and dtype.
+ * Creates rank-0 `tf.Tensor` (scalar) with the provided value and dtype.
  *
- * The same functionality can be achieved with `tensor`, but in general
- * we recommend using `scalar` as it makes the code more readable.
+ * The same functionality can be achieved with `tf.tensor`, but in general
+ * we recommend using `tf.scalar` as it makes the code more readable.
  *
  * ```js
  * tf.scalar(3.14).print();
@@ -111,10 +111,10 @@ function scalar(
 }
 
 /**
- * Creates rank-1 `Tensor` with the provided values, shape and dtype.
+ * Creates rank-1 `tf.Tensor` with the provided values, shape and dtype.
  *
- * The same functionality can be achieved with `tensor`, but in general
- * we recommend using `tensor1d` as it makes the code more readable.
+ * The same functionality can be achieved with `tf.tensor`, but in general
+ * we recommend using `tf.tensor1d` as it makes the code more readable.
  *
  * ```js
  * tf.tensor1d([1, 2, 3]).print();
@@ -135,10 +135,10 @@ function tensor1d(values: TensorLike1D, dtype: DataType = 'float32'): Tensor1D {
 }
 
 /**
- * Creates rank-2 `Tensor` with the provided values, shape and dtype.
+ * Creates rank-2 `tf.Tensor` with the provided values, shape and dtype.
  *
- * The same functionality can be achieved with `tensor`, but in general
- * we recommend using `tensor2d` as it makes the code more readable.
+ * The same functionality can be achieved with `tf.tensor`, but in general
+ * we recommend using `tf.tensor2d` as it makes the code more readable.
  *
  *  ```js
  * // Pass a nested array.
@@ -178,10 +178,10 @@ function tensor2d(
 }
 
 /**
- * Creates rank-3 `Tensor` with the provided values, shape and dtype.
+ * Creates rank-3 `tf.Tensor` with the provided values, shape and dtype.
  *
- * The same functionality can be achieved with `tensor`, but in general
- * we recommend using `tensor3d` as it makes the code more readable.
+ * The same functionality can be achieved with `tf.tensor`, but in general
+ * we recommend using `tf.tensor3d` as it makes the code more readable.
  *
  *  ```js
  * // Pass a nested array.
@@ -221,10 +221,10 @@ function tensor3d(
 }
 
 /**
- * Creates rank-4 `Tensor` with the provided values, shape and dtype.
+ * Creates rank-4 `tf.Tensor` with the provided values, shape and dtype.
  *
- * The same functionality can be achieved with `tensor`, but in general
- * we recommend using `tensor4d` as it makes the code more readable.
+ * The same functionality can be achieved with `tf.tensor`, but in general
+ * we recommend using `tf.tensor4d` as it makes the code more readable.
  *
  *  ```js
  * // Pass a nested array.
@@ -264,10 +264,10 @@ function tensor4d(
 }
 
 /**
- * Creates rank-5 `Tensor` with the provided values, shape and dtype.
+ * Creates rank-5 `tf.Tensor` with the provided values, shape and dtype.
  *
- * The same functionality can be achieved with `tensor`, but in general
- * we recommend using `tensor5d` as it makes the code more readable.
+ * The same functionality can be achieved with `tf.tensor`, but in general
+ * we recommend using `tf.tensor5d` as it makes the code more readable.
  *
  *  ```js
  * // Pass a nested array.
@@ -308,10 +308,10 @@ function tensor5d(
 }
 
 /**
- * Creates rank-6 `Tensor` with the provided values, shape and dtype.
+ * Creates rank-6 `tf.Tensor` with the provided values, shape and dtype.
  *
- * The same functionality can be achieved with `tensor`, but in general
- * we recommend using `tensor6d` as it makes the code more readable.
+ * The same functionality can be achieved with `tf.tensor`, but in general
+ * we recommend using `tf.tensor6d` as it makes the code more readable.
  *
  *  ```js
  * // Pass a nested array.
@@ -353,7 +353,7 @@ function tensor6d(
 }
 
 /**
- * Creates a `Tensor` with all elements set to 1.
+ * Creates a `tf.Tensor` with all elements set to 1.
  *
  * ```js
  * tf.ones([2, 2]).print();
@@ -376,7 +376,7 @@ function ones<R extends Rank>(
 }
 
 /**
- * Creates a `Tensor` with all elements set to 0.
+ * Creates a `tf.Tensor` with all elements set to 0.
  *
  * ```js
  * tf.zeros([2, 2]).print();
@@ -399,7 +399,7 @@ function zeros<R extends Rank>(
 }
 
 /**
- * Creates a `Tensor` filled with a scalar value.
+ * Creates a `tf.Tensor` filled with a scalar value.
  *
  * ```js
  * tf.fill([2, 2], 4).print();
@@ -419,7 +419,7 @@ function fill<R extends Rank>(
 }
 
 /**
- * Creates a `Tensor` with all elements set to 1 with the same shape as the
+ * Creates a `tf.Tensor` with all elements set to 1 with the same shape as the
  * given tensor.
  *
  * ```js
@@ -435,7 +435,7 @@ function onesLike_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Creates a `Tensor` with all elements set to 0 with the same shape as the
+ * Creates a `tf.Tensor` with all elements set to 0 with the same shape as the
  * given tensor.
  *
  * ```js
@@ -479,7 +479,7 @@ function linspace(start: number, stop: number, num: number): Tensor1D {
 }
 
 /**
- * Creates a new `Tensor1D` filled with the numbers in the range provided.
+ * Creates a new `tf.Tensor1D` filled with the numbers in the range provided.
  *
  * The tensor is a is half-open interval meaning it includes start, but
  * excludes stop. Decrementing ranges and negative step values are also

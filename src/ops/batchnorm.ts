@@ -29,7 +29,7 @@ import {rsqrt} from './unary_ops';
 
 /**
  * Batch normalization, strictly for 2D. For the more relaxed version, see
- * `batchNormalization`.
+ * `tf.batchNormalization`.
  *
  * @param x The input Tensor.
  * @param mean A mean Tensor.
@@ -85,7 +85,7 @@ function batchNormalization2d_(
 
 /**
  * Batch normalization, strictly for 3D. For the more relaxed version, see
- * `batchNormalization`.
+ * `tf.batchNormalization`.
  *
  * @param x The input Tensor.
  * @param mean A mean Tensor.
@@ -141,7 +141,7 @@ function batchNormalization3d_(
 
 /**
  * Batch normalization, strictly for 4D. For the more relaxed version, see
- * `batchNormalization`.
+ * `tf.batchNormalization`.
  *
  * @param x The input Tensor.
  * @param mean A mean Tensor.
@@ -203,7 +203,7 @@ function batchNormalization4d_(
  * Mean, variance, scale, and offset can be of two shapes:
  *   - The same shape as the input.
  *   - In the common case, the depth dimension is the last dimension of x, so
- *     the values would be an `Tensor1D` of shape [depth].
+ *     the values would be an `tf.Tensor1D` of shape [depth].
  *
  * Also available are stricter rank-specific methods with the same signature
  * as this method that assert that parameters passed are of given rank
