@@ -35,7 +35,9 @@ export class BrowserHTTPRequest implements IOHandler {
 
   static readonly URL_SCHEME_REGEX = /^https?:\/\//;
 
-  constructor(path: string|string[], requestInit?: RequestInit) {
+  constructor(
+      path: string|string[], requestInit?: RequestInit,
+      private readonly weightPathPrefix?: string) {
     if (typeof fetch === 'undefined') {
       throw new Error(
           // tslint:disable-next-line:max-line-length
@@ -183,23 +185,27 @@ export class BrowserHTTPRequest implements IOHandler {
 
   private async loadWeights(weightsManifest: WeightsManifestConfig):
       Promise<[WeightsManifestEntry[], ArrayBuffer]> {
-    const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
+    let pathPrefix = this.weightPathPrefix;
+    if (pathPrefix == null) {
+      const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
 
+      pathPrefix = weightPath.substring(0, weightPath.lastIndexOf('/'));
+      if (!pathPrefix.endsWith('/')) {
+        pathPrefix = pathPrefix + '/';
+      }
+    }
     const weightSpecs = [];
     for (const entry of weightsManifest) {
       weightSpecs.push(...entry.weights);
     }
 
-    let pathPrefix = weightPath.substring(0, weightPath.lastIndexOf('/'));
-    if (!pathPrefix.endsWith('/')) {
-      pathPrefix = pathPrefix + '/';
-    }
     const fetchURLs: string[] = [];
     weightsManifest.forEach(weightsGroup => {
       weightsGroup.paths.forEach(path => {
         fetchURLs.push(pathPrefix + path);
       });
     });
+
     return [
       weightSpecs,
       concatenateArrayBuffers(
@@ -369,9 +375,12 @@ IORouterRegistry.registerLoadRouter(httpRequestRouter);
  * topology (filename: 'model.json') and the weights of the model (filename:
  * 'model.weights.bin') will be appended to the body. If `requestInit` has a
  * `body`, an Error will be thrown.
+ * @param weightPathPrefix Optional, this specifies the path prefix for weight
+ * files, by default this is calculated from the path param.
  * @returns An instance of `IOHandler`.
  */
 export function browserHTTPRequest(
-    path: string|string[], requestInit?: RequestInit): IOHandler {
-  return new BrowserHTTPRequest(path, requestInit);
+    path: string|string[], requestInit?: RequestInit,
+    weightPathPrefix?: string): IOHandler {
+  return new BrowserHTTPRequest(path, requestInit, weightPathPrefix);
 }
