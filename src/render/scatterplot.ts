@@ -17,7 +17,7 @@
 
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
-import {Drawable, Point2D, VisOptions} from '../types';
+import {Drawable, Point2D, XYPlotOptions} from '../types';
 
 import {getDrawArea} from './render_utils';
 
@@ -42,10 +42,17 @@ import {getDrawArea} from './render_utils';
  * @param opts.height height of chart in px
  * @param opts.xLabel label for x axis
  * @param opts.yLabel label for y axis
+ * @param opts.zoomToFit a boolean indicating whether to allow excluding zero
+ * from the domain of the charts axes setting this to true allows the points to
+ * take up more room in the plot.
+ * @param opts.xAxisDomain array of two numbers indicating the domain of the x
+ * axis. This is overriden by zoomToFit
+ * @param opts.yAxisDomain array of two numbers indicating the domain of the y
+ * axis. This is overriden by zoomToFit
  */
 export async function renderScatterplot(
     data: {values: Point2D[][]|Point2D[], series?: string[]},
-    container: Drawable, opts: VisOptions = {}): Promise<void> {
+    container: Drawable, opts: XYPlotOptions = {}): Promise<void> {
   let _values = data.values;
   const _series = data.series == null ? [] : data.series;
 
@@ -70,6 +77,24 @@ export async function renderScatterplot(
     mode: 'vega-lite' as Mode,
   };
 
+  const xDomain = (): {}|undefined => {
+    if (options.zoomToFit) {
+      return {'zero': false};
+    } else if (options.xAxisDomain != null) {
+      return {'domain': options.xAxisDomain};
+    }
+    return undefined;
+  };
+
+  const yDomain = (): {}|undefined => {
+    if (options.zoomToFit) {
+      return {'zero': false};
+    } else if (options.yAxisDomain != null) {
+      return {'domain': options.yAxisDomain};
+    }
+    return undefined;
+  };
+
   const spec: VisualizationSpec = {
     'width': options.width || drawArea.clientWidth,
     'height': options.height || drawArea.clientHeight,
@@ -79,18 +104,25 @@ export async function renderScatterplot(
       'contains': 'padding',
       'resize': true,
     },
-    'data': {'values': values},
-    'mark': {'type': 'point'},
+    'data': {
+      'values': values,
+    },
+    'mark': {
+      'type': 'point',
+      'clip': true,
+    },
     'encoding': {
       'x': {
         'field': 'x',
         'type': options.xType,
         'title': options.xLabel,
+        'scale': xDomain(),
       },
       'y': {
         'field': 'y',
         'type': options.yType,
         'title': options.yLabel,
+        'scale': yDomain(),
       },
       'color': {
         'field': 'series',
@@ -115,4 +147,5 @@ const defaultOpts = {
   yLabel: 'y',
   xType: 'quantitative',
   yType: 'quantitative',
+  zoomToFit: false,
 };

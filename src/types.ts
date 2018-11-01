@@ -171,6 +171,15 @@ export interface VisOptions {
 }
 
 /**
+ * Options for XY plots
+ */
+export interface XYPlotOptions extends VisOptions {
+  xAxisDomain?: [number, number];
+  yAxisDomain?: [number, number];
+  zoomToFit?: boolean;
+}
+
+/**
  * Histogram options.
  */
 export type HistogramOpts = VisOptions&{
