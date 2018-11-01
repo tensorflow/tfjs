@@ -17,7 +17,7 @@
 
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
-import {Drawable, Point2D, VisOptions} from '../types';
+import {Drawable, Point2D, XYPlotOptions} from '../types';
 
 import {getDrawArea} from './render_utils';
 
@@ -42,10 +42,15 @@ import {getDrawArea} from './render_utils';
  * @param opts.height height of chart in px
  * @param opts.xLabel label for x axis
  * @param opts.yLabel label for y axis
+ * @param opts.zoomToFit a boolean indicating whether to allow non-zero
+ * baselines setting this to true allows the line chart to take up more room in
+ * the plot.
+ * @param opts.yAxisDomain array of two numbers indicating the domain of the y
+ * axis. This is overriden by zoomToFit
  */
 export async function renderLinechart(
     data: {values: Point2D[][]|Point2D[], series?: string[]},
-    container: Drawable, opts: VisOptions = {}): Promise<void> {
+    container: Drawable, opts: XYPlotOptions = {}): Promise<void> {
   let inputArray = data.values;
   const _series = data.series == null ? [] : data.series;
 
@@ -70,7 +75,17 @@ export async function renderLinechart(
     mode: 'vega-lite' as Mode,
   };
 
-  const encodings: {} = {
+  const yScale = (): {}|undefined => {
+    if (options.zoomToFit) {
+      return {'zero': false};
+    } else if (options.yAxisDomain != null) {
+      return {'domain': options.yAxisDomain};
+    }
+    return undefined;
+  };
+
+  // tslint:disable-next-line:no-any
+  const encodings: any = {
     'x': {
       'field': 'x',
       'type': options.xType,
@@ -80,12 +95,19 @@ export async function renderLinechart(
       'field': 'y',
       'type': options.yType,
       'title': options.yLabel,
+      'scale': yScale(),
     },
     'color': {
       'field': 'series',
       'type': 'nominal',
     },
   };
+
+  // tslint:disable-next-line:no-any
+  let domainFilter: any;
+  if (options.yAxisDomain != null) {
+    domainFilter = {'filter': {'field': 'y', 'range': options.yAxisDomain}};
+  }
 
   const spec: VisualizationSpec = {
     'width': options.width || drawArea.clientWidth,
@@ -100,21 +122,31 @@ export async function renderLinechart(
     'layer': [
       {
         // Render the main line chart
-        'mark': {'type': 'line'},
+        'mark': {
+          'type': 'line',
+          'clip': true,
+        },
         'encoding': encodings,
       },
       {
+        // Render invisible points for all the the data to make selections
+        // easier
+        'mark': {'type': 'point'},
+        // 'encoding': encodings,
+        // If a custom domain is set, filter out the values that will not
+        // fit we do this on the points and not the line so that the line
+        // still appears clipped for values outside the domain but we can
+        // still operate on an unclipped set of points.
+        'transform': options.yAxisDomain ? [domainFilter] : undefined,
         'selection': {
           'nearestPoint': {
             'type': 'single',
             'on': 'mouseover',
             'nearest': true,
             'empty': 'none',
-            'encodings': ['x']
+            'encodings': ['x'],
           },
         },
-        // Draw a point where the selection is
-        'mark': {'type': 'point'},
         'encoding': Object.assign({}, encodings, {
           'opacity': {
             'value': 0,
@@ -126,19 +158,11 @@ export async function renderLinechart(
         }),
       },
       {
-        // Draw a vertical line where the selection is
-        'transform': [{'filter': {'selection': 'nearestPoint'}}],
-        'mark': {'type': 'rule', 'color': 'gray'},
-        'encoding': {
-          'x': {
-            'type': options.xType,
-            'field': 'x',
-          }
-        }
-      },
-      {
         // Render a tooltip where the selection is
-        'transform': [{'filter': {'selection': 'nearestPoint'}}],
+        'transform': [
+          {'filter': {'selection': 'nearestPoint'}},
+          domainFilter
+        ].filter(Boolean),  // remove undefineds from array
         'mark': {
           'type': 'text',
           'align': 'left',
@@ -156,7 +180,17 @@ export async function renderLinechart(
           'color': undefined,
         }),
       },
-
+      {
+        // Draw a vertical line where the selection is
+        'transform': [{'filter': {'selection': 'nearestPoint'}}],
+        'mark': {'type': 'rule', 'color': 'gray'},
+        'encoding': {
+          'x': {
+            'type': options.xType,
+            'field': 'x',
+          }
+        }
+      },
     ],
   };
 
@@ -169,4 +203,5 @@ const defaultOpts = {
   yLabel: 'y',
   xType: 'quantitative',
   yType: 'quantitative',
+  zoomToFit: false,
 };

@@ -364,6 +364,11 @@ Renders a Line Chart.
 * @param opts.height height of chart in px
 * @param opts.xLabel label for x axis
 * @param opts.yLabel label for y axis
+* @param opts.zoomToFit a boolean indicating whether to allow non-zero baselines
+                        setting this to true allows the line chart to take up
+                        more room in the plot.
+* @param opts.yAxisDomain array of two numbers indicating the domain of the y axis
+
 
 
 ## render.scatterplot(data: [], container: Surface|HTMLElement, opts: {}) => Promise<void>
@@ -390,6 +395,13 @@ Renders a Scatter Plot.
 * @param opts.height height of chart in px
 * @param opts.xLabel label for x axis
 * @param opts.yLabel label for y axis
+* @param opts.zoomToFit a boolean indicating whether to allow excluding zero from
+                        the domain of the charts axes setting this to true allows
+                        the points to take up more room in the plot.
+* @param opts.xAxisDomain array of two numbers indicating the domain of the x axis
+                          this is overriden by zoomToFit
+* @param opts.yAxisDomain array of two numbers indicating the domain of the y axis
+                          this is overriden by zoomToFit
 
 ## render.confusionMatrix(data: {}, container: Surface|HTMLElement, opts: {}) => Promise<void>
 
