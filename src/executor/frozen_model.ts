@@ -24,7 +24,7 @@ import {OperationMapper} from '../operations/operation_mapper';
 import {GraphExecutor} from './graph_executor';
 
 /**
- * A `FrozenModel` is a directed, acyclic graph of built from
+ * A `tf.FrozenModel` is a directed, acyclic graph of built from
  * SavedModel GraphDef and allows inference exeuction.
  */
 
@@ -117,12 +117,13 @@ export class FrozenModel implements tfc.InferenceModel {
    * Execute the inference for the input tensors.
    *
    * @param input The input tensors, when there is single input for the model,
-   * inputs param should be a Tensor. For models with mutliple inputs, inputs
-   * params should be in either Tensor[] if the input order is fixed, or
-   * otherwise NamedTensorMap format.
+   * inputs param should be a `tf.Tensor`. For models with mutliple inputs,
+   * inputs params should be in either `tf.Tensor`[] if the input order is
+   * fixed, or otherwise NamedTensorMap format.
    *
    * For model with multiple inputs, we recommend you use NamedTensorMap as the
-   * input type, if you use Tensor[], the order of the array needs to follow the
+   * input type, if you use `tf.Tensor`[], the order of the array needs to
+   * follow the
    * order of inputNodes array. @see {@link FrozenModel.inputNodes}
    *
    * You can also feed any intermediate nodes using the NamedTensorMap as the
@@ -144,9 +145,9 @@ export class FrozenModel implements tfc.InferenceModel {
    * output node names. Currently the batch size option is ignored for frozen
    * model.
    *
-   * @returns Inference result tensors. The output would be single Tensor if
-   * model has single output node, otherwise Tensor[] or NamedTensorMap[] will
-   * be returned for model with multiple outputs.
+   * @returns Inference result tensors. The output would be single `tf.Tensor`
+   * if model has single output node, otherwise Tensor[] or NamedTensorMap[]
+   * will be returned for model with multiple outputs.
    */
   predict(
       inputs: tfc.Tensor|tfc.Tensor[]|tfc.NamedTensorMap,
