@@ -658,8 +658,8 @@ export class RNN extends Layer {
     constants = standardized.constants;
 
     // If any of `initial_state` or `constants` are specified and are
-    // `tf.SymbolicTensor`s, then add them to the inputs and temporarily modify the
-    // input_spec to include them.
+    // `tf.SymbolicTensor`s, then add them to the inputs and temporarily modify
+    // the input_spec to include them.
 
     let additionalInputs: Array<Tensor|SymbolicTensor> = [];
     let additionalSpecs: InputSpec[] = [];
@@ -2566,8 +2566,8 @@ export class StackedRNNCells extends RNNCell {
   /**
    * Set the weights of the model.
    *
-   * @param weights An `Array` of `tf.Tensor`s with shapes and types matching the
-   *   output of `getWeights()`.
+   * @param weights An `Array` of `tf.Tensor`s with shapes and types matching
+   *     the output of `getWeights()`.
    */
   setWeights(weights: Tensor[]): void {
     const tuples: Array<[LayerVariable, Tensor]> = [];

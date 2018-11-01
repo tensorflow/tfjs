@@ -307,7 +307,8 @@ serialization.registerClass(Add);
  *
  * 3. Invoke directly on `tf.Tensor`s, i.e., concrete values. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `tf.Tensor` as the result of the computation. For example:
+ *    generating a new `tf.Tensor` as the result of the computation. For
+ * example:
  *
  * ```js
  * const input1 = tf.tensor2d([1, 2, 3, 4], [2, 2]);
@@ -399,7 +400,8 @@ serialization.registerClass(Multiply);
  *
  * 3. Invoke directly on `tf.Tensor`s, i.e., concrete values. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `tf.Tensor` as the result of the computation. For example:
+ *    generating a new `tf.Tensor` as the result of the computation. For
+ * example:
  *
  * ```js
  * const input1 = tf.tensor2d([1, 2, 3, 4], [2, 2]);
@@ -491,7 +493,8 @@ serialization.registerClass(Average);
  *
  * 3. Invoke directly on `tf.Tensor`s, i.e., concrete values. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `tf.Tensor` as the result of the computation. For example:
+ *    generating a new `tf.Tensor` as the result of the computation. For
+ * example:
  *
  * ```js
  * const input1 = tf.tensor2d([1, 2, 3, 4], [2, 2]);
@@ -582,7 +585,8 @@ serialization.registerClass(Maximum);
  *
  * 3. Invoke directly on `tf.Tensor`s, i.e., concrete values. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `tf.Tensor` as the result of the computation. For example:
+ *    generating a new `tf.Tensor` as the result of the computation. For
+ * example:
  *
  * ```js
  * const input1 = tf.tensor2d([1, 20, 3, 40], [2, 2]);
@@ -673,7 +677,8 @@ serialization.registerClass(Minimum);
  *
  * 3. Invoke directly on `tf.Tensor`s, i.e., concrete values. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `tf.Tensor` as the result of the computation. For example:
+ *    generating a new `tf.Tensor` as the result of the computation. For
+ * example:
  *
  * ```js
  * const input1 = tf.tensor2d([1, 20, 3, 40], [2, 2]);
@@ -859,7 +864,8 @@ serialization.registerClass(Concatenate);
  *
  * 3. Invoke directly on `tf.Tensor`s, i.e., concrete values. This constructs
  *    an `Layer` object internally and calls its `apply` method on the inputs,
- *    generating a new `tf.Tensor` as the result of the computation. For example:
+ *    generating a new `tf.Tensor` as the result of the computation. For
+ * example:
  *
  * ```js
  * const input1 = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
