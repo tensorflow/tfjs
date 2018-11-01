@@ -16,6 +16,7 @@
  */
 
 import {ENV} from '../environment';
+import {complex, imag, real} from '../ops/complex_ops';
 import {op} from '../ops/operation';
 import {Tensor} from '../tensor';
 import {assert} from '../util';
@@ -39,10 +40,9 @@ import {assert} from '../util';
  * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
  */
 function fft_(input: Tensor): Tensor {
-  assert(
-      input.dtype === 'complex64',
-      `The dtype for tf.spectral.fft() must be complex64 ` +
-          `but got ${input.dtype}.`);
+  assert(input.dtype === 'complex64',
+         `The dtype for tf.spectral.fft() must be complex64 ` +
+             `but got ${input.dtype}.`);
 
   // Collapse all outer dimensions to a single batch dimension.
   const innerDimensionSize = input.shape[input.shape.length - 1];
@@ -73,10 +73,9 @@ function fft_(input: Tensor): Tensor {
  * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
  */
 function ifft_(input: Tensor): Tensor {
-  assert(
-      input.dtype === 'complex64',
-      `The dtype for tf.spectral.ifft() must be complex64 ` +
-          `but got ${input.dtype}.`);
+  assert(input.dtype === 'complex64',
+         `The dtype for tf.spectral.ifft() must be complex64 ` +
+             `but got ${input.dtype}.`);
 
   // Collapse all outer dimensions to a single batch dimension.
   const innerDimensionSize = input.shape[input.shape.length - 1];
@@ -88,5 +87,52 @@ function ifft_(input: Tensor): Tensor {
   return ret.reshape(input.shape);
 }
 
+/**
+ * Real value input fast Fourier transform.
+ *
+ * Computes the 1-dimensional discrete Fourier transform over the
+ * inner-most dimension of the real input.
+ *
+ * ```js
+ * const real = tf.tensor1d([1, 2, 3]);
+ *
+ * x.rfft().print();
+ * ```
+ * @param input The real value input to compute an rfft over.
+ */
+/**
+ * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
+ */
+function rfft_(input: Tensor): Tensor {
+  assert(input.dtype === 'float32', `The dtype for rfft() must be real value but
+    got ${input.dtype}`);
+
+  const innerDimensionSize = input.shape[input.shape.length - 1];
+  const batch = input.size / innerDimensionSize;
+
+  // Complement the input with zero imaginary numbers.
+  const zeros = input.zerosLike();
+  const complexInput = complex(input, zeros).as2D(batch, innerDimensionSize);
+
+  const ret = ENV.engine.runKernel(backend => backend.fft(complexInput),
+                                   {complexInput});
+
+  // Exclude complex conjugations. These conjugations are put symmetrically.
+  const half = Math.floor(innerDimensionSize / 2) + 1;
+  const realValues = real(ret);
+  const imagValues = imag(ret);
+  const realComplexConjugate = realValues.split(
+      [ half, innerDimensionSize - half ], realValues.shape.length - 1);
+  const imagComplexConjugate = imagValues.split(
+      [ half, innerDimensionSize - half ], imagValues.shape.length - 1);
+
+  const outputShape = input.shape.slice();
+  outputShape[input.shape.length - 1] = half;
+
+  return complex(realComplexConjugate[0], imagComplexConjugate[0])
+      .reshape(outputShape);
+}
+
 export const fft = op({fft_});
 export const ifft = op({ifft_});
+export const rfft = op({rfft_});
