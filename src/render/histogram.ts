@@ -26,6 +26,7 @@ import {renderTable} from './table';
 
 const defaultOpts = {
   maxBins: 12,
+  fontSize: 11,
 };
 
 /**
@@ -37,6 +38,7 @@ const defaultOpts = {
  * @param opts optional parameters
  * @param opts.width width of chart in px
  * @param opts.height height of chart in px
+ * @param opts.fontSize fontSize in pixels for text in the chart
  * @param opts.maxBins maximimum number of bins to use in histogram
  * @param opts.stats summary statistics to show. These will be computed
  *    internally if no stats are passed. Pass `false` to not compute any stats.
@@ -76,7 +78,7 @@ export async function renderHistogram(
     } else {
       stats = arrayStats(values.map(x => x.value));
     }
-    renderStats(stats, statsContainer);
+    renderStats(stats, statsContainer, {fontSize: options.fontSize});
   }
 
   const histogramSpec: VisualizationSpec = {
@@ -91,6 +93,17 @@ export async function renderHistogram(
     },
     'data': {'values': values},
     'mark': 'bar',
+    'config': {
+      'axis': {
+        'labelFontSize': options.fontSize,
+        'titleFontSize': options.fontSize,
+      },
+      'text': {'fontSize': options.fontSize},
+      'legend': {
+        'labelFontSize': options.fontSize,
+        'titleFontSize': options.fontSize,
+      }
+    },
     'encoding': {
       'x': {
         'bin': {'maxbins': options.maxBins},
@@ -111,7 +124,8 @@ export async function renderHistogram(
   return embed(histogramContainer, histogramSpec, embedOpts);
 }
 
-function renderStats(stats: HistogramStats, container: HTMLElement) {
+function renderStats(
+    stats: HistogramStats, container: HTMLElement, opts: {fontSize: number}) {
   const format = d3Format(',.4~f');
   const pctFormat = d3Format('.4~p');
 
@@ -169,7 +183,7 @@ function renderStats(stats: HistogramStats, container: HTMLElement) {
     vals.push(`${format(stats.numInfs)} ${infPct}`);
   }
 
-  renderTable({headers, values: [vals]}, container);
+  renderTable({headers, values: [vals]}, container, opts);
 }
 
 /**

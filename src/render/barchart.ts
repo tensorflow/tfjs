@@ -36,6 +36,7 @@ import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
  * @param opts.height height of chart in px
  * @param opts.xLabel label for x-axis, set to null to hide the
  * @param opts.yLabel label for y-axis, set to null to hide the
+ * @param opts.fontSize fontSize in pixels for text in the chart
  *
  * @returns Promise - indicates completion of rendering
  */
@@ -85,6 +86,17 @@ export async function renderBarchart(
       'contains': 'padding',
       'resize': true,
     },
+    'config': {
+      'axis': {
+        'labelFontSize': options.fontSize,
+        'titleFontSize': options.fontSize,
+      },
+      'text': {'fontSize': options.fontSize},
+      'legend': {
+        'labelFontSize': options.fontSize,
+        'titleFontSize': options.fontSize,
+      }
+    },
     'data': {'values': values, 'name': 'values'},
     'mark': 'bar',
     'encoding': {
@@ -106,6 +118,7 @@ const defaultOpts = {
   yLabel: '',
   xType: 'ordinal',
   yType: 'quantitative',
+  fontSize: 11,
 };
 
 // We keep a map of containers to chart instances in order to reuse the instance
