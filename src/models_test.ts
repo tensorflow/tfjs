@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import {DataType, io, ones, randomNormal, Scalar, scalar, serialization, sum, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
+import {DataType, io, ones, randomNormal, Scalar, scalar, serialization, sum, Tensor, tensor1d, tensor2d, zeros, tensor3d} from '@tensorflow/tfjs-core';
 import {ConfigDict} from '@tensorflow/tfjs-core/dist/serialization';
 
 import {Model} from './engine/training';
@@ -1242,14 +1242,14 @@ describeMathCPUAndGPU('Sequential', () => {
       expect(y.dtype).toBe('float32');
     });
 
-    it(`fit() works with input dtype ${dtype}.`, () => {
+    it(`fit() works with input dtype ${dtype}.`, async () => {
       const embModel = tfl.sequential();
       embModel.add(
           tfl.layers.embedding({inputShape: [1], inputDim: 10, outputDim: 2}));
       embModel.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
       const x = tensor2d([[0]], [1, 1], dtype as DataType);
-      const y = tensor2d([[0.5, 0.5]], [1, 2], 'float32');
-      embModel.fit(x, y);
+      const y = tensor3d([[[0.5, 0.5]]], [1, 1, 2], 'float32');
+      await embModel.fit(x, y);
     });
   }
 
@@ -1300,7 +1300,7 @@ describeMathCPUAndGPU('Sequential', () => {
     const model = tfl.sequential({layers: [denseLayer1, denseLayer2]});
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
     // Do not call `await` below, so the two fit() calls may interleave.
-    model.fit(xs, ys, {batchSize, epochs: 8});
+    const firstFit = model.fit(xs, ys, {batchSize, epochs: 8});
 
     let errorCaught: Error;
     try {
@@ -1311,6 +1311,7 @@ describeMathCPUAndGPU('Sequential', () => {
     expect(errorCaught.message)
         .toEqual(
             'Cannot start training because another fit() call is ongoing.');
+    await firstFit;
   });
 
   it('Stop Sequential.fit() using non-class callback function', async () => {
