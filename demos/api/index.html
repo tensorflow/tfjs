@@ -101,6 +101,7 @@
             yLabel: 'values',
             width: 500,
             height: 250,
+            fontSize: 14
           });
         }
       </script>
@@ -172,7 +173,9 @@
 
           // Render to page
           const container = document.getElementById('table-cont');
-          tfvis.render.table({ headers, values }, container);
+          tfvis.render.table({ headers, values }, container, {
+            fontSize: 14
+          });
         }
       </script>
 

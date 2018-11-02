@@ -42,6 +42,7 @@ import {getDrawArea} from './render_utils';
  * @param opts.height height of chart in px
  * @param opts.xLabel label for x axis
  * @param opts.yLabel label for y axis
+ * @param opts.fontSize fontSize in pixels for text in the chart
  * @param opts.zoomToFit a boolean indicating whether to allow non-zero
  * baselines setting this to true allows the line chart to take up more room in
  * the plot.
@@ -117,6 +118,17 @@ export async function renderLinechart(
       'type': 'fit',
       'contains': 'padding',
       'resize': true,
+    },
+    'config': {
+      'axis': {
+        'labelFontSize': options.fontSize,
+        'titleFontSize': options.fontSize,
+      },
+      'text': {'fontSize': options.fontSize},
+      'legend': {
+        'labelFontSize': options.fontSize,
+        'titleFontSize': options.fontSize,
+      }
     },
     'data': {'values': values},
     'layer': [
@@ -204,4 +216,5 @@ const defaultOpts = {
   xType: 'quantitative',
   yType: 'quantitative',
   zoomToFit: false,
+  fontSize: 11,
 };

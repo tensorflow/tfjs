@@ -168,6 +168,7 @@ export interface VisOptions {
   yLabel?: string;
   xType?: 'quantitative'|'ordinal'|'nominal';
   yType?: 'quantitative'|'ordinal'|'nominal';
+  fontSize?: number;
 }
 
 /**

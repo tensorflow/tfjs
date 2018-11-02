@@ -40,10 +40,12 @@ import {getDrawArea} from './render_utils';
  *    Note that the chart expects to have complete control over
  *    the contents of the container and can clear its contents
  *    at will.
+ * @param opts.fontSize fontSize in pixels for text in the chart.
  */
 export function renderTable(
     // tslint:disable-next-line:no-any
-    data: {headers: string[], values: any[][]}, container: Drawable) {
+    data: {headers: string[], values: any[][]}, container: Drawable,
+    opts: {fontSize?: number} = {}) {
   if (data && data.headers == null) {
     throw new Error('Data to render must have a "headers" property');
   }
@@ -54,9 +56,14 @@ export function renderTable(
 
   const drawArea = getDrawArea(container);
 
+  const options = Object.assign({}, defaultOpts, opts);
+
   let table = d3Select(drawArea).select('table.tf-table');
 
-  const tableStyle = css({...tac('f6 w-100 mw8 center')});
+  const tableStyle = css({
+    ...tac('f6 w-100 mw8 center'),
+    fontSize: options.fontSize,
+  });
 
   // If a table is not already present on this element add one
   if (table.size() === 0) {
@@ -102,3 +109,7 @@ export function renderTable(
   cells.exit().remove();
   rows.exit().remove();
 }
+
+const defaultOpts = {
+  fontSize: 14,
+};

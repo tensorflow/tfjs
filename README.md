@@ -294,6 +294,7 @@ Renders a barchart.
 * @param opts.height height of chart in px
 * @param opts.xLabel label for x-axis, set to null to hide the
 * @param opts.yLabel label for y-axis, set to null to hide the
+* @param opts.fontSize fontSize in pixels for text in the chart
 * @returns Promise - indicates completion of rendering
 
 
@@ -313,6 +314,7 @@ Renders a table.
                    Note that the chart expects to have complete control over
                    the contents of the container and can clear its contents
                    at will.
+* @param opts.fontSize fontSize in pixels for text in the chart
 
 ## render.histogram(data: [], container: Surface|HTMLElement, opts: {}) => Promise<void>
 
@@ -324,6 +326,7 @@ Renders a Histogram.
 * @param opts optional parameters
 * @param opts.width width of chart in px
 * @param opts.height height of chart in px
+* @param opts.fontSize fontSize in pixels for text in the chart
 * @param opts.maxBins maximimum number of bins to use in histogram
 * @param opts.stats summary statistics to show. These will be computed
                     internally if no stats are passed. Pass `false` to not
@@ -364,6 +367,7 @@ Renders a Line Chart.
 * @param opts.height height of chart in px
 * @param opts.xLabel label for x axis
 * @param opts.yLabel label for y axis
+* @param opts.fontSize fontSize in pixels for text in the chart
 * @param opts.zoomToFit a boolean indicating whether to allow non-zero baselines
                         setting this to true allows the line chart to take up
                         more room in the plot.
@@ -395,6 +399,7 @@ Renders a Scatter Plot.
 * @param opts.height height of chart in px
 * @param opts.xLabel label for x axis
 * @param opts.yLabel label for y axis
+* @param opts.fontSize fontSize in pixels for text in the chart
 * @param opts.zoomToFit a boolean indicating whether to allow excluding zero from
                         the domain of the charts axes setting this to true allows
                         the points to take up more room in the plot.
@@ -431,6 +436,7 @@ Renders a confusion matrix
 * on the diagonal. Defaults to false
 * @param opts.width width of chart in px
 * @param opts.height height of chart in px
+* @param opts.fontSize fontSize in pixels for text in the chart
 
 
 ## Metrics

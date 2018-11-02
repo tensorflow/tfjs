@@ -44,6 +44,7 @@ import {getDrawArea} from './render_utils';
  * on the diagonal. Defaults to false
  * @param opts.width width of chart in px
  * @param opts.height height of chart in px
+ * @param opts.fontSize fontSize in pixels for text in the chart
  */
 export async function renderConfusionMatrix(
     data: ConfusionMatrixData, container: Drawable,
@@ -93,6 +94,17 @@ export async function renderConfusionMatrix(
       'type': 'fit',
       'contains': 'padding',
       'resize': true,
+    },
+    'config': {
+      'axis': {
+        'labelFontSize': options.fontSize,
+        'titleFontSize': options.fontSize,
+      },
+      'text': {'fontSize': options.fontSize},
+      'legend': {
+        'labelFontSize': options.fontSize,
+        'titleFontSize': options.fontSize,
+      }
     },
     'data': {'values': values},
     'encoding': {
@@ -165,4 +177,5 @@ const defaultOpts = {
   xType: 'nominal',
   yType: 'nominal',
   shadeDiagonal: false,
+  fontSize: 11,
 };
