@@ -48,15 +48,26 @@ if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
   python "${DEMO_DIR}/python/benchmarks.py" "${DATA_ROOT}"
 fi
 
+# Build tfjs-layers.
+echo "Building tfjs-layers..."
+cd "${DEMO_DIR}/../.."
+yarn
+yarn build
+
+echo "Building benchmarks demo..."
 cd ${DEMO_DIR}
+# Force a refresh of the tfjs-layers dependency.
+rm -rf node_modules
 yarn
 yarn build
 
 echo
 echo "-----------------------------------------------------------"
-echo "Once the HTTP server has started, you can view the demo at:"
-echo "  http://localhost:${DEMO_PORT}/"
+echo "Benchmarks page will open in your browser shortly...       "
+echo
+echo "Once the page is up, click the 'Run Benchmarks' button     "
+echo "to run the benchmarks in the browser.                      "
 echo "-----------------------------------------------------------"
 echo
 
-node_modules/http-server/bin/http-server -p "${DEMO_PORT}" dist/
+yarn watch
