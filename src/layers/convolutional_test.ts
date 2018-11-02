@@ -916,7 +916,7 @@ describeMathGPU('SeparableConv2D Layer: Tensor', () => {
   });
 });
 
-describe('Cropping2D Layer', () => {
+describeMathCPUAndGPU('Cropping2D Layer', () => {
   it('check with undefined channels type', () => {
     const layer = tfl.layers.cropping2D({cropping: [[1, 0], [1, 0]]});
     const x = tensor4d(
@@ -982,7 +982,7 @@ describe('Cropping2D Layer', () => {
           [[[4, 5]]],
         ],
         [1, 1, 1, 2]);
-      
+
     expect(layer.computeOutputShape(x.shape)).toEqual(y.shape);
     expectTensorsClose(layer.apply(x, null) as Tensor, y);
   });
@@ -1065,7 +1065,7 @@ describeMathCPU('UpSampling2D Layer: Symbolic', () => {
   }
 });
 
-describe('UpSampling2D Layer', () => {
+describeMathCPUAndGPU('UpSampling2D Layer', () => {
   it('check with default values', () => {
     const layer = tfl.layers.upSampling2d({});
     const x = tensor4d(

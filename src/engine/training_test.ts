@@ -534,7 +534,8 @@ describeMathCPUAndGPU('Model.fit', () => {
     model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
     // Do not use `await` in the following `model.fit` call, so that
     // the two model.fit() calls may interleave.
-    model.fit(inputs, targets, {batchSize: numSamples, epochs: 8});
+    const firstFit =
+        model.fit(inputs, targets, {batchSize: numSamples, epochs: 8});
     let errorCaught: Error;
     try {
       await model.fit(inputs, targets);
@@ -544,6 +545,7 @@ describeMathCPUAndGPU('Model.fit', () => {
     expect(errorCaught.message)
         .toEqual(
             'Cannot start training because another fit() call is ongoing.');
+    await firstFit;
   });
 
   const validationSplits = [0.2, 0.01];
