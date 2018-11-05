@@ -670,6 +670,13 @@ describeWithFlags('pow', ALL_ENVS, () => {
     expectArraysClose(db, [3 * Math.pow(5, 2) * Math.log(5)]);
   });
 
+  it('gradients: x ^ 2 where x = 0', () => {
+    const f = (x: tf.Scalar) => x.pow(tf.scalar(2)).asScalar();
+    const g = tf.grad(f)(tf.scalar(0));
+
+    expectArraysClose(g, [0]);
+  });
+
   it('gradients: Scalar ^ Scalar fractional exponent', () => {
     const a = tf.scalar(4.0);
     const b = tf.scalar(1.5);
