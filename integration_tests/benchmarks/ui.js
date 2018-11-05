@@ -17,6 +17,7 @@ export function status(statusText) {
 
 export function setMetadata(metadata) {
   document.getElementById('benchmark-timestamp').textContent = new Date().toISOString();
+  document.getElementById('navigator-userAgent').textContent = navigator.userAgent;
   document.getElementById('pyKerasVersion').textContent = metadata.keras_version;
   document.getElementById('tfVersion').textContent = metadata.tensorflow_version;
   document.getElementById('tfUsesGPU').textContent = metadata.tensorflow_uses_gpu;
@@ -37,7 +38,7 @@ export function addResult(modelName, result) {
       result.originalData.train_epochs > 0 ?
       result.originalData.train_epochs : 'N/A';
   row += '<td>' + trainEpochsStr + '</td>';
-  const originalTrainTimeStr = 
+  const originalTrainTimeStr =
       result.originalData.train_epochs > 0 ?
       (result.originalData.train_time * 1e3).toFixed(1) : 'N/A';
   row += '<td>' + originalTrainTimeStr + '</td>';

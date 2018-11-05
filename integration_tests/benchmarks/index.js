@@ -15,7 +15,10 @@ import * as ui from './ui';
 async function runBenchmark(artifactsDir, modelName, config) {
   const modelPath = artifactsDir + modelName + '/';
   console.log('Loading model "' + modelName + '" and benchmark data...');
-  const model = await tfl.loadModel(modelPath + 'model.json');
+  // Note: currently we load only the topology. The weight values don't matter
+  // for the benchmarks and are initialized according to the initializer.
+  const modelJSON = await (await fetch(modelPath + 'model.json')).json();
+  const model = await tfl.models.modelFromJSON(modelJSON['modelTopology']);
   console.log('Done loading model "' + modelName + '" and benchmark data.');
 
   const benchmarkData = await (await fetch(modelPath + 'data.json')).json();
@@ -140,7 +143,7 @@ function getRunAllBenchmarks(artifactsDir, benchmarks) {
       ui.status(
           'Running model (' + (i + 1) + ' of ' + benchmarks.models.length +
           '): "' + modelName +
-          '" ... (Please wait patiently. Do NOT click anything.)');
+          '" ... (Please wait patiently. Do NOT click or scroll anything.)');
       await tfc.nextFrame();
       console.log('Benchmarking model: ' + modelName);
       const result =
@@ -153,7 +156,7 @@ function getRunAllBenchmarks(artifactsDir, benchmarks) {
 }
 
 async function setupBenchmarks() {
-  const artifactsDir = './dist/data/';
+  const artifactsDir = 'data/';
 
   console.log('Loading benchmarks...');
   const url = 'http:' + artifactsDir + 'benchmarks.json';
