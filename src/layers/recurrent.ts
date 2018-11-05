@@ -1564,24 +1564,20 @@ export class GRUCell extends RNNCell {
       if (0 < this.recurrentDropout && this.recurrentDropout < 1) {
         hTMinus1 = tfc.mul(hTMinus1, recDpMask[0]);
       }
-      const matrixInner = K.dot(
-          hTMinus1,
-          K.sliceAlongLastAxis(this.recurrentKernel.read(), 0, 2 * this.units));
 
-      const xZ = K.sliceAlongLastAxis(matrixX, 0, this.units);
-      const xR = K.sliceAlongLastAxis(matrixX, this.units, this.units);
-      const recurrentZ = K.sliceAlongLastAxis(matrixInner, 0, this.units);
-      const recurrentR =
-          K.sliceAlongLastAxis(matrixInner, this.units, this.units);
+      const recurrentKernelValue = this.recurrentKernel.read();
+      const [rk1, rk2] = tfc.split(
+          recurrentKernelValue, [2 * this.units, this.units],
+          recurrentKernelValue.rank - 1);
+      const matrixInner = K.dot(hTMinus1, rk1);
 
+      const [xZ, xR, xH] = tfc.split(matrixX, 3, matrixX.rank - 1);
+      const [recurrentZ, recurrentR] =
+          tfc.split(matrixInner, 2, matrixInner.rank - 1);
       z = this.recurrentActivation.apply(tfc.add(xZ, recurrentZ));
       r = this.recurrentActivation.apply(tfc.add(xR, recurrentR));
 
-      const xH = K.sliceAlongLastAxis(matrixX, 2 * this.units, this.units);
-      const recurrentH = K.dot(
-          tfc.mul(r, hTMinus1),
-          K.sliceAlongLastAxis(
-              this.recurrentKernel.read(), 2 * this.units, this.units));
+      const recurrentH = K.dot(tfc.mul(r, hTMinus1), rk2);
       hh = this.activation.apply(tfc.add(xH, recurrentH));
 
       const h = tfc.add(
@@ -2047,10 +2043,7 @@ export class LSTMCell extends RNNCell {
         z = K.biasAdd(z, this.bias.read());
       }
 
-      const z0 = K.sliceAlongLastAxis(z, 0, this.units);
-      const z1 = K.sliceAlongLastAxis(z, this.units, this.units);
-      const z2 = K.sliceAlongLastAxis(z, this.units * 2, this.units);
-      const z3 = K.sliceAlongLastAxis(z, this.units * 3, this.units);
+      const [z0, z1, z2, z3] = tfc.split(z, 4, z.rank - 1);
 
       i = this.recurrentActivation.apply(z0);
       f = this.recurrentActivation.apply(z1);
