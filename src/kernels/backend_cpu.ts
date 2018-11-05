@@ -1848,7 +1848,6 @@ export class MathBackendCPU implements KernelBackend {
     const dilationWidth = convInfo.dilationWidth;
     const effectiveFilterHeight = convInfo.effectiveFilterHeight;
     const effectiveFilterWidth = convInfo.effectiveFilterWidth;
-    const y = ops.buffer<Rank.R4>(convInfo.outShape, 'float32');
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
 
@@ -1856,13 +1855,25 @@ export class MathBackendCPU implements KernelBackend {
         (poolType === 'max' ? Number.NEGATIVE_INFINITY :
                               Number.POSITIVE_INFINITY);
 
+    const xValues = x.dataSync();
+    const output = ops.buffer<Rank.R4>(convInfo.outShape, x.dtype);
+    const outputVals = output.values;
+
+    const outputBatchStrides =
+        convInfo.outShape[1] * convInfo.outShape[2] * convInfo.outShape[3];
+    const outputRowStrides = convInfo.outShape[2] * convInfo.outShape[3];
+    const outputColStrides = convInfo.outShape[3];
+
     for (let b = 0; b < convInfo.batchSize; ++b) {
+      const outputBatchOffset = b * outputBatchStrides;
+      const inputBatchOffset = b * x.strides[0];
       for (let d = 0; d < convInfo.inChannels; ++d) {
         for (let yR = 0; yR < convInfo.outHeight; ++yR) {
           const xRCorner = yR * strideHeight - padTop;
           const xRMin = Math.max(0, xRCorner);
           const xRMax =
               Math.min(convInfo.inHeight, effectiveFilterHeight + xRCorner);
+          const outputRowOffset = outputBatchOffset + yR * outputRowStrides;
           for (let yC = 0; yC < convInfo.outWidth; ++yC) {
             const xCCorner = yC * strideWidth - padLeft;
             const xCMin = Math.max(0, xCCorner);
@@ -1872,8 +1883,10 @@ export class MathBackendCPU implements KernelBackend {
             let avgValue = 0;
             let count = 0;
             for (let xR = xRMin; xR < xRMax; xR += dilationHeight) {
+              const xROffset = inputBatchOffset + xR * x.strides[1];
               for (let xC = xCMin; xC < xCMax; xC += dilationWidth) {
-                const pixel = x.get(b, xR, xC, d);
+                const xCOffset = xROffset + xC * x.strides[2];
+                const pixel = xValues[xCOffset + d];
                 if ((poolType === 'max' && pixel > minMaxValue)) {
                   minMaxValue = pixel;
                 } else if (poolType === 'avg') {
@@ -1885,14 +1898,14 @@ export class MathBackendCPU implements KernelBackend {
                 break;
               }
             }
-            y.set(
-                poolType === 'avg' ? avgValue / count : minMaxValue, b, yR, yC,
-                d);
+            const outputOffset = outputRowOffset + yC * outputColStrides + d;
+            outputVals[outputOffset] =
+                poolType === 'avg' ? avgValue / count : minMaxValue;
           }
         }
       }
     }
-    return y.toTensor();
+    return output.toTensor();
   }
 
   maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
