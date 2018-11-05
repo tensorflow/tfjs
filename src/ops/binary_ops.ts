@@ -252,7 +252,8 @@ function pow_<T extends Tensor>(base: T|TensorLike, exp: Tensor|TensorLike): T {
   const grad = (dy: Tensor, saved: Tensor[]) => {
     const [y] = saved;
     const derBase = () => {
-      let res = dy.mul($exp.toFloat().mul(y.div($base)));
+      const expFloat = $exp.toFloat();
+      let res = dy.mul(expFloat.mul($base.pow(expFloat.sub(scalar(1)))));
       const reduceAxes = broadcast_util.getReductionAxes($base.shape, outShape);
       if (reduceAxes.length > 0) {
         res = res.sum(reduceAxes);
