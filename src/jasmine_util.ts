@@ -95,12 +95,12 @@ export let TEST_ENVS: TestEnv[] = [
   {
     name: 'test-webgl1',
     factory: () => new MathBackendWebGL(),
-    features: {'WEBGL_VERSION': 1}
+    features: {'WEBGL_VERSION': 1, 'WEBGL_CPU_FORWARD': false}
   },
   {
     name: 'test-webgl2',
     factory: () => new MathBackendWebGL(),
-    features: {'WEBGL_VERSION': 2}
+    features: {'WEBGL_VERSION': 2, 'WEBGL_CPU_FORWARD': false}
   },
   {
     name: 'test-cpu',
