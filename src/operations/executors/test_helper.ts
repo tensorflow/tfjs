@@ -58,8 +58,11 @@ export function createDtypeAttr(dtype: string): ParamValue {
   return {value: dtype, type: 'dtype'};
 }
 
-export function validateParam(node: Node, opMappers: OpMapper[]) {
-  const opMapper = opMappers.find(mapper => mapper.dlOpName === node.op);
+export function validateParam(
+    node: Node, opMappers: OpMapper[], tfOpName?: string) {
+  const opMapper = tfOpName != null ?
+      opMappers.find(mapper => mapper.tfOpName === tfOpName) :
+      opMappers.find(mapper => mapper.dlOpName === node.op);
 
   return Object.keys(node.params).every(key => {
     const value = node.params[key];

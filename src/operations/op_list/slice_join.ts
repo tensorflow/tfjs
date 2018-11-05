@@ -51,7 +51,7 @@ export const json = [
     'params': [
       {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
       {'tfInputIndex': 1, 'dlParamName': 'indices', 'type': 'tensor'}, {
-        'tfParamName': 'axis',
+        'tfInputIndex': 2,
         'dlParamName': 'axis',
         'type': 'number',
         'defaultValue': 0
@@ -83,8 +83,12 @@ export const json = [
     'dlOpName': 'reverse',
     'category': 'slice_join',
     'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'axis', 'type': 'number'}
+      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}, {
+        'tfInputIndex': 1,
+        'dlParamName': 'dims',
+        'type': 'bool',
+        'notSupported': true
+      }
     ]
   },
   {
@@ -93,7 +97,7 @@ export const json = [
     'category': 'slice_join',
     'params': [
       {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'axis', 'type': 'number'}
+      {'tfInputIndex': 1, 'dlParamName': 'axis', 'type': 'number[]'}
     ]
   },
   {

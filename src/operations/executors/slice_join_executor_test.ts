@@ -17,11 +17,12 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
+import * as slice_join from '../op_list/slice_join';
+import {Node, OpMapper} from '../types';
 
 import {executeOp} from './slice_join_executor';
 // tslint:disable-next-line:max-line-length
-import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttr, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr} from './test_helper';
+import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
 
 describe('slice join', () => {
   let node: Node;
@@ -40,10 +41,7 @@ describe('slice join', () => {
         category: 'slice_join',
         inputNames: ['input1', 'input2', 'input3'],
         inputs: [],
-        params: {
-          tensors: createTensorsAttr(0, 1),
-          axis: createNumberAttrFromIndex(-1)
-        },
+        params: {},
         children: []
       };
     });
@@ -51,9 +49,19 @@ describe('slice join', () => {
       it('should call tfc.concat', () => {
         const spy = spyOn(tfc, 'concat');
         node.op = 'concat';
+        node.params.tensors = createTensorsAttr(0, 1);
+        node.params.axis = createNumberAttrFromIndex(-1);
         executeOp(node, {input1, input2, input3}, context);
 
         expect(spy).toHaveBeenCalledWith([input1[0], input2[0]], 3);
+      });
+      it('should match json def for concat', () => {
+        node.op = 'concat';
+        node.params.tensors = createTensorsAttr(0, 1);
+        node.params.axis = createNumberAttrFromIndex(-1);
+
+        expect(validateParam(node, slice_join.json as OpMapper[], 'ConcatV2'))
+            .toBeTruthy();
       });
       it('should call tfc.unstack', () => {
         const spy = spyOn(tfc, 'unstack');
@@ -64,7 +72,13 @@ describe('slice join', () => {
 
         expect(spy).toHaveBeenCalledWith(input1[0], 4);
       });
+      it('should match json def for unstack', () => {
+        node.op = 'unstack';
+        node.params.tensor = createTensorAttr(0);
+        node.params.axis = createNumberAttr(4);
 
+        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+      });
       it('should call tfc.stack', () => {
         const spy = spyOn(tfc, 'stack');
         node.op = 'stack';
@@ -77,7 +91,13 @@ describe('slice join', () => {
         expect(spy.calls.mostRecent().args[0][2]).toEqual(input3[0]);
         expect(spy.calls.mostRecent().args[1]).toEqual(4);
       });
+      it('should match json def for unstack', () => {
+        node.op = 'stack';
+        node.params.tensors = createTensorsAttr(0, 0);
+        node.params.axis = createNumberAttr(4);
 
+        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+      });
       it('should reshape tensors for tfc.stack', () => {
         const spy = spyOn(tfc, 'stack');
         node.op = 'stack';
@@ -92,7 +112,6 @@ describe('slice join', () => {
         expect(spy.calls.mostRecent().args[0][3].shape).toEqual([]);
         expect(spy.calls.mostRecent().args[1]).toEqual(4);
       });
-
       it('should raise error if tensors shape does not match for tfc.stack',
          () => {
            node.op = 'stack';
@@ -121,61 +140,100 @@ describe('slice join', () => {
       it('should call tfc.reverse', () => {
         spyOn(tfc, 'reverse');
         node.op = 'reverse';
-        node.params.axis = createNumberAttrFromIndex(1);
+        node.params.axis = createNumericArrayAttrFromIndex(1);
         node.inputNames = ['input1', 'input2'];
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.reverse).toHaveBeenCalledWith(input1[0], 2);
+        expect(tfc.reverse).toHaveBeenCalledWith(input1[0], [2]);
       });
+      it('should match json def for reverse', () => {
+        node.op = 'reverse';
+        node.params.axis = createNumericArrayAttrFromIndex(1);
 
+        expect(validateParam(node, slice_join.json as OpMapper[], 'ReverseV2'))
+            .toBeTruthy();
+      });
       it('should call tfc.tile', () => {
         spyOn(tfc, 'tile');
         node.op = 'tile';
-        node.params.reps = createNumberAttrFromIndex(1);
+        node.params.reps = createNumericArrayAttrFromIndex(1);
         node.inputNames = ['input1', 'input2'];
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.tile).toHaveBeenCalledWith(input1[0], 2);
+        expect(tfc.tile).toHaveBeenCalledWith(input1[0], [2]);
       });
+      it('should match json def for tile', () => {
+        node.op = 'tile';
+        node.params.reps = createNumericArrayAttrFromIndex(1);
 
+        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+      });
       it('should call tfc.slice', () => {
         spyOn(tfc, 'slice');
         node.op = 'slice';
-        node.params.begin = createNumericArrayAttr([1]);
-        node.params.size = createNumericArrayAttr([2]);
-        executeOp(node, {input1}, context);
+        node.params.begin = createNumericArrayAttrFromIndex(1);
+        node.params.size = createNumericArrayAttrFromIndex(2);
+        node.inputNames = ['input1', 'input2', 'input3'];
 
-        expect(tfc.slice).toHaveBeenCalledWith(input1[0], [1], [2]);
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(tfc.slice).toHaveBeenCalledWith(input1[0], [2], [3]);
       });
+      it('should match json def for slice', () => {
+        node.op = 'slice';
+        node.params.begin = createNumericArrayAttrFromIndex(1);
+        node.params.size = createNumericArrayAttrFromIndex(2);
 
+        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+      });
       it('should call tfc.stridedSlice', () => {
         spyOn(tfc, 'stridedSlice');
         node.op = 'stridedSlice';
-        node.params.begin = createNumericArrayAttr([1]);
-        node.params.end = createNumericArrayAttr([2]);
-        node.params.strides = createNumericArrayAttr([3]);
+        node.params.begin = createNumericArrayAttrFromIndex(1);
+        node.params.end = createNumericArrayAttrFromIndex(2);
+        node.params.strides = createNumericArrayAttrFromIndex(3);
         node.params.beginMask = createNumberAttr(4);
         node.params.endMask = createNumberAttr(5);
         node.params.ellipsisMask = createNumberAttr(1);
         node.params.newAxisMask = createNumberAttr(2);
         node.params.shrinkAxisMask = createNumberAttr(3);
-        executeOp(node, {input1}, context);
+        node.inputNames = ['input1', 'input2', 'input3', 'input4'];
+        executeOp(node, {input1, input2, input3, input4}, context);
 
         expect(tfc.stridedSlice)
-            .toHaveBeenCalledWith(input1[0], [1], [2], [3], 4, 5, 1, 2, 3);
+            .toHaveBeenCalledWith(input1[0], [2], [3], [3], 4, 5, 1, 2, 3);
       });
+      it('should match json def for stridedSlice', () => {
+        node.op = 'stridedSlice';
+        node.params.begin = createNumericArrayAttrFromIndex(1);
+        node.params.end = createNumericArrayAttrFromIndex(2);
+        node.params.strides = createNumericArrayAttrFromIndex(3);
+        node.params.beginMask = createNumberAttr(4);
+        node.params.endMask = createNumberAttr(5);
+        node.params.ellipsisMask = createNumberAttr(1);
+        node.params.newAxisMask = createNumberAttr(2);
+        node.params.shrinkAxisMask = createNumberAttr(3);
 
+        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+      });
       it('should call tfc.gather', () => {
         spyOn(tfc, 'gather');
         node.op = 'gather';
-        node.params.axis = createNumberAttr(1);
         node.params.indices = createTensorAttr(1);
-        node.inputNames = ['input1', 'input2'];
-        executeOp(node, {input1, input2}, context);
+        node.params.axis = createNumberAttrFromIndex(2);
+        node.inputNames = ['input1', 'input2', 'input3'];
+        executeOp(node, {input1, input2, input3}, context);
 
-        expect(tfc.gather).toHaveBeenCalledWith(input1[0], input2[0], 1);
+        expect(tfc.gather).toHaveBeenCalledWith(input1[0], input2[0], 3);
       });
+      it('should match json def for gather', () => {
+        node.op = 'gather';
+        node.params.indices = createTensorAttr(1);
+        node.params.axis = createNumberAttrFromIndex(2);
 
+        expect(validateParam(node, slice_join.json as OpMapper[], 'GatherV2'))
+            .toBeTruthy();
+      });
       it('should call tfc.split', () => {
         spyOn(tfc, 'split');
         node.op = 'split';
@@ -186,6 +244,15 @@ describe('slice join', () => {
         executeOp(node, {input1, input2}, context);
 
         expect(tfc.split).toHaveBeenCalledWith(input2[0], 2, 1);
+      });
+      it('should match json def for split', () => {
+        node.op = 'split';
+        node.params.axis = createNumberAttrFromIndex(0);
+        node.params.x = createTensorAttr(1);
+        node.params.numOrSizeSplits = createNumberAttr(2);
+
+        expect(validateParam(node, slice_join.json as OpMapper[], 'Split'))
+            .toBeTruthy();
       });
       it('should call tfc.split', () => {
         spyOn(tfc, 'split');
@@ -198,6 +265,15 @@ describe('slice join', () => {
 
         expect(tfc.split).toHaveBeenCalledWith(input1[0], [2], 3);
       });
+      it('should match json def for split', () => {
+        node.op = 'split';
+        node.params.x = createTensorAttr(0);
+        node.params.numOrSizeSplits = createNumericArrayAttrFromIndex(1);
+        node.params.axis = createNumberAttrFromIndex(2);
+
+        expect(validateParam(node, slice_join.json as OpMapper[], 'SplitV'))
+            .toBeTruthy();
+      });
       it('should call tfc.scatterND', () => {
         spyOn(tfc, 'scatterND');
         node.op = 'scatterNd';
@@ -209,6 +285,15 @@ describe('slice join', () => {
 
         expect(tfc.scatterND).toHaveBeenCalledWith(input1[0], input2[0], [3]);
       });
+      it('should match json def for scatterND', () => {
+        node.op = 'scatterNd';
+        delete node.params.x;
+        node.params.indices = createTensorAttr(0);
+        node.params.values = createTensorAttr(1);
+        node.params.shape = createNumericArrayAttrFromIndex(2);
+
+        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+      });
       it('should call tfc.gatherND', () => {
         spyOn(tfc, 'gatherND');
         node.op = 'gatherNd';
@@ -218,6 +303,13 @@ describe('slice join', () => {
         executeOp(node, {input1, input2}, context);
 
         expect(tfc.gatherND).toHaveBeenCalledWith(input1[0], input2[0]);
+      });
+      it('should match json def for gatherND', () => {
+        node.op = 'gatherNd';
+        node.params.x = createTensorAttr(0);
+        node.params.indices = createTensorAttr(1);
+
+        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
       });
     });
   });

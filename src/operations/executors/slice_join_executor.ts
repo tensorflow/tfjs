@@ -42,7 +42,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
       return [tfc.gather(input, indices, axis)];
     }
     case 'reverse': {
-      const axis = getParamValue('axis', node, tensorMap, context) as number;
+      const axis = getParamValue('axis', node, tensorMap, context) as number[];
       const input = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
       return [tfc.reverse(input, axis)];
     }
