@@ -3,11 +3,14 @@ node_js:
   - '8'
   - '10'
 script:
-  - cd integration_tests/benchmarks && yarn && yarn lint && yarn benchmark-travis && cd ../../
-  - yarn && yarn build && yarn lint && if [[ $(node -v) = *v10* ]]; then yarn test-all; fi
+  - if [ "$TO_TEST" = "regular" ]; then yarn test-benchmark && yarn test-travis; fi
+  - if [ "$TO_TEST" = "integration" ]; then yarn test-integration; fi
 cache: yarn
 git:
   depth: 5
+env:
+  - TO_TEST=regular
+  - TO_TEST=integration
 notifications:
   email:
     recipients:
@@ -15,3 +18,7 @@ notifications:
     on_success: never
     on_failure: always
     on_pull_requests: false
+matrix:
+  exclude:
+  - node_js: '8'
+    env: TO_TEST=integration
