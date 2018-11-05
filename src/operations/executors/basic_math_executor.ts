@@ -140,7 +140,10 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
       return [tfc.div(
           tfc.scalar(1.0, 'float32'),
           tfc.sqrt(getTensor(node.inputNames[0], tensorMap, context)))];
-
+    case 'prod':
+      return [tfc.prod(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('axes', node, tensorMap, context) as number[])];
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }

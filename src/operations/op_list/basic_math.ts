@@ -476,5 +476,25 @@ export const json = [
         'notSupported': true
       }
     ]
+  },
+  {
+    'tfOpName': 'Prod',
+    'dlOpName': 'prod',
+    'category': 'basic_math',
+    'params': [
+      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
+      {'tfInputIndex': 1, 'dlParamName': 'axes', 'type': 'number[]'}, {
+        'tfParamName': 'keep_dims',
+        'dlParamName': 'keepDims',
+        'type': 'bool',
+        'notSupported': true
+      },
+      {
+        'tfParamName': 'T',
+        'dlParamName': 'dtype',
+        'type': 'dtype',
+        'notSupported': true
+      }
+    ]
   }
 ];
