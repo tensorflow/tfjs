@@ -35,6 +35,7 @@ import {DataId, Scalar, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, 
 import {DataType, DataTypeMap, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../types';
 import * as util from '../util';
 import {getTypedArrayFromDType, sizeFromShape} from '../util';
+
 import {DataMover, DataStorage, KernelBackend} from './backend';
 import * as backend_util from './backend_util';
 import {mergeRealAndImagArrays} from './complex_util';
@@ -128,6 +129,9 @@ export interface TensorHandle {
   dtype: DataType;
 }
 
+// Empirically determined constant used to determine size threshold for handing
+// off execution to the CPU.
+const CPU_HANDOFF_SIZE_THRESHOLD = 10;
 // Empirically determined constant used to decide the number of bytes on GPU
 // before we start paging. The bytes are this constant * screen area * dpi.
 const BEFORE_PAGING_CONSTANT = 300;
@@ -160,6 +164,7 @@ export class MathBackendWebGL implements KernelBackend {
   private uploadWaitMs = 0;
   // Accumulated time spent (including blocking in downloading data from webgl.
   private downloadWaitMs = 0;
+  private cpuBackend: KernelBackend;
 
   register(dataId: DataId, shape: number[], dtype: DataType): void {
     if (this.texData.has(dataId)) {
@@ -504,6 +509,33 @@ export class MathBackendWebGL implements KernelBackend {
     this.textureManager = new TextureManager(this.gpgpu);
   }
 
+  private getCPUBackend() {
+    if (!ENV.get('WEBGL_CPU_FORWARD')) {
+      return null;
+    }
+
+    if (this.cpuBackend == null) {
+      this.cpuBackend = ENV.findBackend('cpu');
+    }
+
+    return this.cpuBackend;
+  }
+
+  /*
+  Tests whether all the inputs to an op are small and on the CPU. This heuristic
+  determines when it would be faster to execute a kernel on the CPU. WebGL
+  kernels opt into running this check and forwarding when appropriate.
+  TODO(https://github.com/tensorflow/tfjs/issues/872): Develop a more
+  sustainable strategy for optimizing backend execution of ops.
+   */
+  private shouldExecuteOnCPU(
+      inputs: Tensor[], sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
+    return this.getCPUBackend() != null &&
+        inputs.every(
+            input => this.texData.get(input.dataId).texture == null &&
+                input.size < sizeThreshold);
+  }
+
   getGPGPUContext(): GPGPUContext {
     return this.gpgpu;
   }
@@ -534,6 +566,10 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.slice(x, begin, size);
+    }
+
     const program = new SliceProgram(size);
     const customSetup = program.getCustomSetupFunc(begin);
     return this.compileAndRun(program, [x], null, customSetup);
@@ -543,6 +579,12 @@ export class MathBackendWebGL implements KernelBackend {
       x: T, begin: number[], end: number[], strides: number[],
       beginMask: number, endMask: number, ellipsisMask: number,
       newAxisMask: number, shrinkAxisMask: number): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.stridedSlice(
+          x, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask,
+          shrinkAxisMask);
+    }
+
     const [beginIndex, size, shrinkAxis] = getStridedSlicedInfo(
         x.shape, begin, end, strides, beginMask, endMask, ellipsisMask,
         newAxisMask, shrinkAxisMask);
@@ -579,6 +621,10 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   concat(tensors: Tensor[], axis: number): Tensor {
+    if (this.shouldExecuteOnCPU(tensors)) {
+      return this.cpuBackend.concat(tensors, axis);
+    }
+
     if (tensors.length === 1) {
       return tensors[0];
     }
@@ -642,6 +688,10 @@ export class MathBackendWebGL implements KernelBackend {
       real.dispose();
       imag.dispose();
       return complex;
+    }
+
+    if (this.shouldExecuteOnCPU([a, b])) {
+      return this.cpuBackend.multiply(a, b);
     }
 
     const program = new BinaryOpProgram(binaryop_gpu.MUL, a.shape, b.shape);
@@ -926,6 +976,10 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   less(a: Tensor, b: Tensor): Tensor {
+    if (this.shouldExecuteOnCPU([a, b])) {
+      return this.cpuBackend.less(a, b);
+    }
+
     const program = new BinaryOpProgram(binaryop_gpu.LESS, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'bool');
     return this.compileAndRun(program, [a, b], output);
@@ -939,6 +993,10 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   greater(a: Tensor, b: Tensor): Tensor {
+    if (this.shouldExecuteOnCPU([a, b])) {
+      return this.cpuBackend.greater(a, b);
+    }
+
     const program = new BinaryOpProgram(binaryop_gpu.GREATER, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'bool');
     return this.compileAndRun(program, [a, b], output);
@@ -1000,6 +1058,10 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   minimum(a: Tensor, b: Tensor): Tensor {
+    if (this.shouldExecuteOnCPU([a, b])) {
+      return this.cpuBackend.minimum(a, b);
+    }
+
     const program = new BinaryOpProgram(binaryop_gpu.MIN, a.shape, b.shape);
     return this.compileAndRun(program, [a, b]);
   }
@@ -1020,6 +1082,10 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   maximum(a: Tensor, b: Tensor): Tensor {
+    if (this.shouldExecuteOnCPU([a, b])) {
+      return this.cpuBackend.maximum(a, b);
+    }
+
     const program = new BinaryOpProgram(binaryop_gpu.MAX, a.shape, b.shape);
     return this.compileAndRun(program, [a, b]);
   }
@@ -1130,6 +1196,10 @@ export class MathBackendWebGL implements KernelBackend {
   subtract(a: Tensor, b: Tensor): Tensor {
     if (a.dtype === 'complex64' && b.dtype === 'complex64') {
       return this.complexSeparableBinaryOp(a, b, binaryop_gpu.SUB);
+    }
+
+    if (this.shouldExecuteOnCPU([a, b])) {
+      return this.cpuBackend.subtract(a, b);
     }
 
     const program = new BinaryOpProgram(binaryop_gpu.SUB, a.shape, b.shape);
