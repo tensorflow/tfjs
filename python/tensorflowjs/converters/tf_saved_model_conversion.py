@@ -114,7 +114,7 @@ def optimize_graph(graph,
 
   rewriter_config = rewriter_config_pb2.RewriterConfig()
   rewriter_config.optimizers[:] = [
-      'pruning', 'constfold', 'arithmetic', 'dependency', 'pruning',
+      'pruning', 'constfold', 'arithmetic', 'dependency', 'pruning', 'remap',
       'constfold', 'arithmetic', 'dependency'
   ]
   if strip_debug_ops:
