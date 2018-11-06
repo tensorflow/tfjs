@@ -28,6 +28,7 @@ set -e
 
 BRANCH=`git rev-parse --abbrev-ref HEAD`
 ORIGIN=`git config --get remote.origin.url`
+CHANGES=`git status --porcelain`
 
 if [ "$BRANCH" != "master" ]; then
   echo "Error: Switch to the master branch before publishing."
@@ -37,6 +38,13 @@ fi
 if ! [[ "$ORIGIN" =~ tensorflow/tfjs-core ]]; then
   echo "Error: Switch to the main repo (tensorflow/tfjs-core) before publishing."
   exit
+fi
+
+if [ ! -z "$CHANGES" ];
+then
+    echo "Make sure the master branch is clean. Found changes:"
+    echo $CHANGES
+    exit 1
 fi
 
 yarn build-npm
