@@ -19,7 +19,7 @@ import {Logs} from '@tensorflow/tfjs-layers/dist/logs';
 
 import {renderLinechart} from '../render/linechart';
 import {getDrawArea, nextFrame} from '../render/render_utils';
-import {Drawable, Point2D} from '../types';
+import {Drawable, Point2D, XYPlotOptions} from '../types';
 import {subSurface} from '../util/dom';
 
 /**
@@ -39,36 +39,98 @@ export async function history(
   // Get the draw surface
   const drawArea = getDrawArea(container);
 
-  // Format Data
-
-  let values: Point2D[][];
-  if (Array.isArray(history)) {
-    values = metrics.map(metric => {
-      const points: Point2D[] = [];
-      history.forEach((log: Logs, x: number) => {
-        if (log[metric] != null) {
-          points.push({x, y: log[metric]});
-        }
-      });
-      return points;
-    });
-  } else {
-    values = metrics.map(metric => {
-      return (history.history[metric] as number[]).map((y, x) => ({x, y}));
-    });
+  // We organize the data from the history object into discrete plot data
+  // objects so that we can group together appropriate metrics into single
+  // multi-series charts.
+  const plots: HistoryPlotData = {};
+  for (const metric of metrics) {
+    if (!(/val_/.test(metric))) {
+      // Non validation metric
+      const values = getValues(history, metric, metrics.indexOf(metric));
+      initPlot(plots, metric);
+      plots[metric].series.push(metric);
+      plots[metric].values.push(values);
+    } else {
+      // Validation metrics are grouped with their equivalent non validation
+      // metrics. Note that the corresponding non validation metric may not
+      // actually be included but we still want to use it as a plot name.
+      const nonValidationMetric = metric.replace('val_', '');
+      initPlot(plots, nonValidationMetric);
+      const values = getValues(history, metric, metrics.indexOf(metric));
+      plots[nonValidationMetric].series.push(metric);
+      plots[nonValidationMetric].values.push(values);
+    }
   }
 
-  // Remove collections that are empty because the logs object doesn't have
-  // an entry for that metric.
-  values = values.filter(v => v.length > 0);
-
-  // Dispatch to render func
-  if (values.length > 0) {
-    const series = metrics;
-    return renderLinechart({values, series}, drawArea, {
+  // Render each plot specified above to a new subsurface.
+  // A plot may have multiple series.
+  const plotNames = Object.keys(plots);
+  const renderPromises = [];
+  for (const name of plotNames) {
+    const subContainer = subSurface(drawArea, name);
+    const series = plots[name].series;
+    const values = plots[name].values;
+    const options: XYPlotOptions = {
       xLabel: 'Iteration',
       yLabel: 'Value',
-    });
+    };
+
+    if (series.every(seriesName => Boolean(seriesName.match('acc')))) {
+      // Set a domain of 0-1 if all the series in this plot are related to
+      // accuracy.
+      options.yAxisDomain = [0, 1];
+    }
+
+    const done = renderLinechart({values, series}, subContainer, options);
+    renderPromises.push(done);
+  }
+  await Promise.all(renderPromises);
+}
+
+type HistoryLike = Logs[]|Logs[][]|{
+  history: {
+    [key: string]: number[],
+  }
+};
+
+interface HistoryPlotData {
+  [name: string]: {
+    series: string[],
+    values: Point2D[][],
+  };
+}
+
+function initPlot(plot: HistoryPlotData, name: string) {
+  if (plot[name] == null) {
+    plot[name] = {series: [], values: []};
+  }
+}
+
+/*
+ * Extracts a list of Point2D's suitable for plotting from a HistoryLike for
+ * a single metric.
+ * @param history a HistoryLike object
+ * @param metric the metric to extract from the logs
+ * @param metricIndex this is needed because the historylike can be a nested
+ * list of logs for multiple metrics, this index lets us extract the correct
+ * list.
+ */
+function getValues(
+    history: HistoryLike, metric: string, metricIndex: number): Point2D[] {
+  if (Array.isArray(history)) {
+    // If we were passed a nested array we want to get the correct list
+    // for this given metric, metrix index gives us this list.
+    const metricHistory =
+        (Array.isArray(history[0]) ? history[metricIndex] : history) as Logs[];
+    const points: Point2D[] = [];
+
+    for (let i = 0; i < metricHistory.length; i++) {
+      const log = metricHistory[i];
+      points.push({x: i, y: log[metric]});
+    }
+    return points;
+  } else {
+    return (history.history[metric] as number[]).map((y, x) => ({x, y}));
   }
 }
 
@@ -82,29 +144,39 @@ export async function history(
  */
 export function fitCallbacks(
     container: Drawable, metrics: string[]): FitCallbackHandlers {
-  const accumulators: {[key: string]: Logs[]} = {};
+  const accumulators: FitCallbackLogs = {};
   const callbackNames = ['onEpochEnd', 'onBatchEnd'];
   const drawArea = getDrawArea(container);
 
-  for (const callbackName of callbackNames) {
-    for (const metric of metrics) {
-      const accumulatorName = getAccumulatorName(metric, callbackName);
-      accumulators[accumulatorName] = [];
-    }
-  }
-
   function makeCallbackFor(callbackName: string) {
     return async (_: number, log: Logs) => {
+      // Because of how the _ (iteration) numbers are given in the layers api
+      // we have to store each metric for each callback in different arrays else
+      // we cannot get accurate 'global' batch numbers for onBatchEnd.
+
+      // However at render time we want to be able to combine metrics for a
+      // given callback. So here we make a nested list of metrics, the first
+      // level are arrays for each callback, the second level contains arrays
+      // (of logs) for each metric within that callback.
+
+      const metricLogs: Logs[][] = [];
+      const presentMetrics: string[] = [];
       for (const metric of metrics) {
-        const accumulatorName = getAccumulatorName(metric, callbackName);
-        const metricLog = accumulators[accumulatorName];
-        metricLog.push({[accumulatorName]: log[metric]});
+        // not all logs have all kinds of metrics.
+        if (log[metric] != null) {
+          presentMetrics.push(metric);
 
-        const subContainer = subSurface(drawArea, accumulatorName);
-        history(subContainer, metricLog, [accumulatorName]);
-
-        await nextFrame();
+          const accumulator =
+              getAccumulator(accumulators, callbackName, metric);
+          accumulator.push({[metric]: log[metric]});
+          metricLogs.push(accumulator);
+        }
       }
+
+      const subContainer =
+          subSurface(drawArea, callbackName, {title: callbackName});
+      history(subContainer, metricLogs, presentMetrics);
+      await nextFrame();
     };
   }
 
@@ -115,15 +187,23 @@ export function fitCallbacks(
   return callbacks;
 }
 
-type HistoryLike = Logs[]|{
-  history: {
-    [key: string]: number[],
-  }
-};
 interface FitCallbackHandlers {
   [key: string]: (iteration: number, log: Logs) => Promise<void>;
 }
 
-function getAccumulatorName(metric: string, callbackName: string): string {
-  return `${metric}—${callbackName}`;
+interface FitCallbackLogs {
+  [callback: string]: {
+    [metric: string]: Logs[],
+  };
+}
+
+function getAccumulator(
+    accumulators: FitCallbackLogs, callback: string, metric: string): Logs[] {
+  if (accumulators[callback] == null) {
+    accumulators[callback] = {};
+  }
+  if (accumulators[callback][metric] == null) {
+    accumulators[callback][metric] = [];
+  }
+  return accumulators[callback][metric];
 }

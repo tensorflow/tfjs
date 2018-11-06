@@ -31,7 +31,17 @@ const DEFAULT_SUBSURFACE_OPTS = {
 export function subSurface(parent: Drawable, name: string, opts: Options = {}) {
   const container = getDrawArea(parent);
   const style = css({...tac('mv2')});
-  const finalOpts = Object.assign({}, DEFAULT_SUBSURFACE_OPTS, opts);
+  const titleStyle = css({
+    backgroundColor: 'white',
+    display: 'inline-block',
+    boxSizing: 'border-box',
+    borderBottom: '1px solid #357EDD',
+    lineHeight: '2em',
+    padding: '0 10px 0 10px',
+    marginBottom: '20px',
+    ...tac('fw6 tl')
+  });
+  const options = Object.assign({}, DEFAULT_SUBSURFACE_OPTS, opts);
 
   let sub: HTMLElement|null = container.querySelector(`div[data-name=${name}]`);
   if (!sub) {
@@ -39,7 +49,14 @@ export function subSurface(parent: Drawable, name: string, opts: Options = {}) {
     sub.setAttribute('class', `${style}`);
     sub.dataset.name = name;
 
-    if (finalOpts.prepend) {
+    if (options.title) {
+      const title = document.createElement('div');
+      title.setAttribute('class', `subsurface-title ${titleStyle}`);
+      title.innerText = options.title;
+      sub.appendChild(title);
+    }
+
+    if (options.prepend) {
       container.insertBefore(sub, container.firstChild);
     } else {
       container.appendChild(sub);
@@ -50,4 +67,5 @@ export function subSurface(parent: Drawable, name: string, opts: Options = {}) {
 
 interface Options {
   prepend?: boolean;
+  title?: string;
 }
