@@ -290,6 +290,36 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     expectArraysClose(result, expected);
   });
 
+  it('batched matmul with the matrices being vectors', () => {
+    const batch = 3;
+    const sharedDim = 10000;
+    const a = tf.fill([batch, 1, sharedDim], 0.1);
+    const b = tf.fill([batch, sharedDim, 1], 0.1);
+    const result = tf.matMul(a, b);
+    expect(result.shape).toEqual([batch, 1, 1]);
+    expectArraysClose(result, [100, 100, 100]);
+  });
+
+  it('batched matmul with matrix x vector', () => {
+    const batch = 3;
+    const sharedDim = 10000;
+    const a = tf.fill([batch, 2, sharedDim], 0.1);
+    const b = tf.fill([batch, sharedDim, 1], 0.1);
+    const result = tf.matMul(a, b);
+    expect(result.shape).toEqual([batch, 2, 1]);
+    expectArraysClose(result, [100, 100, 100, 100, 100, 100]);
+  });
+
+  it('batched matmul with vector x matrix', () => {
+    const batch = 3;
+    const sharedDim = 10000;
+    const a = tf.fill([batch, 1, sharedDim], 0.1);
+    const b = tf.fill([batch, sharedDim, 2], 0.1);
+    const result = tf.matMul(a, b);
+    expect(result.shape).toEqual([batch, 1, 2]);
+    expectArraysClose(result, [100, 100, 100, 100, 100, 100]);
+  });
+
   it('Matrix * vector propagates NaNs', () => {
     const matrix = tf.tensor2d([1, 2, 3, 4], [2, 2]);
     const v = tf.tensor1d([2, NaN]);
