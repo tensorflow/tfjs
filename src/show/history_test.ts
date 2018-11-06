@@ -32,22 +32,20 @@ describe('fitCallbacks', () => {
 
   it('onEpochEnd callback can render logs', async () => {
     const container = {name: 'Test'};
-    const callbacks = fitCallbacks(container, ['loss', 'acc']);
+    const callbacks =
+        fitCallbacks(container, ['loss', 'val_loss', 'acc', 'val_acc']);
 
-    const l1 = {loss: 0.5};
-    const l2 = {loss: 0.2, acc: 0.6};
+    const l1 = {loss: 0.5, 'val_loss': 0.7};
+    const l2 = {loss: 0.2, acc: 0.6, 'val_loss': 0.5, 'val_acc': 0.3};
 
     await callbacks.onEpochEnd(0, l1);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
-    expect(document.querySelectorAll('div[data-name="loss—onEpochEnd"]').length)
-        .toBe(1);
+    expect(document.querySelectorAll('div[data-name="loss"]').length).toBe(1);
 
-    await callbacks.onEpochEnd(0, l2);
+    await callbacks.onEpochEnd(1, l2);
     expect(document.querySelectorAll('.vega-embed').length).toBe(2);
-    expect(document.querySelectorAll('div[data-name="loss—onEpochEnd"]').length)
-        .toBe(1);
-    expect(document.querySelectorAll('div[data-name="acc—onEpochEnd"]').length)
-        .toBe(1);
+    expect(document.querySelectorAll('div[data-name="loss"]').length).toBe(1);
+    expect(document.querySelectorAll('div[data-name="acc"]').length).toBe(1);
   });
 
   it('onBatchEnd callback can render logs', async () => {
@@ -59,15 +57,12 @@ describe('fitCallbacks', () => {
 
     await callbacks.onBatchEnd(0, l1);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
-    expect(document.querySelectorAll('div[data-name="loss—onBatchEnd"]').length)
-        .toBe(1);
+    expect(document.querySelectorAll('div[data-name="loss"]').length).toBe(1);
 
-    await callbacks.onBatchEnd(0, l2);
+    await callbacks.onBatchEnd(1, l2);
     expect(document.querySelectorAll('.vega-embed').length).toBe(2);
-    expect(document.querySelectorAll('div[data-name="loss—onBatchEnd"]').length)
-        .toBe(1);
-    expect(document.querySelectorAll('div[data-name="acc—onBatchEnd"]').length)
-        .toBe(1);
+    expect(document.querySelectorAll('div[data-name="loss"]').length).toBe(1);
+    expect(document.querySelectorAll('div[data-name="acc"]').length).toBe(1);
   });
 });
 
@@ -91,7 +86,7 @@ describe('history', () => {
     const metrics = ['loss', 'acc'];
     await history(container, logs, metrics);
 
-    expect(document.querySelectorAll('.vega-embed').length).toBe(1);
+    expect(document.querySelectorAll('.vega-embed').length).toBe(2);
   });
 
   it('renders a history object with multiple metrics', async () => {
@@ -105,7 +100,7 @@ describe('history', () => {
     const metrics = ['loss', 'acc'];
     await history(container, hist, metrics);
 
-    expect(document.querySelectorAll('.vega-embed').length).toBe(1);
+    expect(document.querySelectorAll('.vega-embed').length).toBe(2);
   });
 
   it('can render multiple history objects', async () => {

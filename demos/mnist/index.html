@@ -55,9 +55,12 @@
 
     <section>
       <p>
-        tfjs-vis is a small set of visualization utilities to make it easier to understand what is going on with your tfjs models.
-        It is designed in a way to work along side regular web apps. This page will use some of the features of tfjs to illustrate
-        what is going on with a convolutional model that will be trained (in the browser) to recognize handwritten digits.
+        tfjs-vis is a small set of visualization utilities to make it easier to understand what is going on with your
+        tfjs models.
+        It is designed in a way to work along side regular web apps. This page will use some of the features of tfjs to
+        illustrate
+        what is going on with a convolutional model that will be trained (in the browser) to recognize handwritten
+        digits.
       </p>
 
       <p>
@@ -75,14 +78,17 @@
     <section>
       <h2>The Visor</h2>
       <p>
-        Let's take a look at the first. Calling <code>tfvis.visor()</code> will create a visor if it doesn't exist or return
+        Let's take a look at the first. Calling <code>tfvis.visor()</code> will create a visor if it doesn't exist or
+        return
         the existing one. Click the button below to show the
         <em>visor.</em>
       </p>
       <button id='show-visor'>Show Visor</button>
       <p>
-        Notice the panel that is now displayed on the right. It hovers over your pages content and shouldn't disturb the flow of
-        your page's DOM Elements. You can see a few controls for showing or hiding the visor, but by default it also supports
+        Notice the panel that is now displayed on the right. It hovers over your pages content and shouldn't disturb
+        the flow of
+        your page's DOM Elements. You can see a few controls for showing or hiding the visor, but by default it also
+        supports
         the following keyboard shortcuts:
         <ul>
           <li>
@@ -103,8 +109,10 @@
       </p>
       <button id='make-first-surface'>Make a surface</button>
       <p>
-        To create a surface we must give is a name, we can also optionally specify a tab name that the surface should be put on.
-        <code>visor().surface()</code> allows us to create a surface if it doesn't exist or fetch it if it does. This API
+        To create a surface we must give is a name, we can also optionally specify a tab name that the surface should
+        be put on.
+        <code>visor().surface()</code> allows us to create a surface if it doesn't exist or fetch it if it does. This
+        API
         returns an object that has a pointer to 3 DOM elements:
         <ul>
           <li>
@@ -121,7 +129,8 @@
     <section>
       <h2>Our Data</h2>
       <p>
-        We will use the MNIST database as our training set, it is comprised of a set of about 60k images of handwritten digits, all
+        We will use the MNIST database as our training set, it is comprised of a set of about 60k images of handwritten
+        digits, all
         cropped to 28x28 px. Lets take a look at a few examples, we'll use the surface we created earlier.
       </p>
       <button id='load-data'>Load Data</button>
@@ -129,8 +138,10 @@
       <button id='show-examples' disabled>Show Example Digits</button>
 
       <p>
-        The code to render these examples isn't built into tfjs. But because you have full access to the DOM element for each surface,
-        you can draw whatever you would like into them. This allows easy integration of custom visualizations into the visor.
+        The code to render these examples isn't built into tfjs. But because you have full access to the DOM element
+        for each surface,
+        you can draw whatever you would like into them. This allows easy integration of custom visualizations into the
+        visor.
 
         <p>
           Here is the code for the "Show Example Digits" button above:
@@ -175,7 +186,8 @@
     <section>
       <h2>Training Our Model</h2>
       <p>
-        Our goal is to train a model to recognize similar digits. We have already written a tutorial on how to do so. So in this
+        Our goal is to train a model to recognize similar digits. We have already written a tutorial on how to do so.
+        So in this
         article we are going to focus on monitoring that training and also look at how well our model performs.
       </p>
 
@@ -214,7 +226,8 @@
       </script>
 
       <p>
-        We can use the <code>show.fitCallbacks</code> method to get functions that will plot the loss after every batch and
+        We can use the <code>show.fitCallbacks</code> method to get functions that will plot the loss after every batch
+        and
         epoch.
       </p>
 
@@ -222,8 +235,10 @@
 
       <script class='show-script'>
         async function watchTraining1() {
-          const metrics = ['loss', 'acc', 'val_acc'];
-          const container = { name: 'model.fit metrics', tab: 'Training' };
+          const metrics = ['loss', 'val_loss', 'acc', 'val_acc'];
+          const container = {
+            name: 'show.fitCallbacks', tab: 'Training', styles: { height: '1000px' }
+          };
           const callbacks = tfvis.show.fitCallbacks(container, metrics);
           return train(model, data, callbacks);
         }
@@ -284,7 +299,7 @@
         async function showTrainingHistory() {
           const trainingHistory = await train(model, data);
           tfvis.show.history({ name: 'Training History', tab: 'Training' },
-            trainingHistory, ['loss', 'acc']);
+            trainingHistory, ['loss', 'val_loss', 'acc', 'val_acc']);
         }
 
         document.querySelector('#start-training-3')
@@ -295,7 +310,8 @@
     <section>
       <h2>Evaluating Our Model</h2>
       <p>
-        Now that our model is trained we should evalute its performance. For a classification task like this one we can use the `perClassAccuracy`
+        Now that our model is trained we should evalute its performance. For a classification task like this one we can
+        use the `perClassAccuracy`
         and `confusionMatrix` functions. These are demonstrated below.
       </p>
 
