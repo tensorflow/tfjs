@@ -205,7 +205,7 @@ rather than flexible but are generally combinations of `Renderers` (see below), 
 
 ### Model Training Visualization
 
-## show.history(container: Surface, history: HistoryLike,  metrics: string[]) => Promise<void>
+## show.history(container: Surface, history: HistoryLike,  metrics: string[], opts?: {}) => Promise<void>
 
 Renders a `tf.Model` training 'History' or callback 'Logs'. These are useful for plotting training metrics after or during
 training respectively.
@@ -213,9 +213,11 @@ training respectively.
 * @param container A `Surface` or `{name: string, tab?: string}` object specifying which surface to render to.
 * @param history A history-like object. Either a tfjs-layers `History` object or an array of tfjs-layers `Logs` objects. `Logs` are produced by the callbacks on [model.fit](https://js.tensorflow.org/api/latest/#tf.Model.fit) and a `History` object is returned from [model.fit](https://js.tensorflow.org/api/latest/#tf.Model.fit).
 * @param metrics An array of strings reprenting training metrics of a [tf.model](https://js.tensorflow.org/api/latest/#tf.Model.compile)
+* @param opts Optional parameters for the line charts. See the opts parameter for render.linechart for details. Notably for 'accuracy' related plots the domain of the yAxis will always by 0-1, i.e. `zoomToFit` and `yAxisDomain` options are ignored.
+* @param opts.zoomToFitAccuracy a boolean controlling whether to set `zoomToFit` to true on accuracy plots as well. Generally speaking` zoomToFit` is disabled for accuracy plots as that is desireable most of the time. However there may be cases, such as when doing transfer learning, where more resolution is desired. Set `zoomToFitAccuracy` to true to turn on zoomToFit for accuracy plots.
 
 
-## show.fitCallbacks(container: Surface  metrics: string[]) => {[key: string]: (iteration: number, log: Logs) => Promise<void>}
+## show.fitCallbacks(container: Surface  metrics: string[], opts?: {}) => {[key: string]: (iteration: number, log: Logs) => Promise<void>}
 
 Returns a collection of callbacks to pass to [model.fit](https://js.tensorflow.org/api/latest/#tf.Model.fit).
 Callbacks are returned for the following events, `onBatchEnd` & `onEpochEnd`.
@@ -228,7 +230,9 @@ on how to pass in callback functions to the training process.
 
 * @param container A `Surface` or `{name: string, tab?: string}` object specifying which surface to render to.
 * @param metrics An array of strings representing training [metrics](https://js.tensorflow.org/api/latest/#tf.Model.compile) of a [tf.model](https://js.tensorflow.org/api/latest/#class:Model)
-
+* @param opts Optional parameters for the line charts. See the opts parameter for render.linechart for details. Notably for 'accuracy' related plots the domain of the yAxis will always by 0-1, i.e. zoomToFit and yAxisDomain options are ignored.
+* @param opts.zoomToFitAccuracy a boolean controlling whether to set `zoomToFit` to true on accuracy plots as well. Generally speaking` zoomToFit` is disabled for accuracy plots as that is desireable most of the time. However there may be cases, such as when doing transfer learning, where more resolution is desired. Set `zoomToFitAccuracy` to true to turn on zoomToFit for accuracy plots.
+* @param opts.callbacks Array of strings with callback names. Valid options are 'onEpochEnd' and 'onBatchEnd'. Defaults to ['onEpochEnd', 'onBatchEnd'].
 
 ## show.perClassAccuracy(container: Drawable, classAccuracy: {accuracy: number[], count: number[]}, classLabels?: string[]) => Promise<void>
 

@@ -30,6 +30,16 @@ describe('fitCallbacks', () => {
     expect(typeof (callbacks.onBatchEnd)).toEqual('function');
   });
 
+  it('returns one callback', async () => {
+    const container = {name: 'Test'};
+    const callbacks = fitCallbacks(container, ['loss', 'acc'], {
+      callbacks: ['onBatchEnd'],
+    });
+
+    expect(callbacks.onEpochEnd).toEqual(undefined);
+    expect(typeof (callbacks.onBatchEnd)).toEqual('function');
+  });
+
   it('onEpochEnd callback can render logs', async () => {
     const container = {name: 'Test'};
     const callbacks =

@@ -234,7 +234,7 @@
       <button id='start-training-1' disabled>Start Training</button>
 
       <script class='show-script'>
-        async function watchTraining1() {
+        async function watchTraining() {
           const metrics = ['loss', 'val_loss', 'acc', 'val_acc'];
           const container = {
             name: 'show.fitCallbacks', tab: 'Training', styles: { height: '1000px' }
@@ -244,56 +244,14 @@
         }
 
         document.querySelector('#start-training-1')
-          .addEventListener('click', () => watchTraining1());
+          .addEventListener('click', () => watchTraining());
       </script>
 
       <p>
-        We can also use the <code>show.history</code> method to get more control over what we want plotted.
+        Another option is to wait for the training to complete and render the loss curve when it is done.
       </p>
 
       <button id='start-training-2' disabled>Start Training</button>
-
-      <script class='show-script'>
-        async function watchTraining2() {
-          // We need to keep accumulate the log objects from
-          // the tf.Model.fit callbacks
-          const batchLoss = [];
-          const epochAccHistory = [];
-
-          const callbacks = {
-            onBatchEnd: async (batch, h) => {
-              batchLoss.push(h);
-              tfvis.show.history(
-                { name: 'Loss on Batch End', tab: 'Training' },
-                batchLoss,
-                ['loss']
-              );
-
-              await tf.nextFrame();
-            },
-            onEpochEnd: async (epoch, h) => {
-              epochAccHistory.push(h);
-              tfvis.show.history(
-                { name: 'Accuracy on Epoch End', tab: 'Training' },
-                epochAccHistory,
-                ['acc', 'val_acc']
-              );
-
-            }
-          };
-
-          return train(model, data, callbacks);
-        }
-
-        document.querySelector('#start-training-2')
-          .addEventListener('click', () => watchTraining2());
-      </script>
-
-      <p>
-        A final option is to wait for the training to complete and render the loss curve when it is done.
-      </p>
-
-      <button id='start-training-3' disabled>Start Training</button>
 
       <script class='show-script'>
         async function showTrainingHistory() {
@@ -302,7 +260,7 @@
             trainingHistory, ['loss', 'val_loss', 'acc', 'val_acc']);
         }
 
-        document.querySelector('#start-training-3')
+        document.querySelector('#start-training-2')
           .addEventListener('click', () => showTrainingHistory());
       </script>
     </section>

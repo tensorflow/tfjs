@@ -28,14 +28,23 @@ import {subSurface} from '../util/dom';
  * @param container A `{name: string, tab?: string}` object specifying which
  *  surface to render to.
  * @param history A history like object. Either a tfjs-layers `History` object
- *    or an array of tfjs-layers `Logs` objects.
+ *  or an array of tfjs-layers `Logs` objects.
  * @param metrics An array of strings for each metric to plot from the history
- *    object. Using this allows you to control which metrics appear on the same
- *    plot.
+ *  object. Using this allows you to control which metrics appear on the same
+ *  plot.
+ * @param opts Optional parameters for the line charts. See the opts parameter
+ *  for render.linechart for details. Notably for 'accuracy' related plots
+ *  the domain of the yAxis will always by 0-1, i.e. zoomToFit and yAxisDomain
+ *  options are ignored.
+ * @param opts.zoomToFitAccuracy a boolean controlling whether to 'zoomToFit'
+ *  accuracy plots as well. Constraining the y axis domain of an accuracy plot
+ *  to exactly 0-1 is desireable most of the time. However there may be cases,
+ *  such as when doing transfer learning, where more resolution is desired. Set
+ *  zoomToFitAccuracy to true to turn on zoomToFit for accuracy plots.
  */
 export async function history(
-    container: Drawable, history: HistoryLike,
-    metrics: string[]): Promise<void> {
+    container: Drawable, history: HistoryLike, metrics: string[],
+    opts: HistoryOptions = {}): Promise<void> {
   // Get the draw surface
   const drawArea = getDrawArea(container);
 
@@ -65,26 +74,34 @@ export async function history(
   // Render each plot specified above to a new subsurface.
   // A plot may have multiple series.
   const plotNames = Object.keys(plots);
+  const options =
+      Object.assign({}, {xLabel: 'Iteration', yLabel: 'Value'}, opts);
+
   const renderPromises = [];
   for (const name of plotNames) {
     const subContainer = subSurface(drawArea, name);
     const series = plots[name].series;
     const values = plots[name].values;
-    const options: XYPlotOptions = {
-      xLabel: 'Iteration',
-      yLabel: 'Value',
-    };
 
     if (series.every(seriesName => Boolean(seriesName.match('acc')))) {
       // Set a domain of 0-1 if all the series in this plot are related to
-      // accuracy.
-      options.yAxisDomain = [0, 1];
+      // accuracy. Can be overridden by setting zoomToFitAccuracy to true.
+      if (options.zoomToFitAccuracy) {
+        options.zoomToFit = true;
+      } else {
+        options.yAxisDomain = [0, 1];
+        delete options.zoomToFit;
+      }
     }
 
     const done = renderLinechart({values, series}, subContainer, options);
     renderPromises.push(done);
   }
   await Promise.all(renderPromises);
+}
+
+interface HistoryOptions extends XYPlotOptions {
+  zoomToFitAccuracy?: boolean;
 }
 
 type HistoryLike = Logs[]|Logs[][]|{
@@ -141,15 +158,36 @@ function getValues(
  * @param container A `{name: string, tab?: string}` object specifying which
  *  surface to render to.
  * @param metrics List of metrics to plot.
+ * @param opts Optional parameters for the line charts. See the opts parameter
+ *  for render.linechart for details. Notably for 'accuracy' related plots
+ *  the domain of the yAxis will always by 0-1, i.e. zoomToFit and yAxisDomain
+ *  options are ignored.
+ * @param opts.zoomToFitAccuracy a boolean controlling whether to 'zoomToFit'
+ *  accuracy plots as well. Constraining the y axis domain of an accuracy plot
+ *  to exactly 0-1 is desireable most of the time. However there may be cases,
+ *  such as when doing transfer learning, where more resolution is desired. Set
+ *  zoomToFitAccuracy to true to turn on zoomToFit for accuracy plots.
+ * @param opts.callbacks Array of strings with callback names. Valid options
+ *  are 'onEpochEnd' and 'onBatchEnd'. Defaults to ['onEpochEnd', 'onBatchEnd'].
  */
 export function fitCallbacks(
-    container: Drawable, metrics: string[]): FitCallbackHandlers {
+    container: Drawable, metrics: string[],
+    opts: FitCallbackOptions = {}): FitCallbackHandlers {
   const accumulators: FitCallbackLogs = {};
-  const callbackNames = ['onEpochEnd', 'onBatchEnd'];
+  const callbackNames = opts.callbacks || ['onEpochEnd', 'onBatchEnd'];
   const drawArea = getDrawArea(container);
 
+  const historyOpts = Object.assign({}, opts);
+  delete historyOpts.callbacks;
   function makeCallbackFor(callbackName: string) {
     return async (_: number, log: Logs) => {
+      // Set a nicer x axis name where possible
+      if ((/batch/i).test(callbackName)) {
+        historyOpts.xLabel = 'Batch';
+      } else if ((/epoch/i).test(callbackName)) {
+        historyOpts.xLabel = 'Epoch';
+      }
+
       // Because of how the _ (iteration) numbers are given in the layers api
       // we have to store each metric for each callback in different arrays else
       // we cannot get accurate 'global' batch numbers for onBatchEnd.
@@ -175,7 +213,7 @@ export function fitCallbacks(
 
       const subContainer =
           subSurface(drawArea, callbackName, {title: callbackName});
-      history(subContainer, metricLogs, presentMetrics);
+      history(subContainer, metricLogs, presentMetrics, historyOpts);
       await nextFrame();
     };
   }
@@ -195,6 +233,10 @@ interface FitCallbackLogs {
   [callback: string]: {
     [metric: string]: Logs[],
   };
+}
+
+interface FitCallbackOptions extends HistoryOptions {
+  callbacks?: string[];
 }
 
 function getAccumulator(
