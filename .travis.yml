@@ -1,6 +1,5 @@
 language: node_js
 node_js:
-  - '8'
   - '10'
 script:
   - yarn && yarn build && yarn lint && yarn test-all-travis
