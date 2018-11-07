@@ -293,31 +293,40 @@ describeWithFlags('matmul', ALL_ENVS, () => {
   it('batched matmul with the matrices being vectors', () => {
     const batch = 3;
     const sharedDim = 10000;
-    const a = tf.fill([batch, 1, sharedDim], 0.1);
-    const b = tf.fill([batch, sharedDim, 1], 0.1);
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.tensor(values, [batch, 1, sharedDim]);
+    const b = tf.tensor(values, [batch, sharedDim, 1]);
     const result = tf.matMul(a, b);
     expect(result.shape).toEqual([batch, 1, 1]);
-    expectArraysClose(result, [100, 100, 100]);
+    expectArraysClose(result, [4, 0, 0]);
   });
 
   it('batched matmul with matrix x vector', () => {
     const batch = 3;
     const sharedDim = 10000;
-    const a = tf.fill([batch, 2, sharedDim], 0.1);
-    const b = tf.fill([batch, sharedDim, 1], 0.1);
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.ones([batch, 2, sharedDim]);
+    const b = tf.tensor(values, [batch, sharedDim, 1]);
     const result = tf.matMul(a, b);
     expect(result.shape).toEqual([batch, 2, 1]);
-    expectArraysClose(result, [100, 100, 100, 100, 100, 100]);
+    expectArraysClose(result, [2, 2, 0, 0, 0, 0]);
   });
 
   it('batched matmul with vector x matrix', () => {
     const batch = 3;
     const sharedDim = 10000;
-    const a = tf.fill([batch, 1, sharedDim], 0.1);
-    const b = tf.fill([batch, sharedDim, 2], 0.1);
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.tensor(values, [batch, 1, sharedDim]);
+    const b = tf.ones([batch, sharedDim, 2]);
     const result = tf.matMul(a, b);
     expect(result.shape).toEqual([batch, 1, 2]);
-    expectArraysClose(result, [100, 100, 100, 100, 100, 100]);
+    expectArraysClose(result, [2, 2, 0, 0, 0, 0]);
   });
 
   it('Matrix * vector propagates NaNs', () => {
