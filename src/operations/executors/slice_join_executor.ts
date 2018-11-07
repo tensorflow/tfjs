@@ -139,6 +139,18 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('indices', node, tensorMap, context) as tfc.Tensor;
       return [tfc.gatherND(x, indices)];
     }
+    case 'sparseToDense': {
+      const indices =
+          getParamValue('sparseIndices', node, tensorMap, context) as
+          tfc.Tensor;
+      const shape =
+          getParamValue('outputShape', node, tensorMap, context) as number[];
+      const sparseValues =
+          getParamValue('sparseValues', node, tensorMap, context) as tfc.Tensor;
+      const defaultValue =
+          getParamValue('defaultValue', node, tensorMap, context) as tfc.Scalar;
+      return [tfc.sparseToDense(indices, sparseValues, shape, defaultValue)];
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }

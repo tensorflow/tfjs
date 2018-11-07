@@ -256,5 +256,22 @@ export const json = [
       {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
       {'tfInputIndex': 1, 'dlParamName': 'indices', 'type': 'tensor'}
     ]
+  },
+  {
+    'tfOpName': 'SparseToDense',
+    'dlOpName': 'sparseToDense',
+    'category': 'slice_join',
+    'params': [
+      {'tfInputIndex': 0, 'dlParamName': 'sparseIndices', 'type': 'tensor'},
+      {'tfInputIndex': 1, 'dlParamName': 'outputShape', 'type': 'number[]'},
+      {'tfInputIndex': 2, 'dlParamName': 'sparseValues', 'type': 'tensor'},
+      {'tfInputIndex': 3, 'dlParamName': 'defaultValue', 'type': 'tensor'}, {
+        'tfParamName': 'validate_indices',
+        'dlParamName': 'validateIndices',
+        'type': 'bool',
+        'defaultValue': false,
+        'notSupported': true
+      }
+    ]
   }
 ];
