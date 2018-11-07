@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@0.13.8":
-  version "0.13.8"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.13.8.tgz#90f73107df6ad7f1c13ff9d765a3d3d3997af1cb"
-  integrity sha512-Vp0dU6wRisXZRUOEb7w5lPybJkJw2iR32sTlv1ZY42fReMgP7nYKPVoNaByjJ7VFmJe6fK0yURklI+vc+u8SEQ==
+"@tensorflow/tfjs-core@0.13.10":
+  version "0.13.10"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.13.10.tgz#dab52099542d683fa655fb46ac5fec16af43ced6"
+  integrity sha512-hq4wZj9qHDqSCKJ6VWfbSHVo3J2h3i+4pd3KCEIiBiFkwyv571hFQRrYeD3uuXrFm+ZjBDU2Js/Nl9m2kcv4ag==
   dependencies:
     "@types/seedrandom" "2.4.27"
     "@types/webgl-ext" "0.0.30"
