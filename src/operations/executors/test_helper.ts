@@ -63,7 +63,6 @@ export function validateParam(
   const opMapper = tfOpName != null ?
       opMappers.find(mapper => mapper.tfOpName === tfOpName) :
       opMappers.find(mapper => mapper.dlOpName === node.op);
-
   return Object.keys(node.params).every(key => {
     const value = node.params[key];
     const def = opMapper.params.find(param => param.dlParamName === key);

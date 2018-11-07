@@ -311,6 +311,30 @@ describe('slice join', () => {
 
         expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
       });
+      it('should call tfc.sparseToDense', () => {
+        spyOn(tfc, 'sparseToDense');
+        node.op = 'sparseToDense';
+        node.params.sparseIndices = createTensorAttr(0);
+        node.params.outputShape = createNumericArrayAttrFromIndex(1);
+        node.params.sparseValues = createTensorAttr(2);
+        node.params.defaultValue = createTensorAttr(3);
+        node.params.indices = createTensorAttr(1);
+        node.inputNames = ['input1', 'input4', 'input3', 'input2'];
+        executeOp(node, {input1, input2, input3, input4}, context);
+
+        expect(tfc.sparseToDense)
+            .toHaveBeenCalledWith(input1[0], input3[0], [3], input2[0]);
+      });
+      it('should match json def for sparseToDense', () => {
+        node.op = 'sparseToDense';
+        node.params = {};
+        node.params.sparseIndices = createTensorAttr(0);
+        node.params.outputShape = createNumericArrayAttrFromIndex(1);
+        node.params.sparseValues = createTensorAttr(2);
+        node.params.defaultValue = createTensorAttr(3);
+
+        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+      });
     });
   });
 });
