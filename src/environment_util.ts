@@ -221,7 +221,8 @@ const TENSORFLOWJS_FLAGS_PREFIX = 'tfjsflags';
 export function getFeaturesFromURL(): Features {
   const features: Features = {};
 
-  if (typeof window === 'undefined' || typeof window.location === 'undefined') {
+  if (typeof window === 'undefined' || typeof window.location === 'undefined' ||
+      typeof window.location.search === 'undefined') {
     return features;
   }
 
