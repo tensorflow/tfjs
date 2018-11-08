@@ -15,12 +15,15 @@
  * =============================================================================
  */
 
-export function getChannels(name: string): string[] {
-  return ['x', 'y', 'z', 'w'].map(d => `${name}.${d}`);
+export function getVecChannels(name: string, rank: number): string[] {
+  return ['x', 'y', 'z', 'w', 'u', 'v'].slice(0, rank).map(d => `${name}.${d}`);
 }
 
-export function getInnerDims(rank: number, dims: string[]): string[] {
-  return dims.slice(0, rank).slice(-2);
+export function getChannels(name: string, rank: number): string[] {
+  if (rank === 1) {
+    return [name];
+  }
+  return getVecChannels(name, rank);
 }
 
 export function getSourceCoords(rank: number, dims: string[]): string {
