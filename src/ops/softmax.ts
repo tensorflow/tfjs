@@ -73,4 +73,55 @@ function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
   return customOp($logits);
 }
 
+/**
+ * Computes the log softmax.
+ *
+ * ```js
+ * const a = tf.tensor1d([1, 2, 3]);
+ *
+ * a.logSoftmax().print();  // or tf.logSoftmax(a)
+ * ```
+ *
+ * ```js
+ * const a = tf.tensor2d([2, 4, 6, 1, 2, 3], [2, 3]);
+ *
+ * a.logSoftmax().print();  // or tf.logSoftmax(a)
+ * ```
+ *
+ * @param logits The logits array.
+ * @param axis The dimension softmax would be performed on. Defaults to `-1`
+ *     which indicates the last dimension.
+ */
+/** @doc {heading: 'Operations', subheading: 'Normalization'} */
+function logSoftmax_<T extends Tensor>(logits: T|TensorLike, axis = -1): T {
+  const $logits = convertToTensor(logits, 'logits', 'logSoftmax');
+
+  if (axis === -1) {
+    axis = $logits.rank - 1;
+  }
+  if (axis !== $logits.rank - 1) {
+    throw Error(
+        'Log Softmax along a non-last dimension is not yet supported. ' +
+        `Logits was rank ${$logits.rank} and axis was ${axis}`);
+  }
+
+  const customOp = customGrad(logits => {
+    const keepDims = true;
+    const xMax = logits.max(axis, true);
+    const shifted = logits.sub(xMax);
+    const value =
+        shifted.toFloat().sub(shifted.exp().sum(axis, keepDims).log()) as T;
+
+    const gradFunc = (dy: T) => {
+      const softmax = value.exp();
+      return dy.sub(dy.sum(axis, keepDims).mul(softmax));
+    };
+
+    return {value, gradFunc};
+  });
+
+  return customOp($logits);
+}
+
 export const softmax = op({softmax_});
+export const logSoftmax = op({logSoftmax_});
