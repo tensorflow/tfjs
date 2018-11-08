@@ -279,6 +279,7 @@ export interface OpHandler {
   leakyRelu<T extends Tensor>(x: T, alpha: number): T;
   prelu<T extends Tensor>(x: T, alpha: T): T;
   softmax<T extends Tensor>(logits: T, dim: number): T;
+  logSoftmax<T extends Tensor>(logits: T, axis: number): T;
   image: {
     resizeBilinear<T extends Tensor3D|Tensor4D>(
         images: T, size: [number, number], alignCorners: boolean): T;
@@ -1127,6 +1128,10 @@ export class Tensor<R extends Rank = Rank> {
   softmax<T extends this>(this: T, dim = -1): T {
     this.throwIfDisposed();
     return opHandler.softmax(this, dim) as T;
+  }
+  logSoftmax<T extends this>(this: T, axis = -1): T {
+    this.throwIfDisposed();
+    return opHandler.logSoftmax(this, axis) as T;
   }
 
   // Image ops.

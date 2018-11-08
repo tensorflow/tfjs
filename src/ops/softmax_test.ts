@@ -124,3 +124,67 @@ describeWithFlags('softmax', ALL_ENVS, () => {
     expectNumbersClose(y.get(0) + y.get(1) + y.get(2), 1);
   });
 });
+
+describeWithFlags('logSoftmax', ALL_ENVS, () => {
+  it('regular test', () => {
+    const y = tf.logSoftmax(tf.tensor1d([2, 1, 3]));
+
+    expectArraysClose(y, [-1.407606, -2.4076061, -0.407606]);
+  });
+
+  it('Huge difference', () => {
+    const y = tf.logSoftmax(tf.tensor1d([-1000, +1000]));
+
+    expectArraysClose(y, [-2000, 0]);
+  });
+
+  it('Propagates NaNs', () => {
+    const a = tf.tensor1d([2, 1, NaN]);
+    const y = tf.logSoftmax(a);
+    expectArraysClose(y, [NaN, NaN, NaN]);
+  });
+
+  it('2D, axis=1', () => {
+    const y = tf.logSoftmax(tf.tensor2d([[2, 1, 3], [1, 3, 2]], [2, 3]), 1);
+    const expected =
+        [-1.407606, -2.4076061, -0.407606, -2.4076061, -0.4076061, -1.4076061];
+    expect(y.rank).toBe(2);
+    expectArraysClose(y, expected);
+  });
+
+  it('2D, implicit axis=1', () => {
+    const y = tf.logSoftmax(tf.tensor2d([[2, 1, 3], [1, 3, 2]], [2, 3]));
+    const expected =
+        [-1.407606, -2.4076061, -0.407606, -2.4076061, -0.4076061, -1.4076061];
+    expect(y.rank).toBe(2);
+    expectArraysClose(y, expected);
+  });
+
+  it('1D gradient', () => {
+    const x = tf.tensor1d([1, 2, 10]);
+    const dy = tf.tensor1d([1, 2, 3]);
+    const dx = tf.grad((x) => x.logSoftmax())(x, dy);
+
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, [0.9992599, 1.9979881, -2.9972477]);
+  });
+
+  it('2D, axis=0 throws error', () => {
+    const f = () => {
+      tf.logSoftmax(tf.tensor2d([[2, 1, 3], [1, 3, 2]], [2, 3]), 0);
+    };
+    expect(f).toThrowError();
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.logSoftmax({} as tf.Tensor))
+        .toThrowError(
+            /Argument 'logits' passed to 'logSoftmax' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const y = tf.logSoftmax([2, 1, 3]);
+
+    expectArraysClose(y, [-1.407606, -2.4076061, -0.407606]);
+  });
+});
