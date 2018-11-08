@@ -81,6 +81,7 @@ import {PackProgram} from './webgl/pack_gpu';
 import {PadProgram} from './webgl/pad_gpu';
 import {Pool2DProgram} from './webgl/pool_gpu';
 import {ReduceProgram} from './webgl/reduce_gpu';
+import {ReshapePackedProgram} from './webgl/reshape_packed_gpu';
 import {ResizeBilinearBackpropProgram} from './webgl/resize_bilinear_backprop_gpu';
 import {ResizeBilinearProgram} from './webgl/resize_bilinear_gpu';
 import {ResizeNearestNeigborBackpropProgram} from './webgl/resize_nearest_neighbor_backprop_gpu';
@@ -668,9 +669,13 @@ export class MathBackendWebGL implements KernelBackend {
       const program = new MatMulPackedProgram(
           aSqueezed.shape, bSqueezed.shape, [outerShapeA, outerShapeB],
           transposeA, transposeB);
-      const result = this.unpackTensor(this.compileAndRun(
+      let result = this.compileAndRun(
           program, [aSqueezed, bSqueezed],
-          this.makePackedTensor<Tensor2D>(program.outputShape)));
+          this.makePackedTensor<Tensor2D>(program.outputShape));
+
+      if (ENV.get('WEBGL_LAZILY_UNPACK') === false) {
+        result = this.unpackTensor(result);
+      }
 
       return result.reshape([1, result.shape[0], result.shape[1]]);
     } else {
@@ -1460,9 +1465,13 @@ export class MathBackendWebGL implements KernelBackend {
     const matmulProgram = new MatMulPackedProgram(
         im2Col.shape, w2Row.shape, [numCols, convInfo.outChannels], true,
         false);
-    const product = this.unpackTensor(this.compileAndRun(
+    let product = this.compileAndRun(
         matmulProgram, [im2Col, w2Row],
-        this.makePackedTensor<Tensor2D>(matmulProgram.outputShape)));
+        this.makePackedTensor<Tensor2D>(matmulProgram.outputShape));
+
+    if (ENV.get('WEBGL_LAZILY_UNPACK') === false) {
+      product = this.unpackTensor(product);
+    }
 
     return product.reshape([1, outHeight, outWidth, convInfo.outChannels]);
   }
@@ -1546,6 +1555,10 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
+    if (this.texData.get(x.dataId).isPacked &&
+        !webgl_util.isReshapeFree(x.shape, shape)) {
+      return this.packedReshape(x, shape);
+    }
     return backend_util.reshapeTensor(x, shape);
   }
 
@@ -1742,6 +1755,35 @@ export class MathBackendWebGL implements KernelBackend {
   private unpackTensor<T extends Tensor>(input: T): T {
     const program = new UnpackProgram(input.shape);
     return this.compileAndRun(program, [input]);
+  }
+
+  private getBatchDim(shape: number[], dimsToSkip = 2): number {
+    return util.sizeFromShape(shape.slice(0, shape.length - dimsToSkip));
+  }
+
+  private getRowsCols(shape: number[]): [number, number] {
+    if (shape.length === 0) {
+      throw Error('Cannot get rows and columns of an empty shape array.');
+    }
+
+    return [
+      shape.length > 1 ? shape[shape.length - 2] : 1, shape[shape.length - 1]
+    ];
+  }
+
+  private packedReshape<R extends Rank>(input: Tensor, afterShape: ShapeMap[R]):
+      Tensor<R> {
+    const inputAs3D = input.reshape(
+        [this.getBatchDim(input.shape), ...this.getRowsCols(input.shape)]);
+    const afterShapeAs3D =
+        [this.getBatchDim(afterShape), ...this.getRowsCols(afterShape)];
+    const program = new ReshapePackedProgram(
+        afterShapeAs3D as [number, number, number],
+        inputAs3D.shape as [number, number, number]);
+    return this
+        .compileAndRun(
+            program, [inputAs3D], this.makePackedTensor(afterShapeAs3D))
+        .reshape(afterShape);
   }
 
   public compileAndRun<

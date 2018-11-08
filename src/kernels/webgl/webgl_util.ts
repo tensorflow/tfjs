@@ -378,3 +378,48 @@ export function getTextureShapeFromLogicalShape(
     return util.sizeToSquarishShape(size);
   }
 }
+
+function isEven(n: number): boolean {
+  return n % 2 === 0;
+}
+
+/**
+ * This determines whether reshaping a packed texture requires rearranging
+ * the data within the texture, assuming 2x2 packing.
+ */
+export function isReshapeFree(shape1: number[], shape2: number[]): boolean {
+  shape1 = shape1.slice(-2);
+  shape2 = shape2.slice(-2);
+
+  if (util.arraysEqual(shape1, shape2)) {
+    return true;
+  }
+
+  if (!shape1.length || !shape2.length) {  // One of the shapes is a scalar.
+    return true;
+  }
+
+  if (shape1[0] === 0 || shape1[1] === 0 || shape2[0] === 0 ||
+      shape2[1] === 0) {
+    return true;
+  }
+
+  if (shape1.length !== shape2.length) {  // One of the shapes is a vector.
+    if (util.arraysEqual(
+            util.squeezeShape(shape1).newShape,
+            util.squeezeShape(shape2).newShape)) {
+      return true;
+    }
+  } else {
+    if (isEven(shape1[0]) && isEven(shape2[0])) {
+      if (isEven(shape1[1]) && isEven(shape2[1])) {
+        return true;
+      }
+      if (shape1[1] === shape2[1]) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}

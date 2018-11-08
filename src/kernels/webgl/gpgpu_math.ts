@@ -70,8 +70,8 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     isPacked: output.texData.isPacked
   };
   const source = shader_compiler.makeShader(
-      inputInfos, outShapeInfo, userCode,
-      program.supportsBroadcasting === true);
+      inputInfos, outShapeInfo, userCode, program.supportsBroadcasting === true,
+      program.usesPackedTextures);
 
   const webGLProgram = gpgpu.createProgram(source);
 

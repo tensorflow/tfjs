@@ -16,6 +16,7 @@
  */
 import * as broadcast_util from '../../ops/broadcast_util';
 import * as util from '../../util';
+import * as shader_util from './shader_compiler_util';
 
 export type ShapeInfo = {
   logicalShape: number[],
@@ -31,7 +32,7 @@ export type InputInfo = {
 
 export function makeShader(
     inputsInfo: InputInfo[], outputShape: ShapeInfo, userCode: string,
-    broadcast: boolean): string {
+    broadcast: boolean, usesPackedTextures: boolean): string {
   let inputPrefixSnippet: string[]|string = inputsInfo.map(x => {
     const size = util.sizeFromShape(x.shapeInfo.logicalShape);
     if (x.shapeInfo.isUniform) {
@@ -47,6 +48,7 @@ export function makeShader(
   const outTexShape = outputShape.texShape;
   let outputSamplingSnippet: string;
   let floatTextureSetOutputSnippet: string;
+  let shaderPrefix = SHADER_PREFIX;
 
   if (outputShape.isPacked) {
     outputSamplingSnippet =
@@ -58,8 +60,12 @@ export function makeShader(
     floatTextureSetOutputSnippet = FLOAT_TEXTURE_SET_R_SNIPPET;
   }
 
+  if (usesPackedTextures) {
+    shaderPrefix += SHADER_PACKED_PREFIX;
+  }
+
   const source = [
-    SHADER_PREFIX, FLOAT_TEXTURE_SAMPLE_SNIPPET, floatTextureSetOutputSnippet,
+    shaderPrefix, FLOAT_TEXTURE_SAMPLE_SNIPPET, floatTextureSetOutputSnippet,
     inputPrefixSnippet, outputSamplingSnippet, inputSamplingSnippet, userCode
   ].join('\n');
   return source;
@@ -96,6 +102,8 @@ function getPackedSamplerFromInInfo(inInfo: InputInfo): string {
       return getPackedSampler1D(inInfo);
     case 2:
       return getPackedSampler2D(inInfo);
+    case 3:
+      return getPackedSampler3D(inInfo);
     case 4:
       return getPackedSampler4D(inInfo);
     default:
@@ -134,12 +142,16 @@ function getPackedOutputSamplingSnippet(
       return getOutputPacked1DCoords(outShape as [number], outTexShape);
     case 2:
       return getOutputPacked2DCoords(outShape as [number, number], outTexShape);
+    case 3:
+      return getOutputPacked3DCoords(
+          outShape as [number, number, number], outTexShape);
     case 4:
       return getOutputPacked4DCoords(
           outShape as [number, number, number, number], outTexShape);
     default:
       throw new Error(
-          `${outShape.length}-D output packed sampling is not yet supported`);
+          `${outShape.length}-D packed output ` +
+          `coordinate fetching is not yet supported`);
   }
 }
 
@@ -206,6 +218,14 @@ vec2 UVfrom3D(int texNumR, int texNumC, int stride0,
     int stride1, int row, int col, int depth) {
   // Explicitly use integer operations as dot() only works on floats.
   int index = row * stride0 + col * stride1 + depth;
+  int texR = index / texNumC;
+  int texC = index - texR * texNumC;
+  return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
+}
+vec2 packedUVfrom3D(int texNumR, int texNumC,
+    int texelsInBatch, int texelsInLogicalRow, int b,
+    int row, int col) {
+  int index = b * texelsInBatch + (row / 2) * texelsInLogicalRow + (col / 2);
   int texR = index / texNumC;
   int texC = index - texR * texNumC;
   return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
@@ -346,6 +366,19 @@ const SHADER_PREFIX = `
   ${SAMPLE_6D_SNIPPET}
 `;
 
+const SHADER_PACKED_PREFIX = `
+  float getChannel(vec4 frag, vec2 innerDims) {
+    vec2 modCoord = mod(innerDims, 2.);
+    return modCoord.x == 0. ?
+      (modCoord.y == 0. ? frag.r : frag.g) :
+      (modCoord.y == 0. ? frag.b : frag.a);
+  }
+  float getChannel(vec4 frag, int dim) {
+    float modCoord = mod(float(dim), 2.);
+    return modCoord == 0. ? frag.r : frag.g;
+  }
+`;
+
 function getOutputScalarCoords() {
   return `
     int getOutputCoords() {
@@ -408,19 +441,41 @@ function getOutput1DCoords(
   `;
 }
 
+function getOutputPacked3DCoords(
+    shape: [number, number, number], texShape: [number, number]): string {
+  const packedTexShape =
+      [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
+  const texelsInLogicalRow = Math.ceil(shape[2] / 2);
+  const texelsInBatch = texelsInLogicalRow * Math.ceil(shape[1] / 2);
+
+  return `
+    ivec3 getOutputCoords() {
+      ivec2 resTexRC = ivec2(resultUV.yx *
+                             vec2(${packedTexShape[0]}, ${packedTexShape[1]}));
+      int index = resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
+
+      int b = index / ${texelsInBatch};
+      index -= b * ${texelsInBatch};
+
+      int r = 2 * (index / ${texelsInLogicalRow});
+      int c = imod(index, ${texelsInLogicalRow}) * 2;
+
+      return ivec3(b, r, c);
+    }
+  `;
+}
+
 function getOutput3DCoords(
     shape: [number, number, number], texShape: [number, number]): string {
-  const stride0 = shape[1] * shape[2];
-  const stride1 = shape[2];
+  const coordsFromIndexSnippet =
+      shader_util.getLogicalCoordinatesFromFlatIndex(['r', 'c', 'd'], shape);
+
   return `
     ivec3 getOutputCoords() {
       ivec2 resTexRC = ivec2(resultUV.yx *
                              vec2(${texShape[0]}, ${texShape[1]}));
       int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
-      int r = index / ${stride0};
-      index -= r * ${stride0};
-      int c = index / ${stride1};
-      int d = index - c * ${stride1};
+      ${coordsFromIndexSnippet}
       return ivec3(r, c, d);
     }
   `;
@@ -449,7 +504,7 @@ function getOutputPacked4DCoords(
       index -= b * ${texelsInBatch};
 
       int r = 2 * (index / ${texelsInLogicalRow});
-      int c = int(mod(float(index), ${texelsInLogicalRow}.)) * 2;
+      int c = imod(index, ${texelsInLogicalRow}) * 2;
 
       return ivec4(b2, b, r, c);
     }
@@ -459,24 +514,15 @@ function getOutputPacked4DCoords(
 function getOutput4DCoords(
     shape: [number, number, number, number],
     texShape: [number, number]): string {
-  const stride2 = shape[3];
-  const stride1 = shape[2] * stride2;
-  const stride0 = shape[1] * stride1;
+  const coordsFromIndexSnippet = shader_util.getLogicalCoordinatesFromFlatIndex(
+      ['r', 'c', 'd', 'd2'], shape);
+
   return `
     ivec4 getOutputCoords() {
       ivec2 resTexRC = ivec2(resultUV.yx *
         vec2(${texShape[0]}, ${texShape[1]}));
       int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
-
-      int r = index / ${stride0};
-      index -= r * ${stride0};
-
-      int c = index / ${stride1};
-      index -= c * ${stride1};
-
-      int d = index / ${stride2};
-      int d2 = index - d * ${stride2};
-
+      ${coordsFromIndexSnippet}
       return ivec4(r, c, d, d2);
     }
   `;
@@ -485,10 +531,9 @@ function getOutput4DCoords(
 function getOutput5DCoords(
     shape: [number, number, number, number, number],
     texShape: [number, number]): string {
-  const stride3 = shape[4];
-  const stride2 = shape[3] * stride3;
-  const stride1 = shape[2] * stride2;
-  const stride0 = shape[1] * stride1;
+  const coordsFromIndexSnippet = shader_util.getLogicalCoordinatesFromFlatIndex(
+      ['r', 'c', 'd', 'd2', 'd3'], shape);
+
   return `
     ivec5 getOutputCoords() {
       ivec2 resTexRC = ivec2(resultUV.yx * vec2(${texShape[0]},
@@ -496,17 +541,7 @@ function getOutput5DCoords(
 
       int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
 
-      int r = index / ${stride0};
-      index -= r * ${stride0};
-
-      int c = index / ${stride1};
-      index -= c * ${stride1};
-
-      int d = index / ${stride2};
-      index -= d * ${stride2};
-
-      int d2 = index  / ${stride3};
-      int d3 = index - d2 * ${stride3};
+      ${coordsFromIndexSnippet}
 
       ivec5 outShape = ivec5(r, c, d, d2, d3);
       return outShape;
@@ -517,11 +552,8 @@ function getOutput5DCoords(
 function getOutput6DCoords(
     shape: [number, number, number, number, number, number],
     texShape: [number, number]): string {
-  const stride4 = shape[5];
-  const stride3 = shape[4] * stride4;
-  const stride2 = shape[3] * stride3;
-  const stride1 = shape[2] * stride2;
-  const stride0 = shape[1] * stride1;
+  const coordsFromIndexSnippet = shader_util.getLogicalCoordinatesFromFlatIndex(
+      ['r', 'c', 'd', 'd2', 'd3', 'd4'], shape);
 
   return `
     ivec6 getOutputCoords() {
@@ -529,20 +561,7 @@ function getOutput6DCoords(
         vec2(${texShape[0]}, ${texShape[1]}));
       int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
 
-      int r = index / ${stride0};
-      index -= r * ${stride0};
-
-      int c = index / ${stride1};
-      index -= c * ${stride1};
-
-      int d = index / ${stride2};
-      index -= d * ${stride2};
-
-      int d2 = index / ${stride3};
-      index -= d2 * ${stride3};
-
-      int d3 = index / ${stride4};
-      int d4 = index - d3 * ${stride4};
+      ${coordsFromIndexSnippet}
 
       ivec6 result = ivec6(r, c, d, d2, d3, d4);
       return result;
@@ -769,6 +788,42 @@ function getSampler2D(inputInfo: InputInfo): string {
     return sampleTexture(${texName}, uv);
   }
 `;
+}
+
+function getPackedSampler3D(inputInfo: InputInfo): string {
+  const shape = inputInfo.shapeInfo.logicalShape;
+  const texName = inputInfo.name;
+  const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
+  const texShape = inputInfo.shapeInfo.texShape;
+  const packedTexShape =
+      [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
+
+  if (shape[0] === 1) {
+    const squeezedShape = shape.slice(1);
+    const keptDims = [1, 2];
+    const newInputInfo = squeezeInputInfo(inputInfo, squeezedShape);
+    const params = ['b', 'row', 'col'];
+    return `
+        ${getPackedSamplerFromInInfo(newInputInfo)}
+        vec4 ${funcName}(int b, int row, int col) {
+          return ${funcName}(${getSqueezedParams(params, keptDims)});
+        }
+      `;
+  }
+
+  const texNumR = packedTexShape[0];
+  const texNumC = packedTexShape[1];
+
+  const valuesPerRow = Math.ceil(shape[2] / 2);
+  const texelsInBatch = valuesPerRow * Math.ceil(shape[1] / 2);
+
+  return `
+    vec4 ${funcName}(int b, int row, int col) {
+      vec2 uv = packedUVfrom3D(
+        ${texNumR}, ${texNumC}, ${texelsInBatch}, ${valuesPerRow}, b, row, col);
+      return texture2D(${texName}, uv);
+    }
+  `;
 }
 
 function getSampler3D(inputInfo: InputInfo): string {
