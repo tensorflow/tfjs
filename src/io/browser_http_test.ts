@@ -76,6 +76,7 @@ describeWithFlags('browserHTTPRequest-load fetch-polyfill', NODE_ENVS, () => {
   type TypedArrays = Float32Array|Int32Array|Uint8Array|Uint16Array;
 
   const fakeResponse = (body: string|TypedArrays|ArrayBuffer) => ({
+    ok: true,
     json() {
       return Promise.resolve(JSON.parse(body as string));
     },

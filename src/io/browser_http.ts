@@ -100,7 +100,7 @@ export class BrowserHTTPRequest implements IOHandler {
 
     const response = await fetch(this.path as string, init);
 
-    if (response.status === 200) {
+    if (response.ok) {
       return {
         modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts),
         responses: [response],
@@ -131,6 +131,11 @@ export class BrowserHTTPRequest implements IOHandler {
   private async loadBinaryTopology(): Promise<ArrayBuffer> {
     try {
       const response = await fetch(this.path[0], this.requestInit);
+      if (!response.ok) {
+        throw new Error(
+            `BrowserHTTPRequest.load() failed due to HTTP response: ${
+                response.statusText}`);
+      }
       return await response.arrayBuffer();
     } catch (error) {
       throw new Error(`${this.path[0]} not found. ${error}`);
@@ -140,6 +145,10 @@ export class BrowserHTTPRequest implements IOHandler {
   protected async loadBinaryModel(): Promise<ModelArtifacts> {
     const graphPromise = this.loadBinaryTopology();
     const manifestPromise = await fetch(this.path[1], this.requestInit);
+    if (!manifestPromise.ok) {
+      throw new Error(`BrowserHTTPRequest.load() failed due to HTTP response: ${
+          manifestPromise.statusText}`);
+    }
 
     const results = await Promise.all([graphPromise, manifestPromise]);
     const [modelTopology, weightsManifestResponse] = results;
@@ -160,6 +169,10 @@ export class BrowserHTTPRequest implements IOHandler {
   protected async loadJSONModel(): Promise<ModelArtifacts> {
     const modelConfigRequest =
         await fetch(this.path as string, this.requestInit);
+    if (!modelConfigRequest.ok) {
+      throw new Error(`BrowserHTTPRequest.load() failed due to HTTP response: ${
+          modelConfigRequest.statusText}`);
+    }
     const modelConfig = await modelConfigRequest.json();
     const modelTopology = modelConfig['modelTopology'];
     const weightsManifest = modelConfig['weightsManifest'];
