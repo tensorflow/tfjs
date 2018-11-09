@@ -1477,9 +1477,8 @@ describeWithFlags('toPixels no canvas', ALL_ENVS, () => {
   });
 
   it('draws a rank-3 float32 tensor, 4 channel', done => {
-    const x =
-      tf.tensor3d([.05, .1001, .15, .2, .25, .3001, .35, .4], [2, 1, 4],
-        'float32');
+    const x = tf.tensor3d(
+        [.05, .1001, .15, .2, .25, .3001, .35, .4], [2, 1, 4], 'float32');
 
     tf.toPixels(x).then(data => {
       const expected = new Uint8ClampedArray([
@@ -3675,5 +3674,91 @@ describeWithFlags('depthToSpace', WEBGL_ENVS, () => {
       1, 9,  2, 10, 17, 25, 18, 26, 3, 11, 4, 12, 19, 27, 20, 28,
       5, 13, 6, 14, 21, 29, 22, 30, 7, 15, 8, 16, 23, 31, 24, 32
     ]);
+  });
+});
+
+describeWithFlags('setdiff1dAsync', ALL_ENVS, () => {
+  it('1d int32 tensor', async () => {
+    const x = tf.tensor1d([1, 2, 3, 4], 'int32');
+    const y = tf.tensor1d([1, 2], 'int32');
+    const [out, indices] = await tf.setdiff1dAsync(x, y);
+    expect(out.dtype).toBe('int32');
+    expect(indices.dtype).toBe('int32');
+    expect(out.shape).toEqual([2]);
+    expect(indices.shape).toEqual([2]);
+    expectArraysClose(out, [3, 4]);
+    expectArraysClose(indices, [2, 3]);
+  });
+
+  it('1d float32 tensor', async () => {
+    const x = tf.tensor1d([1, 2, 3, 4], 'float32');
+    const y = tf.tensor1d([1, 3], 'float32');
+    const [out, indices] = await tf.setdiff1dAsync(x, y);
+    expect(out.dtype).toBe('float32');
+    expect(indices.dtype).toBe('int32');
+    expect(out.shape).toEqual([2]);
+    expect(indices.shape).toEqual([2]);
+    expectArraysClose(out, [2, 4]);
+    expectArraysClose(indices, [1, 3]);
+  });
+
+  it('empty output', async () => {
+    const x = tf.tensor1d([1, 2, 3, 4], 'float32');
+    const y = tf.tensor1d([1, 2, 3, 4], 'float32');
+    const [out, indices] = await tf.setdiff1dAsync(x, y);
+    expect(out.dtype).toBe('float32');
+    expect(indices.dtype).toBe('int32');
+    expect(out.shape).toEqual([0]);
+    expect(indices.shape).toEqual([0]);
+    expectArraysClose(out, []);
+    expectArraysClose(indices, []);
+  });
+
+  it('tensor like', async () => {
+    const x = [1, 2, 3, 4];
+    const y = [1, 3];
+    const [out, indices] = await tf.setdiff1dAsync(x, y);
+    expect(out.dtype).toBe('float32');
+    expect(indices.dtype).toBe('int32');
+    expect(out.shape).toEqual([2]);
+    expect(indices.shape).toEqual([2]);
+    expectArraysClose(out, [2, 4]);
+    expectArraysClose(indices, [1, 3]);
+  });
+
+  it('should throw if x is not 1d', async () => {
+    const x = tf.tensor2d([1, 2, 3, 4], [4, 1], 'float32');
+    const y = tf.tensor1d([1, 2, 3, 4], 'float32');
+    try {
+      await tf.setdiff1dAsync(x, y);
+      throw new Error('The line above should have thrown an error');
+    } catch (ex) {
+      expect(ex.message).toBe('x should be 1D tensor, but got x (4,1).');
+    }
+  });
+
+  it('should throw if y is not 1d', async () => {
+    const x = tf.tensor1d([1, 2, 3, 4], 'float32');
+    const y = tf.tensor2d([1, 2, 3, 4], [4, 1], 'float32');
+    try {
+      await tf.setdiff1dAsync(x, y);
+      throw new Error('The line above should have thrown an error');
+    } catch (ex) {
+      expect(ex.message).toBe('y should be 1D tensor, but got y (4,1).');
+    }
+  });
+
+  it('should throw if x and y dtype mismatch', async () => {
+    const x = tf.tensor1d([1, 2, 3, 4], 'float32');
+    const y = tf.tensor1d([1, 2, 3, 4], 'int32');
+    try {
+      await tf.setdiff1dAsync(x, y);
+      throw new Error('The line above should have thrown an error');
+    } catch (ex) {
+      expect(ex.message)
+          .toBe(
+              'x and y should have the same dtype,' +
+              ' but got x (float32) and y (int32).');
+    }
   });
 });
