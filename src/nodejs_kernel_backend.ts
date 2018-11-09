@@ -34,11 +34,12 @@ type TensorInfo = {
 
 interface DataId {}
 
-export class NodeJSKernelBackend implements KernelBackend {
+export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
   constructor(binding: TFJSBinding) {
+    super();
     this.binding = binding;
   }
 
@@ -527,6 +528,12 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   abs<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Abs', x) as T;
+  }
+
+  complexAbs<T extends Tensor>(x: T): T {
+    const opAttrs =
+        [createTypeOpAttr('T', x.dtype), createTypeOpAttr('Tout', 'float32')];
+    return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
   }
 
   sigmoid<T extends Tensor>(x: T): T {
@@ -1174,9 +1181,14 @@ export class NodeJSKernelBackend implements KernelBackend {
     ]) as Tensor1D;
   }
 
-  fft(x: Tensor<Rank.R1>): Tensor<Rank.R1> {
-    const opAttrs = [createTypeOpAttr('Tcomplex', 'complex64')];
-    return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R1>;
+  fft(x: Tensor<Rank.R2>): Tensor<Rank.R2> {
+    const opAttrs = [createTypeOpAttr('Tcomplex', x.dtype)];
+    return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R2>;
+  }
+
+  ifft(x: Tensor2D): Tensor2D {
+    const opAttrs = [createTypeOpAttr('Tcomplex', x.dtype)];
+    return this.executeSingleOutput('IFFT', opAttrs, [x]) as Tensor2D;
   }
 
   complex<T extends Tensor<Rank>>(real: T, imag: T): T {
@@ -1277,6 +1289,20 @@ export class NodeJSKernelBackend implements KernelBackend {
     inputs.push(scalar(axis, 'int32') as T);
     return this.executeMultipleOutputs(
                'SplitV', opAttrs, inputs, sizeSplits.length) as T[];
+  }
+
+  sparseToDense<R extends Rank>(
+      sparseIndices: Tensor<Rank>, sparseValues: Tensor<Rank>,
+      outputShape: ShapeMap[R], defaultValue: Tensor<Rank.R0>): Tensor<R> {
+    const opAttrs = [
+      {name: 'validate_indices', type: this.binding.TF_ATTR_BOOL, value: true},
+      createTypeOpAttr('T', sparseValues.dtype),
+      createTypeOpAttr('Tindices', sparseIndices.dtype)
+    ];
+    const outputShapeTensor = tensor1d(outputShape, 'int32');
+    return this.executeSingleOutput('SparseToDense', opAttrs, [
+      sparseIndices, outputShapeTensor, sparseValues, defaultValue
+    ]) as Tensor<R>;
   }
 
   fromPixels(
