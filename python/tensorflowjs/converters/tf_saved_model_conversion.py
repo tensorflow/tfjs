@@ -36,6 +36,10 @@ import tensorflow_hub as hub
 from tensorflowjs import write_weights
 
 DEFAULT_MODEL_PB_FILENAME = 'tensorflowjs_model.pb'
+CLEARED_TENSOR_FIELDS = (
+    'tensor_content', 'half_val', 'float_val', 'double_val', 'int_val',
+    'string_val', 'scomplex_val', 'int64_val', 'bool_val',
+    'resource_handle_val', 'variant_val', 'uint32_val', 'uint64_val')
 
 
 def get_cluster():
@@ -171,7 +175,8 @@ def extract_weights(graph_def,
       const.input[:] = constInputs[const.name]
 
       # Remove the binary array from tensor and save it to the external file.
-      const.attr["value"].tensor.ClearField('tensor_content')
+      for field_name in CLEARED_TENSOR_FIELDS:
+        const.attr["value"].tensor.ClearField(field_name)
 
   write_weights.write_weights(
       [const_manifest], path, quantization_dtype=quantization_dtype)
