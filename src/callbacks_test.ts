@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {progressBarHelper} from './callbacks';
+import {getDisplayDecimalPlaces, progressBarHelper} from './callbacks';
 
 describe('progbarLogger', () => {
   // Fake progbar class written for testing.
@@ -164,5 +164,37 @@ describe('progbarLogger', () => {
     await model.fit(xs, ys, {epochs, batchSize, validationSplit, verbose: 0});
 
     expect(fakeProgbars.length).toEqual(0);
+  });
+});
+
+describe('getDisplayDecimalPlaces', () => {
+  it('Not finite', () => {
+    expect(getDisplayDecimalPlaces(Infinity)).toEqual(2);
+    expect(getDisplayDecimalPlaces(-Infinity)).toEqual(2);
+    expect(getDisplayDecimalPlaces(NaN)).toEqual(2);
+  });
+
+  it('zero', () => {
+    expect(getDisplayDecimalPlaces(0)).toEqual(2);
+  });
+
+  it('Finite and positive', () => {
+    expect(getDisplayDecimalPlaces(300)).toEqual(2);
+    expect(getDisplayDecimalPlaces(30)).toEqual(2);
+    expect(getDisplayDecimalPlaces(1)).toEqual(2);
+    expect(getDisplayDecimalPlaces(1e-2)).toEqual(4);
+    expect(getDisplayDecimalPlaces(1e-3)).toEqual(5);
+    expect(getDisplayDecimalPlaces(4e-3)).toEqual(5);
+    expect(getDisplayDecimalPlaces(1e-6)).toEqual(8);
+  });
+
+  it('Finite and negative', () => {
+    expect(getDisplayDecimalPlaces(-300)).toEqual(2);
+    expect(getDisplayDecimalPlaces(-30)).toEqual(2);
+    expect(getDisplayDecimalPlaces(-1)).toEqual(2);
+    expect(getDisplayDecimalPlaces(-1e-2)).toEqual(4);
+    expect(getDisplayDecimalPlaces(-1e-3)).toEqual(5);
+    expect(getDisplayDecimalPlaces(-4e-3)).toEqual(5);
+    expect(getDisplayDecimalPlaces(-1e-6)).toEqual(8);
   });
 });

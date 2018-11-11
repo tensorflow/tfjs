@@ -90,7 +90,9 @@ export class ProgbarLogger extends CustomCallback {
     const keys = Object.keys(logs).sort();
     for (const key of keys) {
       if (this.isFieldRelevant(key)) {
-        metricsContent += `${key}=${logs[key].toFixed(2)} `;
+        const value = logs[key];
+        const decimalPlaces = getDisplayDecimalPlaces(value);
+        metricsContent += `${key}=${value.toFixed(decimalPlaces)} `;
       }
     }
     return metricsContent;
@@ -98,5 +100,20 @@ export class ProgbarLogger extends CustomCallback {
 
   private isFieldRelevant(key: string) {
     return key !== 'batch' && key !== 'size';
+  }
+}
+
+/**
+ * Determine the number of decimal places to display.
+ *
+ * @param x Number to display.
+ * @return Number of decimal places to display for `x`.
+ */
+export function getDisplayDecimalPlaces(x: number): number {
+  const BASE_NUM_DIGITS = 2;
+  if (!Number.isFinite(x) || x === 0 || x > 1 || x < -1) {
+    return BASE_NUM_DIGITS;
+  } else {
+    return BASE_NUM_DIGITS - Math.floor(Math.log10(Math.abs(x)));
   }
 }
