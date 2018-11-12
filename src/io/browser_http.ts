@@ -198,15 +198,10 @@ export class BrowserHTTPRequest implements IOHandler {
 
   private async loadWeights(weightsManifest: WeightsManifestConfig):
       Promise<[WeightsManifestEntry[], ArrayBuffer]> {
-    let pathPrefix = this.weightPathPrefix;
-    if (pathPrefix == null) {
-      const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
+    const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
+    const [prefix, suffix] = parseUrl(weightPath);
+    const pathPrefix = this.weightPathPrefix || prefix;
 
-      pathPrefix = weightPath.substring(0, weightPath.lastIndexOf('/'));
-      if (!pathPrefix.endsWith('/')) {
-        pathPrefix = pathPrefix + '/';
-      }
-    }
     const weightSpecs = [];
     for (const entry of weightsManifest) {
       weightSpecs.push(...entry.weights);
@@ -215,7 +210,7 @@ export class BrowserHTTPRequest implements IOHandler {
     const fetchURLs: string[] = [];
     weightsManifest.forEach(weightsGroup => {
       weightsGroup.paths.forEach(path => {
-        fetchURLs.push(pathPrefix + path);
+        fetchURLs.push(pathPrefix + path + suffix);
       });
     });
 
@@ -225,6 +220,26 @@ export class BrowserHTTPRequest implements IOHandler {
           await loadWeightsAsArrayBuffer(fetchURLs, this.requestInit))
     ];
   }
+}
+
+/**
+ * Extract the prefix and suffix of the url, where the prefix is the path before
+ * the last file, and suffix is the search params after the last file.
+ * ```
+ * const url = 'http://tfhub.dev/model/1/tensorflowjs_model.pb?tfjs-format=file'
+ * [prefix, suffix] = parseUrl(url)
+ * // prefix = 'http://tfhub.dev/model/1/'
+ * // suffix = '?tfjs-format=file'
+ * ```
+ * @param url the model url to be parsed.
+ */
+export function parseUrl(url: string): [string, string] {
+  const lastSlash = url.lastIndexOf('/');
+  const lastSearchParam = url.lastIndexOf('?');
+  const prefix = url.substring(0, lastSlash);
+  const suffix =
+      lastSearchParam > lastSlash ? url.substring(lastSearchParam) : '';
+  return [prefix + '/', suffix];
 }
 
 function isHTTPScheme(url: string): boolean {
