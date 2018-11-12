@@ -121,6 +121,7 @@ export async function computeDatasetStatistics(
     for (const key of Object.keys(e)) {
       const value = e[key];
       if (typeof (value) === 'string') {
+        // No statistics for string element.
       } else {
         let previousMean = 0;
         let previousLength = 0;
@@ -198,5 +199,13 @@ export async function computeDatasetStatistics(
       }
     }
   });
+  // Variance and stddev should be NaN for the case of a single element.
+  for (const key in result) {
+    const stat: NumericColumnStatistics = result[key];
+    if (stat.length === 1) {
+      stat.variance = NaN;
+      stat.stddev = NaN;
+    }
+  }
   return result;
 }

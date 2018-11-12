@@ -66,6 +66,16 @@ describeWithFlags('makeDatasetStatistics', tf.test_util.ALL_ENVS, () => {
        tf.test_util.expectNumbersClose(
            stats['Tensor'].stddev, 164.2310867396056);
      });
+
+  it('variance should be NaN if there is only one element', async () => {
+    const ds = new TestDataset().take(1) as Dataset<TabularRecord>;
+    const stats = await computeDatasetStatistics(ds);
+    expect(stats['number'].min).toEqual(0);
+    expect(stats['number'].max).toEqual(0);
+    expect(stats['number'].mean).toEqual(0);
+    expect(stats['number'].variance).toEqual(NaN);
+    expect(stats['number'].stddev).toEqual(NaN);
+  });
 });
 
 describeWithFlags('scaleTo01', tf.test_util.ALL_ENVS, () => {

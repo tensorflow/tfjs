@@ -1,11 +1,11 @@
 .rpt2_cache/
 .vscode/
+demo/
 scripts/
 src/
 coverage/
 node_modules/
 karma.conf.js
-dist/**/*.js.map
 dist/**/*_test.js
 dist/**/*_test.d.ts
 *.tgz

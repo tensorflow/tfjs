@@ -16,35 +16,33 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-// TODO(kangyi, soergel): Remove this once we have a public statistics API.
-import {computeDatasetStatistics, DatasetStatistics} from '@tensorflow/tfjs-data/dist/statistics';
+import {DataElement, Dataset} from '@tensorflow/tfjs-data';
+
 import {BostonHousingDataset} from './data';
+// TODO(kangyi, soergel): Remove this once we have a public statistics API.
+import {computeDatasetStatistics, DatasetStatistics} from './stats';
 import * as ui from './ui';
 
 // Some hyperparameters for model training.
 const NUM_EPOCHS = 250;
+
 const BATCH_SIZE = 40;
+
 const LEARNING_RATE = 0.01;
 
 interface PreparedData {
-  normalizedTrainFeatures: tf.Tensor2D;
-  trainTarget: tf.Tensor2D;
-  normalizedTestFeatures: tf.Tensor2D;
-  testTarget: tf.Tensor2D;
+  trainData: Dataset<DataElement>;
+  validationData: Dataset<DataElement>;
+  testData: Dataset<DataElement>;
 }
 
 const preparedData: PreparedData = {
-  normalizedTrainFeatures: null,
-  trainTarget: null,
-  normalizedTestFeatures: null,
-  testTarget: null
+  trainData: null,
+  validationData: null,
+  testData: null
 };
 
 let bostonData: BostonHousingDataset;
-let stats: DatasetStatistics;
-
-// TODO(kangyizhang): Remove this function when model.fitDataset(dataset) is
-//  available. This work should be done by dataset class itself.
 
 // Converts loaded data into tensors and creates normalized versions of the
 // features.
@@ -54,42 +52,37 @@ export async function loadDataAndNormalize() {
   // https://github.com/tensorflow/tfjs-data/issues/32 is resolved.
 
   // Gets mean and standard deviation of data.
-  stats = await computeDatasetStatistics(
+  // row[0] is feature data.
+  const featureStats = await computeDatasetStatistics(
       bostonData.trainDataset.map((row: Array<{key: number}>) => row[0]));
 
-  // Normalizes features data.
-  const normalizedTrainData = bostonData.trainDataset.map(normalizeFeatures);
-  const normalizedTestData = bostonData.testDataset.map(normalizeFeatures);
-
-  // Materializes data into arrays. Following codes should be removed once
-  // model.fitDataset is available.
-  const trainIter = await normalizedTrainData.iterator();
-  const trainData = await trainIter.collect();
-  const testIter = await normalizedTestData.iterator();
-  const testData = await testIter.collect();
-
-  preparedData.normalizedTrainFeatures = tf.tensor2d(trainData.map(
-      (row: {normalizedFeatures: number[], target: number[]}) =>
-          row.normalizedFeatures));
-  preparedData.trainTarget = tf.tensor2d(trainData.map(
-      (row: {normalizedFeatures: number[], target: number[]}) => row.target));
-  preparedData.normalizedTestFeatures = tf.tensor2d(testData.map(
-      (row: {normalizedFeatures: number[], target: number[]}) =>
-          row.normalizedFeatures));
-  preparedData.testTarget = tf.tensor2d(testData.map(
-      (row: {normalizedFeatures: number[], target: number[]}) => row.target));
+  // Normalizes data.
+  preparedData.trainData =
+      bostonData.trainDataset
+          .map(row => normalizeFeatures(row as number[][], featureStats))
+          .batch(BATCH_SIZE);
+  preparedData.validationData =
+      bostonData.validationDataset
+          .map(row => normalizeFeatures(row as number[][], featureStats))
+          .batch(BATCH_SIZE);
+  preparedData.testData =
+      bostonData.testDataset
+          .map(row => normalizeFeatures(row as number[][], featureStats))
+          .batch(BATCH_SIZE);
 }
 
 /**
  * Normalizes features with statistics and returns a new object.
  */
-function normalizeFeatures(row: number[][]) {
+// TODO(kangyizhang, bileschi): Replace these with preprocessing layers once
+// they are available.
+function normalizeFeatures(row: number[][], featureStats: DatasetStatistics) {
   const features = row[0];
   const normalizedFeatures: number[] = [];
   features.forEach(
       (value, index) => normalizedFeatures.push(
-          (value - stats[index].mean) / stats[index].stddev));
-  return {normalizedFeatures, target: row[1]};
+          (value - featureStats[index].mean) / featureStats[index].stddev));
+  return [normalizedFeatures, row[1]];
 }
 
 /**
@@ -136,28 +129,24 @@ export const run = async (model: tf.Sequential) => {
 
   let trainLoss: number;
   let valLoss: number;
+
   await ui.updateStatus('Starting training process...');
-  await model.fit(
-      preparedData.normalizedTrainFeatures, preparedData.trainTarget, {
-        batchSize: BATCH_SIZE,
-        epochs: NUM_EPOCHS,
-        validationSplit: 0.2,
-        callbacks: {
-          onEpochEnd: async (epoch: number, logs) => {
-            await ui.updateStatus(
-                `Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`);
-            trainLoss = logs.loss;
-            valLoss = logs.val_loss;
-            await ui.plotData(epoch, trainLoss, valLoss);
-          }
-        }
-      });
+  await model.fitDataset(preparedData.trainData, {
+    epochs: NUM_EPOCHS,
+    validationData: preparedData.validationData,
+    callbacks: {
+      onEpochEnd: async (epoch: number, logs) => {
+        await ui.updateStatus(`Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`);
+        trainLoss = logs.loss;
+        valLoss = logs.val_loss;
+        await ui.plotData(epoch, trainLoss, valLoss);
+      }
+    }
+  });
 
   await ui.updateStatus('Running on test data...');
   const result =
-      model.evaluate(
-          preparedData.normalizedTestFeatures, preparedData.testTarget,
-          {batchSize: BATCH_SIZE}) as tf.Tensor;
+      (await model.evaluateDataset(preparedData.testData, {})) as tf.Tensor;
   const testLoss = result.dataSync()[0];
   await ui.updateStatus(
       `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
@@ -165,14 +154,26 @@ export const run = async (model: tf.Sequential) => {
       `Test-set loss: ${testLoss.toFixed(4)}`);
 };
 
-export const computeBaseline = () => {
-  const avgPrice = tf.mean(preparedData.trainTarget);
-  console.log(`Average price: ${avgPrice.dataSync()}`);
-  const baseline =
-      tf.mean(tf.pow(tf.sub(preparedData.testTarget, avgPrice), 2));
-  console.log(`Baseline loss: ${baseline.dataSync()}`);
-  const baselineMsg = `Baseline loss (meanSquaredError) is ${
-      baseline.dataSync()[0].toFixed(2)}`;
+export const computeBaseline = async () => {
+  // TODO(kangyizhang): Remove this once statistics support nested object.
+  // row[1] is target data.
+  const targetStats = await computeDatasetStatistics(
+      bostonData.trainDataset.map((row: Array<{key: number}>) => row[1]));
+  const trainMean = targetStats[0].mean;
+  let testSquareError = 0;
+  let testCount = 0;
+
+  await bostonData.testDataset.forEach((row: number[]) => {
+    testSquareError += Math.pow(row[1] - trainMean, 2);
+    testCount++;
+  });
+
+  if (testCount === 0) {
+    throw new Error('No test data found!');
+  }
+  const baseline = testSquareError / testCount;
+  const baselineMsg =
+      `Baseline loss (meanSquaredError) is ${baseline.toFixed(2)}`;
   ui.updateBaselineStatus(baselineMsg);
 };
 
