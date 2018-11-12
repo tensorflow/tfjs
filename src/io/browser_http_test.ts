@@ -23,7 +23,7 @@ import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {BROWSER_ENVS, CHROME_ENVS, NODE_ENVS} from '../test_util';
 
-import {BrowserHTTPRequest, httpRequestRouter} from './browser_http';
+import {BrowserHTTPRequest, httpRequestRouter, parseUrl} from './browser_http';
 
 // Test data.
 const modelTopology1: {} = {
@@ -283,10 +283,8 @@ describeWithFlags('browserHTTPRequest-save', CHROME_ENVS, () => {
     const testStartDate = new Date();
     const handler = tf.io.browserHTTPRequest('model-upload-test', {
       method: 'PUT',
-      headers: {
-        'header_key_1': 'header_value_1',
-        'header_key_2': 'header_value_2'
-      }
+      headers:
+          {'header_key_1': 'header_value_1', 'header_key_2': 'header_value_2'}
     });
     handler.save(artifacts1)
         .then(saveResult => {
@@ -395,6 +393,27 @@ describeWithFlags('browserHTTPRequest-save', CHROME_ENVS, () => {
         .toEqual(true);
     expect(httpRequestRouter('localhost://foo')).toBeNull();
     expect(httpRequestRouter('foo:5000/bar')).toBeNull();
+  });
+});
+
+describeWithFlags('parseUrl', BROWSER_ENVS, () => {
+  it('should parse url with no suffix', () => {
+    const url = 'http://google.com/file';
+    const [prefix, suffix] = parseUrl(url);
+    expect(prefix).toEqual('http://google.com/');
+    expect(suffix).toEqual('');
+  });
+  it('should parse url with suffix', () => {
+    const url = 'http://google.com/file?param=1';
+    const [prefix, suffix] = parseUrl(url);
+    expect(prefix).toEqual('http://google.com/');
+    expect(suffix).toEqual('?param=1');
+  });
+  it('should parse url with multiple serach params', () => {
+    const url = 'http://google.com/a?x=1/file?param=1';
+    const [prefix, suffix] = parseUrl(url);
+    expect(prefix).toEqual('http://google.com/a?x=1/');
+    expect(suffix).toEqual('?param=1');
   });
 });
 
@@ -739,6 +758,47 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
 
       const handler =
           tf.io.browserHTTPRequest(['./model.pb', './weights_manifest.json']);
+      handler.load()
+          .then(modelArtifacts => {
+            expect(modelArtifacts.modelTopology).toEqual(modelData);
+            expect(modelArtifacts.weightSpecs)
+                .toEqual(weightManifest1[0].weights);
+            expect(new Float32Array(modelArtifacts.weightData))
+                .toEqual(floatData);
+            expect(requestInits).toEqual([{}, {}, {}]);
+            done();
+          })
+          .catch(err => done.fail(err.stack));
+    });
+
+    it('1 group, 2 weights, 1 path with suffix', (done: DoneFn) => {
+      const weightManifest1: tf.io.WeightsManifestConfig = [{
+        paths: ['weightfile0'],
+        weights: [
+          {
+            name: 'dense/kernel',
+            shape: [3, 1],
+            dtype: 'float32',
+          },
+          {
+            name: 'dense/bias',
+            shape: [2],
+            dtype: 'float32',
+          }
+        ]
+      }];
+      const floatData = new Float32Array([1, 3, 3, 7, 4]);
+      setupFakeWeightFiles({
+        './model.pb?tfjs-format=file': modelData,
+        './weights_manifest.json?tfjs-format=file':
+            JSON.stringify(weightManifest1),
+        './weightfile0?tfjs-format=file': floatData,
+      });
+
+      const handler = tf.io.browserHTTPRequest([
+        './model.pb?tfjs-format=file',
+        './weights_manifest.json?tfjs-format=file'
+      ]);
       handler.load()
           .then(modelArtifacts => {
             expect(modelArtifacts.modelTopology).toEqual(modelData);
