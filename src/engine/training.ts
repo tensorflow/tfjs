@@ -33,7 +33,7 @@ import {Dataset} from './dataset_stub';
 import {execute, FeedDict} from './executor';
 import {SymbolicTensor} from './topology';
 import {evaluateDataset, fitDataset, ModelEvaluateDatasetConfig, ModelFitDatasetConfig} from './training_dataset';
-import {checkBatchSize, fitTensors, makeBatches, ModelFitConfig, sliceArrays, sliceArraysByIndices} from './training_tensors';
+import {checkBatchSize, disposeNewTensors, ensureTensorsRank2OrHigher, fitTensors, makeBatches, ModelFitConfig, sliceArrays, sliceArraysByIndices} from './training_tensors';
 
 /**
  * Helper function for polymorphic input data: 1. singleton Tensor.
@@ -136,13 +136,7 @@ export function standardizeInputData(
     arrays = [data];
   }
 
-  // Make Tensors at least 2D.
-  for (let i = 0; i < names.length; ++i) {
-    const array = arrays[i];
-    if (array.shape.length === 1) {
-      arrays[i] = K.expandDims(array, 1);
-    }
-  }
+  arrays = ensureTensorsRank2OrHigher(arrays);
 
   // Check shape compatibility.
   if (shapes != null) {
@@ -808,14 +802,19 @@ export class Model extends Container implements tfc.InferenceModel {
     // TODO(cais): Standardize `config.sampleWeights` as well.
     // Validate user data.
     const standardizedOuts = this.standardizeUserData(x, y, true, batchSize);
-    // TODO(cais): If uses `useLearningPhase`, set the corresponding element of
-    //   the input to 0.
-    const ins = standardizedOuts[0].concat(standardizedOuts[1]);
-    this.makeTestFunction();
-    const f = this.testFunction;
-    const testOuts =
-        this.testLoop(f, ins, batchSize, config.verbose, config.steps);
-    return singletonOrArray(testOuts);
+    try {
+      // TODO(cais): If uses `useLearningPhase`, set the corresponding element
+      // of the input to 0.
+      const ins = standardizedOuts[0].concat(standardizedOuts[1]);
+      this.makeTestFunction();
+      const f = this.testFunction;
+      const testOuts =
+          this.testLoop(f, ins, batchSize, config.verbose, config.steps);
+      return singletonOrArray(testOuts);
+    } finally {
+      disposeNewTensors(standardizedOuts[0], x);
+      disposeNewTensors(standardizedOuts[1], y);
+    }
   }
 
   // TODO(cais): Add code snippet below once real dataset objects are
@@ -1070,14 +1069,20 @@ export class Model extends Container implements tfc.InferenceModel {
    */
   predict(x: Tensor|Tensor[], config: ModelPredictConfig = {}): Tensor
       |Tensor[] {
-    checkInputData(x, this.inputNames, this.feedInputShapes, false);
-    // TODO(cais): Take care of stateful models.
-    //   if (this.stateful) ...
-    // TODO(cais): Take care of the learning_phase boolean flag.
-    //   if (this.useLearningPhase) ...
-    const batchSize = config.batchSize == null ? 32 : config.batchSize;
-    checkBatchSize(batchSize);
-    return this.predictLoop(x, batchSize);
+    const xsRank2OrHigher = ensureTensorsRank2OrHigher(x);
+    checkInputData(
+        xsRank2OrHigher, this.inputNames, this.feedInputShapes, false);
+    try {
+      // TODO(cais): Take care of stateful models.
+      //   if (this.stateful) ...
+      // TODO(cais): Take care of the learning_phase boolean flag.
+      //   if (this.useLearningPhase) ...
+      const batchSize = config.batchSize == null ? 32 : config.batchSize;
+      checkBatchSize(batchSize);
+      return this.predictLoop(xsRank2OrHigher, batchSize);
+    } finally {
+      disposeNewTensors(xsRank2OrHigher, x);
+    }
   }
 
   /**

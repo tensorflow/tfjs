@@ -15,7 +15,7 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {Scalar, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
 
-import {gather, sliceAlongFirstAxis} from '../backend/tfjs_backend';
+import {expandDims, gather, sliceAlongFirstAxis} from '../backend/tfjs_backend';
 import {BaseCallback, configureCallbacks, CustomCallbackConfig, History, ModelLoggingVerbosity, standardizeCallbacks, YieldEveryOptions} from '../base_callbacks';
 import {NotImplementedError, ValueError} from '../errors';
 import {disposeTensorsInLogs, UnresolvedLogs} from '../logs';
@@ -400,6 +400,12 @@ export async function fitTensors(
         'Cannot start training because another fit() call is ongoing.');
   }
   model.isTraining = true;
+  let inputs: Tensor[];
+  let targets: Tensor[];
+  let inputValX: Tensor|Tensor[];
+  let inputValY: Tensor|Tensor[];
+  let valX: Tensor|Tensor[];
+  let valY: Tensor|Tensor[];
   try {
     const batchSize = config.batchSize == null ? 32 : config.batchSize;
     checkBatchSize(batchSize);
@@ -408,29 +414,21 @@ export async function fitTensors(
     // TODO(cais): Add sampleWeight and  classWeight.
     const standardizedOuts =
         model.standardizeUserData(
-            x, y, false, batchSize) as [Tensor[], Tensor[], Tensor[]];
-    let inputs = standardizedOuts[0];
-    let targets = standardizedOuts[1];
+            x, y, false, batchSize) as [Tensor[], Tensor[]];
+    inputs = standardizedOuts[0];
+    targets = standardizedOuts[1];
     // TODO(cais): Make use of sampleWeights in standardizedOuts[2] when
     //   available.
 
     // Prepare validation data.
     let doValidation = false;
-    let valX: Tensor|Tensor[];
-    let valY: Tensor|Tensor[];
     let valIns: Tensor[];
-    // A flag to keep track of whether `valIns`, `inputs` and `targets`
-    // need to be memory-disposed prior to returning from this method.
-    // This is the case if `config.validationSplit` is set to a number
-    // between 0 and 1, in which case the input `x` and `y` tensors will
-    // be sliced, leading to allocation of new tensor memory.
-    let needValidationDisposal = false;
     if (config.validationData != null && config.validationData.length > 0) {
       doValidation = true;
       if (config.validationData.length === 2) {
         // config.validationData consists of valX and valY.
-        valX = config.validationData[0];
-        valY = config.validationData[1];
+        inputValX = config.validationData[0];
+        inputValY = config.validationData[1];
       } else if (config.validationData.length === 3) {
         throw new NotImplementedError(
             'validationData including sample weights is not supported yet.');
@@ -441,10 +439,11 @@ export async function fitTensors(
             `${config.validationData} is invalid.`);
       }
 
-      const valStandardized =
-          model.standardizeUserData(valX, valY, true, batchSize);
-      valX = valStandardized[0] as Tensor[];
-      valY = valStandardized[1] as Tensor[];
+      const valStandardized = model.standardizeUserData(
+                                  inputValX, inputValY, true,
+                                  batchSize) as [Tensor[], Tensor[], Tensor[]];
+      valX = valStandardized[0];
+      valY = valStandardized[1];
       // TODO(cais): Use validation sample weights in valStandardized[2]
       // once
       //   it becomes available.
@@ -462,7 +461,6 @@ export async function fitTensors(
       inputs = sliceArrays(inputs, 0, splitAt) as Tensor[];
       valY = sliceArrays(targets, splitAt, originalBatchSize) as Tensor[];
       targets = sliceArrays(targets, 0, splitAt) as Tensor[];
-      needValidationDisposal = true;
       // TODO(cais): Once sampleWeights becomes available, slice it to get
       //   valSampleWeights.
       valIns = valX.concat(valY);
@@ -510,15 +508,101 @@ export async function fitTensors(
         model, trainFunction, ins, outLabels, batchSize, config.epochs,
         config.verbose, callbacks, valFunction, valIns, config.shuffle,
         callbackMetrics, config.initialEpoch, null, null, config.yieldEvery);
-    if (needValidationDisposal) {
-      valIns.forEach(tensor => tensor.dispose());
-      inputs.forEach(tensor => tensor.dispose());
-      targets.forEach(tensor => tensor.dispose());
-    }
     model.isTraining = false;
     return out;
   } finally {
     model.isTraining = false;
+    // Memory clean up.
+    disposeNewTensors(inputs, x);
+    disposeNewTensors(targets, y);
+    disposeNewTensors(valX as Tensor[], inputValX);
+    disposeNewTensors(valY as Tensor[], inputValY);
   }
   // TODO(cais): Add value to outLabels.
+}
+
+/**
+ * Ensure tensors all have a rank of at least 2.
+ *
+ * If a tensor has a rank of 1, it is dimension-expanded to rank 2.
+ * If any tensor has a rank of 0 (i.e., is a scalar), an error will be thrown.
+ */
+export function ensureTensorsRank2OrHigher(tensors: Tensor|Tensor[]): Tensor[] {
+  const outs: Tensor[] = [];
+  if (tensors instanceof Tensor) {
+    tensors = [tensors];
+  }
+
+  // Make Tensors at least 2D.
+  for (let i = 0; i < tensors.length; ++i) {
+    const tensor = tensors[i];
+    if (tensor.rank === 1) {
+      outs.push(expandDims(tensor, 1));
+    } else if (tensor.rank === 0) {
+      throw new Error(
+          'Expected tensor to be at least 1D, but received a 0D tensor ' +
+          '(scalar).');
+    } else {
+      outs.push(tensor);
+    }
+  }
+  return outs;
+}
+
+/**
+ * Compare a set of tensors with a reference (old) set, discard the ones
+ * in the new set that are not present in the reference set.
+ *
+ * This method is used for memory clenaup during calls such as Model.fit().
+ *
+ * @param tensors New set which may contain Tensors not present in
+ *   `refTensors`.
+ * @param refTensors Reference Tensor set.
+ */
+// TODO(cais, kangyizhang): Deduplicate with tfjs-data.
+export function disposeNewTensors(
+    tensors: Tensor|Tensor[]|{[inputName: string]: Tensor},
+    refTensors: Tensor|Tensor[]|{[inputName: string]: Tensor}): void {
+  if (tensors == null) {
+    return;
+  }
+  const oldTensorIds: number[] = [];
+  if (refTensors instanceof Tensor) {
+    oldTensorIds.push(refTensors.id);
+  } else if (Array.isArray(refTensors)) {
+    refTensors.forEach(t => oldTensorIds.push(t.id));
+  } else if (refTensors != null) {
+    // `oldTensors` is a map from string name to Tensor.
+    for (const name in refTensors) {
+      const oldTensor = refTensors[name];
+      oldTensorIds.push(oldTensor.id);
+    }
+  }
+
+  const tensorsToDispose: Tensor[] = [];
+  if (tensors instanceof Tensor) {
+    if (oldTensorIds.indexOf(tensors.id) === -1) {
+      tensorsToDispose.push(tensors);
+    }
+  } else if (Array.isArray(tensors)) {
+    tensors.forEach(t => {
+      if (oldTensorIds.indexOf(t.id) === -1) {
+        tensorsToDispose.push(t);
+      }
+    });
+  } else if (tensors != null) {
+    // `oldTensors` is a map from string name to Tensor.
+    for (const name in tensors) {
+      const tensor = tensors[name];
+      if (oldTensorIds.indexOf(tensor.id) === -1) {
+        tensorsToDispose.push(tensor);
+      }
+    }
+  }
+
+  tensorsToDispose.forEach(t => {
+    if (!t.isDisposed) {
+      t.dispose();
+    }
+  });
 }

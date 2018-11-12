@@ -31,90 +31,99 @@ import {makeBatches, sliceArraysByIndices} from './training_tensors';
 
 
 describeMathCPU('isDataTensor', () => {
+  const x = tfc.tensor2d([[3.14]]);
+
   it('Positive case', () => {
-    expect(isDataTensor(scalar(3.14))).toEqual(true);
+    expect(isDataTensor(x)).toEqual(true);
   });
   it('Negative cases', () => {
-    expect(isDataTensor([scalar(3.14), scalar(-3.14)])).toEqual(false);
-    expect(isDataTensor({'Pie': scalar(3.14)})).toEqual(false);
+    expect(isDataTensor([x, x])).toEqual(false);
+    expect(isDataTensor({'Pie': x})).toEqual(false);
     expect(isDataTensor({})).toEqual(false);
   });
 });
 
 describeMathCPU('isDataArray', () => {
+  const x = tfc.tensor2d([[3.14]]);
+
   it('Positive case', () => {
-    expect(isDataArray([scalar(3.14), scalar(-3.14)])).toEqual(true);
+    expect(isDataArray([x, x])).toEqual(true);
     expect(isDataArray([])).toEqual(true);
   });
   it('Negative cases', () => {
-    expect(isDataArray(scalar(3.14))).toEqual(false);
-    expect(isDataArray({'Pie': scalar(3.14)})).toEqual(false);
+    expect(isDataArray(x)).toEqual(false);
+    expect(isDataArray({'Pie': x})).toEqual(false);
     expect(isDataArray({})).toEqual(false);
   });
 });
 
 describeMathCPU('isDataDict', () => {
+  const x = tfc.tensor2d([[3.14]]);
   it('Positive case', () => {
-    expect(isDataDict({'Pie': scalar(3.14)})).toEqual(true);
+    expect(isDataDict({'Pie': x})).toEqual(true);
     expect(isDataDict({})).toEqual(true);
   });
   it('Negative cases', () => {
-    expect(isDataDict(scalar(3.14))).toEqual(false);
-    expect(isDataDict([scalar(3.14), scalar(-3.14)])).toEqual(false);
+    expect(isDataDict(x)).toEqual(false);
+    expect(isDataDict([x, x])).toEqual(false);
     expect(isDataDict([])).toEqual(false);
   });
 });
 
 describeMathCPU('standardizeInputData', () => {
+  const getX = () => tfc.tensor2d([[42]]);
+  const getY = () => tfc.tensor2d([[21]]);
+
   it('Singleton Tensor, Array of one name', () => {
-    const outputs = standardizeInputData(scalar(42), ['Foo']);
+    const outputs = standardizeInputData(getX(), ['Foo']);
     expect(outputs.length).toEqual(1);
-    expectTensorsClose(outputs[0], scalar(42));
+    expectTensorsClose(outputs[0], getX());
   });
   it('Array of one Tensor, Array of one name', () => {
-    const outputs = standardizeInputData([scalar(42)], ['Foo']);
+    const outputs = standardizeInputData([getX()], ['Foo']);
     expect(outputs.length).toEqual(1);
-    expectTensorsClose(outputs[0], scalar(42));
+    expectTensorsClose(outputs[0], getX());
   });
   it('Array of two Tensors, Array of two names', () => {
     const outputs =
-        standardizeInputData([scalar(42), scalar(21)], ['Foo', 'Bar']);
+        standardizeInputData([getX(), getY()], ['Foo', 'Bar']);
     expect(outputs.length).toEqual(2);
-    expectTensorsClose(outputs[0], scalar(42));
-    expectTensorsClose(outputs[1], scalar(21));
+    expectTensorsClose(outputs[0], getX());
+    expectTensorsClose(outputs[1], getY());
   });
   it('Dict of two Tensors, Array of two names', () => {
     const outputs = standardizeInputData(
-        {'Foo': scalar(42), 'Bar': scalar(21)}, ['Foo', 'Bar']);
+        {'Foo': getX(), 'Bar': getY()}, ['Foo', 'Bar']);
     expect(outputs.length).toEqual(2);
-    expectTensorsClose(outputs[0], scalar(42));
-    expectTensorsClose(outputs[1], scalar(21));
+    expectTensorsClose(outputs[0], getX());
+    expectTensorsClose(outputs[1], getY());
   });
   it('Unexpected data leads to exception: singleton Tensor', () => {
-    expect(() => standardizeInputData(scalar(42), []))
+    expect(() => standardizeInputData(getX(), []))
         .toThrowError(/expected no data/);
   });
   it('Unexpected data leads to exception: Array of two Tensors', () => {
-    expect(() => standardizeInputData([scalar(42), scalar(21)], []))
+    expect(() => standardizeInputData([getX(), getY()], []))
         .toThrowError(/expected no data/);
   });
   it('Unexpected data leads to exception: Dict', () => {
-    expect(() => standardizeInputData({'Pie': scalar(42)}, []))
+    expect(() => standardizeInputData({'Pie': getX()}, []))
         .toThrowError(/expected no data/);
   });
   it('Length mismatch: 1 singleton Scalar vs two names', () => {
-    expect(() => standardizeInputData(scalar(42), ['Foo', 'Bar']))
+    expect(() => standardizeInputData(getX(), ['Foo', 'Bar']))
         .toThrowError(/expects 2 Tensor.* but only received one/);
   });
   it('Length mismatch: Array of 2 Scalars vs one name', () => {
-    expect(() => standardizeInputData([scalar(42), scalar(-42)], ['Foo']))
+    expect(() => standardizeInputData([getX(), scalar(-42)], ['Foo']))
         .toThrowError(/Expected to see 1 Tensor/);
   });
   it('Length mismatch: Dict of 1 Scalar vs 2 names', () => {
-    expect(() => standardizeInputData({'Foo': scalar(42)}, ['Foo', 'Bar']))
+    expect(() => standardizeInputData({'Foo': getX()}, ['Foo', 'Bar']))
         .toThrowError(/No data provided for \"Bar\"/);
   });
 });
+
 
 describeMathCPU('checkArrayLengths', () => {
   it('Batch mismatch in inputs', () => {
@@ -201,6 +210,21 @@ describeMathCPUAndGPU('Model.predict', () => {
     const xs = ones([10, 3, 4]);
     const ys = model.predict(xs, {batchSize: 4}) as Tensor;
     expectTensorsClose(ys, ones([10, 2, 6]));
+  });
+
+  it('1D tensors as inputs', () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 1, inputShape: [1]}));
+
+    const xs = ones([10]);  // A batch of 10.
+    // Do a burn-in call first.
+    tfc.dispose(model.predict(xs, {batchSize: 4}));
+    const numTensors0 = memory().numTensors;
+    const ys = model.predict(xs, {batchSize: 4}) as Tensor;
+    expect(ys.shape).toEqual([10, 1]);
+    ys.dispose();
+    // Assert no memory leak.
+    expect(memory().numTensors).toEqual(numTensors0);
   });
 
   it('1 input, 1 output, tensor as input argument', () => {
@@ -426,6 +450,40 @@ describeMathCPUAndGPU('Model.fit', () => {
        expectTensorsClose(
            newWeightsValue, tensor2d(expectedValueArray, [inputSize, 1]));
      });
+
+  it('1D tensor as inputs, targets and validationData', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 1, inputShape: [1]}));
+    model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+
+    // Use 1D tensor shapes.
+    inputs = ones([numSamples]);
+    targets = ones([numSamples]);
+    const valInputs = ones([numSamples]);
+    const valTargets = ones([numSamples]);
+
+    // Do a burn-in run before checking memory to give any cached
+    // tensors a chance to be created first.
+    await model.fit(inputs, targets, {
+      batchSize: numSamples,
+      epochs: 2,
+      validationData: [valInputs, valTargets]
+    });
+
+    for (let i = 0; i < 2; ++i) {
+      const numTensors0 = memory().numTensors;
+      const history = await model.fit(inputs, targets, {
+        batchSize: numSamples,
+        epochs: 2,
+        validationData: [valInputs, valTargets]
+      });
+      expect(memory().numTensors).toEqual(numTensors0);
+      // Assert no memory leak.
+      expect(history.epoch).toEqual([0, 1]);
+      expect(history.history.loss.length).toEqual(2);
+      expect(history.history.val_loss.length).toEqual(2);
+    }
+  });
 
   it('training with custom loss', async () => {
     // Use the following Python code snippet to get reference values
@@ -1949,6 +2007,26 @@ describeMathCPUAndGPU('Model.evaluate', () => {
       });
     }
   }
+
+  it('1D tensors as inputs and targets', () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 1, inputShape: [1]}));
+    model.compile(
+        {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['acc']});
+
+    const xs = ones([10]);   // A batch of 10, as a 1D tensor.
+    const ys = zeros([10]);  // A batch of 10, as a 1D tensor.
+    // Do a burn-in call first.
+    tfc.dispose(model.evaluate(xs, ys, {batchSize: 4}));
+    const numTensors0 = memory().numTensors;
+    const evalOuts = model.evaluate(xs, ys, {batchSize: 4}) as Tensor[];
+    expect(evalOuts.length).toEqual(2);     // Loss and acc.
+    expect(evalOuts[0].shape).toEqual([]);  // Loss as a scalar.
+    expect(evalOuts[1].shape).toEqual([]);  // Acc as a scalar.
+    tfc.dispose(evalOuts);
+    // Assert no memory leak.
+    expect(memory().numTensors).toEqual(numTensors0);
+  });
 
   it('Invalid batchSize value leads to Error', () => {
     prepModel();

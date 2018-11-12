@@ -1138,7 +1138,39 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
     expect(errorCaught.message)
         .toMatch(/fitDataset.*dataset-based validation.*integer.*undefined/);
   });
+
+  it('Calling fitDataset with validationSplit leads to Error', async () => {
+    const model = createDenseModel();
+    model.compile(
+        {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['accuracy']});
+
+    const batchSize = 8;
+    const epochs = 2;
+    const batchesPerEpoch = 3;
+
+    // Training dataset.
+    const dataset = new FakeNumericDataset({
+      xShape: [1],
+      yShape: [1],
+      batchSize,
+      numBatches: batchesPerEpoch * epochs
+    });
+
+    let errorCaught: Error;
+    try {
+      await model.fitDataset(
+          dataset,
+          // tslint:disable-next-line:no-any
+          {epochs: 1, batchesPerEpoch: 2, validationSplit: 0.25} as any);
+    } catch (err) {
+      errorCaught = err;
+    }
+    expect(errorCaught.message)
+        .toMatch(/.*validationSplit.*not supported.*validationData/);
+  });
 });
+
+// TODO(cais): The corresponding test for predict() and evaluate().
 
 describeMathCPUAndGPU('Model.evaluateDataset', () => {
   // Reference Python tf.keras code:
