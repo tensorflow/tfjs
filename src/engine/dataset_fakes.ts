@@ -11,7 +11,8 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import {Shape} from '../types';
-import {LazyIterator, TensorOrTensorMap, Dataset,} from './dataset_stub';
+
+import {Dataset, LazyIterator, TensorOrTensorMap,} from './dataset_stub';
 
 export interface FakeDatasetConfig {
   /**
@@ -113,6 +114,9 @@ class FakeNumericIterator extends
   async next():
       Promise<IteratorResult<[TensorOrTensorMap, TensorOrTensorMap]>> {
     const done = ++this.batchCount > this.numBatches;
+    if (done) {
+      return {done, value: null};
+    }
     if (this.xTensorsFunc == null) {
       // Generate data randomly.
       return {
@@ -152,13 +156,12 @@ class FakeNumericIterator extends
       }
 
       // TODO(cais): Take care of the case of multiple outputs.
-      const ys =
-          (this.yTensorValues as tfc.Tensor[])[index] as tfc.Tensor;
+      const ys = (this.yTensorValues as tfc.Tensor[])[index] as tfc.Tensor;
       tfc.util.assert(
           tfc.util.arraysEqual(ys.shape, this.yBatchShape as Shape),
           `Shape mismatch: expected: ${JSON.stringify(this.yBatchShape)}; ` +
               `actual: ${JSON.stringify(ys.shape)}`);
-      return {done, value: done ? null : [xs, ys]};
+      return {done, value: [xs, ys]};
     }
   }
 }
