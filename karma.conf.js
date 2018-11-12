@@ -15,13 +15,15 @@
  * =============================================================================
  */
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
-    files: [{pattern: 'src/**/*.ts'}],
+    files: [{
+      pattern: 'src/**/*.ts'
+    }],
     exclude: ['src/test_node.ts'],
     preprocessors: {
-      '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
+      '**/*.ts': ['karma-typescript'], // *.tsx for React Jsx
     },
     karmaTypescriptConfig: {
       tsconfig: 'tsconfig.json',

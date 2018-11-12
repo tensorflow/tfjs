@@ -22,11 +22,13 @@ const BASE_URL =
     'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/';
 
 const TRAIN_FILENAME = 'boston-housing-train.csv';
+const VALIDATION_FILENAME = 'boston-housing-validation.csv';
 const TEST_FILENAME = 'boston-housing-test.csv';
 
-/** Helper class to handle loading training and test data. */
+/** Helper class to handle loading training, validation and test data. */
 export class BostonHousingDataset {
   trainDataset: tfd.Dataset<tfd.DataElement> = null;
+  validationDataset: tfd.Dataset<tfd.DataElement> = null;
   testDataset: tfd.Dataset<tfd.DataElement> = null;
   numFeatures: number = null;
 
@@ -49,6 +51,9 @@ export class BostonHousingDataset {
     // the column of label.
     this.trainDataset = trainData.dataset;
     this.numFeatures = trainData.numFeatures;
+    this.validationDataset =
+        (await this.prepareDataset(`${BASE_URL}${VALIDATION_FILENAME}`))
+            .dataset;
     this.testDataset =
         (await this.prepareDataset(`${BASE_URL}${TEST_FILENAME}`)).dataset;
   }
