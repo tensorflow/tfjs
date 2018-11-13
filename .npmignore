@@ -28,3 +28,4 @@ rollup.config.js
 WORKSPACE
 yarn.lock
 yarn-error.log
+.yalc/
