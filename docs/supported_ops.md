@@ -9,6 +9,7 @@
 |BiasAdd|add|
 |Div|div|
 |FloorDiv|floorDiv|
+|FloorMod|mod|
 |Maximum|maximum|
 |Minimum|minimum|
 |Mod|mod|
@@ -17,7 +18,6 @@
 |RealDiv|div|
 |SquaredDifference|squaredDifference|
 |Sub|sub|
-
 
 ## Operations - Basic math
 
@@ -42,6 +42,7 @@
 |Log|log|
 |Log1p|log1p|
 |Neg|neg|
+|Prod|prod|
 |Reciprocal|reciprocal|
 |Reciprocal|reciprocal|
 |Relu|relu|
@@ -64,7 +65,6 @@
 |Not mapped|prelu|
 |Not mapped|step|
 
-
 ## Operations - Control Flow
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
@@ -85,7 +85,6 @@
 |TensorArrayV3|tensorArray|
 |TensorArrayWriteV3|tensorArrayWrite|
 
-
 ## Operations - Convolution
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
@@ -97,8 +96,8 @@
 |DepthwiseConv2d|depthwiseConv2d|
 |DepthwiseConv2dNative|depthwiseConv2d|
 |MaxPool|maxPool|
+|Not mapped|pool|
 |Not mapped|separableConv2d|
-
 
 ## Tensors - Creation
 
@@ -116,9 +115,12 @@
 |ZerosLike|zerosLike|
 |Not mapped|buffer|
 |Not mapped|clone|
+|Not mapped|complex|
 |Not mapped|eye|
 |Not mapped|fromPixels|
+|Not mapped|imag|
 |Not mapped|print|
+|Not mapped|real|
 |Not mapped|scalar|
 |Not mapped|tensor|
 |Not mapped|tensor1d|
@@ -129,7 +131,6 @@
 |Not mapped|tensor6d|
 |Not mapped|variable|
 
-
 ## Operations - Dynamic
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
@@ -138,13 +139,13 @@
 |NonMaxSuppressionV3|nonMaxSuppression|
 |Where|whereAsync|
 
-
 ## Operations - Evaluation
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
 |TopKV2|topK|
-
+|Not mapped|confusionMatrix|
+|Not mapped|topk|
 
 ## Tensorflow - Graph
 
@@ -164,7 +165,6 @@
 |Snapshot|snapshot|
 |StopGradient|stopGradient|
 
-
 ## Operations - Logical
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
@@ -180,7 +180,7 @@
 |NotEqual|notEqual|
 |Select|where|
 |Not mapped|logicalXor|
-
+|Not mapped|whereAsync|
 
 ## Operations - Matrices
 
@@ -193,7 +193,6 @@
 |Not mapped|norm|
 |Not mapped|outerProduct|
 
-
 ## Operations - Normalization
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
@@ -202,8 +201,9 @@
 |FusedBatchNormV2|batchNormalization|
 |LRN|localResponseNormalization|
 |Softmax|softmax|
+|Not mapped|logSoftmax|
 |Not mapped|moments|
-
+|Not mapped|sparseToDense|
 
 ## Operations - Images
 
@@ -212,7 +212,7 @@
 |CropAndResize|cropAndResize|
 |ResizeBilinear|resizeBilinear|
 |ResizeNearestNeighbor|resizeNearestNeighbor|
-
+|Not mapped|nonMaxSuppression|
 
 ## Operations - Reduction
 
@@ -229,7 +229,6 @@
 |Sum|sum|
 |Not mapped|logSumExp|
 
-
 ## Tensors - Slicing and Joining
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
@@ -237,18 +236,27 @@
 |Concat|concat|
 |ConcatV2|concat|
 |Gather|gather|
-|GatherNd|gatherND|
+|GatherNd|gatherNd|
 |GatherV2|gather|
 |Pack|stack|
 |Reverse|reverse|
 |ReverseV2|reverse|
-|ScatterNd|scatterND|
+|ScatterNd|scatterNd|
 |Slice|slice|
+|SparseToDense|sparseToDense|
 |Split|split|
+|SplitV|split|
 |StridedSlice|stridedSlice|
 |Tile|tile|
 |Unpack|unstack|
 
+## Operations - Spectral
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|Not mapped|fft|
+|Not mapped|ifft|
+|Not mapped|rfft|
 
 ## Tensors - Transformations
 
@@ -262,5 +270,6 @@
 |Reshape|reshape|
 |SpaceToBatchND|spaceToBatchND|
 |Squeeze|squeeze|
-
+|Not mapped|depthToSpace|
+|Not mapped|setdiff1dAsync|
 
