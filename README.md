@@ -58,5 +58,5 @@ await model.fitDataset(flattenedDataset, {epochs: 10, batchesPerEpoch: 3});
 
 ## For more information
 
-- [TensorFlow.js API documentation](https://js.tensorflow.org/api/index.html)
+- [TensorFlow.js API documentation](https://js.tensorflow.org/api/latest/)
 - [TensorFlow.js Tutorials](https://js.tensorflow.org/tutorials/)
