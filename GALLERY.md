@@ -80,3 +80,4 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Handsfree.js](https://github.com/handsfreejs/handsfree) - A library for adding face-controlled pointers to your site.
 - [face-api.js](https://github.com/justadudewhohacks/face-api.js) - A JavaScript API for face detection and face recognition in the browser.
 - [TensorFlow.js GPU-accelerated t-SNE](https://github.com/tensorflow/tfjs-tsne) - A linear t-SNE for the web.
+- [TensorSpace.js](https://github.com/tensorspace-team/tensorspace) - Neural network 3D visualization framework, build interactive and intuitive model in browsers, support pre-trained deep learning models from TensorFlow, Keras, TensorFlow.js.
