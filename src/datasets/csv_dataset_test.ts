@@ -378,4 +378,21 @@ describe('CSVDataset', () => {
       {'A': 7, 'B': 2, 'C': 3}
     ]);
   });
+
+  it('check duplicate column names', async done => {
+    try {
+      const csvStringWithDuplicateColumnNames = `foo,bar,foo
+    ` + csvString;
+      const csvDataWithDuplicateColumnNames = ENV.get('IS_BROWSER') ?
+          new Blob([csvStringWithDuplicateColumnNames]) :
+          Buffer.from(csvStringWithDuplicateColumnNames);
+      const source =
+          new FileDataSource(csvDataWithDuplicateColumnNames, {chunkSize: 10});
+      const dataset = new CSVDataset(source);
+      await dataset.columnNames();
+    } catch (e) {
+      expect(e.message).toEqual('Duplicate column names found: foo');
+      done();
+    }
+  });
 });
