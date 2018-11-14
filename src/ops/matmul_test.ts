@@ -17,6 +17,7 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
+import {MATMUL_SHARED_DIM_THRESHOLD} from '../kernels/backend_webgl';
 import {ALL_ENVS, expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../test_util';
 import {Rank} from '../types';
 
@@ -292,7 +293,7 @@ describeWithFlags('matmul', ALL_ENVS, () => {
 
   it('batched matmul with the matrices being vectors', () => {
     const batch = 3;
-    const sharedDim = 10000;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
     const values = new Float32Array(batch * sharedDim);
     values[10] = 2;
 
@@ -303,9 +304,39 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     expectArraysClose(result, [4, 0, 0]);
   });
 
+  it('batched matmul with the matrices being vectors transposedA', () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.tensor(values, [batch, sharedDim, 1]);
+    const b = tf.tensor(values, [batch, sharedDim, 1]);
+    const transposeA = true;
+    const transposeB = false;
+    const result = tf.matMul(a, b, transposeA, transposeB);
+    expect(result.shape).toEqual([batch, 1, 1]);
+    expectArraysClose(result, [4, 0, 0]);
+  });
+
+  it('batched matmul with the matrices being vectors transposedB', () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.tensor(values, [batch, 1, sharedDim]);
+    const b = tf.tensor(values, [batch, 1, sharedDim]);
+    const transposeA = false;
+    const transposeB = true;
+    const result = tf.matMul(a, b, transposeA, transposeB);
+    expect(result.shape).toEqual([batch, 1, 1]);
+    expectArraysClose(result, [4, 0, 0]);
+  });
+
   it('batched matmul with matrix x vector', () => {
     const batch = 3;
-    const sharedDim = 10000;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
     const values = new Float32Array(batch * sharedDim);
     values[10] = 2;
 
@@ -316,15 +347,75 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     expectArraysClose(result, [2, 2, 0, 0, 0, 0]);
   });
 
+  it('batched matmul with matrix x vector transposedA', () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.ones([batch, sharedDim, 2]);
+    const b = tf.tensor(values, [batch, sharedDim, 1]);
+    const transposeA = true;
+    const transposeB = false;
+    const result = tf.matMul(a, b, transposeA, transposeB);
+    expect(result.shape).toEqual([batch, 2, 1]);
+    expectArraysClose(result, [2, 2, 0, 0, 0, 0]);
+  });
+
+  it('batched matmul with matrix x vector transposedB', () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.ones([batch, 2, sharedDim]);
+    const b = tf.tensor(values, [batch, 1, sharedDim]);
+    const transposeA = false;
+    const transposeB = true;
+    const result = tf.matMul(a, b, transposeA, transposeB);
+    expect(result.shape).toEqual([batch, 2, 1]);
+    expectArraysClose(result, [2, 2, 0, 0, 0, 0]);
+  });
+
   it('batched matmul with vector x matrix', () => {
     const batch = 3;
-    const sharedDim = 10000;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
     const values = new Float32Array(batch * sharedDim);
     values[10] = 2;
 
     const a = tf.tensor(values, [batch, 1, sharedDim]);
     const b = tf.ones([batch, sharedDim, 2]);
     const result = tf.matMul(a, b);
+    expect(result.shape).toEqual([batch, 1, 2]);
+    expectArraysClose(result, [2, 2, 0, 0, 0, 0]);
+  });
+
+  it('batched matmul with vector x matrix transposedA', () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.tensor(values, [batch, sharedDim, 1]);
+    const b = tf.ones([batch, sharedDim, 2]);
+    const transposeA = true;
+    const transposeB = false;
+    const result = tf.matMul(a, b, transposeA, transposeB);
+    expect(result.shape).toEqual([batch, 1, 2]);
+    expectArraysClose(result, [2, 2, 0, 0, 0, 0]);
+  });
+
+  it('batched matmul with vector x matrix transposedB', () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.tensor(values, [batch, 1, sharedDim]);
+    const b = tf.ones([batch, 2, sharedDim]);
+    const transposeA = false;
+    const transposeB = true;
+    const result = tf.matMul(a, b, transposeA, transposeB);
     expect(result.shape).toEqual([batch, 1, 2]);
     expectArraysClose(result, [2, 2, 0, 0, 0, 0]);
   });

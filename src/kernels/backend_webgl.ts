@@ -141,7 +141,7 @@ export const SIZE_UPLOAD_UNIFORM = 4;
 // Empirically determined minimal shared dimension in matmul before we forward
 // to a.mul(b).sum() in order to take advantage of GPU parallelism. See
 // https://github.com/tensorflow/tfjs-core/pull/1379 for benchmarks.
-const MATMUL_SHARED_DIM_THRESHOLD = 1000;
+export const MATMUL_SHARED_DIM_THRESHOLD = 1000;
 
 export class MathBackendWebGL implements KernelBackend {
   private texData: DataStorage<TextureData>;
@@ -647,17 +647,23 @@ export class MathBackendWebGL implements KernelBackend {
       transposeB: boolean): Tensor3D {
     const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
     const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
-
-    const [batch, firstDim, sharedDim] = a.shape;
-    const [, , secondDim] = b.shape;
+    const sharedDim = transposeA ? a.shape[1] : a.shape[2];
+    const [batch, , ] = a.shape;
 
     // Since the matrices are vectors, it is faster to call mul().sum()
     // because sum() is O(sqrt(N)) due to divide-and-conquer.
-    if ((firstDim === 1 || secondDim === 1) &&
+    if ((outerShapeA === 1 || outerShapeB === 1) &&
         sharedDim > MATMUL_SHARED_DIM_THRESHOLD) {
-      const a3D = secondDim === 1 ? a : a.as3D(batch, sharedDim, 1);
-      const axis = secondDim === 1 ? 2 : 1;
-      const b3D = secondDim === 1 ? b.as3D(batch, 1, sharedDim) : b;
+      if (transposeA) {
+        a = a.transpose([0, 2, 1]);
+      }
+      if (transposeB) {
+        b = b.transpose([0, 2, 1]);
+      }
+
+      const a3D = outerShapeB === 1 ? a : a.as3D(batch, sharedDim, 1);
+      const axis = outerShapeB === 1 ? 2 : 1;
+      const b3D = outerShapeB === 1 ? b.as3D(batch, 1, sharedDim) : b;
       return this.multiply(a3D, b3D).sum(axis, true /* keepDims */);
     }
 
