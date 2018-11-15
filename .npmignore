@@ -29,3 +29,5 @@ ISSUE_TEMPLATE.md
 rollup.config.js
 test_results
 rollup.config.google.js
+**.yalc
+**yalc.lock

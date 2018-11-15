@@ -45,6 +45,11 @@ export async function executeOp(
       return [await tfc.whereAsync(
           getParamValue('condition', node, tensorMap, context) as tfc.Tensor)];
     }
+    case 'setdiff1dAsync': {
+      return await tfc.setdiff1dAsync(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('y', node, tensorMap, context) as tfc.Tensor);
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }

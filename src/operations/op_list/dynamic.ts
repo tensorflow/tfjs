@@ -51,5 +51,19 @@ export const json = [
         'notSupported': true
       }
     ]
+  },
+  {
+    'tfOpName': 'ListDiff',
+    'dlOpName': 'setdiff1dAsync',
+    'category': 'dynamic',
+    'params': [
+      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
+      {'tfInputIndex': 1, 'dlParamName': 'y', 'type': 'tensor'}, {
+        'tfParamName': 'T',
+        'dlParamName': 'dtype',
+        'type': 'dtype',
+        'notSupported': true
+      }
+    ]
   }
 ];
