@@ -181,10 +181,12 @@ export class GraphExecutor {
   }
 
   private getFrozenTensorIds(tensorMap: NamedTensorsMap): Set<number> {
-    const ids = Object.keys(tensorMap)
-                    .map(key => tensorMap[key])
-                    .map(tensors => tensors.map(tensor => tensor.id));
-    return new Set(...ids);
+    const ids = [].concat.apply(
+        [],
+        Object.keys(tensorMap)
+            .map(key => tensorMap[key])
+            .map(tensors => tensors.map(tensor => tensor.id)));
+    return new Set(ids);
   }
   private checkTensorForDisposal(
       nodeName: string, node: Node, tensorMap: NamedTensorsMap,
