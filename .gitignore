@@ -8,7 +8,7 @@ dist/
 .idea/
 *.tgz
 **/*.pyc
-.yalc/
-yalc.lock
+**.yalc/
+**yalc.lock
 .rpt2_cache/
 .cache
