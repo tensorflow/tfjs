@@ -18,5 +18,7 @@ pull_request_template.md
 tslint.json
 rollup.config.js
 WORKSPACE
+**.yalc/
+**yalc.lock
 yarn.lock
 yarn-error.log
