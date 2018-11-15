@@ -112,5 +112,22 @@ export const json = [
       {'tfInputIndex': 1, 'dlParamName': 'blockShape', 'type': 'number[]'},
       {'tfInputIndex': 2, 'dlParamName': 'crops', 'type': 'number[]'}
     ]
+  },
+  {
+    'tfOpName': 'DepthToSpace',
+    'dlOpName': 'depthToSpace',
+    'category': 'transformation',
+    'params': [
+      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}, {
+        'tfParamName': 'block_size',
+        'dlParamName': 'blockSize',
+        'type': 'number'
+      },
+      {
+        'tfParamName': 'data_format',
+        'dlParamName': 'dataFormat',
+        'type': 'string'
+      }
+    ]
   }
 ];

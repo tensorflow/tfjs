@@ -20,7 +20,7 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 // tslint:disable-next-line:max-line-length
-import {createDtypeAttr, createNumberAttr, createNumericArrayAttrFromIndex, createTensorAttr} from './test_helper';
+import {createDtypeAttr, createNumberAttr, createNumericArrayAttrFromIndex, createStrAttr, createTensorAttr} from './test_helper';
 import {executeOp} from './transformation_executor';
 
 describe('transformation', () => {
@@ -127,6 +127,18 @@ describe('transformation', () => {
         expect(tfc.batchToSpaceND)
             .toHaveBeenCalledWith(
                 input1[0], [1, 1, 2, 2], [[1, 2], [2, 3], [2, 3], [3, 4]]);
+      });
+    });
+    describe('depthToSpace', () => {
+      it('should call tfc.depthToSpace', () => {
+        spyOn(tfc, 'depthToSpace');
+        node.op = 'depthToSpace';
+        node.params.blockSize = createNumberAttr(1);
+        node.params.dataFormat = createStrAttr('NHWC');
+        node.inputNames = ['input1'];
+        executeOp(node, {input1}, context);
+
+        expect(tfc.depthToSpace).toHaveBeenCalledWith(input1[0], 1, 'NHWC');
       });
     });
   });

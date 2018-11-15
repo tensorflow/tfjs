@@ -76,6 +76,16 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           blockShape, crops)];
     }
+    case 'depthToSpace': {
+      const blockSize =
+          getParamValue('blockSize', node, tensorMap, context) as number;
+      const dataFormat =
+          getParamValue('dataFormat', node, tensorMap, context) as 'NHWC' |
+          'NCHW';
+      return [tfc.depthToSpace(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor4D,
+          blockSize, dataFormat)];
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
