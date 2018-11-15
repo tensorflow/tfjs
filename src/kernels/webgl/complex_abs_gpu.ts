@@ -26,11 +26,16 @@ export class ComplexAbsProgram implements GPGPUProgram {
     this.outputShape = shape;
     this.userCode = `
       void main() {
-        float real = getRealAtOutCoords();
-        float imag = getImagAtOutCoords();
-        vec2 v = vec2(real, imag);
+        float re = abs(getRealAtOutCoords());
+        float im = abs(getImagAtOutCoords());
+        float mx = max(re, im);
 
-        setOutput(sqrt(dot(v, v)));
+        // sadly the length function in glsl is not underflow-safe
+        // (at least not on Intel GPUs). So the safe solution is
+        // to ensure underflow-safety in all cases.
+        setOutput(
+          mx == 0.0 ? 0.0 : mx * length(vec2(1, min(re, im)/mx))
+        );
       }
     `;
   }
