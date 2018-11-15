@@ -46,6 +46,10 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
     case 'atan':
       return [tfc.atan(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
+    case 'atan2':
+      return [tfc.atan2(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('y', node, tensorMap, context) as tfc.Tensor)];
     case 'atanh':
       return [tfc.atanh(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
@@ -144,6 +148,10 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
       return [tfc.prod(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           getParamValue('axes', node, tensorMap, context) as number[])];
+    case 'leakyRelu':
+      return [tfc.leakyRelu(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('alpha', node, tensorMap, context) as number)];
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }

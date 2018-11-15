@@ -56,11 +56,25 @@ export const json = [
     ]
   },
   {
-    'tfOpName': 'atan',
+    'tfOpName': 'Atan',
     'dlOpName': 'atan',
     'category': 'basic_math',
     'params': [
       {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}, {
+        'tfParamName': 'T',
+        'dlParamName': 'dtype',
+        'type': 'dtype',
+        'notSupported': true
+      }
+    ]
+  },
+  {
+    'tfOpName': 'Atan2',
+    'dlOpName': 'atan2',
+    'category': 'basic_math',
+    'params': [
+      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
+      {'tfInputIndex': 1, 'dlParamName': 'y', 'type': 'tensor'}, {
         'tfParamName': 'T',
         'dlParamName': 'dtype',
         'type': 'dtype',
@@ -488,6 +502,25 @@ export const json = [
         'dlParamName': 'keepDims',
         'type': 'bool',
         'notSupported': true
+      },
+      {
+        'tfParamName': 'T',
+        'dlParamName': 'dtype',
+        'type': 'dtype',
+        'notSupported': true
+      }
+    ]
+  },
+  {
+    'tfOpName': 'LeakyRelu',
+    'dlOpName': 'leakyRelu',
+    'category': 'basic_math',
+    'params': [
+      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}, {
+        'tfParamName': 'alpha',
+        'dlParamName': 'alpha',
+        'type': 'number',
+        'defaultValue': 0.2
       },
       {
         'tfParamName': 'T',

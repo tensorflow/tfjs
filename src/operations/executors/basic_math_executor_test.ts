@@ -116,5 +116,39 @@ describe('basic math', () => {
         expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
       });
     });
+    describe('leakyRelu', () => {
+      it('should call tfc.leakyRelu', () => {
+        spyOn(tfc, 'leakyRelu');
+        node.op = 'leakyRelu';
+        node.params['alpha'] = createNumberAttr(1);
+        node.inputNames = ['input1'];
+        executeOp(node, {input1}, context);
+
+        expect(tfc.leakyRelu).toHaveBeenCalledWith(input1[0], 1);
+      });
+      it('should match op def', () => {
+        node.op = 'leakyRelu';
+        node.params['alpha'] = createNumberAttr(1);
+        expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
+      });
+    });
+    describe('atan2', () => {
+      it('should call tfc.atan2', () => {
+        spyOn(tfc, 'atan2');
+        node.op = 'atan2';
+        node.params['y'] = createTensorAttr(1);
+        node.inputNames = ['input1', 'input2'];
+        const input2 = [tfc.scalar(2)];
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.atan2).toHaveBeenCalledWith(input1[0], input2[0]);
+      });
+      it('should match op def', () => {
+        node.op = 'atan2';
+        node.params['y'] = createTensorAttr(1);
+
+        expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
+      });
+    });
   });
 });
