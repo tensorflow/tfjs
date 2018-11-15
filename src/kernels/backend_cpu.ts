@@ -1122,7 +1122,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < x.size; ++i) {
       const real = values[i * 2];
       const imag = values[i * 2 + 1];
-      resultValues[i] = Math.sqrt(real * real + imag * imag);
+      resultValues[i] = Math.hypot(real, imag);
     }
     return Tensor.make(x.shape, {values: resultValues}) as T;
   }

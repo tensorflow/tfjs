@@ -19,6 +19,7 @@ import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {ALL_ENVS, expectArraysClose, expectNumbersClose} from '../test_util';
 import * as util from '../util';
+import {ENV} from '../environment';
 
 import * as selu_util from './selu_util';
 
@@ -166,6 +167,34 @@ describeWithFlags('abs', ALL_ENVS, () => {
       Math.sqrt(3 * 3 + -3 * -3), Math.sqrt(4 * 4 + -4 * -4)
     ]);
     expect(result.shape).toEqual([2, 2, 2]);
+  });
+
+  it('is underflow-safe for complex64', () => {
+
+    const floatBits = ENV.backend.floatPrecision();
+    let small;
+    switch(floatBits) {
+      case 32: small = 1e-30; break;
+      case 16: small = 1e-4;  break;
+      default: throw new Error(
+        `Test not implemented for ENV.engine.floatPrecision()=${floatBits}.`
+      );
+    }
+
+    const a = tf.complex(
+       [small,     0, small, 0],
+       [small, small,     0, 0]
+    );
+    const result = tf.abs(a);
+    expectArraysClose(
+      result,
+      [Math.hypot(small, small),
+       Math.hypot(    0, small),
+       Math.hypot(small,     0),
+       Math.hypot(    0,     0)], 
+      /*tolerance=*/small/100
+    );
+    expect(result.shape).toEqual([4]);
   });
 
   it('propagates NaNs', () => {
