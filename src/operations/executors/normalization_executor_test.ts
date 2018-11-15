@@ -17,10 +17,12 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
+import * as normalization from '../op_list/normalization';
+import {Node, OpMapper} from '../types';
 
 import {executeOp} from './normalization_executor';
-import {createNumberAttr, createTensorAttr} from './test_helper';
+// tslint:disable-next-line:max-line-length
+import {createNumberAttr, createNumericArrayAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
 
 describe('normalization', () => {
   let node: Node;
@@ -76,6 +78,16 @@ describe('normalization', () => {
         expect(tfc.localResponseNormalization)
             .toHaveBeenCalledWith(input1[0], 1, 2, 3, 4);
       });
+      it('should match json def', () => {
+        node.op = 'localResponseNormalization';
+        node.params.radius = createNumberAttr(1);
+        node.params.bias = createNumberAttr(2);
+        node.params.alpha = createNumberAttr(3);
+        node.params.beta = createNumberAttr(4);
+
+        expect(validateParam(node, normalization.json as OpMapper[]))
+            .toBeTruthy();
+      });
     });
 
     describe('softmax', () => {
@@ -86,6 +98,58 @@ describe('normalization', () => {
         executeOp(node, {input1}, context);
 
         expect(tfc.softmax).toHaveBeenCalledWith(input1[0]);
+      });
+      it('should match json def', () => {
+        node.op = 'softmax';
+
+        expect(validateParam(node, normalization.json as OpMapper[]))
+            .toBeTruthy();
+      });
+    });
+
+    describe('logSoftmax', () => {
+      it('should call tfc.logSoftmax', () => {
+        spyOn(tfc, 'logSoftmax');
+        node.op = 'logSoftmax';
+
+        executeOp(node, {input1}, context);
+
+        expect(tfc.logSoftmax).toHaveBeenCalledWith(input1[0]);
+      });
+      it('should match json def', () => {
+        node.op = 'logSoftmax';
+
+        expect(validateParam(node, normalization.json as OpMapper[]))
+            .toBeTruthy();
+      });
+    });
+    describe('sparseToDense', () => {
+      it('should call tfc.sparseToDense', () => {
+        spyOn(tfc, 'sparseToDense');
+        node.op = 'sparseToDense';
+        node.params.sparseIndices = createTensorAttr(0);
+        node.params.outputShape = createNumericArrayAttrFromIndex(1);
+        node.params.sparseValues = createTensorAttr(2);
+        node.params.defaultValue = createTensorAttr(3);
+        node.inputNames = ['input1', 'input2', 'input3', 'input4'];
+        const input2 = [tfc.scalar(1)];
+        const input3 = [tfc.scalar(2)];
+        const input4 = [tfc.scalar(3)];
+        executeOp(node, {input1, input2, input3, input4}, context);
+
+        expect(tfc.sparseToDense)
+            .toHaveBeenCalledWith(input1[0], [1], input3[0], input4[0]);
+      });
+      it('should match json def', () => {
+        node.op = 'sparseToDense';
+        delete node.params.x;
+        node.params.sparseIndices = createTensorAttr(0);
+        node.params.outputShape = createNumericArrayAttrFromIndex(1);
+        node.params.sparseValues = createTensorAttr(2);
+        node.params.defaultValue = createTensorAttr(3);
+
+        expect(validateParam(node, normalization.json as OpMapper[]))
+            .toBeTruthy();
       });
     });
   });
