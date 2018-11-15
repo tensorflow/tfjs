@@ -26,9 +26,12 @@ import tempfile
 import unittest
 
 import keras
+import numpy as np
 import tensorflow as tf
 
 from tensorflowjs.converters import converter
+from tensorflowjs.converters import keras_tfjs_loader
+
 
 # TODO(adarob): Add tests for quantization option.
 
@@ -270,6 +273,203 @@ class ConvertH5WeightsTest(unittest.TestCase):
         ValueError, r'cannot read valid JSON content from'):
       converter.dispatch_tensorflowjs_to_keras_h5_conversion(
           fake_json_path, os.path.join(self._tmp_dir, 'model.h5'))
+
+
+class ConvertTfKerasSavedModelTest(tf.test.TestCase):
+
+  def setUp(self):
+    super(ConvertTfKerasSavedModelTest, self).setUp()
+    self._tmp_dir = tempfile.mkdtemp()
+
+  def tearDown(self):
+    if os.path.isdir(self._tmp_dir):
+      shutil.rmtree(self._tmp_dir)
+    super(ConvertTfKerasSavedModelTest, self).tearDown()
+
+  def _createSimpleSequentialModel(self):
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Reshape([2, 3], input_shape=[6]))
+    model.add(tf.keras.layers.LSTM(10))
+    model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
+    return model
+
+  def _createNestedSequentialModel(self):
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Dense(6, input_shape=[10], activation='relu'))
+    model.add(self._createSimpleSequentialModel())
+    return model
+
+  def _createFunctionalModelWithWeights(self):
+    input1 = tf.keras.Input(shape=[8])
+    input2 = tf.keras.Input(shape=[10])
+    y = tf.keras.layers.Concatenate()([input1, input2])
+    y = tf.keras.layers.Dense(4, activation='softmax')(y)
+    model = tf.keras.Model([input1, input2], y)
+    return model
+
+  def testConvertTfKerasSequentialSavedAsSavedModel(self):
+    with tf.Graph().as_default(), tf.Session():
+      model = self._createSimpleSequentialModel()
+      old_model_json = json.loads(model.to_json())
+      old_weights = model.get_weights()
+      tf.contrib.saved_model.save_keras_model(model, self._tmp_dir)
+      save_result_dir = glob.glob(os.path.join(self._tmp_dir, '*'))[0]
+
+      # Convert the tf.keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_saved_model_to_tensorflowjs_conversion(
+          save_result_dir, tfjs_output_dir)
+
+      # Verify the size of the weight file.
+      weight_path = glob.glob(os.path.join(tfjs_output_dir, 'group*-*'))[0]
+      weight_file_bytes = os.path.getsize(weight_path)
+      model_weight_bytes = sum(w.size * 4 for w in model.get_weights())
+      self.assertEqual(weight_file_bytes, model_weight_bytes)
+
+    with tf.Graph().as_default(), tf.Session():
+      # Load the converted mode back.
+      model_json_path = os.path.join(tfjs_output_dir, 'model.json')
+      model_prime = keras_tfjs_loader.load_keras_model(model_json_path)
+      new_weights = model_prime.get_weights()
+
+      # Check the equality of the old and new model JSONs.
+      self.assertEqual(old_model_json, json.loads(model_prime.to_json()))
+
+      # Check the equality of the old and new weights.
+      self.assertAllClose(old_weights, new_weights)
+
+  def testConvertTfKerasSequentialCompiledAndSavedAsSavedModel(self):
+    with tf.Graph().as_default(), tf.Session():
+      model = self._createSimpleSequentialModel()
+      # Compile the model before saving.
+      model.compile(loss='binary_crossentropy',
+                    optimizer=tf.train.GradientDescentOptimizer(2.5e-3))
+
+      old_model_json = json.loads(model.to_json())
+      old_weights = model.get_weights()
+      tf.contrib.saved_model.save_keras_model(model, self._tmp_dir)
+      save_result_dir = glob.glob(os.path.join(self._tmp_dir, '*'))[0]
+
+      # Convert the tf.keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_saved_model_to_tensorflowjs_conversion(
+          save_result_dir, tfjs_output_dir)
+
+      # Verify the size of the weight file.
+      weight_path = glob.glob(os.path.join(tfjs_output_dir, 'group*-*'))[0]
+      weight_file_bytes = os.path.getsize(weight_path)
+      model_weight_bytes = sum(w.size * 4 for w in model.get_weights())
+      self.assertEqual(weight_file_bytes, model_weight_bytes)
+
+    with tf.Graph().as_default(), tf.Session():
+      # Load the converted mode back.
+      model_json_path = os.path.join(tfjs_output_dir, 'model.json')
+      model_prime = keras_tfjs_loader.load_keras_model(model_json_path)
+      new_weights = model_prime.get_weights()
+
+      # Check the equality of the old and new model JSONs.
+      self.assertEqual(old_model_json, json.loads(model_prime.to_json()))
+
+      # Check the equality of the old and new weights.
+      self.assertAllClose(old_weights, new_weights)
+
+  def testWrongConverterRaisesCorrectErrorMessage(self):
+    with tf.Graph().as_default(), tf.Session():
+      model = self._createSimpleSequentialModel()
+      tf.contrib.saved_model.save_keras_model(model, self._tmp_dir)
+      save_result_dir = glob.glob(os.path.join(self._tmp_dir, '*'))[0]
+
+      # Convert the tf.keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      # Use wrong dispatcher.
+      with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
+          ValueError,
+          r'Expected path to point to an HDF5 file, but it points to a '
+          r'directory'):
+        converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+            save_result_dir, tfjs_output_dir)
+
+  def testConvertTfKerasNestedSequentialSavedAsSavedModel(self):
+    with tf.Graph().as_default(), tf.Session():
+      model = self._createNestedSequentialModel()
+      old_model_json = json.loads(model.to_json())
+      old_weights = model.get_weights()
+      tf.contrib.saved_model.save_keras_model(model, self._tmp_dir)
+      save_result_dir = glob.glob(os.path.join(self._tmp_dir, '*'))[0]
+
+      # Convert the tf.keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_saved_model_to_tensorflowjs_conversion(
+          save_result_dir, tfjs_output_dir)
+
+      # Verify the size of the weight file.
+      weight_path = glob.glob(os.path.join(tfjs_output_dir, 'group*-*'))[0]
+      weight_file_bytes = os.path.getsize(weight_path)
+      model_weight_bytes = sum(w.size * 4 for w in model.get_weights())
+      self.assertEqual(weight_file_bytes, model_weight_bytes)
+
+    with tf.Graph().as_default(), tf.Session():
+      # Load the converted mode back.
+      model_json_path = os.path.join(tfjs_output_dir, 'model.json')
+      model_prime = keras_tfjs_loader.load_keras_model(model_json_path)
+      new_weights = model_prime.get_weights()
+
+      # Check the equality of the old and new model JSONs.
+      self.assertEqual(old_model_json, json.loads(model_prime.to_json()))
+
+      # Check the equality of the old and new weights.
+      self.assertAllClose(old_weights, new_weights)
+
+  def testConvertTfKerasFunctionalModelWithWeightsSavedAsSavedModel(self):
+    with tf.Graph().as_default(), tf.Session():
+      model = self._createFunctionalModelWithWeights()
+      old_model_json = json.loads(model.to_json())
+      old_weights = model.get_weights()
+      save_result_dir = tf.contrib.saved_model.save_keras_model(
+          model, self._tmp_dir)
+
+      # Convert the tf.keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_saved_model_to_tensorflowjs_conversion(
+          save_result_dir, tfjs_output_dir)
+
+      # Verify the size of the weight file.
+      weight_path = glob.glob(os.path.join(tfjs_output_dir, 'group*-*'))[0]
+      weight_file_bytes = os.path.getsize(weight_path)
+      model_weight_bytes = sum(w.size * 4 for w in model.get_weights())
+      self.assertEqual(weight_file_bytes, model_weight_bytes)
+
+    with tf.Graph().as_default(), tf.Session():
+      # Load the converted mode back.
+      model_json_path = os.path.join(tfjs_output_dir, 'model.json')
+      model_prime = keras_tfjs_loader.load_keras_model(model_json_path)
+      new_weights = model_prime.get_weights()
+
+      # Check the equality of the old and new model JSONs.
+      self.assertEqual(old_model_json, json.loads(model_prime.to_json()))
+
+      # Check the equality of the old and new weights.
+      self.assertAllClose(old_weights, new_weights)
+
+  def testConvertTfKerasSequentialSavedAsSavedModelWithQuantization(self):
+    with tf.Graph().as_default(), tf.Session():
+      model = self._createSimpleSequentialModel()
+      save_result_dir = tf.contrib.saved_model.save_keras_model(
+          model, self._tmp_dir)
+
+      # Convert the tf.keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_saved_model_to_tensorflowjs_conversion(
+          save_result_dir, tfjs_output_dir, quantization_dtype=np.uint16)
+
+      # Verify the size of the weight file.
+      weight_path = glob.glob(os.path.join(tfjs_output_dir, 'group*-*'))[0]
+      weight_file_bytes = os.path.getsize(weight_path)
+      # Each uint16 number has 2 bytes.
+      bytes_per_num = 2
+      model_weight_bytes = sum(
+          w.size * bytes_per_num for w in model.get_weights())
+      self.assertEqual(weight_file_bytes, model_weight_bytes)
 
 
 if __name__ == '__main__':

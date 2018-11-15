@@ -250,8 +250,6 @@ class HDF5Converter(object):
     weights_manifest = write_weights.write_weights(
         weights, output_dir, write_manifest=False,
         quantization_dtype=quantization_dtype)
-    if not isinstance(weights_manifest, list):
-      weights_manifest = json.loads(weights_manifest)
     assert isinstance(weights_manifest, list)
     model_json[ARTIFACT_WEIGHTS_MANIFEST_KEY] = weights_manifest
 

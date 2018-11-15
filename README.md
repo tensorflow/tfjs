@@ -13,7 +13,7 @@ A 2-step process to import your model:
 1. A python pip package to convert a TensorFlow SavedModel/Frozen Model/Session Bundle to a web friendly format. If you already have a converted model, or are using an already hosted model (e.g. MobileNet), skip this step.
 2. [Javascript API](./src/executor/tf_model.ts), for loading and running inference.
 
-## Step 1: Converting a [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [Keras h5](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model), [Session Bundle](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/session_bundle/README.md), [Frozen Model](https://www.tensorflow.org/mobile/prepare_models#how_do_you_get_a_model_you_can_use_on_mobile) or [TensorFlow Hub module](https://www.tensorflow.org/hub/) to a web-friendly format
+## Step 1: Converting a [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [Keras h5](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model), [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/contrib/saved_model/save_keras_model), [Session Bundle](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/session_bundle/README.md), [Frozen Model](https://www.tensorflow.org/mobile/prepare_models#how_do_you_get_a_model_you_can_use_on_mobile) or [TensorFlow Hub module](https://www.tensorflow.org/hub/) to a web-friendly format
 
 1. Install the TensorFlow.js pip package:
 
@@ -75,6 +75,18 @@ $ tensorflowjs_converter \
     /tmp/my_tfjs_model
 ```
 
+tf.keras SavedModel model example:
+
+```bash
+$ tensorflowjs_converter \
+    --input_format=keras_saved_model \
+    /tmp/my_tf_keras_saved_model/1542211770 \
+    /tmp/my_tfjs_model
+```
+
+Note that the input path used above is a subfolder that has a Unix epoch
+time (1542211770) and is generated automatically by tensorflow when it
+saved a tf.keras model in the SavedModel format.
 
 |Positional Arguments | Description |
 |---|---|

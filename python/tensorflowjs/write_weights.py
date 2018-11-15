@@ -63,7 +63,7 @@ def write_weights(
       quantization_dtype: An optional numpy dtype to quantize weights to for
         compression. Only np.uint8 and np.uint16 are supported.
     Returns:
-      The weights manifest JSON string.
+      The weights manifest JSON dict.
 
       An example manifest with 2 groups, 2 weights, and each weight sharded
       into 2:
@@ -124,14 +124,12 @@ def write_weights(
     }
     manifest.append(manifest_entry)
 
-  manifest_json = json.dumps(manifest)
-
   if write_manifest:
     manifest_path = os.path.join(write_dir, 'weights_manifest.json')
     with open(manifest_path, 'wb') as f:
-      f.write(manifest_json.encode())
+      f.write(json.dumps(manifest).encode())
 
-  return manifest_json
+  return manifest
 
 def _quantize_entry(entry, quantization_dtype):
   """Quantizes the weights in the entry, returning a new entry.
