@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-const delayCallback = typeof requestAnimationFrame !== 'undefined' ?
+const delayCallback: Function = typeof requestAnimationFrame !== 'undefined' ?
     requestAnimationFrame :  // Browsers
     setImmediate;            // Node.js
 

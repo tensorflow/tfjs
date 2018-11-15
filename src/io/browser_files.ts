@@ -180,21 +180,16 @@ class BrowserFiles implements IOHandler {
                 });
               }
             };
-            weightFileReader.onerror = (error: FileReaderProgressEvent) => {
-              reject(`Failed to weights data from file of path '${path}'.`);
-              return;
-            };
+            weightFileReader.onerror = error =>
+                reject(`Failed to weights data from file of path '${path}'.`);
             weightFileReader.readAsArrayBuffer(pathToFile[path]);
           });
         });
       };
-      jsonReader.onerror = (error: FileReaderProgressEvent) => {
-        reject(
-            `Failed to read model topology and weights manifest JSON ` +
-            `from file '${jsonFile.name}'. BrowserFiles supports loading ` +
-            `Keras-style tf.Model artifacts only.`);
-        return;
-      };
+      jsonReader.onerror = error => reject(
+          `Failed to read model topology and weights manifest JSON ` +
+          `from file '${jsonFile.name}'. BrowserFiles supports loading ` +
+          `Keras-style tf.Model artifacts only.`);
       jsonReader.readAsText(jsonFile);
     });
   }
