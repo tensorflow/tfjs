@@ -28,7 +28,8 @@
 |Acosh|acosh|
 |Asin|asin|
 |Asinh|asinh|
-|atan|atan|
+|Atan|atan|
+|Atan2|atan2|
 |Atanh|atanh|
 |Ceil|ceil|
 |ClipByValue|clipByValue|
@@ -39,6 +40,7 @@
 |Exp|exp|
 |Expm1|expm1|
 |Floor|floor|
+|LeakyRelu|leakyRelu|
 |Log|log|
 |Log1p|log1p|
 |Neg|neg|
@@ -59,8 +61,6 @@
 |Square|square|
 |Tan|tan|
 |Tanh|tanh|
-|Not mapped|atan2|
-|Not mapped|leakyRelu|
 |Not mapped|logSigmoid|
 |Not mapped|prelu|
 |Not mapped|step|
@@ -135,6 +135,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|ListDiff|setdiff1dAsync|
 |NonMaxSuppressionV2|nonMaxSuppression|
 |NonMaxSuppressionV3|nonMaxSuppression|
 |Where|whereAsync|
@@ -180,7 +181,6 @@
 |NotEqual|notEqual|
 |Select|where|
 |Not mapped|logicalXor|
-|Not mapped|whereAsync|
 
 ## Operations - Matrices
 
@@ -199,11 +199,11 @@
 |---|---|
 |FusedBatchNorm|batchNormalization|
 |FusedBatchNormV2|batchNormalization|
+|LogSoftmax|logSoftmax|
 |LRN|localResponseNormalization|
 |Softmax|softmax|
-|Not mapped|logSoftmax|
+|SparseToDense|sparseToDense|
 |Not mapped|moments|
-|Not mapped|sparseToDense|
 
 ## Operations - Images
 
@@ -212,7 +212,6 @@
 |CropAndResize|cropAndResize|
 |ResizeBilinear|resizeBilinear|
 |ResizeNearestNeighbor|resizeNearestNeighbor|
-|Not mapped|nonMaxSuppression|
 
 ## Operations - Reduction
 
@@ -264,12 +263,12 @@
 |---|---|
 |BatchToSpaceND|batchToSpaceND|
 |Cast|cast|
+|DepthToSpace|depthToSpace|
 |ExpandDims|expandDims|
 |Pad|pad|
 |PadV2|pad|
 |Reshape|reshape|
 |SpaceToBatchND|spaceToBatchND|
 |Squeeze|squeeze|
-|Not mapped|depthToSpace|
-|Not mapped|setdiff1dAsync|
+|ListDiff|setdiff1dAsync|
 
