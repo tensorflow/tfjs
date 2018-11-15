@@ -98,5 +98,28 @@ export const json = [
     'dlOpName': 'softmax',
     'category': 'normalization',
     'params': [{'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}]
+  },
+  {
+    'tfOpName': 'LogSoftmax',
+    'dlOpName': 'logSoftmax',
+    'category': 'normalization',
+    'params': [{'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}]
+  },
+  {
+    'tfOpName': 'SparseToDense',
+    'dlOpName': 'sparseToDense',
+    'category': 'normalization',
+    'params': [
+      {'tfInputIndex': 0, 'dlParamName': 'sparseIndices', 'type': 'tensor'},
+      {'tfInputIndex': 1, 'dlParamName': 'outputShape', 'type': 'number[]'},
+      {'tfInputIndex': 2, 'dlParamName': 'sparseValues', 'type': 'tensor'},
+      {'tfInputIndex': 3, 'dlParamName': 'defaultValue', 'type': 'tensor'}, {
+        'tfParamName': 'validate_indices',
+        'dlParamName': 'validateIndices',
+        'type': 'bool',
+        'defaultValue': true,
+        'notSupported': true
+      }
+    ]
   }
 ];

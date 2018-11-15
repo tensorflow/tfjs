@@ -24,35 +24,48 @@ import {Node} from '../types';
 import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
-export let executeOp: OpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): tfc.Tensor[] => {
-      switch (node.op) {
-        case 'batchNormalization': {
-          return [tfc.batchNormalization(
-              getParamValue('x', node, tensorMap, context) as tfc.Tensor,
-              getParamValue('mean', node, tensorMap, context) as tfc.Tensor,
-              getParamValue('variance', node, tensorMap, context) as tfc.Tensor,
-              getParamValue('epsilon', node, tensorMap, context) as number,
-              getParamValue('scale', node, tensorMap, context) as tfc.Tensor,
-              getParamValue('offset', node, tensorMap, context) as tfc.Tensor)];
-        }
-        case 'localResponseNormalization': {
-          return [tfc.localResponseNormalization(
-              getParamValue('x', node, tensorMap, context) as tfc.Tensor3D |
-                  tfc.Tensor4D,
-              getParamValue('radius', node, tensorMap, context) as number,
-              getParamValue('bias', node, tensorMap, context) as number,
-              getParamValue('alpha', node, tensorMap, context) as number,
-              getParamValue('beta', node, tensorMap, context) as number)];
-        }
-        case 'softmax': {
-          return [tfc.softmax(
-              getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-        }
-        default:
-          throw TypeError(`Node type ${node.op} is not implemented`);
-      }
-    };
+export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
+                                    context: ExecutionContext):
+                                       tfc.Tensor[] => {
+  switch (node.op) {
+    case 'batchNormalization': {
+      return [tfc.batchNormalization(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('mean', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('variance', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('epsilon', node, tensorMap, context) as number,
+          getParamValue('scale', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('offset', node, tensorMap, context) as tfc.Tensor)];
+    }
+    case 'localResponseNormalization': {
+      return [tfc.localResponseNormalization(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor3D |
+              tfc.Tensor4D,
+          getParamValue('radius', node, tensorMap, context) as number,
+          getParamValue('bias', node, tensorMap, context) as number,
+          getParamValue('alpha', node, tensorMap, context) as number,
+          getParamValue('beta', node, tensorMap, context) as number)];
+    }
+    case 'softmax': {
+      return [tfc.softmax(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
+    }
+    case 'logSoftmax': {
+      return [tfc.logSoftmax(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
+    }
+    case 'sparseToDense': {
+      return [tfc.sparseToDense(
+          getParamValue('sparseIndices', node, tensorMap, context) as
+              tfc.Tensor,
+          getParamValue('outputShape', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('sparseValues', node, tensorMap, context) as number[],
+          getParamValue('defaultValue', node, tensorMap, context) as
+              tfc.Scalar)];
+    }
+    default:
+      throw TypeError(`Node type ${node.op} is not implemented`);
+  }
+};
 
 export const CATEGORY = 'normalization';
