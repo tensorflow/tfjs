@@ -304,7 +304,8 @@ describe('GraphExecutor', () => {
                   });
         });
 
-        it('should execute control flow graph with intermediate node',
+        it('should be able to execute control flow graph ' +
+               'with intermediate node more than once',
            (done) => {
              const inputTensor = tfc.scalar(1);
 
@@ -312,7 +313,15 @@ describe('GraphExecutor', () => {
                  .then(
                      result => {
                        tfc.test_util.expectArraysClose(result['output:1'], [1]);
-                       done();
+                       executor
+                           .executeAsync(
+                               {intermediate: [inputTensor]}, 'output:1')
+                           .then(result => {
+                             tfc.test_util.expectArraysClose(
+                                 result['output:1'], [1]);
+
+                             done();
+                           });
                      },
                      e => {
                        fail(e);
