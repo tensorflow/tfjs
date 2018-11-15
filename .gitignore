@@ -18,3 +18,5 @@ bazel-*
 
 # Contains auto-generated json files produced by `yarn gen-json`
 python/tensorflowjs/op_list/
+**.yalc
+**yalc.lock
