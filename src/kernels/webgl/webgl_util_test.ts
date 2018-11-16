@@ -135,8 +135,24 @@ describeWithFlags('isReshapeFree', WEBGL_ENVS, () => {
   it('is free when one shape is a vector and the final dimensions match',
      () => {
        const before = [9];
-       const after = [2, 1, 9];
+       const after = [1, 1, 9];
        expect(webgl_util.isReshapeFree(before, after)).toBe(true);
+     });
+
+  it('is free when one shape is a vector and the other has 1 row' +
+         'in every batch and the final dimensions are even',
+     () => {
+       const before = [10];
+       const after = [5, 1, 2];
+       expect(webgl_util.isReshapeFree(before, after)).toBe(true);
+     });
+
+  it('is not free when one shape is a vector and the final dimensions' +
+         'do not match and are not even',
+     () => {
+       const before = [18];
+       const after = [2, 1, 9];
+       expect(webgl_util.isReshapeFree(before, after)).toBe(false);
      });
 
   it('is free when the inner dimensions are divisible by 2', () => {

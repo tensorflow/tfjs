@@ -405,9 +405,14 @@ export function isReshapeFree(shape1: number[], shape2: number[]): boolean {
   }
 
   if (shape1.length !== shape2.length) {  // One of the shapes is a vector.
-    if (util.arraysEqual(
-            util.squeezeShape(shape1).newShape,
-            util.squeezeShape(shape2).newShape)) {
+    const shape1Cols = shape1.slice(-1)[0];
+    const shape2Cols = shape2.slice(-1)[0];
+    if (shape1Cols === shape2Cols) {
+      return true;
+    }
+
+    if (isEven(shape1Cols) && isEven(shape2Cols) &&
+        (shape1[0] === 1 || shape2[0] === 1)) {
       return true;
     }
   } else {
@@ -415,6 +420,7 @@ export function isReshapeFree(shape1: number[], shape2: number[]): boolean {
       if (isEven(shape1[1]) && isEven(shape2[1])) {
         return true;
       }
+
       if (shape1[1] === shape2[1]) {
         return true;
       }
