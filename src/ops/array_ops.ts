@@ -758,13 +758,12 @@ function stack_<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): Tensor {
  *
  * @param x A `tf.Tensor`. N-D with `x.shape` = `[batch] + spatialShape +
  * remainingShape`, where spatialShape has `M` dimensions.
- * @param blockShape A 1-D array. Must be one of the following types: `int32`,
- * `int64`. Must have shape `[M]`, all values must be >= 1.
- * @param crops A 2-D array.  Must be one of the following types: `int32`,
- * `int64`. Must have shape `[M, 2]`, all values must be >= 0. `crops[i] =
- * [cropStart, cropEnd]` specifies the amount to crop from input dimension `i
- * + 1`, which corresponds to spatial dimension `i`. It is required that
- * `cropStart[i] + cropEnd[i] <= blockShape[i] * inputShape[i + 1]`
+ * @param blockShape A 1-D array. Must have shape `[M]`, all values must
+ * be >= 1.
+ * @param crops A 2-D array.  Must have shape `[M, 2]`, all values must be >= 0.
+ * `crops[i] = [cropStart, cropEnd]` specifies the amount to crop from input
+ * dimension `i + 1`, which corresponds to spatial dimension `i`. It is required
+ * that `cropStart[i] + cropEnd[i] <= blockShape[i] * inputShape[i + 1]`
  *
  * This operation is equivalent to the following steps:
  *
