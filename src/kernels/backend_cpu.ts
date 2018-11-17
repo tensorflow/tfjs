@@ -2560,19 +2560,42 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   fft(x: Tensor2D): Tensor2D {
-    if (x.shape[0] !== 1) {
-      throw new Error(`tf.fft() on CPU only supports vectors.`);
-    }
-    const inverse = false;
-    return this.fftImpl(x, inverse);
+    return this.fftBatch(x, false);
   }
 
   ifft(x: Tensor2D): Tensor2D {
-    if (x.shape[0] !== 1) {
-      throw new Error(`tf.ifft() on CPU only supports vectors.`);
+    return this.fftBatch(x, true);
+  }
+
+  /**
+   * Calculate FFT of inner most elements of batch tensor.
+   */
+  private fftBatch(x: Tensor2D, inverse: boolean): Tensor2D {
+    const batch = x.shape[0];
+    const innerDim = x.shape[1];
+    // Collects real and imaginary values separately.
+    const realResult = ops.buffer(x.shape, 'float32');
+    const imagResult = ops.buffer(x.shape, 'float32');
+
+    const real = ops.real(x).as2D(batch, innerDim);
+    const imag = ops.imag(x).as2D(batch, innerDim);
+
+    for (let b = 0; b < batch; b++) {
+      // TODO: Support slice ops for complex type.
+      const r = real.slice([b, 0], [1, innerDim]);
+      const i = imag.slice([b, 0], [1, innerDim]);
+      const input = ops.complex(r, i);
+      // Run FFT by batch element.
+      const res = this.fftImpl(input, inverse).dataSync() as Float32Array;
+      for (let d = 0; d < innerDim; d++) {
+        const c = complex_util.getComplexWithIndex(res, d);
+        realResult.values[b * innerDim + d] = c.real;
+        imagResult.values[b * innerDim + d] = c.imag;
+      }
     }
-    const inverse = true;
-    return this.fftImpl(x, inverse);
+
+    const t = ops.complex(realResult.toTensor(), imagResult.toTensor());
+    return t.as2D(batch, innerDim);
   }
 
   private fftImpl(x: Tensor2D, inverse: boolean): Tensor2D {
