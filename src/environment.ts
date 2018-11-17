@@ -303,6 +303,7 @@ export class Environment {
       return typeof window !== 'undefined';
     } else if (feature === 'IS_NODE') {
       return (typeof process !== 'undefined') &&
+          (typeof process.versions !== 'undefined') &&
           (typeof process.versions.node !== 'undefined');
     } else if (feature === 'IS_CHROME') {
       return isChrome();
