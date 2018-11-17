@@ -313,10 +313,8 @@ describeWithFlags('browserDownloads', BROWSER_ENVS, () => {
 });
 
 describeWithFlags('browserFiles', BROWSER_ENVS, () => {
-  const weightsBlob =
-      new Blob([weightData1], {type: 'application/octet-stream'});
   const weightsFile = new File(
-      [weightsBlob], 'model.weights.bin', {type: 'application/octet-stream'});
+      [weightData1], 'model.weights.bin', {type: 'application/octet-stream'});
 
   it('One group, one path', done => {
     const weightsManifest: WeightsManifestConfig = [{
@@ -327,11 +325,9 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
       modelTopology: modelTopology1,
       weightsManifest,
     };
-    const jsonBlob = new Blob(
-        [JSON.stringify(weightsTopologyAndManifest)],
+    const jsonFile = new File(
+        [JSON.stringify(weightsTopologyAndManifest)], 'model.json',
         {type: 'application/json'});
-    const jsonFile =
-        new File([jsonBlob], 'model.json', {type: 'application/json'});
 
     const filesHandler = tf.io.browserFiles([jsonFile, weightsFile]);
     filesHandler.load()
@@ -368,24 +364,16 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
       modelTopology: modelTopology1,
       weightsManifest,
     };
-    const weightsBlob1 = new Blob(
-        [new Uint8Array([1, 2, 3, 4]).buffer],
-        {type: 'application/octet-stream'});
     const weightsFile1 = new File(
-        [weightsBlob1], 'model.weights.1.bin',
-        {type: 'application/octet-stream'});
-    const weightsBlob2 = new Blob(
-        [new Uint8Array([10, 20, 30, 40]).buffer],
+        [new Uint8Array([1, 2, 3, 4]).buffer], 'model.weights.1.bin',
         {type: 'application/octet-stream'});
     const weightsFile2 = new File(
-        [weightsBlob2], 'model.weights.2.bin',
+        [new Uint8Array([10, 20, 30, 40]).buffer], 'model.weights.2.bin',
         {type: 'application/octet-stream'});
 
-    const jsonBlob = new Blob(
-        [JSON.stringify(weightsTopologyAndManifest)],
+    const jsonFile = new File(
+        [JSON.stringify(weightsTopologyAndManifest)], 'model.json',
         {type: 'application/json'});
-    const jsonFile =
-        new File([jsonBlob], 'model.json', {type: 'application/json'});
 
     const filesHandler =
         tf.io.browserFiles([jsonFile, weightsFile1, weightsFile2]);
@@ -441,36 +429,22 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
       modelTopology: modelTopology1,
       weightsManifest,
     };
-    const weightsBlob1 = new Blob(
-        [new Uint8Array([1, 3, 5, 7]).buffer],
-        {type: 'application/octet-stream'});
     const weightsFile1 = new File(
-        [weightsBlob1], 'model.weights.1.bin',
-        {type: 'application/octet-stream'});
-    const weightsBlob2 = new Blob(
-        [new Uint8Array([10, 30, 50, 70]).buffer],
+        [new Uint8Array([1, 3, 5, 7]).buffer], 'model.weights.1.bin',
         {type: 'application/octet-stream'});
     const weightsFile2 = new File(
-        [weightsBlob2], 'model.weights.2.bin',
-        {type: 'application/octet-stream'});
-    const weightsBlob3 = new Blob(
-        [new Uint8Array([2, 4, 6, 8]).buffer],
+        [new Uint8Array([10, 30, 50, 70]).buffer], 'model.weights.2.bin',
         {type: 'application/octet-stream'});
     const weightsFile3 = new File(
-        [weightsBlob3], 'model.weights.3.bin',
-        {type: 'application/octet-stream'});
-    const weightsBlob4 = new Blob(
-        [new Uint8Array([20, 40, 60, 80]).buffer],
+        [new Uint8Array([2, 4, 6, 8]).buffer], 'model.weights.3.bin',
         {type: 'application/octet-stream'});
     const weightsFile4 = new File(
-        [weightsBlob4], 'model.weights.4.bin',
+        [new Uint8Array([20, 40, 60, 80]).buffer], 'model.weights.4.bin',
         {type: 'application/octet-stream'});
 
-    const jsonBlob = new Blob(
-        [JSON.stringify(weightsTopologyAndManifest)],
+    const jsonFile = new File(
+        [JSON.stringify(weightsTopologyAndManifest)], 'model.json',
         {type: 'application/json'});
-    const jsonFile =
-        new File([jsonBlob], 'model.json', {type: 'application/json'});
 
     const filesHandler = tf.io.browserFiles(
         [jsonFile, weightsFile1, weightsFile2, weightsFile3, weightsFile4]);
@@ -528,36 +502,22 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
       modelTopology: modelTopology1,
       weightsManifest,
     };
-    const weightsBlob1 = new Blob(
-        [new Uint8Array([1, 3, 5, 7]).buffer],
-        {type: 'application/octet-stream'});
     const weightsFile1 = new File(
-        [weightsBlob1], 'model.weights.1.bin',
-        {type: 'application/octet-stream'});
-    const weightsBlob2 = new Blob(
-        [new Uint8Array([10, 30, 50, 70]).buffer],
+        [new Uint8Array([1, 3, 5, 7]).buffer], 'model.weights.1.bin',
         {type: 'application/octet-stream'});
     const weightsFile2 = new File(
-        [weightsBlob2], 'model.weights.2.bin',
-        {type: 'application/octet-stream'});
-    const weightsBlob3 = new Blob(
-        [new Uint8Array([2, 4, 6, 8]).buffer],
+        [new Uint8Array([10, 30, 50, 70]).buffer], 'model.weights.2.bin',
         {type: 'application/octet-stream'});
     const weightsFile3 = new File(
-        [weightsBlob3], 'model.weights.3.bin',
-        {type: 'application/octet-stream'});
-    const weightsBlob4 = new Blob(
-        [new Uint8Array([20, 40, 60, 80]).buffer],
+        [new Uint8Array([2, 4, 6, 8]).buffer], 'model.weights.3.bin',
         {type: 'application/octet-stream'});
     const weightsFile4 = new File(
-        [weightsBlob4], 'model.weights.4.bin',
+        [new Uint8Array([20, 40, 60, 80]).buffer], 'model.weights.4.bin',
         {type: 'application/octet-stream'});
 
-    const jsonBlob = new Blob(
-        [JSON.stringify(weightsTopologyAndManifest)],
+    const jsonFile = new File(
+        [JSON.stringify(weightsTopologyAndManifest)], 'model.json',
         {type: 'application/json'});
-    const jsonFile =
-        new File([jsonBlob], 'model.json', {type: 'application/json'});
 
     const filesHandler = tf.io.browserFiles(
         [jsonFile, weightsFile4, weightsFile3, weightsFile2, weightsFile1]);
@@ -585,11 +545,9 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
       modelTopology: modelTopology1,
       weightsManifest,
     };
-    const jsonBlob = new Blob(
-        [JSON.stringify(weightsTopologyAndManifest)],
+    const jsonFile = new File(
+        [JSON.stringify(weightsTopologyAndManifest)], 'model.json',
         {type: 'application/json'});
-    const jsonFile =
-        new File([jsonBlob], 'model.json', {type: 'application/json'});
 
     // Select only a JSON file.
     const filesHandler = tf.io.browserFiles([jsonFile]);
@@ -613,24 +571,16 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
       modelTopology: weightSpecs1,
       weightsManifest,
     };
-    const weightsBlob1 = new Blob(
-        [new Uint8Array([1, 2, 3, 4]).buffer],
-        {type: 'application/octet-stream'});
     const weightsFile1 = new File(
-        [weightsBlob1], 'model.weights.1.bin',
-        {type: 'application/octet-stream'});
-    const weightsBlob2 = new Blob(
-        [new Uint8Array([10, 20, 30, 40]).buffer],
+        [new Uint8Array([1, 2, 3, 4]).buffer], 'model.weights.1.bin',
         {type: 'application/octet-stream'});
     const weightsFile2 = new File(
-        [weightsBlob2], 'model.weights.2.bin',
+        [new Uint8Array([10, 20, 30, 40]).buffer], 'model.weights.2.bin',
         {type: 'application/octet-stream'});
 
-    const jsonBlob = new Blob(
-        [JSON.stringify(weightsTopologyAndManifest)],
+    const jsonFile = new File(
+        [JSON.stringify(weightsTopologyAndManifest)], 'model.json',
         {type: 'application/json'});
-    const jsonFile =
-        new File([jsonBlob], 'model.json', {type: 'application/json'});
 
     // Supply two weights files while the manifest has only one path. This is
     // expected to fail.
@@ -672,25 +622,17 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
       modelTopology: modelTopology1,
       weightsManifest,
     };
-    const weightsBlob1 = new Blob(
-        [new Uint8Array([1, 2, 3, 4]).buffer],
-        {type: 'application/octet-stream'});
     const weightsFile1 = new File(
-        [weightsBlob1], 'model.weights.1.bin',
-        {type: 'application/octet-stream'});
-    const weightsBlob2 = new Blob(
-        [new Uint8Array([10, 20, 30, 40]).buffer],
+        [new Uint8Array([1, 2, 3, 4]).buffer], 'model.weights.1.bin',
         {type: 'application/octet-stream'});
     const weightsFile2 = new File(
-        [weightsBlob2], 'model.weights.3.bin',
+        [new Uint8Array([10, 20, 30, 40]).buffer], 'model.weights.3.bin',
         {type: 'application/octet-stream'});
     // Notice the wrong file name here. It is expected to cause load() to fail.
 
-    const jsonBlob = new Blob(
-        [JSON.stringify(weightsTopologyAndManifest)],
+    const jsonFile = new File(
+        [JSON.stringify(weightsTopologyAndManifest)], 'model.json',
         {type: 'application/json'});
-    const jsonFile =
-        new File([jsonBlob], 'model.json', {type: 'application/json'});
 
     const filesHandler =
         tf.io.browserFiles([jsonFile, weightsFile1, weightsFile2]);
@@ -732,25 +674,17 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
       modelTopology: modelTopology1,
       weightsManifest,
     };
-    const weightsBlob1 = new Blob(
-        [new Uint8Array([1, 2, 3, 4]).buffer],
-        {type: 'application/octet-stream'});
     const weightsFile1 = new File(
-        [weightsBlob1], 'model.weights.1.bin',
-        {type: 'application/octet-stream'});
-    const weightsBlob2 = new Blob(
-        [new Uint8Array([10, 20, 30, 40]).buffer],
+        [new Uint8Array([1, 2, 3, 4]).buffer], 'model.weights.1.bin',
         {type: 'application/octet-stream'});
     const weightsFile2 = new File(
-        [weightsBlob2], 'model.weights.2.bin',
+        [new Uint8Array([10, 20, 30, 40]).buffer], 'model.weights.2.bin',
         {type: 'application/octet-stream'});
     // Notice the wrong file name here. It is expected to cause load() to fail.
 
-    const jsonBlob = new Blob(
-        [JSON.stringify(weightsTopologyAndManifest)],
+    const jsonFile = new File(
+        [JSON.stringify(weightsTopologyAndManifest)], 'model.json',
         {type: 'application/json'});
-    const jsonFile =
-        new File([jsonBlob], 'model.json', {type: 'application/json'});
 
     const filesHandler =
         tf.io.browserFiles([jsonFile, weightsFile1, weightsFile2]);
@@ -777,11 +711,9 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
     const weightsTopologyAndManifest = {
       weightsManifest,
     };
-    const jsonBlob = new Blob(
-        [JSON.stringify(weightsTopologyAndManifest)],
+    const jsonFile = new File(
+        [JSON.stringify(weightsTopologyAndManifest)], 'model.json',
         {type: 'application/json'});
-    const jsonFile =
-        new File([jsonBlob], 'model.json', {type: 'application/json'});
 
     const filesHandler = tf.io.browserFiles([jsonFile, weightsFile]);
     filesHandler.load()
