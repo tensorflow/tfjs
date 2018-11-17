@@ -18,7 +18,7 @@
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 // tslint:max-line-length
-import {ALL_ENVS, BROWSER_CPU_ENVS, expectArraysClose, WEBGL_ENVS} from '../test_util';
+import {ALL_ENVS, expectArraysClose, WEBGL_ENVS} from '../test_util';
 
 describeWithFlags('1D FFT', ALL_ENVS, () => {
   it('should return the same value with TensorFlow (2 elements)', () => {
@@ -78,7 +78,7 @@ describeWithFlags('1D FFT', ALL_ENVS, () => {
      });
 });
 
-describeWithFlags('2D FFT', WEBGL_ENVS, () => {
+describeWithFlags('2D FFT', ALL_ENVS, () => {
   it('2D: should return the same value as TensorFlow', () => {
     const t1Real = tf.tensor2d([ 1, 2, 3, 4 ], [ 2, 2 ]);
     const t1Imag = tf.tensor2d([ 5, 6, 7, 8 ], [ 2, 2 ]);
@@ -96,23 +96,6 @@ describeWithFlags('2D FFT', WEBGL_ENVS, () => {
     expectArraysClose(
         y, [ 3, 11, -1, -1, 7, 15, -1, -1, -3, -11, 1, 1, -7, -15, 1, 1 ]);
     expect(y.shape).toEqual(t1Real.shape);
-  });
-});
-
-// TODO: Remove this once we support higher-dimensional FFTs on CPU.
-describeWithFlags('FFT CPU', BROWSER_CPU_ENVS, () => {
-  it('2D throws', () => {
-    const t1Real = tf.tensor2d([ 1, 2, 3, 4 ], [ 2, 2 ]);
-    const t1Imag = tf.tensor2d([ 5, 6, 7, 8 ], [ 2, 2 ]);
-    const t1 = tf.complex(t1Real, t1Imag);
-    expect(() => tf.spectral.fft(t1)).toThrow();
-  });
-
-  it('3D throws', () => {
-    const t1Real = tf.tensor3d([ 1, 2, 3, 4, -1, -2, -3, -4 ], [ 2, 2, 2 ]);
-    const t1Imag = tf.tensor3d([ 5, 6, 7, 8, -5, -6, -7, -8 ], [ 2, 2, 2 ]);
-    const t1 = tf.complex(t1Real, t1Imag);
-    expect(() => tf.spectral.fft(t1)).toThrow();
   });
 });
 
@@ -177,7 +160,7 @@ describeWithFlags('1D IFFT', ALL_ENVS, () => {
      });
 });
 
-describeWithFlags('2D IFFT', WEBGL_ENVS, () => {
+describeWithFlags('2D IFFT', ALL_ENVS, () => {
   it('2D: should return the same value as TensorFlow', () => {
     const t1Real = tf.tensor2d([ 1, 2, 3, 4 ], [ 2, 2 ]);
     const t1Imag = tf.tensor2d([ 5, 6, 7, 8 ], [ 2, 2 ]);
@@ -197,23 +180,6 @@ describeWithFlags('2D IFFT', WEBGL_ENVS, () => {
       -7.5, 0.5, 0.5
     ]);
     expect(y.shape).toEqual(t1Real.shape);
-  });
-});
-
-// TODO: Remove this once we support higher-dimensional FFTs on CPU.
-describeWithFlags('IFFT CPU', BROWSER_CPU_ENVS, () => {
-  it('2D throws', () => {
-    const t1Real = tf.tensor2d([ 1, 2, 3, 4 ], [ 2, 2 ]);
-    const t1Imag = tf.tensor2d([ 5, 6, 7, 8 ], [ 2, 2 ]);
-    const t1 = tf.complex(t1Real, t1Imag);
-    expect(() => tf.spectral.ifft(t1)).toThrow();
-  });
-
-  it('3D throws', () => {
-    const t1Real = tf.tensor3d([ 1, 2, 3, 4, -1, -2, -3, -4 ], [ 2, 2, 2 ]);
-    const t1Imag = tf.tensor3d([ 5, 6, 7, 8, -5, -6, -7, -8 ], [ 2, 2, 2 ]);
-    const t1 = tf.complex(t1Real, t1Imag);
-    expect(() => tf.spectral.ifft(t1)).toThrow();
   });
 });
 
