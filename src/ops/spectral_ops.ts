@@ -20,6 +20,7 @@ import {complex, imag, real} from '../ops/complex_ops';
 import {op} from '../ops/operation';
 import {Tensor} from '../tensor';
 import {assert} from '../util';
+import {scalar} from './tensor_ops';
 
 /**
  * Fast Fourier transform.
@@ -133,6 +134,55 @@ function rfft_(input: Tensor): Tensor {
       .reshape(outputShape);
 }
 
+/**
+ * Inversed real value input fast Fourier transform.
+ *
+ * Computes the 1-dimensional inversed discrete Fourier transform over the
+ * inner-most dimension of the real input.
+ *
+ * ```js
+ * const real = tf.tensor1d([1, 2, 3]);
+ *
+ * x.irfft().print();
+ * ```
+ * @param input The real value input to compute an irfft over.
+ */
+/**
+ * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
+ */
+function irfft_(input: Tensor): Tensor {
+  const innerDimensionSize = input.shape[input.shape.length - 1];
+  const batch = input.size / innerDimensionSize;
+
+  if (innerDimensionSize <= 2) {
+    const complexInput = input.as2D(batch, innerDimensionSize);
+    const ret = ENV.engine.runKernel(
+        backend => backend.ifft(complexInput), {complexInput});
+    return real(ret);
+  } else {
+    // The length of unique components of the DFT of a real-valued signal
+    // is 2 * (input_len - 1)
+    const outputShape = [batch, 2 * (innerDimensionSize - 1)];
+    const realInput = real(input).as2D(batch, innerDimensionSize);
+    const imagInput = imag(input).as2D(batch, innerDimensionSize);
+
+    const realConjugate =
+        realInput.slice([0, 1], [batch, innerDimensionSize - 2]).reverse(1);
+    const imagConjugate =
+        imagInput.slice([0, 1], [batch, innerDimensionSize - 2])
+            .reverse(1)
+            .mul(scalar(-1));
+
+    const r = realInput.concat(realConjugate, 1);
+    const i = imagInput.concat(imagConjugate, 1);
+    const complexInput = complex(r, i).as2D(outputShape[0], outputShape[1]);
+    const ret = ENV.engine.runKernel(
+        backend => backend.ifft(complexInput), {complexInput});
+    return real(ret);
+  }
+}
+
 export const fft = op({fft_});
 export const ifft = op({ifft_});
 export const rfft = op({rfft_});
+export const irfft = op({irfft_});
