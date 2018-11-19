@@ -6,6 +6,8 @@ Please reach out to us if you'd like to put your project on the list.
 
 ## Demos & Applications
 
+- [TensorSpace.js](https://github.com/tensorspace-team/tensorspace) - A 3D visualization framework for neural networks, featuring interactive and intuitive display of models in the browser. Supports pre-trained models from TensorFlow, Keras, and TensorFlow.js.
+- [Magenta Studio](https://magenta.tensorflow.org/studio) - A collection of music plugins built on Magenta’s open source tools and models using cutting-edge machine learning techniques for music generation.
 - [Move Mirror](https://experiments.withgoogle.com/collection/ai/move-mirror/view) - An AI Experiment with Pose Estimation in the Browser using TensorFlow.js
 - [Emoji Scavenger Hunt](https://emojiscavengerhunt.withgoogle.com/) - Locate the emoji we show you in the real world with your phone’s camera.
 - [Metacar](https://www.metacar-project.com/) - A reinforcement learning environment for self-driving cars in the browser.
@@ -80,4 +82,3 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Handsfree.js](https://github.com/handsfreejs/handsfree) - A library for adding face-controlled pointers to your site.
 - [face-api.js](https://github.com/justadudewhohacks/face-api.js) - A JavaScript API for face detection and face recognition in the browser.
 - [TensorFlow.js GPU-accelerated t-SNE](https://github.com/tensorflow/tfjs-tsne) - A linear t-SNE for the web.
-- [TensorSpace.js](https://github.com/tensorspace-team/tensorspace) - A 3D visualization framework for neural networks, featuring interactive and intuitive display of models in the browser. Supports pre-trained models from TensorFlow, Keras, and TensorFlow.js.
