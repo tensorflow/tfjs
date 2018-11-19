@@ -98,7 +98,7 @@ export class CSVDataset extends Dataset<DataElement> {
         Object.keys(counts).filter((name) => (counts[name] > 1));
     assert(
         duplicateNames.length === 0,
-        'Duplicate column names found: ' + duplicateNames);
+        'Duplicate column names found: ' + duplicateNames.toString());
     // Check if keys in columnConfigs match columnNames.
     if (this.columnConfigs) {
       for (const key of Object.keys(this.columnConfigs)) {
