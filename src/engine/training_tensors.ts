@@ -508,7 +508,6 @@ export async function fitTensors(
         model, trainFunction, ins, outLabels, batchSize, config.epochs,
         config.verbose, callbacks, valFunction, valIns, config.shuffle,
         callbackMetrics, config.initialEpoch, null, null, config.yieldEvery);
-    model.isTraining = false;
     return out;
   } finally {
     model.isTraining = false;
