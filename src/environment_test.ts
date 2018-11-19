@@ -16,7 +16,7 @@
  */
 
 import * as device_util from './device_util';
-import {ENV, Environment} from './environment';
+import {ENV, Environment, EPSILON_FLOAT16, EPSILON_FLOAT32} from './environment';
 import {Features, getQueryParams} from './environment_util';
 import * as tf from './index';
 import {describeWithFlags} from './jasmine_util';
@@ -160,7 +160,8 @@ describeWithFlags('max texture size', WEBGL_ENVS, () => {
 
 describeWithFlags('epsilon', {}, () => {
   it('Epsilon is a function of float precision', () => {
-    const epsilonValue = ENV.backend.floatPrecision() === 32 ? 1e-7 : 1e-3;
+    const epsilonValue =
+        ENV.backend.floatPrecision() === 32 ? EPSILON_FLOAT32 : EPSILON_FLOAT16;
     expect(ENV.get('EPSILON')).toBe(epsilonValue);
   });
 
