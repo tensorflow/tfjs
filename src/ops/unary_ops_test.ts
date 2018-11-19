@@ -2493,10 +2493,10 @@ describeWithFlags('clip', ALL_ENVS, () => {
 
   it('clip(x, eps, 1-eps) never returns 0 or 1', () => {
     const min = tf.ENV.get('EPSILON');
-    const max = 1 - min;
+    const max = 0.5;
     const res = tf.clipByValue([0, 1], min, max).dataSync();
     expect(res[0]).toBeGreaterThan(0);
-    expect(res[1]).toBeLessThan(1);
+    expect(res[1]).toBeCloseTo(max);
   });
 });
 

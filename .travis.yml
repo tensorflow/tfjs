@@ -1,5 +1,7 @@
 language: node_js
-node_js: '10'
+node_js:
+  - '8'
+  - '10'
 script:
   - if [ "$TO_TEST" = "regular" ]; then yarn test-benchmark && yarn test-travis; fi
   - if [ "$TO_TEST" = "integration" ]; then yarn test-integration; fi
@@ -16,3 +18,7 @@ notifications:
     on_success: never
     on_failure: always
     on_pull_requests: false
+matrix:
+  exclude:
+  - node_js: '8'
+    env: TO_TEST=integration
