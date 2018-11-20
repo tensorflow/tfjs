@@ -310,7 +310,7 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
         .catch(err => done.fail(err.stack));
   });
 
-  it('Manager: Successful deleteModel', done => {
+  it('Manager: Successful removeModel', done => {
     // First, save a model.
     const handler1 = tf.io.getSaveHandlers('indexeddb://QuxModel')[0];
     handler1.save(artifacts1)
@@ -342,7 +342,7 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
         .catch(err => done.fail(err.stack));
   });
 
-  it('Manager: Successful deleteModel with URL scheme', done => {
+  it('Manager: Successful removeModel with URL scheme', done => {
     // First, save a model.
     const handler1 = tf.io.getSaveHandlers('indexeddb://QuxModel')[0];
     handler1.save(artifacts1)
@@ -376,7 +376,7 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
         .catch(err => done.fail(err.stack));
   });
 
-  it('Manager: Failed deletedModel', done => {
+  it('Manager: Failed removeModel', done => {
     // Attempt to delete a nonexistent model is expected to fail.
     new BrowserIndexedDBManager()
         .removeModel('nonexistent')
