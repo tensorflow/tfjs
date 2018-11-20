@@ -115,8 +115,7 @@ function rfft_(input: Tensor): Tensor {
   const zeros = input.zerosLike();
   const complexInput = complex(input, zeros).as2D(batch, innerDimensionSize);
 
-  const ret = ENV.engine.runKernel(backend => backend.fft(complexInput),
-                                   {complexInput});
+  const ret = fft(complexInput);
 
   // Exclude complex conjugations. These conjugations are put symmetrically.
   const half = Math.floor(innerDimensionSize / 2) + 1;
@@ -156,8 +155,7 @@ function irfft_(input: Tensor): Tensor {
 
   if (innerDimensionSize <= 2) {
     const complexInput = input.as2D(batch, innerDimensionSize);
-    const ret = ENV.engine.runKernel(
-        backend => backend.ifft(complexInput), {complexInput});
+    const ret = ifft(complexInput);
     return real(ret);
   } else {
     // The length of unique components of the DFT of a real-valued signal
@@ -176,8 +174,7 @@ function irfft_(input: Tensor): Tensor {
     const r = realInput.concat(realConjugate, 1);
     const i = imagInput.concat(imagConjugate, 1);
     const complexInput = complex(r, i).as2D(outputShape[0], outputShape[1]);
-    const ret = ENV.engine.runKernel(
-        backend => backend.ifft(complexInput), {complexInput});
+    const ret = ifft(complexInput);
     return real(ret);
   }
 }
