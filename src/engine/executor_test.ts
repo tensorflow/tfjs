@@ -12,12 +12,12 @@
  * Unit tests for executor_test.ts.
  */
 
-import {ones, Tensor, tensor1d, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
+import {dispose, memory, ones, Tensor, tensor1d, tensor2d, tensor3d, zeros} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {execute, FeedDict} from './executor';
+import {execute, ExecutionProbe, FeedDict} from './executor';
 
 // tslint:enable
 
@@ -53,6 +53,14 @@ describeMathCPU('FeedDict', () => {
     expect(feedDict.hasKey(y)).toBe(true);
     expect(feedDict.getValue(x)).toEqual(xValue);
     expect(feedDict.getValue(y)).toEqual(yValue);
+  });
+  it('getValue by tensor name', () => {
+    const feedDict = new FeedDict();
+    expect(feedDict.add(x, xValue)).toEqual(feedDict);
+    expect(feedDict.add(y, yValue)).toEqual(feedDict);
+
+    expect(feedDict.getValue(x.name)).toEqual(xValue);
+    expect(feedDict.getValue(y.name)).toEqual(yValue);
   });
   it('Copy constructor', () => {
     const feedDict1 = new FeedDict().add(x, xValue);
@@ -146,9 +154,28 @@ describeMathCPUAndGPU('Executor', () => {
     it('Calling execute without all Input feeds available leads to error',
        () => {
          const feedDict = new FeedDict();
-         expect(() => execute(y as tfl.SymbolicTensor, feedDict))
-             .toThrowError(/Missing a feed value .* from InputLayer/);
+         expect(() => execute(y as tfl.SymbolicTensor, feedDict)).toThrow();
        });
+
+
+    it('Maximum memory use under linear graph topology', () => {
+      const input = tfl.input({shape: [2, 3]});
+      let y: tfl.SymbolicTensor = input;
+      for (let i = 0; i < 10; ++i) {
+        y = tfl.layers.reshape({targetShape:　i % 2 === 0 ? [6] : [3, 2]})
+                .apply(y) as tfl.SymbolicTensor;
+      }
+      const feedDict = new FeedDict(
+          [{key: input as tfl.SymbolicTensor, value: zeros([4, 2, 3])}]);
+      const numTensors0 = memory().numTensors;
+      const probe: ExecutionProbe = {};
+      dispose(execute(y, feedDict, null, probe));
+      // Assert no memory leak.
+      expect(memory().numTensors).toEqual(numTensors0);
+      // Assert that intermediate tensors are cleaned up properly during
+      // execution.
+      expect(probe.maxNumTensors).toBeLessThanOrEqual(numTensors0 + 1);
+    });
   });
 
   describe('Diamond Graph Topology', () => {

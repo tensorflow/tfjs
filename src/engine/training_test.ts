@@ -85,15 +85,14 @@ describeMathCPU('standardizeInputData', () => {
     expectTensorsClose(outputs[0], getX());
   });
   it('Array of two Tensors, Array of two names', () => {
-    const outputs =
-        standardizeInputData([getX(), getY()], ['Foo', 'Bar']);
+    const outputs = standardizeInputData([getX(), getY()], ['Foo', 'Bar']);
     expect(outputs.length).toEqual(2);
     expectTensorsClose(outputs[0], getX());
     expectTensorsClose(outputs[1], getY());
   });
   it('Dict of two Tensors, Array of two names', () => {
-    const outputs = standardizeInputData(
-        {'Foo': getX(), 'Bar': getY()}, ['Foo', 'Bar']);
+    const outputs =
+        standardizeInputData({'Foo': getX(), 'Bar': getY()}, ['Foo', 'Bar']);
     expect(outputs.length).toEqual(2);
     expectTensorsClose(outputs[0], getX());
     expectTensorsClose(outputs[1], getY());
