@@ -12,7 +12,7 @@
  * Unit tests for core.ts.
  */
 
-import {ones, serialization, Tensor, Tensor2D, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
+import {ones, serialization, Tensor, tensor1d, Tensor2D, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
 import {Layer} from '../engine/topology';
 import * as tfl from '../index';
@@ -335,6 +335,35 @@ describeMathCPUAndGPU('Add Layer: Tensor', () => {
     const y = addLayer.apply([x1, x2]) as Tensor;
     expectTensorsClose(
         y, tensor3d([[[8, 18], [28, 38]], [[46, 56], [66, 76]]], [2, 2, 2]));
+  });
+  it('computeMask', () => {
+    const x1 = tensor2d([[10, 20], [30, 40]]);
+    const x2 = tensor2d([[-2, -1], [-4, -3]]);
+    const addLayer = tfl.layers.add({});
+    const m1 = tensor1d([true, false], 'bool');
+    const m2 = tensor1d([true, true], 'bool');
+    const mask = addLayer.computeMask([x1, x2], [m1, m2]) as Tensor;
+    expectTensorsClose(mask, tensor2d([[true, false]], [1, 2], 'bool'));
+  });
+  it('computeMask error condition: non-array input', () => {
+    const x1 = tensor2d([[10, 20], [30, 40]]);
+    const x2 = tensor2d([[-2, -1], [-4, -3]]);
+    const addLayer = tfl.layers.add({});
+    const m1 = tensor1d([true, false], 'bool');
+    const m2 = tensor1d([true, true], 'bool');
+    expect(() => addLayer.computeMask(x1, [
+      m1, m2
+    ])).toThrowError(/inputs.*should be an Array/);
+    expect(() => addLayer.computeMask([x1, x2], m1))
+        .toThrowError(/mask.*should be an Array/);
+  });
+  it('computeMask error condition: incorrect number of masks', () => {
+    const x1 = tensor2d([[10, 20], [30, 40]]);
+    const x2 = tensor2d([[-2, -1], [-4, -3]]);
+    const addLayer = tfl.layers.add({});
+    const m1 = tensor1d([true, false], 'bool');
+    expect(() => addLayer.computeMask([x1, x2], [m1]))
+        .toThrowError(/ are expected to have the same/);
   });
 });
 

@@ -792,6 +792,53 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
     });
   }
 
+  it('computeMask: returnSequence = false, returnState = false', () => {
+    const sequenceLength = 3;
+    const rnn = tfl.layers.simpleRNN({
+      units,
+      returnSequences: false,
+      returnState: false,
+      batchInputShape: [batchSize, sequenceLength, inputSize]
+    });
+    const x = tfc.ones([batchSize, sequenceLength, inputSize]);
+    const m = tfc.ones([sequenceLength, 1]);
+    const mask = rnn.computeMask(x, m);
+    expect(mask).toBeNull();
+  });
+
+  it('computeMask: returnSequence = true, returnState = false', () => {
+    const sequenceLength = 3;
+    const rnn = tfl.layers.simpleRNN({
+      units,
+      returnSequences: true,
+      returnState: false,
+      batchInputShape: [batchSize, sequenceLength, inputSize]
+    });
+    const x = tfc.ones([batchSize, sequenceLength, inputSize]);
+    const m = tfc.ones([sequenceLength, 1]);
+    const mask = rnn.computeMask(x, m) as Tensor;
+    expectTensorsClose(mask, m);
+  });
+
+  it('computeMask: returnSequence = true, returnState = true', () => {
+    const sequenceLength = 3;
+    const rnn = tfl.layers.simpleRNN({
+      units,
+      returnSequences: true,
+      returnState: true,
+      stateful: true,
+      batchInputShape: [batchSize, sequenceLength, inputSize]
+    });
+    const x = tfc.ones([batchSize, sequenceLength, inputSize]);
+    rnn.apply(x);
+    rnn.resetStates();  // Let the RNN layer object construct its state first.
+    const m = tfc.ones([sequenceLength, 1]);
+    const masks = rnn.computeMask(x, m) as Tensor[];
+    expect(masks.length).toEqual(2);
+    expectTensorsClose(masks[0], m);
+    expect(masks[1]).toBeNull();
+  });
+
   // The reference values can be obtained with the following PyKeras code:
   // ```python
   // import keras

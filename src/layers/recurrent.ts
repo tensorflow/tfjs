@@ -484,9 +484,19 @@ export class RNN extends Layer {
     }
   }
 
-  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
-    throw new NotImplementedError(
-        'computeMask has not been implemented for RNN yet');
+  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor
+      |Tensor[] {
+    if (Array.isArray(mask)) {
+      mask = mask[0];
+    }
+    const outputMask = this.returnSequences ? mask : null;
+
+    if (this.returnState) {
+      const stateMask = this.states.map(s => null);
+      return [outputMask].concat(stateMask);
+    } else {
+      return outputMask;
+    }
   }
 
   public build(inputShape: Shape|Shape[]): void {

@@ -15,7 +15,7 @@
 import {DataType, Tensor, tensor2d, tensor3d, test_util} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
-import {describeMathCPU} from '../utils/test_utils';
+import {describeMathCPU, expectTensorsClose} from '../utils/test_utils';
 
 const expectArraysClose = test_util.expectArraysClose;
 
@@ -118,6 +118,30 @@ describeMathCPU('Embedding Layers: Tensor', () => {
       expect(() => {
         expectArraysClose(yData0, yData2);
       }).toThrow();
+    });
+
+    it('computeMask: maskZero = false', () => {
+      const embeddingLayer = tfl.layers.embedding({
+        inputDim: 6,
+        outputDim: 4,
+        embeddingsInitializer: 'randomUniform',
+        maskZero: false
+      });
+      const x = tensor2d([[0], [0], [2]], [3, 1], dtype);
+      const y = embeddingLayer.computeMask(x) as Tensor;
+      expect(y).toBeNull();
+    });
+
+    it('computeMask: maskZero = true', () => {
+      const embeddingLayer = tfl.layers.embedding({
+        inputDim: 6,
+        outputDim: 4,
+        embeddingsInitializer: 'randomUniform',
+        maskZero: true
+      });
+      const x = tensor2d([[0], [0], [2]], [3, 1], dtype);
+      const y = embeddingLayer.computeMask(x) as Tensor;
+      expectTensorsClose(y, tensor2d([[0], [0], [1]], [3, 1], 'bool'));
     });
   }
 });
