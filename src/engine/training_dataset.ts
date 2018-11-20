@@ -324,6 +324,7 @@ export async function fitDataset<T extends TensorContainer>(
         config.batchesPerEpoch,
         null,  // Batch size determined by the dataset itself.
         doValidation, callbackMetrics);
+    callbackList.setModel(model);
     model.history = history;
 
     await callbackList.onTrainBegin();
