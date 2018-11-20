@@ -229,9 +229,32 @@ export abstract class Merge extends Layer {
   }
 
   computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
-    // TODO(cais): Implement computeMask();
-    throw new NotImplementedError(
-        'computeMask has not been implemented for Merge yet');
+    return tfc.tidy(() => {
+      if (mask == null) {
+        return null;
+      }
+      if (!Array.isArray(mask)) {
+        throw new ValueError('`mask` should be an Array');
+      }
+      if (!Array.isArray(inputs)) {
+        throw new ValueError('`inputs` should be an Array');
+      }
+      if (mask.length !== inputs.length) {
+        throw new ValueError(
+            `The Array 'inputs' and 'mask' are expected to have the same ` +
+            `length, but have different lengths ` +
+            `(${inputs.length} vs ${mask.length})`);
+      }
+      if (mask.every(m => m == null)) {
+        return null;
+      }
+      mask = mask.map(m => m == null ? m : tfc.expandDims(m, 0));
+      let output = mask[0];
+      for (let i = 1; i < mask.length - 1; ++i) {
+        output = tfc.logicalAnd(output, mask[i]);
+      }
+      return output;
+    });
   }
 }
 

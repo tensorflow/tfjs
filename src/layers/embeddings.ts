@@ -13,12 +13,12 @@
  *
  * Original source: keras/constraints.py
  */
-import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
+import {notEqual, serialization, Tensor, tidy, zerosLike} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {Layer, LayerConfig} from '../engine/topology';
-import {NotImplementedError, ValueError} from '../errors';
+import {ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs, Shape} from '../types';
@@ -143,8 +143,14 @@ export class Embedding extends Layer {
   protected warnOnIncompatibleInputShape(inputShape: Shape) {}
 
   computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
-    throw new NotImplementedError(
-        'computeMask has not been implemented for Embedding yet');
+    return tidy(() => {
+      if (!this.maskZero) {
+        return null;
+      } else {
+        inputs = getExactlyOneTensor(inputs);
+        return notEqual(inputs, zerosLike(inputs as Tensor));
+      }
+    });
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
