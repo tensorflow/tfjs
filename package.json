@@ -5,6 +5,7 @@
   "private": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@tensorflow/tfjs-core": "0.13.6",
     "@types/fetch-mock": "^6.0.1",
