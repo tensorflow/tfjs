@@ -17,6 +17,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 
 import * as tfl from '../index';
+import {Logs} from '../logs';
 import {describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {FakeNumericDataset} from './dataset_fakes';
@@ -1866,6 +1867,52 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
     }
     expect(errorCaught.message)
         .toMatch(/.*validationSplit.*not supported.*validationData/);
+  });
+
+  class StopAfterNBatches extends tfl.Callback {
+    private readonly batchesToTrain: number;
+    constructor(epochsToTrain: number) {
+      super();
+      this.batchesToTrain = epochsToTrain;
+    }
+
+    async onBatchEnd(batch: number, logs?: Logs) {
+      if (batch === this.batchesToTrain - 1) {
+        this.model.stopTraining = true;
+      }
+    }
+  }
+
+  it('Stop training resets at start of Model.fitDataset()', async () => {
+    const model = createDenseModel();
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    const batchSize = 8;
+    const epochs = 2;
+    const batchesPerEpoch = 1;
+    const xTensorsFunc =
+        () => [tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1])];
+    const yTensorsFunc =
+        () => [tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1])];
+    const dataset = new FakeNumericDataset({
+      xShape: [1],
+      yShape: [1],
+      batchSize,
+      numBatches: batchesPerEpoch * epochs,
+      xTensorsFunc,
+      yTensorsFunc
+    });
+    // Order 2 epochs of training, but the training should stop after only one
+    // epochs due to the callback that orders the training to stop after one
+    // batches.
+    let history = await model.fitDataset(
+        dataset,
+        {batchesPerEpoch, epochs, callbacks: [new StopAfterNBatches(1)]});
+    expect(history.history.loss.length).toEqual(1);
+
+    // Running fitDataset again should now run to completion
+    history = await model.fitDataset(dataset, {batchesPerEpoch, epochs});
+    expect(history.history.loss.length).toEqual(2);
   });
 });
 
