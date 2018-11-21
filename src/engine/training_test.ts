@@ -1210,9 +1210,9 @@ describeMathCPUAndGPU('Model.fit', () => {
 
   class StopAfterNBatches extends tfl.Callback {
     private readonly batchesToTrain: number;
-    constructor(epochsToTrain: number) {
+    constructor(batchesToTrain: number) {
       super();
-      this.batchesToTrain = epochsToTrain;
+      this.batchesToTrain = batchesToTrain;
     }
 
     async onBatchEnd(batch: number, logs?: Logs) {
