@@ -1409,7 +1409,7 @@ export class Model extends Container implements tfc.InferenceModel {
    *   is expected to produce data batches for training. The return value
    *   of the `next()` call ought to contain a boolean `done` field and a
    *   `value` field. The `value` field is expected to be an array of two
-   *   `tf.Tensor`s or an array of two nested `tf.Tensor` structures.
+   *   `tf.Tensor`s or an array of two nested `tf.Tensor` structures. The former
    *   case is for models with exactly one input and one output (e.g..
    *   a sequential model). The latter case is for models with multiple
    *   inputs and/or multiple outputs.
