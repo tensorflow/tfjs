@@ -1267,6 +1267,29 @@ describeMathCPUAndGPU('Model.fit', () => {
     expect(history.history.loss.length).toEqual(2);
   });
 
+  it('Stop training resets at start of Model.fit()', async () => {
+    const sequentialModel = tfl.sequential();
+    sequentialModel.add(tfl.layers.dense(
+        {units: 1, kernelInitializer: 'ones', inputShape: [inputSize]}));
+    // numSamples is 5.
+    inputs = ones([numSamples, inputSize]);
+    targets = ones([numSamples, 1]);
+    sequentialModel.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+    // Order 10 epochs of training, but the training should stop after only one
+    // epochs due to the callback that orders the training to stop after two
+    // batches. The first epoch should have five batches due to a batchSize
+    // of 1.
+    let history = await sequentialModel.fit(
+        inputs, targets,
+        {batchSize: 1, epochs: 10, callbacks: [new StopAfterNBatches(2)]});
+    expect(history.history.loss.length).toEqual(1);
+
+    // Running fit again should now run to completion
+    history =
+        await sequentialModel.fit(inputs, targets, {batchSize: 1, epochs: 10});
+    expect(history.history.loss.length).toEqual(10);
+  });
+
   it('Invalid dict loss: nonexistent output name', () => {
     createDenseModelAndData();
     expect(() => model.compile({

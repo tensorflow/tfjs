@@ -328,6 +328,7 @@ export async function fitDataset<T extends TensorContainer>(
     model.history = history;
 
     await callbackList.onTrainBegin();
+    model.stopTraining_ = false;
     let epoch = config.initialEpoch == null ? 0 : config.initialEpoch;
     const epochLogs: UnresolvedLogs = {};
 
