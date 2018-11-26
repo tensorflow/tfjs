@@ -262,8 +262,15 @@
       const oldLog = console.log;
       let kernels = [];
       console.log = msg => {
-        const parts = msg.split('\t').map(x => x.slice(2));
-        if(parts.length) {
+        let parts = [];
+        if(typeof msg === 'string') {
+          parts = msg.split('\t').map(x => x.slice(2));
+        }
+
+        if(parts.length > 2) {
+          // heuristic for determining whether we've caught a profiler
+          // log statement as opposed to a regular console.log
+          // TODO(https://github.com/tensorflow/tfjs/issues/563): return timing information as part of tf.profile
           const scopes = parts[0].trim()
             .split('||')
             .filter(s => s !== 'unnamed scope');
@@ -273,6 +280,8 @@
             output: parts[2].trim(),
             gpuProgramsInfo: parts[4]
           });
+        } else {
+          oldLog.call(oldLog, msg);
         }
       }
       let res = predict(model);

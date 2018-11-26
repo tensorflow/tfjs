@@ -21,6 +21,17 @@ import {expectArraysClose, expectArraysEqual, WEBGL_ENVS} from '../test_util';
 import {MathBackendWebGL, SIZE_UPLOAD_UNIFORM, WebGLMemoryInfo} from './backend_webgl';
 
 describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
+  let webglLazilyUnpackFlagSaved: boolean;
+
+  beforeAll(() => {
+    webglLazilyUnpackFlagSaved = tf.ENV.get('WEBGL_LAZILY_UNPACK');
+    tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
+  });
+
+  afterAll(() => {
+    tf.ENV.set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
+  });
+
   it('should not leak memory when lazily unpacking', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
@@ -49,6 +60,13 @@ describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
 
     expect(tf.memory().numBytes - startNumBytes).toEqual(36);
     expect(tf.memory().numTensors - startNumTensors).toEqual(1);
+  });
+
+  it('should work when the same input must be represented by' +
+    'different textures', () => {
+    const a = tf.tensor1d([1, 2]);
+    const res = tf.dot(a, a);
+    expectArraysClose(res, [5]);
   });
 });
 
