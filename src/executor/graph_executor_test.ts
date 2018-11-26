@@ -128,6 +128,14 @@ describe('GraphExecutor', () => {
           tfc.test_util.expectArraysClose(result['output'], [5.0]);
         });
 
+        it('should allow output intermediate nodes', () => {
+          const inputTensor = tfc.scalar(1);
+          const result = executor.execute(
+              {input: [inputTensor]}, false, ['output', 'intermediate']);
+          tfc.test_util.expectArraysClose(result['intermediate'], [3.0]);
+          tfc.test_util.expectArraysClose(result['output'], [5.0]);
+        });
+
         it('should allow feed intermediate nodes', () => {
           const intermediateTensor = tfc.scalar(1);
           const result =
@@ -289,44 +297,36 @@ describe('GraphExecutor', () => {
           executor.weightMap = {const : [constTensor]};
         });
 
-        it('should execute control flow graph', (done) => {
+        it('should execute control flow graph', async (done) => {
           const inputTensor = tfc.scalar(1);
 
-          executor.executeAsync({input: [inputTensor]}, 'output:1')
-              .then(
-                  result => {
-                    tfc.test_util.expectArraysClose(result['output:1'], [3]);
-                    done();
-                  },
-                  e => {
-                    fail(e);
-                    done();
-                  });
+          const result =
+              await executor.executeAsync({input: [inputTensor]}, 'output:1');
+          tfc.test_util.expectArraysClose(result['output:1'], [3]);
+          done();
+        });
+
+        it('should allow output intermediate nodes', async (done) => {
+          const inputTensor = tfc.scalar(1);
+          const result = await executor.executeAsync(
+              {input: [inputTensor]}, ['intermediate']);
+          tfc.test_util.expectArraysClose(result['intermediate'], [3.0]);
+          done();
         });
 
         it('should be able to execute control flow graph ' +
                'with intermediate node more than once',
-           (done) => {
+           async (done) => {
              const inputTensor = tfc.scalar(1);
 
-             executor.executeAsync({intermediate: [inputTensor]}, 'output:1')
-                 .then(
-                     result => {
-                       tfc.test_util.expectArraysClose(result['output:1'], [1]);
-                       executor
-                           .executeAsync(
-                               {intermediate: [inputTensor]}, 'output:1')
-                           .then(result => {
-                             tfc.test_util.expectArraysClose(
-                                 result['output:1'], [1]);
+             const result = await executor.executeAsync(
+                 {intermediate: [inputTensor]}, 'output:1');
+             tfc.test_util.expectArraysClose(result['output:1'], [1]);
+             const result2 = await executor.executeAsync(
+                 {intermediate: [inputTensor]}, 'output:1');
+             tfc.test_util.expectArraysClose(result2['output:1'], [1]);
 
-                             done();
-                           });
-                     },
-                     e => {
-                       fail(e);
-                       done();
-                     });
+             done();
            });
       });
     });
