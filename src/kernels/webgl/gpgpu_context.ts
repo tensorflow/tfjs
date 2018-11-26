@@ -176,10 +176,11 @@ export class GPGPUContext {
 
   public uploadMatrixToPackedTexture(
       texture: WebGLTexture, batch: number, rows: number, columns: number,
-      matrix: Float32Array) {
+      physicalRows: number, physicalCols: number, matrix: Float32Array) {
     this.throwIfDisposed();
     return gpgpu_util.uploadMatrixToPackedTexture(
-        this.gl, texture, batch, rows, columns, matrix, this.textureConfig);
+        this.gl, texture, batch, rows, columns, physicalRows, physicalCols,
+        matrix, this.textureConfig);
   }
 
   public downloadFloat32MatrixFromOutputTexture(

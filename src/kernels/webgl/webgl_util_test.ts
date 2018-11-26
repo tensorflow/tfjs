@@ -30,7 +30,7 @@ describeWithFlags('getTextureShapeFromLogicalShape', WEBGL_ENVS, () => {
 
   it('1d', () => {
     const texShape = webgl_util.getTextureShapeFromLogicalShape([4]);
-    expect(texShape).toEqual([4, 1]);
+    expect(texShape).toEqual([1, 4]);
   });
 
   it('2d stays same', () => {

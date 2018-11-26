@@ -145,20 +145,22 @@ export class TextureManager {
 
 function getPhysicalFromLogicalTextureType(
     logicalTexType: TextureUsage, isPacked: boolean): PhysicalTextureType {
-  if (isPacked) {
+  if (logicalTexType === TextureUsage.UPLOAD) {
+    return isPacked ? PhysicalTextureType.PACKED_2X2_FLOAT32 :
+                      PhysicalTextureType.UNPACKED_FLOAT32;
+  } else if (logicalTexType === TextureUsage.RENDER) {
+    if (isPacked) {
+      return ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') ?
+          PhysicalTextureType.PACKED_2X2_FLOAT32 :
+          PhysicalTextureType.PACKED_2X2_FLOAT16;
+    }
     return ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') ?
-        PhysicalTextureType.PACKED_2X2_FLOAT32 :
-        PhysicalTextureType.PACKED_2X2_FLOAT16;
+        PhysicalTextureType.UNPACKED_FLOAT32 :
+        PhysicalTextureType.UNPACKED_FLOAT16;
   } else if (
       logicalTexType === TextureUsage.DOWNLOAD ||
       logicalTexType === TextureUsage.PIXELS) {
     return PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE;
-  } else if (logicalTexType === TextureUsage.UPLOAD) {
-    return PhysicalTextureType.UNPACKED_FLOAT32;
-  } else if (logicalTexType === TextureUsage.RENDER) {
-    return ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') ?
-        PhysicalTextureType.UNPACKED_FLOAT32 :
-        PhysicalTextureType.UNPACKED_FLOAT16;
   }
   throw new Error(`Unknown logical texture type ${logicalTexType}`);
 }
