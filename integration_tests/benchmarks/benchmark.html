@@ -15,7 +15,15 @@
     }
 
     body {
-      margin: 30px 0 0 30px;
+      margin: 20px 100px;
+    }
+
+    h2 {
+      margin-bottom: 30px;
+    }
+
+    #kernels {
+      max-width: 750px;
     }
 
     #container {
@@ -25,8 +33,8 @@
     }
 
     .box {
-      margin-right: 20px;
-      margin-bottom: 20px;
+      margin-right: 30px;
+      margin-bottom: 30px;
     }
 
     .box pre {
@@ -34,6 +42,42 @@
       border: 1px solid #ccc;
       padding: 8px;
       font-size: 10px;
+    }
+
+    #trendline-container svg {
+      overflow: visible;
+      border-bottom: 1px solid #ccc;
+      border-left: 1px solid #ccc;
+    }
+
+    #trendline-container .label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    #trendline-container path {
+      fill: none;
+      stroke: #222;
+    }
+
+    #trendline {
+      position: relative;
+      margin-top: 20px;
+    }
+
+    #trendline #yMax, #trendline #yMin {
+      position: absolute;
+      right: calc(100% + 6px);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    #trendline #yMin {
+      bottom: 0;
+    }
+
+    #trendline #yMax {
+      top: 0;
     }
 
     #modal-msg {
@@ -48,8 +92,8 @@
     }
 
     .table {
-      margin-right: 20px;
-      margin-bottom: 20px;
+      margin-right: 30px;
+      margin-bottom: 30px;
       border: 1px solid #ccc;
       border-collapse: collapse;
       border-spacing: 0;
@@ -87,19 +131,29 @@
   <h2>TensorFlow.js Model Benchmark</h2>
   <div id="modal-msg"></div>
   <div id="container">
-    <div class="box">
-      <pre id="env"></pre>
+    <div id="stats">
+      <div class="box">
+        <pre id="env"></pre>
+      </div>
+      <table class="table" id="timings">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <div class="box" id="trendline-container">
+        <div class="label"></div>
+        <div id="trendline">
+          <div id="yMax"></div>
+          <div id="yMin">0 ms</div>
+          <svg><path></path></svg>
+        </div>
+      </div>
     </div>
-    <table class="table" id="timings">
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Value</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
     <table class="table" id="kernels">
       <thead>
         <tr>
@@ -131,19 +185,21 @@
       //////////////////////////////////
       // Place model prediction code here.
       //////////////////////////////////
+      if (isAsync) {
+        return model.executeAsync(zeros);
+      }
       return model.predict(zeros);
     }
   </script>
   <script>
     'use strict';
     const state = {
-      numRuns: 20,
-
+      numRuns: 50,
     };
     const modalDiv = document.getElementById('modal-msg');
     const timeTable = document.querySelector('#timings tbody');
     const envDiv = document.getElementById('env');
-    let model;
+    let model, isAsync;
 
     async function showMsg(message) {
       if (message != null) {
@@ -167,6 +223,10 @@
     async function showEnvironment() {
       await tf.time(() => tf.square(3).data());
       envDiv.innerHTML += `<br/>${JSON.stringify(tf.ENV.features, null, 2)}`;
+    }
+
+    function printTime(elapsed) {
+      return elapsed.toFixed(1) + ' ms';
     }
 
     function printMemory(bytes) {
@@ -200,12 +260,14 @@
       if (res instanceof Promise) {
         res = await res;
       }
+
       if (res instanceof tf.Tensor) {
-        await res.data();
+        res.dataSync();
       }
+
       const elapsed = performance.now() - start;
       await showMsg(null);
-      appendRow(timeTable, 'Warmup', elapsed.toFixed(1) + ' ms');
+      appendRow(timeTable, '1st inference', printTime(start));
     }
 
     function sleep(timeMs) {
@@ -216,34 +278,66 @@
       await showMsg('Loading the model');
       const start = performance.now();
       model = await load();
+      isAsync = model.executor != null && model.executor.isControlFlowModel;
+
       const elapsed = performance.now() - start;
       await showMsg(null);
-      appendRow(timeTable, 'Model load', elapsed.toFixed(1) + ' ms');
+      appendRow(timeTable, 'Model load', printTime(elapsed));
     }
 
     async function measureAveragePredictTime() {
+      document.querySelector("#trendline-container .label").textContent = `Inference times over ${state.numRuns} runs`;
       await showMsg(`Running predict ${state.numRuns} times`);
-      const start = performance.now();
-      let res;
+      const chartHeight = 150;
+      const chartWidth = document.querySelector("#trendline-container").getBoundingClientRect().width;
+      document.querySelector("#trendline-container svg").setAttribute("width", chartWidth);
+      document.querySelector("#trendline-container svg").setAttribute("height", chartHeight);
+
+      const times = [];
       for (let i = 0; i < state.numRuns; i++) {
-        res = predict(model);
+        const start = performance.now();
+        let res = predict(model);
+        if (res instanceof Promise) {
+          res = await res;
+        }
+
+        if (res instanceof tf.Tensor) {
+          res.dataSync();
+        }
+
+        times.push(performance.now() - start);
       }
-      if (res instanceof Promise) {
-        res = await res;
-      }
-      if (res instanceof tf.Tensor) {
-        res.dataSync();
-      }
-      const elapsed = (performance.now() - start) / state.numRuns;
+
+      const average = times.reduce((acc, curr) => acc + curr, 0) / times.length;
+      const max = Math.max(...times);
+      const min = Math.min(...times);
+      const xIncrement = chartWidth / times.length;
+
+      document.querySelector("#trendline-container #yMax").textContent = printTime(max);
+      document.querySelector("#trendline-container path")
+        .setAttribute("d", `M${times.map((d, i) => `${i * xIncrement},${chartHeight - (d / max) * chartHeight}`).join('L')}`);
+
       await showMsg(null);
-      appendRow(timeTable, `Predict (${state.numRuns} runs)`, elapsed.toFixed(1) + ' ms');
+      appendRow(timeTable, `Subsequent average (${state.numRuns} runs)`, printTime(average));
+      appendRow(timeTable, 'Best time', printTime(min));
     }
 
     async function profileMemory() {
       await showMsg('Profile memory');
-      const data = await tf.profile(() => predict(model));
+      const start = performance.now();
+      let res;
+      const data = await tf.profile(() => res = predict(model));
+      if (res instanceof Promise) {
+        res = await res;
+      }
+
+      if (res instanceof tf.Tensor) {
+        res.dataSync();
+      }
+      const elapsed = performance.now() - start;
       await showMsg(null);
       appendRow(timeTable, 'Peak memory', printMemory(data.peakBytes));
+      appendRow(timeTable, '2nd inference', printTime(elapsed));
     }
 
     function showKernelTime(kernels) {
@@ -285,12 +379,14 @@
         }
       }
       let res = predict(model);
-      if (res instanceof Promise) {
+      if(res instanceof Promise) {
         res = await res;
       }
-      if (res instanceof tf.Tensor) {
+
+      if(res instanceof tf.Tensor) {
         res.dataSync();
       }
+
       await showMsg(null);
       await sleep(10);
       kernels = kernels.sort((a, b) => b.time - a.time);
