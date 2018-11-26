@@ -23,7 +23,7 @@ import typescript from 'rollup-plugin-typescript2';
 import uglify from 'rollup-plugin-uglify';
 
 const copyright =
-    `// @tensorflow/tfjs Copyright ${(new Date).getFullYear()} Google`;
+  `// @tensorflow/tfjs Copyright ${(new Date).getFullYear()} Google`;
 
 function minify() {
   return uglify({
@@ -33,7 +33,11 @@ function minify() {
   });
 }
 
-function config({plugins = [], output = {}, external = []}) {
+function config({
+  plugins = [],
+  output = {},
+  external = []
+}) {
   return {
     input: 'src/index.ts',
     plugins: [
@@ -72,9 +76,11 @@ function config({plugins = [], output = {}, external = []}) {
       ...external,
     ],
     onwarn: warning => {
-      let {code} = warning;
+      let {
+        code
+      } = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
-          code === 'THIS_IS_UNDEFINED') {
+        code === 'THIS_IS_UNDEFINED') {
         return;
       }
       console.warn('WARNING: ', warning.toString());
@@ -107,12 +113,14 @@ export default [
       file: 'dist/tf.esm.js',
       globals: {
         '@tensorflow/tfjs-core': 'tf',
+        '@tensorflow/tfjs-data': 'tf.data',
         '@tensorflow/tfjs-layers': 'tf',
         '@tensorflow/tfjs-converter': 'tf'
       }
     },
     external: [
       '@tensorflow/tfjs-core',
+      '@tensorflow/tfjs-data',
       '@tensorflow/tfjs-layers',
       '@tensorflow/tfjs-converter',
     ]
