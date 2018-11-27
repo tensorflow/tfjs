@@ -18,13 +18,13 @@
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
 import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
-import {DataType, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike4D, TypedArray} from '../types';
+import {DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike4D} from '../types';
 import * as util from '../util';
 import {getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {concat} from './concat_split';
 import {op} from './operation';
 import {MPRandGauss} from './rand';
-import {zerosLike} from './tensor_ops';
+import {zeros, zerosLike} from './tensor_ops';
 
 /**
  * Creates a new tensor with the same values and shape as the specified
@@ -40,7 +40,7 @@ import {zerosLike} from './tensor_ops';
  */
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function clone_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'clone');
+  const $x = convertToTensor(x, 'x', 'clone', null);
   const der = (dy: T) => {
     return {$x: () => dy.toFloat()};
   };
@@ -289,13 +289,12 @@ function oneHot_(
     indices: Tensor1D|TensorLike1D, depth: number, onValue = 1,
     offValue = 0): Tensor2D {
   const $indices = convertToTensor(indices, 'indices', 'oneHot', 'int32');
-  util.assert($indices.dtype === 'int32', 'Indices must be of dtype `int32`');
 
   if (depth < 2) {
     throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
   }
   const grad = (dy: Tensor2D) => {
-    return {$indices: () => zerosLike($indices)};
+    return {$indices: () => zeros($indices.shape, 'float32') as Tensor1D};
   };
   return ENV.engine.runKernel(
       backend => backend.oneHot($indices, depth, onValue, offValue), {$indices},
@@ -353,7 +352,11 @@ function fromPixels_(
 async function toPixels(
     img: Tensor2D|Tensor3D|TensorLike,
     canvas?: HTMLCanvasElement): Promise<Uint8ClampedArray> {
-  const $img = convertToTensor(img, 'img', 'toPixels', 'int32');
+  let $img = convertToTensor(img, 'img', 'toPixels');
+  if (!(img instanceof Tensor)) {
+    // Assume int32 if user passed a native array.
+    $img = $img.toInt();
+  }
   if ($img.rank !== 2 && $img.rank !== 3) {
     throw new Error(
         `toPixels only supports rank 2 or 3 tensors, got rank ${$img.rank}.`);
@@ -461,7 +464,7 @@ async function toPixels(
 /** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function reshape_<R2 extends Rank>(
     x: Tensor|TensorLike, shape: ShapeMap[R2]): Tensor<R2> {
-  const $x = convertToTensor(x, 'x', 'reshape');
+  const $x = convertToTensor(x, 'x', 'reshape', null);
   shape = util.inferFromImplicitShape(shape, $x.size);
   util.assert(
       $x.size === util.sizeFromShape(shape),
@@ -1175,10 +1178,11 @@ async function setdiff1dAsync_(
  * zeros.
  */
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function buffer<R extends Rank>(
-    shape: ShapeMap[R], dtype: DataType = 'float32',
-    values?: TypedArray): TensorBuffer<R> {
-  return new TensorBuffer<R>(shape, dtype, values);
+function buffer<R extends Rank, D extends DataType = 'float32'>(
+    shape: ShapeMap[R], dtype: D = 'float32' as D,
+    values?: DataTypeMap[D]): TensorBuffer<R, D> {
+  dtype = dtype || 'float32' as D;
+  return new TensorBuffer<R, D>(shape, dtype, values);
 }
 
 /**

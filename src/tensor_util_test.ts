@@ -87,8 +87,7 @@ describe('getTensorsInContainer', () => {
 
   it('can extract from arbitrary depth', () => {
     const container = [
-      {x: tf.scalar(1), y: tf.scalar(2)},
-      [[[tf.scalar(3)]], {z: tf.scalar(4)}]
+      {x: tf.scalar(1), y: tf.scalar(2)}, [[[tf.scalar(3)]], {z: tf.scalar(4)}]
     ];
     const results = getTensorsInContainer(container);
     expect(results.length).toBe(4);
@@ -129,14 +128,14 @@ describeWithFlags('convertToTensor', ALL_ENVS, () => {
     expectNumbersClose(a.get(), 0);
   });
 
-  it('primitive boolean, parsed as float', () => {
+  it('primitive boolean, parsed as bool tensor', () => {
     const a = convertToTensor(true, 'a', 'test');
     expect(a.rank).toBe(0);
-    expect(a.dtype).toBe('float32');
+    expect(a.dtype).toBe('bool');
     expectNumbersClose(a.get(), 1);
   });
 
-  it('primitive boolean, parsed as bool', () => {
+  it('primitive boolean, forced to be parsed as bool tensor', () => {
     const a = convertToTensor(true, 'a', 'test', 'bool');
     expect(a.rank).toBe(0);
     expect(a.dtype).toBe('bool');
@@ -181,26 +180,56 @@ describeWithFlags('convertToTensor', ALL_ENVS, () => {
     expect(res).toBe(s);
   });
 
-  it('passing a tensor with casting returns the tensor itself', () => {
+  it('passing a tensor with wrong type errors', () => {
     const s = tf.scalar(3);
-    const res = convertToTensor(s, 'a', 'test', 'bool');
-    expect(res).toBe(s);
+    expect(() => convertToTensor(s, 'p', 'f', 'bool'))
+        .toThrowError(
+            /Argument 'p' passed to 'f' must be bool tensor, but got float32/);
+  });
+
+  it('fails when passed a string and force numeric is true', () => {
+    const expectedDtype = 'numeric';
+    expect(() => convertToTensor('hello', 'p', 'test', expectedDtype))
+        .toThrowError();
+  });
+
+  it('force numeric is true by default', () => {
+    // Should fail to parse a string tensor since force numeric is true.
+    expect(() => convertToTensor('hello', 'p', 'test')).toThrowError();
+  });
+
+  it('primitive string, do not force numeric', () => {
+    const t = convertToTensor('hello', 'p', 'test', null /* Allow any dtype */);
+    expect(t.dtype).toBe('string');
+    expect(t.shape).toEqual([]);
+  });
+
+  it('string[], do not force numeric', () => {
+    const t = convertToTensor(
+        ['a', 'b', 'c'], 'p', 'test', null /* Allow any dtype */);
+    expect(t.dtype).toBe('string');
+    expect(t.shape).toEqual([3]);
+  });
+
+  it('string, explicitly parse as bool', () => {
+    expect(() => convertToTensor('a', 'argName', 'func', 'bool'))
+        .toThrowError(
+            'Argument \'argName\' passed to \'func\' must be bool tensor' +
+            ', but got string tensor');
   });
 
   it('fails to convert a dict to tensor', () => {
-    // tslint:disable-next-line:no-any
-    expect(() => convertToTensor({} as any, 'a', 'test'))
+    expect(() => convertToTensor({} as number, 'a', 'test'))
         .toThrowError(
             'Argument \'a\' passed to \'test\' must be a Tensor ' +
-            'or TensorLike, but got Object');
+            'or TensorLike, but got \'Object\'');
   });
 
   it('fails to convert a string to tensor', () => {
-    // tslint:disable-next-line:no-any
-    expect(() => convertToTensor('asdf' as any, 'a', 'test'))
+    expect(() => convertToTensor('asdf', 'a', 'test'))
         .toThrowError(
-            'Argument \'a\' passed to \'test\' must be a Tensor ' +
-            'or TensorLike, but got String');
+            'Argument \'a\' passed to \'test\' must be numeric tensor, ' +
+            'but got string tensor');
   });
 
   it('fails to convert a non-valid shape array to tensor', () => {

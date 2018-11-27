@@ -169,6 +169,11 @@ export function backpropagateGradients(
 
       // Call the gradient function.
       const dx = inputGradients[inputName]();
+      if (dx.dtype !== 'float32') {
+        throw new Error(
+            `Error in gradient for op ${node.name}. The gradient of input ` +
+            `${inputName} must have 'float32' dtype, but has '${dx.dtype}'`);
+      }
       const x = node.inputs[inputName];
       if (!util.arraysEqual(dx.shape, x.shape)) {
         throw new Error(

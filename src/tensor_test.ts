@@ -19,7 +19,7 @@ import * as tf from './index';
 import {describeWithFlags} from './jasmine_util';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {ALL_ENVS, expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
-import {DType, Rank} from './types';
+import {Rank} from './types';
 
 describeWithFlags('tensor', ALL_ENVS, () => {
   it('Tensors of arbitrary size', () => {
@@ -277,14 +277,33 @@ describeWithFlags('tensor', ALL_ENVS, () => {
             'must be a non-null value.');
   });
 
+  it('tf.tensor1d() from string[]', () => {
+    const a = tf.tensor1d(['aa', 'bb', 'cc']);
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([3]);
+    expectArraysEqual(a, ['aa', 'bb', 'cc']);
+  });
+
   it('tf.tensor1d() from number[][], shape mismatch', () => {
     // tslint:disable-next-line:no-any
     expect(() => tf.tensor1d([[1], [2], [3]] as any)).toThrowError();
   });
 
+  it('tf.tensor1d() from string[][], shape mismatch', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tf.tensor1d([['a'], ['b'], ['c']] as any)).toThrowError();
+  });
+
   it('tf.tensor2d() from number[][]', () => {
     const a = tf.tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
     expectArraysClose(a, [1, 2, 3, 4, 5, 6]);
+  });
+
+  it('tf.tensor2d() from string[][]', () => {
+    const a = tf.tensor2d([['aa', 'bb'], ['cc', 'dd']]);
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([2, 2]);
+    expectArraysEqual(a, ['aa', 'bb', 'cc', 'dd']);
   });
 
   it('tf.tensor2d() requires shape to be of length 2', () => {
@@ -298,8 +317,18 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(() => tf.tensor2d([[1, 2, 3], [4, 5, 6]], [3, 2])).toThrowError();
   });
 
+  it('tf.tensor2d() from string[][], but shape does not match', () => {
+    // Actual shape is [2, 3].
+    const vals = [['a', 'b', 'c'], ['d', 'e', 'f']];
+    expect(() => tf.tensor2d(vals, [3, 2])).toThrowError();
+  });
+
   it('tf.tensor2d() from number[], but no shape throws error', () => {
     expect(() => tf.tensor2d([1, 2, 3, 4])).toThrowError();
+  });
+
+  it('tf.tensor2d() from string[], but no shape throws error', () => {
+    expect(() => tf.tensor2d(['a', 'b', 'c', 'd'])).toThrowError();
   });
 
   it('tf.tensor2d() throw error with null input value', () => {
@@ -312,6 +341,14 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   it('tensor3d() from number[][][]', () => {
     const a = tf.tensor3d([[[1], [2], [3]], [[4], [5], [6]]], [2, 3, 1]);
     expectArraysClose(a, [1, 2, 3, 4, 5, 6]);
+  });
+
+  it('tensor3d() from string[][][]', () => {
+    const vals = [[['a'], ['b'], ['c']], [['d'], ['e'], ['f']]];
+    const a = tf.tensor3d(vals, [2, 3, 1]);
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([2, 3, 1]);
+    expectArraysEqual(a, ['a', 'b', 'c', 'd', 'e', 'f']);
   });
 
   it('tensor3d() from number[][][], but shape does not match', () => {
@@ -340,6 +377,22 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   it('tensor4d() from number[][][][]', () => {
     const a = tf.tensor4d([[[[1]], [[2]]], [[[4]], [[5]]]], [2, 2, 1, 1]);
     expectArraysClose(a, [1, 2, 4, 5]);
+  });
+
+  it('tensor4d() from string[][][][]', () => {
+    const vals = [[[['a']], [['b']]], [[['c']], [['d']]]];
+    const a = tf.tensor4d(vals, [2, 2, 1, 1]);
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([2, 2, 1, 1]);
+    expectArraysEqual(a, ['a', 'b', 'c', 'd']);
+  });
+
+  it('tensor4d() from string[][][][] infer shape', () => {
+    const vals = [[[['a']], [['b']]], [[['c']], [['d']]]];
+    const a = tf.tensor4d(vals);
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([2, 2, 1, 1]);
+    expectArraysEqual(a, ['a', 'b', 'c', 'd']);
   });
 
   it('tensor4d() from number[][][][], but shape does not match', () => {
@@ -448,7 +501,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   it('default dtype from boolean', () => {
     const a = tf.scalar(false);
     expectNumbersClose(a.get(), 0);
-    expect(a.dtype).toBe('float32');
+    expect(a.dtype).toBe('bool');
   });
 
   it('default dtype', () => {
@@ -498,8 +551,57 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('default dtype from boolean[]', () => {
     const a = tf.tensor1d([false, false, true]);
-    expect(a.dtype).toBe('float32');
+    expect(a.dtype).toBe('bool');
     expectArraysClose(a, [0, 0, 1]);
+  });
+
+  it('default dtype from UInt8Array', () => {
+    const a = tf.tensor1d(new Uint8Array([1, 5, 2]));
+    expect(a.dtype).toBe('int32');
+    expect(a.shape).toEqual([3]);
+    expectArraysClose(a, [1, 5, 2]);
+  });
+
+  it('default dtype from Int32Array', () => {
+    const a = tf.tensor1d(new Int32Array([1, 5, 2]));
+    expect(a.dtype).toBe('int32');
+    expect(a.shape).toEqual([3]);
+    expectArraysClose(a, [1, 5, 2]);
+  });
+
+  it('default dtype from ascii string', () => {
+    const a = tf.tensor('hello');
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([]);
+    expectArraysEqual(a, ['hello']);
+  });
+
+  it('default dtype from utf-8 string', () => {
+    const a = tf.tensor('даниел');
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([]);
+    expectArraysEqual(a, ['даниел']);
+  });
+
+  it('default dtype from empty string', () => {
+    const a = tf.tensor('');
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([]);
+    expectArraysEqual(a, ['']);
+  });
+
+  it('default dtype from unicode escaped string', () => {
+    const a = tf.tensor('\u0434\u0430\u043d\u0438\u0435\u043b');
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([]);
+    expectArraysEqual(a, ['даниел']);
+  });
+
+  it('default dtype from string[]', () => {
+    const a = tf.tensor(['a', 'b']);
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([2]);
+    expectArraysEqual(a, ['a', 'b']);
   });
 
   it('float32 dtype from boolean[]', () => {
@@ -567,7 +669,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('default dtype from boolean[]', () => {
     const a = tf.tensor2d([[false, false], [true, false]], [2, 2]);
-    expect(a.dtype).toBe('float32');
+    expect(a.dtype).toBe('bool');
     expectArraysClose(a, [0, 0, 1, 0]);
   });
 
@@ -636,7 +738,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('default dtype from boolean[]', () => {
     const a = tf.tensor3d([[[false], [false]], [[true], [false]]], [2, 2, 1]);
-    expect(a.dtype).toBe('float32');
+    expect(a.dtype).toBe('bool');
     expectArraysClose(a, [0, 0, 1, 0]);
   });
 
@@ -710,7 +812,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   it('default dtype from boolean[]', () => {
     const a =
         tf.tensor4d([[[[false], [false]], [[true], [false]]]], [1, 2, 2, 1]);
-    expect(a.dtype).toBe('float32');
+    expect(a.dtype).toBe('bool');
     expectArraysClose(a, [0, 0, 1, 0]);
   });
 
@@ -750,6 +852,27 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(b.shape).toEqual([1, 1]);
   });
 
+  it('Scalar string dtype', () => {
+    const a = tf.scalar('test', 'string');
+    const b = a.reshape([1, 1]);
+    expect(b.dtype).toBe('string');
+    expect(b.shape).toEqual([1, 1]);
+  });
+
+  it('Scalar inferred dtype from bool', () => {
+    const a = tf.scalar(true);
+    expect(a.dtype).toBe('bool');
+    expect(a.shape).toEqual([]);
+    expectArraysClose(a, [1]);
+  });
+
+  it('Scalar inferred dtype from string', () => {
+    const a = tf.scalar('hello');
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([]);
+    expectArraysEqual(a, ['hello']);
+  });
+
   it('Scalar int32 dtype', () => {
     const a = tf.scalar(4, 'int32');
     const b = a.reshape([1, 1]);
@@ -780,6 +903,20 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(b.dtype).toBe('float32');
     expect(b.shape).toEqual([2, 2]);
     expectArraysClose(a.dataSync(), b.dataSync());
+  });
+
+  it('Tensor1D inferred dtype from bools', () => {
+    const a = tf.tensor1d([true, false, false, true]);
+    expect(a.dtype).toBe('bool');
+    expect(a.shape).toEqual([4]);
+    expectArraysClose(a, [1, 0, 0, 1]);
+  });
+
+  it('Tensor1D inferred dtype from strings', () => {
+    const a = tf.tensor1d(['a', 'b', 'c']);
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([3]);
+    expectArraysEqual(a, ['a', 'b', 'c']);
   });
 
   it('Tensor1D float32 dtype', () => {
@@ -923,12 +1060,32 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(b.shape).toEqual([3, 2]);
   });
 
+  it('.dataSync() with casting, string tensor', () => {
+    const a = tf.tensor(['a', 'b']);
+    const data: string[] = a.dataSync<'string'>();
+    expect(data).toEqual(['a', 'b']);
+  });
+
+  it('.data() with casting, string tensor', async () => {
+    const a = tf.tensor(['a', 'b']);
+    const data: string[] = await a.data<'string'>();
+    expect(data).toEqual(['a', 'b']);
+  });
+
   it('reshape is functional', () => {
     const a = tf.scalar(2.4);
     const b = a.reshape([]);
     expect(a.id).not.toBe(b.id);
     b.dispose();
     expectArraysClose(a, [2.4]);
+  });
+
+  it('reshape a string tensor', () => {
+    const a = tf.tensor(['a', 'b']);
+    const b = a.reshape([2, 1, 1]);
+    expect(b.dtype).toBe('string');
+    expect(b.shape).toEqual([2, 1, 1]);
+    expectArraysEqual(b, ['a', 'b']);
   });
 
   it('reshape throws when passed a non-tensor', () => {
@@ -1052,6 +1209,22 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expectArraysClose(res, [1, 2]);
   });
 
+  it('cast string -> !string throws error', () => {
+    const a = ['a', 'b'];
+    expect(() => tf.cast(a, 'int32')).toThrowError();
+    expect(() => tf.cast(a, 'float32')).toThrowError();
+    expect(() => tf.cast(a, 'bool')).toThrowError();
+    expect(() => tf.cast(a, 'complex64')).toThrowError();
+  });
+
+  it('cast !string -> string throws error', () => {
+    expect(() => tf.cast(tf.tensor(1, [], 'float32'), 'string')).toThrowError();
+    expect(() => tf.cast(tf.tensor(1, [], 'int32'), 'string')).toThrowError();
+    expect(() => tf.cast(tf.tensor(1, [], 'bool'), 'string')).toThrowError();
+    expect(() => tf.cast(tf.tensor(1, [], 'complex64'), 'string'))
+        .toThrowError();
+  });
+
   it('scalar bool -> int32', () => {
     const a = tf.scalar(true, 'bool').toInt();
     expect(a.dtype).toBe('int32');
@@ -1065,7 +1238,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   });
 
   it('Tensor2D float32 -> bool', () => {
-    const a = tf.tensor2d([1.1, 3.9, -2.9, 0], [2, 2]).asType(DType.bool);
+    const a = tf.tensor2d([1.1, 3.9, -2.9, 0], [2, 2]).asType('bool');
     expect(a.dtype).toBe('bool');
     expect(a.get(0, 0)).toBe(1);
     expect(a.get(0, 1)).toBe(1);
@@ -1197,6 +1370,18 @@ describe('tensor.toString', () => {
         '    5');
   });
 
+  it('string scalar verbose', () => {
+    const verbose = true;
+    const str = tf.scalar('test').toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: string\n' +
+        '  rank: 0\n' +
+        '  shape: []\n' +
+        '  values:\n' +
+        '    test');
+  });
+
   it('1d tensor verbose', () => {
     const verbose = true;
     const str = tf.zeros([4]).toString(verbose);
@@ -1207,6 +1392,18 @@ describe('tensor.toString', () => {
         '  shape: [4]\n' +
         '  values:\n' +
         '    [0, 0, 0, 0]');
+  });
+
+  it('1d string tensor verbose', () => {
+    const verbose = true;
+    const str = tf.tensor(['a', 'bb', 'ccc']).toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: string\n' +
+        '  rank: 1\n' +
+        '  shape: [3]\n' +
+        '  values:\n' +
+        '    [\'a\', \'bb\', \'ccc\']');
   });
 
   it('2d tensor verbose', () => {
@@ -1221,6 +1418,25 @@ describe('tensor.toString', () => {
         '    [[0, 0, 0],\n' +
         '     [0, 0, 0],\n' +
         '     [0, 0, 0]]');
+  });
+
+  it('2d string tensor verbose', () => {
+    const verbose = true;
+    const vals = [
+      ['a', 'bb', 'ccc'],
+      ['d', 'e', 'f'],
+      ['g', 'h', 'i'],
+    ];
+    const str = tf.tensor(vals).toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: string\n' +
+        '  rank: 2\n' +
+        '  shape: [3,3]\n' +
+        '  values:\n' +
+        '    [[\'a\', \'bb\', \'ccc\'],\n' +
+        '     [\'d\', \'e\' , \'f\'  ],\n' +
+        '     [\'g\', \'h\' , \'i\'  ]]');
   });
 
   it('3d tensor verbose', () => {
@@ -1243,6 +1459,28 @@ describe('tensor.toString', () => {
         '      [0, 0]]]');
   });
 
+  it('3d string tensor verbose', () => {
+    const verbose = true;
+    const vals = [
+      [['a', 'bb'], ['ccc', 'dddd']],
+      [['e', 'ff'], ['ggg', 'hhhh']],
+      [['i', 'jj'], ['kkk', 'llll']],
+    ];
+    const str = tf.tensor(vals).toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: string\n' +
+        '  rank: 3\n' +
+        '  shape: [3,2,2]\n' +
+        '  values:\n' +
+        '    [[[\'a\'  , \'bb\'  ],\n' +
+        '      [\'ccc\', \'dddd\']],\n\n' +
+        '     [[\'e\'  , \'ff\'  ],\n' +
+        '      [\'ggg\', \'hhhh\']],\n\n' +
+        '     [[\'i\'  , \'jj\'  ],\n' +
+        '      [\'kkk\', \'llll\']]]');
+  });
+
   it('1d long tensor verbose', () => {
     const verbose = true;
     const str = tf.zeros([100]).toString(verbose);
@@ -1253,6 +1491,18 @@ describe('tensor.toString', () => {
         '  shape: [100]\n' +
         '  values:\n' +
         '    [0, 0, 0, ..., 0, 0, 0]');
+  });
+
+  it('1d long string tensor verbose', () => {
+    const verbose = true;
+    const str = tf.fill([100], 'hi').toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: string\n' +
+        '  rank: 1\n' +
+        '  shape: [100]\n' +
+        '  values:\n' +
+        '    [\'hi\', \'hi\', \'hi\', ..., \'hi\', \'hi\', \'hi\']');
   });
 
   it('2d long tensor verbose', () => {
@@ -1273,6 +1523,24 @@ describe('tensor.toString', () => {
         '     [0, 0, 0, ..., 0, 0, 0]]');
   });
 
+  it('2d long string tensor verbose', () => {
+    const verbose = true;
+    const str = tf.fill([100, 100], 'a').toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: string\n' +
+        '  rank: 2\n' +
+        '  shape: [100,100]\n' +
+        '  values:\n' +
+        '    [[\'a\', \'a\', \'a\', ..., \'a\', \'a\', \'a\'],\n' +
+        '     [\'a\', \'a\', \'a\', ..., \'a\', \'a\', \'a\'],\n' +
+        '     [\'a\', \'a\', \'a\', ..., \'a\', \'a\', \'a\'],\n' +
+        '     ...,\n' +
+        '     [\'a\', \'a\', \'a\', ..., \'a\', \'a\', \'a\'],\n' +
+        '     [\'a\', \'a\', \'a\', ..., \'a\', \'a\', \'a\'],\n' +
+        '     [\'a\', \'a\', \'a\', ..., \'a\', \'a\', \'a\']]');
+  });
+
   it('2d with padding to align columns verbose', () => {
     const verbose = true;
     const str = tf.tensor([
@@ -1290,11 +1558,36 @@ describe('tensor.toString', () => {
         '     [1.9910001, 0.0640865, 0.2983858]]');
   });
 
+  it('2d string tensor with padding verbose', () => {
+    const verbose = true;
+    const str = tf.tensor([
+                    ['abcdef', 'a', 'abcdef'],
+                    ['abcdef', 'abcdef', 'abc'],
+                    ['abcd', 'abcdef', 'abcdef'],
+                  ]).toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: string\n' +
+        '  rank: 2\n' +
+        '  shape: [3,3]\n' +
+        '  values:\n' +
+        '    [[\'abcdef\', \'a\'     , \'abcdef\'],\n' +
+        '     [\'abcdef\', \'abcdef\', \'abc\'   ],\n' +
+        '     [\'abcd\'  , \'abcdef\', \'abcdef\']]');
+  });
+
   it('scalar', () => {
     const str = tf.scalar(5).toString();
     expect(str).toEqual(
         'Tensor\n' +
         '    5');
+  });
+
+  it('scalar string', () => {
+    const str = tf.scalar('hello').toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '    hello');
   });
 
   it('1d tensor', () => {
@@ -1644,6 +1937,14 @@ describeWithFlags('tensor with 0 in shape', ALL_ENVS, () => {
     expectArraysEqual(a, []);
   });
 
+  it('1d string tensor of shape [0]', () => {
+    const a = tf.tensor1d([], 'string');
+    expect(a.dtype).toBe('string');
+    expect(a.rank).toBe(1);
+    expect(a.shape).toEqual([0]);
+    expectArraysEqual(a, []);
+  });
+
   it('1d throws when values are not empty', () => {
     const values = new Float32Array([1, 2, 3]);
     // Have to use Tensor.make since tensor1d() does not let us provide a shape.
@@ -1656,6 +1957,14 @@ describeWithFlags('tensor with 0 in shape', ALL_ENVS, () => {
   it('2d of shape [0, 5]', () => {
     const a = tf.tensor2d([], [0, 5]);
     expect(a.dtype).toBe('float32');
+    expect(a.rank).toBe(2);
+    expect(a.shape).toEqual([0, 5]);
+    expectArraysEqual(a, []);
+  });
+
+  it('2d string tensor of shape [0, 5]', () => {
+    const a = tf.tensor2d([], [0, 5], 'string');
+    expect(a.dtype).toBe('string');
     expect(a.rank).toBe(2);
     expect(a.shape).toEqual([0, 5]);
     expectArraysEqual(a, []);
@@ -1709,20 +2018,5 @@ describeWithFlags('tensor with 0 in shape', ALL_ENVS, () => {
     expect(a.rank).toBe(2);
     expect(a.shape).toEqual([0, 5]);
     expectArraysEqual(a, []);
-  });
-});
-
-describeWithFlags('buffer', ALL_ENVS, () => {
-  it('float32', () => {
-    const buff = tf.buffer([1, 2, 3], 'float32');
-    buff.set(1, 0, 0, 0);
-    buff.set(2, 0, 1, 0);
-    expect(buff.get(0, 0, 0)).toEqual(1);
-    expect(buff.get(0, 0, 1)).toEqual(0);
-    expect(buff.get(0, 0, 2)).toEqual(0);
-    expect(buff.get(0, 1, 0)).toEqual(2);
-    expect(buff.get(0, 1, 1)).toEqual(0);
-    expect(buff.get(0, 1, 2)).toEqual(0);
-    expectArraysClose(buff.toTensor(), [1, 0, 0, 2, 0, 0]);
   });
 });

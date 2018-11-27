@@ -17,11 +17,10 @@
 
 import {ENV} from '../environment';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor6D} from '../tensor';
-import {convertToTensor} from '../tensor_util_env';
-import {inferShape} from '../tensor_util_env';
-import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TensorLike6D} from '../types';
-import {ArrayData, DataType, Rank, ShapeMap} from '../types';
-import {assertNonNull, assertShapesMatch, getTypedArrayFromDType, isTypedArray, makeOnesTypedArray, makeZerosTypedArray, sizeFromShape, toTypedArray} from '../util';
+import {convertToTensor, inferShape} from '../tensor_util_env';
+import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TensorLike6D, TypedArray} from '../types';
+import {DataType, Rank, ShapeMap} from '../types';
+import {assertNonNull, assertShapesMatch, flatten, getArrayFromDType, inferDtype, isTypedArray, makeOnesTypedArray, makeZerosTypedArray, sizeFromShape, toTypedArray} from '../util';
 import {complex} from './complex_ops';
 import {op} from './operation';
 
@@ -52,18 +51,21 @@ import {op} from './operation';
  */
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function tensor<R extends Rank>(
-    values: TensorLike, shape?: ShapeMap[R],
-    dtype: DataType = 'float32'): Tensor<R> {
+    values: TensorLike, shape?: ShapeMap[R], dtype?: DataType): Tensor<R> {
+  if (dtype == null) {
+    dtype = inferDtype(values);
+  }
   if (dtype === 'complex64') {
     throw new Error(
         `Cannot construct a complex64 tensor directly. ` +
         `Please use tf.complex(real, imag).`);
   }
   if (!isTypedArray(values) && !Array.isArray(values) &&
-      typeof values !== 'number' && typeof values !== 'boolean') {
+      typeof values !== 'number' && typeof values !== 'boolean' &&
+      typeof values !== 'string') {
     throw new Error(
-        'values passed to tensor(values) must be an ' +
-        'array of numbers or booleans, or a TypedArray');
+        'values passed to tensor(values) must be a number/boolean/string or ' +
+        'an array of numbers/booleans/strings, or a TypedArray');
   }
   const inferredShape = inferShape(values);
   if (shape != null && inferredShape.length !== 1) {
@@ -77,12 +79,9 @@ function tensor<R extends Rank>(
     values = [values] as number[];
   }
   shape = shape || inferredShape;
-  return Tensor.make(
-      shape, {
-        values:
-            toTypedArray(values as ArrayData<DataType>, dtype, ENV.get('DEBUG'))
-      },
-      dtype);
+  values = dtype !== 'string' ? toTypedArray(values, dtype, ENV.get('DEBUG')) :
+                                flatten(values) as string[];
+  return Tensor.make(shape, {values}, dtype);
 }
 
 /**
@@ -99,13 +98,11 @@ function tensor<R extends Rank>(
  * @param dtype The data type.
  */
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function scalar(
-    value: number|boolean|[number, number],
-    dtype: DataType = 'float32'): Scalar {
+function scalar(value: number|boolean|string, dtype?: DataType): Scalar {
   if ((isTypedArray(value) || Array.isArray(value)) && dtype !== 'complex64') {
     throw new Error(
         'Error creating a new Scalar: value must be a primitive ' +
-        '(number|boolean)');
+        '(number|boolean|string)');
   }
   return tensor(value, [], dtype);
 }
@@ -125,7 +122,7 @@ function scalar(
  * @param dtype The data type.
  */
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function tensor1d(values: TensorLike1D, dtype: DataType = 'float32'): Tensor1D {
+function tensor1d(values: TensorLike1D, dtype?: DataType): Tensor1D {
   assertNonNull(values);
   const inferredShape = inferShape(values);
   if (inferredShape.length !== 1) {
@@ -158,7 +155,7 @@ function tensor1d(values: TensorLike1D, dtype: DataType = 'float32'): Tensor1D {
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function tensor2d(
     values: TensorLike2D, shape?: [number, number],
-    dtype: DataType = 'float32'): Tensor2D {
+    dtype?: DataType): Tensor2D {
   assertNonNull(values);
   if (shape != null && shape.length !== 2) {
     throw new Error('tensor2d() requires shape to have two numbers');
@@ -201,7 +198,7 @@ function tensor2d(
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function tensor3d(
     values: TensorLike3D, shape?: [number, number, number],
-    dtype: DataType = 'float32'): Tensor3D {
+    dtype?: DataType): Tensor3D {
   assertNonNull(values);
   if (shape != null && shape.length !== 3) {
     throw new Error('tensor3d() requires shape to have three numbers');
@@ -244,7 +241,7 @@ function tensor3d(
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function tensor4d(
     values: TensorLike4D, shape?: [number, number, number, number],
-    dtype: DataType = 'float32'): Tensor4D {
+    dtype?: DataType): Tensor4D {
   assertNonNull(values);
   if (shape != null && shape.length !== 4) {
     throw new Error('tensor4d() requires shape to have four numbers');
@@ -287,7 +284,7 @@ function tensor4d(
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function tensor5d(
     values: TensorLike5D, shape?: [number, number, number, number, number],
-    dtype: DataType = 'float32'): Tensor5D {
+    dtype?: DataType): Tensor5D {
   assertNonNull(values);
   if (shape != null && shape.length !== 5) {
     throw new Error('tensor5d() requires shape to have five numbers');
@@ -332,7 +329,7 @@ function tensor5d(
 function tensor6d(
     values: TensorLike6D,
     shape?: [number, number, number, number, number, number],
-    dtype: DataType = 'float32'): Tensor6D {
+    dtype?: DataType): Tensor6D {
   assertNonNull(values);
   if (shape != null && shape.length !== 6) {
     throw new Error('tensor6d() requires shape to have six numbers');
@@ -412,9 +409,10 @@ function zeros<R extends Rank>(
  */
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function fill<R extends Rank>(
-    shape: ShapeMap[R], value: number, dtype: DataType = 'float32'): Tensor<R> {
-  const values = getTypedArrayFromDType(dtype, sizeFromShape(shape));
-  values.fill(value);
+    shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
+  dtype = dtype || inferDtype(value);
+  const values = getArrayFromDType(dtype, sizeFromShape(shape)) as TypedArray;
+  values.fill(value as number);
   return Tensor.make(shape, {values}, dtype);
 }
 

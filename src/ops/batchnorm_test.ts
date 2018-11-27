@@ -875,4 +875,75 @@ describeWithFlags('batchNormalization2D', ALL_ENVS, () => {
               Math.sqrt(variance[1] + varianceEpsilon)
     ]);
   });
+
+  it('throws error when x is a string tensor', () => {
+    const mean = [1, 2];
+    const variance = [2, 3];
+    const offset = [3, 4];
+    const scale = [4, 5];
+
+    const varianceEpsilon = .001;
+
+    const f = () => tf.batchNormalization2d(
+        [['a', 'b'], ['c', 'd']], mean, variance, varianceEpsilon, scale,
+        offset);
+    expect(f).toThrowError(
+        /Argument 'x' passed to 'batchNormalization' must be numeric/);
+  });
+
+  it('throws error when mean is a string tensor', () => {
+    const x = [[2, 4], [9, 23]];
+    const variance = [2, 3];
+    const offset = [3, 4];
+    const scale = [4, 5];
+
+    const varianceEpsilon = .001;
+
+    const f = () => tf.batchNormalization2d(
+        x, ['a', 'b'], variance, varianceEpsilon, scale, offset);
+    expect(f).toThrowError(
+        /Argument 'mean' passed to 'batchNormalization' must be numeric/);
+  });
+
+  it('throws error when variance is a string tensor', () => {
+    const x = [[2, 4], [9, 23]];
+    const mean = [1, 2];
+    const offset = [3, 4];
+    const scale = [4, 5];
+
+    const varianceEpsilon = .001;
+
+    const f = () => tf.batchNormalization2d(
+        x, mean, ['a', 'b'], varianceEpsilon, scale, offset);
+    expect(f).toThrowError(
+        /'variance' passed to 'batchNormalization' must be numeric/);
+  });
+
+  it('throws error when scale is a string tensor', () => {
+    const x = [[2, 4], [9, 23]];
+    const mean = [1, 2];
+    const variance = [2, 3];
+    const offset = [3, 4];
+
+    const varianceEpsilon = .001;
+
+    const f = () => tf.batchNormalization2d(
+        x, mean, variance, varianceEpsilon, ['a', 'b'], offset);
+    expect(f).toThrowError(
+        /'scale' passed to 'batchNormalization' must be numeric/);
+  });
+
+  it('throws error when offset is a string tensor', () => {
+    const x = [[2, 4], [9, 23]];
+    const mean = [1, 2];
+    const variance = [2, 3];
+    const scale = [4, 5];
+
+    const varianceEpsilon = .001;
+
+    const f = () => tf.batchNormalization2d(
+        x, mean, variance, varianceEpsilon, scale, ['a', 'b']);
+    expect(f).toThrowError(
+        /'offset' passed to 'batchNormalization' must be numeric/);
+  });
 });

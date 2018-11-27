@@ -89,7 +89,9 @@ module.exports = function(config) {
       chrome_with_swift_shader: {
         base: 'Chrome',
         flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
-      }
+      },
+      chrome_debugging:
+          {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
     },
     client: {jasmine: {random: false}, args: args}
   });

@@ -93,7 +93,7 @@ export interface TestEnv {
 
 export let TEST_ENVS: TestEnv[] = [
   {
-    name: 'test-webgl1',
+    name: 'webgl1',
     factory: () => new MathBackendWebGL(),
     features: {
       'WEBGL_VERSION': 1,
@@ -102,7 +102,7 @@ export let TEST_ENVS: TestEnv[] = [
     }
   },
   {
-    name: 'test-webgl2',
+    name: 'webgl2',
     factory: () => new MathBackendWebGL(),
     features: {
       'WEBGL_VERSION': 2,
@@ -111,7 +111,7 @@ export let TEST_ENVS: TestEnv[] = [
     }
   },
   {
-    name: 'test-cpu',
+    name: 'cpu',
     factory: () => new MathBackendCPU(),
     features: {'HAS_WEBGL': false}
   }

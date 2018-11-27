@@ -206,6 +206,12 @@ describeWithFlags('Reduction: min', ALL_ENVS, () => {
       [[[-3, 0], [0, 0]], [[0, -4], [0, -4]]]
     ]));
   });
+
+  it('throws error for string tensor', () => {
+    expect(() => tf.min(['a']))
+        .toThrowError(
+            /Argument 'x' passed to 'min' must be numeric tensor/);
+  });
 });
 
 describeWithFlags('Reduction: max', ALL_ENVS, () => {
@@ -410,6 +416,12 @@ describeWithFlags('Reduction: max', ALL_ENVS, () => {
       [[[-3, 0], [0, 0]], [[0, -4], [0, -4]]]
     ]));
   });
+
+  it('throws error for string tensor', () => {
+    expect(() => tf.max(['a']))
+        .toThrowError(
+            /Argument 'x' passed to 'max' must be numeric tensor/);
+  });
 });
 
 describeWithFlags('Reduction: argmax', ALL_ENVS, () => {
@@ -513,6 +525,12 @@ describeWithFlags('Reduction: argmax', ALL_ENVS, () => {
     expect(da.shape).toEqual([2, 3]);
     expectArraysClose(da, [0, 0, 0, 0, 0, 0]);
   });
+
+  it('throws error for string tensor', () => {
+    expect(() => tf.argMax(['a']))
+        .toThrowError(
+            /Argument 'x' passed to 'argMax' must be numeric tensor/);
+  });
 });
 
 describeWithFlags('Reduction: argmin', ALL_ENVS, () => {
@@ -609,6 +627,12 @@ describeWithFlags('Reduction: argmin', ALL_ENVS, () => {
     expect(da.dtype).toBe('float32');
     expect(da.shape).toEqual([2, 3]);
     expectArraysClose(da, [0, 0, 0, 0, 0, 0]);
+  });
+
+  it('throws error for string tensor', () => {
+    expect(() => tf.argMin(['a']))
+        .toThrowError(
+            /Argument 'x' passed to 'argMin' must be numeric tensor/);
   });
 });
 
@@ -715,6 +739,12 @@ describeWithFlags('Reduction: logSumExp', ALL_ENVS, () => {
     const result = tf.logSumExp([1, 2, -3]);
     expectNumbersClose(
         result.get(), Math.log(Math.exp(1) + Math.exp(2) + Math.exp(-3)));
+  });
+
+  it('throws error for string tensor', () => {
+    expect(() => tf.logSumExp(['a']))
+        .toThrowError(
+            /Argument 'x' passed to 'logSumExp' must be numeric tensor/);
   });
 });
 
@@ -850,6 +880,12 @@ describeWithFlags('Reduction: sum', ALL_ENVS, () => {
     const result = tf.sum([[1, 2], [3, 0], [0, 1]]);
     expectNumbersClose(result.get(), 7);
   });
+
+  it('throws error for string tensor', () => {
+    expect(() => tf.sum(['a']))
+        .toThrowError(
+            /Argument 'x' passed to 'sum' must be numeric tensor/);
+  });
 });
 
 describeWithFlags('Reduction: prod', ALL_ENVS, () => {
@@ -948,6 +984,12 @@ describeWithFlags('Reduction: prod', ALL_ENVS, () => {
   it('accepts a tensor-like object', () => {
     const result = tf.prod([[1, 2], [3, 1], [1, 1]]);
     expectNumbersClose(result.get(), 6);
+  });
+
+  it('throws error for string tensor', () => {
+    expect(() => tf.prod(['a']))
+        .toThrowError(
+            /Argument 'x' passed to 'prod' must be numeric tensor/);
   });
 });
 
@@ -1077,6 +1119,12 @@ describeWithFlags('Reduction: mean', ALL_ENVS, () => {
 
     expect(r.dtype).toBe('float32');
     expectNumbersClose(r.get(), 7 / 6);
+  });
+
+  it('throws error for string tensor', () => {
+    expect(() => tf.mean(['a']))
+        .toThrowError(
+            /Argument 'x' passed to 'mean' must be numeric tensor/);
   });
 });
 
@@ -1471,6 +1519,12 @@ describeWithFlags('Reduction: norm', ALL_ENVS, () => {
     expect(norm.dtype).toBe('float32');
     expectNumbersClose(norm.get(), 10);
   });
+
+  it('throws error for string tensors', () => {
+    expect(() => tf.norm(['a', 'b']))
+        .toThrowError(
+            /Argument 'x' passed to 'norm' must be numeric tensor/);
+  });
 });
 
 describeWithFlags('Reduction: all', ALL_ENVS, () => {
@@ -1541,7 +1595,9 @@ describeWithFlags('Reduction: all', ALL_ENVS, () => {
 
   it('throws when dtype is not boolean', () => {
     const a = tf.tensor2d([1, 1, 0, 0], [2, 2]);
-    expect(() => tf.all(a)).toThrowError(/Error Tensor must be of type bool/);
+    expect(() => tf.all(a))
+        .toThrowError(
+            /Argument 'x' passed to 'all' must be bool tensor, but got float/);
   });
 
   it('throws when passed a non-tensor', () => {
@@ -1552,6 +1608,12 @@ describeWithFlags('Reduction: all', ALL_ENVS, () => {
   it('accepts a tensor-like object', () => {
     const a = [0, 0, 0];
     expectNumbersClose(tf.all(a).get(), 0);
+  });
+
+  it('throws error for string tensor', () => {
+    expect(() => tf.all(['a']))
+        .toThrowError(
+            /Argument 'x' passed to 'all' must be bool tensor, but got string/);
   });
 });
 
@@ -1623,7 +1685,9 @@ describeWithFlags('Reduction: any', ALL_ENVS, () => {
 
   it('throws when dtype is not boolean', () => {
     const a = tf.tensor2d([1, 1, 0, 0], [2, 2]);
-    expect(() => tf.any(a)).toThrowError(/Error Tensor must be of type bool/);
+    expect(() => tf.any(a))
+        .toThrowError(
+            /Argument 'x' passed to 'any' must be bool tensor, but got float/);
   });
 
   it('throws when passed a non-tensor', () => {
@@ -1634,5 +1698,11 @@ describeWithFlags('Reduction: any', ALL_ENVS, () => {
   it('accepts a tensor-like object', () => {
     const a = [0, 0, 0];
     expectNumbersClose(tf.any(a).get(), 0);
+  });
+
+  it('throws error for string tensor', () => {
+    expect(() => tf.any(['a']))
+        .toThrowError(
+            /Argument 'x' passed to 'any' must be bool tensor/);
   });
 });

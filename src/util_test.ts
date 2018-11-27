@@ -19,14 +19,6 @@ import {inferShape} from './tensor_util_env';
 import * as util from './util';
 
 describe('Util', () => {
-  it('Flatten arrays', () => {
-    expect(util.flatten([[1, 2, 3], [4, 5, 6]])).toEqual([1, 2, 3, 4, 5, 6]);
-    expect(util.flatten([[[1, 2], [3, 4], [5, 6], [7, 8]]])).toEqual([
-      1, 2, 3, 4, 5, 6, 7, 8
-    ]);
-    expect(util.flatten([1, 2, 3, 4, 5, 6])).toEqual([1, 2, 3, 4, 5, 6]);
-  });
-
   it('Correctly gets size from shape', () => {
     expect(util.sizeFromShape([1, 2, 3, 4])).toEqual(24);
   });
@@ -83,8 +75,7 @@ describe('Util', () => {
 
   it('infer shape 4d array', () => {
     const a = [
-      [[[1], [2]], [[2], [3]], [[5], [6]]],
-      [[[5], [6]], [[4], [5]], [[1], [2]]]
+      [[[1], [2]], [[2], [3]], [[5], [6]]], [[[5], [6]], [[4], [5]], [[1], [2]]]
     ];
     expect(inferShape(a)).toEqual([2, 3, 2, 1]);
   });
@@ -92,6 +83,74 @@ describe('Util', () => {
   it('infer shape of typed array', () => {
     const a = new Float32Array([1, 2, 3, 4, 5]);
     expect(inferShape(a)).toEqual([5]);
+  });
+});
+
+describe('util.flatten', () => {
+  it('nested number arrays', () => {
+    expect(util.flatten([[1, 2, 3], [4, 5, 6]])).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(util.flatten([[[1, 2], [3, 4], [5, 6], [7, 8]]])).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8
+    ]);
+    expect(util.flatten([1, 2, 3, 4, 5, 6])).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  it('nested string arrays', () => {
+    expect(util.flatten([['a', 'b'], ['c', [['d']]]])).toEqual([
+      'a', 'b', 'c', 'd'
+    ]);
+    expect(util.flatten([['a', ['b']], ['c', [['d']], 'e']])).toEqual([
+      'a', 'b', 'c', 'd', 'e'
+    ]);
+  });
+});
+
+describe('util.bytesFromStringArray', () => {
+  it('count each character as 2 bytes', () => {
+    expect(util.bytesFromStringArray(['a', 'bb', 'ccc'])).toBe(6 * 2);
+    expect(util.bytesFromStringArray(['a', 'bb', 'cccddd'])).toBe(9 * 2);
+    expect(util.bytesFromStringArray(['даниел'])).toBe(6 * 2);
+  });
+});
+
+describe('util.inferDtype', () => {
+  it('a single string => string', () => {
+    expect(util.inferDtype('hello')).toBe('string');
+  });
+
+  it('a single boolean => bool', () => {
+    expect(util.inferDtype(true)).toBe('bool');
+    expect(util.inferDtype(false)).toBe('bool');
+  });
+
+  it('a single number => float32', () => {
+    expect(util.inferDtype(0)).toBe('float32');
+    expect(util.inferDtype(34)).toBe('float32');
+  });
+
+  it('a list of strings => string', () => {
+    // Flat.
+    expect(util.inferDtype(['a', 'b', 'c'])).toBe('string');
+    // Nested.
+    expect(util.inferDtype([
+      [['a']], [['b']], [['c']], [['d']]
+    ])).toBe('string');
+  });
+
+  it('a list of bools => float32', () => {
+    // Flat.
+    expect(util.inferDtype([false, true, false])).toBe('bool');
+    // Nested.
+    expect(util.inferDtype([
+      [[true]], [[false]], [[true]], [[true]]
+    ])).toBe('bool');
+  });
+
+  it('a list of numbers => float32', () => {
+    // Flat.
+    expect(util.inferDtype([0, 1, 2])).toBe('float32');
+    // Nested.
+    expect(util.inferDtype([[[0]], [[1]], [[2]], [[3]]])).toBe('float32');
   });
 });
 

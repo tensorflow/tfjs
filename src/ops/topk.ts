@@ -16,7 +16,7 @@
  */
 
 import {ENV} from '../environment';
-import {Tensor} from '../tensor';
+import {NumericTensor, Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {op} from './operation';
@@ -58,8 +58,8 @@ function topk_<T extends Tensor>(
   }
 
   const [values, indices] =
-      ENV.engine.runKernel(b => b.topk($x, k, sorted), {$x});
-  return {values, indices};
+      ENV.engine.runKernel(b => b.topk($x as NumericTensor, k, sorted), {$x});
+  return {values, indices} as {values: T, indices: T};
 }
 
 export const topk = op({topk_});

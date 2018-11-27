@@ -54,9 +54,9 @@ import {op} from './operation';
 export function confusionMatrix_(
     labels: Tensor1D|TensorLike, predictions: Tensor1D|TensorLike,
     numClasses: number): Tensor2D {
-  const $labels = convertToTensor(labels, 'label', 'confusionMatrix', 'int32');
+  const $labels = convertToTensor(labels, 'labels', 'confusionMatrix');
   const $predictions =
-      convertToTensor(predictions, 'label', 'confusionMatrix', 'int32');
+      convertToTensor(predictions, 'predictions', 'confusionMatrix');
 
   util.assert(
       numClasses == null || numClasses > 0 && Number.isInteger(numClasses),
