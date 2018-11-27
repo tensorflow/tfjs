@@ -33,6 +33,7 @@ import * as matrices from './op_list/matrices';
 import * as normalization from './op_list/normalization';
 import * as reduction from './op_list/reduction';
 import * as sliceJoin from './op_list/slice_join';
+import * as spectral from './op_list/spectral';
 import * as transformation from './op_list/transformation';
 import {Graph, Node, OpMapper, ParamValue} from './types';
 
@@ -55,7 +56,7 @@ export class OperationMapper {
     const ops = [
       arithmetic, basicMath, control, convolution, creation, dynamic,
       evaluation, logical, image, graph, matrices, normalization, reduction,
-      sliceJoin, transformation
+      sliceJoin, spectral, transformation
     ];
     const mappersJson: OpMapper[] = [].concat.apply([], ops.map(op => op.json));
 
@@ -157,7 +158,8 @@ export class OperationMapper {
               break;
             case 'number':
               value = this.getNumberParam(
-                  node.attr, param.tfParamName, param.defaultValue as number);
+                  node.attr, param.tfParamName,
+                  (param.defaultValue || 0) as number);
               if (value === undefined && !!param.tfParamNameDeprecated) {
                 value = this.getNumberParam(
                     node.attr, param.tfParamNameDeprecated,

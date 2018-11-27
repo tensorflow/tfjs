@@ -181,6 +181,7 @@
 |NotEqual|notEqual|
 |Select|where|
 |Not mapped|logicalXor|
+|Not mapped|whereAsync|
 
 ## Operations - Matrices
 
@@ -212,6 +213,7 @@
 |CropAndResize|cropAndResize|
 |ResizeBilinear|resizeBilinear|
 |ResizeNearestNeighbor|resizeNearestNeighbor|
+|Not mapped|nonMaxSuppression|
 
 ## Operations - Reduction
 
@@ -270,5 +272,5 @@
 |Reshape|reshape|
 |SpaceToBatchND|spaceToBatchND|
 |Squeeze|squeeze|
-|ListDiff|setdiff1dAsync|
+|Not mapped|setdiff1dAsync|
 

@@ -30,6 +30,7 @@ import * as matrices from './executors/matrices_executor';
 import * as normalization from './executors/normalization_executor';
 import * as reduction from './executors/reduction_executor';
 import * as slice_join from './executors/slice_join_executor';
+import * as spectral from './executors/spectral_executor';
 import * as transformation from './executors/transformation_executor';
 import {executeOp} from './operation_executor';
 import {Node} from './types';
@@ -52,7 +53,7 @@ describe('OperationExecutor', () => {
 
   describe('executeOp', () => {
     [arithmetic, basic_math, convolution, creation, dynamic, evaluation, image,
-     graph, logical, matrices, normalization, reduction, slice_join,
+     graph, logical, matrices, normalization, reduction, slice_join, spectral,
      transformation]
         .forEach(category => {
           it('should call ' + category.CATEGORY + ' executor', () => {

@@ -18,11 +18,34 @@
 import * as Long from 'long';
 
 import {tensorflow} from '../data/compiled_api';
-import {OperationMapper} from './operation_mapper';
-import {Graph} from './types';
 
+import * as arithmetic from './op_list/arithmetic';
+import * as basicMath from './op_list/basic_math';
+import * as control from './op_list/control';
+import * as convolution from './op_list/convolution';
+import * as creation from './op_list/creation';
+import * as dynamic from './op_list/dynamic';
+import * as evaluation from './op_list/evaluation';
+import * as graph from './op_list/graph';
+import * as image from './op_list/image';
+import * as logical from './op_list/logical';
+import * as matrices from './op_list/matrices';
+import * as normalization from './op_list/normalization';
+import * as reduction from './op_list/reduction';
+import * as sliceJoin from './op_list/slice_join';
+import * as spectral from './op_list/spectral';
+import * as transformation from './op_list/transformation';
+import {OperationMapper} from './operation_mapper';
+import {Graph, OpMapper} from './types';
+
+const ops = [
+  arithmetic, basicMath, control, convolution, creation, dynamic, evaluation,
+  logical, image, graph, matrices, normalization, reduction, sliceJoin,
+  spectral, transformation
+];
 const mapper: OperationMapper = OperationMapper.Instance;
-let graph: Graph;
+let convertedGraph: Graph;
+
 const SIMPLE_MODEL: tensorflow.IGraphDef = {
   node: [
     {
@@ -118,34 +141,48 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
   versions: {producer: 1.0}
 };
 
+describe('completeness check', () => {
+  it('should convert all op categories', () => {
+    ops.forEach(op => {
+      (op.json as OpMapper[]).forEach(tfOp => {
+        const graph = {
+          node: [{name: tfOp.tfOpName, op: tfOp.tfOpName, attr: {}}]
+        };
+        convertedGraph = mapper.transformGraph(graph);
+        expect(Object.keys(convertedGraph.nodes)).toEqual([tfOp.tfOpName]);
+        expect(convertedGraph.nodes[tfOp.tfOpName].op).toEqual(tfOp.dlOpName);
+      });
+    });
+  });
+});
 describe('operationMapper', () => {
   beforeEach(() => {
-    graph = mapper.transformGraph(SIMPLE_MODEL);
+    convertedGraph = mapper.transformGraph(SIMPLE_MODEL);
   });
   afterEach(() => {});
 
   describe('transform graph', () => {
     describe('graph level', () => {
       it('should find the graph input nodes', () => {
-        expect(graph.inputs.map(node => node.name)).toEqual([
+        expect(convertedGraph.inputs.map(node => node.name)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value'
         ]);
       });
 
       it('should find the graph output nodes', () => {
-        expect(graph.outputs.map(node => node.name)).toEqual([
+        expect(convertedGraph.outputs.map(node => node.name)).toEqual([
           'Fill', 'Squeeze', 'Split', 'FusedBatchNorm'
         ]);
       });
 
       it('should find the graph weight nodes', () => {
-        expect(graph.weights.map(node => node.name)).toEqual([
+        expect(convertedGraph.weights.map(node => node.name)).toEqual([
           'Const', 'Shape', 'Value'
         ]);
       });
 
       it('should convert nodes', () => {
-        expect(Object.keys(graph.nodes)).toEqual([
+        expect(Object.keys(convertedGraph.nodes)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
           'BiasAdd', 'Squeeze', 'Split', 'FusedBatchNorm'
         ]);
@@ -154,41 +191,46 @@ describe('operationMapper', () => {
 
     describe('node level', () => {
       it('should find the input nodes', () => {
-        expect(graph.nodes['Fill'].inputs.map(node => node.name)).toEqual([
-          'Shape', 'Value'
-        ]);
+        expect(convertedGraph.nodes['Fill'].inputs.map(node => node.name))
+            .toEqual(['Shape', 'Value']);
       });
       it('should find the children nodes', () => {
-        expect(graph.nodes['image_placeholder'].children.map(node => node.name))
+        expect(convertedGraph.nodes['image_placeholder'].children.map(
+                   node => node.name))
             .toEqual(['Conv2D', 'Split', 'FusedBatchNorm']);
       });
 
       it('should map the input params', () => {
-        expect(graph.nodes['Fill'].params['shape'].inputIndex).toEqual(0);
-        expect(graph.nodes['Fill'].params['value'].inputIndex).toEqual(1);
+        expect(convertedGraph.nodes['Fill'].params['shape'].inputIndex)
+            .toEqual(0);
+        expect(convertedGraph.nodes['Fill'].params['value'].inputIndex)
+            .toEqual(1);
       });
 
       it('should map the attribute params', () => {
-        expect(graph.nodes['Conv2D'].params['strides'].value).toEqual([
+        expect(convertedGraph.nodes['Conv2D'].params['strides'].value).toEqual([
           1, 2, 2, 1
         ]);
-        expect(graph.nodes['Conv2D'].params['pad'].value).toEqual('valid');
-        expect(graph.nodes['Conv2D'].params['useCudnnOnGpu'].value)
+        expect(convertedGraph.nodes['Conv2D'].params['pad'].value)
+            .toEqual('valid');
+        expect(convertedGraph.nodes['Conv2D'].params['useCudnnOnGpu'].value)
             .toEqual(true);
-        expect(graph.nodes['Split'].params['numOrSizeSplits'].value).toEqual(3);
-        expect(graph.nodes['FusedBatchNorm'].params['epsilon'].value)
+        expect(convertedGraph.nodes['Split'].params['numOrSizeSplits'].value)
+            .toEqual(3);
+        expect(convertedGraph.nodes['FusedBatchNorm'].params['epsilon'].value)
             .toEqual(0.0001);
       });
 
       it('should map the placeholder attribute params', () => {
-        expect(graph.nodes['image_placeholder'].params['shape'].value).toEqual([
-          3, 3, 3, 1
-        ]);
-        expect(graph.nodes['image_placeholder'].params['dtype'].value)
+        expect(convertedGraph.nodes['image_placeholder'].params['shape'].value)
+            .toEqual([3, 3, 3, 1]);
+        expect(convertedGraph.nodes['image_placeholder'].params['dtype'].value)
             .toEqual('float32');
       });
       it('should map params with deprecated name', () => {
-        expect(graph.nodes['Squeeze'].params['axis'].value).toEqual([1, 2]);
+        expect(convertedGraph.nodes['Squeeze'].params['axis'].value).toEqual([
+          1, 2
+        ]);
       });
     });
   });

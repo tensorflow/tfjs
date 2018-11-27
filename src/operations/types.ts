@@ -19,7 +19,7 @@ export type ParamTypes =
     'number'|'string'|'number[]'|'bool'|'shape'|'tensor'|'tensors'|'dtype';
 export type Category = 'arithmetic'|'basic_math'|'control'|'convolution'|
     'dynamic'|'evaluation'|'image'|'creation'|'graph'|'logical'|'matrices'|
-    'normalization'|'reduction'|'slice_join'|'transformation';
+    'normalization'|'reduction'|'slice_join'|'spectral'|'transformation';
 export declare interface ParamMapper {
   tfParamName?: string;
   tfParamNameDeprecated?: string;
