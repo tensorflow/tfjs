@@ -221,9 +221,31 @@ export function binaryCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
   return lossBinaryCrossentropy(yTrue, yPred);
 }
 
+/**
+ * Sparse categorical accuracy metric function.
+ * 
+ * ```Example:
+ * const yTrue = tensor1d([1, 1, 2, 2, 0]);
+ * const yPred = tensor2d(
+ *      [[0, 1, 0], [1, 0, 0], [0, 0.4, 0.6], [0, 0.6, 0.4], [0.7, 0.3, 0]]);
+ * const crossentropy = tf.metrics.sparseCategoricalAccuracy(yTrue, yPred);
+ * crossentropy.print();
+ * ```
+ *
+ * @param yTrue True labels: indices.
+ * @param yPred Predicted probabilities or logits.
+ * @returns Accuracy tensor.
+ */
 export function sparseCategoricalAccuracy(
-    yTrue: Tensor, yPred: Tensor): Tensor {
-  throw new NotImplementedError();
+  yTrue: Tensor, yPred: Tensor): Tensor {
+  if (yTrue.rank === yPred.rank) {
+    yTrue = yTrue.squeeze([yTrue.rank - 1]);
+  }
+  yPred = yPred.argMax(-1);
+  if (yPred.dtype !== yTrue.dtype) {
+    yPred = yPred.asType(yTrue.dtype);
+  }
+  return tfc.equal(yTrue, yPred).asType('float32');
 }
 
 export function topKCategoricalAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {

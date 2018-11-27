@@ -46,6 +46,30 @@ describeMathCPUAndGPU('binaryAccuracy', () => {
   });
 });
 
+describeMathCPUAndGPU('sparseCategoricalAccuracy', () => {
+  it('1D float32 yTrue, 2D yPred', () => {
+    const yTrue = tensor1d([1, 1, 2, 2, 0]);
+    const yPred = tensor2d(
+        [[0, 1, 0], [1, 0, 0], [0, 0.4, 0.6], [0, 0.6, 0.4], [0.7, 0.3, 0]]);
+    const accuracy = tfl.metrics.sparseCategoricalAccuracy(yTrue, yPred);
+    expectTensorsClose(accuracy, tensor1d([1, 0, 1, 0, 1]));
+  });
+  it('1D int32 yTrue, 2D yPred', () => {
+    const yTrue = tensor1d([1, 1, 2, 2, 0], 'int32');
+    const yPred = tensor2d(
+        [[0, 1, 0], [1, 0, 0], [0, 0.4, 0.6], [0, 0.6, 0.4], [0.7, 0.3, 0]]);
+    const accuracy = tfl.metrics.sparseCategoricalAccuracy(yTrue, yPred);
+    expectTensorsClose(accuracy, tensor1d([1, 0, 1, 0, 1]));
+  });
+  it('2D int32 yTrue, 2D yPred', () => {
+    const yTrue = tensor2d([1, 1, 2, 2, 0], [5, 1], 'int32');
+    const yPred = tensor2d(
+        [[0, 1, 0], [1, 0, 0], [0, 0.4, 0.6], [0, 0.6, 0.4], [0.7, 0.3, 0]]);
+    const accuracy = tfl.metrics.sparseCategoricalAccuracy(yTrue, yPred);
+    expectTensorsClose(accuracy, tensor1d([1, 0, 1, 0, 1]));
+  });
+});
+
 describeMathCPUAndGPU('binaryCrossentropy', () => {
   it('2D single-value yTrue', () => {
     // Use the following Python code to generate the reference values:
