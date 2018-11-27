@@ -17,8 +17,7 @@
  */
 
 // inspired by https://github.com/maxogden/filereader-stream
-import {ENV} from '@tensorflow/tfjs-core';
-import {assert} from '@tensorflow/tfjs-core/dist/util';
+import {ENV, util} from '@tensorflow/tfjs-core';
 
 import {FileElement} from '../types';
 
@@ -46,7 +45,7 @@ export class FileChunkIterator extends ByteChunkIterator {
       protected file: FileElement,
       protected options: FileChunkIteratorOptions = {}) {
     super();
-    assert(
+    util.assert(
         (file instanceof Uint8Array) ||
             (ENV.get('IS_BROWSER') ?
                  (file instanceof File || file instanceof Blob) :

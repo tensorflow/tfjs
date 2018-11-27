@@ -4,7 +4,11 @@
   "description": "TensorFlow Data API in JavaScript",
   "private": false,
   "main": "dist/index.js",
+  "jsdelivr": "dist/tf-data.min.js",
+  "unpkg": "dist/tf-data.min.js",
   "types": "dist/index.d.ts",
+  "jsnext:main": "dist/tf-data.esm.js",
+  "module": "dist/tf-data.esm.js",
   "license": "Apache-2.0",
   "devDependencies": {
     "@tensorflow/tfjs-core": "0.13.6",

@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {assert} from '@tensorflow/tfjs-core/dist/util';
+import {util} from '@tensorflow/tfjs-core';
 
 import {Dataset} from '../dataset';
 import {DataSource} from '../datasource';
@@ -77,7 +77,7 @@ export class CSVDataset extends Dataset<DataElement> {
           'Column names must be provided if there is no header line.');
     } else if (this.fullColumnNames && columnNamesFromFile) {
       // Check provided columnNames match header line.
-      assert(
+      util.assert(
           columnNamesFromFile.length === this.fullColumnNames.length,
           'The length of provided columnNames (' +
               this.fullColumnNames.length.toString() +
@@ -96,7 +96,7 @@ export class CSVDataset extends Dataset<DataElement> {
         {});
     const duplicateNames =
         Object.keys(counts).filter((name) => (counts[name] > 1));
-    assert(
+    util.assert(
         duplicateNames.length === 0,
         'Duplicate column names found: ' + duplicateNames.toString());
     // Check if keys in columnConfigs match columnNames.

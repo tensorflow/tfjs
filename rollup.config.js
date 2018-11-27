@@ -38,28 +38,14 @@ const PREAMBLE = `/**
  */`;
 
 function minify() {
-  return uglify({
-    output: {
-      preamble: PREAMBLE
-    }
-  });
+  return uglify({output: {preamble: PREAMBLE}});
 }
 
-function config({
-  plugins = [],
-  output = {},
-  external = []
-}) {
+function config({plugins = [], output = {}, external = []}) {
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript({
-        tsconfigOverride: {
-          compilerOptions: {
-            module: 'ES2015'
-          }
-        }
-      }),
+      typescript({tsconfigOverride: {compilerOptions: {module: 'ES2015'}}}),
       node(),
       // Polyfill require() from dependencies.
       commonjs({
@@ -76,13 +62,17 @@ function config({
       banner: PREAMBLE,
       globals: {
         'node-fetch': 'nodeFetch',
-        '@tensorflow/tfjs-core': 'tf'
+        '@tensorflow/tfjs-core': 'tf',
       },
+      sourcemap: true,
       ...output
     },
     external: [
       // node-fetch is only used in node. Browsers have native "fetch".
-      'node-fetch', 'crypto', '@tensorflow/tfjs-core', ...external
+      'node-fetch',
+      'crypto',
+      '@tensorflow/tfjs-core',
+      ...external,
     ],
     onwarn: warning => {
       console.warn('WARNING: ', warning.toString());
@@ -110,9 +100,6 @@ export default [
   }),
   config({
     plugins: [minify()],
-    output: {
-      format: 'es',
-      file: 'dist/tf-data.esm.js'
-    }
+    output: {format: 'es', file: 'dist/tf-data.esm.js'}
   })
 ];
