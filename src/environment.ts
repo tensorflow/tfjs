@@ -182,8 +182,8 @@ export class Environment {
    */
   /** @doc {heading: 'Performance', subheading: 'Memory'} */
   static tidy<T extends TensorContainer>(
-      nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>, gradMode = false): T {
-    return ENV.engine.tidy(nameOrFn, fn, gradMode);
+      nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>): T {
+    return ENV.engine.tidy(nameOrFn, fn);
   }
 
   /**
