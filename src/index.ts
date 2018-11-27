@@ -16,9 +16,12 @@
  */
 
 export * from '@tensorflow/tfjs-core';
-export * from '@tensorflow/tfjs-data';
 export * from '@tensorflow/tfjs-layers';
 export * from '@tensorflow/tfjs-converter';
+
+// Export data api as tf.data
+import * as data from '@tensorflow/tfjs-data';
+export {data};
 
 // Import versions of all sub-packages.
 import {version_core} from '@tensorflow/tfjs-core';

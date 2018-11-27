@@ -37,8 +37,8 @@ describe('Union package', () => {
   });
 
   it('has data', () => {
-    expect(tf.csv).not.toBeNull();
-    expect(tf.zip).not.toBeNull();
+    expect(tf.data.csv).not.toBeNull();
+    expect(tf.data.zip).not.toBeNull();
   });
 
   it('version', () => {

@@ -87,9 +87,10 @@
     "@types/webgl2" "0.0.4"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-data@file:tensorflow-tfjs-data-0.1.1.tgz":
+"@tensorflow/tfjs-data@0.1.1":
   version "0.1.1"
-  resolved "file:tensorflow-tfjs-data-0.1.1.tgz#66c0f0ef3ccccf358d9797f6c1fc50c3c87ed344"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-0.1.1.tgz#9c88baa0c17cb762685f59f8e79f9454b24c0734"
+  integrity sha512-fBhwI/Cfe/rLEc2VH5RqVrEcTbKIDzEwyr/M2utA0ujP6koW/HYYEkt3dt1st7TvHASTV4olt2UGD1OZcSau6w==
   dependencies:
     "@types/node-fetch" "^2.1.2"
     node-fetch "~2.1.2"

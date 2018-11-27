@@ -51,10 +51,11 @@ function config({
       node(),
       // Polyfill require() from dependencies.
       commonjs({
-        ignore: ['crypto'],
+        ignore: ['crypto', 'node-fetch'],
         include: 'node_modules/**',
         namedExports: {
           './node_modules/seedrandom/index.js': ['alea'],
+          './node_modules/utf8/utf8.js': ['decode'],
           './src/data/compiled_api.js': ['tensorflow'],
           './node_modules/protobufjs/minimal.js': ['roots', 'Reader', 'util']
         },
@@ -68,10 +69,15 @@ function config({
     ],
     output: {
       banner: copyright,
+      globals: {
+        'node-fetch': 'nodeFetch',
+      },
       sourcemap: true,
       ...output,
     },
     external: [
+      // node-fetch is only used in node. Browsers have native "fetch".
+      'node-fetch',
       'crypto',
       ...external,
     ],
