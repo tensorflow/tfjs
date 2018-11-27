@@ -34,6 +34,7 @@ import * as matrices from './executors/matrices_executor';
 import * as normalization from './executors/normalization_executor';
 import * as reduction from './executors/reduction_executor';
 import * as sliceJoin from './executors/slice_join_executor';
+import * as spectral from './executors/spectral_executor';
 import * as transformation from './executors/transformation_executor';
 import {Node} from './types';
 
@@ -74,6 +75,8 @@ export function executeOp(
       return reduction.executeOp(node, tensorMap, context);
     case 'slice_join':
       return sliceJoin.executeOp(node, tensorMap, context);
+    case 'spectral':
+      return spectral.executeOp(node, tensorMap, context);
     case 'transformation':
       return transformation.executeOp(node, tensorMap, context);
     default:
