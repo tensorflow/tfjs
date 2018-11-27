@@ -23,7 +23,7 @@ import typescript from 'rollup-plugin-typescript2';
 import uglify from 'rollup-plugin-uglify';
 
 const copyright =
-  `// @tensorflow/tfjs Copyright ${(new Date).getFullYear()} Google`;
+    `// @tensorflow/tfjs Copyright ${(new Date).getFullYear()} Google`;
 
 function minify() {
   return uglify({
@@ -33,11 +33,7 @@ function minify() {
   });
 }
 
-function config({
-  plugins = [],
-  output = {},
-  external = []
-}) {
+function config({plugins = [], output = {}, external = []}) {
   return {
     input: 'src/index.ts',
     plugins: [
@@ -82,11 +78,9 @@ function config({
       ...external,
     ],
     onwarn: warning => {
-      let {
-        code
-      } = warning;
+      let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
-        code === 'THIS_IS_UNDEFINED') {
+          code === 'THIS_IS_UNDEFINED') {
         return;
       }
       console.warn('WARNING: ', warning.toString());
