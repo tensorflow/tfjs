@@ -1980,6 +1980,219 @@ describeMathGPU('Model.fit: yieldEvery', () => {
   });
 });
 
+describeMathCPUAndGPU('Model.trainOnBatch', () => {
+  // Reference Python Keras code:
+  // ```py
+  // import keras
+  // import numpy as np
+  //
+  // model = keras.Sequential()
+  // model.add(keras.layers.Dense(
+  //     1, input_shape=[3], kernel_initializer='zeros'))
+  // model.compile(loss='mean_squared_error', optimizer='sgd')
+  //
+  // batch_size = 4
+  // xs = np.ones([batch_size, 3])
+  // ys = np.ones([batch_size, 1])
+  //
+  // for _ in range(3):
+  //   loss = model.train_on_batch(xs, ys)
+  //   print(loss)
+  // ```
+  it('Sequential MLP: correctness', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense(
+        {units: 1, inputShape: [3], kernelInitializer: 'zeros'}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    const batchSize = 4;
+    const xs = tfc.ones([batchSize, 3]);
+    const ys = tfc.ones([batchSize, 1]);
+    let loss = await model.trainOnBatch(xs, ys) as number;
+    expect(loss).toBeCloseTo(1.0);
+    loss = await model.trainOnBatch(xs, ys) as number;
+    expect(loss).toBeCloseTo(0.8464);
+    loss = await model.trainOnBatch(xs, ys) as number;
+    expect(loss).toBeCloseTo(0.716393);
+  });
+
+  // Reference Python Keras code:
+  // ```py
+  // import keras
+  // import numpy as np
+  //
+  // input1 = keras.Input(shape=[2])
+  // input2 = keras.Input(shape=[2])
+  // y1 = keras.layers.Add()([input1, input2])
+  // y2 = keras.layers.Concatenate()([input1, input2])
+  // output1 = keras.layers.Dense(
+  //     units=1,
+  //     activation='linear',
+  //     kernel_initializer='zeros')(y1)
+  // output2 = keras.layers.Dense(
+  //     units=1,
+  //     activation='sigmoid',
+  //     kernel_initializer='zeros')(y2)
+  // model = keras.Model(inputs=[input1, input2], outputs=[output1, output2])
+  // model.compile(loss=['mean_squared_error', 'binary_crossentropy'],
+  //               optimizer='sgd')
+  //
+  // batch_size = 4
+  // xs1 = np.ones([batch_size, 2])
+  // xs2 = np.ones([batch_size, 2])
+  // ys1 = np.ones([batch_size, 1])
+  // ys2 = np.ones([batch_size, 1])
+  //
+  // for _ in range(3):
+  //   losses = model.train_on_batch([xs1, xs2], [ys1, ys2])
+  //   print(losses)
+  // ```
+  it('Functional two inputs and two outputs: correctness', async () => {
+    const input1 = tfl.input({shape: [2]});
+    const input2 = tfl.input({shape: [2]});
+    const y1 = tfl.layers.add().apply([input1, input2]);
+    const y2 = tfl.layers.concatenate().apply([input1, input2]);
+    const output1 =
+        tfl.layers
+            .dense({units: 1, activation: 'linear', kernelInitializer: 'zeros'})
+            .apply(y1) as tfl.SymbolicTensor;
+    const output2 =
+        tfl.layers
+            .dense(
+                {units: 1, activation: 'sigmoid', kernelInitializer: 'zeros'})
+            .apply(y2) as tfl.SymbolicTensor;
+    const model =
+        tfl.model({inputs: [input1, input2], outputs: [output1, output2]});
+    model.compile(
+        {loss: ['meanSquaredError', 'binaryCrossentropy'], optimizer: 'sgd'});
+
+    const batchSize = 4;
+    const xs1 = tfc.ones([batchSize, 2]);
+    const xs2 = tfc.ones([batchSize, 2]);
+    const ys1 = tfc.ones([batchSize, 1]);
+    const ys2 = tfc.ones([batchSize, 1]);
+    let losses = await model.trainOnBatch([xs1, xs2], [ys1, ys2]) as number[];
+    expect(losses.length).toEqual(3);
+    expect(losses[0]).toBeCloseTo(1.6931472);
+    expect(losses[1]).toBeCloseTo(1.0);
+    expect(losses[2]).toBeCloseTo(0.6931472);
+    losses = await model.trainOnBatch([xs1, xs2], [ys1, ys2]) as number[];
+    expect(losses.length).toEqual(3);
+    expect(losses[0]).toBeCloseTo(1.3531253);
+    expect(losses[1]).toBeCloseTo(0.6724);
+    expect(losses[2]).toBeCloseTo(0.68072534);
+    losses = await model.trainOnBatch([xs1, xs2], [ys1, ys2]) as number[];
+    expect(losses.length).toEqual(3);
+    expect(losses[0]).toBeCloseTo(1.1207337);
+    expect(losses[1]).toBeCloseTo(0.45212176);
+    expect(losses[2]).toBeCloseTo(0.66861194);
+  });
+
+  // Reference Python Keras code.
+  // ```py
+  // import keras
+  // import numpy as np
+  //
+  // model = keras.Sequential()
+  // model.add(keras.layers.Dense(
+  //     3, input_shape=[2], activation='softmax', kernel_initializer='ones'))
+  // model.compile(loss='categorical_crossentropy', optimizer='sgd')
+  //
+  // xs = np.array([[0.5, 0.5], [1, 1], [0, 1]], dtype=np.float32)
+  // ys = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
+  //
+  // for _ in range(3):
+  //   loss = model.train_on_batch(xs, ys)
+  //   print(loss)
+  // ```
+  it('Categorical: Correctness and no memory leak', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({
+      units: 3,
+      inputShape: [2],
+      activation: 'softmax',
+      kernelInitializer: 'ones'
+    }));
+    model.compile({loss: 'categoricalCrossentropy', optimizer: 'sgd'});
+
+    const xs = tfc.tensor2d([[0.5, 0.5], [1, 1], [0, 1]]);
+    const ys = tfc.tensor2d([[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
+    // Perform burn-in.
+    model.trainOnBatch(xs, ys);
+    const numTensors0 = memory().numTensors;
+    for (let i = 0; i < 3; ++i) {
+      const loss = await model.trainOnBatch(xs, ys);
+      tfc.tidy(() => {
+        if (i === 0) {
+          expect(loss).toBeCloseTo(1.0986123);
+        } else if (i === 1) {
+          expect(loss).toBeCloseTo(1.0978721);
+        } else {
+          expect(loss).toBeCloseTo(1.0971345);
+        }
+      });
+      // Assert no tensor memory leak.
+      expect(memory().numTensors).toBeLessThanOrEqual(numTensors0);
+    }
+  });
+
+  // Reference Python Keras code:
+  // ```py
+  // import keras
+  // import numpy as np
+  //
+  // model = keras.Sequential()
+  // model.add(keras.layers.Dense(
+  //     units=3,
+  //     input_shape=[2],
+  //     activation='softmax',
+  //     kernel_initializer='ones'
+  // ))
+  // model.compile(
+  //     loss='sparse_categorical_crossentropy',
+  //     optimizer='sgd',
+  //     metrics=['acc'])
+  // model.summary()
+  //
+  // xs = np.array([[0, 0.5], [0.5, 1], [0, 1]], dtype=np.float32)
+  // ys = np.array([[2], [1], [0]], dtype=np.float32)
+  //
+  // for _ in range(3):
+  //   print(model.train_on_batch(xs, ys))
+  // ```
+  it('Sparse categorical: w/ metrics: correctness and no leak', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({
+      units: 3,
+      inputShape: [2],
+      activation: 'softmax',
+      kernelInitializer: 'ones'
+    }));
+    model.compile({
+      loss: 'sparseCategoricalCrossentropy',
+      optimizer: 'sgd',
+      metrics: ['acc']
+    });
+
+    const xs = tfc.tensor2d([[0, 0.5], [0.5, 1], [0, 1]]);
+    const ys = tfc.tensor2d([[2], [1], [0]]);
+
+    for (let i = 0; i < 3; ++i) {
+      const [loss, acc] = await model.trainOnBatch(xs, ys) as number[];
+      if (i === 0) {
+        expect(loss).toBeCloseTo(1.0986123);
+        expect(acc).toBeCloseTo(0.3333333);
+      } else if (i === 1) {
+        expect(loss).toBeCloseTo(1.0982422);
+        expect(acc).toBeCloseTo(0.6666667);
+      } else if (i === 2) {
+        expect(loss).toBeCloseTo(1.0978734);
+        expect(acc).toBeCloseTo(0.6666667);
+      }
+    }
+  });
+});
+
 describeMathCPUAndGPU('Model.evaluate', () => {
   const numExamples = 8;
   const inputSize = 2;

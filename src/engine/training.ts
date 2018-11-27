@@ -1429,6 +1429,49 @@ export class Model extends Container implements tfc.InferenceModel {
   }
 
   /**
+   * Runs a single gradient update on a single batch of data.
+   * 
+   * This method differs from `fit()` and `fitDataset()` in the following
+   * regards:
+   *   - It operates on exactly one batch of data.
+   *   - It returns only the loss and matric values, instead of
+   *     returning the batch-by-batch loss and metric values.
+   *   - It doesn't support fine-grained options such as verbosity and
+   *     callbacks.
+   *
+   * @param x Input data. It could be one of the following:
+   *   - A `tf.Tensor`, or an Array of `tf.Tensor`s (in case the model has
+   *     multiple inputs).
+   *   - An Object mapping input names to corresponding `tf.Tensor` (if the
+   *     model has named inputs).
+   * @param y Target darta. It could be either a `tf.Tensor` a multiple
+   *   `tf.Tensor`s. It should be consistent with `x`.
+   * @returns Training loss or losses (in case the model has
+   *   multiple outputs), along with metrics (if any), as numbers.
+   */
+  /**
+   * @doc {heading: 'Models', subheading: 'Classes'}
+   */
+  async trainOnBatch(
+    x: Tensor|Tensor[]|{[inputName: string]: Tensor},
+    y: Tensor|Tensor[]|{[inputName: string]: Tensor}):
+    Promise<number|number[]> {
+    // TODO(cais): Support sampleWeight and classWeight.
+    // TODO(cais): Support Dataset objects.
+    const standardizeOut = this.standardizeUserData(x, y);
+    const inputs = standardizeOut[0];
+    const targets = standardizeOut[1];
+    const trainFunction = this.makeTrainFunction();
+    const losses = trainFunction(inputs.concat(targets));
+    const lossValues: number[] = [];
+    for (const loss of losses) {
+      lossValues.push((await loss.data())[0]);
+    }
+    tfc.dispose(losses);
+    return singletonOrArray(lossValues);
+  }
+
+  /**
    * Extract weight values of the model.
    *
    * @param config: An instance of `io.SaveConfig`, which specifies

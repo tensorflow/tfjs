@@ -38,6 +38,18 @@ export function binaryCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
  * @doc {
  *   heading: 'Metrics',
  *   namespace: 'metrics',
+ *   useDocsFrom: 'sparseCategoricalAccuracy'
+ * }
+ */
+export function sparseCategoricalAccuracy(
+    yTrue: Tensor, yPred: Tensor): Tensor {
+  return metrics.sparseCategoricalAccuracy(yTrue, yPred);
+}
+
+/**
+ * @doc {
+ *   heading: 'Metrics',
+ *   namespace: 'metrics',
  *   useDocsFrom: 'categoricalAccuracy'
  * }
  */
