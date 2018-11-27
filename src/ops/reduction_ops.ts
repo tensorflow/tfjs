@@ -500,9 +500,6 @@ function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
 function all_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   let $x = convertToTensor(x, 'x', 'all', 'bool');
-  util.assert(
-      $x.dtype === 'bool',
-      `Error Tensor must be of type bool. Got: ${$x.dtype}`);
 
   const origAxes = axis_util.parseAxisParam(axis, $x.shape);
   let axes = origAxes;
@@ -550,9 +547,6 @@ function all_<T extends Tensor>(
 function any_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   let $x = convertToTensor(x, 'x', 'any', 'bool');
-  util.assert(
-      $x.dtype === 'bool',
-      `Error Tensor must be of type bool. Got: ${$x.dtype}`);
 
   const origAxes = axis_util.parseAxisParam(axis, $x.shape);
   let axes = origAxes;

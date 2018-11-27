@@ -156,9 +156,7 @@ function avgPoolImpl_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filterSize: [number, number]|number,
     strides: [number, number]|number, dilations: [number, number]|number,
     pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-  const $x = convertToTensor(x, 'x', 'avgPool');
-  util.assert(
-      $x.dtype === 'float32', 'The input dtype to avgPool must be float32');
+  const $x = convertToTensor(x, 'x', 'avgPool', 'float32');
   if (dilations == null) {
     dilations = [1, 1];
   }

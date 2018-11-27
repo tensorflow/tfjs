@@ -719,7 +719,8 @@ describeWithFlags('whereAsync', ALL_ENVS, () => {
       await tf.whereAsync(condition);
       throw new Error('The line above should have thrown an error');
     } catch (ex) {
-      expect(ex.message).toBe('Condition must be of type bool.');
+      expect(ex.message)
+          .toMatch(/Argument 'condition' passed to 'whereAsync' must be bool/);
     }
   });
 

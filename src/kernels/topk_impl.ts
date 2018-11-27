@@ -19,11 +19,11 @@
 
 import {tensor} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
-import {DataType, TypedArray} from '../types';
+import {NumericDataType, TypedArray} from '../types';
 import {getTypedArrayFromDType} from '../util';
 
 export function topkImpl<T extends Tensor>(
-    x: TypedArray, xShape: number[], xDtype: DataType, k: number,
+    x: TypedArray, xShape: number[], xDtype: NumericDataType, k: number,
     sorted: boolean): [T, T] {
   // Reshape into a 2d tensor [batch, lastDim] and compute topk along lastDim.
   const lastDim = xShape[xShape.length - 1];

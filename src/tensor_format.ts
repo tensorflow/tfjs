@@ -16,7 +16,7 @@
  */
 
 import {DataType, TypedArray} from './types';
-import {computeStrides, rightPad, sizeFromShape} from './util';
+import {computeStrides, isString, rightPad, sizeFromShape} from './util';
 
 // Maximum number of values before we decide to show ellipsis.
 const FORMAT_LIMIT_NUM_VALS = 20;
@@ -26,7 +26,8 @@ const FORMAT_NUM_FIRST_LAST_VALS = 3;
 const FORMAT_NUM_SIG_DIGITS = 7;
 
 export function tensorToString(
-    vals: TypedArray, shape: number[], dtype: DataType, verbose: boolean) {
+    vals: TypedArray|string[], shape: number[], dtype: DataType,
+    verbose: boolean) {
   const strides = computeStrides(shape);
   const padPerCol = computeMaxSizePerColumn(vals, shape, dtype, strides);
   const rank = shape.length;
@@ -43,7 +44,7 @@ export function tensorToString(
 }
 
 function computeMaxSizePerColumn(
-    vals: TypedArray, shape: number[], dtype: DataType,
+    vals: TypedArray|string[], shape: number[], dtype: DataType,
     strides: number[]): number[] {
   const n = sizeFromShape(shape);
   const numCols = strides[strides.length - 1];
@@ -64,11 +65,13 @@ function computeMaxSizePerColumn(
   return padPerCol;
 }
 
-function valToString(val: number|[number, number], pad: number) {
+function valToString(val: number|string|[number, number], pad: number) {
   let valStr: string;
   if (Array.isArray(val)) {
     valStr = `${parseFloat(val[0].toFixed(FORMAT_NUM_SIG_DIGITS))} + ` +
         `${parseFloat(val[1].toFixed(FORMAT_NUM_SIG_DIGITS))}j`;
+  } else if (isString(val)) {
+    valStr = `'${val}'`;
   } else {
     valStr = parseFloat(val.toFixed(FORMAT_NUM_SIG_DIGITS)).toString();
   }
@@ -77,8 +80,8 @@ function valToString(val: number|[number, number], pad: number) {
 }
 
 function subTensorToString(
-    vals: TypedArray, shape: number[], dtype: DataType, strides: number[],
-    padPerCol: number[], isLast = true): string[] {
+    vals: TypedArray|string[], shape: number[], dtype: DataType,
+    strides: number[], padPerCol: number[], isLast = true): string[] {
   const storagePerElement = dtype === 'complex64' ? 2 : 1;
 
   const size = shape[0];
@@ -95,15 +98,14 @@ function subTensorToString(
     if (size > FORMAT_LIMIT_NUM_VALS) {
       const firstValsSize = FORMAT_NUM_FIRST_LAST_VALS * storagePerElement;
 
-      let firstVals: Array<number|[number, number]> =
-          Array.from(vals.subarray(0, firstValsSize));
-      let lastVals: Array<number|[number, number]> = Array.from(vals.subarray(
+      let firstVals = Array.from<number|string|[number, number]>(
+          vals.slice(0, firstValsSize));
+      let lastVals = Array.from<number|string|[number, number]>(vals.slice(
           size - FORMAT_NUM_FIRST_LAST_VALS * storagePerElement, size));
       if (dtype === 'complex64') {
-        firstVals = createComplexTuples(firstVals as number[]);
-        lastVals = createComplexTuples(lastVals as number[]);
+        firstVals = createComplexTuples(firstVals);
+        lastVals = createComplexTuples(lastVals);
       }
-
       return [
         '[' + firstVals.map((x, i) => valToString(x, padPerCol[i])).join(', ') +
         ', ..., ' +
@@ -115,8 +117,9 @@ function subTensorToString(
         ']'
       ];
     }
-    const displayVals: Array<number|[number, number]> =
-        dtype === 'complex64' ? createComplexTuples(vals) : Array.from(vals);
+    const displayVals: Array<number|string|[number, number]> =
+        dtype === 'complex64' ? createComplexTuples(vals) :
+                                Array.from<number|string>(vals);
 
     return [
       '[' + displayVals.map((x, i) => valToString(x, padPerCol[i])).join(', ') +
@@ -134,7 +137,7 @@ function subTensorToString(
       const start = i * stride;
       const end = start + stride;
       lines.push(...subTensorToString(
-          vals.subarray(start, end), subshape, dtype, substrides, padPerCol,
+          vals.slice(start, end), subshape, dtype, substrides, padPerCol,
           false /* isLast */));
     }
     lines.push('...');
@@ -142,7 +145,7 @@ function subTensorToString(
       const start = i * stride;
       const end = start + stride;
       lines.push(...subTensorToString(
-          vals.subarray(start, end), subshape, dtype, substrides, padPerCol,
+          vals.slice(start, end), subshape, dtype, substrides, padPerCol,
           i === size - 1 /* isLast */));
     }
   } else {
@@ -150,7 +153,7 @@ function subTensorToString(
       const start = i * stride;
       const end = start + stride;
       lines.push(...subTensorToString(
-          vals.subarray(start, end), subshape, dtype, substrides, padPerCol,
+          vals.slice(start, end), subshape, dtype, substrides, padPerCol,
           i === size - 1 /* isLast */));
     }
   }
@@ -168,7 +171,7 @@ function subTensorToString(
   return lines;
 }
 
-function createComplexTuples(vals: number[]|
+function createComplexTuples(vals: Array<{}>|
                              TypedArray): Array<[number, number]> {
   const complexTuples: Array<[number, number]> = [];
   for (let i = 0; i < vals.length; i += 2) {

@@ -101,11 +101,10 @@ export class Environment {
    *   (undisposed) at this time, which is ≤ the number of tensors
    *   (e.g. `a.reshape(newShape)` makes a new Tensor that shares the same
    *   data buffer with `a`).
-   * - `unreliable`: `Optional` `boolean`:
-   *    - On WebGL, not present (always reliable).
-   *    - On CPU, true. Due to automatic garbage collection, these numbers
-   *     represent undisposed tensors, i.e. not wrapped in `tidy()`, or
-   *     lacking a call to `tensor.dispose()`.
+   * - `unreliable`: True if the memory usage is unreliable. See `reasons` when
+   *    `unrealible` is true.
+   * - `reasons`: `string[]`, reasons why the memory is unreliable, present if
+   *    `unreliable` is true.
    */
   /** @doc {heading: 'Performance', subheading: 'Memory'} */
   static memory(): MemoryInfo {
