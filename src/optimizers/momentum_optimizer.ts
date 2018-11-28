@@ -25,6 +25,7 @@ import {SGDOptimizer} from './sgd_optimizer';
 
 /** @doclink Optimizer */
 export class MomentumOptimizer extends SGDOptimizer {
+  /** @nocollapse */
   static className = 'MomentumOptimizer';
   private m: Scalar;
   private accumulations: NamedVariableMap;

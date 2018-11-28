@@ -25,6 +25,7 @@ import {Optimizer} from './optimizer';
 
 /** @doclink Optimizer */
 export class AdagradOptimizer extends Optimizer {
+  /** @nocollapse */
   static className = 'AdagradOptimizer';
   private c: Scalar;
   private epsilon: Scalar;
