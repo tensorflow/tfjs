@@ -23,6 +23,9 @@ import {OperationMapper} from '../operations/operation_mapper';
 
 import {GraphExecutor} from './graph_executor';
 
+export const TFHUB_SEARCH_PARAM = '?tfjs-format=file';
+export const DEFAULT_MODEL_NAME = 'tensorflowjs_model.pb';
+export const DEFAULT_MANIFEST_NAME = 'weights_manifest.json';
 /**
  * A `tf.FrozenModel` is a directed, acyclic graph of built from
  * SavedModel GraphDef and allows inference exeuction.
@@ -68,12 +71,13 @@ export class FrozenModel implements tfc.InferenceModel {
    */
   constructor(
       private modelUrl: string, private weightManifestUrl: string,
-      private requestOption?: RequestInit) {}
+      private requestOption?: RequestInit, private weightPrefix?: string) {}
 
   private findIOHandler() {
     const path = [this.modelUrl, this.weightManifestUrl];
     if (this.requestOption) {
-      this.handler = tfc.io.browserHTTPRequest(path, this.requestOption);
+      this.handler = tfc.io.browserHTTPRequest(
+          path, this.requestOption, this.weightPrefix);
     } else {
       const handlers = tfc.io.getLoadHandlers(path);
       if (handlers.length === 0) {
@@ -292,4 +296,35 @@ export async function loadFrozenModel(
   const model = new FrozenModel(modelUrl, weightsManifestUrl, requestOption);
   await model.load();
   return model;
+}
+
+/**
+ * Load the frozen model hosted by TF-Hub.
+ *
+ * Example of loading the MobileNetV2 model and making a prediction with a zero
+ * input.
+ *
+ * ```js
+ * const TFHUB_MOBILENET =
+ *   'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
+ * const model = await tf.loadTfHubModule(TFHUB_MOBILENET);
+ * const zeros = tf.zeros([1, 224, 224, 3]);
+ * model.predict(zeros).print();
+ * ```
+ *
+ * @param tfhubModelUrl url for the model hosted by TF-Hub, i.e.
+ * 'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2'.
+ * @param requestOption options for Request, which allows to send credentials
+ * and custom headers.
+ */
+/** @doc {heading: 'Models', subheading: 'Loading'} */
+export async function loadTfHubModule(
+    tfhubModuleUrl: string, requestOption?: RequestInit): Promise<FrozenModel> {
+  if (!tfhubModuleUrl.endsWith('/')) {
+    tfhubModuleUrl = tfhubModuleUrl + '/';
+  }
+  return loadFrozenModel(
+      `${tfhubModuleUrl}${DEFAULT_MODEL_NAME}${TFHUB_SEARCH_PARAM}`,
+      `${tfhubModuleUrl}${DEFAULT_MANIFEST_NAME}${TFHUB_SEARCH_PARAM}`,
+      requestOption);
 }

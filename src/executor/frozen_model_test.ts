@@ -19,14 +19,18 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {tensorflow} from '../data/compiled_api';
 
-import {FrozenModel, loadFrozenModel} from './frozen_model';
+import * as fm from './frozen_model';
 
 const HOST = 'http://example.org';
+const TFHUB_SUFFIX = '?tfjs-format=file';
 const MODEL_URL = `${HOST}/model.pb`;
 const WEIGHT_MANIFEST_URL = `${HOST}/weights_manifest.json`;
 const RELATIVE_MODEL_URL = '/path/model.pb';
 const RELATIVE_WEIGHT_MANIFEST_URL = '/path/weights_manifest.json';
-let model: FrozenModel;
+const TFHUB_MODEL_URL = `${HOST}/model/1/tensorflowjs_model.pb${TFHUB_SUFFIX}`;
+const TFHUB_WEIGHT_MANIFEST_URL =
+    `${HOST}/model/1/weights_manifest.json${TFHUB_SUFFIX}`;
+let model: fm.FrozenModel;
 const bias = tfc.tensor1d([1], 'int32');
 
 const weightsManifest: tfc.io.WeightsManifestConfig = [{
@@ -102,15 +106,18 @@ const DYNAMIC_SHAPE_MODEL: tensorflow.IGraphDef = {
 };
 describe('Model', () => {
   beforeEach(() => {
-    model = new FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
+    model = new fm.FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
     spyOn(window, 'fetch').and.callFake((path: string) => {
-      if (path === MODEL_URL || path === RELATIVE_MODEL_URL) {
+      if (path === MODEL_URL || path === RELATIVE_MODEL_URL ||
+          path === TFHUB_MODEL_URL) {
         return new Response(new Uint8Array([1, 2, 3]));
       } else if (
           path === WEIGHT_MANIFEST_URL ||
-          path === RELATIVE_WEIGHT_MANIFEST_URL) {
+          path === RELATIVE_WEIGHT_MANIFEST_URL ||
+          path === TFHUB_WEIGHT_MANIFEST_URL) {
         return new Response(JSON.stringify(weightsManifest));
-      } else if (path === `${HOST}/weight_0` || path === '/path/weight_0') {
+      } else if (
+          path.match(`${HOST}.*/weight_0`) || path === '/path/weight_0') {
         return new Response(bias.dataSync() as Int32Array);
       } else {
         throw new Error(`Invalid path: ${path}`);
@@ -217,7 +224,7 @@ describe('Model', () => {
     describe('dispose', () => {
       it('should dispose the weights', async () => {
         const numOfTensors = tfc.memory().numTensors;
-        model = new FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
+        model = new fm.FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
 
         await model.load();
         model.dispose();
@@ -235,8 +242,8 @@ describe('Model', () => {
 
     describe('relative path', () => {
       beforeEach(() => {
-        model =
-            new FrozenModel(RELATIVE_MODEL_URL, RELATIVE_WEIGHT_MANIFEST_URL);
+        model = new fm.FrozenModel(
+            RELATIVE_MODEL_URL, RELATIVE_WEIGHT_MANIFEST_URL);
       });
 
       it('load', async () => {
@@ -246,12 +253,12 @@ describe('Model', () => {
     });
 
     it('should loadFrozenModel', async () => {
-      const model = await loadFrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
+      const model = await fm.loadFrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
       expect(model).not.toBeUndefined();
     });
 
     it('should loadFrozenModel with request options', async () => {
-      const model = await loadFrozenModel(
+      const model = await fm.loadFrozenModel(
           MODEL_URL, WEIGHT_MANIFEST_URL, {credentials: 'include'});
       expect(window.fetch).toHaveBeenCalledWith(MODEL_URL, {
         credentials: 'include'
@@ -260,6 +267,12 @@ describe('Model', () => {
         credentials: 'include'
       });
       expect(model).not.toBeUndefined();
+    });
+
+    it('should call loadFrozenModel for loadTfHubModule', async () => {
+      const url = `${HOST}/model/1`;
+      const model = await fm.loadTfHubModule(url);
+      expect(model).toBeDefined();
     });
 
     describe('InferenceModel interface', () => {
