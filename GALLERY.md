@@ -67,6 +67,7 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Getting Started with TensorFlow.js](https://medium.com/tensorflow/getting-started-with-tensorflow-js-50f6783489b2) by Laurence Moroney
 - [Introducing TensorFlow.js](https://medium.com/tensorflow/introducing-tensorflow-js-machine-learning-in-javascript-bf3eab376db) by Josh Gordon and Sara Robinson
 - [Solving the Chrome T-Rex Game with Neural Networks, Genetic Algorithms and TensorFlow.js (Chinese: 前端人工智能？TensorFlow.js 学会游戏通关)](https://zhuanlan.zhihu.com/p/35451395) by [@MagicCube](https://github.com/MagicCube)
+- [A look at how we built the Emoji Scavenger Hunt using TensorFlow.js](https://medium.com/tensorflow/a-look-at-how-we-built-the-emoji-scavenger-hunt-using-tensorflow-js-3d760a7ebfe6) by Jacques Bruwer, JK Kafalas, and Shuhei Iitsuka from Google Brand Studio
 
 ## Notebooks
 - [Introduction to TensorFlow.js](https://beta.observablehq.com/@nsthorat/introduction-to-deeplearn-js) by Nikhil Thorat
