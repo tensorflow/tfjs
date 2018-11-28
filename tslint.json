@@ -24,7 +24,9 @@
     "jsdoc-format": true,
     "forin": false,
     "label-position": true,
-    "max-line-length": [true, 80],
+    "max-line-length": {
+      "options": {"limit": 80, "ignore-pattern": "^import |^export "}
+    },
     "new-parens": true,
     "no-angle-bracket-type-assertion": true,
     "no-any": true,
