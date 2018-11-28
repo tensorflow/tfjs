@@ -25,6 +25,7 @@ import {Optimizer} from './optimizer';
 
 /** @doclink Optimizer */
 export class SGDOptimizer extends Optimizer {
+  /** @nocollapse */
   static className = 'SGDOptimizer';
   protected c: Scalar;
 

@@ -25,6 +25,7 @@ import {Optimizer} from './optimizer';
 
 /** @doclink Optimizer */
 export class AdadeltaOptimizer extends Optimizer {
+  /** @nocollapse */
   static className = 'AdadeltaOptimizer';
   private c: Scalar;
   private epsilonScalar: Scalar;

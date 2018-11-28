@@ -25,6 +25,7 @@ import {Optimizer} from './optimizer';
 
 /** @doclink Optimizer */
 export class RMSPropOptimizer extends Optimizer {
+  /** @nocollapse */
   static className = 'RMSPropOptimizer';
   private c: Scalar;
   private epsilonScalar: Scalar;

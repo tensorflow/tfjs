@@ -24,6 +24,7 @@ import {NamedVariableMap} from '../tensor_types';
 import {Optimizer} from './optimizer';
 
 export class AdamaxOptimizer extends Optimizer {
+  /** @nocollapse */
   static className = 'AdamaxOptimizer';
   private c: Scalar;
   private epsScalar: Scalar;
