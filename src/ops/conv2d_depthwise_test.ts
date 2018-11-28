@@ -345,6 +345,45 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expect(result.shape).toEqual([3, 3, inDepth * chMul]);
   });
 
+  it('TensorLike', () => {
+    const pad = 'valid';
+    const stride = 1;
+
+    const x =
+        [[
+          [[0.230664], [0.987388], [0.0685208]],
+          [[0.419224], [0.887861], [0.731641]],
+          [[0.0741907], [0.409265], [0.351377]]
+        ]];
+    const w =
+        [[[[0.303873]], [[0.229223]]], [[[0.144333]], [[0.803373]]]];
+
+    const result = tf.depthwiseConv2d(x, w, stride, pad);
+
+    const expected = [1.07022, 1.03167, 0.67041, 0.778863];
+    expectArraysClose(result, expected);
+  });
+  it('TensorLike Chained', () => {
+    const pad = 'valid';
+    const stride = 1;
+    const inDepth = 1;
+
+    const x = tf.tensor4d(
+        [
+          0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
+          0.0741907, 0.409265, 0.351377
+        ],
+        [1, 3, 3, inDepth]);
+    const w =
+        [[[[0.303873]], [[0.229223]]], [[[0.144333]], [[0.803373]]]];
+
+    const result = x.depthwiseConv2D(w, stride, pad);
+    expect(result.shape).toEqual([1, 2, 2, 1]);
+
+    const expected = [1.07022, 1.03167, 0.67041, 0.778863];
+    expectArraysClose(result, expected);
+  });
+
   it('throws when passed x as a non-tensor', () => {
     const inputDepth = 1;
     const outputDepth = 1;

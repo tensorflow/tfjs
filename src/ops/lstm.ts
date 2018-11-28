@@ -44,8 +44,8 @@ export type LSTMCellFunc = {
 /** @doc {heading: 'Operations', subheading: 'RNN'} */
 function multiRNNCell_(
     lstmCells: LSTMCellFunc[], data: Tensor2D|TensorLike,
-    c: Tensor2D[]|TensorLike[],
-    h: Tensor2D[]|TensorLike[]): [Tensor2D[], Tensor2D[]] {
+    c: Array<Tensor2D|TensorLike>,
+    h: Array<Tensor2D|TensorLike>): [Tensor2D[], Tensor2D[]] {
   const $data = convertToTensor(data, 'data', 'multiRNNCell');
   const $c = convertToTensorArray(c, 'c', 'multiRNNCell');
   const $h = convertToTensorArray(h, 'h', 'multiRNNCell');

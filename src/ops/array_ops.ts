@@ -714,7 +714,8 @@ function pad_<T extends Tensor>(
  * @param axis The axis to stack along. Defaults to 0 (the first dim).
  */
 /** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
-function stack_<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): Tensor {
+function stack_<T extends Tensor>(
+    tensors: Array<T|TensorLike>, axis = 0): Tensor {
   const $tensors = convertToTensorArray(tensors, 'tensors', 'stack');
 
   util.assert($tensors.length >= 1, 'Pass at least one tensor to tf.stack');

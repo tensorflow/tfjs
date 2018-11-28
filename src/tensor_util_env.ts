@@ -113,7 +113,7 @@ export function convertToTensor<T extends Tensor>(
 }
 
 export function convertToTensorArray<T extends Tensor>(
-    arg: T[]|TensorLike[], argName: string, functionName: string): T[] {
+    arg: Array<T|TensorLike>, argName: string, functionName: string): T[] {
   if (!Array.isArray(arg)) {
     throw new Error(
         `Argument ${argName} passed to ${functionName} must be a ` +

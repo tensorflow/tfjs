@@ -36,7 +36,7 @@ import {tensor} from './tensor_ops';
  * @param tensors A list of`tf.Tensor`s to concatenate.
  * @return The concatenated array.
  */
-function concat1d_(tensors: Tensor1D[]|TensorLike[]): Tensor1D {
+function concat1d_(tensors: Array<Tensor1D|TensorLike>): Tensor1D {
   return concat(tensors, 0 /* axis */);
 }
 
@@ -67,7 +67,8 @@ function concat1d_(tensors: Tensor1D[]|TensorLike[]): Tensor1D {
  * @param axis The axis to concatenate along.
  * @return The concatenated array.
  */
-function concat2d_(tensors: Tensor2D[]|TensorLike[], axis: number): Tensor2D {
+function concat2d_(
+    tensors: Array<Tensor2D|TensorLike>, axis: number): Tensor2D {
   return concat(tensors, axis);
 }
 
@@ -101,7 +102,8 @@ function concat2d_(tensors: Tensor2D[]|TensorLike[], axis: number): Tensor2D {
  * @param axis The axis to concate along.
  * @return The concatenated array.
  */
-function concat3d_(tensors: Tensor3D[]|TensorLike[], axis: number): Tensor3D {
+function concat3d_(
+    tensors: Array<Tensor3D|TensorLike>, axis: number): Tensor3D {
   return concat(tensors, axis);
 }
 
@@ -112,7 +114,8 @@ function concat3d_(tensors: Tensor3D[]|TensorLike[], axis: number): Tensor3D {
  * @param axis The axis to concate along.
  * @return The concatenated array.
  */
-function concat4d_(tensors: Tensor4D[]|TensorLike[], axis: number): Tensor4D {
+function concat4d_(
+    tensors: Array<Tensor4D|TensorLike>, axis: number): Tensor4D {
   return concat(tensors, axis);
 }
 
@@ -155,7 +158,7 @@ function concat4d_(tensors: Tensor4D[]|TensorLike[], axis: number): Tensor4D {
  * @param axis The axis to concate along. Defaults to 0 (the first dim).
  */
 /** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
-function concat_<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): T {
+function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
   assert(tensors.length >= 1, 'Pass at least one tensor to concat');
   let $tensors = convertToTensorArray(tensors, 'tensors', 'concat');
   axis = parseAxisParam(axis, $tensors[0].shape)[0];

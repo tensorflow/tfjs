@@ -352,6 +352,62 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
             [1, 4, 4, outDepth]));
   });
 
+  it('TensorLike', () => {
+    const pad = 'valid';
+    const stride = 1;
+    const outDepth = 2;
+
+    const x = [[
+      [[0.230664], [0.987388], [0.0685208]],
+      [[0.419224], [0.887861], [0.731641]],
+      [[0.0741907], [0.409265], [0.351377]]
+    ]];
+    const depthwiseFilter =
+        [[[[0.303873]], [[0.229223]]], [[[0.144333]], [[0.803373]]]];
+    const pointwiseFilter = [[[[0.1, -0.2]]]];
+
+    const result =
+        tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
+
+    expectArraysClose(
+        result,
+        tf.tensor4d(
+            [
+              0.10702161, -0.21404321, 0.10316753, -0.20633507, 0.06704096,
+              -0.13408193, 0.07788632, -0.15577264
+            ],
+            [1, 2, 2, outDepth]));
+  });
+
+  it('TensorLike Chained', () => {
+    const pad = 'valid';
+    const stride = 1;
+    const outDepth = 2;
+    const inDepth = 1;
+
+    const x = tf.tensor4d(
+        [
+          0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
+          0.0741907, 0.409265, 0.351377
+        ],
+        [1, 3, 3, inDepth]);
+    const depthwiseFilter =
+        [[[[0.303873]], [[0.229223]]], [[[0.144333]], [[0.803373]]]];
+    const pointwiseFilter = [[[[0.1, -0.2]]]];
+
+    const result =
+        x.separableConv2d(depthwiseFilter, pointwiseFilter, stride, pad);
+
+    expectArraysClose(
+        result,
+        tf.tensor4d(
+            [
+              0.10702161, -0.21404321, 0.10316753, -0.20633507, 0.06704096,
+              -0.13408193, 0.07788632, -0.15577264
+            ],
+            [1, 2, 2, outDepth]));
+  });
+
   it('Incorrect input rank raises error', () => {
     // tslint:disable-next-line:no-any
     const x = tf.zeros([4, 4]) as any;

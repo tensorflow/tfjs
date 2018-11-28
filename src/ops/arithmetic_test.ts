@@ -29,6 +29,26 @@ describeWithFlags('div', ALL_ENVS, () => {
     expectArraysClose(r, [1, 1, 1, 1, 2.5, 6 / 5]);
   });
 
+  it('TensorLike', () => {
+    const a = [0, 1, -2, -4, 4, -4];
+    const b = [0.15, 0.2, 0.25, 0.5, 0.7, 1.2];
+    const result = tf.div(a, b);
+
+    expect(result.shape).toEqual([6]);
+    expectArraysClose(
+        result, [0, 5.0, -8.0, -8.0, 5.714285850524902, -3.3333332538604736]);
+  });
+
+  it('TensorLike chained', () => {
+    const a = tf.tensor1d([0, 1, -2, -4, 4, -4]);
+    const b = [0.15, 0.2, 0.25, 0.5, 0.7, 1.2];
+    const result = a.div(b);
+
+    expect(result.shape).toEqual(a.shape);
+    expectArraysClose(
+        result, [0, 5.0, -8.0, -8.0, 5.714285850524902, -3.3333332538604736]);
+  });
+
   it('integer division implements floor divide', () => {
     const a = tf.tensor1d([-6, -6, -5, -4, -3, -3, 3, 3, 2], 'int32');
     const c = tf.tensor1d([-2, 2, 3, 2, -3, 3, 2, 3, 2], 'int32');
@@ -344,6 +364,26 @@ describeWithFlags('mul', ALL_ENVS, () => {
     expectArraysClose(result, expected);
   });
 
+  it('TensorLike', () => {
+    const a = [[1, 2], [-3, -4]];
+    const b = [[5, 3], [4, -7]];
+    const expected = [5, 6, -12, 28];
+    const result = tf.mul(a, b);
+
+    expect(result.shape).toEqual([2, 2]);
+    expectArraysClose(result, expected);
+  });
+
+  it('TensorLike chained', () => {
+    const a = tf.tensor2d([1, 2, -3, -4], [2, 2]);
+    const b = [[5, 3], [4, -7]];
+    const expected = [5, 6, -12, 28];
+    const result = a.mul(b);
+
+    expect(result.shape).toEqual([2, 2]);
+    expectArraysClose(result, expected);
+  });
+
   it('broadcasting tensors', () => {
     const a = tf.tensor2d([1, 2, -3, -4], [2, 2]);
     const b = tf.scalar(2);
@@ -563,6 +603,28 @@ describeWithFlags('pow', ALL_ENVS, () => {
 
     expect(result.shape).toEqual([2, 3]);
     expectArraysClose(result, expected, 0.01);
+  });
+
+  it('TensorLike', () => {
+    const a = [1, 2, 3];
+    const exp = 2;
+
+    const result = tf.pow(a, exp);
+
+    expect(result.shape).toEqual([3]);
+    expect(result.dtype).toBe('float32');
+    expectArraysEqual(result, [1, 4, 9]);
+  });
+
+  it('TensorLike chained', () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const exp = 2;
+
+    const result = a.pow(exp);
+
+    expect(result.shape).toEqual([3]);
+    expect(result.dtype).toBe('float32');
+    expectArraysEqual(result, [1, 4, 9]);
   });
 
   it('int32^int32 returns int32', () => {
@@ -879,6 +941,26 @@ describeWithFlags('add', ALL_ENVS, () => {
     expectArraysClose(result, expected);
   });
 
+  it('TensorLike', () => {
+    const a = [2, 5, 1];
+    const b = [4, 2, -1];
+
+    const result = tf.add(a, b);
+
+    const expected = [6, 7, 0];
+    expectArraysClose(result, expected);
+  });
+
+  it('TensorLike chained', () => {
+    const a = tf.tensor1d([2, 5, 1]);
+    const b = [4, 2, -1];
+
+    const result = a.add(b);
+
+    const expected = [6, 7, 0];
+    expectArraysClose(result, expected);
+  });
+
   it('A + B propagates NaNs', () => {
     const a = tf.tensor1d([2, 5, NaN]);
     const b = tf.tensor1d([4, 2, -1]);
@@ -1180,6 +1262,26 @@ describeWithFlags('sub', ALL_ENVS, () => {
     const b = tf.tensor1d([4, 2, -1]);
 
     const result = tf.sub(a, b);
+
+    const expected = [-2, 3, 2];
+    expectArraysClose(result, expected);
+  });
+
+  it('TensorLike', () => {
+    const a = [2, 5, 1];
+    const b = [4, 2, -1];
+
+    const result = tf.sub(a, b);
+
+    const expected = [-2, 3, 2];
+    expectArraysClose(result, expected);
+  });
+
+  it('TensorLike chained', () => {
+    const a = tf.tensor1d([2, 5, 1]);
+    const b = [4, 2, -1];
+
+    const result = a.sub(b);
 
     const expected = [-2, 3, 2];
     expectArraysClose(result, expected);

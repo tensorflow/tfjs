@@ -218,8 +218,9 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
           w = one2D.clone();
         } else {
           w = one2D.concat(
-                  wPre.slice([1, 0], [wPre.shape[0] - 1, wPre.shape[1]]), 0) as
-              Tensor2D;
+              wPre.slice([1, 0], [wPre.shape[0] - 1, wPre.shape[1]]) as
+                  Tensor2D,
+              0);
         }
         const tau = s.matMul(u1).div(normX).neg() as Tensor2D;
 
@@ -231,8 +232,8 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
         } else {
           r = r.slice([0, 0], [j, n])
                   .concat(
-                      rjEndAll.sub(
-                          tauTimesW.matMul(w.transpose().matMul(rjEndAll))),
+                      rjEndAll.sub(tauTimesW.matMul(
+                          w.transpose().matMul(rjEndAll))) as Tensor2D,
                       0) as Tensor2D;
         }
         const qAllJEnd = q.slice([0, j], [m, q.shape[1] - j]);
@@ -241,8 +242,8 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
         } else {
           q = q.slice([0, 0], [m, j])
                   .concat(
-                      qAllJEnd.sub(
-                          qAllJEnd.matMul(w).matMul(tauTimesW.transpose())),
+                      qAllJEnd.sub(qAllJEnd.matMul(w).matMul(
+                          tauTimesW.transpose())) as Tensor2D,
                       1) as Tensor2D;
         }
         return [w, r, q];

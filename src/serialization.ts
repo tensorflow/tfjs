@@ -107,9 +107,7 @@ export class SerializationMap {
   private static instance: SerializationMap;
   classNameMap: {
     [className: string]:
-        [
-          SerializableConstructor<Serializable>, FromConfigMethod<Serializable>
-        ]
+        [SerializableConstructor<Serializable>, FromConfigMethod<Serializable>]
   };
 
   private constructor() {
@@ -137,23 +135,23 @@ export class SerializationMap {
 
 /**
  * Register a class with the serialization map of TensorFlow.js.
- * 
+ *
  * This is often used for registering custom Layers, so they can be
  * serialized and deserialized.
- * 
+ *
  * Example:
- * 
+ *
  * ```js
  * class MyCustomLayer extends tf.layers.Layer {
  *   static className = 'MyCustomLayer';
- * 
+ *
  *   constructor(config) {
  *     super(config);
  *   }
  * }
  * tf.serialization.registerClass(MyCustomLayer);
  * ```
- * 
+ *
  * @param cls The class to be registered. It must have a public static member
  *   called `className` defined and the value must be a non-empty string.
  */
@@ -163,7 +161,7 @@ export function registerClass<T extends Serializable>(
   assert(
       cls.className != null,
       `Class being registered does not have the static className property ` +
-      `defined.`);
+          `defined.`);
   assert(
       typeof cls.className === 'string',
       `className is required to be a string, but got type ` +

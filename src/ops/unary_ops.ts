@@ -210,7 +210,7 @@ function log1p_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'log1p');
 
   const grad = (dy: T) => {
-    return {$x: () => dy.divStrict($x.add(scalar(1)))};
+    return {$x: () => dy.div($x.add(1)) as T};
   };
   return ENV.engine.runKernel(backend => backend.log1p($x), {$x}, grad);
 }
@@ -230,7 +230,7 @@ function sqrt_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'sqrt');
 
   const grad = (dy: T) => {
-    return {$x: () => dy.divStrict($x.toFloat().sqrt().mul(scalar(2)))};
+    return {$x: () => dy.div($x.toFloat().sqrt().mul(2)) as T};
   };
   return ENV.engine.runKernel(backend => backend.sqrt($x), {$x}, grad);
 }
@@ -251,7 +251,7 @@ function rsqrt_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'rsqrt');
 
   const grad = (dy: T) => {
-    return {$x: () => dy.divStrict($x.pow(scalar(1.5)).mul(scalar(2))).neg()};
+    return {$x: () => dy.div($x.pow(1.5).mul(2)).neg() as T};
   };
   return ENV.engine.runKernel(backend => backend.rsqrt($x), {$x}, grad);
 }
@@ -271,7 +271,7 @@ function square_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'square');
 
   const grad = (dy: T) => {
-    return {$x: () => dy.mulStrict($x.toFloat().mul(scalar(2)))};
+    return {$x: () => dy.mul($x.toFloat().mul(2)) as T};
   };
   return ENV.engine.runKernel(backend => backend.square($x), {$x}, grad);
 }
@@ -344,8 +344,8 @@ function clipByValue_<T extends Tensor>(
   const grad = (dy: T) => {
     return {
       $x: () => dy.where(
-                    $x.greaterEqual(scalar(clipValueMin))
-                        .logicalAnd($x.lessEqual(scalar(clipValueMax))),
+                    $x.greaterEqual(clipValueMin)
+                        .logicalAnd($x.lessEqual(clipValueMax)),
                     zerosLike(dy)) as T,
     };
   };
@@ -369,7 +369,7 @@ function sigmoid_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [y] = saved;
-    return {$x: () => dy.mulStrict(y.mul(scalar(1).sub(y)))};
+    return {$x: () => dy.mul(y.mul(scalar(1).sub(y))) as T};
   };
   return ENV.engine.runKernel(
       (backend, save) => save(backend.sigmoid($x)), {$x}, grad);
@@ -537,7 +537,7 @@ function atan_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'atan');
 
   const grad = (dy: T) => {
-    return {$x: () => dy.divStrict(scalar(1).add($x.toFloat().square()))};
+    return {$x: () => dy.div($x.toFloat().square().add(1)) as T};
   };
   return ENV.engine.runKernel(backend => backend.atan($x), {$x}, grad);
 }
@@ -643,9 +643,7 @@ function acosh_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'acosh');
 
   const grad = (dy: T) => {
-    return {
-      $x: () => dy.divStrict($x.toFloat().square().sub(scalar(1)).sqrt() as T)
-    };
+    return {$x: () => dy.divStrict($x.toFloat().square().sub(1).sqrt() as T)};
   };
   return ENV.engine.runKernel(backend => backend.acosh($x), {$x}, grad);
 }
@@ -666,7 +664,7 @@ function atanh_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'atanh');
 
   const grad = (dy: T) => {
-    return {$x: () => dy.divStrict(scalar(1).sub($x.toFloat().square()))};
+    return {$x: () => dy.div(scalar(1).sub($x.toFloat().square())) as T};
   };
   return ENV.engine.runKernel(backend => backend.atanh($x), {$x}, grad);
 }
@@ -695,8 +693,7 @@ function erf_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T) => {
     return {
-      $x: () => dy.mulStrict(
-          scalar(2 / Math.sqrt(Math.PI)).mul($x.square().neg().exp()))
+      $x: () => dy.mul($x.square().neg().exp().mul(2 / Math.sqrt(Math.PI))) as T
     };
   };
   return ENV.engine.runKernel(backend => backend.erf($x), {$x}, grad);
