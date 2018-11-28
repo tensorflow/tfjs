@@ -143,4 +143,14 @@ describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
     expect(res.shape).toEqual([3]);
     expectArraysClose(res, [4, 4, 2]);
   });
+
+  it('accepts a tensor-like object chained', () => {
+    const x = tf.tensor1d([1, 2, 3, 4]);
+    const segmentIds = [0, 2, 0, 1];
+    const numSegments = 3;
+    const res = x.unsortedSegmentSum(segmentIds, numSegments);
+
+    expect(res.shape).toEqual([3]);
+    expectArraysClose(res, [4, 4, 2]);
+  });
 });

@@ -18,7 +18,7 @@
 import {ENV} from '../environment';
 import {complex, imag, real} from '../ops/complex_ops';
 import {op} from '../ops/operation';
-import {Tensor} from '../tensor';
+import {Tensor, Tensor2D} from '../tensor';
 import {assert} from '../util';
 import {scalar} from './tensor_ops';
 
@@ -41,9 +41,10 @@ import {scalar} from './tensor_ops';
  * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
  */
 function fft_(input: Tensor): Tensor {
-  assert(input.dtype === 'complex64',
-         `The dtype for tf.spectral.fft() must be complex64 ` +
-             `but got ${input.dtype}.`);
+  assert(
+      input.dtype === 'complex64',
+      `The dtype for tf.spectral.fft() must be complex64 ` +
+          `but got ${input.dtype}.`);
 
   // Collapse all outer dimensions to a single batch dimension.
   const innerDimensionSize = input.shape[input.shape.length - 1];
@@ -74,9 +75,10 @@ function fft_(input: Tensor): Tensor {
  * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
  */
 function ifft_(input: Tensor): Tensor {
-  assert(input.dtype === 'complex64',
-         `The dtype for tf.spectral.ifft() must be complex64 ` +
-             `but got ${input.dtype}.`);
+  assert(
+      input.dtype === 'complex64',
+      `The dtype for tf.spectral.ifft() must be complex64 ` +
+          `but got ${input.dtype}.`);
 
   // Collapse all outer dimensions to a single batch dimension.
   const innerDimensionSize = input.shape[input.shape.length - 1];
@@ -122,9 +124,9 @@ function rfft_(input: Tensor): Tensor {
   const realValues = real(ret);
   const imagValues = imag(ret);
   const realComplexConjugate = realValues.split(
-      [ half, innerDimensionSize - half ], realValues.shape.length - 1);
+      [half, innerDimensionSize - half], realValues.shape.length - 1);
   const imagComplexConjugate = imagValues.split(
-      [ half, innerDimensionSize - half ], imagValues.shape.length - 1);
+      [half, innerDimensionSize - half], imagValues.shape.length - 1);
 
   const outputShape = input.shape.slice();
   outputShape[input.shape.length - 1] = half;
@@ -169,7 +171,7 @@ function irfft_(input: Tensor): Tensor {
     const imagConjugate =
         imagInput.slice([0, 1], [batch, innerDimensionSize - 2])
             .reverse(1)
-            .mul(scalar(-1));
+            .mul(scalar(-1)) as Tensor2D;
 
     const r = realInput.concat(realConjugate, 1);
     const i = imagInput.concat(imagConjugate, 1);

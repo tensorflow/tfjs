@@ -114,6 +114,37 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     expectArraysClose(result, expectedResult);
   });
 
+  it('TensorLike', () => {
+    const pad = 'same';
+    const stride = 1;
+    const dataFormat = 'NWC';
+    const dilation = 1;
+
+    const x = [[[1], [2]], [[3], [4]]];
+    const w = [[[3]]];
+
+    const result = tf.conv1d(x, w, stride, pad, dataFormat, dilation);
+
+    expect(result.shape).toEqual([2, 2, 1]);
+    expectArraysClose(result, [3, 6, 9, 12]);
+  });
+  it('TensorLike Chained', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const pad = 'same';
+    const stride = 1;
+    const dataFormat = 'NWC';
+    const dilation = 1;
+
+    const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+    const w = [[[3]]];
+
+    const result = x.conv1d(w, stride, pad, dataFormat, dilation);
+
+    expect(result.shape).toEqual([2, 2, 1]);
+    expectArraysClose(result, [3, 6, 9, 12]);
+  });
+
   it('throws when x is not rank 3', () => {
     const inputDepth = 1;
     const outputDepth = 1;

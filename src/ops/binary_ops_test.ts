@@ -29,6 +29,24 @@ describeWithFlags('prelu', ALL_ENVS, () => {
     expectArraysClose(result, [0, 1, -0.5, -0.6]);
   });
 
+  it('basic TensorLike', () => {
+    const x = [0, 1, -2, -4];
+    const a = [0.15, 0.2, 0.25, 0.15];
+    const result = tf.prelu(x, a);
+
+    expect(result.shape).toEqual([4]);
+    expectArraysClose(result, [0, 1, -0.5, -0.6]);
+  });
+
+  it('basic TensorLike chained', () => {
+    const x = tf.tensor1d([0, 1, -2, -4]);
+    const a = [0.15, 0.2, 0.25, 0.15];
+    const result = x.prelu(a);
+
+    expect(result.shape).toEqual(x.shape);
+    expectArraysClose(result, [0, 1, -0.5, -0.6]);
+  });
+
   it('derivative', () => {
     const x = tf.tensor1d([0.5, 3, -0.1, -4]);
     const a = tf.tensor1d([0.2, 0.4, 0.25, 0.15]);
@@ -63,6 +81,24 @@ describeWithFlags('maximum', ALL_ENVS, () => {
     const result = tf.maximum(a, b);
 
     expect(result.shape).toEqual(a.shape);
+    expectArraysClose(result, [0.5, 3, 0.25, 0.15]);
+  });
+
+  it('TensorLike', () => {
+    const a = [0.5, 3, -0.1, -4];
+    const b = [0.2, 0.4, 0.25, 0.15];
+    const result = tf.maximum(a, b);
+
+    expect(result.shape).toEqual([4]);
+    expectArraysClose(result, [0.5, 3, 0.25, 0.15]);
+  });
+
+  it('TensorLike chained', () => {
+    const a = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const b = [0.2, 0.4, 0.25, 0.15];
+    const result = a.maximum(b);
+
+    expect(result.shape).toEqual([4]);
     expectArraysClose(result, [0.5, 3, 0.25, 0.15]);
   });
 
@@ -223,6 +259,30 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
     const a = tf.tensor1d([0.5, 3, -0.1, -4]);
     const b = tf.tensor1d([0.2, 0.4, 0.25, 0.15]);
     const result = tf.squaredDifference(a, b);
+
+    expect(result.shape).toEqual(a.shape);
+    expectArraysClose(result, [
+      Math.pow(0.5 - 0.2, 2), Math.pow(3 - 0.4, 2), Math.pow(-0.1 - 0.25, 2),
+      Math.pow(-4 - 0.15, 2)
+    ]);
+  });
+
+  it('TensorLike', () => {
+    const a = [0.5, 3, -0.1, -4];
+    const b = [0.2, 0.4, 0.25, 0.15];
+    const result = tf.squaredDifference(a, b);
+
+    expect(result.shape).toEqual([4]);
+    expectArraysClose(result, [
+      Math.pow(0.5 - 0.2, 2), Math.pow(3 - 0.4, 2), Math.pow(-0.1 - 0.25, 2),
+      Math.pow(-4 - 0.15, 2)
+    ]);
+  });
+
+  it('TensorLike chained', () => {
+    const a = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const b = [0.2, 0.4, 0.25, 0.15];
+    const result = a.squaredDifference(b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [
@@ -416,6 +476,24 @@ describeWithFlags('minimum', ALL_ENVS, () => {
     expectArraysClose(result, [0.2, 0.4, -0.1, -4]);
   });
 
+  it('TensorLike', () => {
+    const a = [0.5, 3, -0.1, -4];
+    const b = [0.2, 0.4, 0.25, 0.15];
+    const result = tf.minimum(a, b);
+
+    expect(result.shape).toEqual([4]);
+    expectArraysClose(result, [0.2, 0.4, -0.1, -4]);
+  });
+
+  it('TensorLike chained', () => {
+    const a = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const b = [0.2, 0.4, 0.25, 0.15];
+    const result = a.minimum(b);
+
+    expect(result.shape).toEqual(a.shape);
+    expectArraysClose(result, [0.2, 0.4, -0.1, -4]);
+  });
+
   it('int32 and int32', () => {
     const a = tf.tensor1d([1, 5, 2, 3], 'int32');
     const b = tf.tensor1d([2, 3, 1, 4], 'int32');
@@ -571,6 +649,24 @@ describeWithFlags('mod', ALL_ENVS, () => {
     const a = tf.tensor1d([0.5, 3, -0.1, -4]);
     const b = tf.tensor1d([0.2, 0.4, 0.25, 0.15]);
     const result = tf.mod(a, b);
+
+    expect(result.shape).toEqual(a.shape);
+    expectArraysClose(result, [0.1, 0.2, 0.15, 0.05]);
+  });
+
+  it('TensorLike', () => {
+    const a = [0.5, 3, -0.1, -4];
+    const b = [0.2, 0.4, 0.25, 0.15];
+    const result = tf.mod(a, b);
+
+    expect(result.shape).toEqual([4]);
+    expectArraysClose(result, [0.1, 0.2, 0.15, 0.05]);
+  });
+
+  it('TensorLike chained', () => {
+    const a = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const b = [0.2, 0.4, 0.25, 0.15];
+    const result = a.mod(b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [0.1, 0.2, 0.15, 0.05]);
@@ -994,43 +1090,5 @@ describeWithFlags('atan2', ALL_ENVS, () => {
 
     expect(() => tf.atan2(3, 'q'))
         .toThrowError(/Argument 'b' passed to 'atan2' must be numeric/);
-  });
-});
-
-describeWithFlags('div', ALL_ENVS, () => {
-  it('basic', () => {
-    const a = tf.tensor1d([0, 1, -2, -4, 4, -4]);
-    const b = tf.tensor1d([0.15, 0.2, 0.25, 0.5, 0.7, 1.2]);
-    const result = tf.div(a, b);
-
-    expect(result.shape).toEqual(a.shape);
-    expectArraysClose(
-        result, [0, 5.0, -8.0, -8.0, 5.714285850524902, -3.3333332538604736]);
-  });
-
-  it('floored internally', () => {
-    const a = tf.tensor1d([10, 20, -20, -40], 'int32');
-    const b = tf.tensor1d([10, 12, 8, 5], 'int32');
-    const result = tf.div(a, b);
-
-    expect(result.shape).toEqual(a.shape);
-    expectArraysClose(result, [1, 1, -3, -8]);
-  });
-
-  it('floorDiv', () => {
-    const a = tf.tensor1d([10, 20, -20, -40], 'int32');
-    const b = tf.tensor1d([10, 12, 8, 5], 'int32');
-    const result = tf.floorDiv(a, b);
-
-    expect(result.shape).toEqual(a.shape);
-    expectArraysClose(result, [1, 1, -3, -8]);
-  });
-
-  it('throws for string tensor', () => {
-    expect(() => tf.div('q', 3))
-        .toThrowError(/Argument 'a' passed to 'div' must be numeric/);
-
-    expect(() => tf.div(3, 'q'))
-        .toThrowError(/Argument 'b' passed to 'div' must be numeric/);
   });
 });

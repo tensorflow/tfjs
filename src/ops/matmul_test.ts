@@ -657,6 +657,15 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     expectArraysClose(c, [0, 8, -3, 20]);
   });
 
+  it('accepts a tensor-like object chained', () => {
+    const a = tf.tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);  // 2x3
+    const b = [[0, 1], [-3, 2], [2, 1]];                    // 3x2
+    const c = a.matMul(b);
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(c, [0, 8, -3, 20]);
+  });
+
   it('a * b where a has zero in its shape', () => {
     const a = tf.tensor2d([], [0, 3]);
     const b = tf.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);

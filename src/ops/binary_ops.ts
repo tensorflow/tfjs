@@ -139,9 +139,11 @@ function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
  * @param a The first Tensor to add element-wise.
  * @param b The second Tensor to add element-wise.
  */
-function addStrict_<T extends Tensor>(a: T, b: T): T {
-  util.assertShapesMatch(a.shape, b.shape, 'Error in addStrict: ');
-  return a.add(b);
+function addStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  const $a = convertToTensor(a, 'a', 'addStrict');
+  const $b = convertToTensor(b, 'b', 'addStrict');
+  util.assertShapesMatch($a.shape, $b.shape, 'Error in addStrict: ');
+  return $a.add($b);
 }
 
 /**
@@ -209,9 +211,11 @@ function sub_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
  * @param a The first Tensor to subtract element-wise.
  * @param b The second Tensor to subtract element-wise.
  */
-function subStrict_<T extends Tensor>(a: T, b: T): T {
-  util.assertShapesMatch(a.shape, b.shape, 'Error in subStrict: ');
-  return a.sub(b);
+function subStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  const $a = convertToTensor(a, 'a', 'subStrict');
+  const $b = convertToTensor(b, 'b', 'subStrict');
+  util.assertShapesMatch($a.shape, $b.shape, 'Error in subStrict: ');
+  return $a.sub($b);
 }
 
 /**
@@ -353,9 +357,11 @@ function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
  * @param b The first tensor to multiply. Must have the same
  *    dtype as `a`.
  */
-function mulStrict_<T extends Tensor>(a: T, b: T): T {
-  util.assertShapesMatch(a.shape, b.shape, 'Error in multiplyStrict: ');
-  return a.mul(b) as T;
+function mulStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  const $a = convertToTensor(a, 'a', 'mul');
+  const $b = convertToTensor(b, 'b', 'mul');
+  util.assertShapesMatch($a.shape, $b.shape, 'Error in multiplyStrict: ');
+  return $a.mul($b) as T;
 }
 
 /**
@@ -485,9 +491,11 @@ function floorDiv_<T extends Tensor>(
  * @param a The first tensor as the numerator for element-wise division.
  * @param b The second tensor as the denominator for element-wise division.
  */
-function divStrict_<T extends Tensor>(a: T, b: T): T {
-  util.assertShapesMatch(a.shape, b.shape, 'Error in divideStrict: ');
-  return a.div(b) as T;
+function divStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  const $a = convertToTensor(a, 'a', 'div');
+  const $b = convertToTensor(b, 'b', 'div');
+  util.assertShapesMatch($a.shape, $b.shape, 'Error in divideStrict: ');
+  return $a.div($b) as T;
 }
 
 /**
@@ -553,9 +561,11 @@ function mod_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
  * @param a The first tensor.
  * @param b The second tensor. Must have the same dtype as `a`.
  */
-function modStrict_<T extends Tensor>(a: T, b: T): T {
-  util.assertShapesMatch(a.shape, b.shape, 'Error in modStrict: ');
-  return a.mod(b);
+function modStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  const $a = convertToTensor(a, 'a', 'modStrict');
+  const $b = convertToTensor(b, 'b', 'modStrict');
+  util.assertShapesMatch($a.shape, $b.shape, 'Error in modStrict: ');
+  return $a.mod($b);
 }
 
 /**
@@ -613,9 +623,11 @@ function minimum_<T extends Tensor>(
  * @param a The first tensor.
  * @param b The second tensor. Must have the same dtype as `a`.
  */
-function minimumStrict_<T extends Tensor>(a: T, b: T): T {
-  util.assertShapesMatch(a.shape, b.shape, 'Error in minimumStrict: ');
-  return a.minimum(b);
+function minimumStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  const $a = convertToTensor(a, 'a', 'minimumStrict');
+  const $b = convertToTensor(b, 'b', 'minimumStrict');
+  util.assertShapesMatch($a.shape, $b.shape, 'Error in minimumStrict: ');
+  return $a.minimum($b);
 }
 
 /**
@@ -673,9 +685,11 @@ function maximum_<T extends Tensor>(
  * @param a The first tensor.
  * @param b The second tensor. Must have the same dtype as `a`.
  */
-function maximumStrict_<T extends Tensor>(a: T, b: T): T {
-  util.assertShapesMatch(a.shape, b.shape, 'Error in maximumStrict: ');
-  return a.maximum(b);
+function maximumStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  const $a = convertToTensor(a, 'a', 'maximumStrict');
+  const $b = convertToTensor(b, 'b', 'maximumStrict');
+  util.assertShapesMatch($a.shape, $b.shape, 'Error in maximumStrict: ');
+  return $a.maximum($b);
 }
 
 /**
@@ -731,10 +745,13 @@ function squaredDifference_<T extends Tensor>(
  * @param a The first tensor.
  * @param b The second tensor. Must have the same type as `a`.
  */
-function squaredDifferenceStrict_<T extends Tensor>(a: T, b: T): T {
+function squaredDifferenceStrict_<T extends Tensor>(
+    a: T|TensorLike, b: T|TensorLike): T {
+  const $a = convertToTensor(a, 'a', 'squaredDifferenceStrict');
+  const $b = convertToTensor(b, 'b', 'squaredDifferenceStrict');
   util.assertShapesMatch(
-      a.shape, b.shape, 'Error in squaredDifferenceStrict: ');
-  return a.squaredDifference(b);
+      $a.shape, $b.shape, 'Error in squaredDifferenceStrict: ');
+  return $a.squaredDifference($b);
 }
 
 /**

@@ -28,7 +28,22 @@ describeWithFlags('concat1d', ALL_ENVS, () => {
     const expected = [3, 5];
     expectArraysClose(result, expected);
   });
+  it('TensorLike 3 + 5', () => {
+    const a = [3];
+    const b = [5];
 
+    const result = tf.concat1d([a, b]);
+    const expected = [3, 5];
+    expectArraysClose(result, expected);
+  });
+  it('TensorLike Chained 3 + 5', () => {
+    const a = tf.tensor1d([3]);
+    const b = [5];
+
+    const result = a.concat([b]);
+    const expected = [3, 5];
+    expectArraysClose(result, expected);
+  });
   it('3 + [5,7]', () => {
     const a = tf.tensor1d([3]);
     const b = tf.tensor1d([5, 7]);
@@ -81,6 +96,28 @@ describeWithFlags('concat2d', ALL_ENVS, () => {
     const b = tf.tensor2d([5], [1, 1]);
 
     const result = tf.concat2d([a, b], axis);
+    const expected = [3, 5];
+
+    expect(result.shape).toEqual([2, 1]);
+    expectArraysClose(result, expected);
+  });
+  it('TensorLike [[3]] + [[5]], axis=0', () => {
+    const axis = 0;
+    const a = [[3]];
+    const b = [[5]];
+
+    const result = tf.concat2d([a, b], axis);
+    const expected = [3, 5];
+
+    expect(result.shape).toEqual([2, 1]);
+    expectArraysClose(result, expected);
+  });
+  it('TensorLike Chained [[3]] + [[5]], axis=0', () => {
+    const axis = 0;
+    const a = tf.tensor2d([3], [1, 1]);
+    const b = [[5]];
+
+    const result = a.concat([b], axis);
     const expected = [3, 5];
 
     expect(result.shape).toEqual([2, 1]);
@@ -198,6 +235,27 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
     const tensor2 = tf.tensor3d(
         [5, 55, 555, 6, 66, 666, 7, 77, 777, 8, 88, 888], [2, 2, 3]);
     const values = tf.concat3d([tensor1, tensor2], 0);
+    expect(values.shape).toEqual([3, 2, 3]);
+    expectArraysClose(values, [
+      1, 11, 111, 2, 22, 222, 5, 55, 555, 6, 66, 666, 7, 77, 777, 8, 88, 888
+    ]);
+  });
+
+  it('TensorLike concat axis=0', () => {
+    const tensor1 = [[[1, 11, 111], [2, 22, 222]]];
+    const tensor2 =
+        [[[5, 55, 555], [6, 66, 666]], [[7, 77, 777], [8, 88, 888]]];
+    const values = tf.concat3d([tensor1, tensor2], 0);
+    expect(values.shape).toEqual([3, 2, 3]);
+    expectArraysClose(values, [
+      1, 11, 111, 2, 22, 222, 5, 55, 555, 6, 66, 666, 7, 77, 777, 8, 88, 888
+    ]);
+  });
+  it('TensorLike Chained concat axis=0', () => {
+    const tensor1 = tf.tensor3d([1, 11, 111, 2, 22, 222], [1, 2, 3]);
+    const tensor2 =
+        [[[5, 55, 555], [6, 66, 666]], [[7, 77, 777], [8, 88, 888]]];
+    const values = tensor1.concat([tensor2], 0);
     expect(values.shape).toEqual([3, 2, 3]);
     expectArraysClose(values, [
       1, 11, 111, 2, 22, 222, 5, 55, 555, 6, 66, 666, 7, 77, 777, 8, 88, 888
