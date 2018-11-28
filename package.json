@@ -60,7 +60,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs-converter": "0.6.7",
-    "@tensorflow/tfjs-core": "0.13.11",
+    "@tensorflow/tfjs-core": "0.13.12",
     "@tensorflow/tfjs-data": "0.1.1",
     "@tensorflow/tfjs-layers": "0.8.5"
   }
