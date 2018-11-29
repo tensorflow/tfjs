@@ -51,6 +51,7 @@ function config({plugins = [], output = {}, external = []}) {
         include: 'node_modules/**',
         namedExports: {
           './node_modules/seedrandom/index.js': ['alea'],
+          './node_modules/utf8/utf8.js': ['decode'],
           './src/data/compiled_api.js': ['tensorflow'],
           './node_modules/protobufjs/minimal.js': ['roots', 'Reader', 'util']
         },
@@ -64,10 +65,15 @@ function config({plugins = [], output = {}, external = []}) {
     ],
     output: {
       banner: copyright,
+      globals: {
+        'node-fetch': 'nodeFetch',
+      },
       sourcemap: true,
       ...output,
     },
     external: [
+      // node-fetch is only used in node. Browsers have native "fetch".
+      'node-fetch',
       'crypto',
       ...external,
     ],
@@ -107,12 +113,14 @@ export default [
       file: 'dist/tf.esm.js',
       globals: {
         '@tensorflow/tfjs-core': 'tf',
+        '@tensorflow/tfjs-data': 'tf.data',
         '@tensorflow/tfjs-layers': 'tf',
         '@tensorflow/tfjs-converter': 'tf'
       }
     },
     external: [
       '@tensorflow/tfjs-core',
+      '@tensorflow/tfjs-data',
       '@tensorflow/tfjs-layers',
       '@tensorflow/tfjs-converter',
     ]
