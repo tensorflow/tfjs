@@ -67,13 +67,13 @@ import {CSVConfig} from './types';
  *     epochs: 10,
  *     callbacks: {
  *       onEpochEnd: async (epoch, logs) => {
- *         console.log(epoch, logs.loss);
+ *         console.log(epoch);
  *       }
  *     }
  *   });
  * }
  *
- * run().then(() => console.log('Done'));
+ * await run();
  * ```
  *
  * @param source URL to fetch CSV file.

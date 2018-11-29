@@ -289,10 +289,10 @@ export function datasetFromIteratorFn<T extends DataElement>(
  *
  * ```js
  * const a = tf.data.array([{'item': 1}, {'item': 2}, {'item': 3}]);
- * a.forEach(e => console.log(e));
+ * await a.forEach(e => console.log(JSON.stringify(e)));
  *
  * const b = tf.data.array([4, 5, 6]);
- * b.forEach(e => console.log(e));
+ * await b.forEach(e => console.log(JSON.stringify(e)));
  * ```
  * @param items An array of elements that will be parsed as items in a dataset.
  */
@@ -318,15 +318,15 @@ export function array<T extends DataElement>(items: T[]): Dataset<T> {
  * of two dicts:
  *
  * ```js
- * const ds1: Dataset = tf.data.array([{a: 1}, {a: 2}, {a: 3}]);
- * const ds2: Dataset = tf.data.array([{b: 4}, {b: 5}, {b: 6}]);
+ * const ds1 = tf.data.array([{a: 1}, {a: 2}, {a: 3}]);
+ * const ds2 = tf.data.array([{b: 4}, {b: 5}, {b: 6}]);
  * const ds3 = tf.data.zip([ds1, ds2]);
- * ds3.forEach(e => console.log(e));
+ * await ds3.forEach(e => console.log(JSON.stringify(e)));
  *
  * // If the goal is to merge the dicts in order to produce elements like
  * // {a: ..., b: ...}, this requires a second step such as:
  * const ds4 = ds3.map(x => {return {a: x[0].a, b: x[1].b}});
- * ds4.forEach(e => console.log(e));
+ * await ds4.forEach(e => console.log(JSON.stringify(e)));
  * ```
  */
 /** @doc {heading: 'Data', subheading: 'Operations'} */
