@@ -70,6 +70,7 @@ if (commander.out == null) {
 
 const UNION_DEPENDENCIES: Repo[] = [
   {name: 'Core', identifier: 'tfjs-core'},
+  {name: 'Data', identifier: 'tfjs-data'},
   {name: 'Layers', identifier: 'tfjs-layers'},
   {name: 'Converter', identifier: 'tfjs-converter'}
 ];
