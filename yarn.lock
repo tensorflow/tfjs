@@ -55,10 +55,10 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@tensorflow/tfjs-core@0.13.12":
-  version "0.13.12"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.13.12.tgz#8c6796c06b0357f17373f32aa605d1defe8fc719"
-  integrity sha512-mYTcHgf1NCZFNlO6DUVTsmCzu7GDEQ63PWag2eO2UkLNf6gwthggPsxT5ZqPNSeKY95CwCBg7mOZtJMryGpZiw==
+"@tensorflow/tfjs-core@0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.14.0.tgz#b279aac3829552a40e1894cd9b77c73416fe2b47"
+  integrity sha512-XzsLQma506xCeM2NmIp+AcFtCPB4XE/VQ5ljJmMUCx0RxUWcmtJJ6FwvXsMMlS3TbHPImnxO5PwZ/5ZTgktgdg==
   dependencies:
     "@types/seedrandom" "2.4.27"
     "@types/webgl-ext" "0.0.30"
