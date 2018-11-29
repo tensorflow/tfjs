@@ -17,7 +17,6 @@
  */
 
 import {ENV} from '@tensorflow/tfjs-core';
-import {DType} from '@tensorflow/tfjs-core/dist/types';
 
 import {FileDataSource} from '../sources/file_data_source';
 
@@ -260,10 +259,10 @@ describe('CSVDataset', () => {
        const source = new FileDataSource(csvDataWithMixedType, {chunkSize: 10});
        const dataset = new CSVDataset(source, {
          columnConfigs: {
-           'A': {dtype: DType.int32},
-           'B': {dtype: DType.bool},
-           'C': {dtype: DType.int32},
-           'D': {dtype: DType.bool}
+           'A': {dtype: 'int32'},
+           'B': {dtype: 'bool'},
+           'C': {dtype: 'int32'},
+           'D': {dtype: 'bool'}
          }
        });
        expect(await dataset.columnNames()).toEqual(['A', 'B', 'C', 'D']);

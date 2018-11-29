@@ -622,6 +622,7 @@
 "@tensorflow/tfjs-core@0.13.11":
   version "0.13.11"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.13.11.tgz#f5ef7e52c113b74bd3cabd7464c195cac0c302b4"
+  integrity sha512-jHTD7LbpC3JpsP2mBVD3ZiYV+Xr/l91zpA5HpQVnbdNat5J/IJHabeYwYtukiVyN4amHqyFvGFtX/gjLD82rXg==
   dependencies:
     "@types/seedrandom" "2.4.27"
     "@types/webgl-ext" "0.0.30"
@@ -631,6 +632,7 @@
 "@tensorflow/tfjs-data@0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-0.1.0.tgz#5302511fabfe9d9ac7d63781bea5f08419342d0e"
+  integrity sha512-eiscWKdNif7alo1VWO+1fYSR/F2y00KWHA25+2glnI7l1RNFMU7KNu1cKVAXvRaI90j/q0ArqEW0Y4aPmLBBhg==
   dependencies:
     "@types/node-fetch" "^2.1.2"
     node-fetch "~2.1.2"
@@ -644,6 +646,7 @@
 "@tensorflow/tfjs@^0.13.5":
   version "0.13.5"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.13.5.tgz#421fd96bb02ed87ae145c0d87bbb86cb2862c1f3"
+  integrity sha512-a0sbY2IShg+hAD+Es8fy1Ey/afoks4fxSi+PVSZc1st51brCnO3qBbqwDDctRNwx/EOfAroS8IWIKgaWTpsflg==
   dependencies:
     "@tensorflow/tfjs-converter" "0.6.7"
     "@tensorflow/tfjs-core" "0.13.11"
