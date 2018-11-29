@@ -1803,29 +1803,31 @@ export class MathBackendWebGL implements KernelBackend {
 
       let texData = this.texData.get(input.dataId);
 
-      if (texData.texture == null) {
+      if (texData.texture == null &&
+          !(!texData.isPacked && program.usesPackedTextures) &&
+          util.sizeFromShape(input.shape) <=
+              ENV.get('WEBGL_SIZE_UPLOAD_UNIFORM')) {
         // Upload small tensors that live on the CPU as uniforms, not as
         // textures. Do this only when the environment supports 32bit floats due
         // to problems when comparing 16bit floats with 32bit floats.
         // TODO(https://github.com/tensorflow/tfjs/issues/821): Make it possible
         // for packed shaders to sample from uniforms.
-        if (!(!texData.isPacked && program.usesPackedTextures) &&
-            util.sizeFromShape(input.shape) <=
-                ENV.get('WEBGL_SIZE_UPLOAD_UNIFORM')) {
-          return {
-            shape: input.shape,
-            texData: null,
-            isUniform: true,
-            uniformValues: this.readSync(input.dataId) as TypedArray
-          };
-        }
+        return {
+          shape: input.shape,
+          texData: null,
+          isUniform: true,
+          uniformValues: this.readSync(input.dataId) as TypedArray
+        };
+
+        // TODO(annyuan): Revive this block once uploading to packed textures is
+        // fixed.
 
         // This ensures that if a packed program's inputs have not yet been
         // uploaded to the GPU, they get uploaded as packed right off the bat.
-        if (program.usesPackedTextures) {
-          texData.isPacked = true;
-          texData.shape = input.shape;
-        }
+        // if (program.usesPackedTextures) {
+        // texData.isPacked = true;
+        // texData.shape = input.shape;
+        //}
       } else if (!!texData.isPacked !== !!program.usesPackedTextures) {
         let preProcessProgram: UnpackProgram|PackProgram;
         let processedInput: Tensor;
