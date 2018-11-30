@@ -381,6 +381,26 @@ export function downloadByteEncodedFloatMatrixFromOutputTexture(
   return new Float32Array(downloadTarget.buffer);
 }
 
+export function downloadPackedMatrixFromBuffer(
+    gl: WebGLRenderingContext, buffer: WebGLBuffer, batch: number, rows: number,
+    cols: number, physicalRows: number, physicalCols: number,
+    textureConfig: TextureConfig): Float32Array {
+  const gl2 = gl as WebGL2RenderingContext;
+
+  const downloadTarget =
+      new Float32Array(tex_util.getPackedRGBAArraySizeFromMatrixShape(
+          physicalRows, physicalCols));
+
+  gl2.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl2.getBufferSubData(gl.ARRAY_BUFFER, 0, downloadTarget);
+  gl2.bindBuffer(gl.ARRAY_BUFFER, null);
+
+  const matrix = new Float32Array(util.sizeFromShape([batch, rows, cols]));
+  tex_util.decodeMatrixFromPackedRGBA(
+      downloadTarget, batch, rows, cols, matrix);
+  return matrix;
+}
+
 export function downloadMatrixFromPackedOutputTexture(
     gl: WebGLRenderingContext, batch: number, rows: number, cols: number,
     physicalRows: number, physicalCols: number,

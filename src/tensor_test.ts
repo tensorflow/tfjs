@@ -108,6 +108,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expectArraysClose(await a.data(), new Float32Array([1, 2, 3, 4, 5, 6]));
   });
 
+  it('Tensor.data() packed CPU --> GPU', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
+    tf.matMul(a, tf.tensor2d([1, 2], [2, 1]));
+    expectArraysClose(await a.data(), new Float32Array([1, 2, 3, 4, 5, 6]));
+  });
+
   it('Scalar basic methods', () => {
     const a = tf.scalar(5);
     expectNumbersClose(a.get(), 5);
