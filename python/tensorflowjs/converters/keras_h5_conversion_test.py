@@ -29,14 +29,13 @@ import keras
 import numpy as np
 import tensorflow as tf
 
-from tensorflowjs.converters import keras_h5_conversion
+from tensorflowjs.converters import keras_h5_conversion as conversion
 
 
 class ConvertH5WeightsTest(unittest.TestCase):
 
   def setUp(self):
     self._tmp_dir = tempfile.mkdtemp()
-    self._converter = keras_h5_conversion.HDF5Converter()
     super(ConvertH5WeightsTest, self).setUp()
 
   def tearDown(self):
@@ -56,7 +55,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model.save_weights(h5_path)
 
     # Load the saved weights as a JSON string.
-    groups = self._converter.h5_weights_to_tfjs_format(h5py.File(h5_path))
+    groups = conversion.h5_weights_to_tfjs_format(h5py.File(h5_path))
 
     # Check the loaded weights.
     # Due to the default `split_by_layer=True`, there should be only one weight
@@ -91,8 +90,8 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model.save_weights(h5_path)
 
     # Load the saved weights as a JSON string.
-    groups = self._converter.h5_weights_to_tfjs_format(h5py.File(h5_path),
-                                                       split_by_layer=True)
+    groups = conversion.h5_weights_to_tfjs_format(h5py.File(h5_path),
+                                                  split_by_layer=True)
 
     # Check the loaded weights.
     # Due to `split_by_layer=True` and the fact that the model has two layers,
@@ -126,7 +125,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model.add(keras.layers.Dense(8, name='foo/dense'))
     model.add(keras.layers.Dense(4, name='foo/bar/dense'))
     tfjs_path = os.path.join(self._tmp_dir, 'nested_layer_names_model')
-    keras_h5_conversion.save_keras_model(model, tfjs_path)
+    conversion.save_keras_model(model, tfjs_path)
 
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
@@ -163,7 +162,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     config_json = json.loads(model.to_json(), encoding='utf8')
 
     # Load the saved weights as a JSON string.
-    out, groups = self._converter.h5_merged_saved_model_to_tfjs_format(
+    out, groups = conversion.h5_merged_saved_model_to_tfjs_format(
         h5py.File(h5_path))
     saved_topology = out['model_config']
 
@@ -209,7 +208,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     config_json = json.loads(model.to_json(), encoding='utf8')
 
     # Load the saved weights as a JSON string.
-    out, groups = self._converter.h5_merged_saved_model_to_tfjs_format(
+    out, groups = conversion.h5_merged_saved_model_to_tfjs_format(
         h5py.File(h5_path), split_by_layer=True)
     saved_topology = out['model_config']
 
@@ -253,7 +252,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     sequential_model.save_weights(h5_path)
 
     # Load the saved weights as a JSON string.
-    groups = self._converter.h5_weights_to_tfjs_format(h5py.File(h5_path))
+    groups = conversion.h5_weights_to_tfjs_format(h5py.File(h5_path))
 
     # Check the loaded weights.
     # Due to the default `split_by_layer=False`, there should be only one weight
@@ -287,8 +286,8 @@ class ConvertH5WeightsTest(unittest.TestCase):
     sequential_model.save_weights(h5_path)
 
     # Load the saved weights as a JSON string.
-    groups = self._converter.h5_weights_to_tfjs_format(h5py.File(h5_path),
-                                                       split_by_layer=True)
+    groups = conversion.h5_weights_to_tfjs_format(h5py.File(h5_path),
+                                                  split_by_layer=True)
 
     # Check the loaded weights.
     # Due to the default `split_by_layer=True`, there should be two weight
@@ -318,7 +317,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     dense_layer = keras.layers.Dense(3)
     t_output = dense_layer(t_input)
     model = keras.Model(t_input, t_output)
-    keras_h5_conversion.save_keras_model(model, self._tmp_dir)
+    conversion.save_keras_model(model, self._tmp_dir)
 
     # Verify the content of the artifacts output directory.
     self.assertTrue(
@@ -345,7 +344,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     # `tf.keras.Model`s must be compiled before they can be saved.
     model.compile(loss='mean_squared_error', optimizer='sgd')
 
-    keras_h5_conversion.save_keras_model(model, self._tmp_dir)
+    conversion.save_keras_model(model, self._tmp_dir)
 
     # Verify the content of the artifacts output directory.
     self.assertTrue(
@@ -371,7 +370,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     outer_model.add(inner_model)
     outer_model.add(keras.layers.Dense(1, activation='sigmoid'))
 
-    keras_h5_conversion.save_keras_model(outer_model, self._tmp_dir)
+    conversion.save_keras_model(outer_model, self._tmp_dir)
 
     # Verify the content of the artifacts output directory.
     self.assertTrue(
@@ -398,7 +397,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     # `tf.keras.Model`s must be compiled before they can be saved.
     model.compile(loss='mean_squared_error', optimizer='sgd')
 
-    keras_h5_conversion.save_keras_model(model, self._tmp_dir)
+    conversion.save_keras_model(model, self._tmp_dir)
 
     # Verify the content of the artifacts output directory.
     self.assertTrue(
@@ -421,7 +420,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     os.makedirs(artifacts_dir)
     model = keras.Sequential()
     model.add(keras.layers.Dense(3, input_shape=[2]))
-    keras_h5_conversion.save_keras_model(model, artifacts_dir)
+    conversion.save_keras_model(model, artifacts_dir)
 
     # Verify the content of the artifacts output directory.
     self.assertTrue(
@@ -449,7 +448,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model = keras.Model(t_input, t_output)
     with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
         ValueError, r'already exists as a file'):
-      keras_h5_conversion.save_keras_model(model, artifacts_dir)
+      conversion.save_keras_model(model, artifacts_dir)
 
 
 

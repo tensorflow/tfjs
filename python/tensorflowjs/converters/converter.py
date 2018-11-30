@@ -29,7 +29,7 @@ import tensorflow as tf
 
 from tensorflowjs import quantization
 from tensorflowjs import version
-from tensorflowjs.converters import keras_h5_conversion
+from tensorflowjs.converters import keras_h5_conversion as conversion
 from tensorflowjs.converters import keras_tfjs_loader
 from tensorflowjs.converters import tf_saved_model_conversion
 
@@ -71,15 +71,13 @@ def dispatch_keras_h5_to_tensorflowjs_conversion(
         'Expected path to point to an HDF5 file, but it points to a '
         'directory: %s' % h5_path)
 
-  converter = keras_h5_conversion.HDF5Converter()
-
   h5_file = h5py.File(h5_path)
   if 'layer_names' in h5_file.attrs:
     model_json = None
-    groups = converter.h5_weights_to_tfjs_format(
+    groups = conversion.h5_weights_to_tfjs_format(
         h5_file, split_by_layer=split_weights_by_layer)
   else:
-    model_json, groups = converter.h5_merged_saved_model_to_tfjs_format(
+    model_json, groups = conversion.h5_merged_saved_model_to_tfjs_format(
         h5_file, split_by_layer=split_weights_by_layer)
 
   if output_dir:
@@ -88,7 +86,7 @@ def dispatch_keras_h5_to_tensorflowjs_conversion(
           'Output path "%s" already exists as a file' % output_dir)
     elif not os.path.isdir(output_dir):
       os.makedirs(output_dir)
-    converter.write_artifacts(
+    conversion.write_artifacts(
         model_json, groups, output_dir, quantization_dtype)
 
   return model_json, groups
