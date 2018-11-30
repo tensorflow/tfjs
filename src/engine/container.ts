@@ -22,6 +22,7 @@ import * as types_utils from '../utils/types_utils';
 import {batchSetValue, LayerVariable} from '../variables';
 import {version as layersVersion} from '../version';
 
+import {execute, FeedDict} from './executor';
 import {InputLayer} from './input_layer';
 import {DisposeResult, Layer, Node, SymbolicTensor} from './topology';
 
@@ -813,15 +814,11 @@ export abstract class Container extends Layer {
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       inputs = generic_utils.toList(inputs);
-      let masks: Tensor[];
-
-      if ('mask' in kwargs) {
-        masks = generic_utils.toList(kwargs['mask']);
-      } else {
-        masks = generic_utils.pyListRepeat(null, inputs.length);
+      const feedDict = new FeedDict();
+      for (let i = 0; i < this.inputs.length; ++i) {
+        feedDict.add(this.inputs[i], inputs[i]);
       }
-      // TODO(michaelterry): Add support for caching.
-      return this.runInternalGraph(inputs, masks)[0];
+      return execute(this.outputs, feedDict, kwargs) as Tensor | Tensor[];
     });
   }
 

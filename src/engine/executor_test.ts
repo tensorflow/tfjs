@@ -86,18 +86,6 @@ describeMathCPU('FeedDict', () => {
     const feedDict = new FeedDict([{key: s, value: sValue}]);
     expect(feedDict.getValue(s)).toEqual(sValue);
   });
-  it('Feeding incompatible rank leads to error', () => {
-    const s = tfl.input({shape: [null, 4], name: 's', dtype: 'float32'});
-    const sValue = tensor2d([1, 3, 3, 7], [1, 4]);
-    expect(() => new FeedDict([{key: s, value: sValue}]))
-        .toThrowError(/rank of feed .* does not match/);
-  });
-  it('Feeding incompatible dimension leads to error', () => {
-    const s = tfl.input({shape: [null, 4], name: 's', dtype: 'float32'});
-    const sValue = tensor3d([0, 0, 8], [1, 1, 3]);
-    expect(() => new FeedDict([{key: s, value: sValue}]))
-        .toThrowError(/The 2-th dimension of the feed .* is incompatible/);
-  });
 });
 
 describeMathCPUAndGPU('Executor', () => {

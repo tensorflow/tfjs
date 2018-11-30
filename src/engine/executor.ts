@@ -25,32 +25,16 @@ import {SymbolicTensor} from './topology';
  * Helper function to check the dtype and shape compatibility of a feed value.
  */
 function assertFeedCompatibility(key: SymbolicTensor, val: Tensor): Tensor {
-  // 1. Check shape compatibility.  If shapes are not compatible, error.
-  if (key.shape != null) {
-    if (key.shape.length !== val.shape.length) {
-      throw new ValueError(
-          `The rank of feed (${val.shape.length}) does not match the rank of ` +
-          `the key (${key.shape.length}).`);
-    }
-
-    for (let i = 0; i < key.shape.length; ++i) {
-      if (key.shape[i] != null && key.shape[i] !== val.shape[i]) {
-        throw new ValueError(
-            `The ${i}-th dimension of the feed (${val.shape[i]}) is ` +
-            `incompatible with that of the key (${key.shape[i]}).`);
-      }
-    }
-  }
-  // 2. Check dtype compatibility.
+  // Check dtype compatibility.
   if (key.dtype == null || key.dtype === val.dtype) {
-    //  2a.  If types match, return val tensor as is.
+    //  a.  If types match, return val tensor as is.
     return val;
   }
   try {
-    //  2b. Attempt to convert to expected type.
+    //  b. Attempt to convert to expected type.
     return cast(val, key.dtype);
   } catch (err) {
-    //  2c. If conversion fails, return helpful error.
+    //  c. If conversion fails, return helpful error.
     throw new ValueError(
         `The dtype of the feed (${val.dtype}) can not be cast to the dtype ` +
         `of the key '${key.name}' (${key.dtype}).`);

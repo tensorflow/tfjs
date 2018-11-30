@@ -80,16 +80,43 @@ describeMathCPUAndGPU('TimeDistributed Layer: Tensor', () => {
             [[[3], [7], [11], [15]], [[-3], [-7], [-11], [-15]]], [2, 4, 1]));
   });
 
+  // Reference Python Keras code:
+  // ```py
+  // import keras
+  // import numpy as np
+  //
+  // model_as_layer = keras.Sequential(
+  //     layers=[keras.layers.Dense(
+  //         units=3,
+  //         input_shape=[2, 5],
+  //         kernel_initializer='ones',
+  //         activation='softmax')])
+  //
+  // td = keras.layers.TimeDistributed(
+  //     layer=model_as_layer, input_shape=[2, 5])
+  // model = keras.Sequential(layers=[td])
+  // model.summary()
+  //
+  // xs = np.ones([1, 2, 5])
+  // ys = model.predict(xs)
+  // print(ys)
+  // ```
   it('Model as constituent layer', () => {
     const modelAsLayer = tfl.sequential({
-      layers: [tfl.layers.dense(
-          {activation: 'softmax', units: 3, inputShape: [2, 5]})]
+      layers: [tfl.layers.dense({
+        activation: 'softmax',
+        units: 3,
+        inputShape: [2, 5],
+        kernelInitializer: 'ones'})],
     });
     const td =
         tfl.layers.timeDistributed({layer: modelAsLayer, inputShape: [2, 5]});
     const model = tfl.sequential({layers: [td]});
     const ys = model.predict(ones([1, 2, 5])) as Tensor;
     expect(ys.shape).toEqual([1, 2, 3]);
+    expectTensorsClose(ys, tensor3d(
+        [[[0.33333334, 0.33333334, 0.33333334],
+          [0.33333334, 0.33333334, 0.33333334]]]));
   });
 });
 

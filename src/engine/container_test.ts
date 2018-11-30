@@ -15,7 +15,8 @@ import {describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Container, ContainerConfig} from './container';
 import {execute, FeedDict} from './executor';
-import {getSourceInputs, Layer, LayerConfig} from './topology';
+import {getSourceInputs, Layer, LayerConfig, SymbolicTensor, CallHook} from './topology';
+import {Kwargs} from '../types';
 
 class LayerForTest extends tfl.layers.Layer {
   static className = 'LayerForTest';
@@ -645,5 +646,28 @@ describeMathCPUAndGPU('Model-dispose', () => {
 
     // At this point, the inner model should have become unusable.
     expect(() => innerModel.predict(xsInner)).toThrowError(/already disposed/);
+  });
+
+  it('Nested model gets the correct kwargs', async () => {
+    const innerModel = tfl.sequential();
+    const layer = tfl.layers.dense({
+      units: 1,inputShape: [5], activation: 'sigmoid'});
+    innerModel.add(layer);
+
+    const input = tfl.input({shape: [5]});
+    const output = innerModel.apply(input) as SymbolicTensor;
+    const model = tfl.model({inputs: input, outputs: output});
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    const kwargsArray: Kwargs[] = [];
+    const recordKwargsHook: CallHook =
+        (inputs: Tensor|Tensor[], kwargs: {}) => kwargsArray.push(kwargs);
+    layer.setCallHook(recordKwargsHook);
+
+    const xs = ones([3, 5]);
+    const ys = ones([3, 1]);
+    await model.trainOnBatch(xs, ys);
+    expect(kwargsArray.length).toEqual(1);
+    expect(kwargsArray[0]['training']).toEqual(true);
   });
 });
