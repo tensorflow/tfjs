@@ -199,6 +199,14 @@ export class GPGPUContext {
             this.gl, rows, columns, this.textureConfig));
   }
 
+  public downloadPackedMatrixFromBuffer(
+      buffer: WebGLBuffer, batch: number, rows: number, columns: number,
+      physicalRows: number, physicalCols: number): Float32Array {
+    return gpgpu_util.downloadPackedMatrixFromBuffer(
+        this.gl, buffer, batch, rows, columns, physicalRows, physicalCols,
+        this.textureConfig);
+  }
+
   public downloadFloat32MatrixFromBuffer(
       buffer: WebGLBuffer, rows: number, columns: number): Float32Array {
     return gpgpu_util.downloadFloat32MatrixFromBuffer(

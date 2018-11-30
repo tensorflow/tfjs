@@ -92,6 +92,7 @@ import {SegmentOpProgram} from './webgl/segment_gpu';
 import {SelectProgram} from './webgl/select_gpu';
 import {SliceProgram} from './webgl/slice_gpu';
 import {StridedSliceProgram} from './webgl/strided_slice_gpu';
+import * as tex_util from './webgl/tex_util';
 import {TextureData, TextureUsage} from './webgl/tex_util';
 import {TextureManager} from './webgl/texture_manager';
 import {TileProgram} from './webgl/tile_gpu';
@@ -301,7 +302,7 @@ export class MathBackendWebGL implements KernelBackend {
       return new Promise<TypedArray>(resolve => subscribers.push(resolve));
     }
     const texData = this.texData.get(dataId);
-    const {texture, values, texShape} = texData;
+    const {texture, values, texShape, isPacked, shape} = texData;
     if (values != null) {
       return this.convertAndCacheOnCPU(dataId);
     }
@@ -316,8 +317,14 @@ export class MathBackendWebGL implements KernelBackend {
     }
 
     // Possibly copy the texture into a buffer before inserting a fence.
-    const bufferOrTexture = this.gpgpu.maybeCreateBufferFromTexture(
-        texture, texShape[0], texShape[1]);
+    let width = texShape[1];
+    let height = texShape[0];
+    if (isPacked) {
+      [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
+          texShape[0], texShape[1]);
+    }
+    const bufferOrTexture =
+        this.gpgpu.maybeCreateBufferFromTexture(texture, height, width);
 
     // Create a fence and wait for it to resolve.
     await this.gpgpu.createAndWaitForFence();
@@ -327,8 +334,18 @@ export class MathBackendWebGL implements KernelBackend {
     if (bufferOrTexture instanceof WebGLTexture) {
       vals = this.getValuesFromTexture(dataId);
     } else {
-      vals = this.gpgpu.downloadFloat32MatrixFromBuffer(
-          bufferOrTexture, texShape[0], texShape[1]);
+      if (isPacked) {
+        const batch = this.getBatchDim(shape);
+        let rows = 1, cols = 1;
+        if (shape.length) {
+          [rows, cols] = this.getRowsCols(shape);
+        }
+        vals = this.gpgpu.downloadPackedMatrixFromBuffer(
+            bufferOrTexture, batch, rows, cols, texShape[0], texShape[1]);
+      } else {
+        vals = this.gpgpu.downloadFloat32MatrixFromBuffer(
+            bufferOrTexture, texShape[0], texShape[1]);
+      }
     }
     const dTypeVals = this.convertAndCacheOnCPU(dataId, vals);
 
@@ -1803,31 +1820,29 @@ export class MathBackendWebGL implements KernelBackend {
 
       let texData = this.texData.get(input.dataId);
 
-      if (texData.texture == null &&
-          !(!texData.isPacked && program.usesPackedTextures) &&
-          util.sizeFromShape(input.shape) <=
-              ENV.get('WEBGL_SIZE_UPLOAD_UNIFORM')) {
-        // Upload small tensors that live on the CPU as uniforms, not as
-        // textures. Do this only when the environment supports 32bit floats due
-        // to problems when comparing 16bit floats with 32bit floats.
-        // TODO(https://github.com/tensorflow/tfjs/issues/821): Make it possible
-        // for packed shaders to sample from uniforms.
-        return {
-          shape: input.shape,
-          texData: null,
-          isUniform: true,
-          uniformValues: this.readSync(input.dataId) as TypedArray
-        };
-
-        // TODO(annyuan): Revive this block once uploading to packed textures is
-        // fixed.
+      if (texData.texture == null) {
+        if (!(!texData.isPacked && program.usesPackedTextures) &&
+            util.sizeFromShape(input.shape) <=
+                ENV.get('WEBGL_SIZE_UPLOAD_UNIFORM')) {
+          // Upload small tensors that live on the CPU as uniforms, not as
+          // textures. Do this only when the environment supports 32bit floats
+          // due to problems when comparing 16bit floats with 32bit floats.
+          // TODO(https://github.com/tensorflow/tfjs/issues/821): Make it
+          // possible for packed shaders to sample from uniforms.
+          return {
+            shape: input.shape,
+            texData: null,
+            isUniform: true,
+            uniformValues: this.readSync(input.dataId) as TypedArray
+          };
+        }
 
         // This ensures that if a packed program's inputs have not yet been
         // uploaded to the GPU, they get uploaded as packed right off the bat.
-        // if (program.usesPackedTextures) {
-        // texData.isPacked = true;
-        // texData.shape = input.shape;
-        //}
+        if (program.usesPackedTextures) {
+          texData.isPacked = true;
+          texData.shape = input.shape;
+        }
       } else if (!!texData.isPacked !== !!program.usesPackedTextures) {
         let preProcessProgram: UnpackProgram|PackProgram;
         let processedInput: Tensor;
