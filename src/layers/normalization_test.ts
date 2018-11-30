@@ -12,7 +12,7 @@
  * Unit tests for normalization layers.
  */
 
-import {onesLike, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
+import {onesLike, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
 import {SymbolicTensor} from '../engine/topology';
@@ -384,25 +384,25 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
     expectTensorsClose(layer.getWeights()[1], onesLike(layer.getWeights()[1]));
   });
 
+  // Use the following Python code to get the reference values for assertion:
+  // ```python
+  // from tensorflow import keras
+  // import numpy as np
+  //
+  // layer1 = keras.layers.BatchNormalization(input_shape=(4,))
+  // model = keras.Sequential([layer1])
+  //
+  // model.compile(loss='mean_squared_error', optimizer='sgd')
+  //
+  // xs = np.array(
+  //     [[1, 2, 3, 4], [2, 4, 6, 8], [12, 11, 10, 9]], dtype=np.float32)
+  // ys = np.zeros([3, 4])
+  // print(layer1.get_weights())
+  // history = model.fit(xs, ys, epochs=2, batch_size=3)
+  // print(history.history)
+  // print(layer1.get_weights())
+  // ```
   it('Fit: 2D, BatchNorm Layer Only', async () => {
-    // Use the following Python code to get the reference values for assertion:
-    // ```python
-    // import keras
-    // import numpy as np
-    //
-    // layer1 = keras.layers.BatchNormalization(input_shape=(4,))
-    // model = keras.Sequential([layer1])
-    //
-    // model.compile(loss='mean_squared_error', optimizer='sgd')
-    //
-    // xs = np.array(
-    //     [[1, 2, 3, 4], [2, 4, 6, 8], [12, 11, 10, 9]], dtype=np.float32)
-    // ys = np.zeros([3, 4])
-    // print(layer1.get_weights())
-    // history = model.fit(xs, ys, epochs=2, batch_size=3)
-    // print(history.history)
-    // print(layer1.get_weights())
-    // ```
     const layer1 = tfl.layers.batchNormalization({inputShape: [4]});
     const model = tfl.sequential({layers: [layer1]});
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
@@ -418,41 +418,42 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
     const betaValue = layer1.getWeights()[1];
     expectTensorsClose(
         betaValue,
-        [2.9802322e-10, 1.4901161e-10, 8.9406960e-10, -7.4505802e-10]);
+        [2.9802322e-10,  1.4901161e-10,  9.1269614e-10, -7.4505802e-10]);
     const movingMeanValue = layer1.getWeights()[2];
     expectTensorsClose(
-        movingMeanValue, [5.0000086, 5.6666765, 6.333345, 7.000012]);
+        movingMeanValue, [0.09949999, 0.11276666, 0.12603334, 0.13929999]);
     const movingVarianceValue = layer1.getWeights()[3];
     expectTensorsClose(
-        movingVarianceValue, [37.018574, 22.344547, 12.339525, 7.003515]);
+        movingVarianceValue, [1.4709667, 1.2763889, 1.1437222, 1.0729666]);
   });
 
+  // Use the following Python code to get the reference values for
+  // assertion:
+  // ```python
+  // from tensorflow import keras
+  // import numpy as np
+  //
+  // layer1 = keras.layers.Dense(
+  //     4, kernel_initializer='ones', use_bias=False, input_shape=(4,))
+  // layer2 = keras.layers.BatchNormalization()
+  // layer3 = keras.layers.Dense(1, kernel_initializer='ones',
+  //                             use_bias=False)
+  // model = keras.Sequential([layer1, layer2, layer3])
+  //
+  // optimizer = keras.optimizers.sgd(lr=0.1)
+  // model.compile(loss='mean_squared_error', optimizer=optimizer)
+  //
+  // xs = np.array([[1, 2, 3, 4], [2, 4, 6, 8], [12, 11, 10, 9]],
+  //                dtype=np.float32)
+  // ys = np.zeros([3, 1])
+  // history = model.fit(xs, ys, epochs=3, batch_size=3)
+  //
+  // print(history.history)
+  // print(layer1.get_weights())
+  // print(layer2.get_weights())
+  // print(layer3.get_weights())
+  // ```
   it('Fit: 2D, BatchNorm Layer between two Dense Layers', async () => {
-    // Use the following Python code to get the reference values for
-    // assertion:
-    // ```python
-    // import keras
-    // from keras import backend as keras_backend
-    // import numpy as np
-    //
-    // layer1 = keras.layers.Dense(
-    //     4, kernel_initializer='ones', use_bias=False, input_shape=(4,))
-    // layer2 = keras.layers.BatchNormalization()
-    // layer3 = keras.layers.Dense(1, kernel_initializer='ones',
-    // use_bias=False) model = keras.Sequential([layer1, layer2, layer3])
-    //
-    // optimizer = keras.optimizers.sgd(lr=0.1)
-    // model.compile(loss='mean_squared_error', optimizer=optimizer)
-    //
-    // xs = np.array([[1, 2, 3, 4], [2, 4, 6, 8], [12, 11, 10, 9]],
-    // dtype=np.float32) ys = np.zeros([3, 1]) history = model.fit(xs, ys,
-    // epochs=3, batch_size=3)
-    //
-    // print(history.history)
-    // print(layer1.get_weights())
-    // print(layer2.get_weights())
-    // print(layer3.get_weights())
-    // ```
     const layer1 = tfl.layers.dense(
         {units: 4, kernelInitializer: 'ones', useBias: false, inputShape: [4]});
     const layer2 = tfl.layers.batchNormalization({inputShape: [4]});
@@ -488,12 +489,12 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
         betaValue,
         [5.5367128e-08, 5.5367128e-08, 5.5367128e-08, 5.5367128e-08]);
     const movingMeanValue = layer2.getWeights()[2];
+    // TODO(cais): Update this to tf.keras.
     expectTensorsClose(
-        movingMeanValue, [23.999907, 23.999907, 23.999907, 23.999907]);
+        movingMeanValue, [0.7128234, 0.7128234, 0.7128234, 0.7128234]);
     const movingVarianceValue = layer2.getWeights()[3];
     expectTensorsClose(
-        movingVarianceValue,
-        [268.13364, 268.13364, 268.13364, 268.13364]);
+        movingVarianceValue,[6.276868, 6.276868, 6.276868, 6.276868]);
     const dense2KernelValue = layer3.getWeights()[0];
     expectTensorsClose(
         dense2KernelValue,
@@ -502,27 +503,158 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
             [4, 1]));
   });
 
+  // Python reference code:
+  // ```python
+  // import numpy as np
+  // from tensorflow import keras
+  //
+  // model = keras.Sequential()
+  // model.add(keras.layers.Conv2D(
+  //     4,
+  //     2,
+  //     kernel_initializer='ones',
+  //     bias_initializer='zeros',
+  //     input_shape=[5, 5, 1]))
+  // model.add(keras.layers.BatchNormalization())
+  // model.add(keras.layers.Flatten())
+  // model.add(keras.layers.Dense(
+  //     1,
+  //     kernel_initializer='ones',
+  //     bias_initializer='zeros'))
+  //
+  // model.compile(loss='mse', optimizer='sgd')
+  //
+  // xs = np.arange(2 * 5 * 5 * 1).reshape([2, 5, 5, 1])
+  // ys = np.array([[0], [1]])
+  // h = model.fit(xs, ys, epochs=3)
+  // print(h.history)
+  // ```
+  it('Fit: Wtih conv2d layer', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.conv2d({
+      filters: 4,
+      kernelSize: 2,
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros',
+      inputShape: [5, 5, 1]
+    }));
+    model.add(tfl.layers.batchNormalization());
+    model.add(tfl.layers.flatten());
+    model.add(tfl.layers.dense({
+      units: 1,
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros'
+    }));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    const xsData = [];
+    for (let i = 0; i < 2 * 5 * 5 * 1; ++i) {
+      xsData.push(i);
+    }
+    const xs = tensor4d(xsData, [2, 5, 5, 1]);
+    const ys = tensor2d([0, 1], [2, 1]);
+
+    const h = await model.fit(xs, ys, {epochs: 2});
+    expectTensorsClose(
+        h.history.loss as number[], [3332.9971, 2122.5361], 0.01);
+  });
+
+  // Reference Python code:
+  // ```python
+  // import numpy as np
+  // import tensorflow as tf
+  // from tensorflow import keras
+  //
+  // model = keras.Sequential()
+  // model.add(keras.layers.Conv2DTranspose(
+  //     4,
+  //     2,
+  //     kernel_initializer='ones',
+  //     bias_initializer='zeros',
+  //     input_shape=[5, 5, 1]))
+  // model.add(keras.layers.BatchNormalization())
+  // model.add(keras.layers.Flatten())
+  // model.add(keras.layers.Dense(
+  //     1,
+  //     kernel_initializer='ones',
+  //     bias_initializer='zeros'))
+  //
+  // model.compile(loss='mse', optimizer='sgd')
+  //
+  // xs = np.arange(2 * 5 * 5 * 1).reshape([2, 5, 5, 1]).astype(np.float32)
+  // xs = (xs - 25.0) / 100.0
+  // ys = np.array([[0], [1]])
+  //
+  // print(model.layers[1].get_weights())
+  // h = model.fit(xs, ys, epochs=2)
+  // print(h.history)
+  // print(model.layers[1].get_weights())
+  // ```
+  it('Fit: Wtih conv2dTranspose layer', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.conv2dTranspose({
+      filters: 4,
+      kernelSize: 2,
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros',
+      inputShape: [5, 5, 1]
+    }));
+    model.add(tfl.layers.batchNormalization());
+    model.add(tfl.layers.flatten());
+    model.add(tfl.layers.dense({
+      units: 1,
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros'
+    }));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    const xsData = [];
+    for (let i = 0; i < 2 * 5 * 5 * 1; ++i) {
+      xsData.push(i);
+    }
+    const xs =
+        (tensor4d(xsData, [2, 5, 5, 1]).sub(scalar(25))).div(scalar(100));
+    const ys = tensor2d([0, 1], [2, 1]);
+
+    const h = await model.fit(xs, ys, {epochs: 2});
+    expect(h.history.loss[0]).toBeCloseTo(13922.4492);
+    expect(h.history.loss[1]).toBeCloseTo(106532048, -3);
+    const weights = model.layers[1].getWeights();
+    expect(weights.length).toEqual(4);
+    expectTensorsClose(
+        weights[0],
+        tensor1d([7661.0874, 7661.0874, 7661.0874, 7661.0874]), 1e-2);
+    expectTensorsClose(
+        weights[1],
+        tensor1d([-118.35103, -118.35103, -118.35103, -118.35103]), 1e-2);
+    expectTensorsClose(
+        weights[2],
+        tensor1d([-0.00026271, -0.00026271, -0.00026271, -0.00026271]));
+    expectTensorsClose(
+        weights[3],
+        tensor1d([0.98333836, 0.98333836, 0.98333836, 0.98333836]));
+  });
+
+  // Use the following Python code to get the reference values for assertion:
+  // ```python
+  // from tensorflow import keras
+  // import numpy as np
+  //
+  // layer1 = keras.layers.BatchNormalization(input_shape=[2, 2])
+  // model = keras.Sequential([layer1])
+  //
+  // model.compile(loss='mean_squared_error', optimizer='sgd')
+  //
+  // xs = np.array(
+  //     [[[1, 2], [3, 4]], [[2, 4], [6, 8]], [[12, 11], [10, 9]]],
+  //     dtype=np.float32)
+  // ys = np.zeros([3, 2, 2], dtype=np.float32)
+  // print(layer1.get_weights())
+  // history = model.fit(xs, ys, epochs=2, batch_size=3)
+  // print(history.history)
+  // print(layer1.get_weights())
+  // ```
   it('Fit: 3D, BatchNorm Layer Only', async () => {
-    // Use the following Python code to get the reference values for assertion:
-    // ```python
-    // import keras
-    // from keras import backend as keras_backend
-    // import numpy as np
-    //
-    // layer1 = keras.layers.BatchNormalization(input_shape=[2, 2])
-    // model = keras.Sequential([layer1])
-    //
-    // model.compile(loss='mean_squared_error', optimizer='sgd')
-    //
-    // xs = np.array(
-    //     [[[1, 2], [3, 4]], [[2, 4], [6, 8]], [[12, 11], [10, 9]]],
-    //     dtype=np.float32)
-    // ys = np.zeros([3, 2, 2], dtype=np.float32)
-    // print(layer1.get_weights())
-    // history = model.fit(xs, ys, epochs=2, batch_size=3)
-    // print(history.history)
-    // print(layer1.get_weights())
-    // ```
     const layer1 = tfl.layers.batchNormalization({inputShape: [2, 2]});
     const model = tfl.sequential({layers: [layer1]});
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
@@ -538,9 +670,8 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
     const betaValue = layer1.getWeights()[1];
     expectTensorsClose(betaValue, [-1.1175870e-09, 8.1956386e-10]);
     const movingMeanValue = layer1.getWeights()[2];
-    expectTensorsClose(movingMeanValue, [5.6666765, 6.333345]);
+    expectTensorsClose(movingMeanValue, [0.11276666, 0.12603334]);
     const movingVarianceValue = layer1.getWeights()[3];
-    expectTensorsClose(movingVarianceValue, [20.270758, 12.269142]);
+    expectTensorsClose(movingVarianceValue, [1.3161889, 1.1835222], 1e-5);
   });
 });
-

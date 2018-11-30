@@ -15,9 +15,9 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 
+import {getScalar} from '../backend/state';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerConfig} from '../engine/topology';
-import {getScalar} from '../backend/state';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
@@ -290,7 +290,6 @@ export class BatchNormalization extends Layer {
   private beta: LayerVariable;
   private movingMean: LayerVariable;
   private movingVariance: LayerVariable;
-  private stepCount: number;
 
   constructor(config?: BatchNormalizationLayerConfig) {
     if (config == null) {
@@ -314,7 +313,6 @@ export class BatchNormalization extends Layer {
     this.gammaConstraint = getConstraint(config.gammaConstraint);
     this.betaRegularizer = getRegularizer(config.betaRegularizer);
     this.gammaRegularizer = getRegularizer(config.gammaRegularizer);
-    this.stepCount = 0;
   }
 
   public build(inputShape: Shape|Shape[]): void {
@@ -394,11 +392,15 @@ export class BatchNormalization extends Layer {
           input, this.gamma.read(), this.beta.read(), reductionAxes,
           this.epsilon);
 
-      // Debias variance.
-      const sampleSize =
-          math_utils.arrayProd(reductionAxes.map(axis => input.shape[axis]));
-      const varianceDebiased = variance.mul(
-          getScalar(sampleSize / (sampleSize - (1 + this.epsilon))));
+      const doMovingAverage =
+          (variable: LayerVariable, value: Tensor, momentum: number): void => {
+            tfc.tidy(() => {
+              const decay = getScalar(1.0).sub(getScalar(momentum));
+              const origValue = variable.read();
+              const updateDelta = origValue.sub(value).mul(decay);
+              variable.write(origValue.sub(updateDelta));
+            });
+          };
 
       // Perform updates to moving mean and moving variance for training.
       // Porting Note: In PyKeras, these updates to `movingMean` and
@@ -407,14 +409,8 @@ export class BatchNormalization extends Layer {
       //   and encapsulate the updates in a function that is invoked
       //   immediately.
       const updateMovingMeanAndVariance = () => {
-        this.stepCount++;
-        const newMovingMean = tfc.movingAverage(
-            this.movingMean.read(), mean, this.momentum, this.stepCount);
-        this.movingMean.write(newMovingMean);
-        const newMovingVariance = tfc.movingAverage(
-            this.movingVariance.read(), varianceDebiased, this.momentum,
-            this.stepCount);
-        this.movingVariance.write(newMovingVariance);
+        doMovingAverage(this.movingMean, mean, this.momentum);
+        doMovingAverage(this.movingVariance, variance, this.momentum);
       };
       updateMovingMeanAndVariance();
 
