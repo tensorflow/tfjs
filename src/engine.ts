@@ -97,7 +97,7 @@ export class Engine implements TensorManager, DataMover {
 
   // Keep Tensors that parallel the tapes.
   private activeScope: ScopeState;
-  private scopeStack: ScopeState[];
+  private scopeStack: ScopeState[] = [];
   private keepTensors: Set<number> = new Set();
   private profiler: Profiler;
 
@@ -112,9 +112,6 @@ export class Engine implements TensorManager, DataMover {
   constructor(
       public backend: KernelBackend, public safeMode: boolean,
       private debugMode: () => boolean) {
-    // Create a default outer scope.
-    this.activeScope = {track: [], name: 'default scope'};
-    this.scopeStack = [this.activeScope];
     this.profiler = new Profiler(backend);
     this.activeProfile =
         {newBytes: 0, newTensors: 0, peakBytes: 0, kernels: [], result: null};
@@ -454,7 +451,7 @@ export class Engine implements TensorManager, DataMover {
 
     const oldScope = this.scopeStack.pop();
     this.activeScope = this.scopeStack.length === 0 ?
-        {track: [], name: 'default scope'} :
+        null :
         this.scopeStack[this.scopeStack.length - 1];
 
     // Track the current result in the parent scope.
@@ -612,7 +609,9 @@ export class Engine implements TensorManager, DataMover {
           'Safe mode is ON. Enclose all tensor operations inside tf.tidy(): ' +
           'tf.tidy(() => {op();...}); to avoid memory leaks.');
     }
-    this.activeScope.track.push(result);
+    if (this.activeScope != null) {
+      this.activeScope.track.push(result);
+    }
     return result;
   }
 }
