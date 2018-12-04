@@ -15,33 +15,26 @@
  * =============================================================================
  */
 
-import {getChannels, getSourceCoords} from '../packing_util';
-
 import {GPGPUProgram} from './gpgpu_math';
-import {getCoordsDataType} from './shader_compiler';
 
-export class UnpackProgram implements GPGPUProgram {
+export class ClipPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
   usesPackedTextures = true;
-  outputShape: number[];
   userCode: string;
+  outputShape: number[];
 
-  constructor(outputShape: number[]) {
-    this.outputShape = outputShape;
-    const rank = outputShape.length;
-
-    const channels = getChannels('rc', rank);
-    const dtype = getCoordsDataType(rank);
-    const sourceCoords = getSourceCoords(rank, channels);
-    const innerDims = channels.slice(-2);
-    const coords = rank <= 1 ? 'rc' : `vec2(${innerDims.join(',')})`;
-
+  constructor(aShape: number[], min: number, max: number) {
+    this.outputShape = aShape;
     this.userCode = `
       void main() {
-        ${dtype} rc = getOutputCoords();
-        vec4 packedInput = getA(${sourceCoords});
+        vec4 value = getAAtOutCoords();
 
-        setOutput(getChannel(packedInput, ${coords}));
+        if (hasNaN(value)) {
+          setOutput(value);
+          return;
+        }
+
+        setOutput(clamp(value, vec4(${min}), vec4(${max})));
       }
     `;
   }
