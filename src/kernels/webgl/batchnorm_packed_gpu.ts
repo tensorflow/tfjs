@@ -33,34 +33,29 @@ export class BatchNormPackedProgram implements GPGPUProgram {
     broadcast_util.assertAndGetBroadcastShape(xShape, meanShape);
     broadcast_util.assertAndGetBroadcastShape(xShape, varianceShape);
 
-    const meanSnippet = broadcastSample('mean', meanShape.length);
-    const varianceSnippet = broadcastSample('variance', varianceShape.length);
-
-    let offsetSnippet = 'vec4 offset = vec4(0.0)';
+    let offsetSnippet = 'vec4(0.0)';
     if (offsetShape != null) {
       broadcast_util.assertAndGetBroadcastShape(xShape, offsetShape);
       this.variableNames.push('offset');
-      offsetSnippet = broadcastSample('offset', offsetShape.length);
+      offsetSnippet = 'getOffsetAtOutCoords()';
     }
 
-    let scaleSnippet = 'vec4 scale = vec4(1.0)';
+    let scaleSnippet = 'vec4(1.0)';
     if (scaleShape != null) {
       broadcast_util.assertAndGetBroadcastShape(xShape, scaleShape);
       this.variableNames.push('scale');
-      scaleSnippet = broadcastSample('scale', scaleShape.length);
+      scaleSnippet = 'getScaleAtOutCoords()';
     }
 
     this.outputShape = xShape;
     this.userCode = `
       void main() {
-        ivec4 rc = getOutputCoords();
+        vec4 offset = ${offsetSnippet};
+        vec4 scale = ${scaleSnippet};
 
-        ${offsetSnippet};
-        ${scaleSnippet};
-
-        vec4 x = getX(rc.x, rc.y, rc.z, rc.w);
-        ${meanSnippet};
-        ${varianceSnippet};
+        vec4 x = getXAtOutCoords();
+        vec4 mean = getMeanAtOutCoords();
+        vec4 variance = getVarianceAtOutCoords();
 
         vec4 inv = scale * inversesqrt(variance + vec4(${varianceEpsilon}));
 
@@ -68,15 +63,4 @@ export class BatchNormPackedProgram implements GPGPUProgram {
       }
     `;
   }
-}
-
-function broadcastSample(texName: string, rank: number): string {
-  const texSampler = `get${texName.charAt(0).toUpperCase()}${texName.slice(1)}`;
-  if (rank === 1) {
-    return `
-      vec4 ${texName}Sample = ${texSampler}(rc.w);
-      vec4 ${texName} = vec4(${texName}Sample.xy, ${texName}Sample.xy);
-    `;
-  }
-  return `vec4 ${texName} = ${texSampler}(rc.x, rc.y, rc.z, rc.w)`;
 }

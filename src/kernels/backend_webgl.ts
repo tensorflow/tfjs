@@ -51,6 +51,7 @@ import {BinaryOpComplexProgram} from './webgl/binaryop_complex_gpu';
 import * as binaryop_gpu from './webgl/binaryop_gpu';
 import {BinaryOpProgram} from './webgl/binaryop_gpu';
 import {ClipProgram} from './webgl/clip_gpu';
+import {ClipPackedProgram} from './webgl/clip_packed_gpu';
 import {ComplexAbsProgram} from './webgl/complex_abs_gpu';
 import {ConcatProgram} from './webgl/concat_gpu';
 import {Conv2DDerFilterProgram, Conv2DDerInputProgram} from './webgl/conv_backprop_gpu';
@@ -366,9 +367,11 @@ export class MathBackendWebGL implements KernelBackend {
     const {shape, dtype, texture, texShape} = this.texData.get(dataId);
     if (ENV.get('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
       if (this.texData.get(dataId).isPacked) {
-        const batch = util.sizeFromShape(shape.slice(0, shape.length - 2));
-        const rows = shape.length > 1 ? shape[shape.length - 2] : 1;
-        const cols = shape[shape.length - 1];
+        const batch = this.getBatchDim(shape);
+        let rows = 1, cols = 1;
+        if (shape.length) {
+          [rows, cols] = this.getRowsCols(shape);
+        }
         return this.gpgpu.downloadMatrixFromPackedTexture(
             texture, batch, rows, cols, texShape[0], texShape[1]);
       } else {
@@ -1337,7 +1340,12 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   clip<T extends Tensor>(x: T, min: number, max: number): T {
-    const program = new ClipProgram(x.shape, min, max);
+    let program;
+    if (ENV.get('WEBGL_PACK_CLIP')) {
+      program = new ClipPackedProgram(x.shape, min, max);
+    } else {
+      program = new ClipProgram(x.shape, min, max);
+    }
     return this.compileAndRun(program, [x]) as T;
   }
 
