@@ -63,11 +63,12 @@ describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
   });
 
   it('should work when the same input must be represented by' +
-    'different textures', () => {
-    const a = tf.tensor1d([1, 2]);
-    const res = tf.dot(a, a);
-    expectArraysClose(res, [5]);
-  });
+         'different textures',
+     () => {
+       const a = tf.tensor1d([1, 2]);
+       const res = tf.dot(a, a);
+       expectArraysClose(res, [5]);
+     });
 });
 
 describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
@@ -124,9 +125,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     const backend = new MathBackendWebGL();
     tf.ENV.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
-
-    expect(() => tf.Tensor.make([4], {values: ['a', 'b', 'c']}, 'string'))
-        .toThrowError();
+    expect(() => tf.tensor(['a', 'b', 'c'], [4], 'string')).toThrowError();
   });
 
   it('delayed storage, reading', () => {

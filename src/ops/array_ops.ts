@@ -288,7 +288,8 @@ function multinomial_(
 function oneHot_(
     indices: Tensor1D|TensorLike1D, depth: number, onValue = 1,
     offValue = 0): Tensor2D {
-  const $indices = convertToTensor(indices, 'indices', 'oneHot', 'int32');
+  const $indices =
+      convertToTensor(indices, 'indices', 'oneHot', 'int32') as Tensor1D;
 
   if (depth < 2) {
     throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
@@ -1061,7 +1062,7 @@ function expandDims_<R2 extends Rank>(
 function depthToSpace_(
     x: Tensor4D|TensorLike4D, blockSize: number,
     dataFormat: 'NHWC'|'NCHW' = 'NHWC'): Tensor4D {
-  const $x = convertToTensor(x, 'x', 'depthToSpace');
+  const $x = convertToTensor(x, 'x', 'depthToSpace') as Tensor4D;
 
   const inputHeight = (dataFormat === 'NHWC') ? $x.shape[1] : $x.shape[2];
   const inputWidth = (dataFormat === 'NHWC') ? $x.shape[2] : $x.shape[3];

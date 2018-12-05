@@ -103,6 +103,12 @@ describe('util.flatten', () => {
       'a', 'b', 'c', 'd', 'e'
     ]);
   });
+
+  it('mixed TypedArray and number[]', () => {
+    const data =
+        [new Float32Array([1, 2]), 3, [4, 5, new Float32Array([6, 7])]];
+    expect(util.flatten(data)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+  });
 });
 
 describe('util.bytesFromStringArray', () => {

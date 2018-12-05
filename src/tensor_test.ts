@@ -575,6 +575,64 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expectArraysClose(a, [1, 5, 2]);
   });
 
+  it('tf.tensor() from Float32Array and number[]', () => {
+    const a = tf.tensor([
+      new Float32Array([1, 2]), new Float32Array([3, 4]),
+      new Float32Array([5, 6]), [7, 8]
+    ]);
+    expect(a.dtype).toBe('float32');
+    expect(a.shape).toEqual([4, 2]);
+    expectArraysClose(a, [1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+
+  it('tf.tensor() from Int32Array and number[]', () => {
+    const a = tf.tensor([
+      new Int32Array([1, 2]), new Int32Array([3, 4]), new Int32Array([5, 6]),
+      [7, 8]
+    ]);
+    expect(a.dtype).toBe('int32');
+    expect(a.shape).toEqual([4, 2]);
+    expectArraysClose(a, [1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+
+  it('tf.tensor() from mixed TypedArray', () => {
+    const a = tf.tensor([
+      new Float32Array([1, 2]), new Int32Array([3, 4]), new Uint8Array([5, 6]),
+      [7, 8]
+    ]);
+    expect(a.dtype).toBe('float32');
+    expect(a.shape).toEqual([4, 2]);
+    expectArraysClose(a, [1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+
+  it('tf.tensor() from TypedArrays which are themselves 3D', () => {
+    // 2 tensors, each with shape 20x20x3, as flat Float32Arrays.
+    const img1 = new Float32Array(20 * 20 * 3);
+    const img2 = new Float32Array(20 * 20 * 3);
+    const t = tf.tensor([img1, img2], [2, 20, 20, 3]);
+    expect(t.dtype).toBe('float32');
+    expect(t.shape).toEqual([2, 20, 20, 3]);
+  });
+
+  it('tf.tensor() from TypeedArrays which are themselves 3D, wrong shape',
+     () => {
+       const img1 = new Float32Array(20 * 20 * 3);
+       const img2 = new Float32Array(20 * 20 * 3);
+       expect(() => tf.tensor([img1, img2], [3, 20, 20, 3])).toThrowError();
+     });
+
+  it('tf.tensor() from TypedArray + number[] fails due to wrong shape', () => {
+    expect(() => tf.tensor([
+      new Float32Array([1, 2]),
+      new Float32Array([3, 4]),
+      new Float32Array([5, 6]),
+      // Should be of length 4
+      [7, 8, 9, 10],
+    ]))
+        .toThrowError(
+            /Element arr\[3\] should have 2 elements, but has 4 elements/);
+  });
+
   it('default dtype from ascii string', () => {
     const a = tf.tensor('hello');
     expect(a.dtype).toBe('string');
@@ -1951,15 +2009,6 @@ describeWithFlags('tensor with 0 in shape', ALL_ENVS, () => {
     expectArraysEqual(a, []);
   });
 
-  it('1d throws when values are not empty', () => {
-    const values = new Float32Array([1, 2, 3]);
-    // Have to use Tensor.make since tensor1d() does not let us provide a shape.
-    expect(() => Tensor.make([0], {values}, 'float32'))
-        .toThrowError(
-            'Based on the provided shape, [0], and dtype float32, the tensor ' +
-            'should have 0 values but has 3');
-  });
-
   it('2d of shape [0, 5]', () => {
     const a = tf.tensor2d([], [0, 5]);
     expect(a.dtype).toBe('float32');
@@ -1980,7 +2029,7 @@ describeWithFlags('tensor with 0 in shape', ALL_ENVS, () => {
     const values = [1, 2, 3, 4];
     expect(() => tf.tensor2d(values, [0, 5], 'float32'))
         .toThrowError(
-            'Based on the provided shape, [0,5], and dtype float32, the ' +
+            'Based on the provided shape, [0,5], the ' +
             'tensor should have 0 values but has 4');
   });
 
@@ -1996,7 +2045,7 @@ describeWithFlags('tensor with 0 in shape', ALL_ENVS, () => {
     const values = [1, 2, 3];
     expect(() => tf.tensor3d(values, [0, 3, 0], 'float32'))
         .toThrowError(
-            'Based on the provided shape, [0,3,0], and dtype float32, the ' +
+            'Based on the provided shape, [0,3,0], the ' +
             'tensor should have 0 values but has 3');
   });
 
@@ -2012,7 +2061,7 @@ describeWithFlags('tensor with 0 in shape', ALL_ENVS, () => {
     const values = [1, 2, 3];
     expect(() => tf.tensor4d(values, [1, 3, 0, 5], 'float32'))
         .toThrowError(
-            'Based on the provided shape, [1,3,0,5], and dtype float32, the ' +
+            'Based on the provided shape, [1,3,0,5], the ' +
             'tensor should have 0 values but has 3');
   });
 

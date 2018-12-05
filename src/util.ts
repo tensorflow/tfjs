@@ -98,9 +98,10 @@ export function assertNonNull(a: TensorLike): void {
 // NOTE: We explicitly type out what T extends instead of any so that
 // util.flatten on a nested array of number doesn't try to infer T as a
 // number[][], causing us to explicitly type util.flatten<number>().
-export function flatten<T extends number|boolean|string|Promise<number>>(
+export function
+flatten<T extends number|boolean|string|Promise<number>|TypedArray>(
     arr: T|RecursiveArray<T>, ret: T[] = []): T[] {
-  if (Array.isArray(arr)) {
+  if (Array.isArray(arr) || isTypedArray(arr)) {
     for (let i = 0; i < arr.length; ++i) {
       flatten(arr[i], ret);
     }
@@ -376,7 +377,7 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
   return true;
 }
 
-export function isTypedArray(a: TensorLike): boolean {
+export function isTypedArray(a: {}): a is Float32Array|Int32Array|Uint8Array {
   return a instanceof Float32Array || a instanceof Int32Array ||
       a instanceof Uint8Array;
 }
@@ -422,24 +423,18 @@ export function isNumber(value: {}): boolean {
 }
 
 export function inferDtype(values: TensorLike): DataType {
+  if (values instanceof Array) {
+    return inferDtype(values[0]);
+  }
   if (values instanceof Float32Array) {
     return 'float32';
   } else if (values instanceof Int32Array || values instanceof Uint8Array) {
     return 'int32';
-  } else if (
-      isNumber(values) ||
-      values instanceof Array &&
-          isNumber(getFirstElemFromNestedArray(values))) {
+  } else if (isNumber(values)) {
     return 'float32';
-  } else if (
-      isString(values) ||
-      values instanceof Array &&
-          isString(getFirstElemFromNestedArray(values))) {
+  } else if (isString(values)) {
     return 'string';
-  } else if (
-      isBoolean(values) ||
-      values instanceof Array &&
-          isBoolean(getFirstElemFromNestedArray(values))) {
+  } else if (isBoolean(values)) {
     return 'bool';
   }
   return 'float32';
@@ -548,11 +543,4 @@ export function now(): number {
         'Cannot measure time in this environment. You should run tf.js ' +
         'in the browser or in Node.js');
   }
-}
-
-function getFirstElemFromNestedArray(arr: TensorLike): {} {
-  while (arr instanceof Array) {
-    arr = arr[0];
-  }
-  return arr;
 }
