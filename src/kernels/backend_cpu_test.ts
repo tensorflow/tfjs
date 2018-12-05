@@ -64,7 +64,6 @@ describe('backendCPU', () => {
   });
 
   it('register string tensor with values and mismatched shape', () => {
-    expect(() => tf.Tensor.make([4], {values: ['a', 'b', 'c']}, 'string'))
-        .toThrowError();
+    expect(() => tf.tensor(['a', 'b', 'c'], [4], 'string')).toThrowError();
   });
 });

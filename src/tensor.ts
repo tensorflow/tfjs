@@ -410,14 +410,6 @@ export class Tensor<R extends Rank = Rank> {
     this.shape = shape.slice();
     this.dtype = dtype || 'float32';
     this.size = util.sizeFromShape(shape);
-    if (values != null) {
-      util.assert(
-          this.size === values.length,
-          `Based on the provided shape, [${shape}], and dtype ` +
-              `${this.dtype}, the tensor should have ` +
-              `${this.size} values but has ${values.length}`);
-    }
-
     this.strides = computeStrides(shape);
     this.dataId = dataId != null ? dataId : {};
     this.id = trackerFn().nextTensorId();

@@ -20,7 +20,8 @@ import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor
 import {convertToTensor, inferShape} from '../tensor_util_env';
 import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TensorLike6D, TypedArray} from '../types';
 import {DataType, Rank, ShapeMap} from '../types';
-import {assertNonNull, assertShapesMatch, flatten, getArrayFromDType, inferDtype, isTypedArray, makeOnesTypedArray, makeZerosTypedArray, sizeFromShape, toTypedArray} from '../util';
+import {assert, assertNonNull, flatten, getArrayFromDType, inferDtype, isTypedArray, makeOnesTypedArray, makeZerosTypedArray, sizeFromShape, toTypedArray} from '../util';
+
 import {complex} from './complex_ops';
 import {op} from './operation';
 
@@ -68,19 +69,33 @@ function tensor<R extends Rank>(
         'an array of numbers/booleans/strings, or a TypedArray');
   }
   const inferredShape = inferShape(values);
-  if (shape != null && inferredShape.length !== 1) {
-    assertShapesMatch(
-        shape, inferredShape,
-        `Error creating a new Tensor. ` +
-            `Inferred shape (${inferredShape}) does not match the ` +
-            `provided shape (${shape}). `);
+  if (shape != null) {
+    const providedSize = sizeFromShape(shape);
+    const inferredSize = sizeFromShape(inferredShape);
+    assert(
+        providedSize === inferredSize,
+        () =>
+            `Based on the provided shape, [${shape}], the tensor should have ` +
+            `${providedSize} values but has ${inferredSize}`);
+
+    for (let i = 0; i < inferredShape.length; ++i) {
+      const inferred = inferredShape[i];
+      const flatDimsDontMatch = i === inferredShape.length - 1 ?
+          inferred !== sizeFromShape(shape.slice(i)) :
+          true;
+      assert(
+          inferredShape[i] === shape[i] || !flatDimsDontMatch,
+          () => `Error creating a new Tensor. Inferred shape ` +
+              `(${inferredShape}) does not match the provided ` +
+              `shape (${shape}). `);
+    }
   }
   if (!isTypedArray(values) && !Array.isArray(values)) {
     values = [values] as number[];
   }
   shape = shape || inferredShape;
   values = dtype !== 'string' ? toTypedArray(values, dtype, ENV.get('DEBUG')) :
-                                flatten(values) as string[];
+                                flatten(values as string[]) as string[];
   return Tensor.make(shape, {values}, dtype);
 }
 
