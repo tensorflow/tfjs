@@ -1840,7 +1840,7 @@ export class MathBackendWebGL implements KernelBackend {
       let texData = this.texData.get(input.dataId);
 
       if (texData.texture == null) {
-        if (!(!texData.isPacked && program.usesPackedTextures) &&
+        if (!program.usesPackedTextures &&
             util.sizeFromShape(input.shape) <=
                 ENV.get('WEBGL_SIZE_UPLOAD_UNIFORM')) {
           // Upload small tensors that live on the CPU as uniforms, not as
