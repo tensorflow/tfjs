@@ -31,17 +31,29 @@ export class BrowserHTTPRequest implements IOHandler {
   protected readonly path: string|string[];
   protected readonly requestInit: RequestInit;
 
+  private readonly fetchFunc: Function;
+
   readonly DEFAULT_METHOD = 'POST';
 
   static readonly URL_SCHEME_REGEX = /^https?:\/\//;
 
   constructor(
       path: string|string[], requestInit?: RequestInit,
-      private readonly weightPathPrefix?: string) {
-    if (typeof fetch === 'undefined') {
-      throw new Error(
-          // tslint:disable-next-line:max-line-length
-          'browserHTTPRequest is not supported outside the web browser without a fetch polyfill.');
+      private readonly weightPathPrefix?: string, fetchFunc?: Function) {
+    if (fetchFunc == null) {
+      if (typeof fetch === 'undefined') {
+        throw new Error(
+            'browserHTTPRequest is not supported outside the web browser ' +
+            'without a fetch polyfill.');
+      }
+      this.fetchFunc = fetch;
+    } else {
+      assert(
+          typeof fetchFunc === 'function',
+          'Must pass a function that matches the signature of ' +
+              '`fetch` (see ' +
+              'https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)');
+      this.fetchFunc = fetchFunc;
     }
 
     assert(
@@ -98,7 +110,7 @@ export class BrowserHTTPRequest implements IOHandler {
           'model.weights.bin');
     }
 
-    const response = await fetch(this.path as string, init);
+    const response = await this.fetchFunc(this.path as string, init);
 
     if (response.ok) {
       return {
@@ -130,7 +142,7 @@ export class BrowserHTTPRequest implements IOHandler {
    */
   private async loadBinaryTopology(): Promise<ArrayBuffer> {
     try {
-      const response = await fetch(this.path[0], this.requestInit);
+      const response = await this.fetchFunc(this.path[0], this.requestInit);
       if (!response.ok) {
         throw new Error(
             `BrowserHTTPRequest.load() failed due to HTTP response: ${
@@ -144,7 +156,8 @@ export class BrowserHTTPRequest implements IOHandler {
 
   protected async loadBinaryModel(): Promise<ModelArtifacts> {
     const graphPromise = this.loadBinaryTopology();
-    const manifestPromise = await fetch(this.path[1], this.requestInit);
+    const manifestPromise =
+        await this.fetchFunc(this.path[1], this.requestInit);
     if (!manifestPromise.ok) {
       throw new Error(`BrowserHTTPRequest.load() failed due to HTTP response: ${
           manifestPromise.statusText}`);
@@ -168,7 +181,7 @@ export class BrowserHTTPRequest implements IOHandler {
 
   protected async loadJSONModel(): Promise<ModelArtifacts> {
     const modelConfigRequest =
-        await fetch(this.path as string, this.requestInit);
+        await this.fetchFunc(this.path as string, this.requestInit);
     if (!modelConfigRequest.ok) {
       throw new Error(`BrowserHTTPRequest.load() failed due to HTTP response: ${
           modelConfigRequest.statusText}`);
@@ -216,8 +229,8 @@ export class BrowserHTTPRequest implements IOHandler {
 
     return [
       weightSpecs,
-      concatenateArrayBuffers(
-          await loadWeightsAsArrayBuffer(fetchURLs, this.requestInit))
+      concatenateArrayBuffers(await loadWeightsAsArrayBuffer(
+          fetchURLs, this.requestInit, this.fetchFunc))
     ];
   }
 }
@@ -242,7 +255,7 @@ export function parseUrl(url: string): [string, string] {
   return [prefix + '/', suffix];
 }
 
-function isHTTPScheme(url: string): boolean {
+export function isHTTPScheme(url: string): boolean {
   return url.match(BrowserHTTPRequest.URL_SCHEME_REGEX) != null;
 }
 
@@ -404,11 +417,13 @@ IORouterRegistry.registerLoadRouter(httpRequestRouter);
  * 'model.weights.bin') will be appended to the body. If `requestInit` has a
  * `body`, an Error will be thrown.
  * @param weightPathPrefix Optional, this specifies the path prefix for weight
- * files, by default this is calculated from the path param.
+ *   files, by default this is calculated from the path param.
+ * @param fetchFunc Optional, custom `fetch` function. E.g., in Node.js,
+ *   the `fetch` from node-fetch can be used here.
  * @returns An instance of `IOHandler`.
  */
 export function browserHTTPRequest(
-    path: string|string[], requestInit?: RequestInit,
-    weightPathPrefix?: string): IOHandler {
-  return new BrowserHTTPRequest(path, requestInit, weightPathPrefix);
+    path: string|string[], requestInit?: RequestInit, weightPathPrefix?: string,
+    fetchFunc?: Function): IOHandler {
+  return new BrowserHTTPRequest(path, requestInit, weightPathPrefix, fetchFunc);
 }

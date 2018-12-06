@@ -1032,4 +1032,56 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
       expect(() => tf.io.browserHTTPRequest(['path1/model.pb'])).toThrow();
     });
   });
+
+  it('Overriding BrowserHTTPRequest fetchFunc', async () => {
+    const weightManifest1: tf.io.WeightsManifestConfig = [{
+      paths: ['weightfile0'],
+      weights: [
+        {
+          name: 'dense/kernel',
+          shape: [3, 1],
+          dtype: 'float32',
+        },
+        {
+          name: 'dense/bias',
+          shape: [2],
+          dtype: 'float32',
+        }
+      ]
+    }];
+    const floatData = new Float32Array([1, 3, 3, 7, 4]);
+
+    const fetchInputs: RequestInfo[] = [];
+    const fetchInits: RequestInit[] = [];
+    async function customFetch(
+        input: RequestInfo, init?: RequestInit): Promise<Response> {
+      fetchInputs.push(input);
+      fetchInits.push(init);
+
+      if (input === './model.json') {
+        return new Response(
+            JSON.stringify({
+              modelTopology: modelTopology1,
+              weightsManifest: weightManifest1
+            }),
+            {status: 200});
+      } else if (input === './weightfile0') {
+        return new Response(floatData, {status: 200});
+      } else {
+        return new Response(null, {status: 404});
+      }
+    }
+
+    const handler = tf.io.browserHTTPRequest(
+        './model.json', {credentials: 'include'}, null, customFetch);
+    const modelArtifacts = await handler.load();
+    expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
+    expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
+    expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
+
+    expect(fetchInputs).toEqual(['./model.json', './weightfile0']);
+    expect(fetchInits).toEqual([
+      {credentials: 'include'}, {credentials: 'include'}
+    ]);
+  });
 });
