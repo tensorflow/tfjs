@@ -127,6 +127,9 @@ export function iteratorFromZipped<O extends DataElement>(
 /**
  * An asynchronous iterator, providing lazy access to a potentially
  * unbounded stream of elements.
+ *
+ * Iterator can be obtained from a dataset:
+ * `const iter = await dataset.iterator();`
  */
 export abstract class LazyIterator<T> {
   // This class implements AsyncIterator<T>, but we have not yet set the
@@ -238,7 +241,7 @@ export abstract class LazyIterator<T> {
   /**
    * Maps this stream through a 1-to-1 transform.
    *
-   * @param predicate A function mapping a stream element to a transformed
+   * @param transform A function mapping a stream element to a transformed
    *   element.
    *
    * @returns A `LazyIterator` of transformed elements.
@@ -262,7 +265,7 @@ export abstract class LazyIterator<T> {
   /**
    * Maps this stream through a 1-to-1 transform, forcing serial execution.
    *
-   * @param predicate A function mapping a stream element to a transformed
+   * @param transform A function mapping a stream element to a transformed
    *   element.
    *
    * @returns A `LazyIterator` of transformed elements.
@@ -274,7 +277,7 @@ export abstract class LazyIterator<T> {
   /**
    * Maps this stream through a 1-to-many transform.
    *
-   * @param predicate A function mapping a stream element to an array of
+   * @param transform A function mapping a stream element to an array of
    *   transformed elements.
    *
    * @returns A `DataStream` of transformed elements.
