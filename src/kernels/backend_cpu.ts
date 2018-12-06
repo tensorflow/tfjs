@@ -407,8 +407,8 @@ export class MathBackendCPU implements KernelBackend {
         [b.strides[1], 1, b.strides[0]];
 
     const size = leftDim * rightDim;
-    const result = new Float32Array(batchDim * size);
-
+    const result = buffer([batchDim, leftDim, rightDim], a.dtype);
+    const resVals = result.values as TypedArray;
     const blockSize = this.blockSize;
 
     for (let b = 0; b < batchDim; b++) {
@@ -428,15 +428,14 @@ export class MathBackendCPU implements KernelBackend {
                   sum += aValues[b * aBatch + i * aOuterStep + k * aInnerStep] *
                       bValues[k * bInnerStep + j * bOuterStep + b * bBatch];
                 }
-                result[b * size + (i * rightDim + j)] += sum;
+                resVals[b * size + (i * rightDim + j)] += sum;
               }
             }
           }
         }
       }
     }
-
-    return ops.tensor3d(result, [batchDim, leftDim, rightDim]);
+    return result.toTensor() as Tensor3D;
   }
 
   multiply(a: Tensor, b: Tensor): Tensor {

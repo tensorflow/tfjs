@@ -17,6 +17,7 @@
 
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D} from '../tensor';
+import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
@@ -40,8 +41,9 @@ import {op} from './operation';
 function matMul_<T extends Tensor>(
     a: T|TensorLike, b: T|TensorLike, transposeA = false,
     transposeB = false): T {
-  const $a = convertToTensor(a, 'a', 'matMul');
-  const $b = convertToTensor(b, 'b', 'matMul');
+  let $a = convertToTensor(a, 'a', 'matMul');
+  let $b = convertToTensor(b, 'b', 'matMul');
+  [$a, $b] = makeTypesMatch($a, $b);
 
   const innerShapeA =
       transposeA ? $a.shape[$a.rank - 2] : $a.shape[$a.rank - 1];
@@ -86,23 +88,23 @@ function matMul_<T extends Tensor>(
   const grad = (dy: Tensor3D) => {
     if (!transposeA && !transposeB) {
       return {
-        $a: () => dy.matMul(b3D.toFloat(), false, true),
-        $b: () => a3D.toFloat().matMul(dy, true, false)
+        $a: () => dy.matMul(b3D, false, true),
+        $b: () => a3D.matMul(dy, true, false)
       };
     } else if (!transposeA && transposeB) {
       return {
-        $a: () => dy.matMul(b3D.toFloat(), false, false),
-        $b: () => dy.matMul(a3D.toFloat(), true, false)
+        $a: () => dy.matMul(b3D, false, false),
+        $b: () => dy.matMul(a3D, true, false)
       };
     } else if (transposeA && !transposeB) {
       return {
-        $a: () => b3D.toFloat().matMul(dy, false, true),
-        $b: () => a3D.toFloat().matMul(dy, false, false)
+        $a: () => b3D.matMul(dy, false, true),
+        $b: () => a3D.matMul(dy, false, false)
       };
     } else {
       return {
-        $a: () => b3D.toFloat().matMul(dy, true, true),
-        $b: () => dy.matMul(a3D.toFloat(), true, true)
+        $a: () => b3D.matMul(dy, true, true),
+        $b: () => dy.matMul(a3D, true, true)
       };
     }
   };

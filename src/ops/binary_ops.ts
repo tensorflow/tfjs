@@ -19,7 +19,7 @@ import {ENV} from '../environment';
 import {KernelBackend} from '../kernels/backend';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
-import {assertTypesMatch} from '../tensor_util';
+import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike, upcastType} from '../types';
 import * as util from '../util';
@@ -53,9 +53,9 @@ import {neg} from './unary_ops';
  */
 /** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  const $a = convertToTensor(a, 'a', 'add');
-  const $b = convertToTensor(b, 'b', 'add');
-  assertTypesMatch($a, $b);
+  let $a = convertToTensor(a, 'a', 'add');
+  let $b = convertToTensor(b, 'b', 'add');
+  [$a, $b] = makeTypesMatch($a, $b);
 
   const outShape =
       broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
@@ -172,9 +172,9 @@ function addStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
  */
 /** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function sub_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  const $a = convertToTensor(a, 'a', 'sub');
-  const $b = convertToTensor(b, 'b', 'sub');
-  assertTypesMatch($a, $b);
+  let $a = convertToTensor(a, 'a', 'sub');
+  let $b = convertToTensor(b, 'b', 'sub');
+  [$a, $b] = makeTypesMatch($a, $b);
 
   const outShape =
       broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
@@ -318,9 +318,9 @@ function powStrict_<T extends Tensor>(base: T, exp: Tensor): T {
  */
 /** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  const $a = convertToTensor(a, 'a', 'mul');
-  const $b = convertToTensor(b, 'b', 'mul');
-  assertTypesMatch($a, $b);
+  let $a = convertToTensor(a, 'a', 'mul');
+  let $b = convertToTensor(b, 'b', 'mul');
+  [$a, $b] = makeTypesMatch($a, $b);
 
   const outShape =
       broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
@@ -391,9 +391,9 @@ function mulStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
  */
 /** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  const $a = convertToTensor(a, 'a', 'div');
-  const $b = convertToTensor(b, 'b', 'div');
-  assertTypesMatch($a, $b);
+  let $a = convertToTensor(a, 'a', 'div');
+  let $b = convertToTensor(b, 'b', 'div');
+  [$a, $b] = makeTypesMatch($a, $b);
 
   let forwardFunc: (backend: KernelBackend) => Tensor;
   if ($a.dtype === 'int32' && $b.dtype === 'int32') {
@@ -454,9 +454,9 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
 /** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function floorDiv_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  const $a = convertToTensor(a, 'a', 'floorDiv');
-  const $b = convertToTensor(b, 'b', 'floorDiv');
-  assertTypesMatch($a, $b);
+  let $a = convertToTensor(a, 'a', 'floorDiv');
+  let $b = convertToTensor(b, 'b', 'floorDiv');
+  [$a, $b] = makeTypesMatch($a, $b);
 
   const forwardFunc = (backend: KernelBackend) => backend.floorDiv($a, $b);
   const outShape =
@@ -526,9 +526,9 @@ function divStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
  */
 /** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function mod_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  const $a = convertToTensor(a, 'a', 'mod');
-  const $b = convertToTensor(b, 'b', 'mod');
-  assertTypesMatch($a, $b);
+  let $a = convertToTensor(a, 'a', 'mod');
+  let $b = convertToTensor(b, 'b', 'mod');
+  [$a, $b] = makeTypesMatch($a, $b);
 
   const outShape =
       broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
@@ -598,14 +598,13 @@ function minimum_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'minimum');
   let $b = convertToTensor(b, 'b', 'minimum');
-  assertTypesMatch($a, $b);
+  [$a, $b] = makeTypesMatch($a, $b);
 
   if ($a.dtype === 'bool') {
     $a = $a.toInt();
-  }
-  if ($b.dtype === 'bool') {
     $b = $b.toInt();
   }
+
   broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
   const der = (dy: Tensor) => {
     const derA = () => dy.mul($a.lessEqual($b).toFloat());
@@ -660,14 +659,13 @@ function maximum_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'maximum');
   let $b = convertToTensor(b, 'b', 'maximum');
-  assertTypesMatch($a, $b);
+  [$a, $b] = makeTypesMatch($a, $b);
 
   if ($a.dtype === 'bool') {
     $a = $a.toInt();
-  }
-  if ($b.dtype === 'bool') {
     $b = $b.toInt();
   }
+
   broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
   const der = (dy: Tensor) => {
     const derA = () => dy.mul($a.greaterEqual($b).toFloat());
@@ -721,9 +719,9 @@ function maximumStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 /** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function squaredDifference_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  const $a = convertToTensor(a, 'a', 'squaredDifference');
-  const $b = convertToTensor(b, 'b', 'squaredDifference');
-  assertTypesMatch($a, $b);
+  let $a = convertToTensor(a, 'a', 'squaredDifference');
+  let $b = convertToTensor(b, 'b', 'squaredDifference');
+  [$a, $b] = makeTypesMatch($a, $b);
 
   broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
   const der = (dy: Tensor) => {
@@ -772,9 +770,9 @@ function squaredDifferenceStrict_<T extends Tensor>(
 /** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function atan2_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  const $a = convertToTensor(a, 'a', 'atan2');
-  const $b = convertToTensor(b, 'b', 'atan2');
-  assertTypesMatch($a, $b);
+  let $a = convertToTensor(a, 'a', 'atan2');
+  let $b = convertToTensor(b, 'b', 'atan2');
+  [$a, $b] = makeTypesMatch($a, $b);
 
   const outShape =
       broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
