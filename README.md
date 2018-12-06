@@ -285,7 +285,7 @@ Renders summary information about a layer and a histogram of parameter values in
 
 The library exposes a `render` namespace that provides a number of functions that plot particular visualizations.
 
-## render.barchart(data: [], container: Surface|HTMLElement, opts: {}) => Promise<void>
+## render.barchart(data: {}, container: Surface|HTMLElement, opts: {}) => Promise<void>
 
 Renders a barchart.
 
@@ -320,7 +320,7 @@ Renders a table.
                    at will.
 * @param opts.fontSize fontSize in pixels for text in the chart
 
-## render.histogram(data: [], container: Surface|HTMLElement, opts: {}) => Promise<void>
+## render.histogram(data: {}, container: Surface|HTMLElement, opts: {}) => Promise<void>
 
 Renders a Histogram.
 
@@ -347,7 +347,7 @@ Renders a Histogram.
         numNans?: number
       }
 
-## render.linechart(data: [], container: Surface|HTMLElement, opts: {}) => Promise<void>
+## render.linechart(data: {}, container: Surface|HTMLElement, opts: {}) => Promise<void>
 
 Renders a Line Chart.
 
@@ -379,7 +379,7 @@ Renders a Line Chart.
 
 
 
-## render.scatterplot(data: [], container: Surface|HTMLElement, opts: {}) => Promise<void>
+## render.scatterplot(data: {}, container: Surface|HTMLElement, opts: {}) => Promise<void>
 
 Renders a Scatter Plot.
 
