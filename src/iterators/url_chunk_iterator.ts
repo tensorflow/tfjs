@@ -17,7 +17,6 @@
  */
 
 import {ENV} from '@tensorflow/tfjs-core';
-import {default as nodeFetch} from 'node-fetch';
 import {FileChunkIterator, FileChunkIteratorOptions} from './file_chunk_iterator';
 
 /**
@@ -41,6 +40,8 @@ export async function urlChunkIterator(
   } else {
     // TODO(kangyizhang): Provide argument for users to use http.request with
     // headers in node.
+    // tslint:disable-next-line:no-require-imports
+    const nodeFetch = require('node-fetch');
     if (typeof url !== 'string') {
       throw new Error(
           'URL must be a string. Request objects are not supported ' +
