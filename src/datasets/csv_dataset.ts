@@ -43,7 +43,6 @@ const STATE_WITHIN_QUOTE_IN_QUOTE = Symbol('quoteinquote');
  *
  * The results are not batched.
  */
-/** @doc {heading: 'Data', subheading: 'Classes'} */
 export class CSVDataset extends Dataset<DataElement> {
   base: TextLineDataset;
   private hasHeader = true;
