@@ -166,6 +166,24 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     expectArraysClose(c, [0, 8, -3, 20]);
   });
 
+  it('upcasts when dtypes dont match', () => {
+    const a = [1, 2, 3, 4, 5, 6];
+    const b = [0, 1, -3, 2, 2, 1];
+
+    let c = tf.matMul(
+        tf.tensor(a, [2, 3], 'float32'), tf.tensor(b, [3, 2], 'int32'));
+
+    expect(c.shape).toEqual([2, 2]);
+    expect(c.dtype).toBe('float32');
+    expectArraysClose(c, [0, 8, -3, 20]);
+
+    c = tf.matMul(tf.tensor(a, [2, 3], 'int32'), tf.tensor(b, [3, 2], 'bool'));
+
+    expect(c.shape).toEqual([2, 2]);
+    expect(c.dtype).toBe('int32');
+    expectArraysClose(c, [5, 6, 11, 15]);
+  });
+
   it('A x B^t', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([1, 0, 2, 4, 3, 0], [2, 3]);

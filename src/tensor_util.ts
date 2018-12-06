@@ -17,7 +17,16 @@
 
 import {Tensor} from './tensor';
 import {NamedTensorMap, TensorContainer, TensorContainerArray} from './tensor_types';
+import {upcastType} from './types';
 import {assert} from './util';
+
+export function makeTypesMatch<T extends Tensor>(a: T, b: T): [T, T] {
+  if (a.dtype === b.dtype) {
+    return [a, b];
+  }
+  const dtype = upcastType(a.dtype, b.dtype);
+  return [a.cast(dtype), b.cast(dtype)];
+}
 
 export function assertTypesMatch(a: Tensor, b: Tensor): void {
   assert(

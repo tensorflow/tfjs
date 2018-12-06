@@ -122,11 +122,13 @@ describeWithFlags('maximum', ALL_ENVS, () => {
     expectArraysEqual(result, [1, 0, 1, 1]);
   });
 
-  it('different dtypes throws error', () => {
-    const a = tf.tensor1d([true, false, false, true], 'float32');
-    const b = tf.tensor1d([false, false, true, true], 'int32');
-    // tslint:disable-next-line:no-any
-    expect(() => tf.maximum(a, b as any)).toThrowError();
+  it('upcasts when dtypes dont match', () => {
+    const a = tf.tensor1d([1, 0, 0, 1], 'float32');
+    const b = tf.tensor1d([0, 0, 1, 1], 'int32');
+    const res = tf.maximum(a, b);
+    expect(res.shape).toEqual(a.shape);
+    expect(res.dtype).toBe('float32');
+    expectArraysEqual(res, [1, 0, 1, 1]);
   });
 
   it('propagates NaN', () => {
@@ -304,11 +306,19 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
     ]);
   });
 
-  it('different dtypes throws error', () => {
-    const a = tf.tensor1d([0.5, 3, -0.1, -4], 'float32');
-    const b = tf.tensor1d([2, 3, 1, 4], 'int32');
-    // tslint:disable-next-line:no-any
-    expect(() => tf.squaredDifference(a, b as any)).toThrowError();
+  it('upcasts when dtypes dont match', () => {
+    let res =
+        tf.squaredDifference(tf.scalar(5, 'int32'), tf.scalar(2, 'float32'));
+    expect(res.dtype).toBe('float32');
+    expectArraysClose(res, [9]);
+
+    res = tf.squaredDifference(tf.scalar(5, 'int32'), tf.scalar(true, 'bool'));
+    expect(res.dtype).toBe('int32');
+    expectArraysClose(res, [16]);
+
+    res = tf.squaredDifference(tf.scalar(5, 'int32'), tf.scalar(false, 'bool'));
+    expect(res.dtype).toBe('int32');
+    expectArraysClose(res, [25]);
   });
 
   it('propagates NaN', () => {
@@ -514,11 +524,13 @@ describeWithFlags('minimum', ALL_ENVS, () => {
     expectArraysEqual(result, [0, 0, 0, 1]);
   });
 
-  it('different dtypes throws error', () => {
-    const a = tf.tensor1d([true, false, false, true], 'float32');
-    const b = tf.tensor1d([false, false, true, true], 'int32');
-    // tslint:disable-next-line:no-any
-    expect(() => tf.minimum(a, b as any)).toThrowError();
+  it('upcasts when dtypes dont match', () => {
+    const a = tf.tensor1d([1, 0, 0, 1], 'float32');
+    const b = tf.tensor1d([0, 0, 1, 1], 'int32');
+    const res = tf.minimum(a, b);
+    expect(res.shape).toEqual(a.shape);
+    expect(res.dtype).toBe('float32');
+    expectArraysEqual(res, [0, 0, 0, 1]);
   });
 
   it('propagates NaN', () => {
@@ -682,11 +694,14 @@ describeWithFlags('mod', ALL_ENVS, () => {
     expectArraysEqual(result, [1, 2, 0, 3]);
   });
 
-  it('different dtypes throws error', () => {
-    const a = tf.tensor1d([1.1, 2.2, 3.3, 4.4], 'float32');
-    const b = tf.tensor1d([1, 2, 3, 4], 'int32');
-    // tslint:disable-next-line:no-any
-    expect(() => tf.mod(a, b as any)).toThrowError();
+  it('upcasts when dtypes dont match', () => {
+    let res = tf.mod(tf.scalar(5, 'int32'), tf.scalar(2, 'float32'));
+    expect(res.dtype).toBe('float32');
+    expectArraysClose(res, [1]);
+
+    res = tf.mod(tf.scalar(5, 'int32'), tf.scalar(true, 'bool'));
+    expect(res.dtype).toBe('int32');
+    expectArraysClose(res, [0]);
   });
 
   it('propagates NaN', () => {
@@ -926,12 +941,22 @@ describeWithFlags('atan2', ALL_ENVS, () => {
     expect(() => tf.atan2(b, a)).toThrowError();
   });
 
-  it('throws when passed tensors of different types', () => {
-    const a = tf.tensor2d([1, 2, -3, -4, 5, 6], [2, 3]);
-    const b = tf.tensor2d([5.0, 3.0, 4.0, -7.0], [2, 2]);
+  it('upcasts when dtypes dont match', () => {
+    const aValues = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    const bValues = [1, 2, 3, 4, 2, 5];
 
-    expect(() => tf.atan2(a, b)).toThrowError();
-    expect(() => tf.atan2(b, a)).toThrowError();
+    const a = tf.tensor2d(aValues, [2, 3], 'float32');
+    const c = tf.tensor2d(bValues, [2, 3], 'int32');
+
+    const r = tf.atan2(a, c);
+    const expected = [];
+
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = Math.atan2(aValues[i], bValues[i]);
+    }
+    expect(r.shape).toEqual([2, 3]);
+    expect(r.dtype).toBe('float32');
+    expectArraysClose(r, expected);
   });
 
   it('atan2 of scalar and array propagates NaNs', () => {
