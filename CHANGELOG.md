@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0] 2018-12-07
+
+### Changed
+`confusionMatrix` now shades the diagonal by default. The chart also has improved
+contrast between the text and the chart cells.
+
+bugfixes for `metrics.confusionMatrix` on Safari
+
+Improvements to chart rendering options to help prevent situations where the container
+div grows on each render if dimensions were not specified in code or constrained by css.
+
+
 ## [0.3.0] 2018-11-06
 ### Added
 `fontSize` can now be passed into render.* methods
