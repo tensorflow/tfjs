@@ -270,7 +270,6 @@ export function execute(
         recipientCounts[input.name]--;
         if (recipientCounts[input.name] === 0 && !feedDict.hasKey(input) &&
             outputNames.indexOf(input.name) === -1 && !value.isDisposed) {
-          // Keep track of Tensors to be disposed at the end of this execution.
           tensorsToDispose.push(value);
         }
       }
@@ -303,7 +302,7 @@ type RecipientCounts = {
   [fetchName: string]: number
 };
 
-type RecipientMap = {
+export type RecipientMap = {
   [fetchName: string]: Set<string>;
 };
 
@@ -382,7 +381,7 @@ function recipientMap2Counts(recipientMap: RecipientMap): RecipientCounts {
  * @returns sorted: Topologically-sorted array of SymbolicTensors.
  *   recipientMap: Recipient names for all SymbolicTensors in `sorted`.
  */
-function getTopologicalSortAndRecipientCountsForOneFetch(
+export function getTopologicalSortAndRecipientCountsForOneFetch(
     fetch: SymbolicTensor, feedDict: FeedDict):
     {sorted: SymbolicTensor[], recipientMap: RecipientMap} {
   const visited = new Set<string>();
@@ -401,15 +400,19 @@ function getTopologicalSortAndRecipientCountsForOneFetch(
 
   // Initial population of stack and marks.
   stack.push(fetch);
-  visited.add(fetch.name);
 
   while (stack.length > 0) {
     const top = stack[stack.length - 1];
+    if (visited.has(top.name)) {
+      stack.pop();
+      continue;
+    }
     const topIsMarked = marks[marks.length - 1] === stack.length - 1;
     if (top.inputs.length === 0 || topIsMarked) {
       // Input SymbolicTensor or all children have been visited.
       stack.pop();
       sorted.push(top);
+      visited.add(top.name);
       if (topIsMarked) {
         marks.pop();
       }
@@ -429,7 +432,6 @@ function getTopologicalSortAndRecipientCountsForOneFetch(
           continue;  // Avoid repeated visits to the same SymbolicTensor.
         }
         stack.push(input);
-        visited.add(input.name);
       }
     }
   }

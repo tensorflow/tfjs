@@ -1345,7 +1345,7 @@ export class Model extends Container implements tfc.InferenceModel {
         }
         // Compute the metrics.
         for (let i = 0; i < this.metricsTensors.length; ++i) {
-          const metric = this.metricsTensors[i][0];  // TODO(cais): Restore.
+          const metric = this.metricsTensors[i][0];
           const outputIndex = this.metricsTensors[i][1];
           // TODO(cais): Replace K.mean() with a proper weighting function.
           const meanMetric =
@@ -1430,7 +1430,7 @@ export class Model extends Container implements tfc.InferenceModel {
 
   /**
    * Runs a single gradient update on a single batch of data.
-   * 
+   *
    * This method differs from `fit()` and `fitDataset()` in the following
    * regards:
    *   - It operates on exactly one batch of data.
