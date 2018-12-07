@@ -93,6 +93,10 @@ This should show something like the following
 
 ![visor screenshot with barchart](./docs/visor-usage.png)
 
+## Issues
+
+Found a bug or have a feature request? Please file an [issue](https://github.com/tensorflow/tfjs/issues/new) on the main [TensorFlow.js repository](https://github.com/tensorflow/tfjs/issues)
+
 ## API
 
 ## Visors, Surfaces and Tabs
