@@ -117,6 +117,15 @@ export abstract class Dataset<T extends DataElement> {
   /**
    * Maps this dataset through an async 1-to-1 transform.
    *
+   * ```js
+   * const a = tf.data.array([1, 2, 3]).map(x => new Promise(function(resolve){
+   *  resolve(x*x);
+   * }));
+   * await a.forEach(e => e.then(function(value){
+   *  console.log(value);
+   * }));
+   * ```
+   *
    * @param transform A function mapping a dataset element to a `Promise` for a
    *   transformed dataset element.  This transform is responsible for disposing
    *   any intermediate `Tensor`s, i.e. by wrapping its computation in
@@ -146,16 +155,20 @@ export abstract class Dataset<T extends DataElement> {
    * representations for each key can be zipped together to reconstruct the
    * original dataset elements.
    *
+   * Batch a dataset of numbers:
    * ```js
-   * console.log('Batch a dataset of numbers:');
    * const a = tf.data.array([1, 2, 3, 4, 5, 6, 7, 8]).batch(4);
    * await a.forEach(e => e.print());
+   * ```
    *
-   * console.log('Batch a dataset of arrays:');
+   * Batch a dataset of arrays:
+   * ```js
    * const b = tf.data.array([[1], [2], [3], [4], [5], [6], [7], [8]]).batch(4);
    * await b.forEach(e => e.print());
+   * ```
    *
-   * console.log('Batch a dataset of objects:');
+   * Batch a dataset of objects:
+   * ```js
    * const c = tf.data.array([{a: 1, b: 11}, {a: 2, b: 12}, {a: 3, b: 13},
    *   {a: 4, b: 14}, {a: 5, b: 15}, {a: 6, b: 16}, {a: 7, b: 17},
    *   {a: 8, b: 18}]).batch(4);
@@ -316,7 +329,7 @@ export abstract class Dataset<T extends DataElement> {
    *   prefetched.
    * @returns A `Dataset`.
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
+  // TODO: Document this function once tfjs-data supports streaming.
   prefetch(bufferSize: number): Dataset<T> {
     const base = this;
     return datasetFromIteratorFn(
@@ -382,14 +395,16 @@ export function datasetFromIteratorFn<T extends DataElement>(
 /**
  * Create a `Dataset` from an array of elements.
  *
+ * Create a Dataset from an array of objects:
  * ```js
- * console.log('Create a Dataset from an array of objects:');
  * const a = tf.data.array([{'item': 1}, {'item': 2}, {'item': 3}]);
  * await a.forEach(e => console.log(e));
+ * ```
  *
- * console.log('Create a Dataset from an array of numbers:');
- * const b = tf.data.array([4, 5, 6]);
- * await b.forEach(e => console.log(e));
+ * Create a Dataset from an array of numbers:
+ * ```js
+ * const a = tf.data.array([4, 5, 6]);
+ * await a.forEach(e => console.log(e));
  * ```
  * @param items An array of elements that will be parsed as items in a dataset.
  */
@@ -414,6 +429,7 @@ export function array<T extends DataElement>(items: T[]): Dataset<T> {
  * elements, the result is a dataset that produces elements that are arrays
  * of two dicts:
  *
+ * Zip an array of datasets:
  * ```js
  * console.log('Zip two datasets of objects:');
  * const ds1 = tf.data.array([{a: 1}, {a: 2}, {a: 3}]);
@@ -426,6 +442,14 @@ export function array<T extends DataElement>(items: T[]): Dataset<T> {
  * console.log('Merge the objects:');
  * const ds4 = ds3.map(x => {return {a: x[0].a, b: x[1].b}});
  * await ds4.forEach(e => console.log(e));
+ * ```
+ *
+ * Zip a dict of datasets:
+ * ```js
+ * const a = tf.data.array([{a: 1}, {a: 2}, {a: 3}]);
+ * const b = tf.data.array([{b: 4}, {b: 5}, {b: 6}]);
+ * const c = tf.data.zip({c: a, d: b});
+ * await c.forEach(e => console.log(JSON.stringify(e)));
  * ```
  */
 /** @doc {heading: 'Data', subheading: 'Operations', namespace: 'data'} */

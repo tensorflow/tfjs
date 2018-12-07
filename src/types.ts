@@ -73,7 +73,6 @@ export type FileElement = File|Blob|Uint8Array;
  * is a dict of labels key/value pairs. If no column is marked as label returns
  * a dict of features only.
  */
-/** @doc {heading: 'Data', subheading: 'Types'} */
 export interface ColumnConfig {
   required?: boolean;
   dtype?: DataType;
@@ -84,7 +83,6 @@ export interface ColumnConfig {
 /**
  * Interface for configuring dataset when reading and decoding from CSV file(s).
  */
-/** @doc {heading: 'Data', subheading: 'Types'} */
 export interface CSVConfig {
   /**
    * A boolean value that indicates whether the first row of provided CSV file
@@ -110,6 +108,21 @@ export interface CSVConfig {
    * first item is a dict of features key/value pairs, the second item is a dict
    * of labels key/value pairs. If no column is marked as label returns a dict
    * of features only.
+   *
+   * Has the following fields:
+   * - `required` If value in this column is required. If set to `true`, throw
+   * an error when it finds an empty value.
+   *
+   * - `dtype` Data type of this column. Could be int32, float32, bool, or
+   * string.
+   *
+   * - `default` Default value of this column.
+   *
+   * - `isLabel` Whether this column is label instead of features. If isLabel is
+   * `true` for at least one column, the .csv() API will return an array of two
+   * items: the first item is a dict of features key/value pairs, the second
+   * item is a dict of labels key/value pairs. If no column is marked as label
+   * returns a dict of features only.
    */
   columnConfigs?: {[key: string]: ColumnConfig};
 
