@@ -22,7 +22,7 @@ import * as array_ops_util from '../ops/array_ops_util';
 import * as axis_util from '../ops/axis_util';
 import * as broadcast_util from '../ops/broadcast_util';
 import * as concat_util from '../ops/concat_util';
-import {Conv2DInfo} from '../ops/conv_util';
+import {Conv2DInfo, Conv3DInfo} from '../ops/conv_util';
 import * as erf_util from '../ops/erf_util';
 import * as gather_nd_util from '../ops/gather_nd_util';
 import * as ops from '../ops/ops';
@@ -30,7 +30,7 @@ import {buffer, scalar, tensor, tensor3d, tensor4d} from '../ops/ops';
 import * as scatter_nd_util from '../ops/scatter_nd_util';
 import * as selu_util from '../ops/selu_util';
 import {getStridedSlicedInfo} from '../ops/slice_util';
-import {DataId, Scalar, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
+import {DataId, Scalar, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../tensor';
 import {DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, TypedArray, upcastType} from '../types';
 import * as util from '../util';
 import {now} from '../util';
@@ -1420,6 +1420,74 @@ export class MathBackendCPU implements KernelBackend {
     return y.toTensor() as Tensor4D;
   }
 
+  conv3d(x: Tensor5D, filter: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+    const filterDepth = convInfo.filterDepth;
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const dilationDepth = convInfo.dilationDepth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const padFront = convInfo.padInfo.front;
+    const padLeft = convInfo.padInfo.left;
+    const padTop = convInfo.padInfo.top;
+    const y = ops.buffer<Rank.R5>(convInfo.outShape, x.dtype as 'float32');
+
+    const xVals = x.dataSync();
+    const wVals = filter.dataSync();
+    const yVals = y.values;
+
+    for (let b = 0; b < convInfo.batchSize; ++b) {
+      const xOffset1 = b * x.strides[0];
+      const yOffset1 = b * y.strides[0];
+      for (let yF = 0; yF < convInfo.outDepth; ++yF) {
+        const yOffset2 = yOffset1 + yF * y.strides[1];
+        const xFCorner = yF * convInfo.strideDepth - padFront;
+        for (let wF = 0; wF < filterDepth; wF++) {
+          const xF = xFCorner + wF * dilationDepth;
+          if (xF < 0 || xF >= convInfo.inDepth) {
+            continue;
+          }
+          const wOffset1 = wF * filter.strides[0];
+          const xOffset2 = xOffset1 + xF * x.strides[1];
+
+          for (let yR = 0; yR < convInfo.outHeight; ++yR) {
+            const yOffset3 = yOffset2 + yR * y.strides[2];
+            const xRCorner = yR * convInfo.strideHeight - padTop;
+            for (let wR = 0; wR < filterHeight; wR++) {
+              const xR = xRCorner + wR * dilationHeight;
+              if (xR < 0 || xR >= convInfo.inHeight) {
+                continue;
+              }
+              const wOffset2 = wOffset1 + wR * filter.strides[1];
+              const xOffset3 = xOffset2 + xR * x.strides[2];
+              for (let yC = 0; yC < convInfo.outWidth; ++yC) {
+                const yOffset4 = yOffset3 + yC * convInfo.outChannels;
+                const xCCorner = yC * convInfo.strideWidth - padLeft;
+                for (let wC = 0; wC < filterWidth; wC++) {
+                  const xC = xCCorner + wC * dilationWidth;
+                  if (xC < 0 || xC >= convInfo.inWidth) {
+                    continue;
+                  }
+                  const wOffset3 = wOffset2 + wC * filter.strides[2];
+                  const xOffset4 = xOffset3 + xC * convInfo.inChannels;
+                  let wOffset4 = wOffset3;
+                  for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
+                    const xVal = xVals[xOffset4 + d1];
+                    for (let d2 = 0; d2 < convInfo.outChannels; ++d2) {
+                      yVals[yOffset4 + d2] += xVal * wVals[wOffset4 + d2];
+                    }
+                    wOffset4 += convInfo.outChannels;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return y.toTensor();
+  }
+
   conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
     this.assertNotComplex([dy, filter], 'conv2dDerInput');
@@ -1486,6 +1554,91 @@ export class MathBackendCPU implements KernelBackend {
     return dx.toTensor();
   }
 
+  conv3dDerInput(dy: Tensor5D, filter: Tensor5D, convInfo: Conv3DInfo):
+      Tensor5D {
+    const dx = ops.buffer<Rank.R5>(convInfo.inShape, 'float32');
+    const dxValues = dx.values;
+    const [dxS0, dxS1, dxS2, dxS3] = dx.strides;
+    const dyValues = dy.dataSync();
+    const [dyS0, dyS1, dyS2, dyS3] = dy.strides;
+    const fltValues = filter.dataSync();
+    const [fltS0, fltS1, fltS2, fltS3] = filter.strides;
+    const {
+      batchSize,
+      filterDepth,
+      filterHeight,
+      filterWidth,
+      inChannels,
+      inDepth,
+      inHeight,
+      inWidth,
+      outChannels,
+      outDepth,
+      outHeight,
+      outWidth,
+      strideDepth,
+      strideHeight,
+      strideWidth
+    } = convInfo;
+    const frontPad = filterDepth - 1 - convInfo.padInfo.front;
+    const topPad = filterHeight - 1 - convInfo.padInfo.top;
+    const leftPad = filterWidth - 1 - convInfo.padInfo.left;
+
+    for (let b = 0; b < batchSize; ++b) {
+      for (let d1 = 0; d1 < inChannels; ++d1) {
+        // Frames of depth
+        for (let xF = 0; xF < inDepth; ++xF) {
+          const xFCorner = xF - frontPad;
+          const xFMin = Math.max(0, Math.ceil(xFCorner / strideDepth));
+          const yFMax =
+              Math.min(outDepth, (filterDepth + xFCorner) / strideDepth);
+
+          // Rows as per standard 2d matrix notation
+          for (let xR = 0; xR < inHeight; ++xR) {
+            const xRCorner = xR - topPad;
+            const xRMin = Math.max(0, Math.ceil(xRCorner / strideHeight));
+            const yRMax =
+                Math.min(outHeight, (filterHeight + xRCorner) / strideHeight);
+            // Columns as per standard 2d matrix notation
+            for (let xC = 0; xC < inWidth; ++xC) {
+              const xCCorner = xC - leftPad;
+              const xCMin = Math.max(0, Math.ceil(xCCorner / strideWidth));
+              const yCMax =
+                  Math.min(outWidth, (filterWidth + xCCorner) / strideWidth);
+
+              let dotProd = 0;
+              for (let yF = xFMin; yF < yFMax; ++yF) {
+                const wF = yF * strideDepth - xFCorner;
+
+                for (let yR = xRMin; yR < yRMax; ++yR) {
+                  const wR = yR * strideHeight - xRCorner;
+
+                  for (let yC = xCMin; yC < yCMax; ++yC) {
+                    const wC = yC * strideWidth - xCCorner;
+                    const dyOffset =
+                        dyS0 * b + dyS1 * yF + dyS2 * yR + dyS3 * yC;
+                    const fltOffset = fltS0 * (filterDepth - 1 - wF) +
+                        fltS1 * (filterHeight - 1 - wR) +
+                        fltS2 * (filterWidth - 1 - wC) + fltS3 * d1;
+
+                    for (let d2 = 0; d2 < outChannels; ++d2) {
+                      const pixel = dyValues[dyOffset + d2];
+                      const weight = fltValues[fltOffset + d2];
+                      dotProd += pixel * weight;
+                    }
+                  }
+                }
+              }
+              dxValues[dxS0 * b + dxS1 * xF + dxS2 * xR + dxS3 * xC + d1] =
+                  dotProd;
+            }
+          }
+        }
+      }
+    }
+    return dx.toTensor();
+  }
+
   conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     this.assertNotComplex([x, dy], 'conv2dDerFilter');
 
@@ -1527,6 +1680,85 @@ export class MathBackendCPU implements KernelBackend {
       }
     }
     return dW.toTensor();
+  }
+
+  conv3dDerFilter(x: Tensor5D, dy: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+    const strideDepth = convInfo.strideDepth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const filterDepth = convInfo.filterDepth;
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+
+    const dw = ops.buffer<Rank.R5>(convInfo.filterShape, 'float32');
+    const dwValues = dw.values;
+    const [dwS0, dwS1, dwS2, dwS3] = dw.strides;
+    const dyValues = dy.dataSync();
+    const [dyS0, dyS1, dyS2, dyS3] = dy.strides;
+    const xValues = x.dataSync();
+    const [xS0, xS1, xS2, xS3] = x.strides;
+
+    const frontPad = convInfo.padInfo.front;
+    const leftPad = convInfo.padInfo.left;
+    const topPad = convInfo.padInfo.top;
+
+    for (let wF = 0; wF < filterDepth; ++wF) {
+      const yFMin = Math.max(0, Math.ceil((frontPad - wF) / strideDepth));
+      const yFMax = Math.min(
+          convInfo.outDepth, (convInfo.inDepth + frontPad - wF) / strideDepth);
+      const wOffset1 = wF * dwS0;
+
+      for (let wR = 0; wR < filterHeight; ++wR) {
+        const yRMin = Math.max(0, Math.ceil((topPad - wR) / strideHeight));
+        const yRMax = Math.min(
+            convInfo.outHeight,
+            (convInfo.inHeight + topPad - wR) / strideHeight);
+        const wOffset2 = wR * dwS1 + wOffset1;
+
+        for (let wC = 0; wC < filterWidth; ++wC) {
+          const yCMin = Math.max(0, Math.ceil((leftPad - wC) / strideWidth));
+          const yCMax = Math.min(
+              convInfo.outWidth,
+              (convInfo.inWidth + leftPad - wC) / strideWidth);
+          const wOffset3 = wC * dwS2 + wOffset2;
+
+          for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
+            const wOffset4 = d1 * dwS3 + wOffset3;
+
+            for (let d2 = 0; d2 < convInfo.outChannels; ++d2) {
+              let dotProd = 0;
+              for (let b = 0; b < convInfo.batchSize; ++b) {
+                const xOffset1 = b * xS0;
+                const yOffset1 = b * dyS0;
+
+                for (let yF = yFMin; yF < yFMax; ++yF) {
+                  const xF = wF + yF * strideDepth - frontPad;
+                  const xOffset2 = xF * xS1 + xOffset1;
+                  const yOffset2 = yF * dyS1 + yOffset1;
+
+                  for (let yR = yRMin; yR < yRMax; ++yR) {
+                    const xR = wR + yR * strideHeight - topPad;
+                    const xOffset3 = xR * xS2 + xOffset2;
+                    const yOffset3 = yR * dyS2 + yOffset2;
+
+                    for (let yC = yCMin; yC < yCMax; ++yC) {
+                      const xC = wC + yC * strideWidth - leftPad;
+                      const xOffset4 = xC * xS3 + xOffset3;
+                      const yOffset4 = yC * dyS3 + yOffset3;
+
+                      dotProd +=
+                          xValues[xOffset4 + d1] * dyValues[yOffset4 + d2];
+                    }
+                  }
+                }
+              }
+              dwValues[wOffset4 + d2] = dotProd;
+            }
+          }
+        }
+      }
+    }
+    return dw.toTensor();
   }
 
   depthwiseConv2D(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):

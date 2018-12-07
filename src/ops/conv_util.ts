@@ -25,6 +25,16 @@ export type PadInfo = {
   type: string
 };
 
+export type PadInfo3D = {
+  top: number,
+  left: number,
+  right: number,
+  bottom: number,
+  front: number,
+  back: number,
+  type: string
+};
+
 /**
  * Information about the forward pass of a convolution/pooling operation.
  * It includes input and output shape, strides, filter size and padding
@@ -140,6 +150,110 @@ export function computeConv2DInfo(
   };
 }
 
+/**
+ * Information about the forward pass of a 3D convolution/pooling operation.
+ * It includes input and output shape, strides, filter size and padding
+ * information.
+ */
+export type Conv3DInfo = {
+  batchSize: number,
+  inDepth: number,
+  inHeight: number,
+  inWidth: number,
+  inChannels: number,
+  outDepth: number,
+  outHeight: number,
+  outWidth: number,
+  outChannels: number,
+  dataFormat: 'channelsFirst'|'channelsLast',
+  strideDepth: number,
+  strideHeight: number,
+  strideWidth: number,
+  dilationDepth: number,
+  dilationHeight: number,
+  dilationWidth: number,
+  filterDepth: number,
+  filterHeight: number,
+  filterWidth: number,
+  padInfo: PadInfo3D,
+  inShape: [number, number, number, number, number],
+  outShape: [number, number, number, number, number],
+  filterShape: [number, number, number, number, number]
+};
+
+/**
+ * Computes the information for a forward pass of a 3D convolution/pooling
+ * operation.
+ */
+export function computeConv3DInfo(
+    inShape: [number, number, number, number, number],
+    filterShape: [number, number, number, number, number],
+    strides: number|[number, number, number],
+    dilations: number|[number, number, number], pad: 'same'|'valid',
+    depthwise = false,
+    dataFormat: 'channelsFirst'|'channelsLast' = 'channelsLast'): Conv3DInfo {
+  let [batchSize, inDepth, inHeight, inWidth, inChannels] =
+      [-1, -1, -1, -1, -1];
+  if (dataFormat === 'channelsLast') {
+    [batchSize, inDepth, inHeight, inWidth, inChannels] = inShape;
+  } else if (dataFormat === 'channelsFirst') {
+    [batchSize, inChannels, inDepth, inHeight, inWidth] = inShape;
+  } else {
+    throw new Error(`Unknown dataFormat ${dataFormat}`);
+  }
+
+  const [filterDepth, filterHeight, filterWidth, , filterChannels] =
+      filterShape;
+  const [strideDepth, strideHeight, strideWidth] = parse3TupleParam(strides);
+  const [dilationDepth, dilationHeight, dilationWidth] =
+      parse3TupleParam(dilations);
+
+  const effectiveFilterDepth =
+      getEffectiveFilterSize(filterDepth, dilationDepth);
+  const effectiveFilterHeight =
+      getEffectiveFilterSize(filterHeight, dilationHeight);
+  const effectiveFilterWidth =
+      getEffectiveFilterSize(filterWidth, dilationWidth);
+  const {padInfo, outDepth, outHeight, outWidth} = get3DPadAndOutInfo(
+      pad, inDepth, inHeight, inWidth, strideDepth, strideHeight, strideWidth,
+      effectiveFilterDepth, effectiveFilterHeight, effectiveFilterWidth);
+
+  const outChannels = depthwise ? filterChannels * inChannels : filterChannels;
+
+  let outShape: [number, number, number, number, number];
+  if (dataFormat === 'channelsFirst') {
+    outShape = [batchSize, outChannels, outDepth, outHeight, outWidth];
+  } else if (dataFormat === 'channelsLast') {
+    outShape = [batchSize, outDepth, outHeight, outWidth, outChannels];
+  }
+
+  return {
+    batchSize,
+    dataFormat,
+    inDepth,
+    inHeight,
+    inWidth,
+    inChannels,
+    outDepth,
+    outHeight,
+    outWidth,
+    outChannels,
+    padInfo,
+    strideDepth,
+    strideHeight,
+    strideWidth,
+    filterDepth,
+    filterHeight,
+    filterWidth,
+    dilationDepth,
+    dilationHeight,
+    dilationWidth,
+    inShape,
+    outShape,
+    filterShape
+  };
+}
+
 function computeOutputShape3D(
     inShape: [number, number, number], fieldSize: number, outDepth: number,
     stride: number, zeroPad?: number,
@@ -177,6 +291,11 @@ export function computeDefaultPad(
 
 function parseTupleParam(param: number|[number, number]): [number, number] {
   return typeof param === 'number' ? [param, param] : param;
+}
+
+function parse3TupleParam(param: number|[number, number, number]):
+    [number, number, number] {
+  return typeof param === 'number' ? [param, param, param] : param;
 }
 
 /* See https://www.tensorflow.org/api_docs/python/tf/nn/atrous_conv2d
@@ -234,6 +353,55 @@ function getPadAndOutInfo(
     throw Error(`Unknown padding parameter: ${pad}`);
   }
   return {padInfo, outHeight, outWidth};
+}
+
+function get3DPadAndOutInfo(
+    pad: 'same'|'valid', inDepth: number, inHeight: number, inWidth: number,
+    strideDepth: number, strideHeight: number, strideWidth: number,
+    filterDepth: number, filterHeight: number, filterWidth: number): {
+  padInfo: PadInfo3D,
+  outDepth: number,
+  outHeight: number,
+  outWidth: number
+} {
+  let padInfo: PadInfo3D;
+  let outDepth: number;
+  let outHeight: number;
+  let outWidth: number;
+
+  if (pad === 'same') {
+    outDepth = Math.ceil(inDepth / strideDepth);
+    outHeight = Math.ceil(inHeight / strideHeight);
+    outWidth = Math.ceil(inWidth / strideWidth);
+    const padAlongDepth = (outDepth - 1) * strideDepth + filterDepth - inDepth;
+    const padAlongHeight =
+        (outHeight - 1) * strideHeight + filterHeight - inHeight;
+    const padAlongWidth = (outWidth - 1) * strideWidth + filterWidth - inWidth;
+    const front = Math.floor(padAlongDepth / 2);
+    const back = padAlongDepth - front;
+    const top = Math.floor(padAlongHeight / 2);
+    const bottom = padAlongHeight - top;
+    const left = Math.floor(padAlongWidth / 2);
+    const right = padAlongWidth - left;
+
+    padInfo = {top, bottom, left, right, front, back, type: 'SAME'};
+  } else if (pad === 'valid') {
+    padInfo = {
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      front: 0,
+      back: 0,
+      type: 'VALID'
+    };
+    outDepth = Math.ceil((inDepth - filterDepth + 1) / strideDepth);
+    outHeight = Math.ceil((inHeight - filterHeight + 1) / strideHeight);
+    outWidth = Math.ceil((inWidth - filterWidth + 1) / strideWidth);
+  } else {
+    throw Error(`Unknown padding parameter: ${pad}`);
+  }
+  return {padInfo, outDepth, outHeight, outWidth};
 }
 
 /**

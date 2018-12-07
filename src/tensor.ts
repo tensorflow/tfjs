@@ -492,6 +492,23 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
+   * Converts a `tf.Tensor` to a `tf.Tensor5D`.
+   *
+   * @param rows Number of rows in `tf.Tensor5D`.
+   * @param columns Number of columns in `tf.Tensor5D`.
+   * @param depth Depth of `tf.Tensor5D`.
+   * @param depth2 4th dimension of `tf.Tensor5D`.
+   * @param depth3 5th dimension of 'tf.Tensor5D'
+   */
+  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
+  as5D(
+      rows: number, columns: number, depth: number, depth2: number,
+      depth3: number): Tensor5D {
+    this.throwIfDisposed();
+    return this.reshape<Rank.R5>([rows, columns, depth, depth2, depth3]);
+  }
+
+  /**
    * Casts a `tf.Tensor` to a specified dtype.
    *
    * @param dtype Data-type to cast the tensor to.
