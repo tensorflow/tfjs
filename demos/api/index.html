@@ -397,7 +397,7 @@
         }
       </script>
 
-      <p>The diagonal can also be shaded.</p>
+      <p>The diagonal can also be excluded from shading.</p>
 
       <div id='confmatrix-cont2'></div>
 
@@ -410,10 +410,10 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({
-            name: 'Confusion Matrix with Diagonal', tab: 'Charts'
+            name: 'Confusion Matrix with Excluded Diagonal', tab: 'Charts'
           });
           tfvis.render.confusionMatrix(data, surface, {
-            shadeDiagonal: true
+            shadeDiagonal: false
           });
 
           // Render to page
@@ -421,7 +421,67 @@
           tfvis.render.confusionMatrix(data, container, {
             width: 500,
             height: 500,
-            shadeDiagonal: true,
+            shadeDiagonal: false,
+          });
+        }
+      </script>
+
+      <p>Perfect classification.</p>
+
+      <div id='confmatrix-cont3'></div>
+
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: [[8, 0, 0], [0, 8, 0], [0, 0, 8]],
+            // We also generate 'labels' if none are passed.
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({
+            name: 'Confusion Matrix with perfect classification', tab: 'Charts'
+          });
+          tfvis.render.confusionMatrix(data, surface);
+
+          // Render to page
+          const container = document.getElementById('confmatrix-cont3');
+          tfvis.render.confusionMatrix(data, container, {
+            width: 500,
+            height: 500,
+          });
+
+
+        }
+      </script>
+
+      <p>In a perfect classification scenario where shadeDiagonal is false the chart
+        will override that option as all values lie on the diagonal.
+      </p>
+
+      <div id='confmatrix-cont4'></div>
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: [[8, 0, 0], [0, 8, 0], [0, 0, 8]],
+            // We also generate 'labels' if none are passed.
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({
+            name: 'Confusion Matrix with perfect classification shadeDiagonal=false', tab: 'Charts'
+          });
+          tfvis.render.confusionMatrix(data, surface, {
+            shadeDiagonal: false,
+          });
+
+          // Render to page
+          const container = document.getElementById('confmatrix-cont4');
+          tfvis.render.confusionMatrix(data, container, {
+            width: 500,
+            height: 500,
+            shadeDiagonal: false,
           });
         }
       </script>
