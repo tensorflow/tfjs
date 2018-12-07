@@ -46,7 +46,10 @@ export class BrowserHTTPRequest implements IOHandler {
             'browserHTTPRequest is not supported outside the web browser ' +
             'without a fetch polyfill.');
       }
-      this.fetchFunc = fetch;
+      // Make sure fetch is always bound to window (the
+      // original object) when available.
+      this.fetchFunc =
+          fetch.bind(typeof window === 'undefined' ? null : window);
     } else {
       assert(
           typeof fetchFunc === 'function',
@@ -110,7 +113,7 @@ export class BrowserHTTPRequest implements IOHandler {
           'model.weights.bin');
     }
 
-    const response = await this.fetchFunc(this.path as string, init);
+    const response = await this.getFetchFunc()(this.path as string, init);
 
     if (response.ok) {
       return {
@@ -142,7 +145,8 @@ export class BrowserHTTPRequest implements IOHandler {
    */
   private async loadBinaryTopology(): Promise<ArrayBuffer> {
     try {
-      const response = await this.fetchFunc(this.path[0], this.requestInit);
+      const response =
+          await this.getFetchFunc()(this.path[0], this.requestInit);
       if (!response.ok) {
         throw new Error(
             `BrowserHTTPRequest.load() failed due to HTTP response: ${
@@ -157,7 +161,7 @@ export class BrowserHTTPRequest implements IOHandler {
   protected async loadBinaryModel(): Promise<ModelArtifacts> {
     const graphPromise = this.loadBinaryTopology();
     const manifestPromise =
-        await this.fetchFunc(this.path[1], this.requestInit);
+        await this.getFetchFunc()(this.path[1], this.requestInit);
     if (!manifestPromise.ok) {
       throw new Error(`BrowserHTTPRequest.load() failed due to HTTP response: ${
           manifestPromise.statusText}`);
@@ -181,7 +185,7 @@ export class BrowserHTTPRequest implements IOHandler {
 
   protected async loadJSONModel(): Promise<ModelArtifacts> {
     const modelConfigRequest =
-        await this.fetchFunc(this.path as string, this.requestInit);
+        await this.getFetchFunc()(this.path as string, this.requestInit);
     if (!modelConfigRequest.ok) {
       throw new Error(`BrowserHTTPRequest.load() failed due to HTTP response: ${
           modelConfigRequest.statusText}`);
@@ -230,8 +234,19 @@ export class BrowserHTTPRequest implements IOHandler {
     return [
       weightSpecs,
       concatenateArrayBuffers(await loadWeightsAsArrayBuffer(
-          fetchURLs, this.requestInit, this.fetchFunc))
+          fetchURLs, this.requestInit, this.getFetchFunc()))
     ];
+  }
+
+  /**
+   * Helper method to get the `fetch`-like function set for this instance.
+   *
+   * This is mainly for avoiding confusion with regard to what context
+   * the `fetch`-like function is bound to. In the default (browser) case,
+   * the function will be bound to `window`, instead of `this`.
+   */
+  private getFetchFunc() {
+    return this.fetchFunc;
   }
 }
 
