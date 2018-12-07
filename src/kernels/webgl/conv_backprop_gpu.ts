@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Conv2DInfo} from '../../ops/conv_util';
+import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class Conv2DDerFilterProgram implements GPGPUProgram {
@@ -126,6 +126,147 @@ export class Conv2DDerInputProgram implements GPGPUProgram {
               float xValue = getDy(batch, idyR, idyC, d2);
               float wValue = getW(wRPerm, wCPerm, d1, d2);
               dotProd += xValue * wValue;
+            }
+          }
+        }
+        setOutput(dotProd);
+      }
+    `;
+  }
+}
+
+export class Conv3DDerFilterProgram implements GPGPUProgram {
+  variableNames = ['x', 'dy'];
+  outputShape: number[];
+  userCode: string;
+
+  constructor(convInfo: Conv3DInfo) {
+    this.outputShape = convInfo.filterShape;
+
+    const strideDepth = convInfo.strideDepth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const padFront = convInfo.padInfo.front;
+    const padTop = convInfo.padInfo.top;
+    const padLeft = convInfo.padInfo.left;
+
+    this.userCode = `
+      void main() {
+        ivec5 coords = getOutputCoords();
+        int wF = coords.x;
+        int wR = coords.y;
+        int wC = coords.z;
+        int d1 = coords.w;
+        int d2 = coords.u;
+
+        float dotProd = 0.0;
+
+        for (int b = 0; b < ${convInfo.batchSize}; b++) {
+          for (int yF = 0; yF < ${convInfo.outDepth}; yF++) {
+            int xF = wF + yF * ${strideDepth} - ${padFront};
+
+            if (xF < 0 || xF >= ${convInfo.inDepth}) {
+              continue;
+            }
+
+            for (int yR = 0; yR < ${convInfo.outHeight}; yR++) {
+              int xR = wR + yR * ${strideHeight} - ${padTop};
+
+              if (xR < 0 || xR >= ${convInfo.inHeight}) {
+                continue;
+              }
+
+              for (int yC = 0; yC < ${convInfo.outWidth}; yC++) {
+                int xC = wC + yC * ${strideWidth} - ${padLeft};
+
+                if (xC < 0 || xC >= ${convInfo.inWidth}) {
+                  continue;
+                }
+
+                float dyValue = getDy(b, yF, yR, yC, d2);
+                float xValue = getX(b, xF, xR, xC, d1);
+                dotProd += (xValue * dyValue);
+              }
+            }
+          }
+        }
+        setOutput(dotProd);
+      }
+    `;
+  }
+}
+
+export class Conv3DDerInputProgram implements GPGPUProgram {
+  variableNames = ['dy', 'W'];
+  outputShape: number[];
+  userCode: string;
+
+  constructor(convInfo: Conv3DInfo) {
+    this.outputShape = convInfo.inShape;
+
+    const filterDepth = convInfo.filterDepth;
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const strideDepth = convInfo.strideDepth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+
+    const padFront = filterDepth - 1 - convInfo.padInfo.front;
+    const padTop = filterHeight - 1 - convInfo.padInfo.top;
+    const padLeft = filterWidth - 1 - convInfo.padInfo.left;
+
+    this.userCode = `
+      const ivec3 pads = ivec3(${padFront}, ${padTop}, ${padLeft});
+
+      void main() {
+        ivec5 coords = getOutputCoords();
+        int batch = coords.x;
+        int d1 = coords.u;
+
+
+        ivec3 dyCorner = ivec3(coords.y, coords.z, coords.w) - pads;
+        int dyFCorner = dyCorner.x;
+        int dyRCorner = dyCorner.y;
+        int dyCCorner = dyCorner.z;
+
+        float dotProd = 0.0;
+        for (int wF = 0; wF < ${filterDepth}; wF++) {
+          float dyF = float(dyFCorner + wF) / ${strideDepth}.0;
+
+          if (dyF < 0.0 || dyF >= ${convInfo.outDepth}.0 || fract(dyF) > 0.0) {
+            continue;
+          }
+          int idyF = int(dyF);
+
+          int wFPerm = ${filterDepth} - 1 - wF;
+
+          for (int wR = 0; wR < ${filterHeight}; wR++) {
+            float dyR = float(dyRCorner + wR) / ${strideHeight}.0;
+
+            if (dyR < 0.0 || dyR >= ${convInfo.outHeight}.0 ||
+              fract(dyR) > 0.0) {
+              continue;
+            }
+            int idyR = int(dyR);
+
+            int wRPerm = ${filterHeight} - 1 - wR;
+
+            for (int wC = 0; wC < ${filterWidth}; wC++) {
+              float dyC = float(dyCCorner + wC) / ${strideWidth}.0;
+
+              if (dyC < 0.0 || dyC >= ${convInfo.outWidth}.0 ||
+                  fract(dyC) > 0.0) {
+                continue;
+              }
+              int idyC = int(dyC);
+
+              int wCPerm = ${filterWidth} - 1 - wC;
+
+              for (int d2 = 0; d2 < ${convInfo.outChannels}; d2++) {
+                float xValue = getDy(batch, idyF, idyR, idyC, d2);
+                float wValue = getW(wFPerm, wRPerm, wCPerm, d1, d2);
+                dotProd += xValue * wValue;
+              }
             }
           }
         }
