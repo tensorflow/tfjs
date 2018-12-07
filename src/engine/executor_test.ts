@@ -17,7 +17,7 @@ import {dispose, memory, ones, Tensor, tensor1d, tensor2d, tensor3d, zeros} from
 import * as tfl from '../index';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {execute, ExecutionProbe, FeedDict} from './executor';
+import {execute, ExecutionProbe, FeedDict, getTopologicalSortAndRecipientCountsForOneFetch} from './executor';
 
 // tslint:enable
 
@@ -85,6 +85,44 @@ describeMathCPU('FeedDict', () => {
     const sValue = tensor3d([1, 3, 3, 7], [1, 1, 4]);
     const feedDict = new FeedDict([{key: s, value: sValue}]);
     expect(feedDict.getValue(s)).toEqual(sValue);
+  });
+});
+
+describeMathCPU('getTopologicalSortAndRecipientCountsForOneFetch', () => {
+  it('Triangular topology', () => {
+    const input = tfl.input({shape: [2, 6]});
+    const f1 = tfl.layers.flatten().apply(input) as tfl.SymbolicTensor;
+    const r1 = tfl.layers.reLU().apply(f1) as tfl.SymbolicTensor;
+    const c1 = tfl.layers.concatenate().apply([f1, r1]) as tfl.SymbolicTensor;
+    const relu2 = tfl.layers.reLU().apply(c1) as tfl.SymbolicTensor;
+
+    const {sorted, recipientMap} =
+        getTopologicalSortAndRecipientCountsForOneFetch(relu2, new FeedDict());
+    expect(sorted).toEqual([input, f1, r1, c1, relu2]);
+    expect(recipientMap[input.name].size).toEqual(1);
+    expect(recipientMap[f1.name].size).toEqual(2);
+    expect(recipientMap[r1.name].size).toEqual(1);
+    expect(recipientMap[c1.name].size).toEqual(1);
+  });
+
+  it('Double triangular topology', () => {
+    const input = tfl.input({shape: [2, 6]});
+    const f1 = tfl.layers.flatten().apply(input) as tfl.SymbolicTensor;
+    const r1 = tfl.layers.reLU().apply(f1) as tfl.SymbolicTensor;
+    const c1 = tfl.layers.concatenate().apply([f1, r1]) as tfl.SymbolicTensor;
+    const r2 = tfl.layers.reLU().apply(c1) as tfl.SymbolicTensor;
+    const c2 = tfl.layers.concatenate().apply([f1, r2]) as tfl.SymbolicTensor;
+    const r3 = tfl.layers.reLU().apply(c2) as tfl.SymbolicTensor;
+
+    const {sorted, recipientMap} =
+        getTopologicalSortAndRecipientCountsForOneFetch(r3, new FeedDict());
+    expect(sorted).toEqual([input, f1, r1, c1, r2, c2, r3]);
+    expect(recipientMap[input.name].size).toEqual(1);
+    expect(recipientMap[f1.name].size).toEqual(3);
+    expect(recipientMap[r1.name].size).toEqual(1);
+    expect(recipientMap[c1.name].size).toEqual(1);
+    expect(recipientMap[r2.name].size).toEqual(1);
+    expect(recipientMap[c2.name].size).toEqual(1);
   });
 });
 

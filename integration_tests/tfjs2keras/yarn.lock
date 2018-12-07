@@ -73,10 +73,10 @@
     "@types/webgl2" "0.0.4"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-core@0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.14.0.tgz#b279aac3829552a40e1894cd9b77c73416fe2b47"
-  integrity sha512-XzsLQma506xCeM2NmIp+AcFtCPB4XE/VQ5ljJmMUCx0RxUWcmtJJ6FwvXsMMlS3TbHPImnxO5PwZ/5ZTgktgdg==
+"@tensorflow/tfjs-core@0.14.1":
+  version "0.14.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.14.1.tgz#b7dc04cb05bf2a1052d5bec6bd899c42badb950b"
+  integrity sha512-c2Rwhwr4XjVipjZQIuZItJD8INcXRVyVq+xvwbB5PYMo8eOMuG7lIyi5vIsv82WVde2teNkj/W0n+0LdPOUSmg==
   dependencies:
     "@types/seedrandom" "2.4.27"
     "@types/webgl-ext" "0.0.30"
