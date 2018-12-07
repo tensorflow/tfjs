@@ -57,4 +57,4 @@ export {render};
 export {metrics};
 export {show};
 
-export {Visor, Surface, SurfaceInfo, StyleOptions, Drawable,} from './types';
+export * from './types';

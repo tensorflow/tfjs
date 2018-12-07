@@ -84,6 +84,7 @@ export async function renderConfusionMatrix(
   const embedOpts = {
     actions: false,
     mode: 'vega-lite' as Mode,
+    defaultStyle: false,
   };
 
   const spec: VisualizationSpec = {

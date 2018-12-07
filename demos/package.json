@@ -19,6 +19,6 @@
     "rimraf": "^2.6.2"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.12.4"
+    "@tensorflow/tfjs": "^0.12.7"
   }
 }

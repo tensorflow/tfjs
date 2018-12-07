@@ -51,7 +51,6 @@ function setupListeners() {
     document.querySelector('#show-examples').disabled = false;
     document.querySelector('#start-training-1').disabled = false;
     document.querySelector('#start-training-2').disabled = false;
-    document.querySelector('#start-training-3').disabled = false;
     e.target.disabled = true;
   });
 }

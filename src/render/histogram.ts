@@ -64,6 +64,7 @@ export async function renderHistogram(
   const embedOpts = {
     actions: false,
     mode: 'vega-lite' as Mode,
+    defaultStyle: false,
   };
 
   const histogramContainer = subSurface(container, 'histogram');
