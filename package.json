@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-data",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "TensorFlow Data API in JavaScript",
   "private": false,
   "main": "dist/index.js",
