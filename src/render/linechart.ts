@@ -74,6 +74,7 @@ export async function renderLinechart(
   const embedOpts = {
     actions: false,
     mode: 'vega-lite' as Mode,
+    defaultStyle: false,
   };
 
   const yScale = (): {}|undefined => {
@@ -111,6 +112,7 @@ export async function renderLinechart(
   }
 
   const spec: VisualizationSpec = {
+
     'width': options.width || drawArea.clientWidth,
     'height': options.height || drawArea.clientHeight,
     'padding': 5,

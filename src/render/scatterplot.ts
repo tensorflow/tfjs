@@ -76,6 +76,7 @@ export async function renderScatterplot(
   const embedOpts = {
     actions: false,
     mode: 'vega-lite' as Mode,
+    defaultStyle: false,
   };
 
   const xDomain = (): {}|undefined => {
