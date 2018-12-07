@@ -254,6 +254,11 @@ Renders a per class accuracy table for classification task evaluation
 
 Renders a confusion matrix for classification task evaluation
 
+Can optionally exclude the diagonal from being shaded if one wants the visual
+focus to be on the incorrect classifications. Note that if the classification
+is perfect (i.e. only the diagonal has values) then the diagonal will always
+be shaded.
+
 * @param container A `{name: string, tab?: string}` object specifying which
   surface to render to.
 * @param confusionMatrix A nested array of numbers with the confusion matrix

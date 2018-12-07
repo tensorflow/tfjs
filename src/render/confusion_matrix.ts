@@ -21,7 +21,12 @@ import {ConfusionMatrixData, Drawable, VisOptions,} from '../types';
 import {getDrawArea} from './render_utils';
 
 /**
- * Renders a confusion matrix
+ * Renders a confusion matrix.
+ *
+ * Can optionally exclude the diagonal from being shaded if one wants the visual
+ * focus to be on the incorrect classifications. Note that if the classification
+ * is perfect (i.e. only the diagonal has values) then the diagonal will always
+ * be shaded.
  *
  * @param data Data consists of an object with a 'values' property
  *  and a 'labels' property.
@@ -41,7 +46,7 @@ import {getDrawArea} from './render_utils';
  * @param container An `HTMLElement` or `Surface` in which to draw the chart
  * @param opts optional parameters
  * @param opts.shadeDiagonal boolean that controls whether or not to color cells
- * on the diagonal. Defaults to false
+ * on the diagonal. Defaults to true.
  * @param opts.width width of chart in px
  * @param opts.height height of chart in px
  * @param opts.fontSize fontSize in pixels for text in the chart
@@ -54,11 +59,12 @@ export async function renderConfusionMatrix(
 
   // Format data for vega spec; an array of objects, one for for each cell
   // in the matrix.
-  const values = [];
+  const values: MatrixEntry[] = [];
 
   const inputArray = data.values;
   const labels = data.labels;
 
+  let nonDiagonalIsAllZeroes = true;
   for (let i = 0; i < inputArray.length; i++) {
     for (let j = 0; j < inputArray[i].length; j++) {
       const label = labels ? labels[i] : `Class ${i}`;
@@ -77,6 +83,25 @@ export async function renderConfusionMatrix(
           prediction,
           count,
         });
+        // When not shading the diagonal we want to check if there is a non
+        // zero value. If all values are zero we will not color them as the
+        // scale will be invalid.
+        if (count !== 0) {
+          nonDiagonalIsAllZeroes = false;
+        }
+      }
+    }
+  }
+
+  if (!options.shadeDiagonal && nonDiagonalIsAllZeroes) {
+    // User has specified requested not to shade the diagonal but all the other
+    // values are zero. We have two choices, don't shade the anything or only
+    // shade the diagonal. We choose to shade the diagonal as that is likely
+    // more helpful even if it is not what the user specified.
+    for (const val of values) {
+      if (val.noFill === true) {
+        val.noFill = false;
+        val.count = val.diagCount;
       }
     }
   }
@@ -136,7 +161,7 @@ export async function renderConfusionMatrix(
             },
             'field': 'count',
             'type': 'quantitative',
-            'scale': {'scheme': 'blues'},
+            'scale': {'range': ['#f7fbff', '#4292c6']},
           },
           'tooltip': {
             'condition': {
@@ -177,6 +202,14 @@ const defaultOpts = {
   yLabel: null,
   xType: 'nominal',
   yType: 'nominal',
-  shadeDiagonal: false,
-  fontSize: 11,
+  shadeDiagonal: true,
+  fontSize: 12,
 };
+
+interface MatrixEntry {
+  label: string;
+  prediction: string;
+  count?: number;
+  diagCount?: number;
+  noFill?: boolean;
+}
