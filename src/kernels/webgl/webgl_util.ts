@@ -415,17 +415,6 @@ export function isReshapeFree(shape1: number[], shape2: number[]): boolean {
         (shape1[0] === 1 || shape2[0] === 1)) {
       return true;
     }
-  } else {
-    if (isEven(shape1[0]) && isEven(shape2[0])) {
-      if (isEven(shape1[1]) && isEven(shape2[1])) {
-        return true;
-      }
-
-      if (shape1[1] === shape2[1]) {
-        return true;
-      }
-    }
-  }
-
-  return false;
+  } 
+  return shape1[1] === shape2[1] && isEven(shape1[0]) && isEven(shape2[0]);
 }
