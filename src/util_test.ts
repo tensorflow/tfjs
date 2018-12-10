@@ -262,8 +262,24 @@ describe('util.squeezeShape', () => {
       expect(newShape).toEqual([1, 1, 4]);
       expect(keptDims).toEqual([0, 3, 4]);
     });
+    it('should only reduce dimensions specified by negative axis', () => {
+      const {newShape, keptDims} = util.squeezeShape([1, 1, 1, 1, 4], [-2, -3]);
+      expect(newShape).toEqual([1, 1, 4]);
+      expect(keptDims).toEqual([0, 1, 4]);
+    });
     it('throws error when specified axis is not squeezable', () => {
       expect(() => util.squeezeShape([1, 1, 2, 1, 4], [1, 2])).toThrowError();
+    });
+    it('throws error when specified negative axis is not squeezable', () => {
+      expect(() => util.squeezeShape([1, 1, 2, 1, 4], [-1, -2])).toThrowError();
+    });
+    it('throws error when specified axis is out of range', () => {
+      expect(
+        () => util.squeezeShape([1, 1, 2, 1, 4], [11, 22])).toThrowError();
+    });
+    it('throws error when specified negative axis is out of range', () => {
+      expect(
+        () => util.squeezeShape([1, 1, 2, 1, 4], [-11, -22])).toThrowError();
     });
   });
 });
