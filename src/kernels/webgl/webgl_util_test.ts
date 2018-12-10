@@ -155,18 +155,18 @@ describeWithFlags('isReshapeFree', WEBGL_ENVS, () => {
        expect(webgl_util.isReshapeFree(before, after)).toBe(false);
      });
 
-  it('is free when the inner dimensions are divisible by 2', () => {
-    const before = [1, 2, 4];
-    const after = [1, 8, 10];
-    expect(webgl_util.isReshapeFree(before, after)).toBe(true);
-  });
-
   it('is free if the rows are divisible by two and the columns are the same',
      () => {
        const before = [1, 2, 3];
        const after = [1, 4, 3];
        expect(webgl_util.isReshapeFree(before, after)).toBe(true);
      });
+
+  it('is not free when the inner dimensions are different and even', () => {
+    const before = [1, 2, 4];
+    const after = [1, 8, 10];
+    expect(webgl_util.isReshapeFree(before, after)).toBe(false);
+  });
 
   it('is not free when the inner dimensions are different and not all even',
      () => {
