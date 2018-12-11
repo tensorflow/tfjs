@@ -140,9 +140,7 @@ export function calculateShapes(
   const safeSliceDim = (sliceRank < 1) ? 1 : sliceRank;
   const numUpdates = indices.size / safeSliceDim;
 
-  const outputStrides = [...computeStrides(shape), 1];
-  const strides = outputStrides.slice(
-      outputStrides.length - sliceRank, outputStrides.length);
+  const strides = [...computeStrides(shape.slice(0, sliceRank)), 1];
   const outputSize = sizeFromShape(shape);
   return {sliceRank, numUpdates, sliceSize, strides, outputSize};
 }
