@@ -82,6 +82,15 @@ describeWithFlags('scatterND', ALL_ENVS, () => {
     expectArraysClose(result, [0, 20, 10, 0, 0, 0, 0, 0, 0]);
   });
 
+  it('should work for high rank indices and update', () => {
+    const indices = tf.tensor2d([1, 0, 0, 1, 0, 1], [3, 2], 'int32');
+    const updates = tf.ones([3, 256], 'float32');
+    const shape = [2, 2, 256];
+    const result = tf.scatterND(indices, updates, shape);
+    expect(result.shape).toEqual(shape);
+    expect(result.dtype).toEqual(updates.dtype);
+  });
+
   it('should sum the duplicated indices', () => {
     const indices = tf.tensor1d([0, 4, 2, 1, 3, 0], 'int32');
     const updates = tf.tensor1d([10, 20, 30, 40, 50, 60], 'float32');
