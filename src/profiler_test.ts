@@ -31,7 +31,7 @@ class TestBackendTimer implements BackendTimer {
     query();
     const kernelMs = await new Promise<number>(
         resolve => setTimeout(
-            resolve(this.queryTimeMs * this.counter++), this.delayMs));
+            () => resolve(this.queryTimeMs * this.counter++), this.delayMs));
     return {kernelMs, getExtraProfileInfo: () => this.extraInfo};
   }
 }

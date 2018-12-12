@@ -219,13 +219,13 @@ describeWithFlags('browserHTTPRequest-save', CHROME_ENVS, () => {
                   .toEqual(new Uint8Array(weightData1));
               done();
             };
-            weightsFileReader.onerror = (error: FileReaderProgressEvent) => {
-              done.fail(error.target.error.message);
+            weightsFileReader.onerror = ev => {
+              done.fail(weightsFileReader.error.message);
             };
             weightsFileReader.readAsArrayBuffer(weightsFile);
           };
-          jsonFileReader.onerror = (error: FileReaderProgressEvent) => {
-            done.fail(error.target.error.message);
+          jsonFileReader.onerror = ev => {
+            done.fail(jsonFileReader.error.message);
           };
           jsonFileReader.readAsText(jsonFile);
         })
@@ -263,8 +263,8 @@ describeWithFlags('browserHTTPRequest-save', CHROME_ENVS, () => {
             expect(body.get('model.weights.bin')).toEqual(null);
             done();
           };
-          jsonFileReader.onerror = (error: FileReaderProgressEvent) => {
-            done.fail(error.target.error.message);
+          jsonFileReader.onerror = event => {
+            done.fail(jsonFileReader.error.message);
           };
           jsonFileReader.readAsText(jsonFile);
         })
@@ -322,13 +322,13 @@ describeWithFlags('browserHTTPRequest-save', CHROME_ENVS, () => {
                   .toEqual(new Uint8Array(weightData1));
               done();
             };
-            weightsFileReader.onerror = (error: FileReaderProgressEvent) => {
-              done.fail(error.target.error.message);
+            weightsFileReader.onerror = event => {
+              done.fail(weightsFileReader.error.message);
             };
             weightsFileReader.readAsArrayBuffer(weightsFile);
           };
-          jsonFileReader.onerror = (error: FileReaderProgressEvent) => {
-            done.fail(error.target.error.message);
+          jsonFileReader.onerror = event => {
+            done.fail(jsonFileReader.error.message);
           };
           jsonFileReader.readAsText(jsonFile);
         })
