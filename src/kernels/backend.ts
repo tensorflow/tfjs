@@ -297,6 +297,9 @@ export class KernelBackend implements TensorStorage, BackendTimer {
   relu<T extends Tensor>(x: T): T {
     throw new Error('Not yet implemented');
   }
+  prelu<T extends Tensor>(x: T, a: T): T {
+    throw new Error('Not yet implemented');
+  }
   elu<T extends Tensor>(x: T): T {
     throw new Error('Not yet implemented');
   }

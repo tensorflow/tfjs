@@ -1322,6 +1322,12 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x]) as T;
   }
 
+  prelu<T extends Tensor>(x: T, alpha: T): T {
+    const program =
+        new BinaryOpProgram(binaryop_gpu.PRELU, x.shape, alpha.shape);
+    return this.compileAndRun(program, [x, alpha]) as T;
+  }
+
   elu<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.ELU);
     return this.compileAndRun(program, [x]) as T;
