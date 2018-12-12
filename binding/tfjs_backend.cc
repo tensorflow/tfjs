@@ -21,6 +21,7 @@
 #include "tfe_auto_op.h"
 #include "utils.h"
 
+#include <algorithm>
 #include <cstring>
 #include <memory>
 #include <set>
@@ -31,17 +32,19 @@ namespace tfnodejs {
 // Used to hold strings beyond the lifetime of a JS call.
 static std::set<std::string> ATTR_NAME_SET;
 
-TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(
-    napi_env env, int64_t *shape, uint32_t shape_length, TF_DataType dtype,
-    napi_value typed_array_value) {
+// Creates a TFE_TensorHandle from a JS typed array.
+TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
+                                                       int64_t *shape,
+                                                       uint32_t shape_length,
+                                                       TF_DataType dtype,
+                                                       napi_value array_value) {
   napi_status nstatus;
-
   napi_typedarray_type array_type;
   size_t array_length;
   void *array_data;
   nstatus =
-      napi_get_typedarray_info(env, typed_array_value, &array_type,
-                               &array_length, &array_data, nullptr, nullptr);
+      napi_get_typedarray_info(env, array_value, &array_type, &array_length,
+                               &array_data, nullptr, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   // Double check the underlying TF_Tensor type matches the supplied
@@ -106,6 +109,101 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(
   return tfe_tensor_handle;
 }
 
+// Creates a TFE_TensorHandle from a JS array of string values.
+TFE_TensorHandle *CreateTFE_TensorHandleFromStringArray(
+    napi_env env, int64_t *shape, uint32_t shape_length, TF_DataType dtype,
+    napi_value array_value) {
+  napi_status nstatus;
+  uint32_t array_length;
+  nstatus = napi_get_array_length(env, array_value, &array_length);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  size_t offsets_size = array_length * sizeof(uint64_t);
+  size_t data_size = offsets_size;
+  size_t max_string_length = 0;
+  for (uint32_t i = 0; i < array_length; ++i) {
+    napi_value cur_value;
+    nstatus = napi_get_element(env, array_value, i, &cur_value);
+    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+    ENSURE_VALUE_IS_STRING_RETVAL(env, cur_value, nullptr);
+
+    size_t str_length;
+    nstatus =
+        napi_get_value_string_utf8(env, cur_value, nullptr, 0, &str_length);
+    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+    data_size += TF_StringEncodedSize(str_length);
+    max_string_length = std::max(max_string_length, str_length);
+  }
+
+  TF_AutoStatus tf_status;
+  TF_AutoTensor tensor(
+      TF_AllocateTensor(TF_STRING, shape, shape_length, data_size));
+
+  void *tensor_data = TF_TensorData(tensor.tensor);
+  uint64_t *offsets = (uint64_t *)tensor_data;
+
+  // Allocate some heap space to work with loading strings to encode with
+  // TensorFlow:
+  max_string_length++;
+  char *buffer = (char *)malloc(sizeof(char *) * max_string_length);
+
+  // Loop past offsets to ensure values fit.
+  char *str_data_start = (char *)tensor_data + offsets_size;
+  char *cur_str_data = str_data_start;
+  for (uint32_t i = 0; i < array_length; ++i) {
+    napi_value cur_value;
+    nstatus = napi_get_element(env, array_value, i, &cur_value);
+    if (nstatus != napi_ok) {
+      free(buffer);
+      ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+    }
+
+    // Read the current string into the char buffer:
+    size_t str_length;
+    nstatus = napi_get_value_string_utf8(env, cur_value, buffer,
+                                         max_string_length, &str_length);
+    if (nstatus != napi_ok) {
+      free(buffer);
+      ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+    }
+
+    // Append the encoded string into the tensor data chunk:
+    size_t encoded_size = TF_StringEncode(buffer, str_length, cur_str_data,
+                                          data_size, tf_status.status);
+    if (TF_GetCode(tf_status.status) != TF_OK) {
+      free(buffer);
+      ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
+    }
+
+    offsets[i] = cur_str_data - str_data_start;
+    cur_str_data += encoded_size;
+  }
+  free(buffer);
+
+  TFE_TensorHandle *tfe_tensor_handle =
+      TFE_NewTensorHandle(tensor.tensor, tf_status.status);
+  ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
+  return tfe_tensor_handle;
+}
+
+TFE_TensorHandle *CreateTFE_TensorHandleFromJSValues(napi_env env,
+                                                     int64_t *shape,
+                                                     uint32_t shape_length,
+                                                     TF_DataType dtype,
+                                                     napi_value array_value) {
+  bool is_typed_array;
+  napi_status nstatus = napi_is_typedarray(env, array_value, &is_typed_array);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  if (is_typed_array) {
+    return CreateTFE_TensorHandleFromTypedArray(env, shape, shape_length, dtype,
+                                                array_value);
+  } else {
+    return CreateTFE_TensorHandleFromStringArray(env, shape, shape_length,
+                                                 dtype, array_value);
+  }
+}
+
 TFE_TensorHandle *CopyTFE_TensorHandleToDevice(napi_env env,
                                                const char *device_name,
                                                TFE_TensorHandle *handle,
@@ -122,9 +220,105 @@ TFE_TensorHandle *CopyTFE_TensorHandleToDevice(napi_env env,
 void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
                                           TFE_Context *tfe_context,
                                           TFE_TensorHandle *tfe_tensor_handle,
+                                          TF_DataType tensor_data_type,
+                                          napi_typedarray_type array_type,
                                           napi_value *result) {
-  napi_status nstatus;
+  TF_AutoStatus tf_status;
 
+  TF_AutoTensor tensor(
+      TFE_TensorHandleResolve(tfe_tensor_handle, tf_status.status));
+  ENSURE_TF_OK(env, tf_status);
+
+  // Determine the length of the array based on the shape of the tensor.
+  size_t num_elements = GetTensorNumElements(tensor.tensor);
+
+  if (tensor_data_type == TF_COMPLEX64) {
+    // Dimension length will be double for Complex 64.
+    num_elements *= 2;
+  }
+
+  size_t byte_length = TF_TensorByteSize(tensor.tensor);
+
+  napi_value array_buffer_value;
+  void *array_buffer_data;
+  napi_status nstatus;
+  nstatus = napi_create_arraybuffer(env, byte_length, &array_buffer_data,
+                                    &array_buffer_value);
+  ENSURE_NAPI_OK(env, nstatus);
+
+  // TFE_TensorHandleResolve can use a shared data pointer, memcpy() the current
+  // value to the newly allocated NAPI buffer.
+  memcpy(array_buffer_data, TF_TensorData(tensor.tensor), byte_length);
+
+  nstatus = napi_create_typedarray(env, array_type, num_elements,
+                                   array_buffer_value, 0, result);
+  ENSURE_NAPI_OK(env, nstatus);
+}
+
+void CopyTFE_TensorHandleDataToStringArray(napi_env env,
+                                           TFE_Context *tfe_context,
+                                           TFE_TensorHandle *tfe_tensor_handle,
+                                           napi_value *result) {
+  TF_AutoStatus tf_status;
+
+  TF_AutoTensor tensor(
+      TFE_TensorHandleResolve(tfe_tensor_handle, tf_status.status));
+  ENSURE_TF_OK(env, tf_status);
+
+  if (TF_TensorType(tensor.tensor) != TF_STRING) {
+    NAPI_THROW_ERROR(env, "Tensor is not of type TF_STRING");
+    return;
+  }
+
+  void *tensor_data = TF_TensorData(tensor.tensor);
+  ENSURE_VALUE_IS_NOT_NULL(env, tensor_data);
+
+  size_t byte_length = TF_TensorByteSize(tensor.tensor);
+  const char *limit = static_cast<const char *>(tensor_data) + byte_length;
+
+  size_t num_elements = GetTensorNumElements(tensor.tensor);
+
+  // String values are stored in offsets.
+  const uint64_t *offsets = static_cast<const uint64_t *>(tensor_data);
+  const size_t offsets_size = sizeof(uint64_t) * num_elements;
+
+  // Skip passed the offsets and find the first string:
+  const char *data = static_cast<const char *>(tensor_data) + offsets_size;
+
+  TF_AutoStatus status;
+
+  // Create a JS string to stash strings into
+  napi_status nstatus;
+  nstatus = napi_create_array_with_length(env, num_elements, result);
+
+  const size_t expected_tensor_size =
+      (limit - static_cast<const char *>(tensor_data));
+  if (expected_tensor_size - byte_length) {
+    NAPI_THROW_ERROR(env, "Invalid/corrupt TF_STRING tensor.");
+    return;
+  }
+
+  for (uint64_t i = 0; i < num_elements; i++) {
+    const char *start = data + offsets[i];
+    const char *str_ptr = nullptr;
+    size_t str_len = 0;
+
+    TF_StringDecode(start, limit - start, &str_ptr, &str_len, status.status);
+    ENSURE_TF_OK(env, tf_status);
+
+    napi_value str_value;
+    nstatus = napi_create_string_utf8(env, str_ptr, str_len, &str_value);
+    ENSURE_NAPI_OK(env, nstatus);
+
+    nstatus = napi_set_element(env, *result, i, str_value);
+    ENSURE_NAPI_OK(env, nstatus);
+  }
+}
+
+// Handles converting the stored TF_Tensor data into the correct JS value.
+void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
+                                      TFE_TensorHandle *tfe_tensor_handle,
+                                      napi_value *result) {
   if (tfe_context == nullptr) {
     NAPI_THROW_ERROR(env, "Invalid TFE_Context");
     return;
@@ -135,18 +329,22 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
   }
 
   // Determine the type of the array
+  napi_typedarray_type typed_array_type;
+  bool is_string = false;
   TF_DataType tensor_data_type = TFE_TensorHandleDataType(tfe_tensor_handle);
-  napi_typedarray_type array_type;
   switch (tensor_data_type) {
     case TF_COMPLEX64:
     case TF_FLOAT:
-      array_type = napi_float32_array;
+      typed_array_type = napi_float32_array;
       break;
     case TF_INT32:
-      array_type = napi_int32_array;
+      typed_array_type = napi_int32_array;
       break;
     case TF_BOOL:
-      array_type = napi_uint8_array;
+      typed_array_type = napi_uint8_array;
+      break;
+    case TF_STRING:
+      is_string = true;
       break;
     default:
       REPORT_UNKNOWN_TF_DATA_TYPE(env,
@@ -154,48 +352,14 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
       return;
   }
 
-  TF_AutoStatus tf_status;
-
-  TF_AutoTensor tensor(
-      TFE_TensorHandleResolve(tfe_tensor_handle, tf_status.status));
-  ENSURE_TF_OK(env, tf_status);
-
-  // Determine the length of the array based on the shape of the tensor.
-  // TODO(kreeger): Audit Python Eager usage for a better approach:
-  size_t length = 0;
-  uint32_t num_dims = TF_NumDims(tensor.tensor);
-  if (num_dims == 0) {
-    length = 1;
+  if (is_string) {
+    CopyTFE_TensorHandleDataToStringArray(env, tfe_context, tfe_tensor_handle,
+                                          result);
   } else {
-    for (uint32_t i = 0; i < num_dims; i++) {
-      if (i == 0) {
-        length = TF_Dim(tensor.tensor, i);
-      } else {
-        length *= TF_Dim(tensor.tensor, i);
-      }
-    }
+    CopyTFE_TensorHandleDataToTypedArray(env, tfe_context, tfe_tensor_handle,
+                                         tensor_data_type, typed_array_type,
+                                         result);
   }
-
-  if (tensor_data_type == TF_COMPLEX64) {
-    // Length will be double for Complex 64.
-    length *= 2;
-  }
-
-  size_t byte_length = TF_TensorByteSize(tensor.tensor);
-
-  napi_value array_buffer_value;
-  void *array_buffer_data;
-  nstatus = napi_create_arraybuffer(env, byte_length, &array_buffer_data,
-                                    &array_buffer_value);
-  ENSURE_NAPI_OK(env, nstatus);
-
-  // TFE_TensorHandleResolve can use a shared data pointer, memcpy() the current
-  // value to the newly allocated NAPI buffer.
-  memcpy(array_buffer_data, TF_TensorData(tensor.tensor), byte_length);
-
-  nstatus = napi_create_typedarray(env, array_type, length, array_buffer_value,
-                                   0, result);
-  ENSURE_NAPI_OK(env, nstatus);
 }
 
 void GetTFE_TensorHandleShape(napi_env env, TFE_TensorHandle *handle,
@@ -436,7 +600,7 @@ int32_t TFJSBackend::InsertHandle(TFE_TensorHandle *tfe_handle) {
 
 napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
                                      napi_value dtype_value,
-                                     napi_value typed_array_value) {
+                                     napi_value array_value) {
   napi_status nstatus;
 
   std::vector<int64_t> shape_vector;
@@ -450,9 +614,9 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
   nstatus = napi_get_value_int32(env, dtype_value, &dtype_int32);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  TFE_TensorHandle *tfe_handle = CreateTFE_TensorHandleFromTypedArray(
+  TFE_TensorHandle *tfe_handle = CreateTFE_TensorHandleFromJSValues(
       env, shape_vector.data(), shape_vector.size(),
-      static_cast<TF_DataType>(dtype_int32), typed_array_value);
+      static_cast<TF_DataType>(dtype_int32), array_value);
 
   // Check to see if an exception exists, if so return a failure.
   if (IsExceptionPending(env)) {
@@ -503,10 +667,10 @@ napi_value TFJSBackend::GetTensorData(napi_env env,
     return nullptr;
   }
 
-  napi_value typed_array_value;
-  CopyTFE_TensorHandleDataToTypedArray(env, tfe_context_, tensor_entry->second,
-                                       &typed_array_value);
-  return typed_array_value;
+  napi_value js_value;
+  CopyTFE_TensorHandleDataToJSData(env, tfe_context_, tensor_entry->second,
+                                   &js_value);
+  return js_value;
 }
 
 napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,

@@ -302,6 +302,15 @@ inline napi_status GetStringParam(napi_env env, napi_value string_value,
   return napi_ok;
 }
 
+// Returns the number of elements in a Tensor.
+inline size_t GetTensorNumElements(TF_Tensor* tensor) {
+  size_t ret = 1;
+  for (int i = 0; i < TF_NumDims(tensor); ++i) {
+    ret *= TF_Dim(tensor, i);
+  }
+  return ret;
+}
+
 }  // namespace tfnodejs
 
 #endif  // TF_NODEJS_UTILS_H_

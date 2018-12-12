@@ -52,6 +52,7 @@ export interface TFJSBinding {
   TF_INT32: number;
   TF_BOOL: number;
   TF_COMPLEX64: number;
+  TF_STRING: number;
 
   // TF OpAttrTypes
   TF_ATTR_STRING: number;
