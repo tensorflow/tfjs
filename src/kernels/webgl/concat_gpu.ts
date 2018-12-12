@@ -19,14 +19,31 @@ import * as concat_util from '../../ops/concat_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class ConcatProgram implements GPGPUProgram {
-  variableNames = ['A', 'B'];
+  variableNames: string[];
   outputShape: number[] = [];
   userCode: string;
 
   // Concats 2d tensors along axis=1. See comments in MathBackendWebGL.concat().
-  constructor(aShape: [number, number], bShape: [number, number]) {
-    this.outputShape =
-        concat_util.computeOutShape([aShape, bShape], 1 /* axis */);
+  constructor(shapes: Array<[number, number]>) {
+    this.outputShape = concat_util.computeOutShape(shapes, 1 /* axis */);
+    this.variableNames = shapes.map((_, i) => `T${i}`);
+
+    const offsets: number[] = new Array(shapes.length - 1);
+    offsets[0] = shapes[0][1];
+    for (let i = 1; i < offsets.length; i++) {
+      offsets[i] = offsets[i - 1] + shapes[i][1];
+    }
+
+    const snippets = [`if (yC < ${offsets[0]}) setOutput(getT0(yR, yC));`];
+    for (let i = 1; i < offsets.length; i++) {
+      const shift = offsets[i - 1];
+      snippets.push(
+          `else if (yC < ${offsets[i]}) ` +
+          `setOutput(getT${i}(yR, yC-${shift}));`);
+    }
+    const lastIndex = offsets.length;
+    const lastShift = offsets[offsets.length - 1];
+    snippets.push(`else setOutput(getT${lastIndex}(yR, yC-${lastShift}));`);
 
     this.userCode = `
       void main() {
@@ -34,15 +51,7 @@ export class ConcatProgram implements GPGPUProgram {
         int yR = coords.x;
         int yC = coords.y;
 
-        float value = 0.0;
-        if (yC < ${aShape[1]}) {
-          value = getA(yR, yC);
-        } else {
-          yC -= ${aShape[1]};
-          value = getB(yR, yC);
-        }
-
-        setOutput(value);
+        ${snippets.join('\n        ')}
       }
     `;
   }
