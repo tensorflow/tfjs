@@ -517,42 +517,42 @@ function deepBatchConcat(rows: any[]): DeepMapResult {
  * Assembles a list of same-shaped numbers, number arrays, or Tensors
  * into a single new Tensor where axis 0 is the batch dimension.
  */
-function batchConcat(arrays: Array<number|number[]|tf.Tensor>): tf.Tensor {
-  // Should we use GPU-enabled concat ops in deeplearn's math.ts?
-  // Probably not; the GPU roundtrip is not worth it for a trivial
-  // operation.
-  const [elementShape, ] = shapeAndValues(arrays[0]);
-  const batchShape = [arrays.length].concat(elementShape);
-  const resultVals = new Float32Array(batchShape.reduce((x, y) => x * y));
+function batchConcat<T extends(number | number[] | tf.Tensor)>(arrays: T[]):
+    tf.Tensor {
+  if (arrays.length === 0) {
+    // We can't return an empty Tensor because we don't know the element shape.
+    throw new Error('Can\'t make a batch of zero elements.');
+  }
+
+  if (arrays[0] instanceof tf.Tensor) {
+    // Input is an array of Tensors
+    return tf.stack(arrays as tf.Tensor[]);
+  } else if (Array.isArray(arrays[0])) {
+    // Input is an array of arrays of numbers
+    return batchConcatArrays(arrays as number[][]);
+  } else {
+    // Input is a simple array of numbers
+    const numbers = arrays as number[];
+    return tf.Tensor.make(
+        [numbers.length], {values: new Float32Array(numbers)});
+  }
+}
+
+function batchConcatArrays(arrays: number[][]) {
+  // Should we first make row Tensors and then use tf.stack() here too?
+  // Probably not: the extra Tensor allocations would outweigh any benefit.
+
+  const rowLength = arrays[0].length;
+  const batchShape = [arrays.length, arrays[0].length];
+  const values = new Float32Array(arrays.length * rowLength);
 
   let offset = 0;
   for (const a of arrays) {
-    const [aShape, aVals] = shapeAndValues(a);
-    if (!tf.util.arraysEqual(aShape, elementShape)) {
+    if (a.length !== rowLength) {
       throw new Error('Elements must have the same shape to be batched');
     }
-    resultVals.set(aVals, offset);
-    offset += aVals.length;
+    values.set(a, offset);
+    offset += rowLength;
   }
-  return tf.Tensor.make(batchShape, {values: resultVals});
-}
-
-/**
- * Extracts the shape and values from the argument, whether array or Tensor.
- *
- * If the argument is a Tensor, this performs a 'dataSync()' to obtain the
- * values as a typed Array.
- *
- * @returns a tuple where the first element is a number[] describing the shape
- * and the second is a number[] or a TypedArray containing the values.
- */
-function shapeAndValues(array: number|number[]|tf.Tensor):
-    [number[], number[]|Float32Array|Int32Array|Uint8Array] {
-  if (array instanceof tf.Tensor) {
-    return [array.shape, array.dataSync()];
-  } else if (Array.isArray(array)) {
-    return [[array.length], array];
-  } else {
-    return [[], [array]];
-  }
+  return tf.Tensor.make(batchShape, {values});
 }
