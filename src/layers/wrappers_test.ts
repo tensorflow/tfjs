@@ -118,6 +118,99 @@ describeMathCPUAndGPU('TimeDistributed Layer: Tensor', () => {
         [[[0.33333334, 0.33333334, 0.33333334],
           [0.33333334, 0.33333334, 0.33333334]]]));
   });
+
+
+  // Reference Python code:
+  // ```py
+  // import keras
+  // import numpy as np
+  //
+  // input1 = keras.Input(shape=[4])
+  // input2 = keras.Input(shape=[4])
+  // y1 = keras.layers.Embedding(10,
+  //                             3,
+  //                             input_length=4,
+  //                             mask_zero=True,
+  //                             embeddings_initializer='ones')(input1)
+  // y1 = keras.layers.LSTM(3,
+  //                        return_sequences=True,
+  //                        recurrent_initializer='ones',
+  //                        kernel_initializer='ones',
+  //                        bias_initializer='zeros')(y1)
+  // z1 = keras.layers.Embedding(10,
+  //                             3,
+  //                             input_length=4,
+  //                             mask_zero=True,
+  //                             embeddings_initializer='ones')(input2)
+  // z1 = keras.layers.LSTM(3,
+  //                        return_sequences=True,
+  //                        recurrent_initializer='ones',
+  //                        kernel_initializer='ones',
+  //                        bias_initializer='zeros')(z1)
+  // y2 = keras.layers.Dot(axes=[2, 2])([y1, z1])
+  // y3 = keras.layers.Concatenate()([y1, y2])
+  // y3 = keras.layers.TimeDistributed(keras.layers.Dense(
+  //     1,
+  //     kernel_initializer='ones',
+  //     bias_initializer='zeros'))(y3)
+  // model = keras.Model(inputs=[input1, input2], outputs=y3)
+  // model.summary()
+  //
+  // xs1 = np.array([[0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0], [1, 2, 3, 0]])
+  // xs2 = np.ones([4, 4])
+  // ys = model.predict([xs1, xs2])
+  // print(ys)
+  // ```
+  it('With masking', () => {
+    const input1 = tfl.input({shape: [4]});
+    const input2 = tfl.input({shape: [4]});
+    let y1 = tfl.layers.embedding({
+      inputDim: 10,
+      outputDim: 3,
+      inputLength: 4,
+      maskZero: true,
+      embeddingsInitializer: 'ones'
+    }).apply(input1) as SymbolicTensor;
+    y1 = tfl.layers.lstm({
+      units: 3,
+      returnSequences: true,
+      recurrentInitializer: 'ones',
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros'
+    }).apply(y1) as SymbolicTensor;
+    let z1 = tfl.layers.embedding({
+      inputDim: 10,
+      outputDim: 3,
+      inputLength: 4,
+      maskZero: true,
+      embeddingsInitializer: 'ones'
+    }).apply(input2) as SymbolicTensor;
+    z1 = tfl.layers.lstm({
+      units: 3,
+      returnSequences: true,
+      recurrentInitializer: 'ones',
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros'
+    }).apply(z1) as SymbolicTensor;
+    const y2 = tfl.layers.dot({axes: [2, 2]}).apply([y1, z1]) as SymbolicTensor;
+    let y3 = tfl.layers.concatenate().apply([y1, y2]) as SymbolicTensor;
+    y3 = tfl.layers.timeDistributed({layer: tfl.layers.dense({
+      units: 1,
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros'
+    })}).apply(y3) as SymbolicTensor;
+    const model = tfl.model({inputs: [input1, input2], outputs: y3});
+
+    const xs1 =
+        tensor2d([[0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0], [1, 2, 3, 0]]);
+    const xs2 = ones([4, 4]);
+    const ys = model.predict([xs1, xs2]) as Tensor;
+    expectTensorsClose(ys, tensor3d(
+        [[[0], [0], [0], [0]],
+          [[10.7489796], [10.7489796], [10.7489796], [10.7489796]],
+          [[10.7489796], [13.6384077], [13.6384077], [13.6384077]],
+          [[10.7489796], [13.6384077], [14.0818386], [14.0818386]]]));
+  });
 });
 
 describeMathCPU('Bidirectional Layer: Symbolic', () => {

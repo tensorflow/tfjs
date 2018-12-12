@@ -1326,13 +1326,13 @@ export abstract class Layer extends serialization.Serializable {
           mask.forEach(maskElement => {
             if (maskElement != null) {
               throw new TypeError(
-                  `Layer ${this.name} does not support masking,` +
+                  `Layer ${this.name} does not support masking, ` +
                   'but was passed an inputMask.');
             }
           });
         } else {
           throw new TypeError(
-              `Layer ${this.name} does not support masking,` +
+              `Layer ${this.name} does not support masking, ` +
               'but was passed an inputMask.');
         }
       }

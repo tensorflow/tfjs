@@ -242,6 +242,8 @@ export class TimeDistributed extends Wrapper {
       return y;
     });
   }
+
+  // TODO(cais): Implement detailed computeMask() logic.
 }
 serialization.registerClass(TimeDistributed);
 

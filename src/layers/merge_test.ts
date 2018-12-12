@@ -14,7 +14,7 @@
 
 import {ones, serialization, Tensor, tensor1d, Tensor2D, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
-import {Layer} from '../engine/topology';
+import {Layer, SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
 import {deserialize} from '../layers/serialization';
 import {Shape} from '../types';
@@ -22,7 +22,6 @@ import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_u
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Add, Average, Concatenate, Maximum, Minimum, Multiply} from './merge';
-
 
 describeMathCPU('Merge Layers Except Concatenate: Symbolic', () => {
   const layers = [Add, Average, Multiply, Maximum, Minimum];
@@ -443,6 +442,111 @@ describeMathCPUAndGPU('Concatenate Layer: Tensor', () => {
       expectTensorsClose(layer.apply([x1, x2]) as Tensor, expected);
     });
   }
+
+  it('computeMask', () => {
+    const layer = tfl.layers.concatenate();
+    const x1 = tensor2d([[1], [0], [1]]);
+    const x2 = tensor2d([[1], [0], [0]]);
+    const mask = layer.computeMask(
+        [x1, x2], [x1.asType('bool'), x2.asType('bool')]) as Tensor;
+    expectTensorsClose(mask, tensor1d([true, false, false], 'bool'));
+  });
+
+  // Reference Python code:
+  // ```py
+  // import keras
+  // import numpy as np
+  //
+  // input1 = keras.Input(shape=[4])
+  // input2 = keras.Input(shape=[4])
+  // y1 = keras.layers.Embedding(10,
+  //                             3,
+  //                             input_length=4,
+  //                             mask_zero=True,
+  //                             embeddings_initializer='ones')(input1)
+  // y1 = keras.layers.LSTM(3,
+  //                       recurrent_initializer='ones',
+  //                       kernel_initializer='ones',
+  //                       bias_initializer='zeros')(y1)
+  // y2 = keras.layers.Embedding(10,
+  //                             3,
+  //                             input_length=4,
+  //                             mask_zero=True,
+  //                             embeddings_initializer='ones')(input2)
+  // y2 = keras.layers.LSTM(3,
+  //                       recurrent_initializer='ones',
+  //                       kernel_initializer='ones',
+  //                       bias_initializer='zeros')(y2)
+  //
+  // y = keras.layers.Concatenate()([y1, y2])
+  // y = keras.layers.Dense(1,
+  //                       kernel_initializer='ones',
+  //                       bias_initializer='zeros')(y)
+  //
+  // model = keras.Model(inputs=[input1, input2], outputs=y)
+  // model.summary()
+  //
+  // xs1 = np.array([[0, 0, 0, 0],
+  //                 [1, 0, 0, 0],
+  //                 [1, 2, 0, 0],
+  //                 [1, 2, 3, 0]])
+  // xs2 = np.array([[0, 0, 0, 0],
+  //                 [0, 0, 0, 0],
+  //                 [1, 0, 0, 0],
+  //                 [1, 2, 0, 0]])
+  //
+  // ys = model.predict([xs1, xs2])
+  // print(ys)
+  // ```
+  it('With masking', () => {
+    const input1 = tfl.input({shape: [4]});
+    const input2 = tfl.input({shape: [4]});
+    let y1 = tfl.layers.embedding({
+      inputDim: 10,
+      outputDim: 3,
+      inputLength: 4,
+      maskZero: true,
+      embeddingsInitializer: 'ones'
+    }).apply(input1) as SymbolicTensor;
+    y1 = tfl.layers.lstm({
+      units: 3,
+      recurrentInitializer: 'ones',
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros'
+    }).apply(y1) as SymbolicTensor;
+    let y2 = tfl.layers.embedding({
+      inputDim: 10,
+      outputDim: 3,
+      inputLength: 4,
+      maskZero: true,
+      embeddingsInitializer: 'ones'
+    }).apply(input2) as SymbolicTensor;
+    y2 = tfl.layers.lstm({
+      units: 3,
+      recurrentInitializer: 'ones',
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros'
+    }).apply(y2) as SymbolicTensor;
+    let y = tfl.layers.concatenate().apply([y1, y2]) as SymbolicTensor;
+    y = tfl.layers.dense({
+      units: 1,
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros'
+    }).apply(y) as SymbolicTensor;
+    const model = tfl.model({
+      inputs: [input1, input2],
+      outputs: y
+    });
+
+    const xs1 = tensor2d(
+        [[0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0], [1, 2, 3, 0]]);
+    // Notice the mask of xs2 is different from that of xs1.
+    const xs2 = tensor2d(
+        [[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0]]);
+    const ys = model.predict([xs1, xs2]) as Tensor;
+    expectTensorsClose(
+        ys, tensor2d([[0], [2.2785282], [5.169547], [5.8760333]]));
+  });
 });
 
 describeMathCPU('Deserialize Merge Layers', () => {
@@ -805,5 +909,98 @@ describeMathCPUAndGPU('Dot-Layer: Tensor', () => {
     const y = dotLayer.apply([x1, x2]) as Tensor;
     expectTensorsClose(
         y, tensor3d([[[-70, -150], [-100, -220]], [[41, 17], [48, 20]]]));
+  });
+
+  // Reference Python code:
+  // ```py
+  // import keras
+  // import numpy as np
+  //
+  // input1 = keras.Input(shape=[4])
+  // input2 = keras.Input(shape=[4])
+  // y1 = keras.layers.Embedding(10,
+  //                             3,
+  //                             input_length=4,
+  //                             mask_zero=True,
+  //                             embeddings_initializer='ones')(input1)
+  // y1 = keras.layers.LSTM(3,
+  //                       recurrent_initializer='ones',
+  //                       kernel_initializer='ones',
+  //                       bias_initializer='zeros')(y1)
+  // y2 = keras.layers.Embedding(10,
+  //                             3,
+  //                             input_length=4,
+  //                             mask_zero=True,
+  //                             embeddings_initializer='ones')(input2)
+  // y2 = keras.layers.LSTM(3,
+  //                       recurrent_initializer='ones',
+  //                       kernel_initializer='ones',
+  //                       bias_initializer='zeros')(y2)
+  //
+  // y = keras.layers.Dot(axes=[-1, -1])([y1, y2])
+  // y = keras.layers.Dense(1,
+  //                       kernel_initializer='ones',
+  //                       bias_initializer='zeros')(y)
+  //
+  // model = keras.Model(inputs=[input1, input2], outputs=y)
+  //
+  // xs1 = np.array([[0, 0, 0, 0],
+  //                 [1, 0, 0, 0],
+  //                 [1, 2, 0, 0],
+  //                 [1, 2, 3, 0]])
+  // xs2 = np.array([[0, 0, 0, 0],
+  //                 [0, 0, 0, 0],
+  //                 [1, 0, 0, 0],
+  //                 [1, 2, 0, 0]])
+  // ys = model.predict([xs1, xs2])
+  // print(ys)
+  // ```
+  it('With masking', () => {
+    const input1 = tfl.input({shape: [4]});
+    const input2 = tfl.input({shape: [4]});
+    let y1 = tfl.layers.embedding({
+      inputDim: 10,
+      outputDim: 3,
+      inputLength: 4,
+      maskZero: true,
+      embeddingsInitializer: 'ones'
+    }).apply(input1) as SymbolicTensor;
+    y1 = tfl.layers.lstm({
+      units: 3,
+      recurrentInitializer: 'ones',
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros'
+    }).apply(y1) as SymbolicTensor;
+    let y2 = tfl.layers.embedding({
+      inputDim: 10,
+      outputDim: 3,
+      inputLength: 4,
+      maskZero: true,
+      embeddingsInitializer: 'ones'
+    }).apply(input2) as SymbolicTensor;
+    y2 = tfl.layers.lstm({
+      units: 3,
+      recurrentInitializer: 'ones',
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros'
+    }).apply(y2) as SymbolicTensor;
+    let y = tfl.layers.dot({axes: [-1, -1]}).apply([y1, y2]) as SymbolicTensor;
+    y = tfl.layers.dense({
+      units: 1,
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros'
+    }).apply(y) as SymbolicTensor;
+    const model = tfl.model({
+      inputs: [input1, input2],
+      outputs: y
+    });
+
+    const xs1 = tensor2d(
+        [[0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0], [1, 2, 3, 0]]);
+    // Notice the mask of xs2 is different from that of xs1.
+    const xs2 = tensor2d(
+        [[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0]]);
+    const ys = model.predict([xs1, xs2]) as Tensor;
+    expectTensorsClose(ys, tensor2d([[0], [0], [2.195756], [2.8765779]]));
   });
 });
