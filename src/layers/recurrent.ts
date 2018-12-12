@@ -141,103 +141,101 @@ export function rnn(
     stepFunction: RnnStepFunction, inputs: Tensor, initialStates: Tensor[],
     goBackwards = false, mask?: Tensor, constants?: Tensor[], unroll = false,
     needPerStepOutputs = false): [Tensor, Tensor, Tensor[]] {
-  const ndim = inputs.shape.length;
-  if (ndim < 3) {
-    throw new ValueError(`Input should be at least 3D, but is ${ndim}D.`);
-  }
-
-  // Transpose to time-major, i.e., from [batch, time, ...] to [time, batch,
-  // ...].
-  const axes = [1, 0].concat(math_utils.range(2, ndim));
-  inputs = tfc.transpose(inputs, axes);
-
-  if (constants != null) {
-    throw new NotImplementedError(
-        'The rnn() functoin of the deeplearn.js backend does not support ' +
-        'constants yet.');
-  }
-
-  // Porting Note: the unroll option is ignored by the imperative backend.
-  if (unroll) {
-    console.warn(
-        'Backend rnn(): the unroll = true option is not applicable to the ' +
-        'imperative deeplearn.js backend.');
-  }
-
-  if (mask != null) {
-    mask = mask.asType('bool').asType('float32');
-    if (mask.rank === ndim - 1) {
-      mask = tfc.expandDims(mask, -1);
+  return tfc.tidy(() => {
+    const ndim = inputs.shape.length;
+    if (ndim < 3) {
+      throw new ValueError(`Input should be at least 3D, but is ${ndim}D.`);
     }
-    mask = tfc.transpose(mask, axes);
-  }
 
-  if (goBackwards) {
-    inputs = tfc.reverse(inputs, 0);
+    // Transpose to time-major, i.e., from [batch, time, ...] to [time, batch,
+    // ...].
+    const axes = [1, 0].concat(math_utils.range(2, ndim));
+    inputs = tfc.transpose(inputs, axes);
+
+    if (constants != null) {
+      throw new NotImplementedError(
+          'The rnn() functoin of the deeplearn.js backend does not support ' +
+          'constants yet.');
+    }
+
+    // Porting Note: the unroll option is ignored by the imperative backend.
+    if (unroll) {
+      console.warn(
+          'Backend rnn(): the unroll = true option is not applicable to the ' +
+          'imperative deeplearn.js backend.');
+    }
+
     if (mask != null) {
-      mask = tfc.reverse(mask, 0);
-    }
-  }
-
-  // Porting Note: PyKeras with TensorFlow backend uses a symbolic loop
-  //   (tf.while_loop). But for the imperative deeplearn.js backend, we just
-  //   use the usual TypeScript control flow to iterate over the time steps in
-  //   the inputs.
-  // Porting Note: PyKeras patches a "_use_learning_phase" attribute to
-  // outputs.
-  //   This is not idiomatic in TypeScript. The info regarding whether we are
-  //   in a learning (i.e., training) phase for RNN is passed in a different
-  //   way.
-  //   TODO(cais): Determine in what exact way the learning phase information
-  //     will be passed.
-
-  let outputs: Tensor;
-  let lastOutput: Tensor;
-  let states = initialStates;
-  const timeSteps = inputs.shape[0];
-  for (let t = 0; t < timeSteps; ++t) {
-    // TODO(cais): Try unstack() for performance. Same below.
-    let currentInput = K.sliceAlongFirstAxis(inputs, t, 1);
-
-    currentInput = currentInput.reshape(currentInput.shape.slice(1));
-    const stepOutputs = tfc.tidy(() => stepFunction(currentInput, states));
-
-    // TODO(soergel): Call K.concatenate() to perform only one concatenation
-    // at the end, once the backend function is available.
-    if (mask == null) {
-      lastOutput = stepOutputs[0];
-      states = stepOutputs[1];
-    } else {
-      const maskedOutputs = tfc.tidy(() => {
-        // TODO(cais): Use unstack instead for performance?
-        const stepMask = K.sliceAlongFirstAxis(mask, t, 1).squeeze([0]);
-        const negStepMask = tfc.onesLike(stepMask).sub(stepMask);
-        // TODO(cais): Would tfc.where() be better for performance?
-        const output = stepOutputs[0].mul(stepMask)
-            .addStrict(states[0].mul(negStepMask));
-        const newStates = states.map((state, i) => {
-          return stepOutputs[1][i].mul(stepMask)
-              .addStrict(state.mul(negStepMask));
-        });
-        return {output, newStates};
-      });
-      lastOutput = maskedOutputs.output;
-      states = maskedOutputs.newStates;
+      mask = mask.asType('bool').asType('float32');
+      if (mask.rank === ndim - 1) {
+        mask = tfc.expandDims(mask, -1);
+      }
+      mask = tfc.transpose(mask, axes);
     }
 
-    if (needPerStepOutputs) {
-      if (t === 0) {
-        outputs = lastOutput.expandDims(1);
-      } else {
-        const newOutputs = tfc.concat([outputs, lastOutput.expandDims(1)], 1);
-        outputs.dispose();
-        outputs = newOutputs;
+    if (goBackwards) {
+      inputs = tfc.reverse(inputs, 0);
+      if (mask != null) {
+        mask = tfc.reverse(mask, 0);
       }
     }
-  }
-  return [lastOutput, outputs, states];
-}
 
+    // Porting Note: PyKeras with TensorFlow backend uses a symbolic loop
+    //   (tf.while_loop). But for the imperative deeplearn.js backend, we just
+    //   use the usual TypeScript control flow to iterate over the time steps in
+    //   the inputs.
+    // Porting Note: PyKeras patches a "_use_learning_phase" attribute to
+    // outputs.
+    //   This is not idiomatic in TypeScript. The info regarding whether we are
+    //   in a learning (i.e., training) phase for RNN is passed in a different
+    //   way.
+
+    const perStepOutputs: Tensor[] = [];
+    let lastOutput: Tensor;
+    let states = initialStates;
+    const timeSteps = inputs.shape[0];
+    const perStepInputs = tfc.unstack(inputs);
+    let perStepMasks: Tensor[];
+    if (mask != null) {
+      perStepMasks = tfc.unstack(mask);
+    }
+
+    for (let t = 0; t < timeSteps; ++t) {
+      const currentInput = perStepInputs[t];
+      const stepOutputs = tfc.tidy(() => stepFunction(currentInput, states));
+
+      if (mask == null) {
+        lastOutput = stepOutputs[0];
+        states = stepOutputs[1];
+      } else {
+        const maskedOutputs = tfc.tidy(() => {
+          const stepMask = perStepMasks[t];
+          const negStepMask = tfc.onesLike(stepMask).sub(stepMask);
+          // TODO(cais): Would tfc.where() be better for performance?
+          const output = stepOutputs[0].mul(stepMask)
+              .addStrict(states[0].mul(negStepMask));
+          const newStates = states.map((state, i) => {
+            return stepOutputs[1][i].mul(stepMask)
+                .addStrict(state.mul(negStepMask));
+          });
+          return {output, newStates};
+        });
+        lastOutput = maskedOutputs.output;
+        states = maskedOutputs.newStates;
+      }
+
+      if (needPerStepOutputs) {
+        perStepOutputs.push(lastOutput);
+      }
+    }
+    let outputs: Tensor;
+    if (needPerStepOutputs) {
+      const axis = 1;
+      outputs = tfc.stack(perStepOutputs, axis);
+    }
+    return [lastOutput, outputs, states] as [Tensor, Tensor, Tensor[]];
+  });
+}
 
 export interface BaseRNNLayerConfig extends LayerConfig {
   /**
