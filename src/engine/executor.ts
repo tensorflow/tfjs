@@ -55,6 +55,7 @@ export interface Feed {
  */
 export class FeedDict {
   private id2Value: {[id: number]: Tensor} = {};
+  private id2Mask: {[id: number]: Tensor} = {};
   private name2Id: {[name: string]: number} = {};
 
   /**
@@ -66,6 +67,9 @@ export class FeedDict {
     if (feeds instanceof FeedDict) {
       for (const id in feeds.id2Value) {
         this.id2Value[id] = feeds.id2Value[id];
+        if (id in feeds.id2Mask) {
+          this.id2Mask[id] = feeds.id2Mask[id];
+        }
       }
     } else {
       if (feeds == null) {
@@ -79,16 +83,21 @@ export class FeedDict {
 
   /**
    * Add a key-value pair to the FeedDict.
+   *
    * @param key The key of the feed.
-   * @param value The value of the feed.
+   * @param value The value of the tensor feed.
+   * @param mask The value of the mask feed (optional).
    * @returns This `FeedDict`.
    * @throws ValueError: If the key `SymbolicTensor` already exists in the
    *   `FeedDict`.
    */
-  add(key: SymbolicTensor, value: Tensor): FeedDict {
+  add(key: SymbolicTensor, value: Tensor, mask?: Tensor): FeedDict {
     if (this.id2Value[key.id] == null) {
       this.id2Value[key.id] = assertFeedCompatibility(key, value);
       this.name2Id[key.name] = key.id;
+      if (mask != null) {
+        this.id2Mask[key.id] = mask;
+      }
     } else {
       throw new ValueError(`Duplicate key: name=${key.name}, id=${key.id}`);
     }
@@ -139,6 +148,36 @@ export class FeedDict {
         throw new ValueError(`Feed dict has no SymbolicTensor name: ${key}`);
       }
       return this.id2Value[id];
+    }
+  }
+
+  /**
+   * Get the feed mask for given key.
+   * @param key The SymbolicTensor, or its name (as a string), of which the
+   *     value is sought.
+   * @returns If `key` exists, the corresponding feed mask.
+   * @throws ValueError: If `key` does not exist in this `FeedDict`.
+   */
+  getMask(key: SymbolicTensor|string): Tensor {
+    if (key instanceof SymbolicTensor) {
+      if (this.id2Value[key.id] == null) {
+        throw new ValueError(`Nonexistent key: ${key.name}`);
+      } else {
+        return this.id2Mask[key.id];
+      }
+    } else {
+      const id = this.name2Id[key];
+      if (id == null) {
+        throw new ValueError(`Feed dict has no SymbolicTensor name: ${key}`);
+      }
+      return this.id2Mask[id];
+    }
+  }
+
+  /** Dispose all mask Tensors held by this object. */
+  disposeMasks() {
+    if (this.id2Mask != null) {
+      dispose(this.id2Mask);
     }
   }
 }
@@ -257,15 +296,23 @@ export function execute(
     }
 
     const symbolic = sorted[i];
-    if (symbolic.sourceLayer instanceof InputLayer) {
+    const srcLayer = symbolic.sourceLayer;
+    if (srcLayer instanceof InputLayer) {
       continue;
     }
     const inputValues: Tensor[] = [];
+    const inputMasks: Tensor[] = [];
     const tensorsToDispose: Tensor[] = [];
 
+    let maskExists = false;
     for (const input of symbolic.inputs) {
       const value = internalFeedDict.getValue(input);
+      const mask = internalFeedDict.getMask(input);
       inputValues.push(value);
+      inputMasks.push(mask);
+      if (mask != null) {
+        maskExists = true;
+      }
       if (!training) {
         recipientCounts[input.name]--;
         if (recipientCounts[input.name] === 0 && !feedDict.hasKey(input) &&
@@ -274,18 +321,29 @@ export function execute(
         }
       }
     }
-    const output =
-        toList(symbolic.sourceLayer.apply(inputValues, kwargs)) as Tensor[];
+
+    if (maskExists) {
+      kwargs = kwargs || {};
+      kwargs['mask'] = inputMasks[0];
+    }
+    const outputTensors =
+        toList(srcLayer.apply(inputValues, kwargs)) as Tensor[];
+    let outputMask: Tensor|Tensor[] = null;
+    if (srcLayer.supportsMasking) {
+      outputMask = srcLayer.computeMask(inputValues, inputMasks);
+    }
     const layerOutputs = getNodeOutputs(symbolic);
     const outputSymbolicTensors =
         Array.isArray(layerOutputs) ? layerOutputs : [layerOutputs];
     for (let i = 0; i < outputSymbolicTensors.length; ++i) {
       if (!internalFeedDict.hasKey(outputSymbolicTensors[i])) {
-        internalFeedDict.add(outputSymbolicTensors[i], output[i]);
+        internalFeedDict.add(
+            outputSymbolicTensors[i], outputTensors[i],
+            Array.isArray(outputMask) ? outputMask[0] : outputMask);
       }
       const index = outputNames.indexOf(outputSymbolicTensors[i].name);
       if (index !== -1) {
-        finalOutputs[index] = output[i];
+        finalOutputs[index] = outputTensors[i];
       }
     }
 
@@ -294,6 +352,12 @@ export function execute(
       dispose(tensorsToDispose);
     }
   }
+  // NOTE(cais): Unlike intermediate tensors, we don't discard mask
+  // tensors as we go, because these tensors are sometimes passed over a
+  // series of mutliple layers, i.e., not obeying the immediate input
+  // relations in the graph. If this becomes a memory-usage concern,
+  // we can improve this in the future.
+  internalFeedDict.disposeMasks();
 
   return arrayFetches ? finalOutputs : finalOutputs[0];
 }

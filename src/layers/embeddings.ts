@@ -127,6 +127,7 @@ export class Embedding extends Layer {
     this.activityRegularizer = getRegularizer(config.activityRegularizer);
     this.embeddingsConstraint = getConstraint(config.embeddingsConstraint);
     this.maskZero = config.maskZero;
+    this.supportsMasking = config.maskZero;
     this.inputLength = config.inputLength;
   }
 

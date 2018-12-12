@@ -252,6 +252,7 @@ export class Dense extends Layer {
     this.kernelRegularizer = getRegularizer(config.kernelRegularizer);
     this.biasRegularizer = getRegularizer(config.biasRegularizer);
     this.activityRegularizer = getRegularizer(config.activityRegularizer);
+    this.supportsMasking = true;
 
     this.inputSpec = [{minNDim: 2}];
   }
