@@ -289,6 +289,34 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
     expectArraysClose(values, [1, 2, 3, 4, 5, 6]);
   });
 
+  it('concat a large number of tensors, axis=0', () => {
+    const tensors = [];
+    const expected = [];
+    for (let i = 0; i < 100; i++) {
+      tensors.push(tf.tensor([i], [1]));
+      expected.push(i);
+    }
+    const axis = 0;
+    const res = tf.concat(tensors, axis);
+    expect(res.shape).toEqual([100]);
+    expect(res.dtype).toBe('float32');
+    expectArraysClose(res, expected);
+  });
+
+  it('concat a large number of tensors, axis=1', () => {
+    const tensors = [];
+    const expected = [];
+    for (let i = 0; i < 100; i++) {
+      tensors.push(tf.tensor([i], [1, 1]));
+      expected.push(i);
+    }
+    const axis = 1;
+    const res = tf.concat(tensors, axis);
+    expect(res.shape).toEqual([1, 100]);
+    expect(res.dtype).toBe('float32');
+    expectArraysClose(res, expected);
+  });
+
   it('concat axis=2', () => {
     const tensor1 = tf.tensor3d([1, 11, 2, 22, 3, 33, 4, 44], [2, 2, 2]);
     const tensor2 = tf.tensor3d(

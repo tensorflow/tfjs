@@ -620,22 +620,6 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  private concat2Tensors<T extends Tensor>(a: T, b: T, axis: number): T {
-    // Any concat of n-dimensional tensors across any axis can be reduced to
-    // a concatenation of two-dimensional tensors across the axis 1 by first
-    // partitioning the axes of the original tensors into those less than the
-    // axis to be concatenated and the rest. Then reshape the tensors
-    // into a two-dimensional tensor by collapsing these two sets of axes and
-    // concatenate the resulting matrices across the axis 1, finally reshaping
-    // the result to have the proper shape.
-    const outShape = computeOutShape([a.shape, b.shape], axis);
-    const a2D = a.as2D(-1, sizeFromShape(a.shape.slice(axis)));
-    const b2D = b.as2D(-1, sizeFromShape(b.shape.slice(axis)));
-    const program = new ConcatProgram(a2D.shape, b2D.shape);
-    const res = this.compileAndRun(program, [a2D, b2D]) as Tensor;
-    return res.reshape(outShape) as T;
-  }
-
   concat(tensors: Tensor[], axis: number): Tensor {
     if (this.shouldExecuteOnCPU(tensors)) {
       return this.cpuBackend.concat(tensors, axis);
@@ -644,11 +628,25 @@ export class MathBackendWebGL implements KernelBackend {
     if (tensors.length === 1) {
       return tensors[0];
     }
-    let result = tensors[0];
-    for (let i = 1; i < tensors.length; ++i) {
-      result = this.concat2Tensors(result, tensors[i], axis);
+    if (tensors.length > ENV.get('WEBGL_MAX_TEXTURES_IN_SHADER')) {
+      const midIndex = Math.floor(tensors.length / 2);
+      const leftSide = this.concat(tensors.slice(0, midIndex), axis);
+      const rightSide = this.concat(tensors.slice(midIndex), axis);
+      return this.concat([leftSide, rightSide], axis);
     }
-    return result;
+    // Any concat of n-dimensional tensors across any axis can be reduced to
+    // a concatenation of two-dimensional tensors across the axis 1 by first
+    // partitioning the axes of the original tensors into those less than the
+    // axis to be concatenated and the rest. Then reshape the tensors
+    // into a two-dimensional tensor by collapsing these two sets of axes and
+    // concatenate the resulting matrices across the axis 1, finally reshaping
+    // the result to have the proper shape.
+    const outShape = computeOutShape(tensors.map(t => t.shape), axis);
+    const tensors2D =
+        tensors.map(t => t.as2D(-1, sizeFromShape(t.shape.slice(axis))));
+    const program = new ConcatProgram(tensors2D.map(t => t.shape));
+    const res = this.compileAndRun(program, tensors2D) as Tensor;
+    return res.reshape(outShape);
   }
 
   neg<T extends Tensor>(x: T): T {

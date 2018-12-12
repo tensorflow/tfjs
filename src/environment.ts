@@ -17,7 +17,7 @@
 
 import * as device_util from './device_util';
 import {Engine, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo} from './engine';
-import {Features, getFeaturesFromURL, getWebGLDisjointQueryTimerVersion, getWebGLMaxTextureSize, isChrome, isDownloadFloatTextureEnabled, isRenderToFloatTextureEnabled, isWebGLFenceEnabled, isWebGLVersionEnabled} from './environment_util';
+import {Features, getFeaturesFromURL, getMaxTexturesInShader, getWebGLDisjointQueryTimerVersion, getWebGLMaxTextureSize, isChrome, isDownloadFloatTextureEnabled, isRenderToFloatTextureEnabled, isWebGLFenceEnabled, isWebGLVersionEnabled} from './environment_util';
 import {KernelBackend} from './kernels/backend';
 import {DataId, setTensorTracker, Tensor, TensorTracker} from './tensor';
 import {TensorContainer} from './tensor_types';
@@ -324,6 +324,8 @@ export class Environment {
       return this.get('IS_BROWSER') && !this.get('PROD');
     } else if (feature === 'WEBGL_MAX_TEXTURE_SIZE') {
       return getWebGLMaxTextureSize(this.get('WEBGL_VERSION'));
+    } else if (feature === 'WEBGL_MAX_TEXTURES_IN_SHADER') {
+      return getMaxTexturesInShader(this.get('WEBGL_VERSION'));
     } else if (feature === 'IS_TEST') {
       return false;
     } else if (feature === 'BACKEND') {
