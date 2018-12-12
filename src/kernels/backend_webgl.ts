@@ -336,10 +336,10 @@ export class MathBackendWebGL implements KernelBackend {
       vals = this.getValuesFromTexture(dataId);
     } else {
       if (isPacked) {
-        const batch = this.getBatchDim(shape);
+        const batch = webgl_util.getBatchDim(shape);
         let rows = 1, cols = 1;
         if (shape.length) {
-          [rows, cols] = this.getRowsCols(shape);
+          [rows, cols] = webgl_util.getRowsCols(shape);
         }
         vals = this.gpgpu.downloadPackedMatrixFromBuffer(
             bufferOrTexture, batch, rows, cols, texShape[0], texShape[1]);
@@ -366,10 +366,10 @@ export class MathBackendWebGL implements KernelBackend {
     const {shape, dtype, texture, texShape} = this.texData.get(dataId);
     if (ENV.get('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
       if (this.texData.get(dataId).isPacked) {
-        const batch = this.getBatchDim(shape);
+        const batch = webgl_util.getBatchDim(shape);
         let rows = 1, cols = 1;
         if (shape.length) {
-          [rows, cols] = this.getRowsCols(shape);
+          [rows, cols] = webgl_util.getRowsCols(shape);
         }
         return this.gpgpu.downloadMatrixFromPackedTexture(
             texture, batch, rows, cols, texShape[0], texShape[1]);
@@ -1810,26 +1810,15 @@ export class MathBackendWebGL implements KernelBackend {
         program, [input], Tensor.make(program.outputShape, {}, input.dtype));
   }
 
-  private getBatchDim(shape: number[], dimsToSkip = 2): number {
-    return util.sizeFromShape(shape.slice(0, shape.length - dimsToSkip));
-  }
-
-  private getRowsCols(shape: number[]): [number, number] {
-    if (shape.length === 0) {
-      throw Error('Cannot get rows and columns of an empty shape array.');
-    }
-
-    return [
-      shape.length > 1 ? shape[shape.length - 2] : 1, shape[shape.length - 1]
-    ];
-  }
-
   private packedReshape<R extends Rank>(input: Tensor, afterShape: ShapeMap[R]):
       Tensor<R> {
-    const inputAs3D = input.reshape(
-        [this.getBatchDim(input.shape), ...this.getRowsCols(input.shape)]);
-    const afterShapeAs3D =
-        [this.getBatchDim(afterShape), ...this.getRowsCols(afterShape)];
+    const inputAs3D = input.reshape([
+      webgl_util.getBatchDim(input.shape),
+      ...webgl_util.getRowsCols(input.shape)
+    ]);
+    const afterShapeAs3D = [
+      webgl_util.getBatchDim(afterShape), ...webgl_util.getRowsCols(afterShape)
+    ];
     const program = new ReshapePackedProgram(
         afterShapeAs3D as [number, number, number],
         inputAs3D.shape as [number, number, number]);
@@ -2049,10 +2038,10 @@ export class MathBackendWebGL implements KernelBackend {
     if (values != null) {
       // TODO(smilkov): Propagate the original typed array to gpgpu.
       if (isPacked) {
-        const batch = this.getBatchDim(shape);
+        const batch = webgl_util.getBatchDim(shape);
         let rows = 1, cols = 1;
         if (shape.length) {
-          [rows, cols] = this.getRowsCols(shape);
+          [rows, cols] = webgl_util.getRowsCols(shape);
         }
         this.gpgpu.uploadMatrixToPackedTexture(
             newTexture, batch, rows, cols, texShape[0], texShape[1],

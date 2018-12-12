@@ -272,8 +272,9 @@ export function uploadMatrixToPackedTexture(
     matrix: Float32Array, textureConfig: TextureConfig) {
   const [w, h] = tex_util.getPackedMatrixTextureShapeWidthHeight(
       physicalRows, physicalCols);
-  const packedRGBA = new Float32Array(
-      batch * tex_util.getPackedRGBAArraySizeFromMatrixShape(rows, columns));
+  const packedRGBA =
+      new Float32Array(tex_util.getPackedRGBAArraySizeFromMatrixShape(
+          physicalRows, physicalCols));
   tex_util.encodeMatrixToPackedRGBA(matrix, batch, rows, columns, packedRGBA);
   uploadDataToTexture(gl, texture, w, h, packedRGBA, gl.RGBA);
 }
