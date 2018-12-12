@@ -20,5 +20,5 @@ notifications:
     on_pull_requests: false
 matrix:
   exclude:
-  - node_js: '8'
+  - node_js: '10'
     env: TO_TEST=integration
