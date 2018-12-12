@@ -35,6 +35,8 @@ jasmine_util.setTestEnvs(
 const IGNORE_LIST: string[] = [
   // Always ignore version tests:
   'version version',
+  'unreliable is true due to both auto gc and string tensors',
+  'unreliable is true due to auto gc',
   // See https://github.com/tensorflow/tfjs/issues/161
   'depthwiseConv2D',  // Requires space_to_batch() for dilation > 1.
   'separableConv2d',  // Requires space_to_batch() for dilation > 1.

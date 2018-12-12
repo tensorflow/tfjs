@@ -36,8 +36,7 @@
                 "/usr/include",
                 "/usr/local/include",
                 "${workspaceFolder}",
-                "${workspaceFolder}/../../.node-gyp/10.1.0/include/node",
-                "${workspaceFolder}/../../.node-gyp/8.11.3/include/node",
+                "${workspaceFolder}/../../.node-gyp/10.13.0/include/node",
                 "${workspaceFolder}/deps/include"
             ],
             "defines": [],
@@ -49,8 +48,7 @@
                     "${workspaceFolder}",
                     "${workspaceFolder}/deps/include/tensorflow/c",
                     "${workspaceFolder}/deps/include/tensorflow/c/eager",
-                    "${workspaceFolder}/../../.node-gyp/10.1.0/include/node",
-                    "${workspaceFolder}/../../.node-gyp/8.11.3/include/node"
+                    "${workspaceFolder}/../../.node-gyp/10.13.0/include/node"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""

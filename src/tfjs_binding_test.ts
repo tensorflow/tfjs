@@ -30,6 +30,12 @@ describe('Exposes TF_DataType enum values', () => {
   it('contains TF_BOOL', () => {
     expect(binding.TF_BOOL).toEqual(10);
   });
+  it('contains TF_COMPLEX64', () => {
+    expect(binding.TF_COMPLEX64).toEqual(8);
+  });
+  it('contains TF_STRING', () => {
+    expect(binding.TF_STRING).toEqual(7);
+  });
 });
 
 describe('Exposes TF_AttrType enum values', () => {

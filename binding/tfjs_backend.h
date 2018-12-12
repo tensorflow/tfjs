@@ -36,9 +36,9 @@ class TFJSBackend {
   // refernces the new Tensor.
   // - shape_value (number[])
   // - dtype_value (number)
-  // - typed_array_value (TypedArray)
+  // - array_value (TypedArray|Array)
   napi_value CreateTensor(napi_env env, napi_value shape_value,
-                          napi_value dtype_value, napi_value typed_array_value);
+                          napi_value dtype_value, napi_value array_value);
 
   // Deletes a created Tensor.
   // - tensor_id_value (number)

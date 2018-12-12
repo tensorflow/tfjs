@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node",
-  "version": "0.1.21",
+  "version": "0.2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -41,7 +41,7 @@
     "yalc": "~1.0.0-pre.21"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "~0.13.5",
+    "@tensorflow/tfjs": "~0.14.0",
     "adm-zip": "^0.4.11",
     "bindings": "~1.3.0",
     "progress": "^2.0.0",

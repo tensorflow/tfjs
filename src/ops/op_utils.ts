@@ -43,8 +43,11 @@ export function getTFDType(dataType: tfc.DataType): number {
       return binding.TF_BOOL;
     case 'complex64':
       return binding.TF_COMPLEX64;
+    case 'string':
+      return binding.TF_STRING;
     default:
-      throw new Error('Unknown dtype `${dtype}`');
+      const errorMessage = `Unknown dtype: ${dataType}`;
+      throw new Error(errorMessage);
   }
 }
 

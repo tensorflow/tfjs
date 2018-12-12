@@ -72,6 +72,9 @@ export class NodeJSKernelBackend extends KernelBackend {
       case this.binding.TF_COMPLEX64:
         dtype = 'complex64';
         break;
+      case this.binding.TF_STRING:
+        dtype = 'string';
+        break;
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
     }
@@ -1342,7 +1345,7 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   memory() {
     // Due to automatic garbage collection, the numbers are unreliable.
-    // TODO: Since there is finalization in C, count the true
+    // TODO(kreeger): Since there is finalization in C, count the true
     // number of undisposed tensors.
     return {unreliable: true};
   }

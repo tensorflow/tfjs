@@ -39,7 +39,7 @@ static void AssignIntProperty(napi_env env, napi_value exports,
 static napi_value CreateTensor(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
-  // Create tensor takes 3 params: shape, dtype, typed-array:
+  // Create tensor takes 3 params: shape, dtype, typed-array/array:
   size_t argc = 3;
   napi_value args[3];
   napi_value js_this;
@@ -53,7 +53,14 @@ static napi_value CreateTensor(napi_env env, napi_callback_info info) {
 
   ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[0], nullptr);
   ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[1], nullptr);
-  ENSURE_VALUE_IS_TYPED_ARRAY_RETVAL(env, args[2], nullptr);
+
+  // The third array can either be a typed array or an array:
+  bool is_typed_array;
+  nstatus = napi_is_typedarray(env, args[2], &is_typed_array);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  if (!is_typed_array) {
+    ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[2], nullptr);
+  }
 
   return gBackend->CreateTensor(env, args[0], args[1], args[2]);
 }
@@ -158,6 +165,7 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   EXPORT_INT_PROPERTY(TF_INT32);
   EXPORT_INT_PROPERTY(TF_BOOL);
   EXPORT_INT_PROPERTY(TF_COMPLEX64);
+  EXPORT_INT_PROPERTY(TF_STRING);
 
   // Op AttrType
   EXPORT_INT_PROPERTY(TF_ATTR_STRING);
