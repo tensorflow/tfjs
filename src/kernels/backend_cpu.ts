@@ -1041,6 +1041,14 @@ export class MathBackendCPU implements KernelBackend {
     return res as T;
   }
 
+  prelu<T extends Tensor>(x: T, a: T): T {
+    this.assertNotComplex([x, a], 'prelu');
+
+    return this.broadcastedBinaryOp(
+               x, a, x.dtype,
+               (xValue, aValue) => xValue < 0 ? aValue * xValue : xValue) as T;
+  }
+
   elu<T extends Tensor>(x: T): T {
     this.assertNotComplex(x, 'elu');
 

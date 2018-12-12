@@ -88,6 +88,8 @@ export const ATAN2 = CHECK_NAN_SNIPPET + `
 
 export const ELU_DER = `return (b >= 1.0) ? a : a * (b + 1.0);`;
 
+export const PRELU = `return (a < 0.) ? b * a : a;`;
+
 export class BinaryOpProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];
   outputShape: number[];
