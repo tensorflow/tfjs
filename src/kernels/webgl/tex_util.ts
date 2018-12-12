@@ -159,12 +159,6 @@ Note the batch dimension is needed so xxx's are inserted below 020, 021, 022,
 export function encodeMatrixToPackedRGBA(
     matrix: Float32Array, batches: number, rows: number, columns: number,
     packedRGBA: Float32Array) {
-  const requiredSize = getPackedRGBAArraySizeFromMatrixShape(rows, columns);
-  if (packedRGBA.length < requiredSize) {
-    throw new Error(`packedRGBA length (${packedRGBA.length}) must be >=
-        ${requiredSize}`);
-  }
-
   const oddWidth = (columns % 2) === 1;
   const oddHeight = (rows % 2) === 1;
   const widthInFullBlocks = Math.floor(columns / 2);

@@ -159,6 +159,48 @@ describeWithFlags('packed batchNormalization', WEBGL_ENVS, () => {
       1.82644104, -0.52249442, 1.04803919, 0.74932291, 0.40568101, 1.2844412
     ]);
   });
+
+  it('should work when texture shapes are squarified', () => {
+    const webglMaxTextureSize = tf.ENV.get('WEBGL_MAX_TEXTURE_SIZE');
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 4);
+    const webglLazilyUnpackFlag = tf.ENV.get('WEBGL_LAZILY_UNPACK');
+    tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
+
+    const x = tf.tensor3d(
+        [
+          0.49955603, 0.04158615,  -1.09440524, 2.03854165,  -0.61578344,
+          2.87533573, 1.18105987,  0.807462,    1.87888837,
+
+          0.49955603, 0.04158615,  -1.09440524, 2.03854165,  -0.61578344,
+          2.87533573, 1.18105987,  0.807462,    1.87888837,
+
+          2.26563962, -0.37040935, 1.35848753,  -0.75347094, 0.15683117,
+          0.91925946, 0.34121279,  0.92717143,  1.89683965
+        ],
+        [3, 3, 3]);
+    const mean = tf.tensor1d([0.39745062, -0.48062894, 0.4847822]);
+    const variance = tf.tensor1d([0.32375343, 0.67117643, 1.08334653]);
+    const offset = tf.tensor1d([0.69398749, -1.29056387, 0.9429723]);
+    const scale = tf.tensor1d([-0.5607271, 0.9878457, 0.25181573]);
+    const varianceEpsilon = .001;
+
+    const result = tf.batchNormalization3d(
+        x, mean, variance, varianceEpsilon, scale, offset);
+
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', webglMaxTextureSize);
+    tf.ENV.set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlag);
+
+    expectArraysClose(result, [
+      0.5935205, -0.661352,  0.5610874, -0.92077,  -1.4534101,
+      1.5210648, -0.0770478, 0.2614444, 1.2801001,
+
+      0.5935205, -0.661352,  0.5610874, -0.92077,  -1.4534101,
+      1.5210648, -0.0770478, 0.2614444, 1.2801001,
+
+      -1.144224, -1.1577613, 1.1542549, 1.8264412, -0.5224944,
+      1.0480392, 0.749323,   0.405681,  1.2844412
+    ]);
+  });
 });
 
 describeWithFlags('batchNormalization4D', ALL_ENVS, () => {

@@ -19,6 +19,7 @@ import * as broadcast_util from '../../ops/broadcast_util';
 import * as util from '../../util';
 
 import * as shader_util from './shader_compiler_util';
+import * as tex_util from './tex_util';
 
 export type ShapeInfo = {
   logicalShape: number[],
@@ -1295,14 +1296,11 @@ function getPackedSamplerAtOutputCoords(
     supportsBroadcasting: boolean) {
   const texName = inputInfo.name;
   const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
-  const texShape = inputInfo.shapeInfo.texShape;
   const funcName = 'get' + texFuncSnippet + 'AtOutCoords';
-  const outTexShape = outShapeInfo.texShape;
 
-  const packedTexShape =
-      [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
-  const texNumR = packedTexShape[0];
-  const texNumC = packedTexShape[1];
+  const outTexShape = outShapeInfo.texShape;
+  const packedTexShape = [...tex_util.getPackedMatrixTextureShapeWidthHeight(
+      outTexShape[1], outTexShape[0])];
 
   const broadcastDims = broadcast_util.getBroadcastDims(
       inputInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape);
@@ -1313,6 +1311,8 @@ function getPackedSamplerAtOutputCoords(
   }
 
   const inTexShape = inputInfo.shapeInfo.texShape;
+  const packedInTexShape = [...tex_util.getPackedMatrixTextureShapeWidthHeight(
+      inTexShape[1], inTexShape[0])];
   if (util.arraysEqual(inTexShape, outTexShape)) {
     return `
       vec4 ${funcName}() {
@@ -1342,15 +1342,17 @@ function getPackedSamplerAtOutputCoords(
     }
   }
 
+  // index below refers to texel index
   return `
     vec4 ${funcName}() {
       ivec2 resTexRC = ivec2(resultUV.yx *
                              vec2(${packedTexShape[0]}, ${packedTexShape[1]}));
       int index = resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
 
-      int texR = index / ${texNumC};
-      int texC = index - texR * ${texNumC};
-      vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${texNumC}, ${texNumR});
+      int texR = index / ${packedInTexShape[1]};
+      int texC = index - texR * ${packedInTexShape[1]};
+      vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${packedInTexShape[1]}, ${
+      packedInTexShape[0]});
 
       ${output};
     }
