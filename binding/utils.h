@@ -19,9 +19,9 @@
 #define TF_NODEJS_UTILS_H_
 
 #include <node_api.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <cstdlib>
-#include <sstream>
 #include <vector>
 #include "../deps/include/tensorflow/c/c_api.h"
 #include "tf_auto_status.h"
@@ -34,21 +34,26 @@
 #define DEBUG 0
 #endif
 
-#define DEBUG_LOG(message, file, lineNumber)                             \
-  do {                                                                   \
-    if (DEBUG)                                                           \
-      fprintf(stderr, "** -%s:%zu\n-- %s\n", file, lineNumber, message); \
+#define DEBUG_LOG(message, file, line_number)                             \
+  do {                                                                    \
+    if (DEBUG)                                                            \
+      fprintf(stderr, "** -%s:%zu\n-- %s\n", file, line_number, message); \
   } while (0)
 
 namespace tfnodejs {
 
-#define NAPI_THROW_ERROR(env, message) \
-  NapiThrowError(env, message, __FILE__, __LINE__);
+#define NAPI_THROW_ERROR(env, message, ...) \
+  NapiThrowError(env, __FILE__, __LINE__, message, ##__VA_ARGS__);
 
-inline void NapiThrowError(napi_env env, const char* message, const char* file,
-                           const size_t lineNumber) {
-  DEBUG_LOG(message, file, lineNumber);
-  napi_throw_error(env, nullptr, message);
+inline void NapiThrowError(napi_env env, const char* file,
+                           const size_t line_number, const char* message, ...) {
+  char buffer[500];
+  va_list args;
+  va_start(args, message);
+  std::vsnprintf(buffer, 500, message, args);
+  va_end(args);
+  DEBUG_LOG(buffer, file, line_number);
+  napi_throw_error(env, nullptr, buffer);
 }
 
 #define ENSURE_NAPI_OK(env, status) \
@@ -57,19 +62,13 @@ inline void NapiThrowError(napi_env env, const char* message, const char* file,
   if (!EnsureNapiOK(env, status, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureNapiOK(napi_env env, napi_status status, const char* file,
-                         const size_t lineNumber) {
+                         const size_t line_number) {
   if (status != napi_ok) {
     const napi_extended_error_info* error_info = 0;
     napi_get_last_error_info(env, &error_info);
-
-    std::ostringstream oss;
-    oss << "Invalid napi_status: ";
-    if (error_info->error_message) {
-      oss << error_info->error_message;
-    } else {
-      oss << status;
-    }
-    NapiThrowError(env, oss.str().c_str(), file, lineNumber);
+    NapiThrowError(
+        env, file, line_number, "Invalid napi_status: %s\n",
+        error_info->error_message ? error_info->error_message : "unknown");
   }
   return status == napi_ok;
 }
@@ -80,13 +79,11 @@ inline bool EnsureNapiOK(napi_env env, napi_status status, const char* file,
   if (!EnsureTFOK(env, status, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureTFOK(napi_env env, TF_AutoStatus& status, const char* file,
-                       const size_t lineNumber) {
+                       const size_t line_number) {
   TF_Code tf_code = TF_GetCode(status.status);
   if (tf_code != TF_OK) {
-    std::ostringstream oss;
-    oss << "Invalid TF_Status: " << TF_GetCode(status.status) << std::endl;
-    oss << "Message: " << TF_Message(status.status);
-    NapiThrowError(env, oss.str().c_str(), file, lineNumber);
+    NapiThrowError(env, file, line_number, "Invalid TF_Status: %u\nMessage: %s",
+                   TF_GetCode(status.status), TF_Message(status.status));
   }
   return tf_code == TF_OK;
 }
@@ -97,14 +94,14 @@ inline bool EnsureTFOK(napi_env env, TF_AutoStatus& status, const char* file,
   if (!EnsureConstructorCall(env, info, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureConstructorCall(napi_env env, napi_callback_info info,
-                                  const char* file, const size_t lineNumber) {
+                                  const char* file, const size_t line_number) {
   napi_value js_target;
   napi_status nstatus = napi_get_new_target(env, info, &js_target);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, false);
   bool is_target = js_target != nullptr;
   if (!is_target) {
-    NapiThrowError(env, "Function not used as a constructor!", file,
-                   lineNumber);
+    NapiThrowError(env, file, line_number,
+                   "Function not used as a constructor!");
   }
   return is_target;
 }
@@ -115,12 +112,12 @@ inline bool EnsureConstructorCall(napi_env env, napi_callback_info info,
   if (!EnsureValueIsObject(env, value, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureValueIsObject(napi_env env, napi_value value,
-                                const char* file, const size_t lineNumber) {
+                                const char* file, const size_t line_number) {
   napi_valuetype type;
   ENSURE_NAPI_OK_RETVAL(env, napi_typeof(env, value, &type), false);
   bool is_object = type == napi_object;
   if (!is_object) {
-    NapiThrowError(env, "Argument is not an object!", file, lineNumber);
+    NapiThrowError(env, file, line_number, "Argument is not an object!");
   }
   return is_object;
 }
@@ -131,12 +128,12 @@ inline bool EnsureValueIsObject(napi_env env, napi_value value,
   if (!EnsureValueIsString(env, value, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureValueIsString(napi_env env, napi_value value,
-                                const char* file, const size_t lineNumber) {
+                                const char* file, const size_t line_number) {
   napi_valuetype type;
   ENSURE_NAPI_OK_RETVAL(env, napi_typeof(env, value, &type), false);
   bool is_string = type == napi_string;
   if (!is_string) {
-    NapiThrowError(env, "Argument is not a string!", file, lineNumber);
+    NapiThrowError(env, file, line_number, "Argument is not a string!");
   }
   return is_string;
 }
@@ -147,12 +144,12 @@ inline bool EnsureValueIsString(napi_env env, napi_value value,
   if (!EnsureValueIsNumber(env, value, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureValueIsNumber(napi_env env, napi_value value,
-                                const char* file, const size_t lineNumber) {
+                                const char* file, const size_t line_number) {
   napi_valuetype type;
   ENSURE_NAPI_OK_RETVAL(env, napi_typeof(env, value, &type), false);
   bool is_number = type == napi_number;
   if (!is_number) {
-    NapiThrowError(env, "Argument is not a string!", file, lineNumber);
+    NapiThrowError(env, file, line_number, "Argument is not a string!");
   }
   return is_number;
 }
@@ -163,11 +160,11 @@ inline bool EnsureValueIsNumber(napi_env env, napi_value value,
   if (!EnsureValueIsArray(env, value, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureValueIsArray(napi_env env, napi_value value, const char* file,
-                               const size_t lineNumber) {
+                               const size_t line_number) {
   bool is_array;
   ENSURE_NAPI_OK_RETVAL(env, napi_is_array(env, value, &is_array), false);
   if (!is_array) {
-    NapiThrowError(env, "Argument is not an array!", file, lineNumber);
+    NapiThrowError(env, file, line_number, "Argument is not an array!");
   }
   return is_array;
 }
@@ -178,11 +175,12 @@ inline bool EnsureValueIsArray(napi_env env, napi_value value, const char* file,
   if (!EnsureValueIsTypedArray(env, value, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureValueIsTypedArray(napi_env env, napi_value value,
-                                    const char* file, const size_t lineNumber) {
+                                    const char* file,
+                                    const size_t line_number) {
   bool is_array;
   ENSURE_NAPI_OK_RETVAL(env, napi_is_typedarray(env, value, &is_array), false);
   if (!is_array) {
-    NapiThrowError(env, "Argument is not a typed-array!", file, lineNumber);
+    NapiThrowError(env, file, line_number, "Argument is not a typed-array!");
   }
   return is_array;
 }
@@ -194,11 +192,10 @@ inline bool EnsureValueIsTypedArray(napi_env env, napi_value value,
     return retval;
 
 inline bool EnsureValueIsLessThan(napi_env env, uint32_t value, uint32_t max,
-                                  const char* file, const size_t lineNumber) {
+                                  const char* file, const size_t line_number) {
   if (value > max) {
-    std::ostringstream oss;
-    oss << "Argument is greater than max: " << value << " > " << max;
-    NapiThrowError(env, oss.str().c_str(), file, lineNumber);
+    NapiThrowError(env, file, line_number,
+                   "Argument is greater than max: %u > %u", value, max);
     return false;
   } else {
     return true;
@@ -209,20 +206,18 @@ inline bool EnsureValueIsLessThan(napi_env env, uint32_t value, uint32_t max,
   ReportUnknownTFDataType(env, type, __FILE__, __LINE__)
 
 inline void ReportUnknownTFDataType(napi_env env, TF_DataType type,
-                                    const char* file, const size_t lineNumber) {
-  std::ostringstream oss;
-  oss << "Unhandled TF_DataType: " << type;
-  NapiThrowError(env, oss.str().c_str(), file, lineNumber);
+                                    const char* file,
+                                    const size_t line_number) {
+  NapiThrowError(env, file, line_number, "Unhandled TF_DataType: %u\n", type);
 }
 
 #define REPORT_UNKNOWN_TF_ATTR_TYPE(env, type) \
   ReportUnknownTFAttrType(env, type, __FILE__, __LINE__)
 
 inline void ReportUnknownTFAttrType(napi_env env, TF_AttrType type,
-                                    const char* file, const size_t lineNumber) {
-  std::ostringstream oss;
-  oss << "Unhandled TF_AttrType: " << type;
-  NapiThrowError(env, oss.str().c_str(), file, lineNumber);
+                                    const char* file,
+                                    const size_t line_number) {
+  NapiThrowError(env, file, line_number, "Unhandled TF_AttrType: %u\n", type);
 }
 
 #define REPORT_UNKNOWN_TYPED_ARRAY_TYPE(env, type) \
@@ -230,10 +225,9 @@ inline void ReportUnknownTFAttrType(napi_env env, TF_AttrType type,
 
 inline void ReportUnknownTypedArrayType(napi_env env, napi_typedarray_type type,
                                         const char* file,
-                                        const size_t lineNumber) {
-  std::ostringstream oss;
-  oss << "Unhandled napi typed_array_type: " << type;
-  NapiThrowError(env, oss.str().c_str(), file, lineNumber);
+                                        const size_t line_number) {
+  NapiThrowError(env, file, line_number, "Unhandled napi typed_array_type: %u",
+                 type);
 }
 
 // Returns a vector with the shape values of an array.
@@ -271,10 +265,10 @@ inline bool IsExceptionPending(napi_env env) {
   if (!EnsureValueIsNotNull(env, value, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureValueIsNotNull(napi_env env, void* value, const char* file,
-                                 const size_t lineNumber) {
+                                 const size_t line_number) {
   bool is_null = value == nullptr;
   if (is_null) {
-    NapiThrowError(env, "Argument is null!", file, lineNumber);
+    NapiThrowError(env, file, line_number, "Argument is null!");
   }
   return !is_null;
 }

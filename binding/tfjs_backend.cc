@@ -79,7 +79,10 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
 
   // Double check that width matches TF data type size:
   if (width != TF_DataTypeSize(dtype)) {
-    NAPI_THROW_ERROR(env, "Byte size of elements differs between JS VM and TF");
+    NAPI_THROW_ERROR(env,
+                     "Byte size of elements differs between JavaScript VM "
+                     "(%zu) and TensorFlow (%zu)",
+                     width, TF_DataTypeSize(dtype));
     return nullptr;
   }
 
@@ -91,7 +94,10 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
 
   // Ensure the shape matches the length of the passed in typed-array.
   if (num_elements != array_length) {
-    NAPI_THROW_ERROR(env, "Shape does not match typed-array in bindData()");
+    NAPI_THROW_ERROR(env,
+                     "Shape does not match typed-array in bindData() "
+                     "(num_elements=%zu, array_length=%zu)",
+                     num_elements, array_length);
     return nullptr;
   }
 
@@ -293,8 +299,11 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
 
   const size_t expected_tensor_size =
       (limit - static_cast<const char *>(tensor_data));
-  if (expected_tensor_size - byte_length) {
-    NAPI_THROW_ERROR(env, "Invalid/corrupt TF_STRING tensor.");
+  if (expected_tensor_size != byte_length) {
+    NAPI_THROW_ERROR(env,
+                     "Invalid/corrupt TF_STRING tensor. Expected size: %zu, "
+                     "byte_length: %zu",
+                     expected_tensor_size, byte_length);
     return;
   }
 
@@ -439,7 +448,6 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     case TF_ATTR_STRING: {
       // NOTE: String attribute values do not have to be utf8 encoded strings
       // (could be arbitrary byte sequences).
-
       std::string str_value;
       nstatus = GetStringParam(env, js_value, str_value);
       ENSURE_NAPI_OK(env, nstatus);
@@ -647,7 +655,9 @@ void TFJSBackend::DeleteTensor(napi_env env, napi_value tensor_id_value) {
 
   auto tensor_entry = tfe_handle_map_.find(tensor_id);
   if (tensor_entry == tfe_handle_map_.end()) {
-    NAPI_THROW_ERROR(env, "Delete called on a Tensor not referenced");
+    NAPI_THROW_ERROR(env,
+                     "Delete called on a Tensor not referenced (tensor_id: %d)",
+                     tensor_id);
     return;
   }
 
@@ -663,7 +673,9 @@ napi_value TFJSBackend::GetTensorData(napi_env env,
 
   auto tensor_entry = tfe_handle_map_.find(tensor_id);
   if (tensor_entry == tfe_handle_map_.end()) {
-    NAPI_THROW_ERROR(env, "Get data called on a Tensor not referenced");
+    NAPI_THROW_ERROR(
+        env, "Get data called on a Tensor not referenced (tensor_id: %d)",
+        tensor_id);
     return nullptr;
   }
 
@@ -702,7 +714,8 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
 
     auto input_tensor_entry = tfe_handle_map_.find(cur_input_tensor_id);
     if (input_tensor_entry == tfe_handle_map_.end()) {
-      NAPI_THROW_ERROR(env, "Input Tensor ID not referenced");
+      NAPI_THROW_ERROR(env, "Input Tensor ID not referenced (tensor_id: %d)",
+                       cur_input_tensor_id);
       return nullptr;
     }
 
