@@ -26,8 +26,12 @@ import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 import bindings = require('bindings');
 import {TFJSBinding} from './tfjs_binding';
 
+// tslint:disable-next-line:no-require-imports
+const pjson = require('../package.json');
+
 tfc.ENV.registerBackend('tensorflow', () => {
-  return new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding);
+  return new NodeJSKernelBackend(
+      bindings('tfjs_binding.node') as TFJSBinding, pjson.name);
 }, 3 /* priority */);
 
 // If registration succeeded, set the backend.
