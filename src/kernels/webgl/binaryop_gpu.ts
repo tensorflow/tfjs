@@ -94,6 +94,7 @@ export class BinaryOpProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];
   outputShape: number[];
   userCode: string;
+  supportsBroadcasting = true;
 
   // Caching uniform location for speed.
   startLoc: WebGLUniformLocation;

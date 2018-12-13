@@ -57,6 +57,19 @@ export function getReductionAxes(
   return result;
 }
 
+/**
+ * Given the output of `getBroadcastDims()`, returns true if the broadcasting
+ * is along the outer-most dimensions of the input.
+ */
+export function broadcastDimsAreOuter(dims: number[]): boolean {
+  for (let i = 0; i < dims.length; i++) {
+    if (dims[i] !== i) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function assertAndGetBroadcastShape(
     shapeA: number[], shapeB: number[]): number[] {
   const result: number[] = [];
