@@ -20,3 +20,4 @@
  */
 
 export {fileSystem} from './file_system';
+export {nodeHTTPRequest} from './node_http';
