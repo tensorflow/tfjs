@@ -330,10 +330,10 @@ export async function fitDataset<T extends TensorContainer>(
     await callbackList.onTrainBegin();
     model.stopTraining_ = false;
     let epoch = config.initialEpoch == null ? 0 : config.initialEpoch;
-    const epochLogs: UnresolvedLogs = {};
 
     let dataIterator = await dataset.iterator();
     while (epoch < config.epochs) {
+      const epochLogs: UnresolvedLogs = {};
       await callbackList.onEpochBegin(epoch);
       let stepsDone = 0;
       let batchIndex = 0;

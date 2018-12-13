@@ -41,8 +41,6 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
   // import numpy as np
   // import tensorflow as tf
   //
-  // tf.enable_eager_execution():
-  //
   // batch_size = 8
   // num_batches = 3
   // epochs = 2
@@ -467,6 +465,46 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
        expect(epochEndValAccs[0]).toBeCloseTo(1);
        expect(epochEndValAccs[1]).toBeCloseTo(1);
      });
+
+  it('Earlier logs are not overwritten', async () => {
+    const model = createDenseModel();
+    model.compile(
+        {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['accuracy']});
+
+    const batchSize = 8;
+    const epochs = 2;
+    const batchesPerEpoch = 3;
+    const xTensorsFunc =
+        () => [tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]), tfc.ones([
+          batchSize, 1
+        ])];
+    const yTensorsFunc =
+        () => [tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]), tfc.ones([
+          batchSize, 1
+        ])];
+    const dataset = new FakeNumericDataset({
+      xShape: [1],
+      yShape: [1],
+      batchSize,
+      numBatches: batchesPerEpoch,
+      xTensorsFunc,
+      yTensorsFunc
+    });
+
+    const trainLogs: Logs[] = [];
+    await model.fitDataset(dataset, {
+      epochs,
+      callbacks: {
+        onEpochEnd: async (epoch, logs) => {
+          trainLogs.push(logs);
+        }
+      }
+    });
+    expect(trainLogs.length).toEqual(2);
+    // Assert that the the first log and the second logs do not overwrite each
+    // other.
+    expect(trainLogs[0].loss).not.toEqual(trainLogs[1].loss);
+  });
 
   // Reference Python tf.keras code:
   //
@@ -1770,7 +1808,10 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
     const numTensors1 = tfc.memory().numTensors;
     expect(numTensors1).toEqual(numTensors0);
     expect(Object.keys(history.history)).toEqual(['loss']);
-    expect(history.history.loss.length).toEqual(3);
+    // Only the loss value from the first epoch should be logged.
+    // The 2nd and 3rd epochs are cut short because of dataset iterator
+    // exhaustion.
+    expect(history.history.loss.length).toEqual(1);
     expect(warningMessages.length).toEqual(2);
     expect(warningMessages[0])
         .toMatch(/You provided `batchesPerEpoch` as .* 9 batches/);
