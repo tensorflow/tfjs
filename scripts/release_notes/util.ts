@@ -72,7 +72,8 @@ const SECTION_TAGS: SectionTag[] = [
   {section: 'Breaking changes', tag: 'BREAKING'},
   {section: 'Bug fixes', tag: 'BUG'}, {section: 'Performance', tag: 'PERF'},
   {section: 'Development', tag: 'DEV'}, {section: 'Documentation', tag: 'DOC'},
-  {section: 'Security', tag: 'SECURITY'}, {section: 'Misc', tag: 'MISC'}
+  {section: 'Security', tag: 'SECURITY'}, {section: 'Misc', tag: 'MISC'},
+  {section: 'Internal', tag: 'INTERNAL'}
 ];
 
 /**
@@ -108,6 +109,10 @@ export async function getReleaseNotesDraft(
       // Get tags for the body by finding lines that start with tags. Do this
       // without a regex for readability.
       SECTION_TAGS.forEach(({tag}) => {
+        if (tag === 'INTERNAL') {
+          return;
+        }
+
         bodyLines.forEach(line => {
           // Split by word boundaries, and make sure the first word is the tag.
           const split = line.split(/\b/);
