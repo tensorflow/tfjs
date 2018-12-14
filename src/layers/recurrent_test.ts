@@ -1396,6 +1396,65 @@ describeMathCPUAndGPU('GRU Tensor', () => {
         tensor2d([[-1.562513e-02, 0, 2.086183e-07]], [1, 3]));
     expectTensorsClose(dense.getWeights()[0], tensor2d([[1.2187521]], [1, 1]));
   });
+
+  // Reference Python code:
+  // ```py
+  // import keras
+  // import numpy as np
+  //
+  // in1 = keras.Input(shape=[5])
+  // out1 = keras.layers.Dense(2,
+  //                           kernel_initializer='ones',
+  //                           bias_initializer='zeros')(in1)
+  // in2 = keras.Input(shape=[3, 4])
+  // out2 = keras.layers.GRU(2,
+  //                         recurrent_initializer='ones',
+  //                         kernel_initializer='ones',
+  //                         bias_initializer='zeros')(in2, initial_state=out1)
+  // model = keras.Model(inputs=[in1, in2], outputs=[out1, out2])
+  //
+  // xs1 = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
+  // xs2 = np.array([[[0.1, 0.2, 0.3, 0.4], [-0.1, -0.2, -0.3, -0.4],
+  //                 [0.3, 0.4, 0.5, 0.6]]])
+  // print(model.predict([xs1, xs2]))
+  // ```
+  it('SymbolicTensor as initialState thru kwargs; Save & Load', async () => {
+    const in1 = tfl.input({shape: [5]});
+    const out1 = tfl.layers.dense({
+      units: 2,
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros'
+    }).apply(in1) as tfl.SymbolicTensor;
+    const in2 = tfl.input({shape: [3, 4]});
+    const out2 = tfl.layers.gru({
+      units: 2,
+      recurrentInitializer: 'ones',
+      kernelInitializer: 'ones',
+      biasInitializer: 'zeros'
+    }).apply(in2, {initialState: out1}) as tfl.SymbolicTensor;
+
+    const model = tfl.model({inputs: [in1 , in2], outputs: [out1, out2]});
+
+    const xs1 = tensor2d([[0.1, 0.2, 0.3, 0.4, 0.5]]);
+    const xs2 = tensor3d(
+        [[[0.1, 0.2, 0.3, 0.4], [-0.1, -0.2, -0.3, -0.4],
+          [0.3, 0.4, 0.5, 0.6]]]);
+    const ys = model.predict([xs1, xs2]) as Tensor[];
+    expect(ys.length).toEqual(2);
+    expectTensorsClose(ys[0], tensor2d([[1.5, 1.5]]));
+    expectTensorsClose(ys[1], tensor2d([[1.4435408, 1.4435408]]));
+
+    // NOTE: Here on down, i.e., the part that tests serialization and
+    // deserialization of the model, has no counterpart in the Python
+    // code snippet above.
+    const modelJSON = model.toJSON(null, false);
+    const modelPrime =
+        await tfl.models.modelFromJSON({modelTopology: modelJSON});
+    const ysPrime = modelPrime.predict([xs1, xs2]) as Tensor[];
+    expect(ysPrime.length).toEqual(2);
+    expectTensorsClose(ysPrime[0], ys[0]);
+    expectTensorsClose(ysPrime[1], ys[1]);
+  });
 });
 
 describeMathCPU('GRU-deserialization', () => {
