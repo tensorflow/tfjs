@@ -150,6 +150,27 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     expect(texManager.getNumUsedTextures()).toBe(0);
   });
 
+  it('delayed storage, read packed and then use by an unpacked op', () => {
+    const delayedStorage = true;
+    const backend = new MathBackendWebGL(null, delayedStorage);
+    tf.ENV.registerBackend('test-storage', () => backend);
+    tf.setBackend('test-storage');
+    
+    const webglPackFlagSaved = tf.ENV.get('WEBGL_PACK');
+    tf.ENV.set('WEBGL_PACK', true);
+    const webglSizeUploadUniformSaved = tf.ENV.get('WEBGL_SIZE_UPLOAD_UNIFORM');
+    tf.ENV.set('WEBGL_SIZE_UPLOAD_UNIFORM', 0);
+    const a = tf.tensor2d([1, 2], [2, 1]);
+    const b = tf.tensor2d([1], [1, 1]);  
+    const c = tf.matMul(a, b);
+    backend.readSync(c.dataId);
+    tf.ENV.set('WEBGL_PACK', false);
+    const d = tf.add(c, 1);
+    tf.ENV.set('WEBGL_PACK', webglPackFlagSaved);
+    tf.ENV.set('WEBGL_SIZE_UPLOAD_UNIFORM', webglSizeUploadUniformSaved);
+    expectArraysClose(d, [2, 3]);
+  });
+
   it('delayed storage, overwriting', () => {
     const delayedStorage = true;
     const backend = new MathBackendWebGL(null, delayedStorage);
