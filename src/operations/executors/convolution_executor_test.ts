@@ -155,5 +155,27 @@ describe('convolution', () => {
                 input1[0], input2[0], [2, 2], 'same', 'NHWC', [2, 2]);
       });
     });
+
+    describe('Conv3d', () => {
+      it('should call tfc.conv3d', () => {
+        spyOn(tfc, 'conv3d');
+        node.op = 'conv3d';
+        node.params['filter'] = createTensorAttr(1);
+        node.params['strides'] = createNumericArrayAttr([1, 2, 2, 2, 1]);
+        node.params['pad'] = createStrAttr('same');
+        node.params['dataFormat'] = createStrAttr('NHWC');
+        node.params['dilations'] = createNumericArrayAttr([2, 2, 2]);
+
+        const input1 = [tfc.scalar(1.0)];
+        const input2 = [tfc.scalar(1.0)];
+        node.inputNames = ['input1', 'input2'];
+
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.conv3d)
+            .toHaveBeenCalledWith(
+                input1[0], input2[0], [2, 2, 2], 'same', 'NHWC', [2, 2, 2]);
+      });
+    });
   });
 });

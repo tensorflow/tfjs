@@ -177,5 +177,36 @@ export const json = [
         'type': 'number[]'
       }
     ]
+  },
+  {
+    'tfOpName': 'Conv3D',
+    'dlOpName': 'conv3d',
+    'category': 'convolution',
+    'params': [
+      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
+      {'tfInputIndex': 1, 'dlParamName': 'filter', 'type': 'tensor'}, {
+        'tfParamName': 'T',
+        'dlParamName': 'dtype',
+        'type': 'dtype',
+        'notSupported': true
+      },
+      {'tfParamName': 'strides', 'dlParamName': 'strides', 'type': 'number[]'},
+      {'tfParamName': 'padding', 'dlParamName': 'pad', 'type': 'string'}, {
+        'tfParamName': 'useCudnnOnGpu',
+        'dlParamName': 'useCudnnOnGpu',
+        'type': 'bool'
+      },
+      {
+        'tfParamName': 'data_format',
+        'dlParamName': 'dataFormat',
+        'type': 'string',
+        'defaultValue': 'NHWC'
+      },
+      {
+        'tfParamName': 'dilations',
+        'dlParamName': 'dilations',
+        'type': 'number[]'
+      }
+    ]
   }
 ];

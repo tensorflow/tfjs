@@ -90,6 +90,24 @@ export let executeOp: OpExecutor =
               [stride[1], stride[2]], pad as 'valid' | 'same',
               dataFormat as 'NHWC' | 'NCHW', [dilations[0], dilations[1]])];
         }
+        case 'conv3d': {
+          const stride =
+              getParamValue('strides', node, tensorMap, context) as number[];
+          const pad = getParamValue('pad', node, tensorMap, context);
+          const dataFormat =
+              (getParamValue('dataFormat', node, tensorMap, context) as string)
+                  .toUpperCase();
+          const dilations =
+              getParamValue('dilations', node, tensorMap, context) as number[];
+          return [tfc.conv3d(
+              getParamValue('x', node, tensorMap, context) as tfc.Tensor4D |
+                  tfc.Tensor<tfc.Rank.R5>,  // TODO: change type to tfc.Tensor5D
+              getParamValue('filter', node, tensorMap, context) as
+                  tfc.Tensor<tfc.Rank.R5>,  // TODO: change type to tfc.Tensor5D
+              [stride[1], stride[2], stride[3]], pad as 'valid' | 'same',
+              dataFormat as 'NHWC' | 'NCHW',
+              [dilations[0], dilations[1], dilations[2]])];
+        }
 
         case 'avgPool': {
           const stride =
