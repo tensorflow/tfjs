@@ -31,7 +31,6 @@ export class BinaryOpComplexProgram implements GPGPUProgram {
   variableNames = ['AReal', 'AImag', 'BReal', 'BImag'];
   userCode: string;
   outputShape: number[];
-  supportsBroadcasting = true;
 
   constructor(op: string, aShape: number[], bShape: number[]) {
     this.outputShape =

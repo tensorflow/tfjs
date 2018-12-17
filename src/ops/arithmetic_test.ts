@@ -420,6 +420,33 @@ describeWithFlags('mul', ALL_ENVS, () => {
     expectArraysClose(result, expected);
   });
 
+  it('broadcast 5D + 2D', () => {
+    const a = tf.range(1, 33).reshape([2, 2, 2, 2, 2]);
+    const b = tf.tensor([2, 3], [2, 1]);
+    const result = tf.mul(a, b);
+    expect(result.shape).toEqual([2, 2, 2, 2, 2]);
+    const expected = [
+      2,  4,  9,  12, 10, 12, 21, 24, 18, 20, 33, 36, 26, 28, 45, 48,
+      34, 36, 57, 60, 42, 44, 69, 72, 50, 52, 81, 84, 58, 60, 93, 96
+    ];
+    expectArraysClose(result, expected);
+  });
+
+  it('broadcast 6D + 2D', () => {
+    const a = tf.range(1, 65).reshape([2, 2, 2, 2, 2, 2]);
+    const b = tf.tensor([2, 3], [2, 1]);
+    const result = tf.mul(a, b);
+    expect(result.shape).toEqual([2, 2, 2, 2, 2, 2]);
+    const expected = [
+      2,   4,   9,   12,  10,  12,  21,  24,  18,  20,  33,  36,  26,
+      28,  45,  48,  34,  36,  57,  60,  42,  44,  69,  72,  50,  52,
+      81,  84,  58,  60,  93,  96,  66,  68,  105, 108, 74,  76,  117,
+      120, 82,  84,  129, 132, 90,  92,  141, 144, 98,  100, 153, 156,
+      106, 108, 165, 168, 114, 116, 177, 180, 122, 124, 189, 192
+    ];
+    expectArraysClose(result, expected);
+  });
+
   it('gradient: Scalar', () => {
     const a = tf.scalar(5);
     const b = tf.scalar(2);
