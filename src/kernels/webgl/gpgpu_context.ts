@@ -35,7 +35,6 @@ export class GPGPUContext {
   textureHalfFloatExtension: {};
   colorBufferFloatExtension: {};
   colorBufferHalfFloatExtension: {};
-  getBufferSubDataAsyncExtension: {};
   disjointQueryTimerExtension: WebGL2DisjointQueryTimerExtension|
       WebGL1DisjointQueryTimerExtension;
   vertexBuffer: WebGLBuffer;
