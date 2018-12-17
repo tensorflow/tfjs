@@ -135,9 +135,7 @@ export interface TensorHandle {
 // Empirically determined constant used to determine size threshold for handing
 // off execution to the CPU.
 const CPU_HANDOFF_SIZE_THRESHOLD = 10;
-// Empirically determined constant used to decide the number of bytes on GPU
-// before we start paging. The bytes are this constant * screen area * dpi.
-const BEFORE_PAGING_CONSTANT = 300;
+
 // Tensors with size <= than this will be uploaded as uniforms, not textures.
 export const SIZE_UPLOAD_UNIFORM = 4;
 // Empirically determined minimal shared dimension in matmul before we forward
@@ -156,11 +154,6 @@ export class MathBackendWebGL implements KernelBackend {
   // least recently used being first.
   private lruDataGPU: DataId[] = [];
   private numBytesInGPU = 0;
-  /**
-   * Number of bytes allocated on the GPU before we start moving data to cpu.
-   * Moving avoids gpu memory leaks and relies on JS's garbage collector.
-   */
-  private NUM_BYTES_BEFORE_PAGING: number;
 
   private canvas: HTMLCanvasElement;
   private fromPixels2DContext: CanvasRenderingContext2D;
@@ -513,14 +506,6 @@ export class MathBackendWebGL implements KernelBackend {
     } else {
       this.gpgpuCreatedLocally = false;
       this.canvas = gpgpu.gl.canvas;
-    }
-    if (ENV.get('WEBGL_PAGING_ENABLED')) {
-      // Use the device screen's resolution as a heuristic to decide on the
-      // maximum memory allocated on the GPU before starting to page.
-      this.NUM_BYTES_BEFORE_PAGING =
-          (window.screen.height * window.screen.width *
-           window.devicePixelRatio) *
-          BEFORE_PAGING_CONSTANT;
     }
     this.textureManager = new TextureManager(this.gpgpu);
   }
@@ -1943,9 +1928,9 @@ export class MathBackendWebGL implements KernelBackend {
 
     gpgpu_math.runProgram(binary, inputsData, outputData, customSetup);
 
-    if (ENV.get('WEBGL_PAGING_ENABLED') && pageToCpu &&
-        this.numBytesInGPU > this.NUM_BYTES_BEFORE_PAGING) {
-      let numBytesToPage = this.numBytesInGPU - this.NUM_BYTES_BEFORE_PAGING;
+    const numBytesBeforePaging = ENV.get('WEBGL_NUM_MB_BEFORE_PAGING') * 1024;
+    if (pageToCpu && this.numBytesInGPU > numBytesBeforePaging) {
+      let numBytesToPage = this.numBytesInGPU - numBytesBeforePaging;
       while (numBytesToPage > 0 && this.lruDataGPU.length > 0) {
         const dataId = this.lruDataGPU.shift();
         const {shape, dtype} = this.texData.get(dataId);
@@ -2014,7 +1999,7 @@ export class MathBackendWebGL implements KernelBackend {
     if (texture != null) {
       // Array is already on GPU. No-op.
       // Touching the texture.
-      if (ENV.get('WEBGL_PAGING_ENABLED')) {
+      if (ENV.get('WEBGL_NUM_MB_BEFORE_PAGING') < Number.POSITIVE_INFINITY) {
         const index = this.lruDataGPU.indexOf(dataId);
         if (index >= 0) {
           this.lruDataGPU.splice(this.lruDataGPU.indexOf(dataId), 1);
@@ -2083,7 +2068,7 @@ export class MathBackendWebGL implements KernelBackend {
       texType: TextureUsage, isPacked: boolean) {
     const {shape, dtype} = this.texData.get(dataId);
 
-    if (ENV.get('WEBGL_PAGING_ENABLED')) {
+    if (ENV.get('WEBGL_NUM_MB_BEFORE_PAGING') < Number.POSITIVE_INFINITY) {
       const idx = this.lruDataGPU.indexOf(dataId);
       if (idx >= 0) {
         this.lruDataGPU.splice(idx, 1);
@@ -2097,7 +2082,7 @@ export class MathBackendWebGL implements KernelBackend {
       dataId: DataId, texShape: [number, number], texType: TextureUsage,
       isPacked: boolean): WebGLTexture {
     const {shape, dtype} = this.texData.get(dataId);
-    if (ENV.get('WEBGL_PAGING_ENABLED')) {
+    if (ENV.get('WEBGL_NUM_MB_BEFORE_PAGING') < Number.POSITIVE_INFINITY) {
       this.lruDataGPU.push(dataId);
     }
     this.numBytesInGPU += this.computeBytes(shape, dtype);

@@ -267,7 +267,7 @@
 
       const elapsed = performance.now() - start;
       await showMsg(null);
-      appendRow(timeTable, '1st inference', printTime(start));
+      appendRow(timeTable, '1st inference', printTime(elapsed));
     }
 
     function sleep(timeMs) {
