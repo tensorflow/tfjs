@@ -17,10 +17,7 @@
  */
 
 import {DataElement, DataElementArray, DataElementObject} from '../types';
-import {iteratorFromIncrementing, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './lazy_iterator';
-import {iteratorFromConcatenated} from './lazy_iterator';
-import {iteratorFromConcatenatedFunction} from './lazy_iterator';
-import {iteratorFromFunction, iteratorFromItems} from './lazy_iterator';
+import {iteratorFromConcatenated, iteratorFromConcatenatedFunction, iteratorFromFunction, iteratorFromIncrementing, iteratorFromItems, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './lazy_iterator';
 
 export class TestIntegerIterator extends LazyIterator<number> {
   currentIndex = 0;
