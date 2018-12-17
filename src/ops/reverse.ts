@@ -20,7 +20,6 @@ import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-import {parseAxisParam} from './axis_util';
 import {op} from './operation';
 
 /**
@@ -114,7 +113,7 @@ function reverse_<T extends Tensor>(
   if ($x.rank === 0) {
     return $x.clone();
   }
-  const axes = parseAxisParam(axis, $x.shape);
+  const axes = util.parseAxisParam(axis, $x.shape);
   const grad = (dy: T) => {
     return {$x: () => dy.reverse(axes)};
   };

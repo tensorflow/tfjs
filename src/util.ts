@@ -270,36 +270,47 @@ export function inferFromImplicitShape(
   return newShape;
 }
 
+export function parseAxisParam(
+    axis: number|number[], shape: number[]): number[] {
+  const rank = shape.length;
+
+  // Normalize input
+  axis = axis == null ? shape.map((s, i) => i) : [].concat(axis);
+
+  // Check for valid range
+  assert(
+      axis.every(ax => ax >= -rank && ax < rank),
+      `All values in axis param must be in range [-${rank}, ${rank}) but ` +
+          `got axis ${axis}`);
+
+  // Check for only integers
+  assert(
+      axis.every(ax => isInt(ax)),
+      `All values in axis param must be integers but ` +
+          `got axis ${axis}`);
+
+  // Handle negative axis.
+  return axis.map(a => a < 0 ? rank + a : a);
+}
+
 /** Reduces the shape by removing all dimensions of shape 1. */
 export function squeezeShape(shape: number[], axis?: number[]):
     {newShape: number[], keptDims: number[]} {
   const newShape: number[] = [];
   const keptDims: number[] = [];
-  if (axis != null) {
-    for (let i = 0; i < axis.length; ++i) {
-      if (axis[i] < -shape.length || axis[i] >= shape.length) {
-        throw new Error(
-          `Can't squeeze axis ${axis[i]} since its not in ` +
-          `[-${shape.length}, ${shape.length}) for shape ${shape}`);
-      } 
-      if (axis[i] < 0) {
-        axis[i] = shape.length + axis[i];
-      }
-    }
-    axis.sort();
-  }
+  const axes = axis == null? null: parseAxisParam(axis, shape).sort();
   let j = 0;
   for (let i = 0; i < shape.length; ++i) {
-    if (axis != null) {
-      if (axis[j] === i && shape[i] !== 1) {
+    if (axes != null) {
+      if (axes[j] === i && shape[i] !== 1) {
         throw new Error(
             `Can't squeeze axis ${i} since its dim '${shape[i]}' is not 1`);
       }
-      if ((axis[j] == null || axis[j] > i) && shape[i] === 1) {
+      if ((axes[j] == null || axes[j] > i) && shape[i] === 1) {
         newShape.push(shape[i]);
         keptDims.push(i);
       }
-      if (axis[j] <= i) {
+      if (axes[j] <= i) {
         j++;
       }
     }

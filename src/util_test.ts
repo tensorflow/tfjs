@@ -225,6 +225,83 @@ describe('util.inferFromImplicitShape', () => {
   });
 });
 
+describe('util parseAxisParam', () => {
+  it('axis=null returns no axes for scalar', () => {
+    const axis: number = null;
+    const shape: number[] = [];
+    expect(util.parseAxisParam(axis, shape)).toEqual([]);
+  });
+
+  it('axis=null returns 0 axis for Tensor1D', () => {
+    const axis: number = null;
+    const shape = [4];
+    expect(util.parseAxisParam(axis, shape)).toEqual([0]);
+  });
+
+  it('axis=null returns all axes for Tensor3D', () => {
+    const axis: number[] = null;
+    const shape = [3, 1, 2];
+    expect(util.parseAxisParam(axis, shape)).toEqual([0, 1, 2]);
+  });
+
+  it('axis as a single number', () => {
+    const axis = 1;
+    const shape = [3, 1, 2];
+    expect(util.parseAxisParam(axis, shape)).toEqual([1]);
+  });
+
+  it('axis as single negative number', () => {
+    const axis = -1;
+    const shape = [3, 1, 2];
+    expect(util.parseAxisParam(axis, shape)).toEqual([2]);
+
+    const axis2 = -2;
+    expect(util.parseAxisParam(axis2, shape)).toEqual([1]);
+
+    const axis3 = -3;
+    expect(util.parseAxisParam(axis3, shape)).toEqual([0]);
+  });
+
+  it('axis as list of negative numbers', () => {
+    const axis = [-1, -3];
+    const shape = [3, 1, 2];
+    expect(util.parseAxisParam(axis, shape)).toEqual([2, 0]);
+  });
+
+  it('axis as list of positive numbers', () => {
+    const axis = [0, 2];
+    const shape = [3, 1, 2];
+    expect(util.parseAxisParam(axis, shape)).toEqual([0, 2]);
+  });
+
+  it('axis as combo of positive and negative numbers', () => {
+    const axis = [0, -1];
+    const shape = [3, 1, 2];
+    expect(util.parseAxisParam(axis, shape)).toEqual([0, 2]);
+  });
+
+  it('axis out of range throws error', () => {
+    const axis = -4;
+    const shape = [3, 1, 2];
+    expect(() => util.parseAxisParam(axis, shape)).toThrowError();
+
+    const axis2 = 4;
+    expect(() => util.parseAxisParam(axis2, shape)).toThrowError();
+  });
+
+  it('axis a list with one number out of range throws error', () => {
+    const axis = [0, 4];
+    const shape = [3, 1, 2];
+    expect(() => util.parseAxisParam(axis, shape)).toThrowError();
+  });
+
+  it('axis with decimal value throws error', () => {
+    const axis = 0.5;
+    const shape = [3, 1, 2];
+    expect(() => util.parseAxisParam(axis, shape)).toThrowError();
+  });
+});
+
 describe('util.squeezeShape', () => {
   it('scalar', () => {
     const {newShape, keptDims} = util.squeezeShape([]);
@@ -266,6 +343,11 @@ describe('util.squeezeShape', () => {
       const {newShape, keptDims} = util.squeezeShape([1, 1, 1, 1, 4], [-2, -3]);
       expect(newShape).toEqual([1, 1, 4]);
       expect(keptDims).toEqual([0, 1, 4]);
+    });
+    it('should only reduce dimensions specified by negative axis', () => {
+      const axis = [-2, -3];
+      util.squeezeShape([1, 1, 1, 1, 4], axis);
+      expect(axis).toEqual([-2, -3]);
     });
     it('throws error when specified axis is not squeezable', () => {
       expect(() => util.squeezeShape([1, 1, 2, 1, 4], [1, 2])).toThrowError();
