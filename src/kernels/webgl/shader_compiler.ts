@@ -14,10 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENV} from '../../environment';
-import * as broadcast_util from '../../ops/broadcast_util';
-import * as util from '../../util';
 
+import {ENV} from '../../environment';
+import {getBroadcastDims} from '../../ops/broadcast_util';
+import * as util from '../../util';
 import * as shader_util from './shader_compiler_util';
 import * as tex_util from './tex_util';
 
@@ -35,7 +35,7 @@ export type InputInfo = {
 
 export function makeShader(
     inputsInfo: InputInfo[], outputShape: ShapeInfo, userCode: string,
-    broadcast: boolean, usesPackedTextures: boolean): string {
+    usesPackedTextures: boolean): string {
   let inputPrefixSnippet: string[]|string = inputsInfo.map(x => {
     const size = util.sizeFromShape(x.shapeInfo.logicalShape);
     if (x.shapeInfo.isUniform) {
@@ -47,9 +47,7 @@ export function makeShader(
 
   const inputSamplingSnippet =
       inputsInfo
-          .map(
-              x => getInputSamplingSnippet(
-                  x, outputShape, broadcast, usesPackedTextures))
+          .map(x => getInputSamplingSnippet(x, outputShape, usesPackedTextures))
           .join('\n');
   const outTexShape = outputShape.texShape;
   let outputSamplingSnippet: string;
@@ -122,25 +120,25 @@ function getPackedSamplerFromInInfo(inInfo: InputInfo): string {
 }
 
 function getInputSamplingSnippet(
-    inInfo: InputInfo, outShapeInfo: ShapeInfo, broadcast: boolean,
+    inInfo: InputInfo, outShapeInfo: ShapeInfo,
     usesPackedTextures = false): string {
-  let res = getSamplerFlat(inInfo);
+  let res = '';
   if (usesPackedTextures) {
     res += getPackedSamplerFromInInfo(inInfo);
   } else {
     res += getSamplerFromInInfo(inInfo);
   }
 
-  // If input and output have matching logical shapes, add
-  // getTexNameAtOutCoord() method that samples the input textureSampler using
-  // the output coordinates.
-  if (broadcast ||
-      util.arraysEqual(
-          inInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape)) {
+  const inShape = inInfo.shapeInfo.logicalShape;
+  const outShape = outShapeInfo.logicalShape;
+  if (inShape.length <= outShape.length) {
     if (usesPackedTextures) {
-      res += getPackedSamplerAtOutputCoords(inInfo, outShapeInfo, broadcast);
+      // Packed broadcast sampling is not implemented yet.
+      if (getBroadcastDims(inShape, outShape).length === 0) {
+        res += getPackedSamplerAtOutputCoords(inInfo, outShapeInfo);
+      }
     } else {
-      res += getSamplerAtOutputCoords(inInfo, outShapeInfo, broadcast);
+      res += getSamplerAtOutputCoords(inInfo, outShapeInfo);
     }
   }
   return res;
@@ -725,9 +723,46 @@ function getSampler1D(inputInfo: InputInfo): string {
   const texName = inputInfo.name;
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
 
+  if (inputInfo.shapeInfo.isUniform) {
+    // Uniform arrays will be less than 65505 (no risk of float16 overflow).
+    return `
+      float ${funcName}(int index) {
+        ${getUniformSampler(inputInfo)}
+      }
+    `;
+  }
+
+  const texShape = inputInfo.shapeInfo.texShape;
+  const tNumR = texShape[0];
+  const tNumC = texShape[1];
+
+  if (tNumC === 1 && tNumR === 1) {
+    return `
+      float ${funcName}(int index) {
+        return sampleTexture(${texName}, halfCR);
+      }
+    `;
+  }
+  if (tNumC === 1) {
+    return `
+      float ${funcName}(int index) {
+        vec2 uv = vec2(0.5, (float(index) + 0.5) / ${tNumR}.0);
+        return sampleTexture(${texName}, uv);
+      }
+    `;
+  }
+  if (tNumR === 1) {
+    return `
+      float ${funcName}(int index) {
+        vec2 uv = vec2((float(index) + 0.5) / ${tNumC}.0, 0.5);
+        return sampleTexture(${texName}, uv);
+      }
+    `;
+  }
   return `
     float ${funcName}(int index) {
-      return ${funcName}Flat(index);
+      vec2 uv = UVfrom1D(${tNumR}, ${tNumC}, index);
+      return sampleTexture(${texName}, uv);
     }
   `;
 }
@@ -797,8 +832,8 @@ function getSampler2D(inputInfo: InputInfo): string {
     // Uniform arrays will be less than 65505 (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col) {
-        float index = dot(vec2(row, col), vec2(${shape[1]}, 1));
-        return ${funcName}Flat(round(index));
+        int index = round(dot(vec2(row, col), vec2(${shape[1]}, 1)));
+        ${getUniformSampler(inputInfo)}
       }
     `;
   }
@@ -893,9 +928,9 @@ function getSampler3D(inputInfo: InputInfo): string {
     // Uniform arrays will be less than 65505 (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col, int depth) {
-        float index = dot(vec3(row, col, depth),
-                          vec3(${stride0}, ${stride1}, 1));
-        return ${funcName}Flat(round(index));
+        int index = round(dot(vec3(row, col, depth),
+                          vec3(${stride0}, ${stride1}, 1)));
+        ${getUniformSampler(inputInfo)}
       }
     `;
   }
@@ -985,9 +1020,9 @@ function getSampler4D(inputInfo: InputInfo): string {
     // Uniform arrays will be less than 65505 (no risk of float16 overflow).
     return `
       float ${funcName}(int row, int col, int depth, int depth2) {
-        float index = dot(vec4(row, col, depth, depth2),
-                          vec4(${stride0}, ${stride1}, ${stride2}, 1));
-        return ${funcName}Flat(round(index));
+        int index = round(dot(vec4(row, col, depth, depth2),
+                          vec4(${stride0}, ${stride1}, ${stride2}, 1)));
+        ${getUniformSampler(inputInfo)}
       }
     `;
   }
@@ -1059,7 +1094,7 @@ function getSampler5D(inputInfo: InputInfo): string {
           vec4(row, col, depth, depth2),
           vec4(${stride0}, ${stride1}, ${stride2}, ${stride3})) +
           depth3;
-        return ${funcName}Flat(index);
+        ${getUniformSampler(inputInfo)}
       }
     `;
   }
@@ -1135,13 +1170,13 @@ function getSampler6D(inputInfo: InputInfo): string {
     return `
       float ${funcName}(int row, int col, int depth,
                   int depth2, int depth3, int depth4) {
-        float index = dot(
+        int index = round(dot(
           vec4(row, col, depth, depth2),
           vec4(${stride0}, ${stride1}, ${stride2}, ${stride3})) +
           dot(
             vec2(depth3, depth4),
-            vec2(${stride4}, 1));
-        return ${funcName}Flat(index);
+            vec2(${stride4}, 1)));
+        ${getUniformSampler(inputInfo)}
       }
     `;
   }
@@ -1193,107 +1228,24 @@ function getSampler6D(inputInfo: InputInfo): string {
   `;
 }
 
-function getSamplerFlat(inputInfo: InputInfo): string {
+function getUniformSampler(inputInfo: InputInfo): string {
   const texName = inputInfo.name;
-  const funcName =
-      'get' + texName.charAt(0).toUpperCase() + texName.slice(1) + 'Flat';
   const inSize = util.sizeFromShape(inputInfo.shapeInfo.logicalShape);
 
-  if (inputInfo.shapeInfo.isUniform) {
-    if (inSize === 1) {
-      return `float ${funcName}(int index) {return ${texName};}`;
-    }
-    return `
-      float ${funcName}(int index) {
-        for (int i = 0; i < ${inSize}; i++) {
-          if (i == index) {
-            return ${texName}[i];
-          }
-        }
-      }
-    `;
-  }
-
-  const texShape = inputInfo.shapeInfo.texShape;
-  const tNumR = texShape[0];
-  const tNumC = texShape[1];
-  if (tNumC === 1 && tNumR === 1) {
-    return `
-      float ${funcName}(int index) {
-        return sampleTexture(${texName}, halfCR);
-      }
-    `;
-  }
-  if (tNumC === 1) {
-    return `
-      float ${funcName}(int index) {
-        vec2 uv = vec2(0.5, (float(index) + 0.5) / ${tNumR}.0);
-        return sampleTexture(${texName}, uv);
-      }
-    `;
-  }
-  if (tNumR === 1) {
-    return `
-      float ${funcName}(int index) {
-        vec2 uv = vec2((float(index) + 0.5) / ${tNumC}.0, 0.5);
-        return sampleTexture(${texName}, uv);
-      }
-    `;
+  if (inSize === 1) {
+    return `return ${texName};`;
   }
   return `
-    float ${funcName}(int index) {
-      vec2 uv = UVfrom1D(${tNumR}, ${tNumC}, index);
-      return sampleTexture(${texName}, uv);
-    }
-  `;
-}
-
-function getBroadcastOutputCoordsSampler(
-    inputInfo: InputInfo, outShapeInfo: ShapeInfo, texFuncSnippet: string,
-    funcName: string): string {
-  const inRank = inputInfo.shapeInfo.logicalShape.length;
-  const outRank = outShapeInfo.logicalShape.length;
-
-  let type = 'int';
-  if (outRank === 2) {
-    type = 'ivec2';
-  } else if (outRank === 3) {
-    type = 'ivec3';
-  } else if (outRank === 4) {
-    type = 'ivec4';
-  }
-  const broadcastDims = broadcast_util.getBroadcastDims(
-      inputInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape);
-  const rankDiff = outRank - inRank;
-  let coordsSnippet: string;
-  if (inRank === 0) {
-    coordsSnippet = '';
-  } else if (outRank < 2 && broadcastDims.length >= 1) {
-    coordsSnippet = 'coords = 0;';
-  } else {
-    coordsSnippet =
-        broadcastDims.map(d => `coords[${d + rankDiff}] = 0;`).join('\n');
-  }
-  let unpackedCoordsSnippet = '';
-  if (outRank < 2 && inRank > 0) {
-    unpackedCoordsSnippet = 'coords';
-  } else {
-    unpackedCoordsSnippet = inputInfo.shapeInfo.logicalShape
-                                .map((s, i) => `coords[${i + rankDiff}]`)
-                                .join(', ');
-  }
-  return `
-    float ${funcName}() {
-      ${type} coords = getOutputCoords();
-      ${coordsSnippet}
-      return get${texFuncSnippet}(${unpackedCoordsSnippet});
+    for (int i = 0; i < ${inSize}; i++) {
+      if (i == index) {
+        return ${texName}[i];
+      }
     }
   `;
 }
 
 function getPackedSamplerAtOutputCoords(
-    inputInfo: InputInfo, outShapeInfo: ShapeInfo,
-    supportsBroadcasting: boolean) {
+    inputInfo: InputInfo, outShapeInfo: ShapeInfo) {
   const texName = inputInfo.name;
   const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
   const funcName = 'get' + texFuncSnippet + 'AtOutCoords';
@@ -1302,8 +1254,10 @@ function getPackedSamplerAtOutputCoords(
   const packedTexShape = [...tex_util.getPackedMatrixTextureShapeWidthHeight(
       outTexShape[1], outTexShape[0])];
 
-  const broadcastDims = broadcast_util.getBroadcastDims(
-      inputInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape);
+  const inShape = inputInfo.shapeInfo.logicalShape;
+  const outShape = outShapeInfo.logicalShape;
+
+  const broadcastDims = getBroadcastDims(inShape, outShape);
   const inRank = inputInfo.shapeInfo.logicalShape.length;
   const outRank = outShapeInfo.logicalShape.length;
   if (broadcastDims.length) {
@@ -1360,55 +1314,14 @@ function getPackedSamplerAtOutputCoords(
 }
 
 function getSamplerAtOutputCoords(
-    inputInfo: InputInfo, outShapeInfo: ShapeInfo,
-    supportsBroadcasting: boolean) {
+    inputInfo: InputInfo, outShapeInfo: ShapeInfo) {
   const texName = inputInfo.name;
   const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
   const funcName = 'get' + texFuncSnippet + 'AtOutCoords';
-
-  const broadcastDims = broadcast_util.getBroadcastDims(
-      inputInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape);
-  const inRank = inputInfo.shapeInfo.logicalShape.length;
-  const outRank = outShapeInfo.logicalShape.length;
-  const doBroadcast =
-      supportsBroadcasting && ((outRank > inRank) || broadcastDims.length > 0);
-  const broadcastOverOuter =
-      broadcast_util.broadcastDimsAreOuter(broadcastDims);
-  const isUniform = inputInfo.shapeInfo.isUniform;
-
-  if (doBroadcast && !broadcastOverOuter) {
-    return getBroadcastOutputCoordsSampler(
-        inputInfo, outShapeInfo, texFuncSnippet, funcName);
-  }
-
-  const inSize = util.sizeFromShape(inputInfo.shapeInfo.logicalShape);
-  let broadcastSnippet = '';
-  if (doBroadcast && broadcastOverOuter) {
-    broadcastSnippet = `
-        int mainPart = index / ${inSize};
-        index -= mainPart * ${inSize};
-      `;
-  }
-
   const outTexShape = outShapeInfo.texShape;
-  if (isUniform) {
-    if (inSize === 1) {
-      return `float ${funcName}() {return ${texName};}`;
-    }
-    return `
-      float ${funcName}() {
-        ivec2 resTexRC = ivec2(resultUV.yx *
-                              vec2(${outTexShape[0]}, ${outTexShape[1]}));
-        int index = resTexRC.x * ${outTexShape[1]} + resTexRC.y;
-        ${broadcastSnippet}
-        return get${texFuncSnippet}Flat(index);
-      }
-    `;
-  }
-
-  // At this point, the input is not a uniform.
   const inTexShape = inputInfo.shapeInfo.texShape;
-  if (util.arraysEqual(inTexShape, outTexShape)) {
+  if (!inputInfo.shapeInfo.isUniform &&
+      util.arraysEqual(inTexShape, outTexShape)) {
     return `
       float ${funcName}() {
         return sampleTexture(${texName}, resultUV);
@@ -1416,18 +1329,38 @@ function getSamplerAtOutputCoords(
     `;
   }
 
+  const inRank = inputInfo.shapeInfo.logicalShape.length;
+  const outRank = outShapeInfo.logicalShape.length;
+  const type = getCoordsDataType(outRank);
+  const broadcastDims = getBroadcastDims(
+      inputInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape);
+  const rankDiff = outRank - inRank;
+  let coordsSnippet: string;
+  const fields = ['x', 'y', 'z', 'w', 'u', 'v'];
+
+  if (inRank === 0) {
+    coordsSnippet = '';
+  } else if (outRank < 2 && broadcastDims.length >= 1) {
+    coordsSnippet = 'coords = 0;';
+  } else {
+    coordsSnippet =
+        broadcastDims.map(d => `coords.${fields[d + rankDiff]} = 0;`)
+            .join('\n');
+  }
+  let unpackedCoordsSnippet = '';
+  if (outRank < 2 && inRank > 0) {
+    unpackedCoordsSnippet = 'coords';
+  } else {
+    unpackedCoordsSnippet = inputInfo.shapeInfo.logicalShape
+                                .map((s, i) => `coords.${fields[i + rankDiff]}`)
+                                .join(', ');
+  }
+
   return `
     float ${funcName}() {
-      ivec2 resTexRC = ivec2(resultUV.yx *
-                             vec2(${outTexShape[0]}, ${outTexShape[1]}));
-      int index = resTexRC.x * ${outTexShape[1]} + resTexRC.y;
-      ${broadcastSnippet}
-      int texR = index / ${inTexShape[1]};
-      int texC = index - texR * ${inTexShape[1]};
-      vec2 uv = (vec2(texC, texR) + halfCR) /
-                 vec2(${inTexShape[1]}.0, ${inTexShape[0]}.0);
-
-      return sampleTexture(${texName}, uv);
+      ${type} coords = getOutputCoords();
+      ${coordsSnippet}
+      return get${texFuncSnippet}(${unpackedCoordsSnippet});
     }
   `;
 }

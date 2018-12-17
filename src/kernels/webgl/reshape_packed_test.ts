@@ -74,13 +74,12 @@ describeWithFlags('expensive reshape', WEBGL_ENVS, () => {
 });
 
 describeWithFlags('expensive reshape with even columns', WEBGL_ENVS, () => {
-
   let webglLazilyUnpackFlagSaved: boolean;
   beforeAll(() => {
     webglLazilyUnpackFlagSaved = tf.ENV.get('WEBGL_LAZILY_UNPACK');
     tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
   });
-  
+
   afterAll(() => {
     tf.ENV.set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
   });
@@ -97,23 +96,23 @@ describeWithFlags('expensive reshape with even columns', WEBGL_ENVS, () => {
     // Setting WEBGL_MAX_TEXTURE_SIZE to 2 makes that [8, 2] tensor is packed
     // to texture of width 2 by height 2. Indices are packed as:
     // -------------
-    // | 0 1 | 4 5 |       // First row's four 
+    // | 0 1 | 4 5 |       // First row's four
     // | 2 3 | 6 7 |       // pixels.
     // -------------
-    // ...    
+    // ...
     const c = tf.matMul(a, b);
-    let cAs4D = c.reshape([2, 1, 2, 4]);    
+    let cAs4D = c.reshape([2, 1, 2, 4]);
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
 
-    //Execute non-packed operations to unpack tensor.
+    // Execute non-packed operations to unpack tensor.
     const webglPackFlagSaved = tf.ENV.get('WEBGL_PACK');
     tf.ENV.set('WEBGL_PACK', false);
     cAs4D = cAs4D.add(1);
     cAs4D = cAs4D.add(-1);
-    tf.ENV.set('WEBGL_PACK', webglPackFlagSaved);    
+    tf.ENV.set('WEBGL_PACK', webglPackFlagSaved);
 
-    const result = [7, 10, 15, 22, 23, 34, 31, 46,
-                    39, 58, 47, 70, 55, 82, 63, 94];
+    const result =
+        [7, 10, 15, 22, 23, 34, 31, 46, 39, 58, 47, 70, 55, 82, 63, 94];
     expectArraysClose(cAs4D, result);
   });
 });

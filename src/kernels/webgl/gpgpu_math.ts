@@ -29,7 +29,6 @@ export interface GPGPUProgram {
   outputShape: number[];
   userCode: string;
   usesPackedTextures?: boolean;
-  supportsBroadcasting?: boolean;
   isPackShader?: boolean;  // This property is used to single out the packing
                            // shader so its output does not get eagerly unpacked
                            // by backend_webgl.compileAndRun.
@@ -73,8 +72,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     isPacked: output.texData.isPacked
   };
   const source = shader_compiler.makeShader(
-      inputInfos, outShapeInfo, userCode, program.supportsBroadcasting === true,
-      program.usesPackedTextures);
+      inputInfos, outShapeInfo, userCode, program.usesPackedTextures);
 
   const webGLProgram = gpgpu.createProgram(source);
 
@@ -180,9 +178,8 @@ export function makeShaderKey(
     keyInputs += `${x.shape}_${x.isUniform ? 'uniform' : x.texData.texShape}`;
   });
   const keyUserCode = program.userCode;
-  const keyBroadcast = (program.supportsBroadcasting === true).toString();
   let key = program.constructor.name;
   // Fast string concat. See https://jsperf.com/string-concatenation/14.
-  key += '_' + keyBroadcast + '_' + keyInputs + '_' + keyUserCode;
+  key += '_' + keyInputs + '_' + keyUserCode;
   return key;
 }
