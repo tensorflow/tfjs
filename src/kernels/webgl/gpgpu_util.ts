@@ -301,7 +301,7 @@ export function maybeCreateBufferFromOutputTexture(
     webgl_util.callAndCheck(
         gl,
         () => gl.bufferData(
-            gl2.PIXEL_PACK_BUFFER, bufferSizeBytes, gl.STATIC_DRAW));
+            gl2.PIXEL_PACK_BUFFER, bufferSizeBytes, gl2.STREAM_READ));
 
     // Enqueue a command on the GPU command queue to copy of texture into the
     // buffer.
@@ -326,9 +326,9 @@ export function downloadFloat32MatrixFromBuffer(
       new Float32Array(tex_util.getUnpackedArraySizeFromMatrixSize(
           rows * columns, textureConfig.downloadUnpackNumChannels));
 
-  gl2.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl2.getBufferSubData(gl.ARRAY_BUFFER, 0, downloadTarget);
-  gl2.bindBuffer(gl.ARRAY_BUFFER, null);
+  gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, buffer);
+  gl2.getBufferSubData(gl2.PIXEL_PACK_BUFFER, 0, downloadTarget);
+  gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, null);
 
   const matrix = new Float32Array(rows * columns);
   tex_util.decodeMatrixFromUnpackedArray(
@@ -392,9 +392,9 @@ export function downloadPackedMatrixFromBuffer(
       new Float32Array(tex_util.getPackedRGBAArraySizeFromMatrixShape(
           physicalRows, physicalCols));
 
-  gl2.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl2.getBufferSubData(gl.ARRAY_BUFFER, 0, downloadTarget);
-  gl2.bindBuffer(gl.ARRAY_BUFFER, null);
+  gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, buffer);
+  gl2.getBufferSubData(gl2.PIXEL_PACK_BUFFER, 0, downloadTarget);
+  gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, null);
 
   const matrix = new Float32Array(util.sizeFromShape([batch, rows, cols]));
   tex_util.decodeMatrixFromPackedRGBA(
