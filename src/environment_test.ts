@@ -17,13 +17,13 @@
 
 import * as device_util from './device_util';
 import {ENV, Environment, EPSILON_FLOAT16, EPSILON_FLOAT32} from './environment';
-import {Features, getQueryParams} from './environment_util';
+import {BEFORE_PAGING_CONSTANT, Features, getQueryParams} from './environment_util';
 import * as tf from './index';
 import {describeWithFlags} from './jasmine_util';
 import {KernelBackend} from './kernels/backend';
 import {MathBackendCPU} from './kernels/backend_cpu';
 import {MathBackendWebGL} from './kernels/backend_webgl';
-import {ALL_ENVS, expectArraysClose, WEBGL_ENVS} from './test_util';
+import {ALL_ENVS, expectArraysClose, NODE_ENVS, WEBGL_ENVS} from './test_util';
 
 describeWithFlags(
     'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', WEBGL_ENVS, () => {
@@ -60,15 +60,25 @@ describeWithFlags(
       });
     });
 
-describeWithFlags('WEBGL_PAGING_ENABLED', WEBGL_ENVS, testEnv => {
-  it('should be true if in a browser', () => {
-    const features: Features = {'IS_BROWSER': true};
+describeWithFlags('WEBGL_NUM_MB_BEFORE_PAGING webgl', WEBGL_ENVS, () => {
+  it('should be set in a browser', () => {
+    const expectedMBBeforePaging = window.screen.width * window.screen.height *
+        window.devicePixelRatio * BEFORE_PAGING_CONSTANT / 1024;
+
+    const features: Features = {'IS_BROWSER': true, 'PROD': false};
     const env = new Environment(features);
-    expect(env.get('WEBGL_PAGING_ENABLED')).toBe(true);
+    expect(env.get('WEBGL_NUM_MB_BEFORE_PAGING')).toBe(expectedMBBeforePaging);
+  });
+
+  it('should be off when the environment is prod', () => {
+    const features: Features = {'IS_BROWSER': true, 'PROD': true};
+    const env = new Environment(features);
+    expect(env.get('WEBGL_NUM_MB_BEFORE_PAGING'))
+        .toBe(Number.POSITIVE_INFINITY);
   });
 
   it('should not cause errors when paging is turned off', () => {
-    ENV.set('WEBGL_PAGING_ENABLED', false);
+    ENV.set('WEBGL_NUM_MB_BEFORE_PAGING', Number.POSITIVE_INFINITY);
 
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
@@ -77,12 +87,13 @@ describeWithFlags('WEBGL_PAGING_ENABLED', WEBGL_ENVS, testEnv => {
 
     expectArraysClose(c, [0, 8, -3, 20]);
   });
+});
 
-  it('should be false when the environment is prod', () => {
-    const features: Features = {'IS_BROWSER': true};
-    const env = new Environment(features);
-    env.set('PROD', true);
-    expect(env.get('WEBGL_PAGING_ENABLED')).toBe(false);
+describeWithFlags('WEBGL_NUM_MB_BEFORE_PAGING node', NODE_ENVS, () => {
+  it('should be off when the environment is node', () => {
+    const env = new Environment();
+    expect(env.get('WEBGL_NUM_MB_BEFORE_PAGING'))
+        .toBe(Number.POSITIVE_INFINITY);
   });
 });
 

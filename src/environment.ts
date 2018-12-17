@@ -17,7 +17,7 @@
 
 import * as device_util from './device_util';
 import {Engine, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo} from './engine';
-import {Features, getFeaturesFromURL, getMaxTexturesInShader, getWebGLDisjointQueryTimerVersion, getWebGLMaxTextureSize, isChrome, isDownloadFloatTextureEnabled, isRenderToFloatTextureEnabled, isWebGLFenceEnabled, isWebGLVersionEnabled} from './environment_util';
+import {Features, getFeaturesFromURL, getMaxTexturesInShader, getNumMBBeforePaging, getWebGLDisjointQueryTimerVersion, getWebGLMaxTextureSize, isChrome, isDownloadFloatTextureEnabled, isRenderToFloatTextureEnabled, isWebGLFenceEnabled, isWebGLVersionEnabled} from './environment_util';
 import {KernelBackend} from './kernels/backend';
 import {DataId, setTensorTracker, Tensor, TensorTracker} from './tensor';
 import {TensorContainer} from './tensor_types';
@@ -320,8 +320,11 @@ export class Environment {
       return this.get('WEBGL_PACK');
     } else if (feature === 'WEBGL_CONV_IM2COL') {
       return this.get('WEBGL_PACK');
-    } else if (feature === 'WEBGL_PAGING_ENABLED') {
-      return this.get('IS_BROWSER') && !this.get('PROD');
+    } else if (feature === 'WEBGL_NUM_MB_BEFORE_PAGING') {
+      if (this.get('PROD') || !this.get('IS_BROWSER')) {
+        return Number.POSITIVE_INFINITY;
+      }
+      return getNumMBBeforePaging();
     } else if (feature === 'WEBGL_MAX_TEXTURE_SIZE') {
       return getWebGLMaxTextureSize(this.get('WEBGL_VERSION'));
     } else if (feature === 'WEBGL_MAX_TEXTURES_IN_SHADER') {
