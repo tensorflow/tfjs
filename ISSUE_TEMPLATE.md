@@ -1,4 +1,4 @@
-If you would like to get help from the community, our [Google group](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs) might be a better fit.
+If you would like to get help from the community, we encourage using Stack Overflow and the [`tensorflow.js`](https://stackoverflow.com/questions/tagged/tensorflow.js) tag.
 
 GitHub issues for this repository are tracked in the [tfjs union repository](https://github.com/tensorflow/tfjs/issues).
 
