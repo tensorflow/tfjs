@@ -481,4 +481,9 @@ function getOrMakeEnvironment(): Environment {
   return ns.ENV;
 }
 
+/** Enables production mode which disables safety checks to gain performance */
+export function enableProdMode(): void {
+  ENV.set('PROD', true);
+}
+
 export let ENV = getOrMakeEnvironment();
