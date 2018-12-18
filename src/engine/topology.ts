@@ -16,7 +16,7 @@ import {getNextUniqueTensorId, getUid} from '../backend/state';
 import {getScopedTensorName, getUniqueTensorName, nameScope} from '../common';
 import {Constraint} from '../constraints';
 import {AttributeError, NotImplementedError, RuntimeError, ValueError} from '../errors';
-import {Initializer} from '../initializers';
+import {getInitializer, Initializer} from '../initializers';
 import {Regularizer} from '../regularizers';
 import {Kwargs, RegularizerFn, Shape} from '../types';
 import * as generic_utils from '../utils/generic_utils';
@@ -443,6 +443,13 @@ export abstract class Layer extends serialization.Serializable {
 
   protected _refCount: number|null;
 
+  // A flag for whether fast (i.e., all-zero) weight initialization is to
+  // be used during `build()` call. This speeds up weight initialization
+  // by saving unnecessary calls to expensive initializers in cases where
+  // the initialized values will be overwritten by loaded weight values
+  // during model loading.
+  private fastWeightInitDuringBuild: boolean;
+
   constructor(config: LayerConfig) {
     super();
     this.id = _nextLayerID++;
@@ -513,6 +520,8 @@ export abstract class Layer extends serialization.Serializable {
     // The value of `_refCount` is initialized to null. When the layer is used
     // in a symbolic way for the first time, it will be set to 1.
     this._refCount = null;
+
+    this.fastWeightInitDuringBuild = false;
   }
 
   /**
@@ -1260,6 +1269,10 @@ export abstract class Layer extends serialization.Serializable {
     if (dtype == null) {
       dtype = 'float32';
     }
+
+    if (this.fastWeightInitDuringBuild) {
+      initializer = getInitializer('zeros');
+    }
     const weight = new LayerVariable(
         initializer.apply(shape, dtype), dtype, name, trainable, constraint);
     // Request backend not to dispose the weights of the model on scope() exit.
@@ -1275,6 +1288,20 @@ export abstract class Layer extends serialization.Serializable {
       this._nonTrainableWeights.push(weight);
     }
     return weight;
+  }
+
+  /**
+   * Set the fast-weight-initialization flag.
+   *
+   * In cases where the initialized weight values will be immediately
+   * overwritten by loaded weight values during model loading, setting
+   * the flag to `true` saves unnecessary calls to potentially expensive
+   * initializers and speeds up the loading process.
+   *
+   * @param value Target value of the flag.
+   */
+  setFastWeightInitDuringBuild(value: boolean) {
+    this.fastWeightInitDuringBuild = value;
   }
 
   /**

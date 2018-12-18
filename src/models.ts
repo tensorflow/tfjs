@@ -253,6 +253,13 @@ export async function loadModelInternal(
 
 /**
  * Load a model and optionally its weights, using an IOHandler object.
+ *
+ * @param handler The instance of `IOHandler` to be used during the model
+ *   loading.
+ * @param customObjects Any optional custom objects to be used during model
+ *   loading.
+ * @param strict Whether the weight loading will be done in strict mode.
+ *   Default: `true`.
  */
 export async function loadModelFromIOHandler(
     handler: io.IOHandler, customObjects?: serialization.ConfigDict,
@@ -267,10 +274,18 @@ export async function loadModelFromIOHandler(
   if (modelTopology['model_config'] != null) {
     modelTopology = modelTopology['model_config'] as JsonDict;
   }
+
+  // If weights are provided and the weight-loading mode is strict, use
+  // fast weight initialization. This skips costly initializers such as
+  // 'orthogonal' and saves unnecessary computation in cases where
+  // the initialized weight values will immediately be overwritten by
+  // loaded weight values.
+  const fastWeightInit =
+      artifacts.weightData != null && artifacts.weightSpecs != null && strict;
   const model =
       deserialize(
           convertPythonicToTs(modelTopology) as serialization.ConfigDict,
-          customObjects) as Model;
+          customObjects, fastWeightInit) as Model;
 
   // If weightData is present, load the weights into the model.
   if (artifacts.weightData != null) {
@@ -856,7 +871,7 @@ export class Sequential extends Model {
    *     returning the batch-by-batch loss and metric values.
    *   - It doesn't support fine-grained options such as verbosity and
    *     callbacks.
-   * 
+   *
    * @param x Input data. It could be one of the following:
    *   - A `tf.Tensor`, or an Array of `tf.Tensor`s (in case the model has
    *     multiple inputs).
@@ -871,16 +886,18 @@ export class Sequential extends Model {
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async trainOnBatch(
-    x: Tensor|Tensor[]|{[inputName: string]: Tensor},
-    y: Tensor|Tensor[]|{[inputName: string]: Tensor}):
-    Promise<number|number[]> {
+      x: Tensor|Tensor[]|{[inputName: string]: Tensor},
+      y: Tensor|Tensor[]|
+      {[inputName: string]: Tensor}): Promise<number|number[]> {
     return this.model.trainOnBatch(x, y);
   }
 
   /* See parent class for JsDoc */
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
-      config: serialization.ConfigDict): T {
+      config: serialization.ConfigDict,
+      customObjects = {} as serialization.ConfigDict,
+      fastWeightInit = false): T {
     let configArray: serialization.ConfigDictArray;
     let extraModelConfig: serialization.ConfigDict = {};
     if (config instanceof Array) {
@@ -904,9 +921,14 @@ export class Sequential extends Model {
       throw new NotImplementedError(
           `Sequential.fromConfig called on non-Sequential input: ${model}`);
     }
-
     for (const conf of configArray) {
-      const layer = deserialize(conf as serialization.ConfigDict) as Layer;
+      const customObjects: serialization.ConfigDict = undefined;
+      const layer = deserialize(
+                        conf as serialization.ConfigDict, customObjects,
+                        fastWeightInit) as Layer;
+      if (fastWeightInit) {
+        layer.setFastWeightInitDuringBuild(true);
+      }
       model.add(layer);
     }
     return model;

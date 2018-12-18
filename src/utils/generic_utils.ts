@@ -148,6 +148,10 @@ export function serializeKerasObject(instance: serialization.Serializable):
  * @param moduleObjects a list of Python class names to object constructors
  * @param customObjects a list of Python class names to object constructors
  * @param printableModuleName debug text for the object being reconstituted
+ * @param fastWeightInit Optional flag to use fast weight initialization
+ *   during deserialization. This is applicable to cases in which
+ *   the initialization will be immediately overwritten by loaded weight
+ *   values. Default: `false`.
  * @returns a TensorFlow.js Layers object
  */
 // tslint:disable:no-any
@@ -155,7 +159,7 @@ export function deserializeKerasObject(
     identifier: string|serialization.ConfigDict,
     moduleObjects = {} as {[objName: string]: any},
     customObjects = {} as {[objName: string]: any},
-    printableModuleName = 'object'): any {
+    printableModuleName = 'object', fastWeightInit = false): any {
   // tslint:enable
   if (typeof identifier === 'string') {
     const functionName = identifier;
@@ -232,7 +236,8 @@ export function deserializeKerasObject(
       for (const key of Object.keys(customObjects)) {
         _GLOBAL_CUSTOM_OBJECTS[key] = customObjects[key];
       }
-      const returnObj = fromConfig(cls, config.config);
+      const returnObj =
+          fromConfig(cls, config.config, customObjects, fastWeightInit);
       _GLOBAL_CUSTOM_OBJECTS = {...backupCustomObjects};
 
       return returnObj;
