@@ -23,7 +23,7 @@ import './kernels/backend_cpu';
 
 import {nextFrame} from './browser_util';
 import * as environment from './environment';
-import {Environment} from './environment';
+import {Environment, enableProdMode} from './environment';
 
 // Serialization.
 import * as io from './io/io';
@@ -70,7 +70,7 @@ export {version as version_core};
 export {nextFrame};
 
 // Second level exports.
-export {environment, io, math, serialization, test_util, util, webgl};
+export {environment, io, math, serialization, test_util, util, webgl, enableProdMode};
 
 // Backend specific.
 export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './kernels/backend';
