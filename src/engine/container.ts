@@ -745,7 +745,7 @@ export abstract class Container extends Layer {
    * @param isNamedTensorMap Whether the 1st argument (`weightsJSON`) is a
    *   `NamedTensorMap`.
    * @param strict Require that the provided weights exactly match those
-   *   required by the container.  Default true.  Passing false means that both
+   *   required by the container.  Default: `true`.  Passing `false` means that
    *   extra weights and missing weights will be silently ignored.
    */
   loadWeights(
@@ -1249,14 +1249,21 @@ export abstract class Container extends Layer {
 
   /**
    * Instantiates a Model from its config (output of `get_config()`).
-   * @param cls: the class to create
-   * @param config: Model config dictionary.
+   * @param cls the class to create
+   * @param config Model config dictionary.
+   * @param customObjects An optional dictionary of custom objects.
+   * @param fastWeightInit Optional flag to use fast weight initialization
+   *   during deserialization. This is applicable to cases in which
+   *   the initialization will be immediately overwritten by loaded weight
+   *   values. Default: `false`.
    * @returns A model instance.
    * @throws ValueError: In case of improperly formatted config dict.
    */
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
-      config: serialization.ConfigDict): T {
+      config: serialization.ConfigDict,
+      customObjects = {} as serialization.ConfigDict,
+      fastWeightInit = false): T {
     // Layer instances created during
     // the graph reconstruction process
     const createdLayers: {[layerName: string]: Layer} = {};
@@ -1328,6 +1335,7 @@ export abstract class Container extends Layer {
                         config.customObjects != null ?
                             config.customObjects as serialization.ConfigDict :
                             {}) as Layer;
+      layer.setFastWeightInitDuringBuild(fastWeightInit);
       createdLayers[layerName] = layer;
       // Gather layer inputs.
       const inboundNodesData =

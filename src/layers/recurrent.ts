@@ -865,6 +865,13 @@ export class RNN extends Layer {
     return this.cell.nonTrainableWeights;
   }
 
+  setFastWeightInitDuringBuild(value: boolean) {
+    super.setFastWeightInitDuringBuild(value);
+    if (this.cell != null) {
+      this.cell.setFastWeightInitDuringBuild(value);
+    }
+  }
+
   getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       returnSequences: this.returnSequences,

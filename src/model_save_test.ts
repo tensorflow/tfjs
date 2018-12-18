@@ -8,8 +8,9 @@
  * =============================================================================
  */
 
-import {io, randomNormal, Tensor} from '@tensorflow/tfjs-core';
+import {io, linalg, randomNormal, Tensor, zeros} from '@tensorflow/tfjs-core';
 
+import * as initializers from './initializers';
 import * as tfl from './index';
 
 // tslint:disable-next-line:max-line-length
@@ -243,4 +244,198 @@ describeMathGPU('Save-load round trips', () => {
         randomNormal([trainExamples, sequenceLength, inputDims]),
         randomNormal([trainExamples, lstmUnits * 2]), {epochs: 2});
   });
+
+  it('Load model: Fast init w/ weights: Sequential & LSTM', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.lstm({
+      units: 2,
+      inputShape: [3, 4],
+      recurrentInitializer: 'orthogonal',
+      kernelInitializer: 'orthogonal',
+      biasInitializer: 'randomNormal',
+    }));
+    let savedArtifacts: io.ModelArtifacts;
+    await model.save(io.withSaveHandler(
+        async (artifacts: io.ModelArtifacts) => {
+          savedArtifacts = artifacts;
+          return {modelArtifactsInfo: null};
+        }));
+    const weights = model.getWeights();
+
+    const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
+    const gramSchmidtSpy = spyOn(linalg,  'gramSchmidt').and.callThrough();
+    const modelPrime = await tfl.loadModel(io.fromMemory(
+        savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
+        savedArtifacts.weightData));
+    const weightsPrime = modelPrime.getWeights();
+    expect(weightsPrime.length).toEqual(weights.length);
+    for (let i = 0; i < weights.length; ++i) {
+      expectTensorsClose(weightsPrime[i], weights[i]);
+    }
+    // Assert that orthogonal initializer hasn't been obtained during
+    // the model loading.
+    expect(getInitSpy).toHaveBeenCalledWith('zeros');
+    expect(gramSchmidtSpy).not.toHaveBeenCalled();
+  });
+
+  it('Loading model: Fast init w/ weights: timeDistributed', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.timeDistributed({
+      inputShape: [3, 4],
+      layer: tfl.layers.dense({
+        units: 4,
+        kernelInitializer: 'orthogonal',
+        useBias: false
+      })
+    }));
+    let savedArtifacts: io.ModelArtifacts;
+    await model.save(io.withSaveHandler(
+        async (artifacts: io.ModelArtifacts) => {
+          savedArtifacts = artifacts;
+          return {modelArtifactsInfo: null};
+        }));
+    const weights = model.getWeights();
+
+    const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
+    const gramSchmidtSpy = spyOn(linalg,  'gramSchmidt').and.callThrough();
+    const modelPrime = await tfl.loadModel(io.fromMemory(
+        savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
+        savedArtifacts.weightData));
+    const weightsPrime = modelPrime.getWeights();
+    expect(weightsPrime.length).toEqual(weights.length);
+    for (let i = 0; i < weights.length; ++i) {
+      expectTensorsClose(weightsPrime[i], weights[i]);
+    }
+    // Assert that orthogonal initializer hasn't been obtained during
+    // the model loading.
+    expect(getInitSpy).toHaveBeenCalledWith('zeros');
+    expect(gramSchmidtSpy).not.toHaveBeenCalled();
+  });
+
+  it('Loading model: Fast init w/ weights: bidirectional', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.bidirectional({
+      inputShape: [3, 4],
+      mergeMode: 'concat',
+      layer: tfl.layers.lstm({
+        units: 4,
+        kernelInitializer: 'orthogonal',
+        recurrentInitializer: 'orthogonal',
+        biasInitializer: 'glorotNormal'
+      }) as tfl.RNN
+    }));
+    let savedArtifacts: io.ModelArtifacts;
+    await model.save(io.withSaveHandler(
+        async (artifacts: io.ModelArtifacts) => {
+          savedArtifacts = artifacts;
+          return {modelArtifactsInfo: null};
+        }));
+    const weights = model.getWeights();
+
+    const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
+    const gramSchmidtSpy = spyOn(linalg,  'gramSchmidt').and.callThrough();
+    const modelPrime = await tfl.loadModel(io.fromMemory(
+        savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
+        savedArtifacts.weightData));
+    const weightsPrime = modelPrime.getWeights();
+    expect(weightsPrime.length).toEqual(weights.length);
+    for (let i = 0; i < weights.length; ++i) {
+      expectTensorsClose(weightsPrime[i], weights[i]);
+    }
+    // Assert that orthogonal initializer hasn't been obtained during
+    // the model loading.
+    expect(getInitSpy).toHaveBeenCalledWith('zeros');
+    expect(gramSchmidtSpy).not.toHaveBeenCalled();
+  });
+
+  it('Loading model: Fast init w/ weights: functional model', async () => {
+    const input1 = tfl.input({shape: [3, 2]});
+    const input2 = tfl.input({shape: [3, 2]});
+    let y = tfl.layers.concatenate()
+        .apply([input1, input2]) as tfl.SymbolicTensor;
+    y = tfl.layers.lstm({
+      units: 4,
+      kernelInitializer: 'orthogonal',
+      recurrentInitializer: 'orthogonal',
+      biasInitializer: 'glorotNormal'
+    }).apply(y) as tfl.SymbolicTensor;
+    const model = tfl.model({inputs: [input1, input2], outputs: y});
+    let savedArtifacts: io.ModelArtifacts;
+    await model.save(io.withSaveHandler(
+        async (artifacts: io.ModelArtifacts) => {
+          savedArtifacts = artifacts;
+          return {modelArtifactsInfo: null};
+        }));
+    const weights = model.getWeights();
+
+    const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
+    const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
+    const modelPrime = await tfl.loadModel(io.fromMemory(
+        savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
+        savedArtifacts.weightData));
+    const weightsPrime = modelPrime.getWeights();
+    expect(weightsPrime.length).toEqual(weights.length);
+    for (let i = 0; i < weights.length; ++i) {
+      expectTensorsClose(weightsPrime[i], weights[i]);
+    }
+    // Assert that orthogonal initializer hasn't been obtained during
+    // the model loading.
+    expect(getInitSpy).toHaveBeenCalledWith('zeros');
+    expect(gramSchmidtSpy).not.toHaveBeenCalled();
+  });
+
+  it('modelFromJSON calls correct weight initializers', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.lstm({
+      units: 2,
+      inputShape: [3, 4],
+      recurrentInitializer: 'orthogonal',
+      kernelInitializer: 'orthogonal',
+      biasInitializer: 'randomNormal',
+    }));
+    const modelJSON = model.toJSON(null, false);
+
+    const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
+    const modelPrime =
+        await tfl.models.modelFromJSON({modelTopology: modelJSON});
+    // Make sure modelPrime builds.
+    modelPrime.predict(zeros([2, 3, 4]));
+    // Assert the orthogonal initializer has been called.
+    expect(gramSchmidtSpy).toHaveBeenCalled();
+  });
+
+  it('Partial non-strict load calls weight initializers', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.lstm({
+      units: 2,
+      inputShape: [3, 4],
+      recurrentInitializer: 'orthogonal',
+      kernelInitializer: 'orthogonal',
+      biasInitializer: 'randomNormal',
+    }));
+    let savedArtifacts: io.ModelArtifacts;
+    await model.save(io.withSaveHandler(
+        async (artifacts: io.ModelArtifacts) => {
+          savedArtifacts = artifacts;
+          return {modelArtifactsInfo: null};
+        }));
+    const weights = model.getWeights();
+
+    expect(savedArtifacts.weightSpecs.length).toEqual(3);
+    savedArtifacts.weightSpecs = savedArtifacts.weightSpecs.slice(0, 1);
+
+    const gramSchmidtSpy = spyOn(linalg,  'gramSchmidt').and.callThrough();
+    const strict = false;
+    const modelPrime = await tfl.loadModel(io.fromMemory(
+        savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
+        savedArtifacts.weightData), strict);
+    const weightsPrime = modelPrime.getWeights();
+    expect(weightsPrime.length).toEqual(weights.length);
+    expectTensorsClose(weightsPrime[0], weights[0]);
+    // Assert the orthogonal initializer has been called.
+    expect(gramSchmidtSpy).toHaveBeenCalled();
+  });
+
+  // TODO(cais): Test fast initialization of models consisting of
+  //   StackedRNN layers.
 });

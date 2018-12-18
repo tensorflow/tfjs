@@ -128,6 +128,13 @@ export abstract class Wrapper extends Layer {
     return config;
   }
 
+  setFastWeightInitDuringBuild(value: boolean) {
+    super.setFastWeightInitDuringBuild(value);
+    if (this.layer != null) {
+      this.layer.setFastWeightInitDuringBuild(value);
+    }
+  }
+
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict,
@@ -553,6 +560,16 @@ export class Bidirectional extends Wrapper {
   }
 
   // TODO(cais): Implement constraints().
+
+  setFastWeightInitDuringBuild(value: boolean) {
+    super.setFastWeightInitDuringBuild(value);
+    if (this.forwardLayer != null) {
+      this.forwardLayer.setFastWeightInitDuringBuild(value);
+    }
+    if (this.backwardLayer != null) {
+      this.backwardLayer.setFastWeightInitDuringBuild(value);
+    }
+  }
 
   getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {

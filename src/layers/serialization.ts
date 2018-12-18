@@ -15,16 +15,20 @@ import {deserializeKerasObject} from '../utils/generic_utils';
 
 /**
  * Instantiate a layer from a config dictionary.
- * @param config: dict of the form {class_name: str, config: dict}
- * @param custom_objects: dict mapping class names (or function names)
- *      of custom (non-Keras) objects to class/functions
+ * @param config dict of the form {class_name: str, config: dict}
+ * @param customObjects dict mapping class names (or function names)
+ *   of custom (non-Keras) objects to class/functions
+ * @param fastWeightInit Optional flag to use fast weight initialization
+ *   during deserialization. This is applicable to cases in which
+ *   the initialization will be immediately overwritten by loaded weight
+ *   values. Default: `false`.
  * @returns Layer instance (may be Model, Sequential, Layer...)
  */
 export function deserialize(
     config: serialization.ConfigDict,
-    customObjects = {} as
-        serialization.ConfigDict): serialization.Serializable {
+    customObjects = {} as serialization.ConfigDict,
+    fastWeightInit = false): serialization.Serializable {
   return deserializeKerasObject(
       config, serialization.SerializationMap.getMap().classNameMap,
-      customObjects, 'layer');
+      customObjects, 'layer', fastWeightInit);
 }
