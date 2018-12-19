@@ -38,14 +38,28 @@ const PREAMBLE = `/**
  */`;
 
 function minify() {
-  return uglify({output: {preamble: PREAMBLE}});
+  return uglify({
+    output: {
+      preamble: PREAMBLE
+    }
+  });
 }
 
-function config({plugins = [], output = {}, external = []}) {
+function config({
+  plugins = [],
+  output = {},
+  external = []
+}) {
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript({tsconfigOverride: {compilerOptions: {module: 'ES2015'}}}),
+      typescript({
+        tsconfigOverride: {
+          compilerOptions: {
+            module: 'ES2015'
+          }
+        }
+      }),
       node(),
       // Polyfill require() from dependencies.
       commonjs({
@@ -53,7 +67,6 @@ function config({plugins = [], output = {}, external = []}) {
         include: 'node_modules/**',
         namedExports: {
           './node_modules/seedrandom/index.js': ['alea'],
-          './node_modules/utf8/utf8.js': ['decode'],
         },
       }),
       ...plugins
@@ -100,6 +113,9 @@ export default [
   }),
   config({
     plugins: [minify()],
-    output: {format: 'es', file: 'dist/tf-data.esm.js'}
+    output: {
+      format: 'es',
+      file: 'dist/tf-data.esm.js'
+    }
   })
 ];

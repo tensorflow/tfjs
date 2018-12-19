@@ -17,9 +17,7 @@
  */
 
 import {ENV} from '@tensorflow/tfjs-core';
-
 import {FileDataSource} from '../sources/file_data_source';
-
 import {CSVDataset} from './csv_dataset';
 
 const csvString = `ab,cd,ef
