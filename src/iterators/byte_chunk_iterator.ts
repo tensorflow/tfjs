@@ -16,8 +16,7 @@
  * =============================================================================
  */
 
-import * as utf8 from 'utf8';
-
+import {ENV} from '@tensorflow/tfjs-core';
 import {LazyIterator, OneToManyIterator} from './lazy_iterator';
 import {StringIterator} from './string_iterator';
 
@@ -70,11 +69,12 @@ class Utf8Iterator extends StringIterator {
  * This is tricky because the incoming byte array boundaries may disrupt a
  * multi-byte UTF8 character. Thus any incomplete character data at the end of
  * a chunk must be carried over and prepended to the next chunk before
- * decoding.
+ * decoding. Luckily with native decoder, TextDecoder in browser and
+ * string_decoder in node, byte array boundaries are handled automatically.
  *
  * In the context of an input pipeline for machine learning, UTF8 decoding is
  * needed to parse text files containing training examples or prediction
- * requests (e.g., formatted as CSV or JSON).  We cannot use the built-in
+ * requests (e.g., formatted as CSV or JSON). We cannot use the built-in
  * decoding provided by FileReader.readAsText() because here we are in a
  * streaming context, which FileReader does not support.
  *
@@ -86,13 +86,19 @@ class Utf8Iterator extends StringIterator {
  *   file.
  */
 class Utf8IteratorImpl extends OneToManyIterator<string> {
-  // An array of the full required width of the split character, if any.
-  partial: Uint8Array = new Uint8Array([]);
-  // The number of bytes of that array that are populated so far.
-  partialBytesValid = 0;
+  // `decoder` as `any` here to dynamically assign value based on ENV.
+  // tslint:disable-next-line:no-any
+  decoder:any;
 
   constructor(protected readonly upstream: LazyIterator<Uint8Array>) {
     super();
+    if (ENV.get('IS_BROWSER')) {
+      this.decoder = new TextDecoder('utf-8');
+    } else {
+      // tslint:disable-next-line:no-require-imports
+      const { StringDecoder } = require('string_decoder');
+      this.decoder = new StringDecoder('utf8');
+    }
   }
   summary() {
     return `${this.upstream.summary()} -> Utf8`;
@@ -102,71 +108,18 @@ class Utf8IteratorImpl extends OneToManyIterator<string> {
     const chunkResult = await this.upstream.next();
     let chunk;
     if (chunkResult.done) {
-      if (this.partial.length === 0) {
         return false;
-      }
-      // Pretend that the pump succeeded in order to emit the small last batch.
-      // The next pump() call will actually fail.
-      chunk = new Uint8Array([]);
     } else {
       chunk = chunkResult.value;
     }
-    const partialBytesRemaining = this.partial.length - this.partialBytesValid;
-    let nextIndex = partialBytesRemaining;
-    let okUpToIndex = nextIndex;
-    let splitUtfWidth = 0;
 
-    while (nextIndex < chunk.length) {
-      okUpToIndex = nextIndex;
-      splitUtfWidth = utfWidth(chunk[nextIndex]);
-      nextIndex = okUpToIndex + splitUtfWidth;
-    }
-    if (nextIndex === chunk.length) {
-      okUpToIndex = nextIndex;
-    }
-
-    // decode most of the chunk without copying it first
-    const bulk: string = utf8.decode(String.fromCharCode.apply(
-        null, chunk.slice(partialBytesRemaining, okUpToIndex)));
-
-    if (partialBytesRemaining > 0) {
-      // Reassemble the split character
-      this.partial.set(
-          chunk.slice(0, partialBytesRemaining), this.partialBytesValid);
-      // Too bad about the string concat.
-      const reassembled: string =
-          utf8.decode(String.fromCharCode.apply(null, this.partial));
-      this.outputQueue.push(reassembled + bulk);
+    let text: string;
+    if (ENV.get('IS_BROWSER')) {
+      text = this.decoder.decode(chunk, {stream:true});
     } else {
-      this.outputQueue.push(bulk);
+      text = this.decoder.write(Buffer.from(chunk.buffer));
     }
-
-    if (okUpToIndex === chunk.length) {
-      this.partial = new Uint8Array([]);
-      this.partialBytesValid = 0;
-    } else {
-      // prepare the next split character
-      this.partial = new Uint8Array(new ArrayBuffer(splitUtfWidth));
-      this.partial.set(chunk.slice(okUpToIndex), 0);
-      this.partialBytesValid = chunk.length - okUpToIndex;
-    }
-
+    this.outputQueue.push(text);
     return true;
-  }
-}
-
-function utfWidth(firstByte: number): number {
-  if (firstByte >= 252) {
-    return 6;
-  } else if (firstByte >= 248) {
-    return 5;
-  } else if (firstByte >= 240) {
-    return 4;
-  } else if (firstByte >= 224) {
-    return 3;
-  } else if (firstByte >= 192) {
-    return 2;
-  } else {
-    return 1;
   }
 }
