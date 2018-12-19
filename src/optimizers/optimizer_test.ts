@@ -19,6 +19,8 @@ import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {Variable} from '../tensor';
 import {ALL_ENVS, expectArraysClose} from '../test_util';
+
+import {Optimizer} from './optimizer';
 import {SGDOptimizer} from './sgd_optimizer';
 
 describeWithFlags('optimizer', ALL_ENVS, () => {
@@ -203,6 +205,13 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
 
     expect(() => optimizer.minimize(f, /* returnCost */ true, varList))
         .toThrowError();
+  });
+
+  it('instanceof Optimizer', () => {
+    const learningRate = .1;
+    const optimizer = new SGDOptimizer(learningRate);
+
+    expect(optimizer instanceof Optimizer).toBe(true);
   });
 
   it('throws error when f returns a non-scalar', () => {

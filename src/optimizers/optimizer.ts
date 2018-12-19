@@ -76,3 +76,10 @@ export abstract class Optimizer extends Serializable {
    */
   abstract applyGradients(variableGradients: NamedTensorMap): void;
 }
+
+Object.defineProperty(Optimizer, Symbol.hasInstance, {
+  value: (instance: Optimizer) => {
+    return instance.minimize != null && instance.computeGradients != null &&
+        instance.applyGradients != null;
+  }
+});
