@@ -82,6 +82,16 @@ export async function renderHistogram(
     renderStats(stats, statsContainer, {fontSize: options.fontSize});
   }
 
+  // Now that we have rendered stats we need to remove any NaNs and Infinities
+  // before rendering the histogram
+  const filtered = [];
+  for (let i = 0; i < values.length; i++) {
+    const val = values[i].value;
+    if (val != null && isFinite(val)) {
+      filtered.push(values[i]);
+    }
+  }
+
   const histogramSpec: VisualizationSpec = {
 
     'width': options.width || histogramContainer.clientWidth,
@@ -92,7 +102,7 @@ export async function renderHistogram(
       'contains': 'padding',
       'resize': true,
     },
-    'data': {'values': values},
+    'data': {'values': filtered},
     'mark': 'bar',
     'config': {
       'axis': {

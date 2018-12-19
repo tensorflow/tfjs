@@ -20,3 +20,4 @@ PULL_REQUEST_TEMPLATE.md
 webpack.config.js
 tsconfig.json
 docs/
+.yalc/

@@ -189,8 +189,11 @@
         {
           const data = Array(100).fill(0)
             .map(x => Math.random() * 100 - (Math.random() * 50))
-            .map(x => ({ value: x }));
 
+          // Push some special values for the stats table.
+          data.push(Infinity);
+          data.push(NaN);
+          data.push(0);
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Histogram', tab: 'Charts' });
           tfvis.render.histogram(data, surface);
