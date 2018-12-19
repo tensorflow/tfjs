@@ -17,7 +17,7 @@ gyp ERR! stack Error: C:\Program Files (x86)\MSBuild\14.0\bin\msbuild.exe failed
 You might need to install the system tools manually. This can be done via:
 
 ```
-npm install --production windows-build-tools
+npm install -g --production windows-build-tools
 ```
 
 If that still does not work - try re-running the command above in a privileged shell.
