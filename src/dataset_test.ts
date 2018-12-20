@@ -19,9 +19,8 @@
 import * as tf from '@tensorflow/tfjs-core';
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {TensorContainerObject} from '@tensorflow/tfjs-core/dist/tensor_types';
-
 import * as tfd from './index';
-import {iteratorFromFunction, iteratorFromItems, LazyIterator} from './iterators/lazy_iterator';
+import {iteratorFromItems, LazyIterator} from './iterators/lazy_iterator';
 import {DataElementObject, DatasetContainer} from './types';
 
 class TestObjectIterator extends LazyIterator<{}> {
@@ -225,19 +224,19 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
        try {
          let count = 0;
          const a =
-             tfd.datasetFromIteratorFn(async () => iteratorFromFunction(() => {
-                                         if (count > 2) {
-                                           throw new Error('propagate me!');
-                                         }
-                                         return {value: count++, done: false};
-                                       }));
+             tfd.generator(async () => {
+               if (count > 2) {
+                 throw new Error('propagate me!');
+                }
+                return {value: count++, done: false};
+              });
          const b = tfd.array([3, 4, 5, 6]);
          // tslint:disable-next-line:no-any
          await (await tfd.zip([a, b]).iterator()).collect(1000, 0);
          done.fail();
        } catch (e) {
          expect(e.message).toEqual(
-             'Error thrown while iterating through a dataset: propagate me!');
+             'propagate me!');
          done();
        }
      });
