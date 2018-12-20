@@ -56,7 +56,6 @@ export function iteratorFromIncrementing(start: number): LazyIterator<number> {
  *
  * @param func A function that produces data on each call.
  */
-/** @doc {heading: 'Data', subheading: 'Creation', namespace: 'data'} */
 export function iteratorFromFunction<T>(
     func: () =>
         IteratorResult<T>| Promise<IteratorResult<T>>): LazyIterator<T> {

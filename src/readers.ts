@@ -16,9 +16,11 @@
  * =============================================================================
  */
 
+import {Dataset, datasetFromIteratorFn} from './dataset';
 import {CSVDataset} from './datasets/csv_dataset';
+import {iteratorFromFunction} from './iterators/lazy_iterator';
 import {URLDataSource} from './sources/url_data_source';
-import {CSVConfig} from './types';
+import {CSVConfig, DataElement} from './types';
 
 /**
  * Create a `CSVDataset` by reading and decoding CSV file(s) from provided URLs.
@@ -89,4 +91,41 @@ import {CSVConfig} from './types';
  */
 export function csv(source: string, csvConfig: CSVConfig = {}): CSVDataset {
   return new CSVDataset(new URLDataSource(source), csvConfig);
+}
+
+/**
+ * Create a `Dataset` that produces each element by calling a provided function.
+ *
+ * Note that repeated iterations over this `Dataset` may produce different
+ * results, because the function will be called anew for each element of each
+ * iteration.
+ *
+ * Also, beware that the sequence of calls to this function may be out of order
+ * in time with respect to the logical order of the Dataset. This is due to the
+ * asynchronous lazy nature of stream processing, and depends on downstream
+ * transformations (e.g. .shuffle()). If the provided function is pure, this is
+ * no problem, but if it is a closure over a mutable state (e.g., a traversal
+ * pointer), then the order of the produced elements may be scrambled.
+ *
+ * ```js
+ * let i = -1;
+ * const func = () =>
+ *    ++i < 5 ? {value: i, done: false} : {value: null, done: true};
+ * const ds = tf.data.generator(func);
+ * await ds.forEach(e => console.log(e));
+ * ```
+ *
+ * @param f A function that produces one data element on each call.
+ */
+/** @doc {
+ *   heading: 'Data',
+ *   subheading: 'Creation',
+ *   namespace: 'data',
+ *   configParamIndices: [1]
+ *  }
+ */
+export function generator<T extends DataElement>(
+  f: () =>IteratorResult<T>| Promise<IteratorResult<T>>): Dataset<T> {
+  const iter = iteratorFromFunction(f);
+  return datasetFromIteratorFn(async () => iter);
 }
