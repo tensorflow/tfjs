@@ -15,40 +15,49 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
-import * as tfl from '@tensorflow/tfjs-layers';
+import * as tf from '@tensorflow/tfjs';
 
 import {nodeFileSystemRouter} from './io/file_system';
-import * as io from './io/index';
+import * as nodeIo from './io/index';
 import {nodeHTTPRequestRouter} from './io/node_http';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
+import * as nodeVersion from './version';
 
 // tslint:disable-next-line:no-require-imports
 import bindings = require('bindings');
 import {TFJSBinding} from './tfjs_binding';
 
+// Merge version and io namespaces.
+export const version = {
+  ...tf.version,
+  'tfjs-node': nodeVersion.version
+};
+export const io = {
+  ...tf.io,
+  ...nodeIo
+};
+// Export all union package symbols
+export * from '@tensorflow/tfjs';
+
 // tslint:disable-next-line:no-require-imports
 const pjson = require('../package.json');
 
-tfc.ENV.registerBackend('tensorflow', () => {
+tf.ENV.registerBackend('tensorflow', () => {
   return new NodeJSKernelBackend(
       bindings('tfjs_binding.node') as TFJSBinding, pjson.name);
 }, 3 /* priority */);
 
 // If registration succeeded, set the backend.
-if (tfc.ENV.findBackend('tensorflow') != null) {
-  tfc.setBackend('tensorflow');
+if (tf.ENV.findBackend('tensorflow') != null) {
+  tf.setBackend('tensorflow');
 }
 
 // Register the model saving and loading handlers for the 'file://' URL scheme.
-tfc.io.registerLoadRouter(nodeFileSystemRouter);
-tfc.io.registerSaveRouter(nodeFileSystemRouter);
-tfc.io.registerLoadRouter(nodeHTTPRequestRouter);
+tf.io.registerLoadRouter(nodeFileSystemRouter);
+tf.io.registerSaveRouter(nodeFileSystemRouter);
+tf.io.registerLoadRouter(nodeHTTPRequestRouter);
 // TODO(cais): Make HTTP-based save work from Node.js.
 
 import {ProgbarLogger} from './callbacks';
 // Register the ProgbarLogger for Model.fit() at verbosity level 1.
-tfl.registerCallbackConstructor(1, ProgbarLogger);
-
-export {version} from './version';
-export {io};
+tf.registerCallbackConstructor(1, ProgbarLogger);
