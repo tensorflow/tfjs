@@ -375,6 +375,10 @@ const SHADER_PREFIX = `
     return int(floor(value + 0.5));
   }
 
+  ivec4 round(vec4 value) {
+    return ivec4(floor(value + vec4(0.5)));
+  }
+
   int imod(int x, int y) {
     return x - y * (x / y);
   }
@@ -1256,10 +1260,9 @@ function getPackedSamplerAtOutputCoords(
 
   const inShape = inputInfo.shapeInfo.logicalShape;
   const outShape = outShapeInfo.logicalShape;
-
   const broadcastDims = getBroadcastDims(inShape, outShape);
-  const inRank = inputInfo.shapeInfo.logicalShape.length;
-  const outRank = outShapeInfo.logicalShape.length;
+  const inRank = inShape.length;
+  const outRank = outShape.length;
   if (broadcastDims.length) {
     throw Error('Packed broadcast sampling is not implemented yet.');
   }
@@ -1267,7 +1270,9 @@ function getPackedSamplerAtOutputCoords(
   const inTexShape = inputInfo.shapeInfo.texShape;
   const packedInTexShape = [...tex_util.getPackedMatrixTextureShapeWidthHeight(
       inTexShape[1], inTexShape[0])];
-  if (util.arraysEqual(inTexShape, outTexShape)) {
+  // Check sizes are equal as 1 is padded to 2.
+  if (util.arraysEqual(inTexShape, outTexShape) &&
+      util.sizeFromShape(inShape) === util.sizeFromShape(outShape)) {
     return `
       vec4 ${funcName}() {
         return texture2D(${texName}, resultUV);

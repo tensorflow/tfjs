@@ -52,7 +52,7 @@ export const POW = `
 if(a < 0.0 && floor(b) < b){
   return NAN;
 }
-return (round(mod(b, 2.0)) == 0 || round(mod(b, 2.0)) == 2) ?
+return (round(mod(b, 2.0)) != 1) ?
     pow(abs(a), b) : sign(a) * pow(abs(a), b);
 `;
 export const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';

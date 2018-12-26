@@ -36,6 +36,8 @@ export interface Features {
   'WEBGL_PACK_CLIP'?: boolean;
   // Whether we pack the depthwise convolution op.
   'WEBGL_PACK_DEPTHWISECONV'?: boolean;
+  // Whether we will pack binary operations.
+  'WEBGL_PACK_BINARY_OPERATIONS'?: boolean;
   // Whether we will use the im2col algorithm to speed up convolutions.
   'WEBGL_CONV_IM2COL'?: boolean;
   // The maximum texture dimension.
@@ -105,6 +107,7 @@ export const URL_PROPERTIES: URLProperty[] = [
   {name: 'WEBGL_PACK_BATCHNORMALIZATION', type: Type.BOOLEAN},
   {name: 'WEBGL_PACK_CLIP', type: Type.BOOLEAN},
   {name: 'WEBGL_PACK_DEPTHWISECONV', type: Type.BOOLEAN},
+  {name: 'WEBGL_PACK_BINARY_OPERATIONS', type: Type.BOOLEAN},
   {name: 'WEBGL_CONV_IM2COL', type: Type.BOOLEAN},
   {name: 'WEBGL_MAX_TEXTURE_SIZE', type: Type.NUMBER},
   {name: 'WEBGL_NUM_MB_BEFORE_PAGING', type: Type.NUMBER},

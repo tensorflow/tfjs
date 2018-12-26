@@ -127,20 +127,33 @@ describeWithFlags('packed matmul', WEBGL_ENVS, () => {
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
 
     const c = tf.matMul(a, b);
+
+    const webglPackBinarySaved = tf.ENV.get('WEBGL_PACK_BINARY_OPERATIONS');
+    tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', false);
     const d = tf.add(c, 1);
+    tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', webglPackBinarySaved);
 
     expectArraysClose(d, [1, 9, -2, 21]);
   });
 
   // tslint:disable-next-line:max-line-length
-  it('works when followed by a reshape that changes texture layout, and then an unpacked op',
+  it('works when followed by a packed reshape that changes texture layout, and then an unpacked op',
      () => {
+       const webglLazilyUnpackSaved = tf.ENV.get('WEBGL_LAZILY_UNPACK');
+       tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
+  
        const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9], [9, 1]);
        const b = tf.tensor2d([1], [1, 1]);
        const c = tf.matMul(a, b);
 
        const d = tf.reshape(c, [1, 3, 3, 1]);
+
+       const webglPackBinarySaved = tf.ENV.get('WEBGL_PACK_BINARY_OPERATIONS');
+       tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', false);
        const e = tf.add(d, 1);
+       tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', webglPackBinarySaved);
+       tf.ENV.set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackSaved);
+
        expectArraysClose(e, [2, 3, 4, 5, 6, 7, 8, 9, 10]);
      });
 
