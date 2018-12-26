@@ -22,7 +22,7 @@
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
-    "publish-local": "yarn prep && yarn build && yalc push",
+    "publish-local": "yarn prep && yalc push",
     "test": "ts-node src/run_tests.ts"
   },
   "devDependencies": {

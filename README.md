@@ -57,14 +57,14 @@ You only need to include `@tensorflow/tfjs-node` or `@tensorflow/tfjs-node-gpu` 
 Before executing any TensorFlow.js code, import the node package:
 
 ```js
-import * as tf from '@tensorflow/tfjs';
-
 // Load the binding
-import '@tensorflow/tfjs-node';
+import * as tf from '@tensorflow/tfjs-node';
 
 // Or if running with GPU:
-import '@tensorflow/tfjs-node-gpu';
+import * as tf from '@tensorflow/tfjs-node-gpu';
 ```
+
+Note: you do not need to add the `@tensorflow/tfjs` package to your dependencies or import it directly.
 
 ## Development
 
