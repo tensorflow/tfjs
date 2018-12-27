@@ -39,6 +39,18 @@ export function checkWebGLError(gl: WebGLRenderingContext) {
   }
 }
 
+// https://en.wikipedia.org/wiki/Half-precision_floating-point_format
+const MIN_FLOAT16 = 5.96e-8;
+const MAX_FLOAT16 = 65504;
+
+export function canBeRepresented(num: number): boolean {
+  if (ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') || num === 0 ||
+      (MIN_FLOAT16 < Math.abs(num) && Math.abs(num) < MAX_FLOAT16)) {
+    return true;
+  }
+  return false;
+}
+
 export function getWebGLErrorMessage(
     gl: WebGLRenderingContext, status: number): string {
   switch (status) {
