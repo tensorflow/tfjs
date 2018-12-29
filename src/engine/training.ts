@@ -565,11 +565,11 @@ export class Model extends Container implements tfc.InferenceModel {
       for (const name in config.loss) {
         if (this.outputNames.indexOf(name) === -1) {
           throw new ValueError(
-              `Unknown entry in loss dictionary: "${name}". Only expect the ` +
-              `following keys: ${this.outputNames}`);
+              `Unknown entry in loss dictionary: "${name}". ` +
+              `Only expected the following keys: ${this.outputNames}`);
         }
       }
-      for (const name in this.outputNames) {
+      for (const name of this.outputNames) {
         if (config.loss[name] == null) {
           console.warn(
               `Output "${name}" is missing from loss dictionary. We assume ` +
@@ -1453,9 +1453,9 @@ export class Model extends Container implements tfc.InferenceModel {
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async trainOnBatch(
-    x: Tensor|Tensor[]|{[inputName: string]: Tensor},
-    y: Tensor|Tensor[]|{[inputName: string]: Tensor}):
-    Promise<number|number[]> {
+      x: Tensor|Tensor[]|{[inputName: string]: Tensor},
+      y: Tensor|Tensor[]|
+      {[inputName: string]: Tensor}): Promise<number|number[]> {
     // TODO(cais): Support sampleWeight and classWeight.
     // TODO(cais): Support Dataset objects.
     const standardizeOut = this.standardizeUserData(x, y);
