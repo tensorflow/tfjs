@@ -937,6 +937,53 @@ describeMathCPUAndGPU('Model.fit', () => {
            newWeightsValue, tensor2d(expectedValueArray, [inputSize, 1]));
      });
 
+  // Reference Python code:
+  // ```py
+  // import keras
+  // import numpy as np
+  //
+  // input1 = keras.Input(shape=[2])
+  // output1 = keras.layers.Dense(1,
+  //                             kernel_initializer='ones',
+  //                             use_bias=False)(input1)
+  // output2 = keras.layers.Dense(1,
+  //                             kernel_initializer='ones',
+  //                             use_bias=False)(input1)
+  // model = keras.Model(input1, [output1, output2])
+  //
+  // model.compile(loss={model.output_names[0]: 'mean_squared_error',
+  //                     model.output_names[1]: 'mean_absolute_error'},
+  //               optimizer='sgd')
+  //
+  // xs = np.ones([2, 2])
+  // ys1 = np.zeros([2, 1])
+  // ys2 = np.zeros([2, 1])
+  // history = model.fit(xs, [ys1, ys2], epochs=1)
+  // print(history.history)
+  // ```
+  it('2 outputs, losses by output name', async () => {
+    const input1 = tfl.input({shape: [2]});
+    const output1 =
+        tfl.layers.dense({units: 1, kernelInitializer: 'ones', useBias: false})
+            .apply(input1) as SymbolicTensor;
+    const output2 =
+        tfl.layers.dense({units: 1, kernelInitializer: 'ones', useBias: false})
+            .apply(input1) as SymbolicTensor;
+    const model = tfl.model({inputs: input1, outputs: [output1, output2]});
+    const loss: {[outputName: string]: string} = {};
+    loss[model.outputNames[0]] = 'meanSquaredError';
+    loss[model.outputNames[1]] = 'meanAbsoluteError';
+    model.compile({loss, optimizer: 'sgd'});
+
+    const xs = ones([2, 2]);
+    const ys1 = zeros([2, 1]);
+    const ys2 = zeros([2, 1]);
+    const history = await model.fit(xs, [ys1, ys2], {epochs: 1});
+    expect(history.history.loss[0]).toBeCloseTo(6);
+    expect(history.history[`${model.outputNames[0]}_loss`][0]).toBeCloseTo(4);
+    expect(history.history[`${model.outputNames[1]}_loss`][0]).toBeCloseTo(2);
+  });
+
   it('2 inputs, 2 outputs, dense, optimizer object, 1 batch', async () => {
     createDenseModelWithTwoOutputsAndData();
 
