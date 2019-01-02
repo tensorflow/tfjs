@@ -20,9 +20,11 @@ import json
 import os
 import time
 
-import keras
+from tensorflow import keras
 import numpy as np
 import tensorflow as tf
+# Comparing TF Eager vs TF.js for a fair comparison.
+tf.enable_eager_execution()
 from tensorflow.python.client import device_lib
 import tensorflowjs as tfjs
 
@@ -105,7 +107,7 @@ def benchmark_and_serialize_model(model_name,
   data = {
       'name': model_name,
       'description': description,
-      'optimizer': optimizer,
+      'optimizer': optimizer.__class__.__name__,
       'loss': loss,
       'input_shape': input_shape,
       'target_shape': target_shape,
@@ -242,7 +244,7 @@ def main():
   benchmarks['models'] = []
 
   # Dense model.
-  optimizer = 'sgd'
+  optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
   loss = 'mean_squared_error'
   batch_size = 128
   train_epochs = 10
@@ -276,7 +278,7 @@ def main():
     print('predict_time = %g s' % predict_time)
 
   # Conv2d models.
-  optimizer = 'adam'
+  optimizer = tf.train.AdamOptimizer()
   loss = 'categorical_crossentropy'
   input_shape = [28, 28, 1]
   target_shape = [10]
@@ -306,7 +308,7 @@ def main():
     print('predict_time = %g s' % predict_time)
 
   # RNN models.
-  optimizer = 'rmsprop'
+  optimizer = tf.train.RMSPropOptimizer(0.01)
   loss = 'categorical_crossentropy'
   input_shape = [20, 20]
   target_shape = [20]

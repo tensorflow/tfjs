@@ -9,15 +9,17 @@
  */
 
 import {ENV} from '@tensorflow/tfjs-core';
-
 import {DataFormat} from '../common';
 
-let _epsilon = ENV.get('EPSILON');
+let _epsilon: number;
 
 /**
  * Returns the value of the fuzz factor used in numeric expressions.
  */
 export function epsilon() {
+  if (_epsilon == null) {
+    _epsilon = ENV.get('EPSILON');
+  }
   return _epsilon;
 }
 
