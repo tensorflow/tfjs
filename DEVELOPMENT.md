@@ -36,7 +36,7 @@ few tags which help sort commits into categories for release notes:
 - SECURITY (security changes)
 
 These tags correspond to GitHub labels which are automatically prepended to your PR description.
-Please add the appropriate labels so your PR.
+Please add the appropriate labels to your PR.
 
 A typical commit may look something like:
 
