@@ -18,6 +18,7 @@
 import {ENV} from '../../environment';
 import {getBroadcastDims} from '../../ops/broadcast_util';
 import * as util from '../../util';
+import {getGlslDifferences, GLSL} from './glsl_version';
 import * as shader_util from './shader_compiler_util';
 import * as tex_util from './tex_util';
 
@@ -50,18 +51,20 @@ export function makeShader(
           .map(x => getInputSamplingSnippet(x, outputShape, usesPackedTextures))
           .join('\n');
   const outTexShape = outputShape.texShape;
+  const glsl = getGlslDifferences();
+  const floatTextureSampleSnippet = getFloatTextureSampleSnippet(glsl);
   let outputSamplingSnippet: string;
   let floatTextureSetOutputSnippet: string;
-  let shaderPrefix = SHADER_PREFIX;
+  let shaderPrefix = getShaderPrefix(glsl);
 
   if (outputShape.isPacked) {
     outputSamplingSnippet =
         getPackedOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
-    floatTextureSetOutputSnippet = FLOAT_TEXTURE_SET_RGBA_SNIPPET;
+    floatTextureSetOutputSnippet = getFloatTextureSetRGBASnippet(glsl);
   } else {
     outputSamplingSnippet =
         getOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
-    floatTextureSetOutputSnippet = FLOAT_TEXTURE_SET_R_SNIPPET;
+    floatTextureSetOutputSnippet = getFloatTextureSetRSnippet(glsl);
   }
 
   if (usesPackedTextures) {
@@ -69,7 +72,7 @@ export function makeShader(
   }
 
   const source = [
-    shaderPrefix, FLOAT_TEXTURE_SAMPLE_SNIPPET, floatTextureSetOutputSnippet,
+    shaderPrefix, floatTextureSampleSnippet, floatTextureSetOutputSnippet,
     inputPrefixSnippet, outputSamplingSnippet, inputSamplingSnippet, userCode
   ].join('\n');
   return source;
@@ -194,6 +197,123 @@ function getOutputSamplingSnippet(
   }
 }
 
+function getFloatTextureSampleSnippet(glsl: GLSL): string {
+  return `
+    float sampleTexture(sampler2D textureSampler, vec2 uv) {
+      return ${glsl.texture2D}(textureSampler, uv).r;
+    }
+  `;
+}
+
+function getFloatTextureSetRSnippet(glsl: GLSL): string {
+  return `
+    void setOutput(float val) {
+      ${glsl.output} = vec4(val, 0, 0, 0);
+    }
+  `;
+}
+
+function getFloatTextureSetRGBASnippet(glsl: GLSL): string {
+  return `
+    void setOutput(vec4 val) {
+      ${glsl.output} = val;
+    }
+  `;
+}
+
+function getShaderPrefix(glsl: GLSL): string {
+  let NAN_CHECKS = '';
+  if (ENV.get('PROD')) {
+    NAN_CHECKS = `
+      bool isNaN(float val) {
+        return false;
+      }
+
+      bool hasNaN(vec4 values) {
+        return false;
+      }
+    `;
+  } else {
+    /**
+     * Previous NaN check '(val < 0.0 || 0.0 < val || val == 0.0) ? false :
+     * true' does not work on iOS 12
+     */
+    NAN_CHECKS = `
+      bool isNaN(float val) {
+        return (val < 1.0 || 0.0 < val || val == 0.0) ? false : true;
+      }
+
+      bool hasNaN(vec4 values) {
+        return any(bvec4(
+          isNaN(values.x),
+          isNaN(values.y),
+          isNaN(values.z),
+          isNaN(values.w)
+        ));
+      }
+    `;
+  }
+
+  const SHADER_PREFIX = `${glsl.version}
+    precision highp float;
+    precision highp int;
+    precision highp sampler2D;
+    ${glsl.varyingFs} vec2 resultUV;
+    ${glsl.defineOutput}
+    const vec2 halfCR = vec2(0.5, 0.5);
+
+    struct ivec5
+    {
+      int x;
+      int y;
+      int z;
+      int w;
+      int u;
+    };
+
+    struct ivec6
+    {
+      int x;
+      int y;
+      int z;
+      int w;
+      int u;
+      int v;
+    };
+
+    ${NAN_CHECKS}
+
+    float getNaN(vec4 values) {
+      return dot(vec4(1), values);
+    }
+
+    ${glsl.defineRound}
+
+    int imod(int x, int y) {
+      return x - y * (x / y);
+    }
+
+    //Based on the work of Dave Hoskins
+    //https://www.shadertoy.com/view/4djSRW
+    #define HASHSCALE1 443.8975
+    float random(float seed){
+      vec2 p = resultUV * seed;
+      vec3 p3  = fract(vec3(p.xyx) * HASHSCALE1);
+      p3 += dot(p3, p3.yzx + 19.19);
+      return fract((p3.x + p3.y) * p3.z);
+    }
+
+    ${SAMPLE_1D_SNIPPET}
+    ${SAMPLE_2D_SNIPPET}
+    ${SAMPLE_3D_SNIPPET}
+    ${SAMPLE_4D_SNIPPET}
+    ${SAMPLE_5D_SNIPPET}
+    ${SAMPLE_6D_SNIPPET}
+  `;
+
+  return SHADER_PREFIX;
+}
+
 const SAMPLE_1D_SNIPPET = `
 vec2 UVfrom1D(int texNumR, int texNumC, int index) {
   int texR = index / texNumC;
@@ -288,117 +408,6 @@ vec2 UVfrom6D(int texNumR, int texNumC, int stride0,
   int texC = index - texR * texNumC;
   return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
 }
-`;
-
-const FLOAT_TEXTURE_SAMPLE_SNIPPET = `
-  float sampleTexture(sampler2D textureSampler, vec2 uv) {
-    return texture2D(textureSampler, uv).r;
-  }
-`;
-
-const FLOAT_TEXTURE_SET_R_SNIPPET = `
-  void setOutput(float val) {
-    gl_FragColor = vec4(val, 0, 0, 0);
-  }
-`;
-
-const FLOAT_TEXTURE_SET_RGBA_SNIPPET = `
-  void setOutput(vec4 val) {
-    gl_FragColor = val;
-  }
-`;
-
-let NAN_CHECKS = '';
-if (ENV.get('PROD')) {
-  NAN_CHECKS = `
-    bool isNaN(float val) {
-      return false;
-    }
-
-    bool hasNaN(vec4 values) {
-      return false;
-    }
-  `;
-} else {
-  /**
-   * Previous NaN check '(val < 0.0 || 0.0 < val || val == 0.0) ? false : true'
-   * does not work on iOS 12
-   */
-  NAN_CHECKS = `
-    bool isNaN(float val) {
-      return (val < 1.0 || 0.0 < val || val == 0.0) ? false : true;
-    }
-
-    bool hasNaN(vec4 values) {
-      return any(bvec4(
-        isNaN(values.x),
-        isNaN(values.y),
-        isNaN(values.z),
-        isNaN(values.w)
-      ));
-    }
-  `;
-}
-
-const SHADER_PREFIX = `
-  precision highp float;
-  precision highp int;
-  varying vec2 resultUV;
-  const vec2 halfCR = vec2(0.5, 0.5);
-
-  struct ivec5
-  {
-    int x;
-    int y;
-    int z;
-    int w;
-    int u;
-  };
-
-  struct ivec6
-  {
-    int x;
-    int y;
-    int z;
-    int w;
-    int u;
-    int v;
-  };
-
-  ${NAN_CHECKS}
-
-  float getNaN(vec4 values) {
-    return dot(vec4(1), values);
-  }
-
-  int round(float value) {
-    return int(floor(value + 0.5));
-  }
-
-  ivec4 round(vec4 value) {
-    return ivec4(floor(value + vec4(0.5)));
-  }
-
-  int imod(int x, int y) {
-    return x - y * (x / y);
-  }
-
-  //Based on the work of Dave Hoskins
-  //https://www.shadertoy.com/view/4djSRW
-  #define HASHSCALE1 443.8975
-  float random(float seed){
-    vec2 p = resultUV * seed;
-    vec3 p3  = fract(vec3(p.xyx) * HASHSCALE1);
-    p3 += dot(p3, p3.yzx + 19.19);
-    return fract((p3.x + p3.y) * p3.z);
-  }
-
-  ${SAMPLE_1D_SNIPPET}
-  ${SAMPLE_2D_SNIPPET}
-  ${SAMPLE_3D_SNIPPET}
-  ${SAMPLE_4D_SNIPPET}
-  ${SAMPLE_5D_SNIPPET}
-  ${SAMPLE_6D_SNIPPET}
 `;
 
 const SHADER_PACKED_PREFIX = `
@@ -687,9 +696,10 @@ function getOutput2DCoords(
 function getPackedSamplerScalar(inputInfo: InputInfo): string {
   const texName = inputInfo.name;
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
+  const glsl = getGlslDifferences();
   return `
     vec4 ${funcName}() {
-      return texture2D(${texName}, halfCR);
+      return ${glsl.texture2D}(${texName}, halfCR);
     }
   `;
 }
@@ -713,12 +723,13 @@ function getPackedSampler1D(inputInfo: InputInfo): string {
   const texShape = inputInfo.shapeInfo.texShape;
   const packedTexShape =
       [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
+  const glsl = getGlslDifferences();
 
   return `
     vec4 ${funcName}(int index) {
       vec2 uv = packedUVfrom1D(
         ${packedTexShape[0]}, ${packedTexShape[1]}, index);
-      return texture2D(${texName}, uv);
+      return ${glsl.texture2D}(${texName}, uv);
     }
   `;
 }
@@ -779,12 +790,13 @@ function getPackedSampler2D(inputInfo: InputInfo): string {
 
   const texNumR = texShape[0];
   const texNumC = texShape[1];
+  const glsl = getGlslDifferences();
   if (texShape != null && util.arraysEqual(shape, texShape)) {
     return `
       vec4 ${funcName}(int row, int col) {
         vec2 uv = (vec2(col, row) + halfCR) / vec2(${texNumC}.0, ${texNumR}.0);
 
-        return texture2D(${texName}, uv);
+        return ${glsl.texture2D}(${texName}, uv);
       }
     `;
   }
@@ -797,7 +809,7 @@ function getPackedSampler2D(inputInfo: InputInfo): string {
     vec4 ${funcName}(int row, int col) {
       vec2 uv = packedUVfrom2D(${valuesPerRow}, ${packedTexShape[0]}, ${
       packedTexShape[1]}, row, col);
-      return texture2D(${texName}, uv);
+      return ${glsl.texture2D}(${texName}, uv);
     }
   `;
 }
@@ -898,12 +910,13 @@ function getPackedSampler3D(inputInfo: InputInfo): string {
 
   const valuesPerRow = Math.ceil(shape[2] / 2);
   const texelsInBatch = valuesPerRow * Math.ceil(shape[1] / 2);
+  const glsl = getGlslDifferences();
 
   return `
     vec4 ${funcName}(int b, int row, int col) {
       vec2 uv = packedUVfrom3D(
         ${texNumR}, ${texNumC}, ${texelsInBatch}, ${valuesPerRow}, b, row, col);
-      return texture2D(${texName}, uv);
+      return ${glsl.texture2D}(${texName}, uv);
     }
   `;
 }
@@ -989,13 +1002,14 @@ function getPackedSampler4D(inputInfo: InputInfo): string {
   const valuesPerRow = Math.ceil(shape[3] / 2);
   const texelsInBatch = valuesPerRow * Math.ceil(shape[2] / 2);
   const texelsInBatch2 = texelsInBatch * shape[1];
+  const glsl = getGlslDifferences();
 
   return `
     vec4 ${funcName}(int b2, int b, int row, int col) {
       vec2 uv = packedUVfrom4D(
         ${texNumR}, ${texNumC}, ${texelsInBatch2},
         ${texelsInBatch}, ${valuesPerRow}, b2, b, row, col);
-      return texture2D(${texName}, uv);
+      return ${glsl.texture2D}(${texName}, uv);
     }
   `;
 }
@@ -1270,33 +1284,35 @@ function getPackedSamplerAtOutputCoords(
   const inTexShape = inputInfo.shapeInfo.texShape;
   const packedInTexShape = [...tex_util.getPackedMatrixTextureShapeWidthHeight(
       inTexShape[1], inTexShape[0])];
+  const glsl = getGlslDifferences();
+
   // Check sizes are equal as 1 is padded to 2.
   if (util.arraysEqual(inTexShape, outTexShape) &&
       util.sizeFromShape(inShape) === util.sizeFromShape(outShape)) {
     return `
       vec4 ${funcName}() {
-        return texture2D(${texName}, resultUV);
+        return ${glsl.texture2D}(${texName}, resultUV);
       }
     `;
   }
 
-  let output = `return texture2D(${texName}, uv)`;
+  let output = `return ${glsl.texture2D}(${texName}, uv)`;
 
   if (inRank === 1 && outRank > 1) {
     output = `
-      vec4 sample = texture2D(${texName}, uv);
-      return vec4(sample.xy, sample.xy);
+      vec4 values = ${glsl.texture2D}(${texName}, uv);
+      return vec4(values.xy, values.xy);
     `;
   } else if (inRank === 0 && outRank > 0) {
     if (outRank === 1) {
       output = `
-        vec4 sample = texture2D(${texName}, uv);
-        return vec4(sample.x, sample.x, 0., 0.);
+        vec4 values = ${glsl.texture2D}(${texName}, uv);
+        return vec4(values.x, values.x, 0., 0.);
       `;
     } else {
       output = `
-        vec4 sample = texture2D(${texName}, uv);
-        return vec4(sample.x);
+        vec4 values = ${glsl.texture2D}(${texName}, uv);
+        return vec4(values.x);
       `;
     }
   }

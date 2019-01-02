@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class FromPixelsProgram implements GPGPUProgram {
@@ -23,6 +24,7 @@ export class FromPixelsProgram implements GPGPUProgram {
   outputShape: number[];
 
   constructor(outputShape: number[]) {
+    const glsl = getGlslDifferences();
     const [height, width, ] = outputShape;
     this.outputShape = outputShape;
     this.userCode = `
@@ -33,7 +35,7 @@ export class FromPixelsProgram implements GPGPUProgram {
         int depth = coords[2];
         vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${width}.0, ${height}.0);
 
-        vec4 values = texture2D(A, uv);
+        vec4 values = ${glsl.texture2D}(A, uv);
         float value;
         if (depth == 0) {
           value = values.r;
