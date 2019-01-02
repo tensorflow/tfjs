@@ -191,6 +191,13 @@ describeWithFlags('1D RFFT', ALL_ENVS, () => {
         [6, 1.1920929e-07, -1.4999999, 8.6602521e-01]);
   });
 
+  it('should calculate from tensor directly', () => {
+    const t1Real = tf.tensor1d([1, 2, 3]);
+    expectArraysClose(
+        t1Real.rfft(),
+        [6, 1.1920929e-07, -1.4999999, 8.6602521e-01]);
+  });
+
   it('should return the same value with TensorFlow (6 elements)', () => {
     const t1Real = tf.tensor1d([-3, -2, -1, 1, 2, 3]);
     expectArraysClose(tf.spectral.rfft(t1Real), [
@@ -228,6 +235,13 @@ describeWithFlags('1D IRFFT', ALL_ENVS, () => {
     const t1Imag = tf.tensor1d([0, 0]);
     const t1 = tf.complex(t1Real, t1Imag);
     expectArraysClose(tf.spectral.irfft(t1), [1.5, -0.5]);
+  });
+
+  it('should calculate from the tensor directly', () => {
+    const t1Real = tf.tensor1d([1, 2]);
+    const t1Imag = tf.tensor1d([0, 0]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    expectArraysClose(t1.irfft(), [1.5, -0.5]);
   });
 
   it('should return the same value with TensorFlow (5 elements)', () => {
