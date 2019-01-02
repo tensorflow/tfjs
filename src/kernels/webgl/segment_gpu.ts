@@ -38,7 +38,7 @@ export class SegmentOpProgram implements GPGPUProgram {
     const windowSizeVec4Remainder = windowSize % 4;
 
     const updateSnippet = `
-        sumValue += dot(values, filter);
+        sumValue += dot(values, segFilter);
     `;
 
     let checkValueOutOfBounds = '';
@@ -91,7 +91,7 @@ export class SegmentOpProgram implements GPGPUProgram {
             getValue(batch, inIdx + 3)
           );
 
-          vec4 filter = vec4(
+          vec4 segFilter = vec4(
             int(getSegmentIdAtIndex(inIdx)) == currentSeg ? 1 : 0,
             int(getSegmentIdAtIndex(inIdx + 1)) == currentSeg ? 1 : 0,
             int(getSegmentIdAtIndex(inIdx + 2)) == currentSeg ? 1 : 0,
@@ -112,7 +112,7 @@ export class SegmentOpProgram implements GPGPUProgram {
 
           int inIdxSeg = int(getSegmentIdAtIndex(inIdx));
 
-          vec4 filter = vec4(
+          vec4 segFilter = vec4(
             int(getSegmentIdAtIndex(inIdx)) == currentSeg ? 1 : 0,
             0,
             0,
@@ -128,7 +128,7 @@ export class SegmentOpProgram implements GPGPUProgram {
             initializationValue
           );
 
-          vec4 filter = vec4(
+          vec4 segFilter = vec4(
             int(getSegmentIdAtIndex(inIdx)) == currentSeg ? 1 : 0,
             int(getSegmentIdAtIndex(inIdx + 1)) == currentSeg ? 1 : 0,
               0,
@@ -144,7 +144,7 @@ export class SegmentOpProgram implements GPGPUProgram {
             initializationValue
           );
 
-          vec4 filter = vec4(
+          vec4 segFilter = vec4(
             int(getSegmentIdAtIndex(inIdx)) == currentSeg ? 1 : 0,
             int(getSegmentIdAtIndex(inIdx + 1)) == currentSeg ? 1 : 0,
             int(getSegmentIdAtIndex(inIdx + 2)) == currentSeg ? 1 : 0,

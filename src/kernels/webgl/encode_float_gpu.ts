@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class EncodeFloatProgram implements GPGPUProgram {
@@ -23,6 +24,7 @@ export class EncodeFloatProgram implements GPGPUProgram {
   outputShape: number[];
 
   constructor(outputShape: number[]) {
+    const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.userCode = `
       const float FLOAT_MAX = 1.70141184e38;
@@ -66,7 +68,7 @@ export class EncodeFloatProgram implements GPGPUProgram {
 
       void main() {
         float x = getAAtOutCoords();
-        gl_FragColor = encode_float(x);
+        ${glsl.output} = encode_float(x);
       }
     `;
   }

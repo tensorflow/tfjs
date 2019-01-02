@@ -16,6 +16,7 @@
  */
 
 import {Conv2DInfo} from '../../ops/conv_util';
+import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class Im2ColProgram implements GPGPUProgram {
@@ -39,6 +40,7 @@ export class Im2ColProgram implements GPGPUProgram {
     } = convInfo;
     const {left, top} = padInfo;
     const itemsPerBlockRow = inChannels * filterWidth;
+    const glsl = getGlslDifferences();
 
     this.userCode = `
       void main() {
@@ -72,7 +74,7 @@ export class Im2ColProgram implements GPGPUProgram {
           }
         }
 
-        gl_FragColor = result;
+        ${glsl.output} = result;
       }
     `;
   }
