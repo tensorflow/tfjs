@@ -12,6 +12,12 @@ import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers';
 import * as ui from './ui';
 
+const optimizerMap = {
+  'RMSPropOptimizer': 'rmsprop',
+  'AdamOptimizer': 'adam',
+  'GradientDescentOptimizer': 'sgd'
+};
+
 async function runBenchmark(artifactsDir, modelName, config) {
   const modelPath = artifactsDir + modelName + '/';
   console.log('Loading model "' + modelName + '" and benchmark data...');
@@ -34,7 +40,7 @@ async function runBenchmark(artifactsDir, modelName, config) {
 
   if (benchmarkData.train_epochs > 0) {
     model.compile({
-      optimizer: benchmarkData.optimizer,
+      optimizer: optimizerMap[benchmarkData.optimizer],
       loss: lossMap[benchmarkData.loss],
     });
   }
@@ -72,16 +78,12 @@ async function runBenchmark(artifactsDir, modelName, config) {
   return tfc.tidy(() => {
     let output;
     for (let i = 0; i < PREDICT_BURNINS; ++i) {
-      output = tfc.tidy(() => {
-        return model.predict(xs);
-      });
+      output = model.predict(xs);
     }
     // Time predict() a number of times and take the average.
     const predictBeginMs = performance.now();
     for (let i = 0; i < PREDICT_RUNS; ++i) {
-      output = tfc.tidy(() => {
-        return model.predict(xs);
-      });
+      output = model.predict(xs);
     }
     // After all the model.predict() calls, invoke dataSync() once to let the
     // scheduled GPU operations complete before proceeding.
@@ -114,25 +116,27 @@ async function runBenchmark(artifactsDir, modelName, config) {
  *   ys {tf.Tensor | tf.Tensor[]} Synthesized random target tensors.
  */
 function getRandomInputsAndOutputs(model, batchSize) {
-  let xs;
-  xs = [];
-  for (const input of model.inputs) {
-    xs.push(tfc.randomUniform([batchSize].concat(input.shape.slice(1))));
-  }
-  if (xs.length === 1) {
-    xs = xs[0];
-  }
+  return tfc.tidy(() => {
+    let xs;
+    xs = [];
+    for (const input of model.inputs) {
+      xs.push(tfc.randomUniform([batchSize].concat(input.shape.slice(1))));
+    }
+    if (xs.length === 1) {
+      xs = xs[0];
+    }
 
-  let ys;
-  ys = [];
-  for (const output of model.outputs) {
-    ys.push(tfc.randomUniform([batchSize].concat(output.shape.slice(1))));
-  }
-  if (ys.length === 1) {
-    ys = ys[0];
-  }
+    let ys;
+    ys = [];
+    for (const output of model.outputs) {
+      ys.push(tfc.randomUniform([batchSize].concat(output.shape.slice(1))));
+    }
+    if (ys.length === 1) {
+      ys = ys[0];
+    }
 
-  return [xs, ys];
+    return [xs, ys];
+  });
 }
 
 function getRunAllBenchmarks(artifactsDir, benchmarks) {
@@ -169,4 +173,5 @@ async function setupBenchmarks() {
   ui.setRunBenchmarksFunction(getRunAllBenchmarks(artifactsDir, benchmarks));
 }
 
+tfc.ENV.set('PROD', true);
 setupBenchmarks();
