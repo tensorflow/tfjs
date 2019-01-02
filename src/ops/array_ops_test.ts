@@ -2409,6 +2409,22 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
     expectArraysClose(res, [1, 0, 0, 1]);
   });
 
+  it('Scalar input as Tensor', () => {
+    const indices = tf.scalar(2, 'int32');
+    const res = tf.oneHot(indices, 4);
+
+    expect(res.shape).toEqual([4]);
+    expectArraysClose(res, [0, 0, 1, 0]);
+  });
+
+  it('Scalar input as number', () => {
+    const indices = 2;
+    const res = tf.oneHot(indices, 4);
+
+    expect(res.shape).toEqual([4]);
+    expectArraysClose(res, [0, 0, 1, 0]);
+  });
+
   it('Depth 2, transposed diagonal', () => {
     const indices = tf.tensor1d([1, 0], 'int32');
     const res = tf.oneHot(indices, 2);

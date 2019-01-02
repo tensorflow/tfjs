@@ -80,8 +80,9 @@ export function confusionMatrix_(
   // TODO(cais): In the future, if oneHot supports tensors inputs for
   //   `numClasses`, `confusionMatrix` can make `numClasses` optional.
 
-  const oneHotLabels = oneHot($labels.asType('int32'), numClasses);
-  const oneHotPredictions = oneHot($predictions.asType('int32'), numClasses);
+  const oneHotLabels = oneHot($labels.asType('int32'), numClasses) as Tensor2D;
+  const oneHotPredictions =
+      oneHot($predictions.asType('int32'), numClasses) as Tensor2D;
   return oneHotLabels.transpose().matMul(oneHotPredictions).asType('int32');
 }
 
