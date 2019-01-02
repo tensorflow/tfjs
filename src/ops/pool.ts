@@ -181,7 +181,7 @@ function avgPoolImpl_<T extends Tensor3D|Tensor4D>(
   }
 
   const convInfo = conv_util.computePool2DInfo(
-      x4D.shape, filterSize, strides, dilations, pad);
+      x4D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
 
   const grad = (dy: Tensor4D) => {
     return {
