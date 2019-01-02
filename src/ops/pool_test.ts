@@ -91,6 +91,15 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     expectArraysClose(result, [4, 4, 4, 4]);
   });
 
+  it('x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor', () => {
+    // Feed forward.
+    const x = tf.tensor3d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+    const result = tf.maxPool(x, 1, 2, 1, 'floor');
+
+    expect(result.shape).toEqual([2, 2, 3]);
+  });
+
   it('throws when x is not rank 3', () => {
     // tslint:disable-next-line:no-any
     const x: any = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9], [3, 3]);
@@ -404,6 +413,15 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
 
     expect(result.shape).toEqual([2, 2, 1]);
     expectArraysClose(result, [2.5, 3, 3.5, 4]);
+  });
+
+  it('x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor', () => {
+    // Feed forward.
+    const x = tf.tensor3d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+    const result = tf.avgPool(x, 1, 2, 1, 'floor');
+
+    expect(result.shape).toEqual([2, 2, 3]);
   });
 
   it('gradient x=[1,1,1] f=[1,1] s=1 [0] => [0]', () => {
