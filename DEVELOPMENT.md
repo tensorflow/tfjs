@@ -35,11 +35,8 @@ few tags which help sort commits into categories for release notes:
 - DOC (documentation changes)
 - SECURITY (security changes)
 
-If no tag is specified, it will be put under a "MISC" tag.
-
-You can tag a commit with these tags by putting the tag at the beginning of a
-new line. Any text after the tag on that line will show up in the release notes
-next to the subject.
+These tags correspond to GitHub labels which are automatically prepended to your PR description.
+Please add the appropriate labels to your PR.
 
 A typical commit may look something like:
 
