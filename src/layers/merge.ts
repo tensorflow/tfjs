@@ -1076,12 +1076,13 @@ function batchDot(x: Tensor, y: Tensor, axes: number|[number, number]): Tensor {
  * Example:
  *
  * ```js
- * const dotLayer = tf.layers.dot({axis: -1});
+ * const dotLayer = tf.layers.dot({axes: -1});
  * const x1 = tf.tensor2d([[10, 20], [30, 40]]);
  * const x2 = tf.tensor2d([[-1, -2], [-3, -4]]);
  *
  * // Invoke the layer's apply() method in eager (imperative) mode.
  * const y = dotLayer.apply([x1, x2]);
+ * y.print();
  * ```
  */
 export class Dot extends Merge {
