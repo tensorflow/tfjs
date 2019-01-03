@@ -48,6 +48,7 @@ export interface TensorData {
   shape: number[];
   texData: TextureData;
   isUniform: boolean;
+  // Available when we decide to upload as uniform instead of texture.
   uniformValues?: TypedArray;
 }
 
@@ -56,20 +57,26 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     output: TensorData): GPGPUBinary {
   const userCode = program.userCode;
   const inputInfos: InputInfo[] = inputs.map((input, i) => {
-    const shapeInfo = {
+    const shapeInfo: ShapeInfo = {
       logicalShape: input.shape,
       texShape: input.isUniform ? null : input.texData.texShape,
       isUniform: input.isUniform,
-      isPacked: input.isUniform ? false : input.texData.isPacked
+      isPacked: input.isUniform ? false : input.texData.isPacked,
+      flatOffset: null
     };
+    if (input.texData != null && input.texData.slice != null &&
+        input.texData.slice.flatOffset > 0) {
+      shapeInfo.flatOffset = input.texData.slice.flatOffset;
+    }
     return {name: program.variableNames[i], shapeInfo};
   });
   const inShapeInfos = inputInfos.map(x => x.shapeInfo);
-  const outShapeInfo = {
+  const outShapeInfo: ShapeInfo = {
     logicalShape: output.shape,
     texShape: output.texData.texShape,
     isUniform: false,
-    isPacked: output.texData.isPacked
+    isPacked: output.texData.isPacked,
+    flatOffset: null
   };
   const source = shader_compiler.makeShader(
       inputInfos, outShapeInfo, userCode, program.usesPackedTextures);
@@ -78,10 +85,12 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
 
   const uniformLocations: {[name: string]: WebGLUniformLocation} = {};
   for (let i = 0; i < program.variableNames.length; i++) {
-    const uniformName = program.variableNames[i];
+    const varName = program.variableNames[i];
     const shouldThrow = false;
-    uniformLocations[uniformName] =
-        gpgpu.getUniformLocation(webGLProgram, uniformName, shouldThrow);
+    uniformLocations[varName] =
+        gpgpu.getUniformLocation(webGLProgram, varName, shouldThrow);
+    uniformLocations[`offset${varName}`] =
+        gpgpu.getUniformLocation(webGLProgram, `offset${varName}`, shouldThrow);
   }
 
   return {
@@ -145,24 +154,35 @@ export function runProgram<T extends Tensor, K extends Tensor>(
   }
   gpgpu.setProgram(binary.webGLProgram);
   inputs.forEach((input, i) => {
-    const variableName = binary.program.variableNames[i];
-    const variableUniformLocation = binary.uniformLocations[variableName];
-    if (variableUniformLocation != null) {
-      if (input.isUniform) {
-        if (util.sizeFromShape(input.shape) === 1) {
-          gpgpu.gl.uniform1f(variableUniformLocation, input.uniformValues[0]);
-        } else {
-          let vals = input.uniformValues;
-          if (!(vals instanceof Float32Array)) {
-            vals = new Float32Array(vals);
-          }
-          gpgpu.gl.uniform1fv(variableUniformLocation, vals);
-        }
-        return;
-      }
-      const tex = input.texData.texture;
-      gpgpu.setInputMatrixTexture(tex, variableUniformLocation, i);
+    const varName = binary.program.variableNames[i];
+    const varLoc = binary.uniformLocations[varName];
+    const varOffsetLoc = binary.uniformLocations[`offset${varName}`];
+
+    if (varLoc == null) {
+      // The compiler inferred that this variable is not used in this shader.
+      return;
     }
+
+    if (input.isUniform) {
+      // Upload the values of the tensor as uniform.
+      if (util.sizeFromShape(input.shape) === 1) {
+        gpgpu.gl.uniform1f(varLoc, input.uniformValues[0]);
+      } else {
+        let vals = input.uniformValues;
+        if (!(vals instanceof Float32Array)) {
+          vals = new Float32Array(vals);
+        }
+        gpgpu.gl.uniform1fv(varLoc, vals);
+      }
+      return;
+    }
+
+    // If the input was sliced, upload the flat offset index.
+    if (input.texData.slice != null && varOffsetLoc != null) {
+      gpgpu.gl.uniform1i(varOffsetLoc, input.texData.slice.flatOffset);
+    }
+
+    gpgpu.setInputMatrixTexture(input.texData.texture, varLoc, i);
   });
 
   if (customSetup != null) {
@@ -175,7 +195,10 @@ export function makeShaderKey(
     program: GPGPUProgram, inputs: TensorData[], output: TensorData): string {
   let keyInputs = '';
   inputs.concat(output).forEach(x => {
-    keyInputs += `${x.shape}_${x.isUniform ? 'uniform' : x.texData.texShape}`;
+    const hasOffset = x.texData != null && x.texData.slice != null &&
+        x.texData.slice.flatOffset > 0;
+    const texShape = x.isUniform ? 'uniform' : x.texData.texShape;
+    keyInputs += `${x.shape}_${texShape}_${hasOffset}`;
   });
   const keyUserCode = program.userCode;
   let key = program.constructor.name;

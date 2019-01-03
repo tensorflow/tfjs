@@ -29,7 +29,7 @@ import * as ops from '../ops/ops';
 import {buffer, scalar, tensor, tensor3d, tensor4d} from '../ops/ops';
 import * as scatter_nd_util from '../ops/scatter_nd_util';
 import * as selu_util from '../ops/selu_util';
-import {getStridedSlicedInfo} from '../ops/slice_util';
+import {computeFlatOffset, getStridedSlicedInfo, isSliceContinous} from '../ops/slice_util';
 import {DataId, Scalar, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../tensor';
 import {DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, TypedArray, upcastType} from '../types';
 import * as util from '../util';
@@ -236,12 +236,21 @@ export class MathBackendCPU implements KernelBackend {
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
     this.assertNotComplex(x, 'slice');
 
-    const buffer = ops.buffer(size, x.dtype);
+    const isContinous = isSliceContinous(x.shape, begin, size);
+    if (isContinous) {
+      const flatOffset = computeFlatOffset(begin, x.strides);
+      const length = util.sizeFromShape(size);
+      const vals = x.dataSync();
+      return tensor(
+                 vals.subarray(flatOffset, flatOffset + length), size,
+                 x.dtype) as T;
+    }
 
+    const buffer = ops.buffer(size, x.dtype);
     for (let i = 0; i < buffer.size; ++i) {
       const loc = buffer.indexToLoc(i);
       const xLoc = loc.map((idx, j) => idx + begin[j]);
-      buffer.set(x.get(...xLoc), ...loc);
+      buffer.values[i] = x.get(...xLoc);
     }
     return buffer.toTensor() as T;
   }
@@ -275,6 +284,27 @@ export class MathBackendCPU implements KernelBackend {
     }
 
     return buffer.toTensor().reshape(shape) as T;
+  }
+
+  unstack(x: Tensor, axis: number): Tensor[] {
+    const num = x.shape[axis];
+    const outShape: number[] = new Array(x.rank - 1);
+    let outIndex = 0;
+    for (let i = 0; i < x.rank; i++) {
+      if (i !== axis) {
+        outShape[outIndex++] = x.shape[i];
+      }
+    }
+
+    const begin = new Array(x.rank).fill(0);
+    const size = x.shape.slice();
+    size[axis] = 1;
+    const res = new Array(num);
+    for (let i = 0; i < res.length; i++) {
+      begin[axis] = i;
+      res[i] = this.slice(x, begin, size).reshape(outShape);
+    }
+    return res;
   }
 
   reverse<T extends Tensor>(x: T, axis: number[]): T {

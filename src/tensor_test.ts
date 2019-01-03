@@ -1392,7 +1392,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(() => tf.squeeze({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'squeeze' must be a Tensor/);
   });
-  
+
   it('squeeze accepts a tensor-like object', () => {
     const res = tf.squeeze([[[4]], [[2]], [[1]]] /* shape is [3, 1, 1] */);
     expect(res.shape).toEqual([3]);
@@ -2002,7 +2002,7 @@ describeWithFlags('x instanceof Tensor', ALL_ENVS, () => {
   });
 
   it('x: Tensor-like', () => {
-    const t = {shape: [2], dtype: 'float32'};
+    const t = {shape: [2], dtype: 'float32', dataId: {}};
     expect(t instanceof Tensor).toBe(true);
   });
 

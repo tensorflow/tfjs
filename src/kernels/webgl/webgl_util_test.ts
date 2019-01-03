@@ -19,7 +19,6 @@ import * as tf from '../../index';
 import {describeWithFlags} from '../../jasmine_util';
 import {WEBGL_ENVS} from '../../test_util';
 import * as util from '../../util';
-
 import * as webgl_util from './webgl_util';
 
 describeWithFlags('getTextureShapeFromLogicalShape', WEBGL_ENVS, () => {

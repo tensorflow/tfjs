@@ -354,7 +354,8 @@ function tensor6d(
   const inferredShape = inferShape(values);
   if (inferredShape.length !== 6 && inferredShape.length !== 1) {
     throw new Error(
-        'tensor6d() requires values to be number[][][][] or flat/TypedArray');
+        'tensor6d() requires values to be number[][][][][][] or ' +
+        'flat/TypedArray');
   }
   if (inferredShape.length === 1 && shape == null) {
     throw new Error(

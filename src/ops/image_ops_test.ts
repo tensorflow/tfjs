@@ -119,7 +119,7 @@ describeWithFlags('nonMaxSuppression', ALL_ENVS, () => {
 
   it('select from ten identical boxes', () => {
     const numBoxes = 10;
-    const corners = Array(numBoxes)
+    const corners = new Array(numBoxes)
                         .fill(0)
                         .map(_ => [0, 0, 1, 1])
                         .reduce((arr, curr) => arr.concat(curr));
