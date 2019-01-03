@@ -161,7 +161,8 @@ export function getMaxTexturesInShader(webGLVersion: number): number {
     const gl = getWebGLContext(webGLVersion);
     MAX_TEXTURES_IN_SHADER = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
   }
-  return MAX_TEXTURES_IN_SHADER;
+  // We cap at 16 to avoid spurious runtime "memory exhausted" error.
+  return Math.min(16, MAX_TEXTURES_IN_SHADER);
 }
 
 export function getWebGLDisjointQueryTimerVersion(webGLVersion: number):

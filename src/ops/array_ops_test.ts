@@ -2425,6 +2425,12 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
     expectArraysClose(res, [0, 0, 1, 0]);
   });
 
+  it('oneHot with chaining compiles', () => {
+    const indices = 2;
+    // Asserts that there is no compiler error.
+    tf.oneHot(indices, 4).toFloat();
+  });
+
   it('Depth 2, transposed diagonal', () => {
     const indices = tf.tensor1d([1, 0], 'int32');
     const res = tf.oneHot(indices, 2);
@@ -2483,6 +2489,27 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
     expect(da.dtype).toBe('float32');
     expect(da.shape).toEqual([3]);
     expectArraysClose(da, [0, 0, 0]);
+  });
+
+  it('gradient when indices is 3d', () => {
+    const a = tf.tensor3d([1, 2, 3, 4], [1, 2, 2], 'int32');
+    const dy = tf.ones([1, 2, 2, 3], 'float32');
+    const depth = 3;
+    const da = tf.grad(x => tf.oneHot(x, depth))(a, dy);
+    expect(da.dtype).toBe('float32');
+    expect(da.shape).toEqual(a.shape);
+    expectArraysClose(da, [0, 0, 0, 0]);
+  });
+
+  it('oneHot with indices as 2d', () => {
+    const indices = tf.tensor2d([[1, 3], [2, 3]], [2, 2], 'int32');
+    const depth = 4;
+    const res = tf.oneHot(indices, depth);
+    expect(res.shape).toEqual([2, 2, depth]);
+    expectArraysClose(res, [0, 1, 0, 0,
+                            0, 0, 0, 1,
+                            0, 0, 1, 0,
+                            0, 0, 0, 1]);
   });
 });
 
