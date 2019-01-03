@@ -150,3 +150,34 @@ export function stopForAxis(
 
   return stop;
 }
+
+/**
+ * Returns true if the slice occupies a continous set of elements in the
+ * 'flat' space.
+ */
+export function isSliceContinous(
+    shape: number[], begin: number[], size: number[]) {
+  // Index of the first axis that has size > 1.
+  let firstNonOneAxis = size.length;
+  for (let i = 0; i < size.length; i++) {
+    if (size[i] > 1) {
+      firstNonOneAxis = i;
+      break;
+    }
+  }
+
+  for (let i = firstNonOneAxis + 1; i < size.length; i++) {
+    if (begin[i] > 0 || size[i] !== shape[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function computeFlatOffset(begin: number[], strides: number[]): number {
+  let flatOffset = begin.length > 0 ? begin[begin.length - 1] : 1;
+  for (let i = 0; i < begin.length - 1; i++) {
+    flatOffset += begin[i] * strides[i];
+  }
+  return flatOffset;
+}

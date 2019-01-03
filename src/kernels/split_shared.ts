@@ -20,7 +20,7 @@ import {Tensor} from '../tensor';
 /** Shared implementation of the split kernel across WebGL and CPU. */
 export function split<T extends Tensor>(
     x: T, sizeSplits: number[], axis: number): T[] {
-  const begin = Array(x.rank).fill(0);
+  const begin = new Array(x.rank).fill(0);
   const size = x.shape.slice();
   return sizeSplits.map(s => {
     size[axis] = s;

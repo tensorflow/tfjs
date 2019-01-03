@@ -18,7 +18,7 @@
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, expectArraysEqual, WEBGL_ENVS} from '../test_util';
-import {MathBackendWebGL, SIZE_UPLOAD_UNIFORM, WebGLMemoryInfo} from './backend_webgl';
+import {MathBackendWebGL, WebGLMemoryInfo} from './backend_webgl';
 
 describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
   let webglLazilyUnpackFlagSaved: boolean;
@@ -155,13 +155,13 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     const backend = new MathBackendWebGL(null, delayedStorage);
     tf.ENV.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
-    
+
     const webglPackFlagSaved = tf.ENV.get('WEBGL_PACK');
     tf.ENV.set('WEBGL_PACK', true);
     const webglSizeUploadUniformSaved = tf.ENV.get('WEBGL_SIZE_UPLOAD_UNIFORM');
     tf.ENV.set('WEBGL_SIZE_UPLOAD_UNIFORM', 0);
     const a = tf.tensor2d([1, 2], [2, 1]);
-    const b = tf.tensor2d([1], [1, 1]);  
+    const b = tf.tensor2d([1], [1, 1]);
     const c = tf.matMul(a, b);
     backend.readSync(c.dataId);
     tf.ENV.set('WEBGL_PACK', false);
@@ -277,6 +277,7 @@ describeWithFlags('Custom window size', WEBGL_ENVS, () => {
   });
 });
 
+const SIZE_UPLOAD_UNIFORM = 4;
 // Run only for environments that have 32bit floating point support.
 const FLOAT32_WEBGL_ENVS = Object.assign(
     {

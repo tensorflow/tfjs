@@ -130,6 +130,9 @@ export class KernelBackend implements TensorStorage, BackendTimer {
       newAxisMask: number, shrinkAxisMask: number): T {
     throw new Error('Not yet implemented');
   }
+  unstack(x: Tensor, axis: number): Tensor[] {
+    throw new Error('Not yet implemented');
+  }
   reverse<T extends Tensor>(a: T, axis: number[]): T {
     throw new Error('Not yet implemented');
   }

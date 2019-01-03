@@ -227,7 +227,8 @@ function split_<T extends Tensor>(
     assert(
         $x.shape[axis] % numOrSizeSplits === 0,
         'Number of splits must evenly divide the axis.');
-    splitSizes = Array(numOrSizeSplits).fill($x.shape[axis] / numOrSizeSplits);
+    splitSizes =
+        new Array(numOrSizeSplits).fill($x.shape[axis] / numOrSizeSplits);
   } else {
     assert(
         $x.shape[axis] === numOrSizeSplits.reduce((a, b) => a + b),
