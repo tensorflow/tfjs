@@ -16,11 +16,10 @@
  */
 
 import {ENV} from '../environment';
-import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
+import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
 import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
-import {DataType, DataTypeMap, Rank, ScalarLike, ShapeMap, TensorLike, TensorLike1D, TensorLike4D} from '../types';
+import {DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike4D} from '../types';
 import * as util from '../util';
-
 import {getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {concat} from './concat_split';
 import {op} from './operation';
@@ -272,13 +271,14 @@ function multinomial_(
 /**
  * Creates a one-hot `tf.Tensor`. The locations represented by `indices` take
  * value `onValue` (defaults to 1), while all other locations take value
- * `offValue` (defaults to 0).
+ * `offValue` (defaults to 0). If `indices` is rank `R`, the output has rank
+ * `R+1` with the last axis of size `depth`.
  *
  * ```js
  * tf.oneHot(tf.tensor1d([0, 1], 'int32'), 3).print();
  * ```
  *
- * @param indices `tf.Tensor1D` of indices with dtype `int32`.
+ * @param indices `tf.Tensor` of indices with dtype `int32`.
  * @param depth The depth of the one hot dimension.
  * @param onValue A number used to fill in the output when the index matches
  * the location.
@@ -287,21 +287,22 @@ function multinomial_(
  */
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function oneHot_(
-    indices: Scalar|ScalarLike|Tensor1D|TensorLike1D, depth: number,
-    onValue = 1, offValue = 0): Tensor1D|Tensor2D {
+    indices: Tensor|TensorLike, depth: number, onValue = 1,
+    offValue = 0): Tensor {
   if (depth < 2) {
     throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
   }
-  const $indicesND = convertToTensor(indices, 'indices', 'oneHot', 'int32');
-  const indicesWasScalar = $indicesND.rank === 0;
-  const $indices = $indicesND.as1D() as Tensor1D;
+  let $indices = convertToTensor(indices, 'indices', 'oneHot', 'int32');
+  const outShape = [...$indices.shape, depth];
+  $indices = $indices.flatten();
+
   const grad = (dy: Tensor2D) => {
-    return {$indices: () => zeros($indices.shape, 'float32') as Tensor1D};
+    return {$indices: () => zeros($indices.shape, 'float32')};
   };
-  const returnT = ENV.engine.runKernel(
-      backend => backend.oneHot($indices, depth, onValue, offValue), {$indices},
-      grad);
-  return indicesWasScalar ? returnT.as1D() : returnT;
+  const result = ENV.engine.runKernel(
+      backend => backend.oneHot($indices as Tensor1D, depth, onValue, offValue),
+      {$indices}, grad);
+  return result.reshape(outShape);
 }
 
 /**
