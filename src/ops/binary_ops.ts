@@ -25,7 +25,7 @@ import {TensorLike, upcastType} from '../types';
 import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {op} from './operation';
-import {scalar} from './tensor_ops';
+import {scalar, zerosLike} from './tensor_ops';
 import {neg} from './unary_ops';
 
 /**
@@ -265,7 +265,9 @@ function pow_<T extends Tensor>(base: T|TensorLike, exp: Tensor|TensorLike): T {
       return res.reshape($base.shape) as T;
     };
     const derExp = () => {
-      let res = dy.mul(y.mul($base.log()).toFloat());
+      const condition = $base.greater(0);
+      const logBase = $base.log().where(condition, zerosLike($base));
+      let res = dy.mul(y.mul(logBase));
       const reduceAxes = broadcast_util.getReductionAxes($exp.shape, outShape);
       if (reduceAxes.length > 0) {
         res = res.sum(reduceAxes);

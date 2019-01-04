@@ -21,7 +21,7 @@ import {ALL_ENVS, expectArraysClose, expectArraysEqual} from '../test_util';
 
 // TODO(https://github.com/tensorflow/tfjs/issues/1050):
 // Remove this file as it contains a full copy of src/ops/arithmetic_test.js
-// content with WEBGL_PACK_BINARY_OPERATIONS set for all tests. Once 
+// content with WEBGL_PACK_BINARY_OPERATIONS set for all tests. Once
 // https://github.com/tensorflow/tfjs/issues/1050 is done, there is no further
 // need for this file.
 describeWithFlags('div', ALL_ENVS, () => {
@@ -33,8 +33,8 @@ describeWithFlags('div', ALL_ENVS, () => {
   });
 
   afterAll(() => {
-    tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS',
-        webglPackBinaryOperationsSavedFlag);
+    tf.ENV.set(
+        'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsSavedFlag);
   });
 
   it('same shape', () => {
@@ -335,8 +335,8 @@ describeWithFlags('mul', ALL_ENVS, () => {
   });
 
   afterAll(() => {
-    tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS',
-        webglPackBinaryOperationsSavedFlag);
+    tf.ENV.set(
+        'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsSavedFlag);
   });
 
   it('strict same-shaped tensors', () => {
@@ -641,8 +641,8 @@ describeWithFlags('pow', ALL_ENVS, () => {
   });
 
   afterAll(() => {
-    tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS',
-        webglPackBinaryOperationsSavedFlag);
+    tf.ENV.set(
+        'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsSavedFlag);
   });
 
   it('same-shaped tensors', () => {
@@ -827,8 +827,7 @@ describeWithFlags('pow', ALL_ENVS, () => {
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
     expectArraysClose(db, [
-      NaN, 5 * Math.pow(.5, 2) * Math.log(.5),
-      10 * Math.pow(2, -1) * Math.log(2)
+      0, 5 * Math.pow(.5, 2) * Math.log(.5), 10 * Math.pow(2, -1) * Math.log(2)
     ]);
   });
 
@@ -947,8 +946,8 @@ describeWithFlags('add', ALL_ENVS, () => {
   });
 
   afterAll(() => {
-    tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS',
-        webglPackBinaryOperationsSavedFlag);
+    tf.ENV.set(
+        'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsSavedFlag);
   });
 
   it('c + A', () => {
@@ -1248,8 +1247,8 @@ describeWithFlags('addN', ALL_ENVS, () => {
   });
 
   afterAll(() => {
-    tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS',
-        webglPackBinaryOperationsSavedFlag);
+    tf.ENV.set(
+        'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsSavedFlag);
   });
 
   it('a single tensor', () => {
@@ -1327,8 +1326,8 @@ describeWithFlags('sub', ALL_ENVS, () => {
   });
 
   afterAll(() => {
-    tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS',
-        webglPackBinaryOperationsSavedFlag);
+    tf.ENV.set(
+        'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsSavedFlag);
   });
 
   it('c - A', () => {
