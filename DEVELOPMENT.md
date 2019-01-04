@@ -45,6 +45,13 @@ To run the tests once and exit the karma process (helpful on Windows):
 $ yarn test --single-run
 ```
 
+To run the tests in an environment that does not have GPU support (such as Chrome Remote Desktop):
+
+```bash
+$ yarn test --backend cpu
+```
+
+
 #### Packaging (browser and npm)
 
 ```bash
