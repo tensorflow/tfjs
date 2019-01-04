@@ -38,10 +38,12 @@ export class ReduceProgram implements GPGPUProgram {
     if (reduceType === 'prod') {
       initializationValue = '1.0';
     } else if (reduceType === 'min') {
-      initializationValue = '1.0 / 0.0';
+      // WebGL on Firefox Linux can't compile 1/0 so we do 1/eps.
+      initializationValue = '1.0 / 1e-20';
       compareOp = `min`;
     } else if (reduceType === 'max') {
-      initializationValue = '-1.0 / 0.0';
+      // WebGL on Firefox Linux can't compile 1/0 so we do 1/eps.
+      initializationValue = '-1.0 / 1e-20';
       compareOp = `max`;
     }
 

@@ -45,7 +45,8 @@ export class Pool2DProgram implements GPGPUProgram {
 
     let initializationValue = '0.0';
     if (!isAvgPool) {
-      initializationValue = '-1.0 / 0.0';
+      // WebGL on Firefox Linux can't compile 1/0 so we do 1/eps.
+      initializationValue = '-1.0 / 1e-20';
     }
 
     if (computePositions) {
