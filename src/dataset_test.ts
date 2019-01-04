@@ -551,4 +551,83 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     // forEach consumed all of the input Tensors.
     expect(tf.memory().numTensors).toEqual(0);
   });
+
+  it('clone tensors when returning iterator of a dataset generated from ' +
+  'existing tensors', async () => {
+    expect(tf.memory().numTensors).toEqual(0);
+    const a = tf.ones([2, 1]);
+    const b = tf.ones([2, 1]);
+    expect(tf.memory().numTensors).toEqual(2);
+    const ds = tfd.array([a, b]);
+    // Pre-existing tensors are not cloned during dataset creation.
+    expect(tf.memory().numTensors).toEqual(2);
+
+    let count = 0;
+    // ds.forEach() automatically disposes incoming Tensors after processing
+    // them.
+    await ds.forEach(elem => {
+      count++;
+      expect(elem.isDisposed).toBeFalsy();
+    });
+    expect(count).toEqual(2);
+    // Cloned tensors are disposed after traverse, while original tensors stay.
+    expect(tf.memory().numTensors).toEqual(2);
+
+    await ds.forEach(elem => {
+      count++;
+      expect(elem.isDisposed).toBeFalsy();
+    });
+    expect(count).toEqual(4);
+    expect(tf.memory().numTensors).toEqual(2);
+
+    await ds.forEach(elem => {
+      count++;
+      expect(elem.isDisposed).toBeFalsy();
+    });
+    expect(count).toEqual(6);
+    expect(tf.memory().numTensors).toEqual(2);
+
+    expect(a.isDisposed).toBeFalsy();
+    expect(b.isDisposed).toBeFalsy();
+  });
+
+  it('traverse dataset from tensors without leaking Tensors', async () => {
+    expect(tf.memory().numTensors).toEqual(0);
+    const a = tf.ones([2, 1]);
+    const b = tf.ones([2, 1]);
+    const c = tf.ones([2, 1]);
+    const d = tf.ones([2, 1]);
+    expect(tf.memory().numTensors).toEqual(4);
+    const ds = tfd.array([a, b, c, d]).take(2);
+    // Pre-existing tensors are not cloned during dataset creation.
+    expect(tf.memory().numTensors).toEqual(4);
+
+    let count = 0;
+    // ds.forEach() automatically disposes incoming Tensors after processing
+    // them.
+    await ds.forEach(elem => {
+      count++;
+      expect(elem.isDisposed).toBeFalsy();
+    });
+    expect(count).toEqual(2);
+    // Cloned tensors are disposed after traverse, while original tensors stay.
+    expect(tf.memory().numTensors).toEqual(4);
+
+    await ds.forEach(elem => {
+      count++;
+      expect(elem.isDisposed).toBeFalsy();
+    });
+    expect(count).toEqual(4);
+    expect(tf.memory().numTensors).toEqual(4);
+
+    await ds.forEach(elem => {
+      count++;
+      expect(elem.isDisposed).toBeFalsy();
+    });
+    expect(count).toEqual(6);
+    expect(tf.memory().numTensors).toEqual(4);
+
+    expect(a.isDisposed).toBeFalsy();
+    expect(b.isDisposed).toBeFalsy();
+  });
 });
