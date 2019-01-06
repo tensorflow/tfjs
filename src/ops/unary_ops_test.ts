@@ -2595,6 +2595,18 @@ describeWithFlags('packed clip', WEBGL_ENVS, () => {
     expectArraysClose(result, [3, -1, 0, 50, -1, 2]);
   });
 
+  it('using extreme values', () => {
+    const a = tf.tensor1d([3, -1, 0, 100, -7, 2]);
+    let result =
+        tf.clipByValue(a, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY);
+    expectArraysClose(result, [3, -1, 0, 100, -7, 2]);
+
+    result = tf.clipByValue(a, Number.MIN_VALUE, Number.MAX_VALUE);
+    expectArraysClose(
+        result,
+        [3, Number.MIN_VALUE, Number.MIN_VALUE, 100, Number.MIN_VALUE, 2]);
+  });
+
   it('should work for scalars', () => {
     const a = tf.scalar(-4);
     const min = -1;
