@@ -15,7 +15,7 @@
  */
 import {serialization} from '@tensorflow/tfjs-core';
 
-import {JsonValue} from '../types';
+import {PyJsonValue} from '../types';
 
 import {convertPythonicToTs, convertTsToPythonic} from './serialization_utils';
 
@@ -64,7 +64,7 @@ describe('convertPythonToTs', () => {
     });
   });
   it('dictionary keys are passed down the stack', () => {
-    const dict: JsonValue = {inbound_nodes: ['DoNotChange_Me', 0, null]};
+    const dict: PyJsonValue = {inbound_nodes: ['DoNotChange_Me', 0, null]};
     expect(convertPythonicToTs(dict)).toEqual({
       inboundNodes: ['DoNotChange_Me', 0, null]
     });

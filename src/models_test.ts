@@ -16,7 +16,7 @@ import * as tfl from './index';
 import {Reshape} from './layers/core';
 import {deserialize} from './layers/serialization';
 import {loadModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
-import {JsonDict} from './types';
+import {PyJsonDict} from './types';
 import {convertPythonicToTs, convertTsToPythonic} from './utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 import {version as layersVersion} from './version';
@@ -259,7 +259,7 @@ describeMathCPU('Nested model topology', () => {
     const returnString = false;
     const outerModelJSON = outerModel.toJSON(unusedArg, returnString);
     const reconstructedModel =
-        deserialize(convertPythonicToTs(outerModelJSON) as JsonDict) as
+        deserialize(convertPythonicToTs(outerModelJSON) as PyJsonDict) as
         tfl.Sequential;
     expect(reconstructedModel.toJSON(unusedArg, returnString))
         .toEqual(outerModelJSON);
@@ -295,7 +295,7 @@ describeMathCPU('Nested model topology', () => {
     const returnString = false;
     const outerModelJSON = outerModel.toJSON(unusedArg, returnString);
     const reconstructedModel =
-        deserialize(convertPythonicToTs(outerModelJSON) as JsonDict) as
+        deserialize(convertPythonicToTs(outerModelJSON) as PyJsonDict) as
         tfl.Sequential;
     expect(reconstructedModel.toJSON(unusedArg, returnString))
         .toEqual(outerModelJSON);
@@ -390,7 +390,7 @@ describeMathCPU('modelFromJSON', () => {
   it('toJSON and modelFromJSON', async () => {
     const model1 = tfl.sequential();
     model1.add(tfl.layers.repeatVector({inputShape: [2], n: 4}));
-    const model1JSON = model1.toJSON(null, false) as JsonDict;
+    const model1JSON = model1.toJSON(null, false) as PyJsonDict;
     const model2 = await tfl.models.modelFromJSON(model1JSON);
     expect(model2.toJSON(null, false)).toEqual(model1JSON);
   });
@@ -481,7 +481,7 @@ describeMathCPU('modelFromJSON', () => {
 
   it('toJSON with returnString = false', async () => {
     const model = await modelFromJSON(fakeRoundtripModel);
-    const serializedModel = model.toJSON(null, false) as JsonDict;
+    const serializedModel = model.toJSON(null, false) as PyJsonDict;
     expect(serializedModel['class_name'])
         .toEqual(fakeRoundtripModel.modelTopology['class_name']);
     expect(serializedModel['config'])
@@ -490,7 +490,7 @@ describeMathCPU('modelFromJSON', () => {
 
   it('toJSON return value includes correct versions', async () => {
     const model = await modelFromJSON(fakeRoundtripModel);
-    const serializedModel = model.toJSON(null, false) as JsonDict;
+    const serializedModel = model.toJSON(null, false) as PyJsonDict;
     expect(serializedModel['keras_version'])
         .toEqual(`tfjs-layers ${layersVersion}`);
   });
@@ -2229,7 +2229,7 @@ describeMathCPU('Functional-model saving and loading', () => {
     const model1 =
         tfl.model({inputs: [input1, input2], outputs: [output1, output2]});
 
-    const model1JSON = model1.toJSON(null, false) as JsonDict;
+    const model1JSON = model1.toJSON(null, false) as PyJsonDict;
     const model2 =
         await modelFromJSON({modelTopology: model1JSON}) as tfl.Model;
 
@@ -2264,7 +2264,7 @@ describeMathCPU('Functional-model saving and loading', () => {
     const xs = ones([10, 1]);
     const ys1 = model1.predict(xs) as Tensor;
 
-    const model1JSON = model1.toJSON(null, false) as JsonDict;
+    const model1JSON = model1.toJSON(null, false) as PyJsonDict;
     const model2 =
         await modelFromJSON({modelTopology: model1JSON}) as tfl.Model;
     expect(model2.toJSON(null, false)).toEqual(model1JSON);

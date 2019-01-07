@@ -24,7 +24,7 @@ import {ModelFitConfig} from './engine/training_tensors';
 import {NotImplementedError, RuntimeError, ValueError} from './errors';
 import {deserialize} from './layers/serialization';
 import {Kwargs, NamedTensorMap, Shape} from './types';
-import {JsonDict} from './types';
+import {PyJsonDict} from './types';
 import * as generic_utils from './utils/generic_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
 import {getExactlyOneShape} from './utils/types_utils';
@@ -63,21 +63,23 @@ import {getExactlyOneShape} from './utils/types_utils';
  * @doc {heading: 'Models',subheading: 'Loading'}
  */
 export async function modelFromJSON(
-    modelAndWeightsConfig: ModelAndWeightsConfig|JsonDict,
+    modelAndWeightsConfig: ModelAndWeightsConfig|PyJsonDict,
     customObjects?: serialization.ConfigDict): Promise<Model> {
   if (!('modelTopology' in modelAndWeightsConfig)) {
-    modelAndWeightsConfig = {modelTopology: modelAndWeightsConfig as JsonDict};
+    modelAndWeightsConfig = {
+      modelTopology: modelAndWeightsConfig as PyJsonDict
+    };
   }
   modelAndWeightsConfig = modelAndWeightsConfig as ModelAndWeightsConfig;
 
-  let modelTopology = modelAndWeightsConfig.modelTopology as JsonDict;
+  let modelTopology = modelAndWeightsConfig.modelTopology as PyJsonDict;
   if (modelTopology['model_config'] != null) {
     // If the model-topology JSON contains a 'model_config' field, then it is
     // a full model JSON (e.g., from `keras.Model.save()`), which contains
     // not only the model's architecture in its 'model_config' field, but
     // additional information such as the model's optimizer. We use only the
     // 'model_config' field currently.
-    modelTopology = modelTopology['model_config'] as JsonDict;
+    modelTopology = modelTopology['model_config'] as PyJsonDict;
   }
   const tsConfig =
       convertPythonicToTs(modelTopology) as serialization.ConfigDict;
@@ -121,7 +123,7 @@ export interface ModelAndWeightsConfig {
    *     training options and state, i.e., a format consistent with the return
    *     value of `keras.models.save_model()`.
    */
-  modelTopology: JsonDict;
+  modelTopology: PyJsonDict;
 
   /**
    * A weights manifest in TensorFlow.js format.
@@ -270,9 +272,9 @@ export async function loadModelFromIOHandler(
         'does not have the `load` method implemented.');
   }
   const artifacts = await handler.load();
-  let modelTopology = artifacts.modelTopology as JsonDict;
+  let modelTopology = artifacts.modelTopology as PyJsonDict;
   if (modelTopology['model_config'] != null) {
-    modelTopology = modelTopology['model_config'] as JsonDict;
+    modelTopology = modelTopology['model_config'] as PyJsonDict;
   }
 
   // If weights are provided and the weight-loading mode is strict, use

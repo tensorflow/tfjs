@@ -49,24 +49,46 @@ export type NamedTensorMap = {
 };
 
 /**
- * Types to support JSON.
+ * A value within the JSON-serialized form of a serializable object.
+ *
+ * The keys of any nested dicts should be in snake_case (i.e., using Python
+ * naming conventions) for compatibility with Python Keras.
+ *
+ * @see PyJsonDict
+ */
+export type PyJsonValue = boolean|number|string|null|PyJsonArray|PyJsonDict;
+
+/**
+ * A key-value dict within the JSON-serialized form of a serializable object.
  *
  * Serialization/deserialization uses stringified-JSON as the storage
  * representation. Typically this should be used for materialized JSON
- * stored on disk/received over the wire.  Internally this is normally
- * converted to a ConfigDict that has renamed fields (TS naming conventions)
- * and support for Enums.
+ * stored on disk or sent/received over the wire.
+ *
+ * The keys of this dict and of any nested dicts should be in snake_case (i.e.,
+ * using Python naming conventions) for compatibility with Python Keras.
+ *
+ * Internally this is normally converted to a ConfigDict that has CamelCase keys
+ * (using TypeScript naming conventions) and support for Enums.
  */
-export type JsonValue = boolean|number|string|null|JsonArray|JsonDict;
-export interface JsonDict {
-  [key: string]: JsonValue;
+export interface PyJsonDict {
+  [key: string]: PyJsonValue;
 }
-export interface JsonArray extends Array<JsonValue> {}
+
+/**
+ * An array of values within the JSON-serialized form of a serializable object.
+ *
+ * The keys of any nested dicts should be in snake_case (i.e., using Python
+ * naming conventions) for compatibility with Python Keras.
+ *
+ * @see PyJsonDict
+ */
+export interface PyJsonArray extends Array<PyJsonValue> {}
 
 /**
  * Type representing a loosely-typed bundle of keyword arguments.
  *
- * This is a looser type than JsonDict/serialization.ConfigDict as it
+ * This is a looser type than PyJsonDict/serialization.ConfigDict as it
  * can contain arbitrary objects as its values.  It is most appropriate
  * for functions that pass through keyword arguments to other functions
  * without knowledge of the structure.  If the function can place type

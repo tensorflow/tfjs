@@ -17,7 +17,7 @@ import {eye, randomNormal, serialization, Tensor, Tensor2D, tensor2d} from '@ten
 import * as tfl from './index';
 import {checkDistribution, checkFanMode, getInitializer, serializeInitializer, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES, VarianceScaling} from './initializers';
 import {deserialize} from './layers/serialization';
-import {JsonDict} from './types';
+import {PyJsonDict} from './types';
 import * as math_utils from './utils/math_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectNoLeakedTensors, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
@@ -557,7 +557,7 @@ describeMathCPUAndGPU('Orthogonal Initializer', () => {
     const modelConfig = convertPythonicToTs(
         JSON.parse(testModelJSON).modelTopology.model_config);
 
-    const model = deserialize(modelConfig as JsonDict) as tfl.Model;
+    const model = deserialize(modelConfig as PyJsonDict) as tfl.Model;
     expect(model.layers.length).toEqual(3);
     expect(model.layers[0] instanceof tfl.Model).toEqual(false);
     expect(model.layers[1] instanceof tfl.Model).toEqual(true);
