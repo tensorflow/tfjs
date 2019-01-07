@@ -12,15 +12,19 @@
  *  Advanced activation layers.
  */
 
-import {elu, leakyRelu, relu, serialization, Tensor, clipByValue} from '@tensorflow/tfjs-core';
+import {clipByValue, elu, leakyRelu, prelu, relu, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import {Softmax as softmaxActivation} from '../activations';
-import {cast} from '../backend/tfjs_backend';
-import {Layer, LayerConfig} from '../engine/topology';
 import {getScalar} from '../backend/state';
-import {NotImplementedError} from '../errors';
+import {cast} from '../backend/tfjs_backend';
+import {Constraint, getConstraint, serializeConstraint} from '../constraints';
+import {InputSpec, Layer, LayerConfig} from '../engine/topology';
+import {NotImplementedError, ValueError} from '../errors';
+import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
+import {getRegularizer, Regularizer, serializeRegularizer} from '../regularizers';
 import {Kwargs, Shape} from '../types';
-import {getExactlyOneTensor} from '../utils/types_utils';
+import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
+import {LayerVariable} from '../variables';
 
 export interface ReLULayerConfig extends LayerConfig {
   /**
@@ -106,7 +110,6 @@ export class LeakyReLU extends Layer {
     if (config == null) {
       config = {};
     }
-
     this.alpha = config.alpha == null ? this.DEFAULT_ALPHA : config.alpha;
   }
 
@@ -128,7 +131,125 @@ export class LeakyReLU extends Layer {
 }
 serialization.registerClass(LeakyReLU);
 
-// TODO(cais): Implement PReLU
+export interface PReLULayerConfig extends LayerConfig {
+  /**
+   * Initializer for the learnable alpha.
+   */
+  alphaInitializer?: Initializer|InitializerIdentifier;
+
+  /**
+   * Regularizer for the learnable alpha.
+   */
+  alphaRegularizer?: Regularizer;
+
+  /**
+   * Constraint for the learnable alpha.
+   */
+  alphaConstraint?: Constraint;
+
+  /**
+   * The axes along which to share learnable parameters for the activation
+   * function. For example, if the incoming feature maps are from a 2D
+   * convolution with output shape `[numExamples, height, width, channels]`,
+   * and you wish to share parameters across space (height and width) so that
+   * each filter channels has only one set of parameters, set
+   * `shared_axes: [1, 2]`.
+   */
+  sharedAxes?: number|number[];
+}
+
+/**
+ * Parameterized version of a leaky rectified linear unit.
+ *
+ * It follows
+ * `f(x) = alpha * x for x < 0.`
+ * `f(x) = x for x >= 0.`
+ * wherein `alpha` is a trainable weight.
+ * 
+ * Input shape:
+ *   Arbitrary. Use the configuration `inputShape` when using this layer as the
+ *   first layer in a model.
+ *
+ * Output shape:
+ *   Same shape as the input.
+ */
+export class PReLU extends Layer {
+  static className = 'PReLU';
+  private readonly alphaInitializer: Initializer;
+  private readonly alphaRegularizer: Regularizer;
+  private readonly alphaConstraint: Constraint;
+  private readonly sharedAxes: number[];
+  private alpha: LayerVariable;
+
+  readonly DEFAULT_ALPHA_INITIALIZER: InitializerIdentifier = 'zeros';
+
+  constructor(config?: PReLULayerConfig) {
+    super(config == null ? {} : config);
+    if (config == null) {
+      config = {};
+    }
+
+    this.supportsMasking = true;
+    this.alphaInitializer = getInitializer(
+        config.alphaInitializer || this.DEFAULT_ALPHA_INITIALIZER);
+    this.alphaRegularizer = getRegularizer(config.alphaRegularizer);
+    this.alphaConstraint = getConstraint(config.alphaConstraint);
+    if (config.sharedAxes == null) {
+      this.sharedAxes = null;
+    } else if (Array.isArray(config.sharedAxes)) {
+      this.sharedAxes = config.sharedAxes;
+    } else if (typeof config.sharedAxes === 'number') {
+      this.sharedAxes = [config.sharedAxes];
+    } else {
+      throw new ValueError(
+          `Expected sharedAxes to be a number or an array of numbers, ` +
+          `but got ${config.sharedAxes}`);
+    }
+  }
+
+  build(inputShape: Shape|Shape[]) {
+    inputShape = getExactlyOneShape(inputShape);
+    const paramShape: Shape = inputShape.slice(1);
+    if (this.sharedAxes != null) {
+      for (const i of this.sharedAxes) {
+        paramShape[i - 1] = 1;
+      }
+    }
+    this.alpha = this.addWeight(
+        'alpha', paramShape, 'float32', this.alphaInitializer,
+        this.alphaRegularizer, true, this.alphaConstraint);
+    // Set input spec.
+    const axes: {[axis: number]: number} = {};
+    if (this.sharedAxes != null) {
+      for (let i = 1; i < inputShape.length; ++i) {
+        axes[i] = inputShape[i];
+      }
+    }
+    this.inputSpec = [new InputSpec({
+      ndim: inputShape.length,
+      axes,
+    })];
+    this.built = true;
+  }
+
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+    inputs = getExactlyOneTensor(inputs);
+    return prelu(inputs, this.alpha.read());
+  }
+
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {
+      alphaInitializer: serializeInitializer(this.alphaInitializer),
+      alphaRegularizer: serializeRegularizer(this.alphaRegularizer),
+      alphaConstraint: serializeConstraint(this.alphaConstraint),
+      sharedAxes: this.sharedAxes
+    };
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
+  }
+}
+serialization.registerClass(PReLU);
 
 export interface ELULayerConfig extends LayerConfig {
   /**
