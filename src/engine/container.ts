@@ -15,7 +15,7 @@ import {Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 import {getUid} from '../backend/state';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
 import {deserialize as deserializeLayer} from '../layers/serialization';
-import {JsonDict, Kwargs, NamedTensorMap, Shape} from '../types';
+import {Kwargs, NamedTensorMap, PyJsonDict, Shape} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import {convertTsToPythonic} from '../utils/serialization_utils';
 import * as types_utils from '../utils/types_utils';
@@ -82,7 +82,7 @@ function loadTensor(dtype: string, shape: Shape, value: any): Tensor {
  *   weights.
  */
 export function loadWeightsFromJson(
-    weightsJSON: JsonDict, layers: Layer[], skipMismatch = false): void {
+    weightsJSON: PyJsonDict, layers: Layer[], skipMismatch = false): void {
   const originalKerasVersion = weightsJSON['keras_version'] as string;
   const originalBackend = weightsJSON['backend'] as string;
   const layerNames = layers.map(layer => layer.name);
@@ -749,7 +749,7 @@ export abstract class Container extends Layer {
    *   extra weights and missing weights will be silently ignored.
    */
   loadWeights(
-      weightsJSON: JsonDict|NamedTensorMap, skipMismatch = false,
+      weightsJSON: PyJsonDict|NamedTensorMap, skipMismatch = false,
       isNamedTensorMap = false, strict = true) {
     // TODO(cais): Maybe the JsonDict support should be removed after serving
     //   weights from XHR is working. If so, the `loadWeightsFromJson` flag
@@ -760,7 +760,7 @@ export abstract class Container extends Layer {
       loadWeightsFromNamedTensorMap(
           weightsJSON as NamedTensorMap, this.layers, strict);
     } else {
-      loadWeightsFromJson(weightsJSON as JsonDict, this.layers, skipMismatch);
+      loadWeightsFromJson(weightsJSON as PyJsonDict, this.layers, skipMismatch);
     }
   }
 
@@ -793,8 +793,8 @@ export abstract class Container extends Layer {
    *   `!returnString`.
    */
   // tslint:disable-next-line:no-any
-  toJSON(unused?: any, returnString = true): string|JsonDict {
-    const modelConfig = convertTsToPythonic(this.updatedConfig()) as JsonDict;
+  toJSON(unused?: any, returnString = true): string|PyJsonDict {
+    const modelConfig = convertTsToPythonic(this.updatedConfig()) as PyJsonDict;
     return returnString ? JSON.stringify(modelConfig) : modelConfig;
   }
 
