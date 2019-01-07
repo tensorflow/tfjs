@@ -1273,8 +1273,10 @@ export abstract class Layer extends serialization.Serializable {
     if (this.fastWeightInitDuringBuild) {
       initializer = getInitializer('zeros');
     }
+    const initValue = initializer.apply(shape, dtype);
     const weight = new LayerVariable(
-        initializer.apply(shape, dtype), dtype, name, trainable, constraint);
+        initValue, dtype, name, trainable, constraint);
+    initValue.dispose();
     // Request backend not to dispose the weights of the model on scope() exit.
     if (regularizer != null) {
       this.addLoss(() => regularizer.apply(weight.read()));

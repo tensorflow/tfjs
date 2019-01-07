@@ -471,19 +471,18 @@ describe('getSourceInputs()', () => {
 
 describeMathCPUAndGPU('Model-dispose', () => {
   it('Dispose Sequential model frees memory', () => {
+    const numTensors0 = memory().numTensors;
     const model = tfl.sequential();
     model.add(
         tfl.layers.dense({units: 2, inputShape: [3], activation: 'relu'}));
     model.add(tfl.layers.dense({units: 1}));
     model.build([3, 3]);
 
-    const numTensors0 = memory().numTensors;
     const result = model.dispose();
-
     expect(result.refCountAfterDispose).toEqual(0);
     expect(result.numDisposedVariables).toEqual(4);
     // The four weight variables of the two layers should have been disposed.
-    expect(memory().numTensors).toEqual(numTensors0 - 4);
+    expect(memory().numTensors).toEqual(numTensors0);
   });
 
   it('Dispose Sequential model twice leads to Error', () => {
