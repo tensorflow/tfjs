@@ -18,6 +18,7 @@ import {abs, mean, memory, mul, NamedTensorMap, ones, Scalar, scalar, SGDOptimiz
 import * as K from '../backend/tfjs_backend';
 import {CustomCallback, CustomCallbackConfig, ModelTrainingYielder, Params} from '../base_callbacks';
 import * as tfl from '../index';
+import * as logs from '../logs';
 import {Logs, UnresolvedLogs} from '../logs';
 import {Regularizer} from '../regularizers';
 import {Kwargs} from '../types';
@@ -1826,16 +1827,6 @@ describeMathCPUAndGPU('Model.fit: No memory leak', () => {
                  `of ${epochs} of the fit() call with ` +
                  `onBatchEnd callback: tensor counts: ${inEpochTensorCounts}.`);
            }
-           // Now, assert that the amount of increase in the number of tensors
-           // at the end of the epoch equals the expected value.
-           if (epochIndex < epochs - 1) {
-             // The expected increase of 2 comes from the fact that the fit()
-             // call here generates 2 additional scalars and will store them
-             // till the end of the fit() call:
-             //   loss, val_loss, mse and val_mse.
-             expect(tensorCounts[endBatch] - tensorCounts[beginBatch])
-                 .toEqual(2);
-           }
          }
          expect(tensorCounts.length).toEqual(batchesPerEpoch * epochs);
          const numTensors1 = memory().numTensors;
@@ -2024,6 +2015,20 @@ describeMathGPU('Model.fit: yieldEvery', () => {
     // Due to yieldEvery = 'never', no `await nextFrame()` call should have
     // happened.
     expect(nextFrameCallCount).toEqual(0);
+  });
+
+  it('resolveScalarInLogs is not called if no custom callbacks', async () => {
+    const inputSize = 1;
+    const numExamples = 10;
+    const batchSize = 2;
+    const epochs = 2;
+    const model = createDummyModel(inputSize);
+    const xs = ones([numExamples, inputSize]);
+    const ys = ones([numExamples, 1]);
+
+    const spy = spyOn(logs, 'resolveScalarsInLogs').and.callThrough();
+    await model.fit(xs, ys, {epochs, batchSize, yieldEvery: 'never'});
+    expect(spy).not.toHaveBeenCalled();
   });
 });
 

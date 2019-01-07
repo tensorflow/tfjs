@@ -179,7 +179,6 @@ export class CallbackList {
     if (logs == null) {
       logs = {};
     }
-    await resolveScalarsInLogs(logs);
     for (const callback of this.callbacks) {
       await callback.onBatchEnd(batch, logs);
     }
@@ -383,7 +382,6 @@ export class BaseLogger extends BaseCallback {
         } else {
           this.totals[key] = getScalar(0);
         }
-
         this.totals[key] = tidy(
             () => add((this.totals[key] as Scalar),
                       mul(value, getScalar(batchSize))) as Scalar);

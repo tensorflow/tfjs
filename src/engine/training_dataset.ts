@@ -368,7 +368,7 @@ export async function fitDataset<T extends TensorContainer>(
           batchLogs['batch'] = batchIndex;
           batchLogs['size'] = xsAndYs[0].shape[0];
 
-          callbackList.onBatchBegin(batchIndex, batchLogs);
+          await callbackList.onBatchBegin(batchIndex, batchLogs);
 
           // Train on batch.
           // TODO(cais): Take care of models with multiple outputs.
