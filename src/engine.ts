@@ -18,7 +18,7 @@
 import {BackendTimingInfo, DataMover, KernelBackend} from './kernels/backend';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
-import {DataId, Tensor, Tensor3D, Variable} from './tensor';
+import {DataId, Tensor, Tensor3D, TensorTracker, Variable} from './tensor';
 import {NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer, isTensorInList} from './tensor_util';
 import {DataType, DataValues} from './types';
@@ -78,7 +78,7 @@ interface ScopeState {
   name: string;
 }
 
-export class Engine implements TensorManager, DataMover {
+export class Engine implements TensorManager, TensorTracker, DataMover {
   // Public since optimizers will use it.
   registeredVariables: NamedVariableMap = {};
 
