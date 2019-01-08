@@ -20,6 +20,7 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {maximum} from './binary_ops';
+import {getReductionAxes} from './broadcast_util';
 import {where} from './logical_ops';
 import {op} from './operation';
 import {SELU_SCALE, SELU_SCALEALPHA} from './selu_util';
@@ -154,7 +155,14 @@ function prelu_<T extends Tensor>(x: T|TensorLike, alpha: T|TensorLike): T {
 
     return {
       $x: () => where(mask, dy, dy.mul($alpha)) as T,
-      $alpha: () => where(mask, zerosLike(dy), dy.mul($x)) as T
+      $alpha: () => {
+        let res = where(mask, zerosLike(dy), dy.mul($x));
+        const reduceAxes = getReductionAxes($alpha.shape, dy.shape);
+        if (reduceAxes.length > 0) {
+          res = res.sum(reduceAxes);
+        }
+        return res.reshape($alpha.shape) as T;
+      }
     };
   };
 

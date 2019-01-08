@@ -59,6 +59,16 @@ describeWithFlags('prelu', ALL_ENVS, () => {
     expectArraysClose(dx, [1, 1, 0.25, 0.15]);
   });
 
+  it('derivative where alpha got broadcasted', () => {
+    const x = tf.tensor2d([[0.5, 3, -0.1, -4]]);
+    const a = tf.tensor2d([[0.2]]);
+    const dy = tf.tensor2d([[1, 1, 1, 1]]);
+
+    const da = tf.grad(a => tf.prelu(x, a))(a, dy);
+    expect(da.shape).toEqual(a.shape);
+    expectArraysClose(da, [-4.1]);
+  });
+
   it('throws when passed x as a non-tensor', () => {
     expect(() => tf.prelu({} as tf.Tensor, tf.scalar(1)))
         .toThrowError(/Argument 'x' passed to 'prelu' must be a Tensor/);
