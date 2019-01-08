@@ -27,7 +27,7 @@ import {convOutputLength} from '../utils/conv_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
-import {BaseConv, BaseConvLayerConfig, ConvLayerConfig, preprocessConv2DInput} from './convolutional';
+import {BaseConv, BaseConvLayerArgs, ConvLayerArgs, preprocessConv2DInput} from './convolutional';
 
 
 /**
@@ -72,7 +72,7 @@ export function depthwiseConv2d(
   });
 }
 
-export interface DepthwiseConv2DLayerConfig extends BaseConvLayerConfig {
+export interface DepthwiseConv2DLayerArgs extends BaseConvLayerArgs {
   /**
    * An integer or Array of 2 integers, specifying the width and height of the
    * 2D convolution window. Can be a single integer to specify the same value
@@ -123,14 +123,14 @@ export class DepthwiseConv2D extends BaseConv {
 
   private depthwiseKernel: LayerVariable = null;
 
-  constructor(config: DepthwiseConv2DLayerConfig) {
-    super(2, config as ConvLayerConfig);
+  constructor(args: DepthwiseConv2DLayerArgs) {
+    super(2, args as ConvLayerArgs);
     this.depthMultiplier =
-        config.depthMultiplier == null ? 1 : config.depthMultiplier;
+        args.depthMultiplier == null ? 1 : args.depthMultiplier;
     this.depthwiseInitializer = getInitializer(
-        config.depthwiseInitializer || this.DEFAULT_KERNEL_INITIALIZER);
-    this.depthwiseConstraint = getConstraint(config.depthwiseConstraint);
-    this.depthwiseRegularizer = getRegularizer(config.depthwiseRegularizer);
+        args.depthwiseInitializer || this.DEFAULT_KERNEL_INITIALIZER);
+    this.depthwiseConstraint = getConstraint(args.depthwiseConstraint);
+    this.depthwiseRegularizer = getRegularizer(args.depthwiseRegularizer);
   }
 
   build(inputShape: Shape|Shape[]): void {

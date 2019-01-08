@@ -19,7 +19,7 @@ import {imageDataFormat} from '../backend/common';
 import * as K from '../backend/tfjs_backend';
 import {checkDataFormat, checkPaddingMode, checkPoolMode, DataFormat, PaddingMode, PoolMode} from '../common';
 import {InputSpec} from '../engine/topology';
-import {Layer, LayerConfig} from '../engine/topology';
+import {Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {Kwargs, Shape} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
@@ -82,7 +82,7 @@ export function pool2d(
 }
 
 
-export interface Pooling1DLayerConfig extends LayerConfig {
+export interface Pooling1DLayerArgs extends LayerArgs {
   /**
    * Size of the window to pool over, should be an integer.
    */
@@ -107,47 +107,47 @@ export abstract class Pooling1D extends Layer {
 
   /**
    *
-   * @param config Parameters for the Pooling layer.
+   * @param args Parameters for the Pooling layer.
    *
    * config.poolSize defaults to 2.
    */
-  constructor(config: Pooling1DLayerConfig) {
-    if (config.poolSize == null) {
-      config.poolSize = 2;
+  constructor(args: Pooling1DLayerArgs) {
+    if (args.poolSize == null) {
+      args.poolSize = 2;
     }
-    super(config);
-    if (typeof config.poolSize === 'number') {
-      this.poolSize = [config.poolSize];
+    super(args);
+    if (typeof args.poolSize === 'number') {
+      this.poolSize = [args.poolSize];
     } else if (
-        Array.isArray(config.poolSize) &&
-        (config.poolSize as number[]).length === 1 &&
-        typeof (config.poolSize as number[])[0] === 'number') {
-      this.poolSize = config.poolSize;
+        Array.isArray(args.poolSize) &&
+        (args.poolSize as number[]).length === 1 &&
+        typeof (args.poolSize as number[])[0] === 'number') {
+      this.poolSize = args.poolSize;
     } else {
       throw new ValueError(
           `poolSize for 1D convolutional layer must be a number or an ` +
           `Array of a single number, but received ` +
-          `${JSON.stringify(config.poolSize)}`);
+          `${JSON.stringify(args.poolSize)}`);
     }
-    if (config.strides == null) {
+    if (args.strides == null) {
       this.strides = this.poolSize;
     } else {
-      if (typeof config.strides === 'number') {
-        this.strides = [config.strides];
+      if (typeof args.strides === 'number') {
+        this.strides = [args.strides];
       } else if (
-          Array.isArray(config.strides) &&
-          (config.strides as number[]).length === 1 &&
-          typeof (config.strides as number[])[0] === 'number') {
-        this.strides = config.strides;
+          Array.isArray(args.strides) &&
+          (args.strides as number[]).length === 1 &&
+          typeof (args.strides as number[])[0] === 'number') {
+        this.strides = args.strides;
       } else {
         throw new ValueError(
             `strides for 1D convolutional layer must be a number or an ` +
             `Array of a single number, but received ` +
-            `${JSON.stringify(config.strides)}`);
+            `${JSON.stringify(args.strides)}`);
       }
     }
 
-    this.padding = config.padding == null ? 'valid' : config.padding;
+    this.padding = args.padding == null ? 'valid' : args.padding;
     checkPaddingMode(this.padding);
     this.inputSpec = [new InputSpec({ndim: 3})];
   }
@@ -197,8 +197,8 @@ export abstract class Pooling1D extends Layer {
  */
 export class MaxPooling1D extends Pooling1D {
   static className = 'MaxPooling1D';
-  constructor(config: Pooling1DLayerConfig) {
-    super(config);
+  constructor(args: Pooling1DLayerArgs) {
+    super(args);
   }
 
   protected poolingFunction(
@@ -222,8 +222,8 @@ serialization.registerClass(MaxPooling1D);
  */
 export class AveragePooling1D extends Pooling1D {
   static className = 'AveragePooling1D';
-  constructor(config: Pooling1DLayerConfig) {
-    super(config);
+  constructor(args: Pooling1DLayerArgs) {
+    super(args);
   }
 
   protected poolingFunction(
@@ -236,7 +236,7 @@ export class AveragePooling1D extends Pooling1D {
 }
 serialization.registerClass(AveragePooling1D);
 
-export interface Pooling2DLayerConfig extends LayerConfig {
+export interface Pooling2DLayerArgs extends LayerArgs {
   /**
    * Factors by which to downscale in each dimension [vertical, horizontal].
    * Expects an integer or an array of 2 integers.
@@ -271,31 +271,31 @@ export abstract class Pooling2D extends Layer {
   protected readonly padding: PaddingMode;
   protected readonly dataFormat: DataFormat;
 
-  constructor(config: Pooling2DLayerConfig) {
-    if (config.poolSize == null) {
-      config.poolSize = [2, 2];
+  constructor(args: Pooling2DLayerArgs) {
+    if (args.poolSize == null) {
+      args.poolSize = [2, 2];
     }
-    super(config);
-    this.poolSize = Array.isArray(config.poolSize) ?
-        config.poolSize :
-        [config.poolSize, config.poolSize];
-    if (config.strides == null) {
+    super(args);
+    this.poolSize = Array.isArray(args.poolSize) ?
+        args.poolSize :
+        [args.poolSize, args.poolSize];
+    if (args.strides == null) {
       this.strides = this.poolSize;
-    } else if (Array.isArray(config.strides)) {
-      if (config.strides.length !== 2) {
+    } else if (Array.isArray(args.strides)) {
+      if (args.strides.length !== 2) {
         throw new ValueError(
             `If the strides property of a 2D pooling layer is an Array, ` +
             `it is expected to have a length of 2, but received length ` +
-            `${config.strides.length}.`);
+            `${args.strides.length}.`);
       }
-      this.strides = config.strides;
+      this.strides = args.strides;
     } else {
       // `config.strides` is a number.
-      this.strides = [config.strides, config.strides];
+      this.strides = [args.strides, args.strides];
     }
-    this.padding = config.padding == null ? 'valid' : config.padding;
+    this.padding = args.padding == null ? 'valid' : args.padding;
     this.dataFormat =
-        config.dataFormat == null ? 'channelsLast' : config.dataFormat;
+        args.dataFormat == null ? 'channelsLast' : args.dataFormat;
     checkDataFormat(this.dataFormat);
     checkPaddingMode(this.padding);
 
@@ -366,8 +366,8 @@ export abstract class Pooling2D extends Layer {
  */
 export class MaxPooling2D extends Pooling2D {
   static className = 'MaxPooling2D';
-  constructor(config: Pooling2DLayerConfig) {
-    super(config);
+  constructor(args: Pooling2DLayerArgs) {
+    super(args);
   }
 
   protected poolingFunction(
@@ -403,8 +403,8 @@ serialization.registerClass(MaxPooling2D);
  */
 export class AveragePooling2D extends Pooling2D {
   static className = 'AveragePooling2D';
-  constructor(config: Pooling2DLayerConfig) {
-    super(config);
+  constructor(args: Pooling2DLayerArgs) {
+    super(args);
   }
 
   protected poolingFunction(
@@ -421,8 +421,8 @@ serialization.registerClass(AveragePooling2D);
  * Abstract class for different global pooling 1D layers.
  */
 export abstract class GlobalPooling1D extends Layer {
-  constructor(config: LayerConfig) {
-    super(config);
+  constructor(args: LayerArgs) {
+    super(args);
     this.inputSpec = [new InputSpec({ndim: 3})];
   }
 
@@ -444,8 +444,8 @@ export abstract class GlobalPooling1D extends Layer {
  */
 export class GlobalAveragePooling1D extends GlobalPooling1D {
   static className = 'GlobalAveragePooling1D';
-  constructor(config: LayerConfig) {
-    super(config);
+  constructor(args: LayerArgs) {
+    super(args);
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
@@ -466,8 +466,8 @@ serialization.registerClass(GlobalAveragePooling1D);
  */
 export class GlobalMaxPooling1D extends GlobalPooling1D {
   static className = 'GlobalMaxPooling1D';
-  constructor(config: LayerConfig) {
-    super(config);
+  constructor(args: LayerArgs) {
+    super(args);
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
@@ -479,7 +479,7 @@ export class GlobalMaxPooling1D extends GlobalPooling1D {
 }
 serialization.registerClass(GlobalMaxPooling1D);
 
-export interface GlobalPooling2DLayerConfig extends LayerConfig {
+export interface GlobalPooling2DLayerArgs extends LayerArgs {
   /**
    * One of `CHANNEL_LAST` (default) or `CHANNEL_FIRST`.
    *
@@ -496,10 +496,10 @@ export interface GlobalPooling2DLayerConfig extends LayerConfig {
  */
 export abstract class GlobalPooling2D extends Layer {
   protected dataFormat: DataFormat;
-  constructor(config: GlobalPooling2DLayerConfig) {
-    super(config);
+  constructor(args: GlobalPooling2DLayerArgs) {
+    super(args);
     this.dataFormat =
-        config.dataFormat == null ? 'channelsLast' : config.dataFormat;
+        args.dataFormat == null ? 'channelsLast' : args.dataFormat;
     checkDataFormat(this.dataFormat);
     this.inputSpec = [new InputSpec({ndim: 4})];
   }

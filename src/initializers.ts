@@ -80,7 +80,7 @@ export class Ones extends Initializer {
 }
 serialization.registerClass(Ones);
 
-export interface ConstantConfig {
+export interface ConstantArgs {
   /** The value for each element in the variable. */
   value: number;
 }
@@ -91,16 +91,16 @@ export interface ConstantConfig {
 export class Constant extends Initializer {
   static className = 'Constant';
   private value: number;
-  constructor(config: ConstantConfig) {
+  constructor(args: ConstantArgs) {
     super();
-    if (typeof config !== 'object') {
+    if (typeof args !== 'object') {
       throw new ValueError(
-          `Expected argument of type ConstantConfig but got ${config}`);
+          `Expected argument of type ConstantConfig but got ${args}`);
     }
-    if (config.value === undefined) {
-      throw new ValueError(`config must have value set but got ${config}`);
+    if (args.value === undefined) {
+      throw new ValueError(`config must have value set but got ${args}`);
     }
-    this.value = config.value;
+    this.value = args.value;
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
@@ -115,7 +115,7 @@ export class Constant extends Initializer {
 }
 serialization.registerClass(Constant);
 
-export interface RandomUniformConfig {
+export interface RandomUniformArgs {
   /** Lower bound of the range of random values to generate. */
   minval?: number;
   /** Upper bound of the range of random values to generate. */
@@ -139,11 +139,11 @@ export class RandomUniform extends Initializer {
   private maxval: number;
   private seed: number;
 
-  constructor(config: RandomUniformConfig) {
+  constructor(args: RandomUniformArgs) {
     super();
-    this.minval = config.minval || this.DEFAULT_MINVAL;
-    this.maxval = config.maxval || this.DEFAULT_MAXVAL;
-    this.seed = config.seed;
+    this.minval = args.minval || this.DEFAULT_MINVAL;
+    this.maxval = args.maxval || this.DEFAULT_MAXVAL;
+    this.seed = args.seed;
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
@@ -156,7 +156,7 @@ export class RandomUniform extends Initializer {
 }
 serialization.registerClass(RandomUniform);
 
-export interface RandomNormalConfig {
+export interface RandomNormalArgs {
   /** Mean of the random values to generate. */
   mean?: number;
   /** Standard deviation of the random values to generate. */
@@ -177,11 +177,11 @@ export class RandomNormal extends Initializer {
   private stddev: number;
   private seed: number;
 
-  constructor(config: RandomNormalConfig) {
+  constructor(args: RandomNormalArgs) {
     super();
-    this.mean = config.mean || this.DEFAULT_MEAN;
-    this.stddev = config.stddev || this.DEFAULT_STDDEV;
-    this.seed = config.seed;
+    this.mean = args.mean || this.DEFAULT_MEAN;
+    this.stddev = args.stddev || this.DEFAULT_STDDEV;
+    this.seed = args.seed;
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
@@ -200,7 +200,7 @@ export class RandomNormal extends Initializer {
 }
 serialization.registerClass(RandomNormal);
 
-export interface TruncatedNormalConfig {
+export interface TruncatedNormalArgs {
   /** Mean of the random values to generate. */
   mean?: number;
   /** Standard deviation of the random values to generate. */
@@ -226,11 +226,11 @@ export class TruncatedNormal extends Initializer {
   private stddev: number;
   private seed: number;
 
-  constructor(config: TruncatedNormalConfig) {
+  constructor(args: TruncatedNormalArgs) {
     super();
-    this.mean = config.mean || this.DEFAULT_MEAN;
-    this.stddev = config.stddev || this.DEFAULT_STDDEV;
-    this.seed = config.seed;
+    this.mean = args.mean || this.DEFAULT_MEAN;
+    this.stddev = args.stddev || this.DEFAULT_STDDEV;
+    this.seed = args.seed;
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
@@ -248,7 +248,7 @@ export class TruncatedNormal extends Initializer {
 }
 serialization.registerClass(TruncatedNormal);
 
-export interface IdentityConfig {
+export interface IdentityArgs {
   /**
    * Multiplicative factor to apply to the identity matrix.
    */
@@ -262,9 +262,9 @@ export interface IdentityConfig {
 export class Identity extends Initializer {
   static className = 'Identity';
   private gain: Scalar;
-  constructor(config: IdentityConfig) {
+  constructor(args: IdentityArgs) {
     super();
-    this.gain = config.gain != null ? scalar(config.gain) : getScalar(1.0);
+    this.gain = args.gain != null ? scalar(args.gain) : getScalar(1.0);
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
@@ -320,7 +320,7 @@ function computeFans(
   return [fanIn, fanOut];
 }
 
-export interface VarianceScalingConfig {
+export interface VarianceScalingArgs {
   /** Scaling factor (positive float). */
   scale: number;
 
@@ -357,18 +357,18 @@ export class VarianceScaling extends Initializer {
    * Constructor of VarianceScaling.
    * @throws ValueError for invalid value in scale.
    */
-  constructor(config: VarianceScalingConfig) {
+  constructor(args: VarianceScalingArgs) {
     super();
-    if (config.scale < 0.0) {
+    if (args.scale < 0.0) {
       throw new ValueError(
-          `scale must be a positive float. Got: ${config.scale}`);
+          `scale must be a positive float. Got: ${args.scale}`);
     }
-    this.scale = config.scale == null ? 1.0 : config.scale;
-    this.mode = config.mode;
+    this.scale = args.scale == null ? 1.0 : args.scale;
+    this.mode = args.mode;
     checkFanMode(this.mode);
-    this.distribution = config.distribution;
+    this.distribution = args.distribution;
     checkDistribution(this.distribution);
-    this.seed = config.seed;
+    this.seed = args.seed;
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
@@ -409,7 +409,7 @@ export class VarianceScaling extends Initializer {
 }
 serialization.registerClass(VarianceScaling);
 
-export interface SeedOnlyInitializerConfig {
+export interface SeedOnlyInitializerArgs {
   /** Random number generator seed. */
   seed?: number;
 }
@@ -435,12 +435,12 @@ export class GlorotUniform extends VarianceScaling {
    * @param distribution
    * @param seed
    */
-  constructor(config?: SeedOnlyInitializerConfig) {
+  constructor(args?: SeedOnlyInitializerArgs) {
     super({
       scale: 1.0,
       mode: 'fanAvg',
       distribution: 'uniform',
-      seed: config == null ? null : config.seed
+      seed: args == null ? null : args.seed
     });
   }
 
@@ -474,12 +474,12 @@ export class GlorotNormal extends VarianceScaling {
    * @param distribution
    * @param seed
    */
-  constructor(config?: SeedOnlyInitializerConfig) {
+  constructor(args?: SeedOnlyInitializerArgs) {
     super({
       scale: 1.0,
       mode: 'fanAvg',
       distribution: 'normal',
-      seed: config == null ? null : config.seed
+      seed: args == null ? null : args.seed
     });
   }
 
@@ -505,12 +505,12 @@ serialization.registerClass(GlorotNormal);
 export class HeNormal extends VarianceScaling {
   static className = 'HeNormal';
 
-  constructor(config?: SeedOnlyInitializerConfig) {
+  constructor(args?: SeedOnlyInitializerArgs) {
     super({
       scale: 2.0,
       mode: 'fanIn',
       distribution: 'normal',
-      seed: config == null ? null : config.seed
+      seed: args == null ? null : args.seed
     });
   }
 
@@ -537,12 +537,12 @@ serialization.registerClass(HeNormal);
 export class LeCunNormal extends VarianceScaling {
   static className = 'LeCunNormal';
 
-  constructor(config?: SeedOnlyInitializerConfig) {
+  constructor(args?: SeedOnlyInitializerArgs) {
     super({
       scale: 1.0,
       mode: 'fanIn',
       distribution: 'normal',
-      seed: config == null ? null : config.seed
+      seed: args == null ? null : args.seed
     });
   }
 
@@ -555,7 +555,7 @@ export class LeCunNormal extends VarianceScaling {
 }
 serialization.registerClass(LeCunNormal);
 
-export interface OrthogonalConfig extends SeedOnlyInitializerConfig {
+export interface OrthogonalArgs extends SeedOnlyInitializerArgs {
   /**
    * Multiplicative factor to apply to the orthogonal matrix. Defaults to 1.
    */
@@ -574,10 +574,10 @@ export class Orthogonal extends Initializer {
   protected readonly gain: number;
   protected readonly seed: number;
 
-  constructor(config?: OrthogonalConfig) {
+  constructor(args?: OrthogonalArgs) {
     super();
-    this.gain = config.gain == null ? this.DEFAULT_GAIN : config.gain;
-    this.seed = config.seed;
+    this.gain = args.gain == null ? this.DEFAULT_GAIN : args.gain;
+    this.seed = args.seed;
 
     if (this.seed != null) {
       throw new NotImplementedError(

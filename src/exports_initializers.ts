@@ -8,7 +8,7 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Constant, ConstantConfig, GlorotNormal, GlorotUniform, HeNormal, Identity, IdentityConfig, Initializer, LeCunNormal, Ones, Orthogonal, OrthogonalConfig, RandomNormal, RandomNormalConfig, RandomUniform, RandomUniformConfig, SeedOnlyInitializerConfig, TruncatedNormal, TruncatedNormalConfig, VarianceScaling, VarianceScalingConfig, Zeros} from './initializers';
+import {Constant, ConstantArgs, GlorotNormal, GlorotUniform, HeNormal, Identity, IdentityArgs, Initializer, LeCunNormal, Ones, Orthogonal, OrthogonalArgs, RandomNormal, RandomNormalArgs, RandomUniform, RandomUniformArgs, SeedOnlyInitializerArgs, TruncatedNormal, TruncatedNormalArgs, VarianceScaling, VarianceScalingArgs, Zeros} from './initializers';
 
 /**
  * @doc {
@@ -40,8 +40,8 @@ export function ones(): Initializer {
  *   configParamIndices: [0]
  * }
  */
-export function constant(config: ConstantConfig): Initializer {
-  return new Constant(config);
+export function constant(args: ConstantArgs): Initializer {
+  return new Constant(args);
 }
 
 /**
@@ -52,8 +52,8 @@ export function constant(config: ConstantConfig): Initializer {
  *   configParamIndices: [0]
  * }
  */
-export function randomUniform(config: RandomUniformConfig): Initializer {
-  return new RandomUniform(config);
+export function randomUniform(args: RandomUniformArgs): Initializer {
+  return new RandomUniform(args);
 }
 
 /**
@@ -64,8 +64,8 @@ export function randomUniform(config: RandomUniformConfig): Initializer {
  *   configParamIndices: [0]
  * }
  */
-export function randomNormal(config: RandomNormalConfig): Initializer {
-  return new RandomNormal(config);
+export function randomNormal(args: RandomNormalArgs): Initializer {
+  return new RandomNormal(args);
 }
 
 /**
@@ -76,8 +76,8 @@ export function randomNormal(config: RandomNormalConfig): Initializer {
  *   configParamIndices: [0]
  * }
  */
-export function truncatedNormal(config: TruncatedNormalConfig): Initializer {
-  return new TruncatedNormal(config);
+export function truncatedNormal(args: TruncatedNormalArgs): Initializer {
+  return new TruncatedNormal(args);
 }
 
 /**
@@ -88,8 +88,8 @@ export function truncatedNormal(config: TruncatedNormalConfig): Initializer {
  *   configParamIndices: [0]
  * }
  */
-export function identity(config: IdentityConfig): Initializer {
-  return new Identity(config);
+export function identity(args: IdentityArgs): Initializer {
+  return new Identity(args);
 }
 
 /**
@@ -100,7 +100,7 @@ export function identity(config: IdentityConfig): Initializer {
  *   configParamIndices: [0]
  * }
  */
-export function varianceScaling(config: VarianceScalingConfig): Initializer {
+export function varianceScaling(config: VarianceScalingArgs): Initializer {
   return new VarianceScaling(config);
 }
 
@@ -112,8 +112,8 @@ export function varianceScaling(config: VarianceScalingConfig): Initializer {
  *   configParamIndices: [0]
  * }
  */
-export function glorotUniform(config: SeedOnlyInitializerConfig): Initializer {
-  return new GlorotUniform(config);
+export function glorotUniform(args: SeedOnlyInitializerArgs): Initializer {
+  return new GlorotUniform(args);
 }
 
 /**
@@ -124,8 +124,8 @@ export function glorotUniform(config: SeedOnlyInitializerConfig): Initializer {
  *   configParamIndices: [0]
  * }
  */
-export function glorotNormal(config: SeedOnlyInitializerConfig): Initializer {
-  return new GlorotNormal(config);
+export function glorotNormal(args: SeedOnlyInitializerArgs): Initializer {
+  return new GlorotNormal(args);
 }
 
 /**
@@ -136,8 +136,8 @@ export function glorotNormal(config: SeedOnlyInitializerConfig): Initializer {
  *   configParamIndices: [0]
  * }
  */
-export function heNormal(config: SeedOnlyInitializerConfig): Initializer {
-  return new HeNormal(config);
+export function heNormal(args: SeedOnlyInitializerArgs): Initializer {
+  return new HeNormal(args);
 }
 
 /**
@@ -148,8 +148,8 @@ export function heNormal(config: SeedOnlyInitializerConfig): Initializer {
  *   configParamIndices: [0]
  * }
  */
-export function leCunNormal(config: SeedOnlyInitializerConfig): Initializer {
-  return new LeCunNormal(config);
+export function leCunNormal(args: SeedOnlyInitializerArgs): Initializer {
+  return new LeCunNormal(args);
 }
 
 /**
@@ -160,6 +160,6 @@ export function leCunNormal(config: SeedOnlyInitializerConfig): Initializer {
  *   configParamIndices: [0]
  * }
  */
-export function orthogonal(config: OrthogonalConfig): Initializer {
-  return new Orthogonal(config);
+export function orthogonal(args: OrthogonalArgs): Initializer {
+  return new Orthogonal(args);
 }

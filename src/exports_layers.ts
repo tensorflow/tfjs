@@ -8,20 +8,20 @@
  * =============================================================================
  */
 
-import {InputLayer, InputLayerConfig} from './engine/input_layer';
-import {Layer, LayerConfig} from './engine/topology';
+import {InputLayer, InputLayerArgs} from './engine/input_layer';
+import {Layer, LayerArgs} from './engine/topology';
 import {input} from './exports';
-import {ELU, ELULayerConfig, LeakyReLU, LeakyReLULayerConfig, ReLU, ReLULayerConfig, Softmax, SoftmaxLayerConfig, ThresholdedReLU, ThresholdedReLULayerConfig, PReLULayerConfig, PReLU} from './layers/advanced_activations';
-import {Conv1D, Conv2D, Conv2DTranspose, ConvLayerConfig, Cropping2D, Cropping2DLayerConfig, SeparableConv2D, SeparableConvLayerConfig, UpSampling2D, UpSampling2DLayerConfig} from './layers/convolutional';
-import {DepthwiseConv2D, DepthwiseConv2DLayerConfig} from './layers/convolutional_depthwise';
-import {Activation, ActivationLayerConfig, Dense, DenseLayerConfig, Dropout, DropoutLayerConfig, Flatten, Permute, PermuteLayerConfig, RepeatVector, RepeatVectorLayerConfig, Reshape, ReshapeLayerConfig} from './layers/core';
-import {Embedding, EmbeddingLayerConfig} from './layers/embeddings';
-import {Add, Average, Concatenate, ConcatenateLayerConfig, Dot, DotLayerConfig, Maximum, Minimum, Multiply} from './layers/merge';
-import {BatchNormalization, BatchNormalizationLayerConfig} from './layers/normalization';
-import {ZeroPadding2D, ZeroPadding2DLayerConfig} from './layers/padding';
-import {AveragePooling1D, AveragePooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerConfig, MaxPooling1D, MaxPooling2D, Pooling1DLayerConfig, Pooling2DLayerConfig} from './layers/pooling';
-import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCellLayerConfig, LSTMLayerConfig, RNN, RNNCell, RNNLayerConfig, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig, StackedRNNCells, StackedRNNCellsConfig} from './layers/recurrent';
-import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, Wrapper, WrapperLayerConfig} from './layers/wrappers';
+import {ELU, ELULayerArgs, LeakyReLU, LeakyReLULayerArgs, PReLU, PReLULayerArgs, ReLU, ReLULayerArgs, Softmax, SoftmaxLayerArgs, ThresholdedReLU, ThresholdedReLULayerArgs} from './layers/advanced_activations';
+import {Conv1D, Conv2D, Conv2DTranspose, ConvLayerArgs, Cropping2D, Cropping2DLayerArgs, SeparableConv2D, SeparableConvLayerArgs, UpSampling2D, UpSampling2DLayerArgs} from './layers/convolutional';
+import {DepthwiseConv2D, DepthwiseConv2DLayerArgs} from './layers/convolutional_depthwise';
+import {Activation, ActivationLayerArgs, Dense, DenseLayerArgs, Dropout, DropoutLayerArgs, Flatten, Permute, PermuteLayerArgs, RepeatVector, RepeatVectorLayerArgs, Reshape, ReshapeLayerArgs} from './layers/core';
+import {Embedding, EmbeddingLayerArgs} from './layers/embeddings';
+import {Add, Average, Concatenate, ConcatenateLayerArgs, Dot, DotLayerArgs, Maximum, Minimum, Multiply} from './layers/merge';
+import {BatchNormalization, BatchNormalizationLayerArgs} from './layers/normalization';
+import {ZeroPadding2D, ZeroPadding2DLayerArgs} from './layers/padding';
+import {AveragePooling1D, AveragePooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerArgs, MaxPooling1D, MaxPooling2D, Pooling1DLayerArgs, Pooling2DLayerArgs} from './layers/pooling';
+import {GRU, GRUCell, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNCell, RNNLayerArgs, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs, StackedRNNCells, StackedRNNCellsArgs} from './layers/recurrent';
+import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, Wrapper, WrapperLayerArgs} from './layers/wrappers';
 
 
 // TODO(cais): Add doc string to all the public static functions in this
@@ -38,8 +38,8 @@ import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, Wrapper, Wrapp
  *   configParamIndices: [0]
  * }
  */
-export function inputLayer(config: InputLayerConfig): Layer {
-  return new InputLayer(config);
+export function inputLayer(args: InputLayerArgs): Layer {
+  return new InputLayer(args);
 }
 
 // Advanced Activation Layers.
@@ -53,8 +53,8 @@ export function inputLayer(config: InputLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function elu(config?: ELULayerConfig): Layer {
-  return new ELU(config);
+export function elu(args?: ELULayerArgs): Layer {
+  return new ELU(args);
 }
 
 /**
@@ -66,8 +66,8 @@ export function elu(config?: ELULayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function reLU(config?: ReLULayerConfig): Layer {
-  return new ReLU(config);
+export function reLU(args?: ReLULayerArgs): Layer {
+  return new ReLU(args);
 }
 
 /**
@@ -79,8 +79,8 @@ export function reLU(config?: ReLULayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function leakyReLU(config?: LeakyReLULayerConfig): Layer {
-  return new LeakyReLU(config);
+export function leakyReLU(args?: LeakyReLULayerArgs): Layer {
+  return new LeakyReLU(args);
 }
 
 /**
@@ -92,8 +92,8 @@ export function leakyReLU(config?: LeakyReLULayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function prelu(config?: PReLULayerConfig): Layer {
-  return new PReLU(config);
+export function prelu(args?: PReLULayerArgs): Layer {
+  return new PReLU(args);
 }
 
 /**
@@ -105,8 +105,8 @@ export function prelu(config?: PReLULayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function softmax(config?: SoftmaxLayerConfig): Layer {
-  return new Softmax(config);
+export function softmax(args?: SoftmaxLayerArgs): Layer {
+  return new Softmax(args);
 }
 
 /**
@@ -118,8 +118,8 @@ export function softmax(config?: SoftmaxLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function thresholdedReLU(config?: ThresholdedReLULayerConfig): Layer {
-  return new ThresholdedReLU(config);
+export function thresholdedReLU(args?: ThresholdedReLULayerArgs): Layer {
+  return new ThresholdedReLU(args);
 }
 
 // Convolutional Layers.
@@ -133,8 +133,8 @@ export function thresholdedReLU(config?: ThresholdedReLULayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function conv1d(config: ConvLayerConfig): Layer {
-  return new Conv1D(config);
+export function conv1d(args: ConvLayerArgs): Layer {
+  return new Conv1D(args);
 }
 
 /**
@@ -146,8 +146,8 @@ export function conv1d(config: ConvLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function conv2d(config: ConvLayerConfig): Layer {
-  return new Conv2D(config);
+export function conv2d(args: ConvLayerArgs): Layer {
+  return new Conv2D(args);
 }
 
 /**
@@ -159,8 +159,8 @@ export function conv2d(config: ConvLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function conv2dTranspose(config: ConvLayerConfig): Layer {
-  return new Conv2DTranspose(config);
+export function conv2dTranspose(args: ConvLayerArgs): Layer {
+  return new Conv2DTranspose(args);
 }
 
 /**
@@ -172,8 +172,8 @@ export function conv2dTranspose(config: ConvLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function separableConv2d(config: SeparableConvLayerConfig): Layer {
-  return new SeparableConv2D(config);
+export function separableConv2d(args: SeparableConvLayerArgs): Layer {
+  return new SeparableConv2D(args);
 }
 
 /**
@@ -185,8 +185,8 @@ export function separableConv2d(config: SeparableConvLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function cropping2D(config: Cropping2DLayerConfig): Layer {
-  return new Cropping2D(config);
+export function cropping2D(args: Cropping2DLayerArgs): Layer {
+  return new Cropping2D(args);
 }
 
 /**
@@ -198,8 +198,8 @@ export function cropping2D(config: Cropping2DLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function upSampling2d(config: UpSampling2DLayerConfig): Layer {
-  return new UpSampling2D(config);
+export function upSampling2d(args: UpSampling2DLayerArgs): Layer {
+  return new UpSampling2D(args);
 }
 
 // Convolutional(depthwise) Layers.
@@ -214,8 +214,8 @@ export function upSampling2d(config: UpSampling2DLayerConfig): Layer {
  * }
  */
 
-export function depthwiseConv2d(config: DepthwiseConv2DLayerConfig): Layer {
-  return new DepthwiseConv2D(config);
+export function depthwiseConv2d(args: DepthwiseConv2DLayerArgs): Layer {
+  return new DepthwiseConv2D(args);
 }
 
 // Basic Layers.
@@ -229,8 +229,8 @@ export function depthwiseConv2d(config: DepthwiseConv2DLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function activation(config: ActivationLayerConfig): Layer {
-  return new Activation(config);
+export function activation(args: ActivationLayerArgs): Layer {
+  return new Activation(args);
 }
 
 /**
@@ -242,8 +242,8 @@ export function activation(config: ActivationLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function dense(config: DenseLayerConfig): Layer {
-  return new Dense(config);
+export function dense(args: DenseLayerArgs): Layer {
+  return new Dense(args);
 }
 
 /**
@@ -255,8 +255,8 @@ export function dense(config: DenseLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function dropout(config: DropoutLayerConfig): Layer {
-  return new Dropout(config);
+export function dropout(args: DropoutLayerArgs): Layer {
+  return new Dropout(args);
 }
 
 /**
@@ -268,8 +268,8 @@ export function dropout(config: DropoutLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function flatten(config?: LayerConfig): Layer {
-  return new Flatten(config);
+export function flatten(args?: LayerArgs): Layer {
+  return new Flatten(args);
 }
 
 /**
@@ -281,8 +281,8 @@ export function flatten(config?: LayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function repeatVector(config: RepeatVectorLayerConfig): Layer {
-  return new RepeatVector(config);
+export function repeatVector(args: RepeatVectorLayerArgs): Layer {
+  return new RepeatVector(args);
 }
 
 /**
@@ -294,8 +294,8 @@ export function repeatVector(config: RepeatVectorLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function reshape(config: ReshapeLayerConfig): Layer {
-  return new Reshape(config);
+export function reshape(args: ReshapeLayerArgs): Layer {
+  return new Reshape(args);
 }
 
 /**
@@ -307,8 +307,8 @@ export function reshape(config: ReshapeLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function permute(config: PermuteLayerConfig): Layer {
-  return new Permute(config);
+export function permute(args: PermuteLayerArgs): Layer {
+  return new Permute(args);
 }
 
 /**
@@ -320,8 +320,8 @@ export function permute(config: PermuteLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function embedding(config: EmbeddingLayerConfig): Layer {
-  return new Embedding(config);
+export function embedding(args: EmbeddingLayerArgs): Layer {
+  return new Embedding(args);
 }
 
 // Merge Layers.
@@ -335,8 +335,8 @@ export function embedding(config: EmbeddingLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function add(config?: LayerConfig): Layer {
-  return new Add(config);
+export function add(args?: LayerArgs): Layer {
+  return new Add(args);
 }
 
 /**
@@ -348,8 +348,8 @@ export function add(config?: LayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function average(config?: LayerConfig): Layer {
-  return new Average(config);
+export function average(args?: LayerArgs): Layer {
+  return new Average(args);
 }
 
 /**
@@ -361,8 +361,8 @@ export function average(config?: LayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function concatenate(config?: ConcatenateLayerConfig): Layer {
-  return new Concatenate(config);
+export function concatenate(args?: ConcatenateLayerArgs): Layer {
+  return new Concatenate(args);
 }
 
 /**
@@ -374,8 +374,8 @@ export function concatenate(config?: ConcatenateLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function maximum(config?: LayerConfig): Layer {
-  return new Maximum(config);
+export function maximum(args?: LayerArgs): Layer {
+  return new Maximum(args);
 }
 
 /**
@@ -387,8 +387,8 @@ export function maximum(config?: LayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function minimum(config?: LayerConfig): Layer {
-  return new Minimum(config);
+export function minimum(args?: LayerArgs): Layer {
+  return new Minimum(args);
 }
 
 /**
@@ -400,8 +400,8 @@ export function minimum(config?: LayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function multiply(config?: LayerConfig): Layer {
-  return new Multiply(config);
+export function multiply(args?: LayerArgs): Layer {
+  return new Multiply(args);
 }
 
 /**
@@ -413,8 +413,8 @@ export function multiply(config?: LayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function dot(config: DotLayerConfig): Layer {
-  return new Dot(config);
+export function dot(args: DotLayerArgs): Layer {
+  return new Dot(args);
 }
 
 // Normalization Layers.
@@ -428,9 +428,8 @@ export function dot(config: DotLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function batchNormalization(config?: BatchNormalizationLayerConfig):
-    Layer {
-  return new BatchNormalization(config);
+export function batchNormalization(args?: BatchNormalizationLayerArgs): Layer {
+  return new BatchNormalization(args);
 }
 
 // Padding Layers.
@@ -444,8 +443,8 @@ export function batchNormalization(config?: BatchNormalizationLayerConfig):
  *   configParamIndices: [0]
  * }
  */
-export function zeroPadding2d(config?: ZeroPadding2DLayerConfig): Layer {
-  return new ZeroPadding2D(config);
+export function zeroPadding2d(args?: ZeroPadding2DLayerArgs): Layer {
+  return new ZeroPadding2D(args);
 }
 
 // Pooling Layers.
@@ -458,16 +457,16 @@ export function zeroPadding2d(config?: ZeroPadding2DLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function averagePooling1d(config: Pooling1DLayerConfig): Layer {
-  return new AveragePooling1D(config);
+export function averagePooling1d(args: Pooling1DLayerArgs): Layer {
+  return new AveragePooling1D(args);
 }
-export function avgPool1d(config: Pooling1DLayerConfig): Layer {
-  return averagePooling1d(config);
+export function avgPool1d(args: Pooling1DLayerArgs): Layer {
+  return averagePooling1d(args);
 }
 // For backwards compatibility.
 // See https://github.com/tensorflow/tfjs/issues/152
-export function avgPooling1d(config: Pooling1DLayerConfig): Layer {
-  return averagePooling1d(config);
+export function avgPooling1d(args: Pooling1DLayerArgs): Layer {
+  return averagePooling1d(args);
 }
 
 /**
@@ -479,16 +478,16 @@ export function avgPooling1d(config: Pooling1DLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function averagePooling2d(config: Pooling2DLayerConfig): Layer {
-  return new AveragePooling2D(config);
+export function averagePooling2d(args: Pooling2DLayerArgs): Layer {
+  return new AveragePooling2D(args);
 }
-export function avgPool2d(config: Pooling2DLayerConfig): Layer {
-  return averagePooling2d(config);
+export function avgPool2d(args: Pooling2DLayerArgs): Layer {
+  return averagePooling2d(args);
 }
 // For backwards compatibility.
 // See https://github.com/tensorflow/tfjs/issues/152
-export function avgPooling2d(config: Pooling2DLayerConfig): Layer {
-  return averagePooling2d(config);
+export function avgPooling2d(args: Pooling2DLayerArgs): Layer {
+  return averagePooling2d(args);
 }
 
 /**
@@ -500,8 +499,8 @@ export function avgPooling2d(config: Pooling2DLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function globalAveragePooling1d(config: LayerConfig): Layer {
-  return new GlobalAveragePooling1D(config);
+export function globalAveragePooling1d(args: LayerArgs): Layer {
+  return new GlobalAveragePooling1D(args);
 }
 
 /**
@@ -513,9 +512,8 @@ export function globalAveragePooling1d(config: LayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function globalAveragePooling2d(config: GlobalPooling2DLayerConfig):
-    Layer {
-  return new GlobalAveragePooling2D(config);
+export function globalAveragePooling2d(args: GlobalPooling2DLayerArgs): Layer {
+  return new GlobalAveragePooling2D(args);
 }
 
 /**
@@ -527,8 +525,8 @@ export function globalAveragePooling2d(config: GlobalPooling2DLayerConfig):
  *   configParamIndices: [0]
  * }
  */
-export function globalMaxPooling1d(config: LayerConfig): Layer {
-  return new GlobalMaxPooling1D(config);
+export function globalMaxPooling1d(args: LayerArgs): Layer {
+  return new GlobalMaxPooling1D(args);
 }
 
 /**
@@ -540,8 +538,8 @@ export function globalMaxPooling1d(config: LayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function globalMaxPooling2d(config: GlobalPooling2DLayerConfig): Layer {
-  return new GlobalMaxPooling2D(config);
+export function globalMaxPooling2d(args: GlobalPooling2DLayerArgs): Layer {
+  return new GlobalMaxPooling2D(args);
 }
 
 /**
@@ -553,8 +551,8 @@ export function globalMaxPooling2d(config: GlobalPooling2DLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function maxPooling1d(config: Pooling1DLayerConfig): Layer {
-  return new MaxPooling1D(config);
+export function maxPooling1d(args: Pooling1DLayerArgs): Layer {
+  return new MaxPooling1D(args);
 }
 
 /**
@@ -566,8 +564,8 @@ export function maxPooling1d(config: Pooling1DLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function maxPooling2d(config: Pooling2DLayerConfig): Layer {
-  return new MaxPooling2D(config);
+export function maxPooling2d(args: Pooling2DLayerArgs): Layer {
+  return new MaxPooling2D(args);
 }
 
 // Recurrent Layers.
@@ -581,8 +579,8 @@ export function maxPooling2d(config: Pooling2DLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function gru(config: GRULayerConfig): Layer {
-  return new GRU(config);
+export function gru(args: GRULayerArgs): Layer {
+  return new GRU(args);
 }
 
 /**
@@ -594,8 +592,8 @@ export function gru(config: GRULayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function gruCell(config: GRUCellLayerConfig): RNNCell {
-  return new GRUCell(config);
+export function gruCell(args: GRUCellLayerArgs): RNNCell {
+  return new GRUCell(args);
 }
 
 /**
@@ -607,8 +605,8 @@ export function gruCell(config: GRUCellLayerConfig): RNNCell {
  *   configParamIndices: [0]
  * }
  */
-export function lstm(config: LSTMLayerConfig): Layer {
-  return new LSTM(config);
+export function lstm(args: LSTMLayerArgs): Layer {
+  return new LSTM(args);
 }
 
 /**
@@ -620,8 +618,8 @@ export function lstm(config: LSTMLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function lstmCell(config: LSTMCellLayerConfig): RNNCell {
-  return new LSTMCell(config);
+export function lstmCell(args: LSTMCellLayerArgs): RNNCell {
+  return new LSTMCell(args);
 }
 
 /**
@@ -633,8 +631,8 @@ export function lstmCell(config: LSTMCellLayerConfig): RNNCell {
  *   configParamIndices: [0]
  * }
  */
-export function simpleRNN(config: SimpleRNNLayerConfig): Layer {
-  return new SimpleRNN(config);
+export function simpleRNN(args: SimpleRNNLayerArgs): Layer {
+  return new SimpleRNN(args);
 }
 
 /**
@@ -646,8 +644,8 @@ export function simpleRNN(config: SimpleRNNLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function simpleRNNCell(config: SimpleRNNCellLayerConfig): RNNCell {
-  return new SimpleRNNCell(config);
+export function simpleRNNCell(args: SimpleRNNCellLayerArgs): RNNCell {
+  return new SimpleRNNCell(args);
 }
 
 /**
@@ -659,8 +657,8 @@ export function simpleRNNCell(config: SimpleRNNCellLayerConfig): RNNCell {
  *   configParamIndices: [0]
  * }
  */
-export function rnn(config: RNNLayerConfig): Layer {
-  return new RNN(config);
+export function rnn(args: RNNLayerArgs): Layer {
+  return new RNN(args);
 }
 
 /**
@@ -672,8 +670,8 @@ export function rnn(config: RNNLayerConfig): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function stackedRNNCells(config: StackedRNNCellsConfig): RNNCell {
-  return new StackedRNNCells(config);
+export function stackedRNNCells(args: StackedRNNCellsArgs): RNNCell {
+  return new StackedRNNCells(args);
 }
 
 // Wrapper Layers.
@@ -687,8 +685,8 @@ export function stackedRNNCells(config: StackedRNNCellsConfig): RNNCell {
  *   configParamIndices: [0]
  * }
  */
-export function bidirectional(config: BidirectionalLayerConfig): Wrapper {
-  return new Bidirectional(config);
+export function bidirectional(args: BidirectionalLayerArgs): Wrapper {
+  return new Bidirectional(args);
 }
 
 /**
@@ -700,8 +698,8 @@ export function bidirectional(config: BidirectionalLayerConfig): Wrapper {
  *   configParamIndices: [0]
  * }
  */
-export function timeDistributed(config: WrapperLayerConfig): Layer {
-  return new TimeDistributed(config);
+export function timeDistributed(args: WrapperLayerArgs): Layer {
+  return new TimeDistributed(args);
 }
 
 // Aliases for pooling.

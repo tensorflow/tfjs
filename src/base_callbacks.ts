@@ -469,7 +469,7 @@ export class History extends BaseCallback {
   }
 }
 
-export interface CustomCallbackConfig {
+export interface CustomCallbackArgs {
   onTrainBegin?: (logs?: Logs) => Promise<void>;
   onTrainEnd?: (logs?: Logs) => Promise<void>;
   onEpochBegin?: (epoch: number, logs?: Logs) => Promise<void>;
@@ -489,14 +489,14 @@ export class CustomCallback extends BaseCallback {
   protected readonly batchBegin: (batch: number, logs?: Logs) => Promise<void>;
   protected readonly batchEnd: (batch: number, logs?: Logs) => Promise<void>;
 
-  constructor(config: CustomCallbackConfig) {
+  constructor(args: CustomCallbackArgs) {
     super();
-    this.trainBegin = config.onTrainBegin;
-    this.trainEnd = config.onTrainEnd;
-    this.epochBegin = config.onEpochBegin;
-    this.epochEnd = config.onEpochEnd;
-    this.batchBegin = config.onBatchBegin;
-    this.batchEnd = config.onBatchEnd;
+    this.trainBegin = args.onTrainBegin;
+    this.trainEnd = args.onTrainEnd;
+    this.epochBegin = args.onEpochBegin;
+    this.epochEnd = args.onEpochEnd;
+    this.batchBegin = args.onBatchBegin;
+    this.batchEnd = args.onBatchEnd;
   }
 
   async onEpochBegin(epoch: number, logs?: UnresolvedLogs): Promise<void> {
@@ -546,8 +546,8 @@ export class CustomCallback extends BaseCallback {
  * Standardize callbacks or configurations of them to an Array of callbacks.
  */
 export function standardizeCallbacks(callbacks: BaseCallback|BaseCallback[]|
-                                     CustomCallbackConfig|
-                                     CustomCallbackConfig[]): BaseCallback[] {
+                                     CustomCallbackArgs|
+                                     CustomCallbackArgs[]): BaseCallback[] {
   if (callbacks == null) {
     return null;
   }
@@ -559,7 +559,7 @@ export function standardizeCallbacks(callbacks: BaseCallback|BaseCallback[]|
   }
   // Convert custom callback configs to custom callback objects.
   const callbackConfigs =
-      generic_utils.toList(callbacks) as CustomCallbackConfig[];
+      generic_utils.toList(callbacks) as CustomCallbackArgs[];
   return callbackConfigs.map(
       callbackConfig => new CustomCallback(callbackConfig));
 }

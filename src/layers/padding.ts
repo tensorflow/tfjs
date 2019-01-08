@@ -20,7 +20,7 @@ import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import {imageDataFormat} from '../backend/common';
 import {DataFormat} from '../common';
-import {InputSpec, Layer, LayerConfig} from '../engine/topology';
+import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {ValueError} from '../errors';
 import {Kwargs, Shape} from '../types';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
@@ -106,7 +106,7 @@ export function spatial2dPadding(
   });
 }
 
-export interface ZeroPadding2DLayerConfig extends LayerConfig {
+export interface ZeroPadding2DLayerArgs extends LayerArgs {
   /**
    * Integer, or `Array` of 2 integers, or `Array` of 2 `Array`s, each of
    * which is an `Array` of 2 integers.
@@ -156,53 +156,51 @@ export class ZeroPadding2D extends Layer {
   readonly dataFormat: DataFormat;
   readonly padding: [[number, number], [number, number]];
 
-  constructor(config?: ZeroPadding2DLayerConfig) {
-    if (config == null) {
-      config = {};
+  constructor(args?: ZeroPadding2DLayerArgs) {
+    if (args == null) {
+      args = {};
     }
-    super(config);
+    super(args);
 
     this.dataFormat =
-        config.dataFormat == null ? imageDataFormat() : config.dataFormat;
+        args.dataFormat == null ? imageDataFormat() : args.dataFormat;
     // TODO(cais): Maybe refactor the following logic surrounding `padding`
     //   into a helper method.
-    if (config.padding == null) {
+    if (args.padding == null) {
       this.padding = [[1, 1], [1, 1]];
-    } else if (typeof config.padding === 'number') {
+    } else if (typeof args.padding === 'number') {
       this.padding =
-          [[config.padding, config.padding], [config.padding, config.padding]];
+          [[args.padding, args.padding], [args.padding, args.padding]];
     } else {
-      config.padding = config.padding as [number, number] |
+      args.padding = args.padding as [number, number] |
           [[number, number], [number, number]];
-      if (config.padding.length !== 2) {
+      if (args.padding.length !== 2) {
         throw new ValueError(
             `ZeroPadding2D expects padding to be a length-2 array, but ` +
-            `received a length-${config.padding.length} array.`);
+            `received a length-${args.padding.length} array.`);
       }
 
       let heightPadding: [number, number];
       let widthPadding: [number, number];
-      if (typeof config.padding[0] === 'number') {
-        heightPadding =
-            [config.padding[0] as number, config.padding[0] as number];
-        widthPadding =
-            [config.padding[1] as number, config.padding[1] as number];
+      if (typeof args.padding[0] === 'number') {
+        heightPadding = [args.padding[0] as number, args.padding[0] as number];
+        widthPadding = [args.padding[1] as number, args.padding[1] as number];
       } else {
-        config.padding = config.padding as [[number, number], [number, number]];
+        args.padding = args.padding as [[number, number], [number, number]];
 
-        if (config.padding[0].length !== 2) {
+        if (args.padding[0].length !== 2) {
           throw new ValueError(
               `ZeroPadding2D expects height padding to be a length-2 array, ` +
-              `but received a length-${config.padding[0].length} array.`);
+              `but received a length-${args.padding[0].length} array.`);
         }
-        heightPadding = config.padding[0] as [number, number];
+        heightPadding = args.padding[0] as [number, number];
 
-        if (config.padding[1].length !== 2) {
+        if (args.padding[1].length !== 2) {
           throw new ValueError(
               `ZeroPadding2D expects width padding to be a length-2 array, ` +
-              `but received a length-${config.padding[1].length} array.`);
+              `but received a length-${args.padding[1].length} array.`);
         }
-        widthPadding = config.padding[1] as [number, number];
+        widthPadding = args.padding[1] as [number, number];
       }
       this.padding = [heightPadding, widthPadding];
     }

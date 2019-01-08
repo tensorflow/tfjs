@@ -16,12 +16,12 @@ import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../uti
 import {LayerVariable, onesVariable, zerosVariable} from '../variables';
 
 import {loadWeightsFromJson, loadWeightsFromNamedTensorMap} from './container';
-import {InputSpec, Layer, LayerConfig, Node} from './topology';
+import {InputSpec, Layer, LayerArgs, Node} from './topology';
 
 class LayerForTest extends tfl.layers.Layer {
   static className = 'LayerForTest';
-  constructor(config: LayerConfig) {
-    super(config);
+  constructor(args: LayerArgs) {
+    super(args);
   }
 }
 
@@ -299,8 +299,8 @@ describeMathCPU('Layer', () => {
     it('Layer with duplicate weight names throws error', () => {
       class LayerForTest extends tfl.layers.Layer {
         static className = 'LayerForTest';
-        constructor(config: LayerConfig) {
-          super(config);
+        constructor(args: LayerArgs) {
+          super(args);
           this.addWeight(
               'foo', [1, 2], 'float32', initializers.getInitializer('zeros'));
           this.addWeight(

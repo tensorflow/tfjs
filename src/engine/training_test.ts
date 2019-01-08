@@ -16,7 +16,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {abs, mean, memory, mul, NamedTensorMap, ones, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, util, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
-import {CustomCallback, CustomCallbackConfig, ModelTrainingYielder, Params} from '../base_callbacks';
+import {CustomCallback, CustomCallbackArgs, ModelTrainingYielder, Params} from '../base_callbacks';
 import * as tfl from '../index';
 import * as logs from '../logs';
 import {Logs, UnresolvedLogs} from '../logs';
@@ -1017,12 +1017,12 @@ describeMathCPUAndGPU('Model.fit', () => {
         newWeightsValue2, tensor2d(expectedValueArray2, [inputSize2, 1]));
   });
 
-  const isCustomCallbackConfig = [false, true];
+  const isCustomCallbackArgs = [false, true];
   const isCustomCallbackArray = [false, true];
-  for (const isConfig of isCustomCallbackConfig) {
+  for (const isArgs of isCustomCallbackArgs) {
     for (const isArray of isCustomCallbackArray) {
       const testTitle = `Fit with custom callback object: isConfig=${
-          isConfig}, isArray=${isArray}`;
+          isArgs}, isArray=${isArray}`;
       it(testTitle, async () => {
         createDenseModelAndData();
         const trainBeginLogs: Logs[] = [];
@@ -1033,7 +1033,7 @@ describeMathCPUAndGPU('Model.fit', () => {
         const batchEndBatches: number[] = [];
         const batchEndLosses: number[] = [];
         const epochEndLosses: number[] = [];
-        const customCallbackConfig: CustomCallbackConfig = {
+        const customCallbackArgs: CustomCallbackArgs = {
           onTrainBegin: async (logs?: Logs) => {
             trainBeginLogs.push(logs);
           },
@@ -1055,9 +1055,8 @@ describeMathCPUAndGPU('Model.fit', () => {
             batchEndLosses.push(logs['loss']);
           }
         };
-        const customCallback = isConfig ?
-            customCallbackConfig :
-            new CustomCallback(customCallbackConfig);
+        const customCallback = isArgs ? customCallbackArgs :
+                                        new CustomCallback(customCallbackArgs);
         model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
         await model.fit(inputs, targets, {
           batchSize: 2,

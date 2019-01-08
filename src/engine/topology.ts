@@ -30,7 +30,7 @@ export type Op = (x: LayerVariable) => LayerVariable;
 /**
  * Constructor arguments for InputSpec.
  */
-export interface InputSpecConfig {
+export interface InputSpecArgs {
   /** Expected datatype of the input. */
   dtype?: DataType;
   /** Expected shape of the input (may include null for unchecked axes). */
@@ -68,21 +68,21 @@ export class InputSpec {
   /** Dictionary mapping integer axes to a specific dimension value. */
   axes?: {[axis: number]: number};
 
-  constructor(config: InputSpecConfig) {
-    this.dtype = config.dtype;
-    this.shape = config.shape;
+  constructor(args: InputSpecArgs) {
+    this.dtype = args.dtype;
+    this.shape = args.shape;
     /*
       TODO(michaelterry): Could throw error if ndim and shape are both defined
         (then backport).
     */
-    if (config.shape != null) {
-      this.ndim = config.shape.length;
+    if (args.shape != null) {
+      this.ndim = args.shape.length;
     } else {
-      this.ndim = config.ndim;
+      this.ndim = args.ndim;
     }
-    this.maxNDim = config.maxNDim;
-    this.minNDim = config.minNDim;
-    this.axes = config.axes || {};
+    this.maxNDim = args.maxNDim;
+    this.minNDim = args.minNDim;
+    this.axes = args.axes || {};
   }
 }
 
@@ -145,7 +145,7 @@ export class SymbolicTensor {
 /**
  * Constructor arguments for Node.
  */
-export interface NodeConfig {
+export interface NodeArgs {
   /**
    * The layer that takes `inputTensors` and turns them into `outputTensors`.
    * (the node gets created when the `call` method of the layer is called).
@@ -262,7 +262,7 @@ export class Node {
   readonly id: number;
 
   constructor(
-      config: NodeConfig,
+      args: NodeArgs,
       // TODO(michaelterry): Define actual type for this.
       public callArgs?: Kwargs) {
     this.id = _nextNodeID++;
@@ -273,7 +273,7 @@ export class Node {
       the current node will be added to
       the inboundNodes of outboundLayer.
     */
-    this.outboundLayer = config.outboundLayer;
+    this.outboundLayer = args.outboundLayer;
 
     /*
         The following 3 properties describe where
@@ -283,11 +283,11 @@ export class Node {
     */
 
     // List of layer instances.
-    this.inboundLayers = config.inboundLayers;
+    this.inboundLayers = args.inboundLayers;
     // List of integers, 1:1 mapping with inboundLayers.
-    this.nodeIndices = config.nodeIndices;
+    this.nodeIndices = args.nodeIndices;
     // List of integers, 1:1 mapping with inboundLayers.
-    this.tensorIndices = config.tensorIndices;
+    this.tensorIndices = args.tensorIndices;
 
     /*
         Following 2 properties:
@@ -295,32 +295,32 @@ export class Node {
     */
 
     // List of tensors. 1:1 mapping with inboundLayers.
-    this.inputTensors = config.inputTensors;
+    this.inputTensors = args.inputTensors;
     // List of tensors, created by outboundLayer.call().
-    this.outputTensors = config.outputTensors;
+    this.outputTensors = args.outputTensors;
 
     /*
         Following 2 properties: input and output masks.
         List of tensors, 1:1 mapping with inputTensor.
     */
-    this.inputMasks = config.inputMasks;
+    this.inputMasks = args.inputMasks;
     // List of tensors, created by outboundLayer.computeMask().
-    this.outputMasks = config.outputMasks;
+    this.outputMasks = args.outputMasks;
 
     // Following 2 properties: input and output shapes.
 
     // List of shape tuples, shapes of inputTensors.
-    this.inputShapes = config.inputShapes;
+    this.inputShapes = args.inputShapes;
     // List of shape tuples, shapes of outputTensors.
-    this.outputShapes = config.outputShapes;
+    this.outputShapes = args.outputShapes;
 
     // Add nodes to all layers involved.
-    for (const layer of config.inboundLayers) {
+    for (const layer of args.inboundLayers) {
       if (layer != null) {
         layer.outboundNodes.push(this);
       }
     }
-    config.outboundLayer.inboundNodes.push(this);
+    args.outboundLayer.inboundNodes.push(this);
   }
 
   getConfig(): serialization.ConfigDict {
@@ -342,7 +342,7 @@ export class Node {
 }
 
 /** Constructor arguments for Layer. */
-export interface LayerConfig {
+export interface LayerArgs {
   /**
    * If defined, will be used to create an input layer to insert before this
    * layer. If both `inputShape` and `batchInputShape` are defined,
@@ -450,7 +450,7 @@ export abstract class Layer extends serialization.Serializable {
   // during model loading.
   private fastWeightInitDuringBuild: boolean;
 
-  constructor(config: LayerConfig) {
+  constructor(args: LayerArgs) {
     super();
     this.id = _nextLayerID++;
 
@@ -473,37 +473,37 @@ export abstract class Layer extends serialization.Serializable {
     this.inboundNodes = [];
     this.outboundNodes = [];
 
-    let name = config.name;
+    let name = args.name;
     if (!name) {
       const prefix = this.getClassName();
       name = generic_utils.toSnakeCase(prefix) + '_' + getUid(prefix);
     }
     this.name = name;
 
-    this.trainable = config.trainable == null ? true : config.trainable;
-    this.updatable = config.updatable == null ? true : config.updatable;
+    this.trainable = args.trainable == null ? true : args.trainable;
+    this.updatable = args.updatable == null ? true : args.updatable;
 
-    if (config.inputShape != null || config.batchInputShape != null) {
+    if (args.inputShape != null || args.batchInputShape != null) {
       /*
         In this case we will later create an input layer
         to insert before the current layer
        */
       let batchInputShape: Shape;
-      if (config.batchInputShape != null) {
-        batchInputShape = config.batchInputShape;
-      } else if (config.inputShape != null) {
+      if (args.batchInputShape != null) {
+        batchInputShape = args.batchInputShape;
+      } else if (args.inputShape != null) {
         let batchSize: number = null;
-        if (config.batchSize != null) {
-          batchSize = config.batchSize;
+        if (args.batchSize != null) {
+          batchSize = args.batchSize;
         }
-        batchInputShape = [batchSize].concat(config.inputShape);
+        batchInputShape = [batchSize].concat(args.inputShape);
       }
       this.batchInputShape = batchInputShape;
 
       // Set dtype.
-      let dtype = config.dtype;
+      let dtype = args.dtype;
       if (dtype == null) {
-        dtype = config.inputDType;
+        dtype = args.inputDType;
       }
       if (dtype == null) {
         dtype = 'float32';
@@ -511,8 +511,8 @@ export abstract class Layer extends serialization.Serializable {
       this.dtype = dtype;
     }
 
-    if (config.weights != null) {
-      this.initialWeights = config.weights;
+    if (args.weights != null) {
+      this.initialWeights = args.weights;
     } else {
       this.initialWeights = null;
     }
@@ -1274,8 +1274,8 @@ export abstract class Layer extends serialization.Serializable {
       initializer = getInitializer('zeros');
     }
     const initValue = initializer.apply(shape, dtype);
-    const weight = new LayerVariable(
-        initValue, dtype, name, trainable, constraint);
+    const weight =
+        new LayerVariable(initValue, dtype, name, trainable, constraint);
     initValue.dispose();
     // Request backend not to dispose the weights of the model on scope() exit.
     if (regularizer != null) {

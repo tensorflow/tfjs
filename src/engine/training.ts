@@ -11,7 +11,7 @@
 /* Original Source: engine/training.py */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {io, ModelPredictConfig, Optimizer, Scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
+import {io, ModelPredictConfig as ModelPredictArgs, Optimizer, Scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
 import {TensorContainer} from '@tensorflow/tfjs-core/dist/tensor_types';
 
 import {getScalar,} from '../backend/state';
@@ -28,12 +28,12 @@ import {printSummary} from '../utils/layer_utils';
 import {range} from '../utils/math_utils';
 import {LayerVariable} from '../variables';
 
-import {Container, ContainerConfig} from './container';
+import {Container, ContainerArgs} from './container';
 import {Dataset} from './dataset_stub';
 import {execute, FeedDict} from './executor';
 import {SymbolicTensor} from './topology';
-import {evaluateDataset, fitDataset, ModelEvaluateDatasetConfig, ModelFitDatasetConfig} from './training_dataset';
-import {checkBatchSize, disposeNewTensors, ensureTensorsRank2OrHigher, fitTensors, makeBatches, ModelFitConfig, sliceArrays, sliceArraysByIndices} from './training_tensors';
+import {evaluateDataset, fitDataset, ModelEvaluateDatasetArgs, ModelFitDatasetArgs} from './training_dataset';
+import {checkBatchSize, disposeNewTensors, ensureTensorsRank2OrHigher, fitTensors, makeBatches, ModelFitArgs, sliceArrays, sliceArraysByIndices} from './training_tensors';
 
 /**
  * Helper function for polymorphic input data: 1. singleton Tensor.
@@ -374,7 +374,7 @@ function collectMetrics(
   }
 }
 
-export interface ModelEvaluateConfig {
+export interface ModelEvaluateArgs {
   /**
    * Batch size (Integer). If unspecified, it will default to 32.
    */
@@ -402,7 +402,7 @@ export interface ModelEvaluateConfig {
 /**
  * Configuration for calls to `Model.compile()`.
  */
-export interface ModelCompileConfig {
+export interface ModelCompileArgs {
   /**
    * An instance of `tf.train.Optimizer` or a string name for an Optimizer.
    */
@@ -474,8 +474,8 @@ export class Model extends Container implements tfc.InferenceModel {
   //   "knowledge" of the outputs it depends on.
   metricsTensors: Array<[LossOrMetricFn, number]>;
 
-  constructor(config: ContainerConfig) {
-    super(config);
+  constructor(args: ContainerArgs) {
+    super(args);
     this.isTraining = false;
   }
 
@@ -532,26 +532,26 @@ export class Model extends Container implements tfc.InferenceModel {
    * outfits the model with an optimizer, loss, and/or metrics.  Calling `fit`
    * or `evaluate` on an un-compiled model will throw an error.
    *
-   * @param config a `ModelCompileConfig` specifying the loss, optimizer, and
+   * @param args a `ModelCompileArgs` specifying the loss, optimizer, and
    * metrics to be used for fitting and evaluating this model.
    */
   /**
    * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [0]}
    */
-  compile(config: ModelCompileConfig): void {
-    if (config.loss == null) {
-      config.loss = [];
+  compile(args: ModelCompileArgs): void {
+    if (args.loss == null) {
+      args.loss = [];
     }
-    this.loss = config.loss;
+    this.loss = args.loss;
 
-    if (typeof config.optimizer === 'string') {
-      this.optimizer = optimizers.getOptimizer(config.optimizer);
+    if (typeof args.optimizer === 'string') {
+      this.optimizer = optimizers.getOptimizer(args.optimizer);
     } else {
-      if (!(config.optimizer instanceof Optimizer)) {
+      if (!(args.optimizer instanceof Optimizer)) {
         throw new ValueError(
             `User-defined optimizer must be an instance of tf.Optimizer.`);
       }
-      this.optimizer = config.optimizer;
+      this.optimizer = args.optimizer;
     }
 
     // TODO(cais): Add lossWeights.
@@ -559,10 +559,10 @@ export class Model extends Container implements tfc.InferenceModel {
 
     // Prepare loss functions.
     let lossFunctions: LossOrMetricFn[] = [];
-    if (!Array.isArray(config.loss) && typeof config.loss !== 'string' &&
-        typeof config.loss !== 'function') {
-      config.loss = config.loss as {[outputName: string]: string};
-      for (const name in config.loss) {
+    if (!Array.isArray(args.loss) && typeof args.loss !== 'string' &&
+        typeof args.loss !== 'function') {
+      args.loss = args.loss as {[outputName: string]: string};
+      for (const name in args.loss) {
         if (this.outputNames.indexOf(name) === -1) {
           throw new ValueError(
               `Unknown entry in loss dictionary: "${name}". ` +
@@ -570,25 +570,25 @@ export class Model extends Container implements tfc.InferenceModel {
         }
       }
       for (const name of this.outputNames) {
-        if (config.loss[name] == null) {
+        if (args.loss[name] == null) {
           console.warn(
               `Output "${name}" is missing from loss dictionary. We assume ` +
               `this was done on purpose, and we will not be expecting data ` +
               `to be passed to ${name} during training`);
         }
-        lossFunctions.push(losses.get(config.loss[name]));
+        lossFunctions.push(losses.get(args.loss[name]));
       }
-    } else if (Array.isArray(config.loss)) {
-      if (config.loss.length !== this.outputs.length) {
+    } else if (Array.isArray(args.loss)) {
+      if (args.loss.length !== this.outputs.length) {
         throw new ValueError(
             `When passing an Array as loss, it should have one entry per ` +
             `model output. The model has ${this.outputs.length} output(s), ` +
-            `but you passed loss=${config.loss}.`);
+            `but you passed loss=${args.loss}.`);
       }
-      const theLosses = config.loss as Array<string|LossOrMetricFn>;
+      const theLosses = args.loss as Array<string|LossOrMetricFn>;
       lossFunctions = theLosses.map(l => losses.get(l));
     } else {
-      const lossFunction = losses.get(config.loss);
+      const lossFunction = losses.get(args.loss);
       this.outputs.map(layer => {
         lossFunctions.push(lossFunction);
       });
@@ -614,7 +614,7 @@ export class Model extends Container implements tfc.InferenceModel {
     const skipTargetIndices: number[] = [];
 
     // Prepare metrics.
-    this.metrics = config.metrics;
+    this.metrics = args.metrics;
     // TODO(cais): Add weightedMetrics.
     this.metricsNames = ['loss'];
     this.metricsTensors = [];
@@ -641,7 +641,7 @@ export class Model extends Container implements tfc.InferenceModel {
       //   the regularizer penalties in the totalLossFunction, instead of here.
     });
 
-    const nestedMetrics = collectMetrics(config.metrics, this.outputNames);
+    const nestedMetrics = collectMetrics(args.metrics, this.outputNames);
     // TODO(cais): Add nestedWeightedMetrics.
 
     /**
@@ -783,7 +783,7 @@ export class Model extends Container implements tfc.InferenceModel {
    * model has multiple inputs.
    * @param y `tf.Tensor` of target data, or an `Array` of `tf.Tensor`s if the
    * model has multiple outputs.
-   * @param config A `ModelEvaluateConfig`, containing optional fields.
+   * @param args A `ModelEvaluateArgs`, containing optional fields.
    *
    * @return `Scalar` test loss (if the model has a single output and no
    *   metrics) or `Array` of `Scalar`s (if the model has multiple outputs
@@ -795,8 +795,8 @@ export class Model extends Container implements tfc.InferenceModel {
    */
   evaluate(
       x: Tensor|Tensor[], y: Tensor|Tensor[],
-      config: ModelEvaluateConfig = {}): Scalar|Scalar[] {
-    const batchSize = config.batchSize == null ? 32 : config.batchSize;
+      args: ModelEvaluateArgs = {}): Scalar|Scalar[] {
+    const batchSize = args.batchSize == null ? 32 : args.batchSize;
     checkBatchSize(batchSize);
 
     // TODO(cais): Standardize `config.sampleWeights` as well.
@@ -809,7 +809,7 @@ export class Model extends Container implements tfc.InferenceModel {
       this.makeTestFunction();
       const f = this.testFunction;
       const testOuts =
-          this.testLoop(f, ins, batchSize, config.verbose, config.steps);
+          this.testLoop(f, ins, batchSize, args.verbose, args.steps);
       return singletonOrArray(testOuts);
     } finally {
       disposeNewTensors(standardizedOuts[0], x);
@@ -834,7 +834,7 @@ export class Model extends Container implements tfc.InferenceModel {
    *   a sequential model). The latter case is for models with multiple
    *   inputs and/or multiple outputs. Of the two items in the array, the
    *   first is the input feature(s) and the second is the output target(s).
-   * @param config A configuration object for the dataset-based evaluation.
+   * @param args A configuration object for the dataset-based evaluation.
    * @returns Loss and metric values as an Array of `Scalar` objects.
    */
   /**
@@ -842,9 +842,9 @@ export class Model extends Container implements tfc.InferenceModel {
    */
   async evaluateDataset<T extends TensorContainer>(
       dataset: Dataset<T>,
-      config: ModelEvaluateDatasetConfig): Promise<Scalar|Scalar[]> {
+      args: ModelEvaluateDatasetArgs): Promise<Scalar|Scalar[]> {
     this.makeTestFunction();
-    return evaluateDataset(this, dataset, config);
+    return evaluateDataset(this, dataset, args);
   }
 
   /**
@@ -1056,7 +1056,7 @@ export class Model extends Container implements tfc.InferenceModel {
    *
    * @param x The input data, as an Tensor, or an `Array` of `tf.Tensor`s if
    *   the model has multiple inputs.
-   * @param config A `ModelPredictConfig` object containing optional fields.
+   * @param args A `ModelPredictArgs` object containing optional fields.
    *
    * @return Prediction results as a `tf.Tensor`(s).
    *
@@ -1067,8 +1067,7 @@ export class Model extends Container implements tfc.InferenceModel {
   /**
    * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
    */
-  predict(x: Tensor|Tensor[], config: ModelPredictConfig = {}): Tensor
-      |Tensor[] {
+  predict(x: Tensor|Tensor[], args: ModelPredictArgs = {}): Tensor|Tensor[] {
     const xsRank2OrHigher = ensureTensorsRank2OrHigher(x);
     checkInputData(
         xsRank2OrHigher, this.inputNames, this.feedInputShapes, false);
@@ -1077,7 +1076,7 @@ export class Model extends Container implements tfc.InferenceModel {
       //   if (this.stateful) ...
       // TODO(cais): Take care of the learning_phase boolean flag.
       //   if (this.useLearningPhase) ...
-      const batchSize = config.batchSize == null ? 32 : config.batchSize;
+      const batchSize = args.batchSize == null ? 32 : args.batchSize;
       checkBatchSize(batchSize);
       return this.predictLoop(xsRank2OrHigher, batchSize);
     } finally {
@@ -1113,7 +1112,7 @@ export class Model extends Container implements tfc.InferenceModel {
     if (this.optimizer == null) {
       throw new RuntimeError(
           'You must compile a model before training/testing. Use ' +
-          'Model.compile(modelCompileConfig).');
+          'Model.compile(modelCompileArgs).');
     }
     const outputShapes: Shape[] = [];
     for (let i = 0; i < this.feedOutputShapes.length; ++i) {
@@ -1381,7 +1380,7 @@ export class Model extends Container implements tfc.InferenceModel {
    * @param y `tf.Tensor` of target (label) data, or an array of `tf.Tensor`s if
    * the model has multiple outputs. If all outputs in the model are named,
    * you can also pass a dictionary mapping output names to `tf.Tensor`s.
-   * @param config A `ModelFitConfig`, containing optional fields.
+   * @param args A `ModelFitArgs`, containing optional fields.
    *
    * @return A `History` instance. Its `history` attribute contains all
    *   information collected during training.
@@ -1395,8 +1394,8 @@ export class Model extends Container implements tfc.InferenceModel {
   async fit(
       x: Tensor|Tensor[]|{[inputName: string]: Tensor},
       y: Tensor|Tensor[]|{[inputName: string]: Tensor},
-      config: ModelFitConfig = {}): Promise<History> {
-    return fitTensors(this, x, y, config);
+      args: ModelFitArgs = {}): Promise<History> {
+    return fitTensors(this, x, y, args);
   }
 
   // TODO(cais): Add code snippet below when it's possible to instantiate
@@ -1415,7 +1414,7 @@ export class Model extends Container implements tfc.InferenceModel {
    *   inputs and/or multiple outputs.
    *   Of the two items in the array, the first is the input feature(s) and
    *   the second is the output target(s).
-   * @param config A `ModelFitDatasetConfig`, containing optional fields.
+   * @param args A `ModelFitDatasetArgs`, containing optional fields.
    *
    * @return A `History` instance. Its `history` attribute contains all
    *   information collected during training.
@@ -1424,8 +1423,8 @@ export class Model extends Container implements tfc.InferenceModel {
    * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
    */
   async fitDataset<T extends TensorContainer>(
-      dataset: Dataset<T>, config: ModelFitDatasetConfig<T>): Promise<History> {
-    return fitDataset(this, dataset, config);
+      dataset: Dataset<T>, args: ModelFitDatasetArgs<T>): Promise<History> {
+    return fitDataset(this, dataset, args);
   }
 
   /**

@@ -14,7 +14,7 @@ import {Shape} from '../types';
 
 import {Dataset, LazyIterator, TensorOrTensorMap,} from './dataset_stub';
 
-export interface FakeDatasetConfig {
+export interface FakeDatasetArgs {
   /**
    * The shape(s) of the features of a single example.
    *
@@ -94,14 +94,14 @@ class FakeNumericIterator extends
   private yTensorValues: tfc.Tensor[]|{[name: string]: tfc.Tensor[]};
   private tensorIndex = 0;
 
-  constructor(config: FakeDatasetConfig) {
+  constructor(args: FakeDatasetArgs) {
     super();
-    this.xBatchShape = mergeBatchSizeAndShape(config.batchSize, config.xShape);
-    this.yBatchShape = mergeBatchSizeAndShape(config.batchSize, config.yShape);
-    this.numBatches = config.numBatches;
+    this.xBatchShape = mergeBatchSizeAndShape(args.batchSize, args.xShape);
+    this.yBatchShape = mergeBatchSizeAndShape(args.batchSize, args.yShape);
+    this.numBatches = args.numBatches;
     this.batchCount = 0;
-    this.xTensorsFunc = config.xTensorsFunc;
-    this.yTensorsFunc = config.yTensorsFunc;
+    this.xTensorsFunc = args.xTensorsFunc;
+    this.yTensorsFunc = args.yTensorsFunc;
 
     // Sanity check on the preset tensors.
     tfc.util.assert(
@@ -175,18 +175,18 @@ class FakeNumericIterator extends
  */
 export class FakeNumericDataset extends
     Dataset<[TensorOrTensorMap, TensorOrTensorMap]> {
-  constructor(readonly config: FakeDatasetConfig) {
+  constructor(readonly args: FakeDatasetArgs) {
     super();
     tfc.util.assert(
-        config.batchSize > 0 && Number.isInteger(config.batchSize),
-        `batchSize must be a positive integer, but got ${config.batchSize}`);
+        args.batchSize > 0 && Number.isInteger(args.batchSize),
+        `batchSize must be a positive integer, but got ${args.batchSize}`);
     tfc.util.assert(
-        config.numBatches > 0 && Number.isInteger(config.numBatches),
-        `numBatches must be positive integer, but got ${config.numBatches}`);
+        args.numBatches > 0 && Number.isInteger(args.numBatches),
+        `numBatches must be positive integer, but got ${args.numBatches}`);
   }
 
   async iterator():
       Promise<LazyIterator<[TensorOrTensorMap, TensorOrTensorMap]>> {
-    return new FakeNumericIterator(this.config);
+    return new FakeNumericIterator(this.args);
   }
 }

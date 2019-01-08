@@ -16,7 +16,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {Scalar, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
 
 import {expandDims, gather, sliceAlongFirstAxis} from '../backend/tfjs_backend';
-import {BaseCallback, configureCallbacks, CustomCallbackConfig, History, ModelLoggingVerbosity, standardizeCallbacks, YieldEveryOptions} from '../base_callbacks';
+import {BaseCallback, configureCallbacks, CustomCallbackArgs, History, ModelLoggingVerbosity, standardizeCallbacks, YieldEveryOptions} from '../base_callbacks';
 import {NotImplementedError, ValueError} from '../errors';
 import {disposeTensorsInLogs, UnresolvedLogs} from '../logs';
 import {range} from '../utils/math_utils';
@@ -24,7 +24,7 @@ import {range} from '../utils/math_utils';
 /**
  * Interface configuration model training based on data as `tf.Tensor`s.
  */
-export interface ModelFitConfig {
+export interface ModelFitArgs {
   /**
    * Number of samples per gradient update. If unspecified, it
    * will default to 32.
@@ -52,7 +52,7 @@ export interface ModelFitConfig {
    * Can consist of one or more of the following fields: `onTrainBegin`,
    * `onTrainEnd`, `onEpochBegin`, `onEpochEnd`, `onBatchBegin`, `onBatchEnd`.
    */
-  callbacks?: BaseCallback[]|CustomCallbackConfig|CustomCallbackConfig[];
+  callbacks?: BaseCallback[]|CustomCallbackArgs|CustomCallbackArgs[];
 
   /**
    * Float between 0 and 1: fraction of the training data
@@ -394,7 +394,7 @@ export async function fitTensors(
     // tslint:disable-next-line:no-any
     model: any, x: Tensor|Tensor[]|{[inputName: string]: Tensor},
     y: Tensor|Tensor[]|{[inputName: string]: Tensor},
-    config: ModelFitConfig = {}): Promise<History> {
+    args: ModelFitArgs = {}): Promise<History> {
   if (model.isTraining) {
     throw new Error(
         'Cannot start training because another fit() call is ongoing.');
@@ -407,7 +407,7 @@ export async function fitTensors(
   let valX: Tensor|Tensor[];
   let valY: Tensor|Tensor[];
   try {
-    const batchSize = config.batchSize == null ? 32 : config.batchSize;
+    const batchSize = args.batchSize == null ? 32 : args.batchSize;
     checkBatchSize(batchSize);
 
     // Validate user data.
@@ -423,20 +423,20 @@ export async function fitTensors(
     // Prepare validation data.
     let doValidation = false;
     let valIns: Tensor[];
-    if (config.validationData != null && config.validationData.length > 0) {
+    if (args.validationData != null && args.validationData.length > 0) {
       doValidation = true;
-      if (config.validationData.length === 2) {
+      if (args.validationData.length === 2) {
         // config.validationData consists of valX and valY.
-        inputValX = config.validationData[0];
-        inputValY = config.validationData[1];
-      } else if (config.validationData.length === 3) {
+        inputValX = args.validationData[0];
+        inputValY = args.validationData[1];
+      } else if (args.validationData.length === 3) {
         throw new NotImplementedError(
             'validationData including sample weights is not supported yet.');
       } else {
         throw new ValueError(
             `When passing validation data, it must contain 2 (valX, valY) ` +
             `or 3 (valX, valY, valSampleWeight) items; ` +
-            `${config.validationData} is invalid.`);
+            `${args.validationData} is invalid.`);
       }
 
       const valStandardized = model.standardizeUserData(
@@ -450,12 +450,12 @@ export async function fitTensors(
       valIns = valX.concat(valY);
       // TODO(cais): Add useLearningPhase data properly.
     } else if (
-        config.validationSplit != null && config.validationSplit > 0 &&
-        config.validationSplit < 1) {
+        args.validationSplit != null && args.validationSplit > 0 &&
+        args.validationSplit < 1) {
       doValidation = true;
       // Porting Note: In tfjs-layers, inputs[0] is always an Tensor.
       const splitAt =
-          Math.floor(inputs[0].shape[0] * (1 - config.validationSplit));
+          Math.floor(inputs[0].shape[0] * (1 - args.validationSplit));
       const originalBatchSize = inputs[0].shape[0];
       valX = sliceArrays(inputs, splitAt, originalBatchSize) as Tensor[];
       inputs = sliceArrays(inputs, 0, splitAt) as Tensor[];
@@ -466,7 +466,7 @@ export async function fitTensors(
       valIns = valX.concat(valY);
 
       // TODO(cais): Add useLearningPhase data properly.
-    } else if (config.validationSteps != null) {
+    } else if (args.validationSteps != null) {
       doValidation = true;
       // TODO(cais): Add useLearningPhase.
     }
@@ -503,11 +503,11 @@ export async function fitTensors(
       callbackMetrics = outLabels.slice();
     }
 
-    const callbacks = standardizeCallbacks(config.callbacks);
+    const callbacks = standardizeCallbacks(args.callbacks);
     const out = await fitLoop(
-        model, trainFunction, ins, outLabels, batchSize, config.epochs,
-        config.verbose, callbacks, valFunction, valIns, config.shuffle,
-        callbackMetrics, config.initialEpoch, null, null, config.yieldEvery);
+        model, trainFunction, ins, outLabels, batchSize, args.epochs,
+        args.verbose, callbacks, valFunction, valIns, args.shuffle,
+        callbackMetrics, args.initialEpoch, null, null, args.yieldEvery);
     return out;
   } finally {
     model.isTraining = false;

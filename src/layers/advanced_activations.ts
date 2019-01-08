@@ -18,7 +18,7 @@ import {Softmax as softmaxActivation} from '../activations';
 import {getScalar} from '../backend/state';
 import {cast} from '../backend/tfjs_backend';
 import {Constraint, getConstraint, serializeConstraint} from '../constraints';
-import {InputSpec, Layer, LayerConfig} from '../engine/topology';
+import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, serializeRegularizer} from '../regularizers';
@@ -26,7 +26,7 @@ import {Kwargs, Shape} from '../types';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
-export interface ReLULayerConfig extends LayerConfig {
+export interface ReLULayerArgs extends LayerArgs {
   /**
    * Float, the maximum output value.
    */
@@ -48,11 +48,11 @@ export class ReLU extends Layer {
   static className = 'ReLU';
   maxValue: number;
 
-  constructor(config?: ReLULayerConfig) {
-    super(config == null ? {} : config);
+  constructor(args?: ReLULayerArgs) {
+    super(args == null ? {} : args);
     this.supportsMasking = true;
-    if (config != null) {
-      this.maxValue = config.maxValue;
+    if (args != null) {
+      this.maxValue = args.maxValue;
     }
   }
 
@@ -78,7 +78,7 @@ export class ReLU extends Layer {
 }
 serialization.registerClass(ReLU);
 
-export interface LeakyReLULayerConfig extends LayerConfig {
+export interface LeakyReLULayerArgs extends LayerArgs {
   /**
    * Float `>= 0`. Negative slope coefficient. Defaults to `0.3`.
    */
@@ -105,12 +105,12 @@ export class LeakyReLU extends Layer {
 
   readonly DEFAULT_ALPHA = 0.3;
 
-  constructor(config?: LeakyReLULayerConfig) {
-    super(config == null ? {} : config);
-    if (config == null) {
-      config = {};
+  constructor(args?: LeakyReLULayerArgs) {
+    super(args == null ? {} : args);
+    if (args == null) {
+      args = {};
     }
-    this.alpha = config.alpha == null ? this.DEFAULT_ALPHA : config.alpha;
+    this.alpha = args.alpha == null ? this.DEFAULT_ALPHA : args.alpha;
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
@@ -131,7 +131,7 @@ export class LeakyReLU extends Layer {
 }
 serialization.registerClass(LeakyReLU);
 
-export interface PReLULayerConfig extends LayerConfig {
+export interface PReLULayerArgs extends LayerArgs {
   /**
    * Initializer for the learnable alpha.
    */
@@ -165,7 +165,7 @@ export interface PReLULayerConfig extends LayerConfig {
  * `f(x) = alpha * x for x < 0.`
  * `f(x) = x for x >= 0.`
  * wherein `alpha` is a trainable weight.
- * 
+ *
  * Input shape:
  *   Arbitrary. Use the configuration `inputShape` when using this layer as the
  *   first layer in a model.
@@ -183,27 +183,27 @@ export class PReLU extends Layer {
 
   readonly DEFAULT_ALPHA_INITIALIZER: InitializerIdentifier = 'zeros';
 
-  constructor(config?: PReLULayerConfig) {
-    super(config == null ? {} : config);
-    if (config == null) {
-      config = {};
+  constructor(args?: PReLULayerArgs) {
+    super(args == null ? {} : args);
+    if (args == null) {
+      args = {};
     }
 
     this.supportsMasking = true;
-    this.alphaInitializer = getInitializer(
-        config.alphaInitializer || this.DEFAULT_ALPHA_INITIALIZER);
-    this.alphaRegularizer = getRegularizer(config.alphaRegularizer);
-    this.alphaConstraint = getConstraint(config.alphaConstraint);
-    if (config.sharedAxes == null) {
+    this.alphaInitializer =
+        getInitializer(args.alphaInitializer || this.DEFAULT_ALPHA_INITIALIZER);
+    this.alphaRegularizer = getRegularizer(args.alphaRegularizer);
+    this.alphaConstraint = getConstraint(args.alphaConstraint);
+    if (args.sharedAxes == null) {
       this.sharedAxes = null;
-    } else if (Array.isArray(config.sharedAxes)) {
-      this.sharedAxes = config.sharedAxes;
-    } else if (typeof config.sharedAxes === 'number') {
-      this.sharedAxes = [config.sharedAxes];
+    } else if (Array.isArray(args.sharedAxes)) {
+      this.sharedAxes = args.sharedAxes;
+    } else if (typeof args.sharedAxes === 'number') {
+      this.sharedAxes = [args.sharedAxes];
     } else {
       throw new ValueError(
           `Expected sharedAxes to be a number or an array of numbers, ` +
-          `but got ${config.sharedAxes}`);
+          `but got ${args.sharedAxes}`);
     }
   }
 
@@ -251,7 +251,7 @@ export class PReLU extends Layer {
 }
 serialization.registerClass(PReLU);
 
-export interface ELULayerConfig extends LayerConfig {
+export interface ELULayerArgs extends LayerArgs {
   /**
    * Float `>= 0`. Negative slope coefficient. Defaults to `1.0`.
    */
@@ -282,19 +282,19 @@ export class ELU extends Layer {
 
   readonly DEFAULT_ALPHA = 1.0;
 
-  constructor(config?: ELULayerConfig) {
-    super(config == null ? {} : config);
-    if (config == null) {
-      config = {};
+  constructor(args?: ELULayerArgs) {
+    super(args == null ? {} : args);
+    if (args == null) {
+      args = {};
     }
 
-    if (config.alpha != null && config.alpha !== this.DEFAULT_ALPHA) {
+    if (args.alpha != null && args.alpha !== this.DEFAULT_ALPHA) {
       throw new NotImplementedError(
-          `Non-default alpha value (${config.alpha}) is not supported by the ` +
+          `Non-default alpha value (${args.alpha}) is not supported by the ` +
           `ELU layer yet.`);
     }
 
-    this.alpha = config.alpha == null ? this.DEFAULT_ALPHA : config.alpha;
+    this.alpha = args.alpha == null ? this.DEFAULT_ALPHA : args.alpha;
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
@@ -315,7 +315,7 @@ export class ELU extends Layer {
 }
 serialization.registerClass(ELU);
 
-export interface ThresholdedReLULayerConfig extends LayerConfig {
+export interface ThresholdedReLULayerArgs extends LayerArgs {
   /**
    * Float >= 0. Threshold location of activation.
    */
@@ -347,13 +347,13 @@ export class ThresholdedReLU extends Layer {
 
   readonly DEFAULT_THETA = 1.0;
 
-  constructor(config?: ThresholdedReLULayerConfig) {
-    super(config == null ? {} : config);
-    if (config == null) {
-      config = {};
+  constructor(args?: ThresholdedReLULayerArgs) {
+    super(args == null ? {} : args);
+    if (args == null) {
+      args = {};
     }
 
-    this.theta = config.theta == null ? this.DEFAULT_THETA : config.theta;
+    this.theta = args.theta == null ? this.DEFAULT_THETA : args.theta;
     this.thetaTensor = getScalar(this.theta);
   }
 
@@ -375,7 +375,7 @@ export class ThresholdedReLU extends Layer {
 }
 serialization.registerClass(ThresholdedReLU);
 
-export interface SoftmaxLayerConfig extends LayerConfig {
+export interface SoftmaxLayerArgs extends LayerArgs {
   /**
    * Integer, axis along which the softmax normalization is applied.
    * Defaults to `-1` (i.e., the last axis).
@@ -399,13 +399,13 @@ export class Softmax extends Layer {
   readonly softmax: (t: Tensor, a?: number) => Tensor;
   readonly DEFAULT_AXIS = 1.0;
 
-  constructor(config?: SoftmaxLayerConfig) {
-    super(config == null ? {} : config);
-    if (config == null) {
-      config = {};
+  constructor(args?: SoftmaxLayerArgs) {
+    super(args == null ? {} : args);
+    if (args == null) {
+      args = {};
     }
     this.softmax = new softmaxActivation().apply;
-    this.axis = config.axis == null ? this.DEFAULT_AXIS : config.axis;
+    this.axis = args.axis == null ? this.DEFAULT_AXIS : args.axis;
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {

@@ -211,7 +211,7 @@ export function loadWeightsFromNamedTensorMap(
 }
 
 /** Constructor config for Container. */
-export interface ContainerConfig {
+export interface ContainerArgs {
   inputs: SymbolicTensor|SymbolicTensor[];
   outputs: SymbolicTensor|SymbolicTensor[];
   name?: string;
@@ -258,10 +258,10 @@ export abstract class Container extends Layer {
   protected feedInputNames: string[];
   protected feedOutputNames: string[];
 
-  constructor(config: ContainerConfig) {
+  constructor(args: ContainerArgs) {
     // No args passed to super's constructor.
     super({});
-    this.name = config.name;
+    this.name = args.name;
     if (this.name == null) {
       const prefix = this.getClassName().toLowerCase();
       this.name = getUid(prefix);
@@ -274,15 +274,15 @@ export abstract class Container extends Layer {
     // TODO(michaelterry): Initialize perInputLosses/Updates here.
 
     // Container-specific properties.
-    if (Array.isArray(config.inputs)) {
-      this.inputs = config.inputs.slice();
+    if (Array.isArray(args.inputs)) {
+      this.inputs = args.inputs.slice();
     } else {
-      this.inputs = [config.inputs];
+      this.inputs = [args.inputs];
     }
-    if (Array.isArray(config.outputs)) {
-      this.outputs = config.outputs.slice();
+    if (Array.isArray(args.outputs)) {
+      this.outputs = args.outputs.slice();
     } else {
-      this.outputs = [config.outputs];
+      this.outputs = [args.outputs];
     }
 
     // Check for redundancy in inputs.
@@ -373,7 +373,7 @@ export abstract class Container extends Layer {
       if (!(layer instanceof InputLayer)) {
         throw new TypeError(
             'Input layers to a Model must be InputLayer objects. ' +
-            `Received inputs: ${config.inputs}. ` +
+            `Received inputs: ${args.inputs}. ` +
             `Input ${i} (0-based) originates ` +
             `from layer type ${layer.getClassName()}.`);
       }

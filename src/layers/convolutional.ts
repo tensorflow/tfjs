@@ -20,7 +20,7 @@ import {imageDataFormat} from '../backend/common';
 import * as K from '../backend/tfjs_backend';
 import {checkDataFormat, checkPaddingMode, DataFormat, PaddingMode} from '../common';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
-import {InputSpec, Layer, LayerConfig} from '../engine/topology';
+import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
@@ -197,7 +197,7 @@ export function conv2dWithBias(
 /**
  * Base LayerConfig for depthwise and non-depthwise convolutional layers.
  */
-export interface BaseConvLayerConfig extends LayerConfig {
+export interface BaseConvLayerArgs extends LayerArgs {
   /**
    * The dimensions of the convolution window. If kernelSize is a number, the
    * convolutional window will be square.
@@ -293,7 +293,7 @@ export interface BaseConvLayerConfig extends LayerConfig {
  * LayerConfig for non-depthwise convolutional layers.
  * Applies to non-depthwise convolution of all ranks (e.g, Conv1D, Conv2D).
  */
-export interface ConvLayerConfig extends BaseConvLayerConfig {
+export interface ConvLayerArgs extends BaseConvLayerArgs {
   /**
    * The dimensionality of the output space (i.e. the number of filters in the
    * convolution).
@@ -328,32 +328,32 @@ export abstract class BaseConv extends Layer {
   readonly DEFAULT_KERNEL_INITIALIZER: InitializerIdentifier = 'glorotNormal';
   readonly DEFAULT_BIAS_INITIALIZER: InitializerIdentifier = 'zeros';
 
-  constructor(rank: number, config: BaseConvLayerConfig) {
-    super(config as LayerConfig);
-    BaseConv.verifyConfig(config);
+  constructor(rank: number, args: BaseConvLayerArgs) {
+    super(args as LayerArgs);
+    BaseConv.verifyArgs(args);
     this.rank = rank;
     if (this.rank !== 1 && this.rank !== 2) {
       throw new NotImplementedError(
           `Convolution layer for rank other than 1 or 2 (${this.rank}) is ` +
           `not implemented yet.`);
     }
-    this.kernelSize = normalizeArray(config.kernelSize, rank, 'kernelSize');
+    this.kernelSize = normalizeArray(args.kernelSize, rank, 'kernelSize');
     this.strides = normalizeArray(
-        config.strides == null ? 1 : config.strides, rank, 'strides');
-    this.padding = config.padding == null ? 'valid' : config.padding;
+        args.strides == null ? 1 : args.strides, rank, 'strides');
+    this.padding = args.padding == null ? 'valid' : args.padding;
     checkPaddingMode(this.padding);
     this.dataFormat =
-        config.dataFormat == null ? 'channelsLast' : config.dataFormat;
+        args.dataFormat == null ? 'channelsLast' : args.dataFormat;
     checkDataFormat(this.dataFormat);
-    this.activation = getActivation(config.activation);
-    this.useBias = config.useBias == null ? true : config.useBias;
+    this.activation = getActivation(args.activation);
+    this.useBias = args.useBias == null ? true : args.useBias;
     this.biasInitializer =
-        getInitializer(config.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
-    this.biasConstraint = getConstraint(config.biasConstraint);
-    this.biasRegularizer = getRegularizer(config.biasRegularizer);
-    this.activityRegularizer = getRegularizer(config.activityRegularizer);
+        getInitializer(args.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
+    this.biasConstraint = getConstraint(args.biasConstraint);
+    this.biasRegularizer = getRegularizer(args.biasRegularizer);
+    this.activityRegularizer = getRegularizer(args.activityRegularizer);
     this.dilationRate = normalizeArray(
-        config.dilationRate == null ? 1 : config.dilationRate, rank,
+        args.dilationRate == null ? 1 : args.dilationRate, rank,
         'dilationRate');
     if (this.rank === 1 &&
         (Array.isArray(this.dilationRate) &&
@@ -374,16 +374,15 @@ export abstract class BaseConv extends Layer {
     }
   }
 
-  protected static verifyConfig(config: BaseConvLayerConfig) {
+  protected static verifyArgs(args: BaseConvLayerArgs) {
     // Check config.kernelSize type and shape.
     generic_utils.assert(
-        'kernelSize' in config, `required key 'kernelSize' not in config`);
-    if (typeof config.kernelSize !== 'number' &&
-        !generic_utils.checkArrayTypeAndLength(
-            config.kernelSize, 'number', 1, 2))
+        'kernelSize' in args, `required key 'kernelSize' not in config`);
+    if (typeof args.kernelSize !== 'number' &&
+        !generic_utils.checkArrayTypeAndLength(args.kernelSize, 'number', 1, 2))
       throw new ValueError(
           `BaseConv expects config.kernelSize to be number or number[] with ` +
-          `length 1 or 2, but received ${JSON.stringify(config.kernelSize)}.`);
+          `length 1 or 2, but received ${JSON.stringify(args.kernelSize)}.`);
   }
 
   getConfig(): serialization.ConfigDict {
@@ -424,14 +423,14 @@ export abstract class Conv extends BaseConv {
   protected readonly kernelConstraint?: Constraint;
   protected readonly kernelRegularizer?: Regularizer;
 
-  constructor(rank: number, config: ConvLayerConfig) {
-    super(rank, config as BaseConvLayerConfig);
-    Conv.verifyConfig(config);
-    this.filters = config.filters;
+  constructor(rank: number, args: ConvLayerArgs) {
+    super(rank, args as BaseConvLayerArgs);
+    Conv.verifyArgs(args);
+    this.filters = args.filters;
     this.kernelInitializer = getInitializer(
-        config.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
-    this.kernelConstraint = getConstraint(config.kernelConstraint);
-    this.kernelRegularizer = getRegularizer(config.kernelRegularizer);
+        args.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
+    this.kernelConstraint = getConstraint(args.kernelConstraint);
+    this.kernelRegularizer = getRegularizer(args.kernelRegularizer);
   }
 
   build(inputShape: Shape|Shape[]): void {
@@ -523,13 +522,13 @@ export abstract class Conv extends BaseConv {
     return config;
   }
 
-  protected static verifyConfig(config: ConvLayerConfig) {
+  protected static verifyArgs(args: ConvLayerArgs) {
     // Check config.filters type, shape, and value.
-    if (!('filters' in config) || typeof config.filters !== 'number' ||
-        config.filters < 1) {
+    if (!('filters' in args) || typeof args.filters !== 'number' ||
+        args.filters < 1) {
       throw new ValueError(
           `Convolution layer expected config.filters to be a 'number' > 0 ` +
-          `but got ${JSON.stringify(config.filters)}`);
+          `but got ${JSON.stringify(args.filters)}`);
     }
   }
 }
@@ -553,9 +552,9 @@ export abstract class Conv extends BaseConv {
  */
 export class Conv2D extends Conv {
   static className = 'Conv2D';
-  constructor(config: ConvLayerConfig) {
-    super(2, config);
-    Conv2D.verifyConfig(config);
+  constructor(args: ConvLayerArgs) {
+    super(2, args);
+    Conv2D.verifyArgs(args);
   }
 
   getConfig(): serialization.ConfigDict {
@@ -564,14 +563,13 @@ export class Conv2D extends Conv {
     return config;
   }
 
-  protected static verifyConfig(config: ConvLayerConfig) {
+  protected static verifyArgs(args: ConvLayerArgs) {
     // config.kernelSize must be a number or array of numbers.
-    if ((typeof config.kernelSize !== 'number') &&
-        !generic_utils.checkArrayTypeAndLength(
-            config.kernelSize, 'number', 1, 2))
+    if ((typeof args.kernelSize !== 'number') &&
+        !generic_utils.checkArrayTypeAndLength(args.kernelSize, 'number', 1, 2))
       throw new ValueError(
           `Conv2D expects config.kernelSize to be number or number[] with ` +
-          `length 1 or 2, but received ${JSON.stringify(config.kernelSize)}.`);
+          `length 1 or 2, but received ${JSON.stringify(args.kernelSize)}.`);
   }
 }
 serialization.registerClass(Conv2D);
@@ -613,8 +611,8 @@ export class Conv2DTranspose extends Conv2D {
   static className = 'Conv2DTranspose';
   inputSpec: InputSpec[];
 
-  constructor(config: ConvLayerConfig) {
-    super(config);
+  constructor(args: ConvLayerArgs) {
+    super(args);
     this.inputSpec = [new InputSpec({ndim: 4})];
 
     if (this.padding !== 'same' && this.padding !== 'valid') {
@@ -757,7 +755,7 @@ export class Conv2DTranspose extends Conv2D {
 }
 serialization.registerClass(Conv2DTranspose);
 
-export interface SeparableConvLayerConfig extends ConvLayerConfig {
+export interface SeparableConvLayerArgs extends ConvLayerArgs {
   /**
    * The number of depthwise convolution output channels for each input
    * channel.
@@ -818,7 +816,7 @@ export class SeparableConv extends Conv {
   protected depthwiseKernel: LayerVariable = null;
   protected pointwiseKernel: LayerVariable = null;
 
-  constructor(rank: number, config?: SeparableConvLayerConfig) {
+  constructor(rank: number, config?: SeparableConvLayerArgs) {
     super(rank, config);
 
     if (config.filters == null) {
@@ -985,8 +983,8 @@ export class SeparableConv extends Conv {
  */
 export class SeparableConv2D extends SeparableConv {
   static className = 'SeparableConv2D';
-  constructor(config?: SeparableConvLayerConfig) {
-    super(2, config);
+  constructor(args?: SeparableConvLayerArgs) {
+    super(2, args);
   }
 }
 serialization.registerClass(SeparableConv2D);
@@ -1011,9 +1009,9 @@ serialization.registerClass(SeparableConv2D);
  */
 export class Conv1D extends Conv {
   static className = 'Conv1D';
-  constructor(config: ConvLayerConfig) {
-    super(1, config);
-    Conv1D.verifyConfig(config);
+  constructor(args: ConvLayerArgs) {
+    super(1, args);
+    Conv1D.verifyArgs(args);
     this.inputSpec = [{ndim: 3}];
   }
 
@@ -1024,19 +1022,18 @@ export class Conv1D extends Conv {
     return config;
   }
 
-  static verifyConfig(config: ConvLayerConfig) {
+  protected static verifyArgs(args: ConvLayerArgs) {
     // config.kernelSize must be a number or array of numbers.
-    if (typeof config.kernelSize !== 'number' &&
-        !generic_utils.checkArrayTypeAndLength(
-            config.kernelSize, 'number', 1, 1))
+    if (typeof args.kernelSize !== 'number' &&
+        !generic_utils.checkArrayTypeAndLength(args.kernelSize, 'number', 1, 1))
       throw new ValueError(
           `Conv1D expects config.kernelSize to be number or number[] with ` +
-          `length 1, but received ${JSON.stringify(config.kernelSize)}.`);
+          `length 1, but received ${JSON.stringify(args.kernelSize)}.`);
   }
 }
 serialization.registerClass(Conv1D);
 
-export interface Cropping2DLayerConfig extends LayerConfig {
+export interface Cropping2DLayerArgs extends LayerArgs {
   /**
    * Dimension of the cropping along the width and the height.
    * - If integer: the same symmetric cropping
@@ -1100,29 +1097,27 @@ export class Cropping2D extends Layer {
   protected readonly cropping: [[number, number], [number, number]];
   protected readonly dataFormat: DataFormat;
 
-  constructor(config: Cropping2DLayerConfig) {
-    super(config);
-    if (typeof config.cropping === 'number')
+  constructor(args: Cropping2DLayerArgs) {
+    super(args);
+    if (typeof args.cropping === 'number')
+      this.cropping =
+          [[args.cropping, args.cropping], [args.cropping, args.cropping]];
+    else if (typeof args.cropping[0] === 'number')
       this.cropping = [
-        [config.cropping, config.cropping], [config.cropping, config.cropping]
-      ];
-    else if (typeof config.cropping[0] === 'number')
-      this.cropping = [
-        [config.cropping[0] as number, config.cropping[0] as number],
-        [config.cropping[1] as number, config.cropping[1] as number]
+        [args.cropping[0] as number, args.cropping[0] as number],
+        [args.cropping[1] as number, args.cropping[1] as number]
       ];
     else
-      this.cropping = config.cropping as [[number, number], [number, number]];
+      this.cropping = args.cropping as [[number, number], [number, number]];
     this.dataFormat =
-        config.dataFormat === undefined ? 'channelsLast' : config.dataFormat;
+        args.dataFormat === undefined ? 'channelsLast' : args.dataFormat;
     this.inputSpec = [{ndim: 4}];
   }
 
   computeOutputShape(inputShape: Shape): Shape {
     if (this.dataFormat === 'channelsFirst')
       return [
-        inputShape[0],
-        inputShape[1],
+        inputShape[0], inputShape[1],
         inputShape[2] - this.cropping[0][0] - this.cropping[0][1],
         inputShape[3] - this.cropping[1][0] - this.cropping[1][1]
       ];
@@ -1130,8 +1125,7 @@ export class Cropping2D extends Layer {
       return [
         inputShape[0],
         inputShape[1] - this.cropping[0][0] - this.cropping[0][1],
-        inputShape[2] - this.cropping[1][0] - this.cropping[1][1],
-        inputShape[3]
+        inputShape[2] - this.cropping[1][0] - this.cropping[1][1], inputShape[3]
       ];
   }
 
@@ -1166,7 +1160,7 @@ export class Cropping2D extends Layer {
 }
 serialization.registerClass(Cropping2D);
 
-export interface UpSampling2DLayerConfig extends LayerConfig {
+export interface UpSampling2DLayerArgs extends LayerArgs {
   /**
    * The upsampling factors for rows and columns.
    *
@@ -1216,12 +1210,12 @@ export class UpSampling2D extends Layer {
   protected readonly size: number[];
   protected readonly dataFormat: DataFormat;
 
-  constructor(config: UpSampling2DLayerConfig) {
-    super(config);
+  constructor(args: UpSampling2DLayerArgs) {
+    super(args);
     this.inputSpec = [{ndim: 4}];
-    this.size = config.size == null ? this.DEFAULT_SIZE : config.size;
+    this.size = args.size == null ? this.DEFAULT_SIZE : args.size;
     this.dataFormat =
-        config.dataFormat == null ? 'channelsLast' : config.dataFormat;
+        args.dataFormat == null ? 'channelsLast' : args.dataFormat;
   }
 
   computeOutputShape(inputShape: Shape): Shape {

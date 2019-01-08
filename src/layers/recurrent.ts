@@ -20,7 +20,7 @@ import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, SymbolicTensor} from '../engine/topology';
-import {Layer, LayerConfig} from '../engine/topology';
+import {Layer, LayerArgs} from '../engine/topology';
 import {AttributeError, NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, Ones, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
@@ -212,11 +212,11 @@ export function rnn(
           const stepMask = perStepMasks[t];
           const negStepMask = tfc.onesLike(stepMask).sub(stepMask);
           // TODO(cais): Would tfc.where() be better for performance?
-          const output = stepOutputs[0].mul(stepMask)
-              .addStrict(states[0].mul(negStepMask));
+          const output = stepOutputs[0].mul(stepMask).addStrict(
+              states[0].mul(negStepMask));
           const newStates = states.map((state, i) => {
-            return stepOutputs[1][i].mul(stepMask)
-                .addStrict(state.mul(negStepMask));
+            return stepOutputs[1][i].mul(stepMask).addStrict(
+                state.mul(negStepMask));
           });
           return {output, newStates};
         });
@@ -237,7 +237,7 @@ export function rnn(
   });
 }
 
-export interface BaseRNNLayerConfig extends LayerConfig {
+export interface BaseRNNLayerConfig extends LayerArgs {
   /**
    * A RNN cell instance. A RNN cell is a class that has:
    *   - a `call()` method, which takes `[Tensor, Tensor]` as the
@@ -343,7 +343,7 @@ export interface BaseRNNLayerConfig extends LayerConfig {
  * `cell` property required. This interface is  to be used with constructors
  * of concrete RNN layer sbutypes.
  */
-export interface RNNLayerConfig extends BaseRNNLayerConfig {
+export interface RNNLayerArgs extends BaseRNNLayerConfig {
   cell: RNNCell|RNNCell[];
 }
 
@@ -425,16 +425,16 @@ export class RNN extends Layer {
 
   private numConstants: number;
 
-  constructor(config: RNNLayerConfig) {
-    super(config);
+  constructor(args: RNNLayerArgs) {
+    super(args);
     let cell: RNNCell;
-    if (config.cell == null) {
+    if (args.cell == null) {
       throw new ValueError(
           'cell property is missing for the constructor of RNN.');
-    } else if (Array.isArray(config.cell)) {
-      cell = new StackedRNNCells({cells: config.cell});
+    } else if (Array.isArray(args.cell)) {
+      cell = new StackedRNNCells({cells: args.cell});
     } else {
-      cell = config.cell;
+      cell = args.cell;
     }
     if ((cell as RNNCell).stateSize == null) {
       throw new ValueError(
@@ -443,11 +443,11 @@ export class RNN extends Layer {
     }
     this.cell = cell;
     this.returnSequences =
-        config.returnSequences == null ? false : config.returnSequences;
-    this.returnState = config.returnState == null ? false : config.returnState;
-    this.goBackwards = config.goBackwards == null ? false : config.goBackwards;
-    this._stateful = config.stateful == null ? false : config.stateful;
-    this.unroll = config.unroll == null ? false : config.unroll;
+        args.returnSequences == null ? false : args.returnSequences;
+    this.returnState = args.returnState == null ? false : args.returnState;
+    this.goBackwards = args.goBackwards == null ? false : args.goBackwards;
+    this._stateful = args.stateful == null ? false : args.stateful;
+    this.unroll = args.unroll == null ? false : args.unroll;
 
     this.supportsMasking = true;
     this.inputSpec = [new InputSpec({ndim: 3})];
@@ -534,8 +534,8 @@ export class RNN extends Layer {
    */
   get states(): Tensor[] {
     if (this.states_ == null) {
-      const numStates = Array.isArray(this.cell.stateSize) ?
-          this.cell.stateSize.length : 1;
+      const numStates =
+          Array.isArray(this.cell.stateSize) ? this.cell.stateSize.length : 1;
       const output: Tensor[] = [];
       for (let i = 0; i < numStates; ++i) {
         output.push(null);
@@ -912,7 +912,7 @@ export abstract class RNNCell extends Layer {
   public recurrentDropoutMask: Tensor|Tensor[];
 }
 
-export interface SimpleRNNCellLayerConfig extends LayerConfig {
+export interface SimpleRNNCellLayerArgs extends LayerArgs {
   /**
    * units: Positive integer, dimensionality of the output space.
    */
@@ -1065,36 +1065,35 @@ export class SimpleRNNCell extends RNNCell {
   readonly DEFAULT_RECURRENT_INITIALIZER = 'orthogonal';
   readonly DEFAULT_BIAS_INITIALIZER: InitializerIdentifier = 'zeros';
 
-  constructor(config: SimpleRNNCellLayerConfig) {
-    super(config);
-    this.units = config.units;
+  constructor(args: SimpleRNNCellLayerArgs) {
+    super(args);
+    this.units = args.units;
     this.activation = getActivation(
-        config.activation == null ? this.DEFAULT_ACTIVATION :
-                                    config.activation);
-    this.useBias = config.useBias == null ? true : config.useBias;
+        args.activation == null ? this.DEFAULT_ACTIVATION : args.activation);
+    this.useBias = args.useBias == null ? true : args.useBias;
 
     this.kernelInitializer = getInitializer(
-        config.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
+        args.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
     this.recurrentInitializer = getInitializer(
-        config.recurrentInitializer || this.DEFAULT_RECURRENT_INITIALIZER);
+        args.recurrentInitializer || this.DEFAULT_RECURRENT_INITIALIZER);
 
     this.biasInitializer =
-        getInitializer(config.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
+        getInitializer(args.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
 
-    this.kernelRegularizer = getRegularizer(config.kernelRegularizer);
-    this.recurrentRegularizer = getRegularizer(config.recurrentRegularizer);
-    this.biasRegularizer = getRegularizer(config.biasRegularizer);
+    this.kernelRegularizer = getRegularizer(args.kernelRegularizer);
+    this.recurrentRegularizer = getRegularizer(args.recurrentRegularizer);
+    this.biasRegularizer = getRegularizer(args.biasRegularizer);
 
-    this.kernelConstraint = getConstraint(config.kernelConstraint);
-    this.recurrentConstraint = getConstraint(config.recurrentConstraint);
-    this.biasConstraint = getConstraint(config.biasConstraint);
+    this.kernelConstraint = getConstraint(args.kernelConstraint);
+    this.recurrentConstraint = getConstraint(args.recurrentConstraint);
+    this.biasConstraint = getConstraint(args.biasConstraint);
 
     this.dropout = math_utils.min(
-        [1, math_utils.max([0, config.dropout == null ? 0 : config.dropout])]);
+        [1, math_utils.max([0, args.dropout == null ? 0 : args.dropout])]);
     this.recurrentDropout = math_utils.min([
       1,
       math_utils.max(
-          [0, config.recurrentDropout == null ? 0 : config.recurrentDropout])
+          [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
     this.stateSize = this.units;
     this.dropoutMask = null;
@@ -1200,7 +1199,7 @@ export class SimpleRNNCell extends RNNCell {
 }
 serialization.registerClass(SimpleRNNCell);
 
-export interface SimpleRNNLayerConfig extends BaseRNNLayerConfig {
+export interface SimpleRNNLayerArgs extends BaseRNNLayerConfig {
   /**
    * Positive integer, dimensionality of the output space.
    */
@@ -1304,9 +1303,9 @@ export interface SimpleRNNLayerConfig extends BaseRNNLayerConfig {
  */
 export class SimpleRNN extends RNN {
   static className = 'SimpleRNN';
-  constructor(config: SimpleRNNLayerConfig) {
-    config.cell = new SimpleRNNCell(config);
-    super(config as RNNLayerConfig);
+  constructor(args: SimpleRNNLayerArgs) {
+    args.cell = new SimpleRNNCell(args);
+    super(args as RNNLayerArgs);
     // TODO(cais): Add activityRegularizer.
   }
 
@@ -1414,7 +1413,7 @@ serialization.registerClass(SimpleRNN);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we extend
 //   that interface instead of repeating the fields.
-export interface GRUCellLayerConfig extends SimpleRNNCellLayerConfig {
+export interface GRUCellLayerArgs extends SimpleRNNCellLayerArgs {
   /**
    * Activation function to use for the recurrent step.
    *
@@ -1519,43 +1518,43 @@ export class GRUCell extends RNNCell {
   recurrentKernel: LayerVariable;
   bias: LayerVariable;
 
-  constructor(config: GRUCellLayerConfig) {
-    super(config);
+  constructor(args: GRUCellLayerArgs) {
+    super(args);
 
-    this.units = config.units;
+    this.units = args.units;
     this.activation = getActivation(
-        config.activation === undefined ? this.DEFAULT_ACTIVATION :
-                                          config.activation);
+        args.activation === undefined ? this.DEFAULT_ACTIVATION :
+                                        args.activation);
     this.recurrentActivation = getActivation(
-        config.recurrentActivation === undefined ?
+        args.recurrentActivation === undefined ?
             this.DEFAULT_RECURRENT_ACTIVATION :
-            config.recurrentActivation);
-    this.useBias = config.useBias == null ? true : config.useBias;
+            args.recurrentActivation);
+    this.useBias = args.useBias == null ? true : args.useBias;
 
     this.kernelInitializer = getInitializer(
-        config.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
+        args.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
     this.recurrentInitializer = getInitializer(
-        config.recurrentInitializer || this.DEFAULT_RECURRENT_INITIALIZER);
+        args.recurrentInitializer || this.DEFAULT_RECURRENT_INITIALIZER);
 
     this.biasInitializer =
-        getInitializer(config.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
+        getInitializer(args.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
 
-    this.kernelRegularizer = getRegularizer(config.kernelRegularizer);
-    this.recurrentRegularizer = getRegularizer(config.recurrentRegularizer);
-    this.biasRegularizer = getRegularizer(config.biasRegularizer);
+    this.kernelRegularizer = getRegularizer(args.kernelRegularizer);
+    this.recurrentRegularizer = getRegularizer(args.recurrentRegularizer);
+    this.biasRegularizer = getRegularizer(args.biasRegularizer);
 
-    this.kernelConstraint = getConstraint(config.kernelConstraint);
-    this.recurrentConstraint = getConstraint(config.recurrentConstraint);
-    this.biasConstraint = getConstraint(config.biasConstraint);
+    this.kernelConstraint = getConstraint(args.kernelConstraint);
+    this.recurrentConstraint = getConstraint(args.recurrentConstraint);
+    this.biasConstraint = getConstraint(args.biasConstraint);
 
     this.dropout = math_utils.min(
-        [1, math_utils.max([0, config.dropout == null ? 0 : config.dropout])]);
+        [1, math_utils.max([0, args.dropout == null ? 0 : args.dropout])]);
     this.recurrentDropout = math_utils.min([
       1,
       math_utils.max(
-          [0, config.recurrentDropout == null ? 0 : config.recurrentDropout])
+          [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
-    this.implementation = config.implementation;
+    this.implementation = args.implementation;
     this.stateSize = this.units;
     this.dropoutMask = null;
     this.recurrentDropoutMask = null;
@@ -1679,7 +1678,7 @@ serialization.registerClass(GRUCell);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we inherit
 //   from that interface instead of repeating the fields here.
-export interface GRULayerConfig extends SimpleRNNLayerConfig {
+export interface GRULayerArgs extends SimpleRNNLayerArgs {
   /**
    * Activation function to use for the recurrent step.
    *
@@ -1728,14 +1727,14 @@ export interface GRULayerConfig extends SimpleRNNLayerConfig {
  */
 export class GRU extends RNN {
   static className = 'GRU';
-  constructor(config: GRULayerConfig) {
-    if (config.implementation === 0) {
+  constructor(args: GRULayerArgs) {
+    if (args.implementation === 0) {
       console.warn(
           '`implementation=0` has been deprecated, and now defaults to ' +
           '`implementation=1`. Please update your layer call.');
     }
-    config.cell = new GRUCell(config);
-    super(config as RNNLayerConfig);
+    args.cell = new GRUCell(args);
+    super(args as RNNLayerArgs);
     // TODO(cais): Add activityRegularizer.
   }
 
@@ -1860,7 +1859,7 @@ serialization.registerClass(GRU);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we extend
 //   that interface instead of repeating the fields.
-export interface LSTMCellLayerConfig extends SimpleRNNCellLayerConfig {
+export interface LSTMCellLayerArgs extends SimpleRNNCellLayerArgs {
   /**
    * Activation function to use for the recurrent step.
    *
@@ -1975,44 +1974,44 @@ export class LSTMCell extends RNNCell {
   recurrentKernel: LayerVariable;
   bias: LayerVariable;
 
-  constructor(config: LSTMCellLayerConfig) {
-    super(config);
+  constructor(args: LSTMCellLayerArgs) {
+    super(args);
 
-    this.units = config.units;
+    this.units = args.units;
     this.activation = getActivation(
-        config.activation === undefined ? this.DEFAULT_ACTIVATION :
-                                          config.activation);
+        args.activation === undefined ? this.DEFAULT_ACTIVATION :
+                                        args.activation);
     this.recurrentActivation = getActivation(
-        config.recurrentActivation === undefined ?
+        args.recurrentActivation === undefined ?
             this.DEFAULT_RECURRENT_ACTIVATION :
-            config.recurrentActivation);
-    this.useBias = config.useBias == null ? true : config.useBias;
+            args.recurrentActivation);
+    this.useBias = args.useBias == null ? true : args.useBias;
 
     this.kernelInitializer = getInitializer(
-        config.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
+        args.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
     this.recurrentInitializer = getInitializer(
-        config.recurrentInitializer || this.DEFAULT_RECURRENT_INITIALIZER);
+        args.recurrentInitializer || this.DEFAULT_RECURRENT_INITIALIZER);
 
     this.biasInitializer =
-        getInitializer(config.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
-    this.unitForgetBias = config.unitForgetBias;
+        getInitializer(args.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
+    this.unitForgetBias = args.unitForgetBias;
 
-    this.kernelRegularizer = getRegularizer(config.kernelRegularizer);
-    this.recurrentRegularizer = getRegularizer(config.recurrentRegularizer);
-    this.biasRegularizer = getRegularizer(config.biasRegularizer);
+    this.kernelRegularizer = getRegularizer(args.kernelRegularizer);
+    this.recurrentRegularizer = getRegularizer(args.recurrentRegularizer);
+    this.biasRegularizer = getRegularizer(args.biasRegularizer);
 
-    this.kernelConstraint = getConstraint(config.kernelConstraint);
-    this.recurrentConstraint = getConstraint(config.recurrentConstraint);
-    this.biasConstraint = getConstraint(config.biasConstraint);
+    this.kernelConstraint = getConstraint(args.kernelConstraint);
+    this.recurrentConstraint = getConstraint(args.recurrentConstraint);
+    this.biasConstraint = getConstraint(args.biasConstraint);
 
     this.dropout = math_utils.min(
-        [1, math_utils.max([0, config.dropout == null ? 0 : config.dropout])]);
+        [1, math_utils.max([0, args.dropout == null ? 0 : args.dropout])]);
     this.recurrentDropout = math_utils.min([
       1,
       math_utils.max(
-          [0, config.recurrentDropout == null ? 0 : config.recurrentDropout])
+          [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
-    this.implementation = config.implementation;
+    this.implementation = args.implementation;
     this.stateSize = [this.units, this.units];
     this.dropoutMask = null;
     this.recurrentDropoutMask = null;
@@ -2149,7 +2148,7 @@ serialization.registerClass(LSTMCell);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we inherit
 //   from that interface instead of repeating the fields here.
-export interface LSTMLayerConfig extends SimpleRNNLayerConfig {
+export interface LSTMLayerArgs extends SimpleRNNLayerArgs {
   /**
    * Activation function to use for the recurrent step.
    *
@@ -2205,14 +2204,14 @@ export interface LSTMLayerConfig extends SimpleRNNLayerConfig {
  */
 export class LSTM extends RNN {
   static className = 'LSTM';
-  constructor(config: LSTMLayerConfig) {
-    if (config.implementation as number === 0) {
+  constructor(args: LSTMLayerArgs) {
+    if (args.implementation as number === 0) {
       console.warn(
           '`implementation=0` has been deprecated, and now defaults to ' +
           '`implementation=1`. Please update your layer call.');
     }
-    config.cell = new LSTMCell(config);
-    super(config as RNNLayerConfig);
+    args.cell = new LSTMCell(args);
+    super(args as RNNLayerArgs);
     // TODO(cais): Add activityRegularizer.
   }
 
@@ -2340,7 +2339,7 @@ export class LSTM extends RNN {
 }
 serialization.registerClass(LSTM);
 
-export interface StackedRNNCellsConfig extends LayerConfig {
+export interface StackedRNNCellsArgs extends LayerArgs {
   /**
    * A `Array` of `RNNCell` instances.
    */
@@ -2356,9 +2355,9 @@ export class StackedRNNCells extends RNNCell {
   static className = 'StackedRNNCells';
   protected cells: RNNCell[];
 
-  constructor(config: StackedRNNCellsConfig) {
-    super(config);
-    this.cells = config.cells;
+  constructor(args: StackedRNNCellsArgs) {
+    super(args);
+    this.cells = args.cells;
   }
 
   get stateSize(): number[] {
