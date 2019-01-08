@@ -17,7 +17,7 @@ import {serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, uti
 
 import {getScalar} from '../backend/state';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
-import {InputSpec, Layer, LayerConfig} from '../engine/topology';
+import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
@@ -169,7 +169,7 @@ export function normalizeBatchInTraining(
   }
 }
 
-export interface BatchNormalizationLayerConfig extends LayerConfig {
+export interface BatchNormalizationLayerArgs extends LayerArgs {
   /**
    * The integer axis that should be normalized (typically the features axis).
    * Defaults to -1.
@@ -291,28 +291,28 @@ export class BatchNormalization extends Layer {
   private movingMean: LayerVariable;
   private movingVariance: LayerVariable;
 
-  constructor(config?: BatchNormalizationLayerConfig) {
-    if (config == null) {
-      config = {};
+  constructor(args?: BatchNormalizationLayerArgs) {
+    if (args == null) {
+      args = {};
     }
-    super(config);
+    super(args);
 
     this.supportsMasking = true;
-    this.axis = config.axis == null ? -1 : config.axis;
-    this.momentum = config.momentum == null ? 0.99 : config.momentum;
-    this.epsilon = config.epsilon == null ? 1e-3 : config.epsilon;
-    this.center = config.center == null ? true : config.center;
-    this.scale = config.scale == null ? true : config.scale;
-    this.betaInitializer = getInitializer(config.betaInitializer || 'zeros');
-    this.gammaInitializer = getInitializer(config.gammaInitializer || 'ones');
+    this.axis = args.axis == null ? -1 : args.axis;
+    this.momentum = args.momentum == null ? 0.99 : args.momentum;
+    this.epsilon = args.epsilon == null ? 1e-3 : args.epsilon;
+    this.center = args.center == null ? true : args.center;
+    this.scale = args.scale == null ? true : args.scale;
+    this.betaInitializer = getInitializer(args.betaInitializer || 'zeros');
+    this.gammaInitializer = getInitializer(args.gammaInitializer || 'ones');
     this.movingMeanInitializer =
-        getInitializer(config.movingMeanInitializer || 'zeros');
+        getInitializer(args.movingMeanInitializer || 'zeros');
     this.movingVarianceInitializer =
-        getInitializer(config.movingVarianceInitializer || 'ones');
-    this.betaConstraint = getConstraint(config.betaConstraint);
-    this.gammaConstraint = getConstraint(config.gammaConstraint);
-    this.betaRegularizer = getRegularizer(config.betaRegularizer);
-    this.gammaRegularizer = getRegularizer(config.gammaRegularizer);
+        getInitializer(args.movingVarianceInitializer || 'ones');
+    this.betaConstraint = getConstraint(args.betaConstraint);
+    this.gammaConstraint = getConstraint(args.gammaConstraint);
+    this.betaRegularizer = getRegularizer(args.betaRegularizer);
+    this.gammaRegularizer = getRegularizer(args.gammaRegularizer);
   }
 
   public build(inputShape: Shape|Shape[]): void {

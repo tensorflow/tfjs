@@ -8,7 +8,7 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Constraint, MaxNorm, MaxNormConfig, MinMaxNorm, MinMaxNormConfig, NonNeg, UnitNorm, UnitNormConfig} from './constraints';
+import {Constraint, MaxNorm, MaxNormArgs, MinMaxNorm, MinMaxNormArgs, NonNeg, UnitNorm, UnitNormArgs} from './constraints';
 
 /**
  * @doc {
@@ -18,8 +18,8 @@ import {Constraint, MaxNorm, MaxNormConfig, MinMaxNorm, MinMaxNormConfig, NonNeg
  *   configParamIndices: [0]
  * }
  */
-export function maxNorm(config: MaxNormConfig): Constraint {
-  return new MaxNorm(config);
+export function maxNorm(args: MaxNormArgs): Constraint {
+  return new MaxNorm(args);
 }
 
 /**
@@ -30,8 +30,8 @@ export function maxNorm(config: MaxNormConfig): Constraint {
  *   configParamIndices: [0]
  * }
  */
-export function unitNorm(config: UnitNormConfig): Constraint {
-  return new UnitNorm(config);
+export function unitNorm(args: UnitNormArgs): Constraint {
+  return new UnitNorm(args);
 }
 
 /**
@@ -53,6 +53,6 @@ export function nonNeg(): Constraint {
  *   configParamIndices: [0]
  * }
  */
-export function minMaxNorm(config: MinMaxNormConfig): Constraint {
+export function minMaxNorm(config: MinMaxNormArgs): Constraint {
   return new MinMaxNorm(config);
 }

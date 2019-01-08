@@ -18,7 +18,7 @@ import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {nameScope} from '../common';
-import {InputSpec, Layer, LayerConfig, SymbolicTensor} from '../engine/topology';
+import {InputSpec, Layer, LayerArgs, SymbolicTensor} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {Kwargs, Shape} from '../types';
 import {RegularizerFn, RnnStepFunction} from '../types';
@@ -30,7 +30,7 @@ import {rnn, RNN, standardizeArgs} from './recurrent';
 import {deserialize} from './serialization';
 
 
-export interface WrapperLayerConfig extends LayerConfig {
+export interface WrapperLayerArgs extends LayerArgs {
   /**
    * The layer to be wrapped.
    */
@@ -47,7 +47,7 @@ export interface WrapperLayerConfig extends LayerConfig {
 export abstract class Wrapper extends Layer {
   readonly layer: Layer;
 
-  constructor(config: WrapperLayerConfig) {
+  constructor(args: WrapperLayerArgs) {
     // Porting Note: In PyKeras, `self.layer` is set prior to the calling
     //   `super()`. But we can't do that here due to TypeScript's restriction.
     //   See: https://github.com/Microsoft/TypeScript/issues/8277
@@ -55,8 +55,8 @@ export abstract class Wrapper extends Layer {
     //   `set trainable()` below in order to prevent using `this.layer` when
     //   its value is `undefined`. The super constructor does use the getter
     //   and the setter of `this.layer`.
-    super(config);
-    this.layer = config.layer;
+    super(args);
+    this.layer = args.layer;
   }
 
   build(inputShape: Shape|Shape[]): void {
@@ -194,8 +194,8 @@ export abstract class Wrapper extends Layer {
  */
 export class TimeDistributed extends Wrapper {
   static className = 'TimeDistributed';
-  constructor(config: WrapperLayerConfig) {
-    super(config);
+  constructor(args: WrapperLayerArgs) {
+    super(args);
     this.supportsMasking = true;
   }
 
@@ -261,7 +261,7 @@ export function checkBidirectionalMergeMode(value?: string): void {
       VALID_BIDIRECTIONAL_MERGE_MODES, 'BidirectionalMergeMode', value);
 }
 
-export interface BidirectionalLayerConfig extends WrapperLayerConfig {
+export interface BidirectionalLayerArgs extends WrapperLayerArgs {
   /**
    * The instance of an `RNN` layer to be wrapped.
    */
@@ -285,8 +285,8 @@ export class Bidirectional extends Wrapper {
   private numConstants?: number;
   private _trainable: boolean;
 
-  constructor(config: BidirectionalLayerConfig) {
-    super(config);
+  constructor(args: BidirectionalLayerArgs) {
+    super(args);
 
     // Note: When creating `this.forwardLayer`, the original Layer object
     //   (`config.layer`) ought to be cloned. This is why we call
@@ -296,31 +296,29 @@ export class Bidirectional extends Wrapper {
     //   `copy.copy` (shallow copy), which does not have a simple equivalent
     //   in JavaScript. JavaScript's `Object.assign()` does not copy
     //   methods.
-    const layerConfig = config.layer.getConfig();
+    const layerConfig = args.layer.getConfig();
     this.forwardLayer =
         deserialize(
-            {className: config.layer.getClassName(), config: layerConfig}) as
-        RNN;
+            {className: args.layer.getClassName(), config: layerConfig}) as RNN;
     layerConfig['goBackwards'] =
         layerConfig['goBackwards'] === true ? false : true;
     this.backwardLayer =
         deserialize(
-            {className: config.layer.getClassName(), config: layerConfig}) as
-        RNN;
+            {className: args.layer.getClassName(), config: layerConfig}) as RNN;
     this.forwardLayer.name = 'forward_' + this.forwardLayer.name;
     this.backwardLayer.name = 'backward_' + this.backwardLayer.name;
-    checkBidirectionalMergeMode(config.mergeMode);
-    this.mergeMode = config.mergeMode;
-    if (config.weights) {
+    checkBidirectionalMergeMode(args.mergeMode);
+    this.mergeMode = args.mergeMode;
+    if (args.weights) {
       throw new NotImplementedError(
           'weights support is not implemented for Bidirectional layer yet.');
     }
-    this._stateful = config.layer.stateful;
-    this.returnSequences = config.layer.returnSequences;
-    this.returnState = config.layer.returnState;
+    this._stateful = args.layer.stateful;
+    this.returnSequences = args.layer.returnSequences;
+    this.returnState = args.layer.returnState;
     this.supportsMasking = true;
     this._trainable = true;
-    this.inputSpec = config.layer.inputSpec;
+    this.inputSpec = args.layer.inputSpec;
     this.numConstants = null;
   }
 

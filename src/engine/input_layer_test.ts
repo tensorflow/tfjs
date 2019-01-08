@@ -14,7 +14,7 @@ import * as tfl from '../index';
 import {describeMathCPU} from '../utils/test_utils';
 
 import {Input, InputLayer} from './input_layer';
-import {LayerConfig,} from './topology';
+import {LayerArgs} from './topology';
 
 describeMathCPU('InputLayer', () => {
   it('when initialized to its defaults throws an exception', () => {
@@ -193,8 +193,8 @@ describeMathCPU('InputLayer', () => {
 
 class LayerForTest extends tfl.layers.Layer {
   static className = 'LayerForTest';
-  constructor(config: LayerConfig) {
-    super(config);
+  constructor(args: LayerArgs) {
+    super(args);
   }
 }
 

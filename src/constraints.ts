@@ -42,7 +42,7 @@ export abstract class Constraint extends serialization.Serializable {
   }
 }
 
-export interface MaxNormConfig {
+export interface MaxNormArgs {
   /**
    * Maximum norm for incoming weights
    */
@@ -82,11 +82,11 @@ export class MaxNorm extends Constraint {
   private readonly defaultMaxValue = 2;
   private readonly defaultAxis = 0;
 
-  constructor(config: MaxNormConfig) {
+  constructor(args: MaxNormArgs) {
     super();
     this.maxValue =
-        config.maxValue != null ? config.maxValue : this.defaultMaxValue;
-    this.axis = config.axis != null ? config.axis : this.defaultAxis;
+        args.maxValue != null ? args.maxValue : this.defaultMaxValue;
+    this.axis = args.axis != null ? args.axis : this.defaultAxis;
   }
 
   apply(w: Tensor): Tensor {
@@ -103,7 +103,7 @@ export class MaxNorm extends Constraint {
 }
 serialization.registerClass(MaxNorm);
 
-export interface UnitNormConfig {
+export interface UnitNormArgs {
   /**
    * Axis along which to calculate norms.
    *
@@ -128,9 +128,9 @@ export class UnitNorm extends Constraint {
   static readonly className = 'UnitNorm';
   private axis: number;
   private readonly defaultAxis = 0;
-  constructor(config: UnitNormConfig) {
+  constructor(args: UnitNormArgs) {
     super();
-    this.axis = config.axis != null ? config.axis : this.defaultAxis;
+    this.axis = args.axis != null ? args.axis : this.defaultAxis;
   }
 
   apply(w: Tensor): Tensor {
@@ -157,7 +157,7 @@ export class NonNeg extends Constraint {
 }
 serialization.registerClass(NonNeg);
 
-export interface MinMaxNormConfig {
+export interface MinMaxNormArgs {
   /**
    * Minimum norm for incoming weights
    */
@@ -202,14 +202,14 @@ export class MinMaxNorm extends Constraint {
   private readonly defaultRate = 1.0;
   private readonly defaultAxis = 0;
 
-  constructor(config: MinMaxNormConfig) {
+  constructor(args: MinMaxNormArgs) {
     super();
     this.minValue =
-        config.minValue != null ? config.minValue : this.defaultMinValue;
+        args.minValue != null ? args.minValue : this.defaultMinValue;
     this.maxValue =
-        config.maxValue != null ? config.maxValue : this.defaultMaxValue;
-    this.rate = config.rate != null ? config.rate : this.defaultRate;
-    this.axis = config.axis != null ? config.axis : this.defaultAxis;
+        args.maxValue != null ? args.maxValue : this.defaultMaxValue;
+    this.rate = args.rate != null ? args.rate : this.defaultRate;
+    this.axis = args.axis != null ? args.axis : this.defaultAxis;
   }
 
   apply(w: Tensor): Tensor {

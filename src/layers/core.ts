@@ -18,7 +18,7 @@ import {Activation as ActivationFn, ActivationIdentifier, getActivation, seriali
 import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
-import {InputSpec, Layer, LayerConfig} from '../engine/topology';
+import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
@@ -28,7 +28,7 @@ import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
 
-export interface DropoutLayerConfig extends LayerConfig {
+export interface DropoutLayerArgs extends LayerArgs {
   /** Float between 0 and 1. Fraction of the input units to drop. */
   rate: number;
 
@@ -61,13 +61,13 @@ export class Dropout extends Layer {
   private readonly noiseShape: number[];
   private readonly seed: number;
 
-  constructor(config: DropoutLayerConfig) {
-    super(config);
-    this.rate = Math.max(Math.min(config.rate, 1), 0);
+  constructor(args: DropoutLayerArgs) {
+    super(args);
+    this.rate = Math.max(Math.min(args.rate, 1), 0);
     this.rateScalar = getScalar(this.rate);
     // So that the scalar doesn't get tidied up between executions.
-    this.noiseShape = config.noiseShape;
-    this.seed = config.seed;
+    this.noiseShape = args.noiseShape;
+    this.seed = args.seed;
     if (this.seed != null) {
       throw new NotImplementedError(
           'Non-default seed is not implemented in Dropout layer yet: ' +
@@ -126,7 +126,7 @@ export class Dropout extends Layer {
 }
 serialization.registerClass(Dropout);
 
-export interface DenseLayerConfig extends LayerConfig {
+export interface DenseLayerArgs extends LayerArgs {
   /** Positive integer, dimensionality of the output space. */
   units: number;
   /**
@@ -225,33 +225,33 @@ export class Dense extends Layer {
   private readonly kernelRegularizer?: Regularizer;
   private readonly biasRegularizer?: Regularizer;
 
-  constructor(config: DenseLayerConfig) {
-    super(config);
-    if (config.batchInputShape == null && config.inputShape == null &&
-        config.inputDim != null) {
+  constructor(args: DenseLayerArgs) {
+    super(args);
+    if (args.batchInputShape == null && args.inputShape == null &&
+        args.inputDim != null) {
       // This logic is copied from Layer's constructor, since we can't
       // do exactly what the Python constructor does for Dense().
       let batchSize: number = null;
-      if (config.batchSize != null) {
-        batchSize = config.batchSize;
+      if (args.batchSize != null) {
+        batchSize = args.batchSize;
       }
-      this.batchInputShape = [batchSize, config.inputDim];
+      this.batchInputShape = [batchSize, args.inputDim];
     }
 
-    this.units = config.units;
-    this.activation = getActivation(config.activation);
-    if (config.useBias != null) {
-      this.useBias = config.useBias;
+    this.units = args.units;
+    this.activation = getActivation(args.activation);
+    if (args.useBias != null) {
+      this.useBias = args.useBias;
     }
     this.kernelInitializer = getInitializer(
-        config.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
+        args.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
     this.biasInitializer =
-        getInitializer(config.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
-    this.kernelConstraint = getConstraint(config.kernelConstraint);
-    this.biasConstraint = getConstraint(config.biasConstraint);
-    this.kernelRegularizer = getRegularizer(config.kernelRegularizer);
-    this.biasRegularizer = getRegularizer(config.biasRegularizer);
-    this.activityRegularizer = getRegularizer(config.activityRegularizer);
+        getInitializer(args.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
+    this.kernelConstraint = getConstraint(args.kernelConstraint);
+    this.biasConstraint = getConstraint(args.biasConstraint);
+    this.kernelRegularizer = getRegularizer(args.kernelRegularizer);
+    this.biasRegularizer = getRegularizer(args.biasRegularizer);
+    this.activityRegularizer = getRegularizer(args.activityRegularizer);
     this.supportsMasking = true;
 
     this.inputSpec = [{minNDim: 2}];
@@ -337,8 +337,8 @@ serialization.registerClass(Dense);
  */
 export class Flatten extends Layer {
   static className = 'Flatten';
-  constructor(config?: LayerConfig) {
-    super(config || {});
+  constructor(args?: LayerArgs) {
+    super(args || {});
     this.inputSpec = [{minNDim: 3}];
   }
 
@@ -365,7 +365,7 @@ export class Flatten extends Layer {
 }
 serialization.registerClass(Flatten);
 
-export interface ActivationLayerConfig extends LayerConfig {
+export interface ActivationLayerArgs extends LayerArgs {
   /**
    * Name of the activation function to use.
    */
@@ -406,10 +406,10 @@ export class Activation extends Layer {
   static className = 'Activation';
   activation: ActivationFn;
 
-  constructor(config: ActivationLayerConfig) {
-    super(config);
+  constructor(args: ActivationLayerArgs) {
+    super(args);
     this.supportsMasking = true;
-    this.activation = getActivation(config.activation);
+    this.activation = getActivation(args.activation);
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
@@ -429,12 +429,12 @@ export class Activation extends Layer {
 }
 serialization.registerClass(Activation);
 
-export interface ReshapeLayerConfig extends LayerConfig {
+export interface ReshapeLayerArgs extends LayerArgs {
   /** The target shape. Does not include the batch axis. */
   targetShape: Shape;
 }
 
-export interface RepeatVectorLayerConfig extends LayerConfig {
+export interface RepeatVectorLayerArgs extends LayerArgs {
   /**
    * The integer number of times to repeat the input.
    */
@@ -457,9 +457,9 @@ export class RepeatVector extends Layer {
   static className = 'RepeatVector';
   readonly n: number;
 
-  constructor(config: RepeatVectorLayerConfig) {
-    super(config);
-    this.n = config.n;
+  constructor(args: RepeatVectorLayerArgs) {
+    super(args);
+    this.n = args.n;
     this.inputSpec = [{ndim: 2}];
   }
 
@@ -509,9 +509,9 @@ export class Reshape extends Layer {
   static className = 'Reshape';
   private targetShape: Shape;
 
-  constructor(config: ReshapeLayerConfig) {
-    super(config);
-    this.targetShape = config.targetShape;
+  constructor(args: ReshapeLayerArgs) {
+    super(args);
+    this.targetShape = args.targetShape;
 
     // Make sure that all unknown dimensions are represented as `null`.
     for (let i = 0; i < this.targetShape.length; ++i) {
@@ -609,7 +609,7 @@ export class Reshape extends Layer {
 }
 serialization.registerClass(Reshape);
 
-export interface PermuteLayerConfig extends LayerConfig {
+export interface PermuteLayerArgs extends LayerArgs {
   /**
    * Array of integers. Permutation pattern. Does not include the
    * sample (batch) dimension. Index starts at 1.
@@ -650,28 +650,28 @@ export class Permute extends Layer {
   readonly dims: number[];
   private readonly dimsIncludingBatch: number[];
 
-  constructor(config: PermuteLayerConfig) {
-    super(config);
-    if (config.dims == null) {
+  constructor(args: PermuteLayerArgs) {
+    super(args);
+    if (args.dims == null) {
       throw new Error(
           'Required configuration field `dims` is missing during Permute ' +
           'constructor call.');
     }
-    if (!Array.isArray(config.dims)) {
+    if (!Array.isArray(args.dims)) {
       throw new Error(
           'Permute constructor requires `dims` to be an Array, but received ' +
-          `${config.dims} instead.`);
+          `${args.dims} instead.`);
     }
 
     // Check the validity of the permutation indices.
-    const expectedSortedIndices = range(1, config.dims.length + 1);
-    if (!util.arraysEqual(config.dims.slice().sort(), expectedSortedIndices)) {
+    const expectedSortedIndices = range(1, args.dims.length + 1);
+    if (!util.arraysEqual(args.dims.slice().sort(), expectedSortedIndices)) {
       throw new Error(
-          'Invalid permutation `dims`: ' + JSON.stringify(config.dims) +
+          'Invalid permutation `dims`: ' + JSON.stringify(args.dims) +
           ' `dims` must contain consecutive integers starting from 1.');
     }
 
-    this.dims = config.dims;
+    this.dims = args.dims;
     this.dimsIncludingBatch = [0].concat(this.dims);
     this.inputSpec = [new InputSpec({ndim: this.dims.length + 1})];
   }
