@@ -335,13 +335,20 @@ export abstract class Dataset<T extends DataElement> {
 
   /**
    * Collect all elements of this dataset into an array.
+   *
    * Obviously this will succeed only for small datasets that fit in memory.
-   * Useful for testing.
+   * Useful for testing and generally should be avoided if possible.
+   *
+   * ```js
+   * const a = tf.data.array([1, 2, 3, 4, 5, 6]);
+   * console.log(await a.toArray());
+   * ```
    *
    * @returns A Promise for an array of elements, which will resolve
    *   when a new stream has been obtained and fully consumed.
    */
-  async collectAll() {
+  /** @doc {heading: 'Data', subheading: 'Classes'} */
+  async toArray() {
     return (await this.iterator()).collect();
   }
 
