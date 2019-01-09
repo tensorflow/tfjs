@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose, expectArraysEqual} from '../test_util';
+import {ALL_ENVS, expectArraysClose, expectArraysEqual, WEBGL_ENVS} from '../test_util';
 
 describeWithFlags('prelu', ALL_ENVS, () => {
   it('basic', () => {
@@ -263,6 +263,21 @@ describeWithFlags('maximum', ALL_ENVS, () => {
     expect(() => tf.maximum(3, 'q'))
         .toThrowError(
             /Argument 'b' passed to 'maximum' must be numeric tensor/);
+  });
+});
+
+describeWithFlags('maximum', WEBGL_ENVS, () => {
+  it('works with squarification for large dimension', () => {
+    const maxTextureSize = tf.ENV.get('WEBGL_MAX_TEXTURE_SIZE');
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
+    const a =
+        tf.tensor2d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], [2, 7]);
+    const b =
+        tf.tensor2d([-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 7]);
+
+    const result = tf.maximum(a, b);
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
+    expectArraysClose(result, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
   });
 });
 

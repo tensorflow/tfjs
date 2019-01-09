@@ -20,7 +20,6 @@ import {getBroadcastDims} from '../../ops/broadcast_util';
 import * as util from '../../util';
 import {getGlslDifferences, GLSL} from './glsl_version';
 import * as shader_util from './shader_compiler_util';
-import * as tex_util from './tex_util';
 
 export type ShapeInfo = {
   logicalShape: number[],
@@ -1289,28 +1288,15 @@ function getPackedSamplerAtOutputCoords(
   const texName = inputInfo.name;
   const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
   const funcName = 'get' + texFuncSnippet + 'AtOutCoords';
-
   const outTexShape = outShapeInfo.texShape;
-  const packedTexShape = [...tex_util.getPackedMatrixTextureShapeWidthHeight(
-      outTexShape[1], outTexShape[0])];
-
-  const inShape = inputInfo.shapeInfo.logicalShape;
-  const outShape = outShapeInfo.logicalShape;
-  const broadcastDims = getBroadcastDims(inShape, outShape);
-  const inRank = inShape.length;
-  const outRank = outShape.length;
-  if (broadcastDims.length) {
-    throw Error('Packed broadcast sampling is not implemented yet.');
-  }
-
   const inTexShape = inputInfo.shapeInfo.texShape;
-  const packedInTexShape = [...tex_util.getPackedMatrixTextureShapeWidthHeight(
-      inTexShape[1], inTexShape[0])];
   const glsl = getGlslDifferences();
+  const inRank = inputInfo.shapeInfo.logicalShape.length;
+  const outRank = outShapeInfo.logicalShape.length;
 
-  // Check sizes are equal as 1 is padded to 2.
-  if (util.arraysEqual(inTexShape, outTexShape) &&
-      util.sizeFromShape(inShape) === util.sizeFromShape(outShape)) {
+  if (!inputInfo.shapeInfo.isUniform && inRank === outRank &&
+      inputInfo.shapeInfo.flatOffset == null &&
+      util.arraysEqual(inTexShape, outTexShape)) {
     return `
       vec4 ${funcName}() {
         return ${glsl.texture2D}(${texName}, resultUV);
@@ -1318,42 +1304,61 @@ function getPackedSamplerAtOutputCoords(
     `;
   }
 
-  let output = `return ${glsl.texture2D}(${texName}, uv)`;
+  const type = getCoordsDataType(outRank);
+  const broadcastDims = getBroadcastDims(
+      inputInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape);
+  const rankDiff = outRank - inRank;
+  let coordsSnippet: string;
+  const fields = ['x', 'y', 'z', 'w', 'u', 'v'];
+
+  if (broadcastDims.length) {
+    throw Error('Packed broadcast sampling is not implemented yet.');
+  }
+
+  if (inRank === 0) {
+    coordsSnippet = '';
+  } else if (outRank < 2 && broadcastDims.length >= 1) {
+    coordsSnippet = 'coords = 0;';
+  } else {
+    coordsSnippet =
+        broadcastDims.map(d => `coords.${fields[d + rankDiff]} = 0;`)
+            .join('\n');
+  }
+  let unpackedCoordsSnippet = '';
+  if (outRank < 2 && inRank > 0) {
+    unpackedCoordsSnippet = 'coords';
+  } else {
+    unpackedCoordsSnippet = inputInfo.shapeInfo.logicalShape
+                                .map((s, i) => `coords.${fields[i + rankDiff]}`)
+                                .join(', ');
+  }
+
+  let output = `return outputValue;`;
 
   if (inRank === 1 && outRank > 1) {
     output = `
-      vec4 values = ${glsl.texture2D}(${texName}, uv);
-      return vec4(values.xy, values.xy);
+      return vec4(outputValue.xy, outputValue.xy);
     `;
   } else if (inRank === 0 && outRank > 0) {
     if (outRank === 1) {
       output = `
-        vec4 values = ${glsl.texture2D}(${texName}, uv);
-        return vec4(values.x, values.x, 0., 0.);
+        return vec4(outputValue.x, outputValue.x, 0., 0.);
       `;
     } else {
       output = `
-        vec4 values = ${glsl.texture2D}(${texName}, uv);
-        return vec4(values.x);
+        return vec4(outputValue.x);
       `;
     }
   }
 
-  // index below refers to texel index
   return `
-  vec4 ${funcName}() {
-    ivec2 resTexRC = ivec2(resultUV.yx *
-                           vec2(${packedTexShape[0]}, ${packedTexShape[1]}));
-    int index = resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
-
-    int texR = index / ${packedInTexShape[1]};
-    int texC = index - texR * ${packedInTexShape[1]};
-    vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${packedInTexShape[1]}, ${
-      packedInTexShape[0]});
-
-    ${output};
-  }
-`;
+    vec4 ${funcName}() {
+      ${type} coords = getOutputCoords();
+      ${coordsSnippet}
+      vec4 outputValue = get${texFuncSnippet}(${unpackedCoordsSnippet});
+      ${output}
+    }
+  `;
 }
 
 function getSamplerAtOutputCoords(
@@ -1363,7 +1368,10 @@ function getSamplerAtOutputCoords(
   const funcName = 'get' + texFuncSnippet + 'AtOutCoords';
   const outTexShape = outShapeInfo.texShape;
   const inTexShape = inputInfo.shapeInfo.texShape;
-  if (!inputInfo.shapeInfo.isUniform &&
+  const inRank = inputInfo.shapeInfo.logicalShape.length;
+  const outRank = outShapeInfo.logicalShape.length;
+
+  if (!inputInfo.shapeInfo.isUniform && inRank === outRank &&
       inputInfo.shapeInfo.flatOffset == null &&
       util.arraysEqual(inTexShape, outTexShape)) {
     return `
@@ -1373,8 +1381,6 @@ function getSamplerAtOutputCoords(
     `;
   }
 
-  const inRank = inputInfo.shapeInfo.logicalShape.length;
-  const outRank = outShapeInfo.logicalShape.length;
   const type = getCoordsDataType(outRank);
   const broadcastDims = getBroadcastDims(
       inputInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape);

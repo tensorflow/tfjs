@@ -108,7 +108,7 @@ describeWithFlags('getTextureShapeFromLogicalShape packed', WEBGL_ENVS, () => {
         webgl_util.getTextureShapeFromLogicalShape(logicalShape, isPacked);
 
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', max);
-    expect(texShape).toEqual([4, 6]);
+    expect(texShape).toEqual([6, 4]);
   });
 });
 

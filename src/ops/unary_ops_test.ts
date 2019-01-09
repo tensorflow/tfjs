@@ -118,6 +118,18 @@ describeWithFlags('relu', ALL_ENVS, () => {
   });
 });
 
+describeWithFlags('relu', WEBGL_ENVS, () => {
+  it('works with squarification for prime number length vector', () => {
+    const maxTextureSize = tf.ENV.get('WEBGL_MAX_TEXTURE_SIZE');
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
+    const a = tf.tensor1d([1, -2, 5, -3, -1, 4, 7]);
+    const result = tf.relu(a);
+
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
+    expectArraysClose(result, [1, 0, 5, 0, 0, 4, 7]);
+  });
+});
+
 describeWithFlags('abs', ALL_ENVS, () => {
   it('basic', () => {
     const a = tf.tensor1d([1, -2, 0, 3, -0.1]);

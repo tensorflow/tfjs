@@ -203,6 +203,38 @@ describeWithFlags('packed batchNormalization', WEBGL_ENVS, () => {
   });
 });
 
+describeWithFlags('batchNormalization', WEBGL_ENVS, () => {
+  it('should work when squarification results in zero padding', () => {
+    const maxTextureSize = tf.ENV.get('WEBGL_MAX_TEXTURE_SIZE');
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
+
+    const x = tf.tensor3d(
+        [
+          0.49955603, 0.04158615, -1.09440524, 2.03854165, -0.61578344,
+          2.87533573, 1.18105987, 0.807462, 1.87888837, 2.26563962, -0.37040935,
+          1.35848753, -0.75347094, 0.15683117, 0.91925946, 0.34121279,
+          0.92717143, 1.89683965
+        ],
+        [2, 3, 3]);
+    const mean = tf.tensor1d([0.39745062, -0.48062894, 0.4847822]);
+    const variance = tf.tensor1d([0.32375343, 0.67117643, 1.08334653]);
+    const offset = tf.tensor1d([0.69398749, -1.29056387, 0.9429723]);
+    const scale = tf.tensor1d([-0.5607271, 0.9878457, 0.25181573]);
+    const varianceEpsilon = .001;
+
+    const result = tf.batchNormalization3d(
+        x, mean, variance, varianceEpsilon, scale, offset);
+
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
+
+    expectArraysClose(result, [
+      0.59352049, -0.66135202, 0.5610874, -0.92077015, -1.45341019, 1.52106473,
+      -0.07704776, 0.26144429, 1.28010017, -1.14422404, -1.15776136, 1.15425493,
+      1.82644104, -0.52249442, 1.04803919, 0.74932291, 0.40568101, 1.2844412
+    ]);
+  });
+});
+
 describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
   it('simple batchnorm4D, no offset or scale, 2x1x1x2', () => {
     const x = tf.tensor4d([2, 4, 9, 23], [2, 1, 1, 2]);
