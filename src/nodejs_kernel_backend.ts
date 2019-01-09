@@ -1271,7 +1271,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   nonMaxSuppression(
       boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
       iouThreshold?: number, scoreThreshold?: number): Tensor1D {
-    const opAttrs = [] as TFEOpAttr[];
+    const opAttrs = [createTypeOpAttr('T', boxes.dtype)];
 
     const maxOutputSizeTensor = scalar(maxOutputSize, 'int32');
     const iouThresholdTensor = scalar(iouThreshold);
