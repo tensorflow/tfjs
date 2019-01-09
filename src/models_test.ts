@@ -16,7 +16,7 @@ import * as tfl from './index';
 import {Reshape} from './layers/core';
 import {deserialize} from './layers/serialization';
 import {loadModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
-import {PyJsonDict} from './types';
+import {PyJsonDict} from './keras_format/types';
 import {convertPythonicToTs, convertTsToPythonic} from './utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 import {version as layersVersion} from './version';

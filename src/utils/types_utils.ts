@@ -12,7 +12,7 @@
 
 import {Tensor} from '@tensorflow/tfjs-core';
 import {ValueError} from '../errors';
-import {Shape} from '../types';
+import {Shape} from '../keras_format/types';
 // tslint:enable
 
 

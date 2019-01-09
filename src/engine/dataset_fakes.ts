@@ -10,7 +10,7 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 
-import {Shape} from '../types';
+import {Shape} from '../keras_format/types';
 
 import {Dataset, LazyIterator, TensorOrTensorMap,} from './dataset_stub';
 

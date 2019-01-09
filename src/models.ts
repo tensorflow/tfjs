@@ -22,12 +22,13 @@ import {Model, ModelCompileArgs, ModelEvaluateArgs} from './engine/training';
 import {ModelEvaluateDatasetArgs, ModelFitDatasetArgs} from './engine/training_dataset';
 import {ModelFitArgs} from './engine/training_tensors';
 import {NotImplementedError, RuntimeError, ValueError} from './errors';
+import {PyJsonDict, Shape} from './keras_format/types';
 import {deserialize} from './layers/serialization';
-import {Kwargs, NamedTensorMap, Shape} from './types';
-import {PyJsonDict} from './types';
+import {Kwargs, NamedTensorMap} from './types';
 import * as generic_utils from './utils/generic_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
 import {getExactlyOneShape} from './utils/types_utils';
+
 
 
 /**

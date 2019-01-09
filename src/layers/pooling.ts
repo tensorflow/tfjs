@@ -21,7 +21,8 @@ import {checkDataFormat, checkPaddingMode, checkPoolMode, DataFormat, PaddingMod
 import {InputSpec} from '../engine/topology';
 import {Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import {Kwargs, Shape} from '../types';
+import {Shape} from '../keras_format/types';
+import {Kwargs} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 

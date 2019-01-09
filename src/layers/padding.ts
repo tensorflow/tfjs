@@ -22,7 +22,8 @@ import {imageDataFormat} from '../backend/common';
 import {DataFormat} from '../common';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {ValueError} from '../errors';
-import {Kwargs, Shape} from '../types';
+import {Shape} from '../keras_format/types';
+import {Kwargs} from '../types';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 
 

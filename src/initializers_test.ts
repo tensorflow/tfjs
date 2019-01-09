@@ -17,8 +17,8 @@ import {eye, randomNormal, serialization, Tensor, Tensor2D, tensor2d} from '@ten
 import * as tfl from './index';
 import {checkDistribution, checkFanMode, getInitializer, serializeInitializer, VarianceScaling} from './initializers';
 import {VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES} from './keras_format/initializer_config';
+import {PyJsonDict} from './keras_format/types';
 import {deserialize} from './layers/serialization';
-import {PyJsonDict} from './types';
 import * as math_utils from './utils/math_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectNoLeakedTensors, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
