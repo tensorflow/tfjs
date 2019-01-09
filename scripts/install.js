@@ -34,6 +34,7 @@ const rimrafPromise = util.promisify(rimraf);
 const unlink = util.promisify(fs.unlink);
 const exec = util.promisify(cp.exec);
 
+// TODO(kreeger): Change to hosted TF builds.
 const BASE_URI = 'https://storage.googleapis.com/tf-builds/';
 const CPU_DARWIN = 'libtensorflow_r1_11_darwin.tar.gz';
 const CPU_LINUX = 'libtensorflow_r1_11_linux_cpu.tar.gz';
