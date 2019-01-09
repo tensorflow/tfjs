@@ -45,11 +45,11 @@ describe('Util', () => {
   });
 
   it('Size to squarish shape (prime number)', () => {
-    expect(util.sizeToSquarishShape(11)).toEqual([1, 11]);
+    expect(util.sizeToSquarishShape(11)).toEqual([4, 3]);
   });
 
   it('Size to squarish shape (almost square)', () => {
-    expect(util.sizeToSquarishShape(35)).toEqual([5, 7]);
+    expect(util.sizeToSquarishShape(35)).toEqual([6, 6]);
   });
 
   it('Size of 1 to squarish shape', () => {

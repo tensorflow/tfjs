@@ -167,12 +167,8 @@ export function tanh(x: number): number {
 }
 
 export function sizeToSquarishShape(size: number): [number, number] {
-  for (let a = Math.floor(Math.sqrt(size)); a > 1; --a) {
-    if (size % a === 0) {
-      return [a, size / a];
-    }
-  }
-  return [1, size];
+  const width = Math.ceil(Math.sqrt(size));
+  return [width, Math.ceil(size / width)];
 }
 
 export function createShuffledIndices(n: number): Uint32Array {

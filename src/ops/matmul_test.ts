@@ -76,6 +76,20 @@ describeWithFlags('packed matmul', WEBGL_ENVS, () => {
     expectArraysClose(c, [572]);
   });
 
+  it('should work when squarification results in zero padding', () => {
+    const maxTextureSize = tf.ENV.get('WEBGL_MAX_TEXTURE_SIZE');
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 3);
+    const a = tf.tensor2d([1, 2], [1, 2]);
+    const b = tf.tensor2d(
+        [[0, 1, 2, 3, 4, 5, 6, 7, 8], [9, 10, 11, 12, 13, 14, 15, 16, 17]]);
+
+    const c = tf.matMul(a, b);
+
+    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
+
+    expectArraysClose(c, [18, 21, 24, 27, 30, 33, 36, 39, 42]);
+  });
+
   it('A x B', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
@@ -141,7 +155,7 @@ describeWithFlags('packed matmul', WEBGL_ENVS, () => {
      () => {
        const webglLazilyUnpackSaved = tf.ENV.get('WEBGL_LAZILY_UNPACK');
        tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
-  
+
        const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9], [9, 1]);
        const b = tf.tensor2d([1], [1, 1]);
        const c = tf.matMul(a, b);
