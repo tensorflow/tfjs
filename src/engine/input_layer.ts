@@ -12,7 +12,8 @@ import {DataType, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import {getUid} from '../backend/state';
 import {ValueError} from '../errors';
-import {Kwargs, Shape} from '../types';
+import {Shape} from '../keras_format/types';
+import {Kwargs} from '../types';
 
 import {DisposeResult, Layer, Node, SymbolicTensor} from './topology';
 

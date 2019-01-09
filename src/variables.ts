@@ -15,7 +15,8 @@ import {getNextUniqueTensorId} from './backend/state';
 import {getScopedTensorName, getUniqueTensorName} from './common';
 import {Constraint} from './constraints';
 import {NotImplementedError} from './errors';
-import {HasShape, Shape} from './types';
+import {Shape} from './keras_format/types';
+import {HasShape} from './types';
 
 const DEFAULT_VARIABLE_NAME_PREFIX = 'Variable';
 

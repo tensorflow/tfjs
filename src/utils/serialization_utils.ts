@@ -15,7 +15,7 @@
 
 import {serialization} from '@tensorflow/tfjs-core';
 
-import {PyJsonValue} from '../types';
+import {PyJsonValue} from '../keras_format/types';
 import * as generic_utils from '../utils/generic_utils';
 // tslint:enable
 

@@ -15,7 +15,7 @@
  */
 import {serialization} from '@tensorflow/tfjs-core';
 
-import {PyJsonValue} from '../types';
+import {PyJsonValue} from '../keras_format/types';
 
 import {convertPythonicToTs, convertTsToPythonic} from './serialization_utils';
 

@@ -10,7 +10,7 @@
 
 import {DataType} from '@tensorflow/tfjs-core';
 
-import {Shape} from '../types';
+import {Shape} from './types';
 
 /** Constructor arguments for Layer. */
 export interface LayerConfig {

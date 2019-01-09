@@ -24,11 +24,11 @@ export {Model, ModelCompileArgs, ModelEvaluateArgs} from './engine/training';
 export {ModelFitDatasetArgs} from './engine/training_dataset';
 export {ModelFitArgs} from './engine/training_tensors';
 export {input, loadModel, model, registerCallbackConstructor, sequential} from './exports';
+export {Shape} from './keras_format/types';
 // tslint:disable-next-line:max-line-length
 export {GRUCellLayerArgs, GRULayerArgs, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNLayerArgs, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs} from './layers/recurrent';
 export {Logs} from './logs';
 export {ModelAndWeightsConfig, Sequential, SequentialArgs} from './models';
-export {Shape} from './types';
 export {LayerVariable} from './variables';
 export {version as version_layers} from './version';
 export {constraints, initializers, layers, metrics, models, regularizers};

@@ -18,7 +18,8 @@ import {onesLike as coreOnesLike, Scalar, scalar, Tensor, Tensor1D, tensor1d, Te
 import {disposeScalarCache, getScalar} from '../backend/state';
 import {checkDataFormat, DataFormat} from '../common';
 import {NotImplementedError, ValueError} from '../errors';
-import {HasShape, Shape} from '../types';
+import {Shape} from '../keras_format/types';
+import {HasShape} from '../types';
 import * as math_utils from '../utils/math_utils';
 
 import {imageDataFormat} from './common';
