@@ -26,7 +26,7 @@ const zip = require('adm-zip');
 const cp = require('child_process');
 const os = require('os');
 const ProgressBar = require('progress');
-const {depsPath, depsLibPath} = require('./deps-constants.js');
+const {depsPath, depsLibTensorFlowPath} = require('./deps-constants.js');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -34,13 +34,13 @@ const rimrafPromise = util.promisify(rimraf);
 const unlink = util.promisify(fs.unlink);
 const exec = util.promisify(cp.exec);
 
-// TODO(kreeger): Change to hosted TF builds.
-const BASE_URI = 'https://storage.googleapis.com/tf-builds/';
-const CPU_DARWIN = 'libtensorflow_r1_11_darwin.tar.gz';
-const CPU_LINUX = 'libtensorflow_r1_11_linux_cpu.tar.gz';
-const GPU_LINUX = 'libtensorflow_r1_11_linux_gpu.tar.gz';
-const CPU_WINDOWS = 'libtensorflow_r1_11_windows_cpu.zip';
-const GPU_WINDOWS = 'libtensorflow_r1_11_windows_gpu.zip';
+const BASE_URI =
+    'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
+const CPU_DARWIN = 'cpu-darwin-x86_64-1.12.0.tar.gz';
+const CPU_LINUX = 'cpu-linux-x86_64-1.12.0.tar.gz';
+const GPU_LINUX = 'gpu-linux-x86_64-1.12.0.tar.gz';
+const CPU_WINDOWS = 'cpu-windows-x86_64-1.12.0.zip';
+const GPU_WINDOWS = 'gpu-windows-x86_64-1.12.0.zip';
 
 const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
@@ -102,20 +102,14 @@ async function downloadLibtensorflow(callback) {
   await ensureDir(depsPath);
 
   // If HTTPS_PROXY, https_proxy, HTTP_PROXY, or http_proxy is set
-  const proxy = process.env['HTTPS_PROXY']
-    || process.env['https_proxy']
-    || process.env['HTTP_PROXY']
-    || process.env['http_proxy']
-    || '';
+  const proxy = process.env['HTTPS_PROXY'] || process.env['https_proxy'] ||
+      process.env['HTTP_PROXY'] || process.env['http_proxy'] || '';
 
-    // Using object destructuring to construct the options object for the
-    // http request.  the '...url.parse(targetUri)' part fills in the host,
-    // path, protocol, etc from the targetUri and then we set the agent to the
-    // default agent which is overridden a few lines down if there is a proxy
-    const options = {
-    ...url.parse(targetUri),
-    agent: https.globalAgent
-  };
+  // Using object destructuring to construct the options object for the
+  // http request.  the '...url.parse(targetUri)' part fills in the host,
+  // path, protocol, etc from the targetUri and then we set the agent to the
+  // default agent which is overridden a few lines down if there is a proxy
+  const options = {...url.parse(targetUri), agent: https.globalAgent};
 
   if (proxy !== '') {
     options.agent = new HttpsProxyAgent(proxy);
@@ -184,7 +178,7 @@ async function build() {
  */
 async function run() {
   // First check if deps library exists:
-  if (forceDownload !== 'download' && await exists(depsLibPath)) {
+  if (forceDownload !== 'download' && await exists(depsLibTensorFlowPath)) {
     // Library has already been downloaded, then compile and simlink:
     await build();
   } else {

@@ -19,9 +19,15 @@ const path = require('path');
 const util = require('util');
 
 const copy = util.promisify(fs.copyFile);
+const os = require('os');
 const rename = util.promisify(fs.rename);
 const symlink = util.promisify(fs.symlink);
-const {libName, depsLibPath} = require('./deps-constants.js');
+const {
+  depsLibTensorFlowFrameworkPath,
+  depsLibTensorFlowPath,
+  frameworkLibName,
+  libName
+} = require('./deps-constants.js');
 
 const action = process.argv[2];
 let targetDir = process.argv[3];
@@ -42,11 +48,23 @@ async function symlinkDepsLib() {
     throw new Error('Destination path not supplied!');
   }
   try {
-    await symlink(depsLibPath, destLibPath);
+    await symlink(depsLibTensorFlowPath, destLibPath);
+    // Linux will require this library as well:
+    if (os.platform() === 'linux') {
+      await symlink(
+          depsLibTensorFlowFrameworkPath,
+          path.join(targetDir, frameworkLibName));
+    }
   } catch (e) {
     console.error(
         `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
-    await copy(depsLibPath, destLibPath);
+    await copy(depsLibTensorFlowPath, destLibPath);
+    // Linux will require this library as well:
+    if (os.platform() === 'linux') {
+      await copy(
+          depsLibTensorFlowFrameworkPath,
+          path.join(targetDir, frameworkLibName));
+    }
   }
 }
 
@@ -54,7 +72,7 @@ async function symlinkDepsLib() {
  * Moves the deps library path to the destination path.
  */
 async function moveDepsLib() {
-  await rename(depsLibPath, destLibPath);
+  await rename(depsLibTensorFlowPath, destLibPath);
 }
 
 /**

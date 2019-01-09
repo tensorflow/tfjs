@@ -37,6 +37,7 @@
           'libraries' : [
             '-Wl,-rpath,\$$ORIGIN',
             '-ltensorflow',
+            '-ltensorflow_framework',
           ],
           'library_dirs' : ['<(PRODUCT_DIR)'],
           'actions': [
