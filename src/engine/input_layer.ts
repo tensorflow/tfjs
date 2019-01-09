@@ -56,7 +56,7 @@ export interface InputLayerArgs {
  * model1.add(tf.layers.dense({inputShape: [4], units: 3, activation: 'relu'}));
  * model1.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
  * model1.summary();
- * model1.preidct(tf.zeros([1, 4])).print();
+ * model1.predict(tf.zeros([1, 4])).print();
  *
  * // Construct another model, reusing the second layer of `model1` while
  * // not using the first layer of `model1`. Note that you cannot add the second
@@ -70,7 +70,7 @@ export interface InputLayerArgs {
  * model2.add(tf.layers.inputLayer({inputShape: [3]}));
  * model2.add(model1.layers[1]);
  * model2.summary();
- * model2.preidct(tf.zeros([1, 3])).print();
+ * model2.predict(tf.zeros([1, 3])).print();
  * ```
  */
 export class InputLayer extends Layer {

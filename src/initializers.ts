@@ -14,21 +14,15 @@ import {getScalar} from './backend/state';
 import * as K from './backend/tfjs_backend';
 import {checkDataFormat, DataFormat} from './common';
 import {NotImplementedError, ValueError} from './errors';
+import {Distribution, FanMode, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES} from './keras_format/initializer_config';
 import {Shape} from './types';
 import {checkStringTypeUnionValue, deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
 import {arrayProd} from './utils/math_utils';
 
-
-/** @docinline */
-export type FanMode = 'fanIn'|'fanOut'|'fanAvg';
-export const VALID_FAN_MODE_VALUES = ['fanIn', 'fanOut', 'fanAvg'];
 export function checkFanMode(value?: string): void {
   checkStringTypeUnionValue(VALID_FAN_MODE_VALUES, 'FanMode', value);
 }
 
-/** @docinline */
-export type Distribution = 'normal'|'uniform';
-export const VALID_DISTRIBUTION_VALUES = ['normal', 'uniform'];
 export function checkDistribution(value?: string): void {
   checkStringTypeUnionValue(VALID_DISTRIBUTION_VALUES, 'Distribution', value);
 }
