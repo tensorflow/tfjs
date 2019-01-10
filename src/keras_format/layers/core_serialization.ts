@@ -81,7 +81,7 @@ export interface PermuteLayerSerialization {
   config: PermuteLayerConfig;
 }
 
-export type CoreSerialization =
+export type CoreLayerSerialization =
     DropoutLayerSerialization|DenseLayerSerialization|
     ActivationLayerSerialization|RepeatVectorLayerSerialization|
     ReshapeLayerSerialization|PermuteLayerSerialization;
