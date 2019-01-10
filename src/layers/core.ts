@@ -14,13 +14,14 @@
 
 import {Scalar, serialization, Tensor, tidy, transpose, util} from '@tensorflow/tfjs-core';
 
-import {Activation as ActivationFn, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
+import {Activation as ActivationFn, getActivation, serializeActivation} from '../activations';
 import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
+import {ActivationIdentifier} from '../keras_format/activation_config';
 import {Shape} from '../keras_format/types';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
