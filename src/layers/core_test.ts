@@ -14,7 +14,6 @@
 
 import {mul, ones, scalar, Tensor, tensor2d, tensor3d, tensor4d, zeros} from '@tensorflow/tfjs-core';
 
-import {ActivationIdentifier} from '../activations';
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
@@ -22,6 +21,7 @@ import {pyListRepeat} from '../utils/generic_utils';
 import {arrayProd} from '../utils/math_utils';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {ActivationIdentifier} from '../keras_format/activation_config';
 
 describe('Dropout Layer: Symbolic', () => {
   const dropoutRates = [0, 0.5];

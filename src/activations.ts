@@ -12,8 +12,9 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/tfjs_backend';
 import {getScalar} from './backend/state';
+import * as K from './backend/tfjs_backend';
+import {ActivationIdentifier} from './keras_format/activation_config';
 import {deserializeKerasObject} from './utils/generic_utils';
 
 /**
@@ -29,10 +30,6 @@ export abstract class Activation extends serialization.Serializable {
     return {};
   }
 }
-
-/** @docinline */
-export type ActivationIdentifier = 'elu'|'hardSigmoid'|'linear'|'relu'|'relu6'|
-    'selu'|'sigmoid'|'softmax'|'softplus'|'softsign'|'tanh'|string;
 
 /**
  * Exponential linear unit (ELU).

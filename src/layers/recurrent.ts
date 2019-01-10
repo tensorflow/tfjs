@@ -15,7 +15,7 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {DataType, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
-import {Activation, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
+import {Activation, getActivation, serializeActivation} from '../activations';
 import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
@@ -23,6 +23,7 @@ import {InputSpec, SymbolicTensor} from '../engine/topology';
 import {Layer, LayerArgs} from '../engine/topology';
 import {AttributeError, NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, Ones, serializeInitializer} from '../initializers';
+import {ActivationIdentifier} from '../keras_format/activation_config';
 import {Shape} from '../keras_format/types';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs, RnnStepFunction} from '../types';
