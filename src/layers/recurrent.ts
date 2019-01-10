@@ -342,8 +342,8 @@ export interface BaseRNNLayerArgs extends LayerArgs {
 
 /**
  * RNNLayerConfig is identical to BaseRNNLayerConfig, except it makes the
- * `cell` property required. This interface is  to be used with constructors
- * of concrete RNN layer sbutypes.
+ * `cell` property required. This interface is to be used with constructors
+ * of concrete RNN layer subtypes.
  */
 export interface RNNLayerArgs extends BaseRNNLayerArgs {
   cell: RNNCell|RNNCell[];
