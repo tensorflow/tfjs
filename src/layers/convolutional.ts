@@ -18,12 +18,12 @@ import {serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy} fro
 import {Activation, getActivation, serializeActivation} from '../activations';
 import {imageDataFormat} from '../backend/common';
 import * as K from '../backend/tfjs_backend';
-import {checkDataFormat, checkPaddingMode, DataFormat, PaddingMode} from '../common';
+import {checkDataFormat, checkPaddingMode} from '../common';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
-import {Shape} from '../keras_format/types';
+import {DataFormat, PaddingMode, Shape} from '../keras_format/common';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {convOutputLength, deconvLength, normalizeArray} from '../utils/conv_utils';

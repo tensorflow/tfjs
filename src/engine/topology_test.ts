@@ -12,7 +12,7 @@ import {eye, memory, ones, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/
 
 import * as tfl from '../index';
 import * as initializers from '../initializers';
-import {Shape} from '../keras_format/types';
+import {Shape} from '../keras_format/common';
 import {NamedTensorMap} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 import {LayerVariable, onesVariable, zerosVariable} from '../variables';

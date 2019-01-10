@@ -14,7 +14,8 @@ import {Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {getUid} from '../backend/state';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
-import {PyJsonDict, Shape} from '../keras_format/types';
+import {Shape} from '../keras_format/common';
+import {PyJsonDict} from '../keras_format/types';
 import {deserialize as deserializeLayer} from '../layers/serialization';
 import {Kwargs, NamedTensorMap} from '../types';
 import * as generic_utils from '../utils/generic_utils';

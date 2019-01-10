@@ -17,7 +17,7 @@ import {getScopedTensorName, getUniqueTensorName, nameScope} from '../common';
 import {Constraint} from '../constraints';
 import {AttributeError, NotImplementedError, RuntimeError, ValueError} from '../errors';
 import {getInitializer, Initializer} from '../initializers';
-import {Shape} from '../keras_format/types';
+import {Shape} from '../keras_format/common';
 import {Regularizer} from '../regularizers';
 import {Kwargs, RegularizerFn} from '../types';
 import * as generic_utils from '../utils/generic_utils';

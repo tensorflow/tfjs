@@ -17,11 +17,11 @@ import {serialization, Tensor, Tensor4D, tidy} from '@tensorflow/tfjs-core';
 
 import {imageDataFormat} from '../backend/common';
 import * as K from '../backend/tfjs_backend';
-import {checkDataFormat, DataFormat} from '../common';
+import {checkDataFormat} from '../common';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
-import {Shape} from '../keras_format/types';
+import {DataFormat, Shape} from '../keras_format/common';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {convOutputLength} from '../utils/conv_utils';

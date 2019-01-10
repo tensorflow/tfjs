@@ -8,8 +8,8 @@
  * =============================================================================
  */
 
-import {PaddingMode} from '../common';
 import {ValueError} from '../errors';
+import {PaddingMode} from '../keras_format/common';
 
 import {pyListRepeat} from './generic_utils';
 import {isInteger, max} from './math_utils';

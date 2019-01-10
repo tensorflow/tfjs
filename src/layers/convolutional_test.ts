@@ -15,10 +15,9 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {scalar, Tensor, tensor1d, tensor3d, Tensor4D, tensor4d, util} from '@tensorflow/tfjs-core';
 
-import {DataFormat, PaddingMode} from '../common';
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
-import {Shape} from '../keras_format/types';
+import {Shape, DataFormat, PaddingMode} from '../keras_format/common';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {conv1d, conv1dWithBias, conv2d, conv2dWithBias} from './convolutional';
