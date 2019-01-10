@@ -223,6 +223,20 @@ export class NodeJSKernelBackend extends KernelBackend {
                [x, beginTensor, endTensor, stridesTensor]) as T;
   }
 
+  unstack(x: Tensor<Rank>, axis: number): Tensor[] {
+    if (axis >= x.shape.length) {
+      throw new Error(
+          `Invalid axis supplied: ${axis} shape length: ${x.shape.length}`);
+    }
+    const num = x.shape[axis];
+    const opAttrs = [
+      {name: 'num', type: this.binding.TF_ATTR_INT, value: num},
+      createTypeOpAttr('T', x.dtype),
+      {name: 'axis', type: this.binding.TF_ATTR_INT, value: axis}
+    ];
+    return this.executeMultipleOutputs('Unpack', opAttrs, [x], num);
+  }
+
   batchMatMul(
       a: Tensor<Rank.R3>, b: Tensor<Rank.R3>, transposeA: boolean,
       transposeB: boolean): Tensor<Rank.R3> {
@@ -508,6 +522,12 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   relu<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Relu', x) as T;
+  }
+
+  prelu<T extends Tensor<Rank>>(x: T, a: T): T {
+    const pos = this.relu(x);
+    const neg = a.mul(x.sub(this.abs(x))).mul(0.5);
+    return pos.add(neg);
   }
 
   elu<T extends Tensor>(x: T): T {
