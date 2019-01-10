@@ -37,6 +37,7 @@ if (targetDir != undefined && targetDir.endsWith('"')) {
   targetDir = targetDir.substr(0, targetDir.length - 1);
 }
 
+const destFrameworkLibPath = path.join(targetDir, frameworkLibName);
 const destLibPath = path.join(targetDir, libName);
 
 /**
@@ -49,11 +50,10 @@ async function symlinkDepsLib() {
   }
   try {
     await symlink(depsLibTensorFlowPath, destLibPath);
-    // Linux will require this library as well:
     if (os.platform() === 'linux') {
       await symlink(
           depsLibTensorFlowFrameworkPath,
-          path.join(targetDir, frameworkLibName));
+          destFrameworkLibPath);
     }
   } catch (e) {
     console.error(
@@ -63,7 +63,7 @@ async function symlinkDepsLib() {
     if (os.platform() === 'linux') {
       await copy(
           depsLibTensorFlowFrameworkPath,
-          path.join(targetDir, frameworkLibName));
+          destFrameworkLibPath);
     }
   }
 }
@@ -73,6 +73,11 @@ async function symlinkDepsLib() {
  */
 async function moveDepsLib() {
   await rename(depsLibTensorFlowPath, destLibPath);
+  if (os.platform() === 'linux') {
+    await rename(
+        depsLibTensorFlowFrameworkPath,
+        destFrameworkLibPath);
+  }
 }
 
 /**
