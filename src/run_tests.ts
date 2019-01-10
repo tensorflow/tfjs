@@ -51,7 +51,10 @@ const IGNORE_LIST: string[] = [
   'scatterND test-tensorflow {} should work for simple 1d',
   'scatterND test-tensorflow {} should work for multiple 1d',
   'scatterND test-tensorflow {} should sum the duplicated indices',
-  'scatterND test-tensorflow {} should work for tensorLike input'
+  'scatterND test-tensorflow {} should work for tensorLike input',
+  // https://github.com/tensorflow/tfjs/issues/1077
+  'maxPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
+  'avgPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor'
 ];
 
 // Windows has two failing tests:
