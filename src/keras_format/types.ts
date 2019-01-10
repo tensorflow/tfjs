@@ -8,12 +8,6 @@
  * =============================================================================
  */
 
-/** @docalias number[] */
-export type Shape = number[];
-
-// The tfjs-core version of DataType must stay synced with this.
-export type DataType = 'float32'|'int32'|'bool'|'complex64'|'string';
-
 /**
  * A value within the JSON-serialized form of a serializable object.
  *

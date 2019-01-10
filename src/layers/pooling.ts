@@ -17,11 +17,11 @@ import {serialization, Tensor, Tensor3D, Tensor4D, tidy} from '@tensorflow/tfjs-
 
 import {imageDataFormat} from '../backend/common';
 import * as K from '../backend/tfjs_backend';
-import {checkDataFormat, checkPaddingMode, checkPoolMode, DataFormat, PaddingMode, PoolMode} from '../common';
+import {checkDataFormat, checkPaddingMode, checkPoolMode} from '../common';
 import {InputSpec} from '../engine/topology';
 import {Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import {Shape} from '../keras_format/types';
+import {DataFormat, PaddingMode, PoolMode, Shape} from '../keras_format/common';
 import {Kwargs} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';

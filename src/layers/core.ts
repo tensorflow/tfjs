@@ -22,7 +22,7 @@ import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {ActivationIdentifier} from '../keras_format/activation_config';
-import {Shape} from '../keras_format/types';
+import {Shape} from '../keras_format/common';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {arrayProd, range} from '../utils/math_utils';

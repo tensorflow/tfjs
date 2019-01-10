@@ -17,7 +17,7 @@ import {ones, serialization, Tensor, tensor1d, Tensor2D, tensor2d, tensor3d} fro
 import {Layer, SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
 import {deserialize} from '../layers/serialization';
-import {Shape} from '../keras_format/types';
+import {Shape} from '../keras_format/common';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 

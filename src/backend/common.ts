@@ -9,7 +9,7 @@
  */
 
 import {ENV} from '@tensorflow/tfjs-core';
-import {DataFormat} from '../common';
+import {DataFormat} from '../keras_format/common';
 
 let _epsilon: number;
 

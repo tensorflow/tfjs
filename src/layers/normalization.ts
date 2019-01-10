@@ -20,7 +20,7 @@ import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} fr
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
-import {Shape} from '../keras_format/types';
+import {Shape} from '../keras_format/common';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import * as generic_utils from '../utils/generic_utils';

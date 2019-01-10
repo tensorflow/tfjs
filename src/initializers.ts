@@ -12,10 +12,10 @@ import {DataType, eye, linalg, mul, ones, randomUniform, scalar, Scalar, seriali
 
 import {getScalar} from './backend/state';
 import * as K from './backend/tfjs_backend';
-import {checkDataFormat, DataFormat} from './common';
+import {checkDataFormat} from './common';
 import {NotImplementedError, ValueError} from './errors';
+import {DataFormat, Shape} from './keras_format/common';
 import {Distribution, FanMode, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES} from './keras_format/initializer_config';
-import {Shape} from './keras_format/types';
 import {checkStringTypeUnionValue, deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
 import {arrayProd} from './utils/math_utils';
 

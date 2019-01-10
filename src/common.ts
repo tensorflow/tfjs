@@ -11,31 +11,22 @@
 /**
  * Common functions for TensorFlow.js Layers.
  */
+import {VALID_DATA_FORMAT_VALUES, VALID_PADDING_MODE_VALUES, VALID_POOL_MODE_VALUES} from './keras_format/common';
 import {checkStringTypeUnionValue} from './utils/generic_utils';
+
 // A map from the requested scoped name of a Tensor to the number of Tensors
 // wanting that name so far.  This allows enforcing name uniqueness by appending
 // an incrementing index, e.g. scope/name, scope/name_1, scope/name_2, etc.
 const nameMap: Map<string, number> = new Map<string, number>();
 
-// TODO(cais): Perhaps move the enums to a more suitable place, e.g.,
-//   constants.ts.
-/** @docinline */
-export type DataFormat = 'channelsFirst'|'channelsLast';
-export const VALID_DATA_FORMAT_VALUES = ['channelsFirst', 'channelsLast'];
 export function checkDataFormat(value?: string): void {
   checkStringTypeUnionValue(VALID_DATA_FORMAT_VALUES, 'DataFormat', value);
 }
 
-/** @docinline */
-export type PaddingMode = 'valid'|'same'|'causal';
-export const VALID_PADDING_MODE_VALUES = ['valid', 'same', 'causal'];
 export function checkPaddingMode(value?: string): void {
   checkStringTypeUnionValue(VALID_PADDING_MODE_VALUES, 'PaddingMode', value);
 }
 
-/** @docinline */
-export type PoolMode = 'max'|'avg';
-export const VALID_POOL_MODE_VALUES = ['max', 'avg'];
 export function checkPoolMode(value?: string): void {
   checkStringTypeUnionValue(VALID_POOL_MODE_VALUES, 'PoolMode', value);
 }

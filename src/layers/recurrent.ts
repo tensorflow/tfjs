@@ -24,7 +24,7 @@ import {Layer, LayerArgs} from '../engine/topology';
 import {AttributeError, NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, Ones, serializeInitializer} from '../initializers';
 import {ActivationIdentifier} from '../keras_format/activation_config';
-import {Shape} from '../keras_format/types';
+import {Shape} from '../keras_format/common';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs, RnnStepFunction} from '../types';
 import * as math_utils from '../utils/math_utils';
@@ -239,7 +239,7 @@ export function rnn(
   });
 }
 
-export interface BaseRNNLayerConfig extends LayerArgs {
+export interface BaseRNNLayerArgs extends LayerArgs {
   /**
    * A RNN cell instance. A RNN cell is a class that has:
    *   - a `call()` method, which takes `[Tensor, Tensor]` as the
@@ -345,7 +345,7 @@ export interface BaseRNNLayerConfig extends LayerArgs {
  * `cell` property required. This interface is  to be used with constructors
  * of concrete RNN layer sbutypes.
  */
-export interface RNNLayerArgs extends BaseRNNLayerConfig {
+export interface RNNLayerArgs extends BaseRNNLayerArgs {
   cell: RNNCell|RNNCell[];
 }
 
@@ -1201,7 +1201,7 @@ export class SimpleRNNCell extends RNNCell {
 }
 serialization.registerClass(SimpleRNNCell);
 
-export interface SimpleRNNLayerArgs extends BaseRNNLayerConfig {
+export interface SimpleRNNLayerArgs extends BaseRNNLayerArgs {
   /**
    * Positive integer, dimensionality of the output space.
    */

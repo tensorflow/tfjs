@@ -9,8 +9,7 @@
  */
 
 import {DataType} from '@tensorflow/tfjs-core';
-
-import {Shape} from './types';
+import {Shape} from './common';
 
 /** Constructor arguments for Layer. */
 export interface LayerConfig {

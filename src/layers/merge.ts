@@ -19,7 +19,7 @@ import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerArgs, SymbolicTensor} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import {Shape} from '../keras_format/types';
+import {Shape} from '../keras_format/common';
 import {l2Normalize} from '../losses';
 import {Kwargs} from '../types';
 import * as generic_utils from '../utils/generic_utils';

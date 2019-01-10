@@ -21,7 +21,7 @@ import {Constraint, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
-import {Shape} from '../keras_format/types';
+import {Shape} from '../keras_format/common';
 import {getRegularizer, Regularizer, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';

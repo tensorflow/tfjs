@@ -20,7 +20,7 @@ import * as K from '../backend/tfjs_backend';
 import {nameScope} from '../common';
 import {InputSpec, Layer, LayerArgs, SymbolicTensor} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import {Shape} from '../keras_format/types';
+import {BidirectionalMergeMode, Shape, VALID_BIDIRECTIONAL_MERGE_MODES} from '../keras_format/common';
 import {Kwargs} from '../types';
 import {RegularizerFn, RnnStepFunction} from '../types';
 import * as generic_utils from '../utils/generic_utils';
@@ -255,8 +255,6 @@ export class TimeDistributed extends Wrapper {
 }
 serialization.registerClass(TimeDistributed);
 
-export type BidirectionalMergeMode = 'sum'|'mul'|'concat'|'ave';
-export const VALID_BIDIRECTIONAL_MERGE_MODES = ['sum', 'mul', 'concat', 'ave'];
 export function checkBidirectionalMergeMode(value?: string): void {
   generic_utils.checkStringTypeUnionValue(
       VALID_BIDIRECTIONAL_MERGE_MODES, 'BidirectionalMergeMode', value);

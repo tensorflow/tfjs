@@ -8,12 +8,12 @@
  * =============================================================================
  */
 
-import {ActivationIdentifier} from './activation_config';
-import {ConstraintSerialization} from './constraint_config';
-import {InitializerSerialization} from './initializer_config';
-import {RegularizerSerialization} from './regularizer_config';
-import {LayerConfig} from './topology_config';
-import {Shape} from './types';
+import {ActivationIdentifier} from '../activation_config';
+import {Shape} from '../common';
+import {ConstraintSerialization} from '../constraint_config';
+import {InitializerSerialization} from '../initializer_config';
+import {RegularizerSerialization} from '../regularizer_config';
+import {LayerConfig} from '../topology_config';
 
 export interface DropoutLayerConfig extends LayerConfig {
   rate: number;
@@ -80,3 +80,8 @@ export interface PermuteLayerSerialization {
   class_name: 'Permute';
   config: PermuteLayerConfig;
 }
+
+export type CoreSerialization =
+    DropoutLayerSerialization|DenseLayerSerialization|
+    ActivationLayerSerialization|RepeatVectorLayerSerialization|
+    ReshapeLayerSerialization|PermuteLayerSerialization;
