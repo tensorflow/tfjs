@@ -925,6 +925,9 @@ function spaceToBatchND_<T extends Tensor>(
 function unstack_(x: Tensor|TensorLike, axis = 0): Tensor[] {
   axis = axis || 0;
   const $x = convertToTensor(x, 'x', 'unstack');
+  util.assert(
+      axis < $x.shape.length,
+      `Axis ${axis} is >= to tensor shape length ${$x.shape.length}`);
   const grad = (dy: Tensor[]) => {
     return {$x: () => stack(dy, axis)};
   };

@@ -2967,6 +2967,21 @@ describeWithFlags('unstack', ALL_ENVS, () => {
         .toThrowError(/Argument 'x' passed to 'unstack' must be a Tensor/);
   });
 
+  it('throws when passed an invalid axis', () => {
+    expect(() => {
+      const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+      tf.unstack(x, 3);
+    }).toThrowError(/Axis 3 is >= to tensor shape length 2/);
+    expect(() => {
+      const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
+      tf.unstack(x, 3);
+    }).toThrowError(/Axis 3 is >= to tensor shape length 3/);
+    expect(() => {
+      const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2, 1]);
+      tf.unstack(x, 5);
+    }).toThrowError(/Axis 5 is >= to tensor shape length 4/);
+  });
+
   it('accepts a tensor-like object', () => {
     const x = [[1, 2, 3, 4], [5, 6, 7, 8]];
     const res = tf.unstack(x);
