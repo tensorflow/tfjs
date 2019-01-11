@@ -44,3 +44,18 @@ export interface PyJsonDict {
  * @see PyJsonDict
  */
 export interface PyJsonArray extends Array<PyJsonValue> {}
+
+/**
+ * A Keras JSON entry representing a Keras object such as a Layer.
+ *
+ * The Keras JSON convention is to provide the `class_name` (e.g., the layer
+ * type) at the top level, and then to place the class-specific configuration in
+ * a `config` subtree.  These class-specific configurations are provided by
+ * subtypes of `PyJsonDict`.  Thus, this `*Serialization` has a type parameter
+ * giving the specific type of the wrapped `PyJsonDict`.
+ */
+export interface BaseSerialization<N extends string, T extends PyJsonDict>
+    extends PyJsonDict {
+  class_name: N;
+  config: T;
+}

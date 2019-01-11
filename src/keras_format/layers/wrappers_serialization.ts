@@ -9,26 +9,22 @@
  */
 
 import {BidirectionalMergeMode} from '../common';
-import {LayerConfig} from '../topology_config';
+import {BaseLayerSerialization, LayerConfig} from '../topology_config';
 
 import {LayerSerialization} from './layer_serialization';
 import {RecurrentLayerSerialization} from './recurrent_serialization';
 
-export interface TimeDistributedLayerSerialization {
-  class_name: 'TimeDistributed';
-  config: TimeDistributedLayerConfig;
-}
+export type TimeDistributedLayerSerialization =
+    BaseLayerSerialization<'TimeDistributed', TimeDistributedLayerConfig>;
 
 export interface TimeDistributedLayerConfig extends LayerConfig {
   layer: LayerSerialization;
 }
 
-export interface BidirectionalLayerSerialization {
-  class_name: 'Bidirectional';
-  config: BidirectionalLayerConfig;
-}
+export type BidirectionalLayerSerialization =
+    BaseLayerSerialization<'Bidirectional', BidirectionalLayerConfig>;
 
 export interface BidirectionalLayerConfig extends LayerConfig {
   layer: RecurrentLayerSerialization;
-  mergeMode?: BidirectionalMergeMode;
+  merge_mode?: BidirectionalMergeMode;
 }

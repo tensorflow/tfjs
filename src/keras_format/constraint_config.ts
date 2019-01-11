@@ -8,24 +8,33 @@
  * =============================================================================
  */
 
-export interface MaxNormSerialization {
-  class_name: 'MaxNorm';
-  config: {maxValue?: number; axis?: number;};
-}
+import {BaseSerialization} from './types';
 
-export interface UnitNormSerialization {
-  class_name: 'UnitNorm';
-  config: {axis?: number;};
-}
+export type MaxNormConfig = {
+  max_value?: number;
+  axis?: number;
+};
 
-export interface NonNegSerialization {
-  class_name: 'NonNeg';
-}
+export type MaxNormSerialization = BaseSerialization<'MaxNorm', MaxNormConfig>;
 
-export interface MinMaxNormSerialization {
-  class_name: 'MinMaxNorm';
-  config: {minValue?: number; maxValue?: number; axis?: number; rate?: number;};
-}
+export type UnitNormConfig = {
+  axis?: number;
+};
+
+export type UnitNormSerialization =
+    BaseSerialization<'UnitNorm', UnitNormConfig>;
+
+export type NonNegSerialization = BaseSerialization<'NonNeg', null>;
+
+export type MinMaxNormConfig = {
+  min_value?: number;
+  max_value?: number;
+  axis?: number;
+  rate?: number;
+};
+
+export type MinMaxNormSerialization =
+    BaseSerialization<'MinMaxNorm', MinMaxNormConfig>;
 
 export type ConstraintSerialization = MaxNormSerialization|NonNegSerialization|
     UnitNormSerialization|MinMaxNormSerialization;

@@ -8,26 +8,22 @@
  * =============================================================================
  */
 
-import {LayerConfig} from '../topology_config';
+import {BaseLayerSerialization, LayerConfig} from '../topology_config';
 
 export interface ConcatenateLayerConfig extends LayerConfig {
   axis?: number;
 }
 
-export interface ConcatenateLayerSerialization {
-  class_name: 'Concatenate';
-  config: ConcatenateLayerConfig;
-}
+export type ConcatenateLayerSerialization =
+    BaseLayerSerialization<'Concatenate', ConcatenateLayerConfig>;
 
 export interface DotLayerConfig extends LayerConfig {
   axes: number|[number, number];
   normalize?: boolean;
 }
 
-export interface DotLayerSerialization {
-  class_name: 'Dot';
-  config: DotLayerConfig;
-}
+export type DotLayerSerialization =
+    BaseLayerSerialization<'Dot', DotLayerConfig>;
 
 export type MergeLayerSerialization =
     ConcatenateLayerSerialization|DotLayerSerialization;

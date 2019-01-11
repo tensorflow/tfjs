@@ -13,73 +13,61 @@ import {Shape} from '../common';
 import {ConstraintSerialization} from '../constraint_config';
 import {InitializerSerialization} from '../initializer_config';
 import {RegularizerSerialization} from '../regularizer_config';
-import {LayerConfig} from '../topology_config';
+import {BaseLayerSerialization, LayerConfig} from '../topology_config';
 
 export interface DropoutLayerConfig extends LayerConfig {
   rate: number;
-  noiseShape?: number[];
+  noise_shape?: number[];
   seed?: number;
 }
 
-export interface DropoutLayerSerialization {
-  class_name: 'Dropout';
-  config: DropoutLayerConfig;
-}
+export type DropoutLayerSerialization =
+    BaseLayerSerialization<'Dropout', DropoutLayerConfig>;
 
 export interface DenseLayerConfig extends LayerConfig {
   units: number;
   activation?: ActivationIdentifier;
-  useBias?: boolean;
-  inputDim?: number;
-  kernelInitializer?: InitializerSerialization;
-  biasInitializer?: InitializerSerialization;
-  kernelConstraint?: ConstraintSerialization;
-  biasConstraint?: ConstraintSerialization;
-  kernelRegularizer?: RegularizerSerialization;
-  biasRegularizer?: RegularizerSerialization;
-  activityRegularizer?: RegularizerSerialization;
+  use_bias?: boolean;
+  input_dim?: number;
+  kernel_initializer?: InitializerSerialization;
+  bias_initializer?: InitializerSerialization;
+  kernel_constraint?: ConstraintSerialization;
+  bias_constraint?: ConstraintSerialization;
+  kernel_regularizer?: RegularizerSerialization;
+  bias_regularizer?: RegularizerSerialization;
+  activity_regularizer?: RegularizerSerialization;
 }
 
-export interface DenseLayerSerialization {
-  class_name: 'Dense';
-  config: DenseLayerConfig;
-}
+export type DenseLayerSerialization =
+    BaseLayerSerialization<'Dense', DenseLayerConfig>;
 
 export interface ActivationLayerConfig extends LayerConfig {
   activation: ActivationIdentifier;
 }
 
-export interface ActivationLayerSerialization {
-  class_name: 'Activation';
-  config: ActivationLayerConfig;
-}
+export type ActivationLayerSerialization =
+    BaseLayerSerialization<'Activation', ActivationLayerConfig>;
 
 export interface RepeatVectorLayerConfig extends LayerConfig {
   n: number;
 }
 
-export interface RepeatVectorLayerSerialization {
-  class_name: 'RepeatVector';
-  config: RepeatVectorLayerConfig;
-}
+export type RepeatVectorLayerSerialization =
+    BaseLayerSerialization<'RepeatVector', RepeatVectorLayerConfig>;
 
 export interface ReshapeLayerConfig extends LayerConfig {
   targetShape: Shape;
 }
 
-export interface ReshapeLayerSerialization {
-  class_name: 'Reshape';
-  config: ReshapeLayerConfig;
-}
+export type ReshapeLayerSerialization =
+    BaseLayerSerialization<'Reshape', ReshapeLayerConfig>;
 
 export interface PermuteLayerConfig extends LayerConfig {
   dims: number[];
 }
 
-export interface PermuteLayerSerialization {
-  class_name: 'Permute';
-  config: PermuteLayerConfig;
-}
+export type PermuteLayerSerialization =
+    BaseLayerSerialization<'Permute', PermuteLayerConfig>;
 
 export type CoreLayerSerialization =
     DropoutLayerSerialization|DenseLayerSerialization|
