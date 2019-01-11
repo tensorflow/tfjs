@@ -359,7 +359,7 @@ export interface LayerArgs {
    */
   batchInputShape?: Shape;
   /**
-   * If `inputShape` is specified and `batchInputShape` is *not* specifiedd,
+   * If `inputShape` is specified and `batchInputShape` is *not* specified,
    * `batchSize` is used to construct the `batchInputShape`: `[batchSize,
    * ...inputShape]`
    */

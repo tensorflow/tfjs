@@ -12,103 +12,91 @@ import {ActivationIdentifier} from '../activation_config';
 import {ConstraintSerialization} from '../constraint_config';
 import {InitializerSerialization} from '../initializer_config';
 import {RegularizerSerialization} from '../regularizer_config';
-import {LayerConfig} from '../topology_config';
+import {BaseLayerSerialization, LayerConfig} from '../topology_config';
+import {BaseSerialization} from '../types';
 
 export interface BaseRNNLayerConfig extends LayerConfig {
   cell?: RNNCellSerialization|RNNCellSerialization[];
-  returnSequences?: boolean;
-  returnState?: boolean;
-  goBackwards?: boolean;
+  return_sequences?: boolean;
+  return_state?: boolean;
+  go_backwards?: boolean;
   stateful?: boolean;
   unroll?: boolean;
-  inputDim?: number;
-  inputLength?: number;
+  input_dim?: number;
+  input_length?: number;
 }
 
 export interface SimpleRNNCellConfig extends LayerConfig {
   units: number;
   activation?: ActivationIdentifier;
-  useBias?: boolean;
-  kernelInitializer?: InitializerSerialization;
-  recurrentInitializer?: InitializerSerialization;
-  biasInitializer?: InitializerSerialization;
-  kernelRegularizer?: RegularizerSerialization;
-  recurrentRegularizer?: RegularizerSerialization;
-  biasRegularizer?: RegularizerSerialization;
-  kernelConstraint?: ConstraintSerialization;
-  recurrentConstraint?: ConstraintSerialization;
-  biasConstraint?: ConstraintSerialization;
+  use_bias?: boolean;
+  kernel_initializer?: InitializerSerialization;
+  recurrent_initializer?: InitializerSerialization;
+  bias_initializer?: InitializerSerialization;
+  kernel_regularizer?: RegularizerSerialization;
+  recurrent_regularizer?: RegularizerSerialization;
+  bias_regularizer?: RegularizerSerialization;
+  kernel_constraint?: ConstraintSerialization;
+  recurrent_constraint?: ConstraintSerialization;
+  bias_constraint?: ConstraintSerialization;
   dropout?: number;
-  recurrentDropout?: number;
+  recurrent_dropout?: number;
 }
 
-export interface SimpleRNNCellSerialization {
-  class_name: 'SimpleRNNCell';
-  config: SimpleRNNCellConfig;
-}
+export type SimpleRNNCellSerialization =
+    BaseSerialization<'SimpleRNNCell', SimpleRNNCellConfig>;
 
 export interface SimpleRNNLayerConfig extends BaseRNNLayerConfig {
   units: number;
   activation?: ActivationIdentifier;
-  useBias?: boolean;
-  kernelInitializer?: InitializerSerialization;
-  recurrentInitializer?: InitializerSerialization;
-  biasInitializer?: InitializerSerialization;
-  kernelRegularizer?: RegularizerSerialization;
-  recurrentRegularizer?: RegularizerSerialization;
-  biasRegularizer?: RegularizerSerialization;
-  kernelConstraint?: ConstraintSerialization;
-  recurrentConstraint?: ConstraintSerialization;
-  biasConstraint?: ConstraintSerialization;
+  use_bias?: boolean;
+  kernel_initializer?: InitializerSerialization;
+  recurrent_initializer?: InitializerSerialization;
+  bias_initializer?: InitializerSerialization;
+  kernel_regularizer?: RegularizerSerialization;
+  recurrent_regularizer?: RegularizerSerialization;
+  bias_regularizer?: RegularizerSerialization;
+  kernel_constraint?: ConstraintSerialization;
+  recurrent_constraint?: ConstraintSerialization;
+  bias_constraint?: ConstraintSerialization;
   dropout?: number;
-  recurrentDropout?: number;
+  recurrent_dropout?: number;
 }
 
-export interface SimpleRNNLayerSerialization {
-  class_name: 'SimpleRNN';
-  config: SimpleRNNLayerConfig;
-}
+export type SimpleRNNLayerSerialization =
+    BaseLayerSerialization<'SimpleRNN', SimpleRNNLayerConfig>;
 
 export interface GRUCellConfig extends SimpleRNNCellConfig {
-  recurrentActivation?: string;
+  recurrent_activation?: string;
   implementation?: number;
 }
 
-export interface GRUCellSerialization {
-  class_name: 'GRUCell';
-  config: GRUCellConfig;
-}
+export type GRUCellSerialization = BaseSerialization<'GRUCell', GRUCellConfig>;
 
 export interface GRULayerConfig extends SimpleRNNLayerConfig {
-  recurrentActivation?: string;
+  recurrent_activation?: ActivationIdentifier;
   implementation?: number;
 }
 
-export interface GRULayerSerialization {
-  class_name: 'GRU';
-  config: GRULayerConfig;
-}
+export type GRULayerSerialization =
+    BaseLayerSerialization<'GRU', GRULayerConfig>;
 
 export interface LSTMCellConfig extends SimpleRNNCellConfig {
-  recurrentActivation?: ActivationIdentifier;
-  unitForgetBias?: boolean;
+  recurrent_activation?: ActivationIdentifier;
+  unit_forget_bias?: boolean;
   implementation?: number;
 }
 
-export interface LSTMCellSerialization {
-  class_name: 'LSTMCell';
-  config: LSTMCellConfig;
-}
+export type LSTMCellSerialization =
+    BaseSerialization<'LSTMCell', LSTMCellConfig>;
 
 export interface LSTMLayerConfig extends SimpleRNNLayerConfig {
-  recurrentActivation?: string;
-  unitForgetBias?: boolean;
+  recurrent_activation?: ActivationIdentifier;
+  unit_forget_bias?: boolean;
   implementation?: number;
 }
-export interface LSTMLayerSerialization {
-  class_name: 'LSTM';
-  config: LSTMLayerConfig;
-}
+export type LSTMLayerSerialization =
+    BaseLayerSerialization<'LSTM', LSTMLayerConfig>;
 
 export interface StackedRNNCellsConfig extends LayerConfig {
   // TODO(soergel): consider whether we can avoid improperly mixing
@@ -116,10 +104,8 @@ export interface StackedRNNCellsConfig extends LayerConfig {
   cells: RNNCellSerialization[];
 }
 
-export interface StackedRNNCellsSerialization {
-  class_name: 'StackedRNNCells';
-  config: StackedRNNCellsConfig;
-}
+export type StackedRNNCellsSerialization =
+    BaseSerialization<'StackedRNNCells', StackedRNNCellsConfig>;
 
 export type RNNCellSerialization = SimpleRNNCellSerialization|
     GRUCellSerialization|LSTMCellSerialization|StackedRNNCellsSerialization;

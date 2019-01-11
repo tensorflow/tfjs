@@ -8,6 +8,7 @@
  * =============================================================================
  */
 
+import {BaseSerialization} from './types';
 
 /** @docinline */
 export type FanMode = 'fanIn'|'fanOut'|'fanAvg';
@@ -17,80 +18,69 @@ export const VALID_FAN_MODE_VALUES = ['fanIn', 'fanOut', 'fanAvg'];
 export type Distribution = 'normal'|'uniform';
 export const VALID_DISTRIBUTION_VALUES = ['normal', 'uniform'];
 
-export interface ZerosSerialization {
-  class_name: 'Zeros';
-}
+export type ZerosSerialization = BaseSerialization<'Zeros', null>;
 
-export interface OnesSerialization {
-  class_name: 'Ones';
-}
+export type OnesSerialization = BaseSerialization<'Ones', null>;
 
-export interface ConstantSerialization {
-  class_name: 'Constant';
-  config: {
+export type ConstantConfig = {
+  value: number;
+};
 
-    value: number;
-  };
-}
+export type ConstantSerialization =
+    BaseSerialization<'Constant', ConstantConfig>;
 
-export interface RandomNormalSerialization {
-  class_name: 'RandomNormal';
-  config: {
+export type RandomNormalConfig = {
+  mean?: number;
+  stddev?: number;
+  seed?: number;
+};
 
-    mean?: number;
-    stddev?: number;
-    seed?: number;
-  };
-}
+export type RandomNormalSerialization =
+    BaseSerialization<'RandomNormal', RandomNormalConfig>;
 
-export interface RandomUniformSerialization {
-  class_name: 'RandomUniform';
-  config: {
+export type RandomUniformConfig = {
+  minval?: number;
+  maxval?: number;
+  seed?: number;
+};
 
-    minval?: number;
-    maxval?: number;
-    seed?: number;
-  };
-}
+export type RandomUniformSerialization =
+    BaseSerialization<'RandomUniform', RandomUniformConfig>;
 
-export interface TruncatedNormalSerialization {
-  class_name: 'TruncatedNormal';
-  config: {
+export type TruncatedNormalConfig = {
+  mean?: number;
+  stddev?: number;
+  seed?: number;
+};
 
-    mean?: number;
-    stddev?: number;
-    seed?: number;
-  };
-}
+export type TruncatedNormalSerialization =
+    BaseSerialization<'TruncatedNormal', TruncatedNormalConfig>;
 
-export interface VarianceScalingSerialization {
-  class_name: 'VarianceScaling';
-  config: {
+export type VarianceScalingConfig = {
+  scale: number;
 
-    scale: number;
+  mode: FanMode;
+  distribution: Distribution;
+  seed?: number;
+};
 
-    mode: FanMode;
-    distribution: Distribution;
-    seed?: number;
-  };
-}
+export type VarianceScalingSerialization =
+    BaseSerialization<'VarianceScaling', VarianceScalingConfig>;
 
-export interface OrthogonalSerialization {
-  class_name: 'Orthogonal';
-  config: {
+export type OrthogonalConfig = {
+  seed?: number;
+  gain?: number;
+};
 
-    seed?: number;
-    gain?: number;
-  };
-}
+export type OrthogonalSerialization =
+    BaseSerialization<'Orthogonal', OrthogonalConfig>;
 
-export interface IdentitySerialization {
-  class_name: 'Identity';
-  config: {
+export type IdentityConfig = {
+  gain?: number;
+};
 
-    gain?: number;
-  };
-}
+export type IdentitySerialization =
+    BaseSerialization<'Identity', IdentityConfig>;
 
 export type InitializerSerialization =
     ConstantSerialization|RandomUniformSerialization|RandomNormalSerialization|

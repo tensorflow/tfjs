@@ -11,7 +11,7 @@
 import {ConstraintSerialization} from '../constraint_config';
 import {InitializerSerialization} from '../initializer_config';
 import {RegularizerSerialization} from '../regularizer_config';
-import {LayerConfig} from '../topology_config';
+import {BaseLayerSerialization, LayerConfig} from '../topology_config';
 
 export interface BatchNormalizationLayerConfig extends LayerConfig {
   axis?: number;
@@ -19,17 +19,15 @@ export interface BatchNormalizationLayerConfig extends LayerConfig {
   epsilon?: number;
   center?: boolean;
   scale?: boolean;
-  betaInitializer?: InitializerSerialization;
-  gammaInitializer?: InitializerSerialization;
-  movingMeanInitializer?: InitializerSerialization;
-  movingVarianceInitializer?: InitializerSerialization;
-  betaConstraint?: ConstraintSerialization;
-  gammaConstraint?: ConstraintSerialization;
-  betaRegularizer?: RegularizerSerialization;
-  gammaRegularizer?: RegularizerSerialization;
+  beta_initializer?: InitializerSerialization;
+  gamma_initializer?: InitializerSerialization;
+  moving_mean_initializer?: InitializerSerialization;
+  moving_variance_initializer?: InitializerSerialization;
+  beta_constraint?: ConstraintSerialization;
+  gamma_constraint?: ConstraintSerialization;
+  beta_regularizer?: RegularizerSerialization;
+  gamma_regularizer?: RegularizerSerialization;
 }
 
-export interface BatchNormalizationLayerSerialization {
-  class_name: 'BatchNormalization';
-  config: BatchNormalizationLayerConfig;
-}
+export type BatchNormalizationLayerSerialization =
+    BaseLayerSerialization<'BatchNormalization', BatchNormalizationLayerConfig>;

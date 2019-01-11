@@ -12,30 +12,28 @@ import {DataFormat, PaddingMode} from '../common';
 import {ConstraintSerialization} from '../constraint_config';
 import {InitializerSerialization} from '../initializer_config';
 import {RegularizerSerialization} from '../regularizer_config';
-import {LayerConfig} from '../topology_config';
+import {BaseLayerSerialization, LayerConfig} from '../topology_config';
 
 export interface BaseConvLayerConfig extends LayerConfig {
-  kernelSize: number|number[];
+  kernel_size: number|number[];
   strides?: number|number[];
   padding?: PaddingMode;
-  dataFormat?: DataFormat;
-  dilationRate?: number|[number]|[number, number];
+  data_format?: DataFormat;
+  dilation_rate?: number|[number]|[number, number];
   activation?: string;
-  useBias?: boolean;
-  kernelInitializer?: InitializerSerialization;
-  biasInitializer?: InitializerSerialization;
-  kernelConstraint?: ConstraintSerialization;
-  biasConstraint?: ConstraintSerialization;
-  kernelRegularizer?: RegularizerSerialization;
-  biasRegularizer?: RegularizerSerialization;
-  activityRegularizer?: RegularizerSerialization;
+  use_bias?: boolean;
+  kernel_initializer?: InitializerSerialization;
+  bias_initializer?: InitializerSerialization;
+  kernel_constraint?: ConstraintSerialization;
+  bias_constraint?: ConstraintSerialization;
+  kernel_regularizer?: RegularizerSerialization;
+  bias_regularizer?: RegularizerSerialization;
+  activity_regularizer?: RegularizerSerialization;
 }
 
 export interface ConvLayerConfig extends BaseConvLayerConfig {
   filters: number;
 }
 
-export interface ConvLayerSerialization {
-  class_name: 'Conv';
-  config: ConvLayerConfig;
-}
+export type ConvLayerSerialization =
+    BaseLayerSerialization<'Conv', ConvLayerConfig>;

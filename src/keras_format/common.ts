@@ -29,3 +29,7 @@ export const VALID_POOL_MODE_VALUES = ['max', 'avg'];
 /** @docinline */
 export type BidirectionalMergeMode = 'sum'|'mul'|'concat'|'ave';
 export const VALID_BIDIRECTIONAL_MERGE_MODES = ['sum', 'mul', 'concat', 'ave'];
+
+/** @docinline */
+export type SampleWeightMode = 'temporal';
+export const VALID_SAMPLE_WEIGHT_MODES = ['temporal'];

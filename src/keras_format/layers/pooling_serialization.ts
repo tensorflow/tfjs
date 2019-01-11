@@ -9,39 +9,33 @@
  */
 
 import {DataFormat, PaddingMode} from '../common';
-import {LayerConfig} from '../topology_config';
+import {BaseLayerSerialization, LayerConfig} from '../topology_config';
 
 
 export interface Pooling1DLayerConfig extends LayerConfig {
-  poolSize?: number;
+  pool_size?: number;
   strides?: number;
   padding?: PaddingMode;
 }
-export interface Pooling1DLayerSerialization {
-  class_name: 'Pooling1D';
-  config: Pooling1DLayerConfig;
-}
+export type Pooling1DLayerSerialization =
+    BaseLayerSerialization<'Pooling1D', Pooling1DLayerConfig>;
 
 export interface Pooling2DLayerConfig extends LayerConfig {
-  poolSize?: number|[number, number];
+  pool_size?: number|[number, number];
   strides?: number|[number, number];
   padding?: PaddingMode;
-  dataFormat?: DataFormat;
+  data_format?: DataFormat;
 }
 
-export interface Pooling2DLayerSerialization {
-  class_name: 'Pooling2D';
-  config: Pooling2DLayerConfig;
-}
+export type Pooling2DLayerSerialization =
+    BaseLayerSerialization<'Pooling2D', Pooling2DLayerConfig>;
 
 export interface GlobalPooling2DLayerConfig extends LayerConfig {
-  dataFormat?: DataFormat;
+  data_format?: DataFormat;
 }
 
-export interface GlobalPooling2DLayerSerialization {
-  class_name: 'GlobalPooling2D';
-  config: GlobalPooling2DLayerConfig;
-}
+export type GlobalPooling2DLayerSerialization =
+    BaseLayerSerialization<'GlobalPooling2D', GlobalPooling2DLayerConfig>;
 
 export type PoolingLayerSerialization = Pooling1DLayerSerialization|
     Pooling2DLayerSerialization|GlobalPooling2DLayerSerialization;

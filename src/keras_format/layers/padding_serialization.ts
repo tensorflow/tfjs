@@ -9,14 +9,12 @@
  */
 
 import {DataFormat} from '../common';
-import {LayerConfig} from '../topology_config';
+import {BaseLayerSerialization, LayerConfig} from '../topology_config';
 
 export interface ZeroPadding2DLayerConfig extends LayerConfig {
   padding?: number|[number, number]|[[number, number], [number, number]];
-  dataFormat?: DataFormat;
+  data_format?: DataFormat;
 }
 
-export interface ZeroPadding2DLayerSerialization {
-  class_name: 'ZeroPadding2D';
-  config: ZeroPadding2DLayerConfig;
-}
+export type ZeroPadding2DLayerSerialization =
+    BaseLayerSerialization<'ZeroPadding2D', ZeroPadding2DLayerConfig>;

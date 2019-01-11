@@ -23,3 +23,5 @@ export type LayerSerialization =
     ConvLayerSerialization|CoreLayerSerialization|MergeLayerSerialization|
     BatchNormalizationLayerSerialization|ZeroPadding2DLayerSerialization|
     PoolingLayerSerialization|RecurrentLayerSerialization;
+
+export type LayerClassName = LayerSerialization['class_name'];
