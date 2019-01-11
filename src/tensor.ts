@@ -165,8 +165,7 @@ export interface OpHandler {
   squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T;
   clone<T extends Tensor>(x: T): T;
   tile<T extends Tensor>(x: T, reps: number[]): T;
-  gather<T extends Tensor>(x: T, indices: Tensor1D|TensorLike1D, axis: number):
-      T;
+  gather<T extends Tensor>(x: T, indices: Tensor|TensorLike, axis: number): T;
   matMul<T extends Tensor>(
       a: T, b: T|TensorLike, transposeA: boolean, transposeB: boolean): T;
   dot(t1: Tensor, t2: Tensor|TensorLike): Tensor;
@@ -717,7 +716,7 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.tile(this, reps) as T;
   }
 
-  gather<T extends this>(this: T, indices: Tensor1D|TensorLike1D, axis = 0): T {
+  gather<T extends this>(this: T, indices: Tensor|TensorLike, axis = 0): T {
     this.throwIfDisposed();
     return opHandler.gather(this, indices, axis) as T;
   }

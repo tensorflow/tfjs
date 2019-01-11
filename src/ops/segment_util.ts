@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
+import {Tensor} from '../tensor';
 import {nearestDivisor} from '../util';
+
 import {PARALLELIZE_THRESHOLD} from './reduce_util';
 
 export interface SegOpInfo {
@@ -60,4 +62,34 @@ export function computeOutShape(
     }
   }
   return outShape;
+}
+
+export interface GatherOpShapeInfo {
+  batchSize: number;
+  sliceSize: number;
+  dimSize: number;
+  outputShape: number[];
+}
+export function collectGatherOpShapeInfo(
+    x: Tensor, indices: Tensor, axis: number): GatherOpShapeInfo {
+  const dimSize = x.shape[axis];
+
+  const outputShape: number[] = [];
+  let batchSize = 1;
+  let sliceSize = 1;
+  for (let i = 0; i < axis; i++) {
+    outputShape.push(x.shape[i]);
+    batchSize *= x.shape[i];
+  }
+
+  for (let i = 0; i < indices.rank; i++) {
+    outputShape.push(indices.shape[i]);
+  }
+
+  for (let i = axis + 1; i < x.rank; i++) {
+    outputShape.push(x.shape[i]);
+    sliceSize *= x.shape[i];
+  }
+
+  return {batchSize, sliceSize, dimSize, outputShape};
 }
