@@ -499,7 +499,7 @@ export function avgPooling2d(args: Pooling2DLayerArgs): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function globalAveragePooling1d(args: LayerArgs): Layer {
+export function globalAveragePooling1d(args?: LayerArgs): Layer {
   return new GlobalAveragePooling1D(args);
 }
 
@@ -525,7 +525,7 @@ export function globalAveragePooling2d(args: GlobalPooling2DLayerArgs): Layer {
  *   configParamIndices: [0]
  * }
  */
-export function globalMaxPooling1d(args: LayerArgs): Layer {
+export function globalMaxPooling1d(args?: LayerArgs): Layer {
   return new GlobalMaxPooling1D(args);
 }
 

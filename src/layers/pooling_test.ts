@@ -399,19 +399,21 @@ describe('1D Global pooling Layers: Symbolic', () => {
       [tfl.layers.globalAveragePooling1d, tfl.layers.globalMaxPooling1d];
 
   for (const globalPoolingLayer of globalPoolingLayers) {
-    const testTitle = `layer=${globalPoolingLayer.name}`;
-    it(testTitle, () => {
-      const inputShape = [2, 11, 9];
-      const symbolicInput =
-          new SymbolicTensor('float32', inputShape, null, [], null);
+    for (const hasArgs of [true, false]) {
+      const testTitle = `layer=${globalPoolingLayer.name}; hasArgs=${hasArgs}`;
+      it(testTitle, () => {
+        const inputShape = [2, 11, 9];
+        const symbolicInput =
+            new SymbolicTensor('float32', inputShape, null, [], null);
 
-      const layer = globalPoolingLayer({});
-      const output = layer.apply(symbolicInput) as SymbolicTensor;
+        const layer = globalPoolingLayer(hasArgs ? {} : undefined);
+        const output = layer.apply(symbolicInput) as SymbolicTensor;
 
-      const expectedShape = [2, 9];
-      expect(output.shape).toEqual(expectedShape);
-      expect(output.dtype).toEqual(symbolicInput.dtype);
-    });
+        const expectedShape = [2, 9];
+        expect(output.shape).toEqual(expectedShape);
+        expect(output.dtype).toEqual(symbolicInput.dtype);
+      });
+    }
   }
 });
 
