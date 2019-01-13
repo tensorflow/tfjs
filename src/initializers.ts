@@ -518,6 +518,38 @@ export class HeNormal extends VarianceScaling {
 serialization.registerClass(HeNormal);
 
 /**
+ * He uniform initializer.
+ *
+ * It draws samples from a uniform distribution within [-limit, limit]
+ * where `limit` is `sqrt(6 / fan_in)`
+ * where `fanIn` is the number of input units in the weight tensor.
+ *
+ * Reference:
+ *     He et al., http://arxiv.org/abs/1502.01852
+ */
+export class HeUniform extends VarianceScaling {
+  static className = 'HeUniform';
+
+  constructor(args?: SeedOnlyInitializerArgs) {
+    super({
+      scale: 2.0,
+      mode: 'fanIn',
+      distribution: 'uniform',
+      seed: args == null ? null : args.seed
+    });
+  }
+
+  getClassName(): string {
+    // In Python Keras, HeUniform is not a class, but a helper method
+    // that creates a VarianceScaling object. Use 'VarianceScaling' as
+    // class name to be compatible with that.
+    return VarianceScaling.className;
+  }
+}
+serialization.registerClass(HeUniform);
+
+
+/**
  * LeCun normal initializer.
  *
  * It draws samples from a truncated normal distribution centered on 0
@@ -548,6 +580,34 @@ export class LeCunNormal extends VarianceScaling {
   }
 }
 serialization.registerClass(LeCunNormal);
+
+/**
+ * LeCun uniform initializer.
+ *
+ * It draws samples from a uniform distribution in the interval
+ * `[-limit, limit]` with `limit = sqrt(3 / fanIn)`,
+ * where `fanIn` is the number of input units in the weight tensor.
+ */
+export class LeCunUniform extends VarianceScaling {
+  static className = 'LeCunNormal';
+
+  constructor(args?: SeedOnlyInitializerArgs) {
+    super({
+      scale: 1.0,
+      mode: 'fanIn',
+      distribution: 'uniform',
+      seed: args == null ? null : args.seed
+    });
+  }
+
+  getClassName(): string {
+    // In Python Keras, LeCunUniform is not a class, but a helper method
+    // that creates a VarianceScaling object. Use 'VarianceScaling' as
+    // class name to be compatible with that.
+    return VarianceScaling.className;
+  }
+}
+serialization.registerClass(LeCunUniform);
 
 export interface OrthogonalArgs extends SeedOnlyInitializerArgs {
   /**
@@ -615,8 +675,9 @@ serialization.registerClass(Orthogonal);
 
 /** @docinline */
 export type InitializerIdentifier = 'constant'|'glorotNormal'|'glorotUniform'|
-    'heNormal'|'identity'|'leCunNormal'|'ones'|'orthogonal'|'randomNormal'|
-    'randomUniform'|'truncatedNormal'|'varianceScaling'|'zeros'|string;
+    'heNormal'|'heUniform'|'identity'|'leCunNormal'|'leCunUniform'|'ones'|
+    'orthogonal'|'randomNormal'|'randomUniform'|'truncatedNormal'|
+    'varianceScaling'|'zeros'|string;
 
 // Maps the JavaScript-like identifier keys to the corresponding registry
 // symbols.
@@ -626,8 +687,10 @@ export const INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP:
       'glorotNormal': 'GlorotNormal',
       'glorotUniform': 'GlorotUniform',
       'heNormal': 'HeNormal',
+      'heUniform': 'HeUniform',
       'identity': 'Identity',
       'leCunNormal': 'LeCunNormal',
+      'leCunUniform': 'LeCunUniform',
       'ones': 'Ones',
       'orthogonal': 'Orthogonal',
       'randomNormal': 'RandomNormal',
@@ -659,14 +722,18 @@ export function getInitializer(identifier: InitializerIdentifier|Initializer|
     /* We have four 'helper' classes for common initializers that
     all get serialized as 'VarianceScaling' and shouldn't go through
     the deserializeInitializer pathway. */
-    if (className === 'GlorotUniform') {
-      return new GlorotUniform();
-    } else if (className === 'GlorotNormal') {
+    if (className === 'GlorotNormal') {
       return new GlorotNormal();
+    } else if (className === 'GlorotUniform') {
+      return new GlorotUniform();
     } else if (className === 'HeNormal') {
       return new HeNormal();
+    } else if (className === 'HeUniform') {
+      return new HeUniform();
     } else if (className === 'LeCunNormal') {
       return new LeCunNormal();
+    } else if (className === 'LeCunUniform') {
+      return new LeCunUniform();
     } else {
       const config = {className, config: {}};
       return deserializeInitializer(config);

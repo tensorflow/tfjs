@@ -8,7 +8,7 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Constant, ConstantArgs, GlorotNormal, GlorotUniform, HeNormal, Identity, IdentityArgs, Initializer, LeCunNormal, Ones, Orthogonal, OrthogonalArgs, RandomNormal, RandomNormalArgs, RandomUniform, RandomUniformArgs, SeedOnlyInitializerArgs, TruncatedNormal, TruncatedNormalArgs, VarianceScaling, VarianceScalingArgs, Zeros} from './initializers';
+import {Constant, ConstantArgs, GlorotNormal, GlorotUniform, HeNormal, HeUniform, Identity, IdentityArgs, Initializer, LeCunNormal, LeCunUniform, Ones, Orthogonal, OrthogonalArgs, RandomNormal, RandomNormalArgs, RandomUniform, RandomUniformArgs, SeedOnlyInitializerArgs, TruncatedNormal, TruncatedNormalArgs, VarianceScaling, VarianceScalingArgs, Zeros} from './initializers';
 
 /**
  * @doc {
@@ -144,6 +144,18 @@ export function heNormal(args: SeedOnlyInitializerArgs): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
+ *   useDocsFrom: 'HeUniform',
+ *   configParamIndices: [0]
+ * }
+ */
+export function heUniform(args: SeedOnlyInitializerArgs): Initializer {
+  return new HeUniform(args);
+}
+
+/**
+ * @doc {
+ *   heading: 'Initializers',
+ *   namespace: 'initializers',
  *   useDocsFrom: 'LeCunNormal',
  *   configParamIndices: [0]
  * }
@@ -151,6 +163,19 @@ export function heNormal(args: SeedOnlyInitializerArgs): Initializer {
 export function leCunNormal(args: SeedOnlyInitializerArgs): Initializer {
   return new LeCunNormal(args);
 }
+
+/**
+ * @doc {
+ *   heading: 'Initializers',
+ *   namespace: 'initializers',
+ *   useDocsFrom: 'LeCunUniform',
+ *   configParamIndices: [0]
+ * }
+ */
+export function leCunUniform(args: SeedOnlyInitializerArgs): Initializer {
+  return new LeCunUniform(args);
+}
+
 
 /**
  * @doc {
