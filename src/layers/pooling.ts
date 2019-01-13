@@ -445,8 +445,8 @@ export abstract class GlobalPooling1D extends Layer {
  */
 export class GlobalAveragePooling1D extends GlobalPooling1D {
   static className = 'GlobalAveragePooling1D';
-  constructor(args: LayerArgs) {
-    super(args);
+  constructor(args?: LayerArgs) {
+    super(args || {});
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
@@ -468,7 +468,7 @@ serialization.registerClass(GlobalAveragePooling1D);
 export class GlobalMaxPooling1D extends GlobalPooling1D {
   static className = 'GlobalMaxPooling1D';
   constructor(args: LayerArgs) {
-    super(args);
+    super(args || {});
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
