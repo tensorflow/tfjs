@@ -240,8 +240,34 @@ describeMathCPU('HeNormal initializer', () => {
     expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -2 * stddev, 2 * stddev);
   });
+
   it('Does not leak', () => {
     expectNoLeakedTensors(() => getInitializer('HeNormal').apply([3]), 1);
+  });
+});
+
+describeMathCPU('HeUniform initializer', () => {
+  const shape = [7, 2];
+  const bound = Math.sqrt(6 / shape[0]);
+  it('default', () => {
+    const init = getInitializer('heUniform');
+    const weights = init.apply(shape, 'float32');
+    expect(weights.shape).toEqual(shape);
+    expect(weights.dtype).toEqual('float32');
+    expectTensorsValuesInRange(weights, -bound, bound);
+    expect(init.getClassName()).toEqual(VarianceScaling.className);
+  });
+
+  it('default, upper case', () => {
+    const init = getInitializer('HeUniform');
+    const weights = init.apply(shape, 'float32');
+    expect(weights.shape).toEqual(shape);
+    expect(weights.dtype).toEqual('float32');
+    expectTensorsValuesInRange(weights, -bound, bound);
+  });
+
+  it('Does not leak', () => {
+    expectNoLeakedTensors(() => getInitializer('heUniform').apply([3]), 1);
   });
 });
 
@@ -264,8 +290,34 @@ describeMathCPU('LecunNormal initializer', () => {
     expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -2 * stddev, 2 * stddev);
   });
+
   it('Does not leak', () => {
     expectNoLeakedTensors(() => getInitializer('LeCunNormal').apply([3]), 1);
+  });
+});
+
+describeMathCPU('LeCunUniform initializer', () => {
+  const shape = [7, 2];
+  const bound = Math.sqrt(3 / shape[0]);
+  it('default', () => {
+    const init = getInitializer('leCunUniform');
+    const weights = init.apply(shape, 'float32');
+    expect(weights.shape).toEqual(shape);
+    expect(weights.dtype).toEqual('float32');
+    expectTensorsValuesInRange(weights, -bound, bound);
+    expect(init.getClassName()).toEqual(VarianceScaling.className);
+  });
+
+  it('default, upper case', () => {
+    const init = getInitializer('LeCunUniform');
+    const weights = init.apply(shape, 'float32');
+    expect(weights.shape).toEqual(shape);
+    expect(weights.dtype).toEqual('float32');
+    expectTensorsValuesInRange(weights, -bound, bound);
+  });
+
+  it('Does not leak', () => {
+    expectNoLeakedTensors(() => getInitializer('LeCunUniform').apply([3]), 1);
   });
 });
 
