@@ -32,7 +32,7 @@ from tensorflowjs import version
 from tensorflowjs.converters import keras_h5_conversion as conversion
 from tensorflowjs.converters import keras_tfjs_loader
 from tensorflowjs.converters import tf_saved_model_conversion
-
+from tensorflowjs.converters import tf_saved_model_conversion_pb
 
 def dispatch_keras_h5_to_tensorflowjs_conversion(
     h5_path, output_dir=None, quantization_dtype=None,
@@ -171,8 +171,7 @@ def dispatch_tensorflowjs_to_keras_h5_conversion(config_json_path, h5_path):
     model.save(h5_path)
     print('Saved Keras model to HDF5 file: %s' % h5_path)
 
-
-def main():
+def setup_arugments():
   parser = argparse.ArgumentParser('TensorFlow.js model converters.')
   parser.add_argument(
       'input_path',
@@ -260,9 +259,16 @@ def main():
       type=bool,
       default=True,
       help='Strip debug ops (Print, Assert, CheckNumerics) from graph.')
+  parser.add_argument(
+      '--output_json',
+      type=bool,
+      default=False,
+      help='Generate model file in JSON instead of protobuf for '
+      'all TF input model formats.')
+  return parser.parse_args()
 
-  FLAGS = parser.parse_args()
-
+def main():
+  FLAGS = setup_arugments()
   if FLAGS.show_version:
     print('\ntensorflowjs %s\n' % version.version)
     print('Dependency versions:')
@@ -307,43 +313,76 @@ def main():
         split_weights_by_layer=FLAGS.split_weights_by_layer)
   elif (FLAGS.input_format == 'tf_saved_model' and
         FLAGS.output_format == 'tensorflowjs'):
-    tf_saved_model_conversion.convert_tf_saved_model(
-        FLAGS.input_path, FLAGS.output_node_names,
-        FLAGS.output_path, saved_model_tags=FLAGS.saved_model_tags,
-        quantization_dtype=quantization_dtype,
-        skip_op_check=FLAGS.skip_op_check,
-        strip_debug_ops=FLAGS.strip_debug_ops)
-
-  elif (FLAGS.input_format == 'tf_session_bundle' and
-        FLAGS.output_format == 'tensorflowjs'):
-    tf_saved_model_conversion.convert_tf_session_bundle(
-        FLAGS.input_path, FLAGS.output_node_names,
-        FLAGS.output_path, quantization_dtype=quantization_dtype,
-        skip_op_check=FLAGS.skip_op_check,
-        strip_debug_ops=FLAGS.strip_debug_ops)
-
-  elif (FLAGS.input_format == 'tf_frozen_model' and
-        FLAGS.output_format == 'tensorflowjs'):
-    tf_saved_model_conversion.convert_tf_frozen_model(
-        FLAGS.input_path, FLAGS.output_node_names,
-        FLAGS.output_path, quantization_dtype=quantization_dtype,
-        skip_op_check=FLAGS.skip_op_check,
-        strip_debug_ops=FLAGS.strip_debug_ops)
-
-  elif (FLAGS.input_format == 'tf_hub' and
-        FLAGS.output_format == 'tensorflowjs'):
-    if FLAGS.signature_name:
-      tf_saved_model_conversion.convert_tf_hub_module(
-          FLAGS.input_path, FLAGS.output_path, FLAGS.signature_name,
+    if not FLAGS.output_json:
+      tf_saved_model_conversion_pb.convert_tf_saved_model(
+          FLAGS.input_path, FLAGS.output_node_names,
+          FLAGS.output_path, saved_model_tags=FLAGS.saved_model_tags,
+          quantization_dtype=quantization_dtype,
           skip_op_check=FLAGS.skip_op_check,
           strip_debug_ops=FLAGS.strip_debug_ops)
     else:
-      tf_saved_model_conversion.convert_tf_hub_module(
-          FLAGS.input_path,
-          FLAGS.output_path,
+      tf_saved_model_conversion.convert_tf_saved_model(
+          FLAGS.input_path, FLAGS.output_node_names,
+          FLAGS.output_path, saved_model_tags=FLAGS.saved_model_tags,
+          quantization_dtype=quantization_dtype,
           skip_op_check=FLAGS.skip_op_check,
           strip_debug_ops=FLAGS.strip_debug_ops)
 
+  elif (FLAGS.input_format == 'tf_session_bundle' and
+        FLAGS.output_format == 'tensorflowjs'):
+    if not FLAGS.output_json:
+      tf_saved_model_conversion_pb.convert_tf_session_bundle(
+          FLAGS.input_path, FLAGS.output_node_names,
+          FLAGS.output_path, quantization_dtype=quantization_dtype,
+          skip_op_check=FLAGS.skip_op_check,
+          strip_debug_ops=FLAGS.strip_debug_ops)
+    else:
+      tf_saved_model_conversion.convert_tf_session_bundle(
+          FLAGS.input_path, FLAGS.output_node_names,
+          FLAGS.output_path, quantization_dtype=quantization_dtype,
+          skip_op_check=FLAGS.skip_op_check,
+          strip_debug_ops=FLAGS.strip_debug_ops)
+  elif (FLAGS.input_format == 'tf_frozen_model' and
+        FLAGS.output_format == 'tensorflowjs'):
+    if not FLAGS.output_json:
+      tf_saved_model_conversion_pb.convert_tf_frozen_model(
+          FLAGS.input_path, FLAGS.output_node_names,
+          FLAGS.output_path, quantization_dtype=quantization_dtype,
+          skip_op_check=FLAGS.skip_op_check,
+          strip_debug_ops=FLAGS.strip_debug_ops)
+    else:
+      tf_saved_model_conversion.convert_tf_frozen_model(
+          FLAGS.input_path, FLAGS.output_node_names,
+          FLAGS.output_path, quantization_dtype=quantization_dtype,
+          skip_op_check=FLAGS.skip_op_check,
+          strip_debug_ops=FLAGS.strip_debug_ops)
+
+  elif (FLAGS.input_format == 'tf_hub' and
+        FLAGS.output_format == 'tensorflowjs'):
+    if not FLAGS.output_json:
+      if FLAGS.signature_name:
+        tf_saved_model_conversion_pb.convert_tf_hub_module(
+            FLAGS.input_path, FLAGS.output_path, FLAGS.signature_name,
+            skip_op_check=FLAGS.skip_op_check,
+            strip_debug_ops=FLAGS.strip_debug_ops)
+      else:
+        tf_saved_model_conversion_pb.convert_tf_hub_module(
+            FLAGS.input_path,
+            FLAGS.output_path,
+            skip_op_check=FLAGS.skip_op_check,
+            strip_debug_ops=FLAGS.strip_debug_ops)
+    else:
+      if FLAGS.signature_name:
+        tf_saved_model_conversion.convert_tf_hub_module(
+            FLAGS.input_path, FLAGS.output_path, FLAGS.signature_name,
+            skip_op_check=FLAGS.skip_op_check,
+            strip_debug_ops=FLAGS.strip_debug_ops)
+      else:
+        tf_saved_model_conversion.convert_tf_hub_module(
+            FLAGS.input_path,
+            FLAGS.output_path,
+            skip_op_check=FLAGS.skip_op_check,
+            strip_debug_ops=FLAGS.strip_debug_ops)
   elif (FLAGS.input_format == 'tensorflowjs' and
         FLAGS.output_format == 'keras'):
     dispatch_tensorflowjs_to_keras_h5_conversion(FLAGS.input_path,

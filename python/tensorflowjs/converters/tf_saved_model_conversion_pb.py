@@ -23,25 +23,19 @@ import os
 import numpy as np
 
 import tensorflow as tf
-
 from tensorflow.core.protobuf import device_properties_pb2
 from tensorflow.core.protobuf import rewriter_config_pb2
 from tensorflow.python.framework import graph_util
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
+from tensorflow.python.lib.io import file_io
 from tensorflow.python.tools import freeze_graph
-
-from google.protobuf.json_format import MessageToDict
 
 import tensorflow_hub as hub
 
 from tensorflowjs import write_weights
 
-DEFAULT_MODEL_FILENAME = 'model.json'
-# JSON string keys for fields of the indexing JSON.
-ARTIFACT_MODEL_TOPOLOGY_KEY = 'modelTopology'
-ARTIFACT_WEIGHTS_MANIFEST_KEY = 'weightsManifest'
-
+DEFAULT_MODEL_PB_FILENAME = 'tensorflowjs_model.pb'
 CLEARED_TENSOR_FIELDS = (
     'tensor_content', 'half_val', 'float_val', 'double_val', 'int_val',
     'string_val', 'scomplex_val', 'int64_val', 'bool_val',
@@ -97,10 +91,11 @@ def validate(nodes, skip_op_check, strip_debug_ops):
       with open(os.path.join(op_list_path, filename)) as json_data:
         ops += json.load(json_data)
 
-  names = {x['tfOpName'] for x in ops}
+  names = set([x['tfOpName'] for x in ops])
   if strip_debug_ops:
-    names = names.union({'Assert', 'CheckNumerics', 'Print'})
-  not_supported = {x.op for x in [x for x in nodes if x.op not in names]}
+    names = names.union(set(['Assert', 'CheckNumerics', 'Print']))
+  not_supported = set(
+      [x.op for x in [x for x in nodes if x.op not in names]])
   return not_supported
 
 
@@ -164,6 +159,7 @@ def extract_weights(graph_def,
 
   print('Writing weight file ' + output_graph + '...')
   const_manifest = []
+  path = os.path.dirname(output_graph)
 
   graph = tf.Graph()
   with tf.Session(graph=graph) as sess:
@@ -182,37 +178,11 @@ def extract_weights(graph_def,
       for field_name in CLEARED_TENSOR_FIELDS:
         const.attr["value"].tensor.ClearField(field_name)
 
-  write_artifacts(MessageToDict(graph_def), [const_manifest], output_graph,
-                  quantization_dtype=quantization_dtype)
+  write_weights.write_weights(
+      [const_manifest], path, quantization_dtype=quantization_dtype)
 
-
-def write_artifacts(topology,
-                    weights,
-                    output_graph,
-                    quantization_dtype=None):
-  """Writes weights and topology to the output_dir.
-
-  If `topology` is Falsy (e.g., `None`), only emit weights to output_dir.
-
-  Args:
-    topology: tf.GraphDef TensorFlow GraphDef proto object, which represents
-      the model topology.
-    weights: an array of weight groups (as defined in tfjs write_weights).
-    output_graph: the output file name to hold all the contents.
-    quantization_dtype: An optional numpy dtype to quantize weights to for
-      compression. Only np.uint8 and np.uint16 are supported.
-  """
-  model_json = {}
-
-  model_json[ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
-  weights_manifest = write_weights.write_weights(
-      weights, os.path.dirname(output_graph), write_manifest=False,
-      quantization_dtype=quantization_dtype)
-  assert isinstance(weights_manifest, list)
-  model_json[ARTIFACT_WEIGHTS_MANIFEST_KEY] = weights_manifest
-
-  with open(output_graph, 'wt') as f:
-    json.dump(model_json, f)
+  file_io.atomic_write_string_to_file(
+      os.path.abspath(output_graph), graph_def.SerializeToString())
 
 
 def convert_tf_session_bundle(session_bundle_dir,
@@ -232,7 +202,8 @@ def convert_tf_session_bundle(session_bundle_dir,
     output_node_names: string The names of the output nodes, comma separated.
     output_dir: string The name of the output directory. The directory
       will consist of
-      - a file named 'model.json'
+      - a file named 'tensorflowjs_model.pb'
+      - a JSON weights manifest file named 'weights_manifest.json'
       - possibly sharded binary weight files.
     quantization_dtype: An optional numpy dtype to quantize weights to for
       compression. Only np.uint8 and np.uint16 are supported.
@@ -244,7 +215,7 @@ def convert_tf_session_bundle(session_bundle_dir,
         "please migrate to SavedModel.")
   if not os.path.exists(output_dir):
     os.makedirs(output_dir)
-  output_graph = os.path.join(output_dir, DEFAULT_MODEL_FILENAME)
+  output_graph = os.path.join(output_dir, DEFAULT_MODEL_PB_FILENAME)
 
   checkpoint = tf.train.get_checkpoint_state(session_bundle_dir)
   input_checkpoint = checkpoint.model_checkpoint_path
@@ -287,7 +258,8 @@ def convert_tf_saved_model(saved_model_dir, output_node_names,
     output_node_names: string The names of the output nodes, comma separated.
     output_dir: string The name of the output directory. The directory
       will consist of
-      - a file named 'model.json'
+      - a file named 'tensorflowjs_model.pb'
+      - a JSON weights manifest file named 'weights_manifest.json'
       - possibly sharded binary weight files.
     saved_model_tags: string Tagset of the MetaGraphDef to load, in comma
       separated string format. Defaulted to 'serve'
@@ -299,7 +271,7 @@ def convert_tf_saved_model(saved_model_dir, output_node_names,
 
   if not os.path.exists(output_dir):
     os.makedirs(output_dir)
-  output_graph = os.path.join(output_dir, DEFAULT_MODEL_FILENAME)
+  output_graph = os.path.join(output_dir, DEFAULT_MODEL_PB_FILENAME)
 
   frozen_file = output_graph + '.frozen'
   freeze_graph.freeze_graph(
@@ -340,7 +312,8 @@ def convert_tf_frozen_model(frozen_model_path, output_node_names,
     output_node_names: string The names of the output nodes, comma separated.
     output_dir: string The name of the output directory. The directory
       will consist of
-      - a file named 'model.json'
+      - a file named 'tensorflowjs_model.pb'
+      - a JSON weights manifest file named 'weights_manifest.json'
       - possibly sharded binary weight files.
     quantization_dtype: An optional numpy dtype to quantize weights to for
       compression. Only np.uint8 and np.uint16 are supported.
@@ -350,7 +323,7 @@ def convert_tf_frozen_model(frozen_model_path, output_node_names,
 
   if not os.path.exists(output_dir):
     os.makedirs(output_dir)
-  output_graph = os.path.join(output_dir, DEFAULT_MODEL_FILENAME)
+  output_graph = os.path.join(output_dir, DEFAULT_MODEL_PB_FILENAME)
 
   graph = load_graph(frozen_model_path, output_node_names)
   optimize_graph(graph, output_graph, quantization_dtype=quantization_dtype,
@@ -415,7 +388,8 @@ def convert_tf_hub_module(module_path, output_dir,
     module_path: string Path to the module.
     output_dir: string The name of the output directory. The directory
       will consist of
-      - a file named 'model.json'
+      - a file named 'tensorflowjs_model.pb'
+      - a JSON weights manifest file named 'weights_manifest.json'
       - possibly sharded binary weight files.
     signature: string Signature to load.
     skip_op_check: Bool whether to skip the op check.
@@ -442,7 +416,7 @@ def convert_tf_hub_module(module_path, output_dir,
   frozen_graph_def = graph_util.convert_variables_to_constants(
       sess, graph.as_graph_def(), output_node_names)
 
-  output_graph = os.path.join(output_dir, DEFAULT_MODEL_FILENAME)
+  output_graph = os.path.join(output_dir, DEFAULT_MODEL_PB_FILENAME)
   frozen_file = output_graph + '.frozen'
   try:
     with tf.gfile.GFile(frozen_file, 'wb') as f:
