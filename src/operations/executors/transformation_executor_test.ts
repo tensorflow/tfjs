@@ -134,7 +134,7 @@ describe('transformation', () => {
         spyOn(tfc, 'depthToSpace');
         node.op = 'depthToSpace';
         node.params.blockSize = createNumberAttr(1);
-        node.params.dataFormat = createStrAttr('NHWC');
+        node.params.dataFormat = createStrAttr('nhwc');
         node.inputNames = ['input1'];
         executeOp(node, {input1}, context);
 

@@ -80,7 +80,8 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
       const blockSize =
           getParamValue('blockSize', node, tensorMap, context) as number;
       const dataFormat =
-          getParamValue('dataFormat', node, tensorMap, context) as 'NHWC' |
+          (getParamValue('dataFormat', node, tensorMap, context) as
+           string).toUpperCase() as 'NHWC' |
           'NCHW';
       return [tfc.depthToSpace(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor4D,
