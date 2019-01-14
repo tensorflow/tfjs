@@ -11,14 +11,14 @@
 import {LayerSerialization} from './layers/layer_serialization';
 import {TensorKeyArray} from './node_config';
 import {TrainingConfig} from './training_config';
-import {BaseSerialization, PyJsonDict} from './types';
+import {BaseSerialization} from './types';
 
 export type ModelConfig = {
   name: string,
   layers: LayerSerialization[],
   input_layers: TensorKeyArray[],
   output_layers: TensorKeyArray[],
-}&PyJsonDict;
+};
 
 /**
  * A standard Keras JSON 'Model' configuration.
@@ -31,7 +31,7 @@ export interface ModelSerialization extends
 
 export type SequentialConfig = {
   layers: LayerSerialization[]
-}&PyJsonDict;
+};
 
 /**
  * A standard Keras JSON 'Sequential' configuration.
@@ -52,12 +52,12 @@ export interface SequentialSerialization extends
  */
 export type LegacySequentialSerialization = {
   // Note this cannot extend `BaseSerialization` because of the bug.
-  className: 'Sequential';
+  class_name: 'Sequential';
 
   config: LayerSerialization[];
   backend?: string;
   keras_version?: string;
-}&PyJsonDict;
+};
 
 /**
  * Contains the description of a KerasModel, as well as the configuration
@@ -68,4 +68,4 @@ export type KerasFileSerialization = {
   model_config: ModelSerialization|SequentialSerialization|
   LegacySequentialSerialization;
   training_config: TrainingConfig;
-}&PyJsonDict;
+};

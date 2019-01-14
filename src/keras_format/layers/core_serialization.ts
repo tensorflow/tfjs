@@ -41,6 +41,9 @@ export interface DenseLayerConfig extends LayerConfig {
 export type DenseLayerSerialization =
     BaseLayerSerialization<'Dense', DenseLayerConfig>;
 
+export type FlattenLayerSerialization =
+    BaseLayerSerialization<'Flatten', LayerConfig>;
+
 export interface ActivationLayerConfig extends LayerConfig {
   activation: ActivationIdentifier;
 }
@@ -70,6 +73,6 @@ export type PermuteLayerSerialization =
     BaseLayerSerialization<'Permute', PermuteLayerConfig>;
 
 export type CoreLayerSerialization =
-    DropoutLayerSerialization|DenseLayerSerialization|
+    DropoutLayerSerialization|DenseLayerSerialization|FlattenLayerSerialization|
     ActivationLayerSerialization|RepeatVectorLayerSerialization|
     ReshapeLayerSerialization|PermuteLayerSerialization;

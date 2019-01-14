@@ -10,6 +10,22 @@
 
 import {BaseLayerSerialization, LayerConfig} from '../topology_config';
 
+
+
+export type AddLayerSerialization = BaseLayerSerialization<'Add', LayerConfig>;
+
+export type MultiplyLayerSerialization =
+    BaseLayerSerialization<'Multiply', LayerConfig>;
+
+export type AverageLayerSerialization =
+    BaseLayerSerialization<'Average', LayerConfig>;
+
+export type MaximumLayerSerialization =
+    BaseLayerSerialization<'Maximum', LayerConfig>;
+
+export type MinimumLayerSerialization =
+    BaseLayerSerialization<'Minimum', LayerConfig>;
+
 export interface ConcatenateLayerConfig extends LayerConfig {
   axis?: number;
 }
@@ -26,4 +42,6 @@ export type DotLayerSerialization =
     BaseLayerSerialization<'Dot', DotLayerConfig>;
 
 export type MergeLayerSerialization =
+    AddLayerSerialization|MultiplyLayerSerialization|AverageLayerSerialization|
+    MaximumLayerSerialization|MinimumLayerSerialization|
     ConcatenateLayerSerialization|DotLayerSerialization;

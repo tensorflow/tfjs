@@ -14,9 +14,14 @@ export type Shape = number[];
 // The tfjs-core version of DataType must stay synced with this.
 export type DataType = 'float32'|'int32'|'bool'|'complex64'|'string';
 
+// TODO(soergel): Move the CamelCase versions back out of keras_format
+// e.g. to src/common.ts.  Maybe even duplicate *all* of these to be pedantic?
 /** @docinline */
 export type DataFormat = 'channelsFirst'|'channelsLast';
 export const VALID_DATA_FORMAT_VALUES = ['channelsFirst', 'channelsLast'];
+
+// These constants have a snake vs. camel distinction.
+export type DataFormatSerialization = 'channels_first'|'channels_last';
 
 /** @docinline */
 export type PaddingMode = 'valid'|'same'|'causal';

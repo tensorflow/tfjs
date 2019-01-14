@@ -15,19 +15,19 @@ export type L1L2Config = {
   l2?: number;
 };
 
-export type L1L2Serialization = BaseSerialization<'l1_l2', L1L2Config>;
+export type L1L2Serialization = BaseSerialization<'L1L2', L1L2Config>;
 
 export type L1Config = {
   l1?: number;
 };
 
-export type L1Serialization = BaseSerialization<'l1', L1Config>;
+export type L1Serialization = BaseSerialization<'L1', L1Config>;
 
 export type L2Config = {
   l2?: number;
 };
 
-export type L2Serialization = BaseSerialization<'l2', L2Config>;
+export type L2Serialization = BaseSerialization<'L2', L2Config>;
 
 export type RegularizerSerialization =
     L1L2Serialization|L1Serialization|L2Serialization;

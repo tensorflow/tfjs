@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import {DataFormat, PaddingMode} from '../common';
+import {DataFormatSerialization, PaddingMode} from '../common';
 import {ConstraintSerialization} from '../constraint_config';
 import {InitializerSerialization} from '../initializer_config';
 import {RegularizerSerialization} from '../regularizer_config';
@@ -18,7 +18,7 @@ export interface BaseConvLayerConfig extends LayerConfig {
   kernel_size: number|number[];
   strides?: number|number[];
   padding?: PaddingMode;
-  data_format?: DataFormat;
+  data_format?: DataFormatSerialization;
   dilation_rate?: number|[number]|[number, number];
   activation?: string;
   use_bias?: boolean;
@@ -35,5 +35,46 @@ export interface ConvLayerConfig extends BaseConvLayerConfig {
   filters: number;
 }
 
-export type ConvLayerSerialization =
-    BaseLayerSerialization<'Conv', ConvLayerConfig>;
+export type Conv1DLayerSerialization =
+    BaseLayerSerialization<'Conv1D', ConvLayerConfig>;
+
+export type Conv2DLayerSerialization =
+    BaseLayerSerialization<'Conv2D', ConvLayerConfig>;
+
+export type Conv2DTransposeLayerSerialization =
+    BaseLayerSerialization<'Conv2DTranspose', ConvLayerConfig>;
+
+export interface SeparableConvLayerConfig extends ConvLayerConfig {
+  depthMultiplier?: number;
+  depthwise_initializer?: InitializerSerialization;
+  pointwise_initializer?: InitializerSerialization;
+  depthwise_regularizer?: RegularizerSerialization;
+  pointwise_regularizer?: RegularizerSerialization;
+  depthwise_constraint?: ConstraintSerialization;
+  pointwise_constraint?: ConstraintSerialization;
+}
+
+export type SeparableConv2DLayerSerialization =
+    BaseLayerSerialization<'SeparableConv2D', ConvLayerConfig>;
+
+
+export interface Cropping2DLayerConfig extends LayerConfig {
+  cropping: number|[number, number]|[[number, number], [number, number]];
+  dataFormat?: DataFormatSerialization;
+}
+
+export type Cropping2DLayerSerialization =
+    BaseLayerSerialization<'Cropping2D', Cropping2DLayerConfig>;
+
+export interface UpSampling2DLayerConfig extends LayerConfig {
+  size?: number[];
+  dataFormat?: DataFormatSerialization;
+}
+
+export type UpSampling2DLayerSerialization =
+    BaseLayerSerialization<'UpSampling2D', UpSampling2DLayerConfig>;
+
+export type ConvolutionalSerialization =
+    Conv1DLayerSerialization|Conv2DLayerSerialization|
+    Conv2DTransposeLayerSerialization|SeparableConv2DLayerSerialization|
+    Cropping2DLayerSerialization|UpSampling2DLayerSerialization;
