@@ -26,7 +26,7 @@ from tensorflow.python.tools import freeze_graph
 from tensorflow.python.grappler import tf_optimizer
 
 import tensorflow_hub as hub
-from tensorflowjs.converters import tf_saved_model_conversion
+from tensorflowjs.converters import tf_saved_model_conversion_pb
 
 SAVED_MODEL_DIR = 'saved_model'
 SESSION_BUNDLE_MODEL_DIR = 'session_bundle'
@@ -195,7 +195,7 @@ class ConvertTest(unittest.TestCase):
     print(glob.glob(
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR, '*')))
 
-    tf_saved_model_conversion.convert_tf_saved_model(
+    tf_saved_model_conversion_pb.convert_tf_saved_model(
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
         'Softmax',
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
@@ -209,15 +209,19 @@ class ConvertTest(unittest.TestCase):
             'dtype': 'float32'
         }]
     }]
+    # Load the saved weights as a JSON string.
+    weights_manifest = open(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                     'weights_manifest.json'), 'rt')
+    output_json = json.load(weights_manifest)
+    weights_manifest.close()
+    self.assertEqual(output_json, weights)
 
-    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-    # Check model.json and weights manifest.
-    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
-      model_json = json.load(f)
-    self.assertTrue(model_json['modelTopology'])
-    weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
-
+    # Check the content of the output directory.
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                         'tensorflowjs_model.pb')))
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
@@ -232,18 +236,20 @@ class ConvertTest(unittest.TestCase):
       graph = tf.test.mock.Mock(node=[node])
       with tf.test.mock.patch.object(tf_optimizer, 'OptimizeGraph',
                                      return_value=graph):
-        tf_saved_model_conversion.convert_tf_saved_model(
+        tf_saved_model_conversion_pb.convert_tf_saved_model(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
             'Softmax',
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
         )
+
+
 
   def test_convert_saved_model_skip_op_check(self):
     self.create_unsupported_saved_model()
     print(glob.glob(
         os.path.join(self._tmp_dir, SESSION_BUNDLE_MODEL_DIR, '*')))
 
-    tf_saved_model_conversion.convert_tf_saved_model(
+    tf_saved_model_conversion_pb.convert_tf_saved_model(
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
         'Softmax',
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR), skip_op_check=True
@@ -257,13 +263,19 @@ class ConvertTest(unittest.TestCase):
             'dtype': 'float32'
         }]
     }]
-    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-    # Check model.json and weights manifest.
-    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
-      model_json = json.load(f)
-    self.assertTrue(model_json['modelTopology'])
-    weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    # Load the saved weight manifest as a JSON string.
+    weights_manifest = open(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                     'weights_manifest.json'), 'rt')
+    output_json = json.load(weights_manifest)
+    weights_manifest.close()
+    self.assertEqual(output_json, weights)
+
+    # Check the content of the output directory.
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                         'tensorflowjs_model.pb')))
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
@@ -271,27 +283,17 @@ class ConvertTest(unittest.TestCase):
   def test_convert_saved_model_strip_debug_ops(self):
     self.create_saved_model_with_debug_ops()
 
-    tf_saved_model_conversion.convert_tf_saved_model(
+    tf_saved_model_conversion_pb.convert_tf_saved_model(
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
         'add',
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
         strip_debug_ops=True)
 
-    weights = [{
-        'paths': ['group1-shard1of1'],
-        'weights': [{
-            'dtype': 'float32',
-            'name': 'add',
-            'shape': [2, 2]
-        }]
-    }]
-    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-    # Check model.json and weights manifest.
-    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
-      model_json = json.load(f)
-    self.assertTrue(model_json['modelTopology'])
-    weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    # Check the content of the output directory.
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                         'tensorflowjs_model.pb')))
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
@@ -299,7 +301,7 @@ class ConvertTest(unittest.TestCase):
   def test_convert_session_bundle(self):
     self.create_session_bundle()
 
-    tf_saved_model_conversion.convert_tf_session_bundle(
+    tf_saved_model_conversion_pb.convert_tf_session_bundle(
         os.path.join(self._tmp_dir, SESSION_BUNDLE_MODEL_DIR),
         'Softmax',
         os.path.join(self._tmp_dir, SESSION_BUNDLE_MODEL_DIR)
@@ -313,13 +315,18 @@ class ConvertTest(unittest.TestCase):
             'dtype': 'float32'
         }]
     }]
-    tfjs_path = os.path.join(self._tmp_dir, SESSION_BUNDLE_MODEL_DIR)
-    # Check model.json and weights manifest.
-    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
-      model_json = json.load(f)
-    self.assertTrue(model_json['modelTopology'])
-    weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    # Load the saved weights as a JSON string.
+    weights_manifest = open(
+        os.path.join(self._tmp_dir, SESSION_BUNDLE_MODEL_DIR,
+                     'weights_manifest.json'), 'rt')
+    output_json = json.load(weights_manifest)
+    weights_manifest.close()
+    self.assertEqual(output_json, weights)
+    # Check the content of the output directory.
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SESSION_BUNDLE_MODEL_DIR,
+                         'tensorflowjs_model.pb')))
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SESSION_BUNDLE_MODEL_DIR, 'group*-*')))
@@ -329,7 +336,7 @@ class ConvertTest(unittest.TestCase):
     print(glob.glob(
         os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, '*')))
 
-    tf_saved_model_conversion.convert_tf_frozen_model(
+    tf_saved_model_conversion_pb.convert_tf_frozen_model(
         os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'model.frozen'),
         'Softmax',
         os.path.join(self._tmp_dir, FROZEN_MODEL_DIR))
@@ -342,13 +349,19 @@ class ConvertTest(unittest.TestCase):
             'dtype': 'float32'
         }]
     }]
-    tfjs_path = os.path.join(self._tmp_dir, FROZEN_MODEL_DIR)
-    # Check model.json and weights manifest.
-    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
-      model_json = json.load(f)
-    self.assertTrue(model_json['modelTopology'])
-    weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    # Load the saved weights as a JSON string.
+    weights_manifest = open(
+        os.path.join(self._tmp_dir, FROZEN_MODEL_DIR,
+                     'weights_manifest.json'), 'rt')
+    output_json = json.load(weights_manifest)
+    weights_manifest.close()
+    self.assertEqual(output_json, weights)
+
+    # Check the content of the output directory.
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, FROZEN_MODEL_DIR,
+                         'tensorflowjs_model.pb')))
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'group*-*')))
@@ -358,7 +371,7 @@ class ConvertTest(unittest.TestCase):
     print(glob.glob(
         os.path.join(self._tmp_dir, HUB_MODULE_DIR, '*')))
 
-    tf_saved_model_conversion.convert_tf_hub_module(
+    tf_saved_model_conversion_pb.convert_tf_hub_module(
         os.path.join(self._tmp_dir, HUB_MODULE_DIR),
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
         'default'
@@ -372,14 +385,19 @@ class ConvertTest(unittest.TestCase):
             'dtype': 'float32'
         }]
     }]
-    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-    # Check model.json and weights manifest.
-    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
-      model_json = json.load(f)
-    self.assertTrue(model_json['modelTopology'])
-    weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    # Load the saved weights as a JSON string.
+    weights_manifest = open(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                     'weights_manifest.json'), 'rt')
+    output_json = json.load(weights_manifest)
+    weights_manifest.close()
+    self.assertEqual(output_json, weights)
 
+    # Check the content of the output directory.
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                         'tensorflowjs_model.pb')))
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))

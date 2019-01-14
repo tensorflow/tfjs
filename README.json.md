@@ -32,6 +32,7 @@ $ tensorflowjs_converter \
     --input_format=tf_saved_model \
     --output_node_names='MobilenetV1/Predictions/Reshape_1' \
     --saved_model_tags=serve \
+    --out_json=true \
     /mobilenet/saved_model \
     /mobilenet/web_model
 ```
@@ -43,6 +44,7 @@ $ tensorflowjs_converter \
     --input_format=tf_frozen_model \
     --output_node_names='MobilenetV1/Predictions/Reshape_1' \
     --saved_model_tags=serve \
+    --out_json=true \
     /mobilenet/frozen_model.pb \
     /mobilenet/web_model
 ```
@@ -53,6 +55,7 @@ Session bundle model example:
 $ tensorflowjs_converter \
     --input_format=tf_session_bundle \
     --output_node_names='MobilenetV1/Predictions/Reshape_1' \
+    --out_json=true \
     /mobilenet/session_bundle \
     /mobilenet/web_model
 ```
@@ -62,6 +65,7 @@ Tensorflow Hub module example:
 ```bash
 $ tensorflowjs_converter \
     --input_format=tf_hub \
+    --out_json=true \
     'https://tfhub.dev/google/imagenet/mobilenet_v1_100_224/classification/1' \
     /mobilenet/web_model
 ```
@@ -102,6 +106,7 @@ saved a tf.keras model in the SavedModel format.
 |<nobr>`--saved_model_tags`</nobr> | Only applicable to SavedModel conversion. Tags of the MetaGraphDef to load, in comma separated format. Defaults to `serve`.|
 |`--signature_name`   | Only applicable to TensorFlow Hub module conversion, signature to load. Defaults to `default`. See https://www.tensorflow.org/hub/common_signatures/.|
 |`--strip_debug_ops`   | Strips out TensorFlow debug operations `Print`, `Assert`, `CheckNumerics`. Defaults to `True`.|
+|`--output_json`   | Generate model file in JSON instead of protobuf for all TF input model formats. Defaults to `False`.|
 
 
 ### Format conversions support table
@@ -117,22 +122,16 @@ saved a tf.keras model in the SavedModel format.
 
 ### Web-friendly format
 
-The conversion script above produces 4 types of files:
+The conversion script above produces 2 types of files:
 
-* `tensorflowjs_model.pb` (the dataflow graph)
-* `weights_manifest.json` (weight manifest file)
-* `model.json` (the two above, in a single file)
+* `model.json` (the dataflow graph and weight manifest file)
 * `group1-shard\*of\*` (collection of binary weight files)
-
-For `keras` input files, the converter generates `model.json` and `group1-shard\*of\*`.
-For other input formats, it generates the `tensorflowjs_model.pb`, `weights_manifest.json`, and `group1-shard\*of\*`.
 
 For example, here is the MobileNet model converted and served in
 following location:
 
 ```html
-  https://storage.cloud.google.com/tfjs-models/savedmodel/mobilenet_v1_1.0_224/optimized_model.pb
-  https://storage.cloud.google.com/tfjs-models/savedmodel/mobilenet_v1_1.0_224/weights_manifest.json
+  https://storage.cloud.google.com/tfjs-models/savedmodel/mobilenet_v1_1.0_224/model.json
   https://storage.cloud.google.com/tfjs-models/savedmodel/mobilenet_v1_1.0_224/group1-shard1of5
   ...
   https://storage.cloud.google.com/tfjs-models/savedmodel/mobilenet_v1_1.0_224/group1-shard5of5
@@ -145,10 +144,9 @@ Instantiate the [FrozenModel class](./src/executor/frozen_model.ts) and run infe
 ```typescript
 import * as tf from '@tensorflow/tfjs';
 
-const MODEL_URL = 'https://.../mobilenet/tensorflowjs_model.pb';
-const WEIGHTS_URL = 'https://.../mobilenet/weights_manifest.json';
+const MODEL_URL = 'https://.../mobilenet/model.json';
 
-const model = await tf.loadFrozenModel(MODEL_URL, WEIGHTS_URL);
+const model = await tf.loadFrozenModelJSON(MODEL_URL);
 const cat = document.getElementById('cat');
 model.execute({input: tf.fromPixels(cat)});
 ```
@@ -158,7 +156,7 @@ Check out our working [MobileNet demo](./demo/mobilenet/README.md).
 If your server requests credentials for accessing the model files, you can provide the optional RequestOption param.
 
 ```typescript
-const model = await loadFrozenModel(MODEL_URL, WEIGHTS_URL,
+const model = await loadFrozenModel(MODEL_URL,
     {credentials: 'include'});
 ```
 
@@ -177,9 +175,8 @@ to the model files:
 // Load the tfjs-node binding
 import '@tensorflow/tfjs-node';
 
-const MODEL_PATH = 'file:///tmp/mobilenet/tensorflowjs_model.pb';
-const WEIGHTS_PATH = 'file:///tmp/mobilenet/weights_manifest.json';
-const model = await tf.loadFrozenModel(MODEL_PATH, WEIGHTS_PATH);
+const MODEL_PATH = 'file:///tmp/mobilenet/model.pb';
+const model = await tf.loadFrozenModelJSON(MODEL_PATH);
 ```
 
 You can also load the remote model files the same way as in browser, but you might need to polyfill
@@ -200,10 +197,10 @@ If you prefer to load the weights only, you can use follow code snippet.
 ```typescript
 import * as tf from '@tensorflow/tfjs';
 
-const weightManifestUrl = "https://example.org/model/weights_manifest.json";
+const modelUrl = "https://example.org/model/model.json";
 
-const manifest = await fetch(weightManifestUrl);
-this.weightManifest = await manifest.json();
+const model = await fetch(modelUrl);
+this.weightManifest = await model.json()['weightsManifest'];
 const weightMap = await tf.io.loadWeights(
         this.weightManifest, "https://example.org/model");
 ```
@@ -260,7 +257,7 @@ To run a subset of tests and/or on a specific browser:
 
 ```bash
 $ yarn test --browsers=Chrome --grep='execute'
-
+ 
 > ...
 > Chrome 64.0.3282 (Linux 0.0.0): Executed 39 of 39 SUCCESS (0.129 secs / 0 secs)
 ```
@@ -269,19 +266,4 @@ To run the tests once and exit the karma process (helpful on Windows):
 
 ```bash
 $ yarn test --single-run
-```
-
-To generate the static js file for GraphDef proto, run following steps:
-
-1. Generate static js file with comment first, in order to generate typescript definition.
-
-```bash
-$ node_modules/protobufjs/bin/pbjs -t static-module -w commonjs -o src/data/compiled_api.js --no-create --no-encode --no-verify --no-convert --no-delimited --no-beautify src/data/api.proto
-
-$ node_modules/protobufjs/bin/pbts -o src/data/compiled_api.d.ts src/data/compiled_api.js
-```
-
-2. Replace the static js file with the version without comments.
-```bash
-$ node_modules/protobufjs/bin/pbjs -t static-module -w commonjs -o src/data/compiled_api.js --no-create --no-encode --no-verify --no-convert --no-delimited --no-beautify --no-comments src/data/api.proto
 ```

@@ -6,7 +6,8 @@
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {
-    "@tensorflow/tfjs": "0.13.3"
+    "@tensorflow/tfjs": "0.13.4",
+    "@tensorflow/tfjs-converter": "file:.yalc/@tensorflow/tfjs-converter"
   },
   "scripts": {
     "mobilenet": "NODE_ENV=development parcel mobilenet/index.html --no-hmr --open ",
@@ -17,8 +18,8 @@
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "~6.23.0",
     "babel-polyfill": "~6.26.0",
-    "babel-runtime": "~6.26.0",
     "babel-preset-env": "~1.7.0",
+    "babel-runtime": "~6.26.0",
     "clang-format": "~1.2.2",
     "parcel-bundler": "~1.10.3"
   },

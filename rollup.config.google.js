@@ -50,7 +50,7 @@ export default {
       // Polyfill require() from dependencies.
       commonjs({
         namedExports: {
-          './node_modules/protobufjs/minimal.js': ['roots', 'Reader', 'util']
+          './node_modules/base64/index.js': ['Base64']
         }
       }),
       cleanup({comments: 'none'}),

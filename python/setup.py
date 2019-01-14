@@ -63,6 +63,7 @@ setuptools.setup(
         'tensorflowjs.converters.keras_h5_conversion',
         'tensorflowjs.converters.keras_tfjs_loader',
         'tensorflowjs.converters.tf_saved_model_conversion',
+        'tensorflowjs.converters.tf_saved_model_conversion_pb',
     ],
     include_package_data=True,
     packages=['tensorflowjs/op_list'],
