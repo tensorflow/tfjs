@@ -59,4 +59,3 @@ export type PoolingLayerSerialization = MaxPooling1DLayerSerialization|
     GlobalMaxPooling1DLayerSerialization|
     GlobalAveragePooling2DLayerSerialization|
     GlobalMaxPooling2DLayerSerialization;
-;

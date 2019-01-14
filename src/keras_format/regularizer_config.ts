@@ -31,3 +31,5 @@ export type L2Serialization = BaseSerialization<'L2', L2Config>;
 
 export type RegularizerSerialization =
     L1L2Serialization|L1Serialization|L2Serialization;
+
+export type RegularizerClassName = RegularizerSerialization['class_name'];
