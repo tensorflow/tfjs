@@ -38,3 +38,5 @@ export type MinMaxNormSerialization =
 
 export type ConstraintSerialization = MaxNormSerialization|NonNegSerialization|
     UnitNormSerialization|MinMaxNormSerialization;
+
+export type ConstraintClassName = ConstraintSerialization['class_name'];
