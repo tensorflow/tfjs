@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import {DataFormat, PaddingMode} from '../common';
+import {DataFormatSerialization, PaddingMode} from '../common';
 import {BaseLayerSerialization, LayerConfig} from '../topology_config';
 
 
@@ -17,25 +17,46 @@ export interface Pooling1DLayerConfig extends LayerConfig {
   strides?: number;
   padding?: PaddingMode;
 }
-export type Pooling1DLayerSerialization =
-    BaseLayerSerialization<'Pooling1D', Pooling1DLayerConfig>;
+
+export type MaxPooling1DLayerSerialization =
+    BaseLayerSerialization<'MaxPooling1D', Pooling1DLayerConfig>;
+
+export type AveragePooling1DLayerSerialization =
+    BaseLayerSerialization<'AveragePooling1D', Pooling1DLayerConfig>;
 
 export interface Pooling2DLayerConfig extends LayerConfig {
   pool_size?: number|[number, number];
   strides?: number|[number, number];
   padding?: PaddingMode;
-  data_format?: DataFormat;
+  data_format?: DataFormatSerialization;
 }
 
-export type Pooling2DLayerSerialization =
-    BaseLayerSerialization<'Pooling2D', Pooling2DLayerConfig>;
+export type MaxPooling2DLayerSerialization =
+    BaseLayerSerialization<'MaxPooling2D', Pooling2DLayerConfig>;
+
+export type AveragePooling2DLayerSerialization =
+    BaseLayerSerialization<'AveragePooling2D', Pooling2DLayerConfig>;
+
+export type GlobalAveragePooling1DLayerSerialization =
+    BaseLayerSerialization<'GlobalAveragePooling1D', LayerConfig>;
+
+export type GlobalMaxPooling1DLayerSerialization =
+    BaseLayerSerialization<'GlobalMaxPooling1D', LayerConfig>;
 
 export interface GlobalPooling2DLayerConfig extends LayerConfig {
-  data_format?: DataFormat;
+  data_format?: DataFormatSerialization;
 }
 
-export type GlobalPooling2DLayerSerialization =
-    BaseLayerSerialization<'GlobalPooling2D', GlobalPooling2DLayerConfig>;
+export type GlobalAveragePooling2DLayerSerialization = BaseLayerSerialization<
+    'GlobalAveragePooling2D', GlobalPooling2DLayerConfig>;
 
-export type PoolingLayerSerialization = Pooling1DLayerSerialization|
-    Pooling2DLayerSerialization|GlobalPooling2DLayerSerialization;
+export type GlobalMaxPooling2DLayerSerialization =
+    BaseLayerSerialization<'GlobalMaxPooling2D', GlobalPooling2DLayerConfig>;
+
+export type PoolingLayerSerialization = MaxPooling1DLayerSerialization|
+    AveragePooling1DLayerSerialization|MaxPooling2DLayerSerialization|
+    AveragePooling2DLayerSerialization|GlobalAveragePooling1DLayerSerialization|
+    GlobalMaxPooling1DLayerSerialization|
+    GlobalAveragePooling2DLayerSerialization|
+    GlobalMaxPooling2DLayerSerialization;
+;

@@ -11,16 +11,18 @@
 import {DataType} from '@tensorflow/tfjs-core';
 
 import {Shape} from './common';
-import {BaseSerialization} from './types';
+import {BaseLayerSerialization} from './topology_config';
 
 export type InputLayerConfig = {
+  name: string;
   input_shape?: Shape;
   batch_size?: number;
   batch_input_shape?: Shape;
   dtype?: DataType;
   sparse?: boolean;
-  name?: string;
 };
 
+// This really should be BaseSerialization because an input layer has no
+// inbound_nodes. But, that makes type safety more difficult.
 export type InputLayerSerialization =
-    BaseSerialization<'Input', InputLayerConfig>;
+    BaseLayerSerialization<'InputLayer', InputLayerConfig>;

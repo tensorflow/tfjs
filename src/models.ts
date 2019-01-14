@@ -846,7 +846,7 @@ export class Sequential extends Model {
    *   a sequential model). The latter case is for models with multiple
    *   inputs and/or multiple outputs. Of the two items in the array, the
    *   first is the input feature(s) and the second is the output target(s).
-   * @param args A `ModelFitDatasetConfig`, containing optional fields.
+   * @param args A `ModelFitDatasetArgs`, containing optional fields.
    *
    * @return A `History` instance. Its `history` attribute contains all
    *   information collected during training.
