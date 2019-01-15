@@ -2722,6 +2722,22 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
                             0, 0, 1, 0,
                             0, 0, 0, 1]);
   });
+
+  it('Supports chaining', () => {
+    const indices =
+        tf.tensor2d([[1, 2, 3], [2, 3, 1], [4, 5, 6]], [3, 3], 'int32');
+    const depth = 6;
+    const onValue = 3;
+    const offValue = 7;
+    const res = indices.oneHot(depth, onValue, offValue);
+
+    expect(res.shape).toEqual([3, 3, 6]);
+    expectArraysClose(res, [
+      7, 3, 7, 7, 7, 7, 7, 7, 3, 7, 7, 7, 7, 7, 7, 3, 7, 7,
+      7, 7, 3, 7, 7, 7, 7, 7, 7, 3, 7, 7, 7, 3, 7, 7, 7, 7,
+      7, 7, 7, 7, 3, 7, 7, 7, 7, 7, 7, 3, 7, 7, 7, 7, 7, 7
+    ]);
+  });
 });
 
 describeWithFlags('linspace', ALL_ENVS, () => {

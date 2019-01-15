@@ -164,6 +164,9 @@ export interface OpHandler {
       x: Tensor, axis: number, exclusive: boolean, reverse: boolean): T;
   squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T;
   clone<T extends Tensor>(x: T): T;
+  oneHot(
+      x: Tensor|TensorLike, depth: number, onValue?: number,
+      offValue?: number): Tensor;
   tile<T extends Tensor>(x: T, reps: number[]): T;
   gather<T extends Tensor>(x: T, indices: Tensor|TensorLike, axis: number): T;
   matMul<T extends Tensor>(
@@ -699,6 +702,12 @@ export class Tensor<R extends Rank = Rank> {
   clone<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
     return opHandler.clone(this);
+  }
+
+  oneHot(this: Tensor, depth: number, onValue?: number, offValue?: number):
+      Tensor {
+    this.throwIfDisposed();
+    return opHandler.oneHot(this, depth, onValue, offValue);
   }
 
   /** Returns a human-readable description of the tensor. Useful for logging. */
