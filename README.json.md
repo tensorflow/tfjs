@@ -32,7 +32,7 @@ $ tensorflowjs_converter \
     --input_format=tf_saved_model \
     --output_node_names='MobilenetV1/Predictions/Reshape_1' \
     --saved_model_tags=serve \
-    --out_json=true \
+    --output_json=true \
     /mobilenet/saved_model \
     /mobilenet/web_model
 ```
@@ -44,7 +44,7 @@ $ tensorflowjs_converter \
     --input_format=tf_frozen_model \
     --output_node_names='MobilenetV1/Predictions/Reshape_1' \
     --saved_model_tags=serve \
-    --out_json=true \
+    --output_json=true \
     /mobilenet/frozen_model.pb \
     /mobilenet/web_model
 ```
@@ -55,7 +55,7 @@ Session bundle model example:
 $ tensorflowjs_converter \
     --input_format=tf_session_bundle \
     --output_node_names='MobilenetV1/Predictions/Reshape_1' \
-    --out_json=true \
+    --output_json=true \
     /mobilenet/session_bundle \
     /mobilenet/web_model
 ```
@@ -65,7 +65,7 @@ Tensorflow Hub module example:
 ```bash
 $ tensorflowjs_converter \
     --input_format=tf_hub \
-    --out_json=true \
+    --output_json=true \
     'https://tfhub.dev/google/imagenet/mobilenet_v1_100_224/classification/1' \
     /mobilenet/web_model
 ```
