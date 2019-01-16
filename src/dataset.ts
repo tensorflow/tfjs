@@ -69,78 +69,6 @@ export abstract class Dataset<T extends DataElement> {
   // abstract isDeterministic(): boolean;
 
   /**
-   * Filters this dataset according to `predicate`.
-   *
-   * ```js
-   * const a = tf.data.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-   *   .filter(x => x%2 === 0);
-   * await a.forEach(e => console.log(e));
-   * ```
-   *
-   * @param predicate A function mapping a dataset element to a boolean or a
-   * `Promise` for one.
-   *
-   * @returns A `Dataset` of elements for which the predicate was true.
-   */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
-  filter(predicate: (value: T) => boolean): Dataset<T> {
-    const base = this;
-    return datasetFromIteratorFn(async () => {
-      return (await base.iterator()).filter(x => tf.tidy(() => predicate(x)));
-    });
-  }
-
-  /**
-   * Maps this dataset through a 1-to-1 transform.
-   *
-   * ```js
-   * const a = tf.data.array([1, 2, 3]).map(x => x*x);
-   * await a.forEach(e => console.log(e));
-   * ```
-   *
-   * @param transform A function mapping a dataset element to a transformed
-   *   dataset element.
-   *
-   * @returns A `Dataset` of transformed elements.
-   */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
-  map<O extends DataElement>(transform: (value: T) => O): Dataset<O> {
-    const base = this;
-    return datasetFromIteratorFn(async () => {
-      return (await base.iterator()).map(x => tf.tidy(() => transform(x)));
-    });
-  }
-
-  /**
-   * Maps this dataset through an async 1-to-1 transform.
-   *
-   * ```js
-   * const a = tf.data.array([1, 2, 3]).map(x => new Promise(function(resolve){
-   *  resolve(x*x);
-   * }));
-   * await a.forEach(e => e.then(function(value){
-   *  console.log(value);
-   * }));
-   * ```
-   *
-   * @param transform A function mapping a dataset element to a `Promise` for a
-   *   transformed dataset element.  This transform is responsible for disposing
-   *   any intermediate `Tensor`s, i.e. by wrapping its computation in
-   *   `tf.tidy()`; that cannot be automated here (as it is in the synchronous
-   *   `map()` case).
-   *
-   * @returns A `Dataset` of transformed elements.
-   */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
-  mapAsync<O extends DataElement>(transform: (value: T) => Promise<O>):
-      Dataset<O> {
-    const base = this;
-    return datasetFromIteratorFn(async () => {
-      return (await base.iterator()).mapAsync(transform);
-    });
-  }
-
-  /**
    * Groups elements into batches and arranges their values in columnar
    * form.
    *
@@ -215,6 +143,112 @@ export abstract class Dataset<T extends DataElement> {
   }
 
   /**
+   * Filters this dataset according to `predicate`.
+   *
+   * ```js
+   * const a = tf.data.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+   *   .filter(x => x%2 === 0);
+   * await a.forEach(e => console.log(e));
+   * ```
+   *
+   * @param predicate A function mapping a dataset element to a boolean or a
+   * `Promise` for one.
+   *
+   * @returns A `Dataset` of elements for which the predicate was true.
+   */
+  /** @doc {heading: 'Data', subheading: 'Classes'} */
+  filter(predicate: (value: T) => boolean): Dataset<T> {
+    const base = this;
+    return datasetFromIteratorFn(async () => {
+      return (await base.iterator()).filter(x => tf.tidy(() => predicate(x)));
+    });
+  }
+
+  /**
+   * Apply a function to every element of the dataset.
+   *
+   * After the function is applied to a dataset element, any Tensors contained
+   * within that element are disposed.
+   *
+   * ```js
+   * const a = tf.data.array([1, 2, 3]);
+   * await a.forEach(e => console.log(e));
+   * ```
+   *
+   * @param f A function to apply to each dataset element.
+   * @returns A `Promise` that resolves after all elements have been processed.
+   */
+  /** @doc {heading: 'Data', subheading: 'Classes'} */
+  async forEach(f: (input: T) => void): Promise<void> {
+    return (await this.iterator()).forEach(f);
+  }
+
+  /**
+   * Maps this dataset through a 1-to-1 transform.
+   *
+   * ```js
+   * const a = tf.data.array([1, 2, 3]).map(x => x*x);
+   * await a.forEach(e => console.log(e));
+   * ```
+   *
+   * @param transform A function mapping a dataset element to a transformed
+   *   dataset element.
+   *
+   * @returns A `Dataset` of transformed elements.
+   */
+  /** @doc {heading: 'Data', subheading: 'Classes'} */
+  map<O extends DataElement>(transform: (value: T) => O): Dataset<O> {
+    const base = this;
+    return datasetFromIteratorFn(async () => {
+      return (await base.iterator()).map(x => tf.tidy(() => transform(x)));
+    });
+  }
+
+  /**
+   * Maps this dataset through an async 1-to-1 transform.
+   *
+   * ```js
+   * const a = tf.data.array([1, 2, 3]).map(x => new Promise(function(resolve){
+   *  resolve(x*x);
+   * }));
+   * await a.forEach(e => e.then(function(value){
+   *  console.log(value);
+   * }));
+   * ```
+   *
+   * @param transform A function mapping a dataset element to a `Promise` for a
+   *   transformed dataset element.  This transform is responsible for disposing
+   *   any intermediate `Tensor`s, i.e. by wrapping its computation in
+   *   `tf.tidy()`; that cannot be automated here (as it is in the synchronous
+   *   `map()` case).
+   *
+   * @returns A `Dataset` of transformed elements.
+   */
+  /** @doc {heading: 'Data', subheading: 'Classes'} */
+  mapAsync<O extends DataElement>(transform: (value: T) => Promise<O>):
+      Dataset<O> {
+    const base = this;
+    return datasetFromIteratorFn(async () => {
+      return (await base.iterator()).mapAsync(transform);
+    });
+  }
+
+  /**
+   *  Creates a `Dataset` that prefetches elements from this dataset.
+   *
+   * @param bufferSize: An integer specifying the number of elements to be
+   *   prefetched.
+   * @returns A `Dataset`.
+   */
+  /** @doc {heading: 'Data', subheading: 'Classes'} */
+  // TODO: Document this function once tfjs-data supports streaming.
+  prefetch(bufferSize: number): Dataset<T> {
+    const base = this;
+    return datasetFromIteratorFn(
+        async () => (await base.iterator()).prefetch(bufferSize));
+  }
+
+  /**
    * Repeats this dataset `count` times.
    *
    * NOTE: If this dataset is a function of global state (e.g. a random number
@@ -238,28 +272,6 @@ export abstract class Dataset<T extends DataElement> {
           async () => ({value: await base.iterator(), done: false}));
       return iteratorFromConcatenated(iteratorIterator.take(count));
     });
-  }
-
-  /**
-   * Creates a `Dataset` with at most `count` initial elements from this
-   * dataset.
-   *
-   * ```js
-   * const a = tf.data.array([1, 2, 3, 4, 5, 6]).take(3);
-   * await a.forEach(e => console.log(e));
-   * ```
-   *
-   * @param count: The number of elements of this dataset that should be taken
-   *   to form the new dataset.  If `count` is `undefined` or negative, or if
-   *   `count` is greater than the size of this dataset, the new dataset will
-   *   contain all elements of this dataset.
-   * @returns A `Dataset`.
-   */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
-  take(count: number): Dataset<T> {
-    const base = this;
-    return datasetFromIteratorFn(
-        async () => (await base.iterator()).take(count));
   }
 
   /**
@@ -320,17 +332,25 @@ export abstract class Dataset<T extends DataElement> {
   }
 
   /**
-   *  Creates a `Dataset` that prefetches elements from this dataset.
+   * Creates a `Dataset` with at most `count` initial elements from this
+   * dataset.
    *
-   * @param bufferSize: An integer specifying the number of elements to be
-   *   prefetched.
+   * ```js
+   * const a = tf.data.array([1, 2, 3, 4, 5, 6]).take(3);
+   * await a.forEach(e => console.log(e));
+   * ```
+   *
+   * @param count: The number of elements of this dataset that should be taken
+   *   to form the new dataset.  If `count` is `undefined` or negative, or if
+   *   `count` is greater than the size of this dataset, the new dataset will
+   *   contain all elements of this dataset.
    * @returns A `Dataset`.
    */
-  // TODO: Document this function once tfjs-data supports streaming.
-  prefetch(bufferSize: number): Dataset<T> {
+  /** @doc {heading: 'Data', subheading: 'Classes'} */
+  take(count: number): Dataset<T> {
     const base = this;
     return datasetFromIteratorFn(
-        async () => (await base.iterator()).prefetch(bufferSize));
+        async () => (await base.iterator()).take(count));
   }
 
   /**
@@ -350,25 +370,6 @@ export abstract class Dataset<T extends DataElement> {
   /** @doc {heading: 'Data', subheading: 'Classes'} */
   async toArray() {
     return (await this.iterator()).collect();
-  }
-
-  /**
-   * Apply a function to every element of the dataset.
-   *
-   * After the function is applied to a dataset element, any Tensors contained
-   * within that element are disposed.
-   *
-   * ```js
-   * const a = tf.data.array([1, 2, 3]);
-   * await a.forEach(e => console.log(e));
-   * ```
-   *
-   * @param f A function to apply to each dataset element.
-   * @returns A `Promise` that resolves after all elements have been processed.
-   */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
-  async forEach(f: (input: T) => void): Promise<void> {
-    return (await this.iterator()).forEach(f);
   }
 
   /* TODO(soergel): for parity with tf.data:
