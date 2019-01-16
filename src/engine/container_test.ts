@@ -669,4 +669,20 @@ describeMathCPUAndGPU('Model-dispose', () => {
     expect(kwargsArray.length).toEqual(1);
     expect(kwargsArray[0]['training']).toEqual(true);
   });
+  it('Dispose Sequential model with a Dropout', () => {
+    const numTensors0 = memory().numTensors;
+    const model = tfl.sequential();
+    model.add(
+        tfl.layers.dense({units: 2, inputShape: [3], activation: 'relu'}));
+    model.add(tfl.layers.dense({units: 1}));
+    model.add(tfl.layers.dropout({rate: 0.8}));
+    model.build([3, 3]);
+
+    const result = model.dispose();
+    expect(result.refCountAfterDispose).toEqual(0);
+    expect(result.numDisposedVariables).toEqual(5);
+    // The four weight variables of the two layers should have been disposed.
+    // + the rate from the dropout tensor
+    expect(memory().numTensors).toEqual(numTensors0);
+  }); 
 });
