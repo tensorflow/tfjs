@@ -8,11 +8,11 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
-import * as tfl from '@tensorflow/tfjs-layers';
-import * as tfjsNode from '@tensorflow/tfjs-node';
-import * as fs from 'fs';
-import {join} from 'path';
+const tfc = require('@tensorflow/tfjs-core');
+const tfl = require('@tensorflow/tfjs-layers');
+const tfjsNode = require('@tensorflow/tfjs-node');
+const fs = require('fs');
+const join = require('path').join;
 
 /**
  * Generate random input(s), get predict() output(s), and save them along with
@@ -27,12 +27,12 @@ import {join} from 'path';
  *   tensors. Used for models that take integer tensors as inputs.
  */
 async function saveModelAndRandomInputsAndOutputs(
-    model: tfl.Model, exportPathprefix: string, inputIntegerMax?: number) {
+    model, exportPathprefix, inputIntegerMax) {
   await model.save(tfjsNode.io.fileSystem(`${exportPathprefix}`));
 
-  const xs: tfc.Tensor[] = [];
-  const xsData: number[][] = [];
-  const xsShapes: number[][] = [];
+  const xs = [];
+  const xsData = [];
+  const xsShapes = [];
   for (const inputTensor of model.inputs) {
     const inputShape = inputTensor.shape;
     inputShape[0] = 1;
@@ -53,9 +53,9 @@ async function saveModelAndRandomInputsAndOutputs(
   fs.writeFileSync(
       exportPathprefix + '.xs-shapes.json', JSON.stringify(xsShapes));
 
-  const ys: tfc.Tensor[] = model.outputs.length === 1 ?
-      [model.predict(xs) as tfc.Tensor] :
-      model.predict(xs) as tfc.Tensor[];
+  const ys = model.outputs.length === 1 ?
+      [model.predict(xs)] :
+      model.predict(xs);
   fs.writeFileSync(
       exportPathprefix + '.ys-data.json',
       JSON.stringify((ys.map(y => Array.from(y.dataSync())))));
@@ -65,7 +65,7 @@ async function saveModelAndRandomInputsAndOutputs(
 }
 
 // Multi-layer perceptron (MLP).
-async function exportMLPModel(exportPath: string) {
+async function exportMLPModel(exportPath) {
   const model = tfl.sequential();
   // Test both activations encapsulated in other layers and as standalone
   // layers.
@@ -80,7 +80,7 @@ async function exportMLPModel(exportPath: string) {
 }
 
 // Convolutional neural network (CNN).
-async function exportCNNModel(exportPath: string) {
+async function exportCNNModel(exportPath) {
   const model = tfl.sequential();
 
   // Cover separable and non-separable convoluational layers.
@@ -111,7 +111,7 @@ async function exportCNNModel(exportPath: string) {
   await saveModelAndRandomInputsAndOutputs(model, exportPath);
 }
 
-async function exportDepthwiseCNNModel(exportPath: string) {
+async function exportDepthwiseCNNModel(exportPath) {
   const model = tfl.sequential();
 
   // Cover depthwise 2D convoluational layer.
@@ -133,7 +133,7 @@ async function exportDepthwiseCNNModel(exportPath: string) {
 }
 
 // SimpleRNN with embedding.
-async function exportSimpleRNNModel(exportPath: string) {
+async function exportSimpleRNNModel(exportPath) {
   const model = tfl.sequential();
   const inputDim = 100;
   model.add(tfl.layers.embedding({inputDim, outputDim: 20, inputShape: [10]}));
@@ -143,7 +143,7 @@ async function exportSimpleRNNModel(exportPath: string) {
 }
 
 // GRU with embedding.
-async function exportGRUModel(exportPath: string) {
+async function exportGRUModel(exportPath) {
   const model = tfl.sequential();
   const inputDim = 100;
   model.add(tfl.layers.embedding({inputDim, outputDim: 20, inputShape: [10]}));
@@ -153,20 +153,19 @@ async function exportGRUModel(exportPath: string) {
 }
 
 // Bidirecitonal LSTM with embedding.
-async function exportBidirectionalLSTMModel(exportPath: string) {
+async function exportBidirectionalLSTMModel(exportPath) {
   const model = tfl.sequential();
   const inputDim = 100;
   model.add(tfl.layers.embedding({inputDim, outputDim: 20, inputShape: [10]}));
   // TODO(cais): Investigate why the `tfl.layers.RNN` typing doesn't work.
-  // tslint:disable-next-line:no-any
-  const lstm = tfl.layers.lstm({units: 4, goBackwards: true}) as any;
+  const lstm = tfl.layers.lstm({units: 4, goBackwards: true});
   model.add(tfl.layers.bidirectional({layer: lstm, mergeMode: 'concat'}));
 
   await saveModelAndRandomInputsAndOutputs(model, exportPath, inputDim);
 }
 
 // LSTM + time-distributed layer with embedding.
-async function exportTimeDistributedLSTMModel(exportPath: string) {
+async function exportTimeDistributedLSTMModel(exportPath) {
   const model = tfl.sequential();
   const inputDim = 100;
   model.add(tfl.layers.embedding({inputDim, outputDim: 20, inputShape: [10]}));
@@ -180,7 +179,7 @@ async function exportTimeDistributedLSTMModel(exportPath: string) {
 }
 
 // Model with Conv1D and Pooling1D layers.
-async function exportOneDimensionalModel(exportPath: string) {
+async function exportOneDimensionalModel(exportPath) {
   const model = tfl.sequential();
   model.add(tfl.layers.conv1d(
       {filters: 16, kernelSize: [4], inputShape: [80, 1], activation: 'relu'}));
@@ -194,26 +193,18 @@ async function exportOneDimensionalModel(exportPath: string) {
 }
 
 // Functional model with two Merge layers.
-async function exportFunctionalMergeModel(exportPath: string) {
+async function exportFunctionalMergeModel(exportPath) {
   const input1 = tfl.input({shape: [2, 5]});
   const input2 = tfl.input({shape: [4, 5]});
   const input3 = tfl.input({shape: [30]});
-  const reshaped1 = tfl.layers.reshape({targetShape: [10]}).apply(input1) as
-      tfl.SymbolicTensor;
-  const reshaped2 = tfl.layers.reshape({targetShape: [20]}).apply(input2) as
-      tfl.SymbolicTensor;
-  const dense1 =
-      tfl.layers.dense({units: 5}).apply(reshaped1) as tfl.SymbolicTensor;
-  const dense2 =
-      tfl.layers.dense({units: 5}).apply(reshaped2) as tfl.SymbolicTensor;
-  const dense3 =
-      tfl.layers.dense({units: 5}).apply(input3) as tfl.SymbolicTensor;
-  const avg =
-      tfl.layers.average().apply([dense1, dense2]) as tfl.SymbolicTensor;
-  const concat = tfl.layers.concatenate({axis: -1}).apply([avg, dense3]) as
-      tfl.SymbolicTensor;
-  const output =
-      tfl.layers.dense({units: 1}).apply(concat) as tfl.SymbolicTensor;
+  const reshaped1 = tfl.layers.reshape({targetShape: [10]}).apply(input1);
+  const reshaped2 = tfl.layers.reshape({targetShape: [20]}).apply(input2);
+  const dense1 = tfl.layers.dense({units: 5}).apply(reshaped1);
+  const dense2 = tfl.layers.dense({units: 5}).apply(reshaped2);
+  const dense3 = tfl.layers.dense({units: 5}).apply(input3);
+  const avg = tfl.layers.average().apply([dense1, dense2]);
+  const concat = tfl.layers.concatenate({axis: -1}).apply([avg, dense3]);
+  const output = tfl.layers.dense({units: 1}).apply(concat);
   const model = tfl.model({inputs: [input1, input2, input3], outputs: output});
 
   await saveModelAndRandomInputsAndOutputs(model, exportPath);

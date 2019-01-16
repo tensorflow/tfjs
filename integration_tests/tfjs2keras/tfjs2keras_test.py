@@ -41,8 +41,7 @@ class Tfjs2KerasExportTest(tf.test.TestCase):
     os.chdir(cwd)
     _call_command(['yarn'])
     _call_command(['yarn', 'link', '@tensorflow/tfjs-layers'])
-    _call_command(['yarn', 'build'])
-    _call_command(['node', 'dist/tfjs_save.js', cls._tmp_dir])
+    _call_command(['node', 'tfjs_save.js', cls._tmp_dir])
 
   @classmethod
   def tearDownClass(cls):
