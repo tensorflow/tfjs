@@ -21,7 +21,6 @@
     "@types/jasmine": "~2.8.6",
     "@types/node-fetch": "1.6.9",
     "@types/js-base64": "2.3.1",
-    "@types/long": "4.0.0",
     "ajv": "~6.3.0",
     "babel-core": "~6.26.3",
     "babel-plugin-external-helpers": "~6.22.0",
@@ -48,8 +47,7 @@
     "tslint": "~5.8.0",
     "tslint-no-circular-imports": "~0.5.0",
     "typescript": "~2.7.2",
-    "yalc": "~1.0.0-pre.21",
-    "protobufjs": "6.8.6"
+    "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
     "build": "tsc && copyfiles -f src/data/compiled_api.* dist/src/data/",
