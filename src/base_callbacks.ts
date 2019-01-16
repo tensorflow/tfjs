@@ -252,22 +252,6 @@ export class ModelTrainingYielder {
   }
 
   /**
-   * Find the first Scalar tensor in `logs` and await data() on it.
-   *
-   * This causes a data download (e.g., from GPU) and therefore clears the
-   * queued operations (e.g., on the GPU).
-   */
-  private async resolveOneTensorInLogs(logs: UnresolvedLogs) {
-    for (const key in logs) {
-      const value = logs[key];
-      if (typeof value !== 'number') {
-        await (value as Scalar).data();
-        break;
-      }
-    }
-  }
-
-  /**
    * The action taken when a batch ends.
    *
    * The action taken depends on the `yieldEvery` configuration.
@@ -291,7 +275,6 @@ export class ModelTrainingYielder {
       if (this.autoYieldEveryBatches == null) {
         // autoYieldEveryBatches has not been determined yet. We are still in
         // the measurement phase.
-        await this.resolveOneTensorInLogs(logs);
         const t = util.now();
         await nextFrame();
         // We skip the first few batches for timing, because they usually
@@ -318,7 +301,6 @@ export class ModelTrainingYielder {
         if (this.batchCount - this.lastYieldBatchCount >=
             this.autoYieldEveryBatches) {
           await nextFrame();
-          await this.resolveOneTensorInLogs(logs);
           this.lastYieldBatchCount = this.batchCount;
         }
       }
