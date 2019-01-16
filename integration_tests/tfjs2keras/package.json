@@ -3,17 +3,13 @@
   "version": "0.0.1",
   "description": "Testing sending models from tfjs-layers to Keras",
   "private": false,
-  "dependencies": {
-    "@tensorflow/tfjs-core": "0.14.2",
+  "devDependencies": {
+    "@tensorflow/tfjs-core": "0.14.5",
     "@tensorflow/tfjs-layers": "*",
-    "@tensorflow/tfjs-node": "0.1.20",
-    "clang-format": "~1.2.2",
-    "tsify": "~3.0.1",
-    "tslint": "~5.6.0",
-    "typescript": "2.8.3"
+    "@tensorflow/tfjs-node": "0.2.3",
+    "clang-format": "~1.2.2"
   },
   "scripts": {
-    "build": "tsc",
     "lint": "tslint -p . --type-check -t verbose"
   }
 }
