@@ -17,12 +17,10 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-
 import {Dataset} from '../dataset';
 import {DataSource} from '../datasource';
 import {LazyIterator} from '../iterators/lazy_iterator';
 import {ColumnConfig, CSVConfig, DataElement} from '../types';
-
 import {TextLineDataset} from './text_line_dataset';
 
 const CODE_QUOTE = '"';
@@ -43,6 +41,7 @@ const STATE_WITHIN_QUOTE_IN_QUOTE = Symbol('quoteinquote');
  *
  * The results are not batched.
  */
+/** @doc {heading: 'Data', subheading: 'Classes', namespace: 'data'} */
 export class CSVDataset extends Dataset<DataElement> {
   base: TextLineDataset;
   private hasHeader = true;
@@ -52,6 +51,15 @@ export class CSVDataset extends Dataset<DataElement> {
   private configuredColumnsOnly = false;
   private delimiter = ',';
 
+  /**
+   * Returns column names of the csv dataset. If `configuredColumnsOnly` is
+   * true, return column names in `columnConfigs`. If `configuredColumnsOnly` is
+   * false and `columnNames` is provided, `columnNames`. If
+   * `configuredColumnsOnly` is false and `columnNames` is not provided, return
+   * all column names parsed from the csv file. For example usage please go to
+   * `tf.data.csv`.
+   */
+  /** @doc {heading: 'Data', subheading: 'Classes'} */
   async columnNames() {
     if (!this.columnNamesValidated) {
       await this.setColumnNames();
