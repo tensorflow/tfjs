@@ -843,7 +843,7 @@ export class Model extends Container implements tfc.InferenceModel {
    */
   async evaluateDataset<T extends TensorContainer>(
       dataset: Dataset<T>,
-      args: ModelEvaluateDatasetArgs): Promise<Scalar|Scalar[]> {
+      args?: ModelEvaluateDatasetArgs): Promise<Scalar|Scalar[]> {
     this.makeTestFunction();
     return evaluateDataset(this, dataset, args);
   }
