@@ -24,8 +24,8 @@ import os
 import numpy as np
 from tensorflowjs import quantization
 
-_INPUT_DTYPES = [np.float32, np.int32, np.uint8, np.uint16]
-
+_INPUT_DTYPES = [np.float64, np.int64,
+                 np.float32, np.int32, np.uint8, np.uint16]
 
 def read_weights(weights_manifest, base_path, flatten=False):
   """Load weight values according to a TensorFlow.js weights manifest.
