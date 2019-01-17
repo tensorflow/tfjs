@@ -21,7 +21,8 @@ import os
 import numpy as np
 from tensorflowjs import quantization
 
-_OUTPUT_DTYPES = [np.float32, np.int32, np.uint8, np.uint16, np.bool]
+_OUTPUT_DTYPES = [np.float64, np.int64, np.float32,
+                  np.int32, np.uint8, np.uint16, np.bool]
 
 def write_weights(
     weight_groups, write_dir, shard_size_bytes=1024 * 1024 * 4,
@@ -131,6 +132,7 @@ def write_weights(
 
   return manifest
 
+
 def _quantize_entry(entry, quantization_dtype):
   """Quantizes the weights in the entry, returning a new entry.
 
@@ -168,6 +170,7 @@ def _quantize_entry(entry, quantization_dtype):
   quantized_entry['quantization'] = {
       'min': min_val, 'scale': scale, 'original_dtype': data.dtype.name}
   return quantized_entry
+
 
 def _stack_group_bytes(group):
   """Stacks the bytes for a weight group into a flat byte array.
@@ -309,11 +312,11 @@ def _assert_weight_groups_valid(weight_groups):
             'weight_groups[' + i + '][' + j + '] has no string field \'name\'')
       if 'data' not in weights:
         raise ValueError(
-            'weight_groups[' + i + '][' + j + '] has no numpy ' + \
+            'weight_groups[' + i + '][' + j + '] has no numpy ' +
             'array field \'data\'')
       if not isinstance(weights['data'], np.ndarray):
         raise ValueError(
-            'weight_groups[' + i + '][' + j + '][\'data\'] is not a numpy ' + \
+            'weight_groups[' + i + '][' + j + '][\'data\'] is not a numpy ' +
             'array')
 
 
