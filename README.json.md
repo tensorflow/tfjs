@@ -107,6 +107,7 @@ saved a tf.keras model in the SavedModel format.
 |`--signature_name`   | Only applicable to TensorFlow Hub module conversion, signature to load. Defaults to `default`. See https://www.tensorflow.org/hub/common_signatures/.|
 |`--strip_debug_ops`   | Strips out TensorFlow debug operations `Print`, `Assert`, `CheckNumerics`. Defaults to `True`.|
 |`--output_json`   | Generate model file in JSON instead of protobuf for all TF input model formats. Defaults to `False`.|
+|`--quantization_bytes`  | How many bytes to optionally quantize/compress the weights to. Valid values are 1 and 2. which will quantize int32 and float32 to 1 or 2 bytes respectively. The default (unquantized) size is 4 bytes.|
 
 
 ### Format conversions support table
@@ -219,9 +220,18 @@ While the browser supports loading 100-500MB models, the page load time, the inf
 
 Yes, we are splitting the weights into files of 4MB chunks, which enable the browser to cache them automatically. If the model architecture is less than 4MB (most models are), it will also be cached.
 
-4. Will it support model with quantization?
+4. Can I quantize the weights over the wire?
 
-Not yet. We are planning to add quantization support soon.
+Yes, you can use the --quantization_bytes option to compress int32/float32 to 1 or 2 bytes. Here is
+an example of 8-bit quantization:
+
+```
+tensorflowjs_converter \
+    --input_format=tf_hub \
+    --quantization_byptes=1
+    'https://tfhub.dev/google/imagenet/mobilenet_v1_100_224/classification/1' \
+    /mobilenet/web_model
+```
 
 5. Why is the predict() method for inference so much slower on the first call than the subsequent calls?
 
