@@ -2175,6 +2175,48 @@ describeMathCPUAndGPU('Model.evaluateDataset', () => {
     expect(numTensors1).toEqual(numTensors0);
   });
 
+  it('1 input, 1 output, 1 metric, no batches, only 1 arg', async () => {
+    const model = createDenseModel();
+    model.compile(
+        {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['acc']});
+
+    const batchSize = 8;
+    const batches = 3;
+    const xTensorsFunc =
+        () => [tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]), tfc.ones([
+          batchSize, 1
+        ])];
+    const yTensorsFunc =
+        () => [tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]), tfc.ones([
+          batchSize, 1
+        ])];
+    const dataset = new FakeNumericDataset({
+      xShape: [1],
+      yShape: [1],
+      batchSize,
+      numBatches: batches,
+      xTensorsFunc,
+      yTensorsFunc
+    });
+
+    // Do a burn-in call to account for initialization of cached tensors (for
+    // the memory-leak check below). Use 1-arg call.
+    tfc.dispose(await model.evaluateDataset(dataset) as tfc.Scalar[]);
+
+    const numTensors0 = tfc.memory().numTensors;
+    // Use 1-arg call, omitting the config object.
+    const evalOut = await model.evaluateDataset(dataset) as tfc.Scalar[];
+    expect(evalOut.length).toEqual(2);
+    const expectedLoss = tfc.scalar(1.0);
+    const expectedAcc = tfc.scalar(0.0);
+    expectTensorsClose(evalOut[0], expectedLoss);
+    expectTensorsClose(evalOut[1], expectedAcc);
+    tfc.dispose(evalOut);
+    tfc.dispose([expectedLoss, expectedAcc]);
+    const numTensors1 = tfc.memory().numTensors;
+    expect(numTensors1).toEqual(numTensors0);
+  });
+
   it('1 input, 1 output, iterator exhaustion with batches', async () => {
     const model = createDenseModel();
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
