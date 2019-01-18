@@ -18,10 +18,10 @@
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {MATMUL_SHARED_DIM_THRESHOLD} from '../kernels/backend_webgl';
-import {ALL_ENVS, expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../test_util';
+import {ALL_ENVS, expectArraysClose, expectNumbersClose, PACKED_ENVS, WEBGL_ENVS} from '../test_util';
 import {Rank} from '../types';
 
-describeWithFlags('packed matmul', WEBGL_ENVS, () => {
+describeWithFlags('matmul', PACKED_ENVS, () => {
   it('should not leak memory', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9], [3, 3]);
     const b = tf.tensor2d(
@@ -153,9 +153,6 @@ describeWithFlags('packed matmul', WEBGL_ENVS, () => {
   // tslint:disable-next-line:max-line-length
   it('works when followed by a packed reshape that changes texture layout, and then an unpacked op',
      () => {
-       const webglLazilyUnpackSaved = tf.ENV.get('WEBGL_LAZILY_UNPACK');
-       tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
-
        const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9], [9, 1]);
        const b = tf.tensor2d([1], [1, 1]);
        const c = tf.matMul(a, b);
@@ -166,7 +163,6 @@ describeWithFlags('packed matmul', WEBGL_ENVS, () => {
        tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', false);
        const e = tf.add(d, 1);
        tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', webglPackBinarySaved);
-       tf.ENV.set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackSaved);
 
        expectArraysClose(e, [2, 3, 4, 5, 6, 7, 8, 9, 10]);
      });
