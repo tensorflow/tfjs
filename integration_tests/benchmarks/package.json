@@ -8,7 +8,7 @@
     "url": "https://github.com/tensorflow/tfjs-core"
   },
   "devDependencies": {
-    "@tensorflow/tfjs": "~0.12.4",
+    "@tensorflow/tfjs": "0.14.2",
     "@types/jasmine": "~2.5.53",
     "clang-format": "~1.2.2",
     "firebase": "~5.3.0",
