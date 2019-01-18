@@ -1040,8 +1040,8 @@ function batchDot(x: Tensor, y: Tensor, axes: number|[number, number]): Tensor {
         out = x.transpose([1, 0]).mulStrict(y).sum(axesArray[1]);
       }
     } else {
-      const adjX = axesArray[0] === x.shape.length - 1 ? null : true;
-      const adjY = axesArray[1] === y.shape.length - 1 ? true : null;
+      const adjX = axesArray[0] !== x.shape.length - 1;
+      const adjY = axesArray[1] === y.shape.length - 1;
       out = x.matMul(y, adjX, adjY);
     }
 
