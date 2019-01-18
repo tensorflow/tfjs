@@ -479,7 +479,7 @@ function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
  * `tf.Tensor` with a single element is returned.
  *
  * ```js
- * const x = tf.tensor1d([1, 1, 1]);
+ * const x = tf.tensor1d([1, 1, 1], 'bool');
  *
  * x.all().print();  // or tf.all(x)
  * ```
@@ -526,7 +526,7 @@ function all_<T extends Tensor>(
  * `tf.Tensor` with a single element is returned.
  *
  * ```js
- * const x = tf.tensor1d([1, 1, 1]);
+ * const x = tf.tensor1d([1, 1, 1], 'bool');
  *
  * x.any().print();  // or tf.any(x)
  * ```
