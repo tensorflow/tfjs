@@ -99,7 +99,7 @@ function ifft_(input: Tensor): Tensor {
  * ```js
  * const real = tf.tensor1d([1, 2, 3]);
  *
- * x.rfft().print();
+ * real.rfft().print();
  * ```
  * @param input The real value input to compute an rfft over.
  */
@@ -144,7 +144,7 @@ function rfft_(input: Tensor): Tensor {
  * ```js
  * const real = tf.tensor1d([1, 2, 3]);
  *
- * x.irfft().print();
+ * real.irfft().print();
  * ```
  * @param input The real value input to compute an irfft over.
  */
