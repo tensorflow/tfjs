@@ -26,6 +26,9 @@ import {isString} from './util';
 export const WEBGL_ENVS: Features = {
   'HAS_WEBGL': true
 };
+export const PACKED_ENVS: Features = {
+  'WEBGL_PACK': true
+};
 export const NODE_ENVS: Features = {
   'IS_NODE': true
 };

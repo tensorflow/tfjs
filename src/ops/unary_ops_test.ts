@@ -18,8 +18,9 @@
 import {ENV} from '../environment';
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../test_util';
+import {ALL_ENVS, expectArraysClose, expectNumbersClose, PACKED_ENVS, WEBGL_ENVS} from '../test_util';
 import * as util from '../util';
+
 import * as selu_util from './selu_util';
 
 describeWithFlags('relu', ALL_ENVS, () => {
@@ -2571,17 +2572,7 @@ describeWithFlags('selu', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('packed clip', WEBGL_ENVS, () => {
-  const webglPackedClipSavedFlag = tf.ENV.get('WEBGL_PACK_CLIP');
-
-  beforeAll(() => {
-    tf.ENV.set('WEBGL_PACK_CLIP', true);
-  });
-
-  afterAll(() => {
-    tf.ENV.set('WEBGL_PACK_CLIP', webglPackedClipSavedFlag);
-  });
-
+describeWithFlags('packed clip', PACKED_ENVS, () => {
   it('should not leak memory', () => {
     const a = tf.tensor1d([3, -1, 0, 100, -7, 2]);
     const min = -1;

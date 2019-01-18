@@ -17,20 +17,9 @@
 
 import * as tf from '../../index';
 import {describeWithFlags} from '../../jasmine_util';
-import {expectArraysClose, WEBGL_ENVS} from '../../test_util';
+import {expectArraysClose, PACKED_ENVS} from '../../test_util';
 
-describeWithFlags('expensive reshape', WEBGL_ENVS, () => {
-  let webglLazilyUnpackFlagSaved: boolean;
-
-  beforeAll(() => {
-    webglLazilyUnpackFlagSaved = tf.ENV.get('WEBGL_LAZILY_UNPACK');
-    tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
-  });
-
-  afterAll(() => {
-    tf.ENV.set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
-  });
-
+describeWithFlags('expensive reshape', PACKED_ENVS, () => {
   const cValues =
       [46, 52, 58, 64, 70, 100, 115, 130, 145, 160, 154, 178, 202, 226, 250];
   let c: tf.Tensor;
@@ -73,17 +62,7 @@ describeWithFlags('expensive reshape', WEBGL_ENVS, () => {
   });
 });
 
-describeWithFlags('expensive reshape with even columns', WEBGL_ENVS, () => {
-  let webglLazilyUnpackFlagSaved: boolean;
-  beforeAll(() => {
-    webglLazilyUnpackFlagSaved = tf.ENV.get('WEBGL_LAZILY_UNPACK');
-    tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
-  });
-
-  afterAll(() => {
-    tf.ENV.set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
-  });
-
+describeWithFlags('expensive reshape with even columns', PACKED_ENVS, () => {
   it('2 --> 4 columns', () => {
     const maxTextureSize = tf.ENV.get('WEBGL_MAX_TEXTURE_SIZE');
 
