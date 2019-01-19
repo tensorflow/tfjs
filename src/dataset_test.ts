@@ -223,20 +223,18 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
      async done => {
        try {
          let count = 0;
-         const a =
-             tfd.generator(async () => {
-               if (count > 2) {
-                 throw new Error('propagate me!');
-                }
-                return {value: count++, done: false};
-              });
+         const a = tfd.generator(async () => {
+           if (count > 2) {
+             throw new Error('propagate me!');
+           }
+           return {value: count++, done: false};
+         });
          const b = tfd.array([3, 4, 5, 6]);
          // tslint:disable-next-line:no-any
          await (await tfd.zip([a, b]).iterator()).collect(1000, 0);
          done.fail();
        } catch (e) {
-         expect(e.message).toEqual(
-             'propagate me!');
+         expect(e.message).toEqual('propagate me!');
          done();
        }
      });
@@ -553,43 +551,45 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
   });
 
   it('clone tensors when returning iterator of a dataset generated from ' +
-  'existing tensors', async () => {
-    expect(tf.memory().numTensors).toEqual(0);
-    const a = tf.ones([2, 1]);
-    const b = tf.ones([2, 1]);
-    expect(tf.memory().numTensors).toEqual(2);
-    const ds = tfd.array([a, b]);
-    // Pre-existing tensors are not cloned during dataset creation.
-    expect(tf.memory().numTensors).toEqual(2);
+         'existing tensors',
+     async () => {
+       expect(tf.memory().numTensors).toEqual(0);
+       const a = tf.ones([2, 1]);
+       const b = tf.ones([2, 1]);
+       expect(tf.memory().numTensors).toEqual(2);
+       const ds = tfd.array([a, b]);
+       // Pre-existing tensors are not cloned during dataset creation.
+       expect(tf.memory().numTensors).toEqual(2);
 
-    let count = 0;
-    // ds.forEach() automatically disposes incoming Tensors after processing
-    // them.
-    await ds.forEach(elem => {
-      count++;
-      expect(elem.isDisposed).toBeFalsy();
-    });
-    expect(count).toEqual(2);
-    // Cloned tensors are disposed after traverse, while original tensors stay.
-    expect(tf.memory().numTensors).toEqual(2);
+       let count = 0;
+       // ds.forEach() automatically disposes incoming Tensors after processing
+       // them.
+       await ds.forEach(elem => {
+         count++;
+         expect(elem.isDisposed).toBeFalsy();
+       });
+       expect(count).toEqual(2);
+       // Cloned tensors are disposed after traverse, while original tensors
+       // stay.
+       expect(tf.memory().numTensors).toEqual(2);
 
-    await ds.forEach(elem => {
-      count++;
-      expect(elem.isDisposed).toBeFalsy();
-    });
-    expect(count).toEqual(4);
-    expect(tf.memory().numTensors).toEqual(2);
+       await ds.forEach(elem => {
+         count++;
+         expect(elem.isDisposed).toBeFalsy();
+       });
+       expect(count).toEqual(4);
+       expect(tf.memory().numTensors).toEqual(2);
 
-    await ds.forEach(elem => {
-      count++;
-      expect(elem.isDisposed).toBeFalsy();
-    });
-    expect(count).toEqual(6);
-    expect(tf.memory().numTensors).toEqual(2);
+       await ds.forEach(elem => {
+         count++;
+         expect(elem.isDisposed).toBeFalsy();
+       });
+       expect(count).toEqual(6);
+       expect(tf.memory().numTensors).toEqual(2);
 
-    expect(a.isDisposed).toBeFalsy();
-    expect(b.isDisposed).toBeFalsy();
-  });
+       expect(a.isDisposed).toBeFalsy();
+       expect(b.isDisposed).toBeFalsy();
+     });
 
   it('traverse dataset from tensors without leaking Tensors', async () => {
     expect(tf.memory().numTensors).toEqual(0);
@@ -629,5 +629,15 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
 
     expect(a.isDisposed).toBeFalsy();
     expect(b.isDisposed).toBeFalsy();
+  });
+
+  it('can get correct size of dataset from objects array', async () => {
+    const a = tfd.array([{'item': 1}, {'item': 2}, {'item': 3}]);
+    expect(a.getSize()).toEqual(3);
+  });
+
+  it('can get correct size of dataset from number array', async () => {
+    const a = tfd.array([1, 2, 3, 4, 5]);
+    expect(a.getSize()).toEqual(5);
   });
 });
