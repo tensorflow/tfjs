@@ -10,6 +10,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [Magenta Studio](https://magenta.tensorflow.org/studio) - A collection of music plugins built on Magenta’s open source tools and models using cutting-edge machine learning techniques for music generation.
 - [Move Mirror](https://experiments.withgoogle.com/collection/ai/move-mirror/view) - An AI Experiment with Pose Estimation in the Browser using TensorFlow.js
 - [Emoji Scavenger Hunt](https://emojiscavengerhunt.withgoogle.com/) - Locate the emoji we show you in the real world with your phone’s camera.
+- [Semi-Conductor](https://semiconductor.withgoogle.com/) - Conduct your own orchestra in the browser by moving your arms.
 - [Metacar](https://www.metacar-project.com/) - A reinforcement learning environment for self-driving cars in the browser.
 - [Evolution Simulator](https://github.com/adityathebe/evolutionSimulator) - Evolution Simulator using NeuroEvolution
 - [Play pong with webcam](https://ml4a.github.io/demos/tfjs/regression-pong.html) by Gene Kogan
