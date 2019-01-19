@@ -25,7 +25,8 @@ export class MatMulPackedProgram implements GPGPUProgram {
 
   constructor(
       aShape: [number, number], bShape: [number, number],
-      outputShape: [number, number], transposeA = false, transposeB = false) {
+      outputShape: [number, number], transposeA = false, transposeB = false,
+      addBias = false, activation: string = null) {
     this.outputShape = outputShape;
 
     const sharedDim = transposeA ? aShape[0] : aShape[1];
@@ -36,7 +37,23 @@ export class MatMulPackedProgram implements GPGPUProgram {
     const aSwizzle = transposeA ? ['a.xxyy', 'a.zzww'] : ['a.xxzz', 'a.yyww'];
     const bSwizzle = transposeB ? ['b.xzxz', 'b.ywyw'] : ['b.xyxy', 'b.zwzw'];
 
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (activation) {
+      activationSnippet = `vec4 activation(vec4 x) {
+        ${activation}
+      }`;
+
+      applyActivationSnippet = `result = activation(result);`;
+    }
+
+    const addBiasSnippet = addBias ? 'result += getBiasAtOutCoords();' : '';
+    if (addBias) {
+      this.variableNames.push('bias');
+    }
+
     this.userCode = `
+      ${activationSnippet}
+
       const float sharedDimension = ${sharedDimensionPacked}.0;
 
       vec4 dot2x2ARowBCol(ivec2 rc) {
@@ -53,7 +70,13 @@ export class MatMulPackedProgram implements GPGPUProgram {
 
       void main() {
         ivec2 rc = getOutputCoords();
-        setOutput(dot2x2ARowBCol(rc));
+        vec4 result = dot2x2ARowBCol(rc);
+
+        ${addBiasSnippet}
+
+        ${applyActivationSnippet}
+
+        setOutput(result);
       }
     `;
   }
