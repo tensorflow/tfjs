@@ -62,12 +62,6 @@ export abstract class Dataset<T extends DataElement> {
    */
   abstract async iterator(): Promise<LazyIterator<T>>;
 
-  private readonly size: number;
-
-  getSize(): number {
-    return this.size;
-  }
-
   // TODO(soergel): Make Datasets report whether repeated iterator() calls
   // produce the same result (e.g., reading from a file) or different results
   // (e.g., from the webcam).  Currently we don't make this distinction but it
@@ -399,7 +393,7 @@ export abstract class Dataset<T extends DataElement> {
  * ```
  */
 export function datasetFromIteratorFn<T extends DataElement>(
-    iteratorFn: () => Promise<LazyIterator<T>>, size = Infinity): Dataset<T> {
+    iteratorFn: () => Promise<LazyIterator<T>>): Dataset<T> {
   return new class extends Dataset<T> {
     /*
      * Provide a new stream of elements.  Note this will also start new streams
@@ -430,9 +424,7 @@ export function datasetFromIteratorFn<T extends DataElement>(
  */
 /** @doc {heading: 'Data', subheading: 'Creation', namespace: 'data'} */
 export function array<T extends DataElement>(items: T[]): Dataset<T> {
-  const ds =
-      datasetFromIteratorFn(async () => iteratorFromItems(items), items.length);
-  return ds;
+  return datasetFromIteratorFn(async () => iteratorFromItems(items));
 }
 
 /**
