@@ -63,6 +63,8 @@ export class UnaryOpProgram implements GPGPUProgram {
 
 const CHECK_NAN_SNIPPET = `if (isNaN(x)) return x;`;
 
+export const LINEAR = `return x;`;
+
 export const ABS = `return abs(x);`;
 
 export const RELU = CHECK_NAN_SNIPPET + `
