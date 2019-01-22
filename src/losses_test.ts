@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {scalar, Tensor, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
+import {scalar, Tensor, tensor1d, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
 import {epsilon} from './backend/common';
 import * as losses from './losses';
@@ -181,6 +181,36 @@ describeMathCPUAndGPU('categoricalCrossentropy ', () => {
     const result = losses.categoricalCrossentropy(target, x, false);
     expectTensorsClose(result, expected);
   });
+
+  // Reference Python code
+  // ```python
+  // import numpy as np
+  // import tensorflow as tf
+  // from tensorflow import keras
+  //
+  // x_value = np.array([[[0.3, 0.7], [0.4, 0.6]], [[0.2, 0.8], [0.55, 0.45]]])
+  // target_value = np.array([[[0, 1], [1, 0]], [[0, 1], [1, 0]]])
+  //
+  // with tf.Session() as sess:
+  //   x = tf.placeholder(tf.float32, [2, 2, 2])
+  //   target = tf.placeholder(tf.float32, [2, 2, 2])
+  //   y = keras.backend.categorical_crossentropy(target, x)
+  //   print(sess.run(y, feed_dict={
+  //       x: x_value,
+  //       target: target_value
+  //   }))
+  // ```
+  it('from softmax, sequence output', () => {
+    const x = tensor3d([[[0.3, 0.7], [0.4, 0.6]], [[0.2, 0.8], [0.55, 0.45]]], [
+      2,
+      2,
+      2,
+    ]);
+    const target = tensor3d([[[0, 1], [1, 0]], [[0, 1], [1, 0]]], [2, 2, 2]);
+    const result = losses.categoricalCrossentropy(target, x, false);
+    expectTensorsClose(
+        result, tensor2d([[0.35667497, 0.9162907], [0.22314353, 0.597837]]));
+  });
 });
 
 describeMathCPUAndGPU('sparseCategoricalCrossentropy ', () => {
@@ -248,24 +278,17 @@ describeMathCPUAndGPU('sigmoidCrossEntropyWithLogits', () => {
   // ```
   it('Comparison with TensorFlow references values', () => {
     const logits = tensor2d(
-        [[-10, -10, -10],
-         [-5, -5, -5],
-         [0, 0, 0],
-         [0.5, 0.5, 0.5],
-         [2, 2, 2]]);
+        [[-10, -10, -10], [-5, -5, -5], [0, 0, 0], [0.5, 0.5, 0.5], [2, 2, 2]]);
     const labels = tensor2d(
-        [[0, 0.5, 1],
-         [0, 0.5, 1],
-         [0, 0.5, 1],
-         [0, 0.5, 1],
-         [0, 0.5, 1]]);
+        [[0, 0.5, 1], [0, 0.5, 1], [0, 0.5, 1], [0, 0.5, 1], [0, 0.5, 1]]);
     const outputs = losses.sigmoidCrossEntropyWithLogits(labels, logits);
-    expectTensorsClose(outputs, tensor2d(
-        [[4.5398901e-05, 5.0000453e+00, 1.0000046e+01],
-         [6.7153485e-03, 2.5067153e+00, 5.0067153e+00],
-         [6.9314718e-01, 6.9314718e-01, 6.9314718e-01],
-         [9.7407699e-01, 7.2407699e-01, 4.7407699e-01],
-         [2.1269281e+00, 1.1269280e+00, 1.2692800e-01]]));
+    expectTensorsClose(outputs, tensor2d([
+                         [4.5398901e-05, 5.0000453e+00, 1.0000046e+01],
+                         [6.7153485e-03, 2.5067153e+00, 5.0067153e+00],
+                         [6.9314718e-01, 6.9314718e-01, 6.9314718e-01],
+                         [9.7407699e-01, 7.2407699e-01, 4.7407699e-01],
+                         [2.1269281e+00, 1.1269280e+00, 1.2692800e-01]
+                       ]));
   });
 });
 
