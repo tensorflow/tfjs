@@ -318,6 +318,8 @@ export class Environment {
       return this.get('WEBGL_PACK');
     } else if (feature === 'WEBGL_PACK_BINARY_OPERATIONS') {
       return this.get('WEBGL_PACK');
+    } else if (feature === 'WEBGL_PACK_ARRAY_OPERATIONS') {
+      return this.get('WEBGL_PACK');
     } else if (feature === 'WEBGL_LAZILY_UNPACK') {
       return this.get('WEBGL_PACK');
     } else if (feature === 'WEBGL_CONV_IM2COL') {
