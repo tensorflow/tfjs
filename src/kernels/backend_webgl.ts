@@ -106,6 +106,7 @@ import {TransposeProgram} from './webgl/transpose_gpu';
 import * as unary_op from './webgl/unaryop_gpu';
 import {UnaryOpProgram} from './webgl/unaryop_gpu';
 import * as unary_packed_op from './webgl/unaryop_packed_gpu';
+import {UnaryOpPackedProgram} from './webgl/unaryop_packed_gpu';
 import {UnpackProgram} from './webgl/unpack_gpu';
 import * as webgl_util from './webgl/webgl_util';
 import {whereImpl} from './where_impl';
@@ -1440,7 +1441,12 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   exp<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.EXP);
+    let program: UnaryOpProgram | UnaryOpPackedProgram;
+    if(ENV.get('WEBGL_PACK')) {
+      program = new UnaryOpPackedProgram(x.shape, unary_op.EXP);
+    } else {
+      program = new UnaryOpProgram(x.shape, unary_op.EXP);
+    }
     return this.compileAndRun(program, [x]) as T;
   }
 
@@ -1450,7 +1456,12 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   log<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.LOG);
+    let program: UnaryOpProgram | UnaryOpPackedProgram;
+    if(ENV.get('WEBGL_PACK')) {
+      program = new UnaryOpPackedProgram(x.shape, unary_packed_op.LOG);
+    } else {
+      program = new UnaryOpProgram(x.shape, unary_op.LOG);
+    }
     const customSetup = program.getCustomSetupFunc();
     return this.compileAndRun(program, [x], null, customSetup) as T;
   }
@@ -1481,7 +1492,12 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   relu<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.RELU);
+    let program: UnaryOpProgram | UnaryOpPackedProgram;
+    if(ENV.get('WEBGL_PACK')) {
+      program = new UnaryOpPackedProgram(x.shape, unary_packed_op.RELU);
+    } else {
+      program = new UnaryOpProgram(x.shape, unary_op.RELU);
+    }
     return this.compileAndRun(program, [x]) as T;
   }
 
