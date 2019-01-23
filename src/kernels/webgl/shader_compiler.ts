@@ -504,7 +504,7 @@ function getOutputPackedNDCoords(
       int b${b} = index / ${texelsInBatchN};
       index -= b${b} * ${texelsInBatchN};
     ` + batches;
-    coords = `b${b}, ` + coords; 
+    coords = `b${b}, ` + coords;
   }
 
   return `
@@ -512,7 +512,7 @@ function getOutputPackedNDCoords(
       ivec2 resTexRC = ivec2(resultUV.yx *
                              vec2(${packedTexShape[0]}, ${packedTexShape[1]}));
       int index = resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
-      
+
       ${batches}
 
       int b = index / ${texelsInBatch};
@@ -984,7 +984,7 @@ function getSampler3D(inputInfo: InputInfo): string {
   `;
 }
 
-function getPackedSamplerND(inputInfo: InputInfo): string {  
+function getPackedSamplerND(inputInfo: InputInfo): string {
   const shape = inputInfo.shapeInfo.logicalShape;
   const rank = shape.length;
   const texName = inputInfo.name;
@@ -1001,7 +1001,7 @@ function getPackedSamplerND(inputInfo: InputInfo): string {
   let index = `b * ${texelsInBatch} + (row / 2) * ${valuesPerRow} + (col / 2)`;
   for (let b = 2; b < rank - 1; b++) {
     params = `int b${b}, ` + params;
-    texelsInBatch *= shape[rank - b - 1]; 
+    texelsInBatch *= shape[rank - b - 1];
     index = `b${b} * ${texelsInBatch} + ` + index;
   }
   const glsl = getGlslDifferences();
@@ -1011,7 +1011,7 @@ function getPackedSamplerND(inputInfo: InputInfo): string {
       int texR = index / ${texNumC};
       int texC = index - texR * ${texNumC};
       vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${texNumC}, ${texNumR});
-      return ${glsl.texture2D}(${texName}, uv);      
+      return ${glsl.texture2D}(${texName}, uv);
     }
   `;
 }
