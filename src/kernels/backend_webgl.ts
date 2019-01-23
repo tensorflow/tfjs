@@ -84,6 +84,7 @@ import {MultinomialProgram} from './webgl/multinomial_gpu';
 import {OneHotProgram} from './webgl/onehot_gpu';
 import {PackProgram} from './webgl/pack_gpu';
 import {PadProgram} from './webgl/pad_gpu';
+import {PadPackedProgram} from './webgl/pad_packed_gpu';
 import {Pool2DProgram} from './webgl/pool_gpu';
 import {ReduceProgram} from './webgl/reduce_gpu';
 import {ReshapePackedProgram} from './webgl/reshape_packed_gpu';
@@ -915,7 +916,9 @@ export class MathBackendWebGL implements KernelBackend {
 
   pad<T extends Tensor>(
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
-    const program = new PadProgram(x.shape, paddings, constantValue);
+    const program = ENV.get('WEBGL_PACK_ARRAY_OPERATIONS') ?
+        new PadPackedProgram(x.shape, paddings, constantValue) :
+        new PadProgram(x.shape, paddings, constantValue);
     return this.compileAndRun(program, [x]);
   }
 
