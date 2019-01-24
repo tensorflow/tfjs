@@ -16,10 +16,12 @@
  * =============================================================================
  */
 
+import {ENV} from '@tensorflow/tfjs-core';
 import {DataSource} from '../datasource';
 import {ByteChunkIterator} from '../iterators/byte_chunk_iterator';
 import {FileChunkIterator, FileChunkIteratorOptions} from '../iterators/file_chunk_iterator';
 import {FileElement} from '../types';
+import {isLocalPath} from '../util/source_util';
 
 /**
  * Represents a file, blob, or Uint8Array readable as a stream of binary data
@@ -29,17 +31,25 @@ export class FileDataSource extends DataSource {
   /**
    * Create a `FileDataSource`.
    *
-   * @param input A `File`, `Blob` or `Uint8Array` object to read.
+   * @param input Local file path, or `File`/`Blob`/`Uint8Array` object to
+   *     read. Local file only works in node environment.
    * @param options Options passed to the underlying `FileChunkIterator`s,
    *   such as {chunksize: 1024}.
    */
   constructor(
-      protected readonly input: FileElement,
+      protected input: FileElement|string,
       protected readonly options: FileChunkIteratorOptions = {}) {
     super();
   }
 
   async iterator(): Promise<ByteChunkIterator> {
-    return new FileChunkIterator(this.input, this.options);
+    if (isLocalPath(this.input) && ENV.get('IS_NODE')) {
+      // tslint:disable-next-line:no-require-imports
+      const fs = require('fs');
+      this.input = fs.readFileSync((this.input as string).substr(7));
+    }
+    // TODO(kangyizhang): Add LocalFileChunkIterator to split local streaming
+    // with file in browser.
+    return new FileChunkIterator(this.input as FileElement, this.options);
   }
 }

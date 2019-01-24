@@ -23,7 +23,8 @@ import {URLDataSource} from './sources/url_data_source';
 import {CSVConfig, DataElement} from './types';
 
 /**
- * Create a `CSVDataset` by reading and decoding CSV file(s) from provided URLs.
+ * Create a `CSVDataset` by reading and decoding CSV file(s) from provided URL
+ * or local path if it's in Node environment.
  *
  * ```js
  * const csvUrl =
@@ -78,11 +79,13 @@ import {CSVConfig, DataElement} from './types';
  * await run();
  * ```
  *
- * @param source URL to fetch CSV file.
+ * @param source URL or local path to get CSV file. If it's a local path, it
+ * must have prefix `file://` and it only works in node environment.
  * @param csvConfig (Optional) A CSVConfig object that contains configurations
  *     of reading and decoding from CSV file(s).
  */
-/** @doc {
+/**
+ * @doc {
  *   heading: 'Data',
  *   subheading: 'Creation',
  *   namespace: 'data',
@@ -117,7 +120,8 @@ export function csv(source: string, csvConfig: CSVConfig = {}): CSVDataset {
  *
  * @param f A function that produces one data element on each call.
  */
-/** @doc {
+/**
+ * @doc {
  *   heading: 'Data',
  *   subheading: 'Creation',
  *   namespace: 'data',
@@ -125,7 +129,7 @@ export function csv(source: string, csvConfig: CSVConfig = {}): CSVDataset {
  *  }
  */
 export function generator<T extends DataElement>(
-  f: () =>IteratorResult<T>| Promise<IteratorResult<T>>): Dataset<T> {
+    f: () => IteratorResult<T>| Promise<IteratorResult<T>>): Dataset<T> {
   const iter = iteratorFromFunction(f);
   return datasetFromIteratorFn(async () => iter);
 }
