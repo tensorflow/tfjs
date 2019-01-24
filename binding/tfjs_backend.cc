@@ -579,13 +579,30 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
     NAPI_THROW_ERROR(env, "Exception creating TFE_Context");
   }
 
+  // TODO(kreeger): Add better support for this in the future through the JS
+  // API. https://github.com/tensorflow/tfjs/issues/320
+  std::string cpu_device_name;
   const int num_devices = TF_DeviceListCount(device_list);
   for (int i = 0; i < num_devices; i++) {
-    // Always use the last device (CPU is listed first).
-    // TODO(kreeger): Add better support for this in the future through the JS
-    // API. https://github.com/tensorflow/tfjs/issues/320
-    device_name =
-        std::string(TF_DeviceListName(device_list, i, tf_status.status));
+    const char *device_type =
+        TF_DeviceListType(device_list, i, tf_status.status);
+    ENSURE_TF_OK(env, tf_status);
+
+    // Keep a reference to the host CPU device:
+    if (strcmp(device_type, "CPU") == 0) {
+      cpu_device_name =
+          std::string(TF_DeviceListName(device_list, i, tf_status.status));
+      ENSURE_TF_OK(env, tf_status);
+    } else if (strcmp(device_type, "GPU") == 0) {
+      device_name =
+          std::string(TF_DeviceListName(device_list, i, tf_status.status));
+      ENSURE_TF_OK(env, tf_status);
+    }
+  }
+
+  // If no GPU devices found, fallback to host CPU:
+  if (device_name.empty()) {
+    device_name = cpu_device_name;
   }
   TF_DeleteDeviceList(device_list);
 }
@@ -631,9 +648,9 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
     return nullptr;
   }
 
-  // Copy non-int32 tensors to a device. Most GPU kernels expect to have int32
-  // tensors in host memory.
-  if (dtype_int32 != TF_INT32) {
+  // Copy non-int32 and non-string tensors to a device. Most GPU kernels expect
+  // to have int32 tensors in host memory.
+  if (dtype_int32 != TF_INT32 && dtype_int32 != TF_STRING) {
     // Note that this is a shallow copy and will share the underlying buffer
     // if copying to the same device.
     TFE_TensorHandle *new_handle = CopyTFE_TensorHandleToDevice(
