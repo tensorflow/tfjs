@@ -1423,7 +1423,7 @@ export interface GRUCellLayerArgs extends SimpleRNNCellLayerArgs {
    *
    * If `null`, no activation is applied.
    */
-  recurrentActivation?: string;
+  recurrentActivation?: ActivationIdentifier;
 
   /**
    * Implementation mode, either 1 or 2.
@@ -1510,7 +1510,7 @@ export class GRUCell extends RNNCell {
   readonly implementation: number;
 
   readonly DEFAULT_ACTIVATION = 'tanh';
-  readonly DEFAULT_RECURRENT_ACTIVATION = 'hardSigmoid';
+  readonly DEFAULT_RECURRENT_ACTIVATION: ActivationIdentifier = 'hardSigmoid';
 
   readonly DEFAULT_KERNEL_INITIALIZER = 'glorotNormal';
   readonly DEFAULT_RECURRENT_INITIALIZER = 'orthogonal';
@@ -1688,7 +1688,7 @@ export interface GRULayerArgs extends SimpleRNNLayerArgs {
    *
    * If `null`, no activation is applied.
    */
-  recurrentActivation?: string;
+  recurrentActivation?: ActivationIdentifier;
 
   /**
    * Implementation mode, either 1 or 2.
@@ -2158,7 +2158,7 @@ export interface LSTMLayerArgs extends SimpleRNNLayerArgs {
    *
    * If `null`, no activation is applied.
    */
-  recurrentActivation?: string;
+  recurrentActivation?: ActivationIdentifier;
 
   /**
    * If `true`, add 1 to the bias of the forget gate at initialization.

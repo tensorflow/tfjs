@@ -8,6 +8,17 @@
  * =============================================================================
  */
 
-/** @docinline */
-export type ActivationIdentifier = 'elu'|'hardSigmoid'|'linear'|'relu'|'relu6'|
-    'selu'|'sigmoid'|'softmax'|'softplus'|'softsign'|'tanh'|string;
+import {stringLiteralArray} from './utils';
+
+/**
+ * List of all known activation names.
+ */
+export const activationOptions = stringLiteralArray([
+  'elu', 'hardSigmoid', 'linear', 'relu', 'relu6', 'selu', 'sigmoid', 'softmax',
+  'softplus', 'softsign', 'tanh'
+]);
+
+/**
+ * A type representing the strings that are valid loss names.
+ */
+export type ActivationIdentifier = typeof activationOptions[number];

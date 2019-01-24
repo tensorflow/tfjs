@@ -23,6 +23,7 @@ import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} fr
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
+import {ActivationIdentifier} from '../keras_format/activation_config';
 import {DataFormat, PaddingMode, Shape} from '../keras_format/common';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
@@ -247,7 +248,7 @@ export interface BaseConvLayerArgs extends LayerArgs {
    *
    * If you don't specify the activation, none is applied.
    */
-  activation?: string;
+  activation?: ActivationIdentifier;
 
   /**
    * Whether the layer uses a bias vector. Defaults to `true`.

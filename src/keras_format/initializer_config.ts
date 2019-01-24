@@ -10,7 +10,6 @@
 
 import {BaseSerialization} from './types';
 
-
 // TODO(soergel): Move the CamelCase versions back out of keras_format
 // e.g. to src/common.ts.  Maybe even duplicate *all* of these to be pedantic?
 /** @docinline */
@@ -88,9 +87,24 @@ export type IdentityConfig = {
 export type IdentitySerialization =
     BaseSerialization<'Identity', IdentityConfig>;
 
+// Update initializerClassNames below in concert with this.
 export type InitializerSerialization = ZerosSerialization|OnesSerialization|
     ConstantSerialization|RandomUniformSerialization|RandomNormalSerialization|
     TruncatedNormalSerialization|IdentitySerialization|
     VarianceScalingSerialization|OrthogonalSerialization;
 
 export type InitializerClassName = InitializerSerialization['class_name'];
+
+// We can't easily extract a string[] from the string union type, but we can
+// recapitulate the list, enforcing at compile time that the values are valid
+// and that we have the right number of them.
+
+/**
+ * A string array of valid Initializer class names.
+ *
+ * This is guaranteed to match the `InitializerClassName` union type.
+ */
+export const initializerClassNames: InitializerClassName[] = [
+  'Zeros', 'Ones', 'Constant', 'RandomNormal', 'RandomUniform',
+  'TruncatedNormal', 'VarianceScaling', 'Orthogonal', 'Identity'
+];

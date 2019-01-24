@@ -17,11 +17,11 @@ import {mul, ones, scalar, Tensor, tensor2d, tensor3d, tensor4d, zeros} from '@t
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
+import {ActivationIdentifier} from '../keras_format/activation_config';
 import {pyListRepeat} from '../utils/generic_utils';
 import {arrayProd} from '../utils/math_utils';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
-import {ActivationIdentifier} from '../keras_format/activation_config';
 
 describe('Dropout Layer: Symbolic', () => {
   const dropoutRates = [0, 0.5];
@@ -94,7 +94,8 @@ describeMathCPUAndGPU('Dropout Layer', () => {
 
 describeMathCPU('Dense Layer: Symbolic', () => {
   const units = 3;
-  const activations = [null, 'linear', 'relu', 'softmax'];
+  const activations: ActivationIdentifier[] =
+      [null, 'linear', 'relu', 'softmax'];
   const symbolicInputs = [
     new tfl.SymbolicTensor('float32', [10, 4], null, [], null),
     new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null),
@@ -184,8 +185,8 @@ describeMathCPU('Dense Layer: Symbolic', () => {
 
   it('Invalid activation', () => {
     expect(() => {
-      // tslint:disable-next-line:no-unused-expression
-      tfl.layers.dense({units: 4, activation: 'invalid_ativation!'});
+      // tslint:disable-next-line:no-unused-expression no-any
+      tfl.layers.dense({units: 4, activation: 'invalid_activation!' as any});
     }).toThrowError(/Unknown activation/);
   });
 });
@@ -625,18 +626,21 @@ describe('Permute Layer: Symbolic', () => {
   });
 
   it('Non-consecutive dims values leads to Error', () => {
-    expect(() => tfl.layers.permute({dims: [1, 3]}))
-        .toThrowError(/Invalid permutation .*dims/);
+    expect(() => tfl.layers.permute({
+      dims: [1, 3]
+    })).toThrowError(/Invalid permutation .*dims/);
   });
 
   it('Repeating dims values leads to Error', () => {
-    expect(() => tfl.layers.permute({dims: [1, 1, 3]}))
-        .toThrowError(/Invalid permutation .*dims/);
+    expect(() => tfl.layers.permute({
+      dims: [1, 1, 3]
+    })).toThrowError(/Invalid permutation .*dims/);
   });
 
   it('Dims values containing 0 leads to Error', () => {
-    expect(() => tfl.layers.permute({dims: [0, 1, 2]}))
-        .toThrowError(/Invalid permutation .*dims/);
+    expect(() => tfl.layers.permute({
+      dims: [0, 1, 2]
+    })).toThrowError(/Invalid permutation .*dims/);
   });
 
   it('Serialization round-trip', () => {

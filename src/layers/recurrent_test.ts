@@ -24,6 +24,7 @@ import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_u
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {GRU, LSTM, rnn, RNN, RNNCell} from './recurrent';
+import {ActivationIdentifier} from '../keras_format/activation_config';
 
 const expectArraysClose = test_util.expectArraysClose;
 
@@ -637,7 +638,7 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
     }
   }
 
-  const activations = ['linear', 'tanh'];
+  const activations : ActivationIdentifier[] = ['linear', 'tanh'];
   for (const activation of activations) {
     const testTitle =
         `returnSequences=false, returnState=false, useBias=true, ${activation}`;
