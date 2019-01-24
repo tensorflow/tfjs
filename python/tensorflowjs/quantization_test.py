@@ -90,44 +90,6 @@ class TestQuantizationUtil(unittest.TestCase):
     self._runQuantizeTest(1, 3, np.int32, np.uint8, expected_scale=2/255)
     self._runQuantizeTest(1, 3, np.int32, np.uint16, expected_scale=2/65536)
 
-  def testQuantizeNegativeFloat64s(self):
-    self._runQuantizeTest(-3, -1, np.float64, np.uint8, expected_scale=2/255)
-    self._runQuantizeTest(-3, -1, np.float64, np.uint16, expected_scale=2/65536)
 
-  def testQuantizeNegativeAndZeroFloat64s(self):
-    self._runQuantizeTest(-3, 0, np.float64, np.uint8, expected_scale=3/255)
-    self._runQuantizeTest(-3, 0, np.float64, np.uint16, expected_scale=3/65536)
-
-  def testQuantizeNegativeAndPositiveFloat64s(self):
-    self._runQuantizeTest(-3, 3, np.float64, np.uint8, expected_scale=6/255)
-    self._runQuantizeTest(-3, 3, np.float64, np.uint16, expected_scale=6/65536)
-
-  def testQuantizeZeroAndPositiveFloat64s(self):
-    self._runQuantizeTest(0, 3, np.float64, np.uint8, expected_scale=3/255)
-    self._runQuantizeTest(0, 3, np.float64, np.uint16, expected_scale=3/65536)
-
-  def testQuantizePositiveFloat64s(self):
-    self._runQuantizeTest(1, 3, np.float64, np.uint8, expected_scale=2/255)
-    self._runQuantizeTest(1, 3, np.float64, np.uint16, expected_scale=2/65536)
-
-  def testQuantizeNegativeInt64s(self):
-    self._runQuantizeTest(-3, -1, np.int64, np.uint8, expected_scale=2/255)
-    self._runQuantizeTest(-3, -1, np.int64, np.uint16, expected_scale=2/65536)
-
-  def testQuantizeNegativeAndZeroInt64s(self):
-    self._runQuantizeTest(-3, 0, np.int64, np.uint8, expected_scale=3/255)
-    self._runQuantizeTest(-3, 0, np.int64, np.uint16, expected_scale=3/65536)
-
-  def testQuantizeNegativeAndPositiveInt64s(self):
-    self._runQuantizeTest(-3, 3, np.int64, np.uint8, expected_scale=6/255)
-    self._runQuantizeTest(-3, 3, np.int64, np.uint16, expected_scale=6/65536)
-
-  def testQuantizeZeroAndPositiveInt64s(self):
-    self._runQuantizeTest(0, 3, np.int64, np.uint8, expected_scale=3/255)
-    self._runQuantizeTest(0, 3, np.int64, np.uint16, expected_scale=3/65536)
-
-  def testQuantizePositiveInt64s(self):
-    self._runQuantizeTest(1, 3, np.int64, np.uint8, expected_scale=2/255)
-    self._runQuantizeTest(1, 3, np.int64, np.uint16, expected_scale=2/65536)
 if __name__ == '__main__':
   unittest.main()
