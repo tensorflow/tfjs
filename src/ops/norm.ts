@@ -87,7 +87,7 @@ function normImpl(
 
   // vector
   if (x.rank === 1 || typeof axis === 'number' ||
-      axis instanceof Array && axis.length === 1) {
+      Array.isArray(axis) && axis.length === 1) {
     if (p === 1) {
       return x.abs().sum(axis);
     }
@@ -106,7 +106,7 @@ function normImpl(
   }
 
   // matrix (assumption axis[0] < axis[1])
-  if (axis instanceof Array && axis.length === 2) {
+  if (Array.isArray(axis) && axis.length === 2) {
     if (p === 1) {
       return x.abs().sum(axis[0]).max(axis[1] - 1);
     }
