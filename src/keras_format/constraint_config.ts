@@ -36,7 +36,20 @@ export type MinMaxNormConfig = {
 export type MinMaxNormSerialization =
     BaseSerialization<'MinMaxNorm', MinMaxNormConfig>;
 
+// Update constraintClassNames below in concert with this.
 export type ConstraintSerialization = MaxNormSerialization|NonNegSerialization|
     UnitNormSerialization|MinMaxNormSerialization;
 
 export type ConstraintClassName = ConstraintSerialization['class_name'];
+
+// We can't easily extract a string[] from the string union type, but we can
+// recapitulate the list, enforcing at compile time that the values are valid
+// and that we have the right number of them.
+
+/**
+ * A string array of valid Constraint class names.
+ *
+ * This is guaranteed to match the `ConstraintClassName` union type.
+ */
+export const constraintClassNames: ConstraintClassName[] =
+    ['MaxNorm', 'UnitNorm', 'NonNeg', 'MinMaxNorm'];

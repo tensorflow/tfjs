@@ -29,7 +29,20 @@ export type L2Config = {
 
 export type L2Serialization = BaseSerialization<'L2', L2Config>;
 
+// Update regularizerClassNames below in concert with this.
 export type RegularizerSerialization =
     L1L2Serialization|L1Serialization|L2Serialization;
 
 export type RegularizerClassName = RegularizerSerialization['class_name'];
+
+// We can't easily extract a string[] from the string union type, but we can
+// recapitulate the list, enforcing at compile time that the values are valid
+// and that we have the right number of them.
+
+/**
+ * A string array of valid Regularizer class names.
+ *
+ * This is guaranteed to match the `RegularizerClassName` union type.
+ */
+export const regularizerClassNames: RegularizerClassName[] =
+    ['L1L2', 'L1', 'L2'];
