@@ -20,6 +20,8 @@ import {DataSource} from '../datasource';
 import {ByteChunkIterator} from '../iterators/byte_chunk_iterator';
 import {FileChunkIteratorOptions} from '../iterators/file_chunk_iterator';
 import {urlChunkIterator} from '../iterators/url_chunk_iterator';
+import {isLocalPath} from '../util/source_util';
+import {FileDataSource} from './file_data_source';
 
 /*
  * Represents a URL readable as a stream of binary data chunks.
@@ -43,6 +45,11 @@ export class URLDataSource extends DataSource {
   // to treat the downloaded file as a blob/buffer anyway, we may as well retain
   // it-- but that raises GC issues.  Also we may want a persistent disk cache.
   async iterator(): Promise<ByteChunkIterator> {
-    return urlChunkIterator(this.url, this.fileOptions);
+    if (isLocalPath(this.url)) {
+      return (new FileDataSource(this.url as string, this.fileOptions))
+          .iterator();
+    } else {
+      return urlChunkIterator(this.url, this.fileOptions);
+    }
   }
 }
