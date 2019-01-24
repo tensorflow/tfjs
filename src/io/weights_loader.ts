@@ -21,6 +21,12 @@ import * as util from '../util';
 import {decodeWeights} from './io_utils';
 import {DTYPE_VALUE_SIZE_MAP, WeightsManifestConfig, WeightsManifestEntry} from './types';
 
+type RequestHeader = {
+  [key: string]: string
+};
+
+const OCTET_STREAM_TYPE = 'application/octet-stream';
+const CONTENT_TYPE = 'Content-type';
 /**
  * Reads binary weights data from a number of URLs.
  *
@@ -34,37 +40,54 @@ import {DTYPE_VALUE_SIZE_MAP, WeightsManifestConfig, WeightsManifestEntry} from 
  */
 export async function loadWeightsAsArrayBuffer(
     fetchURLs: string[], requestOptions?: RequestInit, fetchFunc?: Function,
-    onProgress?: Function):
-  Promise<ArrayBuffer[]> {
+    onProgress?: Function): Promise<ArrayBuffer[]> {
   if (fetchFunc == null) {
     fetchFunc = fetch;
   }
 
+  // Add accept header
+  requestOptions = requestOptions || {};
+  const headers = (requestOptions.headers || {}) as RequestHeader;
+  headers['Accept'] = OCTET_STREAM_TYPE;
+  requestOptions.headers = headers;
+
   // Create the requests for all of the weights in parallel.
-  const requests = fetchURLs.map(
-      fetchURL => fetchFunc(fetchURL, requestOptions));
+  const requests =
+      fetchURLs.map(fetchURL => fetchFunc(fetchURL, requestOptions));
 
   const fetchStartFraction = 0;
   const fetchEndFraction = 0.5;
 
   if (onProgress != null) {
-    util.monitorPromisesProgress(requests, onProgress,
-        fetchStartFraction, fetchEndFraction);
+    util.monitorPromisesProgress(
+        requests, onProgress, fetchStartFraction, fetchEndFraction);
   }
 
   const responses = await Promise.all(requests);
+  const badContentType = responses.filter(response => {
+    const contentType = response.headers.get(CONTENT_TYPE);
+    return !contentType || contentType.indexOf(OCTET_STREAM_TYPE) === -1;
+  });
+  if (badContentType.length > 0) {
+    throw new Error(
+        badContentType
+            .map(
+                resp => `Request to ${resp.url} for weight file failed.` +
+                    ` Expected content type ${OCTET_STREAM_TYPE} but got ${
+                            resp.headers.get(CONTENT_TYPE)}.`)
+            .join('\n'));
+  }
   const bufferPromises = responses.map(response => response.arrayBuffer());
 
   const bufferStartFraction = 0.5;
   const bufferEndFraction = 1;
 
   if (onProgress != null) {
-    util.monitorPromisesProgress(bufferPromises, onProgress,
-        bufferStartFraction, bufferEndFraction);
+    util.monitorPromisesProgress(
+        bufferPromises, onProgress, bufferStartFraction, bufferEndFraction);
   }
 
   const buffers = await Promise.all(bufferPromises);
-
   return buffers;
 }
 
@@ -78,8 +101,7 @@ export async function loadWeightsAsArrayBuffer(
  * @param weightNames The names of the weights to be fetched.
  */
 export async function loadWeights(
-    manifest: WeightsManifestConfig,
-    filePathPrefix = '',
+    manifest: WeightsManifestConfig, filePathPrefix = '',
     weightNames?: string[],
     requestOptions?: RequestInit): Promise<NamedTensorMap> {
   // TODO(nsthorat): Groups are currently fetched atomically. If you need a
@@ -89,7 +111,7 @@ export async function loadWeights(
   // TODO(cais): Use `decodeWeights` for implementation.
 
   const fetchWeights = (fetchUrls: string[]) =>
-    loadWeightsAsArrayBuffer(fetchUrls, requestOptions);
+      loadWeightsAsArrayBuffer(fetchUrls, requestOptions);
   const loadWeights = weightsLoaderFactory(fetchWeights);
 
   return loadWeights(manifest, filePathPrefix, weightNames);
@@ -120,19 +142,12 @@ export async function loadWeights(
  * @returns Weight loading function.
  */
 export function weightsLoaderFactory(
-  fetchWeightsFunction: (fetchUrls: string[]) => Promise<ArrayBuffer[]>
-): (
-  manifest: WeightsManifestConfig,
-  filePathPrefix?: string,
-  weightNames?: string[]
-) => Promise<NamedTensorMap> {
-
-  return async (
-    manifest: WeightsManifestConfig,
-    filePathPrefix = '',
-    weightNames?: string[]
-  ): Promise<NamedTensorMap> => {
-
+    fetchWeightsFunction: (fetchUrls: string[]) => Promise<ArrayBuffer[]>):
+    (manifest: WeightsManifestConfig, filePathPrefix?: string,
+     weightNames?: string[]) => Promise<NamedTensorMap> {
+  return async(
+             manifest: WeightsManifestConfig, filePathPrefix = '',
+             weightNames?: string[]): Promise<NamedTensorMap> => {
     // Collect all the groups, weights, and their relative offsets to be
     // fetched.
     const groupIndicesToFetchMap = manifest.map(() => false);
@@ -142,9 +157,8 @@ export function weightsLoaderFactory(
         sizeBytes: number;
       }>
     } = {};
-    const weightsFound = weightNames != null
-      ? weightNames.map(() => false)
-      : [];
+    const weightsFound =
+        weightNames != null ? weightNames.map(() => false) : [];
     const allManifestWeightNames: string[] = [];
     manifest.forEach((manifestGroupConfig, groupIndex) => {
       let groupOffset = 0;

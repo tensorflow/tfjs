@@ -25,7 +25,9 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     Uint16Array
   }) => {
     spyOn(window, 'fetch').and.callFake((path: string) => {
-      return new Response(fileBufferMap[path]);
+      return new Response(
+          fileBufferMap[path],
+          {headers: {'Content-type': 'application/octet-stream'}});
     });
   };
 
@@ -469,7 +471,8 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
         .then(weights => {
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(1);
           expect(window.fetch).toHaveBeenCalledWith('./weightfile0', {
-            credentials: 'include'
+            credentials: 'include',
+            headers: {'Accept': 'application/octet-stream'}
           });
         })
         .then(done)
