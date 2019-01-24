@@ -31,11 +31,11 @@ export function inferShape(val: TensorLike): number[] {
   }
   const shape: number[] = [];
 
-  while (firstElem instanceof Array || isTypedArray(firstElem)) {
+  while (Array.isArray(firstElem) || isTypedArray(firstElem)) {
     shape.push(firstElem.length);
     firstElem = firstElem[0];
   }
-  if (val instanceof Array && ENV.get('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')) {
+  if (Array.isArray(val) && ENV.get('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')) {
     deepAssertShapeConsistency(val, shape, []);
   }
 
@@ -45,7 +45,7 @@ export function inferShape(val: TensorLike): number[] {
 function deepAssertShapeConsistency(
     val: TensorLike, shape: number[], indices: number[]) {
   indices = indices || [];
-  if (!(val instanceof Array) && !isTypedArray(val)) {
+  if (!(Array.isArray(val)) && !isTypedArray(val)) {
     assert(
         shape.length === 0,
         () => `Element arr[${indices.join('][')}] is a primitive, ` +

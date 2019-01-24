@@ -440,7 +440,7 @@ export function isNumber(value: {}): boolean {
 }
 
 export function inferDtype(values: TensorLike): DataType {
-  if (values instanceof Array) {
+  if (Array.isArray(values)) {
     return inferDtype(values[0]);
   }
   if (values instanceof Float32Array) {
