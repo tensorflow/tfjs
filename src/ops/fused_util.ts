@@ -15,4 +15,4 @@
  * =============================================================================
  */
 
-export type FusableActivation = 'linear'|'relu';
+export type Activation = 'linear'|'relu';
