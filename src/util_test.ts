@@ -17,6 +17,7 @@
 
 import {inferShape} from './tensor_util_env';
 import * as util from './util';
+import {scalar, tensor2d} from './ops/ops';
 
 describe('Util', () => {
   it('Correctly gets size from shape', () => {
@@ -452,6 +453,47 @@ describe('util.hasEncodingLoss', () => {
 
   it('bool to bool', () => {
     expect(util.hasEncodingLoss('bool', 'bool')).toBe(false);
+  });
+});
+
+describe('util.toNestedArray', () => {
+  it('2 dimensions', () => {
+    const a = new Float32Array([1, 2, 3, 4, 5, 6]);
+    expect(util.toNestedArray([2, 3], a))
+      .toEqual([[1,2,3], [4,5,6]]);
+  });
+
+  it('3 dimensions (2x2x3)', () => {
+    const a = new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    expect(util.toNestedArray([2, 2, 3], a))
+      .toEqual([[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]]]);
+  });
+
+  it('3 dimensions (3x2x2)', () => {
+    const a = new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    expect(util.toNestedArray([3, 2, 2], a))
+      .toEqual([[[0, 1],[2, 3]],[[4, 5],[6, 7]],[[8, 9],[10, 11]]]);
+  });
+
+  it('invalid dimension', () => {
+    const a = new Float32Array([1, 2, 3]);
+    expect(() => util.toNestedArray([2, 2], a)).toThrowError();
+  });
+
+  it('tensor to nested array', () => {
+    const x = tensor2d([1, 2, 3, 4], [2, 2]);
+    expect(util.toNestedArray(x.shape, x.dataSync()))
+      .toEqual([[1, 2], [3, 4]]);
+  });
+
+  it('scalar to nested array', () => {
+    const x = scalar(1);
+    expect(util.toNestedArray(x.shape, x.dataSync())).toEqual([]);
+  });
+
+  it('tensor with zero shape', () => {
+    const a = new Float32Array([0, 1]);
+    expect(util.toNestedArray([1, 0, 2], a)).toEqual([]);
   });
 });
 
