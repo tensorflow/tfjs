@@ -301,4 +301,4 @@ export const resizeBilinear = op({resizeBilinear_});
 export const resizeNearestNeighbor = op({resizeNearestNeighbor_});
 export const nonMaxSuppression = op({nonMaxSuppression_});
 export const nonMaxSuppressionAsync = nonMaxSuppressionAsync_;
-export const cropAndResize = cropAndResize_;
+export const cropAndResize = op({cropAndResize_});

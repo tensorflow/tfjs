@@ -194,7 +194,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
       saved.push(x);
       return x;
     };
-    const scopeName = this.activeScope.name;
+    const scopeName = this.activeScope != null ? this.activeScope.name : '';
     const startingBytecount = this.numBytes;
     const startingNumTensors = this.numTensors;
 
