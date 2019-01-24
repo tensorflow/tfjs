@@ -96,29 +96,6 @@ class ReadWeightsTest(unittest.TestCase):
     self.assertEqual('weight2', read_output[1]['name'])
     self.assertTrue(np.allclose(groups[0][1]['data'], read_output[1]['data']))
 
-  def testReadOneGroupWith64bitDataFlattened(self):
-    groups = [
-        [{
-            'name': 'weight1',
-            'data': np.array([1, 2, 3], 'float64')
-        }, {
-            'name': 'weight2',
-            'data': np.array([10, 20, 30], 'int64')
-        }]
-    ]
-
-    manifest = write_weights.write_weights(groups, self._tmp_dir)
-
-    # Read the weights using `read_weights`.
-    read_output = read_weights.read_weights(
-        manifest, self._tmp_dir, flatten=True)
-    self.assertEqual(2, len(read_output))
-    self.assertEqual('weight1', read_output[0]['name'])
-    self.assertTrue(np.allclose(groups[0][0]['data'], read_output[0]['data']))
-    self.assertEqual('weight2', read_output[1]['name'])
-    self.assertTrue(np.allclose(groups[0][1]['data'], read_output[1]['data']))
-
-
   def testReadTwoGroupsFlattend(self):
     groups = [
         [{
