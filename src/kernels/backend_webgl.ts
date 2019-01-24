@@ -25,7 +25,7 @@ import * as axis_util from '../ops/axis_util';
 import * as broadcast_util from '../ops/broadcast_util';
 import {computeOutShape} from '../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../ops/conv_util';
-import {FusableActivation} from '../ops/fused_util';
+import {Activation} from '../ops/fused_util';
 import * as gather_nd_util from '../ops/gather_nd_util';
 import * as reduce_util from '../ops/reduce_util';
 import * as scatter_nd_util from '../ops/scatter_nd_util';
@@ -132,7 +132,7 @@ export interface WebGLTimingInfo extends TimingInfo {
 }
 
 function mapActivationToShaderProgram(
-    activation: FusableActivation, packed = false): string {
+    activation: Activation, packed = false): string {
   if (activation === 'linear') {
     if (packed) {
       return unary_packed_op.LINEAR;
@@ -789,7 +789,7 @@ export class MathBackendWebGL implements KernelBackend {
 
   fusedBatchMatMul(
       a: Tensor3D, b: Tensor3D, transposeA: boolean, transposeB: boolean,
-      bias?: Tensor3D, activation?: FusableActivation): Tensor3D {
+      bias?: Tensor, activation?: Activation): Tensor3D {
     const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
     const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
     const [batch, , ] = a.shape;
@@ -807,9 +807,9 @@ export class MathBackendWebGL implements KernelBackend {
           activation ? mapActivationToShaderProgram(activation, true) : null);
       const output =
           this.makePackedTensor(program.outputShape, dtype) as Tensor2D;
-      const inputs = [aSqueezed, bSqueezed];
+      const inputs: TensorHandle[] = [aSqueezed, bSqueezed];
       if (bias) {
-        inputs.push(bias.as2D(bias.shape[1], bias.shape[2]));
+        inputs.push(bias);
       }
       const result = this.compileAndRun<Tensor2D>(program, inputs, output);
       return result.reshape([1, result.shape[0], result.shape[1]]);
@@ -817,7 +817,7 @@ export class MathBackendWebGL implements KernelBackend {
       const program = new MatMulProgram(
           a.shape, b.shape, transposeA, transposeB, !!bias,
           activation ? mapActivationToShaderProgram(activation) : null);
-      const inputs = [a, b];
+      const inputs: TensorHandle[] = [a, b];
       if (bias) {
         inputs.push(bias);
       }
@@ -1441,8 +1441,8 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   exp<T extends Tensor>(x: T): T {
-    let program: UnaryOpProgram | UnaryOpPackedProgram;
-    if(ENV.get('WEBGL_PACK')) {
+    let program: UnaryOpProgram|UnaryOpPackedProgram;
+    if (ENV.get('WEBGL_PACK')) {
       program = new UnaryOpPackedProgram(x.shape, unary_op.EXP);
     } else {
       program = new UnaryOpProgram(x.shape, unary_op.EXP);
@@ -1456,8 +1456,8 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   log<T extends Tensor>(x: T): T {
-    let program: UnaryOpProgram | UnaryOpPackedProgram;
-    if(ENV.get('WEBGL_PACK')) {
+    let program: UnaryOpProgram|UnaryOpPackedProgram;
+    if (ENV.get('WEBGL_PACK')) {
       program = new UnaryOpPackedProgram(x.shape, unary_packed_op.LOG);
     } else {
       program = new UnaryOpProgram(x.shape, unary_op.LOG);
@@ -1492,8 +1492,8 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   relu<T extends Tensor>(x: T): T {
-    let program: UnaryOpProgram | UnaryOpPackedProgram;
-    if(ENV.get('WEBGL_PACK')) {
+    let program: UnaryOpProgram|UnaryOpPackedProgram;
+    if (ENV.get('WEBGL_PACK')) {
       program = new UnaryOpPackedProgram(x.shape, unary_packed_op.RELU);
     } else {
       program = new UnaryOpProgram(x.shape, unary_op.RELU);

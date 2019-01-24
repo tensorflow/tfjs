@@ -22,7 +22,9 @@ import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-import {FusableActivation} from './fused_util';
+
+import * as broadcast_util from './broadcast_util';
+import {Activation} from './fused_util';
 
 /**
  * Computes the dot product of two matrices with optional activation and bias.
@@ -45,7 +47,7 @@ import {FusableActivation} from './fused_util';
 /** @doc {heading: 'Operations', subheading: 'Matrices', namespace: 'fused'} */
 function matMul_<T extends Tensor>(
     a: T|TensorLike, b: T|TensorLike, transposeA = false, transposeB = false,
-    bias?: T|TensorLike, activation: FusableActivation = 'linear'): T {
+    bias?: Tensor|TensorLike, activation: Activation = 'linear'): T {
   let $a = convertToTensor(a, 'a', 'fused matMul');
   let $b = convertToTensor(b, 'b', 'fused matMul');
   [$a, $b] = makeTypesMatch($a, $b);
@@ -89,21 +91,15 @@ function matMul_<T extends Tensor>(
                            $a.as3D(batchDimA, outerShapeA, innerShapeA);
   const b3D = transposeB ? $b.as3D(batchDimB, outerShapeB, innerShapeB) :
                            $b.as3D(batchDimB, innerShapeB, outerShapeB);
-  let bias3D: Tensor3D;
+
+  let $bias: Tensor;
   if (bias != null) {
-    let $bias = convertToTensor(bias, 'bias', 'fused matMul');
+    $bias = convertToTensor(bias, 'bias', 'fused matMul');
     [$bias] = makeTypesMatch($bias, $a);
 
-    const rowsBias = $bias.shape[$bias.rank - 2];
-    const colsBias = $bias.shape[$bias.rank - 1];
-
     util.assert(
-        outerShapeA === rowsBias && outerShapeB === colsBias,
-        `Error in fused matMul: inner dimensions of bias shape ${
-            $bias.shape} must match outer shapes (${outerShapeA}) and (${
-            outerShapeB}) of Tensors with shapes ${$a.shape} and ${$b.shape}`);
-
-    bias3D = $bias.as3D(batchDimA, rowsBias, colsBias);
+        broadcast_util.getBroadcastDims(outShape, $bias.shape).length === 0,
+        `Error in fused matMul: broadcasting is not supported for bias add.`);
   }
 
   const grad = (dy: Tensor3D, saved: Tensor[]) => {
@@ -120,7 +116,20 @@ function matMul_<T extends Tensor>(
           `implemented yet.`);
     }
 
-    const biasGradient = bias != null ? {$bias: () => dyActivation} : {};
+    let biasGradient = {};
+    if (bias != null) {
+      biasGradient = {
+        $bias: () => {
+          let res = dyActivation;
+          const reduceAxes =
+              broadcast_util.getReductionAxes($bias.shape, outShape);
+          if (reduceAxes.length > 0) {
+            res = res.sum(reduceAxes);
+          }
+          return res.reshape($bias.shape);
+        }
+      };
+    }
 
     if (!transposeA && !transposeB) {
       return Object.assign(
@@ -155,14 +164,16 @@ function matMul_<T extends Tensor>(
 
   const inputs: {$a: Tensor, $b: Tensor, $bias?: Tensor} = {$a: a3D, $b: b3D};
   if (bias != null) {
-    inputs.$bias = bias3D;
+    inputs.$bias = $bias;
   }
 
   const res = ENV.engine.runKernel(
       (backend, save) => save(backend.fusedBatchMatMul(
-          a3D, b3D, transposeA, transposeB, bias3D, activation)),
+          a3D, b3D, transposeA, transposeB, $bias, activation)),
       inputs, grad);
   return res.reshape(outShape) as T;
 }
 
 export const matMul = op({matMul_});
+
+export {Activation};
