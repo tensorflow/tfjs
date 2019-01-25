@@ -1,4 +1,4 @@
-To get help from the community, we encourage using Stack Overflow and the [`tesnorflow.js`](https://stackoverflow.com/questions/tagged/tensorflow.js) tag.
+To get help from the community, we encourage using Stack Overflow and the [`tensorflow.js`](https://stackoverflow.com/questions/tagged/tensorflow.js) tag.
 
 #### TensorFlow.js version
 
