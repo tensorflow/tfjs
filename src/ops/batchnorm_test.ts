@@ -39,6 +39,15 @@ describeWithFlags('batchnorm packed', PACKED_ENVS, () => {
 });
 
 describeWithFlags('batchNormalization', WEBGL_ENVS, () => {
+  it('should work for broadcasted inputs', () => {
+    const x = tf.tensor4d([2, 4, 9, 23], [2, 1, 1, 2]);
+    const mean = tf.tensor4d([1], [1, 1, 1, 1]);
+    const variance = tf.tensor4d([1], [1, 1, 1, 1]);
+
+    const result = tf.batchNormalization4d(x, mean, variance);
+    expectArraysClose(result, [0.9995003, 2.9985011, 7.9960027, 21.9890079]);
+  });
+
   it('should work when squarification results in zero padding', () => {
     const maxTextureSize = tf.ENV.get('WEBGL_MAX_TEXTURE_SIZE');
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
