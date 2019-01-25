@@ -97,9 +97,7 @@ function matMul_<T extends Tensor>(
     $bias = convertToTensor(bias, 'bias', 'fused matMul');
     [$bias] = makeTypesMatch($bias, $a);
 
-    util.assert(
-        broadcast_util.getBroadcastDims(outShape, $bias.shape).length === 0,
-        `Error in fused matMul: broadcasting is not supported for bias add.`);
+    broadcast_util.assertAndGetBroadcastShape(outShape, $bias.shape);
   }
 
   const grad = (dy: Tensor3D, saved: Tensor[]) => {
