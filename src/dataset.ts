@@ -62,6 +62,8 @@ export abstract class Dataset<T extends DataElement> {
    */
   abstract async iterator(): Promise<LazyIterator<T>>;
 
+  readonly size: number = null;
+
   // TODO(soergel): Make Datasets report whether repeated iterator() calls
   // produce the same result (e.g., reading from a file) or different results
   // (e.g., from the webcam).  Currently we don't make this distinction but it
@@ -115,10 +117,26 @@ export abstract class Dataset<T extends DataElement> {
   /** @doc {heading: 'Data', subheading: 'Classes'} */
   batch(batchSize: number, smallLastBatch = true): Dataset<DataElement> {
     const base = this;
+    tf.util.assert(batchSize > 0, `batchSize need to be positive, but it is
+      ${batchSize}`);
+    let size;
+    if (this.size === Infinity || this.size == null) {
+      // If the size of this dataset is infinity or null, the new size keeps the
+      // same.
+      size = this.size;
+    } else if (smallLastBatch) {
+      // If the size of this dataset is known and include small last batch, the
+      // new size is full batch count plus last batch.
+      size = Math.ceil(this.size / batchSize);
+    } else {
+      // If the size of this dataset is known and not include small last batch,
+      // the new size is full batch count.
+      size = Math.floor(this.size / batchSize);
+    }
     return datasetFromIteratorFn(async () => {
       return (await base.iterator())
           .columnMajorBatch(batchSize, smallLastBatch, deepBatchConcat);
-    });
+    }, size);
   }
 
   /**
@@ -137,9 +155,24 @@ export abstract class Dataset<T extends DataElement> {
   /** @doc {heading: 'Data', subheading: 'Classes'} */
   concatenate(dataset: Dataset<T>): Dataset<T> {
     const base = this;
+    let size;
+    if (this.size === Infinity || dataset.size === Infinity) {
+      // If the size of any of these two dataset is infinity, new size is
+      // infinity.
+      size = Infinity;
+    } else if (this.size != null && dataset.size != null) {
+      // If the size of both datasets are known and not infinity, new size is
+      // sum the size of these two datasets.
+      size = this.size + dataset.size;
+    } else {
+      // If neither of these two datasets has infinity size and any of these two
+      // datasets' size is null, the new size is null.
+      size = null;
+    }
     return datasetFromIteratorFn(
         async () =>
-            (await base.iterator()).concatenate(await dataset.iterator()));
+            (await base.iterator()).concatenate(await dataset.iterator()),
+        size);
   }
 
   /**
@@ -159,9 +192,18 @@ export abstract class Dataset<T extends DataElement> {
   /** @doc {heading: 'Data', subheading: 'Classes'} */
   filter(predicate: (value: T) => boolean): Dataset<T> {
     const base = this;
+    let size;
+    if (this.size === Infinity) {
+      // If the size of this dataset is infinity, new size is infinity
+      size = Infinity;
+    } else {
+      // If this dataset has limited elements, new size is null because it might
+      // exhausted randomly.
+      size = null;
+    }
     return datasetFromIteratorFn(async () => {
       return (await base.iterator()).filter(x => tf.tidy(() => predicate(x)));
-    });
+    }, size);
   }
 
   /**
@@ -201,7 +243,7 @@ export abstract class Dataset<T extends DataElement> {
     const base = this;
     return datasetFromIteratorFn(async () => {
       return (await base.iterator()).map(x => tf.tidy(() => transform(x)));
-    });
+    }, this.size);
   }
 
   /**
@@ -230,7 +272,7 @@ export abstract class Dataset<T extends DataElement> {
     const base = this;
     return datasetFromIteratorFn(async () => {
       return (await base.iterator()).mapAsync(transform);
-    });
+    }, this.size);
   }
 
   /**
@@ -245,7 +287,7 @@ export abstract class Dataset<T extends DataElement> {
   prefetch(bufferSize: number): Dataset<T> {
     const base = this;
     return datasetFromIteratorFn(
-        async () => (await base.iterator()).prefetch(bufferSize));
+        async () => (await base.iterator()).prefetch(bufferSize), this.size);
   }
 
   /**
@@ -267,11 +309,28 @@ export abstract class Dataset<T extends DataElement> {
   /** @doc {heading: 'Data', subheading: 'Classes'} */
   repeat(count?: number): Dataset<T> {
     const base = this;
+    let size;
+    if (this.size != null && count > 0) {
+      // If this dataset has size and count is positive, new size is current
+      // size multiply count. This also covers the case that current size is
+      // infinity.
+      size = this.size * count;
+    } else if (count === 0) {
+      // If count is 0, new size is 0.
+      size = 0;
+    } else if (this.size != null && (count === undefined || count < 0)) {
+      // If this dataset has size and count is undefined or negative, the
+      // dataset will be repeated indefinitely and new size is infinity.
+      size = Infinity;
+    } else {
+      // If the size of this dataset is null, the new dataset's size is null.
+      size = null;
+    }
     return datasetFromIteratorFn(async () => {
       const iteratorIterator = iteratorFromFunction(
           async () => ({value: await base.iterator(), done: false}));
       return iteratorFromConcatenated(iteratorIterator.take(count));
-    });
+    }, size);
   }
 
   /**
@@ -292,8 +351,24 @@ export abstract class Dataset<T extends DataElement> {
   /** @doc {heading: 'Data', subheading: 'Classes'} */
   skip(count: number): Dataset<T> {
     const base = this;
+    let size;
+    if (this.size != null && count >= 0 && this.size >= count) {
+      // If the size of this dataset is greater than count, the new dataset's
+      // size is current size minus skipped size.This also covers the case that
+      // current size is infinity.
+      size = this.size - count;
+    } else if (
+        this.size != null &&
+        (this.size < count || count === undefined || count < 0)) {
+      // If the size of this dataset is smaller than count, or count is
+      // undefined or negative, skips the entire dataset and the new size is 0.
+      size = 0;
+    } else {
+      // If the size of this dataset is null, the new dataset's size is null.
+      size = null;
+    }
     return datasetFromIteratorFn(
-        async () => (await base.iterator()).skip(count));
+        async () => (await base.iterator()).skip(count), size);
   }
 
   // TODO(soergel): deep sharded shuffle, where supported
@@ -328,7 +403,7 @@ export abstract class Dataset<T extends DataElement> {
         seed2 += random.int32();
       }
       return (await base.iterator()).shuffle(bufferSize, seed2.toString());
-    });
+    }, this.size);
   }
 
   /**
@@ -349,8 +424,21 @@ export abstract class Dataset<T extends DataElement> {
   /** @doc {heading: 'Data', subheading: 'Classes'} */
   take(count: number): Dataset<T> {
     const base = this;
+    let size;
+    if (this.size != null && this.size > count) {
+      // If the size of this dataset is greater than count, the new dataset's
+      // size is count.
+      size = count;
+    } else if (this.size != null && this.size <= count) {
+      // If the size of this dataset is equal or smaller than count, the new
+      // dataset's size is the size of this dataset.
+      size = this.size;
+    } else {
+      // If the size of this dataset is null, the new dataset's size is null.
+      size = null;
+    }
     return datasetFromIteratorFn(
-        async () => (await base.iterator()).take(count));
+        async () => (await base.iterator()).take(count), size);
   }
 
   /**
@@ -393,8 +481,11 @@ export abstract class Dataset<T extends DataElement> {
  * ```
  */
 export function datasetFromIteratorFn<T extends DataElement>(
-    iteratorFn: () => Promise<LazyIterator<T>>): Dataset<T> {
+    iteratorFn: () => Promise<LazyIterator<T>>,
+    size: number = null): Dataset<T> {
   return new class extends Dataset<T> {
+    size = size;
+
     /*
      * Provide a new stream of elements.  Note this will also start new streams
      * from any underlying `Dataset`s.
@@ -424,7 +515,8 @@ export function datasetFromIteratorFn<T extends DataElement>(
  */
 /** @doc {heading: 'Data', subheading: 'Creation', namespace: 'data'} */
 export function array<T extends DataElement>(items: T[]): Dataset<T> {
-  return datasetFromIteratorFn(async () => iteratorFromItems(items));
+  return datasetFromIteratorFn(
+      async () => iteratorFromItems(items), items.length);
 }
 
 /**
@@ -473,6 +565,18 @@ export function zip<O extends DataElement>(datasets: DatasetContainer):
   if (!isIterable(datasets)) {
     throw new Error('The argument to zip() must be an object or array.');
   }
+  let size;
+  if (Array.isArray(datasets)) {
+    for (let i = 0; i < datasets.length; i++) {
+      size = size == null ? (datasets[i] as Dataset<O>).size :
+                            Math.min(size, (datasets[i] as Dataset<O>).size);
+    }
+  } else if (datasets instanceof Object) {
+    for (const ds in datasets) {
+      size = size == null ? (datasets[ds] as Dataset<O>).size :
+                            Math.min(size, (datasets[ds] as Dataset<O>).size);
+    }
+  }
   return datasetFromIteratorFn<O>(async () => {
     const streams = await deepMapAndAwaitAll(datasets, d => {
       if (d instanceof Dataset) {
@@ -486,7 +590,7 @@ export function zip<O extends DataElement>(datasets: DatasetContainer):
       }
     });
     return iteratorFromZipped<O>(streams, ZipMismatchMode.SHORTEST);
-  });
+  }, size);
 }
 
 /**

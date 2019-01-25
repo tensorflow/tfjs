@@ -223,20 +223,18 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
      async done => {
        try {
          let count = 0;
-         const a =
-             tfd.generator(async () => {
-               if (count > 2) {
-                 throw new Error('propagate me!');
-                }
-                return {value: count++, done: false};
-              });
+         const a = tfd.generator(async () => {
+           if (count > 2) {
+             throw new Error('propagate me!');
+           }
+           return {value: count++, done: false};
+         });
          const b = tfd.array([3, 4, 5, 6]);
          // tslint:disable-next-line:no-any
          await (await tfd.zip([a, b]).iterator()).collect(1000, 0);
          done.fail();
        } catch (e) {
-         expect(e.message).toEqual(
-             'propagate me!');
+         expect(e.message).toEqual('propagate me!');
          done();
        }
      });
@@ -553,43 +551,45 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
   });
 
   it('clone tensors when returning iterator of a dataset generated from ' +
-  'existing tensors', async () => {
-    expect(tf.memory().numTensors).toEqual(0);
-    const a = tf.ones([2, 1]);
-    const b = tf.ones([2, 1]);
-    expect(tf.memory().numTensors).toEqual(2);
-    const ds = tfd.array([a, b]);
-    // Pre-existing tensors are not cloned during dataset creation.
-    expect(tf.memory().numTensors).toEqual(2);
+         'existing tensors',
+     async () => {
+       expect(tf.memory().numTensors).toEqual(0);
+       const a = tf.ones([2, 1]);
+       const b = tf.ones([2, 1]);
+       expect(tf.memory().numTensors).toEqual(2);
+       const ds = tfd.array([a, b]);
+       // Pre-existing tensors are not cloned during dataset creation.
+       expect(tf.memory().numTensors).toEqual(2);
 
-    let count = 0;
-    // ds.forEach() automatically disposes incoming Tensors after processing
-    // them.
-    await ds.forEach(elem => {
-      count++;
-      expect(elem.isDisposed).toBeFalsy();
-    });
-    expect(count).toEqual(2);
-    // Cloned tensors are disposed after traverse, while original tensors stay.
-    expect(tf.memory().numTensors).toEqual(2);
+       let count = 0;
+       // ds.forEach() automatically disposes incoming Tensors after processing
+       // them.
+       await ds.forEach(elem => {
+         count++;
+         expect(elem.isDisposed).toBeFalsy();
+       });
+       expect(count).toEqual(2);
+       // Cloned tensors are disposed after traverse, while original tensors
+       // stay.
+       expect(tf.memory().numTensors).toEqual(2);
 
-    await ds.forEach(elem => {
-      count++;
-      expect(elem.isDisposed).toBeFalsy();
-    });
-    expect(count).toEqual(4);
-    expect(tf.memory().numTensors).toEqual(2);
+       await ds.forEach(elem => {
+         count++;
+         expect(elem.isDisposed).toBeFalsy();
+       });
+       expect(count).toEqual(4);
+       expect(tf.memory().numTensors).toEqual(2);
 
-    await ds.forEach(elem => {
-      count++;
-      expect(elem.isDisposed).toBeFalsy();
-    });
-    expect(count).toEqual(6);
-    expect(tf.memory().numTensors).toEqual(2);
+       await ds.forEach(elem => {
+         count++;
+         expect(elem.isDisposed).toBeFalsy();
+       });
+       expect(count).toEqual(6);
+       expect(tf.memory().numTensors).toEqual(2);
 
-    expect(a.isDisposed).toBeFalsy();
-    expect(b.isDisposed).toBeFalsy();
-  });
+       expect(a.isDisposed).toBeFalsy();
+       expect(b.isDisposed).toBeFalsy();
+     });
 
   it('traverse dataset from tensors without leaking Tensors', async () => {
     expect(tf.memory().numTensors).toEqual(0);
@@ -630,4 +630,182 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     expect(a.isDisposed).toBeFalsy();
     expect(b.isDisposed).toBeFalsy();
   });
+
+  it('can get correct size of dataset from objects array', async () => {
+    const ds = tfd.array([{'item': 1}, {'item': 2}, {'item': 3}]);
+    expect(ds.size).toEqual(3);
+  });
+
+  it('can get correct size of dataset from number array', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]);
+    expect(ds.size).toEqual(5);
+  });
+
+  it('can get size 0 from empty dataset', async () => {
+    const ds = tfd.array([]);
+    expect(ds.size).toEqual(0);
+  });
+
+  it('size is undefined if dataset may exhausted randomly', async () => {
+    let i = -1;
+    const func = () =>
+        ++i < 7 ? {value: i, done: false} : {value: null, done: true};
+    const ds = tfd.generator(func);
+    expect(ds.size).toBeNull();
+  });
+
+  it('repeat dataset has correct size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]).repeat(3);
+    expect(ds.size).toEqual(15);
+  });
+
+  it('repeat dataset forever has infinity size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]).repeat();
+    expect(ds.size).toEqual(Infinity);
+  });
+
+  it('repeat undefined size dataset has undefined size', async () => {
+    let i = -1;
+    const func = () =>
+        ++i < 7 ? {value: i, done: false} : {value: null, done: true};
+    const ds = tfd.generator(func).repeat(3);
+    expect(ds.size).toBeNull();
+  });
+
+  it('take dataset has correct size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]).take(3);
+    expect(ds.size).toEqual(3);
+  });
+
+  it('take dataset without enough elements has correct size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]).take(10);
+    expect(ds.size).toEqual(5);
+  });
+
+  it('take dataset with undefined size has undefined size', async () => {
+    let i = -1;
+    const func = () =>
+        ++i < 7 ? {value: i, done: false} : {value: null, done: true};
+    const ds = tfd.generator(func).take(3);
+    expect(ds.size).toBeNull();
+  });
+
+  it('take dataset with infinity elements has correct size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]).repeat().take(10);
+    expect(ds.size).toEqual(10);
+  });
+
+  it('skip dataset has correct size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]).skip(2);
+    expect(ds.size).toEqual(3);
+  });
+
+  it('skip dataset without enough elements has correct size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]).skip(10);
+    expect(ds.size).toEqual(0);
+  });
+
+  it('skip dataset with undefined size has undefined size', async () => {
+    let i = -1;
+    const func = () =>
+        ++i < 7 ? {value: i, done: false} : {value: null, done: true};
+    const ds = tfd.generator(func).skip(3);
+    expect(ds.size).toBeNull();
+  });
+
+  it('skip dataset with infinity elements has infinity size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]).repeat().skip(10);
+    expect(ds.size).toEqual(Infinity);
+  });
+
+  it('batch dataset with small last batch has correct size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5, 6, 7]).batch(2, true);
+    expect(ds.size).toEqual(4);
+  });
+
+  it('batch dataset without small last batch has correct size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5, 6, 7]).batch(2, false);
+    expect(ds.size).toEqual(3);
+  });
+
+  it('batch dataset with undefined size has undefined size', async () => {
+    let i = -1;
+    const func = () =>
+        ++i < 7 ? {value: i, done: false} : {value: null, done: true};
+    const ds = tfd.generator(func).batch(2);
+    expect(ds.size).toBeNull();
+  });
+
+  it('batch dataset with infinity elements has infinity size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]).repeat().batch(2);
+    expect(ds.size).toEqual(Infinity);
+  });
+
+  it('map dataset preserves regular size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]).map(e => e + 1);
+    expect(ds.size).toEqual(5);
+  });
+
+  it('map dataset preserves infinity size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]).repeat().map(e => e + 1);
+    expect(ds.size).toEqual(Infinity);
+  });
+
+  it('map dataset preserves null size', async () => {
+    let i = -1;
+    const func = () =>
+        ++i < 7 ? {value: i, done: false} : {value: null, done: true};
+    const ds = tfd.generator(func).map(e => e + 1);
+    expect(ds.size).toBeNull();
+  });
+
+  it('filter dataset preserves infinity size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]).repeat().filter(e => e % 2 === 0);
+    expect(ds.size).toEqual(Infinity);
+  });
+
+  it('filter dataset with regular size has null size', async () => {
+    const ds = tfd.array([1, 2, 3, 4, 5]).filter(e => e % 2 === 0);
+    expect(ds.size).toBeNull();
+  });
+
+  it('filter dataset with null size has null size', async () => {
+    let i = -1;
+    const func = () =>
+        ++i < 7 ? {value: i, done: false} : {value: null, done: true};
+    const ds = tfd.generator(func).filter(e => e % 2 === 0);
+    expect(ds.size).toBeNull();
+  });
+
+  it('zipping an array of datasets with primitive elements has correct size',
+     async () => {
+       const a = tfd.array([1, 2, 3]);
+       const b = tfd.array([4, 5, 6, 7, 8]);
+       const result = await tfd.zip([a, b]);
+       expect(result.size).toEqual(3);
+     });
+
+  it('zipping an array of datasets with object elements has correct size',
+     async () => {
+       const a = tfd.array([{a: 1}, {a: 2}, {a: 3}]);
+       const b = tfd.array([{b: 4}, {b: 5}, {b: 6}, {b: 7}, {b: 8}]);
+       const result = await tfd.zip([a, b]);
+       expect(result.size).toEqual(3);
+     });
+
+  it('zipping an object of datasets with primitive elements has correct size',
+     async () => {
+       const a = tfd.array([1, 2, 3]);
+       const b = tfd.array([4, 5, 6, 7, 8]);
+       const result = await tfd.zip({'a': a, 'b': b});
+       expect(result.size).toEqual(3);
+     });
+
+  it('zipping an object of datasets with object elements has correct size',
+     async () => {
+       const a = tfd.array([{a: 1}, {a: 2}, {a: 3}]);
+       const b = tfd.array([{b: 4}, {b: 5}, {b: 6}, {b: 7}, {b: 8}]);
+       const result = await tfd.zip({'a': a, 'b': b});
+       expect(result.size).toEqual(3);
+     });
 });
