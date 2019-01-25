@@ -19,7 +19,7 @@ import * as broadcast_util from '../../ops/broadcast_util';
 import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 
-// We do the same as in ./binaryop_gpu, with vec4 and ivec4. 
+// We do the same as in ./binaryop_gpu, with vec4 and ivec4.
 export const PACKED_DIV = `
   vec4 one = vec4(equal(a, b));
   return one + (vec4(1.0) - one) * a / b;
@@ -31,7 +31,7 @@ export const PACKED_INT_DIV = `
   ivec4 ib = round(b);
   ivec4 result = ia / ib;
   ivec4 amodb = ia - ib * result;
-  
+
   // Vectorize INT_DIV
   // if (resultSign < 0.0 && amodb != 0) result -= 1;
   // return float(result);
@@ -50,7 +50,7 @@ export const PACKED_POW = `
   result.g = isNaN.g == 1.0 ? NAN : result.g;
   result.b = isNaN.b == 1.0 ? NAN : result.b;
   result.a = isNaN.a == 1.0 ? NAN : result.a;
-  
+
   return result;
 `;
 

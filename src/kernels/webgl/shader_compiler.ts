@@ -138,10 +138,7 @@ function getInputSamplingSnippet(
   const outShape = outShapeInfo.logicalShape;
   if (inShape.length <= outShape.length) {
     if (usesPackedTextures) {
-      // Packed broadcast sampling is not implemented yet.
-      if (getBroadcastDims(inShape, outShape).length === 0) {
-        res += getPackedSamplerAtOutputCoords(inInfo, outShapeInfo);
-      }
+      res += getPackedSamplerAtOutputCoords(inInfo, outShapeInfo);
     } else {
       res += getSamplerAtOutputCoords(inInfo, outShapeInfo);
     }
@@ -1283,32 +1280,16 @@ function getPackedSamplerAtOutputCoords(
   const texName = inputInfo.name;
   const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
   const funcName = 'get' + texFuncSnippet + 'AtOutCoords';
-  const outTexShape = outShapeInfo.texShape;
-  const inTexShape = inputInfo.shapeInfo.texShape;
-  const glsl = getGlslDifferences();
   const inRank = inputInfo.shapeInfo.logicalShape.length;
   const outRank = outShapeInfo.logicalShape.length;
 
-  if (!inputInfo.shapeInfo.isUniform && inRank === outRank &&
-      inputInfo.shapeInfo.flatOffset == null &&
-      util.arraysEqual(inTexShape, outTexShape)) {
-    return `
-      vec4 ${funcName}() {
-        return ${glsl.texture2D}(${texName}, resultUV);
-      }
-    `;
-  }
-
-  const type = getCoordsDataType(outRank);
   const broadcastDims = getBroadcastDims(
       inputInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape);
+
+  const type = getCoordsDataType(outRank);
   const rankDiff = outRank - inRank;
   let coordsSnippet: string;
   const fields = ['x', 'y', 'z', 'w', 'u', 'v'];
-
-  if (broadcastDims.length) {
-    throw Error('Packed broadcast sampling is not implemented yet.');
-  }
 
   if (inRank === 0) {
     coordsSnippet = '';
@@ -1343,6 +1324,18 @@ function getPackedSamplerAtOutputCoords(
       output = `
         return vec4(outputValue.x);
       `;
+    }
+  } else if (broadcastDims.length) {
+    const rows = inRank - 2;
+    const cols = inRank - 1;
+
+    if (broadcastDims.indexOf(rows) > -1 && broadcastDims.indexOf(cols) > -1) {
+      output = `return vec4(outputValue.x);`;
+    } else if (broadcastDims.indexOf(rows) > -1) {
+      output = `return vec4(outputValue.x, outputValue.y, ` +
+          `outputValue.x, outputValue.y);`;
+    } else if (broadcastDims.indexOf(cols) > -1) {
+      output = `return vec4(outputValue.xx, outputValue.zz);`;
     }
   }
 

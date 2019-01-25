@@ -73,6 +73,18 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(d, [1, 9, 0, 21]);
   });
 
+  it('A x B with relu and broadcasted bias different rank', () => {
+    const a = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [2, 2, 3]);
+    const b = tf.tensor3d([0, 1, -3, 2, 2, 1, 0, 1, -3, 2, 2, 1], [2, 3, 2]);
+    const c = tf.tensor2d([1, 2], [1, 2]);
+    const act: tf.fused.Activation = 'relu';
+
+    const d = tf.fused.matMul(a, b, false, false, c, act);
+
+    expect(d.shape).toEqual([2, 2, 2]);
+    expectArraysClose(d, [2, 6, 0, 18, 0, 30, 0, 42]);
+  });
+
   it('A x B with bias only', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
