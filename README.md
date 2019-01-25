@@ -142,9 +142,10 @@ We support porting pre-trained models from:
 
 [TensorFlow.js](https://js.tensorflow.org) is a part of the
 [TensorFlow](https://www.tensorflow.org) ecosystem. For more info:
+- For help from the community, use [`tensorflow.js`](https://stackoverflow.com/questions/tagged/tensorflow.js) tag on Stack Overflow.
 - [js.tensorflow.org](https://js.tensorflow.org)
 - [Tutorials](https://js.tensorflow.org/tutorials)
 - [API reference](https://js.tensorflow.org/api/latest/)
-- [Help mailing list](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs)
+- [Discussion mailing list](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs)
 
 Thanks <a href="https://www.browserstack.com/">BrowserStack</a> for providing testing support.
