@@ -20,7 +20,7 @@ import {DataType, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:max-line-length
 import {NamedTensorMap, NamedTensorsMap, TensorArrayMap, TensorInfo} from '../data/types';
 // tslint:disable-next-line:max-line-length
-import {getNodeNameAndIndex, getParamValue, getTensor, getTensorsForCurrentContenxt} from '../operations/executors/utils';
+import {getNodeNameAndIndex, getParamValue, getTensor, getTensorsForCurrentContenxt, parseNodeName} from '../operations/executors/utils';
 import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
 
@@ -471,7 +471,8 @@ export class GraphExecutor {
     const compiledNodeNames = compiledNodes.map(node => node.name);
     const extra: string[] = [];
     outputs.forEach(name => {
-      if (compiledNodeNames.indexOf(name) === -1) extra.push(name);
+      const [nodeName] = parseNodeName(name);
+      if (compiledNodeNames.indexOf(nodeName) === -1) extra.push(nodeName);
     });
 
     if (extra.length > 0) {
