@@ -317,8 +317,9 @@ export async function fitDataset<T extends TensorContainer>(
     }
 
     const callbacks = standardizeCallbacks(args.callbacks);
+    const verbose = args.verbose == null ? 1 : args.verbose;
     const {callbackList, history} = configureCallbacks(
-        callbacks, args.yieldEvery, args.verbose, args.epochs, null, null,
+        callbacks, args.yieldEvery, verbose, args.epochs, null, null,
         args.batchesPerEpoch,
         null,  // Batch size determined by the dataset itself.
         doValidation, callbackMetrics);
