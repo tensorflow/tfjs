@@ -50,10 +50,15 @@ let targetUri = BASE_URI;
 
 async function getTargetUri() {
   if (platform === 'linux') {
-    if (libType === 'gpu') {
-      targetUri += GPU_LINUX;
+    if (os.arch() === 'arm') {
+      targetUri =
+          'https://storage.googleapis.com/tf-builds/libtensorflow_r1_12_linux_arm.tar.gz';
     } else {
-      targetUri += CPU_LINUX;
+      if (libType === 'gpu') {
+        targetUri += GPU_LINUX;
+      } else {
+        targetUri += CPU_LINUX;
+      }
     }
   } else if (platform === 'darwin') {
     targetUri += CPU_DARWIN;
