@@ -55,7 +55,7 @@
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "test": "karma start",
-    "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
+    "test-travis": "karma start --singleRun --browsers='bs_firefox_mac,bs_chrome_mac' --reporters='dots,karma-typescript,BrowserStack'",
     "lint": "tslint -p . -t verbose",
     "make-version": "sh -c ./scripts/make-version",
     "gen-doc": "ts-node ./scripts/gen_doc.ts",
