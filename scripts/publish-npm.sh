@@ -30,8 +30,8 @@ BRANCH=`git rev-parse --abbrev-ref HEAD`
 ORIGIN=`git config --get remote.origin.url`
 CHANGES=`git status --porcelain`
 
-if [ "$BRANCH" != "master" ]; then
-  echo "Error: Switch to the master branch before publishing."
+if [ "$BRANCH" != "master" ] && [ "$BRANCH" != "0.15.x" ]; then
+  echo "Error: Switch to the master or a release branch before publishing."
   exit
 fi
 
