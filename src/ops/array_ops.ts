@@ -926,8 +926,11 @@ function unstack_(x: Tensor|TensorLike, axis = 0): Tensor[] {
   axis = axis || 0;
   const $x = convertToTensor(x, 'x', 'unstack');
   util.assert(
-      axis < $x.shape.length,
-      `Axis ${axis} is >= to tensor shape length ${$x.shape.length}`);
+      axis >= -$x.shape.length && axis < $x.shape.length,
+      `Axis = ${axis} is not in [-${$x.shape.length}, ${$x.shape.length})`);
+  if (axis < 0) {
+    axis += $x.shape.length;
+  }
   const grad = (dy: Tensor[]) => {
     return {$x: () => stack(dy, axis)};
   };

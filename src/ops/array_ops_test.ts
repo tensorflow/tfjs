@@ -3075,6 +3075,34 @@ describeWithFlags('unstack', ALL_ENVS, () => {
     expectArraysClose(res[1], [5, 6, 7, 8]);
   });
 
+  it('unstack with negative integer axis', () => {
+    const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+
+    let res = tf.unstack(x, -1);
+    expect(res.length).toEqual(4);
+    expect(res[0].rank).toEqual(1);
+    expect(res[0].shape).toEqual([2]);
+    expectArraysClose(res[0], [1, 5]);
+    expect(res[1].rank).toEqual(1);
+    expect(res[1].shape).toEqual([2]);
+    expectArraysClose(res[1], [2, 6]);
+    expect(res[2].rank).toEqual(1);
+    expect(res[2].shape).toEqual([2]);
+    expectArraysClose(res[2], [3, 7]);
+    expect(res[3].rank).toEqual(1);
+    expect(res[3].shape).toEqual([2]);
+    expectArraysClose(res[3], [4, 8]);
+
+    res = tf.unstack(x, -2);
+    expect(res.length).toEqual(2);
+    expect(res[0].rank).toEqual(1);
+    expect(res[0].shape).toEqual([4]);
+    expectArraysClose(res[0], [1, 2, 3, 4]);
+    expect(res[1].rank).toEqual(1);
+    expect(res[1].shape).toEqual([4]);
+    expectArraysClose(res[1], [5, 6, 7, 8]);
+  });
+
   it('unstack into 3 tensors', () => {
     const x = tf.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
     const res = tf.unstack(x, 0);
@@ -3198,15 +3226,15 @@ describeWithFlags('unstack', ALL_ENVS, () => {
     expect(() => {
       const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
       tf.unstack(x, 3);
-    }).toThrowError(/Axis 3 is >= to tensor shape length 2/);
+    }).toThrowError('Axis = 3 is not in [-2, 2)');
     expect(() => {
       const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
       tf.unstack(x, 3);
-    }).toThrowError(/Axis 3 is >= to tensor shape length 3/);
+    }).toThrowError('Axis = 3 is not in [-3, 3)');
     expect(() => {
       const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2, 1]);
       tf.unstack(x, 5);
-    }).toThrowError(/Axis 5 is >= to tensor shape length 4/);
+    }).toThrowError('Axis = 5 is not in [-4, 4)');
   });
 
   it('accepts a tensor-like object', () => {
