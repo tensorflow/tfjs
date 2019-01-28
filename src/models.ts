@@ -31,7 +31,6 @@ import {convertPythonicToTs} from './utils/serialization_utils';
 import {getExactlyOneShape} from './utils/types_utils';
 
 
-
 /**
  * Parses a JSON model configuration file and returns a model instance.
  *
@@ -708,7 +707,7 @@ export class Sequential extends Model {
    * @returns Loss and metric values as an Array of `Scalar` objects.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
    */
   async evaluateDataset<T extends TensorContainer>(
       dataset: Dataset<T>,
@@ -852,7 +851,7 @@ export class Sequential extends Model {
    *   information collected during training.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
    */
   async fitDataset<T extends TensorContainer>(
       dataset: Dataset<T>, args: ModelFitDatasetArgs<T>): Promise<History> {

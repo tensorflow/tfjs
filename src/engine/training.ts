@@ -839,7 +839,7 @@ export class Model extends Container implements tfc.InferenceModel {
    * @returns Loss and metric values as an Array of `Scalar` objects.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
    */
   async evaluateDataset<T extends TensorContainer>(
       dataset: Dataset<T>,
@@ -1414,7 +1414,7 @@ export class Model extends Container implements tfc.InferenceModel {
    *   information collected during training.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
    */
   async fitDataset<T extends TensorContainer>(
       dataset: Dataset<T>, args: ModelFitDatasetArgs<T>): Promise<History> {
