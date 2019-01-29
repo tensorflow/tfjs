@@ -457,19 +457,29 @@ export class Environment {
           new Engine(backend, false /* safeMode */, () => this.get('DEBUG'));
     }
   }
+
+  get global(): {ENV: Environment} {
+    return getGlobalNamespace();
+  }
 }
 
+let _global: {ENV: Environment};
 function getGlobalNamespace(): {ENV: Environment} {
-  // tslint:disable-next-line:no-any
-  let ns: any;
-  if (typeof (window) !== 'undefined') {
-    ns = window;
-  } else if (typeof (process) !== 'undefined') {
-    ns = process;
-  } else {
-    throw new Error('Could not find a global object');
+  if (_global == null) {
+    // tslint:disable-next-line:no-any
+    let ns: any;
+    if (typeof (window) !== 'undefined') {
+      ns = window;
+    } else if (typeof (global) !== 'undefined') {
+      ns = global;
+    } else if (typeof (process) !== 'undefined') {
+      ns = process;
+    } else {
+      throw new Error('Could not find a global object');
+    }
+    _global = ns;
   }
-  return ns;
+  return _global;
 }
 
 function getOrMakeEnvironment(): Environment {
