@@ -22,6 +22,7 @@
  */
 
 import {assert} from '../util';
+
 import {concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
@@ -374,7 +375,6 @@ IORouterRegistry.registerLoadRouter(httpRequestRouter);
  * import tensorflow as tf
  * import tensorflowjs as tfjs
  * import werkzeug.formparser
- *
  *
  * class ModelReceiver(object):
  *
