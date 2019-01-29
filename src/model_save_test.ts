@@ -436,6 +436,21 @@ describeMathGPU('Save-load round trips', () => {
     expect(gramSchmidtSpy).toHaveBeenCalled();
   });
 
+  it('Load model artifact with ndarray-format scalar objects', async () => {
+    // The following model config contains a scalar parameter serialized in the
+    // ndarray-style format: `{"type": "ndarray", "value": 6}`.
+    // tslint:disable-next-line:max-line-length
+    const modelJSON = `{"class_name": "Sequential", "keras_version": "2.2.4", "config": {"layers": [{"class_name": "Dense", "config": {"kernel_initializer": {"class_name": "VarianceScaling", "config": {"distribution": "uniform", "scale": 1.0, "seed": null, "mode": "fan_avg"}}, "name": "dense_1", "kernel_constraint": null, "bias_regularizer": null, "bias_constraint": null, "dtype": "float32", "activation": "linear", "trainable": true, "kernel_regularizer": null, "bias_initializer": {"class_name": "Zeros", "config": {}}, "units": 2, "batch_input_shape": [null, 3], "use_bias": true, "activity_regularizer": null}}, {"class_name": "ReLU", "config": {"threshold": 0.0, "max_value": {"type": "ndarray", "value": 6}, "trainable": true, "name": "re_lu_1", "negative_slope": 0.0}}, {"class_name": "Dense", "config": {"kernel_initializer": {"class_name": "VarianceScaling", "config": {"distribution": "uniform", "scale": 1.0, "seed": null, "mode": "fan_avg"}}, "name": "dense_2", "kernel_constraint": null, "bias_regularizer": null, "bias_constraint": null, "activation": "linear", "trainable": true, "kernel_regularizer": null, "bias_initializer": {"class_name": "Zeros", "config": {}}, "units": 1, "use_bias": true, "activity_regularizer": null}}], "name": "sequential_1"}, "backend": "tensorflow"}`;
+    const model =
+        await tfl.models.modelFromJSON({modelTopology: JSON.parse(modelJSON)});
+    expect(model.layers.length).toEqual(3);
+    expect(model.layers[1].getConfig().maxValue).toEqual(6);
+
+    const xs = randomNormal([5].concat(model.inputs[0].shape.slice(1)));
+    const ys = model.predict(xs) as Tensor;
+    expect(ys.shape).toEqual([5, 1]);
+  });
+
   // TODO(cais): Test fast initialization of models consisting of
   //   StackedRNN layers.
 });
