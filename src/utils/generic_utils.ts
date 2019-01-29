@@ -143,6 +143,39 @@ export function serializeKerasObject(instance: serialization.Serializable):
 }
 
 /**
+ * Replace ndarray-style scalar objects in serialization objects with numbers.
+ *
+ * Background: In some versions of tf.keras, certain scalar values in the HDF5
+ * model save file can be serialized as: `{'type': 'ndarray', 'value': num}`,
+ * where in `num` is a plain number. This method converts such serialization
+ * to a `number`.
+ *
+ * @param config The keras-format serialization object to be processed
+ *   (in place).
+ */
+function convertNDArrayScalarsInConfig(
+    config: serialization.ConfigDictValue): void {
+  if (config == null || typeof config !== 'object') {
+    return;
+  } else if (Array.isArray(config)) {
+    config.forEach(configItem => convertNDArrayScalarsInConfig(configItem));
+  } else {
+    const fields = Object.keys(config);
+    for (const field of fields) {
+      const value = config[field];
+      if (value != null && typeof value === 'object') {
+        if (!Array.isArray(value) && value['type'] === 'ndarray' &&
+            typeof value['value'] === 'number') {
+          config[field] = value['value'];
+        } else {
+          convertNDArrayScalarsInConfig(value as serialization.ConfigDict);
+        }
+      }
+    }
+  }
+}
+
+/**
  * Deserialize a saved Keras Object
  * @param identifier either a string ID or a saved Keras dictionary
  * @param moduleObjects a list of Python class names to object constructors
@@ -236,6 +269,7 @@ export function deserializeKerasObject(
       for (const key of Object.keys(customObjects)) {
         _GLOBAL_CUSTOM_OBJECTS[key] = customObjects[key];
       }
+      convertNDArrayScalarsInConfig(config.config);
       const returnObj =
           fromConfig(cls, config.config, customObjects, fastWeightInit);
       _GLOBAL_CUSTOM_OBJECTS = {...backupCustomObjects};
