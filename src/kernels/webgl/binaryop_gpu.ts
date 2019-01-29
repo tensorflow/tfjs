@@ -28,6 +28,9 @@ const CHECK_NAN_SNIPPET = `
 export const ADD = 'return a + b;';
 export const SUB = 'return a - b;';
 export const MUL = 'return a * b;';
+
+// Without the equality check div produces 0.9999 for a = b, which when
+// floored can cause errors.
 export const DIV = `if (a == b) return 1.0;
   return a / b;`;
 
