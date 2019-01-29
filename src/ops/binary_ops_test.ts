@@ -17,7 +17,19 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose, expectArraysEqual, WEBGL_ENVS} from '../test_util';
+import {ALL_ENVS, expectArraysClose, expectArraysEqual, PACKED_ENVS, WEBGL_ENVS} from '../test_util';
+
+describeWithFlags('div', PACKED_ENVS, () => {
+  it('works when unused channels are divided', () => {
+    // Tests that the 0's in unused channels for input textures do not corrupt
+    // the result when swizzled with 3 / 3.
+    const a = tf.tensor2d([3], [1, 1]);
+    const b = tf.tensor2d([3], [1, 1]);
+
+    const c = a.div(b).matMul(b);
+    expectArraysClose(c, [3]);
+  });
+});
 
 describeWithFlags('prelu', ALL_ENVS, () => {
   it('basic', () => {
