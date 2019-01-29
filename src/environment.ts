@@ -19,7 +19,7 @@ import * as device_util from './device_util';
 import {Engine, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo} from './engine';
 import {Features, getFeaturesFromURL, getMaxTexturesInShader, getNumMBBeforePaging, getWebGLDisjointQueryTimerVersion, getWebGLMaxTextureSize, isChrome, isDownloadFloatTextureEnabled, isRenderToFloatTextureEnabled, isWebGLFenceEnabled, isWebGLVersionEnabled} from './environment_util';
 import {KernelBackend} from './kernels/backend';
-import {DataId, setTensorTracker, Tensor, TensorTracker} from './tensor';
+import {DataId, setTensorTracker, Tensor} from './tensor';
 import {TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
 
@@ -416,15 +416,11 @@ export class Environment {
    *     the best backend. Defaults to 1.
    * @return False if the creation/registration failed. True otherwise.
    */
-  registerBackend(
-      name: string, factory: () => KernelBackend, priority = 1,
-      setTensorTrackerFn?: (f: () => TensorTracker) => void): boolean {
+  registerBackend(name: string, factory: () => KernelBackend, priority = 1):
+      boolean {
     if (name in this.registry) {
       console.warn(
           `${name} backend was already registered. Reusing existing backend`);
-      if (setTensorTrackerFn != null) {
-        setTensorTrackerFn(() => this.engine);
-      }
       return false;
     }
     try {
@@ -480,8 +476,10 @@ function getOrMakeEnvironment(): Environment {
   const ns = getGlobalNamespace();
   if (ns.ENV == null) {
     ns.ENV = new Environment(getFeaturesFromURL());
-    setTensorTracker(() => ns.ENV.engine);
   }
+  // Tell the current tensor interface that the global engine is responsible for
+  // tracking.
+  setTensorTracker(() => ns.ENV.engine);
   return ns.ENV;
 }
 

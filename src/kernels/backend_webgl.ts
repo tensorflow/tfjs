@@ -32,7 +32,7 @@ import * as segment_util from '../ops/segment_util';
 import {computeFlatOffset, getStridedSlicedInfo, isSliceContinous} from '../ops/slice_util';
 import {softmax} from '../ops/softmax';
 import {range, scalar, tensor} from '../ops/tensor_ops';
-import {DataId, Scalar, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
+import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
 import {DataType, DataTypeMap, DataValues, NumericDataType, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../types';
 import * as util from '../util';
 import {getTypedArrayFromDType, sizeFromShape} from '../util';
@@ -2304,9 +2304,7 @@ export class MathBackendWebGL implements KernelBackend {
 }
 
 if (ENV.get('IS_BROWSER')) {
-  ENV.registerBackend(
-      'webgl', () => new MathBackendWebGL(), 2 /* priority */,
-      setTensorTracker);
+  ENV.registerBackend('webgl', () => new MathBackendWebGL(), 2 /* priority */);
 }
 
 function float32ToTypedArray<D extends NumericDataType>(
