@@ -1,4 +1,6 @@
 cache: yarn
+git:
+  depth: 5
 matrix:
   include:
     - language: node_js
