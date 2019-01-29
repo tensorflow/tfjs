@@ -32,7 +32,7 @@ import {buffer, scalar, tensor, tensor3d, tensor4d} from '../ops/ops';
 import * as scatter_nd_util from '../ops/scatter_nd_util';
 import * as selu_util from '../ops/selu_util';
 import {computeFlatOffset, getStridedSlicedInfo, isSliceContinous} from '../ops/slice_util';
-import {DataId, Scalar, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../tensor';
+import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../tensor';
 import {DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, TypedArray, upcastType} from '../types';
 import * as util from '../util';
 import {now} from '../util';
@@ -3363,5 +3363,4 @@ export class MathBackendCPU implements KernelBackend {
   }
 }
 
-ENV.registerBackend(
-    'cpu', () => new MathBackendCPU(), 1 /* priority */, setTensorTracker);
+ENV.registerBackend('cpu', () => new MathBackendCPU(), 1 /* priority */);
