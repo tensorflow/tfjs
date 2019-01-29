@@ -26,6 +26,7 @@ export abstract class LazyIterator<T> {
 
 export abstract class Dataset<T extends TensorContainer> {
   abstract async iterator(): Promise<LazyIterator<T>>;
+  size: number;
 }
 
 export type TensorMap = {

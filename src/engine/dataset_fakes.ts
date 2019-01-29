@@ -183,6 +183,7 @@ export class FakeNumericDataset extends
     tfc.util.assert(
         args.numBatches > 0 && Number.isInteger(args.numBatches),
         `numBatches must be positive integer, but got ${args.numBatches}`);
+    this.size = args.numBatches;
   }
 
   async iterator():
