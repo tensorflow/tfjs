@@ -22,6 +22,7 @@ import {describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {FakeNumericDataset} from './dataset_fakes';
 import {TensorMap} from './dataset_stub';
+import {CustomCallback} from '../base_callbacks';
 
 function createDenseModel(): tfl.Model {
   const model = tfl.sequential();
@@ -504,6 +505,95 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
     // Assert that the the first log and the second logs do not overwrite each
     // other.
     expect(trainLogs[0].loss).not.toEqual(trainLogs[1].loss);
+  });
+
+  it('dataset.size != null feeds stepPerEpoch to callbacks', async () => {
+    const batchSize = 8;
+    const batchesPerEpoch = 3;
+    const xTensorsFunc =
+        () => [tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]), tfc.ones([
+          batchSize, 1
+        ])];
+    const yTensorsFunc =
+        () => [tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]), tfc.ones([
+          batchSize, 1
+        ])];
+    const dataset = new FakeNumericDataset({
+      xShape: [1],
+      yShape: [1],
+      batchSize,
+      numBatches: batchesPerEpoch,
+      xTensorsFunc,
+      yTensorsFunc
+    });
+
+    let recordedSteps: number;
+    class TestCallback extends CustomCallback {
+      constructor() {
+        super({
+          onTrainBegin: async (logs?: Logs) => {
+            recordedSteps = this.params.steps as number;
+          }
+        });
+      }
+    }
+
+    const model = createDenseModel();
+    model.compile(
+        {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['accuracy']});
+    const epochs = 1;
+    await model.fitDataset(dataset, {
+      epochs,
+      callbacks: new TestCallback()
+    });
+
+    expect(dataset.size).toEqual(batchesPerEpoch);
+    expect(recordedSteps).toEqual(batchesPerEpoch);
+  });
+
+  it('explicit stepPerEpoch overrides dataset.size for callbacks', async () => {
+    const batchSize = 8;
+    const numBatches = 3;
+    const xTensorsFunc =
+        () => [tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]), tfc.ones([
+          batchSize, 1
+        ])];
+    const yTensorsFunc =
+        () => [tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]), tfc.ones([
+          batchSize, 1
+        ])];
+    const dataset = new FakeNumericDataset({
+      xShape: [1],
+      yShape: [1],
+      batchSize,
+      numBatches,
+      xTensorsFunc,
+      yTensorsFunc
+    });
+
+    let recordedSteps: number;
+    class TestCallback extends CustomCallback {
+      constructor() {
+        super({
+          onTrainBegin: async (logs?: Logs) => {
+            recordedSteps = this.params.steps as number;
+          }
+        });
+      }
+    }
+
+    const model = createDenseModel();
+    model.compile(
+        {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['accuracy']});
+    const epochs = 1;
+    await model.fitDataset(dataset, {
+      epochs,
+      batchesPerEpoch: numBatches - 1,
+      callbacks: new TestCallback()
+    });
+
+    expect(dataset.size).toEqual(numBatches);
+    expect(recordedSteps).toEqual(numBatches - 1);
   });
 
   // Reference Python tf.keras code:
