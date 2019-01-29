@@ -96,6 +96,7 @@ import {ScatterProgram} from './webgl/scatter_gpu';
 import {SegmentOpProgram} from './webgl/segment_gpu';
 import {SelectProgram} from './webgl/select_gpu';
 import {SliceProgram} from './webgl/slice_gpu';
+import {SlicePackedProgram} from './webgl/slice_packed_gpu';
 import {StridedSliceProgram} from './webgl/strided_slice_gpu';
 import * as tex_util from './webgl/tex_util';
 import {TextureData, TextureUsage} from './webgl/tex_util';
@@ -641,7 +642,9 @@ export class MathBackendWebGL implements KernelBackend {
     const {isPacked} = this.texData.get(x.dataId);
     const isContinous = isSliceContinous(x.shape, begin, size);
     if (isPacked || !isContinous) {
-      const program = new SliceProgram(size);
+      const program = ENV.get('WEBGL_PACK_ARRAY_OPERATIONS') ?
+          new SlicePackedProgram(size) :
+          new SliceProgram(size);
       const customSetup = program.getCustomSetupFunc(begin);
       return this.compileAndRun(program, [x], null, customSetup);
     }
