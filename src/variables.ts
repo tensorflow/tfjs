@@ -325,7 +325,7 @@ export function batchGetValue(xs: LayerVariable[]): Tensor[] {
  */
 export function batchSetValue(
     variablesAndValues: Array<[LayerVariable, Tensor]>): void {
-  variablesAndValues.map((variableAndValue) => {
+  variablesAndValues.forEach(variableAndValue => {
     const variable: LayerVariable = variableAndValue[0];
     variable.write(variableAndValue[1]);
   });

@@ -13,8 +13,6 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {TensorContainer} from '@tensorflow/tfjs-core/dist/tensor_types';
-
 import {getScalar} from '../backend/state';
 import {BaseCallback, configureCallbacks, CustomCallbackArgs, History, ModelLoggingVerbosity, standardizeCallbacks, YieldEveryOptions} from '../base_callbacks';
 import {NotImplementedError, ValueError} from '../errors';
@@ -26,7 +24,7 @@ import {Dataset, LazyIterator, TensorMap, TensorOrTensorMap} from './dataset_stu
 /**
  * Interface for configuring model training based on a dataset object.
  */
-export interface ModelFitDatasetArgs<T extends TensorContainer> {
+export interface ModelFitDatasetArgs<T> {
   /**
    * (Optional) Total number of steps (batches of samples) before
    * declaring one epoch finished and starting the next epoch. It should
@@ -171,7 +169,7 @@ const DEFAULT_VALIDATION_BATCH_SIZE = 32;
 function standardizeDataIteratorOutput(
     // Type `model` as `any` here to avoid circular dependency w/ training.ts.
     // tslint:disable-next-line:no-any
-    model: any, iteratorOut: TensorContainer): tfc.Tensor[] {
+    model: any, iteratorOut: {}): tfc.Tensor[] {
   if (model.outputs.length > 1) {
     throw new NotImplementedError(
         `Support for training a model with multiple output tensors with ` +
@@ -185,9 +183,9 @@ function standardizeDataIteratorOutput(
           iteratorOut);
   // TODO(cais): If there are multiple inputs or outputs, make sure
   //   they all have the same batch size.
-  iteratorOut = iteratorOut as [TensorOrTensorMap, TensorOrTensorMap];
-  const ys = iteratorOut[1] as tfc.Tensor;
-  let xs = iteratorOut[0] as TensorOrTensorMap;
+  const tuple = iteratorOut as [TensorOrTensorMap, tfc.Tensor];
+  let xs = tuple[0];
+  const ys = tuple[1];
   if (xs instanceof tfc.Tensor) {
     tfc.util.assert(
         model.inputs.length === 1,
@@ -228,7 +226,7 @@ function standardizeDataIteratorOutput(
   // TODO(cais): Handle case in which ys is a TensorMap.
 }
 
-function standardizeTensorValidationData<T extends TensorContainer>(
+function standardizeTensorValidationData<T>(
     data:
         [
           tfc.Tensor|tfc.Tensor[], tfc.Tensor|tfc.Tensor[]
@@ -242,7 +240,7 @@ function standardizeTensorValidationData<T extends TensorContainer>(
   return {xs: data[0], ys: data[1]};
 }
 
-export async function fitDataset<T extends TensorContainer>(
+export async function fitDataset<T>(
     // Type `model` as `any` here to avoid circular dependency w/ training.ts.
     // tslint:disable-next-line:no-any
     model: any, dataset: Dataset<T>,
@@ -434,7 +432,7 @@ export async function fitDataset<T extends TensorContainer>(
 }
 
 /** Helper function that determines number of steps (batches) per epoch. */
-function getStepsPerEpoch<T extends TensorContainer>(
+function getStepsPerEpoch<T>(
     dataset: Dataset<T>, args: ModelFitDatasetArgs<T>): number {
   // Attempt to determine # of batches in an epoch.
   let stepsPerEpoch: number = null;
@@ -448,7 +446,7 @@ function getStepsPerEpoch<T extends TensorContainer>(
 
 // Check if provided object is a Dataset object by checking it's .iterator
 // element.
-function isDatasetObject<T extends TensorContainer>(
+function isDatasetObject<T>(
     dataset:
         [
           tfc.Tensor|tfc.Tensor[]|TensorMap, tfc.Tensor|tfc.Tensor[]|TensorMap
@@ -460,12 +458,12 @@ function isDatasetObject<T extends TensorContainer>(
 
 // Check if provided object is a LazyIterator object by checking it's .next
 // element.
-function isLazyIteratorObject<T extends TensorContainer>(
-    iterator: Dataset<T>|LazyIterator<T>): boolean {
+function isLazyIteratorObject<T>(iterator: Dataset<T>|
+                                 LazyIterator<T>): boolean {
   return (typeof (iterator as LazyIterator<T>).next === 'function');
 }
 
-export async function evaluateDataset<T extends TensorContainer>(
+export async function evaluateDataset<T>(
     // Type `model` as `any` here to avoid circular dependency w/ training.ts.
     // tslint:disable-next-line:no-any
     model: any, dataset: Dataset<T>|LazyIterator<T>,
