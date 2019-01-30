@@ -11,8 +11,6 @@
 /* Original source keras/models.py */
 
 import {io, Scalar, serialization, Tensor, util} from '@tensorflow/tfjs-core';
-import {TensorContainer} from '@tensorflow/tfjs-core/dist/tensor_types';
-
 import {getUid} from './backend/state';
 import {History} from './base_callbacks';
 import {Dataset} from './engine/dataset_stub';
@@ -709,9 +707,8 @@ export class Sequential extends Model {
   /**
    * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
    */
-  async evaluateDataset<T extends TensorContainer>(
-      dataset: Dataset<T>,
-      args: ModelEvaluateDatasetArgs): Promise<Scalar|Scalar[]> {
+  async evaluateDataset(dataset: Dataset<{}>, args: ModelEvaluateDatasetArgs):
+      Promise<Scalar|Scalar[]> {
     if (!this.built) {
       throw new RuntimeError(
           'The model needs to be compiled before being used.');
@@ -853,8 +850,8 @@ export class Sequential extends Model {
   /**
    * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
    */
-  async fitDataset<T extends TensorContainer>(
-      dataset: Dataset<T>, args: ModelFitDatasetArgs<T>): Promise<History> {
+  async fitDataset<T>(dataset: Dataset<T>, args: ModelFitDatasetArgs<T>):
+      Promise<History> {
     if (!this.built) {
       throw new RuntimeError(
           'The model needs to be compiled before ' +

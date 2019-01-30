@@ -9,9 +9,6 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-// NOTE: It is necessary to import `TensorContainer` from dist currently,
-// because it is not exposed in the public API of tfjs-core.
-import {TensorContainer} from '@tensorflow/tfjs-core/dist/tensor_types';
 
 /**
  * Stub interfaces and classes for testing tf.Model.fitDataset().
@@ -24,7 +21,7 @@ export abstract class LazyIterator<T> {
   abstract async next(): Promise<IteratorResult<T>>;
 }
 
-export abstract class Dataset<T extends TensorContainer> {
+export abstract class Dataset<T> {
   abstract async iterator(): Promise<LazyIterator<T>>;
   size: number;
 }
