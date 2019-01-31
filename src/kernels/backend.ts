@@ -17,7 +17,7 @@
 
 import {Conv2DInfo, Conv3DInfo} from '../ops/conv_util';
 import {Activation} from '../ops/fused_util';
-import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
+import {Backend, DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
 import {DataType, DataValues, Rank, ShapeMap} from '../types';
 
 // Required information for all backends.
@@ -84,7 +84,7 @@ export interface BackendTimer {
  * methods, this can be done gradually (throw an error for unimplemented
  * methods).
  */
-export class KernelBackend implements TensorStorage, BackendTimer {
+export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   time(f: () => void): Promise<BackendTimingInfo> {
     throw new Error('Not yet implemented.');
   }

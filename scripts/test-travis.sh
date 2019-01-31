@@ -34,7 +34,6 @@ if [[ $(node -v) = *v10* ]]; then
     "run-browserstack --browsers=bs_ios_11 --features '{\"HAS_WEBGL\": false}' --backend cpu" \
     "run-browserstack --browsers=bs_firefox_mac" \
     "run-browserstack --browsers=bs_chrome_mac" \
-    "run-browserstack --browsers=bs_chrome_mac --backend webgl --features '{\"WEBGL_PACK\": true, \"WEBGL_VERSION\": 1}'" \
     "run-browserstack --browsers=bs_chrome_mac --backend webgl --features '{\"WEBGL_CPU_FORWARD\": true}'" \
     "run-browserstack --browsers=bs_chrome_mac --backend webgl --features '{\"WEBGL_CPU_FORWARD\": false}'"
 fi
