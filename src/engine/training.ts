@@ -441,6 +441,7 @@ export interface ModelCompileArgs {
  */
 /** @doc {heading: 'Models', subheading: 'Classes'} */
 export class Model extends Container implements tfc.InferenceModel {
+  /** @nocollapse */
   static className = 'Model';
   optimizer: Optimizer;
   loss: string|string[]|{[outputName: string]: string}|LossOrMetricFn|
@@ -1455,7 +1456,8 @@ export class Model extends Container implements tfc.InferenceModel {
     const losses = trainFunction(inputs.concat(targets));
     const lossValues: number[] = [];
     for (const loss of losses) {
-      lossValues.push((await loss.data())[0]);
+      const v = await loss.data();
+      lossValues.push(v[0]);
     }
     tfc.dispose(losses);
     return singletonOrArray(lossValues);

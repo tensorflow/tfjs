@@ -139,7 +139,10 @@ export function serializeKerasObject(instance: serialization.Serializable):
   if (instance === null || instance === undefined) {
     return null;
   }
-  return {className: instance.getClassName(), config: instance.getConfig()};
+  const dict: serialization.ConfigDictValue = {};
+  dict.className = instance.getClassName();
+  dict.config = instance.getConfig();
+  return dict;
 }
 
 /**
@@ -153,8 +156,8 @@ export function serializeKerasObject(instance: serialization.Serializable):
  * @param config The keras-format serialization object to be processed
  *   (in place).
  */
-function convertNDArrayScalarsInConfig(
-    config: serialization.ConfigDictValue): void {
+function convertNDArrayScalarsInConfig(config: serialization.ConfigDictValue):
+    void {
   if (config == null || typeof config !== 'object') {
     return;
   } else if (Array.isArray(config)) {

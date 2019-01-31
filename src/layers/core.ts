@@ -30,7 +30,7 @@ import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
 
-export interface DropoutLayerArgs extends LayerArgs {
+export declare interface DropoutLayerArgs extends LayerArgs {
   /** Float between 0 and 1. Fraction of the input units to drop. */
   rate: number;
 
@@ -57,6 +57,7 @@ export interface DropoutLayerArgs extends LayerArgs {
  * each update during training time, which helps prevent overfitting.
  */
 export class Dropout extends Layer {
+  /** @nocollapse */
   static className = 'Dropout';
   private readonly rate: number;
   private readonly rateScalar: Scalar;
@@ -125,7 +126,7 @@ export class Dropout extends Layer {
     Object.assign(config, baseConfig);
     return config;
   }
-  
+
   dispose(): DisposeResult {
     const result = super.dispose();
     if (!this.rateScalar.isDisposed) {
@@ -137,7 +138,7 @@ export class Dropout extends Layer {
 }
 serialization.registerClass(Dropout);
 
-export interface DenseLayerArgs extends LayerArgs {
+export declare interface DenseLayerArgs extends LayerArgs {
   /** Positive integer, dimensionality of the output space. */
   units: number;
   /**
@@ -219,6 +220,7 @@ export interface DenseLayerArgs extends LayerArgs {
  * flattened prior to the initial dot product with the kernel.
  */
 export class Dense extends Layer {
+  /** @nocollapse */
   static className = 'Dense';
   private units: number;
   // Default activation: Linear (none).
@@ -347,6 +349,7 @@ serialization.registerClass(Dense);
  * ```
  */
 export class Flatten extends Layer {
+  /** @nocollapse */
   static className = 'Flatten';
   constructor(args?: LayerArgs) {
     super(args || {});
@@ -376,7 +379,7 @@ export class Flatten extends Layer {
 }
 serialization.registerClass(Flatten);
 
-export interface ActivationLayerArgs extends LayerArgs {
+export declare interface ActivationLayerArgs extends LayerArgs {
   /**
    * Name of the activation function to use.
    */
@@ -414,6 +417,7 @@ export interface ActivationLayerArgs extends LayerArgs {
  *
  */
 export class Activation extends Layer {
+  /** @nocollapse */
   static className = 'Activation';
   activation: ActivationFn;
 
@@ -440,12 +444,12 @@ export class Activation extends Layer {
 }
 serialization.registerClass(Activation);
 
-export interface ReshapeLayerArgs extends LayerArgs {
+export declare interface ReshapeLayerArgs extends LayerArgs {
   /** The target shape. Does not include the batch axis. */
   targetShape: Shape;
 }
 
-export interface RepeatVectorLayerArgs extends LayerArgs {
+export declare interface RepeatVectorLayerArgs extends LayerArgs {
   /**
    * The integer number of times to repeat the input.
    */
@@ -465,6 +469,7 @@ export interface RepeatVectorLayerArgs extends LayerArgs {
  * ```
  */
 export class RepeatVector extends Layer {
+  /** @nocollapse */
   static className = 'RepeatVector';
   readonly n: number;
 
@@ -517,6 +522,7 @@ serialization.registerClass(RepeatVector);
  *    targetShape[targetShape.length - 1]].
  */
 export class Reshape extends Layer {
+  /** @nocollapse */
   static className = 'Reshape';
   private targetShape: Shape;
 
@@ -620,7 +626,7 @@ export class Reshape extends Layer {
 }
 serialization.registerClass(Reshape);
 
-export interface PermuteLayerArgs extends LayerArgs {
+export declare interface PermuteLayerArgs extends LayerArgs {
   /**
    * Array of integers. Permutation pattern. Does not include the
    * sample (batch) dimension. Index starts at 1.
@@ -657,6 +663,7 @@ export interface PermuteLayerArgs extends LayerArgs {
  *   permuted) according to the `dims` configuration of this layer.
  */
 export class Permute extends Layer {
+  /** @nocollapse */
   static className = 'Permute';
   readonly dims: number[];
   private readonly dimsIncludingBatch: number[];

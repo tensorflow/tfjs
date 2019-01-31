@@ -278,6 +278,7 @@ export abstract class Merge extends Layer {
  * ```
  */
 export class Add extends Merge {
+  /** @nocollapse */
   static className = 'Add';
   constructor(args?: LayerArgs) {
     super(args as LayerArgs);
@@ -371,6 +372,7 @@ export function add(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
  * // dimension.
  */
 export class Multiply extends Merge {
+  /** @nocollapse */
   static className = 'Multiply';
   constructor(args?: LayerArgs) {
     super(args);
@@ -463,6 +465,7 @@ export function multiply(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
  * ```
  */
 export class Average extends Merge {
+  /** @nocollapse */
   static className = 'Average';
   constructor(args?: LayerArgs) {
     super(args);
@@ -556,6 +559,7 @@ export function average(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
  * ```
  */
 export class Maximum extends Merge {
+  /** @nocollapse */
   static className = 'Maximum';
   constructor(args?: LayerArgs) {
     super(args);
@@ -648,6 +652,7 @@ export function maximum(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
  * ```
  */
 export class Minimum extends Merge {
+  /** @nocollapse */
   static className = 'Minimum';
   constructor(args?: LayerArgs) {
     super(args);
@@ -723,7 +728,7 @@ export function minimum(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
   }
 }
 
-export interface ConcatenateLayerArgs extends LayerArgs {
+export declare interface ConcatenateLayerArgs extends LayerArgs {
   /**
    * Axis along which to concatenate.
    */
@@ -749,6 +754,7 @@ export interface ConcatenateLayerArgs extends LayerArgs {
  * ```
  */
 export class Concatenate extends Merge {
+  /** @nocollapse */
   static className = 'Concatenate';
   readonly DEFAULT_AXIS = -1;
   private readonly axis: number;
@@ -947,7 +953,7 @@ export function concatenate(config?: SymbolicTensor[]|Tensor[]|
   }
 }
 
-export interface DotLayerArgs extends LayerArgs {
+export declare interface DotLayerArgs extends LayerArgs {
   /**
    * Axis or axes along which the dot product will be taken.
    *
@@ -1086,6 +1092,7 @@ function batchDot(x: Tensor, y: Tensor, axes: number|[number, number]): Tensor {
  * ```
  */
 export class Dot extends Merge {
+  /** @nocollapse */
   static className = 'Dot';
 
   private axes: number|[number, number];

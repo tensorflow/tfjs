@@ -106,7 +106,7 @@ export function spatial2dPadding(
   });
 }
 
-export interface ZeroPadding2DLayerArgs extends LayerArgs {
+export declare interface ZeroPadding2DLayerArgs extends LayerArgs {
   /**
    * Integer, or `Array` of 2 integers, or `Array` of 2 `Array`s, each of
    * which is an `Array` of 2 integers.
@@ -152,6 +152,7 @@ export interface ZeroPadding2DLayerArgs extends LayerArgs {
  *     `[batch, channels, paddedRows, paddedCols]`.
  */
 export class ZeroPadding2D extends Layer {
+  /** @nocollapse */
   static className = 'ZeroPadding2D';
   readonly dataFormat: DataFormat;
   readonly padding: [[number, number], [number, number]];

@@ -239,7 +239,7 @@ export function rnn(
   });
 }
 
-export interface BaseRNNLayerArgs extends LayerArgs {
+export declare interface BaseRNNLayerArgs extends LayerArgs {
   /**
    * A RNN cell instance. A RNN cell is a class that has:
    *   - a `call()` method, which takes `[Tensor, Tensor]` as the
@@ -345,7 +345,7 @@ export interface BaseRNNLayerArgs extends LayerArgs {
  * `cell` property required. This interface is to be used with constructors
  * of concrete RNN layer subtypes.
  */
-export interface RNNLayerArgs extends BaseRNNLayerArgs {
+export declare interface RNNLayerArgs extends BaseRNNLayerArgs {
   cell: RNNCell|RNNCell[];
 }
 
@@ -408,6 +408,7 @@ export interface RNNLayerArgs extends BaseRNNLayerArgs {
  *   (not changing over time), a.k.a an attention mechanism.
  */
 export class RNN extends Layer {
+  /** @nocollapse */
   static className = 'RNN';
   public readonly cell: RNNCell;
   public readonly returnSequences: boolean;
@@ -889,7 +890,7 @@ export class RNN extends Layer {
     config.cell = {
       className: this.cell.getClassName(),
       config: cellConfig,
-    };
+    } as serialization.ConfigDictValue;
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
     return config;
@@ -914,7 +915,7 @@ export abstract class RNNCell extends Layer {
   public recurrentDropoutMask: Tensor|Tensor[];
 }
 
-export interface SimpleRNNCellLayerArgs extends LayerArgs {
+export declare interface SimpleRNNCellLayerArgs extends LayerArgs {
   /**
    * units: Positive integer, dimensionality of the output space.
    */
@@ -1036,6 +1037,7 @@ export interface SimpleRNNCellLayerArgs extends LayerArgs {
  * `tf.layers.simpleRNN`.
  */
 export class SimpleRNNCell extends RNNCell {
+  /** @nocollapse */
   static className = 'SimpleRNNCell';
   readonly units: number;
   readonly activation: Activation;
@@ -1201,7 +1203,7 @@ export class SimpleRNNCell extends RNNCell {
 }
 serialization.registerClass(SimpleRNNCell);
 
-export interface SimpleRNNLayerArgs extends BaseRNNLayerArgs {
+export declare interface SimpleRNNLayerArgs extends BaseRNNLayerArgs {
   /**
    * Positive integer, dimensionality of the output space.
    */
@@ -1304,6 +1306,7 @@ export interface SimpleRNNLayerArgs extends BaseRNNLayerArgs {
  * ```
  */
 export class SimpleRNN extends RNN {
+  /** @nocollapse */
   static className = 'SimpleRNN';
   constructor(args: SimpleRNNLayerArgs) {
     args.cell = new SimpleRNNCell(args);
@@ -1415,7 +1418,7 @@ serialization.registerClass(SimpleRNN);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we extend
 //   that interface instead of repeating the fields.
-export interface GRUCellLayerArgs extends SimpleRNNCellLayerArgs {
+export declare interface GRUCellLayerArgs extends SimpleRNNCellLayerArgs {
   /**
    * Activation function to use for the recurrent step.
    *
@@ -1485,6 +1488,7 @@ export interface GRUCellLayerArgs extends SimpleRNNCellLayerArgs {
  * `tf.layers.gru`.
  */
 export class GRUCell extends RNNCell {
+  /** @nocollapse */
   static className = 'GRUCell';
   readonly units: number;
   readonly activation: Activation;
@@ -1680,7 +1684,7 @@ serialization.registerClass(GRUCell);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we inherit
 //   from that interface instead of repeating the fields here.
-export interface GRULayerArgs extends SimpleRNNLayerArgs {
+export declare interface GRULayerArgs extends SimpleRNNLayerArgs {
   /**
    * Activation function to use for the recurrent step.
    *
@@ -1728,6 +1732,7 @@ export interface GRULayerArgs extends SimpleRNNLayerArgs {
  * // 3rd dimension is the `GRUCell`'s number of units.
  */
 export class GRU extends RNN {
+  /** @nocollapse */
   static className = 'GRU';
   constructor(args: GRULayerArgs) {
     if (args.implementation === 0) {
@@ -1848,6 +1853,7 @@ export class GRU extends RNN {
     return config;
   }
 
+  /** @nocollapse */
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict): T {
@@ -1861,7 +1867,7 @@ serialization.registerClass(GRU);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we extend
 //   that interface instead of repeating the fields.
-export interface LSTMCellLayerArgs extends SimpleRNNCellLayerArgs {
+export declare interface LSTMCellLayerArgs extends SimpleRNNCellLayerArgs {
   /**
    * Activation function to use for the recurrent step.
    *
@@ -1940,6 +1946,7 @@ export interface LSTMCellLayerArgs extends SimpleRNNCellLayerArgs {
  * `tf.layers.lstm`.
  */
 export class LSTMCell extends RNNCell {
+  /** @nocollapse */
   static className = 'LSTMCell';
   readonly units: number;
   readonly activation: Activation;
@@ -2035,6 +2042,7 @@ export class LSTMCell extends RNNCell {
         const capturedBiasInit = this.biasInitializer;
         const capturedUnits = this.units;
         biasInitializer = new (class CustomInit extends Initializer {
+          /** @nocollapse */
           static className = 'CustomInit';
 
           apply(shape: Shape, dtype?: DataType): Tensor {
@@ -2150,7 +2158,7 @@ serialization.registerClass(LSTMCell);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we inherit
 //   from that interface instead of repeating the fields here.
-export interface LSTMLayerArgs extends SimpleRNNLayerArgs {
+export declare interface LSTMLayerArgs extends SimpleRNNLayerArgs {
   /**
    * Activation function to use for the recurrent step.
    *
@@ -2205,6 +2213,7 @@ export interface LSTMLayerArgs extends SimpleRNNLayerArgs {
  * // 3rd dimension is the `LSTMCell`'s number of units.
  */
 export class LSTM extends RNN {
+  /** @nocollapse */
   static className = 'LSTM';
   constructor(args: LSTMLayerArgs) {
     if (args.implementation as number === 0) {
@@ -2330,6 +2339,7 @@ export class LSTM extends RNN {
     return config;
   }
 
+  /** @nocollapse */
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict): T {
@@ -2341,7 +2351,7 @@ export class LSTM extends RNN {
 }
 serialization.registerClass(LSTM);
 
-export interface StackedRNNCellsArgs extends LayerArgs {
+export declare interface StackedRNNCellsArgs extends LayerArgs {
   /**
    * A `Array` of `RNNCell` instances.
    */
@@ -2354,6 +2364,7 @@ export interface StackedRNNCellsArgs extends LayerArgs {
  * Used to implement efficient stacked RNNs.
  */
 export class StackedRNNCells extends RNNCell {
+  /** @nocollapse */
   static className = 'StackedRNNCells';
   protected cells: RNNCell[];
 
@@ -2454,6 +2465,7 @@ export class StackedRNNCells extends RNNCell {
     return config;
   }
 
+  /** @nocollapse */
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict,

@@ -73,7 +73,7 @@ export function depthwiseConv2d(
   });
 }
 
-export interface DepthwiseConv2DLayerArgs extends BaseConvLayerArgs {
+export declare interface DepthwiseConv2DLayerArgs extends BaseConvLayerArgs {
   /**
    * An integer or Array of 2 integers, specifying the width and height of the
    * 2D convolution window. Can be a single integer to specify the same value
@@ -116,6 +116,7 @@ export interface DepthwiseConv2DLayerArgs extends BaseConvLayerArgs {
  * are generated per input channel in the depthwise step.
  */
 export class DepthwiseConv2D extends BaseConv {
+  /** @nocollapse */
   static className = 'DepthwiseConv2D';
   private readonly depthMultiplier: number;
   private readonly depthwiseInitializer: Initializer;

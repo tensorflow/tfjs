@@ -343,7 +343,7 @@ export class Node {
 }
 
 /** Constructor arguments for Layer. */
-export interface LayerArgs {
+export declare interface LayerArgs {
   /**
    * If defined, will be used to create an input layer to insert before this
    * layer. If both `inputShape` and `batchInputShape` are defined,

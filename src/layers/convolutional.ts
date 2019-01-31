@@ -199,7 +199,7 @@ export function conv2dWithBias(
 /**
  * Base LayerConfig for depthwise and non-depthwise convolutional layers.
  */
-export interface BaseConvLayerArgs extends LayerArgs {
+export declare interface BaseConvLayerArgs extends LayerArgs {
   /**
    * The dimensions of the convolution window. If kernelSize is a number, the
    * convolutional window will be square.
@@ -295,7 +295,7 @@ export interface BaseConvLayerArgs extends LayerArgs {
  * LayerConfig for non-depthwise convolutional layers.
  * Applies to non-depthwise convolution of all ranks (e.g, Conv1D, Conv2D).
  */
-export interface ConvLayerArgs extends BaseConvLayerArgs {
+export declare interface ConvLayerArgs extends BaseConvLayerArgs {
   /**
    * The dimensionality of the output space (i.e. the number of filters in the
    * convolution).
@@ -553,6 +553,7 @@ export abstract class Conv extends BaseConv {
  * in `dataFormat='channelsLast'`.
  */
 export class Conv2D extends Conv {
+  /** @nocollapse */
   static className = 'Conv2D';
   constructor(args: ConvLayerArgs) {
     super(2, args);
@@ -610,6 +611,7 @@ serialization.registerClass(Conv2D);
  * Networks](http://www.matthewzeiler.com/pubs/cvpr2010/cvpr2010.pdf)
  */
 export class Conv2DTranspose extends Conv2D {
+  /** @nocollapse */
   static className = 'Conv2DTranspose';
   inputSpec: InputSpec[];
 
@@ -757,7 +759,7 @@ export class Conv2DTranspose extends Conv2D {
 }
 serialization.registerClass(Conv2DTranspose);
 
-export interface SeparableConvLayerArgs extends ConvLayerArgs {
+export declare interface SeparableConvLayerArgs extends ConvLayerArgs {
   /**
    * The number of depthwise convolution output channels for each input
    * channel.
@@ -799,6 +801,7 @@ export interface SeparableConvLayerArgs extends ConvLayerArgs {
 
 
 export class SeparableConv extends Conv {
+  /** @nocollapse */
   static className = 'SeparableConv';
 
   readonly depthMultiplier: number;
@@ -984,6 +987,7 @@ export class SeparableConv extends Conv {
  *     `rows` and `cols` values might have changed due to padding.
  */
 export class SeparableConv2D extends SeparableConv {
+  /** @nocollapse */
   static className = 'SeparableConv2D';
   constructor(args?: SeparableConvLayerArgs) {
     super(2, args);
@@ -1010,6 +1014,7 @@ serialization.registerClass(SeparableConv2D);
  * - `[null, 128]` for variable-length sequences of 128-dimensional vectors.
  */
 export class Conv1D extends Conv {
+  /** @nocollapse */
   static className = 'Conv1D';
   constructor(args: ConvLayerArgs) {
     super(1, args);
@@ -1035,7 +1040,7 @@ export class Conv1D extends Conv {
 }
 serialization.registerClass(Conv1D);
 
-export interface Cropping2DLayerArgs extends LayerArgs {
+export declare interface Cropping2DLayerArgs extends LayerArgs {
   /**
    * Dimension of the cropping along the width and the height.
    * - If integer: the same symmetric cropping
@@ -1095,6 +1100,7 @@ export interface Cropping2DLayerArgs extends LayerArgs {
  * ```
  */
 export class Cropping2D extends Layer {
+  /** @nocollapse */
   static className = 'Cropping2D';
   protected readonly cropping: [[number, number], [number, number]];
   protected readonly dataFormat: DataFormat;
@@ -1162,7 +1168,7 @@ export class Cropping2D extends Layer {
 }
 serialization.registerClass(Cropping2D);
 
-export interface UpSampling2DLayerArgs extends LayerArgs {
+export declare interface UpSampling2DLayerArgs extends LayerArgs {
   /**
    * The upsampling factors for rows and columns.
    *
@@ -1207,6 +1213,7 @@ export interface UpSampling2DLayerArgs extends LayerArgs {
  *
  */
 export class UpSampling2D extends Layer {
+  /** @nocollapse */
   static className = 'UpSampling2D';
   protected readonly DEFAULT_SIZE = [2, 2];
   protected readonly size: number[];
