@@ -32,12 +32,12 @@ import {assert} from './util';
  * convertTsToPythonic from serialization_utils in -Layers.
  *
  */
-export type ConfigDictValue =
-    boolean|number|string|null|ConfigDictArray|ConfigDict;
-export interface ConfigDict {
+export declare type ConfigDictValue =
+    boolean | number | string | null | ConfigDictArray | ConfigDict;
+export declare interface ConfigDict {
   [key: string]: ConfigDictValue;
 }
-export interface ConfigDictArray extends Array<ConfigDictValue> {}
+export declare interface ConfigDictArray extends Array<ConfigDictValue> {}
 
 /**
  * Type to represent the class-type of Serializable objects.
@@ -47,11 +47,11 @@ export interface ConfigDictArray extends Array<ConfigDictValue> {}
  *
  * Source for this idea: https://stackoverflow.com/a/43607255
  */
-export type SerializableConstructor<T extends Serializable> = {
+export declare type SerializableConstructor<T extends Serializable> = {
   // tslint:disable-next-line:no-any
   new (...args: any[]): T; className: string; fromConfig: FromConfigMethod<T>;
 };
-export type FromConfigMethod<T extends Serializable> =
+export declare type FromConfigMethod<T extends Serializable> =
     (cls: SerializableConstructor<T>, config: ConfigDict) => T;
 
 /**
@@ -90,6 +90,7 @@ export abstract class Serializable {
    * @param cls A Constructor for the class to instantiate.
    * @param config The Configuration for the object.
    */
+  /** @nocollapse */
   static fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(config);

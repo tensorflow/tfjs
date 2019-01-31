@@ -216,9 +216,9 @@ function getFloatTextureSetRGBASnippet(glsl: GLSL): string {
 }
 
 function getShaderPrefix(glsl: GLSL): string {
-  let NAN_CHECKS = '';
+  let nanChecks = '';
   if (ENV.get('PROD')) {
-    NAN_CHECKS = `
+    nanChecks = `
       bool isNaN(float val) {
         return false;
       }
@@ -232,7 +232,7 @@ function getShaderPrefix(glsl: GLSL): string {
      * Previous NaN check '(val < 0.0 || 0.0 < val || val == 0.0) ? false :
      * true' does not work on iOS 12
      */
-    NAN_CHECKS = `
+    nanChecks = `
       bool isNaN(float val) {
         return (val < 1.0 || 0.0 < val || val == 0.0) ? false : true;
       }
@@ -275,7 +275,7 @@ function getShaderPrefix(glsl: GLSL): string {
       int v;
     };
 
-    ${NAN_CHECKS}
+    ${nanChecks}
 
     float getNaN(vec4 values) {
       return dot(vec4(1), values);

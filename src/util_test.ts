@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
+import {scalar, tensor2d} from './ops/ops';
 import {inferShape} from './tensor_util_env';
 import * as util from './util';
-import {scalar, tensor2d} from './ops/ops';
 
 describe('Util', () => {
   it('Correctly gets size from shape', () => {
@@ -76,8 +76,7 @@ describe('Util', () => {
 
   it('infer shape 4d array', () => {
     const a = [
-      [[[1], [2]], [[2], [3]], [[5], [6]]],
-      [[[5], [6]], [[4], [5]], [[1], [2]]]
+      [[[1], [2]], [[2], [3]], [[5], [6]]], [[[5], [6]], [[4], [5]], [[1], [2]]]
     ];
     expect(inferShape(a)).toEqual([2, 3, 2, 1]);
   });
@@ -459,20 +458,21 @@ describe('util.hasEncodingLoss', () => {
 describe('util.toNestedArray', () => {
   it('2 dimensions', () => {
     const a = new Float32Array([1, 2, 3, 4, 5, 6]);
-    expect(util.toNestedArray([2, 3], a))
-      .toEqual([[1,2,3], [4,5,6]]);
+    expect(util.toNestedArray([2, 3], a)).toEqual([[1, 2, 3], [4, 5, 6]]);
   });
 
   it('3 dimensions (2x2x3)', () => {
     const a = new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-    expect(util.toNestedArray([2, 2, 3], a))
-      .toEqual([[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]]]);
+    expect(util.toNestedArray([2, 2, 3], a)).toEqual([
+      [[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]]
+    ]);
   });
 
   it('3 dimensions (3x2x2)', () => {
     const a = new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-    expect(util.toNestedArray([3, 2, 2], a))
-      .toEqual([[[0, 1],[2, 3]],[[4, 5],[6, 7]],[[8, 9],[10, 11]]]);
+    expect(util.toNestedArray([3, 2, 2], a)).toEqual([
+      [[0, 1], [2, 3]], [[4, 5], [6, 7]], [[8, 9], [10, 11]]
+    ]);
   });
 
   it('invalid dimension', () => {
@@ -482,8 +482,7 @@ describe('util.toNestedArray', () => {
 
   it('tensor to nested array', () => {
     const x = tensor2d([1, 2, 3, 4], [2, 2]);
-    expect(util.toNestedArray(x.shape, x.dataSync()))
-      .toEqual([[1, 2], [3, 4]]);
+    expect(util.toNestedArray(x.shape, x.dataSync())).toEqual([[1, 2], [3, 4]]);
   });
 
   it('scalar to nested array', () => {
@@ -501,12 +500,12 @@ describe('util.monitorPromisesProgress', () => {
   it('Default progress from 0 to 1', (done) => {
     const expectFractions: number[] = [0.25, 0.50, 0.75, 1.00];
     const fractionList: number[] = [];
-    const tasks = Array(4).fill(0).map(()=>{
+    const tasks = Array(4).fill(0).map(() => {
       return Promise.resolve();
     });
-    util.monitorPromisesProgress(tasks, (progress: number)=>{
-      fractionList.push(parseFloat(progress.toFixed(2)));
-    }).then(()=>{
+    util.monitorPromisesProgress(tasks, (progress: number) => {
+          fractionList.push(parseFloat(progress.toFixed(2)));
+        }).then(() => {
       expect(fractionList).toEqual(expectFractions);
       done();
     });
@@ -517,12 +516,12 @@ describe('util.monitorPromisesProgress', () => {
     const endFraction = 0.8;
     const expectFractions: number[] = [0.35, 0.50, 0.65, 0.80];
     const fractionList: number[] = [];
-    const tasks = Array(4).fill(0).map(()=>{
+    const tasks = Array(4).fill(0).map(() => {
       return Promise.resolve();
     });
-    util.monitorPromisesProgress(tasks, (progress: number)=>{
-      fractionList.push(parseFloat(progress.toFixed(2)));
-      }, startFraction, endFraction).then(()=>{
+    util.monitorPromisesProgress(tasks, (progress: number) => {
+          fractionList.push(parseFloat(progress.toFixed(2)));
+        }, startFraction, endFraction).then(() => {
       expect(fractionList).toEqual(expectFractions);
       done();
     });
@@ -532,11 +531,11 @@ describe('util.monitorPromisesProgress', () => {
     expect(() => {
       const startFraction = -1;
       const endFraction = 1;
-      const tasks = Array(4).fill(0).map(()=>{
+      const tasks = Array(4).fill(0).map(() => {
         return Promise.resolve();
       });
-      util.monitorPromisesProgress(tasks, (progress: number)=>{},
-          startFraction, endFraction);
+      util.monitorPromisesProgress(
+          tasks, (progress: number) => {}, startFraction, endFraction);
     }).toThrowError();
   });
 
@@ -544,23 +543,23 @@ describe('util.monitorPromisesProgress', () => {
     expect(() => {
       const startFraction = 0.8;
       const endFraction = 0.2;
-      const tasks = Array(4).fill(0).map(()=>{
+      const tasks = Array(4).fill(0).map(() => {
         return Promise.resolve();
       });
-      util.monitorPromisesProgress(tasks, (progress: number)=>{},
-          startFraction, endFraction);
+      util.monitorPromisesProgress(
+          tasks, (progress: number) => {}, startFraction, endFraction);
     }).toThrowError();
   });
 
   it('throws error when promises is null', () => {
     expect(() => {
-      util.monitorPromisesProgress(null, (progress: number)=>{});
+      util.monitorPromisesProgress(null, (progress: number) => {});
     }).toThrowError();
   });
 
   it('throws error when promises is empty array', () => {
     expect(() => {
-      util.monitorPromisesProgress([], (progress: number)=>{});
+      util.monitorPromisesProgress([], (progress: number) => {});
     }).toThrowError();
   });
 });

@@ -146,6 +146,8 @@ export class AdamaxOptimizer extends Optimizer {
       decay: this.decay
     };
   }
+
+  /** @nocollapse */
   static fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(

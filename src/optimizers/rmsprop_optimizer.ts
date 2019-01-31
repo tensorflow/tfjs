@@ -165,6 +165,8 @@ export class RMSPropOptimizer extends Optimizer {
       centered: this.centered
     };
   }
+
+  /** @nocollapse */
   static fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(
