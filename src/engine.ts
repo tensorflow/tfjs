@@ -67,7 +67,7 @@ export interface TimingInfo extends BackendTimingInfo {
 export type ScopeFn<T extends TensorContainer> = () => T;
 
 export interface TensorManager {
-  registerTensor(a: Tensor): void;
+  registerTensor(a: Tensor, backend?: KernelBackend): void;
   registerVariable(v: Variable): void;
   disposeTensor(a: Tensor): void;
   memory(): {numDataBuffers: number; numBytes: number;};
@@ -244,7 +244,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
 
   // TensorManager implementation.
 
-  registerTensor(a: Tensor|Variable): void {
+  registerTensor(a: Tensor|Variable, backend?: KernelBackend): void {
     const refCount = this.tensorInfo.has(a.dataId) ?
         this.tensorInfo.get(a.dataId).refCount :
         0;
@@ -269,7 +269,11 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
         refCount: 0
       });
       this.numBytes += bytes;
-      this.backend.register(a.dataId, a.shape, a.dtype);
+      if (backend != null) {
+        backend.register(a.dataId, a.shape, a.dtype);
+      } else {
+        this.backend.register(a.dataId, a.shape, a.dtype);
+      }
     }
     this.tensorInfo.get(a.dataId).refCount++;
     if (!(a instanceof Variable)) {

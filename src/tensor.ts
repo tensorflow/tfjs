@@ -25,6 +25,15 @@ export interface TensorData<D extends DataType> {
   values?: DataTypeMap[D];
 }
 
+// This interface mimics KernelBackend (in backend.ts), which would create a
+// circular dependency if imported.
+export interface Backend {
+  read(dataId: object): Promise<DataValues>;
+  readSync(dataId: object): DataValues;
+  disposeData(dataId: object): void;
+  write(dataId: object, values: DataValues): void;
+}
+
 /**
  * A mutable object, similar to `tf.Tensor`, that allows users to set values
  * at locations before converting to an immutable `tf.Tensor`.
@@ -139,7 +148,7 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
 }
 
 export interface TensorTracker {
-  registerTensor(t: Tensor): void;
+  registerTensor(t: Tensor, backend?: Backend): void;
   disposeTensor(t: Tensor): void;
   write(dataId: DataId, values: DataValues): void;
   read(dataId: DataId): Promise<DataValues>;
@@ -411,8 +420,8 @@ export class Tensor<R extends Rank = Rank> {
   readonly strides: number[];
 
   protected constructor(
-      shape: ShapeMap[R], dtype: DataType, values?: DataValues,
-      dataId?: DataId) {
+      shape: ShapeMap[R], dtype: DataType, values?: DataValues, dataId?: DataId,
+      backend?: Backend) {
     this.shape = shape.slice();
     this.dtype = dtype || 'float32';
     this.size = util.sizeFromShape(shape);
@@ -420,7 +429,7 @@ export class Tensor<R extends Rank = Rank> {
     this.dataId = dataId != null ? dataId : {};
     this.id = trackerFn().nextTensorId();
     this.rankType = (this.rank < 5 ? this.rank.toString() : 'higher') as R;
-    trackerFn().registerTensor(this);
+    trackerFn().registerTensor(this, backend);
     if (values != null) {
       trackerFn().write(this.dataId, values);
     }
@@ -432,8 +441,9 @@ export class Tensor<R extends Rank = Rank> {
    */
   static make<T extends Tensor<R>, D extends DataType = 'float32',
                                              R extends Rank = Rank>(
-      shape: ShapeMap[R], data: TensorData<D>, dtype?: D): T {
-    return new Tensor(shape, dtype, data.values, data.dataId) as T;
+      shape: ShapeMap[R], data: TensorData<D>, dtype?: D,
+      backend?: Backend): T {
+    return new Tensor(shape, dtype, data.values, data.dataId, backend) as T;
   }
 
   /** Flatten a Tensor to a 1D array. */

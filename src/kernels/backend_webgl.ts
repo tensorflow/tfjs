@@ -435,11 +435,14 @@ export class MathBackendWebGL implements KernelBackend {
         {size: number};
     tmpTarget.size = sizeFromShape(shape);
     this.texData.get(tmpTarget.dataId).usage = TextureUsage.DOWNLOAD;
-    const program = new EncodeFloatProgram(shape);
-    const pageToCpu = false;
-    this.compileAndRun(
-        program, [{shape, dtype, dataId}], tmpTarget, null, pageToCpu);
-    const tmpData = this.texData.get(tmpTarget.dataId);
+    const output = tidy(() => {
+      const program = new EncodeFloatProgram(shape);
+      const pageToCpu = false;
+
+      return this.compileAndRun(
+          program, [{shape, dtype, dataId}], tmpTarget, null, pageToCpu);
+    });
+    const tmpData = this.texData.get(output.dataId);
     const vals =
         this.gpgpu
             .downloadByteEncodedFloatMatrixFromOutputTexture(
@@ -1637,17 +1640,21 @@ export class MathBackendWebGL implements KernelBackend {
     const xShape = x.shape;
     const xTexData = this.texData.get(x.dataId);
     if (!ENV.get('WEBGL_LAZILY_UNPACK') ||
-        !ENV.get('WEBGL_PACK_BINARY_OPERATIONS') ||
-        xShape[2] % 2 === 0 || !xTexData.isPacked) {
-      const xReshaped = this.reshape(x, [1, xShape[0] * xShape[1] * xShape[2],
-          convInfo.inChannels]) as Tensor3D;
-      const filterReshaped = this.reshape(filter,
-          [1, convInfo.inChannels, convInfo.outChannels]) as Tensor3D;
+        !ENV.get('WEBGL_PACK_BINARY_OPERATIONS') || xShape[2] % 2 === 0 ||
+        !xTexData.isPacked) {
+      const xReshaped =
+          this.reshape(
+              x, [1, xShape[0] * xShape[1] * xShape[2], convInfo.inChannels]) as
+          Tensor3D;
+      const filterReshaped =
+          this.reshape(
+              filter, [1, convInfo.inChannels, convInfo.outChannels]) as
+          Tensor3D;
       return this.reshape<Rank.R4>(
           this.batchMatMul(xReshaped, filterReshaped, false, false),
           convInfo.outShape);
     }
-    
+
     // Following optimization is specific to packed |x| with odd row count
     // ('row count' refers to x.shape[2]): we avoid expensive packed 2x2
     // reshape by padding row count to next, even number. When x.shape[2] is
@@ -1656,28 +1663,33 @@ export class MathBackendWebGL implements KernelBackend {
     // We make the odd-rows tensor to look like even-rows tensor before the
     // operation and, after the batchMatMul, fix the even-rows result to have
     // odd number of rows.
-    const xReshaped = Tensor.make(
-        [1, xShape[0] * xShape[1] * (xShape[2] + 1),
-         convInfo.inChannels], {dataId: x.dataId}, x.dtype) as Tensor3D;
-    
+    const xReshaped =
+        Tensor.make(
+            [1, xShape[0] * xShape[1] * (xShape[2] + 1), convInfo.inChannels],
+            {dataId: x.dataId}, x.dtype) as Tensor3D;
+
     xTexData.shape[xTexData.shape.length - 2]++;
-    util.assert(webgl_util.isReshapeFree(xTexData.shape, xReshaped.shape),
+    util.assert(
+        webgl_util.isReshapeFree(xTexData.shape, xReshaped.shape),
         `packed reshape ${xTexData.shape} to ${xReshaped.shape} isn't free`);
-    const filterReshaped = this.reshape(filter,
-        [1, convInfo.inChannels, convInfo.outChannels]) as Tensor3D;
-    
+    const filterReshaped =
+        this.reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]) as
+        Tensor3D;
+
     const pointwiseConv =
         this.batchMatMul(xReshaped, filterReshaped, false, false);
     const pointwiseConvTexData = this.texData.get(pointwiseConv.dataId);
-    util.assert(pointwiseConvTexData.isPacked,
+    util.assert(
+        pointwiseConvTexData.isPacked,
         'batchMatMul result is expected to be packed');
     // Restore the input shape to odd number of rows.
     xTexData.shape[xTexData.shape.length - 2]--;
     // Set the output shape - there is no need for expensive reshape as data
     // layout is already correct.
     pointwiseConvTexData.shape = convInfo.outShape;
-    return Tensor.make(convInfo.outShape, {dataId: pointwiseConv.dataId},
-        pointwiseConv.dtype) as Tensor4D;
+    return Tensor.make(
+               convInfo.outShape, {dataId: pointwiseConv.dataId},
+               pointwiseConv.dtype) as Tensor4D;
   }
 
   conv2dWithIm2Row(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
@@ -2041,7 +2053,7 @@ export class MathBackendWebGL implements KernelBackend {
 
   private makePackedTensor<T extends Tensor, D extends DataType = 'float32'>(
       shape: number[], dtype?: D): T {
-    const packedTensor = Tensor.make(shape, {}, dtype);
+    const packedTensor = Tensor.make(shape, {}, dtype, this);
     this.texData.get(packedTensor.dataId).isPacked = true;
     return packedTensor as T;
   }
@@ -2049,7 +2061,8 @@ export class MathBackendWebGL implements KernelBackend {
   private unpackTensor<T extends Tensor>(input: T|TensorHandle): T {
     const program = new UnpackProgram(input.shape);
     return this.compileAndRun(
-        program, [input], Tensor.make(program.outputShape, {}, input.dtype));
+        program, [input],
+        Tensor.make(program.outputShape, {}, input.dtype, this));
   }
 
   private packTensor<T extends Tensor>(input: T|TensorHandle): T {
@@ -2130,8 +2143,8 @@ export class MathBackendWebGL implements KernelBackend {
           texData.shape = input.shape;
         }
       } else if (!!texData.isPacked !== !!program.usesPackedTextures) {
-        input = texData.isPacked ?
-            this.unpackTensor(input) : this.packTensor(input);
+        input = texData.isPacked ? this.unpackTensor(input) :
+                                   this.packTensor(input);
         texData = this.texData.get(input.dataId);
       } else if (
           texData.isPacked &&
