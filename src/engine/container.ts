@@ -11,7 +11,6 @@
 /* Original source: keras/engine/topology.py */
 
 import {Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
-
 import {getUid} from '../backend/state';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
 import {Shape} from '../keras_format/common';
@@ -772,14 +771,13 @@ export abstract class Container extends Layer {
    */
   private updatedConfig(): serialization.ConfigDict {
     const theConfig = this.getConfig();
-    const modelConfig: serialization.ConfigDict = {
-      className: this.getClassName(),
-      config: theConfig,
-      kerasVersion: `tfjs-layers ${layersVersion}`,
-      // TODO(nielsene): Replace something like K.backend() once
-      // possible.
-      backend: 'TensorFlow.js'
-    };
+    const modelConfig: serialization.ConfigDict = {};
+    modelConfig.className = this.getClassName();
+    modelConfig.config = theConfig;
+    modelConfig.kerasVersion = `tfjs-layers ${layersVersion}`;
+    // TODO(nielsene): Replace something like K.backend() once
+    // possible.
+    modelConfig.backend = 'TensorFlow.js';
     return modelConfig;
   }
 
@@ -1202,12 +1200,12 @@ export abstract class Container extends Layer {
           }
         }
       }
-      layerConfigs.push({
-        name: layer.name,
-        className: layerClassName,
-        config: layerConfig,
-        inboundNodes: filteredInboundNodes
-      });
+      const dict: serialization.ConfigDict = {};
+      dict.name = layer.name;
+      dict.className = layerClassName;
+      dict.config = layerConfig;
+      dict.inboundNodes = filteredInboundNodes;
+      layerConfigs.push(dict);
     }
     config['layers'] = layerConfigs;
     // Gather info about inputs and outputs
@@ -1261,6 +1259,7 @@ export abstract class Container extends Layer {
    * @returns A model instance.
    * @throws ValueError: In case of improperly formatted config dict.
    */
+  /** @nocollapse */
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict,

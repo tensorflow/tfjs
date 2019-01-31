@@ -11,7 +11,6 @@
 // Layer activation functions
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
-
 import {getScalar} from './backend/state';
 import * as K from './backend/tfjs_backend';
 import {ActivationIdentifier} from './keras_format/activation_config';
@@ -36,6 +35,7 @@ export abstract class Activation extends serialization.Serializable {
  * Reference: https://arxiv.org/abs/1511.07289
  */
 export class Elu extends Activation {
+  /** @nocollapse */
   static readonly className = 'elu';
   /**
    * Calculate the activation function.
@@ -58,6 +58,7 @@ serialization.registerClass(Elu);
  *   - To be used together with the dropout variant "AlphaDropout".
  */
 export class Selu extends Activation {
+  /** @nocollapse */
   static readonly className = 'selu';
   apply(x: Tensor): Tensor {
     return tfc.selu(x);
@@ -69,6 +70,7 @@ serialization.registerClass(Selu);
  *  Rectified linear unit
  */
 export class Relu extends Activation {
+  /** @nocollapse */
   static readonly className = 'relu';
   apply(x: Tensor): Tensor {
     return tfc.relu(x);
@@ -80,6 +82,7 @@ serialization.registerClass(Relu);
  * Rectified linear unit activation maxing out at 6.0.
  */
 export class Relu6 extends Activation {
+  /** @nocollapse */
   static readonly className = 'relu6';
   apply(x: Tensor): Tensor {
     return tidy(() => tfc.minimum(getScalar(6.0), tfc.relu(x)));
@@ -89,6 +92,7 @@ serialization.registerClass(Relu6);
 
 //* Linear activation (no-op) */
 export class Linear extends Activation {
+  /** @nocollapse */
   static readonly className = 'linear';
   apply(x: Tensor): Tensor {
     return x;
@@ -100,6 +104,7 @@ serialization.registerClass(Linear);
  * Sigmoid activation function.
  */
 export class Sigmoid extends Activation {
+  /** @nocollapse */
   static readonly className = 'sigmoid';
   apply(x: Tensor): Tensor {
     return tfc.sigmoid(x);
@@ -111,6 +116,7 @@ serialization.registerClass(Sigmoid);
  * Segment-wise linear approximation of sigmoid.
  */
 export class HardSigmoid extends Activation {
+  /** @nocollapse */
   static readonly className = 'hardSigmoid';
   apply(x: Tensor): Tensor {
     return K.hardSigmoid(x);
@@ -122,6 +128,7 @@ serialization.registerClass(HardSigmoid);
  * Softplus activation function.
  */
 export class Softplus extends Activation {
+  /** @nocollapse */
   static readonly className = 'softplus';
   apply(x: Tensor): Tensor {
     return tfc.softplus(x);
@@ -133,6 +140,7 @@ serialization.registerClass(Softplus);
  * Softsign activation function.
  */
 export class Softsign extends Activation {
+  /** @nocollapse */
   static readonly className = 'softsign';
   apply(x: Tensor): Tensor {
     return K.softsign(x);
@@ -144,6 +152,7 @@ serialization.registerClass(Softsign);
  * Hyperbolic tangent function.
  */
 export class Tanh extends Activation {
+  /** @nocollapse */
   static readonly className = 'tanh';
   apply(x: Tensor): Tensor {
     return tfc.tanh(x);
@@ -155,6 +164,7 @@ serialization.registerClass(Tanh);
  * Softmax activation function
  */
 export class Softmax extends Activation {
+  /** @nocollapse */
   static readonly className = 'softmax';
   /**
    * Calculate the activation function.
@@ -189,11 +199,15 @@ export function deserializeActivation(
 export function getActivation(identifier: ActivationIdentifier|
                               serialization.ConfigDict|Activation): Activation {
   if (identifier == null) {
-    const config = {className: 'linear', config: {}};
+    const config: serialization.ConfigDict = {};
+    config.className = 'linear';
+    config.config = {};
     return deserializeActivation(config);
   }
   if (typeof identifier === 'string') {
-    const config = {className: identifier, config: {}};
+    const config: serialization.ConfigDict = {};
+    config.className = identifier;
+    config.config = {};
     return deserializeActivation(config);
   } else if (identifier instanceof Activation) {
     return identifier;

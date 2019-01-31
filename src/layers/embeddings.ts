@@ -28,7 +28,7 @@ import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
 
-export interface EmbeddingLayerArgs extends LayerArgs {
+export declare interface EmbeddingLayerArgs extends LayerArgs {
   /**
    * Integer > 0. Size of the vocabulary, i.e. maximum integer index + 1.
    */
@@ -84,6 +84,7 @@ export interface EmbeddingLayerArgs extends LayerArgs {
  * outputDim]`.
  */
 export class Embedding extends Layer {
+  /** @nocollapse */
   static className = 'Embedding';
   private inputDim: number;
   private outputDim: number;

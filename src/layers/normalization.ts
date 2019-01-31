@@ -170,7 +170,7 @@ export function normalizeBatchInTraining(
   }
 }
 
-export interface BatchNormalizationLayerArgs extends LayerArgs {
+export declare interface BatchNormalizationLayerArgs extends LayerArgs {
   /**
    * The integer axis that should be normalized (typically the features axis).
    * Defaults to -1.
@@ -273,6 +273,7 @@ export interface BatchNormalizationLayerArgs extends LayerArgs {
  * Internal Covariate Shift](https://arxiv.org/abs/1502.03167)
  */
 export class BatchNormalization extends Layer {
+  /** @nocollapse */
   static className = 'BatchNormalization';
   private readonly axis: number;
   private readonly momentum: number;

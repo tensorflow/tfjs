@@ -343,6 +343,7 @@ export interface SequentialArgs {
  */
 /** @doc {heading: 'Models', subheading: 'Classes'} */
 export class Sequential extends Model {
+  /** @nocollapse */
   static className = 'Sequential';
   private model: Model;
   private _updatable: boolean;
@@ -892,6 +893,7 @@ export class Sequential extends Model {
   }
 
   /* See parent class for JsDoc */
+  /** @nocollapse */
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict,
@@ -977,10 +979,10 @@ export class Sequential extends Model {
     //   dict).
     const config: serialization.ConfigDict[] = [];
     for (const layer of this.layers) {
-      config.push({
-        className: layer.getClassName(),
-        config: layer.getConfig(),
-      });
+      const dict: serialization.ConfigDict = {};
+      dict.className = layer.getClassName();
+      dict.config = layer.getConfig();
+      config.push(dict);
     }
     return config;
   }

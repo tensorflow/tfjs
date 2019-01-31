@@ -31,7 +31,7 @@ import {rnn, RNN, standardizeArgs} from './recurrent';
 import {deserialize} from './serialization';
 
 
-export interface WrapperLayerArgs extends LayerArgs {
+export declare interface WrapperLayerArgs extends LayerArgs {
   /**
    * The layer to be wrapped.
    */
@@ -136,6 +136,7 @@ export abstract class Wrapper extends Layer {
     }
   }
 
+  /** @nocollapse */
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict,
@@ -194,6 +195,7 @@ export abstract class Wrapper extends Layer {
  * ```
  */
 export class TimeDistributed extends Wrapper {
+  /** @nocollapse */
   static className = 'TimeDistributed';
   constructor(args: WrapperLayerArgs) {
     super(args);
@@ -260,7 +262,7 @@ export function checkBidirectionalMergeMode(value?: string): void {
       VALID_BIDIRECTIONAL_MERGE_MODES, 'BidirectionalMergeMode', value);
 }
 
-export interface BidirectionalLayerArgs extends WrapperLayerArgs {
+export declare interface BidirectionalLayerArgs extends WrapperLayerArgs {
   /**
    * The instance of an `RNN` layer to be wrapped.
    */
@@ -275,6 +277,7 @@ export interface BidirectionalLayerArgs extends WrapperLayerArgs {
 }
 
 export class Bidirectional extends Wrapper {
+  /** @nocollapse */
   static className = 'Bidirectional';
   private forwardLayer: RNN;
   private backwardLayer: RNN;
@@ -296,14 +299,16 @@ export class Bidirectional extends Wrapper {
     //   in JavaScript. JavaScript's `Object.assign()` does not copy
     //   methods.
     const layerConfig = args.layer.getConfig();
-    this.forwardLayer =
-        deserialize(
-            {className: args.layer.getClassName(), config: layerConfig}) as RNN;
+    const forwDict: serialization.ConfigDict = {};
+    forwDict.className = args.layer.getClassName();
+    forwDict.config = layerConfig;
+    this.forwardLayer = deserialize(forwDict) as RNN;
     layerConfig['goBackwards'] =
         layerConfig['goBackwards'] === true ? false : true;
-    this.backwardLayer =
-        deserialize(
-            {className: args.layer.getClassName(), config: layerConfig}) as RNN;
+    const backDict: serialization.ConfigDict = {};
+    backDict.className = args.layer.getClassName();
+    backDict.config = layerConfig;
+    this.backwardLayer = deserialize(backDict) as RNN;
     this.forwardLayer.name = 'forward_' + this.forwardLayer.name;
     this.backwardLayer.name = 'backward_' + this.backwardLayer.name;
     checkBidirectionalMergeMode(args.mergeMode);
@@ -578,6 +583,7 @@ export class Bidirectional extends Wrapper {
     return config;
   }
 
+  /** @nocollapse */
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict): T {

@@ -76,6 +76,7 @@ export interface MaxNormArgs {
  * 2014](http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf)
  */
 export class MaxNorm extends Constraint {
+  /** @nocollapse */
   static readonly className = 'MaxNorm';
   private maxValue: number;
   private axis: number;
@@ -125,6 +126,7 @@ export interface UnitNormArgs {
  * Constrains the weights incident to each hidden unit to have unit norm.
  */
 export class UnitNorm extends Constraint {
+  /** @nocollapse */
   static readonly className = 'UnitNorm';
   private axis: number;
   private readonly defaultAxis = 0;
@@ -149,6 +151,7 @@ serialization.registerClass(UnitNorm);
  * Constains the weight to be non-negative.
  */
 export class NonNeg extends Constraint {
+  /** @nocollapse */
   static readonly className = 'NonNeg';
 
   apply(w: Tensor): Tensor {
@@ -192,6 +195,7 @@ export interface MinMaxNormArgs {
 }
 
 export class MinMaxNorm extends Constraint {
+  /** @nocollapse */
   static readonly className = 'MinMaxNorm';
   private minValue: number;
   private maxValue: number;

@@ -40,10 +40,7 @@ export function getUid(prefix = ''): string {
   return prefix + _uidPrefixes[prefix].toString();
 }
 
-const scalarCache: {[typeKey: string]: {[key: number]: Scalar}} = {
-  float32: {},
-  int32: {}
-};
+const scalarCache: {[typeKey: string]: {[key: number]: Scalar}} = {};
 
 const DEFAULT_DTYPE: DataType = 'float32';
 
@@ -53,6 +50,9 @@ const DEFAULT_DTYPE: DataType = 'float32';
 export function getScalar(value: number, dtype?: DataType): Scalar {
   if (dtype === undefined) {
     dtype = DEFAULT_DTYPE;
+  }
+  if (scalarCache[dtype] == null) {
+    scalarCache[dtype] = {};
   }
   if (scalarCache[dtype][value] == null) {
     scalarCache[dtype][value] = scalar(value, dtype);

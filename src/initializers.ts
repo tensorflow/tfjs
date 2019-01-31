@@ -54,6 +54,7 @@ export abstract class Initializer extends serialization.Serializable {
  * Initializer that generates tensors initialized to 0.
  */
 export class Zeros extends Initializer {
+  /** @nocollapse */
   static className = 'Zeros';
 
   apply(shape: Shape, dtype?: DataType): Tensor {
@@ -66,6 +67,7 @@ serialization.registerClass(Zeros);
  * Initializer that generates tensors initialized to 1.
  */
 export class Ones extends Initializer {
+  /** @nocollapse */
   static className = 'Ones';
 
   apply(shape: Shape, dtype?: DataType): Tensor {
@@ -83,6 +85,7 @@ export interface ConstantArgs {
  * Initializer that generates values initialized to some constant.
  */
 export class Constant extends Initializer {
+  /** @nocollapse */
   static className = 'Constant';
   private value: number;
   constructor(args: ConstantArgs) {
@@ -126,6 +129,7 @@ export interface RandomUniformArgs {
  * maxval.
  */
 export class RandomUniform extends Initializer {
+  /** @nocollapse */
   static className = 'RandomUniform';
   readonly DEFAULT_MINVAL = -0.05;
   readonly DEFAULT_MAXVAL = 0.05;
@@ -164,6 +168,7 @@ export interface RandomNormalArgs {
  * distribution.
  */
 export class RandomNormal extends Initializer {
+  /** @nocollapse */
   static className = 'RandomNormal';
   readonly DEFAULT_MEAN = 0.;
   readonly DEFAULT_STDDEV = 0.05;
@@ -212,6 +217,7 @@ export interface TruncatedNormalArgs {
  * This is the recommended initializer for neural network weights and filters.
  */
 export class TruncatedNormal extends Initializer {
+  /** @nocollapse */
   static className = 'TruncatedNormal';
 
   readonly DEFAULT_MEAN = 0.;
@@ -254,6 +260,7 @@ export interface IdentityArgs {
  * Only use for square 2D matrices.
  */
 export class Identity extends Initializer {
+  /** @nocollapse */
   static className = 'Identity';
   private gain: Scalar;
   constructor(args: IdentityArgs) {
@@ -341,6 +348,7 @@ export interface VarianceScalingArgs {
  * within [-limit, limit], with `limit = sqrt(3 * scale / n)`.
  */
 export class VarianceScaling extends Initializer {
+  /** @nocollapse */
   static className = 'VarianceScaling';
   private scale: number;
   private mode: FanMode;
@@ -420,6 +428,7 @@ export interface SeedOnlyInitializerArgs {
  *       http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf.
  */
 export class GlorotUniform extends VarianceScaling {
+  /** @nocollapse */
   static className = 'GlorotUniform';
 
   /**
@@ -459,6 +468,7 @@ serialization.registerClass(GlorotUniform);
  *       http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf
  */
 export class GlorotNormal extends VarianceScaling {
+  /** @nocollapse */
   static className = 'GlorotNormal';
 
   /**
@@ -497,6 +507,7 @@ serialization.registerClass(GlorotNormal);
  *     He et al., http://arxiv.org/abs/1502.01852
  */
 export class HeNormal extends VarianceScaling {
+  /** @nocollapse */
   static className = 'HeNormal';
 
   constructor(args?: SeedOnlyInitializerArgs) {
@@ -528,6 +539,7 @@ serialization.registerClass(HeNormal);
  *     He et al., http://arxiv.org/abs/1502.01852
  */
 export class HeUniform extends VarianceScaling {
+  /** @nocollapse */
   static className = 'HeUniform';
 
   constructor(args?: SeedOnlyInitializerArgs) {
@@ -561,6 +573,7 @@ serialization.registerClass(HeUniform);
  *   [Efficient Backprop](http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf)
  */
 export class LeCunNormal extends VarianceScaling {
+  /** @nocollapse */
   static className = 'LeCunNormal';
 
   constructor(args?: SeedOnlyInitializerArgs) {
@@ -589,6 +602,7 @@ serialization.registerClass(LeCunNormal);
  * where `fanIn` is the number of input units in the weight tensor.
  */
 export class LeCunUniform extends VarianceScaling {
+  /** @nocollapse */
   static className = 'LeCunNormal';
 
   constructor(args?: SeedOnlyInitializerArgs) {
@@ -623,6 +637,7 @@ export interface OrthogonalArgs extends SeedOnlyInitializerArgs {
  * [Saxe et al., http://arxiv.org/abs/1312.6120](http://arxiv.org/abs/1312.6120)
  */
 export class Orthogonal extends Initializer {
+  /** @nocollapse */
   static className = 'Orthogonal';
   readonly DEFAULT_GAIN = 1;
   protected readonly gain: number;
@@ -674,10 +689,10 @@ export class Orthogonal extends Initializer {
 serialization.registerClass(Orthogonal);
 
 /** @docinline */
-export type InitializerIdentifier = 'constant'|'glorotNormal'|'glorotUniform'|
-    'heNormal'|'heUniform'|'identity'|'leCunNormal'|'leCunUniform'|'ones'|
-    'orthogonal'|'randomNormal'|'randomUniform'|'truncatedNormal'|
-    'varianceScaling'|'zeros'|string;
+export type InitializerIdentifier =
+    'constant'|'glorotNormal'|'glorotUniform'|'heNormal'|'heUniform'|'identity'|
+    'leCunNormal'|'leCunUniform'|'ones'|'orthogonal'|'randomNormal'|
+    'randomUniform'|'truncatedNormal'|'varianceScaling'|'zeros'|string;
 
 // Maps the JavaScript-like identifier keys to the corresponding registry
 // symbols.
@@ -735,7 +750,9 @@ export function getInitializer(identifier: InitializerIdentifier|Initializer|
     } else if (className === 'LeCunUniform') {
       return new LeCunUniform();
     } else {
-      const config = {className, config: {}};
+      const config: serialization.ConfigDict = {};
+      config.className = className;
+      config.config = {};
       return deserializeInitializer(config);
     }
   } else if (identifier instanceof Initializer) {

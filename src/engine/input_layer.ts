@@ -24,7 +24,7 @@ import {DisposeResult, Layer, Node, SymbolicTensor} from './topology';
  * If only inputShape is provided, then the batchInputShape is determined by
  * the batchSize argument and the inputShape: [batchSize].concat(inputShape).
  */
-export interface InputLayerArgs {
+export declare interface InputLayerArgs {
   /** Input shape, not including the batch axis. */
   inputShape?: Shape;
   /** Optional input batch size (integer or null). */
@@ -75,6 +75,7 @@ export interface InputLayerArgs {
  * ```
  */
 export class InputLayer extends Layer {
+  /** @nocollapse */
   static readonly className = 'InputLayer';
   sparse: boolean;
   constructor(args: InputLayerArgs) {
