@@ -17,6 +17,7 @@
 
 import {renderBarchart} from './render/barchart';
 import {renderConfusionMatrix} from './render/confusion_matrix';
+import {renderHeatmap} from './render/heatmap';
 import {renderHistogram} from './render/histogram';
 import {renderLinechart} from './render/linechart';
 import {renderScatterplot} from './render/scatterplot';
@@ -34,6 +35,7 @@ const render = {
   linechart: renderLinechart,
   scatterplot: renderScatterplot,
   confusionMatrix: renderConfusionMatrix,
+  heatmap: renderHeatmap,
 };
 
 const metrics = {

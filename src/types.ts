@@ -1,3 +1,5 @@
+import {Tensor2D} from '@tensorflow/tfjs';
+
 /*
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -200,9 +202,15 @@ export interface HistogramStats {
   numInfs?: number;
 }
 
+/**
+ * Type alias for typed arrays
+ */
 export type TypedArray = Int8Array|Uint8Array|Int16Array|Uint16Array|Int32Array|
     Uint32Array|Uint8ClampedArray|Float32Array|Float64Array;
 
+/**
+ * Data format for confusion matrix
+ */
 export interface ConfusionMatrixData {
   values: number[][];
   labels?: string[];
@@ -214,3 +222,27 @@ export interface ConfusionMatrixData {
 export type Point2D = {
   x: number; y: number;
 };
+
+/**
+ * Data format for confusion matrix
+ */
+export interface HeatmapData {
+  values: number[][]|Tensor2D;
+  xLabels?: string[];
+  yLabels?: string[];
+}
+
+/**
+ * Color map names.
+ *
+ * Currently supported by heatmap
+ */
+export type NamedColorMap = 'greyscale'|'viridis'|'blues';
+
+/**
+ * Visualization options for Heatmap
+ */
+export interface HeatmapOptions extends VisOptions {
+  colorMap?: NamedColorMap;
+  domain?: number[];
+}
