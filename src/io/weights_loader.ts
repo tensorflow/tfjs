@@ -58,12 +58,11 @@ export async function loadWeightsAsArrayBuffer(
   const fetchStartFraction = 0;
   const fetchEndFraction = 0.5;
 
-  if (onProgress != null) {
-    util.monitorPromisesProgress(
-        requests, onProgress, fetchStartFraction, fetchEndFraction);
-  }
+  const responses = onProgress == null ?
+      await Promise.all(requests) :
+      await util.monitorPromisesProgress(
+          requests, onProgress, fetchStartFraction, fetchEndFraction);
 
-  const responses = await Promise.all(requests);
   const badContentType = responses.filter(response => {
     const contentType = response.headers.get(CONTENT_TYPE);
     return !contentType || contentType.indexOf(OCTET_STREAM_TYPE) === -1;
@@ -82,12 +81,10 @@ export async function loadWeightsAsArrayBuffer(
   const bufferStartFraction = 0.5;
   const bufferEndFraction = 1;
 
-  if (onProgress != null) {
-    util.monitorPromisesProgress(
-        bufferPromises, onProgress, bufferStartFraction, bufferEndFraction);
-  }
-
-  const buffers = await Promise.all(bufferPromises);
+  const buffers = onProgress == null ?
+      await Promise.all(bufferPromises) :
+      await util.monitorPromisesProgress(
+          bufferPromises, onProgress, bufferStartFraction, bufferEndFraction);
   return buffers;
 }
 

@@ -89,8 +89,9 @@ export class IORouterRegistry {
       url: string|string[], handlerType: 'save'|'load',
       onProgress?: Function): IOHandler[] {
     const validHandlers: IOHandler[] = [];
-    const routers = handlerType === 'load' ? this.getInstance().loadRouters :
-                                             this.getInstance().saveRouters;
+    const routers = handlerType === 'load' ?
+        IORouterRegistry.getInstance().loadRouters :
+        IORouterRegistry.getInstance().saveRouters;
     routers.forEach(router => {
       const handler = router(url, onProgress);
       if (handler !== null) {

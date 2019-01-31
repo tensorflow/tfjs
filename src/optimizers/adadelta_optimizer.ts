@@ -115,6 +115,8 @@ export class AdadeltaOptimizer extends Optimizer {
       epsilon: this.epsilon
     };
   }
+
+  /** @nocollapse */
   static fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(config.learningRate, config.rho, config.epsilon);
