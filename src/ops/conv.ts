@@ -18,10 +18,9 @@
 import {ENV} from '../environment';
 import {Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
-import {Rank, TensorLike} from '../types';
+import {TensorLike} from '../types';
 import * as util from '../util';
 import * as conv_util from './conv_util';
-import {matMul} from './matmul';
 import {op} from './operation';
 
 /**
@@ -189,33 +188,22 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
   const convInfo = conv_util.computeConv2DInfo(
       x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode);
 
-  let res: Tensor3D|Tensor4D;
-  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-      convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-      convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-      (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
-    const x2d = x4D.reshape([-1, convInfo.inChannels]) as Tensor2D;
-    const w2d = $filter.reshape([convInfo.inChannels, convInfo.outChannels]) as
-        Tensor2D;
-
-    res = matMul(x2d, w2d).reshape<Rank.R4>(convInfo.outShape);
-  } else {
-    const grad = (dy: Tensor4D) => {
-      util.assert(
-          conv_util.tupleValuesAreOne(dilations),
-          'Error in gradient of conv2D: dilation rates greater than 1 are not' +
-              `yet supported in gradients. Got dilations '${dilations}'`);
-
-      return {
-        x: () => conv2dDerInput_(x4D.shape, dy, $filter, strides, pad),
-        $filter: () => conv2dDerFilter_(x4D, dy, $filter.shape, strides, pad)
-      };
+  const grad = (dy: Tensor4D) => {
+    util.assert(
+        conv_util.tupleValuesAreOne(dilations),
+        'Error in gradient of conv2D: dilation rates greater than 1 are not' +
+            `yet supported in gradients. Got dilations '${dilations}'`);
+  
+    return {
+      x: () => conv2dDerInput_(x4D.shape, dy, $filter, strides, pad),
+      $filter: () => conv2dDerFilter_(x4D, dy, $filter.shape, strides, pad)
     };
+  };
+  
+  const res = ENV.engine.runKernel(
+      backend => backend.conv2d(x4D, $filter, convInfo), {x: x4D, $filter},
+      grad);
 
-    res = ENV.engine.runKernel(
-        backend => backend.conv2d(x4D, $filter, convInfo), {x: x4D, $filter},
-        grad);
-  }
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
