@@ -46,14 +46,17 @@ import {getDrawArea} from './render_utils';
  * @param container An `HTMLElement` or `Surface` in which to draw the chart
  * @param opts optional parameters
  * @param opts.shadeDiagonal boolean that controls whether or not to color cells
- * on the diagonal. Defaults to true.
+ * on the diagonal. Defaults to true
+ * @param opts.showTextOverlay boolean that controls whether or not to render
+ * the values of each cell as text. Defaults to true
  * @param opts.width width of chart in px
  * @param opts.height height of chart in px
  * @param opts.fontSize fontSize in pixels for text in the chart
  */
 export async function renderConfusionMatrix(
     data: ConfusionMatrixData, container: Drawable,
-    opts: VisOptions&{shadeDiagonal?: boolean} = {}): Promise<void> {
+    opts: VisOptions&
+    {shadeDiagonal?: boolean, showTextOverlay?: boolean} = {}): Promise<void> {
   const options = Object.assign({}, defaultOpts, opts);
   const drawArea = getDrawArea(container);
 
@@ -62,13 +65,20 @@ export async function renderConfusionMatrix(
   const values: MatrixEntry[] = [];
 
   const inputArray = data.values;
-  const labels = data.labels;
+  const labels = data.labels || [];
+  const generateLabels = labels.length === 0;
 
   let nonDiagonalIsAllZeroes = true;
   for (let i = 0; i < inputArray.length; i++) {
+    const label = generateLabels ? `Class ${i}` : labels[i];
+
+    if (generateLabels) {
+      labels.push(label);
+    }
+
     for (let j = 0; j < inputArray[i].length; j++) {
-      const label = labels ? labels[i] : `Class ${i}`;
-      const prediction = labels ? labels[j] : `Class ${j}`;
+      const prediction = generateLabels ? `Class ${j}` : labels[j];
+
       const count = inputArray[i][j];
       if (i === j && !options.shadeDiagonal) {
         values.push({
@@ -175,23 +185,26 @@ export async function renderConfusionMatrix(
         },
 
       },
-      {
-        // The text labels
-        'mark': {'type': 'text', 'baseline': 'middle'},
-        'encoding': {
-          'text': {
-            'condition': {
-              'test': 'datum["noFill"] == true',
-              'field': 'diagCount',
-              'type': 'nominal',
-            },
-            'field': 'count',
-            'type': 'nominal',
-          },
-        }
-      },
     ]
   };
+
+  if (options.showTextOverlay) {
+    spec.layer.push({
+      // The text labels
+      'mark': {'type': 'text', 'baseline': 'middle'},
+      'encoding': {
+        'text': {
+          'condition': {
+            'test': 'datum["noFill"] == true',
+            'field': 'diagCount',
+            'type': 'nominal',
+          },
+          'field': 'count',
+          'type': 'nominal',
+        },
+      }
+    });
+  }
 
   await embed(drawArea, spec, embedOpts);
   return Promise.resolve();
@@ -204,6 +217,7 @@ const defaultOpts = {
   yType: 'nominal',
   shadeDiagonal: true,
   fontSize: 12,
+  showTextOverlay: true,
 };
 
 interface MatrixEntry {

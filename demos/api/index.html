@@ -385,18 +385,28 @@
 
       <script class='show-script'>
         {
-          const data = {
-            values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
-            labels: ['cheese', 'pig', 'font'],
+
+          const rows = 50;
+          const cols = 50;
+          const values = [];
+          for (let i = 0; i < rows; i++) {
+            const row = []
+            for (let j = 0; j < cols; j++) {
+              row.push(Math.round(Math.random() * 50));
+            }
+            values.push(row);
           }
+          const data = { values };
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Confusion Matrix', tab: 'Charts' });
-          tfvis.render.confusionMatrix(data, surface);
+          tfvis.render.confusionMatrix(data, surface, {
+            showTextOverlay: false
+          });
 
           // Render to page
           const container = document.getElementById('confmatrix-cont');
-          tfvis.render.confusionMatrix(data, container, { width: 500, height: 500 });
+          tfvis.render.confusionMatrix(data, container, { width: 800, height: 800 });
         }
       </script>
 
@@ -491,6 +501,116 @@
 
       <hr>
 
+      <h3>render.heatmap(data, container, opts)</h3>
+
+      <div id='heatmap-cont'></div>
+
+      <script class='show-script'>
+        {
+          const rows = 50;
+          const cols = 20;
+          const values = [];
+          for (let i = 0; i < rows; i++) {
+            const row = []
+            for (let j = 0; j < cols; j++) {
+              row.push(i * j)
+            }
+            values.push(row);
+          }
+          const data = { values };
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Heatmap', tab: 'Charts' });
+          tfvis.render.heatmap(data, surface);
+
+          // Render to page
+          const container = document.getElementById('heatmap-cont');
+          tfvis.render.heatmap(data, container, { width: 500, height: 500 });
+        }
+      </script>
+
+      <p>
+        We can also pass in custom labels
+      </p>
+      <div id='heatmap-cont2'></div>
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: [[4, 2, 8, 20], [1, 7, 2, 10], [3, 3, 20, 13]],
+            xLabels: ['cheese', 'pig', 'font'],
+            yLabels: ['speed', 'smoothness', 'dexterity', 'mana'],
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Heatmap w Custom Labels', tab: 'Charts' });
+          tfvis.render.heatmap(data, surface);
+
+          // Render to page
+          const container = document.getElementById('heatmap-cont2');
+          tfvis.render.heatmap(data, container, { width: 500, height: 500 });
+        }
+      </script>
+
+      <p>
+        Alternate color maps are also supported.
+      </p>
+      <div id='heatmap-cont3'></div>
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: [[4, 2, 8, 20], [1, 7, 2, 10], [3, 3, 20, 13]],
+            xLabels: ['cheese', 'pig', 'font'],
+            yLabels: ['speed', 'smoothness', 'dexterity', 'mana'],
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Heatmap w Custom Colormap', tab: 'Charts' });
+          tfvis.render.heatmap(data, surface, {
+            colorMap: 'greyscale',
+          });
+
+          // Render to page
+          const container = document.getElementById('heatmap-cont3');
+          tfvis.render.heatmap(data, container, {
+            colorMap: 'greyscale',
+            width: 500,
+            height: 500
+          });
+        }
+      </script>
+
+      <p>
+        Tensor2D's are also supported
+      </p>
+      <div id='heatmap-cont4'></div>
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: tf.tensor2d([[4, 2, 8, 20], [1, 7, 2, 10], [3, 3, 20, 13]]),
+            xLabels: ['cheese', 'pig', 'font'],
+            yLabels: ['speed', 'smoothness', 'dexterity', 'mana'],
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Heatmap', tab: 'Tensor Charts' });
+          tfvis.render.heatmap(data, surface, {
+            xLabel: 'Thing',
+            yLabel: 'Property',
+          });
+
+          // Render to page
+          const container = document.getElementById('heatmap-cont4');
+          tfvis.render.heatmap(data, container, {
+            width: 500,
+            height: 500,
+            xLabel: 'Thing',
+            yLabel: 'Property',
+          });
+        }
+      </script>
     </section>
 
   </article>
