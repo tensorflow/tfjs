@@ -87,10 +87,10 @@
     "@types/webgl2" "0.0.4"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-data@0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-0.1.5.tgz#6e171238470c69b13b32e13f9f6cb5b963c61018"
-  integrity sha512-CAO11dDEwQnCj2MSccQ64OEjM0xrt36FBZipPYJ4a6h1KcYNJRbFqYSz6I71h1JpnBf6tmooFCUILYxpu+PWiw==
+"@tensorflow/tfjs-data@0.1.7":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-0.1.7.tgz#8a4e43313b3d63cdfab719c0c1c47ced2ef321e3"
+  integrity sha512-RENjeBdBLq7GS9594kQx2GbM0WQV16VfxzzB0j2sq5vJh9GZQi2DB5Emq2LqZWs5rSeh7PDHZylGOn/ve6f8PA==
   dependencies:
     "@types/node-fetch" "^2.1.2"
     node-fetch "~2.1.2"
@@ -5158,10 +5158,10 @@ type-is@~1.6.16:
     media-typer "0.3.0"
     mime-types "~2.1.18"
 
-typescript@2.7.2:
-  version "2.7.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.7.2.tgz#2d615a1ef4aee4f574425cdff7026edf81919836"
-  integrity sha512-p5TCYZDAO0m4G344hD+wx/LATebLWZNkkh2asWUFqSsD2OrDNhbAHuSjobrmsUmdzjJjEeZVU9g1h3O6vpstnw==
+typescript@2.9.2:
+  version "2.9.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.9.2.tgz#1cbf61d05d6b96269244eb6a3bce4bd914e0f00c"
+  integrity sha512-Gr4p6nFNaoufRIY4NMdpQRNmgxVIGMs4Fcu/ujdYk3nAZqk7supzBE9idmvfZIlH/Cuj//dvi+019qEue9lV0w==
 
 uglify-es@^3.3.7:
   version "3.3.9"
