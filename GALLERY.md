@@ -38,6 +38,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [High School Level Tensorflowjs](http://rocksetta.com/tensorflowjs/) - Greater than 40 demos that can be online edited made as simply as possible using single web pages. All examples use the [<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs">](https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.js) specific version tag so the pages always work and no installation is needed - By Jeremy Ellis.
 - [Gboard Physical Handwriting Version](https://landing.google.co.jp/tegaki/) - You can input a character by drawing it on your keyboard.
 - [AICAMCAM](https://aicamcam.github.io) - A browser-based webcam video recording service with people/dog/cat detection functionality.
+- [trynottolaugh](http://trynottolaugh.net) - Try not to laugh game with face landmark detection if you laugh during video you lose!
 
 ## Tutorials
 
