@@ -69,18 +69,19 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@tensorflow/tfjs-converter@0.7.2":
-  version "0.7.2"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-0.7.2.tgz#49e578f71eb82d821af05176754c3452b42cfe9c"
-  integrity sha512-m46mtaF57x2NcxlNUKdJOCUp3ZSJU9bp9MzyEQ0Iz1bW2kKIxx1DDRjuP0fAeHX5H5Mh/tWIHB9yK6NwLz+aQQ==
+"@tensorflow/tfjs-converter@0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-0.8.0.tgz#d6c07a64ca376d7d4f4f57623e9ba35d074ca2d5"
+  integrity sha512-OcraKdqO6M6vPgzcexER0cLXTsy7dM3URvko90Z6Vv9blP36BKZXRQYwqm91J0FbuLDrFJZ3uKubUVsIMbKAMQ==
   dependencies:
     "@types/long" "~3.0.32"
+    js-base64 "2.4.9"
     protobufjs "~6.8.6"
 
-"@tensorflow/tfjs-core@0.14.5":
-  version "0.14.5"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.14.5.tgz#17c3beeec31c4cd92b0f79a5ef30c4975a11e408"
-  integrity sha512-CSUgKuC17J1Ylr1s6iD1k2/tJr9lD16sUEjtzJbtiuTYCELOwujGK/1htunA7o3BwLuU7aqEI92MoKElEKa7qA==
+"@tensorflow/tfjs-core@0.15.0":
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.15.0.tgz#c85f1141e42ce5103ae73fdf170b2d4736038533"
+  integrity sha512-YITCsLeF8lqFQdepdv+a0wRQ4sVtg31cvqRzsuQBeQHyR04Xb3CH0kgKcwTj8FUXn+IlDsjE7m+v8Gier7YfuA==
   dependencies:
     "@types/seedrandom" "2.4.27"
     "@types/webgl-ext" "0.0.30"
@@ -96,10 +97,10 @@
     node-fetch "~2.1.2"
     seedrandom "~2.4.3"
 
-"@tensorflow/tfjs-layers@0.9.2":
-  version "0.9.2"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.9.2.tgz#f5c1918d1a9660096f259cd1f99f59e689b41b69"
-  integrity sha512-peB824cEXRBy5IgZPIodd8zpQ/54VGOYbR+zY+Q1Le7v3Np05EoDcL8Z98MtpBHo6jOM7b/3Lf2zjfJVv2qxJA==
+"@tensorflow/tfjs-layers@0.10.0":
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.10.0.tgz#a282ad3f533ac20645b23b0eaf5d15039ec91b5d"
+  integrity sha512-O24iUscjutLFjRmJj55FASXtssD2Tldkz6n+MJ64gN0Etq+zA9A+Sbz3pWIjvDaKDhcXHsy4kmSbENF9Cztqqw==
 
 "@types/estree@0.0.38":
   version "0.0.38"
@@ -2831,6 +2832,11 @@ jasmine@3.1.0:
   dependencies:
     glob "^7.0.6"
     jasmine-core "~3.1.0"
+
+js-base64@2.4.9:
+  version "2.4.9"
+  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-2.4.9.tgz#748911fb04f48a60c4771b375cac45a80df11c03"
+  integrity sha512-xcinL3AuDJk7VSzsHgb9DvvIXayBbadtMZ4HFPx8rUszbW1MuNMlwYVC4zzCZ6e1sqZpnNS5ZFYOhXqA39T7LQ==
 
 "js-tokens@^3.0.0 || ^4.0.0":
   version "4.0.0"

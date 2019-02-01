@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs",
-  "version": "0.14.2",
+  "version": "0.15.0",
   "description": "An open-source machine learning framework.",
   "private": false,
   "main": "dist/index",
@@ -56,9 +56,9 @@
     "release-notes": "ts-node ./scripts/release_notes/release_notes.ts"
   },
   "dependencies": {
-    "@tensorflow/tfjs-converter": "0.7.2",
-    "@tensorflow/tfjs-core": "0.14.5",
-    "@tensorflow/tfjs-data": "0.1.7",
-    "@tensorflow/tfjs-layers": "0.9.2"
+    "@tensorflow/tfjs-converter": "0.8.0",
+    "@tensorflow/tfjs-core": "0.15.0",
+    "@tensorflow/tfjs-data": "0.2.0",
+    "@tensorflow/tfjs-layers": "0.10.0"
   }
 }
