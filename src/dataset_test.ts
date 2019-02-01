@@ -223,7 +223,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
      async done => {
        try {
          let count = 0;
-         const a = tfd.generator(async () => {
+         const a = tfd.func(async () => {
            if (count > 2) {
              throw new Error('propagate me!');
            }
@@ -650,7 +650,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     let i = -1;
     const func = () =>
         ++i < 7 ? {value: i, done: false} : {value: null, done: true};
-    const ds = tfd.generator(func);
+    const ds = tfd.func(func);
     expect(ds.size).toBeNull();
   });
 
@@ -668,7 +668,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     let i = -1;
     const func = () =>
         ++i < 7 ? {value: i, done: false} : {value: null, done: true};
-    const ds = tfd.generator(func).repeat(3);
+    const ds = tfd.func(func).repeat(3);
     expect(ds.size).toBeNull();
   });
 
@@ -686,7 +686,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     let i = -1;
     const func = () =>
         ++i < 7 ? {value: i, done: false} : {value: null, done: true};
-    const ds = tfd.generator(func).take(3);
+    const ds = tfd.func(func).take(3);
     expect(ds.size).toBeNull();
   });
 
@@ -709,7 +709,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     let i = -1;
     const func = () =>
         ++i < 7 ? {value: i, done: false} : {value: null, done: true};
-    const ds = tfd.generator(func).skip(3);
+    const ds = tfd.func(func).skip(3);
     expect(ds.size).toBeNull();
   });
 
@@ -732,7 +732,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     let i = -1;
     const func = () =>
         ++i < 7 ? {value: i, done: false} : {value: null, done: true};
-    const ds = tfd.generator(func).batch(2);
+    const ds = tfd.func(func).batch(2);
     expect(ds.size).toBeNull();
   });
 
@@ -755,7 +755,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     let i = -1;
     const func = () =>
         ++i < 7 ? {value: i, done: false} : {value: null, done: true};
-    const ds = tfd.generator(func).map(e => e + 1);
+    const ds = tfd.func(func).map(e => e + 1);
     expect(ds.size).toBeNull();
   });
 
@@ -773,7 +773,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     let i = -1;
     const func = () =>
         ++i < 7 ? {value: i, done: false} : {value: null, done: true};
-    const ds = tfd.generator(func).filter(e => e % 2 === 0);
+    const ds = tfd.func(func).filter(e => e % 2 === 0);
     expect(ds.size).toBeNull();
   });
 

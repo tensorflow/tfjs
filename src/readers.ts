@@ -114,11 +114,67 @@ export function csv(source: string, csvConfig: CSVConfig = {}): CSVDataset {
  * let i = -1;
  * const func = () =>
  *    ++i < 5 ? {value: i, done: false} : {value: null, done: true};
- * const ds = tf.data.generator(func);
+ * const ds = tf.data.fromFunction(func);
  * await ds.forEach(e => console.log(e));
  * ```
  *
  * @param f A function that produces one data element on each call.
+ */
+export function func<T extends DataElement>(
+    f: () => IteratorResult<T>| Promise<IteratorResult<T>>): Dataset<T> {
+  const iter = iteratorFromFunction(f);
+  return datasetFromIteratorFn(async () => iter);
+}
+
+/**
+ * Create a `Dataset` that produces each element from provided JavaScript
+ * generator, which is a function* (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators#Generator_functions),
+ * or a function that returns an iterator(https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators#Generator_functions).
+ *
+ * The returned iterator should have `.next()` function that returns element in
+ * format of `{value: DataElement, done:boolean}`.
+ *
+ * Example of creating a dataset from an iterator factory:
+ * ```js
+ * function makeIterator() {
+ *   const numElements = 10;
+ *   let index = 0;
+ *
+ *   const iterator = {
+ *     next: () => {
+ *       let result;
+ *       if (index < numElements) {
+ *         result = {value: index, done: false};
+ *         index++;
+ *         return result;
+ *       }
+ *       return {value: index, done: true};
+ *     }
+ *   };
+ *   return iterator;
+ * }
+ * const ds = tfd.generator(makeIterator);
+ * ds.forEach(e => console.log(e));
+ * ```
+ *
+ * Example of creating a dataset from a generator:
+ * ```js
+ * function* dataGenerator() {
+ *   const numElements = 10;
+ *   let index = 0;
+ *   while (index < numElements) {
+ *     const x = index;
+ *     index++;
+ *     yield x;
+ *   }
+ * }
+ *
+ * const ds = tfd.generator(dataGenerator);
+ * ds.forEach(e => console.log(e));
+ * ```
+ *
+ * @param generator A Javascript generator function that returns a JavaScript
+ *     iterator.
  */
 /**
  * @doc {
@@ -129,7 +185,7 @@ export function csv(source: string, csvConfig: CSVConfig = {}): CSVDataset {
  *  }
  */
 export function generator<T extends DataElement>(
-    f: () => IteratorResult<T>| Promise<IteratorResult<T>>): Dataset<T> {
-  const iter = iteratorFromFunction(f);
-  return datasetFromIteratorFn(async () => iter);
+    generator: () => (Iterator<T>|Promise<Iterator<T>>)): Dataset<T> {
+  return datasetFromIteratorFn(
+    async () => iteratorFromFunction((await generator()).next));
 }
