@@ -88,10 +88,10 @@
     "@types/webgl2" "0.0.4"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-data@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-0.2.0.tgz#c66c73e634b56f46c7a17db0af6c3be8b9cc4428"
-  integrity sha512-ut7TpdJE8I1YoaROKGs/AwZXa9d8GqOeBd/l2JFLQwzLVhA9LLh0fzCdIBnUGa6Gp5MdwD+3OoysV+neMDAs2w==
+"@tensorflow/tfjs-data@0.1.7":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-0.1.7.tgz#8a4e43313b3d63cdfab719c0c1c47ced2ef321e3"
+  integrity sha512-RENjeBdBLq7GS9594kQx2GbM0WQV16VfxzzB0j2sq5vJh9GZQi2DB5Emq2LqZWs5rSeh7PDHZylGOn/ve6f8PA==
   dependencies:
     "@types/node-fetch" "^2.1.2"
     node-fetch "~2.1.2"
