@@ -155,12 +155,30 @@ class FakeNumericIterator extends
         }
       }
 
-      // TODO(cais): Take care of the case of multiple outputs.
-      const ys = (this.yTensorValues as tfc.Tensor[])[index] as tfc.Tensor;
-      tfc.util.assert(
-          tfc.util.arraysEqual(ys.shape, this.yBatchShape as Shape),
-          `Shape mismatch: expected: ${JSON.stringify(this.yBatchShape)}; ` +
-              `actual: ${JSON.stringify(ys.shape)}`);
+      let ys: tfc.Tensor|{[name: string]: tfc.Tensor};
+      if (Array.isArray(this.yTensorValues)) {
+        // Get preset ys tensors for single-output models.
+        ys = (this.yTensorValues as tfc.Tensor[])[index];
+        tfc.util.assert(
+            tfc.util.arraysEqual(ys.shape, this.yBatchShape as Shape),
+            `Shape mismatch: expected: ${JSON.stringify(this.yBatchShape)}; ` +
+            `actual: ${JSON.stringify(ys.shape)}`);
+      } else {
+        // Get preset ys tensors for multi-output models.
+        ys = {};
+        this.yBatchShape = this.yBatchShape as {[name: string]: Shape};
+        for (const key in this.yTensorValues) {
+          ys[key] = this.yTensorValues[key][index];
+          tfc.util.assert(
+              tfc.util.arraysEqual(ys[key].shape,
+                  this.yBatchShape[key] as Shape),
+              `Shape mismatch: expected: ${
+                JSON.stringify(this.yBatchShape)}; ` +
+              `actual: ${JSON.stringify(ys.shape)}`
+          );
+        }
+      }
+
       return {done, value: [xs, ys]};
     }
   }
