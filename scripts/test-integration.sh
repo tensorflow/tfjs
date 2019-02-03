@@ -23,7 +23,7 @@ function print_status() {
 function test () {
   echo '######################'
   echo 'version.ts was modified.'
-  echo 'Testing layers/converter/node againts tfjs-core@master.'
+  echo 'Testing layers/converter/node/data against tfjs-core@master.'
   echo '######################'
   yarn build && yarn run yalc publish
 
@@ -48,16 +48,25 @@ function test () {
   yarn build && yarn lint && yarn test-travis
   CONVERTER_EXIT_CODE=$?
 
+  cd ..
+  echo 'Cloning data'
+  git clone https://github.com/tensorflow/tfjs-data.git --depth 5
+  cd tfjs-data
+  yarn && yarn link-local '@tensorflow/tfjs-core'
+  yarn build && yarn lint && yarn test-travis
+  DATA_EXIT_CODE=$?
+
   echo '==== INTEGRATION TEST RESULTS ===='
   print_status "tfjs-layers" "$LAYERS_EXIT_CODE"
   print_status "tfjs-node" "$NODE_EXIT_CODE"
   print_status "tfjs-converter" "$CONVERTER_EXIT_CODE"
+  print_status "tfjs-data" "$DATA_EXIT_CODE"
   echo '=================================='
 
   RED='\033[0;31m'
   BLUE='\e[34m'
   NC='\033[0m' # No Color
-  FINAL_EXIT_CODE=$(($LAYERS_EXIT_CODE+$NODE_EXIT_CODE+$CONVERTER_EXIT_CODE))
+  FINAL_EXIT_CODE=$(($LAYERS_EXIT_CODE+$NODE_EXIT_CODE+$CONVERTER_EXIT_CODE+$DATA_EXIT_CODE))
   [[ $FINAL_EXIT_CODE -eq 0 ]] && COLOR=$BLUE || COLOR=$RED
   print_status "${COLOR}Final result" "$FINAL_EXIT_CODE" "$NC"
   exit $FINAL_EXIT_CODE
@@ -70,3 +79,4 @@ for file in "${files_changed[@]}"
 do
   if [ "$file" = "src/version.ts" ]; then test; break; fi
 done
+
