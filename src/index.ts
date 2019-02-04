@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {FrozenModel, loadFrozenModel as loadFrozenModelPB} from './executor/frozen_model';
-import {FrozenModel as FrozenModelJSON, loadFrozenModel as loadFrozenModelJSON} from './executor/frozen_model_json';
+import {loadFrozenModel as loadFrozenModelJSON} from './executor/frozen_model_json';
 
 export {FrozenModel, loadTfHubModule} from './executor/frozen_model';
 export {FrozenModel as FrozenModelJSON} from './executor/frozen_model_json';
@@ -23,9 +23,11 @@ export {version as version_converter} from './version';
 
 export function loadFrozenModel(
     modelUrl: string, weightsManifestUrl: string,
-    requestOption?: RequestInit): Promise<FrozenModel|FrozenModelJSON> {
+    requestOption?: RequestInit): Promise<FrozenModel> {
   if (modelUrl && modelUrl.endsWith('.json')) {
-    return loadFrozenModelJSON(modelUrl, requestOption);
+    // tslint:disable-next-line:no-any
+    return (loadFrozenModelJSON(modelUrl, requestOption) as Promise<any>) as
+        Promise<FrozenModel>;
   }
   return loadFrozenModelPB(modelUrl, weightsManifestUrl, requestOption);
 }
