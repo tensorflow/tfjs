@@ -30,7 +30,6 @@ export const DEFAULT_MODEL_NAME = 'model.json';
  * SavedModel GraphDef and allows inference exeuction.
  */
 
-/** @doc {heading: 'Models', subheading: 'Classes'} */
 export class FrozenModel implements tfc.InferenceModel {
   private executor: GraphExecutor;
   private version = 'n/a';
@@ -284,7 +283,6 @@ export class FrozenModel implements tfc.InferenceModel {
  * @param requestOption options for Request, which allows to send credentials
  * and custom headers.
  */
-/** @doc {heading: 'Models', subheading: 'Loading'} */
 export async function loadFrozenModel(
     modelUrl: string, requestOption?: RequestInit): Promise<FrozenModel> {
   const model = new FrozenModel(modelUrl, requestOption);
@@ -311,7 +309,6 @@ export async function loadFrozenModel(
  * @param requestOption options for Request, which allows to send credentials
  * and custom headers.
  */
-/** @doc {heading: 'Models', subheading: 'Loading'} */
 export async function loadTfHubModule(
     tfhubModuleUrl: string, requestOption?: RequestInit): Promise<FrozenModel> {
   if (!tfhubModuleUrl.endsWith('/')) {
