@@ -18,7 +18,7 @@
 import {describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose, expectNumbersClose} from '../../test_util';
 import {getGlslDifferences} from './glsl_version';
-import {binSearchLastTrue, GPGPUContext} from './gpgpu_context';
+import {GPGPUContext, linearSearchLastTrue} from './gpgpu_context';
 import * as tex_util from './tex_util';
 
 const DOWNLOAD_FLOAT_ENVS = {
@@ -316,88 +316,88 @@ describeWithFlags('GPGPUContext', DOWNLOAD_FLOAT_ENVS, () => {
   });
 });
 
-describe('gpgpu_context binSearchLastTrue', () => {
+describe('gpgpu_context linearSearchLastTrue', () => {
   it('[false]', () => {
     const a: boolean[] = [false];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(-1);
+    expect(linearSearchLastTrue(arr)).toBe(-1);
   });
 
   it('[true]', () => {
     const a: boolean[] = [true];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(0);
+    expect(linearSearchLastTrue(arr)).toBe(0);
   });
 
   it('[false, false]', () => {
     const a: boolean[] = [false, false];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(-1);
+    expect(linearSearchLastTrue(arr)).toBe(-1);
   });
 
   it('[true, false]', () => {
     const a: boolean[] = [true, false];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(0);
+    expect(linearSearchLastTrue(arr)).toBe(0);
   });
 
   it('[true, true]', () => {
     const a: boolean[] = [true, true];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(1);
+    expect(linearSearchLastTrue(arr)).toBe(1);
   });
 
   it('[false, false, false]', () => {
     const a: boolean[] = [false, false, false];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(-1);
+    expect(linearSearchLastTrue(arr)).toBe(-1);
   });
 
   it('[true, false, false]', () => {
     const a: boolean[] = [true, false, false];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(0);
+    expect(linearSearchLastTrue(arr)).toBe(0);
   });
 
   it('[true, true, false]', () => {
     const a: boolean[] = [true, true, false];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(1);
+    expect(linearSearchLastTrue(arr)).toBe(1);
   });
 
   it('[true, true, true]', () => {
     const a: boolean[] = [true, true, true];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(2);
+    expect(linearSearchLastTrue(arr)).toBe(2);
   });
 
   it('[false, false, false, false]', () => {
     const a: boolean[] = [false, false, false, false];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(-1);
+    expect(linearSearchLastTrue(arr)).toBe(-1);
   });
 
   it('[true, false, false, false]', () => {
     const a: boolean[] = [true, false, false, false];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(0);
+    expect(linearSearchLastTrue(arr)).toBe(0);
   });
 
   it('[true, true, false, false]', () => {
     const a: boolean[] = [true, true, false, false];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(1);
+    expect(linearSearchLastTrue(arr)).toBe(1);
   });
 
   it('[true, true, true, false]', () => {
     const a: boolean[] = [true, true, true, false];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(2);
+    expect(linearSearchLastTrue(arr)).toBe(2);
   });
 
   it('[true, true, true, true]', () => {
     const a: boolean[] = [true, true, true, true];
     const arr = a.map(x => () => x);
-    expect(binSearchLastTrue(arr)).toBe(3);
+    expect(linearSearchLastTrue(arr)).toBe(3);
   });
 });
