@@ -120,7 +120,8 @@ export class TensorArray {
     }
 
     // Set the shape for the first time write to unknow shape tensor array
-    if (this.size() === 0 && this.elementShape.length === 0) {
+    if (this.size() === 0 &&
+        (this.elementShape == null || this.elementShape.length === 0)) {
       this.elementShape = tensor.shape;
     }
 

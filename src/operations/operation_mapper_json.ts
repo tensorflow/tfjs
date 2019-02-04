@@ -275,10 +275,15 @@ export class OperationMapper {
       def?: number[]): number[]|undefined {
     const param = attrs[name];
     if (param && param.shape) {
-      return param.shape.dim.map(
-          dim => (typeof dim.size === 'number') ?
-              dim.size :
-              parseInt(dim.size as string, 10));
+      if (param.shape.unknownRank) {
+        return undefined;
+      }
+      if (param.shape.dim != null) {
+        return param.shape.dim.map(
+            dim => (typeof dim.size === 'number') ?
+                dim.size :
+                parseInt(dim.size as string, 10));
+      }
     }
     return def;
   }
