@@ -29,8 +29,7 @@ function createDenseModel(): tfl.Model {
   model.add(tfl.layers.dense({
     units: 1,
     inputShape: [1],
-    kernelInitializer: 'zeros',
-    biasInitializer: 'zeros'
+    kernelInitializer: 'zeros'
   }));
   return model;
 }
@@ -54,8 +53,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
   // model.add(tf.keras.layers.Dense(
   //     1,
   //     input_shape=[1],
-  //     kernel_initializer='zeros',
-  //     bias_initializer='zeros'))
+  //     kernel_initializer='zeros'))
   // model.compile(loss='mean_squared_error', optimizer='sgd')
   //
   // history = model.fit(dataset, steps_per_epoch=num_batches, epochs=epochs)
@@ -168,8 +166,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
   // model.add(tf.keras.layers.Dense(
   //     1,
   //     input_shape=[1],
-  //     kernel_initializer='zeros',
-  //     bias_initializer='zeros'))
+  //     kernel_initializer='zeros'))
   // model.compile(loss='mean_squared_error',
   //               optimizer='sgd',
   //               metrics=['acc'])
@@ -294,8 +291,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
   // model.add(tf.keras.layers.Dense(
   //     1,
   //     input_shape=[1],
-  //     kernel_initializer='zeros',
-  //     bias_initializer='zeros'))
+  //     kernel_initializer='zeros'))
   // model.compile(loss='mean_squared_error', optimizer='sgd',
   // metrics=['accuracy'])
   //
@@ -620,8 +616,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
   // model.add(tf.keras.layers.Dense(
   //     1,
   //     input_shape=[1],
-  //     kernel_initializer='zeros',
-  //     bias_initializer='zeros'))
+  //     kernel_initializer='zeros'))
   // model.compile(loss='mean_squared_error',
   //               optimizer=tf.train.GradientDescentOptimizer(0.01),
   //               metrics=['accuracy'])
@@ -929,8 +924,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
   // model.add(tf.keras.layers.Dense(
   //     1,
   //     input_shape=[1],
-  //     kernel_initializer='zeros',
-  //     bias_initializer='zeros'))
+  //     kernel_initializer='zeros'))
   // model.compile(loss='mean_squared_error', optimizer='sgd',
   // metrics=['accuracy'])
   //
@@ -1142,7 +1136,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
 
   // Reference Python tf.keras code:
   //
-  // ```js
+  // ```py
   // import numpy as np
   // import tensorflow as tf
   //
@@ -1154,7 +1148,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
   // input2 = tf.keras.Input(shape = [1], name = 'x2')
   // concat = tf.keras.layers.concatenate([input1, input2])
   // y = tf.keras.layers.Dense(
-  //     1, kernel_initializer = 'zeros', bias_initializer = 'zeros')(concat)
+  //     1, kernel_initializer = 'zeros')(concat)
   // model = tf.keras.Model(inputs = [input1, input2], outputs = y)
   // model.compile(
   //     loss = 'mean_squared_error', optimizer = 'sgd', metrics =
@@ -1176,7 +1170,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
   // print(model.get_weights()[0])
   // print(model.get_weights()[1])
   // ```
-  it('2 input, 1 output, 1 metric, no validation, with batchesPerEpoch',
+  it('2 inputs, 1 output, 1 metric, no validation, with batchesPerEpoch',
      async () => {
        // Create a functional model with 2 inputs.
        const input1 = tfl.layers.input({shape: [1]});
@@ -1185,8 +1179,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
        const y = tfl.layers
                      .dense({
                        units: 1,
-                       kernelInitializer: 'zeros',
-                       biasInitializer: 'zeros'
+                       kernelInitializer: 'zeros'
                      })
                      .apply(concat) as tfl.SymbolicTensor;
        const model = tfl.model({inputs: [input1, input2], outputs: y});
@@ -1245,7 +1238,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
        expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.103377]));
      });
 
-  it('2 input, 1 output, 1 metric, no validation, no batchesPerEpoch',
+  it('2 inputs, 1 output, 1 metric, no validation, no batchesPerEpoch',
      async () => {
        // Create a functional model with 2 inputs.
        const input1 = tfl.layers.input({shape: [1]});
@@ -1254,8 +1247,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
        const y = tfl.layers
                      .dense({
                        units: 1,
-                       kernelInitializer: 'zeros',
-                       biasInitializer: 'zeros'
+                       kernelInitializer: 'zeros'
                      })
                      .apply(concat) as tfl.SymbolicTensor;
        const model = tfl.model({inputs: [input1, input2], outputs: y});
@@ -1313,7 +1305,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
 
   // Reference Python tf.keras code:
   //
-  // ```js
+  // ```py
   // import numpy as np
   // import tensorflow as tf
   //
@@ -1327,7 +1319,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
   // input2 = tf.keras.Input(shape = [1], name = 'x2')
   // concat = tf.keras.layers.concatenate([input1, input2])
   // y = tf.keras.layers.Dense(
-  //     1, kernel_initializer = 'zeros', bias_initializer = 'zeros')(concat)
+  //     1, kernel_initializer = 'zeros')(concat)
   // model = tf.keras.Model(inputs = [input1, input2], outputs = y)
   // model.compile(
   //     loss='mean_squared_error',
@@ -1356,7 +1348,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
   // print(model.get_weights()[0])
   // print(model.get_weights()[1])
   // ```
-  it('2 input, 1 output, 1 metric, tensor array validation, ' +
+  it('2 inputs, 1 output, 1 metric, tensor array validation, ' +
          'with batchesPerEpoch',
      async () => {
        // Create a functional model with 2 inputs.
@@ -1366,8 +1358,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
        const y = tfl.layers
                      .dense({
                        units: 1,
-                       kernelInitializer: 'zeros',
-                       biasInitializer: 'zeros'
+                       kernelInitializer: 'zeros'
                      })
                      .apply(concat) as tfl.SymbolicTensor;
        const model = tfl.model({inputs: [input1, input2], outputs: y});
@@ -1450,7 +1441,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
        expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.103377]));
      });
 
-  it('2 input, 1 output, 1 metric, tensor array validation, ' +
+  it('2 inputs, 1 output, 1 metric, tensor array validation, ' +
          'no batchesPerEpoch',
      async () => {
        // Create a functional model with 2 inputs.
@@ -1460,8 +1451,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
        const y = tfl.layers
                      .dense({
                        units: 1,
-                       kernelInitializer: 'zeros',
-                       biasInitializer: 'zeros'
+                       kernelInitializer: 'zeros'
                      })
                      .apply(concat) as tfl.SymbolicTensor;
        const model = tfl.model({inputs: [input1, input2], outputs: y});
@@ -1542,7 +1532,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
 
   // Reference Python tf.keras code:
   //
-  // ```js
+  // ```py
   // import numpy as np
   // import tensorflow as tf
   //
@@ -1556,7 +1546,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
   // input2 = tf.keras.Input(shape = [1], name = 'x2')
   // concat = tf.keras.layers.concatenate([input1, input2])
   // y = tf.keras.layers.Dense(
-  //     1, kernel_initializer = 'zeros', bias_initializer = 'zeros')(concat)
+  //     1, kernel_initializer = 'zeros')(concat)
   // model = tf.keras.Model(inputs = [input1, input2], outputs = y)
   // model.compile(
   //     loss='mean_squared_error',
@@ -1597,8 +1587,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
        const y = tfl.layers
                      .dense({
                        units: 1,
-                       kernelInitializer: 'zeros',
-                       biasInitializer: 'zeros'
+                       kernelInitializer: 'zeros'
                      })
                      .apply(concat) as tfl.SymbolicTensor;
        const model = tfl.model({inputs: [input1, input2], outputs: y});
@@ -1692,8 +1681,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
        const y = tfl.layers
                      .dense({
                        units: 1,
-                       kernelInitializer: 'zeros',
-                       biasInitializer: 'zeros'
+                       kernelInitializer: 'zeros'
                      })
                      .apply(concat) as tfl.SymbolicTensor;
        const model = tfl.model({inputs: [input1, input2], outputs: y});
@@ -1781,8 +1769,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
     const y = tfl.layers
                   .dense({
                     units: 1,
-                    kernelInitializer: 'zeros',
-                    biasInitializer: 'zeros'
+                    kernelInitializer: 'zeros'
                   })
                   .apply(concat) as tfl.SymbolicTensor;
     const model = tfl.model({inputs: [input1, input2], outputs: y});
@@ -1834,8 +1821,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
     const y = tfl.layers
                   .dense({
                     units: 1,
-                    kernelInitializer: 'zeros',
-                    biasInitializer: 'zeros'
+                    kernelInitializer: 'zeros'
                   })
                   .apply(concat) as tfl.SymbolicTensor;
     const model = tfl.model({inputs: [input1, input2], outputs: y});
@@ -2970,8 +2956,7 @@ describeMathCPUAndGPU('Model.evaluateDataset', () => {
   // model.add(tf.keras.layers.Dense(
   //     1,
   //     input_shape=[1],
-  //     kernel_initializer='zeros',
-  //     bias_initializer='zeros'))
+  //     kernel_initializer='zeros'))
   // model.compile(loss='mean_squared_error',
   //               optimizer=tf.train.GradientDescentOptimizer(0.01))
   //
@@ -3073,8 +3058,7 @@ describeMathCPUAndGPU('Model.evaluateDataset', () => {
   // model.add(tf.keras.layers.Dense(
   //     1,
   //     input_shape=[1],
-  //     kernel_initializer='zeros',
-  //     bias_initializer='zeros'))
+  //     kernel_initializer='zeros'))
   // model.compile(loss='mean_squared_error',
   //               optimizer=tf.train.GradientDescentOptimizer(0.01),
   //               metrics=['accuracy'])
@@ -3260,8 +3244,7 @@ describeMathCPUAndGPU('Model.evaluateDataset', () => {
   // output = tf.keras.layers.Dense(
   //     1,
   //     input_shape=[1],
-  //     kernel_initializer='zeros',
-  //     bias_initializer='zeros').apply(concat)
+  //     kernel_initializer='zeros').apply(concat)
   // model = tf.keras.Model(inputs=[input1, input2], outputs=output)
   // model.compile(loss='mean_squared_error',
   //               optimizer=tf.train.GradientDescentOptimizer(0.01),
@@ -3270,7 +3253,7 @@ describeMathCPUAndGPU('Model.evaluateDataset', () => {
   // out = model.evaluate(dataset, steps=3, verbose=0)
   // print(out)
   // ```
-  it('2 input, 1 output, 1 metric, no validation, with batches specified',
+  it('2 inputs, 1 output, 1 metric, no validation, with batches specified',
      async () => {
        // Create a functional model with 2 inputs.
        const input1 = tfl.layers.input({shape: [1]});
@@ -3279,8 +3262,7 @@ describeMathCPUAndGPU('Model.evaluateDataset', () => {
        const y = tfl.layers
                      .dense({
                        units: 1,
-                       kernelInitializer: 'zeros',
-                       biasInitializer: 'zeros'
+                       kernelInitializer: 'zeros'
                      })
                      .apply(concat) as tfl.SymbolicTensor;
        const model = tfl.model({inputs: [input1, input2], outputs: y});
@@ -3332,7 +3314,7 @@ describeMathCPUAndGPU('Model.evaluateDataset', () => {
        expect(numTensors1).toEqual(numTensors0);
      });
 
-  it('2 input, 1 output, 1 metric, no validation, no batches specified',
+  it('2 inputs, 1 output, 1 metric, no validation, no batches specified',
      async () => {
        // Create a functional model with 2 inputs.
        const input1 = tfl.layers.input({shape: [1]});
@@ -3341,8 +3323,7 @@ describeMathCPUAndGPU('Model.evaluateDataset', () => {
        const y = tfl.layers
                      .dense({
                        units: 1,
-                       kernelInitializer: 'zeros',
-                       biasInitializer: 'zeros'
+                       kernelInitializer: 'zeros'
                      })
                      .apply(concat) as tfl.SymbolicTensor;
        const model = tfl.model({inputs: [input1, input2], outputs: y});
