@@ -33,5 +33,5 @@ fi
 yarn build-npm
 ./scripts/make-version # This is for safety in case you forgot to do 2).
 ./scripts/tag-version
-npm publish
+npm publish --tag next # Remove --tag next when prereleases are done.
 echo 'Yay! Published a new package to npm.'
