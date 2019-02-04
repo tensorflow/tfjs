@@ -59,7 +59,7 @@ import {getExactlyOneShape} from './utils/types_utils';
  * @returns A TensorFlow.js Layers `tf.Model` instance (uncompiled).
  */
 /**
- * @doc {heading: 'Models',subheading: 'Loading'}
+ * @doc {heading: 'Models', subheading: 'Loading', namespace: 'models'}
  */
 export async function modelFromJSON(
     modelAndWeightsConfig: ModelAndWeightsConfig|PyJsonDict,
