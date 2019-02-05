@@ -77,7 +77,6 @@ import {Im2ColProgram} from './webgl/im2col_gpu';
 import {LRNProgram} from './webgl/lrn_gpu';
 import {LRNGradProgram} from './webgl/lrn_grad_gpu';
 import {MaxPool2DBackpropProgram} from './webgl/max_pool_backprop_gpu';
-import {MatMulProgram} from './webgl/mulmat_gpu';
 import {MatMulPackedProgram} from './webgl/mulmat_packed_gpu';
 import {MultinomialProgram} from './webgl/multinomial_gpu';
 import {OneHotProgram} from './webgl/onehot_gpu';
@@ -769,26 +768,11 @@ export class MathBackendWebGL implements KernelBackend {
 
     const dtype = upcastType(a.dtype, b.dtype);
 
-    // TODO(https://github.com/tensorflow/tfjs/issues/693): Support 3D tensors
-    if (batch === 1) {
-      const aSqueezed = a.as2D(a.shape[1], a.shape[2]);
-      const bSqueezed = b.as2D(b.shape[1], b.shape[2]);
-
-      const program = new MatMulPackedProgram(
-          aSqueezed.shape, bSqueezed.shape, [outerShapeA, outerShapeB],
-          transposeA, transposeB);
-      const output =
-          this.makePackedTensor(program.outputShape, dtype) as Tensor2D;
-      const result =
-          this.compileAndRun<Tensor2D>(program, [aSqueezed, bSqueezed], output);
-      return result.reshape([1, result.shape[0], result.shape[1]]);
-    } else {
-      const program =
-          new MatMulProgram(a.shape, b.shape, transposeA, transposeB);
-      const output =
-          this.makeOutputArray(program.outputShape, dtype) as Tensor3D;
-      return this.compileAndRun(program, [a, b], output);
-    }
+    const program = new MatMulPackedProgram(a.shape,
+        [batch, outerShapeA, outerShapeB], transposeA, transposeB);
+    const output =
+        this.makePackedTensor(program.outputShape, dtype) as Tensor3D;
+    return this.compileAndRun<Tensor3D>(program, [a, b], output);
   }
 
   fusedBatchMatMul(
@@ -800,35 +784,16 @@ export class MathBackendWebGL implements KernelBackend {
 
     const dtype = upcastType(a.dtype, b.dtype);
 
-    // TODO(https://github.com/tensorflow/tfjs/issues/693): Support 3D tensors
-    if (batch === 1) {
-      const aSqueezed = a.as2D(a.shape[1], a.shape[2]);
-      const bSqueezed = b.as2D(b.shape[1], b.shape[2]);
-
-      const program = new MatMulPackedProgram(
-          aSqueezed.shape, bSqueezed.shape, [outerShapeA, outerShapeB],
-          transposeA, transposeB, !!bias,
-          activation ? mapActivationToShaderProgram(activation, true) : null);
-      const output =
-          this.makePackedTensor(program.outputShape, dtype) as Tensor2D;
-      const inputs: TensorHandle[] = [aSqueezed, bSqueezed];
-      if (bias) {
-        inputs.push(bias);
-      }
-      const result = this.compileAndRun<Tensor2D>(program, inputs, output);
-      return result.reshape([1, result.shape[0], result.shape[1]]);
-    } else {
-      const program = new MatMulProgram(
-          a.shape, b.shape, transposeA, transposeB, !!bias,
-          activation ? mapActivationToShaderProgram(activation) : null);
-      const inputs: TensorHandle[] = [a, b];
-      if (bias) {
-        inputs.push(bias);
-      }
-      const output =
-          this.makeOutputArray(program.outputShape, dtype) as Tensor3D;
-      return this.compileAndRun(program, inputs, output);
+    const program = new MatMulPackedProgram(a.shape,
+        [batch, outerShapeA, outerShapeB], transposeA, transposeB, !!bias,
+        activation ? mapActivationToShaderProgram(activation, true) : null);
+    const output =
+        this.makePackedTensor(program.outputShape, dtype) as Tensor3D;
+    const inputs: TensorHandle[] = [a, b];
+    if (bias) {
+      inputs.push(bias);
     }
+    return this.compileAndRun<Tensor3D>(program, inputs, output);
   }
 
   multiply(a: Tensor, b: Tensor): Tensor {
@@ -1711,14 +1676,15 @@ export class MathBackendWebGL implements KernelBackend {
     const x2ColShape = [sharedDim, numCols];
 
     const xSqueezed = x.squeeze([0]);
-    const w2Row = filter.reshape([sharedDim, -1]) as Tensor2D;
+    const w2Row = filter.reshape([1, sharedDim, -1]) as Tensor3D;
 
     const im2ColProgram =
         new Im2ColProgram(x2ColShape, xSqueezed.shape, convInfo);
-    const im2Col = this.compileAndRun<Tensor2D>(im2ColProgram, [xSqueezed]);
+    const im2Col = this.compileAndRun<Tensor2D>(im2ColProgram, [xSqueezed]).
+        reshape([1, x2ColShape[0], x2ColShape[1]]) as Tensor3D;
 
     const matmulProgram = new MatMulPackedProgram(
-        im2Col.shape, w2Row.shape, [numCols, convInfo.outChannels], true,
+        im2Col.shape, [1, numCols, convInfo.outChannels], true,
         false);
     const product =
         this.compileAndRun<Tensor4D>(matmulProgram, [im2Col, w2Row]);
