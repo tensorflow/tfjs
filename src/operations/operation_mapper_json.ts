@@ -137,14 +137,18 @@ export class OperationMapper {
       children: [],
       params: {}
     };
+    if (node.attr == null) {
+      node.attr = {};
+    }
 
-    if (!!mapper.params) {
+    if (mapper.params != null) {
       newNode.params = mapper.params.reduce<{[key: string]:
                                                  ParamValue}>((map, param) => {
         const inputIndex = param.tfInputIndex;
         const inputParamLength = param.tfInputParamLength;
         const type = param.type;
         let value = undefined;
+
         if (inputIndex === undefined) {
           switch (param.type) {
             case 'string':
