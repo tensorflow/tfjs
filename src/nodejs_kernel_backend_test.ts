@@ -34,9 +34,9 @@ describe('delayed upload', () => {
     const logits = tf.tensor1d([1, 2, 3]);
     const softmaxLogits = tf.softmax(logits);
     const data = softmaxLogits.dataSync();
-    expect(softmaxLogits.get(0)).toEqual(data[0]);
-    expect(softmaxLogits.get(1)).toEqual(data[1]);
-    expect(softmaxLogits.get(2)).toEqual(data[2]);
+    expect(softmaxLogits.dataSync()[0]).toEqual(data[0]);
+    expect(softmaxLogits.dataSync()[1]).toEqual(data[1]);
+    expect(softmaxLogits.dataSync()[2]).toEqual(data[2]);
   });
 });
 
