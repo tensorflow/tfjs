@@ -123,7 +123,7 @@ const SIMPLE_MODEL: tensorflow_json.IGraphDef = {
       input: ['image_placeholder'],
       attr: {num_split: {i: 3} as tensorflow_json.IAttrValue}
     },
-    {
+    {name: 'LogicalNot', op: 'LogicalNot', input: ['image_placeholder']}, {
       name: 'FusedBatchNorm',
       op: 'FusedBatchNorm',
       input: ['image_placeholder'],
@@ -163,7 +163,7 @@ describe('operationMapper', () => {
 
       it('should find the graph output nodes', () => {
         expect(convertedGraph.outputs.map(node => node.name)).toEqual([
-          'Fill', 'Squeeze', 'Split', 'FusedBatchNorm'
+          'Fill', 'Squeeze', 'Split', 'LogicalNot', 'FusedBatchNorm'
         ]);
       });
 
@@ -176,7 +176,7 @@ describe('operationMapper', () => {
       it('should convert nodes', () => {
         expect(Object.keys(convertedGraph.nodes)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
-          'BiasAdd', 'Squeeze', 'Split', 'FusedBatchNorm'
+          'BiasAdd', 'Squeeze', 'Split', 'LogicalNot', 'FusedBatchNorm'
         ]);
       });
     });
@@ -189,7 +189,7 @@ describe('operationMapper', () => {
       it('should find the children nodes', () => {
         expect(convertedGraph.nodes['image_placeholder'].children.map(
                    node => node.name))
-            .toEqual(['Conv2D', 'Split', 'FusedBatchNorm']);
+            .toEqual(['Conv2D', 'Split', 'LogicalNot', 'FusedBatchNorm']);
       });
 
       it('should map the input params', () => {
