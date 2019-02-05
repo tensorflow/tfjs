@@ -45,6 +45,13 @@ export function getTFDType(dataType: tfc.DataType): number {
       return binding.TF_COMPLEX64;
     case 'string':
       return binding.TF_STRING;
+    // tslint:disable-next-line:no-any
+    case 'int64' as any:
+      // int64 is not a generally supported dtype in TensorFlow.js
+      // (tfjs-core). However, it needs to be included here for the purpose of
+      // writing the `step` value to TensorBoard via WriteScalarSummary and
+      // other op kernels.
+      return binding.TF_INT64;
     default:
       const errorMessage = `Unknown dtype: ${dataType}`;
       throw new Error(errorMessage);
