@@ -80,36 +80,39 @@ describeWithFlags('batchNormalization', WEBGL_ENVS, () => {
 });
 
 describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
-  it('simple batchnorm4D, no offset or scale, 2x1x1x2', () => {
-    const x = tf.tensor4d([2, 4, 9, 23], [2, 1, 1, 2]);
-    const mean = tf.tensor1d([1, 2]);
-    const variance = tf.tensor1d([2, 3]);
+  it('simple batchnorm4D, no offset or scale, 2x1x1x2', async () => {
+    const xT = tf.tensor4d([2, 4, 9, 23], [2, 1, 1, 2]);
+    const meanT = tf.tensor1d([1, 2]);
+    const varianceT = tf.tensor1d([2, 3]);
     const varianceEpsilon = .001;
 
     const result = tf.batchNormalization4d(
-        x, mean, variance, varianceEpsilon, undefined, undefined);
+        xT, meanT, varianceT, varianceEpsilon, undefined, undefined);
 
+    const x = await xT.array() as number[][][][];
+    const mean = await meanT.array() as number[];
+    const variance = await varianceT.array() as number[];
     expectArraysClose(result, [
-      (x.get(0, 0, 0, 0) - mean.get(0)) * 1 /
-          Math.sqrt(variance.get(0) + varianceEpsilon),
-      (x.get(0, 0, 0, 1) - mean.get(1)) * 1 /
-          Math.sqrt(variance.get(1) + varianceEpsilon),
-      (x.get(1, 0, 0, 0) - mean.get(0)) * 1 /
-          Math.sqrt(variance.get(0) + varianceEpsilon),
-      (x.get(1, 0, 0, 1) - mean.get(1)) * 1 /
-          Math.sqrt(variance.get(1) + varianceEpsilon)
+      (x[0][0][0][0] - mean[0]) * 1 / Math.sqrt(variance[0] + varianceEpsilon),
+      (x[0][0][0][1] - mean[1]) * 1 / Math.sqrt(variance[1] + varianceEpsilon),
+      (x[1][0][0][0] - mean[0]) * 1 / Math.sqrt(variance[0] + varianceEpsilon),
+      (x[1][0][0][1] - mean[1]) * 1 / Math.sqrt(variance[1] + varianceEpsilon)
     ]);
   });
 
-  it('simple batchnorm4D, no offset, 2x1x1x2', () => {
-    const x = tf.tensor4d([2, 4, 9, 23], [2, 1, 1, 2]);
-    const mean = tf.tensor1d([1, 2]);
-    const variance = tf.tensor1d([2, 3]);
-    const scale = tf.tensor1d([4, 5]);
+  it('simple batchnorm4D, no offset, 2x1x1x2', async () => {
+    const xT = tf.tensor4d([2, 4, 9, 23], [2, 1, 1, 2]);
+    const meanT = tf.tensor1d([1, 2]);
+    const varianceT = tf.tensor1d([2, 3]);
+    const scaleT = tf.tensor1d([4, 5]);
     const varianceEpsilon = .001;
 
     const result = tf.batchNormalization4d(
-        x, mean, variance, varianceEpsilon, scale, undefined);
+        xT, meanT, varianceT, varianceEpsilon, scaleT, undefined);
+    const x = await xT.buffer();
+    const mean = await meanT.buffer();
+    const variance = await varianceT.buffer();
+    const scale = await scaleT.buffer();
 
     expectArraysClose(result, [
       (x.get(0, 0, 0, 0) - mean.get(0)) * scale.get(0) /
@@ -123,16 +126,20 @@ describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
     ]);
   });
 
-  it('simple batchnorm4D, no scale, 2x1x1x2', () => {
-    const x = tf.tensor4d([2, 4, 9, 23], [2, 1, 1, 2]);
-    const mean = tf.tensor1d([1, 2]);
-    const variance = tf.tensor1d([2, 3]);
-    const offset = tf.tensor1d([4, 5]);
+  it('simple batchnorm4D, no scale, 2x1x1x2', async () => {
+    const xT = tf.tensor4d([2, 4, 9, 23], [2, 1, 1, 2]);
+    const meanT = tf.tensor1d([1, 2]);
+    const varianceT = tf.tensor1d([2, 3]);
+    const offsetT = tf.tensor1d([4, 5]);
 
     const varianceEpsilon = .001;
 
     const result = tf.batchNormalization4d(
-        x, mean, variance, varianceEpsilon, undefined, offset);
+        xT, meanT, varianceT, varianceEpsilon, undefined, offsetT);
+    const x = await xT.buffer();
+    const mean = await meanT.buffer();
+    const variance = await varianceT.buffer();
+    const offset = await offsetT.buffer();
 
     expectArraysClose(result, [
       offset.get(0) +
@@ -150,17 +157,22 @@ describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
     ]);
   });
 
-  it('simple batchnorm4D, 2x1x1x2', () => {
-    const x = tf.tensor4d([2, 4, 9, 23], [2, 1, 1, 2]);
-    const mean = tf.tensor1d([1, 2]);
-    const variance = tf.tensor1d([2, 3]);
-    const offset = tf.tensor1d([3, 4]);
-    const scale = tf.tensor1d([4, 5]);
+  it('simple batchnorm4D, 2x1x1x2', async () => {
+    const xT = tf.tensor4d([2, 4, 9, 23], [2, 1, 1, 2]);
+    const meanT = tf.tensor1d([1, 2]);
+    const varianceT = tf.tensor1d([2, 3]);
+    const offsetT = tf.tensor1d([3, 4]);
+    const scaleT = tf.tensor1d([4, 5]);
 
     const varianceEpsilon = .001;
 
     const result = tf.batchNormalization4d(
-        x, mean, variance, varianceEpsilon, scale, offset);
+        xT, meanT, varianceT, varianceEpsilon, scaleT, offsetT);
+    const x = await xT.buffer();
+    const mean = await meanT.buffer();
+    const variance = await varianceT.buffer();
+    const scale = await scaleT.buffer();
+    const offset = await offsetT.buffer();
 
     expectArraysClose(result, [
       offset.get(0) +
@@ -277,15 +289,17 @@ describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
 });
 
 describeWithFlags('batchNormalization3D', ALL_ENVS, () => {
-  it('simple batchnorm3D, no offset or scale, 2x1x2', () => {
-    const x = tf.tensor3d([2, 4, 9, 23], [2, 1, 2]);
-    const mean = tf.tensor1d([1, 2]);
-    const variance = tf.tensor1d([2, 3]);
+  it('simple batchnorm3D, no offset or scale, 2x1x2', async () => {
+    const xT = tf.tensor3d([2, 4, 9, 23], [2, 1, 2]);
+    const meanT = tf.tensor1d([1, 2]);
+    const varianceT = tf.tensor1d([2, 3]);
     const varianceEpsilon = .001;
 
     const result = tf.batchNormalization3d(
-        x, mean, variance, varianceEpsilon, undefined, undefined);
-
+        xT, meanT, varianceT, varianceEpsilon, undefined, undefined);
+    const x = await xT.buffer();
+    const mean = await meanT.buffer();
+    const variance = await varianceT.buffer();
     expectArraysClose(result, [
       (x.get(0, 0, 0) - mean.get(0)) * 1 /
           Math.sqrt(variance.get(0) + varianceEpsilon),
@@ -298,16 +312,20 @@ describeWithFlags('batchNormalization3D', ALL_ENVS, () => {
     ]);
   });
 
-  it('simple batchnorm3D, no offset, 2x1x2', () => {
-    const x = tf.tensor3d([2, 4, 9, 23], [2, 1, 2]);
-    const mean = tf.tensor1d([1, 2]);
-    const variance = tf.tensor1d([2, 3]);
-    const scale = tf.tensor1d([4, 5]);
+  it('simple batchnorm3D, no offset, 2x1x2', async () => {
+    const xT = tf.tensor3d([2, 4, 9, 23], [2, 1, 2]);
+    const meanT = tf.tensor1d([1, 2]);
+    const varianceT = tf.tensor1d([2, 3]);
+    const scaleT = tf.tensor1d([4, 5]);
     const varianceEpsilon = .001;
 
     const result = tf.batchNormalization3d(
-        x, mean, variance, varianceEpsilon, scale, undefined);
+        xT, meanT, varianceT, varianceEpsilon, scaleT, undefined);
 
+    const x = await xT.buffer();
+    const mean = await meanT.buffer();
+    const variance = await varianceT.buffer();
+    const scale = await scaleT.buffer();
     expectArraysClose(result, [
       (x.get(0, 0, 0) - mean.get(0)) * scale.get(0) /
           Math.sqrt(variance.get(0) + varianceEpsilon),
@@ -320,17 +338,21 @@ describeWithFlags('batchNormalization3D', ALL_ENVS, () => {
     ]);
   });
 
-  it('simple batchnorm3D, no scale, 2x1x2', () => {
-    const x = tf.tensor3d([2, 4, 9, 23], [2, 1, 2]);
-    const mean = tf.tensor1d([1, 2]);
-    const variance = tf.tensor1d([2, 3]);
-    const offset = tf.tensor1d([4, 5]);
+  it('simple batchnorm3D, no scale, 2x1x2', async () => {
+    const xT = tf.tensor3d([2, 4, 9, 23], [2, 1, 2]);
+    const meanT = tf.tensor1d([1, 2]);
+    const varianceT = tf.tensor1d([2, 3]);
+    const offsetT = tf.tensor1d([4, 5]);
 
     const varianceEpsilon = .001;
 
     const result = tf.batchNormalization3d(
-        x, mean, variance, varianceEpsilon, undefined, offset);
+        xT, meanT, varianceT, varianceEpsilon, undefined, offsetT);
 
+    const x = await xT.buffer();
+    const mean = await meanT.buffer();
+    const variance = await varianceT.buffer();
+    const offset = await offsetT.buffer();
     expectArraysClose(result, [
       offset.get(0) +
           (x.get(0, 0, 0) - mean.get(0)) * 1 /
@@ -347,17 +369,22 @@ describeWithFlags('batchNormalization3D', ALL_ENVS, () => {
     ]);
   });
 
-  it('simple batchnorm3D, 2x1x2', () => {
-    const x = tf.tensor3d([2, 4, 9, 23], [2, 1, 2]);
-    const mean = tf.tensor1d([1, 2]);
-    const variance = tf.tensor1d([2, 3]);
-    const offset = tf.tensor1d([3, 4]);
-    const scale = tf.tensor1d([4, 5]);
+  it('simple batchnorm3D, 2x1x2', async () => {
+    const xT = tf.tensor3d([2, 4, 9, 23], [2, 1, 2]);
+    const meanT = tf.tensor1d([1, 2]);
+    const varianceT = tf.tensor1d([2, 3]);
+    const offsetT = tf.tensor1d([3, 4]);
+    const scaleT = tf.tensor1d([4, 5]);
 
     const varianceEpsilon = .001;
 
     const result = tf.batchNormalization3d(
-        x, mean, variance, varianceEpsilon, scale, offset);
+        xT, meanT, varianceT, varianceEpsilon, scaleT, offsetT);
+    const x = await xT.buffer();
+    const mean = await meanT.buffer();
+    const variance = await varianceT.buffer();
+    const offset = await offsetT.buffer();
+    const scale = await scaleT.buffer();
 
     expectArraysClose(result, [
       offset.get(0) +
@@ -403,19 +430,24 @@ describeWithFlags('batchNormalization3D', ALL_ENVS, () => {
     ]);
   });
 
-  it('batchnorm3D, x,mean,var,offset,scale are all 3D', () => {
+  it('batchnorm3D, x,mean,var,offset,scale are all 3D', async () => {
     const shape: [number, number, number] = [2, 1, 2];
-    const x = tf.tensor3d([2, 4, 9, 23], shape);
-    const mean = tf.tensor3d([1, 2, 3, 4], shape);
-    const variance = tf.tensor3d([2, 3, 4, 5], shape);
-    const offset = tf.tensor3d([3, 4, 5, 6], shape);
-    const scale = tf.tensor3d([4, 5, 6, 7], shape);
+    const xT = tf.tensor3d([2, 4, 9, 23], shape);
+    const meanT = tf.tensor3d([1, 2, 3, 4], shape);
+    const varianceT = tf.tensor3d([2, 3, 4, 5], shape);
+    const offsetT = tf.tensor3d([3, 4, 5, 6], shape);
+    const scaleT = tf.tensor3d([4, 5, 6, 7], shape);
 
     const varianceEpsilon = .001;
 
     const result = tf.batchNormalization3d(
-        x, mean, variance, varianceEpsilon, scale, offset);
+        xT, meanT, varianceT, varianceEpsilon, scaleT, offsetT);
 
+    const x = await xT.buffer();
+    const mean = await meanT.buffer();
+    const variance = await varianceT.buffer();
+    const offset = await offsetT.buffer();
+    const scale = await scaleT.buffer();
     expectArraysClose(result, [
       offset.get(0, 0, 0) +
           (x.get(0, 0, 0) - mean.get(0, 0, 0)) * scale.get(0, 0, 0) /
@@ -528,15 +560,18 @@ describeWithFlags('batchNormalization3D', ALL_ENVS, () => {
 });
 
 describeWithFlags('batchNormalization2D', ALL_ENVS, () => {
-  it('simple batchnorm2D, no offset or scale, 2x2', () => {
-    const x = tf.tensor2d([2, 4, 9, 23], [2, 2]);
-    const mean = tf.tensor1d([1, 2]);
-    const variance = tf.tensor1d([2, 3]);
+  it('simple batchnorm2D, no offset or scale, 2x2', async () => {
+    const xT = tf.tensor2d([2, 4, 9, 23], [2, 2]);
+    const meanT = tf.tensor1d([1, 2]);
+    const varianceT = tf.tensor1d([2, 3]);
     const varianceEpsilon = .001;
 
     const result = tf.batchNormalization2d(
-        x, mean, variance, varianceEpsilon, undefined, undefined);
+        xT, meanT, varianceT, varianceEpsilon, undefined, undefined);
 
+    const x = await xT.buffer();
+    const mean = await meanT.buffer();
+    const variance = await varianceT.buffer();
     expectArraysClose(result, [
       (x.get(0, 0) - mean.get(0)) * 1 /
           Math.sqrt(variance.get(0) + varianceEpsilon),
@@ -548,16 +583,20 @@ describeWithFlags('batchNormalization2D', ALL_ENVS, () => {
           Math.sqrt(variance.get(1) + varianceEpsilon)
     ]);
   });
-  it('simple batchnorm2D, no offset, 2x2', () => {
-    const x = tf.tensor2d([2, 4, 9, 23], [2, 2]);
-    const mean = tf.tensor1d([1, 2]);
-    const variance = tf.tensor1d([2, 3]);
-    const scale = tf.tensor1d([4, 5]);
+  it('simple batchnorm2D, no offset, 2x2', async () => {
+    const xT = tf.tensor2d([2, 4, 9, 23], [2, 2]);
+    const meanT = tf.tensor1d([1, 2]);
+    const varianceT = tf.tensor1d([2, 3]);
+    const scaleT = tf.tensor1d([4, 5]);
     const varianceEpsilon = .001;
 
     const result = tf.batchNormalization2d(
-        x, mean, variance, varianceEpsilon, scale, undefined);
+        xT, meanT, varianceT, varianceEpsilon, scaleT, undefined);
 
+    const x = await xT.buffer();
+    const mean = await meanT.buffer();
+    const variance = await varianceT.buffer();
+    const scale = await scaleT.buffer();
     expectArraysClose(result, [
       (x.get(0, 0) - mean.get(0)) * scale.get(0) /
           Math.sqrt(variance.get(0) + varianceEpsilon),
@@ -571,57 +610,64 @@ describeWithFlags('batchNormalization2D', ALL_ENVS, () => {
   });
 
   it('simple batchnorm2D, no scale, 2x2', () => {
-    const x = tf.tensor2d([2, 4, 9, 23], [2, 2]);
-    const mean = tf.tensor1d([1, 2]);
-    const variance = tf.tensor1d([2, 3]);
-    const offset = tf.tensor1d([4, 5]);
+    const xT = tf.tensor2d([2, 4, 9, 23], [2, 2]);
+    const meanT = tf.tensor1d([1, 2]);
+    const varianceT = tf.tensor1d([2, 3]);
+    const offsetT = tf.tensor1d([4, 5]);
 
     const varianceEpsilon = .001;
 
     const result = tf.batchNormalization2d(
-        x, mean, variance, varianceEpsilon, undefined, offset);
+        xT, meanT, varianceT, varianceEpsilon, undefined, offsetT);
+
+    const offset = offsetT.arraySync() as number[];
+    const mean = meanT.arraySync() as number[];
+    const variance = varianceT.arraySync() as number[];
+    const x = xT.arraySync() as number[][];
 
     expectArraysClose(result, [
-      offset.get(0) +
-          (x.get(0, 0) - mean.get(0)) * 1 /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-      offset.get(1) +
-          (x.get(0, 1) - mean.get(1)) * 1 /
-              Math.sqrt(variance.get(1) + varianceEpsilon),
-      offset.get(0) +
-          (x.get(1, 0) - mean.get(0)) * 1 /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-      offset.get(1) +
-          (x.get(1, 1) - mean.get(1)) * 1 /
-              Math.sqrt(variance.get(1) + varianceEpsilon)
+      offset[0] +
+          (x[0][0] - mean[0]) * 1 / Math.sqrt(variance[0] + varianceEpsilon),
+      offset[1] +
+          (x[0][1] - mean[1]) * 1 / Math.sqrt(variance[1] + varianceEpsilon),
+      offset[0] +
+          (x[1][0] - mean[0]) * 1 / Math.sqrt(variance[0] + varianceEpsilon),
+      offset[1] +
+          (x[1][1] - mean[1]) * 1 / Math.sqrt(variance[1] + varianceEpsilon)
     ]);
   });
 
   it('simple batchnorm2D, 2x2', () => {
-    const x = tf.tensor2d([2, 4, 9, 23], [2, 2]);
-    const mean = tf.tensor1d([1, 2]);
-    const variance = tf.tensor1d([2, 3]);
-    const offset = tf.tensor1d([3, 4]);
-    const scale = tf.tensor1d([4, 5]);
+    const xT = tf.tensor2d([2, 4, 9, 23], [2, 2]);
+    const meanT = tf.tensor1d([1, 2]);
+    const varianceT = tf.tensor1d([2, 3]);
+    const offsetT = tf.tensor1d([3, 4]);
+    const scaleT = tf.tensor1d([4, 5]);
 
     const varianceEpsilon = .001;
 
     const result = tf.batchNormalization2d(
-        x, mean, variance, varianceEpsilon, scale, offset);
+        xT, meanT, varianceT, varianceEpsilon, scaleT, offsetT);
+
+    const offset = offsetT.arraySync() as number[];
+    const mean = meanT.arraySync() as number[];
+    const variance = varianceT.arraySync() as number[];
+    const scale = scaleT.arraySync() as number[];
+    const x = xT.arraySync() as number[][];
 
     expectArraysClose(result, [
-      offset.get(0) +
-          (x.get(0, 0) - mean.get(0)) * scale.get(0) /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-      offset.get(1) +
-          (x.get(0, 1) - mean.get(1)) * scale.get(1) /
-              Math.sqrt(variance.get(1) + varianceEpsilon),
-      offset.get(0) +
-          (x.get(1, 0) - mean.get(0)) * scale.get(0) /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-      offset.get(1) +
-          (x.get(1, 1) - mean.get(1)) * scale.get(1) /
-              Math.sqrt(variance.get(1) + varianceEpsilon)
+      offset[0] +
+          (x[0][0] - mean[0]) * scale[0] /
+              Math.sqrt(variance[0] + varianceEpsilon),
+      offset[1] +
+          (x[0][1] - mean[1]) * scale[1] /
+              Math.sqrt(variance[1] + varianceEpsilon),
+      offset[0] +
+          (x[1][0] - mean[0]) * scale[0] /
+              Math.sqrt(variance[0] + varianceEpsilon),
+      offset[1] +
+          (x[1][1] - mean[1]) * scale[1] /
+              Math.sqrt(variance[1] + varianceEpsilon)
     ]);
   });
 

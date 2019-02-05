@@ -28,16 +28,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(t.rank).toBe(1);
     expect(t.size).toBe(3);
     expectArraysClose(t, [1, 2, 3]);
-    // Out of bounds indexing.
-    expect(t.get(4)).toBeUndefined();
 
     // [[1, 2, 3]]
     t = tf.tensor2d([1, 2, 3], [1, 3]);
     expect(t.rank).toBe(2);
     expect(t.size).toBe(3);
     expectArraysClose(t, [1, 2, 3]);
-    // Out of bounds indexing.
-    expect(t.get(0, 4)).toBeUndefined();
 
     // [[1, 2, 3],
     //  [4, 5, 6]]
@@ -47,9 +43,6 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
     expectArraysClose(t, [1, 2, 3, 4, 5, 6]);
 
-    // Out of bounds indexing.
-    expect(t.get(5, 3)).toBeUndefined();
-
     // Shape mismatch with the values.
     expect(() => tf.tensor2d([1], [1, 2])).toThrowError();
   });
@@ -58,44 +51,28 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const t = tf.tensor1d([5, 3, 2]);
     expect(t.rank).toBe(1);
     expect(t.shape).toEqual([3]);
-    expectNumbersClose(t.get(1), 3);
 
     // tslint:disable-next-line:no-any
     expect(() => tf.tensor3d([1, 2], [1, 2, 3, 5] as any)).toThrowError();
 
     const t4 = tf.tensor4d([1, 2, 3, 4], [1, 2, 1, 2]);
-    expectNumbersClose(t4.get(0, 0, 0, 0), 1);
-    expectNumbersClose(t4.get(0, 0, 0, 1), 2);
-    expectNumbersClose(t4.get(0, 1, 0, 0), 3);
-    expectNumbersClose(t4.get(0, 1, 0, 1), 4);
+    expectArraysClose(t4, [1, 2, 3, 4]);
 
     // Tensor of ones.
     const x = tf.ones<Rank.R3>([3, 4, 2]);
     expect(x.rank).toBe(3);
     expect(x.size).toBe(24);
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 4; j++) {
-        for (let k = 0; k < 2; k++) {
-          expectNumbersClose(x.get(i, j, k), 1);
-        }
-      }
-    }
+    expectArraysClose(x, [
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+    ]);
 
     // Tensor of zeros.
     const z = tf.zeros<Rank.R3>([3, 4, 2]);
     expect(z.rank).toBe(3);
     expect(z.size).toBe(24);
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 4; j++) {
-        for (let k = 0; k < 2; k++) {
-          expectNumbersClose(z.get(i, j, k), 0);
-        }
-      }
-    }
-
-    // Reshaping tensors.
-    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-    expectNumbersClose(a.get(1, 2), 6);
+    expectArraysClose(z, [
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ]);
   });
 
   it('Tensor dataSync CPU --> GPU', () => {
@@ -116,35 +93,34 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('Scalar basic methods', () => {
     const a = tf.scalar(5);
-    expectNumbersClose(a.get(), 5);
     expectArraysClose(a, [5]);
     expect(a.rank).toBe(0);
     expect(a.size).toBe(1);
     expect(a.shape).toEqual([]);
   });
 
-  it('indexToLoc Scalar', () => {
-    const a = tf.scalar(0).buffer();
+  it('indexToLoc Scalar', async () => {
+    const a = await tf.scalar(0).buffer();
     expect(a.indexToLoc(0)).toEqual([]);
 
-    const b = tf.zeros<Rank.R0>([]).buffer();
+    const b = await tf.zeros<Rank.R0>([]).buffer();
     expect(b.indexToLoc(0)).toEqual([]);
   });
 
-  it('indexToLoc Tensor1D', () => {
-    const a = tf.zeros([3]).buffer();
+  it('indexToLoc Tensor1D', async () => {
+    const a = await tf.zeros([3]).buffer();
     expect(a.indexToLoc(0)).toEqual([0]);
     expect(a.indexToLoc(1)).toEqual([1]);
     expect(a.indexToLoc(2)).toEqual([2]);
 
-    const b = tf.zeros<Rank.R1>([3]).buffer();
+    const b = await tf.zeros<Rank.R1>([3]).buffer();
     expect(b.indexToLoc(0)).toEqual([0]);
     expect(b.indexToLoc(1)).toEqual([1]);
     expect(b.indexToLoc(2)).toEqual([2]);
   });
 
-  it('indexToLoc Tensor2D', () => {
-    const a = tf.zeros([3, 2]).buffer();
+  it('indexToLoc Tensor2D', async () => {
+    const a = await tf.zeros([3, 2]).buffer();
     expect(a.indexToLoc(0)).toEqual([0, 0]);
     expect(a.indexToLoc(1)).toEqual([0, 1]);
     expect(a.indexToLoc(2)).toEqual([1, 0]);
@@ -152,7 +128,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(a.indexToLoc(4)).toEqual([2, 0]);
     expect(a.indexToLoc(5)).toEqual([2, 1]);
 
-    const b = tf.zeros<Rank.R2>([3, 2]).buffer();
+    const b = await tf.zeros<Rank.R2>([3, 2]).buffer();
     expect(b.indexToLoc(0)).toEqual([0, 0]);
     expect(b.indexToLoc(1)).toEqual([0, 1]);
     expect(b.indexToLoc(2)).toEqual([1, 0]);
@@ -161,8 +137,8 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(b.indexToLoc(5)).toEqual([2, 1]);
   });
 
-  it('indexToLoc Tensor3D', () => {
-    const a = tf.zeros([3, 2, 2]).buffer();
+  it('indexToLoc Tensor3D', async () => {
+    const a = await tf.zeros([3, 2, 2]).buffer();
     expect(a.indexToLoc(0)).toEqual([0, 0, 0]);
     expect(a.indexToLoc(1)).toEqual([0, 0, 1]);
     expect(a.indexToLoc(2)).toEqual([0, 1, 0]);
@@ -171,7 +147,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(a.indexToLoc(5)).toEqual([1, 0, 1]);
     expect(a.indexToLoc(11)).toEqual([2, 1, 1]);
 
-    const b = tf.zeros<Rank.R3>([3, 2, 2]).buffer();
+    const b = await tf.zeros<Rank.R3>([3, 2, 2]).buffer();
     expect(b.indexToLoc(0)).toEqual([0, 0, 0]);
     expect(b.indexToLoc(1)).toEqual([0, 0, 1]);
     expect(b.indexToLoc(2)).toEqual([0, 1, 0]);
@@ -181,37 +157,37 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(b.indexToLoc(11)).toEqual([2, 1, 1]);
   });
 
-  it('indexToLoc Tensor 5D', () => {
+  it('indexToLoc Tensor 5D', async () => {
     const values = new Float32Array([1, 2, 3, 4]);
-    const a = Tensor.make([2, 1, 1, 1, 2], {values}).buffer();
+    const a = await Tensor.make([2, 1, 1, 1, 2], {values}).buffer();
     expect(a.indexToLoc(0)).toEqual([0, 0, 0, 0, 0]);
     expect(a.indexToLoc(1)).toEqual([0, 0, 0, 0, 1]);
     expect(a.indexToLoc(2)).toEqual([1, 0, 0, 0, 0]);
     expect(a.indexToLoc(3)).toEqual([1, 0, 0, 0, 1]);
   });
 
-  it('locToIndex Scalar', () => {
-    const a = tf.scalar(0).buffer();
+  it('locToIndex Scalar', async () => {
+    const a = await tf.scalar(0).buffer();
     expect(a.locToIndex([])).toEqual(0);
 
-    const b = tf.zeros<Rank.R0>([]).buffer();
+    const b = await tf.zeros<Rank.R0>([]).buffer();
     expect(b.locToIndex([])).toEqual(0);
   });
 
-  it('locToIndex Tensor1D', () => {
-    const a = tf.zeros<Rank.R1>([3]).buffer();
+  it('locToIndex Tensor1D', async () => {
+    const a = await tf.zeros<Rank.R1>([3]).buffer();
     expect(a.locToIndex([0])).toEqual(0);
     expect(a.locToIndex([1])).toEqual(1);
     expect(a.locToIndex([2])).toEqual(2);
 
-    const b = tf.zeros<Rank.R1>([3]).buffer();
+    const b = await tf.zeros<Rank.R1>([3]).buffer();
     expect(b.locToIndex([0])).toEqual(0);
     expect(b.locToIndex([1])).toEqual(1);
     expect(b.locToIndex([2])).toEqual(2);
   });
 
-  it('locToIndex Tensor2D', () => {
-    const a = tf.zeros<Rank.R2>([3, 2]).buffer();
+  it('locToIndex Tensor2D', async () => {
+    const a = await tf.zeros<Rank.R2>([3, 2]).buffer();
     expect(a.locToIndex([0, 0])).toEqual(0);
     expect(a.locToIndex([0, 1])).toEqual(1);
     expect(a.locToIndex([1, 0])).toEqual(2);
@@ -219,7 +195,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(a.locToIndex([2, 0])).toEqual(4);
     expect(a.locToIndex([2, 1])).toEqual(5);
 
-    const b = tf.zeros<Rank.R2>([3, 2]).buffer();
+    const b = await tf.zeros<Rank.R2>([3, 2]).buffer();
     expect(b.locToIndex([0, 0])).toEqual(0);
     expect(b.locToIndex([0, 1])).toEqual(1);
     expect(b.locToIndex([1, 0])).toEqual(2);
@@ -228,8 +204,8 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(b.locToIndex([2, 1])).toEqual(5);
   });
 
-  it('locToIndex Tensor3D', () => {
-    const a = tf.zeros<Rank.R3>([3, 2, 2]).buffer();
+  it('locToIndex Tensor3D', async () => {
+    const a = await tf.zeros<Rank.R3>([3, 2, 2]).buffer();
     expect(a.locToIndex([0, 0, 0])).toEqual(0);
     expect(a.locToIndex([0, 0, 1])).toEqual(1);
     expect(a.locToIndex([0, 1, 0])).toEqual(2);
@@ -238,7 +214,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(a.locToIndex([1, 0, 1])).toEqual(5);
     expect(a.locToIndex([2, 1, 1])).toEqual(11);
 
-    const b = tf.zeros<Rank.R3>([3, 2, 2]).buffer();
+    const b = await tf.zeros<Rank.R3>([3, 2, 2]).buffer();
     expect(b.locToIndex([0, 0, 0])).toEqual(0);
     expect(b.locToIndex([0, 0, 1])).toEqual(1);
     expect(b.locToIndex([0, 1, 0])).toEqual(2);
@@ -443,70 +419,70 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   it('default dtype', () => {
     const a = tf.scalar(3);
     expect(a.dtype).toBe('float32');
-    expectArraysClose(a, [3]);
+    expectArraysClose(a, 3);
   });
 
   it('float32 dtype', () => {
     const a = tf.scalar(3, 'float32');
     expect(a.dtype).toBe('float32');
-    expectArraysClose(a, [3]);
+    expectArraysClose(a, 3);
   });
 
   it('int32 dtype', () => {
     const a = tf.scalar(3, 'int32');
     expect(a.dtype).toBe('int32');
-    expectArraysEqual(a, [3]);
+    expectArraysEqual(a, 3);
   });
 
   it('int32 dtype, 3.9 => 3, like numpy', () => {
     const a = tf.scalar(3.9, 'int32');
     expect(a.dtype).toBe('int32');
-    expectArraysEqual(a, [3]);
+    expectArraysEqual(a, 3);
   });
 
   it('int32 dtype, -3.9 => -3, like numpy', () => {
     const a = tf.scalar(-3.9, 'int32');
     expect(a.dtype).toBe('int32');
-    expectArraysEqual(a, [-3]);
+    expectArraysEqual(a, -3);
   });
 
   it('bool dtype, 3 => true, like numpy', () => {
     const a = tf.scalar(3, 'bool');
     expect(a.dtype).toBe('bool');
-    expect(a.get()).toBe(1);
+    expectArraysEqual(a, 1);
   });
 
   it('bool dtype, -2 => true, like numpy', () => {
     const a = tf.scalar(-2, 'bool');
     expect(a.dtype).toBe('bool');
-    expect(a.get()).toBe(1);
+    expectArraysEqual(a, 1);
   });
 
   it('bool dtype, 0 => false, like numpy', () => {
     const a = tf.scalar(0, 'bool');
     expect(a.dtype).toBe('bool');
-    expect(a.get()).toBe(0);
+    expectArraysEqual(a, 0);
   });
 
   it('bool dtype from boolean', () => {
     const a = tf.scalar(false, 'bool');
-    expect(a.get()).toBe(0);
+    expectArraysEqual(a, 0);
     expect(a.dtype).toBe('bool');
 
     const b = tf.scalar(true, 'bool');
-    expect(b.get()).toBe(1);
+    expectArraysEqual(a, 0);
     expect(b.dtype).toBe('bool');
   });
 
   it('int32 dtype from boolean', () => {
     const a = tf.scalar(true, 'int32');
-    expect(a.get()).toBe(1);
+    expectArraysEqual(a, 1);
     expect(a.dtype).toBe('int32');
   });
 
   it('default dtype from boolean', () => {
     const a = tf.scalar(false);
-    expectNumbersClose(a.get(), 0);
+    expectArraysEqual(a, 0);
     expect(a.dtype).toBe('bool');
   });
 
@@ -549,10 +525,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const a = tf.tensor1d([1, -2, 0, 3], 'bool');
     expect(a.dtype).toBe('bool');
     expect(a.shape).toEqual([4]);
-    expect(a.get(0)).toBe(1);
-    expect(a.get(1)).toBe(1);
-    expect(a.get(2)).toBe(0);
-    expect(a.get(3)).toBe(1);
+    expectArraysEqual(a, [1, 1, 0, 1]);
   });
 
   it('default dtype from boolean[]', () => {
@@ -725,10 +698,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const a = tf.tensor2d([1, -2, 0, 3], [2, 2], 'bool');
     expect(a.dtype).toBe('bool');
     expect(a.shape).toEqual([2, 2]);
-    expect(a.get(0, 0)).toBe(1);
-    expect(a.get(0, 1)).toBe(1);
-    expect(a.get(1, 0)).toBe(0);
-    expect(a.get(1, 1)).toBe(1);
+    expectArraysEqual(a, [1, 1, 0, 1]);
   });
 
   it('default dtype from boolean[]', () => {
@@ -794,10 +764,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const a = tf.tensor3d([1, -2, 0, 3], [2, 2, 1], 'bool');
     expect(a.dtype).toBe('bool');
     expect(a.shape).toEqual([2, 2, 1]);
-    expect(a.get(0, 0, 0)).toBe(1);
-    expect(a.get(0, 1, 0)).toBe(1);
-    expect(a.get(1, 0, 0)).toBe(0);
-    expect(a.get(1, 1, 0)).toBe(1);
+    expectArraysEqual(a, [1, 1, 0, 1]);
   });
 
   it('default dtype from boolean[]', () => {
@@ -867,10 +834,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const a = tf.tensor4d([1, -2, 0, 3], [2, 2, 1, 1], 'bool');
     expect(a.dtype).toBe('bool');
     expect(a.shape).toEqual([2, 2, 1, 1]);
-    expect(a.get(0, 0, 0, 0)).toBe(1);
-    expect(a.get(0, 1, 0, 0)).toBe(1);
-    expect(a.get(1, 0, 0, 0)).toBe(0);
-    expect(a.get(1, 1, 0, 0)).toBe(1);
+    expectArraysEqual(a, [1, 1, 0, 1]);
   });
 
   it('default dtype from boolean[]', () => {
@@ -1292,7 +1256,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   it('scalar bool -> int32', () => {
     const a = tf.scalar(true, 'bool').toInt();
     expect(a.dtype).toBe('int32');
-    expect(a.get()).toBe(1);
+    expectArraysEqual(a, 1);
   });
 
   it('Tensor1D float32 -> int32', () => {
@@ -1304,19 +1268,13 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   it('Tensor2D float32 -> bool', () => {
     const a = tf.tensor2d([1.1, 3.9, -2.9, 0], [2, 2]).asType('bool');
     expect(a.dtype).toBe('bool');
-    expect(a.get(0, 0)).toBe(1);
-    expect(a.get(0, 1)).toBe(1);
-    expect(a.get(1, 0)).toBe(1);
-    expect(a.get(1, 1)).toBe(0);
+    expectArraysEqual(a, [1, 1, 1, 0]);
   });
 
   it('Tensor2D int32 -> bool', () => {
     const a = tf.tensor2d([1, 3, 0, -1], [2, 2], 'int32').toBool();
     expect(a.dtype).toBe('bool');
-    expect(a.get(0, 0)).toBe(1);
-    expect(a.get(0, 1)).toBe(1);
-    expect(a.get(1, 0)).toBe(0);
-    expect(a.get(1, 1)).toBe(1);
+    expectArraysEqual(a, [1, 1, 0, 1]);
   });
 
   it('Tensor3D bool -> float32', () => {

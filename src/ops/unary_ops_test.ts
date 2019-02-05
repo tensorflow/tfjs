@@ -18,7 +18,7 @@
 import {ENV} from '../environment';
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose, expectNumbersClose, PACKED_ENVS, WEBGL_ENVS} from '../test_util';
+import {ALL_ENVS, expectArraysClose, PACKED_ENVS, WEBGL_ENVS} from '../test_util';
 import * as util from '../util';
 
 import * as selu_util from './selu_util';
@@ -45,19 +45,19 @@ describeWithFlags('relu', ALL_ENVS, () => {
   it('does nothing to positive values', () => {
     const a = tf.scalar(1);
     const result = tf.relu(a);
-    expectNumbersClose(result.get(), 1);
+    expectArraysClose(result, [1]);
   });
 
   it('sets negative values to 0', () => {
     const a = tf.scalar(-1);
     const result = tf.relu(a);
-    expectNumbersClose(result.get(), 0);
+    expectArraysClose(result, [0]);
   });
 
   it('preserves zero values', () => {
     const a = tf.scalar(0);
     const result = tf.relu(a);
-    expectNumbersClose(result.get(), 0);
+    expectArraysClose(result, [0]);
   });
 
   it('propagates NaNs, float32', () => {
@@ -443,10 +443,12 @@ describeWithFlags('sigmoid', ALL_ENVS, () => {
 
     const da = tf.grad(a => tf.sigmoid(a))(a, dy);
 
+    const aVals = a.arraySync();
+    const dyVals = dy.arraySync();
     const expected = [];
     for (let i = 0; i < a.size; i++) {
-      const y = 1 / (1 + Math.exp(-a.get(i)));
-      expected[i] = dy.get(i) * y * (1 - y);
+      const y = 1 / (1 + Math.exp(-aVals[i]));
+      expected[i] = dyVals[i] * y * (1 - y);
     }
 
     expectArraysClose(da, expected);
@@ -541,22 +543,25 @@ describeWithFlags('logSigmoid', ALL_ENVS, () => {
   it('gradients: Scalar', () => {
     const a = tf.scalar(3);
     const dy = tf.scalar(4);
+    const dyVal = dy.arraySync();
 
-    const da = tf.grad(a => tf.logSigmoid(a))(a, dy).get();
-    const y = 1 / (1 + Math.exp(a.get()));
-    expectNumbersClose(da, dy.get() * y);
+    const da = tf.grad(a => tf.logSigmoid(a))(a, dy);
+    const aVal = a.arraySync();
+    const y = 1 / (1 + Math.exp(aVal));
+    expectArraysClose(da, [dyVal * y]);
   });
 
   it('gradients: Tensor1D', () => {
     const a = tf.tensor1d([1, 2, -3, 5]);
+    const aVals = a.arraySync();
     const dy = tf.tensor1d([1, 2, 3, 4]);
-
+    const dyVals = dy.arraySync();
     const da = tf.grad(a => tf.logSigmoid(a))(a, dy);
 
     const expected = [];
     for (let i = 0; i < a.size; i++) {
-      const y = 1 / (1 + Math.exp(a.get(i)));
-      expected[i] = dy.get(i) * y;
+      const y = 1 / (1 + Math.exp(aVals[i]));
+      expected[i] = dyVals[i] * y;
     }
 
     expectArraysClose(da, expected);
@@ -663,23 +668,26 @@ describeWithFlags('softplus', ALL_ENVS, () => {
   it('gradients: Scalar', () => {
     const a = tf.scalar(3);
     const dy = tf.scalar(4);
+    const aVal = a.arraySync();
+    const dyVal = dy.arraySync();
 
     const da = tf.grad(a => tf.softplus(a))(a, dy);
-    const y = 1 / (1 + Math.exp(-a.get()));
+    const y = 1 / (1 + Math.exp(-aVal));
 
-    expectNumbersClose(da.get(), dy.get() * y);
+    expectArraysClose(da, [dyVal * y]);
   });
 
   it('gradients: Tensor1D', () => {
     const a = tf.tensor1d([1, 2, -3, 5]);
+    const aVals = a.arraySync();
     const dy = tf.tensor1d([1, 2, 3, 4]);
-
+    const dyVals = dy.arraySync();
     const da = tf.grad(a => tf.softplus(a))(a, dy);
 
     const expected = [];
     for (let i = 0; i < a.size; i++) {
-      const y = 1 / (1 + Math.exp(-a.get(i)));
-      expected[i] = dy.get(i) * y;
+      const y = 1 / (1 + Math.exp(-aVals[i]));
+      expected[i] = dyVals[i] * y;
     }
 
     expectArraysClose(da, expected);
@@ -724,8 +732,7 @@ describeWithFlags('sqrt', ALL_ENVS, () => {
   it('sqrt', () => {
     const a = tf.tensor1d([2, 4]);
     const r = tf.sqrt(a);
-    expectNumbersClose(r.get(0), Math.sqrt(2));
-    expectNumbersClose(r.get(1), Math.sqrt(4));
+    expectArraysClose(r, [Math.sqrt(2), Math.sqrt(4)]);
   });
 
   it('sqrt propagates NaNs', () => {
@@ -786,8 +793,7 @@ describeWithFlags('sqrt', ALL_ENVS, () => {
 
   it('accepts a tensor-like object', () => {
     const r = tf.sqrt([2, 4]);
-    expectNumbersClose(r.get(0), Math.sqrt(2));
-    expectNumbersClose(r.get(1), Math.sqrt(4));
+    expectArraysClose(r, [Math.sqrt(2), Math.sqrt(4)]);
   });
 
   it('throws for string tensor', () => {
@@ -800,8 +806,7 @@ describeWithFlags('rsqrt', ALL_ENVS, () => {
   it('rsqrt', () => {
     const a = tf.tensor1d([2, 4]);
     const r = tf.rsqrt(a);
-    expectNumbersClose(r.get(0), 1 / Math.sqrt(2));
-    expectNumbersClose(r.get(1), 1 / Math.sqrt(4));
+    expectArraysClose(r, [1 / Math.sqrt(2), 1 / Math.sqrt(4)]);
   });
 
   it('rsqrt propagates NaNs', () => {
@@ -862,8 +867,7 @@ describeWithFlags('rsqrt', ALL_ENVS, () => {
 
   it('accepts a tensor-like object', () => {
     const r = tf.rsqrt([2, 4]);
-    expectNumbersClose(r.get(0), 1 / Math.sqrt(2));
-    expectNumbersClose(r.get(1), 1 / Math.sqrt(4));
+    expectArraysClose(r, [1 / Math.sqrt(2), 1 / Math.sqrt(4)]);
   });
 
   it('throws for string tensor', () => {
@@ -1060,8 +1064,7 @@ describeWithFlags('log', ALL_ENVS, () => {
   it('log', () => {
     const a = tf.tensor1d([1, 2]);
     const r = tf.log(a);
-    expectNumbersClose(r.get(0), Math.log(1));
-    expectNumbersClose(r.get(1), Math.log(2));
+    expectArraysClose(r, [Math.log(1), Math.log(2)]);
   });
 
   it('log 6D', () => {
@@ -1122,8 +1125,7 @@ describeWithFlags('log', ALL_ENVS, () => {
 
   it('accepts a tensor-like object', () => {
     const r = tf.log([1, 2]);
-    expectNumbersClose(r.get(0), Math.log(1));
-    expectNumbersClose(r.get(1), Math.log(2));
+    expectArraysClose(r, [Math.log(1), Math.log(2)]);
   });
 
   it('throws for string tensor', () => {
@@ -1136,8 +1138,7 @@ describeWithFlags('log1p', ALL_ENVS, () => {
   it('log1p', () => {
     const a = tf.tensor1d([1, 2]);
     const r = tf.log1p(a);
-    expectNumbersClose(r.get(0), Math.log1p(1));
-    expectNumbersClose(r.get(1), Math.log1p(2));
+    expectArraysClose(r, [Math.log1p(1), Math.log1p(2)]);
   });
 
   it('log1p propagates NaNs', () => {
@@ -1188,8 +1189,7 @@ describeWithFlags('log1p', ALL_ENVS, () => {
 
   it('accepts a tensor-like object', () => {
     const r = tf.log1p([1, 2]);
-    expectNumbersClose(r.get(0), Math.log1p(1));
-    expectNumbersClose(r.get(1), Math.log1p(2));
+    expectArraysClose(r, [Math.log1p(1), Math.log1p(2)]);
   });
 
   it('throws for string tensor', () => {
@@ -1202,9 +1202,7 @@ describeWithFlags('ceil', ALL_ENVS, () => {
   it('basic', () => {
     const a = tf.tensor1d([1.5, 2.1, -1.4]);
     const r = tf.ceil(a);
-    expectNumbersClose(r.get(0), 2);
-    expectNumbersClose(r.get(1), 3);
-    expectNumbersClose(r.get(2), -1);
+    expectArraysClose(r, [2, 3, -1]);
   });
 
   it('propagates NaNs', () => {
@@ -1253,9 +1251,7 @@ describeWithFlags('ceil', ALL_ENVS, () => {
 
   it('accepts a tensor-like object', () => {
     const r = tf.ceil([1.5, 2.1, -1.4]);
-    expectNumbersClose(r.get(0), 2);
-    expectNumbersClose(r.get(1), 3);
-    expectNumbersClose(r.get(2), -1);
+    expectArraysClose(r, [2, 3, -1]);
   });
 
   it('throws for string tensor', () => {
@@ -1269,9 +1265,7 @@ describeWithFlags('floor', ALL_ENVS, () => {
     const a = tf.tensor1d([1.5, 2.1, -1.4]);
     const r = tf.floor(a);
 
-    expectNumbersClose(r.get(0), 1);
-    expectNumbersClose(r.get(1), 2);
-    expectNumbersClose(r.get(2), -2);
+    expectArraysClose(r, [1, 2, -2]);
   });
 
   it('propagates NaNs', () => {
@@ -1320,9 +1314,7 @@ describeWithFlags('floor', ALL_ENVS, () => {
 
   it('accepts a tensor-like object', () => {
     const r = tf.floor([1.5, 2.1, -1.4]);
-    expectNumbersClose(r.get(0), 1);
-    expectNumbersClose(r.get(1), 2);
-    expectNumbersClose(r.get(2), -2);
+    expectArraysClose(r, [1, 2, -2]);
   });
 
   it('throws for string tensor', () => {
@@ -1335,10 +1327,7 @@ describeWithFlags('sign', ALL_ENVS, () => {
   it('basic', () => {
     const a = tf.tensor1d([1.5, 0, NaN, -1.4]);
     const r = tf.sign(a);
-    expectNumbersClose(r.get(0), 1);
-    expectNumbersClose(r.get(1), 0);
-    expectNumbersClose(r.get(2), 0);
-    expectNumbersClose(r.get(3), -1);
+    expectArraysClose(r, [1, 0, 0, -1]);
   });
 
   it('propagates NaNs', () => {
@@ -1387,10 +1376,7 @@ describeWithFlags('sign', ALL_ENVS, () => {
 
   it('accepts a tensor-like object', () => {
     const r = tf.sign([1.5, 0, NaN, -1.4]);
-    expectNumbersClose(r.get(0), 1);
-    expectNumbersClose(r.get(1), 0);
-    expectNumbersClose(r.get(2), 0);
-    expectNumbersClose(r.get(3), -1);
+    expectArraysClose(r, [1, 0, 0, -1]);
   });
 
   it('throws for string tensor', () => {
@@ -1404,9 +1390,7 @@ describeWithFlags('exp', ALL_ENVS, () => {
     const a = tf.tensor1d([1, 2, 0]);
     const r = tf.exp(a);
 
-    expectNumbersClose(r.get(0), Math.exp(1));
-    expectNumbersClose(r.get(1), Math.exp(2));
-    expectNumbersClose(r.get(2), 1);
+    expectArraysClose(r, [Math.exp(1), Math.exp(2), 1]);
   });
 
   it('exp propagates NaNs', () => {
@@ -1461,10 +1445,7 @@ describeWithFlags('exp', ALL_ENVS, () => {
 
   it('accepts a tensor-like object', () => {
     const r = tf.exp([1, 2, 0]);
-
-    expectNumbersClose(r.get(0), Math.exp(1));
-    expectNumbersClose(r.get(1), Math.exp(2));
-    expectNumbersClose(r.get(2), 1);
+    expectArraysClose(r, [Math.exp(1), Math.exp(2), 1]);
   });
 
   it('throws for string tensor', () => {
@@ -1478,9 +1459,7 @@ describeWithFlags('expm1', ALL_ENVS, () => {
     const a = tf.tensor1d([1, 2, 0]);
     const r = tf.expm1(a);
 
-    expectNumbersClose(r.get(0), Math.expm1(1));
-    expectNumbersClose(r.get(1), Math.expm1(2));
-    expectNumbersClose(r.get(2), Math.expm1(0));
+    expectArraysClose(r, [Math.expm1(1), Math.expm1(2), Math.expm1(0)]);
   });
 
   it('expm1 propagates NaNs', () => {
@@ -1536,9 +1515,7 @@ describeWithFlags('expm1', ALL_ENVS, () => {
   it('accepts a tensor-like object', () => {
     const r = tf.expm1([1, 2, 0]);
 
-    expectNumbersClose(r.get(0), Math.expm1(1));
-    expectNumbersClose(r.get(1), Math.expm1(2));
-    expectNumbersClose(r.get(2), Math.expm1(0));
+    expectArraysClose(r, [Math.expm1(1), Math.expm1(2), Math.expm1(0)]);
   });
 
   it('throws for string tensor', () => {
@@ -2732,11 +2709,7 @@ describeWithFlags('round', ALL_ENVS, () => {
     const a = tf.tensor1d([0.9, 2.5, 2.3, 1.5, -4.5]);
     const r = a.round();
 
-    expectNumbersClose(r.get(0), 1.0);
-    expectNumbersClose(r.get(1), 2.0);
-    expectNumbersClose(r.get(2), 2.0);
-    expectNumbersClose(r.get(3), 2.0);
-    expectNumbersClose(r.get(4), -4.0);
+    expectArraysClose(r, [1, 2, 2, 2, -4]);
   });
 
   it('propagates NaNs', () => {
@@ -3117,7 +3090,7 @@ describeWithFlags('atanh', ALL_ENVS, () => {
 
   it('accepts a tensor-like object', () => {
     const result = tf.atanh(0.2);
-    expectNumbersClose(result.get(), Math.atanh(0.2));
+    expectArraysClose(result, [Math.atanh(0.2)]);
   });
 
   it('throws for string tensor', () => {
@@ -3212,7 +3185,7 @@ describeWithFlags('erf', ALL_ENVS, () => {
 
   it('accepts a tensor-like object', () => {
     const result = tf.erf(1);
-    expectNumbersClose(result.get(), 0.8427008);
+    expectArraysClose(result, [0.8427008]);
   });
 
   it('throws for string tensor', () => {
