@@ -218,3 +218,35 @@ describeWithFlags('WEBGL_SIZE_UPLOAD_UNIFORM', WEBGL_ENVS, () => {
     expect(env.get('WEBGL_SIZE_UPLOAD_UNIFORM')).toBeGreaterThan(0);
   });
 });
+
+describe('deprecation warnings', () => {
+  let oldWarn: (msg: string) => void;
+  beforeEach(() => {
+    oldWarn = console.warn;
+    spyOn(console, 'warn').and.callFake((msg: string): void => null);
+  });
+  afterEach(() => {
+    console.warn = oldWarn;
+  });
+
+  it('deprecationWarn warns', () => {
+    tf.deprecationWarn('xyz is deprecated.');
+    expect(console.warn).toHaveBeenCalledTimes(1);
+    expect(console.warn)
+        .toHaveBeenCalledWith(
+            'xyz is deprecated. You can disable deprecation warnings with ' +
+            'tf.disableDeprecationWarnings().');
+  });
+
+  it('disableDeprecationWarnings called, deprecationWarn doesnt warn', () => {
+    tf.disableDeprecationWarnings();
+    expect(console.warn).toHaveBeenCalledTimes(1);
+    expect(console.warn)
+        .toHaveBeenCalledWith(
+            'TensorFlow.js deprecation warnings have been disabled.');
+
+    // deprecationWarn no longer warns.
+    tf.deprecationWarn('xyz is deprecated.');
+    expect(console.warn).toHaveBeenCalledTimes(1);
+  });
+});

@@ -19,7 +19,7 @@ import * as device_util from './device_util';
 import {Engine, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo} from './engine';
 import {Features, getFeaturesFromURL, getMaxTexturesInShader, getNumMBBeforePaging, getWebGLDisjointQueryTimerVersion, getWebGLMaxTextureSize, isChrome, isDownloadFloatTextureEnabled, isRenderToFloatTextureEnabled, isWebGLFenceEnabled, isWebGLVersionEnabled} from './environment_util';
 import {KernelBackend} from './kernels/backend';
-import {DataId, setTensorTracker, Tensor} from './tensor';
+import {DataId, setDeprecationWarningFn, setTensorTracker, Tensor} from './tensor';
 import {TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
 
@@ -378,6 +378,8 @@ export class Environment {
       return false;
     } else if (feature === 'TENSORLIKE_CHECK_SHAPE_CONSISTENCY') {
       return !this.get('PROD');
+    } else if (feature === 'DEPRECATION_WARNINGS_ENABLED') {
+      return true;
     }
     throw new Error(`Unknown feature ${feature}.`);
   }
@@ -497,5 +499,21 @@ function getOrMakeEnvironment(): Environment {
 export function enableProdMode(): void {
   ENV.set('PROD', true);
 }
+
+/** Globally disables deprecation warnings */
+export function disableDeprecationWarnings(): void {
+  ENV.set('DEPRECATION_WARNINGS_ENABLED', false);
+  console.warn(`TensorFlow.js deprecation warnings have been disabled.`);
+}
+
+/** Warn users about deprecated functionality. */
+export function deprecationWarn(msg: string) {
+  if (ENV.get('DEPRECATION_WARNINGS_ENABLED')) {
+    console.warn(
+        msg + ' You can disable deprecation warnings with ' +
+        'tf.disableDeprecationWarnings().');
+  }
+}
+setDeprecationWarningFn(deprecationWarn);
 
 export let ENV = getOrMakeEnvironment();
