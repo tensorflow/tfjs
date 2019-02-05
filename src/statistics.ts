@@ -158,16 +158,16 @@ export async function computeDatasetStatistics(
           recordMin = value.min().dataSync()[0];
           recordMax = value.max().dataSync()[0];
           const valueMoment = tf.moments(value);
-          valueMean = valueMoment.mean.get();
-          valueVariance = valueMoment.variance.get();
+          valueMean = valueMoment.mean.dataSync()[0];
+          valueVariance = valueMoment.variance.dataSync()[0];
           valueLength = value.size;
 
         } else if (value instanceof Array) {
           recordMin = value.reduce((a, b) => Math.min(a, b));
           recordMax = value.reduce((a, b) => Math.max(a, b));
           const valueMoment = tf.moments(value);
-          valueMean = valueMoment.mean.get();
-          valueVariance = valueMoment.variance.get();
+          valueMean = valueMoment.mean.dataSync()[0];
+          valueVariance = valueMoment.variance.dataSync()[0];
           valueLength = value.length;
 
         } else if (!isNaN(value) && isFinite(value)) {
