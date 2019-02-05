@@ -24,16 +24,16 @@ export class MatMulPackedProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(
-      aShape: [number, number], bShape: [number, number],
-      outputShape: [number, number], transposeA = false, transposeB = false,
+      aShape: [number, number, number], outputShape: [number, number, number],
+      transposeA = false, transposeB = false,
       addBias = false, activation: string = null) {
     this.outputShape = outputShape;
 
-    const sharedDim = transposeA ? aShape[0] : aShape[1];
+    const sharedDim = transposeA ? aShape[1] : aShape[2];
     const sharedDimensionPacked = Math.ceil(sharedDim / 2);
 
-    const aSample = transposeA ? 'i * 2, rc.x' : 'rc.x, i * 2';
-    const bSample = transposeB ? 'rc.y, i * 2' : 'i * 2, rc.y';
+    const aSample = transposeA ? 'i * 2, rc.y' : 'rc.y, i * 2';
+    const bSample = transposeB ? 'rc.z, i * 2' : 'i * 2, rc.z';
     const aSwizzle = transposeA ? ['a.xxyy', 'a.zzww'] : ['a.xxzz', 'a.yyww'];
     const bSwizzle = transposeB ? ['b.xzxz', 'b.ywyw'] : ['b.xyxy', 'b.zwzw'];
 
@@ -56,11 +56,11 @@ export class MatMulPackedProgram implements GPGPUProgram {
 
       const float sharedDimension = ${sharedDimensionPacked}.0;
 
-      vec4 dot2x2ARowBCol(ivec2 rc) {
+      vec4 dot2x2ARowBCol(ivec3 rc) {
         vec4 result = vec4(0);
         for (int i = 0; i < ${sharedDimensionPacked}; i++) {
-          vec4 a = getMatrixA(${aSample});
-          vec4 b = getMatrixB(${bSample});
+          vec4 a = getMatrixA(rc.x, ${aSample});
+          vec4 b = getMatrixB(rc.x, ${bSample});
 
           result += (${aSwizzle[0]} * ${bSwizzle[0]}) + (${aSwizzle[1]} * ${
         bSwizzle[1]});
@@ -69,7 +69,7 @@ export class MatMulPackedProgram implements GPGPUProgram {
       }
 
       void main() {
-        ivec2 rc = getOutputCoords();
+        ivec3 rc = getOutputCoords();
         vec4 result = dot2x2ARowBCol(rc);
 
         ${addBiasSnippet}
