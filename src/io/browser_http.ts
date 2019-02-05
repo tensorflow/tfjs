@@ -28,6 +28,9 @@ import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {loadWeightsAsArrayBuffer} from './weights_loader';
 
+const OCTET_STREAM_MIME_TYPE = 'application/octet-stream';
+const JSON_TYPE = 'application/json';
+
 export class BrowserHTTPRequest implements IOHandler {
   protected readonly path: string|string[];
   protected readonly requestInit: RequestInit;
@@ -109,14 +112,13 @@ export class BrowserHTTPRequest implements IOHandler {
         'model.json',
         new Blob(
             [JSON.stringify(modelTopologyAndWeightManifest)],
-            {type: 'application/json'}),
+            {type: JSON_TYPE}),
         'model.json');
 
     if (modelArtifacts.weightData != null) {
       init.body.append(
           'model.weights.bin',
-          new Blob(
-              [modelArtifacts.weightData], {type: 'application/octet-stream'}),
+          new Blob([modelArtifacts.weightData], {type: OCTET_STREAM_MIME_TYPE}),
           'model.weights.bin');
     }
 
@@ -151,10 +153,7 @@ export class BrowserHTTPRequest implements IOHandler {
    * Loads the model topology file and build the in memory graph of the model.
    */
   private async loadBinaryTopology(): Promise<ArrayBuffer> {
-    const response = await this.getFetchFunc()(
-        this.path[0], this.addAcceptHeader('application/octet-stream'));
-    this.verifyContentType(
-        response, 'model topology', 'application/octet-stream');
+    const response = await this.getFetchFunc()(this.path[0], this.requestInit);
 
     if (!response.ok) {
       throw new Error(`Request to ${this.path[0]} failed with error: ${
@@ -163,30 +162,10 @@ export class BrowserHTTPRequest implements IOHandler {
     return await response.arrayBuffer();
   }
 
-  private addAcceptHeader(mimeType: string): RequestInit {
-    const requestOptions = Object.assign({}, this.requestInit || {});
-    const headers = Object.assign({}, requestOptions.headers || {});
-    // tslint:disable-next-line:no-any
-    (headers as any)['Accept'] = mimeType;
-    requestOptions.headers = headers;
-    return requestOptions;
-  }
-
-  private verifyContentType(response: Response, target: string, type: string) {
-    const contentType = response.headers.get('content-type');
-    if (!contentType || contentType.indexOf(type) === -1) {
-      throw new Error(`Request to ${response.url} for ${
-          target} failed. Expected content type ${type} but got ${
-          contentType}.`);
-    }
-  }
-
   protected async loadBinaryModel(): Promise<ModelArtifacts> {
     const graphPromise = this.loadBinaryTopology();
-    const manifestPromise = await this.getFetchFunc()(
-        this.path[1], this.addAcceptHeader('application/json'));
-    this.verifyContentType(
-        manifestPromise, 'weights manifest', 'application/json');
+    const manifestPromise =
+        await this.getFetchFunc()(this.path[1], this.requestInit);
     if (!manifestPromise.ok) {
       throw new Error(`Request to ${this.path[1]} failed with error: ${
           manifestPromise.statusText}`);
@@ -209,10 +188,8 @@ export class BrowserHTTPRequest implements IOHandler {
   }
 
   protected async loadJSONModel(): Promise<ModelArtifacts> {
-    const modelConfigRequest = await this.getFetchFunc()(
-        this.path as string, this.addAcceptHeader('application/json'));
-    this.verifyContentType(
-        modelConfigRequest, 'model topology', 'application/json');
+    const modelConfigRequest =
+        await this.getFetchFunc()(this.path as string, this.requestInit);
 
     if (!modelConfigRequest.ok) {
       throw new Error(`Request to ${this.path} failed with error: ${
