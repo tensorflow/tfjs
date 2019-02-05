@@ -281,7 +281,7 @@ export class Identity extends Initializer {
   }
 
   getConfig(): serialization.ConfigDict {
-    return {gain: this.gain.get()};
+    return {gain: this.gain.dataSync()[0]};
   }
 }
 serialization.registerClass(Identity);
