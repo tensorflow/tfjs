@@ -471,8 +471,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
         .then(weights => {
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(1);
           expect(window.fetch).toHaveBeenCalledWith('./weightfile0', {
-            credentials: 'include',
-            headers: {'Accept': 'application/octet-stream'}
+            credentials: 'include'
           });
         })
         .then(done)
