@@ -1824,8 +1824,10 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    const {isPacked} = this.texData.get(x.dataId);
-    if (isPacked && !webgl_util.isReshapeFree(x.shape, shape)) {
+    const texData = this.texData.get(x.dataId);
+    if (texData.isPacked && !webgl_util.isReshapeFree(x.shape, shape)
+        && !(texData.texture !== null &&
+             webgl_util.isReshapeFree(texData.shape, shape))) {
       return this.packedReshape(x, shape);
     }
     return backend_util.reshapeTensor(x, shape);
