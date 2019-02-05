@@ -457,11 +457,11 @@ describeWithFlags('mul', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [b.get() * dy.get()]);
+    expectArraysClose(da, b.mul(dy));
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
-    expectArraysClose(db, [a.get() * dy.get()]);
+    expectArraysClose(db, a.mul(dy));
   });
 
   it('gradient: Tensor1D', () => {

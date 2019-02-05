@@ -20,7 +20,7 @@ import {describeWithFlags} from './jasmine_util';
 import {MathBackendCPU} from './kernels/backend_cpu';
 import {MathBackendWebGL} from './kernels/backend_webgl';
 import {Tensor} from './tensor';
-import {ALL_ENVS, CPU_ENVS, expectArraysClose, expectArraysEqual, expectNumbersClose, WEBGL_ENVS} from './test_util';
+import {ALL_ENVS, CPU_ENVS, expectArraysClose, expectArraysEqual, WEBGL_ENVS} from './test_util';
 
 describeWithFlags('fromPixels + regular math op', WEBGL_ENVS, () => {
   it('debug mode does not error when no nans', () => {
@@ -200,7 +200,7 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
           return tf.sum(y);
         })([a, b]);
 
-    expectNumbersClose(value.get(), 10);
+    expectArraysClose(value, 10);
 
     // de/dy = 1
     // dy/dm = step(m)
@@ -235,7 +235,7 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
           });
         })([a, b]);
 
-    expectNumbersClose(value.get(), 10);
+    expectArraysClose(value, 10);
 
     // de/dy = 1
     // dy/dm = step(m)

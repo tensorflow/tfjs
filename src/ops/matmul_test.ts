@@ -18,7 +18,7 @@
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {MATMUL_SHARED_DIM_THRESHOLD} from '../kernels/backend_webgl';
-import {ALL_ENVS, expectArraysClose, expectNumbersClose, PACKED_ENVS, WEBGL_ENVS} from '../test_util';
+import {ALL_ENVS, expectArraysClose, expectArraysEqual, PACKED_ENVS, WEBGL_ENVS} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('matmul', PACKED_ENVS, () => {
@@ -484,14 +484,14 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     const v2 = tf.tensor1d([2, 1]);
     const result = tf.dot(v1, v2);
 
-    expectNumbersClose(result.get(), 7);
+    expectArraysClose(result, [7]);
   });
 
   it('Dot product propagates NaNs', () => {
     const v1 = tf.tensor1d([2, NaN]);
     const v2 = tf.tensor1d([2, 1]);
     const result = tf.dot(v1, v2);
-    expect(result.get()).toEqual(NaN);
+    expectArraysEqual(result, [NaN]);
   });
 
   it('Dot product throws when vectors are different size', () => {
@@ -521,10 +521,10 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     expectArraysClose(result, expected);
   });
 
-  it('gradients: A * B', () => {
-    const a = tf.tensor2d([1, 2, 3, 10, 20, 30], [2, 3]);
-    const b = tf.tensor2d([2, 3, 4, 1, 2, 3], [3, 2]);
-    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+  it('gradients: A * B', async () => {
+    const aT = tf.tensor2d([1, 2, 3, 10, 20, 30], [2, 3]);
+    const bT = tf.tensor2d([2, 3, 4, 1, 2, 3], [3, 2]);
+    const dyT = tf.tensor2d([1, 10, 20, 30], [2, 2]);
 
     const transposeA = false;
     const transposeB = false;
@@ -532,10 +532,14 @@ describeWithFlags('matmul', ALL_ENVS, () => {
 
         (a: tf.Tensor2D, b: tf.Tensor2D) =>
             tf.matMul(a, b, transposeA, transposeB));
-    const [da, db] = grads([a, b], dy);
+    const [da, db] = grads([aT, bT], dyT);
 
     // da = dy * bT
-    expect(da.shape).toEqual(a.shape);
+    expect(da.shape).toEqual(aT.shape);
+
+    const a = await aT.buffer();
+    const dy = await dyT.buffer();
+    const b = await bT.buffer();
     expectArraysClose(
         da,
         [
@@ -560,10 +564,10 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     ]);
   });
 
-  it('gradients: a * bT', () => {
-    const a = tf.tensor2d([1, 2, 3, 10, 20, 30], [3, 2]);
-    const b = tf.tensor2d([2, 3, 4, 1, 2, 3], [3, 2]);
-    const dy = tf.tensor2d([1, 10, 20, 30, 40, 50, 60, 70, 80], [3, 3]);
+  it('gradients: a * bT', async () => {
+    const aT = tf.tensor2d([1, 2, 3, 10, 20, 30], [3, 2]);
+    const bT = tf.tensor2d([2, 3, 4, 1, 2, 3], [3, 2]);
+    const dyT = tf.tensor2d([1, 10, 20, 30, 40, 50, 60, 70, 80], [3, 3]);
 
     const transposeA = false;
     const transposeB = true;
@@ -571,10 +575,13 @@ describeWithFlags('matmul', ALL_ENVS, () => {
 
         (a: tf.Tensor2D, b: tf.Tensor2D) =>
             tf.matMul(a, b, transposeA, transposeB));
-    const [da, db] = grads([a, b], dy);
+    const [da, db] = grads([aT, bT], dyT);
 
     // da = dy * b
-    expect(da.shape).toEqual(a.shape);
+    expect(da.shape).toEqual(aT.shape);
+    const a = await aT.buffer();
+    const dy = await dyT.buffer();
+    const b = await bT.buffer();
     expectArraysClose(da, [
       dy.get(0, 0) * b.get(0, 0) + dy.get(0, 1) * b.get(1, 0) +
           dy.get(0, 2) * b.get(2, 0),
@@ -608,10 +615,10 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     ]);
   });
 
-  it('gradients: aT * b', () => {
-    const a = tf.tensor2d([1, 2, 3, 10, 20, 30], [3, 2]);
-    const b = tf.tensor2d([2, 3, 4, 1, 2, 3], [3, 2]);
-    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+  it('gradients: aT * b', async () => {
+    const aT = tf.tensor2d([1, 2, 3, 10, 20, 30], [3, 2]);
+    const bT = tf.tensor2d([2, 3, 4, 1, 2, 3], [3, 2]);
+    const dyT = tf.tensor2d([1, 10, 20, 30], [2, 2]);
 
     const transposeA = true;
     const transposeB = false;
@@ -619,10 +626,13 @@ describeWithFlags('matmul', ALL_ENVS, () => {
 
         (a: tf.Tensor2D, b: tf.Tensor2D) =>
             tf.matMul(a, b, transposeA, transposeB));
-    const [da, db] = grads([a, b], dy);
+    const [da, db] = grads([aT, bT], dyT);
 
     // da = b * dyT
-    expect(da.shape).toEqual(a.shape);
+    expect(da.shape).toEqual(aT.shape);
+    const a = await aT.buffer();
+    const dy = await dyT.buffer();
+    const b = await bT.buffer();
     expectArraysClose(da, [
       dy.get(0, 0) * b.get(0, 0) + dy.get(0, 1) * b.get(0, 1),
       dy.get(1, 0) * b.get(0, 0) + dy.get(1, 1) * b.get(0, 1),
@@ -644,10 +654,10 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     ]);
   });
 
-  it('gradients: aT * bT', () => {
-    const a = tf.tensor2d([1, 2, 3, 10, 20, 30], [3, 2]);
-    const b = tf.tensor2d([2, 3, 4, 1, 2, 3], [2, 3]);
-    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+  it('gradients: aT * bT', async () => {
+    const aT = tf.tensor2d([1, 2, 3, 10, 20, 30], [3, 2]);
+    const bT = tf.tensor2d([2, 3, 4, 1, 2, 3], [2, 3]);
+    const dyT = tf.tensor2d([1, 10, 20, 30], [2, 2]);
 
     const transposeA = true;
     const transposeB = true;
@@ -655,10 +665,13 @@ describeWithFlags('matmul', ALL_ENVS, () => {
 
         (a: tf.Tensor2D, b: tf.Tensor2D) =>
             tf.matMul(a, b, transposeA, transposeB));
-    const [da, db] = grads([a, b], dy);
+    const [da, db] = grads([aT, bT], dyT);
 
     // da = bT * dyT
-    expect(da.shape).toEqual(a.shape);
+    expect(da.shape).toEqual(aT.shape);
+    const a = await aT.buffer();
+    const dy = await dyT.buffer();
+    const b = await bT.buffer();
     expectArraysClose(da, [
       dy.get(0, 0) * b.get(0, 0) + dy.get(0, 1) * b.get(1, 0),
       dy.get(1, 0) * b.get(0, 0) + dy.get(1, 1) * b.get(1, 0),

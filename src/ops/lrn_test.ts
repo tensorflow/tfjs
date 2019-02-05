@@ -48,74 +48,77 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
   });
 
   it('computes simple normalization across channels', () => {
-    const x = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
+    const xT = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
     const radius = 1;
     const bias = 1;
     const alpha = 1;
     const beta = 0.5;
 
-    const result = x.localResponseNormalization(radius, bias, alpha, beta);
+    const result = xT.localResponseNormalization(radius, bias, alpha, beta);
 
     const f = (...vals: number[]) =>
         Math.pow(bias + alpha * sumArr(sqArr(vals)), -beta);
 
+    const x = xT.arraySync();
     expectArraysClose(result, [
-      x.get(0, 0, 0) * f(x.get(0, 0, 0), x.get(0, 0, 1)),
-      x.get(0, 0, 1) * f(x.get(0, 0, 0), x.get(0, 0, 1), x.get(0, 0, 2)),
-      x.get(0, 0, 2) * f(x.get(0, 0, 1), x.get(0, 0, 2), x.get(0, 0, 3)),
-      x.get(0, 0, 3) * f(x.get(0, 0, 2), x.get(0, 0, 3)),
+      x[0][0][0] * f(x[0][0][0], x[0][0][1]),
+      x[0][0][1] * f(x[0][0][0], x[0][0][1], x[0][0][2]),
+      x[0][0][2] * f(x[0][0][1], x[0][0][2], x[0][0][3]),
+      x[0][0][3] * f(x[0][0][2], x[0][0][3]),
     ]);
   });
 
   it('uses beta = 1.0 to test GPU optimization', () => {
-    const x = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
+    const xT = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
     const radius = 1;
     const bias = 1;
     const alpha = 1;
     const beta = 1.0;
 
-    const result = x.localResponseNormalization(radius, bias, alpha, beta);
+    const result = xT.localResponseNormalization(radius, bias, alpha, beta);
 
     const f = (...vals: number[]) =>
         Math.pow(bias + alpha * sumArr(sqArr(vals)), -beta);
 
+    const x = xT.arraySync();
     expectArraysClose(result, [
-      x.get(0, 0, 0) * f(x.get(0, 0, 0), x.get(0, 0, 1)),
-      x.get(0, 0, 1) * f(x.get(0, 0, 0), x.get(0, 0, 1), x.get(0, 0, 2)),
-      x.get(0, 0, 2) * f(x.get(0, 0, 1), x.get(0, 0, 2), x.get(0, 0, 3)),
-      x.get(0, 0, 3) * f(x.get(0, 0, 2), x.get(0, 0, 3)),
+      x[0][0][0] * f(x[0][0][0], x[0][0][1]),
+      x[0][0][1] * f(x[0][0][0], x[0][0][1], x[0][0][2]),
+      x[0][0][2] * f(x[0][0][1], x[0][0][2], x[0][0][3]),
+      x[0][0][3] * f(x[0][0][2], x[0][0][3]),
     ]);
   });
 
   it('uses beta = 0.75 to test GPU optimization', () => {
-    const x = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
+    const xT = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
     const radius = 1;
     const bias = 1;
     const alpha = 1;
     const beta = 0.75;
 
-    const result = x.localResponseNormalization(radius, bias, alpha, beta);
+    const result = xT.localResponseNormalization(radius, bias, alpha, beta);
 
     const f = (...vals: number[]) =>
         Math.pow(bias + alpha * sumArr(sqArr(vals)), -beta);
 
+    const x = xT.arraySync();
     expectArraysClose(result, [
-      x.get(0, 0, 0) * f(x.get(0, 0, 0), x.get(0, 0, 1)),
-      x.get(0, 0, 1) * f(x.get(0, 0, 0), x.get(0, 0, 1), x.get(0, 0, 2)),
-      x.get(0, 0, 2) * f(x.get(0, 0, 1), x.get(0, 0, 2), x.get(0, 0, 3)),
-      x.get(0, 0, 3) * f(x.get(0, 0, 2), x.get(0, 0, 3)),
+      x[0][0][0] * f(x[0][0][0], x[0][0][1]),
+      x[0][0][1] * f(x[0][0][0], x[0][0][1], x[0][0][2]),
+      x[0][0][2] * f(x[0][0][1], x[0][0][2], x[0][0][3]),
+      x[0][0][3] * f(x[0][0][2], x[0][0][3]),
     ]);
   });
 
   it('computes complex normalization across channels', () => {
-    const x = tf.tensor3d(
+    const xT = tf.tensor3d(
         [1, 20, 300, 4, 5, 15, 24, 200, 1, 20, 300, 4, 5, 15, 24, 200],
         [2, 2, 4]);
     const radius = 1;
     const bias = 1;
     const alpha = 1;
     const beta = 0.5;
-    const result = x.localResponseNormalization(radius, bias, alpha, beta);
+    const result = xT.localResponseNormalization(radius, bias, alpha, beta);
 
     const f = (...vals: number[]) =>
         Math.pow(bias + alpha * sumArr(sqArr(vals)), -beta);
@@ -124,30 +127,31 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
     // ------- | ------- | ------- | -------
     // o x . . | x o x . | . x o x | . . x o
 
+    const x = xT.arraySync();
     expectArraysClose(result, [
       // 1 - 4
-      x.get(0, 0, 0) * f(x.get(0, 0, 0), x.get(0, 0, 1)),
-      x.get(0, 0, 1) * f(x.get(0, 0, 0), x.get(0, 0, 1), x.get(0, 0, 2)),
-      x.get(0, 0, 2) * f(x.get(0, 0, 1), x.get(0, 0, 2), x.get(0, 0, 3)),
-      x.get(0, 0, 3) * f(x.get(0, 0, 2), x.get(0, 0, 3)),
+      x[0][0][0] * f(x[0][0][0], x[0][0][1]),
+      x[0][0][1] * f(x[0][0][0], x[0][0][1], x[0][0][2]),
+      x[0][0][2] * f(x[0][0][1], x[0][0][2], x[0][0][3]),
+      x[0][0][3] * f(x[0][0][2], x[0][0][3]),
 
       // 1 - 4
-      x.get(0, 1, 0) * f(x.get(0, 1, 0), x.get(0, 1, 1)),
-      x.get(0, 1, 1) * f(x.get(0, 1, 0), x.get(0, 1, 1), x.get(0, 1, 2)),
-      x.get(0, 1, 2) * f(x.get(0, 1, 1), x.get(0, 1, 2), x.get(0, 1, 3)),
-      x.get(0, 1, 3) * f(x.get(0, 1, 2), x.get(0, 1, 3)),
+      x[0][1][0] * f(x[0][1][0], x[0][1][1]),
+      x[0][1][1] * f(x[0][1][0], x[0][1][1], x[0][1][2]),
+      x[0][1][2] * f(x[0][1][1], x[0][1][2], x[0][1][3]),
+      x[0][1][3] * f(x[0][1][2], x[0][1][3]),
 
       // 1 - 4
-      x.get(1, 0, 0) * f(x.get(1, 0, 0), x.get(1, 0, 1)),
-      x.get(1, 0, 1) * f(x.get(1, 0, 0), x.get(1, 0, 1), x.get(1, 0, 2)),
-      x.get(1, 0, 2) * f(x.get(1, 0, 1), x.get(1, 0, 2), x.get(1, 0, 3)),
-      x.get(1, 0, 3) * f(x.get(1, 0, 2), x.get(1, 0, 3)),
+      x[1][0][0] * f(x[1][0][0], x[1][0][1]),
+      x[1][0][1] * f(x[1][0][0], x[1][0][1], x[1][0][2]),
+      x[1][0][2] * f(x[1][0][1], x[1][0][2], x[1][0][3]),
+      x[1][0][3] * f(x[1][0][2], x[1][0][3]),
 
       // 1 - 4
-      x.get(1, 1, 0) * f(x.get(1, 1, 0), x.get(1, 1, 1)),
-      x.get(1, 1, 1) * f(x.get(1, 1, 0), x.get(1, 1, 1), x.get(1, 1, 2)),
-      x.get(1, 1, 2) * f(x.get(1, 1, 1), x.get(1, 1, 2), x.get(1, 1, 3)),
-      x.get(1, 1, 3) * f(x.get(1, 1, 2), x.get(1, 1, 3)),
+      x[1][1][0] * f(x[1][1][0], x[1][1][1]),
+      x[1][1][1] * f(x[1][1][0], x[1][1][1], x[1][1][2]),
+      x[1][1][2] * f(x[1][1][1], x[1][1][2], x[1][1][3]),
+      x[1][1][3] * f(x[1][1][2], x[1][1][3]),
     ]);
   });
 
@@ -299,13 +303,13 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
   });
 
   it('computes simple normalization across channels', () => {
-    const x = tf.tensor4d([1, 20, 300, 4, 1, 20, 300, 4], [2, 1, 1, 4]);
+    const xT = tf.tensor4d([1, 20, 300, 4, 1, 20, 300, 4], [2, 1, 1, 4]);
     const radius = 1;
     const bias = 1;
     const alpha = 1;
     const beta = 0.5;
 
-    const result = x.localResponseNormalization(radius, bias, alpha, beta);
+    const result = xT.localResponseNormalization(radius, bias, alpha, beta);
 
     const f = (...vals: number[]) =>
         Math.pow(bias + alpha * sumArr(sqArr(vals)), -beta);
@@ -313,21 +317,17 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
     // Easier to read using these vars
     const b0 = 0;
     const b1 = 1;
-
+    const x = xT.arraySync();
     expectArraysClose(result, [
-      x.get(b0, 0, 0, 0) * f(x.get(b0, 0, 0, 0), x.get(b0, 0, 0, 1)),
-      x.get(b0, 0, 0, 1) *
-          f(x.get(b0, 0, 0, 0), x.get(b0, 0, 0, 1), x.get(b0, 0, 0, 2)),
-      x.get(b0, 0, 0, 2) *
-          f(x.get(b0, 0, 0, 1), x.get(b0, 0, 0, 2), x.get(b0, 0, 0, 3)),
-      x.get(b0, 0, 0, 3) * f(x.get(b0, 0, 0, 2), x.get(b0, 0, 0, 3)),
+      x[b0][0][0][0] * f(x[b0][0][0][0], x[b0][0][0][1]),
+      x[b0][0][0][1] * f(x[b0][0][0][0], x[b0][0][0][1], x[b0][0][0][2]),
+      x[b0][0][0][2] * f(x[b0][0][0][1], x[b0][0][0][2], x[b0][0][0][3]),
+      x[b0][0][0][3] * f(x[b0][0][0][2], x[b0][0][0][3]),
 
-      x.get(b1, 0, 0, 0) * f(x.get(b1, 0, 0, 0), x.get(b1, 0, 0, 1)),
-      x.get(b1, 0, 0, 1) *
-          f(x.get(b1, 0, 0, 0), x.get(b1, 0, 0, 1), x.get(b1, 0, 0, 2)),
-      x.get(b1, 0, 0, 2) *
-          f(x.get(b1, 0, 0, 1), x.get(b1, 0, 0, 2), x.get(b1, 0, 0, 3)),
-      x.get(b1, 0, 0, 3) * f(x.get(b1, 0, 0, 2), x.get(b1, 0, 0, 3)),
+      x[b1][0][0][0] * f(x[b1][0][0][0], x[b1][0][0][1]),
+      x[b1][0][0][1] * f(x[b1][0][0][0], x[b1][0][0][1], x[b1][0][0][2]),
+      x[b1][0][0][2] * f(x[b1][0][0][1], x[b1][0][0][2], x[b1][0][0][3]),
+      x[b1][0][0][3] * f(x[b1][0][0][2], x[b1][0][0][3]),
     ]);
   });
 
