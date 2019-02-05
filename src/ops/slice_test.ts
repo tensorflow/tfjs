@@ -497,4 +497,11 @@ describeWithFlags('slice ergonomics', ALL_ENVS, () => {
     expect(result.shape).toEqual([2, 1, 1]);
     expectArraysClose(result, [4, 8]);
   });
+
+  it('should match source tensor dtype', () => {
+    const a = tf.tensor1d([1, 2, 3, 4, 5], 'int32');
+    const b = a.asType('float32');
+
+    expect(tf.slice(b, 0).dtype).toEqual('float32');
+  });
 });

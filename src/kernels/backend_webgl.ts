@@ -655,7 +655,7 @@ export class MathBackendWebGL implements KernelBackend {
 
   private shallowSlice(x: Tensor, begin: number[], size: number[]): Tensor {
     const xTexData = this.texData.get(x.dataId);
-    const t = Tensor.make(size, {}, xTexData.dtype);
+    const t = Tensor.make(size, {}, x.dtype);
     const newTexData = this.texData.get(t.dataId);
     // Copy texture data from the original tensor.
     Object.assign(newTexData, xTexData);
