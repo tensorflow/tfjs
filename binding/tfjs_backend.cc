@@ -59,7 +59,10 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
       width = sizeof(float);
       break;
     case napi_int32_array:
-      if (dtype != TF_INT32) {
+      if (dtype != TF_INT32 && dtype != TF_INT64) {
+        // Currently, both int32- and int64-type Tensors are represented
+        // as Int32Arrays in JavaScript. See int64_tensors.ts for details
+        // about the latter.
         NAPI_THROW_ERROR(env, "Tensor type does not match Int32Array");
         return nullptr;
       }
@@ -78,12 +81,26 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
   }
 
   // Double check that width matches TF data type size:
-  if (width != TF_DataTypeSize(dtype)) {
-    NAPI_THROW_ERROR(env,
-                     "Byte size of elements differs between JavaScript VM "
-                     "(%zu) and TensorFlow (%zu)",
-                     width, TF_DataTypeSize(dtype));
-    return nullptr;
+  if (dtype == TF_INT64) {
+    // Currently, int64-type Tensors are represented as Int32Arrays. So the
+    // logic for comparing the byte size of the typed-array representation and
+    // the byte size of the tensor dtype needs to be special-cased for int64.
+    if (width * 2 != TF_DataTypeSize(dtype)) {
+      NAPI_THROW_ERROR(
+          env,
+          "Byte size of elements differs between JavaScript VM "
+          "(%zu * 2 = %zu) and TensorFlow (%zu) for int64-type tensor",
+          width, width * 2, TF_DataTypeSize(dtype));
+      return nullptr;
+    }
+  } else {
+    if (width != TF_DataTypeSize(dtype)) {
+      NAPI_THROW_ERROR(env,
+                       "Byte size of elements differs between JavaScript VM "
+                       "(%zu) and TensorFlow (%zu)",
+                       width, TF_DataTypeSize(dtype));
+      return nullptr;
+    }
   }
 
   // Determine the size of the buffer based on the dimensions.
@@ -93,16 +110,35 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
   }
 
   // Ensure the shape matches the length of the passed in typed-array.
-  if (num_elements != array_length) {
-    NAPI_THROW_ERROR(env,
-                     "Shape does not match typed-array in bindData() "
-                     "(num_elements=%zu, array_length=%zu)",
-                     num_elements, array_length);
-    return nullptr;
+  if (dtype == TF_INT64) {
+    // Currently, int64-type Tensors are represented as Int32Arrays.
+    // To represent a int64-type Tensor of `n` elements, an Int32Array of
+    // length `2 * n` is requried. This is why the length-match checking
+    // logic is special-cased for int64.
+    if (array_length != num_elements * 2) {
+      NAPI_THROW_ERROR(
+          env,
+          "Shape does not match two times typed-array in bindData() "
+          "(num_elements * 2 = %zu, array_length=%zu) for int64 data type",
+          num_elements * 2, array_length);
+      return nullptr;
+    }
+  } else {
+    if (num_elements != array_length) {
+      NAPI_THROW_ERROR(env,
+                       "Shape does not match typed-array in bindData() "
+                       "(num_elements=%zu, array_length=%zu)",
+                       num_elements, array_length);
+      return nullptr;
+    }
   }
 
   // Allocate and memcpy JS data to Tensor.
-  const size_t byte_size = num_elements * width;
+  // Currently, int64-type Tensors are represented as Int32Arrays.
+  // So the logic for comparing the byte size of the typed-array representation
+  // and the byte size of the tensor dtype needs to be special-cased for int64.
+  const size_t byte_size =
+      dtype == TF_INT64 ? num_elements * width * 2 : num_elements * width;
   TF_AutoTensor tensor(
       TF_AllocateTensor(dtype, shape, shape_length, byte_size));
   memcpy(TF_TensorData(tensor.tensor), array_data, byte_size);
@@ -252,8 +288,8 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
                                     &array_buffer_value);
   ENSURE_NAPI_OK(env, nstatus);
 
-  // TFE_TensorHandleResolve can use a shared data pointer, memcpy() the current
-  // value to the newly allocated NAPI buffer.
+  // TFE_TensorHandleResolve can use a shared data pointer, memcpy() the
+  // current value to the newly allocated NAPI buffer.
   memcpy(array_buffer_data, TF_TensorData(tensor.tensor), byte_length);
 
   nstatus = napi_create_typedarray(env, array_type, num_elements,
@@ -324,6 +360,56 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
   }
 }
 
+void CopyTFE_TensorHandleDataToResourceArray(
+    napi_env env, TFE_Context *tfe_context, TFE_TensorHandle *tfe_tensor_handle,
+    napi_value *result) {
+  TF_AutoStatus tf_status;
+
+  TF_AutoTensor tensor(
+      TFE_TensorHandleResolve(tfe_tensor_handle, tf_status.status));
+  ENSURE_TF_OK(env, tf_status);
+
+  if (TF_TensorType(tensor.tensor) != TF_RESOURCE) {
+    NAPI_THROW_ERROR(env, "Tensor is not of type TF_RESOURCE");
+    return;
+  }
+
+  void *tensor_data = TF_TensorData(tensor.tensor);
+  ENSURE_VALUE_IS_NOT_NULL(env, tensor_data);
+
+  size_t num_elements = GetTensorNumElements(tensor.tensor);
+  if (num_elements != 1) {
+    NAPI_THROW_ERROR(env,
+                     "For DT_RESOURCE tensors, Node.js binding currently "
+                     "supports only exactly 1 element, but encountered "
+                     "DT_RESOURCE tensor with %zu elements.",
+                     num_elements);
+  }
+
+  TF_AutoStatus status;
+
+  // Create a JS string to stash the resouce handle into.
+  napi_status nstatus;
+  size_t byte_length = TF_TensorByteSize(tensor.tensor);
+  nstatus = napi_create_array_with_length(env, byte_length, result);
+  ENSURE_NAPI_OK(env, nstatus);
+
+  napi_value array_buffer_value;
+  void *array_buffer_data = nullptr;
+  nstatus = napi_create_arraybuffer(env, byte_length, &array_buffer_data,
+                                    &array_buffer_value);
+  ENSURE_NAPI_OK(env, nstatus);
+
+  // TFE_TensorHandleResolve can use a shared data pointer, memcpy() the
+  // current value to the newly allocated NAPI buffer.
+  memcpy(array_buffer_data, tensor_data, byte_length);
+
+  // This method will only return uint8 arrays.
+  nstatus = napi_create_typedarray(env, napi_uint8_array, byte_length,
+                                   array_buffer_value, 0, result);
+  ENSURE_NAPI_OK(env, nstatus);
+}
+
 // Handles converting the stored TF_Tensor data into the correct JS value.
 void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
                                       TFE_TensorHandle *tfe_tensor_handle,
@@ -340,6 +426,7 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
   // Determine the type of the array
   napi_typedarray_type typed_array_type;
   bool is_string = false;
+  bool is_resource = false;
   TF_DataType tensor_data_type = TFE_TensorHandleDataType(tfe_tensor_handle);
   switch (tensor_data_type) {
     case TF_COMPLEX64:
@@ -355,6 +442,11 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
     case TF_STRING:
       is_string = true;
       break;
+    case TF_RESOURCE:
+      // We currently represent a resource handle as an `Uint8Array`.
+      typed_array_type = napi_uint8_array;
+      is_resource = true;
+      break;
     default:
       REPORT_UNKNOWN_TF_DATA_TYPE(env,
                                   TFE_TensorHandleDataType(tfe_tensor_handle));
@@ -364,6 +456,9 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
   if (is_string) {
     CopyTFE_TensorHandleDataToStringArray(env, tfe_context, tfe_tensor_handle,
                                           result);
+  } else if (is_resource) {
+    CopyTFE_TensorHandleDataToResourceArray(env, tfe_context, tfe_tensor_handle,
+                                            result);
   } else {
     CopyTFE_TensorHandleDataToTypedArray(env, tfe_context, tfe_tensor_handle,
                                          tensor_data_type, typed_array_type,
@@ -426,8 +521,9 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
   nstatus = GetStringParam(env, attr_name_value, attr_name_string);
   ENSURE_NAPI_OK(env, nstatus);
 
-  // OpAttr will be used beyond the scope of this function call. Stash ops in a
-  // set for re-use instead of dynamically reallocating strings for operations.
+  // OpAttr will be used beyond the scope of this function call. Stash ops in
+  // a set for re-use instead of dynamically reallocating strings for
+  // operations.
   const char *attr_name =
       ATTR_NAME_SET.insert(attr_name_string.c_str()).first->c_str();
 
@@ -761,7 +857,8 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   nstatus = napi_get_value_int32(env, num_output_values, &num_outputs);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  // Push `nullptr` to get a valid pointer in the call to `TFE_Execute()` below.
+  // Push `nullptr` to get a valid pointer in the call to `TFE_Execute()`
+  // below.
   std::vector<TFE_TensorHandle *> result_handles(num_outputs, nullptr);
 
   int size = result_handles.size();

@@ -36,6 +36,7 @@ export const io = {
   ...tf.io,
   ...nodeIo
 };
+
 // Export all union package symbols
 export * from '@tensorflow/tfjs';
 
@@ -61,3 +62,5 @@ tf.io.registerLoadRouter(nodeHTTPRequestRouter);
 import {ProgbarLogger} from './callbacks';
 // Register the ProgbarLogger for Model.fit() at verbosity level 1.
 tf.registerCallbackConstructor(1, ProgbarLogger);
+
+export * from './node';
