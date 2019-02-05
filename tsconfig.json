@@ -4,7 +4,7 @@
     "moduleResolution": "node",
     "noImplicitAny": true,
     "sourceMap": true,
-    "removeComments": true,
+    "removeComments": false,
     "preserveConstEnums": true,
     "declaration": true,
     "target": "es5",
