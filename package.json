@@ -58,5 +58,8 @@
     "@types/node-fetch": "^2.1.2",
     "node-fetch": "~2.1.2",
     "seedrandom": "~2.4.3"
+  },
+  "browser": {
+    "fs": false
   }
 }
