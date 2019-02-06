@@ -235,11 +235,9 @@ export class BrowserHTTPRequest implements IOHandler {
         fetchURLs.push(pathPrefix + path + suffix);
       });
     });
-    return [
-      weightSpecs,
-      concatenateArrayBuffers(await loadWeightsAsArrayBuffer(
-          fetchURLs, this.requestInit, this.getFetchFunc(), this.onProgress))
-    ];
+    const buffers = await loadWeightsAsArrayBuffer(
+        fetchURLs, this.requestInit, this.getFetchFunc(), this.onProgress);
+    return [weightSpecs, concatenateArrayBuffers(buffers)];
   }
 
   /**
