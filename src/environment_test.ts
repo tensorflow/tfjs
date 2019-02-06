@@ -224,6 +224,7 @@ describe('deprecation warnings', () => {
   beforeEach(() => {
     oldWarn = console.warn;
     spyOn(console, 'warn').and.callFake((msg: string): void => null);
+    ENV.set('DEPRECATION_WARNINGS_ENABLED', true);
   });
   afterEach(() => {
     console.warn = oldWarn;

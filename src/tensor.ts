@@ -16,9 +16,9 @@
  */
 
 import {tensorToString} from './tensor_format';
-import {DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TensorLike3D, TensorLike4D, TypedArray} from './types';
+import {ArrayMap, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TensorLike3D, TensorLike4D, TypedArray} from './types';
 import * as util from './util';
-import {computeStrides} from './util';
+import {computeStrides, toNestedArray} from './util';
 
 export interface TensorData<D extends DataType> {
   dataId?: DataId;
@@ -551,6 +551,10 @@ export class Tensor<R extends Rank = Rank> {
    * @param locs The location indices.
    */
   get(...locs: number[]) {
+    deprecationWarningFn(
+        `Tensor.get() is deprecated. Use Tensor.array() and native array ` +
+        `indexing instead.`);
+
     util.assert(
         locs.length === this.rank,
         'Number of coordinates in get() must match the rank of the tensor');
@@ -571,7 +575,37 @@ export class Tensor<R extends Rank = Rank> {
   /** Returns a `tf.TensorBuffer` that holds the underlying data. */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   buffer<D extends DataType>(): TensorBuffer<R, D> {
+    deprecationWarningFn(
+        `Tensor.buffer() is renamed to Tensor.bufferSync() in TensorFlow.js ` +
+        `1.0 and Tensor.buffer() will become an async function.`);
+
     return opHandler.buffer(this.shape, this.dtype as D, this.dataSync());
+  }
+
+  /** Returns a `tf.TensorBuffer` that holds the underlying data. */
+  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
+  bufferSync<D extends DataType = 'float32'>(): TensorBuffer<R, D> {
+    return opHandler.buffer(this.shape, this.dtype as D, this.dataSync());
+  }
+
+  /**
+   * Returns the tensor data as a nested array. The transfer of data is done
+   * asynchronously.
+   */
+  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
+  // tslint:disable-next-line:no-any
+  async array(): Promise<ArrayMap[R]> {
+    return toNestedArray(this.shape, await this.data());
+  }
+
+  /**
+   * Returns the tensor data as a nested array. The transfer of data is done
+   * synchronously.
+   */
+  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
+  // tslint:disable-next-line:no-any
+  arraySync(): ArrayMap[R] {
+    return toNestedArray(this.shape, this.dataSync());
   }
 
   /**

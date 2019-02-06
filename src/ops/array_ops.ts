@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {deprecationWarn, ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
 import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
 import {DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike4D} from '../types';
@@ -320,6 +320,11 @@ function oneHot_(
 function fromPixels_(
     pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
     numChannels = 3): Tensor3D {
+  deprecationWarn(
+      `tf.fromPixels() is renamed to tf.browser.fromPixels(), please switch ` +
+      `to the new method as the old method will be removed in TensorFlow.js ` +
+      `1.0.`);
+
   return browserFromPixels(pixels, numChannels);
 }
 
@@ -337,6 +342,10 @@ function fromPixels_(
 async function toPixels(
     img: Tensor2D|Tensor3D|TensorLike,
     canvas?: HTMLCanvasElement): Promise<Uint8ClampedArray> {
+  deprecationWarn(
+      `tf.toPixels() is renamed to tf.browser.toPixels(), please switch to ` +
+      `the new method as the old method will be removed in TensorFlow.js 1.0.`);
+
   return browserToPixels(img, canvas);
 }
 
@@ -939,7 +948,7 @@ function expandDims_<R2 extends Rank>(
  * ```js
  * const x = tf.tensor4d([1, 2, 3, 4], [1, 1, 1, 4]);
  * const blockSize = 2;
- * const dataFormat = "NHWC";
+ * const dataFormat = 'NHWC';
  *
  * tf.depthToSpace(x, blockSize, dataFormat).print();
  * ```

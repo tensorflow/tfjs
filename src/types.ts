@@ -26,6 +26,17 @@ export interface ShapeMap {
   R6: [number, number, number, number, number, number];
 }
 
+/** @docalias number[] */
+export interface ArrayMap {
+  R0: number;
+  R1: number[];
+  R2: number[][];
+  R3: number[][][];
+  R4: number[][][][];
+  R5: number[][][][][];
+  R6: number[][][][][][];
+}
+
 export interface DataTypeMap {
   float32: Float32Array;
   int32: Int32Array;

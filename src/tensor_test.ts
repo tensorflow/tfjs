@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ENV} from './environment';
 import * as tf from './index';
 import {describeWithFlags} from './jasmine_util';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
@@ -2100,5 +2101,37 @@ describeWithFlags('tensor with 0 in shape', ALL_ENVS, () => {
     expect(a.rank).toBe(2);
     expect(a.shape).toEqual([0, 5]);
     expectArraysEqual(a, []);
+  });
+});
+
+describeWithFlags('Deprecation warnings', ALL_ENVS, () => {
+  beforeEach(() => {
+    spyOn(console, 'warn').and.callFake((msg: string): void => null);
+    ENV.set('DEPRECATION_WARNINGS_ENABLED', true);
+  });
+
+  it('Tensor.get', () => {
+    const t = tf.tensor1d([5, 3, 2]);
+    expectNumbersClose(t.get(1), 3);
+
+    expect(console.warn)
+        .toHaveBeenCalledWith(
+            `Tensor.get() is deprecated. Use Tensor.array() and native array ` +
+            `indexing instead. You can disable deprecation warnings with ` +
+            `tf.disableDeprecationWarnings().`);
+  });
+
+  it('Tensor.buffer', () => {
+    const t = tf.tensor1d([5, 3, 2]);
+    const buffer = t.buffer<'float32'>();
+    expectNumbersClose(buffer.get(1), 3);
+
+    expect(console.warn).toHaveBeenCalledTimes(1);
+    expect(console.warn)
+        .toHaveBeenCalledWith(
+            `Tensor.buffer() is renamed to Tensor.bufferSync() in ` +
+            `TensorFlow.js 1.0 and Tensor.buffer() will become an async ` +
+            `function. You can disable deprecation warnings with ` +
+            `tf.disableDeprecationWarnings().`);
   });
 });

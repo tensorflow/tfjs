@@ -151,6 +151,8 @@ function executeTests(
       ENV.reset();
       ENV.setFeatures(testEnv.features);
       ENV.set('IS_TEST', true);
+      // Disable deprecation warnings for tests to not spam the console.
+      ENV.set('DEPRECATION_WARNINGS_ENABLED', false);
       ENV.registerBackend(backendName, testEnv.factory, 1000);
       Environment.setBackend(backendName);
     });
