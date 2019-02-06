@@ -205,7 +205,8 @@ export class MathBackendWebGL implements KernelBackend {
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
       numChannels: number): Tensor3D {
     if (pixels == null) {
-      throw new Error('pixels passed to tf.fromPixels() can not be null');
+      throw new Error(
+          'pixels passed to tf.browser.fromPixels() can not be null');
     }
     const texShape: [number, number] = [pixels.height, pixels.width];
     const outShape = [pixels.height, pixels.width, numChannels];
@@ -215,7 +216,7 @@ export class MathBackendWebGL implements KernelBackend {
         !(pixels instanceof HTMLCanvasElement) &&
         !(pixels instanceof ImageData)) {
       throw new Error(
-          'pixels passed to tf.fromPixels() must be either an ' +
+          'pixels passed to tf.browser.fromPixels() must be either an ' +
           `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement or ` +
           `ImageData, but was ${(pixels as {}).constructor.name}`);
     }

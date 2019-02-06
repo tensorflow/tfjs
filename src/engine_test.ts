@@ -32,7 +32,7 @@ describeWithFlags('fromPixels + regular math op', WEBGL_ENVS, () => {
       pixels.data[i] = 250;
     }
 
-    const a = tf.fromPixels(pixels, 4);
+    const a = tf.browser.fromPixels(pixels, 4);
     const b = tf.scalar(20, 'int32');
 
     const res = tf.add(a, b);
@@ -622,12 +622,12 @@ describeWithFlags('Switching WebGL + CPU backends', WEBGL_ENVS, () => {
 
   it('fromPixels with mixed backends works', () => {
     tf.setBackend('webgl1');
-    const a =
-        tf.fromPixels(new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1));
+    const a = tf.browser.fromPixels(
+        new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1));
 
     tf.setBackend('webgl2');
-    const b =
-        tf.fromPixels(new ImageData(new Uint8ClampedArray([5, 6, 7, 8]), 1, 1));
+    const b = tf.browser.fromPixels(
+        new ImageData(new Uint8ClampedArray([5, 6, 7, 8]), 1, 1));
 
     expectArraysClose(tf.add(a, b), [6, 8, 10]);
   });
