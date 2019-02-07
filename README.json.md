@@ -149,7 +149,7 @@ const MODEL_URL = 'https://.../mobilenet/model.json';
 
 const model = await tf.loadFrozenModelJSON(MODEL_URL);
 const cat = document.getElementById('cat');
-model.execute({input: tf.fromPixels(cat)});
+model.execute({input: tf.browser.fromPixels(cat)});
 ```
 
 Check out our working [MobileNet demo](./demo/mobilenet/README.md).

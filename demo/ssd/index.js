@@ -42,7 +42,7 @@ image.src = imageURL;
 const runButton = document.getElementById('run');
 runButton.onclick = async () => {
   const model = await modelPromise;
-  const pixels = tf.fromPixels(image);
+  const pixels = tf.browser.fromPixels(image);
   console.log('model loaded');
   console.time('predict1');
   const res1 = await model.executeAsync(pixels.reshape([1, ...pixels.shape]));

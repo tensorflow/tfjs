@@ -30,7 +30,7 @@ cat.onload = async () => {
   await mobileNet.load();
   console.timeEnd('Loading of model');
 
-  const pixels = tf.fromPixels(cat);
+  const pixels = tf.browser.fromPixels(cat);
 
   console.time('First prediction');
   let result = mobileNet.predict(pixels);
