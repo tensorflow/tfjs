@@ -150,7 +150,7 @@ const WEIGHTS_URL = 'https://.../mobilenet/weights_manifest.json';
 
 const model = await tf.loadFrozenModel(MODEL_URL, WEIGHTS_URL);
 const cat = document.getElementById('cat');
-model.execute({input: tf.fromPixels(cat)});
+model.execute({input: tf.browser.fromPixels(cat)});
 ```
 
 Check out our working [MobileNet demo](./demo/mobilenet/README.md).
