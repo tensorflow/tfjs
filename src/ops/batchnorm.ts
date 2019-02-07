@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {deprecationWarn, ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
@@ -29,169 +29,179 @@ import {rsqrt} from './unary_ops';
 
 /**
  * Batch normalization, strictly for 2D. For the more relaxed version, see
- * `tf.batchNormalization`.
+ * `tf.batchNorm`.
  *
  * @param x The input Tensor.
  * @param mean A mean Tensor.
  * @param variance A variance Tensor.
- * @param varianceEpsilon A small float number to avoid dividing by 0.
- * @param scale A scale Tensor.
  * @param offset An offset Tensor.
+ * @param scale A scale Tensor.
+ * @param varianceEpsilon A small float number to avoid dividing by 0.
  */
-function batchNormalization2d_(
+function batchNorm2d_(
     x: Tensor2D|TensorLike, mean: Tensor2D|Tensor1D|TensorLike,
-    variance: Tensor2D|Tensor1D|TensorLike, varianceEpsilon = .001,
-    scale?: Tensor2D|Tensor1D|TensorLike,
-    offset?: Tensor2D|Tensor1D|TensorLike): Tensor2D {
-  const $x = convertToTensor(x, 'x', 'batchNormalization');
-  const $mean = convertToTensor(mean, 'mean', 'batchNormalization');
-  const $variance = convertToTensor(variance, 'variance', 'batchNormalization');
+    variance: Tensor2D|Tensor1D|TensorLike,
+    offset?: Tensor2D|Tensor1D|TensorLike, scale?: Tensor2D|Tensor1D|TensorLike,
+    varianceEpsilon = .001): Tensor2D {
+  const $x = convertToTensor(x, 'x', 'batchNorm');
+  const $mean = convertToTensor(mean, 'mean', 'batchNorm');
+  const $variance = convertToTensor(variance, 'variance', 'batchNorm');
   let $scale: Tensor2D|Tensor1D;
   if (scale != null) {
-    $scale = convertToTensor(scale, 'scale', 'batchNormalization');
+    $scale = convertToTensor(scale, 'scale', 'batchNorm');
   }
   let $offset: Tensor2D|Tensor1D;
   if (offset != null) {
-    $offset = convertToTensor(offset, 'offset', 'batchNormalization');
+    $offset = convertToTensor(offset, 'offset', 'batchNorm');
   }
   util.assert(
       $x.rank === 2,
-      `Error in batchNormalization3D: x must be rank 3 but got rank ` +
+      `Error in batchNorm3D: x must be rank 3 but got rank ` +
           `${$x.rank}.`);
   util.assert(
       $mean.rank === 2 || $mean.rank === 1,
-      `Error in batchNormalization2D: mean must be rank 2 or rank 1 but ` +
+      `Error in batchNorm2D: mean must be rank 2 or rank 1 but ` +
           `got rank ${$mean.rank}.`);
   util.assert(
       $variance.rank === 2 || $variance.rank === 1,
-      `Error in batchNormalization2D: variance must be rank 2 or rank 1 ` +
+      `Error in batchNorm2D: variance must be rank 2 or rank 1 ` +
           `but got rank ${$variance.rank}.`);
   if ($scale != null) {
     util.assert(
         $scale.rank === 2 || $scale.rank === 1,
-        `Error in batchNormalization2D: scale must be rank 2 or rank 1 ` +
+        `Error in batchNorm2D: scale must be rank 2 or rank 1 ` +
             `but got rank ${$scale.rank}.`);
   }
   if ($offset != null) {
     util.assert(
         $offset.rank === 2 || $offset.rank === 1,
-        `Error in batchNormalization2D: offset must be rank 2 or rank 1 ` +
+        `Error in batchNorm2D: offset must be rank 2 or rank 1 ` +
             `but got rank ${$offset.rank}.`);
   }
 
-  return batchNormalization(
-      $x, $mean, $variance, varianceEpsilon, $scale, $offset);
+  return batchNorm_($x, $mean, $variance, $offset, $scale, varianceEpsilon);
 }
 
 /**
  * Batch normalization, strictly for 3D. For the more relaxed version, see
- * `tf.batchNormalization`.
+ * `tf.batchNorm`.
  *
  * @param x The input Tensor.
  * @param mean A mean Tensor.
  * @param variance A variance Tensor.
- * @param varianceEpsilon A small float number to avoid dividing by 0.
- * @param scale A scale Tensor.
  * @param offset An offset Tensor.
+ * @param scale A scale Tensor.
+ * @param varianceEpsilon A small float number to avoid dividing by 0.
  */
-function batchNormalization3d_(
+function batchNorm3d_(
     x: Tensor3D|TensorLike, mean: Tensor3D|Tensor1D|TensorLike,
-    variance: Tensor3D|Tensor1D|TensorLike, varianceEpsilon = .001,
-    scale?: Tensor3D|Tensor1D|TensorLike,
-    offset?: Tensor3D|Tensor1D|TensorLike): Tensor3D {
-  const $x = convertToTensor(x, 'x', 'batchNormalization');
-  const $mean = convertToTensor(mean, 'mean', 'batchNormalization');
-  const $variance = convertToTensor(variance, 'variance', 'batchNormalization');
+    variance: Tensor3D|Tensor1D|TensorLike,
+    offset?: Tensor3D|Tensor1D|TensorLike, scale?: Tensor3D|Tensor1D|TensorLike,
+    varianceEpsilon = .001): Tensor3D {
+  const $x = convertToTensor(x, 'x', 'batchNorm');
+  const $mean = convertToTensor(mean, 'mean', 'batchNorm');
+  const $variance = convertToTensor(variance, 'variance', 'batchNorm');
   let $scale: Tensor3D|Tensor1D;
   if (scale != null) {
-    $scale = convertToTensor(scale, 'scale', 'batchNormalization');
+    $scale = convertToTensor(scale, 'scale', 'batchNorm');
   }
   let $offset: Tensor3D|Tensor1D;
   if (offset != null) {
-    $offset = convertToTensor(offset, 'offset', 'batchNormalization');
+    $offset = convertToTensor(offset, 'offset', 'batchNorm');
   }
   util.assert(
       $x.rank === 3,
-      `Error in batchNormalization3D: x must be rank 3 but got rank ` +
+      `Error in batchNorm3D: x must be rank 3 but got rank ` +
           `${$x.rank}.`);
   util.assert(
       $mean.rank === 3 || $mean.rank === 1,
-      `Error in batchNormalization3D: mean must be rank 3 or rank 1 but ` +
+      `Error in batchNorm3D: mean must be rank 3 or rank 1 but ` +
           `got rank ${$mean.rank}.`);
   util.assert(
       $variance.rank === 3 || $variance.rank === 1,
-      `Error in batchNormalization3D: variance must be rank 3 or rank 1 ` +
+      `Error in batchNorm3D: variance must be rank 3 or rank 1 ` +
           `but got rank ${$variance.rank}.`);
   if ($scale != null) {
     util.assert(
         $scale.rank === 3 || $scale.rank === 1,
-        `Error in batchNormalization3D: scale must be rank 3 or rank 1 ` +
+        `Error in batchNorm3D: scale must be rank 3 or rank 1 ` +
             `but got rank ${$scale.rank}.`);
   }
   if ($offset != null) {
     util.assert(
         $offset.rank === 3 || $offset.rank === 1,
-        `Error in batchNormalization3D: offset must be rank 3 or rank 1 ` +
+        `Error in batchNorm3D: offset must be rank 3 or rank 1 ` +
             `but got rank ${$offset.rank}.`);
   }
 
-  return batchNormalization(
-      $x, $mean, $variance, varianceEpsilon, $scale, $offset);
+  return batchNorm_($x, $mean, $variance, $offset, $scale, varianceEpsilon);
 }
 
 /**
  * Batch normalization, strictly for 4D. For the more relaxed version, see
- * `tf.batchNormalization`.
+ * `tf.batchNorm`.
  *
  * @param x The input Tensor.
  * @param mean A mean Tensor.
  * @param variance A variance Tensor.
- * @param varianceEpsilon A small float number to avoid dividing by 0.
- * @param scale A scale Tensor.
  * @param offset An offset Tensor.
+ * @param scale A scale Tensor.
+ * @param varianceEpsilon A small float number to avoid dividing by 0.
  */
-function batchNormalization4d_(
+function batchNorm4d_(
     x: Tensor4D|TensorLike, mean: Tensor4D|Tensor1D|TensorLike,
-    variance: Tensor4D|Tensor1D|TensorLike, varianceEpsilon = .001,
-    scale?: Tensor4D|Tensor1D|TensorLike,
-    offset?: Tensor4D|Tensor1D|TensorLike): Tensor4D {
-  const $x = convertToTensor(x, 'x', 'batchNormalization');
-  const $mean = convertToTensor(mean, 'mean', 'batchNormalization');
-  const $variance = convertToTensor(variance, 'variance', 'batchNormalization');
+    variance: Tensor4D|Tensor1D|TensorLike,
+    offset?: Tensor4D|Tensor1D|TensorLike, scale?: Tensor4D|Tensor1D|TensorLike,
+    varianceEpsilon = .001): Tensor4D {
+  const $x = convertToTensor(x, 'x', 'batchNorm');
+  const $mean = convertToTensor(mean, 'mean', 'batchNorm');
+  const $variance = convertToTensor(variance, 'variance', 'batchNorm');
   let $scale: Tensor4D|Tensor1D;
   if (scale != null) {
-    $scale = convertToTensor(scale, 'scale', 'batchNormalization');
+    $scale = convertToTensor(scale, 'scale', 'batchNorm');
   }
   let $offset: Tensor4D|Tensor1D;
   if (offset != null) {
-    $offset = convertToTensor(offset, 'offset', 'batchNormalization');
+    $offset = convertToTensor(offset, 'offset', 'batchNorm');
   }
   util.assert(
       $x.rank === 4,
-      `Error in batchNormalization4D: x must be rank 4 but got rank ` +
+      `Error in batchNorm4D: x must be rank 4 but got rank ` +
           `${$x.rank}.`);
   util.assert(
       $mean.rank === 4 || $mean.rank === 1,
-      `Error in batchNormalization4D: mean must be rank 4 or rank 1 but ` +
+      `Error in batchNorm4D: mean must be rank 4 or rank 1 but ` +
           `got rank ${$mean.rank}.`);
   util.assert(
       $variance.rank === 4 || $variance.rank === 1,
-      `Error in batchNormalization4D: variance must be rank 4 or rank 1 ` +
+      `Error in batchNorm4D: variance must be rank 4 or rank 1 ` +
           `but got rank ${$variance.rank}.`);
   if ($scale != null) {
     util.assert(
         $scale.rank === 4 || $scale.rank === 1,
-        `Error in batchNormalization4D: scale must be rank 4 or rank 1 ` +
+        `Error in batchNorm4D: scale must be rank 4 or rank 1 ` +
             `but got rank ${$scale.rank}.`);
   }
   if ($offset != null) {
     util.assert(
         $offset.rank === 4 || $offset.rank === 1,
-        `Error in batchNormalization4D: offset must be rank 4 or rank 1 ` +
+        `Error in batchNorm4D: offset must be rank 4 or rank 1 ` +
             `but got rank ${$offset.rank}.`);
   }
-  return batchNormalization(
-      $x, $mean, $variance, varianceEpsilon, $scale, $offset);
+  return batchNorm_($x, $mean, $variance, $offset, $scale, varianceEpsilon);
+}
+
+/**
+ * @deprecated Please use `tf.batchNorm` instead and note the positional
+ *     argument change of scale, offset, and varianceEpsilon.
+ */
+function batchNormalization_<R extends Rank>(
+    x: Tensor<R>|Tensor1D|TensorLike, mean: Tensor<R>|Tensor1D|TensorLike,
+    variance: Tensor<R>|Tensor1D|TensorLike, varianceEpsilon = .001,
+    scale?: Tensor<R>|Tensor1D|TensorLike,
+    offset?: Tensor<R>|Tensor1D|TensorLike): Tensor<R> {
+  warnDeprecation();
+  return batchNorm_(x, mean, variance, offset, scale, varianceEpsilon);
 }
 
 /**
@@ -207,33 +217,33 @@ function batchNormalization4d_(
  *
  * Also available are stricter rank-specific methods with the same signature
  * as this method that assert that parameters passed are of given rank
- *   - `tf.batchNormalization2d`
- *   - `tf.batchNormalization3d`
- *   - `tf.batchNormalization4d`
+ *   - `tf.batchNorm2d`
+ *   - `tf.batchNorm3d`
+ *   - `tf.batchNorm4d`
  *
  * @param x The input Tensor.
  * @param mean A mean Tensor.
  * @param variance A variance Tensor.
- * @param varianceEpsilon A small float number to avoid dividing by 0.
- * @param scale A scale Tensor.
  * @param offset An offset Tensor.
+ * @param scale A scale Tensor.
+ * @param varianceEpsilon A small float number to avoid dividing by 0.
  */
 /** @doc {heading: 'Operations', subheading: 'Normalization'} */
-function batchNormalization_<R extends Rank>(
+function batchNorm_<R extends Rank>(
     x: Tensor<R>|Tensor1D|TensorLike, mean: Tensor<R>|Tensor1D|TensorLike,
-    variance: Tensor<R>|Tensor1D|TensorLike, varianceEpsilon = .001,
-    scale?: Tensor<R>|Tensor1D|TensorLike,
-    offset?: Tensor<R>|Tensor1D|TensorLike): Tensor<R> {
-  const $x = convertToTensor(x, 'x', 'batchNormalization');
-  const $mean = convertToTensor(mean, 'mean', 'batchNormalization');
-  const $variance = convertToTensor(variance, 'variance', 'batchNormalization');
+    variance: Tensor<R>|Tensor1D|TensorLike,
+    offset?: Tensor<R>|Tensor1D|TensorLike,
+    scale?: Tensor<R>|Tensor1D|TensorLike, varianceEpsilon = .001): Tensor<R> {
+  const $x = convertToTensor(x, 'x', 'batchNorm');
+  const $mean = convertToTensor(mean, 'mean', 'batchNorm');
+  const $variance = convertToTensor(variance, 'variance', 'batchNorm');
   let $scale: Tensor<R>|Tensor1D;
   if (scale != null) {
-    $scale = convertToTensor(scale, 'scale', 'batchNormalization');
+    $scale = convertToTensor(scale, 'scale', 'batchNorm');
   }
   let $offset: Tensor<R>|Tensor1D;
   if (offset != null) {
-    $offset = convertToTensor(offset, 'offset', 'batchNormalization');
+    $offset = convertToTensor(offset, 'offset', 'batchNorm');
   }
 
   util.assert(
@@ -351,7 +361,58 @@ function batchnormReshape4D(x: Tensor): Tensor4D|Tensor1D {
   return x as Tensor4D;
 }
 
+/**
+ * @deprecated Please use `tf.batchNorm2d` instead and note the positional
+ *     argument change of scale, offset, and varianceEpsilon.
+ */
+function batchNormalization2d_(
+    x: Tensor2D|TensorLike, mean: Tensor2D|Tensor1D|TensorLike,
+    variance: Tensor2D|Tensor1D|TensorLike, varianceEpsilon = .001,
+    scale?: Tensor2D|Tensor1D|TensorLike,
+    offset?: Tensor2D|Tensor1D|TensorLike): Tensor2D {
+  warnDeprecation();
+  return batchNorm2d_(x, mean, variance, offset, scale, varianceEpsilon);
+}
+
+/**
+ * @deprecated Please use `tf.batchNorm3d` instead and note the positional
+ *     argument change of scale, offset, and varianceEpsilon.
+ */
+function batchNormalization3d_(
+    x: Tensor3D|TensorLike, mean: Tensor3D|Tensor1D|TensorLike,
+    variance: Tensor3D|Tensor1D|TensorLike, varianceEpsilon = .001,
+    scale?: Tensor3D|Tensor1D|TensorLike,
+    offset?: Tensor3D|Tensor1D|TensorLike): Tensor3D {
+  warnDeprecation();
+  return batchNorm3d_(x, mean, variance, offset, scale, varianceEpsilon);
+}
+
+/**
+ * @deprecated Please use `tf.batchNorm4d` instead and note the positional
+ *     argument change of scale, offset, and varianceEpsilon.
+ */
+function batchNormalization4d_(
+    x: Tensor4D|TensorLike, mean: Tensor4D|Tensor1D|TensorLike,
+    variance: Tensor4D|Tensor1D|TensorLike, varianceEpsilon = .001,
+    scale?: Tensor4D|Tensor1D|TensorLike,
+    offset?: Tensor4D|Tensor1D|TensorLike): Tensor4D {
+  warnDeprecation();
+  return batchNorm4d_(x, mean, variance, offset, scale, varianceEpsilon);
+}
+
+function warnDeprecation() {
+  deprecationWarn(
+      'tf.batchNormalization() is going away. ' +
+      'Use tf.batchNorm() instead, and note the positional argument change ' +
+      'of scale, offset, and varianceEpsilon');
+}
+
 export const batchNormalization2d = op({batchNormalization2d_});
 export const batchNormalization3d = op({batchNormalization3d_});
 export const batchNormalization4d = op({batchNormalization4d_});
 export const batchNormalization = op({batchNormalization_});
+
+export const batchNorm = op({batchNorm_});
+export const batchNorm2d = op({batchNorm2d_});
+export const batchNorm3d = op({batchNorm3d_});
+export const batchNorm4d = op({batchNorm4d_});
