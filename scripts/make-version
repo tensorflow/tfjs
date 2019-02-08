@@ -18,12 +18,20 @@ const version = packageJSON.version;
 const tag = `v${version}`;
 
 const versionCode =
-`/** @license See the LICENSE file. */
+`/**
+ * @license
+ * Copyright 2019 Google LLC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file or at
+ * https://opensource.org/licenses/MIT.
+ * =============================================================================
+ */
 
 // This code is auto-generated, do not modify this file!
 const version = '${version}';
 export {version};
-`
+`;
 
 fs.writeFile('src/version.ts', versionCode, err => {
   if (err) {
