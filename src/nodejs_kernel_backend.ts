@@ -18,6 +18,7 @@
 // tslint:disable-next-line:max-line-length
 import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
+import {Activation} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
@@ -280,6 +281,28 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     return this.executeSingleOutput('BatchMatMul', opAttrs, [a, b]) as
         Tensor<Rank.R3>;
+  }
+
+  fusedBatchMatMul(
+      a: Tensor3D, b: Tensor3D, transposeA: boolean, transposeB: boolean,
+      bias?: Tensor, activation?: Activation): Tensor3D {
+    // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
+    // achieve the same results:
+    let result = this.batchMatMul(a, b, transposeA, transposeB);
+    if (bias) {
+      result = this.add(result, bias) as Tensor3D;
+    }
+    if (activation) {
+      if (activation === 'linear') {
+        // No-op
+      } else if (activation === 'relu') {
+        result = this.relu(result);
+      } else {
+        throw new Error(`Activation: ${
+            activation} has not been implemented for the Node.js backend`);
+      }
+    }
+    return result;
   }
 
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
