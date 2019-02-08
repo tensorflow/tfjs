@@ -22,23 +22,15 @@ import {tensorflow} from '../data/compiled_api';
 import * as fm from './frozen_model';
 
 const HOST = 'http://example.org';
-const TFHUB_SUFFIX = '?tfjs-format=file';
 const MODEL_URL = `${HOST}/model.pb`;
 const WEIGHT_MANIFEST_URL = `${HOST}/weights_manifest.json`;
 const RELATIVE_MODEL_URL = '/path/model.pb';
 const RELATIVE_WEIGHT_MANIFEST_URL = '/path/weights_manifest.json';
-const TFHUB_MODEL_URL = `${HOST}/model/1/tensorflowjs_model.pb${TFHUB_SUFFIX}`;
-const TFHUB_WEIGHT_MANIFEST_URL =
-    `${HOST}/model/1/weights_manifest.json${TFHUB_SUFFIX}`;
 let model: fm.FrozenModel;
 const bias = tfc.tensor1d([1], 'int32');
-const OCTET_STREAM_TYPE = 'application/octet-stream';
-const JSON_TYPE = 'application/json';
 
-const weightsManifest: tfc.io.WeightsManifestConfig = [{
-  'paths': ['weight_0'],
-  'weights': [{'name': 'Const', 'dtype': 'int32', 'shape': [1]}],
-}];
+const weightsManifest: tfc.io.WeightsManifestEntry[] =
+    [{'name': 'Const', 'dtype': 'int32', 'shape': [1]}];
 
 const SIMPLE_MODEL: tensorflow.IGraphDef = {
   node: [
@@ -106,31 +98,21 @@ const DYNAMIC_SHAPE_MODEL: tensorflow.IGraphDef = {
   ],
   versions: {producer: 1.0, minConsumer: 3}
 };
+const HTTP_MODEL_LOADER = {
+  load: async () => {
+    return {
+      modelTopology: new Uint8Array([1, 2, 3]),
+      weightSpecs: weightsManifest,
+      weightData: bias.dataSync()
+    };
+  }
+};
+
 describe('Model', () => {
   beforeEach(() => {
     model = new fm.FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
-    spyOn(window, 'fetch').and.callFake(async (path: string) => {
-      if (path === MODEL_URL || path === RELATIVE_MODEL_URL ||
-          path === TFHUB_MODEL_URL) {
-        return new Response(
-            new Uint8Array([1, 2, 3]),
-            {'headers': {'Content-Type': OCTET_STREAM_TYPE}});
-      } else if (
-          path === WEIGHT_MANIFEST_URL ||
-          path === RELATIVE_WEIGHT_MANIFEST_URL ||
-          path === TFHUB_WEIGHT_MANIFEST_URL) {
-        return new Response(
-            JSON.stringify(weightsManifest),
-            {'headers': {'Content-Type': JSON_TYPE}});
-      } else if (
-          path.match(`${HOST}.*/weight_0`) || path === '/path/weight_0') {
-        return new Response(
-            bias.dataSync() as Int32Array,
-            {'headers': {'Content-Type': OCTET_STREAM_TYPE}});
-      } else {
-        throw new Error(`Invalid path: ${path}`);
-      }
-    });
+    spyOn(tfc.io, 'getLoadHandlers').and.returnValue([HTTP_MODEL_LOADER]);
+    spyOn(tfc.io, 'browserHTTPRequest').and.returnValue(HTTP_MODEL_LOADER);
   });
   afterEach(() => {});
 
@@ -268,14 +250,10 @@ describe('Model', () => {
     it('should loadFrozenModel with request options', async () => {
       const model = await fm.loadFrozenModel(
           MODEL_URL, WEIGHT_MANIFEST_URL, {credentials: 'include'});
-      expect(window.fetch).toHaveBeenCalledWith(MODEL_URL, {
-        credentials: 'include',
-        headers: Object({Accept: OCTET_STREAM_TYPE})
-      });
-      expect(window.fetch).toHaveBeenCalledWith(WEIGHT_MANIFEST_URL, {
-        credentials: 'include',
-        headers: Object({Accept: JSON_TYPE})
-      });
+      expect(tfc.io.browserHTTPRequest)
+          .toHaveBeenCalledWith(
+              [MODEL_URL, WEIGHT_MANIFEST_URL], {credentials: 'include'}, null,
+              null, undefined);
       expect(model).not.toBeUndefined();
     });
 

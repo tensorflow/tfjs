@@ -78,7 +78,7 @@ export class FrozenModel implements tfc.InferenceModel {
 
   private findIOHandler() {
     const path = [this.modelUrl, this.weightManifestUrl];
-    if (this.requestOption) {
+    if (this.requestOption || this.weightPrefix) {
       this.handler = tfc.io.browserHTTPRequest(
           path, this.requestOption, this.weightPrefix, null, this.onProgress);
     } else {
