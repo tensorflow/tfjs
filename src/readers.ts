@@ -92,7 +92,8 @@ import {CSVConfig, DataElement} from './types';
  *   configParamIndices: [1]
  *  }
  */
-export function csv(source: string, csvConfig: CSVConfig = {}): CSVDataset {
+export function csv(
+    source: RequestInfo, csvConfig: CSVConfig = {}): CSVDataset {
   return new CSVDataset(new URLDataSource(source), csvConfig);
 }
 
@@ -128,8 +129,11 @@ export function func<T extends DataElement>(
 
 /**
  * Create a `Dataset` that produces each element from provided JavaScript
- * generator, which is a function* (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators#Generator_functions),
- * or a function that returns an iterator(https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators#Generator_functions).
+ * generator, which is a function*
+ * (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators#Generator_functions),
+ * or a function that returns an
+ * iterator
+ * (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators#Generator_functions).
  *
  * The returned iterator should have `.next()` function that returns element in
  * format of `{value: DataElement, done:boolean}`.
@@ -185,7 +189,7 @@ export function func<T extends DataElement>(
  *  }
  */
 export function generator<T extends DataElement>(
-    generator: () => (Iterator<T>|Promise<Iterator<T>>)): Dataset<T> {
+    generator: () => (Iterator<T>| Promise<Iterator<T>>)): Dataset<T> {
   return datasetFromIteratorFn(
-    async () => iteratorFromFunction((await generator()).next));
+      async () => iteratorFromFunction((await generator()).next));
 }
