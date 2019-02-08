@@ -128,9 +128,8 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     expect(() => tf.tensor(['a', 'b', 'c'], [4], 'string')).toThrowError();
   });
 
-  it('delayed storage, reading', () => {
-    const delayedStorage = true;
-    const backend = new MathBackendWebGL(null, delayedStorage);
+  it('reading', () => {
+    const backend = new MathBackendWebGL(null);
     tf.ENV.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
@@ -150,9 +149,8 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     expect(texManager.getNumUsedTextures()).toBe(0);
   });
 
-  it('delayed storage, read packed and then use by an unpacked op', () => {
-    const delayedStorage = true;
-    const backend = new MathBackendWebGL(null, delayedStorage);
+  it('read packed and then use by an unpacked op', () => {
+    const backend = new MathBackendWebGL(null);
     tf.ENV.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
@@ -172,8 +170,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
   });
 
   it('delayed storage, overwriting', () => {
-    const delayedStorage = true;
-    const backend = new MathBackendWebGL(null, delayedStorage);
+    const backend = new MathBackendWebGL(null);
     tf.ENV.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
@@ -193,60 +190,6 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     expectArraysClose(
         backend.readSync(t.dataId) as Float32Array,
         new Float32Array([4, 5, 6]));
-    expect(texManager.getNumUsedTextures()).toBe(0);
-  });
-
-  it('immediate storage reading', () => {
-    const delayedStorage = false;
-    const backend = new MathBackendWebGL(null, delayedStorage);
-    tf.ENV.registerBackend('test-storage', () => backend);
-    tf.setBackend('test-storage');
-
-    const texManager = backend.getTextureManager();
-    const t = tf.Tensor.make([3], {}, 'float32');
-    backend.write(t.dataId, new Float32Array([1, 2, 3]));
-    expect(texManager.getNumUsedTextures()).toBe(1);
-    expectArraysClose(
-        backend.readSync(t.dataId) as Float32Array,
-        new Float32Array([1, 2, 3]));
-    expect(texManager.getNumUsedTextures()).toBe(1);
-    backend.disposeData(t.dataId);
-    expect(texManager.getNumUsedTextures()).toBe(0);
-  });
-
-  it('immediate storage overwriting', () => {
-    const delayedStorage = false;
-    const backend = new MathBackendWebGL(null, delayedStorage);
-    tf.ENV.registerBackend('test-storage', () => backend);
-    tf.setBackend('test-storage');
-
-    const texManager = backend.getTextureManager();
-    const t = tf.Tensor.make([3], {}, 'float32');
-    backend.write(t.dataId, new Float32Array([1, 2, 3]));
-    expect(texManager.getNumUsedTextures()).toBe(1);
-    backend.write(t.dataId, new Float32Array([4, 5, 6]));
-    expect(texManager.getNumUsedTextures()).toBe(1);
-    expectArraysClose(
-        backend.readSync(t.dataId) as Float32Array,
-        new Float32Array([4, 5, 6]));
-    expect(texManager.getNumUsedTextures()).toBe(1);
-    backend.disposeData(t.dataId);
-    expect(texManager.getNumUsedTextures()).toBe(0);
-  });
-
-  it('disposal of backend disposes all textures', () => {
-    const delayedStorage = false;
-    const backend = new MathBackendWebGL(null, delayedStorage);
-    const texManager = backend.getTextureManager();
-    tf.ENV.registerBackend('test-storage', () => backend);
-    tf.setBackend('test-storage');
-
-    const t = tf.Tensor.make([3], {}, 'float32');
-    backend.write(t.dataId, new Float32Array([1, 2, 3]));
-    const t2 = tf.Tensor.make([3], {}, 'float32');
-    backend.write(t2.dataId, new Float32Array([4, 5, 6]));
-    expect(texManager.getNumUsedTextures()).toBe(2);
-    backend.dispose();
     expect(texManager.getNumUsedTextures()).toBe(0);
   });
 });

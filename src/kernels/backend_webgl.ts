@@ -191,6 +191,7 @@ export class MathBackendWebGL implements KernelBackend {
   // Accumulated time spent (including blocking in downloading data from webgl.
   private downloadWaitMs = 0;
   private cpuBackend: KernelBackend;
+  // Whether we dispose the texture after reading its values.
 
   register(dataId: DataId, shape: number[], dtype: DataType): void {
     if (this.texData.has(dataId)) {
@@ -291,10 +292,6 @@ export class MathBackendWebGL implements KernelBackend {
     }
     texData.usage = TextureUsage.UPLOAD;
     texData.values = values;
-
-    if (!this.delayedStorage) {
-      this.uploadToGPU(dataId);
-    }
   }
   readSync(dataId: DataId): DataValues {
     const texData = this.texData.get(dataId);
@@ -565,7 +562,7 @@ export class MathBackendWebGL implements KernelBackend {
   private binaryCache: {[key: string]: GPGPUBinary} = {};
   private gpgpuCreatedLocally: boolean;
 
-  constructor(private gpgpu?: GPGPUContext, private delayedStorage = true) {
+  constructor(private gpgpu?: GPGPUContext) {
     if (ENV.get('WEBGL_VERSION') < 1) {
       throw new Error('WebGL is not supported on this device');
     }
@@ -657,7 +654,7 @@ export class MathBackendWebGL implements KernelBackend {
 
   private shallowSlice(x: Tensor, begin: number[], size: number[]): Tensor {
     const xTexData = this.texData.get(x.dataId);
-    const t = Tensor.make(size, {}, x.dtype);
+    const t = Tensor.make(size, {}, x.dtype, this);
     const newTexData = this.texData.get(t.dataId);
     // Copy texture data from the original tensor.
     Object.assign(newTexData, xTexData);
@@ -1679,7 +1676,7 @@ export class MathBackendWebGL implements KernelBackend {
     const xReshaped =
         Tensor.make(
             [1, xShape[0] * xShape[1] * (xShape[2] + 1), convInfo.inChannels],
-            {dataId: x.dataId}, x.dtype) as Tensor3D;
+            {dataId: x.dataId}, x.dtype, this) as Tensor3D;
 
     xTexData.shape[xTexData.shape.length - 2]++;
     util.assert(
@@ -1702,7 +1699,7 @@ export class MathBackendWebGL implements KernelBackend {
     pointwiseConvTexData.shape = convInfo.outShape;
     return Tensor.make(
                convInfo.outShape, {dataId: pointwiseConv.dataId},
-               pointwiseConv.dtype) as Tensor4D;
+               pointwiseConv.dtype, this) as Tensor4D;
   }
 
   conv2dWithIm2Row(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
@@ -2065,7 +2062,7 @@ export class MathBackendWebGL implements KernelBackend {
 
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
       T {
-    return Tensor.make(shape, {}, dtype) as T;
+    return Tensor.make(shape, {}, dtype, this) as T;
   }
 
   private makePackedTensor<T extends Tensor, D extends DataType = 'float32'>(
@@ -2166,22 +2163,21 @@ export class MathBackendWebGL implements KernelBackend {
       } else if (
           texData.isPacked &&
           !webgl_util.isReshapeFree(texData.shape, input.shape)) {
-        // This is a special, temporary case where a texture exists for a tensor
+        // This is a special case where a texture exists for a tensor
         // but the shapes are incompatible (due to packing constraints) because
         // the tensor did not have a chance to go through the packed reshape
         // shader. This only happens when we reshape the *same* tensor to form
         // *distinct* inputs to an op, e.g. dotting a vector with itself. This
         // case will disappear once packed uploading is the default.
 
-        // Temporarily disable delayedStorage so the texture isn't removed from
-        // the original input
-        this.delayedStorage = false;
-        const inputValues = (input as Tensor).dataSync();
-        this.delayedStorage = true;
+        const savedInput = input;
+        const targetShape = input.shape;
 
-        input = Tensor.make(input.shape, {values: inputValues}, input.dtype);
+        input.shape = texData.shape;
+        input = this.packedReshape(input as Tensor, targetShape);
         texData = this.texData.get(input.dataId);
-        texData.isPacked = true;
+
+        savedInput.shape = targetShape;
       }
 
       this.uploadToGPU(input.dataId);
@@ -2330,18 +2326,16 @@ export class MathBackendWebGL implements KernelBackend {
 
   private convertAndCacheOnCPU(dataId: DataId, float32Values?: Float32Array):
       TypedArray {
-    // In delayed storage mode, when the user reads data, we don't keep a
-    // copy on the gpu, to minimize likelihood of memory leak. We re-upload
-    // to gpu the next time a gpgpu program needs the texture.
-    const dontKeepCopyOnGPU = this.delayedStorage;
     const texData = this.texData.get(dataId);
     const {texture, texShape, dtype, usage, isPacked} = texData;
-    if (dontKeepCopyOnGPU && texture != null) {
+
+    if (texture != null) {
       this.releaseTexture(dataId, texture, texShape, usage, isPacked);
       texData.texture = null;
       texData.texShape = null;
       texData.isPacked = false;
     }
+
     texData.usage = TextureUsage.UPLOAD;
     if (float32Values != null) {
       texData.values = float32ToTypedArray(float32Values, dtype as 'float32');
