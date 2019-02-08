@@ -29,13 +29,13 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
                                        tfc.Tensor[] => {
   switch (node.op) {
     case 'batchNormalization': {
-      return [tfc.batchNormalization(
+      return [tfc.batchNorm(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           getParamValue('mean', node, tensorMap, context) as tfc.Tensor,
           getParamValue('variance', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('epsilon', node, tensorMap, context) as number,
+          getParamValue('offset', node, tensorMap, context) as tfc.Tensor,
           getParamValue('scale', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('offset', node, tensorMap, context) as tfc.Tensor)];
+          getParamValue('epsilon', node, tensorMap, context) as number)];
     }
     case 'localResponseNormalization': {
       return [tfc.localResponseNormalization(
