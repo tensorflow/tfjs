@@ -38,6 +38,7 @@ function test () {
   echo 'Cloning node'
   git clone https://github.com/tensorflow/tfjs-node.git --depth 5
   cd tfjs-node
+  git checkout 0.3.x
   yarn && yarn link-local '@tensorflow/tfjs-core' && ./scripts/test-travis.sh
   NODE_EXIT_CODE=$?
 
