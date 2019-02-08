@@ -22,19 +22,13 @@ import {tensorflow_json} from '../data/compiled_api_json';
 import * as fm from './frozen_model_json';
 
 const HOST = 'http://example.org';
-const TFHUB_SUFFIX = '?tfjs-format=file';
 const MODEL_URL = `${HOST}/model.json`;
 const RELATIVE_MODEL_URL = '/path/model.pb';
-const TFHUB_MODEL_URL = `${HOST}/model/1/model.json${TFHUB_SUFFIX}`;
 let model: fm.FrozenModel;
 const bias = tfc.tensor1d([1], 'int32');
-const OCTET_STREAM_TYPE = 'application/octet-stream';
-const JSON_TYPE = 'application/json';
 
-const weightsManifest: tfc.io.WeightsManifestConfig = [{
-  'paths': ['weight_0'],
-  'weights': [{'name': 'Const', 'dtype': 'int32', 'shape': [1]}],
-}];
+const weightsManifest: tfc.io.WeightsManifestEntry[] =
+    [{'name': 'Const', 'dtype': 'int32', 'shape': [1]}];
 
 const SIMPLE_MODEL: tensorflow_json.IGraphDef = {
   node: [
@@ -102,6 +96,15 @@ const DYNAMIC_SHAPE_MODEL: tensorflow_json.IGraphDef = {
   ],
   versions: {producer: 1.0, minConsumer: 3}
 };
+const SIMPLE_HTTP_MODEL_LOADER = {
+  load: async () => {
+    return {
+      modelTopology: SIMPLE_MODEL,
+      weightSpecs: weightsManifest,
+      weightData: bias.dataSync()
+    };
+  }
+};
 describe('Model', () => {
   beforeEach(() => {
     model = new fm.FrozenModel(MODEL_URL);
@@ -109,23 +112,12 @@ describe('Model', () => {
 
   describe('simple model', () => {
     beforeEach(() => {
-      spyOn(window, 'fetch').and.callFake(async (path: string) => {
-        if (path === MODEL_URL || path === RELATIVE_MODEL_URL ||
-            path === TFHUB_MODEL_URL) {
-          return new Response(
-              JSON.stringify({modelTopology: SIMPLE_MODEL, weightsManifest}),
-              {'headers': {'Content-Type': JSON_TYPE}});
-        } else if (
-            path.match(`${HOST}.*/weight_0`) || path === '/path/weight_0') {
-          return new Response(
-              bias.dataSync() as Int32Array,
-              {'headers': {'Content-Type': OCTET_STREAM_TYPE}});
-        } else {
-          throw new Error(`Invalid path: ${path}`);
-        }
-      });
+      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        SIMPLE_HTTP_MODEL_LOADER
+      ]);
+      spyOn(tfc.io, 'browserHTTPRequest')
+          .and.returnValue(SIMPLE_HTTP_MODEL_LOADER);
     });
-
     it('load', async () => {
       const loaded = await model.load();
       expect(loaded).toBe(true);
@@ -254,10 +246,9 @@ describe('Model', () => {
     it('should loadFrozenModel with request options', async () => {
       const model =
           await fm.loadFrozenModel(MODEL_URL, {credentials: 'include'});
-      expect(window.fetch).toHaveBeenCalledWith(MODEL_URL, {
-        credentials: 'include',
-        headers: Object({Accept: JSON_TYPE})
-      });
+      expect(tfc.io.browserHTTPRequest)
+          .toHaveBeenCalledWith(
+              MODEL_URL, {credentials: 'include'}, null, null, undefined);
       expect(model).not.toBeUndefined();
     });
 
@@ -282,25 +273,23 @@ describe('Model', () => {
       });
     });
   });
+  const CONTROL_FLOW_HTTP_MODEL_LOADER = {
+    load: async () => {
+      return {
+        modelTopology: CONTROL_FLOW_MODEL,
+        weightSpecs: weightsManifest,
+        weightData: bias.dataSync()
+      };
+    }
+  };
 
   describe('control flow model', () => {
     beforeEach(() => {
-      spyOn(window, 'fetch').and.callFake(async (path: string) => {
-        if (path === MODEL_URL || path === RELATIVE_MODEL_URL ||
-            path === TFHUB_MODEL_URL) {
-          return new Response(
-              JSON.stringify(
-                  {modelTopology: CONTROL_FLOW_MODEL, weightsManifest}),
-              {'headers': {'Content-Type': JSON_TYPE}});
-        } else if (
-            path.match(`${HOST}.*/weight_0`) || path === '/path/weight_0') {
-          return new Response(
-              bias.dataSync() as Int32Array,
-              {'headers': {'Content-Type': OCTET_STREAM_TYPE}});
-        } else {
-          throw new Error(`Invalid path: ${path}`);
-        }
-      });
+      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        CONTROL_FLOW_HTTP_MODEL_LOADER
+      ]);
+      spyOn(tfc.io, 'browserHTTPRequest')
+          .and.returnValue(CONTROL_FLOW_HTTP_MODEL_LOADER);
     });
 
     it('should throw error if call predict directly', async () => {
@@ -331,25 +320,22 @@ describe('Model', () => {
       expect(() => model.executeAsync({Enter: input})).not.toThrow();
     });
   });
-
+  const DYNAMIC_HTTP_MODEL_LOADER = {
+    load: async () => {
+      return {
+        modelTopology: DYNAMIC_SHAPE_MODEL,
+        weightSpecs: weightsManifest,
+        weightData: bias.dataSync()
+      };
+    }
+  };
   describe('dynamic shape model', () => {
     beforeEach(() => {
-      spyOn(window, 'fetch').and.callFake(async (path: string) => {
-        if (path === MODEL_URL || path === RELATIVE_MODEL_URL ||
-            path === TFHUB_MODEL_URL) {
-          return new Response(
-              JSON.stringify(
-                  {modelTopology: DYNAMIC_SHAPE_MODEL, weightsManifest}),
-              {'headers': {'Content-Type': JSON_TYPE}});
-        } else if (
-            path.match(`${HOST}.*/weight_0`) || path === '/path/weight_0') {
-          return new Response(
-              bias.dataSync() as Int32Array,
-              {'headers': {'Content-Type': OCTET_STREAM_TYPE}});
-        } else {
-          throw new Error(`Invalid path: ${path}`);
-        }
-      });
+      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        DYNAMIC_HTTP_MODEL_LOADER
+      ]);
+      spyOn(tfc.io, 'browserHTTPRequest')
+          .and.returnValue(DYNAMIC_HTTP_MODEL_LOADER);
     });
 
     it('should throw error if call predict directly', async () => {
