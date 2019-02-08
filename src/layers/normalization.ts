@@ -48,21 +48,21 @@ export function batchNormalization(
     epsilon = 1e-3): Tensor {
   let out: Tensor;
   if (x.rank === 2) {
-    out = tfc.batchNormalization2d(
+    out = tfc.batchNorm2d(
         x as Tensor2D, mean as Tensor2D | Tensor1D,
-        variance as Tensor2D | Tensor1D, epsilon, gamma as Tensor2D | Tensor1D,
-        beta as Tensor2D | Tensor1D);
+        variance as Tensor2D | Tensor1D, beta as Tensor2D | Tensor1D,
+        gamma as Tensor2D | Tensor1D, epsilon);
   } else if (x.rank === 3) {
     // TODO(cais): Check rank; give proper error message.
-    out = tfc.batchNormalization3d(
+    out = tfc.batchNorm3d(
         x as Tensor3D, mean as Tensor3D | Tensor1D,
-        variance as Tensor3D | Tensor1D, epsilon, gamma as Tensor3D | Tensor1D,
-        beta as Tensor3D | Tensor1D);
+        variance as Tensor3D | Tensor1D, beta as Tensor3D | Tensor1D,
+        gamma as Tensor3D | Tensor1D, epsilon);
   } else if (x.rank === 4) {
-    out = tfc.batchNormalization4d(
+    out = tfc.batchNorm4d(
         x as Tensor4D, mean as Tensor4D | Tensor1D,
-        variance as Tensor4D | Tensor1D, epsilon, gamma as Tensor4D | Tensor1D,
-        beta as Tensor4D | Tensor1D);
+        variance as Tensor4D | Tensor1D, beta as Tensor4D | Tensor1D,
+        gamma as Tensor4D | Tensor1D, epsilon);
   } else {
     throw new NotImplementedError(
         `batchNormalization is not implemented for array of rank ${x.rank} ` +
