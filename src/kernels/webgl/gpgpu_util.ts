@@ -24,6 +24,7 @@ import * as webgl_util from './webgl_util';
 export interface TextureConfig {
   internalFormatFloat: number;
   textureFormatFloat: number;
+  internalFormatPackedHalfFloat: number;
   internalFormatHalfFloat: number;
   internalFormatPackedFloat: number;
 
@@ -72,6 +73,7 @@ export function getTextureConfig(
 
   let internalFormatFloat: number;
   let internalFormatHalfFloat: number;
+  let internalFormatPackedHalfFloat: number;
   let internalFormatPackedFloat: number;
   let textureFormatFloat: number;
 
@@ -84,6 +86,7 @@ export function getTextureConfig(
   if (ENV.get('WEBGL_VERSION') === 2) {
     internalFormatFloat = glany.R32F;
     internalFormatHalfFloat = glany.R16F;
+    internalFormatPackedHalfFloat = glany.RGBA16F;
     internalFormatPackedFloat = glany.RGBA32F;
     textureFormatFloat = glany.RED;
     downloadUnpackNumChannels = 4;
@@ -92,6 +95,7 @@ export function getTextureConfig(
   } else {
     internalFormatFloat = gl.RGBA;
     internalFormatHalfFloat = gl.RGBA;
+    internalFormatPackedHalfFloat = gl.RGBA;
     internalFormatPackedFloat = glany.RGBA;
     textureFormatFloat = gl.RGBA;
     downloadUnpackNumChannels = 4;
@@ -105,6 +109,7 @@ export function getTextureConfig(
   return {
     internalFormatFloat,
     internalFormatHalfFloat,
+    internalFormatPackedHalfFloat,
     internalFormatPackedFloat,
     textureFormatFloat,
     downloadTextureFormat,
@@ -156,7 +161,7 @@ export function createFloat16MatrixTexture(
   const [width, height] =
       tex_util.getUnpackedMatrixTextureShapeWidthHeight(rows, columns);
   return createAndConfigureTexture(
-      gl, width, height, textureConfig.internalFormatFloat,
+      gl, width, height, textureConfig.internalFormatHalfFloat,
       textureConfig.textureFormatFloat, textureConfig.textureTypeHalfFloat);
 }
 
@@ -185,7 +190,7 @@ export function createFloat16PackedMatrixTexture(
   const [width, height] =
       tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
   return createAndConfigureTexture(
-      gl, width, height, textureConfig.internalFormatHalfFloat, gl.RGBA,
+      gl, width, height, textureConfig.internalFormatPackedHalfFloat, gl.RGBA,
       textureConfig.textureTypeHalfFloat);
 }
 

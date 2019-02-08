@@ -16,7 +16,6 @@
  */
 
 import {ENV} from '../../environment';
-
 import {GPGPUContext} from './gpgpu_context';
 import {PhysicalTextureType, TextureUsage} from './tex_util';
 

@@ -262,7 +262,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
         bytes = util.sizeFromShape(a.shape) * util.bytesPerElement(a.dtype);
       }
       this.tensorInfo.set(a.dataId, {
-        backend: this.backend,
+        backend: backend != null ? backend : this.backend,
         dtype: a.dtype,
         shape: a.shape,
         bytes,

@@ -576,6 +576,49 @@ describe('Switching cpu backends', () => {
   });
 });
 
+// We do not yet fully support half float backends. These tests are a starting
+// point.
+describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
+  const savedRenderFloat32Flag = tf.ENV.get('WEBGL_RENDER_FLOAT32_ENABLED');
+
+  beforeAll(() => {
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+  });
+
+  beforeEach(() => {
+    tf.ENV.registerBackend(
+        'half-float-webgl', () => new MathBackendWebGL(null));
+  });
+
+  afterEach(() => {
+    tf.ENV.removeBackend('half-float-webgl');
+  });
+
+  afterAll(() => {
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
+  });
+
+  it('basic usage', () => {
+    tf.setBackend('half-float-webgl');
+
+    const a = tf.tensor2d([1, 2], [1, 2]);
+    const b = tf.tensor2d([1, 2], [1, 2]);
+    const c = tf.add(a, b);
+    expectArraysClose(c, [2, 4]);
+  });
+
+  it('disposing tensors should not cause errors', () => {
+    tf.setBackend('half-float-webgl');
+    expect(() => tf.tidy(() => {
+      const a = tf.tensor2d([1, 2], [1, 2]);
+      const b = tf.tensor2d([1, 2], [1, 2]);
+      const c = tf.add(a, b);
+      c.dataSync();
+      return c.add(tf.tensor2d([2, 4], [1, 2]));
+    })).not.toThrowError();
+  });
+});
+
 describeWithFlags('Switching WebGL + CPU backends', WEBGL_ENVS, () => {
   beforeEach(() => {
     tf.ENV.registerBackend('webgl1', () => new MathBackendWebGL());
