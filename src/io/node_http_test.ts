@@ -19,10 +19,14 @@ import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers';
 
 import * as tfn from '../index';
+
 import {fetchWrapper} from './node_http';
 
 // tslint:disable-next-line:no-require-imports
 const fetch = require('node-fetch');
+
+const OCTET_STREAM_TYPE = 'application/octet-stream';
+const JSON_TYPE = 'application/json';
 
 // Test data;
 const modelTopology1: {} = {
@@ -66,8 +70,21 @@ describe('nodeHTTPRequest-load', () => {
   }) => {
     spyOn(fetchWrapper, 'fetch')
         .and.callFake((path: string, init: RequestInit) => {
-          requestInits.push(init);
-          return new fetch.Response(fileBufferMap[path]);
+          return new Promise((resolve, reject) => {
+            let contentType = '';
+            if (path.endsWith('model.json')) {
+              contentType = JSON_TYPE;
+            } else if (
+                path.endsWith('weightfile0') || path.endsWith('weightfile1')) {
+              contentType = OCTET_STREAM_TYPE;
+            } else {
+              reject(new Error(`Invalid path: ${path}`));
+            }
+            requestInits.push(init);
+            resolve(new fetch.Response(
+                fileBufferMap[path],
+                {'headers': {'Content-Type': contentType}}));
+          });
         });
   };
 
@@ -114,8 +131,10 @@ describe('nodeHTTPRequest-load', () => {
     expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
 
     expect(requestInits).toEqual([
-      {credentials: 'include', cache: 'no-cache'},
-      {credentials: 'include', cache: 'no-cache'}
+      {credentials: 'include', cache: 'no-cache'}, {
+        credentials: 'include',
+        cache: 'no-cache',
+      }
     ]);
   });
 
