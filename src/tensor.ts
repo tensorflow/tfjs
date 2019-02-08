@@ -557,7 +557,8 @@ export class Tensor<R extends Rank = Rank> {
   /** Returns a promise of `tf.TensorBuffer` that holds the underlying data. */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   async buffer<D extends DataType = 'float32'>(): Promise<TensorBuffer<R, D>> {
-    return opHandler.buffer(this.shape, this.dtype as D, await this.data());
+    const vals = await this.data();
+    return opHandler.buffer(this.shape, this.dtype as D, vals);
   }
 
   /** Returns a `tf.TensorBuffer` that holds the underlying data. */
@@ -573,7 +574,8 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   // tslint:disable-next-line:no-any
   async array(): Promise<ArrayMap[R]> {
-    return toNestedArray(this.shape, await this.data());
+    const vals = await this.data();
+    return toNestedArray(this.shape, vals);
   }
 
   /**
