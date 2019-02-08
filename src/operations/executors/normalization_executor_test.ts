@@ -43,8 +43,8 @@ describe('normalization', () => {
 
   describe('executeOp', () => {
     describe('batchNormalization', () => {
-      it('should call tfc.batchNormalization', () => {
-        spyOn(tfc, 'batchNormalization');
+      it('should call tfc.batchNorm', () => {
+        spyOn(tfc, 'batchNorm');
         node.op = 'batchNormalization';
         node.params.scale = createTensorAttr(1);
         node.params.offset = createTensorAttr(2);
@@ -58,9 +58,9 @@ describe('normalization', () => {
         const input5 = [tfc.scalar(4)];
         executeOp(node, {input1, input2, input3, input4, input5}, context);
 
-        expect(tfc.batchNormalization)
+        expect(tfc.batchNorm)
             .toHaveBeenCalledWith(
-                input1[0], input4[0], input5[0], 5, input2[0], input3[0]);
+                input1[0], input4[0], input5[0], input3[0], input2[0], 5);
       });
     });
 
