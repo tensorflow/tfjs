@@ -34,11 +34,11 @@ class MockCanvas {
   }
 }
 
-describe('tf.fromPixels', () => {
+describe('tf.browser.fromPixels with polyfills', () => {
   it('accepts a canvas-like element', () => {
     const c = new MockCanvas(2, 2);
     // tslint:disable-next-line:no-any
-    const t = tf.fromPixels(c as any);
+    const t = tf.browser.fromPixels(c as any);
     expect(t.dtype).toBe('int32');
     expect(t.shape).toEqual([2, 2, 3]);
     tf.test_util.expectArraysEqual(
@@ -48,7 +48,7 @@ describe('tf.fromPixels', () => {
   it('accepts a canvas-like element, numChannels=4', () => {
     const c = new MockCanvas(2, 2);
     // tslint:disable-next-line:no-any
-    const t = tf.fromPixels(c as any, 4);
+    const t = tf.browser.fromPixels(c as any, 4);
     expect(t.dtype).toBe('int32');
     expect(t.shape).toEqual([2, 2, 4]);
     tf.test_util.expectArraysEqual(
@@ -58,7 +58,7 @@ describe('tf.fromPixels', () => {
   it('errors when passed a non-canvas object', () => {
     const c = 5;
     // tslint:disable-next-line:no-any
-    expect(() => tf.fromPixels(c as any))
+    expect(() => tf.browser.fromPixels(c as any))
         .toThrowError(
             /When running in node, pixels must be an HTMLCanvasElement/);
   });

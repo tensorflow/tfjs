@@ -69,6 +69,7 @@
     "editor.formatOnSave": true
   },
   "clang-format.style": "Google",
+  "editor.rulers": [80],
   "C_Cpp.clang_format_fallbackStyle": "Google",
   "files.insertFinalNewline": true,
   "editor.detectIndentation": false,

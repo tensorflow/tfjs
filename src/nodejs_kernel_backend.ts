@@ -1486,7 +1486,7 @@ export class NodeJSKernelBackend extends KernelBackend {
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
       numChannels: number): Tensor3D {
     if (pixels == null) {
-      throw new Error('pixels passed to tf.fromPixels() can not be null');
+      throw new Error('pixels passed to fromPixels() can not be null');
     }
     // tslint:disable-next-line:no-any
     if ((pixels as any).getContext == null) {
