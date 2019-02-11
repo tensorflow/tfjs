@@ -27,12 +27,12 @@ import {ActivationIdentifier} from '../keras_format/activation_config';
 import {Shape} from '../keras_format/common';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs, RnnStepFunction} from '../types';
+import {assertPositiveInteger} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor, isArrayOfShapes} from '../utils/types_utils';
 import {batchGetValue, batchSetValue, LayerVariable} from '../variables';
 
 import {deserialize} from './serialization';
-
 
 /**
  * Standardize `apply()` args to a single list of tensor inputs.
@@ -1072,6 +1072,7 @@ export class SimpleRNNCell extends RNNCell {
   constructor(args: SimpleRNNCellLayerArgs) {
     super(args);
     this.units = args.units;
+    assertPositiveInteger(this.units, `units`);
     this.activation = getActivation(
         args.activation == null ? this.DEFAULT_ACTIVATION : args.activation);
     this.useBias = args.useBias == null ? true : args.useBias;
@@ -1528,6 +1529,7 @@ export class GRUCell extends RNNCell {
     super(args);
 
     this.units = args.units;
+    assertPositiveInteger(this.units, 'units');
     this.activation = getActivation(
         args.activation === undefined ? this.DEFAULT_ACTIVATION :
                                         args.activation);
@@ -1987,6 +1989,7 @@ export class LSTMCell extends RNNCell {
     super(args);
 
     this.units = args.units;
+    assertPositiveInteger(this.units, 'units');
     this.activation = getActivation(
         args.activation === undefined ? this.DEFAULT_ACTIVATION :
                                         args.activation);

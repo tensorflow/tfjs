@@ -189,6 +189,29 @@ describeMathCPU('Dense Layer: Symbolic', () => {
       tfl.layers.dense({units: 4, activation: 'invalid_activation!' as any});
     }).toThrowError(/Unknown activation/);
   });
+
+  it('Invalid units leads to Error', () => {
+    expect(() => tfl.layers.dense({
+      units: 10.9
+    })).toThrowError(/units.*positive integer.*10\.9\.$/);
+    expect(() => tfl.layers.dense({
+      units: 0.5
+    })).toThrowError(/units.*positive integer.*0\.5\.$/);
+    expect(() => tfl.layers.dense({
+      units: 0
+    })).toThrowError(/units.*positive integer.*0\.$/);
+    expect(() => tfl.layers.dense({
+      units: -2
+    })).toThrowError(/units.*positive integer.*-2\.$/);
+    expect(() => tfl.layers.dense({
+      // tslint:disable-next-line:no-any
+      units: '2' as any
+    })).toThrowError(/units.*positive integer.*\"2\"\.$/);
+    expect(() => tfl.layers.dense({
+      // tslint:disable-next-line:no-any
+      units: [] as any
+    })).toThrowError('units is unexpectedly an empty array.');
+  });
 });
 
 describeMathCPUAndGPU('Dense Layer: Tensor', () => {

@@ -122,7 +122,9 @@ export class Embedding extends Layer {
       }
     }
     this.inputDim = args.inputDim;
+    generic_utils.assertPositiveInteger(this.inputDim, 'inputDim');
     this.outputDim = args.outputDim;
+    generic_utils.assertPositiveInteger(this.outputDim, 'outputDim');
     this.embeddingsInitializer = getInitializer(
         args.embeddingsInitializer || this.DEFAULT_EMBEDDINGS_INITIALIZER);
     this.embeddingsRegularizer = getRegularizer(args.embeddingsRegularizer);

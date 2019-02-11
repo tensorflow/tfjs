@@ -334,6 +334,7 @@ export abstract class BaseConv extends Layer {
     super(args as LayerArgs);
     BaseConv.verifyArgs(args);
     this.rank = rank;
+    generic_utils.assertPositiveInteger(this.rank, 'rank');
     if (this.rank !== 1 && this.rank !== 2) {
       throw new NotImplementedError(
           `Convolution layer for rank other than 1 or 2 (${this.rank}) is ` +
@@ -429,6 +430,7 @@ export abstract class Conv extends BaseConv {
     super(rank, args as BaseConvLayerArgs);
     Conv.verifyArgs(args);
     this.filters = args.filters;
+    generic_utils.assertPositiveInteger(this.filters, 'filters');
     this.kernelInitializer = getInitializer(
         args.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
     this.kernelConstraint = getConstraint(args.kernelConstraint);
