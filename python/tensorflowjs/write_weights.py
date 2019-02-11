@@ -231,8 +231,7 @@ def _shard_group_bytes_to_disk(
   for i in range(num_shards):
     shard = group_bytes.read(shard_size_bytes)
 
-    filename = ('group' + str(group_index + 1) +
-                '-shard' + str(i + 1) + 'of' + str(num_shards))
+    filename = 'group%d-shard%dof%d.bin' % (group_index + 1, i + 1, num_shards)
     filenames.append(filename)
     filepath = os.path.join(write_dir, filename)
 

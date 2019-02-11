@@ -52,7 +52,7 @@ class TestWriteWeights(unittest.TestCase):
     self.assertEqual(
         manifest,
         [{
-            'paths': ['group1-shard1of1'],
+            'paths': ['group1-shard1of1.bin'],
             'weights': [{
                 'name': 'weight1',
                 'shape': [3],
@@ -60,7 +60,7 @@ class TestWriteWeights(unittest.TestCase):
             }]
         }])
 
-    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1')
+    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1.bin')
     weight1 = np.fromfile(weights_path, 'float32')
     np.testing.assert_array_equal(weight1, np.array([1, 2, 3], 'float32'))
 
@@ -82,7 +82,7 @@ class TestWriteWeights(unittest.TestCase):
     self.assertEqual(
         manifest,
         [{
-            'paths': ['group1-shard1of1'],
+            'paths': ['group1-shard1of1.bin'],
             'weights': [{
                 'name': 'weight1',
                 'shape': [3],
@@ -90,7 +90,7 @@ class TestWriteWeights(unittest.TestCase):
             }]
         }])
 
-    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1')
+    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1.bin')
     weight1 = np.fromfile(weights_path, 'bool')
     np.testing.assert_array_equal(
         weight1, np.array([True, False, True], 'bool'))
@@ -114,7 +114,7 @@ class TestWriteWeights(unittest.TestCase):
     self.assertEqual(
         manifest,
         [{
-            'paths': ['group1-shard1of2', 'group1-shard2of2'],
+            'paths': ['group1-shard1of2.bin', 'group1-shard2of2.bin'],
             'weights': [{
                 'name': 'weight1',
                 'shape': [3],
@@ -122,11 +122,11 @@ class TestWriteWeights(unittest.TestCase):
             }]
         }])
 
-    shard_1_path = os.path.join(TMP_DIR, 'group1-shard1of2')
+    shard_1_path = os.path.join(TMP_DIR, 'group1-shard1of2.bin')
     shard_1 = np.fromfile(shard_1_path, 'float32')
     np.testing.assert_array_equal(shard_1, np.array([1, 2], 'float32'))
 
-    shard_2_path = os.path.join(TMP_DIR, 'group1-shard2of2')
+    shard_2_path = os.path.join(TMP_DIR, 'group1-shard2of2.bin')
     shard_2 = np.fromfile(shard_2_path, 'float32')
     np.testing.assert_array_equal(shard_2, np.array([3], 'float32'))
 
@@ -151,7 +151,7 @@ class TestWriteWeights(unittest.TestCase):
     self.assertEqual(
         manifest,
         [{
-            'paths': ['group1-shard1of1'],
+            'paths': ['group1-shard1of1.bin'],
             'weights': [{
                 'name': 'weight1',
                 'shape': [3],
@@ -163,7 +163,7 @@ class TestWriteWeights(unittest.TestCase):
             }]
         }])
 
-    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1')
+    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1.bin')
     weights = np.fromfile(weights_path, 'float32')
     np.testing.assert_array_equal(weights, np.array([1, 2, 3, 4, 5], 'float32'))
 
@@ -193,9 +193,9 @@ class TestWriteWeights(unittest.TestCase):
     self.assertEqual(
         manifest,
         [{
-            'paths': ['group1-shard1of3',
-                      'group1-shard2of3',
-                      'group1-shard3of3'],
+            'paths': ['group1-shard1of3.bin',
+                      'group1-shard2of3.bin',
+                      'group1-shard3of3.bin'],
             'weights': [{
                 'name': 'weight1',
                 'shape': [3],
@@ -211,12 +211,12 @@ class TestWriteWeights(unittest.TestCase):
             }]
         }])
 
-    shard_1_path = os.path.join(TMP_DIR, 'group1-shard1of3')
+    shard_1_path = os.path.join(TMP_DIR, 'group1-shard1of3.bin')
     shard_1 = np.fromfile(shard_1_path, 'int32')
     np.testing.assert_array_equal(shard_1, np.array([1, 2], 'int32'))
 
     # Shard 2 has a mixed dtype so we parse the bytes directly.
-    shard_2_path = os.path.join(TMP_DIR, 'group1-shard2of3')
+    shard_2_path = os.path.join(TMP_DIR, 'group1-shard2of3.bin')
     with open(shard_2_path, 'rb') as f:
       shard_2_bytes = f.read()
     shard_2_int = np.frombuffer(shard_2_bytes[:4], 'int32')
@@ -225,7 +225,7 @@ class TestWriteWeights(unittest.TestCase):
     np.testing.assert_array_equal(
         shard_2_bool, np.array([True, False, False, True], 'bool'))
 
-    shard_3_path = os.path.join(TMP_DIR, 'group1-shard3of3')
+    shard_3_path = os.path.join(TMP_DIR, 'group1-shard3of3.bin')
     shard_3 = np.fromfile(shard_3_path, 'float32')
     np.testing.assert_array_equal(shard_3, np.array([4.1, 5.1], 'float32'))
 
@@ -258,7 +258,7 @@ class TestWriteWeights(unittest.TestCase):
     self.assertEqual(
         manifest,
         [{
-            'paths': ['group1-shard1of2', 'group1-shard2of2'],
+            'paths': ['group1-shard1of2.bin', 'group1-shard2of2.bin'],
             'weights': [{
                 'name': 'weight1',
                 'shape': [3],
@@ -269,9 +269,9 @@ class TestWriteWeights(unittest.TestCase):
                 'dtype': 'float32'
             }]
         }, {
-            'paths': ['group2-shard1of3',
-                      'group2-shard2of3',
-                      'group2-shard3of3'],
+            'paths': ['group2-shard1of3.bin',
+                      'group2-shard2of3.bin',
+                      'group2-shard3of3.bin'],
             'weights': [{
                 'name': 'weight3',
                 'shape': [4],
@@ -283,27 +283,27 @@ class TestWriteWeights(unittest.TestCase):
             }]
         }])
 
-    group0_shard_1_path = os.path.join(TMP_DIR, 'group1-shard1of2')
+    group0_shard_1_path = os.path.join(TMP_DIR, 'group1-shard1of2.bin')
     group0_shard_1 = np.fromfile(group0_shard_1_path, 'float32')
     np.testing.assert_array_equal(
         group0_shard_1, np.array([1, 2, 3, 4], 'float32'))
 
-    group0_shard_2_path = os.path.join(TMP_DIR, 'group1-shard2of2')
+    group0_shard_2_path = os.path.join(TMP_DIR, 'group1-shard2of2.bin')
     group0_shard_2 = np.fromfile(group0_shard_2_path, 'float32')
     np.testing.assert_array_equal(
         group0_shard_2, np.array([5, 6, 7], 'float32'))
 
-    group1_shard_1_path = os.path.join(TMP_DIR, 'group2-shard1of3')
+    group1_shard_1_path = os.path.join(TMP_DIR, 'group2-shard1of3.bin')
     group1_shard_1 = np.fromfile(group1_shard_1_path, 'int32')
     np.testing.assert_array_equal(
         group1_shard_1, np.array([1, 2, 3, 4], 'int32'))
 
-    group2_shard_2_path = os.path.join(TMP_DIR, 'group2-shard2of3')
+    group2_shard_2_path = os.path.join(TMP_DIR, 'group2-shard2of3.bin')
     group2_shard_2 = np.fromfile(group2_shard_2_path, 'float32')
     np.testing.assert_array_equal(
         group2_shard_2, np.array([1.1, 1.2, 1.3, 1.4], 'float32'))
 
-    group2_shard_3_path = os.path.join(TMP_DIR, 'group2-shard3of3')
+    group2_shard_3_path = os.path.join(TMP_DIR, 'group2-shard3of3.bin')
     group2_shard_3 = np.fromfile(group2_shard_3_path, 'float32')
     np.testing.assert_array_equal(
         group2_shard_3, np.array([1.5, 1.6], 'float32'))
@@ -325,7 +325,7 @@ class TestWriteWeights(unittest.TestCase):
     self.assertEqual(
         manifest,
         [{
-            'paths': ['group1-shard1of1'],
+            'paths': ['group1-shard1of1.bin'],
             'weights': [{
                 'name': 'weight1',
                 'shape': [3],
@@ -333,7 +333,7 @@ class TestWriteWeights(unittest.TestCase):
             }]
         }])
 
-    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1')
+    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1.bin')
     weight1 = np.fromfile(weights_path, 'float32')
     np.testing.assert_array_equal(weight1, np.array([1, 2, 3], 'float32'))
 
@@ -426,7 +426,7 @@ class TestWriteWeights(unittest.TestCase):
     self.assertEqual(
         manifest,
         [{
-            'paths': ['group1-shard1of1'],
+            'paths': ['group1-shard1of1.bin'],
             'weights': [{
                 'name': 'weight1',
                 'shape': [3],
@@ -444,7 +444,7 @@ class TestWriteWeights(unittest.TestCase):
             }]
         }])
 
-    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1')
+    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1.bin')
     weights = np.fromfile(weights_path, 'uint8')
     np.testing.assert_array_equal(weights, np.concatenate([q[0], q[1]]))
 

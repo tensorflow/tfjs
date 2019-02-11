@@ -202,7 +202,7 @@ class ConvertTest(unittest.TestCase):
     )
 
     weights = [{
-        'paths': ['group1-shard1of1'],
+        'paths': ['group1-shard1of1.bin'],
         'weights': [{
             'shape': [2, 2],
             'name': 'Softmax',
@@ -250,7 +250,7 @@ class ConvertTest(unittest.TestCase):
     )
 
     weights = [{
-        'paths': ['group1-shard1of1'],
+        'paths': ['group1-shard1of1.bin'],
         'weights': [{
             'shape': [2, 2, 2],
             'name': 'Softmax',
@@ -278,7 +278,7 @@ class ConvertTest(unittest.TestCase):
         strip_debug_ops=True)
 
     weights = [{
-        'paths': ['group1-shard1of1'],
+        'paths': ['group1-shard1of1.bin'],
         'weights': [{
             'dtype': 'float32',
             'name': 'add',
@@ -306,7 +306,7 @@ class ConvertTest(unittest.TestCase):
     )
 
     weights = [{
-        'paths': ['group1-shard1of1'],
+        'paths': ['group1-shard1of1.bin'],
         'weights': [{
             'shape': [2, 2],
             'name': 'Softmax',
@@ -335,7 +335,7 @@ class ConvertTest(unittest.TestCase):
         os.path.join(self._tmp_dir, FROZEN_MODEL_DIR))
 
     weights = [{
-        'paths': ['group1-shard1of1'],
+        'paths': ['group1-shard1of1.bin'],
         'weights': [{
             'shape': [2, 2],
             'name': 'Softmax',
@@ -365,7 +365,7 @@ class ConvertTest(unittest.TestCase):
     )
 
     weights = [{
-        'paths': ['group1-shard1of1'],
+        'paths': ['group1-shard1of1.bin'],
         'weights': [{
             'shape': [2],
             'name': 'module/Variable',
