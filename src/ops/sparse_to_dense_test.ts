@@ -80,6 +80,16 @@ describeWithFlags('sparseToDense', ALL_ENVS, () => {
     expectArraysClose(result, [1, 5, 1, 6]);
   });
 
+  it('no default value passed', () => {
+    const indices = tensor2d([0, 1, 1, 1], [2, 2], 'int32');
+    const values = tensor1d([5, 6], 'float32');
+    const shape = [2, 2];
+    const result = sparseToDense(indices, values, shape);
+    expect(result.shape).toEqual(shape);
+    expect(result.dtype).toEqual(values.dtype);
+    expectArraysClose(result, [0, 5, 0, 6]);
+  });
+
   it('should support TensorLike inputs', () => {
     const indices = [[0, 1], [1, 1]];
     const values = [5, 6];
