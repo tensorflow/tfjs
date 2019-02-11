@@ -19,38 +19,37 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
-
-import {OpExecutor} from './types';
+import {Node, OpExecutor} from '../types';
 import {getParamValue, split} from './utils';
 
 export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
                                     context: ExecutionContext):
                                        tfc.Tensor[] => {
   switch (node.op) {
-    case 'cast': {
+    case 'Cast': {
       return [tfc.cast(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           getParamValue('dtype', node, tensorMap, context) as 'int32' |
               'float32' | 'bool')];
     }
-    case 'expandDims': {
+    case 'ExpandDims': {
       const axis = getParamValue('axis', node, tensorMap, context) as number;
       return [tfc.expandDims(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis)];
     }
-    case 'squeeze': {
+    case 'Squeeze': {
       const axis = getParamValue('axis', node, tensorMap, context) as number[];
       return [tfc.squeeze(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis)];
     }
 
-    case 'reshape': {
+    case 'Reshape': {
       return [tfc.reshape(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           getParamValue('shape', node, tensorMap, context) as number[])];
     }
-    case 'pad': {
+    case 'PadV2':
+    case 'Pad': {
       return [tfc.pad(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           split(
@@ -58,7 +57,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
               2) as Array<[number, number]>,
           getParamValue('constantValue', node, tensorMap, context) as number)];
     }
-    case 'spaceToBatchND': {
+    case 'SpaceToBatchND': {
       const blockShape =
           getParamValue('blockShape', node, tensorMap, context) as number[];
       const paddings = split(
@@ -67,7 +66,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           blockShape, paddings)];
     }
-    case 'batchToSpaceND': {
+    case 'BatchToSpaceND': {
       const blockShape =
           getParamValue('blockShape', node, tensorMap, context) as number[];
       const crops = split(
@@ -76,7 +75,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           blockShape, crops)];
     }
-    case 'depthToSpace': {
+    case 'DepthToSpace': {
       const blockSize =
           getParamValue('blockSize', node, tensorMap, context) as number;
       const dataFormat =

@@ -46,7 +46,8 @@ describe('OperationExecutor', () => {
       category: 'graph',
       inputNames: [],
       inputs: [],
-      params: {},
+      inputParams: {},
+      attrParams: {},
       children: []
     };
   });

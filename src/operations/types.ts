@@ -15,28 +15,74 @@
  * =============================================================================
  */
 import {Tensor} from '@tensorflow/tfjs-core';
-export type ParamTypes =
+
+import {NamedTensorsMap} from '../data/types';
+import {ExecutionContext} from '../executor/execution_context';
+
+export type ParamType =
     'number'|'string'|'number[]'|'bool'|'shape'|'tensor'|'tensors'|'dtype';
-export type Category = 'arithmetic'|'basic_math'|'control'|'convolution'|
-    'dynamic'|'evaluation'|'image'|'creation'|'graph'|'logical'|'matrices'|
+export type Category =
+    'arithmetic'|'basic_math'|'control'|'convolution'|'custom'|'dynamic'|
+    'evaluation'|'image'|'creation'|'graph'|'logical'|'matrices'|
     'normalization'|'reduction'|'slice_join'|'spectral'|'transformation';
+
+// For mapping input or attributes of NodeDef into TensorFlow.js op param.
 export declare interface ParamMapper {
-  tfParamName?: string;
-  tfParamNameDeprecated?: string;
-  tfInputIndex?: number;
-  tfInputParamLength?: number;
-  dlParamName: string;
-  type: ParamTypes;
-  converter?: string;
+  // tensorflow.js name for the field, it should be in camelcase format.
+  name: string;
+  type: ParamType;
   defaultValue?: string|string[]|number|number[]|boolean|boolean[];
   notSupported?: boolean;
 }
 
+// For mapping the input of TensorFlow NodeDef into TensorFlow.js Op param.
+export declare interface InputParamMapper extends ParamMapper {
+  // The first number is the starting index of the param, the second number is
+  // the length of the param. If the length value is positive number, it
+  // represents the true length of the param. Otherwise, it represents a
+  // variable length, the value is the index go backward from the end of the
+  // array.
+  // For example `[0, 5]`: this param is the array of input tensors starting at
+  // index 0 and with the length of 5.
+  // For example `[1, -1]`: this param is the array of input tensors starting at
+  // index 1 and with the `inputs.length - 1`.
+  // Zero-based index at where in the input array this param starts.
+  // A negative index can be used, indicating an offset from the end of the
+  // sequence. slice(-2) extracts the last two elements in the sequence.
+  start: number;
+  // Zero-based index before where in the input array the param ends. The
+  // mapping is up to but not including end. For example, start = 1, end = 4
+  // includes the second element through the fourth element (elements indexed 1,
+  // 2, and 3). A negative index can be used, indicating an offset from the end
+  // of the sequence. start = 2, end = -1 includes the third element through the
+  // second-to-last element in the sequence. If end is omitted, end is set to
+  // start + 1, the mapping only include the single element at start index. If
+  // end is set to 0, the mapping is through the end of the input array
+  // (arr.length). If end is greater than the length of the inputs, mapping
+  // inncludes through to the end of the sequence (arr.length).
+  end?: number;
+}
+
+// For mapping the attributes of TensorFlow NodeDef into TensorFlow.js op param.
+export declare interface AttrParamMapper extends ParamMapper {
+  // TensorFlow attribute name, this should be set if the tensorflow attribute
+  // name is different form the tensorflow.js name.
+  tfName?: string;
+  // TensorFlow deprecated attribute name, this is used to support old models.
+  tfDeprecatedName?: string;
+}
+
+export interface OpExecutor {
+  (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext): Tensor
+      |Tensor[]|Promise<Tensor|Tensor[]>;
+}
+
 export declare interface OpMapper {
-  tfOpName: string;
-  dlOpName: string;
-  category: Category;
-  params: ParamMapper[];
+  tfOpName?: string;
+  category?: Category;
+  inputs?: InputParamMapper[];
+  attrs?: AttrParamMapper[];
+  customExecutor?: OpExecutor;
 }
 
 export declare interface Node {
@@ -45,7 +91,8 @@ export declare interface Node {
   category: Category;
   inputNames: string[];
   inputs: Node[];
-  params: {[key: string]: ParamValue};
+  inputParams: {[key: string]: InputParamValue};
+  attrParams: {[key: string]: ParamValue};
   children: Node[];
 }
 
@@ -63,7 +110,10 @@ export type ValueType = string|string[]|number|number[]|number[][]|boolean|
     boolean[]|Tensor|Tensor[];
 export declare interface ParamValue {
   value?: ValueType;
-  inputIndex?: number;
-  inputParamLength?: number;
-  type: ParamTypes;
+  type: ParamType;
+}
+
+export declare interface InputParamValue extends ParamValue {
+  inputIndexStart?: number;
+  inputIndexEnd?: number;
 }

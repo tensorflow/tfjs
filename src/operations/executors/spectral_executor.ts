@@ -19,28 +19,26 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
-
-import {OpExecutor} from './types';
+import {Node, OpExecutor} from '../types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
      context: ExecutionContext): tfc.Tensor[] => {
       switch (node.op) {
-        case 'fft': {
+        case 'FFT': {
           return [tfc.fft(
               getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
         }
-        case 'ifft': {
+        case 'IFFT': {
           return [tfc.ifft(
               getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
         }
-        case 'rfft': {
+        case 'RFFT': {
           return [tfc.rfft(
               getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
         }
-        case 'irfft': {
+        case 'IRFFT': {
           return [tfc.irfft(
               getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
         }

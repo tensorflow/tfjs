@@ -29,11 +29,11 @@ export async function executeOp(
     node: Node, tensorMap: NamedTensorsMap,
     context: ExecutionContext): Promise<tfc.Tensor[]> {
   switch (node.op) {
-    case 'loopCond':
+    case 'LoopCond':
       return [
         (getParamValue('pred', node, tensorMap, context) as tfc.Tensor).clone()
       ];
-    case 'switch': {
+    case 'Switch': {
       const pred =
           getParamValue('pred', node, tensorMap, context) as tfc.Tensor;
       const data =
@@ -42,13 +42,13 @@ export async function executeOp(
       return (await pred.data())[0] ? [undefined, data.clone()] :
                                       [data.clone(), undefined];
     }
-    case 'merge':
+    case 'Merge':
       const inputName = node.inputNames.find(
           name => getTensor(name, tensorMap, context) !== undefined);
       return inputName ? [getTensor(inputName, tensorMap, context).clone()] :
                          undefined;
 
-    case 'enter':
+    case 'Enter':
       const frameId =
           getParamValue('frameName', node, tensorMap, context) as string;
       const data =
@@ -56,19 +56,19 @@ export async function executeOp(
       context.enterFrame(frameId);
       return [data.clone()];
 
-    case 'exit':
+    case 'Exit':
       const tensor =
           getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
       context.exitFrame();
       return [tensor.clone()];
 
-    case 'nextIteration':
+    case 'NextIteration':
       const input =
           getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
       context.nextIteration();
       return [input.clone()];
 
-    case 'tensorArray':
+    case 'TensorArrayV3':
       const size = getParamValue('size', node, tensorMap, context) as number;
       const dtype =
           getParamValue('dtype', node, tensorMap, context) as tfc.DataType;
@@ -88,7 +88,7 @@ export async function executeOp(
       context.addTensorArray(tensorArray);
       return [scalar(tensorArray.id), scalar(1.0)];
 
-    case 'tensorArrayWrite':
+    case 'TensorArrayWriteV3':
       const id =
           getParamValue('tensorArrayId', node, tensorMap, context) as number;
       const index = getParamValue('index', node, tensorMap, context) as number;
@@ -98,7 +98,7 @@ export async function executeOp(
       writeTensorArray.write(index, writeTensor);
       return [scalar(1.0)];
 
-    case 'tensorArrayRead':
+    case 'TensorArrayReadV3':
       const readId =
           getParamValue('tensorArrayId', node, tensorMap, context) as number;
       const readIndex =
@@ -106,7 +106,7 @@ export async function executeOp(
       const readTensorArray = context.getTensorArray(readId);
       return [readTensorArray.read(readIndex)];
 
-    case 'tensorArrayGather':
+    case 'TensorArrayGatherV3':
       const gatherId =
           getParamValue('tensorArrayId', node, tensorMap, context) as number;
       const gatherIndices =
@@ -116,7 +116,7 @@ export async function executeOp(
       const gatherTensorArray = context.getTensorArray(gatherId);
       return [gatherTensorArray.gather(gatherIndices, gatherDtype)];
 
-    case 'tensorArrayScatter':
+    case 'TensorArrayScatterV3':
       const scatterId =
           getParamValue('tensorArrayId', node, tensorMap, context) as number;
       const scatterIndices =
@@ -127,7 +127,7 @@ export async function executeOp(
       scatterTensorArray.scatter(scatterIndices, scatterTensor);
       return [scalar(1.0)];
 
-    case 'tensorArrayConcat':
+    case 'TensorArrayConcatV3':
       const concatId =
           getParamValue('tensorArrayId', node, tensorMap, context) as number;
       const concatTensorArray = context.getTensorArray(concatId);
@@ -135,7 +135,7 @@ export async function executeOp(
           getParamValue('dtype', node, tensorMap, context) as tfc.DataType;
       return [concatTensorArray.concat(concatDtype)];
 
-    case 'tensorArraySplit':
+    case 'TensorArraySplitV3':
       const splitId =
           getParamValue('tensorArrayId', node, tensorMap, context) as number;
       const splitTensor =
@@ -146,13 +146,13 @@ export async function executeOp(
       splitTensorArray.split(lengths, splitTensor);
       return [scalar(1.0)];
 
-    case 'tensorArraySize':
+    case 'TensorArraySizeV3':
       const sizeId =
           getParamValue('tensorArrayId', node, tensorMap, context) as number;
       const sizeTensorArray = context.getTensorArray(sizeId);
       return [scalar(sizeTensorArray.size(), 'int32')];
 
-    case 'tensorArrayClose':
+    case 'TensorArrayCloseV3':
       const closeId =
           getParamValue('tensorArrayId', node, tensorMap, context) as number;
       const closeTensorArray = context.getTensorArray(closeId);

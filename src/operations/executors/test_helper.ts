@@ -14,15 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
-import {OpMapper, ParamValue} from '../types';
+import {InputParamValue, OpMapper, ParamValue} from '../types';
 import {Node} from '../types';
 
 export function createNumberAttr(value: number): ParamValue {
   return {value, type: 'number'};
 }
 
-export function createNumberAttrFromIndex(inputIndex: number): ParamValue {
-  return {inputIndex, type: 'number'};
+export function createNumberAttrFromIndex(inputIndex: number): InputParamValue {
+  return {inputIndexStart: inputIndex, type: 'number'};
 }
 
 export function createStrAttr(str: string): ParamValue {
@@ -41,17 +41,17 @@ export function createNumericArrayAttr(value: number[]): ParamValue {
 }
 
 export function createNumericArrayAttrFromIndex(inputIndex: number):
-    ParamValue {
-  return {inputIndex, type: 'number[]'};
+    InputParamValue {
+  return {inputIndexStart: inputIndex, type: 'number[]'};
 }
 
-export function createTensorAttr(index: number): ParamValue {
-  return {inputIndex: index, type: 'tensor'};
+export function createTensorAttr(index: number): InputParamValue {
+  return {inputIndexStart: index, type: 'tensor'};
 }
 
 export function createTensorsAttr(
-    index: number, paramLength: number): ParamValue {
-  return {inputIndex: index, inputParamLength: paramLength, type: 'tensors'};
+    index: number, paramLength: number): InputParamValue {
+  return {inputIndexStart: index, inputIndexEnd: paramLength, type: 'tensors'};
 }
 
 export function createDtypeAttr(dtype: string): ParamValue {
@@ -62,11 +62,16 @@ export function validateParam(
     node: Node, opMappers: OpMapper[], tfOpName?: string) {
   const opMapper = tfOpName != null ?
       opMappers.find(mapper => mapper.tfOpName === tfOpName) :
-      opMappers.find(mapper => mapper.dlOpName === node.op);
-  return Object.keys(node.params).every(key => {
-    const value = node.params[key];
-    const def = opMapper.params.find(param => param.dlParamName === key);
+      opMappers.find(mapper => mapper.tfOpName === node.op);
+  return Object.keys(node.inputParams).every(key => {
+    const value = node.inputParams[key];
+    const def = opMapper.inputs.find(param => param.name === key);
     return def && def.type === value.type &&
-        def.tfInputIndex === value.inputIndex;
-  });
+        def.start === value.inputIndexStart && def.end === value.inputIndexEnd;
+  }) &&
+      Object.keys(node.attrParams).every(key => {
+        const value = node.attrParams[key];
+        const def = opMapper.attrs.find(param => param.name === key);
+        return def && def.type === value.type;
+      });
 }

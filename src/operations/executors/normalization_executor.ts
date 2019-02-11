@@ -19,16 +19,15 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
-
-import {OpExecutor} from './types';
+import {Node, OpExecutor} from '../types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
                                     context: ExecutionContext):
                                        tfc.Tensor[] => {
   switch (node.op) {
-    case 'batchNormalization': {
+    case 'FusedBatchNorm':
+    case 'FusedBatchNormV2': {
       return [tfc.batchNorm(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           getParamValue('mean', node, tensorMap, context) as tfc.Tensor,
@@ -37,7 +36,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('scale', node, tensorMap, context) as tfc.Tensor,
           getParamValue('epsilon', node, tensorMap, context) as number)];
     }
-    case 'localResponseNormalization': {
+    case 'LRN': {
       return [tfc.localResponseNormalization(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor3D |
               tfc.Tensor4D,
@@ -46,15 +45,15 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('alpha', node, tensorMap, context) as number,
           getParamValue('beta', node, tensorMap, context) as number)];
     }
-    case 'softmax': {
+    case 'Softmax': {
       return [tfc.softmax(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'logSoftmax': {
+    case 'LogSoftmax': {
       return [tfc.logSoftmax(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'sparseToDense': {
+    case 'SparseToDense': {
       return [tfc.sparseToDense(
           getParamValue('sparseIndices', node, tensorMap, context) as
               tfc.Tensor,

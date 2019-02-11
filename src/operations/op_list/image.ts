@@ -1,3 +1,5 @@
+import {OpMapper} from '../types';
+
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -15,57 +17,44 @@
  * =============================================================================
  */
 
-export const json = [
+export const json: OpMapper[] = [
   {
     'tfOpName': 'ResizeBilinear',
-    'dlOpName': 'resizeBilinear',
     'category': 'image',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'images', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'size', 'type': 'number[]'}, {
-        'tfParamName': 'align_corners',
-        'dlParamName': 'alignCorners',
-        'type': 'bool'
-      },
-      {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'images', 'type': 'tensor'},
+      {'start': 1, 'name': 'size', 'type': 'number[]'},
+    ],
+    'attrs': [
+      {'tfName': 'align_corners', 'name': 'alignCorners', 'type': 'bool'},
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'ResizeNearestNeighbor',
-    'dlOpName': 'resizeNearestNeighbor',
     'category': 'image',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'images', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'size', 'type': 'number[]'}, {
-        'tfParamName': 'align_corners',
-        'dlParamName': 'alignCorners',
-        'type': 'bool'
-      },
-      {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'images', 'type': 'tensor'},
+      {'start': 1, 'name': 'size', 'type': 'number[]'},
+    ],
+    'attrs': [
+      {'tfName': 'align_corners', 'name': 'alignCorners', 'type': 'bool'},
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'CropAndResize',
-    'dlOpName': 'cropAndResize',
     'category': 'image',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'image', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'boxes', 'type': 'tensor'},
-      {'tfInputIndex': 2, 'dlParamName': 'boxInd', 'type': 'tensor'},
-      {'tfInputIndex': 3, 'dlParamName': 'cropSize', 'type': 'number[]'},
-      {'tfParamName': 'method', 'dlParamName': 'method', 'type': 'string'}, {
-        'tfParamName': 'extrapolation_value',
-        'dlParamName': 'extrapolationValue',
+    'inputs': [
+      {'start': 0, 'name': 'image', 'type': 'tensor'},
+      {'start': 1, 'name': 'boxes', 'type': 'tensor'},
+      {'start': 2, 'name': 'boxInd', 'type': 'tensor'},
+      {'start': 3, 'name': 'cropSize', 'type': 'number[]'},
+    ],
+    'attrs': [
+      {'tfName': 'method', 'name': 'method', 'type': 'string'}, {
+        'tfName': 'extrapolation_value',
+        'name': 'extrapolationValue',
         'type': 'number'
       }
     ]

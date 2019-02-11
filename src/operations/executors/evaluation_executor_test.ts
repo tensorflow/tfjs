@@ -36,18 +36,19 @@ describe('evaluation', () => {
       category: 'evaluation',
       inputNames: ['input1', 'input2'],
       inputs: [],
-      params: {},
+      inputParams: {},
+      attrParams: {},
       children: []
     };
   });
 
   describe('executeOp', () => {
-    describe('topK', () => {
+    describe('TopKV2', () => {
       it('should return input', () => {
-        node.op = 'topK';
-        node.params['x'] = createTensorAttr(0);
-        node.params['k'] = createNumberAttrFromIndex(1);
-        node.params['sorted'] = createBoolAttr(true);
+        node.op = 'TopKV2';
+        node.inputParams['x'] = createTensorAttr(0);
+        node.inputParams['k'] = createNumberAttrFromIndex(1);
+        node.attrParams['sorted'] = createBoolAttr(true);
         spyOn(tfc, 'topk').and.callThrough();
         executeOp(node, {input1, input2}, context);
         expect(tfc.topk).toHaveBeenCalledWith(input1[0], 1, true);
