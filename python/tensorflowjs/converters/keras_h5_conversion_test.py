@@ -321,7 +321,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     # Verify the content of the artifacts output directory.
     self.assertTrue(
-        os.path.isfile(os.path.join(self._tmp_dir, 'group1-shard1of1')))
+        os.path.isfile(os.path.join(self._tmp_dir, 'group1-shard1of1.bin')))
     model_json = json.load(
         open(os.path.join(self._tmp_dir, 'model.json'), 'rt'))
 
@@ -348,7 +348,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     # Verify the content of the artifacts output directory.
     self.assertTrue(
-        os.path.isfile(os.path.join(self._tmp_dir, 'group1-shard1of1')))
+        os.path.isfile(os.path.join(self._tmp_dir, 'group1-shard1of1.bin')))
     model_json = json.load(
         open(os.path.join(self._tmp_dir, 'model.json'), 'rt'))
 
@@ -374,7 +374,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     # Verify the content of the artifacts output directory.
     self.assertTrue(
-        os.path.isfile(os.path.join(self._tmp_dir, 'group1-shard1of1')))
+        os.path.isfile(os.path.join(self._tmp_dir, 'group1-shard1of1.bin')))
     model_json = json.load(
         open(os.path.join(self._tmp_dir, 'model.json'), 'rt'))
 
@@ -401,7 +401,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     # Verify the content of the artifacts output directory.
     self.assertTrue(
-        os.path.isfile(os.path.join(self._tmp_dir, 'group1-shard1of1')))
+        os.path.isfile(os.path.join(self._tmp_dir, 'group1-shard1of1.bin')))
     model_json = json.load(
         open(os.path.join(self._tmp_dir, 'model.json'), 'rt'))
 
@@ -424,7 +424,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     # Verify the content of the artifacts output directory.
     self.assertTrue(
-        os.path.isfile(os.path.join(artifacts_dir, 'group1-shard1of1')))
+        os.path.isfile(os.path.join(artifacts_dir, 'group1-shard1of1.bin')))
     model_json = json.load(
         open(os.path.join(artifacts_dir, 'model.json'), 'rt'))
 

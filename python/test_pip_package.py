@@ -219,7 +219,7 @@ class APIAndShellTest(tf.test.TestCase):
     )
 
     weights = [{
-        'paths': ['group1-shard1of1'],
+        'paths': ['group1-shard1of1.bin'],
         'weights': [{
             'shape': [2, 2],
             'name': 'a/Softmax',
@@ -247,7 +247,7 @@ class APIAndShellTest(tf.test.TestCase):
     )
 
     weights = [{
-        'paths': ['group1-shard1of1'],
+        'paths': ['group1-shard1of1.bin'],
         'weights': [{
             'shape': [2, 2],
             'name': 'a/Softmax',
@@ -421,7 +421,7 @@ class APIAndShellTest(tf.test.TestCase):
     self.assertEqual(0, process.returncode)
 
     weights = [{
-        'paths': ['group1-shard1of1'],
+        'paths': ['group1-shard1of1.bin'],
         'weights': [{
             'shape': [2, 2],
             'name': 'a/Softmax',
@@ -448,7 +448,7 @@ class APIAndShellTest(tf.test.TestCase):
     self.assertEqual(0, process.returncode)
 
     weights = [{
-        'paths': ['group1-shard1of1'],
+        'paths': ['group1-shard1of1.bin'],
         'weights': [{
             'shape': [2],
             'name': 'module/Variable',
@@ -476,7 +476,7 @@ class APIAndShellTest(tf.test.TestCase):
     self.assertEqual(0, process.returncode)
 
     weights = [{
-        'paths': ['group1-shard1of1'],
+        'paths': ['group1-shard1of1.bin'],
         'weights': [{
             'shape': [2, 2],
             'name': 'a/Softmax',
@@ -501,7 +501,7 @@ class APIAndShellTest(tf.test.TestCase):
     self.assertEqual(0, process.returncode)
 
     weights = [{
-        'paths': ['group1-shard1of1'],
+        'paths': ['group1-shard1of1.bin'],
         'weights': [{
             'shape': [2],
             'name': 'module/Variable',

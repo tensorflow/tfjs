@@ -81,7 +81,7 @@ py_library(
 
 py_test(
     name = "tf_saved_model_conversion_pb_test",
-    srcs = ["tf_saved_model_conversion_json_test.py"],
+    srcs = ["tf_saved_model_conversion_pb_test.py"],
     srcs_version = "PY2AND3",
     deps = [
         ":tf_saved_model_conversion_pb",
