@@ -19,16 +19,14 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
-
-import {OpExecutor} from './types';
+import {Node, OpExecutor} from '../types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
      context: ExecutionContext): tfc.Tensor[] => {
       switch (node.op) {
-        case 'conv1d': {
+        case 'Conv1D': {
           const stride =
               getParamValue('stride', node, tensorMap, context) as number;
           const pad = getParamValue('pad', node, tensorMap, context);
@@ -43,7 +41,7 @@ export let executeOp: OpExecutor =
               stride, pad as 'valid' | 'same', dataFormat as 'NWC' | 'NCW',
               dilation)];
         }
-        case 'conv2d': {
+        case 'Conv2D': {
           const stride =
               getParamValue('strides', node, tensorMap, context) as number[];
           const pad = getParamValue('pad', node, tensorMap, context);
@@ -59,7 +57,8 @@ export let executeOp: OpExecutor =
               [stride[1], stride[2]], pad as 'valid' | 'same',
               dataFormat as 'NHWC' | 'NCHW', [dilations[0], dilations[1]])];
         }
-        case 'conv2dTranspose': {
+        case 'Conv2DBackpropInput':
+        case 'Conv2dTranspose': {
           const shape = getParamValue(
                             'outputShape', node, tensorMap,
                             context) as [number, number, number] |
@@ -73,7 +72,8 @@ export let executeOp: OpExecutor =
               getParamValue('filter', node, tensorMap, context) as tfc.Tensor4D,
               shape, [stride[1], stride[2]], pad as 'valid' | 'same')];
         }
-        case 'depthwiseConv2d': {
+        case 'DepthwiseConv2dNative':
+        case 'DepthwiseConv2d': {
           const stride =
               getParamValue('strides', node, tensorMap, context) as number[];
           const pad = getParamValue('pad', node, tensorMap, context);
@@ -91,7 +91,7 @@ export let executeOp: OpExecutor =
               dataFormat as 'NHWC' | 'NCHW', [dilations[0], dilations[1]])];
         }
 
-        case 'avgPool': {
+        case 'AvgPool': {
           const stride =
               getParamValue('strides', node, tensorMap, context) as number[];
           const pad = getParamValue('pad', node, tensorMap, context);
@@ -105,7 +105,7 @@ export let executeOp: OpExecutor =
               pad as 'valid' | 'same')];
         }
 
-        case 'maxPool': {
+        case 'MaxPool': {
           const stride =
               getParamValue('strides', node, tensorMap, context) as number[];
           const pad = getParamValue('pad', node, tensorMap, context);

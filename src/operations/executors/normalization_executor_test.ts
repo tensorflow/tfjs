@@ -36,21 +36,22 @@ describe('normalization', () => {
       category: 'normalization',
       inputNames: ['input1'],
       inputs: [],
-      params: {x: createTensorAttr(0)},
+      inputParams: {x: createTensorAttr(0)},
+      attrParams: {},
       children: []
     };
   });
 
   describe('executeOp', () => {
-    describe('batchNormalization', () => {
+    describe('FusedBatchNorm', () => {
       it('should call tfc.batchNorm', () => {
         spyOn(tfc, 'batchNorm');
-        node.op = 'batchNormalization';
-        node.params.scale = createTensorAttr(1);
-        node.params.offset = createTensorAttr(2);
-        node.params.mean = createTensorAttr(3);
-        node.params.variance = createTensorAttr(4);
-        node.params.epsilon = createNumberAttr(5);
+        node.op = 'FusedBatchNorm';
+        node.inputParams.scale = createTensorAttr(1);
+        node.inputParams.offset = createTensorAttr(2);
+        node.inputParams.mean = createTensorAttr(3);
+        node.inputParams.variance = createTensorAttr(4);
+        node.attrParams.epsilon = createNumberAttr(5);
         node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
         const input2 = [tfc.scalar(1)];
         const input3 = [tfc.scalar(2)];
@@ -63,15 +64,35 @@ describe('normalization', () => {
                 input1[0], input4[0], input5[0], input3[0], input2[0], 5);
       });
     });
+    describe('FusedBatchNormV2', () => {
+      it('should call tfc.batchNorm', () => {
+        spyOn(tfc, 'batchNorm');
+        node.op = 'FusedBatchNormV2';
+        node.inputParams.scale = createTensorAttr(1);
+        node.inputParams.offset = createTensorAttr(2);
+        node.inputParams.mean = createTensorAttr(3);
+        node.inputParams.variance = createTensorAttr(4);
+        node.attrParams.epsilon = createNumberAttr(5);
+        node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
+        const input2 = [tfc.scalar(1)];
+        const input3 = [tfc.scalar(2)];
+        const input4 = [tfc.scalar(3)];
+        const input5 = [tfc.scalar(4)];
+        executeOp(node, {input1, input2, input3, input4, input5}, context);
 
-    describe('localResponseNormalization', () => {
+        expect(tfc.batchNorm)
+            .toHaveBeenCalledWith(
+                input1[0], input4[0], input5[0], input3[0], input2[0], 5);
+      });
+    });
+    describe('LRN', () => {
       it('should call tfc.localResponseNormalization', () => {
         spyOn(tfc, 'localResponseNormalization');
-        node.op = 'localResponseNormalization';
-        node.params.radius = createNumberAttr(1);
-        node.params.bias = createNumberAttr(2);
-        node.params.alpha = createNumberAttr(3);
-        node.params.beta = createNumberAttr(4);
+        node.op = 'LRN';
+        node.attrParams.radius = createNumberAttr(1);
+        node.attrParams.bias = createNumberAttr(2);
+        node.attrParams.alpha = createNumberAttr(3);
+        node.attrParams.beta = createNumberAttr(4);
 
         executeOp(node, {input1}, context);
 
@@ -79,58 +100,58 @@ describe('normalization', () => {
             .toHaveBeenCalledWith(input1[0], 1, 2, 3, 4);
       });
       it('should match json def', () => {
-        node.op = 'localResponseNormalization';
-        node.params.radius = createNumberAttr(1);
-        node.params.bias = createNumberAttr(2);
-        node.params.alpha = createNumberAttr(3);
-        node.params.beta = createNumberAttr(4);
+        node.op = 'LRN';
+        node.attrParams.radius = createNumberAttr(1);
+        node.attrParams.bias = createNumberAttr(2);
+        node.attrParams.alpha = createNumberAttr(3);
+        node.attrParams.beta = createNumberAttr(4);
 
         expect(validateParam(node, normalization.json as OpMapper[]))
             .toBeTruthy();
       });
     });
 
-    describe('softmax', () => {
+    describe('Softmax', () => {
       it('should call tfc.softmax', () => {
         spyOn(tfc, 'softmax');
-        node.op = 'softmax';
+        node.op = 'Softmax';
 
         executeOp(node, {input1}, context);
 
         expect(tfc.softmax).toHaveBeenCalledWith(input1[0]);
       });
       it('should match json def', () => {
-        node.op = 'softmax';
+        node.op = 'Softmax';
 
         expect(validateParam(node, normalization.json as OpMapper[]))
             .toBeTruthy();
       });
     });
 
-    describe('logSoftmax', () => {
+    describe('LogSoftmax', () => {
       it('should call tfc.logSoftmax', () => {
         spyOn(tfc, 'logSoftmax');
-        node.op = 'logSoftmax';
+        node.op = 'LogSoftmax';
 
         executeOp(node, {input1}, context);
 
         expect(tfc.logSoftmax).toHaveBeenCalledWith(input1[0]);
       });
       it('should match json def', () => {
-        node.op = 'logSoftmax';
+        node.op = 'LogSoftmax';
 
         expect(validateParam(node, normalization.json as OpMapper[]))
             .toBeTruthy();
       });
     });
-    describe('sparseToDense', () => {
+    describe('SparseToDense', () => {
       it('should call tfc.sparseToDense', () => {
         spyOn(tfc, 'sparseToDense');
-        node.op = 'sparseToDense';
-        node.params.sparseIndices = createTensorAttr(0);
-        node.params.outputShape = createNumericArrayAttrFromIndex(1);
-        node.params.sparseValues = createTensorAttr(2);
-        node.params.defaultValue = createTensorAttr(3);
+        node.op = 'SparseToDense';
+        node.inputParams.sparseIndices = createTensorAttr(0);
+        node.inputParams.outputShape = createNumericArrayAttrFromIndex(1);
+        node.inputParams.sparseValues = createTensorAttr(2);
+        node.inputParams.defaultValue = createTensorAttr(3);
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
         const input2 = [tfc.scalar(1)];
         const input3 = [tfc.scalar(2)];
@@ -141,12 +162,12 @@ describe('normalization', () => {
             .toHaveBeenCalledWith(input1[0], [1], input3[0], input4[0]);
       });
       it('should match json def', () => {
-        node.op = 'sparseToDense';
-        delete node.params.x;
-        node.params.sparseIndices = createTensorAttr(0);
-        node.params.outputShape = createNumericArrayAttrFromIndex(1);
-        node.params.sparseValues = createTensorAttr(2);
-        node.params.defaultValue = createTensorAttr(3);
+        node.op = 'SparseToDense';
+        delete node.inputParams.x;
+        node.inputParams.sparseIndices = createTensorAttr(0);
+        node.inputParams.outputShape = createNumericArrayAttrFromIndex(1);
+        node.inputParams.sparseValues = createTensorAttr(2);
+        node.inputParams.defaultValue = createTensorAttr(3);
 
         expect(validateParam(node, normalization.json as OpMapper[]))
             .toBeTruthy();

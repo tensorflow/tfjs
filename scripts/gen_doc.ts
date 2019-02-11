@@ -130,7 +130,7 @@ function generateTable(
   output.push('|Tensorflow Op Name|Tensorflow.js Op Name|\n');
   output.push('|---|---|\n');
   ops.sort((a, b) => a.tfOpName.localeCompare(b.tfOpName)).forEach(element => {
-    output.push(`|${element.tfOpName}|${element.dlOpName}|\n`);
+    output.push(`|${element.tfOpName}|${element.tfOpName}|\n`);
   });
 
   coreOps
@@ -138,7 +138,7 @@ function generateTable(
       .sort((a: any, b: any) => a.symbolName.localeCompare(b.symbolName))
       // tslint:disable-next-line:no-any
       .forEach((element: any) => {
-        if (!ops.find(op => op.dlOpName === element.symbolName)) {
+        if (!ops.find(op => op.tfOpName === element.symbolName)) {
           output.push(`|Not mapped|${element.symbolName}|\n`);
         }
       });

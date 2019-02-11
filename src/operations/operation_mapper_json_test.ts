@@ -142,7 +142,7 @@ describe('completeness check', () => {
         };
         convertedGraph = mapper.transformGraph(graph);
         expect(Object.keys(convertedGraph.nodes)).toEqual([tfOp.tfOpName]);
-        expect(convertedGraph.nodes[tfOp.tfOpName].op).toEqual(tfOp.dlOpName);
+        expect(convertedGraph.nodes[tfOp.tfOpName].op).toEqual(tfOp.tfOpName);
       });
     });
   });
@@ -193,36 +193,40 @@ describe('operationMapper', () => {
       });
 
       it('should map the input params', () => {
-        expect(convertedGraph.nodes['Fill'].params['shape'].inputIndex)
+        expect(
+            convertedGraph.nodes['Fill'].inputParams['shape'].inputIndexStart)
             .toEqual(0);
-        expect(convertedGraph.nodes['Fill'].params['value'].inputIndex)
+        expect(
+            convertedGraph.nodes['Fill'].inputParams['value'].inputIndexStart)
             .toEqual(1);
       });
 
       it('should map the attribute params', () => {
-        expect(convertedGraph.nodes['Conv2D'].params['strides'].value).toEqual([
-          1, 2, 2, 1
-        ]);
-        expect(convertedGraph.nodes['Conv2D'].params['pad'].value)
+        expect(convertedGraph.nodes['Conv2D'].attrParams['strides'].value)
+            .toEqual([1, 2, 2, 1]);
+        expect(convertedGraph.nodes['Conv2D'].attrParams['pad'].value)
             .toEqual('same');
-        expect(convertedGraph.nodes['Conv2D'].params['useCudnnOnGpu'].value)
+        expect(convertedGraph.nodes['Conv2D'].attrParams['useCudnnOnGpu'].value)
             .toEqual(true);
-        expect(convertedGraph.nodes['Split'].params['numOrSizeSplits'].value)
+        expect(
+            convertedGraph.nodes['Split'].attrParams['numOrSizeSplits'].value)
             .toEqual(3);
-        expect(convertedGraph.nodes['FusedBatchNorm'].params['epsilon'].value)
+        expect(
+            convertedGraph.nodes['FusedBatchNorm'].attrParams['epsilon'].value)
             .toEqual(0.0001);
       });
 
       it('should map the placeholder attribute params', () => {
-        expect(convertedGraph.nodes['image_placeholder'].params['shape'].value)
+        expect(
+            convertedGraph.nodes['image_placeholder'].attrParams['shape'].value)
             .toEqual([3, 3, 3, 1]);
-        expect(convertedGraph.nodes['image_placeholder'].params['dtype'].value)
+        expect(
+            convertedGraph.nodes['image_placeholder'].attrParams['dtype'].value)
             .toEqual('float32');
       });
       it('should map params with deprecated name', () => {
-        expect(convertedGraph.nodes['Squeeze'].params['axis'].value).toEqual([
-          1, 2
-        ]);
+        expect(convertedGraph.nodes['Squeeze'].attrParams['axis'].value)
+            .toEqual([1, 2]);
       });
     });
   });

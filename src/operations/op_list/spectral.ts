@@ -1,3 +1,5 @@
+import {OpMapper} from '../types';
+
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -15,42 +17,38 @@
  * =============================================================================
  */
 
-export const json = [
+export const json: OpMapper[] = [
   {
     'tfOpName': 'FFT',
-    'dlOpName': 'fft',
     'category': 'spectral',
-    'params': [{'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}]
+    'inputs': [{'start': 0, 'name': 'x', 'type': 'tensor'}]
   },
   {
     'tfOpName': 'IFFT',
-    'dlOpName': 'ifft',
     'category': 'spectral',
-    'params': [{'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}]
+    'inputs': [{'start': 0, 'name': 'x', 'type': 'tensor'}]
   },
   {
     'tfOpName': 'RFFT',
-    'dlOpName': 'rfft',
     'category': 'spectral',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}, {
-        'tfInputIndex': 1,
-        'dlParamName': 'fft_length',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'}, {
+        'start': 1,
+        'name': 'fft_length',
         'type': 'number',
-        'unsupported': true
+        'notSupported': true
       }
     ]
   },
   {
     'tfOpName': 'IRFFT',
-    'dlOpName': 'irfft',
     'category': 'spectral',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}, {
-        'tfInputIndex': 1,
-        'dlParamName': 'fft_length',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'}, {
+        'start': 1,
+        'name': 'fft_length',
         'type': 'number',
-        'unsupported': true
+        'notSupported': true
       }
     ]
   }

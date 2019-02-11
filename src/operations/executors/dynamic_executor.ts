@@ -26,7 +26,8 @@ export async function executeOp(
     node: Node, tensorMap: NamedTensorsMap,
     context: ExecutionContext): Promise<tfc.Tensor[]> {
   switch (node.op) {
-    case 'nonMaxSuppression': {
+    case 'NonMaxSuppressionV3':
+    case 'NonMaxSuppressionV2': {
       const boxes =
           getParamValue('boxes', node, tensorMap, context) as tfc.Tensor;
       const scores =
@@ -41,11 +42,11 @@ export async function executeOp(
           boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,
           iouThreshold, scoreThreshold)];
     }
-    case 'whereAsync': {
+    case 'Where': {
       return [await tfc.whereAsync(
           getParamValue('condition', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'setdiff1dAsync': {
+    case 'ListDiff': {
       return await tfc.setdiff1dAsync(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           getParamValue('y', node, tensorMap, context) as tfc.Tensor);

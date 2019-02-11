@@ -1,3 +1,5 @@
+import {OpMapper} from '../types';
+
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -15,106 +17,92 @@
  * =============================================================================
  */
 
-export const json = [
+export const json: OpMapper[] = [
   {
     'tfOpName': 'PlaceholderWithDefault',
-    'dlOpName': 'placeholder',
     'category': 'graph',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'default', 'type': 'tensor'},
-      {'tfParamName': 'shape', 'dlParamName': 'shape', 'type': 'shape'},
-      {'tfParamName': 'dtype', 'dlParamName': 'dtype', 'type': 'dtype'}
+    'inputs': [
+      {'start': 0, 'name': 'default', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'shape', 'name': 'shape', 'type': 'shape'},
+      {'tfName': 'dtype', 'name': 'dtype', 'type': 'dtype'}
     ]
   },
   {
     'tfOpName': 'Placeholder',
-    'dlOpName': 'placeholder',
     'category': 'graph',
-    'params': [
-      {'tfParamName': 'shape', 'dlParamName': 'shape', 'type': 'shape'},
-      {'tfParamName': 'dtype', 'dlParamName': 'dtype', 'type': 'dtype'}
+    'attrs': [
+      {'tfName': 'shape', 'name': 'shape', 'type': 'shape'},
+      {'tfName': 'dtype', 'name': 'dtype', 'type': 'dtype'}
     ]
   },
-  {'tfOpName': 'Const', 'dlOpName': 'const', 'category': 'graph'}, {
+  {'tfOpName': 'Const', 'category': 'graph'}, {
     'tfOpName': 'Identity',
-    'dlOpName': 'identity',
     'category': 'graph',
-    'params': [{'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}]
+    'inputs': [{'start': 0, 'name': 'x', 'type': 'tensor'}]
   },
   {
     'tfOpName': 'Snapshot',
-    'dlOpName': 'snapshot',
     'category': 'graph',
-    'params': [{'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}]
+    'inputs': [{'start': 0, 'name': 'x', 'type': 'tensor'}]
   },
   {
     'tfOpName': 'Rank',
-    'dlOpName': 'rank',
     'category': 'graph',
-    'params': [{'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}]
+    'inputs': [{'start': 0, 'name': 'x', 'type': 'tensor'}]
   },
   {
     'tfOpName': 'Size',
-    'dlOpName': 'size',
     'category': 'graph',
-    'params': [{'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}]
+    'inputs': [{'start': 0, 'name': 'x', 'type': 'tensor'}]
   },
   {
     'tfOpName': 'Shape',
-    'dlOpName': 'shape',
     'category': 'graph',
-    'params': [{'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}]
+    'inputs': [{'start': 0, 'name': 'x', 'type': 'tensor'}]
   },
   {
     'tfOpName': 'ShapeN',
-    'dlOpName': 'shapeN',
     'category': 'graph',
-    'params': [{
-      'tfInputIndex': 0,
-      'tfInputParamLength': 0,
-      'dlParamName': 'x',
-      'type': 'tensors'
-    }]
+    'inputs': [{'start': 0, 'end': 0, 'name': 'x', 'type': 'tensors'}]
   },
   {
     'tfOpName': 'Print',
-    'dlOpName': 'print',
     'category': 'graph',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}, {
-        'tfInputIndex': 1,
-        'tfInputParamLength': 1,
-        'dlParamName': 'data',
-        'type': 'tensors'
-      },
-      {'tfParamName': 'message', 'dlParamName': 'message', 'type': 'string'}, {
-        'tfParamName': 'first_n',
-        'dlParamName': 'firstN',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'data', 'type': 'tensors'},
+    ],
+    'attrs': [
+      {'tfName': 'message', 'name': 'message', 'type': 'string'}, {
+        'tfName': 'first_n',
+        'name': 'firstN',
         'type': 'number',
-        'notSupprted': true
+        'notSupported': true
       },
       {
-        'tfParamName': 'summarize',
-        'dlParamName': 'summarize',
+        'tfName': 'summarize',
+        'name': 'summarize',
         'type': 'number',
         'defaultValue': 3
       }
     ]
   },
-  {'tfOpName': 'NoOp', 'dlOpName': 'noop', 'category': 'graph', 'params': []}, {
+  {'tfOpName': 'NoOp', 'category': 'graph', 'inputs': []}, {
     'tfOpName': 'StopGradient',
-    'dlOpName': 'stopGradient',
     'category': 'graph',
-    'params': [{'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}]
+    'inputs': [{'start': 0, 'name': 'x', 'type': 'tensor'}]
   },
   {
     'tfOpName': 'FakeQuantWithMinMaxVars',
-    'dlOpName': 'fakeQuantWithMinMaxVars',
     'category': 'graph',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfParamName': 'min', 'dlParamName': 'min', 'type': 'number'},
-      {'tfParamName': 'max', 'dlParamName': 'max', 'type': 'number'}
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'min', 'name': 'min', 'type': 'number'},
+      {'tfName': 'max', 'name': 'max', 'type': 'number'}
     ]
   }
 ];

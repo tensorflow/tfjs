@@ -35,64 +35,65 @@ describe('spectral', () => {
       category: 'spectral',
       inputNames: ['input1'],
       inputs: [],
-      params: {x: createTensorAttr(0)},
+      inputParams: {x: createTensorAttr(0)},
+      attrParams: {},
       children: []
     };
   });
 
   describe('executeOp', () => {
-    describe('fft', () => {
+    describe('FFT', () => {
       it('should call tfc.fft', () => {
         spyOn(tfc, 'fft');
-        node.op = 'fft';
+        node.op = 'FFT';
         executeOp(node, {input1}, context);
 
         expect(tfc.fft).toHaveBeenCalledWith(input1[0]);
       });
       it('should match json def', () => {
-        node.op = 'fft';
+        node.op = 'FFT';
 
         expect(validateParam(node, spectral.json as OpMapper[])).toBeTruthy();
       });
     });
-    describe('ifft', () => {
+    describe('IFFT', () => {
       it('should call tfc.ifft', () => {
         spyOn(tfc, 'ifft');
-        node.op = 'ifft';
+        node.op = 'IFFT';
         executeOp(node, {input1}, context);
 
         expect(tfc.ifft).toHaveBeenCalledWith(input1[0]);
       });
       it('should match json def', () => {
-        node.op = 'ifft';
+        node.op = 'IFFT';
 
         expect(validateParam(node, spectral.json as OpMapper[])).toBeTruthy();
       });
     });
-    describe('rfft', () => {
+    describe('RFFT', () => {
       it('should call tfc.rfft', () => {
         spyOn(tfc, 'rfft');
-        node.op = 'rfft';
+        node.op = 'RFFT';
         executeOp(node, {input1}, context);
 
         expect(tfc.rfft).toHaveBeenCalledWith(input1[0]);
       });
       it('should match json def', () => {
-        node.op = 'rfft';
+        node.op = 'RFFT';
 
         expect(validateParam(node, spectral.json as OpMapper[])).toBeTruthy();
       });
     });
-    describe('irfft', () => {
+    describe('IRFFT', () => {
       it('should call tfc.irfft', () => {
         spyOn(tfc, 'irfft');
-        node.op = 'irfft';
+        node.op = 'IRFFT';
         executeOp(node, {input1}, context);
 
         expect(tfc.irfft).toHaveBeenCalledWith(input1[0]);
       });
       it('should match json def', () => {
-        node.op = 'irfft';
+        node.op = 'IRFFT';
 
         expect(validateParam(node, spectral.json as OpMapper[])).toBeTruthy();
       });

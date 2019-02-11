@@ -1,3 +1,5 @@
+import {OpMapper} from '../types';
+
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -15,74 +17,61 @@
  * =============================================================================
  */
 
-export const json = [
+export const json: OpMapper[] = [
   {
     'tfOpName': 'AvgPool',
-    'dlOpName': 'avgPool',
     'category': 'convolution',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfParamName': 'strides', 'dlParamName': 'strides', 'type': 'number[]'},
-      {'tfParamName': 'padding', 'dlParamName': 'pad', 'type': 'string'}, {
-        'tfParamName': 'data_format',
-        'dlParamName': 'dataFormat',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
         'type': 'string',
         'notSupported': true
       },
-      {'tfParamName': 'ksize', 'dlParamName': 'kernelSize', 'type': 'number[]'},
-      {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+      {'tfName': 'ksize', 'name': 'kernelSize', 'type': 'number[]'},
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'MaxPool',
-    'dlOpName': 'maxPool',
     'category': 'convolution',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfParamName': 'strides', 'dlParamName': 'strides', 'type': 'number[]'},
-      {'tfParamName': 'padding', 'dlParamName': 'pad', 'type': 'string'}, {
-        'tfParamName': 'data_format',
-        'dlParamName': 'dataFormat',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
         'type': 'string',
         'notSupported': true
       },
-      {'tfParamName': 'ksize', 'dlParamName': 'kernelSize', 'type': 'number[]'},
-      {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+      {'tfName': 'ksize', 'name': 'kernelSize', 'type': 'number[]'},
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'Conv1D',
-    'dlOpName': 'conv1d',
     'category': 'convolution',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'filter', 'type': 'tensor'},
-      {'tfParamName': 'stride', 'dlParamName': 'stride', 'type': 'number'},
-      {'tfParamName': 'padding', 'dlParamName': 'pad', 'type': 'string'}, {
-        'tfParamName': 'data_format',
-        'dlParamName': 'dataFormat',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'filter', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'stride', 'name': 'stride', 'type': 'number'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
         'type': 'string',
         'defaultValue': 'NWC'
       },
-      {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      },
-      {
-        'tfParamName': 'dilation',
-        'dlParamName': 'dilation',
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}, {
+        'tfName': 'dilation',
+        'name': 'dilation',
         'type': 'number',
         'defaultValue': 1
       }
@@ -90,47 +79,37 @@ export const json = [
   },
   {
     'tfOpName': 'Conv2D',
-    'dlOpName': 'conv2d',
     'category': 'convolution',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'filter', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      },
-      {'tfParamName': 'strides', 'dlParamName': 'strides', 'type': 'number[]'},
-      {'tfParamName': 'padding', 'dlParamName': 'pad', 'type': 'string'}, {
-        'tfParamName': 'useCudnnOnGpu',
-        'dlParamName': 'useCudnnOnGpu',
-        'type': 'bool'
-      },
-      {
-        'tfParamName': 'data_format',
-        'dlParamName': 'dataFormat',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'filter', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true},
+      {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'},
+      {'tfName': 'useCudnnOnGpu', 'name': 'useCudnnOnGpu', 'type': 'bool'}, {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
         'type': 'string',
         'defaultValue': 'NHWC'
       },
-      {
-        'tfParamName': 'dilations',
-        'dlParamName': 'dilations',
-        'type': 'number[]'
-      }
+      {'tfName': 'dilations', 'name': 'dilations', 'type': 'number[]'}
     ]
   },
   {
     'tfOpName': 'Conv2DBackpropInput',
-    'dlOpName': 'conv2dTranspose',
     'category': 'convolution',
-    'params': [
-      {'tfInputIndex': 2, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'filter', 'type': 'tensor'},
-      {'tfInputIndex': 0, 'dlParamName': 'outputShape', 'type': 'number[]'},
-      {'tfParamName': 'strides', 'dlParamName': 'strides', 'type': 'number[]'},
-      {'tfParamName': 'padding', 'dlParamName': 'pad', 'type': 'string'}, {
-        'tfParamName': 'data_format',
-        'dlParamName': 'dataFormat',
+    'inputs': [
+      {'start': 2, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'filter', 'type': 'tensor'},
+      {'start': 0, 'name': 'outputShape', 'type': 'number[]'},
+    ],
+    'attrs': [
+      {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
         'type': 'string',
         'notSupported': true
       }
@@ -138,44 +117,38 @@ export const json = [
   },
   {
     'tfOpName': 'DepthwiseConv2d',
-    'dlOpName': 'depthwiseConv2d',
     'category': 'convolution',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'input', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'filter', 'type': 'tensor'},
-      {'tfParamName': 'strides', 'dlParamName': 'strides', 'type': 'number[]'},
-      {'tfParamName': 'padding', 'dlParamName': 'pad', 'type': 'string'}, {
-        'tfParamName': 'data_format',
-        'dlParamName': 'dataFormat',
+    'inputs': [
+      {'start': 0, 'name': 'input', 'type': 'tensor'},
+      {'start': 1, 'name': 'filter', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
         'type': 'string',
         'defaultValue': 'NHWC'
       },
-      {
-        'tfParamName': 'dilations',
-        'dlParamName': 'dilations',
-        'type': 'number[]'
-      }
+      {'tfName': 'dilations', 'name': 'dilations', 'type': 'number[]'}
     ]
   },
   {
     'tfOpName': 'DepthwiseConv2dNative',
-    'dlOpName': 'depthwiseConv2d',
     'category': 'convolution',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'input', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'filter', 'type': 'tensor'},
-      {'tfParamName': 'strides', 'dlParamName': 'strides', 'type': 'number[]'},
-      {'tfParamName': 'padding', 'dlParamName': 'pad', 'type': 'string'}, {
-        'tfParamName': 'data_format',
-        'dlParamName': 'dataFormat',
+    'inputs': [
+      {'start': 0, 'name': 'input', 'type': 'tensor'},
+      {'start': 1, 'name': 'filter', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
         'type': 'string',
         'defaultValue': 'NHWC'
       },
-      {
-        'tfParamName': 'dilations',
-        'dlParamName': 'dilations',
-        'type': 'number[]'
-      }
+      {'tfName': 'dilations', 'name': 'dilations', 'type': 'number[]'}
     ]
   }
 ];

@@ -19,50 +19,51 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
+import {Node, OpExecutor} from '../types';
 
-import {OpExecutor} from './types';
 import {getParamValue, getTensor} from './utils';
 
 export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
                                     context: ExecutionContext):
                                        tfc.Tensor[] => {
   switch (node.op) {
-    case 'const': {
+    case 'Const': {
       return tensorMap[node.name];
     }
-    case 'placeholder':
+    case 'PlaceholderWithDefault':
       const def =
           getParamValue('default', node, tensorMap, context) as tfc.Tensor;
       return [getTensor(node.name, tensorMap, context) || def];
-    case 'identity':
-    case 'stopGradient':
-    case 'fakeQuantWithMinMaxVars':  // This op is currently ignored.
+    case 'Placeholder':
+      return [getTensor(node.name, tensorMap, context)];
+    case 'Identity':
+    case 'StopGradient':
+    case 'FakeQuantWithMinMaxVars':  // This op is currently ignored.
       return [
         (getParamValue('x', node, tensorMap, context) as tfc.Tensor).clone()
       ];
-    case 'snapshot':
+    case 'Snapshot':
       const snapshot =
           (getParamValue('x', node, tensorMap, context) as tfc.Tensor);
       return [snapshot.clone()];
-    case 'shape':
+    case 'Shape':
       return [tfc.tensor1d(
           (getParamValue('x', node, tensorMap, context) as tfc.Tensor).shape,
           'int32')];
-    case 'shapeN':
+    case 'ShapeN':
       return (getParamValue('x', node, tensorMap, context) as tfc.Tensor[])
           .map((t: tfc.Tensor) => tfc.tensor1d(t.shape));
-    case 'size':
+    case 'Size':
       return [tfc.scalar(
           (getParamValue('x', node, tensorMap, context) as tfc.Tensor).size,
           'int32')];
-    case 'rank':
+    case 'Rank':
       return [tfc.scalar(
           (getParamValue('x', node, tensorMap, context) as tfc.Tensor).rank,
           'int32')];
-    case 'noop':
+    case 'NoOp':
       return [];
-    case 'print':
+    case 'Print':
       const input = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
       const data =
           getParamValue('data', node, tensorMap, context) as tfc.Tensor[];
@@ -76,7 +77,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
       console.log(message);
       for (let i = 0; i < data.length; i++) {
         console.log(
-            Array.prototype.slice.call(data[0].dataSync()).slice(0, summarize));
+            Array.prototype.slice.call(data[i].dataSync()).slice(0, summarize));
       }
       return [input];
 

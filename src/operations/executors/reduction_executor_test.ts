@@ -35,38 +35,36 @@ describe('reduction', () => {
       category: 'logical',
       inputNames: ['input1'],
       inputs: [],
-      params: {
-        x: createTensorAttr(0),
-        axis: createNumberAttr(1),
-        keepDims: createBoolAttr(true)
-      },
+      inputParams: {x: createTensorAttr(0)},
+      attrParams: {keepDims: createBoolAttr(true), axis: createNumberAttr(1)},
       children: []
     };
   });
 
   describe('executeOp', () => {
-    ['max', 'mean', 'min', 'sum', 'all', 'any', 'prod'].forEach(op => {
+    ['Max', 'Mean', 'Min', 'Sum', 'All', 'Any', 'Prod'].forEach(op => {
       it('should call tfc.' + op, () => {
-        const spy = spyOn(tfc, op as 'max');
+        const spy =
+            spyOn(tfc, op.charAt(0).toLowerCase() + op.slice(1) as 'max');
         node.op = op;
         executeOp(node, {input1}, context);
 
         expect(spy).toHaveBeenCalledWith(input1[0], 1, true);
       });
     });
-    describe('argMax', () => {
+    describe('ArgMax', () => {
       it('should call tfc.argMax', () => {
         spyOn(tfc, 'argMax');
-        node.op = 'argMax';
+        node.op = 'ArgMax';
         executeOp(node, {input1}, context);
 
         expect(tfc.argMax).toHaveBeenCalledWith(input1[0], 1);
       });
     });
-    describe('argMin', () => {
+    describe('ArgMin', () => {
       it('should call tfc.argMin', () => {
         spyOn(tfc, 'argMin');
-        node.op = 'argMin';
+        node.op = 'ArgMin';
         executeOp(node, {input1}, context);
 
         expect(tfc.argMin).toHaveBeenCalledWith(input1[0], 1);
