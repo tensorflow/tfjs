@@ -1404,6 +1404,18 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([4]);
   });
+
+  it('throws when passed non-integer shape', () => {
+    const msg = 'Tensor must have a shape comprised of positive ' +
+        'integers but got shape [2,2.2].';
+    expect(() => tf.tensor([1, 2, 3, 4], [2, 2.2])).toThrowError(msg);
+  });
+
+  it('throws when passed negative shape', () => {
+    const msg = 'Tensor must have a shape comprised of positive ' +
+        'integers but got shape [2,-2].';
+    expect(() => tf.tensor([1, 2, 3, 4], [2, -2])).toThrowError(msg);
+  });
 });
 
 describe('tensor.toString', () => {

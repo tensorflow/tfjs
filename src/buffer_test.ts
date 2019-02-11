@@ -70,4 +70,16 @@ describeWithFlags('tf.buffer', ALL_ENVS, () => {
     expect(buff.get(1, 1)).toBeFalsy();
     expectArraysEqual(buff.toTensor(), ['first', null, 'third', null]);
   });
+
+  it('throws when passed non-integer shape', () => {
+    const msg = 'Tensor must have a shape comprised of positive ' +
+        'integers but got shape [2,2.2].';
+    expect(() => tf.buffer([2, 2.2])).toThrowError(msg);
+  });
+
+  it('throws when passed negative shape', () => {
+    const msg = 'Tensor must have a shape comprised of positive ' +
+        'integers but got shape [2,-2].';
+    expect(() => tf.buffer([2, -2])).toThrowError(msg);
+  });
 });
