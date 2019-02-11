@@ -286,7 +286,7 @@ export class MathBackendWebGL implements KernelBackend {
 
     if (texture != null) {
       // Release the old texture.
-      this.releaseTexture(dataId, texture, texShape, usage, isPacked);
+      this.releaseTexture(dataId, texture, texShape, usage, dtype, isPacked);
       texData.texture = null;
       texData.texShape = null;
     }
@@ -533,7 +533,7 @@ export class MathBackendWebGL implements KernelBackend {
       return;
     }
     if (this.texData.has(dataId)) {
-      const {texture, texShape, usage, complexTensors, isPacked, slice} =
+      const {texture, dtype, texShape, usage, complexTensors, isPacked, slice} =
           this.texData.get(dataId);
       if (texture != null) {
         const key = slice && slice.origDataId || dataId;
@@ -542,7 +542,8 @@ export class MathBackendWebGL implements KernelBackend {
           this.dataRefCount.set(key, refCount - 1);
         } else {
           this.dataRefCount.delete(key);
-          this.releaseTexture(dataId, texture, texShape, usage, isPacked);
+          this.releaseTexture(
+              dataId, texture, texShape, usage, dtype, isPacked);
           this.texData.delete(dataId);
         }
       }
@@ -1678,6 +1679,16 @@ export class MathBackendWebGL implements KernelBackend {
             [1, xShape[0] * xShape[1] * (xShape[2] + 1), convInfo.inChannels],
             {dataId: x.dataId}, x.dtype, this) as Tensor3D;
 
+    // xTexData.shape gets referenced from GPGPUBinary.inShapeInfos.
+    // Decrementing row count, after batchMatMul->...->compileProgram leads to
+    // invalid row count within the reference in GPGPUBinary.inShapeInfos.
+    // Alternative fix would be to provide a copy to GPGPUBinary.inShapeInfos
+    // in compileProgram method, but that would affect compilation of all
+    // programs - instead, provide a copy here, with even row count, before
+    // calling batchMatMul->...->compileProgram and after that, the original
+    // xTexData.shape is restored.
+    const originalXTexDataShape = xTexData.shape;
+    xTexData.shape = xTexData.shape.slice();
     xTexData.shape[xTexData.shape.length - 2]++;
     util.assert(
         webgl_util.isReshapeFree(xTexData.shape, xReshaped.shape),
@@ -1692,8 +1703,8 @@ export class MathBackendWebGL implements KernelBackend {
     util.assert(
         pointwiseConvTexData.isPacked,
         'batchMatMul result is expected to be packed');
-    // Restore the input shape to odd number of rows.
-    xTexData.shape[xTexData.shape.length - 2]--;
+    // Restore the input shape to original.
+    xTexData.shape = originalXTexDataShape;
     // Set the output shape - there is no need for expensive reshape as data
     // layout is already correct.
     pointwiseConvTexData.shape = convInfo.outShape;
@@ -2208,8 +2219,8 @@ export class MathBackendWebGL implements KernelBackend {
       let numBytesToPage = this.numBytesInGPU - numBytesBeforePaging;
       while (numBytesToPage > 0 && this.lruDataGPU.length > 0) {
         const dataId = this.lruDataGPU.shift();
-        const {shape, dtype} = this.texData.get(dataId);
-        numBytesToPage -= this.computeBytes(shape, dtype);
+        const {texShape, dtype} = this.texData.get(dataId);
+        numBytesToPage -= this.computeBytes(texShape, dtype);
         this.read(dataId);
       }
     }
@@ -2277,7 +2288,7 @@ export class MathBackendWebGL implements KernelBackend {
 
   private uploadToGPU(dataId: DataId): void {
     const texData = this.texData.get(dataId);
-    const {shape, values, texture, usage, isPacked} = texData;
+    const {shape, dtype, values, texture, usage, isPacked} = texData;
     if (texture != null) {
       // Array is already on GPU. No-op.
       // Touching the texture.
@@ -2298,7 +2309,8 @@ export class MathBackendWebGL implements KernelBackend {
     const texShape =
         webgl_util.getTextureShapeFromLogicalShape(shape, isPacked);
     texData.texShape = texShape;
-    const newTexture = this.acquireTexture(dataId, texShape, usage, isPacked);
+    const newTexture =
+        this.acquireTexture(dataId, texShape, usage, dtype, isPacked);
     texData.texture = newTexture;
     if (values != null) {
       // TODO(smilkov): Propagate the original typed array to gpgpu.
@@ -2330,7 +2342,7 @@ export class MathBackendWebGL implements KernelBackend {
     const {texture, texShape, dtype, usage, isPacked} = texData;
 
     if (texture != null) {
-      this.releaseTexture(dataId, texture, texShape, usage, isPacked);
+      this.releaseTexture(dataId, texture, texShape, usage, dtype, isPacked);
       texData.texture = null;
       texData.texShape = null;
       texData.isPacked = false;
@@ -2345,32 +2357,29 @@ export class MathBackendWebGL implements KernelBackend {
 
   private releaseTexture(
       dataId: DataId, texture: WebGLTexture, texShape: [number, number],
-      texType: TextureUsage, isPacked: boolean) {
-    const {shape, dtype} = this.texData.get(dataId);
-
+      texType: TextureUsage, dtype: DataType, isPacked: boolean) {
     if (ENV.get('WEBGL_NUM_MB_BEFORE_PAGING') < Number.POSITIVE_INFINITY) {
       const idx = this.lruDataGPU.indexOf(dataId);
       if (idx >= 0) {
         this.lruDataGPU.splice(idx, 1);
       }
     }
-    this.numBytesInGPU -= this.computeBytes(shape, dtype);
+    this.numBytesInGPU -= this.computeBytes(texShape, dtype);
     this.textureManager.releaseTexture(texture, texShape, texType, isPacked);
   }
 
   private acquireTexture(
       dataId: DataId, texShape: [number, number], texType: TextureUsage,
-      isPacked: boolean): WebGLTexture {
-    const {shape, dtype} = this.texData.get(dataId);
+      dtype: DataType, isPacked: boolean): WebGLTexture {
     if (ENV.get('WEBGL_NUM_MB_BEFORE_PAGING') < Number.POSITIVE_INFINITY) {
       this.lruDataGPU.push(dataId);
     }
-    this.numBytesInGPU += this.computeBytes(shape, dtype);
+    this.numBytesInGPU += this.computeBytes(texShape, dtype);
     return this.textureManager.acquireTexture(texShape, texType, isPacked);
   }
 
-  private computeBytes(shape: number[], dtype: DataType) {
-    return util.sizeFromShape(shape) * util.bytesPerElement(dtype);
+  private computeBytes(shape: [number, number], dtype: DataType) {
+    return shape[0] * shape[1] * util.bytesPerElement(dtype);
   }
 }
 

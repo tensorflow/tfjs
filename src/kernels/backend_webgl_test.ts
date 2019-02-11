@@ -36,15 +36,29 @@ describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
 
+    // c is packed to 1x1 RGBA texture.
     const c = tf.matMul(a, b);
 
     const startNumBytes = tf.memory().numBytes;
     const startNumTensors = tf.memory().numTensors;
+    const startNumBytesInGPU =
+        (tf.memory() as tf.webgl.WebGLMemoryInfo).numBytesInGPU;
 
+    const webglPackBinaryOperationsFlagSaved =
+        tf.ENV.get('WEBGL_PACK_BINARY_OPERATIONS');
+    tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', false);
+    // Add will unpack c before the operation to 2
     tf.add(c, 1);
+    tf.ENV.set(
+        'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsFlagSaved);
 
     expect(tf.memory().numBytes - startNumBytes).toEqual(16);
     expect(tf.memory().numTensors - startNumTensors).toEqual(1);
+    // result is unpacked 2x2 R texture.
+    expect(
+        (tf.memory() as tf.webgl.WebGLMemoryInfo).numBytesInGPU -
+        startNumBytesInGPU)
+        .toEqual(4 * tf.util.bytesPerElement(a.dtype));
   });
 
   it('should not leak memory when lazily packing', () => {
@@ -55,11 +69,19 @@ describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
 
     const startNumBytes = tf.memory().numBytes;
     const startNumTensors = tf.memory().numTensors;
+    const startNumBytesInGPU =
+        (tf.memory() as tf.webgl.WebGLMemoryInfo).numBytesInGPU;
 
     tf.matMul(b, c);
 
     expect(tf.memory().numBytes - startNumBytes).toEqual(36);
     expect(tf.memory().numTensors - startNumTensors).toEqual(1);
+    // result [3, 3] is packed to four RGBA pixel texture b is packed to two
+    // RGBA texels texture: total 6 * 4 = 24 components.
+    expect(
+        (tf.memory() as tf.webgl.WebGLMemoryInfo).numBytesInGPU -
+        startNumBytesInGPU)
+        .toEqual(24 * tf.util.bytesPerElement(a.dtype));
   });
 
   it('should work when the same input must be represented by' +
