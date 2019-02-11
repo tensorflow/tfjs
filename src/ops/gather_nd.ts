@@ -17,7 +17,7 @@
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
-import {Rank, TensorLike} from '../types';
+import {TensorLike} from '../types';
 import {op} from './operation';
 
 /**
@@ -50,19 +50,18 @@ import {op} from './operation';
  * ```js
  * const indices = tf.tensor2d([0, 1, 1, 0], [2,2], 'int32');
  * const input = tf.tensor2d([9, 10, 11, 12], [2, 2]);
- * tf.gatherND(input, indices).print() //[10, 11]
+ * tf.gatherND(input, indices).print() // [10, 11]
  * ```
  *
  * @param x The tensor from which to gather values.
  * @param indices Index tensor, must be of type int32.
  */
 /** @doc {heading: 'Operations', subheading: 'Slicing and Joining'} */
-function gatherND_(
-    x: Tensor|TensorLike, indices: Tensor|TensorLike): Tensor<Rank> {
+function gatherND_(x: Tensor|TensorLike, indices: Tensor|TensorLike): Tensor {
   const $indices = convertToTensor(indices, 'indices', 'gatherND', 'int32');
   const $x = convertToTensor(x, 'x', 'gatherND');
   return ENV.engine.runKernel(
              backend => backend.gatherND($x, $indices), {$x, $indices}) as
-      Tensor<Rank>;
+      Tensor;
 }
 export const gatherND = op({gatherND_});
