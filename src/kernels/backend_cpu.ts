@@ -3284,7 +3284,7 @@ export class MathBackendCPU implements KernelBackend {
         numUpdates, sliceRank, strides, defaultValue, sumDupeIndices);
   }
 
-  gatherND(x: Tensor, indices: Tensor): Tensor<Rank> {
+  gatherND(x: Tensor, indices: Tensor): Tensor {
     const indicesShape = indices.shape;
     const sliceRank = indicesShape[indicesShape.length - 1];
 

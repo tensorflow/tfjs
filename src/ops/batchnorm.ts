@@ -42,7 +42,7 @@ function batchNorm2d_(
     x: Tensor2D|TensorLike, mean: Tensor2D|Tensor1D|TensorLike,
     variance: Tensor2D|Tensor1D|TensorLike,
     offset?: Tensor2D|Tensor1D|TensorLike, scale?: Tensor2D|Tensor1D|TensorLike,
-    varianceEpsilon = .001): Tensor2D {
+    varianceEpsilon?: number): Tensor2D {
   const $x = convertToTensor(x, 'x', 'batchNorm');
   const $mean = convertToTensor(mean, 'mean', 'batchNorm');
   const $variance = convertToTensor(variance, 'variance', 'batchNorm');
@@ -97,7 +97,7 @@ function batchNorm3d_(
     x: Tensor3D|TensorLike, mean: Tensor3D|Tensor1D|TensorLike,
     variance: Tensor3D|Tensor1D|TensorLike,
     offset?: Tensor3D|Tensor1D|TensorLike, scale?: Tensor3D|Tensor1D|TensorLike,
-    varianceEpsilon = .001): Tensor3D {
+    varianceEpsilon?: number): Tensor3D {
   const $x = convertToTensor(x, 'x', 'batchNorm');
   const $mean = convertToTensor(mean, 'mean', 'batchNorm');
   const $variance = convertToTensor(variance, 'variance', 'batchNorm');
@@ -152,7 +152,7 @@ function batchNorm4d_(
     x: Tensor4D|TensorLike, mean: Tensor4D|Tensor1D|TensorLike,
     variance: Tensor4D|Tensor1D|TensorLike,
     offset?: Tensor4D|Tensor1D|TensorLike, scale?: Tensor4D|Tensor1D|TensorLike,
-    varianceEpsilon = .001): Tensor4D {
+    varianceEpsilon?: number): Tensor4D {
   const $x = convertToTensor(x, 'x', 'batchNorm');
   const $mean = convertToTensor(mean, 'mean', 'batchNorm');
   const $variance = convertToTensor(variance, 'variance', 'batchNorm');
@@ -233,7 +233,11 @@ function batchNorm_<R extends Rank>(
     x: Tensor<R>|Tensor1D|TensorLike, mean: Tensor<R>|Tensor1D|TensorLike,
     variance: Tensor<R>|Tensor1D|TensorLike,
     offset?: Tensor<R>|Tensor1D|TensorLike,
-    scale?: Tensor<R>|Tensor1D|TensorLike, varianceEpsilon = .001): Tensor<R> {
+    scale?: Tensor<R>|Tensor1D|TensorLike,
+    varianceEpsilon?: number): Tensor<R> {
+  if (varianceEpsilon == null) {
+    varianceEpsilon = 0.001;
+  }
   const $x = convertToTensor(x, 'x', 'batchNorm');
   const $mean = convertToTensor(mean, 'mean', 'batchNorm');
   const $variance = convertToTensor(variance, 'variance', 'batchNorm');
