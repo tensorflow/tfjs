@@ -228,3 +228,24 @@ describe('checkArrayTypeAndLength', () => {
         .toThrowError();
   });
 });
+
+describe('formatValueAsFriendlyString', () => {
+  it('null input', () => {
+    expect(utils.formatAsFriendlyString(null)).toEqual('null');
+  });
+
+  it('string input', () => {
+    expect(utils.formatAsFriendlyString('')).toEqual('\"\"');
+    expect(utils.formatAsFriendlyString('foo')).toEqual('\"foo\"');
+  });
+
+  it('array input', () => {
+    expect(utils.formatAsFriendlyString([])).toEqual('[]');
+    expect(utils.formatAsFriendlyString([null, 3])).toEqual('[null,3]');
+    expect(utils.formatAsFriendlyString([1, 3, 3, 7])).toEqual('[1,3,3,7]');
+    expect(utils.formatAsFriendlyString([1, 3, 3, 'a'])).toEqual('[1,3,3,"a"]');
+    expect(utils.formatAsFriendlyString([
+      [1], 3, [3], 7
+    ])).toEqual('[[1],3,[3],7]');
+  });
+});

@@ -40,6 +40,24 @@ describeMathCPU('Embedding Layers: Symbolic 1D, 2D & 3D', () => {
       });
     }
   }
+
+  it('Invalid inputDim leads to Error', () => {
+    expect(() => tfl.layers.embedding({inputDim: 12.5, outputDim: 4}))
+        .toThrowError(/inputDim.*positive integer.*12\.5\.$/);
+    expect(() => tfl.layers.embedding({inputDim: 0, outputDim: 4}))
+        .toThrowError(/inputDim.*positive integer.*0\.$/);
+    expect(() => tfl.layers.embedding({inputDim: -123, outputDim: 4}))
+        .toThrowError(/inputDim.*positive integer.*-123\.$/);
+  });
+
+  it('Invalid outputDim leads to Error', () => {
+    expect(() => tfl.layers.embedding({inputDim: 8, outputDim: 16.5}))
+        .toThrowError(/outputDim.*positive integer.*16\.5\.$/);
+    expect(() => tfl.layers.embedding({inputDim: 8, outputDim: 0}))
+        .toThrowError(/outputDim.*positive integer.*0\.$/);
+    expect(() => tfl.layers.embedding({inputDim: 8, outputDim: -32}))
+        .toThrowError(/outputDim.*positive integer.*-32\.$/);
+  });
 });
 
 describeMathCPU('Embedding Layers: With explicit inputLength', () => {

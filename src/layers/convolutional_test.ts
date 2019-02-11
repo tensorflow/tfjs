@@ -17,11 +17,11 @@ import {scalar, Tensor, tensor1d, tensor3d, Tensor4D, tensor4d, util} from '@ten
 
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
-import {Shape, DataFormat, PaddingMode} from '../keras_format/common';
+import {ActivationIdentifier} from '../keras_format/activation_config';
+import {DataFormat, PaddingMode, Shape} from '../keras_format/common';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {conv1d, conv1dWithBias, conv2d, conv2dWithBias} from './convolutional';
-import {ActivationIdentifier} from '../keras_format/activation_config';
 
 
 describeMathCPUAndGPU('conv1dWithBias', () => {
@@ -163,6 +163,11 @@ describeMathCPUAndGPU('conv2d', () => {
       }
     }
   }
+
+  it('Invalid filters leads to Error', () => {
+    expect(() => tfl.layers.conv2d({filters: 2.5, kernelSize: 3}))
+        .toThrowError(/filters.*positive integer.*2\.5\.$/);
+  });
 });
 
 describeMathCPUAndGPU('conv2dWithBias', () => {
@@ -337,7 +342,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
 
   const useBiases = [false, true];
   const biasInitializers: InitializerIdentifier[] = ['zeros', 'ones'];
-  const activations : ActivationIdentifier[] = [null, 'linear', 'relu'];
+  const activations: ActivationIdentifier[] = [null, 'linear', 'relu'];
 
   for (const useBias of useBiases) {
     for (const biasInitializer of biasInitializers) {
@@ -615,7 +620,7 @@ describeMathCPUAndGPU('Conv1D Layer: Tensor', () => {
   // it gives [-19, -79, 21].
 
   const stridesValues = [1, 2];
-  const activations : ActivationIdentifier[] = ['linear', 'relu'];
+  const activations: ActivationIdentifier[] = ['linear', 'relu'];
   for (const strides of stridesValues) {
     for (const activation of activations) {
       const testTitle = `useBias=true, biasInitializer=ones, ` +
@@ -830,7 +835,7 @@ describeMathGPU('SeparableConv2D Layer: Tensor', () => {
   const dilationRates: number[] = [undefined, 2];
   const useBiases = [false, true];
   const biasInitializers: InitializerIdentifier[] = ['zeros', 'ones'];
-  const activations : ActivationIdentifier[] = [null, 'linear', 'relu'];
+  const activations: ActivationIdentifier[] = [null, 'linear', 'relu'];
 
   for (const dataFormat of dataFormats) {
     for (const dilationRate of dilationRates) {

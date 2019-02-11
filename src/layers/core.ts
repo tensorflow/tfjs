@@ -26,9 +26,9 @@ import {Shape} from '../keras_format/common';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {arrayProd, range} from '../utils/math_utils';
+import {assertPositiveInteger} from '../utils/generic_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
-
 
 export declare interface DropoutLayerArgs extends LayerArgs {
   /** Float between 0 and 1. Fraction of the input units to drop. */
@@ -252,6 +252,7 @@ export class Dense extends Layer {
     }
 
     this.units = args.units;
+    assertPositiveInteger(this.units, 'units');
     this.activation = getActivation(args.activation);
     if (args.useBias != null) {
       this.useBias = args.useBias;

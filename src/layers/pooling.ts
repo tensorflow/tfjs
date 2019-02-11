@@ -24,10 +24,10 @@ import {NotImplementedError, ValueError} from '../errors';
 import {DataFormat, PaddingMode, PoolMode, Shape} from '../keras_format/common';
 import {Kwargs} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
+import {assertPositiveInteger} from '../utils/generic_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 
 import {preprocessConv2DInput} from './convolutional';
-
 
 /**
  * 2D pooling.
@@ -130,6 +130,7 @@ export abstract class Pooling1D extends Layer {
           `Array of a single number, but received ` +
           `${JSON.stringify(args.poolSize)}`);
     }
+    assertPositiveInteger(this.poolSize, 'poolSize');
     if (args.strides == null) {
       this.strides = this.poolSize;
     } else {
@@ -147,6 +148,7 @@ export abstract class Pooling1D extends Layer {
             `${JSON.stringify(args.strides)}`);
       }
     }
+    assertPositiveInteger(this.strides, 'strides');
 
     this.padding = args.padding == null ? 'valid' : args.padding;
     checkPaddingMode(this.padding);
@@ -296,6 +298,8 @@ export abstract class Pooling2D extends Layer {
       // `config.strides` is a number.
       this.strides = [args.strides, args.strides];
     }
+    assertPositiveInteger(this.poolSize, 'poolSize');
+    assertPositiveInteger(this.strides, 'strides');
     this.padding = args.padding == null ? 'valid' : args.padding;
     this.dataFormat =
         args.dataFormat == null ? 'channelsLast' : args.dataFormat;
