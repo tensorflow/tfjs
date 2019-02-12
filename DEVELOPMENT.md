@@ -16,7 +16,7 @@ to keep the `yarn.lock` file up to date.
 #### Code editor
 We recommend using [Visual Studio Code](https://code.visualstudio.com/) for
 development. Make sure to install
-[TSLint VSCode extension](https://marketplace.visualstudio.com/items?itemName=eg2.tslint)
+[TSLint VSCode extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-tslint-plugin)
 and the npm [clang-format](https://github.com/angular/clang-format) `1.2.2` or later
 with the
 [Clang-Format VSCode extension](https://marketplace.visualstudio.com/items?itemName=xaver.clang-format)
