@@ -878,27 +878,12 @@ describeMathCPU('loadModel from URL', () => {
        expect(requestHeaders[0]).toEqual(jasmine.objectContaining({
          'header_key_1': 'header_value_1'
        }));
-       if (requestHeaders[0]['Accept']) {
-         expect(requestHeaders[0]).toEqual(jasmine.objectContaining({
-           'Accept': 'application/json'
-         }));
-       }
        expect(requestHeaders[1]).toEqual(jasmine.objectContaining({
          'header_key_1': 'header_value_1'
        }));
-       if (requestHeaders[1]['Accept']) {
-         expect(requestHeaders[1]).toEqual(jasmine.objectContaining({
-           'Accept': 'application/octet-stream'
-         }));
-       }
        expect(requestHeaders[2]).toEqual(jasmine.objectContaining({
          'header_key_1': 'header_value_1'
        }));
-       if (requestHeaders[2]['Accept']) {
-         expect(requestHeaders[2]).toEqual(jasmine.objectContaining({
-           'Accept': 'application/octet-stream'
-         }));
-       }
        expect(requestCredentials).toEqual(['include', 'include', 'include']);
      });
 
