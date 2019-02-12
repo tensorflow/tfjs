@@ -4,9 +4,6 @@
 
 # TensorFlow backend for TensorFlow.js via Node.js
 
-**This repo is under active development and is not production-ready. We are
-actively developing as an open source project.**
-
 ## Installing
 
 TensorFlow.js for Node currently supports the following platforms:
