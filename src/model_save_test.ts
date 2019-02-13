@@ -103,7 +103,7 @@ describeMathGPU('Save-load round trips', () => {
     const modelURL = `localstorage://${path}`;
     await model1.save(modelURL);
     // Once the saving succeeds, load the model back.
-    const model2 = await tfl.loadModel(modelURL);
+    const model2 = await tfl.loadLayersModel(modelURL);
     // Verify that the topology of the model is correct.
     expect(model2.toJSON(null, false)).toEqual(model1.toJSON(null, false));
 
@@ -129,7 +129,7 @@ describeMathGPU('Save-load round trips', () => {
     const modelURL = `indexeddb://${path}`;
     await model1.save(modelURL);
     // Once the saving succeeds, load the model back.
-    const model2 = await tfl.loadModel(modelURL);
+    const model2 = await tfl.loadLayersModel(modelURL);
     // Verify that the topology of the model is correct.
     expect(model2.toJSON(null, false)).toEqual(model1.toJSON(null, false));
 
@@ -165,7 +165,7 @@ describeMathGPU('Save-load round trips', () => {
     const url = `indexeddb://${path}`;
     await model.save(url);
     // Load the model back.
-    const modelPrime = await tfl.loadModel(url);
+    const modelPrime = await tfl.loadLayersModel(url);
     // Call predict() on the loaded model and assert the result
     // equals the original predict() result.
     const yPrime = modelPrime.predict(x) as Tensor;
@@ -233,7 +233,7 @@ describeMathGPU('Save-load round trips', () => {
     const path = `testModel${new Date().getTime()}_${Math.random()}`;
     const url = `indexeddb://${path}`;
     await model.save(url);
-    const modelPrime = await tfl.loadModel(url);
+    const modelPrime = await tfl.loadLayersModel(url);
     const yPrime = modelPrime.predict(x) as Tensor;
     expectTensorsClose(y, yPrime);
 
@@ -264,7 +264,7 @@ describeMathGPU('Save-load round trips', () => {
 
     const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
     const gramSchmidtSpy = spyOn(linalg,  'gramSchmidt').and.callThrough();
-    const modelPrime = await tfl.loadModel(io.fromMemory(
+    const modelPrime = await tfl.loadLayersModel(io.fromMemory(
         savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
         savedArtifacts.weightData));
     const weightsPrime = modelPrime.getWeights();
@@ -298,7 +298,7 @@ describeMathGPU('Save-load round trips', () => {
 
     const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
     const gramSchmidtSpy = spyOn(linalg,  'gramSchmidt').and.callThrough();
-    const modelPrime = await tfl.loadModel(io.fromMemory(
+    const modelPrime = await tfl.loadLayersModel(io.fromMemory(
         savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
         savedArtifacts.weightData));
     const weightsPrime = modelPrime.getWeights();
@@ -334,7 +334,7 @@ describeMathGPU('Save-load round trips', () => {
 
     const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
     const gramSchmidtSpy = spyOn(linalg,  'gramSchmidt').and.callThrough();
-    const modelPrime = await tfl.loadModel(io.fromMemory(
+    const modelPrime = await tfl.loadLayersModel(io.fromMemory(
         savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
         savedArtifacts.weightData));
     const weightsPrime = modelPrime.getWeights();
@@ -370,7 +370,7 @@ describeMathGPU('Save-load round trips', () => {
 
     const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
     const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
-    const modelPrime = await tfl.loadModel(io.fromMemory(
+    const modelPrime = await tfl.loadLayersModel(io.fromMemory(
         savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
         savedArtifacts.weightData));
     const weightsPrime = modelPrime.getWeights();
@@ -429,6 +429,38 @@ describeMathGPU('Save-load round trips', () => {
     const modelPrime = await tfl.loadModel(io.fromMemory(
         savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
         savedArtifacts.weightData), strict);
+    const weightsPrime = modelPrime.getWeights();
+    expect(weightsPrime.length).toEqual(weights.length);
+    expectTensorsClose(weightsPrime[0], weights[0]);
+    // Assert the orthogonal initializer has been called.
+    expect(gramSchmidtSpy).toHaveBeenCalled();
+  });
+
+  it('loadLayersModel: non-strict load calls weight initializers', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.lstm({
+      units: 2,
+      inputShape: [3, 4],
+      recurrentInitializer: 'orthogonal',
+      kernelInitializer: 'orthogonal',
+      biasInitializer: 'randomNormal',
+    }));
+    let savedArtifacts: io.ModelArtifacts;
+    await model.save(io.withSaveHandler(
+        async (artifacts: io.ModelArtifacts) => {
+          savedArtifacts = artifacts;
+          return {modelArtifactsInfo: null};
+        }));
+    const weights = model.getWeights();
+
+    expect(savedArtifacts.weightSpecs.length).toEqual(3);
+    savedArtifacts.weightSpecs = savedArtifacts.weightSpecs.slice(0, 1);
+
+    const gramSchmidtSpy = spyOn(linalg,  'gramSchmidt').and.callThrough();
+    const strict = false;
+    const modelPrime = await tfl.loadLayersModel(io.fromMemory(
+        savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
+        savedArtifacts.weightData), {strict});
     const weightsPrime = modelPrime.getWeights();
     expect(weightsPrime.length).toEqual(weights.length);
     expectTensorsClose(weightsPrime[0], weights[0]);

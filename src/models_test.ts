@@ -544,7 +544,7 @@ describeMathCPU('modelFromJSON', () => {
   });
 });
 
-describeMathCPU('loadModel from URL', () => {
+describeMathCPU('loadLayersModel from URL', () => {
   const setupFakeWeightFiles =
       (fileBufferMap:
            {[filename: string]: Float32Array|Int32Array|ArrayBuffer}) => {
@@ -663,6 +663,65 @@ describeMathCPU('loadModel from URL', () => {
     expect(weightValues.length).toEqual(2);
     expectTensorsClose(weightValues[0], ones([32, 32]));
     expectTensorsClose(weightValues[1], zeros([32]));
+  });
+
+  it('loadLayersModel: with onProgress callback', async () => {
+    const modelTopology =
+        JSON.parse(JSON.stringify(fakeSequentialModel)).modelTopology;
+    const weightsManifest: io.WeightsManifestConfig = [
+      {
+        'paths': ['weight_0'],
+        'weights':
+            [{'name': `dense_6/kernel`, 'dtype': 'float32', 'shape': [32, 32]}],
+      },
+      {
+        'paths': ['weight_1'],
+        'weights':
+            [{'name': `dense_6/bias`, 'dtype': 'float32', 'shape': [32]}],
+      }
+    ];
+
+    spyOn(window, 'fetch').and.callFake((path: string) => {
+      return new Promise((resolve, reject) => {
+        if (path === 'model/model.json') {
+          resolve(new Response(
+              JSON.stringify({
+                modelTopology,
+                weightsManifest,
+              }),
+              {'headers': {'Content-Type': JSON_TYPE}}));
+        } else if (path === 'model/weight_0') {
+          resolve(new Response(
+              ones([32, 32], 'float32').dataSync() as Float32Array,
+              {'headers': {'Content-Type': OCTET_STREAM_TYPE}}));
+        } else if (path === 'model/weight_1') {
+          resolve(new Response(
+              zeros([32], 'float32').dataSync() as Float32Array,
+              {'headers': {'Content-Type': OCTET_STREAM_TYPE}}));
+        } else {
+          reject(new Error(`Invalid path: ${path}`));
+        }
+      });
+    });
+
+    const progressFractions: number[] = [];
+    const model = await tfl.loadLayersModel('model/model.json', {
+      onProgress: (fraction: number) => {
+        progressFractions.push(fraction);
+      }
+    });
+    expect(model.layers.length).toEqual(2);
+    expect(model.inputs.length).toEqual(1);
+    expect(model.inputs[0].shape).toEqual([null, 32]);
+    expect(model.outputs.length).toEqual(1);
+    expect(model.outputs[0].shape).toEqual([null, 32]);
+    const weightValues = model.getWeights();
+    expect(weightValues.length).toEqual(2);
+    expectTensorsClose(weightValues[0], ones([32, 32]));
+    expectTensorsClose(weightValues[1], zeros([32]));
+    // There are three files: a JSON file and two weight files. So the progress
+    // callback should have been called four, times.
+    expect(progressFractions).toEqual([0.25, 0.5, 0.75, 1]);
   });
 
   it('load topology and weights from implicit relative http path: HDF5 format',
@@ -1039,7 +1098,7 @@ describeMathCPU('loadModel from URL', () => {
   });
 });
 
-describeMathCPU('loadModel from IOHandler', () => {
+describeMathCPU('loadLayersModel from IOHandler', () => {
   // The model topology JSON can be obtained with the following Python Keras
   // code:
   //

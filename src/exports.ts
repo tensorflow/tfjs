@@ -147,7 +147,104 @@ export function sequential(config?: SequentialArgs): Sequential {
  */
 export function loadModel(
     pathOrIOHandler: string|io.IOHandler, strict = true): Promise<Model> {
-  return loadModelInternal(pathOrIOHandler, strict);
+  return loadModelInternal(pathOrIOHandler, {strict});
+}
+
+/**
+ * Load a model composed of Layer objects, including its topology and optionally
+ * weights. See the Tutorial named "How to import a Keras Model" for usage
+ * examples.
+ *
+ * This method is applicable to:
+ *
+ * 1. Models created with the `tf.layers.*`, `tf.sequential`, and `tf.model`
+ *    APIs of TensorFlow.js and later saved with the `tf.Model.save` method.
+ * 2. Models converted from Keras or TensorFlow tf.keras using
+ *    the [tensorflowjs_converter](https://github.com/tensorflow/tfjs-converter)
+ *
+ * This mode is *not* applicable to TensorFlow `SavedModel`s or their converted
+ * forms. For those models, use `tf.loadGraphModel`.
+ *
+ * Example 1. Load a model from an HTTP server.
+ *
+ * ```js
+ * const model = await tf.loadLayersModel(
+ *     'https://storage.googleapis.com/tfjs-models/tfjs/iris_v1/model.json');
+ * model.summary();
+ * ```
+ *
+ * Example 2: Save `model`'s topology and weights to browser [local
+ * storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage);
+ * then load it back.
+ *
+ * ```js
+ * const model = tf.sequential(
+ *     {layers: [tf.layers.dense({units: 1, inputShape: [3]})]});
+ * console.log('Prediction from original model:');
+ * model.predict(tf.ones([1, 3])).print();
+ *
+ * const saveResults = await model.save('localstorage://my-model-1');
+ *
+ * const loadedModel = await tf.loadLayersModel('localstorage://my-model-1');
+ * console.log('Prediction from loaded model:');
+ * loadedModel.predict(tf.ones([1, 3])).print();
+ * ```
+ *
+ * Example 3. Saving `model`'s topology and weights to browser
+ * [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API);
+ * then load it back.
+ *
+ * ```js
+ * const model = tf.sequential(
+ *     {layers: [tf.layers.dense({units: 1, inputShape: [3]})]});
+ * console.log('Prediction from original model:');
+ * model.predict(tf.ones([1, 3])).print();
+ *
+ * const saveResults = await model.save('indexeddb://my-model-1');
+ *
+ * const loadedModel = await tf.loadLayersModel('indexeddb://my-model-1');
+ * console.log('Prediction from loaded model:');
+ * loadedModel.predict(tf.ones([1, 3])).print();
+ * ```
+ *
+ * Example 4. Load a model from user-selected files from HTML
+ * [file input
+ * elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file).
+ *
+ * ```js
+ * // Note: this code snippet will not work without the HTML elements in the
+ * //   page
+ * const jsonUpload = document.getElementById('json-upload');
+ * const weightsUpload = document.getElementById('weights-upload');
+ *
+ * const model = await tf.loadLayersModel(
+ *     tf.io.browserFiles([jsonUpload.files[0], weightsUpload.files[0]]));
+ * ```
+ *
+ * @param pathOrIOHandler Can be either of the two formats
+ *   1. A string path to the `ModelAndWeightsConfig` JSON describing
+ *      the model in the canonical TensorFlow.js format. For file://
+ *      (tfjs-node-only), http:// and https:// schemas, the path can be
+ *      either absolute or relative.
+ *   2. An `tf.io.IOHandler` object that loads model artifacts with its `load`
+ *      method.
+ * @param options Optional configuration arguments for the model loading,
+ *   including:
+ *   - `strict`: Require that the provided weights exactly match those required
+ *     by the layers.  Default true.  Passing false means that both extra
+ *     weights and missing weights will be silently ignored.
+ *   - ｀onProgress｀: A function of the signature `(fraction: number) => void',
+ *     that can be used as the progress callback for the model loading.
+ * @returns A `Promise` of `tf.Model`, with the topology and weights loaded.
+ */
+/** @doc {heading: 'Models', subheading: 'Loading'} */
+export function loadLayersModel(
+    pathOrIOHandler: string|io.IOHandler, options?: io.LoadOptions):
+    Promise<Model> {
+  if (options == null) {
+    options = {};
+  }
+  return loadModelInternal(pathOrIOHandler, options);
 }
 
 /**

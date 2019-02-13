@@ -23,7 +23,7 @@ export {InputSpec, SymbolicTensor} from './engine/topology';
 export {Model, ModelCompileArgs, ModelEvaluateArgs} from './engine/training';
 export {ModelFitDatasetArgs} from './engine/training_dataset';
 export {ModelFitArgs} from './engine/training_tensors';
-export {input, loadModel, model, registerCallbackConstructor, sequential} from './exports';
+export {input, loadLayersModel, loadModel, model, registerCallbackConstructor, sequential} from './exports';
 export {Shape} from './keras_format/common';
 // tslint:disable-next-line:max-line-length
 export {GRUCellLayerArgs, GRULayerArgs, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNLayerArgs, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs} from './layers/recurrent';

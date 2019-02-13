@@ -227,20 +227,31 @@ export interface ModelPredictArgs {
  *      paths described by the `paths` fields in weights manifest.
  *   2. An `tf.io.IOHandler` object that loads model artifacts with its `load`
  *      method.
- * @param strict Require that the provided weights exactly match those required
- *   by the layers.  Default true.  Passing false means that both extra weights
- *   and missing weights will be silently ignored.
- *
+ * @param options Optional configuration arguments for the model loading,
+ *   including:
+ *   - `strict`: Require that the provided weights exactly match those required
+ *     by the layers.  Default true.  Passing false means that both extra
+ *     weights and missing weights will be silently ignored.
+ *   - `onProgress`: A progress callback of the form:
+ *     `(fraction: number) => void`. This callback can be used to monitor the
+ *     model-loading process.
  * @returns A `Promise` of `tf.Model`, with the topology and weights loaded.
  */
 export async function loadModelInternal(
-    pathOrIOHandler: string|io.IOHandler, strict = true): Promise<Model> {
+    pathOrIOHandler: string|io.IOHandler, options?: io.LoadOptions):
+    Promise<Model> {
+  if (options == null) {
+    options = {};
+  }
   if (typeof pathOrIOHandler === 'string') {
     const handlers = io.getLoadHandlers(pathOrIOHandler);
     if (handlers.length === 0) {
       // For backward compatibility: if no load handler can be found,
       // assume it is a relative http path.
-      handlers.push(io.browserHTTPRequest(pathOrIOHandler));
+      // TODO(cais): Reformat the args into a single `LoadOptions` once the core
+      // is refactored.
+      handlers.push(io.browserHTTPRequest(
+          pathOrIOHandler, null, null, null, options.onProgress));
     } else if (handlers.length > 1) {
       throw new ValueError(
           `Found more than one (${handlers.length}) load handlers for ` +
@@ -249,7 +260,7 @@ export async function loadModelInternal(
     pathOrIOHandler = handlers[0];
   }
   return loadModelFromIOHandler(
-      pathOrIOHandler as io.IOHandler, undefined, strict);
+      pathOrIOHandler as io.IOHandler, undefined, options);
 }
 
 /**
@@ -264,7 +275,10 @@ export async function loadModelInternal(
  */
 export async function loadModelFromIOHandler(
     handler: io.IOHandler, customObjects?: serialization.ConfigDict,
-    strict = true): Promise<Model> {
+    options?: io.LoadOptions): Promise<Model> {
+  if (options == null) {
+    options = {};
+  }
   if (handler.load == null) {
     throw new ValueError(
         'Cannot proceed with model loading because the IOHandler provided ' +
@@ -276,6 +290,7 @@ export async function loadModelFromIOHandler(
     modelTopology = modelTopology['model_config'] as PyJsonDict;
   }
 
+  const strict = options.strict == null ? true : options.strict;
   // If weights are provided and the weight-loading mode is strict, use
   // fast weight initialization. This skips costly initializers such as
   // 'orthogonal' and saves unnecessary computation in cases where
