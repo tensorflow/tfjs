@@ -189,7 +189,9 @@ export function func<T extends DataElement>(
  *  }
  */
 export function generator<T extends DataElement>(
-    generator: () => (Iterator<T>| Promise<Iterator<T>>)): Dataset<T> {
-  return datasetFromIteratorFn(
-      async () => iteratorFromFunction((await generator()).next));
+    generator: () => Iterator<T>| Promise<Iterator<T>>): Dataset<T> {
+  return datasetFromIteratorFn(async () => {
+    const gen = await generator();
+    return iteratorFromFunction(() => gen.next());
+  });
 }
