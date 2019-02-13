@@ -116,7 +116,20 @@ export function loadGraphModel(
   if (options != null && options.fromTFHub) {
     return loadTfHubModule(modelUrl, options.requestInit, options.onProgress);
   }
-  const manifestUrl: string = undefined;
-  return loadFrozenModel(
-      modelUrl, manifestUrl, options.requestInit, options.onProgress);
+  let weightsManifestUrl: string = undefined;
+
+  if (modelUrl && modelUrl.endsWith('.json')) {
+    return (loadFrozenModelJSON(
+                modelUrl, options.requestInit, options.onProgress) as
+                // tslint:disable-next-line:no-any
+                Promise<any>) as Promise<FrozenModel>;
+  }
+  // if users are using the new loadGraphModel API, the weightManifestUrl will
+  // be omitted. We will build the url using the model URL path and default
+  // manifest file name.
+  if (modelUrl != null && weightsManifestUrl == null) {
+    weightsManifestUrl = getWeightsManifestUrl(modelUrl);
+  }
+  return loadFrozenModelPB(
+      modelUrl, weightsManifestUrl, options.requestInit, options.onProgress);
 }
