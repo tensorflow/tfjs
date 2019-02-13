@@ -11,8 +11,10 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import {Shape} from '../keras_format/common';
+import {TensorOrArrayOrMap} from '../types';
 
-import {Dataset, LazyIterator, TensorOrTensorMap,} from './dataset_stub';
+import {Dataset, LazyIterator} from './dataset_stub';
+import {FitDatasetElement} from './training_dataset';
 
 export interface FakeDatasetArgs {
   /**
@@ -82,8 +84,7 @@ function generateRandomTensorContainer(shape: Shape|{[name: string]: Shape}):
   return output;
 }
 
-class FakeNumericIterator extends
-    LazyIterator<[TensorOrTensorMap, TensorOrTensorMap]> {
+class FakeNumericIterator extends LazyIterator<FitDatasetElement> {
   private xBatchShape: Shape|{[name: string]: Shape};
   private yBatchShape: Shape|{[name: string]: Shape};
   private numBatches: number;
@@ -111,8 +112,7 @@ class FakeNumericIterator extends
             'or both set.');
   }
 
-  async next():
-      Promise<IteratorResult<[TensorOrTensorMap, TensorOrTensorMap]>> {
+  async next(): Promise<IteratorResult<FitDatasetElement>> {
     const done = ++this.batchCount > this.numBatches;
     if (done) {
       return {done, value: null};
@@ -121,11 +121,10 @@ class FakeNumericIterator extends
       // Generate data randomly.
       return {
         done,
-        value: done ? null :
-                      [
-                        generateRandomTensorContainer(this.xBatchShape),
-                        generateRandomTensorContainer(this.yBatchShape)
-                      ]
+        value: done ? null : {
+          xs: generateRandomTensorContainer(this.xBatchShape),
+          ys: generateRandomTensorContainer(this.yBatchShape)
+        }
       };
     } else {
       // Use preset tensors.
@@ -162,7 +161,7 @@ class FakeNumericIterator extends
         tfc.util.assert(
             tfc.util.arraysEqual(ys.shape, this.yBatchShape as Shape),
             `Shape mismatch: expected: ${JSON.stringify(this.yBatchShape)}; ` +
-            `actual: ${JSON.stringify(ys.shape)}`);
+                `actual: ${JSON.stringify(ys.shape)}`);
       } else {
         // Get preset ys tensors for multi-output models.
         ys = {};
@@ -170,16 +169,15 @@ class FakeNumericIterator extends
         for (const key in this.yTensorValues) {
           ys[key] = this.yTensorValues[key][index];
           tfc.util.assert(
-              tfc.util.arraysEqual(ys[key].shape,
-                  this.yBatchShape[key] as Shape),
+              tfc.util.arraysEqual(
+                  ys[key].shape, this.yBatchShape[key] as Shape),
               `Shape mismatch: expected: ${
-                JSON.stringify(this.yBatchShape)}; ` +
-              `actual: ${JSON.stringify(ys.shape)}`
-          );
+                  JSON.stringify(this.yBatchShape)}; ` +
+                  `actual: ${JSON.stringify(ys.shape)}`);
         }
       }
 
-      return {done, value: [xs, ys]};
+      return {done, value: {xs, ys}};
     }
   }
 }
@@ -191,8 +189,7 @@ class FakeNumericIterator extends
  *
  * The iterator from the dataset always generate random-normal float32 values.
  */
-export class FakeNumericDataset extends
-    Dataset<[TensorOrTensorMap, TensorOrTensorMap]> {
+export class FakeNumericDataset extends Dataset<FitDatasetElement> {
   constructor(readonly args: FakeDatasetArgs) {
     super();
     tfc.util.assert(
@@ -204,8 +201,40 @@ export class FakeNumericDataset extends
     this.size = args.numBatches;
   }
 
-  async iterator():
-      Promise<LazyIterator<[TensorOrTensorMap, TensorOrTensorMap]>> {
+  async iterator(): Promise<LazyIterator<FitDatasetElement>> {
     return new FakeNumericIterator(this.args);
+  }
+}
+
+// We can't use Dataset.map(...) because we don't depend on tfjs-data here,
+// so we manually transform the above {xs, ys} dataset to the [xs, ys] form.
+export class FakeNumericDatasetLegacyArrayForm extends
+    Dataset<[TensorOrArrayOrMap, TensorOrArrayOrMap]> {
+  ds: FakeNumericDataset;
+  constructor(readonly args: FakeDatasetArgs) {
+    super();
+    this.ds = new FakeNumericDataset(args);
+  }
+
+  async iterator():
+      Promise<LazyIterator<[TensorOrArrayOrMap, TensorOrArrayOrMap]>> {
+    const it = await this.ds.iterator();
+    return new FakeNumericIteratorLegacyArrayForm(it);
+  }
+}
+
+class FakeNumericIteratorLegacyArrayForm extends
+    LazyIterator<[TensorOrArrayOrMap, TensorOrArrayOrMap]> {
+  constructor(private readonly it: LazyIterator<FitDatasetElement>) {
+    super();
+  }
+
+  async next():
+      Promise<IteratorResult<[TensorOrArrayOrMap, TensorOrArrayOrMap]>> {
+    const result = await this.it.next();
+    return {
+      done: result.done,
+      value: result.value == null ? null : [result.value.xs, result.value.ys]
+    };
   }
 }

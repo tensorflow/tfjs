@@ -10,7 +10,8 @@
 
 /** Defines allowable data types for tensors. */
 
-import {Scalar, Tensor} from '@tensorflow/tfjs-core';
+import {NamedTensorMap, Scalar, Tensor} from '@tensorflow/tfjs-core';
+
 import {Shape} from './keras_format/common';
 
 export type HasShape = {
@@ -42,9 +43,15 @@ export type RegularizerFn = () => Scalar;
 export type RnnStepFunction =
     (inputs: Tensor, states: Tensor[]) => [Tensor, Tensor[]];
 
-export type NamedTensorMap = {
-  [name: string]: Tensor;
-};
+/**
+ * A single Tensor or a non-nested collection of Tensors.
+ *
+ * An object of this type can always be reduced to `Tensor[]`.  A single
+ * 'Tensor' becomes `[Tensor]`.  A `Tensor[]` is unchanged.  A `NamedTensorMap`
+ * can be converted with the help of a list of names, providing the order in
+ * which the Tensors should appear in the resulting array.
+ */
+export type TensorOrArrayOrMap = Tensor|Tensor[]|NamedTensorMap;
 
 /**
  * Type representing a loosely-typed bundle of keyword arguments.

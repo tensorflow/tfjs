@@ -8,11 +8,11 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs-core';
+import {NamedTensorMap, Tensor} from '@tensorflow/tfjs-core';
 
 import {describeMathCPUAndGPU} from '../utils/test_utils';
+
 import {FakeNumericDataset} from './dataset_fakes';
-import {TensorMap} from './dataset_stub';
 
 describeMathCPUAndGPU('FakeNumericDataset', () => {
   it('1D features, 1D targets', async () => {
@@ -23,9 +23,8 @@ describeMathCPUAndGPU('FakeNumericDataset', () => {
       const iterator = await dataset.iterator();
       for (let i = 0; i < 5; ++i) {
         const result = await iterator.next();
-        expect(result.value.length).toEqual(2);
-        expect((result.value[0] as Tensor).shape).toEqual([8, 3]);
-        expect((result.value[1] as Tensor).shape).toEqual([8, 1]);
+        expect((result.value.xs as Tensor).shape).toEqual([8, 3]);
+        expect((result.value.ys as Tensor).shape).toEqual([8, 1]);
         expect(result.done).toEqual(false);
       }
       for (let i = 0; i < 3; ++i) {
@@ -44,9 +43,8 @@ describeMathCPUAndGPU('FakeNumericDataset', () => {
       const iterator = await dataset.iterator();
       for (let i = 0; i < 5; ++i) {
         const result = await iterator.next();
-        expect(result.value.length).toEqual(2);
-        expect((result.value[0] as Tensor).shape).toEqual([8, 3, 4]);
-        expect((result.value[1] as Tensor).shape).toEqual([8, 2]);
+        expect((result.value.xs as Tensor).shape).toEqual([8, 3, 4]);
+        expect((result.value.ys as Tensor).shape).toEqual([8, 2]);
         expect(result.done).toEqual(false);
       }
       for (let i = 0; i < 3; ++i) {
@@ -69,11 +67,10 @@ describeMathCPUAndGPU('FakeNumericDataset', () => {
       const iterator = await dataset.iterator();
       for (let i = 0; i < 5; ++i) {
         const result = await iterator.next();
-        expect(result.value.length).toEqual(2);
-        const xs = result.value[0] as TensorMap;
+        const xs = result.value.xs as NamedTensorMap;
         expect(xs['input1'].shape).toEqual([8, 3, 4]);
         expect(xs['input2'].shape).toEqual([8, 2, 3]);
-        expect((result.value[1] as Tensor).shape).toEqual([8, 2]);
+        expect((result.value.ys as Tensor).shape).toEqual([8, 2]);
         expect(result.done).toEqual(false);
       }
       for (let i = 0; i < 3; ++i) {

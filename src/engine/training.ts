@@ -11,8 +11,8 @@
 /* Original Source: engine/training.py */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {io, ModelPredictConfig as ModelPredictArgs, Optimizer, Scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
-import {getScalar,} from '../backend/state';
+import {io, ModelPredictConfig as ModelPredictArgs, NamedTensorMap, Optimizer, Scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
+import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {History, ModelLoggingVerbosity} from '../base_callbacks';
 import {nameScope} from '../common';
@@ -21,12 +21,11 @@ import {Shape} from '../keras_format/common';
 import * as losses from '../losses';
 import * as Metrics from '../metrics';
 import * as optimizers from '../optimizers';
-import {LossOrMetricFn, NamedTensorMap} from '../types';
+import {LossOrMetricFn} from '../types';
 import {count, pyListRepeat, singletonOrArray, unique} from '../utils/generic_utils';
 import {printSummary} from '../utils/layer_utils';
 import {range} from '../utils/math_utils';
 import {LayerVariable} from '../variables';
-
 import {Container, ContainerArgs} from './container';
 import {Dataset} from './dataset_stub';
 import {execute, FeedDict} from './executor';

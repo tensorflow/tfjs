@@ -13,13 +13,16 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+import {isArray} from 'util';
+
 import {getScalar} from '../backend/state';
 import {BaseCallback, configureCallbacks, CustomCallbackArgs, History, ModelLoggingVerbosity, standardizeCallbacks, YieldEveryOptions} from '../base_callbacks';
 import {NotImplementedError, ValueError} from '../errors';
 import {disposeTensorsInLogs, UnresolvedLogs} from '../logs';
+import {TensorOrArrayOrMap} from '../types';
 import {singletonOrArray, toList} from '../utils/generic_utils';
 
-import {Dataset, LazyIterator, TensorMap, TensorOrTensorMap} from './dataset_stub';
+import {Dataset, LazyIterator} from './dataset_stub';
 
 /**
  * Interface for configuring model training based on a dataset object.
@@ -67,12 +70,15 @@ export interface ModelFitDatasetArgs<T> {
    * metrics at the end of each epoch. The model will not be trained on this
    * data. This could be any of the following:
    *
-   *   - an Array of `tf.Tensor` objects: [xVal, yVal]
-   *   - an Array of `tf.Tensor` objects:
-   *       [xVal, yVal, valSampleWeights] (not implemented yet).
-   *   - a dataset object.
+   *   - An array `[xVal, yVal]`, where the two values may be `tf.Tensor`,
+   *     an array of Tensors, or a map of string to Tensor.
+   *   - Similarly, an array ` [xVal, yVal, valSampleWeights]`
+   *     (not implemented yet).
+   *   - a `Dataset` object with elements of the form `{xs: xVal, ys: yVal}`,
+   *     where the two values may be `tf.Tensor`, an array of Tensors, or a map
+   *     of string to Tensor.
    *
-   * If `validationData` is an Array of Tensor objects, the `tf.Tensor` will be
+   * If `validationData` is an Array of Tensor objects, each `tf.Tensor` will be
    * sliced into batches during validation, using the parameter
    * `validationBatchSize` (which defaults to 32). The entirety of the
    * `tf.Tensor` objects will be used in the validation.
@@ -84,12 +90,9 @@ export interface ModelFitDatasetArgs<T> {
    *
    * The model will not be trained on this data.
    */
-  validationData?:
-      [
-        tfc.Tensor|tfc.Tensor[]|TensorMap, tfc.Tensor|tfc.Tensor[]|TensorMap
-      ]|[tfc.Tensor | tfc.Tensor[] | TensorMap,
-         tfc.Tensor|tfc.Tensor[]|TensorMap, tfc.Tensor|tfc.Tensor[]|TensorMap]|
-      Dataset<T>;
+  validationData?: [
+    TensorOrArrayOrMap, TensorOrArrayOrMap
+  ]|[TensorOrArrayOrMap, TensorOrArrayOrMap, TensorOrArrayOrMap]|Dataset<T>;
 
   /**
    * Optional batch size for validation.
@@ -137,6 +140,11 @@ export interface ModelFitDatasetArgs<T> {
   initialEpoch?: number;
 }
 
+export interface FitDatasetElement {
+  xs: TensorOrArrayOrMap;
+  ys: TensorOrArrayOrMap;
+}
+
 /**
  * Interface for configuring model evaluation based on a dataset object.
  */
@@ -161,104 +169,111 @@ const DEFAULT_VALIDATION_BATCH_SIZE = 32;
  *
  * @param model: A `tf.Model` object.
  * @param iteratorOut The output of a dataset iterator. It is required to be
- *   an array of two tensor containers. Each of the two elements of the array
- *   must be a single `tf.Tensor` or a map from string names to `tf.Tensor`s.
+ *   an object of the form `{xs: TensorOrArrayOrMap, ys: TensorOrArrayOrMap}`,
+ *   where `TensorOrArrayOrMap` is a single `tf.Tensor`, a `tf.Tensor[]`, or a
+ *   flat map from string names to `tf.Tensor`s.
  * @returns A flat array of `tf.Tensor` objects: the input `tf.Tensor`s followed
- *   by the target `tf.Tensor`s.
+ *   by the target `tf.Tensor`s.  When `tf.Tensor`s are provided as a map, the
+ *   order in the resulting array is taken from the `inputNames` and
+ *   `outputNames` of the model.
  */
 function standardizeDataIteratorOutput(
     // Type `model` as `any` here to avoid circular dependency w/ training.ts.
     // tslint:disable-next-line:no-any
     model: any, iteratorOut: {}): tfc.Tensor[] {
-  tfc.util.assert(
-    Array.isArray(iteratorOut) && iteratorOut.length === 2,
-    'Dataset iterator for fitDataset() is expected to generate ' +
-    'an Array of length 2: `[xs, ys]`, but instead generates ' +
-    iteratorOut);
-
-  const tuple = iteratorOut as [TensorOrTensorMap, TensorOrTensorMap];
-  let xs = tuple[0] as TensorOrTensorMap;
-  let ys = tuple[1] as TensorOrTensorMap;
-  const standardizedXs: tfc.Tensor[] = [];
-  const standardizedYs: tfc.Tensor[] = [];
-  let xsBatchSize: number;
-  let ysBatchSize: number;
-
-  // Different input standardization strategies for single-input models and
-  // multi-input models.
-  if (xs instanceof tfc.Tensor) {
-    // Standardize single input.
+  let xs: TensorOrArrayOrMap;
+  let ys: TensorOrArrayOrMap;
+  if (Array.isArray(iteratorOut)) {
+    tfc.deprecationWarn(
+        'Deprecated argument format: fitDataset() will soon no longer accept ' +
+        'Datasets that produce elements in the array form `[xs, ys]`.  ' +
+        'Instead it now expects elements of the form `{xs: xVal, ys: yVal}`, ' +
+        'where the two values may be `tf.Tensor`, an array of Tensors, or a ' +
+        'map of string to Tensor. ');
     tfc.util.assert(
-      model.inputs.length === 1,
-      `Model has multiple ${model.inputs.length} inputs, hence it ` +
-      `expects the input dataset to generate a dictionary of tensors ` +
-      `(with keys ${JSON.stringify(model.inputNames)}), ` +
-      `but received a single tensor.`);
-    xsBatchSize = xs.shape[0];
-    standardizedXs.push(xs);
+        iteratorOut.length === 2,
+        'When using the legacy array input form, a ' +
+            'Dataset iterator for fitDataset() is expected to generate ' +
+            'an Array of length 2: `[xs, ys]`, but instead generates ' +
+            iteratorOut);
+    const tuple = iteratorOut as [TensorOrArrayOrMap, TensorOrArrayOrMap];
+    xs = tuple[0];
+    ys = tuple[1];
   } else {
-    // Standard multiple inputs.
-    xs = xs as TensorMap;
-    // Check that all the required keys are available and all the batch sizes
-    // are equal for multiple inputs.
-    for (const inputName of model.inputNames) {
-      if (xs[inputName] == null) {
-        throw new ValueError(`The feature data generated by the dataset ` +
-          `lacks the required input key '${inputName}'.`);
-      }
-      if (xsBatchSize == null) {
-        xsBatchSize = xs[inputName].shape[0];
-      } else {
-        tfc.util.assert(
-          xs[inputName].shape[0] === xsBatchSize,
-          `Mismatch in batch size between inputs x tensors, ` +
-          `(${xs[inputName].shape[0]} vs. ${xsBatchSize})`);
-      }
-      standardizedXs.push(xs[inputName]);
-    }
+    const iteratorOutObj = iteratorOut as FitDatasetElement;
+    xs = iteratorOutObj['xs'];
+    ys = iteratorOutObj['ys'];
+    tfc.util.assert(
+        xs != null && ys != null,
+        'A Dataset iterator for fitDataset() is expected to generate objects ' +
+            'of the form `{xs: xVal, ys: yVal}`, where the two values may be ' +
+            '`tf.Tensor`, an array of Tensors, or a map of string to ' +
+            'Tensor.  The provided Dataset instead generates ' + iteratorOut);
   }
 
-  // Different output standardization strategies for single-output models and
-  // multi-output models.
-  if (ys instanceof tfc.Tensor) {
-    // Standardize single output.
+  const flattenedXs: tfc.Tensor[] =
+      flattenTensorOrArrayOrMap('input', model.inputNames, xs);
+  const flattenedYs: tfc.Tensor[] =
+      flattenTensorOrArrayOrMap('output', model.outputNames, ys);
+
+  const batchSize: number = flattenedXs[0].shape[0];
+
+  tfc.util.assert(
+      flattenedXs.length === model.inputs.length,
+      `Model has ${model.inputs.length} inputs, but the dataset ` +
+          `provides ${flattenedXs.length} inputs.  (Expected input keys: ` +
+          `${JSON.stringify(model.inputNames)})`);
+
+  tfc.util.assert(
+      flattenedYs.length === model.outputs.length,
+      `Model has ${model.outputs.length} outputs, but the dataset ` +
+          `provides ${flattenedYs.length} outputs.  (Expected output keys: ` +
+          `${JSON.stringify(model.outputNames)})`);
+
+  for (const xIndex in flattenedXs) {
     tfc.util.assert(
-      model.outputs.length === 1,
-      `Model has multiple ${model.outputs.length} outputs, hence it ` +
-      `expects the output dataset to generate a dictionary of tensors ` +
-      `(with keys ${JSON.stringify(model.outputNames)}), ` +
-      `but received a single tensor.`);
-    ysBatchSize = ys.shape[0];
-    standardizedYs.push(ys);
-  } else {
-    // Standardize multiple outputs.
-    ys = ys as TensorMap;
-    // Check that all the required keys are available and all the batch sizes
-    // are equal for multiple outputs.
-    for (const outputName of model.outputNames) {
-      if (ys[outputName] == null) {
-        throw new ValueError(`The feature data generated by the dataset ` +
-          `lacks the required output key '${outputName}'.`);
-      }
-      if (ysBatchSize == null) {
-        ysBatchSize = ys[outputName].shape[0];
-      } else {
-        tfc.util.assert(
-          ys[outputName].shape[0] === ysBatchSize,
-          `Mismatch in batch size between output y tensors, ` +
-          `(${ys[outputName].shape[0]} vs. ${ysBatchSize})`);
-      }
-      standardizedYs.push(ys[outputName]);
-    }
+        flattenedXs[xIndex].shape[0] === batchSize,
+        `Batch size mismatch: input ` +
+            `${model.inputNames[xIndex]} has ${
+                flattenedXs[xIndex].shape[0]}; ` +
+            `expected  ${batchSize} based on input ${model.inputNames[0]}.`);
   }
 
-  // Check all batch size are equal for inputs and outputs.
-  tfc.util.assert(
-    xsBatchSize === ysBatchSize,
-    `Mismatch in batch size between x and y tensors (${xsBatchSize} vs. ` +
-    `${ysBatchSize})`);
+  for (const yIndex in flattenedYs) {
+    tfc.util.assert(
+        flattenedYs[yIndex].shape[0] === batchSize,
+        `Batch size mismatch: output ` +
+            `${model.outputNames[yIndex]} has ${
+                flattenedYs[yIndex].shape[0]}; ` +
+            `expected  ${batchSize} based on input ${model.inputNames[0]}.`);
+  }
 
-  return standardizedXs.concat(standardizedYs);
+  return flattenedXs.concat(flattenedYs);
+}
+
+function flattenTensorOrArrayOrMap(
+    inputOrOutput: string, names: string[], values: TensorOrArrayOrMap) {
+  if (values instanceof tfc.Tensor) {
+    return [values];
+  } else if (isArray(values)) {
+    tfc.util.assert(
+        values.length === names.length,
+        `Received an array of ${values.length} Tensors, but expected ${
+            names.length} to match the ${inputOrOutput} keys ${names}.`);
+    return values;
+  } else {
+    const result: tfc.Tensor[] = [];
+    // Check that all the required keys are available.
+    for (const name of names) {
+      if (values[name] == null) {
+        throw new ValueError(
+            `The feature data generated by the dataset lacks the required ` +
+            `${inputOrOutput} key '${name}'.`);
+      }
+      result.push(values[name]);
+    }
+    return result;
+  }
 }
 
 function standardizeTensorValidationData<T>(
@@ -483,10 +498,9 @@ function getStepsPerEpoch<T>(
 function isDatasetObject<T>(
     dataset:
         [
-          tfc.Tensor|tfc.Tensor[]|TensorMap, tfc.Tensor|tfc.Tensor[]|TensorMap
-        ]|[tfc.Tensor | tfc.Tensor[] | TensorMap,
-           tfc.Tensor | tfc.Tensor[] | TensorMap,
-           tfc.Tensor | tfc.Tensor[] | TensorMap]|Dataset<T>): boolean {
+          TensorOrArrayOrMap, TensorOrArrayOrMap
+        ]|[TensorOrArrayOrMap, TensorOrArrayOrMap, TensorOrArrayOrMap]|
+    Dataset<T>): boolean {
   return (typeof (dataset as Dataset<T>).iterator === 'function');
 }
 
