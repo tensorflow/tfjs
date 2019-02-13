@@ -30,7 +30,12 @@ const DEFAULT_SUBSURFACE_OPTS = {
  */
 export function subSurface(parent: Drawable, name: string, opts: Options = {}) {
   const container = getDrawArea(parent);
-  const style = css({...tac('mv2')});
+  const style = css({
+    '& canvas': {
+      display: 'block',
+    },
+    ...tac('mv2'),
+  });
   const titleStyle = css({
     backgroundColor: 'white',
     display: 'inline-block',

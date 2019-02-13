@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <!--
   @license
   Copyright 2018 Google LLC. All Rights Reserved.
@@ -119,6 +120,10 @@
 
       <div id='barchart-multi'></div>
       <script class='show-script'>
+        async function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
         async function renderBarchartMultipleTimes(numRenders, numVals) {
           const genData = function (numVals) {
             return Array(numVals).fill(0).map((d, i) => {
@@ -136,13 +141,14 @@
               width: 800,
               height: 250,
             });
+            await sleep(20);
           }
           console.timeEnd(`renderBarchart:${numVals}:${numRenders}`);
 
         }
 
-        const numRenders = 10;
-        const numVals = 100;
+        const numRenders = 30;
+        const numVals = 20;
         renderBarchartMultipleTimes(numRenders, numVals);
       </script>
 
@@ -202,6 +208,44 @@
           const container = document.getElementById('histogram-cont');
           tfvis.render.histogram(data, container);
         }
+      </script>
+
+      <h3>
+        re-render histogram
+      </h3>
+
+      <div id='histogram-multi'></div>
+      <script class='show-script'>
+        async function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function renderHistogramMultipleTimes(numRenders, numVals) {
+          const genData = function (numVals) {
+            return Array(numVals).fill(0).map((d, i) => {
+              return (Math.random() * 50) + 50;
+            });
+          };
+
+          console.time(`renderHistogram:${numVals}:${numRenders}`);
+          for (let i = 0; i < numRenders; i++) {
+            const data = genData(numVals);
+            const container = document.getElementById('histogram-multi');
+            await tfvis.render.histogram(data, container, {
+              stats: false,
+            });
+
+            const surface = { name: 'Histogram', tab: 'Re-renders' };
+            await tfvis.render.histogram(data, surface, {
+              stats: false,
+            });
+            await sleep(20);
+          }
+          console.timeEnd(`renderHistogram:${numVals}:${numRenders}`);
+
+        }
+
+        renderHistogramMultipleTimes(30, 20);
       </script>
 
       <hr>
