@@ -10,13 +10,14 @@
 
 /* Original source: keras/engine/topology.py */
 
-import {Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
+import {NamedTensorMap, Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
+
 import {getUid} from '../backend/state';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
 import {Shape} from '../keras_format/common';
 import {PyJsonDict} from '../keras_format/types';
 import {deserialize as deserializeLayer} from '../layers/serialization';
-import {Kwargs, NamedTensorMap} from '../types';
+import {Kwargs} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import {convertTsToPythonic} from '../utils/serialization_utils';
 import * as types_utils from '../utils/types_utils';

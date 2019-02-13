@@ -8,8 +8,6 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
-
 /**
  * Stub interfaces and classes for testing tf.Model.fitDataset().
  *
@@ -25,9 +23,3 @@ export abstract class Dataset<T> {
   abstract async iterator(): Promise<LazyIterator<T>>;
   size: number;
 }
-
-export type TensorMap = {
-  [name: string]: tfc.Tensor
-};
-
-export type TensorOrTensorMap = tfc.Tensor|TensorMap;
