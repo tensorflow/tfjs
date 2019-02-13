@@ -9,7 +9,7 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-core": "1.0.0-alpha2",
+    "@tensorflow/tfjs-core": "1.0.0-alpha3",
     "@tensorflow/tfjs-layers": "../../dist"
   },
   "scripts": {
