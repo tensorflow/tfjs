@@ -575,7 +575,7 @@ export class Tensor<R extends Rank = Rank> {
 
   /** Returns a `tf.TensorBuffer` that holds the underlying data. */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  buffer<D extends DataType>(): TensorBuffer<R, D> {
+  buffer<D extends DataType = 'float32'>(): TensorBuffer<R, D> {
     deprecationWarningFn(
         `Tensor.buffer() is renamed to Tensor.bufferSync() in TensorFlow.js ` +
         `1.0 and Tensor.buffer() will become an async function.`);

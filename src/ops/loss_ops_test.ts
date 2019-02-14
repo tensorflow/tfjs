@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose, expectNumbersClose} from '../test_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
   it('1D - no weights', () => {
@@ -26,7 +26,7 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
     const y = tf.losses.computeWeightedLoss(losses);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), (1 + 2 + 3) / 3);
+    expectArraysClose(y, (1 + 2 + 3) / 3);
   });
 
   it('1D - no weights - Reduction.NONE', () => {
@@ -46,7 +46,7 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
         tf.losses.computeWeightedLoss(losses, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), (1 + 2 + 3) / 3);
+    expectArraysClose(y, (1 + 2 + 3) / 3);
   });
 
   it('1D - no weights - Reduction.SUM', () => {
@@ -56,7 +56,7 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
         tf.losses.computeWeightedLoss(losses, undefined, tf.Reduction.SUM);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), (1 + 2 + 3));
+    expectArraysClose(y, (1 + 2 + 3));
   });
 
   it('1D - weights', () => {
@@ -66,7 +66,7 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
     const y = tf.losses.computeWeightedLoss(losses, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), (1 * 0.1 + 2 * 0 + 3 * 0.3) / 2);
+    expectArraysClose(y, (1 * 0.1 + 2 * 0 + 3 * 0.3) / 2);
   });
 
   it('2D - weights - broadcast', () => {
@@ -76,7 +76,7 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
     const y = tf.losses.computeWeightedLoss(losses, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.06666667);
+    expectArraysClose(y, 0.06666667);
   });
 
   it('1D - weights - Reduction.NONE', () => {
@@ -96,7 +96,7 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
     const y = tf.losses.computeWeightedLoss(losses, weights, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), (1 * 0.1 + 2 * 0.2 + 3 * 0.3) / 0.6);
+    expectArraysClose(y, (1 * 0.1 + 2 * 0.2 + 3 * 0.3) / 0.6);
   });
 
   it('1D - weights - Reduction.SUM', () => {
@@ -106,7 +106,7 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
     const y = tf.losses.computeWeightedLoss(losses, weights, tf.Reduction.SUM);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), (1 * 0.1 + 2 * 0.2 + 3 * 0.3));
+    expectArraysClose(y, (1 * 0.1 + 2 * 0.2 + 3 * 0.3));
   });
 
   it('2D - no weights', () => {
@@ -115,7 +115,7 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
     const y = tf.losses.computeWeightedLoss(losses);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), (4 + 8 + 12 + 8 + 1 + 3) / 6);
+    expectArraysClose(y, (4 + 8 + 12 + 8 + 1 + 3) / 6);
   });
 
   it('2D - weights', () => {
@@ -125,8 +125,8 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
     const y = tf.losses.computeWeightedLoss(losses, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(), (4 * 1 + 8 * 0 + 12 * 2 + (8 * -5) + 1 * 0 + 3 * 6) / 4);
+    expectArraysClose(
+        y, (4 * 1 + 8 * 0 + 12 * 2 + (8 * -5) + 1 * 0 + 3 * 6) / 4);
   });
 
   it('2D - no weights - Reduction.MEAN', () => {
@@ -136,7 +136,7 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
         tf.losses.computeWeightedLoss(losses, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), (4 + 8 + 12 + 8 + 1 + 3) / 6);
+    expectArraysClose(y, (4 + 8 + 12 + 8 + 1 + 3) / 6);
   });
 
   it('2D - weights - Reduction.MEAN', () => {
@@ -146,8 +146,8 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
     const y = tf.losses.computeWeightedLoss(losses, weights, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(), (4 * 1 + 8 * 0 + 12 * 2 + (8 * -5) + 1 * 0 + 3 * 6) / 4);
+    expectArraysClose(
+        y, (4 * 1 + 8 * 0 + 12 * 2 + (8 * -5) + 1 * 0 + 3 * 6) / 4);
   });
 
   it('2D - weights - broadcast - MEAN', () => {
@@ -157,7 +157,7 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
     const y = tf.losses.computeWeightedLoss(losses, weights, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), (0.3 + 0.1 + 0.2) / (3 * 0.6));
+    expectArraysClose(y, (0.3 + 0.1 + 0.2) / (3 * 0.6));
   });
 
   it('2D - no weights - Reduction.SUM', () => {
@@ -167,7 +167,7 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
         tf.losses.computeWeightedLoss(losses, undefined, tf.Reduction.SUM);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), (4 + 8 + 12 + 8 + 1 + 3));
+    expectArraysClose(y, (4 + 8 + 12 + 8 + 1 + 3));
   });
 
   it('2D - weights - Reduction.SUM', () => {
@@ -177,8 +177,7 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
     const y = tf.losses.computeWeightedLoss(losses, weights, tf.Reduction.SUM);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(), (4 * 1 + 8 * 0 + 12 * 2 + (8 * -5) + 1 * 0 + 3 * 6));
+    expectArraysClose(y, (4 * 1 + 8 * 0 + 12 * 2 + (8 * -5) + 1 * 0 + 3 * 6));
   });
 
   it('2D - no weights - Reduction.NONE', () => {
@@ -229,7 +228,7 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
     const y = tf.losses.computeWeightedLoss(losses, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), (1 * 0.1 + 2 * 0 + 3 * 0.3) / 2);
+    expectArraysClose(y, (1 * 0.1 + 2 * 0 + 3 * 0.3) / 2);
   });
 });
 
@@ -241,8 +240,8 @@ describeWithFlags('absoluteDifference', ALL_ENVS, () => {
     const y = tf.losses.absoluteDifference(label, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         (Math.abs(1 - 0.3) + Math.abs(2 - (-0.6)) + Math.abs(3 - (-0.1))) / 3);
   });
 
@@ -254,8 +253,8 @@ describeWithFlags('absoluteDifference', ALL_ENVS, () => {
     const y = tf.losses.absoluteDifference(label, predictions, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         (Math.abs(1 - 0.3) * 0.1 + Math.abs(2 - (-0.6)) * 0.2 +
          Math.abs(3 - (-0.1)) * 0.3) /
             3);
@@ -284,8 +283,8 @@ describeWithFlags('absoluteDifference', ALL_ENVS, () => {
         label, predictions, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         (Math.abs(1 - 0.3) + Math.abs(2 - (-0.6)) + Math.abs(3 - (-0.1))) / 3);
   });
 
@@ -298,8 +297,8 @@ describeWithFlags('absoluteDifference', ALL_ENVS, () => {
         label, predictions, weights, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         ((Math.abs(1 - 0.3) * 0.1) + (Math.abs(2 - (-0.6)) * 0.2) +
          (Math.abs(3 - (-0.1)) * 0.3)) /
             0.6);
@@ -312,8 +311,8 @@ describeWithFlags('absoluteDifference', ALL_ENVS, () => {
     const y = tf.losses.absoluteDifference(label, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         (Math.abs(4 - 1) + Math.abs(8 - 9) + Math.abs(12 - 2) +
          Math.abs(8 - (-5)) + Math.abs(1 - (-2)) + Math.abs(3 - 6)) /
             6);
@@ -327,8 +326,8 @@ describeWithFlags('absoluteDifference', ALL_ENVS, () => {
     const y = tf.losses.absoluteDifference(label, predictions, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         (Math.abs(4 - 1) * 3 + Math.abs(8 - 9) * 0 + Math.abs(12 - 2) * 5 +
          Math.abs(8 - (-5)) * 0 + Math.abs(1 - (-2)) * 4 +
          Math.abs(3 - 6) * 2) /
@@ -358,8 +357,8 @@ describeWithFlags('absoluteDifference', ALL_ENVS, () => {
         label, predictions, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         (Math.abs(4 - 1) + Math.abs(8 - 9) + Math.abs(12 - 2) +
          Math.abs(8 - (-5)) + Math.abs(1 - (-2)) + Math.abs(3 - 6)) /
             6);
@@ -374,8 +373,8 @@ describeWithFlags('absoluteDifference', ALL_ENVS, () => {
         label, predictions, weights, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         (Math.abs(4 - 1) * 3 + Math.abs(8 - 9) * 6 + Math.abs(12 - 2) * 5 +
          Math.abs(8 - (-5)) * 0 + Math.abs(1 - (-2)) * 4 +
          Math.abs(3 - 6) * 2) /
@@ -443,8 +442,8 @@ describeWithFlags('meanSquaredError', ALL_ENVS, () => {
     const y = tf.losses.meanSquaredError(label, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         ((1 - 0.3) * (1 - 0.3) + (2 - (-0.6)) * (2 - (-0.6)) +
          (3 - (-0.1)) * (3 - (-0.1))) /
             3);
@@ -458,8 +457,8 @@ describeWithFlags('meanSquaredError', ALL_ENVS, () => {
     const y = tf.losses.meanSquaredError(label, predictions, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         ((1 - 0.3) * (1 - 0.3) * 0.1 + (2 - (-0.6)) * (2 - (-0.6)) * 0.2 +
          (3 - (-0.1)) * (3 - (-0.1)) * 0.3) /
             3);
@@ -488,8 +487,8 @@ describeWithFlags('meanSquaredError', ALL_ENVS, () => {
         label, predictions, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         ((1 - 0.3) * (1 - 0.3) + (2 - (-0.6)) * (2 - (-0.6)) +
          (3 - (-0.1)) * (3 - (-0.1))) /
             3);
@@ -504,8 +503,8 @@ describeWithFlags('meanSquaredError', ALL_ENVS, () => {
         label, predictions, weights, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         (((1 - 0.3) * (1 - 0.3) * 0.1) + ((2 - (-0.6)) * (2 - (-0.6)) * 0.2) +
          ((3 - (-0.1)) * (3 - (-0.1)) * 0.3)) /
             0.6);
@@ -518,8 +517,8 @@ describeWithFlags('meanSquaredError', ALL_ENVS, () => {
     const y = tf.losses.meanSquaredError(label, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         ((4 - 1) * (4 - 1) + (8 - 9) * (8 - 9) + (12 - 2) * (12 - 2) +
          (8 - (-5)) * (8 - (-5)) + (1 - (-2)) * (1 - (-2)) +
          (3 - 6) * (3 - 6)) /
@@ -534,8 +533,8 @@ describeWithFlags('meanSquaredError', ALL_ENVS, () => {
     const y = tf.losses.meanSquaredError(label, predictions, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         ((4 - 1) * (4 - 1) * 3 + (8 - 9) * (8 - 9) * 0 +
          (12 - 2) * (12 - 2) * 5 + (8 - (-5)) * (8 - (-5)) * 0 +
          (1 - (-2)) * (1 - (-2)) * 4 + (3 - 6) * (3 - 6) * 2) /
@@ -566,8 +565,8 @@ describeWithFlags('meanSquaredError', ALL_ENVS, () => {
         label, predictions, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         ((4 - 1) * (4 - 1) + (8 - 9) * (8 - 9) + (12 - 2) * (12 - 2) +
          (8 - (-5)) * (8 - (-5)) + (1 - (-2)) * (1 - (-2)) +
          (3 - 6) * (3 - 6)) /
@@ -583,8 +582,8 @@ describeWithFlags('meanSquaredError', ALL_ENVS, () => {
         label, predictions, weights, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         ((4 - 1) * (4 - 1) * 3 + (8 - 9) * (8 - 9) * 6 +
          (12 - 2) * (12 - 2) * 5 + (8 - (-5)) * (8 - (-5)) * 0 +
          (1 - (-2)) * (1 - (-2)) * 4 + (3 - 6) * (3 - 6) * 2) /
@@ -651,7 +650,7 @@ describeWithFlags('cosineDistance', ALL_ENVS, () => {
     const y = tf.losses.cosineDistance(label, predictions, 0);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 1 - (1 * 0.3 + 2 * -0.6 + 3 * -0.1));
+    expectArraysClose(y, 1 - (1 * 0.3 + 2 * -0.6 + 3 * -0.1));
   });
 
   it('1D - weighted - Reduction.SUM_BY_NONZERO_WEIGHTS', () => {
@@ -662,7 +661,7 @@ describeWithFlags('cosineDistance', ALL_ENVS, () => {
     const y = tf.losses.cosineDistance(label, predictions, 0, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), (1 - (1 * 0.3 + 2 * -0.6 + 3 * -0.1)) * 0.1);
+    expectArraysClose(y, (1 - (1 * 0.3 + 2 * -0.6 + 3 * -0.1)) * 0.1);
   });
 
   it('1D - weighted - Reduction.NONE', () => {
@@ -685,7 +684,7 @@ describeWithFlags('cosineDistance', ALL_ENVS, () => {
         label, predictions, 0, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), (1 - (1 * 0.3 + 2 * -0.6 + 3 * -0.1)));
+    expectArraysClose(y, (1 - (1 * 0.3 + 2 * -0.6 + 3 * -0.1)));
   });
 
   it('1D - weighted - Reduction.MEAN', () => {
@@ -697,8 +696,7 @@ describeWithFlags('cosineDistance', ALL_ENVS, () => {
         label, predictions, 0, weights, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(), ((1 - (1 * 0.3 + 2 * -0.6 + 3 * -0.1)) * 0.1) / 0.1);
+    expectArraysClose(y, ((1 - (1 * 0.3 + 2 * -0.6 + 3 * -0.1)) * 0.1) / 0.1);
   });
 
   it('2D', () => {
@@ -708,8 +706,8 @@ describeWithFlags('cosineDistance', ALL_ENVS, () => {
     const y = tf.losses.cosineDistance(label, predictions, 1);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         ((1 - (4 * 1 + 8 * 9 + 12 * 2)) + (1 - (8 * -5 + 1 * -2 + 3 * 6))) / 2);
   });
 
@@ -721,8 +719,8 @@ describeWithFlags('cosineDistance', ALL_ENVS, () => {
     const y = tf.losses.cosineDistance(label, predictions, 1, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         ((1 - (4 * 1 + 8 * 9 + 12 * 2)) * 3 +
          (1 - (8 * -5 + 1 * -2 + 3 * 6)) * 0) /
             1);
@@ -750,8 +748,8 @@ describeWithFlags('cosineDistance', ALL_ENVS, () => {
         label, predictions, 1, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         ((1 - (4 * 1 + 8 * 9 + 12 * 2)) + (1 - (8 * -5 + 1 * -2 + 3 * 6))) / 2);
   });
 
@@ -764,8 +762,8 @@ describeWithFlags('cosineDistance', ALL_ENVS, () => {
         label, predictions, 1, weights, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         ((1 - (4 * 1 + 8 * 9 + 12 * 2)) * 3 +
          (1 - (8 * -5 + 1 * -2 + 3 * 6)) * 0) /
             3);
@@ -827,7 +825,7 @@ describeWithFlags('hingeLoss', ALL_ENVS, () => {
     const y = tf.losses.hingeLoss(label, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 1.0);
+    expectArraysClose(y, 1.0);
   });
 
   it('1D - weighted - Reduction.SUM_BY_NONZERO_WEIGHTS', () => {
@@ -838,7 +836,7 @@ describeWithFlags('hingeLoss', ALL_ENVS, () => {
     const y = tf.losses.hingeLoss(label, predictions, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.225);
+    expectArraysClose(y, 0.225);
   });
 
   it('1D - weighted - Reduction.NONE', () => {
@@ -861,7 +859,7 @@ describeWithFlags('hingeLoss', ALL_ENVS, () => {
         tf.losses.hingeLoss(label, predictions, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 1.0);
+    expectArraysClose(y, 1.0);
   });
 
   it('1D - weighted - Reduction.MEAN', () => {
@@ -873,7 +871,7 @@ describeWithFlags('hingeLoss', ALL_ENVS, () => {
         tf.losses.hingeLoss(label, predictions, weights, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.9);
+    expectArraysClose(y, 0.9);
   });
 
   it('2D', () => {
@@ -883,7 +881,7 @@ describeWithFlags('hingeLoss', ALL_ENVS, () => {
     const y = tf.losses.hingeLoss(label, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.8333333);
+    expectArraysClose(y, 0.8333333);
   });
 
   it('2D - weighted - Reduction.SUM_BY_NONZERO_WEIGHTS', () => {
@@ -894,7 +892,7 @@ describeWithFlags('hingeLoss', ALL_ENVS, () => {
     const y = tf.losses.hingeLoss(label, predictions, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.26666668);
+    expectArraysClose(y, 0.26666668);
   });
 
   it('2D - weighted - Reduction.NONE', () => {
@@ -917,7 +915,7 @@ describeWithFlags('hingeLoss', ALL_ENVS, () => {
         tf.losses.hingeLoss(label, predictions, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.8333333);
+    expectArraysClose(y, 0.8333333);
   });
 
   it('2D - weighted - Reduction.MEAN', () => {
@@ -929,7 +927,7 @@ describeWithFlags('hingeLoss', ALL_ENVS, () => {
         tf.losses.hingeLoss(label, predictions, weights, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.76190484);
+    expectArraysClose(y, 0.76190484);
   });
 
   it('throws when passed label as a non-tensor', () => {
@@ -988,7 +986,7 @@ describeWithFlags('logLoss', ALL_ENVS, () => {
     const y = tf.losses.logLoss(labels, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 2.668788);
+    expectArraysClose(y, 2.668788);
   });
 
   it('1D - Check for negative values', () => {
@@ -998,7 +996,7 @@ describeWithFlags('logLoss', ALL_ENVS, () => {
     const y = tf.losses.logLoss(labels, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), NaN);
+    expectArraysClose(y, NaN);
   });
 
   it('1D - weighted - Reduction.SUM_BY_NONZERO_WEIGHTS', () => {
@@ -1009,7 +1007,7 @@ describeWithFlags('logLoss', ALL_ENVS, () => {
     const y = tf.losses.logLoss(labels, predictions, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.7168596);
+    expectArraysClose(y, 0.7168596);
   });
 
   it('1D - weighted - Reduction.NONE', () => {
@@ -1032,7 +1030,7 @@ describeWithFlags('logLoss', ALL_ENVS, () => {
         labels, predictions, undefined, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 2.668788);
+    expectArraysClose(y, 2.668788);
   });
 
   it('1D - weighted - Reduction.MEAN', () => {
@@ -1044,7 +1042,7 @@ describeWithFlags('logLoss', ALL_ENVS, () => {
         labels, predictions, weights, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 3.5842977);
+    expectArraysClose(y, 3.5842977);
   });
 
   it('2D', () => {
@@ -1054,7 +1052,7 @@ describeWithFlags('logLoss', ALL_ENVS, () => {
     const y = tf.losses.logLoss(labels, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.60019904);
+    expectArraysClose(y, 0.60019904);
   });
 
   it('2D - weighted - Reduction.SUM_BY_NONZERO_WEIGHTS', () => {
@@ -1065,7 +1063,7 @@ describeWithFlags('logLoss', ALL_ENVS, () => {
     const y = tf.losses.logLoss(labels, predictions, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 1.8866577);
+    expectArraysClose(y, 1.8866577);
   });
 
   it('2D - weighted - Reduction.NONE', () => {
@@ -1088,7 +1086,7 @@ describeWithFlags('logLoss', ALL_ENVS, () => {
         labels, predictions, undefined, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.60019904);
+    expectArraysClose(y, 0.60019904);
   });
 
   it('2D - weighted - Reduction.MEAN', () => {
@@ -1100,7 +1098,7 @@ describeWithFlags('logLoss', ALL_ENVS, () => {
         labels, predictions, weights, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.53904504);
+    expectArraysClose(y, 0.53904504);
   });
 
   it('throws when passed label as a non-tensor', () => {
@@ -1159,7 +1157,7 @@ describeWithFlags('huberLoss', ALL_ENVS, () => {
     const y = tf.losses.huberLoss(labels, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 1.1816667);
+    expectArraysClose(y, 1.1816667);
   });
 
   it('1D - delta', () => {
@@ -1170,7 +1168,7 @@ describeWithFlags('huberLoss', ALL_ENVS, () => {
     const y = tf.losses.huberLoss(labels, predictions, undefined, delta);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.58666664);
+    expectArraysClose(y, 0.58666664);
   });
 
   it('1D - weighted - Reduction.SUM_BY_NONZERO_WEIGHTS', () => {
@@ -1181,7 +1179,7 @@ describeWithFlags('huberLoss', ALL_ENVS, () => {
     const y = tf.losses.huberLoss(labels, predictions, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.30816665);
+    expectArraysClose(y, 0.30816665);
   });
 
   it('1D - weighted - Reduction.NONE', () => {
@@ -1204,7 +1202,7 @@ describeWithFlags('huberLoss', ALL_ENVS, () => {
         labels, predictions, undefined, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 1.1816667);
+    expectArraysClose(y, 1.1816667);
   });
 
   it('1D - weighted - Reduction.MEAN', () => {
@@ -1216,7 +1214,7 @@ describeWithFlags('huberLoss', ALL_ENVS, () => {
         labels, predictions, weights, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 1.5408332);
+    expectArraysClose(y, 1.5408332);
   });
 
   it('2D', () => {
@@ -1226,7 +1224,7 @@ describeWithFlags('huberLoss', ALL_ENVS, () => {
     const y = tf.losses.huberLoss(labels, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.01795);
+    expectArraysClose(y, 0.01795);
   });
 
   it('2D - weighted - Reduction.SUM_BY_NONZERO_WEIGHTS', () => {
@@ -1237,7 +1235,7 @@ describeWithFlags('huberLoss', ALL_ENVS, () => {
     const y = tf.losses.huberLoss(labels, predictions, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.040875003);
+    expectArraysClose(y, 0.040875003);
   });
 
   it('2D - weighted - Reduction.NONE', () => {
@@ -1260,7 +1258,7 @@ describeWithFlags('huberLoss', ALL_ENVS, () => {
         labels, predictions, undefined, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.01795);
+    expectArraysClose(y, 0.01795);
   });
 
   it('2D - weighted - Reduction.MEAN', () => {
@@ -1272,7 +1270,7 @@ describeWithFlags('huberLoss', ALL_ENVS, () => {
         labels, predictions, weights, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0.011678572);
+    expectArraysClose(y, 0.011678572);
   });
 
   it('throws when passed label as a non-tensor', () => {
@@ -1333,7 +1331,7 @@ describeWithFlags('sigmoidCrossEntropy', ALL_ENVS, () => {
     const y = tf.losses.sigmoidCrossEntropy(label, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 6.6667123);
+    expectArraysClose(y, 6.6667123);
   });
 
   it('All right', () => {
@@ -1345,7 +1343,7 @@ describeWithFlags('sigmoidCrossEntropy', ALL_ENVS, () => {
     const y = tf.losses.sigmoidCrossEntropy(label, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0);
+    expectArraysClose(y, 0);
   });
 
   it('Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS', () => {
@@ -1359,7 +1357,7 @@ describeWithFlags('sigmoidCrossEntropy', ALL_ENVS, () => {
     const y = tf.losses.sigmoidCrossEntropy(label, predictions, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 1.3333424);
+    expectArraysClose(y, 1.3333424);
   });
 
   it('Weighted - Reduction.NONE', () => {
@@ -1389,7 +1387,7 @@ describeWithFlags('sigmoidCrossEntropy', ALL_ENVS, () => {
         label, predictions, undefined, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 6.6667123);
+    expectArraysClose(y, 6.6667123);
   });
 
   it('Weighted - Reduction.MEAN', () => {
@@ -1403,8 +1401,8 @@ describeWithFlags('sigmoidCrossEntropy', ALL_ENVS, () => {
         label, predictions, weights, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         6.666712284088135,
     );
   });
@@ -1421,7 +1419,7 @@ describeWithFlags('sigmoidCrossEntropy', ALL_ENVS, () => {
         label, predictions, weights, labelSmoothing, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 6.1667128);
+    expectArraysClose(y, 6.1667128);
   });
 
   it('throws when multiClassLabels and logits are of different shapes', () => {
@@ -1489,7 +1487,7 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
     const y = tf.losses.softmaxCrossEntropy(label, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 20);
+    expectArraysClose(y, 20);
   });
 
   it('All right', () => {
@@ -1501,7 +1499,7 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
     const y = tf.losses.softmaxCrossEntropy(label, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 0);
+    expectArraysClose(y, 0);
   });
 
   it('Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS', () => {
@@ -1516,7 +1514,7 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
     const y = tf.losses.softmaxCrossEntropy(label, predictions, weights);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 4);
+    expectArraysClose(y, 4);
   });
 
   it('Weighted - Reduction.NONE', () => {
@@ -1543,7 +1541,7 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
         label, predictions, undefined, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 20);
+    expectArraysClose(y, 20);
   });
 
   it('Weighted - Reduction.MEAN', () => {
@@ -1557,8 +1555,8 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
         label, predictions, weights, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(
-        y.get(),
+    expectArraysClose(
+        y,
         20,
     );
   });
@@ -1575,7 +1573,7 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
         label, predictions, weights, labelSmoothing, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 18);
+    expectArraysClose(y, 18);
   });
 
   it('throws when multiClassLabels and logits are of different shapes', () => {
@@ -1640,6 +1638,6 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
     const y = tf.losses.softmaxCrossEntropy(label, predictions);
 
     expect(y.shape).toEqual([]);
-    expectNumbersClose(y.get(), 20);
+    expectArraysClose(y, 20);
   });
 });

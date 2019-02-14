@@ -17,14 +17,14 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose, expectNumbersClose} from '../test_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('softmax', ALL_ENVS, () => {
   it('regular test', () => {
     const y = tf.softmax(tf.tensor1d([2, 1, 3]));
 
     expectArraysClose(y, [0.24472847, 0.09003057, 0.66524095]);
-    expectNumbersClose(y.get(0) + y.get(1) + y.get(2), 1);
+    expectArraysClose(y.sum(), 1);
   });
 
   it('overflow', () => {
@@ -82,13 +82,16 @@ describeWithFlags('softmax', ALL_ENVS, () => {
     const dy = tf.tensor1d([1, 2, 3]);
     const dx = tf.grad((x) => x.softmax())(x, dy);
 
-    const totalSum = tf.sum(tf.mul(dy, y));
+    const totalSum = tf.sum(tf.mul(dy, y)) as tf.Scalar;
 
+    const dyVals = dy.arraySync();
+    const sumVals = totalSum.arraySync();
+    const yVals = y.arraySync();
     expect(dx.shape).toEqual(x.shape);
     expectArraysClose(dx, [
-      (dy.get(0) - totalSum.get()) * y.get(0),
-      (dy.get(1) - totalSum.get()) * y.get(1),
-      (dy.get(2) - totalSum.get()) * y.get(2)
+      (dyVals[0] - sumVals) * yVals[0],
+      (dyVals[1] - sumVals) * yVals[1],
+      (dyVals[2] - sumVals) * yVals[2],
     ]);
   });
 
@@ -99,16 +102,20 @@ describeWithFlags('softmax', ALL_ENVS, () => {
     const dx = tf.grad((x) => x.softmax())(x, dy);
 
     const axis = -1;
-    const totalSum = tf.sum(tf.mulStrict(dy, y), axis);
+    const totalSum = tf.sum(tf.mulStrict(dy, y), axis) as tf.Tensor1D;
+
+    const dyVals = dy.arraySync();
+    const sumVals = totalSum.arraySync();
+    const yVals = y.arraySync();
 
     expect(dx.shape).toEqual(x.shape);
     expectArraysClose(dx, [
-      (dy.get(0, 0) - totalSum.get(0)) * y.get(0, 0),
-      (dy.get(0, 1) - totalSum.get(0)) * y.get(0, 1),
-      (dy.get(0, 2) - totalSum.get(0)) * y.get(0, 2),
-      (dy.get(1, 0) - totalSum.get(1)) * y.get(1, 0),
-      (dy.get(1, 1) - totalSum.get(1)) * y.get(1, 1),
-      (dy.get(1, 2) - totalSum.get(1)) * y.get(1, 2)
+      (dyVals[0][0] - sumVals[0]) * yVals[0][0],
+      (dyVals[0][1] - sumVals[0]) * yVals[0][1],
+      (dyVals[0][2] - sumVals[0]) * yVals[0][2],
+      (dyVals[1][0] - sumVals[1]) * yVals[1][0],
+      (dyVals[1][1] - sumVals[1]) * yVals[1][1],
+      (dyVals[1][2] - sumVals[1]) * yVals[1][2]
     ]);
   });
 
@@ -121,7 +128,7 @@ describeWithFlags('softmax', ALL_ENVS, () => {
     const y = tf.softmax([2, 1, 3]);
 
     expectArraysClose(y, [0.24472847, 0.09003057, 0.66524095]);
-    expectNumbersClose(y.get(0) + y.get(1) + y.get(2), 1);
+    expectArraysClose(y.sum(), 1);
   });
 });
 

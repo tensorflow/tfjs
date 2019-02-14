@@ -2187,10 +2187,10 @@ export class MathBackendWebGL implements KernelBackend {
       // trying to upload a small value.
       const debugFlag = ENV.get('DEBUG');
       ENV.set('DEBUG', false);
-      const underflowCheckVluae = this.abs(scalar(1e-8)).get();
+      const underflowCheckValue = this.abs(scalar(1e-8)).dataSync()[0];
       ENV.set('DEBUG', debugFlag);
 
-      if (underflowCheckVluae > 0) {
+      if (underflowCheckValue > 0) {
         return 32;
       }
       return 16;

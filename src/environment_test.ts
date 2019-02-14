@@ -187,7 +187,7 @@ describeWithFlags('epsilon', {}, () => {
   });
 
   it('abs(epsilon) > 0', () => {
-    expect(tf.abs(ENV.get('EPSILON')).get()).toBeGreaterThan(0);
+    expect(tf.abs(ENV.get('EPSILON')).arraySync()).toBeGreaterThan(0);
   });
 });
 

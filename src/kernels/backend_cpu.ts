@@ -262,10 +262,11 @@ export class MathBackendCPU implements KernelBackend {
     }
 
     const buffer = ops.buffer(size, x.dtype);
+    const xBuf = x.bufferSync();
     for (let i = 0; i < buffer.size; ++i) {
       const loc = buffer.indexToLoc(i);
       const xLoc = loc.map((idx, j) => idx + begin[j]);
-      buffer.values[i] = x.get(...xLoc);
+      buffer.values[i] = xBuf.get(...xLoc);
     }
     return buffer.toTensor() as T;
   }
@@ -287,7 +288,7 @@ export class MathBackendCPU implements KernelBackend {
     }
 
     const buffer = ops.buffer(size, x.dtype);
-
+    const xBuf = x.bufferSync();
     for (let i = 0; i < buffer.size; i++) {
       const loc = buffer.indexToLoc(i);
 
@@ -295,7 +296,7 @@ export class MathBackendCPU implements KernelBackend {
       for (let j = 0; j < newLoc.length; j++) {
         newLoc[j] = loc[j] * strides[j] + beginIndex[j];
       }
-      buffer.set(x.get(...newLoc), ...loc);
+      buffer.set(xBuf.get(...newLoc), ...loc);
     }
 
     return buffer.toTensor().reshape(shape) as T;
@@ -326,13 +327,13 @@ export class MathBackendCPU implements KernelBackend {
     this.assertNotComplex(x, 'reverse');
 
     const buffer = ops.buffer(x.shape, x.dtype);
-    const xBuffer = x.buffer();
+    const xBuf = x.bufferSync();
 
     for (let i = 0; i < buffer.size; i++) {
       const outLoc = buffer.indexToLoc(i);
       const inLoc = outLoc.slice();
       axis.forEach(ax => inLoc[ax] = x.shape[ax] - 1 - inLoc[ax]);
-      buffer.set(xBuffer.get(...inLoc), ...outLoc);
+      buffer.set(xBuf.get(...inLoc), ...outLoc);
     }
 
     return buffer.toTensor() as T;
@@ -1720,7 +1721,8 @@ export class MathBackendCPU implements KernelBackend {
 
     const leftPad = convInfo.padInfo.left;
     const topPad = convInfo.padInfo.top;
-
+    const xBuf = x.bufferSync();
+    const dyBuf = dy.bufferSync();
     for (let wR = 0; wR < filterHeight; ++wR) {
       const yRMin = Math.max(0, Math.ceil((topPad - wR) / strideHeight));
       const yRMax = Math.min(
@@ -1740,7 +1742,7 @@ export class MathBackendCPU implements KernelBackend {
                 const xR = wR + yR * strideHeight - topPad;
                 for (let yC = yCMin; yC < yCMax; ++yC) {
                   const xC = wC + yC * strideWidth - leftPad;
-                  dotProd += x.get(b, xR, xC, d1) * dy.get(b, yR, yC, d2);
+                  dotProd += xBuf.get(b, xR, xC, d1) * dyBuf.get(b, yR, yC, d2);
                 }
               }
             }
@@ -1971,6 +1973,8 @@ export class MathBackendCPU implements KernelBackend {
     const topPad = convInfo.padInfo.top;
     const chMul = convInfo.outChannels / convInfo.inChannels;
 
+    const xBuf = x.bufferSync();
+    const dyBuf = dy.bufferSync();
     for (let wR = 0; wR < filterHeight; ++wR) {
       const yRMin = Math.max(0, Math.ceil((topPad - wR) / strideHeight));
       const yRMax = Math.min(
@@ -1991,7 +1995,7 @@ export class MathBackendCPU implements KernelBackend {
               const xR = wR + yR * strideHeight - topPad;
               for (let yC = yCMin; yC < yCMax; ++yC) {
                 const xC = wC + yC * strideWidth - leftPad;
-                dotProd += x.get(b, xR, xC, d1) * dy.get(b, yR, yC, d2);
+                dotProd += xBuf.get(b, xR, xC, d1) * dyBuf.get(b, yR, yC, d2);
               }
             }
           }
@@ -2010,7 +2014,7 @@ export class MathBackendCPU implements KernelBackend {
       newShape[i] = x.shape[i] * reps[i];
     }
     const result = ops.buffer(newShape, x.dtype);
-    const xBuf = x.buffer();
+    const xBuf = x.bufferSync();
     for (let i = 0; i < result.values.length; ++i) {
       const newLoc = result.indexToLoc(i);
 
@@ -2033,7 +2037,7 @@ export class MathBackendCPU implements KernelBackend {
     const outShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
     const start = paddings.map(p => p[0]);
-    const xBuffer = x.buffer();
+    const xBuffer = x.bufferSync();
     const buffer = ops.buffer(outShape, x.dtype as 'float32');
     if (constantValue !== 0) {
       buffer.values.fill(constantValue);
@@ -2042,7 +2046,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < x.size; i++) {
       const coords = xBuffer.indexToLoc(i);
       const outCoords = coords.map((c, i) => c + start[i]);
-      buffer.set(x.get(...coords), ...outCoords);
+      buffer.set(xBuffer.get(...coords), ...outCoords);
     }
     return buffer.toTensor() as T;
   }
@@ -2057,7 +2061,7 @@ export class MathBackendCPU implements KernelBackend {
     const values = x.dataSync();
     const result = buffer(newShape, x.dtype);
 
-    const xBuf = x.buffer();
+    const xBuf = x.bufferSync();
     for (let i = 0; i < x.size; ++i) {
       const loc = xBuf.indexToLoc(i);
 
@@ -2080,7 +2084,7 @@ export class MathBackendCPU implements KernelBackend {
     const indicesValues = indices.dataSync();
     newShape[axis] = indicesValues.length;
     const result = buffer(newShape, x.dtype);
-    const xBuf = x.buffer();
+    const xBuf = x.bufferSync();
 
     for (let i = 0; i < result.size; ++i) {
       const newLoc = result.indexToLoc(i);
@@ -2227,6 +2231,7 @@ export class MathBackendCPU implements KernelBackend {
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
 
+    const xBuf = x.bufferSync();
     for (let b = 0; b < convInfo.batchSize; ++b) {
       for (let d = 0; d < convInfo.inChannels; ++d) {
         for (let yR = 0; yR < convInfo.outHeight; ++yR) {
@@ -2253,7 +2258,7 @@ export class MathBackendCPU implements KernelBackend {
               const wR = xR - xRCorner;
               for (let xC = xCMin; xC < xCMax; xC += dilationWidth) {
                 const wC = xC - xCCorner;
-                const pixel = x.get(b, xR, xC, d);
+                const pixel = xBuf.get(b, xR, xC, d);
                 if (pixel > maxValue) {
                   maxValue = pixel;
                   maxPosition = wR * effectiveFilterWidth + wC;
@@ -2283,6 +2288,9 @@ export class MathBackendCPU implements KernelBackend {
     const padTop = effectiveFilterHeight - 1 - convInfo.padInfo.top;
     const dx = ops.buffer<Rank.R4>(x.shape, 'float32');
 
+    const maxPosBuf = maxPositions.bufferSync();
+    const dyBuf = dy.bufferSync();
+
     for (let b = 0; b < convInfo.batchSize; ++b) {
       for (let d = 0; d < convInfo.inChannels; ++d) {
         for (let dxR = 0; dxR < convInfo.inHeight; ++dxR) {
@@ -2304,7 +2312,7 @@ export class MathBackendCPU implements KernelBackend {
                   continue;
                 }
                 const maxPos = effectiveFilterHeight * effectiveFilterWidth -
-                    1 - maxPositions.get(b, dyR, dyC, d);
+                    1 - maxPosBuf.get(b, dyR, dyC, d);
                 const curPos = wR * effectiveFilterWidth + wC;
 
                 const mask = maxPos === curPos ? 1 : 0;
@@ -2312,7 +2320,7 @@ export class MathBackendCPU implements KernelBackend {
                   continue;
                 }
 
-                const pixel = dy.get(b, dyR, dyC, d);
+                const pixel = dyBuf.get(b, dyR, dyC, d);
                 dotProd += pixel * mask;
               }
             }
@@ -2341,6 +2349,8 @@ export class MathBackendCPU implements KernelBackend {
 
     const avgMultiplier = 1 / (filterHeight * filterWidth);
 
+    const dyBuf = dy.bufferSync();
+
     for (let b = 0; b < convInfo.batchSize; ++b) {
       for (let d = 0; d < convInfo.inChannels; ++d) {
         for (let dxR = 0; dxR < convInfo.inHeight; ++dxR) {
@@ -2362,7 +2372,7 @@ export class MathBackendCPU implements KernelBackend {
                   continue;
                 }
 
-                const pixel = dy.get(b, dyR, dyC, d);
+                const pixel = dyBuf.get(b, dyR, dyC, d);
                 dotProd += pixel;
               }
             }
@@ -2842,10 +2852,11 @@ export class MathBackendCPU implements KernelBackend {
 
     const res = new Float32Array(indices.size * depth);
     res.fill(offValue);
+    const indicesVal = indices.dataSync();
 
     for (let event = 0; event < indices.size; ++event) {
-      if (indices.get(event) >= 0 && indices.get(event) < depth) {
-        res[event * depth + indices.get(event)] = onValue;
+      if (indicesVal[event] >= 0 && indicesVal[event] < depth) {
+        res[event * depth + indicesVal[event]] = onValue;
       }
     }
     return ops.tensor2d(res, [indices.size, depth], 'int32');
@@ -3040,8 +3051,8 @@ export class MathBackendCPU implements KernelBackend {
         resVals[i] = op(aVals[i % aVals.length], bVals[i % bVals.length]);
       }
     } else {
-      const aBuf = a.buffer();
-      const bBuf = b.buffer();
+      const aBuf = a.bufferSync();
+      const bBuf = b.bufferSync();
       for (let i = 0; i < resVals.length; ++i) {
         const loc = result.indexToLoc(i);
 
@@ -3090,8 +3101,8 @@ export class MathBackendCPU implements KernelBackend {
         imagVals[i] = result.imag;
       }
     } else {
-      const aRealBuf = this.data.get(a.dataId).complexTensors.real.buffer();
-      const bRealBuf = this.data.get(b.dataId).complexTensors.real.buffer();
+      const aRealBuf = this.data.get(a.dataId).complexTensors.real.bufferSync();
+      const bRealBuf = this.data.get(b.dataId).complexTensors.real.bufferSync();
       for (let i = 0; i < realVals.length; i++) {
         const loc = realResult.indexToLoc(i);
 

@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../test_util';
+import {ALL_ENVS, expectArraysClose, WEBGL_ENVS} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('slice1d', ALL_ENVS, () => {
@@ -26,7 +26,7 @@ describeWithFlags('slice1d', ALL_ENVS, () => {
     const result = tf.slice1d(a, 0, 1);
 
     expect(result.shape).toEqual([1]);
-    expectNumbersClose(result.get(0), 5);
+    expectArraysClose(result, 5);
   });
 
   it('slices 5x1 into shape 2x1 starting at 3', () => {
@@ -57,7 +57,7 @@ describeWithFlags('slice1d', ALL_ENVS, () => {
     const a = [5];
     const result = tf.slice1d(a, 0, 1);
     expect(result.shape).toEqual([1]);
-    expectNumbersClose(result.get(0), 5);
+    expectArraysClose(result, 5);
   });
 });
 

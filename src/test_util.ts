@@ -46,12 +46,16 @@ export const ALL_ENVS: Features = {};
 
 export function expectArraysClose(
     actual: Tensor|TypedArray|number[],
-    expected: Tensor|TypedArray|number[]|boolean[], epsilon?: number) {
+    expected: Tensor|TypedArray|number[]|boolean[]|number|boolean,
+    epsilon?: number) {
   if (epsilon == null) {
     epsilon = ENV.get('TEST_EPSILON');
   }
+  const exp = typeof expected === 'number' || typeof expected === 'boolean' ?
+      [expected] as number[] :
+      expected as number[];
   return expectArraysPredicate(
-      actual, expected, (a, b) => areClose(a as number, Number(b), epsilon));
+      actual, exp, (a, b) => areClose(a as number, Number(b), epsilon));
 }
 
 function expectArraysPredicate(
@@ -124,13 +128,18 @@ export function expectPromiseToFail(fn: () => Promise<{}>, done: DoneFn): void {
 
 export function expectArraysEqual(
     actual: Tensor|TypedArray|number[]|string[],
-    expected: Tensor|TypedArray|number[]|boolean[]|string[]) {
+    expected: Tensor|TypedArray|number[]|boolean[]|string[]|number|boolean|
+    string) {
+  const exp = typeof expected === 'string' || typeof expected === 'number' ||
+          typeof expected === 'boolean' ?
+      [expected] as number[] :
+      expected as number[];
   if (actual instanceof Tensor && actual.dtype === 'string' ||
       expected instanceof Tensor && expected.dtype === 'string' ||
       Array.isArray(actual) && isString(actual[0]) ||
       Array.isArray(expected) && isString(expected[0])) {
     // tslint:disable-next-line:triple-equals
-    return expectArraysPredicate(actual, expected, (a, b) => a == b);
+    return expectArraysPredicate(actual, exp, (a, b) => a == b);
   }
   return expectArraysClose(actual as Tensor, expected as Tensor, 0);
 }
