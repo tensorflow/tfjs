@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {View} from 'vega-lib';
 import embed, {Mode, Result as EmbedRes, VisualizationSpec} from 'vega-embed';
+import {View} from 'vega-lib';
 
 import {Drawable, VisOptions} from '../types';
 
@@ -81,7 +81,7 @@ export async function renderBarchart(
   const spec: VisualizationSpec = {
     'width': options.width || drawArea.clientWidth,
     'height': options.height || drawArea.clientHeight,
-    'padding': 5,
+    'padding': 0,
     'autosize': {
       'type': 'fit',
       'contains': 'padding',

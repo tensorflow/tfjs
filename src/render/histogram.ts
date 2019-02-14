@@ -96,7 +96,7 @@ export async function renderHistogram(
 
     'width': options.width || histogramContainer.clientWidth,
     'height': options.height || histogramContainer.clientHeight,
-    'padding': 5,
+    'padding': 0,
     'autosize': {
       'type': 'fit',
       'contains': 'padding',

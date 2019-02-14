@@ -100,7 +100,7 @@ export async function renderScatterplot(
   const spec: VisualizationSpec = {
     'width': options.width || drawArea.clientWidth,
     'height': options.height || drawArea.clientHeight,
-    'padding': 5,
+    'padding': 0,
     'autosize': {
       'type': 'fit',
       'contains': 'padding',
@@ -123,6 +123,7 @@ export async function renderScatterplot(
     'mark': {
       'type': 'point',
       'clip': true,
+      'tooltip': {'content': 'data'},
     },
     'encoding': {
       'x': {
@@ -144,10 +145,7 @@ export async function renderScatterplot(
       'shape': {
         'field': 'series',
         'type': 'nominal',
-      },
-      // TODO revisit when https://github.com/vega/vega-embed/issues/96 is
-      // resolved
-      'tooltip': {'field': 'value', 'type': options.yType}
+      }
     },
   };
 
