@@ -17,10 +17,12 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+import {TensorLike} from '@tensorflow/tfjs-core/dist/types';
 import * as seedrandom from 'seedrandom';
+
 import {iteratorFromConcatenated, iteratorFromFunction, iteratorFromItems, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './iterators/lazy_iterator';
 import {DataElement, DatasetContainer} from './types';
-import {deepMapAndAwaitAll, DeepMapResult, isIterable, isNumericArray} from './util/deep_map';
+import {canTensorify, deepMapAndAwaitAll, DeepMapResult, isIterable} from './util/deep_map';
 
 // TODO(soergel): consider vectorized operations within the pipeline.
 
@@ -71,16 +73,25 @@ export abstract class Dataset<T extends DataElement> {
   // abstract isDeterministic(): boolean;
 
   /**
-   * Groups elements into batches and arranges their values in columnar
-   * form.
+   * Groups elements into batches.
    *
    * It is assumed that each of the incoming dataset elements has the same
-   * set of keys.  For each key, the resulting `Dataset` provides a batched
-   * element collecting all of the incoming values for that key.  Incoming
-   * strings are grouped into a string[].  Incoming Tensors are grouped into a
-   * new Tensor where the 0'th axis is the batch dimension.  These columnar
-   * representations for each key can be zipped together to reconstruct the
-   * original dataset elements.
+   * structure-- i.e. the same set of keys at each location in an object
+   * hierarchy.  For each key, the resulting `Dataset` provides a batched
+   * element collecting all of the incoming values for that key.
+   *
+   *  * Incoming primitives are grouped into a 1-D Tensor.
+   *  * Incoming Tensors are grouped into a new Tensor where the 0'th axis is
+   *    the batch dimension.
+   *  * Incoming arrays are converted to Tensor and then batched.
+   *  * A nested array is interpreted as an n-D Tensor, so the batched result
+   *    has n+1 dimensions.
+   *  * An array that cannot be converted to Tensor produces an error.
+   *
+   * If an array should not be batched as a unit, it should first be converted
+   * to an object with integer keys.
+   *
+   * Here are a few examples:
    *
    * Batch a dataset of numbers:
    * ```js
@@ -459,13 +470,6 @@ export abstract class Dataset<T extends DataElement> {
   async toArray() {
     return (await this.iterator()).collect();
   }
-
-  /* TODO(soergel): for parity with tf.data:
-  Dataset.flat_map()
-  Dataset.dense_to_sparse_batch()
-  Dataset.group_by_window()
-  Dataset.padded_batch()
-  */
 }
 
 /**
@@ -609,25 +613,13 @@ function deepBatchConcat(rows: any[]): DeepMapResult {
   // use the first item to decide whether to recurse or batch here.
   const exampleRow = rows[0];
 
-  if (typeof (exampleRow) === 'string') {
-    // rows is an array of strings, so it's already 'batched'.
-    // TODO(soergel): clean up the string special case when Tensor supports it.
-    return {value: rows, recurse: false};
-  }
-
-  if (!isIterable(exampleRow)) {
-    // rows is an array of non-string primitives or Tensors, so batch them.
+  if (canTensorify(exampleRow)) {
+    // rows is an array of primitives, Tensors, or arrays.  Batch them.
     const value = batchConcat(rows);
     return {value, recurse: false};
   }
 
-  if (isNumericArray(exampleRow)) {
-    // interpret an array of numbers as a leaf, so batching produces a 2d Tensor
-    const value = batchConcat(rows);
-    return {value, recurse: false};
-  }
-
-  // the example row is itself iterable, but not numeric, so recurse into it.
+  // the example row is an object, so recurse into it.
   return {value: null, recurse: true};
 }
 
@@ -635,7 +627,7 @@ function deepBatchConcat(rows: any[]): DeepMapResult {
  * Assembles a list of same-shaped numbers, number arrays, or Tensors
  * into a single new Tensor where axis 0 is the batch dimension.
  */
-function batchConcat<T extends(number | number[] | tf.Tensor)>(arrays: T[]):
+function batchConcat<T extends(TensorLike | tf.Tensor)>(arrays: T[]):
     tf.Tensor {
   if (arrays.length === 0) {
     // We can't return an empty Tensor because we don't know the element shape.
@@ -645,32 +637,8 @@ function batchConcat<T extends(number | number[] | tf.Tensor)>(arrays: T[]):
   if (arrays[0] instanceof tf.Tensor) {
     // Input is an array of Tensors
     return tf.stack(arrays as tf.Tensor[]);
-  } else if (Array.isArray(arrays[0])) {
-    // Input is an array of arrays of numbers
-    return batchConcatArrays(arrays as number[][]);
   } else {
-    // Input is a simple array of numbers
-    const numbers = arrays as number[];
-    return tf.Tensor.make(
-        [numbers.length], {values: new Float32Array(numbers)});
+    // Input is a possibly-nested array of numbers.
+    return tf.tensor(arrays as TensorLike);
   }
-}
-
-function batchConcatArrays(arrays: number[][]) {
-  // Should we first make row Tensors and then use tf.stack() here too?
-  // Probably not: the extra Tensor allocations would outweigh any benefit.
-
-  const rowLength = arrays[0].length;
-  const batchShape = [arrays.length, arrays[0].length];
-  const values = new Float32Array(arrays.length * rowLength);
-
-  let offset = 0;
-  for (const a of arrays) {
-    if (a.length !== rowLength) {
-      throw new Error('Elements must have the same shape to be batched');
-    }
-    values.set(a, offset);
-    offset += rowLength;
-  }
-  return tf.Tensor.make(batchShape, {values});
 }

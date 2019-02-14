@@ -263,7 +263,7 @@ export class CSVDataset extends Dataset<DataElement> {
       return features;
 
     } else {
-      return [features, labels];
+      return {xs: features, ys: labels};
     }
   }
 
