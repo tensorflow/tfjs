@@ -25,8 +25,8 @@ import {ActivationIdentifier} from '../keras_format/activation_config';
 import {Shape} from '../keras_format/common';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
-import {arrayProd, range} from '../utils/math_utils';
 import {assertPositiveInteger} from '../utils/generic_utils';
+import {arrayProd, range} from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 

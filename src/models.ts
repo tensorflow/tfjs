@@ -10,7 +10,7 @@
 
 /* Original source keras/models.py */
 
-import {io, NamedTensorMap, Scalar, serialization, Tensor, util} from '@tensorflow/tfjs-core';
+import {dispose, io, NamedTensorMap, Scalar, serialization, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {getUid} from './backend/state';
 import {History} from './base_callbacks';
@@ -105,6 +105,8 @@ export async function modelFromJSON(
     const skipMismatches: boolean = null;
     const isNamedTensorMap = true;
     model.loadWeights(uniqueWeightValues, skipMismatches, isNamedTensorMap);
+    // Dispose temporary weight values.
+    dispose(weightValues);
   }
   return model;
 }
@@ -239,8 +241,8 @@ export interface ModelPredictArgs {
  * @returns A `Promise` of `tf.Model`, with the topology and weights loaded.
  */
 export async function loadModelInternal(
-    pathOrIOHandler: string|io.IOHandler, options?: io.LoadOptions):
-    Promise<Model> {
+    pathOrIOHandler: string|io.IOHandler,
+    options?: io.LoadOptions): Promise<Model> {
   if (options == null) {
     options = {};
   }
@@ -315,9 +317,11 @@ export async function loadModelFromIOHandler(
 
     const skipMismatch = false;
     const isNamedTensorMap = true;
-    model.loadWeights(
-        io.decodeWeights(artifacts.weightData, artifacts.weightSpecs),
-        skipMismatch, isNamedTensorMap, strict);
+    const weights =
+        io.decodeWeights(artifacts.weightData, artifacts.weightSpecs);
+    model.loadWeights(weights, skipMismatch, isNamedTensorMap, strict);
+    // Dispose temporary weight values.
+    dispose(weights);
   }
   return model;
 }
