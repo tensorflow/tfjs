@@ -34,6 +34,9 @@ export class RingBuffer<T> {
    * @param capacity The number of items that the buffer can accomodate.
    */
   constructor(public capacity: number) {
+    if (capacity == null) {
+      throw new RangeError('Can\'t create a ring buffer of unknown capacity.');
+    }
     if (capacity < 1) {
       throw new RangeError('Can\'t create ring buffer of capacity < 1.');
     }

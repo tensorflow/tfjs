@@ -57,6 +57,13 @@ class TestObjectIterator extends LazyIterator<{}> {
 }
 
 export class TestDataset extends tfd.Dataset<DataElementObject> {
+  readonly size: number;
+  constructor(setSize = false) {
+    super();
+    if (setSize) {
+      this.size = 200;
+    }
+  }
   async iterator(): Promise<LazyIterator<{}>> {
     return new TestObjectIterator();
   }
@@ -521,6 +528,55 @@ describeWithFlags(
         // There were 100 elements, but we filtered out half of them.
         // Thus 50 * 2 = 100 Tensors remain.
         expect(tf.memory().numTensors).toEqual(100);
+      });
+
+      it('shuffle does not leak Tensors', async () => {
+        const ds = new TestDataset();
+        expect(tf.memory().numTensors).toEqual(0);
+        await ds.shuffle(1000).toArray();
+        // The shuffle operation emitted all of the tensors.
+        expect(tf.memory().numTensors).toEqual(200);
+      });
+
+      it('shuffle throws an error when bufferSize is not specified and ' +
+             'dataset.size is unknown.',
+         async () => {
+           const ds = new TestDataset();
+
+           expect(() => ds.shuffle(undefined))
+               .toThrowError(
+                   '`Dataset.shuffle()` requires bufferSize to be specified.');
+         });
+
+      it('shuffle throws an error when bufferSize is not specified and ' +
+             'dataset.size is known.',
+         async () => {
+           const ds = new TestDataset(true);
+
+           expect(() => ds.shuffle(undefined))
+               .toThrowError(
+                   '`Dataset.shuffle()` requires bufferSize to be ' +
+                   'specified.  If your data fits in main memory (for ' +
+                   'regular JS objects), and/or GPU memory (for ' +
+                   '`tf.Tensor`s), consider setting bufferSize to the ' +
+                   'dataset size (200 elements)');
+         });
+
+      it('prefetch throws an error when bufferSize is not specified.',
+         async () => {
+           const ds = new TestDataset();
+
+           expect(() => ds.prefetch(undefined))
+               .toThrowError(
+                   '`Dataset.prefetch()` requires bufferSize to be specified.');
+         });
+
+      it('prefetch does not leak Tensors', async () => {
+        const ds = new TestDataset();
+        expect(tf.memory().numTensors).toEqual(0);
+        await ds.prefetch(1000).toArray();
+        // The prefetch operation emitted all of the tensors.
+        expect(tf.memory().numTensors).toEqual(200);
       });
 
       it('map does not leak Tensors when none are returned', async () => {

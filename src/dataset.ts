@@ -128,7 +128,7 @@ export abstract class Dataset<T extends DataElement> {
   /** @doc {heading: 'Data', subheading: 'Classes'} */
   batch(batchSize: number, smallLastBatch = true): Dataset<DataElement> {
     const base = this;
-    tf.util.assert(batchSize > 0, `batchSize need to be positive, but it is
+    tf.util.assert(batchSize > 0, `batchSize needs to be positive, but it is
       ${batchSize}`);
     let size;
     if (this.size === Infinity || this.size == null) {
@@ -294,8 +294,12 @@ export abstract class Dataset<T extends DataElement> {
    * @returns A `Dataset`.
    */
   /** @doc {heading: 'Data', subheading: 'Classes'} */
-  // TODO: Document this function once tfjs-data supports streaming.
   prefetch(bufferSize: number): Dataset<T> {
+    if (bufferSize == null) {
+      throw new RangeError(
+          '`Dataset.prefetch()` requires bufferSize to be specified.');
+    }
+
     const base = this;
     return datasetFromIteratorFn(
         async () => (await base.iterator()).prefetch(bufferSize), this.size);
@@ -384,6 +388,8 @@ export abstract class Dataset<T extends DataElement> {
 
   // TODO(soergel): deep sharded shuffle, where supported
 
+  static readonly MAX_BUFFER_SIZE = 10000;
+
   /**
    * Pseudorandomly shuffles the elements of this dataset. This is done in a
    * streaming manner, by sampling from a given number of prefetched elements.
@@ -406,6 +412,18 @@ export abstract class Dataset<T extends DataElement> {
   /** @doc {heading: 'Data', subheading: 'Classes'} */
   shuffle(bufferSize: number, seed?: string, reshuffleEachIteration = true):
       Dataset<T> {
+    if (bufferSize == null || bufferSize < 0) {
+      if (this.size == null) {
+        throw new RangeError(
+            '`Dataset.shuffle()` requires bufferSize to be specified.');
+      } else {
+        throw new RangeError(
+            '`Dataset.shuffle()` requires bufferSize to be specified.  ' +
+            'If your data fits in main memory (for regular JS objects), ' +
+            'and/or GPU memory (for `tf.Tensor`s), consider setting ' +
+            `bufferSize to the dataset size (${this.size} elements)`);
+      }
+    }
     const base = this;
     const random = seedrandom.alea(seed || tf.util.now().toString());
     return datasetFromIteratorFn(async () => {
