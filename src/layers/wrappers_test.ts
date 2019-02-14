@@ -328,6 +328,13 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
     expect((modelPrime.layers[0] as Bidirectional).getConfig().mergeMode)
         .toEqual('concat');
   });
+  it('mergeMode defaults to concat', () => {
+    const bidi = tfl.layers.bidirectional({
+      layer: new SimpleRNN({units: 3})
+    }) as Bidirectional;
+    expect(bidi.mergeMode).toEqual('concat');
+    expect(bidi.getConfig().mergeMode).toEqual('concat');
+  });
 });
 
 describe('checkBidirectionalMergeMode', () => {
@@ -406,7 +413,8 @@ describeMathCPUAndGPU('Bidirectional Layer: Tensor', () => {
         [1, timeSteps, inputSize]);
   }
 
-  const mergeModes: BidirectionalMergeMode[] = [null, 'concat', 'mul'];
+  const mergeModes: BidirectionalMergeMode[] =
+      [null, undefined, 'concat', 'mul'];
   for (const mergeMode of mergeModes) {
     it(`No returnState, mergeMode=${mergeMode}`, () => {
       createLayerAndData(mergeMode, false);
@@ -418,7 +426,7 @@ describeMathCPUAndGPU('Bidirectional Layer: Tensor', () => {
             y[0], tensor2d([[0.9440416, 0.9440416, 0.9440416]], [1, 3]));
         expectTensorsClose(
             y[1], tensor2d([[-0.9842659, -0.9842659, -0.9842659]], [1, 3]));
-      } else if (mergeMode === 'concat') {
+      } else if (mergeMode === undefined || mergeMode === 'concat') {
         y = y as Tensor;
         expectTensorsClose(
             y,
@@ -574,7 +582,7 @@ describeMathCPUAndGPU('Bidirectional with initial state', () => {
         biasInitializer: 'ones'
       }) as RNN,
       mergeMode: null,
-    }) as Bidirectional;
+    });
     const outputTensors =
         bidiLayer.apply(
             inputTensor, {initialState: [initState1, initState2]}) as
