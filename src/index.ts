@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {io} from '@tensorflow/tfjs-core';
+import {deprecationWarn, io} from '@tensorflow/tfjs-core';
 
 import {DEFAULT_MANIFEST_NAME, FrozenModel, loadFrozenModel as loadFrozenModelPB, loadTfHubModule} from './executor/frozen_model';
 import {loadFrozenModel as loadFrozenModelJSON} from './executor/frozen_model_json';
@@ -57,14 +57,18 @@ export {version as version_converter} from './version';
 export function loadFrozenModel(
     modelUrl: string, weightsManifestUrl?: string, requestOption?: RequestInit,
     onProgress?: Function): Promise<FrozenModel> {
+  deprecationWarn(
+      'tf.loadFrozenModel() is going away. ' +
+      'Use tf.loadGraphModel() instead, and note the positional argument changes.');
+
   if (modelUrl && modelUrl.endsWith('.json')) {
     return (loadFrozenModelJSON(modelUrl, requestOption, onProgress) as
                 // tslint:disable-next-line:no-any
                 Promise<any>) as Promise<FrozenModel>;
   }
-  // if users are using the new loadGraphModel API, the weightManifestUrl will
-  // be omitted. We will build the url using the model URL path and default
-  // manifest file name.
+  // if users are using the new loadGraphModel API, the weightManifestUrl
+  // will be omitted. We will build the url using the model URL path and
+  // default manifest file name.
   if (modelUrl != null && weightsManifestUrl == null) {
     weightsManifestUrl = getWeightsManifestUrl(modelUrl);
   }
@@ -112,8 +116,12 @@ function getWeightsManifestUrl(modelUrl: string): string {
  */
 /** @doc {heading: 'Models', subheading: 'Loading'} */
 export function loadGraphModel(
-    modelUrl: string, options?: io.LoadOptions): Promise<FrozenModel> {
-  if (options != null && options.fromTFHub) {
+    modelUrl: string, options: io.LoadOptions = {}): Promise<FrozenModel> {
+  if (options == null) {
+    options = {};
+  }
+
+  if (options.fromTFHub) {
     return loadTfHubModule(modelUrl, options.requestInit, options.onProgress);
   }
   let weightsManifestUrl: string = undefined;
