@@ -21,7 +21,7 @@ import {BatchNormalization, BatchNormalizationLayerArgs} from './layers/normaliz
 import {ZeroPadding2D, ZeroPadding2DLayerArgs} from './layers/padding';
 import {AveragePooling1D, AveragePooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerArgs, MaxPooling1D, MaxPooling2D, Pooling1DLayerArgs, Pooling2DLayerArgs} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNCell, RNNLayerArgs, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs, StackedRNNCells, StackedRNNCellsArgs} from './layers/recurrent';
-import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, Wrapper, WrapperLayerArgs} from './layers/wrappers';
+import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs} from './layers/wrappers';
 
 
 // TODO(cais): Add doc string to all the public static functions in this
@@ -685,7 +685,7 @@ export function stackedRNNCells(args: StackedRNNCellsArgs): RNNCell {
  *   configParamIndices: [0]
  * }
  */
-export function bidirectional(args: BidirectionalLayerArgs): Wrapper {
+export function bidirectional(args: BidirectionalLayerArgs): Bidirectional {
   return new Bidirectional(args);
 }
 
