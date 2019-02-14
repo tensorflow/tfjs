@@ -139,7 +139,7 @@ export async function renderHeatmap(
   const spec: VisualizationSpec = {
     'width': options.width || drawArea.clientWidth,
     'height': options.height || drawArea.clientHeight,
-    'padding': 5,
+    'padding': 0,
     'autosize': {
       'type': 'fit',
       'contains': 'padding',
