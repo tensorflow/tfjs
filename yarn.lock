@@ -69,13 +69,12 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@tensorflow/tfjs-converter@0.8.2":
-  version "0.8.2"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-0.8.2.tgz#b8695b2ffb61719b16197e021f37847c2b9430d6"
-  integrity sha512-pnX1XDktTIuZ1Ne2ijeZWeqppYsPDCNZGrKTBoWe/P4G72SPIbciM0lTxeUMWL/VgA85iwOK+NrYXVwapHxBoQ==
+"@tensorflow/tfjs-converter@0.8.3":
+  version "0.8.3"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-0.8.3.tgz#7a559664e751add832e44f9d817693fabe9c2bef"
+  integrity sha512-bN3Hy6MOiWb6vf5SfA/V3Rv3Wq13GTbEkS64NIhk0yyGIRPDPOdtwysFmrBcKgc2Ds28oldb40BSLkTYMV5PTA==
   dependencies:
     "@types/long" "~3.0.32"
-    js-base64 "2.4.9"
     protobufjs "~6.8.6"
 
 "@tensorflow/tfjs-core@0.15.2":
@@ -2832,11 +2831,6 @@ jasmine@3.1.0:
   dependencies:
     glob "^7.0.6"
     jasmine-core "~3.1.0"
-
-js-base64@2.4.9:
-  version "2.4.9"
-  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-2.4.9.tgz#748911fb04f48a60c4771b375cac45a80df11c03"
-  integrity sha512-xcinL3AuDJk7VSzsHgb9DvvIXayBbadtMZ4HFPx8rUszbW1MuNMlwYVC4zzCZ6e1sqZpnNS5ZFYOhXqA39T7LQ==
 
 "js-tokens@^3.0.0 || ^4.0.0":
   version "4.0.0"
