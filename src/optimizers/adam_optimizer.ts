@@ -110,7 +110,7 @@ export class AdamOptimizer extends Optimizer {
     });
   }
 
-  dispose() {
+  dispose(): void {
     this.c.dispose();
     this.epsScalar.dispose();
     this.beta1Scalar.dispose();

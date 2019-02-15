@@ -96,7 +96,7 @@ export class AdadeltaOptimizer extends Optimizer {
     }
   }
 
-  dispose() {
+  dispose(): void {
     this.c.dispose();
     this.epsilonScalar.dispose();
     this.rhoScalar.dispose();

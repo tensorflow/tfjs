@@ -75,6 +75,11 @@ export abstract class Optimizer extends Serializable {
    * @param variableGradients A mapping of variable name to its gradient value.
    */
   abstract applyGradients(variableGradients: NamedTensorMap): void;
+
+  /**
+   * Dispose the variables (if any) owned by this optimizer instance.
+   */
+  dispose(): void {}
 }
 
 Object.defineProperty(Optimizer, Symbol.hasInstance, {

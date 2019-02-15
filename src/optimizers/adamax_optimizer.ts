@@ -114,7 +114,7 @@ export class AdamaxOptimizer extends Optimizer {
     });
   }
 
-  dispose() {
+  dispose(): void {
     this.c.dispose();
     this.epsScalar.dispose();
     this.accBeta1.dispose();
