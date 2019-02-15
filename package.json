@@ -19,7 +19,6 @@
   "devDependencies": {
     "@tensorflow/tfjs-core": "1.0.0-alpha3",
     "@types/jasmine": "~2.8.6",
-    "@types/js-base64": "2.3.1",
     "@types/node-fetch": "1.6.9",
     "ajv": "~6.3.0",
     "babel-core": "~6.26.3",
@@ -64,7 +63,6 @@
   },
   "dependencies": {
     "@types/long": "~3.0.32",
-    "js-base64": "2.4.9",
     "protobufjs": "~6.8.6"
   }
 }

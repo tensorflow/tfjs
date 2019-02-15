@@ -14,11 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
+
 import {DataType} from '@tensorflow/tfjs-core';
-import {Base64} from 'js-base64';
-
 import {tensorflow_json} from '../data/compiled_api_json';
-
 import {getNodeNameAndIndex} from './executors/utils';
 import * as arithmetic from './op_list/arithmetic';
 import * as basicMath from './op_list/basic_math';
@@ -231,6 +229,18 @@ export class OperationMapper {
     return newNode;
   }
 
+  private decodeBase64(text: string): string {
+    if (typeof atob !== 'undefined') {
+      return atob(text);
+    } else if (typeof Buffer !== 'undefined') {
+      return new Buffer(text, 'base64').toString();
+    } else {
+      throw new Error(
+          'Unable to decode base64 in this environment. ' +
+          'Missing built-in atob() or Buffer()');
+    }
+  }
+
   private getStringParam(
       attrs: {[key: string]: tensorflow_json.IAttrValue}, name: string,
       def: string, keepCase = false): string {
@@ -238,7 +248,7 @@ export class OperationMapper {
     if (param !== undefined) {
       const value = Array.isArray(param.s) ?
           String.fromCharCode.apply(null, param.s) :
-          Base64.decode(param.s);
+          this.decodeBase64(param.s);
       return keepCase ? value : value.toLowerCase();
     }
     return def;
