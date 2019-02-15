@@ -223,6 +223,7 @@ describeMathCPU('Layer', () => {
       defaultLayer.supportsMasking = true;
       expect(defaultLayer.computeMask([], mask)).toEqual(mask);
     });
+
     it('correctly generates a config for serialization', () => {
       const config = defaultLayer.getConfig();
       expect(config.name).toEqual(defaultLayer.name);
@@ -361,6 +362,20 @@ describeMathCPU('Layer', () => {
        layer.nonTrainableWeights = nonTrainableWeights;
        expect(layer.nonTrainableWeights).toEqual(expectedWeights);
      });
+
+  it('Setting trainable of layer sets Variable.trainable', () => {
+    const layer1 = tfl.layers.dense({units: 3});
+    layer1.build([4]);
+    // The weights should start from a trainable = true state.
+    expect(layer1.weights[0].trainable).toEqual(true);
+    expect(layer1.weights[1].trainable).toEqual(true);
+    layer1.trainable = false;
+    expect(layer1.weights[0].trainable).toEqual(false);
+    expect(layer1.weights[1].trainable).toEqual(false);
+    layer1.trainable = true;
+    expect(layer1.weights[0].trainable).toEqual(true);
+    expect(layer1.weights[1].trainable).toEqual(true);
+  });
 
   for (const trainable of [true, false]) {
     it('concats trainable and nonTrainableWeights for weights regardless of ' +
