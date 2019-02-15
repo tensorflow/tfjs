@@ -37,7 +37,7 @@ export class LayerVariable {
   // any unique suffix.  This may be needed when restoring weights because this
   // original name is used as a key.
   readonly originalName: string;
-  readonly trainable: boolean;
+  private trainable_: boolean;
 
   protected readonly val: tfc.Variable;
   readonly constraint: Constraint;
@@ -67,10 +67,10 @@ export class LayerVariable {
     this.originalName = getScopedTensorName(name);
     this.name = getUniqueTensorName(this.originalName);
 
-    this.trainable = trainable;
+    this.trainable_ = trainable;
     this.constraint = constraint;
 
-    this.val = tfc.variable(val, this.trainable, this.name, this.dtype);
+    this.val = tfc.variable(val, this.trainable_, this.name, this.dtype);
   }
 
   /**
@@ -118,6 +118,15 @@ export class LayerVariable {
     if (this.val.isDisposed) {
       throw new Error(`LayersVariable ${this.name} is already disposed.`);
     }
+  }
+
+  get trainable(): boolean {
+    return this.trainable_;
+  }
+
+  set trainable(trainable: boolean) {
+    this.trainable_ = trainable;
+    this.val.trainable = trainable;
   }
 }
 

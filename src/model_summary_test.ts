@@ -172,6 +172,50 @@ describeMathCPU('Model.summary', () => {
       'Non-trainable params: 33',
       '_________________________________________________________________',
     ]);
+    consoleLogHistory = [];
+
+    // Setting the entire model to non-trainable should be reflected
+    // in the summary.
+    model.trainable = false;
+    model.summary();
+    expect(consoleLogHistory).toEqual([
+      '_________________________________________________________________',
+      'Layer (type)                 Output shape              Param #   ',
+      '=================================================================',
+      `${lyrName01} (Flatten)       [null,10]                 0         `,
+      '_________________________________________________________________',
+      `${lyrName02} (Dense)         [null,3]                  33        `,
+      '_________________________________________________________________',
+      `${lyrName03} (Dense)         [null,1]                  4         `,
+      '=================================================================',
+      'Total params: 37',
+      'Trainable params: 0',
+      'Non-trainable params: 37',
+      '_________________________________________________________________',
+    ]);
+    consoleLogHistory = [];
+
+    // Setting the model's trainable property should be reflected in the
+    // new summary. But the initially untrainable layer should still stay
+    // untrainable.
+    model.trainable = true;
+    model.summary();
+    expect(consoleLogHistory).toEqual([
+      '_________________________________________________________________',
+      'Layer (type)                 Output shape              Param #   ',
+      '=================================================================',
+      `${lyrName01} (Flatten)       [null,10]                 0         `,
+      '_________________________________________________________________',
+      `${lyrName02} (Dense)         [null,3]                  33        `,
+      '_________________________________________________________________',
+      `${lyrName03} (Dense)         [null,1]                  4         `,
+      '=================================================================',
+      'Total params: 37',
+      'Trainable params: 4',
+      'Non-trainable params: 33',
+      '_________________________________________________________________',
+    ]);
+    consoleLogHistory = [];
   });
 
   it('Sequential model with Embedding layer', () => {

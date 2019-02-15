@@ -413,7 +413,7 @@ export abstract class Layer extends serialization.Serializable {
   inputSpec: InputSpec[];
   supportsMasking: boolean;
   /** Whether the layer weights will be updated during training. */
-  trainable: boolean;
+  protected trainable_: boolean;
   updatable: boolean;
   batchInputShape: Shape;
   dtype: DataType;
@@ -481,7 +481,7 @@ export abstract class Layer extends serialization.Serializable {
     }
     this.name = name;
 
-    this.trainable = args.trainable == null ? true : args.trainable;
+    this.trainable_ = args.trainable == null ? true : args.trainable;
     this.updatable = args.updatable == null ? true : args.updatable;
 
     if (args.inputShape != null || args.batchInputShape != null) {
@@ -675,8 +675,19 @@ export abstract class Layer extends serialization.Serializable {
     this._built = built;
   }
 
+  get trainable(): boolean {
+    return this.trainable_;
+  }
+
+  set trainable(trainable: boolean) {
+    this._trainableWeights.forEach(w => {
+      w.trainable = trainable;
+    });
+    this.trainable_ = trainable;
+  }
+
   get trainableWeights(): LayerVariable[] {
-    if (this.trainable) {
+    if (this.trainable_) {
       return this._trainableWeights;
     } else {
       return [];
@@ -688,7 +699,7 @@ export abstract class Layer extends serialization.Serializable {
   }
 
   get nonTrainableWeights(): LayerVariable[] {
-    if (!this.trainable) {
+    if (!this.trainable_) {
       return this._trainableWeights.concat(this._nonTrainableWeights);
     } else {
       return this._nonTrainableWeights;
@@ -1462,8 +1473,10 @@ export abstract class Layer extends serialization.Serializable {
    */
   /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   getConfig(): serialization.ConfigDict {
-    const config:
-        serialization.ConfigDict = {name: this.name, trainable: this.trainable};
+    const config: serialization.ConfigDict = {
+      name: this.name,
+      trainable: this.trainable
+    };
     if (this.batchInputShape != null) {
       config['batchInputShape'] = this.batchInputShape;
     }

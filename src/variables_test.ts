@@ -165,6 +165,17 @@ describeMathCPU('Variable', () => {
     expect(() => v.write(tensor1d([20, -20])))
         .toThrowError(/LayersVariable .*gralk.* disposed/);
   });
+
+  it('Setting trainable sets the trainable of underlying tfc.Variable', () => {
+    const v1 = new V.LayerVariable(scalar(1), null, 'foo', true);
+    // tslint:disable-next-line:no-any
+    const coreVariable = (v1 as any).val as tfc.Variable;
+    expect(coreVariable.trainable).toEqual(true);
+    v1.trainable = false;
+    expect(coreVariable.trainable).toEqual(false);
+    v1.trainable = true;
+    expect(coreVariable.trainable).toEqual(true);
+  });
 });
 
 describeMathCPUAndGPU('Create Variable', () => {
