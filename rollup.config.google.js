@@ -48,11 +48,7 @@ export default {
     plugins: [
       node(),
       // Polyfill require() from dependencies.
-      commonjs({
-        namedExports: {
-          './node_modules/base64/index.js': ['Base64']
-        }
-      }),
+      commonjs({}),
       cleanup({comments: 'none'}),
     ],
     output: {

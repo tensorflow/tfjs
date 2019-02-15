@@ -55,8 +55,7 @@ function config({plugins = [], output = {}}) {
       commonjs({
         namedExports: {
           './src/data/compiled_api.js': ['tensorflow'],
-          './node_modules/protobufjs/minimal.js': ['roots', 'Reader', 'util'],
-          './node_modules/base64/index.js': ['Base64']
+          './node_modules/protobufjs/minimal.js': ['roots', 'Reader', 'util']
         }
       }),
       ...plugins
