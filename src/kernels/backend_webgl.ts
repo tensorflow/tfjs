@@ -89,6 +89,7 @@ import {ReduceProgram} from './webgl/reduce_gpu';
 import {ReshapePackedProgram} from './webgl/reshape_packed_gpu';
 import {ResizeBilinearBackpropProgram} from './webgl/resize_bilinear_backprop_gpu';
 import {ResizeBilinearProgram} from './webgl/resize_bilinear_gpu';
+import {ResizeBilinearPackedProgram} from './webgl/resize_bilinear_packed_gpu';
 import {ResizeNearestNeigborBackpropProgram} from './webgl/resize_nearest_neighbor_backprop_gpu';
 import {ResizeNearestNeighborProgram} from './webgl/resize_nearest_neighbor_gpu';
 import {ReverseProgram} from './webgl/reverse_gpu';
@@ -1895,7 +1896,9 @@ export class MathBackendWebGL implements KernelBackend {
   resizeBilinear(
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D {
-    const program =
+    const program = ENV.get('WEBGL_PACK_IMAGE_OPERATIONS') ?
+        new ResizeBilinearPackedProgram(
+            x.shape, newHeight, newWidth, alignCorners) :
         new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
     return this.compileAndRun(program, [x]);
   }
