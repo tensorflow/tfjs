@@ -68,7 +68,7 @@ export class AdagradOptimizer extends Optimizer {
     }
   }
 
-  dispose() {
+  dispose(): void {
     this.epsilon.dispose();
     this.c.dispose();
     if (this.accumulatedGrads != null) {

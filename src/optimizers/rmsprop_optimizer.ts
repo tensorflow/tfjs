@@ -136,7 +136,7 @@ export class RMSPropOptimizer extends Optimizer {
     }
   }
 
-  dispose() {
+  dispose(): void {
     this.c.dispose();
     this.epsilonScalar.dispose();
     this.decayScalar.dispose();
