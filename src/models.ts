@@ -102,9 +102,7 @@ export async function modelFromJSON(
           weightValues[weight.originalName];
     }
 
-    const skipMismatches: boolean = null;
-    const isNamedTensorMap = true;
-    model.loadWeights(uniqueWeightValues, skipMismatches, isNamedTensorMap);
+    model.loadWeights(uniqueWeightValues);
     // Dispose temporary weight values.
     dispose(weightValues);
   }
@@ -315,11 +313,9 @@ export async function loadModelFromIOHandler(
           'Therefore loading of weights cannot proceed.');
     }
 
-    const skipMismatch = false;
-    const isNamedTensorMap = true;
     const weights =
         io.decodeWeights(artifacts.weightData, artifacts.weightSpecs);
-    model.loadWeights(weights, skipMismatch, isNamedTensorMap, strict);
+    model.loadWeights(weights, strict);
     // Dispose temporary weight values.
     dispose(weights);
   }

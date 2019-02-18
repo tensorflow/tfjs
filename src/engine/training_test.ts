@@ -2333,48 +2333,6 @@ describeMathCPUAndGPU('Model.evaluate', () => {
   });
 });
 
-describeMathCPUAndGPU('Load weights', () => {
-  it('Simple functional model', () => {
-    const inputTensor =
-        tfl.layers.input({shape: [3], name: 'inputLayer', dtype: 'float32'});
-    const denseLayer =
-        tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer'});
-    const output = denseLayer.apply(inputTensor) as tfl.SymbolicTensor;
-    const model = new tfl.Model({
-      inputs: [inputTensor],
-      outputs: [output],
-      name: 'modelWithWeightsToLoad',
-    });
-    const weightsJSON = {
-      'keras_version': '2.1.2',
-      'backend': 'tensorflow',
-      'weights': {
-        'denseLayer': [
-          {
-            'name': 'denseLayer/kernel:0',
-            'dtype': 'float32',
-            'shape': [3, 2],
-            'value': [[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]],
-          },
-          {
-            'name': 'denseLayer/bias:0',
-            'dtype': 'float32',
-            'shape': [2],
-            'value': [-0.1, -0.2],
-          },
-        ],
-      },
-    };
-    model.loadWeights(weightsJSON);
-
-    // Run a concrete input value through the layer to check that the weights
-    // are loaded properly.
-    expectTensorsClose(
-        model.apply(tensor2d([[1, 1, 1]], [1, 3])) as Tensor,
-        tensor2d([[0.8, 1.0]], [1, 2]));
-  });
-});
-
 describe('Model trainable setter and getter', () => {
   it('Setting trainable does not affect Layers', () => {
     const model = tfl.sequential({
