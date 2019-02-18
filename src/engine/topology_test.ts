@@ -16,8 +16,7 @@ import {Shape} from '../keras_format/common';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 import {LayerVariable, onesVariable, zerosVariable} from '../variables';
 
-import {loadWeightsFromJson, loadWeightsFromNamedTensorMap} from './container';
-import {InputSpec, Layer, LayerArgs, Node} from './topology';
+import {InputSpec, Layer, LayerArgs, Node, SymbolicTensor} from './topology';
 
 class LayerForTest extends tfl.layers.Layer {
   static className = 'LayerForTest';
@@ -1015,190 +1014,6 @@ describeMathCPUAndGPU('Layer-dispose', () => {
   });
 });
 
-// TODO(cais): Maybe remove this test once loadWeightsFromJson is removed
-//   (b/74015805).
-describeMathCPUAndGPU('loadWeightsFromJson', () => {
-  const inputTensor =
-      tfl.layers.input({shape: [3], name: 'inputLayer', dtype: 'float32'});
-
-  it('One layer', () => {
-    const denseLayer =
-        tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer'});
-    denseLayer.apply(inputTensor);
-    const weightsJSON = {
-      'keras_version': '2.1.2',
-      'backend': 'tensorflow',
-      'weights': {
-        'denseLayer': [
-          {
-            'name': 'denseLayer/kernel:0',
-            'dtype': 'float32',
-            'shape': [3, 2],
-            'value': [[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]],
-          },
-          {
-            'name': 'denseLayer/bias:0',
-            'dtype': 'float32',
-            'shape': [2],
-            'value': [-0.1, -0.2],
-          },
-        ],
-      },
-    };
-    loadWeightsFromJson(weightsJSON, [denseLayer]);
-    // Run a concrete input value through the layer to check that the weights
-    // are loaded properly.
-    expectTensorsClose(
-        denseLayer.apply(tensor2d([[1, 1, 1]], [1, 3])) as Tensor,
-        tensor2d([[0.8, 1.0]], [1, 2]));
-  });
-
-  it('Two layers', () => {
-    const denseLayer1 =
-        tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer1'});
-    const denseLayer2 =
-        tfl.layers.dense({units: 1, useBias: false, name: 'denseLayer2'});
-    denseLayer2.apply(denseLayer1.apply(inputTensor));
-    const weightsJSON = {
-      'keras_version': '2.1.2',
-      'backend': 'tensorflow',
-      'weights': {
-        'denseLayer1': [
-          {
-            'name': 'denseLayer1/kernel:0',
-            'dtype': 'float32',
-            'shape': [3, 2],
-            'value': [[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]],
-          },
-          {
-            'name': 'denseLayer1/bias:0',
-            'dtype': 'float32',
-            'shape': [2],
-            'value': [-0.1, -0.2],
-          },
-        ],
-        'denseLayer2': [
-          {
-            'name': 'denseLayer2/kernel:0',
-            'dtype': 'float32',
-            'shape': [2, 1],
-            'value': [[1.2], [1.3]],
-          },
-        ],
-      },
-    };
-    loadWeightsFromJson(weightsJSON, [denseLayer1, denseLayer2]);
-    // Run a concrete input value through the layer to check that the weights
-    // are loaded properly.
-    expectTensorsClose(
-        denseLayer2.apply(denseLayer1.apply(tensor2d([[1, 1, 1]], [1, 3]))) as
-            Tensor,
-        tensor2d([[2.26]], [1, 1]));
-  });
-
-  it('Missing weights for a layer', () => {
-    const denseLayer =
-        tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer'});
-    denseLayer.apply(inputTensor);
-    const weightsJSON = {
-      'keras_version': '2.1.2',
-      'backend': 'tensorflow',
-      'weights': {},
-    };
-    expect(() => {
-      loadWeightsFromJson(weightsJSON, [denseLayer]);
-    })
-        .toThrowError(
-            /Layer.*denseLayer.*expects 2 weight.*but.*have 0 element.*/);
-  });
-
-  it('Missing a single weight', () => {
-    const denseLayer =
-        tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer'});
-    denseLayer.apply(inputTensor);
-    const weightsJSON = {
-      'keras_version': '2.1.2',
-      'backend': 'tensorflow',
-      'weights': {
-        'denseLayer': [
-          {
-            'name': 'denseLayer1/kernel:0',
-            'dtype': 'float32',
-            'shape': [3, 2],
-            'value': [[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]],
-          },
-          {
-            'name': 'denseLayer1/bias:0',
-            'dtype': 'float32',
-            'shape': [1],
-            'value': [-0.1],
-          },
-        ],
-      }
-    };
-    expect(() => {
-      loadWeightsFromJson(weightsJSON, [denseLayer]);
-    }).toThrowError(/Shape mismatch.*\[2\] vs\. \[1\].*/);
-  });
-
-  it('Shape mismatch in a single weight', () => {
-    const denseLayer =
-        tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer'});
-    denseLayer.apply(inputTensor);
-    const weightsJSON = {
-      'keras_version': '2.1.2',
-      'backend': 'tensorflow',
-      'weights': {
-        'denseLayer': [
-          {
-            'name': 'denseLayer1/kernel:0',
-            'dtype': 'float32',
-            'shape': [3, 2],
-            'value': [[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]],
-          },
-
-        ],
-      }
-    };
-    expect(() => {
-      loadWeightsFromJson(weightsJSON, [denseLayer]);
-    })
-        .toThrowError(
-            /Layer.*denseLayer.*expects 2 weight.*but.*have 1 element.*/);
-  });
-
-  it('skipMismatch=true tolerates a single missing weight', () => {
-    const denseLayer =
-        tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer'});
-    denseLayer.apply(inputTensor);
-    const weightsJSON = {
-      'keras_version': '2.1.2',
-      'backend': 'tensorflow',
-      'weights': {
-        'denseLayer': [
-          {
-            'name': 'denseLayer1/kernel:0',
-            'dtype': 'float32',
-            'shape': [3, 2],
-            'value': [[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]],
-          },
-        ],
-      }
-    };
-    spyOn(console, 'warn');
-    loadWeightsFromJson(weightsJSON, [denseLayer], true);
-    expect(console.warn).toHaveBeenCalled();
-    // Run a concrete input value through the layer to check that the only
-    // weight available (i.e., kernel) is loaded properly. The missing weight
-    // from the JSON object (i.e., bias) should not have been loaded and hence
-    // should retain the initial value (all zeros), which ought to be reflected
-    // in the output.
-    expectTensorsClose(
-        denseLayer.apply(tensor2d([[1, 1, 1]], [1, 3])) as Tensor,
-        tensor2d([[0.9, 1.2]], [1, 2]));
-  });
-});
-
 describeMathCPUAndGPU('loadWeightsFromNamedTensorMap', () => {
   const inputTensor =
       tfl.layers.input({shape: [3], name: 'inputLayer', dtype: 'float32'});
@@ -1206,12 +1021,14 @@ describeMathCPUAndGPU('loadWeightsFromNamedTensorMap', () => {
   it('One layer', () => {
     const denseLayer =
         tfl.layers.dense({units: 2, useBias: true, name: 'dense_layer'});
-    denseLayer.apply(inputTensor);
+    const output = denseLayer.apply(inputTensor) as SymbolicTensor;
+    const model = tfl.model({inputs: inputTensor, outputs: output});
+
     const namedWeightsMap: NamedTensorMap = {};
     namedWeightsMap[denseLayer.weights[0].originalName] =
         tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
     namedWeightsMap[denseLayer.weights[1].originalName] = tensor1d([10, 20]);
-    loadWeightsFromNamedTensorMap(namedWeightsMap, [denseLayer]);
+    model.loadWeights(namedWeightsMap);
     expectTensorsClose(
         denseLayer.weights[0].read(), tensor2d([1, 2, 3, 4, 5, 6], [3, 2]));
     expectTensorsClose(denseLayer.weights[1].read(), tensor1d([10, 20]));
@@ -1220,40 +1037,46 @@ describeMathCPUAndGPU('loadWeightsFromNamedTensorMap', () => {
   it('Mismatching shape throws an error even in non-strict mode', () => {
     const denseLayer =
         tfl.layers.dense({units: 2, useBias: true, name: 'dense_layer'});
-    denseLayer.apply(inputTensor);
+    const output = denseLayer.apply(inputTensor) as SymbolicTensor;
+    const model = tfl.model({inputs: inputTensor, outputs: output});
+
     const namedWeightsMap: NamedTensorMap = {};
     namedWeightsMap[denseLayer.weights[0].originalName] =
         tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [4, 2]);
     namedWeightsMap[denseLayer.weights[1].originalName] = tensor1d([10, 20]);
-    expect(
-        () =>
-            loadWeightsFromNamedTensorMap(namedWeightsMap, [denseLayer], false))
+    const strict = false;
+    expect(() => model.loadWeights(namedWeightsMap, strict))
         .toThrowError('Shape mismatch: [3,2] vs. [4,2]');
   });
 
   it('Extra weights leads to error', () => {
     const denseLayer =
         tfl.layers.dense({units: 2, useBias: true, name: 'dense_layer'});
-    denseLayer.apply(inputTensor);
+    const output = denseLayer.apply(inputTensor) as SymbolicTensor;
+    const model = tfl.model({inputs: inputTensor, outputs: output});
+
     const namedWeightsMap: NamedTensorMap = {};
     namedWeightsMap[denseLayer.weights[0].originalName] =
         tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
     namedWeightsMap[denseLayer.weights[1].originalName] = tensor1d([10, 20]);
     namedWeightsMap['extra'] = tensor1d([10, 20]);
-    expect(() => loadWeightsFromNamedTensorMap(namedWeightsMap, [denseLayer]))
+    expect(() => model.loadWeights(namedWeightsMap))
         .toThrowError(/Provided weight data has no target variable: extra/);
   });
 
   it('Extra weights are allowed in non-strict mode', () => {
     const denseLayer =
         tfl.layers.dense({units: 2, useBias: true, name: 'dense_layer'});
-    denseLayer.apply(inputTensor);
+    const output = denseLayer.apply(inputTensor) as SymbolicTensor;
+    const model = tfl.model({inputs: inputTensor, outputs: output});
+
     const namedWeightsMap: NamedTensorMap = {};
     namedWeightsMap[denseLayer.weights[0].originalName] =
         tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
     namedWeightsMap[denseLayer.weights[1].originalName] = tensor1d([10, 20]);
     namedWeightsMap['extra'] = tensor1d([10, 20]);
-    loadWeightsFromNamedTensorMap(namedWeightsMap, [denseLayer], false);
+    const strict = false;
+    model.loadWeights(namedWeightsMap, strict);
     expectTensorsClose(
         denseLayer.weights[0].read(), tensor2d([1, 2, 3, 4, 5, 6], [3, 2]));
     expectTensorsClose(denseLayer.weights[1].read(), tensor1d([10, 20]));
@@ -1262,22 +1085,27 @@ describeMathCPUAndGPU('loadWeightsFromNamedTensorMap', () => {
   it('Unset weights leads to error', () => {
     const denseLayer =
         tfl.layers.dense({units: 2, useBias: true, name: 'dense_layer'});
-    denseLayer.apply(inputTensor);
+    const output = denseLayer.apply(inputTensor) as SymbolicTensor;
+    const model = tfl.model({inputs: inputTensor, outputs: output});
+
     const namedWeightsMap: NamedTensorMap = {};
     namedWeightsMap[denseLayer.weights[0].originalName] =
         tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
-    expect(() => loadWeightsFromNamedTensorMap(namedWeightsMap, [denseLayer]))
+    expect(() => model.loadWeights(namedWeightsMap))
         .toThrowError(/1 of 2 weights are not set: .*bias.*/);
   });
 
   it('Unset weights are allowed in non-strict mode', () => {
     const denseLayer =
         tfl.layers.dense({units: 2, useBias: true, name: 'dense_layer'});
-    denseLayer.apply(inputTensor);
+    const output = denseLayer.apply(inputTensor) as SymbolicTensor;
+    const model = tfl.model({inputs: inputTensor, outputs: output});
+
     const namedWeightsMap: NamedTensorMap = {};
     namedWeightsMap[denseLayer.weights[0].originalName] =
         tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
-    loadWeightsFromNamedTensorMap(namedWeightsMap, [denseLayer], false);
+    const strict = false;
+    model.loadWeights(namedWeightsMap, strict);
     // No exception thrown.
   });
 });
