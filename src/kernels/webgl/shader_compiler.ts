@@ -309,8 +309,6 @@ function getShaderPrefix(glsl: GLSL): string {
     ${SAMPLE_1D_SNIPPET}
     ${SAMPLE_2D_SNIPPET}
     ${SAMPLE_3D_SNIPPET}
-    ${SAMPLE_5D_SNIPPET}
-    ${SAMPLE_6D_SNIPPET}
   `;
 
   return SHADER_PREFIX;
@@ -345,32 +343,6 @@ vec2 packedUVfrom3D(int texNumR, int texNumC,
     int texelsInBatch, int texelsInLogicalRow, int b,
     int row, int col) {
   int index = b * texelsInBatch + (row / 2) * texelsInLogicalRow + (col / 2);
-  int texR = index / texNumC;
-  int texC = index - texR * texNumC;
-  return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
-}
-`;
-
-const SAMPLE_5D_SNIPPET = `
-vec2 UVfrom5D(int texNumR, int texNumC, int stride0,
-    int stride1, int stride2, int stride3, int row, int col, int depth,
-    int depth2, int depth3) {
-  // Explicitly use integer operations as dot() only works on floats.
-  int index = row * stride0 + col * stride1 +
-              depth * stride2 + depth2 * stride3 + depth3;
-  int texR = index / texNumC;
-  int texC = index - texR * texNumC;
-  return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
-}
-`;
-
-const SAMPLE_6D_SNIPPET = `
-vec2 UVfrom6D(int texNumR, int texNumC, int stride0,
-    int stride1, int stride2, int stride3, int stride4,
-    int row, int col, int depth, int depth2, int depth3, int depth4) {
-  // Explicitly use integer operations as dot() only works on floats.
-  int index = row * stride0 + col * stride1 + depth * stride2 + depth2 *
-    stride3 + depth3 * stride4 + depth4;
   int texR = index / texNumC;
   int texC = index - texR * texNumC;
   return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
