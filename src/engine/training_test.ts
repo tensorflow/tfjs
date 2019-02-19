@@ -889,6 +889,72 @@ describeMathCPUAndGPU('Model.fit', () => {
         layer2.getWeights()[0], mul(scalar(-0.11295), ones([10, 1])));
   });
 
+  it('Setting trainable of layer from fit callback', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({
+      units: 3,
+      activation: 'relu',
+      inputShape: [4],
+      kernelInitializer: 'ones'
+    }));
+    model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    expect(model.trainableWeights.length).toEqual(4);
+    const xs = tfc.ones([5, 4]);
+    const ys = tfc.ones([5, 1]);
+    const layer1KernelValues: Float32Array[] = [];
+    const layer2KernelValues: Float32Array[] = [];
+    await model.fit(xs, ys, {
+      epochs: 3,
+      callbacks: {
+        onEpochEnd: async (epoch, logs) => {
+          layer1KernelValues.push(
+              model.layers[0].getWeights()[0].dataSync() as Float32Array);
+          layer2KernelValues.push(
+              model.layers[1].getWeights()[0].dataSync() as Float32Array);
+          // Freeze the first dense layer after the 2nd epoch and unfreeze it
+          // after the 3rd epoch.
+          if (epoch === 1) {
+            model.layers[0].trainable = false;
+          } else if (epoch === 2) {
+            model.layers[0].trainable = true;
+          }
+          if (epoch > 0) {
+            // The 2nd dense layer is never frozen. So its kernel should
+            // be updated in every training epoch.
+            // TODO(cais): Use `expectArraysNotClose()` when available.
+            expect(tensor1d(layer2KernelValues[epoch])
+                       .subStrict(tensor1d(layer2KernelValues[epoch - 1]))
+                       .abs()
+                       .max()
+                       .dataSync()[0])
+                .toBeGreaterThan(0);
+          }
+          // The 1st dense layer is frozen after the 2nd epoch (epoch === 1),
+          // and is then unfrozen after the 3rd (epoch === 2).
+          // So its kernel value should not change between epoch === 1 and epoch
+          // === 2.
+          if (epoch === 2) {
+            expect(tensor1d(layer1KernelValues[epoch])
+                       .subStrict(tensor1d(layer1KernelValues[epoch - 1]))
+                       .abs()
+                       .max()
+                       .dataSync()[0])
+                .toEqual(0);
+          } else if (epoch > 0) {
+            expect(tensor1d(layer1KernelValues[epoch])
+                       .subStrict(tensor1d(layer1KernelValues[epoch - 1]))
+                       .abs()
+                       .max()
+                       .dataSync()[0])
+                .toBeGreaterThan(0);
+          }
+        }
+      }
+    });
+  });
+
   it('Unknown metric', () => {
     createDenseCategoricalModelAndData();
     expect(() => model.compile({
