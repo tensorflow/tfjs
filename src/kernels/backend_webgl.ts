@@ -300,7 +300,9 @@ export class MathBackendWebGL implements KernelBackend {
     if (slice != null) {
       const program = new UnaryOpProgram(shape, unary_op.CLONE);
       const res = this.compileAndRun(program, [{dataId, shape, dtype}]);
-      return this.readSync(res.dataId);
+      const data = this.readSync(res.dataId);
+      (res as Tensor).dispose();
+      return data;
     }
     if (values != null) {
       return this.convertAndCacheOnCPU(dataId);
@@ -340,7 +342,9 @@ export class MathBackendWebGL implements KernelBackend {
     if (slice != null) {
       const program = new UnaryOpProgram(shape, unary_op.CLONE);
       const res = this.compileAndRun(program, [{dataId, shape, dtype}]);
-      return this.read(res.dataId);
+      const data = this.read(res.dataId);
+      (res as Tensor).dispose();
+      return data;
     }
 
     if (values != null) {
@@ -661,6 +665,7 @@ export class MathBackendWebGL implements KernelBackend {
     // Copy texture data from the original tensor.
     Object.assign(newTexData, xTexData);
     newTexData.shape = size;
+    newTexData.dtype = x.dtype;
     let flatOffset = computeFlatOffset(begin, x.strides);
     if (xTexData.slice) {
       // We are slicing an already sliced tensor, so we have to accumulate
