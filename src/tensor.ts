@@ -797,7 +797,7 @@ export class Tensor<R extends Rank = Rank> {
   stack(x: Tensor, axis = 0): Tensor {
     return opHandler.stack([this, x], axis);
   }
-  unstack(x: Tensor, axis = 0): Tensor[] {
+  unstack(axis = 0): Tensor[] {
     return opHandler.unstack(this, axis);
   }
   pad<T extends Tensor>(
