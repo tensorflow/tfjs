@@ -13,8 +13,8 @@ import {BaseLayerSerialization, LayerConfig} from '../topology_config';
 
 
 export interface Pooling1DLayerConfig extends LayerConfig {
-  pool_size?: number;
-  strides?: number;
+  pool_size?: [number];
+  strides?: [number];
   padding?: PaddingMode;
 }
 

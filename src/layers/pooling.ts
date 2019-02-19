@@ -87,13 +87,13 @@ export declare interface Pooling1DLayerArgs extends LayerArgs {
   /**
    * Size of the window to pool over, should be an integer.
    */
-  poolSize?: number;
+  poolSize?: number|[number];
   /**
    * Period at which to sample the pooled values.
    *
    * If `null`, defaults to `poolSize`.
    */
-  strides?: number;
+  strides?: number|[number];
   /** How to fill in data that's not an integer multiple of poolSize. */
   padding?: PaddingMode;
 }
