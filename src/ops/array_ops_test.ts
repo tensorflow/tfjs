@@ -3113,12 +3113,31 @@ describeWithFlags('stack', ALL_ENVS, () => {
     expect(res.shape).toEqual([2, 2, 1]);
     expectArraysClose(res, [1, 2, 3, 4]);
   });
+
+  it('chain api', () => {
+    const a = tf.tensor([1, 2]);
+    const res = a.stack(tf.tensor([3, 4]));
+    expect(res.shape).toEqual([2, 2]);
+    expectArraysClose(res, [1, 2, 3, 4]);
+  });
 });
 
 describeWithFlags('unstack', ALL_ENVS, () => {
   it('unstack by default', () => {
     const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
     const res = tf.unstack(x);
+    expect(res.length).toEqual(2);
+    expect(res[0].rank).toEqual(1);
+    expect(res[0].shape).toEqual([4]);
+    expectArraysClose(res[0], [1, 2, 3, 4]);
+    expect(res[1].rank).toEqual(1);
+    expect(res[1].shape).toEqual([4]);
+    expectArraysClose(res[1], [5, 6, 7, 8]);
+  });
+
+  it('chain api', () => {
+    const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+    const res = x.unstack();
     expect(res.length).toEqual(2);
     expect(res[0].rank).toEqual(1);
     expect(res[0].shape).toEqual([4]);
