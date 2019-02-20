@@ -613,7 +613,7 @@ describeWithFlags(
       it('forEach does not leak Tensors', async () => {
         const ds = new TestDataset();
         let count = 0;
-        await ds.forEach(element => {
+        await ds.forEachAsync(element => {
           count++;
           return {};
         });
@@ -635,9 +635,9 @@ describeWithFlags(
            expect(tf.memory().numTensors).toEqual(2);
 
            let count = 0;
-           // ds.forEach() automatically disposes incoming Tensors after
+           // ds.forEachAsync() automatically disposes incoming Tensors after
            // processing them.
-           await ds.forEach(elem => {
+           await ds.forEachAsync(elem => {
              count++;
              expect(elem.isDisposed).toBeFalsy();
            });
@@ -646,14 +646,14 @@ describeWithFlags(
            // stay.
            expect(tf.memory().numTensors).toEqual(2);
 
-           await ds.forEach(elem => {
+           await ds.forEachAsync(elem => {
              count++;
              expect(elem.isDisposed).toBeFalsy();
            });
            expect(count).toEqual(4);
            expect(tf.memory().numTensors).toEqual(2);
 
-           await ds.forEach(elem => {
+           await ds.forEachAsync(elem => {
              count++;
              expect(elem.isDisposed).toBeFalsy();
            });
@@ -676,9 +676,9 @@ describeWithFlags(
         expect(tf.memory().numTensors).toEqual(4);
 
         let count = 0;
-        // ds.forEach() automatically disposes incoming Tensors after processing
-        // them.
-        await ds.forEach(elem => {
+        // ds.forEachAsync() automatically disposes incoming Tensors after
+        // processing them.
+        await ds.forEachAsync(elem => {
           count++;
           expect(elem.isDisposed).toBeFalsy();
         });
@@ -687,14 +687,14 @@ describeWithFlags(
         // stay.
         expect(tf.memory().numTensors).toEqual(4);
 
-        await ds.forEach(elem => {
+        await ds.forEachAsync(elem => {
           count++;
           expect(elem.isDisposed).toBeFalsy();
         });
         expect(count).toEqual(4);
         expect(tf.memory().numTensors).toEqual(4);
 
-        await ds.forEach(elem => {
+        await ds.forEachAsync(elem => {
           count++;
           expect(elem.isDisposed).toBeFalsy();
         });

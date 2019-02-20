@@ -51,7 +51,7 @@ export function iteratorFromIncrementing(start: number): LazyIterator<number> {
  * const func = () =>
  *    ++i < 5 ? {value: i, done: false} : {value: null, done: true};
  * const iter = tf.data.iteratorFromFunction(func);
- * await iter.forEach(e => console.log(e));
+ * await iter.forEachAsync(e => console.log(e));
  * ```
  *
  * @param func A function that produces data on each call.
@@ -300,7 +300,7 @@ export abstract class LazyIterator<T> {
    *
    * @param f A function to apply to each stream element.
    */
-  async forEach(f: (value: T) => void): Promise<void> {
+  async forEachAsync(f: (value: T) => void): Promise<void> {
     return this.map(f).resolveFully();
   }
 

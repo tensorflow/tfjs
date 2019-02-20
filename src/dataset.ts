@@ -49,7 +49,7 @@ import {canTensorify, deepMapAndAwaitAll, DeepMapResult, isIterable} from './uti
  * last in a pipeline, because data transformations are easier to express on a
  * per-example basis than on a per-batch basis.
  *
- * The following code examples are calling `await dataset.forEach(...)` to
+ * The following code examples are calling `await dataset.forEachAsync(...)` to
  * iterate once over the entire dataset in order to print out the data.
  */
 /** @doc {heading: 'Data', subheading: 'Classes', namespace: 'data'} */
@@ -96,13 +96,13 @@ export abstract class Dataset<T extends DataElement> {
    * Batch a dataset of numbers:
    * ```js
    * const a = tf.data.array([1, 2, 3, 4, 5, 6, 7, 8]).batch(4);
-   * await a.forEach(e => e.print());
+   * await a.forEachAsync(e => e.print());
    * ```
    *
    * Batch a dataset of arrays:
    * ```js
    * const b = tf.data.array([[1], [2], [3], [4], [5], [6], [7], [8]]).batch(4);
-   * await b.forEach(e => e.print());
+   * await b.forEachAsync(e => e.print());
    * ```
    *
    * Batch a dataset of objects:
@@ -110,7 +110,7 @@ export abstract class Dataset<T extends DataElement> {
    * const c = tf.data.array([{a: 1, b: 11}, {a: 2, b: 12}, {a: 3, b: 13},
    *   {a: 4, b: 14}, {a: 5, b: 15}, {a: 6, b: 16}, {a: 7, b: 17},
    *   {a: 8, b: 18}]).batch(4);
-   * await c.forEach(e => {
+   * await c.forEachAsync(e => {
    *   console.log('{');
    *   for(var key in e) {
    *     console.log(key+':');
@@ -157,7 +157,7 @@ export abstract class Dataset<T extends DataElement> {
    * const a = tf.data.array([1, 2, 3]);
    * const b = tf.data.array([4, 5, 6]);
    * const c = a.concatenate(b);
-   * await c.forEach(e => console.log(e));
+   * await c.forEachAsync(e => console.log(e));
    * ```
    *
    * @param dataset A `Dataset` to be concatenated onto this one.
@@ -192,7 +192,7 @@ export abstract class Dataset<T extends DataElement> {
    * ```js
    * const a = tf.data.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
    *   .filter(x => x%2 === 0);
-   * await a.forEach(e => console.log(e));
+   * await a.forEachAsync(e => console.log(e));
    * ```
    *
    * @param predicate A function mapping a dataset element to a boolean or a
@@ -225,15 +225,23 @@ export abstract class Dataset<T extends DataElement> {
    *
    * ```js
    * const a = tf.data.array([1, 2, 3]);
-   * await a.forEach(e => console.log(e));
+   * await a.forEachAsync(e => console.log(e));
    * ```
    *
    * @param f A function to apply to each dataset element.
    * @returns A `Promise` that resolves after all elements have been processed.
    */
   /** @doc {heading: 'Data', subheading: 'Classes'} */
+  async forEachAsync(f: (input: T) => void): Promise<void> {
+    return (await this.iterator()).forEachAsync(f);
+  }
+
+  /** @deprecated Please use `dataset.forEachAsync()` instead. */
   async forEach(f: (input: T) => void): Promise<void> {
-    return (await this.iterator()).forEach(f);
+    tf.deprecationWarn(
+        'dataset.forEach() is deprecated and will be removed. ' +
+        'Please use dataset.forEachAsync() instead');
+    return this.forEachAsync(f);
   }
 
   /**
@@ -241,7 +249,7 @@ export abstract class Dataset<T extends DataElement> {
    *
    * ```js
    * const a = tf.data.array([1, 2, 3]).map(x => x*x);
-   * await a.forEach(e => console.log(e));
+   * await a.forEachAsync(e => console.log(e));
    * ```
    *
    * @param transform A function mapping a dataset element to a transformed
@@ -264,7 +272,7 @@ export abstract class Dataset<T extends DataElement> {
    * const a = tf.data.array([1, 2, 3]).map(x => new Promise(function(resolve){
    *  resolve(x*x);
    * }));
-   * await a.forEach(e => e.then(function(value){
+   * await a.forEachAsync(e => e.then(function(value){
    *  console.log(value);
    * }));
    * ```
@@ -313,7 +321,7 @@ export abstract class Dataset<T extends DataElement> {
    *
    * ```js
    * const a = tf.data.array([1, 2, 3]).repeat(3);
-   * await a.forEach(e => console.log(e));
+   * await a.forEachAsync(e => console.log(e));
    * ```
    *
    * @param count: (Optional) An integer, representing the number of times
@@ -353,7 +361,7 @@ export abstract class Dataset<T extends DataElement> {
    *
    * ```js
    * const a = tf.data.array([1, 2, 3, 4, 5, 6]).skip(3);
-   * await a.forEach(e => console.log(e));
+   * await a.forEachAsync(e => console.log(e));
    * ```
    *
    * @param count: The number of elements of this dataset that should be skipped
@@ -396,7 +404,7 @@ export abstract class Dataset<T extends DataElement> {
    *
    * ```js
    * const a = tf.data.array([1, 2, 3, 4, 5, 6]).shuffle(3);
-   * await a.forEach(e => console.log(e));
+   * await a.forEachAsync(e => console.log(e));
    * ```
    *
    * @param bufferSize: An integer specifying the number of elements from this
@@ -441,7 +449,7 @@ export abstract class Dataset<T extends DataElement> {
    *
    * ```js
    * const a = tf.data.array([1, 2, 3, 4, 5, 6]).take(3);
-   * await a.forEach(e => console.log(e));
+   * await a.forEachAsync(e => console.log(e));
    * ```
    *
    * @param count: The number of elements of this dataset that should be taken
@@ -499,7 +507,7 @@ export abstract class Dataset<T extends DataElement> {
  *    ++i < 5 ? {value: i, done: false} : {value: null, done: true};
  * const iter = tf.data.iteratorFromFunction(func);
  * const ds = tf.data.datasetFromIteratorFn(iter);
- * await ds.forEach(e => console.log(e));
+ * await ds.forEachAsync(e => console.log(e));
  * ```
  */
 export function datasetFromIteratorFn<T extends DataElement>(
@@ -525,13 +533,13 @@ export function datasetFromIteratorFn<T extends DataElement>(
  * Create a Dataset from an array of objects:
  * ```js
  * const a = tf.data.array([{'item': 1}, {'item': 2}, {'item': 3}]);
- * await a.forEach(e => console.log(e));
+ * await a.forEachAsync(e => console.log(e));
  * ```
  *
  * Create a Dataset from an array of numbers:
  * ```js
  * const a = tf.data.array([4, 5, 6]);
- * await a.forEach(e => console.log(e));
+ * await a.forEachAsync(e => console.log(e));
  * ```
  * @param items An array of elements that will be parsed as items in a dataset.
  */
@@ -563,13 +571,13 @@ export function array<T extends DataElement>(items: T[]): Dataset<T> {
  * const ds1 = tf.data.array([{a: 1}, {a: 2}, {a: 3}]);
  * const ds2 = tf.data.array([{b: 4}, {b: 5}, {b: 6}]);
  * const ds3 = tf.data.zip([ds1, ds2]);
- * await ds3.forEach(e => console.log(JSON.stringify(e)));
+ * await ds3.forEachAsync(e => console.log(JSON.stringify(e)));
  *
  * // If the goal is to merge the dicts in order to produce elements like
  * // {a: ..., b: ...}, this requires a second step such as:
  * console.log('Merge the objects:');
  * const ds4 = ds3.map(x => {return {a: x[0].a, b: x[1].b}});
- * await ds4.forEach(e => console.log(e));
+ * await ds4.forEachAsync(e => console.log(e));
  * ```
  *
  * Zip a dict of datasets:
@@ -577,7 +585,7 @@ export function array<T extends DataElement>(items: T[]): Dataset<T> {
  * const a = tf.data.array([{a: 1}, {a: 2}, {a: 3}]);
  * const b = tf.data.array([{b: 4}, {b: 5}, {b: 6}]);
  * const c = tf.data.zip({c: a, d: b});
- * await c.forEach(e => console.log(JSON.stringify(e)));
+ * await c.forEachAsync(e => console.log(JSON.stringify(e)));
  * ```
  */
 /** @doc {heading: 'Data', subheading: 'Operations', namespace: 'data'} */

@@ -117,7 +117,7 @@ export async function computeDatasetStatistics(
   // TODO(soergel): prepare the column objects based on a schema.
   const result: DatasetStatistics = {};
 
-  await sampleDataset.forEach(e => {
+  await sampleDataset.forEachAsync(e => {
     for (const key of Object.keys(e)) {
       const value = e[key];
       if (typeof (value) === 'string') {
