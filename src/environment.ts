@@ -497,9 +497,30 @@ function getOrMakeEnvironment(): Environment {
   return ns.ENV;
 }
 
-/** Enables production mode which disables safety checks to gain performance */
+/**
+ * Enables production mode which disables correctness checks in favor of
+ * performance.
+ */
+/** @doc {heading: 'Environment'} */
 export function enableProdMode(): void {
   ENV.set('PROD', true);
+}
+
+/**
+ * Enables debug mode which will log information about all executed kernels:
+ * the ellapsed time of the kernel execution, as well as the rank, shape, and
+ * size of the output tensor.
+ *
+ * Debug mode will significantly slow down your application as it will
+ * download the result of every operation to the CPU. This should not be used in
+ * production. Debug mode does not affect the timing information of the kernel
+ * execution as we do not measure download time in the kernel execution time.
+ *
+ * See also: `tf.profile`, `tf.memory`.
+ */
+/** @doc {heading: 'Environment'} */
+export function enableDebugMode(): void {
+  ENV.set('DEBUG', true);
 }
 
 /** Globally disables deprecation warnings */

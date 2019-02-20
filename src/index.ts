@@ -23,7 +23,7 @@ import './kernels/backend_cpu';
 
 import {nextFrame} from './browser_util';
 import * as environment from './environment';
-import {deprecationWarn, disableDeprecationWarnings, enableProdMode, Environment} from './environment';
+import {deprecationWarn, disableDeprecationWarnings, enableDebugMode, enableProdMode, Environment} from './environment';
 // Serialization.
 import * as io from './io/io';
 import * as math from './math';
@@ -67,7 +67,13 @@ export const memory = Environment.memory;
 export {version as version_core};
 
 // Top-level method exports.
-export {nextFrame, enableProdMode, disableDeprecationWarnings, deprecationWarn};
+export {
+  nextFrame,
+  enableProdMode,
+  enableDebugMode,
+  disableDeprecationWarnings,
+  deprecationWarn
+};
 
 // Second level exports.
 export {browser, environment, io, math, serialization, test_util, util, webgl};

@@ -171,6 +171,11 @@ describe('public api tf.*', () => {
     tf.enableProdMode();
     expect(ENV.get('PROD')).toBe(true);
   });
+
+  it('tf.enableDebugMode', () => {
+    tf.enableDebugMode();
+    expect(ENV.get('DEBUG')).toBe(true);
+  });
 });
 
 describeWithFlags('max texture size', WEBGL_ENVS, () => {
