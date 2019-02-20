@@ -58,6 +58,26 @@ describeWithFlags('im2col', PACKED_ENVS, () => {
 });
 
 describeWithFlags('conv2d', ALL_ENVS, () => {
+  it('x=[1,4,4,1] f=[1,1,1,3] s=2 d=1 p=same', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [4, 4, inputDepth];
+    const outputDepth = 3;
+    const fSize = 1;
+    const pad = 'same';
+    const stride: [number, number] = [2, 2];
+
+    const x = tf.tensor3d(
+        [
+          10, 30, 50, 70, 20, 40, 60, 80, -10, -30, -50, -70, -20, -40, -60, -80
+        ],
+        inputShape);
+    const w = tf.tensor4d([1, 0.5, 1], [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad);
+
+    expectArraysClose(
+        result, [10, 5, 10, 50, 25, 50, -10, -5, -10, -50, -25, -50]);
+  });
   it('x=[2,2,1] f=[1,1,1,2] s=1 d=1 p=0', () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
