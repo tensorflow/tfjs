@@ -35,7 +35,7 @@ import {computeFlatOffset, getStridedSlicedInfo, isSliceContinous} from '../ops/
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../tensor';
 import {DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, TypedArray, upcastType} from '../types';
 import * as util from '../util';
-import {now} from '../util';
+import {getArrayFromDType, inferDtype, now, sizeFromShape} from '../util';
 
 import {BackendTimingInfo, DataMover, DataStorage, KernelBackend} from './backend';
 import * as backend_util from './backend_util';
@@ -3327,6 +3327,14 @@ export class MathBackendCPU implements KernelBackend {
     return this.scatter(
         indices, updates, shape, outputSize, sliceSize, numUpdates, sliceRank,
         strides, defaultValue, sumDupeIndices);
+  }
+
+  fill<R extends Rank>(
+    shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
+    dtype = dtype || inferDtype(value);
+    const values = getArrayFromDType(dtype, sizeFromShape(shape)) as TypedArray;
+    values.fill(value as number);
+    return Tensor.make(shape, {values}, dtype);
   }
 
   private scatter<R extends Rank>(
