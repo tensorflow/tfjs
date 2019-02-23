@@ -6,6 +6,7 @@ Please reach out to us if you'd like to put your project on the list.
 
 ## Demos & Applications
 
+- [Honkling](https://castorini.github.io/honkling/) - An in-browser keyword spotting system by Jaejun Lee, Raphael Tang, Jimmy Lin
 - [TensorSpace.js](https://github.com/tensorspace-team/tensorspace) - A 3D visualization framework for neural networks, featuring interactive and intuitive display of models in the browser. Supports pre-trained models from TensorFlow, Keras, and TensorFlow.js.
 - [Magenta Studio](https://magenta.tensorflow.org/studio) - A collection of music plugins built on Magenta’s open source tools and models using cutting-edge machine learning techniques for music generation.
 - [Move Mirror](https://experiments.withgoogle.com/collection/ai/move-mirror/view) - An AI Experiment with Pose Estimation in the Browser using TensorFlow.js
