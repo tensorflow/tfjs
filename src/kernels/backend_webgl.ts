@@ -57,6 +57,7 @@ import {ClipProgram} from './webgl/clip_gpu';
 import {ClipPackedProgram} from './webgl/clip_packed_gpu';
 import {ComplexAbsProgram} from './webgl/complex_abs_gpu';
 import {ConcatProgram} from './webgl/concat_gpu';
+import {ConcatPackedProgram} from './webgl/concat_packed_gpu';
 import {Conv2DDerFilterProgram, Conv2DDerInputProgram, Conv3DDerFilterProgram, Conv3DDerInputProgram} from './webgl/conv_backprop_gpu';
 import {DepthwiseConv2DDerFilterProgram, DepthwiseConv2DDerInputProgram} from './webgl/conv_backprop_gpu_depthwise';
 import {Conv2DProgram, Conv3DProgram} from './webgl/conv_gpu';
@@ -728,6 +729,10 @@ export class MathBackendWebGL implements KernelBackend {
       const leftSide = this.concat(tensors.slice(0, midIndex), axis);
       const rightSide = this.concat(tensors.slice(midIndex), axis);
       return this.concat([leftSide, rightSide], axis);
+    }
+    if (ENV.get('WEBGL_PACK_ARRAY_OPERATIONS') && tensors[0].rank > 1) {
+      const program = new ConcatPackedProgram(tensors.map(t => t.shape), axis);
+      return this.compileAndRun(program, tensors);
     }
     // Any concat of n-dimensional tensors across any axis can be reduced to
     // a concatenation of two-dimensional tensors across the axis 1 by first
