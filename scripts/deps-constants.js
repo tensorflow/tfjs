@@ -28,6 +28,7 @@ const depsLibTensorFlowPath = path.join(depsLibPath, libName);
 const depsLibTensorFlowFrameworkPath = path.join(depsLibPath, frameworkLibName);
 
 module.exports = {
+  depsLibPath,
   depsLibTensorFlowFrameworkPath,
   depsLibTensorFlowPath,
   depsPath,
