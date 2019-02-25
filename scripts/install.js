@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,25 +14,21 @@
  * limitations under the License.
  * =============================================================================
  */
-const https = require('https');
-const HttpsProxyAgent = require('https-proxy-agent');
-const url = require('url');
 const fs = require('fs');
 let path = require('path');
 const rimraf = require('rimraf');
-const tar = require('tar');
 const util = require('util');
-const zip = require('adm-zip');
 const cp = require('child_process');
 const os = require('os');
-const ProgressBar = require('progress');
-const {depsPath, depsLibTensorFlowPath} = require('./deps-constants.js');
+const {depsPath, depsLibPath, depsLibTensorFlowPath} =
+    require('./deps-constants.js');
+const resources = require('./resources');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
+const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 const unlink = util.promisify(fs.unlink);
-const exec = util.promisify(cp.exec);
 
 const BASE_URI =
     'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
@@ -42,13 +38,18 @@ const GPU_LINUX = 'gpu-linux-x86_64-1.12.0.tar.gz';
 const CPU_WINDOWS = 'cpu-windows-x86_64-1.12.0.zip';
 const GPU_WINDOWS = 'gpu-windows-x86_64-1.12.0.zip';
 
+const TF_WIN_HEADERS_URI =
+    'https://storage.googleapis.com/tf-builds/tensorflow-headers-1.12.zip';
+
 const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 
-let targetUri = BASE_URI;
-
-async function getTargetUri() {
+/**
+ * Returns the libtensorflow hosted path of the current platform.
+ */
+function getPlatformLibtensorflowUri() {
+  let targetUri = BASE_URI;
   if (platform === 'linux') {
     if (os.arch() === 'arm') {
       targetUri =
@@ -73,6 +74,7 @@ async function getTargetUri() {
   } else {
     throw new Error(`Unsupported platform: ${platform}`);
   }
+  return targetUri;
 }
 
 /**
@@ -98,72 +100,55 @@ async function cleanDeps() {
  * Downloads libtensorflow and notifies via a callback when unpacked.
  */
 async function downloadLibtensorflow(callback) {
-  await getTargetUri();
-  // The deps folder and resources do not exist, download and callback as
-  // needed:
-  console.error('* Downloading libtensorflow');
-
   // Ensure dependencies staged directory is available:
   await ensureDir(depsPath);
 
-  // If HTTPS_PROXY, https_proxy, HTTP_PROXY, or http_proxy is set
-  const proxy = process.env['HTTPS_PROXY'] || process.env['https_proxy'] ||
-      process.env['HTTP_PROXY'] || process.env['http_proxy'] || '';
+  console.warn('* Downloading libtensorflow');
+  resources.downloadAndUnpackResource(
+      getPlatformLibtensorflowUri(), depsPath, async () => {
+        if (platform === 'win32') {
+          // Some windows libtensorflow zip files are missing structure and the
+          // eager headers. Check, restructure, and download resources as
+          // needed.
+          const depsIncludePath = path.join(depsPath, 'include');
+          if (!await exists(depsLibTensorFlowPath)) {
+            // Verify that tensorflow.dll exists
+            const libtensorflowDll = path.join(depsPath, 'tensorflow.dll');
+            if (!await exists(libtensorflowDll)) {
+              throw new Error('Could not find libtensorflow.dll');
+            }
 
-  // Using object destructuring to construct the options object for the
-  // http request.  the '...url.parse(targetUri)' part fills in the host,
-  // path, protocol, etc from the targetUri and then we set the agent to the
-  // default agent which is overridden a few lines down if there is a proxy
-  const options = {...url.parse(targetUri), agent: https.globalAgent};
+            await ensureDir(depsLibPath);
+            await rename(libtensorflowDll, depsLibTensorFlowPath);
+          }
 
-  if (proxy !== '') {
-    options.agent = new HttpsProxyAgent(proxy);
-  }
+          // Next check the structure for the C-library headers. If they don't
+          // exist, download and unzip them.
+          if (!await exists(depsIncludePath)) {
+            // Remove duplicated assets from the original libtensorflow package.
+            // They will be replaced by the download below:
+            await unlink(path.join(depsPath, 'c_api.h'));
+            await unlink(path.join(depsPath, 'LICENSE'));
 
-  const request = https.get(options, response => {
-    const bar = new ProgressBar('[:bar] :rate/bps :percent :etas', {
-      complete: '=',
-      incomplete: ' ',
-      width: 30,
-      total: parseInt(response.headers['content-length'], 10)
-    });
-
-    if (platform === 'win32') {
-      // Windows stores builds in a zip file. Save to disk, extract, and delete
-      // the downloaded archive.
-      const tempFileName = path.join(__dirname, '_libtensorflow.zip');
-      const outputFile = fs.createWriteStream(tempFileName);
-      response
-          .on('data',
-              (chunk) => {
-                bar.tick(chunk.length);
-              })
-          .pipe(outputFile)
-          .on('close', async () => {
-            const zipFile = new zip(tempFileName);
-            zipFile.extractAllTo(depsPath, true /* overwrite */);
-            await unlink(tempFileName);
-
+            // Download the C headers only and unpack:
+            resources.downloadAndUnpackResource(
+                TF_WIN_HEADERS_URI, depsPath, () => {
+                  if (callback !== undefined) {
+                    callback();
+                  }
+                });
+          } else {
             if (callback !== undefined) {
               callback();
             }
-          });
-    } else {
-      // All other platforms use a tarball:
-      response
-          .on('data',
-              (chunk) => {
-                bar.tick(chunk.length);
-              })
-          .pipe(tar.x({C: depsPath, strict: true}))
-          .on('close', () => {
-            if (callback !== undefined) {
-              callback();
-            }
-          });
-    }
-    request.end();
-  });
+          }
+        } else {
+          // No other work is required on other platforms.
+          if (callback !== undefined) {
+            callback();
+          }
+        }
+      });
 }
 
 /**
