@@ -22,14 +22,18 @@ import {MathBackendWebGL, WebGLMemoryInfo} from './backend_webgl';
 
 describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
   let webglLazilyUnpackFlagSaved: boolean;
+  let webglCpuForwardFlagSaved: boolean;
 
   beforeAll(() => {
     webglLazilyUnpackFlagSaved = tf.ENV.get('WEBGL_LAZILY_UNPACK');
+    webglCpuForwardFlagSaved = tf.ENV.get('WEBGL_CPU_FORWARD');
     tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
+    tf.ENV.set('WEBGL_CPU_FORWARD', false);
   });
 
   afterAll(() => {
     tf.ENV.set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
+    tf.ENV.set('WEBGL_CPU_FORWARD', webglCpuForwardFlagSaved);
   });
 
   it('should not leak memory when lazily unpacking', () => {
