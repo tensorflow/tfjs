@@ -16,9 +16,8 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-
 import {tensorflow_json} from '../data/compiled_api_json';
-
+import * as tfconv from '../index';
 import * as fm from './frozen_model_json';
 
 const HOST = 'http://example.org';
@@ -105,6 +104,31 @@ const SIMPLE_HTTP_MODEL_LOADER = {
     };
   }
 };
+
+describe('loadGraphModel', () => {
+  it('Pass a custom io handler', async () => {
+    const customLoader: tfc.io.IOHandler = {
+      load: async () => {
+        return {
+          modelTopology: SIMPLE_MODEL,
+          weightSpecs: weightsManifest,
+          weightData: new Int32Array([5]).buffer,
+        };
+      }
+    };
+    const model = await tfconv.loadGraphModel(customLoader);
+    expect(model).toBeDefined();
+    const bias = model.weights['Const'][0];
+    expect(bias.dtype).toBe('int32');
+    expect(bias.dataSync()).toEqual(new Int32Array([5]));
+  });
+
+  it('Expect an error when moderUrl is null', () => {
+    expect(() => tfconv.loadGraphModel(null))
+        .toThrowError(/modelUrl in loadGraphModel\(\) cannot be null/);
+  });
+});
+
 describe('Model', () => {
   beforeEach(() => {
     model = new fm.FrozenModel(MODEL_URL);

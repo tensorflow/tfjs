@@ -104,12 +104,12 @@ describe('external loading API', () => {
     });
 
     it('should support tfhub models', () => {
-      spyOn(frozen_model, 'loadTfHubModule');
+      spyOn(frozen_model_json, 'loadTfHubModule');
 
       tfc.loadGraphModel(
           TFHUB_MOBILENET,
           {requestInit: {}, onProgress: ONPROGRESS_FUNC, fromTFHub: true});
-      expect(frozen_model.loadTfHubModule)
+      expect(frozen_model_json.loadTfHubModule)
           .toHaveBeenCalledWith(TFHUB_MOBILENET, {}, ONPROGRESS_FUNC);
     });
   });
