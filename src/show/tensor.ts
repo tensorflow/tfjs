@@ -25,9 +25,21 @@ import {tensorStats} from '../util/math';
 /**
  * Shows a histogram with the distribution of all values in a given tensor.
  *
+ * ```js
+ * const tensor = tf.tensor1d([0, 0, 0, 0, 2, 3, 4]);
+ *
+ * const surface = {name: 'Values Distribution', tab: 'Model Inspection'};
+ * await tfvis.show.valuesDistribution(surface, tensor);
+ * ```
+ *
  * @param container A `{name: string, tab?: string}` object specifying which
  *  surface to render to.
  * @param tensor the input tensor
+ *
+ */
+/**
+ * @doc {heading: 'Models & Tensors', subheading: 'Model Inspection', namespace:
+ * 'show'}
  */
 export async function valuesDistribution(container: Drawable, tensor: Tensor) {
   const drawArea = getDrawArea(container);

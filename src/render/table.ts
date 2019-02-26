@@ -25,6 +25,23 @@ import {getDrawArea} from './render_utils';
 /**
  * Renders a table
  *
+ * ```js
+ * const headers = [
+ *  'Col 1',
+ *  'Col 2',
+ *  'Col 3',
+ * ];
+ *
+ * const values = [
+ *  [1, 2, 3],
+ *  ['4', '5', '6'],
+ *  ['strong>7</strong>', true, false],
+ * ];
+ *
+ * const surface = { name: 'Table', tab: 'Charts' };
+ * tfvis.render.table({ headers, values }, surface);
+ * ```
+ *
  * @param data Data in the following format
  *    {
  *      headers: string[],
@@ -41,7 +58,9 @@ import {getDrawArea} from './render_utils';
  *    the contents of the container and can clear its contents
  *    at will.
  * @param opts.fontSize fontSize in pixels for text in the chart.
+ *
  */
+/** @doc {heading: 'Charts', namespace: 'render'} */
 export function renderTable(
     // tslint:disable-next-line:no-any
     data: {headers: string[], values: any[][]}, container: Drawable,
