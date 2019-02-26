@@ -86,7 +86,7 @@ export class CSVDataset extends Dataset<DataElement> {
       // Check provided columnNames match header line.
       util.assert(
           columnNamesFromFile.length === this.fullColumnNames.length,
-          'The length of provided columnNames (' +
+          () => 'The length of provided columnNames (' +
               this.fullColumnNames.length.toString() +
               ') does not match the length of the header line read from ' +
               'file (' + columnNamesFromFile.length.toString() + ').');
@@ -105,7 +105,7 @@ export class CSVDataset extends Dataset<DataElement> {
         Object.keys(counts).filter((name) => (counts[name] > 1));
     util.assert(
         duplicateNames.length === 0,
-        'Duplicate column names found: ' + duplicateNames.toString());
+        () => 'Duplicate column names found: ' + duplicateNames.toString());
     // Check if keys in columnConfigs match columnNames.
     if (this.columnConfigs) {
       for (const key of Object.keys(this.columnConfigs)) {

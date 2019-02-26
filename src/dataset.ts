@@ -128,7 +128,8 @@ export abstract class Dataset<T extends DataElement> {
   /** @doc {heading: 'Data', subheading: 'Classes'} */
   batch(batchSize: number, smallLastBatch = true): Dataset<DataElement> {
     const base = this;
-    tf.util.assert(batchSize > 0, `batchSize needs to be positive, but it is
+    tf.util.assert(
+        batchSize > 0, () => `batchSize needs to be positive, but it is
       ${batchSize}`);
     let size;
     if (this.size === Infinity || this.size == null) {
