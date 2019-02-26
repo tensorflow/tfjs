@@ -192,7 +192,7 @@ function standardizeDataIteratorOutput(
         'map of string to Tensor. ');
     tfc.util.assert(
         iteratorOut.length === 2,
-        'When using the legacy array input form, a ' +
+        () => 'When using the legacy array input form, a ' +
             'Dataset iterator for fitDataset() is expected to generate ' +
             'an Array of length 2: `[xs, ys]`, but instead generates ' +
             iteratorOut);
@@ -205,10 +205,11 @@ function standardizeDataIteratorOutput(
     ys = iteratorOutObj['ys'];
     tfc.util.assert(
         xs != null && ys != null,
-        'A Dataset iterator for fitDataset() is expected to generate objects ' +
-            'of the form `{xs: xVal, ys: yVal}`, where the two values may be ' +
-            '`tf.Tensor`, an array of Tensors, or a map of string to ' +
-            'Tensor.  The provided Dataset instead generates ' + iteratorOut);
+        () => 'A Dataset iterator for fitDataset() is expected to generate ' +
+            'objects of the form `{xs: xVal, ys: yVal}`, where the two ' +
+            'values may be `tf.Tensor`, an array of Tensors, or a map of ' +
+            'string to Tensor.  The provided Dataset instead generates ' +
+            iteratorOut);
   }
 
   const flattenedXs: tfc.Tensor[] =
@@ -220,31 +221,31 @@ function standardizeDataIteratorOutput(
 
   tfc.util.assert(
       flattenedXs.length === model.inputs.length,
-      `Model has ${model.inputs.length} inputs, but the dataset ` +
+      () => `Model has ${model.inputs.length} inputs, but the dataset ` +
           `provides ${flattenedXs.length} inputs.  (Expected input keys: ` +
           `${JSON.stringify(model.inputNames)})`);
 
   tfc.util.assert(
       flattenedYs.length === model.outputs.length,
-      `Model has ${model.outputs.length} outputs, but the dataset ` +
+      () => `Model has ${model.outputs.length} outputs, but the dataset ` +
           `provides ${flattenedYs.length} outputs.  (Expected output keys: ` +
           `${JSON.stringify(model.outputNames)})`);
 
   for (const xIndex in flattenedXs) {
     tfc.util.assert(
         flattenedXs[xIndex].shape[0] === batchSize,
-        `Batch size mismatch: input ` +
+        () => `Batch size mismatch: input ` +
             `${model.inputNames[xIndex]} has ${
-                flattenedXs[xIndex].shape[0]}; ` +
+                  flattenedXs[xIndex].shape[0]}; ` +
             `expected  ${batchSize} based on input ${model.inputNames[0]}.`);
   }
 
   for (const yIndex in flattenedYs) {
     tfc.util.assert(
         flattenedYs[yIndex].shape[0] === batchSize,
-        `Batch size mismatch: output ` +
+        () => `Batch size mismatch: output ` +
             `${model.outputNames[yIndex]} has ${
-                flattenedYs[yIndex].shape[0]}; ` +
+                  flattenedYs[yIndex].shape[0]}; ` +
             `expected  ${batchSize} based on input ${model.inputNames[0]}.`);
   }
 
@@ -258,7 +259,7 @@ function flattenTensorOrArrayOrMap(
   } else if (isArray(values)) {
     tfc.util.assert(
         values.length === names.length,
-        `Received an array of ${values.length} Tensors, but expected ${
+        () => `Received an array of ${values.length} Tensors, but expected ${
             names.length} to match the ${inputOrOutput} keys ${names}.`);
     return values;
   } else {
@@ -298,26 +299,26 @@ export async function fitDataset<T>(
   const hasBatchesPerEpoch = args.batchesPerEpoch != null;
   tfc.util.assert(
       model.optimizer != null,
-      'You must compile a model before training/testing. Use ' +
+      () => 'You must compile a model before training/testing. Use ' +
           'Model.compile(modelCompileConfig).');
 
   tfc.util.assert(
       args != null,
-      `For fitDataset(), the 2nd argument (config) is required, ` +
+      () => `For fitDataset(), the 2nd argument (config) is required, ` +
           `but it is not provided in this call.`);
   tfc.util.assert(
       args.epochs != null && args.epochs > 0 && Number.isInteger(args.epochs),
-      `For fitDataset(), config.epochs is expected to be a positive ` +
+      () => `For fitDataset(), config.epochs is expected to be a positive ` +
           `integer, but got ${args.epochs}`);
   tfc.util.assert(
       !hasBatchesPerEpoch ||
           (args.batchesPerEpoch > 0 && Number.isInteger(args.batchesPerEpoch)),
-      `For fitDataset(), config.batchesPerEpoch is expected to be a ` +
+      () => `For fitDataset(), config.batchesPerEpoch is expected to be a ` +
           `positive integer if specified, but got ${args.batchesPerEpoch}`);
   tfc.util.assert(
       // tslint:disable-next-line:no-any
       (args as any)['validationSplit'] == null,
-      '`validationSplit` is not supported by `fitDataset()`. ' +
+      () => '`validationSplit` is not supported by `fitDataset()`. ' +
           'Use validationData instead.');
 
   if (model.isTraining) {
@@ -336,7 +337,7 @@ export async function fitDataset<T>(
             args.validationBatches == null ||
                 (args.validationBatches > 0 &&
                  Number.isInteger(args.validationBatches)),
-            `For fitDataset() with dataset-based validation, ` +
+            () => `For fitDataset() with dataset-based validation, ` +
                 `config.validationBatches is expected not to be provided, ` +
                 `or to be a positive integer, ` +
                 `but got ${args.validationBatches}`);
@@ -526,7 +527,7 @@ export async function evaluateDataset<T>(
 
   tfc.util.assert(
       !hasBatches || (args.batches > 0 && Number.isInteger(args.batches)),
-      'Test loop expects `batches` to be a positive integer, but ' +
+      () => 'Test loop expects `batches` to be a positive integer, but ' +
           `received ${JSON.stringify(args.batches)}`);
   const dataIterator = isLazyIteratorObject(dataset) ?
       dataset as LazyIterator<T>:

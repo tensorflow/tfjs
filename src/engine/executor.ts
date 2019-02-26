@@ -386,7 +386,7 @@ function getTopologicalSortAndRecipientCounts(
     {sorted: SymbolicTensor[], recipientCounts: RecipientCounts} {
   util.assert(
       fetches != null && fetches.length > 0,
-      `Exepcted at least one fetch, got none`);
+      () => `Expected at least one fetch, got none`);
 
   let finalSorted: SymbolicTensor[] = [];
   let finalRecipientMap: RecipientMap = {};

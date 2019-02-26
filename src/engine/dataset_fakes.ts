@@ -108,7 +108,7 @@ class FakeNumericIterator extends LazyIterator<FitDatasetElement> {
     tfc.util.assert(
         this.xTensorsFunc == null && this.yTensorsFunc == null ||
             this.xTensorsFunc != null && this.yTensorsFunc != null,
-        'presetXTensors and presetYTensors must be both null/undefined ' +
+        () => 'presetXTensors and presetYTensors must be both null/undefined ' +
             'or both set.');
   }
 
@@ -140,17 +140,18 @@ class FakeNumericIterator extends LazyIterator<FitDatasetElement> {
         xs = (this.xTensorValues as tfc.Tensor[])[index];
         tfc.util.assert(
             tfc.util.arraysEqual(xs.shape, this.xBatchShape as Shape),
-            `Shape mismatch: expected: ${JSON.stringify(this.xBatchShape)}; ` +
-                `actual: ${JSON.stringify(xs.shape)}`);
+            () => `Shape mismatch: expected: ${
+                      JSON.stringify(this.xBatchShape)}; ` +
+                `actual: ${JSON.stringify((xs as tfc.Tensor).shape)}`);
       } else {
         xs = {};
         for (const key in this.xTensorValues) {
           xs[key] = this.xTensorValues[key][index];
           tfc.util.assert(
               tfc.util.arraysEqual(xs[key].shape, this.xBatchShape as Shape),
-              `Shape mismatch: expected: ${
-                  JSON.stringify(this.xBatchShape)}; ` +
-                  `actual: ${JSON.stringify(xs.shape)}`);
+              () => `Shape mismatch: expected: ${
+                        JSON.stringify(this.xBatchShape)}; ` +
+                  `actual: ${JSON.stringify((xs as tfc.Tensor).shape)}`);
         }
       }
 
@@ -160,8 +161,9 @@ class FakeNumericIterator extends LazyIterator<FitDatasetElement> {
         ys = (this.yTensorValues as tfc.Tensor[])[index];
         tfc.util.assert(
             tfc.util.arraysEqual(ys.shape, this.yBatchShape as Shape),
-            `Shape mismatch: expected: ${JSON.stringify(this.yBatchShape)}; ` +
-                `actual: ${JSON.stringify(ys.shape)}`);
+            () => `Shape mismatch: expected: ${
+                      JSON.stringify(this.yBatchShape)}; ` +
+                `actual: ${JSON.stringify((ys as tfc.Tensor).shape)}`);
       } else {
         // Get preset ys tensors for multi-output models.
         ys = {};
@@ -171,9 +173,11 @@ class FakeNumericIterator extends LazyIterator<FitDatasetElement> {
           tfc.util.assert(
               tfc.util.arraysEqual(
                   ys[key].shape, this.yBatchShape[key] as Shape),
-              `Shape mismatch: expected: ${
-                  JSON.stringify(this.yBatchShape)}; ` +
-                  `actual: ${JSON.stringify(ys.shape)}`);
+              () => `Shape mismatch: expected: ${
+                        JSON.stringify(this.yBatchShape)}; ` +
+                  `actual: ${
+                        JSON.stringify(
+                            (ys as {[name: string]: tfc.Tensor})[key].shape)}`);
         }
       }
 
@@ -194,10 +198,12 @@ export class FakeNumericDataset extends Dataset<FitDatasetElement> {
     super();
     tfc.util.assert(
         args.batchSize > 0 && Number.isInteger(args.batchSize),
-        `batchSize must be a positive integer, but got ${args.batchSize}`);
+        () =>
+            `batchSize must be a positive integer, but got ${args.batchSize}`);
     tfc.util.assert(
         args.numBatches > 0 && Number.isInteger(args.numBatches),
-        `numBatches must be positive integer, but got ${args.numBatches}`);
+        () =>
+            `numBatches must be positive integer, but got ${args.numBatches}`);
     this.size = args.numBatches;
   }
 

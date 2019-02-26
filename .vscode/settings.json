@@ -20,6 +20,7 @@
   "clang-format.style": "Google",
   "files.insertFinalNewline": true,
   "editor.detectIndentation": false,
+  "editor.rulers": [80],
   "editor.wrappingIndent": "none",
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,

@@ -439,13 +439,14 @@ export function checkArrayTypeAndLength(
  */
 export function assertPositiveInteger(value: number|number[], name: string) {
   if (Array.isArray(value)) {
-    util.assert(value.length > 0, `${name} is unexpectedly an empty array.`);
+    util.assert(
+        value.length > 0, () => `${name} is unexpectedly an empty array.`);
     value.forEach(
         (v, i) => assertPositiveInteger(v, `element ${i + 1} of ${name}`));
   } else {
     util.assert(
         Number.isInteger(value) && value > 0,
-        `Expected ${name} to be a positive integer, but got ` +
+        () => `Expected ${name} to be a positive integer, but got ` +
             `${formatAsFriendlyString(value)}.`);
   }
 }

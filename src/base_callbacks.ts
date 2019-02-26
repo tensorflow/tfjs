@@ -578,7 +578,7 @@ export class CallbackConstructorRegistry {
       verbosityLevel: number, callbackConstructor: BaseCallbackConstructor) {
     util.assert(
         verbosityLevel >= 0 && Number.isInteger(verbosityLevel),
-        `Verbosity level is expected to be an integer >= 0, ` +
+        () => `Verbosity level is expected to be an integer >= 0, ` +
             `but got ${verbosityLevel}`);
     CallbackConstructorRegistry.checkForDuplicate(callbackConstructor);
     if (CallbackConstructorRegistry.constructors[verbosityLevel] == null) {
