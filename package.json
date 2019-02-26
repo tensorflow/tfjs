@@ -60,6 +60,8 @@
     "seedrandom": "~2.4.3"
   },
   "browser": {
-    "fs": false
+    "fs": false,
+    "node-fetch": false,
+    "string_decoder": false
   }
 }
