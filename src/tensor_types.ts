@@ -28,11 +28,12 @@ export type NamedVariableMap = {
 };
 
 /**
- * @docalias void|number|string|Tensor|Tensor[]|{[key:
+ * @docalias void|number|string|TypedArray|Tensor|Tensor[]|{[key:
  * string]:Tensor|number|string}
  */
-export type TensorContainer = void|Tensor|string|number|boolean|
-    TensorContainerObject|TensorContainerArray;
+export type TensorContainer =
+    void|Tensor|string|number|boolean|TensorContainerObject|
+    TensorContainerArray|Float32Array|Int32Array|Uint8Array;
 export interface TensorContainerObject {
   [x: string]: TensorContainer;
 }
