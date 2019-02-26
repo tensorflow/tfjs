@@ -69,18 +69,19 @@ function matMul_<T extends Tensor>(
 
   util.assert(
       $a.rank >= 2 && $b.rank >= 2 && $a.rank === $b.rank,
-      `Error in fused matMul: inputs must have the same rank of at least 2, ` +
-          `got ranks ${$a.rank} and ${$b.rank}.`);
+      () =>
+          `Error in fused matMul: inputs must have the same rank of at least ` +
+          `2, got ranks ${$a.rank} and ${$b.rank}.`);
 
   util.assert(
       util.arraysEqual(outerDimsA, outerDimsB),
-      `Error in fused matMul: outer dimensions (${outerDimsA}) and (` +
+      () => `Error in fused matMul: outer dimensions (${outerDimsA}) and (` +
           `${outerDimsB}) of Tensors with shapes ${$a.shape} and ` +
           `${$b.shape} must match.`);
 
   util.assert(
       innerShapeA === innerShapeB,
-      `Error in fused matMul: inner shapes (${innerShapeA}) and (` +
+      () => `Error in fused matMul: inner shapes (${innerShapeA}) and (` +
           `${innerShapeB}) of Tensors with shapes ${$a.shape} and ` +
           `${$b.shape} and transposeA=${transposeA}` +
           ` and transposeB=${transposeB} must match.`);

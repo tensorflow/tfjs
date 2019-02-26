@@ -31,7 +31,7 @@ export function makeTypesMatch<T extends Tensor>(a: T, b: T): [T, T] {
 export function assertTypesMatch(a: Tensor, b: Tensor): void {
   assert(
       a.dtype === b.dtype,
-      `The dtypes of the first(${a.dtype}) and` +
+      () => `The dtypes of the first(${a.dtype}) and` +
           ` second(${b.dtype}) input must match`);
 }
 

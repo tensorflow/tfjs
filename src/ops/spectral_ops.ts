@@ -43,7 +43,7 @@ import {scalar} from './tensor_ops';
 function fft_(input: Tensor): Tensor {
   assert(
       input.dtype === 'complex64',
-      `The dtype for tf.spectral.fft() must be complex64 ` +
+      () => `The dtype for tf.spectral.fft() must be complex64 ` +
           `but got ${input.dtype}.`);
 
   // Collapse all outer dimensions to a single batch dimension.
@@ -77,7 +77,7 @@ function fft_(input: Tensor): Tensor {
 function ifft_(input: Tensor): Tensor {
   assert(
       input.dtype === 'complex64',
-      `The dtype for tf.spectral.ifft() must be complex64 ` +
+      () => `The dtype for tf.spectral.ifft() must be complex64 ` +
           `but got ${input.dtype}.`);
 
   // Collapse all outer dimensions to a single batch dimension.
@@ -107,8 +107,9 @@ function ifft_(input: Tensor): Tensor {
  * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
  */
 function rfft_(input: Tensor): Tensor {
-  assert(input.dtype === 'float32', `The dtype for rfft() must be real value but
-    got ${input.dtype}`);
+  assert(
+      input.dtype === 'float32',
+      () => `The dtype for rfft() must be real value but got ${input.dtype}`);
 
   const innerDimensionSize = input.shape[input.shape.length - 1];
   const batch = input.size / innerDimensionSize;

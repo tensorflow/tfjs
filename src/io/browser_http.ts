@@ -57,7 +57,7 @@ export class BrowserHTTPRequest implements IOHandler {
     } else {
       assert(
           typeof fetchFunc === 'function',
-          'Must pass a function that matches the signature of ' +
+          () => 'Must pass a function that matches the signature of ' +
               '`fetch` (see ' +
               'https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)');
     }
@@ -71,13 +71,14 @@ export class BrowserHTTPRequest implements IOHandler {
 
     assert(
         path != null && path.length > 0,
-        'URL path for browserHTTPRequest must not be null, undefined or ' +
+        () =>
+            'URL path for browserHTTPRequest must not be null, undefined or ' +
             'empty.');
 
     if (Array.isArray(path)) {
       assert(
           path.length === 2,
-          'URL paths for browserHTTPRequest must have a length of 2, ' +
+          () => 'URL paths for browserHTTPRequest must have a length of 2, ' +
               `(actual length is ${path.length}).`);
     }
     this.path = path;

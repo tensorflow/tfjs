@@ -72,13 +72,15 @@ function gradScope<T extends TensorContainer>(
 /** @doc {heading: 'Training', subheading: 'Gradients'} */
 function grad<I extends Tensor, O extends Tensor>(f: (x: I) => O): (
     x: I, dy?: O) => I {
-  util.assert(util.isFunction(f), 'The f passed in grad(f) must be a function');
+  util.assert(
+      util.isFunction(f), () => 'The f passed in grad(f) must be a function');
   return (x: I, dy?: O): I => {
     util.assert(
-        x instanceof Tensor, 'The x passed in grad(f)(x) must be a tensor');
+        x instanceof Tensor,
+        () => 'The x passed in grad(f)(x) must be a tensor');
     util.assert(
         dy == null || dy instanceof Tensor,
-        'The dy passed in grad(f)(x, dy) must be a tensor');
+        () => 'The dy passed in grad(f)(x, dy) must be a tensor');
     return ENV.engine.tidy(() => {
       const {value, grads} = ENV.engine.gradients(() => f(x), [x], dy);
       if (dy != null) {
@@ -124,14 +126,14 @@ function grad<I extends Tensor, O extends Tensor>(f: (x: I) => O): (
 function grads<O extends Tensor>(f: (...args: Tensor[]) => O): (
     args: Tensor[], dy?: O) => Tensor[] {
   util.assert(
-      util.isFunction(f), 'The f passed in grads(f) must be a function');
+      util.isFunction(f), () => 'The f passed in grads(f) must be a function');
   return (args: Tensor[], dy?: O): Tensor[] => {
     util.assert(
         Array.isArray(args) && args.every(arg => arg instanceof Tensor),
-        'The args passed in grads(f)(args) must be an array of tensors');
+        () => 'The args passed in grads(f)(args) must be an array of tensors');
     util.assert(
         dy == null || dy instanceof Tensor,
-        'The dy passed in grads(f)(args, dy) must be a tensor');
+        () => 'The dy passed in grads(f)(args, dy) must be a tensor');
     return ENV.engine.tidy(() => {
       const {value, grads} = ENV.engine.gradients(() => f(...args), args, dy);
       if (dy != null) {
@@ -176,14 +178,15 @@ function valueAndGrad<I extends Tensor, O extends Tensor>(f: (x: I) => O): (
   grad: I;
 } {
   util.assert(
-      util.isFunction(f), 'The f passed in valueAndGrad(f) must be a function');
+      util.isFunction(f),
+      () => 'The f passed in valueAndGrad(f) must be a function');
   return (x: I, dy?: O) => {
     util.assert(
         x instanceof Tensor,
-        'The x passed in valueAndGrad(f)(x) must be a tensor');
+        () => 'The x passed in valueAndGrad(f)(x) must be a tensor');
     util.assert(
         dy == null || dy instanceof Tensor,
-        'The dy passed in valueAndGrad(f)(x, dy) must be a tensor');
+        () => 'The dy passed in valueAndGrad(f)(x, dy) must be a tensor');
     const {grads, value} = ENV.engine.gradients(() => f(x), [x], dy);
     checkGrads(grads);
     return {grad: grads[0] as I, value: value as O};
@@ -227,14 +230,15 @@ function valueAndGrads<O extends Tensor>(f: (...args: Tensor[]) => O): (
 } {
   util.assert(
       util.isFunction(f),
-      'The f passed in valueAndGrads(f) must be a function');
+      () => 'The f passed in valueAndGrads(f) must be a function');
   return (args: Tensor[], dy?: O) => {
     util.assert(
         Array.isArray(args) && args.every(arg => arg instanceof Tensor),
-        'The args passed in valueAndGrads(f)(args) must be array of tensors');
+        () => 'The args passed in valueAndGrads(f)(args) must be array of ' +
+            'tensors');
     util.assert(
         dy == null || dy instanceof Tensor,
-        'The dy passed in valueAndGrads(f)(args, dy) must be a tensor');
+        () => 'The dy passed in valueAndGrads(f)(args, dy) must be a tensor');
     const res = ENV.engine.gradients(() => f(...args), args, dy);
     if (dy != null) {
       util.assertShapesMatch(
@@ -273,11 +277,12 @@ function variableGrads(f: () => Scalar, varList?: Variable[]):
     {value: Scalar, grads: NamedTensorMap} {
   util.assert(
       util.isFunction(f),
-      'The f passed in variableGrads(f) must be a function');
+      () => 'The f passed in variableGrads(f) must be a function');
   util.assert(
       varList == null ||
           Array.isArray(varList) && varList.every(v => v instanceof Variable),
-      'The varList passed in variableGrads(f, varList) must be an array ' +
+      () =>
+          'The varList passed in variableGrads(f, varList) must be an array ' +
           'of variables');
   if (varList == null) {
     // Get all of the trainable variables.
@@ -291,7 +296,8 @@ function variableGrads(f: () => Scalar, varList?: Variable[]):
   varList = varList.filter(variable => variable.trainable);
   util.assert(
       varList.length > 0,
-      `variableGrads() expects at least one of the input variables to be ` +
+      () =>
+          `variableGrads() expects at least one of the input variables to be ` +
           `trainable, but none of the ${originalVarCount} variables is ` +
           `trainable.`);
 
@@ -301,12 +307,12 @@ function variableGrads(f: () => Scalar, varList?: Variable[]):
 
   util.assert(
       grads.some(g => g != null),
-      'Cannot find a connection between any variable and the result of the ' +
-          'loss function y=f(x). Please make sure the operations that use ' +
-          'variables are inside the function f passed to minimize().');
+      () => 'Cannot find a connection between any variable and the result of ' +
+          'the loss function y=f(x). Please make sure the operations that ' +
+          'use variables are inside the function f passed to minimize().');
   util.assert(
       value.rank === 0,
-      `The f passed in variableGrads(f) must return a scalar, but it ` +
+      () => `The f passed in variableGrads(f) must return a scalar, but it ` +
           `returned a rank-${value.rank} tensor`);
 
   const namedGrads: NamedTensorMap = {};

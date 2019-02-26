@@ -96,11 +96,11 @@ export function distSquared(a: FlatVector, b: FlatVector): number {
  * ```
  *
  * @param expr The expression to assert (as a boolean).
- * @param msg The message to report when throwing an error. Can be either a
- *     string, or a function that returns a string (for performance reasons).
+ * @param msg A function that returns the message to report when throwing an
+ *     error. We use a function for performance reasons.
  */
 /** @doc {heading: 'Util'} */
-export function assert(expr: boolean, msg: string|(() => string)) {
+export function assert(expr: boolean, msg: () => string) {
   if (!expr) {
     throw new Error(typeof msg === 'string' ? msg : msg());
   }
@@ -110,13 +110,13 @@ export function assertShapesMatch(
     shapeA: number[], shapeB: number[], errorMessagePrefix = ''): void {
   assert(
       arraysEqual(shapeA, shapeB),
-      errorMessagePrefix + ` Shapes ${shapeA} and ${shapeB} must match`);
+      () => errorMessagePrefix + ` Shapes ${shapeA} and ${shapeB} must match`);
 }
 
 export function assertNonNull(a: TensorLike): void {
   assert(
       a != null,
-      `The input to the tensor constructor must be a non-null value.`);
+      () => `The input to the tensor constructor must be a non-null value.`);
 }
 
 // NOTE: We explicitly type out what T extends instead of any so that
@@ -326,13 +326,14 @@ export function parseAxisParam(
   // Check for valid range
   assert(
       axis.every(ax => ax >= -rank && ax < rank),
-      `All values in axis param must be in range [-${rank}, ${rank}) but ` +
+      () =>
+          `All values in axis param must be in range [-${rank}, ${rank}) but ` +
           `got axis ${axis}`);
 
   // Check for only integers
   assert(
       axis.every(ax => isInt(ax)),
-      `All values in axis param must be integers but ` +
+      () => `All values in axis param must be integers but ` +
           `got axis ${axis}`);
 
   // Handle negative axis.
@@ -685,23 +686,23 @@ export function monitorPromisesProgress(
   function checkPromises(promises: Array<Promise<{}|void>>): void {
     assert(
         promises != null && Array.isArray(promises) && promises.length > 0,
-        'promises must be a none empty array');
+        () => 'promises must be a none empty array');
   }
 
   function checkFraction(startFraction: number, endFraction: number): void {
     assert(
         startFraction >= 0 && startFraction <= 1,
-        `Progress fraction must be in range [0, 1], but ` +
+        () => `Progress fraction must be in range [0, 1], but ` +
             `got startFraction ${startFraction}`);
     assert(
         endFraction >= 0 && endFraction <= 1,
-        `Progress fraction must be in range [0, 1], but ` +
+        () => `Progress fraction must be in range [0, 1], but ` +
             `got endFraction ${endFraction}`);
     assert(
         endFraction >= startFraction,
-        `startFraction must be no more than endFraction, but ` +
+        () => `startFraction must be no more than endFraction, but ` +
             `got startFraction ${startFraction} and endFraction ${
-                endFraction}`);
+                  endFraction}`);
   }
 
   return Promise.all(promises.map(registerMonitor));
@@ -711,7 +712,8 @@ export function assertNonNegativeIntegerDimensions(shape: number[]) {
   shape.forEach(dimSize => {
     assert(
         Number.isInteger(dimSize) && dimSize >= 0,
-        `Tensor must have a shape comprised of positive integers but got ` +
+        () =>
+            `Tensor must have a shape comprised of positive integers but got ` +
             `shape [${shape}].`);
   });
 }

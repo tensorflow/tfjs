@@ -32,7 +32,8 @@ function slice1d_(
   const $x = convertToTensor(x, 'x', 'slice1d');
   util.assert(
       $x.rank === 1,
-      `slice1d expects a rank-1 tensor, but got a rank-${$x.rank} tensor`);
+      () =>
+          `slice1d expects a rank-1 tensor, but got a rank-${$x.rank} tensor`);
   return slice($x, [begin], [size]);
 }
 
@@ -46,7 +47,8 @@ function slice2d_(
   const $x = convertToTensor(x, 'x', 'slice2d');
   util.assert(
       $x.rank === 2,
-      `slice2d expects a rank-2 tensor, but got a rank-${$x.rank} tensor`);
+      () =>
+          `slice2d expects a rank-2 tensor, but got a rank-${$x.rank} tensor`);
   return slice($x, begin, size);
 }
 
@@ -60,7 +62,8 @@ function slice3d_(
   const $x = convertToTensor(x, 'x', 'slice3d');
   util.assert(
       $x.rank === 3,
-      `slice3d expects a rank-3 tensor, but got a rank-${$x.rank} tensor`);
+      () =>
+          `slice3d expects a rank-3 tensor, but got a rank-${$x.rank} tensor`);
   return slice($x, begin, size);
 }
 
@@ -74,7 +77,8 @@ function slice4d_(
   const $x = convertToTensor(x, 'x', 'slice4d');
   util.assert(
       $x.rank === 4,
-      `slice4d expects a rank-4 tensor, but got a rank-${$x.rank} tensor`);
+      () =>
+          `slice4d expects a rank-4 tensor, but got a rank-${$x.rank} tensor`);
   return slice($x, begin, size);
 }
 
@@ -141,7 +145,7 @@ function slice_<R extends Rank, T extends Tensor<R>>(
     if (d >= 0) {
       return d;
     } else {
-      util.assert(d === -1, 'Bad value in size');
+      util.assert(d === -1, () => 'Bad value in size');
       return $x.shape[i] - begin_[i];
     }
   });

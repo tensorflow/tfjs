@@ -22,20 +22,21 @@ export function assertParamsConsistent(shapes: number[][], axis: number) {
   shapes.forEach((shape, i) => {
     util.assert(
         shape.length === rank,
-        `Error in concat${rank}D: rank of tensors[${i}] must be the same ` +
+        () =>
+            `Error in concat${rank}D: rank of tensors[${i}] must be the same ` +
             `as the rank of the rest (${rank})`);
   });
 
   util.assert(
       axis >= 0 && axis < rank,
-      `Error in concat${rank}D: axis must be between 0 and ${rank - 1}.`);
+      () => `Error in concat${rank}D: axis must be between 0 and ${rank - 1}.`);
 
   const firstShape = shapes[0];
   shapes.forEach((shape, i) => {
     for (let r = 0; r < rank; r++) {
       util.assert(
           (r === axis) || (shape[r] === firstShape[r]),
-          `Error in concat${rank}D: Shape of tensors[${i}] (${shape}) ` +
+          () => `Error in concat${rank}D: Shape of tensors[${i}] (${shape}) ` +
               `does not match the shape of the rest (${firstShape}) ` +
               `along the non-concatenated axis ${i}.`);
     }

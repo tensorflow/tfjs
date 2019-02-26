@@ -338,7 +338,7 @@ function clipByValue_<T extends Tensor>(
   const $x = convertToTensor(x, 'x', 'clipByValue');
   util.assert(
       (clipValueMin <= clipValueMax),
-      `Error in clip: min (${clipValueMin}) must be ` +
+      () => `Error in clip: min (${clipValueMin}) must be ` +
           `less than or equal to max (${clipValueMax}).`);
 
   const grad = (dy: T) => {
@@ -685,7 +685,7 @@ function erf_<T extends Tensor>(x: T|TensorLike): T {
   let $x = convertToTensor(x, 'x', 'erf');
   util.assert(
       $x.dtype === 'int32' || $x.dtype === 'float32',
-      'Input dtype must be `int32` or `float32`.');
+      () => 'Input dtype must be `int32` or `float32`.');
 
   if ($x.dtype === 'int32') {
     $x = $x.toFloat();

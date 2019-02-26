@@ -41,12 +41,12 @@ function localResponseNormalization_<T extends Tensor3D|Tensor4D>(
   const $x = convertToTensor(x, 'x', 'localResponseNormalization');
   util.assert(
       $x.rank === 4 || $x.rank === 3,
-      `Error in localResponseNormalization: x must be rank 3 or 4 but got
+      () => `Error in localResponseNormalization: x must be rank 3 or 4 but got
                rank ${$x.rank}.`);
   util.assert(
       util.isInt(depthRadius),
-      `Error in localResponseNormalization: depthRadius must be an integer
-                     but got depthRadius ${depthRadius}.`);
+      () => `Error in localResponseNormalization: depthRadius must be an ` +
+          `integer but got depthRadius ${depthRadius}.`);
 
   let x4D = $x as Tensor4D;
   let reshapedTo4D = false;

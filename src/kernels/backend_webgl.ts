@@ -929,7 +929,8 @@ export class MathBackendWebGL implements KernelBackend {
       x: T, blockShape: number[], crops: number[][]): T {
     util.assert(
         x.rank <= 4,
-        'batchToSpaceND for rank > 4 with a WebGL backend not implemented yet');
+        () => 'batchToSpaceND for rank > 4 with a WebGL backend not ' +
+            'implemented yet');
     const prod = blockShape.reduce((a, b) => a * b);
 
     const reshaped = array_ops_util.getReshaped(x.shape, blockShape, prod);
@@ -952,7 +953,8 @@ export class MathBackendWebGL implements KernelBackend {
       x: T, blockShape: number[], paddings: Array<[number, number]>): T {
     util.assert(
         x.rank <= 4,
-        'spaceToBatchND for rank > 4 with a WebGL backend not implemented yet');
+        () => 'spaceToBatchND for rank > 4 with a WebGL backend not ' +
+            'implemented yet');
 
     const prod = blockShape.reduce((a, b) => a * b);
 
@@ -1747,7 +1749,8 @@ export class MathBackendWebGL implements KernelBackend {
     xTexData.shape[xTexData.shape.length - 2]++;
     util.assert(
         webgl_util.isReshapeFree(xTexData.shape, xReshaped.shape),
-        `packed reshape ${xTexData.shape} to ${xReshaped.shape} isn't free`);
+        () => `packed reshape ${xTexData.shape} to ${
+            xReshaped.shape} isn't free`);
     const filterReshaped =
         this.reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]) as
         Tensor3D;
@@ -1757,7 +1760,7 @@ export class MathBackendWebGL implements KernelBackend {
     const pointwiseConvTexData = this.texData.get(pointwiseConv.dataId);
     util.assert(
         pointwiseConvTexData.isPacked,
-        'batchMatMul result is expected to be packed');
+        () => 'batchMatMul result is expected to be packed');
     // Restore the input shape to original.
     xTexData.shape = originalXTexDataShape;
     // Set the output shape - there is no need for expensive reshape as data
@@ -2023,7 +2026,8 @@ export class MathBackendWebGL implements KernelBackend {
       Tensor4D {
     util.assert(
         blockSize > 1,
-        `blockSize should be > 1 for depthToSpace, but was: ${blockSize}`);
+        () =>
+            `blockSize should be > 1 for depthToSpace, but was: ${blockSize}`);
 
     const batchSize = x.shape[0];
     const inputHeight = (dataFormat === 'NHWC') ? x.shape[1] : x.shape[2];

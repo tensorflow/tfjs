@@ -22,19 +22,19 @@ export function assertParamsValid(
     input: Tensor, begin: number[], size: number[]): void {
   util.assert(
       input.rank === begin.length,
-      `Error in slice${input.rank}D: Length of begin ${begin} must ` +
+      () => `Error in slice${input.rank}D: Length of begin ${begin} must ` +
           `match the rank of the array (${input.rank}).`);
   util.assert(
       input.rank === size.length,
-      `Error in slice${input.rank}D: Length of size ${size} must ` +
+      () => `Error in slice${input.rank}D: Length of size ${size} must ` +
           `match the rank of the array (${input.rank}).`);
 
   for (let i = 0; i < input.rank; ++i) {
     util.assert(
         begin[i] + size[i] <= input.shape[i],
-        `Error in slice${input.rank}D: begin[${i}] + size[${i}] ` +
+        () => `Error in slice${input.rank}D: begin[${i}] + size[${i}] ` +
             `(${begin[i] + size[i]}) would overflow input.shape[${i}] (${
-                input.shape[i]})`);
+                  input.shape[i]})`);
   }
 }
 

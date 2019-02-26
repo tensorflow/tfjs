@@ -223,8 +223,7 @@ export const localStorageRouter: IORouter = (url: string|string[]) => {
   if (!ENV.get('IS_BROWSER')) {
     return null;
   } else {
-    if (!Array.isArray(url) &&
-        url.startsWith(BrowserLocalStorage.URL_SCHEME)) {
+    if (!Array.isArray(url) && url.startsWith(BrowserLocalStorage.URL_SCHEME)) {
       return browserLocalStorage(
           url.slice(BrowserLocalStorage.URL_SCHEME.length));
     } else {
@@ -267,10 +266,12 @@ export class BrowserLocalStorageManager implements ModelStoreManager {
   private readonly LS: Storage;
 
   constructor() {
-    assert(ENV.get('IS_BROWSER'), 'Current environment is not a web browser');
+    assert(
+        ENV.get('IS_BROWSER'),
+        () => 'Current environment is not a web browser');
     assert(
         typeof window.localStorage !== 'undefined',
-        'Current browser does not appear to support localStorage');
+        () => 'Current browser does not appear to support localStorage');
     this.LS = window.localStorage;
   }
 

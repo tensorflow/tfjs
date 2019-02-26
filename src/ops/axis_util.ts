@@ -69,7 +69,7 @@ export function assertAxesAreInnerMostDims(
     msg: string, axes: number[], rank: number): void {
   util.assert(
       axesAreInnerMostDims(axes, rank),
-      `${msg} supports only inner-most axes for now. ` +
+      () => `${msg} supports only inner-most axes for now. ` +
           `Got axes ${axes} and rank-${rank} input.`);
 }
 

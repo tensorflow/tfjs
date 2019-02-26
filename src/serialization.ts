@@ -161,16 +161,16 @@ export function registerClass<T extends Serializable>(
     cls: SerializableConstructor<T>) {
   assert(
       cls.className != null,
-      `Class being registered does not have the static className property ` +
-          `defined.`);
+      () => `Class being registered does not have the static className ` +
+          `property defined.`);
   assert(
       typeof cls.className === 'string',
-      `className is required to be a string, but got type ` +
+      () => `className is required to be a string, but got type ` +
           typeof cls.className);
   assert(
       cls.className.length > 0,
-      `Class being registered has an empty-string as its className, which ` +
-          `is disallowed.`);
+      () => `Class being registered has an empty-string as its className, ` +
+          `which is disallowed.`);
 
   SerializationMap.register(cls);
 }

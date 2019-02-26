@@ -268,15 +268,15 @@ function computeOutputShape3D(
       (inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
   util.assert(
       util.isInt(outputRows),
-      `The output # of rows (${outputRows}) must be an integer. Change the ` +
-          `stride and/or zero pad parameters`);
+      () => `The output # of rows (${outputRows}) must be an integer. ` +
+          `Change the stride and/or zero pad parameters`);
 
   const outputCols = conditionalRound(
       (inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
   util.assert(
       util.isInt(outputCols),
-      `The output # of columns (${outputCols}) must be an integer. Change ` +
-          `the stride and/or zero pad parameters`);
+      () => `The output # of columns (${outputCols}) must be an integer. ` +
+          `Change the stride and/or zero pad parameters`);
 
   return [outputRows, outputCols, outDepth];
 }

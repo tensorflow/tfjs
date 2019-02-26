@@ -32,7 +32,7 @@ export class ArgMinMaxPackedProgram implements GPGPUProgram {
       firstPass: boolean) {
     assert(
         shape.length > 2,
-        `Packed arg${
+        () => `Packed arg${
             op.charAt(0).toUpperCase() +
             op.slice(1)} supports only inputs with rank above 2.`);
     const inSize = shape[shape.length - 1];

@@ -60,14 +60,15 @@ function movingAverage_<T extends Tensor>(
 
   assertTypesMatch($v, $x);
   util.assert(
-      util.arraysEqual($v.shape, $x.shape), 'Shape mismatch in v and x');
+      util.arraysEqual($v.shape, $x.shape), () => 'Shape mismatch in v and x');
 
   const one = scalar(1);
   const oneMinusDecay = one.sub($decay);
 
   let update = $x.sub($v).mul(oneMinusDecay);
   if (zeroDebias) {
-    util.assert(step != null, 'When using zeroDebias: true, step is required.');
+    util.assert(
+        step != null, () => 'When using zeroDebias: true, step is required.');
     const $step = convertToTensor(step, 'step', 'movingAverage');
     update = update.div(one.sub(pow($decay, $step)));
   }
