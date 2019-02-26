@@ -20,67 +20,6 @@ import {Tensor2D} from '@tensorflow/tfjs';
 // Types shared across the project and that users will commonly interact with
 
 /**
- * Visor public API
- */
-export interface Visor {
-  /**
-   * The containing HTMLElement
-   */
-  el: HTMLElement;
-
-  /**
-   * Returns a surface, creating one if necessary
-   */
-  surface: (options: SurfaceInfo) => Surface;
-
-  /**
-   * Returns true if the visor is in fullscreen mode. Note that the visor
-   * may be in a closed state even if it is in fullscreen mode
-   */
-  isFullscreen: () => boolean;
-
-  /**
-   * Returns true if the visor is currently open/visible false otherwise
-   */
-  isOpen: () => boolean;
-
-  /**
-   * Opens the visor
-   */
-  open: () => void;
-
-  /**
-   * Closes the visor
-   */
-  close: () => void;
-
-  /**
-   * toggles the visor open and closed
-   */
-  toggle: () => void;
-
-  /**
-   * toggles the fullscreen mode of the visor
-   */
-  toggleFullScreen: () => void;
-
-  /**
-   * Unbinds the default keyboard shortcuts
-   */
-  unbindKeys: () => void;
-
-  /**
-   * Binds the default keyboard shortcuts
-   */
-  bindKeys: () => void;
-
-  /**
-   * Set the current tab
-   */
-  setActiveTab: (tabName: string) => void;
-}
-
-/**
  * The public api of a 'surface'
  */
 export interface Surface {

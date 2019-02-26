@@ -26,6 +26,36 @@ import {getDrawArea} from './render_utils';
 /**
  * Renders a heatmap.
  *
+ * ```js
+ * const rows = 50;
+ * const cols = 20;
+ * const values = [];
+ * for (let i = 0; i < rows; i++) {
+ *   const row = []
+ *   for (let j = 0; j < cols; j++) {
+ *     row.push(i * j)
+ *   }
+ *   values.push(row);
+ * }
+ * const data = { values };
+ *
+ * // Render to visor
+ * const surface = { name: 'Heatmap', tab: 'Charts' };
+ * tfvis.render.heatmap(data, surface);
+ * ```
+ *
+ * ```js
+ * const data = {
+ *   values: [[4, 2, 8, 20], [1, 7, 2, 10], [3, 3, 20, 13]],
+ *   xLabels: ['cheese', 'pig', 'font'],
+ *   yLabels: ['speed', 'smoothness', 'dexterity', 'mana'],
+ * }
+ *
+ * // Render to visor
+ * const surface = { name: 'Heatmap w Custom Labels', tab: 'Charts' };
+ * tfvis.render.heatmap(data, surface);
+ * ```
+ *
  * @param data Data consists of an object with a 'values' property
  *  and a 'labels' property.
  *  {
@@ -54,7 +84,9 @@ import {getDrawArea} from './render_utils';
  * @param opts.width width of chart in px
  * @param opts.height height of chart in px
  * @param opts.fontSize fontSize in pixels for text in the chart
+ *
  */
+/** @doc {heading: 'Charts', namespace: 'render'} */
 export async function renderHeatmap(
     data: HeatmapData, container: Drawable,
     opts: HeatmapOptions = {}): Promise<void> {

@@ -28,9 +28,29 @@ import {tensorStats} from '../util/math';
 /**
  * Renders a summary of a tf.Model. Displays a table with layer information.
  *
+ * ```js
+ * const model = tf.sequential({
+ *  layers: [
+ *    tf.layers.dense({inputShape: [784], units: 32, activation: 'relu'}),
+ *    tf.layers.dense({units: 10, activation: 'softmax'}),
+ *  ]
+ * });
+ *
+ * const surface = { name: 'Model Summary', tab: 'Model Inspection'};
+ * tfvis.show.modelSummary(surface, model);
+ * ```
+ *
  * @param container A `{name: string, tab?: string}` object specifying which
  *     surface to render to.
  * @param model
+ *
+ */
+/**
+ * @doc {
+ *  heading: 'Models & Tensors',
+ *  subheading: 'Model Inspection',
+ *  namespace: 'show'
+ * }
  */
 export async function modelSummary(container: Drawable, model: tf.Model) {
   const drawArea = getDrawArea(container);
@@ -58,9 +78,29 @@ export async function modelSummary(container: Drawable, model: tf.Model) {
  * Renders summary information about a layer and a histogram of parameters in
  * that layer.
  *
+ * ```js
+ * const model = tf.sequential({
+ *  layers: [
+ *    tf.layers.dense({inputShape: [784], units: 32, activation: 'relu'}),
+ *    tf.layers.dense({units: 10, activation: 'softmax'}),
+ *  ]
+ * });
+ *
+ * const surface = { name: 'Layer Summary', tab: 'Model Inspection'};
+ * tfvis.show.layer(surface, model.getLayer(undefined, 1));
+ * ```
+ *
  * @param container A `{name: string, tab?: string}` object specifying which
  *     surface to render to.
  * @param layer a `tf.layers.Layer`
+ *
+ */
+/**
+ * @doc {
+ *  heading: 'Models & Tensors',
+ *  subheading: 'Model Inspection',
+ *  namespace: 'show'
+ * }
  */
 export async function layer(container: Drawable, layer: Layer) {
   const drawArea = getDrawArea(container);

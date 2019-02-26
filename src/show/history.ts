@@ -25,6 +25,73 @@ import {subSurface} from '../util/dom';
 /**
  * Renders a tf.Model training 'History'.
  *
+ * ```js
+ * const model = tf.sequential({
+ *  layers: [
+ *    tf.layers.dense({inputShape: [784], units: 32, activation: 'relu'}),
+ *    tf.layers.dense({units: 10, activation: 'softmax'}),
+ *  ]
+ * });
+ *
+ * model.compile({
+ *   optimizer: 'sgd',
+ *   loss: 'categoricalCrossentropy',
+ *   metrics: ['accuracy']
+ * });
+ *
+ * const data = tf.randomNormal([100, 784]);
+ * const labels = tf.randomUniform([100, 10]);
+ *
+ * function onBatchEnd(batch, logs) {
+ *   console.log('Accuracy', logs.acc);
+ * }
+ *
+ * const surface = { name: 'show.history', tab: 'Training' };
+ * // Train for 5 epochs with batch size of 32.
+ * const history = await model.fit(data, labels, {
+ *    epochs: 5,
+ *    batchSize: 32
+ * });
+ *
+ * tfvis.show.history(surface, history, ['loss', 'acc']);
+ * ```
+ *
+ * ```js
+ * const model = tf.sequential({
+ *  layers: [
+ *    tf.layers.dense({inputShape: [784], units: 32, activation: 'relu'}),
+ *    tf.layers.dense({units: 10, activation: 'softmax'}),
+ *  ]
+ * });
+ *
+ * model.compile({
+ *   optimizer: 'sgd',
+ *   loss: 'categoricalCrossentropy',
+ *   metrics: ['accuracy']
+ * });
+ *
+ * const data = tf.randomNormal([100, 784]);
+ * const labels = tf.randomUniform([100, 10]);
+ *
+ * function onBatchEnd(batch, logs) {
+ *   console.log('Accuracy', logs.acc);
+ * }
+ *
+ * const surface = { name: 'show.history live', tab: 'Training' };
+ * // Train for 5 epochs with batch size of 32.
+ * const history = [];
+ * await model.fit(data, labels, {
+ *    epochs: 5,
+ *    batchSize: 32,
+ *    callbacks: {
+ *      onEpochEnd: (epoch, log) => {
+ *        history.push(log);
+ *        tfvis.show.history(surface, history, ['loss', 'acc']);
+ *      }
+ *    }
+ * });
+ * ```
+ *
  * @param container A `{name: string, tab?: string}` object specifying which
  *  surface to render to.
  * @param history A history like object. Either a tfjs-layers `History` object
@@ -41,6 +108,11 @@ import {subSurface} from '../util/dom';
  *  to exactly 0-1 is desireable most of the time. However there may be cases,
  *  such as when doing transfer learning, where more resolution is desired. Set
  *  zoomToFitAccuracy to true to turn on zoomToFit for accuracy plots.
+ *
+ */
+/**
+ * @doc {heading: 'Models & Tensors', subheading: 'Model Training', namespace:
+ * 'show'}
  */
 export async function history(
     container: Drawable, history: HistoryLike, metrics: string[],
@@ -155,6 +227,36 @@ function getValues(
  * Returns a collection of callbacks to pass to tf.Model.fit. Callbacks are
  * returned for the following events, `onBatchEnd` & `onEpochEnd`.
  *
+ * ```js
+ * const model = tf.sequential({
+ *  layers: [
+ *    tf.layers.dense({inputShape: [784], units: 32, activation: 'relu'}),
+ *    tf.layers.dense({units: 10, activation: 'softmax'}),
+ *  ]
+ * });
+ *
+ * model.compile({
+ *   optimizer: 'sgd',
+ *   loss: 'categoricalCrossentropy',
+ *   metrics: ['accuracy']
+ * });
+ *
+ * const data = tf.randomNormal([100, 784]);
+ * const labels = tf.randomUniform([100, 10]);
+ *
+ * function onBatchEnd(batch, logs) {
+ *   console.log('Accuracy', logs.acc);
+ * }
+ *
+ * const surface = { name: 'show.fitCallbacks', tab: 'Training' };
+ * // Train for 5 epochs with batch size of 32.
+ * model.fit(data, labels, {
+ *    epochs: 5,
+ *    batchSize: 32,
+ *    callbacks: tfvis.show.fitCallbacks(surface, ['loss', 'acc']),
+ * });
+ * ```
+ *
  * @param container A `{name: string, tab?: string}` object specifying which
  *  surface to render to.
  * @param metrics List of metrics to plot.
@@ -169,6 +271,11 @@ function getValues(
  *  zoomToFitAccuracy to true to turn on zoomToFit for accuracy plots.
  * @param opts.callbacks Array of strings with callback names. Valid options
  *  are 'onEpochEnd' and 'onBatchEnd'. Defaults to ['onEpochEnd', 'onBatchEnd'].
+ *
+ */
+/**
+ * @doc {heading: 'Models & Tensors', subheading: 'Model Training', namespace:
+ * 'show'}
  */
 export function fitCallbacks(
     container: Drawable, metrics: string[],
