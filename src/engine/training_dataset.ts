@@ -13,7 +13,6 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {isArray} from 'util';
 
 import {getScalar} from '../backend/state';
 import {BaseCallback, configureCallbacks, CustomCallbackArgs, History, ModelLoggingVerbosity, standardizeCallbacks, YieldEveryOptions} from '../base_callbacks';
@@ -256,7 +255,7 @@ function flattenTensorOrArrayOrMap(
     inputOrOutput: string, names: string[], values: TensorOrArrayOrMap) {
   if (values instanceof tfc.Tensor) {
     return [values];
-  } else if (isArray(values)) {
+  } else if (Array.isArray(values)) {
     tfc.util.assert(
         values.length === names.length,
         () => `Received an array of ${values.length} Tensors, but expected ${
