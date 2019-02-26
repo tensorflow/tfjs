@@ -589,6 +589,14 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     throw new Error('Not yet implemented.');
   }
 
+  onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
+    throw new Error('Not yet implemented');
+  }
+
+  zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
+    throw new Error('Not yet implemented');
+  }
+
   /**
    * Sets the data mover for this backend. Backends should use the mover to
    * move data from other backends to this backend.

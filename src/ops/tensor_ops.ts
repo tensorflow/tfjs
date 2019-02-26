@@ -447,7 +447,7 @@ function fill<R extends Rank>(
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function onesLike_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'onesLike');
-  return ones($x.shape, $x.dtype) as T;
+  return ENV.engine.runKernel(backend => backend.onesLike($x), {$x}, null) as T;
 }
 
 /**
@@ -464,7 +464,8 @@ function onesLike_<T extends Tensor>(x: T|TensorLike): T {
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function zerosLike_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'zerosLike');
-  return zeros($x.shape, $x.dtype) as T;
+  return ENV.engine.runKernel(backend => backend.zerosLike($x), {$x}, null) as
+      T;
 }
 
 /**

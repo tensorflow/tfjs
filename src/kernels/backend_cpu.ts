@@ -3338,6 +3338,20 @@ export class MathBackendCPU implements KernelBackend {
     return Tensor.make(shape, {values}, dtype);
   }
 
+  onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
+    if (x.dtype === 'string') {
+      throw new Error('onesLike is not supported for string tensors');
+    } else {
+      return this.fill(x.shape, 1, x.dtype);
+    }
+  }
+
+  zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
+    const values =
+        getArrayFromDType(x.dtype, sizeFromShape(x.shape)) as TypedArray;
+    return Tensor.make(x.shape, {values}, x.dtype);
+  }
+
   private scatter<R extends Rank>(
       indices: Tensor, updates: Tensor, shape: ShapeMap[R], outputSize: number,
       sliceSize: number, numUpdates: number, sliceRank: number,
