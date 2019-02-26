@@ -113,7 +113,7 @@ export class InputLayer extends Layer {
       // TODO(michaelterry): Backport to PyKeras
       if (args.batchSize != null) {
         throw new ValueError(
-            'Cannot specify batchSize if batchInputShape is' +
+            'Cannot specify batchSize if batchInputShape is ' +
             'specified when creating an InputLayer.');
       }
     }
