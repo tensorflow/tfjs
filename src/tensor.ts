@@ -572,7 +572,6 @@ export class Tensor<R extends Rank = Rank> {
    * asynchronously.
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  // tslint:disable-next-line:no-any
   async array(): Promise<ArrayMap[R]> {
     const vals = await this.data();
     return toNestedArray(this.shape, vals);
@@ -583,7 +582,6 @@ export class Tensor<R extends Rank = Rank> {
    * synchronously.
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  // tslint:disable-next-line:no-any
   arraySync(): ArrayMap[R] {
     return toNestedArray(this.shape, this.dataSync());
   }
