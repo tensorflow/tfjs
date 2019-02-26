@@ -66,13 +66,15 @@ function gramSchmidt_(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
     inputIsTensor2D = false;
     assert(
         xs != null && xs.length > 0,
-        'Gram-Schmidt process: input must not be null, undefined, or empty');
+        () => 'Gram-Schmidt process: input must not be null, undefined, or ' +
+            'empty');
     const dim = xs[0].shape[0];
     for (let i = 1; i < xs.length; ++i) {
       assert(
           xs[i].shape[0] === dim,
-          'Gram-Schmidt: Non-unique lengths found in the input vectors: ' +
-              `(${xs[i].shape[0]} vs. ${dim})`);
+          () =>
+              'Gram-Schmidt: Non-unique lengths found in the input vectors: ' +
+              `(${(xs as Tensor1D[])[i].shape[0]} vs. ${dim})`);
     }
   } else {
     inputIsTensor2D = true;
@@ -81,8 +83,9 @@ function gramSchmidt_(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
 
   assert(
       xs.length <= xs[0].shape[0],
-      `Gram-Schmidt: Number of vectors (${xs.length}) exceeds ` +
-          `number of dimensions (${xs[0].shape[0]}).`);
+      () => `Gram-Schmidt: Number of vectors (${
+                (xs as Tensor1D[]).length}) exceeds ` +
+          `number of dimensions (${(xs as Tensor1D[])[0].shape[0]}).`);
 
   const ys: Tensor1D[] = [];
   const xs1d = xs as Tensor1D[];

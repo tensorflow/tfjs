@@ -60,23 +60,24 @@ export function confusionMatrix_(
 
   util.assert(
       numClasses == null || numClasses > 0 && Number.isInteger(numClasses),
-      `If provided, numClasses must be a positive integer, ` +
+      () => `If provided, numClasses must be a positive integer, ` +
           `but got ${numClasses}`);
   util.assert(
       $labels.rank === 1,
-      `Expected the rank of labels to be 1, but got ${$labels.rank}`);
+      () => `Expected the rank of labels to be 1, but got ${$labels.rank}`);
   util.assert(
       $predictions.rank === 1,
-      `Expected the rank of predictions to be 1, ` +
+      () => `Expected the rank of predictions to be 1, ` +
           `but got ${$predictions.rank}`);
   util.assert(
       $labels.shape[0] === $predictions.shape[0],
-      `Mismatch in the number of examples: ` +
+      () => `Mismatch in the number of examples: ` +
           `${$labels.shape[0]} vs. ${$predictions.shape[0]}. ` +
           `Labels and predictions should have the same number of elements.`);
   util.assert(
       numClasses > 0 && Number.isInteger(numClasses),
-      `numClasses is required to be a positive integer, but got ${numClasses}`);
+      () => `numClasses is required to be a positive integer, but got ` +
+          `${numClasses}`);
   // TODO(cais): In the future, if oneHot supports tensors inputs for
   //   `numClasses`, `confusionMatrix` can make `numClasses` optional.
 

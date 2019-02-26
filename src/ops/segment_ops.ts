@@ -51,7 +51,7 @@ function unsortedSegmentSum_<T extends Tensor>(
   const $x = convertToTensor(x, 'x', 'unsortedSegmentSum');
   const $segmentIds =
       convertToTensor(segmentIds, 'segmentIds', 'unsortedSegmentSum', 'int32');
-  assert(isInt(numSegments), 'numSegments must be of dtype int');
+  assert(isInt(numSegments), () => 'numSegments must be of dtype int');
 
   const gradFunc = (dy: T) => {
     const derX = () => {

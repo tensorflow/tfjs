@@ -29,8 +29,9 @@ import {op} from './operation';
  */
 function reverse1d_(x: Tensor1D|TensorLike): Tensor1D {
   const $x = convertToTensor(x, 'x', 'reverse');
-  util.assert($x.rank === 1, `Error in reverse1D: x must be rank 1 but got
-             rank ${$x.rank}.`);
+  util.assert(
+      $x.rank === 1,
+      () => `Error in reverse1D: x must be rank 1 but got rank ${$x.rank}.`);
   return reverse($x, 0);
 }
 
@@ -43,8 +44,9 @@ function reverse1d_(x: Tensor1D|TensorLike): Tensor1D {
  */
 function reverse2d_(x: Tensor2D|TensorLike, axis?: number|number[]): Tensor2D {
   const $x = convertToTensor(x, 'x', 'reverse');
-  util.assert($x.rank === 2, `Error in reverse2D: x must be rank 2 but got
-             rank ${$x.rank}.`);
+  util.assert(
+      $x.rank === 2,
+      () => `Error in reverse2D: x must be rank 2 but got rank ${$x.rank}.`);
   return reverse($x, axis);
 }
 
@@ -57,8 +59,9 @@ function reverse2d_(x: Tensor2D|TensorLike, axis?: number|number[]): Tensor2D {
  */
 function reverse3d_(x: Tensor3D|TensorLike, axis?: number|number[]): Tensor3D {
   const $x = convertToTensor(x, 'x', 'reverse');
-  util.assert($x.rank === 3, `Error in reverse3D: x must be rank 3 but got
-             rank ${$x.rank}.`);
+  util.assert(
+      $x.rank === 3,
+      () => `Error in reverse3D: x must be rank 3 but got rank ${$x.rank}.`);
   return reverse($x, axis);
 }
 
@@ -71,8 +74,9 @@ function reverse3d_(x: Tensor3D|TensorLike, axis?: number|number[]): Tensor3D {
  */
 function reverse4d_(x: Tensor4D|TensorLike, axis?: number|number[]): Tensor4D {
   const $x = convertToTensor(x, 'x', 'reverse');
-  util.assert($x.rank === 4, `Error in reverse4D: x must be rank 4 but got
-             rank ${$x.rank}.`);
+  util.assert(
+      $x.rank === 4,
+      () => `Error in reverse4D: x must be rank 4 but got rank ${$x.rank}.`);
   return reverse($x, axis);
 }
 

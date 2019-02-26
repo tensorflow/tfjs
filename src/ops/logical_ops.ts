@@ -145,7 +145,7 @@ function where_<T extends Tensor>(
     // condition.
     assert(
         $condition.shape[0] === $a.shape[0],
-        'The first dimension of `a` must match the size of `condition`.');
+        () => 'The first dimension of `a` must match the size of `condition`.');
   } else {
     // A must have the same shape as condition.
     assertShapesMatch($condition.shape, $b.shape, 'Error in where: ');

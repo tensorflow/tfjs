@@ -42,11 +42,11 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
   const $images = convertToTensor(images, 'images', 'resizeBilinear');
   util.assert(
       $images.rank === 3 || $images.rank === 4,
-      `Error in resizeBilinear: x must be rank 3 or 4, but got ` +
+      () => `Error in resizeBilinear: x must be rank 3 or 4, but got ` +
           `rank ${$images.rank}.`);
   util.assert(
       size.length === 2,
-      `Error in resizeBilinear: new shape must 2D, but got shape ` +
+      () => `Error in resizeBilinear: new shape must 2D, but got shape ` +
           `${size}.`);
 
   let batchImages = $images as Tensor4D;
@@ -95,15 +95,16 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
   const $images = convertToTensor(images, 'images', 'resizeNearestNeighbor');
   util.assert(
       $images.rank === 3 || $images.rank === 4,
-      `Error in resizeNearestNeighbor: x must be rank 3 or 4, but got ` +
+      () => `Error in resizeNearestNeighbor: x must be rank 3 or 4, but got ` +
           `rank ${$images.rank}.`);
   util.assert(
       size.length === 2,
-      `Error in resizeNearestNeighbor: new shape must 2D, but got shape ` +
+      () =>
+          `Error in resizeNearestNeighbor: new shape must 2D, but got shape ` +
           `${size}.`);
   util.assert(
       $images.dtype === 'float32' || $images.dtype === 'int32',
-      '`images` must have `int32` or `float32` as dtype');
+      () => '`images` must have `int32` or `float32` as dtype');
 
   let batchImages = $images as Tensor4D;
   let reshapedTo4D = false;
@@ -213,17 +214,18 @@ function nonMaxSuppSanityCheck(
 
   util.assert(
       0 <= iouThreshold && iouThreshold <= 1,
-      `iouThreshold must be in [0, 1], but was '${iouThreshold}'`);
+      () => `iouThreshold must be in [0, 1], but was '${iouThreshold}'`);
   util.assert(
       boxes.rank === 2,
-      `boxes must be a 2D tensor, but was of rank '${boxes.rank}'`);
+      () => `boxes must be a 2D tensor, but was of rank '${boxes.rank}'`);
   util.assert(
       boxes.shape[1] === 4,
-      `boxes must have 4 columns, but 2nd dimension was ${boxes.shape[1]}`);
-  util.assert(scores.rank === 1, 'scores must be a 1D tensor');
+      () =>
+          `boxes must have 4 columns, but 2nd dimension was ${boxes.shape[1]}`);
+  util.assert(scores.rank === 1, () => 'scores must be a 1D tensor');
   util.assert(
       scores.shape[0] === numBoxes,
-      `scores has incompatible shape with boxes. Expected ${numBoxes}, ` +
+      () => `scores has incompatible shape with boxes. Expected ${numBoxes}, ` +
           `but was ${scores.shape[0]}`);
   return {maxOutputSize, iouThreshold, scoreThreshold};
 }
@@ -268,26 +270,26 @@ function cropAndResize_(
 
   util.assert(
       $image.rank === 4,
-      'Error in cropAndResize: image must be rank 4,' +
+      () => 'Error in cropAndResize: image must be rank 4,' +
           `but got rank ${$image.rank}.`);
   util.assert(
       $boxes.rank === 2 && $boxes.shape[1] === 4,
-      `Error in cropAndResize: boxes must be have size [${numBoxes},4] ` +
+      () => `Error in cropAndResize: boxes must be have size [${numBoxes},4] ` +
           `but had shape ${$boxes.shape}.`);
   util.assert(
       $boxInd.rank === 1 && $boxInd.shape[0] === numBoxes,
-      `Error in cropAndResize: boxInd must be have size [${numBoxes}] ` +
+      () => `Error in cropAndResize: boxInd must be have size [${numBoxes}] ` +
           `but had shape ${$boxes.shape}.`);
   util.assert(
       cropSize.length === 2,
-      `Error in cropAndResize: cropSize must be of length 2, but got length ` +
-          `${cropSize.length}.`);
+      () => `Error in cropAndResize: cropSize must be of length 2, but got ` +
+          `length ${cropSize.length}.`);
   util.assert(
       cropSize[0] >= 1 && cropSize[1] >= 1,
-      `cropSize must be atleast [1,1], but was ${cropSize}`);
+      () => `cropSize must be atleast [1,1], but was ${cropSize}`);
   util.assert(
       method === 'bilinear' || method === 'nearest',
-      `method must be bilinear or nearest, but was ${method}`);
+      () => `method must be bilinear or nearest, but was ${method}`);
 
   const forward: ForwardFunc<Tensor4D> = (backend, save) =>
       backend.cropAndResize(
