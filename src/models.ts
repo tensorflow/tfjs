@@ -40,7 +40,7 @@ import {getExactlyOneShape} from './utils/types_utils';
  * // of the model; the weights of the loaded model will be different
  * // from those of the the original model, due to random weight
  * // initialization.
- * // To load the topology and weights of a model, use `tf.loadModel()`.
+ * // To load the topology and weights of a model, use `tf.loadLayersModel()`.
  * const model1 = tf.sequential();
  * model1.add(tf.layers.repeatVector({inputShape: [2], n: 4}));
  * // Serialize `model1` as a JSON object.
@@ -167,7 +167,7 @@ export interface ModelPredictArgs {
  *
  * const saveResults = await model.save('localstorage://my-model-1');
  *
- * const loadedModel = await tf.loadModel('localstorage://my-model-1');
+ * const loadedModel = await tf.loadLayersModel('localstorage://my-model-1');
  * console.log('Prediction from loaded model:');
  * loadedModel.predict(tf.ones([1, 3])).print();
  * ```
@@ -184,7 +184,7 @@ export interface ModelPredictArgs {
  *
  * const saveResults = await model.save('indexeddb://my-model-1');
  *
- * const loadedModel = await tf.loadModel('indexeddb://my-model-1');
+ * const loadedModel = await tf.loadLayersModel('indexeddb://my-model-1');
  * console.log('Prediction from loaded model:');
  * loadedModel.predict(tf.ones([1, 3])).print();
  * ```
@@ -199,7 +199,7 @@ export interface ModelPredictArgs {
  * const jsonUpload = document.getElementById('json-upload');
  * const weightsUpload = document.getElementById('weights-upload');
  *
- * const model = await tf.loadModel(
+ * const model = await tf.loadLayersModel(
  *     tf.io.browserFiles([jsonUpload.files[0], weightsUpload.files[0]]));
  * ```
  *
@@ -207,7 +207,7 @@ export interface ModelPredictArgs {
  *
  * ```js
  * const model = await
- *     tf.loadModel('https://storage.googleapis.com/tfjs-models/tfjs/iris_v1/model.json');
+ *     tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/iris_v1/model.json');
  * model.summary();
  * ```
  *
@@ -238,7 +238,7 @@ export interface ModelPredictArgs {
  *     model-loading process.
  * @returns A `Promise` of `tf.Model`, with the topology and weights loaded.
  */
-export async function loadModelInternal(
+export async function loadLayersModelInternal(
     pathOrIOHandler: string|io.IOHandler,
     options?: io.LoadOptions): Promise<Model> {
   if (options == null) {
@@ -260,7 +260,7 @@ export async function loadModelInternal(
     }
     pathOrIOHandler = handlers[0];
   }
-  return loadModelFromIOHandler(
+  return loadLayersModelFromIOHandler(
       pathOrIOHandler as io.IOHandler, undefined, options);
 }
 
@@ -274,7 +274,7 @@ export async function loadModelInternal(
  * @param strict Whether the weight loading will be done in strict mode.
  *   Default: `true`.
  */
-export async function loadModelFromIOHandler(
+export async function loadLayersModelFromIOHandler(
     handler: io.IOHandler, customObjects?: serialization.ConfigDict,
     options?: io.LoadOptions): Promise<Model> {
   if (options == null) {

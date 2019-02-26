@@ -19,7 +19,7 @@ import {ContainerArgs} from './engine/container';
 import {Input, InputConfig,} from './engine/input_layer';
 import {SymbolicTensor} from './engine/topology';
 import {Model} from './engine/training';
-import {loadModelInternal, Sequential, SequentialArgs} from './models';
+import {loadLayersModelInternal, Sequential, SequentialArgs} from './models';
 
 
 // TODO(cais): Add doc string to all the public static functions in this
@@ -63,7 +63,7 @@ import {loadModelInternal, Sequential, SequentialArgs} from './models';
  * model.predict(tf.ones([2, 5])).print();
  * ```
  * See also:
- *   `tf.sequential`, `tf.loadModel`.
+ *   `tf.sequential`, `tf.loadLayersModel`.
  */
 
 /**
@@ -136,18 +136,6 @@ export function model(args: ContainerArgs): Model {
  */
 export function sequential(config?: SequentialArgs): Sequential {
   return new Sequential(config);
-}
-
-/**
- * @doc {
- *   heading: 'Models',
- *   subheading: 'Loading',
- *   useDocsFrom: 'loadModelInternal'
- * }
- */
-export function loadModel(
-    pathOrIOHandler: string|io.IOHandler, strict = true): Promise<Model> {
-  return loadModelInternal(pathOrIOHandler, {strict});
 }
 
 /**
@@ -239,12 +227,12 @@ export function loadModel(
  */
 /** @doc {heading: 'Models', subheading: 'Loading'} */
 export function loadLayersModel(
-    pathOrIOHandler: string|io.IOHandler, options?: io.LoadOptions):
-    Promise<Model> {
+    pathOrIOHandler: string|io.IOHandler,
+    options?: io.LoadOptions): Promise<Model> {
   if (options == null) {
     options = {};
   }
-  return loadModelInternal(pathOrIOHandler, options);
+  return loadLayersModelInternal(pathOrIOHandler, options);
 }
 
 /**
