@@ -535,7 +535,7 @@ class APIAndShellTest(tf.test.TestCase):
     # 3. Convert the tensorflowjs artifacts back to HDF5.
     new_h5_path = os.path.join(self._tmp_dir, 'model_2.h5')
     process = subprocess.Popen([
-        'tensorflowjs_converter', '--input_format', 'tensorflowjs',
+        'tensorflowjs_converter', '--input_format', 'tfjs_layers_model',
         '--output_format', 'keras',
         os.path.join(self._tmp_dir, 'model.json'), new_h5_path])
     process.communicate()
@@ -639,7 +639,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
 
       # 2. Convert the keras saved model to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
-      # Implicit value of --output_format: tensorflowjs
+      # Implicit value of --output_format: tfjs_layers_model
       process = subprocess.Popen([
           'tensorflowjs_converter', '--input_format', 'keras_saved_model',
           save_result_dir, tfjs_output_dir
@@ -653,7 +653,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       # 3. Convert the tfjs model to keras h5 format.
       new_h5_path = os.path.join(self._tmp_dir, 'new_h5.h5')
       process = subprocess.Popen([
-          'tensorflowjs_converter', '--input_format', 'tensorflowjs',
+          'tensorflowjs_converter', '--input_format', 'tfjs_layers_model',
           '--output_format', 'keras', model_json_path, new_h5_path])
       process.communicate()
       self.assertEqual(0, process.returncode)
@@ -681,10 +681,10 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
 
       # 2. Convert the keras saved model to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
-      # Use explicit --output_format value: tensorflowjs
+      # Use explicit --output_format value: tfjs_layers_model
       process = subprocess.Popen([
           'tensorflowjs_converter', '--input_format', 'keras_saved_model',
-          '--output_format', 'tensorflowjs',
+          '--output_format', 'tfjs_layers_model',
           save_result_dir, tfjs_output_dir
       ])
       process.communicate()
@@ -696,7 +696,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       # 3. Convert the tfjs model to keras h5 format.
       new_h5_path = os.path.join(self._tmp_dir, 'new_h5.h5')
       process = subprocess.Popen([
-          'tensorflowjs_converter', '--input_format', 'tensorflowjs',
+          'tensorflowjs_converter', '--input_format', 'tfjs_layers_model',
           '--output_format', 'keras', model_json_path, new_h5_path])
       process.communicate()
       self.assertEqual(0, process.returncode)
