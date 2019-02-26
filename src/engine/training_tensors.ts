@@ -142,7 +142,8 @@ export interface ModelFitArgs {
 export function checkBatchSize(batchSize: number) {
   tfc.util.assert(
       batchSize > 0 && Number.isInteger(batchSize),
-      `batchSize is required to be a positive integer, but got ${batchSize}`);
+      () => `batchSize is required to be a positive integer, but got ${
+          batchSize}`);
 }
 
 

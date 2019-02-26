@@ -926,7 +926,8 @@ export class Sequential extends Model {
     } else {
       util.assert(
           config['layers'] != null,
-          `When the config data for a Sequential model is not an Array, ` +
+          () =>
+              `When the config data for a Sequential model is not an Array, ` +
               `it must be an Object that contains the 'layers' field.`);
       configArray = config['layers'] as serialization.ConfigDictArray;
       delete config['layers'];

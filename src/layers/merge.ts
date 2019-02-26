@@ -994,11 +994,11 @@ function batchDot(x: Tensor, y: Tensor, axes: number|[number, number]): Tensor {
   }
   tfc.util.assert(
       x.shape.length >= 2,
-      `batchDot requires the rank of x to be >= 2, ` +
+      () => `batchDot requires the rank of x to be >= 2, ` +
           `but got ${x.shape.length}`);
   tfc.util.assert(
       x.shape.length >= 2,
-      `batchDot requires the rank of y to be >= 2, ` +
+      () => `batchDot requires the rank of y to be >= 2, ` +
           `but got ${y.shape.length}`);
 
   if (typeof axes === 'number') {
@@ -1110,7 +1110,7 @@ export class Dot extends Merge {
     tfc.util.assert(
         Array.isArray(inputShape) && inputShape.length === 2 &&
             Array.isArray(inputShape[0]) && Array.isArray(inputShape[1]),
-        'A `Dot` layer should be called on a list of exactly 2 inputs.');
+        () => 'A `Dot` layer should be called on a list of exactly 2 inputs.');
     const shape1 = inputShape[0] as Shape;
     const shape2 = inputShape[1] as Shape;
     if (shape1.length > 3 || shape2.length > 3) {
@@ -1172,7 +1172,7 @@ export class Dot extends Merge {
     tfc.util.assert(
         Array.isArray(inputShape) && inputShape.length === 2 &&
             Array.isArray(inputShape[0]) && Array.isArray(inputShape[1]),
-        'A `Dot` layer should be called on a list of exactly 2 inputs.');
+        () => 'A `Dot` layer should be called on a list of exactly 2 inputs.');
     const shape1 = (inputShape[0] as Shape).slice();
     const shape2 = (inputShape[1] as Shape).slice();
     if (shape1.length > 3 || shape2.length > 3) {
