@@ -44,6 +44,7 @@ import {nonMaxSuppressionImpl} from './non_max_suppression_impl';
 import {split} from './split_shared';
 import {topkImpl} from './topk_impl';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
+import {ArgMinMaxPackedProgram} from './webgl/argminmax_packed_gpu';
 import {AvgPool2DBackpropProgram} from './webgl/avg_pool_backprop_gpu';
 import {BatchNormProgram} from './webgl/batchnorm_gpu';
 import {BatchNormPackedProgram} from './webgl/batchnorm_packed_gpu';
@@ -1023,6 +1024,22 @@ export class MathBackendWebGL implements KernelBackend {
     return this.argReduce(x, reduceType, output);
   }
 
+  private argReducePacked(
+      x: Tensor, reduceType: 'max'|'min', bestIndicesA: Tensor = null): Tensor {
+    const inShape = bestIndicesA != null ? bestIndicesA.shape : x.shape;
+    const inSize = inShape[inShape.length - 1];
+    const windowSize = reduce_util.computeOptimalWindowSize(inSize);
+    const program = new ArgMinMaxPackedProgram(
+        inShape, windowSize, reduceType, bestIndicesA == null);
+    const output = this.makePackedTensor(program.outputShape, 'int32');
+    const inputs = bestIndicesA == null ? [x] : [x, bestIndicesA];
+    this.compileAndRun(program, inputs, output);
+    if (output.rank === x.rank) {
+      return this.argReducePacked(x, reduceType, output);
+    }
+    return output;
+  }
+
   sum(x: Tensor, axes: number[]): Tensor {
     axis_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
     const [outShape, reduceShape] =
@@ -1091,24 +1108,28 @@ export class MathBackendWebGL implements KernelBackend {
     return this.segOpCompute(output, segOpType, segmentIds, dtype, numSegments);
   }
 
-  argMin(x: Tensor, axis: number): Tensor {
+  private argMinMaxReduce(x: Tensor, axis: number, reduceType: 'min'|'max'):
+      Tensor {
     const axes = [axis];
-    axis_util.assertAxesAreInnerMostDims('argMin', axes, x.rank);
-    const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    return this.argReduce(a2D, 'min').reshape(outShape);
+    axis_util.assertAxesAreInnerMostDims(
+        'arg' + reduceType.charAt(0).toUpperCase() + reduceType.slice(1), axes,
+        x.rank);
+    if (!ENV.get('WEBGL_PACK_REDUCE') || x.rank <= 2) {
+      const [outShape, reduceShape] =
+          axis_util.computeOutAndReduceShapes(x.shape, axes);
+      const inSize = util.sizeFromShape(reduceShape);
+      const a2D = x.as2D(-1, inSize);
+      return this.argReduce(a2D, reduceType).reshape(outShape);
+    }
+    return this.argReducePacked(x, reduceType);
+  }
+
+  argMin(x: Tensor, axis: number): Tensor {
+    return this.argMinMaxReduce(x, axis, 'min');
   }
 
   argMax(x: Tensor, axis: number): Tensor {
-    const axes = [axis];
-    axis_util.assertAxesAreInnerMostDims('argMax', axes, x.rank);
-    const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    return this.argReduce(a2D, 'max').reshape(outShape);
+    return this.argMinMaxReduce(x, axis, 'max');
   }
 
   cumsum(x: Tensor, axis: number, exclusive: boolean, reverse: boolean):
