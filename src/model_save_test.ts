@@ -10,9 +10,8 @@
 
 import {io, linalg, randomNormal, Tensor, zeros} from '@tensorflow/tfjs-core';
 
-import * as initializers from './initializers';
 import * as tfl from './index';
-
+import * as initializers from './initializers';
 // tslint:disable-next-line:max-line-length
 import {describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from './utils/test_utils';
 
@@ -202,7 +201,7 @@ describeMathGPU('Save-load round trips', () => {
     const url = `indexeddb://${path}`;
     await model.save(url);
     // Load the model back.
-    const modelPrime = await tfl.loadModel(url);
+    const modelPrime = await tfl.loadLayersModel(url);
     // Call predict() on the loaded model and assert the
     // result equals the original predict() result.
     const yPrime = modelPrime.predict(x) as Tensor;
@@ -255,15 +254,15 @@ describeMathGPU('Save-load round trips', () => {
       biasInitializer: 'randomNormal',
     }));
     let savedArtifacts: io.ModelArtifacts;
-    await model.save(io.withSaveHandler(
-        async (artifacts: io.ModelArtifacts) => {
+    await model.save(
+        io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return {modelArtifactsInfo: null};
         }));
     const weights = model.getWeights();
 
     const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
-    const gramSchmidtSpy = spyOn(linalg,  'gramSchmidt').and.callThrough();
+    const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
     const modelPrime = await tfl.loadLayersModel(io.fromMemory(
         savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
         savedArtifacts.weightData));
@@ -282,22 +281,19 @@ describeMathGPU('Save-load round trips', () => {
     const model = tfl.sequential();
     model.add(tfl.layers.timeDistributed({
       inputShape: [3, 4],
-      layer: tfl.layers.dense({
-        units: 4,
-        kernelInitializer: 'orthogonal',
-        useBias: false
-      })
+      layer: tfl.layers.dense(
+          {units: 4, kernelInitializer: 'orthogonal', useBias: false})
     }));
     let savedArtifacts: io.ModelArtifacts;
-    await model.save(io.withSaveHandler(
-        async (artifacts: io.ModelArtifacts) => {
+    await model.save(
+        io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return {modelArtifactsInfo: null};
         }));
     const weights = model.getWeights();
 
     const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
-    const gramSchmidtSpy = spyOn(linalg,  'gramSchmidt').and.callThrough();
+    const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
     const modelPrime = await tfl.loadLayersModel(io.fromMemory(
         savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
         savedArtifacts.weightData));
@@ -325,15 +321,15 @@ describeMathGPU('Save-load round trips', () => {
       }) as tfl.RNN
     }));
     let savedArtifacts: io.ModelArtifacts;
-    await model.save(io.withSaveHandler(
-        async (artifacts: io.ModelArtifacts) => {
+    await model.save(
+        io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return {modelArtifactsInfo: null};
         }));
     const weights = model.getWeights();
 
     const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
-    const gramSchmidtSpy = spyOn(linalg,  'gramSchmidt').and.callThrough();
+    const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
     const modelPrime = await tfl.loadLayersModel(io.fromMemory(
         savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
         savedArtifacts.weightData));
@@ -351,18 +347,20 @@ describeMathGPU('Save-load round trips', () => {
   it('Loading model: Fast init w/ weights: functional model', async () => {
     const input1 = tfl.input({shape: [3, 2]});
     const input2 = tfl.input({shape: [3, 2]});
-    let y = tfl.layers.concatenate()
-        .apply([input1, input2]) as tfl.SymbolicTensor;
-    y = tfl.layers.lstm({
-      units: 4,
-      kernelInitializer: 'orthogonal',
-      recurrentInitializer: 'orthogonal',
-      biasInitializer: 'glorotNormal'
-    }).apply(y) as tfl.SymbolicTensor;
+    let y =
+        tfl.layers.concatenate().apply([input1, input2]) as tfl.SymbolicTensor;
+    y = tfl.layers
+            .lstm({
+              units: 4,
+              kernelInitializer: 'orthogonal',
+              recurrentInitializer: 'orthogonal',
+              biasInitializer: 'glorotNormal'
+            })
+            .apply(y) as tfl.SymbolicTensor;
     const model = tfl.model({inputs: [input1, input2], outputs: y});
     let savedArtifacts: io.ModelArtifacts;
-    await model.save(io.withSaveHandler(
-        async (artifacts: io.ModelArtifacts) => {
+    await model.save(
+        io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return {modelArtifactsInfo: null};
         }));
@@ -414,8 +412,8 @@ describeMathGPU('Save-load round trips', () => {
       biasInitializer: 'randomNormal',
     }));
     let savedArtifacts: io.ModelArtifacts;
-    await model.save(io.withSaveHandler(
-        async (artifacts: io.ModelArtifacts) => {
+    await model.save(
+        io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return {modelArtifactsInfo: null};
         }));
@@ -424,11 +422,13 @@ describeMathGPU('Save-load round trips', () => {
     expect(savedArtifacts.weightSpecs.length).toEqual(3);
     savedArtifacts.weightSpecs = savedArtifacts.weightSpecs.slice(0, 1);
 
-    const gramSchmidtSpy = spyOn(linalg,  'gramSchmidt').and.callThrough();
+    const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
     const strict = false;
-    const modelPrime = await tfl.loadModel(io.fromMemory(
-        savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
-        savedArtifacts.weightData), strict);
+    const modelPrime = await tfl.loadLayersModel(
+        io.fromMemory(
+            savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
+            savedArtifacts.weightData),
+        {strict});
     const weightsPrime = modelPrime.getWeights();
     expect(weightsPrime.length).toEqual(weights.length);
     expectTensorsClose(weightsPrime[0], weights[0]);
@@ -446,8 +446,8 @@ describeMathGPU('Save-load round trips', () => {
       biasInitializer: 'randomNormal',
     }));
     let savedArtifacts: io.ModelArtifacts;
-    await model.save(io.withSaveHandler(
-        async (artifacts: io.ModelArtifacts) => {
+    await model.save(
+        io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return {modelArtifactsInfo: null};
         }));
@@ -456,11 +456,13 @@ describeMathGPU('Save-load round trips', () => {
     expect(savedArtifacts.weightSpecs.length).toEqual(3);
     savedArtifacts.weightSpecs = savedArtifacts.weightSpecs.slice(0, 1);
 
-    const gramSchmidtSpy = spyOn(linalg,  'gramSchmidt').and.callThrough();
+    const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
     const strict = false;
-    const modelPrime = await tfl.loadLayersModel(io.fromMemory(
-        savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
-        savedArtifacts.weightData), {strict});
+    const modelPrime = await tfl.loadLayersModel(
+        io.fromMemory(
+            savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
+            savedArtifacts.weightData),
+        {strict});
     const weightsPrime = modelPrime.getWeights();
     expect(weightsPrime.length).toEqual(weights.length);
     expectTensorsClose(weightsPrime[0], weights[0]);
@@ -471,8 +473,78 @@ describeMathGPU('Save-load round trips', () => {
   it('Load model artifact with ndarray-format scalar objects', async () => {
     // The following model config contains a scalar parameter serialized in the
     // ndarray-style format: `{"type": "ndarray", "value": 6}`.
-    // tslint:disable-next-line:max-line-length
-    const modelJSON = `{"class_name": "Sequential", "keras_version": "2.2.4", "config": {"layers": [{"class_name": "Dense", "config": {"kernel_initializer": {"class_name": "VarianceScaling", "config": {"distribution": "uniform", "scale": 1.0, "seed": null, "mode": "fan_avg"}}, "name": "dense_1", "kernel_constraint": null, "bias_regularizer": null, "bias_constraint": null, "dtype": "float32", "activation": "linear", "trainable": true, "kernel_regularizer": null, "bias_initializer": {"class_name": "Zeros", "config": {}}, "units": 2, "batch_input_shape": [null, 3], "use_bias": true, "activity_regularizer": null}}, {"class_name": "ReLU", "config": {"threshold": 0.0, "max_value": {"type": "ndarray", "value": 6}, "trainable": true, "name": "re_lu_1", "negative_slope": 0.0}}, {"class_name": "Dense", "config": {"kernel_initializer": {"class_name": "VarianceScaling", "config": {"distribution": "uniform", "scale": 1.0, "seed": null, "mode": "fan_avg"}}, "name": "dense_2", "kernel_constraint": null, "bias_regularizer": null, "bias_constraint": null, "activation": "linear", "trainable": true, "kernel_regularizer": null, "bias_initializer": {"class_name": "Zeros", "config": {}}, "units": 1, "use_bias": true, "activity_regularizer": null}}], "name": "sequential_1"}, "backend": "tensorflow"}`;
+    const modelJSON = JSON.stringify({
+      'class_name': 'Sequential',
+      'keras_version': '2.2.4',
+      'config': {
+        'layers': [
+          {
+            'class_name': 'Dense',
+            'config': {
+              'kernel_initializer': {
+                'class_name': 'VarianceScaling',
+                'config': {
+                  'distribution': 'uniform',
+                  'scale': 1.0,
+                  'seed': null,
+                  'mode': 'fan_avg'
+                }
+              },
+              'name': 'dense_1',
+              'kernel_constraint': null,
+              'bias_regularizer': null,
+              'bias_constraint': null,
+              'dtype': 'float32',
+              'activation': 'linear',
+              'trainable': true,
+              'kernel_regularizer': null,
+              'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+              'units': 2,
+              'batch_input_shape': [null, 3],
+              'use_bias': true,
+              'activity_regularizer': null
+            }
+          },
+          {
+            'class_name': 'ReLU',
+            'config': {
+              'threshold': 0.0,
+              'max_value': {'type': 'ndarray', 'value': 6},
+              'trainable': true,
+              'name': 're_lu_1',
+              'negative_slope': 0.0
+            }
+          },
+          {
+            'class_name': 'Dense',
+            'config': {
+              'kernel_initializer': {
+                'class_name': 'VarianceScaling',
+                'config': {
+                  'distribution': 'uniform',
+                  'scale': 1.0,
+                  'seed': null,
+                  'mode': 'fan_avg'
+                }
+              },
+              'name': 'dense_2',
+              'kernel_constraint': null,
+              'bias_regularizer': null,
+              'bias_constraint': null,
+              'activation': 'linear',
+              'trainable': true,
+              'kernel_regularizer': null,
+              'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+              'units': 1,
+              'use_bias': true,
+              'activity_regularizer': null
+            }
+          }
+        ],
+        'name': 'sequential_1'
+      },
+      'backend': 'tensorflow'
+    });
     const model =
         await tfl.models.modelFromJSON({modelTopology: JSON.parse(modelJSON)});
     expect(model.layers.length).toEqual(3);

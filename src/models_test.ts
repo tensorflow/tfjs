@@ -16,7 +16,7 @@ import * as tfl from './index';
 import {PyJsonDict} from './keras_format/types';
 import {Reshape} from './layers/core';
 import {deserialize} from './layers/serialization';
-import {loadModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
+import {loadLayersModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
 import {convertPythonicToTs, convertTsToPythonic} from './utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 import {version as layersVersion} from './version';
@@ -653,7 +653,7 @@ describeMathCPU('loadLayersModel from URL', () => {
       });
     });
 
-    const model = await loadModelInternal('model/model.json');
+    const model = await loadLayersModelInternal('model/model.json');
     expect(model.layers.length).toEqual(2);
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 32]);
@@ -838,7 +838,7 @@ describeMathCPU('loadLayersModel from URL', () => {
          });
        });
 
-       const model = await loadModelInternal('model/model.json');
+       const model = await loadLayersModelInternal('model/model.json');
        expect(model.layers.length).toEqual(2);
        expect(model.inputs.length).toEqual(1);
        expect(model.inputs[0].shape).toEqual([null, 10]);
@@ -907,7 +907,7 @@ describeMathCPU('loadLayersModel from URL', () => {
       });
     });
 
-    const model = await loadModelInternal('model/model.json');
+    const model = await loadLayersModelInternal('model/model.json');
     expect(model.name.indexOf('Foo123Sequential')).toEqual(0);
     expect(model.layers.length).toEqual(2);
     expect(model.inputs.length).toEqual(1);
@@ -972,7 +972,8 @@ describeMathCPU('loadLayersModel from URL', () => {
            });
 
        const model =
-           await loadModelInternal(io.browserHTTPRequest('model/model.json', {
+           await loadLayersModelInternal(
+             io.browserHTTPRequest('model/model.json', {
              headers: {'header_key_1': 'header_value_1'},
              credentials: 'include',
            }));
@@ -1044,7 +1045,7 @@ describeMathCPU('loadLayersModel from URL', () => {
            });
          });
 
-         const model = await loadModelInternal(
+         const model = await loadLayersModelInternal(
              `${protocol}localhost:8888/models/model.json`);
          expect(model.layers.length).toEqual(2);
          expect(model.inputs.length).toEqual(1);
@@ -1225,13 +1226,14 @@ describeMathCPU('loadLayersModel from IOHandler', () => {
   }
 
   // A dummy IOHandler that doesn't have the `load` method implemented and
-  // is expected to cause `loadModel` or `loadModelInternal` to fail.
+  // is expected to cause `loadLayersModel` or `loadLayersModelInternal` to
+  // fail.
   class IOHandlerWithoutLoad implements io.IOHandler {
     constructor() {}
   }
 
   it('load topology and weights', async () => {
-    const model = await loadModelInternal(new IOHandlerForTest(true));
+    const model = await loadLayersModelInternal(new IOHandlerForTest(true));
     expect(model.layers.length).toEqual(1);
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 4]);
@@ -1244,7 +1246,7 @@ describeMathCPU('loadLayersModel from IOHandler', () => {
   });
 
   it('load topology only', async () => {
-    const model = await loadModelInternal(new IOHandlerForTest(false));
+    const model = await loadLayersModelInternal(new IOHandlerForTest(false));
     expect(model.layers.length).toEqual(1);
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 4]);
@@ -1253,7 +1255,7 @@ describeMathCPU('loadLayersModel from IOHandler', () => {
   });
 
   it('IOHandler without load method causes error', async done => {
-    loadModelInternal(new IOHandlerWithoutLoad())
+    loadLayersModelInternal(new IOHandlerWithoutLoad())
         .then(model => {
           done.fail(
               'Loading with an IOHandler without load method succeeded ' +

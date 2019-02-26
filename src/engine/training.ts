@@ -436,7 +436,7 @@ export interface ModelCompileArgs {
  * TensorFlow.js. To create a `tf.Model`, use `tf.model`.
  *
  * See also:
- *   `tf.Sequential`, `tf.loadModel`.
+ *   `tf.Sequential`, `tf.loadLayersModel`.
  */
 /** @doc {heading: 'Models', subheading: 'Classes'} */
 export class Model extends Container implements tfc.InferenceModel {
@@ -1550,7 +1550,7 @@ export class Model extends Container implements tfc.InferenceModel {
    *
    * const saveResults = await model.save('localstorage://my-model-1');
    *
-   * const loadedModel = await tf.loadModel('localstorage://my-model-1');
+   * const loadedModel = await tf.loadLayersModel('localstorage://my-model-1');
    * console.log('Prediction from loaded model:');
    * loadedModel.predict(tf.ones([1, 3])).print();
    * ```
@@ -1567,7 +1567,7 @@ export class Model extends Container implements tfc.InferenceModel {
    *
    * const saveResults = await model.save('indexeddb://my-model-1');
    *
-   * const loadedModel = await tf.loadModel('indexeddb://my-model-1');
+   * const loadedModel = await tf.loadLayersModel('indexeddb://my-model-1');
    * console.log('Prediction from loaded model:');
    * loadedModel.predict(tf.ones([1, 3])).print();
    * ```

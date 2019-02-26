@@ -86,7 +86,7 @@ To load the model with TensorFlow.js Layers:
 ```js
 import * as tf from '@tensorflow/tfjs';
 
-const model = await tf.loadModel('http://foo.bar/tfjs_artifacts/model.json');
+const model = await tf.loadLayersModel('http://foo.bar/tfjs_artifacts/model.json');
 // Now the model is ready for inference, evaluation or re-training.
 ```
 

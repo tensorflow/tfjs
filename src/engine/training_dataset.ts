@@ -182,34 +182,18 @@ function standardizeDataIteratorOutput(
     model: any, iteratorOut: {}): tfc.Tensor[] {
   let xs: TensorOrArrayOrMap;
   let ys: TensorOrArrayOrMap;
-  if (Array.isArray(iteratorOut)) {
-    tfc.deprecationWarn(
-        'Deprecated argument format: fitDataset() will soon no longer accept ' +
-        'Datasets that produce elements in the array form `[xs, ys]`.  ' +
-        'Instead it now expects elements of the form `{xs: xVal, ys: yVal}`, ' +
-        'where the two values may be `tf.Tensor`, an array of Tensors, or a ' +
-        'map of string to Tensor. ');
-    tfc.util.assert(
-        iteratorOut.length === 2,
-        () => 'When using the legacy array input form, a ' +
-            'Dataset iterator for fitDataset() is expected to generate ' +
-            'an Array of length 2: `[xs, ys]`, but instead generates ' +
-            iteratorOut);
-    const tuple = iteratorOut as [TensorOrArrayOrMap, TensorOrArrayOrMap];
-    xs = tuple[0];
-    ys = tuple[1];
-  } else {
-    const iteratorOutObj = iteratorOut as FitDatasetElement;
-    xs = iteratorOutObj['xs'];
-    ys = iteratorOutObj['ys'];
-    tfc.util.assert(
-        xs != null && ys != null,
-        () => 'A Dataset iterator for fitDataset() is expected to generate ' +
-            'objects of the form `{xs: xVal, ys: yVal}`, where the two ' +
-            'values may be `tf.Tensor`, an array of Tensors, or a map of ' +
-            'string to Tensor.  The provided Dataset instead generates ' +
-            iteratorOut);
-  }
+
+  const iteratorOutObj = iteratorOut as FitDatasetElement;
+  xs = iteratorOutObj['xs'];
+  ys = iteratorOutObj['ys'];
+  tfc.util.assert(
+      xs != null && ys != null,
+      () => 'A Dataset iterator for fitDataset() is expected to generate ' +
+          'objects of the form `{xs: xVal, ys: yVal}`, where the two ' +
+          'values may be `tf.Tensor`, an array of Tensors, or a map of ' +
+          'string to Tensor.  The provided Dataset instead generates ' +
+          iteratorOut);
+
 
   const flattenedXs: tfc.Tensor[] =
       flattenTensorOrArrayOrMap('input', model.inputNames, xs);
