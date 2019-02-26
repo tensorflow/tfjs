@@ -421,16 +421,16 @@ export class GraphExecutor {
                 (dim, index) => shape[index] === -1 || shape[index] === dim);
         util.assert(
             match,
-            `The shape of dict['${
-                node.name}'] provided in model.execute(dict) must be [${
-                shape}], but was [${input.shape}]`);
+            () => `The shape of dict['${node.name}'] provided in ` +
+                `model.execute(dict) must be [${shape}], but was ` +
+                `[${input.shape}]`);
       }
       if (node.attrParams['dtype'] && node.attrParams['dtype'].value) {
         util.assert(
             input.dtype === node.attrParams['dtype'].value as string,
-            `The dtype of dict['${
-                node.name}'] provided in model.execute(dict) must be ${
-                node.attrParams['dtype'].value}, but was ${input.dtype}`);
+            () => `The dtype of dict['${node.name}'] provided in ` +
+                `model.execute(dict) must be ` +
+                `${node.attrParams['dtype'].value}, but was ${input.dtype}`);
       }
     });
   }
