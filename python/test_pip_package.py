@@ -209,34 +209,6 @@ class APIAndShellTest(tf.test.TestCase):
           model1_weight_values, model2_weight_values):
         self.assertAllClose(model1_weight_value, model2_weight_value)
 
-  def testConvertTensorFlowSavedModelToPb(self):
-    output_dir = os.path.join(self._tmp_dir, 'tensorflowjs_model')
-    tfjs.converters.tf_saved_model_conversion_pb.convert_tf_saved_model(
-        self.tf_saved_model_dir,
-        'a/Softmax',
-        output_dir,
-        saved_model_tags='serve'
-    )
-
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{
-            'shape': [2, 2],
-            'name': 'a/Softmax',
-            'dtype': 'float32'
-        }]
-    }]
-    # Load the saved weights as a JSON string.
-    with open(os.path.join(output_dir, 'weights_manifest.json'),
-              'rt') as f:
-      output_json = json.load(f)
-    self.assertEqual(output_json, weights)
-
-    # Check the content of the output directory.
-    self.assertTrue(
-        glob.glob(os.path.join(output_dir, 'tensorflowjs_model.pb')))
-    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
-
   def testConvertTensorFlowSavedModel(self):
     output_dir = os.path.join(self._tmp_dir, 'tensorflowjs_model')
     tfjs.converters.convert_tf_saved_model(
@@ -410,67 +382,12 @@ class APIAndShellTest(tf.test.TestCase):
         b'The --output_node_names flag is applicable only to',
         tf.compat.as_bytes(stderr))
 
-  def testConvertTFSavedModelToPbWithCommandLineWorks(self):
-    output_dir = os.path.join(self._tmp_dir)
-    process = subprocess.Popen([
-        'tensorflowjs_converter', '--input_format', 'tf_saved_model',
-        '--output_node_names', 'a/Softmax', '--saved_model_tags', 'serve',
-        self.tf_saved_model_dir, output_dir
-    ])
-    process.communicate()
-    self.assertEqual(0, process.returncode)
-
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{
-            'shape': [2, 2],
-            'name': 'a/Softmax',
-            'dtype': 'float32'
-        }]
-    }]
-    # Load the saved weights as a JSON string.
-    output_json = json.load(
-        open(os.path.join(output_dir, 'weights_manifest.json'), 'rt'))
-    self.assertEqual(output_json, weights)
-
-    # Check the content of the output directory.
-    self.assertTrue(
-        glob.glob(os.path.join(output_dir, 'tensorflowjs_model.pb')))
-    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
-
-  def testConvertTFHubModuleToPbWithCommandLineWorks(self):
-    output_dir = os.path.join(self._tmp_dir)
-    process = subprocess.Popen([
-        'tensorflowjs_converter', '--input_format', 'tf_hub',
-        self.tf_hub_module_dir, output_dir
-    ])
-    process.communicate()
-    self.assertEqual(0, process.returncode)
-
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{
-            'shape': [2],
-            'name': 'module/Variable',
-            'dtype': 'float32'
-        }]
-    }]
-    # Load the saved weights as a JSON string.
-    output_json = json.load(
-        open(os.path.join(output_dir, 'weights_manifest.json'), 'rt'))
-    self.assertEqual(output_json, weights)
-
-    # Check the content of the output directory.
-    self.assertTrue(
-        glob.glob(os.path.join(output_dir, 'tensorflowjs_model.pb')))
-    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
-
   def testConvertTFSavedModelWithCommandLineWorks(self):
     output_dir = os.path.join(self._tmp_dir)
     process = subprocess.Popen([
         'tensorflowjs_converter', '--input_format', 'tf_saved_model',
         '--output_node_names', 'a/Softmax', '--saved_model_tags', 'serve',
-        '--output_json', 'true', self.tf_saved_model_dir, output_dir
+        self.tf_saved_model_dir, output_dir
     ])
     process.communicate()
     self.assertEqual(0, process.returncode)
@@ -495,7 +412,7 @@ class APIAndShellTest(tf.test.TestCase):
     output_dir = os.path.join(self._tmp_dir)
     process = subprocess.Popen([
         'tensorflowjs_converter', '--input_format', 'tf_hub',
-        '--output_json', 'true', self.tf_hub_module_dir, output_dir
+        self.tf_hub_module_dir, output_dir
     ])
     process.communicate()
     self.assertEqual(0, process.returncode)

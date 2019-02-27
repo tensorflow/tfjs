@@ -23,13 +23,11 @@ import image2URL from './image2.jpg';
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/tfjs-models/savedmodel/';
 const MODEL_URL =
-    GOOGLE_CLOUD_STORAGE_DIR + 'coco-ssd-mobilenet_v1/tensorflowjs_model.pb';
-const WEIGHTS_URL =
-    GOOGLE_CLOUD_STORAGE_DIR + 'coco-ssd-mobilenet_v1/weights_manifest.json';
+    GOOGLE_CLOUD_STORAGE_DIR + 'coco-ssd-mobilenet_v1/model.json';
 
 let modelPromise;
 
-window.onload = () => modelPromise = tf.loadFrozenModel(MODEL_URL, WEIGHTS_URL);
+window.onload = () => modelPromise = tf.loadGraphModel(MODEL_URL);
 
 const button = document.getElementById('toggle');
 button.onclick = () => {

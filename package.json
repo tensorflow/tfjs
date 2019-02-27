@@ -46,7 +46,9 @@
     "tslint": "~5.8.0",
     "tslint-no-circular-imports": "~0.5.0",
     "typescript": "~2.9.2",
-    "yalc": "~1.0.0-pre.21"
+    "yalc": "~1.0.0-pre.21",
+    "@types/long": "~3.0.32",
+    "protobufjs": "~6.8.6"
   },
   "scripts": {
     "build": "tsc && copyfiles -f src/data/compiled_api.* dist/src/data/",
@@ -59,10 +61,7 @@
     "make-version": "sh -c ./scripts/make-version",
     "gen-doc": "ts-node ./scripts/gen_doc.ts",
     "gen-google3-proto": "rollup -c rollup.config.google.js",
-    "gen-json": "ts-node ./scripts/gen_json.ts"
-  },
-  "dependencies": {
-    "@types/long": "~3.0.32",
-    "protobufjs": "~6.8.6"
+    "gen-json": "ts-node ./scripts/gen_json.ts",
+    "pb2json": "ts-node ./tools/pb2json_converter.ts"
   }
 }

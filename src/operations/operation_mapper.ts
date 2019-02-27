@@ -14,11 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
+
 import {DataType} from '@tensorflow/tfjs-core';
-import * as Long from 'long';
-
 import {tensorflow} from '../data/compiled_api';
-
 import {getNodeNameAndIndex} from './executors/utils';
 import * as arithmetic from './op_list/arithmetic';
 import * as basicMath from './op_list/basic_math';
@@ -77,7 +75,7 @@ export class OperationMapper {
     return DYNAMIC_SHAPE_OPS.some(op => op === node.op);
   }
   // Converts the model from Tensorflow GraphDef to local representation for
-  // deeplearn.js API
+  // TensorFlow.js API
   transformGraph(graph: tensorflow.IGraphDef): Graph {
     const tfNodes = graph.node;
     let withControlFlow = false;
@@ -138,8 +136,11 @@ export class OperationMapper {
       inputParams: {},
       attrParams: {}
     };
+    if (node.attr == null) {
+      node.attr = {};
+    }
 
-    if (!!mapper.inputs) {
+    if (mapper.inputs != null) {
       newNode.inputParams =
           mapper.inputs.reduce<{[key: string]: InputParamValue}>(
               (map, param) => {
@@ -152,7 +153,7 @@ export class OperationMapper {
               },
               {});
     }
-    if (!!mapper.attrs) {
+    if (mapper.attrs != null) {
       newNode.attrParams =
           mapper.attrs.reduce<{[key: string]: ParamValue}>((map, param) => {
             const type = param.type;
@@ -228,12 +229,26 @@ export class OperationMapper {
     return newNode;
   }
 
+  private decodeBase64(text: string): string {
+    if (typeof atob !== 'undefined') {
+      return atob(text);
+    } else if (typeof Buffer !== 'undefined') {
+      return new Buffer(text, 'base64').toString();
+    } else {
+      throw new Error(
+          'Unable to decode base64 in this environment. ' +
+          'Missing built-in atob() or Buffer()');
+    }
+  }
+
   private getStringParam(
       attrs: {[key: string]: tensorflow.IAttrValue}, name: string, def: string,
       keepCase = false): string {
     const param = attrs[name];
     if (param !== undefined) {
-      const value = String.fromCharCode.apply(null, param.s);
+      const value = Array.isArray(param.s) ?
+          String.fromCharCode.apply(null, param.s) :
+          this.decodeBase64(param.s);
       return keepCase ? value : value.toLowerCase();
     }
     return def;
@@ -249,16 +264,23 @@ export class OperationMapper {
   private getNumberParam(
       attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
       def: number): number {
-    const param = attrs[name] as tensorflow.AttrValue;
-    const value = (param ? param[param.value] : def) as number | Long;
-    return (typeof value === 'number') ? value : value['toInt']() as number;
+    const param = attrs[name] || {};
+    const value = param['i'] ? param['i'] : (param['f'] ? param['f'] : def);
+    return (typeof value === 'number') ?
+        value :
+        parseInt(value as string, 10) as number;
   }
   private getDtypeParam(
       attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
       def: DataType): DataType {
     const param = attrs[name];
     if (param && param.type) {
-      switch (param.type) {
+      // tslint:disable-next-line:no-any
+      let type: any = param.type;
+      if (typeof (param.type) === 'string') {
+        type = tensorflow.DataType[param.type];
+      }
+      switch (type) {
         case tensorflow.DataType.DT_FLOAT:
           return 'float32';
         case tensorflow.DataType.DT_INT32:
@@ -276,9 +298,15 @@ export class OperationMapper {
       def?: number[]): number[]|undefined {
     const param = attrs[name];
     if (param && param.shape) {
-      return param.shape.dim.map(
-          dim =>
-              (typeof dim.size === 'number') ? dim.size : dim.size['toInt']());
+      if (param.shape.unknownRank) {
+        return undefined;
+      }
+      if (param.shape.dim != null) {
+        return param.shape.dim.map(
+            dim => (typeof dim.size === 'number') ?
+                dim.size :
+                parseInt(dim.size as string, 10));
+      }
     }
     return def;
   }
@@ -290,8 +318,10 @@ export class OperationMapper {
     if (param) {
       return ((param.list.f && param.list.f.length ? param.list.f :
                                                      param.list.i))
-                 .map(v => (typeof v === 'number') ? v : v['toInt']()) as
-          number[];
+                 .map(
+                     v => (typeof v === 'number') ?
+                         v :
+                         parseInt(v as string, 10)) as number[];
     }
     return def;
   }
