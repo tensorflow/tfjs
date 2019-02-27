@@ -90,9 +90,11 @@ export async function renderLinechart(
                                               [inputArray] as Point2D[][];
 
   const values: Point2D[] = [];
+  const seriesNames = new Set();
   inputArray.forEach((seriesData, i) => {
     const seriesName: string =
         _series[i] != null ? _series[i] : `Series ${i + 1}`;
+    seriesNames.add(seriesName);
     const seriesVals =
         seriesData.map(v => Object.assign({}, v, {series: seriesName}));
     values.push(...seriesVals);
@@ -132,6 +134,7 @@ export async function renderLinechart(
     'color': {
       'field': 'series',
       'type': 'nominal',
+      'legend': {'values': Array.from(seriesNames)}
     },
   };
 
