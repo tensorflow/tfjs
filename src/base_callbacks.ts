@@ -72,12 +72,13 @@ export abstract class BaseCallback {
 
   async onTrainEnd(logs?: UnresolvedLogs) {}
 
-  // Model needs to call Callback.setModel(), but cannot actually depend on
-  // Callback because that creates a cyclic dependency.  Providing this no-op
-  // method on BaseCallback breaks the cycle: this way Model can depend on
+  // LayersModel needs to call Callback.setModel(), but cannot actually depend
+  // on Callback because that creates a cyclic dependency.  Providing this no-op
+  // method on BaseCallback breaks the cycle: this way LayersModel can depend on
   // BaseCallback but not on Callback.  The argument is typed as `Container`
-  // (the superclass of Model) to avoid recapitulating the cycle.  Callback
-  // overrides this method and enforces that the argument is really a Model.
+  // (the superclass of LayersModel) to avoid recapitulating the cycle. Callback
+  // overrides this method and enforces that the argument is really a
+  // LayersModel.
   setModel(model: Container): void {
     // Do nothing. Use Callback instead of BaseCallback to track the model.
   }
@@ -215,11 +216,11 @@ export class CallbackList {
  * A class that manages thread yielding during model training.
  *
  * The lifetime of an instance of `ModelTrainingYielder` is that of a
- * `Model.fit()` call. In other words, each `Model.fit()` call must create
- * and use a separate `ModelTrainingYielder` object.
+ * `LayersModel.fit()` call. In other words, each `LayersModel.fit()` call must
+ * create and use a separate `ModelTrainingYielder` object.
  */
 export class ModelTrainingYielder {
-  // How many batches to skip at the beginning of a `Model.fit` call.
+  // How many batches to skip at the beginning of a `LayersModel.fit` call.
   // The first batches usually are longer than the rest, because they may
   // involve warm-up time.
   static readonly SKIP_FIRST_BATCHES = 1;
@@ -319,7 +320,7 @@ export class ModelTrainingYielder {
 /**
  * Callback that accumulates epoch averages of metrics.
  *
- * This callback is automatically applied to every Model.
+ * This callback is automatically applied to every LayersModel.
  */
 export class BaseLogger extends BaseCallback {
   private seen: number;
@@ -551,7 +552,8 @@ export declare type BaseCallbackConstructor = {
 };
 
 /**
- * A global registry for callback constructors to be used during Model.fit().
+ * A global registry for callback constructors to be used during
+ * LayersModel.fit().
  */
 export class CallbackConstructorRegistry {
   private static constructors:
@@ -563,10 +565,10 @@ export class CallbackConstructorRegistry {
   private constructor() {}
 
   /**
-   * Register a tf.Model.fit() callback constructor.
+   * Register a tf.LayersModel.fit() callback constructor.
    *
    * The registered callback constructor will be used to instantiate
-   * callbacks for every tf.Model.fit() call afterwards.
+   * callbacks for every tf.LayersModel.fit() call afterwards.
    *
    * @param verbosityLevel Level of verbosity at which the `callbackConstructor`
    *   is to be reigstered.
@@ -644,7 +646,8 @@ export function configureCallbacks(
   actualCallbacks.push(history);
   const callbackList = new CallbackList(actualCallbacks);
 
-  // TODO(cais): Figure out when this Model instance can have a dynamically
+  // TODO(cais): Figure out when this LayersModel instance can have a
+  // dynamically
   //   set property called 'callback_model' as in PyKeras.
 
   callbackList.setParams({

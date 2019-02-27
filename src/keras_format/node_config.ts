@@ -46,9 +46,9 @@ export type TensorKeyWithArgsArray =
  * output index.
  *
  * This does not include the apply() arguments associated with the Node.  It is
- * used in the Model config to specify the inputLayers and outputLayers.  It
- * seems to be an idiosyncrasy of Python Keras that the node arguments are not
- * included here.
+ * used in the LayersModel config to specify the inputLayers and outputLayers.
+ * It seems to be an idiosyncrasy of Python Keras that the node arguments are
+ * not included here.
  */
 export type TensorKeyArray = [LayerName, NodeIndex, TensorIndex];
 

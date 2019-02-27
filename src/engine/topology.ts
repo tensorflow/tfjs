@@ -91,7 +91,7 @@ export class InputSpec {
  * `tf.SymbolicTensor` is a placeholder for a Tensor without any concrete value.
  *
  * They are most often encountered when building a graph of `Layer`s for a
- * a `tf.Model` and the input data's shape, but not values are known.
+ * a `tf.LayersModel` and the input data's shape, but not values are known.
  */
 /** @doc {heading: 'Models', 'subheading': 'Classes'} */
 export class SymbolicTensor {
@@ -393,7 +393,7 @@ let _nextLayerID = 0;
 
 /**
  * A layer is a grouping of operations and weights that can be composed to
- * create a `tf.Model`.
+ * create a `tf.LayersModel`.
  *
  * Layers are constructed by using the functions under the
  * [tf.layers](#Layers-Basic) namespace.
@@ -930,7 +930,7 @@ export abstract class Layer extends serialization.Serializable {
    *
    * // The input and output and be used to construct a model that consists
    * // of the flatten and dense layers.
-   * const model = tf.model({inputs: input, outputs: output2});
+   * const model = tf.LayersModel({inputs: input, outputs: output2});
    * ```
    *
    * @param inputs a `tf.Tensor` or `tf.SymbolicTensor` or an Array of them.

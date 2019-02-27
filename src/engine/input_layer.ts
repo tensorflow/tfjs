@@ -43,7 +43,7 @@ export declare interface InputLayerArgs {
 }
 
 /**
- * An input layer is an entry point into a `tf.Model`.
+ * An input layer is an entry point into a `tf.LayersModel`.
  *
  * `InputLayer` is generated automatically for `tf.Sequential`` models by
  * specifying the `inputshape` or `batchInputShape` for the first layer.  It
@@ -217,7 +217,7 @@ export interface InputConfig {
  * // and 3 dimensional output.
  * const x = tf.input({shape: [32]});
  * const y = tf.layers.dense({units: 3, activation: 'softmax'}).apply(x);
- * const model = tf.model({inputs: x, outputs: y});
+ * const model = tf.LayersModel({inputs: x, outputs: y});
  * model.predict(tf.ones([2, 32])).print();
  * ```
  *

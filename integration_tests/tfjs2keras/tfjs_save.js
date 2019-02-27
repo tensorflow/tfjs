@@ -18,7 +18,7 @@ const join = require('path').join;
  * Generate random input(s), get predict() output(s), and save them along with
  * the model.
  *
- * @param model The `tf.Model` instance in question. It may have one or more
+ * @param model The `tf.LayersModel` instance in question. It may have one or more
  *   inputs and one or more outputs. It is assumed that for each input, only
  *   the first dimension (i.e., the batch dimension) is undetermined.
  * @param exportPathprefix The path prefix to which the model, the input and

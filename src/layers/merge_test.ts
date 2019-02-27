@@ -550,7 +550,7 @@ describeMathCPUAndGPU('Concatenate Layer: Tensor', () => {
 });
 
 describeMathCPU('Deserialize Merge Layers', () => {
-  it('Model with Add Layer', () => {
+  it('LayersModel with Add Layer', () => {
     // The following model config JSON can be obtained with Python code:
     // ```python
     // import keras
@@ -607,7 +607,7 @@ describeMathCPU('Deserialize Merge Layers', () => {
 
     const tsConfig =
         convertPythonicToTs(modelWithMergeJSON) as serialization.ConfigDict;
-    const model = deserialize(tsConfig) as tfl.Model;
+    const model = deserialize(tsConfig) as tfl.LayersModel;
     expect(model.inputs.length).toEqual(2);
     expect(model.inputs[0].shape).toEqual([null, 4]);
     expect(model.inputs[1].shape).toEqual([null, 4]);
@@ -617,7 +617,7 @@ describeMathCPU('Deserialize Merge Layers', () => {
     expect(model.outputs[0].shape).toEqual([null, 4]);
   });
 
-  it('Model with Concatenate Layer', () => {
+  it('LayersModel with Concatenate Layer', () => {
     // The following model config JSON can be obtained with Python code:
     // ```python
     // import keras
@@ -674,7 +674,7 @@ describeMathCPU('Deserialize Merge Layers', () => {
 
     const tsConfig =
         convertPythonicToTs(modelWithMergeJSON) as serialization.ConfigDict;
-    const model = deserialize(tsConfig) as tfl.Model;
+    const model = deserialize(tsConfig) as tfl.LayersModel;
     expect(model.inputs.length).toEqual(2);
     expect(model.inputs[0].shape).toEqual([null, 4]);
     expect(model.inputs[1].shape).toEqual([null, 4]);

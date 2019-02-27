@@ -610,11 +610,11 @@ describeMathCPUAndGPU('Orthogonal Initializer', () => {
     const modelConfig = convertPythonicToTs(
         JSON.parse(testModelJSON).modelTopology.model_config);
 
-    const model = deserialize(modelConfig as PyJsonDict) as tfl.Model;
+    const model = deserialize(modelConfig as PyJsonDict) as tfl.LayersModel;
     expect(model.layers.length).toEqual(3);
-    expect(model.layers[0] instanceof tfl.Model).toEqual(false);
-    expect(model.layers[1] instanceof tfl.Model).toEqual(true);
-    expect(model.layers[2] instanceof tfl.Model).toEqual(true);
+    expect(model.layers[0] instanceof tfl.LayersModel).toEqual(false);
+    expect(model.layers[1] instanceof tfl.LayersModel).toEqual(true);
+    expect(model.layers[2] instanceof tfl.LayersModel).toEqual(true);
     expect(model.inputs[0].shape).toEqual([null, 128, 128, 1]);
     expect(model.outputs[0].shape).toEqual([null, 128, 128, 1]);
     expect((model.predict(randomNormal([1, 128, 128, 1])) as Tensor).shape)

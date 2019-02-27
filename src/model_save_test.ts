@@ -15,7 +15,7 @@ import * as initializers from './initializers';
 // tslint:disable-next-line:max-line-length
 import {describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from './utils/test_utils';
 
-describeMathCPUAndGPU('Model.save', () => {
+describeMathCPUAndGPU('LayersModel.save', () => {
   class IOHandlerForTest implements io.IOHandler {
     savedArtifacts: io.ModelArtifacts;
 
@@ -81,7 +81,7 @@ describeMathCPUAndGPU('Model.save', () => {
         .catch(err => {
           expect(err.message)
               .toEqual(
-                  'Model.save() cannot proceed because the IOHandler ' +
+                  'LayersModel.save() cannot proceed because the IOHandler ' +
                   'provided does not have the `save` attribute defined.');
           done();
         });

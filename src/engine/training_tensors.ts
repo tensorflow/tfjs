@@ -553,7 +553,8 @@ export function ensureTensorsRank2OrHigher(tensors: Tensor|Tensor[]): Tensor[] {
  * Compare a set of tensors with a reference (old) set, discard the ones
  * in the new set that are not present in the reference set.
  *
- * This method is used for memory clenaup during calls such as Model.fit().
+ * This method is used for memory clenaup during calls such as
+ * LayersModel.fit().
  *
  * @param tensors New set which may contain Tensors not present in
  *   `refTensors`.

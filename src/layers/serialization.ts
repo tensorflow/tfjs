@@ -22,7 +22,7 @@ import {deserializeKerasObject} from '../utils/generic_utils';
  *   during deserialization. This is applicable to cases in which
  *   the initialization will be immediately overwritten by loaded weight
  *   values. Default: `false`.
- * @returns Layer instance (may be Model, Sequential, Layer...)
+ * @returns Layer instance (may be LayersModel, Sequential, Layer...)
  */
 export function deserialize(
     config: serialization.ConfigDict,

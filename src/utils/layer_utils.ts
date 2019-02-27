@@ -13,9 +13,9 @@ import {Layer, Node} from '../engine/topology';
 import {countParamsInWeights} from './variable_utils';
 
 /**
- * Print the summary of a Model object.
+ * Print the summary of a LayersModel object.
  *
- * @param model tf.Model instance.
+ * @param model tf.LayersModel instance.
  * @param lineLength Total length of printed lines. Set this to adapt to the
  *   display to different terminal or console sizes.
  * @param positions Relative or absolute positions of log elements in each

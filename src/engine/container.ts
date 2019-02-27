@@ -38,7 +38,7 @@ export interface ContainerArgs {
 /**
  * A Container is a directed acyclic graph of layers.
  *
- * It is the topological form of a "model". A Model
+ * It is the topological form of a "model". A LayersModel
  * is simply a Container with added training routines.
  *
  */
@@ -190,7 +190,7 @@ export abstract class Container extends Layer {
       // Check that layer is an InputLayer.
       if (!(layer instanceof InputLayer)) {
         throw new TypeError(
-            'Input layers to a Model must be InputLayer objects. ' +
+            'Input layers to a LayersModel must be InputLayer objects. ' +
             `Received inputs: ${args.inputs}. ` +
             `Input ${i} (0-based) originates ` +
             `from layer type ${layer.getClassName()}.`);
@@ -467,29 +467,29 @@ export abstract class Container extends Layer {
   }
 
   /**
-   * Attempt to dispose a Model's weights.
+   * Attempt to dispose a LayersModel's weights.
    *
-   * This method decrease the reference count of the Model object by 1.
+   * This method decrease the reference count of the LayersModel object by 1.
    *
-   * A Model is reference-counted. Its reference count is incremented by 1
+   * A LayersModel is reference-counted. Its reference count is incremented by 1
    * when it is first constructed and when it is used as a Layer of another
-   * Model.
+   * LayersModel.
    *
-   * If the reference count of a Model becomes 0, the `dispose` method of
+   * If the reference count of a LayersModel becomes 0, the `dispose` method of
    * all its constituent `Layer`s will be called.
    *
    * Note: If the reference count is greater than 0 after the decrement, the
    * `dispose` method of its constituent `Layer`s will *not* be called.
    *
-   * After a Model is disposed, it cannot be used in calls such as
+   * After a LayersModel is disposed, it cannot be used in calls such as
    * 'predict`, `evaluate` or `fit` anymore.
    *
    * @returns A DisposeResult Object with the following fields:
-   *   - refCountAfterDispose: The reference count of the Model after this
+   *   - refCountAfterDispose: The reference count of the LayersModel after this
    *     `dispose()` call.
    *   - numDisposedVariables: Number of `tf.Variable`s (i.e., weights) disposed
    *     during this `dispose()` call.
-   * @throws {Error} If the layer is not built yet, or if the Model has
+   * @throws {Error} If the layer is not built yet, or if the LayersModel has
    *   already been disposed.
    */
   dispose(): DisposeResult {
@@ -604,7 +604,7 @@ export abstract class Container extends Layer {
 
   /**
    * Util shared between different serialization methods.
-   * @returns Model config with Keras version information added.
+   * @returns LayersModel config with Keras version information added.
    */
   private updatedConfig(): serialization.ConfigDict {
     const theConfig = this.getConfig();
@@ -855,7 +855,7 @@ export abstract class Container extends Layer {
 
           if (layer.activityRegularizer) {
             throw new NotImplementedError(
-                'Model invocation with concrete Tensor value(s) in the ' +
+                'LayersModel invocation with concrete Tensor value(s) in the ' +
                 'presence of activity regularizer(s) is not supported yet.');
           }
           // TODO(michaelterry): Add model updates and losses
@@ -930,7 +930,7 @@ export abstract class Container extends Layer {
    *    heading: 'Layers',
    *    subheading: 'Classes',
    *    namespace: 'layers',
-   *    subclasses: ['Model']
+   *    subclasses: ['LayersModel']
    * }
    */
   getLayer(name?: string, index?: number): Layer {
@@ -1085,15 +1085,15 @@ export abstract class Container extends Layer {
   }
 
   /**
-   * Instantiates a Model from its config (output of `get_config()`).
+   * Instantiates a LayersModel from its config (output of `get_config()`).
    * @param cls the class to create
-   * @param config Model config dictionary.
+   * @param config LayersModel config dictionary.
    * @param customObjects An optional dictionary of custom objects.
    * @param fastWeightInit Optional flag to use fast weight initialization
    *   during deserialization. This is applicable to cases in which
    *   the initialization will be immediately overwritten by loaded weight
    *   values. Default: `false`.
-   * @returns A model instance.
+   * @returns A LayersModel instance.
    * @throws ValueError: In case of improperly formatted config dict.
    */
   /** @nocollapse */
