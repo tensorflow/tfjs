@@ -46,6 +46,7 @@ describe('Union package', () => {
     const expected = require('../package.json').version;
     expect(tf.version.tfjs).toBe(expected);
     expect(tf.version['tfjs-core']).not.toBeNull();
+    expect(tf.version['tfjs-converter']).not.toBeNull();
     expect(tf.version['tfjs-data']).not.toBeNull();
     expect(tf.version['tfjs-layers']).not.toBeNull();
   });
