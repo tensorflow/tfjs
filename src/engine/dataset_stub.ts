@@ -9,7 +9,7 @@
  */
 
 /**
- * Stub interfaces and classes for testing tf.Model.fitDataset().
+ * Stub interfaces and classes for testing tf.LayersModel.fitDataset().
  *
  * TODO(cais, soergel): Remove this in favor of actual interfaces and classes
  *   when ready.

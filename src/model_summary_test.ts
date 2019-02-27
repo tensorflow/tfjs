@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-// Unit tests for tf.Model.summary() and tf.Sequential.summary().
+// Unit tests for tf.LayersModel.summary() and tf.Sequential.summary().
 
 import * as tfl from './index';
 import {describeMathCPU} from './utils/test_utils';
@@ -17,7 +17,7 @@ function getRandomLayerOrModelName(length = 12) {
   return 'L' + Math.random().toFixed(length - 1).slice(2);
 }
 
-describeMathCPU('Model.summary', () => {
+describeMathCPU('LayersModel.summary', () => {
   let consoleLogHistory: string[];
 
   beforeEach(() => {
@@ -34,8 +34,7 @@ describeMathCPU('Model.summary', () => {
   it('Sequential model: one layer', () => {
     const layerName = getRandomLayerOrModelName();
     const model = tfl.sequential({
-      layers:
-          [tfl.layers.dense({units: 3, inputShape: [10], name: layerName})]
+      layers: [tfl.layers.dense({units: 3, inputShape: [10], name: layerName})]
     });
     model.summary();
     expect(consoleLogHistory).toEqual([
@@ -52,8 +51,7 @@ describeMathCPU('Model.summary', () => {
   it('Sequential model: one layer: custom lineLength', () => {
     const layerName = getRandomLayerOrModelName();
     const model = tfl.sequential({
-      layers:
-          [tfl.layers.dense({units: 3, inputShape: [10], name: layerName})]
+      layers: [tfl.layers.dense({units: 3, inputShape: [10], name: layerName})]
     });
     const lineLength = 70;
     model.summary(lineLength);
@@ -71,8 +69,7 @@ describeMathCPU('Model.summary', () => {
   it('Sequential model: one layer: custom positions', () => {
     const layerName = getRandomLayerOrModelName();
     const model = tfl.sequential({
-      layers:
-          [tfl.layers.dense({units: 3, inputShape: [10], name: layerName})]
+      layers: [tfl.layers.dense({units: 3, inputShape: [10], name: layerName})]
     });
     const lineLength = 70;
     const positions: number[] = [0.5, 0.8, 1.0];
@@ -91,8 +88,7 @@ describeMathCPU('Model.summary', () => {
   it('Sequential model: one layer: custom printFn', () => {
     const layerName = getRandomLayerOrModelName();
     const model = tfl.sequential({
-      layers:
-          [tfl.layers.dense({units: 3, inputShape: [10], name: layerName})]
+      layers: [tfl.layers.dense({units: 3, inputShape: [10], name: layerName})]
     });
 
     const messages: string[] = [];
@@ -316,7 +312,7 @@ describeMathCPU('Model.summary', () => {
     ]);
   });
 
-  it('Model with multiple outputs', () => {
+  it('LayersModel with multiple outputs', () => {
     const lyrName01 = getRandomLayerOrModelName();
     const input1 = tfl.input({shape: [3, 4], name: lyrName01});
     const lyrName02 = getRandomLayerOrModelName();

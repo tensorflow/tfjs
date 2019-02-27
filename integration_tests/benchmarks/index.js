@@ -111,7 +111,7 @@ async function runBenchmark(artifactsDir, modelName, config) {
 /**
  * Synthesize random inputs and outputs based on the model's specs.
  *
- * @param {tfc.Model} model Model for which the inputs and outputs will
+ * @param {tf.LayersModel} model LayersModel for which the inputs and outputs will
  *   be synthesized.
  * @returns xs {tf.Tensor | tf.Tensor[]} Synthesized random feature
  *   tensors.

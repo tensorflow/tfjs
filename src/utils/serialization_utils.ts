@@ -20,7 +20,7 @@ import * as generic_utils from '../utils/generic_utils';
 // tslint:enable
 
 /**
- * Test whether a value in an array is the name of a Model or Layer.
+ * Test whether a value in an array is the name of a LayersModel or Layer.
  * @param key The key name that the value is found under. Note that the key
  *   may not be at the level immediately above the value, if the value is in a
  *   nested array.
@@ -69,7 +69,7 @@ export function convertPythonicToTs(
       const pythonicValue = pythonicConfig[pythonicKey];
       if (pythonicKey === 'name' && typeof pythonicValue === 'string') {
         // Special case the 'name' key with a string value. Name values, such as
-        // the names of Model and Layer instances, should not undergo the
+        // the names of LayersModel and Layer instances, should not undergo the
         // camel-case conversion.
         tsDict[pythonicKey] = pythonicValue;
       } else {
@@ -116,7 +116,7 @@ export function convertTsToPythonic(
       if ((tsKey === 'name' || tsKey === 'className') &&
           typeof tsValue === 'string') {
         // Special case the 'name' key with a string value. Name values, such as
-        // the names of Model and Layer instances, should not undergo the
+        // the names of LayersModel and Layer instances, should not undergo the
         // snake-case conversion.
         pyDict[pyKey] = tsValue;
       } else {

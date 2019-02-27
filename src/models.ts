@@ -17,7 +17,7 @@ import {History} from './base_callbacks';
 import {Dataset} from './engine/dataset_stub';
 import {Input} from './engine/input_layer';
 import {getSourceInputs, Layer, Node, SymbolicTensor} from './engine/topology';
-import {Model, ModelCompileArgs, ModelEvaluateArgs} from './engine/training';
+import {LayersModel, ModelCompileArgs, ModelEvaluateArgs} from './engine/training';
 import {ModelEvaluateDatasetArgs, ModelFitDatasetArgs} from './engine/training_dataset';
 import {ModelFitArgs} from './engine/training_tensors';
 import {NotImplementedError, RuntimeError, ValueError} from './errors';
@@ -35,7 +35,7 @@ import {getExactlyOneShape} from './utils/types_utils';
  *
  * ```js
  * // This example shows how to serialize a model using `toJSON()` and
- * // deserialize it as another model using `tf.models.modelFROMJSON()`.
+ * // deserialize it as another model using `tf.models.modelFromJSON()`.
  * // Note: this example serializes and deserializes only the topology
  * // of the model; the weights of the loaded model will be different
  * // from those of the the original model, due to random weight
@@ -57,14 +57,14 @@ import {getExactlyOneShape} from './utils/types_utils';
  *  @param custom_objects Optional dictionary mapping names
  *       (strings) to custom classes or functions to be
  *       considered during deserialization.
- * @returns A TensorFlow.js Layers `tf.Model` instance (uncompiled).
+ * @returns A TensorFlow.js Layers `tf.LayersModel` instance (uncompiled).
  */
 /**
  * @doc {heading: 'Models', subheading: 'Loading', namespace: 'models'}
  */
 export async function modelFromJSON(
     modelAndWeightsConfig: ModelAndWeightsConfig|PyJsonDict,
-    customObjects?: serialization.ConfigDict): Promise<Model> {
+    customObjects?: serialization.ConfigDict): Promise<LayersModel> {
   if (!('modelTopology' in modelAndWeightsConfig)) {
     modelAndWeightsConfig = {
       modelTopology: modelAndWeightsConfig as PyJsonDict
@@ -83,7 +83,7 @@ export async function modelFromJSON(
   }
   const tsConfig =
       convertPythonicToTs(modelTopology) as serialization.ConfigDict;
-  const model = deserialize(tsConfig, customObjects) as Model;
+  const model = deserialize(tsConfig, customObjects) as LayersModel;
 
   if (modelAndWeightsConfig.weightsManifest != null) {
     // Load the weight values keyed by the original tensor names in the model
@@ -236,11 +236,12 @@ export interface ModelPredictArgs {
  *   - `onProgress`: A progress callback of the form:
  *     `(fraction: number) => void`. This callback can be used to monitor the
  *     model-loading process.
- * @returns A `Promise` of `tf.Model`, with the topology and weights loaded.
+ * @returns A `Promise` of `tf.LayersModel`, with the topology and weights
+ *     loaded.
  */
 export async function loadLayersModelInternal(
     pathOrIOHandler: string|io.IOHandler,
-    options?: io.LoadOptions): Promise<Model> {
+    options?: io.LoadOptions): Promise<LayersModel> {
   if (options == null) {
     options = {};
   }
@@ -276,7 +277,7 @@ export async function loadLayersModelInternal(
  */
 export async function loadLayersModelFromIOHandler(
     handler: io.IOHandler, customObjects?: serialization.ConfigDict,
-    options?: io.LoadOptions): Promise<Model> {
+    options?: io.LoadOptions): Promise<LayersModel> {
   if (options == null) {
     options = {};
   }
@@ -302,14 +303,14 @@ export async function loadLayersModelFromIOHandler(
   const model =
       deserialize(
           convertPythonicToTs(modelTopology) as serialization.ConfigDict,
-          customObjects, fastWeightInit) as Model;
+          customObjects, fastWeightInit) as LayersModel;
 
   // If weightData is present, load the weights into the model.
   if (artifacts.weightData != null) {
     // Loading weights requires weightSpecs.
     if (artifacts.weightSpecs == null) {
       throw new ValueError(
-          'Model artifacts contains weight data, but not weight specs. ' +
+          'LayersModel artifacts contains weight data, but not weight specs. ' +
           'Therefore loading of weights cannot proceed.');
     }
 
@@ -358,10 +359,10 @@ export interface SequentialArgs {
  * ```
  */
 /** @doc {heading: 'Models', subheading: 'Classes'} */
-export class Sequential extends Model {
+export class Sequential extends LayersModel {
   /** @nocollapse */
   static className = 'Sequential';
-  private model: Model;
+  private model: LayersModel;
   private _updatable: boolean;
   constructor(args?: SequentialArgs) {
     super({inputs: [], outputs: []});
@@ -416,10 +417,10 @@ export class Sequential extends Model {
   /** @doc {heading: 'Models', subheading: 'Classes'} */
   add(layer: Layer): void {
     const isLayerModelInstance =
-        layer instanceof Sequential || layer instanceof Model;
-    let modelLayer: Model;
+        layer instanceof Sequential || layer instanceof LayersModel;
+    let modelLayer: LayersModel;
     if (isLayerModelInstance) {
-      modelLayer = layer as Model;
+      modelLayer = layer as LayersModel;
       if (modelLayer.outputs.length !== 1) {
         throw new ValueError(
             'All layers in a Sequential model ' +
@@ -463,7 +464,8 @@ export class Sequential extends Model {
         if (layer.inboundNodes.length !== 1) {
           throw new ValueError(
               'A layer added to a Sequential model must not already be ' +
-              `connected somewhere else. Model received layer ${layer.name} ` +
+              `connected somewhere else. LayersModel received layer ${
+                  layer.name} ` +
               `which has ${layer.inboundNodes.length} pre-existing inbound ` +
               'connections.');
         }
@@ -561,7 +563,7 @@ export class Sequential extends Model {
           ' Add some layers first.');
     }
     // actually create the model
-    this.model = new Model({
+    this.model = new LayersModel({
       inputs: this.inputs,
       outputs: this.outputs[0],
       name: this.name + '_model'
@@ -783,7 +785,7 @@ export class Sequential extends Model {
   }
 
   /**
-   * See `Model.compile`.
+   * See `LayersModel.compile`.
    *
    * @param args
    */
@@ -953,7 +955,7 @@ export class Sequential extends Model {
   }
 
   /**
-   * Setter used for force stopping of Model.fit() (i.e., training).
+   * Setter used for force stopping of LayersModel.fit() (i.e., training).
    *
    * Example:
    *

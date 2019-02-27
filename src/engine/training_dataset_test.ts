@@ -9,8 +9,8 @@
  */
 
 /**
- * Unit tests for training.ts, focusing on the tf.Model.fitDataset() and
- * tf.Model.evaluateDataset() methods.
+ * Unit tests for training.ts, focusing on the tf.LayersModel.fitDataset() and
+ * tf.LayersModel.evaluateDataset() methods.
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
@@ -23,14 +23,14 @@ import {describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {FakeNumericDataset} from './dataset_fakes';
 
-function createDenseModel(): tfl.Model {
+function createDenseModel(): tfl.LayersModel {
   const model = tfl.sequential();
   model.add(tfl.layers.dense(
       {units: 1, inputShape: [1], kernelInitializer: 'zeros'}));
   return model;
 }
 
-describeMathCPUAndGPU('Model.fitDataset', () => {
+describeMathCPUAndGPU('LayersModel.fitDataset', () => {
   // Reference Python tf.keras code:
   //
   // ```py
@@ -2854,7 +2854,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
     }
   }
 
-  it('Stop training resets at start of Model.fitDataset()', async () => {
+  it('Stop training resets at start of LayersModel.fitDataset()', async () => {
     const model = createDenseModel();
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
 
@@ -2889,7 +2889,7 @@ describeMathCPUAndGPU('Model.fitDataset', () => {
 
 // TODO(cais): The corresponding test for predict() and evaluate().
 
-describeMathCPUAndGPU('Model.evaluateDataset', () => {
+describeMathCPUAndGPU('LayersModel.evaluateDataset', () => {
   // Reference Python tf.keras code:
   //
   // ```py

@@ -15,7 +15,7 @@
 import {ones, scalar, serialization, Tensor, tensor2d, Tensor3D, tensor3d} from '@tensorflow/tfjs-core';
 
 import {Layer, SymbolicTensor} from '../engine/topology';
-import {Model} from '../engine/training';
+import {LayersModel} from '../engine/training';
 import * as tfl from '../index';
 import {BidirectionalMergeMode, VALID_BIDIRECTIONAL_MERGE_MODES} from '../keras_format/common';
 import {convertPythonicToTs} from '../utils/serialization_utils';
@@ -102,7 +102,7 @@ describeMathCPUAndGPU('TimeDistributed Layer: Tensor', () => {
   // ys = model.predict(xs)
   // print(ys)
   // ```
-  it('Model as constituent layer', () => {
+  it('LayersModel as constituent layer', () => {
     const modelAsLayer = tfl.sequential({
       layers: [tfl.layers.dense({
         activation: 'softmax',
@@ -329,9 +329,8 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
         .toEqual('concat');
   });
   it('mergeMode defaults to concat', () => {
-    const bidi = tfl.layers.bidirectional({
-      layer: new SimpleRNN({units: 3})
-    }) as Bidirectional;
+    const bidi = tfl.layers.bidirectional({layer: new SimpleRNN({units: 3})}) as
+        Bidirectional;
     expect(bidi.mergeMode).toEqual('concat');
     expect(bidi.getConfig().mergeMode).toEqual('concat');
   });
@@ -615,7 +614,7 @@ describeMathCPUAndGPU('Bidirectional with initial state', () => {
     expectTensorsClose(yVals[1], tensor2d([[0.8188354, 0.8188354, 0.8188354]]));
   });
 
-  it('Model predict', () => {
+  it('LayersModel predict', () => {
     const layerAndTensors = createLayerAndTensors();
     const model = tfl.model({
       inputs: [
@@ -635,7 +634,7 @@ describeMathCPUAndGPU('Bidirectional with initial state', () => {
     expectTensorsClose(yVals[1], tensor2d([[0.8188354, 0.8188354, 0.8188354]]));
   });
 
-  it('Model serialization round trip', () => {
+  it('LayersModel serialization round trip', () => {
     // Disable the console warning about the unserialization SymbolicTensor in
     // the CallArgs.
     spyOn(console, 'warn');
@@ -650,7 +649,7 @@ describeMathCPUAndGPU('Bidirectional with initial state', () => {
     const json1 = model.toJSON(null, false);
     const model2 =
         deserialize(convertPythonicToTs(json1) as serialization.ConfigDict) as
-        Model;
+        LayersModel;
     const json2 = model2.toJSON(null, false);
     expect(json2).toEqual(json1);
   });

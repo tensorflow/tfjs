@@ -164,9 +164,10 @@ export interface ModelEvaluateDatasetArgs {
 const DEFAULT_VALIDATION_BATCH_SIZE = 32;
 
 /**
- * Standardize the output of a dataset iterator for use by Model.fitDataset().
+ * Standardize the output of a dataset iterator for use by
+ * LayersModel.fitDataset().
  *
- * @param model: A `tf.Model` object.
+ * @param model: A `tf.LayersModel` object.
  * @param iteratorOut The output of a dataset iterator. It is required to be
  *   an object of the form `{xs: TensorOrArrayOrMap, ys: TensorOrArrayOrMap}`,
  *   where `TensorOrArrayOrMap` is a single `tf.Tensor`, a `tf.Tensor[]`, or a
@@ -204,13 +205,14 @@ function standardizeDataIteratorOutput(
 
   tfc.util.assert(
       flattenedXs.length === model.inputs.length,
-      () => `Model has ${model.inputs.length} inputs, but the dataset ` +
+      () => `LayersModel has ${model.inputs.length} inputs, but the dataset ` +
           `provides ${flattenedXs.length} inputs.  (Expected input keys: ` +
           `${JSON.stringify(model.inputNames)})`);
 
   tfc.util.assert(
       flattenedYs.length === model.outputs.length,
-      () => `Model has ${model.outputs.length} outputs, but the dataset ` +
+      () =>
+          `LayersModel has ${model.outputs.length} outputs, but the dataset ` +
           `provides ${flattenedYs.length} outputs.  (Expected output keys: ` +
           `${JSON.stringify(model.outputNames)})`);
 
@@ -283,7 +285,7 @@ export async function fitDataset<T>(
   tfc.util.assert(
       model.optimizer != null,
       () => 'You must compile a model before training/testing. Use ' +
-          'Model.compile(modelCompileConfig).');
+          'LayersModel.compile(modelCompileConfig).');
 
   tfc.util.assert(
       args != null,

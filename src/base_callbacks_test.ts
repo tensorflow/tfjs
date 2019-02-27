@@ -16,7 +16,7 @@ import {scalar, zeros} from '@tensorflow/tfjs-core';
 
 import {BaseCallback, BaseLogger, CallbackConstructorRegistry, CallbackList, History} from './base_callbacks';
 import {Callback} from './callbacks';
-import {Model} from './engine/training';
+import {LayersModel} from './engine/training';
 import * as tfl from './index';
 import {disposeTensorsInLogs, Logs, resolveScalarsInLogs, UnresolvedLogs} from './logs';
 import {describeMathCPUAndGPU} from './utils/test_utils';
@@ -191,7 +191,7 @@ describe('History Callback', () => {
   });
 });
 
-class MockModel extends Model {
+class MockLayersModel extends LayersModel {
   constructor(name: string) {
     super({inputs: [], outputs: [], name});
   }
@@ -204,7 +204,7 @@ describe('CallbackList', () => {
     const mockCallback1 = new MockCallback();
     const mockCallback2 = new MockCallback();
     const callbackList = new CallbackList([mockCallback1, mockCallback2]);
-    const model = new MockModel('MockModelA');
+    const model = new MockLayersModel('MockModelA');
     callbackList.setModel(model);
     expect(mockCallback1.model).toEqual(model);
     expect(mockCallback2.model).toEqual(model);
@@ -321,7 +321,7 @@ describeMathCPUAndGPU('CallbackConstructorRegistry initialization', () => {
   });
 });
 
-describeMathCPUAndGPU('Model.fit and CallbackConstructorRegistry', () => {
+describeMathCPUAndGPU('LayersModel.fit and CallbackConstructorRegistry', () => {
   beforeEach(() => {
     // tslint:disable-next-line:no-any
     (CallbackConstructorRegistry as any).clear();
@@ -329,7 +329,7 @@ describeMathCPUAndGPU('Model.fit and CallbackConstructorRegistry', () => {
     fake2Epochs = [];
   });
 
-  it('Model.fit call with no callback ctor registered', async () => {
+  it('LayersModel.fit call with no callback ctor registered', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.dense({units: 1, inputShape: [1]}));
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
@@ -340,7 +340,7 @@ describeMathCPUAndGPU('Model.fit and CallbackConstructorRegistry', () => {
     expect(fake1Epochs).toEqual([]);
   });
 
-  it('Model.fit call with one callback ctor registered', async () => {
+  it('LayersModel.fit call with one callback ctor registered', async () => {
     tfl.registerCallbackConstructor(1, FakeCallback1);
 
     const model = tfl.sequential();
@@ -353,7 +353,7 @@ describeMathCPUAndGPU('Model.fit and CallbackConstructorRegistry', () => {
     expect(fake1Epochs).toEqual([0, 1, 2]);
   });
 
-  it('Model.fit call with two callback ctor registered', async () => {
+  it('LayersModel.fit call with two callback ctor registered', async () => {
     tfl.registerCallbackConstructor(1, FakeCallback1);
     tfl.registerCallbackConstructor(2, FakeCallback2);
 

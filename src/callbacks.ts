@@ -12,16 +12,16 @@
 
 import {BaseCallback} from './base_callbacks';
 import {Container} from './engine/container';
-import {Model} from './engine/training';
+import {LayersModel} from './engine/training';
 
 export abstract class Callback extends BaseCallback {
   /** Instance of `keras.models.Model`. Reference of the model being trained. */
-  model: Model = null;
+  model: LayersModel = null;
 
   setModel(model: Container): void {
-    if (!(model instanceof Model)) {
-      throw new Error('model must be a Model, not some other Container');
+    if (!(model instanceof LayersModel)) {
+      throw new Error('model must be a LayersModel, not some other Container');
     }
-    this.model = model as Model;
+    this.model = model as LayersModel;
   }
 }

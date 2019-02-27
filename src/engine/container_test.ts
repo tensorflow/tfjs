@@ -469,7 +469,7 @@ describe('getSourceInputs()', () => {
   });
 });
 
-describeMathCPUAndGPU('Model-dispose', () => {
+describeMathCPUAndGPU('LayersModel-dispose', () => {
   it('Dispose Sequential model frees memory', () => {
     const numTensors0 = memory().numTensors;
     const model = tfl.sequential();
@@ -684,5 +684,5 @@ describeMathCPUAndGPU('Model-dispose', () => {
     // The four weight variables of the two layers should have been disposed.
     // + the rate from the dropout tensor
     expect(memory().numTensors).toEqual(numTensors0);
-  }); 
+  });
 });

@@ -301,7 +301,7 @@ export declare interface BaseRNNLayerArgs extends LayerArgs {
    *     This is the expected shape of your inputs
    *     *including the batch size*.
    *     It should be a tuple of integers, e.g., `[32, 10, 100]`.
-   *   - specify `shuffle: false` when calling `Model.fit()`.
+   *   - specify `shuffle: false` when calling `LayersModel.fit()`.
    *
    * To reset the state of your model, call `resetStates()` on either the
    * specific layer or on the entire model.
