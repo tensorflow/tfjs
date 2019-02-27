@@ -71,7 +71,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
     if (Array.isArray(path)) {
       tfc.util.assert(
           path.length === 2,
-          'file paths must have a length of 2, ' +
+          () => 'file paths must have a length of 2, ' +
               `(actual length is ${path.length}).`);
       this.path = path.map(p => resolve(p));
     } else {

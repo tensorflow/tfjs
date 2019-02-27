@@ -59,11 +59,12 @@ export class Int64Scalar {
 
     util.assert(
         value > -INT32_MAX && value < INT32_MAX - 1,
-        `Got a value outside of the bound of values supported for int64 ` +
+        () =>
+            `Got a value outside of the bound of values supported for int64 ` +
             `dtype ([-${INT32_MAX}, ${INT32_MAX - 1}]): ${value}`);
     util.assert(
         Number.isInteger(value),
-        `Expected value to be an integer, but got ${value}`);
+        () => `Expected value to be an integer, but got ${value}`);
 
     // We use two int32 elements to represent a int64 value. This assumes
     // little endian, which is checked above.
