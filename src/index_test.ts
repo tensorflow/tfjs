@@ -32,8 +32,8 @@ describe('Union package', () => {
   });
 
   it('has converter', () => {
-    expect(tf.FrozenModel).not.toBeNull();
-    expect(tf.loadFrozenModel).not.toBeNull();
+    expect(tf.GraphModel).not.toBeNull();
+    expect(tf.loadGraphModel).not.toBeNull();
   });
 
   it('has data', () => {
