@@ -36,8 +36,7 @@ export function ones(): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
- *   useDocsFrom: 'Constant',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Constant'
  * }
  */
 export function constant(args: ConstantArgs): Initializer {
@@ -48,8 +47,7 @@ export function constant(args: ConstantArgs): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
- *   useDocsFrom: 'RandomUniform',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'RandomUniform'
  * }
  */
 export function randomUniform(args: RandomUniformArgs): Initializer {
@@ -60,8 +58,7 @@ export function randomUniform(args: RandomUniformArgs): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
- *   useDocsFrom: 'RandomNormal',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'RandomNormal'
  * }
  */
 export function randomNormal(args: RandomNormalArgs): Initializer {
@@ -72,8 +69,7 @@ export function randomNormal(args: RandomNormalArgs): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
- *   useDocsFrom: 'TruncatedNormal',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'TruncatedNormal'
  * }
  */
 export function truncatedNormal(args: TruncatedNormalArgs): Initializer {
@@ -84,8 +80,7 @@ export function truncatedNormal(args: TruncatedNormalArgs): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
- *   useDocsFrom: 'Identity',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Identity'
  * }
  */
 export function identity(args: IdentityArgs): Initializer {
@@ -96,8 +91,7 @@ export function identity(args: IdentityArgs): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
- *   useDocsFrom: 'VarianceScaling',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'VarianceScaling'
  * }
  */
 export function varianceScaling(config: VarianceScalingArgs): Initializer {
@@ -108,8 +102,7 @@ export function varianceScaling(config: VarianceScalingArgs): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
- *   useDocsFrom: 'GlorotUniform',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'GlorotUniform'
  * }
  */
 export function glorotUniform(args: SeedOnlyInitializerArgs): Initializer {
@@ -120,8 +113,7 @@ export function glorotUniform(args: SeedOnlyInitializerArgs): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
- *   useDocsFrom: 'GlorotNormal',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'GlorotNormal'
  * }
  */
 export function glorotNormal(args: SeedOnlyInitializerArgs): Initializer {
@@ -132,8 +124,7 @@ export function glorotNormal(args: SeedOnlyInitializerArgs): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
- *   useDocsFrom: 'HeNormal',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'HeNormal'
  * }
  */
 export function heNormal(args: SeedOnlyInitializerArgs): Initializer {
@@ -144,8 +135,7 @@ export function heNormal(args: SeedOnlyInitializerArgs): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
- *   useDocsFrom: 'HeUniform',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'HeUniform'
  * }
  */
 export function heUniform(args: SeedOnlyInitializerArgs): Initializer {
@@ -156,8 +146,7 @@ export function heUniform(args: SeedOnlyInitializerArgs): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
- *   useDocsFrom: 'LeCunNormal',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'LeCunNormal'
  * }
  */
 export function leCunNormal(args: SeedOnlyInitializerArgs): Initializer {
@@ -168,8 +157,7 @@ export function leCunNormal(args: SeedOnlyInitializerArgs): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
- *   useDocsFrom: 'LeCunUniform',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'LeCunUniform'
  * }
  */
 export function leCunUniform(args: SeedOnlyInitializerArgs): Initializer {
@@ -181,8 +169,7 @@ export function leCunUniform(args: SeedOnlyInitializerArgs): Initializer {
  * @doc {
  *   heading: 'Initializers',
  *   namespace: 'initializers',
- *   useDocsFrom: 'Orthogonal',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Orthogonal'
  * }
  */
 export function orthogonal(args: OrthogonalArgs): Initializer {

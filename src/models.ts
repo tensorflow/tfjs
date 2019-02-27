@@ -691,7 +691,7 @@ export class Sequential extends LayersModel {
    *   will give you the display labels for the scalar outputs.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   evaluate(
       x: Tensor|Tensor[], y: Tensor|Tensor[],
@@ -724,7 +724,7 @@ export class Sequential extends LayersModel {
    * @returns Loss and metric values as an Array of `Scalar` objects.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async evaluateDataset(dataset: Dataset<{}>, args: ModelEvaluateDatasetArgs):
       Promise<Scalar|Scalar[]> {
@@ -761,7 +761,7 @@ export class Sequential extends LayersModel {
    *   number of samples that is not a multiple of the batch size.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   predict(x: Tensor|Tensor[], args: ModelPredictArgs = {}): Tensor|Tensor[] {
     if (this.model == null) {
@@ -832,7 +832,7 @@ export class Sequential extends LayersModel {
    *   and what the model expects.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async fit(
       x: Tensor|Tensor[]|{[inputName: string]: Tensor},
@@ -867,7 +867,7 @@ export class Sequential extends LayersModel {
    *   information collected during training.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async fitDataset<T>(dataset: Dataset<T>, args: ModelFitDatasetArgs<T>):
       Promise<History> {

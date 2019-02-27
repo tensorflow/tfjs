@@ -15,8 +15,7 @@ import {L1Args, L1L2, L1L2Args, L2Args, Regularizer} from './regularizers';
  * @doc {
  *   heading: 'Regularizers',
  *   namespace: 'regularizers',
- *   useDocsFrom: 'L1L2',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'L1L2'
  * }
  */
 export function l1l2(config?: L1L2Args): Regularizer {
@@ -27,8 +26,7 @@ export function l1l2(config?: L1L2Args): Regularizer {
  * @doc {
  *   heading: 'Regularizers',
  *   namespace: 'regularizers',
- *   useDocsFrom: 'L1L2',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'L1L2'
  * }
  */
 export function l1(config?: L1Args): Regularizer {
@@ -39,8 +37,7 @@ export function l1(config?: L1Args): Regularizer {
  * @doc {
  *   heading: 'Regularizers',
  *   namespace: 'regularizers',
- *   useDocsFrom: 'L1L2',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'L1L2'
  * }
  */
 export function l2(config?: L2Args): Regularizer {
