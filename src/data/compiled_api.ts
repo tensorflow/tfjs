@@ -1,5 +1,5 @@
-/** Namespace tensorflow_json. */
-export namespace tensorflow_json {
+/** Namespace tensorflow. */
+export namespace tensorflow {
   /** Properties of an Any. */
   export interface IAny {
     /** Any typeUrl */
@@ -45,7 +45,7 @@ export namespace tensorflow_json {
   /** Properties of a TensorShape. */
   export interface ITensorShape {
     /** TensorShape dim */
-    dim?: (tensorflow_json.TensorShape.IDim[]|null);
+    dim?: (tensorflow.TensorShape.IDim[]|null);
 
     /** TensorShape unknownRank */
     unknownRank?: (boolean|null);
@@ -65,10 +65,10 @@ export namespace tensorflow_json {
   /** Properties of a Tensor. */
   export interface ITensor {
     /** Tensor dtype */
-    dtype?: (tensorflow_json.DataType|null);
+    dtype?: (tensorflow.DataType|null);
 
     /** Tensor tensorShape */
-    tensorShape?: (tensorflow_json.ITensorShape|null);
+    tensorShape?: (tensorflow.ITensorShape|null);
 
     /** Tensor versionNumber */
     versionNumber?: (number|null);
@@ -107,7 +107,7 @@ export namespace tensorflow_json {
   /** Properties of an AttrValue. */
   export interface IAttrValue {
     /** AttrValue list */
-    list?: (tensorflow_json.AttrValue.IListValue|null);
+    list?: (tensorflow.AttrValue.IListValue|null);
 
     /** AttrValue s */
     s?: (string|null);
@@ -122,19 +122,19 @@ export namespace tensorflow_json {
     b?: (boolean|null);
 
     /** AttrValue type */
-    type?: (tensorflow_json.DataType|null);
+    type?: (tensorflow.DataType|null);
 
     /** AttrValue shape */
-    shape?: (tensorflow_json.ITensorShape|null);
+    shape?: (tensorflow.ITensorShape|null);
 
     /** AttrValue tensor */
-    tensor?: (tensorflow_json.ITensor|null);
+    tensor?: (tensorflow.ITensor|null);
 
     /** AttrValue placeholder */
     placeholder?: (string|null);
 
     /** AttrValue func */
-    func?: (tensorflow_json.INameAttrList|null);
+    func?: (tensorflow.INameAttrList|null);
   }
 
   export namespace AttrValue {
@@ -153,16 +153,16 @@ export namespace tensorflow_json {
       b?: (boolean[]|null);
 
       /** ListValue type */
-      type?: (tensorflow_json.DataType[]|null);
+      type?: (tensorflow.DataType[]|null);
 
       /** ListValue shape */
-      shape?: (tensorflow_json.ITensorShape[]|null);
+      shape?: (tensorflow.ITensorShape[]|null);
 
       /** ListValue tensor */
-      tensor?: (tensorflow_json.ITensor[]|null);
+      tensor?: (tensorflow.ITensor[]|null);
 
       /** ListValue func */
-      func?: (tensorflow_json.INameAttrList[]|null);
+      func?: (tensorflow.INameAttrList[]|null);
     }
   }
 
@@ -172,7 +172,7 @@ export namespace tensorflow_json {
     name?: (string|null);
 
     /** NameAttrList attr */
-    attr?: ({[k: string]: tensorflow_json.IAttrValue}|null);
+    attr?: ({[k: string]: tensorflow.IAttrValue}|null);
   }
 
   /** Properties of a NodeDef. */
@@ -190,7 +190,7 @@ export namespace tensorflow_json {
     device?: (string|null);
 
     /** NodeDef attr */
-    attr?: ({[k: string]: tensorflow_json.IAttrValue}|null);
+    attr?: ({[k: string]: tensorflow.IAttrValue}|null);
   }
 
   /** Properties of a VersionDef. */
@@ -208,31 +208,31 @@ export namespace tensorflow_json {
   /** Properties of a GraphDef. */
   export interface IGraphDef {
     /** GraphDef node */
-    node?: (tensorflow_json.INodeDef[]|null);
+    node?: (tensorflow.INodeDef[]|null);
 
     /** GraphDef versions */
-    versions?: (tensorflow_json.IVersionDef|null);
+    versions?: (tensorflow.IVersionDef|null);
 
     /** GraphDef library */
-    library?: (tensorflow_json.IFunctionDefLibrary|null);
+    library?: (tensorflow.IFunctionDefLibrary|null);
   }
 
   /** Properties of a CollectionDef. */
   export interface ICollectionDef {
     /** CollectionDef nodeList */
-    nodeList?: (tensorflow_json.CollectionDef.INodeList|null);
+    nodeList?: (tensorflow.CollectionDef.INodeList|null);
 
     /** CollectionDef bytesList */
-    bytesList?: (tensorflow_json.CollectionDef.IBytesList|null);
+    bytesList?: (tensorflow.CollectionDef.IBytesList|null);
 
     /** CollectionDef int64List */
-    int64List?: (tensorflow_json.CollectionDef.IInt64List|null);
+    int64List?: (tensorflow.CollectionDef.IInt64List|null);
 
     /** CollectionDef floatList */
-    floatList?: (tensorflow_json.CollectionDef.IFloatList|null);
+    floatList?: (tensorflow.CollectionDef.IFloatList|null);
 
     /** CollectionDef anyList */
-    anyList?: (tensorflow_json.CollectionDef.IAnyList|null);
+    anyList?: (tensorflow.CollectionDef.IAnyList|null);
   }
 
   export namespace CollectionDef {
@@ -263,7 +263,7 @@ export namespace tensorflow_json {
     /** Properties of an AnyList. */
     export interface IAnyList {
       /** AnyList value */
-      value?: (tensorflow_json.IAny[]|null);
+      value?: (tensorflow.IAny[]|null);
     }
   }
 
@@ -288,7 +288,7 @@ export namespace tensorflow_json {
     keepCheckpointEveryNHours?: (number|null);
 
     /** SaverDef version */
-    version?: (tensorflow_json.SaverDef.CheckpointFormatVersion|null);
+    version?: (tensorflow.SaverDef.CheckpointFormatVersion|null);
   }
 
   export namespace SaverDef {
@@ -302,13 +302,13 @@ export namespace tensorflow_json {
     name?: (string|null);
 
     /** TensorInfo cooSparse */
-    cooSparse?: (tensorflow_json.TensorInfo.ICooSparse|null);
+    cooSparse?: (tensorflow.TensorInfo.ICooSparse|null);
 
     /** TensorInfo dtype */
-    dtype?: (tensorflow_json.DataType|null);
+    dtype?: (tensorflow.DataType|null);
 
     /** TensorInfo tensorShape */
-    tensorShape?: (tensorflow_json.ITensorShape|null);
+    tensorShape?: (tensorflow.ITensorShape|null);
   }
 
   export namespace TensorInfo {
@@ -328,10 +328,10 @@ export namespace tensorflow_json {
   /** Properties of a SignatureDef. */
   export interface ISignatureDef {
     /** SignatureDef inputs */
-    inputs?: ({[k: string]: tensorflow_json.ITensorInfo}|null);
+    inputs?: ({[k: string]: tensorflow.ITensorInfo}|null);
 
     /** SignatureDef outputs */
-    outputs?: ({[k: string]: tensorflow_json.ITensorInfo}|null);
+    outputs?: ({[k: string]: tensorflow.ITensorInfo}|null);
 
     /** SignatureDef methodName */
     methodName?: (string|null);
@@ -340,7 +340,7 @@ export namespace tensorflow_json {
   /** Properties of an AssetFileDef. */
   export interface IAssetFileDef {
     /** AssetFileDef tensorInfo */
-    tensorInfo?: (tensorflow_json.ITensorInfo|null);
+    tensorInfo?: (tensorflow.ITensorInfo|null);
 
     /** AssetFileDef filename */
     filename?: (string|null);
@@ -352,16 +352,16 @@ export namespace tensorflow_json {
     name?: (string|null);
 
     /** OpDef inputArg */
-    inputArg?: (tensorflow_json.OpDef.IArgDef[]|null);
+    inputArg?: (tensorflow.OpDef.IArgDef[]|null);
 
     /** OpDef outputArg */
-    outputArg?: (tensorflow_json.OpDef.IArgDef[]|null);
+    outputArg?: (tensorflow.OpDef.IArgDef[]|null);
 
     /** OpDef attr */
-    attr?: (tensorflow_json.OpDef.IAttrDef[]|null);
+    attr?: (tensorflow.OpDef.IAttrDef[]|null);
 
     /** OpDef deprecation */
-    deprecation?: (tensorflow_json.OpDef.IOpDeprecation|null);
+    deprecation?: (tensorflow.OpDef.IOpDeprecation|null);
 
     /** OpDef summary */
     summary?: (string|null);
@@ -392,7 +392,7 @@ export namespace tensorflow_json {
       description?: (string|null);
 
       /** ArgDef type */
-      type?: (tensorflow_json.DataType|null);
+      type?: (tensorflow.DataType|null);
 
       /** ArgDef typeAttr */
       typeAttr?: (string|null);
@@ -416,7 +416,7 @@ export namespace tensorflow_json {
       type?: (string|null);
 
       /** AttrDef defaultValue */
-      defaultValue?: (tensorflow_json.IAttrValue|null);
+      defaultValue?: (tensorflow.IAttrValue|null);
 
       /** AttrDef description */
       description?: (string|null);
@@ -428,7 +428,7 @@ export namespace tensorflow_json {
       minimum?: (number|string|null);
 
       /** AttrDef allowedValues */
-      allowedValues?: (tensorflow_json.IAttrValue|null);
+      allowedValues?: (tensorflow.IAttrValue|null);
     }
 
     /** Properties of an OpDeprecation. */
@@ -444,28 +444,28 @@ export namespace tensorflow_json {
   /** Properties of an OpList. */
   export interface IOpList {
     /** OpList op */
-    op?: (tensorflow_json.IOpDef[]|null);
+    op?: (tensorflow.IOpDef[]|null);
   }
 
   /** Properties of a MetaGraphDef. */
   export interface IMetaGraphDef {
     /** MetaGraphDef metaInfoDef */
-    metaInfoDef?: (tensorflow_json.MetaGraphDef.IMetaInfoDef|null);
+    metaInfoDef?: (tensorflow.MetaGraphDef.IMetaInfoDef|null);
 
     /** MetaGraphDef graphDef */
-    graphDef?: (tensorflow_json.IGraphDef|null);
+    graphDef?: (tensorflow.IGraphDef|null);
 
     /** MetaGraphDef saverDef */
-    saverDef?: (tensorflow_json.ISaverDef|null);
+    saverDef?: (tensorflow.ISaverDef|null);
 
     /** MetaGraphDef collectionDef */
-    collectionDef?: ({[k: string]: tensorflow_json.ICollectionDef}|null);
+    collectionDef?: ({[k: string]: tensorflow.ICollectionDef}|null);
 
     /** MetaGraphDef signatureDef */
-    signatureDef?: ({[k: string]: tensorflow_json.ISignatureDef}|null);
+    signatureDef?: ({[k: string]: tensorflow.ISignatureDef}|null);
 
     /** MetaGraphDef assetFileDef */
-    assetFileDef?: (tensorflow_json.IAssetFileDef[]|null);
+    assetFileDef?: (tensorflow.IAssetFileDef[]|null);
   }
 
   export namespace MetaGraphDef {
@@ -475,10 +475,10 @@ export namespace tensorflow_json {
       metaGraphVersion?: (string|null);
 
       /** MetaInfoDef strippedOpList */
-      strippedOpList?: (tensorflow_json.IOpList|null);
+      strippedOpList?: (tensorflow.IOpList|null);
 
       /** MetaInfoDef anyInfo */
-      anyInfo?: (tensorflow_json.IAny|null);
+      anyInfo?: (tensorflow.IAny|null);
 
       /** MetaInfoDef tags */
       tags?: (string[]|null);
@@ -497,28 +497,28 @@ export namespace tensorflow_json {
     savedModelSchemaVersion?: (number|string|null);
 
     /** SavedModel metaGraphs */
-    metaGraphs?: (tensorflow_json.IMetaGraphDef[]|null);
+    metaGraphs?: (tensorflow.IMetaGraphDef[]|null);
   }
 
   /** Properties of a FunctionDefLibrary. */
   export interface IFunctionDefLibrary {
     /** FunctionDefLibrary function */
-    'function'?: (tensorflow_json.IFunctionDef[]|null);
+    'function'?: (tensorflow.IFunctionDef[]|null);
 
     /** FunctionDefLibrary gradient */
-    gradient?: (tensorflow_json.IGradientDef[]|null);
+    gradient?: (tensorflow.IGradientDef[]|null);
   }
 
   /** Properties of a FunctionDef. */
   export interface IFunctionDef {
     /** FunctionDef signature */
-    signature?: (tensorflow_json.IOpDef|null);
+    signature?: (tensorflow.IOpDef|null);
 
     /** FunctionDef attr */
-    attr?: ({[k: string]: tensorflow_json.IAttrValue}|null);
+    attr?: ({[k: string]: tensorflow.IAttrValue}|null);
 
     /** FunctionDef nodeDef */
-    nodeDef?: (tensorflow_json.INodeDef[]|null);
+    nodeDef?: (tensorflow.INodeDef[]|null);
 
     /** FunctionDef ret */
     ret?: ({[k: string]: string}|null);

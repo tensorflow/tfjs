@@ -16,17 +16,13 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-
 import {tensorflow} from '../data/compiled_api';
-
-import * as fm from './frozen_model';
+import {GraphModel, loadGraphModel} from './graph_model';
 
 const HOST = 'http://example.org';
-const MODEL_URL = `${HOST}/model.pb`;
-const WEIGHT_MANIFEST_URL = `${HOST}/weights_manifest.json`;
+const MODEL_URL = `${HOST}/model.json`;
 const RELATIVE_MODEL_URL = '/path/model.pb';
-const RELATIVE_WEIGHT_MANIFEST_URL = '/path/weights_manifest.json';
-let model: fm.FrozenModel;
+let model: GraphModel;
 const bias = tfc.tensor1d([1], 'int32');
 
 const weightsManifest: tfc.io.WeightsManifestEntry[] =
@@ -98,29 +94,58 @@ const DYNAMIC_SHAPE_MODEL: tensorflow.IGraphDef = {
   ],
   versions: {producer: 1.0, minConsumer: 3}
 };
-const HTTP_MODEL_LOADER = {
+const SIMPLE_HTTP_MODEL_LOADER = {
   load: async () => {
     return {
-      modelTopology: new Uint8Array([1, 2, 3]),
+      modelTopology: SIMPLE_MODEL,
       weightSpecs: weightsManifest,
       weightData: bias.dataSync()
     };
   }
 };
 
+describe('loadGraphModel', () => {
+  it('Pass a custom io handler', async () => {
+    const customLoader: tfc.io.IOHandler = {
+      load: async () => {
+        return {
+          modelTopology: SIMPLE_MODEL,
+          weightSpecs: weightsManifest,
+          weightData: new Int32Array([5]).buffer,
+        };
+      }
+    };
+    const model = await loadGraphModel(customLoader);
+    expect(model).toBeDefined();
+    const bias = model.weights['Const'][0];
+    expect(bias.dtype).toBe('int32');
+    expect(bias.dataSync()).toEqual(new Int32Array([5]));
+  });
+
+  it('Expect an error when moderUrl is null', async () => {
+    let errorMsg = 'no error';
+    try {
+      await loadGraphModel(null);
+    } catch (err) {
+      errorMsg = err.message;
+    }
+    expect(errorMsg).toMatch(/modelUrl in loadGraphModel\(\) cannot be null/);
+  });
+});
+
 describe('Model', () => {
   beforeEach(() => {
-    model = new fm.FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
-    spyOn(tfc.io, 'getLoadHandlers').and.returnValue([HTTP_MODEL_LOADER]);
-    spyOn(tfc.io, 'browserHTTPRequest').and.returnValue(HTTP_MODEL_LOADER);
+    model = new GraphModel(MODEL_URL);
   });
-  afterEach(() => {});
 
   describe('simple model', () => {
     beforeEach(() => {
-      spyOn(tensorflow.GraphDef, 'decode').and.returnValue(SIMPLE_MODEL);
+      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        SIMPLE_HTTP_MODEL_LOADER
+      ]);
+      spyOn(tfc.io, 'browserHTTPRequest')
+          .and.returnValue(SIMPLE_HTTP_MODEL_LOADER);
     });
-
     it('load', async () => {
       const loaded = await model.load();
       expect(loaded).toBe(true);
@@ -214,7 +239,7 @@ describe('Model', () => {
     describe('dispose', () => {
       it('should dispose the weights', async () => {
         const numOfTensors = tfc.memory().numTensors;
-        model = new fm.FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
+        model = new GraphModel(MODEL_URL);
 
         await model.load();
         model.dispose();
@@ -232,8 +257,7 @@ describe('Model', () => {
 
     describe('relative path', () => {
       beforeEach(() => {
-        model = new fm.FrozenModel(
-            RELATIVE_MODEL_URL, RELATIVE_WEIGHT_MANIFEST_URL);
+        model = new GraphModel(RELATIVE_MODEL_URL);
       });
 
       it('load', async () => {
@@ -242,24 +266,23 @@ describe('Model', () => {
       });
     });
 
-    it('should loadFrozenModel', async () => {
-      const model = await fm.loadFrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
+    it('should loadGraphModel', async () => {
+      const model = await loadGraphModel(MODEL_URL);
       expect(model).not.toBeUndefined();
     });
 
-    it('should loadFrozenModel with request options', async () => {
-      const model = await fm.loadFrozenModel(
-          MODEL_URL, WEIGHT_MANIFEST_URL, {credentials: 'include'});
+    it('should loadGraphModel with request options', async () => {
+      const model = await loadGraphModel(
+          MODEL_URL, {requestInit: {credentials: 'include'}});
       expect(tfc.io.browserHTTPRequest)
           .toHaveBeenCalledWith(
-              [MODEL_URL, WEIGHT_MANIFEST_URL], {credentials: 'include'}, null,
-              null, undefined);
+              MODEL_URL, {credentials: 'include'}, null, null, undefined);
       expect(model).not.toBeUndefined();
     });
 
-    it('should call loadFrozenModel for loadTfHubModule', async () => {
+    it('should call loadGraphModel for TfHub Module', async () => {
       const url = `${HOST}/model/1`;
-      const model = await fm.loadTfHubModule(url);
+      const model = await loadGraphModel(url, {fromTFHub: true});
       expect(model).toBeDefined();
     });
 
@@ -278,10 +301,23 @@ describe('Model', () => {
       });
     });
   });
+  const CONTROL_FLOW_HTTP_MODEL_LOADER = {
+    load: async () => {
+      return {
+        modelTopology: CONTROL_FLOW_MODEL,
+        weightSpecs: weightsManifest,
+        weightData: bias.dataSync()
+      };
+    }
+  };
 
   describe('control flow model', () => {
     beforeEach(() => {
-      spyOn(tensorflow.GraphDef, 'decode').and.returnValue(CONTROL_FLOW_MODEL);
+      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        CONTROL_FLOW_HTTP_MODEL_LOADER
+      ]);
+      spyOn(tfc.io, 'browserHTTPRequest')
+          .and.returnValue(CONTROL_FLOW_HTTP_MODEL_LOADER);
     });
 
     it('should throw error if call predict directly', async () => {
@@ -312,10 +348,22 @@ describe('Model', () => {
       expect(() => model.executeAsync({Enter: input})).not.toThrow();
     });
   });
-
+  const DYNAMIC_HTTP_MODEL_LOADER = {
+    load: async () => {
+      return {
+        modelTopology: DYNAMIC_SHAPE_MODEL,
+        weightSpecs: weightsManifest,
+        weightData: bias.dataSync()
+      };
+    }
+  };
   describe('dynamic shape model', () => {
     beforeEach(() => {
-      spyOn(tensorflow.GraphDef, 'decode').and.returnValue(DYNAMIC_SHAPE_MODEL);
+      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        DYNAMIC_HTTP_MODEL_LOADER
+      ]);
+      spyOn(tfc.io, 'browserHTTPRequest')
+          .and.returnValue(DYNAMIC_HTTP_MODEL_LOADER);
     });
 
     it('should throw error if call predict directly', async () => {

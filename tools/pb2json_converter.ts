@@ -18,7 +18,7 @@ import * as fs from 'fs';
 import * as Long from 'long';
 import * as path from 'path';
 
-import {tensorflow} from '../src/data/compiled_api';
+import {tensorflow} from './compiled_api';
 
 function replacer(key: string, value: any) {
   if (value instanceof Long) {

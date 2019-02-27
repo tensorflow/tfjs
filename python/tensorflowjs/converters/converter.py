@@ -32,7 +32,6 @@ from tensorflowjs import version
 from tensorflowjs.converters import keras_h5_conversion as conversion
 from tensorflowjs.converters import keras_tfjs_loader
 from tensorflowjs.converters import tf_saved_model_conversion
-from tensorflowjs.converters import tf_saved_model_conversion_pb
 
 def dispatch_keras_h5_to_tensorflowjs_conversion(
     h5_path, output_dir=None, quantization_dtype=None,
@@ -311,12 +310,6 @@ def setup_arugments():
       type=bool,
       default=True,
       help='Strip debug ops (Print, Assert, CheckNumerics) from graph.')
-  parser.add_argument(
-      '--output_json',
-      type=bool,
-      default=False,
-      help='Generate model file in JSON instead of protobuf for '
-      'all TF input model formats.')
   return parser.parse_args()
 
 
@@ -349,10 +342,10 @@ def main():
         '"tf_saved_model", "tf_session_bundle" and "tf_frozen_model", '
         'but the current input format is "%s".' % FLAGS.input_format)
 
-  if FLAGS.signature_name and FLAGS.input_format != 'tf_hub':
+  if FLAGS.signature_name and input_format != 'tf_hub':
     raise ValueError(
         'The --signature_name is applicable only to "tf_hub" input format, '
-        'but the current input format is "%s".' % FLAGS.input_format)
+        'but the current input format is "%s".' % input_format)
 
   # TODO(cais, piyu): More conversion logics can be added as additional
   #   branches below.
@@ -369,75 +362,39 @@ def main():
         split_weights_by_layer=FLAGS.split_weights_by_layer)
   elif (input_format == 'tf_saved_model' and
         output_format == 'tfjs_graph_model'):
-    if not FLAGS.output_json:
-      tf_saved_model_conversion_pb.convert_tf_saved_model(
-          FLAGS.input_path, FLAGS.output_node_names,
-          FLAGS.output_path, saved_model_tags=FLAGS.saved_model_tags,
-          quantization_dtype=quantization_dtype,
-          skip_op_check=FLAGS.skip_op_check,
-          strip_debug_ops=FLAGS.strip_debug_ops)
-    else:
-      tf_saved_model_conversion.convert_tf_saved_model(
-          FLAGS.input_path, FLAGS.output_node_names,
-          FLAGS.output_path, saved_model_tags=FLAGS.saved_model_tags,
-          quantization_dtype=quantization_dtype,
-          skip_op_check=FLAGS.skip_op_check,
-          strip_debug_ops=FLAGS.strip_debug_ops)
-
+    tf_saved_model_conversion.convert_tf_saved_model(
+        FLAGS.input_path, FLAGS.output_node_names,
+        FLAGS.output_path, saved_model_tags=FLAGS.saved_model_tags,
+        quantization_dtype=quantization_dtype,
+        skip_op_check=FLAGS.skip_op_check,
+        strip_debug_ops=FLAGS.strip_debug_ops)
   elif (input_format == 'tf_session_bundle' and
         output_format == 'tfjs_graph_model'):
-    if not FLAGS.output_json:
-      tf_saved_model_conversion_pb.convert_tf_session_bundle(
-          FLAGS.input_path, FLAGS.output_node_names,
-          FLAGS.output_path, quantization_dtype=quantization_dtype,
-          skip_op_check=FLAGS.skip_op_check,
-          strip_debug_ops=FLAGS.strip_debug_ops)
-    else:
-      tf_saved_model_conversion.convert_tf_session_bundle(
-          FLAGS.input_path, FLAGS.output_node_names,
-          FLAGS.output_path, quantization_dtype=quantization_dtype,
-          skip_op_check=FLAGS.skip_op_check,
-          strip_debug_ops=FLAGS.strip_debug_ops)
+    tf_saved_model_conversion.convert_tf_session_bundle(
+        FLAGS.input_path, FLAGS.output_node_names,
+        FLAGS.output_path, quantization_dtype=quantization_dtype,
+        skip_op_check=FLAGS.skip_op_check,
+        strip_debug_ops=FLAGS.strip_debug_ops)
   elif (input_format == 'tf_frozen_model' and
         output_format == 'tfjs_graph_model'):
-    if not FLAGS.output_json:
-      tf_saved_model_conversion_pb.convert_tf_frozen_model(
-          FLAGS.input_path, FLAGS.output_node_names,
-          FLAGS.output_path, quantization_dtype=quantization_dtype,
+    tf_saved_model_conversion.convert_tf_frozen_model(
+        FLAGS.input_path, FLAGS.output_node_names,
+        FLAGS.output_path, quantization_dtype=quantization_dtype,
+        skip_op_check=FLAGS.skip_op_check,
+        strip_debug_ops=FLAGS.strip_debug_ops)
+  elif (input_format == 'tf_hub' and
+        output_format == 'tfjs_graph_model'):
+    if FLAGS.signature_name:
+      tf_saved_model_conversion.convert_tf_hub_module(
+          FLAGS.input_path, FLAGS.output_path, FLAGS.signature_name,
           skip_op_check=FLAGS.skip_op_check,
           strip_debug_ops=FLAGS.strip_debug_ops)
     else:
-      tf_saved_model_conversion.convert_tf_frozen_model(
-          FLAGS.input_path, FLAGS.output_node_names,
-          FLAGS.output_path, quantization_dtype=quantization_dtype,
+      tf_saved_model_conversion.convert_tf_hub_module(
+          FLAGS.input_path,
+          FLAGS.output_path,
           skip_op_check=FLAGS.skip_op_check,
           strip_debug_ops=FLAGS.strip_debug_ops)
-
-  elif input_format == 'tf_hub' and output_format == 'tfjs_graph_model':
-    if not FLAGS.output_json:
-      if FLAGS.signature_name:
-        tf_saved_model_conversion_pb.convert_tf_hub_module(
-            FLAGS.input_path, FLAGS.output_path, FLAGS.signature_name,
-            skip_op_check=FLAGS.skip_op_check,
-            strip_debug_ops=FLAGS.strip_debug_ops)
-      else:
-        tf_saved_model_conversion_pb.convert_tf_hub_module(
-            FLAGS.input_path,
-            FLAGS.output_path,
-            skip_op_check=FLAGS.skip_op_check,
-            strip_debug_ops=FLAGS.strip_debug_ops)
-    else:
-      if FLAGS.signature_name:
-        tf_saved_model_conversion.convert_tf_hub_module(
-            FLAGS.input_path, FLAGS.output_path, FLAGS.signature_name,
-            skip_op_check=FLAGS.skip_op_check,
-            strip_debug_ops=FLAGS.strip_debug_ops)
-      else:
-        tf_saved_model_conversion.convert_tf_hub_module(
-            FLAGS.input_path,
-            FLAGS.output_path,
-            skip_op_check=FLAGS.skip_op_check,
-            strip_debug_ops=FLAGS.strip_debug_ops)
   elif (input_format == 'tfjs_layers_model' and
         output_format == 'keras'):
     dispatch_tensorflowjs_to_keras_h5_conversion(FLAGS.input_path,
