@@ -1552,7 +1552,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     tidy(() => {
       util.assert(
           Number.isInteger(step),
-          `step is expected to be an integer, but is instead ${step}`);
+          () => `step is expected to be an integer, but is instead ${step}`);
       const inputArgs: Array<Tensor|Int64Scalar> =
           [resourceHandle, new Int64Scalar(step), scalar(name, 'string')];
 
@@ -1564,7 +1564,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         // `value` is a Scalar.
         util.assert(
             value.rank === 0,
-            `A non-scalar tensor (rank ${value.rank}) is passed to ` +
+            () => `A non-scalar tensor (rank ${value.rank}) is passed to ` +
                 `writeScalarSummary()`);
         inputArgs.push(value);
         typeAttr = this.typeAttributeFromTensor(value);
