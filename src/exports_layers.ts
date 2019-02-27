@@ -34,8 +34,7 @@ import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs
  *   heading: 'Layers',
  *   subheading: 'Inputs',
  *   namespace: 'layers',
- *   useDocsFrom: 'InputLayer',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'InputLayer'
  * }
  */
 export function inputLayer(args: InputLayerArgs): Layer {
@@ -49,8 +48,7 @@ export function inputLayer(args: InputLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Advanced Activation',
  *   namespace: 'layers',
- *   useDocsFrom: 'ELU',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'ELU'
  * }
  */
 export function elu(args?: ELULayerArgs): Layer {
@@ -62,8 +60,7 @@ export function elu(args?: ELULayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Advanced Activation',
  *   namespace: 'layers',
- *   useDocsFrom: 'ReLU',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'ReLU'
  * }
  */
 export function reLU(args?: ReLULayerArgs): Layer {
@@ -75,8 +72,7 @@ export function reLU(args?: ReLULayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Advanced Activation',
  *   namespace: 'layers',
- *   useDocsFrom: 'LeakyReLU',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'LeakyReLU'
  * }
  */
 export function leakyReLU(args?: LeakyReLULayerArgs): Layer {
@@ -88,8 +84,7 @@ export function leakyReLU(args?: LeakyReLULayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Advanced Activation',
  *   namespace: 'layers',
- *   useDocsFrom: 'PReLU',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'PReLU'
  * }
  */
 export function prelu(args?: PReLULayerArgs): Layer {
@@ -101,8 +96,7 @@ export function prelu(args?: PReLULayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Advanced Activation',
  *   namespace: 'layers',
- *   useDocsFrom: 'Softmax',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Softmax'
  * }
  */
 export function softmax(args?: SoftmaxLayerArgs): Layer {
@@ -114,8 +108,7 @@ export function softmax(args?: SoftmaxLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Advanced Activation',
  *   namespace: 'layers',
- *   useDocsFrom: 'ThresholdedReLU',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'ThresholdedReLU'
  * }
  */
 export function thresholdedReLU(args?: ThresholdedReLULayerArgs): Layer {
@@ -129,8 +122,7 @@ export function thresholdedReLU(args?: ThresholdedReLULayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Convolutional',
  *   namespace: 'layers',
- *   useDocsFrom: 'Conv1D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Conv1D'
  * }
  */
 export function conv1d(args: ConvLayerArgs): Layer {
@@ -142,8 +134,7 @@ export function conv1d(args: ConvLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Convolutional',
  *   namespace: 'layers',
- *   useDocsFrom: 'Conv2D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Conv2D'
  * }
  */
 export function conv2d(args: ConvLayerArgs): Layer {
@@ -155,8 +146,7 @@ export function conv2d(args: ConvLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Convolutional',
  *   namespace: 'layers',
- *   useDocsFrom: 'Conv2DTranspose',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Conv2DTranspose'
  * }
  */
 export function conv2dTranspose(args: ConvLayerArgs): Layer {
@@ -168,8 +158,7 @@ export function conv2dTranspose(args: ConvLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Convolutional',
  *   namespace: 'layers',
- *   useDocsFrom: 'SeparableConv2D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'SeparableConv2D'
  * }
  */
 export function separableConv2d(args: SeparableConvLayerArgs): Layer {
@@ -181,8 +170,7 @@ export function separableConv2d(args: SeparableConvLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Convolutional',
  *   namespace: 'layers',
- *   useDocsFrom: 'Cropping2D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Cropping2D'
  * }
  */
 export function cropping2D(args: Cropping2DLayerArgs): Layer {
@@ -194,8 +182,7 @@ export function cropping2D(args: Cropping2DLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Convolutional',
  *   namespace: 'layers',
- *   useDocsFrom: 'UpSampling2D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'UpSampling2D'
  * }
  */
 export function upSampling2d(args: UpSampling2DLayerArgs): Layer {
@@ -209,8 +196,7 @@ export function upSampling2d(args: UpSampling2DLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Convolutional',
  *   namespace: 'layers',
- *   useDocsFrom: 'DepthwiseConv2D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'DepthwiseConv2D'
  * }
  */
 
@@ -225,8 +211,7 @@ export function depthwiseConv2d(args: DepthwiseConv2DLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Basic',
  *   namespace: 'layers',
- *   useDocsFrom: 'Activation',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Activation'
  * }
  */
 export function activation(args: ActivationLayerArgs): Layer {
@@ -238,8 +223,7 @@ export function activation(args: ActivationLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Basic',
  *   namespace: 'layers',
- *   useDocsFrom: 'Dense',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Dense'
  * }
  */
 export function dense(args: DenseLayerArgs): Layer {
@@ -251,8 +235,7 @@ export function dense(args: DenseLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Basic',
  *   namespace: 'layers',
- *   useDocsFrom: 'Dropout',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Dropout'
  * }
  */
 export function dropout(args: DropoutLayerArgs): Layer {
@@ -264,8 +247,7 @@ export function dropout(args: DropoutLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Basic',
  *   namespace: 'layers',
- *   useDocsFrom: 'Flatten',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Flatten'
  * }
  */
 export function flatten(args?: LayerArgs): Layer {
@@ -277,8 +259,7 @@ export function flatten(args?: LayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Basic',
  *   namespace: 'layers',
- *   useDocsFrom: 'RepeatVector',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'RepeatVector'
  * }
  */
 export function repeatVector(args: RepeatVectorLayerArgs): Layer {
@@ -290,8 +271,7 @@ export function repeatVector(args: RepeatVectorLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Basic',
  *   namespace: 'layers',
- *   useDocsFrom: 'Reshape',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Reshape'
  * }
  */
 export function reshape(args: ReshapeLayerArgs): Layer {
@@ -303,8 +283,7 @@ export function reshape(args: ReshapeLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Basic',
  *   namespace: 'layers',
- *   useDocsFrom: 'Permute',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Permute'
  * }
  */
 export function permute(args: PermuteLayerArgs): Layer {
@@ -316,8 +295,7 @@ export function permute(args: PermuteLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Basic',
  *   namespace: 'layers',
- *    useDocsFrom: 'Embedding',
- *   configParamIndices: [0]
+ *    useDocsFrom: 'Embedding'
  * }
  */
 export function embedding(args: EmbeddingLayerArgs): Layer {
@@ -331,8 +309,7 @@ export function embedding(args: EmbeddingLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Merge',
  *   namespace: 'layers',
- *   useDocsFrom: 'Add',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Add'
  * }
  */
 export function add(args?: LayerArgs): Layer {
@@ -344,8 +321,7 @@ export function add(args?: LayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Merge',
  *   namespace: 'layers',
- *   useDocsFrom: 'Average',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Average'
  * }
  */
 export function average(args?: LayerArgs): Layer {
@@ -357,8 +333,7 @@ export function average(args?: LayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Merge',
  *   namespace: 'layers',
- *   useDocsFrom: 'Concatenate',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Concatenate'
  * }
  */
 export function concatenate(args?: ConcatenateLayerArgs): Layer {
@@ -370,8 +345,7 @@ export function concatenate(args?: ConcatenateLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Merge',
  *   namespace: 'layers',
- *   useDocsFrom: 'Maximum',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Maximum'
  * }
  */
 export function maximum(args?: LayerArgs): Layer {
@@ -383,8 +357,7 @@ export function maximum(args?: LayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Merge',
  *   namespace: 'layers',
- *   useDocsFrom: 'Minimum',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Minimum'
  * }
  */
 export function minimum(args?: LayerArgs): Layer {
@@ -396,8 +369,7 @@ export function minimum(args?: LayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Merge',
  *   namespace: 'layers',
- *   useDocsFrom: 'Multiply',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Multiply'
  * }
  */
 export function multiply(args?: LayerArgs): Layer {
@@ -409,8 +381,7 @@ export function multiply(args?: LayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Merge',
  *   namespace: 'layers',
- *   useDocsFrom: 'Dot',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Dot'
  * }
  */
 export function dot(args: DotLayerArgs): Layer {
@@ -424,8 +395,7 @@ export function dot(args: DotLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Normalization',
  *   namespace: 'layers',
- *   useDocsFrom: 'BatchNormalization',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'BatchNormalization'
  * }
  */
 export function batchNormalization(args?: BatchNormalizationLayerArgs): Layer {
@@ -439,8 +409,7 @@ export function batchNormalization(args?: BatchNormalizationLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Padding',
  *   namespace: 'layers',
- *   useDocsFrom: 'ZeroPadding2D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'ZeroPadding2D'
  * }
  */
 export function zeroPadding2d(args?: ZeroPadding2DLayerArgs): Layer {
@@ -453,8 +422,7 @@ export function zeroPadding2d(args?: ZeroPadding2DLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Pooling',
  *   namespace: 'layers',
- *   useDocsFrom: 'AveragePooling1D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'AveragePooling1D'
  * }
  */
 export function averagePooling1d(args: Pooling1DLayerArgs): Layer {
@@ -474,8 +442,7 @@ export function avgPooling1d(args: Pooling1DLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Pooling',
  *   namespace: 'layers',
- *   useDocsFrom: 'AveragePooling2D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'AveragePooling2D'
  * }
  */
 export function averagePooling2d(args: Pooling2DLayerArgs): Layer {
@@ -495,8 +462,7 @@ export function avgPooling2d(args: Pooling2DLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Pooling',
  *   namespace: 'layers',
- *   useDocsFrom: 'GlobalAveragePooling1D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'GlobalAveragePooling1D'
  * }
  */
 export function globalAveragePooling1d(args?: LayerArgs): Layer {
@@ -508,8 +474,7 @@ export function globalAveragePooling1d(args?: LayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Pooling',
  *   namespace: 'layers',
- *   useDocsFrom: 'GlobalAveragePooling2D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'GlobalAveragePooling2D'
  * }
  */
 export function globalAveragePooling2d(args: GlobalPooling2DLayerArgs): Layer {
@@ -521,8 +486,7 @@ export function globalAveragePooling2d(args: GlobalPooling2DLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Pooling',
  *   namespace: 'layers',
- *   useDocsFrom: 'GlobalMaxPooling1D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'GlobalMaxPooling1D'
  * }
  */
 export function globalMaxPooling1d(args?: LayerArgs): Layer {
@@ -534,8 +498,7 @@ export function globalMaxPooling1d(args?: LayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Pooling',
  *   namespace: 'layers',
- *   useDocsFrom: 'GlobalMaxPooling2D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'GlobalMaxPooling2D'
  * }
  */
 export function globalMaxPooling2d(args: GlobalPooling2DLayerArgs): Layer {
@@ -547,8 +510,7 @@ export function globalMaxPooling2d(args: GlobalPooling2DLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Pooling',
  *   namespace: 'layers',
- *   useDocsFrom: 'MaxPooling1D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'MaxPooling1D'
  * }
  */
 export function maxPooling1d(args: Pooling1DLayerArgs): Layer {
@@ -560,8 +522,7 @@ export function maxPooling1d(args: Pooling1DLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Pooling',
  *   namespace: 'layers',
- *   useDocsFrom: 'MaxPooling2D',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'MaxPooling2D'
  * }
  */
 export function maxPooling2d(args: Pooling2DLayerArgs): Layer {
@@ -575,8 +536,7 @@ export function maxPooling2d(args: Pooling2DLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Recurrent',
  *   namespace: 'layers',
- *   useDocsFrom: 'GRU',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'GRU'
  * }
  */
 export function gru(args: GRULayerArgs): Layer {
@@ -588,8 +548,7 @@ export function gru(args: GRULayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Recurrent',
  *   namespace: 'layers',
- *   useDocsFrom: 'GRUCell',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'GRUCell'
  * }
  */
 export function gruCell(args: GRUCellLayerArgs): RNNCell {
@@ -601,8 +560,7 @@ export function gruCell(args: GRUCellLayerArgs): RNNCell {
  *   heading: 'Layers',
  *   subheading: 'Recurrent',
  *   namespace: 'layers',
- *   useDocsFrom: 'LSTM',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'LSTM'
  * }
  */
 export function lstm(args: LSTMLayerArgs): Layer {
@@ -614,8 +572,7 @@ export function lstm(args: LSTMLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Recurrent',
  *   namespace: 'layers',
- *   useDocsFrom: 'LSTMCell',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'LSTMCell'
  * }
  */
 export function lstmCell(args: LSTMCellLayerArgs): RNNCell {
@@ -627,8 +584,7 @@ export function lstmCell(args: LSTMCellLayerArgs): RNNCell {
  *   heading: 'Layers',
  *   subheading: 'Recurrent',
  *   namespace: 'layers',
- *   useDocsFrom: 'SimpleRNN',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'SimpleRNN'
  * }
  */
 export function simpleRNN(args: SimpleRNNLayerArgs): Layer {
@@ -640,8 +596,7 @@ export function simpleRNN(args: SimpleRNNLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Recurrent',
  *   namespace: 'layers',
- *   useDocsFrom: 'SimpleRNNCell',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'SimpleRNNCell'
  * }
  */
 export function simpleRNNCell(args: SimpleRNNCellLayerArgs): RNNCell {
@@ -653,8 +608,7 @@ export function simpleRNNCell(args: SimpleRNNCellLayerArgs): RNNCell {
  *   heading: 'Layers',
  *   subheading: 'Recurrent',
  *   namespace: 'layers',
- *   useDocsFrom: 'RNN',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'RNN'
  * }
  */
 export function rnn(args: RNNLayerArgs): Layer {
@@ -666,8 +620,7 @@ export function rnn(args: RNNLayerArgs): Layer {
  *   heading: 'Layers',
  *   subheading: 'Recurrent',
  *   namespace: 'layers',
- *   useDocsFrom: 'RNN',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'RNN'
  * }
  */
 export function stackedRNNCells(args: StackedRNNCellsArgs): RNNCell {
@@ -681,8 +634,7 @@ export function stackedRNNCells(args: StackedRNNCellsArgs): RNNCell {
  *   heading: 'Layers',
  *   subheading: 'Wrapper',
  *   namespace: 'layers',
- *   useDocsFrom: 'Bidirectional',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Bidirectional'
  * }
  */
 export function bidirectional(args: BidirectionalLayerArgs): Bidirectional {
@@ -694,8 +646,7 @@ export function bidirectional(args: BidirectionalLayerArgs): Bidirectional {
  *   heading: 'Layers',
  *   subheading: 'Wrapper',
  *   namespace: 'layers',
- *   useDocsFrom: 'TimeDistributed',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'TimeDistributed'
  * }
  */
 export function timeDistributed(args: WrapperLayerArgs): Layer {

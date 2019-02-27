@@ -537,7 +537,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * metrics to be used for fitting and evaluating this model.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [0]}
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   compile(args: ModelCompileArgs): void {
     if (args.loss == null) {
@@ -792,7 +792,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *   will give you the display labels for the scalar outputs.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   evaluate(
       x: Tensor|Tensor[], y: Tensor|Tensor[],
@@ -839,7 +839,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * @returns Loss and metric values as an Array of `Scalar` objects.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async evaluateDataset(dataset: Dataset<{}>, args?: ModelEvaluateDatasetArgs):
       Promise<Scalar|Scalar[]> {
@@ -1058,7 +1058,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *   number of samples that is not a multiple of the batch size.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   predict(x: Tensor|Tensor[], args: ModelPredictArgs = {}): Tensor|Tensor[] {
     const xsRank2OrHigher = ensureTensorsRank2OrHigher(x);
@@ -1382,7 +1382,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * data and what the model expects.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async fit(
       x: Tensor|Tensor[]|{[inputName: string]: Tensor},
@@ -1413,7 +1413,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *   information collected during training.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async fitDataset<T>(dataset: Dataset<T>, args: ModelFitDatasetArgs<T>):
       Promise<History> {
@@ -1603,7 +1603,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *   topology and weight values.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async save(handlerOrURL: io.IOHandler|string, config?: io.SaveConfig):
       Promise<io.SaveResult> {

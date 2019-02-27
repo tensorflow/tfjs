@@ -14,8 +14,7 @@ import {Constraint, MaxNorm, MaxNormArgs, MinMaxNorm, MinMaxNormArgs, NonNeg, Un
  * @doc {
  *   heading: 'Constraints',
  *   namespace: 'constraints',
- *   useDocsFrom: 'MaxNorm',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'MaxNorm'
  * }
  */
 export function maxNorm(args: MaxNormArgs): Constraint {
@@ -26,8 +25,7 @@ export function maxNorm(args: MaxNormArgs): Constraint {
  * @doc {
  *   heading: 'Constraints',
  *   namespace: 'constraints',
- *   useDocsFrom: 'UnitNorm',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'UnitNorm'
  * }
  */
 export function unitNorm(args: UnitNormArgs): Constraint {
@@ -49,8 +47,7 @@ export function nonNeg(): Constraint {
  * @doc {
  *   heading: 'Constraints',
  *   namespace: 'constraints',
- *   useDocsFrom: 'MinMaxNormConfig',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'MinMaxNormConfig'
  * }
  */
 export function minMaxNorm(config: MinMaxNormArgs): Constraint {

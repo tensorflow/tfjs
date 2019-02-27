@@ -68,7 +68,7 @@ import {loadLayersModelInternal, Sequential, SequentialArgs} from './models';
  */
 
 /**
- * @doc {heading: 'Models', subheading: 'Creation', configParamIndices: [0]}
+ * @doc {heading: 'Models', subheading: 'Creation'}
  */
 export function model(args: ContainerArgs): LayersModel {
   return new LayersModel(args);
@@ -133,7 +133,7 @@ export function model(args: ContainerArgs): LayersModel {
  * ```
  */
 /**
- * @doc {heading: 'Models', subheading: 'Creation', configParamIndices: [0]}
+ * @doc {heading: 'Models', subheading: 'Creation'}
  */
 export function sequential(config?: SequentialArgs): Sequential {
   return new Sequential(config);
@@ -242,8 +242,7 @@ export function loadLayersModel(
  * @doc {
  *   heading: 'Models',
  *   subheading: 'Inputs',
- *   useDocsFrom: 'Input',
- *   configParamIndices: [0]
+ *   useDocsFrom: 'Input'
  * }
  */
 export function input(config: InputConfig): SymbolicTensor {
