@@ -32,8 +32,8 @@ describe('Union package', () => {
   });
 
   it('has converter', () => {
-    expect(tf.FrozenModel).not.toBeNull();
-    expect(tf.loadFrozenModel).not.toBeNull();
+    expect(tf.GraphModel).not.toBeNull();
+    expect(tf.loadGraphModel).not.toBeNull();
   });
 
   it('has data', () => {
@@ -46,6 +46,7 @@ describe('Union package', () => {
     const expected = require('../package.json').version;
     expect(tf.version.tfjs).toBe(expected);
     expect(tf.version['tfjs-core']).not.toBeNull();
+    expect(tf.version['tfjs-converter']).not.toBeNull();
     expect(tf.version['tfjs-data']).not.toBeNull();
     expect(tf.version['tfjs-layers']).not.toBeNull();
   });
