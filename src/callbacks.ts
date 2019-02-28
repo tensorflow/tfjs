@@ -16,7 +16,10 @@
  */
 
 import {CustomCallback, Logs, nextFrame, util} from '@tensorflow/tfjs';
+import * as path from 'path';
 import * as ProgressBar from 'progress';
+
+import {summaryFileWriter, SummaryFileWriter} from './tensorboard';
 
 // A helper class created for testing with the jasmine `spyOn` method, which
 // operates only on member methods of objects.
@@ -137,4 +140,151 @@ export function getDisplayDecimalPlaces(x: number): number {
   } else {
     return BASE_NUM_DIGITS - Math.floor(Math.log10(Math.abs(x)));
   }
+}
+
+export interface TensorBoardCallbackArgs {
+  /**
+   * The frequency at which loss and metric values are written to logs.
+   *
+   * Currently supported options are:
+   *
+   * - 'batch': Write logs at the end of every batch of training, in addition
+   *   to the end of every epoch of training.
+   * - 'epoch': Write logs at the end of every epoch of training.
+   *
+   * Note that writing logs too often slows down the training.
+   *
+   * Default: 'epoch'.
+   */
+  updateFreq?: 'batch'|'epoch';
+}
+
+/**
+ * Callback for logging to TensorBoard durnig training.
+ *
+ * Users are expected to access this class through the `tensorBoardCallback()`
+ * factory method instead.
+ */
+export class TensorBoardCallback extends CustomCallback {
+  private trainWriter: SummaryFileWriter;
+  private valWriter: SummaryFileWriter;
+  private batchesSeen: number;
+  private epochsSeen: number;
+  private readonly args: TensorBoardCallbackArgs;
+
+  constructor(readonly logdir = './logs', args?: TensorBoardCallbackArgs) {
+    super({
+      onBatchEnd: async (batch: number, logs?: Logs) => {
+        this.batchesSeen++;
+        if (this.args.updateFreq !== 'epoch') {
+          this.logMetrics(logs, 'batch_', this.batchesSeen);
+        }
+      },
+      onEpochEnd: async (epoch: number, logs?: Logs) => {
+        this.epochsSeen++;
+        this.logMetrics(logs, 'epoch_', this.epochsSeen);
+      },
+      onTrainEnd: async (logs?: Logs) => {
+        if (this.trainWriter != null) {
+          this.trainWriter.flush();
+        }
+        if (this.valWriter != null) {
+          this.valWriter.flush();
+        }
+      }
+    });
+
+    this.args = args == null ? {} : args;
+    if (this.args.updateFreq == null) {
+      this.args.updateFreq = 'epoch';
+    }
+    util.assert(
+        ['batch', 'epoch'].indexOf(this.args.updateFreq) !== -1,
+        `Expected updateFreq to be 'batch' or 'epoch', but got ` +
+            `${this.args.updateFreq}`);
+    this.batchesSeen = 0;
+    this.epochsSeen = 0;
+  }
+
+  private logMetrics(logs: Logs, prefix: string, step: number) {
+    for (const key in logs) {
+      if (key === 'batch' || key === 'size' || key === 'num_steps') {
+        continue;
+      }
+
+      const VAL_PREFIX = 'val_';
+      if (key.startsWith(VAL_PREFIX)) {
+        this.ensureValWriterCreated();
+        const scalarName = prefix + key.slice(VAL_PREFIX.length);
+        this.valWriter.scalar(scalarName, logs[key], step);
+      } else {
+        this.ensureTrainWriterCreated();
+        this.trainWriter.scalar(`${prefix}${key}`, logs[key], step);
+      }
+    }
+  }
+
+  private ensureTrainWriterCreated() {
+    this.trainWriter = summaryFileWriter(path.join(this.logdir, 'train'));
+  }
+
+  private ensureValWriterCreated() {
+    this.valWriter = summaryFileWriter(path.join(this.logdir, 'val'));
+  }
+}
+
+/**
+ * Callback for logging to TensorBoard durnig training.
+ *
+ * Writes the loss and metric values (if any) to the specified log directory
+ * (`logdir`) which can be ingested and visualized by TensorBoard.
+ * This callback is usually passed as a callback to `tf.Model.fit()` or
+ * `tf.Model.fitDataset()` calls during model training. The frequency at which
+ * the values are logged can be controlled with the `updateFreq` field of the
+ * configuration object (2nd argument).
+ *
+ * Usage example:
+ * ```js
+ * // Constructor a toy multilayer-perceptron regressor for demo purpose.
+ * const model = tf.sequential();
+ * model.add(
+ *     tf.layers.dense({units: 100, activation: 'relu', inputShape: [200]}));
+ * model.add(tf.layers.dense({units: 1}));
+ * model.compile({
+ *   loss: 'meanSquaredError',
+ *   optimizer: 'sgd',
+ *   metrics: ['MAE']
+ * });
+ *
+ * // Generate some random fake data for demo purpose.
+ * const xs = tf.randomUniform([10000, 200]);
+ * const ys = tf.randomUniform([10000, 1]);
+ * const valXs = tf.randomUniform([1000, 200]);
+ * const valYs = tf.randomUniform([1000, 1]);
+ *
+ * // Start model training process.
+ * await model.fit(xs, ys, {
+ *   epochs: 100,
+ *   validationData: [valXs, valYs],
+ *    // Add the tensorBoard callback here.
+ *   callbacks: tf.node.tensorBoard('/tmp/fit_logs_1')
+ * });
+ * ```
+ *
+ * Then you can use the following commands to point tensorboard
+ * to the logdir:
+ *
+ * ```sh
+ * pip install tensorboard  # Unless you've already installed it.
+ * tensorboard --logdir /tmp/fit_logs_1
+ * ```
+ *
+ * @param logdir Directory to which the logs will be written.
+ * @param args Optional configuration arguments.
+ * @returns An instance of `TensorBoardCallback`, which is a subclass of
+ *   `tf.CustomCallback`.
+ */
+export function tensorBoard(
+    logdir = './logs', args?: TensorBoardCallbackArgs): TensorBoardCallback {
+  return new TensorBoardCallback(logdir, args);
 }

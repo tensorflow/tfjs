@@ -19,6 +19,10 @@
  * Public API symbols under the tf.node.* namespace.
  */
 
+import {tensorBoard} from './callbacks';
 import {summaryFileWriter} from './tensorboard';
 
-export const node = {summaryFileWriter};
+export const node = {
+  summaryFileWriter,
+  tensorBoard
+};

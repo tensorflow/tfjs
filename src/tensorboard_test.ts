@@ -143,3 +143,153 @@ describe('tensorboard', () => {
     expect(() => tfn.node.summaryFileWriter('')).toThrowError(/empty string/);
   });
 });
+
+describe('tensorBoard callback', () => {
+  let tmpLogDir: string;
+
+  beforeEach(() => {
+    tmpLogDir = tmp.dirSync().name;
+  });
+
+  afterEach(() => {
+    if (tmpLogDir != null) {
+      shelljs.rm('-rf', tmpLogDir);
+    }
+  });
+
+  function createModelForTest(): tfn.Model {
+    const model = tfn.sequential();
+    model.add(
+        tfn.layers.dense({units: 5, activation: 'relu', inputShape: [10]}));
+    model.add(tfn.layers.dense({units: 1}));
+    model.compile(
+        {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['MAE']});
+    return model;
+  }
+
+  it('fit(): default epoch updateFreq, with validation', async () => {
+    const model = createModelForTest();
+    const xs = tfn.randomUniform([100, 10]);
+    const ys = tfn.randomUniform([100, 1]);
+    const valXs = tfn.randomUniform([10, 10]);
+    const valYs = tfn.randomUniform([10, 1]);
+
+    // Warm-up training.
+    await model.fit(xs, ys, {
+      epochs: 1,
+      verbose: 0,
+      validationData: [valXs, valYs],
+      callbacks: tfn.node.tensorBoard(tmpLogDir)
+    });
+
+    // Get the initial size of the file.
+    // Verify the content of the train and val sub-logdirs.
+    const subDirs = fs.readdirSync(tmpLogDir);
+    expect(subDirs).toContain('train');
+    expect(subDirs).toContain('val');
+
+    const trainLogDir = path.join(tmpLogDir, 'train');
+    const trainFiles = fs.readdirSync(trainLogDir);
+    const trainFileSize0 =
+        fs.statSync(path.join(trainLogDir, trainFiles[0])).size;
+    expect(trainFileSize0).toBeGreaterThan(0);
+    const valLogDir = path.join(tmpLogDir, 'val');
+    const valFiles = fs.readdirSync(valLogDir);
+    const valFileSize0 = fs.statSync(path.join(valLogDir, valFiles[0])).size;
+    expect(valFileSize0).toBeGreaterThan(0);
+    // With updateFreq === epoch, the train and val subset should have generated
+    // the same amount of logs.
+    expect(valFileSize0).toEqual(trainFileSize0);
+
+    // Actual training run.
+    const history = await model.fit(xs, ys, {
+      epochs: 3,
+      verbose: 0,
+      validationData: [valXs, valYs],
+      callbacks: tfn.node.tensorBoard(tmpLogDir)
+    });
+    expect(history.history.loss.length).toEqual(3);
+    expect(history.history.val_loss.length).toEqual(3);
+    expect(history.history.MAE.length).toEqual(3);
+    expect(history.history.val_MAE.length).toEqual(3);
+
+    const trainFileSize1 =
+        fs.statSync(path.join(trainLogDir, trainFiles[0])).size;
+    const valFileSize1 = fs.statSync(path.join(valLogDir, valFiles[0])).size;
+    // We currently only assert that new content has been written to the log
+    // file.
+    expect(trainFileSize1).toBeGreaterThan(trainFileSize0);
+    expect(valFileSize1).toBeGreaterThan(valFileSize0);
+    // With updateFreq === epoch, the train and val subset should have generated
+    // the same amount of logs.
+    expect(valFileSize1).toEqual(trainFileSize1);
+  });
+
+  it('fit(): batch updateFreq, with validation', async () => {
+    const model = createModelForTest();
+    const xs = tfn.randomUniform([100, 10]);
+    const ys = tfn.randomUniform([100, 1]);
+    const valXs = tfn.randomUniform([10, 10]);
+    const valYs = tfn.randomUniform([10, 1]);
+
+    // Warm-up training.
+    await model.fit(xs, ys, {
+      epochs: 1,
+      verbose: 0,
+      validationData: [valXs, valYs],
+      // Use batch updateFreq here.
+      callbacks: tfn.node.tensorBoard(tmpLogDir, {updateFreq: 'batch'})
+    });
+
+    // Get the initial size of the file.
+    // Verify the content of the train and val sub-logdirs.
+    const subDirs = fs.readdirSync(tmpLogDir);
+    expect(subDirs).toContain('train');
+    expect(subDirs).toContain('val');
+
+    const trainLogDir = path.join(tmpLogDir, 'train');
+    const trainFiles = fs.readdirSync(trainLogDir);
+    const trainFileSize0 =
+        fs.statSync(path.join(trainLogDir, trainFiles[0])).size;
+    expect(trainFileSize0).toBeGreaterThan(0);
+    const valLogDir = path.join(tmpLogDir, 'val');
+    const valFiles = fs.readdirSync(valLogDir);
+    const valFileSize0 = fs.statSync(path.join(valLogDir, valFiles[0])).size;
+    expect(valFileSize0).toBeGreaterThan(0);
+    // The train subset should have generated more logs than the val subset,
+    // because the train subset gets logged every batch, while the val subset
+    // gets logged every epoch.
+    expect(trainFileSize0).toBeGreaterThan(valFileSize0);
+
+    // Actual training run.
+    const history = await model.fit(xs, ys, {
+      epochs: 3,
+      verbose: 0,
+      validationData: [valXs, valYs],
+      callbacks: tfn.node.tensorBoard(tmpLogDir)
+    });
+    expect(history.history.loss.length).toEqual(3);
+    expect(history.history.val_loss.length).toEqual(3);
+    expect(history.history.MAE.length).toEqual(3);
+    expect(history.history.val_MAE.length).toEqual(3);
+
+    const trainFileSize1 =
+        fs.statSync(path.join(trainLogDir, trainFiles[0])).size;
+    const valFileSize1 = fs.statSync(path.join(valLogDir, valFiles[0])).size;
+    // We currently only assert that new content has been written to the log
+    // file.
+    expect(trainFileSize1).toBeGreaterThan(trainFileSize0);
+    expect(valFileSize1).toBeGreaterThan(valFileSize0);
+    // The train subset should have generated more logs than the val subset,
+    // because the train subset gets logged every batch, while the val subset
+    // gets logged every epoch.
+    expect(trainFileSize1).toBeGreaterThan(valFileSize1);
+  });
+
+  it('Invalid updateFreq value causes error', async () => {
+    expect(() => tfn.node.tensorBoard(tmpLogDir, {
+      // tslint:disable-next-line:no-any
+      updateFreq: 'foo' as any
+    })).toThrowError(/Expected updateFreq/);
+  });
+});
