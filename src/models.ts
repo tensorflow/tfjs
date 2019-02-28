@@ -59,9 +59,6 @@ import {getExactlyOneShape} from './utils/types_utils';
  *       considered during deserialization.
  * @returns A TensorFlow.js Layers `tf.LayersModel` instance (uncompiled).
  */
-/**
- * @doc {heading: 'Models', subheading: 'Loading', namespace: 'models'}
- */
 export async function modelFromJSON(
     modelAndWeightsConfig: ModelAndWeightsConfig|PyJsonDict,
     customObjects?: serialization.ConfigDict): Promise<LayersModel> {
