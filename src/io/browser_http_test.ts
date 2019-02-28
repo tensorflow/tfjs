@@ -303,9 +303,11 @@ describeWithFlags('browserHTTPRequest-save', CHROME_ENVS, () => {
   it('Save topology and weights, PUT method, extra headers', (done) => {
     const testStartDate = new Date();
     const handler = tf.io.browserHTTPRequest('model-upload-test', {
-      method: 'PUT',
-      headers:
-          {'header_key_1': 'header_value_1', 'header_key_2': 'header_value_2'}
+      requestInit: {
+        method: 'PUT',
+        headers:
+            {'header_key_1': 'header_value_1', 'header_key_2': 'header_value_2'}
+      }
     });
     handler.save(artifacts1)
         .then(saveResult => {
@@ -392,7 +394,9 @@ describeWithFlags('browserHTTPRequest-save', CHROME_ENVS, () => {
 
   it('Existing body leads to Error', () => {
     expect(() => tf.io.browserHTTPRequest('model-upload-test', {
-      body: 'existing body'
+      requestInit: {
+        body: 'existing body'
+      }
     })).toThrowError(/requestInit is expected to have no pre-existing body/);
   });
 
@@ -518,8 +522,11 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
           },
           requestInits);
 
-      const handler = tf.io.browserHTTPRequest(
-          './model.json', {headers: {'header_key_1': 'header_value_1'}});
+      const handler = tf.io.browserHTTPRequest('./model.json', {
+        requestInit: {
+          headers: {'header_key_1': 'header_value_1'}
+        }
+      });
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
       expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
@@ -899,8 +906,8 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
           requestInits);
 
       const handler = tf.io.browserHTTPRequest(
-          ['./model.pb', './weights_manifest.json'],
-          {headers: {'header_key_1': 'header_value_1'}});
+          ['./model.pb', './weights_manifest.json'], {
+            requestInit: {headers: {'header_key_1': 'header_value_1'}}});
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelData);
       expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
@@ -1089,7 +1096,8 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
              },
              requestInits);
          const handler = tf.io.browserHTTPRequest(
-             ['path1/model.pb', 'path2/weights_manifest.json'], {}, 'path3/');
+             ['path1/model.pb', 'path2/weights_manifest.json'],
+             {weightPathPrefix: 'path3/'});
          const modelArtifacts = await handler.load();
          expect(modelArtifacts.modelTopology).toEqual(modelData);
          expect(modelArtifacts.weightSpecs)
@@ -1171,7 +1179,10 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
     }
 
     const handler = tf.io.browserHTTPRequest(
-        './model.json', {credentials: 'include'}, null, customFetch);
+        './model.json', {
+          requestInit: {credentials: 'include'},
+          fetchFunc: customFetch
+        });
     const modelArtifacts = await handler.load();
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
