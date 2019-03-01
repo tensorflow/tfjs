@@ -1,10 +1,17 @@
 py_library(
+    name = "common",
+    srcs = ["common.py"],
+    deps = ["//tensorflowjs:version"],
+)
+
+py_library(
     name = "keras_h5_conversion",
     srcs = ["keras_h5_conversion.py"],
     deps = [
         "//tensorflowjs:expect_h5py_installed",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:write_weights",
+        "//tensorflowjs/converters:common",
     ],
 )
 
@@ -18,6 +25,7 @@ py_test(
         "//tensorflowjs:expect_keras_installed",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
+        "//tensorflowjs:version",
     ],
 )
 
@@ -54,6 +62,7 @@ py_library(
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
         "//tensorflowjs:write_weights",
+        "//tensorflowjs/converters:common",
     ],
 )
 
@@ -64,6 +73,7 @@ py_test(
     deps = [
         ":tf_saved_model_conversion",
         "//tensorflowjs:expect_tensorflow_installed",
+        "//tensorflowjs:version",
     ],
 )
 

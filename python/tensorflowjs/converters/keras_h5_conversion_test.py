@@ -29,6 +29,7 @@ import keras
 import numpy as np
 import tensorflow as tf
 
+from tensorflowjs import version
 from tensorflowjs.converters import keras_h5_conversion as conversion
 
 
@@ -130,6 +131,14 @@ class ConvertH5WeightsTest(unittest.TestCase):
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
+
+    # Check meta-data in the artifact JSON.
+    self.assertEqual(model_json['format'], 'layers-model')
+    self.assertEqual(model_json['generatedBy'], 'keras v%s' % keras.__version__)
+    self.assertEqual(
+        model_json['convertedBy'],
+        'TensorFlow.js Converter v%s' % version.version)
+
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
     weight_shapes = dict()

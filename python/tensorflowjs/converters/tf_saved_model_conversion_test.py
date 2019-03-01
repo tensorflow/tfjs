@@ -26,6 +26,7 @@ from tensorflow.python.tools import freeze_graph
 from tensorflow.python.grappler import tf_optimizer
 
 import tensorflow_hub as hub
+from tensorflowjs import version
 from tensorflowjs.converters import tf_saved_model_conversion
 
 SAVED_MODEL_DIR = 'saved_model'
@@ -214,6 +215,13 @@ class ConvertTest(unittest.TestCase):
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
+
+    # Check meta-data in the artifact JSON.
+    self.assertEqual(model_json['format'], 'graph-model')
+    self.assertEqual(
+        model_json['convertedBy'],
+        'TensorFlow.js Converter v%s' % version.version)
+
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(weights_manifest, weights)

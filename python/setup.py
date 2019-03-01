@@ -59,6 +59,7 @@ setuptools.setup(
         'tensorflowjs.read_weights',
         'tensorflowjs.write_weights',
         'tensorflowjs.converters',
+        'tensorflowjs.converters.common',
         'tensorflowjs.converters.converter',
         'tensorflowjs.converters.keras_h5_conversion',
         'tensorflowjs.converters.keras_tfjs_loader',
