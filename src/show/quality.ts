@@ -98,7 +98,7 @@ export async function showConfusionMatrix(
 
   const confusionMatrixData: ConfusionMatrixData = {
     values: confusionMatrix,
-    labels: classLabels,
+    tickLabels: classLabels,
   };
 
   return renderConfusionMatrix(confusionMatrixData, drawArea, {
