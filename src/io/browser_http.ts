@@ -114,6 +114,9 @@ export class BrowserHTTPRequest implements IOHandler {
     }];
     const modelTopologyAndWeightManifest = {
       modelTopology: modelArtifacts.modelTopology,
+      format: modelArtifacts.format,
+      generatedBy: modelArtifacts.generatedBy,
+      convertedBy: modelArtifacts.convertedBy,
       weightsManifest
     };
 

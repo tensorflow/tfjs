@@ -75,6 +75,9 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
     modelTopology: modelTopology1,
     weightSpecs: weightSpecs1,
     weightData: weightData1,
+    format: 'layers-model',
+    generatedBy: 'TensorFlow.js v0.0.0',
+    convertedBy: null
   };
 
   const weightSpecs2: tf.io.WeightsManifestEntry[] = [
@@ -113,6 +116,9 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
     const loadedArtifacts = await handler.load();
     expect(loadedArtifacts.modelTopology).toEqual(modelTopology1);
     expect(loadedArtifacts.weightSpecs).toEqual(weightSpecs1);
+    expect(loadedArtifacts.format).toEqual('layers-model');
+    expect(loadedArtifacts.generatedBy).toEqual('TensorFlow.js v0.0.0');
+    expect(loadedArtifacts.convertedBy).toEqual(null);
     expectArrayBuffersEqual(loadedArtifacts.weightData, weightData1);
   });
 
