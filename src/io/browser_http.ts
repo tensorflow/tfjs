@@ -32,10 +32,10 @@ const OCTET_STREAM_MIME_TYPE = 'application/octet-stream';
 const JSON_TYPE = 'application/json';
 
 export class BrowserHTTPRequest implements IOHandler {
-  protected readonly path: string|string[];
+  protected readonly path: string;
   protected readonly requestInit: RequestInit;
 
-  private readonly fetchFunc: Function;
+  private readonly fetchFunc: (path: string, init?: RequestInit) => Response;
 
   readonly DEFAULT_METHOD = 'POST';
 
@@ -44,7 +44,7 @@ export class BrowserHTTPRequest implements IOHandler {
   private readonly weightPathPrefix: string;
   private readonly onProgress: OnProgressCallback;
 
-  constructor(path: string|string[], loadOptions?: LoadOptions) {
+  constructor(path: string, loadOptions?: LoadOptions) {
     if (loadOptions == null) {
       loadOptions = {};
     }
@@ -134,7 +134,7 @@ export class BrowserHTTPRequest implements IOHandler {
           'model.weights.bin');
     }
 
-    const response = await this.getFetchFunc()(this.path as string, init);
+    const response = await this.getFetchFunc()(this.path, init);
 
     if (response.ok) {
       return {
@@ -157,57 +157,36 @@ export class BrowserHTTPRequest implements IOHandler {
    * @returns The loaded model artifacts (if loading succeeds).
    */
   async load(): Promise<ModelArtifacts> {
-    return Array.isArray(this.path) ? this.loadBinaryModel() :
-                                      this.loadJSONModel();
-  }
-
-  /**
-   * Loads the model topology file and build the in memory graph of the model.
-   */
-  private async loadBinaryTopology(): Promise<ArrayBuffer> {
-    const response = await this.getFetchFunc()(this.path[0], this.requestInit);
-
-    if (!response.ok) {
-      throw new Error(`Request to ${this.path[0]} failed with error: ${
-          response.statusText}`);
-    }
-    return await response.arrayBuffer();
-  }
-
-  protected async loadBinaryModel(): Promise<ModelArtifacts> {
-    const graphPromise = this.loadBinaryTopology();
-    const manifestPromise =
-        await this.getFetchFunc()(this.path[1], this.requestInit);
-    if (!manifestPromise.ok) {
-      throw new Error(`Request to ${this.path[1]} failed with error: ${
-          manifestPromise.statusText}`);
-    }
-
-    const results = await Promise.all([graphPromise, manifestPromise]);
-    const [modelTopology, weightsManifestResponse] = results;
-
-    const weightsManifest =
-        await weightsManifestResponse.json() as WeightsManifestConfig;
-
-    let weightSpecs: WeightsManifestEntry[];
-    let weightData: ArrayBuffer;
-    if (weightsManifest != null) {
-      const results = await this.loadWeights(weightsManifest);
-      [weightSpecs, weightData] = results;
-    }
-
-    return {modelTopology, weightSpecs, weightData};
-  }
-
-  protected async loadJSONModel(): Promise<ModelArtifacts> {
     const modelConfigRequest =
-        await this.getFetchFunc()(this.path as string, this.requestInit);
+        await this.getFetchFunc()(this.path, this.requestInit);
 
     if (!modelConfigRequest.ok) {
-      throw new Error(`Request to ${this.path} failed with error: ${
-          modelConfigRequest.statusText}`);
+      throw new Error(
+          `Request to ${this.path} failed with status code ` +
+          `${modelConfigRequest.status}. Please verify this URL points to ` +
+          `the model JSON of the model to load.`);
     }
-    const modelConfig = await modelConfigRequest.json();
+    let modelConfig;
+    try {
+      modelConfig = await modelConfigRequest.json();
+    } catch (e) {
+      let message = `Failed to parse model JSON of response from ${this.path}.`;
+      // TODO(nsthorat): Remove this after some time when we're comfortable that
+      // .pb files are mostly gone.
+      if (this.path.endsWith('.pb')) {
+        message += ' Your path contains a .pb file extension. ' +
+            'Support for .pb models have been removed in TensorFlow.js 1.0 ' +
+            'in favor of .json models. You can re-convert your Python ' +
+            'TensorFlow model using the TensorFlow.js 1.0 conversion scripts ' +
+            'or you can convert your.pb models with the \'pb2json\'' +
+            'NPM script in the tensorflow/tfjs-converter repository.';
+      } else {
+        message += ' Please make sure the server is serving valid ' +
+            'JSON for this request.';
+      }
+      throw new Error(message);
+    }
+
     const modelTopology = modelConfig['modelTopology'];
     const weightsManifest = modelConfig['weightsManifest'];
 
@@ -292,7 +271,7 @@ export function isHTTPScheme(url: string): boolean {
 }
 
 export const httpRequestRouter: IORouter =
-    (url: string|string[], onProgress?: OnProgressCallback) => {
+    (url: string, onProgress?: OnProgressCallback) => {
       if (typeof fetch === 'undefined') {
         // browserHTTPRequest uses `fetch`, if one wants to use it in node.js
         // they have to setup a global fetch polyfill.
@@ -433,9 +412,7 @@ IORouterRegistry.registerLoadRouter(httpRequestRouter);
  *   main()
  * ```
  *
- * @param path A single URL path or an Array of URL  paths.
- *   Currently, only a single URL path is supported. Array input is reserved
- *   for future development.
+ * @param path A URL path to the model.
  *   Can be an absolute HTTP path (e.g.,
  *   'http://localhost:8000/model-upload)') or a relative path (e.g.,
  *   './model-upload').
@@ -459,6 +436,6 @@ IORouterRegistry.registerLoadRouter(httpRequestRouter);
  * @returns An instance of `IOHandler`.
  */
 export function browserHTTPRequest(
-    path: string|string[], loadOptions?: LoadOptions): IOHandler {
+    path: string, loadOptions?: LoadOptions): IOHandler {
   return new BrowserHTTPRequest(path, loadOptions);
 }

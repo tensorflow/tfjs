@@ -20,7 +20,7 @@ import * as util from '../util';
 
 import {decodeWeights} from './io_utils';
 import {monitorPromisesProgress} from './progress';
-import {DTYPE_VALUE_SIZE_MAP, WeightsManifestConfig, WeightsManifestEntry, LoadOptions} from './types';
+import {DTYPE_VALUE_SIZE_MAP, LoadOptions, WeightsManifestConfig, WeightsManifestEntry} from './types';
 
 /**
  * Reads binary weights data from a number of URLs.
