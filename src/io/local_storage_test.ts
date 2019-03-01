@@ -68,10 +68,20 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
     }
   ];
   const weightData1 = new ArrayBuffer(16);
+
   const artifacts1: tf.io.ModelArtifacts = {
     modelTopology: modelTopology1,
     weightSpecs: weightSpecs1,
     weightData: weightData1,
+    format: 'layers-model',
+    generatedBy: 'TensorFlow.js v0.0.0',
+    convertedBy: null
+  };
+
+  const artifactsV0: tf.io.ModelArtifacts = {
+    modelTopology: modelTopology1,
+    weightSpecs: weightSpecs1,
+    weightData: weightData1
   };
 
   function findOverflowingByteSize(): number {
@@ -162,6 +172,23 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
     expect(loaded.modelTopology).toEqual(modelTopology1);
     expect(loaded.weightSpecs).toEqual(weightSpecs1);
     expect(loaded.weightData).toEqual(weightData1);
+    expect(loaded.format).toEqual('layers-model');
+    expect(loaded.generatedBy).toEqual('TensorFlow.js v0.0.0');
+    expect(loaded.convertedBy).toEqual(null);
+  });
+
+  it('Save-load round trip succeeds: v0 format', async () => {
+    const handler1 = tf.io.getSaveHandlers('localstorage://FooModel')[0];
+
+    await handler1.save(artifactsV0);
+    const handler2 = tf.io.getLoadHandlers('localstorage://FooModel')[0];
+    const loaded = await handler2.load();
+    expect(loaded.modelTopology).toEqual(modelTopology1);
+    expect(loaded.weightSpecs).toEqual(weightSpecs1);
+    expect(loaded.weightData).toEqual(weightData1);
+    expect(loaded.format).toEqual(undefined);
+    expect(loaded.generatedBy).toEqual(undefined);
+    expect(loaded.convertedBy).toEqual(undefined);
   });
 
   it('Loading nonexistent model fails.', done => {

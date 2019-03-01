@@ -20,7 +20,7 @@ import {assert} from '../util';
 import {arrayBufferToBase64String, base64StringToArrayBuffer, getModelArtifactsInfoForJSON} from './io_utils';
 import {ModelStoreManagerRegistry} from './model_management';
 import {IORouter, IORouterRegistry} from './router_registry';
-import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelStoreManager, SaveResult} from './types';
+import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelStoreManager, ModelFormat, SaveResult} from './types';
 
 const PATH_SEPARATOR = '/';
 const PATH_PREFIX = 'tensorflowjs_models';
@@ -28,6 +28,7 @@ const INFO_SUFFIX = 'info';
 const MODEL_TOPOLOGY_SUFFIX = 'model_topology';
 const WEIGHT_SPECS_SUFFIX = 'weight_specs';
 const WEIGHT_DATA_SUFFIX = 'weight_data';
+const MODEL_METADATA_SUFFIX = 'model_metadata';
 
 /**
  * Purge all tensorflow.js-saved model artifacts from local storage.
@@ -57,12 +58,15 @@ export function purgeLocalStorageArtifacts(): string[] {
 }
 
 function getModelKeys(path: string):
-    {info: string, topology: string, weightSpecs: string, weightData: string} {
+    {info: string, topology: string, weightSpecs: string, weightData: string,
+     modelMetadata: string} {
   return {
     info: [PATH_PREFIX, path, INFO_SUFFIX].join(PATH_SEPARATOR),
     topology: [PATH_PREFIX, path, MODEL_TOPOLOGY_SUFFIX].join(PATH_SEPARATOR),
     weightSpecs: [PATH_PREFIX, path, WEIGHT_SPECS_SUFFIX].join(PATH_SEPARATOR),
-    weightData: [PATH_PREFIX, path, WEIGHT_DATA_SUFFIX].join(PATH_SEPARATOR)
+    weightData: [PATH_PREFIX, path, WEIGHT_DATA_SUFFIX].join(PATH_SEPARATOR),
+    modelMetadata: [
+        PATH_PREFIX, path, MODEL_METADATA_SUFFIX].join(PATH_SEPARATOR)
   };
 }
 
@@ -146,6 +150,11 @@ export class BrowserLocalStorage implements IOHandler {
         this.LS.setItem(
             this.keys.weightData,
             arrayBufferToBase64String(modelArtifacts.weightData));
+        this.LS.setItem(this.keys.modelMetadata, JSON.stringify({
+          format: modelArtifacts.format,
+          generatedBy: modelArtifacts.generatedBy,
+          convertedBy: modelArtifacts.convertedBy
+        }));
 
         return {modelArtifactsInfo};
       } catch (err) {
@@ -205,6 +214,19 @@ export class BrowserLocalStorage implements IOHandler {
           `are missing.`);
     }
     out.weightSpecs = weightSpecs;
+
+    // Load meta-data fields.
+    const metadataString = this.LS.getItem(this.keys.modelMetadata);
+    if (metadataString != null) {
+      const metadata = JSON.parse(metadataString) as {
+        format: string,
+        generatedBy: string,
+        convertedBy: string
+      };
+      out.format = metadata.format as ModelFormat;
+      out.generatedBy = metadata['generatedBy'];
+      out.convertedBy = metadata['convertedBy'];
+    }
 
     // Load weight data.
     const weightDataBase64 = this.LS.getItem(this.keys.weightData);
