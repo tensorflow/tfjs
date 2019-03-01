@@ -71,12 +71,12 @@ import {getDrawArea} from './render_utils';
  *    values: number[][],
  *
  *    // Human readable labels for each class in the matrix. Optional
- *    labels?: string[]
+ *    tickLabels?: string[]
  *  }
  *  e.g.
  *  {
  *    values: [[80, 23], [56, 94]],
- *    labels: ['dog', 'cat'],
+ *    tickLabels: ['dog', 'cat'],
  *  }
  * @param container An `HTMLElement` or `Surface` in which to draw the chart
  * @param opts optional parameters
@@ -102,19 +102,19 @@ export async function renderConfusionMatrix(
   const values: MatrixEntry[] = [];
 
   const inputArray = data.values;
-  const labels = data.labels || [];
-  const generateLabels = labels.length === 0;
+  const tickLabels = data.tickLabels || [];
+  const generateLabels = tickLabels.length === 0;
 
   let nonDiagonalIsAllZeroes = true;
   for (let i = 0; i < inputArray.length; i++) {
-    const label = generateLabels ? `Class ${i}` : labels[i];
+    const label = generateLabels ? `Class ${i}` : tickLabels[i];
 
     if (generateLabels) {
-      labels.push(label);
+      tickLabels.push(label);
     }
 
     for (let j = 0; j < inputArray[i].length; j++) {
-      const prediction = generateLabels ? `Class ${j}` : labels[j];
+      const prediction = generateLabels ? `Class ${j}` : tickLabels[j];
 
       const count = inputArray[i][j];
       if (i === j && !options.shadeDiagonal) {
@@ -185,13 +185,13 @@ export async function renderConfusionMatrix(
         'field': 'prediction',
         'type': 'ordinal',
         // Maintain sort order of the axis if labels is passed in
-        'scale': {'domain': labels},
+        'scale': {'domain': tickLabels},
       },
       'y': {
         'field': 'label',
         'type': 'ordinal',
         // Maintain sort order of the axis if labels is passed in
-        'scale': {'domain': labels},
+        'scale': {'domain': tickLabels},
       },
     },
     'layer': [

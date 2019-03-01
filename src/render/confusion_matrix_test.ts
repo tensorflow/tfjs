@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {ConfusionMatrixData} from '../types';
+
 import {renderConfusionMatrix} from './confusion_matrix';
 
 describe('renderConfusionMatrix', () => {
@@ -26,9 +28,9 @@ describe('renderConfusionMatrix', () => {
   });
 
   it('renders a chart', async () => {
-    const data = {
+    const data: ConfusionMatrixData = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
-      labels: ['cheese', 'pig', 'font'],
+      tickLabels: ['cheese', 'pig', 'font'],
     };
 
     const container = document.getElementById('container') as HTMLElement;
@@ -38,9 +40,9 @@ describe('renderConfusionMatrix', () => {
   });
 
   it('renders a chart with shaded diagonal', async () => {
-    const data = {
+    const data: ConfusionMatrixData = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
-      labels: ['cheese', 'pig', 'font'],
+      tickLabels: ['cheese', 'pig', 'font'],
     };
 
     const container = document.getElementById('container') as HTMLElement;
@@ -50,7 +52,7 @@ describe('renderConfusionMatrix', () => {
   });
 
   it('renders the chart with generated labels', async () => {
-    const data = {
+    const data: ConfusionMatrixData = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 
@@ -61,9 +63,9 @@ describe('renderConfusionMatrix', () => {
   });
 
   it('updates the chart', async () => {
-    let data = {
+    let data: ConfusionMatrixData = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
-      labels: ['cheese', 'pig', 'font'],
+      tickLabels: ['cheese', 'pig', 'font'],
     };
 
     const container = document.getElementById('container') as HTMLElement;
@@ -73,7 +75,7 @@ describe('renderConfusionMatrix', () => {
 
     data = {
       values: [[43, 2, 8], [1, 7, 2], [3, 3, 20]],
-      labels: ['cheese', 'pig', 'font'],
+      tickLabels: ['cheese', 'pig', 'font'],
     };
 
     await renderConfusionMatrix(data, container);
@@ -81,9 +83,9 @@ describe('renderConfusionMatrix', () => {
   });
 
   it('sets width of chart', async () => {
-    const data = {
+    const data: ConfusionMatrixData = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
-      labels: ['cheese', 'pig', 'font'],
+      tickLabels: ['cheese', 'pig', 'font'],
     };
 
     const container = document.getElementById('container') as HTMLElement;
@@ -95,9 +97,9 @@ describe('renderConfusionMatrix', () => {
   });
 
   it('sets height of chart', async () => {
-    const data = {
+    const data: ConfusionMatrixData = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
-      labels: ['cheese', 'pig', 'font'],
+      tickLabels: ['cheese', 'pig', 'font'],
     };
 
     const container = document.getElementById('container') as HTMLElement;

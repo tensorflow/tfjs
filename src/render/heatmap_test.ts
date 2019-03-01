@@ -17,6 +17,8 @@
 
 import * as tf from '@tensorflow/tfjs';
 
+import {HeatmapData} from '../types';
+
 import {renderHeatmap} from './heatmap';
 
 describe('renderHeatmap', () => {
@@ -28,7 +30,7 @@ describe('renderHeatmap', () => {
   });
 
   it('renders a chart', async () => {
-    const data = {
+    const data: HeatmapData = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 
@@ -40,7 +42,7 @@ describe('renderHeatmap', () => {
 
   it('renders a chart with a tensor', async () => {
     const values = tf.tensor2d([[4, 2, 8], [1, 7, 2], [3, 3, 20]]);
-    const data = {
+    const data: HeatmapData = {
       values,
     };
 
@@ -73,7 +75,7 @@ describe('renderHeatmap', () => {
   });
 
   it('renders a chart with custom colormap', async () => {
-    const data = {
+    const data: HeatmapData = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 
@@ -84,7 +86,7 @@ describe('renderHeatmap', () => {
   });
 
   it('renders a chart with custom domain', async () => {
-    const data = {
+    const data: HeatmapData = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 
@@ -95,10 +97,10 @@ describe('renderHeatmap', () => {
   });
 
   it('renders a chart with custom labels', async () => {
-    const data = {
+    const data: HeatmapData = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
-      xLabels: ['cheese', 'pig', 'font'],
-      yLabels: ['speed', 'dexterity', 'roundness'],
+      xTickLabels: ['cheese', 'pig', 'font'],
+      yTickLabels: ['speed', 'dexterity', 'roundness'],
     };
 
     const container = document.getElementById('container') as HTMLElement;
@@ -108,7 +110,7 @@ describe('renderHeatmap', () => {
   });
 
   it('updates the chart', async () => {
-    let data = {
+    let data: HeatmapData = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 
@@ -126,7 +128,7 @@ describe('renderHeatmap', () => {
   });
 
   it('sets width of chart', async () => {
-    const data = {
+    const data: HeatmapData = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 
@@ -139,7 +141,7 @@ describe('renderHeatmap', () => {
   });
 
   it('sets height of chart', async () => {
-    const data = {
+    const data: HeatmapData = {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 

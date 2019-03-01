@@ -47,8 +47,8 @@ import {getDrawArea} from './render_utils';
  * ```js
  * const data = {
  *   values: [[4, 2, 8, 20], [1, 7, 2, 10], [3, 3, 20, 13]],
- *   xLabels: ['cheese', 'pig', 'font'],
- *   yLabels: ['speed', 'smoothness', 'dexterity', 'mana'],
+ *   xTickLabels: ['cheese', 'pig', 'font'],
+ *   yTickLabels: ['speed', 'smoothness', 'dexterity', 'mana'],
  * }
  *
  * // Render to visor
@@ -63,14 +63,14 @@ import {getDrawArea} from './render_utils';
  *    values: number[][]|Tensor2D,
  *
  *    // Human readable labels for each class in the matrix. Optional
- *    xLabels?: string[]
- *    yLabels?: string[]
+ *    xTickLabels?: string[]
+ *    yTickLabels?: string[]
  *  }
  *  e.g.
  *  {
  *    values: [[80, 23, 50], [56, 94, 39]],
- *    xLabels: ['dog', 'cat'],
- *    yLabels: ['size', 'temperature', 'agility'],
+ *    xTickLabels: ['dog', 'cat'],
+ *    yTickLabels: ['size', 'temperature', 'agility'],
  *  }
  * @param container An `HTMLElement` or `Surface` in which to draw the chart
  * @param opts optional parameters
@@ -96,7 +96,7 @@ export async function renderHeatmap(
   // Format data for vega spec; an array of objects, one for for each cell
   // in the matrix.
   const values: MatrixEntry[] = [];
-  const {xLabels, yLabels} = data;
+  const {xTickLabels, yTickLabels} = data;
 
   // These two branches are very similar but we want to do the test once
   // rather than on every element access
@@ -106,17 +106,19 @@ export async function renderHeatmap(
         'Input to renderHeatmap must be a 2d array or Tensor2d');
 
     const shape = data.values.shape;
-    if (xLabels) {
+    if (xTickLabels) {
       assert(
-          shape[0] === xLabels.length,
-          `Length of xLabels (${xLabels.length}) must match number of rows
+          shape[0] === xTickLabels.length,
+          `Length of xTickLabels (${
+              xTickLabels.length}) must match number of rows
           (${shape[0]})`);
     }
 
-    if (yLabels) {
+    if (yTickLabels) {
       assert(
-          shape[1] === yLabels.length,
-          `Length of xLabels (${yLabels.length}) must match number of columns
+          shape[1] === yTickLabels.length,
+          `Length of yTickLabels (${
+              yTickLabels.length}) must match number of columns
           (${shape[1]})`);
     }
 
@@ -127,9 +129,9 @@ export async function renderHeatmap(
     const [numRows, numCols] = shape;
 
     for (let row = 0; row < numRows; row++) {
-      const x = xLabels ? xLabels[row] : row;
+      const x = xTickLabels ? xTickLabels[row] : row;
       for (let col = 0; col < numCols; col++) {
-        const y = yLabels ? yLabels[col] : col;
+        const y = yTickLabels ? yTickLabels[col] : col;
 
         const index = (row * numCols) + col;
         const value = inputArray[index];
@@ -138,24 +140,24 @@ export async function renderHeatmap(
       }
     }
   } else {
-    if (xLabels) {
+    if (xTickLabels) {
       assert(
-          data.values.length === xLabels.length,
+          data.values.length === xTickLabels.length,
           `Number of rows (${data.values.length}) must match
-          number of xLabels (${xLabels.length})`);
+          number of xTickLabels (${xTickLabels.length})`);
     }
 
     const inputArray = data.values as number[][];
     for (let row = 0; row < inputArray.length; row++) {
-      const x = xLabels ? xLabels[row] : row;
-      if (yLabels) {
+      const x = xTickLabels ? xTickLabels[row] : row;
+      if (yTickLabels) {
         assert(
-            data.values[row].length === yLabels.length,
+            data.values[row].length === yTickLabels.length,
             `Number of columns in row ${row} (${data.values[row].length})
-            must match length of yLabels (${yLabels.length})`);
+            must match length of yTickLabels (${yTickLabels.length})`);
       }
       for (let col = 0; col < inputArray[row].length; col++) {
-        const y = yLabels ? yLabels[col] : col;
+        const y = yTickLabels ? yTickLabels[col] : col;
         const value = inputArray[row][col];
         values.push({x, y, value});
       }
@@ -196,14 +198,14 @@ export async function renderHeatmap(
         'field': 'x',
         'type': options.xType,
         // Maintain sort order of the axis if labels is passed in
-        'scale': {'domain': xLabels},
+        'scale': {'domain': xTickLabels},
         'title': options.xLabel,
       },
       'y': {
         'field': 'y',
         'type': options.yType,
         // Maintain sort order of the axis if labels is passed in
-        'scale': {'domain': yLabels},
+        'scale': {'domain': yTickLabels},
         'title': options.yLabel,
       },
       'fill': {
