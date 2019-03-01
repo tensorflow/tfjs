@@ -33,8 +33,10 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
   it('A x B with relu', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const transposeA = false;
+    const transposeB = false;
 
-    const c = tf.fused.matMul(a, b, false, false, null, 'relu');
+    const c = tf.fused.matMul(a, b, transposeA, transposeB, null, 'relu');
 
     expect(c.shape).toEqual([2, 2]);
     expectArraysClose(c, [0, 8, 0, 20]);
@@ -43,8 +45,10 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
   it('A x B with relu transpose', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [2, 3]);
+    const transposeA = false;
+    const transposeB = true;
 
-    const c = tf.fused.matMul(a, b, false, true, null, 'relu');
+    const c = tf.fused.matMul(a, b, transposeA, transposeB, null, 'relu');
 
     expect(c.shape).toEqual([2, 2]);
     expectArraysClose(c, [0, 9, 0, 24]);
@@ -54,8 +58,10 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
     const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
+    const transposeA = false;
+    const transposeB = false;
 
-    const d = tf.fused.matMul(a, b, false, false, c, 'relu');
+    const d = tf.fused.matMul(a, b, transposeA, transposeB, c, 'relu');
 
     expect(d.shape).toEqual([2, 2]);
     expectArraysClose(d, [1, 9, 0, 21]);
@@ -66,8 +72,10 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
     const c = tf.tensor1d([1, 1]);
     const act: tf.fused.Activation = 'relu';
+    const transposeA = false;
+    const transposeB = false;
 
-    const d = tf.fused.matMul(a, b, false, false, c, act);
+    const d = tf.fused.matMul(a, b, transposeA, transposeB, c, act);
 
     expect(d.shape).toEqual([2, 2]);
     expectArraysClose(d, [1, 9, 0, 21]);
@@ -78,8 +86,10 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     const b = tf.tensor3d([0, 1, -3, 2, 2, 1, 0, 1, -3, 2, 2, 1], [2, 3, 2]);
     const c = tf.tensor2d([1, 2], [1, 2]);
     const act: tf.fused.Activation = 'relu';
+    const transposeA = false;
+    const transposeB = false;
 
-    const d = tf.fused.matMul(a, b, false, false, c, act);
+    const d = tf.fused.matMul(a, b, transposeA, transposeB, c, act);
 
     expect(d.shape).toEqual([2, 2, 2]);
     expectArraysClose(d, [2, 6, 0, 18, 0, 30, 0, 42]);
@@ -89,8 +99,10 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
     const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
+    const transposeA = false;
+    const transposeB = false;
 
-    const d = tf.fused.matMul(a, b, false, false, c, 'linear');
+    const d = tf.fused.matMul(a, b, transposeA, transposeB, c, 'linear');
 
     expect(d.shape).toEqual([2, 2]);
     expectArraysClose(d, [1, 9, -2, 21]);
@@ -100,14 +112,16 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
     const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
     const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+    const transposeA = false;
+    const transposeB = false;
 
     const grads = tf.grads((a, b) => {
-      const prod = tf.matMul(a, b, false, false);
+      const prod = tf.matMul(a, b, transposeA, transposeB);
       return tf.relu(prod);
     });
 
     const fusedGrads = tf.grads((a, b) => {
-      return tf.fused.matMul(a, b, false, false, null, 'relu');
+      return tf.fused.matMul(a, b, transposeA, transposeB, null, 'relu');
     });
 
     const [da, db] = grads([a, b], dy);
@@ -120,17 +134,19 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
     const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
     const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
+    const transposeA = false;
+    const transposeB = false;
 
     const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
 
     const grads = tf.grads((a, b, c) => {
-      const prod = tf.matMul(a, b, false, false);
+      const prod = tf.matMul(a, b, transposeA, transposeB);
       const sum = tf.add(prod, c);
       return tf.relu(sum);
     });
 
     const fusedGrads = tf.grads((a, b, c) => {
-      return tf.fused.matMul(a, b, false, false, c, 'relu');
+      return tf.fused.matMul(a, b, transposeA, transposeB, c, 'relu');
     });
 
     const [da, db, dc] = grads([a, b, c], dy);
@@ -145,17 +161,46 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [3, 2]);
     const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
     const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
+    const transposeA = true;
+    const transposeB = false;
 
     const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
 
     const grads = tf.grads((a, b, c) => {
-      const prod = tf.matMul(a, b, true, false);
+      const prod = tf.matMul(a, b, transposeA, transposeB);
       const sum = tf.add(prod, c);
       return tf.relu(sum);
     });
 
     const fusedGrads = tf.grads((a, b, c) => {
-      return tf.fused.matMul(a, b, true, false, c, 'relu');
+      return tf.fused.matMul(a, b, transposeA, transposeB, c, 'relu');
+    });
+
+    const [da, db, dc] = grads([a, b, c], dy);
+    const [fusedDa, fusedDb, fusedDc] = fusedGrads([a, b, c], dy);
+
+    expectArraysClose(da, fusedDa);
+    expectArraysClose(db, fusedDb);
+    expectArraysClose(dc, fusedDc);
+  });
+
+  it('A x B with relu and broadcasted bias gradient', () => {
+    const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
+    const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
+    const c = tf.tensor2d([[1]]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+
+    const grads = tf.grads((a, b, c) => {
+      const prod = tf.matMul(a, b, transposeA, transposeB);
+      const sum = tf.add(prod, c);
+      return tf.relu(sum);
+    });
+
+    const fusedGrads = tf.grads((a, b, c) => {
+      return tf.fused.matMul(a, b, transposeA, transposeB, c, 'relu');
     });
 
     const [da, db, dc] = grads([a, b, c], dy);
