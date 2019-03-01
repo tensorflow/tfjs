@@ -284,6 +284,9 @@ export class TensorBoardCallback extends CustomCallback {
  * @returns An instance of `TensorBoardCallback`, which is a subclass of
  *   `tf.CustomCallback`.
  */
+/**
+ * @doc {heading: 'TensorBoard', namespace: 'node'}
+ */
 export function tensorBoard(
     logdir = './logs', args?: TensorBoardCallbackArgs): TensorBoardCallback {
   return new TensorBoardCallback(logdir, args);
