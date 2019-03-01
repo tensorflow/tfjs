@@ -20,7 +20,7 @@ import {assert} from '../util';
 import {arrayBufferToBase64String, base64StringToArrayBuffer, getModelArtifactsInfoForJSON} from './io_utils';
 import {ModelStoreManagerRegistry} from './model_management';
 import {IORouter, IORouterRegistry} from './router_registry';
-import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelStoreManager, ModelFormat, SaveResult} from './types';
+import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelStoreManager, SaveResult} from './types';
 
 const PATH_SEPARATOR = '/';
 const PATH_PREFIX = 'tensorflowjs_models';
@@ -57,16 +57,20 @@ export function purgeLocalStorageArtifacts(): string[] {
   return purgedModelPaths;
 }
 
-function getModelKeys(path: string):
-    {info: string, topology: string, weightSpecs: string, weightData: string,
-     modelMetadata: string} {
+function getModelKeys(path: string): {
+  info: string,
+  topology: string,
+  weightSpecs: string,
+  weightData: string,
+  modelMetadata: string
+} {
   return {
     info: [PATH_PREFIX, path, INFO_SUFFIX].join(PATH_SEPARATOR),
     topology: [PATH_PREFIX, path, MODEL_TOPOLOGY_SUFFIX].join(PATH_SEPARATOR),
     weightSpecs: [PATH_PREFIX, path, WEIGHT_SPECS_SUFFIX].join(PATH_SEPARATOR),
     weightData: [PATH_PREFIX, path, WEIGHT_DATA_SUFFIX].join(PATH_SEPARATOR),
-    modelMetadata: [
-        PATH_PREFIX, path, MODEL_METADATA_SUFFIX].join(PATH_SEPARATOR)
+    modelMetadata:
+        [PATH_PREFIX, path, MODEL_METADATA_SUFFIX].join(PATH_SEPARATOR)
   };
 }
 
@@ -218,12 +222,9 @@ export class BrowserLocalStorage implements IOHandler {
     // Load meta-data fields.
     const metadataString = this.LS.getItem(this.keys.modelMetadata);
     if (metadataString != null) {
-      const metadata = JSON.parse(metadataString) as {
-        format: string,
-        generatedBy: string,
-        convertedBy: string
-      };
-      out.format = metadata.format as ModelFormat;
+      const metadata = JSON.parse(metadataString) as
+          {format: string, generatedBy: string, convertedBy: string};
+      out.format = metadata['format'];
       out.generatedBy = metadata['generatedBy'];
       out.convertedBy = metadata['convertedBy'];
     }

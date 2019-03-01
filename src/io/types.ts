@@ -156,22 +156,23 @@ export declare interface ModelArtifactsInfo {
   weightDataBytes?: number;
 }
 
-export declare type ModelFormat = 'graph-model'|'layers-model';
-
 /**
  * The serialized artifacts of a model, including topology and weights.
  *
  * The `modelTopology`, `weightSpecs` and `weightData` fields of this interface
  * are optional, in order to support topology- or weights-only saving and
  * loading.
+ *
+ * Note this interface is used internally in IOHandlers.  For the file format
+ * written to disk as `model.json`, see `ModelJSON`.
  */
 export declare interface ModelArtifacts {
   /**
    * Model topology.
    *
    * For Keras-style `tf.Model`s, this is a JSON object.
-   * For TensorFlow-style models (e.g., `FrozenModel`), this is a binary buffer
-   * carrying the `GraphDef` protocol buffer.
+   * For TensorFlow-style models (e.g., `SavedModel`), this is the JSON
+   * encoding of the `GraphDef` protocol buffer.
    */
   modelTopology?: {}|ArrayBuffer;
 
@@ -192,7 +193,7 @@ export declare interface ModelArtifacts {
    * Hard-coded format name for models saved from TensorFlow.js or converted
    * by TensorFlow.js Converter.
    */
-  format?: ModelFormat;
+  format?: string;
 
   /**
    * What library is responsible for originally generating this artifact.
@@ -209,15 +210,62 @@ export declare interface ModelArtifacts {
    *
    * A value of `null` means the model artifacts are generated without any
    * conversion process (e.g., saved directly from a TensorFlow.js
-   * `LayersModel` instance.)
+   * `tf.LayersModel` instance.)
    */
   convertedBy?: string|null;
 }
 
-// TODO(cais): Create interface spec for JSON model artifact, e.g., the format
-// for the content in a model.json file saved by TensorFlow.js. It should be the
-// same as the `ModelArtifacts` interface, but without the binary `weightData`
-// field. The `weightSpec` field should be replaced with a `weightManifest` one.
+/**
+ * The on-disk format of the `model.json` file.
+ *
+ * TF.js 1.0 always populates the optional fields when writing model.json.
+ * Prior versions did not provide those fields.
+ */
+export declare interface ModelJSON {
+  /**
+   * Model topology.
+   *
+   * For Keras-style `tf.Model`s, this is a JSON object.
+   * For TensorFlow-style models (e.g., `SavedModel`), this is the JSON
+   * encoding of the `GraphDef` protocol buffer.
+   */
+  modelTopology: {};
+
+  /**
+   * Weights manifest.
+   *
+   * The weights manifest consists of an ordered list of weight-manifest
+   * groups. Each weight-manifest group consists of a number of weight values
+   * stored in a number of paths. See the documentation of
+   * `WeightsManifestConfig` for more details.
+   */
+  weightsManifest: WeightsManifestConfig;
+
+  /**
+   * Hard-coded format name for models saved from TensorFlow.js or converted
+   * by TensorFlow.js Converter.
+   */
+  format?: string;
+
+  /**
+   * What library is responsible for originally generating this artifact.
+   *
+   * Used for debugging purposes. E.g., 'TensorFlow.js v1.0.0'.
+   */
+  generatedBy?: string;
+
+  /**
+   * What library or tool is responsible for converting the original model
+   * to this format, applicable only if the model is output by a converter.
+   *
+   * Used for debugging purposes.  E.g., 'TensorFlow.js Converter v1.0.0'.
+   *
+   * A value of `null` means the model artifacts are generated without any
+   * conversion process (e.g., saved directly from a TensorFlow.js
+   * `tf.LayersModel` instance.)
+   */
+  convertedBy?: string|null;
+}
 
 /**
  * Type definition for handlers of loading operations.

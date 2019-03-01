@@ -22,10 +22,9 @@
  */
 
 import {assert} from '../util';
-
 import {concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
-import {IOHandler, LoadOptions, ModelArtifacts, OnProgressCallback, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
+import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {loadWeightsAsArrayBuffer} from './weights_loader';
 
 const OCTET_STREAM_MIME_TYPE = 'application/octet-stream';
@@ -112,7 +111,7 @@ export class BrowserHTTPRequest implements IOHandler {
       paths: ['./model.weights.bin'],
       weights: modelArtifacts.weightSpecs,
     }];
-    const modelTopologyAndWeightManifest = {
+    const modelTopologyAndWeightManifest: ModelJSON = {
       modelTopology: modelArtifacts.modelTopology,
       format: modelArtifacts.format,
       generatedBy: modelArtifacts.generatedBy,
@@ -166,7 +165,7 @@ export class BrowserHTTPRequest implements IOHandler {
           `${modelConfigRequest.status}. Please verify this URL points to ` +
           `the model JSON of the model to load.`);
     }
-    let modelConfig;
+    let modelConfig: ModelJSON;
     try {
       modelConfig = await modelConfigRequest.json();
     } catch (e) {
@@ -186,9 +185,8 @@ export class BrowserHTTPRequest implements IOHandler {
       }
       throw new Error(message);
     }
-
-    const modelTopology = modelConfig['modelTopology'];
-    const weightsManifest = modelConfig['weightsManifest'];
+    const modelTopology = modelConfig.modelTopology;
+    const weightsManifest = modelConfig.weightsManifest;
 
     // We do not allow both modelTopology and weightsManifest to be missing.
     if (modelTopology == null && weightsManifest == null) {
@@ -200,8 +198,6 @@ export class BrowserHTTPRequest implements IOHandler {
     let weightSpecs: WeightsManifestEntry[];
     let weightData: ArrayBuffer;
     if (weightsManifest != null) {
-      const weightsManifest =
-          modelConfig['weightsManifest'] as WeightsManifestConfig;
       const results = await this.loadWeights(weightsManifest);
       [weightSpecs, weightData] = results;
     }
