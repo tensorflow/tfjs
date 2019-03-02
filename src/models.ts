@@ -249,8 +249,7 @@ export async function loadLayersModelInternal(
       // assume it is a relative http path.
       // TODO(cais): Reformat the args into a single `LoadOptions` once the core
       // is refactored.
-      handlers.push(io.browserHTTPRequest(
-          pathOrIOHandler, null, null, null, options.onProgress));
+      handlers.push(io.browserHTTPRequest(pathOrIOHandler, options));
     } else if (handlers.length > 1) {
       throw new ValueError(
           `Found more than one (${handlers.length}) load handlers for ` +
