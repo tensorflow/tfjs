@@ -975,9 +975,11 @@ describeMathCPU('loadLayersModel from URL', () => {
        const model =
            await loadLayersModelInternal(
              io.browserHTTPRequest('model/model.json', {
-             headers: {'header_key_1': 'header_value_1'},
-             credentials: 'include',
-           }));
+               requestInit: {
+                 headers: {'header_key_1': 'header_value_1'},
+                 credentials: 'include',
+               }
+             }));
        expect(model.layers.length).toEqual(2);
        expect(model.inputs.length).toEqual(1);
        expect(model.inputs[0].shape).toEqual([null, 32]);
