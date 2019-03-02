@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <vector>
-#include "../deps/include/tensorflow/c/c_api.h"
+#include "tensorflow/c/c_api.h"
 #include "tf_auto_status.h"
 
 #define MAX_TENSOR_SHAPE 4

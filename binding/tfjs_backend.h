@@ -22,7 +22,7 @@
 #include <map>
 #include <memory>
 #include <string>
-#include "../deps/include/tensorflow/c/eager/c_api.h"
+#include "tensorflow/c/eager/c_api.h"
 
 namespace tfnodejs {
 
