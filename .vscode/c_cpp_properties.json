@@ -7,7 +7,7 @@
         "${workspaceFolder}/deps/include",
         "${workspaceFolder}/deps/tensorflow/include/tensorflow/c",
         "${workspaceFolder}/deps/tensorflow/include/tensorflow/c/eager",
-        "${workspaceFolder}/../../.node-gyp/10.3.0/include/node"
+        "${env.HOME}/.node-gyp/10.3.0/include/node"
       ],
       "defines": [],
       "intelliSenseMode": "clang-x64",
@@ -17,7 +17,7 @@
           "${workspaceFolder}/deps/include",
           "${workspaceFolder}/deps/tensorflow/include/tensorflow/c",
           "${workspaceFolder}/deps/tensorflow/include/tensorflow/c/eager",
-          "${workspaceFolder}/../../.node-gyp/10.3.0/include/node"
+          "${env.HOME}/.node-gyp/10.3.0/include/node"
         ],
         "limitSymbolsToIncludedHeaders": true,
         "databaseFilename": ""
@@ -36,7 +36,7 @@
         "/usr/include",
         "/usr/local/include",
         "${workspaceFolder}",
-        "${workspaceFolder}/../../.node-gyp/10.15.0/include/node",
+        "${env.HOME}/.node-gyp/10.15.0/include/node",
         "${workspaceFolder}/deps/include"
       ],
       "defines": [],
@@ -48,7 +48,7 @@
           "${workspaceFolder}",
           "${workspaceFolder}/deps/include/tensorflow/c",
           "${workspaceFolder}/deps/include/tensorflow/c/eager",
-          "${workspaceFolder}/../../.node-gyp/10.15.0/include/node"
+          "${env.HOME}/.node-gyp/10.15.0/include/node"
         ],
         "limitSymbolsToIncludedHeaders": true,
         "databaseFilename": ""
@@ -61,7 +61,9 @@
       "name": "Win32",
       "includePath": [
         "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include",
-        "${workspaceFolder}"
+        "${workspaceFolder}",
+        "${workspaceFolder}/deps/include",
+        "${env.HOMEPATH}/.node-gyp/10.15.2/include/node"
       ],
       "defines": [
         "_DEBUG",
@@ -72,7 +74,10 @@
       "browse": {
         "path": [
           "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include/*",
-          "${workspaceFolder}"
+          "${workspaceFolder}",
+          "${workspaceFolder}/deps/include/tensorflow/c",
+          "${workspaceFolder}/deps/include/tensorflow/c/eager",
+          "${env.HOMEPATH}/.node-gyp/10.15.2/include/node"
         ],
         "limitSymbolsToIncludedHeaders": true,
         "databaseFilename": ""
