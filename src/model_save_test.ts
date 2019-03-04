@@ -14,6 +14,7 @@ import * as tfl from './index';
 import * as initializers from './initializers';
 // tslint:disable-next-line:max-line-length
 import {describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from './utils/test_utils';
+import {version} from './version';
 
 describeMathCPUAndGPU('LayersModel.save', () => {
   class IOHandlerForTest implements io.IOHandler {
@@ -26,6 +27,32 @@ describeMathCPUAndGPU('LayersModel.save', () => {
   }
 
   class EmptyIOHandler implements io.IOHandler {}
+
+  it('Model artifacts contains meta-information: Sequential', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 3, inputShape: [5]}));
+    const handler = new IOHandlerForTest();
+
+    await model.save(handler);
+    expect(handler.savedArtifacts.format).toEqual('layers-model');
+    expect(handler.savedArtifacts.generatedBy).toEqual(
+        `TensorFlow.js tfjs-layers v${version}`);
+    expect(handler.savedArtifacts.convertedBy).toEqual(null);
+  });
+
+  it('Model artifacts contains meta-information: Functional', async () => {
+    const input = tfl.input({shape: [5]});
+    const output =
+        tfl.layers.dense({units: 3}).apply(input) as tfl.SymbolicTensor;
+    const model = tfl.model({inputs: input, outputs: output});
+    const handler = new IOHandlerForTest();
+
+    await model.save(handler);
+    expect(handler.savedArtifacts.format).toEqual('layers-model');
+    expect(handler.savedArtifacts.generatedBy).toEqual(
+        `TensorFlow.js tfjs-layers v${version}`);
+    expect(handler.savedArtifacts.convertedBy).toEqual(null);
+  });
 
   it('Saving all weights succeeds', async () => {
     const model = tfl.sequential();
