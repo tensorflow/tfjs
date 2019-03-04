@@ -44,7 +44,7 @@ describe('renderTable', () => {
     ];
 
     const container = document.getElementById('container') as HTMLElement;
-    renderTable({headers, values}, container);
+    renderTable(container, {headers, values});
 
     expect(document.querySelectorAll('.tf-table').length).toBe(1);
     expect(document.querySelectorAll('.tf-table thead tr').length).toBe(1);
@@ -82,7 +82,7 @@ describe('renderTable', () => {
     const headers: string[] = [];
     const values: string[][] = [];
 
-    expect(() => renderTable({headers, values}, container)).not.toThrow();
+    expect(() => renderTable(container, {headers, values})).not.toThrow();
 
     expect(document.querySelectorAll('.tf-table').length).toBe(1);
     expect(document.querySelectorAll('.tf-table thead tr').length).toBe(1);

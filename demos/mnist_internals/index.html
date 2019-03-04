@@ -140,8 +140,10 @@
       </script>
 
       <p>
-        This model is a 'convolutional' model, a common model type for image processing applications. They get their name from the
-        'convolution' operation implemented by some of their layers. There are 3 layers of interest we will focus on in this
+        This model is a 'convolutional' model, a common model type for image processing applications. They get their
+        name from the
+        'convolution' operation implemented by some of their layers. There are 3 layers of interest we will focus on in
+        this
         example:
       </p>
       <ul>
@@ -162,17 +164,21 @@
       <h3>Conv2d1: The first convolution</h3>
 
       <p>
-        Convolutional layers are able to capture local spatial patterns in images due to how the convolution operation works. Convolution
+        Convolutional layers are able to capture local spatial patterns in images due to how the convolution operation
+        works. Convolution
         works similarly to image filters in common image editing tools or
         <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/filter">css filters.</a> In this case they are applied
-        to the image to extract information useful for classification. You can learn more about how convolution works from
+        to the image to extract information useful for classification. You can learn more about how convolution works
+        from
         this
-        <a href="http://setosa.io/ev/image-kernels/">interactive explanation.</a> The training process learns appropriate
+        <a href="http://setosa.io/ev/image-kernels/">interactive explanation.</a> The training process learns
+        appropriate
         'filters' to help with the digit recognition task.
       </p>
 
       <p>
-        Before we take an in depth look at the filters we can get some summary information about this layer using the <code>show.layer</code>        api.
+        Before we take an in depth look at the filters we can get some summary information about this layer using the
+        <code>show.layer</code> api.
       </p>
 
       <p><button id='show-conv1'>Show conv2d_Conv2D1 Details</button></p>
@@ -187,7 +193,8 @@
       </script>
 
       <p>
-        The <em>conv2d_Conv2D1/kernel</em> weight represents the filters used in this convolution. Lets take a look at these
+        The <em>conv2d_Conv2D1/kernel</em> weight represents the filters used in this convolution. Lets take a look at
+        these
         filters and how they transform the output.
       </p>
 
@@ -337,8 +344,10 @@
       <h3>Conv2d2: The second convolution</h3>
 
       <p>
-        The second convolutional layer extracts higher level features from the output of the prior layer. This layer has twice as
-        many filters as the previous convolutional layer. 16 different 'images' will be produced for each input tensor to
+        The second convolutional layer extracts higher level features from the output of the prior layer. This layer has
+        twice as
+        many filters as the previous convolutional layer. 16 different 'images' will be produced for each input tensor
+        to
         this layer. We can see a summary of this layer and then look at the resulting activations.
       </p>
 
@@ -380,7 +389,8 @@
       <h3>dense_Dense1: The Dense layer</h3>
 
       <p>
-        The dense layer is responsible for combining all the information from previous layers by multipying those values with its
+        The dense layer is responsible for combining all the information from previous layers by multipying those values
+        with its
         weights to generate the final prediction.
       </p>
 
@@ -396,7 +406,8 @@
       </script>
 
       <p>
-        The 'activations' from this layer are actually our models final output. 10 values are output that represent the probablility
+        The 'activations' from this layer are actually our models final output. 10 values are output that represent the
+        probablility
         that the image represents that digit (0-9).
       </p>
 
@@ -439,7 +450,7 @@
                 return { index: i, value: d };
               });
             renderImage(imageSurface, imageTensor, { width: 50, height: 50 });
-            tfvis.render.barchart(barchartData, chartSurface, { width: 375, height: 60 });
+            tfvis.render.barchart(chartSurface, barchartData, { width: 375, height: 60 });
           }
         }
 
@@ -452,8 +463,10 @@
     <section>
       <h2>That's it</h2>
       <p>
-        An interesting exercise for you is to reload this page, load the data and then look at the activations <em>before</em>
-        training the model, this will show you what those actications look like when the model is randomly initialized. Compare what
+        An interesting exercise for you is to reload this page, load the data and then look at the activations
+        <em>before</em>
+        training the model, this will show you what those actications look like when the model is randomly initialized.
+        Compare what
         these look like to activations produced after the model is trained.
       </p>
     </section>

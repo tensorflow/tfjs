@@ -37,9 +37,10 @@ import {getDrawArea} from './render_utils';
  * const data = { values: [series1, series2], series }
  *
  * const surface = { name: 'Scatterplot', tab: 'Charts' };
- * tfvis.render.scatterplot(data, surface);
+ * tfvis.render.scatterplot(surface, data);
  * ```
  *
+ * @param container An HTMLElement in which to draw the chart
  * @param data Data in the following format
  *  {
  *    // A nested array of objects each with an x and y property,
@@ -52,7 +53,6 @@ import {getDrawArea} from './render_utils';
  *    // Optional
  *    series: string[]
  *  }
- * @param container An HTMLElement in which to draw the chart
  * @param opts optional parameters
  * @param opts.width width of chart in px
  * @param opts.height height of chart in px
@@ -70,8 +70,9 @@ import {getDrawArea} from './render_utils';
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
 export async function renderScatterplot(
+    container: Drawable,
     data: {values: Point2D[][]|Point2D[], series?: string[]},
-    container: Drawable, opts: XYPlotOptions = {}): Promise<void> {
+    opts: XYPlotOptions = {}): Promise<void> {
   let _values = data.values;
   const _series = data.series == null ? [] : data.series;
 

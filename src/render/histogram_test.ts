@@ -35,7 +35,7 @@ describe('renderHistogram', () => {
     ];
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderHistogram(data, container);
+    await renderHistogram(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('table').length).toBe(1);
@@ -49,7 +49,7 @@ describe('renderHistogram', () => {
     const data = [50, 100, 100];
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderHistogram(data, container);
+    await renderHistogram(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('table').length).toBe(1);
@@ -63,7 +63,7 @@ describe('renderHistogram', () => {
     const data = new Int32Array([50, 100, 100]);
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderHistogram(data, container);
+    await renderHistogram(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('table').length).toBe(1);
@@ -82,10 +82,10 @@ describe('renderHistogram', () => {
 
     const container = document.getElementById('container') as HTMLElement;
 
-    await renderHistogram(data, container);
+    await renderHistogram(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
 
-    await renderHistogram(data, container);
+    await renderHistogram(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
 
@@ -98,7 +98,7 @@ describe('renderHistogram', () => {
 
     const container = document.getElementById('container') as HTMLElement;
 
-    await renderHistogram(data, container);
+    await renderHistogram(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
 
     data = [
@@ -107,7 +107,7 @@ describe('renderHistogram', () => {
       {value: 150},
     ];
 
-    await renderHistogram(data, container);
+    await renderHistogram(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
 
@@ -124,7 +124,7 @@ describe('renderHistogram', () => {
     ];
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderHistogram(data, container);
+    await renderHistogram(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('table').length).toBe(1);
@@ -144,7 +144,7 @@ describe('renderHistogram', () => {
 
     const container = document.getElementById('container') as HTMLElement;
     expect(async () => {
-      await renderHistogram(data, container);
+      await renderHistogram(container, data);
     }).not.toThrow();
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -167,7 +167,7 @@ describe('renderHistogram', () => {
     };
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderHistogram(data, container, {stats});
+    await renderHistogram(container, data, {stats});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('table').length).toBe(1);
@@ -190,7 +190,7 @@ describe('renderHistogram', () => {
     ];
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderHistogram(data, container, {width: 400});
+    await renderHistogram(container, data, {width: 400});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
@@ -205,7 +205,7 @@ describe('renderHistogram', () => {
     ];
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderHistogram(data, container, {height: 200});
+    await renderHistogram(container, data, {height: 200});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);

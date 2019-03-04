@@ -45,5 +45,5 @@ export async function valuesDistribution(container: Drawable, tensor: Tensor) {
   const drawArea = getDrawArea(container);
   const stats = await tensorStats(tensor);
   const values = await tensor.data();
-  renderHistogram(values, drawArea, {height: 150, stats});
+  renderHistogram(drawArea, values, {height: 150, stats});
 }

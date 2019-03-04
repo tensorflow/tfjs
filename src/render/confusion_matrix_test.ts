@@ -34,7 +34,7 @@ describe('renderConfusionMatrix', () => {
     };
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderConfusionMatrix(data, container);
+    await renderConfusionMatrix(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
@@ -46,7 +46,7 @@ describe('renderConfusionMatrix', () => {
     };
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderConfusionMatrix(data, container, {shadeDiagonal: true});
+    await renderConfusionMatrix(container, data, {shadeDiagonal: true});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
@@ -58,7 +58,7 @@ describe('renderConfusionMatrix', () => {
 
     const container = document.getElementById('container') as HTMLElement;
 
-    await renderConfusionMatrix(data, container);
+    await renderConfusionMatrix(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
 
@@ -70,7 +70,7 @@ describe('renderConfusionMatrix', () => {
 
     const container = document.getElementById('container') as HTMLElement;
 
-    await renderConfusionMatrix(data, container);
+    await renderConfusionMatrix(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
 
     data = {
@@ -78,7 +78,7 @@ describe('renderConfusionMatrix', () => {
       tickLabels: ['cheese', 'pig', 'font'],
     };
 
-    await renderConfusionMatrix(data, container);
+    await renderConfusionMatrix(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
 
@@ -89,7 +89,7 @@ describe('renderConfusionMatrix', () => {
     };
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderConfusionMatrix(data, container, {width: 400});
+    await renderConfusionMatrix(container, data, {width: 400});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
@@ -103,7 +103,7 @@ describe('renderConfusionMatrix', () => {
     };
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderConfusionMatrix(data, container, {height: 200});
+    await renderConfusionMatrix(container, data, {height: 200});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);

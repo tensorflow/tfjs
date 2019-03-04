@@ -43,7 +43,7 @@ import {getDrawArea} from './render_utils';
  *
  * // Render to visor
  * const surface = { name: 'Confusion Matrix', tab: 'Charts' };
- * tfvis.render.confusionMatrix(data, surface);
+ * tfvis.render.confusionMatrix(surface, data);
  * ```
  *
  * ```js
@@ -58,11 +58,12 @@ import {getDrawArea} from './render_utils';
  *  name: 'Confusion Matrix with Excluded Diagonal', tab: 'Charts'
  * };
  *
- * tfvis.render.confusionMatrix(data, surface, {
+ * tfvis.render.confusionMatrix(surface, data, {
  *   shadeDiagonal: false
  * });
  * ```
  *
+ * @param container An `HTMLElement` or `Surface` in which to draw the chart
  * @param data Data consists of an object with a 'values' property
  *  and a 'labels' property.
  *  {
@@ -78,7 +79,6 @@ import {getDrawArea} from './render_utils';
  *    values: [[80, 23], [56, 94]],
  *    tickLabels: ['dog', 'cat'],
  *  }
- * @param container An `HTMLElement` or `Surface` in which to draw the chart
  * @param opts optional parameters
  * @param opts.shadeDiagonal boolean that controls whether or not to color cells
  * on the diagonal. Defaults to true
@@ -91,7 +91,7 @@ import {getDrawArea} from './render_utils';
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
 export async function renderConfusionMatrix(
-    data: ConfusionMatrixData, container: Drawable,
+    container: Drawable, data: ConfusionMatrixData,
     opts: VisOptions&
     {shadeDiagonal?: boolean, showTextOverlay?: boolean} = {}): Promise<void> {
   const options = Object.assign({}, defaultOpts, opts);

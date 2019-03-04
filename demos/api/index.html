@@ -93,11 +93,11 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Barchart', tab: 'Charts' });
-          tfvis.render.barchart(data, surface, {});
+          tfvis.render.barchart(surface, data, {});
 
           // Render to page
           const container = document.getElementById('barchart-cont');
-          tfvis.render.barchart(data, container, {
+          tfvis.render.barchart(container, data, {
             xLabel: 'my x axis',
             yLabel: 'values',
             width: 500,
@@ -135,7 +135,7 @@
           for (let i = 0; i < numRenders; i++) {
             const data = genData(numVals);
             const container = document.getElementById('barchart-multi');
-            await tfvis.render.barchart(data, container, {
+            await tfvis.render.barchart(container, data, {
               xLabel: 'my x axis',
               yLabel: 'values',
               width: 800,
@@ -175,11 +175,11 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Table', tab: 'Charts' });
-          tfvis.render.table({ headers, values }, surface);
+          tfvis.render.table(surface, { headers, values });
 
           // Render to page
           const container = document.getElementById('table-cont');
-          tfvis.render.table({ headers, values }, container, {
+          tfvis.render.table(container, { headers, values }, {
             fontSize: 14
           });
         }
@@ -202,11 +202,11 @@
           data.push(0);
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Histogram', tab: 'Charts' });
-          tfvis.render.histogram(data, surface);
+          tfvis.render.histogram(surface, data);
 
           // Render to page
           const container = document.getElementById('histogram-cont');
-          tfvis.render.histogram(data, container);
+          tfvis.render.histogram(container, data);
         }
       </script>
 
@@ -231,12 +231,12 @@
           for (let i = 0; i < numRenders; i++) {
             const data = genData(numVals);
             const container = document.getElementById('histogram-multi');
-            await tfvis.render.histogram(data, container, {
+            await tfvis.render.histogram(container, data, {
               stats: false,
             });
 
             const surface = { name: 'Histogram', tab: 'Re-renders' };
-            await tfvis.render.histogram(data, surface, {
+            await tfvis.render.histogram(surface, data, {
               stats: false,
             });
             await sleep(20);
@@ -270,11 +270,11 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Linechart', tab: 'Charts' });
-          tfvis.render.linechart(data, surface);
+          tfvis.render.linechart(surface, data);
 
           // Render to page
           const container = document.getElementById('linechart-cont');
-          tfvis.render.linechart(data, container);
+          tfvis.render.linechart(container, data);
         }
       </script>
 
@@ -291,11 +291,11 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Zoomed Line Chart', tab: 'Charts' });
-          tfvis.render.linechart(data, surface, { zoomToFit: true });
+          tfvis.render.linechart(surface, data, { zoomToFit: true });
 
           // Render to page
           const container = document.getElementById('zoomed-linechart-cont');
-          tfvis.render.linechart(data, container, { zoomToFit: true });
+          tfvis.render.linechart(container, data, { zoomToFit: true });
         }
       </script>
 
@@ -316,11 +316,11 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'truncated Line Chart', tab: 'Charts' });
-          tfvis.render.linechart(data, surface, { yAxisDomain: [80, 120] });
+          tfvis.render.linechart(surface, data, { yAxisDomain: [80, 120] });
 
           // Render to page
           const container = document.getElementById('truncated-linechart-cont');
-          tfvis.render.linechart(data, container, { yAxisDomain: [80, 120] });
+          tfvis.render.linechart(container, data, { yAxisDomain: [80, 120] });
         }
       </script>
 
@@ -346,11 +346,11 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Scatterplot', tab: 'Charts' });
-          tfvis.render.scatterplot(data, surface);
+          tfvis.render.scatterplot(surface, data);
 
           // Render to page
           const container = document.getElementById('scatterplot-cont');
-          tfvis.render.scatterplot(data, container, { width: 500, height: 500 });
+          tfvis.render.scatterplot(container, data, { width: 500, height: 500 });
         }
       </script>
 
@@ -374,11 +374,11 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Zoomed Scatterplot', tab: 'Charts' });
-          tfvis.render.scatterplot(data, surface, { zoomToFit: true });
+          tfvis.render.scatterplot(surface, data, { zoomToFit: true });
 
           // Render to page
           const container = document.getElementById('zoomed-scatterplot-cont');
-          tfvis.render.scatterplot(data, container, {
+          tfvis.render.scatterplot(container, data, {
             width: 500,
             height: 500,
             zoomToFit: true,
@@ -405,14 +405,14 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Custom Domain Scatterplot', tab: 'Charts' });
-          tfvis.render.scatterplot(data, surface, {
+          tfvis.render.scatterplot(surface, data, {
             xAxisDomain: [-20, 200],
             yAxisDomain: [-50, 125]
           });
 
           // Render to page
           const container = document.getElementById('customdomain-scatterplot-cont');
-          tfvis.render.scatterplot(data, container, {
+          tfvis.render.scatterplot(container, data, {
             width: 500,
             height: 500,
             xAxisDomain: [-20, 200],
@@ -423,7 +423,7 @@
 
       <hr>
 
-      <h3>render.confusionMatrix(data, container, opts)</h3>
+      <h3>render.confusionMatrix</h3>
 
       <div id='confmatrix-cont'></div>
 
@@ -444,13 +444,13 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Confusion Matrix', tab: 'Charts' });
-          tfvis.render.confusionMatrix(data, surface, {
+          tfvis.render.confusionMatrix(surface, data, {
             showTextOverlay: false
           });
 
           // Render to page
           const container = document.getElementById('confmatrix-cont');
-          tfvis.render.confusionMatrix(data, container, { width: 800, height: 800 });
+          tfvis.render.confusionMatrix(container, data, { width: 800, height: 800 });
         }
       </script>
 
@@ -469,13 +469,13 @@
           const surface = tfvis.visor().surface({
             name: 'Confusion Matrix with Excluded Diagonal', tab: 'Charts'
           });
-          tfvis.render.confusionMatrix(data, surface, {
+          tfvis.render.confusionMatrix(surface, data, {
             shadeDiagonal: false
           });
 
           // Render to page
           const container = document.getElementById('confmatrix-cont2');
-          tfvis.render.confusionMatrix(data, container, {
+          tfvis.render.confusionMatrix(container, data, {
             width: 500,
             height: 500,
             shadeDiagonal: false,
@@ -499,11 +499,11 @@
           const surface = tfvis.visor().surface({
             name: 'Confusion Matrix with perfect classification', tab: 'Charts'
           });
-          tfvis.render.confusionMatrix(data, surface);
+          tfvis.render.confusionMatrix(surface, data);
 
           // Render to page
           const container = document.getElementById('confmatrix-cont3');
-          tfvis.render.confusionMatrix(data, container, {
+          tfvis.render.confusionMatrix(container, data, {
             width: 500,
             height: 500,
           });
@@ -529,13 +529,13 @@
           const surface = tfvis.visor().surface({
             name: 'Confusion Matrix with perfect classification shadeDiagonal=false', tab: 'Charts'
           });
-          tfvis.render.confusionMatrix(data, surface, {
+          tfvis.render.confusionMatrix(surface, data, {
             shadeDiagonal: false,
           });
 
           // Render to page
           const container = document.getElementById('confmatrix-cont4');
-          tfvis.render.confusionMatrix(data, container, {
+          tfvis.render.confusionMatrix(container, data, {
             width: 500,
             height: 500,
             shadeDiagonal: false,
@@ -565,11 +565,11 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Heatmap', tab: 'Charts' });
-          tfvis.render.heatmap(data, surface);
+          tfvis.render.heatmap(surface, data);
 
           // Render to page
           const container = document.getElementById('heatmap-cont');
-          tfvis.render.heatmap(data, container, { width: 500, height: 500 });
+          tfvis.render.heatmap(container, data, { width: 500, height: 500 });
         }
       </script>
 
@@ -588,11 +588,11 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Heatmap w Custom Labels', tab: 'Charts' });
-          tfvis.render.heatmap(data, surface);
+          tfvis.render.heatmap(surface, data);
 
           // Render to page
           const container = document.getElementById('heatmap-cont2');
-          tfvis.render.heatmap(data, container, { width: 500, height: 500 });
+          tfvis.render.heatmap(container, data, { width: 500, height: 500 });
         }
       </script>
 
@@ -611,13 +611,13 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Heatmap w Custom Colormap', tab: 'Charts' });
-          tfvis.render.heatmap(data, surface, {
+          tfvis.render.heatmap(surface, data, {
             colorMap: 'greyscale',
           });
 
           // Render to page
           const container = document.getElementById('heatmap-cont3');
-          tfvis.render.heatmap(data, container, {
+          tfvis.render.heatmap(container, data, {
             colorMap: 'greyscale',
             width: 500,
             height: 500
@@ -640,14 +640,14 @@
 
           // Render to visor
           const surface = tfvis.visor().surface({ name: 'Heatmap', tab: 'Tensor Charts' });
-          tfvis.render.heatmap(data, surface, {
+          tfvis.render.heatmap(surface, data, {
             xLabel: 'Thing',
             yLabel: 'Property',
           });
 
           // Render to page
           const container = document.getElementById('heatmap-cont4');
-          tfvis.render.heatmap(data, container, {
+          tfvis.render.heatmap(container, data, {
             width: 500,
             height: 500,
             xLabel: 'Thing',

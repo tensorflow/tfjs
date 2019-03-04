@@ -33,7 +33,7 @@ describe('renderBarChart', () => {
     ];
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderBarchart(data, container);
+    await renderBarchart(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
@@ -47,10 +47,10 @@ describe('renderBarChart', () => {
 
     const container = document.getElementById('container') as HTMLElement;
 
-    await renderBarchart(data, container);
+    await renderBarchart(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
 
-    await renderBarchart(data, container);
+    await renderBarchart(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
 
@@ -63,7 +63,7 @@ describe('renderBarChart', () => {
 
     const container = document.getElementById('container') as HTMLElement;
 
-    await renderBarchart(data, container);
+    await renderBarchart(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
 
     data = [
@@ -72,7 +72,7 @@ describe('renderBarChart', () => {
       {index: 2, value: 150},
     ];
 
-    await renderBarchart(data, container);
+    await renderBarchart(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
 
@@ -84,7 +84,7 @@ describe('renderBarChart', () => {
     ];
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderBarchart(data, container, {width: 400});
+    await renderBarchart(container, data, {width: 400});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
@@ -99,7 +99,7 @@ describe('renderBarChart', () => {
     ];
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderBarchart(data, container, {height: 200});
+    await renderBarchart(container, data, {height: 200});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
