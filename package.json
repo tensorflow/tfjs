@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-data",
-  "version": "1.0.0-alpha4",
+  "version": "1.0.0-alpha5",
   "description": "TensorFlow Data API in JavaScript",
   "private": false,
   "main": "dist/index.js",
@@ -11,7 +11,7 @@
   "module": "dist/tf-data.esm.js",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "1.0.0-alpha4",
+    "@tensorflow/tfjs-core": "1.0.0-alpha5",
     "@types/fetch-mock": "^6.0.1",
     "@types/jasmine": "~2.5.53",
     "@types/nock": "9.3.0",
@@ -52,7 +52,7 @@
     "lint": "tslint -p . -t verbose"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "1.0.0-alpha4"
+    "@tensorflow/tfjs-core": "1.0.0-alpha5"
   },
   "dependencies": {
     "@types/node-fetch": "^2.1.2",
