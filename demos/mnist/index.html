@@ -304,7 +304,10 @@
             const [preds, labels] = doPrediction();
             const confusionMatrix = await tfvis.metrics.confusionMatrix(labels, preds);
             const container = { name: 'Confusion Matrix', tab: 'Evaluation' };
-            tfvis.show.confusionMatrix(container, confusionMatrix, classNames);
+            tfvis.render.confusionMatrix(container, {
+              values: confusionMatrix,
+              tickLabels: classNames,
+            });
 
             labels.dispose();
           }

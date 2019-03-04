@@ -15,10 +15,9 @@
  * =============================================================================
  */
 
-import {renderConfusionMatrix} from '../render/confusion_matrix';
 import {getDrawArea} from '../render/render_utils';
 import {renderTable} from '../render/table';
-import {ConfusionMatrixData, Drawable} from '../types';
+import {Drawable} from '../types';
 
 /**
  * Renders a per class accuracy table for classification task evaluation
@@ -64,44 +63,4 @@ export async function showPerClassAccuracy(
   }
 
   return renderTable(drawArea, {headers, values});
-}
-
-/**
- * Renders a confusion matrix for classification task evaluation
- *
- * ```js
- * const labels = tf.tensor1d([0, 0, 1, 1, 2, 2, 2, 3 ,3 ,3, 4, 4]);
- * const predictions = tf.tensor1d([0, 0, 1, 0, 2, 3, 1, 3 ,4 ,3, 2, 2]);
- *
- * const matrix = await tfvis.metrics.confusionMatrix(labels, predictions);
- *
- * const container = {name: 'Confusion Matrix', tab: 'Evaluation'};
- * const categories = ['cat', 'dog', 'mouse', 'bird', 'fish'];
- * await tfvis.show.confusionMatrix(container, matrix, categories);
- * ```
- *
- * @param container A `{name: string, tab?: string}` object specifying which
- * surface to render to.
- * @param confusionMatrix A nested array of numbers with the confusion matrix
- * values. See metrics.confusionMatrix for details on how to generate this.
- * @param classLabels An array of string labels for the classes in
- * `confusionMatrix`. Optional.
- *
- */
-/**
- * @doc {heading: 'Models & Tensors', subheading: 'Model Evaluation', namespace:
- * 'show'}
- */
-export async function showConfusionMatrix(
-    container: Drawable, confusionMatrix: number[][], classLabels?: string[]) {
-  const drawArea = getDrawArea(container);
-
-  const confusionMatrixData: ConfusionMatrixData = {
-    values: confusionMatrix,
-    tickLabels: classLabels,
-  };
-
-  return renderConfusionMatrix(drawArea, confusionMatrixData, {
-    height: 450,
-  });
 }

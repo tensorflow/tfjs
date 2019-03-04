@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {showConfusionMatrix, showPerClassAccuracy} from './quality';
+import {showPerClassAccuracy} from './quality';
 
 describe('perClassAccuracy', () => {
   beforeEach(() => {
@@ -42,32 +42,5 @@ describe('perClassAccuracy', () => {
     ];
     await showPerClassAccuracy(container, acc);
     expect(document.querySelectorAll('table').length).toBe(1);
-  });
-});
-
-describe('confusionMatrix', () => {
-  beforeEach(() => {
-    document.body.innerHTML = '<div id="container"></div>';
-  });
-
-  it('renders a confusion matrix', async () => {
-    const container = {name: 'Test'};
-    const matrix = [
-      [20, 3],
-      [6, 32],
-    ];
-    const labels = ['cat', 'dog'];
-    await showConfusionMatrix(container, matrix, labels);
-    expect(document.querySelectorAll('.vega-embed').length).toBe(1);
-  });
-
-  it('renders a confusion matrix without explicit labels', async () => {
-    const container = {name: 'Test'};
-    const matrix = [
-      [20, 3],
-      [6, 32],
-    ];
-    await showConfusionMatrix(container, matrix);
-    expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
 });
