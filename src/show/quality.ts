@@ -63,7 +63,7 @@ export async function showPerClassAccuracy(
     values.push([label, classAcc.accuracy, classAcc.count]);
   }
 
-  return renderTable({headers, values}, drawArea);
+  return renderTable(drawArea, {headers, values});
 }
 
 /**
@@ -101,7 +101,7 @@ export async function showConfusionMatrix(
     tickLabels: classLabels,
   };
 
-  return renderConfusionMatrix(confusionMatrixData, drawArea, {
+  return renderConfusionMatrix(drawArea, confusionMatrixData, {
     height: 450,
   });
 }

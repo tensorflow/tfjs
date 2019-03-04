@@ -34,14 +34,14 @@ import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
  *
  * // Render to visor
  * const surface = { name: 'Bar chart', tab: 'Charts' };
- * tfvis.render.barchart(data, surface, {});
+ * tfvis.render.barchart(surface, data);
  * ```
  *
- * @param data Data in the following format, (an array of objects)
- *    [ {index: number, value: number} ... ]
  * @param container An `HTMLElement` or `Surface` in which to draw the bar
  *    chart. Note that the chart expects to have complete control over
  *    the contents of the container and can clear its contents at will.
+ * @param data Data in the following format, (an array of objects)
+ *    [ {index: number, value: number} ... ]
  *
  * @param opts optional parameters
  * @param opts.width width of chart in px
@@ -56,7 +56,7 @@ import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
 export async function renderBarchart(
-    data: Array<{index: number; value: number;}>, container: Drawable,
+    container: Drawable, data: Array<{index: number; value: number;}>,
     opts: VisOptions = {}): Promise<void> {
   const drawArea = getDrawArea(container);
   const values = data;

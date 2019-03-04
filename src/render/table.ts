@@ -39,7 +39,7 @@ import {getDrawArea} from './render_utils';
  * ];
  *
  * const surface = { name: 'Table', tab: 'Charts' };
- * tfvis.render.table({ headers, values }, surface);
+ * tfvis.render.table(surface, { headers, values });
  * ```
  *
  * @param data Data in the following format
@@ -62,8 +62,9 @@ import {getDrawArea} from './render_utils';
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
 export function renderTable(
+    container: Drawable,
     // tslint:disable-next-line:no-any
-    data: {headers: string[], values: any[][]}, container: Drawable,
+    data: {headers: string[], values: any[][]},
     opts: {fontSize?: number} = {}) {
   if (data && data.headers == null) {
     throw new Error('Data to render must have a "headers" property');

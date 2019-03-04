@@ -36,8 +36,8 @@ import {getDrawArea} from './render_utils';
  * const series = ['First', 'Second'];
  * const data = { values: [series1, series2], series }
  *
- * const surface = tfvis.visor().surface({ name: 'Line chart', tab: 'Charts' });
- * tfvis.render.linechart(data, surface);
+ * const surface = { name: 'Line chart', tab: 'Charts' };
+ * tfvis.render.linechart(surface, data);
  * ```
  *
  * ```js
@@ -49,9 +49,10 @@ import {getDrawArea} from './render_utils';
  *
  * // Render to visor
  * const surface = { name: 'Zoomed Line Chart', tab: 'Charts' };
- * tfvis.render.linechart(data, surface, { zoomToFit: true });
+ * tfvis.render.linechart(surface, data, { zoomToFit: true });
  * ```
  *
+ * @param container An HTMLElement in which to draw the chart
  * @param data Data in the following format
  *  {
  *    // A nested array of objects each with an x and y property,
@@ -64,7 +65,6 @@ import {getDrawArea} from './render_utils';
  *    // Optional
  *    series: string[]
  *  }
- * @param container An HTMLElement in which to draw the chart
  * @param opts optional parameters
  * @param opts.width width of chart in px
  * @param opts.height height of chart in px
@@ -80,8 +80,9 @@ import {getDrawArea} from './render_utils';
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
 export async function renderLinechart(
+    container: Drawable,
     data: {values: Point2D[][]|Point2D[], series?: string[]},
-    container: Drawable, opts: XYPlotOptions = {}): Promise<void> {
+    opts: XYPlotOptions = {}): Promise<void> {
   let inputArray = data.values;
   const _series = data.series == null ? [] : data.series;
 

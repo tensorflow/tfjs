@@ -71,7 +71,7 @@ export async function modelSummary(container: Drawable, model: tf.Model) {
            l.trainable,
   ]);
 
-  renderTable({headers, values}, drawArea);
+  renderTable(drawArea, {headers, values});
 }
 
 /**
@@ -124,7 +124,7 @@ export async function layer(container: Drawable, layer: Layer) {
           [l.name, l.shape, l.stats.min, l.stats.max, l.weight.size,
            l.stats.numZeros, l.stats.numNans, l.stats.numInfs]);
 
-  renderTable({headers, values: detailValues}, weightsInfoSurface);
+  renderTable(weightsInfoSurface, {headers, values: detailValues});
 
   const histogramSelectorSurface = subSurface(drawArea, 'select-layer');
   const layerValuesHistogram = subSurface(drawArea, 'param-distribution');
@@ -134,7 +134,7 @@ export async function layer(container: Drawable, layer: Layer) {
     const weights = await layer.weight.data();
 
     renderHistogram(
-        weights, layerValuesHistogram, {height: 150, width: 460, stats: false});
+        layerValuesHistogram, weights, {height: 150, width: 460, stats: false});
   };
 
   addHistogramSelector(

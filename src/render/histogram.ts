@@ -42,12 +42,12 @@ const defaultOpts = {
  * data.push(0);
  *
  * const surface = { name: 'Histogram', tab: 'Charts' };
- * tfvis.render.histogram(data, surface);
+ * tfvis.render.histogram(surface, data);
  * ```
  *
+ * @param container An `HTMLElement`|`Surface` in which to draw the histogram
  * @param data Data in the following format:
  *  `[ {value: number}, ... ]` or `[number]` or `TypedArray`
- * @param container An `HTMLElement`|`Surface` in which to draw the histogram
  * @param opts optional parameters
  * @param opts.width width of chart in px
  * @param opts.height height of chart in px
@@ -70,7 +70,7 @@ const defaultOpts = {
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
 export async function renderHistogram(
-    data: Array<{value: number}>|number[]|TypedArray, container: HTMLElement,
+    container: HTMLElement, data: Array<{value: number}>|number[]|TypedArray,
     opts: HistogramOpts = {}) {
   const values = prepareData(data);
 
@@ -209,7 +209,7 @@ function renderStats(
     vals.push(`${format(stats.numInfs)} ${infPct}`);
   }
 
-  renderTable({headers, values: [vals]}, container, opts);
+  renderTable(container, {headers, values: [vals]}, opts);
 }
 
 /**

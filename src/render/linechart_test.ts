@@ -35,7 +35,7 @@ describe('renderLineChart', () => {
     };
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderLinechart(data, container);
+    await renderLinechart(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
@@ -58,7 +58,7 @@ describe('renderLineChart', () => {
 
     const container = document.getElementById('container') as HTMLElement;
 
-    await renderLinechart(data, container);
+    await renderLinechart(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
 
@@ -81,7 +81,7 @@ describe('renderLineChart', () => {
 
     const container = document.getElementById('container') as HTMLElement;
 
-    await renderLinechart(data, container);
+    await renderLinechart(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
 
@@ -104,7 +104,7 @@ describe('renderLineChart', () => {
 
     const container = document.getElementById('container') as HTMLElement;
 
-    await renderLinechart(data, container);
+    await renderLinechart(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
 
     data = {
@@ -125,7 +125,7 @@ describe('renderLineChart', () => {
       series: ['First', 'Second'],
     };
 
-    await renderLinechart(data, container);
+    await renderLinechart(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
 
@@ -139,7 +139,7 @@ describe('renderLineChart', () => {
     };
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderLinechart(data, container, {width: 400});
+    await renderLinechart(container, data, {width: 400});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
@@ -156,7 +156,7 @@ describe('renderLineChart', () => {
     };
 
     const container = document.getElementById('container') as HTMLElement;
-    await renderLinechart(data, container, {height: 200});
+    await renderLinechart(container, data, {height: 200});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);

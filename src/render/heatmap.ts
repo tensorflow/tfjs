@@ -56,6 +56,7 @@ import {getDrawArea} from './render_utils';
  * tfvis.render.heatmap(data, surface);
  * ```
  *
+ * @param container An `HTMLElement` or `Surface` in which to draw the chart
  * @param data Data consists of an object with a 'values' property
  *  and a 'labels' property.
  *  {
@@ -72,7 +73,6 @@ import {getDrawArea} from './render_utils';
  *    xTickLabels: ['dog', 'cat'],
  *    yTickLabels: ['size', 'temperature', 'agility'],
  *  }
- * @param container An `HTMLElement` or `Surface` in which to draw the chart
  * @param opts optional parameters
  * @param opts.colorMap which colormap to use. One of viridis|blues|greyscale.
  *     Defaults to viridis
@@ -88,7 +88,7 @@ import {getDrawArea} from './render_utils';
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
 export async function renderHeatmap(
-    data: HeatmapData, container: Drawable,
+    container: Drawable, data: HeatmapData,
     opts: HeatmapOptions = {}): Promise<void> {
   const options = Object.assign({}, defaultOpts, opts);
   const drawArea = getDrawArea(container);

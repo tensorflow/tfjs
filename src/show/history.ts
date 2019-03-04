@@ -166,7 +166,7 @@ export async function history(
       }
     }
 
-    const done = renderLinechart({values, series}, subContainer, options);
+    const done = renderLinechart(subContainer, {values, series}, options);
     renderPromises.push(done);
   }
   await Promise.all(renderPromises);
