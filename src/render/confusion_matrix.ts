@@ -255,6 +255,7 @@ const defaultOpts = {
   shadeDiagonal: true,
   fontSize: 12,
   showTextOverlay: true,
+  height: 400,
 };
 
 interface MatrixEntry {
