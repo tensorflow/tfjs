@@ -9,5 +9,5 @@
  */
 
 // This code is auto-generated, do not modify this file!
-const version = '1.0.0-alpha4';
+const version = '1.0.0-alpha5';
 export {version};
