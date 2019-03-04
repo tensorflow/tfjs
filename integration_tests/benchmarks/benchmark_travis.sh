@@ -20,6 +20,15 @@ if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
 then
   yarn
   yarn lint
+
+  echo 'Use latest version of tfjs-core'
+  git clone https://github.com/tensorflow/tfjs-core.git --depth 5
+  cd tfjs-core
+  yarn publish-local
+
+  cd ..
+  yarn link-local '@tensorflow/tfjs-core'
+
   karma start --firebaseKey $FIREBASE_KEY --travis \
     --singleRun --reporters='dots,karma-typescript,BrowserStack' \
     --hostname='bs-local.com' --browsers=bs_chrome_mac
