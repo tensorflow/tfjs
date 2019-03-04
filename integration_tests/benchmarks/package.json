@@ -8,6 +8,7 @@
     "url": "https://github.com/tensorflow/tfjs"
   },
   "devDependencies": {
+    "@tensorflow/tfjs": "latest",
     "@tensorflow/tfjs-core": "latest",
     "@types/jasmine": "~2.5.53",
     "clang-format": "~1.2.4",
@@ -31,6 +32,7 @@
   "scripts": {
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
+    "benchmark": "karma start --firebaseKey $FIREBASE_KEY",
     "benchmark-travis": "./benchmark_travis.sh"
   },
   "license": "Apache-2.0",

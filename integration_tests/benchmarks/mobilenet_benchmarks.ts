@@ -27,7 +27,7 @@ export class MobileNetV1GPUBenchmark implements BenchmarkTest {
   async run(size: number): Promise<number> {
     tf.setBackend('webgl');
 
-    const model = await tf.loadGraphModel(MOBILENET_MODEL_PATH);
+    const model = await tf.loadModel(MOBILENET_MODEL_PATH);
     const zeros = tf.zeros([1, 224, 224, 3]);
 
     const benchmark = () => model.predict(zeros) as tf.Tensor;

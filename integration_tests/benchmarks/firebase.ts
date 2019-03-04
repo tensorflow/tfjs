@@ -23,6 +23,7 @@ declare let __karma__: any;
 
 import 'firebase/auth';
 import 'firebase/database';
+// tslint:disable-next-line:max-line-length
 import {ApplicationConfig, BenchmarkRunEntry, BenchmarkEntry} from './firebase_types';
 
 // TODO(nsthorat): Support more than Chrome + mac;
