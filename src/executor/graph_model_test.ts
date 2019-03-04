@@ -274,9 +274,9 @@ describe('Model', () => {
     it('should loadGraphModel with request options', async () => {
       const model = await loadGraphModel(
           MODEL_URL, {requestInit: {credentials: 'include'}});
-      expect(tfc.io.browserHTTPRequest)
-          .toHaveBeenCalledWith(
-              MODEL_URL, {credentials: 'include'}, null, null, undefined);
+      expect(tfc.io.browserHTTPRequest).toHaveBeenCalledWith(MODEL_URL, {
+        requestInit: {credentials: 'include'}
+      });
       expect(model).not.toBeUndefined();
     });
 
