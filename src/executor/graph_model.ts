@@ -69,26 +69,28 @@ export class GraphModel implements tfc.InferenceModel {
    */
   constructor(
       private modelUrl: string|io.IOHandler,
-      private requestOption?: RequestInit, private weightPrefix?: string,
-      private onProgress?: Function) {}
+      private loadOptions: io.LoadOptions = {}) {
+    if (loadOptions == null) {
+      this.loadOptions = {};
+    }
+  }
 
   private findIOHandler() {
     const path = this.modelUrl;
     if ((path as io.IOHandler).load != null) {
       // Path is an IO Handler.
       this.handler = path as io.IOHandler;
-    } else if (this.requestOption || this.weightPrefix) {
-      this.handler = tfc.io.browserHTTPRequest(
-          path as string, this.requestOption, this.weightPrefix, null,
-          this.onProgress);
+    } else if (this.loadOptions.requestInit != null) {
+      this.handler =
+          tfc.io.browserHTTPRequest(path as string, this.loadOptions);
     } else {
-      const handlers = tfc.io.getLoadHandlers(path as string, this.onProgress);
+      const handlers =
+          tfc.io.getLoadHandlers(path as string, this.loadOptions.onProgress);
       if (handlers.length === 0) {
         // For backward compatibility: if no load handler can be found,
         // assume it is a relative http path.
-        handlers.push(tfc.io.browserHTTPRequest(
-            path as string, this.requestOption, this.weightPrefix, null,
-            this.onProgress));
+        handlers.push(
+            tfc.io.browserHTTPRequest(path as string, this.loadOptions));
       } else if (handlers.length > 1) {
         throw new Error(
             `Found more than one (${handlers.length}) load handlers for ` +
@@ -317,8 +319,7 @@ export async function loadGraphModel(
       modelUrl = `${modelUrl}${DEFAULT_MODEL_NAME}${TFHUB_SEARCH_PARAM}`;
     }
   }
-  const model =
-      new GraphModel(modelUrl, options.requestInit, null, options.onProgress);
+  const model = new GraphModel(modelUrl, options);
   await model.load();
   return model;
 }
