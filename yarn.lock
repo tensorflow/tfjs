@@ -16,34 +16,34 @@
     node-fetch "^2.1.1"
     url-template "^2.0.8"
 
-"@tensorflow/tfjs-converter@1.0.0-alpha7":
-  version "1.0.0-alpha7"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.0.0-alpha7.tgz#509ed4d6731572beffea708e36403449a402cdff"
-  integrity sha512-NFlXIUHnKm4wClRcMxrPQk/eJgCnpyy6g7F97Oc3R11wE94xJ5JQnnyT/SLIqyvGOWZvLjcVnqBOhMw0vRPIhA==
+"@tensorflow/tfjs-converter@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.0.0.tgz#cdd7bbf9f39fde93156fb1bddeac16a8ab157d6d"
+  integrity sha512-BGiR2U2BEKL+Gwf2Pqu7fZZw+z3ptMORTeS/rIxVnpIbeb7jsD7q25ibvfX1yuk21GM7igfZ53c4FPwqa24G9Q==
 
-"@tensorflow/tfjs-core@1.0.0-alpha5":
-  version "1.0.0-alpha5"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.0.0-alpha5.tgz#8e518baaede07dfddfbc08fe64f6c0af4f994db6"
-  integrity sha512-K2d5ntHcQmAvJjMu6OlEptZIGOLzPU/ul3cxMW/BSzGAqO0/Q4H+QeL3tWDKe8On4iW9hReTo1G5tHkvZ4CQoA==
+"@tensorflow/tfjs-core@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.0.0.tgz#1be6240efc5b2f270f90a032713dfac666fa1533"
+  integrity sha512-YiGjDJODPXI9S9AEizf6rdkYFFFCBCqwOmFqBY2MderPaDJ71rqhTzWQkWCMXV4Jhz5J+TEqtr8ishl3Zyid6A==
   dependencies:
     "@types/seedrandom" "2.4.27"
     "@types/webgl-ext" "0.0.30"
     "@types/webgl2" "0.0.4"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-data@1.0.0-alpha5":
-  version "1.0.0-alpha5"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.0.0-alpha5.tgz#e8be2aaa66752ffa0d765f529ee6665e515a6fe1"
-  integrity sha512-v1cOLYsDTdZiHTfk3RHnqc8iK0Gy3b2nuHqJpeJm2Y+lOIF76O9gM5b7mtFto/70EtHaj1UtONqIRzuC0ufhFg==
+"@tensorflow/tfjs-data@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.0.0.tgz#ccdc4fe713ca903cdc61135f7c361effaea4e670"
+  integrity sha512-pWn0OH5x67Qa98FWiBO1UvcglEsDFf57Tv7amtC+WxlMrH5hUHSaR30dBaW1qpdOEJkDRJtUg6tNTG2av6mqVQ==
   dependencies:
     "@types/node-fetch" "^2.1.2"
     node-fetch "~2.1.2"
     seedrandom "~2.4.3"
 
-"@tensorflow/tfjs-layers@1.0.0-alpha5":
-  version "1.0.0-alpha5"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.0.0-alpha5.tgz#912f2d4d913c9391e77c6f98d21465362b875a66"
-  integrity sha512-gCAa0e7c9VigDFu8IVrU3eEHt424uPpxdTvDrAIeXIYaZH+90u7XH4TjcFbcuWtaHggj6rTwFbN+RW+7+IeKVA==
+"@tensorflow/tfjs-layers@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.0.0.tgz#e4344e9221001850eb1615184fa5ca2499f75254"
+  integrity sha512-+RB5TKM/L7qLn17ic8da/G2qg8EFhRvZIoRA6uCCs5OMUJAUQqhDqBNaoWiy0pYtXDzfZJu3ZOkDbAg2Xv2YOQ==
 
 "@types/estree@0.0.38":
   version "0.0.38"
