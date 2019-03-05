@@ -52,7 +52,7 @@ import {tensorStats} from '../util/math';
  *  namespace: 'show'
  * }
  */
-export async function modelSummary(container: Drawable, model: tf.Model) {
+export async function modelSummary(container: Drawable, model: tf.LayersModel) {
   const drawArea = getDrawArea(container);
   const summary = getModelSummary(model);
 
@@ -145,7 +145,7 @@ export async function layer(container: Drawable, layer: Layer) {
 // Helper functions
 //
 
-function getModelSummary(model: tf.Model) {
+function getModelSummary(model: tf.LayersModel) {
   return {
     layers: model.layers.map(getLayerSummary),
   };

@@ -227,7 +227,7 @@
           canvas.height = imageOpts.height;
           canvas.style = `margin: 4px; width:${imageOpts.width}px; height:${imageOpts.height}px`;
           container.appendChild(canvas);
-          await tf.toPixels(resized, canvas);
+          await tf.browser.toPixels(resized, canvas);
           resized.dispose();
         }
 
