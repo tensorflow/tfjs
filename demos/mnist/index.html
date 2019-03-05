@@ -170,7 +170,7 @@
               canvas.width = 28;
               canvas.height = 28;
               canvas.style = 'margin: 4px;';
-              await tf.toPixels(imageTensor, canvas);
+              await tf.browser.toPixels(imageTensor, canvas);
               drawArea.appendChild(canvas);
 
               imageTensor.dispose();

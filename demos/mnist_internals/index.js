@@ -53,7 +53,7 @@ async function showExamples(drawArea, numExamples) {
     canvas.width = 28;
     canvas.height = 28;
     canvas.style = 'margin: 4px;';
-    const drawPromise = tf.toPixels(imageTensor, canvas);
+    const drawPromise = tf.browser.toPixels(imageTensor, canvas);
     drawArea.appendChild(canvas);
 
     tensorsToDispose.push(imageTensor);

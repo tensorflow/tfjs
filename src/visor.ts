@@ -157,26 +157,41 @@ export class Visor {
     return this.visorComponent.getSurface(name, tab);
   }
 
+  /**
+   * Returns a boolean indicating if the visor is in 'fullscreen' mode
+   */
   /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   isFullscreen() {
     return this.visorComponent.isFullscreen();
   }
 
+  /**
+   * Returns a boolean indicating if the visor is open
+   */
   /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   isOpen() {
     return this.visorComponent.isOpen();
   }
 
+  /**
+   * Closes the visor.
+   */
   /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   close() {
     return this.visorComponent.close();
   }
 
+  /**
+   * Opens the visor.
+   */
   /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   open() {
     return this.visorComponent.open();
   }
 
+  /**
+   * Toggles the visor (closed vs open).
+   */
   /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   toggle() {
     return this.visorComponent.toggle();
@@ -187,16 +202,27 @@ export class Visor {
     return this.visorComponent.toggleFullScreen();
   }
 
+  /**
+   * Binds the ~ (tilde) key to toggle the visor.
+   *
+   * This is called by default when the visor is initially created.
+   */
   /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   bindKeys() {
     return this.visorComponent.bindKeys();
   }
 
+  /**
+   * Unbinds the keyboard control to toggle the visor.
+   */
   /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   unbindKeys() {
     return this.visorComponent.unbindKeys();
   }
 
+  /**
+   * Sets the active tab for the visor.
+   */
   /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   setActiveTab(tabName: string) {
     const tabs = this.visorComponent.state.tabs;
