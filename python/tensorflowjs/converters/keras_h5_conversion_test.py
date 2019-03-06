@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Unit tests for artifact conversion to and from Python Keras."""
+"""Unit tests for artifact conversion to and from Python keras."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -25,9 +25,8 @@ import tempfile
 import unittest
 
 import h5py
-import keras
 import numpy as np
-import tensorflow as tf
+from tensorflow import keras
 
 from tensorflowjs import version
 from tensorflowjs.converters import keras_h5_conversion as conversion
@@ -134,7 +133,8 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'layers-model')
-    self.assertEqual(model_json['generatedBy'], 'keras v%s' % keras.__version__)
+    self.assertEqual(model_json['generatedBy'],
+                     'keras v%s' % keras.__version__)
     self.assertEqual(
         model_json['convertedBy'],
         'TensorFlow.js Converter v%s' % version.version)
@@ -345,12 +345,12 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIn('paths', weights_manifest[0])
 
   def testSaveModelSucceedsForTfKerasNonSequentialModel(self):
-    t_input = tf.keras.Input([2])
-    dense_layer = tf.keras.layers.Dense(3)
+    t_input = keras.Input([2])
+    dense_layer = keras.layers.Dense(3)
     t_output = dense_layer(t_input)
-    model = tf.keras.Model(t_input, t_output)
+    model = keras.Model(t_input, t_output)
 
-    # `tf.keras.Model`s must be compiled before they can be saved.
+    # `keras.Model`s must be compiled before they can be saved.
     model.compile(loss='mean_squared_error', optimizer='sgd')
 
     conversion.save_keras_model(model, self._tmp_dir)
@@ -401,9 +401,9 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertEqual(6, len(weight_entries))
 
   def testSaveModelSucceedsForTfKerasSequentialModel(self):
-    model = tf.keras.Sequential([tf.keras.layers.Dense(1, input_shape=[2])])
+    model = keras.Sequential([keras.layers.Dense(1, input_shape=[2])])
 
-    # `tf.keras.Model`s must be compiled before they can be saved.
+    # `keras.Model`s must be compiled before they can be saved.
     model.compile(loss='mean_squared_error', optimizer='sgd')
 
     conversion.save_keras_model(model, self._tmp_dir)
@@ -458,7 +458,6 @@ class ConvertH5WeightsTest(unittest.TestCase):
     with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
         ValueError, r'already exists as a file'):
       conversion.save_keras_model(model, artifacts_dir)
-
 
 
 if __name__ == '__main__':

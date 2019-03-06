@@ -73,6 +73,18 @@ describe('graph', () => {
             input1[0]);
       });
     });
+    describe('IdentityN', () => {
+      it('should return inputs', () => {
+        node.inputNames = ['input1', 'input3'];
+        node.inputParams.x = createTensorsAttr(0, 0);
+        node.op = 'IdentityN';
+        expect((executeOp(node, {input1, input3}, context) as tfc.Tensor[])
+                   .map(t => {
+                     return Array.prototype.slice.call(t.dataSync());
+                   }))
+            .toEqual([[1], [1, 1, 1, 2, 2, 2]]);
+      });
+    });
     describe('Snapshot', () => {
       it('should return input', () => {
         node.inputNames = ['input'];

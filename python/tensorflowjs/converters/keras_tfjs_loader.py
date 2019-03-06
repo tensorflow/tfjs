@@ -22,9 +22,9 @@ import json
 import os
 import uuid
 
-import keras
 import six
 import tensorflow as tf
+from tensorflow import keras
 
 from tensorflowjs import read_weights
 from tensorflowjs.converters import keras_h5_conversion
@@ -58,9 +58,9 @@ def _deserialize_keras_model(model_topology_json,
   if 'model_config' in model_topology_json:
     model_topology_json = model_topology_json['model_config']
   unique_name_scope = uuid.uuid4().hex if use_unique_name_scope else None
-  with tf.name_scope(unique_name_scope):
+  with tf.compat.v1.name_scope(unique_name_scope):
     if is_tf_keras:
-      model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
+      model = keras.models.model_from_json(json.dumps(model_topology_json))
     else:
       model = keras.models.model_from_json(json.dumps(model_topology_json))
 
