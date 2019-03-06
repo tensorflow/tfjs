@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs",
-  "version": "1.0.0-alpha2",
+  "version": "1.0.0",
   "description": "An open-source machine learning framework.",
   "private": false,
   "main": "dist/index",
@@ -23,12 +23,12 @@
     "commander": "~2.14.1",
     "jasmine": "3.1.0",
     "jasmine-core": "~3.1.0",
-    "karma": "~2.0.0",
-    "karma-browserstack-launcher": "~1.3.0",
+    "karma": "~4.0.1",
+    "karma-browserstack-launcher": "~1.4.0",
     "karma-chrome-launcher": "~2.2.0",
     "karma-firefox-launcher": "~1.1.0",
     "karma-jasmine": "~1.1.1",
-    "karma-typescript": "~3.0.12",
+    "karma-typescript": "~4.0.0",
     "mkdirp": "~0.5.1",
     "rimraf": "~2.6.2",
     "rollup": "~0.58.2",
@@ -56,9 +56,9 @@
     "release-notes": "ts-node ./scripts/release_notes/release_notes.ts"
   },
   "dependencies": {
-    "@tensorflow/tfjs-converter": "1.0.0-alpha2",
-    "@tensorflow/tfjs-core": "1.0.0-alpha2",
-    "@tensorflow/tfjs-data": "1.0.0-alpha2",
-    "@tensorflow/tfjs-layers": "1.0.0-alpha2"
+    "@tensorflow/tfjs-converter": "1.0.0",
+    "@tensorflow/tfjs-core": "1.0.0",
+    "@tensorflow/tfjs-data": "1.0.0",
+    "@tensorflow/tfjs-layers": "1.0.0"
   }
 }
