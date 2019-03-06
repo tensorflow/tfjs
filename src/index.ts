@@ -15,33 +15,33 @@
  * =============================================================================
  */
 
-import {renderBarchart} from './render/barchart';
-import {renderConfusionMatrix} from './render/confusion_matrix';
-import {renderHeatmap} from './render/heatmap';
-import {renderHistogram} from './render/histogram';
-import {renderLinechart} from './render/linechart';
-import {renderScatterplot} from './render/scatterplot';
-import {renderTable} from './render/table';
+import {barchart} from './render/barchart';
+import {confusionMatrix} from './render/confusion_matrix';
+import {heatmap} from './render/heatmap';
+import {histogram} from './render/histogram';
+import {linechart} from './render/linechart';
+import {scatterplot} from './render/scatterplot';
+import {table} from './render/table';
 import {fitCallbacks, history} from './show/history';
 import {layer, modelSummary} from './show/model';
 import {showPerClassAccuracy} from './show/quality';
 import {valuesDistribution} from './show/tensor';
-import {accuracy, confusionMatrix, perClassAccuracy} from './util/math';
+import {accuracy, confusionMatrix as metricsConfusionMatrix, perClassAccuracy} from './util/math';
 
 const render = {
-  barchart: renderBarchart,
-  table: renderTable,
-  histogram: renderHistogram,
-  linechart: renderLinechart,
-  scatterplot: renderScatterplot,
-  confusionMatrix: renderConfusionMatrix,
-  heatmap: renderHeatmap,
+  barchart,
+  table,
+  histogram,
+  linechart,
+  scatterplot,
+  confusionMatrix,
+  heatmap,
 };
 
 const metrics = {
   accuracy,
   perClassAccuracy,
-  confusionMatrix,
+  confusionMatrix: metricsConfusionMatrix,
 };
 
 const show = {

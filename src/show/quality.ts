@@ -16,7 +16,7 @@
  */
 
 import {getDrawArea} from '../render/render_utils';
-import {renderTable} from '../render/table';
+import {table} from '../render/table';
 import {Drawable} from '../types';
 
 /**
@@ -62,5 +62,5 @@ export async function showPerClassAccuracy(
     values.push([label, classAcc.accuracy, classAcc.count]);
   }
 
-  return renderTable(drawArea, {headers, values});
+  return table(drawArea, {headers, values});
 }

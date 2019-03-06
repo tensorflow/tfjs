@@ -79,7 +79,7 @@ import {getDrawArea} from './render_utils';
  *
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
-export async function renderLinechart(
+export async function linechart(
     container: Drawable,
     data: {values: Point2D[][]|Point2D[], series?: string[]},
     opts: XYPlotOptions = {}): Promise<void> {

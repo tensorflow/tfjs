@@ -61,7 +61,7 @@ import {getDrawArea} from './render_utils';
  *
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
-export function renderTable(
+export function table(
     container: Drawable,
     // tslint:disable-next-line:no-any
     data: {headers: string[], values: any[][]},

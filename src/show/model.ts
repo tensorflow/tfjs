@@ -18,9 +18,9 @@
 import * as tf from '@tensorflow/tfjs';
 import {Layer} from '@tensorflow/tfjs-layers/dist/engine/topology';
 
-import {renderHistogram} from '../render/histogram';
+import {histogram} from '../render/histogram';
 import {getDrawArea} from '../render/render_utils';
-import {renderTable} from '../render/table';
+import {table} from '../render/table';
 import {Drawable, HistogramStats} from '../types';
 import {subSurface} from '../util/dom';
 import {tensorStats} from '../util/math';
@@ -71,7 +71,7 @@ export async function modelSummary(container: Drawable, model: tf.LayersModel) {
            l.trainable,
   ]);
 
-  renderTable(drawArea, {headers, values});
+  table(drawArea, {headers, values});
 }
 
 /**
@@ -124,7 +124,7 @@ export async function layer(container: Drawable, layer: Layer) {
           [l.name, l.shape, l.stats.min, l.stats.max, l.weight.size,
            l.stats.numZeros, l.stats.numNans, l.stats.numInfs]);
 
-  renderTable(weightsInfoSurface, {headers, values: detailValues});
+  table(weightsInfoSurface, {headers, values: detailValues});
 
   const histogramSelectorSurface = subSurface(drawArea, 'select-layer');
   const layerValuesHistogram = subSurface(drawArea, 'param-distribution');
@@ -133,7 +133,7 @@ export async function layer(container: Drawable, layer: Layer) {
     const layer = details.filter(d => d.name === layerName)[0];
     const weights = await layer.weight.data();
 
-    renderHistogram(
+    histogram(
         layerValuesHistogram, weights, {height: 150, width: 460, stats: false});
   };
 

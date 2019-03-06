@@ -90,7 +90,7 @@ import {getDrawArea} from './render_utils';
  *
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
-export async function renderConfusionMatrix(
+export async function confusionMatrix(
     container: Drawable, data: ConfusionMatrixData,
     opts: VisOptions&
     {shadeDiagonal?: boolean, showTextOverlay?: boolean} = {}): Promise<void> {

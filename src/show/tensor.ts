@@ -17,7 +17,7 @@
 
 import {Tensor} from '@tensorflow/tfjs';
 
-import {renderHistogram} from '../render/histogram';
+import {histogram} from '../render/histogram';
 import {getDrawArea} from '../render/render_utils';
 import {Drawable} from '../types';
 import {tensorStats} from '../util/math';
@@ -45,5 +45,5 @@ export async function valuesDistribution(container: Drawable, tensor: Tensor) {
   const drawArea = getDrawArea(container);
   const stats = await tensorStats(tensor);
   const values = await tensor.data();
-  renderHistogram(drawArea, values, {height: 150, stats});
+  histogram(drawArea, values, {height: 150, stats});
 }
