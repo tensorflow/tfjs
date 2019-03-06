@@ -53,27 +53,25 @@ py_test(
     ],
 )
 
-py_library(
-    name = "tf_saved_model_conversion",
-    srcs = ["tf_saved_model_conversion.py"],
-    data = ["//tensorflowjs:op_list_jsons"],
+    name = "tf_saved_model_conversion_v2_test",
+    srcs = ["tf_saved_model_conversion_v2_test.py"],
     srcs_version = "PY2AND3",
     deps = [
-        "//tensorflowjs:expect_numpy_installed",
+        ":tf_saved_model_conversion_v2",
         "//tensorflowjs:expect_tensorflow_installed",
-        "//tensorflowjs:write_weights",
-        "//tensorflowjs/converters:common",
     ],
 )
 
-py_test(
-    name = "tf_saved_model_conversion_test",
-    srcs = ["tf_saved_model_conversion_test.py"],
+py_library(
+    name = "tf_saved_model_conversion_v2",
+    srcs = ["tf_saved_model_conversion_v2.py"],
+    data = ["//tensorflowjs:op_list_jsons"],
     srcs_version = "PY2AND3",
     deps = [
         ":tf_saved_model_conversion",
+        "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
-        "//tensorflowjs:version",
+        "//tensorflowjs:write_weights",
     ],
 )
 
@@ -84,7 +82,7 @@ py_binary(
     deps = [
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
-        ":tf_saved_model_conversion",
+        ":tf_saved_model_conversion_v2",
         "//tensorflowjs:expect_h5py_installed",
         "//tensorflowjs:expect_keras_installed",
         "//tensorflowjs:expect_tensorflow_installed",

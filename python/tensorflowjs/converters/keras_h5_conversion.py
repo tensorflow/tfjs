@@ -295,7 +295,7 @@ def save_keras_model(model, artifacts_dir, quantization_dtype=None):
       h5_merged_saved_model_to_tfjs_format(temp_h5_path))
   if os.path.isfile(artifacts_dir):
     raise ValueError('Path "%s" already exists as a file.' % artifacts_dir)
-  elif not os.path.isdir(artifacts_dir):
+  if not os.path.isdir(artifacts_dir):
     os.makedirs(artifacts_dir)
   write_artifacts(
       topology_json, weight_groups, artifacts_dir,

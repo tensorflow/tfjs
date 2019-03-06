@@ -43,6 +43,11 @@ export const json: OpMapper[] = [
     'inputs': [{'start': 0, 'name': 'x', 'type': 'tensor'}]
   },
   {
+    'tfOpName': 'IdentityN',
+    'category': 'graph',
+    'inputs': [{'start': 0, 'end': 0, 'name': 'x', 'type': 'tensors'}]
+  },
+  {
     'tfOpName': 'Snapshot',
     'category': 'graph',
     'inputs': [{'start': 0, 'name': 'x', 'type': 'tensor'}]
