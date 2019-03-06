@@ -25,7 +25,7 @@ describeWithFlags('readers', tf.test_util.ALL_ENVS, () => {
     const f = () =>
         ++i < 5 ? {value: i, done: false} : {value: null, done: true};
     const ds = tfd.func(f);
-    const result = await ds.toArray();
+    const result = await ds.toArrayForTest();
     expect(result).toEqual([0, 1, 2, 3, 4]);
   });
 
@@ -40,7 +40,7 @@ describeWithFlags('readers', tf.test_util.ALL_ENVS, () => {
       }
     }
     const ds = tfd.generator(dataGenerator);
-    const result = await ds.toArray();
+    const result = await ds.toArrayForTest();
     expect(result).toEqual([0, 1, 2, 3, 4]);
   });
 
@@ -55,9 +55,9 @@ describeWithFlags('readers', tf.test_util.ALL_ENVS, () => {
       }
     }
     const ds = tfd.generator(dataGenerator);
-    const result1 = await ds.toArray();
+    const result1 = await ds.toArrayForTest();
     expect(result1).toEqual([0, 1, 2, 3, 4]);
-    const result2 = await ds.toArray();
+    const result2 = await ds.toArrayForTest();
     expect(result2).toEqual([0, 1, 2, 3, 4]);
   });
 
@@ -78,33 +78,33 @@ describeWithFlags('readers', tf.test_util.ALL_ENVS, () => {
       return iterator;
     }
     const ds = tfd.generator(makeIterator);
-    const result = await ds.toArray();
+    const result = await ds.toArrayForTest();
     expect(result).toEqual([0, 1, 2, 3, 4]);
   });
 
   it('generate multiple datasets from JavaScript iterator factory',
-  async () => {
-    function makeIterator() {
-      let iterationCount = 0;
-      const iterator = {
-        next: () => {
-          let result;
-          if (iterationCount < 5) {
-            result = {value: iterationCount, done: false};
-            iterationCount++;
-            return result;
-          }
-          return {value: iterationCount, done: true};
-        }
-      };
-      return iterator;
-    }
-    const ds = tfd.generator(makeIterator);
-    const result1 = await ds.toArray();
-    expect(result1).toEqual([0, 1, 2, 3, 4]);
-    const result2 = await ds.toArray();
-    expect(result2).toEqual([0, 1, 2, 3, 4]);
-  });
+     async () => {
+       function makeIterator() {
+         let iterationCount = 0;
+         const iterator = {
+           next: () => {
+             let result;
+             if (iterationCount < 5) {
+               result = {value: iterationCount, done: false};
+               iterationCount++;
+               return result;
+             }
+             return {value: iterationCount, done: true};
+           }
+         };
+         return iterator;
+       }
+       const ds = tfd.generator(makeIterator);
+       const result1 = await ds.toArrayForTest();
+       expect(result1).toEqual([0, 1, 2, 3, 4]);
+       const result2 = await ds.toArrayForTest();
+       expect(result2).toEqual([0, 1, 2, 3, 4]);
+     });
 
   it('generate dataset from async iterator factory', async () => {
     async function waitAndCreateCount() {
@@ -115,22 +115,22 @@ describeWithFlags('readers', tf.test_util.ALL_ENVS, () => {
       });
     }
     async function makeIterator() {
-        let iterationCount = (await waitAndCreateCount()) as number;
-        const iterator = {
-          next: () => {
-            let result;
-            if (iterationCount < 6) {
-              result = {value: iterationCount, done: false};
-              iterationCount++;
-              return result;
-            }
-            return {value: iterationCount, done: true};
+      let iterationCount = (await waitAndCreateCount()) as number;
+      const iterator = {
+        next: () => {
+          let result;
+          if (iterationCount < 6) {
+            result = {value: iterationCount, done: false};
+            iterationCount++;
+            return result;
           }
-        };
-        return iterator;
+          return {value: iterationCount, done: true};
+        }
+      };
+      return iterator;
     }
     const ds = tfd.generator(makeIterator);
-    const result = await ds.toArray();
+    const result = await ds.toArrayForTest();
     expect(result).toEqual([3, 4, 5]);
   });
 });
