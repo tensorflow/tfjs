@@ -33,7 +33,7 @@ describe('ByteChunkIterator.decodeUTF8()', () => {
         .toEqual(323);
     const utf8Iterator = byteChunkIterator.decodeUTF8();
 
-    const result = await utf8Iterator.collect();
+    const result = await utf8Iterator.toArrayForTest();
     // The test string is 109 characters long; its UTF8 encoding is 323
     // bytes. We read it in chunks of 50 bytes, so there were 7 chunks of
     // bytes. The UTF decoder slightly adjusted the boundaries between the

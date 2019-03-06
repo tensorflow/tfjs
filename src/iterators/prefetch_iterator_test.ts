@@ -29,7 +29,7 @@ describe('PrefetchIterator', () => {
       expectedResult[j] = j;
     }
 
-    const result = await prefetchIterator.collect();
+    const result = await prefetchIterator.toArray();
     expect(result).toEqual(expectedResult);
   });
 
@@ -47,7 +47,7 @@ describe('PrefetchIterator', () => {
          }
        }
 
-       const result = await prefetchIterator.collect();
+       const result = await prefetchIterator.toArray();
        expect(result).toEqual(expectedResult);
      });
 
@@ -64,7 +64,7 @@ describe('PrefetchIterator', () => {
          }
        }
 
-       const result = await prefetchIterator.collect();
+       const result = await prefetchIterator.toArray();
        expect(result).toEqual(expectedResult);
      });
 });

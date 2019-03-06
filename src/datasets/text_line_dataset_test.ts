@@ -32,7 +32,7 @@ describe('TextLineDataset', () => {
        const source = new FileDataSource(testBlob, {chunkSize: 10});
        const dataset = new TextLineDataset(source);
        const iter = await dataset.iterator();
-       const result = await iter.collect();
+       const result = await iter.toArrayForTest();
 
        expect(result).toEqual([
          'ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷᛖᚻᚹᛦᛚᚳᚢᛗ',

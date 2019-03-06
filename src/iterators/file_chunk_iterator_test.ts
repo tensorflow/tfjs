@@ -30,7 +30,7 @@ const testData = ENV.get('IS_BROWSER') ?
 describe('FileChunkIterator', () => {
   it('Reads the entire file and then closes the stream', async () => {
     const readIterator = new FileChunkIterator(testData, {chunkSize: 10});
-    const result = await readIterator.collect();
+    const result = await readIterator.toArrayForTest();
     expect(result.length).toEqual(6);
     const totalBytes = result.map(x => x.length).reduce((a, b) => a + b);
     expect(totalBytes).toEqual(55);
@@ -38,7 +38,7 @@ describe('FileChunkIterator', () => {
 
   it('Reads chunks in order', async () => {
     const readIterator = new FileChunkIterator(testData, {chunkSize: 10});
-    const result = await readIterator.collect();
+    const result = await readIterator.toArrayForTest();
     expect(result[0][0]).toEqual(0);
     expect(result[1][0]).toEqual(10);
     expect(result[2][0]).toEqual(20);
@@ -49,7 +49,7 @@ describe('FileChunkIterator', () => {
 
   it('Reads chunks of expected sizes', async () => {
     const readIterator = new FileChunkIterator(testData, {chunkSize: 10});
-    const result = await readIterator.collect();
+    const result = await readIterator.toArrayForTest();
     expect(result[0].length).toEqual(10);
     expect(result[1].length).toEqual(10);
     expect(result[2].length).toEqual(10);
