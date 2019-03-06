@@ -34,8 +34,8 @@ function generateCaseInputs(totalSizeTensor: number, totalSizeFilter: number) {
   return {input: inp, filter: filt};
 }
 
-describeWithFlags('im2col', PACKED_ENVS, () => {
-  it('should not leak memory', () => {
+describeWithFlags('conv to matmul', PACKED_ENVS, () => {
+  it('im2col should not leak memory', () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
     const outputDepth = 1;
@@ -54,6 +54,26 @@ describeWithFlags('im2col', PACKED_ENVS, () => {
     const endNumBytes = tf.memory().numBytes;
 
     expect(endNumBytes - startNumBytes).toEqual(4);
+  });
+
+  it('pointwise conv should work when matmul is unpacked', () => {
+    const inputDepth =
+        1001;  // this number must be greater than MATMUL_SHARED_DIM_THRESHOLD
+               // for matmul to be unpacked
+    const inputShape: [number, number, number] = [3, 3, inputDepth];
+    const outputDepth = 1;
+    const fSize = 1;
+    const pad = 'same';
+    const stride: [number, number] = [1, 1];
+
+    let x = tf.randomNormal(inputShape) as tf.Tensor3D;
+    x = x.add(1);  // this packs x so we can test the case where we mistakenly
+                   // want to avoid expensive reshape in pointwise conv2d even
+                   // though matmul is unpacked
+    const w =
+        tf.randomNormal([fSize, fSize, inputDepth, outputDepth]) as tf.Tensor4D;
+
+    expect(() => tf.conv2d(x, w, stride, pad)).not.toThrow();
   });
 });
 
