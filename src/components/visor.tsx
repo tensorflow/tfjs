@@ -240,6 +240,7 @@ export class VisorComponent extends Component<VisorProps, VisorState> {
       overflow: 'auto',
       fontFamily: 'sans-serif',
       fontSize: '14px',
+      zIndex: 1000,
     });
 
     const openStyle = css({ right: '0' });
