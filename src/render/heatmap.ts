@@ -41,7 +41,7 @@ import {getDrawArea} from './render_utils';
  *
  * // Render to visor
  * const surface = { name: 'Heatmap', tab: 'Charts' };
- * tfvis.render.heatmap(data, surface);
+ * tfvis.render.heatmap(surface, data);
  * ```
  *
  * ```js
@@ -53,7 +53,7 @@ import {getDrawArea} from './render_utils';
  *
  * // Render to visor
  * const surface = { name: 'Heatmap w Custom Labels', tab: 'Charts' };
- * tfvis.render.heatmap(data, surface);
+ * tfvis.render.heatmap(surface, data);
  * ```
  *
  * @param container An `HTMLElement` or `Surface` in which to draw the chart

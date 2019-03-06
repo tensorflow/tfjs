@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.0] 2019-03-06
+Major version upgrade including a number of **breaking changes**.
+
+### Changed
+All `render.*` functions now take a surface as their first parameter. This unifies the convention used in these functions and `show.*` functions.
+
+In `heatmap` and `confusionMatrix` params, `xLabels/yLabels` has been renamed to `xtickLabels/yTickLabels` to more clearly distinguish it from the axis label (`xLabel/yLabel`).
+
+### Removed
+`show.confusionMatrix` has been removed in favor of using `render.confusionMatrix`
+
+## [0.5.0] 2018-1-31
+### Added
+Support for rendering heatmaps with `render.heatmap`.
+
+Sourcemaps now include sourcesContent to improve editor experience, particularly for typescript users.
+
 ## [0.4.0] 2018-12-07
 
 ### Changed
