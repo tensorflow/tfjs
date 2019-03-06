@@ -55,7 +55,7 @@ import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
  *
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
-export async function renderBarchart(
+export async function barchart(
     container: Drawable, data: Array<{index: number; value: number;}>,
     opts: VisOptions = {}): Promise<void> {
   const drawArea = getDrawArea(container);

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {renderTable} from './table';
+import {table} from './table';
 
 function getRowHTML(row: Element) {
   return Array.from(row.querySelectorAll('td')).map(r => r.innerHTML);
@@ -44,7 +44,7 @@ describe('renderTable', () => {
     ];
 
     const container = document.getElementById('container') as HTMLElement;
-    renderTable(container, {headers, values});
+    table(container, {headers, values});
 
     expect(document.querySelectorAll('.tf-table').length).toBe(1);
     expect(document.querySelectorAll('.tf-table thead tr').length).toBe(1);
@@ -70,11 +70,11 @@ describe('renderTable', () => {
     const container = document.getElementById('container') as HTMLElement;
 
     // @ts-ignore
-    expect(() => renderTable({headers: []}, container)).toThrow();
+    expect(() => table({headers: []}, container)).toThrow();
     // @ts-ignore
-    expect(() => renderTable({values: [[]]}, container)).toThrow();
+    expect(() => table({values: [[]]}, container)).toThrow();
     // @ts-ignore
-    expect(() => renderTable({}, container)).toThrow();
+    expect(() => table({}, container)).toThrow();
   });
 
   it('should not throw on empty table', () => {
@@ -82,7 +82,7 @@ describe('renderTable', () => {
     const headers: string[] = [];
     const values: string[][] = [];
 
-    expect(() => renderTable(container, {headers, values})).not.toThrow();
+    expect(() => table(container, {headers, values})).not.toThrow();
 
     expect(document.querySelectorAll('.tf-table').length).toBe(1);
     expect(document.querySelectorAll('.tf-table thead tr').length).toBe(1);

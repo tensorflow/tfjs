@@ -17,7 +17,7 @@
 
 import {Logs} from '@tensorflow/tfjs-layers/dist/logs';
 
-import {renderLinechart} from '../render/linechart';
+import {linechart} from '../render/linechart';
 import {getDrawArea, nextFrame} from '../render/render_utils';
 import {Drawable, Point2D, XYPlotOptions} from '../types';
 import {subSurface} from '../util/dom';
@@ -166,7 +166,7 @@ export async function history(
       }
     }
 
-    const done = renderLinechart(subContainer, {values, series}, options);
+    const done = linechart(subContainer, {values, series}, options);
     renderPromises.push(done);
   }
   await Promise.all(renderPromises);

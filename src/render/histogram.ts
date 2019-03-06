@@ -22,7 +22,7 @@ import {HistogramOpts, HistogramStats, TypedArray} from '../types';
 import {subSurface} from '../util/dom';
 import {arrayStats} from '../util/math';
 
-import {renderTable} from './table';
+import {table} from './table';
 
 const defaultOpts = {
   maxBins: 12,
@@ -69,7 +69,7 @@ const defaultOpts = {
  *
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
-export async function renderHistogram(
+export async function histogram(
     container: HTMLElement, data: Array<{value: number}>|number[]|TypedArray,
     opts: HistogramOpts = {}) {
   const values = prepareData(data);
@@ -209,7 +209,7 @@ function renderStats(
     vals.push(`${format(stats.numInfs)} ${infPct}`);
   }
 
-  renderTable(container, {headers, values: [vals]}, opts);
+  table(container, {headers, values: [vals]}, opts);
 }
 
 /**

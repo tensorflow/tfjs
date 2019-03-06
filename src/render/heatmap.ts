@@ -87,7 +87,7 @@ import {getDrawArea} from './render_utils';
  *
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
-export async function renderHeatmap(
+export async function heatmap(
     container: Drawable, data: HeatmapData,
     opts: HeatmapOptions = {}): Promise<void> {
   const options = Object.assign({}, defaultOpts, opts);
