@@ -1404,6 +1404,121 @@ describeMathCPUAndGPU('LayersModel.fit', () => {
     expect(history.history.loss.length).toEqual(10);
   });
 
+  it('Model.dispose() cleans up owned optimizer: Functional', async () => {
+    const input1 = tfl.input({shape: [2]});
+    const input2 = tfl.input({shape: [2]});
+    const y1 = tfl.layers.add().apply([input1, input2]);
+    const y2 = tfl.layers.concatenate().apply([input1, input2]);
+    const output1 =
+        tfl.layers
+            .dense({units: 1, activation: 'linear', kernelInitializer: 'zeros'})
+            .apply(y1) as tfl.SymbolicTensor;
+    const output2 =
+        tfl.layers
+            .dense(
+                {units: 1, activation: 'sigmoid', kernelInitializer: 'zeros'})
+            .apply(y2) as tfl.SymbolicTensor;
+    const model =
+        tfl.model({inputs: [input1, input2], outputs: [output1, output2]});
+    model.compile(
+        {loss: ['meanSquaredError', 'binaryCrossentropy'], optimizer: 'adam'});
+
+    const xs: Tensor[] = [zeros([4, 2]), zeros([4, 2])];
+    const ys: Tensor[] = [zeros([4, 1]), zeros([4, 1])];
+
+    await model.fit(xs, ys, {epochs: 1});
+    const numTensors1 = memory().numTensors;
+
+    const disposalResult = model.dispose();
+    const numTensors2 = memory().numTensors;
+    // The 9 comes from the intrinsic weights of the ADAM optimizer, e.g.,
+    // c, epsScalar, beta1Scalar, etc.
+    // The 4 * 2 are the accumulated first and second moments for the 4 weights
+    // of the neural network.
+    expect(disposalResult.numDisposedVariables).toEqual(4 + 9 + 4 * 2);
+    expect(disposalResult.refCountAfterDispose).toEqual(0);
+    expect(numTensors1 - numTensors2).toEqual(4 + 9 + 4 * 2);
+  });
+
+  it('Model.dispose() cleans up owned optimizer: Sequential', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 1, inputShape: [2]}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'adam'});
+
+    const xs = zeros([4, 2]);
+    const ys = zeros([4, 1]);
+
+    await model.fit(xs, ys, {epochs: 1});
+    const numTensors1 = memory().numTensors;
+
+    const disposalResult = model.dispose();
+    const numTensors2 = memory().numTensors;
+
+    // The 9 comes from the intrinsic weights of the ADAM optimizer, e.g.,
+    // c, epsScalar, beta1Scalar, etc.
+    // The 2 * 2 are the accumulated first and second moments for the 2 weights
+    // of the neural network.
+    expect(disposalResult.numDisposedVariables).toEqual(2 + 9 + 2 * 2);
+    expect(disposalResult.refCountAfterDispose).toEqual(0);
+    expect(numTensors1 - numTensors2).toEqual(2 + 9 + 2 * 2);
+  });
+
+  it('Model.dispose() skips non-owned optimizer: Functional', async () => {
+    const input1 = tfl.input({shape: [2]});
+    const input2 = tfl.input({shape: [2]});
+    const y1 = tfl.layers.add().apply([input1, input2]);
+    const y2 = tfl.layers.concatenate().apply([input1, input2]);
+    const output1 =
+        tfl.layers
+            .dense({units: 1, activation: 'linear', kernelInitializer: 'zeros'})
+            .apply(y1) as tfl.SymbolicTensor;
+    const output2 =
+        tfl.layers
+            .dense(
+                {units: 1, activation: 'sigmoid', kernelInitializer: 'zeros'})
+            .apply(y2) as tfl.SymbolicTensor;
+    const model =
+        tfl.model({inputs: [input1, input2], outputs: [output1, output2]});
+    const optimizer = new tfc.AdamOptimizer(1e-3, 0.9, 0.999, 1e-6);
+    model.compile(
+        {loss: ['meanSquaredError', 'binaryCrossentropy'], optimizer});
+
+    const xs: Tensor[] = [zeros([4, 2]), zeros([4, 2])];
+    const ys: Tensor[] = [zeros([4, 1]), zeros([4, 1])];
+
+    await model.fit(xs, ys, {epochs: 1});
+    const numTensors1 = memory().numTensors;
+
+    const disposalResult = model.dispose();
+    const numTensors2 = memory().numTensors;
+    // Only the weights of the model (not including the optimizer) should have
+    // been disposed.
+    expect(disposalResult.numDisposedVariables).toEqual(4);
+    expect(disposalResult.refCountAfterDispose).toEqual(0);
+    expect(numTensors1 - numTensors2).toEqual(4);
+  });
+
+  it('Model.dispose() skips non-owned optimizer: Sequential', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 1, inputShape: [2]}));
+    const optimizer = new tfc.AdamOptimizer(1e-3, 0.9, 0.999, 1e-6);
+    model.compile({loss: 'meanSquaredError', optimizer});
+
+    const xs = zeros([4, 2]);
+    const ys = zeros([4, 1]);
+
+    await model.fit(xs, ys, {epochs: 1});
+    const numTensors1 = memory().numTensors;
+
+    const disposalResult = model.dispose();
+    const numTensors2 = memory().numTensors;
+
+    // Only the Model's own weights should have been disposed.
+    expect(disposalResult.numDisposedVariables).toEqual(2);
+    expect(disposalResult.refCountAfterDispose).toEqual(0);
+    expect(numTensors1 - numTensors2).toEqual(2);
+  });
+
   it('Invalid dict loss: nonexistent output name', () => {
     createDenseModelAndData();
     expect(() => model.compile({
