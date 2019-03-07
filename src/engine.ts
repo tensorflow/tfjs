@@ -259,7 +259,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
       // string tensors are counted when writing values.
       let bytes = 0;
       if (a.dtype !== 'complex64' && a.dtype !== 'string') {
-        bytes = util.sizeFromShape(a.shape) * util.bytesPerElement(a.dtype);
+        bytes = a.size * util.bytesPerElement(a.dtype);
       }
       this.tensorInfo.set(a.dataId, {
         backend: backend != null ? backend : this.backend,
