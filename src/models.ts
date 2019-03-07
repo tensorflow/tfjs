@@ -10,7 +10,7 @@
 
 /* Original source keras/models.py */
 
-import {dispose, io, NamedTensorMap, Scalar, serialization, Tensor, util} from '@tensorflow/tfjs-core';
+import {dispose, io, NamedTensorMap, Optimizer, Scalar, serialization, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {getUid} from './backend/state';
 import {History} from './base_callbacks';
@@ -28,7 +28,6 @@ import {Kwargs} from './types';
 import * as generic_utils from './utils/generic_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
 import {getExactlyOneShape} from './utils/types_utils';
-
 
 /**
  * Parses a JSON model configuration file and returns a model instance.
@@ -788,7 +787,9 @@ export class Sequential extends LayersModel {
   compile(args: ModelCompileArgs): void {
     this.build();
     this.model.compile(args);
-    this.optimizer = this.model.optimizer;
+    this.optimizer_ = this.model.optimizer;
+    // tslint:disable-next-line:no-any
+    this.isOptimizerOwned = (this.model as any).isOptimizerOwned;
     this.loss = this.model.loss;
     this.metrics = this.model.metrics;
     // TODO(cais): Add this.lossWeights, this.sampleWeightMode,
@@ -796,6 +797,14 @@ export class Sequential extends LayersModel {
     this.metricsTensors = this.model.metricsTensors;
     this.metricsNames = this.model.metricsNames;
     // TODO(cais): Add sampleWeights.
+  }
+
+  get optimizer(): Optimizer {
+    return this.model.optimizer;
+  }
+
+  set optimizer(optimizer: Optimizer) {
+    this.model.optimizer = optimizer;
   }
 
   /**
