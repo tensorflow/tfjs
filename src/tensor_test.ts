@@ -1443,6 +1443,18 @@ describe('tensor.toString', () => {
         '    test');
   });
 
+  it('bool scalar verbose', () => {
+    const verbose = true;
+    const str = tf.scalar(true).toString(verbose);
+    expect(str).toEqual(
+      'Tensor\n' +
+      '  dtype: bool\n' +
+      '  rank: 0\n' +
+      '  shape: []\n' +
+      '  values:\n' +
+      '    true');
+  });
+
   it('1d tensor verbose', () => {
     const verbose = true;
     const str = tf.zeros([4]).toString(verbose);
@@ -1465,6 +1477,18 @@ describe('tensor.toString', () => {
         '  shape: [3]\n' +
         '  values:\n' +
         '    [\'a\', \'bb\', \'ccc\']');
+  });
+
+  it('1d bool tensor verbose', () => {
+    const verbose = true;
+    const str = tf.tensor([true, false, true]).toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: bool\n' +
+        '  rank: 1\n' +
+        '  shape: [3]\n' +
+        '  values:\n' +
+        '    [true, false, true]');
   });
 
   it('2d tensor verbose', () => {
@@ -1498,6 +1522,20 @@ describe('tensor.toString', () => {
         '    [[\'a\', \'bb\', \'ccc\'],\n' +
         '     [\'d\', \'e\' , \'f\'  ],\n' +
         '     [\'g\', \'h\' , \'i\'  ]]');
+  });
+
+  it('2d bool tensor verbose', () => {
+    const verbose = true;
+    const str = tf.zeros([3, 3], 'bool').toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: bool\n' +
+        '  rank: 2\n' +
+        '  shape: [3,3]\n' +
+        '  values:\n' +
+        '    [[false, false, false],\n' +
+        '     [false, false, false],\n' +
+        '     [false, false, false]]');
   });
 
   it('3d tensor verbose', () => {
@@ -1540,6 +1578,26 @@ describe('tensor.toString', () => {
         '      [\'ggg\', \'hhhh\']],\n\n' +
         '     [[\'i\'  , \'jj\'  ],\n' +
         '      [\'kkk\', \'llll\']]]');
+  });
+
+  it('3d bool tensor verbose', () => {
+    const verbose = true;
+    const str = tf.ones([3, 3, 2], 'bool').toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: bool\n' +
+        '  rank: 3\n' +
+        '  shape: [3,3,2]\n' +
+        '  values:\n' +
+        '    [[[true, true],\n' +
+        '      [true, true],\n' +
+        '      [true, true]],\n\n' +
+        '     [[true, true],\n' +
+        '      [true, true],\n' +
+        '      [true, true]],\n\n' +
+        '     [[true, true],\n' +
+        '      [true, true],\n' +
+        '      [true, true]]]');
   });
 
   it('1d long tensor verbose', () => {

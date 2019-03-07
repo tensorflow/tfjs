@@ -58,25 +58,33 @@ function computeMaxSizePerColumn(
       const offset = row * numCols;
       for (let j = 0; j < numCols; j++) {
         padPerCol[j] = Math.max(
-            padPerCol[j], valToString(valuesOrTuples[offset + j], 0).length);
+            padPerCol[j], valToString(valuesOrTuples[offset + j], 0,
+              dtype).length);
       }
     }
   }
   return padPerCol;
 }
 
-function valToString(val: number|string|[number, number], pad: number) {
+function valToString(val: number|string|[number, number], pad: number,
+    dtype: DataType) {
   let valStr: string;
   if (Array.isArray(val)) {
     valStr = `${parseFloat(val[0].toFixed(FORMAT_NUM_SIG_DIGITS))} + ` +
         `${parseFloat(val[1].toFixed(FORMAT_NUM_SIG_DIGITS))}j`;
   } else if (isString(val)) {
     valStr = `'${val}'`;
+  } else if (dtype === 'bool') {
+    valStr = boolNumToString(val);
   } else {
     valStr = parseFloat(val.toFixed(FORMAT_NUM_SIG_DIGITS)).toString();
   }
 
   return rightPad(valStr, pad);
+}
+
+function boolNumToString(v: number): string {
+  return v === 0 ? 'false' : 'true';
 }
 
 function subTensorToString(
@@ -89,7 +97,10 @@ function subTensorToString(
   if (rank === 0) {
     if (dtype === 'complex64') {
       const complexTuple = createComplexTuples(vals);
-      return [valToString(complexTuple[0], 0)];
+      return [valToString(complexTuple[0], 0, dtype)];
+    }
+    if (dtype === 'bool') {
+      return [boolNumToString(vals[0] as number)];
     }
     return [vals[0].toString()];
   }
@@ -107,12 +118,13 @@ function subTensorToString(
         lastVals = createComplexTuples(lastVals);
       }
       return [
-        '[' + firstVals.map((x, i) => valToString(x, padPerCol[i])).join(', ') +
+        '[' + firstVals.map((x, i) => valToString(x, padPerCol[i],
+          dtype)).join(', ') +
         ', ..., ' +
         lastVals
             .map(
                 (x, i) => valToString(
-                    x, padPerCol[size - FORMAT_NUM_FIRST_LAST_VALS + i]))
+                    x, padPerCol[size - FORMAT_NUM_FIRST_LAST_VALS + i], dtype))
             .join(', ') +
         ']'
       ];
@@ -122,7 +134,8 @@ function subTensorToString(
                                 Array.from<number|string>(vals);
 
     return [
-      '[' + displayVals.map((x, i) => valToString(x, padPerCol[i])).join(', ') +
+      '[' + displayVals.map((x, i) => valToString(x, padPerCol[i],
+        dtype)).join(', ') +
       ']'
     ];
   }
