@@ -2740,7 +2740,7 @@ export class MathBackendCPU implements KernelBackend {
     const channels = x.shape[3];
     const maxD = channels - 1;
     const xValues = x.dataSync();
-    const size = util.sizeFromShape(x.shape);
+    const size = x.size;
     const result = new Float32Array(size);
 
     function sumAcrossChannels(offset: number) {
@@ -2776,8 +2776,8 @@ export class MathBackendCPU implements KernelBackend {
     const dyValues = dy.dataSync();
     const inputImageValues = inputImage.dataSync();
     const outputImageValues = outputImage.dataSync();
-    const result = new Float32Array(util.sizeFromShape(dy.shape));
-    const size = util.sizeFromShape(dy.shape);
+    const result = new Float32Array(dy.size);
+    const size = dy.size;
 
     for (let offset = 0; offset < size; offset++) {
       const currentChannel = offset % channels;
