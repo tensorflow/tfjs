@@ -431,6 +431,7 @@ IORouterRegistry.registerLoadRouter(httpRequestRouter);
  *     before the load is completed.
  * @returns An instance of `IOHandler`.
  */
+/** @doc {heading: 'Models', subheading: 'Loading', namespace: 'io'} */
 export function browserHTTPRequest(
     path: string, loadOptions?: LoadOptions): IOHandler {
   return new BrowserHTTPRequest(path, loadOptions);
