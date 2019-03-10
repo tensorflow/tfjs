@@ -160,7 +160,7 @@ export function func<T extends DataElement>(
  *   };
  *   return iterator;
  * }
- * const ds = tfd.generator(makeIterator);
+ * const ds = tf.data.generator(makeIterator);
  * ds.forEachAsync(e => console.log(e));
  * ```
  *
@@ -176,7 +176,7 @@ export function func<T extends DataElement>(
  *   }
  * }
  *
- * const ds = tfd.generator(dataGenerator);
+ * const ds = tf.data.generator(dataGenerator);
  * ds.forEachAsync(e => console.log(e));
  * ```
  *
