@@ -43,8 +43,15 @@ export class Tabs extends Component<TabsProps> {
       ))
       : null;
 
+    const tabStyle = css({
+      overflowX: 'scroll',
+      overflowY: 'hidden',
+      whiteSpace: 'nowrap',
+      ...tac('bb b--light-gray pb3 mt3')
+    });
+
     return (
-      <div className={`bb b--light-gray pb2 mt3 visor-tabs`}>
+      <div className={`${tabStyle} visor-tabs`}>
         {tabs}
       </div>
     );
@@ -74,6 +81,7 @@ class Tab extends Component<TabProps> {
       ':hover': {
         color: '#357EDD'
       },
+      display: 'inline-block',
       ...tac('b f5 mr3 pa2')
     });
 
