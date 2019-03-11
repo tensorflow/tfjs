@@ -30,6 +30,38 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-core'
 
+  echo 'Use latest version of tfjs-layers'
+  git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
+  cd tfjs-layers
+  rm -rf dist/ && yarn build && rollup -c && yalc push
+
+  cd ..
+  yarn link-local '@tensorflow/tfjs-layers'
+
+  echo 'Use latest version of tfjs-node'
+  git clone https://github.com/tensorflow/tfjs-node.git --depth 5
+  cd tfjs-node
+  rm -rf dist/ && yarn build && rollup -c && yalc push
+
+  cd ..
+  yarn link-local '@tensorflow/tfjs-node'
+
+  echo 'Use latest version of tfjs-converter'
+  git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
+  cd tfjs-converter
+  rm -rf dist/ && yarn build && rollup -c && yalc push
+
+  cd ..
+  yarn link-local '@tensorflow/tfjs-converter'
+
+  echo 'Use latest version of tfjs-data'
+  git clone https://github.com/tensorflow/tfjs-data.git --depth 5
+  cd tfjs-data
+  rm -rf dist/ && yarn build && rollup -c && yalc push
+
+  cd ..
+  yarn link-local '@tensorflow/tfjs-data'
+
   karma start --firebaseKey $FIREBASE_KEY --travis \
     --singleRun --reporters='dots,karma-typescript,BrowserStack' \
     --hostname='bs-local.com' --browsers=bs_chrome_mac

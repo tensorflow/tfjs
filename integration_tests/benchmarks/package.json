@@ -10,6 +10,10 @@
   "devDependencies": {
     "@tensorflow/tfjs": "latest",
     "@tensorflow/tfjs-core": "latest",
+    "@tensorflow/tfjs-layers": "latest",
+    "@tensorflow/tfjs-converter": "latest",
+    "@tensorflow/tfjs-node": "latest",
+    "@tensorflow/tfjs-data": "latest",
     "@types/jasmine": "~2.5.53",
     "clang-format": "~1.2.4",
     "firebase": "~5.3.0",
