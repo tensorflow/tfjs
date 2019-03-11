@@ -25,7 +25,7 @@ then
   echo 'Use latest version of tfjs-core'
   git clone https://github.com/tensorflow/tfjs-core.git --depth 5
   cd tfjs-core
-  yarn publish-local
+  rm -rf dist/ && yarn build && rollup -c && yalc push
 
   cd ..
   yarn link-local '@tensorflow/tfjs-core'
