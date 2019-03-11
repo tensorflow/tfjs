@@ -48,11 +48,7 @@ export default {
     plugins: [
       node(),
       // Polyfill require() from dependencies.
-      commonjs({
-        namedExports: {
-          './node_modules/protobufjs/minimal.js': ['roots', 'Reader', 'util']
-        }
-      }),
+      commonjs({}),
       cleanup({comments: 'none'}),
     ],
     output: {

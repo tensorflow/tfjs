@@ -19,60 +19,58 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
-
-import {OpExecutor} from './types';
+import {Node, OpExecutor} from '../types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
                                     context: ExecutionContext):
                                        tfc.Tensor[] => {
   switch (node.op) {
-    case 'equal': {
+    case 'Equal': {
       return [tfc.equal(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'notEqual': {
+    case 'NotEqual': {
       return [tfc.notEqual(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'greater': {
+    case 'Greater': {
       return [tfc.greater(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'greaterEqual': {
+    case 'GreaterEqual': {
       return [tfc.greaterEqual(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'less': {
+    case 'Less': {
       return [tfc.less(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'lessEqual': {
+    case 'LessEqual': {
       return [tfc.lessEqual(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'logicalAnd': {
+    case 'LogicalAnd': {
       return [tfc.logicalAnd(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'logicalNot': {
+    case 'LogicalNot': {
       return [tfc.logicalNot(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'logicalOr': {
+    case 'LogicalOr': {
       return [tfc.logicalOr(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'where': {
+    case 'Select': {
       return [tfc.where(
           getParamValue('condition', node, tensorMap, context) as tfc.Tensor,
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,

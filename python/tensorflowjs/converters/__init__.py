@@ -21,4 +21,4 @@ from __future__ import print_function
 from tensorflowjs.converters.keras_h5_conversion import save_keras_model
 from tensorflowjs.converters.keras_tfjs_loader import deserialize_keras_model
 from tensorflowjs.converters.keras_tfjs_loader import load_keras_model
-from tensorflowjs.converters.tf_saved_model_conversion import convert_tf_saved_model
+from tensorflowjs.converters.tf_saved_model_conversion_v2 import convert_tf_saved_model

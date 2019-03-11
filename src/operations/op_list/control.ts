@@ -1,3 +1,5 @@
+import {OpMapper} from '../types';
+
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -15,183 +17,140 @@
  * =============================================================================
  */
 
-export const json = [
+export const json: OpMapper[] = [
   {
     'tfOpName': 'LoopCond',
-    'dlOpName': 'loopCond',
     'category': 'control',
-    'params': [{'tfInputIndex': 0, 'dlParamName': 'pred', 'type': 'tensor'}]
+    'inputs': [{'start': 0, 'name': 'pred', 'type': 'tensor'}]
   },
   {
     'tfOpName': 'Switch',
-    'dlOpName': 'switch',
     'category': 'control',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'data', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'pred', 'type': 'tensor'}
+    'inputs': [
+      {'start': 0, 'name': 'data', 'type': 'tensor'},
+      {'start': 1, 'name': 'pred', 'type': 'tensor'}
     ]
   },
   {
     'tfOpName': 'Merge',
-    'dlOpName': 'merge',
     'category': 'control',
-    'params': [{
-      'tfInputIndex': 0,
-      'tfInputParamLength': 0,
-      'dlParamName': 'tensors',
-      'type': 'tensors'
-    }]
+    'inputs':
+        [{'start': 0, 'end': 0, 'name': 'tensors', 'type': 'tensors'}]
   },
   {
     'tfOpName': 'Enter',
-    'dlOpName': 'enter',
     'category': 'control',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'tensor', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      },
-      {
-        'tfParamName': 'frame_name',
-        'dlParamName': 'frameName',
-        'type': 'string'
-      },
-      {
-        'tfParamName': 'is_constant',
-        'dlParamName': 'isConstant',
-        'type': 'bool'
-      }
+    'inputs': [
+      {'start': 0, 'name': 'tensor', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true},
+      {'tfName': 'frame_name', 'name': 'frameName', 'type': 'string'},
+      {'tfName': 'is_constant', 'name': 'isConstant', 'type': 'bool'}
     ]
   },
   {
     'tfOpName': 'Exit',
-    'dlOpName': 'exit',
     'category': 'control',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'tensor', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'tensor', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'NextIteration',
-    'dlOpName': 'nextIteration',
     'category': 'control',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'tensor', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'tensor', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'TensorArrayV3',
-    'dlOpName': 'tensorArray',
     'category': 'control',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'size', 'type': 'number'},
-      {'tfParamName': 'dtype', 'dlParamName': 'dtype', 'type': 'dtype'}, {
-        'tfParamName': 'element_shape',
-        'dlParamName': 'elementShape',
-        'type': 'shape'
-      },
+    'inputs': [
+      {'start': 0, 'name': 'size', 'type': 'number'},
+    ],
+    'attrs': [
+      {'tfName': 'dtype', 'name': 'dtype', 'type': 'dtype'},
+      {'tfName': 'element_shape', 'name': 'elementShape', 'type': 'shape'},
+      {'tfName': 'dynamic_size', 'name': 'dynamicSize', 'type': 'bool'},
+      {'tfName': 'clear_after_read', 'name': 'clearAfterRead', 'type': 'bool'},
       {
-        'tfParamName': 'dynamic_size',
-        'dlParamName': 'dynamicSize',
+        'tfName': 'identical_element_shapes',
+        'name': 'identicalElementShapes',
         'type': 'bool'
       },
-      {
-        'tfParamName': 'clear_after_read',
-        'dlParamName': 'clearAfterRead',
-        'type': 'bool'
-      },
-      {
-        'tfParamName': 'identical_element_shapes',
-        'dlParamName': 'identicalElementShapes',
-        'type': 'bool'
-      },
-      {
-        'tfParamName': 'tensor_array_name',
-        'dlParamName': 'name',
-        'type': 'string'
-      }
+      {'tfName': 'tensor_array_name', 'name': 'name', 'type': 'string'}
     ]
   },
   {
     'tfOpName': 'TensorArrayWriteV3',
-    'dlOpName': 'tensorArrayWrite',
     'category': 'control',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'tensorArrayId', 'type': 'number'},
-      {'tfInputIndex': 1, 'dlParamName': 'index', 'type': 'number'},
-      {'tfInputIndex': 2, 'dlParamName': 'tensor', 'type': 'tensor'},
-      {'tfInputIndex': 3, 'dlParamName': 'flowIn', 'type': 'number'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 1, 'name': 'index', 'type': 'number'},
+      {'start': 2, 'name': 'tensor', 'type': 'tensor'},
+      {'start': 3, 'name': 'flowIn', 'type': 'number'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'TensorArrayReadV3',
-    'dlOpName': 'tensorArrayRead',
     'category': 'control',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'tensorArrayId', 'type': 'number'},
-      {'tfInputIndex': 1, 'dlParamName': 'index', 'type': 'number'},
-      {'tfInputIndex': 2, 'dlParamName': 'flowIn', 'type': 'number'}, {
-        'tfParamName': 'dtype',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
-    ]
+    'inputs': [
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 1, 'name': 'index', 'type': 'number'},
+      {'start': 2, 'name': 'flowIn', 'type': 'number'},
+    ],
+    'attrs': [{
+      'tfName': 'dtype',
+      'name': 'dtype',
+      'type': 'dtype',
+      'notSupported': true
+    }]
   },
   {
     'tfOpName': 'TensorArrayGatherV3',
-    'dlOpName': 'tensorArrayGather',
     'category': 'control',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'tensorArrayId', 'type': 'number'},
-      {'tfInputIndex': 1, 'dlParamName': 'indices', 'type': 'number[]'},
-      {'tfInputIndex': 2, 'dlParamName': 'flowIn', 'type': 'number'},
-      {'tfParamName': 'dtype', 'dlParamName': 'dtype', 'type': 'dtype'}, {
-        'tfParamName': 'element_shape',
-        'dlParamName': 'elementShape',
-        'type': 'shape'
-      }
+    'inputs': [
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 1, 'name': 'indices', 'type': 'number[]'},
+      {'start': 2, 'name': 'flowIn', 'type': 'number'},
+    ],
+    'attrs': [
+      {'tfName': 'dtype', 'name': 'dtype', 'type': 'dtype'},
+      {'tfName': 'element_shape', 'name': 'elementShape', 'type': 'shape'}
     ]
   },
   {
     'tfOpName': 'TensorArrayScatterV3',
-    'dlOpName': 'tensorArrayScatter',
     'category': 'control',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'tensorArrayId', 'type': 'number'},
-      {'tfInputIndex': 1, 'dlParamName': 'indices', 'type': 'number[]'},
-      {'tfInputIndex': 2, 'dlParamName': 'tensor', 'type': 'tensor'},
-      {'tfInputIndex': 3, 'dlParamName': 'flowIn', 'type': 'number'},
-      {'tfParamName': 'T', 'dlParamName': 'dtype', 'type': 'dtype'}
-    ]
+    'inputs': [
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 1, 'name': 'indices', 'type': 'number[]'},
+      {'start': 2, 'name': 'tensor', 'type': 'tensor'},
+      {'start': 3, 'name': 'flowIn', 'type': 'number'},
+    ],
+    'attrs': [{'tfName': 'T', 'name': 'dtype', 'type': 'dtype'}]
   },
   {
     'tfOpName': 'TensorArrayConcatV3',
-    'dlOpName': 'tensorArrayConcat',
     'category': 'control',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'tensorArrayId', 'type': 'number'},
-      {'tfInputIndex': 1, 'dlParamName': 'flowIn', 'type': 'number'},
-      {'tfParamName': 'dtype', 'dlParamName': 'dtype', 'type': 'dtype'}, {
-        'tfParamName': 'element_shape_except0',
-        'dlParamName': 'elementShapeExcept0',
+    'inputs': [
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 1, 'name': 'flowIn', 'type': 'number'},
+    ],
+    'attrs': [
+      {'tfName': 'dtype', 'name': 'dtype', 'type': 'dtype'}, {
+        'tfName': 'element_shape_except0',
+        'name': 'elementShapeExcept0',
         'type': 'shape',
         'notSupported': true
       }
@@ -199,31 +158,26 @@ export const json = [
   },
   {
     'tfOpName': 'TensorArraySplitV3',
-    'dlOpName': 'tensorArraySplit',
     'category': 'control',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'tensorArrayId', 'type': 'number'},
-      {'tfInputIndex': 1, 'dlParamName': 'tensor', 'type': 'tensor'},
-      {'tfInputIndex': 2, 'dlParamName': 'lengths', 'type': 'number[]'},
-      {'tfInputIndex': 3, 'dlParamName': 'flowIn', 'type': 'number'},
-      {'tfParamName': 'T', 'dlParamName': 'dtype', 'type': 'dtype'}
-    ]
+    'inputs': [
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 1, 'name': 'tensor', 'type': 'tensor'},
+      {'start': 2, 'name': 'lengths', 'type': 'number[]'},
+      {'start': 3, 'name': 'flowIn', 'type': 'number'},
+    ],
+    'attrs': [{'tfName': 'T', 'name': 'dtype', 'type': 'dtype'}]
   },
   {
     'tfOpName': 'TensorArraySizeV3',
-    'dlOpName': 'tensorArraySize',
     'category': 'control',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'tensorArrayId', 'type': 'number'},
-      {'tfInputIndex': 1, 'dlParamName': 'flowIn', 'type': 'number'}
+    'inputs': [
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 1, 'name': 'flowIn', 'type': 'number'}
     ]
   },
   {
     'tfOpName': 'TensorArrayCloseV3',
-    'dlOpName': 'tensorArrayClose',
     'category': 'control',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'tensorArrayId', 'type': 'number'}
-    ]
+    'inputs': [{'start': 0, 'name': 'tensorArrayId', 'type': 'number'}]
   }
 ];

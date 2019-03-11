@@ -19,16 +19,14 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
-
-import {OpExecutor} from './types';
+import {Node, OpExecutor} from '../types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
      context: ExecutionContext): tfc.Tensor[] => {
       switch (node.op) {
-        case 'topK': {
+        case 'TopKV2': {
           const x = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
           const k = getParamValue('k', node, tensorMap, context) as number;
           const sorted =

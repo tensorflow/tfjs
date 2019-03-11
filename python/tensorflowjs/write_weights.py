@@ -22,6 +22,10 @@ import numpy as np
 from tensorflowjs import quantization
 
 _OUTPUT_DTYPES = [np.float32, np.int32, np.uint8, np.uint16, np.bool]
+_AUTO_DTYPE_CONVERSION = {
+    np.dtype(np.float64): np.float32,
+    np.dtype(np.int64): np.int32}
+
 
 def write_weights(
     weight_groups, write_dir, shard_size_bytes=1024 * 1024 * 4,
@@ -131,6 +135,7 @@ def write_weights(
 
   return manifest
 
+
 def _quantize_entry(entry, quantization_dtype):
   """Quantizes the weights in the entry, returning a new entry.
 
@@ -169,6 +174,7 @@ def _quantize_entry(entry, quantization_dtype):
       'min': min_val, 'scale': scale, 'original_dtype': data.dtype.name}
   return quantized_entry
 
+
 def _stack_group_bytes(group):
   """Stacks the bytes for a weight group into a flat byte array.
 
@@ -188,7 +194,7 @@ def _stack_group_bytes(group):
 
   for entry in group:
     _assert_valid_weight_entry(entry)
-
+    _auto_convert_weight_entry(entry)
     data = entry['data']
     data_bytes = data.tobytes()
     group_bytes_writer.write(data_bytes)
@@ -225,8 +231,7 @@ def _shard_group_bytes_to_disk(
   for i in range(num_shards):
     shard = group_bytes.read(shard_size_bytes)
 
-    filename = ('group' + str(group_index + 1) +
-                '-shard' + str(i + 1) + 'of' + str(num_shards))
+    filename = 'group%d-shard%dof%d.bin' % (group_index + 1, i + 1, num_shards)
     filenames.append(filename)
     filepath = os.path.join(write_dir, filename)
 
@@ -276,6 +281,15 @@ def _assert_no_duplicate_weight_names(weight_groups):
       weight_names.add(name)
 
 
+def _auto_convert_weight_entry(entry):
+  data = entry['data']
+  if data.dtype in _AUTO_DTYPE_CONVERSION:
+    entry['data'] = _AUTO_DTYPE_CONVERSION[data.dtype](data)
+    print('weight ' + entry['name'] + ' with shape ' + str(data.shape) +
+          ' and dtype ' + data.dtype.name + ' was auto converted to the type ' +
+          np.dtype(_AUTO_DTYPE_CONVERSION[data.dtype]).name)
+
+
 def _assert_valid_weight_entry(entry):
   if not 'name' in entry:
     raise ValueError('Error dumping weight, no name field found.')
@@ -285,7 +299,7 @@ def _assert_valid_weight_entry(entry):
   name = entry['name']
   data = entry['data']
 
-  if not data.dtype in _OUTPUT_DTYPES:
+  if not (data.dtype in _OUTPUT_DTYPES or data.dtype in _AUTO_DTYPE_CONVERSION):
     raise ValueError('Error dumping weight ' + name + ', dtype ' +
                      data.dtype.name + ' not supported.')
 
@@ -309,11 +323,11 @@ def _assert_weight_groups_valid(weight_groups):
             'weight_groups[' + i + '][' + j + '] has no string field \'name\'')
       if 'data' not in weights:
         raise ValueError(
-            'weight_groups[' + i + '][' + j + '] has no numpy ' + \
+            'weight_groups[' + i + '][' + j + '] has no numpy ' +
             'array field \'data\'')
       if not isinstance(weights['data'], np.ndarray):
         raise ValueError(
-            'weight_groups[' + i + '][' + j + '][\'data\'] is not a numpy ' + \
+            'weight_groups[' + i + '][' + j + '][\'data\'] is not a numpy ' +
             'array')
 
 

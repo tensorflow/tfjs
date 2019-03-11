@@ -1,5 +1,10 @@
 {
   "extends": ["tslint-no-circular-imports"],
+  "linterOptions": {
+    "exclude": [
+        "src/data/compiled_api.ts"
+    ]
+  },
   "rules": {
     "array-type": [true, "array-simple"],
     "arrow-return-shorthand": true,

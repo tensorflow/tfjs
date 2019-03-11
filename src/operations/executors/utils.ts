@@ -24,28 +24,29 @@ import {Node, ValueType} from '../types';
 export function getParamValue(
     paramName: string, node: Node, tensorMap: NamedTensorsMap,
     context: ExecutionContext): ValueType {
-  const param = node.params[paramName];
-  if (param && param.inputIndex !== undefined) {
-    if (param.type === 'tensor') {
-      return getTensor(node.inputNames[param.inputIndex], tensorMap, context);
+  const inputParam = node.inputParams[paramName];
+  if (inputParam && inputParam.inputIndexStart !== undefined) {
+    const start = inputParam.inputIndexStart;
+    const end = inputParam.inputIndexEnd === 0 ?
+        undefined :
+        (inputParam.inputIndexEnd === undefined ? start + 1 :
+                                                  inputParam.inputIndexEnd);
+    if (inputParam.type === 'tensor') {
+      return getTensor(
+          node.inputNames[inputParam.inputIndexStart], tensorMap, context);
     }
-    if (param.type === 'tensors') {
-      const inputs = param.inputIndex === 0 ?
-          (param.inputParamLength === 0 ?
-               node.inputNames :
-               node.inputNames.slice(
-                   param.inputIndex, -param.inputParamLength)) :
-          node.inputNames.splice(param.inputIndex);
+    if (inputParam.type === 'tensors') {
+      const inputs = node.inputNames.slice(start, end);
 
       return inputs.map(name => getTensor(name, tensorMap, context));
     }
     const data = Array.prototype.slice.call(
-        getTensor(
-            node.inputNames.slice(param.inputIndex)[0], tensorMap, context)
+        getTensor(node.inputNames.slice(start)[0], tensorMap, context)
             .dataSync());
-    return param.type === 'number' ? data[0] : data;
+    return inputParam.type === 'number' ? data[0] : data;
   }
-  return param && param.value;
+  const attrParam = node.attrParams[paramName];
+  return attrParam && attrParam.value;
 }
 
 /**

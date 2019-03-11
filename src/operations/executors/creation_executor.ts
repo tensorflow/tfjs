@@ -19,16 +19,14 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
-
-import {OpExecutor} from './types';
+import {Node, OpExecutor} from '../types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
                                     context: ExecutionContext):
                                        tfc.Tensor[] => {
   switch (node.op) {
-    case 'fill': {
+    case 'Fill': {
       const shape =
           getParamValue('shape', node, tensorMap, context) as number[];
       const dtype =
@@ -36,13 +34,13 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
       const value = getParamValue('value', node, tensorMap, context) as number;
       return [tfc.fill(shape, value, dtype)];
     }
-    case 'linspace': {
+    case 'LinSpace': {
       const start = getParamValue('start', node, tensorMap, context) as number;
       const stop = getParamValue('stop', node, tensorMap, context) as number;
       const num = getParamValue('num', node, tensorMap, context) as number;
       return [tfc.linspace(start, stop, num)];
     }
-    case 'oneHot': {
+    case 'OneHot': {
       const indices =
           getParamValue('indices', node, tensorMap, context) as tfc.Tensor1D;
       const depth = getParamValue('depth', node, tensorMap, context) as number;
@@ -52,16 +50,16 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('offValue', node, tensorMap, context) as number;
       return [tfc.oneHot(indices, depth, onValue, offValue)];
     }
-    case 'ones': {
+    case 'Ones': {
       return [tfc.ones(
           getParamValue('shape', node, tensorMap, context) as number[],
           getParamValue('dtype', node, tensorMap, context) as tfc.DataType)];
     }
-    case 'onesLike': {
+    case 'OnesLike': {
       return [tfc.onesLike(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'randomUniform': {
+    case 'RandomUniform': {
       return [tfc.randomUniform(
           // tslint:disable-next-line:no-any
           getParamValue('shape', node, tensorMap, context) as any,
@@ -69,7 +67,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('maxval', node, tensorMap, context) as number,
           getParamValue('dtype', node, tensorMap, context) as tfc.DataType)];
     }
-    case 'range': {
+    case 'Range': {
       const start = getParamValue('start', node, tensorMap, context) as number;
       const stop = getParamValue('stop', node, tensorMap, context) as number;
       const step = getParamValue('step', node, tensorMap, context) as number;
@@ -78,7 +76,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('dtype', node, tensorMap, context) as 'float32' |
               'int32')];
     }
-    case 'truncatedNormal': {
+    case 'TruncatedNormal': {
       const shape =
           getParamValue('shape', node, tensorMap, context) as number[];
       const mean = getParamValue('mean', node, tensorMap, context) as number;
@@ -91,12 +89,12 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
               'int32',
           seed)];
     }
-    case 'zeros': {
+    case 'Zeros': {
       return [tfc.zeros(
           getParamValue('shape', node, tensorMap, context) as number[],
           getParamValue('dtype', node, tensorMap, context) as tfc.DataType)];
     }
-    case 'zerosLike': {
+    case 'ZerosLike': {
       return [tfc.zerosLike(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     }

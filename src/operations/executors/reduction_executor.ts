@@ -19,16 +19,14 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
-
-import {OpExecutor} from './types';
+import {Node, OpExecutor} from '../types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
                                     context: ExecutionContext):
                                        tfc.Tensor[] => {
   switch (node.op) {
-    case 'max': {
+    case 'Max': {
       const axis = getParamValue('axis', node, tensorMap, context) as number[];
       const keepDims =
           getParamValue('keepDims', node, tensorMap, context) as boolean;
@@ -36,7 +34,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis,
           keepDims)];
     }
-    case 'mean': {
+    case 'Mean': {
       const axis = getParamValue('axis', node, tensorMap, context) as number[];
       const keepDims =
           getParamValue('keepDims', node, tensorMap, context) as boolean;
@@ -44,7 +42,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis,
           keepDims)];
     }
-    case 'min': {
+    case 'Min': {
       const axis = getParamValue('axis', node, tensorMap, context) as number[];
       const keepDims =
           getParamValue('keepDims', node, tensorMap, context) as boolean;
@@ -52,7 +50,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis,
           keepDims)];
     }
-    case 'sum': {
+    case 'Sum': {
       const axis = getParamValue('axis', node, tensorMap, context) as number[];
       const keepDims =
           getParamValue('keepDims', node, tensorMap, context) as boolean;
@@ -60,7 +58,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis,
           keepDims)];
     }
-    case 'all': {
+    case 'All': {
       const axis = getParamValue('axis', node, tensorMap, context) as number[];
       const keepDims =
           getParamValue('keepDims', node, tensorMap, context) as boolean;
@@ -68,7 +66,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis,
           keepDims)];
     }
-    case 'any': {
+    case 'Any': {
       const axis = getParamValue('axis', node, tensorMap, context) as number[];
       const keepDims =
           getParamValue('keepDims', node, tensorMap, context) as boolean;
@@ -76,17 +74,17 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis,
           keepDims)];
     }
-    case 'argMax': {
+    case 'ArgMax': {
       const axis = getParamValue('axis', node, tensorMap, context) as number;
       return [tfc.argMax(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis)];
     }
-    case 'argMin': {
+    case 'ArgMin': {
       const axis = getParamValue('axis', node, tensorMap, context) as number;
       return [tfc.argMin(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis)];
     }
-    case 'prod': {
+    case 'Prod': {
       const axis = getParamValue('axis', node, tensorMap, context) as number[];
       const keepDims =
           getParamValue('keepDims', node, tensorMap, context) as boolean;

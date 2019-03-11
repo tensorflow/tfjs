@@ -1,3 +1,5 @@
+import {OpMapper} from '../types';
+
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -15,71 +17,65 @@
  * =============================================================================
  */
 
-export const json = [
+export const json: OpMapper[] = [
   {
     'tfOpName': 'MatMul',
-    'dlOpName': 'matMul',
     'category': 'matrices',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'a', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'b', 'type': 'tensor'}, {
-        'tfParamName': 'transpose_a',
-        'dlParamName': 'transposeA',
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {
+        'tfName': 'transpose_a',
+        'name': 'transposeA',
         'type': 'bool',
         'defaultValue': false
       },
       {
-        'tfParamName': 'transpose_b',
-        'dlParamName': 'transposeB',
+        'tfName': 'transpose_b',
+        'name': 'transposeB',
         'type': 'bool',
         'defaultValue': false
       },
-      {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'BatchMatMul',
-    'dlOpName': 'matMul',
     'category': 'matrices',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'a', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'b', 'type': 'tensor'}, {
-        'tfParamName': 'adj_x',
-        'dlParamName': 'transposeA',
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {
+        'tfName': 'adj_x',
+        'name': 'transposeA',
         'type': 'bool',
         'defaultValue': false
       },
       {
-        'tfParamName': 'adj_y',
-        'dlParamName': 'transposeB',
+        'tfName': 'adj_y',
+        'name': 'transposeB',
         'type': 'bool',
         'defaultValue': false
       },
-      {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'Transpose',
-    'dlOpName': 'transpose',
     'category': 'matrices',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'perm', 'type': 'number[]'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
-    ]
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'perm', 'type': 'number[]'},
+    ],
+    'attrs': [{
+      'tfName': 'T',
+      'name': 'dtype',
+      'type': 'dtype',
+      'notSupported': true
+    }]
   }
 ];

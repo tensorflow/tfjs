@@ -18,17 +18,15 @@
 import * as tf from '@tensorflow/tfjs';
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/tfjs-models/savedmodel/';
-const MODEL_FILE_URL = 'nested_loop/tensorflowjs_model.pb';
-const WEIGHT_MANIFEST_FILE_URL = 'nested_loop/weights_manifest.json';
+const MODEL_FILE_URL = 'nested_loop/model.json';
 const OUTPUT_NODE_NAME = 'Add';
 
 export class LoopModel {
   constructor() {}
 
   async load() {
-    this.model = await tf.loadFrozenModel(
-      GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL,
-      GOOGLE_CLOUD_STORAGE_DIR + WEIGHT_MANIFEST_FILE_URL);
+    this.model = await tf.loadGraphModel(
+      GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL);
   }
 
   dispose() {
@@ -69,6 +67,6 @@ window.onload = async () => {
     const result = await loopModel.predict(init, loop, loop2, inc);
     console.timeEnd('prediction');
 
-    resultElement.innerText = "oupput = " + result.dataSync()[0];
+    resultElement.innerText = "output = " + result.dataSync()[0];
   };
 };
