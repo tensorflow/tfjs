@@ -8,7 +8,6 @@
 demo/
 docs/
 scripts/
-/src/
 node_modules/
 coverage/
 package-lock.json
