@@ -16,8 +16,7 @@
 
 set -e
 
-# if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
-if [[ $(node -v) = *v10* ]]
+if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
 then
   yarn
   yarn lint
