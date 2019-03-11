@@ -2,7 +2,7 @@
   "name": "@tensorflow/tfjs-layers",
   "version": "1.0.0",
   "description": "TensorFlow layers API in JavaScript",
-  "license": "Apache-2.0",
+  "license": "Apache-2.0 AND MIT",
   "private": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
