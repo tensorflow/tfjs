@@ -1,0 +1,46 @@
+{
+  "name": "benchmarks",
+  "version": "0.0.1",
+  "description": "Benchmark for TensorFlow.js",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs"
+  },
+  "devDependencies": {
+    "@tensorflow/tfjs": "latest",
+    "@tensorflow/tfjs-core": "latest",
+    "@tensorflow/tfjs-layers": "latest",
+    "@tensorflow/tfjs-converter": "latest",
+    "@tensorflow/tfjs-node": "latest",
+    "@tensorflow/tfjs-data": "latest",
+    "@types/jasmine": "~2.5.53",
+    "clang-format": "~1.2.4",
+    "firebase": "~5.3.0",
+    "http-server": "^0.11.1",
+    "jasmine": "~3.1.0",
+    "jasmine-core": "~3.1.0",
+    "karma": "~4.0.0",
+    "karma-browserstack-launcher": "~1.4.0",
+    "karma-chrome-launcher": "~2.2.0",
+    "karma-jasmine": "~1.1.0",
+    "karma-typescript": "~4.0.0",
+    "polymer-bundler": "~3.0.1",
+    "ts-node": "~7.0.0",
+    "tsc": "^1.20150623.0",
+    "tsify": "^3.0.4",
+    "tslint": "^5.10.0",
+    "typescript": "2.9.2",
+    "yalc": "^1.0.0-pre.23"
+  },
+  "scripts": {
+    "link-local": "yalc link",
+    "lint": "tslint -p . -t verbose",
+    "benchmark": "karma start --firebaseKey $FIREBASE_KEY",
+    "benchmark-travis": "./benchmark_travis.sh"
+  },
+  "license": "Apache-2.0",
+  "engines": {
+    "yarn": ">= 1.0.0"
+  }
+}
