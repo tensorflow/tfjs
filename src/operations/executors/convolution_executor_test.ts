@@ -160,12 +160,13 @@ describe('convolution', () => {
     describe('Conv3d', () => {
       it('should call tfc.conv3d', () => {
         spyOn(tfc, 'conv3d');
-        node.op = 'conv3d';
-        node.params['filter'] = createTensorAttr(1);
-        node.params['strides'] = createNumericArrayAttr([1, 2, 2, 2, 1]);
-        node.params['pad'] = createStrAttr('same');
-        node.params['dataFormat'] = createStrAttr('NHWC');
-        node.params['dilations'] = createNumericArrayAttr([2, 2, 2]);
+        node.op = 'Conv3D';
+        node.category = 'convolution';
+        node.inputParams['filter'] = createTensorAttr(1);
+        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 2, 1]);
+        node.attrParams['pad'] = createStrAttr('same');
+        node.attrParams['dataFormat'] = createStrAttr('NHWC');
+        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 2, 1]);
 
         const input1 = [tfc.scalar(1.0)];
         const input2 = [tfc.scalar(1.0)];
