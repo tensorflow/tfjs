@@ -31,13 +31,7 @@ import numpy as np
 import six
 
 from tensorflowjs import write_weights  # pylint: disable=import-error
-
-# File name for the indexing JSON file in an artifact directory.
-ARTIFACT_MODEL_JSON_FILE_NAME = 'model.json'
-
-# JSON string keys for fields of the indexing JSON.
-ARTIFACT_MODEL_TOPOLOGY_KEY = 'modelTopology'
-ARTIFACT_WEIGHTS_MANIFEST_KEY = 'weightsManifest'
+from tensorflowjs.converters import common
 
 
 def normalize_weight_name(weight_name):
@@ -221,6 +215,15 @@ def h5_weights_to_tfjs_format(h5file, split_by_layer=False):
   return groups
 
 
+def _get_generated_by(topology):
+  if topology is None:
+    return None
+  elif 'keras_version' in topology:
+    return 'keras v%s' % topology['keras_version']
+  else:
+    return None
+
+
 def write_artifacts(topology,
                     weights,
                     output_dir,
@@ -244,16 +247,21 @@ def write_artifacts(topology,
     raise ValueError(
         'Path "%d" already exists as a file (not a directory).' % output_dir)
 
-  model_json = {}
+  model_json = {
+      common.FORMAT_KEY: common.TFJS_LAYERS_MODEL_FORMAT,
+      common.GENERATED_BY_KEY: _get_generated_by(topology),
+      common.CONVERTED_BY_KEY: common.get_converted_by(),
+  }
 
-  model_json[ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
+  model_json[common.ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
   weights_manifest = write_weights.write_weights(
       weights, output_dir, write_manifest=False,
       quantization_dtype=quantization_dtype)
   assert isinstance(weights_manifest, list)
-  model_json[ARTIFACT_WEIGHTS_MANIFEST_KEY] = weights_manifest
+  model_json[common.ARTIFACT_WEIGHTS_MANIFEST_KEY] = weights_manifest
 
-  model_json_path = os.path.join(output_dir, ARTIFACT_MODEL_JSON_FILE_NAME)
+  model_json_path = os.path.join(
+      output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
   with open(model_json_path, 'wt') as f:
     json.dump(model_json, f)
 
@@ -287,7 +295,7 @@ def save_keras_model(model, artifacts_dir, quantization_dtype=None):
       h5_merged_saved_model_to_tfjs_format(temp_h5_path))
   if os.path.isfile(artifacts_dir):
     raise ValueError('Path "%s" already exists as a file.' % artifacts_dir)
-  elif not os.path.isdir(artifacts_dir):
+  if not os.path.isdir(artifacts_dir):
     os.makedirs(artifacts_dir)
   write_artifacts(
       topology_json, weight_groups, artifacts_dir,

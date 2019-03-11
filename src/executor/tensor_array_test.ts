@@ -74,6 +74,14 @@ describe('TensorArray', () => {
       const tensor = tensor2d([1, 2], [2, 1], 'int32');
       expect(() => tensorArray.write(0, tensor)).toThrow();
     });
+    it('should allow unknown shape', () => {
+      const unknownShape: number[] = undefined;
+      tensorArray = new TensorArray(
+          NAME, DTYPE, SIZE, unknownShape, IDENTICAL_SHAPE, DYNAMIC_SIZE,
+          CLEAR_AFTER_READ);
+      const tensor = tensor2d([1, 2], [2, 1], 'int32');
+      expect(() => tensorArray.write(0, tensor)).not.toThrow();
+    });
     it('should fail if the index has already been written', () => {
       tensorArray.write(0, tensor);
       expect(() => tensorArray.write(0, tensor)).toThrow();

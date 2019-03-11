@@ -20,7 +20,7 @@ import {DataType, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:max-line-length
 import {NamedTensorMap, NamedTensorsMap, TensorArrayMap, TensorInfo} from '../data/types';
 // tslint:disable-next-line:max-line-length
-import {getNodeNameAndIndex, getParamValue, getTensor, getTensorsForCurrentContenxt} from '../operations/executors/utils';
+import {getNodeNameAndIndex, getParamValue, getTensor, getTensorsForCurrentContenxt, parseNodeName} from '../operations/executors/utils';
 import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
 
@@ -52,10 +52,12 @@ export class GraphExecutor {
     return this.placeholders.map(node => {
       return {
         name: node.name,
-        shape: node.params['shape'] ? node.params['shape'].value as number[] :
-                                      undefined,
-        dtype: node.params['dtype'] ? node.params['dtype'].value as DataType :
-                                      undefined
+        shape: node.attrParams['shape'] ?
+            node.attrParams['shape'].value as number[] :
+            undefined,
+        dtype: node.attrParams['dtype'] ?
+            node.attrParams['dtype'].value as DataType :
+            undefined
       };
     });
   }
@@ -64,10 +66,12 @@ export class GraphExecutor {
     return this._outputs.map(node => {
       return {
         name: node.name,
-        shape: node.params['shape'] ? node.params['shape'].value as number[] :
-                                      undefined,
-        dtype: node.params['dtype'] ? node.params['dtype'].value as DataType :
-                                      undefined
+        shape: node.attrParams['shape'] ?
+            node.attrParams['shape'].value as number[] :
+            undefined,
+        dtype: node.attrParams['dtype'] ?
+            node.attrParams['dtype'].value as DataType :
+            undefined
       };
     });
   }
@@ -261,7 +265,8 @@ export class GraphExecutor {
     Object.keys(tensors).forEach(key => {
       const tensorArray = tensors[key];
       tensorArray.forEach(tensor => {
-        if (tensor && outputIds.indexOf(tensor.id) === -1 &&
+        if (tensor && !tensor.isDisposed &&
+            outputIds.indexOf(tensor.id) === -1 &&
             inputIds.indexOf(tensor.id) === -1 &&
             this.weightIds.indexOf(tensor.id) === -1) {
           tensor.dispose();
@@ -296,7 +301,6 @@ export class GraphExecutor {
           outputNames, intermediateTensorConsumerCount);
       await Promise.all(promises);
     }
-
     return tensorMap;
   }
 
@@ -313,7 +317,7 @@ export class GraphExecutor {
       // The tensor of the Enter op with isConstant set should be set
       // in the parent scope, so it will be available as constant for the
       // whole loop.
-      if (item.node.op === 'enter' &&
+      if (item.node.op === 'Enter' &&
           getParamValue('isConstant', item.node, tensorMap, context)) {
         [nodeName] = getNodeNameAndIndex(item.node.name, context);
       }
@@ -324,7 +328,6 @@ export class GraphExecutor {
         if (!nodeName) {
           [nodeName] = getNodeNameAndIndex(item.node.name, context);
         }
-
         const currentContext = context.currentContext;
         if (tensors instanceof Promise) {
           promises.push(tensors.then(t => {
@@ -357,7 +360,7 @@ export class GraphExecutor {
       const [nodeName, ] = getNodeNameAndIndex(childNode.name, context);
       if (!added[nodeName]) {
         // Merge op can be pushed if any of its inputs has value.
-        if (childNode.op === 'merge') {
+        if (childNode.op === 'Merge') {
           if (childNode.inputNames.some(name => {
                 return !!getTensor(name, tensorMap, context);
               })) {
@@ -411,23 +414,23 @@ export class GraphExecutor {
       }
 
       const input = inputTensors[0];
-      if (node.params['shape'] && node.params['shape'].value) {
-        const shape = node.params['shape'].value as number[];
+      if (node.attrParams['shape'] && node.attrParams['shape'].value) {
+        const shape = node.attrParams['shape'].value as number[];
         const match = shape.length === input.shape.length &&
             input.shape.every(
                 (dim, index) => shape[index] === -1 || shape[index] === dim);
         util.assert(
             match,
-            `The shape of dict['${
-                node.name}'] provided in model.execute(dict) must be [${
-                shape}], but was [${input.shape}]`);
+            () => `The shape of dict['${node.name}'] provided in ` +
+                `model.execute(dict) must be [${shape}], but was ` +
+                `[${input.shape}]`);
       }
-      if (node.params['dtype'] && node.params['dtype'].value) {
+      if (node.attrParams['dtype'] && node.attrParams['dtype'].value) {
         util.assert(
-            input.dtype === node.params['dtype'].value as string,
-            `The dtype of dict['${
-                node.name}'] provided in model.execute(dict) must be ${
-                node.params['dtype'].value}, but was ${input.dtype}`);
+            input.dtype === node.attrParams['dtype'].value as string,
+            () => `The dtype of dict['${node.name}'] provided in ` +
+                `model.execute(dict) must be ` +
+                `${node.attrParams['dtype'].value}, but was ${input.dtype}`);
       }
     });
   }
@@ -471,7 +474,8 @@ export class GraphExecutor {
     const compiledNodeNames = compiledNodes.map(node => node.name);
     const extra: string[] = [];
     outputs.forEach(name => {
-      if (compiledNodeNames.indexOf(name) === -1) extra.push(name);
+      const [nodeName] = parseNodeName(name);
+      if (compiledNodeNames.indexOf(nodeName) === -1) extra.push(nodeName);
     });
 
     if (extra.length > 0) {

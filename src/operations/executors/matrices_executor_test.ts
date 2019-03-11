@@ -36,34 +36,44 @@ describe('matrices', () => {
       category: 'matrices',
       inputNames: ['input1', 'input2'],
       inputs: [],
-      params: {a: createTensorAttr(0), b: createTensorAttr(1)},
+      inputParams: {a: createTensorAttr(0), b: createTensorAttr(1)},
+      attrParams: {},
       children: []
     };
   });
 
   describe('executeOp', () => {
-    describe('matMul', () => {
+    describe('MatMul', () => {
       it('should call tfc.matMul', () => {
         spyOn(tfc, 'matMul');
-        node.op = 'matMul';
-        node.params.transposeA = createBoolAttr(true);
-        node.params.transposeB = createBoolAttr(false);
+        node.op = 'MatMul';
+        node.attrParams.transposeA = createBoolAttr(true);
+        node.attrParams.transposeB = createBoolAttr(false);
         executeOp(node, {input1, input2}, context);
 
         expect(tfc.matMul)
             .toHaveBeenCalledWith(input1[0], input2[0], true, false);
       });
     });
+    describe('BatchMatMul', () => {
+      it('should call tfc.matMul', () => {
+        spyOn(tfc, 'matMul');
+        node.op = 'BatchMatMul';
+        node.attrParams.transposeA = createBoolAttr(true);
+        node.attrParams.transposeB = createBoolAttr(false);
+        executeOp(node, {input1, input2}, context);
 
-    describe('transpose', () => {
+        expect(tfc.matMul)
+            .toHaveBeenCalledWith(input1[0], input2[0], true, false);
+      });
+    });
+    describe('Transpose', () => {
       it('should call tfc.transpose', () => {
         spyOn(tfc, 'transpose');
-        node.op = 'transpose';
+        node.op = 'Transpose';
         node.inputNames = ['input1', 'input2', 'input3'];
-        node.params = {
-          x: createTensorAttr(0),
-          perm: createNumericArrayAttr([1, 2])
-        };
+        node.inputParams.x = createTensorAttr(0);
+        node.attrParams.perm = createNumericArrayAttr([1, 2]);
         executeOp(node, {input1}, context);
 
         expect(tfc.transpose).toHaveBeenCalledWith(input1[0], [1, 2]);

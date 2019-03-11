@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import * as Long from 'long';
-
 import {tensorflow} from '../data/compiled_api';
 
 import * as arithmetic from './op_list/arithmetic';
@@ -55,14 +53,8 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
         dtype: {
           type: tensorflow.DataType.DT_FLOAT,
         },
-        shape: {
-          shape: {
-            dim: [
-              {size: Long.fromInt(3)}, {size: Long.fromInt(3)},
-              {size: Long.fromInt(3)}, {size: Long.fromInt(1)}
-            ]
-          }
-        }
+        shape:
+            {shape: {dim: [{size: '3'}, {size: 3}, {size: '3'}, {size: 1}]}}
       }
     },
     {
@@ -104,8 +96,8 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
       input: ['image_placeholder', 'Const'],
       attr: {
         T: {type: tensorflow.DataType.DT_FLOAT},
-        dataFormat: {s: Uint8Array.from([1, 12, 2])},
-        padding: {s: Uint8Array.from([118, 97, 108, 105, 100])},
+        dataFormat: {s: 'TkhXQw=='},
+        padding: {s: 'U0FNRQ=='},
         strides: {list: {f: [], i: [1, 2, 2, 1]}},
         useCudnnOnGpu: {b: true}
       }
@@ -116,26 +108,26 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
       input: ['Conv2D', 'Shape'],
       attr: {
         T: {type: tensorflow.DataType.DT_FLOAT},
-        dataFormat: {s: Uint8Array.from([1, 2, 34])}
+        dataFormat: {s: 'TkhXQw=='}
       }
     },
     {
       name: 'Squeeze',
       op: 'Squeeze',
       input: ['BiasAdd'],
-      attr: {squeeze_dims: {list: {i: [Long.fromInt(1), Long.fromInt(2)]}}}
+      attr: {squeeze_dims: {list: {i: ['1', '2']}}}
     },
     {
       name: 'Split',
       op: 'Split',
       input: ['image_placeholder'],
-      attr: {num_split: {f: 0, i: 3, value: 'i'} as tensorflow.IAttrValue}
+      attr: {num_split: {i: 3} as tensorflow.IAttrValue}
     },
-    {
+    {name: 'LogicalNot', op: 'LogicalNot', input: ['image_placeholder']}, {
       name: 'FusedBatchNorm',
       op: 'FusedBatchNorm',
       input: ['image_placeholder'],
-      attr: {epsilon: {f: 0.0001, i: 0, value: 'f'} as tensorflow.IAttrValue}
+      attr: {epsilon: {f: 0.0001} as tensorflow.IAttrValue}
     }
   ],
   versions: {producer: 1.0}
@@ -150,7 +142,7 @@ describe('completeness check', () => {
         };
         convertedGraph = mapper.transformGraph(graph);
         expect(Object.keys(convertedGraph.nodes)).toEqual([tfOp.tfOpName]);
-        expect(convertedGraph.nodes[tfOp.tfOpName].op).toEqual(tfOp.dlOpName);
+        expect(convertedGraph.nodes[tfOp.tfOpName].op).toEqual(tfOp.tfOpName);
       });
     });
   });
@@ -171,7 +163,7 @@ describe('operationMapper', () => {
 
       it('should find the graph output nodes', () => {
         expect(convertedGraph.outputs.map(node => node.name)).toEqual([
-          'Fill', 'Squeeze', 'Split', 'FusedBatchNorm'
+          'Fill', 'Squeeze', 'Split', 'LogicalNot', 'FusedBatchNorm'
         ]);
       });
 
@@ -184,7 +176,7 @@ describe('operationMapper', () => {
       it('should convert nodes', () => {
         expect(Object.keys(convertedGraph.nodes)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
-          'BiasAdd', 'Squeeze', 'Split', 'FusedBatchNorm'
+          'BiasAdd', 'Squeeze', 'Split', 'LogicalNot', 'FusedBatchNorm'
         ]);
       });
     });
@@ -197,40 +189,44 @@ describe('operationMapper', () => {
       it('should find the children nodes', () => {
         expect(convertedGraph.nodes['image_placeholder'].children.map(
                    node => node.name))
-            .toEqual(['Conv2D', 'Split', 'FusedBatchNorm']);
+            .toEqual(['Conv2D', 'Split', 'LogicalNot', 'FusedBatchNorm']);
       });
 
       it('should map the input params', () => {
-        expect(convertedGraph.nodes['Fill'].params['shape'].inputIndex)
+        expect(
+            convertedGraph.nodes['Fill'].inputParams['shape'].inputIndexStart)
             .toEqual(0);
-        expect(convertedGraph.nodes['Fill'].params['value'].inputIndex)
+        expect(
+            convertedGraph.nodes['Fill'].inputParams['value'].inputIndexStart)
             .toEqual(1);
       });
 
       it('should map the attribute params', () => {
-        expect(convertedGraph.nodes['Conv2D'].params['strides'].value).toEqual([
-          1, 2, 2, 1
-        ]);
-        expect(convertedGraph.nodes['Conv2D'].params['pad'].value)
-            .toEqual('valid');
-        expect(convertedGraph.nodes['Conv2D'].params['useCudnnOnGpu'].value)
+        expect(convertedGraph.nodes['Conv2D'].attrParams['strides'].value)
+            .toEqual([1, 2, 2, 1]);
+        expect(convertedGraph.nodes['Conv2D'].attrParams['pad'].value)
+            .toEqual('same');
+        expect(convertedGraph.nodes['Conv2D'].attrParams['useCudnnOnGpu'].value)
             .toEqual(true);
-        expect(convertedGraph.nodes['Split'].params['numOrSizeSplits'].value)
+        expect(
+            convertedGraph.nodes['Split'].attrParams['numOrSizeSplits'].value)
             .toEqual(3);
-        expect(convertedGraph.nodes['FusedBatchNorm'].params['epsilon'].value)
+        expect(
+            convertedGraph.nodes['FusedBatchNorm'].attrParams['epsilon'].value)
             .toEqual(0.0001);
       });
 
       it('should map the placeholder attribute params', () => {
-        expect(convertedGraph.nodes['image_placeholder'].params['shape'].value)
+        expect(
+            convertedGraph.nodes['image_placeholder'].attrParams['shape'].value)
             .toEqual([3, 3, 3, 1]);
-        expect(convertedGraph.nodes['image_placeholder'].params['dtype'].value)
+        expect(
+            convertedGraph.nodes['image_placeholder'].attrParams['dtype'].value)
             .toEqual('float32');
       });
       it('should map params with deprecated name', () => {
-        expect(convertedGraph.nodes['Squeeze'].params['axis'].value).toEqual([
-          1, 2
-        ]);
+        expect(convertedGraph.nodes['Squeeze'].attrParams['axis'].value)
+            .toEqual([1, 2]);
       });
     });
   });

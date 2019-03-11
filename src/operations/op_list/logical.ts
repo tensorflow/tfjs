@@ -1,3 +1,5 @@
+import {OpMapper} from '../types';
+
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -15,145 +17,118 @@
  * =============================================================================
  */
 
-export const json = [
+export const json: OpMapper[] = [
   {
     'tfOpName': 'Equal',
-    'dlOpName': 'equal',
     'category': 'logical',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'a', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'b', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'NotEqual',
-    'dlOpName': 'notEqual',
     'category': 'logical',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'a', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'b', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'Greater',
-    'dlOpName': 'greater',
     'category': 'logical',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'a', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'b', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'GreaterEqual',
-    'dlOpName': 'greaterEqual',
     'category': 'logical',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'a', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'b', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'Less',
-    'dlOpName': 'less',
     'category': 'logical',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'a', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'b', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'LessEqual',
-    'dlOpName': 'lessEqual',
     'category': 'logical',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'a', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'b', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'LogicalAnd',
-    'dlOpName': 'logicalAnd',
     'category': 'logical',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'a', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'b', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'LogicalNot',
-    'dlOpName': 'logicalNot',
     'category': 'logical',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'a', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'LogicalOr',
-    'dlOpName': 'logicalOr',
     'category': 'logical',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'a', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'b', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'Select',
-    'dlOpName': 'where',
     'category': 'logical',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'condition', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'a', 'type': 'tensor'},
-      {'tfInputIndex': 2, 'dlParamName': 'b', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
-    ]
+    'inputs': [
+      {'start': 0, 'name': 'condition', 'type': 'tensor'},
+      {'start': 1, 'name': 'a', 'type': 'tensor'},
+      {'start': 2, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [{
+      'tfName': 'T',
+      'name': 'dtype',
+      'type': 'dtype',
+      'notSupported': true
+    }]
   }
 ];

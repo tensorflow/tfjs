@@ -1,3 +1,5 @@
+import {OpMapper} from '../types';
+
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -15,55 +17,50 @@
  * =============================================================================
  */
 
-export const json = [
+export const json: OpMapper[] = [
   {
     'tfOpName': 'NonMaxSuppressionV2',
-    'dlOpName': 'nonMaxSuppression',
     'category': 'dynamic',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'boxes', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'scores', 'type': 'tensor'},
-      {'tfInputIndex': 2, 'dlParamName': 'maxOutputSize', 'type': 'number'},
-      {'tfInputIndex': 3, 'dlParamName': 'iouThreshold', 'type': 'number'}
+    'inputs': [
+      {'start': 0, 'name': 'boxes', 'type': 'tensor'},
+      {'start': 1, 'name': 'scores', 'type': 'tensor'},
+      {'start': 2, 'name': 'maxOutputSize', 'type': 'number'},
+      {'start': 3, 'name': 'iouThreshold', 'type': 'number'}
     ]
   },
   {
     'tfOpName': 'NonMaxSuppressionV3',
-    'dlOpName': 'nonMaxSuppression',
     'category': 'dynamic',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'boxes', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'scores', 'type': 'tensor'},
-      {'tfInputIndex': 2, 'dlParamName': 'maxOutputSize', 'type': 'number'},
-      {'tfInputIndex': 3, 'dlParamName': 'iouThreshold', 'type': 'number'},
-      {'tfInputIndex': 4, 'dlParamName': 'scoreThreshold', 'type': 'number'}
+    'inputs': [
+      {'start': 0, 'name': 'boxes', 'type': 'tensor'},
+      {'start': 1, 'name': 'scores', 'type': 'tensor'},
+      {'start': 2, 'name': 'maxOutputSize', 'type': 'number'},
+      {'start': 3, 'name': 'iouThreshold', 'type': 'number'},
+      {'start': 4, 'name': 'scoreThreshold', 'type': 'number'}
     ]
   },
   {
     'tfOpName': 'Where',
-    'dlOpName': 'whereAsync',
     'category': 'dynamic',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'condition', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+    'inputs': [
+      {'start': 0, 'name': 'condition', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
     'tfOpName': 'ListDiff',
-    'dlOpName': 'setdiff1dAsync',
     'category': 'dynamic',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'y', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
-    ]
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'y', 'type': 'tensor'},
+    ],
+    'attrs': [{
+      'tfName': 'T',
+      'name': 'dtype',
+      'type': 'dtype',
+      'notSupported': true
+    }]
   }
 ];

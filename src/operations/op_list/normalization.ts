@@ -1,3 +1,5 @@
+import {OpMapper} from '../types';
+
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -15,25 +17,27 @@
  * =============================================================================
  */
 
-export const json = [
+export const json: OpMapper[] = [
   {
     'tfOpName': 'FusedBatchNorm',
-    'dlOpName': 'batchNormalization',
     'category': 'normalization',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'scale', 'type': 'tensor'},
-      {'tfInputIndex': 2, 'dlParamName': 'offset', 'type': 'tensor'},
-      {'tfInputIndex': 3, 'dlParamName': 'mean', 'type': 'tensor'},
-      {'tfInputIndex': 4, 'dlParamName': 'variance', 'type': 'tensor'}, {
-        'tfParamName': 'epsilon',
-        'dlParamName': 'epsilon',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'scale', 'type': 'tensor'},
+      {'start': 2, 'name': 'offset', 'type': 'tensor'},
+      {'start': 3, 'name': 'mean', 'type': 'tensor'},
+      {'start': 4, 'name': 'variance', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {
+        'tfName': 'epsilon',
+        'name': 'epsilon',
         'type': 'number',
         'defaultValue': 0.001
       },
       {
-        'tfParamName': 'data_format',
-        'dlParamName': 'dataFormat',
+        'tfName': 'data_format',
+        'name': 'dataFormat',
         'type': 'string',
         'notSupported': true
       }
@@ -41,22 +45,24 @@ export const json = [
   },
   {
     'tfOpName': 'FusedBatchNormV2',
-    'dlOpName': 'batchNormalization',
     'category': 'normalization',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'scale', 'type': 'tensor'},
-      {'tfInputIndex': 2, 'dlParamName': 'offset', 'type': 'tensor'},
-      {'tfInputIndex': 3, 'dlParamName': 'mean', 'type': 'tensor'},
-      {'tfInputIndex': 4, 'dlParamName': 'variance', 'type': 'tensor'}, {
-        'tfParamName': 'epsilon',
-        'dlParamName': 'epsilon',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'scale', 'type': 'tensor'},
+      {'start': 2, 'name': 'offset', 'type': 'tensor'},
+      {'start': 3, 'name': 'mean', 'type': 'tensor'},
+      {'start': 4, 'name': 'variance', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {
+        'tfName': 'epsilon',
+        'name': 'epsilon',
         'type': 'number',
         'defaultValue': 0.001
       },
       {
-        'tfParamName': 'data_format',
-        'dlParamName': 'dataFormat',
+        'tfName': 'data_format',
+        'name': 'dataFormat',
         'type': 'string',
         'notSupported': true
       }
@@ -64,30 +70,27 @@ export const json = [
   },
   {
     'tfOpName': 'LRN',
-    'dlOpName': 'localResponseNormalization',
     'category': 'normalization',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}, {
-        'tfParamName': 'depth_radius',
-        'dlParamName': 'radius',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {
+        'tfName': 'depth_radius',
+        'name': 'radius',
         'type': 'number',
         'defaultValue': 5
       },
+      {'tfName': 'bias', 'name': 'bias', 'type': 'number', 'defaultValue': 1.0},
       {
-        'tfParamName': 'bias',
-        'dlParamName': 'bias',
+        'tfName': 'alpha',
+        'name': 'alpha',
         'type': 'number',
         'defaultValue': 1.0
       },
       {
-        'tfParamName': 'alpha',
-        'dlParamName': 'alpha',
-        'type': 'number',
-        'defaultValue': 1.0
-      },
-      {
-        'tfParamName': 'beta',
-        'dlParamName': 'beta',
+        'tfName': 'beta',
+        'name': 'beta',
         'type': 'number',
         'defaultValue': 0.5
       }
@@ -95,31 +98,29 @@ export const json = [
   },
   {
     'tfOpName': 'Softmax',
-    'dlOpName': 'softmax',
     'category': 'normalization',
-    'params': [{'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}]
+    'inputs': [{'start': 0, 'name': 'x', 'type': 'tensor'}]
   },
   {
     'tfOpName': 'LogSoftmax',
-    'dlOpName': 'logSoftmax',
     'category': 'normalization',
-    'params': [{'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'}]
+    'inputs': [{'start': 0, 'name': 'x', 'type': 'tensor'}]
   },
   {
     'tfOpName': 'SparseToDense',
-    'dlOpName': 'sparseToDense',
     'category': 'normalization',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'sparseIndices', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'outputShape', 'type': 'number[]'},
-      {'tfInputIndex': 2, 'dlParamName': 'sparseValues', 'type': 'tensor'},
-      {'tfInputIndex': 3, 'dlParamName': 'defaultValue', 'type': 'tensor'}, {
-        'tfParamName': 'validate_indices',
-        'dlParamName': 'validateIndices',
-        'type': 'bool',
-        'defaultValue': true,
-        'notSupported': true
-      }
-    ]
+    'inputs': [
+      {'start': 0, 'name': 'sparseIndices', 'type': 'tensor'},
+      {'start': 1, 'name': 'outputShape', 'type': 'number[]'},
+      {'start': 2, 'name': 'sparseValues', 'type': 'tensor'},
+      {'start': 3, 'name': 'defaultValue', 'type': 'tensor'},
+    ],
+    'attrs': [{
+      'tfName': 'validate_indices',
+      'name': 'validateIndices',
+      'type': 'bool',
+      'defaultValue': true,
+      'notSupported': true
+    }]
   }
 ];

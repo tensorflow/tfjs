@@ -36,20 +36,21 @@ describe('dynamic', () => {
       category: 'dynamic',
       inputNames: ['input1'],
       inputs: [],
-      params: {},
+      inputParams: {},
+      attrParams: {},
       children: []
     };
   });
 
   describe('executeOp', () => {
-    describe('nonMaxSuppression', () => {
+    describe('NonMaxSuppressionV2', () => {
       it('should return input', () => {
-        node.op = 'nonMaxSuppression';
-        node.params['boxes'] = createTensorAttr(0);
-        node.params['scores'] = createTensorAttr(1);
-        node.params['maxOutputSize'] = createNumberAttrFromIndex(2);
-        node.params['iouThreshold'] = createNumberAttrFromIndex(3);
-        node.params['scoreThreshold'] = createNumberAttrFromIndex(4);
+        node.op = 'NonMaxSuppressionV2';
+        node.inputParams['boxes'] = createTensorAttr(0);
+        node.inputParams['scores'] = createTensorAttr(1);
+        node.inputParams['maxOutputSize'] = createNumberAttrFromIndex(2);
+        node.inputParams['iouThreshold'] = createNumberAttrFromIndex(3);
+        node.inputParams['scoreThreshold'] = createNumberAttrFromIndex(4);
         node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
         const input2 = [tfc.tensor1d([1])];
         const input3 = [tfc.tensor1d([1])];
@@ -63,12 +64,46 @@ describe('dynamic', () => {
         expect(result instanceof Promise).toBeTruthy();
       });
       it('should match json def', () => {
-        node.op = 'nonMaxSuppression';
-        node.params['boxes'] = createTensorAttr(0);
-        node.params['scores'] = createTensorAttr(1);
-        node.params['maxOutputSize'] = createNumberAttrFromIndex(2);
-        node.params['iouThreshold'] = createNumberAttrFromIndex(3);
-        node.params['scoreThreshold'] = createNumberAttrFromIndex(4);
+        node.op = 'NonMaxSuppressionV2';
+        node.inputParams['boxes'] = createTensorAttr(0);
+        node.inputParams['scores'] = createTensorAttr(1);
+        node.inputParams['maxOutputSize'] = createNumberAttrFromIndex(2);
+        node.inputParams['iouThreshold'] = createNumberAttrFromIndex(3);
+        node.inputParams['scoreThreshold'] = createNumberAttrFromIndex(4);
+        node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
+
+        expect(validateParam(
+                   node, dynamic.json as OpMapper[], 'NonMaxSuppressionV3'))
+            .toBeTruthy();
+      });
+    });
+    describe('NonMaxSuppressionV3', () => {
+      it('should return input', () => {
+        node.op = 'NonMaxSuppressionV3';
+        node.inputParams['boxes'] = createTensorAttr(0);
+        node.inputParams['scores'] = createTensorAttr(1);
+        node.inputParams['maxOutputSize'] = createNumberAttrFromIndex(2);
+        node.inputParams['iouThreshold'] = createNumberAttrFromIndex(3);
+        node.inputParams['scoreThreshold'] = createNumberAttrFromIndex(4);
+        node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
+        const input2 = [tfc.tensor1d([1])];
+        const input3 = [tfc.tensor1d([1])];
+        const input4 = [tfc.tensor1d([1])];
+        const input5 = [tfc.tensor1d([1])];
+        spyOn(tfc.image, 'nonMaxSuppressionAsync').and.callThrough();
+        const result =
+            executeOp(node, {input1, input2, input3, input4, input5}, context);
+        expect(tfc.image.nonMaxSuppressionAsync)
+            .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1);
+        expect(result instanceof Promise).toBeTruthy();
+      });
+      it('should match json def', () => {
+        node.op = 'NonMaxSuppressionV3';
+        node.inputParams['boxes'] = createTensorAttr(0);
+        node.inputParams['scores'] = createTensorAttr(1);
+        node.inputParams['maxOutputSize'] = createNumberAttrFromIndex(2);
+        node.inputParams['iouThreshold'] = createNumberAttrFromIndex(3);
+        node.inputParams['scoreThreshold'] = createNumberAttrFromIndex(4);
         node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
 
         expect(validateParam(
@@ -77,10 +112,10 @@ describe('dynamic', () => {
       });
     });
 
-    describe('whereAsync', () => {
+    describe('Where', () => {
       it('should call tfc.whereAsync', async () => {
-        node.op = 'whereAsync';
-        node.params = {'condition': createTensorAttr(0)};
+        node.op = 'Where';
+        node.inputParams = {'condition': createTensorAttr(0)};
         const input1 = [tfc.scalar(1)];
         spyOn(tfc, 'whereAsync').and.callThrough();
 
@@ -89,18 +124,18 @@ describe('dynamic', () => {
         expect(result instanceof Promise).toBeTruthy();
       });
       it('should match json def', () => {
-        node.op = 'whereAsync';
-        node.params = {'condition': createTensorAttr(0)};
+        node.op = 'Where';
+        node.inputParams = {'condition': createTensorAttr(0)};
 
         expect(validateParam(node, dynamic.json as OpMapper[])).toBeTruthy();
       });
     });
 
-    describe('setdiff1dAsync', () => {
+    describe('ListDiff', () => {
       it('should call tfc.setdiff1dAsync', async () => {
-        node.op = 'setdiff1dAsync';
+        node.op = 'ListDiff';
         node.inputNames = ['input1', 'input2'];
-        node.params = {'x': createTensorAttr(0), 'y': createTensorAttr(1)};
+        node.inputParams = {'x': createTensorAttr(0), 'y': createTensorAttr(1)};
         const input1 = [tfc.scalar(1)];
         const input2 = [tfc.scalar(1)];
         spyOn(tfc, 'setdiff1dAsync').and.callThrough();
@@ -110,9 +145,9 @@ describe('dynamic', () => {
         expect(result instanceof Promise).toBeTruthy();
       });
       it('should match json def', () => {
-        node.op = 'setdiff1dAsync';
+        node.op = 'ListDiff';
         node.inputNames = ['input1', 'input2'];
-        node.params = {'x': createTensorAttr(0), 'y': createTensorAttr(1)};
+        node.inputParams = {'x': createTensorAttr(0), 'y': createTensorAttr(1)};
 
         expect(validateParam(node, dynamic.json as OpMapper[])).toBeTruthy();
       });

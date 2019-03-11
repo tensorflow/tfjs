@@ -21,8 +21,7 @@ import {IMAGENET_CLASSES} from './imagenet_classes';
 
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/tfjs-models/savedmodel/';
-const MODEL_FILE_URL = 'mobilenet_v2_1.0_224/tensorflowjs_model.pb';
-const WEIGHT_MANIFEST_FILE_URL = 'mobilenet_v2_1.0_224/weights_manifest.json';
+const MODEL_FILE_URL = 'mobilenet_v2_1.0_224/model.json';
 const INPUT_NODE_NAME = 'images';
 const OUTPUT_NODE_NAME = 'module_apply_default/MobilenetV2/Logits/output';
 const PREPROCESS_DIVISOR = tf.scalar(255 / 2);
@@ -31,9 +30,8 @@ export class MobileNet {
   constructor() {}
 
   async load() {
-    this.model = await tf.loadFrozenModel(
-        GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL,
-        GOOGLE_CLOUD_STORAGE_DIR + WEIGHT_MANIFEST_FILE_URL);
+    this.model = await tf.loadGraphModel(
+        GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL);
   }
 
   dispose() {

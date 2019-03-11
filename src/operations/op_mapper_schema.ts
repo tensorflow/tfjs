@@ -18,53 +18,81 @@
 export const json = {
   '$schema': 'http://json-schema.org/draft-07/schema#',
   'definitions': {
-    'Category': {
-      'enum': [
-        'arithmetic', 'basic_math', 'control', 'convolution', 'creation',
-        'dynamic', 'evaluation', 'image', 'graph', 'logical', 'matrices',
-        'normalization', 'reduction', 'slice_join', 'transformation'
-      ],
-      'type': 'string'
-    },
     'OpMapper': {
+      'type': 'object',
       'properties': {
-        'category': {'$ref': '#/definitions/Category'},
-        'dlOpName': {'type': 'string'},
-        'params':
-            {'items': {'$ref': '#/definitions/ParamMapper'}, 'type': 'array'},
         'tfOpName': {'type': 'string'},
-        'unsupportedParams': {'items': {'type': 'string'}, 'type': 'array'}
+        'category': {'$ref': '#/definitions/Category'},
+        'inputs': {
+          'type': 'array',
+          'items': {'$ref': '#/definitions/InputParamMapper'}
+        },
+        'attrs': {
+          'type': 'array',
+          'items': {'$ref': '#/definitions/AttrParamMapper'}
+        },
+        'customExecutor': {'$ref': '#/definitions/OpExecutor'}
       },
-      'type': 'object'
+      'required': ['tfOpName'],
+      'additionalProperties': false
     },
-    'ParamMapper': {
+    'Category': {
+      'type': 'string',
+      'enum': [
+        'arithmetic', 'basic_math', 'control', 'convolution', 'custom',
+        'dynamic', 'evaluation', 'image', 'creation', 'graph', 'logical',
+        'matrices', 'normalization', 'reduction', 'slice_join', 'spectral',
+        'transformation'
+      ]
+    },
+    'InputParamMapper': {
+      'type': 'object',
       'properties': {
-        'converter': {'type': 'string'},
+        'name': {'type': 'string'},
+        'type': {'$ref': '#/definitions/ParamTypes'},
         'defaultValue': {
           'anyOf': [
-            {'items': {'type': 'string'}, 'type': 'array'},
-            {'items': {'type': 'number'}, 'type': 'array'},
-            {'items': {'type': 'boolean'}, 'type': 'array'},
-            {'type': ['string', 'number', 'boolean']}
+            {'type': 'string'}, {'type': 'array', 'items': {'type': 'string'}},
+            {'type': 'number'}, {'type': 'array', 'items': {'type': 'number'}},
+            {'type': 'boolean'},
+            {'type': 'array', 'items': {'type': 'boolean'}}
           ]
         },
-        'dlParamName': {'type': 'string'},
         'notSupported': {'type': 'boolean'},
-        'tfInputIndex': {'type': 'number'},
-        'tfInputParamLength': {'type': 'number'},
-        'tfParamName': {'type': 'string'},
-        'tfParamNameDeprecated': {'type': 'string'},
-        'type': {'$ref': '#/definitions/ParamTypes'}
+        'start': {'type': 'number'},
+        'end': {'type': 'number'}
       },
-      'type': 'object'
+      'required': ['name', 'start', 'type'],
+      'additionalProperties': false
     },
     'ParamTypes': {
+      'type': 'string',
       'enum': [
-        'bool', 'dtype', 'number', 'number[]', 'shape', 'string', 'tensor',
-        'tensors'
-      ],
-      'type': 'string'
-    }
+        'number', 'string', 'number[]', 'bool', 'shape', 'tensor', 'tensors',
+        'dtype'
+      ]
+    },
+    'AttrParamMapper': {
+      'type': 'object',
+      'properties': {
+        'name': {'type': 'string'},
+        'type': {'$ref': '#/definitions/ParamTypes'},
+        'defaultValue': {
+          'anyOf': [
+            {'type': 'string'}, {'type': 'array', 'items': {'type': 'string'}},
+            {'type': 'number'}, {'type': 'array', 'items': {'type': 'number'}},
+            {'type': 'boolean'},
+            {'type': 'array', 'items': {'type': 'boolean'}}
+          ]
+        },
+        'notSupported': {'type': 'boolean'},
+        'tfName': {'type': 'string'},
+        'tfDeprecatedName': {'type': 'string'}
+      },
+      'required': ['name', 'tfName', 'type'],
+      'additionalProperties': false
+    },
+    'OpExecutor': {'type': 'object', 'additionalProperties': false}
   },
   'items': {'$ref': '#/definitions/OpMapper'},
   'type': 'array'

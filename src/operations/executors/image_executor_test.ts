@@ -36,18 +36,19 @@ describe('image', () => {
       category: 'image',
       inputNames: ['input1'],
       inputs: [],
-      params: {},
+      inputParams: {},
+      attrParams: {},
       children: []
     };
   });
 
   describe('executeOp', () => {
-    describe('resizeBilinear', () => {
+    describe('ResizeBilinear', () => {
       it('should return input', () => {
-        node.op = 'resizeBilinear';
-        node.params['images'] = createTensorAttr(0);
-        node.params['size'] = createNumericArrayAttrFromIndex(1);
-        node.params['alignCorners'] = createBoolAttr(true);
+        node.op = 'ResizeBilinear';
+        node.inputParams['images'] = createTensorAttr(0);
+        node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
+        node.attrParams['alignCorners'] = createBoolAttr(true);
         node.inputNames = ['input1', 'input2'];
         const input2 = [tfc.tensor1d([1, 2])];
         spyOn(tfc.image, 'resizeBilinear');
@@ -56,20 +57,20 @@ describe('image', () => {
             .toHaveBeenCalledWith(input1[0], [1, 2], true);
       });
       it('should match json def', () => {
-        node.op = 'resizeBilinear';
-        node.params['images'] = createTensorAttr(0);
-        node.params['size'] = createNumericArrayAttrFromIndex(1);
-        node.params['alignCorners'] = createBoolAttr(true);
+        node.op = 'ResizeBilinear';
+        node.inputParams['images'] = createTensorAttr(0);
+        node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
+        node.attrParams['alignCorners'] = createBoolAttr(true);
 
         expect(validateParam(node, image.json as OpMapper[])).toBeTruthy();
       });
     });
-    describe('resizeNearestNeighbor', () => {
+    describe('ResizeNearestNeighbor', () => {
       it('should return input', () => {
-        node.op = 'resizeNearestNeighbor';
-        node.params['images'] = createTensorAttr(0);
-        node.params['size'] = createNumericArrayAttrFromIndex(1);
-        node.params['alignCorners'] = createBoolAttr(true);
+        node.op = 'ResizeNearestNeighbor';
+        node.inputParams['images'] = createTensorAttr(0);
+        node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
+        node.attrParams['alignCorners'] = createBoolAttr(true);
         node.inputNames = ['input1', 'input2'];
         const input2 = [tfc.tensor1d([1, 2])];
         spyOn(tfc.image, 'resizeNearestNeighbor');
@@ -78,23 +79,23 @@ describe('image', () => {
             .toHaveBeenCalledWith(input1[0], [1, 2], true);
       });
       it('should match json def', () => {
-        node.op = 'resizeNearestNeighbor';
-        node.params['images'] = createTensorAttr(0);
-        node.params['size'] = createNumericArrayAttrFromIndex(1);
-        node.params['alignCorners'] = createBoolAttr(true);
+        node.op = 'ResizeNearestNeighbor';
+        node.inputParams['images'] = createTensorAttr(0);
+        node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
+        node.attrParams['alignCorners'] = createBoolAttr(true);
 
         expect(validateParam(node, image.json as OpMapper[])).toBeTruthy();
       });
     });
-    describe('cropAndResize', () => {
+    describe('CropAndResize', () => {
       it('should return input', () => {
-        node.op = 'cropAndResize';
-        node.params['image'] = createTensorAttr(0);
-        node.params['boxes'] = createTensorAttr(1);
-        node.params['boxInd'] = createTensorAttr(2);
-        node.params['cropSize'] = createNumericArrayAttrFromIndex(3);
-        node.params['method'] = createStrAttr('bilinear');
-        node.params['extrapolationValue'] = createNumberAttr(0.5);
+        node.op = 'CropAndResize';
+        node.inputParams['image'] = createTensorAttr(0);
+        node.inputParams['boxes'] = createTensorAttr(1);
+        node.inputParams['boxInd'] = createTensorAttr(2);
+        node.inputParams['cropSize'] = createNumericArrayAttrFromIndex(3);
+        node.attrParams['method'] = createStrAttr('bilinear');
+        node.attrParams['extrapolationValue'] = createNumberAttr(0.5);
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
 
         spyOn(tfc.image, 'cropAndResize');
@@ -109,13 +110,13 @@ describe('image', () => {
       });
 
       it('should match json def', () => {
-        node.op = 'cropAndResize';
-        node.params['image'] = createTensorAttr(0);
-        node.params['boxes'] = createTensorAttr(1);
-        node.params['boxInd'] = createTensorAttr(2);
-        node.params['cropSize'] = createNumericArrayAttrFromIndex(3);
-        node.params['method'] = createStrAttr('bilinear');
-        node.params['extrapolationValue'] = createNumberAttr(0.5);
+        node.op = 'CropAndResize';
+        node.inputParams['image'] = createTensorAttr(0);
+        node.inputParams['boxes'] = createTensorAttr(1);
+        node.inputParams['boxInd'] = createTensorAttr(2);
+        node.inputParams['cropSize'] = createNumericArrayAttrFromIndex(3);
+        node.attrParams['method'] = createStrAttr('bilinear');
+        node.attrParams['extrapolationValue'] = createNumberAttr(0.5);
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
 
         expect(validateParam(node, image.json as OpMapper[])).toBeTruthy();

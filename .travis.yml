@@ -4,14 +4,19 @@ cache: yarn
 matrix:
   include:
     - language: node_js
-      node_js:
-        - "8"
-        - "10"
+      node_js: "8"
       script:
         - yarn build
         - yarn lint
         - yarn test-travis
-
+    ############################
+    - language: node_js
+      node_js: "10"
+      script:
+        - yarn build
+        - yarn lint
+        - yarn test-travis
+    ############################
     - language: python
       python: 2.7
       before_script:
@@ -20,7 +25,7 @@ matrix:
       script:
         - pylint --rcfile=.pylintrc tensorflowjs
         - ./run-python-tests.sh
-
+    ############################
     - language: python
       python: 2.7
       before_script:
@@ -28,7 +33,7 @@ matrix:
         - pip install -r requirements-dev.txt
       script:
         - deactivate && ./build-pip-package.sh --test /tmp/tfjs-pips
-
+    ############################
     - language: python
       python: 3.6
       before_script:
