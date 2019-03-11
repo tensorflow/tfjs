@@ -153,33 +153,20 @@ export const json: OpMapper[] = [
   },
   {
     'tfOpName': 'Conv3D',
-    'dlOpName': 'conv3d',
     'category': 'convolution',
-    'params': [
-      {'tfInputIndex': 0, 'dlParamName': 'x', 'type': 'tensor'},
-      {'tfInputIndex': 1, 'dlParamName': 'filter', 'type': 'tensor'}, {
-        'tfParamName': 'T',
-        'dlParamName': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      },
-      {'tfParamName': 'strides', 'dlParamName': 'strides', 'type': 'number[]'},
-      {'tfParamName': 'padding', 'dlParamName': 'pad', 'type': 'string'}, {
-        'tfParamName': 'useCudnnOnGpu',
-        'dlParamName': 'useCudnnOnGpu',
-        'type': 'bool'
-      },
-      {
-        'tfParamName': 'data_format',
-        'dlParamName': 'dataFormat',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'filter', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
         'type': 'string',
         'defaultValue': 'NHWC'
       },
-      {
-        'tfParamName': 'dilations',
-        'dlParamName': 'dilations',
-        'type': 'number[]'
-      }
-    ]
+      {'tfName': 'dilations', 'name': 'dilations', 'type': 'number[]'}
+    ],
   }
 ];
