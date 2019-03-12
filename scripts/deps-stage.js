@@ -50,20 +50,15 @@ async function symlinkDepsLib() {
   }
   try {
     await symlink(depsLibTensorFlowPath, destLibPath);
-    if (os.platform() === 'linux') {
-      await symlink(
-          depsLibTensorFlowFrameworkPath,
-          destFrameworkLibPath);
+    if (os.platform() !== 'win32') {
+      await symlink(depsLibTensorFlowFrameworkPath, destFrameworkLibPath);
     }
   } catch (e) {
     console.error(
         `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
     await copy(depsLibTensorFlowPath, destLibPath);
-    // Linux will require this library as well:
-    if (os.platform() === 'linux') {
-      await copy(
-          depsLibTensorFlowFrameworkPath,
-          destFrameworkLibPath);
+    if (os.platform() !== 'win32') {
+      await copy(depsLibTensorFlowFrameworkPath, destFrameworkLibPath);
     }
   }
 }
@@ -73,10 +68,8 @@ async function symlinkDepsLib() {
  */
 async function moveDepsLib() {
   await rename(depsLibTensorFlowPath, destLibPath);
-  if (os.platform() === 'linux') {
-    await rename(
-        depsLibTensorFlowFrameworkPath,
-        destFrameworkLibPath);
+  if (os.platform() !== 'win32') {
+    await rename(depsLibTensorFlowFrameworkPath, destFrameworkLibPath);
   }
 }
 
