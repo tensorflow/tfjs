@@ -1,0 +1,125 @@
+body {
+  padding: 20px;
+  margin: 0;
+  background: #fafafa;
+}
+
+h2 {
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+#container {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 960px;
+}
+
+.test {
+  margin: 50px auto 80px auto;
+}
+
+.graph-container {
+  position: relative;
+  margin: 30px auto;
+}
+
+.graph-container:hover .detail-panel {
+  opacity: 1;
+}
+
+.y-axis-labels {
+  position: absolute;
+  right: 100%;
+  top: 0;
+  text-align: right;
+}
+
+.y-max, .y-min {
+  right: 8px;
+  font-size: 11px;
+  position: absolute;
+}
+
+.y-max {
+  top: 0;
+  transform: translateY(-50%);
+}
+
+.y-min {
+  bottom: 0;
+  transform: translateY(50%);
+}
+
+.x-axis-labels {
+  white-space: nowrap;
+  position: relative;
+}
+
+.x-label {
+  position: absolute;
+  transform: translate3d(12px, 5px, 0) rotate(90deg);
+  font-size: 10px;
+  transform-origin: top left;
+}
+
+.detail-panel {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 250ms;
+}
+
+.detail-panel .line {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: black;
+}
+
+.detail-panel .contents {
+  padding: 0 7px;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.detail-panel .label-wrapper {
+  white-space: nowrap;
+}
+
+.swatch {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.color {
+  border-radius: 50%;
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.label {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+svg {
+  overflow: visible;
+  border-left: solid 1px #ccc;
+  border-bottom: solid 1px #ccc;
+}
+
+path {
+  fill: none;
+  stroke-width: 2px;
+}
+
+.user-agent-string {
+  font-size: 14px;
+  margin-top: 20px;
+}
