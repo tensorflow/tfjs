@@ -16,11 +16,14 @@
 
 set -e
 
+yarn
+yarn build
+yarn lint
+
 # if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
 if [[ $(node -v) = *v10* ]]
 then
-  yarn
-  yarn lint
+  yarn run-browserstack --firebaseKey $FIREBASE_KEY --browsers=bs_chrome_mac
 
   echo 'Use latest version of tfjs-core'
   git clone https://github.com/tensorflow/tfjs-core.git --depth 5
