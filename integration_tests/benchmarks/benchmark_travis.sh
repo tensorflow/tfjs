@@ -25,7 +25,7 @@ then
   echo 'Use latest version of tfjs-core'
   git clone https://github.com/tensorflow/tfjs-core.git --depth 5
   cd tfjs-core
-  rm -rf dist/ && yarn build && rollup -c && yalc push
+  rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
   yarn link-local '@tensorflow/tfjs-core'
@@ -33,23 +33,15 @@ then
   echo 'Use latest version of tfjs-layers'
   git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
   cd tfjs-layers
-  rm -rf dist/ && yarn build && rollup -c && yalc push
+  rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
   yarn link-local '@tensorflow/tfjs-layers'
 
-  echo 'Use latest version of tfjs-node'
-  git clone https://github.com/tensorflow/tfjs-node.git --depth 5
-  cd tfjs-node
-  rm -rf dist/ && yarn build && rollup -c && yalc push
-
-  cd ..
-  yarn link-local '@tensorflow/tfjs-node'
-
   echo 'Use latest version of tfjs-converter'
   git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
   cd tfjs-converter
-  rm -rf dist/ && yarn build && rollup -c && yalc push
+  rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
   yarn link-local '@tensorflow/tfjs-converter'
@@ -57,7 +49,7 @@ then
   echo 'Use latest version of tfjs-data'
   git clone https://github.com/tensorflow/tfjs-data.git --depth 5
   cd tfjs-data
-  rm -rf dist/ && yarn build && rollup -c && yalc push
+  rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
   yarn link-local '@tensorflow/tfjs-data'
