@@ -14,11 +14,18 @@ import {stringLiteralArray} from './utils';
  * List of all known activation names.
  */
 export const activationOptions = stringLiteralArray([
-  'elu', 'hardSigmoid', 'linear', 'relu', 'relu6', 'selu', 'sigmoid', 'softmax',
-  'softplus', 'softsign', 'tanh'
+  'elu', 'hard_sigmoid', 'linear', 'relu', 'relu6', 'selu', 'sigmoid',
+  'softmax', 'softplus', 'softsign', 'tanh'
 ]);
 
 /**
  * A type representing the strings that are valid loss names.
  */
-export type ActivationIdentifier = typeof activationOptions[number];
+export type ActivationSerialization = typeof activationOptions[number];
+
+// Sad that we have to do all this just for hard_sigmoid vs. hardSigmoid.
+// TODO(soergel): Move the CamelCase versions back out of keras_format
+// e.g. to src/common.ts.  Maybe even duplicate *all* of these to be pedantic?
+/** @docinline */
+export type ActivationIdentifier = 'elu'|'hardSigmoid'|'linear'|'relu'|'relu6'|
+    'selu'|'sigmoid'|'softmax'|'softplus'|'softsign'|'tanh';

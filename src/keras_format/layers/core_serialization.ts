@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import {ActivationIdentifier} from '../activation_config';
+import {ActivationSerialization} from '../activation_config';
 import {Shape} from '../common';
 import {ConstraintSerialization} from '../constraint_config';
 import {InitializerSerialization} from '../initializer_config';
@@ -26,7 +26,7 @@ export type DropoutLayerSerialization =
 
 export interface DenseLayerConfig extends LayerConfig {
   units: number;
-  activation?: ActivationIdentifier;
+  activation?: ActivationSerialization;
   use_bias?: boolean;
   input_dim?: number;
   kernel_initializer?: InitializerSerialization;
@@ -45,7 +45,7 @@ export type FlattenLayerSerialization =
     BaseLayerSerialization<'Flatten', LayerConfig>;
 
 export interface ActivationLayerConfig extends LayerConfig {
-  activation: ActivationIdentifier;
+  activation: ActivationSerialization;
 }
 
 export type ActivationLayerSerialization =
@@ -59,7 +59,7 @@ export type RepeatVectorLayerSerialization =
     BaseLayerSerialization<'RepeatVector', RepeatVectorLayerConfig>;
 
 export interface ReshapeLayerConfig extends LayerConfig {
-  targetShape: Shape;
+  target_shape: Shape;
 }
 
 export type ReshapeLayerSerialization =

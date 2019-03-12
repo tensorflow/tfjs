@@ -45,7 +45,7 @@ export type Conv2DTransposeLayerSerialization =
     BaseLayerSerialization<'Conv2DTranspose', ConvLayerConfig>;
 
 export interface SeparableConvLayerConfig extends ConvLayerConfig {
-  depthMultiplier?: number;
+  depth_multiplier?: number;
   depthwise_initializer?: InitializerSerialization;
   pointwise_initializer?: InitializerSerialization;
   depthwise_regularizer?: RegularizerSerialization;
@@ -60,7 +60,7 @@ export type SeparableConv2DLayerSerialization =
 
 export interface Cropping2DLayerConfig extends LayerConfig {
   cropping: number|[number, number]|[[number, number], [number, number]];
-  dataFormat?: DataFormatSerialization;
+  data_format?: DataFormatSerialization;
 }
 
 export type Cropping2DLayerSerialization =
@@ -68,7 +68,7 @@ export type Cropping2DLayerSerialization =
 
 export interface UpSampling2DLayerConfig extends LayerConfig {
   size?: number[];
-  dataFormat?: DataFormatSerialization;
+  data_format?: DataFormatSerialization;
 }
 
 export type UpSampling2DLayerSerialization =
