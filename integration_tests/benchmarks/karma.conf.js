@@ -30,6 +30,9 @@ module.exports = function(config) {
   if (config.travis) {
     args.push('--travis');
   }
+  if(config.browsers) {
+    args.push('--browsers', config.browsers);
+  }
 
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],

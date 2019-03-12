@@ -110,10 +110,8 @@ function parseKarmaFlags(args: string[]): KarmaFlags {
     if (args[i] === '--travis') {
       travis = true;
     }
-
-    const browsersArgID = '--browsers';
-    if (args[i].indexOf(browsersArgID) > -1) {
-      browsers = args[i].substring(browsersArgID.length);
+    if (args[i] === '--browsers') {
+      browsers = args[i + 1];
     }
   }
   return {apiKey, travis, browsers};
