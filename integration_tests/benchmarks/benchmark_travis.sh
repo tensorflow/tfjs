@@ -17,7 +17,6 @@
 set -e
 
 yarn
-yarn build
 yarn lint
 
 # if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
