@@ -52,8 +52,8 @@ export class NodeJSKernelBackend extends KernelBackend {
     // TODO(kreeger, smilkov): Implement this.
   }
 
-  private typeAttributeFromTensor(value: Tensor): number {
-    switch (value.dtype) {
+  private getDTypeInteger(dtype: DataType): number {
+    switch (dtype) {
       case 'float32':
         return this.binding.TF_FLOAT;
       case 'int32':
@@ -65,8 +65,12 @@ export class NodeJSKernelBackend extends KernelBackend {
       case 'string':
         return this.binding.TF_STRING;
       default:
-        throw new Error(`Unsupported dtype ${value.dtype}`);
+        throw new Error(`Unsupported DType: ${dtype}`);
     }
+  }
+
+  private typeAttributeFromTensor(value: Tensor): number {
+    return this.getDTypeInteger(value.dtype);
   }
 
   // Creates a new Tensor and maps the dataId to the passed in ID.
@@ -224,6 +228,54 @@ export class NodeJSKernelBackend extends KernelBackend {
       this.tensorMap.set(
           dataId, {shape, dtype: getTFDType(dtype), values: null, id: -1});
     }
+  }
+
+  fill<R extends Rank>(
+      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
+    // TODO(cais, nkreeger): Investigate whether this can be made into
+    // a dtype helper method. The underlying op kernel doesn't accept undefined
+    // or null dtype.
+    if (dtype == null) {
+      if (typeof value === 'number') {
+        dtype = 'float32';
+      } else {
+        dtype = 'string';
+      }
+    }
+    const shapeTensor = tensor1d(shape, 'int32');
+    const valueTensor = scalar(value, dtype);
+    const opAttrs = [
+      {
+        name: 'T',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.getDTypeInteger(dtype)
+      },
+      {
+        name: 'index_type',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_INT32
+      }
+    ];
+    return this.executeSingleOutput(
+               'Fill', opAttrs, [shapeTensor, valueTensor]) as Tensor<R>;
+  }
+
+  onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
+    const opAttrs = [{
+      name: 'T',
+      type: this.binding.TF_ATTR_TYPE,
+      value: this.getDTypeInteger(x.dtype)
+    }];
+    return this.executeSingleOutput('OnesLike', opAttrs, [x]) as Tensor<R>;
+  }
+
+  zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
+    const opAttrs = [{
+      name: 'T',
+      type: this.binding.TF_ATTR_TYPE,
+      value: this.getDTypeInteger(x.dtype)
+    }];
+    return this.executeSingleOutput('ZerosLike', opAttrs, [x]) as Tensor<R>;
   }
 
   stridedSlice<T extends Tensor>(

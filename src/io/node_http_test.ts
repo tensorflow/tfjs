@@ -161,7 +161,7 @@ describe('nodeHTTPRequest-load', () => {
       'https://localhost/weightfile0': floatData,
     });
 
-    const model = await tfl.loadModel('https://localhost/model.json');
+    const model = await tfl.loadLayersModel('https://localhost/model.json');
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 3]);
     expect(model.outputs.length).toEqual(1);

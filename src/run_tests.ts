@@ -54,7 +54,9 @@ const IGNORE_LIST: string[] = [
   'scatterND test-tensorflow {} should work for tensorLike input',
   // https://github.com/tensorflow/tfjs/issues/1077
   'maxPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
-  'avgPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor'
+  'avgPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
+  // libtensorflow doesn't support 6D ArgMax yet.
+  'Reduction: argmax test-tensorflow {} 6D, axis=0'
 ];
 
 // Windows has two failing tests:

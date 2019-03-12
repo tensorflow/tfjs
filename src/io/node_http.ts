@@ -32,13 +32,14 @@ export const fetchWrapper = {fetch};
  * @param weightPathPrefix A path prefix for weight loading . (Optional).
  */
 export function nodeHTTPRequest(
-    path: string|string[], requestInit?: RequestInit,
+    path: string, requestInit?: RequestInit,
     weightPathPrefix?: string): io.IOHandler {
   return io.browserHTTPRequest(
-      path, requestInit, weightPathPrefix, fetchWrapper.fetch);
+      path as string,
+      {requestInit, weightPathPrefix, fetchFunc: fetchWrapper.fetch});
 }
 
-export const nodeHTTPRequestRouter = (url: string|string[]) => {
+export const nodeHTTPRequestRouter = (url: string) => {
   let isHTTP = true;
   if (Array.isArray(url)) {
     isHTTP = url.every(urlItem => io.isHTTPScheme(urlItem));
