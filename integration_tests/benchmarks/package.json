@@ -25,7 +25,6 @@
     "karma-chrome-launcher": "~2.2.0",
     "karma-jasmine": "~1.1.0",
     "karma-typescript": "~4.0.0",
-    "polymer-bundler": "~3.0.1",
     "ts-node": "~7.0.0",
     "tsc": "^1.20150623.0",
     "tsify": "^3.0.4",

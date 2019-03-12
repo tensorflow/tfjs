@@ -46,6 +46,6 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-converter'
 
-  run-browserstack --firebaseKey $FIREBASE_KEY --browsers=bs_safari_mac
-  run-browserstack --firebaseKey $FIREBASE_KEY --browsers=bs_chrome_mac
+  yarn run-browserstack --firebaseKey $FIREBASE_KEY --browsers=bs_safari_mac
+  yarn run-browserstack --firebaseKey $FIREBASE_KEY --browsers=bs_chrome_mac
 fi
