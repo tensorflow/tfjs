@@ -51,6 +51,8 @@ module.exports = function(config) {
       accessKey: process.env.BROWSERSTACK_KEY
     },
     captureTimeout: 120000,
+    browserDisconnectTimeout : 1000000,
+    browserDisconnectTolerance : 10,
     reportSlowerThan: 500,
     browserNoActivityTimeout: 1000000,
     customLaunchers: {
