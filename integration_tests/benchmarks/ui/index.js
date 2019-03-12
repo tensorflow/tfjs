@@ -1,12 +1,3 @@
-firebase.initializeApp({
-  apiKey: 'AIzaSyBhlCUcKQYYTJs0AkH1z_49iSyDMrKAKx8',
-  authDomain: 'jstensorflow.firebaseapp.com',
-  databaseURL: 'https://tensorflowjs-benchmarks.firebaseio.com/',
-  projectId: 'jstensorflow',
-  storageBucket: 'jstensorflow.appspot.com',
-  messagingSenderId: '433613381222'
-});
-
 const database = firebase.database();
 const ref = database.ref();
 
