@@ -64,8 +64,7 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
           `a TensorBuffer for the real and imaginary parts separately and ` +
           `call tf.complex(real, imag).`);
     }
-    this.values =
-        values || util.getArrayFromDType(dtype, this.size);
+    this.values = values || util.getArrayFromDType(dtype, this.size);
     this.strides = computeStrides(shape);
   }
 
@@ -426,6 +425,11 @@ export class Tensor<R extends Rank = Rank> {
   readonly dtype: DataType;
   /** The rank type for the array (see `Rank` enum). */
   readonly rankType: R;
+
+  /** Whether this tensor has been globally kept. */
+  kept = false;
+  /** The id of the scope this tensor is being tracked in. */
+  scopeId: number;
 
   /**
    * Number of elements to skip in each dimension when indexing. See
