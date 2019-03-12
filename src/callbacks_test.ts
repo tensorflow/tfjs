@@ -184,7 +184,7 @@ describe('progbarLogger', () => {
                          .map(x => tf.tensor2d(x, [1, 2]));
     const yDataset =
         tf.data.array([[1], [2], [3], [4]]).map(y => tf.tensor2d(y, [1, 1]));
-    const dataset = tf.data.zip([xDataset, yDataset]).repeat(epochs);
+    const dataset = tf.data.zip({xs: xDataset, ys: yDataset}).repeat(epochs);
 
     const model = tf.sequential();
     model.add(tf.layers.dense({units: 1, inputShape: [2]}));
@@ -216,13 +216,13 @@ describe('progbarLogger', () => {
                          .map(x => tf.tensor2d(x, [1, 2]));
     const yDataset =
         tf.data.array([[1], [2], [3], [4]]).map(y => tf.tensor2d(y, [1, 1]));
-    const dataset = tf.data.zip([xDataset, yDataset]).repeat(epochs);
+    const dataset = tf.data.zip({xs: xDataset, ys: yDataset}).repeat(epochs);
 
     const model = tf.sequential();
     model.add(tf.layers.dense({units: 1, inputShape: [2]}));
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
-    // `batchesPerEpoch` is not specified. Instead, `fitDataset()` relies on the
-    // `done` field being `true` to terminate the epoch(s).
+    // `batchesPerEpoch` is not specified. Instead, `fitDataset()` relies on
+    // the `done` field being `true` to terminate the epoch(s).
     await model.fitDataset(dataset, {epochs, verbose: 1});
 
     expect(consoleMessages.length).toEqual(4);
@@ -249,7 +249,7 @@ describe('progbarLogger', () => {
                          .map(x => tf.tensor2d(x, [1, 2]));
     const yDataset =
         tf.data.array([[1], [2], [3], [4]]).map(y => tf.tensor2d(y, [1, 1]));
-    const dataset = tf.data.zip([xDataset, yDataset]);
+    const dataset = tf.data.zip({xs: xDataset, ys: yDataset});
 
     const model = tf.sequential();
     model.add(tf.layers.dense({units: 1, inputShape: [2]}));

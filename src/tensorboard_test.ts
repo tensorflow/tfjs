@@ -157,7 +157,7 @@ describe('tensorBoard callback', () => {
     }
   });
 
-  function createModelForTest(): tfn.Model {
+  function createModelForTest(): tfn.LayersModel {
     const model = tfn.sequential();
     model.add(
         tfn.layers.dense({units: 5, activation: 'relu', inputShape: [10]}));
