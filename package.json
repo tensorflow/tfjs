@@ -42,7 +42,7 @@
     "shelljs": "~0.8.1",
     "ts-node": "~4.1.0",
     "tslint": "~5.9.1",
-    "typescript": "2.9.2",
+    "typescript": "3.3.3333",
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
