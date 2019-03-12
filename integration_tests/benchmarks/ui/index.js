@@ -15,11 +15,7 @@ const swatches =
 
 ref.once('value', resp => {
   const val = resp.val();
-  // const keys = Object.keys(val).sort((a, b) => new Date(a) - new Date(b));
-  console.log(val);
-
-  console.log("HAHA");
-  return;
+  const keys = Object.keys(val).sort((a, b) => new Date(a) - new Date(b));
   const data = [];
 
   const state = {'activeTarget': 0, 'activeTest': 0};
