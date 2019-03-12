@@ -16,7 +16,8 @@
 
 set -e
 
-if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
+# if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
+if [[ $(node -v) = *v10* ]]
 then
   yarn
   yarn lint
@@ -61,7 +62,7 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-data'
 
-  karma start --firebaseKey $FIREBASE_KEY --travis \
-    --singleRun --reporters='dots,karma-typescript,BrowserStack' \
-    --hostname='bs-local.com' --browsers=bs_chrome_mac
+  npm-run-all -p -c --aggregate-output \
+    "run-browserstack --firebaseKey $FIREBASE_KEY --browsers=bs_chrome_mac" \
+    "run-browserstack --firebaseKey $FIREBASE_KEY --browsers=bs_ios_11" \
 fi
