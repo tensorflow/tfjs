@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import {ActivationIdentifier} from '../activation_config';
+import {ActivationSerialization} from '../activation_config';
 import {ConstraintSerialization} from '../constraint_config';
 import {InitializerSerialization} from '../initializer_config';
 import {RegularizerSerialization} from '../regularizer_config';
@@ -28,7 +28,7 @@ export interface BaseRNNLayerConfig extends LayerConfig {
 
 export interface SimpleRNNCellConfig extends LayerConfig {
   units: number;
-  activation?: ActivationIdentifier;
+  activation?: ActivationSerialization;
   use_bias?: boolean;
   kernel_initializer?: InitializerSerialization;
   recurrent_initializer?: InitializerSerialization;
@@ -48,7 +48,7 @@ export type SimpleRNNCellSerialization =
 
 export interface SimpleRNNLayerConfig extends BaseRNNLayerConfig {
   units: number;
-  activation?: ActivationIdentifier;
+  activation?: ActivationSerialization;
   use_bias?: boolean;
   kernel_initializer?: InitializerSerialization;
   recurrent_initializer?: InitializerSerialization;
@@ -74,7 +74,7 @@ export interface GRUCellConfig extends SimpleRNNCellConfig {
 export type GRUCellSerialization = BaseSerialization<'GRUCell', GRUCellConfig>;
 
 export interface GRULayerConfig extends SimpleRNNLayerConfig {
-  recurrent_activation?: ActivationIdentifier;
+  recurrent_activation?: ActivationSerialization;
   implementation?: number;
 }
 
@@ -82,7 +82,7 @@ export type GRULayerSerialization =
     BaseLayerSerialization<'GRU', GRULayerConfig>;
 
 export interface LSTMCellConfig extends SimpleRNNCellConfig {
-  recurrent_activation?: ActivationIdentifier;
+  recurrent_activation?: ActivationSerialization;
   unit_forget_bias?: boolean;
   implementation?: number;
 }
@@ -91,7 +91,7 @@ export type LSTMCellSerialization =
     BaseSerialization<'LSTMCell', LSTMCellConfig>;
 
 export interface LSTMLayerConfig extends SimpleRNNLayerConfig {
-  recurrent_activation?: ActivationIdentifier;
+  recurrent_activation?: ActivationSerialization;
   unit_forget_bias?: boolean;
   implementation?: number;
 }
