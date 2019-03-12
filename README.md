@@ -171,13 +171,13 @@ the fetch() method.
 
 Currently TensorFlow.js only supports a limited set of TensorFlow Ops. See the
 [full list](./docs/supported_ops.md).
-If your model uses an unsupported ops, the `tensorflowjs_converter` script will fail and
+If your model uses unsupported ops, the `tensorflowjs_converter` script will fail and
 produce a list of the unsupported ops in your model. Please file issues to let us
 know what ops you need support with.
 
 ## Loading the weights only
 
-If you prefer to load the weights only, you can use follow code snippet.
+If you prefer to load the weights only, you can use the following code snippet.
 
 ```typescript
 import * as tf from '@tensorflow/tfjs';
@@ -234,7 +234,7 @@ $ yarn # Installs dependencies.
 
 We recommend using [Visual Studio Code](https://code.visualstudio.com/) for
 development. Make sure to install
-[TSLint VSCode extension](https://marketplace.visualstudio.com/items?itemName=eg2.tslint)
+[TSLint VSCode extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-tslint-plugin)
 and the npm [clang-format](https://github.com/angular/clang-format) `1.2.2` or later
 with the
 [Clang-Format VSCode extension](https://marketplace.visualstudio.com/items?itemName=xaver.clang-format)
