@@ -2,7 +2,6 @@
 .rpt2_cache/
 demos/
 scripts/
-src/
 models/
 coverage/
 package/
