@@ -22,7 +22,10 @@ yarn lint
 # if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
 if [[ $(node -v) = *v10* ]]
 then
-  karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --hostname='bs-local.com' --firebaseKey $FIREBASE_KEY --browsers=bs_safari_mac
+  # Run the first karma separately so it can download the BrowserStack binary
+  # without conflicting with others.
+  karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' \
+    --hostname='bs-local.com' --firebaseKey $FIREBASE_KEY --browsers=bs_safari_mac
 
   echo 'Use latest version of tfjs-core'
   git clone https://github.com/tensorflow/tfjs-core.git --depth 5
@@ -47,6 +50,14 @@ then
 
   cd ..
   yarn link-local '@tensorflow/tfjs-converter'
+
+  echo 'Use latest version of tfjs-data'
+  git clone https://github.com/tensorflow/tfjs-data.git --depth 5
+  cd tfjs-data
+  rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
+
+  cd ..
+  yarn link-local '@tensorflow/tfjs-data'
 
   npm-run-all -p -c --aggregate-output \
     "run-browserstack --firebaseKey $FIREBASE_KEY --browsers=bs_safari_mac" \

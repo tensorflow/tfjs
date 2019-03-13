@@ -63,6 +63,13 @@ module.exports = function(config) {
         os: 'OS X',
         os_version: 'High Sierra'
       },
+      bs_firefox_mac: {
+        base: 'BrowserStack',
+        browser: 'firefox',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
       bs_safari_mac: {
         base: 'BrowserStack',
         browser: 'safari',
