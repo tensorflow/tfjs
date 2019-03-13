@@ -22,7 +22,7 @@ import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, Tens
 import {DataType, Rank, ShapeMap} from '../types';
 import {assert, assertNonNull, assertNonNegativeIntegerDimensions, flatten, inferDtype, isTypedArray, makeOnesTypedArray, makeZerosTypedArray, sizeFromShape, toTypedArray} from '../util';
 
-import {complex} from './complex_ops';
+import {complex, real, imag} from './complex_ops';
 import {op} from './operation';
 
 /**
@@ -447,6 +447,11 @@ function fill<R extends Rank>(
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function onesLike_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'onesLike');
+  if ($x.dtype === 'complex64') {
+    const r = onesLike(real($x));
+    const i = zerosLike(imag($x));
+    return complex(r, i);
+  }
   return ENV.engine.runKernel(backend => backend.onesLike($x), {$x}, null) as T;
 }
 
