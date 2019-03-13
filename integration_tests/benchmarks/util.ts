@@ -27,13 +27,16 @@ export async function warmupAndBenchmarkGPU(benchmark: () => tf.Tensor):
   await out.data();
   out.dispose();
 
-  return (await tf.time(benchmark)).kernelMs;
+  const start = performance.now();
+  const result = benchmark();
+  await result.data();
+  return performance.now() - start;
+  // return (await tf.time(benchmark)).kernelMs;
 }
 
 export async function warmupAndAsyncBenchmarkGPU(
     asyncBenchmark: () =>
         Promise<tf.Tensor[]>| Promise<tf.Tensor>): Promise<number> {
-  const start = performance.now();
   const out = await asyncBenchmark() as tf.Tensor[] | tf.Tensor;
 
   if ((out as tf.Tensor[]).length) {
@@ -42,6 +45,17 @@ export async function warmupAndAsyncBenchmarkGPU(
   } else {
     await (out as tf.Tensor).data();
     (out as tf.Tensor).dispose();
+  }
+
+  const start = performance.now();
+  const result = await asyncBenchmark() as tf.Tensor[] | tf.Tensor;
+
+  if ((result as tf.Tensor[]).length) {
+    await ((result as tf.Tensor[])[0] as tf.Tensor).data();
+    ((result as tf.Tensor[])[0] as tf.Tensor).dispose();
+  } else {
+    await (result as tf.Tensor).data();
+    (result as tf.Tensor).dispose();
   }
   return performance.now() - start;
 }

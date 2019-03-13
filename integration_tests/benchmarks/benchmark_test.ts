@@ -80,7 +80,7 @@ describe('benchmarks', () => {
 
   it('cocossd', async done => {
     const sizes = [1];
-    const runs = 20;
+    const runs = 10;
 
     const benchmark = new CoCoSSDBenchmark();
 
