@@ -7,7 +7,6 @@ scripts/tag-version
 scripts/publish-npm.sh
 build/
 integration/
-src/
 node_modules/
 *.tgz
 .travis.yml
