@@ -511,6 +511,16 @@ describeWithFlags('onesLike', ALL_ENVS, () => {
     expectArraysEqual(b, [1, 1, 1]);
   });
 
+  it('1D complex dtype', () => {
+    const real = tf.tensor1d([1, 2, 3], 'float32');
+    const imag = tf.tensor1d([1, 2, 3], 'float32');
+    const a = tf.complex(real, imag);
+    const b = tf.onesLike(a);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([3]);
+    expectArraysEqual(b, [1, 0, 1, 0, 1, 0]);
+  });
+
   it('2D default dtype', () => {
     const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
     const b = tf.onesLike(a);
@@ -543,6 +553,16 @@ describeWithFlags('onesLike', ALL_ENVS, () => {
     expectArraysEqual(b, [1, 1, 1, 1]);
   });
 
+  it('2D complex dtype', () => {
+    const real = tf.tensor2d([1, 2, 3, 4], [2, 2], 'float32');
+    const imag = tf.tensor2d([1, 2, 3, 4], [2, 2], 'float32');
+    const a = tf.complex(real, imag);
+    const b = tf.onesLike(a);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([2, 2]);
+    expectArraysEqual(b, [1, 0, 1, 0, 1, 0, 1, 0]);
+  });
+
   it('3D default dtype', () => {
     const a = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
     const b = tf.onesLike(a);
@@ -573,6 +593,16 @@ describeWithFlags('onesLike', ALL_ENVS, () => {
     expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([2, 2, 1]);
     expectArraysEqual(b, [1, 1, 1, 1]);
+  });
+
+  it('3D complex dtype', () => {
+    const real = tf.tensor3d([1, 2, 3, 4], [2, 2, 1], 'float32');
+    const imag = tf.tensor3d([1, 2, 3, 4], [2, 2, 1], 'float32');
+    const a = tf.complex(real, imag);
+    const b = tf.onesLike(a);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([2, 2, 1]);
+    expectArraysEqual(b, [1, 0, 1, 0, 1, 0, 1, 0]);
   });
 
   it('4D default dtype', () => {
@@ -615,6 +645,16 @@ describeWithFlags('onesLike', ALL_ENVS, () => {
     expectArraysClose(b, [1, 1, 1, 1]);
   });
 
+  it('4D complex dtype', () => {
+    const real = tf.tensor4d([1, 2, 3, 4], [2, 2, 1, 1], 'float32');
+    const imag = tf.tensor4d([1, 2, 3, 4], [2, 2, 1, 1], 'float32');
+    const a = tf.complex(real, imag);
+    const b = tf.onesLike(a);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([2, 2, 1, 1]);
+    expectArraysEqual(b, [1, 0, 1, 0, 1, 0, 1, 0]);
+  });
+
   it('5D float32 dtype', () => {
     const a = tf.tensor5d([1, 2, 3, 4], [1, 2, 2, 1, 1], 'float32');
     const b = tf.onesLike(a);
@@ -647,6 +687,16 @@ describeWithFlags('onesLike', ALL_ENVS, () => {
     expectArraysClose(b, [1, 1, 1, 1]);
   });
 
+  it('5D complex dtype', () => {
+    const real = tf.tensor5d([1, 2, 3, 4], [1, 2, 2, 1, 1], 'float32');
+    const imag = tf.tensor5d([1, 2, 3, 4], [1, 2, 2, 1, 1], 'float32');
+    const a = tf.complex(real, imag);
+    const b = tf.onesLike(a);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([1, 2, 2, 1, 1]);
+    expectArraysEqual(b, [1, 0, 1, 0, 1, 0, 1, 0]);
+  });
+
   it('6D int32 dtype', () => {
     const a = tf.tensor6d([1, 2, 3, 4], [1, 2, 2, 1, 1, 1], 'int32');
     const b = tf.onesLike(a);
@@ -677,6 +727,16 @@ describeWithFlags('onesLike', ALL_ENVS, () => {
     expect(b.dtype).toBe('float32');
     expect(b.shape).toEqual(a.shape);
     expectArraysClose(b, [1, 1, 1, 1]);
+  });
+
+  it('6D complex dtype', () => {
+    const real = tf.tensor6d([1, 2, 3, 4], [1, 2, 2, 1, 1, 1], 'float32');
+    const imag = tf.tensor6d([1, 2, 3, 4], [1, 2, 2, 1, 1, 1], 'float32');
+    const a = tf.complex(real, imag);
+    const b = tf.onesLike(a);
+    expect(b.dtype).toBe('complex64');
+    expect(b.shape).toEqual([1, 2, 2, 1, 1, 1]);
+    expectArraysEqual(b, [1, 0, 1, 0, 1, 0, 1, 0]);
   });
 
   it('throws when passed a non-tensor', () => {
