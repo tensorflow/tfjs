@@ -31,7 +31,7 @@ export class CoCoSSDBenchmark implements BenchmarkTest {
     const zeros = tf.zeros([1, 224, 224, 3]);
 
     const benchmark = async () =>
-        model.executeAsync(zeros) as Promise<Array<tf.Tensor>>;
+        model.executeAsync(zeros) as Promise<tf.Tensor[]>;
 
     const time = await util.warmupAndAsyncBenchmarkGPU(benchmark);
 
