@@ -2,6 +2,7 @@
 .rpt2_cache/
 package/
 scripts/
+integration_tests/
 coverage/
 **/node_modules/
 karma.conf.js
