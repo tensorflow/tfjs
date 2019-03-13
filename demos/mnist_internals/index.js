@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import * as tfvis from '../../src'
+import * as tfvis from '@tensorflow/tfjs-vis'
 import {getModel, loadData} from './model';
 
 window.tf = tf;
