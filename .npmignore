@@ -2,7 +2,6 @@
 .vscode/
 demo/
 scripts/
-src/
 coverage/
 node_modules/
 karma.conf.js
