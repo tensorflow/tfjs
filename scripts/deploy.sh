@@ -14,45 +14,45 @@
 # limitations under the License.
 # =============================================================================
 
-# This script deploys demos to GCP so they can be statically hosted.
+# This script deploys examples to GCP so they can be statically hosted.
 #
 # The script can either be used without arguments, which deploys all demos:
 # ./deploy.sh
 # Or you can pass a single argument specifying a single demo to deploy:
-# ./deploy.sh demos/mnist
-
-cd demos
-yarn
+# ./deploy.sh mnist
+#
+# This script assumes that a directory in this repo corresponds to an example.
+#
+# Example directories should have:
+#  - package.json
+#  - `yarn build` script which generates a dist/ folder in the example directory.
 
 if [ -z "$1" ]
   then
-    EXAMPLES=$(ls -d ./*/ | grep -v node_modules)
+    EXAMPLES="api mnist mnist_internals"
 else
   EXAMPLES=$1
   if [ ! -d "$EXAMPLES" ]; then
-    echo "Error: Could not find demo $1"
-    echo "Make sure the first argument to this script matches the demo dir"
+    echo "Error: Could not find example $1"
+    echo "Make sure the first argument to this script matches the example dir"
     exit 1
   fi
 fi
 
-prefix="./";
+cd demos
 for i in $EXAMPLES; do
-  npx rimraf dist/
-  # Strip any trailing slashes and the ./ prefix
-
+  cd ${i}
+  # Strip any trailing slashes.
   EXAMPLE_NAME=${i%/}
-  EXAMPLE_NAME=${EXAMPLE_NAME#$prefix};
 
-  echo "building ${EXAMPLE_NAME}"
-
-  yarn build-demo ${EXAMPLE_NAME}/index.html
-  gsutil mkdir -p gs://tfjs-vis/$EXAMPLE_NAME
-  gsutil mkdir -p gs://tfjs-vis/$EXAMPLE_NAME/dist
-  gsutil -m cp dist/* gs://tfjs-vis/$EXAMPLE_NAME/dist
-
+  echo "building ${EXAMPLE_NAME}..."
+  yarn
+  rm -rf dist .cache
+  yarn build
+  # Remove files in the example directory (but not sub-directories).
+  gsutil -m rm gs://tfjs-vis/$EXAMPLE_NAME/dist/*
+  # Gzip and copy all the dist files.
+  # The trailing slash is important so we get $EXAMPLE_NAME/dist/.
+  gsutil -m cp -Z -r dist gs://tfjs-vis/$EXAMPLE_NAME/
+  cd ..
 done
-
-gsutil -m setmeta -h "Cache-Control:private" "gs://tfjs-vis/**.html"
-gsutil -m setmeta -h "Cache-Control:private" "gs://tfjs-vis/**.css"
-gsutil -m setmeta -h "Cache-Control:private" "gs://tfjs-vis/**.js"
