@@ -8,6 +8,7 @@ node_js:
   - "8"
 script:
   - ./scripts/test-travis.sh
+  - ./scripts/test-ts-integration.sh
 cache: yarn
 git:
   depth: 5

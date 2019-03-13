@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-declare class TensorMetadata {
+export declare class TensorMetadata {
   id: number;
   shape: number[];
   dtype: number;
 }
 
-declare class TFEOpAttr {
+export declare class TFEOpAttr {
   name: string;
   type: number;
   value: boolean|number|object|string|number[];
