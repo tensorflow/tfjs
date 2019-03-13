@@ -86,7 +86,7 @@ const data = [
 const surface = tfvis.visor().surface({ name: 'Barchart', tab: 'Charts' });
 
 // Render a barchart on that surface
-tfvis.render.barchart(data, surface, {});
+tfvis.render.barchart(surface, data, {});
 ```
 
 This should show something like the following
