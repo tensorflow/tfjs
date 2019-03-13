@@ -27,12 +27,14 @@ export async function warmupAndBenchmarkGPU(benchmark: () => tf.Tensor):
   await out.data();
   out.dispose();
 
-  // Use normal performance.now() timing until query timers are enabled again.
-  const start = performance.now();
-  const result = benchmark();
-  await result.data();
-  return performance.now() - start;
+  return (await tf.time(benchmark)).kernelMs;
+}
 
-  // Uncomment this once query timers are enabled again.
-  // return (await tf.time(benchmark)).kernelMs;
+export async function warmupAndAsyncBenchmarkGPU(
+    asyncBenchmark: () => Promise<Array<tf.Tensor>>): Promise<number> {
+  const out = await asyncBenchmark() as Array<tf.Tensor>;
+  await (out[0] as tf.Tensor).data();
+  out[0].dispose();
+
+  return (await tf.time(asyncBenchmark)).kernelMs;
 }

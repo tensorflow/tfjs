@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {CoCoSSDBenchmark} from './cocossd_benchmarks';
 import {ConvGPUBenchmark, RegularConvParams} from './conv_benchmarks';
 import {MatmulGPUBenchmark} from './matmul_benchmarks';
 import {MobileNetV1GPUBenchmark} from './mobilenet_benchmarks';
@@ -60,6 +61,18 @@ describe('benchmarks', () => {
     await test_util.benchmarkAndLog(
         'mobilenet_v1', size => benchmark.run(size), sizes,
         size => `N=${size}_0_224`, BENCHMARK_RUNS);
+
+    done();
+  });
+
+  it('cocossd', async done => {
+    const sizes = [1];
+
+    const benchmark = new CoCoSSDBenchmark();
+
+    await test_util.benchmarkAndLog(
+        'cocossd', size => benchmark.run(size), sizes, size => '224',
+        BENCHMARK_RUNS);
 
     done();
   });
