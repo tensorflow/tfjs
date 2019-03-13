@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ScopeFn} from './engine';
 import * as tf from './index';
 import {describeWithFlags} from './jasmine_util';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
@@ -179,13 +180,9 @@ describeWithFlags('getFilteredNodesXToY', ALL_ENVS, () => {
     const orphan = tf.scalar(0);
     const y = tf.scalar(2);
 
-    const tape: TapeNode[] = [{
-      id: 0,
-      name: 'node0',
-      inputs: {x, orphan},
-      outputs: [y],
-      gradient: null
-    }];
+    const tape: TapeNode[] = [
+      {id: 0, name: 'node0', inputs: {x, orphan}, outputs: [y], gradient: null}
+    ];
 
     const filteredTapeNodes = getFilteredNodesXToY(tape, [x], y);
 
@@ -202,13 +199,9 @@ describeWithFlags('getFilteredNodesXToY', ALL_ENVS, () => {
     const y2 = tf.scalar(2);
     const y3 = tf.scalar(2);
 
-    const tape: TapeNode[] = [{
-      id: 0,
-      name: 'node0',
-      inputs: {x},
-      outputs: [y1, y2, y3],
-      gradient: null
-    }];
+    const tape: TapeNode[] = [
+      {id: 0, name: 'node0', inputs: {x}, outputs: [y1, y2, y3], gradient: null}
+    ];
 
     const filteredNodes1 = getFilteredNodesXToY(tape, [x], y1);
     expect(filteredNodes1.length).toBe(1);
@@ -237,7 +230,10 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
     const tape: TapeNode[] =
         [{id: 0, name: 'node0', inputs: {x}, outputs: [y], gradient: null}];
 
-    expect(() => backpropagateGradients(accumulatedGradientsMap, tape))
+    expect(
+        () => backpropagateGradients(
+            accumulatedGradientsMap, tape,
+            f => tf.tidy(f as ScopeFn<tf.Tensor>)))
         .toThrowError();
   });
 
@@ -260,7 +256,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
       }
     }];
 
-    backpropagateGradients(accumulatedGradientsMap, tape);
+    backpropagateGradients(
+        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>));
 
     expectArraysClose(accumulatedGradientsMap[x.id], [2]);
   });
@@ -296,7 +293,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
       }
     ];
 
-    backpropagateGradients(accumulatedGradientsMap, tape);
+    backpropagateGradients(
+        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>));
 
     // dx = dy + 1 + 1
     expectArraysClose(accumulatedGradientsMap[x.id], [3]);
@@ -346,7 +344,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
       }
     ];
 
-    backpropagateGradients(accumulatedGradientsMap, tape);
+    backpropagateGradients(
+        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>));
 
     // dx = dy + 1 + 1 + 1 + 1 + 1
     expectArraysClose(accumulatedGradientsMap[x.id], [dy.dataSync()[0] + 5]);
@@ -375,7 +374,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
       }
     }];
 
-    backpropagateGradients(accumulatedGradientsMap, tape);
+    backpropagateGradients(
+        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>));
     expectArraysClose(accumulatedGradientsMap[x.id], [0, 5, 0]);
     expectArraysClose(dys[0], [0]);
     expectArraysClose(dys[1], [5]);

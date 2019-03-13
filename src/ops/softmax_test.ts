@@ -95,6 +95,13 @@ describeWithFlags('softmax', ALL_ENVS, () => {
     ]);
   });
 
+  it('gradient with clones', () => {
+    const x = tf.tensor1d([10, 0, -1]);
+    const dx = tf.grad((x) => x.clone().softmax().clone())(x);
+    expect(dx.shape).toEqual(x.shape);
+    expect(dx.dtype).toBe('float32');
+  });
+
   it('2D gradient', () => {
     const x = tf.tensor2d([10, 0, -1, 5, 4, 3], [2, 3]);
     const y = tf.softmax(x);

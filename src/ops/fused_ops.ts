@@ -18,11 +18,11 @@
 import {ENV} from '../environment';
 import {op} from '../ops/operation';
 import {Tensor, Tensor3D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-
 import * as broadcast_util from './broadcast_util';
 import {Activation} from './fused_util';
 
@@ -101,8 +101,8 @@ function matMul_<T extends Tensor>(
     broadcast_util.assertAndGetBroadcastShape(outShape, $bias.shape);
   }
 
-  const grad = (dy: Tensor3D, saved: Tensor[]) => {
-    const [y] = saved;
+  const grad = (dy: Tensor3D, saved: NamedTensorMap) => {
+    const {y, a3D, b3D} = saved;
 
     let dyActivation: Tensor3D;
     if (activation == null || activation === 'linear') {
@@ -136,15 +136,15 @@ function matMul_<T extends Tensor>(
     if (!transposeA && !transposeB) {
       return Object.assign(
           {
-            $a: () => dyActivation.matMul(b3D, false, true),
+            $a: () => dyActivation.matMul(b3D as Tensor3D, false, true),
             $b: () => a3D.matMul(dyActivation, true, false)
           },
           biasGradient);
     } else if (!transposeA && transposeB) {
       return Object.assign(
           {
-            $a: () => dyActivation.matMul(b3D, false, false),
-            $b: () => dyActivation.matMul(a3D, true, false)
+            $a: () => dyActivation.matMul(b3D as Tensor3D, false, false),
+            $b: () => dyActivation.matMul(a3D as Tensor3D, true, false)
           },
           biasGradient);
     } else if (transposeA && !transposeB) {
@@ -158,7 +158,7 @@ function matMul_<T extends Tensor>(
       return Object.assign(
           {
             $a: () => b3D.matMul(dyActivation, true, true),
-            $b: () => dyActivation.matMul(a3D, true, true)
+            $b: () => dyActivation.matMul(a3D as Tensor3D, true, true)
           },
           biasGradient);
     }
@@ -169,10 +169,12 @@ function matMul_<T extends Tensor>(
     inputs.$bias = $bias;
   }
 
-  const res = ENV.engine.runKernel(
-      (backend, save) => save(backend.fusedBatchMatMul(
-          a3D, b3D, transposeA, transposeB, $bias, activation)),
-      inputs, grad);
+  const res = ENV.engine.runKernel((backend, save) => {
+    const y = backend.fusedBatchMatMul(
+        a3D, b3D, transposeA, transposeB, $bias, activation);
+    save({a3D, b3D, y});
+    return y;
+  }, inputs, grad);
   return res.reshape(outShape) as T;
 }
 

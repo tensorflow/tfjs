@@ -260,7 +260,7 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     expectArraysClose(result, [3, 6, 9, 12]);
   });
 
-  it('conv1d gradients, input=2x2x1,d2=1,f=1,s=1,d=1,p=same', () => {
+  it('gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same', () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
     const outputDepth = 1;
@@ -279,7 +279,8 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
 
     const grads = tf.grads(
         (x: tf.Tensor3D, w: tf.Tensor3D) =>
-            tf.conv1d(x, w, stride, pad, dataFormat, dilation));
+            tf.conv1d(x.clone(), w.clone(), stride, pad, dataFormat, dilation)
+                .clone());
     const [dx, dw] = grads([x, w], dy);
 
     expect(dx.shape).toEqual(x.shape);

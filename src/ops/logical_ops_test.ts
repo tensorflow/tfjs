@@ -673,6 +673,23 @@ describeWithFlags('where', ALL_ENVS, () => {
     expect(da.shape).toEqual(a.shape);
     expect(db.shape).toEqual(b.shape);
   });
+
+  it('gradient with clones', () => {
+    const c = tf.tensor1d([1, 0, 1], 'bool');
+    const a = tf.tensor1d([1, 2, 3]);
+    const b = tf.tensor1d([4, 5, 6]);
+    const dy = tf.tensor1d([1, 2, 3]);
+    const grads = tf.grads((c, a, b) =>
+      tf.where(c.clone(), a.clone(), b.clone()).clone());
+    const [dc, da, db] = grads([c, a, b], dy);
+    expectArraysClose(dc, [0, 0, 0]);
+    expectArraysClose(da, [1, 0, 3]);
+    expectArraysClose(db, [0, 2, 0]);
+    expect(dc.shape).toEqual(c.shape);
+    expect(da.shape).toEqual(a.shape);
+    expect(db.shape).toEqual(b.shape);
+  });
+
   it('2D gradient', () => {
     const c = tf.tensor2d([1, 0, 1, 1, 1, 0], [2, 3], 'bool');
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);

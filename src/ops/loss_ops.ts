@@ -17,12 +17,11 @@
 
 import {customGrad} from '../globals';
 import {Tensor} from '../tensor';
+import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
-
 import {expandShapeToKeepDim} from './axis_util';
-
 import {minimum} from './binary_ops';
 import {op} from './operation';
 import {ones, scalar} from './tensor_ops';
@@ -65,8 +64,7 @@ function computeWeightedLoss_<T extends Tensor, O extends Tensor>(
     if ($weights == null) {
       return weightedLoss.mean();
     } else {
-      const broadcastFactor =
-          $losses.size / $weights.size;
+      const broadcastFactor = $losses.size / $weights.size;
       const result = weightedLoss.sum().div($weights.sum());
       return broadcastFactor > 1 ? result.div(scalar(broadcastFactor)) :
                                    result as O;
@@ -411,27 +409,29 @@ function softmaxCrossEntropyWithLogits_<T extends Tensor, O extends Tensor>(
         `and dim was ${dim}`);
   }
   // Use a custom gradient for numerical stability.
-  const customOp = customGrad((labels, logits) => {
-    // Reference:
-    //   1. http://cs231n.github.io/linear-classify/#softmax
-    //   2. https://blog.feedly.com/tricks-of-the-trade-logsumexp/
-    const keepDims = true;
-    const lse = logits.logSumExp([dim], keepDims);
+  const customOp =
+      customGrad((labels: Tensor, logits: Tensor, save: GradSaveFunc) => {
+        // Reference:
+        //   1. http://cs231n.github.io/linear-classify/#softmax
+        //   2. https://blog.feedly.com/tricks-of-the-trade-logsumexp/
+        const keepDims = true;
+        const lse = logits.logSumExp([dim], keepDims);
+        const logResult = logits.toFloat().sub(lse);
+        save({labels, logResult});
 
-    const logResult = logits.toFloat().sub(lse);
-    const costVector = logResult.mul(labels).neg();
+        const costVector = logResult.mul(labels).neg();
+        const value = costVector.sum([dim]) as O;
 
-    const value = costVector.sum([dim]) as O;
-
-    const gradFunc = (dy: O) => {
-      const dyShape = expandShapeToKeepDim(dy.shape, [dim]);
-      return [
-        dy.reshape(dyShape).mul(labels.toFloat().sub(logResult.exp())),
-        dy.reshape(dyShape).mul(logResult.exp().sub(labels.toFloat())),
-      ];
-    };
-    return {value, gradFunc};
-  });
+        const gradFunc = (dy: O, saved: NamedTensorMap) => {
+          const {labels, logResult} = saved;
+          const dyShape = expandShapeToKeepDim(dy.shape, [dim]);
+          return [
+            dy.reshape(dyShape).mul(labels.toFloat().sub(logResult.exp())),
+            dy.reshape(dyShape).mul(logResult.exp().sub(labels.toFloat())),
+          ];
+        };
+        return {value, gradFunc};
+      });
 
   return customOp(labels, logits);
 }

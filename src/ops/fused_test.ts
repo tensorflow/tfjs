@@ -130,6 +130,24 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(db, fusedDb);
   });
 
+  it('gradient with clones A x B with relu', () => {
+    const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
+    const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
+    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const fusedGrads = tf.grads((a, b) => {
+      return tf.fused
+          .matMul(a.clone(), b.clone(), transposeA, transposeB, null, 'relu')
+          .clone();
+    });
+
+    const [fusedDa, fusedDb] = fusedGrads([a, b], dy);
+    expect(fusedDa.shape).toEqual(a.shape);
+    expect(fusedDb.shape).toEqual(b.shape);
+  });
+
   it('A x B with relu bias gradient', () => {
     const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
     const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);

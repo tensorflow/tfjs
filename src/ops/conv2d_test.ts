@@ -279,7 +279,7 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
         .toThrowError();
   });
 
-  it('gradient input=[3,3,1] f=[2,2,1,1] s=1 p=0', () => {
+  it('gradient with clones input=[3,3,1] f=[2,2,1,1] s=1 p=0', () => {
     const inputDepth = 1;
     const outputDepth = 1;
     const inputShape: [number, number, number] = [3, 3, inputDepth];
@@ -295,7 +295,8 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const dy = tf.tensor3d([3, 1, 2, 0], [2, 2, 1]);
 
     const grads = tf.grads(
-        (x: tf.Tensor3D, filter: tf.Tensor4D) => x.conv2d(filter, stride, pad));
+        (x: tf.Tensor3D, filter: tf.Tensor4D) =>
+            x.clone().conv2d(filter.clone(), stride, pad).clone());
     const [dx, dfilter] = grads([x, filter], dy);
 
     expect(dx.shape).toEqual(x.shape);

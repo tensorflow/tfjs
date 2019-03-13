@@ -17,6 +17,7 @@
 
 import {customGrad} from '../gradients';
 import {Tensor} from '../tensor';
+import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {op} from './operation';
@@ -53,15 +54,16 @@ function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
         `Logits was rank ${$logits.rank} and dim was ${dim}`);
   }
 
-  const customOp = customGrad(logits => {
+  const customOp = customGrad((logits: Tensor, save: GradSaveFunc) => {
     // Do it in log space for numerical stability.
     // exp(X - logSumExp(X))
     const keepDims = true;
     const lse = logits.logSumExp([dim], keepDims);
     const logResult = logits.toFloat().sub(lse);
     const y = logResult.exp() as T;
-
-    const gradFunc = (dy: T) => {
+    save({y});
+    const gradFunc = (dy: T, saved: NamedTensorMap) => {
+      const {y} = saved;
       const dyTimesY = dy.mul(y);
       const keepDims = true;
       return dyTimesY.sub(dyTimesY.sum([dim], keepDims).mul(y));
@@ -105,14 +107,15 @@ function logSoftmax_<T extends Tensor>(logits: T|TensorLike, axis = -1): T {
         `Logits was rank ${$logits.rank} and axis was ${axis}`);
   }
 
-  const customOp = customGrad(logits => {
+  const customOp = customGrad((logits: Tensor, save: GradSaveFunc) => {
     const keepDims = true;
     const xMax = logits.max(axis, true);
     const shifted = logits.sub(xMax);
     const value =
         shifted.toFloat().sub(shifted.exp().sum(axis, keepDims).log()) as T;
-
-    const gradFunc = (dy: T) => {
+    save({value});
+    const gradFunc = (dy: T, saved: NamedTensorMap) => {
+      const {value} = saved;
       const softmax = value.exp();
       return dy.sub(dy.sum(axis, keepDims).mul(softmax));
     };

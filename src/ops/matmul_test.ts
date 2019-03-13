@@ -564,6 +564,19 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     ]);
   });
 
+  it('gradient with clones', () => {
+    const a = tf.tensor2d([1, 2, 3, 10, 20, 30], [2, 3]);
+    const b = tf.tensor2d([2, 3, 4, 1, 2, 3], [3, 2]);
+
+    const grads = tf.grads(
+        (a: tf.Tensor2D, b: tf.Tensor2D) =>
+            tf.matMul(a.clone(), b.clone()).clone());
+    const [da, db] = grads([a, b]);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(db.shape).toEqual(b.shape);
+  });
+
   it('gradients: a * bT', async () => {
     const aT = tf.tensor2d([1, 2, 3, 10, 20, 30], [3, 2]);
     const bT = tf.tensor2d([2, 3, 4, 1, 2, 3], [3, 2]);

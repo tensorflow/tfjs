@@ -18,6 +18,7 @@
 import {ENV} from '../environment';
 import {customGrad} from '../globals';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
@@ -112,7 +113,7 @@ function sum_<T extends Tensor>(
 
   // Use a custom gradient to bypass 2 gradient backprops since sum is used
   // extremely often.
-  const customOp = customGrad(x => {
+  const customOp = customGrad((x: Tensor) => {
     const permutation = axis_util.getAxesPermutation(axes, x.rank);
     let reductionAxes = axes;
     let permutedX = x;
@@ -235,7 +236,7 @@ function mean_<T extends Tensor>(
 
   // Use a custom gradient to bypass 2 gradient backprops since mean is used
   // extremely often.
-  const customOp = customGrad(x => {
+  const customOp = customGrad((x: Tensor) => {
     const reduceSizeScalar = scalar(reduceSize);
     // Cast if needed.
     const xReduce =
@@ -249,8 +250,7 @@ function mean_<T extends Tensor>(
         expandedDyShape[axis] = 1;
       });
       const expandedDy = dy.reshape(expandedDyShape);
-      const derX =
-          expandedDy.mul(ones(x.shape, 'float32')).div(reduceSizeScalar);
+      const derX = expandedDy.mul(ones(x.shape, 'float32')).div(reduceSize);
       return derX;
     };
     return {value, gradFunc};
@@ -263,9 +263,7 @@ function mean_<T extends Tensor>(
  * Gradient helper function for the min and max operations.
  */
 function gradForMinAndMax<T extends Tensor>(
-    dy: T, saved: Tensor[], xOrig: Tensor, origAxes: number[],
-    permutedAxes: number[]) {
-  let [y] = saved;
+    dy: T, y: T, xOrig: Tensor, origAxes: number[], permutedAxes: number[]) {
   if (y.rank < xOrig.rank) {
     y = y.reshape(axis_util.expandShapeToKeepDim(y.shape, origAxes)) as T;
   }
@@ -321,10 +319,13 @@ function min_<T extends Tensor>(
     axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
   }
 
-  const grad = (dy: T, saved: Tensor[]) =>
-      gradForMinAndMax(dy, saved, xOrig, origAxes, permutedAxes);
-  let res = ENV.engine.runKernel(
-      (backend, save) => save(backend.min($x, axes)), {$x}, grad);
+  const grad = (dy: T, saved: NamedTensorMap) =>
+      gradForMinAndMax(dy, saved.y, saved.xOrig, origAxes, permutedAxes);
+  let res = ENV.engine.runKernel((backend, save) => {
+    const y = backend.min($x, axes);
+    save({xOrig, y});
+    return y as T;
+  }, {$x}, grad);
   if (keepDims) {
     const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
     res = res.reshape(newShape) as T;
@@ -373,10 +374,13 @@ function max_<T extends Tensor>(
     axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
   }
 
-  const grad = (dy: T, saved: Tensor[]) =>
-      gradForMinAndMax(dy, saved, xOrig, origAxes, permutedAxes);
-  let res = ENV.engine.runKernel(
-      (backend, save) => save(backend.max($x, axes)), {$x}, grad);
+  const grad = (dy: T, saved: NamedTensorMap) =>
+      gradForMinAndMax(dy, saved.y, saved.xOrig, origAxes, permutedAxes);
+  let res = ENV.engine.runKernel((backend, save) => {
+    const y = backend.max($x, axes);
+    save({xOrig, y});
+    return y;
+  }, {$x}, grad);
   if (keepDims) {
     const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
     res = res.reshape(newShape) as T;

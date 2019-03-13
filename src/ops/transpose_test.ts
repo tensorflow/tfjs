@@ -140,6 +140,16 @@ describeWithFlags('transpose', ALL_ENVS, () => {
     expectArraysClose(dt, [111, 112, 121, 122, 211, 212, 221, 222]);
   });
 
+  it('gradient with clones', () => {
+    const t = tf.tensor3d([1, 11, 2, 22, 3, 33, 4, 44], [2, 2, 2]);
+    const perm = [2, 1, 0];
+    const dy = tf.tensor3d([111, 211, 121, 221, 112, 212, 122, 222], [2, 2, 2]);
+    const dt = tf.grad(t => t.clone().transpose(perm).clone())(t, dy);
+    expect(dt.shape).toEqual(t.shape);
+    expect(dt.dtype).toEqual('float32');
+    expectArraysClose(dt, [111, 112, 121, 122, 211, 212, 221, 222]);
+  });
+
   it('throws when passed a non-tensor', () => {
     expect(() => tf.transpose({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'transpose' must be a Tensor/);

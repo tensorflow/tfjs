@@ -48,7 +48,16 @@ describeWithFlags('slice1d', ALL_ENVS, () => {
   it('grad', () => {
     const a = tf.tensor1d([1, 2, 3, 4, 5]);
     const dy = tf.tensor1d([10, 100]);
-    const da = tf.grad(x => tf.slice1d(a, 1, 2))(a, dy);
+    const da = tf.grad((a: tf.Tensor1D) => tf.slice1d(a, 1, 2))(a, dy);
+    expect(da.shape).toEqual([5]);
+    expectArraysClose(da, [0, 10, 100, 0, 0]);
+  });
+
+  it('gradient with clones', () => {
+    const a = tf.tensor1d([1, 2, 3, 4, 5]);
+    const dy = tf.tensor1d([10, 100]);
+    const da =
+        tf.grad((a: tf.Tensor1D) => tf.slice1d(a.clone(), 1, 2).clone())(a, dy);
     expect(da.shape).toEqual([5]);
     expectArraysClose(da, [0, 10, 100, 0, 0]);
   });

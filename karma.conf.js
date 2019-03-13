@@ -19,7 +19,8 @@ const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
-  reports: {}
+  reports: {},
+  bundlerOptions: {sourceMap: true}
 };
 
 // Enable coverage reports and instrumentation under KARMA_COVERAGE=1 env
@@ -48,7 +49,7 @@ module.exports = function(config) {
     exclude: ['src/test_node.ts'],
     preprocessors: {'**/*.ts': ['karma-typescript']},
     karmaTypescriptConfig,
-    reporters: ['progress', 'karma-typescript'],
+    reporters: ['dots', 'karma-typescript'],
     browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,

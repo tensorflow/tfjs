@@ -35,6 +35,15 @@ describeWithFlags('reverse1d', ALL_ENVS, () => {
     expectArraysClose(da, [30, 20, 10]);
   });
 
+  it('gradient with clones', () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const dy = tf.tensor1d([10, 20, 30]);
+    const da =
+        tf.grad((a: tf.Tensor1D) => tf.reverse1d(a.clone()).clone())(a, dy);
+    expect(da.shape).toEqual([3]);
+    expectArraysClose(da, [30, 20, 10]);
+  });
+
   it('accepts a tensor-like object', () => {
     const input = [1, 2, 3, 4, 5];
     const result = tf.reverse1d(input);

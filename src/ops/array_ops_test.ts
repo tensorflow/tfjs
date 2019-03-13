@@ -1963,6 +1963,16 @@ describeWithFlags('clone', ALL_ENVS, () => {
     expectArraysClose(da, [4, 5, 6]);
   });
 
+  it('gradient with clones', () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const dy = tf.tensor1d([4, 5, 6]);
+    const da = tf.grad(x => tf.clone(x.clone()).clone())(a, dy);
+
+    expect(da.dtype).toBe('float32');
+    expect(da.shape).toEqual([3]);
+    expectArraysClose(da, [4, 5, 6]);
+  });
+
   it('gradient: 1D string throws error with string dy', () => {
     const a = tf.tensor1d(['a', 'b', 'c'], 'string');
     const dy = tf.tensor1d(['d', 'e', 'f']);
@@ -2156,6 +2166,13 @@ describeWithFlags('tile', ALL_ENVS, () => {
     const x = tf.tensor1d([1, 2, 3]);
     const dy = tf.tensor1d([0.1, 0.2, 0.3, 1, 2, 3, 10, 20, 30]);
     const gradients = tf.grad(x => tf.tile(x, [3]))(x, dy);
+    expectArraysClose(gradients, tf.tensor1d([11.1, 22.2, 33.3]));
+  });
+
+  it('gradient with clones', () => {
+    const x = tf.tensor1d([1, 2, 3]);
+    const dy = tf.tensor1d([0.1, 0.2, 0.3, 1, 2, 3, 10, 20, 30]);
+    const gradients = tf.grad(x => tf.tile(x.clone(), [3]).clone())(x, dy);
     expectArraysClose(gradients, tf.tensor1d([11.1, 22.2, 33.3]));
   });
 
@@ -2371,6 +2388,14 @@ describeWithFlags('gather', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(t.shape);
     expectArraysClose(gradients, [8, 6, 4]);
+  });
+
+  it('gradient with clones', () => {
+    const t = tf.tensor1d([1, 2, 3]);
+    const indices = tf.tensor1d([0, 2, 0, 1], 'int32');
+    const gradF = tf.grad(t => tf.gather(t.clone(), indices.clone()).clone());
+    const dt = gradF(t);
+    expect(dt.shape).toEqual(t.shape);
   });
 
   it('gradient 1D (gather), 2D indices', () => {
@@ -2762,6 +2787,17 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
     const a = tf.tensor1d([0, 1, 2], 'int32');
     const dy = tf.ones([3, 3], 'float32') as tf.Tensor2D;
     const da = tf.grad((x: tf.Tensor1D) => tf.oneHot(x, 3))(a, dy);
+
+    expect(da.dtype).toBe('float32');
+    expect(da.shape).toEqual([3]);
+    expectArraysClose(da, [0, 0, 0]);
+  });
+
+  it('gradient with clones', () => {
+    const a = tf.tensor1d([0, 1, 2], 'int32');
+    const dy = tf.ones([3, 3], 'float32') as tf.Tensor2D;
+    const da = tf.grad((x: tf.Tensor1D) =>
+        tf.oneHot(x.clone(), 3).clone())(a, dy);
 
     expect(da.dtype).toBe('float32');
     expect(da.shape).toEqual([3]);
@@ -3347,6 +3383,19 @@ describeWithFlags('unstack', ALL_ENVS, () => {
     expectArraysClose(dx2, [0, 0, 0, 1, 1, 1]);
   });
 
+  it('gradient with clones', () => {
+    const x = tf.tensor([[1, 2, 3], [4, 5, 6]]);
+    const dx1 = tf.grad(x => tf.unstack(x.clone())[0].clone())(x);
+    expect(dx1.shape).toEqual([2, 3]);
+    expect(dx1.dtype).toBe('float32');
+    expectArraysClose(dx1, [1, 1, 1, 0, 0, 0]);
+
+    const dx2 = tf.grad(x => tf.unstack(x.clone())[1].clone())(x);
+    expect(dx2.shape).toEqual([2, 3]);
+    expect(dx2.dtype).toBe('float32');
+    expectArraysClose(dx2, [0, 0, 0, 1, 1, 1]);
+  });
+
   it('grad of unstack axis=1', () => {
     const x = tf.tensor([[1, 2, 3], [4, 5, 6]]);
     const axis = 1;
@@ -3433,6 +3482,14 @@ describeWithFlags('split', ALL_ENVS, () => {
   it('gradient of 1st output', () => {
     const a = tf.tensor1d([1, 2, 3]);
     const da = tf.grad(x => tf.split(x, [1, 2])[0])(a);
+
+    expect(da.shape).toEqual([3]);
+    expectArraysClose(da, [1, 0, 0]);
+  });
+
+  it('gradient with clones', () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const da = tf.grad(x => tf.split(x.clone(), [1, 2])[0].clone())(a);
 
     expect(da.shape).toEqual([3]);
     expectArraysClose(da, [1, 0, 0]);
@@ -3598,6 +3655,15 @@ describeWithFlags('cumsum', ALL_ENVS, () => {
     const a = tf.tensor1d([1, 2, 3]);
     const dy = tf.tensor1d([4, 5, 6]);
     const da = tf.grad(x => tf.cumsum(x))(a, dy);
+
+    expect(da.shape).toEqual([3]);
+    expectArraysClose(da, [15, 11, 6]);
+  });
+
+  it('gradient with clones', () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const dy = tf.tensor1d([4, 5, 6]);
+    const da = tf.grad(x => tf.cumsum(x.clone()).clone())(a, dy);
 
     expect(da.shape).toEqual([3]);
     expectArraysClose(da, [15, 11, 6]);
@@ -3816,6 +3882,21 @@ describeWithFlags('batchToSpaceND', ALL_ENVS, () => {
     expectArraysClose(
         gradient, [1, 3, 9, 11, 2, 4, 10, 12, 5, 7, 13, 15, 6, 8, 14, 16]);
   });
+
+  it('gradient with clones, input=[4, 2, 2, 1], block shape=[2, 2]', () => {
+    const t = tf.tensor4d(
+        [1, 3, 9, 11, 2, 4, 10, 12, 5, 7, 13, 15, 6, 8, 14, 16], [4, 2, 2, 1]);
+    const blockShape = [2, 2];
+    const crops = [[0, 0], [0, 0]];
+    const dy = tf.tensor(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [1, 4, 4, 1]);
+
+    const gradient = tf.grad(t =>
+        tf.batchToSpaceND(t.clone(), blockShape, crops).clone())(t, dy);
+    expect(gradient.shape).toEqual([4, 2, 2, 1]);
+    expectArraysClose(
+        gradient, [1, 3, 9, 11, 2, 4, 10, 12, 5, 7, 13, 15, 6, 8, 14, 16]);
+  });
 });
 
 describeWithFlags('spaceToBatchND', ALL_ENVS, () => {
@@ -4012,6 +4093,26 @@ describeWithFlags('batchToSpaceND X spaceToBatchND', ALL_ENVS, () => {
 
     const gradient =
         tf.grad(t => tf.spaceToBatchND(t, blockShape, paddings))(t, dy);
+    expect(gradient.shape).toEqual([4, 2, 2]);
+    expectArraysClose(
+        gradient, [1, 2, 17, 18, 5, 6, 21, 22, 9, 10, 25, 26, 13, 14, 29, 30]);
+  });
+
+  it('gradient with clones input=[4, 2, 2], block shape=[2]', () => {
+    const t = tf.tensor(
+        [-61, 37, -68, 72, 31, 62, 0, -13, 28, 54, 96, 44, -55, -64, -88, -94],
+        [4, 2, 2]);
+    const blockShape = [2];
+    const paddings = [[0, 2]];
+    const dy = tf.tensor(
+        [
+          1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
+          17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32
+        ],
+        [8, 2, 2]);
+
+    const gradient = tf.grad(t =>
+        tf.spaceToBatchND(t.clone(), blockShape, paddings).clone())(t, dy);
     expect(gradient.shape).toEqual([4, 2, 2]);
     expectArraysClose(
         gradient, [1, 2, 17, 18, 5, 6, 21, 22, 9, 10, 25, 26, 13, 14, 29, 30]);
