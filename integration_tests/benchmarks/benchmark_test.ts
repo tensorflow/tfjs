@@ -20,6 +20,7 @@ import {ConvGPUBenchmark, RegularConvParams} from './conv_benchmarks';
 import {MatmulGPUBenchmark} from './matmul_benchmarks';
 import {MobileNetV1GPUBenchmark} from './mobilenet_benchmarks';
 import * as test_util from './test_util';
+import {UniversalSentenceEncoderBenchmark} from './use_benchmarks';
 
 const BENCHMARK_RUNS = 100;
 
@@ -72,6 +73,18 @@ describe('benchmarks', () => {
 
     await test_util.benchmarkAndLog(
         'cocossd', size => benchmark.run(size), sizes, size => '224',
+        BENCHMARK_RUNS);
+
+    done();
+  });
+
+  it('use', async done => {
+    const sizes = [1];
+
+    const benchmark = new UniversalSentenceEncoderBenchmark();
+
+    await test_util.benchmarkAndLog(
+        'use', size => benchmark.run(size), sizes, size => '41',
         BENCHMARK_RUNS);
 
     done();

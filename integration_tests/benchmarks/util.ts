@@ -31,10 +31,17 @@ export async function warmupAndBenchmarkGPU(benchmark: () => tf.Tensor):
 }
 
 export async function warmupAndAsyncBenchmarkGPU(
-    asyncBenchmark: () => Promise<Array<tf.Tensor>>): Promise<number> {
-  const out = await asyncBenchmark() as Array<tf.Tensor>;
-  await (out[0] as tf.Tensor).data();
-  out[0].dispose();
+    asyncBenchmark: () =>
+        Promise<Array<tf.Tensor>>| Promise<tf.Tensor>): Promise<number> {
+  const out = await asyncBenchmark() as Array<tf.Tensor>| tf.Tensor;
+
+  if ((out as Array<tf.Tensor>).length) {
+    await ((out as Array<tf.Tensor>)[0] as tf.Tensor).data();
+    ((out as Array<tf.Tensor>)[0] as tf.Tensor).dispose();
+  } else {
+    await (out as tf.Tensor).data();
+    (out as tf.Tensor).dispose();
+  }
 
   return (await tf.time(asyncBenchmark)).kernelMs;
 }
