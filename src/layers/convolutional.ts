@@ -51,6 +51,23 @@ export function preprocessConv2DInput(
 }
 
 /**
+ * Transpose and cast the input before the conv3d.
+ * @param x Input image tensor.
+ * @param dataFormat
+ */
+export function preprocessConv3DInput(
+    x: Tensor, dataFormat: DataFormat): Tensor {
+  return tidy(() => {
+    checkDataFormat(dataFormat);
+    if (dataFormat === 'channelsFirst') {
+      return tfc.transpose(x, [0, 2, 3, 4, 1]);  // NCDHW -> NDHWC.
+    } else {
+      return x;
+    }
+  });
+}
+
+/**
  * 1D-convolution with bias added.
  *
  * Porting Note: This function does not exist in the Python Keras backend.
@@ -195,6 +212,70 @@ export function conv2dWithBias(
   });
 }
 
+/**
+ * 3D Convolution.
+ * @param x
+ * @param kernel kernel of the convolution.
+ * @param strides strides array.
+ * @param padding padding mode. Default to 'valid'.
+ * @param dataFormat data format. Defaults to 'channelsLast'.
+ * @param dilationRate dilation rate array.
+ * @returns Result of the 3D convolution.
+ */
+export function conv3d(
+    x: Tensor, kernel: Tensor, strides = [1, 1, 1], padding = 'valid',
+    dataFormat?: DataFormat, dilationRate?: [number, number, number]): Tensor {
+  return tidy(() => {
+    checkDataFormat(dataFormat);
+    return conv3dWithBias(
+        x, kernel, null, strides, padding, dataFormat, dilationRate);
+  });
+}
+
+/**
+ * 3D Convolution with an added bias.
+ * Note: This function does not exist in the Python Keras Backend. This function
+ * is exactly the same as `conv3d`, except the added `bias`.
+ */
+export function conv3dWithBias(
+    x: Tensor, kernel: Tensor, bias: Tensor, strides = [1, 1, 1],
+    padding = 'valid', dataFormat?: DataFormat,
+    dilationRate?: [number, number, number]): Tensor {
+  return tidy(() => {
+    if (dataFormat == null) {
+      dataFormat = imageDataFormat();
+    }
+    checkDataFormat(dataFormat);
+    if (x.rank !== 4 && x.rank !== 5) {
+      throw new ValueError(
+          `conv3dWithBias expects input to be of rank 4 or 5, but received ` +
+          `${x.rank}.`);
+    }
+    if (kernel.rank !== 4 && kernel.rank !== 5) {
+      throw new ValueError(
+          `conv3dWithBias expects kernel to be of rank 4 or 5, but received ` +
+          `${x.rank}.`);
+    }
+    let y = preprocessConv3DInput(x, dataFormat);
+    if (padding === 'causal') {
+      throw new NotImplementedError(
+          'The support for CAUSAL padding mode in conv3dWithBias is not ' +
+          'implemented yet.');
+    }
+    y = tfc.conv3d(
+        y as Tensor4D | tfc.Tensor<tfc.Rank.R5>,
+        kernel as tfc.Tensor<tfc.Rank.R5>, strides as [number, number, number],
+        padding === 'same' ? 'same' : 'valid', 'NHWC', dilationRate);
+    if (bias != null) {
+      y = K.biasAdd(y, bias as Tensor1D);
+    }
+    if (dataFormat === 'channelsFirst') {
+      y = tfc.transpose(y, [0, 4, 1, 2, 3]);
+    }
+    return y;
+  });
+}
+
 
 /**
  * Base LayerConfig for depthwise and non-depthwise convolutional layers.
@@ -236,12 +317,12 @@ export declare interface BaseConvLayerArgs extends LayerArgs {
 
   /**
    * The dilation rate to use for the dilated convolution in each dimension.
-   * Should be an integer or array of two integers.
+   * Should be an integer or array of two or three integers.
    *
    * Currently, specifying any `dilationRate` value != 1 is incompatible with
    * specifying any `strides` value != 1.
    */
-  dilationRate?: number|[number]|[number, number];
+  dilationRate?: number|[number]|[number, number]|[number, number, number];
 
   /**
    * Activation function of the layer.
@@ -293,7 +374,8 @@ export declare interface BaseConvLayerArgs extends LayerArgs {
 
 /**
  * LayerConfig for non-depthwise convolutional layers.
- * Applies to non-depthwise convolution of all ranks (e.g, Conv1D, Conv2D).
+ * Applies to non-depthwise convolution of all ranks (e.g, Conv1D, Conv2D,
+ * Conv3D).
  */
 export declare interface ConvLayerArgs extends BaseConvLayerArgs {
   /**
@@ -335,9 +417,10 @@ export abstract class BaseConv extends Layer {
     BaseConv.verifyArgs(args);
     this.rank = rank;
     generic_utils.assertPositiveInteger(this.rank, 'rank');
-    if (this.rank !== 1 && this.rank !== 2) {
+    if (this.rank !== 1 && this.rank !== 2 && this.rank !== 3) {
       throw new NotImplementedError(
-          `Convolution layer for rank other than 1 or 2 (${this.rank}) is ` +
+          `Convolution layer for rank other than 1, 2, or 3 (${
+              this.rank}) is ` +
           `not implemented yet.`);
     }
     this.kernelSize = normalizeArray(args.kernelSize, rank, 'kernelSize');
@@ -365,13 +448,21 @@ export abstract class BaseConv extends Layer {
           `dilationRate must be a number or an array of a single number ` +
           `for 1D convolution, but received ` +
           `${JSON.stringify(this.dilationRate)}`);
-    }
-    if (this.rank === 2) {
+    } else if (this.rank === 2) {
       if (typeof this.dilationRate === 'number') {
         this.dilationRate = [this.dilationRate, this.dilationRate];
       } else if (this.dilationRate.length !== 2) {
         throw new ValueError(
             `dilationRate must be a number or array of two numbers for 2D ` +
+            `convolution, but received ${JSON.stringify(this.dilationRate)}`);
+      }
+    } else if (this.rank === 3) {
+      if (typeof this.dilationRate === 'number') {
+        this.dilationRate =
+            [this.dilationRate, this.dilationRate, this.dilationRate];
+      } else if (this.dilationRate.length !== 3) {
+        throw new ValueError(
+            `dilationRate must be a number or array of three numbers for 3D ` +
             `convolution, but received ${JSON.stringify(this.dilationRate)}`);
       }
     }
@@ -382,10 +473,11 @@ export abstract class BaseConv extends Layer {
     generic_utils.assert(
         'kernelSize' in args, `required key 'kernelSize' not in config`);
     if (typeof args.kernelSize !== 'number' &&
-        !generic_utils.checkArrayTypeAndLength(args.kernelSize, 'number', 1, 2))
+        !generic_utils.checkArrayTypeAndLength(args.kernelSize, 'number', 1, 3))
       throw new ValueError(
           `BaseConv expects config.kernelSize to be number or number[] with ` +
-          `length 1 or 2, but received ${JSON.stringify(args.kernelSize)}.`);
+          `length 1, 2, or 3, but received ${
+              JSON.stringify(args.kernelSize)}.`);
   }
 
   getConfig(): serialization.ConfigDict {
@@ -479,7 +571,12 @@ export abstract class Conv extends BaseConv {
             inputs, this.kernel.read(), biasValue, this.strides, this.padding,
             this.dataFormat, this.dilationRate as [number, number]);
       } else if (this.rank === 3) {
-        throw new NotImplementedError('3D convolution is not implemented yet.');
+        outputs = conv3dWithBias(
+            inputs, this.kernel.read(), biasValue, this.strides, this.padding,
+            this.dataFormat, this.dilationRate as [number, number, number]);
+      } else {
+        throw new NotImplementedError(
+            'convolutions greater than 3D are not implemented yet.');
       }
 
       if (this.activation != null) {
@@ -578,6 +675,50 @@ export class Conv2D extends Conv {
   }
 }
 serialization.registerClass(Conv2D);
+
+/**
+ * 3D convolution layer (e.g. spatial convolution over volumes).
+ *
+ * This layer creates a convolution kernel that is convolved
+ * with the layer input to produce a tensor of outputs.
+ *
+ * If `useBias` is True, a bias vector is created and added to the outputs.
+ *
+ * If `activation` is not `null`, it is applied to the outputs as well.
+ *
+ * When using this layer as the first layer in a model,
+ * provide the keyword argument `inputShape`
+ * (Array of integers, does not include the sample axis),
+ * e.g. `inputShape=[128, 128, 128, 1]` for 128x128x128 grayscale volumes
+ * in `dataFormat='channelsLast'`.
+ */
+export class Conv3D extends Conv {
+  /** @nocollapse */
+  static className = 'Conv3D';
+  constructor(args: ConvLayerArgs) {
+    super(3, args);
+    Conv3D.verifyArgs(args);
+  }
+
+  getConfig(): serialization.ConfigDict {
+    const config = super.getConfig();
+    delete config['rank'];
+    return config;
+  }
+
+  protected static verifyArgs(args: ConvLayerArgs) {
+    // config.kernelSize must be a number or array of numbers.
+    if (typeof args.kernelSize !== 'number') {
+      if (!(Array.isArray(args.kernelSize) &&
+            (args.kernelSize.length === 1 || args.kernelSize.length === 3)))
+        throw new ValueError(
+            `Conv3D expects config.kernelSize to be number or` +
+            ` [number, number, number], but received ${
+                JSON.stringify(args.kernelSize)}.`);
+    }
+  }
+}
+serialization.registerClass(Conv3D);
 
 /**
  * Transposed convolutional layer (sometimes called Deconvolution).
