@@ -7,4 +7,4 @@ git:
 script:
   - yarn build
   - yarn lint
-  - travis_wait yarn test-travis
+  - travis_wait 30 yarn test-travis
