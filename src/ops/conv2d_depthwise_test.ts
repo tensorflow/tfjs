@@ -678,6 +678,14 @@ describeWithFlags('depthwiseConv2d gradients', ALL_ENVS, () => {
     expectArraysClose(grad, expectedGrad);
   });
 
+  it('gradient with clones', () => {
+    const [dx, dFilter] = tf.grads((x: tf.Tensor4D, filter: tf.Tensor4D) =>
+      tf.depthwiseConv2d(x.clone(), filter.clone(),
+         stride, pad).clone())([images, filter]);
+    expect(dx.shape).toEqual(images.shape);
+    expect(dFilter.shape).toEqual(filter.shape);
+  });
+
   // Also disambiguate regular vs. depthwise filter gradients
   it('wrt filter, squared output', () => {
     const grad = tf.grad(
@@ -727,7 +735,7 @@ describeWithFlags('depthwiseConv2d gradients', ALL_ENVS, () => {
     ]));
   });
 
-  it('wrt input and filter, 1x3x3x1 and 2x2x1x1', () => {
+  it('gradient with clones', () => {
     const fSize = 2;
     const pad = 'valid';
     const stride = 1;
@@ -748,7 +756,8 @@ describeWithFlags('depthwiseConv2d gradients', ALL_ENVS, () => {
 
     const [dx, df] = tf.grads(
         (x: tf.Tensor4D, f: tf.Tensor4D) =>
-            tf.depthwiseConv2d(x, f, stride, pad))([x, f]);
+            tf.depthwiseConv2d(
+              x.clone(), f.clone(), stride, pad).clone())([x, f]);
 
     expectArraysClose(dx, tf.tensor4d([[
       [[0.303873], [0.533096], [0.229223]],

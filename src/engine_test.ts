@@ -20,6 +20,7 @@ import {describeWithFlags} from './jasmine_util';
 import {MathBackendCPU} from './kernels/backend_cpu';
 import {MathBackendWebGL} from './kernels/backend_webgl';
 import {Tensor} from './tensor';
+import {NamedTensorMap} from './tensor_types';
 import {ALL_ENVS, CPU_ENVS, expectArraysClose, expectArraysEqual, WEBGL_ENVS} from './test_util';
 
 describeWithFlags('fromPixels + regular math op', WEBGL_ENVS, () => {
@@ -89,6 +90,28 @@ describeWithFlags('gradients', ALL_ENVS, () => {
     const result2 = grad(tf.tensor1d([.1, .4]));
     expectArraysClose(result, [.2, .4]);
     expectArraysClose(result2, [.2, .8]);
+  });
+
+  it('grad(f): throwing an error during forward pass', () => {
+    const grad = tf.grad(x => {
+      throw new Error('failed forward pass');
+    });
+    expect(() => grad(tf.zeros([]))).toThrowError();
+    expect(tf.ENV.engine.isTapeOn()).toBe(false);
+  });
+
+  it('grad(f): throwing an error during backwards pass', () => {
+    const customOp = tf.customGrad((x: tf.Tensor) => {
+      return {
+        value: x,
+        gradFunc: () => {
+          throw new Error('failed backward pass');
+        }
+      };
+    });
+    const grad = tf.grad(x => customOp(x));
+    expect(() => grad(tf.zeros([]))).toThrowError();
+    expect(tf.ENV.engine.isTapeOn()).toBe(false);
   });
 
   it('grads(f)', () => {
@@ -183,6 +206,25 @@ describeWithFlags('gradients', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
+
+  it('saves tensors from the forward pass as expected', () => {
+    const x = tf.scalar(1).variable();
+    const optimizer = tf.train.sgd(0.1);
+    optimizer.minimize(() => {
+      const y = x.square();
+      const z = y.square();
+      y.dispose();
+      return z;
+    });
+  });
+
+  it('custom ops do not leak', () => {
+    const before = tf.memory().numTensors;
+    const x = tf.softmax([1, 2, 3, 4]);
+    x.dispose();
+    const now = tf.memory().numTensors;
+    expect(now).toBe(before);
+  });
 });
 
 describeWithFlags('valueAndGradients', ALL_ENVS, () => {
@@ -257,9 +299,20 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
 
 describeWithFlags('higher-order gradients', ALL_ENVS, () => {
   it('grad(grad(f))', () => {
+    const x = tf.tensor1d([.1, .2]);
+    const before = tf.memory().numTensors;
     const gradgrad = tf.grad(tf.grad(x => x.mul(x).mul(x)));
-    const result = gradgrad(tf.tensor1d([.1, .2]));
+    const result = gradgrad(x);
+    expect(tf.memory().numTensors).toBe(before + 1);
     expectArraysClose(result, [.6, 1.2]);
+  });
+
+  it('grad(grad(x^2))', () => {
+    const x = tf.scalar(3);
+    const gradgrad = tf.grad(tf.grad(x => x.square()));
+    const result = gradgrad(x);
+    // grad(grad(x^2)) = grad(2x) = 2
+    expectArraysClose(result, [2]);
   });
 
   it('grads(grads(f))', () => {
@@ -276,7 +329,7 @@ describeWithFlags('customGradient', ALL_ENVS, () => {
     const b = tf.scalar(2, 'int32');
     const dy = tf.scalar(4);
 
-    const customPow = tf.customGrad(a => {
+    const customPow = tf.customGrad((a: tf.Tensor) => {
       const value = tf.pow(a, b);
       const gradFunc = (dy: tf.Tensor) => dy.mul(tf.scalar(0.1));
       return {value, gradFunc};
@@ -295,9 +348,13 @@ describeWithFlags('customGradient', ALL_ENVS, () => {
 
     const dy = tf.scalar(5);
 
-    const customPow = tf.customGrad(a => {
+    const customPow = tf.customGrad((a: tf.Tensor, save: tf.GradSaveFunc) => {
       const value = tf.pow(a, b);
-      const gradFunc = (dy: tf.Tensor) => dy.mul(a);
+      save({a});
+      const gradFunc = (dy: tf.Tensor, saved: NamedTensorMap) => {
+        const {a} = saved;
+        return dy.mul(a);
+      };
       return {value, gradFunc};
     });
 
@@ -309,9 +366,16 @@ describeWithFlags('customGradient', ALL_ENVS, () => {
   });
 
   it('calling gradient of custom op twice works', () => {
-    const customOp = tf.customGrad(x => {
+    const customOp = tf.customGrad((x: tf.Tensor, save: tf.GradSaveFunc) => {
       // Override gradient of our custom x ^ 2 op to be dy * abs(x);
-      return {value: x.square(), gradFunc: dy => dy.mul(x.abs())};
+      save({x});
+      return {
+        value: x.square(),
+        gradFunc: (dy, saved: NamedTensorMap) => {
+          const {x} = saved;
+          return dy.mul(x.abs());
+        }
+      };
     });
     const x = tf.tensor1d([-1, -2, 3]);
     const grad = tf.grad(x => customOp(x));
@@ -694,12 +758,12 @@ describeWithFlags('Switching WebGL + CPU backends', WEBGL_ENVS, () => {
 });
 
 // NOTE: This describe is purposefully not a describeWithFlags so that we test
-// tensor allocation where no scopes have been created. The backend here must be
-// set to CPU because we cannot allocate GPU tensors outside a
+// tensor allocation where no scopes have been created. The backend here must
+// be set to CPU because we cannot allocate GPU tensors outside a
 // describeWithFlags because the default webgl backend and the test backends
 // share a WebGLContext. When backends get registered, global WebGL state is
-// initialized, which causes the two backends to step on each other and get in a
-// bad state.
+// initialized, which causes the two backends to step on each other and get in
+// a bad state.
 describe('Memory allocation outside a test scope', () => {
   it('constructing a tensor works', () => {
     tf.setBackend('cpu');

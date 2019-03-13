@@ -71,6 +71,16 @@ describeWithFlags('prelu', ALL_ENVS, () => {
     expectArraysClose(dx, [1, 1, 0.25, 0.15]);
   });
 
+  it('gradient with clones', () => {
+    const x = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const a = tf.tensor1d([0.2, 0.4, 0.25, 0.15]);
+    const dx = tf.grad(x => tf.prelu(x.clone(), a).clone())(x);
+
+    expect(dx.shape).toEqual(x.shape);
+    expect(dx.dtype).toEqual('float32');
+    expectArraysClose(dx, [1, 1, 0.25, 0.15]);
+  });
+
   it('derivative where alpha got broadcasted', () => {
     const x = tf.tensor2d([[0.5, 3, -0.1, -4]]);
     const a = tf.tensor2d([[0.2]]);
@@ -204,6 +214,23 @@ describeWithFlags('maximum', ALL_ENVS, () => {
     const dy = tf.scalar(3);
 
     const grads = tf.grads((a, b) => tf.maximum(a, b));
+    const [da, db] = grads([a, b], dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(db.shape).toEqual(b.shape);
+    expect(da.dtype).toEqual('float32');
+    expect(db.dtype).toEqual('float32');
+
+    expectArraysClose(da, [3 * 1]);
+    expectArraysClose(db, [3 * 0]);
+  });
+
+  it('gradient with clones', () => {
+    const a = tf.scalar(5.2);
+    const b = tf.scalar(0.6);
+    const dy = tf.scalar(3);
+
+    const grads = tf.grads((a, b) => tf.maximum(a.clone(), b.clone()).clone());
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -433,6 +460,24 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
     expectArraysClose(db, [3 * 2 * (0.6 - 5.2)]);
   });
 
+  it('gradient with clones', () => {
+    const a = tf.scalar(5.2);
+    const b = tf.scalar(0.6);
+    const dy = tf.scalar(3);
+
+    const grads =
+        tf.grads((a, b) => tf.squaredDifference(a.clone(), b.clone()).clone());
+    const [da, db] = grads([a, b], dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(db.shape).toEqual(b.shape);
+    expect(da.dtype).toEqual('float32');
+    expect(db.dtype).toEqual('float32');
+
+    expectArraysClose(da, [3 * 2 * (5.2 - 0.6)]);
+    expectArraysClose(db, [3 * 2 * (0.6 - 5.2)]);
+  });
+
   it('gradients: Tensor1D', () => {
     const a = tf.tensor1d([1.1, 2.6, 3, 5.9]);
     const b = tf.tensor1d([1.0, 2.7, 3, 5.8]);
@@ -632,6 +677,23 @@ describeWithFlags('minimum', ALL_ENVS, () => {
     expectArraysClose(db, [3 * 1]);
   });
 
+  it('gradient with clones', () => {
+    const a = tf.scalar(5.2);
+    const b = tf.scalar(0.6);
+    const dy = tf.scalar(3);
+
+    const grads = tf.grads((a, b) => tf.minimum(a.clone(), b.clone()).clone());
+    const [da, db] = grads([a, b], dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(db.shape).toEqual(b.shape);
+    expect(da.dtype).toEqual('float32');
+    expect(db.dtype).toEqual('float32');
+
+    expectArraysClose(da, [3 * 0]);
+    expectArraysClose(db, [3 * 1]);
+  });
+
   it('gradients: Tensor1D', () => {
     const a = tf.tensor1d([1.1, 2.6, 3, 5.9]);
     const b = tf.tensor1d([1.0, 2.7, 3, 5.8]);
@@ -793,6 +855,23 @@ describeWithFlags('mod', ALL_ENVS, () => {
     const dy = tf.scalar(3);
 
     const grads = tf.grads((a, b) => tf.mod(a, b));
+    const [da, db] = grads([a, b], dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(db.shape).toEqual(b.shape);
+    expect(da.dtype).toEqual('float32');
+    expect(db.dtype).toEqual('float32');
+
+    expectArraysClose(da, [3]);
+    expectArraysClose(db, [3 * -1 * Math.floor(5.2 / 0.6)]);
+  });
+
+  it('gradient with clones', () => {
+    const a = tf.scalar(5.2);
+    const b = tf.scalar(0.6);
+    const dy = tf.scalar(3);
+
+    const grads = tf.grads((a, b) => tf.mod(a.clone(), b.clone()).clone());
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -1026,6 +1105,23 @@ describeWithFlags('atan2', ALL_ENVS, () => {
     const dy = tf.scalar(4);
 
     const grads = tf.grads((a, b) => tf.atan2(a, b));
+    const [da, db] = grads([a, b], dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [4 * 2 / 29]);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [4 * -5 / 29]);
+  });
+
+  it('gradient with clones', () => {
+    const a = tf.scalar(5);
+    const b = tf.scalar(2);
+    const dy = tf.scalar(4);
+
+    const grads = tf.grads((a, b) => tf.atan2(a.clone(), b.clone()).clone());
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);

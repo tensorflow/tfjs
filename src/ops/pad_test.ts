@@ -70,6 +70,15 @@ describeWithFlags('pad1d', ALL_ENVS, () => {
     expectArraysClose(da, [30, 40, 50]);
   });
 
+  it('gradient with clones', () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const dy = tf.tensor1d([10, 20, 30, 40, 50, 60]);
+    const da =
+        tf.grad((a: tf.Tensor1D) => tf.pad1d(a.clone(), [2, 1]).clone())(a, dy);
+    expect(da.shape).toEqual([3]);
+    expectArraysClose(da, [30, 40, 50]);
+  });
+
   it('accepts a tensor-like object', () => {
     const a = [1, 2, 3, 4, 5, 6];
     const b = tf.pad1d(a, [2, 3]);

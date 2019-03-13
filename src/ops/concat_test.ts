@@ -371,6 +371,25 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
     expectArraysClose(dx2, [44, 4, 33, 3, 22, 2, 11, 1]);
   });
 
+  it('gradient with clones', () => {
+    const x1 = tf.tensor3d([1, 11, 2, 22], [1, 2, 2]);
+    const x2 = tf.tensor3d([5, 55, 6, 66, 7, 77, 8, 88], [2, 2, 2]);
+    const dy =
+        tf.tensor3d([66, 6, 55, 5, 44, 4, 33, 3, 22, 2, 11, 1], [3, 2, 2]);
+    const axis = 0;
+
+    const grads = tf.grads(
+        (x1: tf.Tensor3D, x2: tf.Tensor3D) =>
+            tf.concat3d([x1.clone(), x2.clone()], axis).clone());
+    const [dx1, dx2] = grads([x1, x2], dy);
+
+    expect(dx1.shape).toEqual(x1.shape);
+    expectArraysClose(dx1, [66, 6, 55, 5]);
+
+    expect(dx2.shape).toEqual(x2.shape);
+    expectArraysClose(dx2, [44, 4, 33, 3, 22, 2, 11, 1]);
+  });
+
   it('gradient concat axis=1', () => {
     const x1 = tf.tensor3d([1, 11, 2, 22], [2, 1, 2]);
     const x2 = tf.tensor3d([3, 33, 4, 44, 5, 55, 6, 66], [2, 2, 2]);

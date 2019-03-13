@@ -92,6 +92,13 @@ describeWithFlags('Reduction: min', ALL_ENVS, () => {
     expectArraysClose(gradients, tf.scalar(-1));
   });
 
+  it('gradient with clones', () => {
+    const x = tf.scalar(42);
+    const dy = tf.scalar(-1);
+    const gradients = tf.grad(v => tf.min(v.clone()).clone())(x, dy);
+    expectArraysClose(gradients, tf.scalar(-1));
+  });
+
   it('min gradient: 1D, ties', () => {
     const x = tf.tensor1d([-1, -3, -7, -7]);
     const dy = tf.scalar(-1);
@@ -298,6 +305,13 @@ describeWithFlags('Reduction: max', ALL_ENVS, () => {
     const x = tf.scalar(42);
     const dy = tf.scalar(-1);
     const gradients = tf.grad(v => tf.max(v))(x, dy);
+    expectArraysClose(gradients, tf.scalar(-1));
+  });
+
+  it('gradient with clones', () => {
+    const x = tf.scalar(42);
+    const dy = tf.scalar(-1);
+    const gradients = tf.grad(v => tf.max(v.clone()).clone())(x, dy);
     expectArraysClose(gradients, tf.scalar(-1));
   });
 
@@ -562,6 +576,16 @@ describeWithFlags('Reduction: argmax', ALL_ENVS, () => {
     expectArraysClose(da, [0, 0, 0, 0, 0, 0]);
   });
 
+  it('gradient with clones', () => {
+    const a = tf.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
+    const dy = tf.ones([3], 'float32') as tf.Tensor1D;
+    const da = tf.grad((x: tf.Tensor2D) => tf.argMax(x.clone()).clone())(a, dy);
+
+    expect(da.dtype).toBe('float32');
+    expect(da.shape).toEqual([2, 3]);
+    expectArraysClose(da, [0, 0, 0, 0, 0, 0]);
+  });
+
   it('throws error for string tensor', () => {
     expect(() => tf.argMax(['a']))
         .toThrowError(/Argument 'x' passed to 'argMax' must be numeric tensor/);
@@ -739,6 +763,16 @@ describeWithFlags('Reduction: argmin', ALL_ENVS, () => {
     const a = tf.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
     const dy = tf.ones([3], 'float32') as tf.Tensor1D;
     const da = tf.grad((x: tf.Tensor2D) => tf.argMin(x))(a, dy);
+
+    expect(da.dtype).toBe('float32');
+    expect(da.shape).toEqual([2, 3]);
+    expectArraysClose(da, [0, 0, 0, 0, 0, 0]);
+  });
+
+  it('gradient with clones', () => {
+    const a = tf.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
+    const dy = tf.ones([3], 'float32') as tf.Tensor1D;
+    const da = tf.grad((x: tf.Tensor2D) => tf.argMin(x.clone()).clone())(a, dy);
 
     expect(da.dtype).toBe('float32');
     expect(da.shape).toEqual([2, 3]);
@@ -956,6 +990,17 @@ describeWithFlags('Reduction: sum', ALL_ENVS, () => {
     const dy = tf.scalar(10);
 
     const gradients = tf.grad(a => a.sum())(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [10, 10, 10, 10, 10, 10]);
+  });
+
+  it('gradient with clones', () => {
+    const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
+    const dy = tf.scalar(10);
+
+    const gradients = tf.grad(a => a.clone().sum().clone())(a, dy);
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
@@ -1207,6 +1252,19 @@ describeWithFlags('Reduction: mean', ALL_ENVS, () => {
     const dy = tf.scalar(1.5);
 
     const da = tf.grad(a => a.mean())(a, dy);
+    const dyVal = dy.arraySync();
+    expect(da.shape).toEqual(a.shape);
+    expectArraysClose(da, [
+      dyVal / a.size, dyVal / a.size, dyVal / a.size, dyVal / a.size,
+      dyVal / a.size, dyVal / a.size
+    ]);
+  });
+
+  it('gradient with clones', () => {
+    const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
+    const dy = tf.scalar(1.5);
+
+    const da = tf.grad(a => a.clone().mean().clone())(a, dy);
     const dyVal = dy.arraySync();
     expect(da.shape).toEqual(a.shape);
     expectArraysClose(da, [

@@ -17,6 +17,7 @@
 
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -85,7 +86,9 @@ function matMul_<T extends Tensor>(
   const b3D = transposeB ? $b.as3D(batchDimB, outerShapeB, innerShapeB) :
                            $b.as3D(batchDimB, innerShapeB, outerShapeB);
 
-  const grad = (dy: Tensor3D) => {
+  const grad = (dy: Tensor3D, saved: NamedTensorMap) => {
+    const a3D = saved.a3D as Tensor3D;
+    const b3D = saved.b3D as Tensor3D;
     if (!transposeA && !transposeB) {
       return {
         $a: () => dy.matMul(b3D, false, true),
@@ -109,9 +112,11 @@ function matMul_<T extends Tensor>(
     }
   };
 
-  const res = ENV.engine.runKernel(
-      backend => backend.batchMatMul(a3D, b3D, transposeA, transposeB),
-      {$a: a3D, $b: b3D}, grad);
+  const res = ENV.engine.runKernel((backend, save) => {
+    const res = backend.batchMatMul(a3D, b3D, transposeA, transposeB);
+    save({a3D, b3D});
+    return res;
+  }, {$a: a3D, $b: b3D}, grad);
   return res.reshape(outShape) as T;
 }
 

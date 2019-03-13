@@ -653,6 +653,20 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
     expectArraysClose(gradients, flatten(expected));
   });
 
+  it('gradient with clones', () => {
+    const t = tf.zeros([3, 3, 8]);
+    const radius = 2.0;
+    const bias = 1.0;
+    const alpha = 1.0;
+    const beta = 0.5;
+    const dt = tf.grad(
+        (t: tf.Tensor3D) =>
+            tf.localResponseNormalization(t.clone(), radius, bias, alpha, beta)
+                .clone())(t);
+
+    expectArraysEqual(dt.shape, t.shape);
+  });
+
   it('gradient with 4D input', () => {
     const input = [
       [

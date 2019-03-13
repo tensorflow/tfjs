@@ -107,6 +107,20 @@ describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
     expectArraysClose(gradient, [11, 7, 11, 2]);
   });
 
+  it('gradient with clones', () => {
+    const t = tf.tensor1d([1, 2, 3, 4]);
+    const segmentIds = tf.tensor1d([0, 2, 0, 1], 'int32');
+    const numSegments = 3;
+
+    const dy = tf.tensor1d([11, 2, 7]);
+    const gradient = tf.grad(
+        a => tf.unsortedSegmentSum(a.clone(), segmentIds.clone(), numSegments)
+                 .clone())(t, dy);
+
+    expect(gradient.shape).toEqual(t.shape);
+    expectArraysClose(gradient, [11, 7, 11, 2]);
+  });
+
   it('tensor2D gradient', () => {
     const t = tf.tensor2d([1, 2, 3, 4], [2, 2]);
     const segmentIds = tf.tensor1d([0, 0], 'int32');
