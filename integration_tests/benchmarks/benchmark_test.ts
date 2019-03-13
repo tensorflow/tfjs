@@ -68,24 +68,24 @@ describe('benchmarks', () => {
 
   it('cocossd', async done => {
     const sizes = [1];
+    const runs = 20;
 
     const benchmark = new CoCoSSDBenchmark();
 
     await test_util.benchmarkAndLog(
-        'cocossd', size => benchmark.run(size), sizes, size => '224',
-        BENCHMARK_RUNS);
+        'cocossd', size => benchmark.run(size), sizes, size => '224', runs);
 
     done();
   });
 
   it('use', async done => {
     const sizes = [1];
+    const runs = 20;
 
     const benchmark = new UniversalSentenceEncoderBenchmark();
 
     await test_util.benchmarkAndLog(
-        'use', size => benchmark.run(size), sizes, size => '41',
-        BENCHMARK_RUNS);
+        'use', size => benchmark.run(size), sizes, size => '41', runs);
 
     done();
   });
