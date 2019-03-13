@@ -28,17 +28,16 @@ export function normalizeArray(
   } else {
     if (value.length !== n) {
       throw new ValueError(
-          `The ${name} argument must be a tuple of ${n} integers. Received: ` +
-          `${value.length} elements.`);
+          `The ${name} argument must be an integer or tuple of ${n} integers.` +
+          ` Received: ${value.length} elements.`);
     }
     for (let i = 0; i < n; ++i) {
       const singleValue = value[i];
       if (!isInteger(singleValue)) {
         throw new ValueError(
-            `The ${name} argument must be a tuple of ${
-                n} integers. Received: ` +
-            `${JSON.stringify(value)} including a non-integer number ` +
-            `${singleValue}`);
+            `The ${name} argument must be an integer or tuple of ${n}` +
+            ` integers. Received: ${JSON.stringify(value)} including a` +
+            ` non-integer number ${singleValue}`);
       }
     }
     return value;

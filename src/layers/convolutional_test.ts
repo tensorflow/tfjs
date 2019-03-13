@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {scalar, Tensor, tensor1d, tensor3d, Tensor4D, tensor4d, util} from '@tensorflow/tfjs-core';
+import {scalar, Tensor, tensor1d, tensor3d, Tensor4D, tensor4d, tensor5d, util} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
@@ -21,7 +21,7 @@ import {ActivationIdentifier} from '../keras_format/activation_config';
 import {DataFormat, PaddingMode, Shape} from '../keras_format/common';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {conv1d, conv1dWithBias, conv2d, conv2dWithBias} from './convolutional';
+import {conv1d, conv1dWithBias, conv2d, conv2dWithBias, conv3d, conv3dWithBias} from './convolutional';
 
 
 describeMathCPUAndGPU('conv1dWithBias', () => {
@@ -320,7 +320,12 @@ describeMathCPU('Conv2D Layers: Symbolic', () => {
   it('bad config.kernelSize shape throws exception', () => {
     expect(() => tfl.layers.conv2d({filters: 1, kernelSize: [1, 1, 1]}))
         .toThrowError(
-            /kernelSize to be number or number\[\] with length 1 or 2/);
+            /kernelSize argument must be an integer or tuple of 2 integers/);
+  });
+  it('bad config.kernelSize shape throws exception', () => {
+    expect(() => tfl.layers.conv2d({filters: 1, kernelSize: [1, 1, 1, 1]}))
+        .toThrowError(
+            /kernelSize to be number or number\[\] with length 1, 2, or 3/);
   });
   it('missing config.filters throws exception', () => {
     // tslint:disable-next-line:no-any
@@ -468,6 +473,456 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
       const x = tensor4d(x4by4Data, [1, 1, 4, 4]);
       const y = conv2dLayer.apply(x) as Tensor;
       const yExpected = tensor4d([100, 260, -100, -260], [1, 1, 2, 2]);
+      expectTensorsClose(y, yExpected);
+    });
+  }
+});
+
+describeMathCPUAndGPU('conv3d', () => {
+  // # The following TensorFlow Python code is used to verify the results of
+  // # the 3D convolutions.
+  //
+  // ```python
+  // import numpy as np
+  // import tensorflow as tf
+  // tf.enable_eager_execution()
+  //
+  // x = np.arange(64, dtype=np.float32).reshape(1, 4, 4, 4, 1)
+  // # Shape of kernel is (height, width, depth, input_ch, output_ch)
+  // kernel = np.array([
+  //     1, 1, 1, -1, -1, 1, 1, 1
+  //   ], dtype=np.float32).reshape(2, 2, 2, 1, 1)
+  //
+  // # Strides (1, 1, 1)
+  // outputs = tf.nn.conv3d(
+  //     input=x, filter=kernel, strides=[1, 1, 1, 1, 1], padding='VALID')
+  // outputs.numpy().flatten()
+  // # Output:
+  // #   array([ 42.,  46.,  50.,  58.,  62.,  66.,  74.,  78.,  82., 106.,
+  // #           110., 114., 122., 126., 130., 138., 142., 146., 170., 174.,
+  // #           178., 186., 190., 194., 202., 206., 210.], dtype=float32)
+  // outputs.numpy().shape  # (1, 3, 3, 3, 1)
+  //
+  // # Strides (2, 2, 2)
+  // outputs = tf.nn.conv3d(
+  //     input=x, filter=kernel, strides=[1, 2, 2, 2, 1], padding='VALID')
+  // outputs.numpy().flatten()
+  // # Output:
+  // #   array([ 42.,  50.,  74.,  82., 170., 178., 202., 210.], dtype=float32)
+  // outputs.numpy().shape  # (1, 2, 2, 2, 1)
+  // ```
+
+  const x4by4by4Data = [
+    0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
+    16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+    32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
+    48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63
+  ];
+  const kernel2by2by2Data = [1, 1, 1, -1, -1, 1, 1, 1];
+
+  const dataFormats: DataFormat[] =
+      [undefined, 'channelsFirst', 'channelsLast'];
+  const paddingModes: PaddingMode[] = [undefined, 'same', 'valid'];
+  const stridesArray = [1, 2];
+
+  for (const dataFormat of dataFormats) {
+    for (const paddingMode of paddingModes) {
+      for (const stride of stridesArray) {
+        const testTitle = `stride=${stride}, ${paddingMode}, ` +
+            `${dataFormat}`;
+        it(testTitle, () => {
+          let x = tensor5d(x4by4by4Data, [1, 1, 4, 4, 4]);
+          if (dataFormat !== 'channelsFirst') {
+            x = tfc.transpose(x, [0, 2, 3, 4, 1]);  // NCDHW -> NDHWC.
+          }
+          const kernel = tensor5d(kernel2by2by2Data, [2, 2, 2, 1, 1]);
+          const y =
+              conv3d(x, kernel, [stride, stride, stride], 'valid', dataFormat);
+
+          let yExpected: Tensor;
+          if (stride === 1) {
+            // See validation Python code in comment above.
+            yExpected = tensor5d(
+                [
+                  42.,  46.,  50.,  58.,  62.,  66.,  74.,  78.,  82.,
+                  106., 110., 114., 122., 126., 130., 138., 142., 146.,
+                  170., 174., 178., 186., 190., 194., 202., 206., 210.
+                ],
+                [1, 1, 3, 3, 3]);
+          } else if (stride === 2) {
+            // See validation Python code in comment above.
+            yExpected = tensor5d(
+                [42., 50., 74., 82., 170., 178., 202., 210.], [1, 1, 2, 2, 2]);
+          }
+          if (dataFormat !== 'channelsFirst') {
+            yExpected = tfc.transpose(yExpected, [0, 2, 3, 4, 1]);
+          }
+          expectTensorsClose(y, yExpected);
+        });
+      }
+    }
+  }
+
+  const biasScalarData = [2.2];
+  const outChannelsArray = [2, 3];
+
+  for (const outChannels of outChannelsArray) {
+    for (const dataFormat of dataFormats) {
+      for (const paddingMode of paddingModes) {
+        for (const stride of stridesArray) {
+          const testTitle = `outChannels=${outChannels}, stride=${stride}, ` +
+              `${paddingMode}, ${dataFormat}`;
+          it(testTitle, () => {
+            let x: Tensor = tensor5d(x4by4by4Data, [1, 1, 4, 4, 4]);
+            if (dataFormat !== 'channelsFirst') {
+              x = tfc.transpose(x, [0, 2, 3, 4, 1]);  // NCDHW -> NDHWC.
+            }
+
+            let kernelData: number[] = [];
+            let biasData: number[] = [];
+            for (let i = 0; i < outChannels; ++i) {
+              kernelData = kernelData.concat(kernel2by2by2Data);
+              biasData = biasData.concat(biasScalarData);
+            }
+            const kernel = tfc.transpose(
+                tensor5d(kernelData, [outChannels, 2, 2, 2, 1]),
+                [1, 2, 3, 4, 0]);
+            const bias = tensor1d(biasData);
+
+            const y = conv3dWithBias(
+                x, kernel, bias, [stride, stride, stride], 'valid', dataFormat);
+
+            let yExpectedShape: [number, number, number, number, number];
+            let yExpectedDataPerChannel: number[];
+            if (stride === 1) {
+              yExpectedShape = [1, outChannels, 3, 3, 3];
+              // See validation Python code above.
+              yExpectedDataPerChannel = [
+                42.,  46.,  50.,  58.,  62.,  66.,  74.,  78.,  82.,
+                106., 110., 114., 122., 126., 130., 138., 142., 146.,
+                170., 174., 178., 186., 190., 194., 202., 206., 210.
+              ];
+            } else if (stride === 2) {
+              yExpectedShape = [1, outChannels, 2, 2, 2];
+              // See validation Python code above.
+              yExpectedDataPerChannel =
+                  [42., 50., 74., 82., 170., 178., 202., 210.];
+            }
+            for (let i = 0; i < yExpectedDataPerChannel.length; ++i) {
+              yExpectedDataPerChannel[i] += biasScalarData[0];
+            }
+            let yExpectedData: number[] = [];
+            for (let i = 0; i < outChannels; ++i) {
+              yExpectedData = yExpectedData.concat(yExpectedDataPerChannel);
+            }
+            let yExpected: Tensor = tensor5d(yExpectedData, yExpectedShape);
+            if (dataFormat !== 'channelsFirst') {
+              yExpected = tfc.transpose(yExpected, [0, 2, 3, 4, 1]);
+            }
+            expectTensorsClose(y, yExpected);
+          });
+        }
+      }
+    }
+  }
+});
+
+
+describeMathCPU('Conv3D Layers: Symbolic', () => {
+  const filtersArray = [1, 64];
+  const paddingModes: PaddingMode[] = [undefined, 'valid', 'same'];
+  const dataFormats: DataFormat[] = ['channelsFirst', 'channelsLast'];
+  const kernelSizes = [[2, 2, 2], [3, 4, 4]];
+  // In this test suite, `undefined` means strides is the same as kernelSize.
+  const stridesArray = [undefined, 1];
+
+  for (const filters of filtersArray) {
+    for (const padding of paddingModes) {
+      for (const dataFormat of dataFormats) {
+        for (const kernelSize of kernelSizes) {
+          for (const stride of stridesArray) {
+            const strides = stride || kernelSize;
+            const testTitle = `filters=${filters}, kernelSize=${
+                                  JSON.stringify(kernelSize)}, ` +
+                `strides=${JSON.stringify(strides)}, ` +
+                `${dataFormat}, ${padding}`;
+            it(testTitle, () => {
+              const inputShape = dataFormat === 'channelsFirst' ?
+                  [2, 16, 11, 9, 9] :
+                  [2, 11, 9, 9, 16];
+              const symbolicInput =
+                  new tfl.SymbolicTensor('float32', inputShape, null, [], null);
+
+              const conv3dLayer = tfl.layers.conv3d({
+                filters,
+                kernelSize,
+                strides,
+                padding,
+                dataFormat,
+              });
+
+              const output =
+                  conv3dLayer.apply(symbolicInput) as tfl.SymbolicTensor;
+
+              let outputRows: number;
+              let outputCols: number;
+              let outputDepth: number;
+              if (stride === undefined) {  // Same strides as kernelSize.
+                outputRows = kernelSize[0] === 2 ? 5 : 3;
+                if (padding === 'same') {
+                  outputRows++;
+                }
+                outputCols = kernelSize[1] === 2 ? 4 : 2;
+                if (padding === 'same') {
+                  outputCols++;
+                }
+                outputDepth = kernelSize[2] === 2 ? 4 : 2;
+                if (padding === 'same') {
+                  outputDepth++;
+                }
+              } else {  // strides: 1.
+                outputRows = kernelSize[0] === 2 ? 10 : 9;
+                if (padding === 'same') {
+                  outputRows += kernelSize[0] - 1;
+                }
+                outputCols = kernelSize[1] === 2 ? 8 : 6;
+                if (padding === 'same') {
+                  outputCols += kernelSize[1] - 1;
+                }
+                outputDepth = kernelSize[2] === 2 ? 8 : 6;
+                if (padding === 'same') {
+                  outputDepth += kernelSize[1] - 1;
+                }
+              }
+              let expectedShape: [number, number, number, number, number];
+              if (dataFormat === 'channelsFirst') {
+                expectedShape =
+                    [2, filters, outputRows, outputCols, outputDepth];
+              } else {
+                expectedShape =
+                    [2, outputRows, outputCols, outputDepth, filters];
+              }
+
+              expect(output.shape).toEqual(expectedShape);
+              expect(output.dtype).toEqual(symbolicInput.dtype);
+            });
+          }
+        }
+      }
+    }
+  }
+
+  it('Invalid filters leads to Error', () => {
+    expect(() => tfl.layers.conv3d({filters: 2.5, kernelSize: 3}))
+        .toThrowError(/filters.*positive integer.*2\.5\.$/);
+  });
+  it('missing config.kernelSize throws exception', () => {
+    // tslint:disable-next-line:no-any
+    expect((filters: 1) => tfl.layers.conv3d({filters: 1} as any))
+        .toThrowError(/kernelSize/);
+  });
+  it('scalar config.kernelSize shape does not throw exception', () => {
+    expect(() => tfl.layers.conv3d({filters: 1, kernelSize: 1}))
+        .not.toThrowError();
+  });
+  it('bad config.kernelSize shape throws exception', () => {
+    expect(() => tfl.layers.conv3d({filters: 1, kernelSize: [1, 1]}))
+        .toThrowError(
+            /kernelSize argument must be an integer or tuple of 3 integers/);
+  });
+  it('bad config.kernelSize shape throws exception', () => {
+    expect(() => tfl.layers.conv2d({filters: 1, kernelSize: [1, 1, 1, 1]}))
+        .toThrowError(
+            /kernelSize to be number or number\[\] with length 1, 2, or 3/);
+  });
+  it('missing config.filters throws exception', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tfl.layers.conv3d({kernelSize: 1} as any))
+        .toThrowError(/filters to be a 'number' > 0/);
+  });
+  it('bad config.filters value throws exception', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tfl.layers.conv3d({kernelSize: 1, filters: 0} as any))
+        .toThrowError(/filters to be a 'number' > 0/);
+  });
+});
+
+describeMathCPUAndGPU('Conv3D Layer: Tensor', () => {
+  // # The following TensorFlow Python code is used to verify the results of
+  // # the 3D convolution layer.
+  //
+  // ```python
+  // import numpy as np
+  // import tensorflow as tf
+  // tf.enable_eager_execution()
+  //
+  // x = np.arange(64, dtype=np.float32).reshape(1, 4, 4, 4, 1)
+  // layer = tf.keras.layers.Conv3D(
+  //     filters=1, kernel_size=(2, 2, 2), strides=(2, 2, 2),
+  //     use_bias=True, kernel_initializer='ones', bias_initializer='zeros')
+  // outputs = layer(x)
+  // outputs.numpy().flatten()
+  // # Output:
+  // #  array([ 84., 100., 148., 164., 340., 356., 404., 420.], dtype=float32)
+  // outputs.numpy().shape
+  // # Output:
+  // #  (1, 2, 2, 2, 1)
+  // # TensorFlow Keras (Python) does not have a CPU implementation for channels
+  // # first yet, so the validation code uses channels last. Axes 1 and 4 would
+  // # be swapped to get channels first.
+  // ```
+
+  const x4by4by4Data = [
+    0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
+    16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+    32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
+    48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63
+  ];
+
+  const useBiases = [false, true];
+  const biasInitializers: InitializerIdentifier[] = ['zeros', 'ones'];
+  const activations: ActivationIdentifier[] = [null, 'linear', 'relu'];
+
+  for (const useBias of useBiases) {
+    for (const biasInitializer of biasInitializers) {
+      for (const activation of activations) {
+        const testTitle =
+            `useBias=${useBias}, biasInitializer=${biasInitializer}, ` +
+            `activation=${activation}`;
+        it(testTitle, () => {
+          const x = tensor5d(x4by4by4Data, [1, 1, 4, 4, 4]);
+          const conv3dLayer = tfl.layers.conv3d({
+            filters: 1,
+            kernelSize: [2, 2, 2],
+            strides: [2, 2, 2],
+            dataFormat: 'channelsFirst',
+            useBias,
+            kernelInitializer: 'ones',
+            biasInitializer,
+            activation
+          });
+          const y = conv3dLayer.apply(x) as Tensor;
+          // See validation Python code above.
+          let yExpectedData = [84., 100., 148., 164., 340., 356., 404., 420.];
+          if (useBias && biasInitializer === 'ones') {
+            yExpectedData = yExpectedData.map(element => element + 1);
+          }
+          if (activation === 'relu') {
+            yExpectedData =
+                yExpectedData.map(element => element >= 0 ? element : 0);
+          }
+          const yExpected = tensor5d(yExpectedData, [1, 1, 2, 2, 2]);
+          expectTensorsClose(y, yExpected);
+        });
+      }
+    }
+  }
+
+  it('CHANNEL_LAST', () => {
+    // Convert input to CHANNEL_LAST.
+    const x =
+        tfc.transpose(tensor5d(x4by4by4Data, [1, 1, 4, 4, 4]), [0, 2, 3, 4, 1]);
+    const conv3dLayer = tfl.layers.conv3d({
+      filters: 1,
+      kernelSize: [2, 2, 2],
+      strides: [2, 2, 2],
+      dataFormat: 'channelsLast',
+      useBias: false,
+      kernelInitializer: 'ones',
+      activation: 'linear'
+    });
+    const y = conv3dLayer.apply(x) as Tensor;
+    // See validation Python code above.
+    const yExpected = tensor5d(
+        [84., 100., 148., 164., 340., 356., 404., 420.], [1, 2, 2, 2, 1]);
+    expectTensorsClose(y, yExpected);
+  });
+
+  // # The following TensorFlow Python code is used to verify the results of
+  // # the 3D convolution layer with dilation.
+  //
+  // ```python
+  // import numpy as np
+  // import tensorflow as tf
+  // tf.enable_eager_execution()
+  //
+  // np.random.seed(42)
+  // x = np.random.rand(1, 4, 4, 4, 1)
+  // layer = tf.keras.layers.Conv3D(
+  //     filters=1, kernel_size=(2, 2, 2), strides=1, dilation_rate=2,
+  //     use_bias=False, kernel_initializer='ones', activation='linear')
+  // outputs = layer(x)
+  // outputs.numpy().flatten()
+  // # Output:
+  // #   array([2.91534395, 6.38913542, 2.78770771, 3.1383292 , 3.04194573,
+  // #          3.59669644, 4.85877068, 3.16763418])
+  // outputs.numpy().shape
+  // # Output:
+  // #   (1, 2, 2, 2, 1)
+  // ```
+
+  const dilationRateValues: Array<number|[number, number, number]> =
+      [2, [2, 2, 2]];
+  for (const dilationRate of dilationRateValues) {
+    it(`CHANNEL_LAST, dilationRate=${dilationRate}`, () => {
+      const x = tensor5d(
+          [
+            0.37454012, 0.95071431, 0.73199394, 0.59865848, 0.15601864,
+            0.15599452, 0.05808361, 0.86617615, 0.60111501, 0.70807258,
+            0.02058449, 0.96990985, 0.83244264, 0.21233911, 0.18182497,
+            0.18340451, 0.30424224, 0.52475643, 0.43194502, 0.29122914,
+            0.61185289, 0.13949386, 0.29214465, 0.36636184, 0.45606998,
+            0.78517596, 0.19967378, 0.51423444, 0.59241457, 0.04645041,
+            0.60754485, 0.17052412, 0.06505159, 0.94888554, 0.96563203,
+            0.80839735, 0.30461377, 0.09767211, 0.68423303, 0.44015249,
+            0.12203823, 0.49517691, 0.03438852, 0.9093204,  0.25877998,
+            0.66252228, 0.31171108, 0.52006802, 0.54671028, 0.18485446,
+            0.96958463, 0.77513282, 0.93949894, 0.89482735, 0.59789998,
+            0.92187424, 0.0884925,  0.19598286, 0.04522729, 0.32533033,
+            0.38867729, 0.27134903, 0.82873751, 0.35675333
+          ],
+          [1, 4, 4, 4, 1]);
+      const conv3dLayer = tfl.layers.conv3d({
+        filters: 1,
+        kernelSize: [2, 2, 2],
+        strides: 1,
+        dataFormat: 'channelsLast',
+        useBias: false,
+        kernelInitializer: 'ones',
+        activation: 'linear',
+        dilationRate
+      });
+      const y = conv3dLayer.apply(x) as Tensor;
+      // See validation Python code above.
+      const yExpected = tensor5d(
+          [
+            2.91534395, 6.38913542, 2.78770771, 3.1383292, 3.04194573,
+            3.59669644, 4.85877068, 3.16763418
+          ],
+          [1, 2, 2, 2, 1]);
+      expectTensorsClose(y, yExpected);
+    });
+  }
+
+  const explicitDefaultDilations: Array<number|[number, number, number]> =
+      [1, [1, 1, 1]];
+  for (const explicitDefaultDilation of explicitDefaultDilations) {
+    const testTitle = 'Explicit default dilation rate: ' +
+        JSON.stringify(explicitDefaultDilation);
+    it(testTitle, () => {
+      const conv3dLayer = tfl.layers.conv3d({
+        filters: 1,
+        kernelSize: [2, 2, 2],
+        strides: [2, 2, 2],
+        dataFormat: 'channelsFirst',
+        useBias: false,
+        kernelInitializer: 'ones',
+        dilationRate: explicitDefaultDilation
+      });
+      const x = tensor5d(x4by4by4Data, [1, 1, 4, 4, 4]);
+      const y = conv3dLayer.apply(x) as Tensor;
+      const yExpected = tensor5d(
+          [84., 100., 148., 164., 340., 356., 404., 420.], [1, 1, 2, 2, 2]);
       expectTensorsClose(y, yExpected);
     });
   }
@@ -690,7 +1145,8 @@ describeMathCPUAndGPU('Conv1D Layer: Tensor', () => {
   });
   it('bad config.kernelSize throws exception', () => {
     expect(() => tfl.layers.conv1d({filters: 1, kernelSize: [1, 1, 1]}))
-        .toThrowError(/kernelSize to be number or number\[\] with length 1/);
+        .toThrowError(
+            /kernelSize argument must be an integer or tuple of 1 integers/);
   });
   it('missing config.filters throws exception', () => {
     // tslint:disable-next-line:no-any
