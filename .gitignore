@@ -2,6 +2,7 @@ build/
 dist/
 deps/
 node_modules/
+integration/typescript/yarn.lock
 yarn-error.log
 yalc.lock
 .yalc/
