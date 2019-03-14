@@ -2,6 +2,7 @@
 .rpt2_cache/
 package/
 scripts/
+integration_tests/
 coverage/
 **/node_modules/
 karma.conf.js
@@ -18,3 +19,4 @@ ISSUE_TEMPLATE.md
 GALLERY.md
 rollup.config.js
 PULL_REQUEST_TEMPLATE.md
+.yalc/
