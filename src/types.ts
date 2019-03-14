@@ -118,10 +118,10 @@ export interface CSVConfig {
    * - `default` Default value of this column.
    *
    * - `isLabel` Whether this column is label instead of features. If isLabel is
-   * `true` for at least one column, the .csv() API will return an array of two
-   * items: the first item is a dict of features key/value pairs, the second
-   * item is a dict of labels key/value pairs. If no column is marked as label
-   * returns a dict of features only.
+   * `true` for at least one column, the element in returned `CSVDataset` will
+   * be an object of {xs: features, ys: labels}: xs is a dict of features
+   * key/value pairs, ys is a dict of labels key/value pairs. If no column is
+   * marked as label, returns a dict of features only.
    */
   columnConfigs?: {[key: string]: ColumnConfig};
 

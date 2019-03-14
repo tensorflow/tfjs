@@ -257,8 +257,8 @@ export class CSVDataset extends Dataset<DataElement> {
                                      features[key] = parsedValue;
       }
     }
-    // If label exists, return an array of features and labels, otherwise
-    // return features only.
+    // If label exists, return an object of features and labels as {xs:features,
+    // ys:labels}, otherwise return features only.
     if (Object.keys(labels).length === 0) {
       return features;
 
