@@ -50,7 +50,8 @@ async function run() {
   const flattenedDataset =
     csvDataset
     .map(({xs, ys}) => {
-      // Convert rows from object form (keyed by column name) to array form.
+      // Convert xs(features) and ys(labels) from object form (keyed by column
+      // name) to array form.
       return {xs: Object.values(xs), ys: Object.values(ys)};
     })
     .batch(10);
