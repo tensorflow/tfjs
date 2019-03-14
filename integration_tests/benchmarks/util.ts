@@ -38,16 +38,16 @@ export async function warmupAndAsyncBenchmarkGPU(
         Promise<tf.Tensor[]>| Promise<tf.Tensor>): Promise<number> {
   const out = await asyncBenchmark() as tf.Tensor[] | tf.Tensor;
 
-  let outRes = out.length ? out[0] : out;
-  await outRes.data();
-  outRes.dispose();
+  let outRes = (out as tf.Tensor[]).length ? (out as tf.Tensor[])[0] : out;
+  await (outRes as tf.Tensor).data();
+  (outRes as tf.Tensor).dispose();
 
   const start = performance.now();
   const result = await asyncBenchmark() as tf.Tensor[] | tf.Tensor;
 
-  outRes = result.length ? result[0] : result;
-  await outRes.data();
-  outRes.dispose();
+  outRes = (result as tf.Tensor[]).length ? (result as tf.Tensor[])[0] : result;
+  await (outRes as tf.Tensor).data();
+  (outRes as tf.Tensor).dispose();
 
   return performance.now() - start;
 }
