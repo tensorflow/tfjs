@@ -12,7 +12,7 @@
  * TensorFlow.js Layers: Basic Layers.
  */
 
-import {Scalar, serialization, Tensor, tidy, transpose, util} from '@tensorflow/tfjs-core';
+import {fused, Scalar, serialization, Tensor, tidy, transpose, util} from '@tensorflow/tfjs-core';
 
 import {Activation as ActivationFn, getActivation, serializeActivation} from '../activations';
 import {getScalar} from '../backend/state';
@@ -29,6 +29,15 @@ import {assertPositiveInteger} from '../utils/generic_utils';
 import {arrayProd, range} from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
+
+function mapActivationToFusedKernel(className: string): fused.Activation {
+  if (className === 'relu') {
+    return 'relu';
+  } else if (className === 'linear') {
+    return 'linear';
+  }
+  return null;
+}
 
 export declare interface DropoutLayerArgs extends LayerArgs {
   /** Float between 0 and 1. Fraction of the input units to drop. */
@@ -301,13 +310,24 @@ export class Dense extends Layer {
       this.invokeCallHook(inputs, kwargs);
       // Dense layer accepts only a single input.
       const input = getExactlyOneTensor(inputs);
-      let output = K.dot(input, this.kernel.read());
-      if (this.bias != null) {
-        output = K.biasAdd(output, this.bias.read());
+      const fusedActivationName =
+          mapActivationToFusedKernel(this.activation.getClassName());
+      let output: Tensor;
+
+      if (fusedActivationName != null) {
+        output = K.dot(
+            input, this.kernel.read(), fusedActivationName,
+            this.bias ? this.bias.read() : null);
+      } else {
+        output = K.dot(input, this.kernel.read());
+        if (this.bias != null) {
+          output = K.biasAdd(output, this.bias.read());
+        }
+        if (this.activation != null) {
+          output = this.activation.apply(output);
+        }
       }
-      if (this.activation != null) {
-        output = this.activation.apply(output);
-      }
+
       return output;
     });
   }
