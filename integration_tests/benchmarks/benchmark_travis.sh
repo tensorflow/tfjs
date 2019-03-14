@@ -60,6 +60,5 @@ then
 
   npm-run-all -p -c --aggregate-output \
     "run-browserstack --travis --browsers=bs_safari_mac" \
-    "run-browserstack --travis --browsers=bs_ios_11" \
     "run-browserstack --travis --browsers=bs_chrome_mac"
 fi
