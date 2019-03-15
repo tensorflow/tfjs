@@ -53,6 +53,7 @@ py_test(
     ],
 )
 
+py_test(
     name = "tf_saved_model_conversion_v2_test",
     srcs = ["tf_saved_model_conversion_v2_test.py"],
     srcs_version = "PY2AND3",
@@ -68,10 +69,11 @@ py_library(
     data = ["//tensorflowjs:op_list_jsons"],
     srcs_version = "PY2AND3",
     deps = [
-        ":tf_saved_model_conversion",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
+        "//tensorflowjs:version",
         "//tensorflowjs:write_weights",
+        "//tensorflowjs/converters:common",
     ],
 )
 
