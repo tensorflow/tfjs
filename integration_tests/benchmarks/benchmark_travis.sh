@@ -51,15 +51,10 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-converter'
 
-  echo 'Use latest version of tfjs-data'
-  git clone https://github.com/tensorflow/tfjs-data.git --depth 5
-  cd tfjs-data
-  rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
+  yarn run-browserstack --travis --browsers=bs_safari_mac
+  yarn run-browserstack --travis --browsers=bs_chrome_mac
 
-  cd ..
-  yarn link-local '@tensorflow/tfjs-data'
-
-  npm-run-all -p -c --aggregate-output \
-    "run-browserstack --travis --browsers=bs_safari_mac" \
-    "run-browserstack --travis --browsers=bs_chrome_mac"
+  # npm-run-all -p -c --aggregate-output \
+  #   "run-browserstack --travis --browsers=bs_safari_mac" \
+  #   "run-browserstack --travis --browsers=bs_chrome_mac"
 fi

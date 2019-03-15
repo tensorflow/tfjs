@@ -25,6 +25,7 @@ import {UniversalSentenceEncoderBenchmark} from './use_benchmarks';
 const BENCHMARK_RUNS = 100;
 
 describe('benchmarks', () => {
+  console.log('INSIDE BENCHMARKS YAY');
   beforeAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 600000;
   });
