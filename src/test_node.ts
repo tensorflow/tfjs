@@ -28,5 +28,5 @@ setTestEnvs(
     [{name: 'node', factory: () => new MathBackendCPU(), features: {}}]);
 
 const runner = new jasmine();
-runner.loadConfig({spec_files: ['src/**/**_test.ts'], random: false});
+runner.loadConfig({spec_files: ['dist/**/**_test.js'], random: false});
 runner.execute();

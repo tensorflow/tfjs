@@ -22,4 +22,3 @@ yarn
 yarn build
 rollup -c
 echo "Stored standalone library at dist/tf-core(.min).js"
-npm pack

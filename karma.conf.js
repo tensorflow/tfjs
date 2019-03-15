@@ -31,6 +31,26 @@ if (coverageEnabled) {
   karmaTypescriptConfig.reports = {html: 'coverage', 'text-summary': ''};
 }
 
+const devConfig = {
+  frameworks: ['jasmine', 'karma-typescript'],
+  files: [{pattern: 'src/**/*.ts'}],
+  exclude: ['src/test_node.ts'],
+  preprocessors: {'**/*.ts': ['karma-typescript']},
+  karmaTypescriptConfig,
+  reporters: ['dots', 'karma-typescript'],
+};
+
+const browserstackConfig = {
+  frameworks: ['browserify', 'jasmine'],
+  files: [{pattern: 'dist/**/*_test.js'}],
+  exclude: ['dist/test_node.js'],
+  preprocessors: {'dist/**/*_test.js': ['browserify']},
+  browserify: {debug: false},
+  reporters: ['dots', 'BrowserStack'],
+  singleRun: true,
+  hostname: 'bs-local.com',
+};
+
 module.exports = function(config) {
   const args = [];
   if (config.backend) {
@@ -42,14 +62,10 @@ module.exports = function(config) {
   if (config.features) {
     args.push('--features', config.features);
   }
+  const extraConfig = config.browserstack ? browserstackConfig : devConfig;
 
   config.set({
-    frameworks: ['jasmine', 'karma-typescript'],
-    files: [{pattern: 'src/**/*.ts'}],
-    exclude: ['src/test_node.ts'],
-    preprocessors: {'**/*.ts': ['karma-typescript']},
-    karmaTypescriptConfig,
-    reporters: ['dots', 'karma-typescript'],
+    ...extraConfig,
     browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
@@ -59,6 +75,8 @@ module.exports = function(config) {
     reportSlowerThan: 500,
     browserNoActivityTimeout: 180000,
     customLaunchers: {
+      // For browserstack configs see:
+      // https://www.browserstack.com/automate/node
       bs_chrome_mac: {
         base: 'BrowserStack',
         browser: 'chrome',
