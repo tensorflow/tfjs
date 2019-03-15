@@ -30,7 +30,8 @@ describe('benchmarks', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 600000;
   });
 
-  it('matmul', async done => {
+  it('matmul', async () => {
+    console.log('INSIDE MATMUL');
     const sizes = [1, 100, 400, 1000];
 
     const benchmark = new MatmulGPUBenchmark();
@@ -38,11 +39,10 @@ describe('benchmarks', () => {
     await test_util.benchmarkAndLog(
         'matmul', size => benchmark.run(size), sizes, size => `N=${size}`,
         BENCHMARK_RUNS);
-
-    done();
   });
 
-  it('conv2d', async done => {
+  it('conv2d', async () => {
+    console.log('INSIDE CONV2D');
     const sizes = [10, 100, 227];
     const convParams: RegularConvParams =
         {inDepth: 16, outDepth: 32, filterSize: 5, stride: 1, pad: 'same'};
@@ -51,11 +51,10 @@ describe('benchmarks', () => {
     await test_util.benchmarkAndLog(
         'conv2d', size => benchmark.run(size, 'regular', convParams), sizes,
         size => `N=${size} ${JSON.stringify(convParams)}`, BENCHMARK_RUNS);
-
-    done();
   });
 
-  it('mobilenet_v1', async done => {
+  it('mobilenet_v1', async () => {
+    console.log('INSIDE MOBILENET');
     const sizes = [1];  // MobileNet version
 
     const benchmark = new MobileNetV1GPUBenchmark();
@@ -63,11 +62,9 @@ describe('benchmarks', () => {
     await test_util.benchmarkAndLog(
         'mobilenet_v1', size => benchmark.run(size), sizes,
         size => `N=${size}_0_224`, BENCHMARK_RUNS);
-
-    done();
   });
 
-  it('use', async done => {
+  it('use', async () => {
     const sizes = [1];
     const runs = 20;
 
@@ -75,11 +72,9 @@ describe('benchmarks', () => {
 
     await test_util.benchmarkAndLog(
         'use', size => benchmark.run(size), sizes, size => '41', runs);
-
-    done();
   });
 
-  it('cocossd', async done => {
+  it('cocossd', async () => {
     const sizes = [1];
     const runs = 10;
 
@@ -87,7 +82,5 @@ describe('benchmarks', () => {
 
     await test_util.benchmarkAndLog(
         'cocossd', size => benchmark.run(size), sizes, size => '224', runs);
-
-    done();
   });
 });
