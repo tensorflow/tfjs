@@ -18,7 +18,7 @@
         "command": "yarn",
         "label": "build",
         "type": "shell",
-        "args": ["build", "--pretty", "false"],
+        "args": ["build", "--pretty", "false", "--noEmit"],
         "problemMatcher": [
           "$tsc"
         ]
