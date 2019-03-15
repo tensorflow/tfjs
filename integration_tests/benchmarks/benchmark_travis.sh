@@ -24,7 +24,7 @@ if [[ $(node -v) = *v10* ]]
 then
   # Run the first karma separately so it can download the BrowserStack binary
   # without conflicting with others.
-  yarn run-browserstack --browsers=bs_safari_mac
+  yarn run-browserstack --browsers=bs_chrome_mac
 
   echo 'Use latest version of tfjs-core'
   git clone https://github.com/tensorflow/tfjs-core.git --depth 5
