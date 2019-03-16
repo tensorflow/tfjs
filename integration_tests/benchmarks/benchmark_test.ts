@@ -43,7 +43,7 @@ describe('benchmarks', () => {
 
   it('conv2d', async () => {
     console.log('INSIDE CONV2D');
-    const sizes = [10, 100, 227];
+    const sizes = [10, 100, 200];
     const convParams: RegularConvParams =
         {inDepth: 16, outDepth: 32, filterSize: 5, stride: 1, pad: 'same'};
     const benchmark = new ConvGPUBenchmark();
