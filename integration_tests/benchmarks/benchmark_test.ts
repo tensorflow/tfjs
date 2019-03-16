@@ -27,7 +27,7 @@ const BENCHMARK_RUNS = 100;
 describe('benchmarks', () => {
   console.log('INSIDE BENCHMARKS YAY');
   beforeAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000000;
   });
 
   it('matmul', async () => {
@@ -56,12 +56,13 @@ describe('benchmarks', () => {
   it('mobilenet_v1', async () => {
     console.log('INSIDE MOBILENET');
     const sizes = [1];  // MobileNet version
+    const runs = 20;
 
     const benchmark = new MobileNetV1GPUBenchmark();
 
     await test_util.benchmarkAndLog(
         'mobilenet_v1', size => benchmark.run(size), sizes,
-        size => `N=${size}_0_224`, BENCHMARK_RUNS);
+        size => `N=${size}_0_224`, runs);
   });
 
   it('use', async () => {
