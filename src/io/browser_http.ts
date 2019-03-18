@@ -21,6 +21,7 @@
  * Uses [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
  */
 
+import {ENV} from '../environment';
 import {assert} from '../util';
 import {concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
@@ -29,7 +30,6 @@ import {loadWeightsAsArrayBuffer} from './weights_loader';
 
 const OCTET_STREAM_MIME_TYPE = 'application/octet-stream';
 const JSON_TYPE = 'application/json';
-
 export class BrowserHTTPRequest implements IOHandler {
   protected readonly path: string;
   protected readonly requestInit: RequestInit;
@@ -51,15 +51,15 @@ export class BrowserHTTPRequest implements IOHandler {
     this.onProgress = loadOptions.onProgress;
 
     if (loadOptions.fetchFunc == null) {
-      if (typeof fetch === 'undefined') {
+      const systemFetch = ENV.global.fetch;
+      if (typeof systemFetch === 'undefined') {
         throw new Error(
             'browserHTTPRequest is not supported outside the web browser ' +
             'without a fetch polyfill.');
       }
-      // Make sure fetch is always bound to window (the
+      // Make sure fetch is always bound to global object (the
       // original object) when available.
-      loadOptions.fetchFunc =
-          fetch.bind(typeof window === 'undefined' ? null : window);
+      loadOptions.fetchFunc = systemFetch.bind(ENV.global);
     } else {
       assert(
           typeof loadOptions.fetchFunc === 'function',
