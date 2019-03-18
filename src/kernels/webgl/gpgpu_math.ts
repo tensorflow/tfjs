@@ -165,7 +165,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
 
     if (input.isUniform) {
       // Upload the values of the tensor as uniform.
-      if (util.sizeFromShape(input.shape) === 1) {
+      if (util.sizeFromShape(input.shape) < 2) {
         gpgpu.gl.uniform1f(varLoc, input.uniformValues[0]);
       } else {
         let vals = input.uniformValues;
