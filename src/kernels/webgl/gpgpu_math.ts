@@ -38,7 +38,6 @@ export interface GPGPUBinary {
   webGLProgram: WebGLProgram;
   program: GPGPUProgram;
   uniformLocations: {[name: string]: WebGLUniformLocation};
-  gpgpu: GPGPUContext;
   source: string;
   inShapeInfos: ShapeInfo[];
   outShapeInfo: ShapeInfo;
@@ -98,7 +97,6 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     source,
     webGLProgram,
     uniformLocations,
-    gpgpu,
     inShapeInfos,
     outShapeInfo
   };
@@ -138,7 +136,8 @@ function validateBinaryAndProgram(
 }
 
 export function runProgram<T extends Tensor, K extends Tensor>(
-    binary: GPGPUBinary, inputs: TensorData[], output: TensorData,
+    gpgpu: GPGPUContext, binary: GPGPUBinary, inputs: TensorData[],
+    output: TensorData,
     customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) =>
         void): void {
   validateBinaryAndProgram(binary.inShapeInfos, inputs);
@@ -146,7 +145,6 @@ export function runProgram<T extends Tensor, K extends Tensor>(
 
   const outTex = output.texData.texture;
   const outTexShape = output.texData.texShape;
-  const gpgpu = binary.gpgpu;
   if (output.texData.isPacked) {
     gpgpu.setOutputPackedMatrixTexture(outTex, outTexShape[0], outTexShape[1]);
   } else {

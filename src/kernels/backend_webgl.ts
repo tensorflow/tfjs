@@ -137,6 +137,16 @@ export interface WebGLTimingInfo extends TimingInfo {
   downloadWaitMs: number;
 }
 
+const binaryCaches: {[webGLVersion: string]: {[key: string]: GPGPUBinary}} = {};
+
+function getBinaryCache(webGLVersion: number) {
+  if (webGLVersion in binaryCaches) {
+    return binaryCaches[webGLVersion];
+  }
+  binaryCaches[webGLVersion] = {};
+  return binaryCaches[webGLVersion];
+}
+
 function mapActivationToShaderProgram(
     activation: Activation, packed = false): string {
   if (activation === 'linear') {
@@ -569,7 +579,7 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   private textureManager: TextureManager;
-  private binaryCache: {[key: string]: GPGPUBinary} = {};
+  private binaryCache: {[key: string]: GPGPUBinary};
   private gpgpuCreatedLocally: boolean;
 
   constructor(private gpgpu?: GPGPUContext) {
@@ -579,10 +589,12 @@ export class MathBackendWebGL implements KernelBackend {
 
     if (gpgpu == null) {
       const gl = getWebGLContext(ENV.get('WEBGL_VERSION'));
+      this.binaryCache = getBinaryCache(ENV.get('WEBGL_VERSION'));
       this.gpgpu = new GPGPUContext(gl);
       this.canvas = gl.canvas;
       this.gpgpuCreatedLocally = true;
     } else {
+      this.binaryCache = {};
       this.gpgpuCreatedLocally = false;
       this.canvas = gpgpu.gl.canvas;
     }
@@ -2319,7 +2331,8 @@ export class MathBackendWebGL implements KernelBackend {
       query = this.startTimer();
     }
 
-    gpgpu_math.runProgram(binary, inputsData, outputData, customSetup);
+    gpgpu_math.runProgram(
+        this.gpgpu, binary, inputsData, outputData, customSetup);
 
     const numBytesBeforePaging = ENV.get('WEBGL_NUM_MB_BEFORE_PAGING') * 1024;
     if (pageToCpu && this.numBytesInGPU > numBytesBeforePaging) {
@@ -2363,15 +2376,13 @@ export class MathBackendWebGL implements KernelBackend {
     if (this.disposed) {
       return;
     }
-    for (const key in this.binaryCache) {
-      this.gpgpu.deleteProgram(this.binaryCache[key].webGLProgram);
-    }
     this.textureManager.dispose();
     this.canvas.remove();
     if (this.fromPixels2DContext != null) {
       this.fromPixels2DContext.canvas.remove();
     }
     if (this.gpgpuCreatedLocally) {
+      this.gpgpu.program = null;
       this.gpgpu.dispose();
     }
     this.disposed = true;
