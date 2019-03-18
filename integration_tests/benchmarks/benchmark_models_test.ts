@@ -22,7 +22,7 @@ import {UniversalSentenceEncoderBenchmark} from './use_benchmarks';
 
 describe('benchmark models', () => {
   beforeAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
   });
 
   it('mobilenet_v1', async () => {

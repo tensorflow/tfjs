@@ -27,6 +27,7 @@ export async function warmupAndBenchmarkGPU(benchmark: () => tf.Tensor):
   await out.data();
   out.dispose();
 
+  // Use normal performance.now() timing until query timers are enabled again.
   const start = performance.now();
   const result = benchmark();
   await result.data();

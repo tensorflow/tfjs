@@ -22,13 +22,11 @@ import * as test_util from './test_util';
 const BENCHMARK_RUNS = 100;
 
 describe('benchmark ops', () => {
-  console.log('INSIDE BENCHMARKS YAY');
   beforeAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
   });
 
   it('matmul', async () => {
-    console.log('INSIDE MATMUL');
     const sizes = [1, 100, 400, 1000];
 
     const benchmark = new MatmulGPUBenchmark();
@@ -39,7 +37,6 @@ describe('benchmark ops', () => {
   });
 
   it('conv2d', async () => {
-    console.log('INSIDE CONV2D');
     const sizes = [10, 100, 200];
     const convParams: RegularConvParams =
         {inDepth: 16, outDepth: 32, filterSize: 5, stride: 1, pad: 'same'};
