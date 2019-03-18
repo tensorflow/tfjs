@@ -71,6 +71,17 @@ describeWithFlags('reverse2d', ALL_ENVS, () => {
     expectArraysClose(result, [3, 2, 1, 6, 5, 4]);
   });
 
+  it('reverse a 2D array odd rows and columns at axis [0, 1]', () => {
+    const axis = [0, 1];
+    const a = tf.tensor2d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [3, 5]);
+    const result = tf.reverse2d(a, axis);
+
+    expect(result.shape).toEqual(a.shape);
+    expectArraysClose(
+        result, [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+  });
+
   it('throws error with invalid input', () => {
     // tslint:disable-next-line:no-any
     const x: any = tf.tensor1d([1, 20, 300, 4]);
