@@ -16,19 +16,16 @@
  */
 
 import {CoCoSSDBenchmark} from './cocossd_benchmarks';
-import * as firebase from './firebase';
 import {MobileNetV1GPUBenchmark} from './mobilenet_benchmarks';
 import * as test_util from './test_util';
 import {UniversalSentenceEncoderBenchmark} from './use_benchmarks';
 
 describe('benchmark models', () => {
-  console.log('INSIDE BENCHMARKS YAY');
   beforeAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000000;
   });
 
   it('mobilenet_v1', async () => {
-    console.log('INSIDE MOBILENET');
     const sizes = [1];  // MobileNet version
     const runs = 20;
 
@@ -40,26 +37,22 @@ describe('benchmark models', () => {
   });
 
   it('use', async () => {
-    if (firebase.karmaFlags.browsers !== 'bs_ios_11') {
-      const sizes = [1];
-      const runs = 20;
+    const sizes = [1];
+    const runs = 20;
 
-      const benchmark = new UniversalSentenceEncoderBenchmark();
+    const benchmark = new UniversalSentenceEncoderBenchmark();
 
-      await test_util.benchmarkAndLog(
-          'use', size => benchmark.run(size), sizes, size => '41', runs);
-    }
+    await test_util.benchmarkAndLog(
+        'use', size => benchmark.run(size), sizes, size => '41', runs);
   });
 
   it('cocossd', async () => {
-    if (firebase.karmaFlags.browsers !== 'bs_ios_11') {
-      const sizes = [1];
-      const runs = 10;
+    const sizes = [1];
+    const runs = 10;
 
-      const benchmark = new CoCoSSDBenchmark();
+    const benchmark = new CoCoSSDBenchmark();
 
-      await test_util.benchmarkAndLog(
-          'cocossd', size => benchmark.run(size), sizes, size => '224', runs);
-    }
+    await test_util.benchmarkAndLog(
+        'cocossd', size => benchmark.run(size), sizes, size => '224', runs);
   });
 });

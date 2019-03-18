@@ -51,11 +51,6 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-converter'
 
-  # yarn run-browserstack --travis --browsers=bs_ios_11
-  # yarn run-browserstack --travis --browsers=bs_safari_mac
-  # yarn run-browserstack --travis --browsers=bs_chrome_mac
-    # "run-browserstack --travis --browsers=bs_ios_11" \
-
   npm-run-all -p -c --aggregate-output \
     "run-browserstack --travis --browsers=bs_safari_mac --grep=models" \
     "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet" \
