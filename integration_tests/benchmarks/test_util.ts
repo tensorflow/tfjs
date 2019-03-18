@@ -32,7 +32,6 @@ export async function benchmarkAndLog<T extends any>(
     const size = sizes[i];
     let averageTimeMs = 0;
     for (let j = 0; j < runCount; j++) {
-      console.log('run', j);
       const result = await benchmark(size);
       averageTimeMs += result / runCount;
       await nextTick();
