@@ -10,7 +10,7 @@
 
 /* Original Source: losses.py */
 import * as tfc from '@tensorflow/tfjs-core';
-import {scalar, Tensor, Tensor1D, tidy, util} from '@tensorflow/tfjs-core';
+import {Tensor, Tensor1D, tidy, util} from '@tensorflow/tfjs-core';
 
 import {epsilon} from './backend/common';
 import {getScalar} from './backend/state';
@@ -27,7 +27,7 @@ import {LossOrMetricFn} from './types';
 export function l2Normalize(x: Tensor, axis?: number): Tensor {
   return tidy(() => {
     const squareSum = tfc.sum(K.square(x), axis, true);
-    const epsilonTensor = tfc.mul(scalar(epsilon()), tfc.onesLike(x));
+    const epsilonTensor = tfc.fill(squareSum.shape, epsilon());
     const norm = tfc.sqrt(tfc.maximum(squareSum, epsilonTensor));
     return tfc.div(x, norm);
   });
