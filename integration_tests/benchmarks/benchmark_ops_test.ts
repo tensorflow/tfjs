@@ -15,16 +15,13 @@
  * =============================================================================
  */
 
-import {CoCoSSDBenchmark} from './cocossd_benchmarks';
 import {ConvGPUBenchmark, RegularConvParams} from './conv_benchmarks';
 import {MatmulGPUBenchmark} from './matmul_benchmarks';
-import {MobileNetV1GPUBenchmark} from './mobilenet_benchmarks';
 import * as test_util from './test_util';
-import {UniversalSentenceEncoderBenchmark} from './use_benchmarks';
 
 const BENCHMARK_RUNS = 100;
 
-describe('benchmarks', () => {
+describe('benchmark ops', () => {
   console.log('INSIDE BENCHMARKS YAY');
   beforeAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000000;
@@ -51,37 +48,5 @@ describe('benchmarks', () => {
     await test_util.benchmarkAndLog(
         'conv2d', size => benchmark.run(size, 'regular', convParams), sizes,
         size => `N=${size} ${JSON.stringify(convParams)}`, BENCHMARK_RUNS);
-  });
-
-  it('mobilenet_v1', async () => {
-    console.log('INSIDE MOBILENET');
-    const sizes = [1];  // MobileNet version
-    const runs = 20;
-
-    const benchmark = new MobileNetV1GPUBenchmark();
-
-    await test_util.benchmarkAndLog(
-        'mobilenet_v1', size => benchmark.run(size), sizes,
-        size => `N=${size}_0_224`, runs);
-  });
-
-  it('use', async () => {
-    const sizes = [1];
-    const runs = 20;
-
-    const benchmark = new UniversalSentenceEncoderBenchmark();
-
-    await test_util.benchmarkAndLog(
-        'use', size => benchmark.run(size), sizes, size => '41', runs);
-  });
-
-  it('cocossd', async () => {
-    const sizes = [1];
-    const runs = 10;
-
-    const benchmark = new CoCoSSDBenchmark();
-
-    await test_util.benchmarkAndLog(
-        'cocossd', size => benchmark.run(size), sizes, size => '224', runs);
   });
 });
