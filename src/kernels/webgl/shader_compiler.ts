@@ -1244,7 +1244,7 @@ function getUniformSampler(inputInfo: InputInfo): string {
   const texName = inputInfo.name;
   const inSize = util.sizeFromShape(inputInfo.shapeInfo.logicalShape);
 
-  if (inSize === 1) {
+  if (inSize < 2) {
     return `return ${texName};`;
   }
   return `
