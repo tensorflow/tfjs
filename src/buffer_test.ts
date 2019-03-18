@@ -34,6 +34,16 @@ describeWithFlags('tf.buffer', ALL_ENVS, () => {
     expectArraysClose(buff.values, new Float32Array([1.3, 0, 0, 2.9, 0, 0]));
   });
 
+  it('get() out of range throws', () => {
+    const t = tf.tensor([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
+
+    const buff = t.bufferSync();
+    expect(buff.get(0, 0, 0)).toBeCloseTo(1);
+    expect(buff.get(0, 0, 1)).toBeCloseTo(2);
+    expect(() => buff.get(0, 0, 2))
+        .toThrowError(/Requested out of range element/);
+  });
+
   it('int32', () => {
     const buff = tf.buffer([2, 3], 'int32');
     buff.set(1.3, 0, 0);
