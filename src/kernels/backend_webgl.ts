@@ -96,6 +96,7 @@ import {ResizeBilinearPackedProgram} from './webgl/resize_bilinear_packed_gpu';
 import {ResizeNearestNeigborBackpropProgram} from './webgl/resize_nearest_neighbor_backprop_gpu';
 import {ResizeNearestNeighborProgram} from './webgl/resize_nearest_neighbor_gpu';
 import {ReverseProgram} from './webgl/reverse_gpu';
+import {ReversePackedProgram} from './webgl/reverse_packed_gpu';
 import {ScatterProgram} from './webgl/scatter_gpu';
 import {SegmentOpProgram} from './webgl/segment_gpu';
 import {SelectProgram} from './webgl/select_gpu';
@@ -713,7 +714,9 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   reverse<T extends Tensor>(x: T, axis: number[]): T {
-    const program = new ReverseProgram(x.shape, axis);
+    const program = ENV.get('WEBGL_PACK_ARRAY_OPERATIONS') ?
+        new ReversePackedProgram(x.shape, axis) :
+        new ReverseProgram(x.shape, axis);
     return this.compileAndRun(program, [x]);
   }
 
