@@ -18,8 +18,7 @@
 import * as tf from './index';
 import {describeWithFlags} from './jasmine_util';
 import {Tensor} from './tensor';
-import {NamedTensorMap} from './tensor_types';
-import {flattenNameArrayMap, getTensorsInContainer, isTensorInList, unflattenToNameArrayMap} from './tensor_util';
+import {getTensorsInContainer, isTensorInList} from './tensor_util';
 import {convertToTensor} from './tensor_util_env';
 import {ALL_ENVS, expectArraysClose, expectArraysEqual} from './test_util';
 
@@ -36,29 +35,6 @@ describe('tensor_util.isTensorInList', () => {
     const list: Tensor[] = [tf.scalar(2), tf.tensor1d([1, 2, 3]), a];
 
     expect(isTensorInList(a, list)).toBe(true);
-  });
-});
-
-describe('tensor_util.flattenNameArrayMap', () => {
-  it('basic', () => {
-    const a = tf.scalar(1);
-    const b = tf.scalar(3);
-    const c = tf.tensor1d([1, 2, 3]);
-
-    const map: NamedTensorMap = {a, b, c};
-    expect(flattenNameArrayMap(map, Object.keys(map))).toEqual([a, b, c]);
-  });
-});
-
-describe('tensor_util.unflattenToNameArrayMap', () => {
-  it('basic', () => {
-    const a = tf.scalar(1);
-    const b = tf.scalar(3);
-    const c = tf.tensor1d([1, 2, 3]);
-
-    expect(unflattenToNameArrayMap(['a', 'b', 'c'], [
-      a, b, c
-    ])).toEqual({a, b, c});
   });
 });
 

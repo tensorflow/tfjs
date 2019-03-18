@@ -16,7 +16,7 @@
  */
 
 import {Tensor} from './tensor';
-import {NamedTensorMap, TensorContainer, TensorContainerArray} from './tensor_types';
+import {TensorContainer, TensorContainerArray} from './tensor_types';
 import {upcastType} from './types';
 import {assert} from './util';
 
@@ -42,33 +42,6 @@ export function isTensorInList(tensor: Tensor, tensorList: Tensor[]): boolean {
     }
   }
   return false;
-}
-
-export function flattenNameArrayMap(
-    nameArrayMap: Tensor|NamedTensorMap, keys?: string[]): Tensor[] {
-  const xs: Tensor[] = [];
-  if (nameArrayMap instanceof Tensor) {
-    xs.push(nameArrayMap);
-  } else {
-    const xMap = nameArrayMap as {[xName: string]: Tensor};
-    for (let i = 0; i < keys.length; i++) {
-      xs.push(xMap[keys[i]]);
-    }
-  }
-  return xs;
-}
-
-export function unflattenToNameArrayMap(
-    keys: string[], flatArrays: Tensor[]): NamedTensorMap {
-  if (keys.length !== flatArrays.length) {
-    throw new Error(
-        `Cannot unflatten Tensor[], keys and arrays are not of same length.`);
-  }
-  const result: NamedTensorMap = {};
-  for (let i = 0; i < keys.length; i++) {
-    result[keys[i]] = flatArrays[i];
-  }
-  return result;
 }
 
 /**

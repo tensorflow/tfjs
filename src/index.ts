@@ -30,6 +30,7 @@ import * as math from './math';
 import * as browser from './ops/browser';
 import * as serialization from './serialization';
 import {setOpHandler} from './tensor';
+import * as tensor_util from './tensor_util';
 import * as test_util from './test_util';
 import * as util from './util';
 import {version} from './version';
@@ -46,8 +47,8 @@ export {Optimizer} from './optimizers/optimizer';
 export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './optimizers/sgd_optimizer';
 export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer, variable, Variable} from './tensor';
-export {GradSaveFunc, NamedTensorMap} from './tensor_types';
-export {DataType, DataTypeMap, DataValues, Rank, ShapeMap} from './types';
+export {GradSaveFunc, NamedTensorMap, TensorContainer, TensorContainerArray, TensorContainerObject} from './tensor_types';
+export {DataType, DataTypeMap, DataValues, Rank, ShapeMap, TensorLike} from './types';
 
 export * from './ops/ops';
 export {LSTMCellFunc} from './ops/lstm';
@@ -76,7 +77,17 @@ export {
 };
 
 // Second level exports.
-export {browser, environment, io, math, serialization, test_util, util, webgl};
+export {
+  browser,
+  environment,
+  io,
+  math,
+  serialization,
+  test_util,
+  util,
+  webgl,
+  tensor_util
+};
 
 // Backend specific.
 export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './kernels/backend';
