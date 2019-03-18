@@ -16,6 +16,7 @@
  */
 
 import {CoCoSSDBenchmark} from './cocossd_benchmarks';
+import * as firebase from './firebase';
 import {MobileNetV1GPUBenchmark} from './mobilenet_benchmarks';
 import * as test_util from './test_util';
 import {UniversalSentenceEncoderBenchmark} from './use_benchmarks';
@@ -39,22 +40,26 @@ describe('benchmark models', () => {
   });
 
   it('use', async () => {
-    const sizes = [1];
-    const runs = 20;
+    if (firebase.karmaFlags.browsers !== 'bs_ios_11') {
+      const sizes = [1];
+      const runs = 20;
 
-    const benchmark = new UniversalSentenceEncoderBenchmark();
+      const benchmark = new UniversalSentenceEncoderBenchmark();
 
-    await test_util.benchmarkAndLog(
-        'use', size => benchmark.run(size), sizes, size => '41', runs);
+      await test_util.benchmarkAndLog(
+          'use', size => benchmark.run(size), sizes, size => '41', runs);
+    }
   });
 
   it('cocossd', async () => {
-    const sizes = [1];
-    const runs = 10;
+    if (firebase.karmaFlags.browsers !== 'bs_ios_11') {
+      const sizes = [1];
+      const runs = 10;
 
-    const benchmark = new CoCoSSDBenchmark();
+      const benchmark = new CoCoSSDBenchmark();
 
-    await test_util.benchmarkAndLog(
-        'cocossd', size => benchmark.run(size), sizes, size => '224', runs);
+      await test_util.benchmarkAndLog(
+          'cocossd', size => benchmark.run(size), sizes, size => '224', runs);
+    }
   });
 });

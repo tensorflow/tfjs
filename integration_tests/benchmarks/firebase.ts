@@ -26,7 +26,7 @@ import 'firebase/database';
 // tslint:disable-next-line:max-line-length
 import {ApplicationConfig, BenchmarkRunEntry, BenchmarkEntry} from './firebase_types';
 
-const karmaFlags = parseKarmaFlags(__karma__.config.args);
+export const karmaFlags = parseKarmaFlags(__karma__.config.args);
 
 const config: ApplicationConfig = {
   apiKey: karmaFlags.apiKey,

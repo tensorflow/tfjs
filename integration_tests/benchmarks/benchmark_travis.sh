@@ -56,12 +56,7 @@ then
   # yarn run-browserstack --travis --browsers=bs_chrome_mac
 
   npm-run-all -p -c --aggregate-output \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=models" \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=models" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=models"
-
-  npm-run-all -p -c --aggregate-output \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=ops" \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=ops" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=ops"
+    "run-browserstack --travis --browsers=bs_safari_mac" \
+    "run-browserstack --travis --browsers=bs_ios_11" \
+    "run-browserstack --travis --browsers=bs_chrome_mac"
 fi
