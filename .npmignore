@@ -1,5 +1,6 @@
 .rpt2_cache/
 .vscode/
+src/**/*_test.ts
 demo/
 scripts/
 coverage/
