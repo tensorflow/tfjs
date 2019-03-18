@@ -58,7 +58,9 @@ then
 
   npm-run-all -p -c --aggregate-output \
     "run-browserstack --travis --browsers=bs_safari_mac --grep=models" \
+    "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet" \
     "run-browserstack --travis --browsers=bs_chrome_mac --grep=models" \
+    "run-browserstack --travis --browsers=bs_ios_11 --grep=ops" \
     "run-browserstack --travis --browsers=bs_safari_mac --grep=ops" \
     "run-browserstack --travis --browsers=bs_chrome_mac --grep=ops"
 fi
