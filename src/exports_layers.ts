@@ -22,7 +22,7 @@ import {ZeroPadding2D, ZeroPadding2DLayerArgs} from './layers/padding';
 import {AveragePooling1D, AveragePooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerArgs, MaxPooling1D, MaxPooling2D, Pooling1DLayerArgs, Pooling2DLayerArgs} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNCell, RNNLayerArgs, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs, StackedRNNCells, StackedRNNCellsArgs} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs} from './layers/wrappers';
-
+import {GaussianNoiseArgs, GaussianNoise, GaussianDropoutArgs, GaussianDropout, AlphaDropoutArgs, AlphaDropout} from './layers/noise';
 
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable
@@ -672,3 +672,39 @@ export const maxPool1d = maxPooling1d;
 export const maxPool2d = maxPooling2d;
 
 export {Layer, RNN, RNNCell, input /* alias for tf.input */};
+
+/**
+ * @doc {
+ *   heading: 'Layers',
+ *   subheading: 'Noise',
+ *   namespace: 'layers',
+ *   useDocsFrom: 'GaussianNoise'
+ * }
+ */
+export function gaussianNoise(args: GaussianNoiseArgs): GaussianNoise {
+  return new GaussianNoise(args);
+}
+
+/**
+ * @doc {
+ *   heading: 'Layers',
+ *   subheading: 'Noise',
+ *   namespace: 'layers',
+ *   useDocsFrom: 'GaussianDropout'
+ * }
+ */
+export function gaussianDropout(args: GaussianDropoutArgs): GaussianDropout {
+  return new GaussianDropout(args);
+}
+
+/**
+ * @doc {
+ *   heading: 'Layers',
+ *   subheading: 'Noise',
+ *   namespace: 'layers',
+ *   useDocsFrom: 'AlphaDropout'
+ * }
+ */
+export function alphaDropout(args: AlphaDropoutArgs): AlphaDropout {
+  return new AlphaDropout(args);
+}
