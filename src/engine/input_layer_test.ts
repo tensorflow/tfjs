@@ -108,6 +108,13 @@ describeMathCPU('InputLayer', () => {
     });
   });
 
+  // See https://github.com/tensorflow/tfjs/issues/1341
+  it('allow `null` in shape', () => {
+    const inputShape = [null, 2];
+    const inputs = tfl.layers.inputLayer({inputShape});
+    expect(inputs.inputSpec[0].shape).toEqual([null].concat(inputShape));
+  });
+
   it('throws an exception if both inputShape and batchInputShape ' +
          'are specified during initialization.',
      () => {
