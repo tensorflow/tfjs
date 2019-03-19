@@ -8,8 +8,9 @@
  * =============================================================================
  */
 
-/** @docalias number[] */
-export type Shape = number[];
+// TODO(huan): add layer-specific input shape types (see: https://github.com/tensorflow/tfjs-layers/pull/492)
+/** @docalias (null | number)[] */
+export type Shape = Array<null | number>;
 
 // The tfjs-core version of DataType must stay synced with this.
 export type DataType = 'float32'|'int32'|'bool'|'complex64'|'string';
