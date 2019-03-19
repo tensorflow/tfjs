@@ -75,7 +75,7 @@ export class ConvGPUBenchmark implements BenchmarkTest {
       throw new Error(`Unknown option ${opType}`);
     }
 
-    const time = await benchmark_util.warmupAndBenchmarkGPU(benchmark);
+    const time = await benchmark_util.benchmarkGPU(benchmark);
 
     x.dispose();
     W.dispose();

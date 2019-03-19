@@ -48,7 +48,7 @@ export class MatmulGPUBenchmark implements BenchmarkTest {
 
     const benchmark = () => tf.matMul(a, b);
 
-    const time = await util.warmupAndBenchmarkGPU(benchmark);
+    const time = await util.benchmarkGPU(benchmark);
 
     a.dispose();
     b.dispose();
