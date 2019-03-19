@@ -1,4 +1,5 @@
 .vscode/
+src/**/*_test.ts
 demo/
 deps/tensorflow/*
 scripts/build-npm.sh
