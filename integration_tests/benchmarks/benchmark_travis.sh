@@ -16,21 +16,25 @@
 
 set -e
 
-if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
+if [[ "$TRAVIS_EVENT_TYPE" = cron ]] && [[ "$(node -v)" = *v10* ]]
 then
   yarn
   yarn lint
 
-  echo 'Use latest version of tfjs-core'
-  git clone https://github.com/tensorflow/tfjs-core.git --depth 5
+  if [[ ! -d "tfjs-core" ]]; then
+    echo 'Use latest version of tfjs-core'
+    git clone https://github.com/tensorflow/tfjs-core.git --depth 5
+  fi
   cd tfjs-core
-  rm -rf dist/ && yarn build && rollup -c && yalc push
+  rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
   yarn link-local '@tensorflow/tfjs-core'
 
-  echo 'Use latest version of tfjs-layers'
-  git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
+  if [[ ! -d "tfjs-layers" ]]; then
+    echo 'Use latest version of tfjs-layers'
+    git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
+  fi
   cd tfjs-layers
   rm -rf dist/ && yarn build && rollup -c && yalc push
 
@@ -61,6 +65,7 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-data'
 
+  # TODO(cais): Call benchmarks.sh.
   karma start --firebaseKey $FIREBASE_KEY --travis \
     --singleRun --reporters='dots,karma-typescript,BrowserStack' \
     --hostname='bs-local.com' --browsers=bs_chrome_mac
