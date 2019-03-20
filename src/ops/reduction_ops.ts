@@ -424,11 +424,15 @@ function argMin_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
     $x = $x.transpose(permutedAxes);
     axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
   }
-  const grad = (dy: T) => {
+  const grad = (dy: T, saved: NamedTensorMap) => {
+    const {$x} = saved;
     return {$x: () => zerosLike($x)};
   };
-  return ENV.engine.runKernel(
-             backend => backend.argMin($x, axes[0]), {$x}, grad) as T;
+  return ENV.engine.runKernel((backend, save) => {
+    const res = backend.argMin($x, axes[0]);
+    save({$x});
+    return res;
+  }, {$x}, grad) as T;
 }
 
 /**
@@ -466,11 +470,15 @@ function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
     $x = $x.transpose(permutedAxes);
     axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
   }
-  const grad = (dy: T) => {
+  const grad = (dy: T, saved: NamedTensorMap) => {
+    const {$x} = saved;
     return {$x: () => zerosLike($x)};
   };
-  return ENV.engine.runKernel(
-             backend => backend.argMax($x, axes[0]), {$x}, grad) as T;
+  return ENV.engine.runKernel((backend, save) => {
+    const res = backend.argMax($x, axes[0]);
+    save({$x});
+    return res;
+  }, {$x}, grad) as T;
 }
 
 /**

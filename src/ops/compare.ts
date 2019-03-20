@@ -17,10 +17,12 @@
 
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
+
 import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
 import {zerosLike} from './tensor_ops';
@@ -237,11 +239,15 @@ function greaterEqual_<T extends Tensor>(
   [$a, $b] = makeTypesMatch($a, $b);
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  const grad = (dy: T) => {
+  const grad = (dy: T, saved: NamedTensorMap) => {
+    const {$a, $b} = saved;
     return {$a: () => zerosLike($a), $b: () => zerosLike($b)};
   };
-  return ENV.engine.runKernel(
-             backend => backend.greaterEqual($a, $b), {$a, $b}, grad) as T;
+  return ENV.engine.runKernel((backend, save) => {
+    const res = backend.greaterEqual($a, $b);
+    save({$a, $b});
+    return res;
+  }, {$a, $b}, grad) as T;
 }
 
 function greaterEqualStrict_<T extends Tensor>(
