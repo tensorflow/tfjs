@@ -68,7 +68,7 @@ export async function logBenchmarkRun(
   };
 
   const entryDisplay: string = JSON.stringify(entry, undefined, 2);
-  const ref = `${humanReadableDate}/${benchmarkName}/${karmaFlags.browsers}`;
+  const ref = `${humanReadableDate}/${benchmarkName}/${navigator.userAgent}`;
   if (!karmaFlags.travis) {
     console.log(
         'Not inside travis so not querying firebase. Would have added: ');
@@ -99,7 +99,7 @@ interface KarmaFlags {
   browsers: string;
 }
 
-function parseKarmaFlags(args: string[]): KarmaFlags {
+export function parseKarmaFlags(args: string[]): KarmaFlags {
   let apiKey: string;
   let travis = false;
   let browsers: string;
