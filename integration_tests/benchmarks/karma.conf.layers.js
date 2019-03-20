@@ -18,7 +18,7 @@
 const karmaTypescriptConfig = {
     tsconfig: 'tsconfig.json'
   };
-  
+
   module.exports = function(config) {
     const args = [];
     if (config.grep) {
@@ -30,11 +30,18 @@ const karmaTypescriptConfig = {
     if (config.travis) {
       args.push('--travis');
     }
-  
+
     config.set({
       frameworks: ['jasmine', 'karma-typescript'],
       files: [
-        {pattern: 'layers/*.ts'}
+        {pattern: 'layers/*.ts'},
+        {
+          pattern: 'data/**/*',
+          watched: false,
+          included: false,
+          served: true,
+          nocache: true
+        }
       ],
       include: ['layers/*.ts'],
       preprocessors: {
@@ -65,4 +72,3 @@ const karmaTypescriptConfig = {
       }
     });
   };
-  

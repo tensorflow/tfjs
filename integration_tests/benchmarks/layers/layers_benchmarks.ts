@@ -18,7 +18,8 @@
 import * as tf from '@tensorflow/tfjs';
 
 describe('foo', () => {
-  const DATA_SERVER_ROOT = 'http://localhost:8090/';
+  // Karma serves static files under the base/ path.
+  const DATA_SERVER_ROOT = './base/data';
   const BENCHMARKS_JSON_URL = `${DATA_SERVER_ROOT}/benchmarks.json`;
 
   async function getBenchmarkModelNames(): Promise<string[]> {
@@ -39,7 +40,7 @@ describe('foo', () => {
 
   it('Benchmark models', async () => {
     const modelNames = await getBenchmarkModelNames();
-    
+
     for (let i = 0; i < modelNames.length; ++i) {
       const modelName = modelNames[i];
       console.log(`Benchmarking ${modelName}`);

@@ -52,41 +52,23 @@ if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
   python "${SCRIPT_DIR}/python/benchmarks.py" "${DATA_ROOT}"
 fi
 
-if [[ ! -d "${DATA_ROOT}" ]]; then
-  echo "Cannot find data root directory: ${DATA_ROOT}"
-  exit 1
-fi
-
-# Launch an http-server to serve the content of data/ to the benchmark tests.
-# This is launched as a separate process so that the tests can execute without
-# being blocked.
-cd ${SCRIPT_DIR}
-node_modules/http-server/bin/http-server \
-    --cors="Access-Control-Allow-Origin:*" \
-    -p "${DATA_PORT}" \
-    "${DATA_ROOT}" &
-
-echo "Starting benchmark tests..."
-yarn karma start karma.conf.layers.js
-
-# # Build tfjs-layers.
-# echo "Building tfjs-layers..."
-# cd "${SCRIPT_DIR}/../.."
-# yarn
-# yarn build
-
-# echo "Building benchmarks demo..."
-# cd ${SCRIPT_DIR}
-# # Force a refresh of the tfjs-layers dependency.
-# rm -rf node_modules
-# yarn
-# yarn build
-
 if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
   echo "Cleaning up virtualenv directory ${VENV_DIR}..."
   deactivate
   rm -rf "${VENV_DIR}"
 fi
+
+if [[ ! -d "${DATA_ROOT}" ]]; then
+  echo "Cannot find data root directory: ${DATA_ROOT}"
+  exit 1
+fi
+
+cd ${SCRIPT_DIR}
+
+yarn
+
+echo "Starting benchmark tests..."
+yarn karma start karma.conf.layers.js
 
 # echo
 # echo "-----------------------------------------------------------"
@@ -96,5 +78,3 @@ fi
 # echo "to run the benchmarks in the browser.                      "
 # echo "-----------------------------------------------------------"
 # echo
-
-# yarn watch

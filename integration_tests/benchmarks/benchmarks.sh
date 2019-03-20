@@ -15,7 +15,7 @@
 
 # Usage:
 #   benchmarks.sh <SUITE>
-# 
+#
 # Args:
 #   SUITE Name of the benchmark suite to run: core | layers | node
 
