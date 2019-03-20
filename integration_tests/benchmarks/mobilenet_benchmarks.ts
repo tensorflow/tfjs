@@ -32,7 +32,7 @@ export class MobileNetV1GPUBenchmark implements BenchmarkTest {
 
     const benchmark = () => model.predict(zeros) as tf.Tensor;
 
-    const time = await util.benchmarkGPU(benchmark);
+    const time = await util.benchmark(benchmark);
 
     zeros.dispose();
 

@@ -56,7 +56,7 @@ export class BatchNormalization3DGPUBenchmark implements BenchmarkTest {
     const benchmark = () =>
         x.batchNormalization(mean, variance, varianceEpsilon);
 
-    const time = await util.benchmarkGPU(benchmark);
+    const time = await util.benchmark(benchmark);
 
     x.dispose();
     mean.dispose();
