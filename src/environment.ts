@@ -34,6 +34,7 @@ export class Environment {
   private globalEngine: Engine;
   private registry:
       {[id: string]: {backend: KernelBackend, priority: number}} = {};
+  private registryFactory: {[id: string]: () => KernelBackend} = {};
   backendName: string;
 
   constructor(features?: Features) {
@@ -403,11 +404,27 @@ export class Environment {
     return this.engine.backend;
   }
 
+  /**
+   * Finds the backend registered under the provided name. Returns null if the
+   * name is not in the registry.
+   */
   findBackend(name: string): KernelBackend {
     if (!(name in this.registry)) {
       return null;
     }
     return this.registry[name].backend;
+  }
+
+  /**
+   * Finds the backend factory registered under the provided name. Returns a
+   * function that produces a new backend when called. Returns null if the name
+   * is not in the registry.
+   */
+  findBackendFactory(name: string): () => KernelBackend {
+    if (!(name in this.registryFactory)) {
+      return null;
+    }
+    return this.registryFactory[name];
   }
 
   /**
@@ -434,6 +451,7 @@ export class Environment {
       backend.setDataMover(
           {moveData: (dataId: DataId) => this.engine.moveData(dataId)});
       this.registry[name] = {backend, priority};
+      this.registryFactory[name] = factory;
       return true;
     } catch (err) {
       console.warn(`Registration of backend ${name} failed`);

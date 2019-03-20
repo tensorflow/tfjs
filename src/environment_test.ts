@@ -110,11 +110,17 @@ describe('Backend', () => {
   it('custom cpu registration', () => {
     let backend: KernelBackend;
     ENV.registerBackend('custom-cpu', () => {
-      backend = new MathBackendCPU();
-      return backend;
+      const newBackend = new MathBackendCPU();
+      if (backend == null) {
+        backend = newBackend;
+      }
+      return newBackend;
     });
 
     expect(ENV.findBackend('custom-cpu')).toBe(backend);
+    const factory = ENV.findBackendFactory('custom-cpu');
+    expect(factory).not.toBeNull();
+    expect(factory() instanceof MathBackendCPU).toBe(true);
     Environment.setBackend('custom-cpu');
     expect(ENV.backend).toBe(backend);
 
@@ -132,6 +138,7 @@ describe('Backend', () => {
         ENV.registerBackend('custom-webgl', () => new MathBackendWebGL(), 104);
     expect(success).toBe(false);
     expect(ENV.findBackend('custom-webgl') == null).toBe(true);
+    expect(ENV.findBackendFactory('custom-webgl') == null).toBe(true);
     expect(Environment.getBackend()).toBe('custom-cpu');
     expect(ENV.backend).toBe(cpuBackend);
 
