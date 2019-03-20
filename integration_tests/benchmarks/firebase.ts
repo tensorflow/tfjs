@@ -63,12 +63,13 @@ export async function logBenchmarkRun(
   });
   const entry: BenchmarkEntry = {
     userAgent: navigator.userAgent,
+    hardwareConcurrency: navigator.hardwareConcurrency,
     runs,
     timestamp: Date.now()
   };
 
   const entryDisplay: string = JSON.stringify(entry, undefined, 2);
-  const ref = `${humanReadableDate}/${benchmarkName}/${navigator.userAgent}`;
+  const ref = `${humanReadableDate}/${benchmarkName}/${karmaFlags.browsers}`;
   if (!karmaFlags.travis) {
     console.log(
         'Not inside travis so not querying firebase. Would have added: ');
