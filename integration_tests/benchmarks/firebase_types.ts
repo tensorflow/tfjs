@@ -26,9 +26,9 @@ export interface ApplicationConfig {
 
 export interface BenchmarkEntry {
   userAgent: string;
-  hardwareConcurrency: number;
   timestamp: number;
   runs: {[params: string]: BenchmarkRunEntry};
+  hardwareConcurrency?: number;
 }
 export interface BenchmarkRunEntry {
   averageTimeMs: number;
