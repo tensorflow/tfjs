@@ -16,8 +16,7 @@
  */
 
 // backend_cpu.ts and backend_webgl.ts are standalone files and should be
-// explicitly included here. Below, there is an export from backend_webgl, but
-// that doesn't count since it's exporting a Typescript interface.
+// explicitly included here.
 import './kernels/backend_webgl';
 import './kernels/backend_cpu';
 
