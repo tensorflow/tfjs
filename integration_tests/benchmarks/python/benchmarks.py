@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
- 
+
 """Benchmarks for TensorFlow.js tfjs-layers and tfjs-node.
 
 These benchmarks compare the inference and training speed of Keras models of

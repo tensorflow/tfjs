@@ -23,3 +23,80 @@ export interface BenchmarkLog {
   averageTimeMs: number;
   params: string;
 }
+
+export interface HardwareInfo {
+  /** `inxi` output. */
+  cpuInfo?: string;
+
+  /** Processed `free` output. */
+  memInfo?: string;
+
+  /** Processed `nvidia-smi` output. */
+  cudaGPUInfo?: string;
+}
+
+export interface BenchmarkMetadata {
+  environment: 'browser' | 'node';
+
+  /** Metadata for the browser environment. */
+  userAgent?: string;
+
+  /**
+   * Metadata for the node environment.
+   * `uname -a` output.
+   */
+  systemInfo?: string;
+
+  hardwareInfo?: HardwareInfo;
+
+  pythonVersion?: string;
+  nodeVersion?: string;
+  tensorflowVersion?: string;
+
+  /** This should be x.y.z-tf for tf.keras. */
+  kerasVersion?: string;
+
+  tensorflowUsesGPU?: boolean;
+  tfjsNodeVersion?: string;
+  tfjsNodeUsesGPU?: boolean;
+}
+
+export interface ModelTaskLog {
+  /**
+   * For fit() and fitDatset(), this is the number of epochs of a single call.
+   * For predict(), this is the number of predict() calls.
+   */
+  numBenchmarksRuns: number;
+  numBurnInRuns: number;
+
+  batchSize: number;
+  averageTimeMs: number;
+  medianTimeMs: number;
+  minTimeMs: number;
+
+  timestamp: number;
+}
+
+export type ModelBenchmarkTask =
+    'predict'|'fit'|'fitDataset'|'pyPredict'|'pyFit'|'pyFitDataset';
+
+/**
+ * The benchmark results from a number of models in a given
+ * environment, from a certain run of an entire benchmark suite.
+ */
+export type ModelLog = {[taskName in ModelBenchmarkTask]: ModelTaskLog};
+
+export type MultiModelLog = {[modelName: string]: ModelLog};
+
+/**
+ * The same as MultiModelLog, but with metadata and timestamp.
+ */
+export interface ModelSuiteLog {
+  data: MultiModelLog;
+  metadata: BenchmarkMetadata;
+
+  // The starting timestamp of the suite.
+  timestamp: number;
+}
+
+export type ModelBenchmarkHistory = ModelSuiteLog[];
