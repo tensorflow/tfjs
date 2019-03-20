@@ -48,7 +48,7 @@ describe('benchmark models', () => {
 
   it('cocossd', async () => {
     const sizes = [1];
-    const runs = 10;
+    const runs = 20;
 
     const benchmark = new CoCoSSDBenchmark();
 
