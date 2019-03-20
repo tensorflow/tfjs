@@ -270,6 +270,35 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(output, [1, 2, 3, 4, 5, 6]);
   });
 
+  it('stridedSlice should support 3d with smaller length of begin array',
+     () => {
+       const tensor =
+           tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 3, 1, 2]);
+       const output = tf.stridedSlice(
+           tensor, [1, 0], [2, 3, 1, 2], [1, 1, 1, 1], 0, 0, 0, 0, 0);
+       expect(output.shape).toEqual([1, 3, 1, 2]);
+       expectArraysClose(output, [7, 8, 9, 10, 11, 12]);
+     });
+
+  it('stridedSlice should support 3d with smaller length of end array', () => {
+    const tensor =
+        tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 3, 1, 2]);
+    const output = tf.stridedSlice(
+        tensor, [1, 0, 0, 0], [2, 3], [1, 1, 1, 1], 0, 0, 0, 0, 0);
+    expect(output.shape).toEqual([1, 3, 1, 2]);
+    expectArraysClose(output, [7, 8, 9, 10, 11, 12]);
+  });
+
+  it('stridedSlice should support 3d with smaller length of stride array',
+     () => {
+       const tensor =
+           tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 3, 1, 2]);
+       const output = tf.stridedSlice(
+           tensor, [1, 0, 0, 0], [2, 3, 1, 2], [1, 1], 0, 0, 0, 0, 0);
+       expect(output.shape).toEqual([1, 3, 1, 2]);
+       expectArraysClose(output, [7, 8, 9, 10, 11, 12]);
+     });
+
   it('stridedSlice should throw when passed a non-tensor', () => {
     expect(() => tf.stridedSlice({} as tf.Tensor, [0], [0], [1]))
         .toThrowError(/Argument 'x' passed to 'stridedSlice' must be a Tensor/);
