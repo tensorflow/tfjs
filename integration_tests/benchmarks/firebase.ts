@@ -63,10 +63,13 @@ export async function logBenchmarkRun(
   });
   const entry: BenchmarkEntry = {
     userAgent: navigator.userAgent,
-    hardwareConcurrency: navigator.hardwareConcurrency,
     runs,
     timestamp: Date.now()
   };
+
+  if (navigator.hardwareConcurrency != null) {
+    entry.hardwareConcurrency = navigator.hardwareConcurrency;
+  }
 
   const entryDisplay: string = JSON.stringify(entry, undefined, 2);
   const ref = `${humanReadableDate}/${benchmarkName}/${karmaFlags.browsers}`;
