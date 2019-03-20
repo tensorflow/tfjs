@@ -19,8 +19,7 @@ set -e
 yarn
 yarn lint
 
-# if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
-if [[ $(node -v) = *v10* ]]
+if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
 then
   # Run the first karma separately so it can download the BrowserStack binary
   # without conflicting with others.
