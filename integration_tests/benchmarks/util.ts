@@ -36,7 +36,7 @@ export async function asyncBenchmarkGPU(
   const start = performance.now();
   const result = await asyncBenchmark() as tf.Tensor[] | tf.Tensor;
 
-  let outRes = Array.isArray(result) ? (result as tf.Tensor[])[0] : result;
+  const outRes = Array.isArray(result) ? (result as tf.Tensor[])[0] : result;
   await (outRes as tf.Tensor).data();
   (outRes as tf.Tensor).dispose();
 
