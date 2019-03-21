@@ -26,10 +26,7 @@ import 'firebase/database';
 // tslint:disable-next-line:max-line-length
 import {ApplicationConfig, BenchmarkRunEntry, BenchmarkEntry} from './firebase_types';
 
-// TODO(nsthorat): Support more than Chrome + mac;
-const DEVICE = 'chrome_mac_webgl';
-
-const karmaFlags = parseKarmaFlags(__karma__.config.args);
+export const karmaFlags = parseKarmaFlags(__karma__.config.args);
 
 const config: ApplicationConfig = {
   apiKey: karmaFlags.apiKey,
@@ -70,8 +67,12 @@ export async function logBenchmarkRun(
     timestamp: Date.now()
   };
 
+  if (navigator.hardwareConcurrency != null) {
+    entry.hardwareConcurrency = navigator.hardwareConcurrency;
+  }
+
   const entryDisplay: string = JSON.stringify(entry, undefined, 2);
-  const ref = `${humanReadableDate}/${benchmarkName}/${DEVICE}`;
+  const ref = `${humanReadableDate}/${benchmarkName}/${karmaFlags.browsers}`;
   if (!karmaFlags.travis) {
     console.log(
         'Not inside travis so not querying firebase. Would have added: ');
@@ -99,11 +100,13 @@ export async function logBenchmarkRun(
 interface KarmaFlags {
   apiKey: string;
   travis: boolean;
+  browsers: string;
 }
 
-function parseKarmaFlags(args: string[]): KarmaFlags {
+export function parseKarmaFlags(args: string[]): KarmaFlags {
   let apiKey: string;
   let travis = false;
+  let browsers: string;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--firebaseKey') {
       apiKey = args[i + 1];
@@ -111,6 +114,9 @@ function parseKarmaFlags(args: string[]): KarmaFlags {
     if (args[i] === '--travis') {
       travis = true;
     }
+    if (args[i] === '--browsers') {
+      browsers = args[i + 1];
+    }
   }
-  return {apiKey, travis};
+  return {apiKey, travis, browsers};
 }
