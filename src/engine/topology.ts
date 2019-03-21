@@ -930,7 +930,7 @@ export abstract class Layer extends serialization.Serializable {
    *
    * // The input and output and be used to construct a model that consists
    * // of the flatten and dense layers.
-   * const model = tf.LayersModel({inputs: input, outputs: output2});
+   * const model = tf.model({inputs: input, outputs: output2});
    * ```
    *
    * @param inputs a `tf.Tensor` or `tf.SymbolicTensor` or an Array of them.
