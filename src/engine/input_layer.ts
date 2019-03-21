@@ -217,7 +217,7 @@ export interface InputConfig {
  * // and 3 dimensional output.
  * const x = tf.input({shape: [32]});
  * const y = tf.layers.dense({units: 3, activation: 'softmax'}).apply(x);
- * const model = tf.LayersModel({inputs: x, outputs: y});
+ * const model = tf.model({inputs: x, outputs: y});
  * model.predict(tf.ones([2, 32])).print();
  * ```
  *

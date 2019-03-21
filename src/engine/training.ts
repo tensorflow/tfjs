@@ -508,7 +508,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * const output =
    *     tf.layers.dense({units: 3, activation: 'softmax'}).apply(concat);
    *
-   * const model = tf.LayersModel({inputs: [input1, input2], outputs: output});
+   * const model = tf.model({inputs: [input1, input2], outputs: output});
    * model.summary();
    * ```
    *
@@ -1507,7 +1507,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * ```js
    * const input = tf.input({shape: [10]});
    * const output = tf.layers.dense({units: 1}).apply(input);
-   * const model = tf.LayersModel({inputs: [input], outputs: [output]});
+   * const model = tf.model({inputs: [input], outputs: [output]});
    * model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
    * const xs = tf.ones([8, 10]);
    * const ys = tf.zeros([8, 1]);
