@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,8 +19,9 @@ import {Conv2DInfo} from '../../ops/conv_util';
 import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram} from './gpgpu_math';
 
-export class Im2ColProgram implements GPGPUProgram {
+export class Im2ColPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
+  usesPackedTextures = true;
   outputShape: number[];
   userCode: string;
 
@@ -69,8 +70,9 @@ export class Im2ColProgram implements GPGPUProgram {
 
             if(d1 >= ${inputShape[1]} || d1 < 0) continue;
 
-            result[row * 2 + col] = getA(d0, d1, int(mod(float(pos), ${
-        inChannels}.)));
+            vec2 innerDims = vec2(d1, int(mod(float(pos), ${inChannels}.)));
+            result[row * 2 + col] = getChannel(getA(d0, int(innerDims.x),
+                                              int(innerDims.y)), innerDims);
           }
         }
 
