@@ -77,7 +77,7 @@ import {GatherNDProgram} from './webgl/gather_nd_gpu';
 import {GPGPUContext} from './webgl/gpgpu_context';
 import * as gpgpu_math from './webgl/gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './webgl/gpgpu_math';
-import {Im2ColProgram} from './webgl/im2col_gpu';
+import {Im2ColPackedProgram} from './webgl/im2col_packed_gpu';
 import {LRNProgram} from './webgl/lrn_gpu';
 import {LRNGradProgram} from './webgl/lrn_grad_gpu';
 import {MaxPool2DBackpropProgram} from './webgl/max_pool_backprop_gpu';
@@ -1822,7 +1822,7 @@ export class MathBackendWebGL implements KernelBackend {
     const w2Row = filter.reshape([1, sharedDim, -1]) as Tensor3D;
 
     const im2ColProgram =
-        new Im2ColProgram(x2ColShape, xSqueezed.shape, convInfo);
+        new Im2ColPackedProgram(x2ColShape, xSqueezed.shape, convInfo);
     const im2Col =
         this.compileAndRun<Tensor2D>(im2ColProgram, [xSqueezed]).reshape([
           1, x2ColShape[0], x2ColShape[1]
