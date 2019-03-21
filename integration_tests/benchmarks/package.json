@@ -35,8 +35,9 @@
   "scripts": {
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
-    "benchmark": "karma start --firebaseKey $FIREBASE_KEY",
-    "benchmark-travis": "./benchmark_travis.sh"
+    "benchmark-local": "karma start",
+    "benchmark-travis": "./benchmark_travis.sh",
+    "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --firebaseKey $FIREBASE_KEY --hostname='bs-local.com'"
   },
   "license": "Apache-2.0",
   "engines": {
