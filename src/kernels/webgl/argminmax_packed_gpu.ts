@@ -127,7 +127,7 @@ export class ArgMinMaxPackedProgram implements GPGPUProgram {
           inIdx = srcIdx;
           ${fetchCandidateIdx}
           vec4 candidate = ${fetchValue};
-          bvec4 nan = isNaN(candidate);
+          bvec4 nan = isnan(candidate);
           bvec4 replace = bvec4(
             vec4(${compOp}(candidate, bestValue)) * (vec4(1.0) - vec4(nan)));
 

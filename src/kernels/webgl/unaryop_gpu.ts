@@ -18,7 +18,6 @@
 import * as erf_util from '../../ops/erf_util';
 import * as selu_util from '../../ops/selu_util';
 
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class UnaryOpProgram implements GPGPUProgram {
@@ -26,13 +25,9 @@ export class UnaryOpProgram implements GPGPUProgram {
   userCode: string;
   outputShape: number[];
 
-  // Caching uniform location for speed.
-  startLoc: WebGLUniformLocation;
-
   constructor(aShape: number[], opSnippet: string) {
     this.outputShape = aShape;
     this.userCode = `
-      uniform float NAN;
       float unaryOperation(float x) {
         ${opSnippet}
       }
@@ -45,23 +40,9 @@ export class UnaryOpProgram implements GPGPUProgram {
       }
     `;
   }
-
-  getCustomSetupFunc() {
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.startLoc == null) {
-        this.startLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'NAN');
-        if (this.startLoc == null) {
-          // This means the compiler has optimized and realized it doesn't need
-          // the uniform.
-          return;
-        }
-      }
-      gpgpu.gl.uniform1f(this.startLoc, NaN);
-    };
-  }
 }
 
-const CHECK_NAN_SNIPPET = `if (isNaN(x)) return x;`;
+const CHECK_NAN_SNIPPET = `if (isnan(x)) return x;`;
 
 export const LINEAR = `return x;`;
 
@@ -94,9 +75,15 @@ export const CEIL = `return ceil(x);`;
 export const FLOOR = `return floor(x);`;
 
 export const SIGN = `
-  if (isNaN(x)) { return 0.0; }
+  if (isnan(x)) { return 0.0; }
   return sign(x);
 `;
+
+export const IS_NAN = `return float(isnan(x));`;
+
+export const IS_INF = `return float(isinf(x));`;
+
+export const IS_FINITE = `return float(!isnan(x) && !isinf(x));`;
 
 export const ROUND = `
   // OpenGL ES does not support round function.

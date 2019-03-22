@@ -1570,6 +1570,177 @@ describeWithFlags('sign', ALL_ENVS, () => {
   });
 });
 
+describeWithFlags('isNaN', ALL_ENVS, () => {
+  it('basic', () => {
+    const a = tf.tensor1d([NaN, Infinity, -Infinity, 0, 1]);
+    const r = tf.isNaN(a);
+    expect(r.dtype).toEqual('bool');
+    expectArraysClose(r, [1, 0, 0, 0, 0]);
+  });
+
+  it('gradients: Scalar', () => {
+    const a = tf.scalar(NaN);
+    const dy = tf.scalar(3);
+
+    const gradients = tf.grad(a => tf.isNaN(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [0]);
+  });
+
+  it('gradients: Tensor1D', () => {
+    const a = tf.tensor1d([NaN, Infinity, -Infinity, 0, 1]);
+    const dy = tf.tensor1d([1, 1, 1, 1, 1]);
+
+    const gradients = tf.grad(a => tf.isNaN(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [0, 0, 0, 0, 0]);
+  });
+
+  it('gradients: Tensor2D', () => {
+    const a = tf.tensor2d([NaN, Infinity, -Infinity, 0], [2, 2]);
+    const dy = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+
+    const gradients = tf.grad(a => tf.isNaN(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [0, 0, 0, 0]);
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.isNaN({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'isNaN' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const r = tf.isNaN([NaN, Infinity, -Infinity, 0, 1]);
+    expectArraysClose(r, [1, 0, 0, 0, 0]);
+  });
+
+  it('throws for string tensor', () => {
+    expect(() => tf.isNaN('q'))
+        .toThrowError(/Argument 'x' passed to 'isNaN' must be numeric/);
+  });
+});
+
+describeWithFlags('isInf', ALL_ENVS, () => {
+  it('basic', () => {
+    const a = tf.tensor1d([NaN, Infinity, -Infinity, 0, 1]);
+    const r = tf.isInf(a);
+    expect(r.dtype).toEqual('bool');
+    expectArraysClose(r, [0, 1, 1, 0, 0]);
+  });
+
+  it('gradients: Scalar', () => {
+    const a = tf.scalar(NaN);
+    const dy = tf.scalar(3);
+
+    const gradients = tf.grad(a => tf.isInf(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [0]);
+  });
+
+  it('gradients: Tensor1D', () => {
+    const a = tf.tensor1d([NaN, Infinity, -Infinity, 0, 1]);
+    const dy = tf.tensor1d([1, 1, 1, 1, 1]);
+
+    const gradients = tf.grad(a => tf.isInf(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [0, 0, 0, 0, 0]);
+  });
+
+  it('gradients: Tensor2D', () => {
+    const a = tf.tensor2d([NaN, Infinity, -Infinity, 0], [2, 2]);
+    const dy = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+
+    const gradients = tf.grad(a => tf.isInf(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [0, 0, 0, 0]);
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.isInf({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'isInf' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const r = tf.isInf([NaN, Infinity, -Infinity, 0, 1]);
+    expectArraysClose(r, [0, 1, 1, 0, 0]);
+  });
+
+  it('throws for string tensor', () => {
+    expect(() => tf.isInf('q'))
+        .toThrowError(/Argument 'x' passed to 'isInf' must be numeric/);
+  });
+});
+
+describeWithFlags('isFinite', ALL_ENVS, () => {
+  it('basic', () => {
+    const a = tf.tensor1d([NaN, Infinity, -Infinity, 0, 1]);
+    const r = tf.isFinite(a);
+    expect(r.dtype).toEqual('bool');
+    expectArraysClose(r, [0, 0, 0, 1, 1]);
+  });
+
+  it('gradients: Scalar', () => {
+    const a = tf.scalar(NaN);
+    const dy = tf.scalar(3);
+
+    const gradients = tf.grad(a => tf.isFinite(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [0]);
+  });
+
+  it('gradients: Tensor1D', () => {
+    const a = tf.tensor1d([NaN, Infinity, -Infinity, 0, 1]);
+    const dy = tf.tensor1d([1, 1, 1, 1, 1]);
+
+    const gradients = tf.grad(a => tf.isFinite(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [0, 0, 0, 0, 0]);
+  });
+
+  it('gradients: Tensor2D', () => {
+    const a = tf.tensor2d([NaN, Infinity, -Infinity, 0], [2, 2]);
+    const dy = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+
+    const gradients = tf.grad(a => tf.isFinite(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [0, 0, 0, 0]);
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.isFinite({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'isFinite' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const r = tf.isFinite([NaN, Infinity, -Infinity, 0, 1]);
+    expectArraysClose(r, [0, 0, 0, 1, 1]);
+  });
+
+  it('throws for string tensor', () => {
+    expect(() => tf.isFinite('q'))
+        .toThrowError(/Argument 'x' passed to 'isFinite' must be numeric/);
+  });
+});
+
 describeWithFlags('exp', ALL_ENVS, () => {
   it('exp', () => {
     const a = tf.tensor1d([1, 2, 0]);

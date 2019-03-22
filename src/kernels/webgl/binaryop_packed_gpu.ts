@@ -16,7 +16,6 @@
  */
 
 import * as broadcast_util from '../../ops/broadcast_util';
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 
 const CHECK_NAN_SNIPPET = `
@@ -77,7 +76,7 @@ export const ELU_DER = `
 
 export const ATAN2 = `
   vec4 result = atan(a, b);
-  vec4 isNaN = min(vec4(isNaN(a)) + vec4(isNaN(b)), vec4(1.0));
+  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
   ` +
     CHECK_NAN_SNIPPET + `
   return result;
@@ -122,7 +121,7 @@ export const LOGICAL_OR = `
 
 export const MAX = `
   vec4 result = vec4(max(a, b));
-  vec4 isNaN = min(vec4(isNaN(a)) + vec4(isNaN(b)), vec4(1.0));
+  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
   ` +
     CHECK_NAN_SNIPPET + `
   return result;
@@ -130,7 +129,7 @@ export const MAX = `
 
 export const MIN = `
   vec4 result = vec4(min(a, b));
-  vec4 isNaN = min(vec4(isNaN(a)) + vec4(isNaN(b)), vec4(1.0));
+  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
   ` +
     CHECK_NAN_SNIPPET + `
   return result;
@@ -151,14 +150,10 @@ export class BinaryOpPackedProgram implements GPGPUProgram {
   supportsBroadcasting = true;
   usesPackedTextures = true;
 
-  // Caching uniform location for speed.
-  startLoc: WebGLUniformLocation;
-
   constructor(op: string, aShape: number[], bShape: number[]) {
     this.outputShape =
         broadcast_util.assertAndGetBroadcastShape(aShape, bShape);
     this.userCode = `
-      uniform float NAN;
       vec4 binaryOperation(vec4 a, vec4 b) {
         ${op}
       }
@@ -169,19 +164,5 @@ export class BinaryOpPackedProgram implements GPGPUProgram {
         setOutput(binaryOperation(a, b));
       }
     `;
-  }
-
-  getCustomSetupFunc() {
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.startLoc == null) {
-        this.startLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'NAN');
-        if (this.startLoc == null) {
-          // This means the compiler has optimized and realized it doesn't need
-          // the uniform.
-          return;
-        }
-      }
-      gpgpu.gl.uniform1f(this.startLoc, NaN);
-    };
   }
 }

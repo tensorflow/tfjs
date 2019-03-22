@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {ENV} from '../../environment';
 import {getBroadcastDims} from '../../ops/broadcast_util';
 import * as util from '../../util';
 import {getGlslDifferences, GLSL} from './glsl_version';
@@ -216,47 +215,6 @@ function getFloatTextureSetRGBASnippet(glsl: GLSL): string {
 }
 
 function getShaderPrefix(glsl: GLSL): string {
-  let nanChecks = '';
-  if (ENV.get('PROD')) {
-    nanChecks = `
-      bool isNaN(float val) {
-        return false;
-      }
-
-      bool hasNaN(vec4 values) {
-        return false;
-      }
-    `;
-  } else {
-    /**
-     * Previous NaN check '(val < 0.0 || 0.0 < val || val == 0.0) ? false :
-     * true' does not work on iOS 12
-     */
-    nanChecks = `
-      bool isNaN(float val) {
-        return (val < 1.0 || 0.0 < val || val == 0.0) ? false : true;
-      }
-
-      bvec4 isNaN(vec4 val) {
-        return bvec4(
-          isNaN(val.x),
-          isNaN(val.y),
-          isNaN(val.z),
-          isNaN(val.w)
-        );
-      }
-
-      bool hasNaN(vec4 values) {
-        return any(bvec4(
-          isNaN(values.x),
-          isNaN(values.y),
-          isNaN(values.z),
-          isNaN(values.w)
-        ));
-      }
-    `;
-  }
-
   const SHADER_PREFIX = `${glsl.version}
     precision highp float;
     precision highp int;
@@ -284,12 +242,8 @@ function getShaderPrefix(glsl: GLSL): string {
       int v;
     };
 
-    ${nanChecks}
-
-    float getNaN(vec4 values) {
-      return dot(vec4(1), values);
-    }
-
+    ${glsl.defineSpecialNaN}
+    ${glsl.defineSpecialInf}
     ${glsl.defineRound}
 
     int imod(int x, int y) {
