@@ -63,10 +63,7 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-data'
 
-  HASHES='{\"TF_CORE\": ${HASH_TF_CORE}, '\
-' \"TF_LAYERS\": ${HASH_TF_LAYERS}, '\
-' \"TF_CONVERTER\": ${HASH_TF_CONVERTER}, '\
-' \"TF_DATA\": ${HASH_TF_DATA}}'
+  HASHES='{\"TF_CORE\": 123, \"TF_LAYERS\": 123, \"TF_CONVERTER\": 123, \"TF_DATA\": 123}'
 
   npm-run-all -p -c --aggregate-output \
     "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet --hashes $HASHES" \
