@@ -175,19 +175,26 @@ If your model uses unsupported ops, the `tensorflowjs_converter` script will fai
 produce a list of the unsupported ops in your model. Please file issues to let us
 know what ops you need support with.
 
-## Loading the weights only
+## Manual forward pass and direct weights loading
 
-If you prefer to load the weights only, you can use the following code snippet.
+If you want to manually write the forward pass with the ops API, you can load the weights directly as a map from weight names to tensors:
 
-```typescript
+```js
 import * as tf from '@tensorflow/tfjs';
 
 const modelUrl = "https://example.org/model/model.json";
 
-const model = await fetch(modelUrl);
-this.weightManifest = (await model.json())['weightsManifest'];
+const response = await fetch(modelUrl);
+this.weightManifest = (await response.json())['weightsManifest'];
 const weightMap = await tf.io.loadWeights(
         this.weightManifest, "https://example.org/model");
+```
+
+`weightMap` maps a weight name to a tensor. You can use it to manually implement the forward pass of the model:
+
+```js
+const input = tf.tensor(...);
+tf.matMul(weightMap['fc1/weights'], input).add(weightMap['fc1/bias']);
 ```
 
 ## FAQ
