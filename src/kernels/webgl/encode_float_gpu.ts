@@ -31,7 +31,7 @@ export class EncodeFloatProgram implements GPGPUProgram {
       const float FLOAT_MIN = 1.17549435e-38;
 
       lowp vec4 encode_float(highp float v) {
-        if (isNaN(v)) {
+        if (isnan(v)) {
           return vec4(255, 255, 255, 255);
         }
 

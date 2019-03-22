@@ -275,6 +275,16 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     throw new Error('Not yet implemented');
   }
 
+  isNaN<T extends Tensor>(x: T): T {
+    throw new Error('Not yet implemented');
+  }
+  isInf<T extends Tensor>(x: T): T {
+    throw new Error('Not yet implemented');
+  }
+  isFinite<T extends Tensor>(x: T): T {
+    throw new Error('Not yet implemented');
+  }
+
   pow<T extends Tensor>(a: T, b: Tensor): T {
     throw new Error('Not yet implemented');
   }

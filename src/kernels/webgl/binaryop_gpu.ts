@@ -17,12 +17,11 @@
 
 import * as broadcast_util from '../../ops/broadcast_util';
 
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 
 const CHECK_NAN_SNIPPET = `
-  if (isNaN(a)) return a;
-  if (isNaN(b)) return b;
+  if (isnan(a)) return a;
+  if (isnan(b)) return b;
 `;
 
 export const ADD = 'return a + b;';
@@ -98,14 +97,10 @@ export class BinaryOpProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  // Caching uniform location for speed.
-  startLoc: WebGLUniformLocation;
-
   constructor(op: string, aShape: number[], bShape: number[]) {
     this.outputShape =
         broadcast_util.assertAndGetBroadcastShape(aShape, bShape);
     this.userCode = `
-      uniform float NAN;
       float binaryOperation(float a, float b) {
         ${op}
       }
@@ -116,19 +111,5 @@ export class BinaryOpProgram implements GPGPUProgram {
         setOutput(binaryOperation(a, b));
       }
     `;
-  }
-
-  getCustomSetupFunc() {
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.startLoc == null) {
-        this.startLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'NAN');
-        if (this.startLoc == null) {
-          // This means the compiler has optimized and realized it doesn't need
-          // the uniform.
-          return;
-        }
-      }
-      gpgpu.gl.uniform1f(this.startLoc, NaN);
-    };
   }
 }

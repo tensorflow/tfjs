@@ -109,6 +109,72 @@ function sign_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
+ * RReturns which elements of x are NaN.
+ *
+ * ```js
+ * const x = tf.tensor1d([NaN, Infinity, -Infinity, 0, 1]);
+ *
+ * x.isNaN().print();  // or tf.isNaN(x)
+ * ```
+ * @param x The input Tensor.
+ */
+/** @doc {heading: 'Operations', subheading: 'Basic math'} */
+function isNaN_<T extends Tensor>(x: T|TensorLike): T {
+  const $x = convertToTensor(x, 'x', 'isNaN');
+
+  // TODO(nsthorat): Let gradients be null for cases where we want to stop
+  // backpropgation.
+  const grad = (dy: T) => {
+    return {$x: () => zerosLike(dy)};
+  };
+  return ENV.engine.runKernel(backend => backend.isNaN($x), {$x}, grad);
+}
+
+/**
+ * Returns which elements of x are Infinity or -Infinity.
+ *
+ * ```js
+ * const x = tf.tensor1d([NaN, Infinity, -Infinity, 0, 1]);
+ *
+ * x.isInf().print();  // or tf.isNaN(x)
+ * ```
+ * @param x The input Tensor.
+ */
+/** @doc {heading: 'Operations', subheading: 'Basic math'} */
+function isInf_<T extends Tensor>(x: T|TensorLike): T {
+  const $x = convertToTensor(x, 'x', 'isInf');
+
+  // TODO(nsthorat): Let gradients be null for cases where we want to stop
+  // backpropgation.
+  const grad = (dy: T) => {
+    return {$x: () => zerosLike(dy)};
+  };
+  return ENV.engine.runKernel(backend => backend.isInf($x), {$x}, grad);
+}
+
+/**
+ * Returns which elements of x are finite.
+ *
+ * ```js
+ * const x = tf.tensor1d([NaN, Infinity, -Infinity, 0, 1]);
+ *
+ * x.isFinite().print();  // or tf.isNaN(x)
+ * ```
+ * @param x The input Tensor.
+ */
+/** @doc {heading: 'Operations', subheading: 'Basic math'} */
+function isFinite_<T extends Tensor>(x: T|TensorLike): T {
+  const $x = convertToTensor(x, 'x', 'isFinite');
+
+  // TODO(nsthorat): Let gradients be null for cases where we want to stop
+  // backpropgation.
+  const grad = (dy: T) => {
+    return {$x: () => zerosLike(dy)};
+  };
+  return ENV.engine.runKernel(backend => backend.isFinite($x), {$x}, grad);
+}
+
+/**
  * Computes round of input `tf.Tensor` element-wise: `round(x)`.
  * It implements banker's rounding.
  *
@@ -865,6 +931,9 @@ export const round = op({round_});
 export const rsqrt = op({rsqrt_});
 export const sigmoid = op({sigmoid_});
 export const sign = op({sign_});
+export const isNaN = op({isNaN_});
+export const isInf = op({isInf_});
+export const isFinite = op({isFinite_});
 export const sin = op({sin_});
 export const sinh = op({sinh_});
 export const softplus = op({softplus_});

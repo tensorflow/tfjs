@@ -35,7 +35,7 @@ export class ClipProgram implements GPGPUProgram {
 
       void main() {
         float value = getAAtOutCoords();
-        if (isNaN(value)) {
+        if (isnan(value)) {
           setOutput(value);
           return;
         }

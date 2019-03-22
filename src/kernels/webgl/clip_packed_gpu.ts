@@ -37,7 +37,7 @@ export class ClipPackedProgram implements GPGPUProgram {
       void main() {
         vec4 value = getAAtOutCoords();
 
-        if (hasNaN(value)) {
+        if (any(isnan(value))) {
           setOutput(value);
           return;
         }

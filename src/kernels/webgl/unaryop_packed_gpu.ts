@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 
 export const LINEAR = `return x;`;
@@ -33,11 +32,12 @@ export const LOG = `
 
 export const RELU = `
   vec4 result = x * vec4(greaterThanEqual(x, vec4(0.0)));
+  bvec4 isNaN = isnan(x);
 
-  result.r = isNaN(x.r) ? x.r : result.r;
-  result.g = isNaN(x.g) ? x.g : result.g;
-  result.b = isNaN(x.b) ? x.b : result.b;
-  result.a = isNaN(x.a) ? x.a : result.a;
+  result.r = isNaN.r ? x.r : result.r;
+  result.g = isNaN.g ? x.g : result.g;
+  result.b = isNaN.b ? x.b : result.b;
+  result.a = isNaN.a ? x.a : result.a;
 
   return result;
 `;
@@ -48,13 +48,9 @@ export class UnaryOpPackedProgram implements GPGPUProgram {
   outputShape: number[];
   usesPackedTextures = true;
 
-  // Caching uniform location for speed.
-  startLoc: WebGLUniformLocation;
-
   constructor(aShape: number[], opSnippet: string) {
     this.outputShape = aShape;
     this.userCode = `
-      uniform float NAN;
       vec4 unaryOperation(vec4 x) {
         ${opSnippet}
       }
@@ -66,19 +62,5 @@ export class UnaryOpPackedProgram implements GPGPUProgram {
         setOutput(y);
       }
     `;
-  }
-
-  getCustomSetupFunc() {
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.startLoc == null) {
-        this.startLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'NAN');
-        if (this.startLoc == null) {
-          // This means the compiler has optimized and realized it doesn't need
-          // the uniform.
-          return;
-        }
-      }
-      gpgpu.gl.uniform1f(this.startLoc, NaN);
-    };
   }
 }
