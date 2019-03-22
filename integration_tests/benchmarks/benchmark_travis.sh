@@ -66,10 +66,10 @@ then
   HASHES='{\"TF_CORE\": 123, \"TF_LAYERS\": 123, \"TF_CONVERTER\": 123, \"TF_DATA\": 123}'
 
   npm-run-all -p -c --aggregate-output \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet --hashes $HASHES" \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=models --hashes $HASHES" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=models --hashes $HASHES" \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=ops --hashes $HASHES" \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=ops --hashes $HASHES" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=ops --hashes $HASHES"
+    "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet --hashes=$HASHES" \
+    "run-browserstack --travis --browsers=bs_safari_mac --grep=models --hashes=$HASHES" \
+    "run-browserstack --travis --browsers=bs_chrome_mac --grep=models --hashes=$HASHES" \
+    "run-browserstack --travis --browsers=bs_ios_11 --grep=ops --hashes=$HASHES" \
+    "run-browserstack --travis --browsers=bs_safari_mac --grep=ops --hashes=$HASHES" \
+    "run-browserstack --travis --browsers=bs_chrome_mac --grep=ops --hashes=$HASHES"
 fi
