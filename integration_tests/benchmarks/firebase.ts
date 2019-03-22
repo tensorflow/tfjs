@@ -114,6 +114,8 @@ interface KarmaFlags {
 }
 
 export function parseKarmaFlags(args: string[]): KarmaFlags {
+  console.log('PARSING KARMA FLAGS');
+  console.log(args);
   let apiKey: string;
   let travis = false;
   let browsers: string;
