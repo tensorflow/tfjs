@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-// import * as math from 'mathjs';
+import * as math from 'mathjs';
 import * as tf from '@tensorflow/tfjs';
 
 import {ModelTaskLog} from '../types';
@@ -43,6 +43,17 @@ function getRandomInputsAndOutputs(model: tf.Model, batchSize: number):
   });
 }
 
+async function syncDataAndDispose(tensors: tf.Tensor|tf.Tensor[]) {
+  if (Array.isArray(tensors)) {
+    for (const out of tensors) {
+      await out.data();
+    }
+  } else {
+    await tensors.data();
+  }
+  tf.dispose(tensors);
+}
+
 describe('TF.js Layers Benchmarks', () => {
   beforeAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 600000;
@@ -58,7 +69,6 @@ describe('TF.js Layers Benchmarks', () => {
     predictNumBenchmarkRuns: number
   }> {
     const benchmarks = await (await fetch(BENCHMARKS_JSON_URL)).json();
-    console.log(JSON.stringify(benchmarks));  // DEBUG
     return {
       modelNames: benchmarks.models as string[],
       predictNumBurnInRuns: benchmarks.config.PREDICT_BURNINS as number,
@@ -81,7 +91,7 @@ describe('TF.js Layers Benchmarks', () => {
     const {modelNames, predictNumBenchmarkRuns, predictNumBurnInRuns} =
         await getBenchmarkModelNamesAndConfig();
 
-    for (let i = 10; i < modelNames.length; ++i) {
+    for (let i = 0; i < modelNames.length; ++i) {
       const modelName = modelNames[i];
       console.log(`Benchmarking ${modelName}`);
       const model = await loadModel(modelName);
@@ -95,44 +105,25 @@ describe('TF.js Layers Benchmarks', () => {
       let predictOut: tf.Tensor|tf.Tensor[];
       for (let i = 0; i < predictNumBurnInRuns; ++i) {
         predictOut = model.predict(xs);
+        await syncDataAndDispose(predictOut);
       }
-      if (Array.isArray(predictOut)) {
-        for (const out of predictOut) {
-          await out.data();
-        }
-      } else {
-        await predictOut.data();
-      }
-      tf.dispose(predictOut);
 
       // Benchmarked runs.
-      // const ts: number[] = [];
-      const t0 = performance.now();
+      const ts: number[] = [];
       for (let i = 0; i < predictNumBenchmarkRuns; ++i) {
+        const t0 = performance.now();
         predictOut = model.predict(xs);
-        // ts.push(performance.now() - t0);
-        // tf.dispose(predictOut);
+        await syncDataAndDispose(predictOut);
+        ts.push(performance.now() - t0);
       }
-      if (Array.isArray(predictOut)) {
-        for (const out of predictOut) {
-          await out.data();
-        }
-      } else {
-        await predictOut.data();
-      }
-      tf.dispose(predictOut);
-      const t1 = performance.now();
 
       const taskLog: ModelTaskLog = {
         numBurnInRuns: predictNumBurnInRuns,
         numBenchmarksRuns: predictNumBenchmarkRuns,
         batchSize,
-        averageTimeMs: (t1 - t0) / predictNumBenchmarkRuns,
-        medianTimeMs: NaN,
-        minTimeMs: NaN,
-        // averageTimeMs: math.mean(ts),
-        // medianTimeMs: math.median(ts),
-        // minTimeMs: math.min(ts),
+        averageTimeMs: math.mean(ts),
+        medianTimeMs: math.median(ts),
+        minTimeMs: math.min(ts),
         timestamp: new Date().getTime()
       };
       console.log(taskLog);

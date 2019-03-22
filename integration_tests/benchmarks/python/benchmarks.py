@@ -38,8 +38,8 @@ from tensorflow.python.client import device_lib
 import tensorflowjs as tfjs
 
 _FIT_BURNIN_EPOCHS = 1  # How many epochs to call fit() for before timing fit().
-_PREDICT_BURNINS = 1  # How many predict() runs to do before timing predict().
-_PREDICT_RUNS = 20  # How many runs of predict() to average over.
+_PREDICT_BURNINS = 20  # How many predict() runs to do before timing predict().
+_PREDICT_RUNS = 30  # How many runs of predict() to average over.
 
 
 def benchmark_and_serialize_model(model_name,
@@ -207,10 +207,13 @@ def convolutional_model_fn(num_filters, input_shape, target_shape):
   return model
 
 
-def mobilenet_model_fn(input_shape, target_shape):
-  """MobileNet: A ConvNet from Keras Applications."""
+def mobilenet_v2_model_fn(alpha, input_shape, target_shape):
+  """MobileNetV2: A ConvNet from Keras Applications."""
   del input_shape, target_shape  # Unused.
-  model = keras.applications.MobileNet(alpha=0.5)
+  # `weights=None` leads to random weight initialization and downloadnig
+  # of weights.
+  model = keras.applications.MobileNetV2(alpha=alpha, weights=None)
+  model.summary()
   return model
 
 
@@ -355,9 +358,9 @@ def main():
   optimizer = None
   loss = None
   names_fns_and_descriptions = [[
-      'mobilenet',
-      mobilenet_model_fn,
-      'mobilenet']]
+      'mobilenet_v2_%.2f' % alpha,
+      functools.partial(mobilenet_v2_model_fn, alpha),
+      'mobilenet_v2_%.2f' % alpha] for alpha in (0.25, 0.5, 0.75, 1)]
   for model_name, model_fn, description in names_fns_and_descriptions:
     train_time, predict_time = (
         benchmark_and_serialize_model(
