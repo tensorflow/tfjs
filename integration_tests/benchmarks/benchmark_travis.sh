@@ -19,7 +19,8 @@ set -e
 yarn
 yarn lint
 
-if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
+# if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
+if [[ $(node -v) = *v10* ]]
 then
   # Run the first karma separately so it can download the BrowserStack binary
   # without conflicting with others.
@@ -29,6 +30,7 @@ then
   echo 'Use latest version of tfjs-core'
   git clone https://github.com/tensorflow/tfjs-core.git --depth 5
   cd tfjs-core
+  HASH_TF_CORE=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
@@ -37,6 +39,7 @@ then
   echo 'Use latest version of tfjs-layers'
   git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
   cd tfjs-layers
+  HASH_TF_LAYERS=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
@@ -45,6 +48,7 @@ then
   echo 'Use latest version of tfjs-converter'
   git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
   cd tfjs-converter
+  HASH_TF_CONVERTER=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
@@ -53,16 +57,23 @@ then
   echo 'Use latest version of tfjs-data'
   git clone https://github.com/tensorflow/tfjs-data.git --depth 5
   cd tfjs-data
+  HASH_TF_DATA=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
   yarn link-local '@tensorflow/tfjs-data'
 
+  HASHES=\
+    '{\"TF_CORE\": $HASH_TF_CORE, '\
+    ' \"TF_LAYERS\": $HASH_TF_LAYERS, '\
+    ' \"TF_CONVERTER\": $HASH_TF_CONVERTER, '\
+    ' \"TF_DATA\": $HASH_TF_DATA}'
+
   npm-run-all -p -c --aggregate-output \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet" \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=models" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=models" \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=ops" \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=ops" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=ops"
+    "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet --hashes $HASHES" \
+    "run-browserstack --travis --browsers=bs_safari_mac --grep=models --hashes $HASHES" \
+    "run-browserstack --travis --browsers=bs_chrome_mac --grep=models --hashes $HASHES" \
+    "run-browserstack --travis --browsers=bs_ios_11 --grep=ops --hashes $HASHES" \
+    "run-browserstack --travis --browsers=bs_safari_mac --grep=ops --hashes $HASHES" \
+    "run-browserstack --travis --browsers=bs_chrome_mac --grep=ops --hashes $HASHES"
 fi
