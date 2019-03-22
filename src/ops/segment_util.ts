@@ -42,7 +42,6 @@ export function segOpComputeOptimalWindowSize(
   while (!done) {
     if (res > numSegments || res === inSize) {
       done = true;
-      break;
     } else {
       res = nearestDivisor(inSize, res + 1);
     }
