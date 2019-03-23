@@ -35,12 +35,21 @@ export interface HardwareInfo {
   cudaGPUInfo?: string;
 }
 
-export interface BenchmarkMetadata {
-  environment: 'browser' | 'node';
+export type BenchmarkBackend =
+     'browser' | 'node-libtensorflow-cpu' | 'node-libtensorflow-cuda'
+     | 'node-gles' | 'python-tensorflow-cpu' | 'python-tensorflow-cuda';
 
-  /** Metadata for the browser environment. */
-  userAgent?: string;
+/** Information about a benchmark backend environment. */
+export interface BenchmarkBackendInfo {
+  benchmarkBackend: BenchmarkBackend;
+}
 
+/** Metadata specific to the browser environment. */
+export interface BrowserBenchmarkBackendInfo extends BenchmarkBackendInfo {  
+  userAgent: string;
+}
+
+export interface ServerSideBenchmarkBackendInfo extends BenchmarkBackendInfo {
   /**
    * Metadata for the node environment.
    * `uname -a` output.
@@ -48,20 +57,50 @@ export interface BenchmarkMetadata {
   systemInfo?: string;
 
   hardwareInfo?: HardwareInfo;
-
-  pythonVersion?: string;
-  nodeVersion?: string;
-  tensorflowVersion?: string;
-
-  /** This should be x.y.z-tf for tf.keras. */
-  kerasVersion?: string;
-
-  tensorflowUsesGPU?: boolean;
-  tfjsNodeVersion?: string;
-  tfjsNodeUsesGPU?: boolean;
 }
 
-export interface ModelTaskLog {
+/** Metadata specific to the Node.js environment. */
+export interface NodeBenchmarkBackendInfo
+    extends ServerSideBenchmarkBackendInfo {
+  nodeVersion?: string;
+
+  tfjsNodeVersion?: string;
+  tfjsNodeUsesCUDA?: boolean;
+  cudaVersion?: string;
+}
+
+/** Metadata specific to the Python environment. */
+export interface PythonBenchmarkBackendInfo
+    extends ServerSideBenchmarkBackendInfo {
+  pythonVersion?: string;
+
+  tensorflowVersion?: string;
+  kerasVersion?: string;
+  tensorflowUsesCUDA?: boolean;
+  cudaVersion?: string;
+}
+
+/**
+ * The log from an individual benchmark task.
+ * 
+ * This is the generic interface for benchmark tasks. It is applicable to
+ * - model-related benchmark tasks, e.g., the predict() call of a certain
+ *   model, 
+ * - benchmark tasks unrelated to a model, e.g., creation of a tensor with
+ *   a given dtype and shape on the CUDA GPU.
+ * 
+ * Note that the task involved in a TaskLog should be indivisible. For example,
+ * a `TaskLog` should be about only the `predict()` call of a certain model
+ * with a given batch size. If the model is benchmarked for both its
+ * `predict()` call and its `fit()` call, the results should be represented
+ * by two `TaskLog` objects. Similarly, if the `predict()` method of a model
+ * is benchmarked under different batch sizes or sequence lengths, the results
+ * should be represented by different `TaskLog` objects.
+ */
+export interface TaskLog {
+  /** Name of the task. */
+  taskName: string;
+
   /**
    * Number of individual runs that are timed.
    *
@@ -79,34 +118,41 @@ export interface ModelTaskLog {
    */
   numBurnInRuns: number;
 
-  batchSize: number;
+  /** A timestamp (epoch time) for the benchmark task. */
+  timestamp: number;
+
+  /** Arithmetic mean of the wall times from the benchmarked runs. */
   averageTimeMs: number;
-  medianTimeMs: number;
-  minTimeMs: number;
 
-  timestamp: number;
+  /** Median of the wall times from the benchmarked runs.*/
+  medianTimeMs?: number;
+
+  /** Minimum of the wall times from the benchmarked runs.*/
+  minTimeMs?: number;
 }
 
-export type ModelBenchmarkTask =
-    'predict'|'fit'|'fitDataset'|'pyPredict'|'pyFit'|'pyFitDataset';
+/** Type of the model-related benchmark task. */
+export type ModelTask = 'predict'|'fit'|'fitDataset';
 
 /**
- * The benchmark results from a number of models in a given
- * environment, from a certain run of an entire benchmark suite.
+ * TODO(cais):
  */
-export type ModelLog = {[taskName in ModelBenchmarkTask]: ModelTaskLog};
+export interface ModelTaskLog extends TaskLog {
+  /** Name of the model. */
+  modelName: string;
 
-export type MultiModelLog = {[modelName: string]: ModelLog};
+  /**
+   * This overrides the `taskName` field of the base interface to be
+   * model-specific.
+   */
+  taskName: ModelTask;
 
-/**
- * The same as MultiModelLog, but with metadata and timestamp.
- */
-export interface ModelSuiteLog {
-  data: MultiModelLog;
-  metadata: BenchmarkMetadata;
-
-  // The starting timestamp of the suite.
-  timestamp: number;
+  /** Batch size used for the model benchmark task. */
+  batchSize: number;
 }
 
-export type ModelBenchmarkHistory = ModelSuiteLog[];
+export type MultiBackendLog = {[benchmarkBackend in BenchmarkBackend]: TaskLog};
+
+export type MultiModelLog = {[modelTask in ModelTask]: MultiBackendLog};
+
+export type BenchmarkHistory = {[datetime: string]: MultiModelLog};
