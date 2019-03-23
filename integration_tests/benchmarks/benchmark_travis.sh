@@ -31,6 +31,7 @@ then
   git clone https://github.com/tensorflow/tfjs-core.git --depth 5
   cd tfjs-core
   HASH_TF_CORE=`git rev-parse HEAD`
+  echo $HASH_TF_CORE
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
@@ -40,6 +41,7 @@ then
   git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
   cd tfjs-layers
   HASH_TF_LAYERS=`git rev-parse HEAD`
+  echo $HASH_TF_LAYERS
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
@@ -49,6 +51,7 @@ then
   git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
   cd tfjs-converter
   HASH_TF_CONVERTER=`git rev-parse HEAD`
+  echo $HASH_TF_CONVERTER
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
@@ -58,12 +61,13 @@ then
   git clone https://github.com/tensorflow/tfjs-data.git --depth 5
   cd tfjs-data
   HASH_TF_DATA=`git rev-parse HEAD`
+  echo $HASH_TF_DATA
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
   yarn link-local '@tensorflow/tfjs-data'
 
-  HASHES='123'
+  HASHES=$HASH_TF_CORE
 
   npm-run-all -p -c --aggregate-output \
     "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet --hashes='{\"TF_CORE\":$HASHES,\"TF_LAYERS\":$HASHES,\"TF_CONVERTER\":$HASHES,\"TF_DATA\":$HASHES}'" \
