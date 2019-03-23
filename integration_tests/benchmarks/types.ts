@@ -63,10 +63,20 @@ export interface BenchmarkMetadata {
 
 export interface ModelTaskLog {
   /**
-   * For fit() and fitDatset(), this is the number of epochs of a single call.
-   * For predict(), this is the number of predict() calls.
+   * Number of individual runs that are timed.
+   *
+   * - For predict() and non-model-based tasks, this is the number of function
+   *   calls.
+   * - For fit() and fitDatset(), this is the number of epochs of a single call.
    */
-  numBenchmarksRuns: number;
+  numBenchmarkedRuns: number;
+
+  /**
+   * Number of burn-in (i.e., warm-up) runs that take place prior to the
+   * benchmarked runs.
+   *
+   * Follows the same convention as `numBenchmarkedRuns` for counting runs.
+   */
   numBurnInRuns: number;
 
   batchSize: number;

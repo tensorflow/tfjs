@@ -119,7 +119,7 @@ describe('TF.js Layers Benchmarks', () => {
 
       const taskLog: ModelTaskLog = {
         numBurnInRuns: predictNumBurnInRuns,
-        numBenchmarksRuns: predictNumBenchmarkRuns,
+        numBenchmarkedRuns: predictNumBenchmarkRuns,
         batchSize,
         averageTimeMs: math.mean(ts),
         medianTimeMs: math.median(ts),
