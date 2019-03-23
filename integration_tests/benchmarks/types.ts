@@ -30,9 +30,6 @@ export interface HardwareInfo {
 
   /** Processed `free` output. */
   memInfo?: string;
-
-  /** Processed `nvidia-smi` output. */
-  cudaGPUInfo?: string;
 }
 
 export type BenchmarkBackend =
@@ -42,21 +39,32 @@ export type BenchmarkBackend =
 /** Information about a benchmark backend environment. */
 export interface BenchmarkBackendInfo {
   benchmarkBackend: BenchmarkBackend;
-}
 
-/** Metadata specific to the browser environment. */
-export interface BrowserBenchmarkBackendInfo extends BenchmarkBackendInfo {  
-  userAgent: string;
-}
+  operatingSystem: string;
 
-export interface ServerSideBenchmarkBackendInfo extends BenchmarkBackendInfo {
+  platform: string;
+
   /**
    * Metadata for the node environment.
    * `uname -a` output.
    */
   systemInfo?: string;
+}
 
+/** Metadata specific to the browser environment. */
+export interface BrowserBenchmarkBackendInfo extends BenchmarkBackendInfo {  
+  userAgent: string;
+
+  webGLVersion?: string;
+}
+
+export interface ServerSideBenchmarkBackendInfo extends BenchmarkBackendInfo {
   hardwareInfo?: HardwareInfo;
+
+  /** Processed `nvidia-smi` output. */
+  cudaGPUInfo?: string;
+
+  cudaVersion?: string;
 }
 
 /** Metadata specific to the Node.js environment. */
@@ -66,7 +74,6 @@ export interface NodeBenchmarkBackendInfo
 
   tfjsNodeVersion?: string;
   tfjsNodeUsesCUDA?: boolean;
-  cudaVersion?: string;
 }
 
 /** Metadata specific to the Python environment. */
@@ -77,7 +84,6 @@ export interface PythonBenchmarkBackendInfo
   tensorflowVersion?: string;
   kerasVersion?: string;
   tensorflowUsesCUDA?: boolean;
-  cudaVersion?: string;
 }
 
 /**
@@ -134,9 +140,7 @@ export interface TaskLog {
 /** Type of the model-related benchmark task. */
 export type ModelTask = 'predict'|'fit'|'fitDataset';
 
-/**
- * TODO(cais):
- */
+/** The logs from benchmarking a specific model-related task. */
 export interface ModelTaskLog extends TaskLog {
   /** Name of the model. */
   modelName: string;
@@ -151,8 +155,29 @@ export interface ModelTaskLog extends TaskLog {
   batchSize: number;
 }
 
+/**
+ * Log from benchmarking the same task on different backends.
+ * 
+ * E.g., benchmarking the predict() call of MobileNetV2 on
+ * node-libtensorflow-cpu and python-tensorflow-cpu.
+ */
 export type MultiBackendLog = {[benchmarkBackend in BenchmarkBackend]: TaskLog};
 
-export type MultiModelLog = {[modelTask in ModelTask]: MultiBackendLog};
+/**
+ * Log from benchmarking a number of tasks, each running on a number of backend.
+ * 
+ * E.g., benchmarking the predict() and fit() call of MobileNetV2,
+ * each of which is benchmarked on node-libtensorflow-cpu and
+ * python-tensorflow-cpu.
+ */
+export type MultiTaskLog = {[task: string]: MultiBackendLog};
 
-export type BenchmarkHistory = {[datetime: string]: MultiModelLog};
+/**
+ * Log from multiple task suites.
+ * 
+ * A suite can be all the tasks associated with a model.
+ */
+export type MultiTaskSuiteLog = {[suiteOrModelName: string]: MultiBackendLog};
+
+/** Benchmark logs from multiple days. */
+export type BenchmarkHistory = {[datetime: string]: MultiTaskSuiteLog};
