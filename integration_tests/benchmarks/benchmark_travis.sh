@@ -70,10 +70,10 @@ then
   HASHES=$HASH_TF_CORE
 
   npm-run-all -p -c --aggregate-output \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet --hashes='{\"TF_CORE\":'$HASHES',\"TF_LAYERS\":'$HASHES',\"TF_CONVERTER\":'$HASHES',\"TF_DATA\":'$HASHES'}'" \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=models --hashes='{\"TF_CORE\":'$HASHES',\"TF_LAYERS\":'$HASHES',\"TF_CONVERTER\":'$HASHES',\"TF_DATA\":'$HASHES'}'" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=models --hashes='{\"TF_CORE\":'$HASHES',\"TF_LAYERS\":'$HASHES',\"TF_CONVERTER\":'$HASHES',\"TF_DATA\":'$HASHES'}'" \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=ops --hashes='{\"TF_CORE\":'$HASHES',\"TF_LAYERS\":'$HASHES',\"TF_CONVERTER\":'$HASHES',\"TF_DATA\":'$HASHES'}'" \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=ops --hashes='{\"TF_CORE\":'$HASHES',\"TF_LAYERS\":'$HASHES',\"TF_CONVERTER\":'$HASHES',\"TF_DATA\":'$HASHES'}'" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=ops --hashes='{\"TF_CORE\":'$HASHES',\"TF_LAYERS\":'$HASHES',\"TF_CONVERTER\":'$HASHES',\"TF_DATA\":'$HASHES'}'"
+    "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet --hashes='{\"TF_CORE\":\"$HASHES\",\"TF_LAYERS\":\"$HASHES\",\"TF_CONVERTER\":\"$HASHES\",\"TF_DATA\":\"$HASHES\"}'" \
+    "run-browserstack --travis --browsers=bs_safari_mac --grep=models --hashes='{\"TF_CORE\":\"$HASHES\",\"TF_LAYERS\":\"$HASHES\",\"TF_CONVERTER\":\"$HASHES\",\"TF_DATA\":\"$HASHES\"}'" \
+    "run-browserstack --travis --browsers=bs_chrome_mac --grep=models --hashes='{\"TF_CORE\":\"$HASHES\",\"TF_LAYERS\":\"$HASHES\",\"TF_CONVERTER\":\"$HASHES\",\"TF_DATA\":\"$HASHES\"}'" \
+    "run-browserstack --travis --browsers=bs_ios_11 --grep=ops --hashes='{\"TF_CORE\":\"$HASHES\",\"TF_LAYERS\":\"$HASHES\",\"TF_CONVERTER\":\"$HASHES\",\"TF_DATA\":\"$HASHES\"}'" \
+    "run-browserstack --travis --browsers=bs_safari_mac --grep=ops --hashes='{\"TF_CORE\":\"$HASHES\",\"TF_LAYERS\":\"$HASHES\",\"TF_CONVERTER\":\"$HASHES\",\"TF_DATA\":\"$HASHES\"}'" \
+    "run-browserstack --travis --browsers=bs_chrome_mac --grep=ops --hashes='{\"TF_CORE\":\"$HASHES\",\"TF_LAYERS\":\"$HASHES\",\"TF_CONVERTER\":\"$HASHES\",\"TF_DATA\":\"$HASHES\"}'"
 fi
