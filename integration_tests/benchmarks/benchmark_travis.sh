@@ -30,8 +30,7 @@ then
   echo 'Use latest version of tfjs-core'
   git clone https://github.com/tensorflow/tfjs-core.git --depth 5
   cd tfjs-core
-  HASH_TF_CORE=`git rev-parse HEAD`
-  echo $HASH_TF_CORE
+  HASH_CORE=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
@@ -40,8 +39,7 @@ then
   echo 'Use latest version of tfjs-layers'
   git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
   cd tfjs-layers
-  HASH_TF_LAYERS=`git rev-parse HEAD`
-  echo $HASH_TF_LAYERS
+  HASH_LAYERS=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
@@ -50,8 +48,7 @@ then
   echo 'Use latest version of tfjs-converter'
   git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
   cd tfjs-converter
-  HASH_TF_CONVERTER=`git rev-parse HEAD`
-  echo $HASH_TF_CONVERTER
+  HASH_CONVERTER=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
@@ -60,20 +57,17 @@ then
   echo 'Use latest version of tfjs-data'
   git clone https://github.com/tensorflow/tfjs-data.git --depth 5
   cd tfjs-data
-  HASH_TF_DATA=`git rev-parse HEAD`
-  echo $HASH_TF_DATA
+  HASH_DATA=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
   yarn link-local '@tensorflow/tfjs-data'
 
-  HASHES=$HASH_TF_CORE
-
   npm-run-all -p -c --aggregate-output \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet --hashes='{\"TF_CORE\":\"$HASHES\",\"TF_LAYERS\":\"$HASHES\",\"TF_CONVERTER\":\"$HASHES\",\"TF_DATA\":\"$HASHES\"}'" \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=models --hashes='{\"TF_CORE\":\"$HASHES\",\"TF_LAYERS\":\"$HASHES\",\"TF_CONVERTER\":\"$HASHES\",\"TF_DATA\":\"$HASHES\"}'" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=models --hashes='{\"TF_CORE\":\"$HASHES\",\"TF_LAYERS\":\"$HASHES\",\"TF_CONVERTER\":\"$HASHES\",\"TF_DATA\":\"$HASHES\"}'" \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=ops --hashes='{\"TF_CORE\":\"$HASHES\",\"TF_LAYERS\":\"$HASHES\",\"TF_CONVERTER\":\"$HASHES\",\"TF_DATA\":\"$HASHES\"}'" \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=ops --hashes='{\"TF_CORE\":\"$HASHES\",\"TF_LAYERS\":\"$HASHES\",\"TF_CONVERTER\":\"$HASHES\",\"TF_DATA\":\"$HASHES\"}'" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=ops --hashes='{\"TF_CORE\":\"$HASHES\",\"TF_LAYERS\":\"$HASHES\",\"TF_CONVERTER\":\"$HASHES\",\"TF_DATA\":\"$HASHES\"}'"
+    "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet --hashes='{\"CORE\":\"$HASH_CORE\",\"LAYERS\":\"$HASH_LAYERS\",\"CONVERTER\":\"$HASH_CONVERTER\"}'" \
+    "run-browserstack --travis --browsers=bs_safari_mac --grep=models --hashes='{\"CORE\":\"$HASH_CORE\",\"LAYERS\":\"$HASH_LAYERS\",\"CONVERTER\":\"$HASH_CONVERTER\"}'" \
+    "run-browserstack --travis --browsers=bs_chrome_mac --grep=models --hashes='{\"CORE\":\"$HASH_CORE\",\"LAYERS\":\"$HASH_LAYERS\",\"CONVERTER\":\"$HASH_CONVERTER\"}'" \
+    "run-browserstack --travis --browsers=bs_ios_11 --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'" \
+    "run-browserstack --travis --browsers=bs_safari_mac --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'" \
+    "run-browserstack --travis --browsers=bs_chrome_mac --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'"
 fi
