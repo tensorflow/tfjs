@@ -131,8 +131,13 @@ export function parseKarmaFlags(args: string[]): KarmaFlags {
       browsers = args[i + 1];
     }
     if (args[i] === '--hashes') {
+      console.log('FOUND HASHES');
+      console.log(args[i + 1])
+      console.log(JSON.parse(args[i + 1]))
       hashes = JSON.parse(args[i + 1]);
     }
   }
+  console.log('DONE PARSING');
+  console.log(hashes);
   return {apiKey, travis, browsers, hashes: hashes || {}};
 }
