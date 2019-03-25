@@ -32,17 +32,14 @@ export interface HardwareInfo {
   memInfo?: string;
 }
 
-export type BenchmarkBackend =
-     'browser' | 'node-libtensorflow-cpu' | 'node-libtensorflow-cuda'
-     | 'node-gles' | 'python-tensorflow-cpu' | 'python-tensorflow-cuda';
+// TODO(cais):
+export type BenchmarkEnvironmentType = 'chrome-mac'|'firefox-mac'|'safari-mac'|
+    'ios-11'|'node-libtensorflow-cpu'|'node-libtensorflow-cuda'|'node-gles'|
+    'python-tensorflow-cpu'|'python-tensorflow-cuda';
 
 /** Information about a benchmark backend environment. */
-export interface BenchmarkBackendInfo {
-  benchmarkBackend: BenchmarkBackend;
-
-  operatingSystem: string;
-
-  platform: string;
+export interface EnvironmentInfo {
+  type: BenchmarkEnvironmentType;
 
   /**
    * Metadata for the node environment.
@@ -52,13 +49,13 @@ export interface BenchmarkBackendInfo {
 }
 
 /** Metadata specific to the browser environment. */
-export interface BrowserBenchmarkBackendInfo extends BenchmarkBackendInfo {  
+export interface BrowserEnvironmentInfo extends EnvironmentInfo {
   userAgent: string;
 
   webGLVersion?: string;
 }
 
-export interface ServerSideBenchmarkBackendInfo extends BenchmarkBackendInfo {
+export interface ServerSideEnvironmentInfo extends EnvironmentInfo {
   hardwareInfo?: HardwareInfo;
 
   /** Processed `nvidia-smi` output. */
@@ -68,8 +65,7 @@ export interface ServerSideBenchmarkBackendInfo extends BenchmarkBackendInfo {
 }
 
 /** Metadata specific to the Node.js environment. */
-export interface NodeBenchmarkBackendInfo
-    extends ServerSideBenchmarkBackendInfo {
+export interface NodeEnvironmentInfo extends ServerSideEnvironmentInfo {
   nodeVersion?: string;
 
   tfjsNodeVersion?: string;
@@ -77,8 +73,8 @@ export interface NodeBenchmarkBackendInfo
 }
 
 /** Metadata specific to the Python environment. */
-export interface PythonBenchmarkBackendInfo
-    extends ServerSideBenchmarkBackendInfo {
+export interface PythonEnvironmentBackendInfo extends
+    ServerSideEnvironmentInfo {
   pythonVersion?: string;
 
   tensorflowVersion?: string;
@@ -88,13 +84,13 @@ export interface PythonBenchmarkBackendInfo
 
 /**
  * The log from an individual benchmark task.
- * 
+ *
  * This is the generic interface for benchmark tasks. It is applicable to
  * - model-related benchmark tasks, e.g., the predict() call of a certain
- *   model, 
+ *   model,
  * - benchmark tasks unrelated to a model, e.g., creation of a tensor with
  *   a given dtype and shape on the CUDA GPU.
- * 
+ *
  * Note that the task involved in a TaskLog should be indivisible. For example,
  * a `TaskLog` should be about only the `predict()` call of a certain model
  * with a given batch size. If the model is benchmarked for both its
@@ -122,7 +118,7 @@ export interface TaskLog {
    *
    * Follows the same convention as `numBenchmarkedRuns` for counting runs.
    */
-  numBurnInRuns: number;
+  numWarmUpRuns: number;
 
   /** A timestamp (epoch time) for the benchmark task. */
   timestamp: number;
@@ -135,6 +131,8 @@ export interface TaskLog {
 
   /** Minimum of the wall times from the benchmarked runs.*/
   minTimeMs?: number;
+
+  environment: EnvironmentInfo;
 }
 
 /** Type of the model-related benchmark task. */
@@ -157,27 +155,38 @@ export interface ModelTaskLog extends TaskLog {
 
 /**
  * Log from benchmarking the same task on different backends.
- * 
+ *
  * E.g., benchmarking the predict() call of MobileNetV2 on
  * node-libtensorflow-cpu and python-tensorflow-cpu.
  */
-export type MultiBackendLog = {[benchmarkBackend in BenchmarkBackend]: TaskLog};
+export type MultiEnvironmentTaskLog = {
+  [environmentType in BenchmarkEnvironmentType]: TaskLog
+};
 
 /**
  * Log from benchmarking a number of tasks, each running on a number of backend.
- * 
+ *
  * E.g., benchmarking the predict() and fit() call of MobileNetV2,
  * each of which is benchmarked on node-libtensorflow-cpu and
  * python-tensorflow-cpu.
  */
-export type MultiTaskLog = {[task: string]: MultiBackendLog};
+export type TaskGroupLog = {
+  [task: string]: MultiEnvironmentTaskLog
+};
 
 /**
- * Log from multiple task suites.
- * 
- * A suite can be all the tasks associated with a model.
+ * Log from a suite of task groups.
+ *
+ * E.g., this can be a collection of multiple models, each of which involves
+ * multiple tasks. Each task may involve multiple backends.
  */
-export type MultiTaskSuiteLog = {[suiteOrModelName: string]: MultiBackendLog};
+export type SuiteLog = {
+  data: TaskGroupLog;
+
+  metadata: any;  // TODO(cais): Fix.
+};
 
 /** Benchmark logs from multiple days. */
-export type BenchmarkHistory = {[datetime: string]: MultiTaskSuiteLog};
+export type BenchmarkHistory = {
+  [datetime: string]: TaskGroupLog
+};
