@@ -5,6 +5,7 @@
 .DS_Store
 .babelrc
 .idea/
+src/**/*_test.ts
 demo/
 docs/
 scripts/
