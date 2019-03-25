@@ -63,13 +63,13 @@ export class SGDOptimizer extends Optimizer {
   }
 
   getConfig(): ConfigDict {
-    return {learningRate: this.learningRate};
+    return {'learningRate': this.learningRate};
   }
 
   /** @nocollapse */
   static fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
-    return new cls(config.learningRate);
+    return new cls(config['learningRate']);
   }
 }
 registerClass(SGDOptimizer);

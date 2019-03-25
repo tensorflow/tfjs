@@ -18,7 +18,6 @@
 import {ENV} from '../environment';
 import {op} from '../ops/operation';
 import {Tensor, Tensor3D} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -101,8 +100,8 @@ function matMul_<T extends Tensor>(
     broadcast_util.assertAndGetBroadcastShape(outShape, $bias.shape);
   }
 
-  const grad = (dy: Tensor3D, saved: NamedTensorMap) => {
-    const {y, a3D, b3D} = saved;
+  const grad = (dy: Tensor3D, saved: Tensor[]) => {
+    const [a3D, b3D, y] = saved;
 
     let dyActivation: Tensor3D;
     if (activation == null || activation === 'linear') {
@@ -172,7 +171,7 @@ function matMul_<T extends Tensor>(
   const res = ENV.engine.runKernel((backend, save) => {
     const y = backend.fusedBatchMatMul(
         a3D, b3D, transposeA, transposeB, $bias, activation);
-    save({a3D, b3D, y});
+    save([a3D, b3D, y]);
     return y;
   }, inputs, grad);
   return res.reshape(outShape) as T;

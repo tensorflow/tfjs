@@ -78,15 +78,15 @@ export class AdagradOptimizer extends Optimizer {
   }
   getConfig(): ConfigDict {
     return {
-      learningRate: this.learningRate,
-      initialAccumulatorValue: this.initialAccumulatorValue,
+      'learningRate': this.learningRate,
+      'initialAccumulatorValue': this.initialAccumulatorValue,
     };
   }
 
   /** @nocollapse */
   static fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
-    return new cls(config.learningRate, config.initialAccumulatorValue);
+    return new cls(config['learningRate'], config['initialAccumulatorValue']);
   }
 }
 registerClass(AdagradOptimizer);

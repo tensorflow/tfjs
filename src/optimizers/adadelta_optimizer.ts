@@ -110,16 +110,16 @@ export class AdadeltaOptimizer extends Optimizer {
   }
   getConfig(): ConfigDict {
     return {
-      learningRate: this.learningRate,
-      rho: this.rho,
-      epsilon: this.epsilon
+      'learningRate': this.learningRate,
+      'rho': this.rho,
+      'epsilon': this.epsilon
     };
   }
 
   /** @nocollapse */
   static fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
-    return new cls(config.learningRate, config.rho, config.epsilon);
+    return new cls(config['learningRate'], config['rho'], config['epsilon']);
   }
 }
 registerClass(AdadeltaOptimizer);

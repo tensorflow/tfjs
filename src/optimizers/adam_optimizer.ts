@@ -133,10 +133,10 @@ export class AdamOptimizer extends Optimizer {
   }
   getConfig(): ConfigDict {
     return {
-      learningRate: this.learningRate,
-      beta1: this.beta1,
-      beta2: this.beta2,
-      epsilon: this.epsilon,
+      'learningRate': this.learningRate,
+      'beta1': this.beta1,
+      'beta2': this.beta2,
+      'epsilon': this.epsilon,
     };
   }
 
@@ -144,7 +144,8 @@ export class AdamOptimizer extends Optimizer {
   static fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(
-        config.learningRate, config.beta1, config.beta2, config.epsilon);
+        config['learningRate'], config['beta1'], config['beta2'],
+        config['epsilon']);
   }
 }
 registerClass(AdamOptimizer);

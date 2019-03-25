@@ -20,7 +20,6 @@ import {describeWithFlags} from './jasmine_util';
 import {MathBackendCPU} from './kernels/backend_cpu';
 import {MathBackendWebGL} from './kernels/backend_webgl';
 import {Tensor} from './tensor';
-import {NamedTensorMap} from './tensor_types';
 import {ALL_ENVS, CPU_ENVS, expectArraysClose, expectArraysEqual, WEBGL_ENVS} from './test_util';
 
 describeWithFlags('fromPixels + regular math op', WEBGL_ENVS, () => {
@@ -350,9 +349,9 @@ describeWithFlags('customGradient', ALL_ENVS, () => {
 
     const customPow = tf.customGrad((a: tf.Tensor, save: tf.GradSaveFunc) => {
       const value = tf.pow(a, b);
-      save({a});
-      const gradFunc = (dy: tf.Tensor, saved: NamedTensorMap) => {
-        const {a} = saved;
+      save([a]);
+      const gradFunc = (dy: tf.Tensor, saved: Tensor[]) => {
+        const [a] = saved;
         return dy.mul(a);
       };
       return {value, gradFunc};
@@ -368,11 +367,11 @@ describeWithFlags('customGradient', ALL_ENVS, () => {
   it('calling gradient of custom op twice works', () => {
     const customOp = tf.customGrad((x: tf.Tensor, save: tf.GradSaveFunc) => {
       // Override gradient of our custom x ^ 2 op to be dy * abs(x);
-      save({x});
+      save([x]);
       return {
         value: x.square(),
-        gradFunc: (dy, saved: NamedTensorMap) => {
-          const {x} = saved;
+        gradFunc: (dy, saved: Tensor[]) => {
+          const [x] = saved;
           return dy.mul(x.abs());
         }
       };

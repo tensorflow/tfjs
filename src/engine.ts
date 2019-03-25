@@ -40,7 +40,7 @@ export type ForwardFunc<T> = (backend: KernelBackend, save?: GradSaveFunc) => T;
 export type CustomGradientFunc<T extends Tensor> =
     (...inputs: Array<Tensor|GradSaveFunc>) => {
       value: T;
-      gradFunc: (dy: T, saved: NamedTensorMap) => Tensor | Tensor[];
+      gradFunc: (dy: T, saved: Tensor[]) => Tensor | Tensor[];
     };
 
 export type MemoryInfo = {
@@ -202,11 +202,10 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
   runKernel<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>,
       inputs: I,
-      backwardsFunc?:
-          (dy: T, saved: NamedTensorMap) => {[P in keyof I]: () => I[P]},
+      backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
       ): T {
     let result: T;
-    const saved: NamedTensorMap = {};
+    let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
     const scopeName = this.activeScope != null ? this.activeScope.name : '';
     const saveFunc: GradSaveFunc = (tensors) => {
@@ -216,9 +215,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
       if (!isTapeOn) {
         return;
       }
-      for (const key in tensors) {
-        saved[key] = this.keep(this.clone(tensors[key]));
-      }
+      saved = tensors.map(tensor => this.keep(this.clone(tensor)));
     };
 
     const startingBytecount = this.numBytes;
@@ -549,7 +546,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
 
       let res: {
         value: T,
-        gradFunc: (dy: T, saved: NamedTensorMap) => Tensor | Tensor[],
+        gradFunc: (dy: T, saved: Tensor[]) => Tensor | Tensor[],
       };
       const inputMap: NamedTensorMap = {};
       inputs.forEach((input, i) => {
@@ -569,7 +566,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
             return res.value;
           },
           inputMap,
-          (dy: T, saved: NamedTensorMap) => {
+          (dy: T, saved: Tensor[]) => {
             const gradRes = res.gradFunc(dy, saved);
             const grads: Tensor[] =
                 Array.isArray(gradRes) ? gradRes : [gradRes];

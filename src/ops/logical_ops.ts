@@ -18,7 +18,6 @@
 import {ENV} from '../environment';
 import {whereImpl} from '../kernels/where_impl';
 import {Tensor, Tensor2D} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, assertShapesMatch} from '../util';
@@ -154,8 +153,8 @@ function where_<T extends Tensor>(
 
   // TODO(julianoks): Return null for condition gradient
   // when backprop supports it.
-  const grad = (dy: T, saved: NamedTensorMap) => {
-    const {$condition} = saved;
+  const grad = (dy: T, saved: Tensor[]) => {
+    const [$condition] = saved;
     return {
       $condition: () => zerosLike($condition).toFloat(),
       $a: () => dy.mul($condition.cast(dy.dtype)) as T,
@@ -165,7 +164,7 @@ function where_<T extends Tensor>(
 
   return ENV.engine.runKernel((backend, save) => {
     const res = backend.select($condition, $a, $b);
-    save({$condition});
+    save([$condition]);
     return res;
   }, {$condition, $a, $b}, grad) as T;
 }

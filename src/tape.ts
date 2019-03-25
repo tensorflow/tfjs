@@ -26,7 +26,7 @@ export interface TapeNode {
   inputs: NamedTensorMap;
   // Optional params, defined only for ops with gradient impl.
   gradient?: (dy: Tensor|Tensor[]) => NamedGradientMap;
-  saved?: NamedTensorMap;
+  saved?: Tensor[];
 }
 
 export type NamedGradientMap = {

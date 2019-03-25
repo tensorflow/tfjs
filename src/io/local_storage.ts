@@ -95,6 +95,14 @@ function maybeStripScheme(key: string) {
       key;
 }
 
+declare type LocalStorageKeys = {
+  info: string,
+  topology: string,
+  weightSpecs: string,
+  weightData: string,
+  modelMetadata: string
+};
+
 /**
  * IOHandler subclass: Browser Local Storage.
  *
@@ -103,7 +111,7 @@ function maybeStripScheme(key: string) {
 export class BrowserLocalStorage implements IOHandler {
   protected readonly LS: Storage;
   protected readonly modelPath: string;
-  protected readonly keys: {[key: string]: string};
+  protected readonly keys: LocalStorageKeys;
 
   static readonly URL_SCHEME = 'localstorage://';
 
@@ -163,9 +171,11 @@ export class BrowserLocalStorage implements IOHandler {
         return {modelArtifactsInfo};
       } catch (err) {
         // If saving failed, clean up all items saved so far.
-        for (const key in this.keys) {
-          this.LS.removeItem(this.keys[key]);
-        }
+        this.LS.removeItem(this.keys.info);
+        this.LS.removeItem(this.keys.topology);
+        this.LS.removeItem(this.keys.weightSpecs);
+        this.LS.removeItem(this.keys.weightData);
+        this.LS.removeItem(this.keys.modelMetadata);
 
         throw new Error(
             `Failed to save model '${this.modelPath}' to local storage: ` +

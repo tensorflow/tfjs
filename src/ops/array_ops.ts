@@ -17,7 +17,6 @@
 
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
 import {DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike4D} from '../types';
 import * as util from '../util';
@@ -417,8 +416,8 @@ function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
       $x.rank === reps.length,
       () => `Error in transpose: rank of input ${$x.rank} ` +
           `must match length of reps ${reps}.`);
-  const grad = (dy: T, saved: NamedTensorMap) => {
-    const {$x} = saved;
+  const grad = (dy: T, saved: Tensor[]) => {
+    const [$x] = saved;
     const derX = () => {
       let xGrad = zerosLike($x);
       // TODO(cais): Maybe reduce memory footprint by avoiding repeated
@@ -471,7 +470,7 @@ function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
   };
   return ENV.engine.runKernel((backend, save) => {
     const res = backend.tile($x, reps);
-    save({$x});
+    save([$x]);
     return res;
   }, {$x}, grad);
 }

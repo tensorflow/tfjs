@@ -139,11 +139,11 @@ export class AdamaxOptimizer extends Optimizer {
   }
   getConfig(): ConfigDict {
     return {
-      learningRate: this.learningRate,
-      beta1: this.beta1,
-      beta2: this.beta2,
-      epsilon: this.epsilon,
-      decay: this.decay
+      'learningRate': this.learningRate,
+      'beta1': this.beta1,
+      'beta2': this.beta2,
+      'epsilon': this.epsilon,
+      'decay': this.decay
     };
   }
 
@@ -151,8 +151,8 @@ export class AdamaxOptimizer extends Optimizer {
   static fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(
-        config.learningRate, config.beta1, config.beta2, config.epsilon,
-        config.decay);
+        config['learningRate'], config['beta1'], config['beta2'],
+        config['epsilon'], config['decay']);
   }
 }
 registerClass(AdamaxOptimizer);
