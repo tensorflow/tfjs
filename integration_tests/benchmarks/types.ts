@@ -37,7 +37,7 @@ export interface BenchmarkLog {
 /**
  * =======================================================
  * New types to be used by tfjs-layers and tfjs-node
- * bencharmsk.
+ * benchmarks.
  *
  * We plan to migrate the tfjs-core benchmarks to the new
  * type system as well.
