@@ -15,6 +15,12 @@
  * =============================================================================
  */
 
+/**
+ * =======================================================
+ * Old types used by the tjfs-core benchmarks.
+ * =======================================================
+ */
+
 export interface BenchmarkTest {
   run(size: number, opType?: string, params?: {}): Promise<number>;
 }
@@ -28,6 +34,37 @@ export interface BenchmarkLog {
   params: string;
 }
 
+/**
+ * =======================================================
+ * New types to be used by tfjs-layers and tfjs-node
+ * bencharmsk.
+ * 
+ * We plan to migrate the tfjs-core benchmarks to the new
+ * type system as well.
+ * =======================================================
+ */
+
+export type TensorFlowJSCodeRepository =
+    'tfjs'|'tfjs-converter'|'tfjs-core'|'tfjs-data'|'tfjs-layers'|'tfjs-node';
+
+/**
+ * The git hash code of the related TensorFlow.js code repositories.
+ */
+export type BenchmarkHashes = {[repo in TensorFlowJSCodeRepository]: string};
+
+/**
+ * Metadata for a run of a benchmark suite.
+ * 
+ * See the `SuiteLog` interface below.
+ */
+export interface BenchmarkMetadata {
+  commitHashes: BenchmarkHashes;
+  timestamp: string;
+}
+
+/**
+ * Information about hardware on which benchmarks are run.
+ */
 export interface HardwareInfo {
   /** `inxi` output. */
   cpuInfo?: string;
@@ -36,12 +73,16 @@ export interface HardwareInfo {
   memInfo?: string;
 }
 
-// TODO(cais):
+/**
+ * Enumerates all environments that TensorFlow.js benchmarks may happen.
+ * 
+ * This type union is meant to be extended in the future.
+ */
 export type BenchmarkEnvironmentType = 'chrome-mac'|'firefox-mac'|'safari-mac'|
     'ios-11'|'node-libtensorflow-cpu'|'node-libtensorflow-cuda'|'node-gles'|
     'python-tensorflow-cpu'|'python-tensorflow-cuda';
 
-/** Information about a benchmark backend environment. */
+/** Information about a benchmark environment. */
 export interface EnvironmentInfo {
   type: BenchmarkEnvironmentType;
 
@@ -65,11 +106,13 @@ export interface ServerSideEnvironmentInfo extends EnvironmentInfo {
   /** Processed `nvidia-smi` output. */
   cudaGPUInfo?: string;
 
+  /** Can be extracted from `nvcc --version`. */
   cudaVersion?: string;
 }
 
 /** Metadata specific to the Node.js environment. */
 export interface NodeEnvironmentInfo extends ServerSideEnvironmentInfo {
+  /** Outpu from `node --version`. */
   nodeVersion?: string;
 
   tfjsNodeVersion?: string;
@@ -187,10 +230,10 @@ export type TaskGroupLog = {
 export type SuiteLog = {
   data: TaskGroupLog;
 
-  metadata: any;  // TODO(cais): Fix.
+  metadata: BenchmarkMetadata;
 };
 
 /** Benchmark logs from multiple days. */
 export type BenchmarkHistory = {
-  [datetime: string]: TaskGroupLog
+  [timestamp: string]: TaskGroupLog
 };
