@@ -206,7 +206,7 @@ export interface ModelTaskLog extends TaskLog {
 }
 
 /**
- * Log from benchmarking the same task on different backends.
+ * Log from benchmarking the same task in different environments.
  *
  * E.g., benchmarking the predict() call of MobileNetV2 on
  * node-libtensorflow-cpu and python-tensorflow-cpu.
@@ -216,7 +216,8 @@ export type MultiEnvironmentTaskLog = {
 };
 
 /**
- * Log from benchmarking a number of tasks, each running on a number of backend.
+ * Log from benchmarking a number of tasks, each running on a number of
+ * environments.
  *
  * E.g., benchmarking the predict() and fit() call of MobileNetV2,
  * each of which is benchmarked on node-libtensorflow-cpu and
@@ -231,7 +232,7 @@ export type TaskGroupLog = {
  *
  * The `data` field poitns to a collection of task groups (e.g., a collection
  * of models), each of which involves multiple tasks. Each task may involve
- * multiple backends.
+ * multiple environments.
  */
 export interface SuiteLog {
   data: {[taskGroupName: string]: TaskGroupLog};
