@@ -17,9 +17,8 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {TensorLike} from '@tensorflow/tfjs-core/dist/types';
+import {TensorLike} from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
-
 import {iteratorFromConcatenated, iteratorFromFunction, iteratorFromItems, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './iterators/lazy_iterator';
 import {DataElement, DatasetContainer} from './types';
 import {canTensorify, deepMapAndAwaitAll, DeepMapResult, isIterable} from './util/deep_map';

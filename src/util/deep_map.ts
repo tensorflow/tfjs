@@ -17,7 +17,6 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {isTypedArray} from '@tensorflow/tfjs-core/dist/util';
 import {isPrimitive} from 'util';
 
 // tslint:disable:no-any
@@ -265,5 +264,5 @@ export function isIterable(obj: any): boolean {
 export function canTensorify(obj: any): boolean {
   return obj == null || isPrimitive(obj) || Array.isArray(obj) ||
       (typeof obj === 'object' && (obj instanceof tf.Tensor)) ||
-      isTypedArray(obj);
+      tf.util.isTypedArray(obj);
 }
