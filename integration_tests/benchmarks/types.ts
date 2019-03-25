@@ -229,11 +229,12 @@ export type TaskGroupLog = {
 /**
  * Log from a suite of task groups.
  *
- * E.g., this can be a collection of multiple models, each of which involves
- * multiple tasks. Each task may involve multiple backends.
+ * The `data` field poitns to a collection of task groups (e.g., a collection
+ * of models), each of which involves multiple tasks. Each task may involve
+ * multiple backends.
  */
 export type SuiteLog = {
-  data: TaskGroupLog;
+  data: {[taskGroupName: string]: TaskGroupLog};
 
   metadata: BenchmarkMetadata;
 };
