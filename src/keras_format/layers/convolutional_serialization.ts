@@ -74,7 +74,28 @@ export interface UpSampling2DLayerConfig extends LayerConfig {
 export type UpSampling2DLayerSerialization =
     BaseLayerSerialization<'UpSampling2D', UpSampling2DLayerConfig>;
 
-export type ConvolutionalSerialization =
+// Update convolutionalLayerClassNames below in concert with this.
+export type ConvolutionalLayerSerialization =
     Conv1DLayerSerialization|Conv2DLayerSerialization|
     Conv2DTransposeLayerSerialization|SeparableConv2DLayerSerialization|
     Cropping2DLayerSerialization|UpSampling2DLayerSerialization;
+
+export type ConvolutionalLayerClassName =
+    ConvolutionalLayerSerialization['class_name'];
+
+// We can't easily extract a string[] from the string union type, but we can
+// recapitulate the list, enforcing at compile time that the values are valid.
+
+/**
+ * A string array of valid ConvolutionalLayer class names.
+ *
+ * This is guaranteed to match the `ConvolutionalLayerClassName` union type.
+ */
+export const convolutionalLayerClassNames: ConvolutionalLayerClassName[] = [
+  'Conv1D',
+  'Conv2D',
+  'Conv2DTranspose',
+  'Cropping2D',
+  'SeparableConv2D',
+  'UpSampling2D',
+];

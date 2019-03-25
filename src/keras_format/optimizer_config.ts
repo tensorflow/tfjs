@@ -31,21 +31,24 @@ export type AdadeltaSerialization =
     BaseSerialization<'AdadeltaOptimizer', AdadeltaOptimizerConfig>;
 
 export type AdagradOptimizerConfig = {
-  learning_rate: number; initial_accumulator_value: number;
+  learning_rate: number;
+  initial_accumulator_value?: number;
 };
 
 export type AdagradSerialization =
     BaseSerialization<'AdagradOptimizer', AdagradOptimizerConfig>;
 
 export type AdamOptimizerConfig = {
-  learning_rate: number; beta1: number; beta2: number; epsilon: number;
+  learning_rate: number; beta1: number; beta2: number;
+  epsilon?: number;
 };
 
 export type AdamSerialization =
     BaseSerialization<'AdamOptimizer', AdamOptimizerConfig>;
 
 export type AdamaxOptimizerConfig = {
-  learning_rate: number; beta1: number; beta2: number; epsilon: number;
+  learning_rate: number; beta1: number; beta2: number;
+  epsilon?: number;
   decay?: number;
 };
 
@@ -54,7 +57,8 @@ export type AdamaxSerialization =
 
 export type MomentumOptimizerConfig = {
   // extends SGDOptimizerConfig {
-  learning_rate: number; momentum: number; use_nesterov: boolean;
+  learning_rate: number; momentum: number;
+  use_nesterov?: boolean;
 };
 
 export type MomentumSerialization =
@@ -86,8 +90,7 @@ export type OptimizerSerialization = AdadeltaSerialization|AdagradSerialization|
 export type OptimizerClassName = OptimizerSerialization['class_name'];
 
 // We can't easily extract a string[] from the string union type, but we can
-// recapitulate the list, enforcing at compile time that the values are valid
-// and that we have the right number of them.
+// recapitulate the list, enforcing at compile time that the values are valid.
 
 /**
  * A string array of valid Optimizer class names.

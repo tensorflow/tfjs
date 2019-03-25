@@ -58,6 +58,29 @@ export interface SoftmaxLayerConfig extends LayerConfig {
 export type SoftmaxLayerSerialization =
     BaseLayerSerialization<'Softmax', SoftmaxLayerConfig>;
 
+// Update advancedActivationLayerClassNames below in concert with this.
 export type AdvancedActivationLayerSerialization = ReLULayerSerialization|
     LeakyReLULayerSerialization|PReLULayerSerialization|ELULayerSerialization|
     ThresholdedReLULayerSerialization|SoftmaxLayerSerialization;
+
+export type AdvancedActivationLayerClassName =
+    AdvancedActivationLayerSerialization['class_name'];
+
+// We can't easily extract a string[] from the string union type, but we can
+// recapitulate the list, enforcing at compile time that the values are valid.
+
+/**
+ * A string array of valid AdvancedActivationLayer class names.
+ *
+ * This is guaranteed to match the `AdvancedActivationLayerClassName` union
+ * type.
+ */
+export const advancedActivationLayerClassNames:
+    AdvancedActivationLayerClassName[] = [
+      'ReLU',
+      'LeakyReLU',
+      'PReLU',
+      'ELU',
+      'ThresholdedReLU',
+      'Softmax',
+    ];

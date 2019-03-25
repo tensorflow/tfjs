@@ -41,7 +41,28 @@ export interface DotLayerConfig extends LayerConfig {
 export type DotLayerSerialization =
     BaseLayerSerialization<'Dot', DotLayerConfig>;
 
+// Update mergeLayerClassNames below in concert with this.
 export type MergeLayerSerialization =
     AddLayerSerialization|MultiplyLayerSerialization|AverageLayerSerialization|
     MaximumLayerSerialization|MinimumLayerSerialization|
     ConcatenateLayerSerialization|DotLayerSerialization;
+
+export type MergeLayerClassName = MergeLayerSerialization['class_name'];
+
+// We can't easily extract a string[] from the string union type, but we can
+// recapitulate the list, enforcing at compile time that the values are valid.
+
+/**
+ * A string array of valid MergeLayer class names.
+ *
+ * This is guaranteed to match the `MergeLayerClassName` union type.
+ */
+export const mergeLayerClassNames: MergeLayerClassName[] = [
+  'Add',
+  'Average',
+  'Concatenate',
+  'Dot',
+  'Maximum',
+  'Minimum',
+  'Multiply',
+];
