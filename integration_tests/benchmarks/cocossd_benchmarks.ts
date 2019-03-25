@@ -16,22 +16,27 @@
  */
 import * as tf from '@tensorflow/tfjs';
 
-import {BenchmarkTest} from './types';
+import {BenchmarkModelTest} from './types';
 import * as util from './util';
 
 const COCOSSD_MODEL_PATH =
     // tslint:disable-next-line:max-line-length
     'https://storage.googleapis.com/tfjs-models/savedmodel/coco-ssd-mobilenet_v1/model.json';
 
-export class CoCoSSDBenchmark implements BenchmarkTest {
+export class CoCoSSDBenchmark implements BenchmarkModelTest {
+  private model: tf.GraphModel;
+
+  async loadModel() {
+    this.model = await tf.loadGraphModel(COCOSSD_MODEL_PATH);
+  }
+
   async run(size: number): Promise<number> {
     tf.setBackend('webgl');
 
-    const model = await tf.loadGraphModel(COCOSSD_MODEL_PATH);
     const zeros = tf.zeros([1, 224, 224, 3]);
 
     const benchmark = async () =>
-        model.executeAsync(zeros) as Promise<tf.Tensor[]>;
+        this.model.executeAsync(zeros) as Promise<tf.Tensor[]>;
 
     const time = await util.asyncBenchmark(benchmark);
 

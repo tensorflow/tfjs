@@ -30,6 +30,7 @@ describe('benchmark models', () => {
     const runs = 20;
 
     const benchmark = new MobileNetV1GPUBenchmark();
+    await benchmark.loadModel();
 
     await test_util.benchmarkAndLog(
         'mobilenet_v1', size => benchmark.run(size), sizes,
@@ -41,6 +42,7 @@ describe('benchmark models', () => {
     const runs = 20;
 
     const benchmark = new UniversalSentenceEncoderBenchmark();
+    await benchmark.loadModel();
 
     await test_util.benchmarkAndLog(
         'use', size => benchmark.run(size), sizes, size => '41', runs);
@@ -51,6 +53,7 @@ describe('benchmark models', () => {
     const runs = 20;
 
     const benchmark = new CoCoSSDBenchmark();
+    await benchmark.loadModel();
 
     await test_util.benchmarkAndLog(
         'cocossd', size => benchmark.run(size), sizes, size => '224', runs);

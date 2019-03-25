@@ -16,18 +16,23 @@
  */
 import * as tf from '@tensorflow/tfjs';
 
-import {BenchmarkTest} from './types';
+import {BenchmarkModelTest} from './types';
 import * as util from './util';
 
 const USE_MODEL_PATH =
     // tslint:disable-next-line:max-line-length
     'https://storage.googleapis.com/tfjs-models/savedmodel/universal_sentence_encoder/model.json';
 
-export class UniversalSentenceEncoderBenchmark implements BenchmarkTest {
+export class UniversalSentenceEncoderBenchmark implements BenchmarkModelTest {
+  private model: tf.GraphModel;
+
+  async loadModel() {
+    this.model = await tf.loadGraphModel(USE_MODEL_PATH);
+  }
+
   async run(size: number): Promise<number> {
     tf.setBackend('webgl');
 
-    const model = await tf.loadGraphModel(USE_MODEL_PATH);
     const indices = tf.tensor2d(
         [
           0,  0, 0,  1, 0, 2, 0, 3, 0, 4, 1, 0, 1, 1, 1, 2, 1, 3, 1, 4, 1,
@@ -46,7 +51,7 @@ export class UniversalSentenceEncoderBenchmark implements BenchmarkTest {
         'int32');
 
     const benchmark = async () =>
-        model.executeAsync({indices, values}) as Promise<tf.Tensor>;
+        this.model.executeAsync({indices, values}) as Promise<tf.Tensor>;
 
     const time = await util.asyncBenchmark(benchmark);
 

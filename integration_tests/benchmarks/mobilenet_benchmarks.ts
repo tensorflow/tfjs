@@ -16,21 +16,26 @@
  */
 import * as tf from '@tensorflow/tfjs';
 
-import {BenchmarkTest} from './types';
+import {BenchmarkModelTest} from './types';
 import * as util from './util';
 
 const MOBILENET_MODEL_PATH =
     // tslint:disable-next-line:max-line-length
     'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json';
 
-export class MobileNetV1GPUBenchmark implements BenchmarkTest {
+export class MobileNetV1GPUBenchmark implements BenchmarkModelTest {
+  private model: tf.Model;
+
+  async loadModel() {
+    this.model = await tf.loadLayersModel(MOBILENET_MODEL_PATH);
+  }
+
   async run(size: number): Promise<number> {
     tf.setBackend('webgl');
 
-    const model = await tf.loadLayersModel(MOBILENET_MODEL_PATH);
     const zeros = tf.zeros([1, 224, 224, 3]);
 
-    const benchmark = () => model.predict(zeros) as tf.Tensor;
+    const benchmark = () => this.model.predict(zeros) as tf.Tensor;
 
     const time = await util.benchmark(benchmark);
 
