@@ -44,13 +44,13 @@ export interface BenchmarkLog {
  * =======================================================
  */
 
-export type TensorFlowJSCodeRepository =
+export type CodeRepository =
     'tfjs'|'tfjs-converter'|'tfjs-core'|'tfjs-data'|'tfjs-layers'|'tfjs-node';
 
 /**
  * The git hash code of the related TensorFlow.js code repositories.
  */
-export type BenchmarkHashes = {[repo in TensorFlowJSCodeRepository]: string};
+export type CommitHashes = {[repo in CodeRepository]: string};
 
 /**
  * Metadata for a run of a benchmark suite.
@@ -58,7 +58,7 @@ export type BenchmarkHashes = {[repo in TensorFlowJSCodeRepository]: string};
  * See the `SuiteLog` interface below.
  */
 export interface BenchmarkMetadata {
-  commitHashes: BenchmarkHashes;
+  commitHashes: CommitHashes;
   timestamp: string;
 }
 
@@ -170,7 +170,12 @@ export interface TaskLog {
   /** A timestamp (epoch time) for the benchmark task. */
   timestamp: number;
 
-  /** Arithmetic mean of the wall times from the benchmarked runs. */
+  /**
+   * Arithmetic mean of the wall times from the benchmarked runs.
+   * 
+   * This is the primary metric displayed by the dashboard. Use caution
+   * when making change to this field.
+   */
   averageTimeMs: number;
 
   /** Median of the wall times from the benchmarked runs.*/
