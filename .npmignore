@@ -1,6 +1,7 @@
 .rpt2_cache/
 .vscode/
 src/**/*_test.ts
+src/test_node.ts
 demo/
 scripts/
 coverage/
@@ -8,6 +9,7 @@ node_modules/
 karma.conf.js
 dist/**/*_test.js
 dist/**/*_test.d.ts
+dist/test_node.js
 *.tgz
 .travis.yml
 .npmignore

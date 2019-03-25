@@ -16,8 +16,7 @@
  * =============================================================================
  */
 
-import {DataType} from '@tensorflow/tfjs-core';
-import {TensorContainer, TensorContainerArray, TensorContainerObject} from '@tensorflow/tfjs-core/dist/tensor_types';
+import {DataType, TensorContainer, TensorContainerArray, TensorContainerObject} from '@tensorflow/tfjs-core';
 import {Dataset} from './dataset';
 import {LazyIterator} from './iterators/lazy_iterator';
 

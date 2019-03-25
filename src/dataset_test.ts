@@ -17,9 +17,8 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+import {TensorContainerObject} from '@tensorflow/tfjs-core';
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
-import {TensorContainerObject} from '@tensorflow/tfjs-core/dist/tensor_types';
-
 import {array} from './dataset';
 import * as tfd from './index';
 import {iteratorFromItems, LazyIterator} from './iterators/lazy_iterator';

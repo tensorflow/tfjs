@@ -17,7 +17,6 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {getTensorsInContainer, isTensorInList} from '@tensorflow/tfjs-core/dist/tensor_util';
 import * as seedrandom from 'seedrandom';
 import {DataElement, IteratorContainer} from '../types';
 import {deepMapAndAwaitAll, DeepMapAsyncResult, DeepMapResult, deepZip, zipToList} from '../util/deep_map';
@@ -712,7 +711,7 @@ class MapIterator<I, O> extends LazyIterator<O> {
     if (item.done) {
       return {value: null, done: true};
     }
-    const inputTensors = getTensorsInContainer(item.value as {});
+    const inputTensors = tf.tensor_util.getTensorsInContainer(item.value as {});
     // Careful: the transform may mutate the item in place.
     // That's why we have to remember the input Tensors above, and then
     // below dispose only those that were not passed through to the output.
@@ -720,12 +719,12 @@ class MapIterator<I, O> extends LazyIterator<O> {
     // any intermediate Tensors.  Here we are concerned only about the
     // inputs.
     const mapped = this.transform(item.value);
-    const outputTensors = getTensorsInContainer(mapped as {});
+    const outputTensors = tf.tensor_util.getTensorsInContainer(mapped as {});
 
     // TODO(soergel) faster intersection
     // TODO(soergel) move to tf.disposeExcept(in, out)?
     for (const t of inputTensors) {
-      if (!isTensorInList(t, outputTensors)) {
+      if (!tf.tensor_util.isTensorInList(t, outputTensors)) {
         t.dispose();
       }
     }
@@ -793,7 +792,7 @@ class AsyncMapIterator<I, O> extends LazyIterator<O> {
     if (item.done) {
       return {value: null, done: true};
     }
-    const inputTensors = getTensorsInContainer(item.value as {});
+    const inputTensors = tf.tensor_util.getTensorsInContainer(item.value as {});
     // Careful: the transform may mutate the item in place.
     // That's why we have to remember the input Tensors above, and then
     // below dispose only those that were not passed through to the output.
@@ -801,12 +800,12 @@ class AsyncMapIterator<I, O> extends LazyIterator<O> {
     // any intermediate Tensors.  Here we are concerned only about the
     // inputs.
     const mapped = await this.transform(item.value);
-    const outputTensors = getTensorsInContainer(mapped as {});
+    const outputTensors = tf.tensor_util.getTensorsInContainer(mapped as {});
 
     // TODO(soergel) faster intersection
     // TODO(soergel) move to tf.disposeExcept(in, out)?
     for (const t of inputTensors) {
-      if (!isTensorInList(t, outputTensors)) {
+      if (!tf.tensor_util.isTensorInList(t, outputTensors)) {
         t.dispose();
       }
     }
@@ -891,20 +890,21 @@ class FlatmapIterator<I, O> extends OneToManyIterator<O> {
     if (item.done) {
       return false;
     }
-    const inputTensors = getTensorsInContainer(item.value as {});
+    const inputTensors = tf.tensor_util.getTensorsInContainer(item.value as {});
     // Careful: the transform may mutate the item in place.
     // that's why we have to remember the input Tensors above, and then
     // below dispose only those that were not passed through to the output.
     // Note too that the transform function is responsible for tidying any
     // intermediate Tensors.  Here we are concerned only about the inputs.
     const mappedArray = this.transform(item.value);
-    const outputTensors = getTensorsInContainer(mappedArray as {});
+    const outputTensors =
+        tf.tensor_util.getTensorsInContainer(mappedArray as {});
     this.outputQueue.pushAll(mappedArray);
 
     // TODO(soergel) faster intersection, and deduplicate outputTensors
     // TODO(soergel) move to tf.disposeExcept(in, out)?
     for (const t of inputTensors) {
-      if (!isTensorInList(t, outputTensors)) {
+      if (!tf.tensor_util.isTensorInList(t, outputTensors)) {
         t.dispose();
       }
     }
