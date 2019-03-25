@@ -120,7 +120,7 @@ export interface NodeEnvironmentInfo extends ServerSideEnvironmentInfo {
 }
 
 /** Metadata specific to the Python environment. */
-export interface PythonEnvironmentBackendInfo extends
+export interface PythonEnvironmentInfo extends
     ServerSideEnvironmentInfo {
   pythonVersion?: string;
 
