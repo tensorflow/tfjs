@@ -24,7 +24,7 @@ declare let __karma__: any;
 import 'firebase/auth';
 import 'firebase/database';
 // tslint:disable-next-line:max-line-length
-import {ApplicationConfig, BenchmarkRunEntry, BenchmarkEntry} from './firebase_types';
+import {ApplicationConfig, BenchmarkRunEntry, BenchmarkEntry, BenchmarkHashes} from './firebase_types';
 
 export const karmaFlags = parseKarmaFlags(__karma__.config.args);
 
@@ -66,8 +66,12 @@ export async function logBenchmarkRun(
   const entry: BenchmarkEntry = {
     userAgent: navigator.userAgent,
     runs,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    hashes: karmaFlags.hashes
   };
+
+  console.log('ENTRY');
+  console.log(entry);
 
   if (navigator.hardwareConcurrency != null) {
     entry.hardwareConcurrency = navigator.hardwareConcurrency;
@@ -75,42 +79,36 @@ export async function logBenchmarkRun(
 
   const entryDisplay: string = JSON.stringify(entry, undefined, 2);
   const ref = `${humanReadableDate}/${benchmarkName}/${karmaFlags.browsers}`;
-  // if (!karmaFlags.travis) {
-  console.log('Not inside travis so not querying firebase. Would have added: ');
-  console.log(ref);
-  console.log(entryDisplay);
-  // } else {
-  //   console.log('Writing to firebase:');
-  //   console.log(ref);
-  //   console.log(entryDisplay);
-  //   return new Promise<void>(resolve => {
-  //     firebase.database()
-  //         .ref(ref)
-  //         // We set the database entry to be an array of one value so in the
-  //         // future we can benchmark multiple devices.
-  //         .set(entry, error => {
-  //           if (error) {
-  //             throw new Error(`Write to firebase failed with error:
-  //             ${error}`);
-  //           }
-  //           resolve();
-  //         });
-  //   });
-  // }
-}
-
-interface Hashes {
-  'TF_CORE'?: string;
-  'TF_CONVERTER'?: string;
-  'TF_LAYERS'?: string;
-  'TF_DATA'?: string;
+  if (!karmaFlags.travis) {
+    console.log(
+        'Not inside travis so not querying firebase. Would have added: ');
+    console.log(ref);
+    console.log(entryDisplay);
+  } else {
+    console.log('Writing to firebase:');
+    console.log(ref);
+    console.log(entryDisplay);
+    return new Promise<void>(resolve => {
+      firebase.database()
+          .ref(ref)
+          // We set the database entry to be an array of one value so in the
+          // future we can benchmark multiple devices.
+          .set(entry, error => {
+            if (error) {
+              throw new Error(`Write to firebase failed with error:
+              ${error}`);
+            }
+            resolve();
+          });
+    });
+  }
 }
 
 interface KarmaFlags {
   apiKey: string;
   travis: boolean;
   browsers: string;
-  hashes: Hashes;
+  hashes: BenchmarkHashes;
 }
 
 export function parseKarmaFlags(args: string[]): KarmaFlags {
