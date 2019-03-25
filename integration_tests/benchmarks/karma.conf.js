@@ -30,6 +30,12 @@ module.exports = function(config) {
   if (config.travis) {
     args.push('--travis');
   }
+  if(config.browsers) {
+    args.push('--browsers', config.browsers);
+  }
+  if (config.hashes) {
+    args.push('--hashes', config.hashes);
+  }
 
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
@@ -47,9 +53,11 @@ module.exports = function(config) {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY
     },
-    captureTimeout: 120000,
+    captureTimeout: 10000000,
+    browserDisconnectTimeout : 10000000,
+    browserDisconnectTolerance : 10,
     reportSlowerThan: 500,
-    browserNoActivityTimeout: 180000,
+    browserNoActivityTimeout: 10000000,
     customLaunchers: {
       bs_chrome_mac: {
         base: 'BrowserStack',
@@ -57,6 +65,27 @@ module.exports = function(config) {
         browser_version: 'latest',
         os: 'OS X',
         os_version: 'High Sierra'
+      },
+      bs_firefox_mac: {
+        base: 'BrowserStack',
+        browser: 'firefox',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_safari_mac: {
+        base: 'BrowserStack',
+        browser: 'safari',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_ios_11: {
+        base: 'BrowserStack',
+        device: 'iPhone X',
+        os: 'iOS',
+        os_version: '11.0',
+        real_mobile: true
       }
     },
     client: {

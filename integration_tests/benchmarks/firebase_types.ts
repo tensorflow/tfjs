@@ -24,10 +24,16 @@ export interface ApplicationConfig {
   messagingSenderId?: string;
 }
 
+export interface BenchmarkHashes {
+  [repo: string]: string;
+}
+
 export interface BenchmarkEntry {
   userAgent: string;
   timestamp: number;
   runs: {[params: string]: BenchmarkRunEntry};
+  hashes: BenchmarkHashes;
+  hardwareConcurrency?: number;
 }
 export interface BenchmarkRunEntry {
   averageTimeMs: number;

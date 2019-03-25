@@ -6,6 +6,7 @@ Please reach out to us if you'd like to put your project on the list.
 
 ## Demos & Applications
 
+- [Honkling](https://castorini.github.io/honkling/) - An in-browser keyword spotting system by Jaejun Lee, Raphael Tang, Jimmy Lin
 - [TensorSpace.js](https://github.com/tensorspace-team/tensorspace) - A 3D visualization framework for neural networks, featuring interactive and intuitive display of models in the browser. Supports pre-trained models from TensorFlow, Keras, and TensorFlow.js.
 - [Magenta Studio](https://magenta.tensorflow.org/studio) - A collection of music plugins built on Magenta’s open source tools and models using cutting-edge machine learning techniques for music generation.
 - [Move Mirror](https://experiments.withgoogle.com/collection/ai/move-mirror/view) - An AI Experiment with Pose Estimation in the Browser using TensorFlow.js
@@ -38,6 +39,8 @@ Please reach out to us if you'd like to put your project on the list.
 - [High School Level Tensorflowjs](http://rocksetta.com/tensorflowjs/) - Greater than 40 demos that can be online edited made as simply as possible using single web pages. All examples use the [<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs">](https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.js) specific version tag so the pages always work and no installation is needed - By Jeremy Ellis.
 - [Gboard Physical Handwriting Version](https://landing.google.co.jp/tegaki/) - You can input a character by drawing it on your keyboard.
 - [AICAMCAM](https://aicamcam.github.io) - A browser-based webcam video recording service with people/dog/cat detection functionality.
+- [trynottolaugh](http://trynottolaugh.net) - Try not to laugh game with face landmark detection if you laugh during video you lose!
+- [Neuroglancer](https://github.com/google/neuroglancer) - A browser-based app for examining 3D volumetric neuroimaging data.
 
 ## Tutorials
 

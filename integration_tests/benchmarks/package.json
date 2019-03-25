@@ -35,10 +35,12 @@
     "yalc": "^1.0.0-pre.23"
   },
   "scripts": {
+    "build": "tsc",
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
-    "benchmark-local": "./benchmarks.sh",
-    "benchmark-travis": "./benchmark_travis.sh"
+    "benchmark-local": "./benchmarks.sh --firebaseKey $FIREBASE_KEY",
+    "benchmark-travis": "./benchmark_travis.sh",
+    "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --firebaseKey $FIREBASE_KEY --hostname='bs-local.com'"
   },
   "license": "Apache-2.0",
   "engines": {
