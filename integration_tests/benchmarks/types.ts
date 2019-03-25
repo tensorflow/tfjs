@@ -37,8 +37,8 @@ export interface BenchmarkLog {
 /**
  * =======================================================
  * New types to be used by tfjs-layers and tfjs-node
- * bencharmsk.
- * 
+ * benchmarks.
+ *
  * We plan to migrate the tfjs-core benchmarks to the new
  * type system as well.
  * =======================================================
@@ -54,7 +54,7 @@ export type BenchmarkHashes = {[repo in TensorFlowJSCodeRepository]: string};
 
 /**
  * Metadata for a run of a benchmark suite.
- * 
+ *
  * See the `SuiteLog` interface below.
  */
 export interface BenchmarkMetadata {
@@ -75,7 +75,7 @@ export interface HardwareInfo {
 
 /**
  * Enumerates all environments that TensorFlow.js benchmarks may happen.
- * 
+ *
  * This type union is meant to be extended in the future.
  */
 export type BenchmarkEnvironmentType = 'chrome-mac'|'firefox-mac'|'safari-mac'|
