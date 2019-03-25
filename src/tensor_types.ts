@@ -20,14 +20,14 @@ import {DataType} from './types';
 
 /** @docalias {[name: string]: Tensor} */
 export type NamedTensorMap = {
-  [name: string]: Tensor
+  [name: string]: Tensor;
 };
 
 export type NamedVariableMap = {
   [name: string]: Variable;
 };
 
-export type GradSaveFunc = (map: NamedTensorMap) => void;
+export type GradSaveFunc = (save: Tensor[]) => void;
 
 /**
  * @docalias void|number|string|TypedArray|Tensor|Tensor[]|{[key:

@@ -17,7 +17,6 @@
 
 import {deprecationWarn, ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
 import * as util from '../util';
@@ -274,8 +273,8 @@ function batchNorm_<R extends Rank>(
     x4D = $x as Tensor4D;
   }
 
-  const der = (dy: Tensor, saved: NamedTensorMap) => {
-    const {$x, $mean, $variance, $scale} = saved;
+  const der = (dy: Tensor, saved: Tensor[]) => {
+    const [$x, $mean, $variance, $scale] = saved;
     const scaleValue = $scale == null ? scalar(1) : $scale;
     const reductionAxes = getReductionAxes($mean.shape, x4D.shape);
     const tileShape: number[] = [];
@@ -347,7 +346,7 @@ function batchNorm_<R extends Rank>(
         x4D, batchnormReshape4D($mean), batchnormReshape4D($variance),
         varianceEpsilon, batchnormReshape4D($scale),
         batchnormReshape4D($offset));
-    save({$x, $mean, $variance, $scale});
+    save([$x, $mean, $variance, $scale]);
     return res;
   }, {$x, $mean, $variance, $scale, $offset}, der);
   return res.reshape($x.shape);

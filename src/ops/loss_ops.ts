@@ -17,7 +17,7 @@
 
 import {customGrad} from '../globals';
 import {Tensor} from '../tensor';
-import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
+import {GradSaveFunc} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
@@ -417,13 +417,13 @@ function softmaxCrossEntropyWithLogits_<T extends Tensor, O extends Tensor>(
         const keepDims = true;
         const lse = logits.logSumExp([dim], keepDims);
         const logResult = logits.toFloat().sub(lse);
-        save({labels, logResult});
+        save([labels, logResult]);
 
         const costVector = logResult.mul(labels).neg();
         const value = costVector.sum([dim]) as O;
 
-        const gradFunc = (dy: O, saved: NamedTensorMap) => {
-          const {labels, logResult} = saved;
+        const gradFunc = (dy: O, saved: Tensor[]) => {
+          const [labels, logResult] = saved;
           const dyShape = expandShapeToKeepDim(dy.shape, [dim]);
           return [
             dy.reshape(dyShape).mul(labels.toFloat().sub(logResult.exp())),

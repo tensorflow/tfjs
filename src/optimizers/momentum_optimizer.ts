@@ -88,16 +88,17 @@ export class MomentumOptimizer extends SGDOptimizer {
 
   getConfig(): ConfigDict {
     return {
-      learningRate: this.learningRate,
-      momentum: this.momentum,
-      useNesterov: this.useNesterov
+      'learningRate': this.learningRate,
+      'momentum': this.momentum,
+      'useNesterov': this.useNesterov
     };
   }
 
   /** @nocollapse */
   static fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
-    return new cls(config.learningRate, config.momentum, config.useNesterov);
+    return new cls(
+        config['learningRate'], config['momentum'], config['useNesterov']);
   }
 }
 registerClass(MomentumOptimizer);

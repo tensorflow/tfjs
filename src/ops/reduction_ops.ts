@@ -18,7 +18,6 @@
 import {ENV} from '../environment';
 import {customGrad} from '../globals';
 import {Tensor} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
@@ -319,11 +318,11 @@ function min_<T extends Tensor>(
     axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
   }
 
-  const grad = (dy: T, saved: NamedTensorMap) =>
-      gradForMinAndMax(dy, saved.y, saved.xOrig, origAxes, permutedAxes);
+  const grad = (dy: T, saved: Tensor[]) =>
+      gradForMinAndMax(dy, saved[1], saved[0], origAxes, permutedAxes);
   let res = ENV.engine.runKernel((backend, save) => {
     const y = backend.min($x, axes);
-    save({xOrig, y});
+    save([xOrig, y]);
     return y as T;
   }, {$x}, grad);
   if (keepDims) {
@@ -374,11 +373,11 @@ function max_<T extends Tensor>(
     axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
   }
 
-  const grad = (dy: T, saved: NamedTensorMap) =>
-      gradForMinAndMax(dy, saved.y, saved.xOrig, origAxes, permutedAxes);
+  const grad = (dy: T, saved: Tensor[]) =>
+      gradForMinAndMax(dy, saved[1], saved[0], origAxes, permutedAxes);
   let res = ENV.engine.runKernel((backend, save) => {
     const y = backend.max($x, axes);
-    save({xOrig, y});
+    save([xOrig, y]);
     return y;
   }, {$x}, grad);
   if (keepDims) {
@@ -424,13 +423,13 @@ function argMin_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
     $x = $x.transpose(permutedAxes);
     axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
   }
-  const grad = (dy: T, saved: NamedTensorMap) => {
-    const {$x} = saved;
+  const grad = (dy: T, saved: Tensor[]) => {
+    const [$x] = saved;
     return {$x: () => zerosLike($x)};
   };
   return ENV.engine.runKernel((backend, save) => {
     const res = backend.argMin($x, axes[0]);
-    save({$x});
+    save([$x]);
     return res;
   }, {$x}, grad) as T;
 }
@@ -470,13 +469,13 @@ function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
     $x = $x.transpose(permutedAxes);
     axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
   }
-  const grad = (dy: T, saved: NamedTensorMap) => {
-    const {$x} = saved;
+  const grad = (dy: T, saved: Tensor[]) => {
+    const [$x] = saved;
     return {$x: () => zerosLike($x)};
   };
   return ENV.engine.runKernel((backend, save) => {
     const res = backend.argMax($x, axes[0]);
-    save({$x});
+    save([$x]);
     return res;
   }, {$x}, grad) as T;
 }

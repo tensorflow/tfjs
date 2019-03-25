@@ -17,7 +17,6 @@
 
 import {ENV} from '../environment';
 import {Tensor, Tensor1D} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, isInt, parseAxisParam} from '../util';
@@ -54,8 +53,8 @@ function unsortedSegmentSum_<T extends Tensor>(
       convertToTensor(segmentIds, 'segmentIds', 'unsortedSegmentSum', 'int32');
   assert(isInt(numSegments), () => 'numSegments must be of dtype int');
 
-  const gradFunc = (dy: T, saved: NamedTensorMap) => {
-    const {$segmentIds} = saved;
+  const gradFunc = (dy: T, saved: Tensor[]) => {
+    const [$segmentIds] = saved;
     const derX = () => {
       return gatherDropNegatives(dy, $segmentIds as Tensor1D);
     };
@@ -63,7 +62,7 @@ function unsortedSegmentSum_<T extends Tensor>(
   };
   return ENV.engine.runKernel((backend, save) => {
     const res = backend.unsortedSegmentSum($x, $segmentIds, numSegments);
-    save({$segmentIds});
+    save([$segmentIds]);
     return res;
   }, {$x}, gradFunc) as T;
 }
@@ -96,8 +95,8 @@ function gather_<T extends Tensor>(
   axis = parseAxisParam(axis, $x.shape)[0];
   const shapeInfo = collectGatherOpShapeInfo($x, $indices, axis);
 
-  const grad = (dy: T, saved: NamedTensorMap) => {
-    const {$indices} = saved;
+  const grad = (dy: T, saved: Tensor[]) => {
+    const [$indices] = saved;
     const derX = () => {
       const paramsShape = $x.shape;
       const indicesSize = $indices.size;
@@ -131,7 +130,7 @@ function gather_<T extends Tensor>(
   };
   return (ENV.engine.runKernel((backend, save) => {
            const res = backend.gather($x, $indices.flatten(), axis);
-           save({$indices});
+           save([$indices]);
            return res;
          }, {$x}, grad)).reshape(shapeInfo.outputShape) as T;
 }

@@ -158,11 +158,11 @@ export class RMSPropOptimizer extends Optimizer {
 
   getConfig(): ConfigDict {
     return {
-      learningRate: this.learningRate,
-      decay: this.decay,
-      momentum: this.momentum,
-      epsilon: this.epsilon,
-      centered: this.centered
+      'learningRate': this.learningRate,
+      'decay': this.decay,
+      'momentum': this.momentum,
+      'epsilon': this.epsilon,
+      'centered': this.centered
     };
   }
 
@@ -170,8 +170,8 @@ export class RMSPropOptimizer extends Optimizer {
   static fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(
-        config.learningRate, config.decay, config.momentum, config.epsilon,
-        config.centered);
+        config['learningRate'], config['decay'], config['momentum'],
+        config['epsilon'], config['centered']);
   }
 }
 registerClass(RMSPropOptimizer);
