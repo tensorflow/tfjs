@@ -132,8 +132,8 @@ export function parseKarmaFlags(args: string[]): KarmaFlags {
     }
     if (args[i] === '--hashes') {
       console.log('FOUND HASHES');
-      console.log(args[i + 1])
-      console.log(JSON.parse(args[i + 1]))
+      console.log(args[i + 1]);
+      console.log(JSON.parse(args[i + 1]));
       hashes = JSON.parse(args[i + 1]);
     }
   }
