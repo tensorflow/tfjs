@@ -44,13 +44,13 @@ export interface BenchmarkLog {
  * =======================================================
  */
 
-export type TensorFlowJSCodeRepository =
+export type CodeRepository =
     'tfjs'|'tfjs-converter'|'tfjs-core'|'tfjs-data'|'tfjs-layers'|'tfjs-node';
 
 /**
  * The git hash code of the related TensorFlow.js code repositories.
  */
-export type BenchmarkHashes = {[repo in TensorFlowJSCodeRepository]: string};
+export type CommitHashes = {[repo in CodeRepository]: string};
 
 /**
  * Metadata for a run of a benchmark suite.
@@ -58,7 +58,7 @@ export type BenchmarkHashes = {[repo in TensorFlowJSCodeRepository]: string};
  * See the `SuiteLog` interface below.
  */
 export interface BenchmarkMetadata {
-  commitHashes: BenchmarkHashes;
+  commitHashes: CommitHashes;
   timestamp: string;
 }
 
@@ -120,7 +120,7 @@ export interface NodeEnvironmentInfo extends ServerSideEnvironmentInfo {
 }
 
 /** Metadata specific to the Python environment. */
-export interface PythonEnvironmentBackendInfo extends
+export interface PythonEnvironmentInfo extends
     ServerSideEnvironmentInfo {
   pythonVersion?: string;
 
@@ -170,7 +170,12 @@ export interface TaskLog {
   /** A timestamp (epoch time) for the benchmark task. */
   timestamp: number;
 
-  /** Arithmetic mean of the wall times from the benchmarked runs. */
+  /**
+   * Arithmetic mean of the wall times from the benchmarked runs.
+   * 
+   * This is the primary metric displayed by the dashboard. Use caution
+   * when making change to this field.
+   */
   averageTimeMs: number;
 
   /** Median of the wall times from the benchmarked runs.*/
@@ -201,7 +206,7 @@ export interface ModelTaskLog extends TaskLog {
 }
 
 /**
- * Log from benchmarking the same task on different backends.
+ * Log from benchmarking the same task in different environments.
  *
  * E.g., benchmarking the predict() call of MobileNetV2 on
  * node-libtensorflow-cpu and python-tensorflow-cpu.
@@ -211,7 +216,8 @@ export type MultiEnvironmentTaskLog = {
 };
 
 /**
- * Log from benchmarking a number of tasks, each running on a number of backend.
+ * Log from benchmarking a number of tasks, each running on a number of
+ * environments.
  *
  * E.g., benchmarking the predict() and fit() call of MobileNetV2,
  * each of which is benchmarked on node-libtensorflow-cpu and
@@ -224,11 +230,12 @@ export type TaskGroupLog = {
 /**
  * Log from a suite of task groups.
  *
- * E.g., this can be a collection of multiple models, each of which involves
- * multiple tasks. Each task may involve multiple backends.
+ * The `data` field poitns to a collection of task groups (e.g., a collection
+ * of models), each of which involves multiple tasks. Each task may involve
+ * multiple environments.
  */
-export type SuiteLog = {
-  data: TaskGroupLog;
+export interface SuiteLog {
+  data: {[taskGroupName: string]: TaskGroupLog};
 
   metadata: BenchmarkMetadata;
 };
