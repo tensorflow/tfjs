@@ -17,8 +17,9 @@
 
 import * as math from 'mathjs';
 import * as tf from '@tensorflow/tfjs';
+import * as detectBrowser from 'detect-browser';
 
-import {ModelTaskLog} from '../types';
+import {BenchmarkEnvironmentType, BrowserEnvironmentInfo, ModelTaskLog, MultiEnvironmentTaskLog, SuiteLog, TaskGroupLog} from '../types';
 
 function getRandomInputsAndOutputs(model: tf.Model, batchSize: number):
     {xs: tf.Tensor|tf.Tensor[], ys: tf.Tensor|tf.Tensor[]} {
@@ -52,6 +53,13 @@ async function syncDataAndDispose(tensors: tf.Tensor|tf.Tensor[]) {
     await tensors.data();
   }
   tf.dispose(tensors);
+}
+
+function getBrowserEnvironmentType(): BenchmarkEnvironmentType {
+  const osName = detectBrowser.detectOS(navigator.userAgent).toLowerCase();
+  const browserName = detectBrowser.detect().name.toLowerCase();
+
+  return `${browserName}-${osName}` as BenchmarkEnvironmentType;
 }
 
 describe('TF.js Layers Benchmarks', () => {
@@ -91,9 +99,30 @@ describe('TF.js Layers Benchmarks', () => {
     const {modelNames, predictNumBenchmarkRuns, predictNumBurnInRuns} =
         await getBenchmarkModelNamesAndConfig();
 
+    const environmentType = getBrowserEnvironmentType();
+    const environment: BrowserEnvironmentInfo = {
+      type: environmentType,
+      userAgent: navigator.userAgent
+    };
+
+    const suiteLog: SuiteLog = {
+      data: {},
+      metadata: {
+        commitHashes: {
+          'tfjs': 'foo',  // TODO(cais): Do not hard-code.
+          'tfjs-core': 'foo',
+          'tfjs-converter': 'foo',
+          'tfjs-layers': 'foo',
+          'tfjs-data': 'foo'
+        },
+        timestamp: new Date().toISOString()
+      }
+    };
+
     for (let i = 0; i < modelNames.length; ++i) {
       const modelName = modelNames[i];
-      console.log(`Benchmarking ${modelName}`);
+      console.log(
+          `Benchmark task ${i + 1} of ${modelNames.length}: ${modelName}`);
       const model = await loadModel(modelName);
       const benchmarkData = await loadModelBenchmarkData(modelName);
 
@@ -117,18 +146,29 @@ describe('TF.js Layers Benchmarks', () => {
         ts.push(performance.now() - t0);
       }
 
-      const taskLog: ModelTaskLog = {
-        numBurnInRuns: predictNumBurnInRuns,
+      const modelTaskLog: ModelTaskLog = {
+        modelName,
+        taskName: 'predict',
+        numWarmUpRuns: predictNumBurnInRuns,
         numBenchmarkedRuns: predictNumBenchmarkRuns,
         batchSize,
         averageTimeMs: math.mean(ts),
         medianTimeMs: math.median(ts),
         minTimeMs: math.min(ts),
-        timestamp: new Date().getTime()
+        timestamp: new Date().getTime(),
+        environment
       };
-      console.log(taskLog);
+      const multiEnvironmentTaskLog: MultiEnvironmentTaskLog = {};
+      multiEnvironmentTaskLog[environmentType] = modelTaskLog;
+      const taskGroupLog: TaskGroupLog = {
+        'predict': multiEnvironmentTaskLog
+      };
+      suiteLog.data[modelName] = taskGroupLog;
+  
+      console.log(modelTaskLog);
 
       tf.dispose({xs, ys});
     }
+    console.log(JSON.stringify(suiteLog, null, 2));
   });
 });

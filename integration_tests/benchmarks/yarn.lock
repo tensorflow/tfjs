@@ -258,6 +258,13 @@
     "@tensorflow/tfjs-data" "0.2.3"
     "@tensorflow/tfjs-layers" "0.10.3"
 
+"@types/detect-browser@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@types/detect-browser/-/detect-browser-4.0.0.tgz#5672576f9621aad8773489593fca2e4c57c29fb5"
+  integrity sha512-c2cAqR4G5QL2aPDgzpsk8ck/R+w7djxpe05Z8XYg1Ahfe/Bekb+06PG9zw64T6I1oNWDVM+IAsSbyASVydAdRw==
+  dependencies:
+    detect-browser "*"
+
 "@types/jasmine@~2.5.53":
   version "2.5.54"
   resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-2.5.54.tgz#a6b5f2ae2afb6e0307774e8c7c608e037d491c63"
@@ -1295,6 +1302,11 @@ des.js@^1.0.0:
   dependencies:
     inherits "^2.0.1"
     minimalistic-assert "^1.0.0"
+
+detect-browser@*, detect-browser@~4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/detect-browser/-/detect-browser-4.2.0.tgz#d46bcb3c69b25bd94c4433a3f90b971c22d0b2f8"
+  integrity sha512-x0kNC8p3pVYoiyGwQskqN7iupBe90jWDwLNThPtl8JxftfkdDWMxL+ESzo3JlAR5xBtl6HMqxkA5kk0scFcSRQ==
 
 detect-libc@^1.0.2:
   version "1.0.3"

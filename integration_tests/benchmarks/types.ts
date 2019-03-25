@@ -50,7 +50,7 @@ export type CodeRepository =
 /**
  * The git hash code of the related TensorFlow.js code repositories.
  */
-export type CommitHashes = {[repo in CodeRepository]: string};
+export type CommitHashes = {[repo in CodeRepository]?: string};
 
 /**
  * Metadata for a run of a benchmark suite.
@@ -78,8 +78,9 @@ export interface HardwareInfo {
  *
  * This type union is meant to be extended in the future.
  */
-export type BenchmarkEnvironmentType = 'chrome-mac'|'firefox-mac'|'safari-mac'|
-    'ios-11'|'node-libtensorflow-cpu'|'node-libtensorflow-cuda'|'node-gles'|
+export type BenchmarkEnvironmentType = 'chrome-linux'|'chrome-mac'|
+    'firefox-mac'|'firefox-liux'|'safari-mac'|'ios-11'|
+    'node-libtensorflow-cpu'|'node-libtensorflow-cuda'|'node-gles'|
     'python-tensorflow-cpu'|'python-tensorflow-cuda';
 
 /** Information about a benchmark environment. */
@@ -212,7 +213,7 @@ export interface ModelTaskLog extends TaskLog {
  * node-libtensorflow-cpu and python-tensorflow-cpu.
  */
 export type MultiEnvironmentTaskLog = {
-  [environmentType in BenchmarkEnvironmentType]: TaskLog
+  [environmentType in BenchmarkEnvironmentType]?: TaskLog
 };
 
 /**
