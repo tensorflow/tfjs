@@ -7,4 +7,4 @@ git:
 script:
   - yarn build
   - yarn lint
-  - yarn test-travis
+  - travis_wait 30 yarn test-travis # ping for 30 minutes to prevent disconnection due to inactivity

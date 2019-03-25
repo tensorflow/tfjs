@@ -25,14 +25,21 @@ function nextTick(): Promise<void> {
 // tslint:disable-next-line:no-any
 export async function benchmarkAndLog<T extends any>(
     name: string, benchmark: (size: T) => Promise<number>, sizes: T[],
-    sizeToParams: (size: T) => string, runCount = 100): Promise<void> {
+    sizeToParams: (size: T) => string, runCount = 100,
+    warmupRunCount = 1): Promise<void> {
   const logs: BenchmarkLog[] = [];
 
   for (let i = 0; i < sizes.length; i++) {
     const size = sizes[i];
     let averageTimeMs = 0;
+    let result;
+
+    for (let j = 0; j < warmupRunCount; j++) {
+      result = await benchmark(size);
+    }
+
     for (let j = 0; j < runCount; j++) {
-      const result = await benchmark(size);
+      result = await benchmark(size);
       averageTimeMs += result / runCount;
       await nextTick();
     }

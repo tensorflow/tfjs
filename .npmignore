@@ -1,8 +1,9 @@
 .vscode/
 .rpt2_cache/
+src/**/*_test.ts
 package/
 scripts/
-src/
+integration_tests/
 coverage/
 **/node_modules/
 karma.conf.js

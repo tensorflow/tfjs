@@ -20,19 +20,24 @@ import * as tf from '@tensorflow/tfjs-core';
 // Maximum number of time before CPU tests don't execute during the next round.
 export const LAST_RUN_CPU_CUTOFF_MS = 5000;
 
-export async function warmupAndBenchmarkGPU(benchmark: () => tf.Tensor):
-    Promise<number> {
-  // Warmup.
-  const out = benchmark();
-  await out.data();
-  out.dispose();
-
-  // Use normal performance.now() timing until query timers are enabled again.
+export async function benchmark(benchmarkFn: () => tf.Tensor): Promise<number> {
+  // Use normal performance.now() timing even though query timers are enabled
+  // again because we want to account for more than just GPU time.
   const start = performance.now();
-  const result = benchmark();
+  const result = benchmarkFn();
   await result.data();
   return performance.now() - start;
+}
 
-  // Uncomment this once query timers are enabled again.
-  // return (await tf.time(benchmark)).kernelMs;
+export async function asyncBenchmark(
+    asyncBenchmarkFn: () =>
+        Promise<tf.Tensor[]>| Promise<tf.Tensor>): Promise<number> {
+  const start = performance.now();
+  const result = await asyncBenchmarkFn() as tf.Tensor[] | tf.Tensor;
+
+  const outRes = Array.isArray(result) ? (result as tf.Tensor[])[0] : result;
+  await (outRes as tf.Tensor).data();
+  (outRes as tf.Tensor).dispose();
+
+  return performance.now() - start;
 }

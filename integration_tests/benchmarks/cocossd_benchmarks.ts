@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,20 +19,21 @@ import * as tf from '@tensorflow/tfjs';
 import {BenchmarkTest} from './types';
 import * as util from './util';
 
-const MOBILENET_MODEL_PATH =
+const COCOSSD_MODEL_PATH =
     // tslint:disable-next-line:max-line-length
-    'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json';
+    'https://storage.googleapis.com/tfjs-models/savedmodel/coco-ssd-mobilenet_v1/model.json';
 
-export class MobileNetV1GPUBenchmark implements BenchmarkTest {
+export class CoCoSSDBenchmark implements BenchmarkTest {
   async run(size: number): Promise<number> {
     tf.setBackend('webgl');
 
-    const model = await tf.loadLayersModel(MOBILENET_MODEL_PATH);
+    const model = await tf.loadGraphModel(COCOSSD_MODEL_PATH);
     const zeros = tf.zeros([1, 224, 224, 3]);
 
-    const benchmark = () => model.predict(zeros) as tf.Tensor;
+    const benchmark = async () =>
+        model.executeAsync(zeros) as Promise<tf.Tensor[]>;
 
-    const time = await util.benchmark(benchmark);
+    const time = await util.asyncBenchmark(benchmark);
 
     zeros.dispose();
 

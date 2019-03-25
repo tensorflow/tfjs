@@ -28,6 +28,7 @@ export interface BenchmarkEntry {
   userAgent: string;
   timestamp: number;
   runs: {[params: string]: BenchmarkRunEntry};
+  hardwareConcurrency?: number;
 }
 export interface BenchmarkRunEntry {
   averageTimeMs: number;

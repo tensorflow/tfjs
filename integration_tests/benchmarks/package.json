@@ -9,11 +9,11 @@
   },
   "devDependencies": {
     "@tensorflow/tfjs": "latest",
-    "@tensorflow/tfjs-core": "latest",
-    "@tensorflow/tfjs-layers": "latest",
     "@tensorflow/tfjs-converter": "latest",
-    "@tensorflow/tfjs-node": "latest",
+    "@tensorflow/tfjs-core": "latest",
     "@tensorflow/tfjs-data": "latest",
+    "@tensorflow/tfjs-layers": "latest",
+    "@tensorflow/tfjs-node": "latest",
     "@types/jasmine": "~2.5.53",
     "clang-format": "~1.2.4",
     "firebase": "~5.3.0",
@@ -25,7 +25,6 @@
     "karma-chrome-launcher": "~2.2.0",
     "karma-jasmine": "~1.1.0",
     "karma-typescript": "~4.0.0",
-    "polymer-bundler": "~3.0.1",
     "ts-node": "~7.0.0",
     "tsc": "^1.20150623.0",
     "tsify": "^3.0.4",
@@ -36,8 +35,9 @@
   "scripts": {
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
-    "benchmark": "karma start --firebaseKey $FIREBASE_KEY",
-    "benchmark-travis": "./benchmark_travis.sh"
+    "benchmark-local": "karma start",
+    "benchmark-travis": "./benchmark_travis.sh",
+    "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --firebaseKey $FIREBASE_KEY --hostname='bs-local.com'"
   },
   "license": "Apache-2.0",
   "engines": {
