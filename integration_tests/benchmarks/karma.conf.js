@@ -33,6 +33,9 @@ module.exports = function(config) {
   if(config.browsers) {
     args.push('--browsers', config.browsers);
   }
+  if (config.hashes) {
+    args.push('--hashes', config.hashes);
+  }
 
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],

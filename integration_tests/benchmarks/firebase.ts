@@ -24,7 +24,7 @@ declare let __karma__: any;
 import 'firebase/auth';
 import 'firebase/database';
 // tslint:disable-next-line:max-line-length
-import {ApplicationConfig, BenchmarkRunEntry, BenchmarkEntry} from './firebase_types';
+import {ApplicationConfig, BenchmarkRunEntry, BenchmarkEntry, BenchmarkHashes} from './firebase_types';
 
 export const karmaFlags = parseKarmaFlags(__karma__.config.args);
 
@@ -64,7 +64,8 @@ export async function logBenchmarkRun(
   const entry: BenchmarkEntry = {
     userAgent: navigator.userAgent,
     runs,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    hashes: karmaFlags.hashes
   };
 
   if (navigator.hardwareConcurrency != null) {
@@ -89,7 +90,8 @@ export async function logBenchmarkRun(
           // future we can benchmark multiple devices.
           .set(entry, error => {
             if (error) {
-              throw new Error(`Write to firebase failed with error: ${error}`);
+              throw new Error(`Write to firebase failed with error:
+              ${error}`);
             }
             resolve();
           });
@@ -101,12 +103,14 @@ interface KarmaFlags {
   apiKey: string;
   travis: boolean;
   browsers: string;
+  hashes: BenchmarkHashes;
 }
 
 export function parseKarmaFlags(args: string[]): KarmaFlags {
   let apiKey: string;
   let travis = false;
   let browsers: string;
+  let hashes: {};
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--firebaseKey') {
       apiKey = args[i + 1];
@@ -117,6 +121,9 @@ export function parseKarmaFlags(args: string[]): KarmaFlags {
     if (args[i] === '--browsers') {
       browsers = args[i + 1];
     }
+    if (args[i] === '--hashes') {
+      hashes = JSON.parse(args[i + 1]);
+    }
   }
-  return {apiKey, travis, browsers};
+  return {apiKey, travis, browsers, hashes: hashes || {}};
 }
