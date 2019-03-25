@@ -233,7 +233,7 @@ export type TaskGroupLog = {
  * of models), each of which involves multiple tasks. Each task may involve
  * multiple backends.
  */
-export type SuiteLog = {
+export interface SuiteLog {
   data: {[taskGroupName: string]: TaskGroupLog};
 
   metadata: BenchmarkMetadata;
