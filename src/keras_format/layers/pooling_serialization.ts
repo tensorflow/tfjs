@@ -53,9 +53,31 @@ export type GlobalAveragePooling2DLayerSerialization = BaseLayerSerialization<
 export type GlobalMaxPooling2DLayerSerialization =
     BaseLayerSerialization<'GlobalMaxPooling2D', GlobalPooling2DLayerConfig>;
 
+// Update poolingLayerClassNames below in concert with this.
 export type PoolingLayerSerialization = MaxPooling1DLayerSerialization|
     AveragePooling1DLayerSerialization|MaxPooling2DLayerSerialization|
     AveragePooling2DLayerSerialization|GlobalAveragePooling1DLayerSerialization|
     GlobalMaxPooling1DLayerSerialization|
     GlobalAveragePooling2DLayerSerialization|
     GlobalMaxPooling2DLayerSerialization;
+
+export type PoolingLayerClassName = PoolingLayerSerialization['class_name'];
+
+// We can't easily extract a string[] from the string union type, but we can
+// recapitulate the list, enforcing at compile time that the values are valid.
+
+/**
+ * A string array of valid PoolingLayer class names.
+ *
+ * This is guaranteed to match the `PoolingLayerClassName` union type.
+ */
+export const poolingLayerClassNames: PoolingLayerClassName[] = [
+  'AveragePooling1D',
+  'AveragePooling2D',
+  'GlobalAveragePooling1D',
+  'GlobalAveragePooling2D',
+  'GlobalMaxPooling1D',
+  'GlobalMaxPooling2D',
+  'MaxPooling1D',
+  'MaxPooling2D',
+];

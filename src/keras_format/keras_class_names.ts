@@ -8,19 +8,11 @@
  * =============================================================================
  */
 
-import {ConstraintClassName, ConstraintSerialization} from './constraint_config';
-import {InitializerClassName, InitializerSerialization} from './initializer_config';
-import {LayerClassName, LayerSerialization} from './layers/layer_serialization';
-import {OptimizerClassName, OptimizerSerialization} from './optimizer_config';
-import {RegularizerClassName, RegularizerSerialization} from './regularizer_config';
-
-/**
- * A type representing all valid values of `class_name` in a Keras JSON file
- * (regardless of context, which will naturally further restrict the valid
- * values).
- */
-export type KerasClassName = LayerClassName|ConstraintClassName|
-    InitializerClassName|RegularizerClassName|OptimizerClassName;
+import {constraintClassNames, ConstraintSerialization} from './constraint_config';
+import {initializerClassNames, InitializerSerialization} from './initializer_config';
+import {layerClassNames, LayerSerialization} from './layers/layer_serialization';
+import {optimizerClassNames, OptimizerSerialization} from './optimizer_config';
+import {regularizerClassNames, RegularizerSerialization} from './regularizer_config';
 
 /**
  * A type representing all possible Serializations of Keras objects, including
@@ -28,3 +20,15 @@ export type KerasClassName = LayerClassName|ConstraintClassName|
  */
 export type KerasSerialization = LayerSerialization|ConstraintSerialization|
     InitializerSerialization|RegularizerSerialization|OptimizerSerialization;
+
+/**
+ * A type representing all valid values of `class_name` in a Keras JSON file
+ * (regardless of context, which will naturally further restrict the valid
+ * values).
+ */
+export type KerasClassName = KerasSerialization['class_name'];
+
+export const kerasClassNames: KerasClassName[] = [
+  ...layerClassNames, ...constraintClassNames, ...initializerClassNames,
+  ...regularizerClassNames, ...optimizerClassNames
+];

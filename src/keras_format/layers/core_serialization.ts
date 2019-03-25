@@ -72,7 +72,28 @@ export interface PermuteLayerConfig extends LayerConfig {
 export type PermuteLayerSerialization =
     BaseLayerSerialization<'Permute', PermuteLayerConfig>;
 
+// Update coreLayerClassNames below in concert with this.
 export type CoreLayerSerialization =
     DropoutLayerSerialization|DenseLayerSerialization|FlattenLayerSerialization|
     ActivationLayerSerialization|RepeatVectorLayerSerialization|
     ReshapeLayerSerialization|PermuteLayerSerialization;
+
+export type CoreLayerClassName = CoreLayerSerialization['class_name'];
+
+// We can't easily extract a string[] from the string union type, but we can
+// recapitulate the list, enforcing at compile time that the values are valid.
+
+/**
+ * A string array of valid CoreLayer class names.
+ *
+ * This is guaranteed to match the `CoreLayerClassName` union type.
+ */
+export const coreLayerClassNames: CoreLayerClassName[] = [
+  'Activation',
+  'Dense',
+  'Dropout',
+  'Flatten',
+  'Permute',
+  'RepeatVector',
+  'Reshape',
+];

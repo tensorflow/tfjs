@@ -9,12 +9,12 @@
  */
 
 import {DataType} from '@tensorflow/tfjs-core';
-
 import {Shape} from './common';
 import {BaseLayerSerialization} from './topology_config';
 
+
 export type InputLayerConfig = {
-  name: string;
+  name?: string;
   input_shape?: Shape;
   batch_size?: number;
   batch_input_shape?: Shape;
@@ -24,5 +24,21 @@ export type InputLayerConfig = {
 
 // This really should be BaseSerialization because an input layer has no
 // inbound_nodes. But, that makes type safety more difficult.
+
+// Update inputLayerClassNames below in concert with this.
 export type InputLayerSerialization =
     BaseLayerSerialization<'InputLayer', InputLayerConfig>;
+
+export type InputLayerClassName = InputLayerSerialization['class_name'];
+
+// We can't easily extract a string[] from the string union type, but we can
+// recapitulate the list, enforcing at compile time that the values are valid.
+
+/**
+ * A string array of valid InputLayer class names.
+ *
+ * This is guaranteed to match the `InputLayerClassName` union type.
+ */
+export const inputLayerClassNames: InputLayerClassName[] = [
+  'InputLayer',
+];

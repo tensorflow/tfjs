@@ -29,5 +29,25 @@ export interface BatchNormalizationLayerConfig extends LayerConfig {
   gamma_regularizer?: RegularizerSerialization;
 }
 
+// Update batchNormalizationLayerClassNames below in concert with this.
 export type BatchNormalizationLayerSerialization =
     BaseLayerSerialization<'BatchNormalization', BatchNormalizationLayerConfig>;
+
+export type NormalizationLayerSerialization =
+    BatchNormalizationLayerSerialization;
+
+export type NormalizationLayerClassName =
+    NormalizationLayerSerialization['class_name'];
+
+// We can't easily extract a string[] from the string union type, but we can
+// recapitulate the list, enforcing at compile time that the values are valid.
+
+/**
+ * A string array of valid NormalizationLayer class names.
+ *
+ * This is guaranteed to match the `NormalizationLayerClassName` union
+ * type.
+ */
+export const normalizationLayerClassNames: NormalizationLayerClassName[] = [
+  'BatchNormalization',
+];

@@ -110,5 +110,22 @@ export type StackedRNNCellsSerialization =
 export type RNNCellSerialization = SimpleRNNCellSerialization|
     GRUCellSerialization|LSTMCellSerialization|StackedRNNCellsSerialization;
 
+// Update recurrentLayerClassNames below in concert with this.
 export type RecurrentLayerSerialization =
     SimpleRNNLayerSerialization|LSTMLayerSerialization|GRULayerSerialization;
+
+export type RecurrentLayerClassName = RecurrentLayerSerialization['class_name'];
+
+// We can't easily extract a string[] from the string union type, but we can
+// recapitulate the list, enforcing at compile time that the values are valid.
+
+/**
+ * A string array of valid RecurrentLayer class names.
+ *
+ * This is guaranteed to match the `RecurrentLayerClassName` union type.
+ */
+export const recurrentLayerClassNames: RecurrentLayerClassName[] = [
+  'GRU',
+  'LSTM',
+  'SimpleRNN',
+];
