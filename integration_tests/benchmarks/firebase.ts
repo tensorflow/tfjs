@@ -46,8 +46,6 @@ try {
 
 export async function logBenchmarkRun(
     benchmarkName: string, logs: BenchmarkLog[]): Promise<void> {
-  console.log('INSIDE LOG BENCHMARK RUN');
-  console.log(karmaFlags.hashes);
   const date = new Date();
   let month = (date.getMonth() + 1).toString();
   if (month.length === 1) {
@@ -69,9 +67,6 @@ export async function logBenchmarkRun(
     timestamp: Date.now(),
     hashes: karmaFlags.hashes
   };
-
-  console.log('ENTRY');
-  console.log(entry);
 
   if (navigator.hardwareConcurrency != null) {
     entry.hardwareConcurrency = navigator.hardwareConcurrency;
@@ -112,8 +107,6 @@ interface KarmaFlags {
 }
 
 export function parseKarmaFlags(args: string[]): KarmaFlags {
-  console.log('PARSING KARMA FLAGS');
-  console.log(args);
   let apiKey: string;
   let travis = false;
   let browsers: string;
@@ -129,13 +122,8 @@ export function parseKarmaFlags(args: string[]): KarmaFlags {
       browsers = args[i + 1];
     }
     if (args[i] === '--hashes') {
-      console.log('FOUND HASHES');
-      console.log(args[i + 1]);
-      console.log(JSON.parse(args[i + 1]));
       hashes = JSON.parse(args[i + 1]);
     }
   }
-  console.log('DONE PARSING');
-  console.log(hashes);
   return {apiKey, travis, browsers, hashes: hashes || {}};
 }
