@@ -19,6 +19,7 @@ import * as math from 'mathjs';
 import * as tf from '@tensorflow/tfjs';
 import * as detectBrowser from 'detect-browser';
 
+import {logSuiteLog} from '../firebase';
 import {BenchmarkEnvironmentType, BrowserEnvironmentInfo, ModelTaskLog, MultiEnvironmentTaskLog, SuiteLog, TaskGroupLog} from '../types';
 
 function getRandomInputsAndOutputs(model: tf.Model, batchSize: number):
@@ -164,11 +165,14 @@ describe('TF.js Layers Benchmarks', () => {
         'predict': multiEnvironmentTaskLog
       };
       suiteLog.data[modelName] = taskGroupLog;
-  
+
       console.log(modelTaskLog);
 
       tf.dispose({xs, ys});
     }
     console.log(JSON.stringify(suiteLog, null, 2));
+
+    console.log('Logging to firebase:');
+    await logSuiteLog(suiteLog);
   });
 });
