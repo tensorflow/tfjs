@@ -111,6 +111,13 @@ export interface ModelTaskLog extends TaskLog {
   modelName: string;
 
   /**
+   * A description of the model. 
+   * 
+   * Usually more detailed tha `modelName`.
+   */
+  modelDescription?: string;
+
+  /**
    * This overrides the `taskName` field of the base interface to be
    * model-specific.
    */

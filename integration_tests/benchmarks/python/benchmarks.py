@@ -27,6 +27,8 @@ import argparse
 import functools
 import json
 import os
+import subprocess
+import sys
 import time
 
 from tensorflow import keras
@@ -40,6 +42,43 @@ import tensorflowjs as tfjs
 _FIT_BURNIN_EPOCHS = 1  # How many epochs to call fit() for before timing fit().
 _PREDICT_BURNINS = 20  # How many predict() runs to do before timing predict().
 _PREDICT_RUNS = 30  # How many runs of predict() to average over.
+
+
+def _get_environmen_type():
+  return ('python-tensorflow-cuda' if tf.test.gpu_device_name() else
+          'python-tensorflow-cpu')
+
+
+def _get_random_inputs_and_outputs(model, batch_size):
+  """Synthesize random inputs and outputs based on the model's specs.
+
+  Args:
+    model: An instance of keras Model.
+    batch_size: Desired batch size.
+
+  Returns:
+    xs: Synthesized random feature tensor(s).
+    ys: Synthesized random target tensor(s).
+  """
+  input_shapes = [[
+      int(d) for d in list(inp.shape[1:])] for inp in model.inputs]
+  xs = []
+  for in_shape in input_shapes:
+    x = np.random.rand(*([batch_size] + in_shape))
+    xs.append(x)
+  if len(xs) == 1:
+    xs = xs[0]
+
+  output_shapes = [[
+      int(d) for d in list(inp.shape[1:])] for inp in model.outputs]
+  ys = []
+  for output_shape in output_shapes:
+    y = np.random.rand(*([batch_size] + output_shape))
+    ys.append(y)
+  if len(ys) == 1:
+    ys = ys[0]
+
+  return xs, ys
 
 
 def benchmark_and_serialize_model(model_name,
@@ -79,6 +118,9 @@ def benchmark_and_serialize_model(model_name,
        burn-in one.
     2. Average predict() time over all the _PREDICT_RUNS.
   """
+  environment_info = _get_python_environment_info()
+  task_logs = {}
+
   model = model_fn(input_shape, target_shape)
   if train_epochs:
     model.compile(optimizer=optimizer, loss=loss)
@@ -95,71 +137,56 @@ def benchmark_and_serialize_model(model_name,
     model.fit(xs, ys, batch_size=batch_size, epochs=train_epochs)
     train_t_end = time.time()
 
+  # Save data about the model and benchmark results.
+  if train_epochs:
+    train_time = (train_t_end - train_t_begin) * 1e3 / train_epochs
+
+    # Collect and format the data for fit().
+    task_logs['fit'] = {  # For schema, see 'ModelTaskLog` in types.ts.
+      'modelName': model_name,
+      'modelDescription': description,
+      'taskName': 'fit',
+      'timestamp': str(time.time()),
+      'batchSize': batch_size,
+      'numBenchmarkedRuns': train_epochs,
+      'numWarmUpRuns': _FIT_BURNIN_EPOCHS,
+      'averageTimeMs': train_time,
+      'environment': environment_info
+    }
+
   # Perform predict() burn-in.
   for _ in range(_PREDICT_BURNINS):
     model.predict(xs)
   # Time predict() by averaging.
-  predict_t_begin = time.time()
+  # predict_t_begin = time.time()
+  predict_ts = []
   for _ in range(_PREDICT_RUNS):
+    predict_t_begin = time.time()
     model.predict(xs)
-  predict_t_end = time.time()
+    predict_ts.append((time.time() - predict_t_begin) * 1e3)
 
   # Save the model and weights.
   tfjs.converters.save_keras_model(model, artifacts_dir)
 
-  # Save data about the model and benchmark results.
-  if train_epochs:
-    train_time = (train_t_end - train_t_begin) / train_epochs
-  else:
-    train_time = None
-  predict_time = (predict_t_end - predict_t_begin) / _PREDICT_RUNS
-  data = {
-      'name': model_name,
-      'description': description,
-      'optimizer': optimizer.__class__.__name__,
-      'loss': loss,
-      'input_shape': input_shape,
-      'target_shape': target_shape,
-      'batch_size': batch_size,
-      'train_epochs': train_epochs,
-      'train_time': train_time,
-      'predict_time': predict_time,
+  # Collect and format the data for predict().
+  task_logs['predict'] = {  # For schema, see 'ModelTaskLog` in types.ts.
+    'modelName': model_name,
+    'modelDescription': description,
+    'taskName': 'predct',
+    'timestamp': str(time.time()),
+    'batchSize': batch_size,
+    'numBenchmarkedRuns': _PREDICT_RUNS,
+    'numWarmUpRuns': _PREDICT_BURNINS,
+    'averageTimeMs': np.mean(predict_ts),
+    'medianTimeMs': np.median(predict_ts),
+    'minTimeMs': np.min(predict_ts),
+    'environment': environment_info,
   }
-  with open(os.path.join(artifacts_dir, 'data.json'), 'wt') as f:
-    f.write(json.dumps(data))
 
-  return train_time, predict_time
+  return {  # For schema, see `TaskGroupLog` in types.ts.
+    _get_environmen_type(): task_logs
+  }
 
-def _get_random_inputs_and_outputs(model, batch_size):
-  """Synthesize random inputs and outputs based on the model's specs.
-
-  Args:
-    model: An instance of keras Model.
-    batch_size: Desired batch size.
-
-  Returns:
-    xs: Synthesized random feature tensor(s).
-    ys: Synthesized random target tensor(s).
-  """
-  input_shapes = [[
-      int(d) for d in list(inp.shape[1:])] for inp in model.inputs]
-  xs = []
-  for in_shape in input_shapes:
-    x = np.random.rand(*([batch_size] + in_shape))
-    xs.append(x)
-  if len(xs) == 1:
-    xs = xs[0]
-
-  output_shapes = [[
-      int(d) for d in list(inp.shape[1:])] for inp in model.outputs]
-  ys = []
-  for output_shape in output_shapes:
-    y = np.random.rand(*([batch_size] + output_shape))
-    ys.append(y)
-  if len(ys) == 1:
-    ys = ys[0]
-
-  return xs, ys
 
 def dense_tiny_model_fn(input_shape, target_shape):
   assert len(target_shape) == 1
@@ -240,20 +267,41 @@ def rnn_model_fn(rnn_type, input_shape, target_shape):
   return model
 
 
+def _get_python_environment_info():
+  hardware_info = dict()  # For schema, see `HardwareInfo` in types.ts.
+
+  try:
+    # Disable color from `inxi` command.
+    hardware_info['cpuInfo'] = subprocess.check_output(['inxi', '-c', '0'])
+  except:
+    pass
+  try:
+    hardware_info['memInfo'] = subprocess.check_output(['free'])
+  except:
+    pass
+
+  environment_info = {  # For schema, see `PythonEnvironmentInfo` in types.ts.
+    'hardwareInfo': hardware_info
+  }
+  python_ver = sys.version_info
+  environment_info['pythonVersion'] = '%d.%d.%d' % (
+      python_ver.major, python_ver.minor, python_ver.micro)
+  environment_info['tensorflowVersion'] = tf.__version__
+  environment_info['kerasVersion'] = keras.__version__
+  return environment_info
+
+
 def main():
-  benchmarks = dict()
-  benchmarks['metadata'] = {
-      'keras_version': keras.__version__,
-      'tensorflow_version': tf.__version__,
-      'tensorflow_uses_gpu': any(
-          'gpu' in d.name.lower() for d in device_lib.list_local_devices())
+  environment_info = _get_python_environment_info()
+  print('Environment info:')
+  print(json.dumps(environment_info, indent=2))
+
+  suite_log = dict()  # For schema, see `SuiteLog` in types.ts.
+  suite_log['data'] = {}
+  suite_log['metadata'] = {  # For schema, see `BenchmarkMetadata` in types.ts.
+    'timestamp': str(time.time())
   }
-  benchmarks['config'] = {
-      'FIT_BURNIN_EPOCHS': _FIT_BURNIN_EPOCHS,
-      'PREDICT_BURNINS': _PREDICT_BURNINS,
-      'PREDICT_RUNS': _PREDICT_RUNS
-  }
-  benchmarks['models'] = []
+  # TODO(cais): Populate the commitHash field for TensorFlow.js repos.
 
   # Dense model.
   optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
@@ -273,7 +321,7 @@ def main():
        (input_shape[0], target_shape[0], optimizer, loss))]
 
   for model_name, model_fn, description in names_fns_and_descriptions:
-    train_time, predict_time = (
+    suite_log['data'][model_name] = (
         benchmark_and_serialize_model(
             model_name,
             description,
@@ -285,9 +333,6 @@ def main():
             batch_size,
             train_epochs,
             os.path.join(FLAGS.data_root, model_name)))
-    benchmarks['models'].append(model_name)
-    print('train_time = %g s' % train_time)
-    print('predict_time = %g s' % predict_time)
 
   # Conv2d models.
   optimizer = tf.train.AdamOptimizer()
@@ -303,7 +348,7 @@ def main():
       (1, 2, 4, 8, 16, 24, 26, 28, 30, 32)]
 
   for model_name, model_fn, description in names_fns_and_descriptions:
-    train_time, predict_time = (
+    suite_log['data'][model_name] = (
         benchmark_and_serialize_model(
             model_name,
             description,
@@ -315,9 +360,6 @@ def main():
             batch_size,
             train_epochs,
             os.path.join(FLAGS.data_root, model_name)))
-    benchmarks['models'].append(model_name)
-    print('train_time = %g s' % train_time)
-    print('predict_time = %g s' % predict_time)
 
   # RNN models.
   optimizer = tf.train.RMSPropOptimizer(0.01)
@@ -334,7 +376,7 @@ def main():
       for rnn_type in ('SimpleRNN', 'GRU', 'LSTM')]
 
   for model_name, model_fn, description in names_fns_and_descriptions:
-    train_time, predict_time = (
+    suite_log['data'][model_name] = (
         benchmark_and_serialize_model(
             model_name,
             description,
@@ -346,11 +388,8 @@ def main():
             batch_size,
             train_epochs,
             os.path.join(FLAGS.data_root, model_name)))
-    benchmarks['models'].append(model_name)
-    print('train_time = %g s' % train_time)
-    print('predict_time = %g s' % predict_time)
 
-  # Mobilenet (inference only).
+  # MobileNetV2 (inference only).
   input_shape = None  # Determine from the Model object itself.
   target_shape = None  # Determine from the Model object itself.
   batch_size = 8
@@ -358,11 +397,11 @@ def main():
   optimizer = None
   loss = None
   names_fns_and_descriptions = [[
-      'mobilenet_v2_%.2f' % alpha,
+      'mobilenet_v2_%.3d' % (alpha * 100),
       functools.partial(mobilenet_v2_model_fn, alpha),
-      'mobilenet_v2_%.2f' % alpha] for alpha in (0.25, 0.5, 0.75, 1)]
+      'mobilenet_v2_%.3d' % (alpha * 100)] for alpha in (0.25, 0.5, 0.75, 1)]
   for model_name, model_fn, description in names_fns_and_descriptions:
-    train_time, predict_time = (
+    suite_log['data'][model_name] = (
         benchmark_and_serialize_model(
             model_name,
             description,
@@ -374,12 +413,8 @@ def main():
             batch_size,
             train_epochs,
             os.path.join(FLAGS.data_root, model_name)))
-    benchmarks['models'].append(model_name)
-    if train_epochs > 0:
-      print('train_time = %g s' % train_time)
-    print('predict_time = %g s' % predict_time)
 
-  # Attention model
+  # Attention model (inference only).
   input_shape = None  # Determine from the Model object itself.
   target_shape = None  # Determine from the Model object itself.
   batch_size = 32
@@ -389,9 +424,10 @@ def main():
   names_fns_and_descriptions = [[
       'attention',
       attention_model_fn,
-      'Attention-based translation model: Function model with bidirectional LSTM layers']]
+      'Attention-based translation model: '
+      'Function model with bidirectional LSTM layers']]
   for model_name, model_fn, description in names_fns_and_descriptions:
-    train_time, predict_time = (
+    suite_log['data'][model_name] = (
         benchmark_and_serialize_model(
             model_name,
             description,
@@ -403,13 +439,9 @@ def main():
             batch_size,
             train_epochs,
             os.path.join(FLAGS.data_root, model_name)))
-    benchmarks['models'].append(model_name)
-    if train_epochs > 0:
-      print('train_time = %g s' % train_time)
-    print('predict_time = %g s' % predict_time)
 
   with open(os.path.join(FLAGS.data_root, 'benchmarks.json'), 'wt') as f:
-    json.dump(benchmarks, f)
+    json.dump(suite_log, f)
 
 
 if __name__ == '__main__':
