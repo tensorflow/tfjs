@@ -38,16 +38,15 @@ export const DIV = `if (a == b) return 1.0;
 // correct for this by subtracting 1 from result when the result is negative and
 // there is a remainder.
 export const INT_DIV = `
-  float resultSign = sign(a) * sign(b);
+  float s = sign(a) * sign(b);
   int ia = round(a);
   int ib = round(b);
-  int result = ia / ib;
-  int amodb = ia - ib * result;
-
-  if (resultSign < 0.0 && amodb != 0) {
-    result -= 1;
+  if (ib != 0) {
+    // Windows (D3D) wants guaranteed non-zero int division at compile-time.
+    return float(idiv(ia, ib, s));
+  } else {
+    return NAN;
   }
-  return float(result);
 `;
 
 export const POW = `

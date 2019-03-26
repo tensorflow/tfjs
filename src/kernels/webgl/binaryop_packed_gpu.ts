@@ -39,17 +39,26 @@ export const DIV = `
 `;
 
 export const INT_DIV = `
-  vec4 resultSign = sign(a) * sign(b);
   ivec4 ia = round(a);
   ivec4 ib = round(b);
-  ivec4 result = ia / ib;
-  ivec4 amodb = ia - ib * result;
+  bvec4 cond = notEqual(ib, ivec4(0));
+  ivec4 result = ivec4(0);
+  vec4 s = sign(a) * sign(b);
 
-  // Vectorize INT_DIV
-  // if (resultSign < 0.0 && amodb != 0) result -= 1;
-  // return float(result);
-  return vec4(result -
-     ivec4(lessThan(resultSign, vec4(0.0))) * ivec4(notEqual(amodb, ivec4(0))));
+  // Windows (D3D) wants guaranteed non-zero int division at compile-time.
+  if (cond[0]) {
+    result[0] = idiv(ia[0], ib[0], s[0]);
+  }
+  if (cond[1]) {
+    result[1] = idiv(ia[1], ib[1], s[1]);
+  }
+  if (cond[2]) {
+    result[2] = idiv(ia[2], ib[2], s[2]);
+  }
+  if (cond[3]) {
+    result[3] = idiv(ia[3], ib[3], s[3]);
+  }
+  return vec4(result);
 `;
 
 export const POW = `
