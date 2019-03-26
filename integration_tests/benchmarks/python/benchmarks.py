@@ -142,13 +142,16 @@ def benchmark_and_serialize_model(model_name,
     train_time = (train_t_end - train_t_begin) * 1e3 / train_epochs
 
     # Collect and format the data for fit().
+    # print(optimizer.get_config())  # DEBUG
     task_logs['fit'] = {  # For schema, see 'ModelTaskLog` in types.ts.
       _get_environment_type(): {
         'modelName': model_name,
         'modelDescription': description,
         'taskName': 'fit',
-        'timestamp': time.time(),
+        'timestamp': int(time.time() * 1e3),
         'batchSize': batch_size,
+        'optimizer': optimizer.__class__.__name__.split('.')[-1],
+        'loss': loss,
         'numBenchmarkedRuns': train_epochs,
         'numWarmUpRuns': _FIT_BURNIN_EPOCHS,
         'averageTimeMs': train_time,
@@ -176,7 +179,7 @@ def benchmark_and_serialize_model(model_name,
       'modelName': model_name,
       'modelDescription': description,
       'taskName': 'predct',
-      'timestamp': time.time(),
+      'timestamp': int(time.time() * 1e3),
       'batchSize': batch_size,
       'numBenchmarkedRuns': _PREDICT_RUNS,
       'numWarmUpRuns': _PREDICT_BURNINS,
@@ -301,12 +304,13 @@ def main():
   suite_log = dict()  # For schema, see `SuiteLog` in types.ts.
   suite_log['data'] = {}
   suite_log['metadata'] = {  # For schema, see `BenchmarkMetadata` in types.ts.
-    'timestamp': str(time.time())
+    'timestamp': int(time.time() * 1e3)
   }
   # TODO(cais): Populate the commitHash field for TensorFlow.js repos.
 
   # Dense model.
-  optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
+  # optimizer = tf.keras.optimizers.SGD()
+  optimizer = tf.train.GradientDescentOptimizer(0.1)
   loss = 'mean_squared_error'
   batch_size = 128
   train_epochs = 10
@@ -337,6 +341,7 @@ def main():
             os.path.join(FLAGS.data_root, model_name)))
 
   # Conv2d models.
+  # optimizer = tf.keras.optimizer.Adam()
   optimizer = tf.train.AdamOptimizer()
   loss = 'categorical_crossentropy'
   input_shape = [28, 28, 1]
@@ -364,7 +369,8 @@ def main():
             os.path.join(FLAGS.data_root, model_name)))
 
   # RNN models.
-  optimizer = tf.train.RMSPropOptimizer(0.01)
+  # optimizer = tf.keras.optimizers.RMSProp(0.01)
+  optimizer = tf.train.RMSPropOptimizer(1e-3)
   loss = 'categorical_crossentropy'
   input_shape = [20, 20]
   target_shape = [20]

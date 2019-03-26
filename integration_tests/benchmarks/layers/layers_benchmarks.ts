@@ -20,7 +20,7 @@ import * as tf from '@tensorflow/tfjs';
 import * as detectBrowser from 'detect-browser';
 
 import {logSuiteLog} from '../firebase';
-import {SuiteLog, BenchmarkEnvironmentType, ModelTask, ModelTaskLog, BrowserEnvironmentInfo} from '../types';
+import {SuiteLog, BenchmarkEnvironmentType, ModelTask, ModelTaskLog, BrowserEnvironmentInfo, ModelFitTaskLog} from '../types';
 
 function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
   const modelNamesAndTimestamps: Array<{
@@ -99,6 +99,25 @@ function getBrowserEnvironmentInfo(): BrowserEnvironmentInfo {
   };
 }
 
+function checkBatchSize(batchSize: number) {
+  if (!(Number.isInteger(batchSize) && batchSize > 0)) {
+    throw new Error(
+      `Expected batch size to be a positive integer, but got ` +
+      `${batchSize}`);
+  }
+}
+
+const OPTIMIZER_MAP: {[pyName: string]: string} = {
+  'AdamOptimizer': 'adam',
+  'RMSPropOptimizer': 'rmsprop',
+  'GradientDescentOptimizer': 'sgd'
+};
+
+const LOSS_MAP: {[pyName: string]: string} = {
+  'mean_squared_error': 'meanSquaredError',
+  'categorical_crossentropy': 'categoricalCrossentropy'
+};
+
 describe('TF.js Layers Benchmarks', () => {
   beforeAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 600000;
@@ -108,54 +127,26 @@ describe('TF.js Layers Benchmarks', () => {
   const DATA_SERVER_ROOT = './base/data';
   const BENCHMARKS_JSON_URL = `${DATA_SERVER_ROOT}/benchmarks.json`;
 
-  // async function getSuiteLog(): Promise<{
-  //   modelNames: string[],
-  //   predictNumBurnInRuns: number,
-  //   predictNumBenchmarkRuns: number
-  // }> {
-  //   const benchmarks = await (await fetch(BENCHMARKS_JSON_URL)).json();
-  //   return {
-  //     modelNames: benchmarks.models as string[],
-  //     predictNumBurnInRuns: benchmarks.config.PREDICT_BURNINS as number,
-  //     predictNumBenchmarkRuns: benchmarks.config.PREDICT_RUNS as number
-  //   };
-  // }
-
   async function loadModel(modelName: string): Promise<tf.Model> {
     const modelJSONPath = `${DATA_SERVER_ROOT}/${modelName}/model.json`;
     const modelJSON = await (await fetch(modelJSONPath)).json();
     return await tf.models.modelFromJSON(modelJSON['modelTopology']);
   }
 
-  // async function loadModelBenchmarkData(modelName: string): Promise<any> {
-  //   const modelJSONPath = `${DATA_SERVER_ROOT}/${modelName}/data.json`;
-  //   return await (await fetch(modelJSONPath)).json();
-  // }
-
   it('Benchmark models', async () => {
-    // const {modelNames, predictNumBenchmarkRuns, predictNumBurnInRuns} =
-    //     await getBenchmarkModelNamesAndConfig();
     const environmentType = getBrowserEnvironmentType();
     const environmentInfo = getBrowserEnvironmentInfo();
 
     const suiteLog =
         await (await fetch(BENCHMARKS_JSON_URL)).json() as SuiteLog;
-    console.log(JSON.stringify(suiteLog, null, 2));  // DEBUG
 
     const sortedModelNames = getChronologicalModelNames(suiteLog);
-    console.log(sortedModelNames);  // DEBUG
 
     for (let i = 0; i < sortedModelNames.length; ++i) {
       const modelName = sortedModelNames[i];
       const taskGroupLog = suiteLog.data[modelName];
-    // sortedModelNames.forEach((modelName, i) => {
-      console.log(
-          `Benchmark task ${i + 1} of ${sortedModelNames.length}: ` +
-          `${modelName}`);
+      console.log(`${i + 1}/${sortedModelNames.length}: ${modelName}`);
       const model = await loadModel(modelName);
-    //   const benchmarkData = await loadModelBenchmarkData(modelName);
-
-    //   const batchSize = benchmarkData.batch_size as number;
 
       const taskNames = Object.keys(taskGroupLog) as ModelTask[];
       if (taskNames.length === 0) {
@@ -171,47 +162,69 @@ describe('TF.js Layers Benchmarks', () => {
               `Found two python environment types: ${pyEnviron}.` +
               `Expected exactly 1`);
         }
-        const pyTaskLog = multiEnvironTaskLog[pyEnviron[0]] as ModelTaskLog;
-        if (taskName === 'predict') {
-          if (!(Number.isInteger(pyTaskLog.batchSize) &&
-                pyTaskLog.batchSize > 0)) {
-            throw new Error(
-                `Expected batch size to be a positive integer, but got ` +
-                `${pyTaskLog.batchSize}`);
-          }
-          const {xs, ys} = getRandomInputsAndOutputs(model, pyTaskLog.batchSize);
+        let pyLog = multiEnvironTaskLog[pyEnviron[0]] as ModelTaskLog;
+        checkBatchSize(pyLog.batchSize);
 
+        const {xs, ys} = getRandomInputsAndOutputs(model, pyLog.batchSize);
+        const tsLog = Object.assign({}, pyLog);
+        if (taskName === 'predict') {
           // Warm-up predict() runs.
-          for (let n = 0; n < pyTaskLog.numWarmUpRuns; ++n) {
+          for (let n = 0; n < pyLog.numWarmUpRuns; ++n) {
             await syncDataAndDispose(model.predict(xs));
           }
 
           // Benchmarked predict() runs.
           const ts: number[] = [];
-          for (let n = 0; n < pyTaskLog.numBenchmarkedRuns; ++n) {
+          for (let n = 0; n < pyLog.numBenchmarkedRuns; ++n) {
             const t0 = tf.util.now();
             await syncDataAndDispose(model.predict(xs));
             ts.push(tf.util.now() - t0);
           }
-          tf.dispose({xs, ys});
 
           // Format data for predict().
-          const predictTaskLog = Object.assign({}, pyTaskLog);
-          predictTaskLog.averageTimeMs = math.mean(ts);
-          predictTaskLog.medianTimeMs = math.median(ts);
-          predictTaskLog.minTimeMs = math.median(ts);
-          predictTaskLog.environment = environmentInfo;
-          
-          multiEnvironTaskLog[environmentType] = predictTaskLog;
+          tsLog.averageTimeMs = math.mean(ts);
+          tsLog.medianTimeMs = math.median(ts);
+          tsLog.minTimeMs = math.median(ts);
           console.log(
               `  predict(): averageTimeMs: ` +
-              `py=${pyTaskLog.averageTimeMs.toFixed(3)}, ` +
-              `ts=${predictTaskLog.averageTimeMs.toFixed(3)}`);
+              `py=${pyLog.averageTimeMs.toFixed(3)}, ` +
+              `ts=${tsLog.averageTimeMs.toFixed(3)}`);
         } else if (taskName === 'fit') {
-           
+          const pyFitLog = pyLog as ModelFitTaskLog;
+          model.compile({
+            loss: LOSS_MAP[pyFitLog.loss],
+            optimizer: OPTIMIZER_MAP[pyFitLog.optimizer]
+          });
+
+          // Warm-up fit() call.
+          await model.fit(xs, ys, {
+            epochs: pyLog.numWarmUpRuns,
+            yieldEvery: 'never'
+          });
+
+          // Benchmarked fit() call.
+          const t0 = tf.util.now();
+          await model.fit(xs, ys, {
+            epochs: pyLog.numBenchmarkedRuns,
+            yieldEvery: 'never'
+          });
+          const t = tf.util.now() - t0;
+
+          // Format data for fit().
+          tsLog.averageTimeMs = t / pyLog.numBenchmarkedRuns;
+          console.log(
+            `  fit(): averageTimeMs: ` +
+            `py=${pyLog.averageTimeMs.toFixed(3)}, ` +
+            `ts=${tsLog.averageTimeMs.toFixed(3)}`);
         } else {
           console.warn(`Skipping task "${taskName}" of model "${modelName}"`);
         }
+        if (tsLog != null) {
+          tsLog.environment = environmentInfo;
+          multiEnvironTaskLog[environmentType] = tsLog;
+        }
+
+        tf.dispose({xs, ys});
       }
     }
 

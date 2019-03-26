@@ -82,7 +82,12 @@ export interface TaskLog {
    */
   numWarmUpRuns: number;
 
-  /** A timestamp (epoch time) for the benchmark task. */
+  /**
+   * A timestamp (epoch time) for the benchmark task.
+   * 
+   * Epoch time in millisecond (i.e., the format of `new Date().getTime()` in
+   * JavaScript).
+   */
   timestamp: number;
 
   /**
@@ -125,6 +130,16 @@ export interface ModelTaskLog extends TaskLog {
 
   /** Batch size used for the model benchmark task. */
   batchSize: number;
+}
+
+/**
+ * The logs from benchmarking a specific model training task.
+ * 
+ * Applicable to `fit()` and `fitDataset()`.
+ */
+export interface ModelFitTaskLog extends ModelTaskLog {
+  optimizer: string;
+  loss: string;
 }
 
 /**
@@ -182,6 +197,13 @@ export type CommitHashes = {[repo in CodeRepository]?: string};
  */
 export interface BenchmarkMetadata {
   commitHashes: CommitHashes;
+
+  /**
+   * A timestamp (epoch time) for the benchmark results.
+   * 
+   * Epoch time in millisecond (i.e., the format of `new Date().getTime()` in
+   * JavaScript).
+   */
   timestamp: number;
 }
 
