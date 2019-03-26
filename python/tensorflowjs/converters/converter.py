@@ -238,8 +238,8 @@ def setup_arugments():
       required=False,
       default='tf_saved_model',
       choices=set(['keras', 'keras_saved_model',
-                   'tf_saved_model', 'tf_session_bundle', 'tf_frozen_model',
-                   'tf_hub', 'tfjs_layers_model', 'tensorflowjs']),
+                   'tf_saved_model', 'tf_hub', 'tfjs_layers_model',
+                   'tensorflowjs']),
       help='Input format. '
       'For "keras", the input path can be one of the two following formats:\n'
       '  - A topology+weights combined HDF5 (e.g., generated with'
