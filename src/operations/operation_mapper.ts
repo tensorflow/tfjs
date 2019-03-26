@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType} from '@tensorflow/tfjs-core';
+import {DataType, ENV} from '@tensorflow/tfjs-core';
 import {tensorflow} from '../data/compiled_api';
 import {getNodeNameAndIndex} from './executors/utils';
 import * as arithmetic from './op_list/arithmetic';
@@ -230,8 +230,10 @@ export class OperationMapper {
   }
 
   private decodeBase64(text: string): string {
-    if (typeof atob !== 'undefined') {
-      return atob(text);
+    // tslint:disable-next-line:no-any
+    const global = ENV.global as any;
+    if (typeof global.atob !== 'undefined') {
+      return global.atob(text);
     } else if (typeof Buffer !== 'undefined') {
       return new Buffer(text, 'base64').toString();
     } else {
