@@ -140,8 +140,8 @@ export function serializeKerasObject(instance: serialization.Serializable):
     return null;
   }
   const dict: serialization.ConfigDictValue = {};
-  dict.className = instance.getClassName();
-  dict.config = instance.getConfig();
+  dict['className'] = instance.getClassName();
+  dict['config'] = instance.getConfig();
   return dict;
 }
 
@@ -223,18 +223,18 @@ export function deserializeKerasObject(
   } else {
     // In this case we are dealing with a Keras config dictionary.
     const config = identifier;
-    if (config.className == null || config.config == null) {
+    if (config['className'] == null || config['config'] == null) {
       throw new ValueError(
           `${printableModuleName}: Improper config format: ` +
           `${JSON.stringify(config)}.\n` +
           `'className' and 'config' must set.`);
     }
-    const className = config.className as string;
+    const className = config['className'] as string;
     let cls, fromConfig;
     if (className in customObjects) {
-      [cls, fromConfig] = customObjects.get(className);
+      [cls, fromConfig] = customObjects[className];
     } else if (className in _GLOBAL_CUSTOM_OBJECTS) {
-      [cls, fromConfig] = _GLOBAL_CUSTOM_OBJECTS.className;
+      [cls, fromConfig] = _GLOBAL_CUSTOM_OBJECTS['className'];
     } else if (className in moduleObjects) {
       [cls, fromConfig] = moduleObjects[className];
     }
@@ -253,8 +253,8 @@ export function deserializeKerasObject(
     if (fromConfig != null) {
       // Porting notes: Instead of checking to see whether fromConfig accepts
       // customObjects, we create a customObjects dictionary and tack it on to
-      // config.config as config.config.customObjects. Objects can use it, if
-      // they want.
+      // config['config'] as config['config'].customObjects. Objects can use it,
+      // if they want.
 
       // tslint:disable-next-line:no-any
       const customObjectsCombined = {} as {[objName: string]: any};
@@ -265,16 +265,16 @@ export function deserializeKerasObject(
         customObjectsCombined[key] = customObjects[key];
       }
       // Add the customObjects to config
-      const nestedConfig = config.config as serialization.ConfigDict;
-      nestedConfig.customObjects = customObjectsCombined;
+      const nestedConfig = config['config'] as serialization.ConfigDict;
+      nestedConfig['customObjects'] = customObjectsCombined;
 
       const backupCustomObjects = {..._GLOBAL_CUSTOM_OBJECTS};
       for (const key of Object.keys(customObjects)) {
         _GLOBAL_CUSTOM_OBJECTS[key] = customObjects[key];
       }
-      convertNDArrayScalarsInConfig(config.config);
+      convertNDArrayScalarsInConfig(config['config']);
       const returnObj =
-          fromConfig(cls, config.config, customObjects, fastWeightInit);
+          fromConfig(cls, config['config'], customObjects, fastWeightInit);
       _GLOBAL_CUSTOM_OBJECTS = {...backupCustomObjects};
 
       return returnObj;
@@ -289,7 +289,7 @@ export function deserializeKerasObject(
       // In python this is **config['config'], for tfjs-layers we require
       // classes that use this fall-through construction method to take
       // a config interface that mimics the expansion of named parameters.
-      const returnObj = new cls(config.config);
+      const returnObj = new cls(config['config']);
       _GLOBAL_CUSTOM_OBJECTS = {...backupCustomObjects};
       return returnObj;
     }

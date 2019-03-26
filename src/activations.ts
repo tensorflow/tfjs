@@ -200,14 +200,14 @@ export function getActivation(identifier: ActivationIdentifier|
                               serialization.ConfigDict|Activation): Activation {
   if (identifier == null) {
     const config: serialization.ConfigDict = {};
-    config.className = 'linear';
-    config.config = {};
+    config['className'] = 'linear';
+    config['config'] = {};
     return deserializeActivation(config);
   }
   if (typeof identifier === 'string') {
     const config: serialization.ConfigDict = {};
-    config.className = identifier;
-    config.config = {};
+    config['className'] = identifier;
+    config['config'] = {};
     return deserializeActivation(config);
   } else if (identifier instanceof Activation) {
     return identifier;

@@ -609,12 +609,12 @@ export abstract class Container extends Layer {
   private updatedConfig(): serialization.ConfigDict {
     const theConfig = this.getConfig();
     const modelConfig: serialization.ConfigDict = {};
-    modelConfig.className = this.getClassName();
-    modelConfig.config = theConfig;
-    modelConfig.kerasVersion = `tfjs-layers ${layersVersion}`;
+    modelConfig['className'] = this.getClassName();
+    modelConfig['config'] = theConfig;
+    modelConfig['kerasVersion'] = `tfjs-layers ${layersVersion}`;
     // TODO(nielsene): Replace something like K.backend() once
     // possible.
-    modelConfig.backend = 'TensorFlow.js';
+    modelConfig['backend'] = 'TensorFlow.js';
     return modelConfig;
   }
 
@@ -832,7 +832,7 @@ export abstract class Container extends Layer {
           }
           if (computedData.length === 1) {
             const [computedTensor, computedMask] = computedData[0];
-            if (kwargs.mask == null) {
+            if (kwargs['mask'] == null) {
               kwargs['mask'] = computedMask;
             }
             outputTensors =
@@ -844,7 +844,7 @@ export abstract class Container extends Layer {
           } else {
             computedTensors = computedData.map(x => x[0]);
             computedMasks = computedData.map(x => x[1]);
-            if (kwargs.mask == null) {
+            if (kwargs['mask'] == null) {
               kwargs['mask'] = computedMasks;
             }
             outputTensors =
@@ -1038,10 +1038,10 @@ export abstract class Container extends Layer {
         }
       }
       const dict: serialization.ConfigDict = {};
-      dict.name = layer.name;
-      dict.className = layerClassName;
-      dict.config = layerConfig;
-      dict.inboundNodes = filteredInboundNodes;
+      dict['name'] = layer.name;
+      dict['className'] = layerClassName;
+      dict['config'] = layerConfig;
+      dict['inboundNodes'] = filteredInboundNodes;
       layerConfigs.push(dict);
     }
     config['layers'] = layerConfigs;
@@ -1126,16 +1126,20 @@ export abstract class Container extends Layer {
       const inputTensors: SymbolicTensor[] = [];
       let kwargs;
       for (const inputData of nodeData) {
-        const inboundLayerName = inputData[0] as string;
-        const inboundNodeIndex = inputData[1] as number;
-        const inboundTensorIndex = inputData[2] as number;
-        if (inputData.length === 3) {
+        const inputDataArray = inputData as unknown as
+            Array<number|string|serialization.ConfigDict>;
+
+        const inboundLayerName = inputDataArray[0] as string;
+        const inboundNodeIndex = inputDataArray[1] as number;
+        const inboundTensorIndex = inputDataArray[2] as number;
+
+        if (inputDataArray.length === 3) {
           kwargs = {};
-        } else if (inputData.length === 4) {
-          kwargs = inputData[3] as serialization.ConfigDict;
+        } else if (inputDataArray.length === 4) {
+          kwargs = inputDataArray[3] as serialization.ConfigDict;
         } else {
           throw new ValueError(`Improperly formatted model config for layer ${
-              JSON.stringify(layer)}: ${JSON.stringify(inputData)}`);
+              JSON.stringify(layer)}: ${JSON.stringify(inputDataArray)}`);
         }
         if (!(inboundLayerName in createdLayers)) {
           addUnprocessedNode(layer, nodeData);
@@ -1166,18 +1170,19 @@ export abstract class Container extends Layer {
      * dict.
      */
     function processLayer(layerData: serialization.ConfigDict|null) {
-      const layerName = layerData.name as string;
+      const layerName = layerData['name'] as string;
       // Instantiate layer.
-      const layer = deserializeLayer(
-                        layerData,
-                        config.customObjects != null ?
-                            config.customObjects as serialization.ConfigDict :
-                            {}) as Layer;
+      const layer =
+          deserializeLayer(
+              layerData,
+              config['customObjects'] != null ?
+                  config['customObjects'] as serialization.ConfigDict :
+                  {}) as Layer;
       layer.setFastWeightInitDuringBuild(fastWeightInit);
       createdLayers[layerName] = layer;
       // Gather layer inputs.
       const inboundNodesData =
-          layerData.inboundNodes as serialization.ConfigDict[];
+          layerData['inboundNodes'] as serialization.ConfigDict[];
       for (const nodeData of inboundNodesData) {
         if (!(nodeData instanceof Array)) {
           throw new ValueError(
@@ -1193,8 +1198,8 @@ export abstract class Container extends Layer {
     }
 
     // First, we create all layers and enqueue nodes to be processed.
-    const name = config.name;
-    const layersFromConfig = config.layers as serialization.ConfigDict[];
+    const name = config['name'];
+    const layersFromConfig = config['layers'] as serialization.ConfigDict[];
     for (const layerData of layersFromConfig) {
       processLayer(layerData);
     }
@@ -1205,7 +1210,7 @@ export abstract class Container extends Layer {
     // is repeated until all nodes are processed.
     while (!generic_utils.isObjectEmpty(unprocessedNodes)) {
       for (const layerData of layersFromConfig) {
-        const layer = createdLayers[layerData.name as string];
+        const layer = createdLayers[layerData['name'] as string];
         if (layer.name in unprocessedNodes) {
           const currentUnprocessedNodesForLayer = unprocessedNodes[layer.name];
           delete unprocessedNodes[layer.name];
@@ -1219,7 +1224,7 @@ export abstract class Container extends Layer {
     const inputTensors: SymbolicTensor[] = [];
     const outputTensors: SymbolicTensor[] = [];
     const inputLayersFromConfig =
-        config.inputLayers as serialization.ConfigDict[];
+        config['inputLayers'] as serialization.ConfigDict[];
     for (const layerData of inputLayersFromConfig) {
       const layerName = layerData[0] as string;
       const nodeIndex = layerData[1] as number;
@@ -1230,7 +1235,7 @@ export abstract class Container extends Layer {
       inputTensors.push(layerOutputTensors[tensorIndex]);
     }
     const outputLayersFromConfig =
-        config.outputLayers as serialization.ConfigDict[];
+        config['outputLayers'] as serialization.ConfigDict[];
     for (const layerData of outputLayersFromConfig) {
       const layerName = layerData[0] as string;
       const nodeIndex = layerData[1] as number;

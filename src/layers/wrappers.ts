@@ -304,14 +304,14 @@ export class Bidirectional extends Wrapper {
     //   methods.
     const layerConfig = args.layer.getConfig();
     const forwDict: serialization.ConfigDict = {};
-    forwDict.className = args.layer.getClassName();
-    forwDict.config = layerConfig;
+    forwDict['className'] = args.layer.getClassName();
+    forwDict['config'] = layerConfig;
     this.forwardLayer = deserialize(forwDict) as RNN;
     layerConfig['goBackwards'] =
         layerConfig['goBackwards'] === true ? false : true;
     const backDict: serialization.ConfigDict = {};
-    backDict.className = args.layer.getClassName();
-    backDict.config = layerConfig;
+    backDict['className'] = args.layer.getClassName();
+    backDict['config'] = layerConfig;
     this.backwardLayer = deserialize(backDict) as RNN;
     this.forwardLayer.name = 'forward_' + this.forwardLayer.name;
     this.backwardLayer.name = 'backward_' + this.backwardLayer.name;

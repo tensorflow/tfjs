@@ -884,12 +884,12 @@ export class RNN extends Layer {
       unroll: this.unroll,
     };
     if (this.numConstants != null) {
-      config.numConstants = this.numConstants;
+      config['numConstants'] = this.numConstants;
     }
     const cellConfig = this.cell.getConfig();
-    config.cell = {
-      className: this.cell.getClassName(),
-      config: cellConfig,
+    config['cell'] = {
+      'className': this.cell.getClassName(),
+      'config': cellConfig,
     } as serialization.ConfigDictValue;
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);

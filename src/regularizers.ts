@@ -94,7 +94,7 @@ export class L1L2 extends Regularizer {
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict): T {
-    return new cls({l1: config.l1 as number, l2: config.l2 as number});
+    return new cls({l1: config['l1'] as number, l2: config['l2'] as number});
   }
 }
 serialization.registerClass(L1L2);
