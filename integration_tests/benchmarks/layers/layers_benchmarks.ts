@@ -20,7 +20,35 @@ import * as tf from '@tensorflow/tfjs';
 import * as detectBrowser from 'detect-browser';
 
 import {logSuiteLog} from '../firebase';
-import {BenchmarkEnvironmentType, BrowserEnvironmentInfo, ModelTaskLog, MultiEnvironmentTaskLog, SuiteLog, TaskGroupLog} from '../types';
+import {SuiteLog, BenchmarkEnvironmentType, ModelTask, ModelTaskLog, BrowserEnvironmentInfo} from '../types';
+
+function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
+  const modelNamesAndTimestamps: Array<{
+    modelName: string,
+    timestamp: number
+  }> = [];
+  for (const modelName in suiteLog.data) {
+    const taskGroupLog = suiteLog.data[modelName];
+    const taskNames = Object.keys(taskGroupLog);
+    if (taskNames.length === 0) {
+      continue;
+    }
+    const multiEnvironmentTaskLog = taskGroupLog[taskNames[0]];
+    const environmentTypes = Object.keys(multiEnvironmentTaskLog) as BenchmarkEnvironmentType[];
+    if (environmentTypes.length === 0) {
+      continue;
+    }
+    const taskLog = multiEnvironmentTaskLog[environmentTypes[0]];
+
+    modelNamesAndTimestamps.push({
+      modelName,
+      timestamp: new Date(taskLog.timestamp).getTime()
+    });
+  }
+
+  modelNamesAndTimestamps.sort((x, y) => x.timestamp - y.timestamp);
+  return modelNamesAndTimestamps.map(object => object.modelName);
+}
 
 function getRandomInputsAndOutputs(model: tf.Model, batchSize: number):
     {xs: tf.Tensor|tf.Tensor[], ys: tf.Tensor|tf.Tensor[]} {
@@ -63,6 +91,14 @@ function getBrowserEnvironmentType(): BenchmarkEnvironmentType {
   return `${browserName}-${osName}` as BenchmarkEnvironmentType;
 }
 
+function getBrowserEnvironmentInfo(): BrowserEnvironmentInfo {
+  return {
+    type: getBrowserEnvironmentType(),
+    userAgent: navigator.userAgent,
+    // TODO(cais): Add WebGL info.
+  };
+}
+
 describe('TF.js Layers Benchmarks', () => {
   beforeAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 600000;
@@ -72,18 +108,18 @@ describe('TF.js Layers Benchmarks', () => {
   const DATA_SERVER_ROOT = './base/data';
   const BENCHMARKS_JSON_URL = `${DATA_SERVER_ROOT}/benchmarks.json`;
 
-  async function getBenchmarkModelNamesAndConfig(): Promise<{
-    modelNames: string[],
-    predictNumBurnInRuns: number,
-    predictNumBenchmarkRuns: number
-  }> {
-    const benchmarks = await (await fetch(BENCHMARKS_JSON_URL)).json();
-    return {
-      modelNames: benchmarks.models as string[],
-      predictNumBurnInRuns: benchmarks.config.PREDICT_BURNINS as number,
-      predictNumBenchmarkRuns: benchmarks.config.PREDICT_RUNS as number
-    };
-  }
+  // async function getSuiteLog(): Promise<{
+  //   modelNames: string[],
+  //   predictNumBurnInRuns: number,
+  //   predictNumBenchmarkRuns: number
+  // }> {
+  //   const benchmarks = await (await fetch(BENCHMARKS_JSON_URL)).json();
+  //   return {
+  //     modelNames: benchmarks.models as string[],
+  //     predictNumBurnInRuns: benchmarks.config.PREDICT_BURNINS as number,
+  //     predictNumBenchmarkRuns: benchmarks.config.PREDICT_RUNS as number
+  //   };
+  // }
 
   async function loadModel(modelName: string): Promise<tf.Model> {
     const modelJSONPath = `${DATA_SERVER_ROOT}/${modelName}/model.json`;
@@ -91,88 +127,95 @@ describe('TF.js Layers Benchmarks', () => {
     return await tf.models.modelFromJSON(modelJSON['modelTopology']);
   }
 
-  async function loadModelBenchmarkData(modelName: string): Promise<any> {
-    const modelJSONPath = `${DATA_SERVER_ROOT}/${modelName}/data.json`;
-    return await (await fetch(modelJSONPath)).json();
-  }
+  // async function loadModelBenchmarkData(modelName: string): Promise<any> {
+  //   const modelJSONPath = `${DATA_SERVER_ROOT}/${modelName}/data.json`;
+  //   return await (await fetch(modelJSONPath)).json();
+  // }
 
   it('Benchmark models', async () => {
-    const {modelNames, predictNumBenchmarkRuns, predictNumBurnInRuns} =
-        await getBenchmarkModelNamesAndConfig();
-
+    // const {modelNames, predictNumBenchmarkRuns, predictNumBurnInRuns} =
+    //     await getBenchmarkModelNamesAndConfig();
     const environmentType = getBrowserEnvironmentType();
-    const environment: BrowserEnvironmentInfo = {
-      type: environmentType,
-      userAgent: navigator.userAgent
-    };
+    const environmentInfo = getBrowserEnvironmentInfo();
 
-    const suiteLog: SuiteLog = {
-      data: {},
-      metadata: {
-        commitHashes: {
-          'tfjs': 'foo',  // TODO(cais): Do not hard-code.
-          'tfjs-core': 'foo',
-          'tfjs-converter': 'foo',
-          'tfjs-layers': 'foo',
-          'tfjs-data': 'foo'
-        },
-        timestamp: new Date().toISOString()
-      }
-    };
+    const suiteLog =
+        await (await fetch(BENCHMARKS_JSON_URL)).json() as SuiteLog;
+    console.log(JSON.stringify(suiteLog, null, 2));  // DEBUG
 
-    for (let i = 0; i < modelNames.length; ++i) {
-      const modelName = modelNames[i];
+    const sortedModelNames = getChronologicalModelNames(suiteLog);
+    console.log(sortedModelNames);  // DEBUG
+
+    for (let i = 0; i < sortedModelNames.length; ++i) {
+      const modelName = sortedModelNames[i];
+      const taskGroupLog = suiteLog.data[modelName];
+    // sortedModelNames.forEach((modelName, i) => {
       console.log(
-          `Benchmark task ${i + 1} of ${modelNames.length}: ${modelName}`);
+          `Benchmark task ${i + 1} of ${sortedModelNames.length}: ` +
+          `${modelName}`);
       const model = await loadModel(modelName);
-      const benchmarkData = await loadModelBenchmarkData(modelName);
+    //   const benchmarkData = await loadModelBenchmarkData(modelName);
 
-      const batchSize = benchmarkData.batch_size as number;
+    //   const batchSize = benchmarkData.batch_size as number;
 
-      const {xs, ys} = getRandomInputsAndOutputs(model, batchSize);
-
-      // Burn-in runs.
-      let predictOut: tf.Tensor|tf.Tensor[];
-      for (let i = 0; i < predictNumBurnInRuns; ++i) {
-        predictOut = model.predict(xs);
-        await syncDataAndDispose(predictOut);
+      const taskNames = Object.keys(taskGroupLog) as ModelTask[];
+      if (taskNames.length === 0) {
+        throw new Error(`No task is found for model "${modelName}"`);
       }
+      for (let j = 0; j < taskNames.length; ++j) {
+        const taskName = taskNames[j];
+        const multiEnvironTaskLog = taskGroupLog[taskName];
+        const pyEnviron =
+            Object.keys(multiEnvironTaskLog) as BenchmarkEnvironmentType[];
+        if (pyEnviron.length !== 1) {
+          throw new Error(
+              `Found two python environment types: ${pyEnviron}.` +
+              `Expected exactly 1`);
+        }
+        const pyTaskLog = multiEnvironTaskLog[pyEnviron[0]] as ModelTaskLog;
+        if (taskName === 'predict') {
+          if (!(Number.isInteger(pyTaskLog.batchSize) &&
+                pyTaskLog.batchSize > 0)) {
+            throw new Error(
+                `Expected batch size to be a positive integer, but got ` +
+                `${pyTaskLog.batchSize}`);
+          }
+          const {xs, ys} = getRandomInputsAndOutputs(model, pyTaskLog.batchSize);
 
-      // Benchmarked runs.
-      const ts: number[] = [];
-      for (let i = 0; i < predictNumBenchmarkRuns; ++i) {
-        const t0 = performance.now();
-        predictOut = model.predict(xs);
-        await syncDataAndDispose(predictOut);
-        ts.push(performance.now() - t0);
+          // Warm-up predict() runs.
+          for (let n = 0; n < pyTaskLog.numWarmUpRuns; ++n) {
+            await syncDataAndDispose(model.predict(xs));
+          }
+
+          // Benchmarked predict() runs.
+          const ts: number[] = [];
+          for (let n = 0; n < pyTaskLog.numBenchmarkedRuns; ++n) {
+            const t0 = tf.util.now();
+            await syncDataAndDispose(model.predict(xs));
+            ts.push(tf.util.now() - t0);
+          }
+          tf.dispose({xs, ys});
+
+          // Format data for predict().
+          const predictTaskLog = Object.assign({}, pyTaskLog);
+          predictTaskLog.averageTimeMs = math.mean(ts);
+          predictTaskLog.medianTimeMs = math.median(ts);
+          predictTaskLog.minTimeMs = math.median(ts);
+          predictTaskLog.environment = environmentInfo;
+          
+          multiEnvironTaskLog[environmentType] = predictTaskLog;
+          console.log(
+              `  predict(): averageTimeMs: ` +
+              `py=${pyTaskLog.averageTimeMs.toFixed(3)}, ` +
+              `ts=${predictTaskLog.averageTimeMs.toFixed(3)}`);
+        } else if (taskName === 'fit') {
+           
+        } else {
+          console.warn(`Skipping task "${taskName}" of model "${modelName}"`);
+        }
       }
-
-      const modelTaskLog: ModelTaskLog = {
-        modelName,
-        taskName: 'predict',
-        numWarmUpRuns: predictNumBurnInRuns,
-        numBenchmarkedRuns: predictNumBenchmarkRuns,
-        batchSize,
-        averageTimeMs: math.mean(ts),
-        medianTimeMs: math.median(ts),
-        minTimeMs: math.min(ts),
-        timestamp: new Date().getTime(),
-        environment
-      };
-      const multiEnvironmentTaskLog: MultiEnvironmentTaskLog = {};
-      multiEnvironmentTaskLog[environmentType] = modelTaskLog;
-      const taskGroupLog: TaskGroupLog = {
-        'predict': multiEnvironmentTaskLog
-      };
-      suiteLog.data[modelName] = taskGroupLog;
-
-      console.log(modelTaskLog);
-
-      tf.dispose({xs, ys});
     }
-    console.log(JSON.stringify(suiteLog, null, 2));
 
-    console.log('Logging to firebase:');
+    console.log('Logging to firebase...');
     await logSuiteLog(suiteLog);
   });
 });

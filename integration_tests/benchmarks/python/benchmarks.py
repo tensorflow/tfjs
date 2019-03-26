@@ -44,7 +44,7 @@ _PREDICT_BURNINS = 20  # How many predict() runs to do before timing predict().
 _PREDICT_RUNS = 30  # How many runs of predict() to average over.
 
 
-def _get_environmen_type():
+def _get_environment_type():
   return ('python-tensorflow-cuda' if tf.test.gpu_device_name() else
           'python-tensorflow-cpu')
 
@@ -143,15 +143,17 @@ def benchmark_and_serialize_model(model_name,
 
     # Collect and format the data for fit().
     task_logs['fit'] = {  # For schema, see 'ModelTaskLog` in types.ts.
-      'modelName': model_name,
-      'modelDescription': description,
-      'taskName': 'fit',
-      'timestamp': str(time.time()),
-      'batchSize': batch_size,
-      'numBenchmarkedRuns': train_epochs,
-      'numWarmUpRuns': _FIT_BURNIN_EPOCHS,
-      'averageTimeMs': train_time,
-      'environment': environment_info
+      _get_environment_type(): {
+        'modelName': model_name,
+        'modelDescription': description,
+        'taskName': 'fit',
+        'timestamp': time.time(),
+        'batchSize': batch_size,
+        'numBenchmarkedRuns': train_epochs,
+        'numWarmUpRuns': _FIT_BURNIN_EPOCHS,
+        'averageTimeMs': train_time,
+        'environment': environment_info
+      }
     }
 
   # Perform predict() burn-in.
@@ -170,22 +172,22 @@ def benchmark_and_serialize_model(model_name,
 
   # Collect and format the data for predict().
   task_logs['predict'] = {  # For schema, see 'ModelTaskLog` in types.ts.
-    'modelName': model_name,
-    'modelDescription': description,
-    'taskName': 'predct',
-    'timestamp': str(time.time()),
-    'batchSize': batch_size,
-    'numBenchmarkedRuns': _PREDICT_RUNS,
-    'numWarmUpRuns': _PREDICT_BURNINS,
-    'averageTimeMs': np.mean(predict_ts),
-    'medianTimeMs': np.median(predict_ts),
-    'minTimeMs': np.min(predict_ts),
-    'environment': environment_info,
+    _get_environment_type(): {
+      'modelName': model_name,
+      'modelDescription': description,
+      'taskName': 'predct',
+      'timestamp': time.time(),
+      'batchSize': batch_size,
+      'numBenchmarkedRuns': _PREDICT_RUNS,
+      'numWarmUpRuns': _PREDICT_BURNINS,
+      'averageTimeMs': np.mean(predict_ts),
+      'medianTimeMs': np.median(predict_ts),
+      'minTimeMs': np.min(predict_ts),
+      'environment': environment_info
+    }
   }
 
-  return {  # For schema, see `TaskGroupLog` in types.ts.
-    _get_environmen_type(): task_logs
-  }
+  return task_logs
 
 
 def dense_tiny_model_fn(input_shape, target_shape):

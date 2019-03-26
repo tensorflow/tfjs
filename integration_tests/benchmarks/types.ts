@@ -164,7 +164,7 @@ export interface SuiteLog {
 
 /** Benchmark logs from multiple days. */
 export type BenchmarkHistory = {
-  [timestamp: string]: TaskGroupLog
+  [datetime: string]: TaskGroupLog
 };
 
 export type CodeRepository =
@@ -182,7 +182,7 @@ export type CommitHashes = {[repo in CodeRepository]?: string};
  */
 export interface BenchmarkMetadata {
   commitHashes: CommitHashes;
-  timestamp: string;
+  timestamp: number;
 }
 
 /**
