@@ -250,6 +250,15 @@ function getShaderPrefix(glsl: GLSL): string {
       return x - y * (x / y);
     }
 
+    int idiv(int a, int b, float sign) {
+      int res = a / b;
+      int mod = imod(a, b);
+      if (sign < 0. && mod != 0) {
+        res -= 1;
+      }
+      return res;
+    }
+
     //Based on the work of Dave Hoskins
     //https://www.shadertoy.com/view/4djSRW
     #define HASHSCALE1 443.8975
