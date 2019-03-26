@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {tensorflow} from '../data/compiled_api';
+import * as tensorflow from '../data/compiled_api';
 
 import * as arithmetic from './op_list/arithmetic';
 import * as basicMath from './op_list/basic_math';

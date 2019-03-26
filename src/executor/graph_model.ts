@@ -17,7 +17,7 @@
 
 import {InferenceModel, io, ModelPredictConfig, NamedTensorMap, Tensor} from '@tensorflow/tfjs-core';
 
-import {tensorflow} from '../data/compiled_api';
+import * as tensorflow from '../data/compiled_api';
 import {NamedTensorsMap, TensorInfo} from '../data/types';
 import {OperationMapper} from '../operations/operation_mapper';
 

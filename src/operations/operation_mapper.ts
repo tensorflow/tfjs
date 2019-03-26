@@ -16,7 +16,7 @@
  */
 
 import {DataType, ENV} from '@tensorflow/tfjs-core';
-import {tensorflow} from '../data/compiled_api';
+import * as tensorflow from '../data/compiled_api';
 import {getNodeNameAndIndex} from './executors/utils';
 import * as arithmetic from './op_list/arithmetic';
 import * as basicMath from './op_list/basic_math';
