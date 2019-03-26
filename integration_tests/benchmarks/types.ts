@@ -44,92 +44,6 @@ export interface BenchmarkLog {
  * =======================================================
  */
 
-export type CodeRepository =
-    'tfjs'|'tfjs-converter'|'tfjs-core'|'tfjs-data'|'tfjs-layers'|'tfjs-node';
-
-/**
- * The git hash code of the related TensorFlow.js code repositories.
- */
-export type CommitHashes = {[repo in CodeRepository]?: string};
-
-/**
- * Metadata for a run of a benchmark suite.
- *
- * See the `SuiteLog` interface below.
- */
-export interface BenchmarkMetadata {
-  commitHashes: CommitHashes;
-  timestamp: string;
-}
-
-/**
- * Information about hardware on which benchmarks are run.
- */
-export interface HardwareInfo {
-  /** `inxi` output. */
-  cpuInfo?: string;
-
-  /** Processed `free` output. */
-  memInfo?: string;
-}
-
-/**
- * Enumerates all environments that TensorFlow.js benchmarks may happen.
- *
- * This type union is meant to be extended in the future.
- */
-export type BenchmarkEnvironmentType = 'chrome-linux'|'chrome-mac'|
-    'firefox-mac'|'firefox-liux'|'safari-mac'|'ios-11'|
-    'node-libtensorflow-cpu'|'node-libtensorflow-cuda'|'node-gles'|
-    'python-tensorflow-cpu'|'python-tensorflow-cuda';
-
-/** Information about a benchmark environment. */
-export interface EnvironmentInfo {
-  type: BenchmarkEnvironmentType;
-
-  /**
-   * Metadata for the node environment.
-   * `uname -a` output.
-   */
-  systemInfo?: string;
-}
-
-/** Metadata specific to the browser environment. */
-export interface BrowserEnvironmentInfo extends EnvironmentInfo {
-  userAgent: string;
-
-  webGLVersion?: string;
-}
-
-export interface ServerSideEnvironmentInfo extends EnvironmentInfo {
-  hardwareInfo?: HardwareInfo;
-
-  /** Processed `nvidia-smi` output. */
-  cudaGPUInfo?: string;
-
-  /** Can be extracted from `nvcc --version`. */
-  cudaVersion?: string;
-}
-
-/** Metadata specific to the Node.js environment. */
-export interface NodeEnvironmentInfo extends ServerSideEnvironmentInfo {
-  /** Outpu from `node --version`. */
-  nodeVersion?: string;
-
-  tfjsNodeVersion?: string;
-  tfjsNodeUsesCUDA?: boolean;
-}
-
-/** Metadata specific to the Python environment. */
-export interface PythonEnvironmentInfo extends
-    ServerSideEnvironmentInfo {
-  pythonVersion?: string;
-
-  tensorflowVersion?: string;
-  kerasVersion?: string;
-  tensorflowUsesCUDA?: boolean;
-}
-
 /**
  * The log from an individual benchmark task.
  *
@@ -173,16 +87,16 @@ export interface TaskLog {
 
   /**
    * Arithmetic mean of the wall times from the benchmarked runs.
-   * 
+   *
    * This is the primary metric displayed by the dashboard. Use caution
    * when making change to this field.
    */
   averageTimeMs: number;
 
-  /** Median of the wall times from the benchmarked runs.*/
+  /** Median of the wall times from the benchmarked runs. */
   medianTimeMs?: number;
 
-  /** Minimum of the wall times from the benchmarked runs.*/
+  /** Minimum of the wall times from the benchmarked runs. */
   minTimeMs?: number;
 
   environment: EnvironmentInfo;
@@ -239,9 +153,95 @@ export interface SuiteLog {
   data: {[taskGroupName: string]: TaskGroupLog};
 
   metadata: BenchmarkMetadata;
-};
+}
 
 /** Benchmark logs from multiple days. */
 export type BenchmarkHistory = {
   [timestamp: string]: TaskGroupLog
 };
+
+export type CodeRepository =
+    'tfjs'|'tfjs-converter'|'tfjs-core'|'tfjs-data'|'tfjs-layers'|'tfjs-node';
+
+/**
+ * The git hash code of the related TensorFlow.js code repositories.
+ */
+export type CommitHashes = {[repo in CodeRepository]?: string};
+
+/**
+ * Metadata for a run of a benchmark suite.
+ *
+ * See the `SuiteLog` interface below.
+ */
+export interface BenchmarkMetadata {
+  commitHashes: CommitHashes;
+  timestamp: string;
+}
+
+/**
+ * Information about hardware on which benchmarks are run.
+ */
+export interface HardwareInfo {
+  /** `inxi` output. */
+  cpuInfo?: string;
+
+  /** Processed `free` output. */
+  memInfo?: string;
+}
+
+/**
+ * Enumerates all environments that TensorFlow.js benchmarks may happen.
+ *
+ * This type union is meant to be extended in the future.
+ */
+export type BenchmarkEnvironmentType = 'chrome-linux'|'chrome-mac'|
+    'firefox-linux'|'firefox-mac'|'safari-mac'|'ios-11'|
+    'node-libtensorflow-cpu'|'node-libtensorflow-cuda'|'node-gles'|
+    'python-tensorflow-cpu'|'python-tensorflow-cuda';
+
+/** Information about a benchmark environment. */
+export interface EnvironmentInfo {
+  type: BenchmarkEnvironmentType;
+
+  /**
+   * Metadata for the node environment.
+   * `uname -a` output.
+   */
+  systemInfo?: string;
+}
+
+/** Metadata specific to the browser environment. */
+export interface BrowserEnvironmentInfo extends EnvironmentInfo {
+  userAgent: string;
+
+  webGLVersion?: string;
+}
+
+export interface ServerSideEnvironmentInfo extends EnvironmentInfo {
+  hardwareInfo?: HardwareInfo;
+
+  /** Processed `nvidia-smi` output. */
+  cudaGPUInfo?: string;
+
+  /** Can be extracted from `nvcc --version`. */
+  cudaVersion?: string;
+}
+
+/** Metadata specific to the Node.js environment. */
+export interface NodeEnvironmentInfo extends ServerSideEnvironmentInfo {
+  /** `node --version` output. */
+  nodeVersion?: string;
+
+  tfjsNodeVersion?: string;
+  tfjsNodeUsesCUDA?: boolean;
+}
+
+/** Metadata specific to the Python environment. */
+export interface PythonEnvironmentInfo extends
+    ServerSideEnvironmentInfo {
+  pythonVersion?: string;
+
+  tensorflowVersion?: string;
+  kerasVersion?: string;
+  tensorflowUsesCUDA?: boolean;
+}
