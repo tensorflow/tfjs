@@ -16,7 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {tensorflow} from '../data/compiled_api';
+import * as tensorflow from '../data/compiled_api';
 import {GraphModel, loadGraphModel} from './graph_model';
 
 const HOST = 'http://example.org';

@@ -18,7 +18,7 @@
 module.exports = function(config) {
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
-    files: [{pattern: 'src/**/*.ts'}, {pattern: 'src/**/*.js'}],
+    files: [{pattern: 'src/**/*.ts'}],
     exclude: [
       'src/docs/**/*.ts'
     ],
