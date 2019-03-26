@@ -74,12 +74,6 @@ export interface Features {
   'WEBGL_FENCE_API_ENABLED'?: boolean;
   // Tensors with size <= than this will be uploaded as uniforms, not textures.
   'WEBGL_SIZE_UPLOAD_UNIFORM'?: number;
-  /**
-   * Number of megabytes bytes allocated on the GPU before we start moving data
-   * to cpu. Moving avoids gpu memory leaks and relies on JS's garbage
-   * collector.
-   */
-  'WEBGL_NUM_MB_BEFORE_PAGING'?: number;
   'BACKEND'?: string;
   // Test precision for unit tests. This is decreased when we can't render
   // float32 textures.
@@ -121,7 +115,6 @@ export const URL_PROPERTIES: URLProperty[] = [
   {name: 'WEBGL_PACK_REDUCE', type: Type.BOOLEAN},
   {name: 'WEBGL_CONV_IM2COL', type: Type.BOOLEAN},
   {name: 'WEBGL_MAX_TEXTURE_SIZE', type: Type.NUMBER},
-  {name: 'WEBGL_NUM_MB_BEFORE_PAGING', type: Type.NUMBER},
   {name: 'WEBGL_MAX_TEXTURES_IN_SHADER', type: Type.NUMBER},
   {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', type: Type.NUMBER},
   {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', type: Type.BOOLEAN},
@@ -347,13 +340,4 @@ export function getQueryParams(queryString: string): {[key: string]: string} {
 function decodeParam(
     params: {[key: string]: string}, name: string, value?: string) {
   params[decodeURIComponent(name)] = decodeURIComponent(value || '');
-}
-
-// Empirically determined constant used to decide the number of bytes on GPU
-// before we start paging. The MB are this constant * screen area * dpi / 1024.
-export const BEFORE_PAGING_CONSTANT = 600;
-export function getNumMBBeforePaging(): number {
-  return (window.screen.height * window.screen.width *
-          window.devicePixelRatio) *
-      BEFORE_PAGING_CONSTANT / 1024;
 }

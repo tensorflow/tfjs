@@ -176,6 +176,19 @@ export interface TensorHandle {
 // off execution to the CPU.
 const CPU_HANDOFF_SIZE_THRESHOLD = 128;
 
+// Empirically determined constant used to decide the number of MB on GPU
+// before we warn about high memory use. The MB are this constant * screen area
+// * dpi / 1024 / 1024.
+const BEFORE_PAGING_CONSTANT = 600;
+function numMBBeforeWarning(): number {
+  if (ENV.global.screen == null) {
+    return 1024;  // 1 GB.
+  }
+  return (ENV.global.screen.height * ENV.global.screen.width *
+          window.devicePixelRatio) *
+      BEFORE_PAGING_CONSTANT / 1024 / 1024;
+}
+
 // Empirically determined minimal shared dimension in matmul before we forward
 // to a.mul(b).sum() in order to take advantage of GPU parallelism. See
 // https://github.com/tensorflow/tfjs-core/pull/1379 for benchmarks.
@@ -191,9 +204,6 @@ export class MathBackendWebGL implements KernelBackend {
   // Used to count the number of 'shallow' sliced tensors that point to the
   // same data id.
   private dataRefCount = new WeakMap<DataId, number>();
-  // List of data ids that are currently residing on gpu memory. Sorted with
-  // least recently used being first.
-  private lruDataGPU: DataId[] = [];
   private numBytesInGPU = 0;
 
   private canvas: HTMLCanvasElement;
@@ -453,10 +463,8 @@ export class MathBackendWebGL implements KernelBackend {
     this.texData.get(tmpTarget.dataId).usage = TextureUsage.DOWNLOAD;
     const output = tidy(() => {
       const program = new EncodeFloatProgram(shape);
-      const pageToCpu = false;
-
       return this.compileAndRun(
-          program, [{shape, dtype, dataId}], tmpTarget, null, pageToCpu);
+          program, [{shape, dtype, dataId}], tmpTarget, null);
     });
     const tmpData = this.texData.get(output.dataId);
     const vals =
@@ -581,6 +589,8 @@ export class MathBackendWebGL implements KernelBackend {
   private textureManager: TextureManager;
   private binaryCache: {[key: string]: GPGPUBinary};
   private gpgpuCreatedLocally: boolean;
+  private numMBBeforeWarning: number;
+  private warnedAboutMemory = false;
 
   constructor(private gpgpu?: GPGPUContext) {
     if (ENV.get('WEBGL_VERSION') < 1) {
@@ -599,6 +609,7 @@ export class MathBackendWebGL implements KernelBackend {
       this.canvas = gpgpu.gl.canvas;
     }
     this.textureManager = new TextureManager(this.gpgpu);
+    this.numMBBeforeWarning = numMBBeforeWarning();
   }
 
   private getCPUBackend(): KernelBackend|null {
@@ -2242,8 +2253,8 @@ export class MathBackendWebGL implements KernelBackend {
   public compileAndRun<
       K extends {dtype: DataType, size: number, dataId: {}, shape: number[]}>(
       program: GPGPUProgram, inputs: TensorHandle[], output?: K,
-      customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
-      pageToCpu = true): K {
+      customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void):
+      K {
     if (output == null) {
       if (program.usesPackedTextures) {
         output = this.makePackedTensor(program.outputShape, inputs[0].dtype) as
@@ -2342,17 +2353,6 @@ export class MathBackendWebGL implements KernelBackend {
     gpgpu_math.runProgram(
         this.gpgpu, binary, inputsData, outputData, customSetup);
 
-    const numBytesBeforePaging = ENV.get('WEBGL_NUM_MB_BEFORE_PAGING') * 1024;
-    if (pageToCpu && this.numBytesInGPU > numBytesBeforePaging) {
-      let numBytesToPage = this.numBytesInGPU - numBytesBeforePaging;
-      while (numBytesToPage > 0 && this.lruDataGPU.length > 0) {
-        const dataId = this.lruDataGPU.shift();
-        const {texShape, dtype} = this.texData.get(dataId);
-        numBytesToPage -= this.computeBytes(texShape, dtype);
-        this.read(dataId);
-      }
-    }
-
     if (shouldTimeProgram) {
       query = this.endTimer(query);
       this.activeTimers.push(
@@ -2417,14 +2417,6 @@ export class MathBackendWebGL implements KernelBackend {
     const {shape, dtype, values, texture, usage, isPacked} = texData;
     if (texture != null) {
       // Array is already on GPU. No-op.
-      // Touching the texture.
-      if (ENV.get('WEBGL_NUM_MB_BEFORE_PAGING') < Number.POSITIVE_INFINITY) {
-        const index = this.lruDataGPU.indexOf(dataId);
-        if (index >= 0) {
-          this.lruDataGPU.splice(this.lruDataGPU.indexOf(dataId), 1);
-          this.lruDataGPU.push(dataId);
-        }
-      }
       return;
     }
     const shouldTimeProgram = this.activeTimers != null;
@@ -2435,8 +2427,7 @@ export class MathBackendWebGL implements KernelBackend {
     const texShape =
         webgl_util.getTextureShapeFromLogicalShape(shape, isPacked);
     texData.texShape = texShape;
-    const newTexture =
-        this.acquireTexture(dataId, texShape, usage, dtype, isPacked);
+    const newTexture = this.acquireTexture(texShape, usage, dtype, isPacked);
     texData.texture = newTexture;
     if (values != null) {
       // TODO(smilkov): Propagate the original typed array to gpgpu.
@@ -2484,23 +2475,22 @@ export class MathBackendWebGL implements KernelBackend {
   private releaseTexture(
       dataId: DataId, texture: WebGLTexture, texShape: [number, number],
       texType: TextureUsage, dtype: DataType, isPacked: boolean) {
-    if (ENV.get('WEBGL_NUM_MB_BEFORE_PAGING') < Number.POSITIVE_INFINITY) {
-      const idx = this.lruDataGPU.indexOf(dataId);
-      if (idx >= 0) {
-        this.lruDataGPU.splice(idx, 1);
-      }
-    }
     this.numBytesInGPU -= this.computeBytes(texShape, dtype);
     this.textureManager.releaseTexture(texture, texShape, texType, isPacked);
   }
 
   private acquireTexture(
-      dataId: DataId, texShape: [number, number], texType: TextureUsage,
-      dtype: DataType, isPacked: boolean): WebGLTexture {
-    if (ENV.get('WEBGL_NUM_MB_BEFORE_PAGING') < Number.POSITIVE_INFINITY) {
-      this.lruDataGPU.push(dataId);
-    }
+      texShape: [number, number], texType: TextureUsage, dtype: DataType,
+      isPacked: boolean): WebGLTexture {
     this.numBytesInGPU += this.computeBytes(texShape, dtype);
+    if (!this.warnedAboutMemory &&
+        this.numBytesInGPU > this.numMBBeforeWarning * 1024 * 1024) {
+      const mb = (this.numBytesInGPU / 1024 / 1024).toFixed(2);
+      this.warnedAboutMemory = true;
+      console.warn(
+          `High memory usage in GPU: ${mb} MB, ` +
+          `most likely due to a memory leak`);
+    }
     return this.textureManager.acquireTexture(texShape, texType, isPacked);
   }
 
