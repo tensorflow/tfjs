@@ -62,10 +62,10 @@ export type TruncatedNormalSerialization =
     BaseSerialization<'TruncatedNormal', TruncatedNormalConfig>;
 
 export type VarianceScalingConfig = {
-  scale: number;
+  scale?: number;
 
-  mode: FanModeSerialization;
-  distribution: Distribution;
+  mode?: FanModeSerialization;
+  distribution?: Distribution;
   seed?: number;
 };
 

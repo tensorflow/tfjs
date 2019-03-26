@@ -323,13 +323,13 @@ function computeFans(
 
 export interface VarianceScalingArgs {
   /** Scaling factor (positive float). */
-  scale: number;
+  scale?: number;
 
   /** Fanning mode for inputs and outputs. */
-  mode: FanMode;
+  mode?: FanMode;
 
   /** Probabilistic distribution of the values. */
-  distribution: Distribution;
+  distribution?: Distribution;
 
   /** Random number generator seed. */
   seed?: number;
@@ -366,9 +366,10 @@ export class VarianceScaling extends Initializer {
           `scale must be a positive float. Got: ${args.scale}`);
     }
     this.scale = args.scale == null ? 1.0 : args.scale;
-    this.mode = args.mode;
+    this.mode = args.mode == null ? 'fanIn' : args.mode;
     checkFanMode(this.mode);
-    this.distribution = args.distribution;
+    this.distribution =
+        args.distribution == null ? 'normal' : args.distribution;
     checkDistribution(this.distribution);
     this.seed = args.seed;
   }
