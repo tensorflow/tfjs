@@ -118,7 +118,7 @@ export interface ModelTaskLog extends TaskLog {
   /**
    * A description of the model.
    *
-   * Usually more detailed tha `modelName`.
+   * Usually more detailed than `modelName`.
    */
   modelDescription?: string;
 
