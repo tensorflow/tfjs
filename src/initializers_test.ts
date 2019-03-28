@@ -421,6 +421,17 @@ describeMathCPU('VarianceScaling initializer', () => {
       expect(config['seed']).toEqual(undefined);
     });
   });
+
+  ['uniform', 'normal', 'truncatedNormal'].forEach(distribution => {
+    it('Can be constructed from config dict', () => {
+      const baseInit = getInitializer('varianceScaling');
+      const baseConfig = baseInit.getConfig() as serialization.ConfigDict;
+      baseConfig.distribution = distribution;
+      const newInit = new VarianceScaling(baseConfig);
+      const newConfig = newInit.getConfig();
+      expect(newConfig['distribution']).toEqual(baseConfig['distribution']);
+    });
+  });
 });
 
 describeMathCPU('Glorot normal initializer', () => {

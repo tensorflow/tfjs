@@ -217,8 +217,7 @@ describeMathCPU('Nested model topology', () => {
     const outerModel = tfl.sequential({
       layers: [
         innerModel,
-        tfl.layers.dense(
-            {units: 1, kernelInitializer: 'zeros', useBias: false})
+        tfl.layers.dense({units: 1, kernelInitializer: 'zeros', useBias: false})
       ]
     });
 
@@ -534,8 +533,9 @@ describeMathCPU('modelFromJSON', () => {
       },
       'backend': 'tensorflow'
     };
-    const model = deserialize(
-      convertPythonicToTs(modelTopology) as ConfigDict) as LayersModel;
+    const model =
+        deserialize(convertPythonicToTs(modelTopology) as ConfigDict) as
+        LayersModel;
 
     expect(model.name.indexOf('BarSequential123')).toEqual(0);
     expect(model.inputs.length).toEqual(1);
@@ -753,11 +753,11 @@ describeMathCPU('loadLayersModel from URL', () => {
               }),
               {'headers': {'Content-Type': JSON_TYPE}}));
         } else if (path === 'model/weight_0') {
-          resolve(new Response(kernelData,
-              {'headers': {'Content-Type': OCTET_STREAM_TYPE}}));
+          resolve(new Response(
+              kernelData, {'headers': {'Content-Type': OCTET_STREAM_TYPE}}));
         } else if (path === 'model/weight_1') {
-          resolve(new Response(biasData,
-              {'headers': {'Content-Type': OCTET_STREAM_TYPE}}));
+          resolve(new Response(
+              biasData, {'headers': {'Content-Type': OCTET_STREAM_TYPE}}));
         } else {
           reject(new Error(`Invalid path: ${path}`));
         }
@@ -972,14 +972,13 @@ describeMathCPU('loadLayersModel from URL', () => {
              });
            });
 
-       const model =
-           await loadLayersModelInternal(
-             io.browserHTTPRequest('model/model.json', {
-               requestInit: {
-                 headers: {'header_key_1': 'header_value_1'},
-                 credentials: 'include',
-               }
-             }));
+       const model = await loadLayersModelInternal(
+           io.browserHTTPRequest('model/model.json', {
+             requestInit: {
+               headers: {'header_key_1': 'header_value_1'},
+               credentials: 'include',
+             }
+           }));
        expect(model.layers.length).toEqual(2);
        expect(model.inputs.length).toEqual(1);
        expect(model.inputs[0].shape).toEqual([null, 32]);
@@ -1013,11 +1012,9 @@ describeMathCPU('loadLayersModel from URL', () => {
          const weightsManifest: io.WeightsManifestConfig = [
            {
              'paths': ['weight_0'],
-             'weights': [{
-               'name': `dense_6/kernel`,
-               'dtype': 'float32',
-               'shape': [32, 32]
-             }],
+             'weights': [
+               {'name': `dense_6/kernel`, 'dtype': 'float32', 'shape': [32, 32]}
+             ],
            },
            {
              'paths': ['weight_1'],
@@ -1106,11 +1103,9 @@ describeMathCPU('loadLayersModel from URL', () => {
       },
       {
         'paths': ['weight_1'],
-        'weights': [{
-          'name': `${denseLayerName}/bias`,
-          'dtype': 'float32',
-          'shape': [32]
-        }],
+        'weights': [
+          {'name': `${denseLayerName}/bias`, 'dtype': 'float32', 'shape': [32]}
+        ],
       }
     ];
     // JSON.parse and stringify to deep copy fakeSequentialModel.
@@ -2443,6 +2438,15 @@ describeMathCPU('Functional-model saving and loading', () => {
 
     const ys2 = model2.predict(xs) as Tensor;
     expectTensorsClose(ys1, ys2);
+  });
+
+  it('Deserialization with truncated_normal', async () => {
+    // From https://github.com/tensorflow/tfjs/issues/146
+    const modelJSON = JSON.parse(
+       // tslint:disable-next-line:max-line-length
+       `{"modelTopology":{"class_name":"Sequential","config":[{"class_name":"Dense","config":{"units":1,"activation":"linear","use_bias":true,"kernel_initializer":{"class_name":"VarianceScaling","config":{"scale":1,"mode":"fan_avg","distribution":"truncated_normal","seed":null}},"bias_initializer":{"class_name":"Zeros","config":{}},"kernel_regularizer":null,"bias_regularizer":null,"activity_regularizer":null,"kernel_constraint":null,"bias_constraint":null,"name":"dense_Dense1","trainable":true,"batch_input_shape":[null,1],"dtype":"float32"}}],"keras_version":"tfjs-layers 1.0.2","backend":"tensor_flow.js"},"weightsManifest":[{"paths":["weights.bin"],"weights":[{"name":"dense_Dense1/kernel","shape":[1,1],"dtype":"float32"},{"name":"dense_Dense1/bias","shape":[1],"dtype":"float32"}]}]}`);
+    const modelTopology = modelJSON.modelTopology;
+    expect(() => modelFromJSON({modelTopology})).not.toThrow();
   });
 
   it('Load attention model', async () => {
