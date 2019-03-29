@@ -74,8 +74,7 @@ export interface ModelFitDatasetArgs<T> {
    *   - Similarly, an array ` [xVal, yVal, valSampleWeights]`
    *     (not implemented yet).
    *   - a `Dataset` object with elements of the form `{xs: xVal, ys: yVal}`,
-   *     where the two values may be `tf.Tensor`, an array of Tensors, or a map
-   *     of string to Tensor.
+   *     where `xs` and `ys` are the feature and label tensors, respectively.
    *
    * If `validationData` is an Array of Tensor objects, each `tf.Tensor` will be
    * sliced into batches during validation, using the parameter
