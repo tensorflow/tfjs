@@ -15,6 +15,7 @@ import {NamedTensorMap, Scalar, serialization, Tensor, tidy} from '@tensorflow/t
 import {getUid} from '../backend/state';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
 import {Shape} from '../keras_format/common';
+import {TensorKeyWithArgsArray} from '../keras_format/node_config';
 import {PyJsonDict} from '../keras_format/types';
 import {deserialize as deserializeLayer} from '../layers/serialization';
 import {Kwargs} from '../types';
@@ -1111,10 +1112,9 @@ export abstract class Container extends Layer {
     // It acts as a queue that maintains any unprocessed
     // layer call until it becomes possible to process it
     // (i.e. until the input tensors to the call all exist).
-    const unprocessedNodes:
-        {[layer: string]: serialization.ConfigDict[][]} = {};
+    const unprocessedNodes: {[layer: string]: TensorKeyWithArgsArray[][]} = {};
     function addUnprocessedNode(
-        layer: Layer, nodeData: serialization.ConfigDict[]) {
+        layer: Layer, nodeData: TensorKeyWithArgsArray[]) {
       if (!(layer.name in unprocessedNodes)) {
         unprocessedNodes[layer.name] = [nodeData];
       } else {
@@ -1122,25 +1122,17 @@ export abstract class Container extends Layer {
       }
     }
 
-    function processNode(layer: Layer, nodeData: serialization.ConfigDict[]) {
+    function processNode(layer: Layer, nodeData: TensorKeyWithArgsArray[]) {
       const inputTensors: SymbolicTensor[] = [];
       let kwargs;
       for (const inputData of nodeData) {
-        const inputDataArray = inputData as unknown as
-            Array<number|string|serialization.ConfigDict>;
+        const inboundLayerName = inputData[0];
+        const inboundNodeIndex = inputData[1];
+        const inboundTensorIndex = inputData[2];
 
-        const inboundLayerName = inputDataArray[0] as string;
-        const inboundNodeIndex = inputDataArray[1] as number;
-        const inboundTensorIndex = inputDataArray[2] as number;
-
-        if (inputDataArray.length === 3) {
-          kwargs = {};
-        } else if (inputDataArray.length === 4) {
-          kwargs = inputDataArray[3] as serialization.ConfigDict;
-        } else {
-          throw new ValueError(`Improperly formatted model config for layer ${
-              JSON.stringify(layer)}: ${JSON.stringify(inputDataArray)}`);
-        }
+        kwargs = inputData[3] == null ?
+            {} :
+            inputData[3] as serialization.ConfigDict;
         if (!(inboundLayerName in createdLayers)) {
           addUnprocessedNode(layer, nodeData);
           return;
@@ -1182,8 +1174,8 @@ export abstract class Container extends Layer {
       createdLayers[layerName] = layer;
       // Gather layer inputs.
       const inboundNodesData =
-          layerData['inboundNodes'] as serialization.ConfigDict[];
-      for (const nodeData of inboundNodesData) {
+          layerData['inboundNodes'] as TensorKeyWithArgsArray[][];
+      inboundNodesData.forEach(nodeData => {
         if (!(nodeData instanceof Array)) {
           throw new ValueError(
               `Corrupted configuration, expected array for nodeData: ${
@@ -1194,7 +1186,7 @@ export abstract class Container extends Layer {
         // in case of layer shared at different topological depths
         // (e.g.a model such as A(B(A(B(x)))))
         addUnprocessedNode(layer, nodeData);
-      }
+      });
     }
 
     // First, we create all layers and enqueue nodes to be processed.
