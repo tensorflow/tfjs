@@ -674,7 +674,7 @@ describeWithFlags('pow', ALL_ENVS, () => {
 
     expect(result.shape).toEqual([3]);
     expect(result.dtype).toBe('float32');
-    expectArraysEqual(result, [1, 4, 9]);
+    expectArraysClose(result, [1, 4, 9]);
   });
 
   it('TensorLike chained', () => {
@@ -685,7 +685,7 @@ describeWithFlags('pow', ALL_ENVS, () => {
 
     expect(result.shape).toEqual([3]);
     expect(result.dtype).toBe('float32');
-    expectArraysEqual(result, [1, 4, 9]);
+    expectArraysClose(result, [1, 4, 9]);
   });
 
   it('int32^int32 returns int32', () => {
@@ -953,7 +953,7 @@ describeWithFlags('pow', ALL_ENVS, () => {
 
     expect(result.shape).toEqual([3]);
     expect(result.dtype).toBe('float32');
-    expectArraysEqual(result, [1, 4, 9]);
+    expectArraysClose(result, [1, 4, 9]);
   });
 
   it('negative base and whole exponent not NaN', () => {

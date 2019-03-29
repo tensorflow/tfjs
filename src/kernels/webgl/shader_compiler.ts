@@ -242,7 +242,13 @@ function getShaderPrefix(glsl: GLSL): string {
       int v;
     };
 
+    uniform float NAN;
+    #define isnan(value) isnan_custom(value)
     ${glsl.defineSpecialNaN}
+    bvec4 isnan_custom(vec4 val) {
+      return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));
+    }
+
     ${glsl.defineSpecialInf}
     ${glsl.defineRound}
 

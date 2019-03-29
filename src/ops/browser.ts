@@ -91,10 +91,13 @@ export async function toPixels(
         `1, 3 or 4 but got ${depth}`);
   }
 
+  const data = await $img.data();
   const minTensor = $img.min();
   const maxTensor = $img.max();
-  const min = (await minTensor.data())[0];
-  const max = (await maxTensor.data())[0];
+  const [minVals, maxVals] =
+      await Promise.all([minTensor.data(), maxTensor.data()]);
+  const min = minVals[0];
+  const max = maxVals[0];
   minTensor.dispose();
   maxTensor.dispose();
   if ($img.dtype === 'float32') {
@@ -114,8 +117,6 @@ export async function toPixels(
         `Unsupported type for toPixels: ${$img.dtype}.` +
         ` Please use float32 or int32 tensors.`);
   }
-
-  const data = await $img.data();
   const multiplier = $img.dtype === 'float32' ? 255 : 1;
   const bytes = new Uint8ClampedArray(width * height * 4);
 
