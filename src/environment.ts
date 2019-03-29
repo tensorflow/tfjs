@@ -24,10 +24,10 @@ import {TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
 
 export const EPSILON_FLOAT16 = 1e-4;
-const TEST_EPSILON_FLOAT16 = 1e-1;
+export const TEST_EPSILON_FLOAT16 = 1e-1;
 
 export const EPSILON_FLOAT32 = 1e-7;
-const TEST_EPSILON_FLOAT32 = 1e-3;
+export const TEST_EPSILON_FLOAT32 = 1e-3;
 
 export class Environment {
   private features: Features = {};

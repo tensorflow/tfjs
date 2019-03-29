@@ -51,7 +51,9 @@ export function getGlslDifferences(): GLSL {
     output = 'outputColor';
     defineOutput = 'out vec4 outputColor;';
     defineSpecialNaN = `
-      const float NAN = uintBitsToFloat(uint(0x7fc00000));
+      bool isnan_custom(float val) {
+        return (val > 0. || val < 0. || val == 0.) ? false : true;
+      }
     `;
     defineSpecialInf = `
       const float INFINITY = uintBitsToFloat(uint(0x7f800000));
@@ -75,13 +77,8 @@ export function getGlslDifferences(): GLSL {
     output = 'gl_FragColor';
     defineOutput = '';
     defineSpecialNaN = `
-      uniform float NAN;
-
-      bool isnan(float val) {
-        return (val < 1.0 || 0.0 < val || val == 0.0) ? false : true;
-      }
-      bvec4 isnan(vec4 val) {
-        return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));
+      bool isnan_custom(float val) {
+        return (val > 0. || val < 1. || val == 0.) ? false : true;
       }
     `;
     defineSpecialInf = `
