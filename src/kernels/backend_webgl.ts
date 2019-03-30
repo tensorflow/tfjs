@@ -302,19 +302,14 @@ export class MathBackendWebGL implements KernelBackend {
     }
 
     const texData = this.texData.get(dataId);
-    const {texture, texShape, usage, dtype, isPacked} = texData;
+    const {dtype} = texData;
     if (dtype === 'complex64') {
       throw new Error(
           `Cannot write to a complex64 dtype. ` +
           `Please use tf.complex(real, imag).`);
     }
 
-    if (texture != null) {
-      // Release the old texture.
-      this.releaseTexture(dataId, texture, texShape, usage, dtype, isPacked);
-      texData.texture = null;
-      texData.texShape = null;
-    }
+    this.releaseGPUData(dataId);
     texData.usage = TextureUsage.UPLOAD;
     texData.values = values;
   }
@@ -559,26 +554,38 @@ export class MathBackendWebGL implements KernelBackend {
       this.pendingDisposal.add(dataId);
       return;
     }
-    if (this.texData.has(dataId)) {
-      const {texture, dtype, texShape, usage, complexTensors, isPacked, slice} =
-          this.texData.get(dataId);
+    // No-op if already disposed.
+    if (!this.texData.has(dataId)) {
+      return;
+    }
+    this.releaseGPUData(dataId);
+    const {complexTensors} = this.texData.get(dataId);
+    if (complexTensors != null) {
+      complexTensors.real.dispose();
+      complexTensors.imag.dispose();
+    }
+    this.texData.delete(dataId);
+  }
+
+  private releaseGPUData(dataId: DataId): void {
+    const {texture, dtype, texShape, usage, isPacked, slice} =
+        this.texData.get(dataId);
+    const key = slice && slice.origDataId || dataId;
+    const refCount = this.dataRefCount.get(key);
+    if (refCount > 1) {
+      this.dataRefCount.set(key, refCount - 1);
+    } else {
+      this.dataRefCount.delete(key);
       if (texture != null) {
-        const key = slice && slice.origDataId || dataId;
-        const refCount = this.dataRefCount.get(key);
-        if (refCount > 1) {
-          this.dataRefCount.set(key, refCount - 1);
-        } else {
-          this.dataRefCount.delete(key);
-          this.releaseTexture(
-              dataId, texture, texShape, usage, dtype, isPacked);
-          this.texData.delete(dataId);
-        }
-      }
-      if (complexTensors != null) {
-        complexTensors.real.dispose();
-        complexTensors.imag.dispose();
+        this.numBytesInGPU -= this.computeBytes(texShape, dtype);
+        this.textureManager.releaseTexture(texture, texShape, usage, isPacked);
       }
     }
+    const texData = this.texData.get(dataId);
+    texData.texture = null;
+    texData.texShape = null;
+    texData.isPacked = false;
+    texData.slice = null;
   }
 
   getTexture(dataId: DataId): WebGLTexture {
@@ -2456,27 +2463,15 @@ export class MathBackendWebGL implements KernelBackend {
   private convertAndCacheOnCPU(dataId: DataId, float32Values?: Float32Array):
       TypedArray {
     const texData = this.texData.get(dataId);
-    const {texture, texShape, dtype, usage, isPacked} = texData;
+    const {dtype} = texData;
 
-    if (texture != null) {
-      this.releaseTexture(dataId, texture, texShape, usage, dtype, isPacked);
-      texData.texture = null;
-      texData.texShape = null;
-      texData.isPacked = false;
-    }
+    this.releaseGPUData(dataId);
 
     texData.usage = TextureUsage.UPLOAD;
     if (float32Values != null) {
       texData.values = float32ToTypedArray(float32Values, dtype as 'float32');
     }
     return texData.values as TypedArray;
-  }
-
-  private releaseTexture(
-      dataId: DataId, texture: WebGLTexture, texShape: [number, number],
-      texType: TextureUsage, dtype: DataType, isPacked: boolean) {
-    this.numBytesInGPU -= this.computeBytes(texShape, dtype);
-    this.textureManager.releaseTexture(texture, texShape, texType, isPacked);
   }
 
   private acquireTexture(

@@ -17,6 +17,7 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
+import {WebGLMemoryInfo} from '../kernels/backend_webgl';
 import {ALL_ENVS, expectArraysClose, WEBGL_ENVS} from '../test_util';
 import {Rank} from '../types';
 
@@ -257,6 +258,44 @@ describeWithFlags('slice2d', ALL_ENVS, () => {
     const c = tf.add(a, b);
     expect(c.shape).toEqual([2, 2]);
     expectArraysClose(c, [3, 4, 7, 8]);
+  });
+});
+
+describeWithFlags('slice and memory usage', WEBGL_ENVS, () => {
+  beforeAll(() => {
+    tf.ENV.set('WEBGL_CPU_FORWARD', false);
+    tf.ENV.set('WEBGL_SIZE_UPLOAD_UNIFORM', 0);
+  });
+
+  it('slice a tensor, read it and check memory', async () => {
+    const getMem = () => tf.memory() as WebGLMemoryInfo;
+    expect(getMem().numBytesInGPU).toBe(0);
+
+    // Lazy upload won't increase gpu memory.
+    const a = tf.tensor([2, 3]);
+    expect(getMem().numBytesInGPU).toBe(0);
+
+    // Upload a to the GPU by running an op.
+    a.square().dispose();
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Slicing does not allocate new memory.
+    const b = a.slice(0);
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Download a to the CPU but the texture remains on GPU
+    // since b points to it.
+    await a.data();
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Dispose a, but the texture should still remain on the GPU
+    // since b points to it.
+    a.dispose();
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Dispose b and expect 0 memory on GPU.
+    b.dispose();
+    expect(getMem().numBytesInGPU).toBe(0);
   });
 });
 
