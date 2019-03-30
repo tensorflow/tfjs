@@ -320,93 +320,13 @@ IORouterRegistry.registerLoadRouter(httpRequestRouter);
  * const saveResult = await model.save('http://model-server:5000/upload');
  * ```
  *
- * The following Python code snippet based on the
- * [flask](https://github.com/pallets/flask) server framework implements a
- * server that can receive the request. Upon receiving the model artifacts
- * via the requst, this particular server reconsistutes instances of
- * [Keras Models](https://keras.io/models/model/) in memory.
+ * The following GitHub Gist
+ * https://gist.github.com/dsmilkov/1b6046fd6132d7408d5257b0976f7864
+ * implements a server based on [flask](https://github.com/pallets/flask) that
+ * can receive the request. Upon receiving the model artifacts via the requst,
+ * this particular server reconsistutes instances of [Keras
+ * Models](https://keras.io/models/model/) in memory.
  *
- * ```python
- * # pip install -U flask flask-cors tensorflow tensorflowjs
- *
- * from __future__ import absolute_import
- * from __future__ import division
- * from __future__ import print_function
- *
- * import io
- *
- * from flask import Flask, Response, request
- * from flask_cors import CORS, cross_origin
- * import tensorflow as tf
- * import tensorflowjs as tfjs
- * import werkzeug.formparser
- *
- * class ModelReceiver(object):
- *
- *   def __init__(self):
- *     self._model = None
- *     self._model_json_bytes = None
- *     self._model_json_writer = None
- *     self._weight_bytes = None
- *     self._weight_writer = None
- *
- *   @property
- *   def model(self):
- *     self._model_json_writer.flush()
- *     self._weight_writer.flush()
- *     self._model_json_writer.seek(0)
- *     self._weight_writer.seek(0)
- *
- *     json_content = self._model_json_bytes.read()
- *     weights_content = self._weight_bytes.read()
- *     return tfjs.converters.deserialize_keras_model(
- *         json_content,
- *         weight_data=[weights_content],
- *         use_unique_name_scope=True)
- *
- *   def stream_factory(self,
- *                      total_content_length,
- *                      content_type,
- *                      filename,
- *                      content_length=None):
- *     # Note: this example code is *not* thread-safe.
- *     if filename == 'model.json':
- *       self._model_json_bytes = io.BytesIO()
- *       self._model_json_writer = io.BufferedWriter(self._model_json_bytes)
- *       return self._model_json_writer
- *     elif filename == 'model.weights.bin':
- *       self._weight_bytes = io.BytesIO()
- *       self._weight_writer = io.BufferedWriter(self._weight_bytes)
- *       return self._weight_writer
- *
- *
- * def main():
- *   app = Flask('model-server')
- *   CORS(app)
- *   app.config['CORS_HEADER'] = 'Content-Type'
- *
- *   model_receiver = ModelReceiver()
- *
- *   @app.route('/upload', methods=['POST'])
- *   @cross_origin()
- *   def upload():
- *     print('Handling request...')
- *     werkzeug.formparser.parse_form_data(
- *         request.environ, stream_factory=model_receiver.stream_factory)
- *     print('Received model:')
- *     with tf.Graph().as_default(), tf.Session():
- *       model = model_receiver.model
- *       model.summary()
- *       # You can perform `model.predict()`, `model.fit()`,
- *       # `model.evaluate()` etc. here.
- *     return Response(status=200)
- *
- *   app.run('localhost', 5000)
- *
- *
- * if __name__ == '__main__':
- *   main()
- * ```
  *
  * @param path A URL path to the model.
  *   Can be an absolute HTTP path (e.g.,
