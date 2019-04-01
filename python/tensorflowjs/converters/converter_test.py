@@ -468,6 +468,168 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
           w.size * bytes_per_num for w in model.get_weights())
       self.assertEqual(weight_file_bytes, model_weight_bytes)
 
+  def testConvertTfjsLayersModelToShardedWeights(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      model = self._createSimpleSequentialModel()
+      weights = model.get_weights()
+      total_weight_bytes = sum(np.size(w) for w in weights) * 4
+
+      # Save the keras model to a .h5 file.
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
+
+      # Convert the keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+          h5_path, tfjs_output_dir)
+
+      weight_shard_size_bytes = int(total_weight_bytes * 0.3)
+      # Due to the shard size, there ought to be 4 shards after conversion.
+
+      # Convert the tfjs model to another tfjs model, with a specified weight
+      # shard size.
+      sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
+      converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
+          os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path,
+          weight_shard_size_bytes=weight_shard_size_bytes)
+
+      # Check the number of sharded files and their sizes.
+      weight_files = sorted(
+          glob.glob(os.path.join(sharded_model_path, 'group*.bin')))
+      self.assertEqual(len(weight_files), 4)
+      weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+      self.assertEqual(sum(weight_file_sizes), total_weight_bytes)
+      self.assertEqual(weight_file_sizes[0], weight_file_sizes[1])
+      self.assertEqual(weight_file_sizes[0], weight_file_sizes[2])
+      self.assertLess(weight_file_sizes[3], weight_file_sizes[0])
+
+  def testConvertTfjsLayersModelWithShardSizeGreaterThanTotalWeightSize(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      model = self._createSimpleSequentialModel()
+      weights = model.get_weights()
+      total_weight_bytes = sum(np.size(w) for w in weights) * 4
+
+      # Save the keras model to a .h5 file.
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
+
+      # Convert the keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+          h5_path, tfjs_output_dir)
+
+      weight_shard_size_bytes = int(total_weight_bytes * 2)
+      # Due to the shard size, there ought to be 1 shard after conversion.
+
+      # Convert the tfjs model to another tfjs model, with a specified weight
+      # shard size.
+      sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
+      converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
+          os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path,
+          weight_shard_size_bytes=weight_shard_size_bytes)
+
+      # Check the number of sharded files and their sizes.
+      weight_files = sorted(
+          glob.glob(os.path.join(sharded_model_path, 'group*.bin')))
+      self.assertEqual(len(weight_files), 1)
+      weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+      self.assertEqual(sum(weight_file_sizes), total_weight_bytes)
+
+  def testTfjsLayer2TfjsLayersConversionWithExistingFilePathFails(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      model = self._createSimpleSequentialModel()
+
+      # Save the keras model to a .h5 file.
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
+
+      # Convert the keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+          h5_path, tfjs_output_dir)
+
+      # Convert the tfjs model to another tfjs model, with a specified weight
+      # shard size.
+      sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
+      with open(sharded_model_path, 'wt') as f:
+        # Create a fie at the path to elicit the error.
+        f.write('hello')
+      with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
+          ValueError, r'already exists as a file'):
+        converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
+            os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path)
+
+  def testConvertTfjsLayersModelWithUint16Quantization(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      model = self._createSimpleSequentialModel()
+      weights = model.get_weights()
+      total_weight_bytes = sum(np.size(w) for w in weights) * 4
+
+      # Save the keras model to a .h5 file.
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
+
+      # Convert the keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+          h5_path, tfjs_output_dir)
+
+      weight_shard_size_bytes = int(total_weight_bytes * 2)
+      # Due to the shard size, there ought to be 1 shard after conversion.
+
+      # Convert the tfjs model to another tfjs model, with quantization.
+      sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
+      converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
+          os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path,
+          quantization_dtype=np.uint16,
+          weight_shard_size_bytes=weight_shard_size_bytes)
+
+      # Check the number of quantized files and their sizes.
+      weight_files = sorted(
+          glob.glob(os.path.join(sharded_model_path, 'group*.bin')))
+      self.assertEqual(len(weight_files), 1)
+      weight_file_size = os.path.getsize(weight_files[0])
+
+      # The size of the saved weight file should reflect the result of the
+      # uint16 quantization.
+      self.assertEqual(weight_file_size, total_weight_bytes / 2)
+
+  def testConvertTfjsLayersModelWithUint8Quantization(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      model = self._createSimpleSequentialModel()
+      weights = model.get_weights()
+      total_weight_bytes = sum(np.size(w) for w in weights) * 4
+
+      # Save the keras model to a .h5 file.
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
+
+      # Convert the keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+          h5_path, tfjs_output_dir)
+
+      weight_shard_size_bytes = int(total_weight_bytes * 2)
+      # Due to the shard size, there ought to be 1 shard after conversion.
+
+      # Convert the tfjs model to another tfjs model, with quantization.
+      sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
+      converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
+          os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path,
+          quantization_dtype=np.uint8,
+          weight_shard_size_bytes=weight_shard_size_bytes)
+
+      # Check the number of quantized files and their sizes.
+      weight_files = sorted(
+          glob.glob(os.path.join(sharded_model_path, 'group*.bin')))
+      self.assertEqual(len(weight_files), 1)
+      weight_file_size = os.path.getsize(weight_files[0])
+
+      # The size of the saved weight file should reflect the result of the
+      # uint16 quantization.
+      self.assertEqual(weight_file_size, total_weight_bytes / 4)
+
+
 
 if __name__ == '__main__':
   unittest.main()

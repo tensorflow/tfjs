@@ -723,6 +723,116 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
           b'Expected path to point to an HDF5 file, '
           b'but it points to a directory', tf.compat.as_bytes(stderr))
 
+  def testConvertTfjsLayersModelIntoShardedWeights(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      x = np.random.randn(8, 10)
+
+      # 1. Run the model.predict(), store the result. Then saved the model
+      #    as a SavedModel.
+      model = self._createNestedSequentialModel()
+      y = model.predict(x)
+
+      weights = model.get_weights()
+      total_weight_bytes = sum(np.size(w) for w in weights) * 4
+
+      keras.experimental.export_saved_model(model, self._tmp_dir)
+
+      # 2. Convert the keras saved model to tfjs_layers_model format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      # Implicit value of --output_format: tfjs_layers_model
+      process = subprocess.Popen([
+          'tensorflowjs_converter', '--input_format', 'keras_saved_model',
+          self._tmp_dir, tfjs_output_dir
+      ])
+      process.communicate()
+      self.assertEqual(0, process.returncode)
+
+      # 3. Convert the tfjs_layers_model to another tfjs_layers_model,
+      #    with sharded weights.
+      weight_shard_size_bytes = int(total_weight_bytes * 0.3)
+      # Due to the shard size, there ought to be 4 shards after conversion.
+      sharded_model_dir = os.path.join(self._tmp_dir, 'tfjs_sharded')
+      process = subprocess.Popen([
+          'tensorflowjs_converter', '--input_format', 'tfjs_layers_model',
+          '--output_format', 'tfjs_layers_model',
+          '--weight_shard_size_bytes', str(weight_shard_size_bytes),
+          os.path.join(tfjs_output_dir, 'model.json'), sharded_model_dir
+      ])
+      process.communicate()
+      self.assertEqual(0, process.returncode)
+
+      # 4. Check the sharded weight files and their sizes.
+      weight_files = sorted(
+          glob.glob(os.path.join(sharded_model_dir, 'group*.bin')))
+      self.assertEqual(len(weight_files), 4)
+      weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+      self.assertEqual(sum(weight_file_sizes), total_weight_bytes)
+      self.assertEqual(weight_file_sizes[0], weight_file_sizes[1])
+      self.assertEqual(weight_file_sizes[0], weight_file_sizes[2])
+      self.assertLess(weight_file_sizes[3], weight_file_sizes[0])
+
+      # 5. Convert the sharded tfjs_layers_model back into a keras h5 file.
+      new_h5_path = os.path.join(self._tmp_dir, 'new_h5.h5')
+      process = subprocess.Popen([
+          'tensorflowjs_converter', '--input_format', 'tfjs_layers_model',
+          os.path.join(sharded_model_dir, 'model.json'), new_h5_path
+      ])
+      process.communicate()
+      self.assertEqual(0, process.returncode)
+
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      # 6. Load the keras model and check the predict() output is close to
+      #    before.
+      new_model = keras.models.load_model(new_h5_path)
+      new_y = new_model.predict(x)
+      self.assertAllClose(new_y, y)
+
+  def testConvertTfjsLayersModelWithQuantization(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      x = np.random.randn(8, 10)
+
+      # 1. Run the model.predict(), store the result. Then saved the model
+      #    as a SavedModel.
+      model = self._createNestedSequentialModel()
+      y = model.predict(x)
+
+      weights = model.get_weights()
+      total_weight_bytes = sum(np.size(w) for w in weights) * 4
+
+      keras.experimental.export_saved_model(model, self._tmp_dir)
+
+      # 2. Convert the keras saved model to tfjs_layers_model format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      # Implicit value of --output_format: tfjs_layers_model
+      process = subprocess.Popen([
+          'tensorflowjs_converter', '--input_format', 'keras_saved_model',
+          self._tmp_dir, tfjs_output_dir
+      ])
+      process.communicate()
+      self.assertEqual(0, process.returncode)
+
+      # 3. Convert the tfjs_layers_model to another tfjs_layers_model,
+      #    with uint16 quantization.
+      weight_shard_size_bytes = int(total_weight_bytes * 0.3)
+      # Due to the shard size, there ought to be 4 shards after conversion.
+      sharded_model_dir = os.path.join(self._tmp_dir, 'tfjs_sharded')
+      process = subprocess.Popen([
+          'tensorflowjs_converter', '--input_format', 'tfjs_layers_model',
+          '--output_format', 'tfjs_layers_model',
+          '--quantization_bytes', '2',
+          os.path.join(tfjs_output_dir, 'model.json'), sharded_model_dir
+      ])
+      process.communicate()
+      self.assertEqual(0, process.returncode)
+
+      # 4. Check the quantized weight file and its size.
+      weight_files = sorted(
+          glob.glob(os.path.join(sharded_model_dir, 'group*.bin')))
+      self.assertEqual(len(weight_files), 1)
+      weight_file_size = os.path.getsize(weight_files[0])
+      # The size of the weight file should reflect the uint16 quantization.
+      self.assertEqual(weight_file_size, total_weight_bytes // 2)
+
 
 if __name__ == '__main__':
   tf.test.main()
