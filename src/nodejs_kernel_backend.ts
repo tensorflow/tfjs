@@ -720,6 +720,15 @@ export class NodeJSKernelBackend extends KernelBackend {
   sign<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Sign', x) as T;
   }
+  isNaN<T extends Tensor>(x: T): T {
+    return this.executeSingleInput('IsNan', x) as T;
+  }
+  isInf<T extends Tensor>(x: T): T {
+    return this.executeSingleInput('IsInf', x) as T;
+  }
+  isFinite<T extends Tensor>(x: T): T {
+    return this.executeSingleInput('IsFinite', x) as T;
+  }
   rsqrt<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Rsqrt', x) as T;
   }
@@ -1651,9 +1660,5 @@ export class NodeJSKernelBackend extends KernelBackend {
     // milliseconds.
     const elapsed = process.hrtime(start);
     return {kernelMs: elapsed[0] * 1000 + elapsed[1] / 1000000};
-  }
-
-  isNaN<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('IsNan', x) as T;
   }
 }
