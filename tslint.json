@@ -1,4 +1,5 @@
 {
+  "rulesDirectory": ".tslint",
   "rules": {
     "array-type": [true, "array-simple"],
     "arrow-return-shorthand": true,
@@ -32,6 +33,7 @@
     "no-consecutive-blank-lines": true,
     "no-debugger": true,
     "no-default-export": true,
+    "no-imports-from-dist": true,
     "no-inferrable-types": true,
     "no-namespace": [true, "allow-declarations"],
     "no-reference": true,
