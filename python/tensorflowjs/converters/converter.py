@@ -24,6 +24,7 @@ import os
 import tempfile
 
 import h5py
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
@@ -33,9 +34,11 @@ from tensorflowjs.converters import keras_h5_conversion as conversion
 from tensorflowjs.converters import keras_tfjs_loader
 from tensorflowjs.converters import tf_saved_model_conversion_v2
 
+
 def dispatch_keras_h5_to_tensorflowjs_conversion(
     h5_path, output_dir=None, quantization_dtype=None,
-    split_weights_by_layer=False):
+    split_weights_by_layer=False,
+    weight_shard_size_bytes=1024 * 1024 * 4):
   """Converts a Keras HDF5 saved-model file to TensorFlow.js format.
 
   Auto-detects saved_model versus weights-only and generates the correct
@@ -55,6 +58,8 @@ def dispatch_keras_h5_to_tensorflowjs_conversion(
     split_weights_by_layer: Whether to split the weights into separate weight
       groups (corresponding to separate binary weight files) layer by layer
       (Default: `False`).
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
 
   Returns:
     (model_json, groups)
@@ -86,7 +91,8 @@ def dispatch_keras_h5_to_tensorflowjs_conversion(
     if not os.path.isdir(output_dir):
       os.makedirs(output_dir)
     conversion.write_artifacts(
-        model_json, groups, output_dir, quantization_dtype)
+        model_json, groups, output_dir, quantization_dtype,
+        weight_shard_size_bytes=weight_shard_size_bytes)
 
   return model_json, groups
 
@@ -133,7 +139,7 @@ def dispatch_keras_saved_model_to_tensorflowjs_conversion(
 
 
 def dispatch_tensorflowjs_to_keras_h5_conversion(config_json_path, h5_path):
-  """Converts a Keras Model from tensorflowjs format to H5.
+  """Converts a TensorFlow.js Layers model format to Keras H5.
 
   Args:
     config_json_path: Path to the JSON file that includes the model's
@@ -146,12 +152,12 @@ def dispatch_tensorflowjs_to_keras_h5_conversion(config_json_path, h5_path):
   """
   if os.path.isdir(config_json_path):
     raise ValueError(
-        'For input_type=tensorflowjs & output_format=keras, '
+        'For input_type=tfjs_layers_model & output_format=keras, '
         'the input path should be a model.json '
         'file, but received a directory.')
   if os.path.isdir(h5_path):
     raise ValueError(
-        'For input_type=tensorflowjs & output_format=keras, '
+        'For input_type=tfjs_layers_model & output_format=keras, '
         'the output path should be the path to an HDF5 file, '
         'but received an existing directory (%s).' % h5_path)
 
@@ -161,14 +167,73 @@ def dispatch_tensorflowjs_to_keras_h5_conversion(config_json_path, h5_path):
       json.load(f)
     except (ValueError, IOError):
       raise ValueError(
-          'For input_type=tensorflowjs & output_format=keras, '
+          'For input_type=tfjs_layers_model & output_format=keras, '
           'the input path is expected to contain valid JSON content, '
           'but cannot read valid JSON content from %s.' % config_json_path)
 
   with tf.Graph().as_default(), tf.compat.v1.Session():
     model = keras_tfjs_loader.load_keras_model(config_json_path)
     model.save(h5_path)
-    print('Saved Keras model to HDF5 file: %s' % h5_path)
+
+
+def dispatch_tensorflowjs_to_tensorflowjs_conversion(
+    config_json_path,
+    output_dir_path,
+    quantization_dtype=None,
+    weight_shard_size_bytes=1024 * 1024 * 4):
+  """Converts a Keras Model from tensorflowjs format to H5.
+
+  Args:
+    config_json_path: Path to the JSON file that includes the model's
+      topology and weights manifest, in tensorflowjs format.
+    output_dir_path: Path to output directory in which the result of the
+      conversion will be saved.
+    quantization_dtype: The quantized data type to store the weights in
+      (Default: `None`).
+    output_dir_path: Path to the directory in which the converted
+      model will be saved. This includes the model.json file and the
+      possibly sharded binary weight files. The directory will be
+      created if the path doesn't exist.
+
+  Raises:
+    ValueError, if `config_json_path` is not a path to a valid JSON
+      file, or if h5_path points to an existing directory.
+    ValueError, if `output_dir_path` exists and is a file (instead of
+      a directory).
+  """
+  if os.path.isdir(config_json_path):
+    raise ValueError(
+        'For input_type=tfjs_layers_model, '
+        'the input path should be a model.json '
+        'file, but received a directory.')
+  # TODO(cais): Assert output_dir_path doesn't exist or is the path to
+  # a directory (not a file).
+
+  # Verify that config_json_path points to a JSON file.
+  with open(config_json_path, 'rt') as f:
+    try:
+      json.load(f)
+    except (ValueError, IOError):
+      raise ValueError(
+          'For input_type=tfjs_layers_model, '
+          'the input path is expected to contain valid JSON content, '
+          'but cannot read valid JSON content from %s.' % config_json_path)
+
+  temp_h5_path = tempfile.mktemp(suffix='.h5')
+  with tf.Graph().as_default(), tf.compat.v1.Session():
+    model = keras_tfjs_loader.load_keras_model(config_json_path)
+    model.save(temp_h5_path)
+    dispatch_tensorflowjs_to_keras_h5_conversion(config_json_path, temp_h5_path)
+
+  with tf.Graph().as_default(), tf.compat.v1.Session():
+    dispatch_keras_h5_to_tensorflowjs_conversion(
+        temp_h5_path, output_dir_path,
+        quantization_dtype=quantization_dtype,
+        weight_shard_size_bytes=weight_shard_size_bytes)
+    # TODO(cais): Support weight quantization.
+
+  # Clean up the temporary H5 file.
+  os.remove(temp_h5_path)
 
 
 def _standardize_input_output_formats(input_format, output_format):
@@ -218,6 +283,17 @@ def _standardize_input_output_formats(input_format, output_format):
           'instead.' % input_format)
 
   return (input_format, output_format)
+
+
+def _parse_quantization_bytes(quantization_bytes):
+  if quantization_bytes is None:
+    return None
+  elif quantization_bytes == 1:
+    return np.uint8
+  elif quantization_bytes == 2:
+    return np.uint16
+  else:
+    raise ValueError('Unsupported quantization bytes: %s' % quantization_bytes)
 
 
 def setup_arugments():
@@ -303,6 +379,12 @@ def setup_arugments():
       type=bool,
       default=True,
       help='Strip debug ops (Print, Assert, CheckNumerics) from graph.')
+  parser.add_argument(
+      '--weight_shard_size_bytes',
+      type=int,
+      default=None,
+      help='Shard size (in bytes) of the weight files. Curently applicable '
+      'only to output_format=tfjs_layers_model.')
   return parser.parse_args()
 
 
@@ -314,6 +396,14 @@ def main():
     print('  keras %s' % keras.__version__)
     print('  tensorflow %s' % tf.__version__)
     return
+
+  weight_shard_size_bytes = 1024 * 1024 * 4
+  if FLAGS.weight_shard_size_bytes:
+    if  FLAGS.output_format != 'tfjs_layers_model':
+      raise ValueError(
+          'The --weight_shard_size_byte flag is only supported under '
+          'output_format=tfjs_layers_model.')
+    weight_shard_size_bytes = FLAGS.weight_shard_size_bytes
 
   if FLAGS.input_path is None:
     raise ValueError(
@@ -366,7 +456,12 @@ def main():
         output_format == 'keras'):
     dispatch_tensorflowjs_to_keras_h5_conversion(FLAGS.input_path,
                                                  FLAGS.output_path)
-
+  elif (input_format == 'tfjs_layers_model' and
+        output_format == 'tfjs_layers_model'):
+    dispatch_tensorflowjs_to_tensorflowjs_conversion(
+        FLAGS.input_path, FLAGS.output_path,
+        quantization_dtype=_parse_quantization_bytes(FLAGS.quantization_bytes),
+        weight_shard_size_bytes=weight_shard_size_bytes)
   else:
     raise ValueError(
         'Unsupported input_format - output_format pair: %s - %s' %
