@@ -69,7 +69,7 @@ const summaryFileWriterCache: {[logdir: string]: SummaryFileWriter} = {};
  * Create a summary file writer for TensorBoard.
  *
  * Example:
- * ```javascript
+ * ```js
  * const tf = require('@tensorflow/tfjs-node');
  *
  * const summaryWriter = tf.node.summaryFileWriter('/tmp/tfjs_tb_logdir');
