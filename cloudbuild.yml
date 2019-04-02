@@ -1,0 +1,29 @@
+steps:
+- name: 'gcr.io/cloud-builders/yarn'
+  id: 'install'
+  args: ['install']
+- name: 'gcr.io/cloud-builders/yarn'
+  args: ['test-travis']
+  waitFor: ['install']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  secretEnv: ['BROWSERSTACK_KEY']
+- name: gcr.io/cloud-builders/git
+  args: ['clone', '--branch=${BRANCH_NAME}', 'https://github.com/tensorflow/tfjs-core.git']
+  id: 'clone'
+  waitFor: ['-']
+- name: 'ubuntu'
+  id: 'clone-install'
+  dir: 'tfjs-core'
+  args: ['ln', '-s', '../node_modules/' ,'node_modules']
+  waitFor: ['clone']
+- name: 'gcr.io/cloud-builders/yarn'
+  dir: 'tfjs-core'
+  args: ['test-integration']
+  waitFor: ['install', 'clone-install']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'TRAVIS_COMMIT_RANGE=${COMMIT_SHA}..origin/master']
+  secretEnv: ['BROWSERSTACK_KEY']
+secrets:
+- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+  secretEnv:
+    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+timeout: 1800s
