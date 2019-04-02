@@ -26,4 +26,7 @@ fi
 yarn build
 yarn lint
 yarn test-node
-yarn test-travis
+
+if [[ $(node -v) = *v10* ]]; then
+  yarn test-travis
+fi
