@@ -832,7 +832,7 @@ export abstract class Layer extends serialization.Serializable {
               throw new ValueError(
                   `Input ${inputIndex} is incompatible with layer ` +
                   `${this.name}: expected shape=${spec.shape}, ` +
-                  'found shape=${xShape}.');
+                  `found shape=${x.shape}.`);
             }
           }
         }
