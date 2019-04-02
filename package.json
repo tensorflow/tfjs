@@ -52,12 +52,12 @@
     "lint": "tslint -p . -t verbose"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "1.0.3"
+    "@tensorflow/tfjs-core": "1.0.3",
+    "seedrandom": "~2.4.3"
   },
   "dependencies": {
     "@types/node-fetch": "^2.1.2",
-    "node-fetch": "~2.1.2",
-    "seedrandom": "~2.4.3"
+    "node-fetch": "~2.1.2"
   },
   "browser": {
     "fs": false,
