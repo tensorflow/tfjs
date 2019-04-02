@@ -64,10 +64,5 @@ then
   yarn link-local '@tensorflow/tfjs-data'
 
   npm-run-all -p -c --aggregate-output \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet --hashes='{\"CORE\":\"$HASH_CORE\",\"LAYERS\":\"$HASH_LAYERS\",\"CONVERTER\":\"$HASH_CONVERTER\"}'" \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=models --hashes='{\"CORE\":\"$HASH_CORE\",\"LAYERS\":\"$HASH_LAYERS\",\"CONVERTER\":\"$HASH_CONVERTER\"}'" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=models --hashes='{\"CORE\":\"$HASH_CORE\",\"LAYERS\":\"$HASH_LAYERS\",\"CONVERTER\":\"$HASH_CONVERTER\"}'" \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'" \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'"
+    "run-browserstack --travis --browsers=bs_chrome_mac --grep=models --hashes='{\"CORE\":\"$HASH_CORE\",\"LAYERS\":\"$HASH_LAYERS\",\"CONVERTER\":\"$HASH_CONVERTER\"}'"
 fi
