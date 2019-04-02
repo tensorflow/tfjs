@@ -25,7 +25,8 @@ export async function benchmark(benchmarkFn: () => tf.Tensor): Promise<number> {
   // again because we want to account for more than just GPU time.
   const start = performance.now();
   const result = benchmarkFn();
-  await result.data();
+  // await result.data();
+  result.dataSync();
   return performance.now() - start;
 }
 
