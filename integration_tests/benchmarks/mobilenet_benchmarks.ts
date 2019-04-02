@@ -38,6 +38,8 @@ export class MobileNetV1GPUBenchmark implements BenchmarkModelTest {
     const benchmark = () => this.model.predict(zeros) as tf.Tensor;
 
     const time = await util.benchmark(benchmark);
+    console.log('IN MOBILENET');
+    console.log(time);
 
     zeros.dispose();
 

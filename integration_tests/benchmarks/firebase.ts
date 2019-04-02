@@ -74,29 +74,28 @@ export async function logBenchmarkRun(
 
   const entryDisplay: string = JSON.stringify(entry, undefined, 2);
   const ref = `${humanReadableDate}/${benchmarkName}/${karmaFlags.browsers}`;
-  if (!karmaFlags.travis) {
-    console.log(
-        'Not inside travis so not querying firebase. Would have added: ');
-    console.log(ref);
-    console.log(entryDisplay);
-  } else {
-    console.log('Writing to firebase:');
-    console.log(ref);
-    console.log(entryDisplay);
-    return new Promise<void>(resolve => {
-      firebase.database()
-          .ref(ref)
-          // We set the database entry to be an array of one value so in the
-          // future we can benchmark multiple devices.
-          .set(entry, error => {
-            if (error) {
-              throw new Error(`Write to firebase failed with error:
-              ${error}`);
-            }
-            resolve();
-          });
-    });
-  }
+  // if (!karmaFlags.travis) {
+  console.log('Not inside travis so not querying firebase. Would have added: ');
+  console.log(ref);
+  console.log(entryDisplay);
+  // } else {
+  //   console.log('Writing to firebase:');
+  //   console.log(ref);
+  //   console.log(entryDisplay);
+  //   return new Promise<void>(resolve => {
+  //     firebase.database()
+  //         .ref(ref)
+  //         // We set the database entry to be an array of one value so in the
+  //         // future we can benchmark multiple devices.
+  //         .set(entry, error => {
+  //           if (error) {
+  //             throw new Error(`Write to firebase failed with error:
+  //             ${error}`);
+  //           }
+  //           resolve();
+  //         });
+  //   });
+  // }
 }
 
 interface KarmaFlags {

@@ -43,6 +43,8 @@ export async function benchmarkAndLog<T extends any>(
       averageTimeMs += result / runCount;
       await nextTick();
     }
+    console.log('FINISHED RUNS');
+    console.log(averageTimeMs)
     const benchmarkLog:
         BenchmarkLog = {params: sizeToParams(size), averageTimeMs};
     logs.push(benchmarkLog);
