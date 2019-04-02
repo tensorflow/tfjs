@@ -41,6 +41,18 @@ fi
 
 yarn build-npm
 ./scripts/make-version # This is for safety in case you forgot to do 2).
+
+GPU_TARBALLS=$(ls tensorflow-tfjs-node-gpu*.tgz)
+GPU_TARBALL_COUNT=$(echo $GPU_TARBALLS | wc -w | xargs)
+if [ "$GPU_TARBALL_COUNT" != "1" ]; then
+  echo "Error: Please make sure there is exactly one GPU tarball, found:"
+  echo $GPU_TARBALLS
+  exit
+fi
+
+# Publish the CPU package
 npm publish
+# Publish the GPU package
+echo $GPU_TARBALLS | xargs npm publish
 ./scripts/tag-version
 echo 'Yay! Published a new package to npm.'

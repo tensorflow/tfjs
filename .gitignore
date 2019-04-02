@@ -11,3 +11,4 @@ demo/train-*
 .nyc_output/
 coverage/
 .DS_Store
+tensorflow-tfjs-node*.tgz
