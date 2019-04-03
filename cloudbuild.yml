@@ -19,3 +19,6 @@ secrets:
   secretEnv:
     BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
 timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+options:
+ logStreamingOption: 'STREAM_ON'
