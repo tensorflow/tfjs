@@ -296,7 +296,7 @@ def _parse_quantization_bytes(quantization_bytes):
     raise ValueError('Unsupported quantization bytes: %s' % quantization_bytes)
 
 
-def setup_arugments():
+def setup_arguments():
   parser = argparse.ArgumentParser('TensorFlow.js model converters.')
   parser.add_argument(
       'input_path',
@@ -389,7 +389,7 @@ def setup_arugments():
 
 
 def main():
-  FLAGS = setup_arugments()
+  FLAGS = setup_arguments()
   if FLAGS.show_version:
     print('\ntensorflowjs %s\n' % version.version)
     print('Dependency versions:')
