@@ -16,7 +16,11 @@
  */
 
 import * as broadcast_util from '../../ops/broadcast_util';
+import {sizeFromShape} from '../../util';
+import {getChannels} from '../packing_util';
+
 import {GPGPUProgram} from './gpgpu_math';
+import {getCoordsDataType} from './shader_compiler';
 
 const CHECK_NAN_SNIPPET = `
   result.r = isNaN.r > 0. ? NAN : result.r;
@@ -31,10 +35,27 @@ export const DIV = `
   // vec4 one = vec4(equal(a, b));
   // return one + (vec4(1.0) - one) * a / b;
   vec4 result = a / b;
-  result.x = a.x == b.x ? 1. : result.x;
-  result.y = a.y == b.y ? 1. : result.y;
-  result.z = a.z == b.z ? 1. : result.z;
-  result.w = a.w == b.w ? 1. : result.w;
+  if(b.x == 0.0) {
+    result.x = NAN;
+  } else if(a.x == b.x) {
+    result.x = 1.;
+  }
+  if(b.y == 0.0) {
+    result.y = NAN;
+  } else if(a.y == b.y) {
+    result.y = 1.;
+  }
+  if(b.z == 0.0) {
+    result.z = NAN;
+  } else if(a.z == b.z) {
+    result.z = 1.;
+  }
+  if(b.w == 0.0) {
+    result.w = NAN;
+  } else if(a.w == b.w) {
+    result.w = 1.;
+  }
+  
   return result;
 `;
 
@@ -159,9 +180,46 @@ export class BinaryOpPackedProgram implements GPGPUProgram {
   supportsBroadcasting = true;
   usesPackedTextures = true;
 
-  constructor(op: string, aShape: number[], bShape: number[]) {
+  constructor(
+      op: string, aShape: number[], bShape: number[],
+      checkOutOfBounds = false) {
     this.outputShape =
         broadcast_util.assertAndGetBroadcastShape(aShape, bShape);
+    const rank = this.outputShape.length;
+    let checkOutOfBoundsString = '';
+    if (checkOutOfBounds) {
+      if (rank === 0 || sizeFromShape(this.outputShape) === 1) {
+        checkOutOfBoundsString = `
+          result.y = 0.;
+          result.z = 0.;
+          result.w = 0.;
+        `;
+      } else {
+        const dtype = getCoordsDataType(rank);
+        checkOutOfBoundsString = `
+          ${dtype} coords = getOutputCoords();
+        `;
+        if (rank === 1) {
+          checkOutOfBoundsString += `
+            result.y = (coords + 1) >= ${this.outputShape[0]} ? 0. : result.y;
+            result.z = 0.;
+            result.w = 0.;
+          `;
+        } else {
+          const channels = getChannels('coords', rank);
+          checkOutOfBoundsString += `
+            bool nextRowOutOfBounds =
+              (${channels[rank - 2]} + 1) >= ${this.outputShape[rank - 2]};
+            bool nextColOutOfBounds =
+              (${channels[rank - 1]} + 1) >= ${this.outputShape[rank - 1]};
+            result.y = nextColOutOfBounds ? 0. : result.y;
+            result.z = nextRowOutOfBounds ? 0. : result.z;
+            result.w = nextColOutOfBounds || nextRowOutOfBounds ? 0. : result.w;
+          `;
+        }
+      }
+    }
+
     this.userCode = `
       vec4 binaryOperation(vec4 a, vec4 b) {
         ${op}
@@ -170,7 +228,11 @@ export class BinaryOpPackedProgram implements GPGPUProgram {
       void main() {
         vec4 a = getAAtOutCoords();
         vec4 b = getBAtOutCoords();
-        setOutput(binaryOperation(a, b));
+
+        vec4 result = binaryOperation(a, b);
+        ${checkOutOfBoundsString}
+
+        setOutput(result);
       }
     `;
   }
