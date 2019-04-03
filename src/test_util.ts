@@ -154,7 +154,7 @@ export function expectNumbersClose(a: number, e: number, epsilon?: number) {
 }
 
 function areClose(a: number, e: number, epsilon: number): boolean {
-  if (isNaN(a) && isNaN(e)) {
+  if (!isFinite(a) && !isFinite(e)) {
     return true;
   }
   if (isNaN(a) || isNaN(e) || Math.abs(a - e) > epsilon) {

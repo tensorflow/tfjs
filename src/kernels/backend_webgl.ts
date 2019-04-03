@@ -1371,11 +1371,11 @@ export class MathBackendWebGL implements KernelBackend {
   realDivide(a: Tensor, b: Tensor): Tensor {
     const op = binaryop_gpu.DIV;
     const outputDtype = 'float32';
-    // TODO: https://github.com/tensorflow/tfjs/issues/1324
-    // Revive this once we understand why this produces NaNs.
-    // if (ENV.get('WEBGL_PACK_BINARY_OPERATIONS')) {
-    //   return this.packedBinaryOp(a, b, binaryop_packed_gpu.DIV, outputDtype);
-    // }
+    if (ENV.get('WEBGL_PACK_BINARY_OPERATIONS')) {
+      const checkOutOfBounds = true;
+      return this.packedBinaryOp(
+          a, b, binaryop_packed_gpu.DIV, outputDtype, checkOutOfBounds);
+    }
     const program = new BinaryOpProgram(op, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, outputDtype);
     return this.compileAndRun<Tensor>(program, [a, b], output);
@@ -1412,8 +1412,10 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   private packedBinaryOp(
-      a: TensorHandle, b: TensorHandle, op: string, dtype: DataType) {
-    const program = new BinaryOpPackedProgram(op, a.shape, b.shape);
+      a: TensorHandle, b: TensorHandle, op: string, dtype: DataType,
+      checkOutOfBounds = false) {
+    const program =
+        new BinaryOpPackedProgram(op, a.shape, b.shape, checkOutOfBounds);
     const output = this.makePackedTensor(program.outputShape, dtype) as Tensor;
     return this.compileAndRun<Tensor>(program, [a, b], output);
   }
