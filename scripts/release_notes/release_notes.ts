@@ -42,14 +42,13 @@
  */
 
 import * as commander from 'commander';
-import * as shell from 'shelljs';
 import * as mkdirp from 'mkdirp';
-// tslint:disable-next-line:no-require-imports
-const octokit = require('@octokit/rest')();
 import * as readline from 'readline';
 import * as fs from 'fs';
 import * as util from './util';
-import {$, Repo, RepoCommits, Commit} from './util';
+import {$, Commit, Repo, RepoCommits} from './util';
+// tslint:disable-next-line:no-require-imports
+const octokit = require('@octokit/rest')();
 
 const TMP_DIR = '/tmp/tfjs-release-notes';
 
