@@ -39,6 +39,7 @@
     "rollup-plugin-node-resolve": "~3.3.0",
     "rollup-plugin-typescript2": "~0.13.0",
     "rollup-plugin-uglify": "~3.0.0",
+    "shelljs": "~0.8.3",
     "ts-node": "~7.0.0",
     "tslint": "~5.11.0",
     "tslint-no-circular-imports": "~0.5.0",
@@ -56,10 +57,9 @@
     "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
     "test": "karma start",
     "run-browserstack": "karma start --browserstack",
-    "test-benchmark": "cd integration_tests/benchmarks && yarn benchmark-travis && cd ../../",
     "test-node": "node dist/test_node.js",
-    "test-integration": "./scripts/test-integration.sh",
-    "test-travis": "./scripts/test-travis.sh"
+    "test-integration": "./scripts/test-integration.js",
+    "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
     "@types/seedrandom": "2.4.27",
