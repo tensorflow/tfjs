@@ -179,7 +179,7 @@ export interface SuiteLog {
 
 /** Benchmark logs from multiple days. */
 export type BenchmarkHistory = {
-  [datetime: string]: TaskGroupLog
+  [humanReadableDateTime: string]: SuiteLog
 };
 
 export type CodeRepository =
