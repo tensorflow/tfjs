@@ -148,8 +148,7 @@ def benchmark_and_serialize_model(model_name,
       'loss': loss,
       'numBenchmarkedRuns': train_epochs,
       'numWarmUpRuns': _FIT_BURNIN_EPOCHS,
-      'averageTimeMs': train_time,
-      'environment': environment_info
+      'averageTimeMs': train_time
     }
 
   # Perform predict() burn-in.
@@ -170,14 +169,13 @@ def benchmark_and_serialize_model(model_name,
     'taskType': 'model',
     'modelName': model_name,
     'modelDescription': description,
-    'taskName': 'predct',
+    'functionName': 'predct',
     'endingTimestampMs': int(time.time() * 1e3),
     'batchSize': batch_size,
     'numBenchmarkedRuns': _PREDICT_RUNS,
     'numWarmUpRuns': _PREDICT_BURNINS,
     'timesMs': predict_ts,
-    'averageTimeMs': np.mean(predict_ts),
-    'environment': environment_info
+    'averageTimeMs': np.mean(predict_ts)
   }
 
   return task_logs
@@ -301,9 +299,7 @@ def main():
 
   suite_log = dict()  # For schema, see `SuiteLog` in types.ts.
   suite_log['data'] = {}
-  suite_log['metadata'] = {  # For schema, see `BenchmarkMetadata` in types.ts.
-    'timestamp': int(time.time() * 1e3)
-  }
+  suite_log['environmentInfo'] = environment_info
   # TODO(cais): Populate the commitHash field for TensorFlow.js repos.
 
   # Dense model.

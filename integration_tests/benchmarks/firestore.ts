@@ -36,9 +36,8 @@ export async function addTaskLogsToFirestore(taskLogs: TaskLog[]) {
   const batch = db.batch();
   const collection = db.collection('TaskLogs');
 
- for (let i = 0; i < taskLogs.length; ++i) {
+  for (let i = 0; i < taskLogs.length; ++i) {
     const taskLog = taskLogs[i];
-    await collection.add(taskLog);
     const ref = collection.doc();
     batch.set(ref, taskLog);
   }
@@ -79,7 +78,7 @@ export async function addVersionSetToFirestore(
 }
 
 /**
- * 
+ *
  */
 export async function addOrGetTaskId(
     taskType: TaskType, taskName: string, functionName?: string): Promise<string> {
