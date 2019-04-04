@@ -52,6 +52,32 @@ export type VersionSetCollection = {[versionSetId: string]: VersionSet};
 
 export type EnvironmentCollection = {[environmentId: string]: EnvironmentInfo};
 
+/**
+ * Used by the dashboard front end to quickly retrieve a list
+ * of available benchmark tasks.
+ *
+ * New documents (rows) will be added to this collection (table) only when a
+ * new benchmark task (e.g., a new model, or a new function of an existing
+ * model) has been added. This is how a client frontend knows what models and
+ * function (and non-model tasks) are available in the database.
+ * Therefore, multiple runs of the same task will reuse the same document (row)
+ * in this collection (table).
+ */
+export type TaskCollection = {[taskId: string]: Task};
+
+/**
+ * A collection containing information about benchmarked models.
+ *
+ * Their versions and description.
+ *
+ * This applies to only model-based benchmarks and does not apply to
+ * non-model benchmarks.
+ */
+export type ModelCollection = {[modelId: string]: Model};
+
+/** The collection that stores the actual benchmark results data. */
+export type BenchmarkRunCollection = {[taskLogId: string]: BenchmarkRun};
+
 /** Version sets. */
 
 export type CodeRepository =
@@ -79,10 +105,19 @@ export type BenchmarkEnvironmentType =
 
 export interface EnvironmentInfo {
   type: BenchmarkEnvironmentType;
+
+  /** `uname -a` output. */
+  systemInfo?: string;
+
+  /** `inxi` output. */
+  cpuInfo?: string;
+
+  /** Processed `free` output. */
+  memInfo?: string;
 }
 
 export interface BrowserEnvironmentInfo extends EnvironmentInfo {
-  type: BrowserEnvironmentType;
+type: BrowserEnvironmentType;
   userAgent: string;
   webGLVersion?: string;
 }
@@ -90,14 +125,6 @@ export interface BrowserEnvironmentInfo extends EnvironmentInfo {
 export interface ServerSideEnvironmentInfo extends EnvironmentInfo {
   type: ServerSideEnvironmentType;
 
-  /**
-   * Metadata for the node environment.
-   * `uname -a` output.
-   */
-  systemInfo?: string;
-
-  cpuInfo?: string;
-  memInfo?: string;
   cudaGPUInfo?: string;
   cudaVersion?: string;
 }
@@ -142,13 +169,20 @@ export interface Task {
   functionName?: ModelFunctionName;
 }
 
-/**
- * This corresponds to a Firestore collection.
- *
- * It is used by the dashboard front end to quickly retrieve a list
- * of available benchmark tasks.
- */
-export type TaskCollection = {[taskId: string]: Task};
+/** Information about a benchmarked model. */
+export type ModelType =
+    'keras-model' | 'tensorflow-model' | 'tfjs-layers-model' |
+    'tfjs-graph-model';
+
+export interface Model {
+  type: ModelType;
+
+  name: string;
+
+  version: string;
+
+  description: string;
+}
 
 /** Benchmark tasks logs. */
 
@@ -160,7 +194,19 @@ export type ModelFunctionName = 'predict' | 'fit' | 'fitDataset';
 
 export type FunctionName = ModelFunctionName;
 
-export interface TaskLog {
+/**
+ * The results and related data from a benchmark run.
+ *
+ * A benchmark run is a full set of iterations that assess the performance
+ * of a specific task (see `Task` interface) in a given environment,
+ * under a given version / commit set. It includes a number of warm-up
+ * (a.k.a., burn-in) iterations, followed by a number of benchmarked
+ * iterations.
+ *
+ * See the doc strings below for what an iteration means in the context
+ * of Model.predict(), fit(), fitDataset() and non-model-based tasks.
+ */
+export interface BenchmarkRun {
   versionSetId: string;
   environmentId: string;
   taskId: string;
@@ -170,23 +216,24 @@ export interface TaskLog {
   functionName: FunctionName;
 
   /**
-   * Number of burn-in (i.e., warm-up) runs that take place prior to the
-   * benchmarked runs.
+   * Number of burn-in (i.e., warm-up) iterations that take place prior to the
+   * benchmarked iterations.
    *
-   * Follows the same convention as `numBenchmarkedRuns` for counting runs.
+   * Follows the same convention as `numBenchmarkedIterations` for counting
+   * iterations.
    */
-  numWarmUpRuns: number;
+  numWarmUpIterations: number;
 
   /**
-   * Number of individual runs that are timed.
+   * Number of individual iterations that are timed.
    *
    * - For predict() and non-model-based tasks, this is the number of function
    *   calls.
    * - For fit() and fitDatset(), this is the number of epochs of a single call.
    */
-  numBenchmarkedRuns: number;
+  numBenchmarkedIterations: number;
 
-  /** The ending timestap of the task, in milliseconds since epoch. */
+  /** The ending timestamp of the task, in milliseconds since epoch. */
   endingTimestampMs: number;
 
   /**
@@ -198,18 +245,29 @@ export interface TaskLog {
    * a callback; but a callback affects the timing itself.)
    * However, in cases where the individual-iteration times are available
    * (e.g., tf.LayersModel.predict calls), it should be populated.
+   *
+   * - For predict() and non-model-based tasks, each item of the array is
+   *   the wall time of a single predict() call or some other type of function
+   *   call.
+   * - For fit() and fitDatset(), this field is not populated, due to the
+   *   fact that obtaining per-epoch time requires a callback and that may
+   *   affect the performance of the fit() / fitDataset() call.
    */
   timesMs?: number[];
 
   /**
-   * Arithemtic mean of `benchmarkedRunTimesMs`.
+   * Arithmetic mean of `benchmarkedRunTimesMs`.
    *
-   * This redundant field is created to support faster database querying.
+   * - For predict() and non-model-based tasks, this is the arithmetic mean
+   *   of `timeMs`.
+   * - For a fit() or fitDataset() task, this is the total time of the function
+   *   call divided by the number of training epochs (i.e.,
+   *   `numBenchmarkedIterations`).
    */
   averageTimeMs: number;
 }
 
-export interface ModelTaskLog extends TaskLog {
+export interface ModelTaskLog extends BenchmarkRun {
   taskType: 'model';
 
   modelName: string;
