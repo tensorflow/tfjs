@@ -167,6 +167,13 @@ export interface Task {
    * predict(), fit(), fitDataset().
    */
   functionName?: ModelFunctionName;
+
+  /**
+   * A reference to Model in ModelCollection.
+   *
+   * Applicable only to if the task is model-based.
+   */
+  modelId?: string;
 }
 
 /** Information about a benchmarked model. */
