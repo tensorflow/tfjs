@@ -19,8 +19,15 @@ import * as math from 'mathjs';
 import * as tf from '@tensorflow/tfjs';
 import * as detectBrowser from 'detect-browser';
 
-import {logSuiteLog} from '../firebase';
-import {SuiteLog, BenchmarkEnvironmentType, ModelTask, ModelTaskLog, BrowserEnvironmentInfo, ModelFitTaskLog} from '../types';
+// import {logSuiteLog} from '../firebase';
+import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelTaskLog, ModelFunctionName, ModelTrainingTaskLog} from '../types';
+
+export type MultiFunctionModelTaskLog = {[taskName: string]: ModelTaskLog};
+
+export interface SuiteLog {
+  data: {[modelName: string]: MultiFunctionModelTaskLog};
+  // TODO(cais): Add commit hashes.
+};
 
 function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
   const modelNamesAndTimestamps: Array<{
@@ -28,21 +35,15 @@ function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
     timestamp: number
   }> = [];
   for (const modelName in suiteLog.data) {
-    const taskGroupLog = suiteLog.data[modelName];
-    const taskNames = Object.keys(taskGroupLog);
-    if (taskNames.length === 0) {
+    const taskGroupLog = suiteLog.data[modelName] as MultiFunctionModelTaskLog;
+    const functionNames = Object.keys(taskGroupLog);
+    if (functionNames.length === 0) {
       continue;
     }
-    const multiEnvironmentTaskLog = taskGroupLog[taskNames[0]];
-    const environmentTypes = Object.keys(multiEnvironmentTaskLog) as BenchmarkEnvironmentType[];
-    if (environmentTypes.length === 0) {
-      continue;
-    }
-    const taskLog = multiEnvironmentTaskLog[environmentTypes[0]];
 
     modelNamesAndTimestamps.push({
       modelName,
-      timestamp: new Date(taskLog.timestamp).getTime()
+      timestamp: new Date(taskGroupLog[functionNames[0]].endingTimestampMs).getTime()
     });
   }
 
@@ -84,11 +85,11 @@ async function syncDataAndDispose(tensors: tf.Tensor|tf.Tensor[]) {
   tf.dispose(tensors);
 }
 
-function getBrowserEnvironmentType(): BenchmarkEnvironmentType {
+function getBrowserEnvironmentType(): BrowserEnvironmentType {
   const osName = detectBrowser.detectOS(navigator.userAgent).toLowerCase();
   const browserName = detectBrowser.detect().name.toLowerCase();
 
-  return `${browserName}-${osName}` as BenchmarkEnvironmentType;
+  return `${browserName}-${osName}` as BrowserEnvironmentType;
 }
 
 function getBrowserEnvironmentInfo(): BrowserEnvironmentInfo {
@@ -142,32 +143,30 @@ describe('TF.js Layers Benchmarks', () => {
 
     const sortedModelNames = getChronologicalModelNames(suiteLog);
 
+    console.log(environmentType);  // DEBUG
+    console.log(environmentInfo);  // DEBUG
+    console.log(sortedModelNames);  // DEBUG
+    console.log(tf.version);  // DEBUG
+
     for (let i = 0; i < sortedModelNames.length; ++i) {
       const modelName = sortedModelNames[i];
       const taskGroupLog = suiteLog.data[modelName];
       console.log(`${i + 1}/${sortedModelNames.length}: ${modelName}`);
       const model = await loadModel(modelName);
 
-      const taskNames = Object.keys(taskGroupLog) as ModelTask[];
-      if (taskNames.length === 0) {
+      const functionNames = Object.keys(taskGroupLog) as ModelFunctionName[];
+      if (functionNames.length === 0) {
         throw new Error(`No task is found for model "${modelName}"`);
       }
-      for (let j = 0; j < taskNames.length; ++j) {
-        const taskName = taskNames[j];
-        const multiEnvironTaskLog = taskGroupLog[taskName];
-        const pyEnviron =
-            Object.keys(multiEnvironTaskLog) as BenchmarkEnvironmentType[];
-        if (pyEnviron.length !== 1) {
-          throw new Error(
-              `Found two python environment types: ${pyEnviron}.` +
-              `Expected exactly 1`);
-        }
-        let pyLog = multiEnvironTaskLog[pyEnviron[0]] as ModelTaskLog;
+      for (let j = 0; j < functionNames.length; ++j) {
+        const functionName = functionNames[j];
+        const pyLog = taskGroupLog[functionName] as ModelTaskLog;
+        
         checkBatchSize(pyLog.batchSize);
 
         const {xs, ys} = getRandomInputsAndOutputs(model, pyLog.batchSize);
         const tsLog = Object.assign({}, pyLog);
-        if (taskName === 'predict') {
+        if (functionName === 'predict') {
           // Warm-up predict() runs.
           for (let n = 0; n < pyLog.numWarmUpRuns; ++n) {
             await syncDataAndDispose(model.predict(xs));
@@ -182,15 +181,14 @@ describe('TF.js Layers Benchmarks', () => {
           }
 
           // Format data for predict().
+          tsLog.timesMs = ts;
           tsLog.averageTimeMs = math.mean(ts);
-          tsLog.medianTimeMs = math.median(ts);
-          tsLog.minTimeMs = math.median(ts);
           console.log(
               `  predict(): averageTimeMs: ` +
               `py=${pyLog.averageTimeMs.toFixed(3)}, ` +
               `ts=${tsLog.averageTimeMs.toFixed(3)}`);
-        } else if (taskName === 'fit') {
-          const pyFitLog = pyLog as ModelFitTaskLog;
+        } else if (functionName === 'fit') {
+          const pyFitLog = pyLog as ModelTrainingTaskLog;
           model.compile({
             loss: LOSS_MAP[pyFitLog.loss],
             optimizer: OPTIMIZER_MAP[pyFitLog.optimizer]
@@ -217,18 +215,19 @@ describe('TF.js Layers Benchmarks', () => {
             `py=${pyLog.averageTimeMs.toFixed(3)}, ` +
             `ts=${tsLog.averageTimeMs.toFixed(3)}`);
         } else {
-          console.warn(`Skipping task "${taskName}" of model "${modelName}"`);
+          console.warn(`Skipping task "${functionName}" of model "${modelName}"`);
         }
-        if (tsLog != null) {
-          tsLog.environment = environmentInfo;
-          multiEnvironTaskLog[environmentType] = tsLog;
-        }
+        // TODO(cais): Add in.
+        // if (tsLog != null) {
+        //   tsLog.environment = environmentInfo;
+        //   multiEnvironTaskLog[environmentType] = tsLog;
+        // }
 
         tf.dispose({xs, ys});
       }
     }
 
-    console.log('Logging to firebase...');
-    await logSuiteLog(suiteLog);
+    // console.log('Logging to firebase...');
+    // await logSuiteLog(suiteLog);
   });
 });

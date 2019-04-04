@@ -44,11 +44,6 @@ _PREDICT_BURNINS = 20  # How many predict() runs to do before timing predict().
 _PREDICT_RUNS = 30  # How many runs of predict() to average over.
 
 
-def _get_environment_type():
-  return ('python-tensorflow-cuda' if tf.test.gpu_device_name() else
-          'python-tensorflow-cpu')
-
-
 def _get_random_inputs_and_outputs(model, batch_size):
   """Synthesize random inputs and outputs based on the model's specs.
 
@@ -142,28 +137,25 @@ def benchmark_and_serialize_model(model_name,
     train_time = (train_t_end - train_t_begin) * 1e3 / train_epochs
 
     # Collect and format the data for fit().
-    # print(optimizer.get_config())  # DEBUG
-    task_logs['fit'] = {  # For schema, see 'ModelTaskLog` in types.ts.
-      _get_environment_type(): {
-        'modelName': model_name,
-        'modelDescription': description,
-        'taskName': 'fit',
-        'timestamp': int(time.time() * 1e3),
-        'batchSize': batch_size,
-        'optimizer': optimizer.__class__.__name__.split('.')[-1],
-        'loss': loss,
-        'numBenchmarkedRuns': train_epochs,
-        'numWarmUpRuns': _FIT_BURNIN_EPOCHS,
-        'averageTimeMs': train_time,
-        'environment': environment_info
-      }
+    task_logs['fit'] = {  # For schema, see 'ModelTrainingTaskLog` in types.ts.
+      'taskType': 'model',
+      'modelName': model_name,
+      'modelDescription': description,
+      'functionName': 'fit',
+      'endingTimestampMs': int(time.time() * 1e3),
+      'batchSize': batch_size,
+      'optimizer': optimizer.__class__.__name__.split('.')[-1],
+      'loss': loss,
+      'numBenchmarkedRuns': train_epochs,
+      'numWarmUpRuns': _FIT_BURNIN_EPOCHS,
+      'averageTimeMs': train_time,
+      'environment': environment_info
     }
 
   # Perform predict() burn-in.
   for _ in range(_PREDICT_BURNINS):
     model.predict(xs)
   # Time predict() by averaging.
-  # predict_t_begin = time.time()
   predict_ts = []
   for _ in range(_PREDICT_RUNS):
     predict_t_begin = time.time()
@@ -175,19 +167,17 @@ def benchmark_and_serialize_model(model_name,
 
   # Collect and format the data for predict().
   task_logs['predict'] = {  # For schema, see 'ModelTaskLog` in types.ts.
-    _get_environment_type(): {
-      'modelName': model_name,
-      'modelDescription': description,
-      'taskName': 'predct',
-      'timestamp': int(time.time() * 1e3),
-      'batchSize': batch_size,
-      'numBenchmarkedRuns': _PREDICT_RUNS,
-      'numWarmUpRuns': _PREDICT_BURNINS,
-      'averageTimeMs': np.mean(predict_ts),
-      'medianTimeMs': np.median(predict_ts),
-      'minTimeMs': np.min(predict_ts),
-      'environment': environment_info
-    }
+    'taskType': 'model',
+    'modelName': model_name,
+    'modelDescription': description,
+    'taskName': 'predct',
+    'endingTimestampMs': int(time.time() * 1e3),
+    'batchSize': batch_size,
+    'numBenchmarkedRuns': _PREDICT_RUNS,
+    'numWarmUpRuns': _PREDICT_BURNINS,
+    'timesMs': predict_ts,
+    'averageTimeMs': np.mean(predict_ts),
+    'environment': environment_info
   }
 
   return task_logs
@@ -272,22 +262,30 @@ def rnn_model_fn(rnn_type, input_shape, target_shape):
   return model
 
 
+def _get_environment_type():
+  return ('python-tensorflow-cuda' if tf.test.gpu_device_name() else
+          'python-tensorflow-cpu')
+
+
 def _get_python_environment_info():
-  hardware_info = dict()  # For schema, see `HardwareInfo` in types.ts.
+  environment_info = {  # For schema, see `PythonEnvironmentInfo` in types.ts.
+    'type': _get_environment_type()
+  }
 
   try:
     # Disable color from `inxi` command.
-    hardware_info['cpuInfo'] = subprocess.check_output(['inxi', '-c', '0'])
+    environment_info['cpuInfo'] = subprocess.check_output(['inxi', '-c', '0'])
   except:
     pass
   try:
-    hardware_info['memInfo'] = subprocess.check_output(['free'])
+    environment_info['memInfo'] = subprocess.check_output(['free'])
+  except:
+    pass
+  try:
+    environment_info['systemInfo'] = subprocess.check_output(['uname', '-a'])
   except:
     pass
 
-  environment_info = {  # For schema, see `PythonEnvironmentInfo` in types.ts.
-    'hardwareInfo': hardware_info
-  }
   python_ver = sys.version_info
   environment_info['pythonVersion'] = '%d.%d.%d' % (
       python_ver.major, python_ver.minor, python_ver.micro)

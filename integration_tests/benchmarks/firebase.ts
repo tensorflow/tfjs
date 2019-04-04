@@ -16,7 +16,7 @@
  */
 
 import firebase from 'firebase/app';
-import {BenchmarkLog, SuiteLog} from './types';
+import {BenchmarkLog} from './types';
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
@@ -99,40 +99,40 @@ export async function logBenchmarkRun(
   }
 }
 
-export async function logSuiteLog(suiteLog: SuiteLog): Promise<void> {
-  const date = new Date();
-  let month = (date.getMonth() + 1).toString();
-  if (month.length === 1) {
-    month = '0' + month;
-  }
-  let day = date.getDate().toString();
-  if (day.length === 1) {
-    day = '0' + day;
-  }
+// export async function logSuiteLog(suiteLog: SuiteLog): Promise<void> {
+//   const date = new Date();
+//   let month = (date.getMonth() + 1).toString();
+//   if (month.length === 1) {
+//     month = '0' + month;
+//   }
+//   let day = date.getDate().toString();
+//   if (day.length === 1) {
+//     day = '0' + day;
+//   }
 
-  // ISO Date String without the millisecond part, e.g.,
-  //   "2019-03-26T14:24:39Z".
-  const humanReadableDate = new Date().toISOString().split('.')[0] + 'Z';
+//   // ISO Date String without the millisecond part, e.g.,
+//   //   "2019-03-26T14:24:39Z".
+//   const humanReadableDate = new Date().toISOString().split('.')[0] + 'Z';
 
-  // const entryDisplay: string = JSON.stringify(entry, undefined, 2);
-  const ref = `${humanReadableDate}`;
-  console.log('Writing to firebase:');
-  console.log(ref);
-  // console.log(entryDisplay);
-  return new Promise<void>(resolve => {
-    firebase.database()
-        .ref(ref)
-        // We set the database entry to be an array of one value so in the
-        // future we can benchmark multiple devices.
-        .set(suiteLog, error => {
-          if (error) {
-            throw new Error(`Write to firebase failed with error:
-            ${error}`);
-          }
-          resolve();
-        });
-  });
-}
+//   // const entryDisplay: string = JSON.stringify(entry, undefined, 2);
+//   const ref = `${humanReadableDate}`;
+//   console.log('Writing to firebase:');
+//   console.log(ref);
+//   // console.log(entryDisplay);
+//   return new Promise<void>(resolve => {
+//     firebase.database()
+//         .ref(ref)
+//         // We set the database entry to be an array of one value so in the
+//         // future we can benchmark multiple devices.
+//         .set(suiteLog, error => {
+//           if (error) {
+//             throw new Error(`Write to firebase failed with error:
+//             ${error}`);
+//           }
+//           resolve();
+//         });
+//   });
+// }
 
 interface KarmaFlags {
   apiKey: string;
