@@ -20,7 +20,8 @@ import * as tf from '@tensorflow/tfjs';
 import * as detectBrowser from 'detect-browser';
 
 // import {logSuiteLog} from '../firebase';
-import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelTaskLog, ModelFunctionName, ModelTrainingTaskLog} from '../types';
+import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelTaskLog, ModelFunctionName, ModelTrainingTaskLog, VersionSet} from '../types';
+import {addEnvironmentInfoToFirestore, addOrGetTaskId, addTaskLogsToFirestore, addVersionSetToFirestore} from '../firestore';
 
 export type MultiFunctionModelTaskLog = {[taskName: string]: ModelTaskLog};
 
@@ -135,18 +136,27 @@ describe('TF.js Layers Benchmarks', () => {
   }
 
   it('Benchmark models', async () => {
-    const environmentType = getBrowserEnvironmentType();
+    const taskType = 'model';
     const environmentInfo = getBrowserEnvironmentInfo();
+    const versionSet: VersionSet = {versions: tf.version};
+
+    // Add environment info to firestore and retrieve the doc ID.
+    const environmentId = await addEnvironmentInfoToFirestore(environmentInfo);
+    const versionSetId = await addVersionSetToFirestore(versionSet);
+    // TODO(cais): If run from HEAD, get the commit hashes.
+
+    console.log(`environmentId = ${environmentId}; versionId = ${versionSetId}`);
 
     const suiteLog =
         await (await fetch(BENCHMARKS_JSON_URL)).json() as SuiteLog;
 
     const sortedModelNames = getChronologicalModelNames(suiteLog);
 
-    console.log(environmentType);  // DEBUG
     console.log(environmentInfo);  // DEBUG
     console.log(sortedModelNames);  // DEBUG
     console.log(tf.version);  // DEBUG
+
+    const taskLogs: ModelTaskLog[] = [];
 
     for (let i = 0; i < sortedModelNames.length; ++i) {
       const modelName = sortedModelNames[i];
@@ -162,10 +172,15 @@ describe('TF.js Layers Benchmarks', () => {
         const functionName = functionNames[j];
         const pyLog = taskGroupLog[functionName] as ModelTaskLog;
         
+        // Make sure that the task type is logged in Firestore.
+        const taskId = await addOrGetTaskId(taskType, modelName, functionName);
+        console.log(`taskId = ${taskId}`);
+
         checkBatchSize(pyLog.batchSize);
 
+        let tsLog: ModelTaskLog;
+
         const {xs, ys} = getRandomInputsAndOutputs(model, pyLog.batchSize);
-        const tsLog = Object.assign({}, pyLog);
         if (functionName === 'predict') {
           // Warm-up predict() runs.
           for (let n = 0; n < pyLog.numWarmUpRuns; ++n) {
@@ -181,8 +196,21 @@ describe('TF.js Layers Benchmarks', () => {
           }
 
           // Format data for predict().
-          tsLog.timesMs = ts;
-          tsLog.averageTimeMs = math.mean(ts);
+          tsLog = {
+            taskId,
+            taskType,
+            modelName,
+            modelDescription: pyLog.modelDescription,
+            functionName,
+            batchSize: pyLog.batchSize,
+            versionSetId,
+            environmentId,
+            numWarmUpRuns: pyLog.numWarmUpRuns,
+            numBenchmarkedRuns: pyLog.numBenchmarkedRuns,
+            timesMs: ts,
+            averageTimeMs: math.mean(ts),
+            endingTimestampMs: new Date().getTime()
+          };
           console.log(
               `  predict(): averageTimeMs: ` +
               `py=${pyLog.averageTimeMs.toFixed(3)}, ` +
@@ -209,7 +237,20 @@ describe('TF.js Layers Benchmarks', () => {
           const t = tf.util.now() - t0;
 
           // Format data for fit().
-          tsLog.averageTimeMs = t / pyLog.numBenchmarkedRuns;
+          tsLog = {
+            taskId,
+            taskType,
+            modelName,
+            modelDescription: pyLog.modelDescription,
+            functionName,
+            batchSize: pyLog.batchSize,
+            versionSetId,
+            environmentId,
+            numWarmUpRuns: pyLog.numWarmUpRuns,
+            numBenchmarkedRuns: pyLog.numBenchmarkedRuns,
+            averageTimeMs: t / pyLog.numBenchmarkedRuns,
+            endingTimestampMs: new Date().getTime()
+          };
           console.log(
             `  fit(): averageTimeMs: ` +
             `py=${pyLog.averageTimeMs.toFixed(3)}, ` +
@@ -217,17 +258,16 @@ describe('TF.js Layers Benchmarks', () => {
         } else {
           console.warn(`Skipping task "${functionName}" of model "${modelName}"`);
         }
-        // TODO(cais): Add in.
-        // if (tsLog != null) {
-        //   tsLog.environment = environmentInfo;
-        //   multiEnvironTaskLog[environmentType] = tsLog;
-        // }
 
         tf.dispose({xs, ys});
+
+        taskLogs.push(tsLog);
       }
     }
 
-    // console.log('Logging to firebase...');
+    console.log('Logging to Firestore...');
+    await addTaskLogsToFirestore(taskLogs);
+    // console.log(JSON.stringify(taskLogs, null, 2));  // DEBUG
     // await logSuiteLog(suiteLog);
   });
 });

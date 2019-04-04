@@ -52,20 +52,17 @@ export type VersionSetCollection = {[versionSetId: string]: VersionSet};
 
 export type EnvironmentCollection = {[environmentId: string]: EnvironmentInfo};
 
-/**
- * Version sets
- **/
+/** Version sets. */
 
 export type CodeRepository =
     'tfjs'|'tfjs-converter'|'tfjs-core'|'tfjs-data'|'tfjs-layers'|'tfjs-node';
 
 export interface VersionSet {
-  commitHashes: {[repo in CodeRepository]?: string};
+  commitHashes?: {[repo in CodeRepository]?: string};
+  versions?: {[repo in CodeRepository]?: string};
 }
 
-/**
- * Environments.
- */
+/** Environments. */
 
 export type BrowserEnvironmentType =
     'chrome-linux' | 'chrome-mac' | 'firefox-linux' | 'firefox-mac' |
@@ -123,8 +120,34 @@ export interface PythonEnvironmentInfo extends ServerSideEnvironmentInfo {
 }
 
 /**
- * Benchmark tasks.
+ * Task types, names and function names under each task.
+ *
+ * If a task is performed in multiple environments (e.g., in tfjs-node and
+ * Python), they should correspond the same `Task` object.
+ **/
+export interface Task {
+  taskType: TaskType;
+
+  /**
+   * Name of the task.
+   * 
+   * For model-based tasks, this is the name of the model.
+   */
+  taskName: string;
+
+  /**
+   * For model-based tasks, this is the function name, e.g.,
+   * predict(), fit(), fitDataset().
+   */
+  functionName?: ModelFunctionName;
+};
+
+/**
+ * This corresponds to 
  */
+export type TaskCollection = {[taskId: string]: Task};
+
+/** Benchmark tasks logs. */
 
 // TODO(tensorflowjs): Add new types in the future, such as low-level tensor
 // operations, etc.
@@ -137,6 +160,7 @@ export type FunctionName = ModelFunctionName;
 export interface TaskLog {
   versionSetId: string;
   environmentId: string;
+  taskId: string;
 
   taskType: TaskType;
 

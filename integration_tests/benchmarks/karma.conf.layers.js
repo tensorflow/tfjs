@@ -35,7 +35,7 @@ const karmaTypescriptConfig = {
       frameworks: ['jasmine', 'karma-typescript'],
       files: [
         {pattern: 'layers/*.ts'},
-        {pattern: 'firebase.ts'},
+        {pattern: 'firestore.ts'},
         {
           pattern: 'data/**/*',
           watched: false,
