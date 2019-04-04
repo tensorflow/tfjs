@@ -35,7 +35,7 @@ export function inferShape(val: TensorLike): number[] {
     shape.push(firstElem.length);
     firstElem = firstElem[0];
   }
-  if (Array.isArray(val) && ENV.get('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')) {
+  if (Array.isArray(val) && ENV.getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')) {
     deepAssertShapeConsistency(val, shape, []);
   }
 
@@ -109,7 +109,7 @@ export function convertToTensor<T extends Tensor>(
     x = [x] as number[];
   }
   const values = inferredDtype !== 'string' ?
-      toTypedArray(x, inferredDtype as DataType, ENV.get('DEBUG')) :
+      toTypedArray(x, inferredDtype as DataType, ENV.getBool('DEBUG')) :
       flatten(x as string[]) as string[];
   return Tensor.make(inferredShape, {values}, inferredDtype);
 }

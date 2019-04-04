@@ -15,14 +15,18 @@
  * =============================================================================
  */
 
+// Engine is the global singleton that needs to be initialized before the rest
+// of the app.
+import './engine';
+// Register backend-agnostic flags.
+import './flags';
+
 // backend_cpu.ts and backend_webgl.ts are standalone files and should be
 // explicitly included here.
-import './kernels/backend_webgl';
-import './kernels/backend_cpu';
+import './kernels/webgl/backend_webgl';
+import './kernels/cpu/backend_cpu';
 
-import {nextFrame} from './browser_util';
 import * as environment from './environment';
-import {deprecationWarn, disableDeprecationWarnings, enableDebugMode, enableProdMode, Environment} from './environment';
 // Serialization.
 import * as io from './io/io';
 import * as math from './math';
@@ -55,25 +59,15 @@ export {Reduction} from './ops/loss_ops';
 
 export * from './train';
 export * from './globals';
+export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
 
-export {Features} from './environment_util';
 export {TimingInfo} from './engine';
 export {ENV, Environment} from './environment';
 
-export const setBackend = Environment.setBackend;
-export const getBackend = Environment.getBackend;
-export const disposeVariables = Environment.disposeVariables;
-export const memory = Environment.memory;
 export {version as version_core};
 
 // Top-level method exports.
-export {
-  nextFrame,
-  enableProdMode,
-  enableDebugMode,
-  disableDeprecationWarnings,
-  deprecationWarn
-};
+export {nextFrame} from './browser_util';
 
 // Second level exports.
 export {

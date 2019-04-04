@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS} from '../test_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
+
 import {isSliceContinous} from './slice_util';
 
 describeWithFlags('isSliceContinous', ALL_ENVS, () => {

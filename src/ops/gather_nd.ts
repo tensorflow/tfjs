@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -60,7 +60,7 @@ import {op} from './operation';
 function gatherND_(x: Tensor|TensorLike, indices: Tensor|TensorLike): Tensor {
   const $indices = convertToTensor(indices, 'indices', 'gatherND', 'int32');
   const $x = convertToTensor(x, 'x', 'gatherND');
-  return ENV.engine.runKernel(
+  return ENGINE.runKernel(
              backend => backend.gatherND($x, $indices), {$x, $indices}) as
       Tensor;
 }

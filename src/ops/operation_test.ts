@@ -14,8 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS} from '../test_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {op} from './operation';
 
 describeWithFlags('operation', ALL_ENVS, () => {

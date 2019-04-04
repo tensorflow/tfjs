@@ -15,10 +15,9 @@
  * =============================================================================
  */
 
-import {Environment} from '../environment';
 import * as tf from '../index';
-import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
+import {expectArraysClose} from '../test_util';
 
 describeWithFlags('pad1d', ALL_ENVS, () => {
   it('Should pad 1D arrays', () => {
@@ -185,9 +184,9 @@ describeWithFlags('pad4d', ALL_ENVS, () => {
     // Subsequent calls should always create exactly one new tensor.
     tf.pad4d(a, [[0, 0], [1, 1], [1, 1], [0, 0]]);
     // Count before real call.
-    const numTensors = Environment.memory().numTensors;
+    const numTensors = tf.memory().numTensors;
     tf.pad4d(a, [[0, 0], [1, 1], [1, 1], [0, 0]]);
-    expect(Environment.memory().numTensors).toEqual(numTensors + 1);
+    expect(tf.memory().numTensors).toEqual(numTensors + 1);
   });
 
   it('accepts a tensor-like object', () => {

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -122,7 +122,7 @@ function reverse_<T extends Tensor>(
     return {$x: () => dy.reverse(axes)};
   };
   const res =
-      ENV.engine.runKernel(backend => backend.reverse($x, axes), {$x}, grad);
+      ENGINE.runKernel(backend => backend.reverse($x, axes), {$x}, grad);
   return res.reshapeAs($x);
 }
 

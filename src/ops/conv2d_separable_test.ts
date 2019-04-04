@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
+import {expectArraysClose} from '../test_util';
 
 describeWithFlags('separableConv2d', ALL_ENVS, () => {
   it('input=1x3x3x1,f=2,s=1,d=1,p=valid,chMul=1,outDepth=2', () => {

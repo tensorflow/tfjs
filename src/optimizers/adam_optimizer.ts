@@ -15,26 +15,19 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
-import {keep, tidy} from '../globals';
-import {scalar, zerosLike} from '../ops/ops';
+import {ENGINE} from '../engine';
+import {tidy} from '../globals';
+import {scalar, sub, zerosLike} from '../ops/ops';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
-import {Scalar, Variable} from '../tensor';
+import {Variable} from '../tensor';
 import {NamedVariableMap} from '../tensor_types';
 import {Optimizer} from './optimizer';
 
 export class AdamOptimizer extends Optimizer {
   /** @nocollapse */
   static className = 'AdamOptimizer';
-  private c: Scalar;
-  private epsScalar: Scalar;
-  private beta1Scalar: Scalar;
-  private beta2Scalar: Scalar;
   private accBeta1: Variable;
   private accBeta2: Variable;
-  private oneMinusBeta1: Scalar;
-  private oneMinusBeta2: Scalar;
-  private one: Scalar;
 
   private accumulatedFirstMoment: NamedVariableMap = {};
   private accumulatedSecondMoment: NamedVariableMap = {};
@@ -43,33 +36,24 @@ export class AdamOptimizer extends Optimizer {
       protected learningRate: number, protected beta1: number,
       protected beta2: number, protected epsilon: number = null) {
     super();
-    this.c = keep(scalar(-learningRate));
-    // b1, b2 keep initial value of beta* hyperparameters.
-    this.beta1Scalar = keep(scalar(beta1));
-    this.beta2Scalar = keep(scalar(beta2));
     tidy(() => {
       // accB* will be updated by batch.
       this.accBeta1 = scalar(beta1).variable();
       this.accBeta2 = scalar(beta2).variable();
     });
-    this.oneMinusBeta1 = keep(scalar(1 - beta1));
-    this.oneMinusBeta2 = keep(scalar(1 - beta2));
-    this.one = keep(scalar(1));
 
-    if (epsilon === null) {
-      epsilon = ENV.get('EPSILON');
+    if (epsilon == null) {
+      this.epsilon = ENGINE.backend.epsilon();
     }
-
-    this.epsScalar = keep(scalar(epsilon));
   }
 
   applyGradients(variableGradients: NamedVariableMap) {
     tidy(() => {
-      const oneMinusAccBeta1 = this.one.sub(this.accBeta1);
-      const oneMinusAccBeta2 = this.one.sub(this.accBeta2);
+      const oneMinusAccBeta1 = sub(1, this.accBeta1);
+      const oneMinusAccBeta2 = sub(1, this.accBeta2);
 
       for (const variableName in variableGradients) {
-        const value = ENV.engine.registeredVariables[variableName];
+        const value = ENGINE.registeredVariables[variableName];
         if (this.accumulatedFirstMoment[variableName] == null) {
           const trainable = false;
           this.accumulatedFirstMoment[variableName] =
@@ -85,11 +69,10 @@ export class AdamOptimizer extends Optimizer {
         const firstMoment = this.accumulatedFirstMoment[variableName];
         const secondMoment = this.accumulatedSecondMoment[variableName];
 
-        const newFirstMoment = this.beta1Scalar.mul(firstMoment)
-                                   .add(this.oneMinusBeta1.mul(gradient));
-        const newSecondMoment =
-            this.beta2Scalar.mul(secondMoment)
-                .add(this.oneMinusBeta2.mul(gradient.square()));
+        const newFirstMoment =
+            firstMoment.mul(this.beta1).add(gradient.mul(1 - this.beta1));
+        const newSecondMoment = secondMoment.mul(this.beta2)
+                                    .add(gradient.square().mul(1 - this.beta2));
 
         const biasCorrectedFirstMoment = newFirstMoment.div(oneMinusAccBeta1);
         const biasCorrectedSecondMoment = newSecondMoment.div(oneMinusAccBeta2);
@@ -98,28 +81,21 @@ export class AdamOptimizer extends Optimizer {
         this.accumulatedSecondMoment[variableName].assign(newSecondMoment);
 
         const newValue =
-            this.c
-                .mul(biasCorrectedFirstMoment.div(
-                    this.epsScalar.add(biasCorrectedSecondMoment.sqrt())))
+            biasCorrectedFirstMoment
+                .div(biasCorrectedSecondMoment.sqrt().add(this.epsilon))
+                .mul(-this.learningRate)
                 .add(value);
         value.assign(newValue);
       }
 
-      this.accBeta1.assign(this.accBeta1.mul(this.beta1Scalar));
-      this.accBeta2.assign(this.accBeta2.mul(this.beta2Scalar));
+      this.accBeta1.assign(this.accBeta1.mul(this.beta1));
+      this.accBeta2.assign(this.accBeta2.mul(this.beta2));
     });
   }
 
   dispose(): void {
-    this.c.dispose();
-    this.epsScalar.dispose();
-    this.beta1Scalar.dispose();
-    this.beta2Scalar.dispose();
     this.accBeta1.dispose();
     this.accBeta2.dispose();
-    this.oneMinusBeta1.dispose();
-    this.oneMinusBeta2.dispose();
-    this.one.dispose();
 
     if (this.accumulatedFirstMoment != null) {
       Object.keys(this.accumulatedFirstMoment)

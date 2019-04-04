@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D} from '../tensor';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
@@ -110,7 +110,7 @@ function matMul_<T extends Tensor>(
     }
   };
 
-  const res = ENV.engine.runKernel((backend, save) => {
+  const res = ENGINE.runKernel((backend, save) => {
     const res = backend.batchMatMul(a3D, b3D, transposeA, transposeB);
     save([a3D, b3D]);
     return res;

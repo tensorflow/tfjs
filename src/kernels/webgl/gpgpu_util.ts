@@ -86,7 +86,7 @@ export function getTextureConfig(
   let defaultNumChannels: number;
   let textureTypeHalfFloat: number;
 
-  if (ENV.get('WEBGL_VERSION') === 2) {
+  if (ENV.getNumber('WEBGL_VERSION') === 2) {
     internalFormatFloat = glany.R32F;
     internalFormatHalfFloat = glany.R16F;
     internalFormatPackedHalfFloat = glany.RGBA16F;
@@ -300,7 +300,7 @@ export function maybeCreateBufferFromOutputTexture(
     WebGLTexture {
   let bufferOrTexture: WebGLBuffer|WebGLTexture = texture;
 
-  if (ENV.get('WEBGL_VERSION') === 2) {
+  if (ENV.getNumber('WEBGL_VERSION') === 2) {
     const gl2 = gl as WebGL2RenderingContext;
 
     // Create and bind the buffer.

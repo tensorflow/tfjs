@@ -15,8 +15,8 @@
  * =============================================================================
  */
 import * as tf from '../index';
-import {describeWithFlags} from '../jasmine_util';
-import {BROWSER_ENVS, expectArraysClose, expectArraysEqual} from '../test_util';
+import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
+import {expectArraysClose, expectArraysEqual} from '../test_util';
 import {WeightsManifestConfig} from './types';
 
 describeWithFlags('loadWeights', BROWSER_ENVS, () => {

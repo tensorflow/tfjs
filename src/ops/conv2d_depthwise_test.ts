@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose, PACKED_ENVS} from '../test_util';
+import {describeWithFlags, PACKED_ENVS, ALL_ENVS} from '../jasmine_util';
+import {expectArraysClose} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('depthwiseConv2d packed', PACKED_ENVS, () => {

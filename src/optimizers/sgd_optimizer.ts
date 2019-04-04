@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {keep, tidy} from '../globals';
 import {scalar} from '../ops/ops';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
@@ -38,7 +38,7 @@ export class SGDOptimizer extends Optimizer {
     const varNames = Object.keys(variableGradients);
     varNames.forEach(varName => {
       const gradient = variableGradients[varName];
-      const value = ENV.engine.registeredVariables[varName];
+      const value = ENGINE.registeredVariables[varName];
 
       tidy(() => {
         const newValue = this.c.mul(gradient).add(value);

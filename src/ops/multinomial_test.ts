@@ -16,9 +16,9 @@
  */
 
 import * as tf from '../index';
-import {describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {Tensor1D} from '../tensor';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
+import {expectArraysClose} from '../test_util';
 
 describeWithFlags('multinomial', ALL_ENVS, () => {
   const NUM_SAMPLES = 1000;

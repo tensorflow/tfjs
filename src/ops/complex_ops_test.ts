@@ -15,8 +15,8 @@
  * =============================================================================
  */
 import * as tf from '../index';
-import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, BROWSER_ENVS, expectArraysClose} from '../test_util';
+import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
+import {expectArraysClose} from '../test_util';
 
 describeWithFlags('complex64', ALL_ENVS, () => {
   it('tf.complex', () => {

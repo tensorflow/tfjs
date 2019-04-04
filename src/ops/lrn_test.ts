@@ -16,9 +16,9 @@
  */
 
 import * as tf from '../index';
-import {describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {Tensor4D} from '../tensor';
-import {ALL_ENVS, expectArraysClose, expectArraysEqual} from '../test_util';
+import {expectArraysClose, expectArraysEqual} from '../test_util';
 
 const sqArr = (arr: number[]) => arr.map(d => d * d);
 const sumArr = (arr: number[]) => arr.reduce((prev, curr) => prev + curr, 0);

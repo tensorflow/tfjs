@@ -38,7 +38,7 @@ export class BrowserDownloads implements IOHandler {
   static readonly URL_SCHEME = 'downloads://';
 
   constructor(fileNamePrefix?: string) {
-    if (!ENV.get('IS_BROWSER')) {
+    if (!ENV.getBool('IS_BROWSER')) {
       // TODO(cais): Provide info on what IOHandlers are available under the
       //   current environment.
       throw new Error(
@@ -233,7 +233,7 @@ class BrowserFiles implements IOHandler {
 }
 
 export const browserDownloadsRouter: IORouter = (url: string|string[]) => {
-  if (!ENV.get('IS_BROWSER')) {
+  if (!ENV.getBool('IS_BROWSER')) {
     return null;
   } else {
     if (!Array.isArray(url) && url.startsWith(BrowserDownloads.URL_SCHEME)) {

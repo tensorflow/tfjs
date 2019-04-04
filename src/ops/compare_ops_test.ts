@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, expectArraysClose, expectArraysEqual} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
+import {expectArraysClose, expectArraysEqual} from '../test_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 
 describeWithFlags('equal', ALL_ENVS, () => {
   it('Tensor1D - int32', () => {

@@ -20,8 +20,7 @@
  */
 
 import * as tf from '../index';
-import {describeWithFlags} from '../jasmine_util';
-import {BROWSER_ENVS} from '../test_util';
+import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 import {browserDownloads, BrowserDownloads, browserDownloadsRouter} from './browser_files';
 import {WeightsManifestConfig, WeightsManifestEntry} from './types';
 

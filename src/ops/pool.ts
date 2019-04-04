@@ -15,12 +15,11 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-
 import {batchToSpaceND, spaceToBatchND} from './array_ops';
 import * as conv_util from './conv_util';
 import {op} from './operation';
@@ -91,7 +90,7 @@ function maxPoolImpl_<T extends Tensor3D|Tensor4D>(
     };
   };
 
-  const res = ENV.engine.runKernel((backend, save) => {
+  const res = ENGINE.runKernel((backend, save) => {
     const y = backend.maxPool(x4D, convInfo);
     save([x4D, y]);
     return y;
@@ -193,7 +192,7 @@ function avgPoolImpl_<T extends Tensor3D|Tensor4D>(
       x: () => avgPoolBackprop(dy, x4D, filterSize, strides, dilations, pad)
     };
   };
-  let res = ENV.engine.runKernel(
+  let res = ENGINE.runKernel(
       backend => backend.avgPool(x4D, convInfo), {x: x4D}, grad);
   res = res.cast($x.dtype);
   if (reshapedTo4D) {
@@ -376,7 +375,7 @@ function maxPoolBackprop(
 
   const convInfo = conv_util.computePool2DInfo(
       $input.shape, filterSize, strides, dilations, pad, dimRoundingMode);
-  const res = ENV.engine.runKernel(
+  const res = ENGINE.runKernel(
       backend => backend.maxPoolBackprop($dy, $input, $output, convInfo),
       {$dy, $input});
   return res;
@@ -437,7 +436,7 @@ function avgPoolBackprop<T extends Tensor3D|Tensor4D>(
 
   const convInfo = conv_util.computePool2DInfo(
       input4D.shape, filterSize, strides, dilations, pad);
-  const res = ENV.engine.runKernel(
+  const res = ENGINE.runKernel(
       backend => backend.avgPoolBackprop(dy4D, input4D, convInfo),
       {dy4D, input4D});
   if (reshapedTo4D) {

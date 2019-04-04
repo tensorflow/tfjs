@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {CustomGradientFunc} from './engine';
-import {ENV} from './environment';
+import {CustomGradientFunc, ENGINE} from './engine';
 import {Scalar, Tensor, Variable} from './tensor';
 import {NamedTensorMap} from './tensor_types';
 import {convertToTensor, convertToTensorArray} from './tensor_util_env';
@@ -65,8 +64,8 @@ function grad(f: (x: Tensor) => Tensor): (
     const $x = convertToTensor(x, 'x', 'tf.grad', null);
     const $dy: Tensor =
         (dy != null) ? convertToTensor(dy, 'dy', 'tf.grad') : null;
-    return ENV.engine.tidy(() => {
-      const {value, grads} = ENV.engine.gradients(() => f($x), [$x], $dy);
+    return ENGINE.tidy(() => {
+      const {value, grads} = ENGINE.gradients(() => f($x), [$x], $dy);
       if ($dy != null) {
         util.assertShapesMatch(
             value.shape, $dy.shape,
@@ -120,9 +119,8 @@ function grads(f: (...args: Tensor[]) => Tensor): (
     const $args = convertToTensorArray(args, 'args', 'tf.grads', null);
     const $dy: Tensor =
         (dy != null) ? convertToTensor(dy, 'dy', 'tf.grads') : null;
-    return ENV.engine.tidy(() => {
-      const {value, grads} =
-          ENV.engine.gradients(() => f(...$args), $args, $dy);
+    return ENGINE.tidy(() => {
+      const {value, grads} = ENGINE.gradients(() => f(...$args), $args, $dy);
       if ($dy != null) {
         util.assertShapesMatch(
             value.shape, $dy.shape,
@@ -174,7 +172,7 @@ function valueAndGrad<I extends Tensor, O extends Tensor>(f: (x: I) => O): (
     util.assert(
         dy == null || dy instanceof Tensor,
         () => 'The dy passed in valueAndGrad(f)(x, dy) must be a tensor');
-    const {grads, value} = ENV.engine.gradients(() => f(x), [x], dy);
+    const {grads, value} = ENGINE.gradients(() => f(x), [x], dy);
     checkGrads(grads);
     return {grad: grads[0] as I, value: value as O};
   };
@@ -226,7 +224,7 @@ function valueAndGrads<O extends Tensor>(f: (...args: Tensor[]) => O): (
     util.assert(
         dy == null || dy instanceof Tensor,
         () => 'The dy passed in valueAndGrads(f)(args, dy) must be a tensor');
-    const res = ENV.engine.gradients(() => f(...args), args, dy);
+    const res = ENGINE.gradients(() => f(...args), args, dy);
     if (dy != null) {
       util.assertShapesMatch(
           res.value.shape, dy.shape,
@@ -274,8 +272,8 @@ function variableGrads(f: () => Scalar, varList?: Variable[]):
   if (varList == null) {
     // Get all of the trainable variables.
     varList = [];
-    for (const varName in ENV.engine.registeredVariables) {
-      varList.push(ENV.engine.registeredVariables[varName]);
+    for (const varName in ENGINE.registeredVariables) {
+      varList.push(ENGINE.registeredVariables[varName]);
     }
   }
   // Prune non-trainable variables.
@@ -289,8 +287,7 @@ function variableGrads(f: () => Scalar, varList?: Variable[]):
           `trainable.`);
 
   const allowNoGradients = true;
-  const {value, grads} =
-      ENV.engine.gradients(f, varList, null, allowNoGradients);
+  const {value, grads} = ENGINE.gradients(f, varList, null, allowNoGradients);
 
   util.assert(
       grads.some(g => g != null),
@@ -352,7 +349,7 @@ function variableGrads(f: () => Scalar, varList?: Variable[]):
 /** @doc {heading: 'Training', subheading: 'Gradients'} */
 function customGrad<T extends Tensor>(f: CustomGradientFunc<T>):
     (...args: Tensor[]) => T {
-  return ENV.engine.customGrad(f);
+  return ENGINE.customGrad(f);
 }
 
 function checkGrads(grads: Tensor[]) {

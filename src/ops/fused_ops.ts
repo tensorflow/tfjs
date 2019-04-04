@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {op} from '../ops/operation';
 import {Tensor, Tensor3D} from '../tensor';
 import {makeTypesMatch} from '../tensor_util';
@@ -168,7 +168,7 @@ function matMul_<T extends Tensor>(
     inputs.$bias = $bias;
   }
 
-  const res = ENV.engine.runKernel((backend, save) => {
+  const res = ENGINE.runKernel((backend, save) => {
     const y = backend.fusedBatchMatMul(
         a3D, b3D, transposeA, transposeB, $bias, activation);
     save([a3D, b3D, y]);

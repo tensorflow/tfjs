@@ -16,8 +16,7 @@
  */
 
 import * as tf from './index';
-import {describeWithFlags} from './jasmine_util';
-import {ALL_ENVS} from './test_util';
+import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 
 describeWithFlags('nextFrame', ALL_ENVS, () => {
   it('basic usage', async () => {

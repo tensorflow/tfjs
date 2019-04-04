@@ -15,9 +15,8 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
 import {Tensor} from '../tensor';
-import {expectNumbersClose} from '../test_util';
+import {expectNumbersClose, testEpsilon} from '../test_util';
 import {TypedArray} from '../types';
 
 export function jarqueBeraNormalityTest(a: Tensor|TypedArray|number[]) {
@@ -44,7 +43,7 @@ export function expectArrayInMeanStdRange(
     actual: Tensor|TypedArray|number[], expectedMean: number,
     expectedStdDev: number, epsilon?: number) {
   if (epsilon == null) {
-    epsilon = ENV.get('TEST_EPSILON');
+    epsilon = testEpsilon();
   }
   let actualValues: TypedArray|number[];
   if (actual instanceof Tensor) {

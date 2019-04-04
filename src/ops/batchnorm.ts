@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {deprecationWarn, ENV} from '../environment';
+import {ENGINE} from '../engine';
+import {deprecationWarn} from '../globals';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
@@ -341,7 +342,7 @@ function batchNorm_<R extends Rank>(
     };
   };
 
-  const res = ENV.engine.runKernel((backend, save) => {
+  const res = ENGINE.runKernel((backend, save) => {
     const res = backend.batchNormalization(
         x4D, batchnormReshape4D($mean), batchnormReshape4D($variance),
         varianceEpsilon, batchnormReshape4D($scale),

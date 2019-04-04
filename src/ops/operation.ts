@@ -14,8 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 
 /**
  * Used for wrapping functions that perform math operations on
@@ -41,16 +40,16 @@ export function op<T extends Function>(f: {[name: string]: T}): T {
 
   // tslint:disable-next-line:no-any
   const f2 = (...args: any[]) => {
-    ENV.engine.startScope(opName);
+    ENGINE.startScope(opName);
     try {
       const result = fn(...args);
       if (result instanceof Promise) {
         console.error('Cannot return a Promise inside of tidy.');
       }
-      ENV.engine.endScope(result);
+      ENGINE.endScope(result);
       return result;
     } catch (ex) {
-      ENV.engine.endScope(null);
+      ENGINE.endScope(null);
       throw ex;
     }
   };

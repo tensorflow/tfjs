@@ -16,9 +16,9 @@
  */
 
 import * as tf from '../index';
-import {describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, describeWithFlags, WEBGL_ENVS} from '../jasmine_util';
 import {Tensor1D, Tensor2D} from '../tensor';
-import {ALL_ENVS, expectArraysClose, WEBGL_ENVS} from '../test_util';
+import {expectArraysClose} from '../test_util';
 
 import {scalar, tensor1d, tensor2d, tensor3d, tensor4d} from './ops';
 

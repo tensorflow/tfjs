@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {complex, imag, real} from '../ops/complex_ops';
 import {op} from '../ops/operation';
 import {Tensor, Tensor2D} from '../tensor';
@@ -51,7 +51,7 @@ function fft_(input: Tensor): Tensor {
   const batch = input.size / innerDimensionSize;
   const input2D = input.as2D(batch, innerDimensionSize);
 
-  const ret = ENV.engine.runKernel(backend => backend.fft(input2D), {input});
+  const ret = ENGINE.runKernel(backend => backend.fft(input2D), {input});
 
   return ret.reshape(input.shape);
 }
@@ -85,7 +85,7 @@ function ifft_(input: Tensor): Tensor {
   const batch = input.size / innerDimensionSize;
   const input2D = input.as2D(batch, innerDimensionSize);
 
-  const ret = ENV.engine.runKernel(backend => backend.ifft(input2D), {input});
+  const ret = ENGINE.runKernel(backend => backend.ifft(input2D), {input});
 
   return ret.reshape(input.shape);
 }

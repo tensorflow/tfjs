@@ -17,6 +17,7 @@
 
 import {ENV} from '../../environment';
 import * as util from '../../util';
+import {getWebGLContext} from './canvas_util';
 
 export function callAndCheck<T>(
     gl: WebGLRenderingContext, debugMode: boolean, func: () => T): T {
@@ -39,7 +40,7 @@ const MIN_FLOAT16 = 5.96e-8;
 const MAX_FLOAT16 = 65504;
 
 export function canBeRepresented(num: number): boolean {
-  if (ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') || num === 0 ||
+  if (ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED') || num === 0 ||
       (MIN_FLOAT16 < Math.abs(num) && Math.abs(num) < MAX_FLOAT16)) {
     return true;
   }
@@ -189,7 +190,7 @@ export function createStaticIndexBuffer(
 }
 
 export function getNumChannels(): number {
-  if (ENV.get('WEBGL_VERSION') === 2) {
+  if (ENV.getNumber('WEBGL_VERSION') === 2) {
     return 1;
   }
   return 4;
@@ -202,7 +203,7 @@ export function createTexture(
 }
 
 export function validateTextureSize(width: number, height: number) {
-  const maxTextureSize = ENV.get('WEBGL_MAX_TEXTURE_SIZE');
+  const maxTextureSize = ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
   if ((width <= 0) || (height <= 0)) {
     const requested = `[${width}x${height}]`;
     throw new Error('Requested texture size ' + requested + ' is invalid.');
@@ -371,7 +372,7 @@ export function getRowsCols(shape: number[]): [number, number] {
 
 export function getTextureShapeFromLogicalShape(
     logShape: number[], isPacked = false): [number, number] {
-  let maxTexSize = ENV.get('WEBGL_MAX_TEXTURE_SIZE');
+  let maxTexSize = ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
   if (isPacked) {
     maxTexSize = maxTexSize * 2;
 
@@ -480,4 +481,149 @@ export function isReshapeFree(shape1: number[], shape2: number[]): boolean {
     }
   }
   return shape1[1] === shape2[1] && isEven(shape1[0]) && isEven(shape2[0]);
+}
+
+// We cache webgl params because the environment gets reset between
+// unit tests and we don't want to constantly query the WebGLContext for
+// MAX_TEXTURE_SIZE.
+export let MAX_TEXTURE_SIZE: number;
+export let MAX_TEXTURES_IN_SHADER: number;
+
+export function getWebGLMaxTextureSize(webGLVersion: number): number {
+  if (MAX_TEXTURE_SIZE == null) {
+    const gl = getWebGLContext(webGLVersion);
+    MAX_TEXTURE_SIZE = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+  }
+  return MAX_TEXTURE_SIZE;
+}
+
+export function getMaxTexturesInShader(webGLVersion: number): number {
+  if (MAX_TEXTURES_IN_SHADER == null) {
+    const gl = getWebGLContext(webGLVersion);
+    MAX_TEXTURES_IN_SHADER = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+  }
+  // We cap at 16 to avoid spurious runtime "memory exhausted" error.
+  return Math.min(16, MAX_TEXTURES_IN_SHADER);
+}
+
+export function getWebGLDisjointQueryTimerVersion(webGLVersion: number):
+    number {
+  if (webGLVersion === 0) {
+    return 0;
+  }
+
+  let queryTimerVersion: number;
+  const gl = getWebGLContext(webGLVersion);
+
+  if (hasExtension(gl, 'EXT_disjoint_timer_query_webgl2') &&
+      webGLVersion === 2) {
+    queryTimerVersion = 2;
+  } else if (hasExtension(gl, 'EXT_disjoint_timer_query')) {
+    queryTimerVersion = 1;
+  } else {
+    queryTimerVersion = 0;
+  }
+  return queryTimerVersion;
+}
+
+function hasExtension(gl: WebGLRenderingContext, extensionName: string) {
+  const ext = gl.getExtension(extensionName);
+  return ext != null;
+}
+
+export function isWebGLVersionEnabled(webGLVersion: 1|2) {
+  try {
+    const gl = getWebGLContext(webGLVersion);
+    if (gl != null) {
+      return true;
+    }
+  } catch (e) {
+    return false;
+  }
+  return false;
+}
+
+export function isRenderToFloatTextureEnabled(webGLVersion: number): boolean {
+  if (webGLVersion === 0) {
+    return false;
+  }
+
+  const gl = getWebGLContext(webGLVersion);
+
+  if (webGLVersion === 1) {
+    if (!hasExtension(gl, 'OES_texture_float')) {
+      return false;
+    }
+  } else {
+    if (!hasExtension(gl, 'EXT_color_buffer_float')) {
+      return false;
+    }
+  }
+
+  const isFrameBufferComplete =
+      createFloatTextureAndBindToFramebuffer(gl, webGLVersion);
+  return isFrameBufferComplete;
+}
+
+export function isDownloadFloatTextureEnabled(webGLVersion: number): boolean {
+  if (webGLVersion === 0) {
+    return false;
+  }
+
+  const gl = getWebGLContext(webGLVersion);
+
+  if (webGLVersion === 1) {
+    if (!hasExtension(gl, 'OES_texture_float')) {
+      return false;
+    }
+    if (!hasExtension(gl, 'WEBGL_color_buffer_float')) {
+      return false;
+    }
+  } else {
+    if (!hasExtension(gl, 'EXT_color_buffer_float')) {
+      return false;
+    }
+  }
+
+  const isFrameBufferComplete =
+      createFloatTextureAndBindToFramebuffer(gl, webGLVersion);
+  return isFrameBufferComplete;
+}
+
+function createFloatTextureAndBindToFramebuffer(
+    gl: WebGLRenderingContext, webGLVersion: number): boolean {
+  const frameBuffer = gl.createFramebuffer();
+  const texture = gl.createTexture();
+
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  // tslint:disable-next-line:no-any
+  const internalFormat = webGLVersion === 2 ? (gl as any).RGBA32F : gl.RGBA;
+  gl.texImage2D(
+      gl.TEXTURE_2D, 0, internalFormat, 1, 1, 0, gl.RGBA, gl.FLOAT, null);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+  gl.framebufferTexture2D(
+      gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+
+  const isFrameBufferComplete =
+      gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.deleteTexture(texture);
+  gl.deleteFramebuffer(frameBuffer);
+
+  return isFrameBufferComplete;
+}
+
+export function isWebGLFenceEnabled(webGLVersion: number) {
+  if (webGLVersion !== 2) {
+    return false;
+  }
+  const gl = getWebGLContext(webGLVersion);
+
+  // tslint:disable-next-line:no-any
+  const isEnabled = (gl as any).fenceSync != null;
+  return isEnabled;
 }

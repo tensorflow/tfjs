@@ -36,7 +36,8 @@ const MODEL_METADATA_SUFFIX = 'model_metadata';
  * @returns Paths of the models purged.
  */
 export function purgeLocalStorageArtifacts(): string[] {
-  if (!ENV.get('IS_BROWSER') || typeof window.localStorage === 'undefined') {
+  if (!ENV.getBool('IS_BROWSER') ||
+      typeof window.localStorage === 'undefined') {
     throw new Error(
         'purgeLocalStorageModels() cannot proceed because local storage is ' +
         'unavailable in the current environment.');
@@ -116,7 +117,8 @@ export class BrowserLocalStorage implements IOHandler {
   static readonly URL_SCHEME = 'localstorage://';
 
   constructor(modelPath: string) {
-    if (!ENV.get('IS_BROWSER') || typeof window.localStorage === 'undefined') {
+    if (!ENV.getBool('IS_BROWSER') ||
+        typeof window.localStorage === 'undefined') {
       // TODO(cais): Add more info about what IOHandler subtypes are
       // available.
       //   Maybe point to a doc page on the web and/or automatically determine
@@ -253,7 +255,7 @@ export class BrowserLocalStorage implements IOHandler {
 }
 
 export const localStorageRouter: IORouter = (url: string|string[]) => {
-  if (!ENV.get('IS_BROWSER')) {
+  if (!ENV.getBool('IS_BROWSER')) {
     return null;
   } else {
     if (!Array.isArray(url) && url.startsWith(BrowserLocalStorage.URL_SCHEME)) {
@@ -300,7 +302,7 @@ export class BrowserLocalStorageManager implements ModelStoreManager {
 
   constructor() {
     assert(
-        ENV.get('IS_BROWSER'),
+        ENV.getBool('IS_BROWSER'),
         () => 'Current environment is not a web browser');
     assert(
         typeof window.localStorage !== 'undefined',
@@ -338,7 +340,7 @@ export class BrowserLocalStorageManager implements ModelStoreManager {
   }
 }
 
-if (ENV.get('IS_BROWSER')) {
+if (ENV.getBool('IS_BROWSER')) {
   // Wrap the construction and registration, to guard against browsers that
   // don't support Local Storage.
   try {

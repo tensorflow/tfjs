@@ -16,9 +16,9 @@
  */
 
 import * as tf from './index';
-import {describeWithFlags} from './jasmine_util';
+import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
-import {ALL_ENVS, expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
+import {expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
 import {Rank} from './types';
 
 describeWithFlags('tensor', ALL_ENVS, () => {
@@ -1447,12 +1447,12 @@ describe('tensor.toString', () => {
     const verbose = true;
     const str = tf.scalar(true).toString(verbose);
     expect(str).toEqual(
-      'Tensor\n' +
-      '  dtype: bool\n' +
-      '  rank: 0\n' +
-      '  shape: []\n' +
-      '  values:\n' +
-      '    true');
+        'Tensor\n' +
+        '  dtype: bool\n' +
+        '  rank: 0\n' +
+        '  shape: []\n' +
+        '  values:\n' +
+        '    true');
   });
 
   it('1d tensor verbose', () => {

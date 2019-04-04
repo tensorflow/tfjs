@@ -15,25 +15,18 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
-import {keep, tidy} from '../globals';
-import {scalar, zerosLike} from '../ops/ops';
+import {ENGINE} from '../engine';
+import {tidy} from '../globals';
+import {div, scalar, sub, zerosLike} from '../ops/ops';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
-import {Scalar, Variable} from '../tensor';
+import {Variable} from '../tensor';
 import {NamedVariableMap} from '../tensor_types';
 import {Optimizer} from './optimizer';
 
 export class AdamaxOptimizer extends Optimizer {
   /** @nocollapse */
   static className = 'AdamaxOptimizer';
-  private c: Scalar;
-  private epsScalar: Scalar;
   private accBeta1: Variable;
-  private beta1Scalar: Scalar;
-  private beta2Scalar: Scalar;
-  private decayScalar: Scalar;
-  private oneMinusBeta1: Scalar;
-  private one: Scalar;
   private iteration: Variable;
 
   private accumulatedFirstMoment: NamedVariableMap = {};
@@ -44,36 +37,24 @@ export class AdamaxOptimizer extends Optimizer {
       protected beta2: number, protected epsilon: number = null,
       protected decay = 0.0) {
     super();
-    this.c = keep(scalar(-learningRate));
-
-    // b1, b2 keep initial value of beta* hyperparameters.
-    this.beta1Scalar = keep(scalar(beta1));
-    this.beta2Scalar = keep(scalar(beta2));
-
-    this.decayScalar = keep(scalar(decay));
 
     tidy(() => {
       this.iteration = scalar(0).variable();
       this.accBeta1 = scalar(beta1).variable();
     });
 
-    this.oneMinusBeta1 = keep(scalar(1 - beta1));
-    this.one = keep(scalar(1));
-
-    if (epsilon === null) {
-      epsilon = ENV.get('EPSILON');
+    if (epsilon == null) {
+      this.epsilon = ENGINE.backend.epsilon();
     }
-
-    this.epsScalar = keep(scalar(epsilon));
   }
 
   applyGradients(variableGradients: NamedVariableMap) {
     tidy(() => {
-      const oneMinusAccBeta1 = this.one.sub(this.accBeta1);
-      const lr = this.c.div(this.one.add(this.decayScalar.mul(this.iteration)));
+      const oneMinusAccBeta1 = sub(1, this.accBeta1);
+      const lr = div(-this.learningRate, this.iteration.mul(this.decay).add(1));
 
       for (const variableName in variableGradients) {
-        const value = ENV.engine.registeredVariables[variableName];
+        const value = ENGINE.registeredVariables[variableName];
         if (this.accumulatedFirstMoment[variableName] == null) {
           const trainable = false;
           this.accumulatedFirstMoment[variableName] =
@@ -89,10 +70,10 @@ export class AdamaxOptimizer extends Optimizer {
         const firstMoment = this.accumulatedFirstMoment[variableName];
         const weightedInfNorm = this.accumulatedWeightedInfNorm[variableName];
 
-        const newFirstMoment = this.beta1Scalar.mul(firstMoment)
-                                   .add(this.oneMinusBeta1.mul(gradient));
+        const newFirstMoment =
+            firstMoment.mul(this.beta1).add(gradient.mul(1 - this.beta1));
 
-        const ut0 = this.beta2Scalar.mul(weightedInfNorm);
+        const ut0 = weightedInfNorm.mul(this.beta2);
         const ut1 = gradient.abs();
 
         const newWeightedInfNorm = ut0.maximum(ut1);
@@ -103,29 +84,20 @@ export class AdamaxOptimizer extends Optimizer {
 
         const newValue =
             lr.div(oneMinusAccBeta1)
-                .mul(newFirstMoment.div(this.epsScalar.add(newWeightedInfNorm)))
+                .mul(newFirstMoment.div(newWeightedInfNorm.add(this.epsilon)))
                 .add(value);
 
         value.assign(newValue);
       }
 
-      this.iteration.assign(this.iteration.add(this.one));
-      this.accBeta1.assign(this.accBeta1.mul(this.beta1Scalar));
+      this.iteration.assign(this.iteration.add(1));
+      this.accBeta1.assign(this.accBeta1.mul(this.beta1));
     });
   }
 
   dispose(): void {
-    this.c.dispose();
-    this.epsScalar.dispose();
     this.accBeta1.dispose();
-    this.beta1Scalar.dispose();
-    this.beta2Scalar.dispose();
-    this.oneMinusBeta1.dispose();
-
-    this.decayScalar.dispose();
     this.iteration.dispose();
-
-    this.one.dispose();
 
     if (this.accumulatedFirstMoment != null) {
       Object.keys(this.accumulatedFirstMoment)

@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {describeWithFlags} from '../../jasmine_util';
-import {WEBGL_ENVS} from '../../test_util';
+import {describeWithFlags, WEBGL_ENVS} from '../../jasmine_util';
 import {dotify, getLogicalCoordinatesFromFlatIndex} from './shader_compiler_util';
 
 describeWithFlags('shader compiler', WEBGL_ENVS, () => {

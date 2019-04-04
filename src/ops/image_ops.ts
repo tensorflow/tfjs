@@ -15,14 +15,12 @@
  * =============================================================================
  */
 
-import {ForwardFunc} from '../engine';
-import {ENV} from '../environment';
+import {ENGINE, ForwardFunc} from '../engine';
 import {nonMaxSuppressionImpl} from '../kernels/non_max_suppression_impl';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-
 import {op} from './operation';
 
 /**
@@ -67,14 +65,14 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
 
   const backward = (dy: Tensor4D, saved: Tensor[]) => {
     return {
-      batchImages: () => ENV.engine.runKernel(
+      batchImages: () => ENGINE.runKernel(
           backend => backend.resizeBilinearBackprop(
               dy, saved[0] as Tensor4D, alignCorners),
           {})
     };
   };
 
-  const res = ENV.engine.runKernel(forward, {batchImages}, backward);
+  const res = ENGINE.runKernel(forward, {batchImages}, backward);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
@@ -127,14 +125,14 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
 
   const backward = (dy: Tensor4D, saved: Tensor[]) => {
     return {
-      batchImages: () => ENV.engine.runKernel(
+      batchImages: () => ENGINE.runKernel(
           backend => backend.resizeNearestNeighborBackprop(
               dy, saved[0] as Tensor4D, alignCorners),
           {})
     };
   };
 
-  const res = ENV.engine.runKernel(forward, {batchImages}, backward);
+  const res = ENGINE.runKernel(forward, {batchImages}, backward);
 
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
@@ -172,7 +170,7 @@ function nonMaxSuppression_(
   iouThreshold = inputs.iouThreshold;
   scoreThreshold = inputs.scoreThreshold;
 
-  return ENV.engine.runKernel(
+  return ENGINE.runKernel(
       b => b.nonMaxSuppression(
           $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold),
       {$boxes});
@@ -301,7 +299,7 @@ function cropAndResize_(
       backend.cropAndResize(
           $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
 
-  const res = ENV.engine.runKernel(forward, {$image, $boxes});
+  const res = ENGINE.runKernel(forward, {$image, $boxes});
   return res as Tensor4D;
 }
 

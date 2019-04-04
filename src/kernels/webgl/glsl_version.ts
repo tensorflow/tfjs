@@ -42,7 +42,7 @@ export function getGlslDifferences(): GLSL {
   let defineSpecialInf: string;
   let defineRound: string;
 
-  if (ENV.get('WEBGL_VERSION') === 2) {
+  if (ENV.getNumber('WEBGL_VERSION') === 2) {
     version = '#version 300 es';
     attribute = 'in';
     varyingVs = 'out';
