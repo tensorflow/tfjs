@@ -279,14 +279,6 @@ export interface ModelTaskLog extends BenchmarkRun {
 
   modelName: string;
 
-  /**
-   * A description of the model.
-   *
-   * Usually more detailed than `modelName`, and may contain information
-   * such as the constituent layers and the optimizer used for training.
-   */
-  modelDescription?: string;
-
   functionName: ModelFunctionName;
 
   batchSize: number;
