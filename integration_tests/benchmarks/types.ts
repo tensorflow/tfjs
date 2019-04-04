@@ -149,8 +149,8 @@ export type TaskCollection = {[taskId: string]: Task};
 
 /** Benchmark tasks logs. */
 
-// TODO(tensorflowjs): Add new types in the future, such as low-level tensor
-// operations, etc.
+// TODO(cais): Add new types in the future, such as low-level tensor
+//   operations, etc.
 export type TaskType = 'model';
 
 export type ModelFunctionName = 'predict' | 'fit' | 'fitDataset';
