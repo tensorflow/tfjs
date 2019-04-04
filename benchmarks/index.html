@@ -398,7 +398,7 @@
     }
 
     function queryTimerIsEnabled() {
-      return ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0;
+      return ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0;
     }
 
     async function onPageLoad() {

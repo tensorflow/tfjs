@@ -15,11 +15,10 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-
 import {op} from './operation';
 
 /**
@@ -49,7 +48,7 @@ function fromPixels_(
     throw new Error(
         'Cannot construct Tensor with more than 4 channels from pixels.');
   }
-  return ENV.engine.fromPixels(pixels, numChannels);
+  return ENGINE.fromPixels(pixels, numChannels);
 }
 
 /**

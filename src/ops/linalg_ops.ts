@@ -19,7 +19,7 @@
  * Linear algebra ops.
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {dispose} from '../globals';
 import {Tensor, Tensor1D, Tensor2D} from '../tensor';
 import {assert} from '../util';
@@ -90,7 +90,7 @@ function gramSchmidt_(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
   const ys: Tensor1D[] = [];
   const xs1d = xs as Tensor1D[];
   for (let i = 0; i < xs.length; ++i) {
-    ys.push(ENV.engine.tidy(() => {
+    ys.push(ENGINE.tidy(() => {
       let x = xs1d[i];
       if (i > 0) {
         for (let j = 0; j < i; ++j) {
@@ -187,7 +187,7 @@ function qr_(x: Tensor, fullMatrices = false): [Tensor, Tensor] {
 }
 
 function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
-  return ENV.engine.tidy(() => {
+  return ENGINE.tidy(() => {
     if (x.shape.length !== 2) {
       throw new Error(
           `qr2d() requires a 2D Tensor, but got a ${x.shape.length}D Tensor.`);
@@ -209,7 +209,7 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
       const rTemp = r;
       const wTemp = w;
       const qTemp = q;
-      [w, r, q] = ENV.engine.tidy((): [Tensor2D, Tensor2D, Tensor2D] => {
+      [w, r, q] = ENGINE.tidy((): [Tensor2D, Tensor2D, Tensor2D] => {
         // Find H = I - tau * w * w', to put zeros below R(j, j).
         const rjEnd1 = r.slice([j, j], [m - j, 1]);
         const normX = rjEnd1.norm();

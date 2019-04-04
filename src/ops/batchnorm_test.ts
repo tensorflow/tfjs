@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose, PACKED_ENVS, WEBGL_ENVS} from '../test_util';
+import {ALL_ENVS, describeWithFlags, PACKED_ENVS, WEBGL_ENVS} from '../jasmine_util';
+import {expectArraysClose} from '../test_util';
 
 describeWithFlags('batchnorm packed', PACKED_ENVS, () => {
   it('should not leak memory', () => {
@@ -48,7 +48,7 @@ describeWithFlags('batchNorm', WEBGL_ENVS, () => {
   });
 
   it('should work when squarification results in zero padding', () => {
-    const maxTextureSize = tf.ENV.get('WEBGL_MAX_TEXTURE_SIZE');
+    const maxTextureSize = tf.ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
 
     const x = tf.tensor3d(

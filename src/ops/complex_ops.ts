@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -48,7 +48,7 @@ function complex_<T extends Tensor>(real: T|TensorLike, imag: T|TensorLike): T {
       `real and imag shapes, ${$real.shape} and ${$imag.shape}, ` +
           `must match in call to tf.complex().`);
 
-  return ENV.engine.runKernel(
+  return ENGINE.runKernel(
              backend => backend.complex($real, $imag), {$real, $imag}) as T;
 }
 
@@ -69,7 +69,7 @@ function complex_<T extends Tensor>(real: T|TensorLike, imag: T|TensorLike): T {
 function real_<T extends Tensor>(input: T|TensorLike): T {
   const $input = convertToTensor(input, 'input', 'real');
 
-  return ENV.engine.runKernel(backend => backend.real($input), {$input}) as T;
+  return ENGINE.runKernel(backend => backend.real($input), {$input}) as T;
 }
 
 /**
@@ -88,7 +88,7 @@ function real_<T extends Tensor>(input: T|TensorLike): T {
 function imag_<T extends Tensor>(input: T|TensorLike): T {
   const $input = convertToTensor(input, 'input', 'imag');
 
-  return ENV.engine.runKernel(backend => backend.imag($input), {$input}) as T;
+  return ENGINE.runKernel(backend => backend.imag($input), {$input}) as T;
 }
 
 export const complex = op({complex_});

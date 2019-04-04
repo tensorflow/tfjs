@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
@@ -164,7 +164,7 @@ function slice_<R extends Rank, T extends Tensor<R>>(
     }
     return {$x: () => dy.pad(paddings)};
   };
-  return ENV.engine.runKernel(
+  return ENGINE.runKernel(
              backend => backend.slice($x, begin_, size_), {$x}, grad) as T;
 }
 

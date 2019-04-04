@@ -16,9 +16,9 @@
  */
 
 import * as tf from './index';
-import {describeWithFlags} from './jasmine_util';
+import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, variable, Variable} from './tensor';
-import {ALL_ENVS, expectArraysClose} from './test_util';
+import {expectArraysClose} from './test_util';
 import {Rank} from './types';
 
 describeWithFlags('variable', ALL_ENVS, () => {

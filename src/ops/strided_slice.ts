@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -75,7 +75,7 @@ function stridedSlice_(
         size.filter((_, index) => shrinkAxis.indexOf(index) === -1);
     return slice($x, beginIndex, size).reshape(outShape);
   }
-  return ENV.engine.runKernel(
+  return ENGINE.runKernel(
       backend => backend.stridedSlice(
           $x, begin, end, strides, beginMask, endMask, ellipsisMask,
           newAxisMask, shrinkAxisMask),

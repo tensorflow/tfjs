@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -182,7 +182,7 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
     return derTensors.map(t => () => t) as {};
   };
   const inputs = $tensors as {};
-  return ENV.engine.runKernel(
+  return ENGINE.runKernel(
       backend => backend.concat($tensors, axis) as T, inputs, der);
 }
 
@@ -238,7 +238,7 @@ function split_<T extends Tensor>(
     splitSizes = numOrSizeSplits;
   }
   const der = (dy: T[]) => ({$x: () => concat(dy, axis)});
-  return ENV.engine.runKernel(
+  return ENGINE.runKernel(
       backend => backend.split($x, splitSizes, axis), {$x}, der);
 }
 

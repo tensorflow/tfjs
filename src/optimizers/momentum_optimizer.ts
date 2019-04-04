@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {tidy} from '../globals';
 import {scalar, zerosLike} from '../ops/ops';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
@@ -40,7 +40,7 @@ export class MomentumOptimizer extends SGDOptimizer {
 
   applyGradients(variableGradients: NamedVariableMap) {
     for (const variableName in variableGradients) {
-      const value = ENV.engine.registeredVariables[variableName];
+      const value = ENGINE.registeredVariables[variableName];
       if (this.accumulations[variableName] == null) {
         const trainable = false;
         tidy(() => {

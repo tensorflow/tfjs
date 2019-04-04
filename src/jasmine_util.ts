@@ -15,20 +15,63 @@
  * =============================================================================
  */
 
-import {ENV, Environment} from './environment';
-import {Features} from './environment_util';
-import {KernelBackend} from './kernels/backend';
-import {MathBackendCPU} from './kernels/backend_cpu';
-import {MathBackendWebGL} from './kernels/backend_webgl';
+import {ENGINE} from './engine';
+import {ENV, Environment, Flags} from './environment';
+import {DataMover, KernelBackend} from './kernels/backend';
 
 Error.stackTraceLimit = Infinity;
 
+export type Constraints = {
+  flags?: Flags;
+  backends?: string | string[];
+};
+
+export const WEBGL_ENVS: Constraints = {
+  backends: 'webgl'
+};
+export const CPU_ENVS: Constraints = {
+  backends: 'cpu'
+};
+export const PACKED_ENVS: Constraints = {
+  flags: {'WEBGL_PACK': true}
+};
+export const NODE_ENVS: Constraints = {
+  flags: {'IS_NODE': true}
+};
+export const CHROME_ENVS: Constraints = {
+  flags: {'IS_CHROME': true}
+};
+export const BROWSER_ENVS: Constraints = {
+  flags: {'IS_BROWSER': true}
+};
+
+export const ALL_ENVS: Constraints = {};
+
 // Tests whether the current environment satisfies the set of constraints.
-export function envSatisfiesConstraints(constraints: Features): boolean {
-  for (const key in constraints) {
-    const value = constraints[key as keyof Features];
-    if (ENV.get(key as keyof Features) !== value) {
-      return false;
+export function envSatisfiesConstraints(
+    env: Environment, currentBackendName: string,
+    constraints: Constraints): boolean {
+  if (constraints.flags != null) {
+    for (const flagName in constraints.flags) {
+      const flagValue = constraints.flags[flagName];
+      if (env.get(flagName) !== flagValue) {
+        return false;
+      }
+    }
+  }
+  if (constraints.backends != null) {
+    let anyBackendMatches = false;
+    if (Array.isArray(constraints.backends)) {
+      constraints.backends.forEach(constraintBackendName => {
+        if (constraintBackendName === currentBackendName) {
+          anyBackendMatches = true;
+        }
+      });
+      if (!anyBackendMatches) {
+        return false;
+      }
+    } else {
+      return currentBackendName === constraints.backends;
     }
   }
   return true;
@@ -38,48 +81,46 @@ export function envSatisfiesConstraints(constraints: Features): boolean {
 declare let __karma__: any;
 
 export function parseKarmaFlags(args: string[]): TestEnv {
-  let features: Features;
-  let backend: () => KernelBackend;
-  let name = '';
+  let flags: Flags;
+  let factory: () => KernelBackend;
+  let backendName = '';
+  const backendNames = ENGINE.backendNames()
+                           .map(backendName => '\'' + backendName + '\'')
+                           .join(', ');
 
   args.forEach((arg, i) => {
-    if (arg === '--features') {
-      features = JSON.parse(args[i + 1]);
+    if (arg === '--flags') {
+      flags = JSON.parse(args[i + 1]);
     } else if (arg === '--backend') {
       const type = args[i + 1];
-      name = type;
-      if (type.toLowerCase() === 'cpu') {
-        backend = () => new MathBackendCPU();
-        features = features || {};
-        features['HAS_WEBGL'] = false;
-      } else if (type.toLowerCase() === 'webgl') {
-        backend = () => new MathBackendWebGL();
-      } else {
+      backendName = type;
+      factory = ENGINE.findBackendFactory(backendName.toLowerCase());
+      if (factory == null) {
         throw new Error(
             `Unknown value ${type} for flag --backend. ` +
-            `Allowed values are 'cpu' or 'webgl'.`);
+            `Allowed values are ${backendNames}.`);
       }
     }
   });
 
-  if (features == null && backend == null) {
+  if (flags == null && factory == null) {
     return null;
   }
-  if (features != null && backend == null) {
+  if (flags != null && factory == null) {
     throw new Error(
-        '--backend flag is required when --features is present. ' +
-        'Available values are "webgl" or "cpu".');
+        '--backend flag is required when --flags is present. ' +
+        `Available values are ${backendNames}.`);
   }
-  return {features: features || {}, factory: backend, name};
+  return {flags: flags || {}, name: backendName, backendName};
 }
 
 export function describeWithFlags(
-    name: string, constraints: Features, tests: (env: TestEnv) => void) {
+    name: string, constraints: Constraints, tests: (env: TestEnv) => void) {
   TEST_ENVS.forEach(testEnv => {
-    ENV.setFeatures(testEnv.features);
-    if (envSatisfiesConstraints(constraints)) {
+    ENV.setFlags(testEnv.flags);
+    if (envSatisfiesConstraints(ENV, testEnv.backendName, constraints)) {
       const testName =
-          name + ' ' + testEnv.name + ' ' + JSON.stringify(testEnv.features);
+          name + ' ' + testEnv.name + ' ' + JSON.stringify(testEnv.flags);
       executeTests(testName, tests, testEnv);
     }
   });
@@ -87,15 +128,15 @@ export function describeWithFlags(
 
 export interface TestEnv {
   name: string;
-  factory: () => KernelBackend;
-  features: Features;
+  backendName: string;
+  flags: Flags;
 }
 
 export let TEST_ENVS: TestEnv[] = [
   {
     name: 'webgl1',
-    factory: () => new MathBackendWebGL(),
-    features: {
+    backendName: 'webgl',
+    flags: {
       'WEBGL_VERSION': 1,
       'WEBGL_CPU_FORWARD': false,
       'WEBGL_SIZE_UPLOAD_UNIFORM': 0
@@ -103,21 +144,15 @@ export let TEST_ENVS: TestEnv[] = [
   },
   {
     name: 'webgl2',
-    factory: () => new MathBackendWebGL(),
-    features: {
+    backendName: 'webgl',
+    flags: {
       'WEBGL_VERSION': 2,
       'WEBGL_CPU_FORWARD': false,
       'WEBGL_SIZE_UPLOAD_UNIFORM': 0
     }
   },
-  {
-    name: 'cpu',
-    factory: () => new MathBackendCPU(),
-    features: {'HAS_WEBGL': false}
-  }
+  {name: 'cpu', backendName: 'cpu', flags: {'HAS_WEBGL': false}}
 ];
-
-export const CPU_FACTORY = () => new MathBackendCPU();
 
 if (typeof __karma__ !== 'undefined') {
   const testEnv = parseKarmaFlags(__karma__.config.args);
@@ -133,30 +168,31 @@ export function setTestEnvs(testEnvs: TestEnv[]) {
 function executeTests(
     testName: string, tests: (env: TestEnv) => void, testEnv: TestEnv) {
   describe(testName, () => {
-    const backendName = 'test-' + testEnv.name;
-
     beforeAll(() => {
-      ENV.reset();
-      ENV.setFeatures(testEnv.features);
+      ENGINE.reset();
+      ENV.setFlags(testEnv.flags);
       ENV.set('IS_TEST', true);
-      ENV.registerBackend(backendName, testEnv.factory, 1000);
-      Environment.setBackend(backendName);
+      ENGINE.setBackend(testEnv.backendName);
     });
 
     beforeEach(() => {
-      ENV.engine.startScope();
+      ENGINE.startScope();
     });
 
     afterEach(() => {
-      ENV.engine.endScope();
-      Environment.disposeVariables();
+      ENGINE.endScope();
+      ENGINE.disposeVariables();
     });
 
     afterAll(() => {
-      ENV.removeBackend(backendName);
-      ENV.reset();
+      ENGINE.reset();
     });
 
     tests(testEnv);
   });
+}
+
+export class TestKernelBackend extends KernelBackend {
+  setDataMover(dataMover: DataMover): void {}
+  dispose(): void {}
 }

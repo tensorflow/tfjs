@@ -15,25 +15,83 @@
  * =============================================================================
  */
 
+import {Environment} from './environment';
 import * as tf from './index';
-import {describeWithFlags, envSatisfiesConstraints, parseKarmaFlags} from './jasmine_util';
-import {MathBackendCPU} from './kernels/backend_cpu';
-import {MathBackendWebGL} from './kernels/backend_webgl';
-import {WEBGL_ENVS} from './test_util';
+import {envSatisfiesConstraints, parseKarmaFlags, TestKernelBackend} from './jasmine_util';
 
-describeWithFlags('jasmine_util.envSatisfiesConstraints', {}, () => {
+describe('jasmine_util.envSatisfiesConstraints', () => {
   it('ENV satisfies empty constraints', () => {
-    expect(envSatisfiesConstraints({})).toBe(true);
+    const backendName = 'test-backend';
+    const env = new Environment({});
+    env.setFlags({});
+
+    const constraints = {};
+
+    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(true);
   });
 
-  it('ENV satisfies matching constraints', () => {
-    const c = {TEST_EPSILON: tf.ENV.get('TEST_EPSILON')};
-    expect(envSatisfiesConstraints(c)).toBe(true);
+  it('ENV satisfies matching flag constraints, no backend constraint', () => {
+    const backendName = 'test-backend';
+    const env = new Environment({});
+    env.setFlags({'TEST-FLAG': true});
+
+    const constraints = {flags: {'TEST-FLAG': true}};
+
+    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(true);
   });
 
-  it('ENV does not satisfy mismatching constraints', () => {
-    const c = {TEST_EPSILON: tf.ENV.get('TEST_EPSILON') + 0.1};
-    expect(envSatisfiesConstraints(c)).toBe(false);
+  it('ENV satisfies matching flag and one backend constraint', () => {
+    const backendName = 'test-backend';
+    const env = new Environment({});
+    env.setFlags({'TEST-FLAG': true});
+
+    const constraints = {flags: {'TEST-FLAG': true}, backends: backendName};
+
+    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(true);
+  });
+
+  it('ENV satisfies matching flag and multiple backend constraints', () => {
+    const backendName = 'test-backend';
+    const env = new Environment({});
+    env.setFlags({'TEST-FLAG': true});
+
+    const constraints = {
+      flags: {'TEST-FLAG': true},
+      backends: [backendName, 'other-backend']
+    };
+
+    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(true);
+  });
+
+  it('ENV does not satisfy mismatching flags constraints', () => {
+    const backendName = 'test-backend';
+    const env = new Environment({});
+    env.setFlags({'TEST-FLAG': false});
+
+    const constraints = {flags: {'TEST-FLAG': true}};
+
+    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(false);
+  });
+
+  it('ENV satisfies no flag constraint but does not satisfy backend constraint',
+     () => {
+       const backendName = 'test-backend';
+       const env = new Environment({});
+
+       const constraints = {backends: 'test-backend2'};
+
+       expect(envSatisfiesConstraints(env, backendName, constraints))
+           .toBe(false);
+     });
+
+  it('ENV satisfies flags but does not satisfy backend constraint', () => {
+    const backendName = 'test-backend';
+    const env = new Environment({});
+    env.setFlags({'TEST-FLAG': true});
+
+    const constraints = {flags: {'TEST-FLAG': true}, backends: 'test-backend2'};
+
+    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(false);
   });
 });
 
@@ -43,46 +101,35 @@ describe('jasmine_util.parseKarmaFlags', () => {
     expect(res).toBeNull();
   });
 
-  it('--backend cpu', () => {
-    const res = parseKarmaFlags(['--backend', 'cpu']);
-    expect(res.name).toBe('cpu');
-    expect(res.features).toEqual({'HAS_WEBGL': false});
-    expect(res.factory() instanceof MathBackendCPU).toBe(true);
-  });
+  it('--backend test-backend --flags {"IS_NODE": true}', () => {
+    const backend = new TestKernelBackend();
+    tf.registerBackend('test-backend', () => backend);
 
-  it('--backend cpu --features {"IS_NODE": true}', () => {
     const res = parseKarmaFlags(
-        ['--backend', 'cpu', '--features', '{"IS_NODE": true}']);
-    expect(res.name).toBe('cpu');
-    expect(res.features).toEqual({IS_NODE: true});
-    expect(res.factory() instanceof MathBackendCPU).toBe(true);
+        ['--backend', 'test-backend', '--flags', '{"IS_NODE": true}']);
+    expect(res.name).toBe('test-backend');
+    expect(res.backendName).toBe('test-backend');
+    expect(res.flags).toEqual({IS_NODE: true});
+
+    tf.removeBackend('test-backend');
   });
 
   it('"--backend unknown" throws error', () => {
     expect(() => parseKarmaFlags(['--backend', 'unknown'])).toThrowError();
   });
 
-  it('"--features {}" throws error since --backend is missing', () => {
-    expect(() => parseKarmaFlags(['--features', '{}'])).toThrowError();
+  it('"--flags {}" throws error since --backend is missing', () => {
+    expect(() => parseKarmaFlags(['--flags', '{}'])).toThrowError();
   });
 
-  it('"--backend cpu --features" throws error since features value is missing',
+  it('"--backend cpu --flags" throws error since features value is missing',
      () => {
-       expect(() => parseKarmaFlags(['--backend', 'cpu', '--features']))
+       expect(() => parseKarmaFlags(['--backend', 'cpu', '--flags']))
            .toThrowError();
      });
 
-  it('"--backend cpu --features notJson" throws error', () => {
-    expect(() => parseKarmaFlags(['--backend', 'cpu', '--features', 'notJson']))
+  it('"--backend cpu --flags notJson" throws error', () => {
+    expect(() => parseKarmaFlags(['--backend', 'cpu', '--flags', 'notJson']))
         .toThrowError();
-  });
-});
-
-describeWithFlags('jasmine_util.envSatisfiesConstraints', WEBGL_ENVS, () => {
-  it('--backend webgl', () => {
-    const res = parseKarmaFlags(['--backend', 'webgl']);
-    expect(res.name).toBe('webgl');
-    expect(res.features).toEqual({});
-    expect(res.factory() instanceof MathBackendWebGL).toBe(true);
   });
 });

@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
+import {expectArraysClose} from '../test_util';
 import {PARALLELIZE_THRESHOLD} from './reduce_util';
 
 describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {

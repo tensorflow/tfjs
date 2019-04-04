@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, CPU_ENVS, expectArraysClose} from '../test_util';
+import {ALL_ENVS, CPU_ENVS, describeWithFlags} from '../jasmine_util';
+import {expectArraysClose} from '../test_util';
 
 import {gatherND} from './gather_nd';
 import {scalar, tensor1d, tensor2d, tensor3d} from './tensor_ops';

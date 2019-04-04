@@ -15,11 +15,10 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, ShapeMap, TensorLike} from '../types';
-
 import {op} from './operation';
 import * as scatter_nd_util from './scatter_nd_util';
 
@@ -48,7 +47,7 @@ function scatterND_<R extends Rank>(
   const $updates = convertToTensor(updates, 'updates', 'scatterND');
   scatter_nd_util.validateInput($updates, $indices, shape);
 
-  return ENV.engine.runKernel(
+  return ENGINE.runKernel(
              backend => backend.scatterND($indices, $updates, shape),
              {$indices, $updates}) as Tensor<R>;
 }

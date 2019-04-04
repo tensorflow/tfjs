@@ -15,11 +15,10 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
-import {keep, tidy} from '../globals';
-import {scalar, zerosLike} from '../ops/ops';
+import {ENGINE} from '../engine';
+import {tidy} from '../globals';
+import {zerosLike} from '../ops/ops';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
-import {Scalar} from '../tensor';
 import {NamedVariableMap} from '../tensor_types';
 import {Optimizer} from './optimizer';
 
@@ -27,11 +26,6 @@ import {Optimizer} from './optimizer';
 export class RMSPropOptimizer extends Optimizer {
   /** @nocollapse */
   static className = 'RMSPropOptimizer';
-  private c: Scalar;
-  private epsilonScalar: Scalar;
-  private decayScalar: Scalar;
-  private momentumScalar: Scalar;
-  private oneMinusDecay: Scalar;
   private centered: boolean;
 
   private accumulatedMeanSquares: NamedVariableMap = {};
@@ -44,22 +38,16 @@ export class RMSPropOptimizer extends Optimizer {
       centered = false) {
     super();
 
-    this.c = keep(scalar(learningRate));
-    this.decayScalar = keep(scalar(decay));
-    this.momentumScalar = keep(scalar(momentum));
-    this.oneMinusDecay = keep(scalar(1 - decay));
     this.centered = centered;
 
-    if (epsilon === null) {
-      epsilon = ENV.get('EPSILON');
+    if (epsilon == null) {
+      this.epsilon = ENGINE.backend.epsilon();
     }
-
-    this.epsilonScalar = keep(scalar(epsilon));
   }
 
   applyGradients(variableGradients: NamedVariableMap) {
     for (const variableName in variableGradients) {
-      const value = ENV.engine.registeredVariables[variableName];
+      const value = ENGINE.registeredVariables[variableName];
       if (this.accumulatedMeanSquares[variableName] == null) {
         const trainable = false;
         tidy(() => {
@@ -89,22 +77,21 @@ export class RMSPropOptimizer extends Optimizer {
 
       tidy(() => {
         const newAccumulatedMeanSquare =
-            this.decayScalar.mul(accumulatedMeanSquare)
-                .add(this.oneMinusDecay.mul(gradient.square()));
+            accumulatedMeanSquare.mul(this.decay)
+                .add(gradient.square().mul(1 - this.decay));
 
         if (this.centered) {
           // Centered gradient
-          const newAccumulatedMeanGrad =
-              this.decayScalar.mul(accumulatedMeanGrad)
-                  .add(this.oneMinusDecay.mul(gradient));
+          const newAccumulatedMeanGrad = accumulatedMeanGrad.mul(this.decay)
+                                             .add(gradient.mul(1 - this.decay));
 
           const newAccumulatedMoments =
-              this.momentumScalar.mul(accumulatedMoments)
-                  .add(this.c.mul(gradient).div(
-                      newAccumulatedMeanSquare
-                          .sub(newAccumulatedMeanGrad.square().add(
-                              this.epsilonScalar))
-                          .sqrt()));
+              accumulatedMoments.mul(this.momentum)
+                  .add(gradient.mul(this.learningRate)
+                           .div(newAccumulatedMeanSquare
+                                    .sub(newAccumulatedMeanGrad.square().add(
+                                        this.epsilon))
+                                    .sqrt()));
 
           this.accumulatedMeanSquares[variableName].assign(
               newAccumulatedMeanSquare);
@@ -117,13 +104,14 @@ export class RMSPropOptimizer extends Optimizer {
         } else {
           // Plain gradient
           const newAccumulatedMeanSquare =
-              this.decayScalar.mul(accumulatedMeanSquare)
-                  .add(this.oneMinusDecay.mul(gradient.square()));
+              accumulatedMeanSquare.mul(this.decay)
+                  .add(gradient.square().mul(1 - this.decay));
 
           const newAccumulatedMoments =
-              this.momentumScalar.mul(accumulatedMoments)
-                  .add(this.c.mul(gradient).div(
-                      newAccumulatedMeanSquare.add(this.epsilonScalar).sqrt()));
+              accumulatedMoments.mul(this.momentum)
+                  .add(gradient.mul(this.learningRate)
+                           .div(newAccumulatedMeanSquare.add(this.epsilon)
+                                    .sqrt()));
 
           this.accumulatedMeanSquares[variableName].assign(
               newAccumulatedMeanSquare);
@@ -137,11 +125,6 @@ export class RMSPropOptimizer extends Optimizer {
   }
 
   dispose(): void {
-    this.c.dispose();
-    this.epsilonScalar.dispose();
-    this.decayScalar.dispose();
-    this.momentumScalar.dispose();
-    this.oneMinusDecay.dispose();
     if (this.accumulatedMeanSquares != null) {
       Object.keys(this.accumulatedMeanSquares)
           .forEach(name => this.accumulatedMeanSquares[name].dispose());

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {ENGINE} from '../engine';
 import {whereImpl} from '../kernels/where_impl';
 import {Tensor, Tensor2D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
@@ -39,7 +39,7 @@ import {zerosLike} from './tensor_ops';
 /** @doc {heading: 'Operations', subheading: 'Logical'} */
 function logicalNot_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'logicalNot', 'bool');
-  return ENV.engine.runKernel(backend => backend.logicalNot($x), {$x});
+  return ENGINE.runKernel(backend => backend.logicalNot($x), {$x});
 }
 
 /**
@@ -62,8 +62,7 @@ function logicalAnd_<T extends Tensor>(
   const $b = convertToTensor(b, 'b', 'logicalAnd', 'bool');
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  return ENV.engine.runKernel(
-             backend => backend.logicalAnd($a, $b), {$a, $b}) as T;
+  return ENGINE.runKernel(backend => backend.logicalAnd($a, $b), {$a, $b}) as T;
 }
 
 /**
@@ -85,8 +84,7 @@ function logicalOr_<T extends Tensor>(
   const $b = convertToTensor(b, 'b', 'logicalOr', 'bool');
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  return ENV.engine.runKernel(backend => backend.logicalOr($a, $b), {$a, $b}) as
-      T;
+  return ENGINE.runKernel(backend => backend.logicalOr($a, $b), {$a, $b}) as T;
 }
 
 /**
@@ -162,7 +160,7 @@ function where_<T extends Tensor>(
     };
   };
 
-  return ENV.engine.runKernel((backend, save) => {
+  return ENGINE.runKernel((backend, save) => {
     const res = backend.select($condition, $a, $b);
     save([$condition]);
     return res;

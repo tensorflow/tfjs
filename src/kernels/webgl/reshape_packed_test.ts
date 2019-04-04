@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../../index';
-import {describeWithFlags} from '../../jasmine_util';
-import {expectArraysClose, PACKED_ENVS} from '../../test_util';
+import {describeWithFlags, PACKED_ENVS} from '../../jasmine_util';
+import {expectArraysClose} from '../../test_util';
 
 describeWithFlags('expensive reshape', PACKED_ENVS, () => {
   const cValues =
@@ -64,7 +64,7 @@ describeWithFlags('expensive reshape', PACKED_ENVS, () => {
 
 describeWithFlags('expensive reshape with even columns', PACKED_ENVS, () => {
   it('2 --> 4 columns', () => {
-    const maxTextureSize = tf.ENV.get('WEBGL_MAX_TEXTURE_SIZE');
+    const maxTextureSize = tf.ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
 
     let values: number[] = new Array<number>(16).fill(0);
     values = values.map((d, i) => i + 1);
@@ -84,7 +84,7 @@ describeWithFlags('expensive reshape with even columns', PACKED_ENVS, () => {
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
 
     // Execute non-packed operations to unpack tensor.
-    const webglPackFlagSaved = tf.ENV.get('WEBGL_PACK');
+    const webglPackFlagSaved = tf.ENV.getBool('WEBGL_PACK');
     tf.ENV.set('WEBGL_PACK', false);
     cAs4D = cAs4D.add(1);
     cAs4D = cAs4D.add(-1);

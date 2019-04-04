@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose, expectArraysEqual, WEBGL_ENVS} from '../test_util';
+import {ALL_ENVS, describeWithFlags, WEBGL_ENVS} from '../jasmine_util';
+import {expectArraysClose, expectArraysEqual} from '../test_util';
 
 import * as reduce_util from './reduce_util';
 
@@ -594,10 +594,10 @@ describeWithFlags('Reduction: argmax', ALL_ENVS, () => {
 
 describeWithFlags('Reduction: webgl packed input', WEBGL_ENVS, () => {
   it('argmax 3D, odd number of rows, axis = -1', () => {
-    const webglLazilyUnpackFlagSaved = tf.ENV.get('WEBGL_LAZILY_UNPACK');
+    const webglLazilyUnpackFlagSaved = tf.ENV.getBool('WEBGL_LAZILY_UNPACK');
     tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
     const webglPackBinaryOperationsFlagSaved =
-        tf.ENV.get('WEBGL_PACK_BINARY_OPERATIONS');
+        tf.ENV.getBool('WEBGL_PACK_BINARY_OPERATIONS');
     tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', true);
 
     const a = tf.tensor3d([3, 2, 5, 100, -7, 2], [2, 1, 3]).add(1);
@@ -611,10 +611,10 @@ describeWithFlags('Reduction: webgl packed input', WEBGL_ENVS, () => {
   });
 
   it('argmin 4D, odd number of rows, axis = -1', () => {
-    const webglLazilyUnpackFlagSaved = tf.ENV.get('WEBGL_LAZILY_UNPACK');
+    const webglLazilyUnpackFlagSaved = tf.ENV.getBool('WEBGL_LAZILY_UNPACK');
     tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
     const webglPackBinaryOperationsFlagSaved =
-        tf.ENV.get('WEBGL_PACK_BINARY_OPERATIONS');
+        tf.ENV.getBool('WEBGL_PACK_BINARY_OPERATIONS');
     tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', true);
 
     const a =
@@ -633,7 +633,7 @@ describeWithFlags('Reduction: webgl packed input', WEBGL_ENVS, () => {
 
   it('should not leak memory when called after unpacked op', () => {
     const webglPackBinaryOperationsFlagSaved =
-        tf.ENV.get('WEBGL_PACK_BINARY_OPERATIONS');
+        tf.ENV.getBool('WEBGL_PACK_BINARY_OPERATIONS');
     tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', false);
 
     const a =

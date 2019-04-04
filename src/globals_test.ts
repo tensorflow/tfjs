@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,10 +14,58 @@
  * limitations under the License.
  * =============================================================================
  */
-
+import {ENV} from './environment';
 import * as tf from './index';
-import {describeWithFlags} from './jasmine_util';
-import {ALL_ENVS, expectArraysClose, expectArraysEqual, NODE_ENVS, WEBGL_ENVS} from './test_util';
+import {ALL_ENVS, describeWithFlags, NODE_ENVS, WEBGL_ENVS} from './jasmine_util';
+import {expectArraysClose, expectArraysEqual} from './test_util';
+
+describe('deprecation warnings', () => {
+  let oldWarn: (msg: string) => void;
+  beforeEach(() => {
+    oldWarn = console.warn;
+    spyOn(console, 'warn').and.callFake((msg: string): void => null);
+  });
+  afterEach(() => {
+    console.warn = oldWarn;
+  });
+
+  it('deprecationWarn warns', () => {
+    tf.deprecationWarn('xyz is deprecated.');
+    expect(console.warn).toHaveBeenCalledTimes(1);
+    expect(console.warn)
+        .toHaveBeenCalledWith(
+            'xyz is deprecated. You can disable deprecation warnings with ' +
+            'tf.disableDeprecationWarnings().');
+  });
+
+  it('disableDeprecationWarnings called, deprecationWarn doesnt warn', () => {
+    tf.disableDeprecationWarnings();
+    expect(console.warn).toHaveBeenCalledTimes(1);
+    expect(console.warn)
+        .toHaveBeenCalledWith(
+            'TensorFlow.js deprecation warnings have been disabled.');
+
+    // deprecationWarn no longer warns.
+    tf.deprecationWarn('xyz is deprecated.');
+    expect(console.warn).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Flag flipping methods', () => {
+  beforeEach(() => {
+    ENV.reset();
+  });
+
+  it('tf.enableProdMode', () => {
+    tf.enableProdMode();
+    expect(ENV.getBool('PROD')).toBe(true);
+  });
+
+  it('tf.enableDebugMode', () => {
+    tf.enableDebugMode();
+    expect(ENV.getBool('DEBUG')).toBe(true);
+  });
+});
 
 describeWithFlags('time webgl', WEBGL_ENVS, () => {
   it('upload + compute', async () => {

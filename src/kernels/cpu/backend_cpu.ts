@@ -17,33 +17,33 @@
 
 import * as seedrandom from 'seedrandom';
 
-import {ENV} from '../environment';
-import {warn} from '../log';
-import * as array_ops_util from '../ops/array_ops_util';
-import * as axis_util from '../ops/axis_util';
-import * as broadcast_util from '../ops/broadcast_util';
-import * as concat_util from '../ops/concat_util';
-import {Conv2DInfo, Conv3DInfo} from '../ops/conv_util';
-import * as erf_util from '../ops/erf_util';
-import {Activation} from '../ops/fused_util';
-import * as gather_nd_util from '../ops/gather_nd_util';
-import * as ops from '../ops/ops';
-import {buffer, scalar, tensor, tensor3d, tensor4d} from '../ops/ops';
-import * as scatter_nd_util from '../ops/scatter_nd_util';
-import * as selu_util from '../ops/selu_util';
-import {computeFlatOffset, getStridedSlicedInfo, isSliceContinous} from '../ops/slice_util';
-import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../tensor';
-import {DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, TypedArray, upcastType} from '../types';
-import * as util from '../util';
-import {getArrayFromDType, inferDtype, now, sizeFromShape} from '../util';
-
-import {BackendTimingInfo, DataMover, DataStorage, KernelBackend} from './backend';
-import * as backend_util from './backend_util';
-import * as complex_util from './complex_util';
-import {nonMaxSuppressionImpl} from './non_max_suppression_impl';
-import {split} from './split_shared';
-import {topkImpl} from './topk_impl';
-import {whereImpl} from './where_impl';
+import {ENGINE} from '../../engine';
+import {ENV} from '../../environment';
+import {warn} from '../../log';
+import * as array_ops_util from '../../ops/array_ops_util';
+import * as axis_util from '../../ops/axis_util';
+import * as broadcast_util from '../../ops/broadcast_util';
+import * as concat_util from '../../ops/concat_util';
+import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
+import * as erf_util from '../../ops/erf_util';
+import {Activation} from '../../ops/fused_util';
+import * as gather_nd_util from '../../ops/gather_nd_util';
+import * as ops from '../../ops/ops';
+import {buffer, scalar, tensor, tensor3d, tensor4d} from '../../ops/ops';
+import * as scatter_nd_util from '../../ops/scatter_nd_util';
+import * as selu_util from '../../ops/selu_util';
+import {computeFlatOffset, getStridedSlicedInfo, isSliceContinous} from '../../ops/slice_util';
+import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../../tensor';
+import {DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, TypedArray, upcastType} from '../../types';
+import * as util from '../../util';
+import {getArrayFromDType, inferDtype, now, sizeFromShape} from '../../util';
+import {BackendTimingInfo, DataMover, DataStorage, EPSILON_FLOAT32, KernelBackend} from '../backend';
+import * as backend_util from '../backend_util';
+import * as complex_util from '../complex_util';
+import {nonMaxSuppressionImpl} from '../non_max_suppression_impl';
+import {split} from '../split_shared';
+import {topkImpl} from '../topk_impl';
+import {whereImpl} from '../where_impl';
 
 function mapActivation(
     backend: MathBackendCPU, activation: Activation, x: Tensor): Tensor {
@@ -220,8 +220,8 @@ export class MathBackendCPU implements KernelBackend {
     // clones. These will explicitly get disposed when the complex tensor is
     // disposed.
     resultData.complexTensors = {
-      real: ENV.engine.keep(real.clone()),
-      imag: ENV.engine.keep(imag.clone())
+      real: ENGINE.keep(real.clone()),
+      imag: ENGINE.keep(imag.clone())
     };
 
     return result;
@@ -3171,8 +3171,12 @@ export class MathBackendCPU implements KernelBackend {
 
   dispose() {}
 
-  floatPrecision() {
+  floatPrecision(): 16|32 {
     return 32;
+  }
+  /** Returns the smallest representable number.  */
+  epsilon(): number {
+    return EPSILON_FLOAT32;
   }
 
   cropAndResize(
@@ -3436,4 +3440,4 @@ export class MathBackendCPU implements KernelBackend {
   }
 }
 
-ENV.registerBackend('cpu', () => new MathBackendCPU(), 1 /* priority */);
+ENGINE.registerBackend('cpu', () => new MathBackendCPU(), 1 /* priority */);

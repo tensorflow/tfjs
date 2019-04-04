@@ -88,7 +88,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
   // Add special uniforms (NAN, INFINITY)
   let infLoc: WebGLUniformLocation = null;
   const nanLoc = gpgpu.getUniformLocation(webGLProgram, 'NAN', false);
-  if (ENV.get('WEBGL_VERSION') === 1) {
+  if (ENV.getNumber('WEBGL_VERSION') === 1) {
     infLoc = gpgpu.getUniformLocation(webGLProgram, 'INFINITY', false);
   }
 
@@ -166,7 +166,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
   gpgpu.setProgram(binary.webGLProgram);
 
   // Set special uniforms (NAN, INFINITY)
-  if (ENV.get('WEBGL_VERSION') === 1) {
+  if (ENV.getNumber('WEBGL_VERSION') === 1) {
     if (binary.infLoc !== null) {
       gpgpu.gl.uniform1f(binary.infLoc, Infinity);
     }

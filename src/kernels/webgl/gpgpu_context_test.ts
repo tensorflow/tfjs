@@ -23,7 +23,8 @@ import {GPGPUContext, linearSearchLastTrue} from './gpgpu_context';
 import * as tex_util from './tex_util';
 
 const DOWNLOAD_FLOAT_ENVS = {
-  'WEBGL_DOWNLOAD_FLOAT_ENABLED': true
+  flags: {'WEBGL_DOWNLOAD_FLOAT_ENABLED': true},
+  backends: 'webgl'
 };
 
 describeWithFlags(

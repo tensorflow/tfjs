@@ -16,11 +16,11 @@
  */
 
 import * as tf from './index';
-import {describeWithFlags} from './jasmine_util';
+import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 import {Tensor} from './tensor';
 import {getTensorsInContainer, isTensorInList} from './tensor_util';
 import {convertToTensor} from './tensor_util_env';
-import {ALL_ENVS, expectArraysClose, expectArraysEqual} from './test_util';
+import {expectArraysClose, expectArraysEqual} from './test_util';
 
 describe('tensor_util.isTensorInList', () => {
   it('not in list', () => {

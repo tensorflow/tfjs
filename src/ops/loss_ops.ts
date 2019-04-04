@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {customGrad} from '../globals';
+import {customGrad} from '../gradients';
 import {Tensor} from '../tensor';
 import {GradSaveFunc} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
