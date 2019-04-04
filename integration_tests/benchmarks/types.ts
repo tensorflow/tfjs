@@ -167,12 +167,10 @@ export interface Task {
    * predict(), fit(), fitDataset().
    */
   functionName?: ModelFunctionName;
+}
 
-  /**
-   * A reference to Model in ModelCollection.
-   *
-   * Applicable only to if the task is model-based.
-   */
+export interface ModelTask extends Task {
+  /** A reference to Model in ModelCollection. */
   modelId?: string;
 }
 
