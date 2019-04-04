@@ -124,7 +124,7 @@ export interface PythonEnvironmentInfo extends ServerSideEnvironmentInfo {
  *
  * If a task is performed in multiple environments (e.g., in tfjs-node and
  * Python), they should correspond the same `Task` object.
- **/
+ */
 export interface Task {
   taskType: TaskType;
 
@@ -140,7 +140,7 @@ export interface Task {
    * predict(), fit(), fitDataset().
    */
   functionName?: ModelFunctionName;
-};
+}
 
 /**
  * This corresponds to
@@ -195,7 +195,7 @@ export interface TaskLog {
    * a callback; but a callback affects the timing itself.)
    * However, in cases where the individual-iteration times are available
    * (e.g., tf.LayersModel.predict calls), it should be populated.
-   **/
+   */
   timesMs?: number[];
 
   /**
