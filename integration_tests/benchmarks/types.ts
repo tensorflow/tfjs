@@ -117,7 +117,7 @@ export interface EnvironmentInfo {
 }
 
 export interface BrowserEnvironmentInfo extends EnvironmentInfo {
-type: BrowserEnvironmentType;
+  type: BrowserEnvironmentType;
   userAgent: string;
   webGLVersion?: string;
 }
