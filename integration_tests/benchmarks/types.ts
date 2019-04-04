@@ -45,34 +45,126 @@ export interface BenchmarkLog {
  */
 
 /**
- * The log from an individual benchmark task.
- *
- * This is the generic interface for benchmark tasks. It is applicable to
- * - model-related benchmark tasks, e.g., the predict() call of a certain
- *   model,
- * - benchmark tasks unrelated to a model, e.g., creation of a tensor with
- *   a given dtype and shape on the CUDA GPU.
- *
- * Note that the task involved in a TaskLog should be indivisible. For example,
- * a `TaskLog` should be about only the `predict()` call of a certain model
- * with a given batch size. If the model is benchmarked for both its
- * `predict()` call and its `fit()` call, the results should be represented
- * by two `TaskLog` objects. Similarly, if the `predict()` method of a model
- * is benchmarked under different batch sizes or sequence lengths, the results
- * should be represented by different `TaskLog` objects.
+ * Interfaces that correspond to collections in Firestore Collections.
  */
-export interface TaskLog {
-  /** Name of the task. */
+
+export type VersionSetCollection = {[versionSetId: string]: VersionSet};
+
+export type EnvironmentCollection = {[environmentId: string]: EnvironmentInfo};
+
+/** Version sets. */
+
+export type CodeRepository =
+    'tfjs'|'tfjs-converter'|'tfjs-core'|'tfjs-data'|'tfjs-layers'|'tfjs-node';
+
+export interface VersionSet {
+  commitHashes?: {[repo in CodeRepository]?: string};
+  versions?: {[repo in CodeRepository]?: string};
+}
+
+/** Environments. */
+
+export type BrowserEnvironmentType =
+    'chrome-linux' | 'chrome-mac' | 'firefox-linux' | 'firefox-mac' |
+    'safari-mac' | 'chrome-windows' | 'firefox-windows' |
+    'chrome-ios-11' | 'safari-ios-11';
+export type NodeEnvironmentType =
+    'node-libtensorflow-cpu' | 'node-libtensorflow-cuda' | 'node-gles';
+export type PythonEnvironmentType =
+    'python-tensorflow-cpu' | 'python-tensorflow-cuda';
+export type ServerSideEnvironmentType =
+    NodeEnvironmentType | PythonEnvironmentType;
+export type BenchmarkEnvironmentType =
+    BrowserEnvironmentType | ServerSideEnvironmentType;
+
+export interface EnvironmentInfo {
+  type: BenchmarkEnvironmentType;
+}
+
+export interface BrowserEnvironmentInfo extends EnvironmentInfo {
+  type: BrowserEnvironmentType;
+  userAgent: string;
+  webGLVersion?: string;
+}
+
+export interface ServerSideEnvironmentInfo extends EnvironmentInfo {
+  type: ServerSideEnvironmentType;
+
+  /**
+   * Metadata for the node environment.
+   * `uname -a` output.
+   */
+  systemInfo?: string;
+
+  cpuInfo?: string;
+  memInfo?: string;
+  cudaGPUInfo?: string;
+  cudaVersion?: string;
+}
+
+export interface NodeEnvironmentInfo extends ServerSideEnvironmentInfo {
+  type: NodeEnvironmentType;
+
+  /** `node --version` output. */
+  nodeVersion?: string;
+  tfjsNodeVersion?: string;
+  tfjsNodeUsesCUDA?: boolean;
+}
+
+export interface PythonEnvironmentInfo extends ServerSideEnvironmentInfo {
+  type: PythonEnvironmentType;
+  pythonVersion?: string;
+  tensorflowVersion?: string;
+  kerasVersion?: string;
+  tensorflowUsesCUDA?: boolean;
+}
+
+/**
+ * Task types, names and function names under each task.
+ *
+ * If a task is performed in multiple environments (e.g., in tfjs-node and
+ * Python), they should correspond the same `Task` object.
+ **/
+export interface Task {
+  taskType: TaskType;
+
+  /**
+   * Name of the task.
+   *
+   * For model-based tasks, this is the name of the model.
+   */
   taskName: string;
 
   /**
-   * Number of individual runs that are timed.
-   *
-   * - For predict() and non-model-based tasks, this is the number of function
-   *   calls.
-   * - For fit() and fitDatset(), this is the number of epochs of a single call.
+   * For model-based tasks, this is the function name, e.g.,
+   * predict(), fit(), fitDataset().
    */
-  numBenchmarkedRuns: number;
+  functionName?: ModelFunctionName;
+};
+
+/**
+ * This corresponds to
+ */
+export type TaskCollection = {[taskId: string]: Task};
+
+/** Benchmark tasks logs. */
+
+// TODO(cais): Add new types in the future, such as low-level tensor
+//   operations, etc.
+export type TaskType = 'model';
+
+export type ModelFunctionName = 'predict' | 'fit' | 'fitDataset';
+
+export type FunctionName = ModelFunctionName;
+
+export interface TaskLog {
+  versionSetId: string;
+  environmentId: string;
+  taskId: string;
+
+  taskType: TaskType;
+
+  functionName: FunctionName;
 
   /**
    * Number of burn-in (i.e., warm-up) runs that take place prior to the
@@ -83,194 +175,56 @@ export interface TaskLog {
   numWarmUpRuns: number;
 
   /**
-   * A timestamp (epoch time) for the benchmark task.
+   * Number of individual runs that are timed.
    *
-   * Epoch time in millisecond (i.e., the format of `new Date().getTime()` in
-   * JavaScript).
+   * - For predict() and non-model-based tasks, this is the number of function
+   *   calls.
+   * - For fit() and fitDatset(), this is the number of epochs of a single call.
    */
-  timestamp: number;
+  numBenchmarkedRuns: number;
+
+  /** The ending timestap of the task, in milliseconds since epoch. */
+  endingTimestampMs: number;
 
   /**
-   * Arithmetic mean of the wall times from the benchmarked runs.
+   * Raw benchmarked run times in milliseconds.
    *
-   * This is the primary metric displayed by the dashboard. Use caution
-   * when making change to this field.
+   * This field is optional because for certain types of benchmarks (e.g.,
+   * tf.LayersModel.fit() calls), the individual-iteration times are not
+   * available (e.g., cannot obtain epoch-by-epoch times without using
+   * a callback; but a callback affects the timing itself.)
+   * However, in cases where the individual-iteration times are available
+   * (e.g., tf.LayersModel.predict calls), it should be populated.
+   **/
+  timesMs?: number[];
+
+  /**
+   * Arithemtic mean of `benchmarkedRunTimesMs`.
+   *
+   * This redundant field is created to support faster database querying.
    */
   averageTimeMs: number;
-
-  /** Median of the wall times from the benchmarked runs. */
-  medianTimeMs?: number;
-
-  /** Minimum of the wall times from the benchmarked runs. */
-  minTimeMs?: number;
-
-  environment: EnvironmentInfo;
 }
 
-/** Type of the model-related benchmark task. */
-export type ModelTask = 'predict'|'fit'|'fitDataset';
-
-/** The logs from benchmarking a specific model-related task. */
 export interface ModelTaskLog extends TaskLog {
-  /** Name of the model. */
+  taskType: 'model';
+
   modelName: string;
 
   /**
    * A description of the model.
    *
-   * Usually more detailed tha `modelName`.
+   * Usually more detailed than `modelName`, and may contain information
+   * such as the constituent layers and the optimizer used for training.
    */
   modelDescription?: string;
 
-  /**
-   * This overrides the `taskName` field of the base interface to be
-   * model-specific.
-   */
-  taskName: ModelTask;
+  functionName: ModelFunctionName;
 
-  /** Batch size used for the model benchmark task. */
   batchSize: number;
 }
 
-/**
- * The logs from benchmarking a specific model training task.
- * 
- * Applicable to `fit()` and `fitDataset()`.
- */
-export interface ModelFitTaskLog extends ModelTaskLog {
-  optimizer: string;
+export interface ModelTrainingTaskLog extends ModelTaskLog {
   loss: string;
-}
-
-/**
- * Log from benchmarking the same task in different environments.
- *
- * E.g., benchmarking the predict() call of MobileNetV2 on
- * node-libtensorflow-cpu and python-tensorflow-cpu.
- */
-export type MultiEnvironmentTaskLog = {
-  [environmentType in BenchmarkEnvironmentType]?: TaskLog
-};
-
-/**
- * Log from benchmarking a number of tasks, each running on a number of
- * environments.
- *
- * E.g., benchmarking the predict() and fit() call of MobileNetV2,
- * each of which is benchmarked on node-libtensorflow-cpu and
- * python-tensorflow-cpu.
- */
-export type TaskGroupLog = {
-  [task: string]: MultiEnvironmentTaskLog
-};
-
-/**
- * Log from a suite of task groups.
- *
- * The `data` field poitns to a collection of task groups (e.g., a collection
- * of models), each of which involves multiple tasks. Each task may involve
- * multiple environments.
- */
-export interface SuiteLog {
-  data: {[taskGroupName: string]: TaskGroupLog};
-
-  metadata: BenchmarkMetadata;
-}
-
-/** Benchmark logs from multiple days. */
-export type BenchmarkHistory = {
-  [datetime: string]: TaskGroupLog
-};
-
-export type CodeRepository =
-    'tfjs'|'tfjs-converter'|'tfjs-core'|'tfjs-data'|'tfjs-layers'|'tfjs-node';
-
-/**
- * The git hash code of the related TensorFlow.js code repositories.
- */
-export type CommitHashes = {[repo in CodeRepository]?: string};
-
-/**
- * Metadata for a run of a benchmark suite.
- *
- * See the `SuiteLog` interface below.
- */
-export interface BenchmarkMetadata {
-  commitHashes: CommitHashes;
-
-  /**
-   * A timestamp (epoch time) for the benchmark results.
-   *
-   * Epoch time in millisecond (i.e., the format of `new Date().getTime()` in
-   * JavaScript).
-   */
-  timestamp: number;
-}
-
-/**
- * Information about hardware on which benchmarks are run.
- */
-export interface HardwareInfo {
-  /** `inxi` output. */
-  cpuInfo?: string;
-
-  /** Processed `free` output. */
-  memInfo?: string;
-}
-
-/**
- * Enumerates all environments that TensorFlow.js benchmarks may happen.
- *
- * This type union is meant to be extended in the future.
- */
-export type BenchmarkEnvironmentType = 'chrome-linux'|'chrome-mac'|
-    'firefox-linux'|'firefox-mac'|'safari-mac'|'ios-11'|
-    'node-libtensorflow-cpu'|'node-libtensorflow-cuda'|'node-gles'|
-    'python-tensorflow-cpu'|'python-tensorflow-cuda';
-
-/** Information about a benchmark environment. */
-export interface EnvironmentInfo {
-  type: BenchmarkEnvironmentType;
-
-  /**
-   * Metadata for the node environment.
-   * `uname -a` output.
-   */
-  systemInfo?: string;
-}
-
-/** Metadata specific to the browser environment. */
-export interface BrowserEnvironmentInfo extends EnvironmentInfo {
-  userAgent: string;
-
-  webGLVersion?: string;
-}
-
-export interface ServerSideEnvironmentInfo extends EnvironmentInfo {
-  hardwareInfo?: HardwareInfo;
-
-  /** Processed `nvidia-smi` output. */
-  cudaGPUInfo?: string;
-
-  /** Can be extracted from `nvcc --version`. */
-  cudaVersion?: string;
-}
-
-/** Metadata specific to the Node.js environment. */
-export interface NodeEnvironmentInfo extends ServerSideEnvironmentInfo {
-  /** `node --version` output. */
-  nodeVersion?: string;
-
-  tfjsNodeVersion?: string;
-  tfjsNodeUsesCUDA?: boolean;
-}
-
-/** Metadata specific to the Python environment. */
-export interface PythonEnvironmentInfo extends
-    ServerSideEnvironmentInfo {
-  pythonVersion?: string;
-
-  tensorflowVersion?: string;
-  kerasVersion?: string;
-  tensorflowUsesCUDA?: boolean;
+  optimizer: string;
 }
