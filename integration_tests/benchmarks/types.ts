@@ -143,7 +143,10 @@ export interface Task {
 }
 
 /**
- * This corresponds to
+ * This corresponds to a Firestore collection.
+ *
+ * It is used by the dashboard front end to quickly retrieve a list
+ * of available benchmark tasks.
  */
 export type TaskCollection = {[taskId: string]: Task};
 
