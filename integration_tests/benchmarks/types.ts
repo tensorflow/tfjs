@@ -76,7 +76,7 @@ export type TaskCollection = {[taskId: string]: Task};
 export type ModelCollection = {[modelId: string]: Model};
 
 /** The collection that stores the actual benchmark results data. */
-export type BenchmarkRunCollection = {[taskLogId: string]: BenchmarkRun};
+export type BenchmarkRunCollection = {[benchmarkRunId: string]: BenchmarkRun};
 
 /** Version sets. */
 
@@ -274,7 +274,7 @@ export interface BenchmarkRun {
   averageTimeMs: number;
 }
 
-export interface ModelTaskLog extends BenchmarkRun {
+export interface ModelBenchmarkRun extends BenchmarkRun {
   taskType: 'model';
 
   modelName: string;
@@ -284,7 +284,7 @@ export interface ModelTaskLog extends BenchmarkRun {
   batchSize: number;
 }
 
-export interface ModelTrainingTaskLog extends ModelTaskLog {
+export interface ModelTrainingBenchmarkRun extends ModelBenchmarkRun {
   loss: string;
   optimizer: string;
 }
