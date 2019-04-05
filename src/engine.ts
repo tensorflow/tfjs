@@ -221,8 +221,6 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
 
     try {
       const backend = registryFactoryEntry.factory();
-      backend.setDataMover(
-          {moveData: (dataId: DataId) => ENGINE.moveData(dataId)});
       this.registry[backendName] = backend;
       return true;
     } catch (err) {
