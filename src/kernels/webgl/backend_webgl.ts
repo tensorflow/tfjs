@@ -18,6 +18,7 @@
 // Import webgl flags.
 import './flags_webgl';
 
+import * as device_util from '../../device_util';
 import {ENGINE, MemoryInfo, TimingInfo} from '../../engine';
 import {ENV} from '../../environment';
 import {tidy} from '../../globals';
@@ -2509,7 +2510,10 @@ export class MathBackendWebGL implements KernelBackend {
   }
 }
 
-ENGINE.registerBackend('webgl', () => new MathBackendWebGL(), 2 /* priority */);
+if (device_util.isBrowser()) {
+  ENGINE.registerBackend(
+      'webgl', () => new MathBackendWebGL(), 2 /* priority */);
+}
 
 function float32ToTypedArray<D extends NumericDataType>(
     a: Float32Array, dtype: D): DataTypeMap[D] {
