@@ -57,7 +57,8 @@
     "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
     "test": "karma start",
     "run-browserstack": "karma start --browserstack",
-    "test-node": "node dist/test_node.js",
+    "test-node": "tsc && node dist/test_node.js",
+    "test-node-ci": "node dist/test_node.js",
     "test-integration": "./scripts/test-integration.js",
     "test-ci": "./scripts/test-ci.sh"
   },
