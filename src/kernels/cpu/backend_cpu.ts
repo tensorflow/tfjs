@@ -37,7 +37,7 @@ import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D
 import {DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, TypedArray, upcastType} from '../../types';
 import * as util from '../../util';
 import {getArrayFromDType, inferDtype, now, sizeFromShape} from '../../util';
-import {BackendTimingInfo, DataMover, DataStorage, EPSILON_FLOAT32, KernelBackend} from '../backend';
+import {BackendTimingInfo, DataStorage, EPSILON_FLOAT32, KernelBackend} from '../backend';
 import * as backend_util from '../backend_util';
 import * as complex_util from '../complex_util';
 import {nonMaxSuppressionImpl} from '../non_max_suppression_impl';
@@ -77,10 +77,7 @@ export class MathBackendCPU implements KernelBackend {
       this.fromPixels2DContext =
           document.createElement('canvas').getContext('2d');
     }
-  }
-
-  setDataMover(dataMover: DataMover): void {
-    this.data = new DataStorage(dataMover);
+    this.data = new DataStorage(ENGINE);
   }
 
   register(dataId: DataId, shape: number[], dtype: DataType): void {
