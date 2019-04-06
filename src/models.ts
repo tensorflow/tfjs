@@ -1053,7 +1053,21 @@ export class Sequential extends LayersModel {
   set stopTraining(stop: boolean) {
     // TODO(cais): When refactoring to remove the composition pattern happens,
     // remove this method overriding.
+    if (this.model == null) {
+      throw new ValueError(
+          'Cannot set the stopTraining property of a sequential model before ' +
+          'it is compiled.');
+    }
     this.model.stopTraining = stop;
+  }
+
+  get stopTraining(): boolean {
+    if (this.model == null) {
+      throw new ValueError(
+          'Cannot get the stopTraining property of a sequential model before ' +
+          'it is compiled.');
+    }
+    return this.model.stopTraining;
   }
 
   // TODO(cais): Override get trainableWeights() here
