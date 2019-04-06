@@ -157,19 +157,19 @@ following location:
 
 ## Step 2: Loading and running in the browser
 
-Instantiate the [GraphModel class](./src/executor/graph_model.ts) and run inference.
+If the original model was a `SavedModel`, use [`tf.loadGraphModel()`](https://js.tensorflow.org/api/latest/#loadGraphModel). If it was Keras, use [`tf.loadLayersModel()`](https://js.tensorflow.org/api/latest/#loadLayersModel):
 
 ```typescript
 import * as tf from '@tensorflow/tfjs';
 
 const MODEL_URL = 'https://.../mobilenet/model.json';
 
-const model = await tf.loadGraphModel(MODEL_URL);
+const model = await tf.loadGraphModel(MODEL_URL); // For Keras use tf.loadLayersModel()
 const cat = document.getElementById('cat');
-model.execute({input: tf.browser.fromPixels(cat)});
+model.predict(tf.browser.fromPixels(cat));
 ```
 
-Check out our working [MobileNet demo](./demo/mobilenet/README.md).
+See our API docs for the [`predict()`](https://js.tensorflow.org/api/latest/#tf.GraphModel.predict) method. To see what other methods exist on a `Model`, see [`tf.LayersModel`](https://js.tensorflow.org/api/latest/#class:LayersModel) and [`tf.GraphModel`](https://js.tensorflow.org/api/latest/#class:GraphModel). Also check out our working [MobileNet demo](./demo/mobilenet/README.md).
 
 If your server requests credentials for accessing the model files, you can provide the optional RequestOption param.
 
