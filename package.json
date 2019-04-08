@@ -39,7 +39,6 @@
     "rollup-plugin-node-resolve": "~3.4.0",
     "rollup-plugin-terser": "~4.0.4",
     "rollup-plugin-typescript2": "~0.20.1",
-    "rollup-plugin-visualizer": "~1.1.0",
     "shelljs": "~0.8.3",
     "ts-node": "~7.0.0",
     "tslint": "~5.11.0",
@@ -47,6 +46,9 @@
     "typescript": "3.3.3333",
     "watchify": "~3.11.1",
     "yalc": "~1.0.0-pre.21"
+  },
+  "optionalDependencies": {
+    "rollup-plugin-visualizer": "~1.1.0"
   },
   "scripts": {
     "build": "tsc",
