@@ -62,6 +62,11 @@ export type EnvironmentCollection = {[environmentId: string]: EnvironmentInfo};
  * function (and non-model tasks) are available in the database.
  * Therefore, multiple runs of the same task will reuse the same document (row)
  * in this collection (table).
+ *
+ * Note: this collection has redundant information with `BenchmarkRun` and
+ * `BenchmarkRunCollection`. It is essentially an index that speeds up queries
+ * for all available tasks. In principle, this collection can be recreated
+ * from `BenchmarkRunCollection` if necessary.
  */
 export type TaskCollection = {[taskId: string]: Task};
 
@@ -118,14 +123,20 @@ export interface EnvironmentInfo {
 
 export interface BrowserEnvironmentInfo extends EnvironmentInfo {
   type: BrowserEnvironmentType;
+
+  /** Browser `navigator.userAgent`. */
   userAgent: string;
+
   webGLVersion?: string;
 }
 
 export interface ServerSideEnvironmentInfo extends EnvironmentInfo {
   type: ServerSideEnvironmentType;
 
+  /** Processed output from `nvidia-smi`. */
   cudaGPUInfo?: string;
+
+  /** Output from `nvcc --version`. */
   cudaVersion?: string;
 }
 
@@ -140,7 +151,10 @@ export interface NodeEnvironmentInfo extends ServerSideEnvironmentInfo {
 
 export interface PythonEnvironmentInfo extends ServerSideEnvironmentInfo {
   type: PythonEnvironmentType;
+
+  /** Output of `python --version`. */
   pythonVersion?: string;
+
   tensorflowVersion?: string;
   kerasVersion?: string;
   tensorflowUsesCUDA?: boolean;
@@ -166,12 +180,14 @@ export interface Task {
    * For model-based tasks, this is the function name, e.g.,
    * predict(), fit(), fitDataset().
    */
-  functionName?: ModelFunctionName;
+  functionName?: string;
 }
 
 export interface ModelTask extends Task {
   /** A reference to Model in ModelCollection. */
-  modelId?: string;
+  modelId: string;
+
+  functionName: ModelFunctionName;
 }
 
 /** Information about a benchmarked model. */
@@ -218,7 +234,7 @@ export interface BenchmarkRun {
 
   taskType: TaskType;
 
-  functionName: FunctionName;
+  functionName: string;
 
   /**
    * Number of burn-in (i.e., warm-up) iterations that take place prior to the
