@@ -1,14 +1,17 @@
 steps:
-- name: 'gcr.io/cloud-builders/yarn'
+- name: 'node:10.15.3'
+  entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-- name: 'gcr.io/cloud-builders/yarn'
+- name: 'node:10.15.3'
+  entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
   waitFor: ['yarn']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
-- name: gcr.io/cloud-builders/yarn
+- name: 'node:10.15.3'
+  entrypoint: 'yarn'
   id: 'test-integration'
   args: ['test-integration']
   waitFor: ['yarn']

@@ -17,8 +17,9 @@
 
 import commonjs from 'rollup-plugin-commonjs';
 import node from 'rollup-plugin-node-resolve';
+import {terser} from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
-import uglify from 'rollup-plugin-uglify';
+import visualizer from 'rollup-plugin-visualizer';
 
 const PREAMBLE = `/**
  * @license
@@ -37,15 +38,24 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
-function minify() {
-  return uglify({output: {preamble: PREAMBLE}});
-}
-
-function config({plugins = [], output = {}, external = []}) {
+function config({plugins = [], output = {}, external = [], visualize = false}) {
+  if (visualize) {
+    const filename = output.file + '.html';
+    plugins.push(visualizer({
+      sourcemap: true,
+      filename,
+    }));
+    console.log(`Will output a bundle visualization in ${filename}`);
+  }
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript({tsconfigOverride: {compilerOptions: {module: 'ES2015'}}}),
+      typescript({
+        tsconfigOverride: {compilerOptions: {module: 'ES2015'}},
+        // See https://github.com/ezolenko/rollup-plugin-typescript2/issues/105
+        objectHashIgnoreUnknownHack: visualize ? true : false,
+        clean: visualize ? true : false,
+      }),
       node(),
       // Polyfill require() from dependencies.
       commonjs({
@@ -74,29 +84,35 @@ function config({plugins = [], output = {}, external = []}) {
   };
 }
 
-export default [
-  config({
-    output: {
-      format: 'umd',
-      name: 'tf',
-      extend: true,
-      file: 'dist/tf-core.js',
-    }
-  }),
-  config({
-    plugins: [minify()],
-    output: {
-      format: 'umd',
-      name: 'tf',
-      extend: true,
-      file: 'dist/tf-core.min.js',
-    }
-  }),
-  config({
-    plugins: [minify()],
-    output: {
-      format: 'es',
-      file: 'dist/tf-core.esm.js',
-    }
-  })
+module.exports = cmdOptions => [
+    // tf-core.js
+    config({
+      output: {
+        format: 'umd',
+        name: 'tf',
+        extend: true,
+        file: 'dist/tf-core.js',
+      }
+    }),
+
+    // tf-core.min.js
+    config({
+      plugins: [terser({output: {preamble: PREAMBLE}})],
+      output: {
+        format: 'umd',
+        name: 'tf',
+        extend: true,
+        file: 'dist/tf-core.min.js',
+      },
+      visualize: cmdOptions.visualize
+    }),
+
+    // tf-core.esm.js
+    config({
+      plugins: [terser({output: {preamble: PREAMBLE}})],
+      output: {
+        format: 'es',
+        file: 'dist/tf-core.esm.js',
+      }
+    }),
 ];
