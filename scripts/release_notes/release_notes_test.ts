@@ -16,12 +16,10 @@
  * =============================================================================
  */
 
-import * as release_notes from './release_notes';
-import {RepoCommits, OctokitGetCommit} from './util';
 import * as util from './util';
-import {release} from 'os';
+import { OctokitGetCommit, RepoCommits } from './util';
 
-const fakeCommitContributors = {
+const fakeCommitContributors: {[key: string]: string;} = {
   'sha1': 'fakecontributor1',
   'sha2': 'fakecontributor2',
   'sha3': 'fakecontributor3'
