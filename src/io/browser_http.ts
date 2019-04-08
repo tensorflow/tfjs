@@ -21,8 +21,7 @@
  * Uses [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
  */
 
-import {ENV} from '../environment';
-import {assert} from '../util';
+import {assert, fetch} from '../util';
 import {concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
@@ -34,7 +33,7 @@ export class BrowserHTTPRequest implements IOHandler {
   protected readonly path: string;
   protected readonly requestInit: RequestInit;
 
-  private readonly fetchFunc: (path: string, init?: RequestInit) => Response;
+  private readonly fetch: Function;
 
   readonly DEFAULT_METHOD = 'POST';
 
@@ -50,30 +49,16 @@ export class BrowserHTTPRequest implements IOHandler {
     this.weightPathPrefix = loadOptions.weightPathPrefix;
     this.onProgress = loadOptions.onProgress;
 
-    if (loadOptions.fetchFunc == null) {
-      const systemFetch = ENV.global.fetch;
-      if (typeof systemFetch === 'undefined') {
-        throw new Error(
-            'browserHTTPRequest is not supported outside the web browser ' +
-            'without a fetch polyfill.');
-      }
-      // Make sure fetch is always bound to global object (the
-      // original object) when available.
-      loadOptions.fetchFunc = systemFetch.bind(ENV.global);
-    } else {
+    if (loadOptions.fetchFunc != null) {
       assert(
           typeof loadOptions.fetchFunc === 'function',
           () => 'Must pass a function that matches the signature of ' +
               '`fetch` (see ' +
               'https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)');
+      this.fetch = loadOptions.fetchFunc;
+    } else {
+      this.fetch = fetch;
     }
-
-    this.fetchFunc = (path: string, requestInits: RequestInit) => {
-      // tslint:disable-next-line:no-any
-      return loadOptions.fetchFunc(path, requestInits).catch((error: any) => {
-        throw new Error(`Request for ${path} failed due to error: ${error}`);
-      });
-    };
 
     assert(
         path != null && path.length > 0,
@@ -133,7 +118,7 @@ export class BrowserHTTPRequest implements IOHandler {
           'model.weights.bin');
     }
 
-    const response = await this.getFetchFunc()(this.path, init);
+    const response = await this.fetch(this.path, init);
 
     if (response.ok) {
       return {
@@ -156,8 +141,7 @@ export class BrowserHTTPRequest implements IOHandler {
    * @returns The loaded model artifacts (if loading succeeds).
    */
   async load(): Promise<ModelArtifacts> {
-    const modelConfigRequest =
-        await this.getFetchFunc()(this.path, this.requestInit);
+    const modelConfigRequest = await this.fetch(this.path, this.requestInit);
 
     if (!modelConfigRequest.ok) {
       throw new Error(
@@ -224,21 +208,10 @@ export class BrowserHTTPRequest implements IOHandler {
     });
     const buffers = await loadWeightsAsArrayBuffer(fetchURLs, {
       requestInit: this.requestInit,
-      fetchFunc: this.getFetchFunc(),
+      fetchFunc: this.fetch,
       onProgress: this.onProgress
     });
     return [weightSpecs, concatenateArrayBuffers(buffers)];
-  }
-
-  /**
-   * Helper method to get the `fetch`-like function set for this instance.
-   *
-   * This is mainly for avoiding confusion with regard to what context
-   * the `fetch`-like function is bound to. In the default (browser) case,
-   * the function will be bound to `window`, instead of `this`.
-   */
-  private getFetchFunc() {
-    return this.fetchFunc;
   }
 }
 

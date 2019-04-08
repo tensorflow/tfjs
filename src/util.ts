@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ENV} from './environment';
 import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
 
 /**
@@ -663,4 +664,46 @@ export function assertNonNegativeIntegerDimensions(shape: number[]) {
             `Tensor must have a shape comprised of positive integers but got ` +
             `shape [${shape}].`);
   });
+}
+
+const getSystemFetch = () => {
+  if (ENV.global.fetch != null) {
+    return ENV.global.fetch;
+  } else if (ENV.get('IS_NODE')) {
+    return getNodeFetch.fetchImport();
+  }
+  throw new Error(
+      `Unable to find the fetch() method. Please add your own fetch() ` +
+      `function to the global namespace.`);
+};
+
+// We are wrapping this within an object so it can be stubbed by Jasmine.
+export const getNodeFetch = {
+  fetchImport: () => {
+    // tslint:disable-next-line:no-require-imports
+    return require('node-fetch');
+  }
+};
+
+/**
+ * Returns a platform-specific implementation of
+ * [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+ *
+ * If `fetch` is defined on the global object (`window`, `process`, etc.),
+ * `tf.util.fetch` returns that function.
+ *
+ * If not, `tf.util.fetch` returns a platform-specific solution.
+ *
+ * ```js
+ * const resource = await tf.util.fetch('https://unpkg.com/@tensorflow/tfjs');
+ * // handle response
+ * ```
+ */
+/** @doc {heading: 'Util'} */
+export let systemFetch: Function;
+export function fetch(path: string, requestInits?: RequestInit) {
+  if (systemFetch == null) {
+    systemFetch = getSystemFetch();
+  }
+  return systemFetch(path, requestInits);
 }
