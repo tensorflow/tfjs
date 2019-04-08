@@ -59,7 +59,7 @@ function config({plugins = [], output = {}, external = [], visualize = false}) {
       node(),
       // Polyfill require() from dependencies.
       commonjs({
-        ignore: ['crypto'],
+        ignore: ['crypto', 'node-fetch'],
         include: 'node_modules/**',
         namedExports: {
           './node_modules/seedrandom/index.js': ['alea'],

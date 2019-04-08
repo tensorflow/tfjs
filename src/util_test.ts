@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {ENV} from './environment';
+import {describeWithFlags, NODE_ENVS} from './jasmine_util';
 import {scalar, tensor2d} from './ops/ops';
 import {inferShape} from './tensor_util_env';
 import * as util from './util';
@@ -493,5 +495,39 @@ describe('util.toNestedArray', () => {
   it('tensor with zero shape', () => {
     const a = new Float32Array([0, 1]);
     expect(util.toNestedArray([1, 0, 2], a)).toEqual([]);
+  });
+});
+
+describe('util.fetch', () => {
+  it('should allow overriding global fetch', () => {
+    const savedFetch = ENV.global.fetch;
+    ENV.global.fetch = () => {};
+
+    spyOn(ENV.global, 'fetch').and.callThrough();
+
+    util.fetch('');
+
+    expect(ENV.global.fetch).toHaveBeenCalled();
+    ENV.global.fetch = savedFetch;
+  });
+});
+
+describeWithFlags('util.fetch node', NODE_ENVS, () => {
+  it('should use node-fetch', () => {
+    const savedFetch = util.systemFetch;
+    const savedGlobalFetch = ENV.global.fetch;
+    // @ts-ignore
+    ENV.global.fetch = null;
+    // @ts-ignore
+    util.systemFetch = null;
+    spyOn(util.getNodeFetch, 'fetchImport').and.callFake(() => () => {});
+
+    util.fetch('');
+    // tslint:disable-next-line:no-any
+    expect(util.getNodeFetch.fetchImport).toHaveBeenCalled();
+    // @ts-ignore
+    ENV.global.fetch = savedGlobalFetch;
+    // @ts-ignore
+    util.systemFetch = savedFetch;
   });
 });
