@@ -316,7 +316,8 @@ export function execute(
       if (!training) {
         recipientCounts[input.name]--;
         if (recipientCounts[input.name] === 0 && !feedDict.hasKey(input) &&
-            outputNames.indexOf(input.name) === -1 && !value.isDisposed) {
+            outputNames.indexOf(input.name) === -1 && !value.isDisposed &&
+            input.sourceLayer.stateful !== true) {
           tensorsToDispose.push(value);
         }
       }
