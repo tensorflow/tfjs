@@ -342,6 +342,7 @@ def main():
   optimizer = None
   # loss = 'categorical_crossentropy'
   loss = None
+  train_epochs = 0
   input_shape = [28, 28, 1]
   target_shape = [10]
   names_fns_and_descriptions = [
@@ -368,8 +369,14 @@ def main():
 
   # RNN models.
   # optimizer = tf.keras.optimizers.RMSProp(0.01)
-  optimizer = tf.train.RMSPropOptimizer(1e-3)
-  loss = 'categorical_crossentropy'
+  # TODO(cais): Restore optimizer after the following
+  #   error is resolved:
+  # "Error: Cannot evaluate flag 'EPSILON': no evaluation function found."
+  # optimizer = tf.train.RMSPropOptimizer(1e-3)
+  # loss = 'categorical_crossentropy'
+  optimizer = None
+  loss = None
+  train_epochs = 0
   input_shape = [20, 20]
   target_shape = [20]
   batch_size = 128
