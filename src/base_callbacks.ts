@@ -12,7 +12,6 @@
 
 import {add, div, keep, mul, nextFrame, Scalar, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
-import {getScalar} from './backend/state';
 import {Container} from './engine/container';
 import {ValueError} from './errors';
 import {Logs, resolveScalarsInLogs, UnresolvedLogs} from './logs';
@@ -363,11 +362,11 @@ export class BaseLogger extends BaseCallback {
         if (key in this.totals) {
           oldTotalsToDispose = this.totals[key] as Scalar;
         } else {
-          this.totals[key] = getScalar(0);
+          this.totals[key] = 0;
         }
         this.totals[key] = tidy(
-            () => add((this.totals[key] as Scalar),
-                      mul(value, getScalar(batchSize))) as Scalar);
+            () => add((this.totals[key] as Scalar), mul(value, batchSize)) as
+                Scalar);
         if (oldTotalsToDispose != null) {
           oldTotalsToDispose.dispose();
         }
@@ -387,7 +386,7 @@ export class BaseLogger extends BaseCallback {
           logs[key] = this.totals[key] as number / this.seen;
         } else {
           tidy(() => {
-            logs[key] = mul(div(getScalar(1), getScalar(this.seen)) as Scalar,
+            logs[key] = mul(div(1, this.seen) as Scalar,
                             this.totals[key] as Scalar) as Scalar;
             (this.totals[key] as Tensor).dispose();
             keep(logs[key] as Scalar);

@@ -13,8 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-
-import {getScalar} from '../backend/state';
+import {scalar} from '@tensorflow/tfjs-core';
 import {BaseCallback, configureCallbacks, CustomCallbackArgs, History, ModelLoggingVerbosity, standardizeCallbacks, YieldEveryOptions} from '../base_callbacks';
 import {NotImplementedError, ValueError} from '../errors';
 import {disposeTensorsInLogs, UnresolvedLogs} from '../logs';
@@ -504,7 +503,7 @@ export async function evaluateDataset<T>(
   args = args || {};
   const hasBatches = args.batches != null;
   const f = model.testFunction;
-  const outs: tfc.Scalar[] = [];
+  let outs: tfc.Scalar[] = [];
   if (args.verbose > 0) {
     throw new NotImplementedError('Verbose mode is not implemented yet.');
   }
@@ -519,36 +518,42 @@ export async function evaluateDataset<T>(
   // Keeps track of number of examples used in this evaluation.
   let numExamples = 0;
   let batch = 0;
+
   while (hasBatches ? batch < args.batches : true) {
     const iteratorOut = await dataIterator.next();
-    if (iteratorOut.value) {
-      // TODO(cais): Once real dataset is available, use
-      //   `map(x => standardizeDataIteratorOutput(model, x).map(f)`.
-      const xsAndYs = standardizeDataIteratorOutput(model, iteratorOut.value);
-      const batchOuts = tfc.tidy(() => f(xsAndYs));
-      tfc.dispose(xsAndYs);
+    outs = tfc.tidy(() => {
+      if (iteratorOut.value) {
+        // TODO(cais): Once real dataset is available, use
+        //   `map(x => standardizeDataIteratorOutput(model, x).map(f)`.
+        const xsAndYs = standardizeDataIteratorOutput(model, iteratorOut.value);
+        const batchOuts = tfc.tidy(() => f(xsAndYs));
+        tfc.dispose(xsAndYs);
 
-      if (batch === 0) {
+        if (batch === 0) {
+          for (let i = 0; i < batchOuts.length; ++i) {
+            outs.push(scalar(0));
+          }
+        }
+
+        const batchSize = xsAndYs[0].shape[0];
         for (let i = 0; i < batchOuts.length; ++i) {
-          outs.push(getScalar(0));
+          const batchOut = batchOuts[i];
+          const oldScalar = outs[i];
+          outs[i] = tfc.tidy(
+              () =>
+                  tfc.add(outs[i], tfc.mul(batchSize, batchOut)) as tfc.Scalar);
+          if (batch > 0) {
+            tfc.dispose(oldScalar);
+          }
         }
-      }
-      const batchSize = xsAndYs[0].shape[0];
-      for (let i = 0; i < batchOuts.length; ++i) {
-        const batchOut = batchOuts[i];
-        const oldScalar = outs[i];
-        outs[i] = tfc.tidy(
-            () => tfc.add(outs[i], tfc.mul(getScalar(batchSize), batchOut)) as
-                tfc.Scalar);
-        if (batch > 0) {
-          tfc.dispose(oldScalar);
-        }
-      }
-      tfc.dispose(batchOuts);
-      numExamples += batchSize;
+        tfc.dispose(batchOuts);
+        numExamples += batchSize;
 
-      ++batch;
-    }
+        ++batch;
+      }
+      return outs;
+    });
+
     if (iteratorOut.done) {
       if (hasBatches) {
         console.warn(
@@ -562,10 +567,10 @@ export async function evaluateDataset<T>(
       break;
     }
   }
+
   for (let i = 0; i < outs.length; ++i) {
     const oldScalar = outs[i];
-    outs[i] =
-        tfc.tidy(() => tfc.div(outs[i], getScalar(numExamples)) as tfc.Scalar);
+    outs[i] = tfc.div(outs[i], numExamples);
     tfc.dispose(oldScalar);
   }
 

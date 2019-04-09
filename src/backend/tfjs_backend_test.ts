@@ -722,7 +722,7 @@ describeMathCPUAndGPU('dropout', () => {
   for (const dropoutLevel of dropoutLevels) {
     it(`Level = ${dropoutLevel}`, () => {
       const x = tensor2d(range(1, 21), [10, 2]);
-      const y = K.dropout(x, scalar(dropoutLevel));
+      const y = K.dropout(x, dropoutLevel);
       expect(y.dtype).toEqual(x.dtype);
       expect(y.shape).toEqual(x.shape);
       const xValue = x.dataSync();

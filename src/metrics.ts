@@ -14,8 +14,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import {Tensor, tidy} from '@tensorflow/tfjs-core';
-
-import {getScalar} from './backend/state';
 import * as K from './backend/tfjs_backend';
 import {NotImplementedError, ValueError} from './errors';
 import {categoricalCrossentropy as categoricalCrossentropyLoss, cosineProximity, meanAbsoluteError, meanAbsolutePercentageError, meanSquaredError, sparseCategoricalCrossentropy as sparseCategoricalCrossentropyLoss} from './losses';
@@ -51,7 +49,7 @@ import {LossOrMetricFn} from './types';
  */
 export function binaryAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const threshold = tfc.mul(getScalar(0.5), tfc.onesLike(yPred));
+    const threshold = tfc.mul(.5, tfc.onesLike(yPred));
     const yPredThresholded = K.cast(tfc.greater(yPred, threshold), yTrue.dtype);
     return tfc.mean(tfc.equal(yTrue, yPredThresholded), -1);
   });
@@ -81,30 +79,19 @@ export function categoricalAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
 
 function truePositives(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const one = getScalar(1);
-    return tfc.logicalAnd(yTrue.equal(one), yPred.equal(one))
-        .sum()
-        .cast('float32');
+    return tfc.logicalAnd(yTrue.equal(1), yPred.equal(1)).sum().cast('float32');
   });
 }
 
 function falseNegatives(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const one = getScalar(1);
-    const zero = getScalar(0);
-    return tfc.logicalAnd(yTrue.equal(one), yPred.equal(zero))
-        .sum()
-        .cast('float32');
+    return tfc.logicalAnd(yTrue.equal(1), yPred.equal(0)).sum().cast('float32');
   });
 }
 
 function falsePositives(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const one = getScalar(1);
-    const zero = getScalar(0);
-    return tfc.logicalAnd(yTrue.equal(zero), yPred.equal(one))
-        .sum()
-        .cast('float32');
+    return tfc.logicalAnd(yTrue.equal(0), yPred.equal(1)).sum().cast('float32');
   });
 }
 
@@ -143,14 +130,12 @@ function falsePositives(yTrue: Tensor, yPred: Tensor): Tensor {
  */
 export function precision(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const zero = getScalar(0);
-
     const tp = truePositives(yTrue, yPred);
     const fp = falsePositives(yTrue, yPred);
 
     const denominator = tp.add(fp);
 
-    return tfc.where(tfc.greater(denominator, zero), tp.div(denominator), zero)
+    return tfc.where(tfc.greater(denominator, 0), tp.div(denominator), 0)
         .cast('float32');
   });
 }
@@ -190,14 +175,12 @@ export function precision(yTrue: Tensor, yPred: Tensor): Tensor {
  */
 export function recall(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const zero = getScalar(0);
-
     const tp = truePositives(yTrue, yPred);
     const fn = falseNegatives(yTrue, yPred);
 
     const denominator = tp.add(fn);
 
-    return tfc.where(tfc.greater(denominator, zero), tp.div(denominator), zero)
+    return tfc.where(tfc.greater(denominator, 0), tp.div(denominator), 0)
         .cast('float32');
   });
 }
@@ -223,7 +206,7 @@ export function binaryCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
 
 /**
  * Sparse categorical accuracy metric function.
- * 
+ *
  * ```Example:
  * const yTrue = tensor1d([1, 1, 2, 2, 0]);
  * const yPred = tensor2d(
@@ -237,7 +220,7 @@ export function binaryCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
  * @returns Accuracy tensor.
  */
 export function sparseCategoricalAccuracy(
-  yTrue: Tensor, yPred: Tensor): Tensor {
+    yTrue: Tensor, yPred: Tensor): Tensor {
   if (yTrue.rank === yPred.rank) {
     yTrue = yTrue.squeeze([yTrue.rank - 1]);
   }

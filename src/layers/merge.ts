@@ -14,8 +14,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
-
-import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerArgs, SymbolicTensor} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
@@ -477,7 +475,7 @@ export class Average extends Merge {
       for (let i = 1; i < inputs.length; ++i) {
         output = tfc.add(output, inputs[i]);
       }
-      return tfc.mul(getScalar(1 / inputs.length), output);
+      return tfc.mul(1 / inputs.length, output);
     });
   }
 }

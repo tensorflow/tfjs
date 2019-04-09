@@ -14,8 +14,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
-
-import {getScalar} from '../backend/state';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
@@ -397,7 +395,7 @@ export class BatchNormalization extends Layer {
       const doMovingAverage =
           (variable: LayerVariable, value: Tensor, momentum: number): void => {
             tfc.tidy(() => {
-              const decay = getScalar(1.0).sub(getScalar(momentum));
+              const decay = 1 - momentum;
               const origValue = variable.read();
               const updateDelta = origValue.sub(value).mul(decay);
               variable.write(origValue.sub(updateDelta));

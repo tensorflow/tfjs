@@ -12,10 +12,9 @@
  * TensorFlow.js Layers: Basic Layers.
  */
 
-import {fused, Scalar, serialization, Tensor, tidy, transpose, util} from '@tensorflow/tfjs-core';
+import {fused, serialization, Tensor, tidy, transpose, util} from '@tensorflow/tfjs-core';
 
 import {Activation as ActivationFn, getActivation, serializeActivation} from '../activations';
-import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {DisposeResult, InputSpec, Layer, LayerArgs} from '../engine/topology';
@@ -69,14 +68,12 @@ export class Dropout extends Layer {
   /** @nocollapse */
   static className = 'Dropout';
   private readonly rate: number;
-  private readonly rateScalar: Scalar;
   private readonly noiseShape: number[];
   private readonly seed: number;
 
   constructor(args: DropoutLayerArgs) {
     super(args);
     this.rate = Math.max(Math.min(args.rate, 1), 0);
-    this.rateScalar = getScalar(this.rate);
     // So that the scalar doesn't get tidied up between executions.
     this.noiseShape = args.noiseShape;
     this.seed = args.seed;
@@ -117,7 +114,7 @@ export class Dropout extends Layer {
         const noiseShape = this.getNoiseShape(input);
         const output =
             K.inTrainPhase(
-                () => K.dropout(input, this.rateScalar, noiseShape, this.seed),
+                () => K.dropout(input, this.rate, noiseShape, this.seed),
                 () => input, training) as Tensor;
         return output;
       }
@@ -137,12 +134,7 @@ export class Dropout extends Layer {
   }
 
   dispose(): DisposeResult {
-    const result = super.dispose();
-    if (!this.rateScalar.isDisposed) {
-      this.rateScalar.dispose();
-      result.numDisposedVariables++;
-    }
-    return result;
+    return super.dispose();
   }
 }
 serialization.registerClass(Dropout);

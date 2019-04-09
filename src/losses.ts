@@ -13,7 +13,6 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {Tensor, Tensor1D, tidy, util} from '@tensorflow/tfjs-core';
 
 import {epsilon} from './backend/common';
-import {getScalar} from './backend/state';
 import * as K from './backend/tfjs_backend';
 import {ValueError} from './errors';
 import {LossOrMetricFn} from './types';
@@ -98,20 +97,18 @@ export function meanAbsolutePercentageError(
     const clippedTrue =
         tfc.clipByValue(tfc.abs(yTrue), epsilon(), Number.MAX_VALUE);
     const absResult = tfc.abs(tfc.div(diff, clippedTrue));
-    return tfc.mul(getScalar(100.0), tfc.mean(absResult, -1));
+    return tfc.mul(100, tfc.mean(absResult, -1));
   });
 }
 
 export function meanSquaredLogarithmicError(
     yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const one = getScalar(1.0);
-
     const clippedPred = tfc.clipByValue(yPred, epsilon(), Number.MAX_VALUE);
-    const firstLog = tfc.log(tfc.add(one, clippedPred));
+    const firstLog = tfc.log(tfc.add(1, clippedPred));
 
     const clippedTrue = tfc.clipByValue(yTrue, epsilon(), Number.MAX_VALUE);
-    const secondLog = tfc.log(tfc.add(one, clippedTrue));
+    const secondLog = tfc.log(tfc.add(1, clippedTrue));
 
     return tfc.mean(K.square(tfc.sub(firstLog, secondLog)), -1);
   });
@@ -119,31 +116,23 @@ export function meanSquaredLogarithmicError(
 
 export function squaredHinge(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const zeroTensor = getScalar(0.0);
-    const one = getScalar(1.0);
-    const maxResult =
-        tfc.maximum(zeroTensor, tfc.sub(one, tfc.mul(yTrue, yPred)));
+    const maxResult = tfc.maximum(0, tfc.sub(1, tfc.mul(yTrue, yPred)));
     return tfc.mean(K.square(maxResult), -1);
   });
 }
 
 export function hinge(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const zeroTensor = getScalar(0.0);
-    const one = getScalar(1.0);
-    const maxResult =
-        tfc.maximum(zeroTensor, tfc.sub(one, tfc.mul(yTrue, yPred)));
+    const maxResult = tfc.maximum(0, tfc.sub(1, tfc.mul(yTrue, yPred)));
     return tfc.mean(maxResult, -1);
   });
 }
 
 export function categoricalHinge(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const zeroTensor = getScalar(0.0);
-    const one = getScalar(1.0);
     const pos = tfc.sum(tfc.mul(yTrue, yPred), -1);
-    const neg = tfc.max(tfc.mul(tfc.sub(one, yTrue), yPred), -1);
-    return tfc.maximum(zeroTensor, tfc.add(one, tfc.sub(neg, pos)));
+    const neg = tfc.max(tfc.mul(tfc.sub(1, yTrue), yPred), -1);
+    return tfc.maximum(0, tfc.add(1, tfc.sub(neg, pos)));
   });
 }
 
@@ -157,12 +146,10 @@ export function categoricalHinge(yTrue: Tensor, yPred: Tensor): Tensor {
  */
 export function logcosh(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const log2 = getScalar(Math.log(2.0));
+    const log2 = Math.log(2);
     const predictionDiff = tfc.sub(yPred, yTrue);
     const logcoshResult = tfc.sub(
-        tfc.add(
-            predictionDiff,
-            tfc.softplus(tfc.mul(getScalar(-2.0), predictionDiff))),
+        tfc.add(predictionDiff, tfc.softplus(tfc.mul(-2, predictionDiff))),
         log2);
     return tfc.mean(logcoshResult, -1);
   });
@@ -261,7 +248,7 @@ export function binaryCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
     let y: Tensor;
     y = tfc.clipByValue(yPred, epsilon(), 1 - epsilon());
-    y = tfc.log(tfc.div(y, tfc.sub(getScalar(1), y)));
+    y = tfc.log(tfc.div(y, tfc.sub(1, y)));
     return tfc.mean(sigmoidCrossEntropyWithLogits(yTrue, y), -1);
   });
 }
@@ -278,7 +265,7 @@ export function kullbackLeiblerDivergence(
 
 export function poisson(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const logPred = tfc.log(tfc.add(getScalar(epsilon()), yPred));
+    const logPred = tfc.log(tfc.add(epsilon(), yPred));
     return tfc.mean(tfc.sub(yPred, tfc.mul(yTrue, logPred)), -1);
   });
 }

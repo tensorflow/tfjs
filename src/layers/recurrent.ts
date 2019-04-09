@@ -16,7 +16,6 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {DataType, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {Activation, getActivation, serializeActivation} from '../activations';
-import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, SymbolicTensor} from '../engine/topology';
@@ -1650,8 +1649,8 @@ export class GRUCell extends RNNCell {
       const recurrentH = K.dot(tfc.mul(r, hTMinus1), rk2);
       hh = this.activation.apply(tfc.add(xH, recurrentH));
 
-      const h = tfc.add(
-          tfc.mul(z, hTMinus1), tfc.mul(tfc.add(getScalar(1), tfc.neg(z)), hh));
+      const h =
+          tfc.add(tfc.mul(z, hTMinus1), tfc.mul(tfc.add(1, tfc.neg(z)), hh));
       // TODO(cais): Add use_learning_phase flag properly.
       return [h, h];
     });
@@ -2545,7 +2544,7 @@ function generateDropoutMask(
     ones: () => Tensor, rate: number, training: boolean = null,
     count = 1): Tensor|Tensor[] {
   function droppedInputs(): Tensor {
-    return K.dropout(ones(), getScalar(rate));
+    return K.dropout(ones(), rate);
   }
   if (count > 1) {
     const mask: Tensor[] = [];

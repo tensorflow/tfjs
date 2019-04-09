@@ -8,9 +8,8 @@
  * =============================================================================
  */
 
-import {DataType, eye, linalg, mul, ones, randomUniform, scalar, Scalar, serialization, Tensor, Tensor2D, tidy, truncatedNormal, zeros} from '@tensorflow/tfjs-core';
+import {DataType, eye, linalg, mul, ones, randomUniform, scalar, serialization, Tensor, Tensor2D, tidy, truncatedNormal, zeros} from '@tensorflow/tfjs-core';
 
-import {getScalar} from './backend/state';
 import * as K from './backend/tfjs_backend';
 import {checkDataFormat} from './common';
 import {NotImplementedError, ValueError} from './errors';
@@ -262,10 +261,10 @@ export interface IdentityArgs {
 export class Identity extends Initializer {
   /** @nocollapse */
   static className = 'Identity';
-  private gain: Scalar;
+  private gain: number;
   constructor(args: IdentityArgs) {
     super();
-    this.gain = args.gain != null ? scalar(args.gain) : getScalar(1.0);
+    this.gain = args.gain != null ? args.gain : 1.0;
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
@@ -281,7 +280,7 @@ export class Identity extends Initializer {
   }
 
   getConfig(): serialization.ConfigDict {
-    return {gain: this.gain.dataSync()[0]};
+    return {gain: this.gain};
   }
 }
 serialization.registerClass(Identity);
@@ -676,7 +675,7 @@ export class Orthogonal extends Initializer {
       if (shape[0] > shape[1]) {
         q = q.transpose();
       }
-      return mul(getScalar(this.gain), q);
+      return mul(this.gain, q);
     });
   }
 
