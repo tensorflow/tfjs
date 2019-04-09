@@ -18,7 +18,7 @@ import * as models from './exports_models';
 import * as regularizers from './exports_regularizers';
 
 export {CallbackList, CustomCallback, CustomCallbackArgs, History} from './base_callbacks';
-export {Callback, callbacks} from './callbacks';
+export {Callback, callbacks, EarlyStopping, EarlyStoppingCallbackArgs} from './callbacks';
 export {InputSpec, SymbolicTensor} from './engine/topology';
 export {LayersModel, ModelCompileArgs, ModelEvaluateArgs} from './engine/training';
 export {ModelFitDatasetArgs} from './engine/training_dataset';

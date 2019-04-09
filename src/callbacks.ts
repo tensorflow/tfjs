@@ -28,7 +28,7 @@ export abstract class Callback extends BaseCallback {
   }
 }
 
-export interface EarlyStopingCallbackArgs {
+export interface EarlyStoppingCallbackArgs {
   /**
    * Quantity to be monitored.
    *
@@ -112,7 +112,7 @@ export class EarlyStopping extends Callback {
   private stoppedEpoch: number;
   private best: number;
 
-  constructor(args?: EarlyStopingCallbackArgs) {
+  constructor(args?: EarlyStoppingCallbackArgs) {
     super();
     if (args == null) {
       args = {};
@@ -209,10 +209,10 @@ export class EarlyStopping extends Callback {
  * Factory function for a Callback that stops training when a monitored
  * quantity has stopped improving.
  *
- * Early stopping is a type of regularization, and protectes model against
+ * Early stopping is a type of regularization, and protects model against
  * overfitting.
  *
- * The following example is based on fake data illustrates how this callback
+ * The following example based on fake data illustrates how this callback
  * can be used during `tf.LayersModel.fit()`:
  *
  * ```js
@@ -236,7 +236,7 @@ export class EarlyStopping extends Callback {
  * const history = await model.fit(xs, ys, {
  *   epochs: 10,
  *   validationData: [xsVal, ysVal],
- *   callbacks: tf.callbacks.earlyStopping({monitor: 'val_acc', patience: 4})
+ *   callbacks: tf.callbacks.earlyStopping({monitor: 'val_acc'})
  * });
  *
  * // Expect to see a length-2 array.
@@ -249,7 +249,7 @@ export class EarlyStopping extends Callback {
  *   namespace: 'callbacks'
  * }
  */
-export function earlyStopping(args?: EarlyStopingCallbackArgs) {
+export function earlyStopping(args?: EarlyStoppingCallbackArgs) {
   return new EarlyStopping(args);
 }
 
