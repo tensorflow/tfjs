@@ -16,7 +16,7 @@
  */
 
 import firebase from 'firebase/app';
-import {EnvironmentInfo, Task, TaskLog, TaskType, VersionSet} from './types';
+import {EnvironmentInfo, Task, TaskType, VersionSet, BenchmarkRun} from './types';
 
 let firebaseInitialized = false;
 async function initFirebase() {
@@ -29,15 +29,15 @@ async function initFirebase() {
   }
 }
 
-export async function addTaskLogsToFirestore(taskLogs: TaskLog[]) {
+export async function addBenchmarkRunsToFirestore(run: BenchmarkRun[]) {
   await initFirebase();
 
   const db = firebase.firestore();
   const batch = db.batch();
-  const collection = db.collection('TaskLogs');
+  const collection = db.collection('BenchmarkRuns');
 
-  for (let i = 0; i < taskLogs.length; ++i) {
-    const taskLog = taskLogs[i];
+  for (let i = 0; i < run.length; ++i) {
+    const taskLog = run[i];
     const ref = collection.doc();
     batch.set(ref, taskLog);
   }

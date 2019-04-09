@@ -137,7 +137,7 @@ def benchmark_and_serialize_model(model_name,
     train_time = (train_t_end - train_t_begin) * 1e3 / train_epochs
 
     # Collect and format the data for fit().
-    task_logs['fit'] = {  # For schema, see 'ModelTrainingTaskLog` in types.ts.
+    task_logs['fit'] = {  # For schema, see 'ModelTrainingBenchmarkRun` in types.ts.
       'taskType': 'model',
       'modelName': model_name,
       'modelDescription': description,
@@ -146,8 +146,8 @@ def benchmark_and_serialize_model(model_name,
       'batchSize': batch_size,
       'optimizer': optimizer.__class__.__name__.split('.')[-1],
       'loss': loss,
-      'numBenchmarkedRuns': train_epochs,
-      'numWarmUpRuns': _FIT_BURNIN_EPOCHS,
+      'numBenchmarkedIterations': train_epochs,
+      'numWarmUpIterations': _FIT_BURNIN_EPOCHS,
       'averageTimeMs': train_time
     }
 
@@ -172,8 +172,8 @@ def benchmark_and_serialize_model(model_name,
     'functionName': 'predct',
     'endingTimestampMs': int(time.time() * 1e3),
     'batchSize': batch_size,
-    'numBenchmarkedRuns': _PREDICT_RUNS,
-    'numWarmUpRuns': _PREDICT_BURNINS,
+    'numBenchmarkedIterations': _PREDICT_RUNS,
+    'numWarmUpIterations': _PREDICT_BURNINS,
     'timesMs': predict_ts,
     'averageTimeMs': np.mean(predict_ts)
   }

@@ -20,10 +20,10 @@ import * as tf from '@tensorflow/tfjs';
 import * as detectBrowser from 'detect-browser';
 
 // import {logSuiteLog} from '../firebase';
-import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelTaskLog, ModelFunctionName, ModelTrainingTaskLog, VersionSet, PythonEnvironmentInfo} from '../types';
-import {addEnvironmentInfoToFirestore, addOrGetTaskId, addTaskLogsToFirestore, addVersionSetToFirestore} from '../firestore';
+import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelBenchmarkRun, ModelFunctionName, ModelTrainingBenchmarkRun, VersionSet, PythonEnvironmentInfo} from '../types';
+import {addEnvironmentInfoToFirestore, addOrGetTaskId, addBenchmarkRunsToFirestore, addVersionSetToFirestore} from '../firestore';
 
-export type MultiFunctionModelTaskLog = {[taskName: string]: ModelTaskLog};
+export type MultiFunctionModelTaskLog = {[taskName: string]: ModelBenchmarkRun};
 
 export interface SuiteLog {
   data: {[modelName: string]: MultiFunctionModelTaskLog};
@@ -165,8 +165,8 @@ describe('TF.js Layers Benchmarks', () => {
     console.log(sortedModelNames);  // DEBUG
     console.log(tf.version);  // DEBUG
 
-    const tfjsTaskLogs: ModelTaskLog[] = [];
-    const pyTaskLogs: ModelTaskLog[] = [];
+    const pyRuns: ModelBenchmarkRun[] = [];
+    const tfjsRuns: ModelBenchmarkRun[] = [];
 
     for (let i = 0; i < sortedModelNames.length; ++i) {
       const modelName = sortedModelNames[i];
@@ -180,52 +180,52 @@ describe('TF.js Layers Benchmarks', () => {
       }
       for (let j = 0; j < functionNames.length; ++j) {
         const functionName = functionNames[j];
-        const pyLog = taskGroupLog[functionName] as ModelTaskLog;
+        const pyRun = taskGroupLog[functionName] as ModelBenchmarkRun;
 
         // Make sure that the task type is logged in Firestore.
         const taskId = await addOrGetTaskId(taskType, modelName, functionName);
 
-        checkBatchSize(pyLog.batchSize);
+        checkBatchSize(pyRun.batchSize);
 
-        let tfjsLog: ModelTaskLog;
+        let tfjsRun: ModelBenchmarkRun;
 
-        const {xs, ys} = getRandomInputsAndOutputs(model, pyLog.batchSize);
+        const {xs, ys} = getRandomInputsAndOutputs(model, pyRun.batchSize);
         if (functionName === 'predict') {
           // Warm-up predict() runs.
-          for (let n = 0; n < pyLog.numWarmUpRuns; ++n) {
+          for (let n = 0; n < pyRun.numWarmUpIterations; ++n) {
             await syncDataAndDispose(model.predict(xs));
           }
 
           // Benchmarked predict() runs.
           const ts: number[] = [];
-          for (let n = 0; n < pyLog.numBenchmarkedRuns; ++n) {
+          for (let n = 0; n < pyRun.numBenchmarkedIterations; ++n) {
             const t0 = tf.util.now();
             await syncDataAndDispose(model.predict(xs));
             ts.push(tf.util.now() - t0);
           }
 
           // Format data for predict().
-          tfjsLog = {
+          tfjsRun = {
             taskId,
             taskType,
             modelName,
-            modelDescription: pyLog.modelDescription,
+            // TODO(cais): Add modelId.
             functionName,
-            batchSize: pyLog.batchSize,
+            batchSize: pyRun.batchSize,
             versionSetId,
             environmentId: tfjsEnvironmentId,
-            numWarmUpRuns: pyLog.numWarmUpRuns,
-            numBenchmarkedRuns: pyLog.numBenchmarkedRuns,
+            numWarmUpIterations: pyRun.numWarmUpIterations,
+            numBenchmarkedIterations: pyRun.numBenchmarkedIterations,
             timesMs: ts,
             averageTimeMs: math.mean(ts),
             endingTimestampMs: new Date().getTime()
           };
           console.log(
               `  (taskId=${taskId}) predict(): averageTimeMs: ` +
-              `py=${pyLog.averageTimeMs.toFixed(3)}, ` +
-              `tfjs=${tfjsLog.averageTimeMs.toFixed(3)}`);
+              `py=${pyRun.averageTimeMs.toFixed(3)}, ` +
+              `tfjs=${tfjsRun.averageTimeMs.toFixed(3)}`);
         } else if (functionName === 'fit') {
-          const pyFitLog = pyLog as ModelTrainingTaskLog;
+          const pyFitLog = pyRun as ModelTrainingBenchmarkRun;
           model.compile({
             loss: LOSS_MAP[pyFitLog.loss],
             optimizer: OPTIMIZER_MAP[pyFitLog.optimizer]
@@ -233,47 +233,47 @@ describe('TF.js Layers Benchmarks', () => {
 
           // Warm-up fit() call.
           await model.fit(xs, ys, {
-            epochs: pyLog.numWarmUpRuns,
+            epochs: pyRun.numWarmUpIterations,
             yieldEvery: 'never'
           });
 
           // Benchmarked fit() call.
           const t0 = tf.util.now();
           await model.fit(xs, ys, {
-            epochs: pyLog.numBenchmarkedRuns,
+            epochs: pyRun.numBenchmarkedIterations,
             yieldEvery: 'never'
           });
           const t = tf.util.now() - t0;
 
           // Format data for fit().
-          tfjsLog = {
+          tfjsRun = {
             taskId,
             taskType,
             modelName,
-            modelDescription: pyLog.modelDescription,
+            // TODO(cais): Add modelId.
             functionName,
-            batchSize: pyLog.batchSize,
+            batchSize: pyRun.batchSize,
             versionSetId,
             environmentId: tfjsEnvironmentId,
-            numWarmUpRuns: pyLog.numWarmUpRuns,
-            numBenchmarkedRuns: pyLog.numBenchmarkedRuns,
-            averageTimeMs: t / pyLog.numBenchmarkedRuns,
+            numWarmUpIterations: pyRun.numWarmUpIterations,
+            numBenchmarkedIterations: pyRun.numBenchmarkedIterations,
+            averageTimeMs: t / pyRun.numBenchmarkedIterations,
             endingTimestampMs: new Date().getTime()
           };
           console.log(
             `  (taskId=${taskId}) fit(): averageTimeMs: ` +
-            `py=${pyLog.averageTimeMs.toFixed(3)}, ` +
-            `tfjs=${tfjsLog.averageTimeMs.toFixed(3)}`);
+            `py=${pyRun.averageTimeMs.toFixed(3)}, ` +
+            `tfjs=${tfjsRun.averageTimeMs.toFixed(3)}`);
         } else {
           console.warn(`Skipping task "${functionName}" of model "${modelName}"`);
         }
 
         tf.dispose({xs, ys});
 
-        tfjsTaskLogs.push(tfjsLog);
-        pyLog.taskId = taskId;
-        pyLog.environmentId = pyEnvironmentId;
-        pyTaskLogs.push(pyLog);
+        tfjsRuns.push(tfjsRun);
+        pyRun.taskId = taskId;
+        pyRun.environmentId = pyEnvironmentId;
+        pyRuns.push(pyRun);
       }
     }
 
@@ -281,8 +281,8 @@ describe('TF.js Layers Benchmarks', () => {
     //     `Writing ${tfjsTaskLogs.length} TensorFlow.js TaskLogs to Firestore...`);
     // await addTaskLogsToFirestore(tfjsTaskLogs);
     console.log(
-        `Writing ${pyTaskLogs.length} Python TaskLogs to Firestore...`);
-    await addTaskLogsToFirestore(pyTaskLogs);
+        `Writing ${pyRuns.length} Python TaskLogs to Firestore...`);
+    await addBenchmarkRunsToFirestore(pyRuns);
     console.log(`Done.`);
   });
 });
