@@ -335,9 +335,13 @@ def main():
             os.path.join(FLAGS.data_root, model_name)))
 
   # Conv2d models.
-  # optimizer = tf.keras.optimizer.Adam()
-  optimizer = tf.train.AdamOptimizer()
-  loss = 'categorical_crossentropy'
+  # optimizer = tf.train.GradientDescentOptimizer(0.01)
+  # TODO(cais): Restore optimizer after the following
+  #   error is resolved:
+  # "Error: Cannot evaluate flag 'EPSILON': no evaluation function found."
+  optimizer = None
+  # loss = 'categorical_crossentropy'
+  loss = None
   input_shape = [28, 28, 1]
   target_shape = [10]
   names_fns_and_descriptions = [

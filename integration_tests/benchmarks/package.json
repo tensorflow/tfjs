@@ -8,12 +8,12 @@
     "url": "https://github.com/tensorflow/tfjs"
   },
   "devDependencies": {
-    "@tensorflow/tfjs": "latest",
-    "@tensorflow/tfjs-converter": "latest",
-    "@tensorflow/tfjs-core": "latest",
-    "@tensorflow/tfjs-data": "latest",
-    "@tensorflow/tfjs-layers": "latest",
-    "@tensorflow/tfjs-node": "latest",
+    "@tensorflow/tfjs": "~1.0.4",
+    "@tensorflow/tfjs-converter": "~1.0.4",
+    "@tensorflow/tfjs-core": "~1.0.4",
+    "@tensorflow/tfjs-data": "~1.0.4",
+    "@tensorflow/tfjs-layers": "~1.0.4",
+    "@tensorflow/tfjs-node": "~1.0.3",
     "@types/detect-browser": "^4.0.0",
     "@types/jasmine": "~2.5.53",
     "@types/mathjs": "^5.0.1",

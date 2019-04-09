@@ -65,6 +65,8 @@ fi
 
 cd ${SCRIPT_DIR}
 
+yarn
+
 # Download the tfjs repositories, build them, and link them.
 if [[ ! -d "tfjs-core" ]]; then
   echo 'Use latest version of tfjs-core'
@@ -72,10 +74,11 @@ if [[ ! -d "tfjs-core" ]]; then
 fi
 cd tfjs-core
 HASH_CORE=`git rev-parse HEAD`
-rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
+rm -rf dist/ node_modules/ && yarn
+yarn build && yarn yalc publish
 
 cd ..
-yarn link-local '@tensorflow/tfjs-core'
+yarn yalc link '@tensorflow/tfjs-core'
 
 if [[ ! -d "tfjs-layers" ]]; then
   echo 'Use latest version of tfjs-layers'
@@ -83,10 +86,12 @@ if [[ ! -d "tfjs-layers" ]]; then
 fi
 cd tfjs-layers
 HASH_LAYERS=`git rev-parse HEAD`
-rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
+rm -rf dist/ node_modules/ && yarn
+# yarn yalc link '@tensorflow/tfjs-core'
+yarn build && rollup -c && yalc publish
 
 cd ..
-yarn link-local '@tensorflow/tfjs-layers'
+yarn yalc link '@tensorflow/tfjs-layers'
 
 if [[ ! -d "tfjs-converter" ]]; then
   echo 'Use latest version of tfjs-converter'
@@ -94,10 +99,11 @@ if [[ ! -d "tfjs-converter" ]]; then
 fi
 cd tfjs-converter
 HASH_CONVERTER=`git rev-parse HEAD`
-rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
+rm -rf dist/ node_modules/ && yarn
+yarn build && yalc publish
 
 cd ..
-yarn link-local '@tensorflow/tfjs-converter'
+yarn yalc link '@tensorflow/tfjs-converter'
 
 if [[ ! -d "tfjs-data" ]]; then
   echo 'Use latest version of tfjs-data'
@@ -105,12 +111,10 @@ if [[ ! -d "tfjs-data" ]]; then
 fi
 cd tfjs-data
 HASH_DATA=`git rev-parse HEAD`
-rm -rf dist/ && yarn && yarn build && yalc push
+rm -rf dist/ && yarn && yarn build && yalc publish
 
 cd ..
-yarn link-local '@tensorflow/tfjs-data'
-
-yarn
+yarn yalc link '@tensorflow/tfjs-data'
 
 echo "Starting benchmark tests..."
 yarn karma start karma.conf.layers.js

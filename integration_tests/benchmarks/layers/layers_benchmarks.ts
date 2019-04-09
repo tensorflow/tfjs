@@ -16,7 +16,10 @@
  */
 
 import * as math from 'mathjs';
-import * as tf from '@tensorflow/tfjs';
+import * as tfconverter from '@tensorflow/tfjs-converter';
+import * as tfc from '@tensorflow/tfjs-core';
+import * as tfd from '@tensorflow/tfjs-data';
+import * as tfl from '@tensorflow/tfjs-layers';
 import * as detectBrowser from 'detect-browser';
 
 // import {logSuiteLog} from '../firebase';
@@ -53,20 +56,20 @@ function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
   return modelNamesAndTimestamps.map(object => object.modelName);
 }
 
-function getRandomInputsAndOutputs(model: tf.Model, batchSize: number):
-    {xs: tf.Tensor|tf.Tensor[], ys: tf.Tensor|tf.Tensor[]} {
-  return tf.tidy(() => {
-    let xs: tf.Tensor|tf.Tensor[] = [];
+function getRandomInputsAndOutputs(model: tfl.LayersModel, batchSize: number):
+    {xs: tfc.Tensor|tfc.Tensor[], ys: tfc.Tensor|tfc.Tensor[]} {
+  return tfc.tidy(() => {
+    let xs: tfc.Tensor|tfc.Tensor[] = [];
     for (const input of model.inputs) {
-      xs.push(tf.randomUniform([batchSize].concat(input.shape.slice(1))));
+      xs.push(tfc.randomUniform([batchSize].concat(input.shape.slice(1))));
     }
     if (xs.length === 1) {
       xs = xs[0];
     }
 
-    let ys: tf.Tensor|tf.Tensor[] = [];
+    let ys: tfc.Tensor|tfc.Tensor[] = [];
     for (const output of model.outputs) {
-      ys.push(tf.randomUniform([batchSize].concat(output.shape.slice(1))));
+      ys.push(tfc.randomUniform([batchSize].concat(output.shape.slice(1))));
     }
     if (ys.length === 1) {
       ys = ys[0];
@@ -76,7 +79,7 @@ function getRandomInputsAndOutputs(model: tf.Model, batchSize: number):
   });
 }
 
-async function syncDataAndDispose(tensors: tf.Tensor|tf.Tensor[]) {
+async function syncDataAndDispose(tensors: tfc.Tensor|tfc.Tensor[]) {
   if (Array.isArray(tensors)) {
     for (const out of tensors) {
       await out.data();
@@ -84,7 +87,7 @@ async function syncDataAndDispose(tensors: tf.Tensor|tf.Tensor[]) {
   } else {
     await tensors.data();
   }
-  tf.dispose(tensors);
+  tfc.dispose(tensors);
 }
 
 function getBrowserEnvironmentType(): BrowserEnvironmentType {
@@ -130,16 +133,23 @@ describe('TF.js Layers Benchmarks', () => {
   const DATA_SERVER_ROOT = './base/data';
   const BENCHMARKS_JSON_URL = `${DATA_SERVER_ROOT}/benchmarks.json`;
 
-  async function loadModel(modelName: string): Promise<tf.Model> {
+  async function loadModel(modelName: string): Promise<tfl.LayersModel> {
     const modelJSONPath = `${DATA_SERVER_ROOT}/${modelName}/model.json`;
     const modelJSON = await (await fetch(modelJSONPath)).json();
-    return await tf.models.modelFromJSON(modelJSON['modelTopology']);
+    return await tfl.models.modelFromJSON(modelJSON['modelTopology']);
   }
 
   it('Benchmark models', async () => {
     const taskType = 'model';
     const environmentInfo = getBrowserEnvironmentInfo();
-    const versionSet: VersionSet = {versions: tf.version};
+    const versionSet: VersionSet = {
+      versions: {
+        'tfjs-converter': tfconverter.version_converter,
+        'tfjs-core': tfc.version_core,
+        'tfjs-data': tfd.version_data,
+        'tfjs-layers': tfl.version_layers
+      }
+    };
 
     // Add environment info to firestore and retrieve the doc ID.
     const tfjsEnvironmentId =
@@ -162,8 +172,8 @@ describe('TF.js Layers Benchmarks', () => {
     const sortedModelNames = getChronologicalModelNames(suiteLog);
 
     console.log(environmentInfo);  // DEBUG
+    console.log(versionSet);  // DEBUG
     console.log(sortedModelNames);  // DEBUG
-    console.log(tf.version);  // DEBUG
 
     const pyRuns: ModelBenchmarkRun[] = [];
     const tfjsRuns: ModelBenchmarkRun[] = [];
@@ -199,9 +209,9 @@ describe('TF.js Layers Benchmarks', () => {
           // Benchmarked predict() runs.
           const ts: number[] = [];
           for (let n = 0; n < pyRun.numBenchmarkedIterations; ++n) {
-            const t0 = tf.util.now();
+            const t0 = tfc.util.now();
             await syncDataAndDispose(model.predict(xs));
-            ts.push(tf.util.now() - t0);
+            ts.push(tfc.util.now() - t0);
           }
 
           // Format data for predict().
@@ -238,12 +248,12 @@ describe('TF.js Layers Benchmarks', () => {
           });
 
           // Benchmarked fit() call.
-          const t0 = tf.util.now();
+          const t0 = tfc.util.now();
           await model.fit(xs, ys, {
             epochs: pyRun.numBenchmarkedIterations,
             yieldEvery: 'never'
           });
-          const t = tf.util.now() - t0;
+          const t = tfc.util.now() - t0;
 
           // Format data for fit().
           tfjsRun = {
@@ -268,7 +278,7 @@ describe('TF.js Layers Benchmarks', () => {
           console.warn(`Skipping task "${functionName}" of model "${modelName}"`);
         }
 
-        tf.dispose({xs, ys});
+        tfc.dispose({xs, ys});
 
         tfjsRuns.push(tfjsRun);
         pyRun.taskId = taskId;
