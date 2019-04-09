@@ -65,6 +65,51 @@ fi
 
 cd ${SCRIPT_DIR}
 
+# Download the tfjs repositories, build them, and link them.
+if [[ ! -d "tfjs-core" ]]; then
+  echo 'Use latest version of tfjs-core'
+  git clone https://github.com/tensorflow/tfjs-core.git --depth 5
+fi
+cd tfjs-core
+HASH_CORE=`git rev-parse HEAD`
+rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
+
+cd ..
+yarn link-local '@tensorflow/tfjs-core'
+
+if [[ ! -d "tfjs-layers" ]]; then
+  echo 'Use latest version of tfjs-layers'
+  git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
+fi
+cd tfjs-layers
+HASH_LAYERS=`git rev-parse HEAD`
+rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
+
+cd ..
+yarn link-local '@tensorflow/tfjs-layers'
+
+if [[ ! -d "tfjs-converter" ]]; then
+  echo 'Use latest version of tfjs-converter'
+  git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
+fi
+cd tfjs-converter
+HASH_CONVERTER=`git rev-parse HEAD`
+rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
+
+cd ..
+yarn link-local '@tensorflow/tfjs-converter'
+
+if [[ ! -d "tfjs-data" ]]; then
+  echo 'Use latest version of tfjs-data'
+  git clone https://github.com/tensorflow/tfjs-data.git --depth 5
+fi
+cd tfjs-data
+HASH_DATA=`git rev-parse HEAD`
+rm -rf dist/ && yarn && yarn build && yalc push
+
+cd ..
+yarn link-local '@tensorflow/tfjs-data'
+
 yarn
 
 echo "Starting benchmark tests..."

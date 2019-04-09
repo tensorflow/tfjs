@@ -16,14 +16,10 @@
 
 set -e
 
-<<<<<<< HEAD
-if [[ "$TRAVIS_EVENT_TYPE" = cron ]] && [[ "$(node -v)" = *v10* ]]
-=======
 yarn
 yarn lint
 
 if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
->>>>>>> master
 then
   # Run the first karma separately so it can download the BrowserStack binary
   # without conflicting with others.
@@ -35,10 +31,7 @@ then
     git clone https://github.com/tensorflow/tfjs-core.git --depth 5
   fi
   cd tfjs-core
-<<<<<<< HEAD
-=======
   HASH_CORE=`git rev-parse HEAD`
->>>>>>> master
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
 
   cd ..
