@@ -680,7 +680,7 @@ describeMathCPUAndGPU('LayersModel-dispose', () => {
 
     const result = model.dispose();
     expect(result.refCountAfterDispose).toEqual(0);
-    expect(result.numDisposedVariables).toEqual(5);
+    expect(result.numDisposedVariables).toEqual(4);
     // The four weight variables of the two layers should have been disposed.
     // + the rate from the dropout tensor
     expect(memory().numTensors).toEqual(numTensors0);

@@ -11,9 +11,7 @@
 /* Original Source: engine/training.py */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {io, ModelPredictConfig as ModelPredictArgs, NamedTensorMap, Optimizer, Scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
-
-import {getScalar} from '../backend/state';
+import {io, ModelPredictConfig as ModelPredictArgs, NamedTensorMap, Optimizer, Scalar, scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
 import * as K from '../backend/tfjs_backend';
 import {History, ModelLoggingVerbosity} from '../base_callbacks';
 import {nameScope} from '../common';
@@ -1189,20 +1187,18 @@ export class LayersModel extends Container implements tfc.InferenceModel {
           const batchOuts = f(insBatch);
           if (batchIndex === 0) {
             for (let i = 0; i < batchOuts.length; ++i) {
-              outs.push(getScalar(0));
+              outs.push(scalar(0));
             }
           }
           for (let i = 0; i < batchOuts.length; ++i) {
             const batchOut = batchOuts[i];
             outs[i] =
-                tfc.add(
-                    outs[i],
-                    tfc.mul(getScalar(batchEnd - batchStart), batchOut)) as
+                tfc.add(outs[i], tfc.mul(batchEnd - batchStart, batchOut)) as
                 Scalar;
           }
         }
         for (let i = 0; i < outs.length; ++i) {
-          outs[i] = tfc.div(outs[i], getScalar(numSamples)) as Scalar;
+          outs[i] = tfc.div(outs[i], numSamples) as Scalar;
         }
       }
       return outs;

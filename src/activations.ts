@@ -11,7 +11,6 @@
 // Layer activation functions
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
-import {getScalar} from './backend/state';
 import * as K from './backend/tfjs_backend';
 import {ActivationIdentifier} from './keras_format/activation_config';
 import {deserializeKerasObject} from './utils/generic_utils';
@@ -85,7 +84,7 @@ export class Relu6 extends Activation {
   /** @nocollapse */
   static readonly className = 'relu6';
   apply(x: Tensor): Tensor {
-    return tidy(() => tfc.minimum(getScalar(6.0), tfc.relu(x)));
+    return tidy(() => tfc.minimum(6.0, tfc.relu(x)));
   }
 }
 serialization.registerClass(Relu6);

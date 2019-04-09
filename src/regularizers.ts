@@ -12,8 +12,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import {abs, add, Scalar, serialization, sum, Tensor, tidy, zeros} from '@tensorflow/tfjs-core';
-
-import {getScalar} from './backend/state';
 import * as K from './backend/tfjs_backend';
 import {deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
 
@@ -52,20 +50,17 @@ export class L1L2 extends Regularizer {
   /** @nocollapse */
   static className = 'L1L2';
 
-  private readonly l1: Scalar;
-  private readonly l2: Scalar;
+  private readonly l1: number;
+  private readonly l2: number;
   private readonly hasL1: boolean;
   private readonly hasL2: boolean;
   constructor(args?: L1L2Args) {
     super();
 
-    const l1 = args == null || args.l1 == null ? 0.01 : args.l1;
-    const l2 = args == null || args.l2 == null ? 0.01 : args.l2;
-    this.hasL1 = l1 !== 0;
-    this.hasL2 = l2 !== 0;
-
-    this.l1 = getScalar(l1);
-    this.l2 = getScalar(l2);
+    this.l1 = args == null || args.l1 == null ? 0.01 : args.l1;
+    this.l2 = args == null || args.l2 == null ? 0.01 : args.l2;
+    this.hasL1 = this.l1 !== 0;
+    this.hasL2 = this.l2 !== 0;
   }
 
   /**
@@ -87,7 +82,7 @@ export class L1L2 extends Regularizer {
   }
 
   getConfig(): serialization.ConfigDict {
-    return {'l1': this.l1.dataSync()[0], 'l2': this.l2.dataSync()[0]};
+    return {'l1': this.l1, 'l2': this.l2};
   }
 
   /** @nocollapse */

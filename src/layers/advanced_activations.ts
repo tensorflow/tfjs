@@ -15,7 +15,6 @@
 import {clipByValue, elu, leakyRelu, prelu, relu, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import {Softmax as softmaxActivation} from '../activations';
-import {getScalar} from '../backend/state';
 import {cast} from '../backend/tfjs_backend';
 import {Constraint, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
@@ -349,7 +348,6 @@ export class ThresholdedReLU extends Layer {
   /** @nocollapse */
   static className = 'ThresholdedReLU';
   readonly theta: number;
-  private readonly thetaTensor: Tensor;
 
   readonly DEFAULT_THETA = 1.0;
 
@@ -360,12 +358,11 @@ export class ThresholdedReLU extends Layer {
     }
 
     this.theta = args.theta == null ? this.DEFAULT_THETA : args.theta;
-    this.thetaTensor = getScalar(this.theta);
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const x = getExactlyOneTensor(inputs);
-    return x.mul(cast(x.greater(this.thetaTensor), 'float32'));
+    return x.mul(cast(x.greater(this.theta), 'float32'));
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {

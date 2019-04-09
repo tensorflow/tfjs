@@ -14,8 +14,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
-
-import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {nameScope} from '../common';
 import {InputSpec, Layer, LayerArgs, SymbolicTensor} from '../engine/topology';
@@ -523,7 +521,7 @@ export class Bidirectional extends Wrapper {
       } else if (this.mergeMode === 'sum') {
         output = tfc.add(y as Tensor, yRev as Tensor);
       } else if (this.mergeMode === 'ave') {
-        output = tfc.mul(getScalar(0.5), tfc.add(y as Tensor, yRev as Tensor));
+        output = tfc.mul(.5, tfc.add(y as Tensor, yRev as Tensor));
       } else if (this.mergeMode === 'mul') {
         output = tfc.mul(y as Tensor, yRev as Tensor);
       } else if (this.mergeMode == null) {

@@ -12,9 +12,7 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
-
 import {epsilon} from './backend/common';
-import {getScalar} from './backend/state';
 import {deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
 
 /**
@@ -94,7 +92,7 @@ export class MaxNorm extends Constraint {
     return tidy(() => {
       const norms = calcL2Norms(w, this.axis);
       const desired = tfc.clipByValue(norms, 0, this.maxValue);
-      return tfc.mul(w, tfc.div(desired, tfc.add(getScalar(epsilon()), norms)));
+      return tfc.mul(w, tfc.div(desired, tfc.add(epsilon(), norms)));
     });
   }
 
@@ -137,8 +135,7 @@ export class UnitNorm extends Constraint {
 
   apply(w: Tensor): Tensor {
     return tidy(
-        () => tfc.div(
-            w, tfc.add(getScalar(epsilon()), calcL2Norms(w, this.axis))));
+        () => tfc.div(w, tfc.add(epsilon(), calcL2Norms(w, this.axis))));
   }
 
   getConfig(): serialization.ConfigDict {
@@ -221,10 +218,9 @@ export class MinMaxNorm extends Constraint {
       const norms = calcL2Norms(w, this.axis);
       const desired = tfc.add(
           tfc.mul(
-              getScalar(this.rate),
-              tfc.clipByValue(norms, this.minValue, this.maxValue)),
-          tfc.mul(getScalar(1.0 - this.rate), norms));
-      return tfc.mul(w, tfc.div(desired, tfc.add(getScalar(epsilon()), norms)));
+              this.rate, tfc.clipByValue(norms, this.minValue, this.maxValue)),
+          tfc.mul(1.0 - this.rate, norms));
+      return tfc.mul(w, tfc.div(desired, tfc.add(epsilon(), norms)));
     });
   }
 

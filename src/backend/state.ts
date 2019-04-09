@@ -12,8 +12,6 @@
  * Utilities related to persistent state in the backend.
  */
 
-import {DataType, keep, Scalar, scalar} from '@tensorflow/tfjs-core';
-
 /**
  * An ID to track `tf.SymbolicTensor`s and derived classes.
  * Required in different places in engine/topology.ts to identify unique
@@ -38,34 +36,4 @@ export function getUid(prefix = ''): string {
   }
   _uidPrefixes[prefix] += 1;
   return prefix + _uidPrefixes[prefix].toString();
-}
-
-const scalarCache: {[typeKey: string]: {[key: number]: Scalar}} = {};
-
-const DEFAULT_DTYPE: DataType = 'float32';
-
-/**
- * Get scalar, with caching.
- */
-export function getScalar(value: number, dtype?: DataType): Scalar {
-  if (dtype === undefined) {
-    dtype = DEFAULT_DTYPE;
-  }
-  if (scalarCache[dtype] == null) {
-    scalarCache[dtype] = {};
-  }
-  if (scalarCache[dtype][value] == null) {
-    scalarCache[dtype][value] = scalar(value, dtype);
-    keep(scalarCache[dtype][value]);
-  }
-  return scalarCache[dtype][value];
-}
-
-export function disposeScalarCache() {
-  for (const typeKey in scalarCache) {
-    for (const key in scalarCache[typeKey]) {
-      scalarCache[typeKey][key].dispose();
-      delete scalarCache[typeKey][key];
-    }
-  }
 }

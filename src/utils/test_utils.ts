@@ -14,8 +14,6 @@
 
 import {memory, Tensor, test_util} from '@tensorflow/tfjs-core';
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
-
-import {disposeScalarCache} from '../backend/state';
 import {ValueError} from '../errors';
 
 
@@ -59,9 +57,6 @@ export function expectTensorsValuesInRange(
  */
 export function describeMathCPUAndGPU(testName: string, tests: () => void) {
   describeWithFlags(testName, test_util.ALL_ENVS, () => {
-    beforeEach(() => {
-      disposeScalarCache();
-    });
     tests();
   });
 }
@@ -73,9 +68,6 @@ export function describeMathCPUAndGPU(testName: string, tests: () => void) {
  */
 export function describeMathCPU(testName: string, tests: () => void) {
   describeWithFlags(testName, test_util.CPU_ENVS, () => {
-    beforeEach(() => {
-      disposeScalarCache();
-    });
     tests();
   });
 }
@@ -87,9 +79,6 @@ export function describeMathCPU(testName: string, tests: () => void) {
  */
 export function describeMathGPU(testName: string, tests: () => void) {
   describeWithFlags(testName, test_util.WEBGL_ENVS, () => {
-    beforeEach(() => {
-      disposeScalarCache();
-    });
     tests();
   });
 }
