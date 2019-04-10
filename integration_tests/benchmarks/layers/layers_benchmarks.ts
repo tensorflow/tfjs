@@ -23,7 +23,9 @@ import * as tfc from '@tensorflow/tfjs-core';
 import * as tfd from '@tensorflow/tfjs-data';
 import * as tfl from '@tensorflow/tfjs-layers';
 
+// tslint:disable-next-line:max-line-length
 import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelBenchmarkRun, ModelFunctionName, ModelTrainingBenchmarkRun, VersionSet, PythonEnvironmentInfo} from '../types';
+// tslint:disable-next-line:max-line-length
 import {addEnvironmentInfoToFirestore, addOrGetTaskId, addBenchmarkRunsToFirestore, addVersionSetToFirestore} from '../firestore';
 
 export type MultiFunctionModelTaskLog = {[taskName: string]: ModelBenchmarkRun};
@@ -31,9 +33,11 @@ export type MultiFunctionModelTaskLog = {[taskName: string]: ModelBenchmarkRun};
 export interface SuiteLog {
   data: {[modelName: string]: MultiFunctionModelTaskLog};
   environmentInfo: PythonEnvironmentInfo;
-  versionSet: VersionSet
-  // TODO(cais): Add commit hashes.
-};
+  versionSet: VersionSet;
+}
+
+// tslint:disable-next-line:no-any
+declare let __karma__: any;
 
 function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
   const modelNamesAndTimestamps: Array<{
@@ -47,10 +51,9 @@ function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
       continue;
     }
 
-    modelNamesAndTimestamps.push({
-      modelName,
-      timestamp: new Date(taskGroupLog[functionNames[0]].endingTimestampMs).getTime()
-    });
+    const timestamp =
+        new Date(taskGroupLog[functionNames[0]].endingTimestampMs).getTime();
+    modelNamesAndTimestamps.push({modelName, timestamp});
   }
 
   modelNamesAndTimestamps.sort((x, y) => x.timestamp - y.timestamp);
@@ -171,9 +174,9 @@ describe('TF.js Layers Benchmarks', () => {
 
     const sortedModelNames = getChronologicalModelNames(suiteLog);
 
-    console.log('Environoment:');
+    console.log('Environment:');
     console.log(JSON.stringify(environmentInfo, null, 2));
-    console.log('Version set:')
+    console.log('Version set:');
     console.log(JSON.stringify(versionSet, null, 2));
 
     const pyRuns: ModelBenchmarkRun[] = [];
@@ -276,7 +279,8 @@ describe('TF.js Layers Benchmarks', () => {
             `py=${pyRun.averageTimeMs.toFixed(3)}, ` +
             `tfjs=${tfjsRun.averageTimeMs.toFixed(3)}`);
         } else {
-          console.warn(`Skipping task "${functionName}" of model "${modelName}"`);
+          throw new Error(
+              `Unknown task "${functionName}" from model "${modelName}"`);
         }
 
         tfc.dispose({xs, ys});
@@ -287,7 +291,6 @@ describe('TF.js Layers Benchmarks', () => {
         pyRuns.push(pyRun);
       }
     }
-
 
     console.log(
       `Writing ${tfjsRuns.length} TensorFlow.js TaskLogs to Firestore...`);

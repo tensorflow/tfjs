@@ -16,6 +16,7 @@
  */
 
 import firebase from 'firebase/app';
+// tslint:disable-next-line:max-line-length
 import {EnvironmentInfo, Task, TaskType, VersionSet, BenchmarkRun} from './types';
 
 let firebaseInitialized = false;
@@ -78,10 +79,17 @@ export async function addVersionSetToFirestore(
 }
 
 /**
+ * Add a task if it doesn't exist in the TaskCollection.
  *
+ * @param taskType Task type
+ * @param taskName Task name. For a model task, this is the model's name.
+ * @param functionName Function name. For a model task, options are predict,
+ *   fit and fitDataset().
+ * @return Task ID from TaskCollection.
  */
 export async function addOrGetTaskId(
-    taskType: TaskType, taskName: string, functionName?: string): Promise<string> {
+    taskType: TaskType, taskName: string, functionName?: string):
+    Promise<string> {
   await initFirebase();
 
   const db = firebase.firestore();
