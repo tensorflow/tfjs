@@ -23,7 +23,7 @@ import * as shell from 'shelljs';
  * @param cmd The bash command to execute.
  * @returns stdout returned by the executed bash script.
  */
-export function $(cmd) {
+export function $(cmd: string) {
   const result = shell.exec(cmd, {silent: true});
   if (result.code > 0) {
     console.log('$', cmd);
@@ -92,7 +92,7 @@ export async function getReleaseNotesDraft(
   for (let i = 0; i < repoCommits.length; i++) {
     const repoCommit = repoCommits[i];
 
-    const getUsernameForCommit = async sha => {
+    const getUsernameForCommit = async (sha: string) => {
       const result = await octokit.repos.getCommit(
           {owner: 'tensorflow', repo: repoCommit.repo.identifier, sha});
       return result.data.author.login;
@@ -169,7 +169,7 @@ export async function getReleaseNotesDraft(
       }
     }
 
-    const repoLines = [];
+    const repoLines: string[] = [];
     SECTION_TAGS.forEach(({tag, section}) => {
       if (tagEntries[tag].length !== 0) {
         const sectionNotes = tagEntries[tag].join('\n');
