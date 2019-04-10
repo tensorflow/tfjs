@@ -15,7 +15,7 @@
 
 # Usage:
 #   benchmarks.sh
-#     This runs the core benchmarks
+#     This runs the core benchmarks.
 #   benchmarks.sh --layers
 #     This runs the layers benchmarks in the browser.
 #   benchmakrs.sh --node

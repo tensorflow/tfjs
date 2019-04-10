@@ -57,7 +57,7 @@ git checkout master && git pull
 HASH_LAYERS=`git rev-parse HEAD`
 # TODO(cais): This should ideally call:
 #   yarn yalc link '@tensorflow/tfjs-core'
-# so that tfjs-layers can be built agains the HEAD of tfjs-core.
+# so that tfjs-layers can be built against the HEAD of tfjs-core.
 # But this doesn't work in general because the two repos frequently
 # go out of sync, causing build-time and run-time errors. So right
 # now we are just using the version of tfjs-core that tfjs-layers
@@ -134,15 +134,6 @@ if [[ ! -d "${DATA_ROOT}" ]]; then
   exit 1
 fi
 
-echo "Starting benchmark tests..."
+echo "Starting benchmark karma tests..."
 yarn karma start karma.conf.layers.js \
     --hashes="{\"tfjs-core\":\"${HASH_CORE}\",\"tfjs-layers\":\"${HASH_LAYERS}\",\"tfjs-converter\":\"${HASH_CONVERTER}\",\"tfjs-data\": \"${HASH_DATA}\"}"
-
-# echo
-# echo "-----------------------------------------------------------"
-# echo "Benchmarks page will open in your browser shortly...       "
-# echo
-# echo "Once the page is up, click the 'Run Benchmarks' button     "
-# echo "to run the benchmarks in the browser.                      "
-# echo "-----------------------------------------------------------"
-# echo

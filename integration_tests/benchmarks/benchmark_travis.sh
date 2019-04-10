@@ -21,6 +21,9 @@ yarn lint
 
 if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
 then
+  # TODO(cais, annyuan): The git and build commands below should be deduplicated
+  # with benchmarks.sh.
+
   # Run the first karma separately so it can download the BrowserStack binary
   # without conflicting with others.
   echo 'Run first karma.'

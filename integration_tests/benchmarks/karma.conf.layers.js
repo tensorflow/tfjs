@@ -27,11 +27,11 @@ const karmaTypescriptConfig = {
     if (config.firebaseKey) {
       args.push('--firebaseKey', config.firebaseKey);
     }
-    if (config.travis) {
-      args.push('--travis');
-    }
     if (config.hashes) {
       args.push('--hashes', config.hashes);
+    }
+    if (config.travis) {
+      args.push('--travis');
     }
 
     config.set({
