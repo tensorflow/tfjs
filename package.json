@@ -49,7 +49,7 @@
     "yalc": "~1.0.0-pre.21"
   },
   "optionalDependencies": {
-    "rollup-plugin-visualizer": "~1.1.0"
+    "rollup-plugin-visualizer": "~1.1.1"
   },
   "scripts": {
     "build": "tsc",
