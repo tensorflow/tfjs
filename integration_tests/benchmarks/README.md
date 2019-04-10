@@ -12,8 +12,15 @@ TODO(annyuan): Add doc.
 
 To run the browser-based layers benchmarks, do:
 
-```
+```sh
 yarn benchmark --layers
+```
+
+Use the `--log` flag to cause the benchmark data and related metadata to be
+logged to Cloud Firestore.
+
+```sh
+yarn benchmark --layers --log
 ```
 
 ### Running tfjs-node Benchmarks

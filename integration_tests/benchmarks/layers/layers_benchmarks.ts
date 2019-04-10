@@ -39,6 +39,7 @@ export interface SuiteLog {
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
 
+/** Extract commit hashes of the tfjs repos from karma flags. */
 function getCommitHashesFromKarmaFlags(karmaFlags: string[]) {
   for (let i = 0; i < karmaFlags.length; ++i) {
     if (karmaFlags[i] === '--hashes') {
@@ -50,6 +51,22 @@ function getCommitHashesFromKarmaFlags(karmaFlags: string[]) {
   }
 }
 
+/** Extrat the "log" boolean flag from karma flags. */
+function getLogFlagFromKarmaFlags(karmaFlags: string[]) {
+  for (const flag of karmaFlags) {
+    if (flag === '--log') {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Get model names in the order in which they are benchmared in Python.
+ *
+ * @param suiteLog
+ * @returns Model names sorted by ascending timestamps.
+ */
 function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
   const modelNamesAndTimestamps: Array<{
     modelName: string,
@@ -71,6 +88,16 @@ function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
   return modelNamesAndTimestamps.map(object => object.modelName);
 }
 
+/**
+ * Make inputs and outputs of random values based on model's topology.
+ *
+ * @param model The model in question. Models with multiple inputs and/or
+ *   outputs are supported.
+ * @param batchSize Batch size: number of examples.
+ * @returns An object with keys:
+ *   - xs: concrete input tensors with uniform-random values.
+ *   - ys: concrete output tensors with uniform-random values.
+ */
 function getRandomInputsAndOutputs(model: tfl.LayersModel, batchSize: number):
     {xs: tfc.Tensor|tfc.Tensor[], ys: tfc.Tensor|tfc.Tensor[]} {
   return tfc.tidy(() => {
@@ -94,6 +121,7 @@ function getRandomInputsAndOutputs(model: tfl.LayersModel, batchSize: number):
   });
 }
 
+/** Call await data() on tensor(s) and dispose the tensor(s). */
 async function syncDataAndDispose(tensors: tfc.Tensor|tfc.Tensor[]) {
   if (Array.isArray(tensors)) {
     for (const out of tensors) {
@@ -105,12 +133,22 @@ async function syncDataAndDispose(tensors: tfc.Tensor|tfc.Tensor[]) {
   tfc.dispose(tensors);
 }
 
+/**
+ * Get browser environment type.
+ *
+ * The type information includes the browser name and operating-system name.
+ */
 function getBrowserEnvironmentType(): BrowserEnvironmentType {
   const osName = detectBrowser.detectOS(navigator.userAgent).toLowerCase();
   const browserName = detectBrowser.detect().name.toLowerCase();
   return `${browserName}-${osName}` as BrowserEnvironmentType;
 }
 
+/**
+ * Get browser environment information.
+ *
+ * The info includes: browser type and userAgent string.
+ */
 function getBrowserEnvironmentInfo(): BrowserEnvironmentInfo {
   return {
     type: getBrowserEnvironmentType(),
@@ -154,6 +192,8 @@ describe('TF.js Layers Benchmarks', () => {
   }
 
   it('Benchmark models', async () => {
+    const log = getLogFlagFromKarmaFlags(__karma__.config.args);
+
     const taskType = 'model';
     const environmentInfo = getBrowserEnvironmentInfo();
     const versionSet: VersionSet = {
@@ -169,18 +209,22 @@ describe('TF.js Layers Benchmarks', () => {
         await (await fetch(BENCHMARKS_JSON_URL)).json() as SuiteLog;
     const pyEnvironmentInfo = suiteLog.environmentInfo;
     const pyEnvironmentId =
-        await addEnvironmentInfoToFirestore(pyEnvironmentInfo);
+        log ? await addEnvironmentInfoToFirestore(pyEnvironmentInfo) : null;
 
     // Add environment info to firestore and retrieve the doc ID.
     const tfjsEnvironmentId =
-        await addEnvironmentInfoToFirestore(environmentInfo);
-    const versionSetId = await addVersionSetToFirestore(versionSet);
+        log ? await addEnvironmentInfoToFirestore(environmentInfo) : null;
+    const versionSetId =
+        log ? await addVersionSetToFirestore(versionSet) : null;
     versionSet.commitHashes =
         getCommitHashesFromKarmaFlags(__karma__.config.args);
 
-    console.log(
-        `environmentId = ${tfjsEnvironmentId}; versionId = ${versionSetId}; ` +
-        `pyEnvironmentId: ${pyEnvironmentId}`);
+    if (log) {
+      console.log(
+          `environmentId = ${tfjsEnvironmentId}; ` +
+          `versionId = ${versionSetId}; ` +
+          `pyEnvironmentId: ${pyEnvironmentId}`);
+    }
 
     const sortedModelNames = getChronologicalModelNames(suiteLog);
 
@@ -207,7 +251,8 @@ describe('TF.js Layers Benchmarks', () => {
         const pyRun = taskGroupLog[functionName] as ModelBenchmarkRun;
 
         // Make sure that the task type is logged in Firestore.
-        const taskId = await addOrGetTaskId(taskType, modelName, functionName);
+        const taskId = log ?
+            await addOrGetTaskId(taskType, modelName, functionName) : null;
 
         checkBatchSize(pyRun.batchSize);
 
@@ -302,12 +347,14 @@ describe('TF.js Layers Benchmarks', () => {
       }
     }
 
-    console.log(
-      `Writing ${tfjsRuns.length} TensorFlow.js TaskLogs to Firestore...`);
-    await addBenchmarkRunsToFirestore(tfjsRuns);
-    console.log(
-        `Writing ${pyRuns.length} Python TaskLogs to Firestore...`);
-    await addBenchmarkRunsToFirestore(pyRuns);
-    console.log(`Done.`);
+    if (log) {
+      console.log(
+        `Writing ${tfjsRuns.length} TensorFlow.js TaskLogs to Firestore...`);
+      await addBenchmarkRunsToFirestore(tfjsRuns);
+      console.log(
+          `Writing ${pyRuns.length} Python TaskLogs to Firestore...`);
+      await addBenchmarkRunsToFirestore(pyRuns);
+      console.log(`Done.`);
+    }
   });
 });
