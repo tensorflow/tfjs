@@ -3586,10 +3586,10 @@ rollup-plugin-typescript2@~0.20.1:
     rollup-pluginutils "2.4.1"
     tslib "1.9.3"
 
-rollup-plugin-visualizer@~1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/rollup-plugin-visualizer/-/rollup-plugin-visualizer-1.1.0.tgz#56b7c340a66acfae4ae6476fddca5754907655c6"
-  integrity sha512-K+TbgK3ds5gpIH5dgM39qD+txbWL/gRbws4Kq0b/Bg2IZpMlB7YwAgo97KmBvWN5tCQdFhsBVtzSQ0NzL9uKZg==
+rollup-plugin-visualizer@~1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-visualizer/-/rollup-plugin-visualizer-1.1.1.tgz#454ae0aed23845407ebfb81cc52114af308d6d90"
+  integrity sha512-7xkSKp+dyJmSC7jg2LXqViaHuOnF1VvIFCnsZEKjrgT5ZVyiLLSbeszxFcQSfNJILphqgAEmWAUz0Z4xYScrRw==
   dependencies:
     mkdirp "^0.5.1"
     opn "^5.4.0"
