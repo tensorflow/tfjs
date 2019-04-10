@@ -263,7 +263,7 @@ describe('TF.js Layers Benchmarks', () => {
         if (functionName === 'predict') {
           // Warm-up predict() runs.
           for (let n = 0; n < pyRun.numWarmUpIterations; ++n) {
-            const predictOut = model.predict(xs)
+            const predictOut = model.predict(xs);
             await syncData(predictOut);
             tfc.dispose(predictOut);
           }
@@ -272,7 +272,7 @@ describe('TF.js Layers Benchmarks', () => {
           const ts: number[] = [];
           for (let n = 0; n < pyRun.numBenchmarkedIterations; ++n) {
             const t0 = tfc.util.now();
-            const predictOut = model.predict(xs)
+            const predictOut = model.predict(xs);
             await syncData(predictOut);
             ts.push(tfc.util.now() - t0);
             tfc.dispose(predictOut);
