@@ -30,6 +30,9 @@ const karmaTypescriptConfig = {
     if (config.travis) {
       args.push('--travis');
     }
+    if (config.hashes) {
+      args.push('--hashes', config.hashes);
+    }
 
     config.set({
       frameworks: ['jasmine', 'karma-typescript'],

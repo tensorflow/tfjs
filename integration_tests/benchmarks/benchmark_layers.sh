@@ -40,6 +40,7 @@ if [[ ! -d "tfjs-core" ]]; then
   git clone https://github.com/tensorflow/tfjs-core.git --depth 5
 fi
 cd tfjs-core
+git checokut master && git pull
 HASH_CORE=`git rev-parse HEAD`
 rm -rf dist/ node_modules/ && yarn
 yarn build && yarn yalc publish
@@ -52,6 +53,7 @@ if [[ ! -d "tfjs-layers" ]]; then
   git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
 fi
 cd tfjs-layers
+git checokut master && git pull
 HASH_LAYERS=`git rev-parse HEAD`
 rm -rf dist/ node_modules/ && yarn
 yarn build && rollup -c && yalc publish
@@ -64,6 +66,7 @@ if [[ ! -d "tfjs-converter" ]]; then
   git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
 fi
 cd tfjs-converter
+git checokut master && git pull
 HASH_CONVERTER=`git rev-parse HEAD`
 rm -rf dist/ node_modules/ && yarn
 yarn build && yalc publish
@@ -76,6 +79,7 @@ if [[ ! -d "tfjs-data" ]]; then
   git clone https://github.com/tensorflow/tfjs-data.git --depth 5
 fi
 cd tfjs-data
+git checokut master && git pull
 HASH_DATA=`git rev-parse HEAD`
 rm -rf dist/ && yarn && yarn build && yalc publish
 
@@ -123,7 +127,8 @@ if [[ ! -d "${DATA_ROOT}" ]]; then
 fi
 
 echo "Starting benchmark tests..."
-yarn karma start karma.conf.layers.js
+yarn karma start karma.conf.layers.js \
+    --hashes="{\"tfjs-core\":\"${HASH_CORE}\",\"tfjs-layers\":\"${HASH_LAYERS}\",\"tfjs-converter\":\"${HASH_CONVERTER}\",\"tfjs-data\": \"${HASH_DATA}\"}"
 
 # echo
 # echo "-----------------------------------------------------------"

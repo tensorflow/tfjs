@@ -292,26 +292,6 @@ def _get_python_environment_info():
   return environment_info
 
 
-def _get_version_set():
-  if not FLAGS.hash_converter:
-    raise ValueError('Missing --hash_converter')
-  if not FLAGS.hash_core:
-    raise ValueError('Missing --hash_core')
-  if not FLAGS.hash_data:
-    raise ValueError('Missing --hash_data')
-  if not FLAGS.hash_layers:
-    raise ValueError('Missing --hash_layers')
-
-  return {  # For signature see `VersionSet` in types.ts.
-    'commitHashes': {
-      'tfjs-converter': FLAGS.hash_converter,
-      'tfjs-core': FLAGS.hash_core,
-      'tfjs-data': FLAGS.hash_data,
-      'tfjs-layers': FLAGS.hash_layers,
-    }
-  }
-
-
 def main():
   environment_info = _get_python_environment_info()
   print('Environment info:')
@@ -320,11 +300,8 @@ def main():
   suite_log = dict()  # For schema, see `SuiteLog` in types.ts.
   suite_log['data'] = {}
   suite_log['environmentInfo'] = environment_info
-  suite_log['versionSet'] =  _get_version_set()
-  # TODO(cais): Populate the commitHash field for TensorFlow.js repos.
 
   # Dense model.
-  # optimizer = tf.keras.optimizers.SGD()
   optimizer = tf.train.GradientDescentOptimizer(0.1)
   loss = 'mean_squared_error'
   batch_size = 128

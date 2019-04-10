@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import * as math from 'mathjs';
 import * as detectBrowser from 'detect-browser';
+import * as math from 'mathjs';
 
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
@@ -38,6 +38,17 @@ export interface SuiteLog {
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
+
+function getCommitHashesFromKarmaFlags(karmaFlags: string[]) {
+  for (let i = 0; i < karmaFlags.length; ++i) {
+    if (karmaFlags[i] === '--hashes') {
+      if (karmaFlags[i + 1] == null) {
+        throw new Error('Missing value for flag --hashes');
+      }
+      return JSON.parse(karmaFlags[i + 1]);
+    }
+  }
+}
 
 function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
   const modelNamesAndTimestamps: Array<{
@@ -97,7 +108,6 @@ async function syncDataAndDispose(tensors: tfc.Tensor|tfc.Tensor[]) {
 function getBrowserEnvironmentType(): BrowserEnvironmentType {
   const osName = detectBrowser.detectOS(navigator.userAgent).toLowerCase();
   const browserName = detectBrowser.detect().name.toLowerCase();
-
   return `${browserName}-${osName}` as BrowserEnvironmentType;
 }
 
@@ -144,6 +154,8 @@ describe('TF.js Layers Benchmarks', () => {
   }
 
   it('Benchmark models', async () => {
+    console.log('karma flags:', __karma__.config.args);  // DEBUG
+
     const taskType = 'model';
     const environmentInfo = getBrowserEnvironmentInfo();
     const versionSet: VersionSet = {
@@ -160,13 +172,13 @@ describe('TF.js Layers Benchmarks', () => {
     const pyEnvironmentInfo = suiteLog.environmentInfo;
     const pyEnvironmentId =
         await addEnvironmentInfoToFirestore(pyEnvironmentInfo);
-    const pyVersionSet = suiteLog.versionSet;
 
     // Add environment info to firestore and retrieve the doc ID.
     const tfjsEnvironmentId =
         await addEnvironmentInfoToFirestore(environmentInfo);
     const versionSetId = await addVersionSetToFirestore(versionSet);
-    versionSet.commitHashes = pyVersionSet.commitHashes;
+    versionSet.commitHashes =
+        getCommitHashesFromKarmaFlags(__karma__.config.args);
 
     console.log(
         `environmentId = ${tfjsEnvironmentId}; versionId = ${versionSetId}; ` +
