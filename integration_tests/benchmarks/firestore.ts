@@ -30,6 +30,12 @@ async function initFirebase() {
   }
 }
 
+/**
+ * Add BenchmarkRun data to Firestore.
+ *
+ * @param run An array of BenchmarkRun, i.e., the results from a number
+ *   of benchmark tasks.
+ */
 export async function addBenchmarkRunsToFirestore(run: BenchmarkRun[]) {
   await initFirebase();
 

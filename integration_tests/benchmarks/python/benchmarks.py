@@ -451,6 +451,10 @@ def main():
             train_epochs,
             os.path.join(FLAGS.data_root, model_name)))
 
+  # TODO(cais): Add GraphModels.
+  # TODO(cais): Add fitDataset() calls (i.e., equivalent to fit() with a
+  #   tf.data.Dataset object i nPython).
+
   with open(os.path.join(FLAGS.data_root, 'benchmarks.json'), 'wt') as f:
     json.dump(suite_log, f)
 
