@@ -374,13 +374,13 @@ def main():
   # "Error: Cannot evaluate flag 'EPSILON': no evaluation function found."
   # optimizer = tf.train.RMSPropOptimizer(1e-3)
   # loss = 'categorical_crossentropy'
+  # train_epochs = 10
   optimizer = None
   loss = None
   train_epochs = 0
   input_shape = [20, 20]
   target_shape = [20]
   batch_size = 128
-  train_epochs = 10
   names_fns_and_descriptions = [
       ("rnn-%s" % rnn_type,
        functools.partial(rnn_model_fn, rnn_type),

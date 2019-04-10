@@ -58,6 +58,9 @@ if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
   rm -rf "${VENV_DIR}"
 fi
 
+# Clean up virtualenv directory.
+rm -rf "${VENV_DIR}"
+
 if [[ ! -d "${DATA_ROOT}" ]]; then
   echo "Cannot find data root directory: ${DATA_ROOT}"
   exit 1
@@ -87,7 +90,6 @@ fi
 cd tfjs-layers
 HASH_LAYERS=`git rev-parse HEAD`
 rm -rf dist/ node_modules/ && yarn
-# yarn yalc link '@tensorflow/tfjs-core'
 yarn build && rollup -c && yalc publish
 
 cd ..
