@@ -24,14 +24,13 @@
 set -e
 
 SUITE="core"
-while [[ ! -z "$1" ]]; do
-  if [[ "$1" == "--layers" ]]; then
+OTHER_ARGS=""
+for ARG in "$@"; do
+  if [[ "${ARG}" == "--layers" ]]; then
     SUITE="layers"
   else
-    echo "ERROR: Unrecognized flag: $1"
-    exit 1
+    OTHER_ARGS="${OTHER_ARGS} ${ARG} "
   fi
-  shift
 done
 
 echo "SUITE: ${SUITE}"
@@ -40,7 +39,7 @@ if [[ "${SUITE}" == "core" ]]; then
   karma start --firebaseKey "${FIREBASE_KEY}"
 elif [[ "${SUITE}" == "layers" ]]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  "${SCRIPT_DIR}/benchmark_layers.sh" $@
+  "${SCRIPT_DIR}/benchmark_layers.sh" ${OTHER_ARGS}
 elif [[ "${SUITE}" == "node" ]]; then
   echo "ERROR: node benchmark suite is not implemented yet."
   exit 1

@@ -27,7 +27,7 @@ const karmaTypescriptConfig = {
     if (config.firebaseKey) {
       args.push('--firebaseKey', config.firebaseKey);
     }
-    if (config.firebaseKey) {
+    if (config.log) {
       args.push('--log', config.log);
     }
     if (config.hashes) {

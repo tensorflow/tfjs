@@ -14,9 +14,13 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 SKIP_PY_BENCHMAKRS=0
+LOG_FLAG=""
 while true; do
   if [[ "$1" == "--skip_py_benchmarks" ]]; then
     SKIP_PY_BENCHMAKRS=1
+    shift
+  elif [[ "$1" == "--log" ]]; then
+    LOG_FLAG="--log"
     shift
   elif [[ -z "$1" ]]; then
     break
@@ -128,4 +132,5 @@ fi
 
 echo "Starting benchmark karma tests..."
 yarn karma start karma.conf.layers.js \
+    "${LOG_FLAG}" \
     --hashes="{\"tfjs-core\":\"${HASH_CORE}\",\"tfjs-layers\":\"${HASH_LAYERS}\",\"tfjs-converter\":\"${HASH_CONVERTER}\",\"tfjs-data\": \"${HASH_DATA}\"}"

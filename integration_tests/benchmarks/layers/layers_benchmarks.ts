@@ -40,22 +40,24 @@ export interface SuiteLog {
 declare let __karma__: any;
 
 /** Extract commit hashes of the tfjs repos from karma flags. */
-function getCommitHashesFromKarmaFlags(karmaFlags: string[]) {
+function getCommitHashesFromKarmaFlags(
+    karmaFlags: Array<boolean|number|string>) {
   for (let i = 0; i < karmaFlags.length; ++i) {
     if (karmaFlags[i] === '--hashes') {
       if (karmaFlags[i + 1] == null) {
         throw new Error('Missing value for flag --hashes');
       }
-      return JSON.parse(karmaFlags[i + 1]);
+      return JSON.parse(karmaFlags[i + 1] as string);
     }
   }
 }
 
 /** Extrat the "log" boolean flag from karma flags. */
-function getLogFlagFromKarmaFlags(karmaFlags: string[]) {
-  for (const flag of karmaFlags) {
-    if (flag === '--log') {
-      return true;
+function getLogFlagFromKarmaFlags(
+    karmaFlags: Array<boolean|number|string>): boolean {
+  for (let i = 0; i < karmaFlags.length; ++i) {
+    if (karmaFlags[i] === '--log') {
+      return karmaFlags[i + 1] === true;
     }
   }
   return false;
