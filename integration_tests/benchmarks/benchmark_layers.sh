@@ -13,13 +13,9 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-DATA_PORT=8090
 SKIP_PY_BENCHMAKRS=0
 while true; do
-  if [[ "$1" == "--port" ]]; then
-    DATA_PORT=$2
-    shift 2
-  elif [[ "$1" == "--skip_py_benchmarks" ]]; then
+  if [[ "$1" == "--skip_py_benchmarks" ]]; then
     SKIP_PY_BENCHMAKRS=1
     shift
   elif [[ -z "$1" ]]; then
@@ -113,11 +109,7 @@ if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
   pip install -r python/requirements.txt
 
   echo "Running Python Keras benchmarks..."
-  python "${SCRIPT_DIR}/python/benchmarks.py" "${DATA_ROOT}" \
-      --hash_converter="${HASH_CONVERTER}" \
-      --hash_core="${HASH_CORE}" \
-      --hash_data="${HASH_DATA}" \
-      --hash_layers="${HASH_LAYERS}"
+  python "${SCRIPT_DIR}/python/benchmarks.py" "${DATA_ROOT}"
 fi
 
 if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then

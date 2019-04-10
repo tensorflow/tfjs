@@ -154,8 +154,6 @@ describe('TF.js Layers Benchmarks', () => {
   }
 
   it('Benchmark models', async () => {
-    console.log('karma flags:', __karma__.config.args);  // DEBUG
-
     const taskType = 'model';
     const environmentInfo = getBrowserEnvironmentInfo();
     const versionSet: VersionSet = {
