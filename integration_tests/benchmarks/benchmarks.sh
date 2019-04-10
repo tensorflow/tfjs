@@ -14,24 +14,37 @@
 # =============================================================================
 
 # Usage:
-#   benchmarks.sh <SUITE>
-#
-# Args:
-#   SUITE Name of the benchmark suite to run: core | layers | node
+#   benchmarks.sh
+#     This runs the core benchmarks
+#   benchmarks.sh --layers
+#     This runs the layers benchmarks in the browser.
+#   benchmakrs.sh --node
+#     This runs tfjs-node benchmarks (TODO(cais): Implement it.)
 
 set -e
 
-SUITE=$1
-if [[ -z "${SUITE}" ]]; then
-  echo "ERORR: suite name is not specific. Options: core | layers | node" 2>&1
-  exit 1
-elif [[ "${SUITE}" == "core" ]]; then
-  karma start --firebaseKey $FIREBASE_KEY
+SUITE="core"
+while [[ ! -z "$1" ]]; do
+  if [[ "$1" == "--layers" ]]; then
+    SUITE="layers"
+  else
+    echo "ERROR: Unrecognized flag: $1"
+    exit 1
+  fi
+  shift
+done
+
+echo "SUITE: ${SUITE}"
+
+if [[ "${SUITE}" == "core" ]]; then
+  karma start --firebaseKey "${FIREBASE_KEY}"
 elif [[ "${SUITE}" == "layers" ]]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  shift
   "${SCRIPT_DIR}/benchmark_layers.sh" $@
 elif [[ "${SUITE}" == "node" ]]; then
   echo "ERROR: node benchmark suite is not implemented yet."
+  exit 1
+else
+  echo "ERROR: Unrecognized suite name: ${SUITE}"
   exit 1
 fi

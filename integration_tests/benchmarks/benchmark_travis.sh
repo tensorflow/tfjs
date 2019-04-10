@@ -48,8 +48,10 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-layers'
 
-  echo 'Use latest version of tfjs-converter'
-  git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
+  if [[ ! -d "tfjs-converter" ]]; then
+    echo 'Use latest version of tfjs-converter'
+    git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
+  fi
   cd tfjs-converter
   HASH_CONVERTER=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
@@ -57,8 +59,10 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-converter'
 
-  echo 'Use latest version of tfjs-data'
-  git clone https://github.com/tensorflow/tfjs-data.git --depth 5
+  if [[ ! -d "tfjs-data" ]]; then
+    echo 'Use latest version of tfjs-data'
+    git clone https://github.com/tensorflow/tfjs-data.git --depth 5
+  fi
   cd tfjs-data
   HASH_DATA=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
