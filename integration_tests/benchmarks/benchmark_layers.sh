@@ -40,7 +40,6 @@ if [[ ! -d "tfjs-core" ]]; then
   git clone https://github.com/tensorflow/tfjs-core.git --depth 5
 fi
 cd tfjs-core
-git checkout master && git pull
 HASH_CORE=`git rev-parse HEAD`
 rm -rf dist/ node_modules/ && yarn
 yarn build && yarn yalc publish
@@ -53,7 +52,6 @@ if [[ ! -d "tfjs-layers" ]]; then
   git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
 fi
 cd tfjs-layers
-git checkout master && git pull
 HASH_LAYERS=`git rev-parse HEAD`
 # TODO(cais): This should ideally call:
 #   yarn yalc link '@tensorflow/tfjs-core'
@@ -74,7 +72,6 @@ if [[ ! -d "tfjs-converter" ]]; then
   git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
 fi
 cd tfjs-converter
-git checkout master && git pull
 HASH_CONVERTER=`git rev-parse HEAD`
 rm -rf dist/ node_modules/ && yarn
 yarn build && yalc publish
@@ -87,7 +84,6 @@ if [[ ! -d "tfjs-data" ]]; then
   git clone https://github.com/tensorflow/tfjs-data.git --depth 5
 fi
 cd tfjs-data
-git checkout master && git pull
 HASH_DATA=`git rev-parse HEAD`
 rm -rf dist/ && yarn && yarn build && yalc publish
 

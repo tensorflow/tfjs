@@ -52,7 +52,7 @@ function getCommitHashesFromKarmaFlags(
   }
 }
 
-/** Extrat the "log" boolean flag from karma flags. */
+/** Extract the "log" boolean flag from karma flags. */
 function getLogFlagFromKarmaFlags(
     karmaFlags: Array<boolean|number|string>): boolean {
   for (let i = 0; i < karmaFlags.length; ++i) {
@@ -64,7 +64,7 @@ function getLogFlagFromKarmaFlags(
 }
 
 /**
- * Get model names in the order in which they are benchmared in Python.
+ * Get model names in the order in which they are benchmarked in Python.
  *
  * @param suiteLog
  * @returns Model names sorted by ascending timestamps.
@@ -123,16 +123,14 @@ function getRandomInputsAndOutputs(model: tfl.LayersModel, batchSize: number):
   });
 }
 
-/** Call await data() on tensor(s) and dispose the tensor(s). */
-async function syncDataAndDispose(tensors: tfc.Tensor|tfc.Tensor[]) {
+/** Call await data() on tensor(s). */
+async function syncData(tensors: tfc.Tensor|tfc.Tensor[]) {
   if (Array.isArray(tensors)) {
-    for (const out of tensors) {
-      await out.data();
-    }
+    const promises = tensors.map(tensor => tensor.data());
+    await Promise.all(promises);
   } else {
     await tensors.data();
   }
-  tfc.dispose(tensors);
 }
 
 /**
@@ -265,15 +263,19 @@ describe('TF.js Layers Benchmarks', () => {
         if (functionName === 'predict') {
           // Warm-up predict() runs.
           for (let n = 0; n < pyRun.numWarmUpIterations; ++n) {
-            await syncDataAndDispose(model.predict(xs));
+            const predictOut = model.predict(xs)
+            await syncData(predictOut);
+            tfc.dispose(predictOut);
           }
 
           // Benchmarked predict() runs.
           const ts: number[] = [];
           for (let n = 0; n < pyRun.numBenchmarkedIterations; ++n) {
             const t0 = tfc.util.now();
-            await syncDataAndDispose(model.predict(xs));
+            const predictOut = model.predict(xs)
+            await syncData(predictOut);
             ts.push(tfc.util.now() - t0);
+            tfc.dispose(predictOut);
           }
 
           // Format data for predict().
