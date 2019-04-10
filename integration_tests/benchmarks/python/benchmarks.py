@@ -292,6 +292,26 @@ def _get_python_environment_info():
   return environment_info
 
 
+def _get_version_set():
+  if not FLAGS.hash_converter:
+    raise ValueError('Missing --hash_converter')
+  if not FLAGS.hash_core:
+    raise ValueError('Missing --hash_core')
+  if not FLAGS.hash_data:
+    raise ValueError('Missing --hash_data')
+  if not FLAGS.hash_layers:
+    raise ValueError('Missing --hash_layers')
+
+  return {  # For signature see `VersionSet` in types.ts.
+    'commitHashes': {
+      'tfjs-converter': FLAGS.hash_converter,
+      'tfjs-core': FLAGS.hash_core,
+      'tfjs-data': FLAGS.hash_data,
+      'tfjs-layers': FLAGS.hash_layers,
+    }
+  }
+
+
 def main():
   environment_info = _get_python_environment_info()
   print('Environment info:')
@@ -300,6 +320,7 @@ def main():
   suite_log = dict()  # For schema, see `SuiteLog` in types.ts.
   suite_log['data'] = {}
   suite_log['environmentInfo'] = environment_info
+  suite_log['versionSet'] =  _get_version_set()
   # TODO(cais): Populate the commitHash field for TensorFlow.js repos.
 
   # Dense model.
@@ -463,6 +484,14 @@ if __name__ == '__main__':
       'data_root',
       type=str,
       help='Local path for saving the results of benchmarks.')
+  parser.add_argument(
+      '--hash_converter', type=str, help='Commit hash of tfjs-conveter')
+  parser.add_argument(
+      '--hash_core', type=str, help='Commit hash of tfjs-core')
+  parser.add_argument(
+      '--hash_data', type=str, help='Commit hash of tfjs-data')
+  parser.add_argument(
+      '--hash_layers', type=str, help='Commit hash of tfjs-layers')
 
   FLAGS, _ = parser.parse_known_args()
   main()

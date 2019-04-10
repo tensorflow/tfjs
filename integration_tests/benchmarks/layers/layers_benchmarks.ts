@@ -16,13 +16,13 @@
  */
 
 import * as math from 'mathjs';
+import * as detectBrowser from 'detect-browser';
+
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
 import * as tfd from '@tensorflow/tfjs-data';
 import * as tfl from '@tensorflow/tfjs-layers';
-import * as detectBrowser from 'detect-browser';
 
-// import {logSuiteLog} from '../firebase';
 import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelBenchmarkRun, ModelFunctionName, ModelTrainingBenchmarkRun, VersionSet, PythonEnvironmentInfo} from '../types';
 import {addEnvironmentInfoToFirestore, addOrGetTaskId, addBenchmarkRunsToFirestore, addVersionSetToFirestore} from '../firestore';
 
@@ -31,6 +31,7 @@ export type MultiFunctionModelTaskLog = {[taskName: string]: ModelBenchmarkRun};
 export interface SuiteLog {
   data: {[modelName: string]: MultiFunctionModelTaskLog};
   environmentInfo: PythonEnvironmentInfo;
+  versionSet: VersionSet
   // TODO(cais): Add commit hashes.
 };
 
@@ -151,19 +152,18 @@ describe('TF.js Layers Benchmarks', () => {
       }
     };
 
-    // Add environment info to firestore and retrieve the doc ID.
-    const tfjsEnvironmentId =
-        await addEnvironmentInfoToFirestore(environmentInfo);
-    const versionSetId = await addVersionSetToFirestore(versionSet);
-    // TODO(cais): If run from HEAD, get the commit hashes.
-
     const suiteLog =
         await (await fetch(BENCHMARKS_JSON_URL)).json() as SuiteLog;
     const pyEnvironmentInfo = suiteLog.environmentInfo;
     const pyEnvironmentId =
         await addEnvironmentInfoToFirestore(pyEnvironmentInfo);
-    // console.log(
-    //     `pyEnvironmentInfo: ${JSON.stringify(pyEnvironmentInfo, null, 2)}`);
+    const pyVersionSet = suiteLog.versionSet;
+
+    // Add environment info to firestore and retrieve the doc ID.
+    const tfjsEnvironmentId =
+        await addEnvironmentInfoToFirestore(environmentInfo);
+    const versionSetId = await addVersionSetToFirestore(versionSet);
+    versionSet.commitHashes = pyVersionSet.commitHashes;
 
     console.log(
         `environmentId = ${tfjsEnvironmentId}; versionId = ${versionSetId}; ` +
@@ -171,9 +171,10 @@ describe('TF.js Layers Benchmarks', () => {
 
     const sortedModelNames = getChronologicalModelNames(suiteLog);
 
-    console.log(environmentInfo);  // DEBUG
-    console.log(versionSet);  // DEBUG
-    console.log(sortedModelNames);  // DEBUG
+    console.log('Environoment:');
+    console.log(JSON.stringify(environmentInfo, null, 2));
+    console.log('Version set:')
+    console.log(JSON.stringify(versionSet, null, 2));
 
     const pyRuns: ModelBenchmarkRun[] = [];
     const tfjsRuns: ModelBenchmarkRun[] = [];
@@ -287,9 +288,10 @@ describe('TF.js Layers Benchmarks', () => {
       }
     }
 
-    // console.log(
-    //     `Writing ${tfjsTaskLogs.length} TensorFlow.js TaskLogs to Firestore...`);
-    // await addTaskLogsToFirestore(tfjsTaskLogs);
+
+    console.log(
+      `Writing ${tfjsRuns.length} TensorFlow.js TaskLogs to Firestore...`);
+    await addBenchmarkRunsToFirestore(tfjsRuns);
     console.log(
         `Writing ${pyRuns.length} Python TaskLogs to Firestore...`);
     await addBenchmarkRunsToFirestore(pyRuns);

@@ -30,42 +30,6 @@ while true; do
   fi
 done
 
-DATA_ROOT="${SCRIPT_DIR}/data"
-
-# Run Python script to generate the model and weights JSON files.
-# The extension names are ".js" because they will later be converted into
-# sourceable JavaScript files.
-
-if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
-  echo "Installing virtualenv..."
-  pip install virtualenv
-
-  VENV_DIR="$(mktemp -d)"
-  echo "Creating virtualenv at ${VENV_DIR} ..."
-  virtualenv "${VENV_DIR}"
-  source "${VENV_DIR}/bin/activate"
-
-  echo "Installing Python dependencies..."
-  pip install -r python/requirements.txt
-
-  echo "Running Python Keras benchmarks..."
-  python "${SCRIPT_DIR}/python/benchmarks.py" "${DATA_ROOT}"
-fi
-
-if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
-  echo "Cleaning up virtualenv directory ${VENV_DIR}..."
-  deactivate
-  rm -rf "${VENV_DIR}"
-fi
-
-# Clean up virtualenv directory.
-rm -rf "${VENV_DIR}"
-
-if [[ ! -d "${DATA_ROOT}" ]]; then
-  echo "Cannot find data root directory: ${DATA_ROOT}"
-  exit 1
-fi
-
 cd ${SCRIPT_DIR}
 
 yarn
@@ -117,6 +81,46 @@ rm -rf dist/ && yarn && yarn build && yalc publish
 
 cd ..
 yarn yalc link '@tensorflow/tfjs-data'
+
+# Run Python script to generate the model and weights JSON files.
+# The extension names are ".js" because they will later be converted into
+# sourceable JavaScript files.
+
+DATA_ROOT="${SCRIPT_DIR}/data"
+
+if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
+  echo "Installing virtualenv..."
+  pip install virtualenv
+
+  VENV_DIR="$(mktemp -d)"
+  echo "Creating virtualenv at ${VENV_DIR} ..."
+  virtualenv "${VENV_DIR}"
+  source "${VENV_DIR}/bin/activate"
+
+  echo "Installing Python dependencies..."
+  pip install -r python/requirements.txt
+
+  echo "Running Python Keras benchmarks..."
+  python "${SCRIPT_DIR}/python/benchmarks.py" "${DATA_ROOT}" \
+      --hash_converter="${HASH_CONVERTER}" \
+      --hash_core="${HASH_CORE}" \
+      --hash_data="${HASH_DATA}" \
+      --hash_layers="${HASH_LAYERS}"
+fi
+
+if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
+  echo "Cleaning up virtualenv directory ${VENV_DIR}..."
+  deactivate
+  rm -rf "${VENV_DIR}"
+fi
+
+# Clean up virtualenv directory.
+rm -rf "${VENV_DIR}"
+
+if [[ ! -d "${DATA_ROOT}" ]]; then
+  echo "Cannot find data root directory: ${DATA_ROOT}"
+  exit 1
+fi
 
 echo "Starting benchmark tests..."
 yarn karma start karma.conf.layers.js
