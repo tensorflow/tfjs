@@ -170,7 +170,8 @@ function checkBatchSize(batchSize: number) {
 const OPTIMIZER_MAP: {[pyName: string]: string} = {
   'AdamOptimizer': 'adam',
   'RMSPropOptimizer': 'rmsprop',
-  'GradientDescentOptimizer': 'sgd'
+  'GradientDescentOptimizer': 'sgd',
+  'SGD': 'sgd'
 };
 
 const LOSS_MAP: {[pyName: string]: string} = {

@@ -35,7 +35,8 @@ from tensorflow import keras
 import numpy as np
 import tensorflow as tf
 # Comparing TF Eager vs TF.js for a fair comparison.
-tf.enable_eager_execution()
+if hasattr(tf, 'enable_eager_execution'):
+  tf.enable_eager_execution()
 from tensorflow.python.client import device_lib
 import tensorflowjs as tfjs
 
@@ -302,7 +303,7 @@ def main():
   suite_log['environmentInfo'] = environment_info
 
   # Dense model.
-  optimizer = tf.train.GradientDescentOptimizer(0.1)
+  optimizer = tf.keras.optimizers.SGD()
   loss = 'mean_squared_error'
   batch_size = 128
   train_epochs = 10
@@ -333,12 +334,14 @@ def main():
             os.path.join(FLAGS.data_root, model_name)))
 
   # Conv2d models.
-  # optimizer = tf.train.GradientDescentOptimizer(0.01)
+
   # TODO(cais): Restore optimizer after the following
   #   error is resolved:
   # "Error: Cannot evaluate flag 'EPSILON': no evaluation function found."
-  optimizer = None
+  # optimizer = tf.train.GradientDescentOptimizer(0.01)
   # loss = 'categorical_crossentropy'
+  # train_epochs = 10
+  optimizer = None
   loss = None
   train_epochs = 0
   input_shape = [28, 28, 1]
@@ -366,11 +369,10 @@ def main():
             os.path.join(FLAGS.data_root, model_name)))
 
   # RNN models.
-  # optimizer = tf.keras.optimizers.RMSProp(0.01)
   # TODO(cais): Restore optimizer after the following
   #   error is resolved:
   # "Error: Cannot evaluate flag 'EPSILON': no evaluation function found."
-  # optimizer = tf.train.RMSPropOptimizer(1e-3)
+  # optimizer = tf.keras.optimizers.RMSProp()
   # loss = 'categorical_crossentropy'
   # train_epochs = 10
   optimizer = None

@@ -104,7 +104,7 @@ if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
   echo "Installing virtualenv..."
   pip install virtualenv
 
-  VENV_DIR="$(mktemp -d)"
+  VENV_DIR="$(mktemp -d)_venv"
   echo "Creating virtualenv at ${VENV_DIR} ..."
   virtualenv "${VENV_DIR}"
   source "${VENV_DIR}/bin/activate"
