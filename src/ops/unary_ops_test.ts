@@ -16,7 +16,7 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, describeWithFlags, PACKED_ENVS, WEBGL_ENVS} from '../jasmine_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, TEST_EPSILON_FLOAT16} from '../test_util';
 import * as util from '../util';
 
@@ -127,18 +127,6 @@ describeWithFlags('relu', ALL_ENVS, () => {
   it('throws for string tensor', () => {
     expect(() => tf.relu('q'))
         .toThrowError(/Argument 'x' passed to 'relu' must be numeric/);
-  });
-});
-
-describeWithFlags('relu', WEBGL_ENVS, () => {
-  it('works with squarification for prime number length vector', () => {
-    const maxTextureSize = tf.ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
-    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
-    const a = tf.tensor1d([1, -2, 5, -3, -1, 4, 7]);
-    const result = tf.relu(a);
-
-    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
-    expectArraysClose(result, [1, 0, 5, 0, 0, 4, 7]);
   });
 });
 
@@ -3059,67 +3047,6 @@ describeWithFlags('selu', ALL_ENVS, () => {
   it('throws for string tensor', () => {
     expect(() => tf.selu('q'))
         .toThrowError(/Argument 'x' passed to 'selu' must be numeric/);
-  });
-});
-
-describeWithFlags('packed clip', PACKED_ENVS, () => {
-  it('should not leak memory', () => {
-    const a = tf.tensor1d([3, -1, 0, 100, -7, 2]);
-    const min = -1;
-    const max = 50;
-
-    const startNumBytes = tf.memory().numBytes;
-    const startNumTensors = tf.memory().numTensors;
-    tf.clipByValue(a, min, max);
-    const endNumBytes = tf.memory().numBytes;
-    const endNumTensors = tf.memory().numTensors;
-
-    expect(endNumBytes - startNumBytes).toEqual(24);
-    expect(endNumTensors - startNumTensors).toEqual(1);
-  });
-
-  it('basic', () => {
-    const a = tf.tensor1d([3, -1, 0, 100, -7, 2]);
-    const min = -1;
-    const max = 50;
-
-    const result = tf.clipByValue(a, min, max);
-
-    expectArraysClose(result, [3, -1, 0, 50, -1, 2]);
-  });
-
-  it('using extreme values', () => {
-    const a = tf.tensor1d([3, -1, 0, 100, -7, 2]);
-    let result =
-        tf.clipByValue(a, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY);
-    expectArraysClose(result, [3, -1, 0, 100, -7, 2]);
-
-    result = tf.clipByValue(a, Number.MIN_VALUE, Number.MAX_VALUE);
-    expectArraysClose(
-        result,
-        [3, Number.MIN_VALUE, Number.MIN_VALUE, 100, Number.MIN_VALUE, 2]);
-  });
-
-  it('should work for scalars', () => {
-    const a = tf.scalar(-4);
-    const min = -1;
-    const max = 50;
-
-    const result = tf.clipByValue(a, min, max);
-
-    expectArraysClose(result, [min]);
-  });
-
-  it('derivative: 1D tensor with max or min value', () => {
-    const min = -1;
-    const max = 2;
-    const x = tf.tensor1d([-1, 1, 2, 3]);
-    const dy = tf.tensor1d([1, 10, 100, 1000]);
-    const gradients = tf.grad(x => x.clipByValue(min, max))(x, dy);
-
-    expect(gradients.shape).toEqual(x.shape);
-    expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [1, 10, 100, 0]);
   });
 });
 

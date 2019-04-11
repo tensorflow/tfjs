@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
+import {KernelBackend} from './backends/backend';
 import {ENGINE, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo} from './engine';
 import {ENV} from './environment';
-import {KernelBackend} from './kernels/backend';
 import {setDeprecationWarningFn, Tensor} from './tensor';
 import {TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';

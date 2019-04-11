@@ -23,8 +23,8 @@ import './flags';
 
 // backend_cpu.ts and backend_webgl.ts are standalone files and should be
 // explicitly included here.
-import './kernels/webgl/backend_webgl';
-import './kernels/cpu/backend_cpu';
+import './backends/webgl/backend_webgl';
+import './backends/cpu/backend_cpu';
 
 import * as environment from './environment';
 // Serialization.
@@ -83,7 +83,7 @@ export {
 };
 
 // Backend specific.
-export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './kernels/backend';
+export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './backends/backend';
 
 import * as ops from './ops/ops';
 setOpHandler(ops);

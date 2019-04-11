@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,5 +15,10 @@
  * =============================================================================
  */
 
-import './kernels/cpu/backend_cpu';
-import './kernels/webgl/backend_webgl';
+import {Constraints, registerTestEnv} from '../../jasmine_util';
+
+export const CPU_ENVS: Constraints = {
+  activeBackend: 'cpu'
+};
+
+registerTestEnv({name: 'cpu', backendName: 'cpu'});

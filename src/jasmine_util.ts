@@ -14,27 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
-
+import {KernelBackend} from './backends/backend';
 import {ENGINE} from './engine';
 import {ENV, Environment, Flags} from './environment';
-import {KernelBackend} from './kernels/backend';
 
 Error.stackTraceLimit = Infinity;
 
 export type Constraints = {
   flags?: Flags;
-  backends?: string | string[];
+  activeBackend?: string;
+  // If defined, all backends in this array must be registered.
+  registeredBackends?: string[];
 };
 
-export const WEBGL_ENVS: Constraints = {
-  backends: 'webgl'
-};
-export const CPU_ENVS: Constraints = {
-  backends: 'cpu'
-};
-export const PACKED_ENVS: Constraints = {
-  flags: {'WEBGL_PACK': true}
-};
 export const NODE_ENVS: Constraints = {
   flags: {'IS_NODE': true}
 };
@@ -49,8 +41,12 @@ export const ALL_ENVS: Constraints = {};
 
 // Tests whether the current environment satisfies the set of constraints.
 export function envSatisfiesConstraints(
-    env: Environment, currentBackendName: string,
+    env: Environment, activeBackend: string, registeredBackends: string[],
     constraints: Constraints): boolean {
+  if (constraints == null) {
+    return true;
+  }
+
   if (constraints.flags != null) {
     for (const flagName in constraints.flags) {
       const flagValue = constraints.flags[flagName];
@@ -59,21 +55,18 @@ export function envSatisfiesConstraints(
       }
     }
   }
-  if (constraints.backends != null) {
-    let anyBackendMatches = false;
-    if (Array.isArray(constraints.backends)) {
-      constraints.backends.forEach(constraintBackendName => {
-        if (constraintBackendName === currentBackendName) {
-          anyBackendMatches = true;
-        }
-      });
-      if (!anyBackendMatches) {
+  if (constraints.activeBackend != null) {
+    return activeBackend === constraints.activeBackend;
+  }
+  if (constraints.registeredBackends != null) {
+    for (let i = 0; i < constraints.registeredBackends.length; i++) {
+      const registeredBackendConstraint = constraints.registeredBackends[i];
+      if (registeredBackends.indexOf(registeredBackendConstraint) === -1) {
         return false;
       }
-    } else {
-      return currentBackendName === constraints.backends;
     }
   }
+
   return true;
 }
 
@@ -118,7 +111,8 @@ export function describeWithFlags(
     name: string, constraints: Constraints, tests: (env: TestEnv) => void) {
   TEST_ENVS.forEach(testEnv => {
     ENV.setFlags(testEnv.flags);
-    if (envSatisfiesConstraints(ENV, testEnv.backendName, constraints)) {
+    if (envSatisfiesConstraints(
+            ENV, testEnv.backendName, ENGINE.backendNames(), constraints)) {
       const testName =
           name + ' ' + testEnv.name + ' ' + JSON.stringify(testEnv.flags);
       executeTests(testName, tests, testEnv);
@@ -129,40 +123,35 @@ export function describeWithFlags(
 export interface TestEnv {
   name: string;
   backendName: string;
-  flags: Flags;
+  flags?: Flags;
 }
 
-export let TEST_ENVS: TestEnv[] = [
-  {
-    name: 'webgl1',
-    backendName: 'webgl',
-    flags: {
-      'WEBGL_VERSION': 1,
-      'WEBGL_CPU_FORWARD': false,
-      'WEBGL_SIZE_UPLOAD_UNIFORM': 0
-    }
-  },
-  {
-    name: 'webgl2',
-    backendName: 'webgl',
-    flags: {
-      'WEBGL_VERSION': 2,
-      'WEBGL_CPU_FORWARD': false,
-      'WEBGL_SIZE_UPLOAD_UNIFORM': 0
-    }
-  },
-  {name: 'cpu', backendName: 'cpu', flags: {'HAS_WEBGL': false}}
-];
+export let TEST_ENVS: TestEnv[] = [];
+
+// Whether a call to setTestEnvs has been called so we turn off
+// registration. This allows command line overriding or programmatic
+// overriding of the default registrations.
+let testEnvSet = false;
+export function setTestEnvs(testEnvs: TestEnv[]) {
+  testEnvSet = true;
+  TEST_ENVS = testEnvs;
+}
+
+export function registerTestEnv(testEnv: TestEnv) {
+  // When using an explicit call to setTestEnvs, turn off registration of
+  // test environments because the explicit call will set the test
+  // environments.
+  if (testEnvSet) {
+    return;
+  }
+  TEST_ENVS.push(testEnv);
+}
 
 if (typeof __karma__ !== 'undefined') {
   const testEnv = parseKarmaFlags(__karma__.config.args);
-  if (testEnv) {
+  if (testEnv != null) {
     setTestEnvs([testEnv]);
   }
-}
-
-export function setTestEnvs(testEnvs: TestEnv[]) {
-  TEST_ENVS = testEnvs;
 }
 
 function executeTests(
@@ -170,7 +159,9 @@ function executeTests(
   describe(testName, () => {
     beforeAll(() => {
       ENGINE.reset();
-      ENV.setFlags(testEnv.flags);
+      if (testEnv.flags != null) {
+        ENV.setFlags(testEnv.flags);
+      }
       ENV.set('IS_TEST', true);
       ENGINE.setBackend(testEnv.backendName);
     });

@@ -31,7 +31,7 @@ add new backends.
 ### Adding an op
 
 When adding ops to the library and deciding whether to write a kernel
-implementation in [backend.ts](https://github.com/tensorflow/tfjs-core/blob/master/src/kernels/backend.ts),
+implementation in [backend.ts](https://github.com/tensorflow/tfjs-core/blob/master/src/backends/backend.ts),
 be sure to check out the TensorFlow ops list [here](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/ops/ops.pbtxt).
 This list shows the kernels available for the TensorFlow C API. To ensure that
 we can bind to this with node.js, we should ensure that our backend.ts

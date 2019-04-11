@@ -16,7 +16,7 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, CPU_ENVS, describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 let defaultValue: tf.Scalar;
@@ -135,16 +135,6 @@ describeWithFlags('sparseToDense', ALL_ENVS, () => {
   it('should throw error when values has wrong size', () => {
     const indices = tf.tensor1d([0, 4, 2], 'int32');
     const values = tf.tensor1d([1.0, 2.0, 3.0, 4.0], 'float32');
-    const shape = [6];
-    expect(() => tf.sparseToDense(indices, values, shape, defaultValue))
-        .toThrow();
-  });
-});
-
-describeWithFlags('sparseToDense CPU', CPU_ENVS, () => {
-  it('should throw error when index out of range', () => {
-    const indices = tf.tensor1d([0, 2, 6], 'int32');
-    const values = tf.tensor1d([100, 101, 102], 'int32');
     const shape = [6];
     expect(() => tf.sparseToDense(indices, values, shape, defaultValue))
         .toThrow();

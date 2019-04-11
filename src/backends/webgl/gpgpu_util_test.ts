@@ -16,8 +16,9 @@
  */
 
 import * as tf from '../../index';
-import {describeWithFlags, WEBGL_ENVS} from '../../jasmine_util';
+import {describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose} from '../../test_util';
+import {WEBGL_ENVS} from './backend_webgl_test_registry';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_util from './gpgpu_util';
 

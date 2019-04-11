@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,17 +15,31 @@
  * =============================================================================
  */
 
-import {setTestEnvs} from './jasmine_util';
+import {Constraints, registerTestEnv} from '../../jasmine_util';
 
-// tslint:disable-next-line:no-require-imports
-const jasmine = require('jasmine');
+export const WEBGL_ENVS: Constraints = {
+  activeBackend: 'webgl'
+};
+export const PACKED_ENVS: Constraints = {
+  flags: {'WEBGL_PACK': true}
+};
 
-process.on('unhandledRejection', e => {
-  throw e;
+registerTestEnv({
+  name: 'webgl1',
+  backendName: 'webgl',
+  flags: {
+    'WEBGL_VERSION': 1,
+    'WEBGL_CPU_FORWARD': false,
+    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+  }
 });
 
-setTestEnvs([{name: 'node', backendName: 'cpu'}]);
-
-const runner = new jasmine();
-runner.loadConfig({spec_files: ['dist/**/**_test.js'], random: false});
-runner.execute();
+registerTestEnv({
+  name: 'webgl2',
+  backendName: 'webgl',
+  flags: {
+    'WEBGL_VERSION': 2,
+    'WEBGL_CPU_FORWARD': false,
+    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+  }
+});
