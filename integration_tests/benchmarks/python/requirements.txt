@@ -1,0 +1,2 @@
+tf-nightly-2.0-preview>=2.0.0.dev20190401
+tensorflowjs>=1.0.0

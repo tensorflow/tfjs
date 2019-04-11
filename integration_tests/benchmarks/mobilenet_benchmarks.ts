@@ -24,7 +24,7 @@ const MOBILENET_MODEL_PATH =
     'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json';
 
 export class MobileNetV1GPUBenchmark implements BenchmarkModelTest {
-  private model: tf.Model;
+  private model: tf.LayersModel;
 
   async loadModel() {
     this.model = await tf.loadLayersModel(MOBILENET_MODEL_PATH);

@@ -21,13 +21,18 @@ yarn lint
 
 if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
 then
+  # TODO(cais, annyuan): The git and build commands below should be deduplicated
+  # with benchmarks.sh.
+
   # Run the first karma separately so it can download the BrowserStack binary
   # without conflicting with others.
   echo 'Run first karma.'
   yarn run-browserstack --browsers=bs_safari_mac --grep=matmul
 
-  echo 'Use latest version of tfjs-core'
-  git clone https://github.com/tensorflow/tfjs-core.git --depth 5
+  if [[ ! -d "tfjs-core" ]]; then
+    echo 'Use latest version of tfjs-core'
+    git clone https://github.com/tensorflow/tfjs-core.git --depth 5
+  fi
   cd tfjs-core
   HASH_CORE=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
@@ -35,8 +40,10 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-core'
 
-  echo 'Use latest version of tfjs-layers'
-  git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
+  if [[ ! -d "tfjs-layers" ]]; then
+    echo 'Use latest version of tfjs-layers'
+    git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
+  fi
   cd tfjs-layers
   HASH_LAYERS=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
@@ -44,8 +51,10 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-layers'
 
-  echo 'Use latest version of tfjs-converter'
-  git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
+  if [[ ! -d "tfjs-converter" ]]; then
+    echo 'Use latest version of tfjs-converter'
+    git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
+  fi
   cd tfjs-converter
   HASH_CONVERTER=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
@@ -53,8 +62,10 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-converter'
 
-  echo 'Use latest version of tfjs-data'
-  git clone https://github.com/tensorflow/tfjs-data.git --depth 5
+  if [[ ! -d "tfjs-data" ]]; then
+    echo 'Use latest version of tfjs-data'
+    git clone https://github.com/tensorflow/tfjs-data.git --depth 5
+  fi
   cd tfjs-data
   HASH_DATA=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
