@@ -211,6 +211,9 @@ describe('TF.js Layers Benchmarks', () => {
     const pyEnvironmentInfo = suiteLog.environmentInfo;
     const pyEnvironmentId =
         log ? await addEnvironmentInfoToFirestore(pyEnvironmentInfo) : null;
+    environmentInfo.systemInfo = pyEnvironmentInfo.systemInfo;
+    environmentInfo.cpuInfo = pyEnvironmentInfo.cpuInfo;
+    environmentInfo.memInfo = pyEnvironmentInfo.memInfo;
 
     // Add environment info to firestore and retrieve the doc ID.
     const tfjsEnvironmentId =
