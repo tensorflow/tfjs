@@ -42,7 +42,7 @@
     "benchmark-local": "./benchmarks.sh",
     "benchmark-travis": "./benchmark_travis.sh",
     "build": "tsc",
-    "clean": "rm -rf .yalc/ node_modules/ data/ tfjs-*",
+    "clean": "rm -rf .yalc/ node_modules/ tfjs-*",
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
     "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --firebaseKey $FIREBASE_KEY --hostname='bs-local.com'"

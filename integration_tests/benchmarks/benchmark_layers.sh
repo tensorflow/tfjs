@@ -85,7 +85,7 @@ else
   # depends on at HEAD. The same applies to tfjs-converter and tfjs-data
   # below.
   rm -rf dist/ node_modules/ && yarn
-  yarn build && rollup -c && yalc publish
+  yarn build && yalc publish
 
   cd ..
   yarn yalc link '@tensorflow/tfjs-layers'
@@ -154,7 +154,7 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
 echo "Starting benchmark karma tests in Node.js..."
   yarn ts-node run_node_tests.ts \
       ${LOG_FLAG} \
-      --hashes="{\"tfjs-node\": \"${HASH_NODE}\"}"
+      --hashes "{\"tfjs-node\": \"${HASH_NODE}\"}"
 else
   echo "Starting benchmark karma tests in the browser..."
   yarn karma start karma.conf.layers.js \

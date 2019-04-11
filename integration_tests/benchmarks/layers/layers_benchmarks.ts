@@ -43,7 +43,7 @@ export interface SuiteLog {
 declare let __karma__: any;
 
 /** Determine whether this file is running in Node.js. */
-function inNodeJS(): boolean {
+export function inNodeJS(): boolean {
   // Note this is not a generic way of testing if we are in Node.js.
   // The logic here is specific to the scripts in this folder.
   return typeof module !== 'undefined' && typeof process !== 'undefined' &&
@@ -52,13 +52,14 @@ function inNodeJS(): boolean {
 
 /** Extract commit hashes of the tfjs repos from karma flags. */
 function getCommitHashesFromArgs(
-    karmaFlags: Array<boolean|number|string>) {
-  for (let i = 0; i < karmaFlags.length; ++i) {
-    if (karmaFlags[i] === '--hashes') {
-      if (karmaFlags[i + 1] == null) {
+    args: Array<boolean|number|string>) {
+  console.log('args:', args);  // DEBUG
+  for (let i = 0; i < args.length; ++i) {
+    if (args[i] === '--hashes') {
+      if (args[i + 1] == null) {
         throw new Error('Missing value for flag --hashes');
       }
-      return JSON.parse(karmaFlags[i + 1] as string);
+      return JSON.parse(args[i + 1] as string);
     }
   }
 }
@@ -286,8 +287,10 @@ describe('TF.js Layers Benchmarks', () => {
     const versionSetId =
         log ? await addVersionSetToFirestore(versionSet) : null;
     if (isNodeJS) {
+      console.log('parse args node:', process.argv);  // DEBUG
       versionSet.commitHashes = getCommitHashesFromArgs(process.argv);
     } else {
+      console.log('parse args browser');  // DEBUG
       versionSet.commitHashes = getCommitHashesFromArgs(__karma__.config.args);
     }
 
