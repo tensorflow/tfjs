@@ -15,10 +15,16 @@ import shutil
 import subprocess
 import tempfile
 
-import keras
 import numpy as np
 import tensorflow as tf
 import tensorflowjs as tfjs
+
+if os.environ['TFJS2KERAS_TEST_USING_TF_KERAS'] == '1':
+  print('Using tensorflow.keras.')
+  from tensorflow import keras
+else:
+  print('Using keras-team/keras.')
+  import keras
 
 
 def _call_command(command):
@@ -85,7 +91,8 @@ class Tfjs2KerasExportTest(tf.test.TestCase):
     if len(ys) == 1:
       ys = ys[0]
 
-    with tf.Graph().as_default(), tf.Session():
+    session = tf.Session() if hasattr(tf, 'Session') else tf.compat.v1.Session()
+    with tf.Graph().as_default(), session:
       model_json_path = os.path.join(self._tmp_dir, model_path, 'model.json')
       print('Loading model from path %s' % model_json_path)
       model = tfjs.converters.load_keras_model(model_json_path)
