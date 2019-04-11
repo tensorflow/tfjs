@@ -1,0 +1,3 @@
+keras==2.2.4
+tf-nightly-2.0-preview>=2.0.0.dev20190410
+tensorflowjs>=1.0.0

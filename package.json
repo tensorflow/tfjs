@@ -41,7 +41,7 @@
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "test": "karma start",
-    "test-integ": "cd integration_tests/tfjs2keras && ./run-test.sh",
+    "test-integ": "cd integration_tests/tfjs2keras && ./run-test.sh --stable && ./run-test.sh --stable --tfkeras",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun --reporters='dots,karma-typescript'",
     "lint": "tslint -p . -t verbose"
   },
