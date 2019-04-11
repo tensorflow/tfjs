@@ -16,8 +16,9 @@
  */
 
 import * as tf from '../../index';
-import {describeWithFlags, PACKED_ENVS} from '../../jasmine_util';
+import {describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose} from '../../test_util';
+import {PACKED_ENVS} from './backend_webgl_test_registry';
 
 describeWithFlags('expensive reshape', PACKED_ENVS, () => {
   const cValues =

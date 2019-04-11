@@ -24,74 +24,113 @@ describe('jasmine_util.envSatisfiesConstraints', () => {
     const backendName = 'test-backend';
     const env = new Environment({});
     env.setFlags({});
+    const registeredBackends = ['test-backend1', 'test-backend2'];
 
     const constraints = {};
 
-    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(true);
+    expect(envSatisfiesConstraints(
+               env, backendName, registeredBackends, constraints))
+        .toBe(true);
   });
 
   it('ENV satisfies matching flag constraints, no backend constraint', () => {
     const backendName = 'test-backend';
     const env = new Environment({});
     env.setFlags({'TEST-FLAG': true});
+    const registeredBackends = ['test-backend1', 'test-backend2'];
 
     const constraints = {flags: {'TEST-FLAG': true}};
 
-    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(true);
+    expect(envSatisfiesConstraints(
+               env, backendName, registeredBackends, constraints))
+        .toBe(true);
   });
 
   it('ENV satisfies matching flag and one backend constraint', () => {
     const backendName = 'test-backend';
     const env = new Environment({});
     env.setFlags({'TEST-FLAG': true});
+    const registeredBackends = ['test-backend1', 'test-backend2'];
 
     const constraints = {flags: {'TEST-FLAG': true}, backends: backendName};
 
-    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(true);
+    expect(envSatisfiesConstraints(
+               env, backendName, registeredBackends, constraints))
+        .toBe(true);
   });
 
   it('ENV satisfies matching flag and multiple backend constraints', () => {
     const backendName = 'test-backend';
     const env = new Environment({});
     env.setFlags({'TEST-FLAG': true});
+    const registeredBackends = ['test-backend1', 'test-backend2'];
 
     const constraints = {
       flags: {'TEST-FLAG': true},
       backends: [backendName, 'other-backend']
     };
 
-    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(true);
+    expect(envSatisfiesConstraints(
+               env, backendName, registeredBackends, constraints))
+        .toBe(true);
   });
 
   it('ENV does not satisfy mismatching flags constraints', () => {
     const backendName = 'test-backend';
     const env = new Environment({});
     env.setFlags({'TEST-FLAG': false});
+    const registeredBackends = ['test-backend1', 'test-backend2'];
 
     const constraints = {flags: {'TEST-FLAG': true}};
 
-    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(false);
+    expect(envSatisfiesConstraints(
+               env, backendName, registeredBackends, constraints))
+        .toBe(false);
   });
 
-  it('ENV satisfies no flag constraint but does not satisfy backend constraint',
-     () => {
-       const backendName = 'test-backend';
-       const env = new Environment({});
+  it('ENV satisfies no flag constraint but not satisfy activebackend', () => {
+    const backendName = 'test-backend';
+    const env = new Environment({});
+    const registeredBackends = ['test-backend1', 'test-backend2'];
 
-       const constraints = {backends: 'test-backend2'};
+    const constraints = {activeBackend: 'test-backend2'};
 
-       expect(envSatisfiesConstraints(env, backendName, constraints))
-           .toBe(false);
-     });
+    expect(envSatisfiesConstraints(
+               env, backendName, registeredBackends, constraints))
+        .toBe(false);
+  });
 
-  it('ENV satisfies flags but does not satisfy backend constraint', () => {
+  it('ENV satisfies flags but does not satisfy active backend', () => {
     const backendName = 'test-backend';
     const env = new Environment({});
     env.setFlags({'TEST-FLAG': true});
+    const registeredBackends = ['test-backend1', 'test-backend2'];
 
-    const constraints = {flags: {'TEST-FLAG': true}, backends: 'test-backend2'};
+    const constraints = {
+      flags: {'TEST-FLAG': true},
+      activeBackend: 'test-backend2'
+    };
 
-    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(false);
+    expect(envSatisfiesConstraints(
+               env, backendName, registeredBackends, constraints))
+        .toBe(false);
+  });
+
+  it('ENV satisfies flags active backend, but not registered backends', () => {
+    const backendName = 'test-backend';
+    const env = new Environment({});
+    env.setFlags({'TEST-FLAG': true});
+    const registeredBackends = ['test-backend1'];
+
+    const constraints = {
+      flags: {'TEST-FLAG': true},
+      activeBackend: 'test-backend1',
+      registeredBackends: ['test-backend1', 'test-backend2']
+    };
+
+    expect(envSatisfiesConstraints(
+               env, backendName, registeredBackends, constraints))
+        .toBe(false);
   });
 });
 

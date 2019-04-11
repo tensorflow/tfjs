@@ -16,36 +16,8 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, describeWithFlags, PACKED_ENVS, WEBGL_ENVS} from '../jasmine_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../test_util';
-
-describeWithFlags('div', PACKED_ENVS, () => {
-  it('works when unused channels are divided', () => {
-    // Tests that the 0's in unused channels for input textures do not corrupt
-    // the result when swizzled with 3 / 3.
-    const a = tf.tensor2d([1], [1, 1]);
-    const b = tf.tensor2d([1], [1, 1]);
-
-    const c = tf.add(a, b).div(a);
-    const d = tf.add(a, b).div(a);
-
-    const result = c.matMul(d);
-    expectArraysClose(result, [4]);
-  });
-
-  it('works when unused channels in tensors with size > 1 are divided', () => {
-    const a = tf.tensor2d([1, 2, 3], [3, 1]);
-    const b = tf.tensor2d([1, 2, 3], [3, 1]);
-    const c = a.div(b);
-
-    const d = tf.tensor1d([1, 2, 3]);
-    const e = tf.tensor1d([1, 2, 3]);
-    const f = d.div(e).reshape([1, 3]);
-
-    const result = c.matMul(f);
-    expectArraysClose(result, [1, 1, 1, 1, 1, 1, 1, 1, 1]);
-  });
-});
 
 describeWithFlags('prelu', ALL_ENVS, () => {
   it('basic', () => {
@@ -318,21 +290,6 @@ describeWithFlags('maximum', ALL_ENVS, () => {
     expect(() => tf.maximum(3, 'q'))
         .toThrowError(
             /Argument 'b' passed to 'maximum' must be numeric tensor/);
-  });
-});
-
-describeWithFlags('maximum', WEBGL_ENVS, () => {
-  it('works with squarification for large dimension', () => {
-    const maxTextureSize = tf.ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
-    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
-    const a =
-        tf.tensor2d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], [2, 7]);
-    const b =
-        tf.tensor2d([-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 7]);
-
-    const result = tf.maximum(a, b);
-    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
-    expectArraysClose(result, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
   });
 });
 

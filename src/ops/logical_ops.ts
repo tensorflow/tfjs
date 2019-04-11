@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
+import {whereImpl} from '../backends/where_impl';
 import {ENGINE} from '../engine';
-import {whereImpl} from '../kernels/where_impl';
 import {Tensor, Tensor2D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';

@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {describeWithFlags, WEBGL_ENVS} from '../../jasmine_util';
+import {describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose} from '../../test_util';
-
+import {WEBGL_ENVS} from './backend_webgl_test_registry';
 import * as tex_util from './tex_util';
 
 describe('tex_util getUnpackedMatrixTextureShapeWidthHeight', () => {

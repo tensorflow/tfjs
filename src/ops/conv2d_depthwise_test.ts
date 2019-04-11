@@ -16,35 +16,9 @@
  */
 
 import * as tf from '../index';
-import {describeWithFlags, PACKED_ENVS, ALL_ENVS} from '../jasmine_util';
+import {describeWithFlags, ALL_ENVS} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 import {Rank} from '../types';
-
-describeWithFlags('depthwiseConv2d packed', PACKED_ENVS, () => {
-  it('should not leak memory', () => {
-    const x = tf.tensor4d(
-        [
-          0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
-          0.0741907, 0.409265, 0.351377
-        ],
-        [1, 3, 3, 1]);
-    const w = tf.tensor4d(
-        [0.303873, 0.229223, 0.144333, 0.803373],
-        [2, 2, 1, 1],
-    );
-
-    const startNumBytes = tf.memory().numBytes;
-    const startNumTensors = tf.memory().numTensors;
-
-    tf.depthwiseConv2d(x, w, 1, 'valid');
-
-    const endNumBytes = tf.memory().numBytes;
-    const endNumTensors = tf.memory().numTensors;
-
-    expect(endNumBytes - startNumBytes).toEqual(16);
-    expect(endNumTensors - startNumTensors).toEqual(1);
-  });
-});
 
 describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
   it('input=1x3x3x1,f=2,s=1,d=1,p=valid,chMul=1', () => {

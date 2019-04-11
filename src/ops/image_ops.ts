@@ -15,12 +15,13 @@
  * =============================================================================
  */
 
+import {nonMaxSuppressionImpl} from '../backends/non_max_suppression_impl';
 import {ENGINE, ForwardFunc} from '../engine';
-import {nonMaxSuppressionImpl} from '../kernels/non_max_suppression_impl';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+
 import {op} from './operation';
 
 /**

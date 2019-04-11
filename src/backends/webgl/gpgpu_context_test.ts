@@ -24,7 +24,7 @@ import * as tex_util from './tex_util';
 
 const DOWNLOAD_FLOAT_ENVS = {
   flags: {'WEBGL_DOWNLOAD_FLOAT_ENABLED': true},
-  backends: 'webgl'
+  activeBackend: 'webgl'
 };
 
 describeWithFlags(

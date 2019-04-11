@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {BackendTimer} from './kernels/backend';
+import {BackendTimer} from './backends/backend';
 import {Tensor} from './tensor';
 import {TypedArray} from './types';
 import * as util from './util';

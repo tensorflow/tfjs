@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,7 @@
  */
 
 import * as tf from './index';
-import {ALL_ENVS, describeWithFlags, WEBGL_ENVS} from './jasmine_util';
+import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 import {convertToTensor} from './tensor_util_env';
 import {expectArraysClose} from './test_util';
 
@@ -92,34 +92,6 @@ describeWithFlags('debug on', ALL_ENVS, () => {
 
     expect(c.shape).toEqual([2, 2]);
     expectArraysClose(c, [0, 8, -3, 20]);
-  });
-});
-
-describeWithFlags('debug on webgl', WEBGL_ENVS, () => {
-  beforeAll(() => {
-    tf.ENV.set('DEBUG', true);
-  });
-
-  afterAll(() => {
-    tf.ENV.set('DEBUG', false);
-  });
-
-  it('debug mode errors when overflow in tensor construction', () => {
-    const savedRenderFloat32Flag =
-        tf.ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED');
-    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false);
-    const a = () => tf.tensor1d([2, Math.pow(2, 17)], 'float32');
-    expect(a).toThrowError();
-    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
-  });
-
-  it('debug mode errors when underflow in tensor construction', () => {
-    const savedRenderFloat32Flag =
-        tf.ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED');
-    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false);
-    const a = () => tf.tensor1d([2, 1e-8], 'float32');
-    expect(a).toThrowError();
-    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
   });
 });
 

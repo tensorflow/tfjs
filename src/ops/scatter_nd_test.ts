@@ -16,7 +16,7 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, CPU_ENVS, describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('scatterND', ALL_ENVS, () => {
@@ -147,24 +147,6 @@ describeWithFlags('scatterND', ALL_ENVS, () => {
     const indices = tf.tensor2d([0, 4, 2], [3, 1], 'int32');
     const updates = tf.scalar(1, 'float32');
     const shape = [5, 3];
-    expect(() => tf.scatterND(indices, updates, shape)).toThrow();
-  });
-});
-
-describeWithFlags('scatterND CPU', CPU_ENVS, () => {
-  it('should throw error when index out of range', () => {
-    const indices = tf.tensor2d([0, 4, 99], [3, 1], 'int32');
-    const updates = tf.tensor2d(
-        [100, 101, 102, 777, 778, 779, 10000, 10001, 10002], [3, 3], 'float32');
-    const shape = [5, 3];
-    expect(() => tf.scatterND(indices, updates, shape)).toThrow();
-  });
-
-  it('should throw error when indices has wrong dimension', () => {
-    const indices = tf.tensor2d([0, 4, 99], [3, 1], 'int32');
-    const updates = tf.tensor2d(
-        [100, 101, 102, 777, 778, 779, 10000, 10001, 10002], [3, 3], 'float32');
-    const shape = [2, 3];
     expect(() => tf.scatterND(indices, updates, shape)).toThrow();
   });
 });

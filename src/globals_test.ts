@@ -16,7 +16,7 @@
  */
 import {ENV} from './environment';
 import * as tf from './index';
-import {ALL_ENVS, describeWithFlags, NODE_ENVS, WEBGL_ENVS} from './jasmine_util';
+import {ALL_ENVS, describeWithFlags, NODE_ENVS} from './jasmine_util';
 import {expectArraysClose, expectArraysEqual} from './test_util';
 
 describe('deprecation warnings', () => {
@@ -64,49 +64,6 @@ describe('Flag flipping methods', () => {
   it('tf.enableDebugMode', () => {
     tf.enableDebugMode();
     expect(ENV.getBool('DEBUG')).toBe(true);
-  });
-});
-
-describeWithFlags('time webgl', WEBGL_ENVS, () => {
-  it('upload + compute', async () => {
-    const a = tf.zeros([10, 10]);
-    const time = await tf.time(() => a.square()) as tf.webgl.WebGLTimingInfo;
-    expect(time.uploadWaitMs > 0);
-    expect(time.downloadWaitMs === 0);
-    expect(time.kernelMs > 0);
-    expect(time.wallMs >= time.kernelMs);
-  });
-
-  it('upload + compute + dataSync', async () => {
-    const a = tf.zeros([10, 10]);
-    const time =
-        await tf.time(() => a.square().dataSync()) as tf.webgl.WebGLTimingInfo;
-    expect(time.uploadWaitMs > 0);
-    expect(time.downloadWaitMs > 0);
-    expect(time.kernelMs > 0);
-    expect(time.wallMs >= time.kernelMs);
-  });
-
-  it('upload + compute + data', async () => {
-    const a = tf.zeros([10, 10]);
-    const time = await tf.time(async () => await a.square().data()) as
-        tf.webgl.WebGLTimingInfo;
-    expect(time.uploadWaitMs > 0);
-    expect(time.downloadWaitMs > 0);
-    expect(time.kernelMs > 0);
-    expect(time.wallMs >= time.kernelMs);
-  });
-
-  it('preupload (not included) + compute + data', async () => {
-    const a = tf.zeros([10, 10]);
-    // Pre-upload a on gpu.
-    a.square();
-    const time = await tf.time(() => a.sqrt()) as tf.webgl.WebGLTimingInfo;
-    // The tensor was already on gpu.
-    expect(time.uploadWaitMs === 0);
-    expect(time.downloadWaitMs === 0);
-    expect(time.kernelMs > 0);
-    expect(time.wallMs >= time.kernelMs);
   });
 });
 

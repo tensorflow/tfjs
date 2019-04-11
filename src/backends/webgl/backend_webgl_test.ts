@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,9 +16,10 @@
  */
 
 import * as tf from '../../index';
-import {describeWithFlags, WEBGL_ENVS} from '../../jasmine_util';
+import {describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../../test_util';
 import {MathBackendWebGL, WebGLMemoryInfo} from './backend_webgl';
+import {WEBGL_ENVS} from './backend_webgl_test_registry';
 
 describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
   let webglLazilyUnpackFlagSaved: boolean;
@@ -262,13 +263,11 @@ describeWithFlags('Custom window size', WEBGL_ENVS, () => {
 const SIZE_UPLOAD_UNIFORM = 4;
 // Run only for environments that have 32bit floating point support.
 const FLOAT32_WEBGL_ENVS = {
-  flags: Object.assign(
-      {
-        'WEBGL_RENDER_FLOAT32_ENABLED': true,
-        'WEBGL_SIZE_UPLOAD_UNIFORM': SIZE_UPLOAD_UNIFORM
-      },
-      WEBGL_ENVS.flags),
-  backends: WEBGL_ENVS.backends
+  flags: {
+    'WEBGL_RENDER_FLOAT32_ENABLED': true,
+    'WEBGL_SIZE_UPLOAD_UNIFORM': SIZE_UPLOAD_UNIFORM
+  },
+  activeBackend: WEBGL_ENVS.activeBackend
 };
 describeWithFlags('upload tensors as uniforms', FLOAT32_WEBGL_ENVS, () => {
   it('small tensor gets uploaded as scalar', () => {
@@ -305,5 +304,129 @@ describeWithFlags('upload tensors as uniforms', FLOAT32_WEBGL_ENVS, () => {
     const expected = new Float32Array(SIZE_UPLOAD_UNIFORM + 1);
     expected.fill(16);
     expectArraysClose(res, expected);
+  });
+});
+
+describeWithFlags('debug on webgl', WEBGL_ENVS, () => {
+  beforeAll(() => {
+    tf.ENV.set('DEBUG', true);
+  });
+
+  afterAll(() => {
+    tf.ENV.set('DEBUG', false);
+  });
+
+  it('debug mode errors when overflow in tensor construction', () => {
+    const savedRenderFloat32Flag =
+        tf.ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED');
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+    const a = () => tf.tensor1d([2, Math.pow(2, 17)], 'float32');
+    expect(a).toThrowError();
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
+  });
+
+  it('debug mode errors when underflow in tensor construction', () => {
+    const savedRenderFloat32Flag =
+        tf.ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED');
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+    const a = () => tf.tensor1d([2, 1e-8], 'float32');
+    expect(a).toThrowError();
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
+  });
+});
+
+describeWithFlags('memory webgl', WEBGL_ENVS, () => {
+  it('unreliable is falsy/not present when all tensors are numeric', () => {
+    tf.tensor(1);
+    const mem = tf.memory();
+    expect(mem.numTensors).toBe(1);
+    expect(mem.numDataBuffers).toBe(1);
+    expect(mem.numBytes).toBe(4);
+    expect(mem.unreliable).toBeFalsy();
+  });
+});
+
+// We do not yet fully support half float backends. These tests are a starting
+// point.
+describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
+  const savedRenderFloat32Flag = tf.ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED');
+
+  beforeAll(() => {
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+  });
+
+  beforeEach(() => {
+    tf.registerBackend('half-float-webgl', () => new MathBackendWebGL(null));
+  });
+
+  afterEach(() => {
+    tf.removeBackend('half-float-webgl');
+  });
+
+  afterAll(() => {
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
+  });
+
+  it('basic usage', () => {
+    tf.setBackend('half-float-webgl');
+
+    const a = tf.tensor2d([1, 2], [1, 2]);
+    const b = tf.tensor2d([1, 2], [1, 2]);
+    const c = tf.add(a, b);
+    expectArraysClose(c, [2, 4]);
+  });
+
+  it('disposing tensors should not cause errors', () => {
+    tf.setBackend('half-float-webgl');
+    expect(() => tf.tidy(() => {
+      const a = tf.tensor2d([1, 2], [1, 2]);
+      const b = tf.tensor2d([1, 2], [1, 2]);
+      const c = tf.add(a, b);
+      c.dataSync();
+      return c.add(tf.tensor2d([2, 4], [1, 2]));
+    })).not.toThrowError();
+  });
+});
+
+describeWithFlags('time webgl', WEBGL_ENVS, () => {
+  it('upload + compute', async () => {
+    const a = tf.zeros([10, 10]);
+    const time = await tf.time(() => a.square()) as tf.webgl.WebGLTimingInfo;
+    expect(time.uploadWaitMs > 0);
+    expect(time.downloadWaitMs === 0);
+    expect(time.kernelMs > 0);
+    expect(time.wallMs >= time.kernelMs);
+  });
+
+  it('upload + compute + dataSync', async () => {
+    const a = tf.zeros([10, 10]);
+    const time =
+        await tf.time(() => a.square().dataSync()) as tf.webgl.WebGLTimingInfo;
+    expect(time.uploadWaitMs > 0);
+    expect(time.downloadWaitMs > 0);
+    expect(time.kernelMs > 0);
+    expect(time.wallMs >= time.kernelMs);
+  });
+
+  it('upload + compute + data', async () => {
+    const a = tf.zeros([10, 10]);
+    const time = await tf.time(async () => await a.square().data()) as
+        tf.webgl.WebGLTimingInfo;
+    expect(time.uploadWaitMs > 0);
+    expect(time.downloadWaitMs > 0);
+    expect(time.kernelMs > 0);
+    expect(time.wallMs >= time.kernelMs);
+  });
+
+  it('preupload (not included) + compute + data', async () => {
+    const a = tf.zeros([10, 10]);
+    // Pre-upload a on gpu.
+    a.square();
+    const time = await tf.time(() => a.sqrt()) as tf.webgl.WebGLTimingInfo;
+    // The tensor was already on gpu.
+    expect(time.uploadWaitMs === 0);
+    expect(time.downloadWaitMs === 0);
+    expect(time.kernelMs > 0);
+    expect(time.wallMs >= time.kernelMs);
   });
 });

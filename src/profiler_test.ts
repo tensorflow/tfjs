@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
+import {BackendTimer, BackendTimingInfo} from './backends/backend';
 import * as tf from './index';
-import {BackendTimer, BackendTimingInfo} from './kernels/backend';
 import {Logger, Profiler} from './profiler';
 import {Tensor} from './tensor';
 import {TypedArray} from './types';
