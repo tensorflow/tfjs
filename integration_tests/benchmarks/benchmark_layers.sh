@@ -14,10 +14,20 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 SKIP_PY_BENCHMAKRS=0
+IS_TFJS_NODE=0
+IS_TFJS_NODE_GPU=0
 LOG_FLAG=""
 while true; do
   if [[ "$1" == "--skip_py_benchmarks" ]]; then
     SKIP_PY_BENCHMAKRS=1
+    shift
+  elif [[ "$1" == "--tfjs-node" ]]; then
+    IS_TFJS_NODE=1
+    IS_TFJS_NODE_GPU=0
+    shift
+  elif [[ "$1" == "--tfjs-node-gpu" ]]; then
+    IS_TFJS_NODE=1
+    IS_TFJS_NODE_GPU=1
     shift
   elif [[ "$1" == "--log" ]]; then
     LOG_FLAG="--log"
@@ -34,61 +44,75 @@ cd ${SCRIPT_DIR}
 
 yarn
 
-# Download the tfjs repositories, build them, and link them.
-if [[ ! -d "tfjs-core" ]]; then
-  echo 'Use latest version of tfjs-core'
-  git clone https://github.com/tensorflow/tfjs-core.git --depth 5
+if [[ "${IS_TFJS_NODE}" == "1" ]]; then
+  if [[ ! -d "tfjs-node" ]]; then
+    echo 'Use latest version of tfjs-node'
+    git clone https://github.com/tensorflow/tfjs-node.git --depth 5
+  fi
+  cd tfjs-node
+  HASH_NODE=`git rev-parse HEAD`
+  rm -rf dist/ && yarn && yarn build && yalc publish
+
+  cd ..
+  yarn yalc link '@tensorflow/tfjs-node'
+  cp -r tfjs-node/build/Release .yalc/@tensorflow/tfjs-node/build
+else
+  # Download the tfjs repositories, build them, and link them.
+  if [[ ! -d "tfjs-core" ]]; then
+    echo 'Use latest version of tfjs-core'
+    git clone https://github.com/tensorflow/tfjs-core.git --depth 5
+  fi
+  cd tfjs-core
+  HASH_CORE=`git rev-parse HEAD`
+  rm -rf dist/ node_modules/ && yarn
+  yarn build && yarn yalc publish
+
+  cd ..
+  yarn yalc link '@tensorflow/tfjs-core'
+
+  if [[ ! -d "tfjs-layers" ]]; then
+    echo 'Use latest version of tfjs-layers'
+    git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
+  fi
+  cd tfjs-layers
+  HASH_LAYERS=`git rev-parse HEAD`
+  # TODO(cais): This should ideally call:
+  #   yarn yalc link '@tensorflow/tfjs-core'
+  # so that tfjs-layers can be built against the HEAD of tfjs-core.
+  # But this doesn't work in general because the two repos frequently
+  # go out of sync, causing build-time and run-time errors. So right
+  # now we are just using the version of tfjs-core that tfjs-layers
+  # depends on at HEAD. The same applies to tfjs-converter and tfjs-data
+  # below.
+  rm -rf dist/ node_modules/ && yarn
+  yarn build && rollup -c && yalc publish
+
+  cd ..
+  yarn yalc link '@tensorflow/tfjs-layers'
+
+  if [[ ! -d "tfjs-converter" ]]; then
+    echo 'Use latest version of tfjs-converter'
+    git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
+  fi
+  cd tfjs-converter
+  HASH_CONVERTER=`git rev-parse HEAD`
+  rm -rf dist/ node_modules/ && yarn
+  yarn build && yalc publish
+
+  cd ..
+  yarn yalc link '@tensorflow/tfjs-converter'
+
+  if [[ ! -d "tfjs-data" ]]; then
+    echo 'Use latest version of tfjs-data'
+    git clone https://github.com/tensorflow/tfjs-data.git --depth 5
+  fi
+  cd tfjs-data
+  HASH_DATA=`git rev-parse HEAD`
+  rm -rf dist/ && yarn && yarn build && yalc publish
+
+  cd ..
+  yarn yalc link '@tensorflow/tfjs-data'
 fi
-cd tfjs-core
-HASH_CORE=`git rev-parse HEAD`
-rm -rf dist/ node_modules/ && yarn
-yarn build && yarn yalc publish
-
-cd ..
-yarn yalc link '@tensorflow/tfjs-core'
-
-if [[ ! -d "tfjs-layers" ]]; then
-  echo 'Use latest version of tfjs-layers'
-  git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
-fi
-cd tfjs-layers
-HASH_LAYERS=`git rev-parse HEAD`
-# TODO(cais): This should ideally call:
-#   yarn yalc link '@tensorflow/tfjs-core'
-# so that tfjs-layers can be built against the HEAD of tfjs-core.
-# But this doesn't work in general because the two repos frequently
-# go out of sync, causing build-time and run-time errors. So right
-# now we are just using the version of tfjs-core that tfjs-layers
-# depends on at HEAD. The same applies to tfjs-converter and tfjs-data
-# below.
-rm -rf dist/ node_modules/ && yarn
-yarn build && rollup -c && yalc publish
-
-cd ..
-yarn yalc link '@tensorflow/tfjs-layers'
-
-if [[ ! -d "tfjs-converter" ]]; then
-  echo 'Use latest version of tfjs-converter'
-  git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
-fi
-cd tfjs-converter
-HASH_CONVERTER=`git rev-parse HEAD`
-rm -rf dist/ node_modules/ && yarn
-yarn build && yalc publish
-
-cd ..
-yarn yalc link '@tensorflow/tfjs-converter'
-
-if [[ ! -d "tfjs-data" ]]; then
-  echo 'Use latest version of tfjs-data'
-  git clone https://github.com/tensorflow/tfjs-data.git --depth 5
-fi
-cd tfjs-data
-HASH_DATA=`git rev-parse HEAD`
-rm -rf dist/ && yarn && yarn build && yalc publish
-
-cd ..
-yarn yalc link '@tensorflow/tfjs-data'
 
 # Run Python script to generate the model and weights JSON files.
 # The extension names are ".js" because they will later be converted into
@@ -126,7 +150,14 @@ if [[ ! -d "${DATA_ROOT}" ]]; then
   exit 1
 fi
 
-echo "Starting benchmark karma tests..."
-yarn karma start karma.conf.layers.js \
-    "${LOG_FLAG}" \
-    --hashes="{\"tfjs-core\":\"${HASH_CORE}\",\"tfjs-layers\":\"${HASH_LAYERS}\",\"tfjs-converter\":\"${HASH_CONVERTER}\",\"tfjs-data\": \"${HASH_DATA}\"}"
+if [[ "${IS_TFJS_NODE}" == "1" ]]; then
+echo "Starting benchmark karma tests in Node.js..."
+  yarn ts-node run_node_tests.ts \
+      ${LOG_FLAG} \
+      --hashes="{\"tfjs-node\": \"${HASH_NODE}\"}"
+else
+  echo "Starting benchmark karma tests in the browser..."
+  yarn karma start karma.conf.layers.js \
+      "${LOG_FLAG}" \
+      --hashes="{\"tfjs-core\":\"${HASH_CORE}\",\"tfjs-layers\":\"${HASH_LAYERS}\",\"tfjs-converter\":\"${HASH_CONVERTER}\",\"tfjs-data\": \"${HASH_DATA}\"}"
+fi

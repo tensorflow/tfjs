@@ -15,19 +15,17 @@
  * =============================================================================
  */
 
-import * as firebase from 'firebase/app';
+// import * as firebase from 'firebase/app';
 // tslint:disable-next-line:max-line-length
 import {EnvironmentInfo, Task, TaskType, VersionSet, BenchmarkRun} from './types';
 
-// const  = require('firebase/app');
-console.log(`firebase:`, firebase);  // DEBUG
+const admin = require('firebase-admin');
 
 let firebaseInitialized = false;
 async function initFirebase() {
   if (!firebaseInitialized) {
-    await firebase.initializeApp({
-      authDomain: 'jstensorflow.firebaseapp.com',
-      projectId: 'jstensorflow'
+    admin.initializeApp({
+      credential: admin.credential.applicationDefault()
     });
     firebaseInitialized = true;
   }
@@ -42,7 +40,7 @@ async function initFirebase() {
 export async function addBenchmarkRunsToFirestore(run: BenchmarkRun[]) {
   await initFirebase();
 
-  const db = firebase.firestore();
+  const db = admin.firestore();
   const batch = db.batch();
   const collection = db.collection('BenchmarkRuns');
 
@@ -65,7 +63,7 @@ export async function addEnvironmentInfoToFirestore(
      environmentInfo: EnvironmentInfo): Promise<string> {
   await initFirebase();
 
-  const db = firebase.firestore();
+  const db = admin.firestore();
   const collection = db.collection('Environments');
   const doc = await collection.add(environmentInfo);
   return doc.id;
@@ -81,7 +79,7 @@ export async function addVersionSetToFirestore(
     versionSet: VersionSet): Promise<string> {
  await initFirebase();
 
- const db = firebase.firestore();
+ const db = admin.firestore();
  const collection = db.collection('VersionSets');
  const doc = await collection.add(versionSet);
  return doc.id;
@@ -101,7 +99,7 @@ export async function addOrGetTaskId(
     Promise<string> {
   await initFirebase();
 
-  const db = firebase.firestore();
+  const db = admin.firestore();
   const collection = db.collection('Tasks');
   const query = collection
       .where('taskType', '==', taskType)

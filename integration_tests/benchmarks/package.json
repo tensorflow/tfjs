@@ -20,6 +20,7 @@
     "clang-format": "~1.2.4",
     "detect-browser": "~4.2.0",
     "firebase": "~5.3.0",
+    "firebase-admin": "~7.2.0",
     "http-server": "^0.11.1",
     "jasmine": "~3.1.0",
     "jasmine-core": "~3.1.0",
@@ -37,12 +38,13 @@
     "yalc": "^1.0.0-pre.23"
   },
   "scripts": {
-    "build": "tsc",
-    "link-local": "yalc link",
-    "lint": "tslint -p . -t verbose",
     "benchmark": "./benchmarks.sh",
     "benchmark-local": "./benchmarks.sh",
     "benchmark-travis": "./benchmark_travis.sh",
+    "build": "tsc",
+    "clean": "rm -rf .yalc/ node_modules/ data/ tfjs-*",
+    "link-local": "yalc link",
+    "lint": "tslint -p . -t verbose",
     "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --firebaseKey $FIREBASE_KEY --hostname='bs-local.com'"
   },
   "license": "Apache-2.0",

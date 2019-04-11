@@ -144,7 +144,7 @@ export interface NodeEnvironmentInfo extends ServerSideEnvironmentInfo {
   type: NodeEnvironmentType;
 
   /** `node --version` output. */
-  nodeVersion?: string;
+  nodeVersion: string;
   tfjsNodeVersion?: string;
   tfjsNodeUsesCUDA?: boolean;
 }
