@@ -38,7 +38,7 @@ yarn benchmark --layers --tfjs-node-gpu
 ```
 
 Obviously, this requires a CUDA-enabled GPU and all required drivers and
-libraries set up properly on the system.
+libraries to be set up properly on the system.
 
 Also, note that using the `--tfjs-node-gpu` will cause the the GPU (CUDA)
 version of TensorFlow (Python) to be installed and used for comparison.

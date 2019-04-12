@@ -45,13 +45,15 @@ async function initFirebase(): Promise<firebase.firestore.Firestore> {
     return firebase.firestore();
   } else {
     // In Node.js.
-    // TODO(cais): Find a way to get rid of this eval while avoiding
-    // code duplication between Node.js and browser. Currently, this
-    // eval() helps us avoid an error during compilation of grpc,
-    // which is a dependenc of firebase-admin.
+    // TODO(cais): Find a way to get rid of the hacky-looking import while
+    // avoiding code duplication between Node.js and browser. Currently, this
+    // string splitting helps us avoid an error during compilation of grpc,
+    // which is a dependenc of firebase-admin. The compilation error happens
+    // only in the browser, but not in Node.js.
     // For context: Firebase Firestore has two different client libraries
     // for Node.js and browser.
-    const admin = eval("require('firebase-admin')");
+    // tslint:disable-next-line:no-require-imports
+    const admin = require('firebase-' + 'admin');
     if (!firebaseInitialized) {
       admin.initializeApp({
         credential: admin.credential.applicationDefault()
