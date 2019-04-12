@@ -17,6 +17,11 @@ steps:
   waitFor: ['yarn']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
+- name: 'node:10.15.3'
+  entrypoint: 'yarn'
+  id: 'test-bundle-size'
+  args: ['test-bundle-size']
+  waitFor: ['yarn']
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:
@@ -25,3 +30,4 @@ timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
 options:
  logStreamingOption: 'STREAM_ON'
+ machineType: 'N1_HIGHCPU_8'
