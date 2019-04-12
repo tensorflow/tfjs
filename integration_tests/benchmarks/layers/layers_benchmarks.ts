@@ -251,7 +251,7 @@ describe('TF.js Layers Benchmarks', () => {
       // from source and linked via `yalc`, instead of downloaded from NPM.
     }
 
-    let log: boolean;
+    let log: boolean;  //  Whether the benchmark results are to be logged.
     if (isNodeJS) {
       // In Node.js.
       log = process.argv.indexOf('--log') !== -1;

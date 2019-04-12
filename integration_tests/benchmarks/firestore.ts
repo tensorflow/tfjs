@@ -49,6 +49,8 @@ async function initFirebase(): Promise<firebase.firestore.Firestore> {
     // code duplication between Node.js and browser. Currently, this
     // eval() helps us avoid an error during compilation of grpc,
     // which is a dependenc of firebase-admin.
+    // For context: Firebase Firestore has two different client libraries
+    // for Node.js and browser.
     const admin = eval("require('firebase-admin')");
     if (!firebaseInitialized) {
       admin.initializeApp({
