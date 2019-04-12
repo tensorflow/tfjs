@@ -50,10 +50,13 @@ export function inNodeJS(): boolean {
       typeof __karma__ === 'undefined';
 }
 
+export function usingNodeGPU(): boolean {
+  return process.argv.indexOf('--gpu') !== -1;
+}
+
 /** Extract commit hashes of the tfjs repos from karma flags. */
 function getCommitHashesFromArgs(
     args: Array<boolean|number|string>) {
-  console.log('args:', args);  // DEBUG
   for (let i = 0; i < args.length; ++i) {
     if (args[i] === '--hashes') {
       if (args[i + 1] == null) {
@@ -170,8 +173,8 @@ function getBrowserEnvironmentInfo(): BrowserEnvironmentInfo {
 }
 
 function getNodeEnvironmentType(): NodeEnvironmentType {
-  // TODO(cais): Support 'node-libtensorflow-cuda' and 'node-gles'.
-  return 'node-libtensorflow-cpu';
+  // TODO(cais): Support 'node-gles'.
+  return usingNodeGPU() ? 'node-libtensorflow-cuda' : 'node-libtensorflow-cpu';
 }
 
 function getNodeEnvironmentInfo(): NodeEnvironmentInfo {
@@ -179,8 +182,8 @@ function getNodeEnvironmentInfo(): NodeEnvironmentInfo {
   return {
     type: getNodeEnvironmentType(),
     nodeVersion: process.version,
-    tfjsNodeVersion
-    // TODO(cais): Add WebGL info.
+    tfjsNodeVersion,
+    tfjsNodeUsesCUDA: usingNodeGPU()
   };
 }
 
@@ -220,6 +223,7 @@ describe('TF.js Layers Benchmarks', () => {
     if (inNodeJS()) {
       // In Node.js.
       const modelJSONPath = `./data/${modelName}/model.json`;
+      // tslint:disable-next-line:no-require-imports
       const fs = require('fs');
       modelJSON = JSON.parse(fs.readFileSync(modelJSONPath, 'utf-8'));
     } else {
@@ -234,8 +238,17 @@ describe('TF.js Layers Benchmarks', () => {
     const isNodeJS = inNodeJS();
     console.log(`isNodeJS = ${isNodeJS}`);
     if (isNodeJS) {
-      // TODO(cais): Support tfjs-node-gpu.
+      if (usingNodeGPU()) {
+        console.log('Using tfjs-node-gpu');
+      } else {
+        console.log('Using tfjs-node');
+      }
+      // tslint:disable-next-line:no-require-imports
       tfn = require('@tensorflow/tfjs-node');
+      // NOTE: Even though it may appear that we are always importing the CPU
+      // version of tfjs-node, we are really import the CPU/GPU version
+      // depending on the setting, because the tfjs-node package here is built
+      // from source and linked via `yalc`, instead of downloaded from NPM.
     }
 
     let log: boolean;
@@ -265,10 +278,10 @@ describe('TF.js Layers Benchmarks', () => {
         'tfjs-layers': tfl.version_layers
       }
     };
-    // console.log(JSON.stringify(versionSet, null, 2));  // DEBUG
 
     let suiteLog: SuiteLog;
     if (isNodeJS) {
+      // tslint:disable-next-line:no-require-imports
       const fs = require('fs');
       suiteLog = JSON.parse(fs.readFileSync(BENCHMARKS_JSON_PATH, 'utf-8'));
     } else {
@@ -287,10 +300,8 @@ describe('TF.js Layers Benchmarks', () => {
     const versionSetId =
         log ? await addVersionSetToFirestore(versionSet) : null;
     if (isNodeJS) {
-      console.log('parse args node:', process.argv);  // DEBUG
       versionSet.commitHashes = getCommitHashesFromArgs(process.argv);
     } else {
-      console.log('parse args browser');  // DEBUG
       versionSet.commitHashes = getCommitHashesFromArgs(__karma__.config.args);
     }
 

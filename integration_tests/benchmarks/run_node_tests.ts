@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
+import * as jasmineUtil from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // tslint:disable-next-line:no-any
-export function runTests(jasmine_util: any): void {
+export function runTests(jasmineUtil: any): void {
   // tslint:disable-next-line:no-require-imports
   const jasmineCtor = require('jasmine');
 
@@ -28,8 +28,8 @@ export function runTests(jasmine_util: any): void {
     throw e;
   });
 
-  jasmine_util.setTestEnvs(
-      [{name: 'node', factory: jasmine_util.CPU_FACTORY, features: {}}]);
+  jasmineUtil.setTestEnvs(
+      [{name: 'node', factory: jasmineUtil.CPU_FACTORY, features: {}}]);
 
   const runner = new jasmineCtor();
   runner.loadConfig({
@@ -39,4 +39,4 @@ export function runTests(jasmine_util: any): void {
   runner.execute();
 }
 
-runTests(jasmine_util);
+runTests(jasmineUtil);

@@ -40,9 +40,13 @@ yarn benchmark --layers --tfjs-node-gpu
 Obviously, this requires a CUDA-enabled GPU and all required drivers and
 libraries set up properly on the system.
 
+Also, note that using the `--tfjs-node-gpu` will cause the the GPU (CUDA)
+version of TensorFlow (Python) to be installed and used for comparison.
+
 Add the `--log` flag to cause the benchmark data and related metadata to be
 logged to Cloud Firestore. This requires you set the
 `GOOGLE_APPLICATION_CREDENTIALS` environment variable and point it
 to the service-account JSON file. See this Google Cloud documentation page
 for more details:
 https://cloud.google.com/docs/authentication/getting-started
+

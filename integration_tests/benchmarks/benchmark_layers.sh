@@ -14,8 +14,8 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 SKIP_PY_BENCHMAKRS=0
-IS_TFJS_NODE=0
-IS_TFJS_NODE_GPU=0
+IS_TFJS_NODE=0  # Whether tfjs-node or tfjs-node-gpu is being benchmarked.
+IS_TFJS_NODE_GPU=0  # Whether tfjs-node-gpu is being benchmarked.
 LOG_FLAG=""
 while true; do
   if [[ "$1" == "--skip_py_benchmarks" ]]; then
@@ -51,10 +51,17 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
   fi
   cd tfjs-node
   HASH_NODE=`git rev-parse HEAD`
-  rm -rf dist/ && yarn && yarn build && yalc publish
+  rm -rf dist/
+  if [[ "${IS_TFJS_NODE_GPU}" == "1" ]]; then
+    yarn node scripts/install.js gpu download
+  else
+    yarn node scripts/install.js cpu download
+  fi
+  yarn && yarn build && yalc publish
 
   cd ..
   yarn yalc link '@tensorflow/tfjs-node'
+  rm -rf .yalc/@tensorflow/tfjs-node/build
   cp -r tfjs-node/build/Release .yalc/@tensorflow/tfjs-node/build
 else
   # Download the tfjs repositories, build them, and link them.
@@ -130,7 +137,11 @@ if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
   source "${VENV_DIR}/bin/activate"
 
   echo "Installing Python dependencies..."
-  pip install -r python/requirements.txt
+  if [[ "${IS_TFJS_NODE_GPU}" == "1" ]]; then
+    pip install -r python/requirements_gpu.txt
+  else
+    pip install -r python/requirements.txt
+  fi
 
   echo "Running Python Keras benchmarks..."
   python "${SCRIPT_DIR}/python/benchmarks.py" "${DATA_ROOT}"
@@ -151,8 +162,14 @@ if [[ ! -d "${DATA_ROOT}" ]]; then
 fi
 
 if [[ "${IS_TFJS_NODE}" == "1" ]]; then
-echo "Starting benchmark karma tests in Node.js..."
+  GPU_FLAG=""
+  if [[ "${IS_TFJS_NODE_GPU}" == "1" ]]; then
+    GPU_FLAG="--gpu"
+  fi
+
+  echo "Starting benchmark karma tests in Node.js..."
   yarn ts-node run_node_tests.ts \
+      ${GPU_FLAG} \
       ${LOG_FLAG} \
       --hashes "{\"tfjs-node\": \"${HASH_NODE}\"}"
 else
