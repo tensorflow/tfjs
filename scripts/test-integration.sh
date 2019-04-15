@@ -21,7 +21,7 @@ function print_status() {
 }
 
 echo '######################'
-echo 'version.ts was modified.'
+echo 'Nightly build or version.ts was modified.'
 echo 'Testing layers/converter/node/data against tfjs-core@master.'
 echo '######################'
 yarn build && yarn run yalc publish
