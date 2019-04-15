@@ -1,0 +1,9 @@
+{
+  "name": "cloudbuild",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "googleapis": "^39.2.0"
+  }
+}

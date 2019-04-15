@@ -14,9 +14,8 @@
 // limitations under the License.
 // =============================================================================
 
-
 // Run this script from the base directory (not the script directory):
-// ./scripts/tag-version
+// ./scripts/tag-version.js
 
 var fs = require('fs');
 var exec = require('child_process').exec;

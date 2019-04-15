@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Copyright 2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,27 +13,17 @@
 // limitations under the License.
 // =============================================================================
 
-const {exec} = require('./test-util');
+const {google} = require('googleapis');
 
-const dirName = 'tfjs-core-integration';
-
-let shouldRunIntegration = false;
-if (process.env.NIGHTLY === 'true') {
-  shouldRunIntegration = true;
-} else {
-  exec(
-      `git clone --depth=1 --single-branch ` +
-      `https://github.com/tensorflow/tfjs-core.git ${dirName}`);
-  const res = exec(
-      `git diff --name-only --diff-filter=M --no-index ${dirName}/src/ src/`,
-      {silent: true}, true);
-  let files = res.stdout.trim().split('\n');
-  files.forEach(file => {
-    if (file === 'src/version.ts') {
-      shouldRunIntegration = true;
-    }
+module.exports.nightly = async data => {
+  const cloudbuild = google.cloudbuild('v1');
+  const auth = await google.auth.getClient(
+      {scopes: ['https://www.googleapis.com/auth/cloud-platform']});
+  google.options({auth});
+  const resp = await cloudbuild.projects.triggers.run({
+    'projectId': 'learnjs-174218',
+    'triggerId': '7423c985-2fd2-40f3-abe7-94d4c353eed0',
+    'resource': {'branchName': 'master'}
   });
-}
-if (shouldRunIntegration) {
-  shell.exec('./scripts/test-integration.sh');
-}
+  console.log(resp);
+};
