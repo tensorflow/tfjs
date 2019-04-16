@@ -29,13 +29,13 @@ export class MultiplyProgram implements WebGPUProgram {
 
     this.userCode = `
       #version 450
-      layout(std140, set = 0, binding = 0) buffer ssbA {
+      layout(std430, set = 0, binding = 0) readonly buffer ssbA {
         float A[];
       };
-      layout(std140, set = 0, binding = 1) buffer ssbB {
+      layout(std430, set = 0, binding = 1) readonly buffer ssbB {
         float B[];
       };
-      layout(std140, set = 0, binding = 2) buffer ssbOut {
+      layout(std430, set = 0, binding = 2) writeonly buffer ssbOut {
         float result[];
       };
 

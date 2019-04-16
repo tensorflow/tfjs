@@ -43,8 +43,7 @@ export const compileProgram =
       if (error.length) {
         throw new Error(`Shader compilation failed: ${error}`);
       }
-      // TODO: remove '.slice().buffer as any', once on newer Chromium.
-      const code = result.GetBinary().slice().buffer as any;
+      const code = result.GetBinary();
       const bindGroupLayout = device.createBindGroupLayout({bindings});
       const layout =
           device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});
