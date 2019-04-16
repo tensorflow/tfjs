@@ -21,7 +21,7 @@ import {WebGPUProgram} from './webgpu_program';
 export class MultiplyProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
-  dispatch: number[];
+  dispatch: [number, number, number];
 
   constructor(outputShape: number[]) {
     this.outputShape = outputShape;
