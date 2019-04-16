@@ -12,7 +12,7 @@
  * TensorFlow.js Layers: Basic Layers.
  */
 
-import {fused, serialization, Tensor, tidy, transpose, util} from '@tensorflow/tfjs-core';
+import {fused, serialization, Tensor, tidy, transpose, util, notEqual, any} from '@tensorflow/tfjs-core';
 
 import {Activation as ActivationFn, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
@@ -79,8 +79,8 @@ export class Dropout extends Layer {
     this.seed = args.seed;
     if (this.seed != null) {
       throw new NotImplementedError(
-          'Non-default seed is not implemented in Dropout layer yet: ' +
-          this.seed);
+        'Non-default seed is not implemented in Dropout layer yet: ' +
+        this.seed);
     }
     this.supportsMasking = true;
   }
@@ -93,29 +93,29 @@ export class Dropout extends Layer {
     const noiseShape: Shape = [];
     for (let i = 0; i < this.noiseShape.length; ++i) {
       noiseShape.push(
-          this.noiseShape[i] == null ? inputShape[i] : this.noiseShape[i]);
+        this.noiseShape[i] == null ? inputShape[i] : this.noiseShape[i]);
     }
     return noiseShape;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  call(inputs: Tensor | Tensor[], kwargs: Kwargs): Tensor | Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       const input = getExactlyOneTensor(inputs);
       if (this.noiseShape != null &&
-          !util.arraysEqual(input.shape, this.noiseShape)) {
+        !util.arraysEqual(input.shape, this.noiseShape)) {
         throw new NotImplementedError(
-            'Non-default noise shape is not implemented in Dropout ' +
-            'layer yet: ' + JSON.stringify(this.noiseShape));
+          'Non-default noise shape is not implemented in Dropout ' +
+          'layer yet: ' + JSON.stringify(this.noiseShape));
       }
       if (0 < this.rate && this.rate < 1) {
         const training =
-            kwargs['training'] == null ? false : kwargs['training'];
+          kwargs['training'] == null ? false : kwargs['training'];
         const noiseShape = this.getNoiseShape(input);
         const output =
-            K.inTrainPhase(
-                () => K.dropout(input, this.rate, noiseShape, this.seed),
-                () => input, training) as Tensor;
+          K.inTrainPhase(
+            () => K.dropout(input, this.rate, noiseShape, this.seed),
+            () => input, training) as Tensor;
         return output;
       }
       return inputs;
@@ -153,11 +153,11 @@ export declare interface DenseLayerArgs extends LayerArgs {
   /**
    * Initializer for the dense kernel weights matrix.
    */
-  kernelInitializer?: InitializerIdentifier|Initializer;
+  kernelInitializer?: InitializerIdentifier | Initializer;
   /**
    * Initializer for the bias vector.
    */
-  biasInitializer?: InitializerIdentifier|Initializer;
+  biasInitializer?: InitializerIdentifier | Initializer;
   /**
    * If specified, defines inputShape as `[inputDim]`.
    */
@@ -166,27 +166,27 @@ export declare interface DenseLayerArgs extends LayerArgs {
   /**
    * Constraint for the kernel weights.
    */
-  kernelConstraint?: ConstraintIdentifier|Constraint;
+  kernelConstraint?: ConstraintIdentifier | Constraint;
 
   /**
    * Constraint for the bias vector.
    */
-  biasConstraint?: ConstraintIdentifier|Constraint;
+  biasConstraint?: ConstraintIdentifier | Constraint;
 
   /**
    * Regularizer function applied to the dense kernel weights matrix.
    */
-  kernelRegularizer?: RegularizerIdentifier|Regularizer;
+  kernelRegularizer?: RegularizerIdentifier | Regularizer;
 
   /**
    * Regularizer function applied to the bias vector.
    */
-  biasRegularizer?: RegularizerIdentifier|Regularizer;
+  biasRegularizer?: RegularizerIdentifier | Regularizer;
 
   /**
    * Regularizer function applied to the activation.
    */
-  activityRegularizer?: RegularizerIdentifier|Regularizer;
+  activityRegularizer?: RegularizerIdentifier | Regularizer;
 }
 
 /**
@@ -242,7 +242,7 @@ export class Dense extends Layer {
   constructor(args: DenseLayerArgs) {
     super(args);
     if (args.batchInputShape == null && args.inputShape == null &&
-        args.inputDim != null) {
+      args.inputDim != null) {
       // This logic is copied from Layer's constructor, since we can't
       // do exactly what the Python constructor does for Dense().
       let batchSize: number = null;
@@ -259,9 +259,9 @@ export class Dense extends Layer {
       this.useBias = args.useBias;
     }
     this.kernelInitializer = getInitializer(
-        args.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
+      args.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
     this.biasInitializer =
-        getInitializer(args.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
+      getInitializer(args.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
     this.kernelConstraint = getConstraint(args.kernelConstraint);
     this.biasConstraint = getConstraint(args.biasConstraint);
     this.kernelRegularizer = getRegularizer(args.kernelRegularizer);
@@ -272,17 +272,17 @@ export class Dense extends Layer {
     this.inputSpec = [{minNDim: 2}];
   }
 
-  public build(inputShape: Shape|Shape[]): void {
+  public build(inputShape: Shape | Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
     const inputLastDim = inputShape[inputShape.length - 1];
     if (this.kernel == null) {
       this.kernel = this.addWeight(
-          'kernel', [inputLastDim, this.units], null, this.kernelInitializer,
-          this.kernelRegularizer, true, this.kernelConstraint);
+        'kernel', [inputLastDim, this.units], null, this.kernelInitializer,
+        this.kernelRegularizer, true, this.kernelConstraint);
       if (this.useBias) {
         this.bias = this.addWeight(
-            'bias', [this.units], null, this.biasInitializer,
-            this.biasRegularizer, true, this.biasConstraint);
+          'bias', [this.units], null, this.biasInitializer,
+          this.biasRegularizer, true, this.biasConstraint);
       }
     }
 
@@ -290,26 +290,26 @@ export class Dense extends Layer {
     this.built = true;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  computeOutputShape(inputShape: Shape | Shape[]): Shape | Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const outputShape = inputShape.slice();
     outputShape[outputShape.length - 1] = this.units;
     return outputShape;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  call(inputs: Tensor | Tensor[], kwargs: Kwargs): Tensor | Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       // Dense layer accepts only a single input.
       const input = getExactlyOneTensor(inputs);
       const fusedActivationName =
-          mapActivationToFusedKernel(this.activation.getClassName());
+        mapActivationToFusedKernel(this.activation.getClassName());
       let output: Tensor;
 
       if (fusedActivationName != null) {
         output = K.dot(
-            input, this.kernel.read(), fusedActivationName,
-            this.bias ? this.bias.read() : null);
+          input, this.kernel.read(), fusedActivationName,
+          this.bias ? this.bias.read() : null);
       } else {
         output = K.dot(input, this.kernel.read());
         if (this.bias != null) {
@@ -369,21 +369,21 @@ export class Flatten extends Layer {
     this.inputSpec = [{minNDim: 3}];
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  computeOutputShape(inputShape: Shape | Shape[]): Shape | Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     for (const dim of inputShape.slice(1)) {
       if (dim == null) {
         throw new ValueError(
-            `The shape of the input to "Flatten" is not fully defined ` +
-            `(got ${inputShape.slice(1)}). Make sure to pass a complete ` +
-            `"input_shape" or "batch_input_shape" argument to the first ` +
-            `layer in your model.`);
+          `The shape of the input to "Flatten" is not fully defined ` +
+          `(got ${inputShape.slice(1)}). Make sure to pass a complete ` +
+          `"input_shape" or "batch_input_shape" argument to the first ` +
+          `layer in your model.`);
       }
     }
     return [inputShape[0], arrayProd(inputShape, 1)];
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  call(inputs: Tensor | Tensor[], kwargs: Kwargs): Tensor | Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       return K.batchFlatten(getExactlyOneTensor(inputs));
@@ -440,7 +440,7 @@ export class Activation extends Layer {
     this.activation = getActivation(args.activation);
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  call(inputs: Tensor | Tensor[], kwargs: Kwargs): Tensor | Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       const input = getExactlyOneTensor(inputs);
@@ -496,7 +496,7 @@ export class RepeatVector extends Layer {
     return [inputShape[0], this.n, inputShape[1]];
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  call(inputs: Tensor | Tensor[], kwargs: Kwargs): Tensor | Tensor[] {
     return tidy(() => {
       inputs = getExactlyOneTensor(inputs);
       return K.repeat(inputs, this.n);
@@ -613,17 +613,17 @@ export class Reshape extends Layer {
       return inputShape.slice(0, 1).concat(this.targetShape);
     } else {
       return inputShape.slice(0, 1).concat(
-          this.fixUnknownDimension(inputShape.slice(1), this.targetShape));
+        this.fixUnknownDimension(inputShape.slice(1), this.targetShape));
     }
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  call(inputs: Tensor | Tensor[], kwargs: Kwargs): Tensor | Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       const input = getExactlyOneTensor(inputs);
       const inputShape = input.shape;
       const outputShape = inputShape.slice(0, 1).concat(
-          this.fixUnknownDimension(inputShape.slice(1), this.targetShape));
+        this.fixUnknownDimension(inputShape.slice(1), this.targetShape));
       return input.reshape(outputShape);
     });
   }
@@ -685,21 +685,21 @@ export class Permute extends Layer {
     super(args);
     if (args.dims == null) {
       throw new Error(
-          'Required configuration field `dims` is missing during Permute ' +
-          'constructor call.');
+        'Required configuration field `dims` is missing during Permute ' +
+        'constructor call.');
     }
     if (!Array.isArray(args.dims)) {
       throw new Error(
-          'Permute constructor requires `dims` to be an Array, but received ' +
-          `${args.dims} instead.`);
+        'Permute constructor requires `dims` to be an Array, but received ' +
+        `${args.dims} instead.`);
     }
 
     // Check the validity of the permutation indices.
     const expectedSortedIndices = range(1, args.dims.length + 1);
     if (!util.arraysEqual(args.dims.slice().sort(), expectedSortedIndices)) {
       throw new Error(
-          'Invalid permutation `dims`: ' + JSON.stringify(args.dims) +
-          ' `dims` must contain consecutive integers starting from 1.');
+        'Invalid permutation `dims`: ' + JSON.stringify(args.dims) +
+        ' `dims` must contain consecutive integers starting from 1.');
     }
 
     this.dims = args.dims;
@@ -707,7 +707,7 @@ export class Permute extends Layer {
     this.inputSpec = [new InputSpec({ndim: this.dims.length + 1})];
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  computeOutputShape(inputShape: Shape | Shape[]): Shape | Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const outputShape = inputShape.slice();
     this.dims.forEach((dim: number, i: number) => {
@@ -716,7 +716,7 @@ export class Permute extends Layer {
     return outputShape;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  call(inputs: Tensor | Tensor[], kwargs: Kwargs): Tensor | Tensor[] {
     return transpose(getExactlyOneTensor(inputs), this.dimsIncludingBatch);
   }
 
@@ -730,3 +730,71 @@ export class Permute extends Layer {
   }
 }
 serialization.registerClass(Permute);
+
+export declare interface MaskingArgs extends LayerArgs {
+  /**
+   * Masking Value. Defaults to `0.0`.
+   */
+  maskValue?: number;
+}
+
+/**
+ * Masks a sequence by using a mask value to skip timesteps.
+ *
+ * If all features for a given sample timestep are equal to `mask_value`,
+ * then the sample timestep will be masked (skipped) in all downstream layers
+ * (as long as they support masking).
+ *
+ * If any downstream layer does not support masking yet receives such
+ * an input mask, an exception will be raised.
+ *
+ * # Arguments
+ *     maskValue: Either None or mask value to skip.
+ *
+ * # Input shape
+ *     Arbitrary. Use the keyword argument `input_shape`
+ *     (tuple of integers, does not include the samples axis)
+ *     when using this layer as the first layer in a model.
+ *
+ * # Output shape
+ *     Same shape as input.
+ */
+export class Masking extends Layer {
+
+  static className = 'Masking';
+  maskValue: number;
+
+  constructor(args?: MaskingArgs) {
+    super(args == null ? {} : args);
+    this.supportsMasking = true;
+    if (args != null) {
+      this.maskValue = args.maskValue == null ? 0 : args.maskValue;
+    } else {
+      this.maskValue = 0;
+    }
+  }
+
+  computeOutputShape(inputShape: Shape | Shape[]): Shape | Shape[] {
+    return inputShape;
+  }
+
+  getConfig() {
+    const baseConfig = super.getConfig();
+    const config = {maskValue: this.maskValue};
+    Object.assign(config, baseConfig);
+    return config;
+  }
+
+  call(inputs: Tensor | Tensor[], kwargs: Kwargs): Tensor | Tensor[] {
+    return tidy(() => {
+      this.invokeCallHook(inputs, kwargs);
+      const input = getExactlyOneTensor(inputs);
+      const axis = -1;
+      const keepDims = true;
+      const booleanMask = any(notEqual(input, this.maskValue), axis, keepDims);
+      const output = input.mul(booleanMask.asType(input.dtype));
+      return output;
+    });
+  }
+}
+serialization.registerClass(Masking);
