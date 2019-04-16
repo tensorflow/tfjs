@@ -11,7 +11,7 @@ dist/**/*_test.js
 dist/**/*_test.d.ts
 dist/test_node.js
 *.tgz
-.travis.yml
+cloudbuild.yml
 .npmignore
 CONTRIBUTING.md
 DEVELOPMENT.md
