@@ -22,7 +22,7 @@ module.exports.nightly_tfjs = async data => {
   google.options({auth});
   const resp = await cloudbuild.projects.triggers.run({
     'projectId': 'learnjs-174218',
-    'triggerId': '05896154-f405-4974-b76d-9f1652c2cc7c',
+    'triggerId': '43c56710-ccb3-4db9-b746-603cffbf0c02',
     'resource': {'branchName': 'master'}
   });
   console.log(resp);
