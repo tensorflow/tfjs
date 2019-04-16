@@ -80,8 +80,7 @@ export class WebGPUBackend extends KernelBackend {
   private setBufferData(
       buffer: GPUBuffer,
       data: Float32Array|Int32Array|Uint8Array) {
-    // TODO: remove '.slice().buffer as any', once on newer Chromium.
-    buffer.setSubData(0, data.slice().buffer as any);
+    buffer.setSubData(0, data);
   }
 
   register(dataId: object, shape: number[], dtype: DataType): void {
