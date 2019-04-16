@@ -34,7 +34,7 @@ if (coverageEnabled) {
 const devConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
   files: [{pattern: 'src/**/*.ts'}],
-  exclude: ['src/test_node.ts'],
+  exclude: ['src/test_node.ts', 'src/backends/webgpu/**/*.ts'],
   preprocessors: {'**/*.ts': ['karma-typescript']},
   karmaTypescriptConfig,
   reporters: ['dots', 'karma-typescript'],
