@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/tensorflow/tfjs.svg?branch=master)](https://travis-ci.org/tensorflow/tfjs)
 # TensorFlow.js
 
 TensorFlow.js is an open-source hardware-accelerated JavaScript library for
@@ -63,7 +62,7 @@ Add the following code to an HTML file:
   <head>
     <!-- Load TensorFlow.js -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"> </script>
-  
+
 
     <!-- Place your code in the script tag below. You can also use an external .js file -->
     <script>
