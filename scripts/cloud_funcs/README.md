@@ -1,14 +1,14 @@
 This directory contains the following Google Cloud Functions.
 
 ### `trigger_nightly`
-Programatically triggers a Cloud Build on master. This function is called by the Cloud Scheduler around 3:30am EST every day (configurable via the Cloud Scheduler UI).
+Programatically triggers a Cloud Build on master. This function is called by the Cloud Scheduler around 4am EST every day (configurable via the Cloud Scheduler UI).
 You can also trigger the function manually via the Cloud UI.
 
 Command to re-deploy:
 ```sh
-gcloud functions deploy nightly \
+gcloud functions deploy nightly_tfjs \
   --runtime nodejs8 \
-  --trigger-topic nightly
+  --trigger-topic nightly_tfjs
 ```
 
 If a build was triggered by nightly, there is a substitution variable `_NIGHTLY=true`.
