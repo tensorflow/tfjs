@@ -36,5 +36,5 @@ if (process.env.NIGHTLY === 'true') {
   });
 }
 if (shouldRunIntegration) {
-  shell.exec('./scripts/test-integration.sh');
+  exec('./scripts/test-integration.sh');
 }
