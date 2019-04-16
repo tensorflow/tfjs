@@ -19,8 +19,8 @@ set -e
 yarn
 yarn lint
 
-# if [ "$NIGHTLY" = true ]
-# then
+if [ "$NIGHTLY" = true ]
+then
   # TODO(cais, annyuan): The git and build commands below should be deduplicated
   # with benchmarks.sh.
 
@@ -80,4 +80,4 @@ yarn lint
     "run-browserstack --nightly --browsers=bs_ios_11 --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'" \
     "run-browserstack --nightly --browsers=bs_safari_mac --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'" \
     "run-browserstack --nightly --browsers=bs_chrome_mac --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'"
-# fi
+fi
