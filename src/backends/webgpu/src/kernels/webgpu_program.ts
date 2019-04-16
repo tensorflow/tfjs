@@ -15,26 +15,27 @@
  * =============================================================================
  */
 
-export interface WebGPUBuffer {
-  size: number, usage: any,
-      setSubData: (index: number, buffer: ArrayBuffer|SharedArrayBuffer) => void
-}
+import * as shaderc from '@webgpu/shaderc';
 
 export interface WebGPUProgram {
   userCode: string;
   outputShape: number[];
   // Dispatch determines the layout of thread groups.
-  dispatch: number[];
+  dispatch: [number, number, number];
 }
 
 export interface WebGPUBinary {
-  bindGroupLayout: any;
-  pipeline: any;
+  bindGroupLayout: GPUBindGroupLayout;
+  pipeline: GPUComputePipeline;
 }
 
 export const compileProgram =
-    (shaderCompiler: any, shaderKind: any, compileOptions: any, device: any,
-     program: WebGPUProgram, bindings: any): WebGPUBinary => {
+    (shaderCompiler: shaderc.Compiler,
+     shaderKind: shaderc.ShaderKind,
+     compileOptions: shaderc.CompileOptions,
+     device: GPUDevice,
+     program: WebGPUProgram,
+     bindings: GPUBindGroupLayoutBinding[]): WebGPUBinary => {
       const source = program.userCode;
       const result = shaderCompiler.CompileGlslToSpv(
           source, shaderKind, 'file', 'main', compileOptions);
@@ -42,7 +43,8 @@ export const compileProgram =
       if (error.length) {
         throw new Error(`Shader compilation failed: ${error}`);
       }
-      const code = result.GetBinary().slice(0).buffer;
+      // TODO: remove '.slice().buffer as any', once on newer Chromium.
+      const code = result.GetBinary().slice().buffer as any;
       const bindGroupLayout = device.createBindGroupLayout({bindings});
       const layout =
           device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});

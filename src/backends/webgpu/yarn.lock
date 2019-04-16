@@ -2,11 +2,6 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-converter@1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.0.4.tgz#824f546bf47ceaedf7affbadff3bdd151b530066"
-  integrity sha512-r619cIleJy9btVN12KoFCi0HIgi4qzzgxjxQCDxaVgi7Axas7MwBtAKGTZppR4+eK7eLOVYT1ah95JUDdFNGRw==
-
 "@tensorflow/tfjs-core@1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.0.4.tgz#98365d04d179b3244ec59a270ec5e31e21de3b35"
@@ -17,29 +12,6 @@
     "@types/webgl2" "0.0.4"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-data@1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.0.4.tgz#1229a3217b529933a97b577004c95dce060a49e7"
-  integrity sha512-Rf7M8ctirYfuKh+hu96pXi6g6yChEEELOvlCa1ta4JWqbQhpsu77DL7SrEtKeWzL+aD/GdCxmwuyofSnRSO7JA==
-  dependencies:
-    "@types/node-fetch" "^2.1.2"
-    node-fetch "~2.1.2"
-
-"@tensorflow/tfjs-layers@1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.0.4.tgz#4ebeb3183b3705f7dd00f1cd47a33ff3a0c46213"
-  integrity sha512-X/iH0dh7AODZO1k44cx0YO19kHAItgUc9LEf5ZYH7bWaqrL0O+J4JYONqW5xzjLHunOFkKsvtNvZi9hIyemjGA==
-
-"@tensorflow/tfjs@1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-1.0.4.tgz#b571df49419e46753c6aa054d32c10787e83d928"
-  integrity sha512-lTKYfk8VHG/acun7xRWz/A8FFsf2FK6aI0TvKrenmiaW4OZue8BYrFNbhLKdscSaEGvYZ7/RFWaOQkA2nrcI3Q==
-  dependencies:
-    "@tensorflow/tfjs-converter" "1.0.4"
-    "@tensorflow/tfjs-core" "1.0.4"
-    "@tensorflow/tfjs-data" "1.0.4"
-    "@tensorflow/tfjs-layers" "1.0.4"
-
 "@types/estree@0.0.38":
   version "0.0.38"
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.38.tgz#c1be40aa933723c608820a99a373a16d215a1ca2"
@@ -49,13 +21,6 @@
   version "2.5.54"
   resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-2.5.54.tgz#a6b5f2ae2afb6e0307774e8c7c608e037d491c63"
   integrity sha512-B9YofFbUljs19g5gBKUYeLIulsh31U5AK70F41BImQRHEZQGm4GcN922UvnYwkduMqbC/NH+9fruWa/zrqvHIg==
-
-"@types/node-fetch@^2.1.2":
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.3.2.tgz#e01893b176c6fa1367743726380d65bce5d6576b"
-  integrity sha512-yW0EOebSsQme9yKu09XbdDfle4/SmWZMK4dfteWcSLCYNQQcF+YOv0kIrvm+9pO11/ghA4E6A+RNQqvYj4Nr3A==
-  dependencies:
-    "@types/node" "*"
 
 "@types/node@*":
   version "11.13.4"
@@ -77,10 +42,15 @@
   resolved "https://registry.yarnpkg.com/@types/webgl2/-/webgl2-0.0.4.tgz#c3b0f9d6b465c66138e84e64cb3bdf8373c2c279"
   integrity sha512-PACt1xdErJbMUOUweSrbVM7gSIYm1vTncW2hF6Os/EeWi6TXYAYMPp+8v6rzHmypE5gHrxaxZNXgMkJVIdZpHw==
 
-"@webgpu/shaderc@0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@webgpu/shaderc/-/shaderc-0.0.2.tgz#a98cae525131777ff247be8faa9617ef2ecc4134"
-  integrity sha512-q1XAH1oL5Jp70By83qygAXrDnG3EcTxovFbdWqL3iRucTkdPlFvOCn2j04JOK9Ti5qXUWtJHC6ZIgc74Wk1fKA==
+"@webgpu/shaderc@0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@webgpu/shaderc/-/shaderc-0.0.4.tgz#613c6ddc368785d950d911c09910dc71bd875b5e"
+  integrity sha512-Fou7QBnazByzCaiPLfwVQc8f6QA6RRM7258Z9oP3i6sBVNbnX270i2iI7lMXwSG0yggtl4B+a2nwfuME0pu3Og==
+
+"@webgpu/types@0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.0.3.tgz#3b7989fab7fbc50bfa201fa46708927518fa3ece"
+  integrity sha512-2LXPgHQwpjHQsHTuooOuL88vMkZaCgHaQ1EayZbDsQgMM/q78Me1QMSyZDs542DEiu6YcILKBbkFNruSmVGE7A==
 
 abbrev@1:
   version "1.1.1"
@@ -2394,11 +2364,6 @@ neo-async@^2.6.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.0.tgz#b9d15e4d71c6762908654b5183ed38b753340835"
   integrity sha512-MFh0d/Wa7vkKO3Y3LlacqAEeHK0mckVqzDieUKTT+KGxi+zIpeVsFxymkIiRpbpDziHc290Xr9A1O4Om7otoRA==
-
-node-fetch@~2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.1.2.tgz#ab884e8e7e57e38a944753cec706f788d1768bb5"
-  integrity sha1-q4hOjn5X44qUR1POxwb3iNF2i7U=
 
 node-pre-gyp@^0.10.0:
   version "0.10.3"

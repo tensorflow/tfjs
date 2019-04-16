@@ -20,7 +20,7 @@ import {WebGPUProgram} from './webgpu_program';
 export class MatMulProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
-  dispatch: number[];
+  dispatch: [number, number, number];
 
   constructor(outputShape: [number, number, number]) {
     this.outputShape = outputShape;

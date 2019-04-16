@@ -15,6 +15,10 @@
  * =============================================================================
  */
 
+/// <reference types="@webgpu/types" />
+
+import * as shaderc from '@webgpu/shaderc';
+
 import {DataMover, DataType, KernelBackend, Rank, ShapeMap, Tensor, tensor1d, Tensor3D, util} from '@tensorflow/tfjs-core';
 
 import {MatMulProgram} from './kernels/matmul_webgpu';
@@ -27,24 +31,21 @@ type TensorInfo = {
   dtype: DataType,
   values: Float32Array|Int32Array|Uint8Array,
   id: number,
-  buffer?: webgpu_program.WebGPUBuffer,  // WebGPUBuffer
+  buffer: GPUBuffer
 };
 
 interface DataId {}
 
-declare const GPUBufferUsage: any;
-declare const GPUShaderStageBit: any;
-
 export class WebGPUBackend extends KernelBackend {
-  device: any;
-  queue: any;
-  shaderc: any;
-  compiler: any;
-  compileOpts: any;
+  device: GPUDevice;
+  queue: GPUQueue;
+  shaderc: shaderc.Shaderc;
+  compiler: shaderc.Compiler;
+  compileOpts: shaderc.CompileOptions;
 
   private binaryCache: {[key: string]: WebGPUBinary};
 
-  constructor(device: any, shaderc: any) {
+  constructor(device: GPUDevice, shaderc: shaderc.Shaderc) {
     super();
     this.binaryCache = {};
     this.device = device;
@@ -77,9 +78,10 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private setBufferData(
-      buffer: webgpu_program.WebGPUBuffer,
+      buffer: GPUBuffer,
       data: Float32Array|Int32Array|Uint8Array) {
-    buffer.setSubData(0, data.slice().buffer);
+    // TODO: remove '.slice().buffer as any', once on newer Chromium.
+    buffer.setSubData(0, data.slice().buffer as any);
   }
 
   register(dataId: object, shape: number[], dtype: DataType): void {
@@ -145,7 +147,7 @@ export class WebGPUBackend extends KernelBackend {
         binding: idx,
         visibility: GPUShaderStageBit.COMPUTE,
         type: 'storage-buffer'
-      };
+      } as GPUBindGroupLayoutBinding;
     });
     const {bindGroupLayout, pipeline} = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
@@ -174,7 +176,7 @@ export class WebGPUBackend extends KernelBackend {
     const pass = encoder.beginComputePass();
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bg);
-    pass.dispatch(...program.dispatch);
+    pass.dispatch(program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     pass.endPass();
     // TODO: Create flag for toggling graph mode.
     this.queue.submit([encoder.finish()]);
