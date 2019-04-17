@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {DataElement, DataElementArray, DataElementObject} from '../types';
+import {TensorContainer, TensorContainerArray, TensorContainerObject} from '@tensorflow/tfjs-core';
 import {iteratorFromConcatenated, iteratorFromConcatenatedFunction, iteratorFromFunction, iteratorFromIncrementing, iteratorFromItems, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './lazy_iterator';
 
 export class TestIntegerIterator extends LazyIterator<number> {
@@ -358,7 +358,7 @@ describe('LazyIterator', () => {
     // each result has the form [x, x * 10, 'string ' + x]
 
     for (const e of result) {
-      const ee = e as DataElementArray;
+      const ee = e as TensorContainerArray;
       expect(ee[1]).toEqual(ee[0] as number * 10);
       expect(ee[2]).toEqual(`string ${ee[0]}`);
     }
@@ -375,7 +375,7 @@ describe('LazyIterator', () => {
     // each result has the form {a: x, b: x * 10, c: 'string ' + x}
 
     for (const e of result) {
-      const ee = e as DataElementObject;
+      const ee = e as TensorContainerObject;
       expect(ee['b']).toEqual(ee['a'] as number * 10);
       expect(ee['c']).toEqual(`string ${ee['a']}`);
     }
@@ -398,10 +398,10 @@ describe('LazyIterator', () => {
     // ]
 
     for (const e of result) {
-      const ee = e as DataElementArray;
-      const aa = ee[0] as DataElementObject;
-      const bb = ee[1] as DataElementObject;
-      const cc = ee[2] as DataElementObject;
+      const ee = e as TensorContainerArray;
+      const aa = ee[0] as TensorContainerObject;
+      const bb = ee[1] as TensorContainerObject;
+      const cc = ee[2] as TensorContainerObject;
       expect(aa['constant']).toEqual(12);
       expect(bb['b']).toEqual(aa['a'] as number * 10);
       expect(bb['array']).toEqual([
@@ -460,8 +460,8 @@ describe('LazyIterator', () => {
    * API, but that may not be what users ultimately want when zipping dicts.
    * This may merit a convenience function (e.g., maybe flatZip()).
    */
-  it('zipping DataElement streams requires manual merge', async () => {
-    function naiveMerge(xs: DataElement[]): DataElement {
+  it('zipping TensorContainer streams requires manual merge', async () => {
+    function naiveMerge(xs: TensorContainer[]): TensorContainer {
       const result = {};
       for (const x of xs) {
         // For now, we do nothing to detect name collisions here
@@ -477,14 +477,15 @@ describe('LazyIterator', () => {
     // At first, each result has the form
     // [{a: x}, {b: x * 10}, {c: 'string ' + x}]
 
-    const readStream = zippedStream.map(e => naiveMerge(e as DataElementArray));
+    const readStream =
+        zippedStream.map(e => naiveMerge(e as TensorContainerArray));
     // Now each result has the form {a: x, b: x * 10, c: 'string ' + x}
 
     const result = await readStream.toArrayForTest();
     expect(result.length).toEqual(100);
 
     for (const e of result) {
-      const ee = e as DataElementObject;
+      const ee = e as TensorContainerObject;
       expect(ee['b']).toEqual(ee['a'] as number * 10);
       expect(ee['c']).toEqual(`string ${ee['a']}`);
     }

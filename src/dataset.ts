@@ -20,7 +20,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import {TensorLike} from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
 import {iteratorFromConcatenated, iteratorFromFunction, iteratorFromItems, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './iterators/lazy_iterator';
-import {DataElement, DatasetContainer} from './types';
+import {DatasetContainer} from './types';
 import {canTensorify, deepMapAndAwaitAll, DeepMapResult, isIterable} from './util/deep_map';
 
 // TODO(soergel): consider vectorized operations within the pipeline.
@@ -52,7 +52,7 @@ import {canTensorify, deepMapAndAwaitAll, DeepMapResult, isIterable} from './uti
  * iterate once over the entire dataset in order to print out the data.
  */
 /** @doc {heading: 'Data', subheading: 'Classes', namespace: 'data'} */
-export abstract class Dataset<T extends DataElement> {
+export abstract class Dataset<T extends tf.TensorContainer> {
   /*
    * Provide a new stream of elements.  Note this will also start new streams
    * from any underlying `Dataset`s.
@@ -125,7 +125,7 @@ export abstract class Dataset<T extends DataElement> {
    * @returns A `Dataset`, from which a stream of batches can be obtained.
    */
   /** @doc {heading: 'Data', subheading: 'Classes'} */
-  batch(batchSize: number, smallLastBatch = true): Dataset<DataElement> {
+  batch(batchSize: number, smallLastBatch = true): Dataset<tf.TensorContainer> {
     const base = this;
     tf.util.assert(
         batchSize > 0, () => `batchSize needs to be positive, but it is
@@ -258,7 +258,7 @@ export abstract class Dataset<T extends DataElement> {
    * @returns A `Dataset` of transformed elements.
    */
   /** @doc {heading: 'Data', subheading: 'Classes'} */
-  map<O extends DataElement>(transform: (value: T) => O): Dataset<O> {
+  map<O extends tf.TensorContainer>(transform: (value: T) => O): Dataset<O> {
     const base = this;
     return datasetFromIteratorFn(async () => {
       return (await base.iterator()).map(x => tf.tidy(() => transform(x)));
@@ -287,7 +287,7 @@ export abstract class Dataset<T extends DataElement> {
    * @returns A `Dataset` of transformed elements.
    */
   /** @doc {heading: 'Data', subheading: 'Classes'} */
-  mapAsync<O extends DataElement>(transform: (value: T) => Promise<O>):
+  mapAsync<O extends tf.TensorContainer>(transform: (value: T) => Promise<O>):
       Dataset<O> {
     const base = this;
     return datasetFromIteratorFn(async () => {
@@ -532,7 +532,7 @@ export abstract class Dataset<T extends DataElement> {
  * await ds.forEachAsync(e => console.log(e));
  * ```
  */
-export function datasetFromIteratorFn<T extends DataElement>(
+export function datasetFromIteratorFn<T extends tf.TensorContainer>(
     iteratorFn: () => Promise<LazyIterator<T>>,
     size: number = null): Dataset<T> {
   return new class extends Dataset<T> {
@@ -566,7 +566,7 @@ export function datasetFromIteratorFn<T extends DataElement>(
  * @param items An array of elements that will be parsed as items in a dataset.
  */
 /** @doc {heading: 'Data', subheading: 'Creation', namespace: 'data'} */
-export function array<T extends DataElement>(items: T[]): Dataset<T> {
+export function array<T extends tf.TensorContainer>(items: T[]): Dataset<T> {
   return datasetFromIteratorFn(
       async () => iteratorFromItems(items), items.length);
 }
@@ -611,7 +611,7 @@ export function array<T extends DataElement>(items: T[]): Dataset<T> {
  * ```
  */
 /** @doc {heading: 'Data', subheading: 'Operations', namespace: 'data'} */
-export function zip<O extends DataElement>(datasets: DatasetContainer):
+export function zip<O extends tf.TensorContainer>(datasets: DatasetContainer):
     Dataset<O> {
   // manually type-check the argument for JS users
   if (!isIterable(datasets)) {

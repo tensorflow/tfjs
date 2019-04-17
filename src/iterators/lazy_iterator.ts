@@ -18,7 +18,7 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
-import {DataElement, IteratorContainer} from '../types';
+import {IteratorContainer} from '../types';
 import {deepMapAndAwaitAll, DeepMapAsyncResult, DeepMapResult, deepZip, zipToList} from '../util/deep_map';
 import {GrowingRingBuffer} from '../util/growing_ring_buffer';
 import {RingBuffer} from '../util/ring_buffer';
@@ -126,7 +126,7 @@ export function iteratorFromConcatenatedFunction<T>(
  * `ZipMismatchMode.LONGEST` causes the zipped stream to continue, filling
  * in nulls for the exhausted streams, until all streams are exhausted.
  */
-export function iteratorFromZipped<O extends DataElement>(
+export function iteratorFromZipped<O extends tf.TensorContainer>(
     iterators: IteratorContainer,
     mismatchMode: ZipMismatchMode = ZipMismatchMode.FAIL): LazyIterator<O> {
   return new ZipIterator<O>(iterators, mismatchMode);
@@ -381,7 +381,7 @@ export abstract class LazyIterator<T> {
       batchSize: number, smallLastBatch = true,
       // tslint:disable-next-line:no-any
       zipFn: (xs: any[]) => DeepMapResult = zipToList):
-      LazyIterator<DataElement> {
+      LazyIterator<tf.TensorContainer> {
     // First collect the desired number of input elements as a row-major batch.
     const rowBatches = this.rowMajorBatch(batchSize, smallLastBatch);
     // Now 'rotate' or 'pivot' the data, collecting all values from each column
@@ -1011,7 +1011,7 @@ export enum ZipMismatchMode {
  * `ZipMismatchMode.LONGEST` causes the zipped stream to continue, filling
  * in nulls for the exhausted streams, until all streams are exhausted.
  */
-class ZipIterator<O extends DataElement> extends LazyIterator<O> {
+class ZipIterator<O extends tf.TensorContainer> extends LazyIterator<O> {
   private count = 0;
   private currentPromise: Promise<IteratorResult<O>> = null;
 

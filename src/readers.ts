@@ -16,12 +16,13 @@
  * =============================================================================
  */
 
+import {TensorContainer} from '@tensorflow/tfjs-core';
 import {Dataset, datasetFromIteratorFn} from './dataset';
 import {CSVDataset} from './datasets/csv_dataset';
 import {iteratorFromFunction} from './iterators/lazy_iterator';
 import {WebcamIterator} from './iterators/webcam_iterator';
 import {URLDataSource} from './sources/url_data_source';
-import {CSVConfig, DataElement, WebcamConfig} from './types';
+import {CSVConfig, WebcamConfig} from './types';
 
 /**
  * Create a `CSVDataset` by reading and decoding CSV file(s) from provided URL
@@ -131,7 +132,7 @@ export function csv(
  *
  * @param f A function that produces one data element on each call.
  */
-export function func<T extends DataElement>(
+export function func<T extends TensorContainer>(
     f: () => IteratorResult<T>| Promise<IteratorResult<T>>): Dataset<T> {
   const iter = iteratorFromFunction(f);
   return datasetFromIteratorFn(async () => iter);
@@ -146,7 +147,7 @@ export function func<T extends DataElement>(
  * (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators#Generator_functions).
  *
  * The returned iterator should have `.next()` function that returns element in
- * format of `{value: DataElement, done:boolean}`.
+ * format of `{value: TensorContainer, done:boolean}`.
  *
  * Example of creating a dataset from an iterator factory:
  * ```js
@@ -198,7 +199,7 @@ export function func<T extends DataElement>(
  *   configParamIndices: [1]
  *  }
  */
-export function generator<T extends DataElement>(
+export function generator<T extends TensorContainer>(
     generator: () => Iterator<T>| Promise<Iterator<T>>): Dataset<T> {
   return datasetFromIteratorFn(async () => {
     const gen = await generator();

@@ -21,7 +21,7 @@ import {TensorContainerObject} from '@tensorflow/tfjs-core';
 import {array} from './dataset';
 import * as tfd from './index';
 import {iteratorFromItems, LazyIterator} from './iterators/lazy_iterator';
-import {DataElementObject, DatasetContainer} from './types';
+import {DatasetContainer} from './types';
 import {describeAllEnvs} from './util/test_utils';
 
 class TestObjectIterator extends LazyIterator<{}> {
@@ -55,7 +55,7 @@ class TestObjectIterator extends LazyIterator<{}> {
   }
 }
 
-export class TestDataset extends tfd.Dataset<DataElementObject> {
+export class TestDataset extends tfd.Dataset<TensorContainerObject> {
   readonly size: number;
   constructor(setSize = false) {
     super();
