@@ -785,6 +785,12 @@ export class Masking extends Layer {
     return config;
   }
 
+  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+    const input = getExactlyOneTensor(inputs);
+    const axis = -1;
+    return any(notEqual(input, this.maskValue), axis);
+  }
+
   call(inputs: Tensor | Tensor[], kwargs: Kwargs): Tensor | Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);

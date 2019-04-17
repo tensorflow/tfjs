@@ -72,11 +72,19 @@ export interface PermuteLayerConfig extends LayerConfig {
 export type PermuteLayerSerialization =
     BaseLayerSerialization<'Permute', PermuteLayerConfig>;
 
+export interface MaskingLayerConfig extends LayerConfig {
+  maskValue: number;
+}
+
+export type MaskingLayerSerialization =
+    BaseLayerSerialization<'Masking', MaskingLayerConfig>;
+
 // Update coreLayerClassNames below in concert with this.
 export type CoreLayerSerialization =
     DropoutLayerSerialization|DenseLayerSerialization|FlattenLayerSerialization|
     ActivationLayerSerialization|RepeatVectorLayerSerialization|
-    ReshapeLayerSerialization|PermuteLayerSerialization;
+    ReshapeLayerSerialization|PermuteLayerSerialization|
+    MaskingLayerSerialization;
 
 export type CoreLayerClassName = CoreLayerSerialization['class_name'];
 

@@ -676,6 +676,24 @@ describe('Permute Layer: Symbolic', () => {
   });
 });
 
+describe('Masking Layer: Symbolic', () => {
+  it('computeOutputShape', () => {
+    const layer = tfl.layers.masking();
+    const inputShape = [null, 4, 6];
+    const outputShape = layer.computeOutputShape(inputShape);
+    expect(outputShape).toEqual([null, 4, 6]);
+  });
+
+  it('Serialization round-trip', () => {
+    const layer = tfl.layers.masking({maskValue: -3});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.masking(tsConfig);
+    expect(layerPrime.getConfig().maskValue).toEqual(-3);
+  });
+});
+
 describeMathCPUAndGPU('Permute Layer: Tensor', () => {
   it('2D', () => {
     const permuteLayer = tfl.layers.permute({dims: [2, 1]});
@@ -684,5 +702,71 @@ describeMathCPUAndGPU('Permute Layer: Tensor', () => {
     const expectedOutput =
         tensor3d([[[10, 30], [20, 40]], [[-10, -30], [-20, -40]]], [2, 2, 2]);
     expectTensorsClose(permuteLayer.apply(x) as Tensor, expectedOutput);
+  });
+});
+
+describeMathCPUAndGPU('Masking Layer: Tensor', () => {
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // model = tf.keras.Sequential()
+  // model.add(tf.keras.layers.Masking(input_shape=[3, 2]))
+  // model.add(tf.keras.layers.SimpleRNN(
+  //   units=1,
+  //   recurrent_initializer='ones',
+  //   kernel_initializer='ones'))
+  //
+  // xs = np.array([[[1, 1], [1, 0], [0, 0]]], dtype=np.float32)
+  // print(xs.shape)
+  // ys = model.predict(xs)
+  //
+  // print(ys)
+  // ```
+  it('3D, default maskValue', () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.masking({inputShape: [3, 2]}));
+    model.add(tfl.layers.simpleRNN({
+      units: 1,
+      recurrentInitializer: 'ones',
+      kernelInitializer: 'ones'
+    }));
+
+    const xs = tensor3d([[[1, 1], [1, 0], [0, 0]]]);
+    const ys = model.predict(xs) as Tensor;
+    expectTensorsClose(ys, tensor2d([[0.961396]]));
+  });
+
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // model = tf.keras.Sequential()
+  // model.add(tf.keras.layers.Masking(mask_value=-1, input_shape=[3, 2]))
+  // model.add(tf.keras.layers.SimpleRNN(
+  //   units=1,
+  //   recurrent_initializer='ones',
+  //   kernel_initializer='ones'))
+  //
+  // xs = np.array([[[1, 1], [1, -1], [-1, -1]]], dtype=np.float32)
+  // print(xs.shape)
+  // ys = model.predict(xs)
+  //
+  // print(ys)
+  // ```
+  it('3D, custom maskValue', () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.masking({maskValue: -1, inputShape: [3, 2]}));
+    model.add(tfl.layers.simpleRNN({
+      units: 1,
+      recurrentInitializer: 'ones',
+      kernelInitializer: 'ones'
+    }));
+
+    const xs = tensor3d([[[1, 1], [1, -1], [-1, -1]]]);
+    const ys = model.predict(xs) as Tensor;
+    expectTensorsClose(ys, tensor2d([[0.746068]]));
   });
 });
