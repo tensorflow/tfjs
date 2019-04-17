@@ -10,7 +10,7 @@ karma.conf.js
 dist/**/*_test.js
 dist/**/*_test.d.ts
 dist/test_node.js
-dist/util/test_util.js
+dist/util/test_utils.js
 *.tgz
 cloudbuild.yml
 .npmignore
