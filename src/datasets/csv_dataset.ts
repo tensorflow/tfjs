@@ -16,11 +16,11 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
+import {TensorContainer, util} from '@tensorflow/tfjs-core';
 import {Dataset} from '../dataset';
 import {DataSource} from '../datasource';
 import {LazyIterator} from '../iterators/lazy_iterator';
-import {ColumnConfig, CSVConfig, DataElement} from '../types';
+import {ColumnConfig, CSVConfig} from '../types';
 import {TextLineDataset} from './text_line_dataset';
 
 const CODE_QUOTE = '"';
@@ -33,7 +33,7 @@ const STATE_WITHIN_QUOTE_IN_QUOTE = Symbol('quoteinquote');
 /**
  * Represents a potentially large collection of delimited text records.
  *
- * The produced `DataElement`s each contain one key-value pair for
+ * The produced `TensorContainer`s each contain one key-value pair for
  * every column of the table.  When a field is empty in the incoming data, the
  * resulting value is `undefined`, or throw error if it is required.  Values
  * that can be parsed as numbers are emitted as type `number`, other values
@@ -42,7 +42,7 @@ const STATE_WITHIN_QUOTE_IN_QUOTE = Symbol('quoteinquote');
  * The results are not batched.
  */
 /** @doc {heading: 'Data', subheading: 'Classes', namespace: 'data'} */
-export class CSVDataset extends Dataset<DataElement> {
+export class CSVDataset extends Dataset<TensorContainer> {
   base: TextLineDataset;
   private hasHeader = true;
   private fullColumnNames: string[] = null;
@@ -180,7 +180,7 @@ export class CSVDataset extends Dataset<DataElement> {
     this.delimiter = csvConfig.delimiter ? csvConfig.delimiter : ',';
   }
 
-  async iterator(): Promise<LazyIterator<DataElement>> {
+  async iterator(): Promise<LazyIterator<TensorContainer>> {
     if (!this.columnNamesValidated) {
       await this.setColumnNames();
     }
@@ -193,10 +193,10 @@ export class CSVDataset extends Dataset<DataElement> {
     return lines.map(x => this.makeDataElement(x));
   }
 
-  makeDataElement(line: string): DataElement {
+  makeDataElement(line: string): TensorContainer {
     const values = this.parseRow(line);
-    const features: {[key: string]: DataElement} = {};
-    const labels: {[key: string]: DataElement} = {};
+    const features: {[key: string]: TensorContainer} = {};
+    const labels: {[key: string]: TensorContainer} = {};
 
     for (let i = 0; i < this.fullColumnNames.length; i++) {
       const key = this.fullColumnNames[i];

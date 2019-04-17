@@ -16,18 +16,16 @@
  * =============================================================================
  */
 
-import {DataType, TensorContainer, TensorContainerArray, TensorContainerObject} from '@tensorflow/tfjs-core';
+import {DataType, TensorContainer} from '@tensorflow/tfjs-core';
 import {Dataset} from './dataset';
 import {LazyIterator} from './iterators/lazy_iterator';
 
 /**
+ * @deprecated Use `TensorContainer` from `@tensorflow/tfjs-core` instead.
+ *
  * JSON-like type representing a nested structure of primitives or Tensors.
  */
 export type DataElement = TensorContainer;
-
-export type DataElementObject = TensorContainerObject;
-
-export type DataElementArray = TensorContainerArray;
 
 // Maybe this should be called 'NestedContainer'-- that's just a bit unwieldy.
 export type Container<T> = ContainerObject<T>|ContainerArray<T>;
