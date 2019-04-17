@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,18 +14,22 @@
  * limitations under the License.
  * =============================================================================
  */
+import {ALL_ENVS, describeWithFlags, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
-
-// tslint:disable-next-line:no-require-imports
-const jasmine = require('jasmine');
-
-process.on('unhandledRejection', e => {
-  throw e;
+// Register backends.
+registerTestEnv({name: 'cpu', backendName: 'cpu'});
+registerTestEnv({
+  name: 'webgl2',
+  backendName: 'webgl',
+  flags: {
+    'WEBGL_VERSION': 2,
+    'WEBGL_CPU_FORWARD': false,
+    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+  }
 });
 
-setTestEnvs([{name: 'node', backendName: 'cpu'}]);
-
-const runner = new jasmine();
-runner.loadConfig({spec_files: ['src/**/*_test.ts'], random: false});
-runner.execute();
+export function describeAllEnvs(testName: string, tests: () => void) {
+  describeWithFlags(testName, ALL_ENVS, () => {
+    tests();
+  });
+}
