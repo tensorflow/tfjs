@@ -15,13 +15,18 @@
  * =============================================================================
  */
 
+import {DataType, Tensor} from '@tensorflow/tfjs-core';
 import * as shaderc from '@webgpu/shaderc';
+
+import * as shader_preprocessor from '../shader_preprocessor';
 
 export interface WebGPUProgram {
   userCode: string;
   outputShape: number[];
   // Dispatch determines the layout of thread groups.
   dispatch: [number, number, number];
+  variableNames: string[];
+  tileSize?: number;
 }
 
 export interface WebGPUBinary {
@@ -29,14 +34,30 @@ export interface WebGPUBinary {
   pipeline: GPUComputePipeline;
 }
 
+export interface TensorData {
+  dtype: DataType;
+}
+
 export const compileProgram =
-    (shaderCompiler: shaderc.Compiler,
-     shaderKind: shaderc.ShaderKind,
-     compileOptions: shaderc.CompileOptions,
-     device: GPUDevice,
-     program: WebGPUProgram,
-     bindings: GPUBindGroupLayoutBinding[]): WebGPUBinary => {
-      const source = program.userCode;
+    (shaderCompiler: shaderc.Compiler, shaderKind: shaderc.ShaderKind,
+     compileOptions: shaderc.CompileOptions, device: GPUDevice,
+     program: WebGPUProgram, inputs: Tensor[],
+     output: Tensor): WebGPUBinary => {
+      const bindings =
+          inputs.concat(output).map((input: Tensor, idx: number) => {
+            return {
+              binding: idx,
+              visibility: GPUShaderStageBit.COMPUTE,
+              type: 'storage-buffer'
+            } as GPUBindGroupLayoutBinding;
+          });
+      const inputsData = inputs.map((input: Tensor) => {
+        return {dtype: input.dtype};
+      });
+
+      const source = shader_preprocessor.makeShader(
+          inputsData.map(d => d.dtype), program.variableNames, program.userCode,
+          program.tileSize);
       const result = shaderCompiler.CompileGlslToSpv(
           source, shaderKind, 'file', 'main', compileOptions);
       const error = result.GetErrorMessage();

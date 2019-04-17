@@ -17,9 +17,8 @@
 
 /// <reference types="@webgpu/types" />
 
-import * as shaderc from '@webgpu/shaderc';
-
 import {DataMover, DataType, KernelBackend, Rank, ShapeMap, Tensor, tensor1d, Tensor3D, util} from '@tensorflow/tfjs-core';
+import * as shaderc from '@webgpu/shaderc';
 
 import {MatMulProgram} from './kernels/matmul_webgpu';
 import {MultiplyProgram} from './kernels/multiply_webgpu';
@@ -55,7 +54,7 @@ export class WebGPUBackend extends KernelBackend {
     this.compileOpts = new shaderc.CompileOptions();
   }
 
-  floatPrecision(): number {
+  floatPrecision(): 16|32 {
     return 32;
   }
 
@@ -78,8 +77,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private setBufferData(
-      buffer: GPUBuffer,
-      data: Float32Array|Int32Array|Uint8Array) {
+      buffer: GPUBuffer, data: Float32Array|Int32Array|Uint8Array) {
     buffer.setSubData(0, data);
   }
 
@@ -141,17 +139,10 @@ export class WebGPUBackend extends KernelBackend {
   private compileAndRun(
       program: webgpu_program.WebGPUProgram, inputs: Tensor[], output: Tensor) {
     const key = webgpu_program.makeShaderKey(program);
-    const bindings = inputs.concat(output).map((input: Tensor, idx: number) => {
-      return {
-        binding: idx,
-        visibility: GPUShaderStageBit.COMPUTE,
-        type: 'storage-buffer'
-      } as GPUBindGroupLayoutBinding;
-    });
     const {bindGroupLayout, pipeline} = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
           this.compiler, this.shaderc.shader_kind.compute, this.compileOpts,
-          this.device, program, bindings);
+          this.device, program, inputs, output);
     });
 
     // Creating bind groups on the fly should never be a bottleneck.
@@ -175,7 +166,8 @@ export class WebGPUBackend extends KernelBackend {
     const pass = encoder.beginComputePass();
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bg);
-    pass.dispatch(program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    pass.dispatch(
+        program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     pass.endPass();
     // TODO: Create flag for toggling graph mode.
     this.queue.submit([encoder.finish()]);

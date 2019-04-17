@@ -47,6 +47,8 @@ import {split} from '../split_shared';
 import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
 
+import {AddNProgram} from './addn_gpu';
+import {AddNPackedProgram} from './addn_packed_gpu';
 import {ArgMinMaxProgram} from './argminmax_gpu';
 import {ArgMinMaxPackedProgram} from './argminmax_packed_gpu';
 import {AvgPool2DBackpropProgram} from './avg_pool_backprop_gpu';
@@ -119,9 +121,7 @@ import {UnaryOpProgram} from './unaryop_gpu';
 import * as unary_packed_op from './unaryop_packed_gpu';
 import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
-import {AddNProgram} from './addn_gpu';
 import * as webgl_util from './webgl_util';
-import {AddNPackedProgram} from './addn_packed_gpu';
 
 type KernelInfo = {
   name: string; query: Promise<number>;
@@ -1482,9 +1482,8 @@ export class MathBackendWebGL implements KernelBackend {
       return this.addN([leftSide, rightSide]);
     }
 
-    const dtype = tensors
-        .map(t => t.dtype)
-        .reduce((d1, d2) => upcastType(d1, d2));
+    const dtype =
+        tensors.map(t => t.dtype).reduce((d1, d2) => upcastType(d1, d2));
     const shapes = tensors.map(t => t.shape);
     // We can make sure shapes are identical in op level.
     const usePackedOp = ENV.getBool('WEBGL_PACK');
