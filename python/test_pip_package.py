@@ -452,15 +452,12 @@ class APIAndShellTest(tf.test.TestCase):
 
     weights = [{
         'paths': ['group1-shard1of1.bin'],
-        'weights': [{'dtype': 'float32',
-                     'name': 'statefulpartitionedcall_args_2',
-                     'shape': []},
-                    {'dtype': 'float32',
-                     'name': 'statefulpartitionedcall_args_1',
-                     'shape': []},
-                    {'dtype': 'float32',
-                     'name': 'StatefulPartitionedCall/mul',
-                     'shape': []}]}]
+        'weights': [{
+          'dtype': 'float32',
+          'shape': [],
+          'name': 'StatefulPartitionedCall/mul'
+        }]
+    }]
 
     # Load the saved weights as a JSON string.
     output_json = json.load(

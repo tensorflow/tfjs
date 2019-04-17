@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/tensorflow/tfjs-converter.svg?branch=master)](https://travis-ci.org/tensorflow/tfjs-converter)
-
 # Getting started
 
 **TensorFlow.js converter** is an open source library to load a pretrained
@@ -114,7 +112,7 @@ purposes:
    large-sized weights saved from TensorFlow.js (either browser or Node.js),
    because TensorFlow.js puts all weights in a single weight file
    ('group1-shard1of1.bin'). To shard the weight file, do
-   
+
    ```sh
    tensorflowjs_converter \
        --input_format tfjs_layers_model \
