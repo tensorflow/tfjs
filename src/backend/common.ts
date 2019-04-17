@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import {ENV} from '@tensorflow/tfjs-core';
+import {backend} from '@tensorflow/tfjs-core';
 import {DataFormat} from '../keras_format/common';
 
 let _epsilon: number;
@@ -18,7 +18,7 @@ let _epsilon: number;
  */
 export function epsilon() {
   if (_epsilon == null) {
-    _epsilon = ENV.get('EPSILON');
+    _epsilon = backend().epsilon();
   }
   return _epsilon;
 }

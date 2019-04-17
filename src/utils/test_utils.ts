@@ -13,9 +13,20 @@
  */
 
 import {memory, Tensor, test_util} from '@tensorflow/tfjs-core';
-import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {ALL_ENVS, describeWithFlags, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {ValueError} from '../errors';
 
+// Register backends.
+registerTestEnv({name: 'cpu', backendName: 'cpu'});
+registerTestEnv({
+  name: 'webgl2',
+  backendName: 'webgl',
+  flags: {
+    'WEBGL_VERSION': 2,
+    'WEBGL_CPU_FORWARD': false,
+    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+  }
+});
 
 /**
  * Expect values are close between an Tensor or number array.
@@ -56,7 +67,7 @@ export function expectTensorsValuesInRange(
  * @param tests
  */
 export function describeMathCPUAndGPU(testName: string, tests: () => void) {
-  describeWithFlags(testName, test_util.ALL_ENVS, () => {
+  describeWithFlags(testName, ALL_ENVS, () => {
     tests();
   });
 }
@@ -67,7 +78,7 @@ export function describeMathCPUAndGPU(testName: string, tests: () => void) {
  * @param tests
  */
 export function describeMathCPU(testName: string, tests: () => void) {
-  describeWithFlags(testName, test_util.CPU_ENVS, () => {
+  describeWithFlags(testName, {activeBackend: 'cpu'}, () => {
     tests();
   });
 }
@@ -78,7 +89,7 @@ export function describeMathCPU(testName: string, tests: () => void) {
  * @param tests
  */
 export function describeMathGPU(testName: string, tests: () => void) {
-  describeWithFlags(testName, test_util.WEBGL_ENVS, () => {
+  describeWithFlags(testName, {activeBackend: 'webgl'}, () => {
     tests();
   });
 }

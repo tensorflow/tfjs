@@ -10,6 +10,7 @@ dist/
 .idea/
 .yalc/
 yalc.lock
+integration_tests/tfjs2keras/test-data/
 
 bazel-*
 
