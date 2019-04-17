@@ -19,7 +19,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import {Dataset} from './dataset';
 import {TestDataset} from './dataset_test';
 import {computeDatasetStatistics, scaleTo01, TabularRecord} from './statistics';
-import {describeAllEnvs} from './test_utils';
+import {describeAllEnvs} from './util/test_utils';
 
 describeAllEnvs('makeDatasetStatistics', () => {
   it('computes numeric min and max over numbers, arrays, and Tensors',

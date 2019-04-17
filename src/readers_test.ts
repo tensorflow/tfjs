@@ -16,7 +16,7 @@
  */
 
 import * as tfd from './readers';
-import {describeAllEnvs} from './test_utils';
+import {describeAllEnvs, describeBrowserEnvs, describeNodeEnvs, setupFakeVideoStream} from './util/test_utils';
 
 describeAllEnvs('readers', () => {
   it('generate dataset from function', async () => {
@@ -131,5 +131,55 @@ describeAllEnvs('readers', () => {
     const ds = tfd.generator(makeIterator);
     const result = await ds.toArrayForTest();
     expect(result).toEqual([3, 4, 5]);
+  });
+});
+
+describeBrowserEnvs('readers in browser', () => {
+  beforeEach(() => {
+    setupFakeVideoStream();
+  });
+
+  it('generate data from webcam with HTML element', async () => {
+    const videoElement = document.createElement('video');
+    videoElement.width = 300;
+    videoElement.height = 500;
+
+    const webcamIterator = await tfd.webcam(videoElement);
+    const result = await webcamIterator.next();
+    expect(result.done).toBeFalsy();
+    expect(result.value.shape).toEqual([500, 300, 3]);
+  });
+
+  it('generate data from webcam with no HTML element', async () => {
+    const webcamIterator =
+        await tfd.webcam(null, {resizeWidth: 100, resizeHeight: 200});
+    const result = await webcamIterator.next();
+    expect(result.done).toBeFalsy();
+    expect(result.value.shape).toEqual([200, 100, 3]);
+  });
+
+  it('generate data from webcam with HTML element and resize', async () => {
+    const videoElement = document.createElement('video');
+    videoElement.width = 300;
+    videoElement.height = 500;
+
+    const webcamIterator = await tfd.webcam(
+        videoElement, {resizeWidth: 100, resizeHeight: 200, centerCrop: true});
+    const result = await webcamIterator.next();
+    expect(result.done).toBeFalsy();
+    expect(result.value.shape).toEqual([200, 100, 3]);
+  });
+});
+
+describeNodeEnvs('readers in node', () => {
+  it('webcam only available in browser env', async done => {
+    try {
+      await tfd.webcam();
+      done.fail();
+    } catch (e) {
+      expect(e.message).toEqual(
+          'tf.data.webcam is only supported in browser environment.');
+      done();
+    }
   });
 });

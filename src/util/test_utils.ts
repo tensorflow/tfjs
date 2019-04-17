@@ -12,9 +12,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  * =============================================================================
  */
-import {ALL_ENVS, describeWithFlags, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+import {ALL_ENVS, BROWSER_ENVS, describeWithFlags, NODE_ENVS, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+// Provide fake video stream
+export function setupFakeVideoStream() {
+  const width = 500;
+  const height = 500;
+  const canvasElement = document.createElement('canvas');
+  const ctx = canvasElement.getContext('2d');
+  ctx.fillStyle = 'rgb(1,2,3)';
+  ctx.fillRect(0, 0, width, height);
+  // tslint:disable-next-line:no-any
+  const stream = (canvasElement as any).captureStream(60);
+  navigator.mediaDevices.getUserMedia = async () => {
+    return stream;
+  };
+}
 
 // Register backends.
 registerTestEnv({name: 'cpu', backendName: 'cpu'});
@@ -30,6 +47,18 @@ registerTestEnv({
 
 export function describeAllEnvs(testName: string, tests: () => void) {
   describeWithFlags(testName, ALL_ENVS, () => {
+    tests();
+  });
+}
+
+export function describeBrowserEnvs(testName: string, tests: () => void) {
+  describeWithFlags(testName, BROWSER_ENVS, () => {
+    tests();
+  });
+}
+
+export function describeNodeEnvs(testName: string, tests: () => void) {
+  describeWithFlags(testName, NODE_ENVS, () => {
     tests();
   });
 }
