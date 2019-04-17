@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2018 Google LLC
+# Copyright 2019 Google LLC
 #
 # Use of this source code is governed by an MIT-style
 # license that can be found in the LICENSE file or at
@@ -10,7 +10,7 @@
 set -e
 
 # If this is nightly, use tfjs-core at master.
-if [ "$TRAVIS_EVENT_TYPE" = cron ]
+if [ "$NIGHTLY" = true ]
 then
   echo '########### Testing against tfjs-core@master ###########'
   yarn run rimraf tfjs-core/
@@ -25,4 +25,4 @@ fi
 # Regular testing.
 yarn build
 yarn lint
-yarn test-travis
+yarn run-browserstack

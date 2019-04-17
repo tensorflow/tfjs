@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Copyright 2018 Google LLC
+# Copyright 2019 Google LLC
 #
 # Use of this source code is governed by an MIT-style
 # license that can be found in the LICENSE file or at
@@ -9,6 +9,7 @@
 
 set -e
 
+cd integration_tests/tfjs2keras
 DEV_VERSION=""
 TFJS2KERAS_TEST_USING_TF_KERAS=0
 while [[ ! -z "$1" ]]; do
@@ -57,3 +58,4 @@ python tfjs2keras_test.py
 
 # Clean up virtualenv directory.
 rm -rf "${VENV_DIR}"
+cd ../..

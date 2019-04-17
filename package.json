@@ -41,8 +41,11 @@
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "test": "karma start",
-    "test-integ": "cd integration_tests/tfjs2keras && ./run-test.sh --stable && ./run-test.sh --stable --tfkeras && ./run-test.sh --dev --tfkeras",
-    "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun --reporters='dots,karma-typescript'",
+    "tfjs2keras": "yarn tfjs2keras-js && yarn tfjs2keras-py --stable && yarn tfjs2keras-py --stable --tfkeras && yarn tfjs2keras-py --dev --tfkeras",
+    "tfjs2keras-js": "./scripts/tfjs2keras-js.sh",
+    "tfjs2keras-py": "./scripts/tfjs2keras-py.sh",
+    "test-ci": "./scripts/test-ci.sh",
+    "run-browserstack": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun --reporters='dots,karma-typescript'",
     "lint": "tslint -p . -t verbose"
   },
   "peerDependencies": {
