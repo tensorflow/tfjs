@@ -19,8 +19,9 @@
 import {Dataset, datasetFromIteratorFn} from './dataset';
 import {CSVDataset} from './datasets/csv_dataset';
 import {iteratorFromFunction} from './iterators/lazy_iterator';
+import {WebcamIterator} from './iterators/webcam_iterator';
 import {URLDataSource} from './sources/url_data_source';
-import {CSVConfig, DataElement} from './types';
+import {CSVConfig, DataElement, WebcamConfig} from './types';
 
 /**
  * Create a `CSVDataset` by reading and decoding CSV file(s) from provided URL
@@ -203,4 +204,39 @@ export function generator<T extends DataElement>(
     const gen = await generator();
     return iteratorFromFunction(() => gen.next());
   });
+}
+
+/**
+ * Create an iterator that generate `Tensor`s from webcam video stream. This API
+ * only works in Browser environment when the device has webcam.
+ *
+ * Note: this code snippet only works when the device has a webcam. It will
+ * request permission to open the webcam when running.
+ * ```js
+ * const videoElement = document.createElement('video');
+ * videoElement.width = 100;
+ * videoElement.height = 100;
+ * const webcamIterator = await tf.data.webcam(videoElement);
+ * const img = await webcamIterator.capture();
+ * img.print();
+ * webcamIterator.stop();
+ * ```
+ *
+ * @param webcamVideoElement A `HTMLVideoElement` used to play video from
+ *     webcam. If this element is not provided, a hidden `HTMLVideoElement` will
+ *     be created. In that case, `resizeWidth` and `resizeHeight` must be
+ *     provided to set the generated tensor shape.
+ * @param webcamConfig A `WebcamConfig` object that contains configurations of
+ *     reading and manipulating data from webcam video stream.
+ */
+/**
+ * @doc {
+ *   heading: 'Data',
+ *   subheading: 'Creation',
+ *   namespace: 'data'
+ *  }
+ */
+export async function webcam(
+    webcamVideoElement?: HTMLVideoElement, webcamConfig?: WebcamConfig) {
+  return WebcamIterator.create(webcamVideoElement, webcamConfig);
 }
