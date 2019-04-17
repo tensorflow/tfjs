@@ -56,11 +56,14 @@
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "test": "karma start",
-    "test-travis": "karma start --singleRun --browsers='bs_firefox_mac,bs_chrome_mac' --reporters='dots,karma-typescript,BrowserStack'",
+    "test-ci": "yarn build && yarn lint && yarn run-browserstack",
+    "run-browserstack": "karma start --singleRun --browsers='bs_firefox_mac,bs_chrome_mac' --reporters='dots,karma-typescript,BrowserStack'",
     "lint": "tslint -p . -t verbose",
     "make-version": "sh -c ./scripts/make-version",
     "gen-doc": "ts-node ./scripts/gen_doc.ts",
     "gen-json": "ts-node ./scripts/gen_json.ts",
-    "pb2json": "ts-node ./tools/pb2json_converter.ts"
+    "pb2json": "ts-node ./tools/pb2json_converter.ts",
+    "build-pip-package": "yarn gen-json && cd python && ./build-pip-package.sh --test /tmp/tfjs-pips",
+    "run-python-tests": "yarn gen-json && cd python && ./run-python-tests.sh"
   }
 }
