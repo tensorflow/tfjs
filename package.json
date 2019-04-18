@@ -10,11 +10,11 @@
   "unpkg": "dist/tfjs-vis.umd.min.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "yarn lint && tsc && NODE_ENV=production webpack",
+    "build": "tsc && NODE_ENV=production webpack",
     "lint": "tslint -p . -t verbose",
-    "test": "yarn lint && karma start",
-    "test-travis": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --hostname='bs-local.com'",
-    "test-all-travis": "./scripts/test-all-travis.sh",
+    "test": "karma start",
+    "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --hostname='bs-local.com'",
+    "test-ci": "./scripts/test-ci.sh",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && yalc push"

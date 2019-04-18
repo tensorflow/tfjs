@@ -18,6 +18,6 @@ set -e
 
 rimraf dist/
 yarn
-
 yarn build
+yarn lint
 npm pack
