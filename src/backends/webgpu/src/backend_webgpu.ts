@@ -17,7 +17,9 @@
 
 /// <reference types="@webgpu/types" />
 
-import {DataMover, DataType, KernelBackend, Rank, ShapeMap, Tensor, tensor1d, Tensor3D, util} from '@tensorflow/tfjs-core';
+import './flags_webgpu';
+
+import {DataMover, DataType, ENV, KernelBackend, Rank, ShapeMap, Tensor, tensor1d, Tensor3D, util} from '@tensorflow/tfjs-core';
 import * as shaderc from '@webgpu/shaderc';
 
 import {MatMulProgram} from './kernels/matmul_webgpu';
@@ -41,6 +43,7 @@ export class WebGPUBackend extends KernelBackend {
   shaderc: shaderc.Shaderc;
   compiler: shaderc.Compiler;
   compileOpts: shaderc.CompileOptions;
+  commandQueue: GPUCommandEncoder[];
 
   private binaryCache: {[key: string]: WebGPUBinary};
 
@@ -49,12 +52,13 @@ export class WebGPUBackend extends KernelBackend {
     this.binaryCache = {};
     this.device = device;
     this.queue = device.getQueue();
+    this.commandQueue = [];
     this.shaderc = shaderc;
     this.compiler = new shaderc.Compiler();
     this.compileOpts = new shaderc.CompileOptions();
   }
 
-  floatPrecision(): 16|32 {
+  floatPrecision(): 32 {
     return 32;
   }
 
@@ -101,6 +105,12 @@ export class WebGPUBackend extends KernelBackend {
     this.tensorMap.set(dataId, info);
   }
 
+  private submitQueue() {
+    this.queue.submit(this.commandQueue.map(enc => enc.finish()));
+
+    this.commandQueue = [];
+  }
+
   private async getBufferData(info: TensorInfo): Promise<ArrayBuffer> {
     const size =
         util.sizeFromShape(info.shape) * util.bytesPerElement(info.dtype);
@@ -111,7 +121,8 @@ export class WebGPUBackend extends KernelBackend {
     {
       const encoder = this.device.createCommandEncoder({});
       encoder.copyBufferToBuffer(info.buffer, 0, staging, 0, size);
-      this.queue.submit([encoder.finish()]);
+      this.commandQueue.push(encoder);
+      this.submitQueue();
     }
     const mapped: ArrayBuffer = await staging.mapReadAsync();
 
@@ -169,8 +180,11 @@ export class WebGPUBackend extends KernelBackend {
     pass.dispatch(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     pass.endPass();
-    // TODO: Create flag for toggling graph mode.
-    this.queue.submit([encoder.finish()]);
+    this.commandQueue.push(encoder);
+
+    if (ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED')) {
+      this.submitQueue();
+    }
     return output;
   }
 

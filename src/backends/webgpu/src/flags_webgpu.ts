@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,22 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs-core';
-import * as Shaderc from '@webgpu/shaderc';
+import {ENV} from '@tensorflow/tfjs-core';
 
-import {WebGPUBackend} from './backend_webgpu';
-
-export * from '@tensorflow/tfjs-core';
-
-export const ready = (async () => {
-  const shaderc = await Shaderc.instantiate();
-  // @ts-ignore navigator.gpu is required
-  const adapter = await navigator.gpu.requestAdapter({});
-  const device = await adapter.requestDevice({});
-
-  tf.registerBackend('webgpu', () => {
-    return new WebGPUBackend(device, shaderc);
-  }, 3 /*priority*/);
-
-  tf.setBackend('webgpu');
-})();
+/** Whether we submit commands to the device queue immediately. */
+ENV.registerFlag('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', () => true);
