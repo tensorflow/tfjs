@@ -19,6 +19,8 @@ set -e
 yarn
 yarn lint
 
+# The cron build triggers with the $_NIGHTLY=true substitution, which gets
+# turned into the $NIGHTLY environment variable in cloudbuild.yml.
 if [ "$NIGHTLY" = true ]
 then
   # TODO(cais, annyuan): The git and build commands below should be deduplicated
