@@ -9,7 +9,7 @@ package/
 karma.conf.js
 *.tgz
 *.log
-.travis.yml
+cloudbuild.yml
 CONTRIBUTING.md
 tslint.json
 yarn.lock
