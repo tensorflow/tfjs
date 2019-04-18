@@ -714,10 +714,10 @@ function depthwiseConv2dDerFilter<T extends Tensor3D|Tensor4D>(
  *   - For more info, see this guide:
  *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
  *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
- * @param dataFormat: An optional string from: "NHWC", "NCHW". Defaults to
- *     "NHWC". Specify the data format of the input and output data. With the
- *     default format "NHWC", the data is stored in the order of: [batch,
- *     depth, height, width, channels]. Only "NHWC" is currently supported.
+ * @param dataFormat: An optional string from: "NDHWC", "NCDHW". Defaults to
+ *     "NDHWC". Specify the data format of the input and output data. With the
+ *     default format "NDHWC", the data is stored in the order of: [batch,
+ *     depth, height, width, channels]. Only "NDHWC" is currently supported.
  * @param dilations The dilation rates: `[dilationDepth, dilationHeight,
  *     dilationWidth]` in which we sample input values across the height
  *     and width dimensions in atrous convolution. Defaults to `[1, 1, 1]`.
@@ -730,7 +730,7 @@ function depthwiseConv2dDerFilter<T extends Tensor3D|Tensor4D>(
 function conv3d_<T extends Tensor4D|Tensor5D>(
     x: T|TensorLike, filter: Tensor5D|TensorLike,
     strides: [number, number, number]|number, pad: 'valid'|'same',
-    dataFormat: 'NHWC'|'NCHW' = 'NHWC',
+    dataFormat: 'NDHWC'|'NCDHW' = 'NDHWC',
     dilations: [number, number, number]|number = [1, 1, 1]): T {
   const $x = convertToTensor(x, 'x', 'conv3d');
   const $filter = convertToTensor(filter, 'filter', 'conv3d');
@@ -758,9 +758,9 @@ function conv3d_<T extends Tensor4D|Tensor5D>(
       () => 'Error in conv3D: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
   util.assert(
-      dataFormat === 'NHWC',
+      dataFormat === 'NDHWC',
       () => `Error in conv3d: got dataFormat of ${
-          dataFormat} but only NHWC is currently supported.`);
+          dataFormat} but only NDHWC is currently supported.`);
 
   const convInfo = conv_util.computeConv3DInfo(
       x5D.shape, $filter.shape, strides, dilations, pad);

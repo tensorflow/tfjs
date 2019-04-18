@@ -468,4 +468,19 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
     const result = tf.conv3d(x, w, stride, pad);
     expectArraysClose(result, [2, 4, 6, 8]);
   });
+
+  it('throws when data format not NDHWC', () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const inputShape: [number, number, number, number] = [2, 2, 1, inputDepth];
+    const pad = 'valid';
+    const fSize = 1;
+    const stride = 1;
+    const dataFormat = 'NCDHW';
+
+    const x = tf.tensor4d([1, 2, 3, 4], inputShape);
+    const w = tf.tensor5d([2], [fSize, fSize, fSize, inputDepth, outputDepth]);
+
+    expect(() => tf.conv3d(x, w, stride, pad, dataFormat)).toThrowError();
+  });
 });
