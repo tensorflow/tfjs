@@ -17,7 +17,8 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {getDisplayDecimalPlaces, progressBarHelper} from './callbacks';
+// tslint:disable-next-line:max-line-length
+import {getDisplayDecimalPlaces, getSuccinctNumberDisplay, progressBarHelper} from './callbacks';
 
 describe('progbarLogger', () => {
   // Fake progbar class written for testing.
@@ -30,6 +31,18 @@ describe('progbarLogger', () => {
       this.tickConfigs.push(tickConfig);
     }
   }
+
+  let originalStderrColumns: number;
+
+  beforeEach(() => {
+    // In some CI environments, process.stderr.columns has a null value.
+    originalStderrColumns = process.stderr.columns;
+    process.stderr.columns = 100;
+  });
+
+  afterEach(() => {
+    process.stderr.columns = originalStderrColumns;
+  });
 
   it('Model.fit with loss, no metric, no validation, verobse = 1', async () => {
     const fakeProgbars: FakeProgbar[] = [];
@@ -258,6 +271,38 @@ describe('progbarLogger', () => {
     expect(history.history.loss.length).toEqual(1);
     expect(consoleMessages.length)
         .toEqual(0);  // No logging should have happened.
+  });
+});
+
+describe('getSuccinctNumberDisplay', () => {
+  it('Not finite', () => {
+    expect(getSuccinctNumberDisplay(Infinity)).toEqual('Infinity');
+    expect(getSuccinctNumberDisplay(-Infinity)).toEqual('-Infinity');
+    expect(getSuccinctNumberDisplay(NaN)).toEqual('NaN');
+  });
+
+  it('zero', () => {
+    expect(getSuccinctNumberDisplay(0)).toEqual('0.00');
+  });
+
+  it('Finite and positive', () => {
+    expect(getSuccinctNumberDisplay(300)).toEqual('300.00');
+    expect(getSuccinctNumberDisplay(30)).toEqual('30.00');
+    expect(getSuccinctNumberDisplay(1)).toEqual('1.00');
+    expect(getSuccinctNumberDisplay(1e-2)).toEqual('0.0100');
+    expect(getSuccinctNumberDisplay(1e-3)).toEqual('1.00e-3');
+    expect(getSuccinctNumberDisplay(4e-3)).toEqual('4.00e-3');
+    expect(getSuccinctNumberDisplay(1e-6)).toEqual('1.00e-6');
+  });
+
+  it('Finite and negative', () => {
+    expect(getSuccinctNumberDisplay(-300)).toEqual('-300.00');
+    expect(getSuccinctNumberDisplay(-30)).toEqual('-30.00');
+    expect(getSuccinctNumberDisplay(-1)).toEqual('-1.00');
+    expect(getSuccinctNumberDisplay(-1e-2)).toEqual('-0.0100');
+    expect(getSuccinctNumberDisplay(-1e-3)).toEqual('-1.00e-3');
+    expect(getSuccinctNumberDisplay(-4e-3)).toEqual('-4.00e-3');
+    expect(getSuccinctNumberDisplay(-1e-6)).toEqual('-1.00e-6');
   });
 });
 
