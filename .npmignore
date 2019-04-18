@@ -12,6 +12,7 @@ node_modules/
 *.tgz
 .travis.yml
 .npmignore
+cloudbuild.yml
 CONTRIBUTING.md
 tslint.json
 yarn.lock
