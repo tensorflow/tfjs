@@ -31,7 +31,7 @@ process.on('unhandledRejection', e => {
 });
 
 jasmine_util.setTestEnvs(
-    [{name: 'test-tensorflow', factory: () => nodeBackend(), features: {}}]);
+    [{name: 'test-tensorflow', backendName: 'tensorflow', flags: {}}]);
 
 const IGNORE_LIST: string[] = [
   // Always ignore version tests:

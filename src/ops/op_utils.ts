@@ -26,7 +26,7 @@ let gBackend: NodeJSKernelBackend = null;
 /** Returns an instance of the Node.js backend. */
 export function nodeBackend(): NodeJSKernelBackend {
   if (gBackend === null) {
-    gBackend = (tfc.ENV.findBackend('tensorflow') as NodeJSKernelBackend);
+    gBackend = (tfc.findBackend('tensorflow') as NodeJSKernelBackend);
   }
   return gBackend;
 }
