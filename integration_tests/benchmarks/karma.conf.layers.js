@@ -33,8 +33,8 @@ const karmaTypescriptConfig = {
     if (config.hashes) {
       args.push('--hashes', config.hashes);
     }
-    if (config.travis) {
-      args.push('--travis');
+    if (config.nightly) {
+      args.push('--nightly');
     }
 
     config.set({

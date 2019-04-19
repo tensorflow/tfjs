@@ -27,8 +27,8 @@ module.exports = function(config) {
   if (config.firebaseKey) {
     args.push('--firebaseKey', config.firebaseKey);
   }
-  if (config.travis) {
-    args.push('--travis');
+  if (config.nightly) {
+    args.push('--nightly');
   }
   if(config.browsers) {
     args.push('--browsers', config.browsers);
