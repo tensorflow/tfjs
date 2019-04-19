@@ -55,7 +55,7 @@
     "publish-local": "yarn build-npm && yalc push",
     "lint": "tslint -p . -t verbose",
     "test": "ts-node ./scripts/release_notes/run_tests.ts && karma start",
-    "test-travis": "ts-node ./scripts/release_notes/run_tests.ts && karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun && cd integration_tests/benchmarks && yarn benchmark-travis && cd ../../",
+    "test-ci": "./scripts/test-ci.sh",
     "release-notes": "ts-node ./scripts/release_notes/release_notes.ts"
   },
   "dependencies": {

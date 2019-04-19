@@ -33,7 +33,7 @@
     "tsc": "^1.20150623.0",
     "tsify": "^3.0.4",
     "tslint": "^5.10.0",
-    "typescript": "2.9.2",
+    "typescript": "3.3.3333",
     "yalc": "^1.0.0-pre.23"
   },
   "scripts": {
@@ -42,7 +42,7 @@
     "lint": "tslint -p . -t verbose",
     "benchmark": "./benchmarks.sh",
     "benchmark-local": "./benchmarks.sh",
-    "benchmark-travis": "./benchmark_travis.sh",
+    "benchmark-cloud": "./benchmark_cloud.sh",
     "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --firebaseKey $FIREBASE_KEY --hostname='bs-local.com'"
   },
   "license": "Apache-2.0",
