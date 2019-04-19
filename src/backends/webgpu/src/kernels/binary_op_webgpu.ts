@@ -18,20 +18,29 @@
 import {util} from '@tensorflow/tfjs-core';
 import {WebGPUProgram} from './webgpu_program';
 
-export class MultiplyProgram implements WebGPUProgram {
+export const MUL = 'return a * b;';
+export const ADD = 'return a + b;';
+
+export class BinaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
 
-  constructor(outputShape: number[]) {
+  constructor(op: string, outputShape: number[]) {
     this.outputShape = outputShape;
     this.dispatch = [util.sizeFromShape(this.outputShape), 1, 1];
 
     this.userCode = `
+      float binaryOperation(float a, float b) {
+        ${op}
+      }
+
       void main() {
         uint index = gl_GlobalInvocationID.x;
-        result[index] = A[index] * B[index];
+        float a = A[index];
+        float b = B[index];
+        setOutput(index, binaryOperation(a, b));
       }
     `;
   }

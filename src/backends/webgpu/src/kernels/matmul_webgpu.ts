@@ -22,7 +22,7 @@ export class MatMulProgram implements WebGPUProgram {
   userCode: string;
   dispatch: [number, number, number];
   variableNames = ['A', 'B', 'Dimensions'];
-  tileSize = 2;
+  tileSize = 8;
 
   constructor(outputShape: [number, number, number]) {
     this.outputShape = outputShape;
@@ -46,8 +46,7 @@ export class MatMulProgram implements WebGPUProgram {
 
         float acc = 0.0;
 
-        // Add 1 to N to ceil.
-        uint numTiles = (N + 1)/TileSize;
+        uint numTiles = (N - 1)/TileSize + 1;
 
         for (uint t=0; t<numTiles; t++) {
           // Load one tile of A and B into local memory
@@ -69,7 +68,7 @@ export class MatMulProgram implements WebGPUProgram {
         }
 
         if(globalCol < K && globalRow < M) {
-          result[globalRow*K + globalCol] = acc;
+          setOutput(globalRow*K + globalCol, acc);
         }
       }
     `;
