@@ -50,6 +50,7 @@ export class CSVDataset extends Dataset<TensorContainer> {
   private columnConfigs: {[key: string]: ColumnConfig} = null;
   private configuredColumnsOnly = false;
   private delimiter = ',';
+  private delimWhitespace = false;
 
   /**
    * Returns column names of the csv dataset. If `configuredColumnsOnly` is
@@ -129,7 +130,8 @@ export class CSVDataset extends Dataset<TensorContainer> {
         throw new Error('No data was found for CSV parsing.');
       }
       const firstLine: string = firstElement.value;
-      return firstLine.split(this.delimiter);
+      const headers = this.parseRow(firstLine, false);
+      return headers;
     } else {
       return null;
     }
@@ -177,7 +179,16 @@ export class CSVDataset extends Dataset<TensorContainer> {
     this.fullColumnNames = csvConfig.columnNames;
     this.columnConfigs = csvConfig.columnConfigs;
     this.configuredColumnsOnly = csvConfig.configuredColumnsOnly;
-    this.delimiter = csvConfig.delimiter ? csvConfig.delimiter : ',';
+    if (csvConfig.delimWhitespace) {
+      util.assert(
+          csvConfig.delimiter == null,
+          () =>
+              'Delimiter should not be provided when delimWhitespace is true.');
+      this.delimWhitespace = true;
+      this.delimiter = ' ';
+    } else {
+      this.delimiter = csvConfig.delimiter ? csvConfig.delimiter : ',';
+    }
   }
 
   async iterator(): Promise<LazyIterator<TensorContainer>> {
@@ -276,11 +287,11 @@ export class CSVDataset extends Dataset<TensorContainer> {
   }
 
   // adapted from https://beta.observablehq.com/@mbostock/streaming-csv
-  private parseRow(line: string): string[] {
+  private parseRow(line: string, validateElementCount = true): string[] {
     const result: string[] = [];
     let readOffset = 0;
     const readLength = line.length;
-    let currentState = STATE_FIELD;
+    let currentState = STATE_OUT;
     // Goes through the line to parse quote.
     for (let i = 0; i < readLength; i++) {
       switch (currentState) {
@@ -294,9 +305,14 @@ export class CSVDataset extends Dataset<TensorContainer> {
               break;
             // Read an empty field
             case this.delimiter:
+              readOffset = i + 1;
+              // If delimiter is white space and configured to collapse
+              // multiple white spaces, ignore this white space.
+              if (this.delimiter === ' ' && this.delimWhitespace) {
+                break;
+              }
               result.push('');
               currentState = STATE_OUT;
-              readOffset = i + 1;
               break;
             // Enter an unquoted field
             default:
@@ -363,6 +379,11 @@ export class CSVDataset extends Dataset<TensorContainer> {
       result.push(line.substring(readOffset, readLength - 1));
     } else {
       result.push(line.substring(readOffset));
+    }
+    // Check if each row has the same number of elements as column names.
+    if (validateElementCount && result.length !== this.fullColumnNames.length) {
+      throw new Error(`Invalid row in csv file. Should have ${
+          this.fullColumnNames.length} elements in a row, but got ${result}`);
     }
     return result;
   }
