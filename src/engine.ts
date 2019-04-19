@@ -838,8 +838,9 @@ function getOrMakeEngine(): Engine {
   if (ns._tfengine == null) {
     const environment = new Environment(ns);
     ns._tfengine = new Engine(environment);
-    setEnvironmentGlobal(environment);
   }
+  setEnvironmentGlobal(ns._tfengine.ENV);
+
   // Tell the current tensor interface that the global engine is responsible
   // for tracking.
   setTensorTracker(() => ns._tfengine);
