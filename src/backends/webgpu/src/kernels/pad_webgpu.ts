@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,17 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
-import {getCoordsDataType} from './shader_compiler';
+import {util} from '@tensorflow/tfjs-core';
 
-export class PadProgram implements GPGPUProgram {
-  variableNames = ['x'];
+import {getCoordsDataType} from '../shader_preprocessor';
+
+import {WebGPUProgram} from './webgpu_program';
+
+export class PadProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
+  dispatch: [number, number, number];
+  variableNames = ['x'];
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
@@ -30,39 +34,35 @@ export class PadProgram implements GPGPUProgram {
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
     const rank = xShape.length;
     const type = getCoordsDataType(rank);
+    this.dispatch = [util.sizeFromShape(this.outputShape), 1, 1];
 
     const start = paddings.map(p => p[0]).join(',');
     const end = paddings.map((p, i) => p[0] + xShape[i]).join(',');
-    const unpackedCoords =
-        ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank);
+    const startValue = rank > 1 ? `${type}(${start})` : `${start}`;
+    const endValue = rank > 1 ? `${type}(${end})` : `${end}`;
 
-    if (rank === 1) {
-      this.userCode = `
-        int start = ${start};
-        int end = ${end};
+    const xShapeValue =
+        rank > 1 ? `${type}(${xShape.join(',')})` : `${xShape[0]}`;
 
-        void main() {
-          int outC = getOutputCoords();
-          if (outC < start || outC >= end) {
-            setOutput(float(${constantValue}));
-          } else {
-            setOutput(getX(outC - start));
-          }
-        }
-      `;
-      return;
-    }
+    const leftPadCondition =
+        rank > 1 ? `any(lessThan(outC, start))` : `outC < start`;
+    const rightPadCondition =
+        rank > 1 ? `any(greaterThanEqual(outC, end))` : `outC >= end`;
+
     this.userCode = `
-      ${type} start = ${type}(${start});
-      ${type} end = ${type}(${end});
+      ${type} start = ${startValue};
+      ${type} end = ${endValue};
 
       void main() {
-        ${type} outC = getOutputCoords();
-        if (any(lessThan(outC, start)) || any(greaterThanEqual(outC, end))) {
-          setOutput(float(${constantValue}));
+        uint index = gl_GlobalInvocationID.x;
+        ${type} outC = getOutputCoords(index);
+
+        if(${leftPadCondition} || ${rightPadCondition}) {
+          setOutput(index, ${constantValue});
         } else {
           ${type} coords = outC - start;
-          setOutput(getX(${unpackedCoords}));
+          ${type} xShape = ${xShapeValue};
+          setOutput(index, x[getFlatIndex(coords, xShape)]);
         }
       }
     `;

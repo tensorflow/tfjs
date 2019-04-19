@@ -52,11 +52,12 @@ export const compileProgram =
             } as GPUBindGroupLayoutBinding;
           });
       const inputsData = inputs.map((input: Tensor) => {
-        return {dtype: input.dtype};
+        return {dtype: input.dtype, shape: input.shape};
       });
+      const outputData = {dtype: output.dtype, shape: output.shape};
 
       const source = shader_preprocessor.makeShader(
-          inputsData.map(d => d.dtype), program.variableNames, program.userCode,
+          inputsData, program.variableNames, outputData, program.userCode,
           program.tileSize);
       const result = shaderCompiler.CompileGlslToSpv(
           source, shaderKind, 'file', 'main', compileOptions);

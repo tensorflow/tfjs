@@ -22,8 +22,12 @@ import './flags_webgpu';
 import {DataMover, DataType, ENV, KernelBackend, Rank, ShapeMap, Tensor, tensor1d, Tensor3D, util} from '@tensorflow/tfjs-core';
 import * as shaderc from '@webgpu/shaderc';
 
+import * as binary_op from './kernels/binary_op_webgpu';
+import {BinaryOpProgram} from './kernels/binary_op_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
-import {MultiplyProgram} from './kernels/multiply_webgpu';
+import {PadProgram} from './kernels/pad_webgpu';
+import * as unary_op from './kernels/unary_op_webgpu';
+import {UnaryOpProgram} from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
 import {WebGPUBinary} from './kernels/webgpu_program';
 
@@ -147,8 +151,18 @@ export class WebGPUBackend extends KernelBackend {
     return this.binaryCache[key];
   }
 
-  private compileAndRun(
-      program: webgpu_program.WebGPUProgram, inputs: Tensor[], output: Tensor) {
+  private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
+      T {
+    return Tensor.make(shape, {}, dtype, this) as T;
+  }
+
+  private compileAndRun<
+      K extends {dtype: DataType, size: number, dataId: {}, shape: number[]}>(
+      program: webgpu_program.WebGPUProgram, inputs: Tensor[],
+      output?: Tensor): K {
+    if (output == null) {
+      output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
+    }
     const key = webgpu_program.makeShaderKey(program);
     const {bindGroupLayout, pipeline} = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
@@ -185,14 +199,32 @@ export class WebGPUBackend extends KernelBackend {
     if (ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED')) {
       this.submitQueue();
     }
-    return output;
+    return output as {} as K;
+  }
+
+  pad<T extends Tensor>(
+      x: T, paddings: Array<[number, number]>, constantValue: number): T {
+    const program = new PadProgram(x.shape, paddings, constantValue);
+    return this.compileAndRun(program, [x]);
+  }
+
+  add(a: Tensor, b: Tensor): Tensor {
+    const output = Tensor.make(a.shape, {}, a.dtype, this);
+    const program = new BinaryOpProgram(binary_op.ADD, output.shape);
+
+    return this.compileAndRun(program, [a, b], output) as Tensor;
   }
 
   multiply(a: Tensor, b: Tensor): Tensor {
     const output = Tensor.make(a.shape, {}, a.dtype, this);
-    const program = new MultiplyProgram(output.shape);
+    const program = new BinaryOpProgram(binary_op.MUL, output.shape);
 
     return this.compileAndRun(program, [a, b], output) as Tensor;
+  }
+
+  relu<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(unary_op.RELU, x.shape);
+    return this.compileAndRun(program, [x]) as T;
   }
 
   reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
