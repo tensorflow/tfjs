@@ -132,6 +132,12 @@ export interface CSVConfig {
    * The string used to parse each line of the input file.
    */
   delimiter?: string;
+
+  /**
+   * If true, delimiter field should be null. Parsing delimiter is whitespace
+   * and treat continuous multiple whitespace as one delimiter.
+   */
+  delimWhitespace?: boolean;
 }
 
 /**
