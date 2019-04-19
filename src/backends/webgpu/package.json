@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs-core": "1.1.0",
-    "@webgpu/shaderc": "0.0.4",
+    "@webgpu/shaderc": "0.0.6",
     "@webgpu/types": "0.0.3"
   }
 }

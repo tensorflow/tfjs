@@ -59,7 +59,9 @@ export class WebGPUBackend extends KernelBackend {
     this.commandQueue = [];
     this.shaderc = shaderc;
     this.compiler = new shaderc.Compiler();
-    this.compileOpts = new shaderc.CompileOptions();
+    const opts = new shaderc.CompileOptions();
+    opts.SetOptimizationLevel(shaderc.optimization_level.performance);
+    this.compileOpts = opts;
   }
 
   floatPrecision(): 32 {

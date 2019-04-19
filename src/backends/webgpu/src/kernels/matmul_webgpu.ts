@@ -56,7 +56,6 @@ export class MatMulProgram implements WebGPUProgram {
           Bsub[row][col] = B[tiledRow*K + globalCol];
 
           // Synchronise to make sure the tile is loaded
-          // memoryBarrierShared();
           barrier();
 
           for (uint k=0; k<TileSize; k++) {
