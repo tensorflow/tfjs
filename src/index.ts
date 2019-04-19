@@ -19,7 +19,6 @@ import * as tf from '@tensorflow/tfjs';
 
 import {nodeFileSystemRouter} from './io/file_system';
 import * as nodeIo from './io/index';
-import {nodeHTTPRequestRouter} from './io/node_http';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 import * as nodeVersion from './version';
 
@@ -43,21 +42,19 @@ export * from '@tensorflow/tfjs';
 // tslint:disable-next-line:no-require-imports
 const pjson = require('../package.json');
 
-tf.ENV.registerBackend('tensorflow', () => {
+tf.registerBackend('tensorflow', () => {
   return new NodeJSKernelBackend(
       bindings('tfjs_binding.node') as TFJSBinding, pjson.name);
 }, 3 /* priority */);
 
-// If registration succeeded, set the backend.
-if (tf.ENV.findBackend('tensorflow') != null) {
-  tf.setBackend('tensorflow');
+const success = tf.setBackend('tensorflow');
+if (!success) {
+  throw new Error(`Could not initialize TensorFlow backend.`);
 }
 
 // Register the model saving and loading handlers for the 'file://' URL scheme.
 tf.io.registerLoadRouter(nodeFileSystemRouter);
 tf.io.registerSaveRouter(nodeFileSystemRouter);
-tf.io.registerLoadRouter(nodeHTTPRequestRouter);
-// TODO(cais): Make HTTP-based save work from Node.js.
 
 import {ProgbarLogger} from './callbacks';
 // Register the ProgbarLogger for Model.fit() at verbosity level 1.

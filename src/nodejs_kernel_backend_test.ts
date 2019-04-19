@@ -57,7 +57,7 @@ describe('conv3d dilations', () => {
   it('GPU should handle dilations >1', () => {
     // This test can only run locally with CUDA bindings and GPU package
     // installed.
-    if ((tf.ENV.backend as NodeJSKernelBackend).isGPUPackage) {
+    if ((tf.backend() as NodeJSKernelBackend).isGPUPackage) {
       const input = tf.ones([1, 2, 2, 2, 1]) as Tensor5D;
       const filter = tf.ones([1, 1, 1, 1, 1]) as Tensor5D;
       tf.conv3d(input, filter, 1, 'same', 'NHWC', [2, 2, 2]);

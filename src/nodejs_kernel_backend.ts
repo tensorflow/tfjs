@@ -153,7 +153,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput(name, opAttrs, [input]);
   }
 
-  floatPrecision(): number {
+  floatPrecision(): 16|32 {
     return 32;
   }
 

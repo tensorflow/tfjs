@@ -20,8 +20,8 @@ import * as tfl from '@tensorflow/tfjs-layers';
 
 import * as tfn from '../index';
 
-import {fetchWrapper} from './node_http';
-
+// We still need node-fetch so that we can mock the core tfc.util.fetch call and
+// return a valid response.
 // tslint:disable-next-line:no-require-imports
 const fetch = require('node-fetch');
 
@@ -68,24 +68,22 @@ describe('nodeHTTPRequest-load', () => {
     [filename: string]: string|Float32Array|Int32Array|ArrayBuffer|Uint8Array|
     Uint16Array
   }) => {
-    spyOn(fetchWrapper, 'fetch')
-        .and.callFake((path: string, init: RequestInit) => {
-          return new Promise((resolve, reject) => {
-            let contentType = '';
-            if (path.endsWith('model.json')) {
-              contentType = JSON_TYPE;
-            } else if (
-                path.endsWith('weightfile0') || path.endsWith('weightfile1')) {
-              contentType = OCTET_STREAM_TYPE;
-            } else {
-              reject(new Error(`Invalid path: ${path}`));
-            }
-            requestInits.push(init);
-            resolve(new fetch.Response(
-                fileBufferMap[path],
-                {'headers': {'Content-Type': contentType}}));
-          });
-        });
+    spyOn(tfc.util, 'fetch').and.callFake((path: string, init: RequestInit) => {
+      return new Promise((resolve, reject) => {
+        let contentType = '';
+        if (path.endsWith('model.json')) {
+          contentType = JSON_TYPE;
+        } else if (
+            path.endsWith('weightfile0') || path.endsWith('weightfile1')) {
+          contentType = OCTET_STREAM_TYPE;
+        } else {
+          reject(new Error(`Invalid path: ${path}`));
+        }
+        requestInits.push(init);
+        resolve(new fetch.Response(
+            fileBufferMap[path], {'headers': {'Content-Type': contentType}}));
+      });
+    });
   };
 
   beforeEach(() => {

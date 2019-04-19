@@ -90,44 +90,46 @@
     lodash "^4.17.11"
     to-fast-properties "^2.0.0"
 
-"@tensorflow/tfjs-converter@1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.0.3.tgz#eeceeea98827662fa8042c652409e3a45df825a0"
-  integrity sha512-vrGvVrPekhTOwMGsomcpcjw0ZUep6xhI8DQQoFXHjBcprt9bFO2hHMdAmYpqafcJ7KVMylbK4h2LJrsBI2zDgQ==
+"@tensorflow/tfjs-converter@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.1.0.tgz#1d6f58347e9b3826c02090e06e6590b0c4df2d4e"
+  integrity sha512-gUkoRoYm9yrVVQNp8nD+pEWOPUNhayCSrUHNItSfIm8Lzbgx6brVxVdz5T8V0kT0yh67Pp9Er/LIlf54p7KikA==
 
-"@tensorflow/tfjs-core@1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.0.3.tgz#344f3fb1ed43c43b0e19e5e2764677770fd7a085"
-  integrity sha512-2UbjMQkmrykIIZuoRfmDPrtWm+6fdQRlYLCUJdiOIooeu/q4nye587HM1qKcdZosGPZTW6VvX+4VIVieYn5i0A==
+"@tensorflow/tfjs-core@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.1.0.tgz#028c69291e19c328c4c30e18d29b09135c22cb44"
+  integrity sha512-loPpHGVjiyEb+Ixlsj8prQ/r4exekITn7vM4WEyHUouFKx0/CuoB2FQ0m6DSb/6ApvucxTWGGNTRRo4HK4Ma0Q==
   dependencies:
     "@types/seedrandom" "2.4.27"
     "@types/webgl-ext" "0.0.30"
     "@types/webgl2" "0.0.4"
+    node-fetch "~2.1.2"
     seedrandom "2.4.3"
+  optionalDependencies:
+    rollup-plugin-visualizer "~1.1.1"
 
-"@tensorflow/tfjs-data@1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.0.3.tgz#f614bef1dde1030673e691f1725cd30719c6b31c"
-  integrity sha512-WFjYU2pWNZ0TZaJ7rN18GD/wOTVe6rBGxvSwZxIhEVIbwKXaKXFa9V4aGp4QBG9AXHIA89SjmGSGPxfsC015hQ==
+"@tensorflow/tfjs-data@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.1.0.tgz#8d9a0175497930061532c8d43b419b25b26b9bbf"
+  integrity sha512-0+PfAsaZs/pmaxiLunb4c1rPRdu47+CYe5kxpu2P8Xn3k+vhlBYMu+zsVgs5RrTRFLWVzVeH9muA1SJLkMGZPA==
   dependencies:
     "@types/node-fetch" "^2.1.2"
     node-fetch "~2.1.2"
-    seedrandom "~2.4.3"
 
-"@tensorflow/tfjs-layers@1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.0.3.tgz#dfb4c6924b528cf992f222b12d70bb320a48207f"
-  integrity sha512-7VdvQb0ft7TrWAbBy7HI+p420KX9rblYYACZ7/BzvzsikfEOdEL90WxrZDjZ167rYN/KvqC/haGcmhW/dYU3MA==
+"@tensorflow/tfjs-layers@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.1.0.tgz#fd221c254d2fca13e93e83669bdde3140e7a0434"
+  integrity sha512-a0gXjOWvGi9gc2q8/gK79zfD5WqEZnAhZfpm6b7AoKXjDUBq4GgdbbWCfv2nYBlmMoXgRSRSV44UmJVExep0uw==
 
-"@tensorflow/tfjs@~1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-1.0.3.tgz#e1d0a76ed9ab1700550287ab4eaf012ad2d27210"
-  integrity sha512-tF6GcjO2KBYlPPiS7o4X+D3oASXJcWAYaZA13GCYp5cXAui0ncHxpC85kmNQlp2HEVmcE82BJz/1uUtkNxxQpw==
+"@tensorflow/tfjs@~1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-1.1.0.tgz#77809dc336655a7ff0bbf76527cc3d7b9e68e330"
+  integrity sha512-CxcFzl2KtknO3f12xuuv8kq8usMA7xGWpJajubIlYBp4KoBDhiDimP/DwBlTvFZq5RT5riHGtA4BWjMj6rnDcw==
   dependencies:
-    "@tensorflow/tfjs-converter" "1.0.3"
-    "@tensorflow/tfjs-core" "1.0.3"
-    "@tensorflow/tfjs-data" "1.0.3"
-    "@tensorflow/tfjs-layers" "1.0.3"
+    "@tensorflow/tfjs-converter" "1.1.0"
+    "@tensorflow/tfjs-core" "1.1.0"
+    "@tensorflow/tfjs-data" "1.1.0"
+    "@tensorflow/tfjs-layers" "1.1.0"
 
 "@types/bindings@~1.3.0":
   version "1.3.0"
@@ -849,6 +851,11 @@ is-utf8@^0.2.0:
   resolved "https://registry.yarnpkg.com/is-utf8/-/is-utf8-0.2.1.tgz#4b0da1442104d1b336340e80797e865cf39f7d72"
   integrity sha1-Sw2hRCEE0bM2NA6AeX6GXPOffXI=
 
+is-wsl@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/is-wsl/-/is-wsl-1.1.0.tgz#1f16e4aa22b04d1336b66188a66af3c600c3a66d"
+  integrity sha1-HxbkqiKwTRM2tmGIpmrzxgDDpm0=
+
 isexe@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/isexe/-/isexe-2.0.0.tgz#e8fbf374dc556ff8947a10dcb0572d633f2cfa10"
@@ -1217,6 +1224,13 @@ once@~1.3.0:
   dependencies:
     wrappy "1"
 
+opn@^5.4.0:
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/opn/-/opn-5.5.0.tgz#fc7164fab56d235904c51c3b27da6758ca3b9bfc"
+  integrity sha512-PqHpggC9bLV0VeWcdKhkpxY+3JTzetLSqTCWL/z/tFIbI6G8JCjondXklT1JinczLz2Xib62sSp0T/gKT4KksA==
+  dependencies:
+    is-wsl "^1.1.0"
+
 optimist@^0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/optimist/-/optimist-0.6.1.tgz#da3ea74686fa21a19a111c326e90eb15a0196686"
@@ -1519,6 +1533,16 @@ rimraf@^2.6.3:
   dependencies:
     glob "^7.1.3"
 
+rollup-plugin-visualizer@~1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-visualizer/-/rollup-plugin-visualizer-1.1.1.tgz#454ae0aed23845407ebfb81cc52114af308d6d90"
+  integrity sha512-7xkSKp+dyJmSC7jg2LXqViaHuOnF1VvIFCnsZEKjrgT5ZVyiLLSbeszxFcQSfNJILphqgAEmWAUz0Z4xYScrRw==
+  dependencies:
+    mkdirp "^0.5.1"
+    opn "^5.4.0"
+    source-map "^0.7.3"
+    typeface-oswald "0.0.54"
+
 safe-buffer@^5.1.2, safe-buffer@~5.1.1:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.2.tgz#991ec69d296e0313747d59bdfd2b745c35f8828d"
@@ -1528,11 +1552,6 @@ seedrandom@2.4.3:
   version "2.4.3"
   resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-2.4.3.tgz#2438504dad33917314bff18ac4d794f16d6aaecc"
   integrity sha1-JDhQTa0zkXMUv/GKxNeU8W1qrsw=
-
-seedrandom@~2.4.3:
-  version "2.4.4"
-  resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-2.4.4.tgz#b25ea98632c73e45f58b77cfaa931678df01f9ba"
-  integrity sha512-9A+PDmgm+2du77B5i0Ip2cxOqqHjgNxnBgglxLcX78A2D6c2rTo61z4jnVABpF4cKeDMDG+cmXXvdnqse2VqMA==
 
 "semver@2 || 3 || 4 || 5", semver@^5.3.0, semver@^5.5.0:
   version "5.5.1"
@@ -1592,6 +1611,11 @@ source-map@^0.6.0, source-map@^0.6.1, source-map@~0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.6.1.tgz#74722af32e9614e9c287a8d0bbde48b5e2f1a263"
   integrity sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
+
+source-map@^0.7.3:
+  version "0.7.3"
+  resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.7.3.tgz#5302f8169031735226544092e64981f751750383"
+  integrity sha512-CkCj6giN3S+n9qrYiBTX5gystlENnRW5jZeNLHpe6aue+SrHcG5VYwujhW9s4dY31mEGsxBDrHR6oI69fTXsaQ==
 
 spawn-wrap@^1.4.2:
   version "1.4.2"
@@ -1786,6 +1810,11 @@ tsutils@^2.12.1:
   integrity sha512-g5JVHCIJwzfISaXpXE1qvNalca5Jwob6FjI4AoPlqMusJ6ftFE7IkkFoMhVLRgK+4Kx3gkzb8UZK5t5yTTvEmA==
   dependencies:
     tslib "^1.8.1"
+
+typeface-oswald@0.0.54:
+  version "0.0.54"
+  resolved "https://registry.yarnpkg.com/typeface-oswald/-/typeface-oswald-0.0.54.tgz#1e253011622cdd50f580c04e7d625e7f449763d7"
+  integrity sha512-U1WMNp4qfy4/3khIfHMVAIKnNu941MXUfs3+H9R8PFgnoz42Hh9pboSFztWr86zut0eXC8byalmVhfkiKON/8Q==
 
 typescript@3.3.3333:
   version "3.3.3333"

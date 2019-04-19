@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -35,6 +35,7 @@
     "@types/rimraf": "~2.0.2",
     "clang-format": "~1.2.2",
     "jasmine": "~3.1.0",
+    "node-fetch": "^2.3.0",
     "nyc": "^13.3.0",
     "shelljs": "^0.8.3",
     "tmp": "^0.0.33",
@@ -44,11 +45,10 @@
     "yalc": "~1.0.0-pre.21"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "~1.0.3",
+    "@tensorflow/tfjs": "~1.1.0",
     "adm-zip": "^0.4.11",
     "bindings": "~1.3.0",
     "https-proxy-agent": "^2.2.1",
-    "node-fetch": "^2.3.0",
     "progress": "^2.0.0",
     "rimraf": "^2.6.2",
     "tar": "^4.4.6"
