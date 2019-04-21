@@ -1416,6 +1416,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
         'integers but got shape [2,-2].';
     expect(() => tf.tensor([1, 2, 3, 4], [2, -2])).toThrowError(msg);
   });
+
+  it('ones with complex type', () => {
+    // Imaginary part should be zero.
+    const a = tf.ones([2, 2], 'complex64');
+    expectArraysClose(a, [1, 0, 1, 0, 1, 0, 1, 0]);
+  });
 });
 
 describe('tensor.toString', () => {
