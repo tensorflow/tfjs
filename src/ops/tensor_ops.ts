@@ -386,7 +386,7 @@ function ones<R extends Rank>(
     shape: ShapeMap[R], dtype: DataType = 'float32'): Tensor<R> {
   if (dtype === 'complex64') {
     const real = ones(shape, 'float32');
-    const imag = ones(shape, 'float32');
+    const imag = zeros(shape, 'float32');
     return complex(real, imag);
   }
   const values = makeOnesTypedArray(sizeFromShape(shape), dtype);
