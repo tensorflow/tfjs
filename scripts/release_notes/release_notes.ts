@@ -67,11 +67,14 @@ const NODE_REPO: Repo = {
 
 async function askUserForVersions(validVersions: string[], packageName: string):
     Promise<{startVersion: string, endVersion: string}> {
-  console.log('\x1b[33m%s\x1b[0m', packageName + ' versions');
+  const YELLOW_TERMINAL_COLOR = '\x1b[33m%s\x1b[0m';
+  const RED_TERMINAL_COLOR = '\x1b[31m%s\x1b[0m';
+
+  console.log(YELLOW_TERMINAL_COLOR, packageName + ' versions');
   console.log(validVersions.join(', '));
   const startVersion = await util.question(`Enter the union start version: `);
   if (validVersions.indexOf(startVersion) === -1) {
-    console.log('\x1b[31m%s\x1b[0m', `Unknown start version: ${startVersion}`);
+    console.log(RED_TERMINAL_COLOR, `Unknown start version: ${startVersion}`);
     process.exit(1);
   }
   const defaultVersion = validVersions[validVersions.length - 1];
@@ -81,7 +84,7 @@ async function askUserForVersions(validVersions: string[], packageName: string):
     endVersion = defaultVersion;
   }
   if (validVersions.indexOf(endVersion) === -1) {
-    console.log('\x1b[31m%s\x1b[0m', `Unknown end version: ${endVersion}`);
+    console.log(RED_TERMINAL_COLOR, `Unknown end version: ${endVersion}`);
     process.exit(1);
   }
   return {startVersion, endVersion};
