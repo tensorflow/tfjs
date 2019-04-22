@@ -43,14 +43,21 @@ done
 cd ${SCRIPT_DIR}
 
 yarn
+yarn upgrade \
+    @tensorflow/tfjs-core \
+    @tensorflow/tfjs-converter \
+    @tensorflow/tfjs-layers \
+    @tensorflow/tfjs-data \
+    @tensorflow/tfjs
 
 if [[ "${IS_TFJS_NODE}" == "1" ]]; then
+  npm install -g node-gyp
   if [[ ! -d "tfjs-node" ]]; then
     echo 'Use latest version of tfjs-node'
     git clone https://github.com/tensorflow/tfjs-node.git --depth 5
   fi
   cd tfjs-node
-  HASH_NODE=`git rev-parse HEAD`
+  HASH_NODE="$(git rev-parse HEAD)"
   rm -rf dist/
   if [[ "${IS_TFJS_NODE_GPU}" == "1" ]]; then
     yarn node scripts/install.js gpu download
@@ -70,7 +77,7 @@ else
     git clone https://github.com/tensorflow/tfjs-core.git --depth 5
   fi
   cd tfjs-core
-  HASH_CORE=`git rev-parse HEAD`
+  HASH_CORE="$(git rev-parse HEAD)"
   rm -rf dist/ node_modules/ && yarn
   yarn build && yarn yalc publish
 
@@ -82,7 +89,7 @@ else
     git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
   fi
   cd tfjs-layers
-  HASH_LAYERS=`git rev-parse HEAD`
+  HASH_LAYERS="$(git rev-parse HEAD)"
   # TODO(cais): This should ideally call:
   #   yarn yalc link '@tensorflow/tfjs-core'
   # so that tfjs-layers can be built against the HEAD of tfjs-core.
@@ -102,7 +109,7 @@ else
     git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
   fi
   cd tfjs-converter
-  HASH_CONVERTER=`git rev-parse HEAD`
+  HASH_CONVERTER="$(git rev-parse HEAD)"
   rm -rf dist/ node_modules/ && yarn
   yarn build && yalc publish
 
@@ -114,7 +121,7 @@ else
     git clone https://github.com/tensorflow/tfjs-data.git --depth 5
   fi
   cd tfjs-data
-  HASH_DATA=`git rev-parse HEAD`
+  HASH_DATA="$(git rev-parse HEAD)"
   rm -rf dist/ && yarn && yarn build && yalc publish
 
   cd ..
