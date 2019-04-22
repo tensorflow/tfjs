@@ -25,6 +25,9 @@ import {LossOrMetricFn} from './types';
  */
 export function l2Normalize(x: Tensor, axis?: number): Tensor {
   return tidy(() => {
+    if (x.dtype !== 'float32') {
+      x = x.asType('float32');
+    }
     const squareSum = tfc.sum(K.square(x), axis, true);
     const epsilonTensor = tfc.fill(squareSum.shape, epsilon());
     const norm = tfc.sqrt(tfc.maximum(squareSum, epsilonTensor));
