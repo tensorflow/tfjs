@@ -17,6 +17,10 @@
  */
 
 import * as shell from 'shelljs';
+import * as readline from 'readline';
+
+const rl =
+    readline.createInterface({input: process.stdin, output: process.stdout});
 
 /**
  * A wrapper around shell.exec for readability.
@@ -31,6 +35,11 @@ export function $(cmd: string) {
     process.exit(1);
   }
   return result.stdout.trim();
+}
+
+export async function question(questionStr: string): Promise<string> {
+  return new Promise<string>(
+      resolve => rl.question(questionStr, response => resolve(response)));
 }
 
 export interface Repo {
