@@ -42,9 +42,11 @@ export class ReversePackedProgram implements GPGPUProgram {
         void main(){
           int rc = getOutputCoords();
           vec4 result = vec4(0.);
-          result.r = getChannel(getX(${xShape[0]} - rc - 1), rc);
+          result.r = getChannel(getX(${xShape[0]} - rc - 1),
+            ${xShape[0]} - rc - 1);
           if(${nextColumn}){
-              result.g = getChannel(getX(${xShape[0]} - (rc  + 1) - 1), rc + 1);
+              result.g = getChannel(getX(${xShape[0]} - (rc  + 1) - 1),
+                ${xShape[0]} - (rc  + 1) - 1);
           }
           setOutput(result);
         }

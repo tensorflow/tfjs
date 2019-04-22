@@ -27,6 +27,13 @@ describeWithFlags('reverse1d', ALL_ENVS, () => {
     expectArraysClose(result, [5, 4, 3, 2, 1]);
   });
 
+  it('reverse a 1D array, even length', () => {
+    const input = tf.tensor1d([1, 2, 3, 4]);
+    const result = tf.reverse1d(input);
+    expect(result.shape).toEqual(input.shape);
+    expectArraysClose(result, [4, 3, 2, 1]);
+  });
+
   it('grad', () => {
     const a = tf.tensor1d([1, 2, 3]);
     const dy = tf.tensor1d([10, 20, 30]);
