@@ -418,15 +418,18 @@ export class MathBackendWebGL implements KernelBackend {
       [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
           texShape[0], texShape[1]);
     }
-    const bufferOrTexture =
-        this.gpgpu.maybeCreateBufferFromTexture(texture, height, width);
+
+    let buffer = null;
+    if (ENV.get('WEBGL_BUFFER_SUPPORTED')) {
+      buffer = this.gpgpu.createBufferFromTexture(texture, height, width);
+    }
 
     // Create a fence and wait for it to resolve.
     await this.gpgpu.createAndWaitForFence();
 
     // Download the values from the GPU.
     let vals: Float32Array;
-    if (bufferOrTexture instanceof WebGLTexture) {
+    if (buffer == null) {
       vals = this.getValuesFromTexture(dataId);
     } else {
       const size = util.sizeFromShape(shape);
@@ -438,13 +441,12 @@ export class MathBackendWebGL implements KernelBackend {
         }
         vals = this.gpgpu
                    .downloadPackedMatrixFromBuffer(
-                       bufferOrTexture, batch, rows, cols, texShape[0],
-                       texShape[1])
+                       buffer, batch, rows, cols, texShape[0], texShape[1])
                    .subarray(0, size);
       } else {
         vals = this.gpgpu
                    .downloadFloat32MatrixFromBuffer(
-                       bufferOrTexture, texShape[0], texShape[1])
+                       buffer, texShape[0], texShape[1])
                    .subarray(0, size);
       }
     }

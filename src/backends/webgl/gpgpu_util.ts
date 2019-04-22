@@ -294,44 +294,35 @@ export function uploadMatrixToPackedTexture(
   uploadDataToTexture(gl, debug, texture, w, h, packedRGBA, gl.RGBA);
 }
 
-export function maybeCreateBufferFromOutputTexture(
-    gl: WebGLRenderingContext, debug: boolean, texture: WebGLTexture,
-    rows: number, columns: number, textureConfig: TextureConfig): WebGLBuffer|
-    WebGLTexture {
-  let bufferOrTexture: WebGLBuffer|WebGLTexture = texture;
+export function createBufferFromOutputTexture(
+    gl2: WebGL2RenderingContext, debug: boolean, rows: number, columns: number,
+    textureConfig: TextureConfig): WebGLBuffer {
+  // Create and bind the buffer.
+  const buffer = gl2.createBuffer();
+  webgl_util.callAndCheck(
+      gl2, debug, () => gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, buffer));
 
-  if (ENV.getNumber('WEBGL_VERSION') === 2) {
-    const gl2 = gl as WebGL2RenderingContext;
+  // Initialize the buffer to the size of the texture in bytes.
+  const bytesPerFloat = 4;
+  const bufferSizeBytes = bytesPerFloat *
+      tex_util.getUnpackedArraySizeFromMatrixSize(
+          rows * columns, textureConfig.downloadUnpackNumChannels);
 
-    // Create and bind the buffer.
-    const buffer = gl2.createBuffer();
-    webgl_util.callAndCheck(
-        gl, debug, () => gl.bindBuffer(gl2.PIXEL_PACK_BUFFER, buffer));
+  webgl_util.callAndCheck(
+      gl2, debug,
+      () => gl2.bufferData(
+          gl2.PIXEL_PACK_BUFFER, bufferSizeBytes, gl2.STREAM_READ));
 
-    // Initialize the buffer to the size of the texture in bytes.
-    const bytesPerFloat = 4;
-    const bufferSizeBytes = bytesPerFloat *
-        tex_util.getUnpackedArraySizeFromMatrixSize(
-            rows * columns, textureConfig.downloadUnpackNumChannels);
+  // Enqueue a command on the GPU command queue to copy of texture into the
+  // buffer.
+  webgl_util.callAndCheck(
+      gl2, debug,
+      () => gl2.readPixels(0, 0, columns, rows, gl2.RGBA, gl2.FLOAT, 0));
 
-    webgl_util.callAndCheck(
-        gl, debug,
-        () => gl.bufferData(
-            gl2.PIXEL_PACK_BUFFER, bufferSizeBytes, gl2.STREAM_READ));
+  webgl_util.callAndCheck(
+      gl2, debug, () => gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, null));
 
-    // Enqueue a command on the GPU command queue to copy of texture into the
-    // buffer.
-    webgl_util.callAndCheck(
-        gl, debug,
-        () => gl2.readPixels(0, 0, columns, rows, gl.RGBA, gl.FLOAT, 0));
-
-    webgl_util.callAndCheck(
-        gl, debug, () => gl.bindBuffer(gl2.PIXEL_PACK_BUFFER, null));
-
-    bufferOrTexture = buffer;
-  }
-
-  return bufferOrTexture;
+  return buffer;
 }
 
 export function downloadFloat32MatrixFromBuffer(
