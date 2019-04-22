@@ -15,13 +15,9 @@
  * =============================================================================
  */
 
-/**
- * Unit tests for browser_http.ts.
- */
-
 import * as tf from '../index';
 import {BROWSER_ENVS, CHROME_ENVS, describeWithFlags, NODE_ENVS} from '../jasmine_util';
-import {BrowserHTTPRequest, httpRequestRouter, parseUrl} from './browser_http';
+import {HTTPRequest, httpRouter, parseUrl} from './http';
 
 // Test data.
 const modelTopology1: {} = {
@@ -57,7 +53,7 @@ const modelTopology1: {} = {
   'backend': 'tensorflow'
 };
 
-let windowFetchSpy: jasmine.Spy;
+let fetchSpy: jasmine.Spy;
 
 type TypedArrays = Float32Array|Int32Array|Uint8Array|Uint16Array;
 const fakeResponse =
@@ -85,22 +81,20 @@ const setupFakeWeightFiles =
       }
     },
      requestInits: {[key: string]: RequestInit}) => {
-      windowFetchSpy =
-          // tslint:disable-next-line:no-any
-          spyOn(tf.util, 'fetch')
-              .and.callFake((path: string, init: RequestInit) => {
-                if (fileBufferMap[path]) {
-                  requestInits[path] = init;
-                  return Promise.resolve(fakeResponse(
-                      fileBufferMap[path].data, fileBufferMap[path].contentType,
-                      path));
-                } else {
-                  return Promise.reject('path not found');
-                }
-              });
+      fetchSpy = spyOn(tf.util, 'fetch')
+                     .and.callFake((path: string, init: RequestInit) => {
+                       if (fileBufferMap[path]) {
+                         requestInits[path] = init;
+                         return Promise.resolve(fakeResponse(
+                             fileBufferMap[path].data,
+                             fileBufferMap[path].contentType, path));
+                       } else {
+                         return Promise.reject('path not found');
+                       }
+                     });
     };
 
-describeWithFlags('browserHTTPRequest-load fetch', NODE_ENVS, () => {
+describeWithFlags('http-load fetch', NODE_ENVS, () => {
   let requestInits: {[key: string]: {headers: {[key: string]: string}}};
   // tslint:disable-next-line:no-any
   let originalFetch: any;
@@ -149,7 +143,7 @@ describeWithFlags('browserHTTPRequest-load fetch', NODE_ENVS, () => {
         },
         requestInits);
 
-    const handler = tf.io.browserHTTPRequest('./model.json');
+    const handler = tf.io.http('./model.json');
     const modelArtifacts = await handler.load();
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
@@ -160,7 +154,7 @@ describeWithFlags('browserHTTPRequest-load fetch', NODE_ENVS, () => {
     // tslint:disable-next-line:no-any
     delete (global as any).fetch;
     try {
-      tf.io.browserHTTPRequest('./model.json');
+      tf.io.http('./model.json');
     } catch (err) {
       expect(err.message).toMatch(/Unable to find fetch polyfill./);
     }
@@ -169,7 +163,7 @@ describeWithFlags('browserHTTPRequest-load fetch', NODE_ENVS, () => {
 
 // Turned off for other browsers due to:
 // https://github.com/tensorflow/tfjs/issues/426
-describeWithFlags('browserHTTPRequest-save', CHROME_ENVS, () => {
+describeWithFlags('http-save', CHROME_ENVS, () => {
   // Test data.
   const weightSpecs1: tf.io.WeightsManifestEntry[] = [
     {
@@ -301,7 +295,7 @@ describeWithFlags('browserHTTPRequest-save', CHROME_ENVS, () => {
 
   it('Save topology and weights, PUT method, extra headers', (done) => {
     const testStartDate = new Date();
-    const handler = tf.io.browserHTTPRequest('model-upload-test', {
+    const handler = tf.io.http('model-upload-test', {
       requestInit: {
         method: 'PUT',
         headers:
@@ -373,7 +367,7 @@ describeWithFlags('browserHTTPRequest-save', CHROME_ENVS, () => {
     handler.save(artifacts1)
         .then(saveResult => {
           done.fail(
-              'Calling browserHTTPRequest at invalid URL succeeded ' +
+              'Calling http at invalid URL succeeded ' +
               'unexpectedly');
         })
         .catch(err => {
@@ -384,33 +378,30 @@ describeWithFlags('browserHTTPRequest-save', CHROME_ENVS, () => {
   it('getLoadHandlers with one URL string', () => {
     const handlers = tf.io.getLoadHandlers('http://foo/model.json');
     expect(handlers.length).toEqual(1);
-    expect(handlers[0] instanceof BrowserHTTPRequest).toEqual(true);
+    expect(handlers[0] instanceof HTTPRequest).toEqual(true);
   });
 
   it('Existing body leads to Error', () => {
-    expect(() => tf.io.browserHTTPRequest('model-upload-test', {
+    expect(() => tf.io.http('model-upload-test', {
       requestInit: {body: 'existing body'}
     })).toThrowError(/requestInit is expected to have no pre-existing body/);
   });
 
   it('Empty, null or undefined URL paths lead to Error', () => {
-    expect(() => tf.io.browserHTTPRequest(null))
+    expect(() => tf.io.http(null))
         .toThrowError(/must not be null, undefined or empty/);
-    expect(() => tf.io.browserHTTPRequest(undefined))
+    expect(() => tf.io.http(undefined))
         .toThrowError(/must not be null, undefined or empty/);
-    expect(() => tf.io.browserHTTPRequest(''))
+    expect(() => tf.io.http(''))
         .toThrowError(/must not be null, undefined or empty/);
   });
 
   it('router', () => {
-    expect(httpRequestRouter('http://bar/foo') instanceof BrowserHTTPRequest)
+    expect(httpRouter('http://bar/foo') instanceof HTTPRequest).toEqual(true);
+    expect(httpRouter('https://localhost:5000/upload') instanceof HTTPRequest)
         .toEqual(true);
-    expect(
-        httpRequestRouter('https://localhost:5000/upload') instanceof
-        BrowserHTTPRequest)
-        .toEqual(true);
-    expect(httpRequestRouter('localhost://foo')).toBeNull();
-    expect(httpRequestRouter('foo:5000/bar')).toBeNull();
+    expect(httpRouter('localhost://foo')).toBeNull();
+    expect(httpRouter('foo:5000/bar')).toBeNull();
   });
 });
 
@@ -435,7 +426,7 @@ describeWithFlags('parseUrl', BROWSER_ENVS, () => {
   });
 });
 
-describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
+describeWithFlags('http-load', BROWSER_ENVS, () => {
   describe('JSON model', () => {
     let requestInits: {[key: string]: {headers: {[key: string]: string}}};
 
@@ -474,14 +465,14 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
           },
           requestInits);
 
-      const handler = tf.io.browserHTTPRequest('./model.json');
+      const handler = tf.io.http('./model.json');
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
       expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
       expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
       expect(Object.keys(requestInits).length).toEqual(2);
       // Assert that fetch is invoked with `window` as the context.
-      expect(windowFetchSpy.calls.mostRecent().object).toEqual(window);
+      expect(fetchSpy.calls.mostRecent().object).toEqual(window);
     });
 
     it('1 group, 2 weights, 1 path, with requestInit', async () => {
@@ -515,7 +506,7 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
           },
           requestInits);
 
-      const handler = tf.io.browserHTTPRequest(
+      const handler = tf.io.http(
           './model.json',
           {requestInit: {headers: {'header_key_1': 'header_value_1'}}});
       const modelArtifacts = await handler.load();
@@ -529,7 +520,7 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
       expect(requestInits['./weightfile0'].headers['header_key_1'])
           .toEqual('header_value_1');
 
-      expect(windowFetchSpy.calls.mostRecent().object).toEqual(window);
+      expect(fetchSpy.calls.mostRecent().object).toEqual(window);
     });
 
     it('1 group, 2 weight, 2 paths', async () => {
@@ -566,7 +557,7 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
           },
           requestInits);
 
-      const handler = tf.io.browserHTTPRequest('./model.json');
+      const handler = tf.io.http('./model.json');
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
       expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
@@ -609,7 +600,7 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
           },
           requestInits);
 
-      const handler = tf.io.browserHTTPRequest('./model.json');
+      const handler = tf.io.http('./model.json');
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
       expect(modelArtifacts.weightSpecs)
@@ -654,7 +645,7 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
           },
           requestInits);
 
-      const handler = tf.io.browserHTTPRequest('path1/model.json');
+      const handler = tf.io.http('path1/model.json');
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
       expect(modelArtifacts.weightSpecs)
@@ -676,7 +667,7 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
           },
           requestInits);
 
-      const handler = tf.io.browserHTTPRequest('./model.json');
+      const handler = tf.io.http('./model.json');
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
       expect(modelArtifacts.weightSpecs).toBeUndefined();
@@ -717,7 +708,7 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
           },
           requestInits);
 
-      const handler = tf.io.browserHTTPRequest('path1/model.json');
+      const handler = tf.io.http('path1/model.json');
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toBeUndefined();
       expect(modelArtifacts.weightSpecs)
@@ -737,7 +728,7 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
                    {data: JSON.stringify({}), contentType: 'application/json'}
              },
              requestInits);
-         const handler = tf.io.browserHTTPRequest('path1/model.json');
+         const handler = tf.io.http('path1/model.json');
          handler.load()
              .then(modelTopology1 => {
                done.fail(
@@ -758,7 +749,7 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
                 {data: JSON.stringify({}), contentType: 'text/html'}
           },
           requestInits);
-      const handler = tf.io.browserHTTPRequest('path2/model.json');
+      const handler = tf.io.http('path2/model.json');
       try {
         const data = await handler.load();
         expect(data).toBeDefined();
@@ -811,7 +802,7 @@ describeWithFlags('browserHTTPRequest-load', BROWSER_ENVS, () => {
       }
     }
 
-    const handler = tf.io.browserHTTPRequest(
+    const handler = tf.io.http(
         './model.json',
         {requestInit: {credentials: 'include'}, fetchFunc: customFetch});
     const modelArtifacts = await handler.load();
