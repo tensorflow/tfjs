@@ -34,13 +34,13 @@
     "tsc": "^1.20150623.0",
     "tsify": "^3.0.4",
     "tslint": "^5.10.0",
-    "typescript": "2.9.2",
+    "typescript": "3.3.3333",
     "yalc": "^1.0.0-pre.23"
   },
   "scripts": {
     "benchmark": "./benchmarks.sh",
     "benchmark-local": "./benchmarks.sh",
-    "benchmark-travis": "./benchmark_travis.sh",
+    "benchmark-cloud": "./benchmark_cloud.sh",
     "build": "tsc",
     "clean": "rm -rf .yalc/ node_modules/ tfjs-*",
     "link-local": "yalc link",

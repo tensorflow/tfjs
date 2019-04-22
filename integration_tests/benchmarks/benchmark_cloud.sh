@@ -19,7 +19,9 @@ set -e
 yarn
 yarn lint
 
-if [ "$TRAVIS_EVENT_TYPE" = cron ] && [[ $(node -v) = *v10* ]]
+# The cron build triggers with the $_NIGHTLY=true substitution, which gets
+# turned into the $NIGHTLY environment variable in cloudbuild.yml.
+if [ "$NIGHTLY" = true ]
 then
   # TODO(cais, annyuan): The git and build commands below should be deduplicated
   # with benchmarks.sh.
@@ -74,10 +76,10 @@ then
   yarn link-local '@tensorflow/tfjs-data'
 
   npm-run-all -p -c --aggregate-output \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=mobilenet --hashes='{\"CORE\":\"$HASH_CORE\",\"LAYERS\":\"$HASH_LAYERS\",\"CONVERTER\":\"$HASH_CONVERTER\"}'" \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=models --hashes='{\"CORE\":\"$HASH_CORE\",\"LAYERS\":\"$HASH_LAYERS\",\"CONVERTER\":\"$HASH_CONVERTER\"}'" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=models --hashes='{\"CORE\":\"$HASH_CORE\",\"LAYERS\":\"$HASH_LAYERS\",\"CONVERTER\":\"$HASH_CONVERTER\"}'" \
-    "run-browserstack --travis --browsers=bs_ios_11 --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'" \
-    "run-browserstack --travis --browsers=bs_safari_mac --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'" \
-    "run-browserstack --travis --browsers=bs_chrome_mac --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'"
+    "run-browserstack --nightly --browsers=bs_ios_11 --grep=mobilenet --hashes='{\"CORE\":\"$HASH_CORE\",\"LAYERS\":\"$HASH_LAYERS\",\"CONVERTER\":\"$HASH_CONVERTER\"}'" \
+    "run-browserstack --nightly --browsers=bs_safari_mac --grep=models --hashes='{\"CORE\":\"$HASH_CORE\",\"LAYERS\":\"$HASH_LAYERS\",\"CONVERTER\":\"$HASH_CONVERTER\"}'" \
+    "run-browserstack --nightly --browsers=bs_chrome_mac --grep=models --hashes='{\"CORE\":\"$HASH_CORE\",\"LAYERS\":\"$HASH_LAYERS\",\"CONVERTER\":\"$HASH_CONVERTER\"}'" \
+    "run-browserstack --nightly --browsers=bs_ios_11 --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'" \
+    "run-browserstack --nightly --browsers=bs_safari_mac --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'" \
+    "run-browserstack --nightly --browsers=bs_chrome_mac --grep=ops --hashes='{\"CORE\":\"$HASH_CORE\"}'"
 fi

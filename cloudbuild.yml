@@ -1,0 +1,24 @@
+steps:
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'test'
+  args: ['test-ci']
+  waitFor: ['yarn']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY', 'FIREBASE_KEY']
+secrets:
+- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+  secretEnv:
+    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+    FIREBASE_KEY: CiQAkwyoIXmET39jOD3ywloCIa6+WUpu3w49twpMmkMqy0vS+YsSUAAD8BdZQGOL8FKEBxr/1jl0G78OigwlNVHjD3usZobNtlOp8tV/9iacb8zPFqy0SwIO1gvz3HRr+VU7c7LS2qqaTCdacZF+dx3VJNewvdZu
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'

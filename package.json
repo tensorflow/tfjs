@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "An open-source machine learning framework.",
   "private": false,
   "main": "dist/index",
@@ -55,13 +55,13 @@
     "publish-local": "yarn build-npm && yalc push",
     "lint": "tslint -p . -t verbose",
     "test": "ts-node ./scripts/release_notes/run_tests.ts && karma start",
-    "test-travis": "ts-node ./scripts/release_notes/run_tests.ts && karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun && cd integration_tests/benchmarks && yarn benchmark-travis && cd ../../",
+    "test-ci": "./scripts/test-ci.sh",
     "release-notes": "ts-node ./scripts/release_notes/release_notes.ts"
   },
   "dependencies": {
-    "@tensorflow/tfjs-converter": "1.0.4",
-    "@tensorflow/tfjs-core": "1.0.4",
-    "@tensorflow/tfjs-data": "1.0.4",
-    "@tensorflow/tfjs-layers": "1.0.4"
+    "@tensorflow/tfjs-converter": "1.1.0",
+    "@tensorflow/tfjs-core": "1.1.0",
+    "@tensorflow/tfjs-data": "1.1.0",
+    "@tensorflow/tfjs-layers": "1.1.0"
   }
 }
