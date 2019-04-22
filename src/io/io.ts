@@ -21,7 +21,7 @@ import './indexed_db';
 import './local_storage';
 
 import {browserFiles} from './browser_files';
-import {browserHTTPRequest, isHTTPScheme} from './browser_http';
+import {browserHTTPRequest, http, isHTTPScheme} from './http';
 import {concatenateArrayBuffers, decodeWeights, encodeWeights, getModelArtifactsInfoForJSON} from './io_utils';
 import {fromMemory, withSaveHandler} from './passthrough';
 import {getLoadHandlers, getSaveHandlers, registerLoadRouter, registerSaveRouter} from './router_registry';
@@ -39,6 +39,7 @@ export {
   getLoadHandlers,
   getModelArtifactsInfoForJSON,
   getSaveHandlers,
+  http,
   IOHandler,
   isHTTPScheme,
   LoadHandler,
