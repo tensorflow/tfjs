@@ -19,6 +19,10 @@
 import * as shell from 'shelljs';
 import * as readline from 'readline';
 
+const GOOGLERS_WITH_GMAIL = [
+  'dsmilkov', 'kainino0x', 'davidsoergel', 'pyu10055', 'nkreeger', 'tafsiri'
+];
+
 const rl =
     readline.createInterface({input: process.stdin, output: process.stdout});
 
@@ -86,10 +90,6 @@ const SECTION_TAGS: SectionTag[] = [
   {section: 'Development', tag: 'DEV'}, {section: 'Documentation', tag: 'DOC'},
   {section: 'Security', tag: 'SECURITY'}, {section: 'Misc', tag: 'MISC'},
   {section: 'Internal', tag: 'INTERNAL'}
-];
-
-const GOOGLERS_WITH_GMAIL = [
-  'dsmilkov', 'kainino0x', 'davidsoergel', 'pyu10055', 'nkreeger', 'tafsiri'
 ];
 
 /**
