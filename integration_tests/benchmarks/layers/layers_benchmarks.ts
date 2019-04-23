@@ -24,9 +24,12 @@ import * as tfd from '@tensorflow/tfjs-data';
 import * as tfl from '@tensorflow/tfjs-layers';
 
 // tslint:disable-next-line:max-line-length
-import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelBenchmarkRun, ModelFunctionName, ModelTrainingBenchmarkRun, VersionSet, PythonEnvironmentInfo} from '../types';
+import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelBenchmarkRun, ModelFunctionName, ModelTrainingBenchmarkRun, VersionSet, PythonEnvironmentInfo, NodeEnvironmentType, NodeEnvironmentInfo, EnvironmentInfo} from '../types';
 // tslint:disable-next-line:max-line-length
 import {addEnvironmentInfoToFirestore, addOrGetTaskId, addBenchmarkRunsToFirestore, addVersionSetToFirestore} from '../firestore';
+
+// tslint:disable-next-line:no-any
+let tfn: any;
 
 export type MultiFunctionModelTaskLog = {[taskName: string]: ModelBenchmarkRun};
 
@@ -39,15 +42,27 @@ export interface SuiteLog {
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
 
+/** Determine whether this file is running in Node.js. */
+export function inNodeJS(): boolean {
+  // Note this is not a generic way of testing if we are in Node.js.
+  // The logic here is specific to the scripts in this folder.
+  return typeof module !== 'undefined' && typeof process !== 'undefined' &&
+      typeof __karma__ === 'undefined';
+}
+
+export function usingNodeGPU(): boolean {
+  return process.argv.indexOf('--gpu') !== -1;
+}
+
 /** Extract commit hashes of the tfjs repos from karma flags. */
-function getCommitHashesFromKarmaFlags(
-    karmaFlags: Array<boolean|number|string>) {
-  for (let i = 0; i < karmaFlags.length; ++i) {
-    if (karmaFlags[i] === '--hashes') {
-      if (karmaFlags[i + 1] == null) {
+function getCommitHashesFromArgs(
+    args: Array<boolean|number|string>) {
+  for (let i = 0; i < args.length; ++i) {
+    if (args[i] === '--hashes') {
+      if (args[i + 1] == null) {
         throw new Error('Missing value for flag --hashes');
       }
-      return JSON.parse(karmaFlags[i + 1] as string);
+      return JSON.parse(args[i + 1] as string);
     }
   }
 }
@@ -157,6 +172,21 @@ function getBrowserEnvironmentInfo(): BrowserEnvironmentInfo {
   };
 }
 
+function getNodeEnvironmentType(): NodeEnvironmentType {
+  // TODO(cais): Support 'node-gles'.
+  return usingNodeGPU() ? 'node-libtensorflow-cuda' : 'node-libtensorflow-cpu';
+}
+
+function getNodeEnvironmentInfo(): NodeEnvironmentInfo {
+  const tfjsNodeVersion = tfn == null ? undefined : tfn.version['tfjs-node'];
+  return {
+    type: getNodeEnvironmentType(),
+    nodeVersion: process.version,
+    tfjsNodeVersion,
+    tfjsNodeUsesCUDA: usingNodeGPU()
+  };
+}
+
 function checkBatchSize(batchSize: number) {
   if (!(Number.isInteger(batchSize) && batchSize > 0)) {
     throw new Error(
@@ -185,19 +215,62 @@ describe('TF.js Layers Benchmarks', () => {
   // Karma serves static files under the base/ path.
   const DATA_SERVER_ROOT = './base/data';
   const BENCHMARKS_JSON_URL = `${DATA_SERVER_ROOT}/benchmarks.json`;
+  const BENCHMARKS_JSON_PATH = './data/benchmarks.json';
 
   async function loadModel(modelName: string): Promise<tfl.LayersModel> {
-    const modelJSONPath = `${DATA_SERVER_ROOT}/${modelName}/model.json`;
-    const modelJSON = await (await fetch(modelJSONPath)).json();
+    // tslint:disable-next-line:no-any
+    let modelJSON: any;
+    if (inNodeJS()) {
+      // In Node.js.
+      const modelJSONPath = `./data/${modelName}/model.json`;
+      // tslint:disable-next-line:no-require-imports
+      const fs = require('fs');
+      modelJSON = JSON.parse(fs.readFileSync(modelJSONPath, 'utf-8'));
+    } else {
+      // In browser.
+      const modelJSONPath = `${DATA_SERVER_ROOT}/${modelName}/model.json`;
+      modelJSON = await (await fetch(modelJSONPath)).json();
+    }
     return await tfl.models.modelFromJSON(modelJSON['modelTopology']);
   }
 
   it('Benchmark models', async () => {
-    const log = getLogFlagFromKarmaFlags(__karma__.config.args);
+    const isNodeJS = inNodeJS();
+    console.log(`isNodeJS = ${isNodeJS}`);
+    if (isNodeJS) {
+      if (usingNodeGPU()) {
+        console.log('Using tfjs-node-gpu');
+      } else {
+        console.log('Using tfjs-node');
+      }
+      // tslint:disable-next-line:no-require-imports
+      tfn = require('@tensorflow/tfjs-node');
+      // NOTE: Even though it may appear that we are always importing the CPU
+      // version of tfjs-node, we are really import the CPU/GPU version
+      // depending on the setting, because the tfjs-node package here is built
+      // from source and linked via `yalc`, instead of downloaded from NPM.
+    }
+
+    let log: boolean;  //  Whether the benchmark results are to be logged.
+    if (isNodeJS) {
+      // In Node.js.
+      log = process.argv.indexOf('--log') !== -1;
+    } else {
+      // In browser.
+      log = getLogFlagFromKarmaFlags(__karma__.config.args);
+    }
+    console.log(`Boolean flag log = ${log}`);
 
     const taskType = 'model';
-    const environmentInfo = getBrowserEnvironmentInfo();
-    const versionSet: VersionSet = {
+    let environmentInfo: EnvironmentInfo;
+    if (isNodeJS) {
+      environmentInfo = getNodeEnvironmentInfo();
+    } else {
+      environmentInfo = getBrowserEnvironmentInfo();
+    }
+    const versionSet: VersionSet = isNodeJS ? {
+      versions: tfn.version
+    } : {
       versions: {
         'tfjs-converter': tfconverter.version_converter,
         'tfjs-core': tfc.version_core,
@@ -206,8 +279,14 @@ describe('TF.js Layers Benchmarks', () => {
       }
     };
 
-    const suiteLog =
-        await (await fetch(BENCHMARKS_JSON_URL)).json() as SuiteLog;
+    let suiteLog: SuiteLog;
+    if (isNodeJS) {
+      // tslint:disable-next-line:no-require-imports
+      const fs = require('fs');
+      suiteLog = JSON.parse(fs.readFileSync(BENCHMARKS_JSON_PATH, 'utf-8'));
+    } else {
+      suiteLog = await (await fetch(BENCHMARKS_JSON_URL)).json() as SuiteLog;
+    }
     const pyEnvironmentInfo = suiteLog.environmentInfo;
     const pyEnvironmentId =
         log ? await addEnvironmentInfoToFirestore(pyEnvironmentInfo) : null;
@@ -220,8 +299,11 @@ describe('TF.js Layers Benchmarks', () => {
         log ? await addEnvironmentInfoToFirestore(environmentInfo) : null;
     const versionSetId =
         log ? await addVersionSetToFirestore(versionSet) : null;
-    versionSet.commitHashes =
-        getCommitHashesFromKarmaFlags(__karma__.config.args);
+    if (isNodeJS) {
+      versionSet.commitHashes = getCommitHashesFromArgs(process.argv);
+    } else {
+      versionSet.commitHashes = getCommitHashesFromArgs(__karma__.config.args);
+    }
 
     if (log) {
       console.log(
@@ -311,14 +393,16 @@ describe('TF.js Layers Benchmarks', () => {
           // Warm-up fit() call.
           await model.fit(xs, ys, {
             epochs: pyRun.numWarmUpIterations,
-            yieldEvery: 'never'
+            yieldEvery: 'never',
+            verbose: 0
           });
 
           // Benchmarked fit() call.
           const t0 = tfc.util.now();
           await model.fit(xs, ys, {
             epochs: pyRun.numBenchmarkedIterations,
-            yieldEvery: 'never'
+            yieldEvery: 'never',
+            verbose: 0
           });
           const t = tfc.util.now() - t0;
 
