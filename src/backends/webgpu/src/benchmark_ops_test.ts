@@ -16,28 +16,73 @@
  */
 
 import * as tf from './index';
+import { Tensor } from '@tensorflow/tfjs-core';
 
-xdescribe('Ops benchmarks', () => {
-  it('matMul', async () => {
+describe('Ops benchmarks', () => {
+  beforeEach(async () => {
     await tf.ready;
+  });
 
+  // Performs `trials` trials, of `reps` repetitions each. At the end of each
+  // trial, endTrial() is run (and included in the benchmark time). This allows
+  // the cost of endTrial() to be amortized across the many iterations. This is
+  // needed in particular because WebGPU readbacks are asynchronous and
+  // therefore always incur latency.
+  // (Plus, in Chrome right now, readbacks are very inefficient, making the
+  // problem way worse.)
+  // Readbacks could be avoided by using fences, but we don't have a common
+  // abstraction over WebGL and WebGPU fences at the moment.
+  async function time(
+      trials: number, reps: number, doRep: () => Tensor[],
+      endTrial: () => Promise<void>) {
     const times = [];
 
-    const a = tf.randomNormal([500, 500]);
-    const b = tf.randomNormal([500, 500]);
+    let toDispose: Tensor[] = [];
+    const dispose = () => {
+      for (const t of toDispose) {
+        t.dispose();
+      }
+      toDispose = [];
+    };
 
-    let c = tf.matMul(a, b);
-    await c.data();
+    const trial = () => {
+      for (let r = 0; r < reps; ++r) {
+        toDispose = toDispose.concat(doRep());
+      }
+      return endTrial();
+    };
 
-    for (let i = 0; i < 100; i++) {
+    // Warm-up. Specifically, this pre-allocates enough memory for an entire
+    // trial, ensuring that no allocations happen when timing a trial (if the
+    // backend reuses allocations).
+    await trial();
+    dispose();
+
+    for (let t = 0; t < trials; ++t) {
       const start = performance.now();
-      c = tf.matMul(a, b);
-      await c.data();
+      await trial();
       times.push(performance.now() - start);
+      dispose();
     }
 
-    console.log(
-        `Average time ms: ${times.reduce((a, b) => a + b, 0) / times.length}`);
-    console.log(`Min time ms: ${Math.min(...times)}`);
-  });
+    const mean = times.reduce((a, b) => a + b, 0) / trials;
+    const min = Math.min(...times);
+    const fmt = (n: number) => n.toFixed(3);
+    console.log(`Mean time: ${fmt(mean)} ms -> ${fmt(mean / reps)} / rep`);
+    console.log(`Min time: ${fmt(min)} ms -> ${fmt(min / reps)} / rep`);
+  }
+
+  xit('matMul', async () => {
+    let a = tf.randomNormal([500, 500]);
+    const b = tf.randomNormal([500, 500]);
+
+    await time(5, 50, () => {
+      const c = tf.matMul(a, b);
+      const toDispose = a;
+      a = c;
+      return [toDispose];
+    }, async () => {
+      await a.data();
+    });
+  }, 60000);
 });
