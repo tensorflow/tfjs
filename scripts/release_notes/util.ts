@@ -17,6 +17,14 @@
  */
 
 import * as shell from 'shelljs';
+import * as readline from 'readline';
+
+const GOOGLERS_WITH_GMAIL = [
+  'dsmilkov', 'kainino0x', 'davidsoergel', 'pyu10055', 'nkreeger', 'tafsiri'
+];
+
+const rl =
+    readline.createInterface({input: process.stdin, output: process.stdout});
 
 /**
  * A wrapper around shell.exec for readability.
@@ -33,9 +41,17 @@ export function $(cmd: string) {
   return result.stdout.trim();
 }
 
+export async function question(questionStr: string): Promise<string> {
+  return new Promise<string>(
+      resolve => rl.question(questionStr, response => resolve(response)));
+}
+
 export interface Repo {
   name: string;
   identifier: string;
+  startVersion?: string;
+  startCommit?: string;
+  endVersion?: string;
 }
 
 export interface RepoCommits {
@@ -79,7 +95,8 @@ const SECTION_TAGS: SectionTag[] = [
 /**
  * Assembles the release note drafts from a set of commits.
  *
- * @param octokit An authenticated octokit object (to make github API requests).
+ * @param octokit An authenticated octokit object (to make github API
+ *     requests).
  * It only needs to satisfy the OctokitGetCommit interface which gets commit
  * metadata.
  * @param repoCommits An object representing the metadata for commits to
@@ -106,15 +123,16 @@ export async function getReleaseNotesDraft(
 
       const tagsFound: Array<{tag: string, tagMessage: string}> = [];
       const bodyLines = commit.body.split('\n').map(line => line.trim());
-      // Get tags for the body by finding lines that start with tags. Do this
-      // without a regex for readability.
+      // Get tags for the body by finding lines that start with tags. Do
+      // this without a regex for readability.
       SECTION_TAGS.forEach(({tag}) => {
         if (tag === 'INTERNAL') {
           return;
         }
 
         bodyLines.forEach(line => {
-          // Split by word boundaries, and make sure the first word is the tag.
+          // Split by word boundaries, and make sure the first word is the
+          // tag.
           const split = line.split(/\b/);
           if (split[0] === tag) {
             const tagMessage = line.substring(tag.length).trim();
@@ -127,7 +145,10 @@ export async function getReleaseNotesDraft(
         tagsFound.push({tag: 'MISC', tagMessage: ''});
       }
 
-      const isExternalContributor = !commit.authorEmail.endsWith('@google.com');
+      const username = await getUsernameForCommit(commit.sha);
+      const isExternalContributor =
+          !commit.authorEmail.endsWith('@google.com') &&
+          GOOGLERS_WITH_GMAIL.indexOf(username) === -1;
 
       const pullRequestRegexp = /\(#([0-9]+)\)/;
       const pullRequestMatch = commit.subject.match(pullRequestRegexp);
@@ -161,7 +182,6 @@ export async function getReleaseNotesDraft(
         // For external contributors, we need to query github because git
         // does not contain github username metadatea.
         if (isExternalContributor) {
-          const username = await getUsernameForCommit(commit.sha);
           entry += (!entry.endsWith('.') ? '.' : '') + ` Thanks, @${username}.`;
         }
 
