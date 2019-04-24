@@ -11,6 +11,7 @@ set -e
 
 TEST_DATA="test-data/"
 
+yarn build
 yarn link
 cd integration_tests/tfjs2keras/
 yarn
