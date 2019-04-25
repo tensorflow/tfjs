@@ -456,6 +456,16 @@ class APIAndShellTest(tf.test.TestCase):
           'dtype': 'float32',
           'shape': [],
           'name': 'StatefulPartitionedCall/mul'
+        },
+        {
+          'dtype': 'float32',
+          'shape': [],
+          'name': 'statefulpartitionedcall_args_2'
+        },
+        {
+          'dtype': 'float32',
+          'shape': [],
+          'name': 'statefulpartitionedcall_args_1'
         }]
     }]
 
