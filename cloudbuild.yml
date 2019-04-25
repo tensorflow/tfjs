@@ -2,7 +2,7 @@ steps:
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'yarn'
-  args: ['install']
+  args: ['prep']
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'test-browser'
