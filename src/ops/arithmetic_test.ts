@@ -90,6 +90,18 @@ describeWithFlags('div', ALL_ENVS, () => {
     expectArraysClose(result, expected);
   });
 
+  it('broadcast scalar', () => {
+    const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+    const b = [2];
+
+    const result = tf.div(a, b);
+
+    expect(result.shape).toEqual([2, 2]);
+    const expected = [0.5, 1, 1.5, 2];
+
+    expectArraysClose(result, expected);
+  });
+
   it('broadcast 2D + 1D', () => {
     const a = tf.tensor2d([1, 2, -3, -4], [2, 2]);
     const b = tf.tensor1d([1, 2]);
