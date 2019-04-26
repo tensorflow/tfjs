@@ -255,7 +255,8 @@ function valueAndGrads<O extends Tensor>(f: (...args: Tensor[]) => O): (
  * ```
  *
  * @param f The function to execute. f() should return a scalar.
- * @param varList The list of trainable variables. Defaults to all variables.
+ * @param varList The list of variables to compute the gradients with respect
+ *     to. Defaults to all trainable variables.
  */
 /** @doc {heading: 'Training', subheading: 'Gradients'} */
 function variableGrads(f: () => Scalar, varList?: Variable[]):
