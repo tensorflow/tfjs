@@ -27,6 +27,13 @@ export interface WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms?: string;
+  // Size of register cache in one dimension (assumes square cache).
+  // Each thread writes to workPerThread * workPerThread locations in the output
+  // buffer.
+  workPerThread?: number;
+  // tileSize.x * tileSize.y * tileSize.z = the number of threads in a thread
+  // group.
+  // Individual dimensions determines thread layout within the group.
   tileSize?: [number, number?, number?];
 }
 

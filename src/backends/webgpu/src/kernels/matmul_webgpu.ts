@@ -23,7 +23,7 @@ export class MatMulProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   uniforms = 'uint dimAOuter, dimInner, dimBOuter, batch;';
-  tileSize: [number, number] = [16, 16]; // Must be square.
+  tileSize: [number, number] = [32, 32];  // Must be square.
 
   constructor(outputShape: [number, number, number]) {
     this.outputShape = outputShape;
@@ -50,8 +50,20 @@ export class MatMulProgram implements WebGPUProgram {
           // Load one tile of A and B into local memory
           uint tiledACol = TileSize.x*t + localCol;
           uint tiledBRow = TileSize.x*t + localRow;
-          Asub[localRow][localCol] = A[globalRow * dimInner + tiledACol];
-          Bsub[localRow][localCol] = B[tiledBRow * dimBOuter + globalCol];
+
+          uint AFlatIndex = globalRow * dimInner + tiledACol;
+          if(AFlatIndex < dimAOuter * dimInner) {
+            Asub[localRow][localCol] = A[AFlatIndex];
+          } else {
+            Asub[localRow][localCol] = 0.0;
+          }
+
+          uint BFlatIndex = tiledBRow * dimBOuter + globalCol;
+          if(BFlatIndex < dimInner * dimBOuter) {
+            Bsub[localRow][localCol] = B[BFlatIndex];
+          } else {
+            Bsub[localRow][localCol] = 0.0;
+          }
 
           // Synchronise to make sure the tile is loaded
           barrier();
