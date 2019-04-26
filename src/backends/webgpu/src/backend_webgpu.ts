@@ -19,7 +19,7 @@
 
 import './flags_webgpu';
 
-import {DataMover, DataType, ENV, KernelBackend, Rank, ShapeMap, Tensor, tensor1d, Tensor3D, util} from '@tensorflow/tfjs-core';
+import {DataMover, DataType, ENV, KernelBackend, Rank, ShapeMap, Tensor, Tensor3D, util} from '@tensorflow/tfjs-core';
 import * as shaderc from '@webgpu/shaderc';
 
 import * as binary_op from './kernels/binary_op_webgpu';
@@ -32,8 +32,7 @@ import * as webgpu_program from './kernels/webgpu_program';
 import {WebGPUBinary} from './kernels/webgpu_program';
 
 type TensorInfo = {
-  shape: number[],
-  dtype: DataType,
+  byteSize: number,
   values: Float32Array|Int32Array|Uint8Array,
   id: number,
   buffer: GPUBuffer
@@ -75,28 +74,31 @@ export class WebGPUBackend extends KernelBackend {
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
   disposeData(dataId: DataId): void {
-    // Tensor disposal logic.
+    if (!this.tensorMap.has(dataId)) {
+      throw new Error(`Tensor ${dataId} was not registered!`);
+    }
+
+    const info = this.tensorMap.get(dataId);
+    this.destroyBuffer(info.byteSize, info.buffer);
   }
 
-  private createBuffer(size: number) {
-    return this.device.createBuffer({
-      size,
-      usage: GPUBufferUsage.TRANSFER_SRC | GPUBufferUsage.TRANSFER_DST |
-          GPUBufferUsage.STORAGE,
-    });
+  private createBuffer(
+      size: number,
+      usage: GPUBufferUsage = GPUBufferUsage.STORAGE |
+          GPUBufferUsage.TRANSFER_SRC | GPUBufferUsage.TRANSFER_DST) {
+    return this.device.createBuffer({size, usage});
   }
 
-  private setBufferData(
-      buffer: GPUBuffer, data: Float32Array|Int32Array|Uint8Array) {
-    buffer.setSubData(0, data);
+  private destroyBuffer(byteSize: number, buffer: GPUBuffer) {
+    // TODO: recycle deleted buffers
+    buffer.destroy();
   }
 
   register(dataId: object, shape: number[], dtype: DataType): void {
     if (!this.tensorMap.has(dataId)) {
-      const buffer = this.createBuffer(
-          util.sizeFromShape(shape) * util.bytesPerElement(dtype));
-
-      this.tensorMap.set(dataId, {shape, dtype, values: null, id: -1, buffer});
+      const byteSize = util.sizeFromShape(shape) * util.bytesPerElement(dtype);
+      const buffer = this.createBuffer(byteSize);
+      this.tensorMap.set(dataId, {byteSize, values: null, id: -1, buffer});
     }
   }
 
@@ -107,7 +109,7 @@ export class WebGPUBackend extends KernelBackend {
 
     const info = this.tensorMap.get(dataId);
     info.values = values;
-    this.setBufferData(info.buffer, values);
+    info.buffer.setSubData(0, values);
     this.tensorMap.set(dataId, info);
   }
 
@@ -118,15 +120,11 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private async getBufferData(info: TensorInfo): Promise<ArrayBuffer> {
-    const size =
-        util.sizeFromShape(info.shape) * util.bytesPerElement(info.dtype);
-    const staging = this.device.createBuffer({
-      size,
-      usage: GPUBufferUsage.TRANSFER_DST | GPUBufferUsage.MAP_READ,
-    });
+    const staging = this.createBuffer(
+        info.byteSize, GPUBufferUsage.TRANSFER_DST | GPUBufferUsage.MAP_READ);
     {
       const encoder = this.device.createCommandEncoder({});
-      encoder.copyBufferToBuffer(info.buffer, 0, staging, 0, size);
+      encoder.copyBufferToBuffer(info.buffer, 0, staging, 0, info.byteSize);
       this.commandQueue.push(encoder);
       this.submitQueue();
     }
@@ -158,10 +156,26 @@ export class WebGPUBackend extends KernelBackend {
     return Tensor.make(shape, {}, dtype, this) as T;
   }
 
+  private tensorToBinding(tensor?: Tensor): webgpu_program.BindingInfo {
+    if (!tensor) {
+      return null;
+    }
+
+    const tensorData = this.tensorMap.get(tensor.dataId);
+
+    return {
+      resource: {
+        offset: 0,
+        size: tensor.size * util.bytesPerElement(tensor.dtype),
+        buffer: tensorData.buffer
+      }
+    };
+  }
+
   private compileAndRun<
       K extends {dtype: DataType, size: number, dataId: {}, shape: number[]}>(
-      program: webgpu_program.WebGPUProgram, inputs: Tensor[],
-      output?: Tensor): K {
+      program: webgpu_program.WebGPUProgram, inputs: Tensor[], output?: Tensor,
+      uniforms?: webgpu_program.BindingInfo): K {
     if (output == null) {
       output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
     }
@@ -169,25 +183,13 @@ export class WebGPUBackend extends KernelBackend {
     const {bindGroupLayout, pipeline} = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
           this.compiler, this.shaderc.shader_kind.compute, this.compileOpts,
-          this.device, program, inputs, output);
+          this.device, program, inputs, output, uniforms);
     });
 
     // Creating bind groups on the fly should never be a bottleneck.
-    const bg = this.device.createBindGroup({
-      layout: bindGroupLayout,
-      bindings: inputs.concat(output).map((tensor, i: number) => {
-        const tensorData = this.tensorMap.get(tensor.dataId);
-
-        return {
-          binding: i,
-          resource: {
-            offset: 0,
-            size: tensor.size * util.bytesPerElement(tensor.dtype),
-            buffer: tensorData.buffer
-          }
-        };
-      })
-    });
+    const bg = webgpu_program.makeBindGroup(
+        this.device, bindGroupLayout, inputs.map(t => this.tensorToBinding(t)),
+        this.tensorToBinding(output), uniforms);
 
     const encoder = this.device.createCommandEncoder({});
     const pass = encoder.beginComputePass();
@@ -202,6 +204,17 @@ export class WebGPUBackend extends KernelBackend {
       this.submitQueue();
     }
     return output as {} as K;
+  }
+
+  private makeUniforms(data: Uint32Array): webgpu_program.BindingInfo {
+    const dimensionsBuffer = this.createBuffer(
+        data.byteLength,
+        GPUBufferUsage.TRANSFER_DST | GPUBufferUsage.UNIFORM);
+    dimensionsBuffer.setSubData(0, data);
+
+    return {
+      resource: {offset: 0, size: data.byteLength, buffer: dimensionsBuffer}
+    };
   }
 
   pad<T extends Tensor>(
@@ -244,12 +257,17 @@ export class WebGPUBackend extends KernelBackend {
     const output =
         Tensor.make([batch, outerShapeA, outerShapeB], {}, a.dtype, this) as
         Tensor3D;
-
     const program = new MatMulProgram(output.shape);
-    const dimensions =
-        tensor1d([outerShapeA, sharedDim, outerShapeB, batch], 'int32');
-    // TODO: dispose mnkb
 
-    return this.compileAndRun(program, [a, b, dimensions], output) as Tensor3D;
+    const dimensionsData =
+        new Uint32Array([outerShapeA, sharedDim, outerShapeB, batch]);
+    const dimensions = this.makeUniforms(dimensionsData);
+
+    const result =
+        this.compileAndRun(program, [a, b], output, dimensions) as Tensor3D;
+
+    this.destroyBuffer(dimensionsData.byteLength, dimensions.resource.buffer);
+
+    return result;
   }
 }
