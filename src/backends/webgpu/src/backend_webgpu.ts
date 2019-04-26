@@ -24,6 +24,7 @@ import * as shaderc from '@webgpu/shaderc';
 
 import * as binary_op from './kernels/binary_op_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
+import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
 import {PadProgram} from './kernels/pad_webgpu';
 import * as unary_op from './kernels/unary_op_webgpu';
@@ -208,8 +209,7 @@ export class WebGPUBackend extends KernelBackend {
 
   private makeUniforms(data: Uint32Array): webgpu_program.BindingInfo {
     const dimensionsBuffer = this.createBuffer(
-        data.byteLength,
-        GPUBufferUsage.TRANSFER_DST | GPUBufferUsage.UNIFORM);
+        data.byteLength, GPUBufferUsage.TRANSFER_DST | GPUBufferUsage.UNIFORM);
     dimensionsBuffer.setSubData(0, data);
 
     return {
@@ -257,7 +257,17 @@ export class WebGPUBackend extends KernelBackend {
     const output =
         Tensor.make([batch, outerShapeA, outerShapeB], {}, a.dtype, this) as
         Tensor3D;
-    const program = new MatMulProgram(output.shape);
+
+    let program: MatMulProgram|MatMulPackedProgram;
+    // TODO: We should eventually use the blocked version, but keeping around
+    // the old version while we try to understand conditions under which blocked
+    // is faster.
+    if (ENV.get('WEBGPU_MATMUL_WORK_PER_THREAD') === 0) {
+      program = new MatMulProgram(output.shape);
+    } else {
+      program = new MatMulPackedProgram(
+          output.shape, ENV.get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
+    }
 
     const dimensionsData =
         new Uint32Array([outerShapeA, sharedDim, outerShapeB, batch]);

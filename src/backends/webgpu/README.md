@@ -12,4 +12,4 @@ e.g. in `~/.bash_profile`:
 
 `export CHROME_BIN=$HOME/Documents/PROJECTS/tfjs-core-wrapper/Chromium.app/Contents/MacOS/Chromium`
 
-Link to the latest build: https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=Mac/650834/
+Link to the latest build: https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=Mac/653302/

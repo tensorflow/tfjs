@@ -57,6 +57,7 @@ export function makeShader(
 
   if (program.tileSize != null) {
     const ts = program.tileSize;
+
     ts[1] = ts[1] || 1;
     ts[2] = ts[2] || 1;
     prefixSnippets.push(`
