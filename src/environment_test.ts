@@ -41,12 +41,20 @@ describe('initializes flags from the url', () => {
     expect(env.features).toEqual({});
   });
 
-  it('one registered flag', () => {
+  it('one registered flag true', () => {
     const global = {location: {search: '?tfjsflags=FLAG1:true'}};
     const env = new Environment(global);
     env.registerFlag('FLAG1', () => false);
 
     expect(env.get('FLAG1')).toBe(true);
+  });
+
+  it('one registered flag false', () => {
+    const global = {location: {search: '?tfjsflags=FLAG1:false'}};
+    const env = new Environment(global);
+    env.registerFlag('FLAG1', () => true);
+
+    expect(env.get('FLAG1')).toBe(false);
   });
 
   it('two registered flags', () => {
