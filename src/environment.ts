@@ -143,7 +143,7 @@ function decodeParam(
 function parseValue(flagName: string, value: string): FlagValue {
   value = value.toLowerCase();
   if (value === 'true' || value === 'false') {
-    return Boolean(value) === true;
+    return value === 'true';
   } else if (`${+ value}` === value) {
     return +value;
   }
