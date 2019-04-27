@@ -3,5 +3,8 @@
   "include": [
     "src/"
   ],
-  "exclude": []
+  "exclude": [],
+  "compilerOptions": {
+    "outDir": "./dist"
+  }
 }

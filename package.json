@@ -46,13 +46,15 @@
     "tslint-no-circular-imports": "~0.5.0",
     "typescript": "3.3.3333",
     "watchify": "~3.11.1",
-    "yalc": "~1.0.0-pre.21"
+    "yalc": "~1.0.0-pre.21",
+    "yargs": "~13.2.2"
   },
   "optionalDependencies": {
     "rollup-plugin-visualizer": "~1.1.1"
   },
   "scripts": {
-    "build": "tsc",
+    "build-ci": "./scripts/enumerate-tests.js --ci && tsc",
+    "build": "./scripts/enumerate-tests.js && tsc",
     "build:bazel": "bazel build //...",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
@@ -71,8 +73,8 @@
     "@types/seedrandom": "2.4.27",
     "@types/webgl-ext": "0.0.30",
     "@types/webgl2": "0.0.4",
-    "seedrandom": "2.4.3",
-    "node-fetch": "~2.1.2"
+    "node-fetch": "~2.1.2",
+    "seedrandom": "2.4.3"
   },
   "browser": {
     "node-fetch": false

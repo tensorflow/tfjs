@@ -20,8 +20,8 @@ import * as Shaderc from '@webgpu/shaderc';
 
 import {WebGPUBackend} from './backend_webgpu';
 
-export * from '@tensorflow/tfjs-core';
-
+// TODO(smilkov): Remove this method after the next core release and use
+// tf.ready() instead.
 export const ready = (async () => {
   const shaderc = await Shaderc.instantiate();
   // @ts-ignore navigator.gpu is required

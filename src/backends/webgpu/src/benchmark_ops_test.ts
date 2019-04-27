@@ -15,29 +15,28 @@
  * =============================================================================
  */
 
-import * as tf from './index';
-import { Tensor } from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs-core';
+import * as webgpu from './index';
 
 describe('Ops benchmarks', () => {
   beforeEach(async () => {
-    await tf.ready;
+    await webgpu.ready;
   });
 
   // Performs `trials` trials, of `reps` repetitions each. At the end of each
-  // trial, endTrial() is run (and included in the benchmark time). This allows
-  // the cost of endTrial() to be amortized across the many iterations. This is
-  // needed in particular because WebGPU readbacks are asynchronous and
-  // therefore always incur latency.
-  // (Plus, in Chrome right now, readbacks are very inefficient, making the
-  // problem way worse.)
-  // Readbacks could be avoided by using fences, but we don't have a common
-  // abstraction over WebGL and WebGPU fences at the moment.
+  // trial, endTrial() is run (and included in the benchmark time). This
+  // allows the cost of endTrial() to be amortized across the many iterations.
+  // This is needed in particular because WebGPU readbacks are asynchronous
+  // and therefore always incur latency. (Plus, in Chrome right now, readbacks
+  // are very inefficient, making the problem way worse.) Readbacks could be
+  // avoided by using fences, but we don't have a common abstraction over
+  // WebGL and WebGPU fences at the moment.
   async function time(
-      trials: number, reps: number, doRep: () => Tensor[],
+      trials: number, reps: number, doRep: () => tf.Tensor[],
       endTrial: () => Promise<void>) {
     const times = [];
 
-    let toDispose: Tensor[] = [];
+    let toDispose: tf.Tensor[] = [];
     const dispose = () => {
       for (const t of toDispose) {
         t.dispose();
@@ -72,17 +71,21 @@ describe('Ops benchmarks', () => {
     console.log(`Min time: ${fmt(min)} ms -> ${fmt(min / reps)} / rep`);
   }
 
+  // tslint:disable-next-line:ban
   xit('matMul', async () => {
     let a = tf.randomNormal([500, 500]);
     const b = tf.randomNormal([500, 500]);
 
-    await time(5, 50, () => {
-      const c = tf.matMul(a, b);
-      const toDispose = a;
-      a = c;
-      return [toDispose];
-    }, async () => {
-      await a.data();
-    });
+    await time(
+        5, 50,
+        () => {
+          const c = tf.matMul(a, b);
+          const toDispose = a;
+          a = c;
+          return [toDispose];
+        },
+        async () => {
+          await a.data();
+        });
   }, 60000);
 });

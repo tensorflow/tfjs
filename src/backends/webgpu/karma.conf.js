@@ -23,26 +23,34 @@ const karmaTypescriptConfig = {
 };
 
 module.exports = function(config) {
+  const args = [];
+  if (config.grep) {
+    args.push('--grep', config.grep);
+  }
+  if (config.flags) {
+    args.push('--flags', config.flags);
+  }
   config.set({
     basePath: '',
     frameworks: ['jasmine', 'karma-typescript'],
     files: [
-      {pattern: 'src/**/*.ts'}
+      'src/setup_test.ts',       // Setup the environment for the tests.
+      {pattern: 'src/**/*.ts'},  // Import all tests.
     ],
     preprocessors: {'**/*.ts': ['karma-typescript']},
     karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
     port: 9876,
     colors: true,
-    logLevel: config.LOG_INFO,
     autoWatch: false,
     browsers: ['Chrome', 'chrome_webgpu'],
     singleRun: true,
     customLaunchers: {
       chrome_webgpu: {
         base: 'Chrome',
-        flags: ['--enable-unsafe-webgpu']
+        flags: ['--enable-unsafe-webgpu'],
       }
-    }
+    },
+    client: {jasmine: {random: false}, args: args}
   })
 }
