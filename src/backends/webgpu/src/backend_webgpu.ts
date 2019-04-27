@@ -280,4 +280,8 @@ export class WebGPUBackend extends KernelBackend {
 
     return result;
   }
+
+  dispose() {
+    // Backend disposal logic.
+  }
 }

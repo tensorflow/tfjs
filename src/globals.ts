@@ -245,8 +245,8 @@ export function time(f: () => void): Promise<TimingInfo> {
 
 /**
  * Sets the backend (cpu, webgl, etc) responsible for creating tensors and
- * executing operations on those tensors. Returns whether the setting of the
- * backend was successful.
+ * executing operations on those tensors. Returns a promise that resolves
+ * to a boolean if the backend initialization was successful.
  *
  * Note this disposes the current backend, if any, as well as any tensors
  * associated with it. A new backend is initialized, even if it is of the
@@ -257,8 +257,18 @@ export function time(f: () => void): Promise<TimingInfo> {
  *     (requires tfjs-node).
  */
 /** @doc {heading: 'Backends'} */
-export function setBackend(backendName: string): boolean {
+export function setBackend(backendName: string): Promise<boolean> {
   return ENGINE.setBackend(backendName);
+}
+
+/**
+ * Returns a promise that resolves when the currently selected backend (or the
+ * highest priority one) has initialized. Await this promise when you are using
+ * a backend that has async initialization.
+ */
+/** @doc {heading: 'Backends'} */
+export function ready(): Promise<void> {
+  return ENGINE.ready();
 }
 
 /**
@@ -280,7 +290,7 @@ export function removeBackend(name: string): void {
 
 /**
  * Finds the backend registered under the provided name. Returns null if the
- * name is not in the registry.
+ * name is not in the registry, or the registration hasn't finished yet.
  */
 export function findBackend(name: string): KernelBackend {
   return ENGINE.findBackend(name);
@@ -291,7 +301,8 @@ export function findBackend(name: string): KernelBackend {
  * function that produces a new backend when called. Returns null if the name
  * is not in the registry.
  */
-export function findBackendFactory(name: string): () => KernelBackend {
+export function findBackendFactory(name: string): () =>
+    KernelBackend | Promise<KernelBackend> {
   return ENGINE.findBackendFactory(name);
 }
 
@@ -301,7 +312,7 @@ export function findBackendFactory(name: string): () => KernelBackend {
  * modular builds (e.g. custom tfjs bundle with only webgl support).
  *
  * @param factory The backend factory function. When called, it should
- * return an instance of the backend.
+ * return a backend instance, or a promise of an instance.
  * @param priority The priority of the backend (higher = more important).
  *     In case multiple backends are registered, the priority is used to find
  *     the best backend. Defaults to 1.
@@ -310,13 +321,16 @@ export function findBackendFactory(name: string): () => KernelBackend {
  */
 /** @doc {heading: 'Backends'} */
 export function registerBackend(
-    name: string, factory: () => KernelBackend, priority = 1): boolean {
+    name: string, factory: () => KernelBackend | Promise<KernelBackend>,
+    priority = 1): boolean {
   return ENGINE.registerBackend(name, factory, priority);
 }
 
 /**
  * Gets the current backend. If no backends have been initialized, this will
- * initialize the best backend.
+ * attempt to initialize the best backend. Will throw an error if the highest
+ * priority backend has async initialization, in which case, you should call
+ * 'await tf.ready()' before running other code.
  */
 /** @doc {heading: 'Backends'} */
 export function backend(): KernelBackend {

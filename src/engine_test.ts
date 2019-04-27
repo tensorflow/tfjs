@@ -151,6 +151,166 @@ describe('Backend registration', () => {
     expect(tf.findBackend('custom')).toEqual(backend);
     tf.removeBackend('custom');
   });
+
+  it('sync backend with await ready works', async () => {
+    const testBackend = new TestKernelBackend();
+    tf.registerBackend('sync', () => testBackend);
+    tf.setBackend('sync');
+
+    expect(tf.getBackend()).toEqual('sync');
+    await tf.ready();
+    expect(tf.backend()).toEqual(testBackend);
+    tf.removeBackend('sync');
+  });
+
+  it('sync backend without await ready works', async () => {
+    const testBackend = new TestKernelBackend();
+    tf.registerBackend('sync', () => testBackend);
+    tf.setBackend('sync');
+
+    expect(tf.getBackend()).toEqual('sync');
+    expect(tf.backend()).toEqual(testBackend);
+    tf.removeBackend('sync');
+  });
+
+  it('async backend with await ready works', async () => {
+    const testBackend = new TestKernelBackend();
+    tf.registerBackend('async', async () => {
+      await tf.nextFrame();
+      return testBackend;
+    });
+    tf.setBackend('async');
+
+    expect(tf.getBackend()).toEqual('async');
+    await tf.ready();
+    expect(tf.backend()).toEqual(testBackend);
+    tf.removeBackend('async');
+  });
+
+  it('async backend without await ready does not work', async () => {
+    const testBackend = new TestKernelBackend();
+    tf.registerBackend('async', async () => {
+      await tf.nextFrame();
+      return testBackend;
+    });
+    tf.setBackend('async');
+
+    expect(tf.getBackend()).toEqual('async');
+    expect(() => tf.backend())
+        .toThrowError(/Backend 'async' has not yet been initialized./);
+    tf.removeBackend('async');
+  });
+
+  it('tf.square() fails if user does not await ready on async backend',
+     async () => {
+       tf.registerBackend('async', async () => {
+         await tf.nextFrame();
+         return new TestKernelBackend();
+       });
+       tf.setBackend('async');
+       expect(() => tf.square(2))
+           .toThrowError(/Backend 'async' has not yet been initialized/);
+       tf.removeBackend('async');
+     });
+
+  it('tf.square() works when user awaits ready on async backend', async () => {
+    tf.registerBackend('async', async () => {
+      await tf.nextFrame();
+      return new TestKernelBackend();
+    });
+    tf.setBackend('async');
+    await tf.ready();
+    expect(() => tf.square(2)).toThrowError(/Not yet implemented/);
+    tf.removeBackend('async');
+  });
+
+  it('Registering async2 (higher priority) fails, async1 becomes active',
+     async () => {
+       const testBackend = new TestKernelBackend();
+       tf.registerBackend('async1', async () => {
+         await tf.nextFrame();
+         return testBackend;
+       }, 100 /* priority */);
+       tf.registerBackend('async2', async () => {
+         await tf.nextFrame();
+         throw new Error('failed to create async2');
+       }, 101 /* priority */);
+
+       // Await for the library to find the best backend that succesfully
+       // initializes.
+       await tf.ready();
+       expect(tf.backend()).toEqual(testBackend);
+       expect(tf.getBackend()).toBe('async1');
+
+       tf.removeBackend('async1');
+       tf.removeBackend('async2');
+     });
+
+  it('Registering sync as higher priority and async as lower priority',
+     async () => {
+       const testBackend = new TestKernelBackend();
+       tf.registerBackend('sync', () => testBackend, 101 /* priority */);
+       tf.registerBackend('async', async () => {
+         await tf.nextFrame();
+         return new TestKernelBackend();
+       }, 100 /* priority */);
+
+       // No need to await for ready() since the highest priority one is sync.
+       expect(tf.backend()).toEqual(testBackend);
+       expect(tf.getBackend()).toBe('sync');
+
+       tf.removeBackend('sync');
+       tf.removeBackend('async');
+     });
+
+  it('async as higher priority and sync as lower priority with await ready',
+     async () => {
+       const testBackend = new TestKernelBackend();
+       tf.registerBackend('async', async () => {
+         await tf.nextFrame();
+         return testBackend;
+       }, 101 /* priority */);
+       tf.registerBackend(
+           'sync', () => new TestKernelBackend(), 100 /* priority */);
+
+       await tf.ready();
+       expect(tf.backend()).toEqual(testBackend);
+       expect(tf.getBackend()).toBe('async');
+
+       tf.removeBackend('sync');
+       tf.removeBackend('async');
+     });
+
+  it('async as higher priority and sync as lower priority w/o await ready',
+     async () => {
+       const testBackend = new TestKernelBackend();
+       tf.registerBackend('async', async () => {
+         await tf.nextFrame();
+         return testBackend;
+       }, 101 /* priority */);
+       tf.registerBackend(
+           'sync', () => new TestKernelBackend(), 100 /* priority */);
+
+       expect(() => tf.backend())
+           .toThrowError(
+               /The highest priority backend 'async' has not yet been/);
+       tf.removeBackend('sync');
+       tf.removeBackend('async');
+     });
+
+  it('Registering and setting a backend that fails to register', async () => {
+    tf.registerBackend('async', async () => {
+      await tf.nextFrame();
+      throw new Error('failed to create async');
+    });
+    const success = tf.setBackend('async');
+    expect(tf.getBackend()).toBe('async');
+    expect(() => tf.backend())
+        .toThrowError(/Backend 'async' has not yet been initialized/);
+    expect(await success).toBe(false);
+
+    tf.removeBackend('async');
+  });
 });
 
 describeWithFlags('memory', ALL_ENVS, () => {

@@ -6,7 +6,9 @@
   "scripts": {
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "build": "tsc",
-    "test": "karma start --browsers='chrome_webgpu'"
+    "lint": "tslint -p . -t verbose",
+    "test": "karma start --browsers='chrome_webgpu'",
+    "test-ci": "./scripts/test-ci.sh"
   },
   "license": "Apache-2.0",
   "devDependencies": {

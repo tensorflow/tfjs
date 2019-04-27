@@ -75,7 +75,7 @@ declare let __karma__: any;
 
 export function parseKarmaFlags(args: string[]): TestEnv {
   let flags: Flags;
-  let factory: () => KernelBackend;
+  let factory: () => Promise<KernelBackend>| KernelBackend;
   let backendName = '';
   const backendNames = ENGINE.backendNames()
                            .map(backendName => '\'' + backendName + '\'')
