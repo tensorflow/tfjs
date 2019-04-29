@@ -31,17 +31,17 @@ import {Activation} from './fused_util';
  * ```js
  * const a = tf.tensor2d([-1, -2], [1, 2]);
  * const b = tf.tensor2d([1, 2, 3, 4], [2, 2]);
- * const c = tf.tensor2d([1, 2], [1, 2]);
+ * const bias = tf.tensor2d([1, 2], [1, 2]);
  *
- * tf.fused.matMul(a, b, false, false, 'relu', c);
+ * tf.fused.matMul(a, b, false, false, bias, 'relu').print();
  * ```
  *
  * @param a First matrix in dot product operation.
  * @param b Second matrix in dot product operation.
  * @param transposeA If true, `a` is transposed before multiplication.
  * @param transposeB If true, `b` is transposed before multiplication.
- * @param activation Name of activation kernel (defaults to `linear`).
  * @param bias Matrix to be added to the result.
+ * @param activation Name of activation kernel (defaults to `linear`).
  */
 /** @doc {heading: 'Operations', subheading: 'Matrices', namespace: 'fused'} */
 function matMul_<T extends Tensor>(
