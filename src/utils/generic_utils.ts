@@ -473,3 +473,28 @@ export function formatAsFriendlyString(value: any): string {
     return `${value}`;
   }
 }
+
+/**
+ * Returns a function `f2` (decorator) which wraps the original function
+ * `f`. `f2` guarantees that `f` can be called at most once
+ * every `waitMs` ms. If `f2` is called more often, it will return
+ * the last returned result of `f`.
+ *
+ * @param f The original function `f` to wrap.
+ * @param waitMs The time between two consecutive calls to `f` in ms.
+ */
+export function debounce<T>(
+    f: (...args: Array<{}>) => T, waitMs: number): (...args: Array<{}>) => T {
+  let lastTime = util.now();
+  let lastResult: T;
+  const f2 = (...args: Array<{}>) => {
+    const now = util.now();
+    if (now - lastTime < waitMs) {
+      return lastResult;
+    }
+    lastTime = now;
+    lastResult = f(...args);
+    return lastResult;
+  };
+  return f2;
+}

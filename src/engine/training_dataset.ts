@@ -58,8 +58,17 @@ export interface ModelFitDatasetArgs<T> {
 
   /**
    * List of callbacks to be called during training.
-   * Can consist of one or more of the following fields: `onTrainBegin`,
-   * `onTrainEnd`, `onEpochBegin`, `onEpochEnd`, `onBatchBegin`, `onBatchEnd`.
+   * Can have one or more of the following callbacks:
+   *   - `onTrainBegin(logs)`: called when training starts.
+   *   - `onTrainEnd(logs)`: called when training ends.
+   *   - `onEpochBegin(epoch, logs)`: called at the start of every epoch.
+   *   - `onEpochEnd(epoch, logs)`: called at the end of every epoch.
+   *   - `onBatchBegin(batch, logs)`: called at the start of every batch.
+   *   - `onBatchEnd(batch, logs)`: called at the end of every batch.
+   *   - `onYield(epoch, batch, logs)`: called every `yieldEvery` milliseconds
+   *      with the current epoch, batch and logs. The logs are the same
+   *      as in `onBatchEnd()`. Note that `onYield` can skip batches or
+   *      epochs. See also docs for `yieldEvery` below.
    */
   callbacks?: BaseCallback[]|CustomCallbackArgs|CustomCallbackArgs[];
 
@@ -120,12 +129,13 @@ export interface ModelFitDatasetArgs<T> {
    * it can ensure tasks queued in the event loop can be handled in a timely
    * manner.
    *
-   * - The value can be one of the following strings:
-   *   - 'auto': automatically determine how frequently the yielding happens
-   *     by measuring the duration of each batch of training (default).
-   *   - 'batch': yield every batch.
-   *   - 'epoch': yield every epoch.
-   *   - 'never': never yield. (But yielding can still happen through `await
+   * The value can be one of the following:
+   *   - `'auto'`: The yielding happens at a certain frame rate (currently set
+   *               at 125ms). This is the default.
+   *   - `'batch'`: yield every batch.
+   *   - `'epoch'`: yield every epoch.
+   *   - a `number`: Will yield every `number` milliseconds.
+   *   - `'never'`: never yield. (But yielding can still happen through `await
    *      nextFrame()` calls in custom callbacks.)
    */
   yieldEvery?: YieldEveryOptions;
@@ -167,16 +177,18 @@ const DEFAULT_VALIDATION_BATCH_SIZE = 32;
  *
  * @param model: A `tf.LayersModel` object.
  * @param iteratorOut The output of a dataset iterator. It is required to be
- *   an object of the form `{xs: TensorOrArrayOrMap, ys: TensorOrArrayOrMap}`,
- *   where `TensorOrArrayOrMap` is a single `tf.Tensor`, a `tf.Tensor[]`, or a
- *   flat map from string names to `tf.Tensor`s.
- * @returns A flat array of `tf.Tensor` objects: the input `tf.Tensor`s followed
- *   by the target `tf.Tensor`s.  When `tf.Tensor`s are provided as a map, the
- *   order in the resulting array is taken from the `inputNames` and
+ *   an object of the form `{xs: TensorOrArrayOrMap, ys:
+ * TensorOrArrayOrMap}`, where `TensorOrArrayOrMap` is a single `tf.Tensor`,
+ * a `tf.Tensor[]`, or a flat map from string names to `tf.Tensor`s.
+ * @returns A flat array of `tf.Tensor` objects: the input `tf.Tensor`s
+ *     followed
+ *   by the target `tf.Tensor`s.  When `tf.Tensor`s are provided as a map,
+ * the order in the resulting array is taken from the `inputNames` and
  *   `outputNames` of the model.
  */
 function standardizeDataIteratorOutput(
-    // Type `model` as `any` here to avoid circular dependency w/ training.ts.
+    // Type `model` as `any` here to avoid circular dependency w/
+    // training.ts.
     // tslint:disable-next-line:no-any
     model: any, iteratorOut: {}): tfc.Tensor[] {
   let xs: TensorOrArrayOrMap;
@@ -275,7 +287,8 @@ function standardizeTensorValidationData<T>(
 }
 
 export async function fitDataset<T>(
-    // Type `model` as `any` here to avoid circular dependency w/ training.ts.
+    // Type `model` as `any` here to avoid circular dependency w/
+    // training.ts.
     // tslint:disable-next-line:no-any
     model: any, dataset: Dataset<T>,
     args: ModelFitDatasetArgs<T>): Promise<History> {
@@ -348,10 +361,10 @@ export async function fitDataset<T>(
       callbackMetrics = outLabels.slice();
     }
 
-    const callbacks = standardizeCallbacks(args.callbacks);
+    const callbacks = standardizeCallbacks(args.callbacks, args.yieldEvery);
     const verbose = args.verbose == null ? 1 : args.verbose;
     const {callbackList, history} = configureCallbacks(
-        callbacks, args.yieldEvery, verbose, args.epochs, null, null,
+        callbacks, verbose, args.epochs, null, null,
         getStepsPerEpoch(dataset, args),
         null,  // Batch size determined by the dataset itself.
         doValidation, callbackMetrics);
@@ -439,8 +452,8 @@ export async function fitDataset<T>(
             }
           }
           // Call `break` to exit one epoch lopp after validation is done. If
-          // config.batchesPerEpoch is specified, an epoch while loop will stop
-          // when `stepsDone >= config.batchesPerEpoch`. When
+          // config.batchesPerEpoch is specified, an epoch while loop will
+          // stop when `stepsDone >= config.batchesPerEpoch`. When
           // config.batchesPerEpoch is not provided, the following `break` is
           // required to exit the while lopp after dataset is exhausted.
           break;
@@ -496,7 +509,8 @@ function isLazyIteratorObject<T>(iterator: Dataset<T>|
 }
 
 export async function evaluateDataset<T>(
-    // Type `model` as `any` here to avoid circular dependency w/ training.ts.
+    // Type `model` as `any` here to avoid circular dependency w/
+    // training.ts.
     // tslint:disable-next-line:no-any
     model: any, dataset: Dataset<T>|LazyIterator<T>,
     args: ModelEvaluateDatasetArgs): Promise<tfc.Scalar|tfc.Scalar[]> {

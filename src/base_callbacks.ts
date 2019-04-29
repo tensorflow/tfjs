@@ -23,11 +23,14 @@ export enum ModelLoggingVerbosity {
   VERBOSE = 1
 }
 
+/** How often to yield to the main thread when training (in ms). */
+export const DEFAULT_YIELD_EVERY_MS = 125;
+
 export type Params = {
   [key: string]: number|string|boolean|number[]|string[]|boolean[];
 };
 
-export type YieldEveryOptions = 'auto'|'batch'|'epoch'|'never';
+export type YieldEveryOptions = 'auto'|'batch'|'epoch'|'never'|number;
 
 /**
  * Abstract base class used to build new callbacks.
@@ -212,111 +215,6 @@ export class CallbackList {
 }
 
 /**
- * A class that manages thread yielding during model training.
- *
- * The lifetime of an instance of `ModelTrainingYielder` is that of a
- * `LayersModel.fit()` call. In other words, each `LayersModel.fit()` call must
- * create and use a separate `ModelTrainingYielder` object.
- */
-export class ModelTrainingYielder {
-  // How many batches to skip at the beginning of a `LayersModel.fit` call.
-  // The first batches usually are longer than the rest, because they may
-  // involve warm-up time.
-  static readonly SKIP_FIRST_BATCHES = 1;
-
-  // How many batches to average over when calculating the average batch
-  // duration.
-  static readonly DECISION_BATCH_COUNT = 2;
-
-  // How many milliseconds to wait before yielding again.
-  static readonly THRESHOLD_MILLIS = 16;
-
-  private yieldEvery: YieldEveryOptions;
-  private batchCount: number;
-  private lastYieldBatchCount: number;
-  private batchStartMillis: number;
-  private batchDurationsMillis: number[];
-  private autoYieldEveryBatches: number;
-
-  /**
-   * Constructor of ModelTrainingYielder
-   *
-   * @param yieldEvery The configuration for how often the yielding will occur.
-   */
-  constructor(yieldEvery: YieldEveryOptions) {
-    this.yieldEvery = yieldEvery;
-    this.batchCount = 0;
-    this.batchDurationsMillis = [];
-    this.autoYieldEveryBatches = null;
-    this.batchStartMillis = util.now();
-  }
-
-  /**
-   * The action taken when a batch ends.
-   *
-   * The action taken depends on the `yieldEvery` configuration.
-   *
-   * * In the case of `auto`, during the first several batches, this method
-   *   will estimate the average duration of each batch. It will then decide
-   *   how often the yielding will occur based on the estimation. The yielding
-   *   is achieved through
-   *   - Awaiting `data()` on one of the Tensors in `logs`, causing the queued
-   *     operations to clear.
-   *   - Calling `await nextFrame()`.
-   * * In the case of `batch` or `epoch`, the yielding will occur on the end of
-   *   every batch or every epoch, respectively.
-   * * In the case of `never`, the yielding will never occur.
-   *
-   * @param logs The logs from the batch.
-   */
-  async maybeYieldOnBatch(logs: UnresolvedLogs) {
-    if (this.yieldEvery === 'auto') {
-      this.batchCount++;
-      if (this.autoYieldEveryBatches == null) {
-        // autoYieldEveryBatches has not been determined yet. We are still in
-        // the measurement phase.
-        const t = util.now();
-        await nextFrame();
-        // We skip the first few batches for timing, because they usually
-        // involve some warm-up time.
-        if (this.batchCount > ModelTrainingYielder.SKIP_FIRST_BATCHES) {
-          this.batchDurationsMillis.push(t - this.batchStartMillis);
-          if (this.batchDurationsMillis.length >=
-              ModelTrainingYielder.DECISION_BATCH_COUNT) {
-            const meanBatchDuration =
-                this.batchDurationsMillis.reduce((dur, prev) => dur + prev) /
-                this.batchDurationsMillis.length;
-            this.autoYieldEveryBatches = Math.round(
-                ModelTrainingYielder.THRESHOLD_MILLIS / meanBatchDuration);
-            if (this.autoYieldEveryBatches < 1) {
-              this.autoYieldEveryBatches = 1;
-            }
-          }
-        }
-        this.batchStartMillis = util.now();
-        this.lastYieldBatchCount = this.batchCount;
-      } else {
-        // autoYieldEveryBatch has been determined. We perform yielding
-        // accordingly.
-        if (this.batchCount - this.lastYieldBatchCount >=
-            this.autoYieldEveryBatches) {
-          await nextFrame();
-          this.lastYieldBatchCount = this.batchCount;
-        }
-      }
-    } else if (this.yieldEvery === 'batch') {
-      await nextFrame();
-    }
-  }
-
-  async maybeYieldOnEpoch() {
-    if (this.yieldEvery === 'epoch') {
-      await nextFrame();
-    }
-  }
-}
-
-/**
  * Callback that accumulates epoch averages of metrics.
  *
  * This callback is automatically applied to every LayersModel.
@@ -324,17 +222,9 @@ export class ModelTrainingYielder {
 export class BaseLogger extends BaseCallback {
   private seen: number;
   private totals: UnresolvedLogs;
-  private autoYielder: ModelTrainingYielder;
-  private yieldEvery: YieldEveryOptions;
 
-  constructor(yieldEvery?: YieldEveryOptions) {
+  constructor() {
     super();
-
-    this.yieldEvery = yieldEvery || 'auto';
-  }
-
-  async onTrainBegin(logs?: UnresolvedLogs) {
-    this.autoYielder = new ModelTrainingYielder(this.yieldEvery);
   }
 
   async onEpochBegin(epoch: number) {
@@ -343,8 +233,6 @@ export class BaseLogger extends BaseCallback {
   }
 
   async onBatchEnd(batch: number, logs?: UnresolvedLogs) {
-    await this.autoYielder.maybeYieldOnBatch(logs);
-
     if (logs == null) {
       logs = {};
     }
@@ -375,8 +263,6 @@ export class BaseLogger extends BaseCallback {
   }
 
   async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
-    await this.autoYielder.maybeYieldOnEpoch();
-
     if (logs != null) {
       for (const key of this.params['metrics'] as string[]) {
         if (this.totals[key] == null) {
@@ -452,36 +338,73 @@ export class History extends BaseCallback {
 }
 
 export interface CustomCallbackArgs {
-  onTrainBegin?: (logs?: Logs) => Promise<void>;
-  onTrainEnd?: (logs?: Logs) => Promise<void>;
-  onEpochBegin?: (epoch: number, logs?: Logs) => Promise<void>;
-  onEpochEnd?: (epoch: number, logs?: Logs) => Promise<void>;
-  onBatchBegin?: (batch: number, logs?: Logs) => Promise<void>;
-  onBatchEnd?: (batch: number, logs?: Logs) => Promise<void>;
+  onTrainBegin?: (logs?: Logs) => void | Promise<void>;
+  onTrainEnd?: (logs?: Logs) => void | Promise<void>;
+  onEpochBegin?: (epoch: number, logs?: Logs) => void | Promise<void>;
+  onEpochEnd?: (epoch: number, logs?: Logs) => void | Promise<void>;
+  onBatchBegin?: (batch: number, logs?: Logs) => void | Promise<void>;
+  onBatchEnd?: (batch: number, logs?: Logs) => void | Promise<void>;
+  onYield?: (epoch: number, batch: number, logs: Logs) => void | Promise<void>;
 }
 
 /**
  * Custom callback for training.
  */
 export class CustomCallback extends BaseCallback {
-  protected readonly trainBegin: (logs?: Logs) => Promise<void>;
-  protected readonly trainEnd: (logs?: Logs) => Promise<void>;
-  protected readonly epochBegin: (epoch: number, logs?: Logs) => Promise<void>;
-  protected readonly epochEnd: (epoch: number, logs?: Logs) => Promise<void>;
-  protected readonly batchBegin: (batch: number, logs?: Logs) => Promise<void>;
-  protected readonly batchEnd: (batch: number, logs?: Logs) => Promise<void>;
+  protected readonly trainBegin: (logs?: Logs) => void | Promise<void>;
+  protected readonly trainEnd: (logs?: Logs) => void | Promise<void>;
+  protected readonly epochBegin:
+      (epoch: number, logs?: Logs) => void | Promise<void>;
+  protected readonly epochEnd:
+      (epoch: number, logs?: Logs) => void | Promise<void>;
+  protected readonly batchBegin:
+      (batch: number, logs?: Logs) => void | Promise<void>;
+  protected readonly batchEnd:
+      (batch: number, logs?: Logs) => void | Promise<void>;
+  protected readonly yield:
+      (epoch: number, batch: number, logs: Logs) => void | Promise<void>;
 
-  constructor(args: CustomCallbackArgs) {
+  private yieldEvery: YieldEveryOptions;
+  private currentEpoch = 0;
+
+  constructor(args: CustomCallbackArgs, yieldEvery?: YieldEveryOptions) {
     super();
+    this.yieldEvery = yieldEvery || 'auto';
+    if (this.yieldEvery === 'auto') {
+      this.yieldEvery = DEFAULT_YIELD_EVERY_MS;
+    }
+    if (this.yieldEvery === 'never' && args.onYield != null) {
+      throw new Error(
+          'yieldEvery is `never` but you provided an `onYield` callback. ' +
+          'Either change `yieldEvery` or remove the callback');
+    }
+    if (util.isNumber(this.yieldEvery)) {
+      // Decorate `maybeWait` so it will be called at most once every
+      // `yieldEvery` ms.
+      this.maybeWait = generic_utils.debounce(
+          this.maybeWait.bind(this), this.yieldEvery as number);
+    }
     this.trainBegin = args.onTrainBegin;
     this.trainEnd = args.onTrainEnd;
     this.epochBegin = args.onEpochBegin;
     this.epochEnd = args.onEpochEnd;
     this.batchBegin = args.onBatchBegin;
     this.batchEnd = args.onBatchEnd;
+    this.yield = args.onYield;
+  }
+
+  async maybeWait(epoch: number, batch: number, logs: UnresolvedLogs) {
+    const ps: Array<void|Promise<void>> = [];
+    if (this.yield != null) {
+      await resolveScalarsInLogs(logs);
+      ps.push(this.yield(epoch, batch, logs as Logs));
+    }
+    ps.push(nextFrame());
+    await Promise.all(ps);
   }
 
   async onEpochBegin(epoch: number, logs?: UnresolvedLogs): Promise<void> {
+    this.currentEpoch = epoch;
     if (this.epochBegin != null) {
       await resolveScalarsInLogs(logs);
       await this.epochBegin(epoch, logs as Logs);
@@ -489,10 +412,15 @@ export class CustomCallback extends BaseCallback {
   }
 
   async onEpochEnd(epoch: number, logs?: UnresolvedLogs): Promise<void> {
+    const ps: Array<void|Promise<void>> = [];
     if (this.epochEnd != null) {
       await resolveScalarsInLogs(logs);
-      await this.epochEnd(epoch, logs as Logs);
+      ps.push(this.epochEnd(epoch, logs as Logs));
     }
+    if (this.yieldEvery === 'epoch') {
+      ps.push(nextFrame());
+    }
+    await Promise.all(ps);
   }
 
   async onBatchBegin(batch: number, logs?: UnresolvedLogs): Promise<void> {
@@ -503,10 +431,17 @@ export class CustomCallback extends BaseCallback {
   }
 
   async onBatchEnd(batch: number, logs?: UnresolvedLogs): Promise<void> {
+    const ps: Array<void|Promise<void>> = [];
     if (this.batchEnd != null) {
       await resolveScalarsInLogs(logs);
-      await this.batchEnd(batch, logs as Logs);
+      ps.push(this.batchEnd(batch, logs as Logs));
     }
+    if (this.yieldEvery === 'batch') {
+      ps.push(nextFrame());
+    } else if (util.isNumber(this.yieldEvery)) {
+      ps.push(this.maybeWait(this.currentEpoch, batch, logs));
+    }
+    await Promise.all(ps);
   }
 
   async onTrainBegin(logs?: UnresolvedLogs): Promise<void> {
@@ -527,11 +462,12 @@ export class CustomCallback extends BaseCallback {
 /**
  * Standardize callbacks or configurations of them to an Array of callbacks.
  */
-export function standardizeCallbacks(callbacks: BaseCallback|BaseCallback[]|
-                                     CustomCallbackArgs|
-                                     CustomCallbackArgs[]): BaseCallback[] {
+export function standardizeCallbacks(
+    callbacks: BaseCallback|BaseCallback[]|CustomCallbackArgs|
+    CustomCallbackArgs[],
+    yieldEvery: YieldEveryOptions): BaseCallback[] {
   if (callbacks == null) {
-    return null;
+    callbacks = {} as BaseCallback;
   }
   if (callbacks instanceof BaseCallback) {
     return [callbacks as BaseCallback];
@@ -543,7 +479,7 @@ export function standardizeCallbacks(callbacks: BaseCallback|BaseCallback[]|
   const callbackConfigs =
       generic_utils.toList(callbacks) as CustomCallbackArgs[];
   return callbackConfigs.map(
-      callbackConfig => new CustomCallback(callbackConfig));
+      callbackConfig => new CustomCallback(callbackConfig, yieldEvery));
 }
 
 export declare type BaseCallbackConstructor = {
@@ -629,15 +565,13 @@ export class CallbackConstructorRegistry {
 }
 
 export function configureCallbacks(
-    callbacks: BaseCallback[], yieldEvery: YieldEveryOptions,
-    verbose: ModelLoggingVerbosity, epochs: number, initialEpoch: number,
-    numTrainSamples: number, stepsPerEpoch: number, batchSize: number,
-    doValidation: boolean,
+    callbacks: BaseCallback[], verbose: ModelLoggingVerbosity, epochs: number,
+    initialEpoch: number, numTrainSamples: number, stepsPerEpoch: number,
+    batchSize: number, doValidation: boolean,
     callbackMetrics: string[]): {callbackList: CallbackList, history: History} {
   const history = new History();
   const actualCallbacks: BaseCallback[] = [
-    new BaseLogger(yieldEvery),
-    ...CallbackConstructorRegistry.createCallbacks(verbose)
+    new BaseLogger(), ...CallbackConstructorRegistry.createCallbacks(verbose)
   ];
   if (callbacks != null) {
     actualCallbacks.push(...callbacks);
