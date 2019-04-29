@@ -14,9 +14,10 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+import {util} from '@tensorflow/tfjs-core';
 import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 
-import {CustomCallback} from '../base_callbacks';
+import {CustomCallback, DEFAULT_YIELD_EVERY_MS} from '../base_callbacks';
 import * as tfl from '../index';
 import {Logs} from '../logs';
 import {describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
@@ -2884,6 +2885,109 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
     // Running fitDataset again should now run to completion
     history = await model.fitDataset(dataset, {batchesPerEpoch, epochs});
     expect(history.history.loss.length).toEqual(2);
+  });
+
+  it('onYield with yieldEvery: auto', async () => {
+    const wait = DEFAULT_YIELD_EVERY_MS;
+    const timeBetweenCalls = [
+      0,
+      1,
+      1,
+      wait + 1,  // Should call.
+      wait + 1,  // Should call.
+      1,
+      1,
+    ];
+    let counter = 0;
+    let prevTime = 0;
+    spyOn(util, 'now').and.callFake(() => {
+      prevTime += timeBetweenCalls[counter++];
+      return prevTime;
+    });
+    let nextFrameCallCount = 0;
+    spyOn(tfc, 'nextFrame').and.callFake(async () => {
+      nextFrameCallCount++;
+    });
+
+    const model = createDenseModel();
+    model.compile(
+        {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['accuracy']});
+
+    const epochs = 2;
+    const batchSize = 8;
+    const xTensorsFunc = () =>
+        [tfc.ones([batchSize, 1]),
+         tfc.ones([batchSize, 1]),
+         tfc.ones([batchSize, 1]),
+    ];
+    const yTensorsFunc = () =>
+        [tfc.ones([batchSize, 1]),
+         tfc.ones([batchSize, 1]),
+         tfc.ones([batchSize, 1]),
+    ];
+    const dataset = new FakeNumericDataset({
+      xShape: [1],
+      yShape: [1],
+      batchSize,
+      numBatches: 3,
+      xTensorsFunc,
+      yTensorsFunc,
+    });
+    const onYieldEpochIds: number[] = [];
+    const onYieldBatchesIds: number[] = [];
+
+    const history = await model.fitDataset(dataset, {
+      epochs,
+      callbacks: {
+        onYield: async (epoch, batch, _logs) => {
+          onYieldBatchesIds.push(batch);
+          onYieldEpochIds.push(epoch);
+        }
+      }
+    });
+    expect(history.history.loss.length).toEqual(epochs);
+    // There are 5 batches in total (1 batch per epoch). We expect next frame
+    // to be called twice, after epoch 1 and after epoch 2.
+    expect(nextFrameCallCount).toBe(2);
+    expect(onYieldEpochIds).toEqual([0, 1]);
+    expect(onYieldBatchesIds).toEqual([2, 0]);
+  });
+
+  it('fails when onYield is provided, but yieldEvery is never', async done => {
+    const model = createDenseModel();
+    model.compile(
+        {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['accuracy']});
+
+    const epochs = 2;
+    const batchSize = 8;
+    const xTensorsFunc = () =>
+        [tfc.ones([batchSize, 1]),
+         tfc.ones([batchSize, 1]),
+         tfc.ones([batchSize, 1]),
+    ];
+    const yTensorsFunc = () =>
+        [tfc.ones([batchSize, 1]),
+         tfc.ones([batchSize, 1]),
+         tfc.ones([batchSize, 1]),
+    ];
+    const dataset = new FakeNumericDataset({
+      xShape: [1],
+      yShape: [1],
+      batchSize,
+      numBatches: 3,
+      xTensorsFunc,
+      yTensorsFunc,
+    });
+    try {
+      await model.fitDataset(dataset, {
+        epochs,
+        yieldEvery: 'never',
+        callbacks: {onYield: async (_epoch, _batch, _logs) => {}},
+      });
+      done.fail('Model.fit should fail');
+    } catch {
+      done();
+    }
   });
 });
 

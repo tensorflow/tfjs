@@ -49,8 +49,17 @@ export interface ModelFitArgs {
 
   /**
    * List of callbacks to be called during training.
-   * Can consist of one or more of the following fields: `onTrainBegin`,
-   * `onTrainEnd`, `onEpochBegin`, `onEpochEnd`, `onBatchBegin`, `onBatchEnd`.
+   * Can have one or more of the following callbacks:
+   *   - `onTrainBegin(logs)`: called when training starts.
+   *   - `onTrainEnd(logs)`: called when training ends.
+   *   - `onEpochBegin(epoch, logs)`: called at the start of every epoch.
+   *   - `onEpochEnd(epoch, logs)`: called at the end of every epoch.
+   *   - `onBatchBegin(batch, logs)`: called at the start of every batch.
+   *   - `onBatchEnd(batch, logs)`: called at the end of every batch.
+   *   - `onYield(epoch, batch, logs)`: called every `yieldEvery` milliseconds
+   *      with the current epoch, batch and logs. The logs are the same
+   *      as in `onBatchEnd()`. Note that `onYield` can skip batches or
+   *      epochs. See also docs for `yieldEvery` below.
    */
   callbacks?: BaseCallback[]|CustomCallbackArgs|CustomCallbackArgs[];
 
@@ -128,12 +137,13 @@ export interface ModelFitArgs {
    * it can ensure tasks queued in the event loop can be handled in a timely
    * manner.
    *
-   * - The value can be one of the following strings:
-   *   - 'auto': automatically determine how frequently the yielding happens
-   *     by measuring the duration of each batch of training (default).
-   *   - 'batch': yield every batch.
-   *   - 'epoch': yield every epoch.
-   *   - 'never': never yield. (But yielding can still happen through `await
+   * The value can be one of the following:
+   *   - `'auto'`: The yielding happens at a certain frame rate (currently set
+   *               at 125ms). This is the default.
+   *   - `'batch'`: yield every batch.
+   *   - `'epoch'`: yield every epoch.
+   *   - any `number`: yield every `number` milliseconds.
+   *   - `'never'`: never yield. (yielding can still happen through `await
    *      nextFrame()` calls in custom callbacks.)
    */
   yieldEvery?: YieldEveryOptions;
@@ -259,8 +269,8 @@ async function fitLoop(
     outLabels?: string[], batchSize?: number, epochs?: number, verbose?: number,
     callbacks?: BaseCallback[], valF?: (data: Tensor[]) => Scalar[],
     valIns?: Tensor[], shuffle?: boolean|string, callbackMetrics?: string[],
-    initialEpoch?: number, stepsPerEpoch?: number, validationSteps?: number,
-    yieldEvery?: YieldEveryOptions): Promise<History> {
+    initialEpoch?: number, stepsPerEpoch?: number,
+    validationSteps?: number): Promise<History> {
   if (batchSize == null) {
     batchSize = 32;
   }
@@ -301,8 +311,8 @@ async function fitLoop(
   }
 
   const {callbackList, history} = configureCallbacks(
-      callbacks, yieldEvery, verbose, epochs, initialEpoch, numTrainSamples,
-      stepsPerEpoch, batchSize, doValidation, callbackMetrics);
+      callbacks, verbose, epochs, initialEpoch, numTrainSamples, stepsPerEpoch,
+      batchSize, doValidation, callbackMetrics);
   callbackList.setModel(model);
   model.history = history;
   await callbackList.onTrainBegin();
@@ -504,11 +514,11 @@ export async function fitTensors(
       callbackMetrics = outLabels.slice();
     }
 
-    const callbacks = standardizeCallbacks(args.callbacks);
+    const callbacks = standardizeCallbacks(args.callbacks, args.yieldEvery);
     const out = await fitLoop(
         model, trainFunction, ins, outLabels, batchSize, args.epochs,
         args.verbose, callbacks, valFunction, valIns, args.shuffle,
-        callbackMetrics, args.initialEpoch, null, null, args.yieldEvery);
+        callbackMetrics, args.initialEpoch, null, null);
     return out;
   } finally {
     model.isTraining = false;

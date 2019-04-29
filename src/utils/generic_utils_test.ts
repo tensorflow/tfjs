@@ -8,6 +8,8 @@
  * =============================================================================
  */
 
+import {util} from '@tensorflow/tfjs-core';
+
 import * as utils from './generic_utils';
 
 describe('pyListRepeat() ', () => {
@@ -247,5 +249,41 @@ describe('formatValueAsFriendlyString', () => {
     expect(utils.formatAsFriendlyString([
       [1], 3, [3], 7
     ])).toEqual('[[1],3,[3],7]');
+  });
+});
+
+describe('debouce', () => {
+  it('first call happens after waitMs', async () => {
+    const timestamps = [0, 1, 11, 12];
+    let counter = 0;
+    spyOn(util, 'now').and.callFake(() => timestamps[counter++]);
+    let numCalls = 0;
+    const f = () => numCalls++;
+    const waitMs = 10;
+    const f2 = utils.debounce(f, waitMs);
+    // The first call is ignored since waitMs hasn't passed yet.
+    f2();
+    expect(numCalls).toBe(0);
+    f2();
+    expect(numCalls).toBe(1);
+    // The second call is ignored.
+    f2();
+    expect(numCalls).toBe(1);
+  });
+
+  it('allows at most period/wait calls in a given period', async () => {
+    const timestamps = [0, 2, 4, 6, 8, 10];
+    let counter = 0;
+    spyOn(util, 'now').and.callFake(() => timestamps[counter++]);
+    let numCalls = 0;
+    const f = () => numCalls++;
+    const waitMs = 3;
+    const f2 = utils.debounce(f, waitMs);
+    // Call f2 5 times.
+    for (let i = 1; i < 5; i++) {
+      f2();
+    }
+    // Expect f to be called 2 times (between timestamps 4 and 2, and 8 and 4).
+    expect(numCalls).toBe(2);
   });
 });

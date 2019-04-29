@@ -40,13 +40,14 @@ export async function resolveScalarsInLogs(logs: UnresolvedLogs) {
       scalarsToDispose.push(valueScalar);
     }
   }
-  const values = await Promise.all(promises);
-  for (let i = 0; i < values.length; ++i) {
-    logs[keys[i]] = values[i][0];
+  if (promises.length > 0) {
+    const values = await Promise.all(promises);
+    for (let i = 0; i < values.length; ++i) {
+      logs[keys[i]] = values[i][0];
+    }
+    // Dispose the original scalar tensors.
+    dispose(scalarsToDispose);
   }
-
-  // Dispose the original scalar tensors.
-  dispose(scalarsToDispose);
 }
 
 /**
