@@ -506,6 +506,19 @@ export abstract class Container extends Layer {
     return result;
   }
 
+  get trainable() {
+    return this.trainable_;
+  }
+
+  set trainable(trainable: boolean) {
+    this.layers.forEach(layer => {
+      // tslint:disable-next-line:no-any
+      ((layer as any)._trainableWeights as LayerVariable[])
+          .forEach(w => w.trainable = trainable);
+    });
+    this.trainable_ = trainable;
+  }
+
   get trainableWeights(): LayerVariable[] {
     // Porting Note: This check below is to prevent errors where the
     //   _trainableWeights inherited from the parent class (Layer) gets
