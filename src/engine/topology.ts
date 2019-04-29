@@ -680,15 +680,13 @@ export abstract class Layer extends serialization.Serializable {
   }
 
   set trainable(trainable: boolean) {
-    this._trainableWeights.forEach(w => {
-      w.trainable = trainable;
-    });
+    this._trainableWeights.forEach(w => w.trainable = trainable);
     this.trainable_ = trainable;
   }
 
   get trainableWeights(): LayerVariable[] {
     if (this.trainable_) {
-      return this._trainableWeights;
+      return this._trainableWeights.filter(w => w.trainable);
     } else {
       return [];
     }
@@ -699,10 +697,11 @@ export abstract class Layer extends serialization.Serializable {
   }
 
   get nonTrainableWeights(): LayerVariable[] {
-    if (!this.trainable_) {
-      return this._trainableWeights.concat(this._nonTrainableWeights);
+    if (this.trainable) {
+      return this._trainableWeights.filter(w => !w.trainable)
+          .concat(this._nonTrainableWeights);
     } else {
-      return this._nonTrainableWeights;
+      return this._trainableWeights.concat(this._nonTrainableWeights);
     }
   }
 
@@ -1473,10 +1472,8 @@ export abstract class Layer extends serialization.Serializable {
    */
   /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   getConfig(): serialization.ConfigDict {
-    const config: serialization.ConfigDict = {
-      name: this.name,
-      trainable: this.trainable
-    };
+    const config:
+        serialization.ConfigDict = {name: this.name, trainable: this.trainable};
     if (this.batchInputShape != null) {
       config['batchInputShape'] = this.batchInputShape;
     }

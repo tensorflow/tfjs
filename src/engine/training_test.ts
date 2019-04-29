@@ -2576,6 +2576,23 @@ describe('LayersModel trainable setter and getter', () => {
     expect(model.layers[1].trainable).toEqual(false);
     expect(model.layers[2].trainable).toEqual(true);
   });
+
+  it('Setting trainable of layer sets trainable bit of Variable', async () => {
+    const model = tfl.sequential();
+    model.add(
+        tfl.layers.dense({units: 3, activation: 'relu', inputShape: [4]}));
+    model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
+    model.trainable = false;
+    expect(model.layers[0].weights[0].trainable).toEqual(false);
+    expect(model.layers[0].weights[1].trainable).toEqual(false);
+    expect(model.layers[1].weights[0].trainable).toEqual(false);
+    expect(model.layers[1].weights[1].trainable).toEqual(false);
+    model.trainable = true;
+    expect(model.layers[0].weights[0].trainable).toEqual(true);
+    expect(model.layers[0].weights[1].trainable).toEqual(true);
+    expect(model.layers[1].weights[0].trainable).toEqual(true);
+    expect(model.layers[1].weights[1].trainable).toEqual(true);
+  });
 });
 
 describeMathCPUAndGPU('LayersModel.execute', () => {
