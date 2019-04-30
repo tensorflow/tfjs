@@ -23,7 +23,7 @@ export class MatMulProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   uniforms = 'uint dimAOuter, dimInner, dimBOuter, batch;';
-  tileSize: [number, number] = [32, 32];  // Must be square.
+  tileSize: [number, number] = [16, 16];  // Must be square.
 
   constructor(outputShape: [number, number, number]) {
     this.outputShape = outputShape;
