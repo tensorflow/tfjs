@@ -17,6 +17,55 @@
 
 import {WebGPUProgram} from './webgpu_program';
 
+export const matMulHeader = `
+  float mm_readA(uint row, uint col);
+  float mm_readB(uint row, uint col);
+  void mm_write(uint row, uint col, float value);
+  void mm_matMul(uint dimAOuter, uint dimInner, uint dimBOuter);`;
+
+export function makeMatMulSource(): string {
+  return `
+    ${matMulHeader}
+
+    const uint TileSide = TileSize.x;  // TileSize.x == TileSize.y
+    shared float mm_Asub[TileSide][TileSide];
+    shared float mm_Bsub[TileSide][TileSide];
+
+    void mm_matMul(uint dimAOuter, uint dimInner, uint dimBOuter) {
+        uint localRow = gl_LocalInvocationID.x;  // 0..TileSide
+        uint localCol = gl_LocalInvocationID.y;  // 0..TileSide
+        uint globalRow = TileSize.x * gl_WorkGroupID.x + localRow;  // AOuter
+        uint globalCol = TileSize.x * gl_WorkGroupID.y + localCol;  // Inner
+
+        float acc = 0.0;
+
+        uint numTiles = (dimInner - 1) / TileSize.x + 1;
+
+        for (uint t = 0; t < numTiles; t++) {
+          // Load one tile of A and B into local memory
+          uint tiledACol = TileSize.x * t + localCol;
+          uint tiledBRow = TileSize.x * t + localRow;
+          mm_Asub[localRow][localCol] = mm_readA(globalRow, tiledACol);
+          mm_Bsub[localRow][localCol] = mm_readB(tiledBRow, globalCol);
+
+          // Synchronise to make sure the tile is loaded
+          barrier();
+
+          for (uint k = 0; k < TileSize.x; k++) {
+            acc += mm_Asub[localRow][k] * mm_Bsub[k][localCol];
+          }
+
+          // Synchronise before loading the next tile
+          barrier();
+        }
+
+        if (globalCol < dimBOuter && globalRow < dimAOuter) {
+          mm_write(globalRow, globalCol, acc);
+        }
+      }
+  `;
+}
+
 export class MatMulProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
@@ -33,52 +82,30 @@ export class MatMulProgram implements WebGPUProgram {
     ];
 
     this.userCode = `
-      shared float Asub[TileSize.x][TileSize.x];
-      shared float Bsub[TileSize.x][TileSize.x];
+      ${makeMatMulSource()}
+
+      float mm_readA(uint row, uint col) {
+        if (row < dimAOuter && col < dimInner) {
+          return A[row * dimInner + col];
+        } else {
+          return 0.0;
+        }
+      }
+
+      float mm_readB(uint row, uint col) {
+        if (row < dimInner && col < dimBOuter) {
+          return B[row * dimBOuter + col];
+        } else {
+          return 0.0;
+        }
+      }
+
+      void mm_write(uint row, uint col, float value) {
+        setOutput(row * dimBOuter + col, value);
+      }
 
       void main() {
-        uint localRow = gl_LocalInvocationID.x; // < TileSize.x
-        uint localCol = gl_LocalInvocationID.y; // < TileSize.x
-        uint globalRow = TileSize.x*gl_WorkGroupID.x + localRow; // < dimAOuter
-        uint globalCol = TileSize.x*gl_WorkGroupID.y + localCol; // < dimInner
-
-        float acc = 0.0;
-
-        uint numTiles = (dimInner - 1) / TileSize.x + 1;
-
-        for (uint t=0; t<numTiles; t++) {
-          // Load one tile of A and B into local memory
-          uint tiledACol = TileSize.x*t + localCol;
-          uint tiledBRow = TileSize.x*t + localRow;
-
-          uint AFlatIndex = globalRow * dimInner + tiledACol;
-          if(AFlatIndex < dimAOuter * dimInner) {
-            Asub[localRow][localCol] = A[AFlatIndex];
-          } else {
-            Asub[localRow][localCol] = 0.0;
-          }
-
-          uint BFlatIndex = tiledBRow * dimBOuter + globalCol;
-          if(BFlatIndex < dimInner * dimBOuter) {
-            Bsub[localRow][localCol] = B[BFlatIndex];
-          } else {
-            Bsub[localRow][localCol] = 0.0;
-          }
-
-          // Synchronise to make sure the tile is loaded
-          barrier();
-
-          for (uint k=0; k<TileSize.x; k++) {
-            acc += Asub[localRow][k] * Bsub[k][localCol];
-          }
-
-          // Synchronise before loading the next tile
-          barrier();
-        }
-
-        if (globalCol < dimBOuter && globalRow < dimAOuter) {
-          setOutput(globalRow * dimBOuter + globalCol, acc);
-        }
+        mm_matMul(dimAOuter, dimInner, dimBOuter);
       }
     `;
   }
