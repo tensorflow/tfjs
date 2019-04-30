@@ -22,7 +22,7 @@ import {gatherND} from './gather_nd';
 import {scalar, tensor1d, tensor2d, tensor3d} from './tensor_ops';
 
 describeWithFlags('gatherND', ALL_ENVS, () => {
-  it('should work for simple slice', () => {
+  it('should work for simple slice', async () => {
     const indices = tensor2d([0, 4, 8], [3, 1], 'int32');
     const input =
         tensor1d([100, 101, 102, 777, 778, 779, 1000, 1001, 1002], 'int32');
@@ -30,10 +30,10 @@ describeWithFlags('gatherND', ALL_ENVS, () => {
     const result = gatherND(input, indices);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(input.dtype);
-    expectArraysClose(result, [100, 778, 1002]);
+    expectArraysClose(await result.data(), [100, 778, 1002]);
   });
 
-  it('should work for indexing 2d', () => {
+  it('should work for indexing 2d', async () => {
     const indices = tensor2d([0, 2], [2, 1], 'int32');
     const input = tensor2d(
         [
@@ -45,10 +45,10 @@ describeWithFlags('gatherND', ALL_ENVS, () => {
     const result = gatherND(input, indices);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(input.dtype);
-    expectArraysClose(result, [5, 5, 5, 5, 7, 7, 7, 7]);
+    expectArraysClose(await result.data(), [5, 5, 5, 5, 7, 7, 7, 7]);
   });
 
-  it('should work for indexing 3d', () => {
+  it('should work for indexing 3d', async () => {
     const indices = tensor2d([0, 2, 1, 1], [2, 2], 'int32');
     const input = tensor3d(
         [
@@ -60,10 +60,10 @@ describeWithFlags('gatherND', ALL_ENVS, () => {
     const result = gatherND(input, indices);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(input.dtype);
-    expectArraysClose(result, [7, 7, 7, 7, 6, 6, 6, 6]);
+    expectArraysClose(await result.data(), [7, 7, 7, 7, 6, 6, 6, 6]);
   });
 
-  it('should work for batch slice', () => {
+  it('should work for batch slice', async () => {
     const indices = tensor3d([0, 4, 2], [3, 1, 1], 'int32');
     const input =
         tensor1d([100, 101, 102, 777, 778, 779, 10000, 10001, 10002], 'int32');
@@ -71,10 +71,10 @@ describeWithFlags('gatherND', ALL_ENVS, () => {
     const result = gatherND(input, indices);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(input.dtype);
-    expectArraysClose(result, [100, 778, 102]);
+    expectArraysClose(await result.data(), [100, 778, 102]);
   });
 
-  it('should work for batch indexing 2d', () => {
+  it('should work for batch indexing 2d', async () => {
     const indices = tensor3d([0, 2], [2, 1, 1], 'int32');
     const input = tensor2d(
         [
@@ -86,10 +86,10 @@ describeWithFlags('gatherND', ALL_ENVS, () => {
     const result = gatherND(input, indices);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(input.dtype);
-    expectArraysClose(result, [5, 5, 5, 5, 7, 7, 7, 7]);
+    expectArraysClose(await result.data(), [5, 5, 5, 5, 7, 7, 7, 7]);
   });
 
-  it('should work for batch indexing 3d', () => {
+  it('should work for batch indexing 3d', async () => {
     const indices = tensor3d([0, 2, 1, 1], [2, 1, 2], 'int32');
     const input = tensor3d(
         [
@@ -101,17 +101,17 @@ describeWithFlags('gatherND', ALL_ENVS, () => {
     const result = gatherND(input, indices);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(input.dtype);
-    expectArraysClose(result, [7, 7, 7, 7, 6, 6, 6, 6]);
+    expectArraysClose(await result.data(), [7, 7, 7, 7, 6, 6, 6, 6]);
   });
 
-  it('should work for TensorLike inputs', () => {
+  it('should work for TensorLike inputs', async () => {
     const indices = [[0], [4], [8]];
     const input = [100, 101, 102, 777, 778, 779, 1000, 1001, 1002];
     const shape = [3];
     const result = gatherND(input, indices);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual('float32');
-    expectArraysClose(result, [100, 778, 1002]);
+    expectArraysClose(await result.data(), [100, 778, 1002]);
   });
 
   it('should throw error when indices are not int32', () => {

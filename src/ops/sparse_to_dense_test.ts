@@ -22,34 +22,34 @@ import {expectArraysClose} from '../test_util';
 let defaultValue: tf.Scalar;
 describeWithFlags('sparseToDense', ALL_ENVS, () => {
   beforeEach(() => defaultValue = tf.scalar(0, 'int32'));
-  it('should work for scalar indices', () => {
+  it('should work for scalar indices', async () => {
     const indices = tf.scalar(2, 'int32');
     const values = tf.scalar(100, 'int32');
     const shape = [6];
     const result = tf.sparseToDense(indices, values, shape, defaultValue);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(values.dtype);
-    expectArraysClose(result, [0, 0, 100, 0, 0, 0]);
+    expectArraysClose(await result.data(), [0, 0, 100, 0, 0, 0]);
   });
-  it('should work for vector', () => {
+  it('should work for vector', async () => {
     const indices = tf.tensor1d([0, 2, 4], 'int32');
     const values = tf.tensor1d([100, 101, 102], 'int32');
     const shape = [6];
     const result = tf.sparseToDense(indices, values, shape, defaultValue);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(values.dtype);
-    expectArraysClose(result, [100, 0, 101, 0, 102, 0]);
+    expectArraysClose(await result.data(), [100, 0, 101, 0, 102, 0]);
   });
-  it('should work for scalar value', () => {
+  it('should work for scalar value', async () => {
     const indices = tf.tensor1d([0, 2, 4], 'int32');
     const values = tf.scalar(10, 'int32');
     const shape = [6];
     const result = tf.sparseToDense(indices, values, shape, defaultValue);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(values.dtype);
-    expectArraysClose(result, [10, 0, 10, 0, 10, 0]);
+    expectArraysClose(await result.data(), [10, 0, 10, 0, 10, 0]);
   });
-  it('should work for matrix', () => {
+  it('should work for matrix', async () => {
     const indices = tf.tensor2d([0, 1, 1, 1], [2, 2], 'int32');
     const values = tf.tensor1d([5, 6], 'float32');
     const shape = [2, 2];
@@ -57,7 +57,7 @@ describeWithFlags('sparseToDense', ALL_ENVS, () => {
         tf.sparseToDense(indices, values, shape, defaultValue.toFloat());
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(values.dtype);
-    expectArraysClose(result, [0, 5, 0, 6]);
+    expectArraysClose(await result.data(), [0, 5, 0, 6]);
   });
 
   it('should throw exception if default value does not match dtype', () => {
@@ -69,27 +69,27 @@ describeWithFlags('sparseToDense', ALL_ENVS, () => {
         .toThrowError();
   });
 
-  it('should allow setting default value', () => {
+  it('should allow setting default value', async () => {
     const indices = tf.tensor2d([0, 1, 1, 1], [2, 2], 'int32');
     const values = tf.tensor1d([5, 6], 'float32');
     const shape = [2, 2];
     const result = tf.sparseToDense(indices, values, shape, tf.scalar(1));
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(values.dtype);
-    expectArraysClose(result, [1, 5, 1, 6]);
+    expectArraysClose(await result.data(), [1, 5, 1, 6]);
   });
 
-  it('no default value passed', () => {
+  it('no default value passed', async () => {
     const indices = tf.tensor2d([0, 1, 1, 1], [2, 2], 'int32');
     const values = tf.tensor1d([5, 6], 'float32');
     const shape = [2, 2];
     const result = tf.sparseToDense(indices, values, shape);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(values.dtype);
-    expectArraysClose(result, [0, 5, 0, 6]);
+    expectArraysClose(await result.data(), [0, 5, 0, 6]);
   });
 
-  it('should support TensorLike inputs', () => {
+  it('should support TensorLike inputs', async () => {
     const indices = [[0, 1], [1, 1]];
     const values = [5, 6];
     const shape = [2, 2];
@@ -97,15 +97,15 @@ describeWithFlags('sparseToDense', ALL_ENVS, () => {
         tf.sparseToDense(indices, values, shape, defaultValue.toFloat());
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual('float32');
-    expectArraysClose(result, [0, 5, 0, 6]);
+    expectArraysClose(await result.data(), [0, 5, 0, 6]);
   });
 
-  it('should work with 0-sized tensors', () => {
+  it('should work with 0-sized tensors', async () => {
     const indices = tf.zeros([0], 'int32');
     const values = tf.zeros([0]);
     const defaultValue = tf.scalar(5);
     const result = tf.sparseToDense(indices, values, [3], defaultValue);
-    expectArraysClose(result, [5, 5, 5]);
+    expectArraysClose(await result.data(), [5, 5, 5]);
   });
 
   it('should throw error when indices are not int32', () => {

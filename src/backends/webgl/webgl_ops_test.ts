@@ -25,7 +25,7 @@ import {WebGLMemoryInfo} from './backend_webgl';
 import {PACKED_ENVS, WEBGL_ENVS} from './backend_webgl_test_registry';
 
 describeWithFlags('fromPixels + regular math op', WEBGL_ENVS, () => {
-  it('debug mode does not error when no nans', () => {
+  it('debug mode does not error when no nans', async () => {
     const pixels = new ImageData(2, 2);
     for (let i = 0; i < 8; i++) {
       pixels.data[i] = 100;
@@ -39,7 +39,7 @@ describeWithFlags('fromPixels + regular math op', WEBGL_ENVS, () => {
 
     const res = tf.add(a, b);
 
-    expectArraysEqual(res, [
+    expectArraysEqual(await res.data(), [
       120, 120, 120, 120, 120, 120, 120, 120, 270, 270, 270, 270, 270, 270, 270,
       270
     ]);
@@ -220,60 +220,67 @@ describeWithFlags('toPixels', WEBGL_ENVS, () => {
 });
 
 describeWithFlags('depthToSpace', WEBGL_ENVS, () => {
-  it('tensor4d, input shape=[1, 4, 1, 1], blockSize=2, format=NCHW', () => {
-    const t = tf.tensor4d([1, 2, 3, 4], [1, 4, 1, 1]);
-    const blockSize = 2;
-    const dataFormat = 'NCHW';
+  it('tensor4d, input shape=[1, 4, 1, 1], blockSize=2, format=NCHW',
+     async () => {
+       const t = tf.tensor4d([1, 2, 3, 4], [1, 4, 1, 1]);
+       const blockSize = 2;
+       const dataFormat = 'NCHW';
 
-    const res = tf.depthToSpace(t, blockSize, dataFormat);
-    expect(res.shape).toEqual([1, 1, 2, 2]);
-    expectArraysClose(res, [1, 2, 3, 4]);
-  });
+       const res = tf.depthToSpace(t, blockSize, dataFormat);
+       expect(res.shape).toEqual([1, 1, 2, 2]);
+       expectArraysClose(await res.data(), [1, 2, 3, 4]);
+     });
 
-  it('tensor4d, input shape=[1, 12, 1, 1], blockSize=2, format=NCHW', () => {
-    const t =
-        tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [1, 12, 1, 1]);
-    const blockSize = 2;
-    const dataFormat = 'NCHW';
+  it('tensor4d, input shape=[1, 12, 1, 1], blockSize=2, format=NCHW',
+     async () => {
+       const t =
+           tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [1, 12, 1, 1]);
+       const blockSize = 2;
+       const dataFormat = 'NCHW';
 
-    const res = tf.depthToSpace(t, blockSize, dataFormat);
-    expect(res.shape).toEqual([1, 3, 2, 2]);
-    expectArraysClose(res, [1, 4, 7, 10, 2, 5, 8, 11, 3, 6, 9, 12]);
-  });
+       const res = tf.depthToSpace(t, blockSize, dataFormat);
+       expect(res.shape).toEqual([1, 3, 2, 2]);
+       expectArraysClose(
+           await res.data(), [1, 4, 7, 10, 2, 5, 8, 11, 3, 6, 9, 12]);
+     });
 
-  it('tensor4d, input shape=[1, 4, 2, 2], blockSize=2, format=NCHW', () => {
-    const t = tf.tensor4d(
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [1, 4, 2, 2]);
-    const blockSize = 2;
-    const dataFormat = 'NCHW';
+  it('tensor4d, input shape=[1, 4, 2, 2], blockSize=2, format=NCHW',
+     async () => {
+       const t = tf.tensor4d(
+           [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+           [1, 4, 2, 2]);
+       const blockSize = 2;
+       const dataFormat = 'NCHW';
 
-    const res = tf.depthToSpace(t, blockSize, dataFormat);
-    expect(res.shape).toEqual([1, 1, 4, 4]);
-    expectArraysClose(
-        res, [1, 5, 2, 6, 9, 13, 10, 14, 3, 7, 4, 8, 11, 15, 12, 16]);
-  });
+       const res = tf.depthToSpace(t, blockSize, dataFormat);
+       expect(res.shape).toEqual([1, 1, 4, 4]);
+       expectArraysClose(
+           await res.data(),
+           [1, 5, 2, 6, 9, 13, 10, 14, 3, 7, 4, 8, 11, 15, 12, 16]);
+     });
 
-  it('tensor4d, input shape=[1, 8, 2, 2], blockSize=2, format=NCHW', () => {
-    const t = tf.tensor4d(
-        [
-          1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
-          17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32
-        ],
-        [1, 8, 2, 2]);
-    const blockSize = 2;
-    const dataFormat = 'NCHW';
+  it('tensor4d, input shape=[1, 8, 2, 2], blockSize=2, format=NCHW',
+     async () => {
+       const t = tf.tensor4d(
+           [
+             1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
+             17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32
+           ],
+           [1, 8, 2, 2]);
+       const blockSize = 2;
+       const dataFormat = 'NCHW';
 
-    const res = tf.depthToSpace(t, blockSize, dataFormat);
-    expect(res.shape).toEqual([1, 2, 4, 4]);
-    expectArraysClose(res, [
-      1, 9,  2, 10, 17, 25, 18, 26, 3, 11, 4, 12, 19, 27, 20, 28,
-      5, 13, 6, 14, 21, 29, 22, 30, 7, 15, 8, 16, 23, 31, 24, 32
-    ]);
-  });
+       const res = tf.depthToSpace(t, blockSize, dataFormat);
+       expect(res.shape).toEqual([1, 2, 4, 4]);
+       expectArraysClose(await res.data(), [
+         1, 9,  2, 10, 17, 25, 18, 26, 3, 11, 4, 12, 19, 27, 20, 28,
+         5, 13, 6, 14, 21, 29, 22, 30, 7, 15, 8, 16, 23, 31, 24, 32
+       ]);
+     });
 });
 
 describeWithFlags('maximum', WEBGL_ENVS, () => {
-  it('works with squarification for large dimension', () => {
+  it('works with squarification for large dimension', async () => {
     const maxTextureSize = tf.ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
     const a =
@@ -283,12 +290,13 @@ describeWithFlags('maximum', WEBGL_ENVS, () => {
 
     const result = tf.maximum(a, b);
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
-    expectArraysClose(result, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
+    expectArraysClose(
+        await result.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
   });
 });
 
 describeWithFlags('div', PACKED_ENVS, () => {
-  it('works when unused channels are divided', () => {
+  it('works when unused channels are divided', async () => {
     // Tests that the 0's in unused channels for input textures do not corrupt
     // the result when swizzled with 3 / 3.
     const a = tf.tensor2d([1], [1, 1]);
@@ -298,25 +306,26 @@ describeWithFlags('div', PACKED_ENVS, () => {
     const d = tf.add(a, b).div(a);
 
     const result = c.matMul(d);
-    expectArraysClose(result, [4]);
+    expectArraysClose(await result.data(), [4]);
   });
 
-  it('works when unused channels in tensors with size > 1 are divided', () => {
-    const a = tf.tensor2d([1, 2, 3], [3, 1]);
-    const b = tf.tensor2d([1, 2, 3], [3, 1]);
-    const c = a.div(b);
+  it('works when unused channels in tensors with size > 1 are divided',
+     async () => {
+       const a = tf.tensor2d([1, 2, 3], [3, 1]);
+       const b = tf.tensor2d([1, 2, 3], [3, 1]);
+       const c = a.div(b);
 
-    const d = tf.tensor1d([1, 2, 3]);
-    const e = tf.tensor1d([1, 2, 3]);
-    const f = d.div(e).reshape([1, 3]);
+       const d = tf.tensor1d([1, 2, 3]);
+       const e = tf.tensor1d([1, 2, 3]);
+       const f = d.div(e).reshape([1, 3]);
 
-    const result = c.matMul(f);
-    expectArraysClose(result, [1, 1, 1, 1, 1, 1, 1, 1, 1]);
-  });
+       const result = c.matMul(f);
+       expectArraysClose(await result.data(), [1, 1, 1, 1, 1, 1, 1, 1, 1]);
+     });
 });
 
 describeWithFlags('conv2d webgl', WEBGL_ENVS, () => {
-  it('packed input x=[2,1,2] f=[1,1,2,2] s=1 d=1 p=0', () => {
+  it('packed input x=[2,1,2] f=[1,1,2,2] s=1 d=1 p=0', async () => {
     const inputShape: [number, number, number] = [2, 1, 2];
     const fSize = 1;
     const pad = 0;
@@ -340,40 +349,41 @@ describeWithFlags('conv2d webgl', WEBGL_ENVS, () => {
     tf.ENV.set(
         'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsFlagSaved);
 
-    expectArraysClose(result, [7, 10, 15, 22]);
-    expectArraysClose(result1, [37, 54, 81, 118]);
+    expectArraysClose(await result.data(), [7, 10, 15, 22]);
+    expectArraysClose(await result1.data(), [37, 54, 81, 118]);
   });
 
-  it('tf.memory() packed input x=[1,1,1,2] f=[1,1,2,2] s=1 d=1 p=0', () => {
-    const inputShape: [number, number, number, number] = [1, 1, 1, 2];
-    const fSize = 1;
-    const pad = 0;
-    const stride = 1;
+  it('tf.memory() packed input x=[1,1,1,2] f=[1,1,2,2] s=1 d=1 p=0',
+     async () => {
+       const inputShape: [number, number, number, number] = [1, 1, 1, 2];
+       const fSize = 1;
+       const pad = 0;
+       const stride = 1;
 
-    const xInit = tf.tensor4d([0, 1], inputShape);
-    const w = tf.tensor4d([1, 2, 3, 4], [fSize, fSize, 2, 2]);
+       const xInit = tf.tensor4d([0, 1], inputShape);
+       const w = tf.tensor4d([1, 2, 3, 4], [fSize, fSize, 2, 2]);
 
-    const webglLazilyUnpackFlagSaved = tf.ENV.getBool('WEBGL_LAZILY_UNPACK');
-    tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
-    const webglPackBinaryOperationsFlagSaved =
-        tf.ENV.getBool('WEBGL_PACK_BINARY_OPERATIONS');
-    tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', true);
+       const webglLazilyUnpackFlagSaved = tf.ENV.getBool('WEBGL_LAZILY_UNPACK');
+       tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
+       const webglPackBinaryOperationsFlagSaved =
+           tf.ENV.getBool('WEBGL_PACK_BINARY_OPERATIONS');
+       tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', true);
 
-    const x = xInit.add<tf.Tensor4D>(1);
-    const result = tf.conv2d(x, w, stride, pad);
+       const x = xInit.add<tf.Tensor4D>(1);
+       const result = tf.conv2d(x, w, stride, pad);
 
-    tf.ENV.set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
-    tf.ENV.set(
-        'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsFlagSaved);
+       tf.ENV.set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
+       tf.ENV.set(
+           'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsFlagSaved);
 
-    expectArraysClose(result, [7, 10]);
-    result.dispose();
-    x.dispose();
-    xInit.dispose();
-    w.dispose();
-    expect((tf.memory() as tf.webgl.WebGLMemoryInfo).numBytesInGPU).toBe(0);
-    expect(tf.memory().numBytes).toBe(0);
-  });
+       expectArraysClose(await result.data(), [7, 10]);
+       result.dispose();
+       x.dispose();
+       xInit.dispose();
+       w.dispose();
+       expect((tf.memory() as tf.webgl.WebGLMemoryInfo).numBytesInGPU).toBe(0);
+       expect(tf.memory().numBytes).toBe(0);
+     });
 });
 
 describeWithFlags('conv to matmul', PACKED_ENVS, () => {
@@ -422,17 +432,18 @@ describeWithFlags('conv to matmul', PACKED_ENVS, () => {
 // For operations on non-trivial matrix sizes, we skip the CPU-only ENV and use
 // only WebGL ENVs.
 describeWithFlags('gramSchmidt-non-tiny', WEBGL_ENVS, () => {
-  it('16x128', () => {
+  it('16x128', async () => {
     // Part of this test's point is that operation on a matrix of this size
     // can complete in the timeout limit of the unit test.
     const xs = tf.randomUniform([16, 128]) as Tensor2D;
     const y = tf.linalg.gramSchmidt(xs) as Tensor2D;
-    expectArraysClose(y.matMul(y.transpose()), tf.eye(16));
+    expectArraysClose(
+        await y.matMul(y.transpose()).data(), await tf.eye(16).data());
   });
 });
 
 describeWithFlags('matmul webgl-only', WEBGL_ENVS, () => {
-  it('Matrix times vector, large matrix', () => {
+  it('Matrix times vector, large matrix', async () => {
     const maxTexSize = 16000;
     const sharedDim = maxTexSize + 4;
     const matrix = tf.buffer<Rank.R2>([2, sharedDim], 'float32');
@@ -445,7 +456,7 @@ describeWithFlags('matmul webgl-only', WEBGL_ENVS, () => {
 
     const result = tf.dot(matrix.toTensor(), v.toTensor());
     const expected = [2, 0];
-    expectArraysClose(result, expected);
+    expectArraysClose(await result.data(), expected);
   });
 });
 
@@ -462,20 +473,21 @@ describeWithFlags('matmul', PACKED_ENVS, () => {
     expect(endNumBytes - startNumBytes).toEqual(60);
   });
 
-  it('should work when input matrix dimensions are not divisible by 2', () => {
-    const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9], [3, 3]);
-    const b = tf.tensor2d(
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [3, 5]);
+  it('should work when input matrix dimensions are not divisible by 2',
+     async () => {
+       const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9], [3, 3]);
+       const b = tf.tensor2d(
+           [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [3, 5]);
 
-    const c = tf.matMul(a, b);
+       const c = tf.matMul(a, b);
 
-    expect(c.shape).toEqual([3, 5]);
-    expectArraysClose(
-        c,
-        [46, 52, 58, 64, 70, 100, 115, 130, 145, 160, 154, 178, 202, 226, 250]);
-  });
+       expect(c.shape).toEqual([3, 5]);
+       expectArraysClose(await c.data(), [
+         46, 52, 58, 64, 70, 100, 115, 130, 145, 160, 154, 178, 202, 226, 250
+       ]);
+     });
 
-  it('should work when output texture shape != physical shape', () => {
+  it('should work when output texture shape != physical shape', async () => {
     const sharedDim = 16000;
     const a = tf.buffer<Rank.R2>([2, sharedDim], 'float32');
     const b = tf.buffer<Rank.R2>([sharedDim, 2], 'float32');
@@ -488,10 +500,10 @@ describeWithFlags('matmul', PACKED_ENVS, () => {
 
     const c = tf.matMul(a.toTensor(), b.toTensor());
     const expected = [2, 0, 1, 0];
-    expectArraysClose(c, expected);
+    expectArraysClose(await c.data(), expected);
   });
 
-  it('should work when input texture shapes != physical shape', () => {
+  it('should work when input texture shapes != physical shape', async () => {
     const maxTextureSize = tf.ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
     const a = tf.tensor2d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [1, 12]);
@@ -501,10 +513,10 @@ describeWithFlags('matmul', PACKED_ENVS, () => {
 
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
 
-    expectArraysClose(c, [572]);
+    expectArraysClose(await c.data(), [572]);
   });
 
-  it('should work when squarification results in zero padding', () => {
+  it('should work when squarification results in zero padding', async () => {
     const maxTextureSize = tf.ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 3);
     const a = tf.tensor2d([1, 2], [1, 2]);
@@ -515,20 +527,20 @@ describeWithFlags('matmul', PACKED_ENVS, () => {
 
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
 
-    expectArraysClose(c, [18, 21, 24, 27, 30, 33, 36, 39, 42]);
+    expectArraysClose(await c.data(), [18, 21, 24, 27, 30, 33, 36, 39, 42]);
   });
 
-  it('A x B', () => {
+  it('A x B', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
 
     const c = tf.matMul(a, b);
 
     expect(c.shape).toEqual([2, 2]);
-    expectArraysClose(c, [0, 8, -3, 20]);
+    expectArraysClose(await c.data(), [0, 8, -3, 20]);
   });
 
-  it('A x B^t', () => {
+  it('A x B^t', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([1, 0, 2, 4, 3, 0], [2, 3]);
 
@@ -537,10 +549,10 @@ describeWithFlags('matmul', PACKED_ENVS, () => {
     const c = tf.matMul(a, b, transposeA, transposeB);
 
     const expected = [7, 10, 16, 31];
-    expectArraysClose(c, expected);
+    expectArraysClose(await c.data(), expected);
   });
 
-  it('A^t x B', () => {
+  it('A^t x B', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([1, 0, 2, 4, 3, 0], [2, 3]);
 
@@ -549,10 +561,10 @@ describeWithFlags('matmul', PACKED_ENVS, () => {
     const c = tf.matMul(a, b, transposeA, transposeB);
 
     const expected = [17, 12, 2, 22, 15, 4, 27, 18, 6];
-    expectArraysClose(c, expected);
+    expectArraysClose(await c.data(), expected);
   });
 
-  it('A^t x B^t', () => {
+  it('A^t x B^t', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
     const b = tf.tensor2d([1, 0, 2, 4, 3, 0], [2, 3]);
 
@@ -561,10 +573,10 @@ describeWithFlags('matmul', PACKED_ENVS, () => {
     const c = tf.matMul(a, b, transposeA, transposeB);
 
     const expected = [11, 13, 14, 20];
-    expectArraysClose(c, expected);
+    expectArraysClose(await c.data(), expected);
   });
 
-  it('works when followed by an op that requires unpacked inputs', () => {
+  it('works when followed by an op that requires unpacked inputs', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
 
@@ -575,12 +587,12 @@ describeWithFlags('matmul', PACKED_ENVS, () => {
     const d = tf.add(c, 1);
     tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', webglPackBinarySaved);
 
-    expectArraysClose(d, [1, 9, -2, 21]);
+    expectArraysClose(await d.data(), [1, 9, -2, 21]);
   });
 
   // tslint:disable-next-line:max-line-length
   it('works when followed by a packed reshape that changes texture layout, and then an unpacked op',
-     () => {
+     async () => {
        const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9], [9, 1]);
        const b = tf.tensor2d([1], [1, 1]);
        const c = tf.matMul(a, b);
@@ -593,22 +605,22 @@ describeWithFlags('matmul', PACKED_ENVS, () => {
        const e = tf.add(d, 1);
        tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', webglPackBinarySaved);
 
-       expectArraysClose(e, [2, 3, 4, 5, 6, 7, 8, 9, 10]);
+       expectArraysClose(await e.data(), [2, 3, 4, 5, 6, 7, 8, 9, 10]);
      });
 
-  it('works when preceded by an op that requires packed inputs', () => {
+  it('works when preceded by an op that requires packed inputs', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
 
     const c = tf.add(a, 1);
     const d = tf.matMul(b, c);
 
-    expectArraysClose(d, [5, 6, 7, 4, 3, 2, 9, 12, 15]);
+    expectArraysClose(await d.data(), [5, 6, 7, 4, 3, 2, 9, 12, 15]);
   });
 });
 
 describeWithFlags('Reduction: webgl packed input', WEBGL_ENVS, () => {
-  it('argmax 3D, odd number of rows, axis = -1', () => {
+  it('argmax 3D, odd number of rows, axis = -1', async () => {
     const webglLazilyUnpackFlagSaved = tf.ENV.getBool('WEBGL_LAZILY_UNPACK');
     tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
     const webglPackBinaryOperationsFlagSaved =
@@ -622,10 +634,10 @@ describeWithFlags('Reduction: webgl packed input', WEBGL_ENVS, () => {
         'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsFlagSaved);
 
     expect(r.dtype).toBe('int32');
-    expectArraysEqual(r, [2, 0]);
+    expectArraysEqual(await r.data(), [2, 0]);
   });
 
-  it('argmin 4D, odd number of rows, axis = -1', () => {
+  it('argmin 4D, odd number of rows, axis = -1', async () => {
     const webglLazilyUnpackFlagSaved = tf.ENV.getBool('WEBGL_LAZILY_UNPACK');
     tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
     const webglPackBinaryOperationsFlagSaved =
@@ -643,10 +655,10 @@ describeWithFlags('Reduction: webgl packed input', WEBGL_ENVS, () => {
         'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsFlagSaved);
 
     expect(r.dtype).toBe('int32');
-    expectArraysEqual(r, [1, 1, 2, 2, 1, 2]);
+    expectArraysEqual(await r.data(), [1, 1, 2, 2, 1, 2]);
   });
 
-  it('should not leak memory when called after unpacked op', () => {
+  it('should not leak memory when called after unpacked op', async () => {
     const webglPackBinaryOperationsFlagSaved =
         tf.ENV.getBool('WEBGL_PACK_BINARY_OPERATIONS');
     tf.ENV.set('WEBGL_PACK_BINARY_OPERATIONS', false);
@@ -666,7 +678,7 @@ describeWithFlags('Reduction: webgl packed input', WEBGL_ENVS, () => {
     expect(endNumBytes - startNumBytes).toEqual(24);
     expect(endNumTensors - startNumTensors).toEqual(1);
     expect(r.dtype).toBe('int32');
-    expectArraysEqual(r, [1, 1, 2, 2, 1, 2]);
+    expectArraysEqual(await r.data(), [1, 1, 2, 2, 1, 2]);
   });
 });
 
@@ -713,29 +725,29 @@ describeWithFlags('slice a packed texture', WEBGL_ENVS, () => {
     tf.ENV.set('WEBGL_PACK', true);
   });
 
-  it('slice after a matmul', () => {
+  it('slice after a matmul', async () => {
     const a = [[1, 2], [3, 4]];
     const b = [[5, 6], [7, 8]];
     // Matmul gives a packed tensor in webgl.
     //  [19, 22]
     //  [43, 50]
     const c = tf.matMul(a, b);
-    expectArraysClose(c.slice([0, 0]), [19, 22, 43, 50]);
-    expectArraysClose(c.slice([0, 1]), [22, 50]);
-    expectArraysClose(c.slice([1, 0]), [43, 50]);
-    expectArraysClose(c.slice([1, 1]), [50]);
+    expectArraysClose(await c.slice([0, 0]).data(), [19, 22, 43, 50]);
+    expectArraysClose(await c.slice([0, 1]).data(), [22, 50]);
+    expectArraysClose(await c.slice([1, 0]).data(), [43, 50]);
+    expectArraysClose(await c.slice([1, 1]).data(), [50]);
   });
 });
 
 describeWithFlags('relu', WEBGL_ENVS, () => {
-  it('works with squarification for prime number length vector', () => {
+  it('works with squarification for prime number length vector', async () => {
     const maxTextureSize = tf.ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
     const a = tf.tensor1d([1, -2, 5, -3, -1, 4, 7]);
     const result = tf.relu(a);
 
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
-    expectArraysClose(result, [1, 0, 5, 0, 0, 4, 7]);
+    expectArraysClose(await result.data(), [1, 0, 5, 0, 0, 4, 7]);
   });
 });
 
@@ -755,39 +767,39 @@ describeWithFlags('packed clip', PACKED_ENVS, () => {
     expect(endNumTensors - startNumTensors).toEqual(1);
   });
 
-  it('basic', () => {
+  it('basic', async () => {
     const a = tf.tensor1d([3, -1, 0, 100, -7, 2]);
     const min = -1;
     const max = 50;
 
     const result = tf.clipByValue(a, min, max);
 
-    expectArraysClose(result, [3, -1, 0, 50, -1, 2]);
+    expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2]);
   });
 
-  it('using extreme values', () => {
+  it('using extreme values', async () => {
     const a = tf.tensor1d([3, -1, 0, 100, -7, 2]);
     let result =
         tf.clipByValue(a, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY);
-    expectArraysClose(result, [3, -1, 0, 100, -7, 2]);
+    expectArraysClose(await result.data(), [3, -1, 0, 100, -7, 2]);
 
     result = tf.clipByValue(a, Number.MIN_VALUE, Number.MAX_VALUE);
     expectArraysClose(
-        result,
+        await result.data(),
         [3, Number.MIN_VALUE, Number.MIN_VALUE, 100, Number.MIN_VALUE, 2]);
   });
 
-  it('should work for scalars', () => {
+  it('should work for scalars', async () => {
     const a = tf.scalar(-4);
     const min = -1;
     const max = 50;
 
     const result = tf.clipByValue(a, min, max);
 
-    expectArraysClose(result, [min]);
+    expectArraysClose(await result.data(), [min]);
   });
 
-  it('derivative: 1D tensor with max or min value', () => {
+  it('derivative: 1D tensor with max or min value', async () => {
     const min = -1;
     const max = 2;
     const x = tf.tensor1d([-1, 1, 2, 3]);
@@ -796,7 +808,7 @@ describeWithFlags('packed clip', PACKED_ENVS, () => {
 
     expect(gradients.shape).toEqual(x.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [1, 10, 100, 0]);
+    expectArraysClose(await gradients.data(), [1, 10, 100, 0]);
   });
 });
 

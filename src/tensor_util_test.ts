@@ -80,74 +80,74 @@ describe('getTensorsInContainer', () => {
 });
 
 describeWithFlags('convertToTensor', ALL_ENVS, () => {
-  it('primitive integer, NaN converts to zero, no error thrown', () => {
+  it('primitive integer, NaN converts to zero, no error thrown', async () => {
     const a = () => convertToTensor(NaN, 'a', 'test', 'int32');
     expect(a).not.toThrowError();
 
     const b = convertToTensor(NaN, 'b', 'test', 'int32');
     expect(b.rank).toBe(0);
     expect(b.dtype).toBe('int32');
-    expectArraysClose(b, 0);
+    expectArraysClose(await b.data(), 0);
   });
 
-  it('primitive number', () => {
+  it('primitive number', async () => {
     const a = convertToTensor(3, 'a', 'test');
     expect(a.rank).toBe(0);
     expect(a.dtype).toBe('float32');
-    expectArraysClose(a, 3);
+    expectArraysClose(await a.data(), 3);
   });
 
-  it('primitive integer, NaN converts to zero', () => {
+  it('primitive integer, NaN converts to zero', async () => {
     const a = convertToTensor(NaN, 'a', 'test', 'int32');
     expect(a.rank).toBe(0);
     expect(a.dtype).toBe('int32');
-    expectArraysClose(a, 0);
+    expectArraysClose(await a.data(), 0);
   });
 
-  it('primitive boolean, parsed as bool tensor', () => {
+  it('primitive boolean, parsed as bool tensor', async () => {
     const a = convertToTensor(true, 'a', 'test');
     expect(a.rank).toBe(0);
     expect(a.dtype).toBe('bool');
-    expectArraysClose(a, 1);
+    expectArraysClose(await a.data(), 1);
   });
 
-  it('primitive boolean, forced to be parsed as bool tensor', () => {
+  it('primitive boolean, forced to be parsed as bool tensor', async () => {
     const a = convertToTensor(true, 'a', 'test', 'bool');
     expect(a.rank).toBe(0);
     expect(a.dtype).toBe('bool');
-    expectArraysEqual(a, 1);
+    expectArraysEqual(await a.data(), 1);
   });
 
-  it('array1d', () => {
+  it('array1d', async () => {
     const a = convertToTensor([1, 2, 3], 'a', 'test');
     expect(a.rank).toBe(1);
     expect(a.dtype).toBe('float32');
     expect(a.shape).toEqual([3]);
-    expectArraysClose(a, [1, 2, 3]);
+    expectArraysClose(await a.data(), [1, 2, 3]);
   });
 
-  it('array2d', () => {
+  it('array2d', async () => {
     const a = convertToTensor([[1], [2], [3]], 'a', 'test');
     expect(a.rank).toBe(2);
     expect(a.shape).toEqual([3, 1]);
     expect(a.dtype).toBe('float32');
-    expectArraysClose(a, [1, 2, 3]);
+    expectArraysClose(await a.data(), [1, 2, 3]);
   });
 
-  it('array3d', () => {
+  it('array3d', async () => {
     const a = convertToTensor([[[1], [2]], [[3], [4]]], 'a', 'test');
     expect(a.rank).toBe(3);
     expect(a.shape).toEqual([2, 2, 1]);
     expect(a.dtype).toBe('float32');
-    expectArraysClose(a, [1, 2, 3, 4]);
+    expectArraysClose(await a.data(), [1, 2, 3, 4]);
   });
 
-  it('array4d', () => {
+  it('array4d', async () => {
     const a = convertToTensor([[[[1]], [[2]]], [[[3]], [[4]]]], 'a', 'test');
     expect(a.rank).toBe(4);
     expect(a.shape).toEqual([2, 2, 1, 1]);
     expect(a.dtype).toBe('float32');
-    expectArraysClose(a, [1, 2, 3, 4]);
+    expectArraysClose(await a.data(), [1, 2, 3, 4]);
   });
 
   it('passing a tensor returns the tensor itself', () => {

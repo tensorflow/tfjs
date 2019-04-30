@@ -21,37 +21,38 @@ import {expectArraysClose} from '../test_util';
 import {PARALLELIZE_THRESHOLD} from './reduce_util';
 
 describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
-  it('tensor1D', () => {
+  it('tensor1D', async () => {
     const t = tf.tensor1d([1, 2, 3, 4]);
     const segmentIds = tf.tensor1d([0, 2, 0, 1], 'int32');
     const numSegments = 3;
     const res = tf.unsortedSegmentSum(t, segmentIds, numSegments);
 
     expect(res.shape).toEqual([numSegments]);
-    expectArraysClose(res, [4, 4, 2]);
+    expectArraysClose(await res.data(), [4, 4, 2]);
   });
 
-  it('tensor2D', () => {
+  it('tensor2D', async () => {
     const t = tf.tensor2d([1, 2, 3, 4], [2, 2]);
     const segmentIds = tf.tensor1d([0, 0], 'int32');
     const numSegments = 2;
     const res = tf.unsortedSegmentSum(t, segmentIds, numSegments);
 
     expect(res.shape).toEqual([numSegments, 2]);
-    expectArraysClose(res, [4, 6, 0, 0]);
+    expectArraysClose(await res.data(), [4, 6, 0, 0]);
   });
 
-  it('tensor3D', () => {
+  it('tensor3D', async () => {
     const t = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [3, 2, 2]);
     const segmentIds = tf.tensor1d([2, 1, 2], 'int32');
     const numSegments = 3;
     const res = tf.unsortedSegmentSum(t, segmentIds, numSegments);
 
     expect(res.shape).toEqual([numSegments, 2, 2]);
-    expectArraysClose(res, [0, 0, 0, 0, 5, 6, 7, 8, 10, 12, 14, 16]);
+    expectArraysClose(
+        await res.data(), [0, 0, 0, 0, 5, 6, 7, 8, 10, 12, 14, 16]);
   });
 
-  it('N > than parallelization threshold, tensor1D', () => {
+  it('N > than parallelization threshold, tensor1D', async () => {
     const n = PARALLELIZE_THRESHOLD * 2;
     const values = new Float32Array(n);
     const numSegments = 5;
@@ -67,10 +68,10 @@ describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
     const res = tf.unsortedSegmentSum(t, segmentIds, numSegments);
 
     expect(res.shape).toEqual([numSegments]);
-    expectArraysClose(res, vals);
+    expectArraysClose(await res.data(), vals);
   });
 
-  it('ignores negative segmentIds', () => {
+  it('ignores negative segmentIds', async () => {
     const t = tf.tensor1d([1, 2, 3, 4]);
     const segmentIds = tf.tensor1d([0, 2, -1, 1], 'int32');
     const numSegments = 3;
@@ -78,10 +79,10 @@ describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
     const res = tf.unsortedSegmentSum(t, segmentIds, numSegments);
 
     expect(res.shape).toEqual([numSegments]);
-    expectArraysClose(res, [1, 4, 2]);
+    expectArraysClose(await res.data(), [1, 4, 2]);
   });
 
-  it('gradient ignores negative segmentIds', () => {
+  it('gradient ignores negative segmentIds', async () => {
     const t = tf.tensor1d([1, 2, 3, 4]);
     const segmentIds = tf.tensor1d([0, 2, -1, 1], 'int32');
     const numSegments = 3;
@@ -91,10 +92,10 @@ describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
         tf.grad(a => tf.unsortedSegmentSum(a, segmentIds, numSegments))(t, dy);
 
     expect(gradient.shape).toEqual(t.shape);
-    expectArraysClose(gradient, [11, 7, 0, 2]);
+    expectArraysClose(await gradient.data(), [11, 7, 0, 2]);
   });
 
-  it('tensor1D gradient', () => {
+  it('tensor1D gradient', async () => {
     const t = tf.tensor1d([1, 2, 3, 4]);
     const segmentIds = tf.tensor1d([0, 2, 0, 1], 'int32');
     const numSegments = 3;
@@ -104,10 +105,10 @@ describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
         tf.grad(a => tf.unsortedSegmentSum(a, segmentIds, numSegments))(t, dy);
 
     expect(gradient.shape).toEqual(t.shape);
-    expectArraysClose(gradient, [11, 7, 11, 2]);
+    expectArraysClose(await gradient.data(), [11, 7, 11, 2]);
   });
 
-  it('gradient with clones', () => {
+  it('gradient with clones', async () => {
     const t = tf.tensor1d([1, 2, 3, 4]);
     const segmentIds = tf.tensor1d([0, 2, 0, 1], 'int32');
     const numSegments = 3;
@@ -118,10 +119,10 @@ describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
                  .clone())(t, dy);
 
     expect(gradient.shape).toEqual(t.shape);
-    expectArraysClose(gradient, [11, 7, 11, 2]);
+    expectArraysClose(await gradient.data(), [11, 7, 11, 2]);
   });
 
-  it('tensor2D gradient', () => {
+  it('tensor2D gradient', async () => {
     const t = tf.tensor2d([1, 2, 3, 4], [2, 2]);
     const segmentIds = tf.tensor1d([0, 0], 'int32');
     const numSegments = 2;
@@ -131,10 +132,10 @@ describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
         tf.grad(a => tf.unsortedSegmentSum(a, segmentIds, numSegments))(t, dy);
 
     expect(gradient.shape).toEqual(t.shape);
-    expectArraysClose(gradient, [11, 2, 11, 2]);
+    expectArraysClose(await gradient.data(), [11, 2, 11, 2]);
   });
 
-  it('tensor3D gradient', () => {
+  it('tensor3D gradient', async () => {
     const t = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [3, 2, 2]);
     const segmentIds = tf.tensor1d([2, 1, 2], 'int32');
     const numSegments = 3;
@@ -145,26 +146,27 @@ describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
         tf.grad(a => tf.unsortedSegmentSum(a, segmentIds, numSegments))(t, dy);
 
     expect(gradient.shape).toEqual(t.shape);
-    expectArraysClose(gradient, [-1, 14, 3, 28, 17, 31, 1, 0, -1, 14, 3, 28]);
+    expectArraysClose(
+        await gradient.data(), [-1, 14, 3, 28, 17, 31, 1, 0, -1, 14, 3, 28]);
   });
 
-  it('accepts a tensor-like object', () => {
+  it('accepts a tensor-like object', async () => {
     const x = [1, 2, 3, 4];
     const segmentIds = [0, 2, 0, 1];
     const numSegments = 3;
     const res = tf.unsortedSegmentSum(x, segmentIds, numSegments);
 
     expect(res.shape).toEqual([3]);
-    expectArraysClose(res, [4, 4, 2]);
+    expectArraysClose(await res.data(), [4, 4, 2]);
   });
 
-  it('accepts a tensor-like object chained', () => {
+  it('accepts a tensor-like object chained', async () => {
     const x = tf.tensor1d([1, 2, 3, 4]);
     const segmentIds = [0, 2, 0, 1];
     const numSegments = 3;
     const res = x.unsortedSegmentSum(segmentIds, numSegments);
 
     expect(res.shape).toEqual([3]);
-    expectArraysClose(res, [4, 4, 2]);
+    expectArraysClose(await res.data(), [4, 4, 2]);
   });
 });

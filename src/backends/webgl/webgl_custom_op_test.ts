@@ -74,28 +74,28 @@ describeWithFlags('custom-op webgl', WEBGL_ENVS, () => {
     return fn(x) as T;
   }
 
-  it('lets users use custom operations', () => {
+  it('lets users use custom operations', async () => {
     const inputArr = [1, 2, 3, 4];
     const input = tf.tensor(inputArr);
     const output = squareAndAdd(input);
-    expectArraysClose(output, inputArr.map(x => x * x + x));
+    expectArraysClose(await output.data(), inputArr.map(x => x * x + x));
   });
 
-  it('lets users define gradients for operations', () => {
+  it('lets users define gradients for operations', async () => {
     const inputArr = [1, 2, 3, 4];
     const input = tf.tensor(inputArr);
     const grads = tf.valueAndGrad(x => squareAndAdd(x));
     const {value, grad} = grads(input);
-    expectArraysClose(value, inputArr.map(x => x * x + x));
-    expectArraysClose(grad, inputArr.map(x => 2 * x + 1));
+    expectArraysClose(await value.data(), inputArr.map(x => x * x + x));
+    expectArraysClose(await grad.data(), inputArr.map(x => 2 * x + 1));
   });
 
-  it('multiplies by dy parameter when it is passed', () => {
+  it('multiplies by dy parameter when it is passed', async () => {
     const inputArr = [1, 2, 3, 4];
     const input = tf.tensor(inputArr);
     const grads = tf.valueAndGrad(x => squareAndAdd(x));
     const {value, grad} = grads(input, tf.zerosLike(input));
-    expectArraysClose(value, inputArr.map(x => x * x + x));
-    expectArraysClose(grad, inputArr.map(() => 0.0));
+    expectArraysClose(await value.data(), inputArr.map(x => x * x + x));
+    expectArraysClose(await grad.data(), inputArr.map(() => 0.0));
   });
 });

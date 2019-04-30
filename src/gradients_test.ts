@@ -23,7 +23,7 @@ import {Tensor} from './tensor';
 import {expectArraysClose} from './test_util';
 
 describeWithFlags('gradients', ALL_ENVS, () => {
-  it('matmul + relu', () => {
+  it('matmul + relu', async () => {
     const a = tf.tensor2d([-1, 2, -3, 10, -20, 30], [2, 3]);
     const b = tf.tensor2d([2, -3, 4, -1, 2, -3], [3, 2]);
 
@@ -45,28 +45,32 @@ describeWithFlags('gradients', ALL_ENVS, () => {
     expect(da.shape).toEqual(a.shape);
     let transposeA = false;
     let transposeB = true;
-    expectArraysClose(da, tf.matMul(dedm, b, transposeA, transposeB));
+    expectArraysClose(
+        await da.data(),
+        await tf.matMul(dedm, b, transposeA, transposeB).data());
 
     // de/db = dot(aT, de/dy)
     expect(db.shape).toEqual(b.shape);
     transposeA = true;
     transposeB = false;
-    expectArraysClose(db, tf.matMul(a, dedm, transposeA, transposeB));
+    expectArraysClose(
+        await db.data(),
+        await tf.matMul(a, dedm, transposeA, transposeB).data());
   });
 
-  it('grad(f)', () => {
+  it('grad(f)', async () => {
     const grad = tf.grad(x => x.square());
     const result = grad(tf.tensor1d([.1, .2]));
-    expectArraysClose(result, [.2, .4]);
+    expectArraysClose(await result.data(), [.2, .4]);
   });
 
-  it('calling grad(f) twice works', () => {
+  it('calling grad(f) twice works', async () => {
     const grad = tf.grad(x => x.square());
 
     const result = grad(tf.tensor1d([.1, .2]));
     const result2 = grad(tf.tensor1d([.1, .4]));
-    expectArraysClose(result, [.2, .4]);
-    expectArraysClose(result2, [.2, .8]);
+    expectArraysClose(await result.data(), [.2, .4]);
+    expectArraysClose(await result2.data(), [.2, .8]);
   });
 
   it('grad(f): throwing an error during forward pass', () => {
@@ -91,22 +95,22 @@ describeWithFlags('gradients', ALL_ENVS, () => {
     expect(ENGINE.isTapeOn()).toBe(false);
   });
 
-  it('grads(f)', () => {
+  it('grads(f)', async () => {
     const grads = tf.grads(x => x.square());
     const result = grads([tf.tensor1d([.1, .2])]);
-    expectArraysClose(result[0], [.2, .4]);
+    expectArraysClose(await result[0].data(), [.2, .4]);
   });
 
-  it('calling grads(f) twice works', () => {
+  it('calling grads(f) twice works', async () => {
     const grads = tf.grads(x => x.square());
 
     const result = grads([tf.tensor1d([.1, .2])]);
     const result2 = grads([tf.tensor1d([.1, .4])]);
-    expectArraysClose(result[0], [.2, .4]);
-    expectArraysClose(result2[0], [.2, .8]);
+    expectArraysClose(await result[0].data(), [.2, .4]);
+    expectArraysClose(await result2[0].data(), [.2, .8]);
   });
 
-  it('works with reshape', () => {
+  it('works with reshape', async () => {
     const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
     const exponent = tf.tensor1d([2, 2, 2, 2], 'int32');
 
@@ -117,7 +121,7 @@ describeWithFlags('gradients', ALL_ENVS, () => {
     })(a);
 
     expect(da.shape).toEqual([2, 2]);
-    expectArraysClose(da, [2, 4, 6, 8]);
+    expectArraysClose(await da.data(), [2, 4, 6, 8]);
   });
 
   it('reshape outside tf.grads() throws error', () => {
@@ -134,16 +138,17 @@ describeWithFlags('gradients', ALL_ENVS, () => {
     expect(f).toThrowError();
   });
 
-  it('does not error if irrelevant (pruned) ops are missing grads', () => {
-    const a = tf.tensor1d([true, true], 'bool');
-    const b = tf.tensor1d([false, true], 'bool');
-    const da = tf.grad(a => {
-      // Logical has no gradients, but it is irrelevant.
-      a.logicalAnd(b);
-      return a.sum();
-    })(a);
-    expectArraysClose(da, [1, 1]);
-  });
+  it('does not error if irrelevant (pruned) ops are missing grads',
+     async () => {
+       const a = tf.tensor1d([true, true], 'bool');
+       const b = tf.tensor1d([false, true], 'bool');
+       const da = tf.grad(a => {
+         // Logical has no gradients, but it is irrelevant.
+         a.logicalAnd(b);
+         return a.sum();
+       })(a);
+       expectArraysClose(await da.data(), [1, 1]);
+     });
 
   it('errors if relevant ops are missing grads', () => {
     const a = tf.tensor1d([true, true], 'bool');
@@ -155,7 +160,7 @@ describeWithFlags('gradients', ALL_ENVS, () => {
     expect(() => dfda(a)).toThrowError();
   });
 
-  it('works with asType', () => {
+  it('works with asType', async () => {
     const a = tf.tensor2d([1, 2, 3, 4], [2, 2], 'int32');
     const exponent = tf.tensor2d([2, 2, 2, 2], [2, 2], 'int32');
 
@@ -167,7 +172,7 @@ describeWithFlags('gradients', ALL_ENVS, () => {
 
     expect(da.shape).toEqual([2, 2]);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [2, 4, 6, 8]);
+    expectArraysClose(await da.data(), [2, 4, 6, 8]);
   });
 
   it('asType outside of tf.grads() throws error', () => {
@@ -205,7 +210,7 @@ describeWithFlags('gradients', ALL_ENVS, () => {
 });
 
 describeWithFlags('valueAndGradients', ALL_ENVS, () => {
-  it('matmul + relu', () => {
+  it('matmul + relu', async () => {
     const a = tf.tensor2d([-1, 2, -3, 10, -20, 30], [2, 3]);
     const b = tf.tensor2d([2, -3, 4, -1, 2, -3], [3, 2]);
 
@@ -219,7 +224,7 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
           return tf.sum(y);
         })([a, b]);
 
-    expectArraysClose(value, 10);
+    expectArraysClose(await value.data(), 10);
 
     // de/dy = 1
     // dy/dm = step(m)
@@ -230,15 +235,19 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
     // de/da = dot(de/dy, bT)
     let transposeA = false;
     let transposeB = true;
-    expectArraysClose(da, tf.matMul(dedm, b, transposeA, transposeB));
+    expectArraysClose(
+        await da.data(),
+        await tf.matMul(dedm, b, transposeA, transposeB).data());
 
     // de/db = dot(aT, de/dy)
     transposeA = true;
     transposeB = false;
-    expectArraysClose(db, tf.matMul(a, dedm, transposeA, transposeB));
+    expectArraysClose(
+        await db.data(),
+        await tf.matMul(a, dedm, transposeA, transposeB).data());
   });
 
-  it('matmul + relu + inner tidy', () => {
+  it('matmul + relu + inner tidy', async () => {
     const a = tf.tensor2d([-1, 2, -3, 10, -20, 30], [2, 3]);
     const b = tf.tensor2d([2, -3, 4, -1, 2, -3], [3, 2]);
 
@@ -254,7 +263,7 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
           });
         })([a, b]);
 
-    expectArraysClose(value, 10);
+    expectArraysClose(await value.data(), 10);
 
     // de/dy = 1
     // dy/dm = step(m)
@@ -265,43 +274,47 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
     // de/da = dot(de/dy, bT)
     let transposeA = false;
     let transposeB = true;
-    expectArraysClose(da, tf.matMul(dedm, b, transposeA, transposeB));
+    expectArraysClose(
+        await da.data(),
+        await tf.matMul(dedm, b, transposeA, transposeB).data());
 
     // de/db = dot(aT, de/dy)
     transposeA = true;
     transposeB = false;
-    expectArraysClose(db, tf.matMul(a, dedm, transposeA, transposeB));
+    expectArraysClose(
+        await db.data(),
+        await tf.matMul(a, dedm, transposeA, transposeB).data());
   });
 });
 
 describeWithFlags('higher-order gradients', ALL_ENVS, () => {
-  it('grad(grad(f))', () => {
+  it('grad(grad(f))', async () => {
     const x = tf.tensor1d([.1, .2]);
     const before = tf.memory().numTensors;
     const gradgrad = tf.grad(tf.grad(x => x.mul(x).mul(x)));
     const result = gradgrad(x);
     expect(tf.memory().numTensors).toBe(before + 1);
-    expectArraysClose(result, [.6, 1.2]);
+    expectArraysClose(await result.data(), [.6, 1.2]);
   });
 
-  it('grad(grad(x^2))', () => {
+  it('grad(grad(x^2))', async () => {
     const x = tf.scalar(3);
     const gradgrad = tf.grad(tf.grad(x => x.square()));
     const result = gradgrad(x);
     // grad(grad(x^2)) = grad(2x) = 2
-    expectArraysClose(result, [2]);
+    expectArraysClose(await result.data(), [2]);
   });
 
-  it('grads(grads(f))', () => {
+  it('grads(grads(f))', async () => {
     const grads = tf.grads(x => x.mul(x).mul(x));
     const gradsgrads = tf.grads(x => grads([x])[0]);
     const result = gradsgrads([tf.tensor1d([.1, .2])]);
-    expectArraysClose(result[0], [.6, 1.2]);
+    expectArraysClose(await result[0].data(), [.6, 1.2]);
   });
 });
 
 describeWithFlags('customGradient', ALL_ENVS, () => {
-  it('basic', () => {
+  it('basic', async () => {
     const a = tf.scalar(3);
     const b = tf.scalar(2, 'int32');
     const dy = tf.scalar(4);
@@ -314,12 +327,12 @@ describeWithFlags('customGradient', ALL_ENVS, () => {
 
     const {value, grad} = tf.valueAndGrad(a => customPow(a))(a, dy);
     expect(value.shape).toEqual(a.shape);
-    expectArraysClose(value, [9]);
+    expectArraysClose(await value.data(), [9]);
     expect(grad.shape).toEqual(a.shape);
-    expectArraysClose(grad, [.4]);
+    expectArraysClose(await grad.data(), [.4]);
   });
 
-  it('second order derivative through customGradient', () => {
+  it('second order derivative through customGradient', async () => {
     const a = tf.scalar(3);
     const b = tf.scalar(2, 'int32');
 
@@ -339,10 +352,10 @@ describeWithFlags('customGradient', ALL_ENVS, () => {
     expect(dda.shape).toEqual(a.shape);
 
     // First order: dy * a. Second order: dy.
-    expectArraysClose(dda, dy);
+    expectArraysClose(await dda.data(), await dy.data());
   });
 
-  it('calling gradient of custom op twice works', () => {
+  it('calling gradient of custom op twice works', async () => {
     const customOp = tf.customGrad((x: tf.Tensor, save: tf.GradSaveFunc) => {
       // Override gradient of our custom x ^ 2 op to be dy * abs(x);
       save([x]);
@@ -357,7 +370,7 @@ describeWithFlags('customGradient', ALL_ENVS, () => {
     const x = tf.tensor1d([-1, -2, 3]);
     const grad = tf.grad(x => customOp(x));
 
-    expectArraysClose(grad(x), [1, 2, 3]);
-    expectArraysClose(grad(x), [1, 2, 3]);
+    expectArraysClose(await grad(x).data(), [1, 2, 3]);
+    expectArraysClose(await grad(x).data(), [1, 2, 3]);
   });
 });

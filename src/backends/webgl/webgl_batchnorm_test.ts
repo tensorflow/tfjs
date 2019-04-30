@@ -21,16 +21,17 @@ import {expectArraysClose} from '../../test_util';
 import {PACKED_ENVS, WEBGL_ENVS} from './backend_webgl_test_registry';
 
 describeWithFlags('batchNorm', WEBGL_ENVS, () => {
-  it('should work for broadcasted inputs', () => {
+  it('should work for broadcasted inputs', async () => {
     const x = tf.tensor4d([2, 4, 9, 23], [2, 1, 1, 2]);
     const mean = tf.tensor4d([1], [1, 1, 1, 1]);
     const variance = tf.tensor4d([1], [1, 1, 1, 1]);
 
     const result = tf.batchNorm4d(x, mean, variance);
-    expectArraysClose(result, [0.9995003, 2.9985011, 7.9960027, 21.9890079]);
+    expectArraysClose(
+        await result.data(), [0.9995003, 2.9985011, 7.9960027, 21.9890079]);
   });
 
-  it('should work when squarification results in zero padding', () => {
+  it('should work when squarification results in zero padding', async () => {
     const maxTextureSize = tf.ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
 
@@ -53,7 +54,7 @@ describeWithFlags('batchNorm', WEBGL_ENVS, () => {
 
     tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
 
-    expectArraysClose(result, [
+    expectArraysClose(await result.data(), [
       0.59352049, -0.66135202, 0.5610874, -0.92077015, -1.45341019, 1.52106473,
       -0.07704776, 0.26144429, 1.28010017, -1.14422404, -1.15776136, 1.15425493,
       1.82644104, -0.52249442, 1.04803919, 0.74932291, 0.40568101, 1.2844412

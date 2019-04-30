@@ -47,7 +47,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
     expect(() => x.localResponseNormalization(radius)).toThrowError();
   });
 
-  it('computes simple normalization across channels', () => {
+  it('computes simple normalization across channels', async () => {
     const xT = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
     const radius = 1;
     const bias = 1;
@@ -60,7 +60,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
         Math.pow(bias + alpha * sumArr(sqArr(vals)), -beta);
 
     const x = xT.arraySync();
-    expectArraysClose(result, [
+    expectArraysClose(await result.data(), [
       x[0][0][0] * f(x[0][0][0], x[0][0][1]),
       x[0][0][1] * f(x[0][0][0], x[0][0][1], x[0][0][2]),
       x[0][0][2] * f(x[0][0][1], x[0][0][2], x[0][0][3]),
@@ -68,7 +68,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
     ]);
   });
 
-  it('uses beta = 1.0 to test GPU optimization', () => {
+  it('uses beta = 1.0 to test GPU optimization', async () => {
     const xT = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
     const radius = 1;
     const bias = 1;
@@ -81,7 +81,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
         Math.pow(bias + alpha * sumArr(sqArr(vals)), -beta);
 
     const x = xT.arraySync();
-    expectArraysClose(result, [
+    expectArraysClose(await result.data(), [
       x[0][0][0] * f(x[0][0][0], x[0][0][1]),
       x[0][0][1] * f(x[0][0][0], x[0][0][1], x[0][0][2]),
       x[0][0][2] * f(x[0][0][1], x[0][0][2], x[0][0][3]),
@@ -89,7 +89,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
     ]);
   });
 
-  it('uses beta = 0.75 to test GPU optimization', () => {
+  it('uses beta = 0.75 to test GPU optimization', async () => {
     const xT = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
     const radius = 1;
     const bias = 1;
@@ -102,7 +102,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
         Math.pow(bias + alpha * sumArr(sqArr(vals)), -beta);
 
     const x = xT.arraySync();
-    expectArraysClose(result, [
+    expectArraysClose(await result.data(), [
       x[0][0][0] * f(x[0][0][0], x[0][0][1]),
       x[0][0][1] * f(x[0][0][0], x[0][0][1], x[0][0][2]),
       x[0][0][2] * f(x[0][0][1], x[0][0][2], x[0][0][3]),
@@ -110,7 +110,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
     ]);
   });
 
-  it('computes complex normalization across channels', () => {
+  it('computes complex normalization across channels', async () => {
     const xT = tf.tensor3d(
         [1, 20, 300, 4, 5, 15, 24, 200, 1, 20, 300, 4, 5, 15, 24, 200],
         [2, 2, 4]);
@@ -128,7 +128,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
     // o x . . | x o x . | . x o x | . . x o
 
     const x = xT.arraySync();
-    expectArraysClose(result, [
+    expectArraysClose(await result.data(), [
       // 1 - 4
       x[0][0][0] * f(x[0][0][0], x[0][0][1]),
       x[0][0][1] * f(x[0][0][0], x[0][0][1], x[0][0][2]),
@@ -155,7 +155,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
     ]);
   });
 
-  it('yields same result as tensorflow', () => {
+  it('yields same result as tensorflow', async () => {
     // t = tf.random_uniform([1, 3, 3, 8])
     // l = tf.nn.lrn(t, depth_radius=2)
     // print(tf.Session().run([t, l]))
@@ -262,10 +262,10 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
 
     const result = x.localResponseNormalization(radius, bias, alpha, beta);
 
-    expectArraysClose(result, flatten(expected));
+    expectArraysClose(await result.data(), flatten(expected));
   });
 
-  it('accepts a tensor-like object', () => {
+  it('accepts a tensor-like object', async () => {
     const x = [[[1, 20, 300, 4]]];  // 1x1x4
     const radius = 1;
     const bias = 1;
@@ -277,7 +277,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
     const f = (...vals: number[]) =>
         Math.pow(bias + alpha * sumArr(sqArr(vals)), -beta);
 
-    expectArraysClose(result, [
+    expectArraysClose(await result.data(), [
       x[0][0][0] * f(x[0][0][0], x[0][0][1]),
       x[0][0][1] * f(x[0][0][0], x[0][0][1], x[0][0][2]),
       x[0][0][2] * f(x[0][0][1], x[0][0][2], x[0][0][3]),
@@ -302,7 +302,7 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
     expect(() => x.localResponseNormalization(radius)).toThrowError();
   });
 
-  it('computes simple normalization across channels', () => {
+  it('computes simple normalization across channels', async () => {
     const xT = tf.tensor4d([1, 20, 300, 4, 1, 20, 300, 4], [2, 1, 1, 4]);
     const radius = 1;
     const bias = 1;
@@ -318,7 +318,7 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
     const b0 = 0;
     const b1 = 1;
     const x = xT.arraySync();
-    expectArraysClose(result, [
+    expectArraysClose(await result.data(), [
       x[b0][0][0][0] * f(x[b0][0][0][0], x[b0][0][0][1]),
       x[b0][0][0][1] * f(x[b0][0][0][0], x[b0][0][0][1], x[b0][0][0][2]),
       x[b0][0][0][2] * f(x[b0][0][0][1], x[b0][0][0][2], x[b0][0][0][3]),
@@ -331,7 +331,7 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
     ]);
   });
 
-  it('yields same result as tensorflow', () => {
+  it('yields same result as tensorflow', async () => {
     // t = tf.random_uniform([2, 3, 3, 8])
     // l = tf.nn.lrn(t, depth_radius=2)
     // print(tf.Session().run([t, l]))
@@ -533,11 +533,11 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
 
     const result = x.localResponseNormalization(radius);
 
-    expectArraysClose(result, flatten(expected));
+    expectArraysClose(await result.data(), flatten(expected));
   });
 
   it('yields same result as tensorflow with inner most dims of odd shape',
-     () => {
+     async () => {
        // t = tf.random_uniform([1, 5, 5, 3])
        // l = tf.nn.lrn(t, depth_radius=2)
        // print(tf.Session().run([t, l]))
@@ -629,7 +629,7 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
 
        const result = x.localResponseNormalization(radius);
 
-       expectArraysClose(result, flatten(expected));
+       expectArraysClose(await result.data(), flatten(expected));
      });
 
   it('throws when passed a non-tensor', () => {
@@ -639,7 +639,7 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
         .toThrowError(e);
   });
 
-  it('gradient with 3D input', () => {
+  it('gradient with 3D input', async () => {
     const input = [
       [
         [
@@ -746,7 +746,7 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
             tf.localResponseNormalization(t, radius, bias, alpha, beta))(t, dy);
 
     expectArraysEqual(gradients.shape, t.shape);
-    expectArraysClose(gradients, flatten(expected));
+    expectArraysClose(await gradients.data(), flatten(expected));
   });
 
   it('gradient with clones', () => {
@@ -763,7 +763,7 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
     expectArraysEqual(dt.shape, t.shape);
   });
 
-  it('gradient with 4D input', () => {
+  it('gradient with 4D input', async () => {
     const input = [
       [
         [
@@ -1064,6 +1064,6 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
         t => tf.localResponseNormalization(
             t as Tensor4D, depthRadius, bias, alpha, beta))(t, dy as Tensor4D);
 
-    expectArraysClose(gradients, flatten(expected));
+    expectArraysClose(await gradients.data(), flatten(expected));
   });
 });

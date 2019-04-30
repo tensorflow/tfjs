@@ -314,7 +314,7 @@ describe('Backend registration', () => {
 });
 
 describeWithFlags('memory', ALL_ENVS, () => {
-  it('Sum(float)', () => {
+  it('Sum(float)', async () => {
     expect(tf.memory().numTensors).toBe(0);
     expect(tf.memory().numBytes).toBe(0);
     const sum = tf.tidy(() => {
@@ -325,10 +325,10 @@ describeWithFlags('memory', ALL_ENVS, () => {
     });
     expect(tf.memory().numTensors).toBe(1);
     expect(tf.memory().numBytes).toBe(4);
-    expectArraysClose(sum, [1 + 2 + 3 + 4]);
+    expectArraysClose(await sum.data(), [1 + 2 + 3 + 4]);
   });
 
-  it('Sum(bool)', () => {
+  it('Sum(bool)', async () => {
     const sum = tf.tidy(() => {
       const a = tf.tensor1d([true, true, false, true], 'bool');
       expect(tf.memory().numTensors).toBe(1);
@@ -338,10 +338,10 @@ describeWithFlags('memory', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(1);
     expect(tf.memory().numBytes).toBe(4);
     expect(sum.dtype).toBe('int32');
-    expectArraysClose(sum, [1 + 1 + 0 + 1]);
+    expectArraysClose(await sum.data(), [1 + 1 + 0 + 1]);
   });
 
-  it('Sum(int32)', () => {
+  it('Sum(int32)', async () => {
     const sum = tf.tidy(() => {
       const a = tf.tensor1d([1, 1, 0, 1], 'int32');
       expect(tf.memory().numTensors).toBe(1);
@@ -351,7 +351,7 @@ describeWithFlags('memory', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(1);
     expect(tf.memory().numBytes).toBe(4);
     expect(sum.dtype).toBe('int32');
-    expectArraysClose(sum, [1 + 1 + 0 + 1]);
+    expectArraysClose(await sum.data(), [1 + 1 + 0 + 1]);
   });
 
   it('string tensor', () => {
@@ -392,7 +392,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.newBytes).toBe(12);
     expect(profile.peakBytes).toBe(24);
     expect(profile.newTensors).toBe(1);
-    expectArraysClose(result, [1, 2, 3]);
+    expectArraysClose(await result.data(), [1, 2, 3]);
     expect(profile.kernels).toEqual([
       {
         'name': 'square',
@@ -427,7 +427,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.newBytes).toBe(24);
     expect(profile.peakBytes).toBe(24);
     expect(profile.newTensors).toBe(2);
-    expectArraysClose(result, [1, 4, 9]);
+    expectArraysClose(await result.data(), [1, 4, 9]);
     expect(profile.kernels).toEqual([{
       'name': 'square',
       'bytesAdded': 12,
@@ -469,7 +469,7 @@ describeWithFlags('Switching cpu backends', {activeBackend: 'cpu'}, () => {
     tf.removeBackend('cpu2');
   });
 
-  it('Move data from cpu1 to cpu2 backend', () => {
+  it('Move data from cpu1 to cpu2 backend', async () => {
     tf.setBackend('cpu1');
     // This scalar lives in cpu1.
     const a = tf.scalar(5);
@@ -483,14 +483,14 @@ describeWithFlags('Switching cpu backends', {activeBackend: 'cpu'}, () => {
     expect(tf.memory().numBytes).toBe(8);
 
     // Make sure you can read both tensors.
-    expectArraysClose(a, [5]);
-    expectArraysClose(b, [3]);
+    expectArraysClose(await a.data(), [5]);
+    expectArraysClose(await b.data(), [3]);
 
     // Switch back to cpu1.
     tf.setBackend('cpu1');
     // Again make sure you can read both tensors.
-    expectArraysClose(a, [5]);
-    expectArraysClose(b, [3]);
+    expectArraysClose(await a.data(), [5]);
+    expectArraysClose(await b.data(), [3]);
 
     tf.dispose([a, b]);
 
@@ -499,7 +499,7 @@ describeWithFlags('Switching cpu backends', {activeBackend: 'cpu'}, () => {
     expect(tf.memory().numBytes).toBe(0);
   });
 
-  it('can execute op with data from mixed backends', () => {
+  it('can execute op with data from mixed backends', async () => {
     tf.setBackend('cpu1');
     // This scalar lives in cpu1.
     const a = tf.scalar(5);
@@ -509,13 +509,13 @@ describeWithFlags('Switching cpu backends', {activeBackend: 'cpu'}, () => {
     const b = tf.scalar(3);
 
     // Verify that ops can execute with mixed backend data.
-    tf.tidy(() => {
-      tf.setBackend('cpu1');
-      expectArraysClose(tf.add(a, b), [8]);
+    ENGINE.startScope();
+    tf.setBackend('cpu1');
+    expectArraysClose(await tf.add(a, b).data(), [8]);
 
-      tf.setBackend('cpu2');
-      expectArraysClose(tf.add(a, b), [8]);
-    });
+    tf.setBackend('cpu2');
+    expectArraysClose(await tf.add(a, b).data(), [8]);
+    ENGINE.endScope();
     expect(tf.memory().numTensors).toBe(2);
     expect(tf.memory().numDataBuffers).toBe(2);
 
@@ -550,7 +550,7 @@ describeWithFlags(
         tf.removeBackend('cpu1');
       });
 
-      it('can execute op with data from mixed backends', () => {
+      it('can execute op with data from mixed backends', async () => {
         tf.setBackend('webgl1');
         const a = tf.scalar(5);
 
@@ -561,16 +561,16 @@ describeWithFlags(
         const c = tf.scalar(2);
 
         // Verify that ops can execute with mixed backend data.
-        tf.tidy(() => {
-          tf.setBackend('webgl1');
-          expectArraysClose(tf.addN([a, b, c]), [10]);
+        ENGINE.startScope();
+        tf.setBackend('webgl1');
+        expectArraysClose(await tf.addN([a, b, c]).data(), [10]);
 
-          tf.setBackend('webgl2');
-          expectArraysClose(tf.addN([a, b, c]), [10]);
+        tf.setBackend('webgl2');
+        expectArraysClose(await tf.addN([a, b, c]).data(), [10]);
 
-          tf.setBackend('cpu1');
-          expectArraysClose(tf.addN([a, b, c]), [10]);
-        });
+        tf.setBackend('cpu1');
+        expectArraysClose(await tf.addN([a, b, c]).data(), [10]);
+        ENGINE.endScope();
 
         expect(tf.memory().numTensors).toBe(3);
         expect(tf.memory().numDataBuffers).toBe(3);
@@ -581,7 +581,7 @@ describeWithFlags(
         expect(tf.memory().numDataBuffers).toBe(0);
       });
 
-      it('fromPixels with mixed backends works', () => {
+      it('fromPixels with mixed backends works', async () => {
         tf.setBackend('webgl1');
         const a = tf.browser.fromPixels(
             new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1));
@@ -590,7 +590,7 @@ describeWithFlags(
         const b = tf.browser.fromPixels(
             new ImageData(new Uint8ClampedArray([5, 6, 7, 8]), 1, 1));
 
-        expectArraysClose(tf.add(a, b), [6, 8, 10]);
+        expectArraysClose(await tf.add(a, b).data(), [6, 8, 10]);
       });
 
       it('single tidy multiple backends', () => {
@@ -619,10 +619,10 @@ describeWithFlags(
 // initialized, which causes the two backends to step on each other and get in
 // a bad state.
 describe('Memory allocation outside a test scope', () => {
-  it('constructing a tensor works', () => {
+  it('constructing a tensor works', async () => {
     tf.setBackend('cpu');
     const a = tf.tensor1d([1, 2, 3]);
-    expectArraysClose(a, [1, 2, 3]);
+    expectArraysClose(await a.data(), [1, 2, 3]);
     a.dispose();
   });
 });

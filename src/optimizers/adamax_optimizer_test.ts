@@ -20,7 +20,7 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('AdamaxOptimizer', ALL_ENVS, () => {
-  it('basic', () => {
+  it('basic', async () => {
     const learningRate = 0.1;
     const beta1 = 0.8;
     const beta2 = 0.9;
@@ -60,7 +60,7 @@ describeWithFlags('AdamaxOptimizer', ALL_ENVS, () => {
     //    w2_old - updates_2
     // ] = [1.9, 3.9]
     //
-    expectArraysClose(x, [1.9, 3.9]);
+    expectArraysClose(await x.data(), [1.9, 3.9]);
 
     cost.dispose();
     numTensors = tf.memory().numTensors;
@@ -98,7 +98,7 @@ describeWithFlags('AdamaxOptimizer', ALL_ENVS, () => {
     //    w2_old - updates_2
     // ] = [1.80697, 3.8086]
     //
-    expectArraysClose(x, [1.80697, 3.8086]);
+    expectArraysClose(await x.data(), [1.80697, 3.8086]);
     // There should be no new additional Tensors.
     expect(tf.memory().numTensors).toBe(numTensors);
 

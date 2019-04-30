@@ -20,7 +20,7 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('AdagradOptimizer', ALL_ENVS, () => {
-  it('basic', () => {
+  it('basic', async () => {
     const learningRate = .1;
     const initialAccumulatorValue = .1;
     const optimizer = tf.train.adagrad(learningRate, initialAccumulatorValue);
@@ -43,7 +43,7 @@ describeWithFlags('AdagradOptimizer', ALL_ENVS, () => {
     // accumulatedGrad = [0.1, 0.1]
     // newAccumulatedGrad = [4.1, 16.1]
     // x = [0.9012270405, 1.900311042]
-    expectArraysClose(x, [0.9012270405, 1.9003110428]);
+    expectArraysClose(await x.data(), [0.9012270405, 1.9003110428]);
 
     cost.dispose();
     numTensors = tf.memory().numTensors;
@@ -56,7 +56,7 @@ describeWithFlags('AdagradOptimizer', ALL_ENVS, () => {
     // x = [0.8347372764, 1.83015597828]
 
     // TODO: Fix numerical precision.
-    expectArraysClose(x, [0.8347372764, 1.83015597828], 1e-2);
+    expectArraysClose(await x.data(), [0.8347372764, 1.83015597828], 1e-2);
 
     // There should be no new additional Tensors.
     expect(tf.memory().numTensors).toBe(numTensors);

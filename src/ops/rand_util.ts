@@ -15,17 +15,10 @@
  * =============================================================================
  */
 
-import {Tensor} from '../tensor';
 import {expectNumbersClose, testEpsilon} from '../test_util';
 import {TypedArray} from '../types';
 
-export function jarqueBeraNormalityTest(a: Tensor|TypedArray|number[]) {
-  let values: TypedArray|number[];
-  if (a instanceof Tensor) {
-    values = a.dataSync();
-  } else {
-    values = a;
-  }
+export function jarqueBeraNormalityTest(values: TypedArray|number[]) {
   // https://en.wikipedia.org/wiki/Jarque%E2%80%93Bera_test
   const n = values.length;
   const s = skewness(values);
@@ -40,21 +33,15 @@ export function jarqueBeraNormalityTest(a: Tensor|TypedArray|number[]) {
 }
 
 export function expectArrayInMeanStdRange(
-    actual: Tensor|TypedArray|number[], expectedMean: number,
-    expectedStdDev: number, epsilon?: number) {
+    actual: TypedArray|number[], expectedMean: number, expectedStdDev: number,
+    epsilon?: number) {
   if (epsilon == null) {
     epsilon = testEpsilon();
   }
-  let actualValues: TypedArray|number[];
-  if (actual instanceof Tensor) {
-    actualValues = actual.dataSync();
-  } else {
-    actualValues = actual;
-  }
-  const actualMean = mean(actualValues);
+  const actualMean = mean(actual);
   expectNumbersClose(actualMean, expectedMean, epsilon);
   expectNumbersClose(
-      standardDeviation(actualValues, actualMean), expectedStdDev, epsilon);
+      standardDeviation(actual, actualMean), expectedStdDev, epsilon);
 }
 
 function mean(values: TypedArray|number[]) {

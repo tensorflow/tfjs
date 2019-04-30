@@ -21,7 +21,7 @@ import {expectArraysClose} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
-  it('input=2x2x1,d2=1,f=2,s=1,p=0', () => {
+  it('input=2x2x1,d2=1,f=2,s=1,p=0', async () => {
     const origInputDepth = 1;
     const origOutputDepth = 1;
     const inputShape: [number, number, number] = [1, 1, origOutputDepth];
@@ -37,10 +37,10 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
     const expected = [6, 2, 10, 0];
 
     expect(result.shape).toEqual([2, 2, 1]);
-    expectArraysClose(result, expected);
+    expectArraysClose(await result.data(), expected);
   });
 
-  it('input=2x2x1,d2=1,f=2,s=1,p=0, batch=2', () => {
+  it('input=2x2x1,d2=1,f=2,s=1,p=0, batch=2', async () => {
     const origInputDepth = 1;
     const origOutputDepth = 1;
     const inputShape: [number, number, number, number] =
@@ -57,7 +57,7 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
     const expected = [6, 2, 10, 0, 9, 3, 15, 0];
 
     expect(result.shape).toEqual([2, 2, 2, 1]);
-    expectArraysClose(result, expected);
+    expectArraysClose(await result.data(), expected);
   });
 
   // Reference (Python) TensorFlow code:
@@ -89,7 +89,7 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
   // print("filt_grad = %s" % filt_grad)
   // ```
   it('gradient with clones input=[1,3,3,1] f=[2,2,2,1] s=1 padding=valid',
-     () => {
+     async () => {
        const inputDepth = 1;
        const outputDepth = 2;
        const inputShape: [number, number, number, number] =
@@ -124,10 +124,11 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
        const dy = tf.ones([1, 4, 4, outputDepth]) as tf.Tensor4D;
        const [xGrad, filtGrad] = grads([x, filt], dy);
 
-       expectArraysClose(
-           xGrad, tf.ones([1, 3, 3, 1]).mul(tf.scalar(0.2827947)));
-       expectArraysClose(
-           filtGrad, tf.ones([2, 2, 2, 1]).mul(tf.scalar(-5.70202599)));
+       const expectedXGrad = tf.ones([1, 3, 3, 1]).mul(tf.scalar(0.2827947));
+       expectArraysClose(await xGrad.data(), await expectedXGrad.data());
+       const expectedFiltGrad =
+           tf.ones([2, 2, 2, 1]).mul(tf.scalar(-5.70202599));
+       expectArraysClose(await filtGrad.data(), await expectedFiltGrad.data());
      });
 
   // Reference (Python) TensorFlow code:
@@ -156,7 +157,7 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
   // print("x_grad = %s" % -x_grad)
   // print("filt_grad = %s" % -filt_grad)
   // ```
-  it('gradient input=[1,2,2,1] f=[2,2,2,1] s=[2,2] padding=valid', () => {
+  it('gradient input=[1,2,2,1] f=[2,2,2,1] s=[2,2] padding=valid', async () => {
     const inputDepth = 1;
     const outputDepth = 2;
     const inputShape: [number, number, number, number] = [1, 2, 2, inputDepth];
@@ -184,9 +185,13 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
         tf.ones([1, 4, 4, outputDepth]).mul(tf.scalar(-1)) as tf.Tensor4D;
     const [xGrad, filtGrad] = grads([x, filt], dy);
 
-    expectArraysClose(xGrad, tf.ones([1, 2, 2, 1]).mul(tf.scalar(-0.03454196)));
-    expectArraysClose(
-        filtGrad, tf.ones([2, 2, 2, 1]).mul(tf.scalar(-0.01444618)));
+    const expectedXGrad = tf.ones([1, 2, 2, 1]).mul(tf.scalar(-0.03454196));
+    expectArraysClose(await xGrad.data(), await expectedXGrad.data());
+    expect(xGrad.shape).toEqual([1, 2, 2, 1]);
+
+    const expectedFiltGrad = tf.ones([2, 2, 2, 1]).mul(tf.scalar(-0.01444618));
+    expectArraysClose(await filtGrad.data(), await expectedFiltGrad.data());
+    expect(filtGrad.shape).toEqual([2, 2, 2, 1]);
   });
 
   // Reference (Python) TensorFlow code:
@@ -217,7 +222,7 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
   // print("x_grad = %s" % x_grad)
   // print("filt_grad = %s" % filt_grad)
   // ```
-  it('gradient input=[1,3,3,1] f=[2,2,2,1] s=[1,1] padding=same', () => {
+  it('gradient input=[1,3,3,1] f=[2,2,2,1] s=[1,1] padding=same', async () => {
     const inputDepth = 1;
     const outputDepth = 2;
     const inputShape: [number, number, number, number] = [1, 3, 3, inputDepth];
@@ -248,15 +253,15 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
     const dy = tf.ones([1, 3, 3, outputDepth]) as tf.Tensor4D;
     const [xGrad, filtGrad] = grads([x, filt], dy);
 
-    expectArraysClose(xGrad, tf.tensor4d([[
-      [[1.30709858], [1.30709858], [-0.92814366]],
-      [[1.30709858], [1.30709858], [-0.92814366]],
-      [[1.19666437], [1.19666437], [-0.85476589]]
-    ]]));
-    expectArraysClose(filtGrad, tf.tensor4d([
+    expectArraysClose(await xGrad.array(), [[
+                        [[1.30709858], [1.30709858], [-0.92814366]],
+                        [[1.30709858], [1.30709858], [-0.92814366]],
+                        [[1.19666437], [1.19666437], [-0.85476589]]
+                      ]]);
+    expectArraysClose(await filtGrad.array(), [
       [[[2.38806788], [2.38806788]], [[2.58201847], [2.58201847]]],
       [[[2.2161221], [2.2161221]], [[3.11756406], [3.11756406]]]
-    ]));
+    ]);
   });
 
   // Reference (Python) TensorFlow code:
@@ -286,7 +291,7 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
   // print("x_grad = %s" % x_grad)
   // print("filt_grad = %s" % filt_grad)
   // ```
-  it('gradient input=[1,2,2,2] f=[2,2,2,1] s=[2,2] padding=same', () => {
+  it('gradient input=[1,2,2,2] f=[2,2,2,1] s=[2,2] padding=same', async () => {
     const inputDepth = 2;
     const outputDepth = 2;
     const inputShape: [number, number, number, number] = [1, 2, 2, inputDepth];
@@ -322,20 +327,17 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
     const dy = tf.ones([1, 3, 3, outputDepth]) as tf.Tensor4D;
     const [xGrad, filtGrad] = grads([x, filt], dy);
 
-    expectArraysClose(xGrad, tf.tensor4d([[
-      [[1.54219678, -2.19204008], [2.70032732, -2.84470257]],
-      [[0.66744391, -0.94274245], [0.89843743, -0.85675972]]
-    ]]));
-    expectArraysClose(filtGrad, tf.tensor4d([
-      [
-        [[-1.00204261, 0.27276259], [-1.00204261, 0.27276259]],
-        [[-2.99976385, 0.66119574], [-2.99976385, 0.66119574]]
-      ],
-      [
-        [[-1.86705711, 1.27211472], [-1.86705711, 1.27211472]],
-        [[-1.81506593, 1.00900095], [-1.81506593, 1.00900095]]
-      ]
-    ]));
+    expectArraysClose(await xGrad.data(), [
+      1.54219678, -2.19204008, 2.70032732, -2.84470257, 0.66744391, -0.94274245,
+      0.89843743, -0.85675972
+    ]);
+    expect(xGrad.shape).toEqual([1, 2, 2, 2]);
+    expectArraysClose(await filtGrad.data(), [
+      -1.00204261, 0.27276259, -1.00204261, 0.27276259, -2.99976385, 0.66119574,
+      -2.99976385, 0.66119574, -1.86705711, 1.27211472, -1.86705711, 1.27211472,
+      -1.81506593, 1.00900095, -1.81506593, 1.00900095
+    ]);
+    expect(filtGrad.shape).toEqual([2, 2, 2, 2]);
   });
 
   it('throws when x is not rank 3', () => {
@@ -419,7 +421,7 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
             /Argument 'filter' passed to 'conv2dTranspose' must be a Tensor/);
   });
 
-  it('accepts a tensor-like object', () => {
+  it('accepts a tensor-like object', async () => {
     const origPad = 0;
     const origStride = 1;
 
@@ -430,6 +432,6 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
     const expected = [6, 2, 10, 0];
 
     expect(result.shape).toEqual([2, 2, 1]);
-    expectArraysClose(result, expected);
+    expectArraysClose(await result.data(), expected);
   });
 });

@@ -389,7 +389,16 @@ export class MathBackendWebGL implements KernelBackend {
       return new Promise<TypedArray>(resolve => subscribers.push(resolve));
     }
     const texData = this.texData.get(dataId);
-    const {texture, values, texShape, isPacked, shape, slice, dtype} = texData;
+    const {
+      texture,
+      values,
+      texShape,
+      isPacked,
+      shape,
+      slice,
+      dtype,
+      complexTensors
+    } = texData;
 
     if (slice != null) {
       const program = new UnaryOpProgram(shape, unary_op.CLONE);
@@ -412,25 +421,31 @@ export class MathBackendWebGL implements KernelBackend {
           `WEBGL_VERSION=2 not yet supported.`);
     }
 
-    // Possibly copy the texture into a buffer before inserting a fence.
-    let width = texShape[1];
-    let height = texShape[0];
-    if (isPacked) {
-      [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
-          texShape[0], texShape[1]);
-    }
-
     let buffer = null;
-    if (ENV.get('WEBGL_BUFFER_SUPPORTED')) {
-      buffer = this.gpgpu.createBufferFromTexture(texture, height, width);
+    if (dtype !== 'complex64') {
+      // Possibly copy the texture into a buffer before inserting a fence.
+      let width = texShape[1];
+      let height = texShape[0];
+      if (isPacked) {
+        [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
+            texShape[0], texShape[1]);
+      }
+      if (ENV.get('WEBGL_BUFFER_SUPPORTED')) {
+        buffer = this.gpgpu.createBufferFromTexture(texture, height, width);
+      }
+      // Create a fence and wait for it to resolve.
+      await this.gpgpu.createAndWaitForFence();
     }
-
-    // Create a fence and wait for it to resolve.
-    await this.gpgpu.createAndWaitForFence();
 
     // Download the values from the GPU.
     let vals: Float32Array;
-    if (buffer == null) {
+    if (dtype === 'complex64') {
+      const ps =
+          Promise.all([complexTensors.real.data(), complexTensors.imag.data()]);
+      const [realValues, imagValues] = await ps;
+      vals = mergeRealAndImagArrays(
+          realValues as Float32Array, imagValues as Float32Array);
+    } else if (buffer == null) {
       vals = this.getValuesFromTexture(dataId);
     } else {
       const size = util.sizeFromShape(shape);

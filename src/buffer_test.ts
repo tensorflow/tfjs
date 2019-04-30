@@ -20,7 +20,7 @@ import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 import {expectArraysClose, expectArraysEqual} from './test_util';
 
 describeWithFlags('tf.buffer', ALL_ENVS, () => {
-  it('float32', () => {
+  it('float32', async () => {
     const buff = tf.buffer([1, 2, 3], 'float32');
     buff.set(1.3, 0, 0, 0);
     buff.set(2.9, 0, 1, 0);
@@ -30,7 +30,7 @@ describeWithFlags('tf.buffer', ALL_ENVS, () => {
     expect(buff.get(0, 1, 0)).toBeCloseTo(2.9);
     expect(buff.get(0, 1, 1)).toBeCloseTo(0);
     expect(buff.get(0, 1, 2)).toBeCloseTo(0);
-    expectArraysClose(buff.toTensor(), [1.3, 0, 0, 2.9, 0, 0]);
+    expectArraysClose(await buff.toTensor().data(), [1.3, 0, 0, 2.9, 0, 0]);
     expectArraysClose(buff.values, new Float32Array([1.3, 0, 0, 2.9, 0, 0]));
   });
 
@@ -44,7 +44,7 @@ describeWithFlags('tf.buffer', ALL_ENVS, () => {
         .toThrowError(/Requested out of range element/);
   });
 
-  it('int32', () => {
+  it('int32', async () => {
     const buff = tf.buffer([2, 3], 'int32');
     buff.set(1.3, 0, 0);
     buff.set(2.1, 1, 1);
@@ -54,11 +54,11 @@ describeWithFlags('tf.buffer', ALL_ENVS, () => {
     expect(buff.get(1, 0)).toEqual(0);
     expect(buff.get(1, 1)).toEqual(2);
     expect(buff.get(1, 2)).toEqual(0);
-    expectArraysClose(buff.toTensor(), [1, 0, 0, 0, 2, 0]);
+    expectArraysClose(await buff.toTensor().data(), [1, 0, 0, 0, 2, 0]);
     expectArraysClose(buff.values, new Int32Array([1, 0, 0, 0, 2, 0]));
   });
 
-  it('bool', () => {
+  it('bool', async () => {
     const buff = tf.buffer([4], 'bool');
     buff.set(true, 1);
     buff.set(true, 2);
@@ -66,11 +66,11 @@ describeWithFlags('tf.buffer', ALL_ENVS, () => {
     expect(buff.get(1)).toBeTruthy();
     expect(buff.get(2)).toBeTruthy();
     expect(buff.get(3)).toBeFalsy();
-    expectArraysClose(buff.toTensor(), [0, 1, 1, 0]);
+    expectArraysClose(await buff.toTensor().data(), [0, 1, 1, 0]);
     expectArraysClose(buff.values, new Uint8Array([0, 1, 1, 0]));
   });
 
-  it('string', () => {
+  it('string', async () => {
     const buff = tf.buffer([2, 2], 'string');
     buff.set('first', 0, 0);
     buff.set('third', 1, 0);
@@ -78,7 +78,8 @@ describeWithFlags('tf.buffer', ALL_ENVS, () => {
     expect(buff.get(0, 1)).toBeFalsy();
     expect(buff.get(1, 0)).toEqual('third');
     expect(buff.get(1, 1)).toBeFalsy();
-    expectArraysEqual(buff.toTensor(), ['first', null, 'third', null]);
+    expectArraysEqual(
+        await buff.toTensor().data(), ['first', null, 'third', null]);
   });
 
   it('throws when passed non-integer shape', () => {

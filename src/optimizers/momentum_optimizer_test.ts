@@ -20,7 +20,7 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
-  it('basic', () => {
+  it('basic', async () => {
     const learningRate = .1;
     const momentum = .5;
     const optimizer = tf.train.momentum(learningRate, momentum);
@@ -42,7 +42,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     // de/dx = [2, 4]
     // newAccumulation = [2, 4]
     // x = [.8, 1.6]
-    expectArraysClose(x, [.8, 1.6]);
+    expectArraysClose(await x.data(), [.8, 1.6]);
 
     cost.dispose();
     numTensors = tf.memory().numTensors;
@@ -53,7 +53,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     // accumulation = [2, 4]
     // newAccumulation = [2.6, 5.2]
     // x = [0.54, 1.08]
-    expectArraysClose(x, [0.54, 1.08]);
+    expectArraysClose(await x.data(), [0.54, 1.08]);
 
     // There should be no new additional Tensors.
     expect(tf.memory().numTensors).toBe(numTensors);
@@ -67,7 +67,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(1);
   });
 
-  it('basic - with Nesterov', () => {
+  it('basic - with Nesterov', async () => {
     const learningRate = .1;
     const momentum = .5;
     const useNesterov = true;
@@ -92,7 +92,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     // newAccumulation = [2, 4]
     // newVariable = -0.1 * ([2, 4] * 0.5 + [2, 4]) + [1, 2]
     // x = [.7, 1.4]
-    expectArraysClose(x, [.7, 1.4]);
+    expectArraysClose(await x.data(), [.7, 1.4]);
 
     cost.dispose();
     numTensors = tf.memory().numTensors;
@@ -104,7 +104,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     // newAccumulation = [0.5 * 2 + 1.4, 0.5 * 4 + 2.8] = [2.4, 4.8]
     // newVariable = -0.1 * ([2.4, 4.8] * 0.5 + [1.4, 2.8]) + [0.7, 1.4]
     // x = [0.44, 0.88]
-    expectArraysClose(x, [0.44, 0.88]);
+    expectArraysClose(await x.data(), [0.44, 0.88]);
 
     // There should be no new additional Tensors.
     expect(tf.memory().numTensors).toBe(numTensors);

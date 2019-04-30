@@ -23,7 +23,7 @@ import {expectArraysClose} from '../test_util';
 import {scalar, tensor1d, tensor2d, tensor3d, tensor4d} from './ops';
 
 describeWithFlags('gramSchmidt-tiny', ALL_ENVS, () => {
-  it('2x2, Array of Tensor1D', () => {
+  it('2x2, Array of Tensor1D', async () => {
     const xs: Tensor1D[] = [
       tf.randomNormal([2], 0, 1, 'float32', 1),
       tf.randomNormal([2], 0, 1, 'float32', 2)
@@ -31,14 +31,16 @@ describeWithFlags('gramSchmidt-tiny', ALL_ENVS, () => {
     const ys = tf.linalg.gramSchmidt(xs) as Tensor1D[];
     const y = tf.stack(ys) as Tensor2D;
     // Test that the results are orthogonalized and normalized.
-    expectArraysClose(y.transpose().matMul(y), tf.eye(2));
+    expectArraysClose(
+        await y.transpose().matMul(y).array(), await tf.eye(2).array());
     // Test angle between xs[0] and ys[0] is zero, i.e., the orientation of the
     // first vector is kept.
     expectArraysClose(
-        tf.sum(xs[0].mul(ys[0])), tf.norm(xs[0]).mul(tf.norm(ys[0])));
+        await tf.sum(xs[0].mul(ys[0])).array(),
+        await tf.norm(xs[0]).mul(tf.norm(ys[0])).array());
   });
 
-  it('3x3, Array of Tensor1D', () => {
+  it('3x3, Array of Tensor1D', async () => {
     const xs: Tensor1D[] = [
       tf.randomNormal([3], 0, 1, 'float32', 1),
       tf.randomNormal([3], 0, 1, 'float32', 2),
@@ -46,21 +48,25 @@ describeWithFlags('gramSchmidt-tiny', ALL_ENVS, () => {
     ];
     const ys = tf.linalg.gramSchmidt(xs) as Tensor1D[];
     const y = tf.stack(ys) as Tensor2D;
-    expectArraysClose(y.transpose().matMul(y), tf.eye(3));
     expectArraysClose(
-        tf.sum(xs[0].mul(ys[0])), tf.norm(xs[0]).mul(tf.norm(ys[0])));
+        await y.transpose().matMul(y).array(), await tf.eye(3).array());
+    expectArraysClose(
+        await tf.sum(xs[0].mul(ys[0])).array(),
+        await tf.norm(xs[0]).mul(tf.norm(ys[0])).array());
   });
 
-  it('3x3, Matrix', () => {
+  it('3x3, Matrix', async () => {
     const xs = tf.randomNormal([3, 3], 0, 1, 'float32', 1) as Tensor2D;
     const y = tf.linalg.gramSchmidt(xs) as Tensor2D;
-    expectArraysClose(y.transpose().matMul(y), tf.eye(3));
+    expectArraysClose(
+        await y.transpose().matMul(y).array(), await tf.eye(3).array());
   });
 
-  it('2x3, Matrix', () => {
+  it('2x3, Matrix', async () => {
     const xs = tf.randomNormal([2, 3], 0, 1, 'float32', 1) as Tensor2D;
     const y = tf.linalg.gramSchmidt(xs) as Tensor2D;
-    expectArraysClose(y.matMul(y.transpose()), tf.eye(2));
+    expectArraysClose(
+        await y.matMul(y.transpose()).array(), await tf.eye(2).array());
   });
 
   it('3x2 Matrix throws Error', () => {
@@ -83,132 +89,95 @@ describeWithFlags('gramSchmidt-tiny', ALL_ENVS, () => {
 });
 
 describeWithFlags('qr', ALL_ENVS, () => {
-  it('1x1', () => {
+  it('1x1', async () => {
     const x = tensor2d([[10]], [1, 1]);
     const [q, r] = tf.linalg.qr(x);
-    expectArraysClose(q, tensor2d([[-1]], [1, 1]));
-    expectArraysClose(r, tensor2d([[-10]], [1, 1]));
+    expectArraysClose(await q.array(), [[-1]]);
+    expectArraysClose(await r.array(), [[-10]]);
   });
 
-  it('2x2', () => {
+  it('2x2', async () => {
     const x = tensor2d([[1, 3], [-2, -4]], [2, 2]);
     const [q, r] = tf.linalg.qr(x);
-    expectArraysClose(
-        q, tensor2d([[-0.4472, -0.8944], [0.8944, -0.4472]], [2, 2]));
-    expectArraysClose(r, tensor2d([[-2.2361, -4.9193], [0, -0.8944]], [2, 2]));
+    expectArraysClose(await q.array(), [[-0.4472, -0.8944], [0.8944, -0.4472]]);
+    expectArraysClose(await r.array(), [[-2.2361, -4.9193], [0, -0.8944]]);
   });
 
-  it('2x2x2', () => {
+  it('2x2x2', async () => {
     const x = tensor3d([[[-1, -3], [2, 4]], [[1, 3], [-2, -4]]], [2, 2, 2]);
     const [q, r] = tf.linalg.qr(x);
+    expectArraysClose(await q.array(), [
+      [[-0.4472, -0.8944], [0.8944, -0.4472]],
+      [[-0.4472, -0.8944], [0.8944, -0.4472]]
+    ]);
     expectArraysClose(
-        q,
-        tensor3d(
-            [
-              [[-0.4472, -0.8944], [0.8944, -0.4472]],
-              [[-0.4472, -0.8944], [0.8944, -0.4472]]
-            ],
-            [2, 2, 2]));
-    expectArraysClose(
-        r,
-        tensor3d(
-            [
-              [[2.2361, 4.9193], [0, 0.8944]],
-              [[-2.2361, -4.9193], [0, -0.8944]]
-            ],
-            [2, 2, 2]));
+        await r.array(),
+        [[[2.2361, 4.9193], [0, 0.8944]], [[-2.2361, -4.9193], [0, -0.8944]]]);
   });
 
-  it('2x1x2x2', () => {
+  it('2x1x2x2', async () => {
     const x =
         tensor4d([[[[-1, -3], [2, 4]]], [[[1, 3], [-2, -4]]]], [2, 1, 2, 2]);
     const [q, r] = tf.linalg.qr(x);
-    expectArraysClose(
-        q,
-        tensor4d(
-            [
-              [[[-0.4472, -0.8944], [0.8944, -0.4472]]],
-              [[[-0.4472, -0.8944], [0.8944, -0.4472]]],
-            ],
-            [2, 1, 2, 2]));
-    expectArraysClose(
-        r,
-        tensor4d(
-            [
-              [[[2.2361, 4.9193], [0, 0.8944]]],
-              [[[-2.2361, -4.9193], [0, -0.8944]]]
-            ],
-            [2, 1, 2, 2]));
+    expectArraysClose(await q.array(), [
+      [[[-0.4472, -0.8944], [0.8944, -0.4472]]],
+      [[[-0.4472, -0.8944], [0.8944, -0.4472]]],
+    ]);
+    expectArraysClose(await r.array(), [
+      [[[2.2361, 4.9193], [0, 0.8944]]], [[[-2.2361, -4.9193], [0, -0.8944]]]
+    ]);
   });
 
-  it('3x3', () => {
+  it('3x3', async () => {
     const x = tensor2d([[1, 3, 2], [-2, 0, 7], [8, -9, 4]], [3, 3]);
     const [q, r] = tf.linalg.qr(x);
+    expectArraysClose(await q.array(), [
+      [-0.1204, 0.8729, 0.4729], [0.2408, -0.4364, 0.8669],
+      [-0.9631, -0.2182, 0.1576]
+    ]);
     expectArraysClose(
-        q,
-        tensor2d(
-            [
-              [-0.1204, 0.8729, 0.4729], [0.2408, -0.4364, 0.8669],
-              [-0.9631, -0.2182, 0.1576]
-            ],
-            [3, 3]));
-    expectArraysClose(
-        r,
-        tensor2d(
-            [[-8.3066, 8.3066, -2.4077], [0, 4.5826, -2.1822], [0, 0, 7.6447]],
-            [3, 3]));
+        await r.array(),
+        [[-8.3066, 8.3066, -2.4077], [0, 4.5826, -2.1822], [0, 0, 7.6447]]);
   });
 
-  it('3x2, fullMatrices = default false', () => {
+  it('3x2, fullMatrices = default false', async () => {
     const x = tensor2d([[1, 2], [3, -3], [-2, 1]], [3, 2]);
     const [q, r] = tf.linalg.qr(x);
     expectArraysClose(
-        q,
-        tensor2d(
-            [[-0.2673, 0.9221], [-0.8018, -0.3738], [0.5345, -0.0997]],
-            [3, 2]));
-    expectArraysClose(r, tensor2d([[-3.7417, 2.4054], [0, 2.8661]], [2, 2]));
+        await q.array(),
+        [[-0.2673, 0.9221], [-0.8018, -0.3738], [0.5345, -0.0997]]);
+    expectArraysClose(await r.array(), [[-3.7417, 2.4054], [0, 2.8661]]);
   });
 
-  it('3x2, fullMatrices = true', () => {
+  it('3x2, fullMatrices = true', async () => {
     const x = tensor2d([[1, 2], [3, -3], [-2, 1]], [3, 2]);
     const [q, r] = tf.linalg.qr(x, true);
+    expectArraysClose(await q.array(), [
+      [-0.2673, 0.9221, 0.2798], [-0.8018, -0.3738, 0.4663],
+      [0.5345, -0.0997, 0.8393]
+    ]);
     expectArraysClose(
-        q,
-        tensor2d(
-            [
-              [-0.2673, 0.9221, 0.2798], [-0.8018, -0.3738, 0.4663],
-              [0.5345, -0.0997, 0.8393]
-            ],
-            [3, 3]));
-    expectArraysClose(
-        r, tensor2d([[-3.7417, 2.4054], [0, 2.8661], [0, 0]], [3, 2]));
+        await r.array(), [[-3.7417, 2.4054], [0, 2.8661], [0, 0]]);
   });
 
-  it('2x3, fullMatrices = default false', () => {
+  it('2x3, fullMatrices = default false', async () => {
     const x = tensor2d([[1, 2, 3], [-3, -2, 1]], [2, 3]);
     const [q, r] = tf.linalg.qr(x);
     expectArraysClose(
-        q,
-        tensor2d([[-0.3162278, -0.9486833], [0.9486833, -0.31622773]], [2, 2]));
+        await q.array(), [[-0.3162278, -0.9486833], [0.9486833, -0.31622773]]);
     expectArraysClose(
-        r,
-        tensor2d(
-            [[-3.162, -2.5298, -2.3842e-07], [0, -1.2649, -3.162]], [2, 3]),
-    );
+        await r.array(),
+        [[-3.162, -2.5298, -2.3842e-07], [0, -1.2649, -3.162]]);
   });
 
-  it('2x3, fullMatrices = true', () => {
+  it('2x3, fullMatrices = true', async () => {
     const x = tensor2d([[1, 2, 3], [-3, -2, 1]], [2, 3]);
     const [q, r] = tf.linalg.qr(x, true);
     expectArraysClose(
-        q,
-        tensor2d([[-0.3162278, -0.9486833], [0.9486833, -0.31622773]], [2, 2]));
+        await q.array(), [[-0.3162278, -0.9486833], [0.9486833, -0.31622773]]);
     expectArraysClose(
-        r,
-        tensor2d(
-            [[-3.162, -2.5298, -2.3842e-07], [0, -1.2649, -3.162]], [2, 3]),
-    );
+        await r.array(),
+        [[-3.162, -2.5298, -2.3842e-07], [0, -1.2649, -3.162]]);
   });
 
   it('Does not leak memory', () => {
