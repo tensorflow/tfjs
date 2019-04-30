@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {scalar, zeros} from '../ops/tensor_ops';
+import {scalar, zeros, tensor1d} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
 import {Rank} from '../types';
 import {DataType, ShapeMap} from '../types';
-import {hasEncodingLoss} from '../util';
+import {hasEncodingLoss, makeZerosTypedArray} from '../util';
 import {KernelBackend} from './backend';
 
 export function castTensor<T extends Tensor>(
@@ -62,4 +62,16 @@ export function castTensor<T extends Tensor>(
 export function reshapeTensor<T extends Tensor, R extends Rank>(
     x: T, shape: ShapeMap[R]): Tensor<R> {
   return Tensor.make(shape, {dataId: x.dataId}, x.dtype);
+}
+
+export function linspaceImpl(start: number, stop: number, num: number) {
+  const step = (stop - start) / (num - 1);
+
+  const values = makeZerosTypedArray(num, 'float32');
+  values[0] = start;
+  for (let i = 1; i < values.length; i++) {
+    values[i] = values[i - 1] + step;
+  }
+
+  return tensor1d(values, 'float32');
 }

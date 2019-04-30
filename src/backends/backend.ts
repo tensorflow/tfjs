@@ -614,6 +614,10 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     throw new Error('Not yet implemented');
   }
 
+  linspace(start: number, stop: number, num: number): Tensor1D {
+    throw new Error('Not yet implemented');
+  }
+
   dispose(): void {
     throw new Error('Not yet implemented');
   }
