@@ -48,8 +48,7 @@ ENV.registerFlag('WEBGL_CPU_FORWARD', () => false);
 ENV.registerFlag('WEBGL_PACK', () => ENV.getBool('HAS_WEBGL'));
 
 /** Whether we will pack the batchnormalization op. */
-ENV.registerFlag(
-    'WEBGL_PACK_BATCHNORMALIZATION', () => ENV.getBool('WEBGL_PACK'));
+ENV.registerFlag('WEBGL_PACK_NORMALIZATION', () => ENV.getBool('WEBGL_PACK'));
 
 /** Whether we will pack the clip op. */
 ENV.registerFlag('WEBGL_PACK_CLIP', () => ENV.getBool('WEBGL_PACK'));

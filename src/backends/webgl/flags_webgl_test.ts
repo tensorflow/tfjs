@@ -56,18 +56,18 @@ describe('WEBGL_PACK', () => {
   });
 });
 
-describe('WEBGL_PACK_BATCHNORMALIZATION', () => {
+describe('WEBGL_PACK_NORMALIZATION', () => {
   beforeEach(() => ENV.reset());
   afterAll(() => ENV.reset());
 
   it('true when WEBGL_PACK is true', () => {
     ENV.set('WEBGL_PACK', true);
-    expect(ENV.getBool('WEBGL_PACK_BATCHNORMALIZATION')).toBe(true);
+    expect(ENV.getBool('WEBGL_PACK_NORMALIZATION')).toBe(true);
   });
 
   it('false when WEBGL_PACK is false', () => {
     ENV.set('WEBGL_PACK', false);
-    expect(ENV.getBool('WEBGL_PACK_BATCHNORMALIZATION')).toBe(false);
+    expect(ENV.getBool('WEBGL_PACK_NORMALIZATION')).toBe(false);
   });
 });
 
