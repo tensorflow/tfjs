@@ -29,7 +29,7 @@ import * as scatter_nd_util from './scatter_nd_util';
  * extracts values or slices from a given tensor.
  *
  * ```js
- * const indices = tf.tensor2d([4, 3, 1, 7], [4, 1], dtype='int32');
+ * const indices = tf.tensor2d([4, 3, 1, 7], [4, 1], 'int32');
  * const updates = tf.tensor1d([9, 10, 11, 12]);
  * const shape = [8];
  * tf.scatterND(indices, updates, shape).print() //[0, 11, 0, 10, 9, 0, 0, 12]

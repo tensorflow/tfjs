@@ -181,7 +181,8 @@ function where_<T extends Tensor>(
  *
  * ```js
  * const cond = tf.tensor1d([false, false, true], 'bool');
- * tf.whereAsync(cond).then(result => result.print());
+ * const result = await tf.whereAsync(cond);
+ * result.print();
  * ```
  */
 /** @doc {heading: 'Operations', subheading: 'Logical'} */

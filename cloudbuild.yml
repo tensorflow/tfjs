@@ -28,6 +28,11 @@ steps:
   dir: 'src/backends/webgpu/'
   args: ['test-ci']
   waitFor: ['-']
+- name: 'node:10'
+  entrypoint: 'yarn'
+  args: ['test-snippets']
+  id: 'test-snippets'
+  waitFor: ['yarn']
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:

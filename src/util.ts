@@ -93,7 +93,8 @@ export function distSquared(a: FlatVector, b: FlatVector): number {
  * provided message.
  *
  * ```js
- * tf.util.assert(2 === 3, 'Two is not three');
+ * const x = 2;
+ * tf.util.assert(x === 2, 'x is not 2');
  * ```
  *
  * @param expr The expression to assert (as a boolean).

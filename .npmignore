@@ -2,7 +2,6 @@
 .rpt2_cache/
 src/**/*_test.ts
 integration_tests/
-scripts/
 models/
 coverage/
 package/
