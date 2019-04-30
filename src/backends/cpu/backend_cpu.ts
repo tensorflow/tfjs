@@ -3392,6 +3392,10 @@ export class MathBackendCPU implements KernelBackend {
     return Tensor.make(x.shape, {values}, x.dtype);
   }
 
+  linspace(start: number, stop: number, num: number): Tensor1D {
+    return backend_util.linspaceImpl(start, stop, num);
+  }
+
   private scatter<R extends Rank>(
       indices: Tensor, updates: Tensor, shape: ShapeMap[R], outputSize: number,
       sliceSize: number, numUpdates: number, sliceRank: number,

@@ -2264,6 +2264,11 @@ export class MathBackendWebGL implements KernelBackend {
     return this.fill(x.shape, x.dtype === 'string' ? '' : 0, x.dtype);
   }
 
+  linspace(start: number, stop: number, num: number): Tensor1D {
+    // TODO: Use CPU implementation due to the precision problem in Safari.
+    return backend_util.linspaceImpl(start, stop, num);
+  }
+
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
       T {
     return Tensor.make(shape, {}, dtype, this) as T;
