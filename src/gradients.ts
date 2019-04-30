@@ -325,12 +325,12 @@ function variableGrads(f: () => Scalar, varList?: Variable[]):
  * ```js
  * const customOp = tf.customGrad((x, save) => {
  *   // Save x to make sure it's available later for the gradient.
- *   save({x});
+ *   save([x]);
  *   // Override gradient of our custom x ^ 2 op to be dy * abs(x);
  *   return {
  *     value: x.square(),
- *     // Note `saved.x` which points to the `x` we saved ealier.
- *     gradFunc: (dy, saved) => [dy.mul(saved.x.abs())]
+ *     // Note `saved.x` which points to the `x` we saved earlier.
+ *     gradFunc: (dy, saved) => [dy.mul(saved[0].abs())]
  *   };
  * });
  *

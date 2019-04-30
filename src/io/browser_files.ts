@@ -261,7 +261,7 @@ IORouterRegistry.registerSaveRouter(browserDownloadsRouter);
  * const model = tf.sequential();
  * model.add(tf.layers.dense(
  *     {units: 1, inputShape: [10], activation: 'sigmoid'}));
- * const saveResult = await model.save('downloads://mymodel'));
+ * const saveResult = await model.save('downloads://mymodel');
  * // This will trigger downloading of two files:
  * //   'mymodel.json' and 'mymodel.weights.bin'.
  * console.log(saveResult);
@@ -283,7 +283,14 @@ IORouterRegistry.registerSaveRouter(browserDownloadsRouter);
  * @param config Additional configuration for triggering downloads.
  * @returns An instance of `BrowserDownloads` `IOHandler`.
  */
-/** @doc {heading: 'Models', subheading: 'Loading', namespace: 'io'} */
+/**
+ * @doc {
+ *   heading: 'Models',
+ *   subheading: 'Loading',
+ *   namespace: 'io',
+ *   ignoreCI: true
+ * }
+ */
 export function browserDownloads(fileNamePrefix = 'model'): IOHandler {
   return new BrowserDownloads(fileNamePrefix);
 }
@@ -321,7 +328,14 @@ export function browserDownloads(fileNamePrefix = 'model'): IOHandler {
  *     topology will be loaded from the JSON file above.
  * @returns An instance of `Files` `IOHandler`.
  */
-/** @doc {heading: 'Models', subheading: 'Loading', namespace: 'io'} */
+/**
+ * @doc {
+ *   heading: 'Models',
+ *   subheading: 'Loading',
+ *   namespace: 'io',
+ *   ignoreCI: true
+ * }
+ */
 export function browserFiles(files: File[]): IOHandler {
   return new BrowserFiles(files);
 }

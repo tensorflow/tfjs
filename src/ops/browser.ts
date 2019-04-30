@@ -40,7 +40,7 @@ import {op} from './operation';
  * numChannels value less than 4 allows you to ignore channels. Defaults to
  * 3 (ignores alpha channel of input image).
  */
-/** @doc {heading: 'Browser', namespace: 'browser'} */
+/** @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true} */
 function fromPixels_(
     pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
     numChannels = 3): Tensor3D {

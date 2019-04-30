@@ -156,7 +156,7 @@ export class SerializationMap {
  * @param cls The class to be registered. It must have a public static member
  *   called `className` defined and the value must be a non-empty string.
  */
-/** @doc {heading: 'Models', subheading: 'Serialization'} */
+/** @doc {heading: 'Models', subheading: 'Serialization', ignoreCI: true} */
 export function registerClass<T extends Serializable>(
     cls: SerializableConstructor<T>) {
   assert(

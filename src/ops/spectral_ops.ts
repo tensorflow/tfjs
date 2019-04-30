@@ -144,8 +144,10 @@ function rfft_(input: Tensor): Tensor {
  *
  * ```js
  * const real = tf.tensor1d([1, 2, 3]);
+ * const imag = tf.tensor1d([0, 0, 0]);
+ * const x = tf.complex(real, imag);
  *
- * real.irfft().print();
+ * x.irfft().print();
  * ```
  * @param input The real value input to compute an irfft over.
  */

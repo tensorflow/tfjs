@@ -264,6 +264,9 @@ export interface OpHandler {
   ceil<T extends Tensor>(x: T): T;
   floor<T extends Tensor>(x: T): T;
   sign<T extends Tensor>(x: T): T;
+  isNaN<T extends Tensor>(x: T): T;
+  isInf<T extends Tensor>(x: T): T;
+  isFinite<T extends Tensor>(x: T): T;
   round<T extends Tensor>(x: T): T;
   exp<T extends Tensor>(x: T): T;
   expm1<T extends Tensor>(x: T): T;
@@ -1067,6 +1070,18 @@ export class Tensor<R extends Rank = Rank> {
   sign<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
     return opHandler.sign(this);
+  }
+  isNaN<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return opHandler.isNaN(this);
+  }
+  isInf<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return opHandler.isInf(this);
+  }
+  isFinite<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return opHandler.isFinite(this);
   }
   exp<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
