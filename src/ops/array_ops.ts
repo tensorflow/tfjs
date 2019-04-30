@@ -23,7 +23,7 @@ import * as util from '../util';
 import {getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {concat} from './concat_split';
 import {op} from './operation';
-import {MPRandGauss} from './rand';
+import {MPRandGauss, UniformRandom} from './rand';
 import {zeros, zerosLike} from './tensor_ops';
 
 /**
@@ -186,11 +186,12 @@ function truncatedNormal_<R extends Rank>(
  */
 /** @doc {heading: 'Tensors', subheading: 'Random'} */
 function randomUniform_<R extends Rank>(
-    shape: ShapeMap[R], minval = 0, maxval = 1,
-    dtype: DataType = 'float32'): Tensor<R> {
+    shape: ShapeMap[R], minval = 0, maxval = 1, dtype: DataType = 'float32',
+    seed?: number|string): Tensor<R> {
   const res = buffer(shape, dtype);
+  const random = new UniformRandom(minval, maxval, null, seed);
   for (let i = 0; i < res.values.length; i++) {
-    res.values[i] = util.randUniform(minval, maxval);
+    res.values[i] = random.nextValue();
   }
   return res.toTensor();
 }

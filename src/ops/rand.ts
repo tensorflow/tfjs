@@ -17,7 +17,7 @@
 
 import * as seedrandom from 'seedrandom';
 
-export interface RandGauss {
+export interface RandomBase {
   nextValue(): number;
 }
 
@@ -27,7 +27,7 @@ export interface RandNormalDataTypes {
 }
 
 // https://en.wikipedia.org/wiki/Marsaglia_polar_method
-export class MPRandGauss implements RandGauss {
+export class MPRandGauss implements RandomBase {
   private mean: number;
   private stdDev: number;
   private nextVal: number;
@@ -97,5 +97,40 @@ export class MPRandGauss implements RandGauss {
   /** Returns true if less than 2-standard-deviations from the mean. */
   private isValidTruncated(value: number): boolean {
     return value <= this.upper && value >= this.lower;
+  }
+}
+
+export class UniformRandom implements RandomBase {
+  private min: number;
+  private range: number;
+  private random: seedrandom.prng;
+  private dtype?: keyof RandNormalDataTypes;
+
+  constructor(
+      min = 0, max = 1, dtype?: keyof RandNormalDataTypes,
+      seed: string|number = Math.random()) {
+    this.min = min;
+    this.range = max - min;
+    this.dtype = dtype;
+    if (!this.canReturnFloat() && this.range <= 1) {
+      throw new Error(
+          `The difference between ${min} - ${max} <= 1 and dtype is not float`);
+    }
+    this.random = seedrandom.alea(seed.toString());
+  }
+
+  /** Handles proper rounding for non floating point numbers. */
+  private canReturnFloat = () =>
+      (this.dtype == null || this.dtype === 'float32');
+
+  private convertValue(value: number): number {
+    if (this.canReturnFloat()) {
+      return value;
+    }
+    return Math.round(value);
+  }
+
+  nextValue() {
+    return this.convertValue(this.min + this.range * this.random());
   }
 }
