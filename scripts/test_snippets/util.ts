@@ -21,6 +21,8 @@ import * as ts from 'typescript';
 
 // Used for logging the number of snippets that have been found.
 let snippetCount = 0;
+// Used for counting the number of errors that have been found.
+let errorCount = 0;
 
 /**
  * Parse and evaluate snippets for the src/index.ts from where this script is
@@ -52,7 +54,13 @@ export async function parseAndEvaluateSnippets(tf: any) {
     }
   }
 
-  console.log(`Parsed and evaluated ${snippetCount} snippets successfully.`);
+  if (errorCount === 0) {
+    console.log(`Parsed and evaluated ${snippetCount} snippets successfully.`);
+  } else {
+    console.log(
+        `Evaluated ${snippetCount} snippets with ${errorCount} errors.`);
+    process.exit(1);
+  }
 }
 
 async function visit(
@@ -126,7 +134,7 @@ async function visit(
           oldLog();
 
           console.error(e);
-          process.exit(1);
+          errorCount++;
         };
 
         // Overrwrite console.log so we don't spam the console.
