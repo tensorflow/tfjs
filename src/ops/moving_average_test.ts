@@ -45,30 +45,30 @@ describeWithFlags('movingAverage', ALL_ENVS, () => {
   //   print(sess.run(v))
   // ```
 
-  it('zeroDebias=true, decay and step are numbers', () => {
+  it('zeroDebias=true, decay and step are numbers', async () => {
     const v0 = tf.tensor2d([[0, 0], [0, 0]], [2, 2]);
     const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
     const decay = 0.6;
 
     const v1 = tf.movingAverage(v0, x, decay, 1);
-    expectArraysClose(v1, tf.tensor2d([[1, 2], [3, 4]], [2, 2]));
+    expectArraysClose(await v1.array(), [[1, 2], [3, 4]]);
 
     const y = tf.tensor2d([[11, 12], [13, 14]], [2, 2]);
     const v2 = tf.movingAverage(v1, y, decay, 2);
-    expectArraysClose(v2, tf.tensor2d([[7.25, 8.25], [9.25, 10.25]], [2, 2]));
+    expectArraysClose(await v2.array(), [[7.25, 8.25], [9.25, 10.25]]);
   });
 
-  it('zeroDebias=true, decay and step are scalars', () => {
+  it('zeroDebias=true, decay and step are scalars', async () => {
     const v0 = tf.tensor2d([[0, 0], [0, 0]], [2, 2]);
     const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
     const decay = tf.scalar(0.6);
 
     const v1 = tf.movingAverage(v0, x, decay, tf.scalar(1));
-    expectArraysClose(v1, tf.tensor2d([[1, 2], [3, 4]], [2, 2]));
+    expectArraysClose(await v1.array(), [[1, 2], [3, 4]]);
 
     const y = tf.tensor2d([[11, 12], [13, 14]], [2, 2]);
     const v2 = tf.movingAverage(v1, y, decay, tf.scalar(2));
-    expectArraysClose(v2, tf.tensor2d([[7.25, 8.25], [9.25, 10.25]], [2, 2]));
+    expectArraysClose(await v2.array(), [[7.25, 8.25], [9.25, 10.25]]);
   });
 
   // Use the following tensorflow to generate reference values for
@@ -96,30 +96,30 @@ describeWithFlags('movingAverage', ALL_ENVS, () => {
   //   print(sess.run(v))
   // ```
 
-  it('zeroDebias=false, decay and step are numbers', () => {
+  it('zeroDebias=false, decay and step are numbers', async () => {
     const v0 = tf.tensor2d([[0, 0], [0, 0]], [2, 2]);
     const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
     const decay = 0.6;
 
     const v1 = tf.movingAverage(v0, x, decay, null, false);
-    expectArraysClose(v1, tf.tensor2d([[0.4, 0.8], [1.2, 1.6]], [2, 2]));
+    expectArraysClose(await v1.array(), [[0.4, 0.8], [1.2, 1.6]]);
 
     const y = tf.tensor2d([[11, 12], [13, 14]], [2, 2]);
     const v2 = tf.movingAverage(v1, y, decay, null, false);
-    expectArraysClose(v2, tf.tensor2d([[4.64, 5.28], [5.92, 6.56]], [2, 2]));
+    expectArraysClose(await v2.array(), [[4.64, 5.28], [5.92, 6.56]]);
   });
 
-  it('zeroDebias=false, decay is scalar', () => {
+  it('zeroDebias=false, decay is scalar', async () => {
     const v0 = tf.tensor2d([[0, 0], [0, 0]], [2, 2]);
     const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
     const decay = tf.scalar(0.6);
 
     const v1 = tf.movingAverage(v0, x, decay, null, false);
-    expectArraysClose(v1, tf.tensor2d([[0.4, 0.8], [1.2, 1.6]], [2, 2]));
+    expectArraysClose(await v1.array(), [[0.4, 0.8], [1.2, 1.6]]);
 
     const y = tf.tensor2d([[11, 12], [13, 14]], [2, 2]);
     const v2 = tf.movingAverage(v1, y, decay, null, false);
-    expectArraysClose(v2, tf.tensor2d([[4.64, 5.28], [5.92, 6.56]], [2, 2]));
+    expectArraysClose(await v2.array(), [[4.64, 5.28], [5.92, 6.56]]);
   });
 
   it('zeroDebias=true, no step throws error', () => {
@@ -153,12 +153,12 @@ describeWithFlags('movingAverage', ALL_ENVS, () => {
             /Argument 'x' passed to 'movingAverage' must be a Tensor/);
   });
 
-  it('accepts a tensor-like object', () => {
+  it('accepts a tensor-like object', async () => {
     const v0 = [[0, 0], [0, 0]];  // 2x2
     const x = [[1, 2], [3, 4]];   // 2x2
     const decay = 0.6;
 
     const v1 = tf.movingAverage(v0, x, decay, 1);
-    expectArraysClose(v1, tf.tensor2d([[1, 2], [3, 4]], [2, 2]));
+    expectArraysClose(await v1.array(), [[1, 2], [3, 4]]);
   });
 });

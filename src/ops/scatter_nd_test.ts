@@ -20,7 +20,7 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('scatterND', ALL_ENVS, () => {
-  it('should work for 2d', () => {
+  it('should work for 2d', async () => {
     const indices = tf.tensor1d([0, 4, 2], 'int32');
     const updates = tf.tensor2d(
         [100, 101, 102, 777, 778, 779, 1000, 1001, 1002], [3, 3], 'int32');
@@ -29,31 +29,31 @@ describeWithFlags('scatterND', ALL_ENVS, () => {
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(updates.dtype);
     expectArraysClose(
-        result,
+        await result.data(),
         [100, 101, 102, 0, 0, 0, 1000, 1001, 1002, 0, 0, 0, 777, 778, 779]);
   });
 
-  it('should work for simple 1d', () => {
+  it('should work for simple 1d', async () => {
     const indices = tf.tensor1d([3], 'int32');
     const updates = tf.tensor1d([101], 'float32');
     const shape = [5];
     const result = tf.scatterND(indices, updates, shape);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(updates.dtype);
-    expectArraysClose(result, [0, 0, 0, 101, 0]);
+    expectArraysClose(await result.data(), [0, 0, 0, 101, 0]);
   });
 
-  it('should work for multiple 1d', () => {
+  it('should work for multiple 1d', async () => {
     const indices = tf.tensor1d([0, 4, 2], 'int32');
     const updates = tf.tensor1d([100, 101, 102], 'float32');
     const shape = [5];
     const result = tf.scatterND(indices, updates, shape);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(updates.dtype);
-    expectArraysClose(result, [100, 0, 102, 0, 101]);
+    expectArraysClose(await result.data(), [100, 0, 102, 0, 101]);
   });
 
-  it('should work for high rank updates', () => {
+  it('should work for high rank updates', async () => {
     const indices = tf.tensor2d([0, 2], [2, 1], 'int32');
     const updates = tf.tensor3d(
         [
@@ -65,21 +65,21 @@ describeWithFlags('scatterND', ALL_ENVS, () => {
     const result = tf.scatterND(indices, updates, shape);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(updates.dtype);
-    expectArraysClose(result, [
+    expectArraysClose(await result.data(), [
       5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7,
       8, 8, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     ]);
   });
 
-  it('should work for high rank indices', () => {
+  it('should work for high rank indices', async () => {
     const indices = tf.tensor2d([0, 2, 0, 1], [2, 2], 'int32');
     const updates = tf.tensor1d([10, 20], 'float32');
     const shape = [3, 3];
     const result = tf.scatterND(indices, updates, shape);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(updates.dtype);
-    expectArraysClose(result, [0, 20, 10, 0, 0, 0, 0, 0, 0]);
+    expectArraysClose(await result.data(), [0, 20, 10, 0, 0, 0, 0, 0, 0]);
   });
 
   it('should work for high rank indices and update', () => {
@@ -91,24 +91,24 @@ describeWithFlags('scatterND', ALL_ENVS, () => {
     expect(result.dtype).toEqual(updates.dtype);
   });
 
-  it('should sum the duplicated indices', () => {
+  it('should sum the duplicated indices', async () => {
     const indices = tf.tensor1d([0, 4, 2, 1, 3, 0], 'int32');
     const updates = tf.tensor1d([10, 20, 30, 40, 50, 60], 'float32');
     const shape = [8];
     const result = tf.scatterND(indices, updates, shape);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(updates.dtype);
-    expectArraysClose(result, [70, 40, 30, 50, 20, 0, 0, 0]);
+    expectArraysClose(await result.data(), [70, 40, 30, 50, 20, 0, 0, 0]);
   });
 
-  it('should work for tensorLike input', () => {
+  it('should work for tensorLike input', async () => {
     const indices = [0, 4, 2];
     const updates = [100, 101, 102];
     const shape = [5];
     const result = tf.scatterND(indices, updates, shape);
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual('float32');
-    expectArraysClose(result, [100, 0, 102, 0, 101]);
+    expectArraysClose(await result.data(), [100, 0, 102, 0, 101]);
   });
 
   it('should throw error when indices type is not int32', () => {

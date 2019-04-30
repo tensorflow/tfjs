@@ -20,17 +20,18 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('clone', ALL_ENVS, () => {
-  it('returns a tensor with the same shape and value', () => {
+  it('returns a tensor with the same shape and value', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9], [3, 3]);
     const aPrime = tf.clone(a);
     expect(aPrime.shape).toEqual(a.shape);
-    expectArraysClose(aPrime, a);
+    expectArraysClose(await aPrime.data(), await a.data());
+    expect(aPrime.shape).toEqual(a.shape);
   });
 
-  it('accepts a tensor-like object', () => {
+  it('accepts a tensor-like object', async () => {
     const res = tf.clone([[1, 2, 3], [4, 5, 6]]);
     expect(res.dtype).toBe('float32');
     expect(res.shape).toEqual([2, 3]);
-    expectArraysClose(res, [1, 2, 3, 4, 5, 6]);
+    expectArraysClose(await res.data(), [1, 2, 3, 4, 5, 6]);
   });
 });

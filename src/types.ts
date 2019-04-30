@@ -132,8 +132,8 @@ export function sumOutType(type: DataType): DataType {
 
 /** @docalias TypedArray|Array */
 export type TensorLike =
-    TypedArray|number|boolean|string|RegularArray<number|number[]|TypedArray>|
-    RegularArray<boolean>|RegularArray<string>;
+    TypedArray|number|boolean|string|RecursiveArray<number|number[]|TypedArray>|
+    RecursiveArray<boolean>|RecursiveArray<string>;
 export type ScalarLike = number|boolean|string;
 /** @docalias TypedArray|Array */
 export type TensorLike1D = TypedArray|number[]|boolean[]|string[];

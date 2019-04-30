@@ -20,7 +20,7 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
-  it('basic', () => {
+  it('basic', async () => {
     const learningRate = .1;
     const optimizer = tf.train.sgd(learningRate);
 
@@ -35,8 +35,8 @@ describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
 
     // de/dx = 2x
     const expectedValue1 = -2 * 4 * learningRate + 4;
-    expectArraysClose(x, [expectedValue1]);
-    expectArraysClose(cost, [Math.pow(4, 2)]);
+    expectArraysClose(await x.data(), [expectedValue1]);
+    expectArraysClose(await cost.data(), [Math.pow(4, 2)]);
 
     cost.dispose();
     numTensors = tf.memory().numTensors;
@@ -46,7 +46,7 @@ describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(numTensors);
 
     const expectedValue2 = -2 * expectedValue1 * learningRate + expectedValue1;
-    expectArraysClose(x, [expectedValue2]);
+    expectArraysClose(await x.data(), [expectedValue2]);
     expect(cost).toBe(null);
 
     optimizer.dispose();

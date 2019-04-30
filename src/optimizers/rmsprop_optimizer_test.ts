@@ -20,7 +20,7 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
-  it('basic', () => {
+  it('basic', async () => {
     const learningRate = 0.1;
     const moment = 0.1;
     const rho = 0.95;
@@ -51,7 +51,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     // accumulatedMoments = [0, 0]
     // newAccumulatedMoments = [0.44721, 0.44721]
     // x = [0.55279, 1.55279]
-    expectArraysClose(x, [0.55279, 1.55279]);
+    expectArraysClose(await x.data(), [0.55279, 1.55279]);
 
     cost.dispose();
     numTensors = tf.memory().numTensors;
@@ -67,7 +67,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     // x = [0.28745, 1.22943]
 
     // TODO: Fix numerical precision.
-    expectArraysClose(x, [0.28745, 1.222943], 1e-2);
+    expectArraysClose(await x.data(), [0.28745, 1.222943], 1e-2);
 
     // There should be no new additional Tensors.
     expect(tf.memory().numTensors).toBe(numTensors);
@@ -80,7 +80,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(1);
   });
 
-  it('gradient with centered momentum', () => {
+  it('gradient with centered momentum', async () => {
     const learningRate = 0.1;
     const moment = 0.1;
     const rho = 0.95;
@@ -117,7 +117,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     // accumulatedMoments = [0, 0]
     // newAccumulatedMoments = [0.45883, 0.458831]
     // x = [0.54117, 1.541169]
-    expectArraysClose(x, [0.54117, 1.541169]);
+    expectArraysClose(await x.data(), [0.54117, 1.541169]);
 
     cost.dispose();
     numTensors = tf.memory().numTensors;
@@ -135,7 +135,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     // x = [0.267785, 1.2035924]
 
     // TODO: Fix numerical precision.
-    expectArraysClose(x, [0.267785, 1.2035924], 1e-2);
+    expectArraysClose(await x.data(), [0.267785, 1.2035924], 1e-2);
 
     // There should be no new additional Tensors.
     expect(tf.memory().numTensors).toBe(numTensors);

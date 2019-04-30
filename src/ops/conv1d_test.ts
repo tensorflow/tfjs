@@ -21,7 +21,7 @@ import {expectArraysClose} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('conv1d', ALL_ENVS, () => {
-  it('conv1d input=2x2x1,d2=1,f=1,s=1,d=1,p=same', () => {
+  it('conv1d input=2x2x1,d2=1,f=1,s=1,d=1,p=same', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
     const outputDepth = 1;
@@ -37,10 +37,10 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     const result = tf.conv1d(x, w, stride, pad, dataFormat, dilation);
 
     expect(result.shape).toEqual([2, 2, 1]);
-    expectArraysClose(result, [3, 6, 9, 12]);
+    expectArraysClose(await result.data(), [3, 6, 9, 12]);
   });
 
-  it('conv1d input=4x1,d2=1,f=2x1x1,s=1,d=1,p=valid', () => {
+  it('conv1d input=4x1,d2=1,f=2x1x1,s=1,d=1,p=valid', async () => {
     const inputDepth = 1;
     const inputShape: [number, number] = [4, inputDepth];
     const outputDepth = 1;
@@ -56,10 +56,10 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     const result = tf.conv1d(x, w, stride, pad, dataFormat, dilation);
 
     expect(result.shape).toEqual([3, 1]);
-    expectArraysClose(result, [4, 7, 10]);
+    expectArraysClose(await result.data(), [4, 7, 10]);
   });
 
-  it('conv1d input=4x1,d2=1,f=2x1x1,s=1,d=2,p=valid', () => {
+  it('conv1d input=4x1,d2=1,f=2x1x1,s=1,d=2,p=valid', async () => {
     const inputDepth = 1;
     const inputShape: [number, number] = [4, inputDepth];
     const outputDepth = 1;
@@ -83,10 +83,10 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
         tf.conv1d(x, wDilated, stride, pad, dataFormat, dilationWEffective);
 
     expect(result.shape).toEqual(expectedResult.shape);
-    expectArraysClose(result, expectedResult);
+    expectArraysClose(await result.data(), await expectedResult.data());
   });
 
-  it('conv1d input=14x1,d2=1,f=3x1x1,s=1,d=3,p=valid', () => {
+  it('conv1d input=14x1,d2=1,f=3x1x1,s=1,d=3,p=valid', async () => {
     const inputDepth = 1;
     const inputShape: [number, number] = [14, inputDepth];
     const outputDepth = 1;
@@ -111,10 +111,10 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
         tf.conv1d(x, wDilated, stride, pad, dataFormat, dilationWEffective);
 
     expect(result.shape).toEqual(expectedResult.shape);
-    expectArraysClose(result, expectedResult);
+    expectArraysClose(await result.data(), await expectedResult.data());
   });
 
-  it('TensorLike', () => {
+  it('TensorLike', async () => {
     const pad = 'same';
     const stride = 1;
     const dataFormat = 'NWC';
@@ -126,9 +126,9 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     const result = tf.conv1d(x, w, stride, pad, dataFormat, dilation);
 
     expect(result.shape).toEqual([2, 2, 1]);
-    expectArraysClose(result, [3, 6, 9, 12]);
+    expectArraysClose(await result.data(), [3, 6, 9, 12]);
   });
-  it('TensorLike Chained', () => {
+  it('TensorLike Chained', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
     const pad = 'same';
@@ -142,7 +142,7 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     const result = x.conv1d(w, stride, pad, dataFormat, dilation);
 
     expect(result.shape).toEqual([2, 2, 1]);
-    expectArraysClose(result, [3, 6, 9, 12]);
+    expectArraysClose(await result.data(), [3, 6, 9, 12]);
   });
 
   it('throws when x is not rank 3', () => {
@@ -246,7 +246,7 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
         .toThrowError(/Argument 'filter' passed to 'conv1d' must be a Tensor/);
   });
 
-  it('accepts a tensor-like object', () => {
+  it('accepts a tensor-like object', async () => {
     const pad = 'same';
     const stride = 1;
     const dataFormat = 'NWC';
@@ -257,10 +257,10 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     const result = tf.conv1d(x, w, stride, pad, dataFormat, dilation);
 
     expect(result.shape).toEqual([2, 2, 1]);
-    expectArraysClose(result, [3, 6, 9, 12]);
+    expectArraysClose(await result.data(), [3, 6, 9, 12]);
   });
 
-  it('gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same', () => {
+  it('gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
     const outputDepth = 1;
@@ -284,13 +284,13 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     const [dx, dw] = grads([x, w], dy);
 
     expect(dx.shape).toEqual(x.shape);
-    expectArraysClose(dx, [9, 6, 3, 0]);
+    expectArraysClose(await dx.data(), [9, 6, 3, 0]);
 
     expect(dw.shape).toEqual(w.shape);
-    expectArraysClose(dw, [10]);
+    expectArraysClose(await dw.data(), [10]);
   });
 
-  it('conv1d gradients input=14x1,d2=1,f=3x1x1,s=1,p=valid', () => {
+  it('conv1d gradients input=14x1,d2=1,f=3x1x1,s=1,p=valid', async () => {
     const inputDepth = 1;
     const inputShape: [number, number] = [14, inputDepth];
 
@@ -313,9 +313,10 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     const [dx, dw] = grads([x, w], dy);
 
     expect(dx.shape).toEqual(x.shape);
-    expectArraysClose(dx, [9, 12, 10, 4, 10, 12, 10, 4, 10, 12, 10, 4, 1, 0]);
+    expectArraysClose(
+        await dx.data(), [9, 12, 10, 4, 10, 12, 10, 4, 10, 12, 10, 4, 1, 0]);
 
     expect(dw.shape).toEqual(w.shape);
-    expectArraysClose(dw, [102, 120, 138]);
+    expectArraysClose(await dw.data(), [102, 120, 138]);
   });
 });

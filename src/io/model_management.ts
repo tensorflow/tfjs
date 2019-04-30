@@ -247,7 +247,7 @@ async function listModels(): Promise<{[url: string]: ModelArtifactsInfo}> {
 async function removeModel(url: string): Promise<ModelArtifactsInfo> {
   const schemeAndPath = parseURL(url);
   const manager = ModelStoreManagerRegistry.getManager(schemeAndPath.scheme);
-  return await manager.removeModel(schemeAndPath.path);
+  return manager.removeModel(schemeAndPath.path);
 }
 
 /**
@@ -301,7 +301,7 @@ async function removeModel(url: string): Promise<ModelArtifactsInfo> {
 async function copyModel(
     sourceURL: string, destURL: string): Promise<ModelArtifactsInfo> {
   const deleteSource = false;
-  return await cloneModelInternal(sourceURL, destURL, deleteSource);
+  return cloneModelInternal(sourceURL, destURL, deleteSource);
 }
 
 /**
@@ -351,10 +351,10 @@ async function copyModel(
  *   ignoreCI: true
  * }
  */
-async function moveModel(sourceURL: string, destURL: string):
-    Promise<ModelArtifactsInfo> {
-      const deleteSource = true;
-      return await cloneModelInternal(sourceURL, destURL, deleteSource);
-    }
+async function moveModel(
+    sourceURL: string, destURL: string): Promise<ModelArtifactsInfo> {
+  const deleteSource = true;
+  return cloneModelInternal(sourceURL, destURL, deleteSource);
+}
 
 export {moveModel, copyModel, removeModel, listModels};

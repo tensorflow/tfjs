@@ -31,7 +31,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     });
   };
 
-  it('1 group, 1 weight, 1 requested weight', done => {
+  it('1 group, 1 weight, 1 requested weight', async () => {
     setupFakeWeightFiles({'./weightfile0': new Float32Array([1, 2, 3])});
 
     const manifest: WeightsManifestConfig = [{
@@ -40,23 +40,20 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     }];
 
     const weightsNamesToFetch = ['weight0'];
-    tf.io.loadWeights(manifest, './', weightsNamesToFetch)
-        .then(weights => {
-          expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
+    const weights =
+        await tf.io.loadWeights(manifest, './', weightsNamesToFetch);
+    expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
 
-          const weightNames = Object.keys(weights);
-          expect(weightNames.length).toEqual(weightsNamesToFetch.length);
+    const weightNames = Object.keys(weights);
+    expect(weightNames.length).toEqual(weightsNamesToFetch.length);
 
-          const weight0 = weights['weight0'];
-          expectArraysClose(weight0, [1, 2, 3]);
-          expect(weight0.shape).toEqual([3]);
-          expect(weight0.dtype).toEqual('float32');
-        })
-        .then(done)
-        .catch(done.fail);
+    const weight0 = weights['weight0'];
+    expectArraysClose(await weight0.data(), [1, 2, 3]);
+    expect(weight0.shape).toEqual([3]);
+    expect(weight0.dtype).toEqual('float32');
   });
 
-  it('1 group, 2 weights, fetch 1st weight', done => {
+  it('1 group, 2 weights, fetch 1st weight', async () => {
     setupFakeWeightFiles({'./weightfile0': new Float32Array([1, 2, 3, 4, 5])});
 
     const manifest: WeightsManifestConfig = [{
@@ -68,23 +65,19 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     }];
 
     // Load the first weight.
-    tf.io.loadWeights(manifest, './', ['weight0'])
-        .then(weights => {
-          expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
+    const weights = await tf.io.loadWeights(manifest, './', ['weight0']);
+    expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
 
-          const weightNames = Object.keys(weights);
-          expect(weightNames.length).toEqual(1);
+    const weightNames = Object.keys(weights);
+    expect(weightNames.length).toEqual(1);
 
-          const weight0 = weights['weight0'];
-          expectArraysClose(weight0, [1, 2]);
-          expect(weight0.shape).toEqual([2]);
-          expect(weight0.dtype).toEqual('float32');
-        })
-        .then(done)
-        .catch(done.fail);
+    const weight0 = weights['weight0'];
+    expectArraysClose(await weight0.data(), [1, 2]);
+    expect(weight0.shape).toEqual([2]);
+    expect(weight0.dtype).toEqual('float32');
   });
 
-  it('1 group, 2 weights, fetch 2nd weight', done => {
+  it('1 group, 2 weights, fetch 2nd weight', async () => {
     setupFakeWeightFiles({'./weightfile0': new Float32Array([1, 2, 3, 4, 5])});
 
     const manifest: WeightsManifestConfig = [{
@@ -96,23 +89,19 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     }];
 
     // Load the second weight.
-    tf.io.loadWeights(manifest, './', ['weight1'])
-        .then(weights => {
-          expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
+    const weights = await tf.io.loadWeights(manifest, './', ['weight1']);
+    expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
 
-          const weightNames = Object.keys(weights);
-          expect(weightNames.length).toEqual(1);
+    const weightNames = Object.keys(weights);
+    expect(weightNames.length).toEqual(1);
 
-          const weight1 = weights['weight1'];
-          expectArraysClose(weight1, [3, 4, 5]);
-          expect(weight1.shape).toEqual([3]);
-          expect(weight1.dtype).toEqual('float32');
-        })
-        .then(done)
-        .catch(done.fail);
+    const weight1 = weights['weight1'];
+    expectArraysClose(await weight1.data(), [3, 4, 5]);
+    expect(weight1.shape).toEqual([3]);
+    expect(weight1.dtype).toEqual('float32');
   });
 
-  it('1 group, 2 weights, fetch all weights', done => {
+  it('1 group, 2 weights, fetch all weights', async () => {
     setupFakeWeightFiles({'./weightfile0': new Float32Array([1, 2, 3, 4, 5])});
 
     const manifest: WeightsManifestConfig = [{
@@ -124,28 +113,25 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     }];
 
     // Load all weights.
-    tf.io.loadWeights(manifest, './', ['weight0', 'weight1'])
-        .then(weights => {
-          expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
+    const weights =
+        await tf.io.loadWeights(manifest, './', ['weight0', 'weight1']);
+    expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
 
-          const weightNames = Object.keys(weights);
-          expect(weightNames.length).toEqual(2);
+    const weightNames = Object.keys(weights);
+    expect(weightNames.length).toEqual(2);
 
-          const weight0 = weights['weight0'];
-          expectArraysClose(weight0, [1, 2]);
-          expect(weight0.shape).toEqual([2]);
-          expect(weight0.dtype).toEqual('float32');
+    const weight0 = weights['weight0'];
+    expectArraysClose(await weight0.data(), [1, 2]);
+    expect(weight0.shape).toEqual([2]);
+    expect(weight0.dtype).toEqual('float32');
 
-          const weight1 = weights['weight1'];
-          expectArraysClose(weight1, [3, 4, 5]);
-          expect(weight1.shape).toEqual([3]);
-          expect(weight1.dtype).toEqual('float32');
-        })
-        .then(done)
-        .catch(done.fail);
+    const weight1 = weights['weight1'];
+    expectArraysClose(await weight1.data(), [3, 4, 5]);
+    expect(weight1.shape).toEqual([3]);
+    expect(weight1.dtype).toEqual('float32');
   });
 
-  it('1 group, multiple weights, different dtypes', done => {
+  it('1 group, multiple weights, different dtypes', async () => {
     const buffer = new ArrayBuffer(5 * 4 + 1);
     const view = new DataView(buffer);
     view.setInt32(0, 1, true);
@@ -166,33 +152,30 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     }];
 
     // Load all weights.
-    tf.io.loadWeights(manifest, './', ['weight0', 'weight1', 'weight2'])
-        .then(weights => {
-          expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
+    const weights = await tf.io.loadWeights(
+        manifest, './', ['weight0', 'weight1', 'weight2']);
+    expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
 
-          const weightNames = Object.keys(weights);
-          expect(weightNames.length).toEqual(3);
+    const weightNames = Object.keys(weights);
+    expect(weightNames.length).toEqual(3);
 
-          const weight0 = weights['weight0'];
-          expectArraysClose(weight0, [1, 2]);
-          expect(weight0.shape).toEqual([2]);
-          expect(weight0.dtype).toEqual('int32');
+    const weight0 = weights['weight0'];
+    expectArraysClose(await weight0.data(), [1, 2]);
+    expect(weight0.shape).toEqual([2]);
+    expect(weight0.dtype).toEqual('int32');
 
-          const weight1 = weights['weight1'];
-          expectArraysClose(weight1, [1]);
-          expect(weight1.shape).toEqual([]);
-          expect(weight1.dtype).toEqual('bool');
+    const weight1 = weights['weight1'];
+    expectArraysClose(await weight1.data(), [1]);
+    expect(weight1.shape).toEqual([]);
+    expect(weight1.dtype).toEqual('bool');
 
-          const weight2 = weights['weight2'];
-          expectArraysClose(weight2, [3, 4, 5]);
-          expect(weight2.shape).toEqual([3]);
-          expect(weight2.dtype).toEqual('float32');
-        })
-        .then(done)
-        .catch(done.fail);
+    const weight2 = weights['weight2'];
+    expectArraysClose(await weight2.data(), [3, 4, 5]);
+    expect(weight2.shape).toEqual([3]);
+    expect(weight2.dtype).toEqual('float32');
   });
 
-  it('1 group, sharded 1 weight across multiple files', done => {
+  it('1 group, sharded 1 weight across multiple files', async () => {
     const shard0 = new Float32Array([1, 2, 3, 4, 5]);
     const shard1 = new Float32Array([1.1, 2.2]);
     const shard2 = new Float32Array([10, 20, 30]);
@@ -208,23 +191,20 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
       'weights': [{'name': 'weight0', 'dtype': 'float32', 'shape': [5, 2]}]
     }];
 
-    tf.io.loadWeights(manifest, './', ['weight0'])
-        .then(weights => {
-          expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(3);
+    const weights = await tf.io.loadWeights(manifest, './', ['weight0']);
+    expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(3);
 
-          const weightNames = Object.keys(weights);
-          expect(weightNames.length).toEqual(1);
+    const weightNames = Object.keys(weights);
+    expect(weightNames.length).toEqual(1);
 
-          const weight0 = weights['weight0'];
-          expectArraysClose(weight0, [1, 2, 3, 4, 5, 1.1, 2.2, 10, 20, 30]);
-          expect(weight0.shape).toEqual([5, 2]);
-          expect(weight0.dtype).toEqual('float32');
-        })
-        .then(done)
-        .catch(done.fail);
+    const weight0 = weights['weight0'];
+    expectArraysClose(
+        await weight0.data(), [1, 2, 3, 4, 5, 1.1, 2.2, 10, 20, 30]);
+    expect(weight0.shape).toEqual([5, 2]);
+    expect(weight0.dtype).toEqual('float32');
   });
 
-  it('1 group, sharded 2 weights across multiple files', done => {
+  it('1 group, sharded 2 weights across multiple files', async () => {
     const shard0 = new Int32Array([1, 2, 3, 4, 5]);
 
     // shard1 contains part of the first weight and part of the second.
@@ -250,28 +230,25 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
       ]
     }];
 
-    tf.io.loadWeights(manifest, './', ['weight0', 'weight1'])
-        .then(weights => {
-          expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(3);
+    const weights =
+        await tf.io.loadWeights(manifest, './', ['weight0', 'weight1']);
+    expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(3);
 
-          const weightNames = Object.keys(weights);
-          expect(weightNames.length).toEqual(2);
+    const weightNames = Object.keys(weights);
+    expect(weightNames.length).toEqual(2);
 
-          const weight0 = weights['weight0'];
-          expectArraysClose(weight0, [1, 2, 3, 4, 5, 10, 20]);
-          expect(weight0.shape).toEqual([7, 1]);
-          expect(weight0.dtype).toEqual('int32');
+    const weight0 = weights['weight0'];
+    expectArraysClose(await weight0.data(), [1, 2, 3, 4, 5, 10, 20]);
+    expect(weight0.shape).toEqual([7, 1]);
+    expect(weight0.dtype).toEqual('int32');
 
-          const weight1 = weights['weight1'];
-          expectArraysClose(weight1, [3.0, 4.0, 5.0, 10, 20, 30]);
-          expect(weight1.shape).toEqual([3, 2]);
-          expect(weight1.dtype).toEqual('float32');
-        })
-        .then(done)
-        .catch(done.fail);
+    const weight1 = weights['weight1'];
+    expectArraysClose(await weight1.data(), [3.0, 4.0, 5.0, 10, 20, 30]);
+    expect(weight1.shape).toEqual([3, 2]);
+    expect(weight1.dtype).toEqual('float32');
   });
 
-  it('2 group, 4 weights, fetches one group', done => {
+  it('2 group, 4 weights, fetches one group', async () => {
     setupFakeWeightFiles({
       './weightfile0': new Float32Array([1, 2, 3, 4, 5]),
       './weightfile1': new Float32Array([6, 7, 8, 9])
@@ -294,29 +271,26 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
       }
     ];
 
-    tf.io.loadWeights(manifest, './', ['weight0', 'weight1'])
-        .then(weights => {
-          // Only the first group should be fetched.
-          expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
+    const weights =
+        await tf.io.loadWeights(manifest, './', ['weight0', 'weight1']);
+    // Only the first group should be fetched.
+    expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
 
-          const weightNames = Object.keys(weights);
-          expect(weightNames.length).toEqual(2);
+    const weightNames = Object.keys(weights);
+    expect(weightNames.length).toEqual(2);
 
-          const weight0 = weights['weight0'];
-          expectArraysClose(weight0, [1, 2]);
-          expect(weight0.shape).toEqual([2]);
-          expect(weight0.dtype).toEqual('float32');
+    const weight0 = weights['weight0'];
+    expectArraysClose(await weight0.data(), [1, 2]);
+    expect(weight0.shape).toEqual([2]);
+    expect(weight0.dtype).toEqual('float32');
 
-          const weight1 = weights['weight1'];
-          expectArraysClose(weight1, [3, 4, 5]);
-          expect(weight1.shape).toEqual([3]);
-          expect(weight1.dtype).toEqual('float32');
-        })
-        .then(done)
-        .catch(done.fail);
+    const weight1 = weights['weight1'];
+    expectArraysClose(await weight1.data(), [3, 4, 5]);
+    expect(weight1.shape).toEqual([3]);
+    expect(weight1.dtype).toEqual('float32');
   });
 
-  it('2 group, 4 weights, one weight from each group', done => {
+  it('2 group, 4 weights, one weight from each group', async () => {
     setupFakeWeightFiles({
       './weightfile0': new Float32Array([1, 2, 3, 4, 5]),
       './weightfile1': new Float32Array([6, 7, 8, 9])
@@ -339,29 +313,26 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
       }
     ];
 
-    tf.io.loadWeights(manifest, './', ['weight0', 'weight2'])
-        .then(weights => {
-          // Both groups need to be fetched.
-          expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(2);
+    const weights =
+        await tf.io.loadWeights(manifest, './', ['weight0', 'weight2']);
+    // Both groups need to be fetched.
+    expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(2);
 
-          const weightNames = Object.keys(weights);
-          expect(weightNames.length).toEqual(2);
+    const weightNames = Object.keys(weights);
+    expect(weightNames.length).toEqual(2);
 
-          const weight0 = weights['weight0'];
-          expectArraysClose(weight0, [1, 2]);
-          expect(weight0.shape).toEqual([2]);
-          expect(weight0.dtype).toEqual('float32');
+    const weight0 = weights['weight0'];
+    expectArraysClose(await weight0.data(), [1, 2]);
+    expect(weight0.shape).toEqual([2]);
+    expect(weight0.dtype).toEqual('float32');
 
-          const weight2 = weights['weight2'];
-          expectArraysClose(weight2, [6, 7, 8]);
-          expect(weight2.shape).toEqual([3, 1]);
-          expect(weight2.dtype).toEqual('float32');
-        })
-        .then(done)
-        .catch(done.fail);
+    const weight2 = weights['weight2'];
+    expectArraysClose(await weight2.data(), [6, 7, 8]);
+    expect(weight2.shape).toEqual([3, 1]);
+    expect(weight2.dtype).toEqual('float32');
   });
 
-  it('2 group, 4 weights, dont specify weights fetchs all', done => {
+  it('2 group, 4 weights, dont specify weights fetchs all', async () => {
     setupFakeWeightFiles({
       './weightfile0': new Float32Array([1, 2, 3, 4, 5]),
       './weightfile1': new Float32Array([6, 7, 8, 9])
@@ -385,36 +356,32 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     ];
 
     // Don't pass a third argument to loadWeights to load all weights.
-    tf.io.loadWeights(manifest, './')
-        .then(weights => {
-          // Both groups need to be fetched.
-          expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(2);
+    const weights = await tf.io.loadWeights(manifest, './');
+    // Both groups need to be fetched.
+    expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(2);
 
-          const weightNames = Object.keys(weights);
-          expect(weightNames.length).toEqual(4);
+    const weightNames = Object.keys(weights);
+    expect(weightNames.length).toEqual(4);
 
-          const weight0 = weights['weight0'];
-          expectArraysClose(weight0, [1, 2]);
-          expect(weight0.shape).toEqual([2]);
-          expect(weight0.dtype).toEqual('float32');
+    const weight0 = weights['weight0'];
+    expectArraysClose(await weight0.data(), [1, 2]);
+    expect(weight0.shape).toEqual([2]);
+    expect(weight0.dtype).toEqual('float32');
 
-          const weight1 = weights['weight1'];
-          expectArraysClose(weight1, [3, 4, 5]);
-          expect(weight1.shape).toEqual([3]);
-          expect(weight1.dtype).toEqual('float32');
+    const weight1 = weights['weight1'];
+    expectArraysClose(await weight1.data(), [3, 4, 5]);
+    expect(weight1.shape).toEqual([3]);
+    expect(weight1.dtype).toEqual('float32');
 
-          const weight2 = weights['weight2'];
-          expectArraysClose(weight2, [6, 7, 8]);
-          expect(weight2.shape).toEqual([3, 1]);
-          expect(weight2.dtype).toEqual('float32');
+    const weight2 = weights['weight2'];
+    expectArraysClose(await weight2.data(), [6, 7, 8]);
+    expect(weight2.shape).toEqual([3, 1]);
+    expect(weight2.dtype).toEqual('float32');
 
-          const weight3 = weights['weight3'];
-          expectArraysClose(weight3, [9]);
-          expect(weight3.shape).toEqual([]);
-          expect(weight3.dtype).toEqual('float32');
-        })
-        .then(done)
-        .catch(done.fail);
+    const weight3 = weights['weight3'];
+    expectArraysClose(await weight3.data(), [9]);
+    expect(weight3.shape).toEqual([]);
+    expect(weight3.dtype).toEqual('float32');
   });
 
   it('throws if requested weight not found', async done => {
@@ -456,7 +423,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     }
   });
 
-  it('should use request option', done => {
+  it('should use request option', async () => {
     setupFakeWeightFiles({'./weightfile0': new Float32Array([1, 2, 3])});
 
     const manifest: WeightsManifestConfig = [{
@@ -465,77 +432,65 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     }];
 
     const weightsNamesToFetch = ['weight0'];
-    tf.io
-        .loadWeights(
-            manifest, './', weightsNamesToFetch, {credentials: 'include'})
-        .then(weights => {
-          expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
-          expect(tf.util.fetch).toHaveBeenCalledWith('./weightfile0', {
-            credentials: 'include'
-          });
-        })
-        .then(done)
-        .catch(done.fail);
+    await tf.io.loadWeights(
+        manifest, './', weightsNamesToFetch, {credentials: 'include'});
+    expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
+    expect(tf.util.fetch).toHaveBeenCalledWith('./weightfile0', {
+      credentials: 'include'
+    });
   });
 
-  const quantizationTest =
-      (quantizationDtype: 'uint8'|'uint16', done: DoneFn) => {
-        const arrayType =
-            quantizationDtype === 'uint8' ? Uint8Array : Uint16Array;
-        setupFakeWeightFiles(
-            {'./weightfile0': new arrayType([0, 48, 255, 0, 48, 255])});
+  const quantizationTest = async (quantizationDtype: 'uint8'|'uint16') => {
+    const arrayType = quantizationDtype === 'uint8' ? Uint8Array : Uint16Array;
+    setupFakeWeightFiles(
+        {'./weightfile0': new arrayType([0, 48, 255, 0, 48, 255])});
 
-        const manifest: WeightsManifestConfig = [{
-          'paths': ['weightfile0'],
-          'weights': [
-            {
-              'name': 'weight0',
-              'dtype': 'float32',
-              'shape': [3],
-              'quantization':
-                  {'min': -1, 'scale': 0.1, 'dtype': quantizationDtype}
-            },
-            {
-              'name': 'weight1',
-              'dtype': 'int32',
-              'shape': [3],
-              'quantization':
-                  {'min': -1, 'scale': 0.1, 'dtype': quantizationDtype}
-            }
-          ]
-        }];
+    const manifest: WeightsManifestConfig = [{
+      'paths': ['weightfile0'],
+      'weights': [
+        {
+          'name': 'weight0',
+          'dtype': 'float32',
+          'shape': [3],
+          'quantization': {'min': -1, 'scale': 0.1, 'dtype': quantizationDtype}
+        },
+        {
+          'name': 'weight1',
+          'dtype': 'int32',
+          'shape': [3],
+          'quantization': {'min': -1, 'scale': 0.1, 'dtype': quantizationDtype}
+        }
+      ]
+    }];
 
-        const weightsNamesToFetch = ['weight0', 'weight1'];
-        tf.io.loadWeights(manifest, './', weightsNamesToFetch)
-            .then(weights => {
-              expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
+    const weightsNamesToFetch = ['weight0', 'weight1'];
+    const weights =
+        await tf.io.loadWeights(manifest, './', weightsNamesToFetch);
+    expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
 
-              const weightNames = Object.keys(weights);
-              expect(weightNames.length).toEqual(weightsNamesToFetch.length);
+    const weightNames = Object.keys(weights);
+    expect(weightNames.length).toEqual(weightsNamesToFetch.length);
 
-              const weight0 = weights['weight0'];
-              expectArraysClose(weight0, [-1, 3.8, 24.5]);
-              expect(weight0.shape).toEqual([3]);
-              expect(weight0.dtype).toEqual('float32');
+    const weight0 = weights['weight0'];
+    expectArraysClose(await weight0.data(), [-1, 3.8, 24.5]);
+    expect(weight0.shape).toEqual([3]);
+    expect(weight0.dtype).toEqual('float32');
 
-              const weight1 = weights['weight1'];
-              expectArraysEqual(weight1, [-1, 4, 25]);
-              expect(weight1.shape).toEqual([3]);
-              expect(weight1.dtype).toEqual('int32');
-            })
-            .then(done)
-            .catch(done.fail);
-      };
+    const weight1 = weights['weight1'];
+    expectArraysEqual(await weight1.data(), [-1, 4, 25]);
+    expect(weight1.shape).toEqual([3]);
+    expect(weight1.dtype).toEqual('int32');
+  };
 
-  it('quantized weights (uint8)', done => {
-    quantizationTest('uint8', done);
+  it('quantized weights (uint8)', async () => {
+    await quantizationTest('uint8');
   });
 
-  it('quantized weights (uint16)', done => {
-    quantizationTest('uint16', done);
+  it('quantized weights (uint16)', async () => {
+    await quantizationTest('uint16');
   });
 
-  it('2 groups, 1 quantized, 1 unquantized', done => {
+  it('2 groups, 1 quantized, 1 unquantized', async () => {
     setupFakeWeightFiles({
       './weightfile0': new Uint8Array([0, 48, 255, 0, 48, 255]),
       './weightfile1': new Float32Array([6, 7, 8, 9])
@@ -568,25 +523,22 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
       }
     ];
 
-    tf.io.loadWeights(manifest, './', ['weight0', 'weight2'])
-        .then(weights => {
-          // Both groups need to be fetched.
-          expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(2);
+    const weights =
+        await tf.io.loadWeights(manifest, './', ['weight0', 'weight2']);
+    // Both groups need to be fetched.
+    expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(2);
 
-          const weightNames = Object.keys(weights);
-          expect(weightNames.length).toEqual(2);
+    const weightNames = Object.keys(weights);
+    expect(weightNames.length).toEqual(2);
 
-          const weight0 = weights['weight0'];
-          expectArraysClose(weight0, [-1, 3.8, 24.5]);
-          expect(weight0.shape).toEqual([3]);
-          expect(weight0.dtype).toEqual('float32');
+    const weight0 = weights['weight0'];
+    expectArraysClose(await weight0.data(), [-1, 3.8, 24.5]);
+    expect(weight0.shape).toEqual([3]);
+    expect(weight0.dtype).toEqual('float32');
 
-          const weight2 = weights['weight2'];
-          expectArraysClose(weight2, [6, 7, 8]);
-          expect(weight2.shape).toEqual([3, 1]);
-          expect(weight2.dtype).toEqual('float32');
-        })
-        .then(done)
-        .catch(done.fail);
+    const weight2 = weights['weight2'];
+    expectArraysClose(await weight2.data(), [6, 7, 8]);
+    expect(weight2.shape).toEqual([3, 1]);
+    expect(weight2.dtype).toEqual('float32');
   });
 });

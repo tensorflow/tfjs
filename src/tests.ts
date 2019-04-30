@@ -115,6 +115,7 @@ import './serialization_test';
 import './tape_test';
 import './tensor_test';
 import './tensor_util_test';
+import './test_util_test';
 import './types_test';
 import './util_test';
 import './variable_test';

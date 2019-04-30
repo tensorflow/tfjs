@@ -32,39 +32,39 @@ describeWithFlags('expensive reshape', PACKED_ENVS, () => {
     c = tf.matMul(a, b);
   });
 
-  it('6d --> 1d', () => {
+  it('6d --> 1d', async () => {
     const cAs6D = tf.reshape(c, [1, 1, 1, 3, 1, 5]);
     const cAs1D = tf.reshape(cAs6D, [-1, cValues.length]);
-    expectArraysClose(cAs1D, cValues);
+    expectArraysClose(await cAs1D.data(), cValues);
   });
-  it('1d --> 2d', () => {
+  it('1d --> 2d', async () => {
     const cAs1D = tf.reshape(c, [cValues.length]);
     const cAs2D = tf.reshape(cAs1D, [5, -1]);
-    expectArraysClose(cAs2D, cValues);
+    expectArraysClose(await cAs2D.data(), cValues);
   });
-  it('2d --> 3d', () => {
+  it('2d --> 3d', async () => {
     const cAs3D = tf.reshape(c, [3, 1, 5]);
-    expectArraysClose(cAs3D, cValues);
+    expectArraysClose(await cAs3D.data(), cValues);
   });
-  it('3d --> 4d', () => {
+  it('3d --> 4d', async () => {
     const cAs3D = tf.reshape(c, [3, 1, 5]);
     const cAs4D = tf.reshape(cAs3D, [3, 5, 1, 1]);
-    expectArraysClose(cAs4D, cValues);
+    expectArraysClose(await cAs4D.data(), cValues);
   });
-  it('4d --> 5d', () => {
+  it('4d --> 5d', async () => {
     const cAs4D = tf.reshape(c, [3, 5, 1, 1]);
     const cAs5D = tf.reshape(cAs4D, [1, 1, 1, 5, 3]);
-    expectArraysClose(cAs5D, cValues);
+    expectArraysClose(await cAs5D.data(), cValues);
   });
-  it('5d --> 6d', () => {
+  it('5d --> 6d', async () => {
     const cAs5D = tf.reshape(c, [1, 1, 1, 5, 3]);
     const cAs6D = tf.reshape(cAs5D, [3, 5, 1, 1, 1, 1]);
-    expectArraysClose(cAs6D, cValues);
+    expectArraysClose(await cAs6D.data(), cValues);
   });
 });
 
 describeWithFlags('expensive reshape with even columns', PACKED_ENVS, () => {
-  it('2 --> 4 columns', () => {
+  it('2 --> 4 columns', async () => {
     const maxTextureSize = tf.ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
 
     let values: number[] = new Array<number>(16).fill(0);
@@ -93,6 +93,6 @@ describeWithFlags('expensive reshape with even columns', PACKED_ENVS, () => {
 
     const result =
         [7, 10, 15, 22, 23, 34, 31, 46, 39, 58, 47, 70, 55, 82, 63, 94];
-    expectArraysClose(cAs4D, result);
+    expectArraysClose(await cAs4D.data(), result);
   });
 });

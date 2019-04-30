@@ -20,7 +20,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import * as tfwebgpu from './index';
 
 describe('Unary ops', () => {
-  beforeAll(async () => await tfwebgpu.ready);
+  beforeAll(async () => tfwebgpu.ready);
 
   it('relu', async () => {
     const a = tf.tensor1d([1, -2, 0, 3, -0.1]);

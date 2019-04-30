@@ -20,7 +20,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import * as tfwebgpu from './index';
 
 describe('pad', () => {
-  beforeAll(async () => await tfwebgpu.ready);
+  beforeAll(async () => tfwebgpu.ready);
 
   it('Should pad 1D arrays', async () => {
     const a = tf.tensor1d([1, 2, 3, 4, 5, 6], 'int32');

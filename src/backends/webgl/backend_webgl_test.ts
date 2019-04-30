@@ -92,10 +92,10 @@ describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
 
   it('should work when the same input must be represented by' +
          'different textures',
-     () => {
+     async () => {
        const a = tf.tensor1d([1, 2]);
        const res = tf.dot(a, a);
-       expectArraysClose(res, [5]);
+       expectArraysClose(await res.data(), [5]);
      });
 });
 
@@ -177,7 +177,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     expect(texManager.getNumUsedTextures()).toBe(0);
   });
 
-  it('read packed and then use by an unpacked op', () => {
+  it('read packed and then use by an unpacked op', async () => {
     const backend = new MathBackendWebGL(null);
     tf.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
@@ -195,7 +195,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     const d = tf.add(c, 1);
     tf.ENV.set('WEBGL_PACK', webglPackFlagSaved);
     tf.ENV.set('WEBGL_SIZE_UPLOAD_UNIFORM', webglSizeUploadUniformSaved);
-    expectArraysClose(d, [2, 3]);
+    expectArraysClose(await d.data(), [2, 3]);
   });
 
   it('delayed storage, overwriting', () => {
@@ -294,7 +294,7 @@ describeWithFlags('upload tensors as uniforms', FLOAT32_WEBGL_ENVS, () => {
     expect(m.numBytesInGPU).toBe(a.size * 4 * 2);
   });
 
-  it('download and re-upload an output of a shader', () => {
+  it('download and re-upload an output of a shader', async () => {
     const vals = new Float32Array(SIZE_UPLOAD_UNIFORM + 1);
     vals.fill(2);
     const a = tf.square(vals);
@@ -303,7 +303,7 @@ describeWithFlags('upload tensors as uniforms', FLOAT32_WEBGL_ENVS, () => {
 
     const expected = new Float32Array(SIZE_UPLOAD_UNIFORM + 1);
     expected.fill(16);
-    expectArraysClose(res, expected);
+    expectArraysClose(await res.data(), expected);
   });
 });
 
@@ -367,13 +367,13 @@ describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
     tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
   });
 
-  it('basic usage', () => {
+  it('basic usage', async () => {
     tf.setBackend('half-float-webgl');
 
     const a = tf.tensor2d([1, 2], [1, 2]);
     const b = tf.tensor2d([1, 2], [1, 2]);
     const c = tf.add(a, b);
-    expectArraysClose(c, [2, 4]);
+    expectArraysClose(await c.data(), [2, 4]);
   });
 
   it('disposing tensors should not cause errors', () => {
@@ -410,7 +410,7 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
 
   it('upload + compute + data', async () => {
     const a = tf.zeros([10, 10]);
-    const time = await tf.time(async () => await a.square().data()) as
+    const time = await tf.time(async () => a.square().data()) as
         tf.webgl.WebGLTimingInfo;
     expect(time.uploadWaitMs > 0);
     expect(time.downloadWaitMs > 0);

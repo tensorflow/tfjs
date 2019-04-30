@@ -22,20 +22,20 @@ import {expectArraysClose} from './test_util';
 import {Rank} from './types';
 
 describeWithFlags('variable', ALL_ENVS, () => {
-  it('simple assign', () => {
+  it('simple assign', async () => {
     const v = variable(tf.tensor1d([1, 2, 3]));
-    expectArraysClose(v, [1, 2, 3]);
+    expectArraysClose(await v.data(), [1, 2, 3]);
 
     v.assign(tf.tensor1d([4, 5, 6]));
-    expectArraysClose(v, [4, 5, 6]);
+    expectArraysClose(await v.data(), [4, 5, 6]);
   });
 
-  it('simple chain assign', () => {
+  it('simple chain assign', async () => {
     const v = tf.tensor1d([1, 2, 3]).variable();
-    expectArraysClose(v, [1, 2, 3]);
+    expectArraysClose(await v.data(), [1, 2, 3]);
 
     v.assign(tf.tensor1d([4, 5, 6]));
-    expectArraysClose(v, [4, 5, 6]);
+    expectArraysClose(await v.data(), [4, 5, 6]);
   });
 
   it('default names are unique', () => {
@@ -58,20 +58,20 @@ describeWithFlags('variable', ALL_ENVS, () => {
         .toThrowError();
   });
 
-  it('ops can take variables', () => {
+  it('ops can take variables', async () => {
     const value = tf.tensor1d([1, 2, 3]);
     const v = variable(value);
     const res = tf.sum(v);
-    expectArraysClose(res, [6]);
+    expectArraysClose(await res.data(), [6]);
   });
 
-  it('chained variables works', () => {
+  it('chained variables works', async () => {
     const v = tf.tensor1d([1, 2, 3]).variable();
     const res = tf.sum(v);
-    expectArraysClose(res, [6]);
+    expectArraysClose(await res.data(), [6]);
   });
 
-  it('variables are not affected by tidy', () => {
+  it('variables are not affected by tidy', async () => {
     let v: Variable<Rank.R1>;
     expect(tf.memory().numTensors).toBe(0);
 
@@ -84,20 +84,20 @@ describeWithFlags('variable', ALL_ENVS, () => {
     });
 
     expect(tf.memory().numTensors).toBe(1);
-    expectArraysClose(v, [1, 2, 3]);
+    expectArraysClose(await v.data(), [1, 2, 3]);
 
     v.dispose();
     expect(tf.memory().numTensors).toBe(0);
   });
 
-  it('constructor does not dispose', () => {
+  it('constructor does not dispose', async () => {
     const a = tf.scalar(2);
     const v = tf.variable(a);
 
     expect(tf.memory().numTensors).toBe(2);
     expect(tf.memory().numDataBuffers).toBe(1);
-    expectArraysClose(v, [2]);
-    expectArraysClose(a, [2]);
+    expectArraysClose(await v.data(), [2]);
+    expectArraysClose(await a.data(), [2]);
   });
 
   it('variables are assignable to tensors', () => {
@@ -127,21 +127,21 @@ describeWithFlags('variable', ALL_ENVS, () => {
     expect(yh).toBeNull();
   });
 
-  it('assign does not dispose old data', () => {
+  it('assign does not dispose old data', async () => {
     let v: Variable<Rank.R1>;
     v = variable(tf.tensor1d([1, 2, 3]));
 
     expect(tf.memory().numTensors).toBe(2);
     expect(tf.memory().numDataBuffers).toBe(1);
 
-    expectArraysClose(v, [1, 2, 3]);
+    expectArraysClose(await v.data(), [1, 2, 3]);
 
     const secondArray = tf.tensor1d([4, 5, 6]);
     expect(tf.memory().numTensors).toBe(3);
     expect(tf.memory().numDataBuffers).toBe(2);
 
     v.assign(secondArray);
-    expectArraysClose(v, [4, 5, 6]);
+    expectArraysClose(await v.data(), [4, 5, 6]);
     // Assign doesn't dispose the 1st array.
     expect(tf.memory().numTensors).toBe(3);
     expect(tf.memory().numDataBuffers).toBe(2);

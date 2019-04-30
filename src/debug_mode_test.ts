@@ -29,10 +29,10 @@ describeWithFlags('debug on', ALL_ENVS, () => {
     tf.ENV.set('DEBUG', false);
   });
 
-  it('debug mode does not error when no nans', () => {
+  it('debug mode does not error when no nans', async () => {
     const a = tf.tensor1d([2, -1, 0, 3]);
     const res = tf.relu(a);
-    expectArraysClose(res, [2, 0, 0, 3]);
+    expectArraysClose(await res.data(), [2, 0, 0, 3]);
   });
 
   it('debug mode errors when nans in tensor construction, float32', () => {
@@ -84,14 +84,14 @@ describeWithFlags('debug on', ALL_ENVS, () => {
     expect(a).toThrowError();
   });
 
-  it('A x B', () => {
+  it('A x B', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
 
     const c = tf.matMul(a, b);
 
     expect(c.shape).toEqual([2, 2]);
-    expectArraysClose(c, [0, 8, -3, 20]);
+    expectArraysClose(await c.data(), [0, 8, -3, 20]);
   });
 });
 
@@ -100,9 +100,9 @@ describeWithFlags('debug off', ALL_ENVS, () => {
     tf.ENV.set('DEBUG', false);
   });
 
-  it('no errors where there are nans, and debug mode is disabled', () => {
+  it('no errors where there are nans, and debug mode is disabled', async () => {
     const a = tf.tensor1d([2, NaN]);
     const res = tf.relu(a);
-    expectArraysClose(res, [2, NaN]);
+    expectArraysClose(await res.data(), [2, NaN]);
   });
 });

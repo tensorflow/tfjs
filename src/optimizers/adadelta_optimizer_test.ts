@@ -20,7 +20,7 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('AdadeltaOptimizer', ALL_ENVS, () => {
-  it('basic', () => {
+  it('basic', async () => {
     const learningRate = .1;
     const rho = .95;
     const optimizer = tf.train.adadelta(learningRate, rho);
@@ -49,7 +49,7 @@ describeWithFlags('AdadeltaOptimizer', ALL_ENVS, () => {
     // updates = [-2, -4]
     // newAccumulatedUpdate = [.2, .8]
     // x = [0.8, 1.6]
-    expectArraysClose(x, [0.8, 1.6]);
+    expectArraysClose(await x.data(), [0.8, 1.6]);
 
     cost.dispose();
     numTensors = tf.memory().numTensors;
@@ -62,7 +62,7 @@ describeWithFlags('AdadeltaOptimizer', ALL_ENVS, () => {
     // newAccumulatedGrad = [0.318, 1.272]
     // updates = [-1.6, -3.2]
     // x = [0.64, 1.28]
-    expectArraysClose(x, [0.64, 1.28]);
+    expectArraysClose(await x.data(), [0.64, 1.28]);
 
     // There should be no new additional Tensors.
     expect(tf.memory().numTensors).toBe(numTensors);

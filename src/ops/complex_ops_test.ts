@@ -19,32 +19,32 @@ import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('complex64', ALL_ENVS, () => {
-  it('tf.complex', () => {
+  it('tf.complex', async () => {
     const real = tf.tensor1d([3, 30]);
     const imag = tf.tensor1d([4, 40]);
     const complex = tf.complex(real, imag);
 
     expect(complex.dtype).toBe('complex64');
     expect(complex.shape).toEqual(real.shape);
-    expectArraysClose(complex, [3, 4, 30, 40]);
+    expectArraysClose(await complex.data(), [3, 4, 30, 40]);
   });
 
-  it('tf.real', () => {
+  it('tf.real', async () => {
     const complex = tf.complex([3, 30], [4, 40]);
     const real = tf.real(complex);
 
     expect(real.dtype).toBe('float32');
     expect(real.shape).toEqual([2]);
-    expectArraysClose(real, [3, 30]);
+    expectArraysClose(await real.data(), [3, 30]);
   });
 
-  it('tf.imag', () => {
+  it('tf.imag', async () => {
     const complex = tf.complex([3, 30], [4, 40]);
     const imag = tf.imag(complex);
 
     expect(imag.dtype).toBe('float32');
     expect(imag.shape).toEqual([2]);
-    expectArraysClose(imag, [4, 40]);
+    expectArraysClose(await imag.data(), [4, 40]);
   });
 
   it('throws when shapes dont match', () => {
@@ -59,7 +59,7 @@ describeWithFlags('complex64', ALL_ENVS, () => {
 
 const BYTES_PER_COMPLEX_ELEMENT = 4 * 2;
 describeWithFlags('complex64 memory', BROWSER_ENVS, () => {
-  it('usage', () => {
+  it('usage', async () => {
     let numTensors = tf.memory().numTensors;
     let numBuffers = tf.memory().numDataBuffers;
     const startTensors = numTensors;
@@ -94,21 +94,21 @@ describeWithFlags('complex64 memory', BROWSER_ENVS, () => {
 
     expect(result.dtype).toBe('complex64');
     expect(result.shape).toEqual([1]);
-    expectArraysClose(result, [4, 6]);
+    expectArraysClose(await result.data(), [4, 6]);
 
     const real = tf.real(result);
 
     expect(tf.memory().numTensors).toBe(numTensors + 1);
     numTensors = tf.memory().numTensors;
 
-    expectArraysClose(real, [4]);
+    expectArraysClose(await real.data(), [4]);
 
     const imag = tf.imag(result);
 
     expect(tf.memory().numTensors).toBe(numTensors + 1);
     numTensors = tf.memory().numTensors;
 
-    expectArraysClose(imag, [6]);
+    expectArraysClose(await imag.data(), [6]);
 
     // After disposing, there should be no tensors.
     real1.dispose();
@@ -123,7 +123,7 @@ describeWithFlags('complex64 memory', BROWSER_ENVS, () => {
     expect(tf.memory().numTensors).toBe(startTensors);
   });
 
-  it('tf.complex disposing underlying tensors', () => {
+  it('tf.complex disposing underlying tensors', async () => {
     const numTensors = tf.memory().numTensors;
 
     const real = tf.tensor1d([3, 30]);
@@ -143,14 +143,14 @@ describeWithFlags('complex64 memory', BROWSER_ENVS, () => {
 
     expect(complex.dtype).toBe('complex64');
     expect(complex.shape).toEqual(real.shape);
-    expectArraysClose(complex, [3, 4, 30, 40]);
+    expectArraysClose(await complex.data(), [3, 4, 30, 40]);
 
     complex.dispose();
 
     expect(tf.memory().numTensors).toEqual(numTensors);
   });
 
-  it('reshape', () => {
+  it('reshape', async () => {
     const memoryBefore = tf.memory();
 
     const a = tf.complex([[1, 3, 5], [7, 9, 11]], [[2, 4, 6], [8, 10, 12]]);
@@ -170,7 +170,7 @@ describeWithFlags('complex64 memory', BROWSER_ENVS, () => {
 
     expect(b.dtype).toBe('complex64');
     expect(b.shape).toEqual([6]);
-    expectArraysClose(a.dataSync(), b.dataSync());
+    expectArraysClose(await a.data(), await b.data());
 
     b.dispose();
     // 1 complex tensor should be disposed.
@@ -186,7 +186,7 @@ describeWithFlags('complex64 memory', BROWSER_ENVS, () => {
     expect(tf.memory().numBytes).toBe(memoryBefore.numBytes);
   });
 
-  it('clone', () => {
+  it('clone', async () => {
     const memoryBefore = tf.memory();
 
     const a = tf.complex([[1, 3, 5], [7, 9, 11]], [[2, 4, 6], [8, 10, 12]]);
@@ -205,7 +205,7 @@ describeWithFlags('complex64 memory', BROWSER_ENVS, () => {
         .toBe(memoryBefore.numBytes + 6 * BYTES_PER_COMPLEX_ELEMENT);
 
     expect(b.dtype).toBe('complex64');
-    expectArraysClose(a, b);
+    expectArraysClose(await a.data(), await b.data());
 
     b.dispose();
     // 1 complex tensor should be disposed.

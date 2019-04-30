@@ -20,21 +20,21 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('resizeNearestNeighbor', ALL_ENVS, () => {
-  it('simple alignCorners=false', () => {
+  it('simple alignCorners=false', async () => {
     const input = tf.tensor3d([2, 2, 4, 4], [2, 2, 1]);
     const output = input.resizeNearestNeighbor([3, 3], false);
 
-    expectArraysClose(output, [2, 2, 2, 2, 2, 2, 4, 4, 4]);
+    expectArraysClose(await output.data(), [2, 2, 2, 2, 2, 2, 4, 4, 4]);
   });
 
-  it('simple alignCorners=true', () => {
+  it('simple alignCorners=true', async () => {
     const input = tf.tensor3d([2, 2, 4, 4], [2, 2, 1]);
     const output = input.resizeNearestNeighbor([3, 3], true);
 
-    expectArraysClose(output, [2, 2, 2, 4, 4, 4, 4, 4, 4]);
+    expectArraysClose(await output.data(), [2, 2, 2, 4, 4, 4, 4, 4, 4]);
   });
 
-  it('matches tensorflow w/ random numbers alignCorners=false', () => {
+  it('matches tensorflow w/ random numbers alignCorners=false', async () => {
     const input = tf.tensor3d(
         [
           1.19074044, 0.91373104, 2.01611669, -0.52270832, 0.38725395,
@@ -44,7 +44,7 @@ describeWithFlags('resizeNearestNeighbor', ALL_ENVS, () => {
         [2, 3, 2]);
     const output = input.resizeNearestNeighbor([4, 5], false);
 
-    expectArraysClose(output, [
+    expectArraysClose(await output.data(), [
       1.19074047,   0.913731039, 1.19074047,   0.913731039,  2.01611662,
       -0.522708297, 2.01611662,  -0.522708297, 0.38725394,   1.30809784,
       1.19074047,   0.913731039, 1.19074047,   0.913731039,  2.01611662,
@@ -56,7 +56,7 @@ describeWithFlags('resizeNearestNeighbor', ALL_ENVS, () => {
     ]);
   });
 
-  it('matches tensorflow w/ random numbers alignCorners=true', () => {
+  it('matches tensorflow w/ random numbers alignCorners=true', async () => {
     const input = tf.tensor3d(
         [
           1.19074044, 0.91373104, 2.01611669, -0.52270832, 0.38725395,
@@ -66,7 +66,7 @@ describeWithFlags('resizeNearestNeighbor', ALL_ENVS, () => {
         [2, 3, 2]);
     const output = input.resizeNearestNeighbor([4, 5], true);
 
-    expectArraysClose(output, [
+    expectArraysClose(await output.data(), [
       1.19074044, 0.91373104,  2.01611669, -0.52270832, 2.01611669, -0.52270832,
       0.38725395, 1.30809779,  0.38725395, 1.30809779,  1.19074044, 0.91373104,
       2.01611669, -0.52270832, 2.01611669, -0.52270832, 0.38725395, 1.30809779,
@@ -77,12 +77,13 @@ describeWithFlags('resizeNearestNeighbor', ALL_ENVS, () => {
     ]);
   });
 
-  it('batch of 2, simple, alignCorners=true', () => {
+  it('batch of 2, simple, alignCorners=true', async () => {
     const input = tf.tensor4d([2, 2, 4, 4, 3, 3, 5, 5], [2, 2, 2, 1]);
     const output = input.resizeNearestNeighbor([3, 3], true /* alignCorners */);
 
     expectArraysClose(
-        output, [2, 2, 2, 4, 4, 4, 4, 4, 4, 3, 3, 3, 5, 5, 5, 5, 5, 5]);
+        await output.data(),
+        [2, 2, 2, 4, 4, 4, 4, 4, 4, 3, 3, 3, 5, 5, 5, 5, 5, 5]);
   });
 
   it('throws when passed a non-tensor', () => {
@@ -93,11 +94,11 @@ describeWithFlags('resizeNearestNeighbor', ALL_ENVS, () => {
     ])).toThrowError(e);
   });
 
-  it('accepts a tensor-like object', () => {
+  it('accepts a tensor-like object', async () => {
     const input = [[[2], [2]], [[4], [4]]];  // 2x2x1
     const output = tf.image.resizeNearestNeighbor(input, [3, 3], false);
 
-    expectArraysClose(output, [2, 2, 2, 2, 2, 2, 4, 4, 4]);
+    expectArraysClose(await output.data(), [2, 2, 2, 2, 2, 2, 4, 4, 4]);
   });
 
   it('does not throw when some output dim is 1 and alignCorners=true', () => {
@@ -107,7 +108,7 @@ describeWithFlags('resizeNearestNeighbor', ALL_ENVS, () => {
 });
 
 describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
-  it('greyscale: upscale, same aspect ratio', () => {
+  it('greyscale: upscale, same aspect ratio', async () => {
     const input = tf.tensor3d([[[100.0], [50.0]], [[60.0], [20.0]]]);
     const dy = tf.tensor3d([
       [[1.0], [2.0], [3.0], [4.0]], [[5.0], [6.0], [7.0], [8.0]],
@@ -123,10 +124,12 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
     const output = g(input, dy);
     const expected = tf.tensor3d([[[14.0], [22.0]], [[46.0], [54.0]]]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('with clones, greyscale: upscale, same aspect ratio', () => {
+  it('with clones, greyscale: upscale, same aspect ratio', async () => {
     const input = tf.tensor3d([[[100.0], [50.0]], [[60.0], [20.0]]]);
     const dy = tf.tensor3d([
       [[1.0], [2.0], [3.0], [4.0]], [[5.0], [6.0], [7.0], [8.0]],
@@ -135,16 +138,20 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
 
     const size: [number, number] = [4, 4];
     const alignCorners = false;
-    const g = tf.grad((i: tf.Tensor3D) =>
-        tf.image.resizeNearestNeighbor(i.clone(), size, alignCorners).clone());
+    const g = tf.grad(
+        (i: tf.Tensor3D) =>
+            tf.image.resizeNearestNeighbor(i.clone(), size, alignCorners)
+                .clone());
 
     const output = g(input, dy);
     const expected = tf.tensor3d([[[14.0], [22.0]], [[46.0], [54.0]]]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('greyscale: upscale, same aspect ratio, align corners', () => {
+  it('greyscale: upscale, same aspect ratio, align corners', async () => {
     const input = tf.tensor3d([[[100.0], [50.0]], [[60.0], [20.0]]]);
     const dy = tf.tensor3d([
       [[1.0], [2.0], [3.0], [4.0]], [[5.0], [6.0], [7.0], [8.0]],
@@ -160,10 +167,12 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
     const output = g(input, dy);
     const expected = tf.tensor3d([[[14.0], [22.0]], [[46.0], [54.0]]]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('greyscale: upscale, taller than wider', () => {
+  it('greyscale: upscale, taller than wider', async () => {
     const input = tf.tensor3d([[[100.0], [50.0]], [[60.0], [20.0]]]);
     const dy = tf.tensor3d([
       [[1.0], [2.0], [3.0], [4.0]], [[5.0], [6.0], [7.0], [8.0]],
@@ -182,10 +191,12 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
     const output = g(input, dy);
     const expected = tf.tensor3d([[[95.0], [115.0]], [[220.0], [236.0]]]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('greyscale: upscale, taller than wider, align corners', () => {
+  it('greyscale: upscale, taller than wider, align corners', async () => {
     const input = tf.tensor3d([[[100.0], [50.0]], [[60.0], [20.0]]]);
     const dy = tf.tensor3d([
       [[1.0], [2.0], [3.0], [4.0]], [[5.0], [6.0], [7.0], [8.0]],
@@ -204,10 +215,12 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
     const output = g(input, dy);
     const expected = tf.tensor3d([[[60.0], [76.0]], [[255.0], [275.0]]]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('greyscale: upscale, wider than taller', () => {
+  it('greyscale: upscale, wider than taller', async () => {
     const input = tf.tensor3d([[[100.0], [50.0]], [[60.0], [20.0]]]);
     const dy = tf.tensor3d([
       [[1.0], [2.0], [3.0], [4.0], [5.0], [6.0], [7.0]],
@@ -225,10 +238,12 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
     const output = g(input, dy);
     const expected = tf.tensor3d([[[48.0], [57.0]], [[160.0], [141.0]]]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('greyscale: upscale, wider than taller, align corners', () => {
+  it('greyscale: upscale, wider than taller, align corners', async () => {
     const input = tf.tensor3d([[[100.0], [50.0]], [[60.0], [20.0]]]);
     const dy = tf.tensor3d([
       [[1.0], [2.0], [3.0], [4.0], [5.0], [6.0], [7.0]],
@@ -246,14 +261,16 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
     const output = g(input, dy);
     const expected = tf.tensor3d([[[33.0], [72.0]], [[117.0], [184.0]]]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
   //
   // Downscaling
   //
 
-  it('greyscale: downscale, same aspect ratio', () => {
+  it('greyscale: downscale, same aspect ratio', async () => {
     const input = tf.tensor3d([
       [[100.0], [50.0], [25.0], [10.0]], [[60.0], [20.0], [80.0], [20.0]],
       [[40.0], [15.0], [200.0], [203.0]], [[40.0], [10.0], [230.0], [200.0]]
@@ -272,10 +289,12 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
       [[3.0], [0.0], [4.0], [0.0]], [[0.0], [0.0], [0.0], [0.0]]
     ]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('greyscale: downscale, same aspect ratio, align corners', () => {
+  it('greyscale: downscale, same aspect ratio, align corners', async () => {
     const input = tf.tensor3d([
       [[100.0], [50.0], [25.0], [10.0]], [[60.0], [20.0], [80.0], [20.0]],
       [[40.0], [15.0], [200.0], [203.0]], [[40.0], [10.0], [230.0], [200.0]]
@@ -294,10 +313,12 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
       [[0.0], [0.0], [0.0], [0.0]], [[3.0], [0.0], [0.0], [4.0]]
     ]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('greyscale: downscale, taller than wider', () => {
+  it('greyscale: downscale, taller than wider', async () => {
     const input = tf.tensor3d([
       [[100.0], [50.0], [25.0], [10.0]], [[60.0], [20.0], [80.0], [20.0]],
       [[40.0], [15.0], [200.0], [203.0]], [[40.0], [10.0], [230.0], [200.0]]
@@ -307,20 +328,21 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
     const size: [number, number] = [3, 2];
     const alignCorners = false;
     const g = tf.grad(
-      (i: tf.Tensor3D) =>
-        tf.image.resizeNearestNeighbor(i, size, alignCorners));
+        (i: tf.Tensor3D) =>
+            tf.image.resizeNearestNeighbor(i, size, alignCorners));
 
     const output = g(input, dy);
     const expected = tf.tensor3d([
-      [[1.0], [0.0], [2.0], [0.0]],
-      [[3.0], [0.0], [4.0], [0.0]],
-      [[5.0], [0.0], [6.0], [0.0]],
-      [[0.0], [0.0], [0.0], [0.0]]]);
+      [[1.0], [0.0], [2.0], [0.0]], [[3.0], [0.0], [4.0], [0.0]],
+      [[5.0], [0.0], [6.0], [0.0]], [[0.0], [0.0], [0.0], [0.0]]
+    ]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('greyscale: downscale, taller than wider, align corners', () => {
+  it('greyscale: downscale, taller than wider, align corners', async () => {
     const input = tf.tensor3d([
       [[100.0], [50.0], [25.0], [10.0]], [[60.0], [20.0], [80.0], [20.0]],
       [[40.0], [15.0], [200.0], [203.0]], [[40.0], [10.0], [230.0], [200.0]]
@@ -330,20 +352,21 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
     const size: [number, number] = [3, 2];
     const alignCorners = true;
     const g = tf.grad(
-      (i: tf.Tensor3D) =>
-        tf.image.resizeNearestNeighbor(i, size, alignCorners));
+        (i: tf.Tensor3D) =>
+            tf.image.resizeNearestNeighbor(i, size, alignCorners));
 
     const output = g(input, dy);
     const expected = tf.tensor3d([
-      [[1.0], [0.0], [0.0], [2.0]],
-      [[0.0], [0.0], [0.0], [0.0]],
-      [[3.0], [0.0], [0.0], [4.0]],
-      [[5.0], [0.0], [0.0], [6.0]]]);
+      [[1.0], [0.0], [0.0], [2.0]], [[0.0], [0.0], [0.0], [0.0]],
+      [[3.0], [0.0], [0.0], [4.0]], [[5.0], [0.0], [0.0], [6.0]]
+    ]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('greyscale: downscale, taller than wider', () => {
+  it('greyscale: downscale, taller than wider', async () => {
     const input = tf.tensor3d([
       [[100.0], [50.0], [25.0], [10.0]], [[60.0], [20.0], [80.0], [20.0]],
       [[40.0], [15.0], [200.0], [203.0]], [[40.0], [10.0], [230.0], [200.0]]
@@ -358,16 +381,16 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
 
     const output = g(input, dy);
     const expected = tf.tensor3d([
-      [[1.0], [2.0], [3.0], [0.0]],
-      [[0.0], [0.0], [0.0], [0.0]],
-      [[4.0], [5.0], [6.0], [0.0]],
-      [[0.0], [0.0], [0.0], [0.0]]
+      [[1.0], [2.0], [3.0], [0.0]], [[0.0], [0.0], [0.0], [0.0]],
+      [[4.0], [5.0], [6.0], [0.0]], [[0.0], [0.0], [0.0], [0.0]]
     ]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('greyscale: downscale, taller than wider, align corners', () => {
+  it('greyscale: downscale, taller than wider, align corners', async () => {
     const input = tf.tensor3d([
       [[100.0], [50.0], [25.0], [10.0]], [[60.0], [20.0], [80.0], [20.0]],
       [[40.0], [15.0], [200.0], [203.0]], [[40.0], [10.0], [230.0], [200.0]]
@@ -382,52 +405,56 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
 
     const output = g(input, dy);
     const expected = tf.tensor3d([
-      [[1.0], [0.0], [2.0], [3.0]],
-      [[0.0], [0.0], [0.0], [0.0]],
-      [[0.0], [0.0], [0.0], [0.0]],
-      [[4.0], [0.0], [5.0], [6.0]]
+      [[1.0], [0.0], [2.0], [3.0]], [[0.0], [0.0], [0.0], [0.0]],
+      [[0.0], [0.0], [0.0], [0.0]], [[4.0], [0.0], [5.0], [6.0]]
     ]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('greyscale: downscale, same size', () => {
+  it('greyscale: downscale, same size', async () => {
     const input = tf.tensor3d([[[100.0], [50.0]], [[60.0], [20.0]]]);
     const dy = tf.tensor3d([[[1.0], [2.0]], [[3.0], [4.0]]]);
 
     const size: [number, number] = [2, 2];
     const alignCorners = false;
     const g = tf.grad(
-      (i: tf.Tensor3D) =>
-        tf.image.resizeNearestNeighbor(i, size, alignCorners));
+        (i: tf.Tensor3D) =>
+            tf.image.resizeNearestNeighbor(i, size, alignCorners));
 
     const output = g(input, dy);
     const expected = tf.tensor3d([[[1.0], [2.0]], [[3.0], [4.0]]]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('greyscale: downscale, same size, align corners', () => {
+  it('greyscale: downscale, same size, align corners', async () => {
     const input = tf.tensor3d([[[100.0], [50.0]], [[60.0], [20.0]]]);
     const dy = tf.tensor3d([[[1.0], [2.0]], [[3.0], [4.0]]]);
 
     const size: [number, number] = [2, 2];
     const alignCorners = true;
     const g = tf.grad(
-      (i: tf.Tensor3D) =>
-        tf.image.resizeNearestNeighbor(i, size, alignCorners));
+        (i: tf.Tensor3D) =>
+            tf.image.resizeNearestNeighbor(i, size, alignCorners));
 
     const output = g(input, dy);
     const expected = tf.tensor3d([[[1.0], [2.0]], [[3.0], [4.0]]]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
   //
   // 3 channel images
   //
 
-  it('color: upscale, wider than taller', () => {
+  it('color: upscale, wider than taller', async () => {
     const input = tf.tensor3d([
       [
         [100.26818084716797, 74.61857604980469, 81.62117767333984],
@@ -457,8 +484,8 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
     const size: [number, number] = [3, 5];
     const alignCorners = false;
     const g = tf.grad(
-      (i: tf.Tensor3D) =>
-        tf.image.resizeNearestNeighbor(i, size, alignCorners));
+        (i: tf.Tensor3D) =>
+            tf.image.resizeNearestNeighbor(i, size, alignCorners));
 
     const output = g(input, dy);
     const expected = tf.tensor3d([
@@ -466,10 +493,12 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
       [[102.0, 105.0, 108.0], [83.0, 85.0, 87.0]]
     ]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('color: upscale, wider than taller, align corners', () => {
+  it('color: upscale, wider than taller, align corners', async () => {
     const input = tf.tensor3d([
       [
         [100.26818084716797, 74.61857604980469, 81.62117767333984],
@@ -499,8 +528,8 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
     const size: [number, number] = [3, 5];
     const alignCorners = true;
     const g = tf.grad(
-      (i: tf.Tensor3D) =>
-        tf.image.resizeNearestNeighbor(i, size, alignCorners));
+        (i: tf.Tensor3D) =>
+            tf.image.resizeNearestNeighbor(i, size, alignCorners));
 
     const output = g(input, dy);
     const expected = tf.tensor3d([
@@ -508,10 +537,12 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
       [[100.0, 104.0, 108.0], [195.0, 201.0, 207.0]]
     ]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('color: downscale, taller than wider', () => {
+  it('color: downscale, taller than wider', async () => {
     const input = tf.tensor3d([
       [
         [97.98934936523438, 77.24969482421875, 113.70111846923828],
@@ -556,10 +587,12 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
       [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
     ]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('color: downscale, taller than wider, align corners', () => {
+  it('color: downscale, taller than wider, align corners', async () => {
     const input = tf.tensor3d([
       [
         [97.98934936523438, 77.24969482421875, 113.70111846923828],
@@ -604,10 +637,12 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
       [[7.0, 8.0, 9.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
     ]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 
-  it('color: same size', () => {
+  it('color: same size', async () => {
     const input = tf.tensor3d([
       [
         [100.26818084716797, 74.61857604980469, 81.62117767333984],
@@ -620,22 +655,22 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
     ]);
 
     const dy = tf.tensor3d([
-      [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
-      [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]]
+      [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]]
     ]);
 
     const size: [number, number] = [2, 2];
     const alignCorners = false;
     const g = tf.grad(
-      (i: tf.Tensor3D) =>
-        tf.image.resizeNearestNeighbor(i, size, alignCorners));
+        (i: tf.Tensor3D) =>
+            tf.image.resizeNearestNeighbor(i, size, alignCorners));
 
     const output = g(input, dy);
     const expected = tf.tensor3d([
-      [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
-      [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]]
+      [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]]
     ]);
 
-    expectArraysClose(output, expected);
+    expectArraysClose(await output.data(), await expected.data());
+    expect(output.shape).toEqual(expected.shape);
+    expect(output.dtype).toBe(expected.dtype);
   });
 });

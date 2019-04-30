@@ -101,7 +101,7 @@ function runGradientConv3DTestCase(
 }
 
 describeWithFlags('conv3d', ALL_ENVS, () => {
-  it('x=[1, 2, 3, 1, 3] f=[1, 1, 1, 3, 3] s=1 d=1 p=valid', () => {
+  it('x=[1, 2, 3, 1, 3] f=[1, 1, 1, 3, 3] s=1 d=1 p=valid', async () => {
     const batch = 1;
     const inDepth = 2;
     const inHeight = 3;
@@ -121,9 +121,9 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
       1.07407407, 1.33333333, 1.59259259, 1.2962963, 1.61111111, 1.92592593
     ];
 
-    expectArraysClose(result, expectedOutput);
+    expectArraysClose(await result.data(), expectedOutput);
   });
-  it('x=[1, 2, 1, 3, 3] f=[1, 1, 1, 3, 3] s=1 d=1 p=valid', () => {
+  it('x=[1, 2, 1, 3, 3] f=[1, 1, 1, 3, 3] s=1 d=1 p=valid', async () => {
     const batch = 1;
     const inDepth = 2;
     const inHeight = 1;
@@ -143,10 +143,10 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
       1.07407407, 1.33333333, 1.59259259, 1.2962963, 1.61111111, 1.92592593
     ];
 
-    expectArraysClose(result, expectedOutput);
+    expectArraysClose(await result.data(), expectedOutput);
   });
 
-  it('x=[1, 1, 2, 3, 3] f=[1, 1, 1, 3, 3] s=1 d=1 p=valid', () => {
+  it('x=[1, 1, 2, 3, 3] f=[1, 1, 1, 3, 3] s=1 d=1 p=valid', async () => {
     const batch = 1;
     const inDepth = 1;
     const inHeight = 2;
@@ -166,10 +166,10 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
       1.07407407, 1.33333333, 1.59259259, 1.2962963, 1.61111111, 1.92592593
     ];
 
-    expectArraysClose(result, expectedOutput);
+    expectArraysClose(await result.data(), expectedOutput);
   });
 
-  it('x=[1, 4, 2, 3, 3] f=[2, 2, 2, 3, 3] s=1 d=1 p=valid', () => {
+  it('x=[1, 4, 2, 3, 3] f=[2, 2, 2, 3, 3] s=1 d=1 p=valid', async () => {
     const batch = 1;
     const inDepth = 4;
     const inHeight = 2;
@@ -189,10 +189,10 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
       9.68865741, 9.93402778, 10.17939815, 10.18171296, 10.44097222, 10.70023148
     ];
 
-    expectArraysClose(result, expectedOutput);
+    expectArraysClose(await result.data(), expectedOutput);
   });
 
-  it('x=[1, 5, 8, 7, 1] f=[1, 2, 3, 1, 1] s=[2, 3, 1] d=1 p=same', () => {
+  it('x=[1, 5, 8, 7, 1] f=[1, 2, 3, 1, 1] s=[2, 3, 1] d=1 p=same', async () => {
     const batch = 1;
     const inDepth = 5;
     const inHeight = 8;
@@ -222,10 +222,10 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
       3.45238095, 3.46488095, 1.98452381
     ];
 
-    expectArraysClose(result, expectedOutput);
+    expectArraysClose(await result.data(), expectedOutput);
   });
 
-  it('x=[1, 4, 2, 3, 3] f=[2, 2, 2, 3, 3] s=2 d=1 p=valid', () => {
+  it('x=[1, 4, 2, 3, 3] f=[2, 2, 2, 3, 3] s=2 d=1 p=valid', async () => {
     const batch = 1;
     const inDepth = 4;
     const inHeight = 2;
@@ -243,10 +243,10 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
       3.77199074, 3.85069444, 3.92939815, 9.68865741, 9.93402778, 10.17939815
     ];
 
-    expectArraysClose(result, expectedOutput);
+    expectArraysClose(await result.data(), expectedOutput);
   });
 
-  it('x=[1, 6, 7, 8, 2] f=[3, 2, 1, 2, 3] s=3 d=1 p=valid', () => {
+  it('x=[1, 6, 7, 8, 2] f=[3, 2, 1, 2, 3] s=3 d=1 p=valid', async () => {
     const batch = 1;
     const inDepth = 6;
     const inHeight = 7;
@@ -271,10 +271,10 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
       4.8968254,  5.15054563, 5.40426587, 4.94890873, 5.20560516, 5.46230159
     ];
 
-    expectArraysClose(result, expectedOutput);
+    expectArraysClose(await result.data(), expectedOutput);
   });
 
-  it('x=[1, 4, 2, 3, 3] f=[2, 2, 2, 3, 3] s=2 d=1 p=same', () => {
+  it('x=[1, 4, 2, 3, 3] f=[2, 2, 2, 3, 3] s=2 d=1 p=same', async () => {
     const batch = 1;
     const inDepth = 4;
     const inHeight = 2;
@@ -293,10 +293,10 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
       9.68865741, 9.93402778, 10.17939815, 4.59953704, 4.73263889, 4.86574074
     ];
 
-    expectArraysClose(result, expectedOutput);
+    expectArraysClose(await result.data(), expectedOutput);
   });
 
-  it('x=[1, 3, 3, 3, 1] f=[1, 1, 1, 1, 1] s=2 d=1 p=same', () => {
+  it('x=[1, 3, 3, 3, 1] f=[1, 1, 1, 1, 1] s=2 d=1 p=same', async () => {
     const batch = 1;
     const inDepth = 3;
     const inHeight = 3;
@@ -315,10 +315,10 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
       0.92592593, 1.
     ];
 
-    expectArraysClose(result, expectedOutput);
+    expectArraysClose(await result.data(), expectedOutput);
   });
 
-  it('x=[1, 3, 3, 3, 1] f=[1, 1, 1, 1, 1] s=2 d=1 p=valid', () => {
+  it('x=[1, 3, 3, 3, 1] f=[1, 1, 1, 1, 1] s=2 d=1 p=valid', async () => {
     const batch = 1;
     const inDepth = 3;
     const inHeight = 3;
@@ -337,10 +337,10 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
       0.92592593, 1.
     ];
 
-    expectArraysClose(result, expectedOutput);
+    expectArraysClose(await result.data(), expectedOutput);
   });
 
-  it('x=[1, 7, 7, 7, 1] f=[2, 2, 2, 1, 1] s=3 d=1 p=same', () => {
+  it('x=[1, 7, 7, 7, 1] f=[2, 2, 2, 1, 1] s=3 d=1 p=same', async () => {
     const batch = 1;
     const inDepth = 7;
     const inHeight = 7;
@@ -362,10 +362,10 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
       0.3691691,  0.37244898, 0.125
     ];
 
-    expectArraysClose(result, expectedOutput);
+    expectArraysClose(await result.data(), expectedOutput);
   });
 
-  it('x=[1, 7, 7, 7, 1] f=[2, 2, 2, 1, 1] s=3 d=1 p=valid', () => {
+  it('x=[1, 7, 7, 7, 1] f=[2, 2, 2, 1, 1] s=3 d=1 p=valid', async () => {
     const batch = 1;
     const inDepth = 7;
     const inHeight = 7;
@@ -384,10 +384,10 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
       2.784257
     ];
 
-    expectArraysClose(result, expectedOutput);
+    expectArraysClose(await result.data(), expectedOutput);
   });
 
-  it('x=[1, 2, 1, 2, 1] f=[2, 1, 2, 1, 2] s=1 d=1 p=valid', () => {
+  it('x=[1, 2, 1, 2, 1] f=[2, 1, 2, 1, 2] s=1 d=1 p=valid', async () => {
     const batch = 1;
     const inDepth = 2;
     const inHeight = 1;
@@ -405,11 +405,11 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
 
     const expectedOutput = [1.5625, 1.875];
 
-    expectArraysClose(result, expectedOutput);
+    expectArraysClose(await result.data(), expectedOutput);
   });
 
   it('gradient with clones, x=[1,3,6,1,1] filter=[2,2,1,1,1] s=1 d=1 p=valid',
-     () => {
+     async () => {
        const batch = 1;
        const inDepth = 3;
        const inHeight = 6;
@@ -430,8 +430,8 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
          1.0, 3.0, 3.0, 3.0, 3.0, 2.0, 4.0, 10.0, 10.0, 10.0, 10.0, 6.0, 3.0,
          7.0, 7.0, 7.0, 7.0, 4.0
        ];
-       expectArraysClose(dx, expectedOutput);
-       expectArraysClose(dfilter, expectedFilterOutput);
+       expectArraysClose(await dx.data(), expectedOutput);
+       expectArraysClose(await dfilter.data(), expectedFilterOutput);
      });
 
   it('throws when passed x as a non-tensor', () => {
@@ -459,14 +459,14 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
         .toThrowError(/Argument 'filter' passed to 'conv3d' must be a Tensor/);
   });
 
-  it('accepts a tensor-like object', () => {
+  it('accepts a tensor-like object', async () => {
     const pad = 'valid';
     const stride = 1;
     const x = [[[[1], [2]], [[3], [4]]]];  // 2x2x1x1
     const w = [[[[[2]]]]];                 // 1x1x1x1x1
 
     const result = tf.conv3d(x, w, stride, pad);
-    expectArraysClose(result, [2, 4, 6, 8]);
+    expectArraysClose(await result.data(), [2, 4, 6, 8]);
   });
 
   it('throws when data format not NDHWC', () => {
