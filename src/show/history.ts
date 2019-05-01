@@ -92,23 +92,12 @@ import {subSurface} from '../util/dom';
  * });
  * ```
  *
- * @param container A `{name: string, tab?: string}` object specifying which
- *  surface to render to.
  * @param history A history like object. Either a tfjs-layers `History` object
  *  or an array of tfjs-layers `Logs` objects.
  * @param metrics An array of strings for each metric to plot from the history
  *  object. Using this allows you to control which metrics appear on the same
  *  plot.
- * @param opts Optional parameters for the line charts. See the opts parameter
- *  for render.linechart for details. Notably for 'accuracy' related plots
- *  the domain of the yAxis will always by 0-1, i.e. zoomToFit and yAxisDomain
- *  options are ignored.
- * @param opts.zoomToFitAccuracy a boolean controlling whether to 'zoomToFit'
- *  accuracy plots as well. Constraining the y axis domain of an accuracy plot
- *  to exactly 0-1 is desireable most of the time. However there may be cases,
- *  such as when doing transfer learning, where more resolution is desired. Set
- *  zoomToFitAccuracy to true to turn on zoomToFit for accuracy plots.
- *
+ * @param opts Optional parameters for the line charts.
  */
 /**
  * @doc {heading: 'Models & Tensors', subheading: 'Model Training', namespace:
@@ -257,21 +246,8 @@ function getValues(
  * });
  * ```
  *
- * @param container A `{name: string, tab?: string}` object specifying which
- *  surface to render to.
  * @param metrics List of metrics to plot.
- * @param opts Optional parameters for the line charts. See the opts parameter
- *  for render.linechart for details. Notably for 'accuracy' related plots
- *  the domain of the yAxis will always by 0-1, i.e. zoomToFit and yAxisDomain
- *  options are ignored.
- * @param opts.zoomToFitAccuracy a boolean controlling whether to 'zoomToFit'
- *  accuracy plots as well. Constraining the y axis domain of an accuracy plot
- *  to exactly 0-1 is desireable most of the time. However there may be cases,
- *  such as when doing transfer learning, where more resolution is desired. Set
- *  zoomToFitAccuracy to true to turn on zoomToFit for accuracy plots.
- * @param opts.callbacks Array of strings with callback names. Valid options
- *  are 'onEpochEnd' and 'onBatchEnd'. Defaults to ['onEpochEnd', 'onBatchEnd'].
- *
+ * @param opts Optional parameters
  */
 /**
  * @doc {heading: 'Models & Tensors', subheading: 'Model Training', namespace:
@@ -343,6 +319,11 @@ interface FitCallbackLogs {
 }
 
 interface FitCallbackOptions extends HistoryOptions {
+  /**
+   * Array of callback names. Valid options
+   * are 'onEpochEnd' and 'onBatchEnd'. Defaults to ['onEpochEnd',
+   * 'onBatchEnd'].
+   */
   callbacks?: string[];
 }
 

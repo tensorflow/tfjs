@@ -19,7 +19,7 @@ import {format as d3Format} from 'd3-format';
 import {select as d3Select} from 'd3-selection';
 import {css} from 'glamor';
 import {tachyons as tac} from 'glamor-tachyons';
-import {Drawable} from '../types';
+import {Drawable, TableData} from '../types';
 import {getDrawArea} from './render_utils';
 
 /**
@@ -42,21 +42,6 @@ import {getDrawArea} from './render_utils';
  * tfvis.render.table(surface, { headers, values });
  * ```
  *
- * @param data Data in the following format
- *    {
- *      headers: string[],
- *      values:  any[][],
- *    }
- *    data.headers are the column names
- *    data.values is an array of arrays (one for  each row). The inner
- *    array length usually matches the length of data.headers. Usually
- *    the values are strings or numbers, these are inserted as html
- *    content so html strings are also supported.
- *
- * @param container An `HTMLElement` or `Surface` in which to draw the table.
- *    Note that the chart expects to have complete control over
- *    the contents of the container and can clear its contents
- *    at will.
  * @param opts.fontSize fontSize in pixels for text in the chart.
  *
  */
@@ -64,8 +49,7 @@ import {getDrawArea} from './render_utils';
 export function table(
     container: Drawable,
     // tslint:disable-next-line:no-any
-    data: {headers: string[], values: any[][]},
-    opts: {fontSize?: number} = {}) {
+    data: TableData, opts: {fontSize?: number} = {}) {
   if (data && data.headers == null) {
     throw new Error('Data to render must have a "headers" property');
   }

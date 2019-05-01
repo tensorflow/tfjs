@@ -36,22 +36,10 @@ import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
  * tfvis.render.barchart(surface, data);
  * ```
  *
- * @param container An `HTMLElement` or `Surface` in which to draw the bar
- *    chart. Note that the chart expects to have complete control over
- *    the contents of the container and can clear its contents at will.
  * @param data Data in the following format, (an array of objects)
- *    [ {index: number, value: number} ... ]
- *
- * @param opts optional parameters
- * @param opts.width width of chart in px
- * @param opts.height height of chart in px
- * @param opts.xLabel label for x-axis, set to null to hide the
- * @param opts.yLabel label for y-axis, set to null to hide the
- * @param opts.fontSize fontSize in pixels for text in the chart
+ *    `[ {index: number, value: number} ... ]`
  *
  * @returns Promise - indicates completion of rendering
- *
- *
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
 export async function barchart(

@@ -32,10 +32,6 @@ import {tensorStats} from '../util/math';
  * await tfvis.show.valuesDistribution(surface, tensor);
  * ```
  *
- * @param container A `{name: string, tab?: string}` object specifying which
- *  surface to render to.
- * @param tensor the input tensor
- *
  */
 /**
  * @doc {heading: 'Models & Tensors', subheading: 'Model Inspection', namespace:
