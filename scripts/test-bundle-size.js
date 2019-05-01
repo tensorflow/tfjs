@@ -29,9 +29,7 @@ function getFileSizeBytes(filename) {
 
 // Get the bundle sizes from this change.
 exec(`yarn rollup -c`, {silent: true});
-const size = getFileSizeBytes('dist/tf-core.js');
 const minSize = getFileSizeBytes('dist/tf-core.min.js');
-const esmSize = getFileSizeBytes('dist/tf-core.esm.js');
 
 // Clone master and get the bundle size from master.
 const dirName = '/tmp/tfjs-core-bundle';
@@ -43,9 +41,7 @@ exec(
 shell.cd(dirName);
 exec(`yarn && yarn rollup -c`, {silent: true});
 
-const masterSize = getFileSizeBytes('dist/tf-core.js');
 const masterMinSize = getFileSizeBytes('dist/tf-core.min.js');
-const masterEsmSize = getFileSizeBytes('dist/tf-core.esm.js');
 
 function showDiff(newSize, masterSize) {
   const diffBytes = newSize - masterSize;
@@ -71,23 +67,6 @@ console.log();
 console.log(`==> pre-gzip`)
 showDiff(minSize.fileSizeBytes, masterMinSize.fileSizeBytes);
 console.log();
-console.log();
-
-console.log(`~~~~unminified bundle~~~~`);
-console.log(`==> post-gzip`)
-showDiff(size.gzipFileSizeBytes, masterSize.gzipFileSizeBytes);
-console.log();
-console.log(`==> pre-gzip`)
-showDiff(size.fileSizeBytes, masterSize.fileSizeBytes);
-console.log();
-console.log();
-
-console.log(`~~~~esm bundle~~~~`);
-console.log(`==> post-gzip`)
-showDiff(esmSize.gzipFileSizeBytes, masterEsmSize.gzipFileSizeBytes);
-console.log();
-console.log(`==> pre-gzip`)
-showDiff(esmSize.fileSizeBytes, masterEsmSize.fileSizeBytes);
 console.log();
 
 exec(`rm -r ${dirName}`);
