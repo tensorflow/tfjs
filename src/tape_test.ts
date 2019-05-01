@@ -349,7 +349,7 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
 
     // dx = dy + 1 + 1 + 1 + 1 + 1
     expectArraysClose(
-        await accumulatedGradientsMap[x.id].data(), [dy.dataSync()[0] + 5]);
+        await accumulatedGradientsMap[x.id].data(), [(await dy.data())[0] + 5]);
   });
 
   it('backprop over 1 node with 3 outputs, w.r.t to the 2nd output',

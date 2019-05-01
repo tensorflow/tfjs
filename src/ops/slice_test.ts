@@ -86,7 +86,7 @@ describeWithFlags('slice2d', ALL_ENVS, () => {
   it('returns the upper-left submatrix when begin is [0, 0]', async () => {
     const a = tf.randomUniform<Rank.R2>([10, 10], -1, 1);
     const b = tf.slice2d(a, [0, 0], [2, 2]);
-    const aValues = a.dataSync();
+    const aValues = await a.data();
 
     expectArraysClose(
         await b.data(), [aValues[0], aValues[1], aValues[10], aValues[11]]);

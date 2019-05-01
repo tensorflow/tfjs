@@ -32,13 +32,13 @@ describeWithFlags('dropout', ALL_ENVS, () => {
   const dropoutLevels = [0, 0.75];
   const seed = 23;
   for (const dropoutLevel of dropoutLevels) {
-    it(`Level = ${dropoutLevel}`, () => {
+    it(`Level = ${dropoutLevel}`, async () => {
       const x = tf.range(1, 21).reshape([10, 2]);
       const y = tf.dropout(x, tf.scalar(dropoutLevel), null, seed);
       expect(y.dtype).toEqual(x.dtype);
       expect(y.shape).toEqual(x.shape);
-      const xValue = x.dataSync();
-      const yValue = y.dataSync();
+      const xValue = await x.data();
+      const yValue = await y.data();
       let nKept = 0;
       for (let i = 0; i < xValue.length; ++i) {
         if (yValue[i] !== 0) {

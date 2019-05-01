@@ -639,8 +639,8 @@ describeWithFlags('logSigmoid', ALL_ENVS, () => {
     const da = tf.grad(a => tf.logSigmoid(a))(a, dy);
 
     const expected = [];
-    const aVals = a.dataSync();
-    const dyVals = dy.dataSync();
+    const aVals = await a.data();
+    const dyVals = await dy.data();
     for (let i = 0; i < a.size; i++) {
       const y = 1 / (1 + Math.exp(aVals[i]));
       expected[i] = dyVals[i] * y;
@@ -777,8 +777,8 @@ describeWithFlags('softplus', ALL_ENVS, () => {
     const da = tf.grad(a => tf.softplus(a))(a, dy);
 
     const expected = [];
-    const aVals = a.dataSync();
-    const dyVals = dy.dataSync();
+    const aVals = await a.data();
+    const dyVals = await dy.data();
 
     for (let i = 0; i < a.size; i++) {
       const y = 1 / (1 + Math.exp(-aVals[i]));
@@ -3166,10 +3166,10 @@ describeWithFlags('clip', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2]);
   });
 
-  it('clip(x, eps, 1-eps) never returns 0 or 1', () => {
+  it('clip(x, eps, 1-eps) never returns 0 or 1', async () => {
     const min = tf.backend().epsilon();
     const max = 0.5;
-    const res = tf.clipByValue([0, 1], min, max).dataSync();
+    const res = await tf.clipByValue([0, 1], min, max).data();
     expect(res[0]).toBeGreaterThan(0);
     expect(res[1]).toBeCloseTo(max);
   });
