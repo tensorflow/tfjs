@@ -20,11 +20,18 @@ import * as shell from 'shelljs';
 import * as readline from 'readline';
 
 const GOOGLERS_WITH_GMAIL = [
-  'dsmilkov', 'kainino0x', 'davidsoergel', 'pyu10055', 'nkreeger', 'tafsiri'
+  'dsmilkov',
+  'kainino0x',
+  'davidsoergel',
+  'pyu10055',
+  'nkreeger',
+  'tafsiri'
 ];
 
-const rl =
-    readline.createInterface({input: process.stdin, output: process.stdout});
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
 /**
  * A wrapper around shell.exec for readability.
@@ -32,7 +39,7 @@ const rl =
  * @returns stdout returned by the executed bash script.
  */
 export function $(cmd: string) {
-  const result = shell.exec(cmd, {silent: true});
+  const result = shell.exec(cmd, { silent: true });
   if (result.code > 0) {
     console.log('$', cmd);
     console.log(result.stderr);
@@ -42,8 +49,9 @@ export function $(cmd: string) {
 }
 
 export async function question(questionStr: string): Promise<string> {
-  return new Promise<string>(
-      resolve => rl.question(questionStr, response => resolve(response)));
+  return new Promise<string>(resolve =>
+    rl.question(questionStr, response => resolve(response))
+  );
 }
 
 export interface Repo {
@@ -71,10 +79,13 @@ export interface Commit {
 
 export interface OctokitGetCommit {
   repos: {
-    getCommit:
-        (config: {owner: string, repo: string, sha: string}) => {
-          data: {author: {login: string}}
-        }
+    getCommit: (config: {
+      owner: string;
+      repo: string;
+      sha: string;
+    }) => {
+      data: { author: { login: string } };
+    };
   };
 }
 
@@ -84,12 +95,15 @@ interface SectionTag {
 }
 
 const SECTION_TAGS: SectionTag[] = [
-  {section: 'Features', tag: 'FEATURE'},
-  {section: 'Breaking changes', tag: 'BREAKING'},
-  {section: 'Bug fixes', tag: 'BUG'}, {section: 'Performance', tag: 'PERF'},
-  {section: 'Development', tag: 'DEV'}, {section: 'Documentation', tag: 'DOC'},
-  {section: 'Security', tag: 'SECURITY'}, {section: 'Misc', tag: 'MISC'},
-  {section: 'Internal', tag: 'INTERNAL'}
+  { section: 'Features', tag: 'FEATURE' },
+  { section: 'Breaking changes', tag: 'BREAKING' },
+  { section: 'Bug fixes', tag: 'BUG' },
+  { section: 'Performance', tag: 'PERF' },
+  { section: 'Development', tag: 'DEV' },
+  { section: 'Documentation', tag: 'DOC' },
+  { section: 'Security', tag: 'SECURITY' },
+  { section: 'Misc', tag: 'MISC' },
+  { section: 'Internal', tag: 'INTERNAL' }
 ];
 
 /**
@@ -104,51 +118,59 @@ const SECTION_TAGS: SectionTag[] = [
  * @returns The release notes markdown draft as a string.
  */
 export async function getReleaseNotesDraft(
-    octokit: OctokitGetCommit, repoCommits: RepoCommits[]): Promise<string> {
+  octokit: OctokitGetCommit,
+  repoCommits: RepoCommits[]
+): Promise<string> {
   const repoNotes = [];
   for (let i = 0; i < repoCommits.length; i++) {
     const repoCommit = repoCommits[i];
 
     const getUsernameForCommit = async (sha: string) => {
-      const result = await octokit.repos.getCommit(
-          {owner: 'tensorflow', repo: repoCommit.repo.identifier, sha});
+      const result = await octokit.repos.getCommit({
+        owner: 'tensorflow',
+        repo: repoCommit.repo.identifier,
+        sha
+      });
       return result.data.author.login;
     };
 
-    const tagEntries: {[tag: string]: string[]} = {};
-    SECTION_TAGS.forEach(({tag}) => tagEntries[tag] = []);
+    const tagEntries: { [tag: string]: string[] } = {};
+    SECTION_TAGS.forEach(({ tag }) => (tagEntries[tag] = []));
 
     for (let j = 0; j < repoCommit.commits.length; j++) {
       const commit = repoCommit.commits[j];
 
-      const tagsFound: Array<{tag: string, tagMessage: string}> = [];
-      const bodyLines = commit.body.split('\n').map(line => line.trim());
+      const tagsFound: Array<{ tag: string; tagMessage: string }> = [];
+      const bodyLines = [];
+      for (let line of commit.body.split('\n')) {
+        bodyLines.push(line.trim());
+      }
       // Get tags for the body by finding lines that start with tags. Do
       // this without a regex for readability.
-      SECTION_TAGS.forEach(({tag}) => {
+      SECTION_TAGS.forEach(({ tag }) => {
         if (tag === 'INTERNAL') {
           return;
         }
 
-        bodyLines.forEach(line => {
+        for (let line of bodyLines) {
           // Split by word boundaries, and make sure the first word is the
           // tag.
           const split = line.split(/\b/);
           if (split[0] === tag) {
             const tagMessage = line.substring(tag.length).trim();
-            tagsFound.push({tag, tagMessage});
+            tagsFound.push({ tag, tagMessage });
           }
-        });
+        }
       });
       // If no explicit tags, put this under misc.
       if (tagsFound.length === 0) {
-        tagsFound.push({tag: 'MISC', tagMessage: ''});
+        tagsFound.push({ tag: 'MISC', tagMessage: '' });
       }
 
       const username = await getUsernameForCommit(commit.sha);
       const isExternalContributor =
-          !commit.authorEmail.endsWith('@google.com') &&
-          GOOGLERS_WITH_GMAIL.indexOf(username) === -1;
+        !commit.authorEmail.endsWith('@google.com') &&
+        GOOGLERS_WITH_GMAIL.indexOf(username) === -1;
 
       const pullRequestRegexp = /\(#([0-9]+)\)/;
       const pullRequestMatch = commit.subject.match(pullRequestRegexp);
@@ -161,7 +183,7 @@ export async function getReleaseNotesDraft(
       }
 
       for (let k = 0; k < tagsFound.length; k++) {
-        const {tag, tagMessage} = tagsFound[k];
+        const { tag, tagMessage } = tagsFound[k];
 
         // When the tag has no message, use the subject.
         let entry;
@@ -172,10 +194,11 @@ export async function getReleaseNotesDraft(
         }
 
         // Attach the link to the pull request.
-        const pullRequestSuffix = pullRequestNumber != null ?
-            ` ([#${pullRequestNumber}](https://github.com/tensorflow/` +
-                `${repoCommit.repo.identifier}/pull/${pullRequestNumber})).` :
-            '';
+        const pullRequestSuffix =
+          pullRequestNumber != null
+            ? ` ([#${pullRequestNumber}](https://github.com/tensorflow/` +
+              `${repoCommit.repo.identifier}/pull/${pullRequestNumber})).`
+            : '';
 
         entry = entry.trim() + pullRequestSuffix;
 
@@ -190,7 +213,7 @@ export async function getReleaseNotesDraft(
     }
 
     const repoLines: string[] = [];
-    SECTION_TAGS.forEach(({tag, section}) => {
+    SECTION_TAGS.forEach(({ tag, section }) => {
       if (tagEntries[tag].length !== 0) {
         const sectionNotes = tagEntries[tag].join('\n');
         repoLines.push(`### ${section}`);
@@ -198,9 +221,11 @@ export async function getReleaseNotesDraft(
       }
     });
 
-    const repoSection = `## ${repoCommit.repo.name} ` +
-        `(${repoCommit.startVersion} ==> ` +
-        `${repoCommit.endVersion})\n\n` + repoLines.join('\n');
+    const repoSection =
+      `## ${repoCommit.repo.name} ` +
+      `(${repoCommit.startVersion} ==> ` +
+      `${repoCommit.endVersion})\n\n` +
+      repoLines.join('\n');
     repoNotes.push(repoSection);
   }
 

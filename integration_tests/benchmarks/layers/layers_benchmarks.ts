@@ -24,17 +24,35 @@ import * as tfd from '@tensorflow/tfjs-data';
 import * as tfl from '@tensorflow/tfjs-layers';
 
 // tslint:disable-next-line:max-line-length
-import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelBenchmarkRun, ModelFunctionName, ModelTrainingBenchmarkRun, VersionSet, PythonEnvironmentInfo, NodeEnvironmentType, NodeEnvironmentInfo, EnvironmentInfo} from '../types';
+import {
+  BrowserEnvironmentType,
+  BrowserEnvironmentInfo,
+  ModelBenchmarkRun,
+  ModelFunctionName,
+  ModelTrainingBenchmarkRun,
+  VersionSet,
+  PythonEnvironmentInfo,
+  NodeEnvironmentType,
+  NodeEnvironmentInfo,
+  EnvironmentInfo
+} from '../types';
 // tslint:disable-next-line:max-line-length
-import {addEnvironmentInfoToFirestore, addOrGetTaskId, addBenchmarkRunsToFirestore, addVersionSetToFirestore} from '../firestore';
+import {
+  addEnvironmentInfoToFirestore,
+  addOrGetTaskId,
+  addBenchmarkRunsToFirestore,
+  addVersionSetToFirestore
+} from '../firestore';
 
 // tslint:disable-next-line:no-any
 let tfn: any;
 
-export type MultiFunctionModelTaskLog = {[taskName: string]: ModelBenchmarkRun};
+export type MultiFunctionModelTaskLog = {
+  [taskName: string]: ModelBenchmarkRun;
+};
 
 export interface SuiteLog {
-  data: {[modelName: string]: MultiFunctionModelTaskLog};
+  data: { [modelName: string]: MultiFunctionModelTaskLog };
   environmentInfo: PythonEnvironmentInfo;
   versionSet: VersionSet;
 }
@@ -46,8 +64,11 @@ declare let __karma__: any;
 export function inNodeJS(): boolean {
   // Note this is not a generic way of testing if we are in Node.js.
   // The logic here is specific to the scripts in this folder.
-  return typeof module !== 'undefined' && typeof process !== 'undefined' &&
-      typeof __karma__ === 'undefined';
+  return (
+    typeof module !== 'undefined' &&
+    typeof process !== 'undefined' &&
+    typeof __karma__ === 'undefined'
+  );
 }
 
 export function usingNodeGPU(): boolean {
@@ -55,8 +76,7 @@ export function usingNodeGPU(): boolean {
 }
 
 /** Extract commit hashes of the tfjs repos from karma flags. */
-function getCommitHashesFromArgs(
-    args: Array<boolean|number|string>) {
+function getCommitHashesFromArgs(args: Array<boolean | number | string>) {
   for (let i = 0; i < args.length; ++i) {
     if (args[i] === '--hashes') {
       if (args[i + 1] == null) {
@@ -69,7 +89,8 @@ function getCommitHashesFromArgs(
 
 /** Extract the "log" boolean flag from karma flags. */
 function getLogFlagFromKarmaFlags(
-    karmaFlags: Array<boolean|number|string>): boolean {
+  karmaFlags: Array<boolean | number | string>
+): boolean {
   for (let i = 0; i < karmaFlags.length; ++i) {
     if (karmaFlags[i] === '--log') {
       return karmaFlags[i + 1] === true;
@@ -86,8 +107,8 @@ function getLogFlagFromKarmaFlags(
  */
 function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
   const modelNamesAndTimestamps: Array<{
-    modelName: string,
-    timestamp: number
+    modelName: string;
+    timestamp: number;
   }> = [];
   for (const modelName in suiteLog.data) {
     const taskGroupLog = suiteLog.data[modelName] as MultiFunctionModelTaskLog;
@@ -96,13 +117,18 @@ function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
       continue;
     }
 
-    const timestamp =
-        new Date(taskGroupLog[functionNames[0]].endingTimestampMs).getTime();
-    modelNamesAndTimestamps.push({modelName, timestamp});
+    const timestamp = new Date(
+      taskGroupLog[functionNames[0]].endingTimestampMs
+    ).getTime();
+    modelNamesAndTimestamps.push({ modelName, timestamp });
   }
 
   modelNamesAndTimestamps.sort((x, y) => x.timestamp - y.timestamp);
-  return modelNamesAndTimestamps.map(object => object.modelName);
+  let objectModelName = [];
+  for (let object of modelNamesAndTimestamps) {
+    objectModelName.push(object.modelName);
+  }
+  return objectModelName;
 }
 
 /**
@@ -115,10 +141,12 @@ function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
  *   - xs: concrete input tensors with uniform-random values.
  *   - ys: concrete output tensors with uniform-random values.
  */
-function getRandomInputsAndOutputs(model: tfl.LayersModel, batchSize: number):
-    {xs: tfc.Tensor|tfc.Tensor[], ys: tfc.Tensor|tfc.Tensor[]} {
+function getRandomInputsAndOutputs(
+  model: tfl.LayersModel,
+  batchSize: number
+): { xs: tfc.Tensor | tfc.Tensor[]; ys: tfc.Tensor | tfc.Tensor[] } {
   return tfc.tidy(() => {
-    let xs: tfc.Tensor|tfc.Tensor[] = [];
+    let xs: tfc.Tensor | tfc.Tensor[] = [];
     for (const input of model.inputs) {
       xs.push(tfc.randomUniform([batchSize].concat(input.shape.slice(1))));
     }
@@ -126,7 +154,7 @@ function getRandomInputsAndOutputs(model: tfl.LayersModel, batchSize: number):
       xs = xs[0];
     }
 
-    let ys: tfc.Tensor|tfc.Tensor[] = [];
+    let ys: tfc.Tensor | tfc.Tensor[] = [];
     for (const output of model.outputs) {
       ys.push(tfc.randomUniform([batchSize].concat(output.shape.slice(1))));
     }
@@ -134,14 +162,17 @@ function getRandomInputsAndOutputs(model: tfl.LayersModel, batchSize: number):
       ys = ys[0];
     }
 
-    return {xs, ys};
+    return { xs, ys };
   });
 }
 
 /** Call await data() on tensor(s). */
-async function syncData(tensors: tfc.Tensor|tfc.Tensor[]) {
+async function syncData(tensors: tfc.Tensor | tfc.Tensor[]) {
   if (Array.isArray(tensors)) {
-    const promises = tensors.map(tensor => tensor.data());
+    const promises = [];
+    for (let tensor of tensors) {
+      promises.push(tensor.data());
+    }
     await Promise.all(promises);
   } else {
     await tensors.data();
@@ -167,7 +198,7 @@ function getBrowserEnvironmentType(): BrowserEnvironmentType {
 function getBrowserEnvironmentInfo(): BrowserEnvironmentInfo {
   return {
     type: getBrowserEnvironmentType(),
-    userAgent: navigator.userAgent,
+    userAgent: navigator.userAgent
     // TODO(cais): Add WebGL info.
   };
 }
@@ -190,21 +221,21 @@ function getNodeEnvironmentInfo(): NodeEnvironmentInfo {
 function checkBatchSize(batchSize: number) {
   if (!(Number.isInteger(batchSize) && batchSize > 0)) {
     throw new Error(
-      `Expected batch size to be a positive integer, but got ` +
-      `${batchSize}`);
+      `Expected batch size to be a positive integer, but got ` + `${batchSize}`
+    );
   }
 }
 
-const OPTIMIZER_MAP: {[pyName: string]: string} = {
-  'AdamOptimizer': 'adam',
-  'RMSPropOptimizer': 'rmsprop',
-  'GradientDescentOptimizer': 'sgd',
-  'SGD': 'sgd'
+const OPTIMIZER_MAP: { [pyName: string]: string } = {
+  AdamOptimizer: 'adam',
+  RMSPropOptimizer: 'rmsprop',
+  GradientDescentOptimizer: 'sgd',
+  SGD: 'sgd'
 };
 
-const LOSS_MAP: {[pyName: string]: string} = {
-  'mean_squared_error': 'meanSquaredError',
-  'categorical_crossentropy': 'categoricalCrossentropy'
+const LOSS_MAP: { [pyName: string]: string } = {
+  mean_squared_error: 'meanSquaredError',
+  categorical_crossentropy: 'categoricalCrossentropy'
 };
 
 describe('TF.js Layers Benchmarks', () => {
@@ -251,7 +282,7 @@ describe('TF.js Layers Benchmarks', () => {
       // from source and linked via `yalc`, instead of downloaded from NPM.
     }
 
-    let log: boolean;  //  Whether the benchmark results are to be logged.
+    let log: boolean; //  Whether the benchmark results are to be logged.
     if (isNodeJS) {
       // In Node.js.
       log = process.argv.indexOf('--log') !== -1;
@@ -268,16 +299,18 @@ describe('TF.js Layers Benchmarks', () => {
     } else {
       environmentInfo = getBrowserEnvironmentInfo();
     }
-    const versionSet: VersionSet = isNodeJS ? {
-      versions: tfn.version
-    } : {
-      versions: {
-        'tfjs-converter': tfconverter.version_converter,
-        'tfjs-core': tfc.version_core,
-        'tfjs-data': tfd.version_data,
-        'tfjs-layers': tfl.version_layers
-      }
-    };
+    const versionSet: VersionSet = isNodeJS
+      ? {
+          versions: tfn.version
+        }
+      : {
+          versions: {
+            'tfjs-converter': tfconverter.version_converter,
+            'tfjs-core': tfc.version_core,
+            'tfjs-data': tfd.version_data,
+            'tfjs-layers': tfl.version_layers
+          }
+        };
 
     let suiteLog: SuiteLog;
     if (isNodeJS) {
@@ -285,20 +318,23 @@ describe('TF.js Layers Benchmarks', () => {
       const fs = require('fs');
       suiteLog = JSON.parse(fs.readFileSync(BENCHMARKS_JSON_PATH, 'utf-8'));
     } else {
-      suiteLog = await (await fetch(BENCHMARKS_JSON_URL)).json() as SuiteLog;
+      suiteLog = (await (await fetch(BENCHMARKS_JSON_URL)).json()) as SuiteLog;
     }
     const pyEnvironmentInfo = suiteLog.environmentInfo;
-    const pyEnvironmentId =
-        log ? await addEnvironmentInfoToFirestore(pyEnvironmentInfo) : null;
+    const pyEnvironmentId = log
+      ? await addEnvironmentInfoToFirestore(pyEnvironmentInfo)
+      : null;
     environmentInfo.systemInfo = pyEnvironmentInfo.systemInfo;
     environmentInfo.cpuInfo = pyEnvironmentInfo.cpuInfo;
     environmentInfo.memInfo = pyEnvironmentInfo.memInfo;
 
     // Add environment info to firestore and retrieve the doc ID.
-    const tfjsEnvironmentId =
-        log ? await addEnvironmentInfoToFirestore(environmentInfo) : null;
-    const versionSetId =
-        log ? await addVersionSetToFirestore(versionSet) : null;
+    const tfjsEnvironmentId = log
+      ? await addEnvironmentInfoToFirestore(environmentInfo)
+      : null;
+    const versionSetId = log
+      ? await addVersionSetToFirestore(versionSet)
+      : null;
     if (isNodeJS) {
       versionSet.commitHashes = getCommitHashesFromArgs(process.argv);
     } else {
@@ -307,9 +343,10 @@ describe('TF.js Layers Benchmarks', () => {
 
     if (log) {
       console.log(
-          `environmentId = ${tfjsEnvironmentId}; ` +
+        `environmentId = ${tfjsEnvironmentId}; ` +
           `versionId = ${versionSetId}; ` +
-          `pyEnvironmentId: ${pyEnvironmentId}`);
+          `pyEnvironmentId: ${pyEnvironmentId}`
+      );
     }
 
     const sortedModelNames = getChronologicalModelNames(suiteLog);
@@ -337,14 +374,15 @@ describe('TF.js Layers Benchmarks', () => {
         const pyRun = taskGroupLog[functionName] as ModelBenchmarkRun;
 
         // Make sure that the task type is logged in Firestore.
-        const taskId = log ?
-            await addOrGetTaskId(taskType, modelName, functionName) : null;
+        const taskId = log
+          ? await addOrGetTaskId(taskType, modelName, functionName)
+          : null;
 
         checkBatchSize(pyRun.batchSize);
 
         let tfjsRun: ModelBenchmarkRun;
 
-        const {xs, ys} = getRandomInputsAndOutputs(model, pyRun.batchSize);
+        const { xs, ys } = getRandomInputsAndOutputs(model, pyRun.batchSize);
         if (functionName === 'predict') {
           // Warm-up predict() runs.
           for (let n = 0; n < pyRun.numWarmUpIterations; ++n) {
@@ -380,9 +418,10 @@ describe('TF.js Layers Benchmarks', () => {
             endingTimestampMs: new Date().getTime()
           };
           console.log(
-              `  (taskId=${taskId}) predict(): averageTimeMs: ` +
+            `  (taskId=${taskId}) predict(): averageTimeMs: ` +
               `py=${pyRun.averageTimeMs.toFixed(3)}, ` +
-              `tfjs=${tfjsRun.averageTimeMs.toFixed(3)}`);
+              `tfjs=${tfjsRun.averageTimeMs.toFixed(3)}`
+          );
         } else if (functionName === 'fit') {
           const pyFitLog = pyRun as ModelTrainingBenchmarkRun;
           model.compile({
@@ -423,14 +462,16 @@ describe('TF.js Layers Benchmarks', () => {
           };
           console.log(
             `  (taskId=${taskId}) fit(): averageTimeMs: ` +
-            `py=${pyRun.averageTimeMs.toFixed(3)}, ` +
-            `tfjs=${tfjsRun.averageTimeMs.toFixed(3)}`);
+              `py=${pyRun.averageTimeMs.toFixed(3)}, ` +
+              `tfjs=${tfjsRun.averageTimeMs.toFixed(3)}`
+          );
         } else {
           throw new Error(
-              `Unknown task "${functionName}" from model "${modelName}"`);
+            `Unknown task "${functionName}" from model "${modelName}"`
+          );
         }
 
-        tfc.dispose({xs, ys});
+        tfc.dispose({ xs, ys });
 
         tfjsRuns.push(tfjsRun);
         pyRun.taskId = taskId;
@@ -441,10 +482,10 @@ describe('TF.js Layers Benchmarks', () => {
 
     if (log) {
       console.log(
-        `Writing ${tfjsRuns.length} TensorFlow.js TaskLogs to Firestore...`);
+        `Writing ${tfjsRuns.length} TensorFlow.js TaskLogs to Firestore...`
+      );
       await addBenchmarkRunsToFirestore(tfjsRuns);
-      console.log(
-          `Writing ${pyRuns.length} Python TaskLogs to Firestore...`);
+      console.log(`Writing ${pyRuns.length} Python TaskLogs to Firestore...`);
       await addBenchmarkRunsToFirestore(pyRuns);
       console.log(`Done.`);
     }

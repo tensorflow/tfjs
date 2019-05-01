@@ -16,7 +16,7 @@
  */
 
 import firebase from 'firebase/app';
-import {BenchmarkLog} from './types';
+import { BenchmarkLog } from './types';
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
@@ -24,7 +24,12 @@ declare let __karma__: any;
 import 'firebase/auth';
 import 'firebase/database';
 // tslint:disable-next-line:max-line-length
-import {ApplicationConfig, BenchmarkRunEntry, BenchmarkEntry, BenchmarkHashes} from './firebase_types';
+import {
+  ApplicationConfig,
+  BenchmarkRunEntry,
+  BenchmarkEntry,
+  BenchmarkHashes
+} from './firebase_types';
 
 export const karmaFlags = parseKarmaFlags(__karma__.config.args);
 
@@ -45,7 +50,9 @@ try {
 }
 
 export async function logBenchmarkRun(
-    benchmarkName: string, logs: BenchmarkLog[]): Promise<void> {
+  benchmarkName: string,
+  logs: BenchmarkLog[]
+): Promise<void> {
   const date = new Date();
   let month = (date.getMonth() + 1).toString();
   if (month.length === 1) {
@@ -57,10 +64,10 @@ export async function logBenchmarkRun(
   }
   const humanReadableDate = `${date.getFullYear()}-${month}-${day}`;
 
-  const runs: {[params: string]: BenchmarkRunEntry} = {};
-  logs.forEach(log => {
-    runs[log.params] = {averageTimeMs: log.averageTimeMs};
-  });
+  const runs: { [params: string]: BenchmarkRunEntry } = {};
+  for (let log of logs) {
+    runs[log.params] = { averageTimeMs: log.averageTimeMs };
+  }
   const entry: BenchmarkEntry = {
     userAgent: navigator.userAgent,
     runs,
@@ -83,17 +90,18 @@ export async function logBenchmarkRun(
     console.log(ref);
     console.log(entryDisplay);
     return new Promise<void>(resolve => {
-      firebase.database()
-          .ref(ref)
-          // We set the database entry to be an array of one value so in the
-          // future we can benchmark multiple devices.
-          .set(entry, error => {
-            if (error) {
-              throw new Error(`Write to firebase failed with error:
+      firebase
+        .database()
+        .ref(ref)
+        // We set the database entry to be an array of one value so in the
+        // future we can benchmark multiple devices.
+        .set(entry, error => {
+          if (error) {
+            throw new Error(`Write to firebase failed with error:
               ${error}`);
-            }
-            resolve();
-          });
+          }
+          resolve();
+        });
     });
   }
 }
@@ -124,5 +132,5 @@ export function parseKarmaFlags(args: string[]): KarmaFlags {
       hashes = JSON.parse(args[i + 1]);
     }
   }
-  return {apiKey, nightly, browsers, hashes: hashes || {}};
+  return { apiKey, nightly, browsers, hashes: hashes || {} };
 }
