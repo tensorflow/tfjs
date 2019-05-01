@@ -108,11 +108,12 @@ describeBrowserEnvs('WebcamIterator', () => {
     ]);
     const croppedImg = webcamIterator.cropAndResizeFrame(originalImg);
     test_util.expectArraysClose(
-        croppedImg, tensor3d([
+        await croppedImg.array(),
+        await tensor3d([
           [[6.625, 7.1875, 7.75], [8.3125, 8.875, 9.4375]],
 
           [[1, 1.5625, 2.125], [2.6875, 3.25, 3.8125]]
-        ]));
+        ]).array());
   });
 
   it('resize in bilinear method has correct shape with html element',
@@ -153,11 +154,12 @@ describeBrowserEnvs('WebcamIterator', () => {
          [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]]
        ]);
        const croppedImg = webcamIterator.cropAndResizeFrame(originalImg);
-       test_util.expectArraysClose(croppedImg, tensor3d([
-                                     [[1, 1, 1], [1, 1, 1]],
+       test_util.expectArraysClose(
+           await croppedImg.array(), await tensor3d([
+                                       [[1, 1, 1], [1, 1, 1]],
 
-                                     [[1, 1, 1], [1, 1, 1]]
-                                   ]));
+                                       [[1, 1, 1], [1, 1, 1]]
+                                     ]).array());
      });
 
   it('webcamIterator could stop', async () => {
