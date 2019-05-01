@@ -17,7 +17,6 @@ import {randomNormal, Scalar, scalar, Tensor, tensor1d, tensor2d, tensor3d, tens
 
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
-import * as metrics from '../metrics';
 import {ModelAndWeightsConfig, modelFromJSON} from '../models';
 import {Kwargs} from '../types';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
@@ -981,7 +980,7 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
     expect(history.history.loss[0]).toBeCloseTo(1.5262475);
   });
 
-  it('BPTT', () => {
+  it('BPTT', async () => {
     // The following golden values for assertion can be obtained with the
     // following Python Keras code.
     // ```python
@@ -1002,7 +1001,7 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
     //                            use_bias=False)
     // output = dense(simple_rnn(t_input))
     // model = keras.Model(t_input, output)
-    // optimizer = keras.optimizers.SGD(1)
+    // optimizer = keras.optimizers.SGD(5)
     // model.compile(optimizer=optimizer, loss='mean_squared_error')
     //
     // x = np.ones([batch_size, sequence_length, input_size])
@@ -1015,37 +1014,34 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
     const sequenceLength = 3;
     const inputSize = 4;
     const batchSize = 5;
-    const simpleRNN = tfl.layers.simpleRNN({
+    const model = tfl.sequential();
+    model.add(tfl.layers.simpleRNN({
       units: 1,
       kernelInitializer: 'ones',
       recurrentInitializer: 'ones',
       useBias: false,
-    });
-    const dense = tfl.layers.dense({
+      inputShape: [sequenceLength, inputSize],
+    }));
+    model.add(tfl.layers.dense({
       units: 1,
       kernelInitializer: 'ones',
       useBias: false,
-    });
+    }));
 
-    const sgd = tfc.train.sgd(5);
     const x = tfc.ones([batchSize, sequenceLength, inputSize]);
     const y = tfc.zeros([batchSize, 1]);
-    dense.apply(simpleRNN.apply(x));
-    const lossFn = () => {
-      return tfc.mean(metrics.mse(y, dense.apply(simpleRNN.apply(x)) as Tensor))
-          .asScalar();
-    };
-    for (let i = 0; i < 2; ++i) {
-      sgd.minimize(lossFn);
-    }
+    const sgd = tfc.train.sgd(5);
+    model.compile({loss: 'meanSquaredError', optimizer: sgd});
+    await model.fit(x, y, {epochs: 2});
+
     expectTensorsClose(
-        simpleRNN.getWeights()[0],
+        model.layers[0].getWeights()[0],
         tfc.mul(scalar(0.8484658), tfc.ones([4, 1])));
     expectTensorsClose(
-        simpleRNN.getWeights()[1],
+        model.layers[0].getWeights()[1],
         tfc.mul(scalar(0.8484799), tfc.ones([1, 1])));
     expectTensorsClose(
-        dense.getWeights()[0],
+        model.layers[1].getWeights()[0],
         tfc.mul(scalar(80.967026), tfc.ones([1, 1])));
   });
 });
@@ -1427,7 +1423,7 @@ describeMathCPUAndGPU('GRU Tensor', () => {
     expect(history.history.loss[0]).toBeCloseTo(1.501);
   });
 
-  it('BPTT', () => {
+  it('BPTT', async () => {
     // The following golden values for assertion can be obtained with the
     // following Python Keras code.
     // ```python
@@ -1461,33 +1457,33 @@ describeMathCPUAndGPU('GRU Tensor', () => {
     const sequenceLength = 3;
     const inputSize = 4;
     const batchSize = 5;
-    const gru = tfl.layers.gru({
+    const model = tfl.sequential();
+    model.add(tfl.layers.gru({
       units: 1,
       kernelInitializer: 'zeros',
       recurrentInitializer: 'zeros',
+      useBias: false,
+      inputShape: [sequenceLength, inputSize]
+    }));
+    model.add(tfl.layers.dense({
+      units: 1,
+      kernelInitializer: 'ones',
       useBias: false
-    });
-    const dense =
-        tfl.layers.dense({units: 1, kernelInitializer: 'ones', useBias: false});
+    }));
 
     const sgd = tfc.train.sgd(1);
+    model.compile({loss: 'meanSquaredError', optimizer: sgd});
     const x = tfc.ones([batchSize, sequenceLength, inputSize]);
     const y = tfc.ones([batchSize, 1]);
-    dense.apply(gru.apply(x));
-    const lossFn = () => {
-      return tfc.mean(metrics.mse(y, dense.apply(gru.apply(x)) as Tensor))
-          .asScalar();
-    };
-    for (let i = 0; i < 2; ++i) {
-      sgd.minimize(lossFn);
-    }
+    await model.fit(x, y, {epochs: 2});
     expectTensorsClose(
-        gru.getWeights()[0],
+        model.layers[0].getWeights()[0],
         K.tile(tensor2d([[-0.03750037, 0, 1.7500007]], [1, 3]), [4, 1]));
     expectTensorsClose(
-        gru.getWeights()[1],
+        model.layers[0].getWeights()[1],
         tensor2d([[-1.562513e-02, 0, 2.086183e-07]], [1, 3]));
-    expectTensorsClose(dense.getWeights()[0], tensor2d([[1.2187521]], [1, 1]));
+    expectTensorsClose(
+        model.layers[1].getWeights()[0], tensor2d([[1.2187521]], [1, 1]));
   });
 
   // Reference Python code:
@@ -1968,7 +1964,7 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
       expect(history.history.loss[0]).toBeCloseTo(5.8377);
     });
 
-    it('BPTT', () => {
+    it('BPTT', async () => {
       // The following golden values for assertion can be obtained with the
       // following Python Keras code.
       // ```python
@@ -2002,40 +1998,38 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
       const sequenceLength = 3;
       const inputSize = 4;
       const batchSize = 5;
-      const lstm = tfl.layers.lstm({
+      const model = tfl.sequential();
+      model.add(tfl.layers.lstm({
         units: 1,
         kernelInitializer: 'zeros',
         recurrentInitializer: 'zeros',
         useBias: false,
-      });
-      const dense = tfl.layers.dense({
+        inputShape: [sequenceLength, inputSize]
+      }));
+      model.add(tfl.layers.dense({
         units: 1,
         kernelInitializer: 'ones',
         useBias: false,
-      });
+      }));
 
       const sgd = tfc.train.sgd(1);
+      model.compile({loss: 'meanSquaredError', optimizer: sgd});
+
       const x = tfc.ones([batchSize, sequenceLength, inputSize]);
       const y = tfc.ones([batchSize, 1]);
-      dense.apply(lstm.apply(x));
-      const lossFn = () => {
-        return tfc.mean(metrics.mse(y, dense.apply(lstm.apply(x)) as Tensor))
-            .asScalar();
-      };
-      for (let i = 0; i < 2; ++i) {
-        sgd.minimize(lossFn);
-      }
+      await model.fit(x, y, {epochs: 2});
+
       expectTensorsClose(
-          lstm.getWeights()[0],
+          model.layers[0].getWeights()[0],
           K.tile(
               tensor2d(
                   [[0.11455188, 0.06545822, 0.8760446, 0.18237013]], [1, 4]),
               [4, 1]));
       expectTensorsClose(
-          lstm.getWeights()[1],
+          model.layers[0].getWeights()[1],
           tensor2d([[0.02831176, 0.01934617, 0.00025817, 0.05784169]], [1, 4]));
       expectTensorsClose(
-          dense.getWeights()[0], tensor2d([[1.4559253]], [1, 1]));
+          model.layers[1].getWeights()[0], tensor2d([[1.4559253]], [1, 1]));
     });
   }
 
