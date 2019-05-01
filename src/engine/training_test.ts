@@ -2635,7 +2635,7 @@ describe('LayersModel trainable setter and getter', () => {
     expect(model.layers[2].trainable).toEqual(true);
   });
 
-  it('Setting trainable of layer sets trainable bit of Variable', async () => {
+  it('Setting trainable of model sets trainable bit of Variable', async () => {
     const model = tfl.sequential();
     model.add(
         tfl.layers.dense({units: 3, activation: 'relu', inputShape: [4]}));
@@ -2650,6 +2650,24 @@ describe('LayersModel trainable setter and getter', () => {
     expect(model.layers[0].weights[1].trainable).toEqual(true);
     expect(model.layers[1].weights[0].trainable).toEqual(true);
     expect(model.layers[1].weights[1].trainable).toEqual(true);
+  });
+
+  it('model.trainable respects layer.trainable', async () => {
+    const model = tfl.sequential();
+    model.add(
+        tfl.layers.dense({units: 3, activation: 'relu', inputShape: [4]}));
+    model.add(tfl.layers.dense({units: 1}));
+    expect(model.trainableWeights.length).toEqual(4);
+    model.layers[0].trainable = false;
+    expect(model.trainableWeights.length).toEqual(2);
+    model.trainable = false;
+    expect(model.trainableWeights.length).toEqual(0);
+    model.trainable = true;
+    expect(model.trainableWeights.length).toEqual(2);
+    model.layers[0].trainable = true;
+    expect(model.trainableWeights.length).toEqual(4);
+    model.trainable = false;
+    expect(model.trainableWeights.length).toEqual(0);
   });
 });
 
