@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {computeDispatch} from '../webgpu_util';
+
 import {WebGPUProgram} from './webgpu_program';
 
 export const matMulHeader = `
@@ -72,14 +74,13 @@ export class MatMulProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   uniforms = 'uint dimAOuter, dimInner, dimBOuter, batch;';
-  tileSize: [number, number] = [16, 16];  // Must be square.
+  tileSize: [number, number, number] = [16, 16, 1];  // Must be square.
 
   constructor(outputShape: [number, number, number]) {
     this.outputShape = outputShape;
-    this.dispatch = [
-      Math.ceil(outputShape[1] / this.tileSize[0]),
-      Math.ceil(outputShape[2] / this.tileSize[1]), 1
-    ];
+    const dispatchLayout = {x: [1], y: [2], z: [0]};
+    this.dispatch =
+        computeDispatch(dispatchLayout, this.outputShape, this.tileSize);
 
     this.userCode = `
       ${makeMatMulSource()}

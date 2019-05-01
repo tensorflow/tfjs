@@ -118,6 +118,11 @@ const SAMPLING_SNIPPETS = `
   uint getFlatIndex(ivec3 coords, ivec3 shape) {
     return uint(dot(coords, ivec3(shape.y * shape.z, shape.z, 1.)));
   }
+
+  uint getFlatIndex(ivec4 coords, ivec4 shape) {
+    return uint(dot(coords, ivec4(
+      shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1.)));
+  }
 `;
 
 const SET_OUTPUT_SNIPPET = `
@@ -136,6 +141,8 @@ function getOutputSamplingSnippet(outShape: number[]): string {
       return getOutput2DCoords(outShape as [number, number]);
     case 3:
       return getOutput3DCoords(outShape as [number, number, number]);
+    case 4:
+      return getOutput4DCoords(outShape as [number, number, number, number]);
     default:
       throw new Error(
           `${outShape.length}-D output sampling is not yet supported`);
@@ -176,5 +183,20 @@ function getOutput3DCoords(shape: [number, number, number]) {
     uint c = index - r * ${strides[1]};
 
     return ivec3(d, r, c);
+  }`;
+}
+
+function getOutput4DCoords(shape: [number, number, number, number]) {
+  const strides = util.computeStrides(shape);
+
+  return `ivec4 getOutputCoords(uint index) {
+    uint d1 = index / ${strides[0]};
+    index -= d1 * ${strides[0]};
+    uint d2 = index / ${strides[1]};
+    index -= d2 * ${strides[1]};
+    uint r = index / ${strides[2]};
+    uint c = index - r * ${strides[2]};
+
+    return ivec4(d1, d2, r, c);
   }`;
 }
