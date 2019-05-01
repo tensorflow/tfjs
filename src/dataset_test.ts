@@ -465,7 +465,8 @@ describeAllEnvs('Dataset', () => {
 
     const expectedNumberLastBatch = tf.tensor1d([96, 97, 98, 99]);
     tf.test_util.expectArraysClose(
-        lastBatch['number'] as tf.Tensor, expectedNumberLastBatch);
+        await (lastBatch['number'] as tf.Tensor).array(),
+        await expectedNumberLastBatch.array());
 
     const expectedNumberArrayLastBatch = tf.tensor2d(
         [
@@ -474,7 +475,8 @@ describeAllEnvs('Dataset', () => {
         ],
         [4, 3]);
     tf.test_util.expectArraysClose(
-        lastBatch['numberArray'] as tf.Tensor, expectedNumberArrayLastBatch);
+        await (lastBatch['numberArray'] as tf.Tensor).array(),
+        await expectedNumberArrayLastBatch.array());
 
     const expectedTensorLastBatch = tf.tensor2d(
         [
@@ -483,7 +485,8 @@ describeAllEnvs('Dataset', () => {
         ],
         [4, 3]);
     tf.test_util.expectArraysClose(
-        lastBatch['Tensor'] as tf.Tensor, expectedTensorLastBatch);
+        await (lastBatch['Tensor'] as tf.Tensor).array(),
+        await expectedTensorLastBatch.array());
 
     const expectedTensor2LastBatch = tf.tensor3d(
         [
@@ -494,12 +497,14 @@ describeAllEnvs('Dataset', () => {
         ],
         [4, 2, 2]);
     tf.test_util.expectArraysClose(
-        lastBatch['Tensor2'] as tf.Tensor, expectedTensor2LastBatch);
+        await (lastBatch['Tensor2'] as tf.Tensor).array(),
+        await expectedTensor2LastBatch.array());
 
     const expectedStringLastBatch =
         tf.tensor1d(['Item 96', 'Item 97', 'Item 98', 'Item 99']);
     tf.test_util.expectArraysEqual(
-        lastBatch['string'] as tf.Tensor, expectedStringLastBatch);
+        await (lastBatch['string'] as tf.Tensor).array(),
+        await expectedStringLastBatch.array());
 
     tf.dispose(result);
     tf.dispose(expectedNumberLastBatch);
