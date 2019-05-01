@@ -265,7 +265,7 @@ export function conv3dWithBias(
     y = tfc.conv3d(
         y as Tensor4D | tfc.Tensor<tfc.Rank.R5>,
         kernel as tfc.Tensor<tfc.Rank.R5>, strides as [number, number, number],
-        padding === 'same' ? 'same' : 'valid', 'NHWC', dilationRate);
+        padding === 'same' ? 'same' : 'valid', 'NDHWC', dilationRate);
     if (bias != null) {
       y = K.biasAdd(y, bias as Tensor1D);
     }

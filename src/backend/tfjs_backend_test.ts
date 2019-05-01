@@ -638,8 +638,8 @@ describeMathCPUAndGPU('OneHot', () => {
     const numClasses = 5;
     const indices = tensor1d([1, 3]);
     expectTensorsClose(
-        K.oneHot(indices, numClasses),
-        tensor2d([[0, 1, 0, 0, 0], [0, 0, 0, 1, 0]], [2, 5]));
+        K.oneHot(indices, numClasses).toInt(),
+        tensor2d([[0, 1, 0, 0, 0], [0, 0, 0, 1, 0]], [2, 5], 'int32'));
   });
 });
 
