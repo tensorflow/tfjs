@@ -40,10 +40,6 @@ import {tensorStats} from '../util/math';
  * tfvis.show.modelSummary(surface, model);
  * ```
  *
- * @param container A `{name: string, tab?: string}` object specifying which
- *     surface to render to.
- * @param model
- *
  */
 /**
  * @doc {
@@ -89,10 +85,6 @@ export async function modelSummary(container: Drawable, model: tf.LayersModel) {
  * const surface = { name: 'Layer Summary', tab: 'Model Inspection'};
  * tfvis.show.layer(surface, model.getLayer(undefined, 1));
  * ```
- *
- * @param container A `{name: string, tab?: string}` object specifying which
- *     surface to render to.
- * @param layer a `tf.layers.Layer`
  *
  */
 /**

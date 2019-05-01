@@ -18,7 +18,7 @@
 import {format as d3Format} from 'd3-format';
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
-import {HistogramOpts, HistogramStats, TypedArray} from '../types';
+import {Drawable, HistogramOpts, HistogramStats, TypedArray} from '../types';
 import {subSurface} from '../util/dom';
 import {arrayStats} from '../util/math';
 
@@ -44,33 +44,10 @@ const defaultOpts = {
  * const surface = { name: 'Histogram', tab: 'Charts' };
  * tfvis.render.histogram(surface, data);
  * ```
- *
- * @param container An `HTMLElement`|`Surface` in which to draw the histogram
- * @param data Data in the following format:
- *  `[ {value: number}, ... ]` or `[number]` or `TypedArray`
- * @param opts optional parameters
- * @param opts.width width of chart in px
- * @param opts.height height of chart in px
- * @param opts.fontSize fontSize in pixels for text in the chart
- * @param opts.maxBins maximimum number of bins to use in histogram
- * @param opts.stats summary statistics to show. These will be computed
- *    internally if no stats are passed. Pass `false` to not compute any stats.
- *    Callers are allowed to pass in their own stats as in some cases they
- *    may be able to compute them more efficiently.
- *
- *    Stats should have the following format
- *    {
- *      numVals?: number,
- *      min?: number,
- *      max?: number,
- *      numZeros?: number,
- *      numNans?: number
- *    }
- *
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
 export async function histogram(
-    container: HTMLElement, data: Array<{value: number}>|number[]|TypedArray,
+    container: Drawable, data: Array<{value: number}>|number[]|TypedArray,
     opts: HistogramOpts = {}) {
   const values = prepareData(data);
 

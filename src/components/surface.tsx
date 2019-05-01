@@ -18,7 +18,7 @@
 import { h, Component } from 'preact';
 import { css } from 'glamor';
 import { tachyons as tac } from 'glamor-tachyons';
-import { SurfaceInfoStrict, CSSOptions } from '../types';
+import { SurfaceInfoStrict, StyleOptions } from '../types';
 
 // Internal Props
 interface SurfaceProps extends SurfaceInfoStrict {
@@ -33,7 +33,7 @@ interface SurfaceProps extends SurfaceInfoStrict {
  */
 export class SurfaceComponent extends Component<SurfaceProps> {
 
-  static defaultStyles: Partial<CSSOptions> = {
+  static defaultStyles: Partial<StyleOptions> = {
     maxWidth: '580px',
     maxHeight: '580px',
     height: 'auto',

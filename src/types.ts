@@ -73,14 +73,17 @@ export interface SurfaceInfoStrict extends SurfaceInfo {
 /**
  * Style properties are generally optional as components will specify defaults.
  */
-export type StyleOptions = Partial<CSSOptions>;
-export interface CSSOptions {
-  width: string;
-  height: string;
-  maxWidth: string;
-  maxHeight: string;
+export interface StyleOptions {
+  width?: string;
+  height?: string;
+  maxWidth?: string;
+  maxHeight?: string;
 }
 
+/**
+ * @docalias HTMLElement|{name: string, tab?: string}|Surface|{drawArea:
+ * HTMLElement}
+ */
 export type Drawable = HTMLElement|Surface|SurfaceInfo|{
   drawArea: HTMLElement;
 };
@@ -103,31 +106,95 @@ export function isSurface(drawable: Drawable): drawable is Surface {
  * Common visualisation options for '.render' functions.
  */
 export interface VisOptions {
+  /**
+   * Width of chart in px
+   */
   width?: number;
+  /**
+   * Height of chart in px
+   */
   height?: number;
+  /**
+   * Label for xAxis
+   */
   xLabel?: string;
+  /**
+   * Label for yAxis
+   */
   yLabel?: string;
-  xType?: 'quantitative'|'ordinal'|'nominal';
-  yType?: 'quantitative'|'ordinal'|'nominal';
+  /**
+   * Fontsize in px
+   */
   fontSize?: number;
+  /**
+   * Will be set automatically
+   */
+  xType?: 'quantitative'|'ordinal'|'nominal';
+  /**
+   * Will be set automatically
+   */
+  yType?: 'quantitative'|'ordinal'|'nominal';
 }
 
 /**
  * Options for XY plots
  */
 export interface XYPlotOptions extends VisOptions {
+  /**
+   * domain of the x axis. Overriden by zoomToFit
+   */
   xAxisDomain?: [number, number];
+  /**
+   * domain of the y axis. Overriden by zoomToFit
+   */
   yAxisDomain?: [number, number];
+  /**
+   * Set the chart bounds to just fit the data. This may modify the axis scales
+   * but allows fitting more data into view.
+   */
   zoomToFit?: boolean;
+}
+
+/**
+ * Data format for XY plots
+ */
+export interface XYPlotData {
+  /**
+   * An array (or nested array) of {x, y} tuples.
+   */
+  values: Point2D[][]|Point2D[];
+  /**
+   * Series names/labels
+   */
+  series?: string[];
 }
 
 /**
  * Histogram options.
  */
-export type HistogramOpts = VisOptions&{
+export interface HistogramOpts extends VisOptions {
+  /**
+   * By default a histogram will also compute and display summary statistics.
+   * If stats is set to false then summary statistics will not be displayed.
+   *
+   * Pre computed stats can also be passed in and should have the following
+   * format:
+   *  {
+   *    numVals?: number,
+   *    min?: number,
+   *    max?: number,
+   *    numNans?: number,
+   *    numZeros?: number,
+   *    numInfs?: number,
+   *  }
+   */
   stats?: HistogramStats|false;
+
+  /**
+   * Maximum number of bins in histogram.
+   */
   maxBins?: number;
-};
+}
 
 /**
  * Summary statistics for histogram.
@@ -148,40 +215,95 @@ export type TypedArray = Int8Array|Uint8Array|Int16Array|Uint16Array|Int32Array|
     Uint32Array|Uint8ClampedArray|Float32Array|Float64Array;
 
 /**
- * Data format for confusion matrix
+ * An object with a 'values' property and a 'labels' property.
  */
 export interface ConfusionMatrixData {
+  /**
+   * a square matrix of numbers representing counts for each (label, prediction)
+   * pair
+   */
   values: number[][];
+
+  /**
+   * Human readable labels for each class in the matrix. Optional
+   */
   tickLabels?: string[];
+}
+
+export interface ConfusionMatrixOptions extends VisOptions {
+  /**
+   * Color cells on the diagonal. Defaults to true
+   */
+  shadeDiagonal?: boolean;
+  /**
+   * render the values of each cell as text. Defaults to true
+   */
+  showTextOverlay?: boolean;
 }
 
 /**
  * Datum format for scatter and line plots
  */
-export type Point2D = {
-  x: number; y: number;
-};
+export interface Point2D {
+  x: number;
+  y: number;
+}
 
 /**
- * Data format for confusion matrix
+ *  An object with a 'values' property and a 'labels' property.
  */
 export interface HeatmapData {
+  /**
+   * Matrix of values in column-major order.
+   */
   values: number[][]|Tensor2D;
+  /**
+   * x axis tick labels
+   */
   xTickLabels?: string[];
+  /**
+   * y axis tick labels
+   */
   yTickLabels?: string[];
 }
 
 /**
  * Color map names.
- *
- * Currently supported by heatmap
  */
+/** @docinline */
 export type NamedColorMap = 'greyscale'|'viridis'|'blues';
 
 /**
  * Visualization options for Heatmap
  */
 export interface HeatmapOptions extends VisOptions {
+  /**
+   * Defaults to viridis
+   */
   colorMap?: NamedColorMap;
+
+  /**
+   * Custom output domain for the color scale.
+   * Useful if you want to plot multiple heatmaps using the same scale.
+   */
   domain?: number[];
+}
+
+/**
+ * Data format for render.table
+ */
+export interface TableData {
+  /**
+   * Column names
+   */
+  headers: string[];
+
+  /**
+   * An array of arrays (one for  each row). The inner
+   * array length usually matches the length of data.headers.
+   *
+   * Typically the values are numbers or strings.
+   */
+  // tslint:disable-next-line:no-any
+  values: any[][];
 }

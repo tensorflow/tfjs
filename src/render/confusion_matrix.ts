@@ -17,7 +17,8 @@
 
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
-import {ConfusionMatrixData, Drawable, VisOptions,} from '../types';
+import {ConfusionMatrixData, ConfusionMatrixOptions, Drawable,} from '../types';
+
 import {getDrawArea} from './render_utils';
 
 /**
@@ -62,38 +63,11 @@ import {getDrawArea} from './render_utils';
  *   shadeDiagonal: false
  * });
  * ```
- *
- * @param container An `HTMLElement` or `Surface` in which to draw the chart
- * @param data Data consists of an object with a 'values' property
- *  and a 'labels' property.
- *  {
- *    // a matrix of numbers representing counts for each (label, prediction)
- *    // pair
- *    values: number[][],
- *
- *    // Human readable labels for each class in the matrix. Optional
- *    tickLabels?: string[]
- *  }
- *  e.g.
- *  {
- *    values: [[80, 23], [56, 94]],
- *    tickLabels: ['dog', 'cat'],
- *  }
- * @param opts optional parameters
- * @param opts.shadeDiagonal boolean that controls whether or not to color cells
- * on the diagonal. Defaults to true
- * @param opts.showTextOverlay boolean that controls whether or not to render
- * the values of each cell as text. Defaults to true
- * @param opts.width width of chart in px
- * @param opts.height height of chart in px
- * @param opts.fontSize fontSize in pixels for text in the chart
- *
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
 export async function confusionMatrix(
     container: Drawable, data: ConfusionMatrixData,
-    opts: VisOptions&
-    {shadeDiagonal?: boolean, showTextOverlay?: boolean} = {}): Promise<void> {
+    opts: ConfusionMatrixOptions = {}): Promise<void> {
   const options = Object.assign({}, defaultOpts, opts);
   const drawArea = getDrawArea(container);
 

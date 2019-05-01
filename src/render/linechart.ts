@@ -17,7 +17,7 @@
 
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
-import {Drawable, Point2D, XYPlotOptions} from '../types';
+import {Drawable, Point2D, XYPlotData, XYPlotOptions} from '../types';
 
 import {getDrawArea} from './render_utils';
 
@@ -52,36 +52,10 @@ import {getDrawArea} from './render_utils';
  * tfvis.render.linechart(surface, data, { zoomToFit: true });
  * ```
  *
- * @param container An HTMLElement in which to draw the chart
- * @param data Data in the following format
- *  {
- *    // A nested array of objects each with an x and y property,
- *    // one per series.
- *    // If you only have one series to render you can just pass an array
- *    // of objects with x, y properties
- *    values: {x: number, y: number}[][]
- *
- *    // An array of strings with the names of each series passed above.
- *    // Optional
- *    series: string[]
- *  }
- * @param opts optional parameters
- * @param opts.width width of chart in px
- * @param opts.height height of chart in px
- * @param opts.xLabel label for x axis
- * @param opts.yLabel label for y axis
- * @param opts.fontSize fontSize in pixels for text in the chart
- * @param opts.zoomToFit a boolean indicating whether to allow non-zero
- * baselines setting this to true allows the line chart to take up more room in
- * the plot.
- * @param opts.yAxisDomain array of two numbers indicating the domain of the y
- * axis. This is overriden by zoomToFit
- *
  */
 /** @doc {heading: 'Charts', namespace: 'render'} */
 export async function linechart(
-    container: Drawable,
-    data: {values: Point2D[][]|Point2D[], series?: string[]},
+    container: Drawable, data: XYPlotData,
     opts: XYPlotOptions = {}): Promise<void> {
   let inputArray = data.values;
   const _series = data.series == null ? [] : data.series;
