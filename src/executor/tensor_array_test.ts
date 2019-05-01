@@ -133,16 +133,16 @@ describe('TensorArray', () => {
       tensorArray.writeMany([0, 1], [tensor, tensor2]);
     });
 
-    it('should return default packed tensors', () => {
+    it('should return default packed tensors', async () => {
       const gathered = tensorArray.gather();
       expect(gathered.shape).toEqual([2, 1, 1]);
-      test_util.expectArraysClose(gathered, [1, 2]);
+      test_util.expectArraysClose(await gathered.data(), [1, 2]);
     });
 
-    it('should return packed tensors when indices is specified', () => {
+    it('should return packed tensors when indices is specified', async () => {
       const gathered = tensorArray.gather([1, 0]);
       expect(gathered.shape).toEqual([2, 1, 1]);
-      test_util.expectArraysClose(gathered, [2, 1]);
+      test_util.expectArraysClose(await gathered.data(), [2, 1]);
     });
     it('should fail if dtype is not matched', () => {
       expect(() => tensorArray.gather([0, 1], 'float32')).toThrow();
@@ -159,10 +159,10 @@ describe('TensorArray', () => {
       tensorArray.writeMany([0, 1], [tensor, tensor2]);
     });
 
-    it('should return default concat tensors', () => {
+    it('should return default concat tensors', async () => {
       const concat = tensorArray.concat();
       expect(concat.shape).toEqual([2, 1]);
-      test_util.expectArraysClose(concat, [1, 2]);
+      test_util.expectArraysClose(await concat.data(), [1, 2]);
     });
 
     it('should fail if dtype is not matched', () => {

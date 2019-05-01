@@ -232,7 +232,7 @@ describe('Model', () => {
         await model.load();
         const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
         const output = model.execute({'Add1': input}) as tfc.Tensor;
-        tfc.test_util.expectArraysClose(output, [2, 2]);
+        tfc.test_util.expectArraysClose(await output.data(), [2, 2]);
       });
     });
 

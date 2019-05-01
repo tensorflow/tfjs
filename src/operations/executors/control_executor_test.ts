@@ -55,7 +55,8 @@ describe('control', () => {
         const pred = [tfc.scalar(true)];
         const result = await executeOp(node, {pred, input1}, context);
         expect(result[0]).toBeUndefined();
-        test_util.expectArraysEqual(result[1], input1[0]);
+        test_util.expectArraysEqual(
+            await result[1].array(), await input1[0].array());
       });
       it('should set the output condition is false', async () => {
         node.op = 'Switch';
@@ -64,7 +65,8 @@ describe('control', () => {
 
         const pred = [tfc.scalar(false)];
         const result = await executeOp(node, {pred, input1}, context);
-        test_util.expectArraysEqual(result[0], input1[0]);
+        test_util.expectArraysEqual(
+            await result[0].array(), await input1[0].array());
         expect(result[1]).toBeUndefined();
       });
       it('should match json def', () => {
@@ -81,11 +83,13 @@ describe('control', () => {
 
         const pred = [tfc.scalar(true)];
         test_util.expectArraysEqual(
-            (await executeOp(node, {pred: undefined, input1}, context))[0],
-            input1[0]);
+            await (await executeOp(node, {pred: undefined, input1}, context))[0]
+                .array(),
+            await input1[0].array());
         test_util.expectArraysEqual(
-            (await executeOp(node, {pred, input1: undefined}, context))[0],
-            pred[0]);
+            await (await executeOp(node, {pred, input1: undefined}, context))[0]
+                .array(),
+            await pred[0].array());
       });
       it('should return undefined if no inputs are available', async () => {
         node.op = 'Merge';
@@ -109,7 +113,8 @@ describe('control', () => {
         node.inputNames = ['input1'];
 
         test_util.expectArraysEqual(
-            (await executeOp(node, {input1}, context))[0], input1[0]);
+            await (await executeOp(node, {input1}, context))[0].array(),
+            await input1[0].array());
         expect(context.enterFrame).toHaveBeenCalled();
       });
       it('should match json def', () => {
@@ -127,7 +132,8 @@ describe('control', () => {
         node.inputNames = ['input1'];
 
         test_util.expectArraysEqual(
-            (await executeOp(node, {input1}, context))[0], input1[0]);
+            await (await executeOp(node, {input1}, context))[0].array(),
+            await input1[0].array());
         expect(context.exitFrame).toHaveBeenCalled();
       });
       it('should match json def', () => {
@@ -145,7 +151,8 @@ describe('control', () => {
         node.inputNames = ['input1'];
 
         test_util.expectArraysEqual(
-            (await executeOp(node, {input1}, context))[0], input1[0]);
+            await (await executeOp(node, {input1}, context))[0].array(),
+            await input1[0].array());
         expect(context.nextIteration).toHaveBeenCalled();
       });
       it('should match json def', () => {
@@ -227,7 +234,8 @@ describe('control', () => {
         const input3 = [scalar(0)];
         const read = await executeOp(node, {input1, input2, input3}, context);
 
-        test_util.expectArraysClose(read[0], input4);
+        test_util.expectArraysClose(
+            await read[0].array(), await input4.array());
       });
       it('should match json def', () => {
         node.op = 'TensorArrayReadV3';
