@@ -127,26 +127,27 @@ describe('GraphExecutor', () => {
 
     describe('graph level', () => {
       describe('execute', () => {
-        it('should execute the op', () => {
+        it('should execute the op', async () => {
           const inputTensor = tfc.scalar(1);
 
           const result = executor.execute({input: [inputTensor]});
-          tfc.test_util.expectArraysClose(result['output'], [5.0]);
+          tfc.test_util.expectArraysClose(await result['output'].data(), [5.0]);
         });
 
-        it('should allow output intermediate nodes', () => {
+        it('should allow output intermediate nodes', async () => {
           const inputTensor = tfc.scalar(1);
           const result = executor.execute(
               {input: [inputTensor]}, false, ['output', 'intermediate']);
-          tfc.test_util.expectArraysClose(result['intermediate'], [3.0]);
-          tfc.test_util.expectArraysClose(result['output'], [5.0]);
+          tfc.test_util.expectArraysClose(
+              await result['intermediate'].data(), [3.0]);
+          tfc.test_util.expectArraysClose(await result['output'].data(), [5.0]);
         });
 
-        it('should allow feed intermediate nodes', () => {
+        it('should allow feed intermediate nodes', async () => {
           const intermediateTensor = tfc.scalar(1);
           const result =
               executor.execute({intermediate: [intermediateTensor]}, false);
-          tfc.test_util.expectArraysClose(result['output'], [3.0]);
+          tfc.test_util.expectArraysClose(await result['output'].data(), [3.0]);
         });
 
         describe('strict input check', () => {
@@ -370,7 +371,8 @@ describe('GraphExecutor', () => {
 
           const result =
               await executor.executeAsync({input: [inputTensor]}, 'output:1');
-          tfc.test_util.expectArraysClose(result['output:1'], [0.57735]);
+          tfc.test_util.expectArraysClose(
+              await result['output:1'].data(), [0.57735]);
           done();
         });
 
@@ -378,7 +380,8 @@ describe('GraphExecutor', () => {
           const inputTensor = tfc.scalar(1);
           const result = await executor.executeAsync(
               {input: [inputTensor]}, ['intermediate']);
-          tfc.test_util.expectArraysClose(result['intermediate'], [3.0]);
+          tfc.test_util.expectArraysClose(
+              await result['intermediate'].data(), [3.0]);
           done();
         });
 
@@ -389,10 +392,12 @@ describe('GraphExecutor', () => {
 
              const result = await executor.executeAsync(
                  {intermediate: [inputTensor]}, 'output:1');
-             tfc.test_util.expectArraysClose(result['output:1'], [1]);
+             tfc.test_util.expectArraysClose(
+                 await result['output:1'].data(), [1]);
              const result2 = await executor.executeAsync(
                  {intermediate: [inputTensor]}, 'output:1');
-             tfc.test_util.expectArraysClose(result2['output:1'], [1]);
+             tfc.test_util.expectArraysClose(
+                 await result2['output:1'].data(), [1]);
 
              done();
            });
