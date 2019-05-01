@@ -14,7 +14,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import {Tensor, tensor2d, Tensor2D, tensor3d, tensor4d, Tensor4D, util} from '@tensorflow/tfjs-core';
-import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
@@ -234,13 +233,14 @@ describeMathCPUAndGPU('Pooling Layers 1D: Tensor', () => {
     }
   }
 
-  it('Handles poolSize and strides passed as number arrays', () => {
+  it('Handles poolSize and strides passed as number arrays', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.maxPool1d(
         {poolSize: [2], strides: [2], inputShape: [4, 3]}));
     const xs = tfc.ones([1, 4, 3]);
     const ys = model.predict(xs) as Tensor;
-    expectArraysClose(ys, tfc.tensor3d([1, 1, 1, 1, 1, 1], [1, 2, 3]));
+    expectTensorsClose(ys, [1, 1, 1, 1, 1, 1]);
+    expect(ys.shape).toEqual([1, 2, 3]);
 
     const config = model.layers[0].getConfig();
     expect(config['poolSize']).toEqual([2]);
@@ -425,13 +425,14 @@ describeMathCPUAndGPU('Pooling Layers 2D: Tensor', () => {
     }
   }
 
-  it('Handles strides passed as number arrays', () => {
+  it('Handles strides passed as number arrays', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.maxPooling2d(
         {poolSize: 2, strides: [2, 2], inputShape: [4, 4, 3]}));
     const xs = tfc.ones([1, 4, 4, 3]);
     const ys = model.predict(xs) as Tensor;
-    expectArraysClose(ys, tfc.ones([1, 2, 2, 3]));
+    expectTensorsClose(ys, tfc.ones([1, 2, 2, 3]));
+    expect(ys.shape).toEqual([1, 2, 2, 3]);
     const config = model.layers[0].getConfig();
     expect(config['poolSize']).toEqual([2, 2]);
     expect(config['strides']).toEqual([2, 2]);

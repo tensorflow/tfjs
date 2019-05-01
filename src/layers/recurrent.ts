@@ -698,7 +698,7 @@ export class RNN extends Layer {
           this.states_[index] = value;
         }
       }
-      this.states_.forEach(state => tfc.keep(state));
+      this.states_ = this.states_.map(state => tfc.keep(state.clone()));
     });
   }
 
@@ -2551,9 +2551,8 @@ function generateDropoutMask(
     for (let i = 0; i < count; i++) {
       mask.push(K.inTrainPhase(droppedInputs, ones, training));
     }
-    mask.forEach(m => tfc.keep(m));
-    return mask;
+    return mask.map(m => tfc.keep(m.clone()));
   } else {
-    return tfc.keep(K.inTrainPhase(droppedInputs, ones, training));
+    return tfc.keep(K.inTrainPhase(droppedInputs, ones, training).clone());
   }
 }

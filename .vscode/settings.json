@@ -23,7 +23,6 @@
   "editor.rulers": [80],
   "editor.wrappingIndent": "none",
   "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
   "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format",
   "python.formatting.provider": "yapf"
 }

@@ -15,7 +15,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import {util} from '@tensorflow/tfjs-core';
-import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {CustomCallback, DEFAULT_YIELD_EVERY_MS} from '../base_callbacks';
 import * as tfl from '../index';
@@ -97,8 +96,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.loss.length).toEqual(2);
        expect(history.history.loss[0]).toBeCloseTo(0.923649);
        expect(history.history.loss[1]).toBeCloseTo(0.722993);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
      });
 
   it('1 input, 1 output, no metric, no validation, no batchesPerEpoch',
@@ -139,8 +138,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.loss.length).toEqual(2);
        expect(history.history.loss[0]).toBeCloseTo(0.923649);
        expect(history.history.loss[1]).toBeCloseTo(0.722993);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
      });
 
   // Reference Python tf.keras code:
@@ -216,8 +215,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.acc.length).toEqual(2);
        expect(history.history.acc[0]).toBeCloseTo(0);
        expect(history.history.acc[1]).toBeCloseTo(0);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
      });
 
   it('1 input, 1 output, 1 metric, no validation, no batchesPerEpoch',
@@ -262,8 +261,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.acc.length).toEqual(2);
        expect(history.history.acc[0]).toBeCloseTo(0);
        expect(history.history.acc[1]).toBeCloseTo(0);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
      });
 
   // Reference Python tf.keras code.
@@ -373,8 +372,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.val_acc.length).toEqual(2);
        expect(history.history.val_acc[0]).toBeCloseTo(1);
        expect(history.history.val_acc[1]).toBeCloseTo(1);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
 
        expect(epochEndValLosses.length).toEqual(2);
        expect(epochEndValLosses[0]).toBeCloseTo(0.003321);
@@ -449,8 +448,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.val_acc.length).toEqual(2);
        expect(history.history.val_acc[0]).toBeCloseTo(1);
        expect(history.history.val_acc[1]).toBeCloseTo(1);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
 
        expect(epochEndValLosses.length).toEqual(2);
        expect(epochEndValLosses[0]).toBeCloseTo(0.003321);
@@ -722,8 +721,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.val_acc.length).toEqual(2);
        expect(history.history.val_acc[0]).toBeCloseTo(1);
        expect(history.history.val_acc[1]).toBeCloseTo(1);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
 
        expect(epochEndValLosses.length).toEqual(2);
        expect(epochEndValLosses[0]).toBeCloseTo(0.003321);
@@ -813,8 +812,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.val_acc.length).toEqual(2);
        expect(history.history.val_acc[0]).toBeCloseTo(1);
        expect(history.history.val_acc[1]).toBeCloseTo(1);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
 
        expect(epochEndValLosses.length).toEqual(2);
        expect(epochEndValLosses[0]).toBeCloseTo(0.003321);
@@ -1012,8 +1011,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.acc.length).toEqual(2);
        expect(history.history.acc[0]).toBeCloseTo(0);
        expect(history.history.acc[1]).toBeCloseTo(0);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
 
        expect(onTrainBeginCalls).toEqual(1);
        expect(onTrainEndCalls).toEqual(1);
@@ -1027,7 +1026,7 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(epochEndAccs.length).toEqual(2);
        expect(epochEndAccs[0]).toBeCloseTo(0);
        expect(epochEndAccs[1]).toBeCloseTo(0);
-       expectArraysClose(
+       expectTensorsClose(
            batchEndLosses, [1, 0.9216, 0.849347, 0.782758, 0.721390, 0.664832]);
      });
 
@@ -1109,8 +1108,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.acc.length).toEqual(2);
        expect(history.history.acc[0]).toBeCloseTo(0);
        expect(history.history.acc[1]).toBeCloseTo(0);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
 
        expect(onTrainBeginCalls).toEqual(1);
        expect(onTrainEndCalls).toEqual(1);
@@ -1124,7 +1123,7 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(epochEndAccs.length).toEqual(2);
        expect(epochEndAccs[0]).toBeCloseTo(0);
        expect(epochEndAccs[1]).toBeCloseTo(0);
-       expectArraysClose(
+       expectTensorsClose(
            batchEndLosses, [1, 0.9216, 0.849347, 0.782758, 0.721390, 0.664832]);
      });
 
@@ -1223,9 +1222,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.acc.length).toEqual(2);
        expect(history.history.acc[0]).toBeCloseTo(0);
        expect(history.history.acc[1]).toBeCloseTo(0);
-       expectArraysClose(
-           model.getWeights()[0], tfc.tensor2d([[0.103377], [0.103377]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.103377]));
+       expectTensorsClose(model.getWeights()[0], [0.103377, 0.103377]);
+       expectTensorsClose(model.getWeights()[1], [0.103377]);
      });
 
   it('2 inputs, 1 output, 1 metric, no validation, no batchesPerEpoch',
@@ -1284,9 +1282,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.acc.length).toEqual(2);
        expect(history.history.acc[0]).toBeCloseTo(0);
        expect(history.history.acc[1]).toBeCloseTo(0);
-       expectArraysClose(
-           model.getWeights()[0], tfc.tensor2d([[0.103377], [0.103377]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.103377]));
+       expectTensorsClose(model.getWeights()[0], [0.103377, 0.103377]);
+       expectTensorsClose(model.getWeights()[1], [0.103377]);
      });
 
   // Reference Python tf.keras code:
@@ -1418,9 +1415,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.val_acc.length).toEqual(2);
        expect(history.history.val_acc[0]).toBeCloseTo(1.0);
        expect(history.history.val_acc[1]).toBeCloseTo(1.0);
-       expectArraysClose(
-           model.getWeights()[0], tfc.tensor2d([[0.103377], [0.103377]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.103377]));
+       expectTensorsClose(model.getWeights()[0], [0.103377, 0.103377]);
+       expectTensorsClose(model.getWeights()[1], [0.103377]);
      });
 
   it('2 inputs, 1 output, 1 metric, tensor array validation, ' +
@@ -1503,9 +1499,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.val_acc.length).toEqual(2);
        expect(history.history.val_acc[0]).toBeCloseTo(1.0);
        expect(history.history.val_acc[1]).toBeCloseTo(1.0);
-       expectArraysClose(
-           model.getWeights()[0], tfc.tensor2d([[0.103377], [0.103377]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.103377]));
+       expectTensorsClose(model.getWeights()[0], [0.103377, 0.103377]);
+       expectTensorsClose(model.getWeights()[1], [0.103377]);
      });
 
   // Reference Python tf.keras code:
@@ -1640,9 +1635,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.val_acc.length).toEqual(2);
        expect(history.history.val_acc[0]).toBeCloseTo(1.0);
        expect(history.history.val_acc[1]).toBeCloseTo(1.0);
-       expectArraysClose(
-           model.getWeights()[0], tfc.tensor2d([[0.103377], [0.103377]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.103377]));
+       expectTensorsClose(model.getWeights()[0], [0.103377, 0.103377]);
+       expectTensorsClose(model.getWeights()[1], [0.103377]);
      });
 
   it('2 input, 1 output, 1 metric, tensor array validation, ' +
@@ -1726,9 +1720,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history.val_acc.length).toEqual(2);
        expect(history.history.val_acc[0]).toBeCloseTo(1.0);
        expect(history.history.val_acc[1]).toBeCloseTo(1.0);
-       expectArraysClose(
-           model.getWeights()[0], tfc.tensor2d([[0.103377], [0.103377]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.103377]));
+       expectTensorsClose(model.getWeights()[0], [0.103377, 0.103377]);
+       expectTensorsClose(model.getWeights()[1], [0.103377]);
      });
 
   it('2 input, 1 missing input in dataset, with batchesPerEpoch', async () => {
@@ -1955,10 +1948,10 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history[output2AccName].length).toEqual(2);
        expect(history.history[output2AccName][0]).toBeCloseTo(0);
        expect(history.history[output2AccName][1]).toBeCloseTo(0);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
-       expectArraysClose(model.getWeights()[2], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[3], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
+       expectTensorsClose(model.getWeights()[2], [0.108621]);
+       expectTensorsClose(model.getWeights()[3], [0.108621]);
      });
 
   it('1 input, 2 outputs, 1 metric, no validation, no batchesPerEpoch',
@@ -2045,10 +2038,10 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history[output2AccName].length).toEqual(2);
        expect(history.history[output2AccName][0]).toBeCloseTo(0);
        expect(history.history[output2AccName][1]).toBeCloseTo(0);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
-       expectArraysClose(model.getWeights()[2], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[3], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
+       expectTensorsClose(model.getWeights()[2], [0.108621]);
+       expectTensorsClose(model.getWeights()[3], [0.108621]);
      });
 
   // Reference Python tf.keras code:
@@ -2217,10 +2210,10 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history[valOutput2AccName].length).toEqual(2);
        expect(history.history[valOutput2AccName][0]).toBeCloseTo(1);
        expect(history.history[valOutput2AccName][1]).toBeCloseTo(1);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
-       expectArraysClose(model.getWeights()[2], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[3], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
+       expectTensorsClose(model.getWeights()[2], [0.108621]);
+       expectTensorsClose(model.getWeights()[3], [0.108621]);
      });
 
   it('1 input, 2 outputs, 1 metric, tensor array validation, ' +
@@ -2338,10 +2331,10 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history[valOutput2AccName].length).toEqual(2);
        expect(history.history[valOutput2AccName][0]).toBeCloseTo(1);
        expect(history.history[valOutput2AccName][1]).toBeCloseTo(1);
-       expectArraysClose(model.getWeights()[0], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.108621]));
-       expectArraysClose(model.getWeights()[2], tfc.tensor2d([[0.108621]]));
-       expectArraysClose(model.getWeights()[3], tfc.tensor1d([0.108621]));
+       expectTensorsClose(model.getWeights()[0], [0.108621]);
+       expectTensorsClose(model.getWeights()[1], [0.108621]);
+       expectTensorsClose(model.getWeights()[2], [0.108621]);
+       expectTensorsClose(model.getWeights()[3], [0.108621]);
      });
 
   it('2 outputs, 1 missing output in dataset, with batchesPerEpoch',
@@ -2609,12 +2602,10 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history[output2AccName].length).toEqual(2);
        expect(history.history[output2AccName][0]).toBeCloseTo(0);
        expect(history.history[output2AccName][1]).toBeCloseTo(0);
-       expectArraysClose(
-           model.getWeights()[0], tfc.tensor2d([[0.103376], [0.103376]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.103376]));
-       expectArraysClose(
-           model.getWeights()[2], tfc.tensor2d([[0.103376], [0.103376]]));
-       expectArraysClose(model.getWeights()[3], tfc.tensor1d([0.103376]));
+       expectTensorsClose(model.getWeights()[0], [0.103376, 0.103376]);
+       expectTensorsClose(model.getWeights()[1], [0.103376]);
+       expectTensorsClose(model.getWeights()[2], [0.103376, 0.103376]);
+       expectTensorsClose(model.getWeights()[3], [0.103376]);
      });
 
   it('2 inputs, 2 outputs, 1 metric, no validation, no batchesPerEpoch',
@@ -2711,12 +2702,10 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(history.history[output2AccName].length).toEqual(2);
        expect(history.history[output2AccName][0]).toBeCloseTo(0);
        expect(history.history[output2AccName][1]).toBeCloseTo(0);
-       expectArraysClose(
-           model.getWeights()[0], tfc.tensor2d([[0.103376], [0.103376]]));
-       expectArraysClose(model.getWeights()[1], tfc.tensor1d([0.103376]));
-       expectArraysClose(
-           model.getWeights()[2], tfc.tensor2d([[0.103376], [0.103376]]));
-       expectArraysClose(model.getWeights()[3], tfc.tensor1d([0.103376]));
+       expectTensorsClose(model.getWeights()[0], [0.103376, 0.103376]);
+       expectTensorsClose(model.getWeights()[1], [0.103376]);
+       expectTensorsClose(model.getWeights()[2], [0.103376, 0.103376]);
+       expectTensorsClose(model.getWeights()[3], [0.103376]);
      });
 
   it('Exhausting iterator with batchesPerEpoch throws warning', async () => {
