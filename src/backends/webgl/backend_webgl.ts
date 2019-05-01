@@ -2355,7 +2355,7 @@ export class MathBackendWebGL implements KernelBackend {
             shape: input.shape,
             texData: null,
             isUniform: true,
-            uniformValues: this.readSync(input.dataId) as TypedArray
+            uniformValues: texData.values as TypedArray
           };
         }
 

@@ -482,14 +482,16 @@ describe('util.toNestedArray', () => {
     expect(() => util.toNestedArray([2, 2], a)).toThrowError();
   });
 
-  it('tensor to nested array', () => {
+  it('tensor to nested array', async () => {
     const x = tensor2d([1, 2, 3, 4], [2, 2]);
-    expect(util.toNestedArray(x.shape, x.dataSync())).toEqual([[1, 2], [3, 4]]);
+    expect(util.toNestedArray(x.shape, await x.data())).toEqual([
+      [1, 2], [3, 4]
+    ]);
   });
 
-  it('scalar to nested array', () => {
+  it('scalar to nested array', async () => {
     const x = scalar(1);
-    expect(util.toNestedArray(x.shape, x.dataSync())).toEqual(1);
+    expect(util.toNestedArray(x.shape, await x.data())).toEqual(1);
   });
 
   it('tensor with zero shape', () => {
