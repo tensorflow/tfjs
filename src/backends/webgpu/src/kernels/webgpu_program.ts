@@ -112,6 +112,7 @@ export const compileProgram =
     };
 
 export function makeShaderKey(program: WebGPUProgram): string {
-  const key = program.userCode;
+  const key =
+      (program.tileSize ? program.tileSize.join(',') : '') + program.userCode;
   return key;
 }
