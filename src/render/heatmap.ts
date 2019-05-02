@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs';
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
 import {Drawable, HeatmapData, HeatmapOptions} from '../types';
@@ -64,6 +64,36 @@ export async function heatmap(
   const options = Object.assign({}, defaultOpts, opts);
   const drawArea = getDrawArea(container);
 
+  let inputValues = data.values;
+  if (options.rowMajor) {
+    let originalShape: number[];
+    let transposed: tf.Tensor2D;
+    if (inputValues instanceof tf.Tensor) {
+      originalShape = inputValues.shape;
+      transposed = inputValues.transpose();
+    } else {
+      originalShape = [inputValues.length, inputValues[0].length];
+      transposed =
+          tf.tidy(() => tf.tensor2d(inputValues as number[][]).transpose());
+    }
+
+    assert(
+        transposed.rank === 2,
+        'Input to renderHeatmap must be a 2d array or Tensor2d');
+
+    // Download the intermediate tensor values and
+    // dispose the transposed tensor.
+    inputValues = await transposed.array();
+    transposed.dispose();
+
+    const transposedShape = [inputValues.length, inputValues[0].length];
+    assert(
+        originalShape[0] === transposedShape[1] &&
+            originalShape[1] === transposedShape[0],
+        `Unexpected transposed shape. Original ${originalShape} : Transposed ${
+            transposedShape}`);
+  }
+
   // Format data for vega spec; an array of objects, one for for each cell
   // in the matrix.
   const values: MatrixEntry[] = [];
@@ -71,12 +101,12 @@ export async function heatmap(
 
   // These two branches are very similar but we want to do the test once
   // rather than on every element access
-  if (data.values instanceof Tensor) {
+  if (inputValues instanceof tf.Tensor) {
     assert(
-        data.values.rank === 2,
+        inputValues.rank === 2,
         'Input to renderHeatmap must be a 2d array or Tensor2d');
 
-    const shape = data.values.shape;
+    const shape = inputValues.shape;
     if (xTickLabels) {
       assert(
           shape[0] === xTickLabels.length,
@@ -96,7 +126,7 @@ export async function heatmap(
     // This is a slightly specialized version of TensorBuffer.get, inlining it
     // avoids the overhead of a function call per data element access and is
     // specialized to only deal with the 2d case.
-    const inputArray = await data.values.data();
+    const inputArray = await inputValues.data();
     const [numRows, numCols] = shape;
 
     for (let row = 0; row < numRows; row++) {
@@ -113,18 +143,18 @@ export async function heatmap(
   } else {
     if (xTickLabels) {
       assert(
-          data.values.length === xTickLabels.length,
-          `Number of rows (${data.values.length}) must match
+          inputValues.length === xTickLabels.length,
+          `Number of rows (${inputValues.length}) must match
           number of xTickLabels (${xTickLabels.length})`);
     }
 
-    const inputArray = data.values as number[][];
+    const inputArray = inputValues as number[][];
     for (let row = 0; row < inputArray.length; row++) {
       const x = xTickLabels ? xTickLabels[row] : row;
       if (yTickLabels) {
         assert(
-            data.values[row].length === yTickLabels.length,
-            `Number of columns in row ${row} (${data.values[row].length})
+            inputValues[row].length === yTickLabels.length,
+            `Number of columns in row ${row} (${inputValues[row].length})
             must match length of yTickLabels (${yTickLabels.length})`);
       }
       for (let col = 0; col < inputArray[row].length; col++) {
@@ -229,6 +259,7 @@ const defaultOpts = {
   colorMap: 'viridis',
   fontSize: 12,
   domain: null,
+  rowMajor: false,
 };
 
 interface MatrixEntry {

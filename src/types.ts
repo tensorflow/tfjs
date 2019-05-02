@@ -255,6 +255,8 @@ export interface Point2D {
 export interface HeatmapData {
   /**
    * Matrix of values in column-major order.
+   *
+   * Row major order is supported by setting a boolean in options.
    */
   values: number[][]|Tensor2D;
   /**
@@ -287,6 +289,13 @@ export interface HeatmapOptions extends VisOptions {
    * Useful if you want to plot multiple heatmaps using the same scale.
    */
   domain?: number[];
+
+  /**
+   * Pass in data values in row-major order.
+   *
+   * Internally this will transpose the data values before rendering.
+   */
+  rowMajor?: boolean;
 }
 
 /**
