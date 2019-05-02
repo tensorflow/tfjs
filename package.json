@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-layers",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "TensorFlow layers API in JavaScript",
   "license": "Apache-2.0 AND MIT",
   "private": false,
