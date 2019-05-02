@@ -16,7 +16,6 @@
  */
 
 import {ENV} from './environment';
-import {describeWithFlags, NODE_ENVS} from './jasmine_util';
 import {scalar, tensor2d} from './ops/ops';
 import {inferShape} from './tensor_util_env';
 import * as util from './util';
@@ -501,35 +500,13 @@ describe('util.toNestedArray', () => {
 });
 
 describe('util.fetch', () => {
-  it('should allow overriding global fetch', () => {
-    const savedFetch = ENV.global.fetch;
-    ENV.global.fetch = () => {};
+  it('should call the platform fetch', () => {
+    spyOn(ENV.platform, 'fetch').and.callFake(() => {});
 
-    spyOn(ENV.global, 'fetch').and.callThrough();
+    util.fetch('test/path', {method: 'GET'});
 
-    util.fetch('');
-
-    expect(ENV.global.fetch).toHaveBeenCalled();
-    ENV.global.fetch = savedFetch;
-  });
-});
-
-describeWithFlags('util.fetch node', NODE_ENVS, () => {
-  it('should use node-fetch', () => {
-    const savedFetch = util.systemFetch;
-    const savedGlobalFetch = ENV.global.fetch;
-    // @ts-ignore
-    ENV.global.fetch = null;
-    // @ts-ignore
-    util.systemFetch = null;
-    spyOn(util.getNodeFetch, 'fetchImport').and.callFake(() => () => {});
-
-    util.fetch('');
-    // tslint:disable-next-line:no-any
-    expect(util.getNodeFetch.fetchImport).toHaveBeenCalled();
-    // @ts-ignore
-    ENV.global.fetch = savedGlobalFetch;
-    // @ts-ignore
-    util.systemFetch = savedFetch;
+    expect(ENV.platform.fetch).toHaveBeenCalledWith('test/path', {
+      method: 'GET'
+    });
   });
 });

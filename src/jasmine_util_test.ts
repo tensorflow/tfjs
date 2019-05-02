@@ -26,38 +26,49 @@ describe('jasmine_util.envSatisfiesConstraints', () => {
     env.setFlags({});
     const registeredBackends = ['test-backend1', 'test-backend2'];
 
+    const platformName = 'browser';
+
     const constraints = {};
 
     expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, constraints))
+               env, backendName, registeredBackends, platformName, constraints))
         .toBe(true);
   });
 
-  it('ENV satisfies matching flag constraints, no backend constraint', () => {
-    const backendName = 'test-backend';
-    const env = new Environment({});
-    env.setFlags({'TEST-FLAG': true});
-    const registeredBackends = ['test-backend1', 'test-backend2'];
+  it('ENV satisfies matching flag constraints, ' +
+         'no backend or platform constraint',
+     () => {
+       const backendName = 'test-backend';
+       const env = new Environment({});
+       env.setFlags({'TEST-FLAG': true});
+       const registeredBackends = ['test-backend1', 'test-backend2'];
 
-    const constraints = {flags: {'TEST-FLAG': true}};
+       const platformName = 'browser';
 
-    expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, constraints))
-        .toBe(true);
-  });
+       const constraints = {flags: {'TEST-FLAG': true}};
 
-  it('ENV satisfies matching flag and one backend constraint', () => {
-    const backendName = 'test-backend';
-    const env = new Environment({});
-    env.setFlags({'TEST-FLAG': true});
-    const registeredBackends = ['test-backend1', 'test-backend2'];
+       expect(
+           envSatisfiesConstraints(
+               env, backendName, registeredBackends, platformName, constraints))
+           .toBe(true);
+     });
 
-    const constraints = {flags: {'TEST-FLAG': true}, backends: backendName};
+  it('ENV satisfies matching flag and one backend constraint, no platform',
+     () => {
+       const backendName = 'test-backend';
+       const env = new Environment({});
+       env.setFlags({'TEST-FLAG': true});
+       const registeredBackends = ['test-backend1', 'test-backend2'];
 
-    expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, constraints))
-        .toBe(true);
-  });
+       const platformName = 'browser';
+
+       const constraints = {flags: {'TEST-FLAG': true}, backends: backendName};
+
+       expect(
+           envSatisfiesConstraints(
+               env, backendName, registeredBackends, platformName, constraints))
+           .toBe(true);
+     });
 
   it('ENV satisfies matching flag and multiple backend constraints', () => {
     const backendName = 'test-backend';
@@ -65,13 +76,15 @@ describe('jasmine_util.envSatisfiesConstraints', () => {
     env.setFlags({'TEST-FLAG': true});
     const registeredBackends = ['test-backend1', 'test-backend2'];
 
+    const platformName = 'browser';
+
     const constraints = {
       flags: {'TEST-FLAG': true},
       backends: [backendName, 'other-backend']
     };
 
     expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, constraints))
+               env, backendName, registeredBackends, platformName, constraints))
         .toBe(true);
   });
 
@@ -81,10 +94,12 @@ describe('jasmine_util.envSatisfiesConstraints', () => {
     env.setFlags({'TEST-FLAG': false});
     const registeredBackends = ['test-backend1', 'test-backend2'];
 
+    const platformName = 'browser';
+
     const constraints = {flags: {'TEST-FLAG': true}};
 
     expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, constraints))
+               env, backendName, registeredBackends, platformName, constraints))
         .toBe(false);
   });
 
@@ -93,10 +108,12 @@ describe('jasmine_util.envSatisfiesConstraints', () => {
     const env = new Environment({});
     const registeredBackends = ['test-backend1', 'test-backend2'];
 
+    const platformName = 'browser';
+
     const constraints = {activeBackend: 'test-backend2'};
 
     expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, constraints))
+               env, backendName, registeredBackends, platformName, constraints))
         .toBe(false);
   });
 
@@ -106,13 +123,15 @@ describe('jasmine_util.envSatisfiesConstraints', () => {
     env.setFlags({'TEST-FLAG': true});
     const registeredBackends = ['test-backend1', 'test-backend2'];
 
+    const platformName = 'browser';
+
     const constraints = {
       flags: {'TEST-FLAG': true},
       activeBackend: 'test-backend2'
     };
 
     expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, constraints))
+               env, backendName, registeredBackends, platformName, constraints))
         .toBe(false);
   });
 
@@ -122,6 +141,8 @@ describe('jasmine_util.envSatisfiesConstraints', () => {
     env.setFlags({'TEST-FLAG': true});
     const registeredBackends = ['test-backend1'];
 
+    const platformName = 'browser';
+
     const constraints = {
       flags: {'TEST-FLAG': true},
       activeBackend: 'test-backend1',
@@ -129,9 +150,31 @@ describe('jasmine_util.envSatisfiesConstraints', () => {
     };
 
     expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, constraints))
+               env, backendName, registeredBackends, platformName, constraints))
         .toBe(false);
   });
+
+  it('ENV satisfies matching flag and multiple backend constraints, ' +
+         'doesnt satisfy platform',
+     () => {
+       const backendName = 'test-backend';
+       const env = new Environment({});
+       env.setFlags({'TEST-FLAG': true});
+       const registeredBackends = ['test-backend1', 'test-backend2'];
+
+       const platformName = 'browser';
+
+       const constraints = {
+         flags: {'TEST-FLAG': true},
+         backends: [backendName, 'other-backend'],
+         activePlatform: 'node'
+       };
+
+       expect(
+           envSatisfiesConstraints(
+               env, backendName, registeredBackends, platformName, constraints))
+           .toBe(false);
+     });
 });
 
 describe('jasmine_util.parseKarmaFlags', () => {
