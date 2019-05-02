@@ -18,10 +18,10 @@
 import * as tf from './index';
 
 describe('Ops are exported from index and work', () => {
-  it('tf.mul works', () => {
+  it('tf.mul works', async () => {
     const a = tf.tensor1d([1, 2, 3]);
     const b = tf.tensor1d([3, 4, 5]);
-    tf.test_util.expectArraysClose(a.mul(b), [3, 8, 15]);
+    tf.test_util.expectArraysClose(await a.mul(b).data(), [3, 8, 15]);
   });
 });
 

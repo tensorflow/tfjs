@@ -22,12 +22,12 @@ import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 describe('delayed upload', () => {
-  it('should handle data before op execution', () => {
+  it('should handle data before op execution', async () => {
     const t = tf.tensor1d([1, 2, 3]);
-    expectArraysClose(t, [1, 2, 3]);
+    expectArraysClose(await t.data(), [1, 2, 3]);
 
     const r = t.add(tf.tensor1d([4, 5, 6]));
-    expectArraysClose(r, [5, 7, 9]);
+    expectArraysClose(await r.data(), [5, 7, 9]);
   });
 
   it('Should not cache tensors in the tensor map for device support. ', () => {
@@ -51,7 +51,7 @@ describe('conv3d dilations', () => {
     const input = tf.ones([1, 2, 2, 2, 1]) as Tensor5D;
     const filter = tf.ones([1, 1, 1, 1, 1]) as Tensor5D;
     expect(() => {
-      tf.conv3d(input, filter, 1, 'same', 'NHWC', [2, 2, 2]);
+      tf.conv3d(input, filter, 1, 'same', 'NDHWC', [2, 2, 2]);
     }).toThrowError();
   });
   it('GPU should handle dilations >1', () => {
@@ -60,7 +60,7 @@ describe('conv3d dilations', () => {
     if ((tf.backend() as NodeJSKernelBackend).isGPUPackage) {
       const input = tf.ones([1, 2, 2, 2, 1]) as Tensor5D;
       const filter = tf.ones([1, 1, 1, 1, 1]) as Tensor5D;
-      tf.conv3d(input, filter, 1, 'same', 'NHWC', [2, 2, 2]);
+      tf.conv3d(input, filter, 1, 'same', 'NDHWC', [2, 2, 2]);
     }
   });
 });
