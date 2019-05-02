@@ -667,25 +667,6 @@ export function assertNonNegativeIntegerDimensions(shape: number[]) {
   });
 }
 
-const getSystemFetch = () => {
-  if (ENV.global.fetch != null) {
-    return ENV.global.fetch;
-  } else if (ENV.get('IS_NODE')) {
-    return getNodeFetch.fetchImport();
-  }
-  throw new Error(
-      `Unable to find the fetch() method. Please add your own fetch() ` +
-      `function to the global namespace.`);
-};
-
-// We are wrapping this within an object so it can be stubbed by Jasmine.
-export const getNodeFetch = {
-  fetchImport: () => {
-    // tslint:disable-next-line:no-require-imports
-    return require('node-fetch');
-  }
-};
-
 /**
  * Returns a platform-specific implementation of
  * [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
@@ -701,10 +682,7 @@ export const getNodeFetch = {
  * ```
  */
 /** @doc {heading: 'Util'} */
-export let systemFetch: Function;
-export function fetch(path: string, requestInits?: RequestInit) {
-  if (systemFetch == null) {
-    systemFetch = getSystemFetch();
-  }
-  return systemFetch(path, requestInits);
+export function fetch(
+    path: string, requestInits?: RequestInit): Promise<Response> {
+  return ENV.platform.fetch(path, requestInits);
 }

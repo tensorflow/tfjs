@@ -18,6 +18,7 @@
 import {KernelBackend} from './backends/backend';
 import {ENGINE, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo} from './engine';
 import {ENV} from './environment';
+import {Platform} from './platforms/platform';
 import {setDeprecationWarningFn, Tensor} from './tensor';
 import {TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
@@ -336,4 +337,14 @@ export function registerBackend(
 /** @doc {heading: 'Backends'} */
 export function backend(): KernelBackend {
   return ENGINE.backend;
+}
+
+/**
+ * Sets the global platform.
+ *
+ * @param platformName The name of this platform.
+ * @param platform A platform implementation.
+ */
+export function setPlatform(platformName: string, platform: Platform) {
+  ENV.setPlatform(platformName, platform);
 }

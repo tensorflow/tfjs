@@ -26,6 +26,9 @@ import './flags';
 import './backends/webgl/backend_webgl';
 import './backends/cpu/backend_cpu';
 
+import './platforms/platform_browser';
+import './platforms/platform_node';
+
 import * as environment from './environment';
 // Serialization.
 import * as io from './io/io';
