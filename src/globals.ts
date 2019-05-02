@@ -133,8 +133,9 @@ export function profile(f: () => TensorContainer): Promise<ProfileInfo> {
  * Using this method helps avoid memory leaks. In general, wrap calls to
  * operations in `tf.tidy` for automatic memory cleanup.
  *
- * When in safe mode, you must enclose all `tf.Tensor` creation and ops
- * inside a `tf.tidy` to prevent memory leaks.
+ * NOTE: Variables do *not* get cleaned up when inside a tidy(). If you want to
+ * dispose variables, please use `tf.disposeVariables` or call dispose()
+ * directly on variables.
  *
  * ```js
  * // y = 2 ^ 2 + 1

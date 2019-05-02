@@ -38,6 +38,9 @@ import {op} from './operation';
  * All other values in dense are set to defaultValue. If sparseValues is a
  * scalar, all sparse indices are set to this single value.
  *
+ * If indices are repeated the final value is summed over all values for those
+ * indices.
+ *
  * ```js
  * const indices = tf.tensor1d([4, 5, 6, 1, 2, 3], 'int32');
  * const values = tf.tensor1d([10, 11, 12, 13, 14, 15], 'float32');
