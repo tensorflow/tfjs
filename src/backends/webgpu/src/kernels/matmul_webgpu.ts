@@ -29,31 +29,31 @@ export function makeMatMulSource(): string {
   return `
     ${matMulHeader}
 
-    const uint TileSide = TileSize.x;  // TileSize.x == TileSize.y
-    shared float mm_Asub[TileSide][TileSide];
-    shared float mm_Bsub[TileSide][TileSide];
+    const uint MatTileSize = gl_WorkGroupSize.x;  // .x == .y
+    shared float mm_Asub[MatTileSize][MatTileSize];
+    shared float mm_Bsub[MatTileSize][MatTileSize];
 
     void mm_matMul(uint dimAOuter, uint dimInner, uint dimBOuter) {
-        uint localRow = gl_LocalInvocationID.x;  // 0..TileSide
-        uint localCol = gl_LocalInvocationID.y;  // 0..TileSide
-        uint globalRow = TileSize.x * gl_WorkGroupID.x + localRow;  // AOuter
-        uint globalCol = TileSize.x * gl_WorkGroupID.y + localCol;  // Inner
+        uint localRow = gl_LocalInvocationID.y;  // 0..MatTileSize
+        uint localCol = gl_LocalInvocationID.x;  // 0..MatTileSize
+        uint globalRow = gl_GlobalInvocationID.y;  // AOuter
+        uint globalCol = gl_GlobalInvocationID.x;  // Inner
 
         float acc = 0.0;
 
-        uint numTiles = (dimInner - 1) / TileSize.x + 1;
+        uint numTiles = (dimInner - 1) / MatTileSize + 1;
 
         for (uint t = 0; t < numTiles; t++) {
           // Load one tile of A and B into local memory
-          uint tiledACol = TileSize.x * t + localCol;
-          uint tiledBRow = TileSize.x * t + localRow;
+          uint tiledACol = MatTileSize * t + localCol;
+          uint tiledBRow = MatTileSize * t + localRow;
           mm_Asub[localRow][localCol] = mm_readA(globalRow, tiledACol);
           mm_Bsub[localRow][localCol] = mm_readB(tiledBRow, globalCol);
 
           // Synchronise to make sure the tile is loaded
           barrier();
 
-          for (uint k = 0; k < TileSize.x; k++) {
+          for (uint k = 0; k < MatTileSize; k++) {
             acc += mm_Asub[localRow][k] * mm_Bsub[k][localCol];
           }
 
@@ -74,13 +74,13 @@ export class MatMulProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   uniforms = 'uint dimAOuter, dimInner, dimBOuter, batch;';
-  tileSize: [number, number, number] = [16, 16, 1];  // Must be square.
+  workGroupSize: [number, number, number] = [16, 16, 1];  // Must be square.
 
   constructor(outputShape: [number, number, number]) {
     this.outputShape = outputShape;
     const dispatchLayout = {x: [1], y: [2], z: [0]};
     this.dispatch =
-        computeDispatch(dispatchLayout, this.outputShape, this.tileSize);
+        computeDispatch(dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.userCode = `
       ${makeMatMulSource()}

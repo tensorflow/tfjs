@@ -26,13 +26,22 @@ const arrayProduct = (arr: number[]) => {
   return product;
 };
 
-// Computes dispatch geometry based on layout of output dimensions and tileSize.
+// Computes dispatch geometry based on layout of output dimensions and
+// workGroupSize.
 export function computeDispatch(
     layout: {x: number[], y: number[], z: number[]}, outputShape: number[],
-    tileSize: [number, number, number] = [1, 1, 1]): [number, number, number] {
+    workGroupSize: [number, number, number] = [1, 1, 1],
+    elementsPerThread: [number, number, number] =
+        [1, 1, 1]): [number, number, number] {
   return [
-    Math.ceil(arrayProduct(layout.x.map(d => outputShape[d])) / tileSize[0]),
-    Math.ceil(arrayProduct(layout.y.map(d => outputShape[d])) / tileSize[1]),
-    Math.ceil(arrayProduct(layout.z.map(d => outputShape[d])) / tileSize[2])
+    Math.ceil(
+        arrayProduct(layout.x.map(d => outputShape[d])) /
+        (workGroupSize[0] * elementsPerThread[0])),
+    Math.ceil(
+        arrayProduct(layout.y.map(d => outputShape[d])) /
+        (workGroupSize[1] * elementsPerThread[1])),
+    Math.ceil(
+        arrayProduct(layout.z.map(d => outputShape[d])) /
+        (workGroupSize[2] * elementsPerThread[2]))
   ];
 }
