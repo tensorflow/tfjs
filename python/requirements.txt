@@ -2,5 +2,5 @@ h5py==2.8.0
 keras==2.2.4
 numpy==1.15.1
 six==1.11.0
-tensorflow>=2.0.0a0
+tf-nightly-2.0-preview>=2.0.0.dev20190502
 tensorflow-hub==0.3.0
