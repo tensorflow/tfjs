@@ -31,10 +31,10 @@ export interface WebGPUProgram {
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
   workPerThread?: number;
-  // tileSize.x * tileSize.y * tileSize.z = the number of threads in a thread
-  // group.
-  // Individual dimensions determines thread layout within the group.
-  tileSize?: [number, number?, number?];
+  // workGroupSize.x * workGroupSize.y * workGroupSize.z = the number of threads
+  // in a thread group. Individual dimensions determines thread layout within
+  // the group.
+  workGroupSize?: [number, number, number];
 }
 
 export interface WebGPUBinary {
@@ -112,7 +112,7 @@ export const compileProgram =
     };
 
 export function makeShaderKey(program: WebGPUProgram): string {
-  const key =
-      (program.tileSize ? program.tileSize.join(',') : '') + program.userCode;
+  const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
+      program.userCode;
   return key;
 }

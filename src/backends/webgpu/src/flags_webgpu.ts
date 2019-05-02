@@ -24,4 +24,4 @@ ENV.registerFlag('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', () => true);
  * Thread register block size for matmul kernel. If 0, we use the version of
  * matMul without register blocking.
  */
-ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 2);
+ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);

@@ -24,22 +24,23 @@ export function makeMatMulPackedSource(workPerThread: number): string {
   return `
     ${matMulHeader}
 
-    const uint TileSide = TileSize.x;  // TileSize.x == TileSize.y
+    const uint WorkGroupSize = gl_WorkGroupSize.x;  // .x == .y
     const uint WorkPerThread = ${workPerThread};
-    shared float mm_Asub[TileSide * WorkPerThread][TileSide * WorkPerThread];
-    shared float mm_Bsub[TileSide * WorkPerThread][TileSide * WorkPerThread];
+    const uint MatTileSize = WorkGroupSize * WorkPerThread;
+
+    shared float mm_Asub[MatTileSize][MatTileSize];
+    shared float mm_Bsub[MatTileSize][MatTileSize];
 
     void mm_matMul(uint dimAOuter, uint dimInner, uint dimBOuter) {
-      uint row = gl_LocalInvocationID.y;   // 0..local_size_x
-      uint col = gl_LocalInvocationID.x;   // 0..local_size_y
-      uint tileRow = row * WorkPerThread;  // 0..TileSide, stride by local_size
-      uint tileCol = col * WorkPerThread;  // 0..TileSide
+      // These are 0..MatTileSize, in increments of WorkPerThread.
+      uint tileRow = gl_LocalInvocationID.y * WorkPerThread;
+      uint tileCol = gl_LocalInvocationID.x * WorkPerThread;
 
-      // 0..AOuter, stride by tileSize
-      uint globalRow = TileSide * gl_WorkGroupID.y + tileRow;
-      uint globalCol = TileSide * gl_WorkGroupID.x + tileCol;
+      // These are 0..AOuter, in increments of WorkPerThread.
+      uint globalRow = gl_GlobalInvocationID.y * WorkPerThread;
+      uint globalCol = gl_GlobalInvocationID.x * WorkPerThread;
 
-      uint numTiles = (dimInner - 1) / TileSize.x + 1;
+      uint numTiles = (dimInner - 1) / MatTileSize + 1;
 
       float acc[WorkPerThread][WorkPerThread];
       float ACached;
@@ -62,9 +63,9 @@ export function makeMatMulPackedSource(workPerThread: number): string {
 
             mm_Asub[inputRow][inputCol] = mm_readA(
                 globalRow + innerRow,
-                t * TileSize.x + tileCol + innerCol);
+                t * MatTileSize + tileCol + innerCol);
             mm_Bsub[inputRow][inputCol] = mm_readB(
-                t * TileSize.x + tileRow + innerRow,
+                t * MatTileSize + tileRow + innerRow,
                 globalCol + innerCol);
           }
         }
@@ -72,7 +73,7 @@ export function makeMatMulPackedSource(workPerThread: number): string {
         barrier();
 
         // Compute acc values for a single thread.
-        for (uint k = 0; k < TileSize.x; k++) {
+        for (uint k = 0; k < MatTileSize; k++) {
           for (uint inner = 0; inner < WorkPerThread; inner++) {
             BCached[inner] = mm_Bsub[k][tileCol + inner];
           }
@@ -112,15 +113,16 @@ export class MatMulPackedProgram implements WebGPUProgram {
   workPerThread: number;
   variableNames = ['A', 'B'];
   uniforms = 'uint dimAOuter, dimInner, dimBOuter, batch;';
-  tileSize: [number, number, number] = [16, 16, 1];
+  workGroupSize: [number, number, number] = [16, 16, 1];
 
   constructor(outputShape: [number, number, number], workPerThread: number) {
     this.outputShape = outputShape;
     this.workPerThread = workPerThread;
 
     const dispatchLayout = {x: [1], y: [2], z: [0]};
-    this.dispatch =
-        computeDispatch(dispatchLayout, this.outputShape, this.tileSize);
+    this.dispatch = computeDispatch(
+        dispatchLayout, this.outputShape, this.workGroupSize,
+        [workPerThread, workPerThread, 1]);
 
     // Consider compiling a different version of the shader that doesn't care
     // about boundary conditions when loading from Asub / Bsub when tiles fit

@@ -29,7 +29,7 @@ export class MaxPoolProgram implements WebGPUProgram {
   variableNames = ['x'];
   uniforms = 'ivec4 xShape, outShape; ' +
       'ivec2 pad, stride, dilation, convDims, filterDims;';
-  tileSize: [number, number, number] = [4, 4, 1];
+  workGroupSize: [number, number, number] = [4, 4, 1];
 
   constructor(convInfo: Conv2DInfo) {
     this.outputShape = convInfo.outShape;
@@ -37,7 +37,7 @@ export class MaxPoolProgram implements WebGPUProgram {
     const dispatchLayout = {x: [1], y: [2], z: [0, 3]};
 
     this.dispatch =
-        computeDispatch(dispatchLayout, this.outputShape, this.tileSize);
+        computeDispatch(dispatchLayout, this.outputShape, this.workGroupSize);
 
     // TODO: Parallelize max computation by thread and merge result.
     this.userCode = `
@@ -60,16 +60,16 @@ export class MaxPoolProgram implements WebGPUProgram {
           ivec2 xRCCorner = coords.yz * stride - pad;
           int xRCorner = xRCCorner.x;
           int xCCorner = xRCCorner.y;
-  
+
           float minMaxValue = 0.0;
-  
+
           for (int wR = 0; wR < filterDims.y; wR += dilation.y) {
             int xR = xRCorner + wR;
-  
+
             if (xR < 0 || xR >= convDims.y) {
               continue;
             }
-  
+
             for (int wC = 0; wC < filterDims.x; wC += dilation.x) {
               int xC = xCCorner + wC * dilation.x;
               float value = getValue(batch, xR, xC, d);

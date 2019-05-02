@@ -43,7 +43,7 @@ function mapToGlslTypes(type: DataType): GLSLDataType|DataType {
 }
 
 interface ProgramParams {
-  tileSize?: [number, number?, number?];
+  workGroupSize?: [number, number, number];
   variableNames: string[];
   uniforms?: string;
   userCode: string;
@@ -55,16 +55,11 @@ export function makeShader(
     program: ProgramParams): string {
   const prefixSnippets: string[] = [];
 
-  if (program.tileSize != null) {
-    const ts = program.tileSize;
-
-    ts[1] = ts[1] || 1;
-    ts[2] = ts[2] || 1;
+  if (program.workGroupSize != null) {
     prefixSnippets.push(`
-      const uvec3 TileSize = uvec3(${ts[0]}, ${ts[1]}, ${ts[2]});
-      layout (local_size_x = TileSize.x,
-              local_size_y = TileSize.y,
-              local_size_z = TileSize.z) in;
+      layout (local_size_x = ${program.workGroupSize[0]},
+              local_size_y = ${program.workGroupSize[1]},
+              local_size_z = ${program.workGroupSize[2]}) in;
     `);
   }
 
