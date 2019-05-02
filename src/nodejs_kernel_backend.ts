@@ -1543,6 +1543,15 @@ export class NodeJSKernelBackend extends KernelBackend {
     ]) as Tensor<R>;
   }
 
+  linspace(start: number, stop: number, num: number): Tensor1D {
+    const opAttrs =
+        [createTypeOpAttr('T', 'float32'), createTypeOpAttr('Tidx', 'int32')];
+    const inputs = [
+      scalar(start, 'float32'), scalar(stop, 'float32'), scalar(num, 'int32')
+    ];
+    return this.executeSingleOutput('LinSpace', opAttrs, inputs) as Tensor1D;
+  }
+
   fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
       numChannels: number): Tensor3D {

@@ -35,24 +35,25 @@ class MockCanvas {
 }
 
 describe('tf.browser.fromPixels with polyfills', () => {
-  it('accepts a canvas-like element', () => {
+  it('accepts a canvas-like element', async () => {
     const c = new MockCanvas(2, 2);
     // tslint:disable-next-line:no-any
     const t = tf.browser.fromPixels(c as any);
     expect(t.dtype).toBe('int32');
     expect(t.shape).toEqual([2, 2, 3]);
     tf.test_util.expectArraysEqual(
-        t, [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]);
+        await t.data(), [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]);
   });
 
-  it('accepts a canvas-like element, numChannels=4', () => {
+  it('accepts a canvas-like element, numChannels=4', async () => {
     const c = new MockCanvas(2, 2);
     // tslint:disable-next-line:no-any
     const t = tf.browser.fromPixels(c as any, 4);
     expect(t.dtype).toBe('int32');
     expect(t.shape).toEqual([2, 2, 4]);
     tf.test_util.expectArraysEqual(
-        t, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+        await t.data(),
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
   });
 
   it('errors when passed a non-canvas object', () => {
