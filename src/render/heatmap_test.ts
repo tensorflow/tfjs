@@ -40,6 +40,40 @@ describe('renderHeatmap', () => {
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
   });
 
+  it('renders a chart with rowMajor=true', async () => {
+    const data: HeatmapData = {
+      values: [[4, 2, 8], [1, 7, 2], [3, 3, 20], [8, 2, 8]],
+    };
+
+    const numTensorsBefore = tf.memory().numTensors;
+
+    const container = document.getElementById('container') as HTMLElement;
+    await heatmap(container, data, {rowMajor: true});
+
+    const numTensorsAfter = tf.memory().numTensors;
+
+    expect(document.querySelectorAll('.vega-embed').length).toBe(1);
+    expect(numTensorsAfter).toEqual(numTensorsBefore);
+  });
+
+  it('renders a chart with rowMajor=true and custom labels', async () => {
+    const data: HeatmapData = {
+      values: [[4, 2, 8], [1, 7, 2], [3, 3, 20], [8, 2, 8]],
+      xTickLabels: ['alpha', 'beta', 'gamma'],
+      yTickLabels: ['first', 'second', 'third', 'fourth'],
+    };
+
+    const numTensorsBefore = tf.memory().numTensors;
+
+    const container = document.getElementById('container') as HTMLElement;
+    await heatmap(container, data, {rowMajor: true});
+
+    const numTensorsAfter = tf.memory().numTensors;
+
+    expect(document.querySelectorAll('.vega-embed').length).toBe(1);
+    expect(numTensorsAfter).toEqual(numTensorsBefore);
+  });
+
   it('renders a chart with a tensor', async () => {
     const values = tf.tensor2d([[4, 2, 8], [1, 7, 2], [3, 3, 20]]);
     const data: HeatmapData = {
