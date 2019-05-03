@@ -16,21 +16,21 @@
  */
 
 import {ENGINE} from '../engine';
-import {tidy} from '../globals';
+import {dispose, tidy} from '../globals';
 import {div, scalar, sub, zerosLike} from '../ops/ops';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {Variable} from '../tensor';
-import {NamedVariableMap} from '../tensor_types';
-import {Optimizer} from './optimizer';
+import {NamedTensor, NamedVariableMap} from '../tensor_types';
+import {Optimizer, OptimizerVariable} from './optimizer';
 
 export class AdamaxOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'AdamaxOptimizer';
+  static className = 'Adamax';  // Note: Name matters for Python compatbility.
   private accBeta1: Variable;
   private iteration: Variable;
 
-  private accumulatedFirstMoment: NamedVariableMap = {};
-  private accumulatedWeightedInfNorm: NamedVariableMap = {};
+  private accumulatedFirstMoment: OptimizerVariable[] = [];
+  private accumulatedWeightedInfNorm: OptimizerVariable[] = [];
 
   constructor(
       protected learningRate: number, protected beta1: number,
@@ -48,27 +48,40 @@ export class AdamaxOptimizer extends Optimizer {
     }
   }
 
-  applyGradients(variableGradients: NamedVariableMap) {
+  applyGradients(variableGradients: NamedVariableMap|NamedTensor[]) {
+    const variableNames = Array.isArray(variableGradients) ?
+        variableGradients.map(item => item.name) :
+        Object.keys(variableGradients);
+
     tidy(() => {
       const oneMinusAccBeta1 = sub(1, this.accBeta1);
       const lr = div(-this.learningRate, this.iteration.mul(this.decay).add(1));
 
-      for (const variableName in variableGradients) {
-        const value = ENGINE.registeredVariables[variableName];
-        if (this.accumulatedFirstMoment[variableName] == null) {
-          const trainable = false;
-          this.accumulatedFirstMoment[variableName] =
-              zerosLike(value).variable(trainable);
+      variableNames.forEach((name, i) => {
+        const value = ENGINE.registeredVariables[name];
+        const trainable = false;
+        if (this.accumulatedFirstMoment[i] == null) {
+          this.accumulatedFirstMoment[i] = {
+            originalName: `${name}/m`,
+            variable: zerosLike(value).variable(trainable)
+          };
         }
-        if (this.accumulatedWeightedInfNorm[variableName] == null) {
-          const trainable = false;
-          this.accumulatedWeightedInfNorm[variableName] =
-              zerosLike(value).variable(trainable);
+        if (this.accumulatedWeightedInfNorm[i] == null) {
+          this.accumulatedWeightedInfNorm[i] = {
+            originalName: `${name}/v`,
+            variable: zerosLike(value).variable(trainable)
+          };
         }
 
-        const gradient = variableGradients[variableName];
-        const firstMoment = this.accumulatedFirstMoment[variableName];
-        const weightedInfNorm = this.accumulatedWeightedInfNorm[variableName];
+        const gradient = Array.isArray(variableGradients) ?
+            variableGradients[i].tensor :
+            variableGradients[name];
+        if (gradient == null) {
+          return;
+        }
+
+        const firstMoment = this.accumulatedFirstMoment[i].variable;
+        const weightedInfNorm = this.accumulatedWeightedInfNorm[i].variable;
 
         const newFirstMoment =
             firstMoment.mul(this.beta1).add(gradient.mul(1 - this.beta1));
@@ -78,9 +91,8 @@ export class AdamaxOptimizer extends Optimizer {
 
         const newWeightedInfNorm = ut0.maximum(ut1);
 
-        this.accumulatedFirstMoment[variableName].assign(newFirstMoment);
-        this.accumulatedWeightedInfNorm[variableName].assign(
-            newWeightedInfNorm);
+        firstMoment.assign(newFirstMoment);
+        weightedInfNorm.assign(newWeightedInfNorm);
 
         const newValue =
             lr.div(oneMinusAccBeta1)
@@ -88,11 +100,12 @@ export class AdamaxOptimizer extends Optimizer {
                 .add(value);
 
         value.assign(newValue);
-      }
+      });
 
       this.iteration.assign(this.iteration.add(1));
       this.accBeta1.assign(this.accBeta1.mul(this.beta1));
     });
+    this.incrementIterations();
   }
 
   dispose(): void {
@@ -100,15 +113,21 @@ export class AdamaxOptimizer extends Optimizer {
     this.iteration.dispose();
 
     if (this.accumulatedFirstMoment != null) {
-      Object.keys(this.accumulatedFirstMoment)
-          .forEach(name => this.accumulatedFirstMoment[name].dispose());
+      dispose(this.accumulatedFirstMoment.map(v => v.variable));
     }
-
     if (this.accumulatedWeightedInfNorm != null) {
-      Object.keys(this.accumulatedWeightedInfNorm)
-          .forEach(name => this.accumulatedWeightedInfNorm[name].dispose());
+      dispose(this.accumulatedWeightedInfNorm.map(v => v.variable));
     }
   }
+
+  async getWeights(): Promise<NamedTensor[]> {
+    throw new Error('getWeights() is not implemented for Adamax yet.');
+  }
+
+  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+    throw new Error('setWeights() is not implemented for Adamax yet.');
+  }
+
   getConfig(): ConfigDict {
     return {
       'learningRate': this.learningRate,

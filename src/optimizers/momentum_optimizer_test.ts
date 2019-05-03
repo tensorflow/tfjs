@@ -33,7 +33,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
-    // Cost / velocity should be the only additional arrays.
+    // Cost & velocity should be the only additional arrays.
     expect(tf.memory().numTensors).toBe(numTensors + 2);
 
     // newAccumulation = momentum * accumulation + gradient
@@ -61,10 +61,12 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     expect(cost).toBe(null);
 
     x.dispose();
+    numTensors = tf.memory().numTensors;
     optimizer.dispose();
 
-    // The only tensor remaining is the argument to variable().
-    expect(tf.memory().numTensors).toBe(1);
+    // The optimizer.dispose() call should have disposed the m variable and the
+    // momentum variable for x.
+    expect(tf.memory().numTensors).toBe(numTensors - 2);
   });
 
   it('basic - with Nesterov', async () => {
@@ -81,7 +83,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
-    // Cost / velocity should be the only additional arrays.
+    // Cost and velocity should be the only additional arrays.
     expect(tf.memory().numTensors).toBe(numTensors + 2);
 
     // newAccumulation = momentum * accumulation + gradient
@@ -112,11 +114,34 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     expect(cost).toBe(null);
 
     x.dispose();
+    numTensors = tf.memory().numTensors;
     optimizer.dispose();
 
-    // The only tensor remaining is the argument to variable().
-    expect(tf.memory().numTensors).toBe(1);
+    // The optimizer.dispose() call should have disposed the m variable and the
+    // momentum variable for x.
+    expect(tf.memory().numTensors).toBe(numTensors - 2);
   });
+
+  it('Save, load weights and conntinue training', async () => {
+    const learningRate = .1;
+    const momentum = .5;
+    const useNesterov = true;
+    const optimizer1 = tf.train.momentum(learningRate, momentum, useNesterov);
+
+    const x = tf.tensor1d([1, 2]).variable();
+    const f = () => x.square().sum() as tf.Scalar;
+
+    let cost = optimizer1.minimize(f, /* returnCost */ true);
+
+    // The iterations counter and the accumulation for the variable x.
+    const optimizer2 = tf.train.momentum(learningRate, momentum, useNesterov);
+    await optimizer2.setWeights(await optimizer1.getWeights());
+    cost = optimizer2.minimize(f, /* returnCost */ true);
+    expectArraysClose(await cost.data(), 2.45);
+    expectArraysClose(await x.data(), [0.44, 0.88]);
+    expect(optimizer2.iterations).toEqual(2);
+  });
+
   it('serialization round-trip', () => {
     const originalOpt = tf.train.momentum(0.1, 0.2, true);
     const reserialized = tf.MomentumOptimizer.fromConfig(

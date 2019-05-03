@@ -17,10 +17,11 @@
 
 import {tensor} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
+import {NamedTensor, NamedTensorMap} from '../tensor_types';
 import {TypedArray} from '../types';
 import {sizeFromShape} from '../util';
-import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, WeightsManifestEntry} from './types';
+
+import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, WeightGroup, WeightsManifestEntry} from './types';
 
 /**
  * Encode a map from names to weight values as an ArrayBuffer, along with an
@@ -31,6 +32,7 @@ import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, WeightsManifes
  * This function is the reverse of `decodeWeights`.
  *
  * @param tensors A map ("dict") from names to tensors.
+ * @param group Group to which the weights belong (optional).
  * @returns A `Promise` of
  *   - A flat `ArrayBuffer` with all the binary values of the `Tensor`s
  *     concatenated.
@@ -38,20 +40,31 @@ import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, WeightsManifes
  *     tensor names, `dtype`s and shapes.
  * @throws Error: on unsupported tensor `dtype`.
  */
-export async function encodeWeights(tensors: NamedTensorMap):
+export async function encodeWeights(
+    tensors: NamedTensorMap|NamedTensor[], group?: WeightGroup):
     Promise<{data: ArrayBuffer, specs: WeightsManifestEntry[]}> {
   // TODO(adarob, cais): Support quantization.
   const specs: WeightsManifestEntry[] = [];
   const dataPromises: Array<Promise<TypedArray>> = [];
-  for (const name in tensors) {
-    const t = tensors[name];
 
+  const names: string[] = Array.isArray(tensors) ?
+      tensors.map(tensor => tensor.name) :
+      Object.keys(tensors);
+
+  for (let i = 0; i < names.length; ++i) {
+    const name = names[i];
+    const t = Array.isArray(tensors) ? tensors[i].tensor : tensors[name];
     if (t.dtype !== 'float32' && t.dtype !== 'int32' && t.dtype !== 'bool') {
       throw new Error(`Unsupported dtype in weight '${name}': ${t.dtype}`);
     }
-    specs.push({name, shape: t.shape, dtype: t.dtype});
+    const spec: WeightsManifestEntry = {name, shape: t.shape, dtype: t.dtype};
+    if (group != null) {
+      spec.group = group;
+    }
+    specs.push(spec);
     dataPromises.push(t.data());
   }
+
   const tensorValues = await Promise.all(dataPromises);
   return {data: concatenateTypedArrays(tensorValues), specs};
 }

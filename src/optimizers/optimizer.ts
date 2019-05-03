@@ -15,13 +15,33 @@
  * =============================================================================
  */
 
+import {dispose} from '../globals';
 import {variableGrads} from '../gradients';
+import {scalar} from '../ops/ops';
 import {Serializable} from '../serialization';
 import {Scalar, Variable} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
+import {NamedTensor, NamedTensorMap} from '../tensor_types';
+
+/**
+ * A variable that belongs to an optimizer.
+ *
+ * The `originalName` field is required for keeping track of the canonical
+ * name of the variable, which is usually the name of the model weight that
+ * the variable is related to plus a suffix, e.g., 'dense1/kernel/momentum'.
+ * The name of the `Variable` object itself cannot be used directly due to
+ * possible deduplication: Every `Variable` must have a unique name but more
+ * than one optimizer objects of the same type may be created for the same model
+ * or the same `Variable`.
+ */
+export interface OptimizerVariable {
+  originalName: string;
+  variable: Variable;
+}
 
 /** @doc {heading: 'Training', subheading: 'Classes', namespace: 'train'} */
 export abstract class Optimizer extends Serializable {
+  protected iterations_: number;
+
   /**
    * Executes `f()` and minimizes the scalar output of `f()` by computing
    * gradients of y with respect to the list of trainable variables provided by
@@ -39,11 +59,16 @@ export abstract class Optimizer extends Serializable {
       |null {
     const {value, grads} = this.computeGradients(f, varList);
 
-    this.applyGradients(grads);
+    if (varList != null) {
+      const gradArray: NamedTensor[] =
+          varList.map(v => ({name: v.name, tensor: grads[v.name]}));
+      this.applyGradients(gradArray);
+    } else {
+      this.applyGradients(grads);
+    }
 
     // Dispose gradients.
-    const varNames = Object.keys(grads);
-    varNames.forEach(varName => grads[varName].dispose());
+    dispose(grads);
 
     if (returnCost) {
       return value as Scalar;
@@ -51,6 +76,20 @@ export abstract class Optimizer extends Serializable {
       value.dispose();
       return null;
     }
+  }
+
+  /**
+   * The number of iterations that this optimizer instance has been invoked for.
+   */
+  get iterations(): number {
+    if (this.iterations_ == null) {
+      this.iterations_ = 0;
+    }
+    return this.iterations_;
+  }
+
+  protected incrementIterations() {
+    this.iterations_ = this.iterations + 1;
   }
 
   /**
@@ -74,12 +113,51 @@ export abstract class Optimizer extends Serializable {
    *
    * @param variableGradients A mapping of variable name to its gradient value.
    */
-  abstract applyGradients(variableGradients: NamedTensorMap): void;
+  abstract applyGradients(variableGradients: NamedTensorMap|
+                          NamedTensor[]): void;
 
   /**
    * Dispose the variables (if any) owned by this optimizer instance.
    */
-  dispose(): void {}
+  dispose(): void {
+    if (this.iterations_ != null) {
+      dispose(this.iterations_);
+    }
+  }
+
+  async saveIterations(): Promise<NamedTensor> {
+    if (this.iterations_ == null) {
+      this.iterations_ = 0;
+    }
+    return {
+      name: 'iter',  // Named for Python compatibility.
+      // TODO(cais): Use 'int64' type when available.
+      tensor: scalar(this.iterations_, 'int32')
+    };
+  }
+
+  async getWeights(): Promise<NamedTensor[]> {
+    throw new Error('getWeights() is not implemented for this optimizer yet.');
+  }
+
+  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+    throw new Error(
+        `setWeights() is not implemented for this optimizer class ` +
+        `${this.getClassName()}`);
+  }
+
+  /**
+   * Extract the first element of the weight values and set it
+   * as the iterations counter variable of this instance of optimizer.
+   *
+   * @param weightValues
+   * @returns Weight values with the first element consumed and excluded.
+   */
+  protected async extractIterations(
+      weightValues: NamedTensor[]): Promise<NamedTensor[]> {
+    this.iterations_ = (await weightValues[0].tensor.data())[0];
+    return weightValues.slice(1);
+  }
 }
 
 Object.defineProperty(Optimizer, Symbol.hasInstance, {
