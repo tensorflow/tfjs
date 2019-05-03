@@ -17,6 +17,7 @@ const Mailgun = require('mailgun-js');
 const humanizeDuration = require('humanize-duration');
 const request = require('request-promise-native');
 const config = require('./config.json');
+const fetch = require('node-fetch');
 
 const mailgun = new Mailgun({
   apiKey: process.env.MAILGUN_API_KEY,
@@ -50,7 +51,13 @@ module.exports.send_email = async event => {
 };
 
 async function sendChatMsg(build, msg) {
-  const chatMsg = `${msg} <${build.logUrl}|See logs>`;
+  const joke = (await (await fetch('https://icanhazdadjoke.com/', {
+                  headers: {'Accept': 'application/json'}
+                })).json())
+                   .joke;
+  const jokeMsg = `Oh no! Failed builds are not fun... So here's a joke ` +
+      `to brighten your day :) -- ${joke}`;
+  const chatMsg = `${msg} <${build.logUrl}|See logs>. ${jokeMsg}`;
   const res = await request(process.env.HANGOUTS_URL, {
     resolveWithFullResponse: true,
     method: 'POST',

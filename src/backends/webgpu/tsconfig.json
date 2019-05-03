@@ -3,7 +3,9 @@
   "include": [
     "src/"
   ],
-  "exclude": [],
+  "exclude": [
+    "node_modules/"
+  ],
   "compilerOptions": {
     "outDir": "./dist"
   }
