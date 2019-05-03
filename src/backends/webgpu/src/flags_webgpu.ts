@@ -25,3 +25,10 @@ ENV.registerFlag('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', () => true);
  * matMul without register blocking.
  */
 ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
+
+/**
+ * -1: conv2d_naive
+ *  0: conv2d_mm with matmul without register blocking
+ * >0: conv2d_mm with matmul_packed with WPT=this
+ */
+ENV.registerFlag('WEBGPU_CONV2D_WORK_PER_THREAD', () => 2);

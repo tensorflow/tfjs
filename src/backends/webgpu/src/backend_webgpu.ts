@@ -26,6 +26,7 @@ import * as shaderc from '@webgpu/shaderc';
 
 import * as binary_op from './kernels/binary_op_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
+import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
 import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
@@ -262,7 +263,15 @@ export class WebGPUBackend extends KernelBackend {
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     const output =
         Tensor.make(convInfo.outShape, {}, x.dtype, this) as Tensor4D;
-    const program = new Conv2DNaiveProgram(convInfo);
+    let program: Conv2DMMProgram|Conv2DNaiveProgram;
+
+    const workPerThread = ENV.get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
+    if (workPerThread === -1) {
+      // TODO(kainino0x): This may be obsolete, but is kept for reference.
+      program = new Conv2DNaiveProgram(convInfo);
+    } else {
+      program = new Conv2DMMProgram(convInfo, workPerThread);
+    }
 
     const pad = convInfo.padInfo.type === 'VALID' ?
         [0, 0] :
