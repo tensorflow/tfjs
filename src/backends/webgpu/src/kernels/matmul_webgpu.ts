@@ -71,18 +71,22 @@ export function makeMatMulSource(): string {
 export class MatMulProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
+  dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
-  uniforms = 'uint dimAOuter, dimInner, dimBOuter, batch;';
   workGroupSize: [number, number, number] = [16, 16, 1];  // Must be square.
 
   constructor(outputShape: [number, number, number]) {
     this.outputShape = outputShape;
-    const dispatchLayout = {x: [1], y: [2], z: [0]};
-    this.dispatch =
-        computeDispatch(dispatchLayout, this.outputShape, this.workGroupSize);
+    this.dispatchLayout = {x: [1], y: [2], z: [0]};
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.userCode = `
+      uint dimAOuter = aShape[1];
+      uint dimInner = aShape[2];
+      uint dimBOuter = bShape[2];
+
       ${makeMatMulSource()}
 
       float mm_readA(uint row, uint col) {

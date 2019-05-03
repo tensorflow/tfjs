@@ -32,6 +32,17 @@ describe('Binary ops', () => {
     tf.test_util.expectArraysClose(cData, new Float32Array([3, 8, 15]));
   });
 
+  it('A * B >1D', async () => {
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6], [1, 2, 3]);
+    const b = tf.tensor3d([1, 2, 3, 4, 5, 6], [1, 2, 3]);
+    const c = tf.mul(a, b);
+
+    const cData = await c.data();
+
+    tf.test_util.expectArraysClose(
+        cData, new Float32Array([1, 4, 9, 16, 25, 36]));
+  });
+
   it('A + B', async () => {
     const a = tf.tensor1d([1, 2, 3]);
     const b = tf.tensor1d([3, 4, 5]);
@@ -40,5 +51,16 @@ describe('Binary ops', () => {
     const cData = await c.data();
 
     tf.test_util.expectArraysClose(cData, new Float32Array([4, 6, 8]));
+  });
+
+  it('broadcasts 3D and 1D', async () => {
+    const a = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [2, 3, 2]);
+    const b = tf.tensor1d([2]);
+    const c = tf.mul(a, b);
+
+    const cData = await c.data();
+
+    tf.test_util.expectArraysClose(
+        cData, new Float32Array([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]));
   });
 });

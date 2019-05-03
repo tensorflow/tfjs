@@ -17,7 +17,6 @@
 
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 
-import {generateGetOutputCoords} from '../shader_util';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -25,19 +24,19 @@ import {WebGPUProgram} from './webgpu_program';
 export class MaxPoolProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
+  dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'ivec4 xShape, outShape; ' +
-      'ivec2 pad, stride, dilation, convDims, filterDims;';
+  uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
   workGroupSize: [number, number, number] = [4, 4, 1];
 
   constructor(convInfo: Conv2DInfo) {
     this.outputShape = convInfo.outShape;
 
-    const dispatchLayout = {x: [1], y: [2], z: [0, 3]};
+    this.dispatchLayout = {x: [1], y: [2], z: [0, 3]};
 
-    this.dispatch =
-        computeDispatch(dispatchLayout, this.outputShape, this.workGroupSize);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     // TODO: Parallelize max computation by thread and merge result.
     this.userCode = `
@@ -47,8 +46,6 @@ export class MaxPoolProgram implements WebGPUProgram {
         }
         return x[getFlatIndex(ivec4(batch, xR, xC, d), xShape)];
       }
-
-      ${generateGetOutputCoords(dispatchLayout, this.outputShape.length)}
 
       void main() {
         ivec4 coords = getOutputCoords();
