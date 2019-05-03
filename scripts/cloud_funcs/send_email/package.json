@@ -6,6 +6,7 @@
   "dependencies": {
     "humanize-duration": "3.10.0",
     "mailgun-js": "^0.22.0",
+    "node-fetch": "^2.5.0",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7"
   }
