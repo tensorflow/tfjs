@@ -16,21 +16,22 @@
  */
 
 import {ENGINE} from '../engine';
-import {tidy} from '../globals';
-import {scalar, sub, zerosLike} from '../ops/ops';
+import {dispose, tidy} from '../globals';
+import {scalar, sub, zerosLike, pow} from '../ops/ops';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {Variable} from '../tensor';
-import {NamedVariableMap} from '../tensor_types';
-import {Optimizer} from './optimizer';
+import {NamedTensor, NamedVariableMap} from '../tensor_types';
+
+import {Optimizer, OptimizerVariable} from './optimizer';
 
 export class AdamOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'AdamOptimizer';
+  static className = 'Adam';  // Note: Name matters for Python compatibility.
   private accBeta1: Variable;
   private accBeta2: Variable;
 
-  private accumulatedFirstMoment: NamedVariableMap = {};
-  private accumulatedSecondMoment: NamedVariableMap = {};
+  private accumulatedFirstMoment: OptimizerVariable[] = [];
+  private accumulatedSecondMoment: OptimizerVariable[] = [];
 
   constructor(
       protected learningRate: number, protected beta1: number,
@@ -47,27 +48,39 @@ export class AdamOptimizer extends Optimizer {
     }
   }
 
-  applyGradients(variableGradients: NamedVariableMap) {
+  applyGradients(variableGradients: NamedVariableMap|NamedTensor[]) {
+    const varNames = Array.isArray(variableGradients) ?
+        variableGradients.map(v => v.name) :
+        Object.keys(variableGradients);
     tidy(() => {
       const oneMinusAccBeta1 = sub(1, this.accBeta1);
       const oneMinusAccBeta2 = sub(1, this.accBeta2);
 
-      for (const variableName in variableGradients) {
-        const value = ENGINE.registeredVariables[variableName];
-        if (this.accumulatedFirstMoment[variableName] == null) {
-          const trainable = false;
-          this.accumulatedFirstMoment[variableName] =
-              zerosLike(value).variable(trainable);
+      varNames.forEach((name, i) => {
+        const value = ENGINE.registeredVariables[name];
+        const trainable = false;
+        if (this.accumulatedFirstMoment[i] == null) {
+          this.accumulatedFirstMoment[i] = {
+            originalName: `${name}/m`,
+            variable: tidy(() => zerosLike(value).variable(trainable))
+          };
         }
-        if (this.accumulatedSecondMoment[variableName] == null) {
-          const trainable = false;
-          this.accumulatedSecondMoment[variableName] =
-              zerosLike(value).variable(trainable);
+        if (this.accumulatedSecondMoment[i] == null) {
+          this.accumulatedSecondMoment[i] = {
+            originalName: `${name}/v`,
+            variable: tidy(() => zerosLike(value).variable(trainable))
+          };
         }
 
-        const gradient = variableGradients[variableName];
-        const firstMoment = this.accumulatedFirstMoment[variableName];
-        const secondMoment = this.accumulatedSecondMoment[variableName];
+        const gradient = Array.isArray(variableGradients) ?
+            variableGradients[i].tensor :
+            variableGradients[name];
+        if (gradient == null) {
+          return;
+        }
+
+        const firstMoment = this.accumulatedFirstMoment[i].variable;
+        const secondMoment = this.accumulatedSecondMoment[i].variable;
 
         const newFirstMoment =
             firstMoment.mul(this.beta1).add(gradient.mul(1 - this.beta1));
@@ -77,8 +90,8 @@ export class AdamOptimizer extends Optimizer {
         const biasCorrectedFirstMoment = newFirstMoment.div(oneMinusAccBeta1);
         const biasCorrectedSecondMoment = newSecondMoment.div(oneMinusAccBeta2);
 
-        this.accumulatedFirstMoment[variableName].assign(newFirstMoment);
-        this.accumulatedSecondMoment[variableName].assign(newSecondMoment);
+        firstMoment.assign(newFirstMoment);
+        secondMoment.assign(newSecondMoment);
 
         const newValue =
             biasCorrectedFirstMoment
@@ -86,11 +99,12 @@ export class AdamOptimizer extends Optimizer {
                 .mul(-this.learningRate)
                 .add(value);
         value.assign(newValue);
-      }
+      });
 
       this.accBeta1.assign(this.accBeta1.mul(this.beta1));
       this.accBeta2.assign(this.accBeta2.mul(this.beta2));
     });
+    this.incrementIterations();
   }
 
   dispose(): void {
@@ -98,15 +112,44 @@ export class AdamOptimizer extends Optimizer {
     this.accBeta2.dispose();
 
     if (this.accumulatedFirstMoment != null) {
-      Object.keys(this.accumulatedFirstMoment)
-          .forEach(name => this.accumulatedFirstMoment[name].dispose());
+      dispose(this.accumulatedFirstMoment.map(v => v.variable));
     }
-
     if (this.accumulatedSecondMoment != null) {
-      Object.keys(this.accumulatedSecondMoment)
-          .forEach(name => this.accumulatedSecondMoment[name].dispose());
+      dispose(this.accumulatedSecondMoment.map(v => v.variable));
     }
   }
+
+  async getWeights(): Promise<NamedTensor[]> {
+    // Order matters for Python compatibility.
+    const variables: OptimizerVariable[] =
+        [...this.accumulatedFirstMoment, ...this.accumulatedSecondMoment];
+    return [await this.saveIterations()].concat(
+        variables.map(v => ({name: v.originalName, tensor: v.variable})));
+  }
+
+  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+    weightValues = await this.extractIterations(weightValues);
+    tidy(() => {
+      this.accBeta1.assign(pow(this.beta1, this.iterations_ + 1));
+      this.accBeta2.assign(pow(this.beta2, this.iterations_ + 1));
+    });
+
+    const variableCount = weightValues.length / 2;
+    const trainable = false;
+    this.accumulatedFirstMoment =
+        weightValues.slice(0, variableCount).map(v => ({
+                                                   originalName: v.name,
+                                                   variable: v.tensor.variable(
+                                                       trainable)
+                                                 }));
+    this.accumulatedSecondMoment =
+        weightValues.slice(variableCount, variableCount * 2)
+            .map(v => ({
+                   originalName: v.name,
+                   variable: v.tensor.variable(trainable)
+                 }));
+  }
+
   getConfig(): ConfigDict {
     return {
       'learningRate': this.learningRate,

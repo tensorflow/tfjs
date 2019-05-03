@@ -69,6 +69,30 @@ describeWithFlags('AdagradOptimizer', ALL_ENVS, () => {
     // The only tensor remaining is the argument to variable().
     expect(tf.memory().numTensors).toBe(1);
   });
+
+  it('Continue training after loading weights', async () => {
+    const learningRate = .1;
+    const initialAccumulatorValue = .1;
+    const optimizer1 = tf.train.adagrad(learningRate, initialAccumulatorValue);
+
+    const x = tf.tensor1d([2, 4]).variable();
+    const f = () => x.square().sum() as tf.Scalar;
+    let cost = optimizer1.minimize(f, /* returnCost */ true);
+    expectArraysClose(await cost.data(), 20);
+
+    const weights = await optimizer1.getWeights();
+    expect(weights.length).toEqual(2);
+    expect(weights[0].name).toEqual('iter');
+    expect(weights[1].name).toEqual(`${x.name}/accumulator`);
+
+    const optimizer2 = tf.train.adam(learningRate, initialAccumulatorValue);
+    await optimizer2.setWeights(weights);
+
+    cost = optimizer2.minimize(f, /* returnCost */ true);
+    expectArraysClose(await cost.data(), 18.82179);
+    expect(optimizer2.iterations).toEqual(2);
+  });
+
   it('serialization round-trip', () => {
     const originalOpt = tf.train.adagrad(0.1, 0.2);
     const reserialized = tf.AdagradOptimizer.fromConfig(

@@ -38,7 +38,7 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
-    // Cost should be the only additional array.
+    // Cost should be the only additional arrays.
     expect(tf.memory().numTensors).toBe(numTensors + 1);
 
     // de/dx = 2x

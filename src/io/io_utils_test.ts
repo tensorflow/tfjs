@@ -18,7 +18,7 @@
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {scalar, tensor1d, tensor2d} from '../ops/ops';
-import {NamedTensorMap} from '../tensor_types';
+import {NamedTensor, NamedTensorMap} from '../tensor_types';
 import {expectArraysEqual} from '../test_util';
 import {expectArraysClose} from '../test_util';
 
@@ -178,7 +178,7 @@ describe('concatenateTypedArrays', () => {
 });
 
 describe('encodeWeights', () => {
-  it('Float32 tensors', async done => {
+  it('Float32 tensors as NamedTensorMap', async done => {
     const tensors: NamedTensorMap = {
       x1: tensor2d([[10, 20], [30, 40]]),
       x2: scalar(42),
@@ -213,6 +213,65 @@ describe('encodeWeights', () => {
               shape: [4],
             }
           ]);
+          done();
+        })
+        .catch(err => {
+          console.error(err.stack);
+        });
+  });
+
+  it('Float32 tensors as NamedTensor array', async done => {
+    const tensors: NamedTensor[] = [
+      {name: 'x1234', tensor: tensor2d([[10, 20], [30, 40]])}, {
+        name: 'a42',
+        tensor: scalar(42),
+      },
+      {name: 'b41', tensor: tensor1d([-1.3, -3.7, 1.3, 3.7])}
+    ];
+    tf.io.encodeWeights(tensors)
+        .then(dataAndSpecs => {
+          const data = dataAndSpecs.data;
+          const specs = dataAndSpecs.specs;
+          expect(data.byteLength).toEqual(4 * (4 + 1 + 4));
+          expect(new Float32Array(data, 0, 4)).toEqual(new Float32Array([
+            10, 20, 30, 40
+          ]));
+          expect(new Float32Array(data, 16, 1)).toEqual(new Float32Array([42]));
+          expect(new Float32Array(data, 20, 4)).toEqual(new Float32Array([
+            -1.3, -3.7, 1.3, 3.7
+          ]));
+          expect(specs).toEqual([
+            {
+              name: 'x1234',
+              dtype: 'float32',
+              shape: [2, 2],
+            },
+            {
+              name: 'a42',
+              dtype: 'float32',
+              shape: [],
+            },
+            {
+              name: 'b41',
+              dtype: 'float32',
+              shape: [4],
+            }
+          ]);
+          done();
+        })
+        .catch(err => {
+          console.error(err.stack);
+        });
+  });
+
+  it('Empty NamedTensor array', async done => {
+    const tensors: NamedTensor[] = [];
+    tf.io.encodeWeights(tensors)
+        .then(dataAndSpecs => {
+          const data = dataAndSpecs.data;
+          const specs = dataAndSpecs.specs;
+          expect(data.byteLength).toEqual(0);
+          expect(specs).toEqual([]);
           done();
         })
         .catch(err => {

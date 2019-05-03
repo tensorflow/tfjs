@@ -110,6 +110,7 @@ describeWithFlags('AdamaxOptimizer', ALL_ENVS, () => {
     // The only tensor remaining should be the argument to variable().
     expect(tf.memory().numTensors).toBe(1);
   });
+
   it('serialization round-trip', () => {
     const originalOpt = tf.train.adamax(0.1, 0.2, 0.3, 2e-8, 0.1);
     const reserialized = tf.AdamaxOptimizer.fromConfig(

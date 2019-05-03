@@ -20,13 +20,14 @@ import {keep, tidy} from '../globals';
 import {scalar} from '../ops/ops';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {Scalar} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
+import {NamedTensor, NamedTensorMap} from '../tensor_types';
+
 import {Optimizer} from './optimizer';
 
 /** @doclink Optimizer */
 export class SGDOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'SGDOptimizer';
+  static className = 'SGD';  // Name matters for Python compatibility.
   protected c: Scalar;
 
   constructor(protected learningRate: number) {
@@ -34,17 +35,24 @@ export class SGDOptimizer extends Optimizer {
     this.setLearningRate(learningRate);
   }
 
-  applyGradients(variableGradients: NamedTensorMap) {
-    const varNames = Object.keys(variableGradients);
-    varNames.forEach(varName => {
-      const gradient = variableGradients[varName];
-      const value = ENGINE.registeredVariables[varName];
-
+  applyGradients(variableGradients: NamedTensorMap|NamedTensor[]) {
+    const varNames = Array.isArray(variableGradients) ?
+        variableGradients.map(v => v.name) :
+        Object.keys(variableGradients);
+    varNames.forEach((name, i) => {
+      const gradient = Array.isArray(variableGradients) ?
+          variableGradients[i].tensor :
+          variableGradients[name];
+      if (gradient == null) {
+        return;
+      }
+      const value = ENGINE.registeredVariables[name];
       tidy(() => {
         const newValue = this.c.mul(gradient).add(value);
         value.assign(newValue);
       });
     });
+    this.incrementIterations();
   }
 
   /**
@@ -60,6 +68,17 @@ export class SGDOptimizer extends Optimizer {
 
   dispose() {
     this.c.dispose();
+  }
+
+  async getWeights(): Promise<NamedTensor[]> {
+    return [await this.saveIterations()];
+  }
+
+  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+    weightValues = await this.extractIterations(weightValues);
+    if (weightValues.length !== 0) {
+      throw new Error('SGD optimizer does not have settable weights.');
+    }
   }
 
   getConfig(): ConfigDict {

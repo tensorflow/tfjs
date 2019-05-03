@@ -23,6 +23,11 @@ export type NamedTensorMap = {
   [name: string]: Tensor;
 };
 
+export interface NamedTensor {
+  name: string;
+  tensor: Tensor;
+}
+
 export type NamedVariableMap = {
   [name: string]: Variable;
 };
