@@ -18,7 +18,6 @@
 import * as tf from '@tensorflow/tfjs-core';
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 
-import {generateGetOutputCoords} from '../shader_util';
 import {computeDispatch} from '../webgpu_util';
 
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
@@ -28,9 +27,10 @@ import {WebGPUProgram} from './webgpu_program';
 export class Conv2DMMProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
+  dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'ivec4 xShape, outShape; ivec2 WShape, pad, stride;';
+  uniforms = 'ivec2 filterDims, pad, stride;';
   workGroupSize: [number, number, number] = [
     16, 16,  // must be square (for matmul)
     1
@@ -38,7 +38,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
   constructor(convInfo: Conv2DInfo, workPerThread: number) {
     this.outputShape = convInfo.outShape;
-    const dispatchLayout = {x: [1], y: [2], z: [0, 3]};
+    this.dispatchLayout = {x: [1], y: [2], z: [0, 3]};
 
     tf.util.assert(
         convInfo.dataFormat === 'channelsLast',
@@ -57,7 +57,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
       matMulSource = makeMatMulPackedSource(workPerThread);
     }
     this.dispatch = computeDispatch(
-        dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
         elementsPerThread);
 
     this.userCode = `
@@ -68,18 +68,16 @@ export class Conv2DMMProgram implements WebGPUProgram {
               all(lessThan(coord, shape));
         }
 
-        ${generateGetOutputCoords(dispatchLayout, this.outputShape.length)}
-
         int batch;
 
         float mm_readA(uint row, uint col) {
           ivec4 coord = ivec4(
-              (col / WShape[1]) % WShape[0],
-              col % WShape[1],
-              col / (WShape[1] * WShape[0]),
+              (col / filterDims[1]) % filterDims[0],
+              col % filterDims[1],
+              col / (filterDims[1] * filterDims[0]),
               row);
 
-          ivec4 shape = ivec4(WShape, xShape[3], outShape[3]);
+          ivec4 shape = ivec4(filterDims, xShape[3], outShape[3]);
           return coordIsValid(coord, shape) ? W[getFlatIndex(coord, shape)] : 0;
         }
 
@@ -87,14 +85,14 @@ export class Conv2DMMProgram implements WebGPUProgram {
           int outRow = int(col) / outShape[2];
           int outCol = int(col) % outShape[2];
 
-          int WRow = (int(row) / WShape[1]) % WShape[0];
-          int WCol = int(row) % WShape[1];
+          int WRow = (int(row) / filterDims[1]) % filterDims[0];
+          int WCol = int(row) % filterDims[1];
 
           ivec4 coord = ivec4(
               batch,
               pad[0] + outRow * stride[0] + WRow,
               pad[1] + outCol * stride[1] + WCol,
-              row / (WShape[1] * WShape[0]));
+              row / (filterDims[1] * filterDims[0]));
           return coordIsValid(coord, xShape) ?
               x[getFlatIndex(coord, xShape)] : 0;
         }
@@ -115,7 +113,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
           int dimAOuter = outShape[3];
           int dimBOuter = outShape[1] * outShape[2];
-          int dimInner = WShape[0] * WShape[1] * xShape[3];
+          int dimInner = filterDims[0] * filterDims[1] * xShape[3];
           mm_matMul(dimAOuter, dimInner, dimBOuter);
         }
       `;

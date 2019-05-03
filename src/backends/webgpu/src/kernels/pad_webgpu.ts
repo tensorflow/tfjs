@@ -15,15 +15,15 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-
 import {getCoordsDataType} from '../shader_preprocessor';
+import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class PadProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
 
@@ -34,7 +34,8 @@ export class PadProgram implements WebGPUProgram {
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
     const rank = xShape.length;
     const type = getCoordsDataType(rank);
-    this.dispatch = [util.sizeFromShape(this.outputShape), 1, 1];
+    this.dispatchLayout = {x: this.outputShape.map((d, i) => i)};
+    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
 
     const start = paddings.map(p => p[0]).join(',');
     const end = paddings.map((p, i) => p[0] + xShape[i]).join(',');
@@ -55,7 +56,7 @@ export class PadProgram implements WebGPUProgram {
 
       void main() {
         uint index = gl_GlobalInvocationID.x;
-        ${type} outC = getOutputCoords(index);
+        ${type} outC = getOutputCoords();
 
         if(${leftPadCondition} || ${rightPadCondition}) {
           setOutput(index, ${constantValue});

@@ -16,9 +16,6 @@
  */
 
 const arrayProduct = (arr: number[]) => {
-  if (!arr.length) {
-    throw new Error('Cannot compute product of empty array.');
-  }
   let product = 1;
   for (let i = 0; i < arr.length; i++) {
     product *= arr[i];
@@ -29,7 +26,7 @@ const arrayProduct = (arr: number[]) => {
 // Computes dispatch geometry based on layout of output dimensions and
 // workGroupSize.
 export function computeDispatch(
-    layout: {x: number[], y: number[], z: number[]}, outputShape: number[],
+    layout: {x: number[], y?: number[], z?: number[]}, outputShape: number[],
     workGroupSize: [number, number, number] = [1, 1, 1],
     elementsPerThread: [number, number, number] =
         [1, 1, 1]): [number, number, number] {
@@ -37,11 +34,13 @@ export function computeDispatch(
     Math.ceil(
         arrayProduct(layout.x.map(d => outputShape[d])) /
         (workGroupSize[0] * elementsPerThread[0])),
-    Math.ceil(
-        arrayProduct(layout.y.map(d => outputShape[d])) /
-        (workGroupSize[1] * elementsPerThread[1])),
-    Math.ceil(
-        arrayProduct(layout.z.map(d => outputShape[d])) /
-        (workGroupSize[2] * elementsPerThread[2]))
+    layout.y ? Math.ceil(
+                   arrayProduct(layout.y.map(d => outputShape[d])) /
+                   (workGroupSize[1] * elementsPerThread[1])) :
+               1,
+    layout.z ? Math.ceil(
+                   arrayProduct(layout.z.map(d => outputShape[d])) /
+                   (workGroupSize[2] * elementsPerThread[2])) :
+               1
   ];
 }

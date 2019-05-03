@@ -23,7 +23,10 @@ import * as shader_preprocessor from '../shader_preprocessor';
 export interface WebGPUProgram {
   userCode: string;
   outputShape: number[];
-  // Dispatch determines the layout of thread groups.
+  // dispatchLayout enumerates how tensor dimensions are distributed among
+  // dispatch x,y,z dimensions.
+  dispatchLayout: {x: number[], y?: number[], z?: number[]};
+  // dispatch specifies geometry of thread groups - derived from dispatchLayout.
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms?: string;
@@ -86,8 +89,12 @@ export const compileProgram =
      compileOptions: shaderc.CompileOptions, device: GPUDevice,
      program: WebGPUProgram, inputs: Tensor[], output: Tensor,
      uniforms?: BindingInfo): WebGPUBinary => {
-      const inputsData = inputs.map((input: Tensor) => {
-        return {dtype: input.dtype, shape: input.shape};
+      const inputsData = inputs.map((input: Tensor, i: number) => {
+        return {
+          dtype: input.dtype,
+          shape: input.shape,
+          name: program.variableNames[i]
+        };
       });
       const outputData = {dtype: output.dtype, shape: output.shape};
 
@@ -111,8 +118,12 @@ export const compileProgram =
       return {bindGroupLayout, pipeline};
     };
 
-export function makeShaderKey(program: WebGPUProgram): string {
+// TODO: Consider allowing each program to specify its own shader key. E.g. some
+// kernels account for different work group sizes, but some don't.
+// TODO: Consider uploading shape info as vec4s regardless of rank to reduce
+// recompilation.
+export function makeShaderKey(program: WebGPUProgram, ranks: number[]): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      program.userCode;
+      ranks.join(',') + program.userCode;
   return key;
 }

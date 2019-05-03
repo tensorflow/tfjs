@@ -15,7 +15,10 @@
  * =============================================================================
  */
 
-import {DataType, util} from '@tensorflow/tfjs-core';
+import {DataType} from '@tensorflow/tfjs-core';
+import {getBroadcastDims} from '@tensorflow/tfjs-core/dist/ops/broadcast_util';
+
+import {symbolicallyComputeStrides} from './shader_util';
 
 export function getCoordsDataType(rank: number): string {
   if (rank <= 1) {
@@ -43,15 +46,21 @@ function mapToGlslTypes(type: DataType): GLSLDataType|DataType {
 }
 
 interface ProgramParams {
+  dispatchLayout: {x: number[], y?: number[], z?: number[]};
   workGroupSize?: [number, number, number];
   variableNames: string[];
   uniforms?: string;
   userCode: string;
 }
 
+interface InputInfo {
+  dtype: DataType;
+  shape: number[];
+  name: string;
+}
+
 export function makeShader(
-    inputTypes: Array<{dtype: DataType, shape: number[]}>,
-    outputData: {dtype: DataType, shape: number[]},
+    inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
     program: ProgramParams): string {
   const prefixSnippets: string[] = [];
 
@@ -70,30 +79,43 @@ export function makeShader(
     };
   `);
 
+  let uniformDeclaration = '';
   program.variableNames.forEach((x, i) => {
+    uniformDeclaration += `${getCoordsDataType(inputInfo[i].shape.length)} ${
+        x.substring(0, 1).toLowerCase()}Shape; `;
     prefixSnippets.push(`
       layout(std430, set = 0, binding = ${1 + i}) readonly buffer ssb${x} {
-        ${mapToGlslTypes(inputTypes[i].dtype)} ${x}[];
+        ${mapToGlslTypes(inputInfo[i].dtype)} ${x}[];
       };
     `);
   });
 
+  uniformDeclaration +=
+      `${getCoordsDataType(outputData.shape.length)} outShape; `;
+
   if (program.uniforms) {
-    prefixSnippets.push(`
-      layout(std140, set = 0, binding = ${
-        1 + program.variableNames.length}) uniform Uniforms {
-        ${program.uniforms}
-      };
-    `);
+    uniformDeclaration += program.uniforms;
   }
 
-  const outputSamplingSnippet = getOutputSamplingSnippet(outputData.shape);
+  prefixSnippets.push(`
+    layout(std140, set = 0, binding = ${
+      1 + program.variableNames.length}) uniform Uniforms {
+      ${uniformDeclaration}
+    };
+  `);
+
+  const inputSamplingSnippet =
+      inputInfo.map(x => getInputSamplingSnippet(x, outputData.shape))
+          .join('\n');
+
+  const outputSamplingSnippet =
+      generateGetOutputCoords(program.dispatchLayout, outputData.shape.length);
 
   const source = [
     SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS,
-    outputSamplingSnippet, SET_OUTPUT_SNIPPET, program.userCode
+    outputSamplingSnippet, inputSamplingSnippet, SET_OUTPUT_SNIPPET,
+    program.userCode
   ].join('\n');
-
   return source;
 }
 
@@ -126,72 +148,111 @@ const SET_OUTPUT_SNIPPET = `
   }
 `;
 
-function getOutputSamplingSnippet(outShape: number[]): string {
-  switch (outShape.length) {
-    case 0:
-      return getOutputScalarCoords();
-    case 1:
-      return getOutput1DCoords(outShape as [number]);
-    case 2:
-      return getOutput2DCoords(outShape as [number, number]);
-    case 3:
-      return getOutput3DCoords(outShape as [number, number, number]);
-    case 4:
-      return getOutput4DCoords(outShape as [number, number, number, number]);
-    default:
-      throw new Error(
-          `${outShape.length}-D output sampling is not yet supported`);
+function getInputSamplingSnippet(
+    inInfo: InputInfo, outShape: number[]): string {
+  let res = '';
+
+  const inShape = inInfo.shape;
+  if (inShape.length <= outShape.length) {
+    res += getSamplerAtOutputCoords(inInfo, outShape);
   }
+
+  return res;
 }
 
-function getOutputScalarCoords() {
-  return `int getOutputCoords() {
-    return 0;
-  }`;
-}
+function getSamplerAtOutputCoords(inInfo: InputInfo, outShape: number[]) {
+  const texName = inInfo.name;
+  const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
+  const funcName = 'get' + texFuncSnippet + 'AtOutCoords';
 
-function getOutput1DCoords(shape: [number]) {
-  return `uint getOutputCoords(uint index) {
-    return index;
-  }`;
-}
+  const inRank = inInfo.shape.length;
+  const outRank = outShape.length;
+  const type = getCoordsDataType(outRank);
 
-function getOutput2DCoords(shape: [number, number]) {
-  // TODO: See whether using a 2D/3D dispatch to avoid division would improve
-  // performance.
+  const broadcastDims = getBroadcastDims(inInfo.shape, outShape);
+  const rankDiff = outRank - inRank;
+
+  let coordsSnippet = '';
+
+  if (inRank > 0) {
+    if (outRank < 2 && broadcastDims.length >= 1) {
+      coordsSnippet = 'coords = 0.;';
+    } else {
+      coordsSnippet =
+          broadcastDims.map(d => `coords[${d + rankDiff}] = 0;`).join('\n');
+    }
+  }
+
+  let unpackedCoordsSnippet = '';
+  if (outRank < 2 && inRank > 0) {
+    unpackedCoordsSnippet = 'coords';
+  } else {
+    if (inRank > 1) {
+      const coordsType = getCoordsDataType(inRank);
+      const coordsValues =
+          inInfo.shape.map((s, i) => `coords[${i + rankDiff}]`).join(', ');
+      unpackedCoordsSnippet = `${coordsType}(${coordsValues})`;
+    } else {
+      unpackedCoordsSnippet = `coords[${rankDiff}]`;
+    }
+  }
+
   return `
-    ivec2 getOutputCoords(uint index) {
-      uint r = index / ${shape[1]};
-      uint c = index - r * ${shape[1]};
-      return ivec2(r, c);
+    float ${funcName}() {
+      ${type} coords = getOutputCoords();
+      ${coordsSnippet}
+      return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+      texName.substring(0, 1).toLowerCase()}Shape)];
     }
   `;
 }
 
-function getOutput3DCoords(shape: [number, number, number]) {
-  const strides = util.computeStrides(shape);
+/**
+ * Generates getOutputCoords() function that computes output coordinates from
+ * dispatch geometry to reduce arithmetic.
+ */
+function generateGetOutputCoords(
+    dispatchLayout: {x: number[], y?: number[], z?: number[]},
+    rank: number): string {
+  const {x, y = [], z = []} = dispatchLayout;
+  const dtype = getCoordsDataType(rank);
+  let gatherDimensionsStr = '';
+  const dims = [x, y, z];
 
-  return `ivec3 getOutputCoords(uint index) {
-    uint d = index / ${strides[0]};
-    index -= d * ${strides[0]};
-    uint r = index / ${strides[1]};
-    uint c = index - r * ${strides[1]};
+  for (let i = 0; i < dims.length; i++) {
+    const arr = dims[i];
 
-    return ivec3(d, r, c);
-  }`;
-}
+    if (arr.length === 0) {
+      continue;
+    }
 
-function getOutput4DCoords(shape: [number, number, number, number]) {
-  const strides = util.computeStrides(shape);
+    if (arr.length === 1) {
+      gatherDimensionsStr += `uint d${arr[0]} = gl_GlobalInvocationID[${i}];`;
+    } else {
+      const strides = symbolicallyComputeStrides(arr, 'outShape');
+      gatherDimensionsStr += `uint index${i} = 
+        gl_GlobalInvocationID[${i}];`;
+      for (let j = 0; j < strides.length; j++) {
+        gatherDimensionsStr += `uint d${arr[j]} = index${i} / ${strides[j]};`;
 
-  return `ivec4 getOutputCoords(uint index) {
-    uint d1 = index / ${strides[0]};
-    index -= d1 * ${strides[0]};
-    uint d2 = index / ${strides[1]};
-    index -= d2 * ${strides[1]};
-    uint r = index / ${strides[2]};
-    uint c = index - r * ${strides[2]};
+        if (j === strides.length - 1) {
+          gatherDimensionsStr += `uint d${arr[j + 1]} = ` +
+              `index${i} - d${arr[j]} * ${strides[j]};`;
+        } else {
+          gatherDimensionsStr += `index${i} -= d${arr[j]} * ${strides[j]};`;
+        }
+      }
+    }
+  }
 
-    return ivec4(d1, d2, r, c);
+  const dimensions = [];
+  for (let i = 0; i < rank; i++) {
+    dimensions.push(`d${i}`);
+  }
+
+  return `${dtype} getOutputCoords() {
+    ${gatherDimensionsStr}
+
+    return ${dtype}(${dimensions.join(',')});
   }`;
 }

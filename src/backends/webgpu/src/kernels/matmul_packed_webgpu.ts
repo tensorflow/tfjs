@@ -109,25 +109,29 @@ export function makeMatMulPackedSource(workPerThread: number): string {
 export class MatMulPackedProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
+  dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   workPerThread: number;
   variableNames = ['A', 'B'];
-  uniforms = 'uint dimAOuter, dimInner, dimBOuter, batch;';
   workGroupSize: [number, number, number] = [16, 16, 1];
 
   constructor(outputShape: [number, number, number], workPerThread: number) {
     this.outputShape = outputShape;
     this.workPerThread = workPerThread;
 
-    const dispatchLayout = {x: [1], y: [2], z: [0]};
+    this.dispatchLayout = {x: [1], y: [2], z: [0]};
     this.dispatch = computeDispatch(
-        dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
         [workPerThread, workPerThread, 1]);
 
     // Consider compiling a different version of the shader that doesn't care
     // about boundary conditions when loading from Asub / Bsub when tiles fit
     // neatly inside of output. May slightly improve performance.
     this.userCode = `
+      uint dimAOuter = aShape[1];
+      uint dimInner = aShape[2];
+      uint dimBOuter = bShape[2];
+
       ${makeMatMulPackedSource(workPerThread)}
 
       float mm_readA(uint row, uint col) {
