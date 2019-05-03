@@ -88,4 +88,22 @@ describe('Ops benchmarks', () => {
           await a.data();
         });
   }, 60000);
+
+  // tslint:disable-next-line:ban
+  xit('conv2d', async () => {
+    let a = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 4]);
+    const b = tf.randomNormal<tf.Rank.R4>([25, 25, 4, 4]);
+
+    await time(
+        5, 50,
+        () => {
+          const c = tf.conv2d(a, b, 1, 'same');
+          const toDispose = a;
+          a = c;
+          return [toDispose];
+        },
+        async () => {
+          await a.data();
+        });
+  }, 60000);
 });
