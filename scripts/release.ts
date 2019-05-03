@@ -51,35 +51,59 @@ interface Phase {
   // Whether to leave the version alone. Defaults to false (change the version).
   leaveVersion?: boolean;
   optional?: boolean;
+  title?: string;
 }
 
+const CORE_PHASE: Phase = {
+  repos: ['tfjs-core'],
+  scripts: ['./scripts/make-version']
+};
+
+const LAYERS_CONVERTER_DATA_PHASE = {
+  repos: ['tfjs-layers', 'tfjs-converter', 'tfjs-data'],
+  deps: ['tfjs-core'],
+  scripts: ['./scripts/make-version']
+};
+
+const UNION_PHASE = {
+  repos: ['tfjs'],
+  deps: ['tfjs-core', 'tfjs-layers', 'tfjs-converter', 'tfjs-data'],
+  scripts: ['./scripts/make-version']
+};
+
+const NODE_PHASE = {
+  repos: ['tfjs-node'],
+  deps: ['tfjs'],
+  scripts: ['./scripts/make-version']
+};
+
+const VIS_PHASE = {
+  repos: ['tfjs-vis'],
+  optional: true
+};
+
+const WEBSITE_PHASE = {
+  repos: ['tfjs-website'],
+  deps: ['tfjs', 'tfjs-node', 'tfjs-vis'],
+  scripts: ['yarn build-prod'],
+  leaveVersion: true,
+  title: 'Update website to latest dependencies.'
+};
+
 const PHASES: Phase[] = [
-  {repos: ['tfjs-core']},
-  {deps: ['tfjs-core'], repos: ['tfjs-layers', 'tfjs-converter', 'tfjs-data']},
-  {
-    deps: ['tfjs-core', 'tfjs-layers', 'tfjs-converter', 'tfjs-data'],
-    repos: ['tfjs']
-  },
-  {deps: ['tfjs'], repos: ['tfjs-node']}, {repos: ['tfjs-vis'], optional: true},
-  {
-    deps: ['tfjs', 'tfjs-node', 'tfjs-vis'],
-    repos: ['tfjs-website'],
-    scripts: ['yarn build-prod'],
-    leaveVersion: true
-  }
+  CORE_PHASE, LAYERS_CONVERTER_DATA_PHASE, UNION_PHASE, NODE_PHASE, VIS_PHASE,
+  WEBSITE_PHASE
 ];
 
 const TMP_DIR = '/tmp/tfjs-release';
 
-const RED_TERMINAL_COLOR = '\x1b[31m%s\x1b[0m';
-
 function printPhase(phaseId: number) {
   const phase = PHASES[phaseId];
   console.log(chalk.green(`Phase ${phaseId}:`));
+  console.log(`  repos: ${chalk.blue(phase.repos.join(', '))}`);
   if (phase.deps != null) {
-    console.log(`  deps : ${phase.deps.join(', ')}`);
+    console.log(`   deps: ${phase.deps.join(', ')}`);
   }
-  console.log(`  repos: ${phase.repos.join(', ')}`);
 }
 
 // Computes the default updated version (does a patch version update).
@@ -96,7 +120,7 @@ async function main() {
   const phaseStr = await question('Which phase (leave empty for 0): ');
   const phaseInt = +phaseStr;
   if (phaseInt < 0 || phaseInt >= PHASES.length) {
-    console.log(RED_TERMINAL_COLOR, `Invalid phase: ${phaseStr}`);
+    console.log(chalk.red(`Invalid phase: ${phaseStr}`));
     process.exit(1);
   }
   console.log(chalk.blue(`Using phase ${phaseInt}`));
@@ -104,6 +128,7 @@ async function main() {
 
   const phase = PHASES[phaseInt];
   const repos = PHASES[phaseInt].repos;
+  const deps = PHASES[phaseInt].deps || [];
 
   for (let i = 0; i < repos.length; i++) {
     const repo = repos[i];
@@ -115,6 +140,17 @@ async function main() {
       }
     });
     $(`rm -f -r ${TMP_DIR}/${repo}/*`);
+    $(`rm -f -r ${TMP_DIR}/${repo}`);
+
+    const depsLatestVersion: string[] = deps.map(dep => {
+      $(`rm -f -r ${TMP_DIR}/${dep}/*`);
+      $(`rm -f -r ${TMP_DIR}/${dep}`);
+
+      const dir = `${TMP_DIR}/${dep}`;
+      $(`git clone https://github.com/tensorflow/${dep} ${dir} --depth=1`);
+      const pkg = JSON.parse(`${fs.readFileSync(`${dir}/package.json`)}`);
+      return pkg.version;
+    });
 
     const dir = `${TMP_DIR}/${repo}`;
     $(`mkdir ${dir}`);
@@ -142,10 +178,11 @@ async function main() {
     pkg = `${pkg}`.replace(
         `"version": "${parsedPkg.version}"`, `"version": "${newVersion}"`);
 
-    if (phase.deps != null) {
-      for (let j = 0; j < phase.deps.length; j++) {
-        const dep = phase.deps[j];
-        let version = null;
+    if (deps != null) {
+      for (let j = 0; j < deps.length; j++) {
+        const dep = deps[j];
+
+        let version = '';
         const depNpmName = `@tensorflow/${dep}`;
         if (parsedPkg['dependencies'] != null &&
             parsedPkg['dependencies'][depNpmName] != null) {
@@ -158,13 +195,19 @@ async function main() {
         if (version == null) {
           throw new Error(`No dependency found for ${dep}.`);
         }
-        const patchUpdateVersion = getPatchUpdateVersion(version);
+
+        let relaxedVersionPrefix = '';
+        if (version.startsWith('~') || version.startsWith('^')) {
+          relaxedVersionPrefix = version.substr(0, 1);
+        }
+        const depVersionLatest = relaxedVersionPrefix + depsLatestVersion[j];
 
         let depVersion = await question(
             `Updated version for ` +
-            `${dep} (leave empty for ${patchUpdateVersion}): `);
+            `${dep} (current is ${version}, leave empty for latest ${
+                depVersionLatest}): `);
         if (depVersion === '') {
-          depVersion = patchUpdateVersion;
+          depVersion = depVersionLatest;
         }
         console.log(chalk.blue(`Using version ${depVersion}`));
 
@@ -180,16 +223,20 @@ async function main() {
       phase.scripts.forEach(script => $(script));
     }
 
-    console.log($(`git diff`));
-
     $(`git checkout -b b${newVersion}`);
     $(`git push -u origin b${newVersion}`);
     $(`git add .`);
     $(`git commit -a -m "Update ${repo} to ${newVersion}."`);
     $(`git push`);
-    $(`hub pull-request --browse --message "Update ${repo} to ${newVersion}."`);
+    const title =
+        phase.title ? phase.title : `Update ${repo} to ${newVersion}.`;
+    $(`hub pull-request --browse --message "${title}" --labels INTERNAL`);
     console.log();
   }
+
+  console.log(
+      `Done. FYI, this script does not publish to NPM. ` +
+      `Please publish by running ./scripts/publish-npm.sh from each repo.`);
 
   process.exit(0);
 }
