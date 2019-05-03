@@ -27,7 +27,7 @@ steps:
   id: 'test-webgpu'
   dir: 'src/backends/webgpu/'
   args: ['test-ci']
-  waitFor: ['-']
+  waitFor: ['yarn']
 - name: 'node:10'
   entrypoint: 'yarn'
   args: ['test-snippets']
