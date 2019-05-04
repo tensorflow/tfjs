@@ -55,5 +55,6 @@ import * as linalg from './linalg_ops';
 import * as image from './image_ops';
 import * as spectral from './spectral_ops';
 import * as fused from './fused_ops';
+import * as signal from './signal_ops';
 
-export {image, linalg, losses, spectral, fused};
+export {image, linalg, losses, spectral, fused, signal};
