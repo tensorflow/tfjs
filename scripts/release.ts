@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,41 +16,33 @@
  * =============================================================================
  */
 
+/**
+ * This script creates pull requests to make releases for all the TensorFlow.js
+ * repositories. The release process is split up into multiple phases. Each
+ * phase will update the version of a package and the dependency versions and
+ * send a pull request. Once the pull request is merged, you must publish the
+ * packages manually from the individual repositories.
+ *
+ * This script requires hub to be installed: https://hub.github.com/
+ */
+
 import * as mkdirp from 'mkdirp';
 import * as readline from 'readline';
 import * as shell from 'shelljs';
 import * as fs from 'fs';
 import chalk from 'chalk';
 
-/**
- * A wrapper around shell.exec for readability.
- * @param cmd The bash command to execute.
- * @returns stdout returned by the executed bash script.
- */
-function $(cmd: string) {
-  const result = shell.exec(cmd, {silent: true});
-  if (result.code > 0) {
-    console.log('$', cmd);
-    console.log(result.stderr);
-    process.exit(1);
-  }
-  return result.stdout.trim();
-}
-const rl =
-    readline.createInterface({input: process.stdin, output: process.stdout});
-async function question(questionStr: string): Promise<string> {
-  console.log(chalk.bold(questionStr));
-  return new Promise<string>(
-      resolve => rl.question('> ', response => resolve(response)));
-}
-
 interface Phase {
+  // The list of repositories that will be updated with this change.
   repos: string[];
+  // The list of dependencies that all of the repositories will update to.
   deps?: string[];
+  // An ordered list of scripts to run after yarn is called and before the pull
+  // request is sent out.
   scripts?: string[];
-  // Whether to leave the version alone. Defaults to false (change the version).
+  // Whether to leave the version of the package alone. Defaults to false
+  // (change the version).
   leaveVersion?: boolean;
-  optional?: boolean;
   title?: string;
 }
 
@@ -59,30 +51,29 @@ const CORE_PHASE: Phase = {
   scripts: ['./scripts/make-version']
 };
 
-const LAYERS_CONVERTER_DATA_PHASE = {
+const LAYERS_CONVERTER_DATA_PHASE: Phase = {
   repos: ['tfjs-layers', 'tfjs-converter', 'tfjs-data'],
   deps: ['tfjs-core'],
   scripts: ['./scripts/make-version']
 };
 
-const UNION_PHASE = {
+const UNION_PHASE: Phase = {
   repos: ['tfjs'],
   deps: ['tfjs-core', 'tfjs-layers', 'tfjs-converter', 'tfjs-data'],
   scripts: ['./scripts/make-version']
 };
 
-const NODE_PHASE = {
+const NODE_PHASE: Phase = {
   repos: ['tfjs-node'],
   deps: ['tfjs'],
   scripts: ['./scripts/make-version']
 };
 
-const VIS_PHASE = {
-  repos: ['tfjs-vis'],
-  optional: true
+const VIS_PHASE: Phase = {
+  repos: ['tfjs-vis']
 };
 
-const WEBSITE_PHASE = {
+const WEBSITE_PHASE: Phase = {
   repos: ['tfjs-website'],
   deps: ['tfjs', 'tfjs-node', 'tfjs-vis'],
   scripts: ['yarn build-prod'],
@@ -142,15 +133,8 @@ async function main() {
     $(`rm -f -r ${TMP_DIR}/${repo}/*`);
     $(`rm -f -r ${TMP_DIR}/${repo}`);
 
-    const depsLatestVersion: string[] = deps.map(dep => {
-      $(`rm -f -r ${TMP_DIR}/${dep}/*`);
-      $(`rm -f -r ${TMP_DIR}/${dep}`);
-
-      const dir = `${TMP_DIR}/${dep}`;
-      $(`git clone https://github.com/tensorflow/${dep} ${dir} --depth=1`);
-      const pkg = JSON.parse(`${fs.readFileSync(`${dir}/package.json`)}`);
-      return pkg.version;
-    });
+    const depsLatestVersion: string[] =
+        deps.map(dep => $(`npm view @tensorflow/${dep} dist-tags.latest`));
 
     const dir = `${TMP_DIR}/${repo}`;
     $(`mkdir ${dir}`);
@@ -236,8 +220,34 @@ async function main() {
 
   console.log(
       `Done. FYI, this script does not publish to NPM. ` +
-      `Please publish by running ./scripts/publish-npm.sh from each repo.`);
+      `Please publish by running ./scripts/publish-npm.sh ` +
+      `from each repo after you merge the PR.`);
 
   process.exit(0);
 }
+
+/**
+ * A wrapper around shell.exec for readability.
+ * @param cmd The bash command to execute.
+ * @returns stdout returned by the executed bash script.
+ */
+function $(cmd: string) {
+  const result = shell.exec(cmd, {silent: true});
+  if (result.code > 0) {
+    console.log('$', cmd);
+    console.log(result.stderr);
+    process.exit(1);
+  }
+  return result.stdout.trim();
+}
+
+const rl =
+    readline.createInterface({input: process.stdin, output: process.stdout});
+
+async function question(questionStr: string): Promise<string> {
+  console.log(chalk.bold(questionStr));
+  return new Promise<string>(
+      resolve => rl.question('> ', response => resolve(response)));
+}
+
 main();
