@@ -44,3 +44,7 @@ export function computeDispatch(
                1
   ];
 }
+
+export function flatDispatchLayout(shape: number[]) {
+  return {x: shape.map((d, i) => i)};
+}

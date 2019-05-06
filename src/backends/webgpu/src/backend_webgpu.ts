@@ -33,6 +33,7 @@ import {MatMulProgram} from './kernels/matmul_webgpu';
 import {MaxPoolProgram} from './kernels/maxpool_webgpu';
 import {PadProgram} from './kernels/pad_webgpu';
 import {ResizeBilinearProgram} from './kernels/resize_bilinear_webgpu';
+import {TransposeProgram} from './kernels/transpose_webgpu';
 import * as unary_op from './kernels/unary_op_webgpu';
 import {UnaryOpProgram} from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
@@ -339,6 +340,11 @@ export class WebGPUBackend extends KernelBackend {
 
   reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
     return Tensor.make(shape, {dataId: x.dataId}, x.dtype);
+  }
+
+  transpose<T extends Tensor>(x: T, perm: number[]): T {
+    const program = new TransposeProgram(x.shape, perm);
+    return this.compileAndRun(program, [x]);
   }
 
   batchMatMul(
