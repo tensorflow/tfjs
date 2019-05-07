@@ -22,28 +22,24 @@ Error.stackTraceLimit = Infinity;
 
 export type Constraints = {
   flags?: Flags;
-  activeBackend?: string;
-  activePlatform?: string;
-  // If defined, all backends in this array must be registered.
-  registeredBackends?: string[];
+  predicate?: (backend: string) => boolean;
 };
 
 export const NODE_ENVS: Constraints = {
-  activePlatform: 'node'
+  predicate: () => ENV.platformName === 'node'
 };
 export const CHROME_ENVS: Constraints = {
   flags: {'IS_CHROME': true}
 };
 export const BROWSER_ENVS: Constraints = {
-  activePlatform: 'browser'
+  predicate: () => ENV.platformName === 'browser'
 };
 
 export const ALL_ENVS: Constraints = {};
 
 // Tests whether the current environment satisfies the set of constraints.
 export function envSatisfiesConstraints(
-    env: Environment, activeBackend: string, registeredBackends: string[],
-    activePlatform: string, constraints: Constraints): boolean {
+    env: Environment, backendName: string, constraints: Constraints): boolean {
   if (constraints == null) {
     return true;
   }
@@ -56,19 +52,8 @@ export function envSatisfiesConstraints(
       }
     }
   }
-  if (constraints.activeBackend != null) {
-    return activeBackend === constraints.activeBackend;
-  }
-  if (constraints.registeredBackends != null) {
-    for (let i = 0; i < constraints.registeredBackends.length; i++) {
-      const registeredBackendConstraint = constraints.registeredBackends[i];
-      if (registeredBackends.indexOf(registeredBackendConstraint) === -1) {
-        return false;
-      }
-    }
-  }
-  if (constraints.activePlatform != null) {
-    return activePlatform === constraints.activePlatform;
+  if (constraints.predicate != null && !constraints.predicate(backendName)) {
+    return false;
   }
   return true;
 }
@@ -114,9 +99,7 @@ export function describeWithFlags(
     name: string, constraints: Constraints, tests: (env: TestEnv) => void) {
   TEST_ENVS.forEach(testEnv => {
     ENV.setFlags(testEnv.flags);
-    if (envSatisfiesConstraints(
-            ENV, testEnv.backendName, ENGINE.backendNames(), ENV.platformName,
-            constraints)) {
+    if (envSatisfiesConstraints(ENV, testEnv.backendName, constraints)) {
       const testName =
           name + ' ' + testEnv.name + ' ' + JSON.stringify(testEnv.flags);
       executeTests(testName, tests, testEnv);

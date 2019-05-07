@@ -267,7 +267,7 @@ const FLOAT32_WEBGL_ENVS = {
     'WEBGL_RENDER_FLOAT32_ENABLED': true,
     'WEBGL_SIZE_UPLOAD_UNIFORM': SIZE_UPLOAD_UNIFORM
   },
-  activeBackend: WEBGL_ENVS.activeBackend
+  predicate: WEBGL_ENVS.predicate
 };
 describeWithFlags('upload tensors as uniforms', FLOAT32_WEBGL_ENVS, () => {
   it('small tensor gets uploaded as scalar', () => {
