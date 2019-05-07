@@ -19,13 +19,15 @@
 
 import './flags_webgpu';
 
-import {DataMover, DataType, ENV, KernelBackend, Rank, ShapeMap, Tensor, Tensor3D, Tensor4D, util} from '@tensorflow/tfjs-core';
+import {DataMover, DataType, ENV, KernelBackend, Rank, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, util} from '@tensorflow/tfjs-core';
+import {computeOutShape} from '@tensorflow/tfjs-core/dist/ops/concat_util';
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
 import * as shaderc from '@webgpu/shaderc';
 
 import * as binary_op from './kernels/binary_op_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
+import {ConcatProgram} from './kernels/concat_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
 import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
@@ -315,6 +317,28 @@ export class WebGPUBackend extends KernelBackend {
 
     return this.compileAndRun(program, [x, filter], output, dimensions) as
         Tensor4D;
+  }
+
+  concat(tensors: Tensor[], axis: number): Tensor {
+    if (tensors.length === 1) {
+      return tensors[0];
+    }
+    // Is there a maximum number of buffers that can be uploaded to a WebGPU
+    // program?
+    // if (tensors.length > MAX_SSBOS_FOR_WEBGPU_PROGRAM) {
+    //   const midIndex = Math.floor(tensors.length / 2);
+    //   const leftSide = this.concat(tensors.slice(0, midIndex), axis);
+    //   const rightSide = this.concat(tensors.slice(midIndex), axis);
+    //   return this.concat([leftSide, rightSide], axis);
+    // }
+    const outShape = computeOutShape(tensors.map(t => t.shape), axis);
+    const tensors2D = tensors.map(t => t.reshape([
+      util.sizeFromShape(t.shape.slice(0, axis)),
+      util.sizeFromShape(t.shape.slice(axis))
+    ]) as Tensor2D);
+    const program = new ConcatProgram(tensors2D.map(t => t.shape));
+    const res = this.compileAndRun(program, tensors2D) as Tensor;
+    return res.reshape(outShape);
   }
 
   multiply(a: Tensor, b: Tensor): Tensor {
