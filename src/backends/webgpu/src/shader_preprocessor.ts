@@ -104,25 +104,30 @@ export function makeShader(
     };
   `);
 
-  const inputSamplingSnippet =
-      inputInfo.map(x => getInputSamplingSnippet(x, outputData.shape))
-          .join('\n');
-
-  const outputSamplingSnippet =
-      generateGetOutputCoords(program.dispatchLayout, outputData.shape.length) +
-      getSetOutputSnippet(outputData.shape.length);
-
-  const source = [
+  const [getOutputCoords, dispatchLayoutRank] =
+      generateGetOutputCoords(program.dispatchLayout);
+  const sources = [
     SHADER_PREFIX, prefixSnippets.join('\n'), SET_OUTPUT_SNIPPET,
-    SAMPLING_SNIPPETS, outputSamplingSnippet, inputSamplingSnippet,
-    program.userCode
-  ].join('\n');
+    SAMPLING_SNIPPETS, getOutputCoords,
+    getSetOutputSnippet(outputData.shape.length)
+  ];
+
+  if (dispatchLayoutRank === outputData.shape.length) {
+    // Input sampling snippet is only meaningful when the output isn't getting
+    // implicitly reshaped (like it does in conv2d_matmul).
+    const inputSamplingSnippet =
+        inputInfo.map(x => getInputSamplingSnippet(x, outputData.shape))
+            .join('\n');
+    sources.push(inputSamplingSnippet);
+  }
+
+  sources.push(program.userCode);
+  const source = sources.join('\n');
   return source;
 }
 
-const SHADER_PREFIX = `
-  #version 450
-  
+const SHADER_PREFIX = `#version 450
+
   int idiv(int a, int b, float sign) {
     int res = a / b;
     int mod = a % b;
@@ -266,12 +271,13 @@ function getSamplerAtOutputCoords(
  * dispatch geometry to reduce arithmetic.
  */
 function generateGetOutputCoords(
-    dispatchLayout: {x: number[], y?: number[], z?: number[]},
-    rank: number): string {
+    dispatchLayout: {x: number[], y?: number[], z?: number[]}):
+    [string, number] {
   const {x, y = [], z = []} = dispatchLayout;
-  const dtype = getCoordsDataType(rank);
   let gatherDimensionsStr = '';
   const dims = [x, y, z];
+
+  let rank = 0;
 
   for (let i = 0; i < dims.length; i++) {
     const arr = dims[i];
@@ -280,11 +286,13 @@ function generateGetOutputCoords(
       continue;
     }
 
+    rank += arr.length;
+
     if (arr.length === 1) {
       gatherDimensionsStr += `uint d${arr[0]} = gl_GlobalInvocationID[${i}];`;
     } else {
       const strides = symbolicallyComputeStrides(arr, 'outShape');
-      gatherDimensionsStr += `uint index${i} = 
+      gatherDimensionsStr += `uint index${i} =
         gl_GlobalInvocationID[${i}];`;
       for (let j = 0; j < strides.length; j++) {
         gatherDimensionsStr += `uint d${arr[j]} = index${i} / ${strides[j]};`;
@@ -304,9 +312,11 @@ function generateGetOutputCoords(
     dimensions.push(`d${i}`);
   }
 
-  return `${dtype} getOutputCoords() {
+  const dtype = getCoordsDataType(rank);
+  const snippet = `${dtype} getOutputCoords() {
     ${gatherDimensionsStr}
 
     return ${dtype}(${dimensions.join(',')});
   }`;
+  return [snippet, rank];
 }
