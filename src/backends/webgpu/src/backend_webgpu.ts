@@ -20,6 +20,7 @@
 import './flags_webgpu';
 
 import {DataMover, DataType, ENV, KernelBackend, Rank, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, util} from '@tensorflow/tfjs-core';
+import * as backend_util from '@tensorflow/tfjs-core/dist/backends/backend_util';
 import {computeOutShape} from '@tensorflow/tfjs-core/dist/ops/concat_util';
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
@@ -345,8 +346,17 @@ export class WebGPUBackend extends KernelBackend {
     return this.binaryOp(a, b, binary_op.MUL);
   }
 
+  floorDiv(a: Tensor, b: Tensor): Tensor {
+    return this.binaryOp(a, b, binary_op.INT_DIV);
+  }
+
+  sigmoid<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
+    return this.compileAndRun(program, [x]) as T;
+  }
+
   relu<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(unary_op.RELU, x.shape);
+    const program = new UnaryOpProgram(x.shape, unary_op.RELU);
     return this.compileAndRun(program, [x]) as T;
   }
 
@@ -364,6 +374,10 @@ export class WebGPUBackend extends KernelBackend {
 
   reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
     return Tensor.make(shape, {dataId: x.dataId}, x.dtype);
+  }
+
+  cast<T extends Tensor>(x: T, dtype: DataType): T {
+    return backend_util.castTensor(x, dtype, this);
   }
 
   transpose<T extends Tensor>(x: T, perm: number[]): T {

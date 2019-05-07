@@ -39,4 +39,13 @@ describe('Unary ops', () => {
 
     tf.test_util.expectArraysClose(cData, new Float32Array([1, 0, 5, 0]));
   });
+
+  it('sigmoid', async () => {
+    const a = tf.tensor1d([0, -1, 2, -3]);
+    const result = tf.sigmoid(a);
+    const cData = await result.data();
+
+    tf.test_util.expectArraysClose(
+        cData, new Float32Array([0.5, 0.2689, 0.8808, 0.0474]));
+  });
 });
