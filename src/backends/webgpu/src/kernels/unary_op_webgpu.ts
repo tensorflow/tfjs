@@ -20,6 +20,8 @@ import {WebGPUProgram} from './webgpu_program';
 
 export const RELU = 'return max(a, 0.0);';
 
+export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
+
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
@@ -27,7 +29,7 @@ export class UnaryOpProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A'];
 
-  constructor(op: string, outputShape: number[]) {
+  constructor(outputShape: number[], op: string) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: this.outputShape.map((d, i) => i)};
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);

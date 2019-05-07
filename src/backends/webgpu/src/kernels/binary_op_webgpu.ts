@@ -23,6 +23,13 @@ import {WebGPUProgram} from './webgpu_program';
 export const MUL = 'return a * b;';
 export const ADD = 'return a + b;';
 
+export const INT_DIV = `
+  float s = sign(a) * sign(b);
+  int ia = int(round(a));
+  int ib = int(round(b));
+  return float(idiv(ia, ib, s));
+`;
+
 export class BinaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;

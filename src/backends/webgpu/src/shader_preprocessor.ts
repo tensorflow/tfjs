@@ -122,6 +122,15 @@ export function makeShader(
 
 const SHADER_PREFIX = `
   #version 450
+  
+  int idiv(int a, int b, float sign) {
+    int res = a / b;
+    int mod = a % b;
+    if (sign < 0. && mod != 0) {
+      res -= 1;
+    }
+    return res;
+  }
 `;
 
 const SAMPLING_SNIPPETS = `
@@ -185,6 +194,14 @@ function getSamplerFromInInfo(inInfo: InputInfo): string {
   const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, rank);
   const inputs = dims.map(d => `int ${d}`).join(', ');
 
+  if (rank < 1) {
+    return `
+      float ${funcName}() {
+        return ${texName}[0];
+      }
+    `;
+  }
+
   return `
     float ${funcName}(${inputs}) {
       return ${texName}[getFlatIndex(${type}(${dims.join(',')}),
@@ -209,9 +226,11 @@ function getSamplerAtOutputCoords(
 
   let coordsSnippet = '';
 
-  if (inRank > 0) {
+  if (inRank === 0) {
+    coordsSnippet = 'coords = 0;';
+  } else {
     if (outRank < 2 && broadcastDims.length >= 1) {
-      coordsSnippet = 'coords = 0.;';
+      coordsSnippet = 'coords = 0;';
     } else {
       coordsSnippet =
           broadcastDims.map(d => `coords[${d + rankDiff}] = 0;`).join('\n');
@@ -222,13 +241,13 @@ function getSamplerAtOutputCoords(
   if (outRank < 2 && inRank > 0) {
     unpackedCoordsSnippet = 'coords';
   } else {
-    if (inRank > 1) {
+    if (outRank > 1) {
       const coordsType = getCoordsDataType(inRank);
       const coordsValues =
           inInfo.shape.map((s, i) => `coords[${i + rankDiff}]`).join(', ');
       unpackedCoordsSnippet = `${coordsType}(${coordsValues})`;
     } else {
-      unpackedCoordsSnippet = `coords[${rankDiff}]`;
+      unpackedCoordsSnippet = 'coords';
     }
   }
 
