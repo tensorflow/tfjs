@@ -24,8 +24,10 @@ import * as backend_util from '@tensorflow/tfjs-core/dist/backends/backend_util'
 import {computeOutShape} from '@tensorflow/tfjs-core/dist/ops/concat_util';
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
+import {assert} from '@tensorflow/tfjs-core/dist/util';
 import * as shaderc from '@webgpu/shaderc';
 
+import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
 import * as binary_op from './kernels/binary_op_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
 import {ConcatProgram} from './kernels/concat_webgpu';
@@ -192,18 +194,39 @@ export class WebGPUBackend extends KernelBackend {
     }
     let dimUniforms: number[] = [];
     const bufferShapes = inputs.concat(output).map(d => d.shape);
+    let currentOffset = 0;
     bufferShapes.forEach((d, i) => {
-      // TODO: handle vec3 uniform upload in a principled way.
-      // vec3 and vec4 have the same alignment, however padding is only
-      // sometimes necessary. Complete std140 layout rules are documented here:
+      // Complete std140 layout rules are documented here:
       // tslint:disable-next-line:max-line-length
       // https://www.khronos.org/registry/OpenGL/specs/gl/glspec45.core.pdf#page=159
-      if (d.length === 3 && i > 0 && bufferShapes[i - 1].length === 3) {
+      let baseAlignment = 0;
+      switch (d.length) {
+        case 1:
+          baseAlignment = 1;
+          break;
+        case 2:
+          baseAlignment = 2;
+          break;
+        case 3:
+          baseAlignment = 4;
+          break;
+        case 4:
+          baseAlignment = 4;
+          break;
+        default:
+          assert(false, () => `Unsupported ${d.length}D shape`);
+      }
+
+      const padding = Math.ceil(currentOffset / baseAlignment) * baseAlignment -
+          currentOffset;
+      for (let p = 0; p < padding; ++p) {
         dimUniforms.push(0);
       }
       dimUniforms.push(...d);
+      currentOffset += d.length + padding;
     });
 
+    // TODO: handle padding of program-specific uniforms
     if (programUniforms) {
       dimUniforms = dimUniforms.concat(programUniforms);
     }
@@ -320,6 +343,21 @@ export class WebGPUBackend extends KernelBackend {
         Tensor4D;
   }
 
+  private argMinMaxReduce(x: Tensor, axis: number, reduceType: 'min'|'max'):
+      Tensor {
+    const program = new ArgMinMaxProgram(x.shape, axis, reduceType);
+    const output = this.makeOutputArray(program.outputShape, 'int32') as Tensor;
+    return this.compileAndRun(program, [x], output, [axis]) as Tensor;
+  }
+
+  argMin(x: Tensor, axis: number): Tensor {
+    return this.argMinMaxReduce(x, axis, 'min');
+  }
+
+  argMax(x: Tensor, axis: number): Tensor {
+    return this.argMinMaxReduce(x, axis, 'max');
+  }
+  
   concat(tensors: Tensor[], axis: number): Tensor {
     if (tensors.length === 1) {
       return tensors[0];
