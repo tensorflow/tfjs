@@ -180,6 +180,9 @@ export class MathBackendCPU implements KernelBackend {
     }
     return this.data.get(dataId).values;
   }
+  isDataSync(): boolean {
+    return true;
+  }
 
   disposeData(dataId: DataId): void {
     if (this.data.has(dataId)) {
