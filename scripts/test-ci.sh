@@ -17,10 +17,6 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-yarn build
-yarn lint
-yarn ts-node ./scripts/release_notes/run_tests.ts
-yarn karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun
 cd integration_tests/benchmarks
-yarn benchmark-cloud
-cd ../../
+yarn
+yarn benchmark --layers --tfjs-node
