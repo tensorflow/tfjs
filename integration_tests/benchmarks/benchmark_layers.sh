@@ -138,7 +138,7 @@ if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
   echo "Installing virtualenv..."
   if [[ -z "$(which pip)" ]]; then
     echo "pip is not on path. Attempting to install it..."
-    sudo apt-get install python-pip
+    apt-get install python-pip
   fi
   pip install virtualenv
 
