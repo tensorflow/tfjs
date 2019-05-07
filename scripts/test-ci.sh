@@ -19,4 +19,4 @@ set -e
 
 cd integration_tests/benchmarks
 yarn
-yarn benchmark --layers --tfjs-node
+yarn benchmark --layers --tfjs-node --log
