@@ -52,19 +52,19 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
 
       float readInp(uint batch, uint row, uint col, uint chan) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        return coordIsValid(coord, xShape) ? x[getFlatIndex(coord, xShape)] : 0;
+        return coordIsValid(coord, xShape) ? getX(coord) : 0;
       }
 
       float readFilt(uint row, uint col, uint xChannel, uint outChannel) {
-        ivec4 coord = ivec4(row, col, xChannel, outChannel);
         ivec4 shape = ivec4(filterDims, xShape[3], outShape[3]);
-        return coordIsValid(coord, shape) ? W[getFlatIndex(coord, shape)] : 0;
+        return coordIsValid(coord, shape) ? 
+          getW(row, col, xChannel, outChannel) : 0;
       }
 
       void writeResult(uint batch, uint row, uint col, uint chan, float value) {
         ivec4 coord = ivec4(batch, row, col, chan);
         if (coordIsValid(coord, outShape)) {
-          result[getFlatIndex(coord, outShape)] = value;
+          setOutput(batch, row, col, chan, value);
         }
       }
 

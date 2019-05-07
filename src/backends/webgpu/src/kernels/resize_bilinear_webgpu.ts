@@ -39,10 +39,6 @@ export class ResizeBilinearProgram implements WebGPUProgram {
     const adjustWidth = alignCorners && newWidth > 1;
 
     this.userCode = `
-      float getValue(int b, int r, int c, int d) {
-        return x[getFlatIndex(ivec4(b, r, c, d), xShape)];
-      }
-
       void main() {
         ivec4 coords = getOutputCoords();
 
@@ -62,8 +58,6 @@ export class ResizeBilinearProgram implements WebGPUProgram {
           vec2 effectiveInputOverOutputRatioRC =
               effectiveInSize / effectiveOutSize;
 
-          uint index = getFlatIndex(coords, outShape);
-
           // Fractional source index
           vec2 sourceFracIndexRC = vec2(rc) * effectiveInputOverOutputRatioRC;
 
@@ -72,10 +66,10 @@ export class ResizeBilinearProgram implements WebGPUProgram {
           ivec2 sourceCeilRC = ivec2(
             min(xShape.yz - 1.0, ceil(sourceFracIndexRC)));
 
-          float topLeft = getValue(b, sourceFloorRC.x, sourceFloorRC.y, d);
-          float bottomLeft = getValue(b, sourceCeilRC.x, sourceFloorRC.y, d);
-          float topRight = getValue(b, sourceFloorRC.x, sourceCeilRC.y, d);
-          float bottomRight = getValue(b, sourceCeilRC.x, sourceCeilRC.y, d);
+          float topLeft = getX(b, sourceFloorRC.x, sourceFloorRC.y, d);
+          float bottomLeft = getX(b, sourceCeilRC.x, sourceFloorRC.y, d);
+          float topRight = getX(b, sourceFloorRC.x, sourceCeilRC.y, d);
+          float bottomRight = getX(b, sourceCeilRC.x, sourceCeilRC.y, d);
 
           vec2 fracRC = sourceFracIndexRC - vec2(sourceFloorRC);
 
@@ -83,7 +77,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
           float bottom = bottomLeft + (bottomRight - bottomLeft) * fracRC.y;
           float newValue = top + (bottom - top) * fracRC.x;
 
-          setOutput(index, newValue);
+          setOutput(b, coords[1], coords[2], d, newValue);
         }
       }
     `;
