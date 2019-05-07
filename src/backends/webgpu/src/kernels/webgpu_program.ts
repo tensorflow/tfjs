@@ -104,6 +104,10 @@ export const compileProgram =
           source, shaderKind, 'file', 'main', compileOptions);
       const error = result.GetErrorMessage();
       if (error.length) {
+        console.error(
+            source.split('\n')
+                .map((s, l) => (l + 1).toString().padStart(5, ' ') + ' ' + s)
+                .join('\n'));
         throw new Error(`Shader compilation failed: ${error}`);
       }
       const bindGroupLayout =
