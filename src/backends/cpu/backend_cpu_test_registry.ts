@@ -18,7 +18,7 @@
 import {Constraints, registerTestEnv} from '../../jasmine_util';
 
 export const CPU_ENVS: Constraints = {
-  activeBackend: 'cpu'
+  predicate: backend => backend === 'cpu'
 };
 
 registerTestEnv({name: 'cpu', backendName: 'cpu'});

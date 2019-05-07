@@ -18,7 +18,7 @@
 import {Constraints, registerTestEnv} from '../../jasmine_util';
 
 export const WEBGL_ENVS: Constraints = {
-  activeBackend: 'webgl'
+  predicate: backend => backend === 'webgl'
 };
 export const PACKED_ENVS: Constraints = {
   flags: {'WEBGL_PACK': true}

@@ -21,160 +21,70 @@ import {envSatisfiesConstraints, parseKarmaFlags, TestKernelBackend} from './jas
 
 describe('jasmine_util.envSatisfiesConstraints', () => {
   it('ENV satisfies empty constraints', () => {
-    const backendName = 'test-backend';
     const env = new Environment({});
     env.setFlags({});
-    const registeredBackends = ['test-backend1', 'test-backend2'];
-
-    const platformName = 'browser';
 
     const constraints = {};
 
-    expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, platformName, constraints))
-        .toBe(true);
+    const backendName = 'test-backend';
+
+    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(true);
   });
 
-  it('ENV satisfies matching flag constraints, ' +
-         'no backend or platform constraint',
-     () => {
-       const backendName = 'test-backend';
-       const env = new Environment({});
-       env.setFlags({'TEST-FLAG': true});
-       const registeredBackends = ['test-backend1', 'test-backend2'];
-
-       const platformName = 'browser';
-
-       const constraints = {flags: {'TEST-FLAG': true}};
-
-       expect(
-           envSatisfiesConstraints(
-               env, backendName, registeredBackends, platformName, constraints))
-           .toBe(true);
-     });
-
-  it('ENV satisfies matching flag and one backend constraint, no platform',
-     () => {
-       const backendName = 'test-backend';
-       const env = new Environment({});
-       env.setFlags({'TEST-FLAG': true});
-       const registeredBackends = ['test-backend1', 'test-backend2'];
-
-       const platformName = 'browser';
-
-       const constraints = {flags: {'TEST-FLAG': true}, backends: backendName};
-
-       expect(
-           envSatisfiesConstraints(
-               env, backendName, registeredBackends, platformName, constraints))
-           .toBe(true);
-     });
-
-  it('ENV satisfies matching flag and multiple backend constraints', () => {
-    const backendName = 'test-backend';
+  it('ENV satisfies matching flag constraints no predicate', () => {
     const env = new Environment({});
     env.setFlags({'TEST-FLAG': true});
-    const registeredBackends = ['test-backend1', 'test-backend2'];
-
-    const platformName = 'browser';
-
-    const constraints = {
-      flags: {'TEST-FLAG': true},
-      backends: [backendName, 'other-backend']
-    };
-
-    expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, platformName, constraints))
-        .toBe(true);
-  });
-
-  it('ENV does not satisfy mismatching flags constraints', () => {
-    const backendName = 'test-backend';
-    const env = new Environment({});
-    env.setFlags({'TEST-FLAG': false});
-    const registeredBackends = ['test-backend1', 'test-backend2'];
-
-    const platformName = 'browser';
 
     const constraints = {flags: {'TEST-FLAG': true}};
 
-    expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, platformName, constraints))
-        .toBe(false);
+    const backendName = 'test-backend';
+
+    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(true);
   });
 
-  it('ENV satisfies no flag constraint but not satisfy activebackend', () => {
-    const backendName = 'test-backend';
-    const env = new Environment({});
-    const registeredBackends = ['test-backend1', 'test-backend2'];
-
-    const platformName = 'browser';
-
-    const constraints = {activeBackend: 'test-backend2'};
-
-    expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, platformName, constraints))
-        .toBe(false);
-  });
-
-  it('ENV satisfies flags but does not satisfy active backend', () => {
-    const backendName = 'test-backend';
+  it('ENV satisfies matching flag and predicate is true', () => {
     const env = new Environment({});
     env.setFlags({'TEST-FLAG': true});
-    const registeredBackends = ['test-backend1', 'test-backend2'];
 
-    const platformName = 'browser';
+    const constraints = {flags: {'TEST-FLAG': true}, predicate: () => true};
 
-    const constraints = {
-      flags: {'TEST-FLAG': true},
-      activeBackend: 'test-backend2'
-    };
+    const backendName = 'test-backend';
 
-    expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, platformName, constraints))
-        .toBe(false);
+    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(true);
   });
 
-  it('ENV satisfies flags active backend, but not registered backends', () => {
-    const backendName = 'test-backend';
+  it('ENV doesnt satisfy flags and predicate is true', () => {
     const env = new Environment({});
     env.setFlags({'TEST-FLAG': true});
-    const registeredBackends = ['test-backend1'];
 
-    const platformName = 'browser';
+    const constraints = {flags: {'TEST-FLAG': false}, predicate: () => true};
 
-    const constraints = {
-      flags: {'TEST-FLAG': true},
-      activeBackend: 'test-backend1',
-      registeredBackends: ['test-backend1', 'test-backend2']
-    };
+    const backendName = 'test-backend';
 
-    expect(envSatisfiesConstraints(
-               env, backendName, registeredBackends, platformName, constraints))
-        .toBe(false);
+    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(false);
   });
 
-  it('ENV satisfies matching flag and multiple backend constraints, ' +
-         'doesnt satisfy platform',
-     () => {
-       const backendName = 'test-backend';
-       const env = new Environment({});
-       env.setFlags({'TEST-FLAG': true});
-       const registeredBackends = ['test-backend1', 'test-backend2'];
+  it('ENV satisfies flags and predicate is false', () => {
+    const env = new Environment({});
+    env.setFlags({'TEST-FLAG': true});
 
-       const platformName = 'browser';
+    const constraints = {flags: {'TEST-FLAG': true}, predicate: () => false};
 
-       const constraints = {
-         flags: {'TEST-FLAG': true},
-         backends: [backendName, 'other-backend'],
-         activePlatform: 'node'
-       };
+    const backendName = 'test-backend';
 
-       expect(
-           envSatisfiesConstraints(
-               env, backendName, registeredBackends, platformName, constraints))
-           .toBe(false);
-     });
+    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(false);
+  });
+
+  it('ENV doesnt satiisfy flags and predicate is false', () => {
+    const env = new Environment({});
+    env.setFlags({'TEST-FLAG': true});
+
+    const constraints = {flags: {'TEST-FLAG': false}, predicate: () => false};
+
+    const backendName = 'test-backend';
+
+    expect(envSatisfiesConstraints(env, backendName, constraints)).toBe(false);
+  });
 });
 
 describe('jasmine_util.parseKarmaFlags', () => {
