@@ -1201,7 +1201,7 @@ describeWithFlags('Reduction: mean', ALL_ENVS, () => {
     const dy = tf.scalar(1.5);
 
     const da = tf.grad(a => a.mean())(a, dy);
-    const dyVal = dy.arraySync();
+    const dyVal = await dy.array();
     expect(da.shape).toEqual(a.shape);
     expectArraysClose(await da.data(), [
       dyVal / a.size, dyVal / a.size, dyVal / a.size, dyVal / a.size,
@@ -1214,7 +1214,7 @@ describeWithFlags('Reduction: mean', ALL_ENVS, () => {
     const dy = tf.scalar(1.5);
 
     const da = tf.grad(a => a.clone().mean().clone())(a, dy);
-    const dyVal = dy.arraySync();
+    const dyVal = await dy.array();
     expect(da.shape).toEqual(a.shape);
     expectArraysClose(await da.data(), [
       dyVal / a.size, dyVal / a.size, dyVal / a.size, dyVal / a.size,

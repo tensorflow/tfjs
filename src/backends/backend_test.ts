@@ -26,7 +26,7 @@ describeWithFlags('epsilon', ALL_ENVS, () => {
     expect(tf.backend().epsilon()).toBe(epsilonValue);
   });
 
-  it('abs(epsilon) > 0', () => {
-    expect(tf.abs(tf.backend().epsilon()).arraySync()).toBeGreaterThan(0);
+  it('abs(epsilon) > 0', async () => {
+    expect(await tf.abs(tf.backend().epsilon()).array()).toBeGreaterThan(0);
   });
 });

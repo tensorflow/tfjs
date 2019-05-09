@@ -169,8 +169,8 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     await optimizer2.setWeights(weights);
 
     cost = optimizer2.minimize(f, /* returnCost */ true);
-    expectArraysClose(cost.dataSync(), 2.7167187);
-    expectArraysClose(x.dataSync(), [0.2874418, 1.2294267]);
+    expectArraysClose(await cost.data(), 2.7167187);
+    expectArraysClose(await x.data(), [0.2874418, 1.2294267]);
     expect(optimizer2.iterations).toEqual(2);
   });
 

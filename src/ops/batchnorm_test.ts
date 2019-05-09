@@ -571,10 +571,10 @@ describeWithFlags('batchNorm2D', ALL_ENVS, () => {
     const result = tf.batchNorm2d(
         xT, meanT, varianceT, offsetT, undefined, varianceEpsilon);
 
-    const offset = offsetT.arraySync() as number[];
-    const mean = meanT.arraySync() as number[];
-    const variance = varianceT.arraySync() as number[];
-    const x = xT.arraySync() as number[][];
+    const offset = await offsetT.array() as number[];
+    const mean = await meanT.array() as number[];
+    const variance = await varianceT.array() as number[];
+    const x = await xT.array() as number[][];
 
     expectArraysClose(await result.data(), [
       offset[0] +
@@ -600,11 +600,11 @@ describeWithFlags('batchNorm2D', ALL_ENVS, () => {
     const result =
         tf.batchNorm2d(xT, meanT, varianceT, offsetT, scaleT, varianceEpsilon);
 
-    const offset = offsetT.arraySync() as number[];
-    const mean = meanT.arraySync() as number[];
-    const variance = varianceT.arraySync() as number[];
-    const scale = scaleT.arraySync() as number[];
-    const x = xT.arraySync() as number[][];
+    const offset = await offsetT.array() as number[];
+    const mean = await meanT.array() as number[];
+    const variance = await varianceT.array() as number[];
+    const scale = await scaleT.array() as number[];
+    const x = await xT.array() as number[][];
 
     expectArraysClose(await result.data(), [
       offset[0] +
@@ -917,11 +917,11 @@ describeWithFlags('deprecated batchNormalization', ALL_ENVS, () => {
     const result = tf.batchNormalization(
         xT, meanT, varianceT, varianceEpsilon, scaleT, offsetT);
 
-    const offset = offsetT.arraySync() as number[];
-    const mean = meanT.arraySync() as number[];
-    const variance = varianceT.arraySync() as number[];
-    const scale = scaleT.arraySync() as number[];
-    const x = xT.arraySync() as number[][];
+    const offset = await offsetT.array() as number[];
+    const mean = await meanT.array() as number[];
+    const variance = await varianceT.array() as number[];
+    const scale = await scaleT.array() as number[];
+    const x = await xT.array() as number[][];
 
     expectArraysClose(await result.data(), [
       offset[0] +

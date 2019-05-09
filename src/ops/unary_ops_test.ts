@@ -474,8 +474,8 @@ describeWithFlags('sigmoid', ALL_ENVS, () => {
 
     const da = tf.grad(a => tf.sigmoid(a))(a, dy);
 
-    const aVals = a.arraySync();
-    const dyVals = dy.arraySync();
+    const aVals = await a.array();
+    const dyVals = await dy.array();
     const expected = [];
     for (let i = 0; i < a.size; i++) {
       const y = 1 / (1 + Math.exp(-aVals[i]));
@@ -491,8 +491,8 @@ describeWithFlags('sigmoid', ALL_ENVS, () => {
 
     const da = tf.grad(a => tf.sigmoid(a.clone()).clone())(a, dy);
 
-    const aVals = a.arraySync();
-    const dyVals = dy.arraySync();
+    const aVals = await a.array();
+    const dyVals = await dy.array();
     const expected = [];
     for (let i = 0; i < a.size; i++) {
       const y = 1 / (1 + Math.exp(-aVals[i]));
@@ -592,19 +592,19 @@ describeWithFlags('logSigmoid', ALL_ENVS, () => {
   it('gradients: Scalar', async () => {
     const a = tf.scalar(3);
     const dy = tf.scalar(4);
-    const dyVal = dy.arraySync();
+    const dyVal = await dy.array();
 
     const da = tf.grad(a => tf.logSigmoid(a))(a, dy);
-    const aVal = a.arraySync();
+    const aVal = await a.array();
     const y = 1 / (1 + Math.exp(aVal));
     expectArraysClose(await da.data(), [dyVal * y]);
   });
 
   it('gradients: Tensor1D', async () => {
     const a = tf.tensor1d([1, 2, -3, 5]);
-    const aVals = a.arraySync();
+    const aVals = await a.array();
     const dy = tf.tensor1d([1, 2, 3, 4]);
-    const dyVals = dy.arraySync();
+    const dyVals = await dy.array();
     const da = tf.grad(a => tf.logSigmoid(a))(a, dy);
 
     const expected = [];
@@ -618,9 +618,9 @@ describeWithFlags('logSigmoid', ALL_ENVS, () => {
 
   it('gradient with clones', async () => {
     const a = tf.tensor1d([1, 2, -3, 5]);
-    const aVals = a.arraySync();
+    const aVals = await a.array();
     const dy = tf.tensor1d([1, 2, 3, 4]);
-    const dyVals = dy.arraySync();
+    const dyVals = await dy.array();
     const da = tf.grad(a => tf.logSigmoid(a.clone()).clone())(a, dy);
 
     const expected = [];
@@ -733,8 +733,8 @@ describeWithFlags('softplus', ALL_ENVS, () => {
   it('gradients: Scalar', async () => {
     const a = tf.scalar(3);
     const dy = tf.scalar(4);
-    const aVal = a.arraySync();
-    const dyVal = dy.arraySync();
+    const aVal = await a.array();
+    const dyVal = await dy.array();
 
     const da = tf.grad(a => tf.softplus(a))(a, dy);
     const y = 1 / (1 + Math.exp(-aVal));
@@ -745,8 +745,8 @@ describeWithFlags('softplus', ALL_ENVS, () => {
   it('gradients: Scalar', async () => {
     const a = tf.scalar(3);
     const dy = tf.scalar(4);
-    const aVal = a.arraySync();
-    const dyVal = dy.arraySync();
+    const aVal = await a.array();
+    const dyVal = await dy.array();
 
     const da = tf.grad(a => tf.softplus(a.clone()).clone())(a, dy);
     const y = 1 / (1 + Math.exp(-aVal));
@@ -756,9 +756,9 @@ describeWithFlags('softplus', ALL_ENVS, () => {
 
   it('gradients: Tensor1D', async () => {
     const a = tf.tensor1d([1, 2, -3, 5]);
-    const aVals = a.arraySync();
+    const aVals = await a.array();
     const dy = tf.tensor1d([1, 2, 3, 4]);
-    const dyVals = dy.arraySync();
+    const dyVals = await dy.array();
     const da = tf.grad(a => tf.softplus(a))(a, dy);
 
     const expected = [];

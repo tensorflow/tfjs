@@ -16,11 +16,11 @@
  */
 
 import * as tf from './index';
-import {ALL_ENVS, describeWithFlags} from './jasmine_util';
+import {ALL_ENVS, describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
 import {convertToTensor} from './tensor_util_env';
 import {expectArraysClose} from './test_util';
 
-describeWithFlags('debug on', ALL_ENVS, () => {
+describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
   beforeAll(() => {
     tf.ENV.set('DEBUG', true);
   });

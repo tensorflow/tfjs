@@ -84,9 +84,9 @@ describeWithFlags('softmax', ALL_ENVS, () => {
 
     const totalSum = tf.sum(tf.mul(dy, y)) as tf.Scalar;
 
-    const dyVals = dy.arraySync();
-    const sumVals = totalSum.arraySync();
-    const yVals = y.arraySync();
+    const dyVals = await dy.array();
+    const sumVals = await totalSum.array();
+    const yVals = await y.array();
     expect(dx.shape).toEqual(x.shape);
     expectArraysClose(await dx.data(), [
       (dyVals[0] - sumVals) * yVals[0],
@@ -111,9 +111,9 @@ describeWithFlags('softmax', ALL_ENVS, () => {
     const axis = -1;
     const totalSum = tf.sum(tf.mulStrict(dy, y), axis) as tf.Tensor1D;
 
-    const dyVals = dy.arraySync();
-    const sumVals = totalSum.arraySync();
-    const yVals = y.arraySync();
+    const dyVals = await dy.array();
+    const sumVals = await totalSum.array();
+    const yVals = await y.array();
 
     expect(dx.shape).toEqual(x.shape);
     expectArraysClose(await dx.data(), [
