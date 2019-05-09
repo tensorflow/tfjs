@@ -34,10 +34,10 @@ describeWithFlags('tf.buffer', ALL_ENVS, () => {
     expectArraysClose(buff.values, new Float32Array([1.3, 0, 0, 2.9, 0, 0]));
   });
 
-  it('get() out of range throws', () => {
+  it('get() out of range throws', async () => {
     const t = tf.tensor([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
 
-    const buff = t.bufferSync();
+    const buff = await t.buffer();
     expect(buff.get(0, 0, 0)).toBeCloseTo(1);
     expect(buff.get(0, 0, 1)).toBeCloseTo(2);
     expect(() => buff.get(0, 0, 2))

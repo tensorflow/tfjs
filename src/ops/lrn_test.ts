@@ -59,7 +59,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
     const f = (...vals: number[]) =>
         Math.pow(bias + alpha * sumArr(sqArr(vals)), -beta);
 
-    const x = xT.arraySync();
+    const x = await xT.array();
     expectArraysClose(await result.data(), [
       x[0][0][0] * f(x[0][0][0], x[0][0][1]),
       x[0][0][1] * f(x[0][0][0], x[0][0][1], x[0][0][2]),
@@ -80,7 +80,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
     const f = (...vals: number[]) =>
         Math.pow(bias + alpha * sumArr(sqArr(vals)), -beta);
 
-    const x = xT.arraySync();
+    const x = await xT.array();
     expectArraysClose(await result.data(), [
       x[0][0][0] * f(x[0][0][0], x[0][0][1]),
       x[0][0][1] * f(x[0][0][0], x[0][0][1], x[0][0][2]),
@@ -101,7 +101,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
     const f = (...vals: number[]) =>
         Math.pow(bias + alpha * sumArr(sqArr(vals)), -beta);
 
-    const x = xT.arraySync();
+    const x = await xT.array();
     expectArraysClose(await result.data(), [
       x[0][0][0] * f(x[0][0][0], x[0][0][1]),
       x[0][0][1] * f(x[0][0][0], x[0][0][1], x[0][0][2]),
@@ -127,7 +127,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
     // ------- | ------- | ------- | -------
     // o x . . | x o x . | . x o x | . . x o
 
-    const x = xT.arraySync();
+    const x = await xT.array();
     expectArraysClose(await result.data(), [
       // 1 - 4
       x[0][0][0] * f(x[0][0][0], x[0][0][1]),
@@ -317,7 +317,7 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
     // Easier to read using these vars
     const b0 = 0;
     const b1 = 1;
-    const x = xT.arraySync();
+    const x = await xT.array();
     expectArraysClose(await result.data(), [
       x[b0][0][0][0] * f(x[b0][0][0][0], x[b0][0][0][1]),
       x[b0][0][0][1] * f(x[b0][0][0][0], x[b0][0][0][1], x[b0][0][0][2]),

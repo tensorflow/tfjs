@@ -68,7 +68,7 @@ describeWithFlags('lstm', ALL_ENVS, () => {
     expectArraysClose(await output[1][1].data(), [0.5745711922645569]);
   });
 
-  it('basicLSTMCell with batch=2', () => {
+  it('basicLSTMCell with batch=2', async () => {
     const lstmKernel = tf.randomNormal<Rank.R2>([3, 4]);
     const lstmBias = tf.randomNormal<Rank.R1>([4]);
     const forgetBias = tf.scalar(1.0);
@@ -81,13 +81,13 @@ describeWithFlags('lstm', ALL_ENVS, () => {
     const batchedH = tf.concat2d([h, h], 0);  // 2x1
     const [newC, newH] = tf.basicLSTMCell(
         forgetBias, lstmKernel, lstmBias, batchedData, batchedC, batchedH);
-    const newCVals = newC.arraySync();
-    const newHVals = newH.arraySync();
+    const newCVals = await newC.array();
+    const newHVals = await newH.array();
     expect(newCVals[0][0]).toEqual(newCVals[1][0]);
     expect(newHVals[0][0]).toEqual(newHVals[1][0]);
   });
 
-  it('basicLSTMCell accepts a tensor-like object', () => {
+  it('basicLSTMCell accepts a tensor-like object', async () => {
     const lstmKernel = tf.randomNormal<Rank.R2>([3, 4]);
     const lstmBias = [0, 0, 0, 0];
     const forgetBias = 1;
@@ -100,8 +100,8 @@ describeWithFlags('lstm', ALL_ENVS, () => {
     const batchedH = tf.concat2d([h, h], 0);           // 2x1
     const [newC, newH] = tf.basicLSTMCell(
         forgetBias, lstmKernel, lstmBias, batchedData, batchedC, batchedH);
-    const newCVals = newC.arraySync();
-    const newHVals = newH.arraySync();
+    const newCVals = await newC.array();
+    const newHVals = await newH.array();
     expect(newCVals[0][0]).toEqual(newCVals[1][0]);
     expect(newHVals[0][0]).toEqual(newHVals[1][0]);
   });

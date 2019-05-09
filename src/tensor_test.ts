@@ -16,7 +16,7 @@
  */
 
 import * as tf from './index';
-import {ALL_ENVS, describeWithFlags} from './jasmine_util';
+import {ALL_ENVS, describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
 import {Rank} from './types';
@@ -1088,12 +1088,6 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(b.shape).toEqual([3, 2]);
   });
 
-  it('.dataSync() with casting, string tensor', () => {
-    const a = tf.tensor(['a', 'b']);
-    const data: string[] = a.dataSync<'string'>();
-    expect(data).toEqual(['a', 'b']);
-  });
-
   it('.data() with casting, string tensor', async () => {
     const a = tf.tensor(['a', 'b']);
     const data: string[] = await a.data<'string'>();
@@ -1424,7 +1418,15 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   });
 });
 
-describe('tensor.toString', () => {
+describeWithFlags('tensor dataSync', SYNC_BACKEND_ENVS, () => {
+  it('.dataSync() with casting, string tensor', () => {
+    const a = tf.tensor(['a', 'b']);
+    const data: string[] = a.dataSync<'string'>();
+    expect(data).toEqual(['a', 'b']);
+  });
+});
+
+describeWithFlags('tensor.toString', SYNC_BACKEND_ENVS, () => {
   it('scalar verbose', () => {
     const verbose = true;
     const str = tf.scalar(5).toString(verbose);

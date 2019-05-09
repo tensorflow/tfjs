@@ -25,7 +25,7 @@ import {WebGLMemoryInfo} from './backend_webgl';
 import {PACKED_ENVS, WEBGL_ENVS} from './backend_webgl_test_registry';
 
 describeWithFlags('fromPixels + regular math op', WEBGL_ENVS, () => {
-  it('debug mode does not error when no nans', async () => {
+  it('fromPixels + add', async () => {
     const pixels = new ImageData(2, 2);
     for (let i = 0; i < 8; i++) {
       pixels.data[i] = 100;
