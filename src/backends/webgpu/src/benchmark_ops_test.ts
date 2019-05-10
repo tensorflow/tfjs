@@ -32,7 +32,7 @@ describe('Ops benchmarks', () => {
   // avoided by using fences, but we don't have a common abstraction over
   // WebGL and WebGPU fences at the moment.
   async function time(
-      trials: number, reps: number, doRep: () => tf.Tensor[],
+      trials: number, reps: number, doRep: (r: number) => tf.Tensor[],
       endTrial: () => Promise<void>) {
     const times = [];
 
@@ -46,7 +46,7 @@ describe('Ops benchmarks', () => {
 
     const trial = () => {
       for (let r = 0; r < reps; ++r) {
-        toDispose = toDispose.concat(doRep());
+        toDispose = toDispose.concat(doRep(r));
       }
       return endTrial();
     };
@@ -70,6 +70,35 @@ describe('Ops benchmarks', () => {
     console.log(`Mean time: ${fmt(mean)} ms -> ${fmt(mean / reps)} / rep`);
     console.log(`Min time: ${fmt(min)} ms -> ${fmt(min / reps)} / rep`);
   }
+
+  // tslint:disable-next-line:ban
+  xit('argMax', async () => {
+    const n = 50;
+    const doTest = async (axis: number) => {
+      const tensors = new Array(n);
+      const maxes = new Array(n);
+      for (let i = 0; i < n; ++i) {
+        tensors[i] = tf.randomNormal([100, 100, 100]);
+      }
+
+      await time(
+          5, n,
+          (r) => {
+            maxes[r] = tf.argMax(tensors[r], axis);
+            return [];
+          },
+          async () => {
+            await maxes[maxes.length - 1].data();
+            for (const t of maxes) {
+              t.dispose();
+            }
+          });
+    };
+
+    await doTest(0);
+    await doTest(1);
+    await doTest(2);
+  }, 60000);
 
   // tslint:disable-next-line:ban
   xit('matMul', async () => {
