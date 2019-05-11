@@ -183,13 +183,38 @@ export class Softmax extends Activation {
 }
 serialization.registerClass(Softmax);
 
+/**
+ * Log softmax activation function
+ */
+export class LogSoftmax extends Activation {
+  /** @nocollapse */
+  static readonly className = 'logSoftmax';
+  /**
+   * Calculate the activation function of log softmax:
+   * log( exp(x_i) / sum(exp(x)) )
+   *
+   * @param x Tensor.
+   * @param axis Integer, axis along which the softmax normalization is applied.
+   * Invalid if < 2, as softmax across 1 (the batch dimension) is assumed to be
+   * an error.
+   *
+   * @returns a Tensor of the same shape as x
+   *
+   * @throws ValueError: In case `dim(x) < 2`.
+   */
+  apply(x: Tensor, axis: number = (-1)): Tensor {
+    return tfc.logSoftmax(x, axis);
+  }
+}
+serialization.registerClass(LogSoftmax);
+
 export function serializeActivation(activation: Activation): string {
   return activation.getClassName();
 }
 
 export function deserializeActivation(
-    config: serialization.ConfigDict,
-    customObjects: serialization.ConfigDict = {}): Activation {
+   config: serialization.ConfigDict,
+   customObjects: serialization.ConfigDict = {}): Activation {
   return deserializeKerasObject(
       config, serialization.SerializationMap.getMap().classNameMap,
       customObjects, 'activation');

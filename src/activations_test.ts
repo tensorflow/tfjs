@@ -13,7 +13,7 @@
  */
 import {scalar, tensor1d, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
-import {Elu, HardSigmoid, Linear, Relu, Relu6, Selu, Sigmoid, Softmax, Softplus, Softsign, Tanh} from './activations';
+import {Elu, HardSigmoid, Linear, Relu, Relu6, Selu, Sigmoid, Softmax, LogSoftmax, Softplus, Softsign, Tanh} from './activations';
 import {describeMathCPUAndGPU, expectNoLeakedTensors, expectTensorsClose} from './utils/test_utils';
 
 
@@ -267,5 +267,38 @@ describeMathCPUAndGPU('softmax activation', () => {
     const initVals = new Float32Array([0, 1, 3, 9]);
     const initX = tensor1d(initVals);
     expectNoLeakedTensors(() => softmax(initX), 1);
+  });
+});
+
+describeMathCPUAndGPU('logsoftmax activation', () => {
+  const logsoftmax = new LogSoftmax().apply;
+  // Setup: Array with initial values.
+  // Execute: logSoftmax on the last dimension.
+  // Expect: Output array matches size and approximate expected values.
+  it('1D', () => {
+    const initX = tensor1d([0, 1, 3, 9]);
+    const expectedVals = tensor1d([-9.003, -8.003, -6.003, -0.003]);
+    expectTensorsClose(logsoftmax(initX), expectedVals);
+  });
+  it('1D all equal', () => {
+    const initX = tensor1d([-1, -1, -1, -1]);
+    const expectedVals = tensor1d([-1.386, -1.386, -1.386, -1.386]);
+    expectTensorsClose(logsoftmax(initX), expectedVals);
+  });
+  it('2D', () => {
+    const initX = tensor2d([[0, 1, 3, 9,], [0, 1, 3, 9]]);
+    const expectedVals = tensor2d(
+       [[-9.003, -8.003, -6.003, -0.003], [-9.003, -8.003, -6.003, -0.003]]);
+    expectTensorsClose(logsoftmax(initX), expectedVals);
+  });
+  it('3D', () => {
+    const initX = tensor3d([[[0, 1, 3, 9,], [0, 1, 3, 9]]]);
+    const expectedVals = tensor3d(
+       [[[-9.003, -8.003, -6.003, -0.003], [-9.003, -8.003, -6.003, -0.003]]]);
+    expectTensorsClose(logsoftmax(initX), expectedVals);
+  });
+  it('Does not leak', () => {
+    const initX = tensor1d([0, 1, 3, 9]);
+    expectNoLeakedTensors(() => logsoftmax(initX), 1);
   });
 });
