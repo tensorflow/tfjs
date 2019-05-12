@@ -16,6 +16,7 @@
  */
 
 import {ENV} from './environment';
+import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 import {scalar, tensor2d} from './ops/ops';
 import {inferShape} from './tensor_util_env';
 import * as util from './util';
@@ -456,7 +457,7 @@ describe('util.hasEncodingLoss', () => {
   });
 });
 
-describe('util.toNestedArray', () => {
+describeWithFlags('util.toNestedArray', ALL_ENVS, () => {
   it('2 dimensions', () => {
     const a = new Float32Array([1, 2, 3, 4, 5, 6]);
     expect(util.toNestedArray([2, 3], a)).toEqual([[1, 2, 3], [4, 5, 6]]);

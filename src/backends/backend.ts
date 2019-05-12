@@ -97,9 +97,6 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   readSync(dataId: object): DataValues {
     throw new Error('Not yet implemented.');
   }
-  isDataSync(): boolean {
-    throw new Error('Not yet implemented.');
-  }
   disposeData(dataId: object): void {
     throw new Error('Not yet implemented.');
   }

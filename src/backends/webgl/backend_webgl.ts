@@ -382,9 +382,6 @@ export class MathBackendWebGL implements KernelBackend {
     }
     return this.convertAndCacheOnCPU(dataId, result);
   }
-  isDataSync(): boolean {
-    return true;
-  }
 
   async read(dataId: DataId): Promise<DataValues> {
     if (this.pendingRead.has(dataId)) {

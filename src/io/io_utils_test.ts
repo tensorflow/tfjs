@@ -178,49 +178,43 @@ describe('concatenateTypedArrays', () => {
 });
 
 describe('encodeWeights', () => {
-  it('Float32 tensors as NamedTensorMap', async done => {
+  it('Float32 tensors as NamedTensorMap', async () => {
     const tensors: NamedTensorMap = {
       x1: tensor2d([[10, 20], [30, 40]]),
       x2: scalar(42),
       x3: tensor1d([-1.3, -3.7, 1.3, 3.7]),
     };
-    tf.io.encodeWeights(tensors)
-        .then(dataAndSpecs => {
-          const data = dataAndSpecs.data;
-          const specs = dataAndSpecs.specs;
-          expect(data.byteLength).toEqual(4 * (4 + 1 + 4));
-          expect(new Float32Array(data, 0, 4)).toEqual(new Float32Array([
-            10, 20, 30, 40
-          ]));
-          expect(new Float32Array(data, 16, 1)).toEqual(new Float32Array([42]));
-          expect(new Float32Array(data, 20, 4)).toEqual(new Float32Array([
-            -1.3, -3.7, 1.3, 3.7
-          ]));
-          expect(specs).toEqual([
-            {
-              name: 'x1',
-              dtype: 'float32',
-              shape: [2, 2],
-            },
-            {
-              name: 'x2',
-              dtype: 'float32',
-              shape: [],
-            },
-            {
-              name: 'x3',
-              dtype: 'float32',
-              shape: [4],
-            }
-          ]);
-          done();
-        })
-        .catch(err => {
-          console.error(err.stack);
-        });
+    const dataAndSpecs = await tf.io.encodeWeights(tensors);
+    const data = dataAndSpecs.data;
+    const specs = dataAndSpecs.specs;
+    expect(data.byteLength).toEqual(4 * (4 + 1 + 4));
+    expect(new Float32Array(data, 0, 4)).toEqual(new Float32Array([
+      10, 20, 30, 40
+    ]));
+    expect(new Float32Array(data, 16, 1)).toEqual(new Float32Array([42]));
+    expect(new Float32Array(data, 20, 4)).toEqual(new Float32Array([
+      -1.3, -3.7, 1.3, 3.7
+    ]));
+    expect(specs).toEqual([
+      {
+        name: 'x1',
+        dtype: 'float32',
+        shape: [2, 2],
+      },
+      {
+        name: 'x2',
+        dtype: 'float32',
+        shape: [],
+      },
+      {
+        name: 'x3',
+        dtype: 'float32',
+        shape: [4],
+      }
+    ]);
   });
 
-  it('Float32 tensors as NamedTensor array', async done => {
+  it('Float32 tensors as NamedTensor array', async () => {
     const tensors: NamedTensor[] = [
       {name: 'x1234', tensor: tensor2d([[10, 20], [30, 40]])}, {
         name: 'a42',
@@ -228,182 +222,145 @@ describe('encodeWeights', () => {
       },
       {name: 'b41', tensor: tensor1d([-1.3, -3.7, 1.3, 3.7])}
     ];
-    tf.io.encodeWeights(tensors)
-        .then(dataAndSpecs => {
-          const data = dataAndSpecs.data;
-          const specs = dataAndSpecs.specs;
-          expect(data.byteLength).toEqual(4 * (4 + 1 + 4));
-          expect(new Float32Array(data, 0, 4)).toEqual(new Float32Array([
-            10, 20, 30, 40
-          ]));
-          expect(new Float32Array(data, 16, 1)).toEqual(new Float32Array([42]));
-          expect(new Float32Array(data, 20, 4)).toEqual(new Float32Array([
-            -1.3, -3.7, 1.3, 3.7
-          ]));
-          expect(specs).toEqual([
-            {
-              name: 'x1234',
-              dtype: 'float32',
-              shape: [2, 2],
-            },
-            {
-              name: 'a42',
-              dtype: 'float32',
-              shape: [],
-            },
-            {
-              name: 'b41',
-              dtype: 'float32',
-              shape: [4],
-            }
-          ]);
-          done();
-        })
-        .catch(err => {
-          console.error(err.stack);
-        });
+    const dataAndSpecs = await tf.io.encodeWeights(tensors);
+    const data = dataAndSpecs.data;
+    const specs = dataAndSpecs.specs;
+    expect(data.byteLength).toEqual(4 * (4 + 1 + 4));
+    expect(new Float32Array(data, 0, 4)).toEqual(new Float32Array([
+      10, 20, 30, 40
+    ]));
+    expect(new Float32Array(data, 16, 1)).toEqual(new Float32Array([42]));
+    expect(new Float32Array(data, 20, 4)).toEqual(new Float32Array([
+      -1.3, -3.7, 1.3, 3.7
+    ]));
+    expect(specs).toEqual([
+      {
+        name: 'x1234',
+        dtype: 'float32',
+        shape: [2, 2],
+      },
+      {
+        name: 'a42',
+        dtype: 'float32',
+        shape: [],
+      },
+      {
+        name: 'b41',
+        dtype: 'float32',
+        shape: [4],
+      }
+    ]);
   });
 
-  it('Empty NamedTensor array', async done => {
+  it('Empty NamedTensor array', async () => {
     const tensors: NamedTensor[] = [];
-    tf.io.encodeWeights(tensors)
-        .then(dataAndSpecs => {
-          const data = dataAndSpecs.data;
-          const specs = dataAndSpecs.specs;
-          expect(data.byteLength).toEqual(0);
-          expect(specs).toEqual([]);
-          done();
-        })
-        .catch(err => {
-          console.error(err.stack);
-        });
+    const dataAndSpecs = await tf.io.encodeWeights(tensors);
+    const data = dataAndSpecs.data;
+    const specs = dataAndSpecs.specs;
+    expect(data.byteLength).toEqual(0);
+    expect(specs).toEqual([]);
   });
 
-  it('Int32 tensors', async done => {
+  it('Int32 tensors', async () => {
     const tensors: NamedTensorMap = {
       x1: tensor2d([[10, 20], [30, 40]], [2, 2], 'int32'),
       x2: scalar(42, 'int32'),
       x3: tensor1d([-1, -3, -3, -7], 'int32'),
     };
-    tf.io.encodeWeights(tensors)
-        .then(dataAndSpecs => {
-          const data = dataAndSpecs.data;
-          const specs = dataAndSpecs.specs;
-          expect(data.byteLength).toEqual(4 * (4 + 1 + 4));
-          expect(new Int32Array(data, 0, 4)).toEqual(new Int32Array([
-            10, 20, 30, 40
-          ]));
-          expect(new Int32Array(data, 16, 1)).toEqual(new Int32Array([42]));
-          expect(new Int32Array(data, 20, 4)).toEqual(new Int32Array([
-            -1, -3, -3, -7
-          ]));
-          expect(specs).toEqual([
-            {
-              name: 'x1',
-              dtype: 'int32',
-              shape: [2, 2],
-            },
-            {
-              name: 'x2',
-              dtype: 'int32',
-              shape: [],
-            },
-            {
-              name: 'x3',
-              dtype: 'int32',
-              shape: [4],
-            }
-          ]);
-          done();
-        })
-        .catch(err => {
-          console.error(err.stack);
-        });
+    const dataAndSpecs = await tf.io.encodeWeights(tensors);
+    const data = dataAndSpecs.data;
+    const specs = dataAndSpecs.specs;
+    expect(data.byteLength).toEqual(4 * (4 + 1 + 4));
+    expect(new Int32Array(data, 0, 4)).toEqual(new Int32Array([
+      10, 20, 30, 40
+    ]));
+    expect(new Int32Array(data, 16, 1)).toEqual(new Int32Array([42]));
+    expect(new Int32Array(data, 20, 4)).toEqual(new Int32Array([
+      -1, -3, -3, -7
+    ]));
+    expect(specs).toEqual([
+      {
+        name: 'x1',
+        dtype: 'int32',
+        shape: [2, 2],
+      },
+      {
+        name: 'x2',
+        dtype: 'int32',
+        shape: [],
+      },
+      {
+        name: 'x3',
+        dtype: 'int32',
+        shape: [4],
+      }
+    ]);
   });
 
-  it('Bool tensors', async done => {
+  it('Bool tensors', async () => {
     const tensors: NamedTensorMap = {
       x1: tensor2d([[true, false], [false, true]], [2, 2], 'bool'),
       x2: scalar(false, 'bool'),
       x3: tensor1d([false, true, true, false], 'bool'),
     };
-    tf.io.encodeWeights(tensors)
-        .then(dataAndSpecs => {
-          const data = dataAndSpecs.data;
-          const specs = dataAndSpecs.specs;
-          expect(data.byteLength).toEqual(4 + 1 + 4);
-          expect(new Uint8Array(data, 0, 4)).toEqual(new Uint8Array([
-            1, 0, 0, 1
-          ]));
-          expect(new Uint8Array(data, 4, 1)).toEqual(new Uint8Array([0]));
-          expect(new Uint8Array(data, 5, 4)).toEqual(new Uint8Array([
-            0, 1, 1, 0
-          ]));
-          expect(specs).toEqual([
-            {
-              name: 'x1',
-              dtype: 'bool',
-              shape: [2, 2],
-            },
-            {
-              name: 'x2',
-              dtype: 'bool',
-              shape: [],
-            },
-            {
-              name: 'x3',
-              dtype: 'bool',
-              shape: [4],
-            }
-          ]);
-          done();
-        })
-        .catch(err => {
-          console.error(err.stack);
-        });
+    const dataAndSpecs = await tf.io.encodeWeights(tensors);
+    const data = dataAndSpecs.data;
+    const specs = dataAndSpecs.specs;
+    expect(data.byteLength).toEqual(4 + 1 + 4);
+    expect(new Uint8Array(data, 0, 4)).toEqual(new Uint8Array([1, 0, 0, 1]));
+    expect(new Uint8Array(data, 4, 1)).toEqual(new Uint8Array([0]));
+    expect(new Uint8Array(data, 5, 4)).toEqual(new Uint8Array([0, 1, 1, 0]));
+    expect(specs).toEqual([
+      {
+        name: 'x1',
+        dtype: 'bool',
+        shape: [2, 2],
+      },
+      {
+        name: 'x2',
+        dtype: 'bool',
+        shape: [],
+      },
+      {
+        name: 'x3',
+        dtype: 'bool',
+        shape: [4],
+      }
+    ]);
   });
 
-  it('Mixed dtype tensors', async done => {
+  it('Mixed dtype tensors', async () => {
     const tensors: NamedTensorMap = {
       x1: tensor2d([[10, 20], [30, 40]], [2, 2], 'int32'),
       x2: scalar(13.37, 'float32'),
       x3: tensor1d([true, false, false, true], 'bool'),
     };
-    tf.io.encodeWeights(tensors)
-        .then(dataAndSpecs => {
-          const data = dataAndSpecs.data;
-          const specs = dataAndSpecs.specs;
-          expect(data.byteLength).toEqual(4 * 4 + 4 * 1 + 1 * 4);
-          expect(new Int32Array(data, 0, 4)).toEqual(new Int32Array([
-            10, 20, 30, 40
-          ]));
-          expect(new Float32Array(data, 16, 1))
-              .toEqual(new Float32Array([13.37]));
-          expect(new Uint8Array(data, 20, 4)).toEqual(new Uint8Array([
-            1, 0, 0, 1
-          ]));
-          expect(specs).toEqual([
-            {
-              name: 'x1',
-              dtype: 'int32',
-              shape: [2, 2],
-            },
-            {
-              name: 'x2',
-              dtype: 'float32',
-              shape: [],
-            },
-            {
-              name: 'x3',
-              dtype: 'bool',
-              shape: [4],
-            }
-          ]);
-          done();
-        })
-        .catch(err => {
-          console.error(err.stack);
-        });
+    const dataAndSpecs = await tf.io.encodeWeights(tensors);
+    const data = dataAndSpecs.data;
+    const specs = dataAndSpecs.specs;
+    expect(data.byteLength).toEqual(4 * 4 + 4 * 1 + 1 * 4);
+    expect(new Int32Array(data, 0, 4)).toEqual(new Int32Array([
+      10, 20, 30, 40
+    ]));
+    expect(new Float32Array(data, 16, 1)).toEqual(new Float32Array([13.37]));
+    expect(new Uint8Array(data, 20, 4)).toEqual(new Uint8Array([1, 0, 0, 1]));
+    expect(specs).toEqual([
+      {
+        name: 'x1',
+        dtype: 'int32',
+        shape: [2, 2],
+      },
+      {
+        name: 'x2',
+        dtype: 'float32',
+        shape: [],
+      },
+      {
+        name: 'x3',
+        dtype: 'bool',
+        shape: [4],
+      }
+    ]);
   });
 });
 

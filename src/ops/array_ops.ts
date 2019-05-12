@@ -378,6 +378,15 @@ function squeeze_<T extends Tensor>(x: Tensor|TensorLike, axis?: number[]): T {
 function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
   const $x = convertToTensor(x, 'x', 'cast');
 
+  // Sanity checks.
+  if (!util.isValidDtype(dtype)) {
+    throw new Error(`Failed to cast to unknown dtype ${dtype}`);
+  }
+  if (dtype === 'string' && $x.dtype !== 'string' ||
+      dtype !== 'string' && $x.dtype === 'string') {
+    throw new Error('Only strings can be casted to strings');
+  }
+
   const grad = (dy: T) => {
     return {$x: () => dy.clone()};
   };

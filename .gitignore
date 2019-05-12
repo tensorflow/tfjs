@@ -2,6 +2,7 @@ node_modules/
 coverage/
 npm-debug.log
 yarn-error.log
+local.log
 .DS_Store
 dist/
 bazel-out/

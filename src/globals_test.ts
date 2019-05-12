@@ -21,13 +21,8 @@ import {ALL_ENVS, describeWithFlags, NODE_ENVS} from './jasmine_util';
 import {expectArraysClose} from './test_util';
 
 describe('deprecation warnings', () => {
-  let oldWarn: (msg: string) => void;
   beforeEach(() => {
-    oldWarn = console.warn;
     spyOn(console, 'warn').and.callFake((msg: string): void => null);
-  });
-  afterEach(() => {
-    console.warn = oldWarn;
   });
 
   it('deprecationWarn warns', () => {

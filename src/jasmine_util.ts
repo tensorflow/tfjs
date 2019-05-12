@@ -21,8 +21,8 @@ import {ENV, Environment, Flags} from './environment';
 Error.stackTraceLimit = Infinity;
 
 export type Constraints = {
-  flags?: Flags;
-  predicate?: (backend: string) => boolean;
+  flags?: Flags,
+  predicate?: (testEnv: TestEnv) => boolean,
 };
 
 export const NODE_ENVS: Constraints = {
@@ -35,14 +35,14 @@ export const BROWSER_ENVS: Constraints = {
   predicate: () => ENV.platformName === 'browser'
 };
 export const SYNC_BACKEND_ENVS: Constraints = {
-  predicate: backend => ENGINE.findBackend(backend).isDataSync()
+  predicate: (testEnv: TestEnv) => testEnv.isDataSync === true
 };
 
 export const ALL_ENVS: Constraints = {};
 
 // Tests whether the current environment satisfies the set of constraints.
 export function envSatisfiesConstraints(
-    env: Environment, backendName: string, constraints: Constraints): boolean {
+    env: Environment, testEnv: TestEnv, constraints: Constraints): boolean {
   if (constraints == null) {
     return true;
   }
@@ -55,7 +55,7 @@ export function envSatisfiesConstraints(
       }
     }
   }
-  if (constraints.predicate != null && !constraints.predicate(backendName)) {
+  if (constraints.predicate != null && !constraints.predicate(testEnv)) {
     return false;
   }
   return true;
@@ -102,7 +102,7 @@ export function describeWithFlags(
     name: string, constraints: Constraints, tests: (env: TestEnv) => void) {
   TEST_ENVS.forEach(testEnv => {
     ENV.setFlags(testEnv.flags);
-    if (envSatisfiesConstraints(ENV, testEnv.backendName, constraints)) {
+    if (envSatisfiesConstraints(ENV, testEnv, constraints)) {
       const testName =
           name + ' ' + testEnv.name + ' ' + JSON.stringify(testEnv.flags);
       executeTests(testName, tests, testEnv);
@@ -114,6 +114,7 @@ export interface TestEnv {
   name: string;
   backendName: string;
   flags?: Flags;
+  isDataSync?: boolean;
 }
 
 export let TEST_ENVS: TestEnv[] = [];
@@ -147,13 +148,14 @@ if (typeof __karma__ !== 'undefined') {
 function executeTests(
     testName: string, tests: (env: TestEnv) => void, testEnv: TestEnv) {
   describe(testName, () => {
-    beforeAll(() => {
+    beforeAll(async () => {
       ENGINE.reset();
       if (testEnv.flags != null) {
         ENV.setFlags(testEnv.flags);
       }
       ENV.set('IS_TEST', true);
-      ENGINE.setBackend(testEnv.backendName);
+      // Await setting the new backend since it can have async init.
+      await ENGINE.setBackend(testEnv.backendName);
     });
 
     beforeEach(() => {
