@@ -427,6 +427,12 @@ export function checkConversionForErrors<D extends DataType>(
   }
 }
 
+/** Returns true if the dtype is valid. */
+export function isValidDtype(dtype: DataType): boolean {
+  return dtype === 'bool' || dtype === 'complex64' || dtype === 'float32' ||
+      dtype === 'int32' || dtype === 'string';
+}
+
 /**
  * Returns true if the new type can't encode the old type without loss of
  * precision.

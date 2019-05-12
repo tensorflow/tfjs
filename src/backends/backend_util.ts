@@ -15,11 +15,12 @@
  * =============================================================================
  */
 
-import {scalar, zeros, tensor1d} from '../ops/tensor_ops';
+import {scalar, tensor1d, zeros} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
 import {Rank} from '../types';
 import {DataType, ShapeMap} from '../types';
 import {hasEncodingLoss, makeZerosTypedArray} from '../util';
+
 import {KernelBackend} from './backend';
 
 export function castTensor<T extends Tensor>(
@@ -55,7 +56,7 @@ export function castTensor<T extends Tensor>(
     zero.dispose();
     return result;
   } else {
-    throw new Error(`Error in Cast: unknown dtype argument (${dtype})`);
+    throw new Error(`Error in Cast: failed to cast ${x.dtype} to ${dtype}`);
   }
 }
 

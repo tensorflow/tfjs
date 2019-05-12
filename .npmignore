@@ -2,6 +2,8 @@
 .rpt2_cache/
 src/**/*_test.ts
 integration_tests/
+src/backends/webgpu/
+dist/backends/webgpu/
 models/
 coverage/
 package/

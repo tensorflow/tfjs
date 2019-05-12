@@ -17,6 +17,7 @@
 
 import {BackendTimer, BackendTimingInfo} from './backends/backend';
 import * as tf from './index';
+import {describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
 import {Logger, Profiler} from './profiler';
 import {Tensor} from './tensor';
 import {TypedArray} from './types';
@@ -41,7 +42,7 @@ class TestLogger extends Logger {
       name: string, result: Tensor, vals: TypedArray, timeMs: number) {}
 }
 
-describe('profiler.Profiler', () => {
+describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
   it('profiles simple function', doneFn => {
     const delayMs = 5;
     const queryTimeMs = 10;

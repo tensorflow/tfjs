@@ -18,7 +18,8 @@
 
 /**
  * This file tests that we don't have any dataSyncs in the unconstrainted tests
- * so that we can run async backends against our exported test files.
+ * so that we can run backends that have async init and async data reads against
+ * our exported test files.
  */
 import './index';
 
@@ -50,9 +51,6 @@ const proxyBackend = new Proxy(asyncBackend, {
           `.data() in unit tests or if you truly are testing dataSync(), ` +
           `constrain your test with SYNC_BACKEND_ENVS`);
     }
-    if (name === 'isDataSync') {
-      return () => false;
-    }
     const origSymbol = backend[name];
     if (typeof origSymbol === 'function') {
       // tslint:disable-next-line:no-any
@@ -65,9 +63,15 @@ const proxyBackend = new Proxy(asyncBackend, {
   }
 });
 
-registerBackend('test-async-cpu', () => proxyBackend);
+// The registration is async on purpose, so we know our testing infra works
+// with backends that have async init (e.g. WASM and WebGPU).
+registerBackend('test-async-cpu', async () => proxyBackend);
 
-setTestEnvs([{name: 'test-async-cpu', backendName: 'test-async-cpu'}]);
+setTestEnvs([{
+  name: 'test-async-cpu',
+  backendName: 'test-async-cpu',
+  isDataSync: false,
+}]);
 
 const runner = new jasmine();
 runner.loadConfig({spec_files: ['dist/**/**_test.js'], random: false});

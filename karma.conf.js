@@ -34,7 +34,11 @@ if (coverageEnabled) {
 const devConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
   files: [{pattern: 'src/**/*.ts'}],
-  exclude: ['src/test_node.ts', 'src/backends/webgpu/**/*.ts'],
+  exclude: [
+    'src/test_node.ts',
+    'src/backends/webgpu/**/*.ts',
+    'src/test_async_backends.ts',
+  ],
   preprocessors: {'**/*.ts': ['karma-typescript']},
   karmaTypescriptConfig,
   reporters: ['dots', 'karma-typescript'],
@@ -43,10 +47,13 @@ const devConfig = {
 const browserstackConfig = {
   frameworks: ['browserify', 'jasmine'],
   files: [{pattern: 'dist/**/*_test.js'}],
-  exclude: ['dist/test_node.js'],
+  exclude: [
+    'dist/test_node.js',
+    'dist/test_async_backends.js',
+  ],
   preprocessors: {'dist/**/*_test.js': ['browserify']},
   browserify: {debug: false},
-  reporters: ['dots', 'BrowserStack'],
+  reporters: ['dots'],
   singleRun: true,
   hostname: 'bs-local.com',
 };
