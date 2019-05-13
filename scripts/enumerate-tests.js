@@ -46,8 +46,8 @@ function findTestFiles(dir, files) {
   files = files || [];
   fs.readdirSync(dir).forEach(file => {
     const filePath = path.join(dir, file);
-    if (!file.endsWith('node_modules') && !file.startsWith('.') &&
-        fs.statSync(filePath).isDirectory() &&
+    if (!file.endsWith('node_modules') && !filePath.endsWith('src/backends') &&
+        !file.startsWith('.') && fs.statSync(filePath).isDirectory() &&
         !fs.existsSync(path.join(filePath, 'package.json'))) {
       files = findTestFiles(filePath, files);
     } else if (filePath.endsWith('_test.ts')) {

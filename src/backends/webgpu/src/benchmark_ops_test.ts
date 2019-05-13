@@ -16,13 +16,9 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import * as webgpu from './index';
+import {describeWebGPU} from './test_util';
 
-describe('Ops benchmarks', () => {
-  beforeEach(async () => {
-    await webgpu.ready;
-  });
-
+describeWebGPU('Ops benchmarks', () => {
   // Performs `trials` trials, of `reps` repetitions each. At the end of each
   // trial, endTrial() is run (and included in the benchmark time). This
   // allows the cost of endTrial() to be amortized across the many iterations.

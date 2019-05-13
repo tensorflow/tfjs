@@ -36,6 +36,8 @@ describeWithFlags(
 
       beforeEach(() => {
         gpgpu = new GPGPUContext();
+        // Silences debug warnings.
+        spyOn(console, 'warn');
         ENV.set('DEBUG', true);
         texture = gpgpu.createFloat32MatrixTexture(1, 1);
       });
@@ -109,6 +111,8 @@ describeWithFlags(
 
       beforeEach(() => {
         gpgpu = new GPGPUContext();
+        // Silences debug warnings.
+        spyOn(console, 'warn');
         ENV.set('DEBUG', true);
         texture = gpgpu.createFloat32MatrixTexture(1, 1);
       });
@@ -172,6 +176,8 @@ describeWithFlags(
 
       beforeEach(() => {
         gpgpu = new GPGPUContext();
+        // Silences debug warnings.
+        spyOn(console, 'warn');
         ENV.set('DEBUG', true);
       });
 
@@ -208,6 +214,8 @@ describeWithFlags(
 
       beforeEach(() => {
         gpgpu = new GPGPUContext();
+        // Silences debug warnings.
+        spyOn(console, 'warn');
         ENV.set('DEBUG', true);
         const glsl = getGlslDifferences();
         const src = `${glsl.version}
@@ -290,6 +298,8 @@ describeWithFlags('GPGPUContext', DOWNLOAD_FLOAT_ENVS, () => {
 
   beforeEach(() => {
     gpgpu = new GPGPUContext();
+    // Silences debug warnings.
+    spyOn(console, 'warn');
     ENV.set('DEBUG', true);
   });
 

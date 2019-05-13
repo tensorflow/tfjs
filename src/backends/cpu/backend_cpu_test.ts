@@ -18,7 +18,7 @@
 import * as tf from '../../index';
 import {describeWithFlags} from '../../jasmine_util';
 import {tensor2d} from '../../ops/ops';
-import {expectArraysEqual} from '../../test_util';
+import {expectArraysClose, expectArraysEqual} from '../../test_util';
 
 import {MathBackendCPU} from './backend_cpu';
 import {CPU_ENVS} from './backend_cpu_test_registry';
@@ -140,5 +140,19 @@ describeWithFlags('memory cpu', CPU_ENVS, () => {
         'Memory usage by string tensors is approximate ' +
         '(2 bytes per character)';
     expect(mem.reasons.indexOf(expectedReasonString) >= 0).toBe(true);
+  });
+});
+
+describe('CPU backend has sync init', () => {
+  it('can do matmul without waiting for ready', async () => {
+    tf.registerBackend('my-cpu', () => {
+      return new MathBackendCPU();
+    });
+    const a = tf.tensor1d([5]);
+    const b = tf.tensor1d([3]);
+    const res = tf.dot(a, b);
+    expectArraysClose(await res.data(), 15);
+    tf.dispose([a, b, res]);
+    tf.removeBackend('my-cpu');
   });
 });

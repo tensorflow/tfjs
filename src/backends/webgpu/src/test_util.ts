@@ -15,15 +15,8 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs-core';
-import * as Shaderc from '@webgpu/shaderc';
+import {ALL_ENVS, describeWithFlags, TestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-import {WebGPUBackend} from './backend_webgpu';
-
-tf.registerBackend('webgpu', async () => {
-  const shaderc = await Shaderc.instantiate();
-  // @ts-ignore navigator.gpu is required
-  const adapter = await navigator.gpu.requestAdapter({});
-  const device = await adapter.requestDevice({});
-  return new WebGPUBackend(device, shaderc);
-}, 3 /*priority*/);
+export function describeWebGPU(name: string, tests: (env: TestEnv) => void) {
+  describeWithFlags('webgpu ' + name, ALL_ENVS, tests);
+}
