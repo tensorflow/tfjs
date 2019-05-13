@@ -127,7 +127,7 @@
               ],
               'action': [
                 'cmd',
-                '/c node <@(_inputs) > <@(_outputs)'
+                '/c node --max-old-space-size=4096 <@(_inputs) > <@(_outputs)'
               ]
             },
             {
