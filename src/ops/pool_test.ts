@@ -28,7 +28,7 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [0]);
   });
 
-  it('x=[3,3,1] f=[2,2] s=1', async () => {
+  it('x=[3,3,1] f=[2,2] s=1, p=0', async () => {
     // Feed forward.
     const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 9, 8], [3, 3, 1]);
 
@@ -36,6 +36,16 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
 
     expect(result.shape).toEqual([2, 2, 1]);
     expectArraysClose(await result.data(), [5, 6, 9, 9]);
+  });
+
+  it('x=[3,3,1] f=[2,2] s=1 p=same', async () => {
+    const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 9, 8], [3, 3, 1]);
+
+    const result = tf.maxPool(x, 2, 1, 'same');
+    const resultData = await result.data();
+
+    tf.test_util.expectArraysClose(
+        resultData, new Float32Array([5, 6, 6, 9, 9, 8, 9, 9, 8]));
   });
 
   it('x=[2,3,3,1] f=[2,2] s=1', async () => {
