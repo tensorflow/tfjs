@@ -28,7 +28,9 @@ import functools
 import json
 import os
 import subprocess
+import shutil
 import sys
+import tempfile
 import time
 
 from tensorflow import keras
@@ -86,7 +88,8 @@ def benchmark_and_serialize_model(model_name,
                                   loss,
                                   batch_size,
                                   train_epochs,
-                                  artifacts_dir):
+                                  artifacts_dir,
+                                  export_saved_model=False):
   """Benchmark a model's fit() and predict() calls; serialize the model.
 
   Args:
@@ -114,6 +117,15 @@ def benchmark_and_serialize_model(model_name,
        burn-in one.
     2. Average predict() time over all the _PREDICT_RUNS.
   """
+  if os.path.isdir(artifacts_dir) and os.listdir(artifacts_dir):
+    for rel_name in artifacts_dir:
+      abs_path = os.path.join(artifacts_dir, rel_name)
+      print('deleting %s' % abs_path)
+      if os.path.isfile(abs_path):
+        os.remove(abs_path)
+      else:
+        shutil.rmtree(abs_path)
+
   environment_info = _get_python_environment_info()
   task_logs = {}
 
@@ -162,12 +174,29 @@ def benchmark_and_serialize_model(model_name,
     model.predict(xs)
     predict_ts.append((time.time() - predict_t_begin) * 1e3)
 
-  # Save the model and weights.
-  tfjs.converters.save_keras_model(model, artifacts_dir)
+  print("artifacts_dir=%s, export_saved_model=%s" %
+        (artifacts_dir, export_saved_model))  # DEBUG
+  if export_saved_model:
+    tmp_saved_model_dir = tempfile.mkdtemp()
+    keras.experimental.export_saved_model(
+        model, tmp_saved_model_dir, serving_only=True)
+    subprocess.check_output([
+        'tensorflowjs_converter',
+        '--input_format', 'tf_saved_model',
+        '--output_format', 'tfjs_graph_model',
+        '--signature_name', 'serving_default',
+        '--saved_model_tags', 'serve',
+        tmp_saved_model_dir, artifacts_dir])
+    # Clean up the temporary SavedModel directory.
+    shutil.rmtree(tmp_saved_model_dir)
+  else:
+    # Save the model and weights.
+    tfjs.converters.save_keras_model(model, artifacts_dir)
 
   # Collect and format the data for predict().
   task_logs['predict'] = {  # For schema, see 'ModelTaskLog` in types.ts.
     'taskType': 'model',
+    'modelFormat': 'GraphModel' if export_saved_model else 'LayersModel',
     'modelName': model_name,
     'modelDescription': description,
     'functionName': 'predict',
@@ -261,6 +290,16 @@ def rnn_model_fn(rnn_type, input_shape, target_shape):
   return model
 
 
+def mobilenet_v2_savedmodel_fn(alpha, input_shape, target_shape):
+  """MobileNetV2: A ConvNet from Keras Applications."""
+  del input_shape, target_shape  # Unused.
+  # `weights=None` leads to random weight initialization and downloadnig
+  # of weights.
+  model = keras.applications.MobileNetV2(alpha=alpha, weights=None)
+  model.summary()
+  return model
+
+
 def _get_environment_type():
   return ('python-tensorflow-cuda' if tf.test.gpu_device_name() else
           'python-tensorflow-cpu')
@@ -273,15 +312,18 @@ def _get_python_environment_info():
 
   try:
     # Disable color from `inxi` command.
-    environment_info['cpuInfo'] = subprocess.check_output(['inxi', '-c', '0'])
+    environment_info['cpuInfo'] = tf.compat.as_str(
+        subprocess.check_output(['inxi', '-c', '0']))
   except:
     pass
   try:
-    environment_info['memInfo'] = subprocess.check_output(['free'])
+    environment_info['memInfo'] = tf.compat.as_str(
+        subprocess.check_output(['free']))
   except:
     pass
   try:
-    environment_info['systemInfo'] = subprocess.check_output(['uname', '-a'])
+    environment_info['systemInfo'] = tf.compat.as_str(
+        subprocess.check_output(['uname', '-a']))
   except:
     pass
 
@@ -294,6 +336,7 @@ def _get_python_environment_info():
 
 
 def main():
+  print("Main 000")  # DEBUG
   environment_info = _get_python_environment_info()
   print('Environment info:')
   print(json.dumps(environment_info, indent=2))
@@ -453,7 +496,35 @@ def main():
             train_epochs,
             os.path.join(FLAGS.data_root, model_name)))
 
-  # TODO(cais): Add GraphModels.
+  # MobileNetV2 as TensorFlow SavedModel (inference only).
+  print("100")  # DEBUG
+  input_shape = None  # Determine from the Model object itself.
+  target_shape = None  # Determine from the Model object itself.
+  batch_size = 8
+  train_epochs = 0
+  optimizer = None
+  loss = None
+  names_fns_and_descriptions = [[
+      'mobilenet_v2_%.3d_tf_savedmodel' % (alpha * 100),
+      functools.partial(mobilenet_v2_model_fn, alpha),
+      'mobilenet_v2_%.3d_tf_savedmodel' % (alpha * 100)]
+      for alpha in (0.25, 0.5, 0.75, 1)]
+  for model_name, model_fn, description in names_fns_and_descriptions:
+    suite_log['data'][model_name] = (
+        benchmark_and_serialize_model(
+            model_name,
+            description,
+            model_fn,
+            input_shape,
+            target_shape,
+            optimizer,
+            loss,
+            batch_size,
+            train_epochs,
+            os.path.join(FLAGS.data_root, model_name),
+            export_saved_model=True))
+  print("200")  # DEBUG
+
   # TODO(cais): Add fitDataset() calls (i.e., equivalent to fit() with a
   #   tf.data.Dataset object i nPython).
 

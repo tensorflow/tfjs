@@ -211,6 +211,8 @@ export interface Model {
 //   operations, etc.
 export type TaskType = 'model';
 
+export type ModelFormat = 'LayersModel' | 'GraphModel';
+
 export type ModelFunctionName = 'predict' | 'fit' | 'fitDataset';
 
 export type FunctionName = ModelFunctionName;
@@ -290,6 +292,8 @@ export interface BenchmarkRun {
 
 export interface ModelBenchmarkRun extends BenchmarkRun {
   taskType: 'model';
+
+  modelFormat: ModelFormat;
 
   modelName: string;
 

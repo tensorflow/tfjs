@@ -217,7 +217,7 @@ describe('TF.js Layers Benchmarks', () => {
   const BENCHMARKS_JSON_URL = `${DATA_SERVER_ROOT}/benchmarks.json`;
   const BENCHMARKS_JSON_PATH = './data/benchmarks.json';
 
-  async function loadModel(modelName: string): Promise<tfl.LayersModel> {
+  async function loadLayersModel(modelName: string): Promise<tfl.LayersModel> {
     // tslint:disable-next-line:no-any
     let modelJSON: any;
     if (inNodeJS()) {
@@ -326,7 +326,10 @@ describe('TF.js Layers Benchmarks', () => {
       const modelName = sortedModelNames[i];
       const taskGroupLog = suiteLog.data[modelName];
       console.log(`${i + 1}/${sortedModelNames.length}: ${modelName}`);
-      const model = await loadModel(modelName);
+
+      // TODO(cais): Check modelFormat field and load as a Graph model if
+      // a Graph Model.
+      const model = await loadLayersModel(modelName);
 
       const functionNames = Object.keys(taskGroupLog) as ModelFunctionName[];
       if (functionNames.length === 0) {
