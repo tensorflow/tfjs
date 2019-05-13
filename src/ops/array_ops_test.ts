@@ -460,6 +460,13 @@ describeWithFlags('zerosLike', ALL_ENVS, () => {
     expectArraysClose(await b.data(), [0, 0, 0, 0]);
   });
 
+  it('zerosLike gradient', async () => {
+    const x = tf.tensor2d([[0, 1, 2], [4, 5, 6]]);
+    const gradients = tf.grad(x => tf.zerosLike(x))(x);
+    expect(gradients.shape).toEqual([2, 3]);
+    expectArraysEqual(await gradients.data(), [0, 0, 0, 0, 0, 0]);
+  });
+
   it('throws when passed a non-tensor', () => {
     expect(() => tf.zerosLike({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'zerosLike' must be a Tensor/);
@@ -744,6 +751,13 @@ describeWithFlags('onesLike', ALL_ENVS, () => {
   it('throws when passed a non-tensor', () => {
     expect(() => tf.onesLike({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'onesLike' must be a Tensor/);
+  });
+
+  it('onesLike gradient', async () => {
+    const x = tf.tensor2d([[0, 1, 2], [4, 5, 6]]);
+    const gradients = tf.grad(x => tf.onesLike(x))(x);
+    expect(gradients.shape).toEqual([2, 3]);
+    expectArraysEqual(await gradients.data(), [0, 0, 0, 0, 0, 0]);
   });
 
   it('accepts a tensor-like object', async () => {
