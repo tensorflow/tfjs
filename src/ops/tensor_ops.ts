@@ -452,7 +452,8 @@ function onesLike_<T extends Tensor>(x: T|TensorLike): T {
     const i = zerosLike(imag($x));
     return complex(r, i);
   }
-  return ENGINE.runKernel(backend => backend.onesLike($x), {$x}, null) as T;
+  const der = (dy: T, saved: Tensor[]) => ({$x: () => zerosLike(dy)});
+  return ENGINE.runKernel(backend => backend.onesLike($x), {$x}, der) as T;
 }
 
 /**
@@ -469,7 +470,8 @@ function onesLike_<T extends Tensor>(x: T|TensorLike): T {
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function zerosLike_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'zerosLike');
-  return ENGINE.runKernel(backend => backend.zerosLike($x), {$x}, null) as T;
+  const der = (dy: T, saved: Tensor[]) => ({$x: () => zerosLike(dy)});
+  return ENGINE.runKernel(backend => backend.zerosLike($x), {$x}, der) as T;
 }
 
 /**
