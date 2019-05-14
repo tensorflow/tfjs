@@ -118,7 +118,7 @@ def benchmark_and_serialize_model(model_name,
     2. Average predict() time over all the _PREDICT_RUNS.
   """
   if os.path.isdir(artifacts_dir) and os.listdir(artifacts_dir):
-    for rel_name in artifacts_dir:
+    for rel_name in os.listdir(artifacts_dir):
       abs_path = os.path.join(artifacts_dir, rel_name)
       print('deleting %s' % abs_path)
       if os.path.isfile(abs_path):
@@ -345,156 +345,156 @@ def main():
   suite_log['data'] = {}
   suite_log['environmentInfo'] = environment_info
 
-  # Dense model.
-  optimizer = tf.keras.optimizers.SGD()
-  loss = 'mean_squared_error'
-  batch_size = 128
-  train_epochs = 10
-  input_shape = [100]
-  target_shape = [1]
-  names_fns_and_descriptions = [
-      ('dense-tiny',
-       dense_tiny_model_fn,
-       'Input([%d]);Dense(200);Dense(%d)|%s|%s' %
-       (input_shape[0], target_shape[0], optimizer, loss)),
-      ('dense-large',
-       dense_large_model_fn,
-       'Input([%d]);Dense(4000);Dense(1000);Dense(500);Dense(%d)|%s|%s' %
-       (input_shape[0], target_shape[0], optimizer, loss))]
-
-  for model_name, model_fn, description in names_fns_and_descriptions:
-    suite_log['data'][model_name] = (
-        benchmark_and_serialize_model(
-            model_name,
-            description,
-            model_fn,
-            input_shape,
-            target_shape,
-            optimizer,
-            loss,
-            batch_size,
-            train_epochs,
-            os.path.join(FLAGS.data_root, model_name)))
-
-  # Conv2d models.
-
-  # TODO(cais): Restore optimizer after the following
-  #   error is resolved:
-  # "Error: Cannot evaluate flag 'EPSILON': no evaluation function found."
-  # optimizer = tf.train.GradientDescentOptimizer(0.01)
-  # loss = 'categorical_crossentropy'
+  # # Dense model.
+  # optimizer = tf.keras.optimizers.SGD()
+  # loss = 'mean_squared_error'
+  # batch_size = 128
   # train_epochs = 10
-  optimizer = None
-  loss = None
-  train_epochs = 0
-  input_shape = [28, 28, 1]
-  target_shape = [10]
-  names_fns_and_descriptions = [
-      ("convolutional-%dfilters" % num_filters,
-       functools.partial(convolutional_model_fn, num_filters),
-       'Conv2D(%d,3);Conv2D(%d,3);MaxPooling2D(2);'
-       'Flatten();Dense(128);Dense(10)|%s|%s' %
-       (num_filters, num_filters, optimizer, loss)) for num_filters in
-      (1, 2, 4, 8, 16, 24, 26, 28, 30, 32)]
+  # input_shape = [100]
+  # target_shape = [1]
+  # names_fns_and_descriptions = [
+  #     ('dense-tiny',
+  #      dense_tiny_model_fn,
+  #      'Input([%d]);Dense(200);Dense(%d)|%s|%s' %
+  #      (input_shape[0], target_shape[0], optimizer, loss)),
+  #     ('dense-large',
+  #      dense_large_model_fn,
+  #      'Input([%d]);Dense(4000);Dense(1000);Dense(500);Dense(%d)|%s|%s' %
+  #      (input_shape[0], target_shape[0], optimizer, loss))]
 
-  for model_name, model_fn, description in names_fns_and_descriptions:
-    suite_log['data'][model_name] = (
-        benchmark_and_serialize_model(
-            model_name,
-            description,
-            model_fn,
-            input_shape,
-            target_shape,
-            optimizer,
-            loss,
-            batch_size,
-            train_epochs,
-            os.path.join(FLAGS.data_root, model_name)))
+  # for model_name, model_fn, description in names_fns_and_descriptions:
+  #   suite_log['data'][model_name] = (
+  #       benchmark_and_serialize_model(
+  #           model_name,
+  #           description,
+  #           model_fn,
+  #           input_shape,
+  #           target_shape,
+  #           optimizer,
+  #           loss,
+  #           batch_size,
+  #           train_epochs,
+  #           os.path.join(FLAGS.data_root, model_name)))
 
-  # RNN models.
-  # TODO(cais): Restore optimizer after the following
-  #   error is resolved:
-  # "Error: Cannot evaluate flag 'EPSILON': no evaluation function found."
-  # optimizer = tf.keras.optimizers.RMSProp()
-  # loss = 'categorical_crossentropy'
-  # train_epochs = 10
-  optimizer = None
-  loss = None
-  train_epochs = 0
-  input_shape = [20, 20]
-  target_shape = [20]
-  batch_size = 128
-  names_fns_and_descriptions = [
-      ("rnn-%s" % rnn_type,
-       functools.partial(rnn_model_fn, rnn_type),
-       '%s(input_shape=%s, target_shape=%s)|%s|%s' %
-       (rnn_type, input_shape, target_shape, optimizer, loss))
-      for rnn_type in ('SimpleRNN', 'GRU', 'LSTM')]
+  # # Conv2d models.
 
-  for model_name, model_fn, description in names_fns_and_descriptions:
-    suite_log['data'][model_name] = (
-        benchmark_and_serialize_model(
-            model_name,
-            description,
-            model_fn,
-            input_shape,
-            target_shape,
-            optimizer,
-            loss,
-            batch_size,
-            train_epochs,
-            os.path.join(FLAGS.data_root, model_name)))
+  # # TODO(cais): Restore optimizer after the following
+  # #   error is resolved:
+  # # "Error: Cannot evaluate flag 'EPSILON': no evaluation function found."
+  # # optimizer = tf.train.GradientDescentOptimizer(0.01)
+  # # loss = 'categorical_crossentropy'
+  # # train_epochs = 10
+  # optimizer = None
+  # loss = None
+  # train_epochs = 0
+  # input_shape = [28, 28, 1]
+  # target_shape = [10]
+  # names_fns_and_descriptions = [
+  #     ("convolutional-%dfilters" % num_filters,
+  #      functools.partial(convolutional_model_fn, num_filters),
+  #      'Conv2D(%d,3);Conv2D(%d,3);MaxPooling2D(2);'
+  #      'Flatten();Dense(128);Dense(10)|%s|%s' %
+  #      (num_filters, num_filters, optimizer, loss)) for num_filters in
+  #     (1, 2, 4, 8, 16, 24, 26, 28, 30, 32)]
 
-  # MobileNetV2 (inference only).
-  input_shape = None  # Determine from the Model object itself.
-  target_shape = None  # Determine from the Model object itself.
-  batch_size = 8
-  train_epochs = 0
-  optimizer = None
-  loss = None
-  names_fns_and_descriptions = [[
-      'mobilenet_v2_%.3d' % (alpha * 100),
-      functools.partial(mobilenet_v2_model_fn, alpha),
-      'mobilenet_v2_%.3d' % (alpha * 100)] for alpha in (0.25, 0.5, 0.75, 1)]
-  for model_name, model_fn, description in names_fns_and_descriptions:
-    suite_log['data'][model_name] = (
-        benchmark_and_serialize_model(
-            model_name,
-            description,
-            model_fn,
-            input_shape,
-            target_shape,
-            optimizer,
-            loss,
-            batch_size,
-            train_epochs,
-            os.path.join(FLAGS.data_root, model_name)))
+  # for model_name, model_fn, description in names_fns_and_descriptions:
+  #   suite_log['data'][model_name] = (
+  #       benchmark_and_serialize_model(
+  #           model_name,
+  #           description,
+  #           model_fn,
+  #           input_shape,
+  #           target_shape,
+  #           optimizer,
+  #           loss,
+  #           batch_size,
+  #           train_epochs,
+  #           os.path.join(FLAGS.data_root, model_name)))
 
-  # Attention model (inference only).
-  input_shape = None  # Determine from the Model object itself.
-  target_shape = None  # Determine from the Model object itself.
-  batch_size = 32
-  train_epochs = 0
-  optimizer = None
-  loss = None
-  names_fns_and_descriptions = [[
-      'attention',
-      attention_model_fn,
-      'Attention-based translation model: '
-      'Function model with bidirectional LSTM layers']]
-  for model_name, model_fn, description in names_fns_and_descriptions:
-    suite_log['data'][model_name] = (
-        benchmark_and_serialize_model(
-            model_name,
-            description,
-            model_fn,
-            input_shape,
-            target_shape,
-            optimizer,
-            loss,
-            batch_size,
-            train_epochs,
-            os.path.join(FLAGS.data_root, model_name)))
+  # # RNN models.
+  # # TODO(cais): Restore optimizer after the following
+  # #   error is resolved:
+  # # "Error: Cannot evaluate flag 'EPSILON': no evaluation function found."
+  # # optimizer = tf.keras.optimizers.RMSProp()
+  # # loss = 'categorical_crossentropy'
+  # # train_epochs = 10
+  # optimizer = None
+  # loss = None
+  # train_epochs = 0
+  # input_shape = [20, 20]
+  # target_shape = [20]
+  # batch_size = 128
+  # names_fns_and_descriptions = [
+  #     ("rnn-%s" % rnn_type,
+  #      functools.partial(rnn_model_fn, rnn_type),
+  #      '%s(input_shape=%s, target_shape=%s)|%s|%s' %
+  #      (rnn_type, input_shape, target_shape, optimizer, loss))
+  #     for rnn_type in ('SimpleRNN', 'GRU', 'LSTM')]
+
+  # for model_name, model_fn, description in names_fns_and_descriptions:
+  #   suite_log['data'][model_name] = (
+  #       benchmark_and_serialize_model(
+  #           model_name,
+  #           description,
+  #           model_fn,
+  #           input_shape,
+  #           target_shape,
+  #           optimizer,
+  #           loss,
+  #           batch_size,
+  #           train_epochs,
+  #           os.path.join(FLAGS.data_root, model_name)))
+
+  # # MobileNetV2 (inference only).
+  # input_shape = None  # Determine from the Model object itself.
+  # target_shape = None  # Determine from the Model object itself.
+  # batch_size = 8
+  # train_epochs = 0
+  # optimizer = None
+  # loss = None
+  # names_fns_and_descriptions = [[
+  #     'mobilenet_v2_%.3d' % (alpha * 100),
+  #     functools.partial(mobilenet_v2_model_fn, alpha),
+  #     'mobilenet_v2_%.3d' % (alpha * 100)] for alpha in (0.25, 0.5, 0.75, 1)]
+  # for model_name, model_fn, description in names_fns_and_descriptions:
+  #   suite_log['data'][model_name] = (
+  #       benchmark_and_serialize_model(
+  #           model_name,
+  #           description,
+  #           model_fn,
+  #           input_shape,
+  #           target_shape,
+  #           optimizer,
+  #           loss,
+  #           batch_size,
+  #           train_epochs,
+  #           os.path.join(FLAGS.data_root, model_name)))
+
+  # # Attention model (inference only).
+  # input_shape = None  # Determine from the Model object itself.
+  # target_shape = None  # Determine from the Model object itself.
+  # batch_size = 32
+  # train_epochs = 0
+  # optimizer = None
+  # loss = None
+  # names_fns_and_descriptions = [[
+  #     'attention',
+  #     attention_model_fn,
+  #     'Attention-based translation model: '
+  #     'Function model with bidirectional LSTM layers']]
+  # for model_name, model_fn, description in names_fns_and_descriptions:
+  #   suite_log['data'][model_name] = (
+  #       benchmark_and_serialize_model(
+  #           model_name,
+  #           description,
+  #           model_fn,
+  #           input_shape,
+  #           target_shape,
+  #           optimizer,
+  #           loss,
+  #           batch_size,
+  #           train_epochs,
+  #           os.path.join(FLAGS.data_root, model_name)))
 
   # MobileNetV2 as TensorFlow SavedModel (inference only).
   print("100")  # DEBUG

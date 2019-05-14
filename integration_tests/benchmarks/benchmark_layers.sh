@@ -154,8 +154,6 @@ if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
   python "${SCRIPT_DIR}/python/benchmarks.py" "${DATA_ROOT}"
 fi
 
-# exit 1  # DEBUG
-
 if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then
   echo "Cleaning up virtualenv directory ${VENV_DIR}..."
   deactivate

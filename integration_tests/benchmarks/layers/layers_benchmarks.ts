@@ -27,6 +27,7 @@ import * as tfl from '@tensorflow/tfjs-layers';
 import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelBenchmarkRun, ModelFunctionName, ModelTrainingBenchmarkRun, VersionSet, PythonEnvironmentInfo, NodeEnvironmentType, NodeEnvironmentInfo, EnvironmentInfo} from '../types';
 // tslint:disable-next-line:max-line-length
 import {addEnvironmentInfoToFirestore, addOrGetTaskId, addBenchmarkRunsToFirestore, addVersionSetToFirestore} from '../firestore';
+import {NamedTensorMap} from '@tensorflow/tfjs-converter/dist/src/data/types';
 
 // tslint:disable-next-line:no-any
 let tfn: any;
@@ -139,12 +140,15 @@ function getRandomInputsAndOutputs(model: tfl.LayersModel, batchSize: number):
 }
 
 /** Call await data() on tensor(s). */
-async function syncData(tensors: tfc.Tensor|tfc.Tensor[]) {
+async function syncData(tensors: tfc.Tensor|tfc.Tensor[]|NamedTensorMap) {
   if (Array.isArray(tensors)) {
     const promises = tensors.map(tensor => tensor.data());
     await Promise.all(promises);
+  } else if (typeof tensors === 'object') {
+    const promises = Object.entries(tensors).map(item => item[1].data());
+    await Promise.all(promises);
   } else {
-    await tensors.data();
+    await (tensors as tfc.Tensor).data();
   }
 }
 
@@ -325,11 +329,20 @@ describe('TF.js Layers Benchmarks', () => {
     for (let i = 0; i < sortedModelNames.length; ++i) {
       const modelName = sortedModelNames[i];
       const taskGroupLog = suiteLog.data[modelName];
+      const modelFormat = taskGroupLog[Object.keys(taskGroupLog)[0]].modelFormat;
+
       console.log(`${i + 1}/${sortedModelNames.length}: ${modelName}`);
 
-      // TODO(cais): Check modelFormat field and load as a Graph model if
-      // a Graph Model.
-      const model = await loadLayersModel(modelName);
+      console.log(`modelFormat: ${modelFormat}`);  // DEBUG
+      let model: tfconverter.GraphModel | tfl.LayersModel;
+      if (modelFormat === 'LayersModel') {
+        model = await loadLayersModel(modelName);
+      } else if (modelFormat === 'GraphModel') {
+        model =
+            await tfconverter.loadGraphModel(`./data/${modelName}/model.json`);
+      } else {
+        throw new Error(`Unsupported modelFormat: ${JSON.stringify(modelFormat)}`);
+      }
 
       const functionNames = Object.keys(taskGroupLog) as ModelFunctionName[];
       if (functionNames.length === 0) {
@@ -370,6 +383,7 @@ describe('TF.js Layers Benchmarks', () => {
           tfjsRun = {
             taskId,
             taskType,
+            modelFormat,
             modelName,
             // TODO(cais): Add modelId.
             functionName,
@@ -387,14 +401,17 @@ describe('TF.js Layers Benchmarks', () => {
               `py=${pyRun.averageTimeMs.toFixed(3)}, ` +
               `tfjs=${tfjsRun.averageTimeMs.toFixed(3)}`);
         } else if (functionName === 'fit') {
+          if (modelFormat === 'GraphModel') {
+            throw new Error('GraphModel does not support training');
+          }
           const pyFitLog = pyRun as ModelTrainingBenchmarkRun;
-          model.compile({
+          (model as tfl.LayersModel).compile({
             loss: LOSS_MAP[pyFitLog.loss],
             optimizer: OPTIMIZER_MAP[pyFitLog.optimizer]
           });
 
           // Warm-up fit() call.
-          await model.fit(xs, ys, {
+          await (model as tfl.LayersModel).fit(xs, ys, {
             epochs: pyRun.numWarmUpIterations,
             yieldEvery: 'never',
             verbose: 0
@@ -402,7 +419,7 @@ describe('TF.js Layers Benchmarks', () => {
 
           // Benchmarked fit() call.
           const t0 = tfc.util.now();
-          await model.fit(xs, ys, {
+          await (model as tfl.LayersModel).fit(xs, ys, {
             epochs: pyRun.numBenchmarkedIterations,
             yieldEvery: 'never',
             verbose: 0
@@ -413,6 +430,7 @@ describe('TF.js Layers Benchmarks', () => {
           tfjsRun = {
             taskId,
             taskType,
+            modelFormat,
             modelName,
             // TODO(cais): Add modelId.
             functionName,
