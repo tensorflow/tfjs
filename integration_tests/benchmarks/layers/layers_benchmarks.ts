@@ -339,8 +339,12 @@ describe('TF.js Layers Benchmarks', () => {
       if (modelFormat === 'LayersModel') {
         model = await loadLayersModel(modelName);
       } else if (modelFormat === 'GraphModel') {
+        const graphModelJsonPath = isNodeJS ?
+            `file://${__dirname}/../data/${modelName}/model.json` :
+            `${DATA_SERVER_ROOT}/${modelName}/model.json`;
+        console.log(`Loading from ${graphModelJsonPath}`);  // DEBUG
         model =
-            await tfconverter.loadGraphModel(`./data/${modelName}/model.json`);
+            await tfconverter.loadGraphModel(graphModelJsonPath);
       } else {
         throw new Error(`Unsupported modelFormat: ${JSON.stringify(modelFormat)}`);
       }

@@ -508,7 +508,7 @@ def main():
       'mobilenet_v2_%.3d_tf_savedmodel' % (alpha * 100),
       functools.partial(mobilenet_v2_model_fn, alpha),
       'mobilenet_v2_%.3d_tf_savedmodel' % (alpha * 100)]
-      for alpha in (0.25, 0.5, 0.75, 1)]
+      for alpha in (1,)]
   for model_name, model_fn, description in names_fns_and_descriptions:
     suite_log['data'][model_name] = (
         benchmark_and_serialize_model(
