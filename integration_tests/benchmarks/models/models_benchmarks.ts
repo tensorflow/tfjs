@@ -24,9 +24,9 @@ import * as tfd from '@tensorflow/tfjs-data';
 import * as tfl from '@tensorflow/tfjs-layers';
 
 // tslint:disable-next-line:max-line-length
-import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelBenchmarkRun, ModelFunctionName, ModelTrainingBenchmarkRun, VersionSet, PythonEnvironmentInfo, NodeEnvironmentType, NodeEnvironmentInfo, EnvironmentInfo} from './types';
+import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelBenchmarkRun, ModelFunctionName, ModelTrainingBenchmarkRun, VersionSet, PythonEnvironmentInfo, NodeEnvironmentType, NodeEnvironmentInfo, EnvironmentInfo} from '../types';
 // tslint:disable-next-line:max-line-length
-import {addEnvironmentInfoToFirestore, addOrGetTaskId, addBenchmarkRunsToFirestore, addVersionSetToFirestore} from './firestore';
+import {addEnvironmentInfoToFirestore, addOrGetTaskId, addBenchmarkRunsToFirestore, addVersionSetToFirestore} from '../firestore';
 import {NamedTensorMap} from '@tensorflow/tfjs-converter/dist/src/data/types';
 
 // tslint:disable-next-line:no-any
