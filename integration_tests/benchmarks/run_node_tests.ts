@@ -33,7 +33,7 @@ export function runTests(jasmineUtil: any): void {
 
   const runner = new jasmineCtor();
   runner.loadConfig({
-    spec_files: ['layers/layers_benchmarks.ts'],
+    spec_files: ['model_benchmarks.ts'],
     random: false
   });
   runner.execute();

@@ -294,16 +294,6 @@ def rnn_model_fn(rnn_type, input_shape, target_shape):
   return model
 
 
-def mobilenet_v2_savedmodel_fn(alpha, input_shape, target_shape):
-  """MobileNetV2: A ConvNet from Keras Applications."""
-  del input_shape, target_shape  # Unused.
-  # `weights=None` leads to random weight initialization and downloadnig
-  # of weights.
-  model = keras.applications.MobileNetV2(alpha=alpha, weights=None)
-  model.summary()
-  return model
-
-
 def _get_environment_type():
   return ('python-tensorflow-cuda' if tf.test.gpu_device_name() else
           'python-tensorflow-cpu')
