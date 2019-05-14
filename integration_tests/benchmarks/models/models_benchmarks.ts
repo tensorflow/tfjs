@@ -27,6 +27,7 @@ import * as tfl from '@tensorflow/tfjs-layers';
 import {BrowserEnvironmentType, BrowserEnvironmentInfo, ModelBenchmarkRun, ModelFunctionName, ModelTrainingBenchmarkRun, VersionSet, PythonEnvironmentInfo, NodeEnvironmentType, NodeEnvironmentInfo, EnvironmentInfo} from '../types';
 // tslint:disable-next-line:max-line-length
 import {addEnvironmentInfoToFirestore, addOrGetTaskId, addBenchmarkRunsToFirestore, addVersionSetToFirestore} from '../firestore';
+import {NamedTensorMap} from '@tensorflow/tfjs-converter/dist/src/data/types';
 
 // tslint:disable-next-line:no-any
 let tfn: any;
@@ -115,7 +116,8 @@ function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
  *   - xs: concrete input tensors with uniform-random values.
  *   - ys: concrete output tensors with uniform-random values.
  */
-function getRandomInputsAndOutputs(model: tfl.LayersModel, batchSize: number):
+function getRandomInputsAndOutputs(
+    model: tfconverter.GraphModel | tfl.LayersModel, batchSize: number):
     {xs: tfc.Tensor|tfc.Tensor[], ys: tfc.Tensor|tfc.Tensor[]} {
   return tfc.tidy(() => {
     let xs: tfc.Tensor|tfc.Tensor[] = [];
@@ -127,11 +129,13 @@ function getRandomInputsAndOutputs(model: tfl.LayersModel, batchSize: number):
     }
 
     let ys: tfc.Tensor|tfc.Tensor[] = [];
-    for (const output of model.outputs) {
-      ys.push(tfc.randomUniform([batchSize].concat(output.shape.slice(1))));
-    }
-    if (ys.length === 1) {
-      ys = ys[0];
+    if (model instanceof tfl.LayersModel) {
+      for (const output of model.outputs) {
+        ys.push(tfc.randomUniform([batchSize].concat(output.shape.slice(1))));
+      }
+      if (ys.length === 1) {
+        ys = ys[0];
+      }
     }
 
     return {xs, ys};
@@ -139,12 +143,16 @@ function getRandomInputsAndOutputs(model: tfl.LayersModel, batchSize: number):
 }
 
 /** Call await data() on tensor(s). */
-async function syncData(tensors: tfc.Tensor|tfc.Tensor[]) {
-  if (Array.isArray(tensors)) {
+async function syncData(tensors: tfc.Tensor|tfc.Tensor[]|NamedTensorMap) {
+  if (tensors instanceof tfc.Tensor) {
+    await (tensors as tfc.Tensor).data();
+  } else  if (Array.isArray(tensors)) {
     const promises = tensors.map(tensor => tensor.data());
     await Promise.all(promises);
   } else {
-    await tensors.data();
+    // tensors is a NamedTensorMap.
+    const promises = Object.entries(tensors).map(item => item[1].data());
+    await Promise.all(promises);
   }
 }
 
@@ -217,7 +225,8 @@ describe('TF.js Layers Benchmarks', () => {
   const BENCHMARKS_JSON_URL = `${DATA_SERVER_ROOT}/benchmarks.json`;
   const BENCHMARKS_JSON_PATH = './data/benchmarks.json';
 
-  async function loadModel(modelName: string): Promise<tfl.LayersModel> {
+  /** Helper method for loading tf.LayersModel. */
+  async function loadLayersModel(modelName: string): Promise<tfl.LayersModel> {
     // tslint:disable-next-line:no-any
     let modelJSON: any;
     if (inNodeJS()) {
@@ -232,6 +241,20 @@ describe('TF.js Layers Benchmarks', () => {
       modelJSON = await (await fetch(modelJSONPath)).json();
     }
     return await tfl.models.modelFromJSON(modelJSON['modelTopology']);
+  }
+
+  /** Helper method for loading tf.GraphModel. */
+  async function loadGraphModel(modelName: string):
+      Promise<tfconverter.GraphModel> {
+    if (inNodeJS()) {
+      // tslint:disable-next-line:no-require-imports
+      const fileSystem = require('@tensorflow/tfjs-node/dist/io/file_system');
+      return await tfconverter.loadGraphModel(
+          fileSystem.fileSystem(`./data/${modelName}/model.json`));
+    } else {
+      return await tfconverter.loadGraphModel(
+          `${DATA_SERVER_ROOT}/${modelName}/model.json`);
+    }
   }
 
   it('Benchmark models', async () => {
@@ -325,8 +348,23 @@ describe('TF.js Layers Benchmarks', () => {
     for (let i = 0; i < sortedModelNames.length; ++i) {
       const modelName = sortedModelNames[i];
       const taskGroupLog = suiteLog.data[modelName];
+      if (Object.keys(taskGroupLog).length === 0) {
+        throw new Error(`Found no task log in model ${modelName}`);
+      }
+      const modelFormat =
+          taskGroupLog[Object.keys(taskGroupLog)[0]].modelFormat;
+
       console.log(`${i + 1}/${sortedModelNames.length}: ${modelName}`);
-      const model = await loadModel(modelName);
+
+      let model: tfconverter.GraphModel | tfl.LayersModel;
+      if (modelFormat === 'LayersModel') {
+        model = await loadLayersModel(modelName);
+      } else if (modelFormat === 'GraphModel') {
+        model = await loadGraphModel(modelName);
+      } else {
+        throw new Error(
+            `Unsupported modelFormat: ${JSON.stringify(modelFormat)}`);
+      }
 
       const functionNames = Object.keys(taskGroupLog) as ModelFunctionName[];
       if (functionNames.length === 0) {
@@ -367,6 +405,7 @@ describe('TF.js Layers Benchmarks', () => {
           tfjsRun = {
             taskId,
             taskType,
+            modelFormat,
             modelName,
             // TODO(cais): Add modelId.
             functionName,
@@ -384,6 +423,9 @@ describe('TF.js Layers Benchmarks', () => {
               `py=${pyRun.averageTimeMs.toFixed(3)}, ` +
               `tfjs=${tfjsRun.averageTimeMs.toFixed(3)}`);
         } else if (functionName === 'fit') {
+          if (model instanceof tfconverter.GraphModel) {
+            throw new Error('GraphModel does not support training');
+          }
           const pyFitLog = pyRun as ModelTrainingBenchmarkRun;
           model.compile({
             loss: LOSS_MAP[pyFitLog.loss],
@@ -410,6 +452,7 @@ describe('TF.js Layers Benchmarks', () => {
           tfjsRun = {
             taskId,
             taskType,
+            modelFormat,
             modelName,
             // TODO(cais): Add modelId.
             functionName,

@@ -22,6 +22,6 @@
   },
   "include": [
     "*.ts",
-    "layers/*.ts"
+    "models/*.ts"
   ],
 }
