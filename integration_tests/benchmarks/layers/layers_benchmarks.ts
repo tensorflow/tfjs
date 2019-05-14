@@ -129,11 +129,13 @@ function getRandomInputsAndOutputs(
     }
 
     let ys: tfc.Tensor|tfc.Tensor[] = [];
-    for (const output of model.outputs) {
-      ys.push(tfc.randomUniform([batchSize].concat(output.shape.slice(1))));
-    }
-    if (ys.length === 1) {
-      ys = ys[0];
+    if (model instanceof tfl.LayerVariable) {
+      for (const output of model.outputs) {
+        ys.push(tfc.randomUniform([batchSize].concat(output.shape.slice(1))));
+      }
+      if (ys.length === 1) {
+        ys = ys[0];
+      }
     }
 
     return {xs, ys};
