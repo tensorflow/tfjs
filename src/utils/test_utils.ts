@@ -93,9 +93,10 @@ export function describeMathCPUAndGPU(testName: string, tests: () => void) {
  * @param tests
  */
 export function describeMathCPU(testName: string, tests: () => void) {
-  describeWithFlags(testName, {activeBackend: 'cpu'}, () => {
-    tests();
-  });
+  describeWithFlags(
+      testName, {predicate: testEnv => testEnv.backendName === 'cpu'}, () => {
+        tests();
+      });
 }
 
 /**
@@ -104,9 +105,10 @@ export function describeMathCPU(testName: string, tests: () => void) {
  * @param tests
  */
 export function describeMathGPU(testName: string, tests: () => void) {
-  describeWithFlags(testName, {activeBackend: 'webgl'}, () => {
-    tests();
-  });
+  describeWithFlags(
+      testName, {predicate: testEnv => testEnv.backendName === 'webgl'}, () => {
+        tests();
+      });
 }
 
 /**
