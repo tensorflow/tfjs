@@ -116,7 +116,8 @@ function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
  *   - xs: concrete input tensors with uniform-random values.
  *   - ys: concrete output tensors with uniform-random values.
  */
-function getRandomInputsAndOutputs(model: tfl.LayersModel, batchSize: number):
+function getRandomInputsAndOutputs(
+    model: tfconverter.GraphModel | tfl.LayersModel, batchSize: number):
     {xs: tfc.Tensor|tfc.Tensor[], ys: tfc.Tensor|tfc.Tensor[]} {
   return tfc.tidy(() => {
     let xs: tfc.Tensor|tfc.Tensor[] = [];
