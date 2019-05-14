@@ -129,7 +129,7 @@ function getRandomInputsAndOutputs(
     }
 
     let ys: tfc.Tensor|tfc.Tensor[] = [];
-    if (model instanceof tfl.LayerVariable) {
+    if (model instanceof tfl.LayersModel) {
       for (const output of model.outputs) {
         ys.push(tfc.randomUniform([batchSize].concat(output.shape.slice(1))));
       }
@@ -144,14 +144,15 @@ function getRandomInputsAndOutputs(
 
 /** Call await data() on tensor(s). */
 async function syncData(tensors: tfc.Tensor|tfc.Tensor[]|NamedTensorMap) {
-  if (Array.isArray(tensors)) {
+  if (tensors instanceof tfc.Tensor) {
+    await (tensors as tfc.Tensor).data();
+  } else  if (Array.isArray(tensors)) {
     const promises = tensors.map(tensor => tensor.data());
     await Promise.all(promises);
-  } else if (typeof tensors === 'object') {
+  } else {
+    // tensors is a NamedTensorMap.
     const promises = Object.entries(tensors).map(item => item[1].data());
     await Promise.all(promises);
-  } else {
-    await (tensors as tfc.Tensor).data();
   }
 }
 
@@ -224,6 +225,7 @@ describe('TF.js Layers Benchmarks', () => {
   const BENCHMARKS_JSON_URL = `${DATA_SERVER_ROOT}/benchmarks.json`;
   const BENCHMARKS_JSON_PATH = './data/benchmarks.json';
 
+  /** Helper method for loading tf.LayersModel. */
   async function loadLayersModel(modelName: string): Promise<tfl.LayersModel> {
     // tslint:disable-next-line:no-any
     let modelJSON: any;
@@ -239,6 +241,18 @@ describe('TF.js Layers Benchmarks', () => {
       modelJSON = await (await fetch(modelJSONPath)).json();
     }
     return await tfl.models.modelFromJSON(modelJSON['modelTopology']);
+  }
+
+  /** Helper method for loading tf.GraphModel. */
+  async function loadGraphModel(modelName: string):
+      Promise<tfconverter.GraphModel> {
+    if (inNodeJS()) {
+      throw new Error(
+          `Loading GraphModel for benchmarking in Node.js is not supported yet.`)
+    } else {
+      return await tfconverter.loadGraphModel(
+          `${DATA_SERVER_ROOT}/${modelName}/model.json`);
+    }
   }
 
   it('Benchmark models', async () => {
@@ -336,17 +350,17 @@ describe('TF.js Layers Benchmarks', () => {
 
       console.log(`${i + 1}/${sortedModelNames.length}: ${modelName}`);
 
-      console.log(`modelFormat: ${modelFormat}`);  // DEBUG
       let model: tfconverter.GraphModel | tfl.LayersModel;
       if (modelFormat === 'LayersModel') {
         model = await loadLayersModel(modelName);
       } else if (modelFormat === 'GraphModel') {
-        const graphModelJsonPath = isNodeJS ?
-            `file://${__dirname}/../data/${modelName}/model.json` :
-            `${DATA_SERVER_ROOT}/${modelName}/model.json`;
-        console.log(`Loading from ${graphModelJsonPath}`);  // DEBUG
-        model =
-            await tfconverter.loadGraphModel(graphModelJsonPath);
+        if (isNodeJS) {
+          console.warn(
+              `WARNING: Skipping GraphModel in Node.js benchmark: ` +
+              `${modelName}`);
+          continue;
+        }
+        model = await loadGraphModel(modelName);
       } else {
         throw new Error(`Unsupported modelFormat: ${JSON.stringify(modelFormat)}`);
       }
