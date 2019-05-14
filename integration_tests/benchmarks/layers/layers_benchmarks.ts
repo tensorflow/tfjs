@@ -355,6 +355,7 @@ describe('TF.js Layers Benchmarks', () => {
         model = await loadLayersModel(modelName);
       } else if (modelFormat === 'GraphModel') {
         if (isNodeJS) {
+          // TODO(cais): Benchmark GraphModel in Node.js.
           console.warn(
               `WARNING: Skipping GraphModel in Node.js benchmark: ` +
               `${modelName}`);
@@ -422,17 +423,17 @@ describe('TF.js Layers Benchmarks', () => {
               `py=${pyRun.averageTimeMs.toFixed(3)}, ` +
               `tfjs=${tfjsRun.averageTimeMs.toFixed(3)}`);
         } else if (functionName === 'fit') {
-          if (modelFormat === 'GraphModel') {
+          if (model instanceof tfconverter.GraphModel) {
             throw new Error('GraphModel does not support training');
           }
           const pyFitLog = pyRun as ModelTrainingBenchmarkRun;
-          (model as tfl.LayersModel).compile({
+          model.compile({
             loss: LOSS_MAP[pyFitLog.loss],
             optimizer: OPTIMIZER_MAP[pyFitLog.optimizer]
           });
 
           // Warm-up fit() call.
-          await (model as tfl.LayersModel).fit(xs, ys, {
+          await model.fit(xs, ys, {
             epochs: pyRun.numWarmUpIterations,
             yieldEvery: 'never',
             verbose: 0
@@ -440,7 +441,7 @@ describe('TF.js Layers Benchmarks', () => {
 
           // Benchmarked fit() call.
           const t0 = tfc.util.now();
-          await (model as tfl.LayersModel).fit(xs, ys, {
+          await model.fit(xs, ys, {
             epochs: pyRun.numBenchmarkedIterations,
             yieldEvery: 'never',
             verbose: 0
