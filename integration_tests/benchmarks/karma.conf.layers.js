@@ -40,7 +40,7 @@ const karmaTypescriptConfig = {
     config.set({
       frameworks: ['jasmine', 'karma-typescript'],
       files: [
-        {pattern: 'layers/*.ts'},
+        {pattern: 'models/*.ts'},
         {pattern: 'firestore.ts'},
         {
           pattern: 'data/**/*',
@@ -50,7 +50,7 @@ const karmaTypescriptConfig = {
           nocache: true
         }
       ],
-      include: ['layers/*.ts'],
+      include: ['models/*.ts'],
       preprocessors: {
         '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
       },
