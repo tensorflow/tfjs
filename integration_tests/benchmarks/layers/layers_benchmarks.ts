@@ -248,7 +248,8 @@ describe('TF.js Layers Benchmarks', () => {
       Promise<tfconverter.GraphModel> {
     if (inNodeJS()) {
       throw new Error(
-          `Loading GraphModel for benchmarking in Node.js is not supported yet.`)
+          `Loading GraphModel for benchmarking in Node.js is not ` +
+          `supported yet.`);
     } else {
       return await tfconverter.loadGraphModel(
           `${DATA_SERVER_ROOT}/${modelName}/model.json`);
@@ -346,7 +347,11 @@ describe('TF.js Layers Benchmarks', () => {
     for (let i = 0; i < sortedModelNames.length; ++i) {
       const modelName = sortedModelNames[i];
       const taskGroupLog = suiteLog.data[modelName];
-      const modelFormat = taskGroupLog[Object.keys(taskGroupLog)[0]].modelFormat;
+      if (Object.keys(taskGroupLog).length === 0) {
+        throw new Error(`Found no task log in model ${modelName}`);
+      }
+      const modelFormat =
+          taskGroupLog[Object.keys(taskGroupLog)[0]].modelFormat;
 
       console.log(`${i + 1}/${sortedModelNames.length}: ${modelName}`);
 
@@ -363,7 +368,8 @@ describe('TF.js Layers Benchmarks', () => {
         }
         model = await loadGraphModel(modelName);
       } else {
-        throw new Error(`Unsupported modelFormat: ${JSON.stringify(modelFormat)}`);
+        throw new Error(
+            `Unsupported modelFormat: ${JSON.stringify(modelFormat)}`);
       }
 
       const functionNames = Object.keys(taskGroupLog) as ModelFunctionName[];
