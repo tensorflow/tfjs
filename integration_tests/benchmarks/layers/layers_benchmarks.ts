@@ -247,9 +247,10 @@ describe('TF.js Layers Benchmarks', () => {
   async function loadGraphModel(modelName: string):
       Promise<tfconverter.GraphModel> {
     if (inNodeJS()) {
-      throw new Error(
-          `Loading GraphModel for benchmarking in Node.js is not ` +
-          `supported yet.`);
+      // tslint:disable-next-line:no-require-imports
+      const fileSystem = require('@tensorflow/tfjs-node/dist/io/file_system');
+      return await tfconverter.loadGraphModel(
+          fileSystem.fileSystem(`./data/${modelName}/model.json`));
     } else {
       return await tfconverter.loadGraphModel(
           `${DATA_SERVER_ROOT}/${modelName}/model.json`);
@@ -359,13 +360,6 @@ describe('TF.js Layers Benchmarks', () => {
       if (modelFormat === 'LayersModel') {
         model = await loadLayersModel(modelName);
       } else if (modelFormat === 'GraphModel') {
-        if (isNodeJS) {
-          // TODO(cais): Benchmark GraphModel in Node.js.
-          console.warn(
-              `WARNING: Skipping GraphModel in Node.js benchmark: ` +
-              `${modelName}`);
-          continue;
-        }
         model = await loadGraphModel(modelName);
       } else {
         throw new Error(
