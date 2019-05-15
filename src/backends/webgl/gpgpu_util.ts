@@ -16,7 +16,9 @@
  */
 
 import {ENV} from '../../environment';
+import {PixelData} from '../../types';
 import * as util from '../../util';
+
 import {getGlslDifferences} from './glsl_version';
 import * as tex_util from './tex_util';
 import * as webgl_util from './webgl_util';
@@ -218,13 +220,24 @@ export function bindVertexProgramAttributeStreams(
 
 export function uploadPixelDataToTexture(
     gl: WebGLRenderingContext, debug: boolean, texture: WebGLTexture,
-    pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement) {
+    pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+    HTMLVideoElement) {
   webgl_util.callAndCheck(
       gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, texture));
-  webgl_util.callAndCheck(
-      gl, debug,
-      () => gl.texImage2D(
-          gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, pixels));
+  if ((pixels as PixelData).data instanceof Uint8Array) {
+    webgl_util.callAndCheck(
+        gl, debug,
+        () => gl.texImage2D(
+            gl.TEXTURE_2D, 0, gl.RGBA, pixels.width, pixels.height, 0, gl.RGBA,
+            gl.UNSIGNED_BYTE, (pixels as PixelData).data));
+  } else {
+    webgl_util.callAndCheck(
+        gl, debug,
+        () => gl.texImage2D(
+            gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
+            pixels as ImageData));
+  }
+
   webgl_util.callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));
 }
 
