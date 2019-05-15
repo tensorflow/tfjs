@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tf from '@tensorflow/tfjs';
+import * as tfconverter from '@tensorflow/tfjs-converter';
+import * as tfc from '@tensorflow/tfjs-core';
 
 import {BenchmarkModelTest} from './types';
 import * as util from './util';
@@ -24,16 +25,16 @@ const USE_MODEL_PATH =
     'https://storage.googleapis.com/tfjs-models/savedmodel/universal_sentence_encoder/model.json';
 
 export class UniversalSentenceEncoderBenchmark implements BenchmarkModelTest {
-  private model: tf.GraphModel;
+  private model: tfconverter.GraphModel;
 
   async loadModel() {
-    this.model = await tf.loadGraphModel(USE_MODEL_PATH);
+    this.model = await tfconverter.loadGraphModel(USE_MODEL_PATH);
   }
 
   async run(size: number): Promise<number> {
-    tf.setBackend('webgl');
+    tfc.setBackend('webgl');
 
-    const indices = tf.tensor2d(
+    const indices = tfc.tensor2d(
         [
           0,  0, 0,  1, 0, 2, 0, 3, 0, 4, 1, 0, 1, 1, 1, 2, 1, 3, 1, 4, 1,
           5,  2, 0,  2, 1, 2, 2, 2, 3, 2, 4, 3, 0, 3, 1, 3, 2, 3, 3, 3, 4,
@@ -41,7 +42,7 @@ export class UniversalSentenceEncoderBenchmark implements BenchmarkModelTest {
           10, 4, 11, 5, 0, 5, 1, 5, 2, 5, 3, 5, 4, 5, 5, 5, 6, 5, 7
         ],
         [41, 2], 'int32');
-    const values = tf.tensor1d(
+    const values = tfc.tensor1d(
         [
           16,   60,  69,   825, 6,    819, 2704, 2901, 903, 318, 6,
           728,  446, 31,   19,  54,   379, 18,   37,   735, 54,  829,
@@ -51,9 +52,9 @@ export class UniversalSentenceEncoderBenchmark implements BenchmarkModelTest {
         'int32');
 
     const benchmark = async () =>
-        this.model.executeAsync({indices, values}) as Promise<tf.Tensor>;
+        this.model.executeAsync({indices, values}) as Promise<tfc.Tensor>;
 
-    const time = await util.asyncBenchmark(benchmark);
+    const time = await util.asyncBenchmark(benchmark as any);
 
     indices.dispose();
     values.dispose();

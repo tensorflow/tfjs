@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tf from '@tensorflow/tfjs';
+import * as tfc from '@tensorflow/tfjs-core';
+import * as tfl from '@tensorflow/tfjs-layers';
 
 import {BenchmarkModelTest} from './types';
 import * as util from './util';
@@ -24,20 +25,20 @@ const MOBILENET_MODEL_PATH =
     'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json';
 
 export class MobileNetV1GPUBenchmark implements BenchmarkModelTest {
-  private model: tf.LayersModel;
+  private model: tfl.LayersModel;
 
   async loadModel() {
-    this.model = await tf.loadLayersModel(MOBILENET_MODEL_PATH);
+    this.model = await tfl.loadLayersModel(MOBILENET_MODEL_PATH);
   }
 
   async run(size: number): Promise<number> {
-    tf.setBackend('webgl');
+    tfc.setBackend('webgl');
 
-    const zeros = tf.zeros([1, 224, 224, 3]);
+    const zeros = tfc.zeros([1, 224, 224, 3]);
 
-    const benchmark = () => this.model.predict(zeros) as tf.Tensor;
+    const benchmark = () => this.model.predict(zeros);
 
-    const time = await util.benchmark(benchmark);
+    const time = await util.benchmark(benchmark as any);
 
     zeros.dispose();
 

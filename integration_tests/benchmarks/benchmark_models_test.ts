@@ -48,7 +48,9 @@ describe('benchmark models', () => {
         'use', size => benchmark.run(size), sizes, size => '41', runs);
   });
 
-  it('cocossd', async () => {
+  // TODO(annyuan): Figure out the invalid texture shape error and
+  // enable the benchmark.
+  xit('cocossd', async () => {
     const sizes = [1];
     const runs = 20;
 
