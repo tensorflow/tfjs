@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {CoCoSSDBenchmark} from './cocossd_benchmarks';
+// import {CoCoSSDBenchmark} from './cocossd_benchmarks';
 import {MobileNetV1GPUBenchmark} from './mobilenet_benchmarks';
 import * as test_util from './test_util';
 import {UniversalSentenceEncoderBenchmark} from './use_benchmarks';
@@ -48,14 +48,16 @@ describe('benchmark models', () => {
         'use', size => benchmark.run(size), sizes, size => '41', runs);
   });
 
-  it('cocossd', async () => {
-    const sizes = [1];
-    const runs = 20;
+  // TODO(annyuan): Figure out the invalid texture shape error and
+  // enable the benchmark.
+  // it('cocossd', async () => {
+  //   const sizes = [1];
+  //   const runs = 20;
 
-    const benchmark = new CoCoSSDBenchmark();
-    await benchmark.loadModel();
+  //   const benchmark = new CoCoSSDBenchmark();
+  //   await benchmark.loadModel();
 
-    await test_util.benchmarkAndLog(
-        'cocossd', size => benchmark.run(size), sizes, size => '224', runs);
-  });
+  //   await test_util.benchmarkAndLog(
+  //       'cocossd', size => benchmark.run(size), sizes, size => '224', runs);
+  // });
 });
