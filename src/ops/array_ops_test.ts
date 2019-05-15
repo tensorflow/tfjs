@@ -1464,6 +1464,20 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     expect(res.dtype).toBe('float32');
     expectArraysClose(await res.data(), [260, 9, 11]);
   });
+  it('fromPixels for PixelData type', async() => {
+    const dataA = new Uint8Array([255, 3, 4, 255]);
+    const pixelsA = {width: 1, height: 1, data: dataA};
+
+    const dataB = new Uint8Array([5, 6, 7, 255]);
+    const pixelsB = {width: 1, height: 1, data: dataB};
+    const a = tf.browser.fromPixels(pixelsA, 3).toFloat();
+    const b = tf.browser.fromPixels(pixelsB, 3).toFloat();
+    const res = a.add(b);
+    expect(res.shape).toEqual([1, 1, 3]);
+    expect(res.dtype).toBe('float32');
+    expectArraysClose(await res.data(), [260, 9, 11]);
+
+  });
 
   it('throws when passed a primitive number', () => {
     const msg = /pixels passed to tf.browser.fromPixels\(\) must be either/;

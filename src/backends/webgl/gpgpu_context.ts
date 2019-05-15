@@ -16,7 +16,9 @@
  */
 
 import {ENV} from '../../environment';
+import {PixelData} from '../../types';
 import * as util from '../../util';
+
 import {getWebGLContext, setWebGLContext} from './canvas_util';
 import * as gpgpu_util from './gpgpu_util';
 import {TextureConfig} from './gpgpu_util';
@@ -139,7 +141,7 @@ export class GPGPUContext {
 
   public uploadPixelDataToTexture(
       texture: WebGLTexture,
-      pixels: ImageData|HTMLImageElement|HTMLCanvasElement) {
+      pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement) {
     this.throwIfDisposed();
     gpgpu_util.uploadPixelDataToTexture(this.gl, this.debug, texture, pixels);
   }
