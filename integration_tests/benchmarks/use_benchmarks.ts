@@ -54,7 +54,7 @@ export class UniversalSentenceEncoderBenchmark implements BenchmarkModelTest {
     const benchmark = async () =>
         this.model.executeAsync({indices, values}) as Promise<tfc.Tensor>;
 
-    const time = await util.asyncBenchmark(benchmark as any);
+    const time = await util.asyncBenchmark(benchmark);
 
     indices.dispose();
     values.dispose();

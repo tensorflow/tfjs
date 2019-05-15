@@ -38,7 +38,7 @@ export class MobileNetV1GPUBenchmark implements BenchmarkModelTest {
 
     const benchmark = () => this.model.predict(zeros);
 
-    const time = await util.benchmark(benchmark as any);
+    const time = await util.benchmark(benchmark);
 
     zeros.dispose();
 
