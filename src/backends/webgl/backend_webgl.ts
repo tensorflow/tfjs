@@ -281,8 +281,9 @@ export class MathBackendWebGL implements KernelBackend {
           !((pixels as PixelData).data instanceof Uint8Array)) {
         throw new Error(
             'pixels passed to tf.browser.fromPixels() must be either an ' +
-            `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, PixelData` +
-            ` or ImageData, but was ${(pixels as {}).constructor.name}`);
+            `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData` +
+            ` or {data: Uint32Array, width: number, height: number}, ` +
+            `but was ${(pixels as {}).constructor.name}`);
       }
       if (pixels instanceof HTMLVideoElement) {
         if (this.fromPixels2DContext == null) {

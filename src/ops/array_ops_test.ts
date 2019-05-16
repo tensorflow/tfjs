@@ -1476,7 +1476,6 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     expect(res.shape).toEqual([1, 1, 3]);
     expect(res.dtype).toBe('float32');
     expectArraysClose(await res.data(), [260, 9, 11]);
-
   });
 
   it('throws when passed a primitive number', () => {
