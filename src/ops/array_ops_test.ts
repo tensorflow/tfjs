@@ -922,8 +922,7 @@ describeWithFlags('eye', ALL_ENVS, () => {
     const r = tf.eye(2, 2, [2, 3]);
     expect(r.shape).toEqual([2, 3, 2, 2]);
     expectArraysClose(await r.data(), [
-      1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1,
-      1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1
+      1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1
     ]);
   });
 
@@ -1464,7 +1463,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     expect(res.dtype).toBe('float32');
     expectArraysClose(await res.data(), [260, 9, 11]);
   });
-  it('fromPixels for PixelData type', async() => {
+  it('fromPixels for PixelData type', async () => {
     const dataA = new Uint8Array([255, 3, 4, 255]);
     const pixelsA = {width: 1, height: 1, data: dataA};
 
@@ -3349,6 +3348,38 @@ describeWithFlags('split', ALL_ENVS, () => {
     const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
     const f = () => tf.split(x, 3, 1);
     expect(f).toThrowError();
+  });
+
+  it('can split a zero-sized tensor, axis=0', async () => {
+    const a = tf.zeros([4, 0]);
+    const numSplits = 4;
+    const axis = 0;
+    const res = tf.split(a, numSplits, axis);
+    expect(res.length).toBe(4);
+    expect(res[0].shape).toEqual([1, 0]);
+    expect(res[1].shape).toEqual([1, 0]);
+    expect(res[2].shape).toEqual([1, 0]);
+    expect(res[3].shape).toEqual([1, 0]);
+    expectArraysClose(await res[0].data(), []);
+    expectArraysClose(await res[1].data(), []);
+    expectArraysClose(await res[2].data(), []);
+    expectArraysClose(await res[3].data(), []);
+  });
+
+  it('can split a zero-sized tensor, axis=1', async () => {
+    const a = tf.zeros([0, 4]);
+    const numSplits = 4;
+    const axis = 1;
+    const res = tf.split(a, numSplits, axis);
+    expect(res.length).toBe(4);
+    expect(res[0].shape).toEqual([0, 1]);
+    expect(res[1].shape).toEqual([0, 1]);
+    expect(res[2].shape).toEqual([0, 1]);
+    expect(res[3].shape).toEqual([0, 1]);
+    expectArraysClose(await res[0].data(), []);
+    expectArraysClose(await res[1].data(), []);
+    expectArraysClose(await res[2].data(), []);
+    expectArraysClose(await res[3].data(), []);
   });
 
   it('throws when passed a non-tensor', () => {
