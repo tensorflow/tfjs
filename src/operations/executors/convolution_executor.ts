@@ -55,7 +55,7 @@ export let executeOp: OpExecutor =
                   tfc.Tensor4D,
               getParamValue('filter', node, tensorMap, context) as tfc.Tensor4D,
               [stride[1], stride[2]], pad as 'valid' | 'same',
-              dataFormat as 'NHWC' | 'NCHW', [dilations[0], dilations[1]])];
+              dataFormat as 'NHWC' | 'NCHW', [dilations[1], dilations[2]])];
         }
         case 'Conv2DBackpropInput':
         case 'Conv2dTranspose': {
@@ -88,7 +88,7 @@ export let executeOp: OpExecutor =
                   tfc.Tensor4D,
               getParamValue('filter', node, tensorMap, context) as tfc.Tensor4D,
               [stride[1], stride[2]], pad as 'valid' | 'same',
-              dataFormat as 'NHWC' | 'NCHW', [dilations[0], dilations[1]])];
+              dataFormat as 'NHWC' | 'NCHW', [dilations[1], dilations[2]])];
         }
 
         case 'AvgPool': {
