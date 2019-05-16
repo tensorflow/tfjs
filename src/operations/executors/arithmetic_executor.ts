@@ -19,12 +19,14 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node, OpExecutor} from '../types';
+import {InternalOpExecutor, Node} from '../types';
+
 import {getParamValue} from './utils';
 
-export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
-                                    context: ExecutionContext):
-                                       tfc.Tensor[] => {
+export let executeOp: InternalOpExecutor = (node: Node,
+                                            tensorMap: NamedTensorsMap,
+                                            context: ExecutionContext):
+                                               tfc.Tensor[] => {
   switch (node.op) {
     case 'BiasAdd':
     case 'Add': {
