@@ -16,7 +16,12 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+import {scalar} from '@tensorflow/tfjs-core';
+
 import * as tensorflow from '../data/compiled_api';
+import {deregisterOp, registerOp} from '../operations/custom_op/register';
+import {GraphNode} from '../operations/types';
+
 import {GraphModel, loadGraphModel} from './graph_model';
 
 const HOST = 'http://example.org';
@@ -104,6 +109,49 @@ const SIMPLE_HTTP_MODEL_LOADER = {
   }
 };
 
+const CUSTOM_OP_MODEL: tensorflow.IGraphDef = {
+  node: [
+    {
+      name: 'Input',
+      op: 'Placeholder',
+      attr: {
+        dtype: {
+          type: tensorflow.DataType.DT_INT32,
+        },
+        shape: {shape: {dim: [{size: -1}, {size: 1}]}}
+      }
+    },
+    {
+      name: 'Const',
+      op: 'Const',
+      attr: {
+        dtype: {type: tensorflow.DataType.DT_INT32},
+        value: {
+          tensor: {
+            dtype: tensorflow.DataType.DT_INT32,
+            tensorShape: {dim: [{size: 1}]},
+          }
+        },
+        index: {i: 0},
+        length: {i: 4}
+      }
+    },
+    {name: 'Add1', op: 'Add', input: ['Input', 'Const'], attr: {}},
+    {name: 'CustomOp', op: 'CustomOp', input: ['Add1'], attr: {}}
+  ],
+  versions: {producer: 1.0, minConsumer: 3}
+};
+
+const CUSTOM_HTTP_MODEL_LOADER = {
+  load: async () => {
+    return {
+      modelTopology: CUSTOM_OP_MODEL,
+      weightSpecs: weightsManifest,
+      weightData: bias.dataSync()
+    };
+  }
+};
+
 describe('loadGraphModel', () => {
   it('Pass a custom io handler', async () => {
     const customLoader: tfc.io.IOHandler = {
@@ -136,6 +184,32 @@ describe('loadGraphModel', () => {
 describe('Model', () => {
   beforeEach(() => {
     model = new GraphModel(MODEL_URL);
+  });
+
+  describe('custom model', () => {
+    beforeEach(() => {
+      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        CUSTOM_HTTP_MODEL_LOADER
+      ]);
+      registerOp('CustomOp', (nodeValue: GraphNode) => {
+        const x = nodeValue.inputs[0];
+        return [tfc.add(x, scalar(1, 'int32'))];
+      });
+    });
+    afterEach(() => deregisterOp('CustomOp'));
+    it('load', async () => {
+      const loaded = await model.load();
+      expect(loaded).toBe(true);
+    });
+
+    describe('predict', () => {
+      it('should generate the output for single tensor', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+        const output = model.predict(input);
+        expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
+      });
+    });
   });
 
   describe('simple model', () => {

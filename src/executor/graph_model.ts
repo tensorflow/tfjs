@@ -25,7 +25,6 @@ import {GraphExecutor} from './graph_executor';
 
 export const TFHUB_SEARCH_PARAM = '?tfjs-format=file';
 export const DEFAULT_MODEL_NAME = 'model.json';
-
 /**
  * A `tf.GraphModel` is a directed, acyclic graph of built from
  * SavedModel GraphDef and allows inference exeuction.
