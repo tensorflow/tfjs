@@ -235,7 +235,8 @@ export function uploadPixelDataToTexture(
         gl, debug,
         () => gl.texImage2D(
             gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
-            pixels as ImageData));
+            pixels as ImageData | HTMLImageElement | HTMLCanvasElement |
+                HTMLVideoElement));
   }
 
   webgl_util.callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));

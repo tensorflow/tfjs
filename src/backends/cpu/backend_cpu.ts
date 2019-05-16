@@ -132,9 +132,8 @@ export class MathBackendCPU implements KernelBackend {
                  .data;
     } else if (
         pixels instanceof ImageData ||
-        // tslint:disable-next-line:no-any
         (pixels as PixelData).data instanceof Uint8Array) {
-      vals = (pixels as PixelData).data;
+      vals = (pixels as PixelData | ImageData).data;
     } else if (
         pixels instanceof HTMLImageElement ||
         pixels instanceof HTMLVideoElement) {
@@ -153,8 +152,9 @@ export class MathBackendCPU implements KernelBackend {
     } else {
       throw new Error(
           'pixels passed to tf.browser.fromPixels() must be either an ' +
-          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, PixelData ` +
-          `or ImageData, but was ${(pixels as {}).constructor.name}`);
+          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData ` +
+          `or {data: Uint32Array, width: number, height: number}, ` +
+          `but was ${(pixels as {}).constructor.name}`);
     }
     let values: Int32Array;
     if (numChannels === 4) {

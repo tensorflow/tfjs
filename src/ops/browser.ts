@@ -36,8 +36,9 @@ import {op} from './operation';
  * ```
  *
  * @param pixels The input image to construct the tensor from. The
- * supported image types are all 4-channel. `PixelData` is a custom type that
- * represents image data of Uint8Array type.
+ * supported image types are all 4-channel. You can also pass in an image
+ * object with following attributes:
+ * `{data: Uint8Array; width: number; height: number}`
  * @param numChannels The number of channels of the output tensor. A
  * numChannels value less than 4 allows you to ignore channels. Defaults to
  * 3 (ignores alpha channel of input image).
