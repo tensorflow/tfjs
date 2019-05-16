@@ -79,7 +79,7 @@ describe('convolution', () => {
         node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.attrParams['pad'] = createStrAttr('same');
         node.attrParams['dataFormat'] = createStrAttr('NHWC');
-        node.attrParams['dilations'] = createNumericArrayAttr([2, 2]);
+        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
 
         const input1 = [tfc.scalar(1.0)];
         const input2 = [tfc.scalar(1.0)];
@@ -144,7 +144,7 @@ describe('convolution', () => {
         node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.attrParams['pad'] = createStrAttr('same');
         node.attrParams['dataFormat'] = createStrAttr('NHWC');
-        node.attrParams['dilations'] = createNumericArrayAttr([2, 2]);
+        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
         const input1 = [tfc.scalar(1.0)];
         const input2 = [tfc.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
