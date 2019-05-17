@@ -66,6 +66,7 @@ export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} fro
 
 export {TimingInfo} from './engine';
 export {ENV, Environment} from './environment';
+export {Platform} from './platforms/platform';
 
 export {version as version_core};
 
