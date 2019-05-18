@@ -18,7 +18,7 @@ other client-side data.
 ## About this repo
 
 This repository contains the logic and scripts that combine
-two packages:
+three packages:
 - [TensorFlow.js Core](https://github.com/tensorflow/tfjs-core),
   a flexible low-level API, formerly known as *deeplearn.js*.
 - [TensorFlow.js Layers](https://github.com/tensorflow/tfjs-layers),
