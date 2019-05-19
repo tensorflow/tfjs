@@ -15,7 +15,7 @@ There are three ways to import TensorFlow.js Layers
 1. You can access TensorFlow.js Layers through the union package
    between the TensorFlow.js Core and Layers:
    [@tensorflow/tfjs](https://www.npmjs.com/package/@tensorflow/tfjs)
-2. You can get [TensorFlow.js] Layers as a module:
+2. You can get [TensorFlow.js](https://github.com/tensorflow/tfjs) Layers as a module:
    [@tensorflow/tfjs-layers](https://www.npmjs.com/package/@tensorflow/tfjs-layers).
    Note that `tfjs-layers` has peer dependency on tfjs-core, so if you import
    `@tensorflow/tfjs-layers`, you also need to import
