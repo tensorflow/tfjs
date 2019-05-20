@@ -90,6 +90,49 @@ describeWithFlags('variable', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(0);
   });
 
+  it('disposing a named variable allows creating new named variable', () => {
+    const numTensors = tf.memory().numTensors;
+    const t = tf.scalar(1);
+    const varName = 'var';
+    const v = tf.variable(t, true, varName);
+
+    expect(tf.memory().numTensors).toBe(numTensors + 2);
+
+    v.dispose();
+    t.dispose();
+
+    expect(tf.memory().numTensors).toBe(numTensors);
+
+    // Create another variable with the same name.
+    const t2 = tf.scalar(1);
+    const v2 = tf.variable(t2, true, varName);
+
+    expect(tf.memory().numTensors).toBe(numTensors + 2);
+
+    t2.dispose();
+    v2.dispose();
+
+    expect(tf.memory().numTensors).toBe(numTensors);
+  });
+
+  it('double disposing a variable works', () => {
+    const numTensors = tf.memory().numTensors;
+
+    const t = tf.scalar(1);
+    const v = tf.variable(t);
+
+    expect(tf.memory().numTensors).toBe(numTensors + 2);
+
+    t.dispose();
+    v.dispose();
+
+    expect(tf.memory().numTensors).toBe(numTensors);
+
+    // Double dispose the variable.
+    v.dispose();
+    expect(tf.memory().numTensors).toBe(numTensors);
+  });
+
   it('constructor does not dispose', async () => {
     const a = tf.scalar(2);
     const v = tf.variable(a);
