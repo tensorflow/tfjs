@@ -574,8 +574,14 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
   disposeVariables(): void {
     for (const varName in this.state.registeredVariables) {
       const v = this.state.registeredVariables[varName];
-      this.disposeTensor(v);
-      delete this.state.registeredVariables[varName];
+      this.disposeVariable(v);
+    }
+  }
+
+  disposeVariable(v: Variable): void {
+    this.disposeTensor(v);
+    if (this.state.registeredVariables[v.name] != null) {
+      delete this.state.registeredVariables[v.name];
     }
   }
 
