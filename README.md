@@ -13,6 +13,15 @@ A 2-step process to import your model:
 
 ## Step 1: Converting a [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [Keras h5](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model), [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/contrib/saved_model/save_keras_model) or [TensorFlow Hub module](https://www.tensorflow.org/hub/) to a web-friendly format
 
+0. Please make sure that you run in a Docker container or a virtual environment. The script pulls its own subset of TensorFlow, which might conflict with the existing TensorFlow/Keras installation.
+
+For example, [create and activate](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/) a `venv` virtual environment in your current folder:
+
+```bash
+$ virtualenv --no-site-packages venv
+$ . venv/bin/activate
+```
+
 1. Install the TensorFlow.js pip package:
 
 ```bash
