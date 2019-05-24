@@ -22,6 +22,7 @@ import {WebGPUProgram} from './webgpu_program';
 
 export const MUL = 'return a * b;';
 export const ADD = 'return a + b;';
+export const SUB = 'return a - b;';
 
 export const INT_DIV = `
   float s = sign(a) * sign(b);

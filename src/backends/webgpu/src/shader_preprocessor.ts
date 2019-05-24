@@ -34,13 +34,13 @@ export function getCoordsDataType(rank: number): string {
   }
 }
 
-type GLSLDataType = 'float'|'uint';
+type GLSLDataType = 'float'|'int';
 function mapToGlslTypes(type: DataType): GLSLDataType|DataType {
   if (type === 'float32') {
     return 'float';
   }
   if (type === 'int32') {
-    return 'uint';
+    return 'int';
   }
   return type;
 }
@@ -75,7 +75,7 @@ export function makeShader(
   // Output buffer.
   prefixSnippets.push(`
     layout(std430, set = 0, binding = 0) writeonly buffer ssbOut {
-      float result[];
+      ${mapToGlslTypes(outputData.dtype)} result[];
     };
   `);
 
@@ -107,9 +107,9 @@ export function makeShader(
   const [getOutputCoords, dispatchLayoutRank] =
       generateGetOutputCoords(program.dispatchLayout);
   const sources = [
-    SHADER_PREFIX, prefixSnippets.join('\n'), SET_OUTPUT_SNIPPET,
-    SAMPLING_SNIPPETS, getOutputCoords,
-    getSetOutputSnippet(outputData.shape.length)
+    SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS,
+    getOutputCoords,
+    getSetOutputSnippet(outputData.shape.length, outputData.dtype)
   ];
 
   if (dispatchLayoutRank === outputData.shape.length) {
@@ -157,26 +157,33 @@ const SAMPLING_SNIPPETS = `
   }
 `;
 
-const SET_OUTPUT_SNIPPET = `
-  void setOutput(uint flatIndex, float value) {
-    result[flatIndex] = value;
-  }
-`;
-
-function getSetOutputSnippet(outRank: number): string {
-  if (outRank < 2) {
-    return '';
-  }
-
-  const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, outRank);
-  const type = getCoordsDataType(outRank);
-
-  return `
-    void setOutput(${dims.map(d => `int ${d}`).join(', ')}, float value) {
-      uint flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
-      setOutput(flatIndex, value);
+function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
+  let snippet = `void setOutput(uint flatIndex, float value) {
+      result[flatIndex] = ${
+      mapToGlslTypes(outBufferType) === 'int' ? 'int(value)' : 'value'};
     }
-  `;
+    void setOutput(uint flatIndex, int value) {
+      result[flatIndex] = ${
+      mapToGlslTypes(outBufferType) === 'float' ? 'float(value)' : 'value'};
+    }`;
+
+  if (outRank >= 2) {
+    const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, outRank);
+    const type = getCoordsDataType(outRank);
+
+    snippet += `
+      void setOutput(${dims.map(d => `int ${d}`).join(', ')}, float value) {
+        uint flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
+        setOutput(flatIndex, value);
+      }
+      void setOutput(${dims.map(d => `int ${d}`).join(', ')}, int value) {
+        uint flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
+        setOutput(flatIndex, value);
+      }
+    `;
+  }
+
+  return snippet;
 }
 
 function getInputSamplingSnippet(
@@ -232,7 +239,11 @@ function getSamplerAtOutputCoords(
   let coordsSnippet = '';
 
   if (inRank === 0) {
-    coordsSnippet = 'coords = 0;';
+    return `
+      float ${funcName}() {
+        return get${texFuncSnippet}();
+      }
+    `;
   } else {
     if (outRank < 2 && broadcastDims.length >= 1) {
       coordsSnippet = 'coords = 0;';
