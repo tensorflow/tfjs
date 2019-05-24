@@ -40,8 +40,10 @@ function config({plugins = [], output = {}, external = []}) {
     output: {
       banner: PREAMBLE,
       sourcemap: true,
+      globals: {'@tensorflow/tfjs-core': 'tf'},
       ...output,
     },
+    external: ['@tensorflow/tfjs-core'],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
