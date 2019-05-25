@@ -18,12 +18,15 @@ other client-side data.
 ## About this repo
 
 This repository contains the logic and scripts that combine
-three packages:
+four packages:
 - [TensorFlow.js Core](https://github.com/tensorflow/tfjs-core),
   a flexible low-level API, formerly known as *deeplearn.js*.
 - [TensorFlow.js Layers](https://github.com/tensorflow/tfjs-layers),
   a high-level API which implements functionality similar to
   [Keras](https://keras.io/).
+- [TensorFlow.js Data](https://github.com/tensorflow/tfjs-data),
+  a simple API to load and prepare data analogous to
+  [tf.data](https://www.tensorflow.org/guide/datasets_for_estimators).
 - [TensorFlow.js Converter](https://github.com/tensorflow/tfjs-converter),
   tools to import a TensorFlow SavedModel to TensorFlow.js
 
