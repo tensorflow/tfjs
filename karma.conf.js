@@ -33,6 +33,7 @@ module.exports = function(config) {
         declaration: false,
         module: 'commonjs'
       },
+      coverageOptions: {instrumentation: false},
       reports: {} // Do not produce coverage html.
     },
     reporters: ['progress', 'karma-typescript'],

@@ -371,8 +371,7 @@ def setup_arguments():
       help='Show versions of tensorflowjs and its dependencies')
   parser.add_argument(
       '--skip_op_check',
-      type=bool,
-      default=False,
+      action='store_true',
       help='Skip op validation for TensorFlow model conversion.')
   parser.add_argument(
       '--strip_debug_ops',

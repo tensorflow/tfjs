@@ -38,9 +38,9 @@ const NODE: Node = {
     f: {type: tensorflow.DataType.DT_FLOAT},
     g: {b: true},
     h: {f: 4.5},
-    i: {list: {i: [3, 6]}},
-    j: {list: {f: [4.5, 5.5]}},
-    k: {list: {s: ['TkhXQw==', 'TkhXQw==']}},
+    i: {list: {i: [3, 6, 0]}},
+    j: {list: {f: [4.5, 5.5, 0.0]}},
+    k: {list: {s: ['TkhXQw==', 'TkhXQw==', '']}},
     l: {
       list:
           {type: [tensorflow.DataType.DT_FLOAT, tensorflow.DataType.DT_INT32]}
@@ -84,14 +84,14 @@ describe('NodeValueImpl', () => {
       expect(nodeValue.attrs['h']).toEqual(4.5);
     });
     it('should parse number[]', () => {
-      expect(nodeValue.attrs['i']).toEqual([3, 6]);
-      expect(nodeValue.attrs['j']).toEqual([4.5, 5.5]);
+      expect(nodeValue.attrs['i']).toEqual([3, 6, 0]);
+      expect(nodeValue.attrs['j']).toEqual([4.5, 5.5, 0.0]);
     });
     it('should parse string', () => {
       expect(nodeValue.attrs['e']).toEqual('nhwc');
     });
     it('should parse string[]', () => {
-      expect(nodeValue.attrs['k']).toEqual(['nhwc', 'nhwc']);
+      expect(nodeValue.attrs['k']).toEqual(['nhwc', 'nhwc', '']);
     });
     it('should parse boolean', () => {
       expect(nodeValue.attrs['g']).toEqual(true);

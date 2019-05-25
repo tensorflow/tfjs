@@ -26,6 +26,7 @@ import tensorflow as tf
 from tensorflow.core.protobuf import device_properties_pb2
 from tensorflow.core.protobuf import meta_graph_pb2
 from tensorflow.core.protobuf import config_pb2
+from tensorflow.core.framework import types_pb2
 from tensorflow.python.framework import convert_to_constants
 from tensorflow.python.framework import graph_util
 from tensorflow.python.grappler import cluster as gcluster
@@ -153,14 +154,16 @@ def optimize_graph(func,
     raise ValueError('Unsupported Ops in the model after optimization\n' +
                      ', '.join(unsupported))
 
-  extract_weights(optimized_graph, output_graph, tf_version, quantization_dtype)
+  extract_weights(
+      optimized_graph, output_graph, tf_version, quantization_dtype,
+      skip_op_check)
   return optimize_graph
 
 
 def extract_weights(graph_def,
                     output_graph,
                     tf_version,
-                    quantization_dtype=None):
+                    quantization_dtype=None, skip_op_check=False):
   """Takes a Python GraphDef object and extract the weights.
 
   Args:
@@ -189,8 +192,14 @@ def extract_weights(graph_def,
       if not isinstance(value, np.ndarray):
         value = np.array(value)
 
+      # TODO(https://github.com/tensorflow/tfjs/issues/1598):
+      # Skip weight serialization of string tensors when we skip op checks.
+      can_skip_weight = (skip_op_check and
+                         const.attr['dtype'].type == types_pb2.DT_STRING)
+      if not can_skip_weight:
+        const_manifest.append({'name': const.name, 'data': value})
+
       # Restore the conditional inputs
-      const_manifest.append({'name': const.name, 'data': value})
       const.input[:] = const_inputs[const.name]
 
       # Remove the binary array from tensor and save it to the external file.
