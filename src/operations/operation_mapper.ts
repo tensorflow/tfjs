@@ -39,10 +39,6 @@ import * as spectral from './op_list/spectral';
 import * as transformation from './op_list/transformation';
 import {Graph, InputParamValue, Node, OpMapper, ParamValue} from './types';
 
-const CONTROL_FLOW_OPS = ['Switch', 'Merge', 'Enter', 'Exit', 'NextIteration'];
-const DYNAMIC_SHAPE_OPS =
-    ['NonMaxSuppressionV2', 'NonMaxSuppressionV3', 'Where'];
-
 export class OperationMapper {
   private static _instance: OperationMapper;
 
@@ -70,33 +66,27 @@ export class OperationMapper {
         {});
   }
 
-  private isControlFlow(node: tensorflow.INodeDef) {
-    return CONTROL_FLOW_OPS.some(op => op === node.op);
-  }
-
-  private isDynamicShape(node: tensorflow.INodeDef) {
-    return DYNAMIC_SHAPE_OPS.some(op => op === node.op);
-  }
   // Converts the model from Tensorflow GraphDef to local representation for
   // TensorFlow.js API
   transformGraph(graph: tensorflow.IGraphDef): Graph {
     const tfNodes = graph.node;
-    let withControlFlow = false;
-    let withDynamicShape = false;
     const placeholders: Node[] = [];
     const weights: Node[] = [];
     const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
       map[node.name] = this.mapNode(node);
-      if (this.isControlFlow(node)) withControlFlow = true;
-      if (this.isDynamicShape(node)) withDynamicShape = true;
-      if (node.op === 'Placeholder') placeholders.push(map[node.name]);
-      if (node.op === 'Const') weights.push(map[node.name]);
+      if (node.op === 'Placeholder') {
+        placeholders.push(map[node.name]);
+      }
+      if (node.op === 'Const') {
+        weights.push(map[node.name]);
+      }
       return map;
     }, {});
 
     const inputs: Node[] = [];
     const outputs: Node[] = [];
-    Object.keys(nodes).forEach(key => {
+    const allNodes = Object.keys(nodes);
+    allNodes.forEach(key => {
       const node = nodes[key];
       node.inputNames.forEach(name => {
         const [nodeName, ] = getNodeNameAndIndex(name);
@@ -106,27 +96,19 @@ export class OperationMapper {
       if (node.inputs.length === 0) inputs.push(node);
     });
 
-    Object.keys(nodes).forEach(key => {
+    allNodes.forEach(key => {
       const node = nodes[key];
       if (node.children.length === 0) outputs.push(node);
     });
 
-    return {
-      nodes,
-      inputs,
-      outputs,
-      weights,
-      placeholders,
-      withControlFlow,
-      withDynamicShape
-    };
+    return {nodes, inputs, outputs, weights, placeholders};
   }
 
   private mapNode(node: tensorflow.INodeDef): Node {
-    const mapper = getRegisteredOp(node.op) || this.opMappers[node.op];
-    if (mapper === undefined) {
-      throw new Error('Tensorflow Op is not supported: ' + node.op);
-    }
+    // Unsupported ops will cause an error at run-time (not parse time), since
+    // they may not be used by the actual execution subgraph.
+    const mapper =
+        getRegisteredOp(node.op) || this.opMappers[node.op] || {} as OpMapper;
     if (node.attr == null) {
       node.attr = {};
     }
@@ -296,7 +278,7 @@ export function getStringParam(
     attrs: {[key: string]: tensorflow.IAttrValue}, name: string, def: string,
     keepCase = false): string {
   const param = attrs[name];
-  if (param !== undefined) {
+  if (param != null) {
     return parseStringParam(param.s, keepCase);
   }
   return def;
@@ -313,7 +295,8 @@ export function getNumberParam(
     attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
     def: number): number {
   const param = attrs[name] || {};
-  const value = param['i'] ? param['i'] : (param['f'] ? param['f'] : def);
+  const value =
+      param['i'] != null ? param['i'] : (param['f'] != null ? param['f'] : def);
   return (typeof value === 'number') ? value :
                                        parseInt(value as string, 10) as number;
 }
@@ -330,9 +313,14 @@ export function parseDtypeParam(value: string|tensorflow.DataType): DataType {
       return 'int32';
     case tensorflow.DataType.DT_BOOL:
       return 'bool';
+    case tensorflow.DataType.DT_DOUBLE:
+      return 'float32';
+    case tensorflow.DataType.DT_STRING:
+      return 'string';
     default:
-      throw new Error(`Unsupported data type: ${
-          tensorflow.DataType[value as tensorflow.DataType]}`);
+      // Unknown dtype error will happen at runtime (instead of parse time),
+      // since these nodes might not be used by the actual subgraph execution.
+      return null;
   }
 }
 

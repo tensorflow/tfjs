@@ -165,22 +165,33 @@ export class GraphModel implements InferenceModel {
   /** @doc {heading: 'Models', subheading: 'Classes'} */
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
-    return this.execute_(inputs, true, this.outputNodes);
+    return this.execute(inputs, this.outputNodes);
   }
 
-  private constructTensorMap(inputs: Tensor|Tensor[]) {
-    const inputArray = inputs instanceof Tensor ? [inputs] : inputs;
-    if (inputArray.length !== this.inputNodes.length) {
+  private normalizeInputs(inputs: Tensor|Tensor[]|
+                          NamedTensorMap): NamedTensorMap {
+    if (!(inputs instanceof Tensor) && !Array.isArray(inputs)) {
+      // The input is already a NamedTensorMap.
+      return inputs;
+    }
+    inputs = Array.isArray(inputs) ? inputs : [inputs];
+    if (inputs.length !== this.inputNodes.length) {
       throw new Error(
           'Input tensor count mismatch,' +
           `the graph model has ${this.inputNodes.length} placeholders, ` +
-          `while there are ${inputArray.length} input tensors.`);
+          `while there are ${inputs.length} input tensors.`);
     }
     return this.inputNodes.reduce((map, inputName, i) => {
-      map[inputName] = inputArray[i];
+      map[inputName] = (inputs as Tensor[])[i];
       return map;
     }, {} as NamedTensorMap);
   }
+
+  private normalizeOutputs(outputs: string|string[]): string[] {
+    outputs = outputs || this.outputNodes;
+    return !Array.isArray(outputs) ? [outputs] : outputs;
+  }
+
   /**
    * Executes inference for the model for given input tensors.
    * @param inputs tensor, tensor array or tensor map of the inputs for the
@@ -198,27 +209,10 @@ export class GraphModel implements InferenceModel {
   /** @doc {heading: 'Models', subheading: 'Classes'} */
   execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs?: string|string[]):
       Tensor|Tensor[] {
-    return this.execute_(inputs, false, outputs);
-  }
-
-  private execute_(
-      inputs: Tensor|Tensor[]|NamedTensorMap, strictInputCheck = true,
-      outputs?: string|string[]): Tensor|Tensor[] {
-    outputs = outputs || this.outputNodes;
-    if (inputs instanceof Tensor || Array.isArray(inputs)) {
-      inputs = this.constructTensorMap(inputs);
-    }
-    if (this.executor.isControlFlowModel || this.executor.isDynamicShapeModel) {
-      throw new Error(
-          'The model contains control flow or dynamic shape ops, ' +
-          'please use executeAsync method');
-    }
-    const result = this.executor.execute(
-        this.convertTensorMapToTensorsMap(inputs), strictInputCheck, outputs);
-    const keys = Object.keys(result);
-    return (Array.isArray(outputs) && outputs.length > 1) ?
-        outputs.map(node => result[node]) :
-        result[keys[0]];
+    inputs = this.normalizeInputs(inputs);
+    outputs = this.normalizeOutputs(outputs);
+    const result = this.executor.execute(inputs, outputs);
+    return result.length > 1 ? result : result[0];
   }
   /**
    * Executes inference for the model for given input tensors in async
@@ -238,23 +232,10 @@ export class GraphModel implements InferenceModel {
   async executeAsync(
       inputs: Tensor|Tensor[]|NamedTensorMap,
       outputs?: string|string[]): Promise<Tensor|Tensor[]> {
-    if (!(this.executor.isControlFlowModel ||
-          this.executor.isDynamicShapeModel)) {
-      throw new Error(
-          'The model does not contain control flow or dynamic shape ops, ' +
-          'please use execute method for better performance.');
-    }
-    outputs = outputs || this.outputNodes;
-    if (inputs instanceof Tensor || Array.isArray(inputs)) {
-      inputs = this.constructTensorMap(inputs);
-    }
-
-    const result = await this.executor.executeAsync(
-        this.convertTensorMapToTensorsMap(inputs), outputs);
-    const keys = Object.keys(result);
-    return Array.isArray(outputs) && outputs.length > 1 ?
-        outputs.map(node => result[node]) :
-        result[keys[0]];
+    inputs = this.normalizeInputs(inputs);
+    outputs = this.normalizeOutputs(outputs);
+    const result = await this.executor.executeAsync(inputs, outputs);
+    return result.length > 1 ? result : result[0];
   }
 
   private convertTensorMapToTensorsMap(map: NamedTensorMap): NamedTensorsMap {

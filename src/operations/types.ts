@@ -104,8 +104,6 @@ export declare interface Graph {
   inputs: Node[];
   outputs: Node[];
   weights: Node[];
-  withControlFlow: boolean;
-  withDynamicShape: boolean;
 }
 
 export type ValueType = string|string[]|number|number[]|number[][]|boolean|

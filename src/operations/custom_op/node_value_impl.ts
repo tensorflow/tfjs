@@ -59,35 +59,40 @@ export class NodeValueImpl implements GraphNode {
     if (value.tensor != null) {
       return getTensor(name, this.tensorMap, this.context);
     }
-    if (value.i || value.f)
+    if (value.i != null || value.f != null) {
       return getNumberParam(this.node.rawAttrs, name, defaultValue as number);
-    if (value.s)
+    }
+    if (value.s != null) {
       return getStringParam(this.node.rawAttrs, name, defaultValue as string);
-    if (value.b)
+    }
+    if (value.b != null) {
       return getBoolParam(this.node.rawAttrs, name, defaultValue as boolean);
-    if (value.shape)
+    }
+    if (value.shape != null) {
       return getTensorShapeParam(
           this.node.rawAttrs, name, defaultValue as number[]);
-    if (value.type)
+    }
+    if (value.type != null) {
       return getDtypeParam(this.node.rawAttrs, name, defaultValue as DataType);
-    if (value.list) {
-      if (value.list.i || value.list.f) {
+    }
+    if (value.list != null) {
+      if (value.list.i != null || value.list.f != null) {
         return getNumericArrayParam(
             this.node.rawAttrs, name, defaultValue as number[]);
       }
-      if (value.list.s) {
+      if (value.list.s != null) {
         return getStringArrayParam(
             this.node.rawAttrs, name, defaultValue as string[]);
       }
-      if (value.list.shape) {
+      if (value.list.shape != null) {
         return getTensorShapeArrayParam(
             this.node.rawAttrs, name, defaultValue as number[][]);
       }
-      if (value.list.b) {
+      if (value.list.b != null) {
         return getBoolArrayParam(
             this.node.rawAttrs, name, defaultValue as boolean[]);
       }
-      if (value.list.type) {
+      if (value.list.type != null) {
         return getDtypeArrayParam(
             this.node.rawAttrs, name, defaultValue as DataType[]);
       }

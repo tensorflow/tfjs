@@ -92,7 +92,10 @@ export function executeOp(
               throw TypeError(`Custom op ${node.op} is not registered.`);
             }
           default:
-            throw TypeError(`Node type ${node.op} is not implemented.`);
+            throw TypeError(
+                `Unknown op '${node.op}'. File an issue at ` +
+                `https://github.com/tensorflow/tfjs/issues so we can add it` +
+                `, or register a custom execution with tf.registerOp()`);
         }
       })(node, tensorMap, context);
   if (value instanceof Promise) {
