@@ -50,7 +50,7 @@ async function downloadAndUnpackResource(uri, destPath, callback) {
     options.agent = new HttpsProxyAgent(proxy);
   }
 
-  const request = https.get(uri, response => {
+  const request = https.get(options, response => {
     const bar = new ProgressBar('[:bar] :rate/bps :percent :etas', {
       complete: '=',
       incomplete: ' ',
