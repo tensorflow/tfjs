@@ -55,11 +55,11 @@ class PassthroughSaver implements IOHandler {
 /**
  * Creates an IOHandler that loads model artifacts from memory.
  *
- * When used in conjunction with `tf.loadModel`, an instance of `tf.Model`
- * (Keras-style) can be constructed from the loaded artifacts.
+ * When used in conjunction with `tf.loadLayersModel`, an instance of
+ * `tf.LayersModel` (Keras-style) can be constructed from the loaded artifacts.
  *
  * ```js
- * const model = await tf.loadModel(tf.io.fromMemory(
+ * const model = await tf.loadLayersModel(tf.io.fromMemory(
  *     modelTopology, weightSpecs, weightData));
  * ```
  *
