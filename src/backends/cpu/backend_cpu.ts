@@ -77,7 +77,7 @@ export class MathBackendCPU implements KernelBackend {
       this.fromPixels2DContext =
           document.createElement('canvas').getContext('2d');
     }
-    this.data = new DataStorage(ENGINE);
+    this.data = new DataStorage(this, ENGINE);
   }
 
   register(dataId: DataId, shape: number[], dtype: DataType): void {

@@ -358,8 +358,8 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
         `failed.`);
   }
 
-  moveData(dataId: DataId) {
-    this.write(dataId, this.readSync(dataId));
+  moveData(destBackend: KernelBackend, dataId: DataId) {
+    this.write(destBackend, dataId, this.readSync(dataId));
   }
 
   tidy<T extends TensorContainer>(nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>):
@@ -830,8 +830,12 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
   }
 
   // Forwarding to backend.
-  write(dataId: DataId, values: DataValues): void {
+  write(destBackend: KernelBackend, dataId: DataId, values: DataValues): void {
     const info = this.state.tensorInfo.get(dataId);
+
+    const srcBackend = info.backend;
+    destBackend = destBackend || this.backend;
+
     // Bytes for string tensors are counted when writing.
     if (info.dtype === 'string') {
       const newBytes = bytesFromStringArray(values as string[]);
@@ -839,14 +843,14 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
       info.bytes = newBytes;
     }
 
-    if (this.backend !== info.backend) {
+    if (destBackend !== srcBackend) {
       // Delete the tensor from the old backend and move it to the new
       // backend.
-      info.backend.disposeData(dataId);
-      info.backend = this.backend;
-      this.backend.register(dataId, info.shape, info.dtype);
+      srcBackend.disposeData(dataId);
+      info.backend = destBackend;
+      destBackend.register(dataId, info.shape, info.dtype);
     }
-    this.backend.write(dataId, values);
+    destBackend.write(dataId, values);
   }
   readSync(dataId: DataId): DataValues {
     // Route the read to the correct backend.

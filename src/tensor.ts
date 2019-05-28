@@ -159,7 +159,7 @@ export interface TensorTracker {
   registerTensor(t: Tensor, backend?: Backend): void;
   disposeTensor(t: Tensor): void;
   disposeVariable(v: Variable): void;
-  write(dataId: DataId, values: DataValues): void;
+  write(backend: Backend, dataId: DataId, values: DataValues): void;
   read(dataId: DataId): Promise<DataValues>;
   readSync(dataId: DataId): DataValues;
   registerVariable(v: Variable): void;
@@ -463,7 +463,7 @@ export class Tensor<R extends Rank = Rank> {
     this.rankType = (this.rank < 5 ? this.rank.toString() : 'higher') as R;
     trackerFn().registerTensor(this, backend);
     if (values != null) {
-      trackerFn().write(this.dataId, values);
+      trackerFn().write(backend, this.dataId, values);
     }
   }
 
