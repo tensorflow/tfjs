@@ -49,9 +49,15 @@ async function symlinkDepsLib() {
     throw new Error('Destination path not supplied!');
   }
   try {
-    await symlink(depsLibTensorFlowPath, destLibPath);
+    await symlink(
+        path.relative(path.dirname(destLibPath), depsLibTensorFlowPath),
+        destLibPath);
     if (os.platform() !== 'win32') {
-      await symlink(depsLibTensorFlowFrameworkPath, destFrameworkLibPath);
+      await symlink(
+          path.relative(
+              path.dirname(destFrameworkLibPath),
+              depsLibTensorFlowFrameworkPath),
+          destFrameworkLibPath);
     }
   } catch (e) {
     console.error(
