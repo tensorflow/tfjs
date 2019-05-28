@@ -300,8 +300,8 @@ export function browserDownloads(fileNamePrefix = 'model'): IOHandler {
  *
  * This method can be used for loading from files such as user-selected files
  * in the browser.
- * When used in conjunction with `tf.loadModel`, an instance of `tf.Model`
- * (Keras-style) can be constructed from the loaded artifacts.
+ * When used in conjunction with `tf.loadLayersModel`, an instance of
+ * `tf.LayersModel` (Keras-style) can be constructed from the loaded artifacts.
  *
  * ```js
  * // Note: This code snippet won't run properly without the actual file input
@@ -311,7 +311,7 @@ export function browserDownloads(fileNamePrefix = 'model'): IOHandler {
  * // elements.
  * const uploadJSONInput = document.getElementById('upload-json');
  * const uploadWeightsInput = document.getElementById('upload-weights');
- * const model = await tfl.loadModel(tf.io.browserFiles(
+ * const model = await tf.loadLayersModel(tf.io.browserFiles(
  *     [uploadJSONInput.files[0], uploadWeightsInput.files[0]]));
  * ```
  *
