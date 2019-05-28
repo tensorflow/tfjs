@@ -18,7 +18,7 @@
 import * as jasmineUtil from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // tslint:disable-next-line:no-any
-export function runTests(jasmineUtil: any): void {
+export function runTests(jasmineUtil: any, filename: string): void {
   // tslint:disable-next-line:no-require-imports
   const jasmineCtor = require('jasmine');
 
@@ -32,11 +32,19 @@ export function runTests(jasmineUtil: any): void {
       [{name: 'node', factory: jasmineUtil.CPU_FACTORY, features: {}}]);
 
   const runner = new jasmineCtor();
-  runner.loadConfig({
-    spec_files: ['models/models_benchmarks.ts'],
-    random: false
-  });
+  runner.loadConfig({spec_files: [filename], random: false});
   runner.execute();
 }
 
-runTests(jasmineUtil);
+let filename = undefined;
+for (let i = 0; i < process.argv.length; i++) {
+  if (process.argv[i] === '--filename') {
+    filename = process.argv[i + 1];
+    break;
+  }
+}
+if (filename == null) {
+  throw new Error('Missing value for flag --filename');
+}
+
+runTests(jasmineUtil, filename);
