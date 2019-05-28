@@ -23,6 +23,13 @@ import {hasEncodingLoss, makeZerosTypedArray} from '../util';
 
 import {KernelBackend} from './backend';
 
+// Utilities needed by backend consumers of tf-core.
+export * from '../ops/axis_util';
+export * from '../ops/broadcast_util';
+export * from '../ops/concat_util';
+export * from '../ops/conv_util';
+export {TypedArray, upcastType, PixelData} from '../types';
+
 export function castTensor<T extends Tensor>(
     x: T, dtype: DataType, backend: KernelBackend): T {
   if (dtype === 'complex64') {
