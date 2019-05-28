@@ -66,7 +66,7 @@ module.exports = function(config) {
   if (config.grep) {
     args.push('--grep', config.grep);
   }
-  if (config.features) {
+  if (config.flags) {
     args.push('--flags', config.flags);
   }
   const extraConfig = config.browserstack ? browserstackConfig : devConfig;

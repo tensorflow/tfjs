@@ -42,7 +42,7 @@ ENV.registerFlag(
     'WEBGL_BUFFER_SUPPORTED', () => ENV.get('WEBGL_VERSION') === 2);
 
 /** Whether the WebGL backend will sometimes forward ops to the CPU. */
-ENV.registerFlag('WEBGL_CPU_FORWARD', () => false);
+ENV.registerFlag('WEBGL_CPU_FORWARD', () => true);
 
 /** Whether to turn all packing related flags on. */
 ENV.registerFlag('WEBGL_PACK', () => ENV.getBool('HAS_WEBGL'));

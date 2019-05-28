@@ -47,11 +47,11 @@ export interface TensorStorage {
 export class DataStorage<T> {
   private data = new WeakMap<DataId, T>();
 
-  constructor(private dataMover: DataMover) {}
+  constructor(private backend: KernelBackend, private dataMover: DataMover) {}
 
   get(dataId: DataId) {
     if (!this.data.has(dataId)) {
-      this.dataMover.moveData(dataId);
+      this.dataMover.moveData(this.backend, dataId);
     }
     return this.data.get(dataId);
   }
@@ -75,7 +75,7 @@ export interface DataMover {
    * Upon calling this method, the mover will fetch the tensor from another
    * backend and register it with the current active backend.
    */
-  moveData(dataId: DataId): void;
+  moveData(backend: KernelBackend, dataId: DataId): void;
 }
 
 export interface BackendTimer {
