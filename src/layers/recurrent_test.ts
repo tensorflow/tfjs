@@ -17,13 +17,13 @@ import {randomNormal, Scalar, scalar, Tensor, tensor1d, tensor2d, tensor3d, tens
 
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
+import {ActivationIdentifier} from '../keras_format/activation_config';
 import {ModelAndWeightsConfig, modelFromJSON} from '../models';
 import {Kwargs} from '../types';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {GRU, LSTM, rnn, RNN, RNNCell} from './recurrent';
-import {ActivationIdentifier} from '../keras_format/activation_config';
 
 /**
  * A simplistic RNN step function for testing.
@@ -2790,6 +2790,39 @@ describeMathCPU('StackedRNNCells Symbolic', () => {
     expect(stackedRNN.getWeights()[3].shape).toEqual([3, 6]);
     expect(stackedRNN.getWeights()[4].shape).toEqual([2, 6]);
     expect(stackedRNN.getWeights()[5].shape).toEqual([6]);
+  });
+});
+
+describeMathCPU('Stacked RNN serialization', () => {
+  it('StackedRNNCells', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({
+      units: 1,
+      inputShape: [3, 4],
+      kernelInitializer: 'ones'
+    }));
+    const cells = [
+      tfl.layers.lstmCell({
+        units: 5,
+        kernelInitializer: 'ones',
+        recurrentInitializer: 'ones'
+      }),
+      tfl.layers.lstmCell({
+        units: 6,
+        kernelInitializer: 'ones',
+        recurrentInitializer: 'ones'
+      })
+    ];
+    const rnn = tfl.layers.rnn({cell: cells, returnSequences: true});
+    model.add(rnn);
+    const xs = tfc.ones([1, 3, 4]).mul(0.1);
+    const ys = model.predict(xs) as Tensor;
+
+    const modelJSON = model.toJSON(null, false);
+    const modelPrime =
+        await tfl.models.modelFromJSON({modelTopology: modelJSON});
+    const ysPrime = modelPrime.predict(xs) as Tensor;
+    expectTensorsClose(ysPrime, ys);
   });
 });
 
