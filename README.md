@@ -26,7 +26,7 @@ four packages:
   [Keras](https://keras.io/).
 - [TensorFlow.js Data](https://github.com/tensorflow/tfjs-data),
   a simple API to load and prepare data analogous to
-  [tf.data](https://www.tensorflow.org/guide/datasets_for_estimators).
+  [tf.data](https://www.tensorflow.org/guide/datasets).
 - [TensorFlow.js Converter](https://github.com/tensorflow/tfjs-converter),
   tools to import a TensorFlow SavedModel to TensorFlow.js
 
