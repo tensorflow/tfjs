@@ -21,6 +21,7 @@ from __future__ import print_function
 import argparse
 import json
 import os
+import shutil
 import tempfile
 
 import h5py
@@ -35,7 +36,7 @@ from tensorflowjs.converters import keras_tfjs_loader
 from tensorflowjs.converters import tf_saved_model_conversion_v2
 
 
-def dispatch_keras_h5_to_tensorflowjs_conversion(
+def dispatch_keras_h5_to_tfjs_layers_model_conversion(
     h5_path, output_dir=None, quantization_dtype=None,
     split_weights_by_layer=False,
     weight_shard_size_bytes=1024 * 1024 * 4):
@@ -97,6 +98,51 @@ def dispatch_keras_h5_to_tensorflowjs_conversion(
   return model_json, groups
 
 
+def dispatch_keras_h5_to_tfjs_graph_model_conversion(
+    h5_path, output_dir=None,
+    quantization_dtype=None,
+    skip_op_check=False,
+    strip_debug_ops=False):
+  """
+  Convert a keras HDF5-format model to tfjs GraphModel artifacts.
+
+  Args:
+    h5_path: Path to the HDF5-format file that contains the model saved from
+      keras or tf.keras.
+    output_dir: The destination to which the tfjs GraphModel artifacts will be
+      written.
+    quantization_dtype: The quantized data type to store the weights in
+      (Default: `None`).
+    skip_op_check: Bool whether to skip the op check.
+    strip_debug_ops: Bool whether to allow unsupported debug ops.
+  """
+
+  if not os.path.exists(h5_path):
+    raise ValueError('Nonexistent path to HDF5 file: %s' % h5_path)
+  if os.path.isdir(h5_path):
+    raise ValueError(
+        'Expected path to point to an HDF5 file, but it points to a '
+        'directory: %s' % h5_path)
+
+  temp_savedmodel_dir = tempfile.mktemp(suffix='.savedmodel')
+  model = keras.models.load_model(h5_path)
+  keras.experimental.export_saved_model(
+      model, temp_savedmodel_dir, serving_only=True)
+
+  # NOTE(cais): This cannot use `tf.compat.v1` because
+  #   `convert_tf_saved_model()` works only in v2.
+  tf_saved_model_conversion_v2.convert_tf_saved_model(
+      temp_savedmodel_dir, output_dir,
+      signature_def='serving_default',
+      saved_model_tags='serve',
+      quantization_dtype=quantization_dtype,
+      skip_op_check=skip_op_check,
+      strip_debug_ops=strip_debug_ops)
+
+  # Clean up the temporary SavedModel directory.
+  shutil.rmtree(temp_savedmodel_dir)
+
+
 def dispatch_keras_saved_model_to_tensorflowjs_conversion(
     keras_saved_model_path, output_dir, quantization_dtype=None,
     split_weights_by_layer=False):
@@ -128,7 +174,7 @@ def dispatch_keras_saved_model_to_tensorflowjs_conversion(
     model.save(temp_h5_path)
     assert os.path.isfile(temp_h5_path)
 
-    dispatch_keras_h5_to_tensorflowjs_conversion(
+    dispatch_keras_h5_to_tfjs_layers_model_conversion(
         temp_h5_path,
         output_dir,
         quantization_dtype=quantization_dtype,
@@ -190,10 +236,8 @@ def dispatch_tensorflowjs_to_tensorflowjs_conversion(
       conversion will be saved.
     quantization_dtype: The quantized data type to store the weights in
       (Default: `None`).
-    output_dir_path: Path to the directory in which the converted
-      model will be saved. This includes the model.json file and the
-      possibly sharded binary weight files. The directory will be
-      created if the path doesn't exist.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
 
   Raises:
     ValueError, if `config_json_path` is not a path to a valid JSON
@@ -226,13 +270,72 @@ def dispatch_tensorflowjs_to_tensorflowjs_conversion(
     dispatch_tensorflowjs_to_keras_h5_conversion(config_json_path, temp_h5_path)
 
   with tf.Graph().as_default(), tf.compat.v1.Session():
-    dispatch_keras_h5_to_tensorflowjs_conversion(
+    dispatch_keras_h5_to_tfjs_layers_model_conversion(
         temp_h5_path, output_dir_path,
         quantization_dtype=quantization_dtype,
         weight_shard_size_bytes=weight_shard_size_bytes)
     # TODO(cais): Support weight quantization.
 
   # Clean up the temporary H5 file.
+  os.remove(temp_h5_path)
+
+
+def dispatch_tfjs_layers_model_to_tfjs_graph_conversion(
+    config_json_path,
+    output_dir_path,
+    quantization_dtype=None,
+    skip_op_check=False,
+    strip_debug_ops=False):
+  """Converts a TensorFlow.js Layers Model to TensorFlow.js Graph Model.
+
+  This conversion often benefits speed of inference, due to the graph
+  optimization that goes into generating the Graph Model.
+
+  Args:
+    config_json_path: Path to the JSON file that includes the model's
+      topology and weights manifest, in tensorflowjs format.
+    output_dir_path: Path to output directory in which the result of the
+      conversion will be saved.
+    quantization_dtype: The quantized data type to store the weights in
+      (Default: `None`).
+    skip_op_check: Bool whether to skip the op check.
+    strip_debug_ops: Bool whether to allow unsupported debug ops.
+
+  Raises:
+    ValueError, if `config_json_path` is not a path to a valid JSON
+      file, or if h5_path points to an existing directory.
+    ValueError, if `output_dir_path` exists and is a file (instead of
+      a directory).
+  """
+  if os.path.isdir(config_json_path):
+    raise ValueError(
+        'For input_type=tfjs_layers_model, '
+        'the input path should be a model.json '
+        'file, but received a directory.')
+  # TODO(cais): Assert output_dir_path doesn't exist or is the path to
+  # a directory (not a file).
+
+  # Verify that config_json_path points to a JSON file.
+  with open(config_json_path, 'rt') as f:
+    try:
+      json.load(f)
+    except (ValueError, IOError):
+      raise ValueError(
+          'For input_type=tfjs_layers_model, '
+          'the input path is expected to contain valid JSON content, '
+          'but cannot read valid JSON content from %s.' % config_json_path)
+
+  temp_h5_path = tempfile.mktemp(suffix='.h5')
+
+  model = keras_tfjs_loader.load_keras_model(config_json_path)
+  model.save(temp_h5_path)
+  dispatch_keras_h5_to_tfjs_graph_model_conversion(
+      temp_h5_path, output_dir_path,
+      quantization_dtype=quantization_dtype,
+      skip_op_check=skip_op_check,
+      strip_debug_ops=strip_debug_ops)
+
+  # Clean up temporary HDF5 file.
   os.remove(temp_h5_path)
 
 
@@ -426,10 +529,16 @@ def main():
   # TODO(cais, piyu): More conversion logics can be added as additional
   #   branches below.
   if input_format == 'keras' and output_format == 'tfjs_layers_model':
-    dispatch_keras_h5_to_tensorflowjs_conversion(
+    dispatch_keras_h5_to_tfjs_layers_model_conversion(
         FLAGS.input_path, output_dir=FLAGS.output_path,
         quantization_dtype=quantization_dtype,
         split_weights_by_layer=FLAGS.split_weights_by_layer)
+  elif input_format == 'keras' and output_format == 'tfjs_graph_model':
+    dispatch_keras_h5_to_tfjs_graph_model_conversion(
+        FLAGS.input_path, output_dir=FLAGS.output_path,
+        quantization_dtype=quantization_dtype,
+        skip_op_check=FLAGS.skip_op_check,
+        strip_debug_ops=FLAGS.strip_debug_ops)
   elif (input_format == 'keras_saved_model' and
         output_format == 'tfjs_layers_model'):
     dispatch_keras_saved_model_to_tensorflowjs_conversion(
@@ -461,6 +570,13 @@ def main():
         FLAGS.input_path, FLAGS.output_path,
         quantization_dtype=_parse_quantization_bytes(FLAGS.quantization_bytes),
         weight_shard_size_bytes=weight_shard_size_bytes)
+  elif (input_format == 'tfjs_layers_model' and
+        output_format == 'tfjs_graph_model'):
+    dispatch_tfjs_layers_model_to_tfjs_graph_conversion(
+        FLAGS.input_path, FLAGS.output_path,
+        quantization_dtype=_parse_quantization_bytes(FLAGS.quantization_bytes),
+        skip_op_check=FLAGS.skip_op_check,
+        strip_debug_ops=FLAGS.strip_debug_ops)
   else:
     raise ValueError(
         'Unsupported input_format - output_format pair: %s - %s' %
