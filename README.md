@@ -11,31 +11,42 @@ A 2-step process to import your model:
 1. A python pip package to convert a TensorFlow SavedModel or TensorFlow Hub module to a web friendly format. If you already have a converted model, or are using an already hosted model (e.g. MobileNet), skip this step.
 2. [Javascript API](./src/executor/tf_model.ts), for loading and running inference.
 
-## Step 1: Converting a [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [Keras h5](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model), [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/contrib/saved_model/save_keras_model) or [TensorFlow Hub module](https://www.tensorflow.org/hub/) to a web-friendly format
+## Step 1: Converting a [TensorFlow SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [TensorFlow Hub module](https://www.tensorflow.org/hub/), [Keras HDF5](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model) or [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/contrib/saved_model/save_keras_model) to a web-friendly format
 
-0. Please make sure that you run in a Docker container or a virtual environment. The script pulls its own subset of TensorFlow, which might conflict with the existing TensorFlow/Keras installation.
+__0. Please make sure that you run in a Docker container or a virtual environment.__
 
-For example, [create and activate](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/) a `venv` virtual environment in your current folder:
+ The script pulls its own subset of TensorFlow, which might conflict with the existing TensorFlow/Keras installation.
+
+__Note__: *Check that [`tf-nightly-2.0-preview`](https://pypi.org/project/tf-nightly-2.0-preview/#files) is available for your platform.*
+
+Most of the times, this means that you have to use Python 3.6.8 in your local environment. To force Python 3.6.8 in your local project, you can install [`pyenv`](https://github.com/pyenv/pyenv) and proceed as follows in the target directory:
 
 ```bash
-$ virtualenv --no-site-packages venv
-$ . venv/bin/activate
+pyenv install 3.6.8
+pyenv local 3.6.8
 ```
 
-1. Install the TensorFlow.js pip package:
+Now, you can [create and activate](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/) a `venv` virtual environment in your current folder:
 
 ```bash
-  $ pip install tensorflowjs
+virtualenv --no-site-packages venv
+. venv/bin/activate
 ```
 
-2. Run the converter script provided by the pip package:
-
-Usage:
-
-SavedModel example:
+__1. Install the TensorFlow.js pip package:__
 
 ```bash
-$ tensorflowjs_converter \
+ pip install tensorflowjs
+```
+
+__2. Run the converter script provided by the pip package:__
+
+The converter expects a __TensorFlow SavedModel__, __TensorFlow Hub module__, __TensorFlow.js JSON__ format, __Keras HDF5 model__, or __tf.keras SavedModel__ for input.
+
+* __TensorFlow SavedModel__ example:
+
+```bash
+tensorflowjs_converter \
     --input_format=tf_saved_model \
     --output_format=tfjs_graph_model \
     --signature_name=serving_default \
@@ -44,28 +55,28 @@ $ tensorflowjs_converter \
     /mobilenet/web_model
 ```
 
-Tensorflow Hub module example:
+* __Tensorflow Hub module__ example:
 
 ```bash
-$ tensorflowjs_converter \
+tensorflowjs_converter \
     --input_format=tf_hub \
     'https://tfhub.dev/google/imagenet/mobilenet_v1_100_224/classification/1' \
     /mobilenet/web_model
 ```
 
-Keras h5 model example:
+* __Keras HDF5 model__ example:
 
 ```bash
-$ tensorflowjs_converter \
+tensorflowjs_converter \
     --input_format=keras \
     /tmp/my_keras_model.h5 \
     /tmp/my_tfjs_model
 ```
 
-tf.keras SavedModel model example:
+* __tf.keras SavedModel__ example:
 
 ```bash
-$ tensorflowjs_converter \
+tensorflowjs_converter \
     --input_format=keras_saved_model \
     /tmp/my_tf_keras_saved_model/1542211770 \
     /tmp/my_tfjs_model
@@ -77,13 +88,13 @@ saved a tf.keras model in the SavedModel format.
 
 |Positional Arguments | Description |
 |---|---|
-|`input_path`  | Full path of the saved model directory, session bundle directory, frozen model file or TensorFlow Hub module handle or path.|
+|`input_path`  | Full path of the saved model directory or TensorFlow Hub module handle or path.|
 |`output_path` | Path for all output artifacts.|
 
 
 | Options | Description
 |---|---|
-|`--input_format`     | The format of input model, use `tf_saved_model` for SavedModel, `tf_frozen_model` for frozen model, `tf_session_bundle` for session bundle, `tf_hub` for TensorFlow Hub module, `tfjs_layers_model` for TensorFlow.js JSON format, and `keras` for Keras HDF5. |
+|`--input_format`     | The format of input model, use `tf_saved_model` for SavedModel, `tf_hub` for TensorFlow Hub module, `tfjs_layers_model` for TensorFlow.js JSON format, and `keras` for Keras HDF5. |
 |`--output_format`| The desired output format.  Must be `tfjs_layers_model`, `tfjs_graph_model` or `keras`. Not all pairs of input-output formats are supported.  Please file a [github issue](https://github.com/tensorflow/tfjs/issues) if your desired input-output pair is not supported.|
 |<nobr>`--saved_model_tags`</nobr> | Only applicable to SavedModel conversion. Tags of the MetaGraphDef to load, in comma separated format. Defaults to `serve`.|
 |`--signature_name`   | Only applicable to TensorFlow SavedModel and Hub module conversion, signature to load. Defaults to `serving_default` for SavedModel and `default` for Hub module. See https://www.tensorflow.org/hub/common_signatures/.|
@@ -120,6 +131,7 @@ most cases.
 
 The tfjs_layers_model-to-tfjs_layer_model conversion option serves the following
 purposes:
+
 1. It allows you to shard the binary weight file into multiple small shards
    to facilitate browser caching. This step is necessary for models with
    large-sized weights saved from TensorFlow.js (either browser or Node.js),
@@ -133,6 +145,7 @@ purposes:
        original_model/model.json \
        sharded_model/
    ```
+
     The command above creates shards of size 4 MB (4194304 bytes) by default.
     Alternative shard sizes can be specified using the
     `--weight_shard_size_bytes` flag.
@@ -151,7 +164,7 @@ purposes:
 
 ##### Converting tfjs_layers_model to tfjs_graph_model
 
-Converting a tfjs_layers_model to a tfjs_graph_model usually leads to
+Converting a `tfjs_layers_model` to a `tfjs_graph_model` usually leads to
 faster inference speed in the browser and Node.js, thanks to the graph
 optimization that goes into generating the tfjs_graph_models. For more details,
 see the following document on TensorFlow's Grappler:
@@ -220,8 +233,8 @@ Please see [fetch() documentation](https://developer.mozilla.org/en-US/docs/Web/
 
 ### Native File System
 
-TensorFlow.js can be used from Node.js. See
-[the tfjs-node project](https://github.com/tensorflow/tfjs-node) for more details.
+TensorFlow.js can be used from Node.js. See the
+[tfjs-node project](https://github.com/tensorflow/tfjs-node) for more details.
 Unlike web browsers, Node.js can access the local file system directly.
 Therefore, you can load the same frozen model from local file system into
 a Node.js program running TensorFlow.js. This is done by calling `loadGraphModel` with the path
@@ -356,8 +369,8 @@ To build **TensorFlow.js converter** from source, we need to clone the project a
 the dev environment:
 
 ```bash
-$ git clone https://github.com/tensorflow/tfjs-converter.git
-$ cd tfjs-converter
+git clone https://github.com/tensorflow/tfjs-converter.git
+cd tfjs-converter
 $ yarn # Installs dependencies.
 ```
 
@@ -372,15 +385,14 @@ for auto-formatting.
 Before submitting a pull request, make sure the code passes all the tests and is clean of lint errors:
 
 ```bash
-$ yarn test
-$ yarn lint
+yarn test
+yarn lint
 ```
 
 To run a subset of tests and/or on a specific browser:
 
 ```bash
-$ yarn test --browsers=Chrome --grep='execute'
- 
+yarn test --browsers=Chrome --grep='execute'
 > ...
 > Chrome 64.0.3282 (Linux 0.0.0): Executed 39 of 39 SUCCESS (0.129 secs / 0 secs)
 ```
@@ -388,5 +400,5 @@ $ yarn test --browsers=Chrome --grep='execute'
 To run the tests once and exit the karma process (helpful on Windows):
 
 ```bash
-$ yarn test --single-run
+yarn test --single-run
 ```
