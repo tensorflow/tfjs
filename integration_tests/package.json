@@ -41,6 +41,7 @@
     "benchmark": "./benchmarks.sh",
     "benchmark-local": "./benchmarks.sh",
     "benchmark-cloud": "./benchmark_cloud.sh",
+    "validate-converter": "./validate_converter.sh",
     "build": "tsc",
     "clean": "rm -rf yalc.lock .yalc/ node_modules/ tfjs-*",
     "link-local": "yalc link",

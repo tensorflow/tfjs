@@ -45,7 +45,11 @@ _PREDICT_BURNINS = 1  # How many predict() runs to do before timing predict().
 _PREDICT_RUNS = 1  # How many runs of predict() to average over.
 
 def _create_saved_model_v1(save_dir):
-  """Create a TensorFlow SavedModel for testing."""
+  """Create a TensorFlow V1 SavedModel for testing.
+
+  Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
 
   graph = tf.Graph()
   with graph.as_default():
@@ -74,11 +78,26 @@ def _create_saved_model_v1(save_dir):
           assets_collection=None)
 
     builder.save()
-    return {"async": False, "inputs": {"Placeholder": {"value": [[1, 1], [1, 1]], "shape": [2, 2], "dtype": 'float32'}},
-            "outputs": {"MatMul_1": {"value": output_val.tolist(), "shape": [2,2], "dtype": "float32"}}}
+    return {
+        "async": False,
+        "inputs": {
+            "Placeholder": {
+                "value": [[1, 1], [1, 1]], "shape": [2, 2], "dtype": 'float32'
+            }
+        },
+        "outputs": {
+            "MatMul_1": {
+                "value": output_val.tolist(), "shape": [2, 2], "dtype": "float32"
+            }
+        }
+    }
 
-def _create_saved_model(save_dir):
-  """Test a basic model with functions to make sure functions are inlined."""
+def _create_saved_model_v2(save_dir):
+  """Test a basic TF V2 model with functions to make sure functions are inlined.
+
+    Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
   input_data = constant_op.constant(1., shape=[1])
   root = tracking.AutoTrackable()
   root.v1 = variables.Variable(3.)
@@ -87,13 +106,19 @@ def _create_saved_model(save_dir):
   to_save = root.f.get_concrete_function(input_data)
 
   save(root, save_dir, to_save)
-  print(to_save.structured_input_signature)
-  print(to_save.structured_outputs)
-  return {"async": False, "inputs": {"x": {"value": [1], "shape": [1], "dtype": 'float32'}},
-          "outputs": {"Identity:0": {"value": [6], "shape": [1], "dtype": "float32"}}}
+  return {
+      "async": False,
+      "inputs": {
+          "x": {"value": [1], "shape": [1], "dtype": 'float32'}},
+      "outputs": {
+          "Identity:0": {"value": [6], "shape": [1], "dtype": "float32"}}}
 
-def _create_saved_model_with_control_flow(save_dir):
-  """Test a basic model with control flow to inlined."""
+def _create_saved_model_v2_with_control_flow(save_dir):
+  """Test a basic TF v2 model with control flow to inlined.
+
+    Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
   @tf.function
   def find_next_odd(v):
     v1 = v + 1
@@ -108,8 +133,10 @@ def _create_saved_model_with_control_flow(save_dir):
   save(root, save_dir, to_save)
   print(to_save.structured_input_signature)
   print(to_save.structured_outputs)
-  return {"async": True, "inputs": {"v": {"value": 3, "shape": [], "dtype": 'int32'}},
-          "outputs": {"Identity:0": {"value": [5], "shape": [], "dtype": "int32"}}}
+  return {
+      "async": True,
+      "inputs": {"v": {"value": 3, "shape": [], "dtype": 'int32'}},
+      "outputs": {"Identity:0": {"value": [5], "shape": [], "dtype": "int32"}}}
 
 def save_and_convert_model(model_name,
                            description,
@@ -118,6 +145,8 @@ def save_and_convert_model(model_name,
   """Benchmark a model's fit() and predict() calls; serialize the model.
 
   Args:
+    model_name: Name string for the model.
+    description: Description string for the model.
     model_fn: A function that creates the saved model.
     artifacts_dir: Directory to save the data in. The data includes:
       * topology and weights of the models, in TensorFlow.js format
@@ -125,6 +154,10 @@ def save_and_convert_model(model_name,
         including:
         - the name and description of the model
         - the input and output shapes of the model
+
+  Returns:
+    predict task_log hash that specifies the inputs and outputs for
+    validation test.
   """
   if os.path.isdir(artifacts_dir) and os.listdir(artifacts_dir):
     for rel_name in os.listdir(artifacts_dir):
@@ -211,10 +244,10 @@ def main():
        _create_saved_model_v1,
        'Saved model v1'),
       ('saved_model_v2',
-       _create_saved_model,
+       _create_saved_model_v2,
        'Saved model v2'),
       ('saved_model_v2_control_flow',
-       _create_saved_model_with_control_flow,
+       _create_saved_model_v2_with_control_flow,
        'Saved model v2 with control flow')
        ]
 
@@ -236,14 +269,6 @@ if __name__ == '__main__':
       'data_root',
       type=str,
       help='Local path for saving the results of benchmarks.')
-  parser.add_argument(
-      '--hash_converter', type=str, help='Commit hash of tfjs-conveter')
-  parser.add_argument(
-      '--hash_core', type=str, help='Commit hash of tfjs-core')
-  parser.add_argument(
-      '--hash_data', type=str, help='Commit hash of tfjs-data')
-  parser.add_argument(
-      '--hash_layers', type=str, help='Commit hash of tfjs-layers')
 
   FLAGS, _ = parser.parse_known_args()
   main()

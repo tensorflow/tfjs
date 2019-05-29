@@ -7,7 +7,6 @@
 # https://opensource.org/licenses/MIT.
 # =============================================================================
 #
-# Builds the benchmarks demo for TensorFlow.js Layers.
 
 set -e
 
@@ -141,7 +140,7 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
       ${LOG_FLAG} \
       --hashes "{\"tfjs-node\": \"${HASH_NODE}\"}"
 else
-  echo "Starting benchmark karma tests in the browser..."
+  echo "Starting validation karma tests in the browser..."
   yarn karma start karma.conf.validations.js \
       "${LOG_FLAG}" \
       --hashes="{\"tfjs-core\":\"${HASH_CORE}\",\"tfjs-converter\":\"${HASH_CONVERTER}\"}"

@@ -36,15 +36,11 @@ export function runTests(jasmineUtil: any, filename: string): void {
   runner.execute();
 }
 
-let filename = undefined;
-for (let i = 0; i < process.argv.length; i++) {
-  if (process.argv[i] === '--filename') {
-    filename = process.argv[i + 1];
-    break;
-  }
-}
-if (filename == null) {
+const filenameIndex = process.argv.indexOf('--filename');
+if (filenameIndex === -1 || filenameIndex + 1 >= process.argv.length) {
   throw new Error('Missing value for flag --filename');
 }
+
+const filename = process.argv[filenameIndex + 1];
 
 runTests(jasmineUtil, filename);

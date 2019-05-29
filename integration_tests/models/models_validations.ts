@@ -15,16 +15,18 @@
  * =============================================================================
  */
 
+/**
+ * Validity tests for GraphModels inference. These tests load the models
+ * generated from TFJS python converter and check for the validity of the output
+ * values.
+ */
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
 
 // tslint:disable-next-line:max-line-length
-import {EnvironmentInfo, ModelFunctionName, ValidationRun, VersionSet} from '../types';
+import {ModelFunctionName, ValidationRun} from '../types';
 
 import * as common from './common';
-
-// tslint:disable-next-line:no-any
-let tfn: any;
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
@@ -38,7 +40,7 @@ describe('TF.js converter validation', () => {
   const VALIDATIONS_JSON_URL = `${common.DATA_SERVER_ROOT}/validations.json`;
   const VALIDATIONS_JSON_PATH = './data/validations.json';
 
-  it('validate models', async () => {
+  it('validate GraphModels', async () => {
     const isNodeJS = common.inNodeJS(__karma__);
     console.log(`isNodeJS = ${isNodeJS}`);
     if (isNodeJS) {
@@ -47,36 +49,7 @@ describe('TF.js converter validation', () => {
       } else {
         console.log('Using tfjs-node');
       }
-      // tslint:disable-next-line:no-require-imports
-      tfn = require('@tensorflow/tfjs-node');
-      // NOTE: Even though it may appear that we are always importing the CPU
-      // version of tfjs-node, we are really import the CPU/GPU version
-      // depending on the setting, because the tfjs-node package here is built
-      // from source and linked via `yalc`, instead of downloaded from NPM.
     }
-
-    let log: boolean;  //  Whether the benchmark results are to be logged.
-    if (isNodeJS) {
-      // In Node.js.
-      log = process.argv.indexOf('--log') !== -1;
-    } else {
-      // In browser.
-      log = common.getLogFlagFromKarmaFlags(__karma__.config.args);
-    }
-    console.log(`Boolean flag log = ${log}`);
-
-    let environmentInfo: EnvironmentInfo;
-    if (isNodeJS) {
-      environmentInfo = common.getNodeEnvironmentInfo(tfn);
-    } else {
-      environmentInfo = common.getBrowserEnvironmentInfo();
-    }
-    const versionSet: VersionSet = isNodeJS ? {versions: tfn.version} : {
-      versions: {
-        'tfjs-converter': tfconverter.version_converter,
-        'tfjs-core': tfc.version_core
-      }
-    };
 
     let suiteLog: common.SuiteLog;
     if (isNodeJS) {
@@ -87,24 +60,8 @@ describe('TF.js converter validation', () => {
       suiteLog =
           await (await fetch(VALIDATIONS_JSON_URL)).json() as common.SuiteLog;
     }
-    const pyEnvironmentInfo = suiteLog.environmentInfo;
-    environmentInfo.systemInfo = pyEnvironmentInfo.systemInfo;
-    environmentInfo.cpuInfo = pyEnvironmentInfo.cpuInfo;
-    environmentInfo.memInfo = pyEnvironmentInfo.memInfo;
-
-    if (isNodeJS) {
-      versionSet.commitHashes = common.getCommitHashesFromArgs(process.argv);
-    } else {
-      versionSet.commitHashes =
-          common.getCommitHashesFromArgs(__karma__.config.args);
-    }
 
     const sortedModelNames = common.getChronologicalModelNames(suiteLog);
-
-    console.log('Environment:');
-    console.log(JSON.stringify(environmentInfo, null, 2));
-    console.log('Version set:');
-    console.log(JSON.stringify(versionSet, null, 2));
 
     for (let i = 0; i < sortedModelNames.length; ++i) {
       const modelName = sortedModelNames[i];
@@ -140,7 +97,7 @@ describe('TF.js converter validation', () => {
             }, {} as tfc.NamedTensorMap);
         const outputs = Object.keys(task.outputs);
         if (functionName === 'predict') {
-          if (task.async) {
+          if (task.async) {  // async inference
             let predictOut =
                 await model.executeAsync(inputs, outputs) as tfc.Tensor[];
             if (!Array.isArray(predictOut)) {
@@ -154,7 +111,7 @@ describe('TF.js converter validation', () => {
                   [].concat.apply([], task.outputs[key].value));
             });
             tfc.dispose(predictOut);
-          } else {
+          } else {  // sync inference
             let predictOut = model.execute(inputs, outputs) as tfc.Tensor[];
             if (!Array.isArray(predictOut)) {
               predictOut = [predictOut];
