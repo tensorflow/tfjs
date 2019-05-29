@@ -15,16 +15,22 @@
  * =============================================================================
  */
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
-    files: [{pattern: 'src/**/*.ts'}],
+    files: [{
+      pattern: 'src/**/*.ts'
+    }],
     exclude: ['src/test_node.ts'],
     preprocessors: {
-      '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
+      '**/*.ts': ['karma-typescript'], // *.tsx for React Jsx
     },
-    karmaTypescriptConfig:
-        {tsconfig: 'tsconfig.json', compilerOptions: {module: 'commonjs'}},
+    karmaTypescriptConfig: {
+      tsconfig: 'tsconfig.json',
+      compilerOptions: {
+        module: 'commonjs'
+      }
+    },
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome'],
     browserStack: {
@@ -39,20 +45,27 @@ module.exports = function(config) {
         browser: 'chrome',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'Sierra'
+        os_version: 'High Sierra'
       },
       bs_firefox_mac: {
         base: 'BrowserStack',
         browser: 'firefox',
-        browser_version: 'latest',
+        // TODO(kangyizhang): Change to latest after browser stack infrastructure
+        // stabilizes. https://github.com/tensorflow/tfjs/issues/1620
+        browser_version: '66.0',
         os: 'OS X',
-        os_version: 'Sierra'
+        os_version: 'High Sierra'
       },
       chrome_with_swift_shader: {
         base: 'Chrome',
         flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
       }
     },
-    client: {jasmine: {random: false}, args: ['--grep', config.grep || '']}
+    client: {
+      jasmine: {
+        random: false
+      },
+      args: ['--grep', config.grep || '']
+    }
   });
 };
