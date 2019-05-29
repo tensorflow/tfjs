@@ -45,7 +45,10 @@ module.exports = function(config) {
       bs_firefox_mac: {
         base: 'BrowserStack',
         browser: 'firefox',
-        browser_version: 'latest',
+        // TODO(cais): Restore 'latest' to browser_version once ongoing
+        // instability in BrowserStack + OS X + FireFox is resolved.
+        // https://github.com/tensorflow/tfjs/issues/1620
+        browser_version: '66.0',
         os: 'OS X',
         os_version: 'Sierra'
       },
