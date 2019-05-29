@@ -16,8 +16,7 @@
  * =============================================================================
  */
 
-import {browser, ENV, image, tensor1d, Tensor1D, tensor2d, Tensor2D, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
-import {assert} from '@tensorflow/tfjs-core/dist/util';
+import {browser, ENV, image, tensor1d, Tensor1D, tensor2d, Tensor2D, Tensor3D, Tensor4D, util} from '@tensorflow/tfjs-core';
 import {WebcamConfig} from '../types';
 import {LazyIterator} from './lazy_iterator';
 
@@ -96,7 +95,7 @@ export class WebcamIterator extends LazyIterator<Tensor3D> {
   // Async function to start video stream.
   async start(): Promise<void> {
     if (this.webcamConfig.facingMode) {
-      assert(
+      util.assert(
           (this.webcamConfig.facingMode === 'user') ||
               (this.webcamConfig.facingMode === 'environment'),
           () =>
