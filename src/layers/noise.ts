@@ -139,7 +139,7 @@ export class GaussianDropout extends Layer {
       if (this.rate > 0 && this.rate < 1) {
         const noised = () => {
           const stddev = Math.sqrt(this.rate / (1 - this.rate));
-          return K.dot(input, K.randomNormal(input.shape, 1, stddev));
+          return input.mul(K.randomNormal(input.shape, 1, stddev));
         };
         return K.inTrainPhase(noised, () => input, kwargs['training'] || false);
       }
@@ -238,7 +238,7 @@ export class AlphaDropout extends Layer {
           const b = -a * alphaP * this.rate;
 
           // Apply mask.
-          const x = K.dot(input, keptIdx).add(keptIdx.add(-1).mul(alphaP));
+          const x = input.mul(keptIdx).add(keptIdx.add(-1).mul(alphaP));
 
           return x.mul(a).add(b);
         };
