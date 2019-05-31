@@ -102,7 +102,7 @@ describeMathCPU('GaussianDropout: Symbolic', () => {
 
 describeMathCPUAndGPU('GaussianDropout: Tensor', () => {
   it('GaussianDropout: Predict', () => {
-    const input = ones([2, 2]);
+    const input = ones([1, 2]);
     const gaussianDropoutLayer = tfl.layers.gaussianDropout({rate: 0.5});
     let output = gaussianDropoutLayer.apply(input, {training: false}) as Tensor;
     output = getExactlyOneTensor(output);
@@ -110,7 +110,7 @@ describeMathCPUAndGPU('GaussianDropout: Tensor', () => {
   });
 
   it('GaussianDropout: Train', () => {
-    const input = ones([2, 2]);
+    const input = ones([1, 2]);
     const gaussianDropoutLayer = tfl.layers.gaussianDropout({rate: 0.5});
     let output = gaussianDropoutLayer.apply(input, {training: true}) as Tensor;
     output = getExactlyOneTensor(output);
@@ -122,11 +122,11 @@ describeMathCPUAndGPU('GaussianDropout: Tensor', () => {
 
   it('GaussianDropout: Successive Call', () => {
     const training = true;
-    const inputA = ones([2, 2]);
+    const inputA = ones([1, 2]);
     const gaussianDropoutLayer = tfl.layers.gaussianDropout({rate: 0.5});
     let outputA = gaussianDropoutLayer.apply(inputA, {training}) as Tensor;
     outputA = getExactlyOneTensor(outputA);
-    const inputB = ones([2, 2]);
+    const inputB = ones([1, 2]);
     let outputB = gaussianDropoutLayer.apply(inputB, {training}) as Tensor;
     outputB = getExactlyOneTensor(outputA);
     expectTensorsClose(outputA, outputB);
@@ -159,7 +159,7 @@ describeMathCPU('AlphaDropout: Symbolic', () => {
 
 describeMathCPUAndGPU('AlphaDropout: Tensor', () => {
   it('AlphaDropout: Predict', () => {
-    const input = ones([2, 2]);
+    const input = ones([1, 2]);
     const alphaDropoutLayer = tfl.layers.alphaDropout({rate: 0.5});
     let output = alphaDropoutLayer.apply(input, {training: false}) as Tensor;
     output = getExactlyOneTensor(output);
@@ -167,7 +167,7 @@ describeMathCPUAndGPU('AlphaDropout: Tensor', () => {
   });
 
   it('AlphaDropout: Train', () => {
-    const input = ones([2, 2]);
+    const input = ones([1, 2]);
     const alphaDropoutLayer = tfl.layers.alphaDropout({rate: 0.5});
     let output = alphaDropoutLayer.apply(input, {training: true}) as Tensor;
     output = getExactlyOneTensor(output);
@@ -179,11 +179,11 @@ describeMathCPUAndGPU('AlphaDropout: Tensor', () => {
 
   it('AlphaDropout: Successive Call', () => {
     const training = true;
-    const inputA = ones([2, 2]);
+    const inputA = ones([1, 2]);
     const alphaDropoutLayer = tfl.layers.alphaDropout({rate: 0.5});
     let outputA = alphaDropoutLayer.apply(inputA, {training}) as Tensor;
     outputA = getExactlyOneTensor(outputA);
-    const inputB = ones([2, 2]);
+    const inputB = ones([1, 2]);
     let outputB = alphaDropoutLayer.apply(inputB, {training}) as Tensor;
     outputB = getExactlyOneTensor(outputA);
     expectTensorsClose(outputA, outputB);
