@@ -20,7 +20,7 @@ import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 import {BrowserIndexedDB, browserIndexedDB} from './indexed_db';
 import {BrowserLocalStorage, browserLocalStorage} from './local_storage';
 import {IORouterRegistry} from './router_registry';
-import {IOHandler} from './types';
+import {IOHandler, OnProgressCallback, SaveHandler, LoadHandler} from './types';
 
 describeWithFlags('IORouterRegistry', BROWSER_ENVS, () => {
   const localStorageRouter = (url: string) => {
@@ -115,5 +115,32 @@ describeWithFlags('IORouterRegistry', BROWSER_ENVS, () => {
     expect(tf.io.getSaveHandlers('invalidscheme://foo-model')).toEqual([]);
     // Check there is no crosstalk between save and load handlers.
     expect(tf.io.getLoadHandlers('localstorage://foo-model')).toEqual([]);
+  });
+
+  const fakeOnProgressRouter = (url: string,
+                                onProgress?: OnProgressCallback) => {
+    return new FakeOnProgressHandler(url, onProgress);
+  };
+
+  class FakeOnProgressHandler implements IOHandler {
+    save?: SaveHandler;
+    load?: LoadHandler;
+    constructor(url: string,
+                private readonly onProgress?: OnProgressCallback) {}
+    get onProgressCallback() {
+      return this.onProgress;
+    }
+  }
+
+  it('getLoadHandler onProgress', () => {
+    IORouterRegistry.registerLoadRouter(fakeOnProgressRouter);
+
+    const onProgress: OnProgressCallback = (fraction: number) => {};
+    const loadHandler = tf.io.getLoadHandlers('foo:///123', onProgress);
+    expect(loadHandler.length).toEqual(1);
+    expect(loadHandler[0] instanceof FakeOnProgressHandler).toEqual(true);
+    // Check callback function passed to IOHandler
+    expect((loadHandler[0] as FakeOnProgressHandler).onProgressCallback)
+        .toBe(onProgress);
   });
 });

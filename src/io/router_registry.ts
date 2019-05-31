@@ -109,4 +109,4 @@ export const registerLoadRouter = (loudRouter: IORouter) =>
 export const getSaveHandlers = (url: string|string[]) =>
     IORouterRegistry.getSaveHandlers(url);
 export const getLoadHandlers = (url: string|string[], onProgress?: Function) =>
-    IORouterRegistry.getLoadHandlers(url);
+    IORouterRegistry.getLoadHandlers(url, onProgress);
