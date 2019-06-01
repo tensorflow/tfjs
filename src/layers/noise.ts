@@ -36,16 +36,16 @@ export declare interface GaussianNoiseArgs extends LayerArgs {
  * Gaussian Noise (GS) is a natural choice as corruption process
  * for real valued inputs.
  *
- * # Arguments
- *     stddev: float, standard deviation of the noise distribution.
+ * Arguments:
+ *   - `stddev`: float, standard deviation of the noise distribution.
  *
- * # Input shape
- *         Arbitrary. Use the keyword argument `input_shape`
- *         (tuple of integers, does not include the samples axis)
- *         when using this layer as the first layer in a model.
+ * Input shape:
+ *   Arbitrary. Use the keyword argument `inputShape`
+ *   (tuple of integers, does not include the samples axis)
+ *   when using this layer as the first layer in a model.
  *
- * # Output shape
- *         Same shape as input.
+ * Output shape:
+ *   Same shape as input.
  */
 export class GaussianNoise extends Layer {
   static className = 'GaussianNoise';
@@ -93,22 +93,22 @@ export declare interface GaussianDropoutArgs extends LayerArgs {
  *
  * As it is a regularization layer, it is only active at training time.
  *
- * # Arguments
- *     rate: float, drop probability (as with `Dropout`).
- *        The multiplicative noise will have
- *        standard deviation `sqrt(rate / (1 - rate))`.
+ * Arguments:
+ *   - `rate`: float, drop probability (as with `Dropout`).
+ *     The multiplicative noise will have
+ *     standard deviation `sqrt(rate / (1 - rate))`.
  *
- * # Input shape
- *     Arbitrary. Use the keyword argument `input_shape`
- *     (tuple of integers, does not include the samples axis)
- *     when using this layer as the first layer in a model.
+ * Input shape:
+ *   Arbitrary. Use the keyword argument `inputShape`
+ *   (tuple of integers, does not include the samples axis)
+ *   when using this layer as the first layer in a model.
  *
- * # Output shape
- *     Same shape as input.
+ * Output shape:
+ *   Same shape as input.
  *
- * # References
- *     - [Dropout: A Simple Way to Prevent Neural Networks from Overfitting](
- *        http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf)
+ * References:
+ *   - [Dropout: A Simple Way to Prevent Neural Networks from Overfitting](
+ *      http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf)
  *
  */
 export class GaussianDropout extends Layer {
@@ -170,24 +170,23 @@ export declare interface AlphaDropoutArgs extends LayerArgs {
  * Alpha Dropout fits well to Scaled Exponential Linear Units
  * by randomly setting activations to the negative saturation value.
  *
- * # Arguments
- *    rate: float, drop probability (as with `Dropout`).
- *        The multiplicative noise will have
- *        standard deviation `sqrt(rate / (1 - rate))`.
- *    noise_shape: A 1-D `Tensor` of type `int32`, representing the
- *         shape for randomly generated keep/drop flags.
+ * Arguments:
+ *   - `rate`: float, drop probability (as with `Dropout`).
+ *     The multiplicative noise will have
+ *     standard deviation `sqrt(rate / (1 - rate))`.
+ *   - `noise_shape`: A 1-D `Tensor` of type `int32`, representing the
+ *     shape for randomly generated keep/drop flags.
  *
+ * Input shape:
+ *   Arbitrary. Use the keyword argument `inputShape`
+ *   (tuple of integers, does not include the samples axis)
+ *   when using this layer as the first layer in a model.
  *
- * # Input shape
- *         Arbitrary. Use the keyword argument `input_shape`
- *         (tuple of integers, does not include the samples axis)
- *         when using this layer as the first layer in a model.
+ * Output shape:
+ *   Same shape as input.
  *
- * # Output shape
- *         Same shape as input.
- *
- * # References
- *     - [Self-Normalizing Neural Networks](https://arxiv.org/abs/1706.02515)
+ * References:
+ *   - [Self-Normalizing Neural Networks](https://arxiv.org/abs/1706.02515)
  */
 export class AlphaDropout extends Layer {
   static className = 'AlphaDropout';
