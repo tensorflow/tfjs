@@ -526,9 +526,10 @@ serialization.registerClass(RepeatVector);
  * ```
  *
  * Input shape:
- *   Arbitrary: although all dimensions in the input shape must be fixed.
- *     Use the ReshapeLayerConfig field `input_shape` when using this layer
- *     as the first layer in a model.
+ *   Arbitrary, although all dimensions in the input shape must be fixed.
+ *   Use the configuration `inputShape` when using this layer as the
+ *   first layer in a model.
+ *
  *
  * Output shape:
  *   [batchSize, targetShape[0], targetShape[1], ...,
@@ -669,7 +670,7 @@ export declare interface PermuteLayerArgs extends LayerArgs {
  *
  * Input shape:
  *   Arbitrary. Use the configuration field `inputShape` when using this
- *   layer as othe first layer in a model.
+ *   layer as the first layer in a model.
  *
  * Output shape:
  *   Same rank as the input shape, but with the dimensions re-ordered (i.e.,
@@ -748,16 +749,16 @@ export declare interface MaskingArgs extends LayerArgs {
  * If any downstream layer does not support masking yet receives such
  * an input mask, an exception will be raised.
  *
- * # Arguments
- *     maskValue: Either None or mask value to skip.
+ * Arguments:
+ *   - `maskValue`: Either None or mask value to skip.
  *
- * # Input shape
- *     Arbitrary. Use the keyword argument `input_shape`
- *     (tuple of integers, does not include the samples axis)
- *     when using this layer as the first layer in a model.
+ * Input shape:
+ *   Arbitrary. Use the keyword argument `inputShape`
+ *   (tuple of integers, does not include the samples axis)
+ *   when using this layer as the first layer in a model.
  *
- * # Output shape
- *     Same shape as input.
+ * Output shape:
+ *   Same shape as input.
  */
 export class Masking extends Layer {
 
