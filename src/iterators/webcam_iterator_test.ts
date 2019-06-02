@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {tensor3d, test_util} from '@tensorflow/tfjs-core';
+import {memory, tensor3d, test_util} from '@tensorflow/tfjs-core';
 import {describeBrowserEnvs, setupFakeVideoStream} from '../util/test_utils';
 import {WebcamIterator} from './webcam_iterator';
 
@@ -206,5 +206,22 @@ describeBrowserEnvs('WebcamIterator', () => {
       expect(result3.done).toBeFalsy();
       expect(result3.value.shape).toEqual([100, 100, 3]);
     }
+  });
+
+  it('capture with cropAndResize has no memory leaks', async () => {
+    const videoElement = document.createElement('video');
+    videoElement.width = 100;
+    videoElement.height = 200;
+    const webcamIterator = await WebcamIterator.create(
+        videoElement, { resizeWidth: 30, resizeHeight: 40, centerCrop: true });
+
+    const before = memory();
+
+    const result = await webcamIterator.capture();
+    result.dispose();
+
+    const after = memory();
+
+    expect(after.numTensors).toEqual(before.numTensors);
   });
 });
