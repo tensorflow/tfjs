@@ -369,6 +369,41 @@ def main():
             train_epochs,
             os.path.join(FLAGS.data_root, model_name)))
 
+  # dense-tiny and dense-large models as TensorFlow SavedModel (inference only;
+  # CPU only).
+  # TODO(cais): Make this run on tfjs-node-gpu as well.
+  if not _is_gpu_available():
+    optimizer = None
+    loss = None
+    batch_size = 128
+    train_epochs = 0
+    input_shape = [100]
+    target_shape = [1]
+    names_fns_and_descriptions = [
+        ('dense-tiny_GraphModel',
+        dense_tiny_model_fn,
+        'Input([%d]);Dense(200);Dense(%d)|%s|%s' %
+        (input_shape[0], target_shape[0], optimizer, loss)),
+        ('dense-large_GraphModel',
+        dense_large_model_fn,
+        'Input([%d]);Dense(4000);Dense(1000);Dense(500);Dense(%d)|%s|%s' %
+        (input_shape[0], target_shape[0], optimizer, loss))]
+
+    for model_name, model_fn, description in names_fns_and_descriptions:
+      suite_log['data'][model_name] = (
+          benchmark_and_serialize_model(
+              model_name,
+              description,
+              model_fn,
+              input_shape,
+              target_shape,
+              optimizer,
+              loss,
+              batch_size,
+              train_epochs,
+              os.path.join(FLAGS.data_root, model_name),
+              export_saved_model=True))
+
   # Conv2d models.
 
   # TODO(cais): Restore optimizer after the following
@@ -377,9 +412,9 @@ def main():
   # optimizer = tf.train.GradientDescentOptimizer(0.01)
   # loss = 'categorical_crossentropy'
   # train_epochs = 10
-  optimizer = None
-  loss = None
-  train_epochs = 0
+  optimizer = tf.keras.optimizers.SGD()
+  loss = 'categorical_crossentropy'
+  train_epochs = 10
   input_shape = [28, 28, 1]
   target_shape = [10]
   names_fns_and_descriptions = [
