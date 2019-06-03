@@ -405,13 +405,6 @@ def main():
               export_saved_model=True))
 
   # Conv2d models.
-
-  # TODO(cais): Restore optimizer after the following
-  #   error is resolved:
-  # "Error: Cannot evaluate flag 'EPSILON': no evaluation function found."
-  # optimizer = tf.train.GradientDescentOptimizer(0.01)
-  # loss = 'categorical_crossentropy'
-  # train_epochs = 10
   optimizer = tf.keras.optimizers.SGD()
   loss = 'categorical_crossentropy'
   train_epochs = 10
