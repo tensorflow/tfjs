@@ -363,7 +363,7 @@ describe('TF.js Layers Benchmarks', () => {
         model = await loadGraphModel(modelName);
       } else {
         throw new Error(
-            `Unsupported modelFormat: ${JSON.stringify(modelFormat)}`);
+            `Unsupported modelFormat for model "${modelName}": ${JSON.stringify(modelFormat)}`);
       }
 
       const functionNames = Object.keys(taskGroupLog) as ModelFunctionName[];
