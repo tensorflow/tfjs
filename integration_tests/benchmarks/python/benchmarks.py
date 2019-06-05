@@ -159,6 +159,7 @@ def benchmark_and_serialize_model(model_name,
     # Collect and format the data for fit().
     task_logs['fit'] = {  # For schema, see 'ModelTrainingBenchmarkRun` in types.ts.
       'taskType': 'model',
+      'modelFormat': 'GraphModel' if export_saved_model else 'LayersModel',
       'modelName': model_name,
       'modelDescription': description,
       'functionName': 'fit',
