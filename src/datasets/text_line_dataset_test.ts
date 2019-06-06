@@ -24,7 +24,13 @@ const runes = `ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷ�
 ᛋᚳᛖᚪᛚ᛫ᚦᛖᚪᚻ᛫ᛗᚪᚾᚾᚪ᛫ᚷᛖᚻᚹᛦᛚᚳ᛫ᛗᛁᚳᛚᚢᚾ᛫ᚻᛦᛏ᛫ᛞᚫᛚᚪᚾ
 ᚷᛁᚠ᛫ᚻᛖ᛫ᚹᛁᛚᛖ᛫ᚠᚩᚱ᛫ᛞᚱᛁᚻᛏᚾᛖ᛫ᛞᚩᛗᛖᛋ᛫ᚻᛚᛇᛏᚪᚾ᛬`;
 
+const textWithDOSLineBreaks = 'abc\rdefg\r\nhijklmn\r\nopqrst';
+
 const testBlob = ENV.get('IS_BROWSER') ? new Blob([runes]) : Buffer.from(runes);
+
+const textBlobWithDOSLineBreaks = ENV.get('IS_BROWSER') ?
+    new Blob([textWithDOSLineBreaks]) :
+    Buffer.from(textWithDOSLineBreaks);
 
 describe('TextLineDataset', () => {
   it('Produces a stream of strings containing UTF8-decoded text lines',
@@ -40,4 +46,17 @@ describe('TextLineDataset', () => {
          'ᚷᛁᚠ᛫ᚻᛖ᛫ᚹᛁᛚᛖ᛫ᚠᚩᚱ᛫ᛞᚱᛁᚻᛏᚾᛖ᛫ᛞᚩᛗᛖᛋ᛫ᚻᛚᛇᛏᚪᚾ᛬',
        ]);
      });
+
+  it('Parses lines from windows/DOS text correctly', async () => {
+    const source =
+        new FileDataSource(textBlobWithDOSLineBreaks, {chunkSize: 10});
+    const dataset = new TextLineDataset(source);
+    const iter = await dataset.iterator();
+    const result = await iter.toArrayForTest();
+
+    // \r is retained when not followed by \n
+    expect(result[0]).toEqual('abc\rdefg');
+    expect(result[1]).toEqual('hijklmn');
+    expect(result[2]).toEqual('opqrst');
+  });
 });
