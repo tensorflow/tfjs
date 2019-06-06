@@ -38,7 +38,13 @@ export class TextLineDataset extends Dataset<string> {
   async iterator(): Promise<LazyIterator<string>> {
     const inputIterator = await this.input.iterator();
     const utf8Iterator = inputIterator.decodeUTF8();
-    const lineIterator = utf8Iterator.split('\n');
+    const lineIterator = utf8Iterator.split('\n').map(line => {
+      // Windows/DOS format text file has extra line breaker at the end of line.
+      if (line.endsWith('\r')) {
+        line = line.slice(0, -1);
+      }
+      return line;
+    });
     return lineIterator;
   }
 }
