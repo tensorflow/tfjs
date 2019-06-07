@@ -675,6 +675,52 @@ describeAllEnvs('Dataset', () => {
        expect(b.isDisposed).toBeFalsy();
      });
 
+  it('clone tensors in nested structures when returning iterator of a ' +
+         'dataset generated from existing tensors',
+     async () => {
+       expect(tf.memory().numTensors).toEqual(0);
+       const a = tf.ones([2, 1]);
+       const b = tf.ones([2, 1]);
+       const c = tf.ones([2, 1]);
+       const d = tf.ones([2, 1]);
+       expect(tf.memory().numTensors).toEqual(4);
+       const ds = tfd.array([{foo: a, bar: b}, {foo: c, bar: d}]);
+       // Pre-existing tensors are not cloned during dataset creation.
+       expect(tf.memory().numTensors).toEqual(4);
+
+       let count = 0;
+       // ds.forEachAsync() automatically disposes incoming Tensors after
+       // processing them.
+       await ds.forEachAsync(elem => {
+         count++;
+         expect(elem.foo.isDisposed).toBeFalsy();
+         expect(elem.bar.isDisposed).toBeFalsy();
+       });
+       expect(count).toEqual(2);
+       // Cloned tensors are disposed after traverse, while original tensors
+       // stay.
+       expect(tf.memory().numTensors).toEqual(4);
+
+       await ds.forEachAsync(elem => {
+         count++;
+         expect(elem.foo.isDisposed).toBeFalsy();
+         expect(elem.bar.isDisposed).toBeFalsy();
+       });
+       expect(count).toEqual(4);
+       expect(tf.memory().numTensors).toEqual(4);
+
+       await ds.forEachAsync(elem => {
+         count++;
+         expect(elem.foo.isDisposed).toBeFalsy();
+         expect(elem.bar.isDisposed).toBeFalsy();
+       });
+       expect(count).toEqual(6);
+       expect(tf.memory().numTensors).toEqual(4);
+
+       expect(a.isDisposed).toBeFalsy();
+       expect(b.isDisposed).toBeFalsy();
+     });
+
   it('traverse dataset from tensors without leaking Tensors', async () => {
     expect(tf.memory().numTensors).toEqual(0);
     const a = tf.ones([2, 1]);
