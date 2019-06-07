@@ -18,7 +18,9 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
+
 import {IteratorContainer} from '../types';
+import {deepClone} from '../util/deep_clone';
 import {deepMapAndAwaitAll, DeepMapAsyncResult, DeepMapResult, deepZip, zipToList} from '../util/deep_map';
 import {GrowingRingBuffer} from '../util/growing_ring_buffer';
 import {RingBuffer} from '../util/ring_buffer';
@@ -493,14 +495,8 @@ class ArrayIterator<T> extends LazyIterator<T> {
       return {value: null, done: true};
     }
     const item = this.items[this.trav];
-    let result;
-    if (item instanceof tf.Tensor) {
-      result = tf.clone(item);
-    } else {
-      result = item;
-    }
     this.trav++;
-    return {value: result, done: false};
+    return {value: deepClone(item), done: false};
   }
 }
 
