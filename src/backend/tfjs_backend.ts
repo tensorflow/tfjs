@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {onesLike as coreOnesLike, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, Tensor3D, Tensor4D, tidy, util, where, zerosLike as coreZerosLike} from '@tensorflow/tfjs-core';
+import {onesLike as coreOnesLike, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, Tensor3D, Tensor4D, tidy, where, zerosLike as coreZerosLike} from '@tensorflow/tfjs-core';
 import {checkDataFormat} from '../common';
 import {NotImplementedError, ValueError} from '../errors';
 import {DataFormat, Shape} from '../keras_format/common';
@@ -660,29 +660,13 @@ export function softsign(x: Tensor): Tensor {
  * @param x input tensor.
  * @param level fraction of the entries in the tensor that will be set to 0.
  * @param noiseShape shape of randomly generated keep/drop flags, must be
- *   broadcastable to the shape of `x`.
- * @param seed random seed to ensure determinism.
+ *   broadcastable to the shape of `x`. Optional.
+ * @param seed random seed to ensure determinism. Optional.
  * @returns Result of the dropout operation.
  */
 export function dropout(
     x: Tensor, level: number, noiseShape?: number[], seed?: number): Tensor {
-  return tidy(() => {
-    // TODO(cais): Switch to deeplearn.js implementation of dropout when it
-    //   becomes avaialable.
-    if (noiseShape != null && !util.arraysEqual(x.shape, noiseShape)) {
-      throw new NotImplementedError(
-          'Non-default noise shape is not implemented yet: ' +
-          JSON.stringify(noiseShape));
-    }
-    if (seed != null) {
-      throw new NotImplementedError('seed is not implemented for dropout yet.');
-    }
-    let multiplier =
-        tfc.step(tfc.add(-level, tfc.randomUniform(x.shape, 0, 1, 'float32')));
-    // Scale the kept elements, so the expected sum is unchanged.
-    multiplier = tfc.mul(1 / (1 - level), multiplier);
-    return tfc.mul(x, multiplier);
-  });
+  return tidy(() => tfc.dropout(x, level, noiseShape, seed));
 }
 
 /**
