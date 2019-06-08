@@ -583,16 +583,14 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
           kwargs['training'] = true;
         }
         const input = tfc.ones([batchSize, timeSteps, inputSize]);
-        spyOn(tfc, 'randomUniform').and.callThrough();
+        spyOn(tfc, 'dropout').and.callThrough();
         let numTensors = 0;
         for (let i = 0; i < 2; i++){
           tfc.dispose(simpleRNN.apply(input, kwargs) as Tensor);
           if (dropout !== 0.0 && training) {
-            expect(tfc.randomUniform).toHaveBeenCalledTimes(1  * (i + 1));
-            expect(tfc.randomUniform).toHaveBeenCalledWith(
-              [batchSize, inputSize], 0, 1, 'float32');
+            expect(tfc.dropout).toHaveBeenCalledTimes(1  * (i + 1));
           } else {
-            expect(tfc.randomUniform).toHaveBeenCalledTimes(0);
+            expect(tfc.dropout).toHaveBeenCalledTimes(0);
           }
           if (i === 0) {
             numTensors = tfc.memory().numTensors;
@@ -624,16 +622,14 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
           kwargs['training'] = true;
         }
         const input = tfc.ones([batchSize, timeSteps, inputSize]);
-        spyOn(tfc, 'randomUniform').and.callThrough();
+        spyOn(tfc, 'dropout').and.callThrough();
         let numTensors = 0;
         for (let i = 0; i < 2; i++){
           tfc.dispose(simpleRNN.apply(input, kwargs) as Tensor);
           if (recurrentDropout !== 0.0 && training) {
-            expect(tfc.randomUniform).toHaveBeenCalledTimes(1 * (i + 1));
-            expect(tfc.randomUniform).toHaveBeenCalledWith(
-              [batchSize, units], 0, 1, 'float32');
+            expect(tfc.dropout).toHaveBeenCalledTimes(1 * (i + 1));
           } else {
-              expect(tfc.randomUniform).toHaveBeenCalledTimes(0);
+              expect(tfc.dropout).toHaveBeenCalledTimes(0);
           }
           if (i === 0) {
             numTensors = tfc.memory().numTensors;
@@ -1192,16 +1188,14 @@ describeMathCPUAndGPU('GRU Tensor', () => {
           kwargs['training'] = true;
         }
         const input = tfc.ones([batchSize, timeSteps, inputSize]);
-        spyOn(tfc, 'randomUniform').and.callThrough();
+        spyOn(tfc, 'dropout').and.callThrough();
         let numTensors = 0;
         for (let i = 0; i < 2; i++){
           tfc.dispose(gru.apply(input, kwargs) as Tensor);
           if (dropout !== 0.0 && training) {
-            expect(tfc.randomUniform).toHaveBeenCalledTimes(3  * (i + 1));
-            expect(tfc.randomUniform).toHaveBeenCalledWith(
-              [batchSize, inputSize], 0, 1, 'float32');
+            expect(tfc.dropout).toHaveBeenCalledTimes(3  * (i + 1));
           } else {
-            expect(tfc.randomUniform).toHaveBeenCalledTimes(0);
+            expect(tfc.dropout).toHaveBeenCalledTimes(0);
           }
           if (i === 0) {
             numTensors = tfc.memory().numTensors;
@@ -1233,16 +1227,14 @@ describeMathCPUAndGPU('GRU Tensor', () => {
           kwargs['training'] = true;
         }
         const input = tfc.ones([batchSize, timeSteps, inputSize]);
-        spyOn(tfc, 'randomUniform').and.callThrough();
+        spyOn(tfc, 'dropout').and.callThrough();
         let numTensors = 0;
         for (let i = 0; i < 2; i++){
           tfc.dispose(gru.apply(input, kwargs) as Tensor);
           if (recurrentDropout !== 0.0 && training) {
-            expect(tfc.randomUniform).toHaveBeenCalledTimes(3 * (i + 1));
-            expect(tfc.randomUniform).toHaveBeenCalledWith(
-              [batchSize, units], 0, 1, 'float32');
+            expect(tfc.dropout).toHaveBeenCalledTimes(3 * (i + 1));
           } else {
-            expect(tfc.randomUniform).toHaveBeenCalledTimes(0);
+            expect(tfc.dropout).toHaveBeenCalledTimes(0);
           }
           if (i === 0) {
             numTensors = tfc.memory().numTensors;
@@ -1736,16 +1728,14 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
           kwargs['training'] = true;
         }
         const input = tfc.ones([batchSize, timeSteps, inputSize]);
-        spyOn(tfc, 'randomUniform').and.callThrough();
+        spyOn(tfc, 'dropout').and.callThrough();
         let numTensors = 0;
         for (let i = 0; i < 2; i++){
           tfc.dispose(lstm.apply(input, kwargs) as Tensor);
           if (dropout !== 0.0 && training) {
-            expect(tfc.randomUniform).toHaveBeenCalledTimes(4 * (i + 1));
-            expect(tfc.randomUniform).toHaveBeenCalledWith(
-              [batchSize, inputSize], 0, 1, 'float32');
+            expect(tfc.dropout).toHaveBeenCalledTimes(4 * (i + 1));
           } else {
-            expect(tfc.randomUniform).toHaveBeenCalledTimes(0);
+            expect(tfc.dropout).toHaveBeenCalledTimes(0);
           }
           if (i === 0) {
             numTensors = tfc.memory().numTensors;
@@ -1777,16 +1767,14 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
           kwargs['training'] = true;
         }
         const input = tfc.ones([batchSize, timeSteps, inputSize]);
-        spyOn(tfc, 'randomUniform').and.callThrough();
+        spyOn(tfc, 'dropout').and.callThrough();
         let numTensors = 0;
         for (let i = 0; i < 2; i++){
           tfc.dispose(lstm.apply(input, kwargs) as Tensor);
           if (recurrentDropout !== 0.0 && training) {
-            expect(tfc.randomUniform).toHaveBeenCalledTimes(4 * (i + 1));
-            expect(tfc.randomUniform).toHaveBeenCalledWith(
-              [batchSize, units], 0, 1, 'float32');
+            expect(tfc.dropout).toHaveBeenCalledTimes(4 * (i + 1));
           } else {
-            expect(tfc.randomUniform).toHaveBeenCalledTimes(0);
+            expect(tfc.dropout).toHaveBeenCalledTimes(0);
           }
           if (i === 0) {
             numTensors = tfc.memory().numTensors;
