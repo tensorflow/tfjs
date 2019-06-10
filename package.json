@@ -14,6 +14,7 @@
   "scripts": {
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
+    "build-npm-gpu": "./scripts/build-npm-gpu.sh",
     "clean-deps": "rm -rf deps",
     "coverage": "nyc ts-node src/run_tests.ts",
     "enable-gpu": "node scripts/install.js gpu download && yarn",
