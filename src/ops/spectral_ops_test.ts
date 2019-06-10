@@ -213,6 +213,31 @@ describeWithFlags('1D RFFT', ALL_ENVS, () => {
       1.7320497, -4.0000000, -2.3841858e-07
     ]);
   });
+
+  it('should return the same value without any fftLength', async () => {
+    const t1Real = tf.tensor1d([-3, -2, -1, 1, 2, 3]);
+    const fftLength = 6;
+    expectArraysClose(await tf.spectral.rfft(t1Real, fftLength).data(), [
+      -5.8859587e-07, 1.1920929e-07, -3.9999995, 6.9282026e+00, -2.9999998,
+      1.7320497, -4.0000000, -2.3841858e-07
+    ]);
+  });
+
+  it('should return the value with cropped input', async () => {
+    const t1Real = tf.tensor1d([-3, -2, -1, 1, 2, 3]);
+    const fftLength = 3;
+    expectArraysClose(await tf.spectral.rfft(t1Real, fftLength).data(), [
+      -6, 0.0, -1.5000002, 0.866
+    ]);
+  });
+
+  it('should return the value with padded input', async () => {
+    const t1Real = tf.tensor1d([-3, -2, -1]);
+    const fftLength = 4;
+    expectArraysClose(await tf.spectral.rfft(t1Real, fftLength).data(), [
+      -6, 0, -2, 2, -2, 0
+    ]);
+  });
 });
 
 describeWithFlags('2D RFFT', ALL_ENVS, () => {
@@ -238,6 +263,24 @@ describeWithFlags('2D RFFT', ALL_ENVS, () => {
        expectArraysClose(
            await tf.spectral.rfft(t1Real).data(),
            [3, 0, -1, 0, 7, 0, -1, 0, 11, 0, -1, 0, 15, 0, -1, 0]);
+     });
+
+  it('should return the value with cropping',
+     async () => {
+       const t1Real = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+       const fftLength = 2;
+       expectArraysClose(
+           await tf.spectral.rfft(t1Real, fftLength).data(),
+           [3, 0, -1, 0, 9, 0, -1, 0]);
+     });
+
+  it('should return the value with padding',
+     async () => {
+       const t1Real = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+       const fftLength = 4;
+       expectArraysClose(
+           await tf.spectral.rfft(t1Real, fftLength).data(),
+           [6, 0, -2, -2, 2, 0, 15, 0, -2, -5, 5, 0]);
      });
 });
 
