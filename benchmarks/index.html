@@ -65,7 +65,8 @@
       margin-top: 20px;
     }
 
-    #trendline #yMax, #trendline #yMin {
+    #trendline #yMax,
+    #trendline #yMin {
       position: absolute;
       right: calc(100% + 6px);
       font-size: 11px;
@@ -150,7 +151,9 @@
         <div id="trendline">
           <div id="yMax"></div>
           <div id="yMin">0 ms</div>
-          <svg><path></path></svg>
+          <svg>
+            <path></path>
+          </svg>
         </div>
       </div>
     </div>
@@ -175,9 +178,8 @@
       //////////////////////////////////
       // Place model loading code here.
       //////////////////////////////////
-      return await tf.loadFrozenModel(
-        'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/tensorflowjs_model.pb',
-        'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/weights_manifest.json');
+      return await tf.loadGraphModel(
+        'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json');
     }
 
     const zeros = tf.zeros([1, 224, 224, 3]);
@@ -357,11 +359,11 @@
       let kernels = [];
       console.log = msg => {
         let parts = [];
-        if(typeof msg === 'string') {
+        if (typeof msg === 'string') {
           parts = msg.split('\t').map(x => x.slice(2));
         }
 
-        if(parts.length > 2) {
+        if (parts.length > 2) {
           // heuristic for determining whether we've caught a profiler
           // log statement as opposed to a regular console.log
           // TODO(https://github.com/tensorflow/tfjs/issues/563): return timing information as part of tf.profile
@@ -379,11 +381,11 @@
         }
       }
       let res = predict(model);
-      if(res instanceof Promise) {
+      if (res instanceof Promise) {
         res = await res;
       }
 
-      if(res instanceof tf.Tensor) {
+      if (res instanceof tf.Tensor) {
         res.dataSync();
       }
 
@@ -421,10 +423,11 @@
         await profileKernelTime();
       } else {
         showMsg('Skipping kernel times since query timer extension is not ' +
-                'available. <br/> Use Chrome 70+.');
+          'available. <br/> Use Chrome 70+.');
       };
     }
     onPageLoad();
   </script>
 </body>
+
 </html>

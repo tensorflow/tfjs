@@ -48,7 +48,8 @@ describeWithFlags(
       });
 
       it('returns 1x1 matrix that was uploaded', () => {
-        gpgpu.uploadMatrixToTexture(texture, 1, 1, new Float32Array([1.234]));
+        gpgpu.uploadDenseMatrixToTexture(
+            texture, 1, 1, new Float32Array([1.234, 0, 0, 0]));
         const result =
             gpgpu.downloadFloat32MatrixFromOutputTexture(texture, 1, 1);
         expectNumbersClose(result[0], 1.234);
@@ -56,8 +57,10 @@ describeWithFlags(
 
       it('returns 2x2 matrix that was uploaded', () => {
         const texture2 = gpgpu.createFloat32MatrixTexture(2, 2);
-        gpgpu.uploadMatrixToTexture(
-            texture2, 2, 2, new Float32Array([1.234, 2, 3, 4]));
+        gpgpu.uploadDenseMatrixToTexture(
+            texture2, 2, 2,
+            new Float32Array(
+                [1.234, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0]));
         const result =
             gpgpu.downloadFloat32MatrixFromOutputTexture(texture2, 2, 2);
         expectArraysClose(result, new Float32Array([1.234, 2, 3, 4]));
@@ -66,8 +69,10 @@ describeWithFlags(
 
       it('uses texture parameter', () => {
         const texture2: WebGLTexture = gpgpu.createFloat32MatrixTexture(1, 1);
-        gpgpu.uploadMatrixToTexture(texture, 1, 1, new Float32Array([1]));
-        gpgpu.uploadMatrixToTexture(texture2, 1, 1, new Float32Array([2]));
+        gpgpu.uploadDenseMatrixToTexture(
+            texture, 1, 1, new Float32Array([1, 0, 0, 0]));
+        gpgpu.uploadDenseMatrixToTexture(
+            texture2, 1, 1, new Float32Array([2, 0, 0, 0]));
         const read1 =
             gpgpu.downloadFloat32MatrixFromOutputTexture(texture, 1, 1);
         const read2 =
@@ -129,7 +134,8 @@ describeWithFlags(
 
       it('rebinds the output texture to the color buffer target', () => {
         const output: WebGLTexture = gpgpu.createFloat32MatrixTexture(1, 1);
-        gpgpu.uploadMatrixToTexture(texture, 1, 1, new Float32Array([10]));
+        gpgpu.uploadDenseMatrixToTexture(
+            texture, 1, 1, new Float32Array([10, 0, 0, 0]));
         gpgpu.setOutputMatrixTexture(output, 1, 1);
         const tBeforeClear =
             gpgpu.downloadFloat32MatrixFromOutputTexture(texture, 1, 1);
@@ -227,7 +233,7 @@ describeWithFlags(
         `;
         program = gpgpu.createProgram(src);
         output = gpgpu.createFloat32MatrixTexture(4, 4);
-        gpgpu.uploadMatrixToTexture(output, 4, 4, new Float32Array(16));
+        gpgpu.uploadDenseMatrixToTexture(output, 4, 4, new Float32Array(16));
         gpgpu.setOutputMatrixTexture(output, 4, 4);
         gpgpu.setProgram(program);
       });
