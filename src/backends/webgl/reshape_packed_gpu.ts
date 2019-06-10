@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import * as util from '../../util';
 import {GPGPUProgram} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
 
@@ -56,7 +55,7 @@ export class ReshapePackedProgram implements GPGPUProgram {
 
     this.userCode = `
       ${getReshapedInputCoords(inputShape)}
-      ${getFlatIndex(outputShape)}
+      ${shader_util.getFlatIndexFrom3D(outputShape)}
 
       void main() {
         ivec3 rc = getOutputCoords();
@@ -73,18 +72,6 @@ export class ReshapePackedProgram implements GPGPUProgram {
       }
     `;
   }
-}
-
-function getFlatIndex(shape: [number, number, number]): string {
-  const dotCoordsWithStrides = shader_util.dotify(
-      ['coords.x', 'coords.y', 'coords.z'],
-      util.computeStrides(shape).map(d => d.toString()).concat(['1.']));
-
-  return `
-    int getFlatIndex(ivec3 coords) {
-      return round(${dotCoordsWithStrides});
-    }
-  `;
 }
 
 function getReshapedInputCoords(shape: [number, number, number]): string {
