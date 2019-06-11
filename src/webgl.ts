@@ -17,7 +17,9 @@
 
 import * as gpgpu_util from './backends/webgl/gpgpu_util';
 import * as webgl_util from './backends/webgl/webgl_util';
+
 export {MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backends/webgl/backend_webgl';
+export {setWebGLContext} from './backends/webgl/canvas_util';
 export {GPGPUContext} from './backends/webgl/gpgpu_context';
 export {GPGPUProgram} from './backends/webgl/gpgpu_math';
 // WebGL specific utils.
