@@ -7,6 +7,10 @@ training and deploying machine learning models.
 Use flexible and intuitive APIs to build models from scratch using the low-level
 JavaScript linear algebra library or the high-level layers API.
 
+**Develop ML in Node.js** <br/>
+Execute native TensorFlow with the same TensorFlow.js API under the Node.js
+runtime.
+
 **Run Existing models** <br/>
 Use TensorFlow.js model converters to run pre-existing TensorFlow models right
 in the browser.
