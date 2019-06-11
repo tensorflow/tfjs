@@ -328,7 +328,7 @@ function VisorControls(props: VisorControlProps) {
   return (
     <div className={`${toolBarStyle} visor-controls`}>
       <button className={`${controlsButtonClass}`} onClick={fullScreenHandler}>
-        {isFullScreen ? 'Minimize' : 'Maximise'}
+        {isFullScreen ? 'Minimize' : 'Maximize'}
       </button>
 
       <button
