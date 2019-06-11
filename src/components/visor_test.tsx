@@ -132,7 +132,7 @@ describe('Visor Component', () => {
 
     let toggleButton;
     toggleButton = wrapper.find('.visor-controls').children().at(0);
-    expect(toggleButton.text()).toEqual('Maximise');
+    expect(toggleButton.text()).toEqual('Maximize');
     expect(wrapper.state().isFullscreen).toEqual(false);
     expect(wrapper.find('.visor').at(0).attr('data-isfullscreen' as never))
       .toEqual(false);
