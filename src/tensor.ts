@@ -635,7 +635,7 @@ export class Tensor<R extends Rank = Rank> {
     this.isDisposedInternal = true;
   }
 
-  private isDisposedInternal = false;
+  protected isDisposedInternal = false;
   get isDisposed(): boolean {
     return this.isDisposedInternal;
   }
@@ -1501,8 +1501,10 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
 
   dispose(): void {
     trackerFn().disposeVariable(this);
+    this.isDisposedInternal = true;
   }
 }
+
 Object.defineProperty(Variable, Symbol.hasInstance, {
   value: (instance: Variable) => {
     return instance instanceof Tensor && instance.assign != null &&
