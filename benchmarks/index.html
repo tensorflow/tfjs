@@ -179,7 +179,7 @@
       // Place model loading code here.
       //////////////////////////////////
       return await tf.loadGraphModel(
-        'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json');
+        'https://tfhub.dev/google/imagenet/mobilenet_v2_050_224/classification/2', { fromTFHub: true });
     }
 
     const zeros = tf.zeros([1, 224, 224, 3]);
@@ -354,7 +354,7 @@
 
     async function profileKernelTime() {
       await showMsg('Profiling kernels');
-      ENV.set('DEBUG', true);
+      tf.ENV.set('DEBUG', true);
       const oldLog = console.log;
       let kernels = [];
       console.log = msg => {
@@ -394,13 +394,13 @@
       kernels = kernels.sort((a, b) => b.time - a.time);
       appendRow(timeTable, 'Number of kernels', kernels.length);
       showKernelTime(kernels);
-      ENV.set('DEBUG', false);
+      tf.ENV.set('DEBUG', false);
       // Switch back to the old log;
       console.log = oldLog;
     }
 
     function queryTimerIsEnabled() {
-      return ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0;
+      return tf.ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0;
     }
 
     async function onPageLoad() {
