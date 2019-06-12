@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {DataType} from '@tensorflow/tfjs-core';
-import {getBroadcastDims} from '@tensorflow/tfjs-core/dist/ops/broadcast_util';
+import {backend_util, DataType} from '@tensorflow/tfjs-core';
 
 import {symbolicallyComputeStrides} from './shader_util';
 
@@ -53,7 +52,7 @@ interface ProgramParams {
   userCode: string;
 }
 
-interface InputInfo {
+export interface InputInfo {
   dtype: DataType;
   shape: number[];
   name: string;
@@ -233,7 +232,7 @@ function getSamplerAtOutputCoords(
   const outRank = outShape.length;
   const type = getCoordsDataType(outRank);
 
-  const broadcastDims = getBroadcastDims(inInfo.shape, outShape);
+  const broadcastDims = backend_util.getBroadcastDims(inInfo.shape, outShape);
   const rankDiff = outRank - inRank;
 
   let coordsSnippet = '';

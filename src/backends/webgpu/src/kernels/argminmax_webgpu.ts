@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-import * as axis_util from '@tensorflow/tfjs-core/dist/ops/axis_util';
+import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
@@ -34,7 +33,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
   constructor(inputShape: number[], axis: number, reduceType: 'min'|'max') {
     const axes = [axis];
-    axis_util.assertAxesAreInnerMostDims(
+    backend_util.assertAxesAreInnerMostDims(
         'arg' + reduceType.charAt(0).toUpperCase() + reduceType.slice(1), axes,
         inputShape.length);
 
@@ -43,7 +42,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     // |outShape| is the shape with the removed axis
     // |reduceShape| is the shape we are reducing. i.e. [ inputShape[axis] ]
     const [outputShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(inputShape, axes);
+        backend_util.computeOutAndReduceShapes(inputShape, axes);
 
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
 

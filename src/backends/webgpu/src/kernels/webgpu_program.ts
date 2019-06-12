@@ -67,7 +67,7 @@ export const makeBindGroup =
     };
 
 const makeBindGroupLayout =
-    (device: GPUDevice, inputs: Tensor[], output: Tensor,
+    (device: GPUDevice, inputs: shader_preprocessor.InputInfo[], output: Tensor,
      uniforms?: BindingInfo): GPUBindGroupLayout => {
       const bindings = Array(1 + inputs.length).fill({
         visibility: GPUShaderStageBit.COMPUTE,
@@ -87,15 +87,8 @@ const makeBindGroupLayout =
 export const compileProgram =
     (shaderCompiler: shaderc.Compiler, shaderKind: shaderc.ShaderKind,
      compileOptions: shaderc.CompileOptions, device: GPUDevice,
-     program: WebGPUProgram, inputs: Tensor[], output: Tensor,
-     uniforms?: BindingInfo): WebGPUBinary => {
-      const inputsData = inputs.map((input: Tensor, i: number) => {
-        return {
-          dtype: input.dtype,
-          shape: input.shape,
-          name: program.variableNames[i]
-        };
-      });
+     program: WebGPUProgram, inputsData: shader_preprocessor.InputInfo[],
+     output: Tensor, uniforms?: BindingInfo): WebGPUBinary => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
       const source =
@@ -111,7 +104,7 @@ export const compileProgram =
         throw new Error(`Shader compilation failed: ${error}`);
       }
       const bindGroupLayout =
-          makeBindGroupLayout(device, inputs, output, uniforms);
+          makeBindGroupLayout(device, inputsData, output, uniforms);
       const code = result.GetBinary();
       const layout =
           device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});

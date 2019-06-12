@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import * as concat_util from '@tensorflow/tfjs-core/dist/ops/concat_util';
+import {backend_util} from '@tensorflow/tfjs-core';
+
 import {computeDispatch} from '../webgpu_util';
 import {WebGPUProgram} from './webgpu_program';
 
@@ -28,7 +29,7 @@ export class ConcatProgram implements WebGPUProgram {
 
   constructor(shapes: Array<[number, number]>) {
     this.outputShape =
-        concat_util.computeOutShape(shapes, 1 /* axis */) as [number, number];
+        backend_util.computeOutShape(shapes, 1 /* axis */) as [number, number];
     this.variableNames = shapes.map((_, i) => `T${i}`);
 
     this.dispatchLayout = {x: [0], y: [1]};

@@ -28,20 +28,9 @@ const env = jasmine.getEnv();
 
 /** Tests that have these substrings in their name will be included. */
 const INCLUDE_LIST: string[] = [
-  'matmul',
-  'add ',
-  'subtract ',
-  'mul ',
-  'conv2d',
-  'pad',
-  'pool',
-  'maxPool',
-  'floor divide ',
-  'resizeBilinear',
-  'relu',
-  'transpose',
-  'concat',
-  'argmax',
+  'matmul', 'add ', 'subtract ', 'mul ', 'conv2d', 'pad', 'pool', 'maxPool',
+  'floor divide ', 'resizeBilinear', 'relu', 'transpose', 'concat', 'argmax',
+  'fromPixels'
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
