@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs-core';
-import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
+import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch} from '../webgpu_util';
 
@@ -36,13 +35,13 @@ export class Conv2DMMProgram implements WebGPUProgram {
     1
   ];
 
-  constructor(convInfo: Conv2DInfo, workPerThread: number) {
+  constructor(convInfo: backend_util.Conv2DInfo, workPerThread: number) {
     this.outputShape = convInfo.outShape;
 
-    tf.util.assert(
+    util.assert(
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
-    tf.util.assert(
+    util.assert(
         convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1,
         () => 'TODO: Dilation is unimplemented');
 

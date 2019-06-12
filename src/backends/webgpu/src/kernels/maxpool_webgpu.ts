@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
+import {backend_util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch} from '../webgpu_util';
 
@@ -30,7 +30,7 @@ export class MaxPoolProgram implements WebGPUProgram {
   uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
   workGroupSize: [number, number, number] = [4, 4, 1];
 
-  constructor(convInfo: Conv2DInfo) {
+  constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
 
     this.dispatchLayout = {x: [1], y: [2], z: [0, 3]};

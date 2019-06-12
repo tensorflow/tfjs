@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs-core';
-import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
+import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch} from '../webgpu_util';
 
@@ -31,16 +30,16 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
   uniforms = 'ivec2 filterDims, pad, stride;';
   workGroupSize: [number, number, number] = [4, 8, 1];
 
-  constructor(convInfo: Conv2DInfo) {
+  constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    tf.util.assert(
+    util.assert(
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
-    tf.util.assert(
+    util.assert(
         convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1,
         () => 'TODO: Dilation is unimplemented');
 
