@@ -7,6 +7,10 @@ training and deploying machine learning models.
 Use flexible and intuitive APIs to build models from scratch using the low-level
 JavaScript linear algebra library or the high-level layers API.
 
+**Develop ML in Node.js** <br/>
+Execute native TensorFlow with the same TensorFlow.js API under the Node.js
+runtime.
+
 **Run Existing models** <br/>
 Use TensorFlow.js model converters to run pre-existing TensorFlow models right
 in the browser.
@@ -26,7 +30,7 @@ four packages:
   [Keras](https://keras.io/).
 - [TensorFlow.js Data](https://github.com/tensorflow/tfjs-data),
   a simple API to load and prepare data analogous to
-  [tf.data](https://www.tensorflow.org/guide/datasets_for_estimators).
+  [tf.data](https://www.tensorflow.org/guide/datasets).
 - [TensorFlow.js Converter](https://github.com/tensorflow/tfjs-converter),
   tools to import a TensorFlow SavedModel to TensorFlow.js
 

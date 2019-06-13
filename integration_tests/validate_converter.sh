@@ -58,7 +58,7 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
   else
     yarn node scripts/install.js cpu download
   fi
-  yarn && yarn build && yalc publish
+  yarn && yarn build && yarn yalc publish
 
   cd ..
   yarn yalc link '@tensorflow/tfjs-node'
@@ -85,7 +85,7 @@ else
   cd tfjs-converter
   HASH_CONVERTER="$(git rev-parse HEAD)"
   rm -rf dist/ node_modules/ && yarn
-  yarn build && yalc publish
+  yarn build && yarn yalc publish
 
   cd ..
   yarn yalc link '@tensorflow/tfjs-converter'
