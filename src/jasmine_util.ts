@@ -61,45 +61,57 @@ export function envSatisfiesConstraints(
   return true;
 }
 
-// tslint:disable-next-line:no-any
-declare let __karma__: any;
-
-export function parseKarmaFlags(args: string[]): TestEnv {
+export function parseTestEnvFromKarmaFlags(
+    args: string[], registeredTestEnvs: TestEnv[]): TestEnv {
   let flags: Flags;
-  let factory: () => Promise<KernelBackend>| KernelBackend;
-  let backendName = '';
-  const backendNames = ENGINE.backendNames()
-                           .map(backendName => '\'' + backendName + '\'')
-                           .join(', ');
+  let testEnvName: string;
 
   args.forEach((arg, i) => {
     if (arg === '--flags') {
       flags = JSON.parse(args[i + 1]);
-    } else if (arg === '--backend') {
-      const type = args[i + 1];
-      backendName = type;
-      factory = ENGINE.findBackendFactory(backendName.toLowerCase());
-      if (factory == null) {
-        throw new Error(
-            `Unknown value ${type} for flag --backend. ` +
-            `Allowed values are ${backendNames}.`);
-      }
+    } else if (arg === '--testEnv') {
+      testEnvName = args[i + 1];
     }
   });
 
-  if (flags == null && factory == null) {
+  const testEnvNames = registeredTestEnvs.map(env => env.name).join(', ');
+  if (flags != null && testEnvName == null) {
+    throw new Error(
+        '--testEnv flag is required when --flags is present. ' +
+        `Available values are [${testEnvNames}].`);
+  }
+  if (testEnvName == null) {
     return null;
   }
-  if (flags != null && factory == null) {
+
+  let testEnv: TestEnv;
+  registeredTestEnvs.forEach(env => {
+    if (env.name === testEnvName) {
+      testEnv = env;
+    }
+  });
+  if (testEnv == null) {
     throw new Error(
-        '--backend flag is required when --flags is present. ' +
-        `Available values are ${backendNames}.`);
+        `Test environment with name ${testEnvName} not ` +
+        `found. Available test environment names are ` +
+        `${testEnvNames}`);
   }
-  return {flags: flags || {}, name: backendName, backendName};
+  if (flags != null) {
+    testEnv.flags = flags;
+  }
+
+  return testEnv;
 }
 
 export function describeWithFlags(
     name: string, constraints: Constraints, tests: (env: TestEnv) => void) {
+  if (TEST_ENVS.length === 0) {
+    throw new Error(
+        `Found no test environments. This is likely due to test environment ` +
+        `registries never being imported or test environment registries ` +
+        `being registered too late.`);
+  }
+
   TEST_ENVS.forEach(testEnv => {
     ENV.setFlags(testEnv.flags);
     if (envSatisfiesConstraints(ENV, testEnv, constraints)) {
@@ -136,13 +148,6 @@ export function registerTestEnv(testEnv: TestEnv) {
     return;
   }
   TEST_ENVS.push(testEnv);
-}
-
-if (typeof __karma__ !== 'undefined') {
-  const testEnv = parseKarmaFlags(__karma__.config.args);
-  if (testEnv != null) {
-    setTestEnvs([testEnv]);
-  }
 }
 
 function executeTests(

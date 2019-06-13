@@ -33,7 +33,7 @@ if (coverageEnabled) {
 
 const devConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
-  files: [{pattern: 'src/**/*.ts'}],
+  files: ['src/setup_test.ts', {pattern: 'src/**/*.ts'}],
   exclude: [
     'src/test_node.ts',
     'src/backends/webgpu/**/*.ts',
@@ -46,7 +46,7 @@ const devConfig = {
 
 const browserstackConfig = {
   frameworks: ['browserify', 'jasmine'],
-  files: [{pattern: 'dist/**/*_test.js'}],
+  files: ['dist/setup_test.js', {pattern: 'dist/**/*_test.js'}],
   exclude: [
     'dist/test_node.js',
     'dist/test_async_backends.js',
@@ -60,8 +60,10 @@ const browserstackConfig = {
 
 module.exports = function(config) {
   const args = [];
-  if (config.backend) {
-    args.push('--backend', config.backend);
+  // If no test environment is set unit tests will run against all registered
+  // test environments.
+  if (config.testEnv) {
+    args.push('--testEnv', config.testEnv);
   }
   if (config.grep) {
     args.push('--grep', config.grep);
