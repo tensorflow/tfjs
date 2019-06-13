@@ -21,6 +21,6 @@ yarn build
 yarn lint
 yarn ts-node ./scripts/release_notes/run_tests.ts
 yarn karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun
-cd integration_tests/benchmarks
+cd integration_tests
 yarn benchmark-cloud
 cd ../../
