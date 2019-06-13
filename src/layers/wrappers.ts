@@ -148,50 +148,6 @@ export abstract class Wrapper extends Layer {
   }
 }
 
-/**
- * This wrapper applies a layer to every temporal slice of an input.
- *
- * The input should be at least 3D,  and the dimension of the index `1` will be
- * considered to be the temporal dimension.
- *
- * Consider a batch of 32 samples, where each sample is a sequence of 10 vectors
- * of 16 dimensions. The batch input shape of the layer is then `[32,  10,
- * 16]`, and the `inputShape`, not including the sample dimension, is
- * `[10, 16]`.
- *
- * You can then use `TimeDistributed` to apply a `Dense` layer to each of the 10
- * timesteps, independently:
- *
- * ```js
- * const model = tf.sequential();
- * model.add(tf.layers.timeDistributed({
- *   layer: tf.layers.dense({units: 8}),
- *   inputShape: [10, 16],
- * }));
- *
- * // Now model.outputShape = [null, 10, 8].
- * // The output will then have shape `[32, 10, 8]`.
- *
- * // In subsequent layers, there is no need for `inputShape`:
- * model.add(tf.layers.timeDistributed({layer: tf.layers.dense({units: 32})}));
- * console.log(JSON.stringify(model.outputs[0].shape));
- * // Now model.outputShape = [null, 10, 32].
- * ```
- *
- * The output will then have shape `[32, 10, 32]`.
- *
- * `TimeDistributed` can be used with arbitrary layers, not just `Dense`, for
- * instance a `Conv2D` layer.
- *
- * ```js
- * const model = tf.sequential();
- * model.add(tf.layers.timeDistributed({
- *   layer: tf.layers.conv2d({filters: 64, kernelSize: [3, 3]}),
- *   inputShape: [10, 299, 299, 3],
- * }));
- * console.log(JSON.stringify(model.outputs[0].shape));
- * ```
- */
 export class TimeDistributed extends Wrapper {
   /** @nocollapse */
   static className = 'TimeDistributed';

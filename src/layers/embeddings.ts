@@ -74,15 +74,6 @@ export declare interface EmbeddingLayerArgs extends LayerArgs {
   inputLength?: number|number[];
 }
 
-/**
- * Maps positive integers (indices) into dense vectors of fixed size.
- * eg. [[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]
- *
- * **Input shape:** 2D tensor with shape: `[batchSize, sequenceLength]`.
- *
- * **Output shape:** 3D tensor with shape: `[batchSize, sequenceLength,
- * outputDim]`.
- */
 export class Embedding extends Layer {
   /** @nocollapse */
   static className = 'Embedding';

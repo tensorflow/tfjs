@@ -33,17 +33,6 @@ export declare interface ReLULayerArgs extends LayerArgs {
   maxValue?: number;
 }
 
-/**
- * Rectified Linear Unit activation function.
- *
- * Input shape:
- *   Arbitrary. Use the config field `inputShape` (Array of integers, does
- *   not include the sample axis) when using this layer as the first layer
- *   in a model.
- *
- * Output shape:
- *   Same shape as the input.
- */
 export class ReLU extends Layer {
   /** @nocollapse */
   static className = 'ReLU';
@@ -86,20 +75,6 @@ export declare interface LeakyReLULayerArgs extends LayerArgs {
   alpha?: number;
 }
 
-/**
- * Leaky version of a rectified linear unit.
- *
- * It allows a small gradient when the unit is not active:
- * `f(x) = alpha * x for x < 0.`
- * `f(x) = x for x >= 0.`
- *
- * Input shape:
- *   Arbitrary. Use the configuration `inputShape` when using this layer as the
- *   first layer in a model.
- *
- * Output shape:
- *   Same shape as the input.
- */
 export class LeakyReLU extends Layer {
   /** @nocollapse */
   static className = 'LeakyReLU';
@@ -160,21 +135,6 @@ export declare interface PReLULayerArgs extends LayerArgs {
   sharedAxes?: number|number[];
 }
 
-/**
- * Parameterized version of a leaky rectified linear unit.
- *
- * It follows
- * `f(x) = alpha * x for x < 0.`
- * `f(x) = x for x >= 0.`
- * wherein `alpha` is a trainable weight.
- *
- * Input shape:
- *   Arbitrary. Use the configuration `inputShape` when using this layer as the
- *   first layer in a model.
- *
- * Output shape:
- *   Same shape as the input.
- */
 export class PReLU extends Layer {
   /** @nocollapse */
   static className = 'PReLU';
@@ -261,24 +221,6 @@ export declare interface ELULayerArgs extends LayerArgs {
   alpha?: number;
 }
 
-/**
- * Exponetial Linear Unit (ELU).
- *
- * It follows:
- * `f(x) =  alpha * (exp(x) - 1.) for x < 0`,
- * `f(x) = x for x >= 0`.
- *
- * Input shape:
- *   Arbitrary. Use the configuration `inputShape` when using this layer as the
- *   first layer in a model.
- *
- * Output shape:
- *   Same shape as the input.
- *
- * References:
- *   - [Fast and Accurate Deep Network Learning by Exponential Linear Units
- * (ELUs)](https://arxiv.org/abs/1511.07289v1)
- */
 export class ELU extends Layer {
   /** @nocollapse */
   static className = 'ELU';
@@ -326,24 +268,6 @@ export declare interface ThresholdedReLULayerArgs extends LayerArgs {
   theta?: number;
 }
 
-/**
- * Thresholded Rectified Linear Unit.
- *
- * It follows:
- * `f(x) = x for x > theta`,
- * `f(x) = 0 otherwise`.
- *
- * Input shape:
- *   Arbitrary. Use the configuration `inputShape` when using this layer as the
- *   first layer in a model.
- *
- * Output shape:
- *   Same shape as the input.
- *
- * References:
- *   - [Zero-Bias Autoencoders and the Benefits of Co-Adapting
- * Features](http://arxiv.org/abs/1402.3337)
- */
 export class ThresholdedReLU extends Layer {
   /** @nocollapse */
   static className = 'ThresholdedReLU';
@@ -386,16 +310,6 @@ export declare interface SoftmaxLayerArgs extends LayerArgs {
   axis?: number;
 }
 
-/**
- * Softmax activation layer.
- *
- * Input shape:
- *   Arbitrary. Use the configuration `inputShape` when using this layer as the
- *   first layer in a model.
- *
- * Output shape:
- *   Same shape as the input.
- */
 export class Softmax extends Layer {
   /** @nocollapse */
   static className = 'Softmax';

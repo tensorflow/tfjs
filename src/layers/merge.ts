@@ -257,24 +257,6 @@ export abstract class Merge extends Layer {
   }
 }
 
-/**
- * Layer that performs element-wise addition on an `Array` of inputs.
- *
- * It takes as input a list of tensors, all of the same shape, and returns a
- * single tensor (also of the same shape). The inputs are specified as an
- * `Array` when the `apply` method of the `Add` layer instance is called. For
- * example:
- *
- * ```js
- * const input1 = tf.input({shape: [2, 2]});
- * const input2 = tf.input({shape: [2, 2]});
- * const addLayer = tf.layers.add();
- * const sum = addLayer.apply([input1, input2]);
- * console.log(JSON.stringify(sum.shape));
- * // You get [null, 2, 2], with the first dimension as the undetermined batch
- * // dimension.
- * ```
- */
 export class Add extends Merge {
   /** @nocollapse */
   static className = 'Add';
@@ -352,23 +334,6 @@ export function add(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
   }
 }
 
-/**
- * Layer that multiplies (element-wise) an `Array` of inputs.
- *
- * It takes as input an Array of tensors, all of the same
- * shape, and returns a single tensor (also of the same shape).
- * For example:
- *
- * ```js
- * const input1 = tf.input({shape: [2, 2]});
- * const input2 = tf.input({shape: [2, 2]});
- * const input3 = tf.input({shape: [2, 2]});
- * const multiplyLayer = tf.layers.multiply();
- * const product = multiplyLayer.apply([input1, input2, input3]);
- * console.log(product.shape);
- * // You get [null, 2, 2], with the first dimension as the undetermined batch
- * // dimension.
- */
 export class Multiply extends Merge {
   /** @nocollapse */
   static className = 'Multiply';
@@ -446,22 +411,6 @@ export function multiply(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
   }
 }
 
-/**
- * Layer that performs element-wise averaging on an `Array` of inputs.
- *
- * It takes as input a list of tensors, all of the same shape, and returns a
- * single tensor (also of the same shape). For example:
- *
- * ```js
- * const input1 = tf.input({shape: [2, 2]});
- * const input2 = tf.input({shape: [2, 2]});
- * const averageLayer = tf.layers.average();
- * const average = averageLayer.apply([input1, input2]);
- * console.log(JSON.stringify(average.shape));
- * // You get [null, 2, 2], with the first dimension as the undetermined batch
- * // dimension.
- * ```
- */
 export class Average extends Merge {
   /** @nocollapse */
   static className = 'Average';
@@ -540,22 +489,6 @@ export function average(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
   }
 }
 
-/**
- * Layer that computes the element-wise maximum an `Array` of inputs.
- *
- * It takes as input a list of tensors, all of the same shape and returns a
- * single tensor (also of the same shape). For example:
- *
- * ```js
- * const input1 = tf.input({shape: [2, 2]});
- * const input2 = tf.input({shape: [2, 2]});
- * const maxLayer = tf.layers.maximum();
- * const max = maxLayer.apply([input1, input2]);
- * console.log(JSON.stringify(max.shape));
- * // You get [null, 2, 2], with the first dimension as the undetermined batch
- * // dimension.
- * ```
- */
 export class Maximum extends Merge {
   /** @nocollapse */
   static className = 'Maximum';
@@ -633,22 +566,6 @@ export function maximum(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
   }
 }
 
-/**
- * Layer that computes the element-wise minimum of an `Array` of inputs.
- *
- * It takes as input a list of tensors, all of the same shape and returns a
- * single tensor (also of the same shape). For example:
- *
- * ```js
- * const input1 = tf.input({shape: [2, 2]});
- * const input2 = tf.input({shape: [2, 2]});
- * const minLayer = tf.layers.minimum();
- * const min = minLayer.apply([input1, input2]);
- * console.log(JSON.stringify(min.shape));
- * // You get [null, 2, 2], with the first dimension as the undetermined batch
- * // dimension.
- * ```
- */
 export class Minimum extends Merge {
   /** @nocollapse */
   static className = 'Minimum';
@@ -733,24 +650,6 @@ export declare interface ConcatenateLayerArgs extends LayerArgs {
   axis?: number;
 }
 
-/**
- * Layer that concatenates an `Array` of inputs.
- *
- * It takes a list of tensors, all of the same shape except for the
- * concatenation axis, and returns a single tensor, the concatenation
- * of all inputs. For example:
- *
- * ```js
- * const input1 = tf.input({shape: [2, 2]});
- * const input2 = tf.input({shape: [2, 3]});
- * const concatLayer = tf.layers.concatenate();
- * const output = concatLayer.apply([input1, input2]);
- * console.log(JSON.stringify(output.shape));
- * // You get [null, 2, 5], with the first dimension as the undetermined batch
- * // dimension. The last dimension (5) is the result of concatenating the
- * // last dimensions of the inputs (2 and 3).
- * ```
- */
 export class Concatenate extends Merge {
   /** @nocollapse */
   static className = 'Concatenate';
@@ -1069,26 +968,6 @@ function batchDot(x: Tensor, y: Tensor, axes: number|[number, number]): Tensor {
   });
 }
 
-/**
- * Layer that computes a dot product between samples in two tensors.
- *
- * E.g., if applied to a list of two tensors `a` and `b` both of shape
- * `[batchSize, n]`, the output will be a tensor of shape `[batchSize, 1]`,
- * where each entry at index `[i, 0]` will be the dot product between
- * `a[i, :]` and `b[i, :]`.
- *
- * Example:
- *
- * ```js
- * const dotLayer = tf.layers.dot({axes: -1});
- * const x1 = tf.tensor2d([[10, 20], [30, 40]]);
- * const x2 = tf.tensor2d([[-1, -2], [-3, -4]]);
- *
- * // Invoke the layer's apply() method in eager (imperative) mode.
- * const y = dotLayer.apply([x1, x2]);
- * y.print();
- * ```
- */
 export class Dot extends Merge {
   /** @nocollapse */
   static className = 'Dot';

@@ -1636,7 +1636,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *   topology and weight values.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes'}
+   * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
   async save(handlerOrURL: io.IOHandler|string, config?: io.SaveConfig):
       Promise<io.SaveResult> {

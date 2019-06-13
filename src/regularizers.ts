@@ -39,13 +39,6 @@ export interface L2Args {
   l2: number;
 }
 
-/**
- * Regularizer for L1 and L2 regularization.
- *
- * Adds a term to the loss to penalize large weights:
- * loss += sum(l1 * abs(x)) + sum(l2 * x^2)
- */
-/** @doc {heading: 'Regularizers', namespace: 'regularizers'} */
 export class L1L2 extends Regularizer {
   /** @nocollapse */
   static className = 'L1L2';
@@ -94,24 +87,10 @@ export class L1L2 extends Regularizer {
 }
 serialization.registerClass(L1L2);
 
-/**
- * Regularizer for L1 regularization.
- *
- * Adds a term to the loss to penalize large weights:
- * loss += sum(l1 * abs(x))
- * @param args l1 config.
- */
 export function l1(args?: L1Args) {
   return new L1L2({l1: args != null ? args.l1 : null, l2: 0});
 }
 
-/**
- * Regularizer for L2 regularization.
- *
- * Adds a term to the loss to penalize large weights:
- * loss += sum(l2 * x^2)
- * @param args l2 config.
- */
 export function l2(args: L2Args) {
   return new L1L2({l2: args != null ? args.l2 : null, l1: 0});
 }

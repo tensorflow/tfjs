@@ -10,46 +10,40 @@
 // tslint:disable-next-line:max-line-length
 import {Constraint, MaxNorm, MaxNormArgs, MinMaxNorm, MinMaxNormArgs, NonNeg, UnitNorm, UnitNormArgs} from './constraints';
 
+
 /**
- * @doc {
- *   heading: 'Constraints',
- *   namespace: 'constraints',
- *   useDocsFrom: 'MaxNorm'
- * }
+ * MaxNorm weight constraint.
+ *
+ * Constrains the weights incident to each hidden unit
+ * to have a norm less than or equal to a desired value.
+ *
+ * References
+ *       - [Dropout: A Simple Way to Prevent Neural Networks from Overfitting
+ * Srivastava, Hinton, et al.
+ * 2014](http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf)
  */
+/** @doc {heading: 'Constraints',namespace: 'constraints'} */
 export function maxNorm(args: MaxNormArgs): Constraint {
   return new MaxNorm(args);
 }
 
 /**
- * @doc {
- *   heading: 'Constraints',
- *   namespace: 'constraints',
- *   useDocsFrom: 'UnitNorm'
- * }
+ * Constrains the weights incident to each hidden unit to have unit norm.
  */
+/** @doc {heading: 'Constraints', namespace: 'constraints'} */
 export function unitNorm(args: UnitNormArgs): Constraint {
   return new UnitNorm(args);
 }
 
 /**
- * @doc {
- *   heading: 'Constraints',
- *   namespace: 'constraints',
- *   useDocsFrom: 'NonNeg'
- * }
+ * Constains the weight to be non-negative.
  */
+/** @doc {heading: 'Constraints', namespace: 'constraints'} */
 export function nonNeg(): Constraint {
   return new NonNeg();
 }
 
-/**
- * @doc {
- *   heading: 'Constraints',
- *   namespace: 'constraints',
- *   useDocsFrom: 'MinMaxNormConfig'
- * }
- */
+/** @doc {heading: 'Constraints', namespace: 'constraints'} */
 export function minMaxNorm(config: MinMaxNormArgs): Constraint {
   return new MinMaxNorm(config);
 }

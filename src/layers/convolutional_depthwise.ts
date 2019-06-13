@@ -107,14 +107,6 @@ export declare interface DepthwiseConv2DLayerArgs extends BaseConvLayerArgs {
   depthwiseRegularizer?: RegularizerIdentifier|Regularizer;
 }
 
-/**
- * Depthwise separable 2D convolution.
- *
- * Depthwise Separable convolutions consists in performing just the first step
- * in a depthwise spatial convolution (which acts on each input channel
- * separately). The `depthMultplier` argument controls how many output channels
- * are generated per input channel in the depthwise step.
- */
 export class DepthwiseConv2D extends BaseConv {
   /** @nocollapse */
   static className = 'DepthwiseConv2D';
