@@ -166,8 +166,7 @@ function parseValue(flagName: string, value: string): FlagValue {
       `Could not parse value flag value ${value} for flag ${flagName}.`);
 }
 
-export let ENV: Environment;
-// tslint:disable-next-line:no-any
+export let ENV: Environment = null;
 export function setEnvironmentGlobal(environment: Environment) {
   ENV = environment;
 }
