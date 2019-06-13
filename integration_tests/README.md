@@ -1,6 +1,6 @@
-## TensorFlow.js Benchmarks
+## TensorFlow.js Integration tests
 
-This directory includes performance benchmarks of TensorFlow.js.
+This directory includes performance benchmarks and validation tests of TensorFlow.js.
 This is work in progress and the command lines and APIs are
 subject to frequent changes.
 
@@ -50,3 +50,10 @@ to the service-account JSON file. See this Google Cloud documentation page
 for more details:
 https://cloud.google.com/docs/authentication/getting-started
 
+### Running GraphModel converter validation tests
+
+To run the browser-based GraphModel converter validation tests, do:
+
+```sh
+yarn validate_converter
+```
