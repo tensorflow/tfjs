@@ -22,11 +22,11 @@ import {PlatformBrowser} from './platform_browser';
 describeWithFlags('PlatformBrowser', BROWSER_ENVS, async () => {
   it('fetch calls window.fetch', async () => {
     const response = new Response();
-    spyOn(window, 'fetch').and.returnValue(response);
+    spyOn(self, 'fetch').and.returnValue(response);
     const platform = new PlatformBrowser();
 
     await platform.fetch('test/url', {method: 'GET'});
 
-    expect(window.fetch).toHaveBeenCalledWith('test/url', {method: 'GET'});
+    expect(self.fetch).toHaveBeenCalledWith('test/url', {method: 'GET'});
   });
 });
