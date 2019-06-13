@@ -932,6 +932,8 @@ function getGlobalNamespace(): {_tfengine: Engine} {
       ns = global;
     } else if (typeof (process) !== 'undefined') {
       ns = process;
+    } else if (typeof (self) !== 'undefined' ) {
+      ns = self;
     } else {
       throw new Error('Could not find a global object');
     }
