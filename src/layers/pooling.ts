@@ -191,13 +191,6 @@ export abstract class Pooling1D extends Layer {
   }
 }
 
-/**
- * Max pooling operation for temporal data.
- *
- * Input shape:  `[batchSize, inLength, channels]`
- *
- * Output shape: `[batchSize, pooledLength, channels]`
- */
 export class MaxPooling1D extends Pooling1D {
   /** @nocollapse */
   static className = 'MaxPooling1D';
@@ -215,15 +208,6 @@ export class MaxPooling1D extends Pooling1D {
 }
 serialization.registerClass(MaxPooling1D);
 
-/**
- * Average pooling operation for spatial data.
- *
- * Input shape: `[batchSize, inLength, channels]`
- *
- * Output shape: `[batchSize, pooledLength, channels]`
- *
- * `tf.avgPool1d` is an alias.
- */
 export class AveragePooling1D extends Pooling1D {
   /** @nocollapse */
   static className = 'AveragePooling1D';
@@ -352,25 +336,6 @@ export abstract class Pooling2D extends Layer {
   }
 }
 
-/**
- * Max pooling operation for spatial data.
- *
- * Input shape
- *   - If `dataFormat === CHANNEL_LAST`:
- *       4D tensor with shape:
- *       `[batchSize, rows, cols, channels]`
- *   - If `dataFormat === CHANNEL_FIRST`:
- *      4D tensor with shape:
- *       `[batchSize, channels, rows, cols]`
- *
- * Output shape
- *   - If `dataFormat=CHANNEL_LAST`:
- *       4D tensor with shape:
- *       `[batchSize, pooleRows, pooledCols, channels]`
- *   - If `dataFormat=CHANNEL_FIRST`:
- *       4D tensor with shape:
- *       `[batchSize, channels, pooleRows, pooledCols]`
- */
 export class MaxPooling2D extends Pooling2D {
   /** @nocollapse */
   static className = 'MaxPooling2D';
@@ -388,27 +353,6 @@ export class MaxPooling2D extends Pooling2D {
 }
 serialization.registerClass(MaxPooling2D);
 
-/**
- * Average pooling operation for spatial data.
- *
- * Input shape:
- *  - If `dataFormat === CHANNEL_LAST`:
- *      4D tensor with shape:
- *      `[batchSize, rows, cols, channels]`
- *  - If `dataFormat === CHANNEL_FIRST`:
- *      4D tensor with shape:
- *      `[batchSize, channels, rows, cols]`
- *
- * Output shape
- *  - If `dataFormat === CHANNEL_LAST`:
- *      4D tensor with shape:
- *      `[batchSize, pooleRows, pooledCols, channels]`
- *  - If `dataFormat === CHANNEL_FIRST`:
- *      4D tensor with shape:
- *      `[batchSize, channels, pooleRows, pooledCols]`
- *
- * `tf.avgPool2d` is an alias.
- */
 export class AveragePooling2D extends Pooling2D {
   /** @nocollapse */
   static className = 'AveragePooling2D';
@@ -444,13 +388,6 @@ export abstract class GlobalPooling1D extends Layer {
   }
 }
 
-/**
- * Global average pooling operation for temporal data.
- *
- * Input Shape: 3D tensor with shape: `[batchSize, steps, features]`.
- *
- * Output Shape:2D tensor with shape: `[batchSize, features]`.
- */
 export class GlobalAveragePooling1D extends GlobalPooling1D {
   /** @nocollapse */
   static className = 'GlobalAveragePooling1D';
@@ -467,13 +404,6 @@ export class GlobalAveragePooling1D extends GlobalPooling1D {
 }
 serialization.registerClass(GlobalAveragePooling1D);
 
-/**
- * Global max pooling operation for temporal data.
- *
- * Input Shape: 3D tensor with shape: `[batchSize, steps, features]`.
- *
- * Output Shape:2D tensor with shape: `[batchSize, features]`.
- */
 export class GlobalMaxPooling1D extends GlobalPooling1D {
   /** @nocollapse */
   static className = 'GlobalMaxPooling1D';
@@ -536,18 +466,6 @@ export abstract class GlobalPooling2D extends Layer {
   }
 }
 
-/**
- * Global average pooling operation for spatial data.
- *
- * Input shape:
- *   - If `dataFormat` is `CHANNEL_LAST`:
- *       4D tensor with shape: `[batchSize, rows, cols, channels]`.
- *   - If `dataFormat` is `CHANNEL_FIRST`:
- *       4D tensor with shape: `[batchSize, channels, rows, cols]`.
- *
- * Output shape:
- *   2D tensor with shape: `[batchSize, channels]`.
- */
 export class GlobalAveragePooling2D extends GlobalPooling2D {
   /** @nocollapse */
   static className = 'GlobalAveragePooling2D';
@@ -565,18 +483,6 @@ export class GlobalAveragePooling2D extends GlobalPooling2D {
 }
 serialization.registerClass(GlobalAveragePooling2D);
 
-/**
- * Global max pooling operation for spatial data.
- *
- * Input shape:
- *   - If `dataFormat` is `CHANNEL_LAST`:
- *       4D tensor with shape: `[batchSize, rows, cols, channels]`.
- *   - If `dataFormat` is `CHANNEL_FIRST`:
- *       4D tensor with shape: `[batchSize, channels, rows, cols]`.
- *
- * Output shape:
- *   2D tensor with shape: `[batchSize, channels]`.
- */
 export class GlobalMaxPooling2D extends GlobalPooling2D {
   /** @nocollapse */
   static className = 'GlobalMaxPooling2D';

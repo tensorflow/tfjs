@@ -338,73 +338,6 @@ export declare interface BaseRNNLayerArgs extends LayerArgs {
   inputLength?: number;
 }
 
-/**
- * RNNLayerConfig is identical to BaseRNNLayerConfig, except it makes the
- * `cell` property required. This interface is to be used with constructors
- * of concrete RNN layer subtypes.
- */
-export declare interface RNNLayerArgs extends BaseRNNLayerArgs {
-  cell: RNNCell|RNNCell[];
-}
-
-/**
- * Base class for recurrent layers.
- *
- * Input shape:
- *   3D tensor with shape `[batchSize, timeSteps, inputDim]`.
- *
- * Output shape:
- *   - if `returnState`, an Array of tensors (i.e., `tf.Tensor`s). The first
- *     tensor is the output. The remaining tensors are the states at the
- *     last time step, each with shape `[batchSize, units]`.
- *   - if `returnSequences`, the output will have shape
- *     `[batchSize, timeSteps, units]`.
- *   - else, the output will have shape `[batchSize, units]`.
- *
- * Masking:
- *   This layer supports masking for input data with a variable number
- *   of timesteps. To introduce masks to your data,
- *   use an embedding layer with the `mask_zero` parameter
- *   set to `True`.
- *
- * Notes on using statefulness in RNNs:
- *   You can set RNN layers to be 'stateful', which means that the states
- *   computed for the samples in one batch will be reused as initial states
- *   for the samples in the next batch. This assumes a one-to-one mapping
- *   between samples in different successive batches.
- *
- *   To enable statefulness:
- *     - specify `stateful: true` in the layer constructor.
- *     - specify a fixed batch size for your model, by passing
- *       if sequential model:
- *         `batchInputShape=[...]` to the first layer in your model.
- *       else for functional model with 1 or more Input layers:
- *         `batchShape=[...]` to all the first layers in your model.
- *       This is the expected shape of your inputs *including the batch size*.
- *       It should be a tuple of integers, e.g. `(32, 10, 100)`.
- *     - specify `shuffle=False` when calling fit().
- *
- *   To reset the states of your model, call `.resetStates()` on either
- *   a specific layer, or on your entire model.
- *
- * Note on specifying the initial state of RNNs
- *   You can specify the initial state of RNN layers symbolically by
- *   calling them with the option `initialState`. The value of
- *   `initialState` should be a tensor or list of tensors representing
- *   the initial state of the RNN layer.
- *
- *   You can specify the initial state of RNN layers numerically by
- *   calling `resetStates` with the keyword argument `states`. The value of
- *   `states` should be a numpy array or list of numpy arrays representing
- *   the initial state of the RNN layer.
- *
- * Note on passing external constants to RNNs
- *   You can pass "external" constants to the cell using the `constants`
- *   keyword argument of `RNN.call` method. This requires that the `cell.call`
- *   method accepts the same keyword argument `constants`. Such constants
- *   can be used to conditon the cell transformation on additional static inputs
- *   (not changing over time), a.k.a an attention mechanism.
- */
 export class RNN extends Layer {
   /** @nocollapse */
   static className = 'RNN';
@@ -1001,49 +934,6 @@ export declare interface SimpleRNNCellLayerArgs extends LayerArgs {
   recurrentDropout?: number;
 }
 
-/**
- * Cell class for `SimpleRNN`.
- *
- * `SimpleRNNCell` is distinct from the `RNN` subclass `SimpleRNN` in that its
- * `apply` method takes the input data of only a single time step and returns
- * the cell's output at the time step, while `SimpleRNN` takes the input data
- * over a number of time steps. For example:
- *
- * ```js
- * const cell = tf.layers.simpleRNNCell({units: 2});
- * const input = tf.input({shape: [10]});
- * const output = cell.apply(input);
- *
- * console.log(JSON.stringify(output.shape));
- * // [null, 10]: This is the cell's output at a single time step. The 1st
- * // dimension is the unknown batch size.
- * ```
- *
- * Instance(s) of `SimpleRNNCell` can be used to construct `RNN` layers. The
- * most typical use of this workflow is to combine a number of cells into a
- * stacked RNN cell (i.e., `StackedRNNCell` internally) and use it to create an
- * RNN. For example:
- *
- * ```js
- * const cells = [
- *   tf.layers.simpleRNNCell({units: 4}),
- *   tf.layers.simpleRNNCell({units: 8}),
- * ];
- * const rnn = tf.layers.rnn({cell: cells, returnSequences: true});
- *
- * // Create an input with 10 time steps and a length-20 vector at each step.
- * const input = tf.input({shape: [10, 20]});
- * const output = rnn.apply(input);
- *
- * console.log(JSON.stringify(output.shape));
- * // [null, 10, 8]: 1st dimension is unknown batch size; 2nd dimension is the
- * // same as the sequence length of `input`, due to `returnSequences`: `true`;
- * // 3rd dimension is the last `SimpleRNNCell`'s number of units.
- * ```
- *
- * To create an `RNN` consisting of only *one* `SimpleRNNCell`, use the
- * `tf.layers.simpleRNN`.
- */
 export class SimpleRNNCell extends RNNCell {
   /** @nocollapse */
   static className = 'SimpleRNNCell';
@@ -1293,27 +1183,14 @@ export declare interface SimpleRNNLayerArgs extends BaseRNNLayerArgs {
 }
 
 /**
- * Fully-connected RNN where the output is to be fed back to input.
- *
- * This is an `RNN` layer consisting of one `SimpleRNNCell`. However, unlike
- * the underlying `SimpleRNNCell`, the `apply` method of `SimpleRNN` operates
- * on a sequence of inputs. The shape of the input (not including the first,
- * batch dimension) needs to be at least 2-D, with the first dimension being
- * time steps. For example:
- *
- * ```js
- * const rnn = tf.layers.simpleRNN({units: 8, returnSequences: true});
- *
- * // Create an input with 10 time steps.
- * const input = tf.input({shape: [10, 20]});
- * const output = rnn.apply(input);
- *
- * console.log(JSON.stringify(output.shape));
- * // [null, 10, 8]: 1st dimension is unknown batch size; 2nd dimension is the
- * // same as the sequence length of `input`, due to `returnSequences`: `true`;
- * // 3rd dimension is the `SimpleRNNCell`'s number of units.
- * ```
+ * RNNLayerConfig is identical to BaseRNNLayerConfig, except it makes the
+ * `cell` property required. This interface is to be used with constructors
+ * of concrete RNN layer subtypes.
  */
+export declare interface RNNLayerArgs extends BaseRNNLayerArgs {
+  cell: RNNCell|RNNCell[];
+}
+
 export class SimpleRNN extends RNN {
   /** @nocollapse */
   static className = 'SimpleRNN';
@@ -1460,49 +1337,6 @@ export declare interface GRUCellLayerArgs extends SimpleRNNCellLayerArgs {
   implementation?: number;
 }
 
-/**
- * Cell class for `GRU`.
- *
- * `GRUCell` is distinct from the `RNN` subclass `GRU` in that its
- * `apply` method takes the input data of only a single time step and returns
- * the cell's output at the time step, while `GRU` takes the input data
- * over a number of time steps. For example:
- *
- * ```js
- * const cell = tf.layers.gruCell({units: 2});
- * const input = tf.input({shape: [10]});
- * const output = cell.apply(input);
- *
- * console.log(JSON.stringify(output.shape));
- * // [null, 10]: This is the cell's output at a single time step. The 1st
- * // dimension is the unknown batch size.
- * ```
- *
- * Instance(s) of `GRUCell` can be used to construct `RNN` layers. The
- * most typical use of this workflow is to combine a number of cells into a
- * stacked RNN cell (i.e., `StackedRNNCell` internally) and use it to create an
- * RNN. For example:
- *
- * ```js
- * const cells = [
- *   tf.layers.gruCell({units: 4}),
- *   tf.layers.gruCell({units: 8}),
- * ];
- * const rnn = tf.layers.rnn({cell: cells, returnSequences: true});
- *
- * // Create an input with 10 time steps and a length-20 vector at each step.
- * const input = tf.input({shape: [10, 20]});
- * const output = rnn.apply(input);
- *
- * console.log(JSON.stringify(output.shape));
- * // [null, 10, 8]: 1st dimension is unknown batch size; 2nd dimension is the
- * // same as the sequence length of `input`, due to `returnSequences`: `true`;
- * // 3rd dimension is the last `gruCell`'s number of units.
- * ```
- *
- * To create an `RNN` consisting of only *one* `GRUCell`, use the
- * `tf.layers.gru`.
- */
 export class GRUCell extends RNNCell {
   /** @nocollapse */
   static className = 'GRUCell';
@@ -1727,27 +1561,6 @@ export declare interface GRULayerArgs extends SimpleRNNLayerArgs {
   implementation?: number;
 }
 
-/**
- * Gated Recurrent Unit - Cho et al. 2014.
- *
- * This is an `RNN` layer consisting of one `GRUCell`. However, unlike
- * the underlying `GRUCell`, the `apply` method of `SimpleRNN` operates
- * on a sequence of inputs. The shape of the input (not including the first,
- * batch dimension) needs to be at least 2-D, with the first dimension being
- * time steps. For example:
- *
- * ```js
- * const rnn = tf.layers.gru({units: 8, returnSequences: true});
- *
- * // Create an input with 10 time steps.
- * const input = tf.input({shape: [10, 20]});
- * const output = rnn.apply(input);
- *
- * console.log(JSON.stringify(output.shape));
- * // [null, 10, 8]: 1st dimension is unknown batch size; 2nd dimension is the
- * // same as the sequence length of `input`, due to `returnSequences`: `true`;
- * // 3rd dimension is the `GRUCell`'s number of units.
- */
 export class GRU extends RNN {
   /** @nocollapse */
   static className = 'GRU';
@@ -1919,49 +1732,6 @@ export declare interface LSTMCellLayerArgs extends SimpleRNNCellLayerArgs {
   implementation?: number;
 }
 
-/**
- * Cell class for `LSTM`.
- *
- * `LSTMCell` is distinct from the `RNN` subclass `LSTM` in that its
- * `apply` method takes the input data of only a single time step and returns
- * the cell's output at the time step, while `LSTM` takes the input data
- * over a number of time steps. For example:
- *
- * ```js
- * const cell = tf.layers.lstmCell({units: 2});
- * const input = tf.input({shape: [10]});
- * const output = cell.apply(input);
- *
- * console.log(JSON.stringify(output.shape));
- * // [null, 10]: This is the cell's output at a single time step. The 1st
- * // dimension is the unknown batch size.
- * ```
- *
- * Instance(s) of `LSTMCell` can be used to construct `RNN` layers. The
- * most typical use of this workflow is to combine a number of cells into a
- * stacked RNN cell (i.e., `StackedRNNCell` internally) and use it to create an
- * RNN. For example:
- *
- * ```js
- * const cells = [
- *   tf.layers.lstmCell({units: 4}),
- *   tf.layers.lstmCell({units: 8}),
- * ];
- * const rnn = tf.layers.rnn({cell: cells, returnSequences: true});
- *
- * // Create an input with 10 time steps and a length-20 vector at each step.
- * const input = tf.input({shape: [10, 20]});
- * const output = rnn.apply(input);
- *
- * console.log(JSON.stringify(output.shape));
- * // [null, 10, 8]: 1st dimension is unknown batch size; 2nd dimension is the
- * // same as the sequence length of `input`, due to `returnSequences`: `true`;
- * // 3rd dimension is the last `lstmCell`'s number of units.
- * ```
- *
- * To create an `RNN` consisting of only *one* `LSTMCell`, use the
- * `tf.layers.lstm`.
- */
 export class LSTMCell extends RNNCell {
   /** @nocollapse */
   static className = 'LSTMCell';
@@ -2209,27 +1979,6 @@ export declare interface LSTMLayerArgs extends SimpleRNNLayerArgs {
   implementation?: number;
 }
 
-/**
- * Long-Short Term Memory layer - Hochreiter 1997.
- *
- * This is an `RNN` layer consisting of one `LSTMCell`. However, unlike
- * the underlying `LSTMCell`, the `apply` method of `LSTM` operates
- * on a sequence of inputs. The shape of the input (not including the first,
- * batch dimension) needs to be at least 2-D, with the first dimension being
- * time steps. For example:
- *
- * ```js
- * const lstm = tf.layers.lstm({units: 8, returnSequences: true});
- *
- * // Create an input with 10 time steps.
- * const input = tf.input({shape: [10, 20]});
- * const output = lstm.apply(input);
- *
- * console.log(JSON.stringify(output.shape));
- * // [null, 10, 8]: 1st dimension is unknown batch size; 2nd dimension is the
- * // same as the sequence length of `input`, due to `returnSequences`: `true`;
- * // 3rd dimension is the `LSTMCell`'s number of units.
- */
 export class LSTM extends RNN {
   /** @nocollapse */
   static className = 'LSTM';
@@ -2376,11 +2125,6 @@ export declare interface StackedRNNCellsArgs extends LayerArgs {
   cells: RNNCell[];
 }
 
-/**
- * Wrapper allowing a stack of RNN cells to behave as a single cell.
- *
- * Used to implement efficient stacked RNNs.
- */
 export class StackedRNNCells extends RNNCell {
   /** @nocollapse */
   static className = 'StackedRNNCells';

@@ -239,12 +239,27 @@ export function loadLayersModel(
 }
 
 /**
- * @doc {
- *   heading: 'Models',
- *   subheading: 'Inputs',
- *   useDocsFrom: 'Input'
- * }
+ * Used to instantiate an input to a model as a `tf.SymbolicTensor`.
+ *
+ * Users should call the `input` factory function for
+ * consistency with other generator functions.
+ *
+ * Example:
+ *
+ * ```js
+ * // Defines a simple logistic regression model with 32 dimensional input
+ * // and 3 dimensional output.
+ * const x = tf.input({shape: [32]});
+ * const y = tf.layers.dense({units: 3, activation: 'softmax'}).apply(x);
+ * const model = tf.model({inputs: x, outputs: y});
+ * model.predict(tf.ones([2, 32])).print();
+ * ```
+ *
+ * Note: `input` is only necessary when using `model`. When using
+ * `sequential`, specify `inputShape` for the first layer or use `inputLayer`
+ * as the first layer.
  */
+/** @doc {heading: 'Models', subheading: 'Inputs'} */
 export function input(config: InputConfig): SymbolicTensor {
   return Input(config);
 }

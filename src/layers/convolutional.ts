@@ -634,23 +634,6 @@ export abstract class Conv extends BaseConv {
   }
 }
 
-
-/**
- * 2D convolution layer (e.g. spatial convolution over images).
- *
- * This layer creates a convolution kernel that is convolved
- * with the layer input to produce a tensor of outputs.
- *
- * If `useBias` is True, a bias vector is created and added to the outputs.
- *
- * If `activation` is not `null`, it is applied to the outputs as well.
- *
- * When using this layer as the first layer in a model,
- * provide the keyword argument `inputShape`
- * (Array of integers, does not include the sample axis),
- * e.g. `inputShape=[128, 128, 3]` for 128x128 RGB pictures
- * in `dataFormat='channelsLast'`.
- */
 export class Conv2D extends Conv {
   /** @nocollapse */
   static className = 'Conv2D';
@@ -676,22 +659,6 @@ export class Conv2D extends Conv {
 }
 serialization.registerClass(Conv2D);
 
-/**
- * 3D convolution layer (e.g. spatial convolution over volumes).
- *
- * This layer creates a convolution kernel that is convolved
- * with the layer input to produce a tensor of outputs.
- *
- * If `useBias` is True, a bias vector is created and added to the outputs.
- *
- * If `activation` is not `null`, it is applied to the outputs as well.
- *
- * When using this layer as the first layer in a model,
- * provide the keyword argument `inputShape`
- * (Array of integers, does not include the sample axis),
- * e.g. `inputShape=[128, 128, 128, 1]` for 128x128x128 grayscale volumes
- * in `dataFormat='channelsLast'`.
- */
 export class Conv3D extends Conv {
   /** @nocollapse */
   static className = 'Conv3D';
@@ -720,39 +687,6 @@ export class Conv3D extends Conv {
 }
 serialization.registerClass(Conv3D);
 
-/**
- * Transposed convolutional layer (sometimes called Deconvolution).
- *
- * The need for transposed convolutions generally arises
- * from the desire to use a transformation going in the opposite direction of
- * a normal convolution, i.e., from something that has the shape of the output
- * of some convolution to something that has the shape of its input while
- * maintaining a connectivity pattern that is compatible with said
- * convolution.
- *
- * When using this layer as the first layer in a model, provide the
- * configuration `inputShape` (`Array` of integers, does not include the
- * sample axis), e.g., `inputShape: [128, 128, 3]` for 128x128 RGB pictures in
- * `dataFormat: 'channelsLast'`.
- *
- * Input shape:
- *   4D tensor with shape:
- *   `[batch, channels, rows, cols]` if `dataFormat` is `'channelsFirst'`.
- *   or 4D tensor with shape
- *   `[batch, rows, cols, channels]` if `dataFormat` is `'channelsLast`.
- *
- * Output shape:
- *   4D tensor with shape:
- *   `[batch, filters, newRows, newCols]` if `dataFormat` is
- * `'channelsFirst'`. or 4D tensor with shape:
- *   `[batch, newRows, newCols, filters]` if `dataFormat` is `'channelsLast'`.
- *
- * References:
- *   - [A guide to convolution arithmetic for deep
- * learning](https://arxiv.org/abs/1603.07285v1)
- *   - [Deconvolutional
- * Networks](http://www.matthewzeiler.com/pubs/cvpr2010/cvpr2010.pdf)
- */
 export class Conv2DTranspose extends Conv2D {
   /** @nocollapse */
   static className = 'Conv2DTranspose';
@@ -1102,33 +1036,6 @@ export class SeparableConv extends Conv {
   }
 }
 
-/**
- * Depthwise separable 2D convolution.
- *
- * Separable convolution consists of first performing
- * a depthwise spatial convolution
- * (which acts on each input channel separately)
- * followed by a pointwise convolution which mixes together the resulting
- * output channels. The `depthMultiplier` argument controls how many
- * output channels are generated per input channel in the depthwise step.
- *
- * Intuitively, separable convolutions can be understood as
- * a way to factorize a convolution kernel into two smaller kernels,
- * or as an extreme version of an Inception block.
- *
- * Input shape:
- *   4D tensor with shape:
- *     `[batch, channels, rows, cols]` if data_format='channelsFirst'
- *   or 4D tensor with shape:
- *     `[batch, rows, cols, channels]` if data_format='channelsLast'.
- *
- * Output shape:
- *   4D tensor with shape:
- *     `[batch, filters, newRows, newCols]` if data_format='channelsFirst'
- *   or 4D tensor with shape:
- *     `[batch, newRows, newCols, filters]` if data_format='channelsLast'.
- *     `rows` and `cols` values might have changed due to padding.
- */
 export class SeparableConv2D extends SeparableConv {
   /** @nocollapse */
   static className = 'SeparableConv2D';
@@ -1138,24 +1045,6 @@ export class SeparableConv2D extends SeparableConv {
 }
 serialization.registerClass(SeparableConv2D);
 
-/**
- * 1D convolution layer (e.g., temporal convolution).
- *
- * This layer creates a convolution kernel that is convolved
- * with the layer input over a single spatial (or temporal) dimension
- * to produce a tensor of outputs.
- *
- * If `use_bias` is True, a bias vector is created and added to the outputs.
- *
- * If `activation` is not `null`, it is applied to the outputs as well.
- *
- * When using this layer as the first layer in a model, provide an
- * `inputShape` argument `Array` or `null`.
- *
- * For example, `inputShape` would be:
- * - `[10, 128]` for sequences of 10 vectors of 128-dimensional vectors
- * - `[null, 128]` for variable-length sequences of 128-dimensional vectors.
- */
 export class Conv1D extends Conv {
   /** @nocollapse */
   static className = 'Conv1D';
@@ -1213,35 +1102,6 @@ export declare interface Cropping2DLayerArgs extends LayerArgs {
   dataFormat?: DataFormat;
 }
 
-/**
- * Cropping layer for 2D input (e.g., image).
- *
- * This layer can crop an input
- * at the top, bottom, left and right side of an image tensor.
- *
- * Input shape:
- *   4D tensor with shape:
- *   - If `dataFormat` is `"channelsLast"`:
- *     `[batch, rows, cols, channels]`
- *   - If `data_format` is `"channels_first"`:
- *     `[batch, channels, rows, cols]`.
- *
- * Output shape:
- *   4D with shape:
- *   - If `dataFormat` is `"channelsLast"`:
- *     `[batch, croppedRows, croppedCols, channels]`
- *    - If `dataFormat` is `"channelsFirst"`:
- *     `[batch, channels, croppedRows, croppedCols]`.
- *
- * Examples
- * ```js
- *
- * const model = tf.sequential();
- * model.add(tf.layers.cropping2D({cropping:[[2, 2], [2, 2]],
- *                                inputShape: [128, 128, 3]}));
- * //now output shape is [batch, 124, 124, 3]
- * ```
- */
 export class Cropping2D extends Layer {
   /** @nocollapse */
   static className = 'Cropping2D';
@@ -1333,28 +1193,6 @@ export declare interface UpSampling2DLayerArgs extends LayerArgs {
   dataFormat?: DataFormat;
 }
 
-/**
- * Upsampling layer for 2D inputs.
- *
- * Repeats the rows and columns of the data
- * by size[0] and size[1] respectively.
- *
- *
- * Input shape:
- *    4D tensor with shape:
- *     - If `dataFormat` is `"channelsLast"`:
- *         `[batch, rows, cols, channels]`
- *     - If `dataFormat` is `"channelsFirst"`:
- *        `[batch, channels, rows, cols]`
- *
- * Output shape:
- *     4D tensor with shape:
- *     - If `dataFormat` is `"channelsLast"`:
- *        `[batch, upsampledRows, upsampledCols, channels]`
- *     - If `dataFormat` is `"channelsFirst"`:
- *         `[batch, channels, upsampledRows, upsampledCols]`
- *
- */
 export class UpSampling2D extends Layer {
   /** @nocollapse */
   static className = 'UpSampling2D';

@@ -935,7 +935,7 @@ export class Sequential extends LayersModel {
    *   information collected during training.
    */
   /**
-   * @doc {heading: 'Models', subheading: 'Classes'}
+   * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
   async fitDataset<T>(dataset: Dataset<T>, args: ModelFitDatasetArgs<T>):
       Promise<History> {

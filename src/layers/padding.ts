@@ -131,26 +131,6 @@ export declare interface ZeroPadding2DLayerArgs extends LayerArgs {
   dataFormat?: DataFormat;
 }
 
-/**
- * Zero-padding layer for 2D input (e.g., image).
- *
- * This layer can add rows and columns of zeros
- * at the top, bottom, left and right side of an image tensor.
- *
- * Input shape:
- *   4D tensor with shape:
- *   - If `dataFormat` is `"channelsLast"`:
- *     `[batch, rows, cols, channels]`
- *   - If `data_format` is `"channels_first"`:
- *     `[batch, channels, rows, cols]`.
- *
- * Output shape:
- *   4D with shape:
- *   - If `dataFormat` is `"channelsLast"`:
- *     `[batch, paddedRows, paddedCols, channels]`
- *    - If `dataFormat` is `"channelsFirst"`:
- *     `[batch, channels, paddedRows, paddedCols]`.
- */
 export class ZeroPadding2D extends Layer {
   /** @nocollapse */
   static className = 'ZeroPadding2D';

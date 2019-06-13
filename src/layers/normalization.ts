@@ -250,26 +250,6 @@ export declare interface BatchNormalizationLayerArgs extends LayerArgs {
   gammaRegularizer?: RegularizerIdentifier|Regularizer;
 }
 
-
-/**
- * Batch normalization layer (Ioffe and Szegedy, 2014).
- *
- * Normalize the activations of the previous layer at each batch,
- * i.e. applies a transformation that maintains the mean activation
- * close to 0 and the activation standard deviation close to 1.
- *
- * Input shape:
- *   Arbitrary. Use the keyword argument `inputShape` (Array of integers, does
- *   not include the sample axis) when calling the constructor of this class,
- *   if this layer is used as a first layer in a model.
- *
- * Output shape:
- *   Same shape as input.
- *
- * References:
- *   - [Batch Normalization: Accelerating Deep Network Training by Reducing
- * Internal Covariate Shift](https://arxiv.org/abs/1502.03167)
- */
 export class BatchNormalization extends Layer {
   /** @nocollapse */
   static className = 'BatchNormalization';

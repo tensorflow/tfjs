@@ -62,17 +62,6 @@ export interface MaxNormArgs {
   axis?: number;
 }
 
-/**
- * MaxNorm weight constraint.
- *
- * Constrains the weights incident to each hidden unit
- * to have a norm less than or equal to a desired value.
- *
- * References
- *       - [Dropout: A Simple Way to Prevent Neural Networks from Overfitting
- * Srivastava, Hinton, et al.
- * 2014](http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf)
- */
 export class MaxNorm extends Constraint {
   /** @nocollapse */
   static readonly className = 'MaxNorm';
@@ -120,9 +109,6 @@ export interface UnitNormArgs {
   axis?: number;
 }
 
-/**
- * Constrains the weights incident to each hidden unit to have unit norm.
- */
 export class UnitNorm extends Constraint {
   /** @nocollapse */
   static readonly className = 'UnitNorm';
@@ -144,9 +130,6 @@ export class UnitNorm extends Constraint {
 }
 serialization.registerClass(UnitNorm);
 
-/**
- * Constains the weight to be non-negative.
- */
 export class NonNeg extends Constraint {
   /** @nocollapse */
   static readonly className = 'NonNeg';

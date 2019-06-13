@@ -42,38 +42,6 @@ export declare interface InputLayerArgs {
   name?: string;
 }
 
-/**
- * An input layer is an entry point into a `tf.LayersModel`.
- *
- * `InputLayer` is generated automatically for `tf.Sequential`` models by
- * specifying the `inputshape` or `batchInputShape` for the first layer.  It
- * should not be specified explicitly. However, it can be useful sometimes,
- * e.g., when constructing a sequential model from a subset of another
- * sequential model's layers. Like the code snippet below shows.
- *
- * ```js
- * // Define a model which simply adds two inputs.
- * const model1 = tf.sequential();
- * model1.add(tf.layers.dense({inputShape: [4], units: 3, activation: 'relu'}));
- * model1.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
- * model1.summary();
- * model1.predict(tf.zeros([1, 4])).print();
- *
- * // Construct another model, reusing the second layer of `model1` while
- * // not using the first layer of `model1`. Note that you cannot add the second
- * // layer of `model` directly as the first layer of the new sequential model,
- * // because doing so will lead to an error related to the fact that the layer
- * // is not an input layer. Instead, you need to create an `inputLayer` and add
- * // it to the new sequential model before adding the reused layer.
- * const model2 = tf.sequential();
- * // Use an inputShape that matches the input shape of `model1`'s second
- * // layer.
- * model2.add(tf.layers.inputLayer({inputShape: [3]}));
- * model2.add(model1.layers[1]);
- * model2.summary();
- * model2.predict(tf.zeros([1, 3])).print();
- * ```
- */
 export class InputLayer extends Layer {
   /** @nocollapse */
   static readonly className = 'InputLayer';
@@ -204,27 +172,6 @@ export interface InputConfig {
   sparse?: boolean;
 }
 
-/**
- * Used to instantiate an input to a model as a `tf.SymbolicTensor`.
- *
- * Users should call the `input` factory function for
- * consistency with other generator functions.
- *
- * Example:
- *
- * ```js
- * // Defines a simple logistic regression model with 32 dimensional input
- * // and 3 dimensional output.
- * const x = tf.input({shape: [32]});
- * const y = tf.layers.dense({units: 3, activation: 'softmax'}).apply(x);
- * const model = tf.model({inputs: x, outputs: y});
- * model.predict(tf.ones([2, 32])).print();
- * ```
- *
- * Note: `input` is only necessary when using `model`. When using
- * `sequential`, specify `inputShape` for the first layer or use `inputLayer`
- * as the first layer.
- */
 export function Input(config: InputConfig): SymbolicTensor {
   if (config.batchShape == null && config.shape == null) {
     throw new Error(
