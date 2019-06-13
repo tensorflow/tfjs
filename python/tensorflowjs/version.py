@@ -1,4 +1,4 @@
 # @license See the LICENSE file.
 
 # This code is auto-generated, do not modify this file!
-version = '1.1.2'
+version = '1.2.1'
