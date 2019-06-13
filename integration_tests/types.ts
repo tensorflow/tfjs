@@ -48,9 +48,13 @@ export interface BenchmarkLog {
  * Interfaces that correspond to collections in Firestore Collections.
  */
 
-export type VersionSetCollection = {[versionSetId: string]: VersionSet};
+export type VersionSetCollection = {
+  [versionSetId: string]: VersionSet
+};
 
-export type EnvironmentCollection = {[environmentId: string]: EnvironmentInfo};
+export type EnvironmentCollection = {
+  [environmentId: string]: EnvironmentInfo
+};
 
 /**
  * Used by the dashboard front end to quickly retrieve a list
@@ -68,7 +72,9 @@ export type EnvironmentCollection = {[environmentId: string]: EnvironmentInfo};
  * for all available tasks. In principle, this collection can be recreated
  * from `BenchmarkRunCollection` if necessary.
  */
-export type TaskCollection = {[taskId: string]: Task};
+export type TaskCollection = {
+  [taskId: string]: Task
+};
 
 /**
  * A collection containing information about benchmarked models.
@@ -78,10 +84,14 @@ export type TaskCollection = {[taskId: string]: Task};
  * This applies to only model-based benchmarks and does not apply to
  * non-model benchmarks.
  */
-export type ModelCollection = {[modelId: string]: Model};
+export type ModelCollection = {
+  [modelId: string]: Model
+};
 
 /** The collection that stores the actual benchmark results data. */
-export type BenchmarkRunCollection = {[benchmarkRunId: string]: BenchmarkRun};
+export type BenchmarkRunCollection = {
+  [benchmarkRunId: string]: BenchmarkRun
+};
 
 /** Version sets. */
 
@@ -96,17 +106,16 @@ export interface VersionSet {
 /** Environments. */
 
 export type BrowserEnvironmentType =
-    'chrome-linux' | 'chrome-mac' | 'firefox-linux' | 'firefox-mac' |
-    'safari-mac' | 'chrome-windows' | 'firefox-windows' |
-    'chrome-ios-11' | 'safari-ios-11';
+    'chrome-linux'|'chrome-mac'|'firefox-linux'|'firefox-mac'|'safari-mac'|
+    'chrome-windows'|'firefox-windows'|'chrome-ios-11'|'safari-ios-11';
 export type NodeEnvironmentType =
-    'node-libtensorflow-cpu' | 'node-libtensorflow-cuda' | 'node-gles';
+    'node-libtensorflow-cpu'|'node-libtensorflow-cuda'|'node-gles';
 export type PythonEnvironmentType =
-    'python-tensorflow-cpu' | 'python-tensorflow-cuda';
+    'python-tensorflow-cpu'|'python-tensorflow-cuda';
 export type ServerSideEnvironmentType =
-    NodeEnvironmentType | PythonEnvironmentType;
+    NodeEnvironmentType|PythonEnvironmentType;
 export type BenchmarkEnvironmentType =
-    BrowserEnvironmentType | ServerSideEnvironmentType;
+    BrowserEnvironmentType|ServerSideEnvironmentType;
 
 export interface EnvironmentInfo {
   type: BenchmarkEnvironmentType;
@@ -192,8 +201,7 @@ export interface ModelTask extends Task {
 
 /** Information about a benchmarked model. */
 export type ModelType =
-    'keras-model' | 'tensorflow-model' | 'tfjs-layers-model' |
-    'tfjs-graph-model';
+    'keras-model'|'tensorflow-model'|'tfjs-layers-model'|'tfjs-graph-model';
 
 export interface Model {
   type: ModelType;
@@ -211,9 +219,9 @@ export interface Model {
 //   operations, etc.
 export type TaskType = 'model';
 
-export type ModelFormat = 'LayersModel' | 'GraphModel';
+export type ModelFormat = 'LayersModel'|'GraphModel';
 
-export type ModelFunctionName = 'predict' | 'fit' | 'fitDataset';
+export type ModelFunctionName = 'predict'|'fit'|'fitDataset';
 
 export type FunctionName = ModelFunctionName;
 
@@ -305,4 +313,20 @@ export interface ModelBenchmarkRun extends BenchmarkRun {
 export interface ModelTrainingBenchmarkRun extends ModelBenchmarkRun {
   loss: string;
   optimizer: string;
+}
+
+export interface TensorDef {
+  value: number[];
+  shape: number[];
+  dtype: 'string'|'float32'|'int32'|'bool'|'complex64';
+}
+
+export interface ValidationRun {
+  taskType: 'model';
+  modelFormat: ModelFormat;
+  modelName: string;
+  functionName: ModelFunctionName;
+  inputs: {[key: string]: TensorDef};
+  outputs: {[key: string]: TensorDef};
+  async: boolean;
 }
