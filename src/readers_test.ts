@@ -135,11 +135,8 @@ describeAllEnvs('readers', () => {
 });
 
 describeBrowserEnvs('readers in browser', () => {
-  beforeEach(() => {
-    setupFakeVideoStream();
-  });
-
   it('generate data from webcam with HTML element', async () => {
+    setupFakeVideoStream();
     const videoElement = document.createElement('video');
     videoElement.width = 300;
     videoElement.height = 500;
@@ -151,6 +148,7 @@ describeBrowserEnvs('readers in browser', () => {
   });
 
   it('generate data from webcam with no HTML element', async () => {
+    setupFakeVideoStream();
     const webcamIterator =
         await tfd.webcam(null, {resizeWidth: 100, resizeHeight: 200});
     const result = await webcamIterator.next();
@@ -159,6 +157,7 @@ describeBrowserEnvs('readers in browser', () => {
   });
 
   it('generate data from webcam with HTML element and resize', async () => {
+    setupFakeVideoStream();
     const videoElement = document.createElement('video');
     videoElement.width = 300;
     videoElement.height = 500;
@@ -179,6 +178,17 @@ describeNodeEnvs('readers in node', () => {
     } catch (e) {
       expect(e.message).toEqual(
           'tf.data.webcam is only supported in browser environment.');
+      done();
+    }
+  });
+
+  it('microphone only available in browser env', async done => {
+    try {
+      await tfd.microphone();
+      done.fail();
+    } catch (e) {
+      expect(e.message).toEqual(
+          'microphone API is only supported in browser environment.');
       done();
     }
   });

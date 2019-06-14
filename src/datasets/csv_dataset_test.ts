@@ -334,8 +334,7 @@ describe('CSVDataset', () => {
       const source = new FileDataSource(csvDataWithHeaders, {chunkSize: 10});
       const dataset =
           new CSVDataset(source, {columnNames: ['bar', 'foooooooo']});
-      const n = await dataset.columnNames();
-      console.log(n);
+      await dataset.columnNames();
       done.fail();
     } catch (e) {
       expect(e.message).toEqual(

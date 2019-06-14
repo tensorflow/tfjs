@@ -20,9 +20,10 @@ import {TensorContainer} from '@tensorflow/tfjs-core';
 import {Dataset, datasetFromIteratorFn} from './dataset';
 import {CSVDataset} from './datasets/csv_dataset';
 import {iteratorFromFunction} from './iterators/lazy_iterator';
+import {MicrophoneIterator} from './iterators/microphone_iterator';
 import {WebcamIterator} from './iterators/webcam_iterator';
 import {URLDataSource} from './sources/url_data_source';
-import {CSVConfig, WebcamConfig} from './types';
+import {CSVConfig, MicrophoneConfig, WebcamConfig} from './types';
 
 /**
  * Create a `CSVDataset` by reading and decoding CSV file(s) from provided URL
@@ -238,6 +239,37 @@ export function generator<T extends TensorContainer>(
  *  }
  */
 export async function webcam(
-    webcamVideoElement?: HTMLVideoElement, webcamConfig?: WebcamConfig) {
+    webcamVideoElement?: HTMLVideoElement,
+    webcamConfig?: WebcamConfig): Promise<WebcamIterator> {
   return WebcamIterator.create(webcamVideoElement, webcamConfig);
+}
+
+/**
+ * Create an iterator that generate frequency-domain spectrogram `Tensor`s from
+ * microphone audio stream with browser's native FFT. This API only works in
+ * browser environment when the device has microphone.
+ *
+ * Note: this code snippet only works when the device has a microphone. It will
+ * request permission to open the microphone when running.
+ * ```js
+ * const microphoneIterator = await tf.data.microphone({
+ *   fftSize: 1024,
+ *   columnTruncateLength: 232,
+ *   numFramesPerSpectrogram: 43,
+ *   sampleRateHz:44100,
+ *   includeSpectrogram: true,
+ *   includeWaveform: true
+ * });
+ * const audioData = await microphoneIterator.next();
+ * const spectrogramTensor = audioData.value.spectrogram;
+ * const waveformTensor = audioData.value.waveform;
+ * microphoneIterator.stop();
+ * ```
+ *
+ * @param microphoneConfig A `MicrophoneConfig` object that contains
+ *     configurations of reading audio data from microphone.
+ */
+export async function microphone(microphoneConfig?: MicrophoneConfig):
+    Promise<MicrophoneIterator> {
+  return MicrophoneIterator.create(microphoneConfig);
 }
