@@ -56,7 +56,8 @@ describe('TF.js Layers Benchmarks', () => {
   const BENCHMARKS_JSON_PATH = './data/benchmarks.json';
 
   it('Benchmark models', async () => {
-    const isNodeJS = common.inNodeJS(__karma__);
+    const isNodeJS = typeof __karma__ === 'undefined' ?
+        true : common.inNodeJS(__karma__);
     console.log(`isNodeJS = ${isNodeJS}`);
     if (isNodeJS) {
       if (common.usingNodeGPU()) {

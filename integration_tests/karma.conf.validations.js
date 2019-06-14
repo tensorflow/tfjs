@@ -40,7 +40,8 @@ module.exports = function(config) {
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
     files: [
-      {pattern: 'models/*.ts'}, {pattern: 'firestore.ts'}, {
+      {pattern: 'models/*.ts'},
+      {
         pattern: 'data/**/*',
         watched: false,
         included: false,
@@ -49,7 +50,7 @@ module.exports = function(config) {
       }
     ],
     include: ['models/*.ts'],
-    exclude: ['models/models_benchmarks.ts'],
+    exclude: ['models/benchmarks.ts'],
     preprocessors: {
       '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
     },

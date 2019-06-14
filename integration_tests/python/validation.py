@@ -44,6 +44,7 @@ import tensorflowjs as tfjs
 _PREDICT_BURNINS = 1  # How many predict() runs to do before timing predict().
 _PREDICT_RUNS = 1  # How many runs of predict() to average over.
 
+
 def _create_saved_model_v1(save_dir):
   """Create a TensorFlow V1 SavedModel for testing.
 
@@ -92,6 +93,7 @@ def _create_saved_model_v1(save_dir):
         }
     }
 
+
 def _create_saved_model_v2(save_dir):
   """Test a basic TF V2 model with functions to make sure functions are inlined.
 
@@ -112,6 +114,7 @@ def _create_saved_model_v2(save_dir):
           "x": {"value": [1], "shape": [1], "dtype": 'float32'}},
       "outputs": {
           "Identity:0": {"value": [6], "shape": [1], "dtype": "float32"}}}
+
 
 def _create_saved_model_v2_with_control_flow(save_dir):
   """Test a basic TF v2 model with control flow to inlined.
@@ -137,6 +140,7 @@ def _create_saved_model_v2_with_control_flow(save_dir):
       "async": True,
       "inputs": {"v": {"value": 3, "shape": [], "dtype": 'int32'}},
       "outputs": {"Identity:0": {"value": [5], "shape": [], "dtype": "int32"}}}
+
 
 def save_and_convert_model(model_name,
                            description,
@@ -195,6 +199,7 @@ def save_and_convert_model(model_name,
     'async': tasks["async"]
   }
   return task_logs
+
 
 def _get_environment_type():
   return ('python-tensorflow-cuda' if tf.test.gpu_device_name() else

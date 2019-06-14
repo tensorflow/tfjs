@@ -41,7 +41,8 @@ describe('TF.js converter validation', () => {
   const VALIDATIONS_JSON_PATH = './data/validations.json';
 
   it('validate GraphModels', async () => {
-    const isNodeJS = common.inNodeJS(__karma__);
+    const isNodeJS = typeof __karma__ === 'undefined' ?
+        true : common.inNodeJS(__karma__);
     console.log(`isNodeJS = ${isNodeJS}`);
     if (isNodeJS) {
       if (common.usingNodeGPU()) {

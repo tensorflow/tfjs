@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import * as fs from 'fs';
+
 import * as jasmineUtil from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // tslint:disable-next-line:no-any
@@ -32,7 +34,12 @@ export function runTests(jasmineUtil: any, filename: string): void {
       [{name: 'node', factory: jasmineUtil.CPU_FACTORY, features: {}}]);
 
   const runner = new jasmineCtor();
-  runner.loadConfig({spec_files: [filename], random: false});
+  console.log(`filename = ${filename}`);  // DEBUG
+  runner.loadConfig({
+    frameworks: ['jasmine', 'karma-typescript'],
+    spec_files: [filename],
+    random: false
+  });
   runner.execute();
 }
 
@@ -42,5 +49,9 @@ if (filenameIndex === -1 || filenameIndex + 1 >= process.argv.length) {
 }
 
 const filename = process.argv[filenameIndex + 1];
+
+if (!fs.existsSync(filename)) {
+  throw new Error(`File does not exist: ${filename}`);
+}
 
 runTests(jasmineUtil, filename);

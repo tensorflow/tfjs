@@ -95,6 +95,12 @@ fi
 # The extension names are ".js" because they will later be converted into
 # sourceable JavaScript files.
 
+if [[ -z "$(which pip)" ]]; then
+  echo "pip is not on path. Attempting to install it..."
+  apt-get update
+  apt-get install -y python-pip
+fi
+
 DATA_ROOT="${SCRIPT_DIR}/data"
 
 echo "Installing virtualenv..."
@@ -113,7 +119,7 @@ else
 fi
 
 echo "Running python converter..."
-python "${SCRIPT_DIR}/python/validations.py" "${DATA_ROOT}"
+python "${SCRIPT_DIR}/python/validation.py" "${DATA_ROOT}"
 
 echo "Cleaning up virtualenv directory ${VENV_DIR}..."
 deactivate
@@ -135,7 +141,7 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
 
   echo "Starting validation karma tests in Node.js..."
   yarn ts-node run_node_tests.ts \
-      --filename "models/validations.ts" \
+      --filename "models/validation.ts" \
       ${GPU_FLAG} \
       ${LOG_FLAG} \
       --hashes "{\"tfjs-node\": \"${HASH_NODE}\"}"
