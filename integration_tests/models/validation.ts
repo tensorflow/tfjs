@@ -28,9 +28,6 @@ import {ModelFunctionName, ValidationRun} from '../types';
 
 import * as common from './common';
 
-// tslint:disable-next-line:no-any
-declare let __karma__: any;
-
 describe('TF.js converter validation', () => {
   beforeAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 600000;
@@ -41,8 +38,7 @@ describe('TF.js converter validation', () => {
   const VALIDATIONS_JSON_PATH = './data/validations.json';
 
   it('validate GraphModels', async () => {
-    const isNodeJS = typeof __karma__ === 'undefined' ?
-        true : common.inNodeJS(__karma__);
+    const isNodeJS = common.inNodeJS();
     console.log(`isNodeJS = ${isNodeJS}`);
     if (isNodeJS) {
       if (common.usingNodeGPU()) {

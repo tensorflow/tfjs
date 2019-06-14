@@ -56,8 +56,7 @@ describe('TF.js Layers Benchmarks', () => {
   const BENCHMARKS_JSON_PATH = './data/benchmarks.json';
 
   it('Benchmark models', async () => {
-    const isNodeJS = typeof __karma__ === 'undefined' ?
-        true : common.inNodeJS(__karma__);
+    const isNodeJS = common.inNodeJS();
     console.log(`isNodeJS = ${isNodeJS}`);
     if (isNodeJS) {
       if (common.usingNodeGPU()) {
@@ -79,7 +78,7 @@ describe('TF.js Layers Benchmarks', () => {
       log = process.argv.indexOf('--log') !== -1;
     } else {
       // In browser.
-      log = common.getLogFlagFromKarmaFlags(__karma__.config.args);
+      log = common.getLogFlagFromKarmaFlags();
     }
     console.log(`Boolean flag log = ${log}`);
 
@@ -123,8 +122,7 @@ describe('TF.js Layers Benchmarks', () => {
     if (isNodeJS) {
       versionSet.commitHashes = common.getCommitHashesFromArgs(process.argv);
     } else {
-      versionSet.commitHashes =
-          common.getCommitHashesFromArgs(__karma__.config.args);
+      versionSet.commitHashes = common.getCommitHashesFromArgs();
     }
 
     if (log) {
