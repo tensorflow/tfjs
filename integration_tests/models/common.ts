@@ -54,13 +54,16 @@ export function usingNodeGPU(): boolean {
 }
 
 /** Extract commit hashes of the tfjs repos from karma flags. */
-export function getCommitHashesFromArgs() {
+export function getCommitHashesFromArgs(args?: string[]) {
+  if (args == null) {
+    args = __karma__.config.args;
+  }
   for (let i = 0; i < __karma__.config.args.length; ++i) {
-    if (__karma__.config.args[i] === '--hashes') {
-      if (__karma__.config.args[i + 1] == null) {
+    if (args[i] === '--hashes') {
+      if (args[i + 1] == null) {
         throw new Error('Missing value for flag --hashes');
       }
-      return JSON.parse(__karma__.config.args[i + 1] as string);
+      return JSON.parse(args[i + 1] as string);
     }
   }
 }

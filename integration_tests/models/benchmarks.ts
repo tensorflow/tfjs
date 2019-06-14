@@ -31,9 +31,6 @@ import * as common from './common';
 // tslint:disable-next-line:no-any
 let tfn: any;
 
-// tslint:disable-next-line:no-any
-declare let __karma__: any;
-
 const OPTIMIZER_MAP: {[pyName: string]: string} = {
   'AdamOptimizer': 'adam',
   'RMSPropOptimizer': 'rmsprop',
