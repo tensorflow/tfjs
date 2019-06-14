@@ -149,5 +149,20 @@ describe('basic math', () => {
         expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
       });
     });
+    describe('ComplexAbs', () => {
+      it('should call tfc.abs', () => {
+        spyOn(tfc, 'abs');
+        node.op = 'ComplexAbs';
+        node.inputNames = ['input1'];
+        executeOp(node, {input1}, context);
+
+        expect(tfc.abs).toHaveBeenCalledWith(input1[0]);
+      });
+      it('should match op def', () => {
+        node.op = 'ComplexAbs';
+
+        expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
+      });
+    });
   });
 });

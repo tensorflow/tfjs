@@ -29,6 +29,7 @@ export let executeOp: InternalOpExecutor = (node: Node,
                                                tfc.Tensor[] => {
   switch (node.op) {
     case 'Abs':
+    case 'ComplexAbs':
       return [tfc.abs(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     case 'Acos':

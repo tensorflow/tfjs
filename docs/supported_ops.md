@@ -35,6 +35,7 @@
 |ClipByValue|clipByValue|
 |Cos|cos|
 |Cosh|cosh|
+|ComplexAbs|abs|
 |Elu|elu|
 |Erf|erf|
 |Exp|exp|
