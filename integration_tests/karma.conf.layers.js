@@ -51,7 +51,7 @@ const karmaTypescriptConfig = {
         }
       ],
       include: ['models/*.ts'],
-      exclude: ['models/models_validations.ts'],
+      exclude: ['models/validation.ts'],
       preprocessors: {
         '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
       },

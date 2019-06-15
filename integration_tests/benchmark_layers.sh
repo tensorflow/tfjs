@@ -132,6 +132,12 @@ fi
 # The extension names are ".js" because they will later be converted into
 # sourceable JavaScript files.
 
+if [[ -z "$(which pip)" ]]; then
+  echo "pip is not on path. Attempting to install it..."
+  apt-get update
+  apt-get install -y python-pip
+fi
+
 DATA_ROOT="${SCRIPT_DIR}/data"
 
 if [[ "${SKIP_PY_BENCHMAKRS}" == 0 ]]; then

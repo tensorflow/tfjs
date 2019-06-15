@@ -42,10 +42,7 @@ export interface SuiteLog {
 
 /** Determine whether this file is running in Node.js. */
 // tslint:disable-next-line:no-any
-export function inNodeJS(karma?: any): boolean {
-  if (karma != null) {
-    __karma__ = karma;
-  }
+export function inNodeJS(): boolean {
   // Note this is not a generic way of testing if we are in Node.js.
   // The logic here is specific to the scripts in this folder.
   return typeof module !== 'undefined' && typeof process !== 'undefined' &&
@@ -57,7 +54,10 @@ export function usingNodeGPU(): boolean {
 }
 
 /** Extract commit hashes of the tfjs repos from karma flags. */
-export function getCommitHashesFromArgs(args: Array<boolean|number|string>) {
+export function getCommitHashesFromArgs(args?: string[]) {
+  if (args == null) {
+    args = __karma__.config.args;
+  }
   for (let i = 0; i < args.length; ++i) {
     if (args[i] === '--hashes') {
       if (args[i + 1] == null) {
@@ -69,11 +69,18 @@ export function getCommitHashesFromArgs(args: Array<boolean|number|string>) {
 }
 
 /** Extract the "log" boolean flag from karma flags. */
-export function getLogFlagFromKarmaFlags(
-    karmaFlags: Array<boolean|number|string>): boolean {
-  for (let i = 0; i < karmaFlags.length; ++i) {
-    if (karmaFlags[i] === '--log') {
-      return karmaFlags[i + 1] === true;
+export function getLogFlagFromKarmaFlags(args?: Array<string|boolean>):
+    boolean {
+  if (args == null) {
+    if (inNodeJS()) {
+      throw new Error(
+          'While in Node.js, you must pass command-line flags explicitly.');
+    }
+    args = __karma__.config.args;
+  }
+  for (let i = 0; i < args.length; ++i) {
+    if (args[i] === '--log') {
+      return args[i + 1] === true;
     }
   }
   return false;
