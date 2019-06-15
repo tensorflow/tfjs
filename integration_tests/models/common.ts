@@ -58,7 +58,7 @@ export function getCommitHashesFromArgs(args?: string[]) {
   if (args == null) {
     args = __karma__.config.args;
   }
-  for (let i = 0; i < __karma__.config.args.length; ++i) {
+  for (let i = 0; i < args.length; ++i) {
     if (args[i] === '--hashes') {
       if (args[i + 1] == null) {
         throw new Error('Missing value for flag --hashes');
