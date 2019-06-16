@@ -99,6 +99,8 @@ describe('isValidTensorName', () => {
     expect(isValidTensorName('a/B/c')).toEqual(true);
     expect(isValidTensorName('z_1/z_2/z.3')).toEqual(true);
     expect(isValidTensorName('z-1/z-2/z.3')).toEqual(true);
+    expect(isValidTensorName('1Qux')).toEqual(true);
+    expect(isValidTensorName('5-conv/kernel')).toEqual(true);
   });
 
   it('Invalid tensor names: empty', () => {
@@ -120,7 +122,6 @@ describe('isValidTensorName', () => {
     expect(isValidTensorName('/foo/bar')).toEqual(false);
     expect(isValidTensorName('.baz')).toEqual(false);
     expect(isValidTensorName('_baz')).toEqual(false);
-    expect(isValidTensorName('1Qux')).toEqual(false);
   });
 
   it('Invalid tensor names: non-ASCII', () => {
