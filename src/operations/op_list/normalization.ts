@@ -69,6 +69,31 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'FusedBatchNormV3',
+    'category': 'normalization',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'scale', 'type': 'tensor'},
+      {'start': 2, 'name': 'offset', 'type': 'tensor'},
+      {'start': 3, 'name': 'mean', 'type': 'tensor'},
+      {'start': 4, 'name': 'variance', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {
+        'tfName': 'epsilon',
+        'name': 'epsilon',
+        'type': 'number',
+        'defaultValue': 0.001
+      },
+      {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
+        'type': 'string',
+        'notSupported': true
+      }
+    ]
+  },
+  {
     'tfOpName': 'LRN',
     'category': 'normalization',
     'inputs': [
