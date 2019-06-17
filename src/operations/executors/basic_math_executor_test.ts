@@ -164,5 +164,29 @@ describe('basic math', () => {
         expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
       });
     });
+    describe('Complex', () => {
+      it('should call tfc.complex', () => {
+        spyOn(tfc, 'complex');
+        node.op = 'Complex';
+        node.inputParams = {
+          real: createTensorAttr(0),
+          imag: createTensorAttr(1)
+        };
+        const input2 = [tfc.scalar(2)];
+        node.inputNames = ['input1', 'input2'];
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.complex).toHaveBeenCalledWith(input1[0], input2[0]);
+      });
+      it('should match op def', () => {
+        node.op = 'Complex';
+        node.inputParams = {
+          real: createTensorAttr(0),
+          imag: createTensorAttr(1)
+        };
+
+        expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
+      });
+    });
   });
 });

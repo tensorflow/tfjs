@@ -91,6 +91,17 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'Complex',
+    'category': 'basic_math',
+    'inputs': [
+      {'start': 0, 'name': 'real', 'type': 'tensor'},
+      {'start': 1, 'name': 'imag', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
     'tfOpName': 'ComplexAbs',
     'category': 'basic_math',
     'inputs': [
