@@ -38,6 +38,15 @@ export let executeOp: InternalOpExecutor = (node: Node,
           getParamValue('scale', node, tensorMap, context) as tfc.Tensor,
           getParamValue('epsilon', node, tensorMap, context) as number)];
     }
+    case 'FusedBatchNormV3': {
+      return [tfc.batchNorm(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('mean', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('variance', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('offset', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('scale', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('epsilon', node, tensorMap, context) as number)];
+    }
     case 'LRN': {
       return [tfc.localResponseNormalization(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor3D |
