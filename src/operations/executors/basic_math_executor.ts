@@ -57,6 +57,10 @@ export let executeOp: InternalOpExecutor = (node: Node,
     case 'Ceil':
       return [tfc.ceil(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
+    case 'Complex':
+      return [tfc.complex(
+          getParamValue('real', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('imag', node, tensorMap, context) as tfc.Tensor)];
     case 'Cos':
       return [tfc.cos(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
