@@ -23,6 +23,7 @@
     "@types/jasmine": "~2.5.53",
     "@types/node": "~9.6.0",
     "@types/node-fetch": "~2.1.2",
+    "@types/offscreencanvas": "~2019.3.0",
     "browserify": "~16.2.3",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",

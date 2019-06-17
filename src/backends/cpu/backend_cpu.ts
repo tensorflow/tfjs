@@ -66,11 +66,9 @@ interface TensorData<D extends DataType> {
 }
 
 function createCanvas() {
-  //@ts-ignore
-  if (typeof(OffscreenCanvas) !== 'undefined') {
-    //@ts-ignore
+  if (typeof OffscreenCanvas !== 'undefined') {
     return new OffscreenCanvas(300, 150);
-  } else if (typeof(document) !== 'undefined') {
+  } else if (typeof document !== 'undefined') {
     return document.createElement('canvas');
   } else {
     throw new Error('Cannot create a canvas in this context');
@@ -81,7 +79,8 @@ export class MathBackendCPU implements KernelBackend {
   public blockSize = 48;
 
   private data: DataStorage<TensorData<DataType>>;
-  private fromPixels2DContext: CanvasRenderingContext2D;
+  private fromPixels2DContext: CanvasRenderingContext2D|
+      OffscreenCanvasRenderingContext2D;
   private firstUse = true;
 
   constructor() {

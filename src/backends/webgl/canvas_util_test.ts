@@ -22,10 +22,12 @@ import {getWebGLContext} from './canvas_util';
 
 describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   it('Returns a valid canvas', () => {
-    const canvas = getWebGLContext(ENV.getNumber('WEBGL_VERSION')).canvas;
-    expect((canvas instanceof HTMLCanvasElement)
-        //@ts-ignore
-        || (canvas instanceof OffscreenCanvas)).toBe(true);
+    const canvas = getWebGLContext(ENV.getNumber('WEBGL_VERSION')).canvas as (
+                       HTMLCanvasElement | OffscreenCanvas);
+    expect(
+        (canvas instanceof HTMLCanvasElement) ||
+        (canvas instanceof OffscreenCanvas))
+        .toBe(true);
   });
 
   it('Returns a valid gl context', () => {
