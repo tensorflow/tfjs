@@ -27,7 +27,7 @@ import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsCl
 
 // TODO(bileschi): Use external version of Layer.
 import {Layer, SymbolicTensor} from './topology';
-import {checkArrayLengths, isDataArray, isDataDict, isDataTensor, standardizeInputData} from './training';
+import {checkArrayLengths, isDataArray, isDataDict, isDataTensor, standardizeInputData, collectMetrics} from './training';
 import {makeBatches, sliceArraysByIndices} from './training_tensors';
 
 
@@ -144,6 +144,91 @@ describeMathCPU('checkArrayLengths', () => {
     expect(() => checkArrayLengths(inputs, targets))
         .toThrowError(
             /Input Tensors should have the same number of samples as target/);
+  });
+});
+
+describeMathCPUAndGPU('collectMetrics', () => {
+  it('shortcut strings name', () => {
+    const metrics = 'mse';
+    const outputNames = ['output'];
+    const collectedMetrics = collectMetrics(metrics, outputNames);
+    expect(collectedMetrics.length).toEqual(1);
+    expect(collectedMetrics[0].length).toEqual(1);
+    expect(collectedMetrics[0][0]).toEqual('mse');
+
+  });
+  it('metric function', () => {
+    const metrics = tfl.metrics.meanSquaredError;
+    const outputNames = ['output'];
+    const collectedMetrics = collectMetrics(metrics, outputNames);
+    expect(collectedMetrics.length).toEqual(1);
+    expect(collectedMetrics[0].length).toEqual(1);
+    expect(collectedMetrics[0][0]).toEqual(metrics);
+  });
+  it('Array of shortcut string names', () => {
+    const metrics = ['mse', 'crossentropy'];
+    const outputNames = ['output'];
+    const collectedMetrics = collectMetrics(metrics, outputNames);
+    expect(collectedMetrics.length).toEqual(1);
+    expect(collectedMetrics[0].length).toEqual(2);
+    expect(collectedMetrics[0][0]).toEqual('mse');
+    expect(collectedMetrics[0][1]).toEqual('crossentropy');
+  });
+  it('Array of metric functions', () => {
+    const metrics = [tfl.metrics.meanSquaredError, tfl.metrics.precision];
+    const outputNames = ['output'];
+    const collectedMetrics = collectMetrics(metrics, outputNames);
+    expect(collectedMetrics.length).toEqual(1);
+    expect(collectedMetrics[0].length).toEqual(2);
+    expect(collectedMetrics[0][0]).toEqual(metrics[0]);
+    expect(collectedMetrics[0][1]).toEqual(metrics[1]);
+  });
+  it('Array of mixing shortcut string names and metric functions', () => {
+    const metrics = ['mse', tfl.metrics.precision];
+    const outputNames = ['output'];
+    const collectedMetrics = collectMetrics(metrics, outputNames);
+    expect(collectedMetrics.length).toEqual(1);
+    expect(collectedMetrics[0].length).toEqual(2);
+    expect(collectedMetrics[0][0]).toEqual('mse');
+    expect(collectedMetrics[0][1]).toEqual(metrics[1]);
+  });
+  it('Dict of shortcut string names', () => {
+    const metrics = {'output': 'mse'};
+    const outputNames = ['output'];
+    const collectedMetrics = collectMetrics(metrics, outputNames);
+    expect(collectedMetrics.length).toEqual(1);
+    expect(collectedMetrics[0].length).toEqual(1);
+    expect(collectedMetrics[0][0]).toEqual('mse');
+  });
+  it('Dict of metric functions', () => {
+    const metrics = {'output': tfl.metrics.meanSquaredError};
+    const outputNames = ['output'];
+    const collectedMetrics = collectMetrics(metrics, outputNames);
+    expect(collectedMetrics.length).toEqual(1);
+    expect(collectedMetrics[0].length).toEqual(1);
+    expect(collectedMetrics[0][0]).toEqual(metrics['output']);
+  });
+  it('metrics null', () => {
+    const outputNames = ['output'];
+    const collectedMetrics = collectMetrics(null, outputNames);
+    expect(collectedMetrics.length).toEqual(1);
+    expect(collectedMetrics[0].length).toEqual(0);
+  });
+  it('metrics is array, length = 0', () => {
+    const outputNames = ['output'];
+    const collectedMetrics = collectMetrics([], outputNames);
+    expect(collectedMetrics.length).toEqual(1);
+    expect(collectedMetrics[0].length).toEqual(0);
+  });
+  it('multiple output names', () => {
+    const metrics = ['mse'];
+    const outputNames = ['output1', 'output2'];
+    const collectedMetrics = collectMetrics(metrics, outputNames);
+    expect(collectedMetrics.length).toEqual(2);
+    expect(collectedMetrics[0].length).toEqual(1);
+    expect(collectedMetrics[0][0]).toEqual('mse');
+    expect(collectedMetrics[1].length).toEqual(1);
+    expect(collectedMetrics[1][0]).toEqual('mse');
   });
 });
 
@@ -821,6 +906,46 @@ describeMathCPUAndGPU('LayersModel.fit', () => {
       expectTensorsClose(valAcc as number[], [1, 1]);
     });
   }
+
+  it('categoricalCrossentropy model, validationSplit = 0.2, ' +
+      'tf.metrics.meanSquareError metric function', async () => {
+    createDenseCategoricalModelAndData();
+    model.compile({
+      optimizer: 'SGD',
+      loss: 'categoricalCrossentropy',
+      metrics: tfl.metrics.meanSquaredError});
+    expect(model.metricsNames).toEqual(['loss', 'meanSquaredError']);
+    const history = await model.fit(
+        inputs, targets,
+        {batchSize: numSamples, epochs: 2, validationSplit: 0.2});
+    const losses = history.history['loss'];
+    expectTensorsClose(
+        losses as number[], [0.6931471824645996, 0.6918979287147522]);
+    const meanSquareError = history.history['meanSquaredError'];
+    expectTensorsClose(
+        meanSquareError as number[], [12.5, 12.495024681091309]);
+  });
+
+  it('categoricalCrossentropy model, validationSplit = 0.2, ' +
+      'tf.metrics.meanSquareError metric function && acc', async () => {
+    createDenseCategoricalModelAndData();
+    model.compile({
+      optimizer: 'SGD',
+      loss: 'categoricalCrossentropy',
+      metrics: [tfl.metrics.meanSquaredError, 'acc']});
+    expect(model.metricsNames).toEqual(['loss', 'meanSquaredError', 'acc']);
+    const history = await model.fit(
+        inputs, targets,
+        {batchSize: numSamples, epochs: 2, validationSplit: 0.2});
+    const losses = history.history['loss'];
+    expectTensorsClose(
+        losses as number[], [0.6931471824645996, 0.6918979287147522]);
+    const meanSquareError = history.history['meanSquaredError'];
+    expectTensorsClose(
+        meanSquareError as number[], [12.5, 12.495024681091309]);
+    const acc = history.history['acc'];
+    expectTensorsClose(acc as number[], [0, 1]);
+  });
 
   it('Two layers, freeze one layer', async () => {
     // The golden values used below can be obtained with the following PyKeras

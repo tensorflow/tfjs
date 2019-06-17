@@ -237,25 +237,26 @@ export const cosine = cosineProximity;
 
 // TODO(michaelterry): Add deserialize() function.
 
+export const lossesMap: {[functionName: string]: LossOrMetricFn} = {
+  meanSquaredError,
+  meanAbsoluteError,
+  meanAbsolutePercentageError,
+  meanSquaredLogarithmicError,
+  squaredHinge,
+  hinge,
+  categoricalHinge,
+  logcosh,
+  categoricalCrossentropy,
+  sparseCategoricalCrossentropy,
+  binaryCrossentropy,
+  kullbackLeiblerDivergence,
+  poisson,
+  cosineProximity
+};
+
 // Porting note: This diverges from the PyKeras implementation and may need to
 // change based on (de)serialization requirements.
 export function get(identifierOrFn: string|LossOrMetricFn): LossOrMetricFn {
-  const lossesMap: {[functionName: string]: LossOrMetricFn} = {
-    meanSquaredError,
-    meanAbsoluteError,
-    meanAbsolutePercentageError,
-    meanSquaredLogarithmicError,
-    squaredHinge,
-    hinge,
-    categoricalHinge,
-    logcosh,
-    categoricalCrossentropy,
-    sparseCategoricalCrossentropy,
-    binaryCrossentropy,
-    kullbackLeiblerDivergence,
-    poisson,
-    cosineProximity
-  };
   if (typeof identifierOrFn === 'string') {
     if (identifierOrFn in lossesMap) {
       return lossesMap[identifierOrFn];
