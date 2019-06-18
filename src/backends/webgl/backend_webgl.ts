@@ -2471,8 +2471,8 @@ export class MathBackendWebGL implements KernelBackend {
     } else {
       this.canvas = null;
     }
-    if (this.fromPixels2DContext != null
-          && this.fromPixels2DContext.canvas.remove != null) {
+    if (this.fromPixels2DContext != null &&
+        this.fromPixels2DContext.canvas.remove != null) {
       this.fromPixels2DContext.canvas.remove();
     }
     if (this.gpgpuCreatedLocally) {
@@ -2535,18 +2535,27 @@ export class MathBackendWebGL implements KernelBackend {
 
       let program;
       let width = texShape[1], height = texShape[0];
+      const isByteArray = values instanceof Uint8Array;
 
       if (isPacked) {
         [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
             texShape[0], texShape[1]);
-        program = new EncodeMatrixPackedProgram(shapeAs3D, [height, width]);
+        program = new EncodeMatrixPackedProgram(
+            shapeAs3D, [height, width], isByteArray);
       } else {
-        program = new EncodeMatrixProgram(shapeAs3D, [height, width]);
+        program =
+            new EncodeMatrixProgram(shapeAs3D, [height, width], isByteArray);
       }
 
       const tempDenseInputHandle =
           this.makeTensorHandle([height, width], dtype);
-      this.texData.get(tempDenseInputHandle.dataId).usage = TextureUsage.UPLOAD;
+      if (isByteArray) {
+        this.texData.get(tempDenseInputHandle.dataId).usage =
+            TextureUsage.PIXELS;
+      } else {
+        this.texData.get(tempDenseInputHandle.dataId).usage =
+            TextureUsage.UPLOAD;
+      }
       this.gpgpu.uploadDenseMatrixToTexture(
           this.getTexture(tempDenseInputHandle.dataId), width, height,
           values as TypedArray);
