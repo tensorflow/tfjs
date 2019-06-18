@@ -26,9 +26,11 @@ information on using pull requests.
 Continuous Integration tests run for every PR that is sent against TensorFlow.js repositories. Any time you push to the branch, they will re-run. Before asking for a review, make sure that the continous integration tests are passing.
 
 Failing tests (click details for information):
-![image](https://user-images.githubusercontent.com/1100749/59696200-8fdb4500-91b9-11e9-9351-949a23fd7c75.png | width=200)
+<img src="https://user-images.githubusercontent.com/1100749/59696200-8fdb4500-91b9-11e9-9351-949a23fd7c75.png" data-canonical-src="https://user-images.githubusercontent.com/1100749/59696200-8fdb4500-91b9-11e9-9351-949a23fd7c75.png" width=200/>
 
 Passing tests:
+<img src="https://user-images.githubusercontent.com/1100749/59696439-fa8c8080-91b9-11e9-933f-a775779970f3.png" data-canonical-src="https://user-images.githubusercontent.com/1100749/59696439-fa8c8080-91b9-11e9-933f-a775779970f3.png" width=200/>
+
 ![image](https://user-images.githubusercontent.com/1100749/59696439-fa8c8080-91b9-11e9-933f-a775779970f3.png | width=200)
 
 ## Filing GitHub issues
