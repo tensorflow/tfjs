@@ -22,6 +22,15 @@ use GitHub pull requests for this purpose. Consult
 [GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
 information on using pull requests.
 
+## Continuous Integration
+Continuous Integration tests run for every PR that is sent against TensorFlow.js repositories. Any time you push to the branch, they will re-run. Before asking for a review, make sure that the continous integration tests are passing.
+
+Failing tests (click details for information):
+![image](https://user-images.githubusercontent.com/1100749/59696200-8fdb4500-91b9-11e9-9351-949a23fd7c75.png)
+
+Passing tests:
+![image](https://user-images.githubusercontent.com/1100749/59696439-fa8c8080-91b9-11e9-933f-a775779970f3.png)
+
 ## Filing GitHub issues
 
 Please follow the guidelines specified in the
