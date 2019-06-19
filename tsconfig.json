@@ -23,10 +23,9 @@
     "allowUnreachableCode": false
   },
   "include": [
-    "src/"
+    "src/",
   ],
   "exclude": [
-    "src/backends/webgpu/",
     "node_modules/"
   ]
 }

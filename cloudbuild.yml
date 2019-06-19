@@ -30,7 +30,7 @@ steps:
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'test-webgpu'
-  dir: 'src/backends/webgpu/'
+  dir: 'tfjs-webgpu/'
   args: ['test-ci']
   waitFor: ['yarn']
 - name: 'node:10'

@@ -2,8 +2,7 @@
 .rpt2_cache/
 src/**/*_test.ts
 integration_tests/
-src/backends/webgpu/
-dist/backends/webgpu/
+tfjs-webgpu/
 dist/backends/**/*_test.js
 models/
 coverage/
