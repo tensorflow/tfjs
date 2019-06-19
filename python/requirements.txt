@@ -4,3 +4,4 @@ numpy==1.15.1
 six==1.11.0
 tf-nightly-2.0-preview==2.0.0.dev20190605
 tensorflow-hub==0.3.0
+tensorflow-estimator-2.0-preview==1.14.0.dev2019060500
