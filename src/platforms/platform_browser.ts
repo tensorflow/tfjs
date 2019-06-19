@@ -18,6 +18,21 @@ import {ENV} from '../environment';
 import {Platform} from './platform';
 
 export class PlatformBrowser implements Platform {
+  private textEncoder: TextEncoder;
+  private textDecoder: TextDecoder;
+
+  constructor() {
+    // The built-in encoder and the decoder use UTF-8 encoding.
+    this.textEncoder = new TextEncoder();
+    this.textDecoder = new TextDecoder();
+  }
+
+  encodeUTF8(text: string): Uint8Array {
+    return this.textEncoder.encode(text);
+  }
+  decodeUTF8(bytes: Uint8Array): string {
+    return this.textDecoder.decode(bytes);
+  }
   fetch(path: string, init?: RequestInit): Promise<Response> {
     return fetch(path, init);
   }

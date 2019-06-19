@@ -28,4 +28,9 @@ export interface Platform {
    *     https://developer.mozilla.org/en-US/docs/Web/API/Request/Request
    */
   fetch(path: string, requestInits?: RequestInit): Promise<Response>;
+
+  /** UTF-8 encode the provided string into an array of bytes. */
+  encodeUTF8(text: string): Uint8Array;
+  /** UTF-8 decode the provided bytes into a string. */
+  decodeUTF8(bytes: Uint8Array): string;
 }

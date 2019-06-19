@@ -23,6 +23,7 @@ import {ENGINE, MemoryInfo, TimingInfo} from '../../engine';
 import {ENV} from '../../environment';
 import {tidy} from '../../globals';
 import {warn} from '../../log';
+import {buffer} from '../../ops/array_ops';
 import * as array_ops_util from '../../ops/array_ops_util';
 import * as axis_util from '../../ops/axis_util';
 import {computeOutShape} from '../../ops/concat_util';
@@ -44,6 +45,7 @@ import * as backend_util from '../backend_util';
 import {mergeRealAndImagArrays} from '../complex_util';
 import {nonMaxSuppressionImpl} from '../non_max_suppression_impl';
 import {split} from '../split_shared';
+import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
 
@@ -974,6 +976,10 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   tile<T extends Tensor>(x: T, reps: number[]): T {
+    if (x.dtype === 'string') {
+      const buf = buffer(x.shape, x.dtype, this.readSync(x.dataId) as string[]);
+      return tile(buf, reps) as T;
+    }
     const program = new TileProgram(x.shape, reps);
     return this.compileAndRun(program, [x]);
   }

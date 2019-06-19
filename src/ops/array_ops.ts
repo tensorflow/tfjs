@@ -418,7 +418,8 @@ function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
  */
 /** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
-  const $x = convertToTensor(x, 'x', 'tile');
+  const parseAs: DataType = null;
+  const $x = convertToTensor(x, 'x', 'tile', parseAs);
 
   util.assert(
       $x.rank === reps.length,
@@ -881,7 +882,8 @@ function cumsum_<T extends Tensor>(
 /** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function expandDims_<R2 extends Rank>(
     x: Tensor|TensorLike, axis = 0): Tensor<R2> {
-  const $x = convertToTensor(x, 'x', 'expandDims');
+  const parseAs: DataType = null;
+  const $x = convertToTensor(x, 'x', 'expandDims', parseAs);
 
   util.assert(axis <= $x.rank, () => 'Axis must be <= rank of the tensor');
   const newShape = $x.shape.slice();

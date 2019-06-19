@@ -85,7 +85,7 @@ export declare interface WeightsManifestEntry {
   /**
    * Data type of the weight.
    */
-  dtype: 'float32'|'int32'|'bool';
+  dtype: 'float32'|'int32'|'bool'|'string';
 
   /**
    * Type of the weight.
@@ -105,6 +105,22 @@ export declare interface WeightsManifestEntry {
     min: number,             // The (possibly nudged) minimum weight to add.
     dtype: 'uint16'|'uint8'  // The dtype of the quantized weights.
   };
+}
+
+export declare interface StringWeightsManifestEntry extends
+    WeightsManifestEntry {
+  dtype: 'string';
+  /**
+   * Used for delimiting neighboring strings. If the tensor has no strings or
+   * only 1 string, there will be no delimiter. If the tensor has N strings
+   * (N>0), there will be N-1 delimiters.
+   */
+  delimiter: string;
+  /**
+   * Number of bytes used by the whole tensor, including the delimiters (N-1
+   * delimiters for N strings).
+   */
+  byteLength: number;
 }
 
 /**
