@@ -1946,6 +1946,23 @@ describeWithFlags('tile', ALL_ENVS, () => {
         await t2.data(), [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8]);
   });
 
+  it('1d string tensor', async () => {
+    const a = tf.tensor(['a', 'b', 'c']);
+    const res = tf.tile(a, [2]);
+    expect(res.shape).toEqual([6]);
+    expectArraysEqual(await res.data(), ['a', 'b', 'c', 'a', 'b', 'c']);
+  });
+
+  it('2d string tensor', async () => {
+    const a = tf.tensor([['a', 'b'], ['c', 'd']]);
+    const res = tf.tile(a, [2, 3]);
+    expect(res.shape).toEqual([4, 6]);
+    expectArraysEqual(await res.data(), [
+      'a', 'b', 'a', 'b', 'a', 'b', 'c', 'd', 'c', 'd', 'c', 'd',
+      'a', 'b', 'a', 'b', 'a', 'b', 'c', 'd', 'c', 'd', 'c', 'd'
+    ]);
+  });
+
   it('propagates NaNs', async () => {
     const t = tf.tensor1d([1, 2, NaN]);
 
@@ -3510,6 +3527,20 @@ describeWithFlags('expandDims', ALL_ENVS, () => {
     const res = tf.tensor4d([[[[4]]]]).expandDims();
     expect(res.shape).toEqual([1, 1, 1, 1, 1]);
     expectArraysClose(await res.data(), [4]);
+  });
+
+  it('1d string tensor', async () => {
+    const t = tf.tensor(['hello', 'world']);
+    const res = t.expandDims();
+    expect(res.shape).toEqual([1, 2]);
+    expectArraysClose(await res.data(), ['hello', 'world']);
+  });
+
+  it('2d string tensor, axis=1', async () => {
+    const t = tf.tensor([['a', 'b'], ['c', 'd']]);
+    const res = t.expandDims(1);
+    expect(res.shape).toEqual([2, 1, 2]);
+    expectArraysClose(await res.data(), ['a', 'b', 'c', 'd']);
   });
 
   it('throws when passed a non-tensor', () => {

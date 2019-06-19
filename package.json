@@ -82,6 +82,7 @@
     "seedrandom": "2.4.3"
   },
   "browser": {
-    "node-fetch": false
+    "node-fetch": false,
+    "util": false
   }
 }
