@@ -86,20 +86,21 @@ describe('WEBGL_PACK_CLIP', () => {
   });
 });
 
-describe('WEBGL_PACK_DEPTHWISECONV', () => {
-  beforeEach(() => ENV.reset());
-  afterAll(() => ENV.reset());
+// TODO: https://github.com/tensorflow/tfjs/issues/1679
+// describe('WEBGL_PACK_DEPTHWISECONV', () => {
+//   beforeEach(() => ENV.reset());
+//   afterAll(() => ENV.reset());
 
-  it('true when WEBGL_PACK is true', () => {
-    ENV.set('WEBGL_PACK', true);
-    expect(ENV.getBool('WEBGL_PACK_DEPTHWISECONV')).toBe(true);
-  });
+//   it('true when WEBGL_PACK is true', () => {
+//     ENV.set('WEBGL_PACK', true);
+//     expect(ENV.getBool('WEBGL_PACK_DEPTHWISECONV')).toBe(true);
+//   });
 
-  it('false when WEBGL_PACK is false', () => {
-    ENV.set('WEBGL_PACK', false);
-    expect(ENV.getBool('WEBGL_PACK_DEPTHWISECONV')).toBe(false);
-  });
-});
+//   it('false when WEBGL_PACK is false', () => {
+//     ENV.set('WEBGL_PACK', false);
+//     expect(ENV.getBool('WEBGL_PACK_DEPTHWISECONV')).toBe(false);
+//   });
+// });
 
 describe('WEBGL_PACK_BINARY_OPERATIONS', () => {
   beforeEach(() => ENV.reset());

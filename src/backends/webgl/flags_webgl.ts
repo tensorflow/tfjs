@@ -54,7 +54,8 @@ ENV.registerFlag('WEBGL_PACK_NORMALIZATION', () => ENV.getBool('WEBGL_PACK'));
 ENV.registerFlag('WEBGL_PACK_CLIP', () => ENV.getBool('WEBGL_PACK'));
 
 /** Whether we will pack the depthwise conv op. */
-ENV.registerFlag('WEBGL_PACK_DEPTHWISECONV', () => ENV.getBool('WEBGL_PACK'));
+// TODO: https://github.com/tensorflow/tfjs/issues/1679
+ENV.registerFlag('WEBGL_PACK_DEPTHWISECONV', () => false);
 
 /** Whether we will pack binary ops. */
 ENV.registerFlag(
