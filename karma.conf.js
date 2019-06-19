@@ -36,7 +36,6 @@ const devConfig = {
   files: ['src/setup_test.ts', {pattern: 'src/**/*.ts'}],
   exclude: [
     'src/test_node.ts',
-    'src/backends/webgpu/**/*.ts',
     'src/test_async_backends.ts',
   ],
   preprocessors: {'**/*.ts': ['karma-typescript']},
