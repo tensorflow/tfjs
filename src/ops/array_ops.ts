@@ -334,7 +334,7 @@ function oneHot_(
 function reshape_<R2 extends Rank>(
     x: Tensor|TensorLike, shape: ShapeMap[R2]): Tensor<R2> {
   const $x = convertToTensor(x, 'x', 'reshape', null);
-  shape = util.inferFromImplicitShape(shape, $x.size);
+  shape = util.inferFromImplicitShape(shape, $x.size) as ShapeMap[R2];
   util.assert(
       $x.size === util.sizeFromShape(shape),
       () => 'new shape and old shape must have the same number of elements.');
@@ -895,7 +895,7 @@ function expandDims_<R2 extends Rank>(
     axis = $x.rank + axis + 1;
   }
   newShape.splice(axis, 0, 1);
-  return reshape($x, newShape);
+  return reshape($x, newShape as ShapeMap[R2]);
 }
 
 /**

@@ -2636,14 +2636,14 @@ if (device_util.isBrowser()) {
 function float32ToTypedArray<D extends NumericDataType>(
     a: Float32Array, dtype: D): DataTypeMap[D] {
   if (dtype === 'float32' || dtype === 'complex64') {
-    return a;
+    return a as DataTypeMap[D];
   } else if (dtype === 'int32' || dtype === 'bool') {
     const result = (dtype === 'int32') ? new Int32Array(a.length) :
                                          new Uint8Array(a.length);
     for (let i = 0; i < result.length; ++i) {
       result[i] = Math.round(a[i]);
     }
-    return result;
+    return result as DataTypeMap[D];
   } else {
     throw new Error(`Unknown dtype ${dtype}`);
   }

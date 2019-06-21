@@ -87,7 +87,9 @@ export class MathBackendCPU implements KernelBackend {
   constructor() {
     if (ENV.get('IS_BROWSER')) {
       const canvas = createCanvas();
-      this.fromPixels2DContext = canvas.getContext('2d');
+      this.fromPixels2DContext =
+          canvas.getContext('2d') as CanvasRenderingContext2D |
+          OffscreenCanvasRenderingContext2D;
     }
     this.data = new DataStorage(this, ENGINE);
   }

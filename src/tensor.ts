@@ -16,7 +16,7 @@
  */
 
 import {tensorToString} from './tensor_format';
-import {ArrayMap, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TensorLike3D, TensorLike4D, TypedArray} from './types';
+import {ArrayMap, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TensorLike3D, TensorLike4D} from './types';
 import * as util from './util';
 import {computeStrides, toNestedArray} from './util';
 
@@ -48,7 +48,7 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
   values: DataTypeMap[D];
 
   constructor(shape: ShapeMap[R], public dtype: D, values?: DataTypeMap[D]) {
-    this.shape = shape.slice();
+    this.shape = shape.slice() as ShapeMap[R];
     this.size = util.sizeFromShape(shape);
 
     if (values != null) {
@@ -111,7 +111,7 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
     for (let i = 0; i < locs.length - 1; ++i) {
       index += this.strides[i] * locs[i];
     }
-    return this.values[index];
+    return this.values[index] as SingleValueMap[D];
   }
 
   locToIndex(locs: number[]): number {
@@ -454,7 +454,7 @@ export class Tensor<R extends Rank = Rank> {
   protected constructor(
       shape: ShapeMap[R], dtype: DataType, values?: DataValues, dataId?: DataId,
       backend?: Backend) {
-    this.shape = shape.slice();
+    this.shape = shape.slice() as ShapeMap[R];
     this.dtype = dtype || 'float32';
     this.size = util.sizeFromShape(shape);
     this.strides = computeStrides(shape);
@@ -574,7 +574,7 @@ export class Tensor<R extends Rank = Rank> {
   /** Returns a promise of `tf.TensorBuffer` that holds the underlying data. */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   async buffer<D extends DataType = 'float32'>(): Promise<TensorBuffer<R, D>> {
-    const vals = await this.data();
+    const vals = await this.data<D>();
     return opHandler.buffer(this.shape, this.dtype as D, vals);
   }
 
@@ -591,7 +591,7 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   async array(): Promise<ArrayMap[R]> {
     const vals = await this.data();
-    return toNestedArray(this.shape, vals);
+    return toNestedArray(this.shape, vals) as ArrayMap[R];
   }
 
   /**
@@ -600,7 +600,7 @@ export class Tensor<R extends Rank = Rank> {
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   arraySync(): ArrayMap[R] {
-    return toNestedArray(this.shape, this.dataSync());
+    return toNestedArray(this.shape, this.dataSync()) as ArrayMap[R];
   }
 
   /**
@@ -610,7 +610,7 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   async data<D extends DataType = NumericDataType>(): Promise<DataTypeMap[D]> {
     this.throwIfDisposed();
-    return trackerFn().read(this.dataId);
+    return trackerFn().read(this.dataId) as Promise<DataTypeMap[D]>;
   }
 
   /**
@@ -620,7 +620,7 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   dataSync<D extends DataType = NumericDataType>(): DataTypeMap[D] {
     this.throwIfDisposed();
-    return trackerFn().readSync(this.dataId);
+    return trackerFn().readSync(this.dataId) as DataTypeMap[D];
   }
 
   /**
@@ -1398,14 +1398,14 @@ Object.defineProperty(Tensor, Symbol.hasInstance, {
 
 export interface NumericTensor<R extends Rank = Rank> extends Tensor<R> {
   dtype: NumericDataType;
-  data(): Promise<TypedArray>;
-  dataSync(): TypedArray;
+  dataSync<D extends DataType = NumericDataType>(): DataTypeMap[D];
+  data<D extends DataType = NumericDataType>(): Promise<DataTypeMap[D]>;
 }
 
 export interface StringTensor<R extends Rank = Rank> extends Tensor<R> {
   dtype: 'string';
-  dataSync(): string[];
-  data(): Promise<string[]>;
+  dataSync<D extends DataType = 'string'>(): DataTypeMap[D];
+  data<D extends DataType = 'string'>(): Promise<DataTypeMap[D]>;
 }
 
 /** @doclink Tensor */
