@@ -19,13 +19,14 @@
  * IOHandlers that pass through the in-memory ModelArtifacts format.
  */
 
-import {IOHandler, ModelArtifacts, SaveResult, WeightsManifestEntry} from './types';
+import {IOHandler, ModelArtifacts, SaveResult, TrainingConfig, WeightsManifestEntry} from './types';
 
 class PassthroughLoader implements IOHandler {
   constructor(
       private readonly modelTopology?: {}|ArrayBuffer,
       private readonly weightSpecs?: WeightsManifestEntry[],
-      private readonly weightData?: ArrayBuffer) {}
+      private readonly weightData?: ArrayBuffer,
+      private readonly trainingConfig?: TrainingConfig) {}
 
   async load(): Promise<ModelArtifacts> {
     let result = {};
@@ -37,6 +38,9 @@ class PassthroughLoader implements IOHandler {
     }
     if (this.weightData != null && this.weightData.byteLength > 0) {
       result = {weightData: this.weightData, ...result};
+    }
+    if (this.trainingConfig != null) {
+      result = {trainingConfig: this.trainingConfig, ...result};
     }
     return result;
   }
@@ -69,13 +73,18 @@ class PassthroughSaver implements IOHandler {
  *   names, shapes, types, and quantization of the weight data.
  * @param weightData A single `ArrayBuffer` containing the weight data,
  *   concatenated in the order described by the weightSpecs.
+ * @param trainingConfig Model training configuration. Optional.
  *
  * @returns A passthrough `IOHandler` that simply loads the provided data.
  */
 export function fromMemory(
     modelTopology: {}, weightSpecs?: WeightsManifestEntry[],
-    weightData?: ArrayBuffer): IOHandler {
-  return new PassthroughLoader(modelTopology, weightSpecs, weightData);
+    weightData?: ArrayBuffer, trainingConfig?: TrainingConfig): IOHandler {
+  // TODO(cais): The arguments should probably be consolidated into a single
+  // object, with proper deprecation process. Even though this function isn't
+  // documented, it is public and being used by some downstream libraries.
+  return new PassthroughLoader(
+      modelTopology, weightSpecs, weightData, trainingConfig);
 }
 
 /**

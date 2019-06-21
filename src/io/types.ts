@@ -203,7 +203,7 @@ export declare interface TrainingConfig {
   // tslint:disable-next-line:max-line-length
   // https://github.com/tensorflow/tfjs-layers/blob/master/src/keras_format/training_config.ts
   /** Optimizer used for the model training. */
-  optimizer: {};
+  optimizer_config: {};
 
   // TODO(cais): Tighten the typing once keras spec is available to tfjs-core.
   /** Loss function(s) for the model's output(s). */
