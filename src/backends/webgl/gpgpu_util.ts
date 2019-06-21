@@ -17,7 +17,6 @@
 
 import {ENV} from '../../environment';
 import {PixelData, TypedArray} from '../../types';
-import * as util from '../../util';
 
 import {getGlslDifferences} from './glsl_version';
 import * as tex_util from './tex_util';
@@ -281,9 +280,8 @@ export function createBufferFromOutputTexture(
 
   // Initialize the buffer to the size of the texture in bytes.
   const bytesPerFloat = 4;
-  const bufferSizeBytes = bytesPerFloat *
-      tex_util.getUnpackedArraySizeFromMatrixSize(
-          rows * columns, textureConfig.downloadUnpackNumChannels);
+  const valuesPerTexel = 4;
+  const bufferSizeBytes = bytesPerFloat * valuesPerTexel * rows * columns;
 
   webgl_util.callAndCheck(
       gl2, debug,
@@ -303,47 +301,17 @@ export function createBufferFromOutputTexture(
 }
 
 export function downloadFloat32MatrixFromBuffer(
-    gl: WebGLRenderingContext, buffer: WebGLBuffer, rows: number,
-    columns: number, textureConfig: TextureConfig): Float32Array {
+    gl: WebGLRenderingContext, buffer: WebGLBuffer,
+    size: number): Float32Array {
   const gl2 = gl as WebGL2RenderingContext;
 
-  const downloadTarget =
-      new Float32Array(tex_util.getUnpackedArraySizeFromMatrixSize(
-          rows * columns, textureConfig.downloadUnpackNumChannels));
+  const downloadTarget = new Float32Array(size);
 
   gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, buffer);
   gl2.getBufferSubData(gl2.PIXEL_PACK_BUFFER, 0, downloadTarget);
   gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, null);
 
-  const matrix = new Float32Array(rows * columns);
-  tex_util.decodeMatrixFromUnpackedArray(
-      downloadTarget as Float32Array, matrix,
-      textureConfig.downloadUnpackNumChannels);
-
-  return matrix;
-}
-
-export function downloadFloat32MatrixFromOutputTexture(
-    gl: WebGLRenderingContext, debug: boolean, rows: number, columns: number,
-    textureConfig: TextureConfig): Float32Array {
-  const [w, h] =
-      tex_util.getUnpackedMatrixTextureShapeWidthHeight(rows, columns);
-
-  const downloadTarget =
-      new Float32Array(tex_util.getUnpackedArraySizeFromMatrixSize(
-          rows * columns, textureConfig.downloadUnpackNumChannels));
-
-  webgl_util.callAndCheck(
-      gl, debug,
-      () => gl.readPixels(
-          0, 0, w, h, textureConfig.downloadTextureFormat, gl.FLOAT,
-          downloadTarget));
-
-  const matrix = new Float32Array(rows * columns);
-  tex_util.decodeMatrixFromUnpackedArray(
-      downloadTarget as Float32Array, matrix,
-      textureConfig.downloadUnpackNumChannels);
-  return matrix;
+  return downloadTarget;
 }
 
 export function downloadByteEncodedFloatMatrixFromOutputTexture(
@@ -381,26 +349,17 @@ export function downloadPackedMatrixFromBuffer(
   gl2.getBufferSubData(gl2.PIXEL_PACK_BUFFER, 0, downloadTarget);
   gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, null);
 
-  const matrix = new Float32Array(util.sizeFromShape([batch, rows, cols]));
-  tex_util.decodeMatrixFromPackedRGBA(
-      downloadTarget, batch, rows, cols, matrix);
-  return matrix;
+  return downloadTarget;
 }
 
 export function downloadMatrixFromPackedOutputTexture(
-    gl: WebGLRenderingContext, debug: boolean, batch: number, rows: number,
-    cols: number, physicalRows: number, physicalCols: number,
-    textureConfig: TextureConfig): Float32Array {
-  const [w, h] = tex_util.getPackedMatrixTextureShapeWidthHeight(
-      physicalRows, physicalCols);
-
-  const packedRGBA =
-      new Float32Array(tex_util.getPackedRGBAArraySizeFromMatrixShape(
-          physicalRows, physicalCols));
+    gl: WebGLRenderingContext, debug: boolean, physicalRows: number,
+    physicalCols: number): Float32Array {
+  const packedRGBA = new Float32Array(physicalRows * physicalCols * 4);
   webgl_util.callAndCheck(
       gl, debug,
-      () => gl.readPixels(0, 0, w, h, gl.RGBA, gl.FLOAT, packedRGBA));
-  const matrix = new Float32Array(util.sizeFromShape([batch, rows, cols]));
-  return tex_util.decodeMatrixFromPackedRGBA(
-      packedRGBA, batch, rows, cols, matrix);
+      () => gl.readPixels(
+          0, 0, physicalCols, physicalRows, gl.RGBA, gl.FLOAT, packedRGBA));
+
+  return packedRGBA;
 }
