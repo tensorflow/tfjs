@@ -370,6 +370,16 @@ export function getRowsCols(shape: number[]): [number, number] {
   ];
 }
 
+export function getShapeAs3D(shape: number[]): [number, number, number] {
+  let shapeAs3D: [number, number, number] = [1, 1, 1];
+  const isScalar = shape.length === 0 || (shape.length === 1 && shape[0] === 1);
+  if (!isScalar) {
+    shapeAs3D =
+        [getBatchDim(shape), ...getRowsCols(shape)] as [number, number, number];
+  }
+  return shapeAs3D;
+}
+
 export function getTextureShapeFromLogicalShape(
     logShape: number[], isPacked = false): [number, number] {
   let maxTexSize = ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');

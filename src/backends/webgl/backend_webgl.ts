@@ -75,6 +75,8 @@ import {DepthwiseConv2DProgram} from './conv_gpu_depthwise';
 import {DepthwiseConvPacked2DProgram} from './conv_packed_gpu_depthwise';
 import {CropAndResizeProgram} from './crop_and_resize_gpu';
 import {CumSumProgram} from './cumsum_gpu';
+import {DecodeMatrixProgram} from './decode_matrix_gpu';
+import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
 import {DepthToSpaceProgram} from './depth_to_space_gpu';
 import {EncodeFloatProgram} from './encode_float_gpu';
 import {EncodeMatrixProgram} from './encode_matrix_gpu';
@@ -406,16 +408,7 @@ export class MathBackendWebGL implements KernelBackend {
       return new Promise<TypedArray>(resolve => subscribers.push(resolve));
     }
     const texData = this.texData.get(dataId);
-    const {
-      texture,
-      values,
-      texShape,
-      isPacked,
-      shape,
-      slice,
-      dtype,
-      complexTensors
-    } = texData;
+    const {values, shape, slice, dtype, complexTensors} = texData;
 
     if (slice != null) {
       const program = new UnaryOpProgram(shape, unary_op.CLONE);
@@ -429,8 +422,6 @@ export class MathBackendWebGL implements KernelBackend {
       return this.convertAndCacheOnCPU(dataId);
     }
 
-    this.pendingRead.set(dataId, []);
-
     if (!ENV.getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED') &&
         ENV.getNumber('WEBGL_VERSION') === 2) {
       throw new Error(
@@ -439,17 +430,20 @@ export class MathBackendWebGL implements KernelBackend {
     }
 
     let buffer = null;
-    if (dtype !== 'complex64') {
+    if (dtype !== 'complex64' && ENV.get('WEBGL_BUFFER_SUPPORTED')) {
       // Possibly copy the texture into a buffer before inserting a fence.
-      let width = texShape[1];
-      let height = texShape[0];
-      if (isPacked) {
-        [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
-            texShape[0], texShape[1]);
-      }
-      if (ENV.get('WEBGL_BUFFER_SUPPORTED')) {
-        buffer = this.gpgpu.createBufferFromTexture(texture, height, width);
-      }
+      const tmpTarget = this.decode(dataId);
+
+      dataId = tmpTarget.dataId;
+      const tmpData = this.texData.get(tmpTarget.dataId);
+
+      buffer = this.gpgpu.createBufferFromTexture(
+          tmpData.texture, ...tex_util.getDenseTexShape(shape));
+    }
+
+    this.pendingRead.set(dataId, []);
+
+    if (dtype !== 'complex64') {
       // Create a fence and wait for it to resolve.
       await this.gpgpu.createAndWaitForFence();
     }
@@ -466,22 +460,9 @@ export class MathBackendWebGL implements KernelBackend {
       vals = this.getValuesFromTexture(dataId);
     } else {
       const size = util.sizeFromShape(shape);
-      if (isPacked) {
-        const batch = webgl_util.getBatchDim(shape);
-        let rows = 1, cols = 1;
-        if (shape.length) {
-          [rows, cols] = webgl_util.getRowsCols(shape);
-        }
-        vals = this.gpgpu
-                   .downloadPackedMatrixFromBuffer(
-                       buffer, batch, rows, cols, texShape[0], texShape[1])
-                   .subarray(0, size);
-      } else {
-        vals = this.gpgpu
-                   .downloadFloat32MatrixFromBuffer(
-                       buffer, texShape[0], texShape[1])
-                   .subarray(0, size);
-      }
+
+      vals = this.gpgpu.downloadFloat32MatrixFromBuffer(buffer, size);
+      this.disposeData(dataId);
     }
     const dTypeVals = this.convertAndCacheOnCPU(dataId, vals);
 
@@ -498,25 +479,19 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   private getValuesFromTexture(dataId: DataId): Float32Array {
-    const {shape, dtype, texture, texShape} = this.texData.get(dataId);
+    const {shape, dtype} = this.texData.get(dataId);
     const size = util.sizeFromShape(shape);
     if (ENV.getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
-      if (this.texData.get(dataId).isPacked) {
-        const batch = webgl_util.getBatchDim(shape);
-        let rows = 1, cols = 1;
-        if (shape.length) {
-          [rows, cols] = webgl_util.getRowsCols(shape);
-        }
-        return this.gpgpu
-            .downloadMatrixFromPackedTexture(
-                texture, batch, rows, cols, texShape[0], texShape[1])
-            .subarray(0, size);
-      } else {
-        return this.gpgpu
-            .downloadFloat32MatrixFromOutputTexture(
-                texture, texShape[0], texShape[1])
-            .subarray(0, size);
-      }
+      const tmpTarget = this.decode(dataId);
+      const tmpData = this.texData.get(tmpTarget.dataId);
+      const vals = this.gpgpu
+                       .downloadMatrixFromPackedTexture(
+                           tmpData.texture, ...tex_util.getDenseTexShape(shape))
+                       .subarray(0, size);
+
+      this.disposeData(tmpTarget.dataId);
+
+      return vals;
     }
 
     const tmpTarget = this.makeTensorHandle(shape, 'float32') as TensorHandle &
@@ -2317,7 +2292,8 @@ export class MathBackendWebGL implements KernelBackend {
   private packTensor<T extends Tensor>(input: T|TensorHandle): T {
     const program = new PackProgram(input.shape);
     return this.compileAndRun(
-        program, [input], this.makePackedTensor(input.shape, input.dtype));
+        program, [input], this.makePackedTensor(input.shape, input.dtype), null,
+        true);
   }
 
   private packedReshape<R extends Rank>(input: Tensor, afterShape: ShapeMap[R]):
@@ -2336,11 +2312,39 @@ export class MathBackendWebGL implements KernelBackend {
         .reshape(afterShape);
   }
 
+  private decode(dataId: DataId): TensorHandle {
+    const texData = this.texData.get(dataId);
+    const {isPacked, shape, dtype} = texData;
+    const shapeAs3D =
+        webgl_util.getShapeAs3D(shape) as [number, number, number];
+    const denseTexShape = tex_util.getDenseTexShape(shape);
+
+    const tmpTarget = this.makeTensorHandle(shape, 'float32') as TensorHandle &
+        {size: number};
+    this.texData.get(tmpTarget.dataId).isPacked = true;
+    this.texData.get(tmpTarget.dataId).dtype = dtype;
+    this.texData.get(tmpTarget.dataId).texShape =
+        denseTexShape.map(
+            d => d * 2) as [number, number];  // To undo the effect of isPacked
+                                              // being set to true.
+
+    let program;
+    if (isPacked) {
+      program = new DecodeMatrixPackedProgram(shapeAs3D, denseTexShape);
+    } else {
+      program = new DecodeMatrixProgram(shapeAs3D, denseTexShape);
+    }
+
+    this.compileAndRun(
+        program, [{shape: shapeAs3D, dtype, dataId}], tmpTarget, null, true);
+    return tmpTarget;
+  }
+
   public compileAndRun<
       K extends {dtype: DataType, size: number, dataId: {}, shape: number[]}>(
       program: GPGPUProgram, inputs: TensorHandle[], output?: K,
-      customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void):
-      K {
+      customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
+      preventEagerUnpackingOfOutput = false): K {
     if (output == null) {
       if (program.usesPackedTextures) {
         output = this.makePackedTensor(program.outputShape, inputs[0].dtype) as
@@ -2447,7 +2451,8 @@ export class MathBackendWebGL implements KernelBackend {
     }
 
     if (!ENV.getBool('WEBGL_LAZILY_UNPACK') &&
-        this.texData.get(output.dataId).isPacked && !program.isPackShader) {
+        this.texData.get(output.dataId).isPacked &&
+        preventEagerUnpackingOfOutput === false) {
       return this.unpackTensor(output as {} as Tensor) as {} as K;
     }
     return output;
@@ -2525,19 +2530,14 @@ export class MathBackendWebGL implements KernelBackend {
       start = performance.now();
     }
 
-    const texShape =
-        webgl_util.getTextureShapeFromLogicalShape(shape, isPacked);
-    texData.texShape = texShape;
+    let texShape = texData.texShape;
+    if (texShape == null) {
+      texShape = webgl_util.getTextureShapeFromLogicalShape(shape, isPacked);
+      texData.texShape = texShape;
+    }
 
     if (values != null) {
-      let shapeAs3D: [number, number, number] = [1, 1, 1];
-      const isScalar =
-          shape.length === 0 || (shape.length === 1 && shape[0] === 1);
-      if (!isScalar) {
-        shapeAs3D = [
-          webgl_util.getBatchDim(shape), ...webgl_util.getRowsCols(shape)
-        ] as [number, number, number];
-      }
+      const shapeAs3D = webgl_util.getShapeAs3D(shape);
 
       let program;
       let width = texShape[1], height = texShape[0];

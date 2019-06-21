@@ -75,6 +75,15 @@ export function getColorMatrixTextureShapeWidthHeight(
   return [columns * 4, rows];
 }
 
+/**
+ * Get shape for densely packed RGBA texture.
+ */
+export function getDenseTexShape(shape: number[]): [number, number] {
+  const size = util.sizeFromShape(shape);
+  const texelsNeeded = Math.ceil(size / 4);
+  return util.sizeToSquarishShape(texelsNeeded);
+}
+
 export function getMatrixSizeFromUnpackedArraySize(
     unpackedSize: number, channelsPerTexture: number): number {
   if (unpackedSize % channelsPerTexture !== 0) {
@@ -83,21 +92,6 @@ export function getMatrixSizeFromUnpackedArraySize(
         `${channelsPerTexture}`);
   }
   return unpackedSize / channelsPerTexture;
-}
-
-export function decodeMatrixFromUnpackedArray(
-    unpackedArray: Float32Array, matrix: Float32Array,
-    channelsPerTexture: number) {
-  const requiredSize = getMatrixSizeFromUnpackedArraySize(
-      unpackedArray.length, channelsPerTexture);
-  if (matrix.length < requiredSize) {
-    throw new Error(
-        `matrix length (${matrix.length}) must be >= ${requiredSize}`);
-  }
-  let dst = 0;
-  for (let src = 0; src < unpackedArray.length; src += channelsPerTexture) {
-    matrix[dst++] = unpackedArray[src];
-  }
 }
 
 export function decodeMatrixFromUnpackedColorRGBAArray(
@@ -126,82 +120,4 @@ export function getPackedRGBAArraySizeFromMatrixShape(
     rows: number, columns: number): number {
   const [w, h] = getPackedMatrixTextureShapeWidthHeight(rows, columns);
   return w * h * 4;
-}
-
-export function decodeMatrixFromPackedRGBA(
-    packedRGBA: Float32Array, batches: number, rows: number, columns: number,
-    matrix: Float32Array): Float32Array {
-  const requiredSize = rows * columns;
-  if (matrix.length < requiredSize) {
-    throw new Error(
-        `matrix length (${matrix.length}) must be >= ${requiredSize}`);
-  }
-
-  const oddWidth = (columns % 2) === 1;
-  const oddHeight = (rows % 2) === 1;
-  const widthInFullBlocks = Math.floor(columns / 2);
-  const heightInFullBlocks = Math.floor(rows / 2);
-
-  const texelsPerRow = Math.ceil(columns / 2);
-  const texelsPerBatch = texelsPerRow * Math.ceil(rows / 2);
-
-  const flattenedMatrixSize =
-      util.nearestLargerEven(rows) * util.nearestLargerEven(columns);
-
-  for (let batch = 0; batch < batches; batch++) {
-    const batchOffset = batch * rows * columns;
-    const sourceOffset = batch * flattenedMatrixSize;
-
-    // loop over full 2x2 blocks
-    {
-      const srcStride = oddWidth ? 4 : 0;
-      const dstStride = columns + (oddWidth ? 1 : 0);
-      let src = sourceOffset;
-      let dstRow1 = batchOffset;
-      let dstRow2 = batchOffset + columns;
-      for (let blockY = 0; blockY < heightInFullBlocks; ++blockY) {
-        for (let blockX = 0; blockX < widthInFullBlocks; ++blockX) {
-          matrix[dstRow1++] = packedRGBA[src++];
-          matrix[dstRow1++] = packedRGBA[src++];
-          matrix[dstRow2++] = packedRGBA[src++];
-          matrix[dstRow2++] = packedRGBA[src++];
-        }
-        src += srcStride;
-        dstRow1 += dstStride;
-        dstRow2 += dstStride;
-      }
-    }
-
-    // loop down final column
-    if (oddWidth) {
-      let src = sourceOffset + (texelsPerRow - 1) * 4;
-      let dst = batchOffset + columns - 1;
-      const srcStride = texelsPerRow * 4;
-      const dstStride = 2 * columns;
-      for (let blockY = 0; blockY < heightInFullBlocks; ++blockY) {
-        matrix[dst] = packedRGBA[src];
-        matrix[dst + columns] = packedRGBA[src + 2];
-        src += srcStride;
-        dst += dstStride;
-      }
-    }
-
-    // loop across final row
-    if (oddHeight) {
-      let src = sourceOffset + (texelsPerBatch - texelsPerRow) * 4;
-      let dst = batchOffset + (rows - 1) * columns;
-      for (let blockX = 0; blockX < widthInFullBlocks; ++blockX) {
-        matrix[dst++] = packedRGBA[src++];
-        matrix[dst++] = packedRGBA[src++];
-        src += 2;
-      }
-
-      // fill in bottom-right cell
-      if (oddWidth) {
-        matrix[batchOffset + (rows * columns) - 1] = packedRGBA[src];
-      }
-    }
-  }
-
-  return matrix;
 }

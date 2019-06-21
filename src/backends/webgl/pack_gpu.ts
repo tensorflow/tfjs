@@ -22,7 +22,6 @@ import {getCoordsDataType} from './shader_compiler';
 
 export class PackProgram implements GPGPUProgram {
   variableNames = ['A'];
-  isPackShader = true;
   outputShape: number[];
   userCode: string;
 
