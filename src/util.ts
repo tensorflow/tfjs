@@ -383,7 +383,7 @@ export function getTypedArrayFromDType<D extends NumericDataType>(
   } else {
     throw new Error(`Unknown data type ${dtype}`);
   }
-  return values;
+  return values as DataTypeMap[D];
 }
 
 export function getArrayFromDType<D extends DataType>(
@@ -400,7 +400,7 @@ export function getArrayFromDType<D extends DataType>(
   } else {
     throw new Error(`Unknown data type ${dtype}`);
   }
-  return values;
+  return values as DataTypeMap[D];
 }
 
 export function checkComputationForErrors<D extends DataType>(
@@ -630,11 +630,11 @@ export function makeOnesTypedArray<D extends DataType>(
 export function makeZerosTypedArray<D extends DataType>(
     size: number, dtype: D): DataTypeMap[D] {
   if (dtype == null || dtype === 'float32' || dtype === 'complex64') {
-    return new Float32Array(size);
+    return new Float32Array(size) as DataTypeMap[D];
   } else if (dtype === 'int32') {
-    return new Int32Array(size);
+    return new Int32Array(size) as DataTypeMap[D];
   } else if (dtype === 'bool') {
-    return new Uint8Array(size);
+    return new Uint8Array(size) as DataTypeMap[D];
   } else {
     throw new Error(`Unknown data type ${dtype}`);
   }

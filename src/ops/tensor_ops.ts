@@ -68,7 +68,7 @@ function tensor<R extends Rank>(
         'values passed to tensor(values) must be a number/boolean/string or ' +
         'an array of numbers/booleans/strings, or a TypedArray');
   }
-  const inferredShape = inferShape(values);
+  const inferredShape = inferShape(values) as ShapeMap[R];
   if (shape != null) {
     assertNonNegativeIntegerDimensions(shape);
 
@@ -489,8 +489,8 @@ function linspace(start: number, stop: number, num: number): Tensor1D {
   if (num <= 0) {
     throw new Error('The number of values should be positive.');
   }
-  return ENGINE.runKernel(backend => backend.linspace(start, stop, num),
-    {}) as Tensor1D;
+  return ENGINE.runKernel(backend => backend.linspace(start, stop, num), {}) as
+      Tensor1D;
 }
 
 /**

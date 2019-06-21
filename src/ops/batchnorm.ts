@@ -19,8 +19,9 @@ import {ENGINE} from '../engine';
 import {deprecationWarn} from '../globals';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
-import {Rank, TensorLike} from '../types';
+import {Rank, ShapeMap, TensorLike} from '../types';
 import * as util from '../util';
+
 import {tile} from './array_ops';
 import {getReductionAxes} from './broadcast_util';
 import {op} from './operation';
@@ -196,7 +197,7 @@ function batchNorm4d_(
  *     argument change of scale, offset, and varianceEpsilon.
  */
 function batchNormalization_<R extends Rank>(
-    x: Tensor<R>|Tensor1D|TensorLike, mean: Tensor<R>|Tensor1D|TensorLike,
+    x: Tensor<R>|TensorLike, mean: Tensor<R>|Tensor1D|TensorLike,
     variance: Tensor<R>|Tensor1D|TensorLike, varianceEpsilon = .001,
     scale?: Tensor<R>|Tensor1D|TensorLike,
     offset?: Tensor<R>|Tensor1D|TensorLike): Tensor<R> {
@@ -230,7 +231,7 @@ function batchNormalization_<R extends Rank>(
  */
 /** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function batchNorm_<R extends Rank>(
-    x: Tensor<R>|Tensor1D|TensorLike, mean: Tensor<R>|Tensor1D|TensorLike,
+    x: Tensor<R>|TensorLike, mean: Tensor<R>|Tensor1D|TensorLike,
     variance: Tensor<R>|Tensor1D|TensorLike,
     offset?: Tensor<R>|Tensor1D|TensorLike,
     scale?: Tensor<R>|Tensor1D|TensorLike,
@@ -275,7 +276,10 @@ function batchNorm_<R extends Rank>(
   }
 
   const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$x, $mean, $variance, $scale] = saved;
+    type Saved = [
+      Tensor<R>, Tensor<R>| Tensor1D, Tensor<R>| Tensor1D, Tensor<R>| Tensor1D
+    ];
+    const [$x, $mean, $variance, $scale] = saved as Saved;
     const scaleValue = $scale == null ? scalar(1) : $scale;
     const reductionAxes = getReductionAxes($mean.shape, x4D.shape);
     const tileShape: number[] = [];
@@ -292,16 +296,16 @@ function batchNorm_<R extends Rank>(
     const minusHalfRCube = oneOverSqrtVariance.mul(oneOverSqrtVariance)
                                .mul(oneOverSqrtVariance)
                                .mul(scalar(-0.5));
+
     const derX = () => {
       if ($mean.rank === 1) {
-        return dy.mul(tile(
-                          oneOverSqrtVariance.as4D(1, 1, 1, $mean.shape[0]),
-                          tileShape))
-                   .mul(scaleValue)
-                   .reshape($x.shape) as Tensor<R>;
+        return dy
+            .mul(tile(
+                oneOverSqrtVariance.as4D(1, 1, 1, $mean.shape[0]), tileShape))
+            .mul(scaleValue)
+            .reshape($x.shape);
       } else {
-        return dy.mul(oneOverSqrtVariance).mul(scaleValue).reshape($x.shape) as
-            Tensor<R>;
+        return dy.mul(oneOverSqrtVariance).mul(scaleValue).reshape($x.shape);
       }
     };
     const derMean = () => {
@@ -309,14 +313,14 @@ function batchNorm_<R extends Rank>(
       if ($mean.rank === 1) {
         meanDer = meanDer.sum(reductionAxes);
       }
-      return meanDer.reshape($mean.shape) as Tensor<R>;
+      return meanDer.reshape($mean.shape as ShapeMap[R]);
     };
     const derVariance = () => {
       let varianceDer = minusHalfRCube.mul(xMinusMean).mul(dyTimesScaleValue);
       if ($mean.rank === 1) {
         varianceDer = varianceDer.sum(reductionAxes);
       }
-      return varianceDer.reshape($mean.shape) as Tensor<R>;
+      return varianceDer.reshape($mean.shape as ShapeMap[R]);
     };
     const derScale = () => {
       const xMinusMean2TimesRsqrt = xMinusMean.mul(oneOverSqrtVariance);
@@ -324,14 +328,14 @@ function batchNorm_<R extends Rank>(
       if ($mean.rank === 1) {
         scaleDer = scaleDer.sum(reductionAxes);
       }
-      return scaleDer.reshape($mean.shape) as Tensor<R>;
+      return scaleDer.reshape($mean.shape as ShapeMap[R]);
     };
     const derOffset = () => {
       let offsetDer = dy;
       if ($mean.rank === 1) {
         offsetDer = offsetDer.sum(reductionAxes);
       }
-      return offsetDer.reshape($mean.shape) as Tensor<R>;
+      return offsetDer.reshape($mean.shape as ShapeMap[R]);
     };
     return {
       $x: derX,

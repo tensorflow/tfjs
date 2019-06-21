@@ -68,8 +68,12 @@ function expectArraysPredicate(
           `Actual: [${actualShape}]. Expected: [${expectedShape}]`);
     }
   }
-  const actualFlat = isTypedArray(actual) ? actual : flatten(actual);
-  const expectedFlat = isTypedArray(expected) ? expected : flatten(expected);
+
+  const actualFlat =
+      isTypedArray(actual) ? actual : flatten(actual as RecursiveArray<number>);
+  const expectedFlat = isTypedArray(expected) ?
+      expected :
+      flatten(expected as RecursiveArray<number>);
 
   if (actualFlat.length !== expectedFlat.length) {
     throw new Error(
