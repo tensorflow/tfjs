@@ -159,7 +159,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
       const backendName = sortedBackends[i];
       const success = await this.initializeBackend(backendName).success;
       if (success) {
-        this.setBackend(backendName);
+        await this.setBackend(backendName);
         return;
       }
     }
@@ -932,7 +932,7 @@ function getGlobalNamespace(): {_tfengine: Engine} {
       ns = global;
     } else if (typeof (process) !== 'undefined') {
       ns = process;
-    } else if (typeof (self) !== 'undefined' ) {
+    } else if (typeof (self) !== 'undefined') {
       ns = self;
     } else {
       throw new Error('Could not find a global object');
