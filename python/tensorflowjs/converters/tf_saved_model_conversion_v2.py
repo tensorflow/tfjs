@@ -28,7 +28,6 @@ from tensorflow.core.protobuf import meta_graph_pb2
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.core.framework import types_pb2
 from tensorflow.python.framework import convert_to_constants
-from tensorflow.python.framework import graph_util
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.saved_model.load import load
@@ -39,6 +38,9 @@ import tensorflow_hub as hub
 
 from tensorflowjs import write_weights
 from tensorflowjs.converters import common
+
+# enable eager execution for v2 APIs
+tf.compat.v1.enable_eager_execution()
 
 CLEARED_TENSOR_FIELDS = (
     'tensor_content', 'half_val', 'float_val', 'double_val', 'int_val',
@@ -373,7 +375,7 @@ def convert_tf_hub_module(module_path, output_dir,
   print('Creating a model with inputs %s and outputs %s.' % (input_node_names,
                                                              output_node_names))
 
-  frozen_graph_def = graph_util.convert_variables_to_constants(
+  frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
       sess, graph.as_graph_def(), output_node_names)
 
   output_graph = os.path.join(output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
