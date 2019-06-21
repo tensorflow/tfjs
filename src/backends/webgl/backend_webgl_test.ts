@@ -263,13 +263,22 @@ describeWithFlags('Custom window size', WEBGL_ENVS, () => {
 const SIZE_UPLOAD_UNIFORM = 4;
 // Run only for environments that have 32bit floating point support.
 const FLOAT32_WEBGL_ENVS = {
-  flags: {
-    'WEBGL_RENDER_FLOAT32_ENABLED': true,
-    'WEBGL_SIZE_UPLOAD_UNIFORM': SIZE_UPLOAD_UNIFORM
-  },
+  flags: {'WEBGL_RENDER_FLOAT32_ENABLED': true},
   predicate: WEBGL_ENVS.predicate
 };
+
 describeWithFlags('upload tensors as uniforms', FLOAT32_WEBGL_ENVS, () => {
+  let savedUploadUniformValue: number;
+
+  beforeAll(() => {
+    savedUploadUniformValue = tf.ENV.get('WEBGL_SIZE_UPLOAD_UNIFORM') as number;
+    tf.ENV.set('WEBGL_SIZE_UPLOAD_UNIFORM', SIZE_UPLOAD_UNIFORM);
+  });
+
+  afterAll(() => {
+    tf.ENV.set('WEBGL_SIZE_UPLOAD_UNIFORM', savedUploadUniformValue);
+  });
+
   it('small tensor gets uploaded as scalar', () => {
     let m = tf.memory() as WebGLMemoryInfo;
     expect(m.numBytesInGPU).toBe(0);
@@ -304,6 +313,39 @@ describeWithFlags('upload tensors as uniforms', FLOAT32_WEBGL_ENVS, () => {
     const expected = new Float32Array(SIZE_UPLOAD_UNIFORM + 1);
     expected.fill(16);
     expectArraysClose(await res.data(), expected);
+  });
+});
+
+describeWithFlags('indexing for large tensors', FLOAT32_WEBGL_ENVS, () => {
+  const savedDefaultTimeoutInterval = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+  let savedTensorLikeCheckShapeConsistency: boolean;
+
+  beforeAll(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
+    savedTensorLikeCheckShapeConsistency =
+        tf.ENV.get('TENSORLIKE_CHECK_SHAPE_CONSISTENCY') as boolean;
+    tf.ENV.set('TENSORLIKE_CHECK_SHAPE_CONSISTENCY', false);
+  });
+
+  afterAll(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = savedDefaultTimeoutInterval;
+    tf.ENV.set(
+        'TENSORLIKE_CHECK_SHAPE_CONSISTENCY',
+        savedTensorLikeCheckShapeConsistency);
+  });
+
+  it('properly indexes large tensors', async () => {
+    const range = 3000 * 3000;
+    const aData = new Float32Array(range);
+    for (let i = 0; i < range; i++) {
+      aData[i] = i / range;
+    }
+
+    const a = tf.tensor1d(aData);
+    const aRelu = a.relu();
+
+    expectArraysClose(await a.data(), aData);
+    expectArraysClose(await aRelu.data(), aData);
   });
 });
 

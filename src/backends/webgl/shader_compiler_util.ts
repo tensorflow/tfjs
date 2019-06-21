@@ -81,13 +81,11 @@ export function dotify(x: string[], y: string[]): string {
  * Produces GLSL that computes the flat index from 3D coordinates.
  */
 export function getFlatIndexFrom3D(shape: [number, number, number]): string {
-  const dotCoordsWithStrides = dotify(
-      ['coords.x', 'coords.y', 'coords.z'],
-      util.computeStrides(shape).map(d => d.toString()).concat(['1.']));
+  const strides = util.computeStrides(shape).map(d => d.toString());
 
   return `
   int getFlatIndex(ivec3 coords) {
-    return round(${dotCoordsWithStrides});
+    return coords.x * ${strides[0]} + coords.y * ${strides[1]} + coords.z;
   }
 `;
 }

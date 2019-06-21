@@ -363,7 +363,7 @@ function getOutputPacked1DCoords(
     int getOutputCoords() {
       ivec2 resTexRC = ivec2(resultUV.yx *
                              vec2(${packedTexShape[0]}, ${packedTexShape[1]}));
-      return resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
+      return 2 * (resTexRC.x * ${packedTexShape[1]} + resTexRC.y);
     }
   `;
 }
