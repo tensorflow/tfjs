@@ -22,7 +22,6 @@ export interface LayerConfig extends PyJsonDict {
   dtype?: DataType;
   name?: string;
   trainable?: boolean;
-  updatable?: boolean;
   input_dtype?: DataType;
 }
 

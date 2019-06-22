@@ -88,7 +88,6 @@ export abstract class Container extends Layer {
 
     this.supportsMasking = false;
     this.trainable_ = true;
-    this.updatable = true;
 
     // TODO(michaelterry): Initialize perInputLosses/Updates here.
 
