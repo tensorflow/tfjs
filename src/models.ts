@@ -358,13 +358,11 @@ export class Sequential extends LayersModel {
   /** @nocollapse */
   static className = 'Sequential';
   private model: LayersModel;
-  private _updatable: boolean;
   constructor(args?: SequentialArgs) {
     super({inputs: [], outputs: []});
     args = args || {};
 
     this.trainable = true;
-    this._updatable = true;
     this.built = false;
 
     // Set model name.
@@ -564,7 +562,6 @@ export class Sequential extends LayersModel {
       name: this.name + '_model'
     });
     this.model.trainable = this.trainable;
-    this.model.updatable = this.updatable;
 
     // mirror model attributes
     this.supportsMasking = this.model.supportsMasking;
@@ -642,17 +639,6 @@ export class Sequential extends LayersModel {
       this.build();
     }
     this.model.setWeights(weights);
-  }
-
-  get updatable(): boolean {
-    return this._updatable;
-  }
-
-  set updatable(value: boolean) {
-    if (this.built) {
-      this.model.updatable = value;
-    }
-    this._updatable = value;
   }
 
   /**
