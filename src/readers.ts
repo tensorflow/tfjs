@@ -218,10 +218,10 @@ export function generator<T extends TensorContainer>(
  * const videoElement = document.createElement('video');
  * videoElement.width = 100;
  * videoElement.height = 100;
- * const webcamIterator = await tf.data.webcam(videoElement);
- * const img = await webcamIterator.capture();
+ * const cam = await tf.data.webcam(videoElement);
+ * const img = await cam.capture();
  * img.print();
- * webcamIterator.stop();
+ * cam.stop();
  * ```
  *
  * @param webcamVideoElement A `HTMLVideoElement` used to play video from
@@ -252,7 +252,7 @@ export async function webcam(
  * Note: this code snippet only works when the device has a microphone. It will
  * request permission to open the microphone when running.
  * ```js
- * const microphoneIterator = await tf.data.microphone({
+ * const mic = await tf.data.microphone({
  *   fftSize: 1024,
  *   columnTruncateLength: 232,
  *   numFramesPerSpectrogram: 43,
@@ -260,14 +260,21 @@ export async function webcam(
  *   includeSpectrogram: true,
  *   includeWaveform: true
  * });
- * const audioData = await microphoneIterator.next();
- * const spectrogramTensor = audioData.value.spectrogram;
- * const waveformTensor = audioData.value.waveform;
- * microphoneIterator.stop();
+ * const audioData = await mic.capture();
+ * const spectrogramTensor = audioData.spectrogram;
+ * const waveformTensor = audioData.waveform;
+ * mic.stop();
  * ```
  *
  * @param microphoneConfig A `MicrophoneConfig` object that contains
  *     configurations of reading audio data from microphone.
+ */
+/**
+ * @doc {
+ *   heading: 'Data',
+ *   subheading: 'Creation',
+ *   namespace: 'data'
+ *  }
  */
 export async function microphone(microphoneConfig?: MicrophoneConfig):
     Promise<MicrophoneIterator> {

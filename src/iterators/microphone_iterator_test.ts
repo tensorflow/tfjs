@@ -208,4 +208,29 @@ describeBrowserEnvs('MicrophoneIterator', () => {
     expect(timesRun).toBe(3);
     expect(tensorsReturned).toBe(3);
   });
+
+  it('gets spectrogram from iterator.capture', async () => {
+    const microphoneIterator = await tfd.microphone();
+    const result = await microphoneIterator.capture();
+    // tslint:disable-next-line:no-any
+    expect((result as any).spectrogram.shape).toEqual([43, 1024, 1]);
+  });
+
+  it('gets waveform from iterator.capture', async () => {
+    const microphoneIterator = await tfd.microphone(
+        {includeSpectrogram: false, includeWaveform: true});
+    const result = await microphoneIterator.capture();
+    // tslint:disable-next-line:no-any
+    expect((result as any).waveform.shape).toEqual([44032, 1]);
+  });
+
+  it('gets spectrogram and waveform from iterator.capture', async () => {
+    const microphoneIterator =
+        await tfd.microphone({includeSpectrogram: true, includeWaveform: true});
+    const result = await microphoneIterator.capture();
+    // tslint:disable-next-line:no-any
+    expect((result as any).spectrogram.shape).toEqual([43, 1024, 1]);
+    // tslint:disable-next-line:no-any
+    expect((result as any).waveform.shape).toEqual([44032, 1]);
+  });
 });
