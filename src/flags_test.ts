@@ -74,13 +74,13 @@ describe('TENSORLIKE_CHECK_SHAPE_CONSISTENCY', () => {
   beforeEach(() => ENV.reset());
   afterAll(() => ENV.reset());
 
-  it('disabled when prod is enabled', () => {
-    ENV.set('PROD', true);
+  it('disabled when debug is disabled', () => {
+    ENV.set('DEBUG', false);
     expect(ENV.getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')).toBe(false);
   });
 
-  it('enabled when prod is disabled', () => {
-    ENV.set('PROD', false);
+  it('enabled when debug is enabled', () => {
+    ENV.set('DEBUG', true);
     expect(ENV.getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')).toBe(true);
   });
 });

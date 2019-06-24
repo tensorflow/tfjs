@@ -587,24 +587,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(t.shape).toEqual([2, 20, 20, 3]);
   });
 
-  it('tf.tensor() from TypeedArrays which are themselves 3D, wrong shape',
+  it('tf.tensor() from TypedArrays which are themselves 3D, wrong shape',
      () => {
        const img1 = new Float32Array(20 * 20 * 3);
        const img2 = new Float32Array(20 * 20 * 3);
        expect(() => tf.tensor([img1, img2], [3, 20, 20, 3])).toThrowError();
      });
-
-  it('tf.tensor() from TypedArray + number[] fails due to wrong shape', () => {
-    expect(() => tf.tensor([
-      new Float32Array([1, 2]),
-      new Float32Array([3, 4]),
-      new Float32Array([5, 6]),
-      // Should be of length 4
-      [7, 8, 9, 10],
-    ]))
-        .toThrowError(
-            /Element arr\[3\] should have 2 elements, but has 4 elements/);
-  });
 
   it('default dtype from ascii string', async () => {
     const a = tf.tensor('hello');
@@ -1415,6 +1403,24 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     // Imaginary part should be zero.
     const a = tf.ones([2, 2], 'complex64');
     expectArraysClose(await a.data(), [1, 0, 1, 0, 1, 0, 1, 0]);
+  });
+});
+
+describeWithFlags('tensor debug mode', ALL_ENVS, () => {
+  beforeAll(() => {
+    tf.ENV.set('DEBUG', true);
+  });
+
+  it('tf.tensor() from TypedArray + number[] fails due to wrong shape', () => {
+    expect(() => tf.tensor([
+      new Float32Array([1, 2]),
+      new Float32Array([3, 4]),
+      new Float32Array([5, 6]),
+      // Should be of length 4
+      [7, 8, 9, 10],
+    ]))
+        .toThrowError(
+            /Element arr\[3\] should have 2 elements, but has 4 elements/);
   });
 });
 

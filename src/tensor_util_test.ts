@@ -207,6 +207,12 @@ describeWithFlags('convertToTensor', ALL_ENVS, () => {
             'Argument \'a\' passed to \'test\' must be numeric tensor, ' +
             'but got string tensor');
   });
+});
+
+describeWithFlags('convertToTensor debug mode', ALL_ENVS, () => {
+  beforeAll(() => {
+    tf.ENV.set('DEBUG', true);
+  });
 
   it('fails to convert a non-valid shape array to tensor', () => {
     const a = [[1, 2], [3], [4, 5, 6]];  // 2nd element has only 1 entry.
