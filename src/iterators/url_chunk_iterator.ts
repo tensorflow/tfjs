@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {ENV} from '@tensorflow/tfjs-core';
+import {util} from '@tensorflow/tfjs-core';
 import {FileChunkIterator, FileChunkIteratorOptions} from './file_chunk_iterator';
 
 /**
@@ -28,31 +28,35 @@ import {FileChunkIterator, FileChunkIteratorOptions} from './file_chunk_iterator
  */
 export async function urlChunkIterator(
     url: RequestInfo, options: FileChunkIteratorOptions = {}) {
-  let response;
-  if (ENV.get('IS_BROWSER')) {
-    response = await fetch(url);
-    if (response.ok) {
-      const blob = await response.blob();
-      return new FileChunkIterator(blob, options);
-    } else {
-      throw new Error(response.statusText);
-    }
+  let urlString;
+  let requestInit;
+  if ((typeof url) === 'string') {
+    urlString = url as string;
   } else {
-    // TODO(kangyizhang): Provide argument for users to use http.request with
-    // headers in node.
-    // tslint:disable-next-line:no-require-imports
-    const nodeFetch = require('node-fetch');
-    if (typeof url !== 'string') {
-      throw new Error(
-          'URL must be a string. Request objects are not supported ' +
-          'in the node.js environment yet.');
-    }
-    response = await nodeFetch(url);
-    if (response.ok) {
-      const unitArray = await response.buffer();
-      return new FileChunkIterator(unitArray, options);
-    } else {
-      throw new Error(response.statusText);
-    }
+    urlString = (url as Request).url;
+    requestInit = getRequestInitFromRequest(url as Request);
+  }
+  const response = await util.fetch(urlString, requestInit);
+  if (response.ok) {
+    const uint8Array = new Uint8Array(await response.arrayBuffer());
+    return new FileChunkIterator(uint8Array, options);
+  } else {
+    throw new Error(response.statusText);
   }
 }
+
+// Generate RequestInit from Request to match tf.util.fetch signature.
+const getRequestInitFromRequest = (request: Request) => {
+  const init = {
+    method: request.method,
+    headers: request.headers,
+    body: request.body,
+    mode: request.mode,
+    credentials: request.credentials,
+    cache: request.cache,
+    redirect: request.redirect,
+    referrer: request.referrer,
+    integrity: request.integrity,
+  };
+  return init;
+};
