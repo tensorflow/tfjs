@@ -678,9 +678,6 @@ export class MathBackendWebGL implements KernelBackend {
   getGPGPUContext(): GPGPUContext {
     return this.gpgpu;
   }
-  getCanvas(): HTMLCanvasElement {
-    return this.canvas;
-  }
 
   complex<T extends Tensor>(real: T, imag: T): T {
     const result = this.makeOutputArray(real.shape, 'complex64') as T;
@@ -2489,7 +2486,7 @@ export class MathBackendWebGL implements KernelBackend {
       return;
     }
     this.textureManager.dispose();
-    if (this.canvas.remove != null) {
+    if (this.canvas != null && this.canvas.remove != null) {
       this.canvas.remove();
     } else {
       this.canvas = null;
