@@ -50,18 +50,18 @@ async function symlinkDepsLib() {
   }
   try {
     await symlink(
-        path.relative(path.dirname(destLibPath), depsLibTensorFlowPath),
-        destLibPath);
+      path.relative(path.dirname(destLibPath), depsLibTensorFlowPath),
+      destLibPath);
     if (os.platform() !== 'win32') {
       await symlink(
-          path.relative(
-              path.dirname(destFrameworkLibPath),
-              depsLibTensorFlowFrameworkPath),
-          destFrameworkLibPath);
+        path.relative(
+          path.dirname(destFrameworkLibPath),
+          depsLibTensorFlowFrameworkPath),
+        destFrameworkLibPath);
     }
   } catch (e) {
     console.error(
-        `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
+      `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
     await copy(depsLibTensorFlowPath, destLibPath);
     if (os.platform() !== 'win32') {
       await copy(depsLibTensorFlowFrameworkPath, destFrameworkLibPath);
