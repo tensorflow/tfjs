@@ -30,6 +30,11 @@ steps:
   entrypoint: 'bash'
   args: ['./run-python-tests.sh']
   waitFor: ['gen-json']
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'test-snippets'
+  args: ['test-snippets']
+  waitFor: ['yarn']
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:
