@@ -40,6 +40,7 @@ if ! [[ "$ORIGIN" =~ tensorflow/tfjs-node ]]; then
 fi
 
 ./scripts/make-version # This is for safety in case you forgot to do 2).
+yarn build-npm-gpu
 
 GPU_TARBALLS=$(ls tensorflow-tfjs-node-gpu*.tgz)
 GPU_TARBALL_COUNT=$(echo $GPU_TARBALLS | wc -w | xargs)
@@ -49,8 +50,8 @@ if [ "$GPU_TARBALL_COUNT" != "1" ]; then
   exit
 fi
 
-yarn build-npm-gpu
 # Publish the GPU package
-echo $GPU_TARBALLS | xargs npm publish
+npm publish $GPU_TARBALLS
+
 ./scripts/tag-version
 echo 'Yay! Published the tfjs-node-gpu package to npm.'
