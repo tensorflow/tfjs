@@ -19,19 +19,21 @@ import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram} from './gpgpu_math';
 import {ENCODE_FLOAT_SNIPPET} from './shader_compiler_util';
 
-export class EncodeFloatProgram implements GPGPUProgram {
+export class EncodeFloatPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
   outputShape: number[];
+  usesPackedTextures = true;
 
-  constructor(outputShape: number[]) {
+  constructor(outputShape: [number, number, number]) {
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.userCode = `
       ${ENCODE_FLOAT_SNIPPET}
 
       void main() {
-        float x = getAAtOutCoords();
+        ivec3 coords = getOutputCoords();
+        float x = getChannel(getAAtOutCoords(), vec2(coords.y, coords.z));
         ${glsl.output} = encode_float(x);
       }
     `;
