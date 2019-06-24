@@ -59,7 +59,7 @@ ENV.registerFlag('PROD', () => false);
  * values, used when creating a new tensor.
  */
 ENV.registerFlag(
-    'TENSORLIKE_CHECK_SHAPE_CONSISTENCY', () => !ENV.getBool('PROD'));
+    'TENSORLIKE_CHECK_SHAPE_CONSISTENCY', () => ENV.getBool('DEBUG'));
 
 /** Whether deprecation warnings are enabled. */
 ENV.registerFlag('DEPRECATION_WARNINGS_ENABLED', () => true);
