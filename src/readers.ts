@@ -235,7 +235,8 @@ export function generator<T extends TensorContainer>(
  * @doc {
  *   heading: 'Data',
  *   subheading: 'Creation',
- *   namespace: 'data'
+ *   namespace: 'data',
+ *   ignoreCI: true
  *  }
  */
 export async function webcam(
@@ -273,7 +274,8 @@ export async function webcam(
  * @doc {
  *   heading: 'Data',
  *   subheading: 'Creation',
- *   namespace: 'data'
+ *   namespace: 'data',
+ *   ignoreCI: true
  *  }
  */
 export async function microphone(microphoneConfig?: MicrophoneConfig):
