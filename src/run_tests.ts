@@ -59,9 +59,14 @@ const IGNORE_LIST: string[] = [
   'Reduction: argmax test-tensorflow {} 6D, axis=0'
 ];
 
-// Windows has two failing tests:
-// https://github.com/tensorflow/tfjs/issues/598
 if (process.platform === 'win32') {
+  // Ignore tensorboard on windows because tmp folder cleanup used in tests
+  // fails with tmp folder cleanup:
+  // https://github.com/tensorflow/tfjs/issues/1692
+  IGNORE_LIST.push('tensorboard');
+  IGNORE_LIST.push('tensorBoard');
+  // Windows has two failing tests:
+  // https://github.com/tensorflow/tfjs/issues/598
   IGNORE_LIST.push('clip test-tensorflow {} propagates NaNs');
   IGNORE_LIST.push(
       'maxPool test-tensorflow {} [x=[3,3,1] f=[2,2] s=1 ignores NaNs');
