@@ -18,12 +18,16 @@
 import {scalar} from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import * as path from 'path';
+import {promisify} from 'util';
+
 import * as tfn from './index';
 
 // tslint:disable-next-line:no-require-imports
-const shelljs = require('shelljs');
+const rimraf = require('rimraf');
 // tslint:disable-next-line:no-require-imports
 const tmp = require('tmp');
+
+const rimrafPromise = promisify(rimraf);
 
 describe('tensorboard', () => {
   let tmpLogDir: string;
@@ -32,9 +36,9 @@ describe('tensorboard', () => {
     tmpLogDir = tmp.dirSync().name;
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     if (tmpLogDir != null) {
-      shelljs.rm('-rf', tmpLogDir);
+      await rimrafPromise(tmpLogDir);
     }
   });
 
@@ -130,7 +134,7 @@ describe('tensorboard', () => {
   });
 
   it('Writing into existing directory works', () => {
-    shelljs.mkdir('-p', tmpLogDir);
+    fs.mkdirSync(tmpLogDir, {recursive: true});
     const writer = tfn.node.summaryFileWriter(path.join(tmpLogDir, '22'));
     writer.scalar('foo', 42, 0);
     writer.flush();
@@ -151,9 +155,9 @@ describe('tensorBoard callback', () => {
     tmpLogDir = tmp.dirSync().name;
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     if (tmpLogDir != null) {
-      shelljs.rm('-rf', tmpLogDir);
+      await rimrafPromise(tmpLogDir);
     }
   });
 
