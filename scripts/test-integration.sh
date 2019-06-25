@@ -24,7 +24,7 @@ echo '######################'
 echo 'Nightly build or version.ts was modified.'
 echo 'Testing layers/converter/node/data against tfjs-core@master.'
 echo '######################'
-yarn build && yarn yalc publish
+yarn build && yarn build-test-snippets && yarn yalc publish
 
 echo 'Cloning layers'
 git clone https://github.com/tensorflow/tfjs-layers.git --depth 1
