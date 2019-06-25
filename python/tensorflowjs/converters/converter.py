@@ -558,7 +558,7 @@ def main():
         output_format == 'tfjs_graph_model'):
     tf_saved_model_conversion_v2.convert_tf_hub_module(
         FLAGS.input_path, FLAGS.output_path, FLAGS.signature_name,
-        skip_op_check=FLAGS.skip_op_check,
+        FLAGS.saved_model_tags, skip_op_check=FLAGS.skip_op_check,
         strip_debug_ops=FLAGS.strip_debug_ops)
   elif (input_format == 'tfjs_layers_model' and
         output_format == 'keras'):
