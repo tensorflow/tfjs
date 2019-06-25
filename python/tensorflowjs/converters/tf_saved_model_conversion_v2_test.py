@@ -352,14 +352,12 @@ class ConvertTest(unittest.TestCase):
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
-  def test_convert_hub_module(self):
+  def test_convert_hub_module_v1(self):
     self._create_hub_module()
+    module_path = os.path.join(self._tmp_dir, HUB_MODULE_DIR)
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
 
-    tf_saved_model_conversion_v2.convert_tf_hub_module(
-        os.path.join(self._tmp_dir, HUB_MODULE_DIR),
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
-        'default'
-    )
+    tf_saved_model_conversion_v2.convert_tf_hub_module(module_path, tfjs_path)
 
     weights = [{
         'paths': ['group1-shard1of1.bin'],
@@ -369,7 +367,7 @@ class ConvertTest(unittest.TestCase):
             'dtype': 'float32'
         }]
     }]
-    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
@@ -382,6 +380,34 @@ class ConvertTest(unittest.TestCase):
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
+  def test_convert_hub_module_v2(self):
+    self._create_saved_model()
+    module_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+
+    tf_saved_model_conversion_v2.convert_tf_hub_module(
+        module_path, tfjs_path, "serving_default", "serve")
+
+    weights = [{
+        'paths': ['group1-shard1of1.bin'],
+        'weights': [{
+            'shape': [],
+            'name': 'StatefulPartitionedCall/mul',
+            'dtype': 'float32'
+        }]
+    }]
+
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+
+    weights_manifest = model_json['weightsManifest']
+    self.assertEqual(weights_manifest, weights)
+
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
 if __name__ == '__main__':
   unittest.main()
