@@ -361,7 +361,7 @@ def _standardize_input_output_formats(input_format, output_format):
   input_format_is_keras = (
       input_format in ['keras', 'keras_saved_model'])
   input_format_is_tf = (
-      input_format in ['tf_frozen_model', 'tf_hub'])
+      input_format in ['tf_saved_model', 'tf_hub'])
   if output_format is None:
     # If no explicit output_format is provided, infer it from input format.
     if input_format_is_keras:
