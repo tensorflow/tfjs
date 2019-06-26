@@ -39,6 +39,17 @@ import {UnaryOpProgram} from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
 import {WebGPUBinary} from './kernels/webgpu_program';
 
+// TODO: Delete this and import from core once new release is published.
+type MemoryInfo = {
+  numTensors: number; numDataBuffers: number; numBytes: number;
+  unreliable?: boolean; reasons: string[];
+};
+
+export interface WebGPUMemoryInfo extends MemoryInfo {
+  numBytesInGPU: number;
+  unreliable: boolean;
+}
+
 type TensorInfo = {
   byteSize: number,
   values: Float32Array|Int32Array|Uint8Array,
@@ -65,6 +76,7 @@ export class WebGPUBackend extends KernelBackend {
 
   private binaryCache: {[key: string]: WebGPUBinary};
   private fromPixels2DContext: CanvasRenderingContext2D;
+  private numBytesInGPU = 0;
 
   private disposed = false;
 
@@ -103,11 +115,17 @@ export class WebGPUBackend extends KernelBackend {
     this.tensorMap.delete(dataId);
   }
 
+  memory(): WebGPUMemoryInfo {
+    return {numBytesInGPU: this.numBytesInGPU, unreliable: false} as
+        WebGPUMemoryInfo;
+  }
+
   private createBuffer(
-      size: number,
+      byteSize: number,
       usage: GPUBufferUsage = GPUBufferUsage.STORAGE |
           GPUBufferUsage.TRANSFER_SRC | GPUBufferUsage.TRANSFER_DST) {
-    return this.device.createBuffer({size, usage});
+    this.numBytesInGPU += byteSize;
+    return this.device.createBuffer({size: byteSize, usage});
   }
 
   private disposeBuffer(byteSize: number, buffer: GPUBuffer) {
@@ -143,7 +161,11 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private flushDisposalQueue() {
-    this.disposalQueue.forEach(d => d.buffer.destroy());
+    this.disposalQueue.forEach(d => {
+      d.buffer.destroy();
+      this.numBytesInGPU -= d.byteSize;
+    });
+
     this.disposalQueue = [];
   }
 

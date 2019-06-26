@@ -29,6 +29,7 @@ export * from '../ops/broadcast_util';
 export * from '../ops/concat_util';
 export * from '../ops/conv_util';
 export {TypedArray, upcastType, PixelData} from '../types';
+export {MemoryInfo, TimingInfo} from '../engine';
 
 export function castTensor<T extends Tensor>(
     x: T, dtype: DataType, backend: KernelBackend): T {

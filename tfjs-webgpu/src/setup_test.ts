@@ -35,8 +35,6 @@ const INCLUDE_LIST: string[] = [
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
   'conv to matmul',         // Shader compile fails.
-  'should not leak',        // Missing backend.memory().
-  'does not leak',          // Missing backend.memory().
   'matmulBatch',            // Shape mismatch.
   'gradient',               // Various: Shape mismatch, cast missing, etc.
   'has zero in its shape',  // Test times out.
