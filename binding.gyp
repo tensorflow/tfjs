@@ -39,24 +39,7 @@
             '-ltensorflow',
             '-ltensorflow_framework',
           ],
-          'library_dirs' : ['<(PRODUCT_DIR)'],
-          'actions': [
-            {
-              'action_name': 'deps-stage',
-              'inputs': [
-                '<(module_root_dir)/scripts/deps-stage.js'
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/libtensorflow.so',
-              ],
-              'action': [
-                'node',
-                '<@(_inputs)',
-                '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
-              ]
-            }
-          ],
+          'library_dirs' : ['<(module_root_dir)/deps/lib'],
         }
       ],
       [
@@ -93,7 +76,7 @@
         'OS=="win"', {
           'defines': ['COMPILER_MSVC'],
           'libraries': ['tensorflow'],
-          'library_dirs' : ['<(INTERMEDIATE_DIR)'],
+          'library_dirs' : ['<(module_root_dir)/deps/lib'],
           'variables': {
             'tensorflow-library-target': 'windows'
           },
@@ -117,36 +100,6 @@
                 '<@(_inputs)',
                 '<@(tensorflow-library-action)',
                 '<(PRODUCT_DIR)'
-              ]
-            },
-            {
-              'action_name': 'generate_def',
-              'inputs': [
-                '<(module_root_dir)/scripts/generate_defs.js',
-                '<@(tensorflow_headers)',
-                "<(PRODUCT_DIR)/tensorflow.dll"
-              ],
-              'outputs': [
-                '<(INTERMEDIATE_DIR)/tensorflow.def'
-              ],
-              'action': [
-                'cmd',
-                '/c node --max-old-space-size=4096 <@(_inputs) > <@(_outputs)'
-              ]
-            },
-            {
-              'action_name': 'build-tensorflow-lib',
-              'inputs': [
-                '<(INTERMEDIATE_DIR)/tensorflow.def'
-              ],
-              'outputs': [
-                '<(INTERMEDIATE_DIR)/tensorflow.lib'
-              ],
-              'action': [
-                'lib',
-                '/def:<@(_inputs)',
-                '/out:<@(_outputs)',
-                '/machine:<@(target_arch)'
               ]
             },
           ],
