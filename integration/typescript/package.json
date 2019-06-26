@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "prep": "cd node_modules/@tensorflow/tfjs-node && node scripts/install.js",
+    "prep": "cd node_modules/@tensorflow/tfjs-node && yarn clean-deps && node scripts/install.js",
     "test": "ts-node src/test.ts && tsc && node dist/test.js"
   },
   "dependencies": {

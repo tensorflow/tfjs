@@ -28,7 +28,6 @@ const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
 const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
-const unlink = util.promisify(fs.unlink);
 
 const BASE_URI =
     'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';

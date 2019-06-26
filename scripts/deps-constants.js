@@ -17,31 +17,50 @@
 const os = require('os');
 const path = require('path');
 
-let libName = 'libtensorflow';
-let frameworkLibName = 'libtensorflow_framework';
+// Determine constants for deps folder names and destination (build) path names.
+let depsLibTensorFlowName = 'libtensorflow';
+let depsLibTensorFlowFrameworkName = 'libtensorflow_framework';
+
+let destLibTensorFlowName = depsLibTensorFlowName;
+let destLibTensorFlowFrameworkName = depsLibTensorFlowFrameworkName;
+
 if (os.platform() === 'win32') {
-  libName = 'tensorflow.dll';
-  frameworkLibName = '';  // Not supported on Windows
+  depsLibTensorFlowName = 'tensorflow.dll';
+  depsLibTensorFlowFrameworkName = '';  // Not supported on Windows
+
+  destLibTensorFlowName = depsLibTensorFlowName;
+  destLibTensorFlowFrameworkName = '';  // Not supported on Windows
 } else if (os.platform() === 'darwin') {
-  libName += '.dylib';
-  frameworkLibName += '.dylib';
+  depsLibTensorFlowName += '.dylib';
+  depsLibTensorFlowFrameworkName += '.dylib';
+
+  destLibTensorFlowName = depsLibTensorFlowName;
+  destLibTensorFlowFrameworkName = depsLibTensorFlowFrameworkName;
 } else if (os.platform() === 'linux') {
-  libName += '.so';
-  frameworkLibName += '.so';
+  // Linux has a hard-coded version number, make the destination name simpler:
+  depsLibTensorFlowName += '.so.1.14.0';
+  depsLibTensorFlowFrameworkName += '.so.1.14.0';
+
+  destLibTensorFlowName += '.so';
+  destLibTensorFlowFrameworkName += '.so';
 } else {
   throw Exception('Unsupported platform: ' + os.platform());
 }
 
 const depsPath = path.join(__dirname, '..', 'deps');
 const depsLibPath = path.join(depsPath, 'lib');
-const depsLibTensorFlowPath = path.join(depsLibPath, libName);
-const depsLibTensorFlowFrameworkPath = path.join(depsLibPath, frameworkLibName);
+
+const depsLibTensorFlowPath = path.join(depsLibPath, depsLibTensorFlowName);
+const depsLibTensorFlowFrameworkPath =
+    path.join(depsLibPath, depsLibTensorFlowFrameworkName);
 
 module.exports = {
-  depsLibPath,
-  depsLibTensorFlowFrameworkPath,
-  depsLibTensorFlowPath,
   depsPath,
-  frameworkLibName,
-  libName
+  depsLibPath,
+  depsLibTensorFlowFrameworkName,
+  depsLibTensorFlowFrameworkPath,
+  depsLibTensorFlowName,
+  depsLibTensorFlowPath,
+  destLibTensorFlowFrameworkName,
+  destLibTensorFlowName
 };
