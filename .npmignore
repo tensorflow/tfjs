@@ -1,7 +1,8 @@
 .vscode/
 src/**/*_test.ts
 demo/
-deps/tensorflow/*
+deps/lib/*
+deps/include/*
 scripts/build-npm.sh
 scripts/make-version
 scripts/tag-version
