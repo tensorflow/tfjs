@@ -16,7 +16,7 @@
  */
 
 import {DataId, Tensor} from '../../tensor';
-import {DataType, DataValues} from '../../types';
+import {BackendValues, DataType} from '../../types';
 import * as util from '../../util';
 
 export enum TextureUsage {
@@ -40,7 +40,7 @@ export interface TextureData {
   dtype: DataType;
 
   // Optional.
-  values?: DataValues;
+  values?: BackendValues;
   texture?: WebGLTexture;
   // For complex numbers, the real and imaginary parts are stored as their own
   // individual tensors, with a parent joining the two with the

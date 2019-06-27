@@ -22,7 +22,7 @@ import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode
 import {DataId, setTensorTracker, Tensor, Tensor3D, TensorTracker, Variable} from './tensor';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
-import {DataType, DataValues, PixelData} from './types';
+import {BackendValues, DataType, PixelData} from './types';
 import * as util from './util';
 import {bytesFromStringArray, makeOnesTypedArray, now, sizeFromShape} from './util';
 
@@ -830,7 +830,8 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
   }
 
   // Forwarding to backend.
-  write(destBackend: KernelBackend, dataId: DataId, values: DataValues): void {
+  write(destBackend: KernelBackend, dataId: DataId, values: BackendValues):
+      void {
     const info = this.state.tensorInfo.get(dataId);
 
     const srcBackend = info.backend;
@@ -838,7 +839,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
 
     // Bytes for string tensors are counted when writing.
     if (info.dtype === 'string') {
-      const newBytes = bytesFromStringArray(values as string[]);
+      const newBytes = bytesFromStringArray(values as Uint8Array[]);
       this.state.numBytes += newBytes - info.bytes;
       info.bytes = newBytes;
     }
@@ -852,12 +853,12 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
     }
     destBackend.write(dataId, values);
   }
-  readSync(dataId: DataId): DataValues {
+  readSync(dataId: DataId): BackendValues {
     // Route the read to the correct backend.
     const info = this.state.tensorInfo.get(dataId);
     return info.backend.readSync(dataId);
   }
-  read(dataId: DataId): Promise<DataValues> {
+  read(dataId: DataId): Promise<BackendValues> {
     // Route the read to the correct backend.
     const info = this.state.tensorInfo.get(dataId);
     return info.backend.read(dataId);

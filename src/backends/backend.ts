@@ -18,7 +18,7 @@
 import {Conv2DInfo, Conv3DInfo} from '../ops/conv_util';
 import {Activation} from '../ops/fused_util';
 import {Backend, DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
-import {DataType, DataValues, PixelData, Rank, ShapeMap} from '../types';
+import {BackendValues, DataType, PixelData, Rank, ShapeMap} from '../types';
 
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
@@ -31,10 +31,10 @@ export interface BackendTimingInfo {
 }
 
 export interface TensorStorage {
-  read(dataId: DataId): Promise<DataValues>;
-  readSync(dataId: DataId): DataValues;
+  read(dataId: DataId): Promise<BackendValues>;
+  readSync(dataId: DataId): BackendValues;
   disposeData(dataId: DataId): void;
-  write(dataId: DataId, values: DataValues): void;
+  write(dataId: DataId, values: BackendValues): void;
   fromPixels(
       pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
       HTMLVideoElement,
@@ -92,16 +92,16 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   time(f: () => void): Promise<BackendTimingInfo> {
     throw new Error('Not yet implemented.');
   }
-  read(dataId: object): Promise<DataValues> {
+  read(dataId: object): Promise<BackendValues> {
     throw new Error('Not yet implemented.');
   }
-  readSync(dataId: object): DataValues {
+  readSync(dataId: object): BackendValues {
     throw new Error('Not yet implemented.');
   }
   disposeData(dataId: object): void {
     throw new Error('Not yet implemented.');
   }
-  write(dataId: object, values: DataValues): void {
+  write(dataId: object, values: BackendValues): void {
     throw new Error('Not yet implemented.');
   }
   fromPixels(
