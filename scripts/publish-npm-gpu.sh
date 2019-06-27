@@ -53,5 +53,7 @@ fi
 # Publish the GPU package
 npm publish $GPU_TARBALLS
 
-./scripts/tag-version
+# Cleanup
+git checkout .
+
 echo 'Yay! Published the tfjs-node-gpu package to npm.'
