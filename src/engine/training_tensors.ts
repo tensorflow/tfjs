@@ -20,6 +20,7 @@ import {BaseCallback, configureCallbacks, CustomCallbackArgs, History, ModelLogg
 import {NotImplementedError, ValueError} from '../errors';
 import {disposeTensorsInLogs, UnresolvedLogs} from '../logs';
 import {range} from '../utils/math_utils';
+import {ClassWeight, ClassWeightMap} from './training_utils';
 
 /**
  * Interface configuration model training based on data as `tf.Tensor`s.
@@ -91,12 +92,17 @@ export interface ModelFitArgs {
   shuffle?: boolean;
 
   /**
-   * Optional dictionary mapping class indices (integers) to
+   * Optional object mapping class indices (integers) to
    * a weight (float) to apply to the model's loss for the samples from this
    * class during training. This can be useful to tell the model to "pay more
    * attention" to samples from an under-represented class.
+   *
+   * If the model has multiple outputs, a class weight can be specified for
+   * each of the outputs by setting this field an array of weight object
+   * or a object that maps model output names (e.g., `model.outputNames[0]`)
+   * to weight objects.
    */
-  classWeight?: {[classIndex: string]: number};
+  classWeight?: ClassWeight|ClassWeight[]|ClassWeightMap;
 
   /**
    * Optional array of the same length as x, containing
@@ -417,19 +423,21 @@ export async function fitTensors(
   let inputValY: Tensor|Tensor[];
   let valX: Tensor|Tensor[];
   let valY: Tensor|Tensor[];
+  let sampleWeights: Tensor[];
   try {
     const batchSize = args.batchSize == null ? 32 : args.batchSize;
     checkBatchSize(batchSize);
 
     // Validate user data.
-    // TODO(cais): Add sampleWeight and  classWeight.
+    // TODO(cais): Support sampleWeight.
+    const checkBatchAxis = false;
     const standardizedOuts =
-        model.standardizeUserData(
-            x, y, false, batchSize) as [Tensor[], Tensor[]];
+        await model.standardizeUserData(
+            x, y, args.sampleWeight, args.classWeight, checkBatchAxis,
+            batchSize) as [Tensor[], Tensor[], Tensor[]];
     inputs = standardizedOuts[0];
     targets = standardizedOuts[1];
-    // TODO(cais): Make use of sampleWeights in standardizedOuts[2] when
-    //   available.
+    sampleWeights = standardizedOuts[2];
 
     // Prepare validation data.
     let doValidation = false;
@@ -450,14 +458,16 @@ export async function fitTensors(
             `${args.validationData} is invalid.`);
       }
 
-      const valStandardized = model.standardizeUserData(
-                                  inputValX, inputValY, true,
-                                  batchSize) as [Tensor[], Tensor[], Tensor[]];
+      const checkBatchAxis = true;
+      const valStandardized = await model.standardizeUserData(
+            inputValX,
+            inputValY,
+            null,  /** Unused sample weights. */
+            null,  /** Unused class weights. */
+            checkBatchAxis,
+            batchSize) as [Tensor[], Tensor[], Tensor[]];
       valX = valStandardized[0];
       valY = valStandardized[1];
-      // TODO(cais): Use validation sample weights in valStandardized[2]
-      // once
-      //   it becomes available.
       valIns = valX.concat(valY);
       // TODO(cais): Add useLearningPhase data properly.
     } else if (
@@ -482,7 +492,7 @@ export async function fitTensors(
       // TODO(cais): Add useLearningPhase.
     }
 
-    const ins = inputs.concat(targets);
+    const ins = inputs.concat(targets).concat(sampleWeights);
 
     model.checkTrainableWeightsConsistency();
 
@@ -527,6 +537,9 @@ export async function fitTensors(
     disposeNewTensors(targets, y);
     disposeNewTensors(valX as Tensor[], inputValX);
     disposeNewTensors(valY as Tensor[], inputValY);
+    if (sampleWeights != null) {
+      tfc.dispose(sampleWeights);
+    }
   }
   // TODO(cais): Add value to outLabels.
 }
