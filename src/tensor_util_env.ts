@@ -20,18 +20,19 @@ import {Tensor} from './tensor';
 import {DataType, TensorLike, TypedArray} from './types';
 import {assert, flatten, inferDtype, isTypedArray, toTypedArray} from './util';
 
-export function inferShape(val: TensorLike): number[] {
+export function inferShape(val: TensorLike, dtype?: DataType): number[] {
   let firstElem: typeof val = val;
 
   if (isTypedArray(val)) {
-    return [(val as TypedArray).length];
+    return dtype === 'string' ? [] : [(val as TypedArray).length];
   }
   if (!Array.isArray(val)) {
     return [];  // Scalar.
   }
   const shape: number[] = [];
 
-  while (Array.isArray(firstElem) || isTypedArray(firstElem)) {
+  while (Array.isArray(firstElem) ||
+         isTypedArray(firstElem) && dtype !== 'string') {
     shape.push(firstElem.length);
     firstElem = firstElem[0];
   }
@@ -104,13 +105,14 @@ export function convertToTensor<T extends Tensor>(
         `Argument '${argName}' passed to '${functionName}' must be a ` +
         `Tensor or TensorLike, but got '${type}'`);
   }
-  const inferredShape = inferShape(x);
+  const inferredShape = inferShape(x, inferredDtype);
   if (!isTypedArray(x) && !Array.isArray(x)) {
     x = [x] as number[];
   }
+  const skipTypedArray = true;
   const values = inferredDtype !== 'string' ?
       toTypedArray(x, inferredDtype as DataType, ENV.getBool('DEBUG')) :
-      flatten(x as string[]) as string[];
+      flatten(x as string[], [], skipTypedArray) as string[];
   return Tensor.make(inferredShape, {values}, inferredDtype);
 }
 

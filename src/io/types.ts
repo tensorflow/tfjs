@@ -107,22 +107,6 @@ export declare interface WeightsManifestEntry {
   };
 }
 
-export declare interface StringWeightsManifestEntry extends
-    WeightsManifestEntry {
-  dtype: 'string';
-  /**
-   * Used for delimiting neighboring strings. If the tensor has no strings or
-   * only 1 string, there will be no delimiter. If the tensor has N strings
-   * (N>0), there will be N-1 delimiters.
-   */
-  delimiter: string;
-  /**
-   * Number of bytes used by the whole tensor, including the delimiters (N-1
-   * delimiters for N strings).
-   */
-  byteLength: number;
-}
-
 /**
  * Options for saving a model.
  * @innamespace io

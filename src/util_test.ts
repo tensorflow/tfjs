@@ -87,6 +87,27 @@ describe('Util', () => {
     const a = new Float32Array([1, 2, 3, 4, 5]);
     expect(inferShape(a)).toEqual([5]);
   });
+
+  it('infer shape of Uint8Array[], string tensor', () => {
+    const a = [new Uint8Array([1, 2]), new Uint8Array([3, 4])];
+    expect(inferShape(a, 'string')).toEqual([2]);
+  });
+
+  it('infer shape of Uint8Array[][], string tensor', () => {
+    const a = [
+      [new Uint8Array([1]), new Uint8Array([2])],
+      [new Uint8Array([1]), new Uint8Array([2])]
+    ];
+    expect(inferShape(a, 'string')).toEqual([2, 2]);
+  });
+
+  it('infer shape of Uint8Array[][][], string tensor', () => {
+    const a = [
+      [[new Uint8Array([1, 2])], [new Uint8Array([2, 1])]],
+      [[new Uint8Array([1, 2])], [new Uint8Array([2, 1])]]
+    ];
+    expect(inferShape(a, 'string')).toEqual([2, 2, 1]);
+  });
 });
 
 describe('util.flatten', () => {
@@ -112,13 +133,30 @@ describe('util.flatten', () => {
         [new Float32Array([1, 2]), 3, [4, 5, new Float32Array([6, 7])]];
     expect(util.flatten(data)).toEqual([1, 2, 3, 4, 5, 6, 7]);
   });
+
+  it('nested Uint8Arrays, skipTypedArray=true', () => {
+    const data = [
+      [new Uint8Array([1, 2]), new Uint8Array([3, 4])],
+      [new Uint8Array([5, 6]), new Uint8Array([7, 8])]
+    ];
+    expect(util.flatten(data, [], true)).toEqual([
+      new Uint8Array([1, 2]), new Uint8Array([3, 4]), new Uint8Array([5, 6]),
+      new Uint8Array([7, 8])
+    ]);
+  });
 });
 
+function encodeStrings(a: string[]): Uint8Array[] {
+  return a.map(s => util.encodeString(s));
+}
+
 describe('util.bytesFromStringArray', () => {
-  it('count each character as 2 bytes', () => {
-    expect(util.bytesFromStringArray(['a', 'bb', 'ccc'])).toBe(6 * 2);
-    expect(util.bytesFromStringArray(['a', 'bb', 'cccddd'])).toBe(9 * 2);
-    expect(util.bytesFromStringArray(['даниел'])).toBe(6 * 2);
+  it('count bytes after utf8 encoding', () => {
+    expect(util.bytesFromStringArray(encodeStrings(['a', 'bb', 'ccc'])))
+        .toBe(6);
+    expect(util.bytesFromStringArray(encodeStrings(['a', 'bb', 'cccddd'])))
+        .toBe(9);
+    expect(util.bytesFromStringArray(encodeStrings(['даниел']))).toBe(6 * 2);
   });
 });
 
@@ -509,5 +547,57 @@ describe('util.fetch', () => {
     expect(ENV.platform.fetch).toHaveBeenCalledWith('test/path', {
       method: 'GET'
     });
+  });
+});
+
+describe('util.encodeString', () => {
+  it('Encode an empty string, default encoding', () => {
+    const res = util.encodeString('');
+    expect(res).toEqual(new Uint8Array([]));
+  });
+
+  it('Encode an empty string, utf-8 encoding', () => {
+    const res = util.encodeString('', 'utf-8');
+    expect(res).toEqual(new Uint8Array([]));
+  });
+
+  it('Encode an empty string, encoding must be utf-8', () => {
+    expect(() => util.encodeString('', 'utf-16'))
+        .toThrowError(/only supports utf-8, but got utf-16/);
+  });
+
+  it('Encode cyrillic letters', () => {
+    const res = util.encodeString('Kaкo стe');
+    expect(res).toEqual(
+        new Uint8Array([75, 97, 208, 186, 111, 32, 209, 129, 209, 130, 101]));
+  });
+
+  it('Encode ascii letters', () => {
+    const res = util.encodeString('hello');
+    expect(res).toEqual(new Uint8Array([104, 101, 108, 108, 111]));
+  });
+});
+
+describe('util.decodeString', () => {
+  it('decode an empty string', () => {
+    const s = util.decodeString(new Uint8Array([]));
+    expect(s).toEqual('');
+  });
+
+  it('decode ascii', () => {
+    const s = util.decodeString(new Uint8Array([104, 101, 108, 108, 111]));
+    expect(s).toEqual('hello');
+  });
+
+  it('decode cyrillic', () => {
+    const s = util.decodeString(
+        new Uint8Array([75, 97, 208, 186, 111, 32, 209, 129, 209, 130, 101]));
+    expect(s).toEqual('Kaкo стe');
+  });
+
+  it('decode utf-16', () => {
+    const s = util.decodeString(
+        new Uint8Array([255, 254, 237, 139, 0, 138, 4, 89, 6, 116]), 'utf-16');
+    expect(s).toEqual('语言处理');
   });
 });

@@ -28,24 +28,29 @@ export let systemFetch: (url: string, init?: RequestInit) => Promise<Response>;
 
 export class PlatformNode implements Platform {
   private textEncoder: TextEncoder;
-  private textDecoder: TextDecoder;
+  // tslint:disable-next-line:no-any
+  util: any;
 
   constructor() {
-    // tslint:disable-next-line: no-require-imports
-    const util = require('util');
-    // The built-in encoder and the decoder use UTF-8 encoding.
-    this.textEncoder = new util.TextEncoder();
-    this.textDecoder = new util.TextDecoder();
+    // tslint:disable-next-line:no-require-imports
+    this.util = require('util');
+    // According to the spec, the built-in encoder can do only UTF-8 encoding.
+    // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
+    this.textEncoder = new this.util.TextEncoder();
   }
 
-  encodeUTF8(text: string): Uint8Array {
+  encode(text: string, encoding: string): Uint8Array {
+    if (encoding !== 'utf-8' && encoding !== 'utf8') {
+      throw new Error(
+          `Node built-in encoder only supports utf-8, but got ${encoding}`);
+    }
     return this.textEncoder.encode(text);
   }
-  decodeUTF8(bytes: Uint8Array): string {
+  decode(bytes: Uint8Array, encoding: string): string {
     if (bytes.length === 0) {
       return '';
     }
-    return this.textDecoder.decode(bytes);
+    return new this.util.TextDecoder(encoding).decode(bytes);
   }
   fetch(path: string, requestInits?: RequestInit): Promise<Response> {
     if (ENV.global.fetch != null) {

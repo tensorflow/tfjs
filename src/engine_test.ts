@@ -349,7 +349,7 @@ describeWithFlags('memory', ALL_ENVS, () => {
     const a = tf.tensor([['a', 'bb'], ['c', 'd']]);
 
     expect(tf.memory().numTensors).toBe(1);
-    expect(tf.memory().numBytes).toBe(10);  // 5 letters, each 2 bytes.
+    expect(tf.memory().numBytes).toBe(5);  // 5 letters, each 1 byte in utf8.
 
     a.dispose();
 

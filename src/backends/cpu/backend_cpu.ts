@@ -34,7 +34,7 @@ import * as scatter_nd_util from '../../ops/scatter_nd_util';
 import * as selu_util from '../../ops/selu_util';
 import {computeFlatOffset, getStridedSlicedInfo, isSliceContinous} from '../../ops/slice_util';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../../tensor';
-import {DataType, DataTypeMap, DataValues, NumericDataType, PixelData, Rank, ShapeMap, TypedArray, upcastType} from '../../types';
+import {BackendValues, DataType, DataValues, NumericDataType, PixelData, Rank, ShapeMap, TypedArray, upcastType} from '../../types';
 import * as util from '../../util';
 import {getArrayFromDType, inferDtype, now, sizeFromShape} from '../../util';
 import {BackendTimingInfo, DataStorage, EPSILON_FLOAT32, KernelBackend} from '../backend';
@@ -58,7 +58,7 @@ function mapActivation(
 }
 
 interface TensorData<D extends DataType> {
-  values?: DataTypeMap[D];
+  values?: BackendValues;
   dtype: D;
   // For complex numbers, the real and imaginary parts are stored as their own
   // individual tensors, with a parent joining the two with the
@@ -116,7 +116,7 @@ export class MathBackendCPU implements KernelBackend {
     }
     this.data.set(dataId, {dtype});
   }
-  write(dataId: DataId, values: DataValues): void {
+  write(dataId: DataId, values: BackendValues): void {
     if (values == null) {
       throw new Error('MathBackendCPU.write(): values can not be null');
     }
@@ -186,10 +186,10 @@ export class MathBackendCPU implements KernelBackend {
         [pixels.height, pixels.width, numChannels];
     return tensor3d(values, outShape, 'int32');
   }
-  async read(dataId: DataId): Promise<DataValues> {
+  async read(dataId: DataId): Promise<BackendValues> {
     return this.readSync(dataId);
   }
-  readSync(dataId: DataId): DataValues {
+  readSync(dataId: DataId): BackendValues {
     const {dtype, complexTensors} = this.data.get(dataId);
     if (dtype === 'complex64') {
       const realValues =
@@ -202,7 +202,17 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   private bufferSync<R extends Rank>(t: Tensor<R>): TensorBuffer<R> {
-    return buffer(t.shape, t.dtype, this.readSync(t.dataId)) as TensorBuffer<R>;
+    const data = this.readSync(t.dataId);
+    let decodedData = data as DataValues;
+    if (t.dtype === 'string') {
+      try {
+        // Decode the bytes into string.
+        decodedData = (data as Uint8Array[]).map(d => util.decodeString(d));
+      } catch {
+        throw new Error('Failed to decode encoded string bytes into utf-8');
+      }
+    }
+    return buffer(t.shape, t.dtype, decodedData) as TensorBuffer<R>;
   }
 
   disposeData(dataId: DataId): void {

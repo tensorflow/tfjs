@@ -19,7 +19,21 @@ import * as tf from './index';
 import {ALL_ENVS, describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
-import {Rank} from './types';
+import {Rank, RecursiveArray, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TypedArray} from './types';
+import {encodeString} from './util';
+
+/** Private method used by these tests. Encodes strings into utf-8 bytes. */
+function encodeStrings(a: RecursiveArray<{}>): RecursiveArray<Uint8Array> {
+  for (let i = 0; i < (a as Array<{}>).length; i++) {
+    const val = a[i];
+    if (Array.isArray(val)) {
+      encodeStrings(val);
+    } else {
+      a[i] = encodeString(val as string);
+    }
+  }
+  return a;
+}
 
 describeWithFlags('tensor', ALL_ENVS, () => {
   it('Tensors of arbitrary size', async () => {
@@ -266,6 +280,26 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expectArraysEqual(await a.data(), ['aa', 'bb', 'cc']);
   });
 
+  it('tf.tensor1d() from encoded strings', async () => {
+    const bytes = encodeStrings(['aa', 'bb', 'cc']) as TensorLike1D;
+    const a = tf.tensor1d(bytes, 'string');
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([3]);
+    expectArraysEqual(await a.data(), ['aa', 'bb', 'cc']);
+  });
+
+  it('tf.tensor1d() from encoded strings without dtype errors', async () => {
+    // We do not want to infer 'string' when the user passes Uint8Array in order
+    // to be forward compatible in the future when we add uint8 dtype.
+    const bytes = encodeStrings(['aa', 'bb', 'cc']) as TensorLike1D;
+    expect(() => tf.tensor1d(bytes)).toThrowError();
+  });
+
+  it('tf.tensor1d() from encoded strings, shape mismatch', () => {
+    const bytes = encodeStrings([['aa'], ['bb'], ['cc']]) as TensorLike1D;
+    expect(() => tf.tensor1d(bytes)).toThrowError();
+  });
+
   it('tf.tensor1d() from number[][], shape mismatch', () => {
     // tslint:disable-next-line:no-any
     expect(() => tf.tensor1d([[1], [2], [3]] as any)).toThrowError();
@@ -286,6 +320,26 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(a.dtype).toBe('string');
     expect(a.shape).toEqual([2, 2]);
     expectArraysEqual(await a.data(), ['aa', 'bb', 'cc', 'dd']);
+  });
+
+  it('tf.tensor2d() from encoded strings', async () => {
+    const bytes = encodeStrings([['aa', 'bb'], ['cc', 'dd']]) as TensorLike2D;
+    const a = tf.tensor2d(bytes, [2, 2], 'string');
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([2, 2]);
+    expectArraysEqual(await a.data(), ['aa', 'bb', 'cc', 'dd']);
+  });
+
+  it('tf.tensor2d() from encoded strings without dtype errors', async () => {
+    // We do not want to infer 'string' when the user passes Uint8Array in order
+    // to be forward compatible in the future when we add uint8 dtype.
+    const bytes = encodeStrings([['aa', 'bb'], ['cc', 'dd']]) as TensorLike2D;
+    expect(() => tf.tensor2d(bytes)).toThrowError();
+  });
+
+  it('tf.tensor2d() from encoded strings, shape mismatch', () => {
+    const bytes = encodeStrings([['aa', 'bb'], ['cc', 'dd']]) as TensorLike2D;
+    expect(() => tf.tensor2d(bytes, [3, 2], 'string')).toThrowError();
   });
 
   it('tf.tensor2d() requires shape to be of length 2', () => {
@@ -333,6 +387,28 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expectArraysEqual(await a.data(), ['a', 'b', 'c', 'd', 'e', 'f']);
   });
 
+  it('tf.tensor3d() from encoded strings', async () => {
+    const bytes = encodeStrings([[['a'], ['b'], ['c']], [['d'], ['e'], ['f']]]);
+    const a = tf.tensor3d(bytes as TensorLike3D, [2, 3, 1], 'string');
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([2, 3, 1]);
+    expectArraysEqual(await a.data(), ['a', 'b', 'c', 'd', 'e', 'f']);
+  });
+
+  it('tf.tensor3d() from encoded strings without dtype errors', async () => {
+    // We do not want to infer 'string' when the user passes Uint8Array in order
+    // to be forward compatible in the future when we add uint8 dtype.
+    const bytes = encodeStrings([[['a'], ['b'], ['c']], [['d'], ['e'], ['f']]]);
+    expect(() => tf.tensor3d(bytes as TensorLike3D)).toThrowError();
+  });
+
+  it('tf.tensor3d() from encoded strings, shape mismatch', () => {
+    const bytes = encodeStrings([[['a'], ['b'], ['c']], [['d'], ['e'], ['f']]]);
+    // Actual shape is [2, 3, 1].
+    expect(() => tf.tensor3d(bytes as TensorLike3D, [3, 2, 1], 'string'))
+        .toThrowError();
+  });
+
   it('tensor3d() from number[][][], but shape does not match', () => {
     const values = [[[1], [2], [3]], [[4], [5], [6]]];
     // Actual shape is [2, 3, 1].
@@ -367,6 +443,28 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(a.dtype).toBe('string');
     expect(a.shape).toEqual([2, 2, 1, 1]);
     expectArraysEqual(await a.data(), ['a', 'b', 'c', 'd']);
+  });
+
+  it('tf.tensor4d() from encoded strings', async () => {
+    const bytes = encodeStrings([[[['a']], [['b']]], [[['c']], [['d']]]]);
+    const a = tf.tensor4d(bytes as TensorLike4D, [2, 2, 1, 1], 'string');
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([2, 2, 1, 1]);
+    expectArraysEqual(await a.data(), ['a', 'b', 'c', 'd']);
+  });
+
+  it('tf.tensor4d() from encoded strings without dtype errors', async () => {
+    // We do not want to infer 'string' when the user passes Uint8Array in order
+    // to be forward compatible in the future when we add uint8 dtype.
+    const bytes = encodeStrings([[[['a']], [['b']]], [[['c']], [['d']]]]);
+    expect(() => tf.tensor4d(bytes as TensorLike4D)).toThrowError();
+  });
+
+  it('tf.tensor4d() from encoded strings, shape mismatch', () => {
+    const bytes = encodeStrings([[[['a']], [['b']]], [[['c']], [['d']]]]);
+    // Actual shape is [2, 2, 1. 1].
+    expect(() => tf.tensor4d(bytes as TensorLike4D, [2, 1, 2, 1], 'string'))
+        .toThrowError();
   });
 
   it('tensor4d() from string[][][][] infer shape', async () => {
@@ -873,6 +971,24 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const b = a.reshape([1, 1]);
     expect(b.dtype).toBe('string');
     expect(b.shape).toEqual([1, 1]);
+  });
+
+  it('scalar from encoded string', async () => {
+    const a = tf.scalar(encodeString('hello'), 'string');
+    expect(a.dtype).toBe('string');
+    expect(a.shape).toEqual([]);
+    expectArraysEqual(await a.data(), ['hello']);
+  });
+
+  it('scalar from encoded string, but missing dtype', async () => {
+    // We do not want to infer 'string' when the user passes Uint8Array in order
+    // to be forward compatible in the future when we add uint8 dtype.
+    expect(() => tf.scalar(encodeString('hello'))).toThrowError();
+  });
+
+  it('scalar from encoded string, but value is not uint8array', async () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tf.scalar(new Float32Array([1, 2, 3]) as any)).toThrowError();
   });
 
   it('Scalar inferred dtype from bool', async () => {
@@ -2142,5 +2258,42 @@ describeWithFlags('tensor with 0 in shape', ALL_ENVS, () => {
     expect(a.rank).toBe(2);
     expect(a.shape).toEqual([0, 5]);
     expectArraysEqual(await a.data(), []);
+  });
+});
+
+describeWithFlags('tensor.bytes()', ALL_ENVS, () => {
+  /** Helper method to get the bytes from a typed array. */
+  function getBytes(a: TypedArray): Uint8Array {
+    return new Uint8Array(a.buffer);
+  }
+
+  it('float32 tensor', async () => {
+    const a = tf.tensor([1.1, 3.2, 7], [3], 'float32');
+    expect(await a.bytes()).toEqual(getBytes(new Float32Array([1.1, 3.2, 7])));
+  });
+
+  it('int32 tensor', async () => {
+    const a = tf.tensor([1.1, 3.2, 7], [3], 'int32');
+    expect(await a.bytes()).toEqual(getBytes(new Int32Array([1, 3, 7])));
+  });
+
+  it('bool tensor', async () => {
+    const a = tf.tensor([true, true, false], [3], 'bool');
+    expect(await a.bytes()).toEqual(new Uint8Array([1, 1, 0]));
+  });
+
+  it('string tensor from native strings', async () => {
+    const a = tf.tensor(['hello', 'world'], [2], 'string');
+    expect(await a.bytes()).toEqual([
+      encodeString('hello'), encodeString('world')
+    ]);
+  });
+
+  it('string tensor from encoded bytes', async () => {
+    const a = tf.tensor(
+        [encodeString('hello'), encodeString('world')], [2], 'string');
+    expect(await a.bytes()).toEqual([
+      encodeString('hello'), encodeString('world')
+    ]);
   });
 });

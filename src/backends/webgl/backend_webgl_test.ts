@@ -18,8 +18,18 @@
 import * as tf from '../../index';
 import {describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../../test_util';
+import {decodeString, encodeString} from '../../util';
+
 import {MathBackendWebGL, WebGLMemoryInfo} from './backend_webgl';
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
+
+function encodeStrings(a: string[]): Uint8Array[] {
+  return a.map(s => encodeString(s));
+}
+
+function decodeStrings(bytes: Uint8Array[]): string[] {
+  return bytes.map(b => decodeString(b));
+}
 
 describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
   let webglLazilyUnpackFlagSaved: boolean;
@@ -126,8 +136,10 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.setBackend('test-storage');
 
     const t = tf.Tensor.make([3], {}, 'string');
-    backend.write(t.dataId, ['c', 'a', 'b']);
-    expectArraysEqual(backend.readSync(t.dataId), ['c', 'a', 'b']);
+    backend.write(t.dataId, encodeStrings(['c', 'a', 'b']));
+    expectArraysEqual(
+        decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
+        ['c', 'a', 'b']);
   });
 
   it('register string tensor with values', () => {
@@ -136,7 +148,9 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.setBackend('test-storage');
 
     const t = tf.Tensor.make([3], {values: ['a', 'b', 'c']}, 'string');
-    expectArraysEqual(backend.readSync(t.dataId), ['a', 'b', 'c']);
+    expectArraysEqual(
+        decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
+        ['a', 'b', 'c']);
   });
 
   it('register string tensor with values and overwrite', () => {
@@ -145,8 +159,10 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.setBackend('test-storage');
 
     const t = tf.Tensor.make([3], {values: ['a', 'b', 'c']}, 'string');
-    backend.write(t.dataId, ['c', 'a', 'b']);
-    expectArraysEqual(backend.readSync(t.dataId), ['c', 'a', 'b']);
+    backend.write(t.dataId, encodeStrings(['c', 'a', 'b']));
+    expectArraysEqual(
+        decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
+        ['c', 'a', 'b']);
   });
 
   it('register string tensor with values and wrong shape throws error', () => {
