@@ -21,6 +21,7 @@ import {TensorOrArrayOrMap} from '../types';
 import {singletonOrArray, toList} from '../utils/generic_utils';
 
 import {Dataset, LazyIterator} from './dataset_stub';
+import {ClassWeight, ClassWeightMap, standardizeClassWeights, standardizeWeights} from './training_utils';
 
 /**
  * Interface for configuring model training based on a dataset object.
@@ -145,6 +146,19 @@ export interface ModelFitDatasetArgs<T> {
    * run).
    */
   initialEpoch?: number;
+
+  /**
+   * Optional object mapping class indices (integers) to
+   * a weight (float) to apply to the model's loss for the samples from this
+   * class during training. This can be useful to tell the model to "pay more
+   * attention" to samples from an under-represented class.
+   *
+   * If the model has multiple outputs, a class weight can be specified for
+   * each of the outputs by setting this field an array of weight object
+   * or a object that maps model output names (e.g., `model.outputNames[0]`)
+   * to weight objects.
+   */
+  classWeight?: ClassWeight|ClassWeight[]|ClassWeightMap;
 }
 
 export interface FitDatasetElement {
@@ -181,16 +195,15 @@ const DEFAULT_VALIDATION_BATCH_SIZE = 32;
  * TensorOrArrayOrMap}`, where `TensorOrArrayOrMap` is a single `tf.Tensor`,
  * a `tf.Tensor[]`, or a flat map from string names to `tf.Tensor`s.
  * @returns A flat array of `tf.Tensor` objects: the input `tf.Tensor`s
- *     followed
- *   by the target `tf.Tensor`s.  When `tf.Tensor`s are provided as a map,
- * the order in the resulting array is taken from the `inputNames` and
- *   `outputNames` of the model.
+ *   followed by the target `tf.Tensor`s.  When `tf.Tensor`s are provided
+ *   as a map, the order in the resulting array is taken from the `inputNames`
+ *   and `outputNames` of the model.
  */
 function standardizeDataIteratorOutput(
     // Type `model` as `any` here to avoid circular dependency w/
     // training.ts.
     // tslint:disable-next-line:no-any
-    model: any, iteratorOut: {}): tfc.Tensor[] {
+    model: any, iteratorOut: {}): {xs: tfc.Tensor[], ys: tfc.Tensor[]} {
   let xs: TensorOrArrayOrMap;
   let ys: TensorOrArrayOrMap;
 
@@ -204,7 +217,6 @@ function standardizeDataIteratorOutput(
           'values may be `tf.Tensor`, an array of Tensors, or a map of ' +
           'string to Tensor.  The provided Dataset instead generates ' +
           iteratorOut);
-
 
   const flattenedXs: tfc.Tensor[] =
       flattenTensorOrArrayOrMap('input', model.inputNames, xs);
@@ -244,7 +256,7 @@ function standardizeDataIteratorOutput(
             `expected  ${batchSize} based on input ${model.inputNames[0]}.`);
   }
 
-  return flattenedXs.concat(flattenedYs);
+  return {xs: flattenedXs, ys: flattenedYs};
 }
 
 function flattenTensorOrArrayOrMap(
@@ -404,19 +416,29 @@ export async function fitDataset<T>(
           break;
         }
 
-
         if (iteratorOut.value != null) {
-          const xsAndYs =
+          const {xs, ys} =
               standardizeDataIteratorOutput(model, iteratorOut.value);
           const batchLogs: UnresolvedLogs = {};
           batchLogs['batch'] = batchIndex;
-          batchLogs['size'] = xsAndYs[0].shape[0];
+          batchLogs['size'] = xs[0].shape[0];
 
           await callbackList.onBatchBegin(batchIndex, batchLogs);
 
+          const sampleWeights: tfc.Tensor[] = [];
+          if (args.classWeight != null) {
+            const standardClassWeights =
+                standardizeClassWeights(args.classWeight, model.outputNames);
+            for (let i = 0; i < standardClassWeights.length; ++i) {
+              sampleWeights.push(await standardizeWeights(
+                  ys[i], null, standardClassWeights[i]));
+            }
+          }
+
           // Train on batch.
-          const outs = trainFunction(xsAndYs);
-          tfc.dispose(xsAndYs);
+          const ins = xs.concat(ys).concat(sampleWeights);
+          const outs = trainFunction(ins);
+          tfc.dispose(ins);
           for (let i = 0; i < outLabels.length; ++i) {
             const label = outLabels[i];
             const out = outs[i];
@@ -539,7 +561,9 @@ export async function evaluateDataset<T>(
       if (iteratorOut.value) {
         // TODO(cais): Once real dataset is available, use
         //   `map(x => standardizeDataIteratorOutput(model, x).map(f)`.
-        const xsAndYs = standardizeDataIteratorOutput(model, iteratorOut.value);
+        const {xs, ys} =
+            standardizeDataIteratorOutput(model, iteratorOut.value);
+        const xsAndYs = xs.concat(ys);
         const batchOuts = tfc.tidy(() => f(xsAndYs));
         tfc.dispose(xsAndYs);
 

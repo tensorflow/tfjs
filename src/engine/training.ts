@@ -32,6 +32,7 @@ import {execute, FeedDict} from './executor';
 import {DisposeResult, SymbolicTensor} from './topology';
 import {evaluateDataset, fitDataset, ModelEvaluateDatasetArgs, ModelFitDatasetArgs} from './training_dataset';
 import {checkBatchSize, disposeNewTensors, ensureTensorsRank2OrHigher, fitTensors, makeBatches, ModelFitArgs, sliceArrays, sliceArraysByIndices} from './training_tensors';
+import {ClassWeight, ClassWeightMap, computeWeightedLoss, standardizeClassWeights, standardizeWeights} from './training_utils';
 
 /**
  * Helper function for polymorphic input data: 1. singleton Tensor.
@@ -632,7 +633,6 @@ export class LayersModel extends Container implements tfc.InferenceModel {
       this.feedLossFns.push(this.lossFunctions[i]);
     }
 
-    // TODO(cais): Add logic for weighted losses.
     // TODO(cais): Add logic for output masks.
     // TODO(cais): Add logic for sample weights.
     const skipTargetIndices: number[] = [];
@@ -827,7 +827,9 @@ export class LayersModel extends Container implements tfc.InferenceModel {
 
     // TODO(cais): Standardize `config.sampleWeights` as well.
     // Validate user data.
-    const standardizedOuts = this.standardizeUserData(x, y, true, batchSize);
+    const checkBatchAxis = true;
+    const standardizedOuts = this.standardizeUserDataXY(
+        x, y, checkBatchAxis, batchSize);
     try {
       // TODO(cais): If uses `useLearningPhase`, set the corresponding element
       // of the input to 0.
@@ -1122,10 +1124,11 @@ export class LayersModel extends Container implements tfc.InferenceModel {
     return this.predictLoop(x, x.shape[0]);
   }
 
-  protected standardizeUserData(
-      x: Tensor|Tensor[]|{[inputName: string]: Tensor},
-      y: Tensor|Tensor[]|{[inputName: string]: Tensor}, checkBatchAxis = true,
-      batchSize?: number): [Tensor[], Tensor[], Tensor[]] {
+  protected standardizeUserDataXY(
+    x: Tensor|Tensor[]|{[inputName: string]: Tensor},
+    y: Tensor|Tensor[]|{[inputName: string]: Tensor},
+    checkBatchAxis = true,
+    batchSize?: number): [Tensor[], Tensor[]] {
     // TODO(cais): Add sampleWeight, classWeight
     if (this.optimizer_ == null) {
       throw new RuntimeError(
@@ -1161,8 +1164,36 @@ export class LayersModel extends Container implements tfc.InferenceModel {
             `${batchSize}. Found: ${x[0].shape[0]} sample(s).`);
       }
     }
+    return [x, y];
+  }
+
+  protected async standardizeUserData(
+      x: Tensor|Tensor[]|{[inputName: string]: Tensor},
+      y: Tensor|Tensor[]|{[inputName: string]: Tensor},
+      sampleWeight?: Tensor|Tensor[]|{[outputName: string]: Tensor},
+      classWeight?: ClassWeight|ClassWeight[]|ClassWeightMap,
+      checkBatchAxis = true,
+      batchSize?: number): Promise<[Tensor[], Tensor[], Tensor[]]> {
+    const [standardXs, standardYs] =
+        this.standardizeUserDataXY(x, y, checkBatchAxis, batchSize);
+    // TODO(cais): Handle sampleWeights.
+    if (sampleWeight != null) {
+      throw new Error('sample weight is not supported yet.');
+    }
+
+    let standardSampleWeights: Tensor[] = null;
+    if (classWeight != null) {
+      const classWeights =
+          standardizeClassWeights(classWeight, this.outputNames);
+      standardSampleWeights = [];
+      for (let i = 0; i < classWeights.length; ++i) {
+        standardSampleWeights.push(
+            await standardizeWeights(standardYs[i], null, classWeights[i]));
+      }
+    }
+
     // TODO(cais): Deal with the case of model.stateful == true.
-    return [x, y, null];
+    return [standardXs, standardYs, standardSampleWeights];
   }
 
   /**
@@ -1251,12 +1282,14 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    */
   protected makeTrainFunction(): (data: Tensor[]) => Scalar[] {
     return (data: Tensor[]) => {
-      const losses: Tensor[] = [];
       const lossValues: Scalar[] = [];
 
       const inputs = data.slice(0, this.inputs.length);
       const targets = data.slice(
           this.inputs.length, this.inputs.length + this.outputs.length);
+      const sampleWeights = data.slice(
+          this.inputs.length + this.outputs.length,
+          this.inputs.length + this.outputs.length * 2);
 
       const metricsValues: Scalar[] = [];
 
@@ -1277,8 +1310,11 @@ export class LayersModel extends Container implements tfc.InferenceModel {
         let totalLoss: Tensor;
         for (let i = 0; i < this.lossFunctions.length; ++i) {
           const lossFunction = this.lossFunctions[i];
-          const loss = lossFunction(targets[i], outputs[i]);
-          losses.push(loss);
+          let loss = lossFunction(targets[i], outputs[i]);
+          if (sampleWeights[i] != null) {
+            loss = computeWeightedLoss(loss, sampleWeights[i]);
+          }
+
           // TODO(cais): push Scalar instead.
           const meanLoss = tfc.mean(loss) as Scalar;
           // TODO(cais): Use a scope() instead, to avoid ownership.
@@ -1294,16 +1330,20 @@ export class LayersModel extends Container implements tfc.InferenceModel {
         // TODO(cais): These should probably be calculated outside
         //   totalLossFunction to benefit speed?
         for (let i = 0; i < this.metricsTensors.length; ++i) {
-          const metric = this.metricsTensors[i][0];
-          const outputIndex = this.metricsTensors[i][1];
-          // TODO(cais): Replace K.mean() with a proper weighting
-          // function.
-          const meanMetric =
-              tfc.mean(metric(targets[outputIndex], outputs[outputIndex])) as
-              Scalar;
-          tfc.keep(meanMetric);
+          let weightedMetric: Scalar;
+
+          if (this.outputs.length > 1 && i < this.outputs.length) {
+            weightedMetric = lossValues[i];
+          } else {
+            const metric = this.metricsTensors[i][0];
+            const outputIndex = this.metricsTensors[i][1];
+            weightedMetric = tfc.mean(
+                metric(targets[outputIndex], outputs[outputIndex])) as Scalar;
+          }
+
+          tfc.keep(weightedMetric);
           // TODO(cais): Use a scope() instead, to avoid ownership.
-          metricsValues.push(meanMetric);
+          metricsValues.push(weightedMetric);
         }
 
         totalLoss = tfc.mean(totalLoss);
@@ -1473,7 +1513,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
       {[inputName: string]: Tensor}): Promise<number|number[]> {
     // TODO(cais): Support sampleWeight and classWeight.
     // TODO(cais): Support Dataset objects.
-    const standardizeOut = this.standardizeUserData(x, y);
+    const standardizeOut = await this.standardizeUserData(x, y);
     const inputs = standardizeOut[0];
     const targets = standardizeOut[1];
     const trainFunction = this.makeTrainFunction();

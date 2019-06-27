@@ -21,6 +21,7 @@ export {CallbackList, CustomCallback, CustomCallbackArgs, History} from './base_
 export {Callback, callbacks, EarlyStopping, EarlyStoppingCallbackArgs} from './callbacks';
 export {InputSpec, SymbolicTensor} from './engine/topology';
 export {LayersModel, ModelCompileArgs, ModelEvaluateArgs} from './engine/training';
+export {ClassWeight, ClassWeightMap} from './engine/training_utils';
 export {ModelFitDatasetArgs} from './engine/training_dataset';
 export {ModelFitArgs} from './engine/training_tensors';
 export {input, loadLayersModel, model, registerCallbackConstructor, sequential} from './exports';
