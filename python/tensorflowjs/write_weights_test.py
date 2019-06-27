@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -94,6 +95,281 @@ class TestWriteWeights(unittest.TestCase):
     weight1 = np.fromfile(weights_path, 'bool')
     np.testing.assert_array_equal(
         weight1, np.array([True, False, True], 'bool'))
+
+  def test_1_group_1_weight_string(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array([['здраво', 'end'], ['test', 'a']], 'object')
+        }]
+    ]
+
+    manifest = write_weights.write_weights(
+        groups, TMP_DIR, shard_size_bytes=4 * 1024 * 1024)
+
+    self.assertTrue(
+        os.path.isfile(os.path.join(TMP_DIR, 'weights_manifest.json')),
+        'weights_manifest.json does not exist')
+
+    self.assertEqual(
+        manifest,
+        [{
+            'paths': ['group1-shard1of1.bin'],
+            'weights': [{
+                'name': 'weight1',
+                'shape': [2, 2],
+                'dtype': 'string'
+            }]
+        }])
+
+    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1.bin')
+    with open(weights_path, 'rb') as f:
+      weight_bytes = f.read()
+
+      self.assertEqual(len(weight_bytes), 36)
+      # 'здраво'
+      size = np.frombuffer(weight_bytes[:4], 'uint32')[0]
+      self.assertEqual(size, 12)  # 6 cyrillic chars (2 bytes each).
+      string = weight_bytes[4:16].decode('utf-8')
+      self.assertEqual(string, u'здраво')
+      # 'end'
+      size = np.frombuffer(weight_bytes[16:20], 'uint32')[0]
+      self.assertEqual(size, 3)  # 3 ascii chars.
+      string = weight_bytes[20:23].decode('utf-8')
+      self.assertEqual(string, u'end')
+      # 'test'
+      size = np.frombuffer(weight_bytes[23:27], 'uint32')[0]
+      self.assertEqual(size, 4)  # 4 ascii chars.
+      string = weight_bytes[27:31].decode('utf-8')
+      self.assertEqual(string, u'test')
+      # 'a'
+      size = np.frombuffer(weight_bytes[31:35], 'uint32')[0]
+      self.assertEqual(size, 1)  # 4 ascii chars.
+      string = weight_bytes[35:36].decode('utf-8')
+      self.assertEqual(string, u'a')
+
+
+  def test_1_group_1_weight_string_empty(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array([''], 'object')
+        }]
+    ]
+
+    manifest = write_weights.write_weights(
+        groups, TMP_DIR, shard_size_bytes=4 * 1024 * 1024)
+
+    self.assertTrue(
+        os.path.isfile(os.path.join(TMP_DIR, 'weights_manifest.json')),
+        'weights_manifest.json does not exist')
+
+    self.assertEqual(
+        manifest,
+        [{
+            'paths': ['group1-shard1of1.bin'],
+            'weights': [{
+                'name': 'weight1',
+                'shape': [1],
+                'dtype': 'string'
+            }]
+        }])
+
+    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1.bin')
+    with open(weights_path, 'rb') as f:
+      weight_bytes = f.read()
+      self.assertEqual(len(weight_bytes), 4)
+      size = np.frombuffer(weight_bytes[:4], 'uint32')[0]
+      self.assertEqual(size, 0)  # Empty string.
+
+  def test_1_group_1_weight_string_unicode(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array([[u'здраво', u'end'], [u'test', u'a']], 'object')
+        }]
+    ]
+
+    manifest = write_weights.write_weights(
+        groups, TMP_DIR, shard_size_bytes=4 * 1024 * 1024)
+
+    self.assertTrue(
+        os.path.isfile(os.path.join(TMP_DIR, 'weights_manifest.json')),
+        'weights_manifest.json does not exist')
+
+    self.assertEqual(
+        manifest,
+        [{
+            'paths': ['group1-shard1of1.bin'],
+            'weights': [{
+                'name': 'weight1',
+                'shape': [2, 2],
+                'dtype': 'string'
+            }]
+        }])
+
+    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1.bin')
+    with open(weights_path, 'rb') as f:
+      weight_bytes = f.read()
+
+      self.assertEqual(len(weight_bytes), 36)
+      # 'здраво'
+      size = np.frombuffer(weight_bytes[:4], 'uint32')[0]
+      self.assertEqual(size, 12)  # 6 cyrillic chars (2 bytes each).
+      string = weight_bytes[4:16].decode('utf-8')
+      self.assertEqual(string, u'здраво')
+      # 'end'
+      size = np.frombuffer(weight_bytes[16:20], 'uint32')[0]
+      self.assertEqual(size, 3)  # 3 ascii chars.
+      string = weight_bytes[20:23].decode('utf-8')
+      self.assertEqual(string, u'end')
+      # 'test'
+      size = np.frombuffer(weight_bytes[23:27], 'uint32')[0]
+      self.assertEqual(size, 4)  # 4 ascii chars.
+      string = weight_bytes[27:31].decode('utf-8')
+      self.assertEqual(string, u'test')
+      # 'a'
+      size = np.frombuffer(weight_bytes[31:35], 'uint32')[0]
+      self.assertEqual(size, 1)  # 4 ascii chars.
+      string = weight_bytes[35:36].decode('utf-8')
+      self.assertEqual(string, u'a')
+
+  def test_1_group_1_weight_string_sharded(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array(['helloworld'], 'object')
+        }]
+    ]
+
+    # The array takes up 14 bytes across 3 shards when shard size is 5 bytes.
+    manifest = write_weights.write_weights(
+        groups, TMP_DIR, shard_size_bytes=5)
+
+    self.assertTrue(
+        os.path.isfile(os.path.join(TMP_DIR, 'weights_manifest.json')),
+        'weights_manifest.json does not exist')
+
+    self.assertEqual(
+        manifest,
+        [{
+            'paths': [
+                'group1-shard1of3.bin',
+                'group1-shard2of3.bin',
+                'group1-shard3of3.bin'
+            ],
+            'weights': [{
+                'name': 'weight1',
+                'shape': [1],
+                'dtype': 'string'
+            }]
+        }])
+
+    weight_bytes = bytes()
+    with open(os.path.join(TMP_DIR, 'group1-shard1of3.bin'), 'rb') as f:
+      weight_bytes += f.read()
+    with open(os.path.join(TMP_DIR, 'group1-shard2of3.bin'), 'rb') as f:
+      weight_bytes += f.read()
+    with open(os.path.join(TMP_DIR, 'group1-shard3of3.bin'), 'rb') as f:
+      weight_bytes += f.read()
+
+    self.assertEqual(len(weight_bytes), 14)
+    size = np.frombuffer(weight_bytes[:4], 'uint32')[0]
+    self.assertEqual(size, 10)  # 10 ascii chars.
+    string = weight_bytes[4:14].decode('utf-8')
+    self.assertEqual(string, u'helloworld')
+
+  def test_1_group_3_weights_packed_multi_dtype(self):
+    # Each string tensor uses different encoding.
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array([1, 2, 3], 'float32')
+        }, {
+            'name': 'weight2',
+            'data': np.array([
+                u'hello'.encode('utf-16'), u'end'.encode('utf-16')], 'object')
+        }, {
+            'name': 'weight3',
+            'data': np.array([u'здраво'.encode('windows-1251')], 'object')
+        }, {
+            'name': 'weight4',
+            'data': np.array([u'语言处理'.encode('utf-8')], 'object')
+        }, {
+            'name': 'weight5',
+            'data': np.array([4, 5, 6], 'float32')
+        }]
+    ]
+
+    manifest = write_weights.write_weights(
+        groups, TMP_DIR, shard_size_bytes=4 * 1024 * 1024)
+
+    self.assertTrue(
+        os.path.isfile(os.path.join(TMP_DIR, 'weights_manifest.json')),
+        'weights_manifest.json does not exist')
+
+    self.assertEqual(
+        manifest,
+        [{
+            'paths': ['group1-shard1of1.bin'],
+            'weights': [{
+                'name': 'weight1',
+                'shape': [3],
+                'dtype': 'float32'
+            }, {
+                'name': 'weight2',
+                'shape': [2],
+                'dtype': 'string'
+            }, {
+                'name': 'weight3',
+                'shape': [1],
+                'dtype': 'string'
+            }, {
+                'name': 'weight4',
+                'shape': [1],
+                'dtype': 'string'
+            }, {
+                'name': 'weight5',
+                'shape': [3],
+                'dtype': 'float32'
+            }]
+        }])
+
+    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1.bin')
+    with open(weights_path, 'rb') as f:
+      weight_bytes = f.read()
+      self.assertEqual(len(weight_bytes), 78)
+
+      # [1, 2, 3]
+      weight1 = np.frombuffer(weight_bytes[:12], 'float32')
+      np.testing.assert_array_equal(weight1, np.array([1, 2, 3], 'float32'))
+
+      # 'hello'
+      size = np.frombuffer(weight_bytes[12:16], 'uint32')[0]
+      self.assertEqual(size, 12)  # 5 ascii chars in utf-16.
+      string = weight_bytes[16:28].decode('utf-16')
+      self.assertEqual(string, u'hello')
+
+      # 'end'
+      size = np.frombuffer(weight_bytes[28:32], 'uint32')[0]
+      self.assertEqual(size, 8)  # 3 ascii chars in utf-16.
+      string = weight_bytes[32:40].decode('utf-16')
+      self.assertEqual(string, u'end')
+
+      # 'здраво'
+      size = np.frombuffer(weight_bytes[40:44], 'uint32')[0]
+      self.assertEqual(size, 6)  # 6 cyrillic chars in windows-1251.
+      string = weight_bytes[44:50].decode('windows-1251')
+      self.assertEqual(string, u'здраво')
+
+      # '语言处理'
+      size = np.frombuffer(weight_bytes[50:54], 'uint32')[0]
+      self.assertEqual(size, 12)  # 4 east asian chars in utf-8.
+      string = weight_bytes[54:66].decode('utf-8')
+      self.assertEqual(string, u'语言处理')
+
+      weight5 = np.frombuffer(weight_bytes[66:], 'float32')
+      np.testing.assert_array_equal(weight5, np.array([4, 5, 6], 'float32'))
 
   def test_1_group_1_weight_sharded(self):
     groups = [
