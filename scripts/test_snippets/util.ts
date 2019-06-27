@@ -19,6 +19,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 
+process.on('unhandledRejection', ex => {
+  throw ex;
+});
+
 // Used for logging the number of snippets that have been found.
 let snippetCount = 0;
 // Used for counting the number of errors that have been found.

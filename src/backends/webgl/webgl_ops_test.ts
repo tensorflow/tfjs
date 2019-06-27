@@ -432,10 +432,10 @@ describeWithFlags('conv to matmul', PACKED_ENVS, () => {
 // For operations on non-trivial matrix sizes, we skip the CPU-only ENV and use
 // only WebGL ENVs.
 describeWithFlags('gramSchmidt-non-tiny', WEBGL_ENVS, () => {
-  it('16x128', async () => {
+  it('16x32', async () => {
     // Part of this test's point is that operation on a matrix of this size
     // can complete in the timeout limit of the unit test.
-    const xs = tf.randomUniform([16, 128]) as Tensor2D;
+    const xs = tf.randomUniform([16, 32]) as Tensor2D;
     const y = tf.linalg.gramSchmidt(xs) as Tensor2D;
     expectArraysClose(
         await y.matMul(y.transpose()).data(), await tf.eye(16).data());
