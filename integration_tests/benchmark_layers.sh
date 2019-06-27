@@ -60,6 +60,7 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
   HASH_NODE="$(git rev-parse HEAD)"
   rm -rf dist/
   yarn
+  rm -f tensorflow-tfjs-*.tgz
   if [[ "${IS_TFJS_NODE_GPU}" == "1" ]]; then
     yarn build-npm-gpu
     TAR_BALL="$(find ./ -name "tensorflow-tfjs-node-gpu-*.tgz")"
@@ -76,11 +77,11 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
 
   rm -rf ../node_modules/@tensorflow/tfjs-node/*
   tar xvzf "${TAR_BALL}" --directory ../node_modules/@tensorflow/tfjs-node
-  mv ../node_modules/@tensorflow/tfjs-node/package/* \
-      ../node_modules/@tensorflow/tfjs-node/
-  rm -rf ../node_modules/@tensorflow/tfjs-node/package/
-
   pushd ../node_modules/@tensorflow/tfjs-node/
+
+  mv package/* ./
+  rm -rf package/
+
   # Compile the bindings in the tfjs-node / tfjs-node-gpu release package.
   yarn
 
