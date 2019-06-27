@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,6 +57,165 @@ class ReadWeightsTest(unittest.TestCase):
     self.assertEqual('weight1', read_output[0][0]['name'])
     self.assertTrue(
         np.allclose(groups[0][0]['data'], read_output[0][0]['data']))
+
+  def testReadOneGroupString(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array([['test', 'a'], ['b', 'c']], 'object')
+        }]
+    ]
+
+    manifest = write_weights.write_weights(groups, self._tmp_dir)
+
+    # Read the weights using `read_weights`.
+    read_output = read_weights.read_weights(manifest, self._tmp_dir)
+    self.assertEqual(1, len(read_output))
+    self.assertEqual(1, len(read_output[0]))
+    self.assertEqual('weight1', read_output[0][0]['name'])
+    np.testing.assert_array_equal(
+        read_output[0][0]['data'],
+        np.array([[u'test'.encode('utf-8'), u'a'.encode('utf-8')],
+                  [u'b'.encode('utf-8'), u'c'.encode('utf-8')]], 'object'))
+
+
+  def testReadCyrillicStringUnicodeAndEncoded(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            # String is stored as unicode.
+            'data': np.array([u'здраво'], 'object')
+        }, {
+            'name': 'weight2',
+            # String is stored encoded.
+            'data': np.array([u'поздрав'.encode('utf-8')], 'object')
+        }]
+    ]
+
+    manifest = write_weights.write_weights(groups, self._tmp_dir)
+
+    # Read the weights using `read_weights`.
+    read_output = read_weights.read_weights(manifest, self._tmp_dir)
+    self.assertEqual(1, len(read_output))
+    group = read_output[0]
+    self.assertEqual(2, len(group))
+
+    weight1 = group[0]
+    self.assertEqual('weight1', weight1['name'])
+    np.testing.assert_array_equal(
+        weight1['data'],
+        np.array([u'здраво'.encode('utf-8')], 'object'))
+
+    weight2 = group[1]
+    self.assertEqual('weight2', weight2['name'])
+    np.testing.assert_array_equal(
+        weight2['data'],
+        np.array([u'поздрав'.encode('utf-8')], 'object'))
+
+  def testReadEastAsianStringUnicodeAndEncoded(self):
+    # Each string tensor uses different encoding.
+    groups = [
+        [{
+            'name': 'weight1',
+            # Decoded.
+            'data': np.array([u'语言处理'], 'object')
+        }, {
+            'name': 'weight2',
+            # Encoded as utf-16.
+            'data': np.array([u'语言处理'.encode('utf-16')], 'object')
+        }, {
+            'name': 'weight3',
+            # Encoded as utf-8.
+            'data': np.array([u'语言处理'.encode('utf-8')], 'object')
+        }]
+    ]
+
+    manifest = write_weights.write_weights(groups, self._tmp_dir)
+
+    # Read the weights using `read_weights`.
+    read_output = read_weights.read_weights(manifest, self._tmp_dir)
+    self.assertEqual(1, len(read_output))
+    group = read_output[0]
+    self.assertEqual(3, len(group))
+
+    weight1 = group[0]
+    self.assertEqual('weight1', weight1['name'])
+    np.testing.assert_array_equal(
+        weight1['data'],
+        np.array([u'语言处理'.encode('utf-8')], 'object'))
+
+    weight2 = group[1]
+    self.assertEqual('weight2', weight2['name'])
+    np.testing.assert_array_equal(
+        weight2['data'],
+        np.array([u'语言处理'.encode('utf-16')], 'object'))
+
+    weight3 = group[2]
+    self.assertEqual('weight3', weight3['name'])
+    np.testing.assert_array_equal(
+        weight3['data'],
+        np.array([u'语言处理'.encode('utf-8')], 'object'))
+
+  def testReadOneGroupStringWithShards(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array(['test', 'a', 'c'], 'object')
+        }]
+    ]
+
+    manifest = write_weights.write_weights(groups, self._tmp_dir,
+                                           shard_size_bytes=4)
+
+    # Read the weights using `read_weights`.
+    read_output = read_weights.read_weights(manifest, self._tmp_dir)
+    self.assertEqual(1, len(read_output))
+    self.assertEqual(1, len(read_output[0]))
+    self.assertEqual('weight1', read_output[0][0]['name'])
+    np.testing.assert_array_equal(read_output[0][0]['data'],
+                                  np.array([u'test'.encode('utf-8'),
+                                            u'a'.encode('utf-8'),
+                                            u'c'.encode('utf-8')], 'object'))
+
+  def testReadOneGroupEmptyStrings(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array(['', ''], 'object')
+        }, {
+            'name': 'weight2',
+            'data': np.array([], 'object')
+        }, {
+            'name': 'weight3',
+            'data': np.array([[]], 'object')
+        }]
+    ]
+
+    manifest = write_weights.write_weights(groups, self._tmp_dir)
+
+    # Read the weights using `read_weights`.
+    read_output = read_weights.read_weights(manifest, self._tmp_dir)
+    self.assertEqual(1, len(read_output))
+    group = read_output[0]
+    self.assertEqual(3, len(group))
+
+    weight1 = group[0]
+    self.assertEqual('weight1', weight1['name'])
+    np.testing.assert_array_equal(
+        weight1['data'],
+        np.array([u''.encode('utf-8'), u''.encode('utf-8')], 'object'))
+
+    weight2 = group[1]
+    self.assertEqual('weight2', weight2['name'])
+    np.testing.assert_array_equal(
+        weight2['data'],
+        np.array([], 'object'))
+
+    weight3 = group[2]
+    self.assertEqual('weight3', weight3['name'])
+    np.testing.assert_array_equal(
+        weight3['data'],
+        np.array([[]], 'object'))
 
   def testReadOneGroupFlattened(self):
     groups = [

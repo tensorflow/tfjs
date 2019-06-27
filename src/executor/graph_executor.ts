@@ -237,6 +237,7 @@ export class GraphExecutor {
       Promise<Tensor[]> {
     this.checkInputs(inputs);
     this.checkInputShapeAndType(inputs);
+    this.checkOutputs(outputs);
     const tensorArrayMap: TensorArrayMap = {};
     const context = new ExecutionContext(this._weightMap, tensorArrayMap);
     // Graph with control flow op requires runtime evaluation of the execution

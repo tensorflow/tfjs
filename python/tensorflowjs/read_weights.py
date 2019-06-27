@@ -24,8 +24,12 @@ import os
 import numpy as np
 from tensorflowjs import quantization
 
-_INPUT_DTYPES = [np.float32, np.int32, np.uint8, np.uint16]
+_INPUT_DTYPES = [np.float32, np.int32, np.uint8, np.uint16, np.object]
 
+# Number of bytes used to encode the length of a string in a string tensor.
+STRING_LENGTH_NUM_BYTES = 4
+# The data type used to encode the length of a string in a string tensor.
+STRING_LENGTH_DTYPE = np.dtype('uint32').newbyteorder('<')
 
 def read_weights(weights_manifest, base_path, flatten=False):
   """Load weight values according to a TensorFlow.js weights manifest.
@@ -69,6 +73,54 @@ def read_weights(weights_manifest, base_path, flatten=False):
     data_buffers.append(buff.read())
   return decode_weights(weights_manifest, data_buffers, flatten=flatten)
 
+
+def _deserialize_string_array(data_buffer, offset, shape):
+  """Deserializes bytes into np.array of dtype `object` which holds strings.
+
+  Each string value is preceeded by 4 bytes which denote a 32-bit unsigned
+  integer in little endian that specifies the byte length of the following
+  string. This is followed by the actual string bytes. If the tensor has no
+  strings there will be no bytes reserved. Empty strings will still take 4 bytes
+  for the length.
+
+  For example, a tensor that has 2 strings will be encoded as
+  [byte length of s1][bytes of s1...][byte length of s2][bytes of s2...]
+
+  where byte length always takes 4 bytes.
+
+  Args:
+    data_buffer: A buffer of bytes containing the serialized data.
+    offset: The byte offset in that buffer that denotes the start of the tensor.
+    shape: The logical shape of the tensor.
+
+  Returns:
+    A tuple of (np.array, offset) where the np.array contains the encoded
+    strings, and the offset contains the new offset (the byte position in the
+    buffer at the end of the string data).
+  """
+  size = np.prod(shape)
+  if size == 0:
+    return (np.array([], 'object').reshape(shape),
+            offset + STRING_LENGTH_NUM_BYTES)
+  vals = []
+  for _ in range(size):
+    byte_length = np.frombuffer(
+        data_buffer[offset:offset + STRING_LENGTH_NUM_BYTES],
+        STRING_LENGTH_DTYPE)[0]
+    offset += STRING_LENGTH_NUM_BYTES
+    string = data_buffer[offset:offset + byte_length]
+    vals.append(string)
+    offset += byte_length
+  return np.array(vals, 'object').reshape(shape), offset
+
+
+def _deserialize_numeric_array(data_buffer, offset, dtype, shape):
+  weight_numel = 1
+  for dim in shape:
+    weight_numel *= dim
+  return np.frombuffer(
+      data_buffer, dtype=dtype, count=weight_numel,
+      offset=offset).reshape(shape)
 
 def decode_weights(weights_manifest, data_buffers, flatten=False):
   """Load weight values from buffer(s) according to a weights manifest.
@@ -117,27 +169,29 @@ def decode_weights(weights_manifest, data_buffers, flatten=False):
     out_group = []
 
     for weight in group['weights']:
-      quantization_info = weight.get('quantization', None)
+      quant_info = weight.get('quantization', None)
       name = weight['name']
-      dtype = np.dtype(
-          quantization_info['dtype'] if quantization_info else weight['dtype'])
+      if weight['dtype'] == 'string':
+        # String array.
+        dtype = np.object
+      elif quant_info:
+        # Quantized array.
+        dtype = np.dtype(quant_info['dtype'])
+      else:
+        # Regular numeric array.
+        dtype = np.dtype(weight['dtype'])
       shape = weight['shape']
       if dtype not in _INPUT_DTYPES:
         raise NotImplementedError('Unsupported data type: %s' % dtype)
-      unit_bytes = dtype.itemsize
-
-      weight_numel = 1
-      for dim in shape:
-        weight_numel *= dim
-      weight_bytes = unit_bytes * weight_numel
-      value = np.frombuffer(
-          data_buffer, dtype=dtype, count=weight_numel,
-          offset=offset).reshape(shape)
-      if quantization_info:
+      if weight['dtype'] == 'string':
+        value, offset = _deserialize_string_array(data_buffer, offset, shape)
+      else:
+        value = _deserialize_numeric_array(data_buffer, offset, dtype, shape)
+        offset += dtype.itemsize * value.size
+      if quant_info:
         value = quantization.dequantize_weights(
-            value, quantization_info['scale'], quantization_info['min'],
+            value, quant_info['scale'], quant_info['min'],
             np.dtype(weight['dtype']))
-      offset += weight_bytes
       out_group.append({'name': name, 'data': value})
 
     if flatten:
