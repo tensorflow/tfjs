@@ -56,20 +56,36 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
     echo 'Use latest version of tfjs-node'
     git clone https://github.com/tensorflow/tfjs-node.git --depth 5
   fi
-  cd tfjs-node
+  pushd tfjs-node
   HASH_NODE="$(git rev-parse HEAD)"
   rm -rf dist/
+  yarn
   if [[ "${IS_TFJS_NODE_GPU}" == "1" ]]; then
-    yarn node scripts/install.js gpu download
+    yarn build-npm-gpu
+    TAR_BALL="$(find ./ -name "tensorflow-tfjs-node-gpu-*.tgz")"
   else
-    yarn node scripts/install.js cpu download
+    yarn build-npm
+    TAR_BALL="$(find ./ -name "tensorflow-tfjs-node-*.tgz")"
   fi
-  yarn && yarn build && yalc publish
 
-  cd ..
-  yarn yalc link '@tensorflow/tfjs-node'
-  rm -rf .yalc/@tensorflow/tfjs-node/build
-  cp -Lr tfjs-node/build/Release .yalc/@tensorflow/tfjs-node/build
+  if [[ -z "${TAR_BALL}" ]]; then
+    echo "Unable to find the tar ball built by `yarn build-npm`."
+    exit 1
+  fi
+  echo "Find built tar ball at: ${TAR_BALL}"
+
+  rm -rf ../node_modules/@tensorflow/tfjs-node/*
+  tar xvzf "${TAR_BALL}" --directory ../node_modules/@tensorflow/tfjs-node
+  mv ../node_modules/@tensorflow/tfjs-node/package/* \
+      ../node_modules/@tensorflow/tfjs-node/
+  rm -rf ../node_modules/@tensorflow/tfjs-node/package/
+
+  pushd ../node_modules/@tensorflow/tfjs-node/
+  # Compile the bindings in the tfjs-node / tfjs-node-gpu release package.
+  yarn
+
+  popd
+  popd
 else
   # Download the tfjs repositories, build them, and link them.
   if [[ ! -d "tfjs-core" ]]; then
