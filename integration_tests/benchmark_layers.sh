@@ -69,6 +69,13 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
     TAR_BALL="$(find ./ -name "tensorflow-tfjs-node-*.tgz")"
   fi
 
+  TAR_BALL_COUNT="$(ls tensorflow-tfjs-*.tgz | wc -w)"
+  if [[ "${TAR_BALL_COUNT}" != "1" ]]; then
+    echo "ERROR: Expected to find exactly one tensorflow-tfjs-node-* tar ball"
+    echo "       But found ${TAR_BALL_COUNT}."
+    exit 1
+  fi
+
   if [[ -z "${TAR_BALL}" ]]; then
     echo "Unable to find the tar ball built by `yarn build-npm`."
     exit 1
