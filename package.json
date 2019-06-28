@@ -62,6 +62,7 @@
   "browser": {
     "fs": false,
     "node-fetch": false,
-    "string_decoder": false
+    "string_decoder": false,
+    "crypto": false
   }
 }
