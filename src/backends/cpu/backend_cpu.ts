@@ -80,8 +80,8 @@ export class MathBackendCPU implements KernelBackend {
   public blockSize = 48;
 
   private data: DataStorage<TensorData<DataType>>;
-  private fromPixels2DContext: CanvasRenderingContext2D|
-      OffscreenCanvasRenderingContext2D;
+  private fromPixels2DContext: CanvasRenderingContext2D
+      | OffscreenCanvasRenderingContext2D;
   private firstUse = true;
 
   constructor() {
@@ -130,6 +130,16 @@ export class MathBackendCPU implements KernelBackend {
       throw new Error(
           'pixels passed to tf.browser.fromPixels() can not be null');
     }
+
+    const isPixelData = (pixels as PixelData).data instanceof Uint8Array;
+    const isImageData =
+        typeof(ImageData) !== 'undefined' && pixels instanceof ImageData;
+    const isVideo =
+        typeof(HTMLVideoElement) !== 'undefined'
+        && pixels instanceof HTMLVideoElement;
+    const isImage = typeof(HTMLImageElement) !== 'undefined'
+        && pixels instanceof HTMLImageElement;
+
     let vals: Uint8ClampedArray|Uint8Array;
     // tslint:disable-next-line:no-any
     if (ENV.get('IS_NODE') && (pixels as any).getContext == null) {
@@ -144,13 +154,9 @@ export class MathBackendCPU implements KernelBackend {
                  .getContext('2d')
                  .getImageData(0, 0, pixels.width, pixels.height)
                  .data;
-    } else if (
-        pixels instanceof ImageData ||
-        (pixels as PixelData).data instanceof Uint8Array) {
+    } else if (isImageData || isPixelData) {
       vals = (pixels as PixelData | ImageData).data;
-    } else if (
-        pixels instanceof HTMLImageElement ||
-        pixels instanceof HTMLVideoElement) {
+    } else if (isImage || isVideo) {
       if (this.fromPixels2DContext == null) {
         throw new Error(
             'Can\'t read pixels from HTMLImageElement outside ' +
@@ -159,7 +165,7 @@ export class MathBackendCPU implements KernelBackend {
       this.fromPixels2DContext.canvas.width = pixels.width;
       this.fromPixels2DContext.canvas.height = pixels.height;
       this.fromPixels2DContext.drawImage(
-          pixels, 0, 0, pixels.width, pixels.height);
+          pixels as HTMLVideoElement, 0, 0, pixels.width, pixels.height);
       vals = this.fromPixels2DContext
                  .getImageData(0, 0, pixels.width, pixels.height)
                  .data;
