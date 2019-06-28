@@ -81,6 +81,7 @@
   },
   "browser": {
     "node-fetch": false,
-    "util": false
+    "util": false,
+    "crypto": false
   }
 }
