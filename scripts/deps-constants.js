@@ -17,6 +17,19 @@
 const os = require('os');
 const path = require('path');
 
+/** Version of the libtensorflow shared library to depend on. */
+const LIBTENSORFLOW_VERSION = '1.14.0';
+
+/** Get the MAJOR.MINOR-only version of libtensorflow. */
+function getLibTensorFlowMajorDotMinorVersion() {
+  const items = LIBTENSORFLOW_VERSION.split('.');
+  if (items.length < 3) {
+    throw new Error(
+        `Invalid version string for libtensorflow: ${LIBTENSORFLOW_VERSION}`);
+  }
+  return `${items[0]}.${items[1]}`;
+}
+
 // Determine constants for deps folder names and destination (build) path names.
 let depsLibTensorFlowName = 'libtensorflow';
 let depsLibTensorFlowFrameworkName = 'libtensorflow_framework';
@@ -38,9 +51,8 @@ if (os.platform() === 'win32') {
   destLibTensorFlowFrameworkName = depsLibTensorFlowFrameworkName;
 } else if (os.platform() === 'linux') {
   // Linux has a hard-coded version number, make the destination name simpler:
-  depsLibTensorFlowName += '.so.1.14.0';
-  depsLibTensorFlowFrameworkName += '.so.1.14.0';
-
+  depsLibTensorFlowName += `.so.${LIBTENSORFLOW_VERSION}`;
+  depsLibTensorFlowFrameworkName += `.so.${LIBTENSORFLOW_VERSION}`;
   destLibTensorFlowName += '.so';
   destLibTensorFlowFrameworkName += '.so';
 } else {
@@ -62,5 +74,7 @@ module.exports = {
   depsLibTensorFlowName,
   depsLibTensorFlowPath,
   destLibTensorFlowFrameworkName,
-  destLibTensorFlowName
+  destLibTensorFlowName,
+  getLibTensorFlowMajorDotMinorVersion,
+  LIBTENSORFLOW_VERSION
 };

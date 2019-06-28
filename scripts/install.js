@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+
 const fs = require('fs');
 let path = require('path');
 const rimraf = require('rimraf');
@@ -24,6 +25,9 @@ const {depsPath, depsLibPath, depsLibTensorFlowPath} =
     require('./deps-constants.js');
 const resources = require('./resources');
 
+const {getLibTensorFlowMajorDotMinorVersion, LIBTENSORFLOW_VERSION} =
+    require('./deps-constants');
+
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
 const rename = util.promisify(fs.rename);
@@ -31,16 +35,18 @@ const rimrafPromise = util.promisify(rimraf);
 
 const BASE_URI =
     'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
-const CPU_DARWIN = 'cpu-darwin-x86_64-1.14.0.tar.gz';
-const CPU_LINUX = 'cpu-linux-x86_64-1.14.0.tar.gz';
-const GPU_LINUX = 'gpu-linux-x86_64-1.14.0.tar.gz';
-const CPU_WINDOWS = 'cpu-windows-x86_64-1.14.0.zip';
-const GPU_WINDOWS = 'gpu-windows-x86_64-1.14.0.zip';
+const CPU_DARWIN = `cpu-darwin-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
+const CPU_LINUX = `cpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
+const GPU_LINUX = `gpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
+const CPU_WINDOWS = `cpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
+
+const GPU_WINDOWS = `gpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
 
 // TODO(kreeger): Update to TensorFlow 1.13:
 // https://github.com/tensorflow/tfjs/issues/1369
 const TF_WIN_HEADERS_URI =
-    'https://storage.googleapis.com/tf-builds/tensorflow-headers-1.14.zip';
+    `https://storage.googleapis.com/tf-builds/tensorflow-headers-` +
+    `${getLibTensorFlowMajorDotMinorVersion()}.zip`;
 
 const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
