@@ -11,6 +11,7 @@
 /* Original source keras/models.py */
 
 import {dispose, io, NamedTensorMap, Optimizer, Scalar, serialization, Tensor, util} from '@tensorflow/tfjs-core';
+import {NamedTensor} from '@tensorflow/tfjs-core/dist/tensor_types';
 
 import {getUid} from './backend/state';
 import {History} from './base_callbacks';
@@ -22,6 +23,7 @@ import {ModelEvaluateDatasetArgs, ModelFitDatasetArgs} from './engine/training_d
 import {ModelFitArgs} from './engine/training_tensors';
 import {NotImplementedError, RuntimeError, ValueError} from './errors';
 import {Shape} from './keras_format/common';
+import {TrainingConfig} from './keras_format/training_config';
 import {PyJsonDict} from './keras_format/types';
 import {deserialize} from './layers/serialization';
 import {Kwargs} from './types';
@@ -300,6 +302,11 @@ export async function loadLayersModelFromIOHandler(
           convertPythonicToTs(modelTopology) as serialization.ConfigDict,
           customObjects, fastWeightInit) as LayersModel;
 
+  const trainingConfig = artifacts.trainingConfig as TrainingConfig;
+  if (trainingConfig != null) {
+    model.loadTrainingConfig(trainingConfig);
+  }
+
   // If weightData is present, load the weights into the model.
   if (artifacts.weightData != null) {
     // Loading weights requires weightSpecs.
@@ -309,13 +316,35 @@ export async function loadLayersModelFromIOHandler(
           'Therefore loading of weights cannot proceed.');
     }
 
-    const weights =
-        io.decodeWeights(artifacts.weightData, artifacts.weightSpecs);
-    model.loadWeights(weights, strict);
+    const {modelWeights, optimizerWeights} = decodeModelAndOptimizerWeights(
+        artifacts.weightData, artifacts.weightSpecs);
+    model.loadWeights(modelWeights, strict);
+
+    if (model.optimizer != null && optimizerWeights.length > 0) {
+      await model.optimizer.setWeights(optimizerWeights);
+    }
+
     // Dispose temporary weight values.
-    dispose(weights);
+    dispose(modelWeights);
+    dispose(optimizerWeights.map(w => w.tensor));
   }
   return model;
+}
+
+function decodeModelAndOptimizerWeights(
+    buffer: ArrayBuffer, specs: io.WeightsManifestEntry[]):
+    {modelWeights: NamedTensorMap, optimizerWeights: NamedTensor[]} {
+  const name2Tensor = io.decodeWeights(buffer, specs);
+  const modelWeights: NamedTensorMap = {};
+  const optimizerWeights: NamedTensor[] = [];
+  specs.forEach(spec => {
+    if (spec.group === 'optimizer') {
+      optimizerWeights.push({name: spec.name, tensor: name2Tensor[spec.name]});
+    } else {
+      modelWeights[spec.name] = name2Tensor[spec.name];
+    }
+  });
+  return {modelWeights, optimizerWeights};
 }
 
 /**
@@ -786,7 +815,7 @@ export class Sequential extends LayersModel {
   }
 
   get optimizer(): Optimizer {
-    return this.model.optimizer;
+    return this.model == null ? undefined : this.model.optimizer;
   }
 
   set optimizer(optimizer: Optimizer) {

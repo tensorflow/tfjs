@@ -17,7 +17,6 @@ import * as K from './backend/tfjs_backend';
 import {ValueError} from './errors';
 import {LossOrMetricFn} from './types';
 
-
 /**
  * Normalizes a tensor wrt the L2 norm alongside the specified axis.
  * @param x
