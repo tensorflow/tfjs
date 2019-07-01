@@ -142,7 +142,6 @@ describe('TF.js Layers Benchmarks', () => {
     for (let i = 0; i < sortedModelNames.length; ++i) {
       const modelName = sortedModelNames[i];
       const taskGroupLog = suiteLog.data[modelName];
-      console.log(Object.keys(taskGroupLog));
       if (Object.keys(taskGroupLog).length === 0) {
         throw new Error(`Found no task log in model ${modelName}`);
       }

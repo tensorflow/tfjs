@@ -36,11 +36,10 @@ async function initFirebase(): Promise<firebase.firestore.Firestore> {
   if (!inNodeJS()) {
     if (!firebaseInitialized) {
       await firebase.initializeApp({
-        authDomain: 'jstensorflow.firebaseapp.com',
-        projectId: 'jstensorflow'
+        authDomain: 'learnjs-174218.firebaseapp.com',
+        projectId: 'learnjs-174218'
       });
       firebaseInitialized = true;
-      // firestore = firebase.firestore();
     }
     return firebase.firestore();
   } else {
