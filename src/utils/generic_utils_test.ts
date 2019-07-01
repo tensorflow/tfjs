@@ -123,8 +123,8 @@ describe('toSnakeCase', () => {
 
 describe('toCamelCase', () => {
   for (const [inputString, expectedOutput] of [
-           ['', ''], ['A', 'A'], ['aa', 'aa'], ['a_a', 'aA'],
-           ['a_aa', 'aAa']]) {
+           ['', ''], ['A', 'A'], ['aa', 'aa'], ['a_a', 'aA'], ['a_aa', 'aAa'],
+           ['aAa', 'aAa']]) {
     it('creates expected output', () => {
       expect(utils.toCamelCase(inputString)).toEqual(expectedOutput);
     });

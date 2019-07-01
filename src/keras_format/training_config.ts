@@ -28,7 +28,7 @@ export interface TrainingConfig extends PyJsonDict {
   // tslint:disable-next-line:no-any
   optimizer_config: OptimizerSerialization;
   loss: LossIdentifier|LossIdentifier[]|{[key: string]: LossIdentifier};
-  metrics?: MetricsIdentifier[];
+  metrics?: MetricsIdentifier[]|{[key: string]: MetricsIdentifier};
   weighted_metrics?: MetricsIdentifier[];
   sample_weight_mode?: SampleWeightMode;
   loss_weights?: LossWeights;

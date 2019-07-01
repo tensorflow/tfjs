@@ -12,20 +12,28 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import {io, ModelPredictConfig as ModelPredictArgs, NamedTensorMap, Optimizer, Scalar, scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
+import {NamedTensor} from '@tensorflow/tfjs-core/dist/tensor_types';
+
 import * as K from '../backend/tfjs_backend';
 import {History, ModelLoggingVerbosity} from '../base_callbacks';
 import {nameScope} from '../common';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
 import {Shape} from '../keras_format/common';
+import {LossIdentifier} from '../keras_format/loss_config';
+import {OptimizerSerialization} from '../keras_format/optimizer_config';
+import {MetricsIdentifier, TrainingConfig} from '../keras_format/training_config';
+import {deserialize} from '../layers/serialization';
 import * as losses from '../losses';
 import * as Metrics from '../metrics';
 import * as optimizers from '../optimizers';
 import {LossOrMetricFn} from '../types';
-import {count, pyListRepeat, singletonOrArray, unique} from '../utils/generic_utils';
+import {count, pyListRepeat, singletonOrArray, toCamelCase, toSnakeCase, unique} from '../utils/generic_utils';
 import {printSummary} from '../utils/layer_utils';
 import {range} from '../utils/math_utils';
+import {convertPythonicToTs} from '../utils/serialization_utils';
 import {LayerVariable} from '../variables';
 import {version} from '../version';
+
 import {Container, ContainerArgs} from './container';
 import {Dataset} from './dataset_stub';
 import {execute, FeedDict} from './executor';
@@ -33,6 +41,7 @@ import {DisposeResult, SymbolicTensor} from './topology';
 import {evaluateDataset, fitDataset, ModelEvaluateDatasetArgs, ModelFitDatasetArgs} from './training_dataset';
 import {checkBatchSize, disposeNewTensors, ensureTensorsRank2OrHigher, fitTensors, makeBatches, ModelFitArgs, sliceArrays, sliceArraysByIndices} from './training_tensors';
 import {ClassWeight, ClassWeightMap, computeWeightedLoss, standardizeClassWeights, standardizeWeights} from './training_utils';
+
 
 /**
  * Helper function for polymorphic input data: 1. singleton Tensor.
@@ -1536,8 +1545,8 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * @returns A `NamedTensorMap` mapping original weight names (i.e.,
    *   non-uniqueified weight names) to their values.
    */
-  protected getNamedWeights(config?: io.SaveConfig): NamedTensorMap {
-    const namedWeights: NamedTensorMap = {};
+  protected getNamedWeights(config?: io.SaveConfig): NamedTensor [] {
+    const namedWeights: NamedTensor[] = [];
 
     const trainableOnly = config != null && config.trainableOnly;
     const weights = trainableOnly ? this.trainableWeights : this.weights;
@@ -1547,7 +1556,8 @@ export class LayersModel extends Container implements tfc.InferenceModel {
         // Optionally skip non-trainable weights.
         continue;
       }
-      namedWeights[weights[i].originalName] = weightValues[i];
+      namedWeights.push(
+          {name: weights[i].originalName, tensor: weightValues[i]});
     }
     return namedWeights;
   }
@@ -1611,6 +1621,111 @@ export class LayersModel extends Container implements tfc.InferenceModel {
           numTensorsBeforeOptmizerDisposal - tfc.memory().numTensors;
     }
     return result;
+  }
+
+  private getLossIdentifiers(): LossIdentifier|LossIdentifier[]|
+      {[outputName: string]: LossIdentifier} {
+    let lossNames: LossIdentifier|LossIdentifier[]|
+        {[outputName: string]: LossIdentifier};
+    if (typeof this.loss === 'string') {
+      lossNames = toSnakeCase(this.loss) as LossIdentifier;
+    } else if (Array.isArray(this.loss)) {
+      for (const loss of this.loss) {
+        if (typeof loss !== 'string') {
+          throw new Error('Serialization of non-string loss is not supported.');
+        }
+      }
+      lossNames = (this.loss as string[]).map(name => toSnakeCase(name)) as
+          LossIdentifier[];
+    } else {
+      const outputNames = Object.keys(this.loss);
+      lossNames = {} as {[outputName: string]: LossIdentifier};
+      const losses = this.loss as {[outputName: string]: LossOrMetricFn|string};
+      for (const outputName of outputNames) {
+        if (typeof losses[outputName] === 'string') {
+          lossNames[outputName] =
+              toSnakeCase(losses[outputName] as string) as LossIdentifier;
+        } else {
+          throw new Error('Serialization of non-string loss is not supported.');
+        }
+
+      }
+    }
+    return lossNames;
+  }
+
+  private getMetricIdentifiers(): MetricsIdentifier[]|
+      {[key: string]: MetricsIdentifier} {
+    if (typeof this.metrics === 'string' ||
+        typeof this.metrics === 'function') {
+      return [toSnakeCase(Metrics.getLossOrMetricName(this.metrics))];
+    } else if (Array.isArray(this.metrics)) {
+      return this.metrics.map(
+          metric => toSnakeCase(Metrics.getLossOrMetricName(metric)));
+    } else {
+      const metricsIdentifiers: {[key: string]: MetricsIdentifier} = {};
+      for (const key in this.metrics) {
+        metricsIdentifiers[key] =
+            toSnakeCase(Metrics.getLossOrMetricName(this.metrics[key])) as
+            MetricsIdentifier;
+      }
+      return metricsIdentifiers;
+    }
+  }
+
+  protected getTrainingConfig(): TrainingConfig {
+    return {
+      loss: this.getLossIdentifiers(),
+      metrics: this.getMetricIdentifiers(),
+      optimizer_config: {
+        class_name: this.optimizer.getClassName(),
+        config: this.optimizer.getConfig()
+      } as OptimizerSerialization
+    };
+    // TODO(cais): Add weight_metrics when they are supported.
+    // TODO(cais): Add sample_weight_mode when it's supported.
+    // TODO(cais): Add loss_weights when it's supported.
+  }
+
+  loadTrainingConfig(trainingConfig: TrainingConfig) {
+    if (trainingConfig.weighted_metrics != null) {
+      throw new Error('Loading weight_metrics is not supported yet.');
+    }
+    if (trainingConfig.loss_weights != null) {
+      throw new Error('Loading loss_weights is not supported yet.');
+    }
+    if (trainingConfig.sample_weight_mode != null) {
+      throw new Error('Loading sample_weight_mode is not supported yet.');
+    }
+
+    const tsConfig = convertPythonicToTs(trainingConfig.optimizer_config) as
+        serialization.ConfigDict;
+    const optimizer = deserialize(tsConfig) as Optimizer;
+
+    let loss;
+    if (typeof trainingConfig.loss === 'string') {
+      loss = toCamelCase(trainingConfig.loss);
+    } else if (Array.isArray(trainingConfig.loss)) {
+      loss = trainingConfig.loss.map(lossEntry => toCamelCase(lossEntry));
+    } else if (trainingConfig.loss != null) {
+      loss = {} as {[outputName: string]: LossIdentifier};
+      for (const key in trainingConfig.loss) {
+        loss[key] = toCamelCase(trainingConfig.loss[key]) as LossIdentifier;
+      }
+    }
+
+    let metrics;
+    if (Array.isArray(trainingConfig.metrics)) {
+      metrics = trainingConfig.metrics.map(metric => toCamelCase(metric));
+    } else if (trainingConfig.metrics != null) {
+      metrics = {} as {[outputName: string]: MetricsIdentifier};
+      for (const key in trainingConfig.metrics) {
+        metrics[key] = toCamelCase(trainingConfig.metrics[key]) as
+            MetricsIdentifier;
+      }
+    }
+
+    this.compile({loss, metrics, optimizer});
   }
 
   /**
@@ -1721,15 +1836,27 @@ export class LayersModel extends Container implements tfc.InferenceModel {
     const returnString = false;
     const unusedArg: {} = null;
     const modelConfig = this.toJSON(unusedArg, returnString);
-
-    return handlerOrURL.save({
+    const modelArtifacts: io.ModelArtifacts = {
       modelTopology: modelConfig,
-      weightData: weightDataAndSpecs.data,
-      weightSpecs: weightDataAndSpecs.specs,
       format: LAYERS_MODEL_FORMAT_NAME,
       generatedBy: `TensorFlow.js tfjs-layers v${version}`,
       convertedBy: null,
-    });
+    };
+
+    const includeOptimizer = config == null ? false : config.includeOptimizer;
+    if (includeOptimizer && this.optimizer != null) {
+      modelArtifacts.trainingConfig = this.getTrainingConfig();
+      const weightType = 'optimizer';
+      const {data: optimizerWeightData, specs: optimizerWeightSpecs} =
+          await io.encodeWeights(await this.optimizer.getWeights(), weightType);
+      weightDataAndSpecs.specs.push(...optimizerWeightSpecs);
+      weightDataAndSpecs.data = io.concatenateArrayBuffers(
+          [weightDataAndSpecs.data, optimizerWeightData]);
+    }
+
+    modelArtifacts.weightData = weightDataAndSpecs.data;
+    modelArtifacts.weightSpecs = weightDataAndSpecs.specs;
+    return handlerOrURL.save(modelArtifacts);
   }
 }
 serialization.registerClass(LayersModel);
