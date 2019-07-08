@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig",
+  "compilerOptions": {
+    "target": "es5",
+    "lib": [
+      "es5"
+    ],
+    "outDir": "./dist/",
+    "skipLibCheck": true,
+  },
+  "include": [
+    "src/",
+    "test",
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+}
