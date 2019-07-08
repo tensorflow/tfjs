@@ -42,9 +42,16 @@ export async function loadWeightsAsArrayBuffer(
   const fetchFunc =
       loadOptions.fetchFunc == null ? util.fetch : loadOptions.fetchFunc;
 
+  // Update the request headers without modifying the passed in
+  // loadOptions object.
+  const requestOptions = Object.assign({}, loadOptions.requestInit);
+  requestOptions.headers = Object.assign({}, requestOptions.headers, {
+    responseType: 'arraybuffer',
+  });
+
   // Create the requests for all of the weights in parallel.
   const requests =
-      fetchURLs.map(fetchURL => fetchFunc(fetchURL, loadOptions.requestInit));
+      fetchURLs.map(fetchURL => fetchFunc(fetchURL, requestOptions));
 
   const fetchStartFraction = 0;
   const fetchEndFraction = 0.5;
