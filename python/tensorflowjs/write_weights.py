@@ -115,6 +115,8 @@ def write_weights(
   manifest = []
 
   for group_index, group in enumerate(weight_groups):
+    for e in group:
+      _auto_convert_weight_entry(e)
     if quantization_dtype:
       group = [_quantize_entry(e, quantization_dtype) for e in group]
     group_bytes, total_bytes, _ = _stack_group_bytes(group)
@@ -167,6 +169,9 @@ def _quantize_entry(entry, quantization_dtype):
         }
   """
   data = entry['data']
+  # Strings tensors are not quantized.
+  if data.dtype == 'object':
+    return entry
   quantized_data, scale, min_val = quantization.quantize_weights(
       data, quantization_dtype)
   quantized_entry = entry.copy()
@@ -241,7 +246,6 @@ def _stack_group_bytes(group):
 
   for entry in group:
     _assert_valid_weight_entry(entry)
-    _auto_convert_weight_entry(entry)
     data = entry['data']
 
     if data.dtype == np.object:

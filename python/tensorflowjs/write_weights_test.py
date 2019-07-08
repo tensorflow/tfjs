@@ -20,7 +20,6 @@ import unittest
 
 import numpy as np
 
-from tensorflowjs import quantization
 from tensorflowjs import write_weights
 
 TMP_DIR = '/tmp/write_weights_test/'
@@ -687,18 +686,21 @@ class TestWriteWeights(unittest.TestCase):
         }, {
             'name': 'weight2',
             'data': np.array([4, 5], 'int32')
+        }, {
+            'name': 'weight3',
+            'data': np.array([6, 7], 'float64')
+        }, {
+            'name': 'weight4',
+            'data': np.array(['hello'], np.object)
         }]
     ]
 
     manifest = write_weights.write_weights(
-        groups, TMP_DIR, shard_size_bytes=8 * 4, quantization_dtype=np.uint8)
+        groups, TMP_DIR, shard_size_bytes=1024, quantization_dtype=np.uint8)
 
     self.assertTrue(
         os.path.isfile(os.path.join(TMP_DIR, 'weights_manifest.json')),
         'weights_manifest.json does not exist')
-    q, s, m = zip(
-        quantization.quantize_weights(groups[0][0]['data'], np.uint8),
-        quantization.quantize_weights(groups[0][1]['data'], np.uint8))
     self.assertEqual(
         manifest,
         [{
@@ -708,21 +710,45 @@ class TestWriteWeights(unittest.TestCase):
                 'shape': [3],
                 'dtype': 'float32',
                 'quantization': {
-                    'min': m[0], 'scale': s[0], 'dtype': 'uint8'
+                    'min': 1.0, 'scale': 2/255.0, 'dtype': 'uint8'
                 }
             }, {
                 'name': 'weight2',
                 'shape': [2],
                 'dtype': 'int32',
                 'quantization': {
-                    'min': m[1], 'scale': s[1], 'dtype': 'uint8'
+                    'min': 4.0, 'scale': 1/255.0, 'dtype': 'uint8'
                 }
+            }, {
+                'name': 'weight3',
+                'shape': [2],
+                'dtype': 'float32',
+                'quantization': {
+                    'min': 6.0, 'scale': 1/255.0, 'dtype': 'uint8'
+                }
+            }, {
+                'name': 'weight4',
+                'shape': [1],
+                'dtype': 'string'
             }]
         }])
 
     weights_path = os.path.join(TMP_DIR, 'group1-shard1of1.bin')
-    weights = np.fromfile(weights_path, 'uint8')
-    np.testing.assert_array_equal(weights, np.concatenate([q[0], q[1]]))
+    with open(weights_path, 'rb') as f:
+      weight_bytes = f.read()
+      w1 = np.frombuffer(weight_bytes[:3], 'uint8')
+      np.testing.assert_array_equal(w1, np.array([0, 127, 255], 'uint8'))
+
+      w2 = np.frombuffer(weight_bytes[3:5], 'uint8')
+      np.testing.assert_array_equal(w2, np.array([0, 255], 'uint8'))
+
+      w3 = np.frombuffer(weight_bytes[5:7], 'uint8')
+      np.testing.assert_array_equal(w3, np.array([0, 255], 'uint8'))
+
+      size = np.frombuffer(weight_bytes[7:11], 'uint32')[0]
+      self.assertEqual(size, 5)  # 5 ascii letters.
+      w4 = weight_bytes[11:].decode('utf-8')
+      self.assertEqual(w4, u'hello')
 
 
 if __name__ == '__main__':
