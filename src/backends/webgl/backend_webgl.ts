@@ -304,7 +304,7 @@ export class MathBackendWebGL implements KernelBackend {
         `but was ${(pixels as {}).constructor.name}`);
     }
 
-    if (isVideo) {
+    if (isImage || isVideo) {
       if (this.fromPixels2DContext == null) {
         if (document.readyState !== 'complete') {
           throw new Error(
