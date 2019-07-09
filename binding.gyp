@@ -56,7 +56,7 @@
                 "-change",
                 "@rpath/libtensorflow.1.dylib",
                 "@loader_path/../../deps/lib/libtensorflow.dylib",
-                "<@(PRODUCT_DIR)/tfjs_binding.node"
+                "<(PRODUCT_DIR)/tfjs_binding.node"
               ]
             },
             {
@@ -66,7 +66,7 @@
                 "-change",
                 "@rpath/libtensorflow_framework.1.dylib",
                 "@loader_path/../../deps/lib/libtensorflow_framework.dylib",
-                "<@(PRODUCT_DIR)/tfjs_binding.node"
+                "<(PRODUCT_DIR)/tfjs_binding.node"
               ]
             }
           ],
@@ -85,26 +85,24 @@
             # UDT 'TF_WhileParams' which is incompatible with C.
             # (in include/tensorflow/c/c_api.h)
             4190
-          ],
-          'actions': [
-            {
-              'action_name': 'deps-stage',
-              'inputs': [
-                '<(module_root_dir)/scripts/deps-stage.js'
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/tensorflow.dll',
-              ],
-              'action': [
-                'node',
-                '<@(_inputs)',
-                '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
-              ]
-            },
-          ],
+          ]
         },
       ]
     ],
-  }]
+  }
+  , {
+      "target_name": "action_after_build",
+      "type": "none",
+      "dependencies": [ "<(module_name)" ],
+      "copies": [
+        {
+          "files": [ "<(PRODUCT_DIR)/<(module_name).node" ],
+          "destination": "<(module_path)"
+        }
+      ]
+    }
+    ],
+  "defines": [
+      "NAPI_VERSION=<(napi_build_version)"
+  ]
 }

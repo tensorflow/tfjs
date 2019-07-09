@@ -25,7 +25,8 @@ sed -i -e 's/tfjs-node"/tfjs-node-gpu"/' package.json
 sed -i -e 's/install.js"/install.js gpu download"/' package.json
 rimraf deps/
 rimraf dist/
-yarn
+rimraf lib/
+yarn build-addon "$1"
 yarn prep
 tsc --sourceMap false
 # This produces a tarball that will later be used by `npm publish`.

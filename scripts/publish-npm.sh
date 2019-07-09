@@ -44,7 +44,8 @@ if ! [[ "$ORIGIN" =~ tensorflow/tfjs-node ]]; then
   exit
 fi
 
-yarn build-npm
+# build, compress and upload pre-built addon
+yarn build-npm upload
 ./scripts/make-version # This is for safety in case you forgot to do 2).
 
 # Publish the CPU package

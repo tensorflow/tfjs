@@ -16,15 +16,20 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-
+import * as path from 'path';
+import {ProgbarLogger} from './callbacks';
 import {nodeFileSystemRouter} from './io/file_system';
 import * as nodeIo from './io/index';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
+import {TFJSBinding} from './tfjs_binding';
 import * as nodeVersion from './version';
 
 // tslint:disable-next-line:no-require-imports
-import bindings = require('bindings');
-import {TFJSBinding} from './tfjs_binding';
+const binary = require('node-pre-gyp');
+const bindingPath =
+    binary.find(path.resolve(path.join(__dirname, '/../package.json')));
+// tslint:disable-next-line:no-require-imports
+const bindings = require(bindingPath);
 
 // Merge version and io namespaces.
 export const version = {
@@ -38,13 +43,13 @@ export const io = {
 
 // Export all union package symbols
 export * from '@tensorflow/tfjs';
+export * from './node';
 
 // tslint:disable-next-line:no-require-imports
 const pjson = require('../package.json');
 
 tf.registerBackend('tensorflow', () => {
-  return new NodeJSKernelBackend(
-      bindings('tfjs_binding.node') as TFJSBinding, pjson.name);
+  return new NodeJSKernelBackend(bindings as TFJSBinding, pjson.name);
 }, 3 /* priority */);
 
 const success = tf.setBackend('tensorflow');
@@ -56,8 +61,5 @@ if (!success) {
 tf.io.registerLoadRouter(nodeFileSystemRouter);
 tf.io.registerSaveRouter(nodeFileSystemRouter);
 
-import {ProgbarLogger} from './callbacks';
 // Register the ProgbarLogger for Model.fit() at verbosity level 1.
 tf.registerCallbackConstructor(1, ProgbarLogger);
-
-export * from './node';
