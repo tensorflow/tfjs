@@ -40,7 +40,7 @@ if ! [[ "$ORIGIN" =~ tensorflow/tfjs-node ]]; then
 fi
 
 ./scripts/make-version # This is for safety in case you forgot to do 2).
-yarn build-npm-gpu
+yarn build-npm-gpu upload
 
 GPU_TARBALLS=$(ls tensorflow-tfjs-node-gpu*.tgz)
 GPU_TARBALL_COUNT=$(echo $GPU_TARBALLS | wc -w | xargs)

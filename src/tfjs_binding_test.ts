@@ -15,10 +15,15 @@
  * =============================================================================
  */
 
+import * as path from 'path';
+import {TFEOpAttr, TFJSBinding} from './tfjs_binding';
 // tslint:disable-next-line:no-require-imports
-import bindings = require('bindings');
-import {TFJSBinding, TFEOpAttr} from './tfjs_binding';
-const binding = bindings('tfjs_binding.node') as TFJSBinding;
+const binary = require('node-pre-gyp');
+const bindingPath =
+    binary.find(path.resolve(path.join(__dirname, '/../package.json')));
+// tslint:disable-next-line:no-require-imports
+const bindings = require(bindingPath);
+const binding = bindings as TFJSBinding;
 
 describe('Exposes TF_DataType enum values', () => {
   it('contains TF_FLOAT', () => {
