@@ -54,6 +54,17 @@ describe('arithmetic', () => {
             expect(spy).toHaveBeenCalledWith(input1[0], input2[0]);
           });
         }));
+
+    it('AddV2', async () => {
+      const spy = spyOn(tfc, 'add').and.callThrough();
+      node.op = 'AddV2';
+      const res = executeOp(node, {input1, input2}, context) as tfc.Tensor[];
+      expect(spy).toHaveBeenCalledWith(input1[0], input2[0]);
+      expect(res[0].dtype).toBe('float32');
+      expect(res[0].shape).toEqual([]);
+      tfc.test_util.expectArraysClose(await res[0].data(), 2);
+    });
+
     it('AddN', async () => {
       const spy = spyOn(tfc, 'addN').and.callThrough();
       node.op = 'AddN';

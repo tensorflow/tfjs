@@ -29,6 +29,7 @@ export let executeOp: InternalOpExecutor = (node: Node,
                                                tfc.Tensor[] => {
   switch (node.op) {
     case 'BatchMatMul':
+    case 'BatchMatMulV2':
     case 'MatMul':
       return [tfc.matMul(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor2D,

@@ -30,10 +30,20 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'AddV2',
+    'category': 'arithmetic',
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
     'tfOpName': 'AddN',
     'category': 'arithmetic',
-    'inputs':
-        [{'start': 0, 'end': 0, 'name': 'tensors', 'type': 'tensors'}]
+    'inputs': [{'start': 0, 'end': 0, 'name': 'tensors', 'type': 'tensors'}]
   },
   {
     'tfOpName': 'BiasAdd',
