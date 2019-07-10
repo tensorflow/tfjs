@@ -29,6 +29,7 @@ export let executeOp: InternalOpExecutor = (node: Node,
                                                tfc.Tensor[] => {
   switch (node.op) {
     case 'BiasAdd':
+    case 'AddV2':
     case 'Add': {
       return [tfc.add(
           (getParamValue('a', node, tensorMap, context) as tfc.Tensor),

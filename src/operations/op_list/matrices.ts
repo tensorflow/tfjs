@@ -65,6 +65,29 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'BatchMatMulV2',
+    'category': 'matrices',
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {
+        'tfName': 'adj_x',
+        'name': 'transposeA',
+        'type': 'bool',
+        'defaultValue': false
+      },
+      {
+        'tfName': 'adj_y',
+        'name': 'transposeB',
+        'type': 'bool',
+        'defaultValue': false
+      },
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
     'tfOpName': 'Transpose',
     'category': 'matrices',
     'inputs': [
