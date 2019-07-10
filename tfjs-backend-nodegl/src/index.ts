@@ -34,7 +34,8 @@ tf.ENV.set(
 tf.webgl.setWebGLContext(2, nodeGl);
 
 tf.registerBackend('headless-nodegl', () => {
-  return new tf.webgl.MathBackendWebGL(new tf.webgl.GPGPUContext(gl));
+  // TODO(kreeger): Consider moving all GL creation here. However, weak-ref to
+  // GL context tends to cause an issue when running unit tests:
+  // https://github.com/tensorflow/tfjs/issues/1732
+  return new tf.webgl.MathBackendWebGL(new tf.webgl.GPGPUContext(nodeGl));
 }, 3 /* priority */);
-
-export const gl = nodeGl;

@@ -17,8 +17,9 @@
 
 // We import index.ts so that the Node backend gets registered.
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
+import * as tf from '@tensorflow/tfjs-core';
 
-import * as nodegl from './index';
+import './index';
 
 Error.stackTraceLimit = Infinity;
 
@@ -70,7 +71,8 @@ env.specFilter = spec => {
 };
 
 console.log(`Running tests with the following GL info`);
-console.log(`  GL_VERSION: ${nodegl.gl.getParameter(nodegl.gl.VERSION)}`);
-console.log(`  GL_RENDERER: ${nodegl.gl.getParameter(nodegl.gl.RENDERER)}`);
+const gl = (tf.backend() as tf.webgl.MathBackendWebGL).getGPGPUContext().gl;
+console.log(`  GL_VERSION: ${gl.getParameter(gl.VERSION)}`);
+console.log(`  GL_RENDERER: ${gl.getParameter(gl.RENDERER)}`);
 
 runner.execute();
