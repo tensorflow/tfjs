@@ -6,10 +6,8 @@ This is an experimental backend.
 ```
 
 # To run the test suite:
-The `$CHROME_BIN` environment variable must be set to the location of a custom Chromium build. 
+The `$CHROME_BIN` environment variable must be set to the location of the Chrome Canary application. 
 
 e.g. in `~/.bash_profile`:
 
-`export CHROME_BIN=$HOME/Documents/PROJECTS/tfjs-core-wrapper/Chromium.app/Contents/MacOS/Chromium`
-
-Link to the latest build: https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=Mac/653302/
+`export CHROME_BIN="$HOME/Documents/PROJECTS/tfjs-core-wrapper/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary"`
