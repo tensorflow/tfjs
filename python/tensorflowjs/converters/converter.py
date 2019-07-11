@@ -222,6 +222,41 @@ def dispatch_tensorflowjs_to_keras_h5_conversion(config_json_path, h5_path):
     model.save(h5_path)
 
 
+def dispatch_tensorflowjs_to_keras_saved_model_conversion(
+    config_json_path, keras_saved_model_path):
+  """Converts a TensorFlow.js Layers model format to a tf.keras SavedModel.
+
+  Args:
+    config_json_path: Path to the JSON file that includes the model's
+      topology and weights manifest, in tensorflowjs format.
+    keras_saved_model_path: Path for the to-be-created Keras SavedModel.
+
+  Raises:
+    ValueError, if `config_json_path` is not a path to a valid JSON
+      file, or if h5_path points to an existing directory.
+  """
+  if os.path.isdir(config_json_path):
+    raise ValueError(
+        'For input_type=tfjs_layers_model & output_format=keras_saved_model, '
+        'the input path should be a model.json '
+        'file, but received a directory.')
+
+  # Verify that config_json_path points to a JSON file.
+  with open(config_json_path, 'rt') as f:
+    try:
+      json.load(f)
+    except (ValueError, IOError):
+      raise ValueError(
+          'For input_type=tfjs_layers_model & output_format=keras, '
+          'the input path is expected to contain valid JSON content, '
+          'but cannot read valid JSON content from %s.' % config_json_path)
+
+  with tf.Graph().as_default(), tf.compat.v1.Session():
+    model = keras_tfjs_loader.load_keras_model(config_json_path)
+    keras.experimental.export_saved_model(
+        model, keras_saved_model_path, serving_only=True)
+
+
 def dispatch_tensorflowjs_to_tensorflowjs_conversion(
     config_json_path,
     output_dir_path,
@@ -437,8 +472,8 @@ def setup_arguments():
       '--output_format',
       type=str,
       required=False,
-      choices=set(['keras', 'tfjs_layers_model', 'tfjs_graph_model',
-                   'tensorflowjs']),
+      choices=set(['keras', 'keras_saved_model', 'tfjs_layers_model',
+                   'tfjs_graph_model', 'tensorflowjs']),
       help='Output format. Default: tfjs_graph_model.')
   parser.add_argument(
       '--signature_name',
@@ -564,6 +599,10 @@ def main():
         output_format == 'keras'):
     dispatch_tensorflowjs_to_keras_h5_conversion(FLAGS.input_path,
                                                  FLAGS.output_path)
+  elif (input_format == 'tfjs_layers_model' and
+        output_format == 'keras_saved_model'):
+    dispatch_tensorflowjs_to_keras_saved_model_conversion(FLAGS.input_path,
+                                                          FLAGS.output_path)
   elif (input_format == 'tfjs_layers_model' and
         output_format == 'tfjs_layers_model'):
     dispatch_tensorflowjs_to_tensorflowjs_conversion(

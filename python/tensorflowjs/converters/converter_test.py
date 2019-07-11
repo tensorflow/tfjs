@@ -668,6 +668,29 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       # uint16 quantization.
       self.assertEqual(weight_file_size, total_weight_bytes / 4)
 
+  def testConvertTfjsLayersModelToKerasSavedModel(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      model = self._createSimpleSequentialModel()
+
+      # Save the keras model to a .h5 file.
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
+
+      # Convert the keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
+          h5_path, tfjs_output_dir)
+
+    # Convert the tfjs LayersModel to tf.keras SavedModel.
+    keras_saved_model_dir = os.path.join(self._tmp_dir, 'saved_model')
+    converter.dispatch_tensorflowjs_to_keras_saved_model_conversion(
+        os.path.join(tfjs_output_dir, 'model.json'), keras_saved_model_dir)
+
+    # Check the files of the keras SavedModel.
+    files = glob.glob(os.path.join(keras_saved_model_dir, '*'))
+    self.assertIn(os.path.join(keras_saved_model_dir, 'saved_model.pb'), files)
+    self.assertIn(os.path.join(keras_saved_model_dir, 'variables'), files)
+    self.assertIn(os.path.join(keras_saved_model_dir, 'assets'), files)
 
 
 if __name__ == '__main__':
