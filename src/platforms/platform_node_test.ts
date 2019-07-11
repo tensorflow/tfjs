@@ -68,6 +68,12 @@ describeWithFlags('PlatformNode', NODE_ENVS, () => {
     ENV.global.fetch = globalFetch;
   });
 
+  it('now should use process.hrtime', async () => {
+    const time = [100, 200];
+    spyOn(process, 'hrtime').and.returnValue(time);
+    expect(ENV.platform.now()).toEqual(time[0] * 1000 + time[1] / 1000000);
+  });
+
   it('encodeUTF8 single string', () => {
     const platform = new PlatformNode();
     const bytes = platform.encode('hello', 'utf-8');

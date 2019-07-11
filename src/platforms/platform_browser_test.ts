@@ -30,6 +30,14 @@ describeWithFlags('PlatformBrowser', BROWSER_ENVS, async () => {
     expect(self.fetch).toHaveBeenCalledWith('test/url', {method: 'GET'});
   });
 
+  it('now should use performance.now', async () => {
+    const platform = new PlatformBrowser();
+
+    const ms = 1234567;
+    spyOn(performance, 'now').and.returnValue(ms);
+    expect(platform.now()).toEqual(ms);
+  });
+
   it('encodeUTF8 single string', () => {
     const platform = new PlatformBrowser();
     const bytes = platform.encode('hello', 'utf-8');

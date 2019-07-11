@@ -39,6 +39,22 @@ export class PlatformNode implements Platform {
     this.textEncoder = new this.util.TextEncoder();
   }
 
+  fetch(path: string, requestInits?: RequestInit): Promise<Response> {
+    if (ENV.global.fetch != null) {
+      return ENV.global.fetch(path, requestInits);
+    }
+
+    if (systemFetch == null) {
+      systemFetch = getNodeFetch.importFetch();
+    }
+    return systemFetch(path, requestInits);
+  }
+
+  now(): number {
+    const time = process.hrtime();
+    return time[0] * 1000 + time[1] / 1000000;
+  }
+
   encode(text: string, encoding: string): Uint8Array {
     if (encoding !== 'utf-8' && encoding !== 'utf8') {
       throw new Error(
@@ -51,16 +67,6 @@ export class PlatformNode implements Platform {
       return '';
     }
     return new this.util.TextDecoder(encoding).decode(bytes);
-  }
-  fetch(path: string, requestInits?: RequestInit): Promise<Response> {
-    if (ENV.global.fetch != null) {
-      return ENV.global.fetch(path, requestInits);
-    }
-
-    if (systemFetch == null) {
-      systemFetch = getNodeFetch.importFetch();
-    }
-    return systemFetch(path, requestInits);
   }
 }
 

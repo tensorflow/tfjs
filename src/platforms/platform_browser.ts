@@ -26,6 +26,14 @@ export class PlatformBrowser implements Platform {
     this.textEncoder = new TextEncoder();
   }
 
+  fetch(path: string, init?: RequestInit): Promise<Response> {
+    return fetch(path, init);
+  }
+
+  now(): number {
+    return performance.now();
+  }
+
   encode(text: string, encoding: string): Uint8Array {
     if (encoding !== 'utf-8' && encoding !== 'utf8') {
       throw new Error(
@@ -35,9 +43,6 @@ export class PlatformBrowser implements Platform {
   }
   decode(bytes: Uint8Array, encoding: string): string {
     return new TextDecoder(encoding).decode(bytes);
-  }
-  fetch(path: string, init?: RequestInit): Promise<Response> {
-    return fetch(path, init);
   }
 }
 

@@ -30,6 +30,13 @@ export interface Platform {
   fetch(path: string, requestInits?: RequestInit): Promise<Response>;
 
   /**
+   * Returns the current high-resolution time in milliseconds relative to an
+   * arbitrary time in the past. It works across different platforms (node.js,
+   * browsers).
+   */
+  now(): number;
+
+  /**
    * Encode the provided string into an array of bytes using the provided
    * encoding.
    */
