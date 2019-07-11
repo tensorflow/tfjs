@@ -830,17 +830,17 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       # The size of the weight file should reflect the uint16 quantization.
       self.assertEqual(weight_file_size, total_weight_bytes // 2)
 
-
   def testConvertTfjsLayersModelToTfjsGraphModel(self):
     x = np.random.randn(8, 10)
 
-    # 1. Create a model for testing.
-    model = keras.Sequential()
-    model.add(keras.layers.Dense(10, activation='relu', input_shape=[4]))
-    model.add(keras.layers.Dense(1, activation='sigmoid'))
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      # 1. Create a model for testing.
+      model = keras.Sequential()
+      model.add(keras.layers.Dense(10, activation='relu', input_shape=[4]))
+      model.add(keras.layers.Dense(1, activation='sigmoid'))
 
-    h5_path = os.path.join(self._tmp_dir, 'model.h5')
-    model.save(h5_path)
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
 
     # 2. Convert the keras saved model to tfjs_layers_model format.
     layers_model_output_dir = os.path.join(self._tmp_dir, 'tfjs_layers')
@@ -867,6 +867,43 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     weight_files = sorted(
         glob.glob(os.path.join(graph_model_dir, 'group*.bin')))
     self.assertEqual(len(weight_files), 1)
+
+  def testConvertTfjsLayersModelToKerasSavedModel(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      # 1. Create a model for testing.
+      model = keras.Sequential()
+      model.add(keras.layers.Dense(10, activation='relu', input_shape=[4]))
+      model.add(keras.layers.Dense(1, activation='sigmoid'))
+
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
+
+    # 2. Convert the keras saved model to tfjs_layers_model format.
+    layers_model_output_dir = os.path.join(self._tmp_dir, 'tfjs_layers')
+    # Implicit value of --output_format: tfjs_layers_model
+    process = subprocess.Popen([
+        'tensorflowjs_converter', '--input_format', 'keras',
+        h5_path, layers_model_output_dir
+    ])
+    process.communicate()
+    self.assertEqual(0, process.returncode)
+
+    # 3. Convert the tfjs_layers_model to another keras_saved_model.
+    keras_saved_model_dir = os.path.join(self._tmp_dir, 'keras_saved_model')
+    process = subprocess.Popen([
+        'tensorflowjs_converter', '--input_format', 'tfjs_layers_model',
+        '--output_format', 'keras_saved_model',
+        os.path.join(layers_model_output_dir, 'model.json'),
+        keras_saved_model_dir
+    ])
+    process.communicate()
+    self.assertEqual(0, process.returncode)
+
+    # 4. Check the files that belong to the conversion result.
+    files = glob.glob(os.path.join(keras_saved_model_dir, '*'))
+    self.assertIn(os.path.join(keras_saved_model_dir, 'saved_model.pb'), files)
+    self.assertIn(os.path.join(keras_saved_model_dir, 'variables'), files)
+    self.assertIn(os.path.join(keras_saved_model_dir, 'assets'), files)
 
 
 if __name__ == '__main__':
