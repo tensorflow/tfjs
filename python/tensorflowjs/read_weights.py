@@ -77,7 +77,7 @@ def read_weights(weights_manifest, base_path, flatten=False):
 def _deserialize_string_array(data_buffer, offset, shape):
   """Deserializes bytes into np.array of dtype `object` which holds strings.
 
-  Each string value is preceeded by 4 bytes which denote a 32-bit unsigned
+  Each string value is preceded by 4 bytes which denote a 32-bit unsigned
   integer in little endian that specifies the byte length of the following
   string. This is followed by the actual string bytes. If the tensor has no
   strings there will be no bytes reserved. Empty strings will still take 4 bytes

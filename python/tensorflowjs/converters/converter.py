@@ -520,7 +520,7 @@ def setup_arguments():
       '--weight_shard_size_bytes',
       type=int,
       default=None,
-      help='Shard size (in bytes) of the weight files. Curently applicable '
+      help='Shard size (in bytes) of the weight files. Currently applicable '
       'only to output_format=tfjs_layers_model.')
   return parser.parse_args()
 

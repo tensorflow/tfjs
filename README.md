@@ -1,32 +1,45 @@
 # Getting started
 
 **TensorFlow.js converter** is an open source library to load a pretrained
-TensorFlow [SavedModel](https://www.tensorflow.org/programmers_guide/saved_model#overview_of_saving_and_restoring_models) or [TensorFlow Hub module](https://www.tensorflow.org/hub/)
-into the browser and run inference through [TensorFlow.js](https://js.tensorflow.org).
+TensorFlow
+[SavedModel](https://www.tensorflow.org/programmers_guide/saved_model#overview_of_saving_and_restoring_models)
+or [TensorFlow Hub module](https://www.tensorflow.org/hub/)
+into the browser and run inference through
+[TensorFlow.js](https://js.tensorflow.org).
 
-__Note__: _Session bundle and Frozen model formats have been deprecated in TensorFlow.js 1.0. Please use the TensorFlow.js 0.15.x backend to convert these formats, available in `tfjs-converter` [0.8.6](https://pypi.org/project/tensorflowjs/0.8.6/)._
+__Note__: _Session bundle and Frozen model formats have been deprecated in TensorFlow.js 1.0. Please use the TensorFlow.js 0.15.x backend to convert these formats, available in
+`tfjs-converter` [0.8.6](https://pypi.org/project/tensorflowjs/0.8.6/)._
 
 A 2-step process to import your model:
 
-1. A python pip package to convert a TensorFlow SavedModel or TensorFlow Hub module to a web friendly format. If you already have a converted model, or are using an already hosted model (e.g. MobileNet), skip this step.
-2. [Javascript API](./src/executor/tf_model.ts), for loading and running inference.
+1. A python pip package to convert a TensorFlow SavedModel or TensorFlow Hub
+module to a web friendly format. If you already have a converted model, or are
+using an already hosted model (e.g. MobileNet), skip this step.
+2. [JavaScript API](./src/executor/tf_model.ts), for loading and running
+inference.
 
 ## Step 1: Converting a [TensorFlow SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [TensorFlow Hub module](https://www.tensorflow.org/hub/), [Keras HDF5](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model) or [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/contrib/saved_model/save_keras_model) to a web-friendly format
 
 __0. Please make sure that you run in a Docker container or a virtual environment.__
 
- The script pulls its own subset of TensorFlow, which might conflict with the existing TensorFlow/Keras installation.
+ The script pulls its own subset of TensorFlow, which might conflict with the
+ existing TensorFlow/Keras installation.
 
 __Note__: *Check that [`tf-nightly-2.0-preview`](https://pypi.org/project/tf-nightly-2.0-preview/#files) is available for your platform.*
 
-Most of the times, this means that you have to use Python 3.6.8 in your local environment. To force Python 3.6.8 in your local project, you can install [`pyenv`](https://github.com/pyenv/pyenv) and proceed as follows in the target directory:
+Most of the times, this means that you have to use Python 3.6.8 in your local
+environment. To force Python 3.6.8 in your local project, you can install
+[`pyenv`](https://github.com/pyenv/pyenv) and proceed as follows in the target
+directory:
 
 ```bash
 pyenv install 3.6.8
 pyenv local 3.6.8
 ```
 
-Now, you can [create and activate](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/) a `venv` virtual environment in your current folder:
+Now, you can
+[create and activate](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
+a `venv` virtual environment in your current folder:
 
 ```bash
 virtualenv --no-site-packages venv
@@ -41,7 +54,9 @@ __1. Install the TensorFlow.js pip package:__
 
 __2. Run the converter script provided by the pip package:__
 
-The converter expects a __TensorFlow SavedModel__, __TensorFlow Hub module__, __TensorFlow.js JSON__ format, __Keras HDF5 model__, or __tf.keras SavedModel__ for input.
+The converter expects a __TensorFlow SavedModel__, __TensorFlow Hub module__,
+__TensorFlow.js JSON__ format, __Keras HDF5 model__, or __tf.keras SavedModel__
+for input.
 
 * __TensorFlow SavedModel__ example:
 
@@ -209,28 +224,40 @@ following location:
 
 ## Step 2: Loading and running in the browser
 
-If the original model was a `SavedModel`, use [`tf.loadGraphModel()`](https://js.tensorflow.org/api/latest/#loadGraphModel). If it was Keras, use [`tf.loadLayersModel()`](https://js.tensorflow.org/api/latest/#loadLayersModel):
+If the original model was a `SavedModel`, use
+[`tf.loadGraphModel()`](https://js.tensorflow.org/api/latest/#loadGraphModel).
+If it was Keras, use
+[`tf.loadLayersModel()`](https://js.tensorflow.org/api/latest/#loadLayersModel):
 
 ```typescript
 import * as tf from '@tensorflow/tfjs';
 
 const MODEL_URL = 'https://.../mobilenet/model.json';
 
-const model = await tf.loadGraphModel(MODEL_URL); // For Keras use tf.loadLayersModel()
+// For Keras use tf.loadLayersModel().
+const model = await tf.loadGraphModel(MODEL_URL);
 const cat = document.getElementById('cat');
 model.predict(tf.browser.fromPixels(cat));
 ```
 
-See our API docs for the [`predict()`](https://js.tensorflow.org/api/latest/#tf.GraphModel.predict) method. To see what other methods exist on a `Model`, see [`tf.LayersModel`](https://js.tensorflow.org/api/latest/#class:LayersModel) and [`tf.GraphModel`](https://js.tensorflow.org/api/latest/#class:GraphModel). Also check out our working [MobileNet demo](./demo/mobilenet/README.md).
+See our API docs for the
+[`predict()`](https://js.tensorflow.org/api/latest/#tf.GraphModel.predict)
+method. To see what other methods exist on a `Model`, see
+[`tf.LayersModel`](https://js.tensorflow.org/api/latest/#class:LayersModel)
+and [`tf.GraphModel`](https://js.tensorflow.org/api/latest/#class:GraphModel).
+Also check out our working [MobileNet demo](./demo/mobilenet/README.md).
 
-If your server requests credentials for accessing the model files, you can provide the optional RequestOption param.
+If your server requests credentials for accessing the model files, you can
+provide the optional RequestOption param.
 
 ```typescript
 const model = await loadGraphModel(MODEL_URL,
     {credentials: 'include'});
 ```
 
-Please see [fetch() documentation](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) for details.
+Please see
+[fetch() documentation](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch)
+for details.
 
 ### Native File System
 
@@ -238,8 +265,8 @@ TensorFlow.js can be used from Node.js. See the
 [tfjs-node project](https://github.com/tensorflow/tfjs-node) for more details.
 Unlike web browsers, Node.js can access the local file system directly.
 Therefore, you can load the same frozen model from local file system into
-a Node.js program running TensorFlow.js. This is done by calling `loadGraphModel` with the path
-to the model files:
+a Node.js program running TensorFlow.js. This is done by calling
+`loadGraphModel` with the path to the model files:
 
 ```js
 // Load the tfjs-node binding
@@ -249,20 +276,22 @@ const MODEL_PATH = 'file:///tmp/mobilenet/model.json';
 const model = await tf.loadGraphModel(MODEL_PATH);
 ```
 
-You can also load the remote model files the same way as in browser, but you might need to polyfill
+You can also load the remote model files the same way as in browser, but you
+might need to polyfill
 the fetch() method.
 
 ## Supported operations
 
 Currently TensorFlow.js only supports a limited set of TensorFlow Ops. See the
 [full list](./docs/supported_ops.md).
-If your model uses unsupported ops, the `tensorflowjs_converter` script will fail and
-produce a list of the unsupported ops in your model. Please file issues to let us
-know what ops you need support with.
+If your model uses unsupported ops, the `tensorflowjs_converter` script will
+fail and produce a list of the unsupported ops in your model. Please file issues
+to let us know what ops you need support with.
 
 ## Manual forward pass and direct weights loading
 
-If you want to manually write the forward pass with the ops API, you can load the weights directly as a map from weight names to tensors:
+If you want to manually write the forward pass with the ops API, you can load
+the weights directly as a map from weight names to tensors:
 
 ```js
 import * as tf from '@tensorflow/tfjs';
@@ -275,7 +304,8 @@ const weightMap = await tf.io.loadWeights(
         this.weightManifest, "https://example.org/model");
 ```
 
-`weightMap` maps a weight name to a tensor. You can use it to manually implement the forward pass of the model:
+`weightMap` maps a weight name to a tensor. You can use it to manually implement
+the forward pass of the model:
 
 ```js
 const input = tf.tensor(...);
@@ -286,19 +316,29 @@ tf.matMul(weightMap['fc1/weights'], input).add(weightMap['fc1/bias']);
 
 __1. What TensorFlow models does the converter currently support?__
 
-Image-based models (MobileNet, SqueezeNet, add more if you tested) are the most supported. Models with control flow ops (e.g. RNNs) are also supported. The tensorflowjs_converter script will validate the model you have and show a list of unsupported ops in your model. See [this list](./docs/supported_ops.md) for which ops are currently supported.
+Image-based models (MobileNet, SqueezeNet, add more if you tested) are the most
+supported. Models with control flow ops (e.g. RNNs) are also supported.
+The tensorflowjs_converter script will validate the model you have and show a
+list of unsupported ops in your model. See [this list](./docs/supported_ops.md)
+for which ops are currently supported.
 
 __2. Will model with large weights work?__
 
-While the browser supports loading 100-500MB models, the page load time, the inference time and the user experience would not be great. We recommend using models that are designed for edge devices (e.g. phones). These models are usually smaller than 30MB.
+While the browser supports loading 100-500MB models, the page load time,
+the inference time and the user experience would not be great. We recommend
+using models that are designed for edge devices (e.g. phones). These models are
+usually smaller than 30MB.
 
 __3. Will the model and weight files be cached in the browser?__
 
-Yes, we are splitting the weights into files of 4MB chunks, which enable the browser to cache them automatically. If the model architecture is less than 4MB (most models are), it will also be cached.
+Yes, we are splitting the weights into files of 4MB chunks, which enable the
+browser to cache them automatically. If the model architecture is less than 4MB
+(most models are), it will also be cached.
 
 __4. Can I quantize the weights over the wire?__
 
-Yes, you can use the --quantization_bytes option to compress int32/float32 to 1 or 2 bytes. Here is
+Yes, you can use the --quantization_bytes option to compress int32/float32 to 1
+or 2 bytes. Here is
 an example of 8-bit quantization:
 
 ```
@@ -311,11 +351,16 @@ tensorflowjs_converter \
 
 __5. Why is the predict() method for inference so much slower on the first call than the subsequent calls?__
 
-The time of first call also includes the compilation time of WebGL shader programs for the model. After the first call the shader programs are cached, which makes the subsequent calls much faster. You can warm up the cache by calling the predict method with an all zero inputs, right after the completion of the model loading.
+The time of first call also includes the compilation time of WebGL shader
+programs for the model. After the first call the shader programs are cached,
+which makes the subsequent calls much faster. You can warm up the cache by
+calling the predict method with an all zero inputs, right after the completion
+of the model loading.
 
 __6. I have a model converted with a previous version of TensorFlow.js converter (0.15.x), that is in .pb format. How do I convert it to the new JSON format?__
 
-You can use the built-in migration tool to convert the models generated by previous versions. Here are the steps:
+You can use the built-in migration tool to convert the models generated by
+previous versions. Here are the steps:
 
 ```bash
 git clone git@github.com:tensorflow/tfjs-converter.git
@@ -324,12 +369,14 @@ yarn
 yarn ts-node tools/pb2json_converter.ts pb_model_directory/ json_model_directory/
 ```
 
-`pb_model_directory` is the directory where the model generated by previous version is located.
+`pb_model_directory` is the directory where the model generated by previous
+version is located.
 `json_model_directory` is the destination directory for the converted model.
 
 __7. I have a model formatted as a Session bundle or Frozen model. How do I convert it to TensorFlow.js?__
 
-You can install a previous version of TensorFlow.js in a virtual environment to convert the model to the JSON format. Here is how you can achieve this.
+You can install a previous version of TensorFlow.js in a virtual environment to
+convert the model to the JSON format. Here is how you can achieve this.
 
 * Set up the virtual environment:
 
@@ -366,8 +413,8 @@ tensorflowjs_converter \
 
 ## Development
 
-To build **TensorFlow.js converter** from source, we need to clone the project and prepare
-the dev environment:
+To build **TensorFlow.js converter** from source, we need to clone the project
+and prepare the dev environment:
 
 ```bash
 git clone https://github.com/tensorflow/tfjs-converter.git
@@ -378,12 +425,13 @@ $ yarn # Installs dependencies.
 We recommend using [Visual Studio Code](https://code.visualstudio.com/) for
 development. Make sure to install
 [TSLint VSCode extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-tslint-plugin)
-and the npm [clang-format](https://github.com/angular/clang-format) `1.2.2` or later
-with the
+and the npm [clang-format](https://github.com/angular/clang-format) `1.2.2`
+or later with the
 [Clang-Format VSCode extension](https://marketplace.visualstudio.com/items?itemName=xaver.clang-format)
 for auto-formatting.
 
-Before submitting a pull request, make sure the code passes all the tests and is clean of lint errors:
+Before submitting a pull request, make sure the code passes all the tests and is
+clean of lint errors:
 
 ```bash
 yarn test

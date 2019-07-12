@@ -410,4 +410,4 @@ class ConvertTest(unittest.TestCase):
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
 if __name__ == '__main__':
-  unittest.main()
+  tf.test.main()

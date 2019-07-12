@@ -26,6 +26,7 @@ import unittest
 
 import h5py
 import numpy as np
+import tensorflow as tf
 from tensorflow import keras
 
 from tensorflowjs import version
@@ -226,7 +227,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertEqual(config_json['config'], saved_topology['config'])
 
     # Check the loaded weights.
-    # Due to `split_by_layer=True`, there ought to be two weigth groups,
+    # Due to `split_by_layer=True`, there ought to be two weight groups,
     # because the model has two layers.
     self.assertEqual(2, len(groups))
 
@@ -340,7 +341,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIn('model_config', topology_json)
 
     weights_manifest = model_json['weightsManifest']
-    self.assertTrue(isinstance(weights_manifest, list))
+    self.assertIsInstance(weights_manifest, list)
     self.assertEqual(1, len(weights_manifest))
     self.assertIn('paths', weights_manifest[0])
 
@@ -367,7 +368,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIn('model_config', topology_json)
 
     weights_manifest = model_json['weightsManifest']
-    self.assertTrue(isinstance(weights_manifest, list))
+    self.assertIsInstance(weights_manifest, list)
     self.assertEqual(1, len(weights_manifest))
     self.assertIn('paths', weights_manifest[0])
 
@@ -394,7 +395,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     # Verify that all the layers' weights are present.
     weights_manifest = model_json['weightsManifest']
-    self.assertTrue(isinstance(weights_manifest, list))
+    self.assertIsInstance(weights_manifest, list)
     weight_entries = []
     for group in weights_manifest:
       weight_entries.extend(group['weights'])
@@ -420,7 +421,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIn('model_config', topology_json)
 
     weights_manifest = model_json['weightsManifest']
-    self.assertTrue(isinstance(weights_manifest, list))
+    self.assertIsInstance(weights_manifest, list)
     self.assertEqual(1, len(weights_manifest))
     self.assertIn('paths', weights_manifest[0])
 
@@ -443,7 +444,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIn('model_config', topology_json)
 
     weights_manifest = model_json['weightsManifest']
-    self.assertTrue(isinstance(weights_manifest, list))
+    self.assertIsInstance(weights_manifest, list)
     self.assertEqual(1, len(weights_manifest))
     self.assertIn('paths', weights_manifest[0])
 
@@ -478,7 +479,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     # Assert that converted JSON can be reconstituted as a model object.
     model = keras.models.model_from_json(json.dumps(json_object))
-    self.assertTrue(isinstance(model, keras.Sequential))
+    self.assertIsInstance(model, keras.Sequential)
     self.assertEqual(model.input_shape, (None, 3))
     self.assertEqual(model.output_shape, (None, 1))
     self.assertEqual(model.layers[0].units, 10)
@@ -503,10 +504,10 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     # Assert that converted JSON can be reconstituted as a model object.
     model = keras.models.model_from_json(json.dumps(json_object))
-    self.assertTrue(isinstance(model, keras.Sequential))
+    self.assertIsInstance(model, keras.Sequential)
     self.assertEqual(model.input_shape, (None, 4, 3))
     self.assertEqual(model.output_shape, (None, 2))
 
 
 if __name__ == '__main__':
-  unittest.main()
+  tf.test.main()

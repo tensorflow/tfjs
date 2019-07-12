@@ -20,8 +20,8 @@ from __future__ import print_function
 
 import json
 import os
-import numpy as np
 
+import numpy as np
 import tensorflow as tf
 from tensorflow.core.protobuf import device_properties_pb2
 from tensorflow.core.protobuf import meta_graph_pb2
@@ -32,7 +32,6 @@ from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.saved_model.load import load
 from tensorflow.python.training.saver import export_meta_graph
 from google.protobuf.json_format import MessageToDict
-
 import tensorflow_hub as hub
 
 from tensorflowjs import write_weights
