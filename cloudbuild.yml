@@ -10,26 +10,21 @@ steps:
   waitFor: ['yarn']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
-- name: 'node:10'
-  entrypoint: 'yarn'
-  id: 'gen-json'
-  args: ['gen-json']
-  waitFor: ['yarn']
 - name: 'gcr.io/google-appengine/python'
   dir: 'python'
   entrypoint: 'bash'
   args: ['./build-pip-package.sh', '--test', '/tmp/tfjs-pips']
-  waitFor: ['gen-json']
+  waitFor: ['yarn']
 - name: 'python:2'
   dir: 'python'
   entrypoint: 'bash'
   args: ['./run-python-tests.sh']
-  waitFor: ['gen-json']
+  waitFor: ['yarn']
 - name: 'python:3.6'
   dir: 'python'
   entrypoint: 'bash'
   args: ['./run-python-tests.sh']
-  waitFor: ['gen-json']
+  waitFor: ['yarn']
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'test-snippets'

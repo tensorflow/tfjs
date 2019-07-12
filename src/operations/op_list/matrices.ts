@@ -1,5 +1,3 @@
-import {OpMapper} from '../types';
-
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -16,6 +14,8 @@ import {OpMapper} from '../types';
  * limitations under the License.
  * =============================================================================
  */
+
+import {OpMapper} from '../types';
 
 export const json: OpMapper[] = [
   {

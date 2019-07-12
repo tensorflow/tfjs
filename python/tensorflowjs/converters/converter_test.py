@@ -694,4 +694,4 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
 
 
 if __name__ == '__main__':
-  unittest.main()
+  tf.test.main()

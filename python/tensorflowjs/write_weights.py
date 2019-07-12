@@ -184,7 +184,7 @@ def _quantize_entry(entry, quantization_dtype):
 def _serialize_string_array(data):
   """Serializes a numpy array of dtype `string` into bytes.
 
-  Each string value is preceeded by 4 bytes which denote a 32-bit unsigned
+  Each string value is preceded by 4 bytes which denote a 32-bit unsigned
   integer in little endian that specifies the byte length of the following
   string. This is followed by the actual string bytes. If the tensor has no
   strings there will be no bytes reserved. Empty strings will still take 4 bytes
@@ -349,9 +349,9 @@ def _auto_convert_weight_entry(entry):
 
 
 def _assert_valid_weight_entry(entry):
-  if not 'name' in entry:
+  if 'name' not in entry:
     raise ValueError('Error dumping weight, no name field found.')
-  if not 'data' in entry:
+  if 'data' not in entry:
     raise ValueError('Error dumping weight, no data field found.')
 
   name = entry['name']
