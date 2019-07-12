@@ -22,13 +22,12 @@ const jpeg = require('jpeg-js');
 
 const backendNodeGL = require('./../dist/index');
 
-console.log(`  - gl.VERSION: ${
-    backendNodeGL.gl.getParameter(backendNodeGL.gl.VERSION)}`);
-console.log(`  - gl.RENDERER: ${
-    backendNodeGL.gl.getParameter(backendNodeGL.gl.RENDERER)}`);
+const gl = tf.backend().getGPGPUContext().gl;
+console.log(`  - gl.VERSION: ${gl.getParameter(gl.VERSION)}`);
+console.log(`  - gl.RENDERER: ${gl.getParameter(gl.RENDERER)}`);
 
 const NUMBER_OF_CHANNELS = 3;
-const PREPROCESS_DIVISOR = tf.scalar(255 / 2);
+const PREPROCESS_DIVISOR = 255 / 2;
 
 function readImageAsJpeg(path) {
   return jpeg.decode(fs.readFileSync(path), true);
