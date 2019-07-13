@@ -22,7 +22,7 @@
       '<@(tensorflow_include_dir)/tensorflow/c/c_api.h',
       '<@(tensorflow_include_dir)/tensorflow/c/eager/c_api.h',
     ],
-    'tensorflow-library-action': 'move'
+    'tensorflow-library-action': 'symlink'
   },
   'targets' : [{
     'target_name' : 'tfjs_binding',
