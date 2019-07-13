@@ -175,16 +175,9 @@ async function downloadLibtensorflow(callback) {
  */
 async function build() {
   console.error('* Building TensorFlow Node.js bindings');
-  cp.exec('node-pre-gyp install', (err) => {
+  cp.exec('node-pre-gyp install --fallback-to-build', (err) => {
     if (err) {
-      console.log('node-pre-gyp install failed with: ' + err);
-      console.log('Start building from source binary.');
-      cp.exec('node-pre-gyp install --build-from-source', (error) => {
-        if (error) {
-          console.log('node-pre-gyp install from source failed with error: ' +
-            error);
-        }
-      });
+      console.log('node-pre-gyp install failed with error: ' + err);
     }
     if (platform === 'win32') {
       // Move libtensorflow to module path, where tfjs_binding.node locates.
