@@ -34,7 +34,7 @@ export function enableProdMode(): void {
 
 /**
  * Enables debug mode which will log information about all executed kernels:
- * the ellapsed time of the kernel execution, as well as the rank, shape, and
+ * the elapsed time of the kernel execution, as well as the rank, shape, and
  * size of the output tensor.
  *
  * Debug mode will significantly slow down your application as it will
