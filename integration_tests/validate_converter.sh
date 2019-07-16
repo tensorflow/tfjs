@@ -62,8 +62,6 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
 
   cd ..
   yarn yalc link '@tensorflow/tfjs-node'
-  rm -rf .yalc/@tensorflow/tfjs-node/build
-  cp -r tfjs-node/build/Release .yalc/@tensorflow/tfjs-node/build
 else
   # Download the tfjs repositories, build them, and link them.
   if [[ ! -d "tfjs-core" ]]; then
