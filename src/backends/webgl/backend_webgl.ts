@@ -62,7 +62,7 @@ import * as binaryop_gpu from './binaryop_gpu';
 import {BinaryOpProgram} from './binaryop_gpu';
 import * as binaryop_packed_gpu from './binaryop_packed_gpu';
 import {BinaryOpPackedProgram} from './binaryop_packed_gpu';
-import {getWebGLContext, createCanvas} from './canvas_util';
+import {createCanvas, getWebGLContext} from './canvas_util';
 import {ClipProgram} from './clip_gpu';
 import {ClipPackedProgram} from './clip_packed_gpu';
 import {ComplexAbsProgram} from './complex_abs_gpu';
@@ -222,8 +222,8 @@ export class MathBackendWebGL implements KernelBackend {
   private numBytesInGPU = 0;
 
   private canvas: HTMLCanvasElement;
-  private fromPixels2DContext: CanvasRenderingContext2D
-      | OffscreenCanvasRenderingContext2D;
+  private fromPixels2DContext: CanvasRenderingContext2D|
+      OffscreenCanvasRenderingContext2D;
 
   private programTimersStack: TimerNode[];
   private activeTimers: TimerNode[];
@@ -272,9 +272,9 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   fromPixels(
-    pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-    HTMLVideoElement,
-    numChannels: number): Tensor3D {
+      pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+      HTMLVideoElement,
+      numChannels: number): Tensor3D {
     if (pixels == null) {
       throw new Error(
           'pixels passed to tf.browser.fromPixels() can not be null');
@@ -282,26 +282,25 @@ export class MathBackendWebGL implements KernelBackend {
     const texShape: [number, number] = [pixels.height, pixels.width];
     const outShape = [pixels.height, pixels.width, numChannels];
 
-    const isCanvas = (typeof(OffscreenCanvas) !== 'undefined'
-        && pixels instanceof OffscreenCanvas)
-        || (typeof(HTMLCanvasElement) !== 'undefined'
-        && pixels instanceof HTMLCanvasElement);
+    const isCanvas = (typeof (OffscreenCanvas) !== 'undefined' &&
+                      pixels instanceof OffscreenCanvas) ||
+        (typeof (HTMLCanvasElement) !== 'undefined' &&
+         pixels instanceof HTMLCanvasElement);
     const isPixelData = (pixels as PixelData).data instanceof Uint8Array;
     const isImageData =
-        typeof(ImageData) !== 'undefined' && pixels instanceof ImageData;
-    const isVideo =
-        typeof(HTMLVideoElement) !== 'undefined'
-        && pixels instanceof HTMLVideoElement;
-    const isImage = typeof(HTMLImageElement) !== 'undefined'
-        && pixels instanceof HTMLImageElement;
+        typeof (ImageData) !== 'undefined' && pixels instanceof ImageData;
+    const isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
+        pixels instanceof HTMLVideoElement;
+    const isImage = typeof (HTMLImageElement) !== 'undefined' &&
+        pixels instanceof HTMLImageElement;
 
     if (!isCanvas && !isPixelData && !isImageData && !isVideo && !isImage) {
       throw new Error(
-        'pixels passed to tf.browser.fromPixels() must be either an ' +
-        `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData ` +
-        `in browser, or OffscreenCanvas, ImageData in webworker` +
-        ` or {data: Uint32Array, width: number, height: number}, ` +
-        `but was ${(pixels as {}).constructor.name}`);
+          'pixels passed to tf.browser.fromPixels() must be either an ' +
+          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData ` +
+          `in browser, or OffscreenCanvas, ImageData in webworker` +
+          ` or {data: Uint32Array, width: number, height: number}, ` +
+          `but was ${(pixels as {}).constructor.name}`);
     }
 
     if (isImage || isVideo) {
@@ -314,14 +313,14 @@ export class MathBackendWebGL implements KernelBackend {
               'on the document object');
         }
         //@ts-ignore
-        this.fromPixels2DContext = createCanvas(ENV.getNumber('WEBGL_VERSION'))
-            .getContext('2d');
+        this.fromPixels2DContext =
+            createCanvas(ENV.getNumber('WEBGL_VERSION')).getContext('2d');
       }
       this.fromPixels2DContext.canvas.width = pixels.width;
       this.fromPixels2DContext.canvas.height = pixels.height;
       this.fromPixels2DContext.drawImage(
-					pixels as HTMLVideoElement, 0, 0, pixels.width, pixels.height);
-			//@ts-ignore
+          pixels as HTMLVideoElement, 0, 0, pixels.width, pixels.height);
+      //@ts-ignore
       pixels = this.fromPixels2DContext.canvas;
     }
 
@@ -398,7 +397,7 @@ export class MathBackendWebGL implements KernelBackend {
     const shouldTimeProgram = this.activeTimers != null;
     let start: number;
     if (shouldTimeProgram) {
-      start = performance.now();
+      start = util.now();
     }
 
     let result: Float32Array;
@@ -411,7 +410,7 @@ export class MathBackendWebGL implements KernelBackend {
     }
 
     if (shouldTimeProgram) {
-      this.downloadWaitMs += performance.now() - start;
+      this.downloadWaitMs += util.now() - start;
     }
     return this.convertAndCacheOnCPU(dataId, result);
   }
@@ -593,7 +592,7 @@ export class MathBackendWebGL implements KernelBackend {
     if (ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0) {
       return this.gpgpu.beginQuery();
     }
-    return {startMs: performance.now(), endMs: null};
+    return {startMs: util.now(), endMs: null};
   }
 
   private endTimer(query: WebGLQuery|CPUTimerQuery): WebGLQuery|CPUTimerQuery {
@@ -601,7 +600,7 @@ export class MathBackendWebGL implements KernelBackend {
       this.gpgpu.endQuery();
       return query;
     }
-    (query as CPUTimerQuery).endMs = performance.now();
+    (query as CPUTimerQuery).endMs = util.now();
     return query;
   }
 
@@ -2553,7 +2552,7 @@ export class MathBackendWebGL implements KernelBackend {
     const shouldTimeProgram = this.activeTimers != null;
     let start: number;
     if (shouldTimeProgram) {
-      start = performance.now();
+      start = util.now();
     }
 
     let texShape = texData.texShape;
@@ -2613,7 +2612,7 @@ export class MathBackendWebGL implements KernelBackend {
       // Once uploaded, don't store the values on cpu.
       texData.values = null;
       if (shouldTimeProgram) {
-        this.uploadWaitMs += performance.now() - start;
+        this.uploadWaitMs += util.now() - start;
       }
     } else {
       const newTexture = this.acquireTexture(texShape, usage, dtype, isPacked);
