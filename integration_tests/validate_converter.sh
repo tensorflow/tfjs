@@ -45,7 +45,6 @@ yarn upgrade \
     @tensorflow/tfjs
 
 if [[ "${IS_TFJS_NODE}" == "1" ]]; then
-  npm install -g node-gyp
   if [[ ! -d "tfjs-node" ]]; then
     echo 'Use latest version of tfjs-node'
     git clone https://github.com/tensorflow/tfjs-node.git --depth 5
@@ -62,6 +61,11 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
 
   cd ..
   yarn yalc link '@tensorflow/tfjs-node'
+  echo 'copying tfjs-node/lib'
+  cp -r tfjs-node/deps .yalc/@tensorflow/tfjs-node/
+  cd .yalc/@tensorflow/tfjs-node
+  yarn && yarn build-addon-from-source
+  cd ../../..
 else
   # Download the tfjs repositories, build them, and link them.
   if [[ ! -d "tfjs-core" ]]; then
