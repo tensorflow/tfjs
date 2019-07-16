@@ -41,6 +41,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [AICAMCAM](https://aicamcam.github.io) - A browser-based webcam video recording service with people/dog/cat detection functionality.
 - [trynottolaugh](http://trynottolaugh.net) - Try not to laugh game with face landmark detection if you laugh during video you lose!
 - [Neuroglancer](https://github.com/google/neuroglancer) - A browser-based app for examining 3D volumetric neuroimaging data.
+- [Chester Radiology Assistant](https://mlmed.org/tools/xray) - A web-based tool for diagnosing chest x-ray images.
 
 ## Tutorials
 
