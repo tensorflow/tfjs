@@ -12,7 +12,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-ts-integration'
   args: ['test-ts-integration']
-  waitFor: ['yarn']
+  waitFor: ['yarn', 'test']
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
 options:
