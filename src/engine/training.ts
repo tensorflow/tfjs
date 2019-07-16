@@ -1790,7 +1790,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * ```
    *
    * Example 4. Send  `model`'s topology and weights to an HTTP server.
-   * See the documentation of `tf.io.browserHTTPRequest` for more details
+   * See the documentation of `tf.io.http` for more details
    * including specifying request parameters and implementation of the
    * server.
    *
