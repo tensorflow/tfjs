@@ -54,9 +54,9 @@ describeWebGPU('Ops benchmarks', () => {
     dispose();
 
     for (let t = 0; t < trials; ++t) {
-      const start = performance.now();
+      const start = tf.util.now();
       await trial();
-      times.push(performance.now() - start);
+      times.push(tf.util.now() - start);
       dispose();
     }
 
