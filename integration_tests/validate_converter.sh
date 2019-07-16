@@ -61,7 +61,8 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
 
   cd ..
   yarn yalc link '@tensorflow/tfjs-node'
-  echo 'copying tfjs-node/lib'
+  # yalc publish does not deliver libtensorflow and node native addon, so we
+  # need to copy libtensorflow and build addon from source
   cp -r tfjs-node/deps .yalc/@tensorflow/tfjs-node/
   cd .yalc/@tensorflow/tfjs-node
   yarn && yarn build-addon-from-source
