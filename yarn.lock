@@ -16,15 +16,15 @@
     node-fetch "^2.1.1"
     url-template "^2.0.8"
 
-"@tensorflow/tfjs-converter@1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.2.2.tgz#c95e2f79b1de830b8079c7704dc8463ced2d2b79"
-  integrity sha512-NM2NcPRHpCNeJdBxHcYpmW9ZHTQ2lJFJgmgGpQ8CxSC9CtQB05bFONs3SKcwMNDE/69QBRVom5DYqLCVUg+A+g==
+"@tensorflow/tfjs-converter@1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.2.3.tgz#b56a0833326ac5f150a0a024a260a3911e77eed1"
+  integrity sha512-bCzkGvy6cpcl1LI8prKPz76+eRF/RjK3RLdMv5YW2LFCK2wXcaOtc5+EsKDGKJi+a3n+BeqeOFPc/QpYB/VRew==
 
-"@tensorflow/tfjs-core@1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.2.2.tgz#2efa89e323612a26aeccee9b3ae9f5ac5a635bbe"
-  integrity sha512-2hCHMKjh3UNpLEjbAEaurrTGJyj/KpLtMSAraWgHA1vGY0kmk50BBSbgCDmXWUVm7lyh/SkCq4/GrGDZktEs3g==
+"@tensorflow/tfjs-core@1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.2.3.tgz#90cc7bb593ba67548d683ff045823872a05c43dc"
+  integrity sha512-jLYUJYzI/b+058yKz9SjX6KwTac4hKFRh1FMI8jQpN289z9MSfKBq8BzpKd7n7ml7b55ae157Qta5pFmLwRVZw==
   dependencies:
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
@@ -32,21 +32,19 @@
     "@types/webgl2" "0.0.4"
     node-fetch "~2.1.2"
     seedrandom "2.4.3"
-  optionalDependencies:
-    rollup-plugin-visualizer "~1.1.1"
 
-"@tensorflow/tfjs-data@1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.2.2.tgz#bd802b4096df04277d302d66598aef47fbffef85"
-  integrity sha512-oHGBoGdnCl2RyouLKplQqo+iil0iJgPbi/aoHizhpO77UBuJXlKMblH8w5GbxVAw3hKxWlqzYpxPo6rVRgehNA==
+"@tensorflow/tfjs-data@1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.2.3.tgz#fb9c79c7bff03f95e7f174d755910ce06be17cf0"
+  integrity sha512-MOjsFAfiFPHGmq+WS1C3dQB2nEdeRvA0IAto/2atJUOlY41NLdGyhcnDZASLe/dPfGGARNXhOXtSSj7LY0yvIQ==
   dependencies:
     "@types/node-fetch" "^2.1.2"
     node-fetch "~2.1.2"
 
-"@tensorflow/tfjs-layers@1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.2.2.tgz#3365dbbca7cfa4fcc6cacc9fffc90d664606bd4e"
-  integrity sha512-yzWZaZrCVpEyTkSrzMe4OOP4aGUfaaROE/zR9fPsPGGF8wLlbLNZUJjeYUmjy3G3pXGaM0mQUbLR5Vd707CVtQ==
+"@tensorflow/tfjs-layers@1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.2.3.tgz#54811948c563ca8544884d0a85e06ec1c49018b0"
+  integrity sha512-qxvYbccObIXLy2c28RrOlZ+mYi7jtQrKGLB3LsOOOmEtWhuHv1d4FcSIimHy0KrnsbBxvy+v7lRG0Zvaqwn7iQ==
 
 "@types/estree@0.0.38":
   version "0.0.38"
@@ -2130,11 +2128,6 @@ is-windows@^1.0.2:
   resolved "https://registry.yarnpkg.com/is-windows/-/is-windows-1.0.2.tgz#d1850eb9791ecd18e6182ce12a30f396634bb19d"
   integrity sha512-eXK1UInq2bPmjyX6e3VHIzMLobc4J94i4AWn+Hpq3OU5KkrRC96OAcR3PRJ/pGu6m8TRnBHP9dkXQVsT/COVIA==
 
-is-wsl@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/is-wsl/-/is-wsl-1.1.0.tgz#1f16e4aa22b04d1336b66188a66af3c600c3a66d"
-  integrity sha1-HxbkqiKwTRM2tmGIpmrzxgDDpm0=
-
 isarray@1.0.0, isarray@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/isarray/-/isarray-1.0.0.tgz#bb935d48582cba168c06834957a54a3e07124f11"
@@ -2868,13 +2861,6 @@ once@1.x, once@^1.3.0:
   dependencies:
     wrappy "1"
 
-opn@^5.4.0:
-  version "5.5.0"
-  resolved "https://registry.yarnpkg.com/opn/-/opn-5.5.0.tgz#fc7164fab56d235904c51c3b27da6758ca3b9bfc"
-  integrity sha512-PqHpggC9bLV0VeWcdKhkpxY+3JTzetLSqTCWL/z/tFIbI6G8JCjondXklT1JinczLz2Xib62sSp0T/gKT4KksA==
-  dependencies:
-    is-wsl "^1.1.0"
-
 optimist@^0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/optimist/-/optimist-0.6.1.tgz#da3ea74686fa21a19a111c326e90eb15a0196686"
@@ -3438,16 +3424,6 @@ rollup-plugin-uglify@~3.0.0:
   integrity sha512-dehLu9eRRoV4l09aC+ySntRw1OAfoyKdbk8Nelblj03tHoynkSybqyEpgavemi1LBOH6S1vzI58/mpxkZIe1iQ==
   dependencies:
     uglify-es "^3.3.7"
-
-rollup-plugin-visualizer@~1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/rollup-plugin-visualizer/-/rollup-plugin-visualizer-1.1.1.tgz#454ae0aed23845407ebfb81cc52114af308d6d90"
-  integrity sha512-7xkSKp+dyJmSC7jg2LXqViaHuOnF1VvIFCnsZEKjrgT5ZVyiLLSbeszxFcQSfNJILphqgAEmWAUz0Z4xYScrRw==
-  dependencies:
-    mkdirp "^0.5.1"
-    opn "^5.4.0"
-    source-map "^0.7.3"
-    typeface-oswald "0.0.54"
 
 rollup-pluginutils@^1.5.0:
   version "1.5.2"
@@ -4059,11 +4035,6 @@ type-is@~1.6.17:
   dependencies:
     media-typer "0.3.0"
     mime-types "~2.1.24"
-
-typeface-oswald@0.0.54:
-  version "0.0.54"
-  resolved "https://registry.yarnpkg.com/typeface-oswald/-/typeface-oswald-0.0.54.tgz#1e253011622cdd50f580c04e7d625e7f449763d7"
-  integrity sha512-U1WMNp4qfy4/3khIfHMVAIKnNu941MXUfs3+H9R8PFgnoz42Hh9pboSFztWr86zut0eXC8byalmVhfkiKON/8Q==
 
 typescript@3.3.3333:
   version "3.3.3333"
