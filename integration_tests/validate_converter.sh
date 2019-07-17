@@ -45,7 +45,6 @@ yarn upgrade \
     @tensorflow/tfjs
 
 if [[ "${IS_TFJS_NODE}" == "1" ]]; then
-  npm install -g node-gyp
   if [[ ! -d "tfjs-node" ]]; then
     echo 'Use latest version of tfjs-node'
     git clone https://github.com/tensorflow/tfjs-node.git --depth 5
@@ -62,8 +61,12 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
 
   cd ..
   yarn yalc link '@tensorflow/tfjs-node'
-  rm -rf .yalc/@tensorflow/tfjs-node/build
-  cp -r tfjs-node/build/Release .yalc/@tensorflow/tfjs-node/build
+  # yalc publish does not deliver libtensorflow and node native addon, so we
+  # need to copy libtensorflow and build addon from source
+  cp -r tfjs-node/deps .yalc/@tensorflow/tfjs-node/
+  cd .yalc/@tensorflow/tfjs-node
+  yarn && yarn build-addon-from-source
+  cd ../../..
 else
   # Download the tfjs repositories, build them, and link them.
   if [[ ! -d "tfjs-core" ]]; then

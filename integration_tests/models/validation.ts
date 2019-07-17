@@ -22,10 +22,8 @@
  */
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
-
 // tslint:disable-next-line:max-line-length
 import {ModelFunctionName, ValidationRun} from '../types';
-
 import * as common from './common';
 
 describe('TF.js converter validation', () => {
@@ -42,8 +40,12 @@ describe('TF.js converter validation', () => {
     console.log(`isNodeJS = ${isNodeJS}`);
     if (isNodeJS) {
       if (common.usingNodeGPU()) {
+        // tslint:disable-next-line:no-require-imports
+        require('@tensorflow/tfjs-node-gpu');
         console.log('Using tfjs-node-gpu');
       } else {
+        // tslint:disable-next-line:no-require-imports
+        require('@tensorflow/tfjs-node');
         console.log('Using tfjs-node');
       }
     }
