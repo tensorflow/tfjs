@@ -28,7 +28,7 @@
     "karma-chrome-launcher": "~2.2.0",
     "karma-firefox-launcher": "~1.1.0",
     "karma-jasmine": "~1.1.1",
-    "karma-typescript": "~4.0.0",
+    "karma-typescript": "~4.1.1",
     "rimraf": "~2.6.2",
     "rollup": "^0.58.2",
     "rollup-plugin-commonjs": "9.1.3",
