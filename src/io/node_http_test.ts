@@ -132,6 +132,7 @@ describe('nodeHTTPRequest-load', () => {
       {credentials: 'include', cache: 'no-cache'}, {
         credentials: 'include',
         cache: 'no-cache',
+        headers: {responseType: 'arraybuffer'}
       }
     ]);
   });

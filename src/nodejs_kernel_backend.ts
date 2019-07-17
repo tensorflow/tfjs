@@ -21,7 +21,7 @@ import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {Activation} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
-import {upcastType} from '@tensorflow/tfjs-core/dist/types';
+import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
@@ -32,7 +32,7 @@ import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 type TensorInfo = {
   shape: number[],
   dtype: number,
-  values: Float32Array|Int32Array|Uint8Array,
+  values: BackendValues,
   id: number
 };
 
@@ -194,11 +194,11 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   dispose(): void {}
 
-  async read(dataId: object): Promise<Float32Array|Int32Array|Uint8Array> {
+  async read(dataId: object): Promise<BackendValues> {
     return this.readSync(dataId);
   }
 
-  readSync(dataId: object): Float32Array|Int32Array|Uint8Array {
+  readSync(dataId: object): BackendValues {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
@@ -218,7 +218,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     this.tensorMap.delete(dataId);
   }
 
-  write(dataId: object, values: Float32Array|Int32Array|Uint8Array): void {
+  write(dataId: object, values: BackendValues): void {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }

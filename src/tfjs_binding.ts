@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {BackendValues} from '@tensorflow/tfjs-core/dist/types';
+
 export declare class TensorMetadata {
   id: number;
   shape: number[];
@@ -32,9 +34,7 @@ export interface TFJSBinding {
   TFEOpAttr: typeof TFEOpAttr;
 
   // Creates a tensor with the backend:
-  createTensor(
-      shape: number[], dtype: number,
-      buffer: Float32Array|Int32Array|Uint8Array): number;
+  createTensor(shape: number[], dtype: number, buffer: BackendValues): number;
 
   // Deletes a tensor with the backend:
   deleteTensor(tensorId: number): void;
