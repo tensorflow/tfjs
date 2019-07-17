@@ -31,7 +31,7 @@
     "karma-browserstack-launcher": "~1.4.0",
     "karma-chrome-launcher": "~2.2.0",
     "karma-jasmine": "~1.1.0",
-    "karma-typescript": "~4.0.0",
+    "karma-typescript": "~4.1.1",
     "karma-verbose-reporter": "^0.0.6",
     "react-native": "^0.59.9",
     "rimraf": "~2.6.2",
