@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -66,6 +66,6 @@
       3,
       4
     ],
-    "package_name": "CPU-linux-1.2.3.tar.gz"
+    "package_name": "CPU-linux-1.2.4.tar.gz"
   }
 }
