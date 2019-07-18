@@ -436,10 +436,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
         manifest, './', weightsNamesToFetch, {credentials: 'include'});
     expect((tf.util.fetch as jasmine.Spy).calls.count()).toBe(1);
     expect(tf.util.fetch).toHaveBeenCalledWith('./weightfile0', {
-      credentials: 'include',
-      headers: {
-        responseType: 'arraybuffer',
-      }
+      credentials: 'include'
     });
   });
 
