@@ -8,6 +8,7 @@
   "types": "dist/src/index.d.ts",
   "unpkg": "dist/tf-converter.min.js",
   "jsdelivr": "dist/tf-converter.min.js",
+  "miniprogram": "dist/miniprogram",
   "repository": {
     "type": "git",
     "url": "https://github.com/tensorflow/tfjs-converter.git"
