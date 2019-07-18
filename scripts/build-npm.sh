@@ -21,5 +21,11 @@ yarn
 
 yarn build
 rollup -c
+
+# Use minified files for miniprogram
+mkdir dist/miniprogram
+cp dist/tf-data.min.js dist/miniprogram/index.js
+cp dist/tf-data.min.js.map dist/miniprogram/index.js.map
+
 echo "Stored standalone library at dist/tfjs-data(.min).js"
 npm pack
