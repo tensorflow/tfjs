@@ -9,6 +9,7 @@
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/tf-data.esm.js",
   "module": "dist/tf-data.esm.js",
+  "miniprogram": "dist/miniprogram",
   "license": "Apache-2.0",
   "devDependencies": {
     "@tensorflow/tfjs-core": "1.2.3",
