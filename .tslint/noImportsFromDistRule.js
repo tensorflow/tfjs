@@ -35,8 +35,8 @@ var NoImportsFromDistWalker = /** @class */ (function (_super) {
         var importFrom = node.moduleSpecifier.getText();
         var reg = /@tensorflow\/tfjs[-a-z]*\/dist/;
         if (importFrom.match(reg)) {
-            var fix = new Lint.Replacement(node.getStart(), node.getWidth(), "import * as tf from '@tensorflow/tfjs-core';");
-            this.addFailure(this.createFailure(node.getStart(), node.getWidth(), Rule.FAILURE_STRING, fix));
+            var fix = new Lint.Replacement(node.moduleSpecifier.getStart(), node.moduleSpecifier.getWidth(), importFrom.replace(/\/dist[\/]*/, ''));
+            this.addFailure(this.createFailure(node.moduleSpecifier.getStart(), node.moduleSpecifier.getWidth(), Rule.FAILURE_STRING, fix));
         }
         _super.prototype.visitImportDeclaration.call(this, node);
     };

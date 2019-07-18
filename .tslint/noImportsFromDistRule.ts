@@ -15,11 +15,13 @@ class NoImportsFromDistWalker extends Lint.RuleWalker {
     const importFrom = node.moduleSpecifier.getText();
     const reg = /@tensorflow\/tfjs[-a-z]*\/dist/;
     if (importFrom.match(reg)) {
-      const fix = new Lint.Replacement(node.getStart(), node.getWidth(),
-          "import * as tf from '@tensorflow/tfjs-core';");
+      const fix = new Lint.Replacement(node.moduleSpecifier.getStart(),
+          node.moduleSpecifier.getWidth(),
+          importFrom.replace(/\/dist[\/]*/, ''));
 
-      this.addFailure(this.createFailure(node.getStart(),
-          node.getWidth(), Rule.FAILURE_STRING, fix));
+      this.addFailure(this.createFailure(node.moduleSpecifier.getStart(),
+          node.moduleSpecifier.getWidth(),
+          Rule.FAILURE_STRING, fix));
     }
 
     super.visitImportDeclaration(node);
