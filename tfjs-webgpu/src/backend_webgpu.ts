@@ -66,8 +66,8 @@ type TensorInfo = {
 
 interface DataId {}
 
-const DEFAULT_GPUBUFFER_USAGE = GPUBufferUsage.STORAGE |
-    GPUBufferUsage.TRANSFER_SRC | GPUBufferUsage.TRANSFER_DST;
+const DEFAULT_GPUBUFFER_USAGE =
+    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
 
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
@@ -191,7 +191,7 @@ export class WebGPUBackend extends KernelBackend {
   private async getBufferData(info: TensorInfo): Promise<ArrayBuffer> {
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
-        GPUBufferUsage.TRANSFER_DST | GPUBufferUsage.MAP_READ);
+        GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
     const encoder = this.device.createCommandEncoder({});
     encoder.copyBufferToBuffer(
         info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
@@ -204,7 +204,7 @@ export class WebGPUBackend extends KernelBackend {
     staging.unmap();
     this.releaseBuffer(
         staging, info.bufferInfo.byteSize,
-        GPUBufferUsage.TRANSFER_DST | GPUBufferUsage.MAP_READ);
+        GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
 
     return values;
   }
@@ -369,14 +369,14 @@ export class WebGPUBackend extends KernelBackend {
     }
     this.releaseBuffer(
         uniforms.resource.buffer, uniformData.byteLength,
-        GPUBufferUsage.TRANSFER_DST | GPUBufferUsage.UNIFORM);
+        GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
     return output as {} as K;
   }
 
   private makeUniforms(data: Uint32Array|
                        Int32Array): webgpu_program.BindingInfo {
     const dimensionsBuffer = this.acquireBuffer(
-        data.byteLength, GPUBufferUsage.TRANSFER_DST | GPUBufferUsage.UNIFORM);
+        data.byteLength, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
     dimensionsBuffer.setSubData(0, data);
 
     return {
