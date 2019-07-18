@@ -9,6 +9,7 @@
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/tf-core.esm.js",
   "module": "dist/tf-core.esm.js",
+  "miniprogram": "dist/miniprogram",
   "engines": {
     "yarn": ">= 1.3.2"
   },
