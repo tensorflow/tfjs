@@ -9,6 +9,7 @@
   "jsdelivr": "dist/tf.min.js",
   "unpkg": "dist/tf.min.js",
   "types": "dist/index.d.ts",
+  "miniprogram": "dist/miniprogram",
   "repository": {
     "type": "git",
     "url": "https://github.com/tensorflow/tfjs.git"
