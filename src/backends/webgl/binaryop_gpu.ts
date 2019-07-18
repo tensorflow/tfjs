@@ -33,7 +33,7 @@ export const MUL = 'return a * b;';
 export const DIV = `
 if (b == 0.0) {
   return NAN;
-} 
+}
 if (a == b) {
   return 1.0;
 };
@@ -58,6 +58,9 @@ export const INT_DIV = `
 export const POW = `
 if(a < 0.0 && floor(b) < b){
   return NAN;
+}
+if (b == 0.0) {
+  return 1.0;
 }
 return (round(mod(b, 2.0)) != 1) ?
     pow(abs(a), b) : sign(a) * pow(abs(a), b);

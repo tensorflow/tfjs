@@ -738,6 +738,14 @@ describeWithFlags('pow', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [NaN, 27, NaN, 0], 0.05);
   });
 
+  it('exponent of 0 returns 1', async () => {
+    const a = tf.tensor1d([-2, -1, 0, 1, 2]);
+    const b = tf.scalar(0);
+
+    const result = tf.pow(a, b);
+    expectArraysClose(await result.data(), [1, 1, 1, 1, 1]);
+  });
+
   it('handles non int32 exponent param', async () => {
     const a = tf.tensor1d([2, 4]);
     const b = tf.tensor1d([.5, 1.2]);

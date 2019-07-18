@@ -55,7 +55,7 @@ export const DIV = `
   } else if(a.w == b.w) {
     result.w = 1.;
   }
-  
+
   return result;
 `;
 
@@ -87,6 +87,13 @@ export const POW = `
   vec4 isModRound1 = vec4(equal(round(mod(b, 2.0)), ivec4(1)));
   vec4 multiplier = sign(a) * isModRound1 + (vec4(1.0) - isModRound1);
   vec4 result = multiplier * pow(abs(a), b);
+
+  // Ensure that a^0 = 1, including 0^0 = 1 as this correspond to TF and JS
+  bvec4 isExpZero = equal(b, vec4(0.0));
+  result.r = isExpZero.r ? 1.0 : result.r;
+  result.g = isExpZero.g ? 1.0 : result.g;
+  result.b = isExpZero.b ? 1.0 : result.b;
+  result.a = isExpZero.a ? 1.0 : result.a;
 
   vec4 isNaN = vec4(lessThan(a, vec4(0.0))) * vec4(lessThan(floor(b), b));
   ` +
