@@ -2,7 +2,7 @@ import * as Lint from "tslint";
 import * as ts from "typescript";
 
 export class Rule extends Lint.Rules.AbstractRule {
-  public static FAILURE_STRING = "import from dist is forbidden";
+  public static FAILURE_STRING = "importing from dist/ is prohibited. Please use public API";
 
   public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
     return this.applyWithWalker(

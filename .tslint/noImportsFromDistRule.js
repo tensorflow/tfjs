@@ -22,7 +22,7 @@ var Rule = /** @class */ (function (_super) {
     Rule.prototype.apply = function (sourceFile) {
         return this.applyWithWalker(new NoImportsFromDistWalker(sourceFile, this.getOptions()));
     };
-    Rule.FAILURE_STRING = "import from dist is forbidden";
+    Rule.FAILURE_STRING = "importing from dist/ is prohibited. Please use public API";
     return Rule;
 }(Lint.Rules.AbstractRule));
 exports.Rule = Rule;
