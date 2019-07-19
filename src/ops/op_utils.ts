@@ -17,7 +17,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import {isArray, isNullOrUndefined} from 'util';
-
 import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 import {TFEOpAttr} from '../tfjs_binding';
 
@@ -100,4 +99,14 @@ function getTFDTypeForInputs(tensors: tfc.Tensor|tfc.Tensor[]): number {
   } else {
     return getTFDType(tensors.dtype);
   }
+}
+
+export function ensureTensorflowBackend() {
+  if (gBackend === null) {
+    nodeBackend();
+  }
+  tfc.util.assert(
+      tfc.getBackend() === 'tensorflow',
+      () => `Expect the current backend to be "tensorflow", but got "${
+          tfc.getBackend()}"`);
 }

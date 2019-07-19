@@ -18,12 +18,13 @@
 
 import {Scalar, Tensor, util} from '@tensorflow/tfjs';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
-import {nodeBackend} from './ops/op_utils';
+import {ensureTensorflowBackend, nodeBackend} from './ops/op_utils';
 
 export class SummaryFileWriter {
   backend: NodeJSKernelBackend;
 
   constructor(private readonly resourceHandle: Tensor) {
+    ensureTensorflowBackend();
     this.backend = nodeBackend();
   }
 
@@ -98,6 +99,7 @@ export function summaryFileWriter(
       () =>
           `Invalid logdir: ${logdir}. Expected a non-empty string for logdir.`);
   if (!(logdir in summaryFileWriterCache)) {
+    ensureTensorflowBackend();
     const backend = nodeBackend();
     const writerResource = backend.summaryWriter(logdir);
 

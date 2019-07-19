@@ -16,11 +16,9 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-
 import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
-
 // tslint:disable-next-line:max-line-length
-import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType, nodeBackend} from './op_utils';
+import {createTensorsTypeOpAttr, createTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend} from './op_utils';
 
 describe('Exposes Backend for internal Op execution.', () => {
   it('Provides the Node backend over a function', () => {
@@ -30,6 +28,19 @@ describe('Exposes Backend for internal Op execution.', () => {
 
   it('Provides internal access to the binding', () => {
     expect(nodeBackend().binding).toBeDefined();
+  });
+
+  it('throw error if backend is not tensorflow', async done => {
+    try {
+      tfc.setBackend('cpu');
+      ensureTensorflowBackend();
+      done.fail();
+    } catch (err) {
+      expect(err.message)
+          .toBe('Expect the current backend to be "tensorflow", but got "cpu"');
+      tfc.setBackend('tensorflow');
+      done();
+    }
   });
 });
 
