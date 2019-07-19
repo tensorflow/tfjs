@@ -153,8 +153,8 @@ export abstract class Optimizer extends Serializable {
    * @param weightValues
    * @returns Weight values with the first element consumed and excluded.
    */
-  protected async extractIterations(
-      weightValues: NamedTensor[]): Promise<NamedTensor[]> {
+  protected async extractIterations(weightValues: NamedTensor[]):
+      Promise<NamedTensor[]> {
     this.iterations_ = (await weightValues[0].tensor.data())[0];
     return weightValues.slice(1);
   }

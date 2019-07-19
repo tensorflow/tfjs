@@ -79,8 +79,8 @@ export class MathBackendCPU implements KernelBackend {
   public blockSize = 48;
 
   private data: DataStorage<TensorData<DataType>>;
-  private fromPixels2DContext: CanvasRenderingContext2D
-      | OffscreenCanvasRenderingContext2D;
+  private fromPixels2DContext: CanvasRenderingContext2D|
+      OffscreenCanvasRenderingContext2D;
   private firstUse = true;
 
   constructor() {
@@ -134,12 +134,11 @@ export class MathBackendCPU implements KernelBackend {
 
     const isPixelData = (pixels as PixelData).data instanceof Uint8Array;
     const isImageData =
-        typeof(ImageData) !== 'undefined' && pixels instanceof ImageData;
-    const isVideo =
-        typeof(HTMLVideoElement) !== 'undefined'
-        && pixels instanceof HTMLVideoElement;
-    const isImage = typeof(HTMLImageElement) !== 'undefined'
-        && pixels instanceof HTMLImageElement;
+        typeof (ImageData) !== 'undefined' && pixels instanceof ImageData;
+    const isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
+        pixels instanceof HTMLVideoElement;
+    const isImage = typeof (HTMLImageElement) !== 'undefined' &&
+        pixels instanceof HTMLImageElement;
 
     let vals: Uint8ClampedArray|Uint8Array;
     // tslint:disable-next-line:no-any

@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
+import {getChannels} from '../packing_util';
+
 import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 import {getCoordsDataType} from './shader_compiler';
-import {getChannels} from '../packing_util';
 
 export class SlicePackedProgram implements GPGPUProgram {
   variableNames = ['source'];
@@ -40,7 +41,7 @@ export class SlicePackedProgram implements GPGPUProgram {
 
     const innerDims =
         this.rank === 1 ? 'sourceLoc' : `vec2(${sourceLoc.slice(-2).join()})`;
-    const getChannel = 
+    const getChannel =
         `getChannel(getSource(${sourceLoc.join()}), ${innerDims})`;
     const upperRow = `
       result.x = ${getChannel};

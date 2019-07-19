@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import { GPGPUProgram } from './gpgpu_math';
+import {GPGPUProgram} from './gpgpu_math';
 
 export class CropAndResizeProgram implements GPGPUProgram {
   variableNames = ['Image', 'Boxes', 'BoxInd'];
@@ -23,40 +23,40 @@ export class CropAndResizeProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(
-    imageShape: [number, number, number, number], boxShape: [number, number],
-    cropSize: [number, number], method: 'bilinear' | 'nearest',
-    extrapolationValue: number) {
+      imageShape: [number, number, number, number], boxShape: [number, number],
+      cropSize: [number, number], method: 'bilinear'|'nearest',
+      extrapolationValue: number) {
     const [batch, imageHeight, imageWidth, depth] = imageShape;
-    const [numBoxes,] = boxShape;
+    const [numBoxes, ] = boxShape;
     const [cropHeight, cropWidth] = cropSize;
     this.outputShape = [numBoxes, cropHeight, cropWidth, depth];
     const methodId = method === 'bilinear' ? 1 : 0;
 
     const [inputHeightFloat, inputWidthFloat] =
-      [`${imageHeight - 1}.0`, `${imageWidth - 1}.0`];
+        [`${imageHeight - 1}.0`, `${imageWidth - 1}.0`];
 
     const [heightRatio, heightScale, inY] = cropHeight > 1 ?
-      [
-        `${(imageHeight-1)/(cropHeight-1)}`,
-        '(y2-y1) * height_ratio',
-        `y1*${inputHeightFloat} + float(y)*(height_scale)`,
-      ] :
-      [
-        '0.0',
-        '0.0',
-        `0.5 * (y1+y2) * ${inputHeightFloat}`,
-      ];
+        [
+          `${(imageHeight - 1) / (cropHeight - 1)}`,
+          '(y2-y1) * height_ratio',
+          `y1*${inputHeightFloat} + float(y)*(height_scale)`,
+        ] :
+        [
+          '0.0',
+          '0.0',
+          `0.5 * (y1+y2) * ${inputHeightFloat}`,
+        ];
     const [widthRatio, widthScale, inX] = cropWidth > 1 ?
-      [
-        `${(imageWidth-1)/(cropWidth-1)}`,
-        '(x2-x1) * width_ratio',
-        `x1*${inputWidthFloat} + float(x)*(width_scale)`,
-      ] :
-      [
-        '0.0',
-        '0.0',
-        `0.5 * (x1+x2) * ${inputWidthFloat}`,
-      ];
+        [
+          `${(imageWidth - 1) / (cropWidth - 1)}`,
+          '(x2-x1) * width_ratio',
+          `x1*${inputWidthFloat} + float(x)*(width_scale)`,
+        ] :
+        [
+          '0.0',
+          '0.0',
+          `0.5 * (x1+x2) * ${inputWidthFloat}`,
+        ];
 
     // Reference implementation
     // tslint:disable-next-line:max-line-length

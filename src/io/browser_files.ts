@@ -63,8 +63,9 @@ export class BrowserDownloads implements IOHandler {
   }
 
   async save(modelArtifacts: ModelArtifacts): Promise<SaveResult> {
-    if (typeof(document) === 'undefined') {
-      throw new Error('Browser downloads are not supported in ' +
+    if (typeof (document) === 'undefined') {
+      throw new Error(
+          'Browser downloads are not supported in ' +
           'this environment since `document` is not present');
     }
     const weightsURL = window.URL.createObjectURL(new Blob(

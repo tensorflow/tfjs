@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
+import {getChannels} from '../packing_util';
+
 import {GPGPUProgram} from './gpgpu_math';
 import {getCoordsDataType} from './shader_compiler';
-import {getChannels} from '../packing_util';
 
 export class PadPackedProgram implements GPGPUProgram {
   variableNames = ['x'];
@@ -42,20 +43,17 @@ export class PadPackedProgram implements GPGPUProgram {
         rank === 1 ? 'source' : `vec2(${source.slice(-2).join()})`;
 
     const componentSetup = [
-      `${dtype} rc = outputLoc;`,
-      `${coords[rank - 1]} += 1;
+      `${dtype} rc = outputLoc;`, `${coords[rank - 1]} += 1;
        if(${cLimit}) {
       `,
-      rank === 1 ? '' : 
-      `}
+      rank === 1 ? '' : `}
        rc = outputLoc;
        ${coords[rank - 2]} += 1;
        if(${coords[rank - 2]} < ${this.outputShape[rank - 2]}) {`,
-      rank === 1 ? '' :
-      `  ${coords[rank - 1]} += 1;
+      rank === 1 ? '' : `  ${coords[rank - 1]} += 1;
          if(${cLimit}) {`
     ];
-    
+
     const paddingArea = rank === 1 ?
         'rc < start || rc >= end' :
         'any(lessThan(rc, start)) || any(greaterThanEqual(rc, end))';

@@ -58,16 +58,16 @@ function computeMaxSizePerColumn(
       const offset = row * numCols;
       for (let j = 0; j < numCols; j++) {
         padPerCol[j] = Math.max(
-            padPerCol[j], valToString(valuesOrTuples[offset + j], 0,
-              dtype).length);
+            padPerCol[j],
+            valToString(valuesOrTuples[offset + j], 0, dtype).length);
       }
     }
   }
   return padPerCol;
 }
 
-function valToString(val: number|string|[number, number], pad: number,
-    dtype: DataType) {
+function valToString(
+    val: number|string|[number, number], pad: number, dtype: DataType) {
   let valStr: string;
   if (Array.isArray(val)) {
     valStr = `${parseFloat(val[0].toFixed(FORMAT_NUM_SIG_DIGITS))} + ` +
@@ -118,8 +118,9 @@ function subTensorToString(
         lastVals = createComplexTuples(lastVals);
       }
       return [
-        '[' + firstVals.map((x, i) => valToString(x, padPerCol[i],
-          dtype)).join(', ') +
+        '[' +
+        firstVals.map((x, i) => valToString(x, padPerCol[i], dtype))
+            .join(', ') +
         ', ..., ' +
         lastVals
             .map(
@@ -134,8 +135,9 @@ function subTensorToString(
                                 Array.from<number|string>(vals);
 
     return [
-      '[' + displayVals.map((x, i) => valToString(x, padPerCol[i],
-        dtype)).join(', ') +
+      '[' +
+      displayVals.map((x, i) => valToString(x, padPerCol[i], dtype))
+          .join(', ') +
       ']'
     ];
   }

@@ -226,17 +226,17 @@ describeWithFlags('1D RFFT', ALL_ENVS, () => {
   it('should return the value with cropped input', async () => {
     const t1Real = tf.tensor1d([-3, -2, -1, 1, 2, 3]);
     const fftLength = 3;
-    expectArraysClose(await tf.spectral.rfft(t1Real, fftLength).data(), [
-      -6, 0.0, -1.5000002, 0.866
-    ]);
+    expectArraysClose(
+        await tf.spectral.rfft(t1Real, fftLength).data(),
+        [-6, 0.0, -1.5000002, 0.866]);
   });
 
   it('should return the value with padded input', async () => {
     const t1Real = tf.tensor1d([-3, -2, -1]);
     const fftLength = 4;
-    expectArraysClose(await tf.spectral.rfft(t1Real, fftLength).data(), [
-      -6, 0, -2, 2, -2, 0
-    ]);
+    expectArraysClose(
+        await tf.spectral.rfft(t1Real, fftLength).data(),
+        [-6, 0, -2, 2, -2, 0]);
   });
 });
 
@@ -265,23 +265,21 @@ describeWithFlags('2D RFFT', ALL_ENVS, () => {
            [3, 0, -1, 0, 7, 0, -1, 0, 11, 0, -1, 0, 15, 0, -1, 0]);
      });
 
-  it('should return the value with cropping',
-     async () => {
-       const t1Real = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-       const fftLength = 2;
-       expectArraysClose(
-           await tf.spectral.rfft(t1Real, fftLength).data(),
-           [3, 0, -1, 0, 9, 0, -1, 0]);
-     });
+  it('should return the value with cropping', async () => {
+    const t1Real = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const fftLength = 2;
+    expectArraysClose(
+        await tf.spectral.rfft(t1Real, fftLength).data(),
+        [3, 0, -1, 0, 9, 0, -1, 0]);
+  });
 
-  it('should return the value with padding',
-     async () => {
-       const t1Real = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-       const fftLength = 4;
-       expectArraysClose(
-           await tf.spectral.rfft(t1Real, fftLength).data(),
-           [6, 0, -2, -2, 2, 0, 15, 0, -2, -5, 5, 0]);
-     });
+  it('should return the value with padding', async () => {
+    const t1Real = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const fftLength = 4;
+    expectArraysClose(
+        await tf.spectral.rfft(t1Real, fftLength).data(),
+        [6, 0, -2, -2, 2, 0, 15, 0, -2, -5, 5, 0]);
+  });
 });
 
 describeWithFlags('1D IRFFT', ALL_ENVS, () => {
