@@ -41,6 +41,8 @@ Please reach out to us if you'd like to put your project on the list.
 - [AICAMCAM](https://aicamcam.github.io) - A browser-based webcam video recording service with people/dog/cat detection functionality.
 - [trynottolaugh](http://trynottolaugh.net) - Try not to laugh game with face landmark detection if you laugh during video you lose!
 - [Neuroglancer](https://github.com/google/neuroglancer) - A browser-based app for examining 3D volumetric neuroimaging data.
+- [Chester Radiology Assistant](https://mlmed.org/tools/xray) - A web-based tool for diagnosing chest x-ray images.
+- [Membrane](https://membrane.today) - An interactive audiovisual tone mirror that responds to nose movement, by Ashlin Aronin.
 
 ## Tutorials
 
@@ -87,4 +89,5 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [magenta.js](https://magenta.tensorflow.org/js) - Music and Art Generation with Machine Intelligence in the Browser.
 - [Handsfree.js](https://github.com/handsfreejs/handsfree) - A library for adding face-controlled pointers to your site.
 - [face-api.js](https://github.com/justadudewhohacks/face-api.js) - A JavaScript API for face detection and face recognition in the browser.
+- [machinelearn.js](https://github.com/machinelearnjs/machinelearnjs) - A general machine learning library like ScikitLearn directly in the Browser and Node.
 - [TensorFlow.js GPU-accelerated t-SNE](https://github.com/tensorflow/tfjs-tsne) - A linear t-SNE for the web.

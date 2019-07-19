@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/tensorflow/tfjs.svg?branch=master)](https://travis-ci.org/tensorflow/tfjs)
 # TensorFlow.js
 
 TensorFlow.js is an open-source hardware-accelerated JavaScript library for
@@ -7,6 +6,10 @@ training and deploying machine learning models.
 **Develop ML in the Browser** <br/>
 Use flexible and intuitive APIs to build models from scratch using the low-level
 JavaScript linear algebra library or the high-level layers API.
+
+**Develop ML in Node.js** <br/>
+Execute native TensorFlow with the same TensorFlow.js API under the Node.js
+runtime.
 
 **Run Existing models** <br/>
 Use TensorFlow.js model converters to run pre-existing TensorFlow models right
@@ -19,12 +22,15 @@ other client-side data.
 ## About this repo
 
 This repository contains the logic and scripts that combine
-two packages:
+four packages:
 - [TensorFlow.js Core](https://github.com/tensorflow/tfjs-core),
   a flexible low-level API, formerly known as *deeplearn.js*.
 - [TensorFlow.js Layers](https://github.com/tensorflow/tfjs-layers),
   a high-level API which implements functionality similar to
   [Keras](https://keras.io/).
+- [TensorFlow.js Data](https://github.com/tensorflow/tfjs-data),
+  a simple API to load and prepare data analogous to
+  [tf.data](https://www.tensorflow.org/guide/datasets).
 - [TensorFlow.js Converter](https://github.com/tensorflow/tfjs-converter),
   tools to import a TensorFlow SavedModel to TensorFlow.js
 
@@ -63,7 +69,7 @@ Add the following code to an HTML file:
   <head>
     <!-- Load TensorFlow.js -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"> </script>
-  
+
 
     <!-- Place your code in the script tag below. You can also use an external .js file -->
     <script>

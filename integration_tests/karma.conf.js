@@ -27,8 +27,8 @@ module.exports = function(config) {
   if (config.firebaseKey) {
     args.push('--firebaseKey', config.firebaseKey);
   }
-  if (config.travis) {
-    args.push('--travis');
+  if (config.nightly) {
+    args.push('--nightly');
   }
   if(config.browsers) {
     args.push('--browsers', config.browsers);
@@ -43,6 +43,7 @@ module.exports = function(config) {
       {pattern: '*.ts'}
     ],
     include: ['*.ts'],
+    exclude: ['./run_node_tests.ts'],
     preprocessors: {
       '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
     },

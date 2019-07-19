@@ -42,31 +42,16 @@
  */
 
 import * as commander from 'commander';
-import * as shell from 'shelljs';
 import * as mkdirp from 'mkdirp';
-// tslint:disable-next-line:no-require-imports
-const octokit = require('@octokit/rest')();
 import * as readline from 'readline';
 import * as fs from 'fs';
 import * as util from './util';
-import {$, Repo, RepoCommits, Commit} from './util';
+import {$, Commit, Repo, RepoCommits} from './util';
+// tslint:disable-next-line:no-require-imports
+const octokit = require('@octokit/rest')();
 
+const OUT_FILE = 'release-notes.md';
 const TMP_DIR = '/tmp/tfjs-release-notes';
-
-commander.option('--startVersion <string>', 'Which version of union to use')
-    .option('--endVersion <string>', 'Which version of union to use')
-    .option('--out <string>', 'Where to write the draft markdown')
-    .parse(process.argv);
-
-if (commander.startVersion == null) {
-  console.log('Please provide a start version with --startVersion.');
-  process.exit(1);
-}
-
-if (commander.out == null) {
-  console.log('Please provide a file to write the draft to with --out');
-  process.exit(1);
-}
 
 const UNION_DEPENDENCIES: Repo[] = [
   {name: 'Core', identifier: 'tfjs-core'},
@@ -75,115 +60,166 @@ const UNION_DEPENDENCIES: Repo[] = [
   {name: 'Converter', identifier: 'tfjs-converter'}
 ];
 
-const startVersion = 'v' + commander.startVersion;
-const endVersion =
-    commander.endVersion != null ? 'v' + commander.endVersion : 'HEAD';
+const NODE_REPO: Repo = {
+  name: 'Node',
+  identifier: 'tfjs-node'
+};
 
-mkdirp(TMP_DIR, (err) => {
-  if (err) {
-    console.log('Error creating temp dir', TMP_DIR);
+async function askUserForVersions(validVersions: string[], packageName: string):
+    Promise<{startVersion: string, endVersion: string}> {
+  const YELLOW_TERMINAL_COLOR = '\x1b[33m%s\x1b[0m';
+  const RED_TERMINAL_COLOR = '\x1b[31m%s\x1b[0m';
+
+  console.log(YELLOW_TERMINAL_COLOR, packageName + ' versions');
+  console.log(validVersions.join(', '));
+  const startVersion = await util.question(`Enter the union start version: `);
+  if (validVersions.indexOf(startVersion) === -1) {
+    console.log(RED_TERMINAL_COLOR, `Unknown start version: ${startVersion}`);
     process.exit(1);
   }
-});
-
-// Remove anything that exists already in the tmp dir.
-$(`rm -f -r ${TMP_DIR}/*`);
-
-// Get all the commits of the union package between the versions.
-const unionCommits =
-    $(`git log --pretty=format:"%H" ${startVersion}..${endVersion}`);
-
-const commitLines = unionCommits.trim().split('\n');
-
-// Read the union package.json from the earliest commit so we can find the
-// dependencies.
-const earliestCommit = commitLines[commitLines.length - 1];
-const earliestUnionPackageJson =
-    JSON.parse($(`git show ${earliestCommit}:package.json`));
-const latestCommit = commitLines[0];
-const latestUnionPackageJson =
-    JSON.parse($(`git show ${latestCommit}:package.json`));
-
-const repoCommits: RepoCommits[] = [];
-
-// Clone all of the dependencies into the tmp directory.
-UNION_DEPENDENCIES.forEach(repo => {
-  // Find the version of the dependency from the package.json from the
-  // earliest union tag.
-  const npm = '@tensorflow/' + repo.identifier;
-  const repoStartVersion = earliestUnionPackageJson.dependencies[npm];
-  const repoEndVersion = latestUnionPackageJson.dependencies[npm];
-
-  console.log(
-      `${repo.name}: ${repoStartVersion}` +
-      ` =====> ${repoEndVersion}`);
-
-  const dir = `${TMP_DIR}/${repo.name}`;
-
-  // Clone the repo and find the commit from the tagged start version.
-  console.log(`Cloning ${repo.identifier}...`);
-
-  $(`mkdir ${dir}`);
-  $(`git clone https://github.com/tensorflow/${repo.identifier} ${dir}`);
-
-  const startCommit =
-      $(repoStartVersion != null ?
-            `git -C ${dir} rev-list -n 1 v${repoStartVersion}` :
-            // Get the first commit if there are no tags yet.
-            `git rev-list --max-parents=0 HEAD`);
-
-  console.log('Querying commits...');
-  // Get subjects, bodies, emails, etc from commit metadata.
-  const commitFieldQueries = ['%s', '%b', '%aE', '%H'];
-  const commitFields = commitFieldQueries.map(query => {
-    // Use a unique delimiter so we can split the log.
-    const uniqueDelimiter = '--^^&&';
-    const versionQuery = repoStartVersion != null ?
-        `v${repoStartVersion}..v${repoEndVersion}` :
-        `#${startCommit}..v${repoEndVersion}`;
-    return $(`git -C ${dir} log --pretty=format:"${query}${uniqueDelimiter}" ` +
-             `${versionQuery}`)
-        .trim()
-        .split(uniqueDelimiter)
-        .slice(0, -1)
-        .map(str => str.trim());
-  });
-
-  const commits: Commit[] = [];
-  for (let i = 0; i < commitFields[0].length; i++) {
-    commits.push({
-      subject: commitFields[0][i],
-      body: commitFields[1][i],
-      authorEmail: commitFields[2][i],
-      sha: commitFields[3][i]
-    });
+  const defaultVersion = validVersions[validVersions.length - 1];
+  let endVersion = await util.question(
+      `Enter the union end version (leave empty for ${defaultVersion}): `);
+  if (endVersion === '') {
+    endVersion = defaultVersion;
   }
+  if (validVersions.indexOf(endVersion) === -1) {
+    console.log(RED_TERMINAL_COLOR, `Unknown end version: ${endVersion}`);
+    process.exit(1);
+  }
+  return {startVersion, endVersion};
+}
 
-  repoCommits.push({
-    repo,
-    startVersion: repoStartVersion,
-    endVersion: repoEndVersion,
-    startCommit,
-    commits
+async function main() {
+  mkdirp(TMP_DIR, (err) => {
+    if (err) {
+      console.log('Error creating temp dir', TMP_DIR);
+      process.exit(1);
+    }
   });
-});
 
-// Ask for github token.
-const rl =
-    readline.createInterface({input: process.stdin, output: process.stdout});
-rl.question(
-    'Enter GitHub token (https://github.com/settings/tokens): ',
-    token => writeReleaseNotesDraft(token));
+  // Remove anything that exists already in the tmp dir.
+  $(`rm -f -r ${TMP_DIR}/*`);
 
-export async function writeReleaseNotesDraft(token: string) {
+  // Get union start version and end version.
+  const versions = $(`git tag`).split('\n');
+  const {startVersion, endVersion} = await askUserForVersions(versions, 'tfjs');
+
+  // Clone the Node.js repo eagerly so we can query the tags.
+  const nodeDir = `${TMP_DIR}/${NODE_REPO.name}`;
+  // Clone the repo and find the commit from the tagged start version.
+  console.log(`Cloning ${NODE_REPO.identifier}...`);
+  $(`mkdir ${nodeDir}`);
+  $(`git clone https://github.com/tensorflow/${NODE_REPO.identifier} ${
+      nodeDir}`);
+  const validNodeVersions = $(`git -C ${nodeDir} tag`).split('\n');
+  const nodeVersions =
+      await askUserForVersions(validNodeVersions, NODE_REPO.identifier);
+  NODE_REPO.startVersion = nodeVersions.startVersion;
+  NODE_REPO.endVersion = nodeVersions.endVersion;
+  NODE_REPO.startCommit =
+      $(`git -C ${nodeDir} rev-list -n 1 ${NODE_REPO.startVersion}`);
+
+  // Get all the commits of the union package between the versions.
+  const unionCommits =
+      $(`git log --pretty=format:"%H" ${startVersion}..${endVersion}`);
+
+  const commitLines = unionCommits.trim().split('\n');
+
+  // Read the union package.json from the earliest commit so we can find the
+  // dependencies.
+  const earliestCommit = commitLines[commitLines.length - 1];
+  const earliestUnionPackageJson =
+      JSON.parse($(`git show ${earliestCommit}:package.json`));
+  const latestCommit = commitLines[0];
+  const latestUnionPackageJson =
+      JSON.parse($(`git show ${latestCommit}:package.json`));
+
+  // Populate start and end for each of the union dependencies.
+  UNION_DEPENDENCIES.forEach(repo => {
+    // Find the version of the dependency from the package.json from the
+    // earliest union tag.
+    const npm = '@tensorflow/' + repo.identifier;
+    const repoStartVersion = earliestUnionPackageJson.dependencies[npm];
+    const repoEndVersion = latestUnionPackageJson.dependencies[npm];
+
+    const dir = `${TMP_DIR}/${repo.name}`;
+
+    // Clone the repo and find the commit from the tagged start version.
+    console.log(`Cloning ${repo.identifier}...`);
+
+    $(`mkdir ${dir}`);
+    $(`git clone https://github.com/tensorflow/${repo.identifier} ${dir}`);
+
+    repo.startCommit =
+        $(repoStartVersion != null ?
+              `git -C ${dir} rev-list -n 1 v${repoStartVersion}` :
+              // Get the first commit if there are no tags yet.
+              `git rev-list --max-parents=0 HEAD`);
+
+    repo.startVersion =
+        repoStartVersion != null ? `v${repoStartVersion}` : null;
+    repo.endVersion = `v${repoEndVersion}`;
+  });
+
+  const repoCommits: RepoCommits[] = [];
+
+  // Clone all of the dependencies into the tmp directory.
+  [...UNION_DEPENDENCIES, NODE_REPO].forEach(repo => {
+    const dir = `${TMP_DIR}/${repo.name}`;
+    console.log(
+        `${repo.name}: ${repo.startVersion}` +
+        ` =====> ${repo.endVersion}`);
+
+    console.log('Querying commits...');
+    // Get subjects, bodies, emails, etc from commit metadata.
+    const commitFieldQueries = ['%s', '%b', '%aE', '%H'];
+    const commitFields = commitFieldQueries.map(query => {
+      // Use a unique delimiter so we can split the log.
+      const uniqueDelimiter = '--^^&&';
+      const versionQuery = repo.startVersion != null ?
+          `${repo.startVersion}..${repo.endVersion}` :
+          `#${repo.startCommit}..${repo.endVersion}`;
+      return $(`git -C ${dir} log --pretty=format:"${query}${
+                   uniqueDelimiter}" ` +
+               `${versionQuery}`)
+          .trim()
+          .split(uniqueDelimiter)
+          .slice(0, -1)
+          .map(str => str.trim());
+    });
+
+    const commits: Commit[] = [];
+    for (let i = 0; i < commitFields[0].length; i++) {
+      commits.push({
+        subject: commitFields[0][i],
+        body: commitFields[1][i],
+        authorEmail: commitFields[2][i],
+        sha: commitFields[3][i]
+      });
+    }
+
+    repoCommits.push({
+      repo,
+      startVersion: repo.startVersion,
+      endVersion: repo.endVersion,
+      startCommit: repo.startCommit,
+      commits
+    });
+  });
+
+  // Ask for github token.
+  const token = await util.question(
+      'Enter GitHub token (https://github.com/settings/tokens): ');
   octokit.authenticate({type: 'token', token});
 
   const notes = await util.getReleaseNotesDraft(octokit, repoCommits);
 
-  fs.writeFileSync(commander.out, notes);
+  fs.writeFileSync(OUT_FILE, notes);
 
-  console.log('Done writing notes to', commander.out);
+  console.log('Done writing notes to', OUT_FILE);
 
   // So the script doesn't just hang.
   process.exit(0);
 }
+main();

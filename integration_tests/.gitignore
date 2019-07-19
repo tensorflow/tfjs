@@ -1,3 +1,7 @@
+tfjs-converter/
+tfjs-core/
+tfjs-data/
+tfjs-layers/
+tfjs-node/
+data/
 coverage/
-.yalc/
-yalc.lock

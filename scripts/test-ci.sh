@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2018 Google LLC. All Rights Reserved.
+# Copyright 2019 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,15 +17,14 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-rimraf dist/
-yarn
 yarn build
-rollup -c
-
-# Use minified files for miniprogram
-mkdir dist/miniprogram
-cp dist/tf.min.js dist/miniprogram/index.js
-cp dist/tf.min.js.map dist/miniprogram/index.js.map
-
-echo "Stored standalone library at dist/tf(.min).js"
-npm pack
+yarn lint
+yarn ts-node ./scripts/release_notes/run_tests.ts
+yarn karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun
+cd integration_tests
+yarn benchmark-cloud
+# Reinstall the following line once https://github.com/tensorflow/tfjs/pull/1663
+# is resolved.
+# yarn benchmark --layers --tfjs-node
+yarn validate-converter --tfjs-node
+cd ../../

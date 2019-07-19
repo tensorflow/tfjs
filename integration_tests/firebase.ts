@@ -74,9 +74,8 @@ export async function logBenchmarkRun(
 
   const entryDisplay: string = JSON.stringify(entry, undefined, 2);
   const ref = `${humanReadableDate}/${benchmarkName}/${karmaFlags.browsers}`;
-  if (!karmaFlags.travis) {
-    console.log(
-        'Not inside travis so not querying firebase. Would have added: ');
+  if (!karmaFlags.nightly) {
+    console.log('Not nightly so not querying firebase. Would have added: ');
     console.log(ref);
     console.log(entryDisplay);
   } else {
@@ -101,22 +100,22 @@ export async function logBenchmarkRun(
 
 interface KarmaFlags {
   apiKey: string;
-  travis: boolean;
+  nightly: boolean;
   browsers: string;
   hashes: BenchmarkHashes;
 }
 
 export function parseKarmaFlags(args: string[]): KarmaFlags {
   let apiKey: string;
-  let travis = false;
+  let nightly = false;
   let browsers: string;
   let hashes: {};
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--firebaseKey') {
       apiKey = args[i + 1];
     }
-    if (args[i] === '--travis') {
-      travis = true;
+    if (args[i] === '--nightly') {
+      nightly = true;
     }
     if (args[i] === '--browsers') {
       browsers = args[i + 1];
@@ -125,5 +124,5 @@ export function parseKarmaFlags(args: string[]): KarmaFlags {
       hashes = JSON.parse(args[i + 1]);
     }
   }
-  return {apiKey, travis, browsers, hashes: hashes || {}};
+  return {apiKey, nightly, browsers, hashes: hashes || {}};
 }
