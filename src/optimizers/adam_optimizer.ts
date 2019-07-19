@@ -17,7 +17,7 @@
 
 import {ENGINE} from '../engine';
 import {dispose, tidy} from '../globals';
-import {scalar, sub, zerosLike, pow} from '../ops/ops';
+import {pow, scalar, sub, zerosLike} from '../ops/ops';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {Variable} from '../tensor';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';

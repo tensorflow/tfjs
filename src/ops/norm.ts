@@ -18,10 +18,11 @@
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
+import {parseAxisParam} from '../util';
+
 import * as axis_util from './axis_util';
 import {op} from './operation';
 import {scalar} from './tensor_ops';
-import {parseAxisParam} from '../util';
 
 /**
  * Computes the norm of scalar, vectors, and matrices.

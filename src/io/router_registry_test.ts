@@ -17,10 +17,11 @@
 
 import * as tf from '../index';
 import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
+
 import {BrowserIndexedDB, browserIndexedDB} from './indexed_db';
 import {BrowserLocalStorage, browserLocalStorage} from './local_storage';
 import {IORouterRegistry} from './router_registry';
-import {IOHandler, OnProgressCallback, SaveHandler, LoadHandler} from './types';
+import {IOHandler, LoadHandler, OnProgressCallback, SaveHandler} from './types';
 
 describeWithFlags('IORouterRegistry', BROWSER_ENVS, () => {
   const localStorageRouter = (url: string) => {
@@ -117,16 +118,16 @@ describeWithFlags('IORouterRegistry', BROWSER_ENVS, () => {
     expect(tf.io.getLoadHandlers('localstorage://foo-model')).toEqual([]);
   });
 
-  const fakeOnProgressRouter = (url: string,
-                                onProgress?: OnProgressCallback) => {
-    return new FakeOnProgressHandler(url, onProgress);
-  };
+  const fakeOnProgressRouter =
+      (url: string, onProgress?: OnProgressCallback) => {
+        return new FakeOnProgressHandler(url, onProgress);
+      };
 
   class FakeOnProgressHandler implements IOHandler {
     save?: SaveHandler;
     load?: LoadHandler;
-    constructor(url: string,
-                private readonly onProgress?: OnProgressCallback) {}
+    constructor(url: string, private readonly onProgress?: OnProgressCallback) {
+    }
     get onProgressCallback() {
       return this.onProgress;
     }

@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {expectArraysClose, expectArraysEqual} from '../test_util';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
+import {expectArraysClose, expectArraysEqual} from '../test_util';
 
 describeWithFlags('equal', ALL_ENVS, () => {
   it('Tensor1D - int32', async () => {
@@ -59,8 +59,7 @@ describeWithFlags('equal', ALL_ENVS, () => {
     expect(res.shape).toEqual([3]);
     expectArraysClose(await res.data(), [0, 0, 1]);
 
-    res =
-        tf.equal(tf.tensor(a, [3], 'int32'), tf.tensor(b, [3], 'bool'));
+    res = tf.equal(tf.tensor(a, [3], 'int32'), tf.tensor(b, [3], 'bool'));
     expect(res.dtype).toBe('bool');
     expect(res.shape).toEqual([3]);
     expectArraysClose(await res.data(), [1, 0, 0]);
@@ -76,7 +75,7 @@ describeWithFlags('equal', ALL_ENVS, () => {
     const a = tf.tensor1d([1.1, 4.1, 5.1], 'float32');
     const b = [2.2, 3.2, 5.1];
 
-    expectArraysClose(await a.equal( b).data(), [0, 0, 1]);
+    expectArraysClose(await a.equal(b).data(), [0, 0, 1]);
   });
 
   it('mismatched Tensor1D shapes - int32', () => {
@@ -120,8 +119,7 @@ describeWithFlags('equal', ALL_ENVS, () => {
     expectArraysClose(await tf.equal(a, b).data(), [1, 1, 1, 1]);
   });
   it('Tensor2D - float32', async () => {
-    let a =
-        tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
+    let a = tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
     let b =
         tf.tensor2d([[2.1, 4.1, 5.1], [7.1, 10.1, 11.1]], [2, 3], 'float32');
     expectArraysClose(await tf.equal(a, b).data(), [0, 1, 1, 0, 0, 0]);
@@ -168,8 +166,7 @@ describeWithFlags('equal', ALL_ENVS, () => {
     let a =
         tf.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
     let b =
-        tf.tensor3d(
-          [[[2], [3], [6]], [[7], [10], [12]]], [2, 3, 1], 'int32');
+        tf.tensor3d([[[2], [3], [6]], [[7], [10], [12]]], [2, 3, 1], 'int32');
     expectArraysClose(await tf.equal(a, b).data(), [0, 0, 0, 0, 0, 1]);
 
     a = tf.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
@@ -177,24 +174,22 @@ describeWithFlags('equal', ALL_ENVS, () => {
     expectArraysClose(await tf.equal(a, b).data(), [1, 1, 1, 1, 1, 1]);
   });
   it('Tensor3D - float32', async () => {
-    let a = tf.tensor3d([[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
-      [2, 3, 1], 'float32');
+    let a = tf.tensor3d(
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]], [2, 3, 1], 'float32');
     let b = tf.tensor3d(
-        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]], [2, 3, 1], 'float32');
     expectArraysClose(await tf.equal(a, b).data(), [0, 0, 0, 0, 0, 1]);
 
     a = tf.tensor3d(
-      [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1],'float32');
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
     b = tf.tensor3d(
-      [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
     expectArraysClose(await tf.equal(a, b).data(), [1, 1, 1, 1, 1, 1]);
   });
   it('broadcasting Tensor3D shapes - int32', async () => {
     const a = tf.tensor3d(
-      [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
-      [2, 3, 2], 'int32');
+        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]], [2, 3, 2],
+        'int32');
     const b =
         tf.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
     expectArraysClose(
@@ -206,12 +201,9 @@ describeWithFlags('equal', ALL_ENVS, () => {
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
-        [2, 3, 2],
-        'float32');
+        [2, 3, 2], 'float32');
     const b = tf.tensor3d(
-        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]], [2, 3, 1], 'float32');
     expectArraysClose(
         await tf.equal(a, b).data(), [1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0]);
   });
@@ -219,9 +211,8 @@ describeWithFlags('equal', ALL_ENVS, () => {
     const a = tf.tensor3d(
         [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
     const b = tf.tensor3d(
-      [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
-    expectArraysClose(
-        await tf.equal(a, b).data(), [0, 0, 1, 0, 1, 0]);
+        [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
+    expectArraysClose(await tf.equal(a, b).data(), [0, 0, 1, 0, 1, 0]);
   });
   it('3D and scalar', async () => {
     const a = tf.tensor3d([1, 2, 3, 4, 5, -1], [2, 3, 1]);
@@ -269,14 +260,13 @@ describeWithFlags('equal', ALL_ENVS, () => {
     const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d(
         [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
-        [2, 2, 1, 2],
-        'float32');
+        [2, 2, 1, 2], 'float32');
     expectArraysClose(await tf.equal(a, b).data(), [1, 0, 0, 0, 1, 0, 0, 0]);
   });
   it('NaNs in Tensor4D - float32', async () => {
-      const a = tf.tensor4d([1.1, NaN, 1.1, 0.1], [2, 2, 1, 1], 'float32');
-      const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
-      expectArraysClose(await tf.equal(a, b).data(), [0, 0, 1, 0]);
+    const a = tf.tensor4d([1.1, NaN, 1.1, 0.1], [2, 2, 1, 1], 'float32');
+    const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
+    expectArraysClose(await tf.equal(a, b).data(), [0, 0, 1, 0]);
   });
 
   it('throws when passed a as a non-tensor', () => {
@@ -341,8 +331,7 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
   it('NaNs in Tensor1D - float32', async () => {
     const a = tf.tensor1d([1.1, NaN, 2.1], 'float32');
     const b = tf.tensor1d([2.1, 3.1, NaN], 'float32');
-    expectArraysClose(
-        await tf.equalStrict(a, b).data(), [0, 0, 0]);
+    expectArraysClose(await tf.equalStrict(a, b).data(), [0, 0, 0]);
   });
 
   // Tensor2D:
@@ -356,8 +345,7 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
     expectArraysClose(await tf.equalStrict(a, b).data(), [1, 1, 1, 1]);
   });
   it('Tensor2D - float32', async () => {
-    let a =
-        tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
+    let a = tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
     let b =
         tf.tensor2d([[2.1, 4.1, 5.1], [7.1, 10.1, 11.1]], [2, 3], 'float32');
     expectArraysClose(await tf.equalStrict(a, b).data(), [0, 1, 1, 0, 0, 0]);
@@ -387,8 +375,7 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
   it('NaNs in Tensor2D - float32', async () => {
     const a = tf.tensor2d([[1.1, NaN], [1.1, NaN]], [2, 2], 'float32');
     const b = tf.tensor2d([[0.1, NaN], [1.1, NaN]], [2, 2], 'float32');
-    expectArraysClose(
-        await tf.equalStrict(a, b).data(), [0, 0, 1, 0]);
+    expectArraysClose(await tf.equalStrict(a, b).data(), [0, 0, 1, 0]);
   });
 
   // Tensor3D:
@@ -405,13 +392,9 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
   });
   it('Tensor3D - float32', async () => {
     let a = tf.tensor3d(
-        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]], [2, 3, 1], 'float32');
     let b = tf.tensor3d(
-        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]], [2, 3, 1], 'float32');
     expectArraysClose(await tf.equalStrict(a, b).data(), [0, 0, 0, 0, 0, 1]);
 
     a = tf.tensor3d(
@@ -422,8 +405,7 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
   });
   it('mismatch Tensor3D shapes - int32', () => {
     const a = tf.tensor3d(
-        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
-        [2, 3, 2],
+        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]], [2, 3, 2],
         'int32');
     const b =
         tf.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
@@ -439,12 +421,9 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
-        [2, 3, 2],
-        'float32');
+        [2, 3, 2], 'float32');
     const b = tf.tensor3d(
-        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]], [2, 3, 1], 'float32');
 
     const f = () => {
       tf.equalStrict(a, b);
@@ -453,11 +432,10 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
   });
   it('NaNs in Tensor3D - float32', async () => {
     const a = tf.tensor3d(
-       [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
+        [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
     const b = tf.tensor3d(
         [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
-    expectArraysClose(
-        await tf.equalStrict(a, b).data(), [0, 0, 1, 0, 1, 0]);
+    expectArraysClose(await tf.equalStrict(a, b).data(), [0, 0, 1, 0, 1, 0]);
   });
 
   // Tensor4D:
@@ -511,14 +489,13 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
   it('NaNs in Tensor4D - float32', async () => {
     const a = tf.tensor4d([1.1, NaN, 1.1, 0.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
-    expectArraysClose(
-        await tf.equalStrict(a, b).data(), [0, 0, 1, 0]);
+    expectArraysClose(await tf.equalStrict(a, b).data(), [0, 0, 1, 0]);
   });
 
   it('accepts a tensor-like object', async () => {
-      const a = [1, 4, 5];
-      const b = [2, 3, 5];
-      expectArraysClose(await tf.equalStrict(a, b).data(), [0, 0, 1]);
+    const a = [1, 4, 5];
+    const b = [2, 3, 5];
+    expectArraysClose(await tf.equalStrict(a, b).data(), [0, 0, 1]);
   });
 });
 
@@ -562,8 +539,7 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     expect(res.shape).toEqual([3]);
     expectArraysClose(await res.data(), [1, 1, 0]);
 
-    res =
-        tf.notEqual(tf.tensor(a, [3], 'int32'), tf.tensor(b, [3], 'bool'));
+    res = tf.notEqual(tf.tensor(a, [3], 'int32'), tf.tensor(b, [3], 'bool'));
     expect(res.dtype).toBe('bool');
     expect(res.shape).toEqual([3]);
     expectArraysClose(await res.data(), [0, 1, 1]);
@@ -630,8 +606,7 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     expectArraysClose(await tf.notEqual(a, b).data(), [0, 0, 0, 0]);
   });
   it('Tensor2D - float32', async () => {
-    let a =
-        tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
+    let a = tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
     let b =
         tf.tensor2d([[2.1, 4.1, 5.1], [7.1, 10.1, 11.1]], [2, 3], 'float32');
     expectArraysClose(await tf.notEqual(a, b).data(), [1, 0, 0, 1, 1, 1]);
@@ -678,8 +653,7 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     let a =
         tf.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
     let b =
-        tf.tensor3d(
-          [[[2], [3], [6]], [[7], [10], [12]]], [2, 3, 1], 'int32');
+        tf.tensor3d([[[2], [3], [6]], [[7], [10], [12]]], [2, 3, 1], 'int32');
     expectArraysClose(await tf.notEqual(a, b).data(), [1, 1, 1, 1, 1, 0]);
 
     a = tf.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
@@ -688,29 +662,20 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
   });
   it('Tensor3D - float32', async () => {
     let a = tf.tensor3d(
-        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]], [2, 3, 1], 'float32');
     let b = tf.tensor3d(
-        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]], [2, 3, 1], 'float32');
     expectArraysClose(await tf.notEqual(a, b).data(), [1, 1, 1, 1, 1, 0]);
 
     a = tf.tensor3d(
-        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
     b = tf.tensor3d(
-        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
     expectArraysClose(await tf.notEqual(a, b).data(), [0, 0, 0, 0, 0, 0]);
   });
   it('broadcasting Tensor3D shapes - int32', async () => {
     const a = tf.tensor3d(
-        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
-        [2, 3, 2],
+        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]], [2, 3, 2],
         'int32');
     const b =
         tf.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
@@ -723,12 +688,9 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
-        [2, 3, 2],
-        'float32');
+        [2, 3, 2], 'float32');
     const b = tf.tensor3d(
-        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]], [2, 3, 1], 'float32');
     expectArraysClose(
         await tf.notEqual(a, b).data(), [0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1]);
   });
@@ -736,9 +698,8 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     const a = tf.tensor3d(
         [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
     const b = tf.tensor3d(
-        [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1] ,'float32');
-    expectArraysClose(
-        await tf.notEqual(a, b).data(), [1, 1, 0, 1, 0, 1]);
+        [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
+    expectArraysClose(await tf.notEqual(a, b).data(), [1, 1, 0, 1, 0, 1]);
   });
   it('3D and scalar', async () => {
     const a = tf.tensor3d([1, 2, 3, 4, 5, -1], [2, 3, 1]);
@@ -780,23 +741,19 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     const a = tf.tensor4d([1, 2, 5, 9], [2, 2, 1, 1], 'int32');
     const b = tf.tensor4d(
         [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], [2, 2, 1, 2], 'int32');
-    expectArraysClose(
-        await tf.notEqual(a, b).data(), [0, 1, 1, 1, 0, 1, 1, 1]);
+    expectArraysClose(await tf.notEqual(a, b).data(), [0, 1, 1, 1, 0, 1, 1, 1]);
   });
   it('broadcasting Tensor4D shapes - float32', async () => {
     const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d(
         [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
-        [2, 2, 1, 2],
-        'float32');
-    expectArraysClose(
-        await tf.notEqual(a, b).data(), [0, 1, 1, 1, 0, 1, 1, 1]);
+        [2, 2, 1, 2], 'float32');
+    expectArraysClose(await tf.notEqual(a, b).data(), [0, 1, 1, 1, 0, 1, 1, 1]);
   });
   it('NaNs in Tensor4D - float32', async () => {
     const a = tf.tensor4d([1.1, NaN, 1.1, 0.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
-    expectArraysClose(
-        await tf.notEqual(a, b).data(), [1, 1, 0, 1]);
+    expectArraysClose(await tf.notEqual(a, b).data(), [1, 1, 0, 1]);
   });
 
   it('throws when passed a as a non-tensor', () => {
@@ -861,8 +818,7 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
   it('NaNs in Tensor1D - float32', async () => {
     const a = tf.tensor1d([1.1, NaN, 2.1], 'float32');
     const b = tf.tensor1d([2.1, 3.1, NaN], 'float32');
-    expectArraysClose(
-        await tf.notEqualStrict(a, b).data(), [1, 1, 1]);
+    expectArraysClose(await tf.notEqualStrict(a, b).data(), [1, 1, 1]);
   });
   it('strict version throws when x and y are different shape', () => {
     const a = tf.tensor1d([2]);
@@ -876,20 +832,17 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
   it('Tensor2D - int32', async () => {
     let a = tf.tensor2d([[1, 4, 5], [8, 9, 12]], [2, 3], 'int32');
     let b = tf.tensor2d([[2, 3, 6], [7, 10, 11]], [2, 3], 'int32');
-    expectArraysClose(
-        await tf.notEqualStrict(a, b).data(), [1, 1, 1, 1, 1, 1]);
+    expectArraysClose(await tf.notEqualStrict(a, b).data(), [1, 1, 1, 1, 1, 1]);
 
     a = tf.tensor2d([[0, 0], [1, 1]], [2, 2], 'int32');
     b = tf.tensor2d([[0, 0], [1, 1]], [2, 2], 'int32');
     expectArraysClose(await tf.notEqualStrict(a, b).data(), [0, 0, 0, 0]);
   });
   it('Tensor2D - float32', async () => {
-    let a =
-        tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
+    let a = tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
     let b =
         tf.tensor2d([[2.1, 4.1, 5.1], [7.1, 10.1, 11.1]], [2, 3], 'float32');
-    expectArraysClose(
-        await tf.notEqualStrict(a, b).data(), [1, 0, 0, 1, 1, 1]);
+    expectArraysClose(await tf.notEqualStrict(a, b).data(), [1, 0, 0, 1, 1, 1]);
 
     a = tf.tensor2d([[0.2, 0.2], [1.2, 1.2]], [2, 2], 'float32');
     b = tf.tensor2d([[0.2, 0.2], [1.2, 1.2]], [2, 2], 'float32');
@@ -916,8 +869,7 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
   it('NaNs in Tensor2D - float32', async () => {
     const a = tf.tensor2d([[1.1, NaN], [1.1, NaN]], [2, 2], 'float32');
     const b = tf.tensor2d([[0.1, NaN], [1.1, NaN]], [2, 2], 'float32');
-    expectArraysClose(
-        await tf.notEqualStrict(a, b).data(), [1, 1, 0, 1]);
+    expectArraysClose(await tf.notEqualStrict(a, b).data(), [1, 1, 0, 1]);
   });
 
   // Tensor3D:
@@ -925,37 +877,29 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
     let a =
         tf.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
     let b =
-        tf.tensor3d(
-          [[[2], [3], [6]], [[7], [10], [12]]], [2, 3, 1], 'int32');
-    expectArraysClose(
-        await tf.notEqualStrict(a, b).data(), [1, 1, 1, 1, 1, 0]);
+        tf.tensor3d([[[2], [3], [6]], [[7], [10], [12]]], [2, 3, 1], 'int32');
+    expectArraysClose(await tf.notEqualStrict(a, b).data(), [1, 1, 1, 1, 1, 0]);
 
     a = tf.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
     b = tf.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
-    expectArraysClose(
-        await tf.notEqualStrict(a, b).data(), [0, 0, 0, 0, 0, 0]);
+    expectArraysClose(await tf.notEqualStrict(a, b).data(), [0, 0, 0, 0, 0, 0]);
   });
   it('Tensor3D - float32', async () => {
     let a = tf.tensor3d(
-        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]], [2, 3, 1],
-        'float32');
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]], [2, 3, 1], 'float32');
     let b = tf.tensor3d(
-        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]], [2, 3, 1],
-        'float32');
-    expectArraysClose(
-        await tf.notEqualStrict(a, b).data(), [1, 1, 1, 1, 1, 0]);
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]], [2, 3, 1], 'float32');
+    expectArraysClose(await tf.notEqualStrict(a, b).data(), [1, 1, 1, 1, 1, 0]);
 
     a = tf.tensor3d(
         [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
     b = tf.tensor3d(
         [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
-    expectArraysClose(
-        await tf.notEqualStrict(a, b).data(), [0, 0, 0, 0, 0, 0]);
+    expectArraysClose(await tf.notEqualStrict(a, b).data(), [0, 0, 0, 0, 0, 0]);
   });
   it('mismatch Tensor3D shapes - int32', () => {
     const a = tf.tensor3d(
-        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
-        [2, 3, 2],
+        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]], [2, 3, 2],
         'int32');
     const b =
         tf.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
@@ -971,12 +915,9 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
-        [2, 3, 2],
-        'float32');
+        [2, 3, 2], 'float32');
     const b = tf.tensor3d(
-        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]], [2, 3, 1], 'float32');
 
     const f = () => {
       tf.notEqualStrict(a, b);
@@ -988,8 +929,7 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
         [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
     const b = tf.tensor3d(
         [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
-    expectArraysClose(
-        await tf.notEqualStrict(a, b).data(), [1, 1, 0, 1, 0, 1]);
+    expectArraysClose(await tf.notEqualStrict(a, b).data(), [1, 1, 0, 1, 0, 1]);
   });
 
   // Tensor4D:
@@ -1033,8 +973,7 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
     const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d(
         [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
-        [2, 2, 1, 2],
-        'float32');
+        [2, 2, 1, 2], 'float32');
 
     const f = () => {
       tf.notEqualStrict(a, b);
@@ -1044,8 +983,7 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
   it('NaNs in Tensor4D - float32', async () => {
     const a = tf.tensor4d([1.1, NaN, 1.1, 0.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
-    expectArraysClose(
-        await tf.notEqualStrict(a, b).data(), [1, 1, 0, 1]);
+    expectArraysClose(await tf.notEqualStrict(a, b).data(), [1, 1, 0, 1]);
   });
 
   it('accepts a tensor-like object', async () => {
@@ -1121,14 +1059,12 @@ describeWithFlags('less', ALL_ENVS, () => {
     const a = [1.1, 4.1, 5.2];
     const b = [2.2, 3.2, 5.1];
 
-    let res =
-        tf.less(tf.tensor(a, [3], 'float32'), tf.tensor(b, [3], 'int32'));
+    let res = tf.less(tf.tensor(a, [3], 'float32'), tf.tensor(b, [3], 'int32'));
     expect(res.dtype).toBe('bool');
     expect(res.shape).toEqual([3]);
     expectArraysClose(await res.data(), [1, 0, 0]);
 
-    res =
-        tf.less(tf.tensor(a, [3], 'int32'), tf.tensor(b, [3], 'bool'));
+    res = tf.less(tf.tensor(a, [3], 'int32'), tf.tensor(b, [3], 'bool'));
     expect(res.dtype).toBe('bool');
     expect(res.shape).toEqual([3]);
     expectArraysClose(await res.data(), [0, 0, 0]);
@@ -1176,8 +1112,7 @@ describeWithFlags('less', ALL_ENVS, () => {
     expectArraysClose(await res.data(), [0, 0, 0, 0]);
   });
   it('Tensor2D - float32', async () => {
-    let a =
-        tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
+    let a = tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
     let b =
         tf.tensor2d([[2.1, 3.1, 6.1], [7.1, 10.1, 11.1]], [2, 3], 'float32');
     let res = tf.less(a, b);
@@ -1223,8 +1158,7 @@ describeWithFlags('less', ALL_ENVS, () => {
     let a =
         tf.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
     let b =
-        tf.tensor3d(
-          [[[2], [3], [6]], [[7], [10], [11]]], [2, 3, 1], 'int32');
+        tf.tensor3d([[[2], [3], [6]], [[7], [10], [11]]], [2, 3, 1], 'int32');
     let res = tf.less(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -1239,13 +1173,9 @@ describeWithFlags('less', ALL_ENVS, () => {
   });
   it('Tensor3D - float32', async () => {
     let a = tf.tensor3d(
-        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]], [2, 3, 1], 'float32');
     let b = tf.tensor3d(
-        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]], [2, 3, 1], 'float32');
     let res = tf.less(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -1262,8 +1192,7 @@ describeWithFlags('less', ALL_ENVS, () => {
   });
   it('broadcasting Tensor3D shapes - int32', async () => {
     const a = tf.tensor3d(
-        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
-        [2, 3, 2],
+        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]], [2, 3, 2],
         'int32');
     const b =
         tf.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
@@ -1278,12 +1207,9 @@ describeWithFlags('less', ALL_ENVS, () => {
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
-        [2, 3, 2],
-        'float32');
+        [2, 3, 2], 'float32');
     const b = tf.tensor3d(
-        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]], [2, 3, 1], 'float32');
     const res = tf.less(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -1358,8 +1284,7 @@ describeWithFlags('less', ALL_ENVS, () => {
     const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d(
         [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
-        [2, 2, 1, 2],
-        'float32');
+        [2, 2, 1, 2], 'float32');
     const res = tf.less(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -1395,57 +1320,53 @@ describeWithFlags('less', ALL_ENVS, () => {
 
 describeWithFlags('lessStrict', ALL_ENVS, () => {
   it('Tensor1D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor1d([2]);
-        const b = tf.tensor1d([4, 2, -1]);
+     () => {
+       const a = tf.tensor1d([2]);
+       const b = tf.tensor1d([4, 2, -1]);
 
-        expect(() => tf.lessStrict(a, b)).toThrowError();
-        expect(() => tf.lessStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.lessStrict(a, b)).toThrowError();
+       expect(() => tf.lessStrict(b, a)).toThrowError();
+     });
 
   // Tensor2D:
   it('Tensor2D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor2d([[1.1], [7.1]], [2, 1], 'float32');
-        const b =
-            tf.tensor2d(
-            [[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
+     () => {
+       const a = tf.tensor2d([[1.1], [7.1]], [2, 1], 'float32');
+       const b =
+           tf.tensor2d([[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
 
-        expect(() => tf.lessStrict(a, b)).toThrowError();
-        expect(() => tf.lessStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.lessStrict(a, b)).toThrowError();
+       expect(() => tf.lessStrict(b, a)).toThrowError();
+     });
 
   // Tensor3D:
   it('Tensor3D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor3d(
-            [
-              [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
-              [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
-            ],
-            [2, 3, 2],
-            'float32');
-        const b = tf.tensor3d(
-            [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
-            [2, 3, 1],
-            'float32');
+     () => {
+       const a = tf.tensor3d(
+           [
+             [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
+             [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
+           ],
+           [2, 3, 2], 'float32');
+       const b = tf.tensor3d(
+           [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]], [2, 3, 1],
+           'float32');
 
-        expect(() => tf.lessStrict(a, b)).toThrowError();
-        expect(() => tf.lessStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.lessStrict(a, b)).toThrowError();
+       expect(() => tf.lessStrict(b, a)).toThrowError();
+     });
 
   // Tensor4D:
   it('Tensor4D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
-        const b = tf.tensor4d(
-            [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
-            [2, 2, 1, 2],
-            'float32');
+     () => {
+       const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+       const b = tf.tensor4d(
+           [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+           [2, 2, 1, 2], 'float32');
 
-        expect(() => tf.lessStrict(a, b)).toThrowError();
-        expect(() => tf.lessStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.lessStrict(a, b)).toThrowError();
+       expect(() => tf.lessStrict(b, a)).toThrowError();
+     });
 
   it('accepts a tensor-like object', async () => {
     const a = [1, 4, 5];
@@ -1513,8 +1434,7 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     expect(res.shape).toEqual([3]);
     expectArraysClose(await res.data(), [1, 0, 1]);
 
-    res =
-        tf.lessEqual(tf.tensor(a, [3], 'int32'), tf.tensor(b, [3], 'bool'));
+    res = tf.lessEqual(tf.tensor(a, [3], 'int32'), tf.tensor(b, [3], 'bool'));
     expect(res.dtype).toBe('bool');
     expect(res.shape).toEqual([3]);
     expectArraysClose(await res.data(), [1, 0, 0]);
@@ -1578,8 +1498,7 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     expectArraysClose(await res.data(), [1, 1, 1, 1]);
   });
   it('Tensor2D - float32', async () => {
-    let a =
-        tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
+    let a = tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
     let b =
         tf.tensor2d([[2.1, 3.1, 6.1], [7.1, 10.1, 11.1]], [2, 3], 'float32');
     let res = tf.lessEqual(a, b);
@@ -1625,8 +1544,7 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     let a =
         tf.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
     let b =
-        tf.tensor3d(
-          [[[2], [3], [6]], [[7], [10], [11]]], [2, 3, 1], 'int32');
+        tf.tensor3d([[[2], [3], [6]], [[7], [10], [11]]], [2, 3, 1], 'int32');
     let res = tf.lessEqual(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -1641,13 +1559,9 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
   });
   it('Tensor3D - float32', async () => {
     let a = tf.tensor3d(
-        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]], [2, 3, 1], 'float32');
     let b = tf.tensor3d(
-        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]], [2, 3, 1], 'float32');
     let res = tf.lessEqual(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -1679,12 +1593,9 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
-        [2, 3, 2],
-        'float32');
+        [2, 3, 2], 'float32');
     const b = tf.tensor3d(
-        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]], [2, 3, 1], 'float32');
     const res = tf.lessEqual(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -1759,8 +1670,7 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d(
         [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
-        [2, 2, 1, 2],
-        'float32');
+        [2, 2, 1, 2], 'float32');
     const res = tf.lessEqual(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -1796,56 +1706,53 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
 
 describeWithFlags('lessEqualStrict', ALL_ENVS, () => {
   it('Tensor1D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor1d([2]);
-        const b = tf.tensor1d([4, 2, -1]);
+     () => {
+       const a = tf.tensor1d([2]);
+       const b = tf.tensor1d([4, 2, -1]);
 
-        expect(() => tf.lessEqualStrict(a, b)).toThrowError();
-        expect(() => tf.lessEqualStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.lessEqualStrict(a, b)).toThrowError();
+       expect(() => tf.lessEqualStrict(b, a)).toThrowError();
+     });
 
   // Tensor2D:
   it('Tensor2D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor2d([[1.1], [7.1]], [2, 1], 'float32');
-        const b =
-            tf.tensor2d([[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
+     () => {
+       const a = tf.tensor2d([[1.1], [7.1]], [2, 1], 'float32');
+       const b =
+           tf.tensor2d([[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
 
-        expect(() => tf.lessEqualStrict(a, b)).toThrowError();
-        expect(() => tf.lessEqualStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.lessEqualStrict(a, b)).toThrowError();
+       expect(() => tf.lessEqualStrict(b, a)).toThrowError();
+     });
 
   // Tensor3D:
   it('Tensor3D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor3d(
-            [
-              [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
-              [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
-            ],
-            [2, 3, 2],
-            'float32');
-        const b = tf.tensor3d(
-            [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
-            [2, 3, 1],
-            'float32');
+     () => {
+       const a = tf.tensor3d(
+           [
+             [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
+             [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
+           ],
+           [2, 3, 2], 'float32');
+       const b = tf.tensor3d(
+           [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]], [2, 3, 1],
+           'float32');
 
-        expect(() => tf.lessEqualStrict(a, b)).toThrowError();
-        expect(() => tf.lessEqualStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.lessEqualStrict(a, b)).toThrowError();
+       expect(() => tf.lessEqualStrict(b, a)).toThrowError();
+     });
 
   // Tensor4D:
   it('Tensor4D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
-        const b = tf.tensor4d(
-            [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
-            [2, 2, 1, 2],
-            'float32');
+     () => {
+       const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+       const b = tf.tensor4d(
+           [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+           [2, 2, 1, 2], 'float32');
 
-        expect(() => tf.lessEqualStrict(a, b)).toThrowError();
-        expect(() => tf.lessEqualStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.lessEqualStrict(a, b)).toThrowError();
+       expect(() => tf.lessEqualStrict(b, a)).toThrowError();
+     });
 
   it('accepts a tensor-like object', async () => {
     const a = [1, 4, 5];
@@ -1913,8 +1820,7 @@ describeWithFlags('greater', ALL_ENVS, () => {
     expect(res.shape).toEqual([3]);
     expectArraysClose(await res.data(), [0, 1, 1]);
 
-    res =
-        tf.greater(tf.tensor(a, [3], 'int32'), tf.tensor(b, [3], 'bool'));
+    res = tf.greater(tf.tensor(a, [3], 'int32'), tf.tensor(b, [3], 'bool'));
     expect(res.dtype).toBe('bool');
     expect(res.shape).toEqual([3]);
     expectArraysClose(await res.data(), [0, 1, 1]);
@@ -1978,8 +1884,7 @@ describeWithFlags('greater', ALL_ENVS, () => {
     expectArraysClose(await res.data(), [0, 0, 0, 0]);
   });
   it('Tensor2D - float32', async () => {
-    let a =
-        tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 11.1]], [2, 3], 'float32');
+    let a = tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 11.1]], [2, 3], 'float32');
     let b =
         tf.tensor2d([[2.1, 3.1, 6.1], [7.1, 10.1, 11.1]], [2, 3], 'float32');
     let res = tf.greater(a, b);
@@ -2025,8 +1930,7 @@ describeWithFlags('greater', ALL_ENVS, () => {
     let a =
         tf.tensor3d([[[1], [4], [5]], [[8], [9], [11]]], [2, 3, 1], 'int32');
     let b =
-        tf.tensor3d(
-          [[[2], [3], [6]], [[7], [10], [11]]], [2, 3, 1], 'int32');
+        tf.tensor3d([[[2], [3], [6]], [[7], [10], [11]]], [2, 3, 1], 'int32');
     let res = tf.greater(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -2041,13 +1945,9 @@ describeWithFlags('greater', ALL_ENVS, () => {
   });
   it('Tensor3D - float32', async () => {
     let a = tf.tensor3d(
-        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [11.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [11.1]]], [2, 3, 1], 'float32');
     let b = tf.tensor3d(
-        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]], [2, 3, 1], 'float32');
     let res = tf.greater(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -2079,12 +1979,9 @@ describeWithFlags('greater', ALL_ENVS, () => {
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
-        [2, 3, 2],
-        'float32');
+        [2, 3, 2], 'float32');
     const b = tf.tensor3d(
-        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]], [2, 3, 1], 'float32');
     const res = tf.greater(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -2159,8 +2056,7 @@ describeWithFlags('greater', ALL_ENVS, () => {
     const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d(
         [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
-        [2, 2, 1, 2],
-        'float32');
+        [2, 2, 1, 2], 'float32');
     const res = tf.greater(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -2205,56 +2101,53 @@ describeWithFlags('greater', ALL_ENVS, () => {
 
 describeWithFlags('greaterStrict', ALL_ENVS, () => {
   it('Tensor1D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor1d([2]);
-        const b = tf.tensor1d([4, 2, -1]);
+     () => {
+       const a = tf.tensor1d([2]);
+       const b = tf.tensor1d([4, 2, -1]);
 
-        expect(() => tf.greaterStrict(a, b)).toThrowError();
-        expect(() => tf.greaterStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.greaterStrict(a, b)).toThrowError();
+       expect(() => tf.greaterStrict(b, a)).toThrowError();
+     });
 
   // Tensor2D:
   it('Tensor2D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor2d([[1.1], [7.1]], [2, 1], 'float32');
-        const b =
-            tf.tensor2d([[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
+     () => {
+       const a = tf.tensor2d([[1.1], [7.1]], [2, 1], 'float32');
+       const b =
+           tf.tensor2d([[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
 
-        expect(() => tf.greaterStrict(a, b)).toThrowError();
-        expect(() => tf.greaterStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.greaterStrict(a, b)).toThrowError();
+       expect(() => tf.greaterStrict(b, a)).toThrowError();
+     });
 
   // Tensor3D:
   it('Tensor3D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor3d(
-            [
-              [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
-              [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
-            ],
-            [2, 3, 2],
-            'float32');
-        const b = tf.tensor3d(
-            [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
-            [2, 3, 1],
-            'float32');
+     () => {
+       const a = tf.tensor3d(
+           [
+             [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
+             [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
+           ],
+           [2, 3, 2], 'float32');
+       const b = tf.tensor3d(
+           [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]], [2, 3, 1],
+           'float32');
 
-        expect(() => tf.greaterStrict(a, b)).toThrowError();
-        expect(() => tf.greaterStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.greaterStrict(a, b)).toThrowError();
+       expect(() => tf.greaterStrict(b, a)).toThrowError();
+     });
 
   // Tensor4D:
   it('Tensor4D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
-        const b = tf.tensor4d(
-            [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
-            [2, 2, 1, 2],
-            'float32');
+     () => {
+       const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+       const b = tf.tensor4d(
+           [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+           [2, 2, 1, 2], 'float32');
 
-        expect(() => tf.greaterStrict(a, b)).toThrowError();
-        expect(() => tf.greaterStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.greaterStrict(a, b)).toThrowError();
+       expect(() => tf.greaterStrict(b, a)).toThrowError();
+     });
 
   it('accepts a tensor-like object', async () => {
     const a = [1, 4, 5];
@@ -2317,14 +2210,14 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     const a = [1.1, 4.1, 5];
     const b = [2.2, 3.2, 5];
 
-    let res =
-      tf.greaterEqual(tf.tensor(a, [3], 'float32'), tf.tensor(b, [3], 'int32'));
+    let res = tf.greaterEqual(
+        tf.tensor(a, [3], 'float32'), tf.tensor(b, [3], 'int32'));
     expect(res.dtype).toBe('bool');
     expect(res.shape).toEqual([3]);
     expectArraysClose(await res.data(), [0, 1, 1]);
 
     res =
-      tf.greaterEqual(tf.tensor(a, [3], 'int32'), tf.tensor(b, [3], 'bool'));
+        tf.greaterEqual(tf.tensor(a, [3], 'int32'), tf.tensor(b, [3], 'bool'));
     expect(res.dtype).toBe('bool');
     expect(res.shape).toEqual([3]);
     expectArraysClose(await res.data(), [1, 1, 1]);
@@ -2372,8 +2265,7 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     expectArraysClose(await res.data(), [1, 1, 1, 1]);
   });
   it('Tensor2D - float32', async () => {
-    let a =
-        tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
+    let a = tf.tensor2d([[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], [2, 3], 'float32');
     let b =
         tf.tensor2d([[2.1, 3.1, 6.1], [7.1, 10.1, 11.1]], [2, 3], 'float32');
     let res = tf.greaterEqual(a, b);
@@ -2419,8 +2311,7 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     let a =
         tf.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
     let b =
-        tf.tensor3d(
-          [[[2], [3], [6]], [[7], [10], [11]]], [2, 3, 1], 'int32');
+        tf.tensor3d([[[2], [3], [6]], [[7], [10], [11]]], [2, 3, 1], 'int32');
     let res = tf.greaterEqual(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -2435,12 +2326,9 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
   });
   it('Tensor3D - float32', async () => {
     let a = tf.tensor3d(
-       [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]], [2, 3, 1],
-        'float32');
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]], [2, 3, 1], 'float32');
     let b = tf.tensor3d(
-        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]], [2, 3, 1], 'float32');
     let res = tf.greaterEqual(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -2457,8 +2345,7 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
   });
   it('broadcasting Tensor3D shapes - int32', async () => {
     const a = tf.tensor3d(
-        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
-        [2, 3, 2],
+        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]], [2, 3, 2],
         'int32');
     const b =
         tf.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
@@ -2473,12 +2360,9 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
-        [2, 3, 2],
-        'float32');
+        [2, 3, 2], 'float32');
     const b = tf.tensor3d(
-        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
-        [2, 3, 1],
-        'float32');
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]], [2, 3, 1], 'float32');
     const res = tf.greaterEqual(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -2553,8 +2437,7 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d(
         [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
-        [2, 2, 1, 2],
-        'float32');
+        [2, 2, 1, 2], 'float32');
     const res = tf.greaterEqual(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -2602,8 +2485,9 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     const a = tf.tensor1d([3, 2, 5]);
     const b = tf.tensor1d([4, 1, 5]);
     const dy = tf.ones([3], 'float32') as tf.Tensor1D;
-    const da = tf.grad((a: tf.Tensor1D) =>
-        tf.greaterEqual(a.clone(), b.clone()).clone())(a, dy);
+    const da = tf.grad(
+        (a: tf.Tensor1D) => tf.greaterEqual(a.clone(), b.clone()).clone())(
+        a, dy);
 
     expect(da.dtype).toBe('float32');
     expect(da.shape).toEqual([3]);
@@ -2613,56 +2497,53 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
 
 describeWithFlags('greaterEqualStrict', ALL_ENVS, () => {
   it('Tensor1D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor1d([2]);
-        const b = tf.tensor1d([4, 2, -1]);
+     () => {
+       const a = tf.tensor1d([2]);
+       const b = tf.tensor1d([4, 2, -1]);
 
-        expect(() => tf.greaterEqualStrict(a, b)).toThrowError();
-        expect(() => tf.greaterEqualStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.greaterEqualStrict(a, b)).toThrowError();
+       expect(() => tf.greaterEqualStrict(b, a)).toThrowError();
+     });
 
   // Tensor2D:
   it('Tensor2D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor2d([[1.1], [7.1]], [2, 1], 'float32');
-        const b =
-            tf.tensor2d([[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
+     () => {
+       const a = tf.tensor2d([[1.1], [7.1]], [2, 1], 'float32');
+       const b =
+           tf.tensor2d([[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
 
-        expect(() => tf.greaterEqualStrict(a, b)).toThrowError();
-        expect(() => tf.greaterEqualStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.greaterEqualStrict(a, b)).toThrowError();
+       expect(() => tf.greaterEqualStrict(b, a)).toThrowError();
+     });
 
   // Tensor3D:
   it('Tensor3D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor3d(
-            [
-              [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
-              [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
-            ],
-            [2, 3, 2],
-            'float32');
-        const b = tf.tensor3d(
-            [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
-            [2, 3, 1],
-            'float32');
+     () => {
+       const a = tf.tensor3d(
+           [
+             [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
+             [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
+           ],
+           [2, 3, 2], 'float32');
+       const b = tf.tensor3d(
+           [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]], [2, 3, 1],
+           'float32');
 
-        expect(() => tf.greaterEqualStrict(a, b)).toThrowError();
-        expect(() => tf.greaterEqualStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.greaterEqualStrict(a, b)).toThrowError();
+       expect(() => tf.greaterEqualStrict(b, a)).toThrowError();
+     });
 
   // Tensor4D:
   it('Tensor4D - strict version throws when a and b are different shape',
-      () => {
-        const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
-        const b = tf.tensor4d(
-            [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
-            [2, 2, 1, 2],
-            'float32');
+     () => {
+       const a = tf.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+       const b = tf.tensor4d(
+           [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+           [2, 2, 1, 2], 'float32');
 
-        expect(() => tf.greaterEqualStrict(a, b)).toThrowError();
-        expect(() => tf.greaterEqualStrict(b, a)).toThrowError();
-      });
+       expect(() => tf.greaterEqualStrict(a, b)).toThrowError();
+       expect(() => tf.greaterEqualStrict(b, a)).toThrowError();
+     });
 
   it('accepts a tensor-like object', async () => {
     const a = [1, 4, 5];

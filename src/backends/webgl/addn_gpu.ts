@@ -29,15 +29,15 @@ export class AddNProgram implements GPGPUProgram {
     const snippets: string[] = [];
     // Get target elements from every input tensor.
     this.variableNames.forEach(variable => {
-      snippets.push(
-        `float v${variable} = get${variable}AtOutCoords();`
-      );
+      snippets.push(`float v${variable} = get${variable}AtOutCoords();`);
     });
 
     // Calculate the sum of all elements.
-    const operation = this.variableNames.map(variable => {
-      return `v${variable}`;
-    }).join(' + ');
+    const operation = this.variableNames
+                          .map(variable => {
+                            return `v${variable}`;
+                          })
+                          .join(' + ');
 
     this.userCode = `
       void main() {

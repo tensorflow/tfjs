@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
+import {getVecChannels} from '../packing_util';
+
 import {GPGPUProgram} from './gpgpu_math';
 import {getCoordsDataType} from './shader_compiler';
-import { getVecChannels } from '../packing_util';
 
 export class TransposePackedProgram implements GPGPUProgram {
   variableNames = ['A'];

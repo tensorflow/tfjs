@@ -134,8 +134,8 @@ function rfft_(input: Tensor, fftLength?: number): Tensor {
 
   // Complement the input with zero imaginary numbers.
   const zerosInput = adjustedInput.zerosLike();
-  const complexInput = complex(adjustedInput, zerosInput)
-    .as2D(batch, innerDimensionSize);
+  const complexInput =
+      complex(adjustedInput, zerosInput).as2D(batch, innerDimensionSize);
 
   const ret = fft(complexInput);
 

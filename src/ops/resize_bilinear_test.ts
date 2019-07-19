@@ -338,8 +338,9 @@ describeWithFlags('resizeBilinear gradients', ALL_ENVS, () => {
 
     const output = g(input, dy);
     const expected = [
-      1.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-      3.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+      1.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0,
+      0.0
+    ];
 
     expectArraysClose(await output.data(), expected);
   });
@@ -358,9 +359,10 @@ describeWithFlags('resizeBilinear gradients', ALL_ENVS, () => {
         (i: tf.Tensor3D) => tf.image.resizeBilinear(i, size, alignCorners));
 
     const output = g(input, dy);
-    const expected =
-      [1.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0,
-      0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 4.0];
+    const expected = [
+      1.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0,
+      4.0
+    ];
 
     expectArraysClose(await output.data(), expected);
   });
@@ -379,11 +381,11 @@ describeWithFlags('resizeBilinear gradients', ALL_ENVS, () => {
         (i: tf.Tensor3D) => tf.image.resizeBilinear(i, size, alignCorners));
 
     const output = g(input, dy);
-    const expected =
-      [1.0, 0.0, 2.0, 0.0,
-      1.9999998807907104, 0.0, 2.6666665077209473, 0.0,
-      2.6666665077209473, 0.0, 3.3333330154418945, 0.0,
-      3.333333730697632, 0.0, 4.000000476837158, 0.0];
+    const expected = [
+      1.0, 0.0, 2.0, 0.0, 1.9999998807907104, 0.0, 2.6666665077209473, 0.0,
+      2.6666665077209473, 0.0, 3.3333330154418945, 0.0, 3.333333730697632, 0.0,
+      4.000000476837158, 0.0
+    ];
 
     expectArraysClose(await output.data(), expected);
   });
@@ -402,9 +404,10 @@ describeWithFlags('resizeBilinear gradients', ALL_ENVS, () => {
         (i: tf.Tensor3D) => tf.image.resizeBilinear(i, size, alignCorners));
 
     const output = g(input, dy);
-    const expected =
-      [1.0, 0.0, 0.0, 2.0, 1.5, 0.0, 0.0, 2.0,
-      1.5, 0.0, 0.0, 2.0, 5.0, 0.0, 0.0, 6.0];
+    const expected = [
+      1.0, 0.0, 0.0, 2.0, 1.5, 0.0, 0.0, 2.0, 1.5, 0.0, 0.0, 2.0, 5.0, 0.0, 0.0,
+      6.0
+    ];
 
     expectArraysClose(await output.data(), expected);
   });
@@ -423,11 +426,11 @@ describeWithFlags('resizeBilinear gradients', ALL_ENVS, () => {
         (i: tf.Tensor3D) => tf.image.resizeBilinear(i, size, alignCorners));
 
     const output = g(input, dy);
-    const expected =
-      [1.0, 1.3333332538604736, 1.6666665077209473, 2.000000238418579,
-      0.0, 0.0, 0.0, 0.0,
-      4.0, 3.3333330154418945, 3.6666665077209473, 4.000000476837158,
-      0.0, 0.0, 0.0, 0.0];
+    const expected = [
+      1.0, 1.3333332538604736, 1.6666665077209473, 2.000000238418579, 0.0, 0.0,
+      0.0, 0.0, 4.0, 3.3333330154418945, 3.6666665077209473, 4.000000476837158,
+      0.0, 0.0, 0.0, 0.0
+    ];
 
     expectArraysClose(await output.data(), expected);
   });
@@ -446,9 +449,10 @@ describeWithFlags('resizeBilinear gradients', ALL_ENVS, () => {
         (i: tf.Tensor3D) => tf.image.resizeBilinear(i, size, alignCorners));
 
     const output = g(input, dy);
-    const expected =
-      [1.0, 1.0, 1.0, 3.0, 0.0, 0.0, 0.0, 0.0,
-      0.0, 0.0, 0.0, 0.0, 4.0, 2.5, 2.5, 6.0];
+    const expected = [
+      1.0, 1.0, 1.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 2.5, 2.5,
+      6.0
+    ];
 
     expectArraysClose(await output.data(), expected);
   });
@@ -521,11 +525,12 @@ describeWithFlags('resizeBilinear gradients', ALL_ENVS, () => {
         (i: tf.Tensor3D) => tf.image.resizeBilinear(i, size, alignCorners));
 
     const output = g(input, dy);
-    const expected =
-      [15.399999618530273, 17.799999237060547, 20.19999885559082,
+    const expected = [
+      15.399999618530273, 17.799999237060547, 20.19999885559082,
       56.26666259765625, 60.533329010009766, 64.79999542236328,
-      80.00000762939453, 83.0, 86.0,
-      178.33334350585938, 183.66668701171875, 189.00001525878906];
+      80.00000762939453, 83.0, 86.0, 178.33334350585938, 183.66668701171875,
+      189.00001525878906
+    ];
 
     expectArraysClose(await output.data(), expected);
   });
@@ -563,9 +568,10 @@ describeWithFlags('resizeBilinear gradients', ALL_ENVS, () => {
         (i: tf.Tensor3D) => tf.image.resizeBilinear(i, size, alignCorners));
 
     const output = g(input, dy);
-    const expected =
-      [33.75, 37.5, 41.25, 56.25, 60.0, 63.75,
-      108.75, 112.5, 116.25, 131.25, 135.0, 138.75];
+    const expected = [
+      33.75, 37.5, 41.25, 56.25, 60.0, 63.75, 108.75, 112.5, 116.25, 131.25,
+      135.0, 138.75
+    ];
 
     expectArraysClose(await output.data(), expected);
   });
@@ -609,14 +615,56 @@ describeWithFlags('resizeBilinear gradients', ALL_ENVS, () => {
         (i: tf.Tensor3D) => tf.image.resizeBilinear(i, size, alignCorners));
 
     const output = g(input, dy);
-    const expected =
-      [1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-       2.6666665077209473, 3.3333330154418945, 3.999999761581421,
-      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-       3.666666269302368, 4.3333330154418945, 4.999999523162842,
-        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-       4.6666669845581055, 5.333333969116211, 6.000000953674316,
-        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+    const expected = [
+      1.0,
+      2.0,
+      3.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      2.6666665077209473,
+      3.3333330154418945,
+      3.999999761581421,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      3.666666269302368,
+      4.3333330154418945,
+      4.999999523162842,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      4.6666669845581055,
+      5.333333969116211,
+      6.000000953674316,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ];
 
     expectArraysClose(await output.data(), expected);
   });
@@ -658,11 +706,12 @@ describeWithFlags('resizeBilinear gradients', ALL_ENVS, () => {
         (i: tf.Tensor3D) => tf.image.resizeBilinear(i, size, alignCorners));
 
     const output = g(input, dy);
-    const expected =
-      [1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    const expected = [
+      1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
       2.0, 2.5, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
       2.0, 2.5, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-      7.0, 8.0, 9.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+      7.0, 8.0, 9.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+    ];
     expectArraysClose(await output.data(), expected);
   });
 
@@ -702,11 +751,11 @@ describeWithFlags('resizeBilinear gradients', ALL_ENVS, () => {
         (i: tf.Tensor3D) => tf.image.resizeBilinear(i, size, alignCorners));
 
     const output = g(input, dy);
-    const expected =
-      [1., 2., 3., 2., 2.5, 3., 2., 2.5, 3., 7., 8., 9.,
-      0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-      0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-      0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.];
+    const expected = [
+      1., 2., 3., 2., 2.5, 3., 2., 2.5, 3., 7., 8., 9., 0., 0., 0., 0.,
+      0., 0., 0., 0., 0.,  0., 0., 0.,  0., 0., 0., 0., 0., 0., 0., 0.,
+      0., 0., 0., 0., 0.,  0., 0., 0.,  0., 0., 0., 0., 0., 0., 0., 0.
+    ];
     expectArraysClose(await output.data(), expected);
   });
 

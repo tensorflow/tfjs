@@ -16,12 +16,12 @@
  */
 
 import * as tf from '../index';
-import {describeWithFlags, ALL_ENVS} from '../jasmine_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
-  it('input=1x3x3x1,f=2,s=1,d=1,p=valid,chMul=1',async () => {
+  it('input=1x3x3x1,f=2,s=1,d=1,p=valid,chMul=1', async () => {
     const fSize = 2;
     const pad = 'valid';
     const stride = 1;
@@ -45,7 +45,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('input=1x5x5x1,f=3,s=1,d=1,p=valid,chMul=1',async () => {
+  it('input=1x5x5x1,f=3,s=1,d=1,p=valid,chMul=1', async () => {
     const fSize = 3;
     const pad = 'valid';
     const stride = 1;
@@ -77,7 +77,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('input=1x3x3x1,f=2,s=1,d=2,p=valid,chMul=1',async () => {
+  it('input=1x3x3x1,f=2,s=1,d=2,p=valid,chMul=1', async () => {
     const fSize = 2;
     const pad = 'valid';
     const stride = 1;
@@ -111,7 +111,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), await expectedResult.data());
   });
 
-  it('input=1x5x5x1,f=3,s=1,d=2,p=valid,chMul=1',async () => {
+  it('input=1x5x5x1,f=3,s=1,d=2,p=valid,chMul=1', async () => {
     const fSize = 3;
     const pad = 'valid';
     const stride = 1;
@@ -154,7 +154,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), await expectedResult.data());
   });
 
-  it('input=1x3x3x2,f=2,s=1,d=1,p=same,chMul=1',async () => {
+  it('input=1x3x3x2,f=2,s=1,d=1,p=same,chMul=1', async () => {
     const fSize = 2;
     const pad = 'same';
     const stride = 1;
@@ -185,7 +185,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('input=1x5x5x1,f=3,s=1,d=1,p=same,chMul=1',async () => {
+  it('input=1x5x5x1,f=3,s=1,d=1,p=same,chMul=1', async () => {
     const fSize = 3;
     const pad = 'same';
     const stride = 1;
@@ -220,7 +220,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('input=1x3x3x2,f=2,s=1,d=2,p=same,chMul=1',async () => {
+  it('input=1x3x3x2,f=2,s=1,d=2,p=same,chMul=1', async () => {
     const fSize = 2;
     const pad = 'same';
     const stride = 1;
@@ -272,7 +272,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), await expectedResult.data());
   });
 
-  it('input=1x5x5x1,f=3,s=1,d=2,p=same,chMul=1',async () => {
+  it('input=1x5x5x1,f=3,s=1,d=2,p=same,chMul=1', async () => {
     const fSize = 3;
     const pad = 'valid';
     const stride = 1;
@@ -304,7 +304,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('input=1x3x3x2,f=2,s=1,p=same,chMul=2',async () => {
+  it('input=1x3x3x2,f=2,s=1,p=same,chMul=2', async () => {
     const fSize = 2;
     const pad = 'same';
     const stride = 1;
@@ -339,7 +339,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('input=2x3x3x2,f=2,s=1,p=same,chMul=2',async () => {
+  it('input=2x3x3x2,f=2,s=1,p=same,chMul=2', async () => {
     const fSize = 2;
     const pad = 'same';
     const stride = 1;
@@ -460,7 +460,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
        expectArraysClose(await result.data(), await expectedResult.data());
      });
 
-  it('Tensor3D is allowed',async () => {
+  it('Tensor3D is allowed', async () => {
     const fSize = 2;
     const pad = 'same';
     const stride = 1;
@@ -487,7 +487,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expect(result.shape).toEqual([3, 3, inDepth * chMul]);
   });
 
-  it('TensorLike',async  () => {
+  it('TensorLike', async () => {
     const pad = 'valid';
     const stride = 1;
 
@@ -503,7 +503,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     const expected = [1.07022, 1.03167, 0.67041, 0.778863];
     expectArraysClose(await result.data(), expected);
   });
-  it('TensorLike Chained',async  () => {
+  it('TensorLike Chained', async () => {
     const pad = 'valid';
     const stride = 1;
     const inDepth = 1;
@@ -653,9 +653,10 @@ describeWithFlags('depthwiseConv2d gradients', ALL_ENVS, () => {
   });
 
   it('gradient with clones', async () => {
-    const [dx, dFilter] = tf.grads((x: tf.Tensor4D, filter: tf.Tensor4D) =>
-      tf.depthwiseConv2d(x.clone(), filter.clone(),
-         stride, pad).clone())([images, filter]);
+    const [dx, dFilter] = tf.grads(
+        (x: tf.Tensor4D, filter: tf.Tensor4D) =>
+            tf.depthwiseConv2d(x.clone(), filter.clone(), stride, pad).clone())(
+        [images, filter]);
     expect(dx.shape).toEqual(images.shape);
     expect(dFilter.shape).toEqual(filter.shape);
   });
@@ -689,27 +690,29 @@ describeWithFlags('depthwiseConv2d gradients', ALL_ENVS, () => {
         .toThrowError(/dilation rates greater than 1 are not yet supported/);
   });
 
-  it('wrt input, stride=2, pad=valid',async () => {
+  it('wrt input, stride=2, pad=valid', async () => {
     const dx = tf.grad(
         (x: tf.Tensor4D) => tf.depthwiseConv2d(x, filter, 2, 'valid'))(images);
 
-    expectArraysClose(await dx.data(),
-      [2., 2., 0., 1., 2., 2., 1., 2., 0., 1., 1., 0.,
-      2., 2., 0., 1., 2., 2., 1., 2., 0., 1., 1., 0.]);
+    expectArraysClose(await dx.data(), [
+      2., 2., 0., 1., 2., 2., 1., 2., 0., 1., 1., 0.,
+      2., 2., 0., 1., 2., 2., 1., 2., 0., 1., 1., 0.
+    ]);
     expect(dx.shape).toEqual([2, 2, 2, 3]);
   });
 
-  it('wrt filter, stride=2, pad=valid',async () => {
+  it('wrt filter, stride=2, pad=valid', async () => {
     const df = tf.grad(
         (f: tf.Tensor4D) => tf.depthwiseConv2d(images, f, 2, 'valid'))(filter);
 
-    expectArraysClose(await df.data(),
-      [4., 4., 4., 4., 1., 1., 3., 3., 3., 3., 5., 5.,
-      4., 4., 4., 4., 2., 2., 4., 4., 5., 5., 4., 4.]);
+    expectArraysClose(await df.data(), [
+      4., 4., 4., 4., 1., 1., 3., 3., 3., 3., 5., 5.,
+      4., 4., 4., 4., 2., 2., 4., 4., 5., 5., 4., 4.
+    ]);
     expect(df.shape).toEqual([2, 2, 3, 2]);
   });
 
-  it('gradient with clones',async () => {
+  it('gradient with clones', async () => {
     const fSize = 2;
     const pad = 'valid';
     const stride = 1;
@@ -730,17 +733,17 @@ describeWithFlags('depthwiseConv2d gradients', ALL_ENVS, () => {
 
     const [dx, df] = tf.grads(
         (x: tf.Tensor4D, f: tf.Tensor4D) =>
-            tf.depthwiseConv2d(
-              x.clone(), f.clone(), stride, pad).clone())([x, f]);
+            tf.depthwiseConv2d(x.clone(), f.clone(), stride, pad).clone())(
+        [x, f]);
 
-    expectArraysClose(await dx.data(),
-      [0.303873, 0.533096, 0.229223,
-      0.448206, 1.480802, 1.032596,
-      0.144333, 0.947706, 0.803373]);
+    expectArraysClose(await dx.data(), [
+      0.303873, 0.533096, 0.229223, 0.448206, 1.480802, 1.032596, 0.144333,
+      0.947706, 0.803373
+    ]);
     expect(dx.shape).toEqual([1, 3, 3, 1]);
 
-    expectArraysClose(await df.data(),
-      [2.525137, 2.6754108, 1.7905407, 2.380144]);
+    expectArraysClose(
+        await df.data(), [2.525137, 2.6754108, 1.7905407, 2.380144]);
     expect(df.shape).toEqual([2, 2, 1, 1]);
   });
 });

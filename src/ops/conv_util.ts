@@ -255,9 +255,8 @@ export function computeConv3DInfo(
 }
 
 function computeOutputShape2D(
-    inShape: [number, number], fieldSize: number,
-    stride: number, zeroPad?: number,
-    roundingMode?: 'floor'|'round'|'ceil'): [number, number] {
+    inShape: [number, number], fieldSize: number, stride: number,
+    zeroPad?: number, roundingMode?: 'floor'|'round'|'ceil'): [number, number] {
   if (zeroPad == null) {
     zeroPad = computeDefaultPad(inShape, fieldSize, stride);
   }
