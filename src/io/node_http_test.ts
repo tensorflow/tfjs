@@ -129,11 +129,8 @@ describe('nodeHTTPRequest-load', () => {
     expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
 
     expect(requestInits).toEqual([
-      {credentials: 'include', cache: 'no-cache'}, {
-        credentials: 'include',
-        cache: 'no-cache',
-        headers: {responseType: 'arraybuffer'}
-      }
+      {credentials: 'include', cache: 'no-cache'},
+      {credentials: 'include', cache: 'no-cache'}
     ]);
   });
 
