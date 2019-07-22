@@ -89,6 +89,10 @@ class ReadWeightsTest(unittest.TestCase):
             'name': 'weight2',
             # String is stored encoded.
             'data': np.array([u'поздрав'.encode('utf-8')], 'object')
+        }, {
+            'name': 'weight3',
+            # Let np choose the dtype (string or bytes depending on py version).
+            'data': np.array([u'здраво'.encode('utf-8')])
         }]
     ]
 
@@ -98,7 +102,7 @@ class ReadWeightsTest(unittest.TestCase):
     read_output = read_weights.read_weights(manifest, self._tmp_dir)
     self.assertEqual(1, len(read_output))
     group = read_output[0]
-    self.assertEqual(2, len(group))
+    self.assertEqual(3, len(group))
 
     weight1 = group[0]
     self.assertEqual('weight1', weight1['name'])
@@ -111,6 +115,12 @@ class ReadWeightsTest(unittest.TestCase):
     np.testing.assert_array_equal(
         weight2['data'],
         np.array([u'поздрав'.encode('utf-8')], 'object'))
+
+    weight3 = group[2]
+    self.assertEqual('weight3', weight3['name'])
+    np.testing.assert_array_equal(
+        weight3['data'],
+        np.array([u'здраво'.encode('utf-8')]))
 
   def testReadEastAsianStringUnicodeAndEncoded(self):
     # Each string tensor uses different encoding.
