@@ -24,7 +24,6 @@ import os
 import numpy as np
 import tensorflow as tf
 from tensorflow.core.protobuf import device_properties_pb2
-from tensorflow.core.protobuf import meta_graph_pb2
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.python.framework import convert_to_constants
 from tensorflow.python.grappler import cluster as gcluster
@@ -47,7 +46,7 @@ CLEARED_TENSOR_FIELDS = (
 
 _HUB_V1_MODULE_PB = "tfhub_module.pb"
 
-def load_graph(graph_filename, output_node_names):
+def load_graph(graph_filename):
   """Loads GraphDef. Returns Python Graph object.
 
   Args:
@@ -60,10 +59,6 @@ def load_graph(graph_filename, output_node_names):
   with tf.Graph().as_default() as graph:
     # Set name to empty to avoid using the default name 'import'.
     tf.import_graph_def(graph_def, name='')
-
-  for node in output_node_names.split(','):
-    graph.add_to_collection('train_op',
-                            graph.get_operation_by_name(node.strip()))
 
   return graph
 
@@ -100,27 +95,26 @@ def validate(nodes, skip_op_check, strip_debug_ops):
   not_supported = {x.op for x in [x for x in nodes if x.op not in names]}
   return not_supported
 
-def optimize_graph(func,
-                   output_graph,
-                   tf_version,
-                   quantization_dtype=None,
-                   skip_op_check=False,
-                   strip_debug_ops=False,
-                   graph=None):
+def optimize_graph(graph, output_node_names, output_graph, tf_version,
+                   quantization_dtype=None, skip_op_check=False,
+                   strip_debug_ops=False):
   """Takes a Python Graph object and optimizes the graph.
 
   Args:
-    func: ConcreteFunction TensorFlow function def.
+    graph: The frozen graph to optimize.
+    output_node_names: List of output node names.
+    output_graph: The location of the output graph.
     tf_version: Tensorflow version of the input graph.
     quantization_dtype: An optional numpy dtype to quantize weights to for
       compression. Only np.uint8 and np.uint16 are supported.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
-    graph_def: tf.GraphDef TensorFlow GraphDef proto object, which represents
-      the model topology.
   """
-  if graph is None:
-    graph = func.graph
+
+  # Add a collection 'train_op' so that Grappler knows the outputs.
+  for output in output_node_names:
+    graph.add_to_collection('train_op', graph.get_operation_by_name(output))
+
   graph_def = graph.as_graph_def()
   unsupported = validate(graph_def.node, skip_op_check,
                          strip_debug_ops)
@@ -138,13 +132,6 @@ def optimize_graph(func,
     rewriter_config.optimizers.insert(0, 'debug_stripper')
   meta_graph = export_meta_graph(
       graph_def=graph_def, graph=graph)
-
-  # Add a collection 'train_op' so that Grappler knows the outputs.
-  fetch_collection = meta_graph_pb2.CollectionDef()
-  if func is not None:
-    for array in func.inputs + func.outputs:
-      fetch_collection.node_list.value.append(array.name)
-    meta_graph.collection_def["train_op"].CopyFrom(fetch_collection)
 
   optimized_graph = tf_optimizer.OptimizeGraph(
       config, meta_graph, cluster=get_cluster())
@@ -249,6 +236,20 @@ def _check_signature_in_model(saved_model, signature_name):
                                             saved_model.signatures.keys()))
 
 
+def _freeze_saved_model_v1(graph, output_node_names):
+  frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
+      tf.compat.v1.Session(), graph.as_graph_def(), output_node_names)
+
+  frozen_graph = tf.Graph()
+  with frozen_graph.as_default():
+    tf.import_graph_def(frozen_graph_def, name='')
+
+  return frozen_graph
+
+def _freeze_saved_model_v2(concrete_func):
+  return convert_to_constants.convert_variables_to_constants_v2(
+      concrete_func).graph
+
 def convert_tf_saved_model(saved_model_dir,
                            output_dir, signature_def='serving_default',
                            saved_model_tags='serve',
@@ -289,12 +290,24 @@ def convert_tf_saved_model(saved_model_dir,
   _check_signature_in_model(model, signature_def)
 
   concrete_func = model.signatures[signature_def]
-  frozen_func = convert_to_constants.convert_variables_to_constants_v2(
-      concrete_func)
+  output_node_names = []
+  for output_tensor in concrete_func.outputs:
+    output_node_names.append(output_tensor.name.split(':')[0])
 
-  optimize_graph(frozen_func, output_graph, model.tensorflow_version,
+  # TensorFlow doesn't encode the saved model version in the graph in a reliable
+  # way. Try to freeze the graph using V2 utils. If that fails, freeze the
+  # graph using V1 utils.
+  try:
+    frozen_graph = _freeze_saved_model_v2(concrete_func)
+  except BaseException:
+    frozen_graph = _freeze_saved_model_v1(
+        concrete_func.graph, output_node_names)
+
+  optimize_graph(frozen_graph, output_node_names, output_graph,
+                 model.tensorflow_version,
                  quantization_dtype=quantization_dtype,
-                 skip_op_check=skip_op_check, strip_debug_ops=strip_debug_ops)
+                 skip_op_check=skip_op_check,
+                 strip_debug_ops=strip_debug_ops)
 
 def load_and_initialize_hub_module(module_path, signature='default'):
   """Loads graph of a TF-Hub module and initializes it into a session.
@@ -390,11 +403,10 @@ def convert_tf_hub_module_v1(module_path, output_dir,
     with tf.compat.v1.gfile.GFile(frozen_file, 'wb') as f:
       f.write(frozen_graph_def.SerializeToString())
 
-    graph = load_graph(frozen_file, ','.join(output_node_names))
-    optimize_graph(None, output_graph, tf.__version__,
-                   quantization_dtype=quantization_dtype,
-                   skip_op_check=skip_op_check, strip_debug_ops=strip_debug_ops,
-                   graph=graph)
+    frozen_graph = load_graph(frozen_file)
+    optimize_graph(frozen_graph, output_node_names, output_graph,
+                   tf.__version__, quantization_dtype=quantization_dtype,
+                   skip_op_check=skip_op_check, strip_debug_ops=strip_debug_ops)
   finally:
     # Clean up the temp files.
     if os.path.exists(frozen_file):
