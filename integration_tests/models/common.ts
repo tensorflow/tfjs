@@ -16,7 +16,8 @@
  * =============================================================================
  */
 import * as tfconverter from '@tensorflow/tfjs-converter';
-import {NamedTensorMap} from '@tensorflow/tfjs-converter/dist/src/data/types';
+// tslint:disable-next-line: no-imports-from-dist
+import {NamedTensorMap} from '@tensorflow/tfjs-core';
 import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers';
 import * as detectBrowser from 'detect-browser';
