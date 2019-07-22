@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@1.2.3":
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.2.3.tgz#90cc7bb593ba67548d683ff045823872a05c43dc"
-  integrity sha512-jLYUJYzI/b+058yKz9SjX6KwTac4hKFRh1FMI8jQpN289z9MSfKBq8BzpKd7n7ml7b55ae157Qta5pFmLwRVZw==
+"@tensorflow/tfjs-core@1.2.5":
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.2.5.tgz#865f0b3d7a79614650698c907185dd0adfb6470e"
+  integrity sha512-2M88UcKVfcMwtIaDEOJKWAxgX9rO+UdPnRZGSyWW/vH2PiB+jKtB6//7O5V4JpbRjA2ZJFjhfQ5ybfQf8wawRg==
   dependencies:
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
