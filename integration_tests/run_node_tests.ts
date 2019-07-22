@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line: no-imports-from-dist
 import * as jasmineUtil from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as fs from 'fs';
 
