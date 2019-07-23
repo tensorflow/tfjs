@@ -76,10 +76,9 @@ function getPlatformLibtensorflowUri() {
   let targetUri = BASE_URI;
   if (platform === 'linux') {
     if (os.arch() === 'arm') {
-      // TODO(kreeger): Update to TensorFlow 1.14:
-      // https://github.com/tensorflow/tfjs/issues/1370
+      // TODO(kreeger): Handle arm64 as well:
       targetUri =
-        'https://storage.googleapis.com/tf-builds/libtensorflow_r1_12_linux_arm.tar.gz';
+        'https://storage.googleapis.com/tf-builds/libtensorflow_r1_14_linux_arm.tar.gz';
     } else {
       if (libType === 'gpu') {
         targetUri += GPU_LINUX;
