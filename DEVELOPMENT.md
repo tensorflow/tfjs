@@ -55,7 +55,14 @@ $ yarn publish-local
 ```
 
 This command packs the `tfjs-node` package and publishes locally through [yalc](https://github.com/whitecolor/yalc).
-NOTE: Dependent packages must install this locally published package through yalc.
+NOTE: Dependent packages must install this locally published package through yalc and compile the node native addon locally. In the dependent package run the following command to link local published `tfjs-node` package:
+
+```sh
+$ yalc link @tensorflow/tfjs-node
+$ cd .yalc/@tensorflow/tfjs-node
+$ yarn && yarn build-addon-from-source
+$ cd ../../..
+```
 
 #### Run tests
 
