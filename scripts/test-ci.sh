@@ -35,3 +35,8 @@ npm-run-all -p -c --aggregate-output \
   "run-browserstack --browsers=bs_chrome_mac" \
   "run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{\"WEBGL_CPU_FORWARD\": true}'" \
   "run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{\"WEBGL_CPU_FORWARD\": false}'"
+
+# Build dist/tf-core.js which is used by the webworker test
+yarn build-npm
+# Run under webworker environment
+yarn test-webworker --browsers=bs_safari_mac

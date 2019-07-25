@@ -63,6 +63,7 @@
     "lint": "tslint -p . -t verbose",
     "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
     "test": "karma start",
+    "test-webworker": "karma start --worker",
     "run-browserstack": "karma start --browserstack",
     "test-bundle-size": "./scripts/test-bundle-size.js",
     "test-node": "rimraf dist/ && tsc && node dist/test_node.js",

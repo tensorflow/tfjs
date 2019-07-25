@@ -74,5 +74,6 @@ setTestEnvs([{
 }]);
 
 const runner = new jasmine();
+
 runner.loadConfig({spec_files: ['dist/**/**_test.js'], random: false});
 runner.execute();

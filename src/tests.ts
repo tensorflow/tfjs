@@ -107,3 +107,5 @@ import './types_test';
 import './util_test';
 import './variable_test';
 import './version_test';
+import './worker_node_test';
+import './worker_test';
