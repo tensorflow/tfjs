@@ -38,7 +38,7 @@ const devConfig = {
     'src/worker_node_test.ts',
     'src/worker_test.ts',
     'src/test_node.ts',
-    'src/test_async_backends.ts'
+    'src/test_async_backends.ts',
   ],
   preprocessors: {'**/*.ts': ['karma-typescript']},
   karmaTypescriptConfig,
@@ -52,7 +52,7 @@ const browserstackConfig = {
     'dist/worker_node_test.js',
     'dist/worker_test.js',
     'dist/test_node.js',
-    'dist/test_async_backends.js'
+    'dist/test_async_backends.js',
   ],
   preprocessors: {'dist/**/*_test.js': ['browserify']},
   browserify: {debug: false},
@@ -66,8 +66,9 @@ const webworkerConfig = {
   files: [
     'dist/setup_test.js',
     'dist/worker_test.js',
-    // Serve dist/tf-core.js as a static resource, but do not include in the test runner
-    {pattern: 'dist/tf-core.js', included: false}
+    // Serve dist/tf-core.min.js as a static resource, but do not include in the
+    // test runner
+    {pattern: 'dist/tf-core.min.js', included: false},
   ],
   exclude: [],
   port: 12345
