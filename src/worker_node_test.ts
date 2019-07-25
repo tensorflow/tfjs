@@ -15,18 +15,20 @@
  * =============================================================================
  */
 
-import {HAS_NODE_WORKER, describeWithFlags} from './jasmine_util';
+import {describeWithFlags, HAS_NODE_WORKER} from './jasmine_util';
 import {expectArraysClose} from './test_util';
+// tslint:disable:no-require-imports
 
 const fn2String = (fn: Function): string => {
-  const funcStr = '('+fn.toString()+')()';
+  const funcStr = '(' + fn.toString() + ')()';
   return funcStr;
 };
 
 // The source code of a web worker.
 const workerTestNode = () => {
-  const tf = require(`${process.cwd()}/dist/tf-core.js`);
-  // tslint:disable-next-line:no-require-imports
+  // Web worker scripts in node live relative to the CWD, not to the dir of the
+  // file that spawned them.
+  const tf = require('./dist/index.js');
   const {parentPort} = require('worker_threads');
   let a = tf.tensor1d([1, 2, 3]);
   const b = tf.tensor1d([3, 2, 1]);
@@ -36,7 +38,6 @@ const workerTestNode = () => {
 
 describeWithFlags('computation in worker (node env)', HAS_NODE_WORKER, () => {
   it('tensor in worker', (done) => {
-    // tslint:disable-next-line:no-require-imports
     const {Worker} = require('worker_threads');
     const worker = new Worker(fn2String(workerTestNode), {eval: true});
     // tslint:disable-next-line:no-any
