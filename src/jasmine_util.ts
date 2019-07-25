@@ -39,6 +39,23 @@ export const SYNC_BACKEND_ENVS: Constraints = {
   predicate: (testEnv: TestEnv) => testEnv.isDataSync === true
 };
 
+export const HAS_WORKER = {
+  predicate: () => typeof(Worker) !== 'undefined'
+      && typeof(Blob) !== 'undefined' && typeof(URL) !== 'undefined'
+};
+
+export const HAS_NODE_WORKER = {
+  predicate: () => {
+    let hasWorker = true;
+    try {
+      require.resolve('worker_threads');
+    } catch {
+      hasWorker = false;
+    }
+    return typeof(process) !== 'undefined' && hasWorker;
+  }
+};
+
 export const ALL_ENVS: Constraints = {};
 
 // Tests whether the current environment satisfies the set of constraints.

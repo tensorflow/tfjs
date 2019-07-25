@@ -35,8 +35,10 @@ const devConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
   files: ['src/setup_test.ts', {pattern: 'src/**/*.ts'}],
   exclude: [
+    'src/worker_node_test.ts',
+    'src/worker_test.ts',
     'src/test_node.ts',
-    'src/test_async_backends.ts',
+    'src/test_async_backends.ts'
   ],
   preprocessors: {'**/*.ts': ['karma-typescript']},
   karmaTypescriptConfig,
@@ -47,14 +49,28 @@ const browserstackConfig = {
   frameworks: ['browserify', 'jasmine'],
   files: ['dist/setup_test.js', {pattern: 'dist/**/*_test.js'}],
   exclude: [
+    'dist/worker_node_test.js',
+    'dist/worker_test.js',
     'dist/test_node.js',
-    'dist/test_async_backends.js',
+    'dist/test_async_backends.js'
   ],
   preprocessors: {'dist/**/*_test.js': ['browserify']},
   browserify: {debug: false},
   reporters: ['dots'],
   singleRun: true,
   hostname: 'bs-local.com',
+};
+
+const webworkerConfig = {
+  ...browserstackConfig,
+  files: [
+    'dist/setup_test.js',
+    'dist/worker_test.js',
+    // Serve dist/tf-core.js as a static resource, but do not include in the test runner
+    {pattern: 'dist/tf-core.js', included: false}
+  ],
+  exclude: [],
+  port: 12345
 };
 
 module.exports = function(config) {
@@ -70,7 +86,18 @@ module.exports = function(config) {
   if (config.flags) {
     args.push('--flags', config.flags);
   }
-  const extraConfig = config.browserstack ? browserstackConfig : devConfig;
+
+
+  let extraConfig = null;
+
+  if (config.worker) {
+    extraConfig = webworkerConfig;
+  } else if (config.browserstack) {
+    extraConfig = browserstackConfig;
+  } else {
+    extraConfig = devConfig;
+  }
+
 
   config.set({
     ...extraConfig,
