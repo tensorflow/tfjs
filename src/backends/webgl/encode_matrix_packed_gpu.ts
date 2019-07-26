@@ -67,7 +67,8 @@ export class EncodeMatrixPackedProgram implements GPGPUProgram {
               flatIndex = getFlatIndex(localCoords);
               offset = imod(flatIndex, 4);
     
-              flatIndex /= 4;
+              flatIndex = idiv(flatIndex, 4, 1.);
+
               r = flatIndex / ${width};
               c = imod(flatIndex, ${width});
               uv = (vec2(c, r) + halfCR) / vec2(${width}.0, ${height}.0);
