@@ -22,3 +22,5 @@ rollup.config.js
 tsconfig.json
 .yalc/
 yalc.lock
+tfjs-react-native/
+tfjs-backend-nodegl/

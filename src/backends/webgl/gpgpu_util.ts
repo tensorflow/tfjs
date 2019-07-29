@@ -15,28 +15,12 @@
  * =============================================================================
  */
 
-import {ENV} from '../../environment';
 import {PixelData, TypedArray} from '../../types';
 
 import {getGlslDifferences} from './glsl_version';
 import * as tex_util from './tex_util';
+import {TextureConfig} from './tex_util';
 import * as webgl_util from './webgl_util';
-
-export interface TextureConfig {
-  internalFormatFloat: number;
-  textureFormatFloat: number;
-  internalFormatPackedHalfFloat: number;
-  internalFormatHalfFloat: number;
-  internalFormatPackedFloat: number;
-
-  // The format to use during a gl.readPixels call.
-  downloadTextureFormat: number;
-  // How many channels need to be unpacked after a gl.readPixels call.
-  downloadUnpackNumChannels: number;
-
-  defaultNumChannels: number;
-  textureTypeHalfFloat: number;
-}
 
 export function createVertexShader(
     gl: WebGLRenderingContext, debug: boolean): WebGLShader {
@@ -67,60 +51,6 @@ export function createIndexBuffer(
   // OpenGL (and WebGL) have "CCW == front" winding
   const triangleVertexIndices = new Uint16Array([0, 1, 2, 2, 1, 3]);
   return webgl_util.createStaticIndexBuffer(gl, debug, triangleVertexIndices);
-}
-
-export function getTextureConfig(
-    // tslint:disable-next-line:no-any
-    gl: WebGLRenderingContext, textureHalfFloatExtension?: any): TextureConfig {
-  // tslint:disable-next-line:no-any
-  const glany = gl as any;
-
-  let internalFormatFloat: number;
-  let internalFormatHalfFloat: number;
-  let internalFormatPackedHalfFloat: number;
-  let internalFormatPackedFloat: number;
-  let textureFormatFloat: number;
-
-  let downloadTextureFormat: number;
-  let downloadUnpackNumChannels: number;
-
-  let defaultNumChannels: number;
-  let textureTypeHalfFloat: number;
-
-  if (ENV.getNumber('WEBGL_VERSION') === 2) {
-    internalFormatFloat = glany.R32F;
-    internalFormatHalfFloat = glany.R16F;
-    internalFormatPackedHalfFloat = glany.RGBA16F;
-    internalFormatPackedFloat = glany.RGBA32F;
-    textureFormatFloat = glany.RED;
-    downloadUnpackNumChannels = 4;
-    defaultNumChannels = 1;
-    textureTypeHalfFloat = glany.HALF_FLOAT;
-  } else {
-    internalFormatFloat = gl.RGBA;
-    internalFormatHalfFloat = gl.RGBA;
-    internalFormatPackedHalfFloat = gl.RGBA;
-    internalFormatPackedFloat = glany.RGBA;
-    textureFormatFloat = gl.RGBA;
-    downloadUnpackNumChannels = 4;
-    defaultNumChannels = 4;
-    textureTypeHalfFloat = textureHalfFloatExtension != null ?
-        textureHalfFloatExtension.HALF_FLOAT_OES :
-        null;
-  }
-  downloadTextureFormat = gl.RGBA;
-
-  return {
-    internalFormatFloat,
-    internalFormatHalfFloat,
-    internalFormatPackedHalfFloat,
-    internalFormatPackedFloat,
-    textureFormatFloat,
-    downloadTextureFormat,
-    downloadUnpackNumChannels,
-    defaultNumChannels,
-    textureTypeHalfFloat
-  };
 }
 
 function createAndConfigureTexture(

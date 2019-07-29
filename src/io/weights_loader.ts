@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ENV} from '../environment';
 import {NamedTensorMap} from '../tensor_types';
 import * as util from '../util';
 
@@ -39,12 +40,13 @@ export async function loadWeightsAsArrayBuffer(
     loadOptions = {};
   }
 
-  const fetchFunc =
-      loadOptions.fetchFunc == null ? util.fetch : loadOptions.fetchFunc;
+  const fetchFunc = loadOptions.fetchFunc == null ? ENV.platform.fetch :
+                                                    loadOptions.fetchFunc;
 
   // Create the requests for all of the weights in parallel.
-  const requests =
-      fetchURLs.map(fetchURL => fetchFunc(fetchURL, loadOptions.requestInit));
+  const requests = fetchURLs.map(
+      fetchURL =>
+          fetchFunc(fetchURL, loadOptions.requestInit, {isBinary: true}));
 
   const fetchStartFraction = 0;
   const fetchEndFraction = 0.5;

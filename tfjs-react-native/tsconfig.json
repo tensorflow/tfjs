@@ -1,16 +1,15 @@
 {
   "extends": "../tsconfig",
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2017",
     "lib": [
-      "es5"
+      "es2017"
     ],
     "outDir": "./dist/",
     "skipLibCheck": true,
   },
   "include": [
     "src/",
-    "test",
   ],
   "exclude": [
     "node_modules"

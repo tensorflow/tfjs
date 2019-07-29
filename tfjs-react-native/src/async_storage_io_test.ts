@@ -19,7 +19,7 @@ import './platform_react_native';
 import * as tf from '@tensorflow/tfjs-core';
 import {asyncStorageIO} from './async_storage_io';
 
-describe('AsyncStorageIO', async () => {
+describe('AsyncStorageIO', () => {
   // Test data.
   const modelTopology1: {} = {
     'class_name': 'Sequential',

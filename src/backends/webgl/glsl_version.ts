@@ -55,9 +55,9 @@ export function getGlslDifferences(): GLSL {
         return (val > 0. || val < 0. || val == 0.) ? false : true;
       }
     `;
-    defineSpecialInf = `
-      const float INFINITY = uintBitsToFloat(uint(0x7f800000));
-    `;
+    // In webgl 2 we do not need to specify a custom isinf so there is no
+    // need for a special INFINITY constant.
+    defineSpecialInf = ``;
     defineRound = `
       #define round(value) newRound(value)
       int newRound(float value) {
