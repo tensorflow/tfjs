@@ -28,7 +28,7 @@ export type AdadeltaOptimizerConfig = {
 };
 
 export type AdadeltaSerialization =
-    BaseSerialization<'AdadeltaOptimizer', AdadeltaOptimizerConfig>;
+    BaseSerialization<'Adadelta', AdadeltaOptimizerConfig>;
 
 export type AdagradOptimizerConfig = {
   learning_rate: number;
@@ -36,15 +36,14 @@ export type AdagradOptimizerConfig = {
 };
 
 export type AdagradSerialization =
-    BaseSerialization<'AdagradOptimizer', AdagradOptimizerConfig>;
+    BaseSerialization<'Adagrad', AdagradOptimizerConfig>;
 
 export type AdamOptimizerConfig = {
   learning_rate: number; beta1: number; beta2: number;
   epsilon?: number;
 };
 
-export type AdamSerialization =
-    BaseSerialization<'AdamOptimizer', AdamOptimizerConfig>;
+export type AdamSerialization = BaseSerialization<'Adam', AdamOptimizerConfig>;
 
 export type AdamaxOptimizerConfig = {
   learning_rate: number; beta1: number; beta2: number;
@@ -53,7 +52,7 @@ export type AdamaxOptimizerConfig = {
 };
 
 export type AdamaxSerialization =
-    BaseSerialization<'AdamaxOptimizer', AdamaxOptimizerConfig>;
+    BaseSerialization<'Adamax', AdamaxOptimizerConfig>;
 
 export type MomentumOptimizerConfig = {
   // extends SGDOptimizerConfig {
@@ -62,7 +61,7 @@ export type MomentumOptimizerConfig = {
 };
 
 export type MomentumSerialization =
-    BaseSerialization<'MomentumOptimizer', MomentumOptimizerConfig>;
+    BaseSerialization<'Momentum', MomentumOptimizerConfig>;
 
 export type RMSPropOptimizerConfig = {
   learning_rate: number;
@@ -73,14 +72,13 @@ export type RMSPropOptimizerConfig = {
 };
 
 export type RMSPropSerialization =
-    BaseSerialization<'RMSPropOptimizer', RMSPropOptimizerConfig>;
+    BaseSerialization<'RMSProp', RMSPropOptimizerConfig>;
 
 export type SGDOptimizerConfig = {
   learning_rate: number;
 };
 
-export type SGDSerialization =
-    BaseSerialization<'SGDOptimizer', SGDOptimizerConfig>;
+export type SGDSerialization = BaseSerialization<'SGD', SGDOptimizerConfig>;
 
 // Update optimizerClassNames below in concert with this.
 export type OptimizerSerialization = AdadeltaSerialization|AdagradSerialization|
@@ -97,7 +95,5 @@ export type OptimizerClassName = OptimizerSerialization['class_name'];
  *
  * This is guaranteed to match the `OptimizerClassName` union type.
  */
-export const optimizerClassNames: OptimizerClassName[] = [
-  'AdadeltaOptimizer', 'AdagradOptimizer', 'AdamOptimizer', 'AdamaxOptimizer',
-  'MomentumOptimizer', 'RMSPropOptimizer', 'SGDOptimizer'
-];
+export const optimizerClassNames: OptimizerClassName[] =
+    ['Adadelta', 'Adagrad', 'Adam', 'Adamax', 'Momentum', 'RMSProp', 'SGD'];
