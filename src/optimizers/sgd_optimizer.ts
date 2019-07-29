@@ -27,7 +27,7 @@ import {Optimizer} from './optimizer';
 /** @doclink Optimizer */
 export class SGDOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'SGD';  // Name matters for Python compatibility.
+  static className = 'SGD';  // Note: Name matters for Python compatibility.
   protected c: Scalar;
 
   constructor(protected learningRate: number) {

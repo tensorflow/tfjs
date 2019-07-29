@@ -25,7 +25,7 @@ import {Optimizer, OptimizerVariable} from './optimizer';
 /** @doclink Optimizer */
 export class AdadeltaOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'AdadeltaOptimizer';
+  static className = 'Adadelta';  // Name matters for Python compatibility.
   private accumulatedGrads: OptimizerVariable[] = [];
   private accumulatedUpdates: OptimizerVariable[] = [];
 
