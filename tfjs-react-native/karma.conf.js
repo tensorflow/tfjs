@@ -18,16 +18,21 @@
 const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
   reports: {},
+  // Disable coverage reports and instrumentation by default for tests
+  coverageOptions: {instrumentation: false},
+  reports: {},
   bundlerOptions: {
+    sourceMap: true,
     // Start from test files to control what karma typescript loads
     // and ensure that environment setup happens appropriately.
     entrypoints: /_test\.(ts)$/,
     // Mock react native functionality to enable unit tests in the browser.
     resolve: {
       alias: {
-        'react-native': './test/utils/react_native_mock.ts',
+        'react-native': './src/test_utils/react_native_mock.ts',
         '@react-native-community/async-storage':
-            './test/utils/async_storage_mock.ts',
+            './src/test_utils/async_storage_mock.ts',
+        'expo-gl': './src/test_utils/gl_view_mock.ts',
       }
     }
   }

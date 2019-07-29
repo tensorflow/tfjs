@@ -104,7 +104,7 @@ class BundleResourceHandler implements io.IOHandler {
  */
 export function bundleResourceIO(
     modelJson: io.ModelJSON, modelWeightsId: number): io.IOHandler {
-  if (typeof modelWeightsId !== 'object') {
+  if (typeof modelJson !== 'object') {
     throw new Error(
         'modelJson must be a JavaScript object (and not a string).\n' +
         'Have you wrapped yor asset path in a require() statment?');

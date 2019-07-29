@@ -18,7 +18,7 @@
 import * as tf from '@tensorflow/tfjs-core';
 import {PlatformReactNative} from './platform_react_native';
 
-describe('PlatformReactNative', async () => {
+describe('PlatformReactNative', () => {
   it('tf.util.fetch calls platform.fetch', async () => {
     const platform = new PlatformReactNative();
     tf.setPlatform('rn-test-platform', platform);

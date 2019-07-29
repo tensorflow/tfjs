@@ -81,7 +81,7 @@ const setupFakeWeightFiles =
       }
     },
      requestInits: {[key: string]: RequestInit}) => {
-      fetchSpy = spyOn(tf.util, 'fetch')
+      fetchSpy = spyOn(tf.ENV.platform, 'fetch')
                      .and.callFake((path: string, init: RequestInit) => {
                        if (fileBufferMap[path]) {
                          requestInits[path] = init;
@@ -191,14 +191,16 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
 
   beforeEach(() => {
     requestInits = [];
-    spyOn(tf.util, 'fetch').and.callFake((path: string, init: RequestInit) => {
-      if (path === 'model-upload-test' || path === 'http://model-upload-test') {
-        requestInits.push(init);
-        return Promise.resolve(new Response(null, {status: 200}));
-      } else {
-        return Promise.reject(new Response(null, {status: 404}));
-      }
-    });
+    spyOn(tf.ENV.platform, 'fetch')
+        .and.callFake((path: string, init: RequestInit) => {
+          if (path === 'model-upload-test' ||
+              path === 'http://model-upload-test') {
+            requestInits.push(init);
+            return Promise.resolve(new Response(null, {status: 200}));
+          } else {
+            return Promise.reject(new Response(null, {status: 404}));
+          }
+        });
   });
 
   it('Save topology and weights, default POST method', (done) => {

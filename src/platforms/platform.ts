@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {RequestDetails} from '../io/types';
+
 /**
  * At any given time a single platform is active and represents and
  * implementation of this interface. In practice, a platform is an environment
@@ -27,7 +29,8 @@ export interface Platform {
    * @param init The request init. See init here:
    *     https://developer.mozilla.org/en-US/docs/Web/API/Request/Request
    */
-  fetch(path: string, requestInits?: RequestInit): Promise<Response>;
+  fetch(path: string, requestInits?: RequestInit, options?: RequestDetails):
+      Promise<Response>;
 
   /**
    * Returns the current high-resolution time in milliseconds relative to an

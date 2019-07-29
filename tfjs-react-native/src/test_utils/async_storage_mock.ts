@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
+// We mock this library as it cannot be loaded in a browser yet we do want
+// to do JS only unit tests.
+
 // @ts-ignore (use of window)
 const localStorage = window.localStorage;
 // Use default export to match the library we are mocking.

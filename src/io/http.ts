@@ -21,7 +21,8 @@
  * Uses [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
  */
 
-import {assert, fetch} from '../util';
+import {ENV} from '../environment';
+import {assert} from '../util';
 import {concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
@@ -57,7 +58,7 @@ export class HTTPRequest implements IOHandler {
               'https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)');
       this.fetch = loadOptions.fetchFunc;
     } else {
-      this.fetch = fetch;
+      this.fetch = ENV.platform.fetch;
     }
 
     assert(

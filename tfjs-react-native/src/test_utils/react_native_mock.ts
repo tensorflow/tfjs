@@ -15,8 +15,18 @@
  * =============================================================================
  */
 
-import './platform_react_native';
+// We mock this library as it cannot be loaded in a browser yet we do want
+// to do JS only unit tests.
 
-export {asyncStorageIO} from './async_storage_io';
-export {bundleResourceIO} from './bundle_resource_io';
-export {fetch} from './platform_react_native';
+interface ImageResolvedAssetSource {
+  uri: string;
+}
+
+// tslint:disable-next-line
+export const Image = {
+  resolveAssetSource: (resourceId: string|number): ImageResolvedAssetSource => {
+    return {
+      uri: `http://localhost/assets/${resourceId}`,
+    };
+  }
+};

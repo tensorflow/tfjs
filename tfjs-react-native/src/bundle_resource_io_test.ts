@@ -19,7 +19,7 @@ import './platform_react_native';
 import * as tf from '@tensorflow/tfjs-core';
 import {bundleResourceIO} from './bundle_resource_io';
 
-describe('BundleResourceIO', async () => {
+describe('BundleResourceIO', () => {
   // Test data.
   const modelTopology1: {} = {
     'class_name': 'Sequential',
@@ -103,5 +103,25 @@ describe('BundleResourceIO', async () => {
     expect(loaded.modelTopology).toEqual(modelTopology1);
     expect(loaded.weightSpecs).toEqual(weightSpecs1);
     expect(loaded.weightData).toEqual(weightData1);
+  });
+
+  it('errors on string modelJSON', async () => {
+    const response = new Response(weightData1);
+    spyOn(tf.ENV.platform, 'fetch').and.returnValue(response);
+
+    const modelJson = `{
+      modelTopology: modelTopology1,
+      weightsManifest: [{
+        paths: [],
+        weights: weightSpecs1,
+      }]
+    }`;
+    const resourceId = 1;
+    expect(
+        () => bundleResourceIO(
+            modelJson as unknown as tf.io.ModelJSON, resourceId))
+        .toThrow(new Error(
+            'modelJson must be a JavaScript object (and not a string).\n' +
+            'Have you wrapped yor asset path in a require() statment?'));
   });
 });
