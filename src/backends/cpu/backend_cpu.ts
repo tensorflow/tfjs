@@ -1513,6 +1513,20 @@ export class MathBackendCPU implements KernelBackend {
     return Tensor.make(x.shape, {values: resultValues}) as T;
   }
 
+  fusedConv2d(
+      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
+      activation?: Activation): Tensor4D {
+    let result = this.conv2d(x, filter, convInfo);
+
+    if (bias) {
+      result = this.add(result, bias) as Tensor4D;
+    }
+    if (activation) {
+      result = mapActivation(this, activation, result) as Tensor4D;
+    }
+    return result;
+  }
+
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     this.assertNotComplex([x, filter], 'conv2d');
 
