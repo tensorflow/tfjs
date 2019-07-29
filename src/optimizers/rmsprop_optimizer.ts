@@ -26,7 +26,7 @@ import {Optimizer, OptimizerVariable} from './optimizer';
 /** @doclink Optimizer */
 export class RMSPropOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'RMSProp';
+  static className = 'RMSProp';  // Note: Name matters for Python compatibility.
   private centered: boolean;
 
   private accumulatedMeanSquares: OptimizerVariable[] = [];
