@@ -927,6 +927,7 @@ export const conv1d = op({conv1d_});
 export const conv2d = op({conv2d_});
 export const conv3d = op({conv3d_});
 export const conv2dDerFilter = op({conv2dDerFilter_});
+export const conv2dDerInput = op({conv2dDerInput_});
 export const depthwiseConv2d = op({depthwiseConv2d_});
 export const separableConv2d = op({separableConv2d_});
 export const conv2dTranspose = op({conv2dTranspose_});
