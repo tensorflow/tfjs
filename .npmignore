@@ -1,8 +1,13 @@
+# Ignore other packages in the mono-repo.
+tfjs-webgpu/
+tfjs-backend-nodegl/
+tfjs-react-native/
+
 .vscode/
 .rpt2_cache/
 src/**/*_test.ts
 integration_tests/
-tfjs-webgpu/
+
 dist/backends/**/*_test.js
 models/
 coverage/
