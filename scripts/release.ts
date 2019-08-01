@@ -207,6 +207,7 @@ async function main() {
       phase.scripts.forEach(script => $(script));
     }
 
+    $(`git remote set-url origin git@github.com:tensorflow/${repo}.git`);
     $(`git checkout -b b${newVersion}`);
     $(`git push -u origin b${newVersion}`);
     $(`git add .`);
