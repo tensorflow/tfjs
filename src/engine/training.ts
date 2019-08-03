@@ -1130,7 +1130,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
     checkInputData(x, this.inputNames, this.feedInputShapes, true);
     // TODO(cais): Take care of the learning_phase boolean flag.
     //   if (this.useLearningPhase) ...
-    return this.predictLoop(x, x.shape[0]);
+    return this.predictLoop(x, Array.isArray(x) ? x[0].shape[0] : x.shape[0]);
   }
 
   protected standardizeUserDataXY(
