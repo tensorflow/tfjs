@@ -28,7 +28,9 @@ export * from '../ops/axis_util';
 export * from '../ops/broadcast_util';
 export * from '../ops/concat_util';
 export * from '../ops/conv_util';
-export {TypedArray, upcastType, PixelData} from '../types';
+export {Activation} from '../ops/fused_util';
+
+export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
 export {MemoryInfo, TimingInfo} from '../engine';
 
 export function castTensor<T extends Tensor>(
