@@ -36,20 +36,36 @@ import {Activation} from './fused_util';
  * const b = tf.tensor2d([1, 2, 3, 4], [2, 2]);
  * const bias = tf.tensor2d([1, 2], [1, 2]);
  *
- * tf.fused.matMul(a, b, false, false, bias, 'relu').print();
+ * tf.fused.matMul({a, b, bias, activation: 'relu'}).print();
  * ```
  *
- * @param a First matrix in dot product operation.
- * @param b Second matrix in dot product operation.
- * @param transposeA If true, `a` is transposed before multiplication.
- * @param transposeB If true, `b` is transposed before multiplication.
- * @param bias Matrix to be added to the result.
- * @param activation Name of activation kernel (defaults to `linear`).
+ * @param obj An object with the following properties:
+ * - `a` First matrix in dot product operation.
+ * - `b` Second matrix in dot product operation.
+ * - `transposeA` If true, `a` is transposed before multiplication.
+ * - `transposeB` If true, `b` is transposed before multiplication.
+ * - `bias` Matrix to be added to the result.
+ * - `activation` Name of activation kernel (defaults to `linear`).
+ * - `preluActivationWeights` Tensor of prelu weights.
  */
 /** @doc {heading: 'Operations', subheading: 'Matrices', namespace: 'fused'} */
-function matMul_<T extends Tensor>(
-    a: T|TensorLike, b: T|TensorLike, transposeA = false, transposeB = false,
-    bias?: Tensor|TensorLike, activation: Activation = 'linear'): T {
+function matMul_<T extends Tensor>({
+  a,
+  b,
+  transposeA = false,
+  transposeB = false,
+  bias,
+  activation = 'linear',
+  preluActivationWeights
+}: {
+  a: T|TensorLike,
+  b: T|TensorLike,
+  transposeA?: boolean,
+  transposeB?: boolean,
+  bias?: Tensor|TensorLike,
+  activation?: Activation,
+  preluActivationWeights?: Tensor
+}): T {
   let $a = convertToTensor(a, 'a', 'fused matMul');
   let $b = convertToTensor(b, 'b', 'fused matMul');
   [$a, $b] = makeTypesMatch($a, $b);
@@ -101,6 +117,12 @@ function matMul_<T extends Tensor>(
     [$bias] = makeTypesMatch($bias, $a);
 
     broadcast_util.assertAndGetBroadcastShape(outShape, $bias.shape);
+  }
+
+  let $preluActivationWeights: Tensor;
+  if (preluActivationWeights != null) {
+    $preluActivationWeights = convertToTensor(
+        preluActivationWeights, 'prelu weights', 'fused matMul');
   }
 
   const grad = (dy: Tensor3D, saved: Tensor[]) => {
@@ -166,14 +188,29 @@ function matMul_<T extends Tensor>(
     }
   };
 
-  const inputs: {$a: Tensor, $b: Tensor, $bias?: Tensor} = {$a: a3D, $b: b3D};
+  const inputs: {
+    $a: Tensor,
+    $b: Tensor,
+    $bias?: Tensor,
+    $preluActivationWeights?: Tensor
+  } = {$a: a3D, $b: b3D};
   if (bias != null) {
     inputs.$bias = $bias;
   }
+  if (preluActivationWeights != null) {
+    inputs.$preluActivationWeights = $preluActivationWeights;
+  }
 
   const res = ENGINE.runKernel((backend, save) => {
-    const y = backend.fusedBatchMatMul(
-        a3D, b3D, transposeA, transposeB, $bias, activation);
+    const y = backend.fusedBatchMatMul({
+      a: a3D,
+      b: b3D,
+      transposeA,
+      transposeB,
+      bias: $bias,
+      activation,
+      preluActivationWeights: $preluActivationWeights
+    });
     save([a3D, b3D, y]);
     return y;
   }, inputs, grad);
@@ -184,14 +221,32 @@ function matMul_<T extends Tensor>(
  * Computes a 2D convolution over the input x, optionally fused with adding a
  * bias and applying an activation.
  *
- * @param x The input tensor, of rank 4 or rank 3, of shape
+ * ```js
+ * const inputDepth = 2;
+ * const inShape = [2, 2, 2, inputDepth];
+ * const outputDepth = 2;
+ * const fSize = 1;
+ * const pad = 0;
+ * const strides = 1;
+ *
+ * const x = tf.tensor4d( [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+ * 16], inShape);
+ * const w = tf.tensor4d([-1, 1, -2, 0.5], [fSize, fSize, inputDepth,
+ * outputDepth]);
+ *
+ * tf.fused.conv2d({ x, filter: w, strides, pad, dataFormat: 'NHWC',
+ * dilations: [1, 1], bias: tf.scalar(5), activation: 'relu' }).print();
+ * ```
+ *
+ * @param obj An object with the following properties:
+ * - `x` The input tensor, of rank 4 or rank 3, of shape
  *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is
  * assumed.
- * @param filter The filter, rank 4, of shape
+ * - `filter` The filter, rank 4, of shape
  *     `[filterHeight, filterWidth, inDepth, outDepth]`.
- * @param strides The strides of the convolution: `[strideHeight,
+ * - `strides` The strides of the convolution: `[strideHeight,
  * strideWidth]`.
- * @param pad The type of padding algorithm.
+ * - `pad` The type of padding algorithm.
  *    - `same` and stride 1: output will be of same size as input,
  *       regardless of filter size.
  *    - `valid`: output will be smaller than input if filter is larger
@@ -199,29 +254,48 @@ function matMul_<T extends Tensor>(
  *   - For more info, see this guide:
  *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
  *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
- * @param dataFormat: An optional string from: "NHWC", "NCHW". Defaults to
+ * - `dataFormat` An optional string from: "NHWC", "NCHW". Defaults to
  *     "NHWC". Specify the data format of the input and output data. With the
  *     default format "NHWC", the data is stored in the order of: [batch,
  *     height, width, channels]. Only "NHWC" is currently supported.
- * @param dilations The dilation rates: `[dilationHeight, dilationWidth]`
+ * - `dilations` The dilation rates: `[dilationHeight, dilationWidth]`
  *     in which we sample input values across the height and width dimensions
  *     in atrous convolution. Defaults to `[1, 1]`. If `dilations` is a single
  *     number, then `dilationHeight == dilationWidth`. If it is greater than
  *     1, then all values of `strides` must be 1.
- * @param dimRoundingMode The rounding mode used when computing output
+ * - `dimRoundingMode` The rounding mode used when computing output
  *     dimensions if pad is a number. If none is provided, it will not round
  *     and error if the output is of fractional size.
- * @param bias Tensor to be added to the result.
- * @param activation Name of activation kernel (defaults to `linear`).
+ * - `bias` Tensor to be added to the result.
+ * - `activation` Name of activation kernel (defaults to `linear`) to be applied
+ *      after biasAdd.
+ * - `preluActivationWeights` Tensor of prelu weights to be applied as part of a
+ *     `prelu` activation, typically the same shape as `x`.
  */
 /** @doc {heading: 'Operations', subheading: 'Convolution'} */
-function conv2d_<T extends Tensor3D|Tensor4D>(
-    x: T|TensorLike, filter: Tensor4D|TensorLike,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
-    dataFormat: 'NHWC'|'NCHW' = 'NHWC',
-    dilations: [number, number]|number = [1, 1],
-    dimRoundingMode?: 'floor'|'round'|'ceil', bias?: Tensor|TensorLike,
-    activation: Activation = 'linear'): T {
+function conv2d_<T extends Tensor3D|Tensor4D>({
+  x,
+  filter,
+  strides,
+  pad,
+  dataFormat = 'NHWC',
+  dilations = [1, 1],
+  dimRoundingMode,
+  bias,
+  activation = 'linear',
+  preluActivationWeights
+}: {
+  x: T|TensorLike,
+  filter: Tensor4D|TensorLike,
+  strides: [number, number]|number,
+  pad: 'valid'|'same'|number,
+  dataFormat?: 'NHWC'|'NCHW',
+  dilations?: [number, number]|number,
+  dimRoundingMode?: 'floor'|'round'|'ceil',
+  bias?: Tensor|TensorLike,
+  activation?: Activation,
+  preluActivationWeights?: Tensor
+}): T {
   const $x = convertToTensor(x, 'x', 'conv2d');
   const $filter = convertToTensor(filter, 'filter', 'conv2d');
 
@@ -271,6 +345,12 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
     broadcast_util.assertAndGetBroadcastShape(convInfo.outShape, $bias.shape);
   }
 
+  let $preluActivationWeights: Tensor;
+  if (preluActivationWeights != null) {
+    $preluActivationWeights = convertToTensor(
+        preluActivationWeights, 'prelu weights', 'fused conv2d');
+  }
+
   const grad = (dy: Tensor4D, saved: Tensor[]) => {
     const [$filter, x4D, y] = saved as [Tensor4D, Tensor4D, Tensor4D];
 
@@ -316,15 +396,23 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
         biasGradient);
   };
 
-  const inputs: {x: Tensor, $filter: Tensor,
-                 $bias?: Tensor} = {x: x4D, $filter};
+  const inputs: {
+    x: Tensor,
+    $filter: Tensor,
+    $bias?: Tensor,
+    $preluActivationWeights?: Tensor
+  } = {x: x4D, $filter};
   if (bias != null) {
     inputs.$bias = $bias;
+  }
+  if (preluActivationWeights != null) {
+    inputs.$preluActivationWeights = $preluActivationWeights;
   }
 
   const res = ENGINE.runKernel((backend, save) => {
     const res = backend.fusedConv2d(
-        x4D, $filter, convInfo, $bias as Tensor4D, activation);
+        x4D, $filter, convInfo, $bias as Tensor4D, activation,
+        $preluActivationWeights);
     save([$filter, x4D, res]);
 
     return res;

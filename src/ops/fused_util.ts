@@ -15,4 +15,16 @@
  * =============================================================================
  */
 
-export type Activation = 'linear'|'relu';
+import {Tensor, Tensor3D} from '../tensor';
+
+export type Activation = 'linear'|'relu'|'prelu';
+
+export type FusedBatchMatMulConfig = {
+  a: Tensor3D,
+  b: Tensor3D,
+  transposeA: boolean,
+  transposeB: boolean,
+  bias?: Tensor,
+  activation?: Activation,
+  preluActivationWeights?: Tensor
+};
