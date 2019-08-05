@@ -22,27 +22,10 @@
 import {IOHandler, ModelArtifacts, SaveResult, TrainingConfig, WeightsManifestEntry} from './types';
 
 class PassthroughLoader implements IOHandler {
-  constructor(
-      private readonly modelTopology?: {}|ArrayBuffer,
-      private readonly weightSpecs?: WeightsManifestEntry[],
-      private readonly weightData?: ArrayBuffer,
-      private readonly trainingConfig?: TrainingConfig) {}
+  constructor(private readonly modelArtifacts?: ModelArtifacts) {}
 
   async load(): Promise<ModelArtifacts> {
-    let result = {};
-    if (this.modelTopology != null) {
-      result = {modelTopology: this.modelTopology, ...result};
-    }
-    if (this.weightSpecs != null && this.weightSpecs.length > 0) {
-      result = {weightSpecs: this.weightSpecs, ...result};
-    }
-    if (this.weightData != null && this.weightData.byteLength > 0) {
-      result = {weightData: this.weightData, ...result};
-    }
-    if (this.trainingConfig != null) {
-      result = {trainingConfig: this.trainingConfig, ...result};
-    }
-    return result;
+    return this.modelArtifacts;
   }
 }
 
@@ -67,7 +50,7 @@ class PassthroughSaver implements IOHandler {
  *     modelTopology, weightSpecs, weightData));
  * ```
  *
- * @param modelTopology a object containing model topology (i.e., parsed from
+ * @param modelArtifacts a object containing model topology (i.e., parsed from
  *   the JSON format).
  * @param weightSpecs An array of `WeightsManifestEntry` objects describing the
  *   names, shapes, types, and quantization of the weight data.
@@ -78,13 +61,39 @@ class PassthroughSaver implements IOHandler {
  * @returns A passthrough `IOHandler` that simply loads the provided data.
  */
 export function fromMemory(
-    modelTopology: {}, weightSpecs?: WeightsManifestEntry[],
+    modelArtifacts: {}|ModelArtifacts, weightSpecs?: WeightsManifestEntry[],
     weightData?: ArrayBuffer, trainingConfig?: TrainingConfig): IOHandler {
-  // TODO(cais): The arguments should probably be consolidated into a single
-  // object, with proper deprecation process. Even though this function isn't
-  // documented, it is public and being used by some downstream libraries.
-  return new PassthroughLoader(
-      modelTopology, weightSpecs, weightData, trainingConfig);
+  if (arguments.length === 1) {
+    const isModelArtifacts =
+        (modelArtifacts as ModelArtifacts).modelTopology != null ||
+        (modelArtifacts as ModelArtifacts).weightSpecs != null;
+    if (isModelArtifacts) {
+      return new PassthroughLoader(modelArtifacts as ModelArtifacts);
+    } else {
+      // Legacy support: with only modelTopology.
+      // TODO(cais): Remove this deprecated API.
+      console.warn(
+          'Please call tf.io.fromMemory() with only one argument. ' +
+          'The argument should be of type ModelArtifacts. ' +
+          'The multi-argument signature of tf.io.fromMemory() has been ' +
+          'deprecated and will be removed in a future release.');
+      return new PassthroughLoader({modelTopology: modelArtifacts as {}});
+    }
+  } else {
+    // Legacy support.
+    // TODO(cais): Remove this deprecated API.
+    console.warn(
+        'Please call tf.io.fromMemory() with only one argument. ' +
+        'The argument should be of type ModelArtifacts. ' +
+        'The multi-argument signature of tf.io.fromMemory() has been ' +
+        'deprecated and will be removed in a future release.');
+    return new PassthroughLoader({
+      modelTopology: modelArtifacts as {},
+      weightSpecs,
+      weightData,
+      trainingConfig
+    });
+  }
 }
 
 /**

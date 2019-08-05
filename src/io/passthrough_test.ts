@@ -114,20 +114,61 @@ describeWithFlags('Passthrough Saver', BROWSER_ENVS, () => {
 });
 
 describeWithFlags('Passthrough Loader', BROWSER_ENVS, () => {
-  it('load topology and weights', async () => {
-    const passthroughHandler =
-        tf.io.fromMemory(modelTopology1, weightSpecs1, weightData1);
+  it('load topology and weights: legacy signature', async () => {
+    const passthroughHandler = tf.io.fromMemory(
+        modelTopology1, weightSpecs1, weightData1);
     const modelArtifacts = await passthroughHandler.load();
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs).toEqual(weightSpecs1);
     expect(modelArtifacts.weightData).toEqual(weightData1);
+    expect(modelArtifacts.userDefinedMetadata).toEqual(undefined);
   });
 
-  it('load model topology only', async () => {
+  it('load topology and weights', async () => {
+    const passthroughHandler = tf.io.fromMemory({
+      modelTopology: modelTopology1,
+      weightSpecs: weightSpecs1,
+      weightData: weightData1
+    });
+    const modelArtifacts = await passthroughHandler.load();
+    expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
+    expect(modelArtifacts.weightSpecs).toEqual(weightSpecs1);
+    expect(modelArtifacts.weightData).toEqual(weightData1);
+    expect(modelArtifacts.userDefinedMetadata).toEqual(undefined);
+  });
+
+  it('load model topology only: legacy signature', async () => {
     const passthroughHandler = tf.io.fromMemory(modelTopology1);
     const modelArtifacts = await passthroughHandler.load();
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs).toEqual(undefined);
     expect(modelArtifacts.weightData).toEqual(undefined);
+    expect(modelArtifacts.userDefinedMetadata).toEqual(undefined);
+  });
+
+  it('load model topology only', async () => {
+    const passthroughHandler = tf.io.fromMemory({
+      modelTopology: modelTopology1
+    });
+    const modelArtifacts = await passthroughHandler.load();
+    expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
+    expect(modelArtifacts.weightSpecs).toEqual(undefined);
+    expect(modelArtifacts.weightData).toEqual(undefined);
+    expect(modelArtifacts.userDefinedMetadata).toEqual(undefined);
+  });
+
+  it('load topology, weights, and user-defined metadata', async () => {
+    const userDefinedMetadata: {} = {'fooField': 'fooValue'};
+    const passthroughHandler = tf.io.fromMemory({
+      modelTopology: modelTopology1,
+      weightSpecs: weightSpecs1,
+      weightData: weightData1,
+      userDefinedMetadata
+    });
+    const modelArtifacts = await passthroughHandler.load();
+    expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
+    expect(modelArtifacts.weightSpecs).toEqual(weightSpecs1);
+    expect(modelArtifacts.weightData).toEqual(weightData1);
+    expect(modelArtifacts.userDefinedMetadata).toEqual(userDefinedMetadata);
   });
 });

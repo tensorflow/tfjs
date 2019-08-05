@@ -275,6 +275,11 @@ export declare interface ModelArtifacts {
    * `tf.LayersModel` instance.)
    */
   convertedBy?: string|null;
+
+  /**
+   * User-defined metadata about the model.
+   */
+  userDefinedMetadata?: {};
 }
 
 /**
@@ -330,6 +335,11 @@ export declare interface ModelJSON {
    * `tf.LayersModel` instance.)
    */
   convertedBy?: string|null;
+
+  /**
+   * User-defined metadata about the model.
+   */
+  userDefinedMetadata?: {};
 }
 
 /**
