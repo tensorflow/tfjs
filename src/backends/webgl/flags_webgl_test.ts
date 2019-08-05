@@ -195,7 +195,7 @@ describe('WEBGL_CONV_IM2COL', () => {
 describe('WEBGL_MAX_TEXTURE_SIZE', () => {
   beforeEach(() => {
     ENV.reset();
-    webgl_util.MAX_TEXTURE_SIZE = null;
+    webgl_util.resetMaxTextureSize();
 
     spyOn(canvas_util, 'getWebGLContext').and.returnValue({
       MAX_TEXTURE_SIZE: 101,
@@ -209,7 +209,7 @@ describe('WEBGL_MAX_TEXTURE_SIZE', () => {
   });
   afterAll(() => {
     ENV.reset();
-    webgl_util.MAX_TEXTURE_SIZE = null;
+    webgl_util.resetMaxTextureSize();
   });
 
   it('is a function of gl.getParameter(MAX_TEXTURE_SIZE)', () => {
@@ -221,7 +221,7 @@ describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
   let maxTextures: number;
   beforeEach(() => {
     ENV.reset();
-    webgl_util.MAX_TEXTURES_IN_SHADER = null;
+    webgl_util.resetMaxTexturesInShader();
 
     spyOn(canvas_util, 'getWebGLContext').and.callFake(() => {
       return {
@@ -237,7 +237,7 @@ describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
   });
   afterAll(() => {
     ENV.reset();
-    webgl_util.MAX_TEXTURES_IN_SHADER = null;
+    webgl_util.resetMaxTexturesInShader();
   });
 
   it('is a function of gl.getParameter(MAX_TEXTURE_IMAGE_UNITS)', () => {
