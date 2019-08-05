@@ -26,7 +26,7 @@ export class MatMulPackedProgram implements GPGPUProgram {
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
       transposeA = false, transposeB = false, addBias = false,
-      activation: string = null) {
+      activation: string = null, hasPreluActivation = false) {
     this.outputShape = outputShape;
 
     const sharedDim = transposeA ? aShape[1] : aShape[2];
@@ -39,9 +39,16 @@ export class MatMulPackedProgram implements GPGPUProgram {
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (activation) {
-      activationSnippet = `vec4 activation(vec4 x) {
-        ${activation}
-      }`;
+      if (hasPreluActivation) {
+        activationSnippet = `vec4 activation(vec4 a) {
+          vec4 b = getPreluActivationWeightsAtOutCoords();
+          ${activation}
+        }`;
+      } else {
+        activationSnippet = `vec4 activation(vec4 x) {
+          ${activation}
+        }`;
+      }
 
       applyActivationSnippet = `result = activation(result);`;
     }
@@ -49,6 +56,10 @@ export class MatMulPackedProgram implements GPGPUProgram {
     const addBiasSnippet = addBias ? 'result += getBiasAtOutCoords();' : '';
     if (addBias) {
       this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivation) {
+      this.variableNames.push('preluActivationWeights');
     }
 
     this.userCode = `

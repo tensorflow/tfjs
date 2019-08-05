@@ -24,7 +24,8 @@ export class Conv2DProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(
-      convInfo: Conv2DInfo, addBias = false, activation: string = null) {
+      convInfo: Conv2DInfo, addBias = false, activation: string = null,
+      hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
@@ -40,11 +41,18 @@ export class Conv2DProgram implements GPGPUProgram {
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (activation) {
-      activationSnippet = `
-        float activation(float x) {
+      if (hasPreluActivationWeights) {
+        activationSnippet = `float activation(float a) {
+          float b = getPreluActivationWeightsAtOutCoords();
           ${activation}
-        }
-      `;
+        }`;
+      } else {
+        activationSnippet = `
+          float activation(float x) {
+            ${activation}
+          }
+        `;
+      }
 
       applyActivationSnippet = `result = activation(result);`;
     }
@@ -52,6 +60,10 @@ export class Conv2DProgram implements GPGPUProgram {
     const addBiasSnippet = addBias ? 'result += getBiasAtOutCoords();' : '';
     if (addBias) {
       this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivationWeights) {
+      this.variableNames.push('preluActivationWeights');
     }
 
     this.userCode = `
