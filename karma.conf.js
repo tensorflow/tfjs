@@ -35,6 +35,7 @@ const devConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
   files: ['src/setup_test.ts', {pattern: 'src/**/*.ts'}],
   exclude: [
+    'src/tests.ts',
     'src/worker_node_test.ts',
     'src/worker_test.ts',
     'src/test_node.ts',

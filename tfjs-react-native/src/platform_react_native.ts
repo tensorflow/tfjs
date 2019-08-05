@@ -158,6 +158,9 @@ function registerWebGLBackend() {
     tf.registerBackend('rn-webgl', async () => {
       const glContext = await GLView.createContextAsync();
 
+      // ExpoGl getBufferSubData is not implemented yet (throws an exception).
+      tf.ENV.set('WEBGL_BUFFER_SUPPORTED', false);
+
       //
       // Mock extension support for EXT_color_buffer_float and
       // EXT_color_buffer_half_float on the expo-gl context object.
@@ -175,8 +178,7 @@ function registerWebGLBackend() {
       //
       //@ts-ignore
       const getExt = glContext.getExtension.bind(glContext);
-      // tslint:disable-next-line:only-arrow-functions
-      const shimGetExt = function(name: string) {
+      const shimGetExt = (name: string) => {
         if (name === 'EXT_color_buffer_float') {
           if (RNPlatform.OS === 'ios') {
             // iOS does not support EXT_color_buffer_float
@@ -191,20 +193,29 @@ function registerWebGLBackend() {
         }
         return getExt(name);
       };
-      //@ts-ignore
+
+      //
+      // Manually make 'read' synchronous. glContext has a defined gl.fenceSync
+      // function that throws a "Not implemented yet" exception so core
+      // cannot properly detect that it is not supported. We mock
+      // implementations of gl.fenceSync and gl.clientWaitSync
+      // TODO remove once fenceSync and clientWaitSync is implemented upstream.
+      //
+      const shimFenceSync = () => {
+        return {};
+      };
+      const shimClientWaitSync = () => glContext.CONDITION_SATISFIED;
+
+      // @ts-ignore
       glContext.getExtension = shimGetExt.bind(glContext);
+      glContext.fenceSync = shimFenceSync.bind(glContext);
+      glContext.clientWaitSync = shimClientWaitSync.bind(glContext);
 
       // Set the WebGLContext before flag evaluation
       tf.webgl.setWebGLContext(2, glContext);
       const context = new tf.webgl.GPGPUContext();
       const backend = new tf.webgl.MathBackendWebGL(context);
-      // Manually make 'read' synchronous. glContext has a defined gl.fenceSync
-      // function that throws a "Not implemented yet" exception so core
-      // cannot properly detect that it is not supported.
-      // TODO remove once fenceSync is implemented upstream.
-      backend.read = async (dataId) => {
-        return backend.readSync(dataId);
-      };
+
       return backend;
     }, PRIORITY);
   } catch (e) {
