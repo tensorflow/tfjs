@@ -2090,6 +2090,23 @@ describeMathCPUAndGPU('Sequential', () => {
         model.predictOnBatch(inputBatch) as Tensor, expectedOutput);
   });
 
+  it('predictOnBatch() works with multi-input model.', () => {
+    const input1 = tfl.input({shape: [3]});
+    const input2 = tfl.input({shape: [4]});
+    const dense1 = tfl.layers.dense({units: 1, activation: 'sigmoid'});
+    const y1 = dense1.apply(input1) as tfl.SymbolicTensor;
+    const dense2 = tfl.layers.dense({units: 1, activation: 'sigmoid'});
+    const y2 = dense2.apply(input2) as tfl.SymbolicTensor;
+    const y = tfl.layers.concatenate().apply([y1, y2]) as tfl.SymbolicTensor;
+    const model = tfl.model({inputs: [input1, input2], outputs: y});
+
+    const batchSize = 5;
+    const x1 = zeros([batchSize, 3]);
+    const x2 = ones([batchSize, 4]);
+    const out = model.predictOnBatch([x1, x2]) as Tensor;
+    expect(out.shape).toEqual([5, 2]);
+  });
+
   it('compile() and fit()', async () => {
     const batchSize = 5;
     const inputSize = 4;
