@@ -1122,15 +1122,17 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * });
    * model.predictOnBatch(tf.ones([8, 10])).print();
    * ```
-   * @param x: Input samples, as an Tensor
+   * @param x: Input samples, as an Tensor (for models with exactly one
+   *   input) or an array of Tensors (for models with more than one input).
    * @return Tensor(s) of predictions
    */
   /** @doc {heading: 'Models', subheading: 'Classes'} */
-  predictOnBatch(x: Tensor): Tensor|Tensor[] {
+  predictOnBatch(x: Tensor|Tensor[]): Tensor|Tensor[] {
     checkInputData(x, this.inputNames, this.feedInputShapes, true);
     // TODO(cais): Take care of the learning_phase boolean flag.
     //   if (this.useLearningPhase) ...
-    return this.predictLoop(x, Array.isArray(x) ? x[0].shape[0] : x.shape[0]);
+    const batchSize = (Array.isArray(x) ? x[0] : x).shape[0];
+    return this.predictLoop(x, batchSize);
   }
 
   protected standardizeUserDataXY(
