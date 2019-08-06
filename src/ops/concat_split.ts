@@ -163,6 +163,15 @@ function concat4d_(
 function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
   assert(tensors.length >= 1, () => 'Pass at least one tensor to concat');
   let $tensors = convertToTensorArray(tensors, 'tensors', 'concat');
+  if ($tensors[0].dtype === 'complex64') {
+    $tensors.forEach(tensor => {
+      if (tensor.dtype !== 'complex64') {
+        throw new Error(`Cannot concatenate complex64 tensors with a tensor
+          with dtype ${tensor.dtype}. `);
+      }
+    });
+  }
+
   axis = parseAxisParam(axis, $tensors[0].shape)[0];
   const outShape = computeOutShape($tensors.map(t => t.shape), axis);
   if (sizeFromShape(outShape) === 0) {

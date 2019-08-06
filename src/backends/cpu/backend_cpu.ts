@@ -45,6 +45,7 @@ import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
+import {real, imag, complex} from '../../ops/complex_ops';
 
 function mapActivation(
     backend: MathBackendCPU, x: Tensor, activation: Activation,
@@ -380,7 +381,11 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   concat(tensors: Tensor[], axis: number): Tensor {
-    this.assertNotComplex(tensors, 'concat');
+    if (tensors[0].dtype === 'complex64') {
+      const reals = tensors.map((t) => real(t));
+      const imags = tensors.map((t) => imag(t));
+      return complex(this.concat(reals, axis), this.concat(imags, axis));
+    }
     const tensors2D = tensors.map(t => {
       const innerSize = util.sizeFromShape(t.shape.slice(axis));
       return t.as2D(-1, innerSize);
