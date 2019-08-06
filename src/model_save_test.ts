@@ -290,9 +290,7 @@ describeMathGPU('Save-load round trips', () => {
 
     const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
     const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
-    const modelPrime = await tfl.loadLayersModel(io.fromMemory(
-        savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
-        savedArtifacts.weightData));
+    const modelPrime = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
     const weightsPrime = modelPrime.getWeights();
     expect(weightsPrime.length).toEqual(weights.length);
     for (let i = 0; i < weights.length; ++i) {
@@ -321,9 +319,7 @@ describeMathGPU('Save-load round trips', () => {
 
     const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
     const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
-    const modelPrime = await tfl.loadLayersModel(io.fromMemory(
-        savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
-        savedArtifacts.weightData));
+    const modelPrime = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
     const weightsPrime = modelPrime.getWeights();
     expect(weightsPrime.length).toEqual(weights.length);
     for (let i = 0; i < weights.length; ++i) {
@@ -357,9 +353,7 @@ describeMathGPU('Save-load round trips', () => {
 
     const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
     const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
-    const modelPrime = await tfl.loadLayersModel(io.fromMemory(
-        savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
-        savedArtifacts.weightData));
+    const modelPrime = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
     const weightsPrime = modelPrime.getWeights();
     expect(weightsPrime.length).toEqual(weights.length);
     for (let i = 0; i < weights.length; ++i) {
@@ -395,9 +389,7 @@ describeMathGPU('Save-load round trips', () => {
 
     const getInitSpy = spyOn(initializers, 'getInitializer').and.callThrough();
     const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
-    const modelPrime = await tfl.loadLayersModel(io.fromMemory(
-        savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
-        savedArtifacts.weightData));
+    const modelPrime = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
     const weightsPrime = modelPrime.getWeights();
     expect(weightsPrime.length).toEqual(weights.length);
     for (let i = 0; i < weights.length; ++i) {
@@ -452,10 +444,7 @@ describeMathGPU('Save-load round trips', () => {
     const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
     const strict = false;
     const modelPrime = await tfl.loadLayersModel(
-        io.fromMemory(
-            savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
-            savedArtifacts.weightData),
-        {strict});
+        io.fromMemory(savedArtifacts), {strict});
     const weightsPrime = modelPrime.getWeights();
     expect(weightsPrime.length).toEqual(weights.length);
     expectTensorsClose(weightsPrime[0], weights[0]);
@@ -486,10 +475,7 @@ describeMathGPU('Save-load round trips', () => {
     const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
     const strict = false;
     const modelPrime = await tfl.loadLayersModel(
-        io.fromMemory(
-            savedArtifacts.modelTopology, savedArtifacts.weightSpecs,
-            savedArtifacts.weightData),
-        {strict});
+        io.fromMemory(savedArtifacts), {strict});
     const weightsPrime = modelPrime.getWeights();
     expect(weightsPrime.length).toEqual(weights.length);
     expectTensorsClose(weightsPrime[0], weights[0]);

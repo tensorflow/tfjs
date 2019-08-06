@@ -306,6 +306,9 @@ export async function loadLayersModelFromIOHandler(
   if (trainingConfig != null) {
     model.loadTrainingConfig(trainingConfig);
   }
+  if (artifacts.userDefinedMetadata != null) {
+    model.setUserDefinedMetadata(artifacts.userDefinedMetadata);
+  }
 
   // If weightData is present, load the weights into the model.
   if (artifacts.weightData != null) {
