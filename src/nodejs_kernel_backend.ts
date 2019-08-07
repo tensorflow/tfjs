@@ -344,20 +344,47 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor<Rank.R3>;
   }
 
-  fusedBatchMatMul(
-      a: Tensor3D, b: Tensor3D, transposeA: boolean, transposeB: boolean,
-      bias?: Tensor, activation?: Activation): Tensor3D {
-    // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
-    // achieve the same results:
-    let result = this.batchMatMul(a, b, transposeA, transposeB);
-    if (bias) {
-      result = this.add(result, bias) as Tensor3D;
+  fusedConv2d(
+      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
+      activation?: Activation, preluActivationWeights?: Tensor): Tensor4D {
+    let result = this.conv2d(x, filter, convInfo);
+    if (bias != null) {
+      result = this.add(result, bias) as Tensor4D;
     }
-    if (activation) {
+
+    if (activation != null) {
       if (activation === 'linear') {
         // No-op
       } else if (activation === 'relu') {
         result = this.relu(result);
+      } else if (activation === 'prelu') {
+        result = this.prelu(result, preluActivationWeights) as Tensor4D;
+      } else {
+        throw new Error(`Activation: ${
+            activation} has not been implemented for the Node.js backend`);
+      }
+    }
+
+    return result;
+  }
+
+  fusedBatchMatMul(
+      a: Tensor3D, b: Tensor3D, transposeA: boolean, transposeB: boolean,
+      bias?: Tensor, activation?: Activation,
+      preluActivationWeights?: Tensor): Tensor3D {
+    // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
+    // achieve the same results:
+    let result = this.batchMatMul(a, b, transposeA, transposeB);
+    if (bias != null) {
+      result = this.add(result, bias) as Tensor3D;
+    }
+    if (activation != null) {
+      if (activation === 'linear') {
+        // No-op
+      } else if (activation === 'relu') {
+        result = this.relu(result);
+      } else if (activation === 'prelu') {
+        result = this.prelu(result, preluActivationWeights) as Tensor3D;
       } else {
         throw new Error(`Activation: ${
             activation} has not been implemented for the Node.js backend`);
