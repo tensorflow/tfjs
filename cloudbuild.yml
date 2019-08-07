@@ -1,13 +1,19 @@
 steps:
+#
+# Core tests
+#
+# install dependencies
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
+# build
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'build'
   args: ['build-ci']
   waitFor: ['yarn']
+# run unit tests
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'test'
@@ -15,6 +21,7 @@ steps:
   waitFor: ['build']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
+# Run integration tests of other packages against core
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'test-integration'
@@ -22,27 +29,46 @@ steps:
   waitFor: ['build']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
+# bundle size check
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'test-bundle-size'
   args: ['test-bundle-size']
   waitFor: ['yarn']
-- name: 'node:10'
-  entrypoint: 'yarn'
-  id: 'test-webgpu'
-  dir: 'tfjs-webgpu/'
-  args: ['test-ci']
-  waitFor: ['yarn']
+# test doc snippets
 - name: 'node:10'
   entrypoint: 'yarn'
   args: ['test-snippets']
   id: 'test-snippets'
   waitFor: ['yarn']
+# test Async backends
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'test-async-backends'
   args: ['test-async-backends-ci']
   waitFor: ['build']
+#
+# WebGPU tests
+#
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'test-webgpu'
+  dir: 'tfjs-webgpu/'
+  args: ['test-ci']
+  waitFor: ['-']  # start step immediately
+#
+# React-Native tests
+#
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'test-react-native'
+  dir: 'tfjs-react-native/'
+  args: ['test-ci']
+  waitFor: ['-']  # start step immediately
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  secretEnv: ['BROWSERSTACK_KEY']
+
+# General configuration
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:
