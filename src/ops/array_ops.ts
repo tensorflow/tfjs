@@ -23,7 +23,7 @@ import * as util from '../util';
 import {getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {concat} from './concat_split';
 import {op} from './operation';
-import {MPRandGauss, UniformRandom} from './rand';
+import {MPRandGauss, RandGamma, UniformRandom} from './rand';
 import {zeros, zerosLike} from './tensor_ops';
 
 /**
@@ -162,6 +162,41 @@ function truncatedNormal_<R extends Rank>(
   const res = buffer(shape, dtype);
   for (let i = 0; i < res.values.length; i++) {
     res.values[i] = randGauss.nextValue();
+  }
+  return res.toTensor();
+}
+
+/**
+ * Creates a `tf.Tensor` with values sampled from a gamma distribution.
+ *
+ * ```js
+ * tf.randomGamma([2, 2], 1).print();
+ * ```
+ *
+ * @param shape An array of integers defining the output tensor shape.
+ * @param alpha The shape parameter of the gamma distribution.
+ * @param beta The inverse scale parameter of the gamma distribution. Defaults
+ *     to 1.
+ * @param dtype The data type of the output. Defaults to float32.
+ * @param seed The seed for the random number generator.
+ */
+/** @doc {heading: 'Tensors', subheading: 'Random'} */
+function randomGamma_<R extends Rank>(
+    shape: ShapeMap[R], alpha: number, beta = 1,
+    dtype: 'float32'|'int32' = 'float32', seed?: number): Tensor<R> {
+  if (beta == null) {
+    beta = 1;
+  }
+  if (dtype == null) {
+    dtype = 'float32';
+  }
+  if (dtype !== 'float32' && dtype !== 'int32') {
+    throw new Error(`Unsupported data type ${dtype}`);
+  }
+  const rgamma = new RandGamma(alpha, beta, dtype, seed);
+  const res = buffer(shape, dtype);
+  for (let i = 0; i < res.values.length; i++) {
+    res.values[i] = rgamma.nextValue();
   }
   return res.toTensor();
 }
@@ -1102,6 +1137,7 @@ export const pad3d = op({pad3d_});
 export const pad4d = op({pad4d_});
 export const rand = op({rand_});
 export const randomNormal = op({randomNormal_});
+export const randomGamma = op({randomGamma_});
 export const randomUniform = op({randomUniform_});
 export const reshape = op({reshape_});
 export const spaceToBatchND = op({spaceToBatchND_});

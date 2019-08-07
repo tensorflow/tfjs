@@ -1176,11 +1176,113 @@ describeWithFlags('truncatedNormal', ALL_ENVS, () => {
   });
 });
 
+describeWithFlags('randomGamma', ALL_ENVS, () => {
+  it('should return a random 1D float32 array', async () => {
+    const shape: [number] = [10];
+
+    // Ensure defaults to float32 w/o type:
+    let result = tf.randomGamma(shape, 2, 2);
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 30);
+
+    result = tf.randomGamma(shape, 2, 2, 'float32');
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 30);
+  });
+
+  it('should return a random 1D int32 array', async () => {
+    const shape: [number] = [10];
+    const result = tf.randomGamma(shape, 2, 2, 'int32');
+    expect(result.dtype).toBe('int32');
+    expectValuesInRange(await result.data(), 0, 30);
+  });
+
+  it('should return a random 2D float32 array', async () => {
+    const shape: [number, number] = [3, 4];
+
+    // Ensure defaults to float32 w/o type:
+    let result = tf.randomGamma(shape, 2, 2);
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 30);
+
+    result = tf.randomGamma(shape, 2, 2, 'float32');
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 30);
+  });
+
+  it('should return a random 2D int32 array', async () => {
+    const shape: [number, number] = [3, 4];
+    const result = tf.randomGamma(shape, 2, 2, 'int32');
+    expect(result.dtype).toBe('int32');
+    expectValuesInRange(await result.data(), 0, 30);
+  });
+
+  it('should return a random 3D float32 array', async () => {
+    const shape: [number, number, number] = [3, 4, 5];
+
+    // Ensure defaults to float32 w/o type:
+    let result = tf.randomGamma(shape, 2, 2);
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 30);
+
+    result = tf.randomGamma(shape, 2, 2, 'float32');
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 30);
+  });
+
+  it('should return a random 3D int32 array', async () => {
+    const shape: [number, number, number] = [3, 4, 5];
+    const result = tf.randomGamma(shape, 2, 2, 'int32');
+    expect(result.dtype).toBe('int32');
+    expectValuesInRange(await result.data(), 0, 30);
+  });
+
+  it('should return a random 4D float32 array', async () => {
+    const shape: [number, number, number, number] = [3, 4, 5, 6];
+
+    // Ensure defaults to float32 w/o type:
+    let result = tf.randomGamma(shape, 2, 2);
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 30);
+
+    result = tf.randomGamma(shape, 2, 2, 'float32');
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 30);
+  });
+
+  it('should return a random 4D int32 array', async () => {
+    const shape: [number, number, number, number] = [3, 4, 5, 6];
+    const result = tf.randomGamma(shape, 2, 2, 'int32');
+    expect(result.dtype).toBe('int32');
+    expectValuesInRange(await result.data(), 0, 30);
+  });
+
+  it('should return a random 5D float32 array', async () => {
+    const shape: [number, number, number, number, number] = [2, 3, 4, 5, 6];
+
+    // Ensure defaults to float32 w/o type:
+    let result = tf.randomGamma(shape, 2, 2);
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 30);
+
+    result = tf.randomGamma(shape, 2, 2, 'float32');
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 30);
+  });
+
+  it('should return a random 5D int32 array', async () => {
+    const shape: [number, number, number, number, number] = [2, 3, 4, 5, 6];
+    const result = tf.randomGamma(shape, 2, 2, 'int32');
+    expect(result.dtype).toBe('int32');
+    expectValuesInRange(await result.data(), 0, 30);
+  });
+});
+
 describeWithFlags('randomUniform', ALL_ENVS, () => {
   it('should return a random 1D float32 array', async () => {
     const shape: [number] = [10];
 
-    // Enusre defaults to float32 w/o type:
+    // Ensure defaults to float32 w/o type:
     let result = tf.randomUniform(shape, 0, 2.5);
     expect(result.dtype).toBe('float32');
     expectValuesInRange(await result.data(), 0, 2.5);
@@ -1207,7 +1309,7 @@ describeWithFlags('randomUniform', ALL_ENVS, () => {
   it('should return a random 2D float32 array', async () => {
     const shape: [number, number] = [3, 4];
 
-    // Enusre defaults to float32 w/o type:
+    // Ensure defaults to float32 w/o type:
     let result = tf.randomUniform(shape, 0, 2.5);
     expect(result.dtype).toBe('float32');
     expectValuesInRange(await result.data(), 0, 2.5);
@@ -1234,7 +1336,7 @@ describeWithFlags('randomUniform', ALL_ENVS, () => {
   it('should return a random 3D float32 array', async () => {
     const shape: [number, number, number] = [3, 4, 5];
 
-    // Enusre defaults to float32 w/o type:
+    // Ensure defaults to float32 w/o type:
     let result = tf.randomUniform(shape, 0, 2.5);
     expect(result.dtype).toBe('float32');
     expectValuesInRange(await result.data(), 0, 2.5);
@@ -1261,7 +1363,7 @@ describeWithFlags('randomUniform', ALL_ENVS, () => {
   it('should return a random 4D float32 array', async () => {
     const shape: [number, number, number, number] = [3, 4, 5, 6];
 
-    // Enusre defaults to float32 w/o type:
+    // Ensure defaults to float32 w/o type:
     let result = tf.randomUniform(shape, 0, 2.5);
     expect(result.dtype).toBe('float32');
     expectValuesInRange(await result.data(), 0, 2.5);
@@ -1288,7 +1390,7 @@ describeWithFlags('randomUniform', ALL_ENVS, () => {
   it('should return a random 5D float32 array', async () => {
     const shape: [number, number, number, number, number] = [2, 3, 4, 5, 6];
 
-    // Enusre defaults to float32 w/o type:
+    // Ensure defaults to float32 w/o type:
     let result = tf.randomUniform(shape, 0, 2.5);
     expect(result.dtype).toBe('float32');
     expectValuesInRange(await result.data(), 0, 2.5);
