@@ -17,14 +17,13 @@
 
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {Tensor} from '../tensor';
 import {expectArraysClose} from '../test_util';
 
-describeWithFlags('booleanMask', ALL_ENVS, () => {
+describeWithFlags('booleanMaskAsync', ALL_ENVS, () => {
   it('1d array, 1d mask, default axis', async () => {
     const array = tf.tensor1d([1, 2, 3]);
     const mask = tf.tensor1d([1, 0, 1], 'bool');
-    const result = await tf.booleanMask(array, mask);
+    const result = await tf.booleanMaskAsync(array, mask);
     expect(result.shape).toEqual([2]);
     expect(result.dtype).toBe('float32');
     expectArraysClose(await result.data(), [1, 3]);
@@ -33,7 +32,7 @@ describeWithFlags('booleanMask', ALL_ENVS, () => {
   it('2d array, 1d mask, default axis', async () => {
     const array = tf.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
     const mask = tf.tensor1d([1, 0, 1], 'bool');
-    const result = await tf.booleanMask(array, mask);
+    const result = await tf.booleanMaskAsync(array, mask);
     expect(result.shape).toEqual([2, 2]);
     expect(result.dtype).toBe('float32');
     expectArraysClose(await result.data(), [1, 2, 5, 6]);
@@ -42,7 +41,7 @@ describeWithFlags('booleanMask', ALL_ENVS, () => {
   it('2d array, 2d mask, default axis', async () => {
     const array = tf.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
     const mask = tf.tensor2d([1, 0, 1, 0, 1, 0], [3, 2], 'bool');
-    const result = await tf.booleanMask(array, mask);
+    const result = await tf.booleanMaskAsync(array, mask);
     expect(result.shape).toEqual([3]);
     expect(result.dtype).toBe('float32');
     expectArraysClose(await result.data(), [1, 3, 5]);
@@ -52,7 +51,7 @@ describeWithFlags('booleanMask', ALL_ENVS, () => {
     const array = tf.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
     const mask = tf.tensor1d([0, 1], 'bool');
     const axis = 1;
-    const result = await tf.booleanMask(array, mask, axis);
+    const result = await tf.booleanMaskAsync(array, mask, axis);
     expect(result.shape).toEqual([3, 1]);
     expect(result.dtype).toBe('float32');
     expectArraysClose(await result.data(), [2, 4, 6]);
@@ -61,7 +60,7 @@ describeWithFlags('booleanMask', ALL_ENVS, () => {
   it('accepts tensor-like object as array or mask', async () => {
     const array = [[1, 2], [3, 4], [5, 6]];
     const mask = [1, 0, 1];
-    const result = await tf.booleanMask(array, mask);
+    const result = await tf.booleanMaskAsync(array, mask);
     expect(result.shape).toEqual([2, 2]);
     expect(result.dtype).toBe('float32');
     expectArraysClose(await result.data(), [1, 2, 5, 6]);
@@ -72,13 +71,8 @@ describeWithFlags('booleanMask', ALL_ENVS, () => {
 
     const array = tf.tensor1d([1, 2, 3]);
     const mask = tf.tensor1d([1, 0, 1], 'bool');
-    let resultPromise: Promise<Tensor> = null;
 
-    tf.tidy(() => {
-      resultPromise = tf.booleanMask(array, mask);
-    });
-
-    const result = await resultPromise;
+    const result = await tf.booleanMaskAsync(array, mask);
     expect(result.shape).toEqual([2]);
     expect(result.dtype).toBe('float32');
     expectArraysClose(await result.data(), [1, 3]);
@@ -95,7 +89,7 @@ describeWithFlags('booleanMask', ALL_ENVS, () => {
     const mask = tf.scalar(1, 'bool');
     let errorMessage = 'No error thrown.';
     try {
-      await tf.booleanMask(array, mask);
+      await tf.booleanMaskAsync(array, mask);
     } catch (error) {
       errorMessage = error.message;
     }
@@ -107,7 +101,7 @@ describeWithFlags('booleanMask', ALL_ENVS, () => {
     const mask = tf.tensor2d([1, 0], [1, 2], 'bool');
     let errorMessage = 'No error thrown.';
     try {
-      await tf.booleanMask(array, mask);
+      await tf.booleanMaskAsync(array, mask);
     } catch (error) {
       errorMessage = error.message;
     }

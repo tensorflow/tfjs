@@ -29,7 +29,7 @@ import {gather} from './segment_ops';
  * ```js
  * const tensor = tf.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
  * const mask = tf.tensor1d([1, 0, 1], 'bool');
- * const result = await tf.booleanMask(tensor, mask);
+ * const result = await tf.booleanMaskAsync(tensor, mask);
  * result.print();
  * ```
  *
@@ -40,7 +40,7 @@ import {gather} from './segment_ops';
  *     Otherwise K + axis <= N.
  */
 /** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
-async function booleanMask_(
+async function booleanMaskAsync_(
     tensor: Tensor|TensorLike, mask: Tensor|TensorLike,
     axis?: number): Promise<Tensor> {
   const $tensor = convertToTensor(tensor, 'tensor', 'boolMask');
@@ -84,4 +84,4 @@ async function booleanMask_(
   return res;
 }
 
-export const booleanMask = booleanMask_;
+export const booleanMaskAsync = booleanMaskAsync_;
