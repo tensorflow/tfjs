@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {MPRandGauss, UniformRandom} from './rand';
+import {expectValuesInRange} from '../test_util';
+import {MPRandGauss, RandGamma, UniformRandom} from './rand';
 import {expectArrayInMeanStdRange, jarqueBeraNormalityTest} from './rand_util';
 
 function isFloat(n: number): boolean {
@@ -31,7 +32,7 @@ describe('MPRandGauss', () => {
     expect(isFloat(rand.nextValue())).toBe(true);
   });
 
-  it('should handle create a mean/stdv of float32 numbers', () => {
+  it('should handle a mean/stdv of float32 numbers', () => {
     const rand =
         new MPRandGauss(0, 1.5, 'float32', false /* truncated */, SEED);
     const values = [];
@@ -48,7 +49,7 @@ describe('MPRandGauss', () => {
     expect(isFloat(rand.nextValue())).toBe(false);
   });
 
-  it('should handle create a mean/stdv of int32 numbers', () => {
+  it('should handle a mean/stdv of int32 numbers', () => {
     const rand = new MPRandGauss(0, 2, 'int32', false /* truncated */, SEED);
     const values = [];
     const size = 10000;
@@ -67,6 +68,40 @@ describe('MPRandGauss', () => {
          expect(Math.abs(rand.nextValue())).toBeLessThan(stdv * 2);
        }
      });
+});
+
+describe('RandGamma', () => {
+  const SEED = 2002;
+
+  it('should default to float32 numbers', () => {
+    const rand = new RandGamma(2, 2, 'float32');
+    expect(isFloat(rand.nextValue())).toBe(true);
+  });
+
+  it('should handle an alpha/beta of float32 numbers', () => {
+    const rand = new RandGamma(2, 2, 'float32', SEED);
+    const values = [];
+    const size = 10000;
+    for (let i = 0; i < size; i++) {
+      values.push(rand.nextValue());
+    }
+    expectValuesInRange(values, 0, 30);
+  });
+
+  it('should handle int32 numbers', () => {
+    const rand = new RandGamma(2, 2, 'int32');
+    expect(isFloat(rand.nextValue())).toBe(false);
+  });
+
+  it('should handle an alpha/beta of int32 numbers', () => {
+    const rand = new RandGamma(2, 2, 'int32', SEED);
+    const values = [];
+    const size = 10000;
+    for (let i = 0; i < size; i++) {
+      values.push(rand.nextValue());
+    }
+    expectValuesInRange(values, 0, 30);
+  });
 });
 
 describe('UniformRandom', () => {
