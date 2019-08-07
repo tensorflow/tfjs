@@ -609,6 +609,10 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     throw new Error('Not yet implemented');
   }
 
+  diag(x: Tensor): Tensor {
+    throw new Error('Not yet implemented');
+  }
+
   fill<R extends Rank>(
       shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
     throw new Error('Not yet implemented.');

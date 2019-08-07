@@ -26,6 +26,7 @@ import {warn} from '../../log';
 import {buffer} from '../../ops/array_ops';
 import * as array_ops_util from '../../ops/array_ops_util';
 import * as axis_util from '../../ops/axis_util';
+import {complex, imag, real} from '../../ops/complex_ops';
 import {computeOutShape} from '../../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
 import {Activation, FusedBatchMatMulConfig} from '../../ops/fused_util';
@@ -78,6 +79,7 @@ import {CumSumProgram} from './cumsum_gpu';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
 import {DepthToSpaceProgram} from './depth_to_space_gpu';
+import {DiagProgram} from './diag_gpu';
 import {EncodeFloatProgram} from './encode_float_gpu';
 import {EncodeFloatPackedProgram} from './encode_float_packed_gpu';
 import {EncodeMatrixProgram} from './encode_matrix_gpu';
@@ -131,7 +133,6 @@ import * as unary_packed_op from './unaryop_packed_gpu';
 import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
 import * as webgl_util from './webgl_util';
-import {real, imag, complex} from '../../ops/complex_ops';
 
 type KernelInfo = {
   name: string; query: Promise<number>;
@@ -2206,6 +2207,11 @@ export class MathBackendWebGL implements KernelBackend {
       Tensor2D {
     const program = new OneHotProgram(indices.size, depth, onValue, offValue);
     return this.compileAndRun(program, [indices]);
+  }
+
+  diag(x: Tensor): Tensor {
+    const program = new DiagProgram(x.size);
+    return this.compileAndRun(program, [x]);
   }
 
   nonMaxSuppression(

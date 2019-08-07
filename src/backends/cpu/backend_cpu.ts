@@ -23,6 +23,7 @@ import {warn} from '../../log';
 import * as array_ops_util from '../../ops/array_ops_util';
 import * as axis_util from '../../ops/axis_util';
 import * as broadcast_util from '../../ops/broadcast_util';
+import {complex, imag, real} from '../../ops/complex_ops';
 import * as concat_util from '../../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
 import * as erf_util from '../../ops/erf_util';
@@ -45,7 +46,6 @@ import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
-import {real, imag, complex} from '../../ops/complex_ops';
 
 function mapActivation(
     backend: MathBackendCPU, x: Tensor, activation: Activation,
@@ -341,6 +341,16 @@ export class MathBackendCPU implements KernelBackend {
     }
 
     return buffer.toTensor().reshape(shape) as T;
+  }
+
+  diag(x: Tensor): Tensor {
+    const xVals = this.readSync(x.dataId) as TypedArray;
+    const buffer = ops.buffer([x.size, x.size], x.dtype);
+    const vals = buffer.values;
+    for (let i = 0; i < xVals.length; i++) {
+      vals[i * x.size + i] = xVals[i];
+    }
+    return buffer.toTensor();
   }
 
   unstack(x: Tensor, axis: number): Tensor[] {
