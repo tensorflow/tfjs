@@ -16,6 +16,7 @@
  */
 
 export * from './batchnorm';
+export * from './boolean_mask';
 export * from './complex_ops';
 export * from './concat_split';
 export * from './conv';

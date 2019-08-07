@@ -41,6 +41,7 @@ import './ops/array_ops_test';
 import './ops/axis_util_test';
 import './ops/batchnorm_test';
 import './ops/binary_ops_test';
+import './ops/boolean_mask_test';
 import './ops/broadcast_util_test';
 import './ops/clone_test';
 import './ops/compare_ops_test';
