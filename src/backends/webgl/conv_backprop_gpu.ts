@@ -30,6 +30,7 @@ export class Conv2DDerFilterProgram implements GPGPUProgram {
     const strideWidth = convInfo.strideWidth;
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
+    const isChannelsLast = convInfo.dataFormat === 'channelsLast';
 
     this.userCode = `
       void main() {
@@ -58,9 +59,16 @@ export class Conv2DDerFilterProgram implements GPGPUProgram {
                 continue;
               }
 
-              float dyValue = getDy(b, yR, yC, d2);
-              float xValue = getX(b, xR, xC, d1);
-              dotProd += (xValue * dyValue);
+              if (${isChannelsLast}) {
+                float dyValue = getDy(b, yR, yC, d2);
+                float xValue = getX(b, xR, xC, d1);
+                dotProd += (xValue * dyValue);
+              } else {
+                float dyValue = getDy(b, d2, yR, yC);
+                float xValue = getX(b, d1, xR, xC);
+                dotProd += (xValue * dyValue);
+              }
+
             }
           }
         }
@@ -82,9 +90,14 @@ export class Conv2DDerInputProgram implements GPGPUProgram {
     const filterWidth = convInfo.filterWidth;
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
+    const isChannelsLast = convInfo.dataFormat === 'channelsLast';
 
     const padTop = filterHeight - 1 - convInfo.padInfo.top;
     const padLeft = filterWidth - 1 - convInfo.padInfo.left;
+
+    const rowDim = isChannelsLast ? 1 : 2;
+    const colDim = isChannelsLast ? 2 : 3;
+    const channelDim = isChannelsLast ? 3 : 1;
 
     this.userCode = `
       const ivec2 pads = ivec2(${padTop}, ${padLeft});
@@ -92,9 +105,9 @@ export class Conv2DDerInputProgram implements GPGPUProgram {
       void main() {
         ivec4 coords = getOutputCoords();
         int batch = coords[0];
-        int d1 = coords[3];
+        int d1 = coords[${channelDim}];
 
-        ivec2 dyCorner = coords.yz - pads;
+        ivec2 dyCorner = ivec2(coords[${rowDim}], coords[${colDim}]) - pads;
         int dyRCorner = dyCorner.x;
         int dyCCorner = dyCorner.y;
 
@@ -123,9 +136,17 @@ export class Conv2DDerInputProgram implements GPGPUProgram {
             int wCPerm = ${filterWidth} - 1 - wC;
 
             for (int d2 = 0; d2 < ${convInfo.outChannels}; d2++) {
-              float xValue = getDy(batch, idyR, idyC, d2);
-              float wValue = getW(wRPerm, wCPerm, d1, d2);
-              dotProd += xValue * wValue;
+
+              if (${isChannelsLast}) {
+                float xValue = getDy(batch, idyR, idyC, d2);
+                float wValue = getW(wRPerm, wCPerm, d1, d2);
+                dotProd += xValue * wValue;
+              } else {
+                float xValue = getDy(batch, d2, idyR, idyC);
+                float wValue = getW(wRPerm, wCPerm, d1, d2);
+                dotProd += xValue * wValue;
+              }
+
             }
           }
         }

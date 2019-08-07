@@ -437,3 +437,21 @@ export function eitherStridesOrDilationsAreOne(
     dilations: number|[number, number]): boolean {
   return tupleValuesAreOne(strides) || tupleValuesAreOne(dilations);
 }
+
+/**
+ * Convert Conv2D dataFormat from 'NHWC'|'NCHW' to
+ *    'channelsLast'|'channelsFirst'
+ * @param dataFormat in 'NHWC'|'NCHW' mode
+ * @return dataFormat in 'channelsLast'|'channelsFirst' mode
+ * @throws unknown dataFormat
+ */
+export function convertConv2DDataFormat(dataFormat: 'NHWC'|'NCHW'):
+    'channelsLast'|'channelsFirst' {
+  if (dataFormat === 'NHWC') {
+    return 'channelsLast';
+  } else if (dataFormat === 'NCHW') {
+    return 'channelsFirst';
+  } else {
+    throw new Error(`Unknown dataFormat ${dataFormat}`);
+  }
+}

@@ -131,7 +131,7 @@ function conv1d_<T extends Tensor2D|Tensor3D>(
  * @param dataFormat: An optional string from: "NHWC", "NCHW". Defaults to
  *     "NHWC". Specify the data format of the input and output data. With the
  *     default format "NHWC", the data is stored in the order of: [batch,
- *     height, width, channels]. Only "NHWC" is currently supported.
+ *     height, width, channels].
  * @param dilations The dilation rates: `[dilationHeight, dilationWidth]`
  *     in which we sample input values across the height and width dimensions
  *     in atrous convolution. Defaults to `[1, 1]`. If `dilations` is a single
@@ -171,22 +171,20 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
         () => `Error in conv2d: pad must be an integer when using, ` +
             `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
-
+  const inDepth = dataFormat === 'NHWC' ? x4D.shape[3] : x4D.shape[1];
   util.assert(
-      x4D.shape[3] === $filter.shape[2],
-      () => `Error in conv2d: depth of input (${x4D.shape[3]}) must match ` +
+      inDepth === $filter.shape[2],
+      () => `Error in conv2d: depth of input (${inDepth}) must match ` +
           `input depth for filter ${$filter.shape[2]}.`);
   util.assert(
       conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
       () => 'Error in conv2D: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
-  util.assert(
-      dataFormat === 'NHWC',
-      () => `Error in conv2d: got dataFormat of ${
-          dataFormat} but only NHWC is currently supported.`);
 
+  const $dataFormat = conv_util.convertConv2DDataFormat(dataFormat);
   const convInfo = conv_util.computeConv2DInfo(
-      x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode);
+      x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode, false,
+      $dataFormat);
 
   const grad = (dy: Tensor4D, saved: Tensor[]) => {
     const [$filter, x4D] = saved as [Tensor4D, Tensor4D];
@@ -196,8 +194,10 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
             `are not yet supported in gradients. Got dilations '${dilations}'`);
 
     return {
-      x: () => conv2dDerInput_(x4D.shape, dy, $filter, strides, pad),
-      $filter: () => conv2dDerFilter_(x4D, dy, $filter.shape, strides, pad)
+      x: () =>
+          conv2dDerInput_(x4D.shape, dy, $filter, strides, pad, dataFormat),
+      $filter: () =>
+          conv2dDerFilter_(x4D, dy, $filter.shape, strides, pad, dataFormat)
     };
   };
 
@@ -231,6 +231,10 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
  *       regardless of filter size.
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1x1.
+ * @param dataFormat: An optional string from: "NHWC", "NCHW". Defaults to
+ *     "NHWC". Specify the data format of the input and output data. With the
+ *     default format "NHWC", the data is stored in the order of: [batch,
+ *     height, width, channels].
  * @param dimRoundingMode The rounding mode used when computing output
  *     dimensions if pad is a number. If none is provided, it will not round
  *     and error if the output is of fractional size.
@@ -238,7 +242,8 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
 function conv2dDerInput_<T extends Tensor3D|Tensor4D>(
     xShape: [number, number, number, number]|[number, number, number], dy: T,
     filter: Tensor4D, strides: [number, number]|number,
-    pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+    pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW' = 'NHWC',
+    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   util.assert(
       xShape.length === dy.rank,
       () => `Length of inShape ` +
@@ -253,8 +258,6 @@ function conv2dDerInput_<T extends Tensor3D|Tensor4D>(
     xShape4D = [1, xShape[0], xShape[1], xShape[2]];
   }
 
-  const inDepth = xShape4D[3];
-  const outDepth = dy4D.shape[3];
   util.assert(
       xShape4D.length === 4,
       () =>
@@ -268,6 +271,8 @@ function conv2dDerInput_<T extends Tensor3D|Tensor4D>(
       filter.rank === 4,
       () => `Error in conv2dDerInput: filter must be rank 4, but got ` +
           `rank ${filter.rank}`);
+  const inDepth = dataFormat === 'NHWC' ? xShape4D[3] : xShape4D[1];
+  const outDepth = dataFormat === 'NHWC' ? dy4D.shape[3] : dy4D.shape[1];
   util.assert(
       inDepth === filter.shape[2],
       () => `Error in conv2dDerInput: depth of input (${inDepth}) must ` +
@@ -286,7 +291,6 @@ function conv2dDerInput_<T extends Tensor3D|Tensor4D>(
   const dilations = 1;
 
   const grad = (ddx: Tensor4D, saved: Tensor[]) => {
-    const dataFormat = 'NHWC';
     const [filter, dy4D] = saved;
     return {
       dy4D: () => conv2d(
@@ -294,12 +298,14 @@ function conv2dDerInput_<T extends Tensor3D|Tensor4D>(
           dimRoundingMode),
       filter: () => conv2dDerFilter(
           ddx, dy4D as Tensor4D, (filter as Tensor4D).shape, strides, pad,
-          dimRoundingMode)
+          dataFormat, dimRoundingMode)
     };
   };
 
+  const $dataFormat = conv_util.convertConv2DDataFormat(dataFormat);
   const convInfo = conv_util.computeConv2DInfo(
-      xShape4D, filter.shape, strides, dilations, pad, dimRoundingMode);
+      xShape4D, filter.shape, strides, dilations, pad, dimRoundingMode, false,
+      $dataFormat);
   const res = ENGINE.runKernel((backend, save) => {
     const res = backend.conv2dDerInput(dy4D, filter, convInfo);
     save([filter, dy4D]);
@@ -324,6 +330,10 @@ function conv2dDerInput_<T extends Tensor3D|Tensor4D>(
  * strideWidth].
  * @param pad A string from: 'same', 'valid'. The type of padding algorithm
  *     used in the forward prop of the op.
+ * @param dataFormat: An optional string from: "NHWC", "NCHW". Defaults to
+ *     "NHWC". Specify the data format of the input and output data. With the
+ *     default format "NHWC", the data is stored in the order of: [batch,
+ *     height, width, channels].
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
  *     rounding mode used when computing output dimensions if pad is a
  *     number. If none is provided, it will not round and error if the output
@@ -332,6 +342,7 @@ function conv2dDerInput_<T extends Tensor3D|Tensor4D>(
 function conv2dDerFilter_<T extends Tensor3D|Tensor4D>(
     x: T, dy: T, filterShape: [number, number, number, number],
     strides: [number, number]|number, pad: 'valid'|'same'|number,
+    dataFormat: 'NHWC'|'NCHW' = 'NHWC',
     dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
   let x4D = x as Tensor4D;
   if (x.rank === 3) {
@@ -353,13 +364,15 @@ function conv2dDerFilter_<T extends Tensor3D|Tensor4D>(
       filterShape.length === 4,
       () => `Error in conv2dDerFilter: filterShape must be length 4, but got ` +
           `${filterShape}.`);
+  const inDepth = dataFormat === 'NHWC' ? x4D.shape[3] : x4D.shape[1];
+  const outDepth = dataFormat === 'NHWC' ? dy4D.shape[3] : dy4D.shape[1];
   util.assert(
-      x4D.shape[3] === filterShape[2],
-      () => `Error in conv2dDerFilter: depth of input ${x4D.shape[3]}) must ` +
+      inDepth === filterShape[2],
+      () => `Error in conv2dDerFilter: depth of input ${inDepth}) must ` +
           `match input depth in filter (${filterShape[2]}.`);
   util.assert(
-      dy4D.shape[3] === filterShape[3],
-      () => `Error in conv2dDerFilter: depth of dy (${dy4D.shape[3]}) must ` +
+      outDepth === filterShape[3],
+      () => `Error in conv2dDerFilter: depth of dy (${outDepth}) must ` +
           `match output depth for filter (${filterShape[3]}).`);
   if (dimRoundingMode != null) {
     util.assert(
@@ -369,9 +382,10 @@ function conv2dDerFilter_<T extends Tensor3D|Tensor4D>(
   }
 
   const dilations = 1;
-
+  const $dataFormat = conv_util.convertConv2DDataFormat(dataFormat);
   const convInfo = conv_util.computeConv2DInfo(
-      x4D.shape, filterShape, strides, dilations, pad, dimRoundingMode);
+      x4D.shape, filterShape, strides, dilations, pad, dimRoundingMode, false,
+      $dataFormat);
   return ENGINE.runKernel(
       backend => backend.conv2dDerFilter(x4D, dy4D, convInfo), {x4D, dy4D});
 }
@@ -405,7 +419,7 @@ function conv2dTranspose_<T extends Tensor3D|Tensor4D>(
   const $filter = convertToTensor(filter, 'filter', 'conv2dTranspose');
 
   return conv2dDerInput_(
-      outputShape, $x, $filter, strides, pad, dimRoundingMode);
+      outputShape, $x, $filter, strides, pad, 'NHWC', dimRoundingMode);
 }
 
 /**

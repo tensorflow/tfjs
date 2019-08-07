@@ -830,3 +830,24 @@ describe('conv_util computePoolInfo roundingMode', () => {
     expect(poolInfo.outShape).toEqual([batchSize, 4, 4, inChannels]);
   });
 });
+
+describe('conv_util convertConv2DDataFormat', () => {
+  it('convert NHWC to channelsLast', () => {
+    const dataFormat: 'NHWC'|'NCHW' = 'NHWC';
+    const $dataFormat = conv_util.convertConv2DDataFormat(dataFormat);
+    expect($dataFormat).toEqual('channelsLast');
+  });
+
+  it('convert NCHW to channelsFirst', () => {
+    const dataFormat: 'NHWC'|'NCHW' = 'NCHW';
+    const $dataFormat = conv_util.convertConv2DDataFormat(dataFormat);
+    expect($dataFormat).toEqual('channelsFirst');
+  });
+
+  it('throws unknown dataFormat', () => {
+    const dataFormat = 'FakeFormat';
+    expect(
+        () => conv_util.convertConv2DDataFormat(dataFormat as 'NHWC' | 'NCHW'))
+        .toThrowError();
+  });
+});
