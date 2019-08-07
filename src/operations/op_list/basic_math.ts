@@ -182,6 +182,21 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'Real',
+    'category': 'basic_math',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}, {
+        'tfName': 'Tout',
+        'name': 'outputType',
+        'type': 'dtype',
+        'notSupported': true
+      }
+    ]
+  },
+  {
     'tfOpName': 'Relu',
     'category': 'basic_math',
     'inputs': [

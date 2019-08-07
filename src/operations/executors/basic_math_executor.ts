@@ -97,6 +97,9 @@ export let executeOp: InternalOpExecutor = (node: Node,
       return [tfc.reciprocal(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     }
+    case 'Real':
+      return [tfc.real(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     case 'Relu':
       return [tfc.relu(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];

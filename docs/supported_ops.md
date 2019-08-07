@@ -49,6 +49,7 @@
 |Prod|prod|
 |Reciprocal|reciprocal|
 |Reciprocal|reciprocal|
+|Real|real|
 |Relu|relu|
 |Relu6|clipByValue|
 |Round|round|
