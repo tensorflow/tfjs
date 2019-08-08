@@ -28,6 +28,7 @@ export declare interface GaussianNoiseArgs extends LayerArgs {
 
 
 export class GaussianNoise extends Layer {
+  /** @nocollapse */
   static className = 'GaussianNoise';
   readonly stddev: number;
 
@@ -69,6 +70,7 @@ export declare interface GaussianDropoutArgs extends LayerArgs {
 }
 
 export class GaussianDropout extends Layer {
+  /** @nocollapse */
   static className = 'GaussianDropout';
   readonly rate: number;
 
@@ -146,6 +148,7 @@ export declare interface AlphaDropoutArgs extends LayerArgs {
  *   - [Self-Normalizing Neural Networks](https://arxiv.org/abs/1706.02515)
  */
 export class AlphaDropout extends Layer {
+  /** @nocollapse */
   static className = 'AlphaDropout';
   readonly rate: number;
   readonly noiseShape: Shape;
