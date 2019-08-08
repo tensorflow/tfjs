@@ -48,6 +48,7 @@ Please reach out to us if you'd like to put your project on the list.
 
 These tutorials augment the [official tutorials](https://js.tensorflow.org/tutorials/).
 
+- [Using TensorFlow.js to train a "Rock-Paper-Scissors" model](https://heartbeat.fritz.ai/using-tensorflow-js-to-train-a-rock-paper-scissors-model-b5f393b548eb) by [Gant Laborde](http://gantlaborde.com/)
 - [A gentle introduction to TensorFlow.js](https://medium.com/tensorflow/a-gentle-introduction-to-tensorflow-js-dba2e5257702) by Zaid Alyafeai
 - [Train a model in tf.keras with Colab, and run it in the browser with TensorFlow.js](https://medium.com/tensorflow/train-on-google-colab-and-run-on-the-browser-a-case-study-8a45f9b1474e) by Zaid Alyafeai
 - [Python Programming - Deep learning in the browser with TensorFlow.js](https://pythonprogramming.net/deep-learning-browser-introduction-tensorflowjs/) by Harrison Kinsley
