@@ -16,6 +16,7 @@
  */
 
 import {Conv2DInfo} from '../../ops/conv_util';
+import {Conv3DInfo} from '../../ops/conv_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class Pool2DProgram implements GPGPUProgram {
@@ -209,6 +210,229 @@ export class Pool2DProgram implements GPGPUProgram {
           }
         }
         setOutput(${returnValue});
+      }
+    `;
+  }
+}
+
+export class Pool3DProgram implements GPGPUProgram {
+  variableNames = ['x'];
+  outputShape: number[];
+  userCode: string;
+
+  constructor(
+      convInfo: Conv3DInfo, poolType: 'max'|'avg', computePositions: boolean) {
+    if (poolType === 'avg' && computePositions) {
+      throw new Error('Cannot compute positions for average pool.');
+    }
+
+    const filterWidth = convInfo.filterWidth;
+    const strideDepth = convInfo.strideDepth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const dilationDepth = convInfo.dilationDepth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterDepth = convInfo.effectiveFilterDepth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+
+    const padFront = convInfo.padInfo.front;
+    const padTop = convInfo.padInfo.top;
+    const padLeft = convInfo.padInfo.left;
+    this.outputShape = convInfo.outShape;
+
+    const isAvgPool = poolType === 'avg';
+
+    let initializationValue = '0.0';
+    if (!isAvgPool) {
+      // WebGL on Firefox Linux can't compile 1/0 so we do 1/eps.
+      initializationValue = '-1.0 / 1e-20';
+    }
+
+    if (computePositions) {
+      const compareOp = '>=';
+
+      this.userCode = `
+        const ivec3 strides =
+            ivec3(${strideDepth}, ${strideHeight}, ${strideWidth});
+        const ivec3 pads = ivec3(${padFront}, ${padTop}, ${padLeft});
+
+        void main() {
+          ivec5 coords = getOutputCoords();
+          int batch = coords.x;
+          int ch = coords.u;
+
+          ivec3 xCorner = ivec3(coords.y, coords.z, coords.w) * strides - pads;
+          int xDCorner = xCorner.x;
+          int xRCorner = xCorner.y;
+          int xCCorner = xCorner.z;
+
+          // max/min x(?, ?, ?, ch) to get y(yD, yR, yC, ch).
+          // ? = to be determined
+          float minMaxValue = 0.0;
+          float minMaxValueFound = 0.0;
+          int minMaxPosition = 0;
+
+          for (int wD = 0; wD < ${effectiveFilterDepth};
+              wD += ${dilationDepth}) {
+            int xD = xDCorner + wD;
+
+            if (xD < 0 || xD >= ${convInfo.inDepth}) {
+              continue;
+            }
+
+            for (int wR = 0; wR < ${effectiveFilterHeight};
+                wR += ${dilationHeight}) {
+              int xR = xRCorner + wR;
+
+              if (xR < 0 || xR >= ${convInfo.inHeight}) {
+                continue;
+              }
+
+              for (int wC = 0; wC < ${effectiveFilterWidth};
+                  wC += ${dilationWidth}) {
+                int xC = xCCorner + wC;
+
+                if (xC < 0 || xC >= ${convInfo.inWidth}) {
+                  continue;
+                }
+
+                float value = getX(batch, xD, xR, xC, ch);
+
+                // If a min / max value has already been found, use it. If not,
+                // use the current value.
+                float currMinMaxValue = mix(
+                    value, minMaxValue, minMaxValueFound);
+                if (value ${compareOp} currMinMaxValue) {
+                  minMaxValue = value;
+                  minMaxValueFound = 1.0;
+                  minMaxPosition =
+                      wD * ${effectiveFilterHeight} * ${effectiveFilterWidth} +
+                      wR * ${effectiveFilterWidth} + wC;;
+                }
+              }
+            }
+          }
+          setOutput(float(minMaxPosition));
+        }
+      `;
+      return;
+    }
+
+    const compareOp = 'max';
+
+    let returnValue = `${poolType}(${poolType}(${poolType}(` +
+        'minMaxValue[0], minMaxValue[1]), minMaxValue[2]), minMaxValue[3])';
+    if (poolType === 'avg') {
+      returnValue = `avgValue / count`;
+    }
+
+    const filterWidthNearestVec4 = Math.floor(filterWidth / 4) * 4;
+    const filterWidthVec4Remainder = filterWidth % 4;
+
+    const updateSnippet = `
+      if (${isAvgPool}) {
+        avgValue += dot(values, ones);
+      } else {
+        minMaxValue = ${compareOp}(values, minMaxValue);
+      }
+    `;
+
+    this.userCode = `
+      const ivec3 strides =
+        ivec3(${strideDepth}, ${strideHeight}, ${strideWidth});
+      const ivec3 pads = ivec3(${padFront}, ${padTop}, ${padLeft});
+      const float initializationValue = ${initializationValue};
+      const vec4 ones = vec4(1.0, 1.0, 1.0, 1.0);
+
+      float count = 0.0;
+
+      float getValue(int batch, int xD, int xR, int xC, int ch) {
+        if (xC < 0 || xC >= ${convInfo.inWidth}) {
+          return initializationValue;
+        }
+        count += 1.0;
+        return getX(batch, xD, xR, xC, ch);
+      }
+
+      void main() {
+        ivec5 coords = getOutputCoords();
+        int batch = coords.x;
+        int ch = coords.u;
+
+        ivec3 xCorner = ivec3(coords.y, coords.z, coords.w) * strides - pads;
+        int xDCorner = xCorner.x;
+        int xRCorner = xCorner.y;
+        int xCCorner = xCorner.z;
+
+        // max/min x(?, ?, ?, d) to get y(yD, yR, yC, ch).
+        // ? = to be determined
+        vec4 minMaxValue = vec4(${initializationValue});
+        float avgValue = 0.0;
+        count = 0.0;
+
+        for (int wD = 0; wD < ${effectiveFilterDepth};
+            wD += ${dilationDepth}) {
+          int xD = xDCorner + wD;
+
+          if (xD < 0 || xD >= ${convInfo.inDepth}) {
+            continue;
+          }
+
+          for (int wR = 0; wR < ${effectiveFilterHeight};
+            wR += ${dilationHeight}) {
+            int xR = xRCorner + wR;
+
+            if (xR < 0 || xR >= ${convInfo.inHeight}) {
+              continue;
+            }
+
+            for (int wC = 0; wC < ${filterWidthNearestVec4}; wC += 4) {
+              int xC = xCCorner + wC * ${dilationWidth};
+
+              vec4 values = vec4(
+                getValue(batch, xD, xR, xC, ch),
+                getValue(batch, xD, xR, xC + ${dilationWidth}, ch),
+                getValue(batch, xD, xR, xC + 2 * ${dilationWidth}, ch),
+                getValue(batch, xD, xR, xC + 3 * ${dilationWidth}, ch)
+              );
+
+              ${updateSnippet}
+            }
+
+            int xC = xCCorner + ${filterWidthNearestVec4};
+            if (${filterWidthVec4Remainder === 1}) {
+              vec4 values = vec4(
+                getValue(batch, xD, xR, xC, ch),
+                initializationValue,
+                initializationValue,
+                initializationValue
+              );
+
+              ${updateSnippet}
+            } else if (${filterWidthVec4Remainder === 2}) {
+              vec4 values = vec4(
+                getValue(batch, xD, xR, xC, ch),
+                getValue(batch, xD, xR, xC + ${dilationWidth}, ch),
+                initializationValue,
+                initializationValue
+              );
+
+              ${updateSnippet}
+            } else if (${filterWidthVec4Remainder === 3}) {
+              vec4 values = vec4(
+                getValue(batch, xD, xR, xC, ch),
+                getValue(batch, xD, xR, xC + ${dilationWidth}, ch),
+                getValue(batch, xD, xR, xC + 2 * ${dilationWidth}, ch),
+                initializationValue
+              );
+
+              ${updateSnippet}
+            }
+          }
+          setOutput(${returnValue});
+        }
       }
     `;
   }

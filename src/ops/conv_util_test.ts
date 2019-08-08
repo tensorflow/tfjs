@@ -831,6 +831,153 @@ describe('conv_util computePoolInfo roundingMode', () => {
   });
 });
 
+describe('conv_util computePool3dInfo', () => {
+  it('1x1x1 pool over 1x1x1 array with valid pad', () => {
+    const inShape: [number, number, number, number, number] = [1, 1, 1, 1, 1];
+    const filterSize = 1;
+    const stride = 1;
+    const dilation = 1;
+    const convInfo = conv_util.computePool3DInfo(
+        inShape, filterSize, stride, dilation, 'valid');
+    expect(convInfo.batchSize).toEqual(1);
+    expect(convInfo.outDepth).toEqual(1);
+    expect(convInfo.outHeight).toEqual(1);
+    expect(convInfo.outWidth).toEqual(1);
+    expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterDepth).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(1);
+    expect(convInfo.effectiveFilterHeight).toEqual(1);
+  });
+
+  it('1x1x1 pool over 3x3x3 array with valid pad', () => {
+    const inShape: [number, number, number, number, number] = [1, 3, 3, 3, 1];
+    const filterSize = 1;
+    const stride = 1;
+    const dilation = 1;
+    const convInfo = conv_util.computePool3DInfo(
+        inShape, filterSize, stride, dilation, 'valid');
+    expect(convInfo.batchSize).toEqual(1);
+    expect(convInfo.outDepth).toEqual(3);
+    expect(convInfo.outHeight).toEqual(3);
+    expect(convInfo.outWidth).toEqual(3);
+    expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterDepth).toEqual(1);
+    expect(convInfo.effectiveFilterWidth).toEqual(1);
+    expect(convInfo.effectiveFilterHeight).toEqual(1);
+  });
+
+  it('2x2x2 pool over 3x3x3 array with same pad', () => {
+    const inShape: [number, number, number, number, number] = [1, 3, 3, 3, 1];
+    const filterSize = 2;
+    const stride = 1;
+    const dilation = 1;
+    const convInfo = conv_util.computePool3DInfo(
+        inShape, filterSize, stride, dilation, 'same');
+    expect(convInfo.batchSize).toEqual(1);
+    expect(convInfo.outDepth).toEqual(3);
+    expect(convInfo.outHeight).toEqual(3);
+    expect(convInfo.outWidth).toEqual(3);
+    expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterDepth).toEqual(2);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
+    expect(convInfo.padInfo.top).toEqual(0);
+    expect(convInfo.padInfo.bottom).toEqual(1);
+    expect(convInfo.padInfo.left).toEqual(0);
+    expect(convInfo.padInfo.right).toEqual(1);
+    expect(convInfo.padInfo.front).toEqual(0);
+    expect(convInfo.padInfo.back).toEqual(1);
+    expect(convInfo.padInfo.type).toEqual('SAME');
+  });
+
+  it('2x2x2 pool over 3x3x3 array with valid pad', () => {
+    const inShape: [number, number, number, number, number] = [1, 3, 3, 3, 1];
+    const filterSize = 2;
+    const stride = 1;
+    const dilation = 1;
+    const convInfo = conv_util.computePool3DInfo(
+        inShape, filterSize, stride, dilation, 'valid');
+    expect(convInfo.batchSize).toEqual(1);
+    expect(convInfo.outDepth).toEqual(2);
+    expect(convInfo.outHeight).toEqual(2);
+    expect(convInfo.outWidth).toEqual(2);
+    expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterDepth).toEqual(2);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
+  });
+
+  it('2x2x2 pool over 4x4x4 array with valid pad, stride 2', () => {
+    const inShape: [number, number, number, number, number] = [1, 4, 4, 4, 1];
+    const filterSize = 2;
+    const stride = 2;
+    const dilation = 1;
+    const convInfo = conv_util.computePool3DInfo(
+        inShape, filterSize, stride, dilation, 'valid');
+    expect(convInfo.batchSize).toEqual(1);
+    expect(convInfo.outDepth).toEqual(2);
+    expect(convInfo.outHeight).toEqual(2);
+    expect(convInfo.outWidth).toEqual(2);
+    expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterDepth).toEqual(2);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
+  });
+
+  it('2x2x2 pool over 3x3x3 array with valid pad, dilation 2', () => {
+    const inShape: [number, number, number, number, number] = [1, 3, 3, 3, 1];
+    const filterSize = 2;
+    const stride = 1;
+    const dilation = 2;
+    const convInfo = conv_util.computePool3DInfo(
+        inShape, filterSize, stride, dilation, 'valid');
+    expect(convInfo.batchSize).toEqual(1);
+    expect(convInfo.outDepth).toEqual(1);
+    expect(convInfo.outHeight).toEqual(1);
+    expect(convInfo.outWidth).toEqual(1);
+    expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterDepth).toEqual(3);
+    expect(convInfo.effectiveFilterWidth).toEqual(3);
+    expect(convInfo.effectiveFilterHeight).toEqual(3);
+  });
+
+  it('2x2x2 pool over 3x3x3 array with pad 1, roundingMode floor', () => {
+    const inShape: [number, number, number, number, number] = [1, 3, 3, 3, 1];
+    const filterSize = 2;
+    const stride = 1;
+    const dilation = 1;
+    const convInfo = conv_util.computePool3DInfo(
+        inShape, filterSize, stride, dilation, 1, 'floor');
+    expect(convInfo.batchSize).toEqual(1);
+    expect(convInfo.outDepth).toEqual(4);
+    expect(convInfo.outHeight).toEqual(4);
+    expect(convInfo.outWidth).toEqual(4);
+    expect(convInfo.outChannels).toEqual(1);
+    expect(convInfo.effectiveFilterDepth).toEqual(2);
+    expect(convInfo.effectiveFilterWidth).toEqual(2);
+    expect(convInfo.effectiveFilterHeight).toEqual(2);
+    expect(convInfo.padInfo.top).toEqual(1);
+    expect(convInfo.padInfo.bottom).toEqual(1);
+    expect(convInfo.padInfo.left).toEqual(1);
+    expect(convInfo.padInfo.right).toEqual(1);
+    expect(convInfo.padInfo.front).toEqual(1);
+    expect(convInfo.padInfo.back).toEqual(1);
+    expect(convInfo.padInfo.type).toEqual('NUMBER');
+  });
+
+  it('throws unknown dataFormat', () => {
+    const inShape: [number, number, number, number, number] = [1, 3, 3, 3, 1];
+    const filterSize = 2;
+    const stride = 1;
+    const dilation = 1;
+    const fakeDataFormat = 'fakeFormat' as 'NDHWC' | 'NCDHW';
+    expect(
+        () => conv_util.computePool3DInfo(
+            inShape, filterSize, stride, dilation, 1, 'floor', fakeDataFormat))
+        .toThrowError();
+  });
+});
+
 describe('conv_util convertConv2DDataFormat', () => {
   it('convert NHWC to channelsLast', () => {
     const dataFormat: 'NHWC'|'NCHW' = 'NHWC';
