@@ -80,7 +80,8 @@ describe('TensorArray', () => {
           NAME, DTYPE, SIZE, unknownShape, IDENTICAL_SHAPE, DYNAMIC_SIZE,
           CLEAR_AFTER_READ);
       const tensor = tensor2d([1, 2], [2, 1], 'int32');
-      expect(() => tensorArray.write(0, tensor)).not.toThrow();
+      tensorArray.write(0, tensor);
+      expect(tensorArray.read(0)).not.toBeNull();
     });
     it('should fail if the index has already been written', () => {
       tensorArray.write(0, tensor);
@@ -133,16 +134,16 @@ describe('TensorArray', () => {
       tensorArray.writeMany([0, 1], [tensor, tensor2]);
     });
 
-    it('should return default packed tensors', () => {
+    it('should return default packed tensors', async () => {
       const gathered = tensorArray.gather();
       expect(gathered.shape).toEqual([2, 1, 1]);
-      test_util.expectArraysClose(gathered, [1, 2]);
+      test_util.expectArraysClose(await gathered.data(), [1, 2]);
     });
 
-    it('should return packed tensors when indices is specified', () => {
+    it('should return packed tensors when indices is specified', async () => {
       const gathered = tensorArray.gather([1, 0]);
       expect(gathered.shape).toEqual([2, 1, 1]);
-      test_util.expectArraysClose(gathered, [2, 1]);
+      test_util.expectArraysClose(await gathered.data(), [2, 1]);
     });
     it('should fail if dtype is not matched', () => {
       expect(() => tensorArray.gather([0, 1], 'float32')).toThrow();
@@ -159,10 +160,10 @@ describe('TensorArray', () => {
       tensorArray.writeMany([0, 1], [tensor, tensor2]);
     });
 
-    it('should return default concat tensors', () => {
+    it('should return default concat tensors', async () => {
       const concat = tensorArray.concat();
       expect(concat.shape).toEqual([2, 1]);
-      test_util.expectArraysClose(concat, [1, 2]);
+      test_util.expectArraysClose(await concat.data(), [1, 2]);
     });
 
     it('should fail if dtype is not matched', () => {
@@ -193,7 +194,9 @@ describe('TensorArray', () => {
           NAME, DTYPE, SIZE, [-1, 1], IDENTICAL_SHAPE, DYNAMIC_SIZE,
           CLEAR_AFTER_READ);
       const input = tensor3d([1, 2, 3], [3, 1, 1], 'int32');
-      expect(() => tensorArray.scatter([1, 2, 3], input)).not.toThrow();
+      tensorArray.scatter([1, 2, 3], input);
+      const res = tensorArray.gather([1]);
+      expect(res).not.toBeNull();
     });
 
     it('should fail if max index > array max size', () => {

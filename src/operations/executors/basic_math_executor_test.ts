@@ -44,9 +44,9 @@ describe('basic math', () => {
 
   describe('executeOp', () => {
     ['Abs', 'Acos', 'Asin', 'Atan', 'Ceil', 'Cos', 'Cosh', 'Elu', 'Exp',
-     'Floor', 'Log', 'Neg', 'Relu', 'Selu', 'Sigmoid', 'Sin', 'Sinh', 'Sqrt',
-     'Square', 'Tanh', 'Tan', 'Sign', 'Round', 'Expm1', 'Log1p', 'Reciprocal',
-     'Softplus', 'Asinh', 'Acosh', 'Atanh', 'Erf']
+     'Floor', 'Log', 'Imag', 'Neg', 'Real', 'Relu', 'Selu', 'Sigmoid', 'Sin',
+     'Sinh', 'Sqrt', 'Square', 'Tanh', 'Tan', 'Sign', 'Round', 'Expm1', 'Log1p',
+     'Reciprocal', 'Softplus', 'Asinh', 'Acosh', 'Atanh', 'Erf']
         .forEach(op => {
           it('should call tfc.' + op, () => {
             const spy =
@@ -145,6 +145,45 @@ describe('basic math', () => {
       it('should match op def', () => {
         node.op = 'Atan2';
         node.inputParams['y'] = createTensorAttr(1);
+
+        expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
+      });
+    });
+    describe('ComplexAbs', () => {
+      it('should call tfc.abs', () => {
+        spyOn(tfc, 'abs');
+        node.op = 'ComplexAbs';
+        node.inputNames = ['input1'];
+        executeOp(node, {input1}, context);
+
+        expect(tfc.abs).toHaveBeenCalledWith(input1[0]);
+      });
+      it('should match op def', () => {
+        node.op = 'ComplexAbs';
+
+        expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
+      });
+    });
+    describe('Complex', () => {
+      it('should call tfc.complex', () => {
+        spyOn(tfc, 'complex');
+        node.op = 'Complex';
+        node.inputParams = {
+          real: createTensorAttr(0),
+          imag: createTensorAttr(1)
+        };
+        const input2 = [tfc.scalar(2)];
+        node.inputNames = ['input1', 'input2'];
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.complex).toHaveBeenCalledWith(input1[0], input2[0]);
+      });
+      it('should match op def', () => {
+        node.op = 'Complex';
+        node.inputParams = {
+          real: createTensorAttr(0),
+          imag: createTensorAttr(1)
+        };
 
         expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
       });

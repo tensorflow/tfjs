@@ -19,10 +19,11 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node, OpExecutor} from '../types';
+import {InternalOpExecutor, Node} from '../types';
+
 import {getParamValue} from './utils';
 
-export let executeOp: OpExecutor =
+export let executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
      context: ExecutionContext): tfc.Tensor[] => {
       switch (node.op) {
@@ -55,7 +56,7 @@ export let executeOp: OpExecutor =
                   tfc.Tensor4D,
               getParamValue('filter', node, tensorMap, context) as tfc.Tensor4D,
               [stride[1], stride[2]], pad as 'valid' | 'same',
-              dataFormat as 'NHWC' | 'NCHW', [dilations[0], dilations[1]])];
+              dataFormat as 'NHWC' | 'NCHW', [dilations[1], dilations[2]])];
         }
         case 'Conv2DBackpropInput':
         case 'Conv2dTranspose': {
@@ -88,7 +89,7 @@ export let executeOp: OpExecutor =
                   tfc.Tensor4D,
               getParamValue('filter', node, tensorMap, context) as tfc.Tensor4D,
               [stride[1], stride[2]], pad as 'valid' | 'same',
-              dataFormat as 'NHWC' | 'NCHW', [dilations[0], dilations[1]])];
+              dataFormat as 'NHWC' | 'NCHW', [dilations[1], dilations[2]])];
         }
         case 'Conv3D': {
           const stride =

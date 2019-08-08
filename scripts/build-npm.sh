@@ -21,5 +21,11 @@ rimraf dist/
 yarn
 yarn build
 rollup -c
+
+# Use minified files for miniprogram
+mkdir dist/miniprogram
+cp dist/tf-converter.min.js dist/miniprogram/index.js
+cp dist/tf-converter.min.js.map dist/miniprogram/index.js.map
+
 echo "Stored standalone library at dist/tf-converter(.min).js"
 npm pack

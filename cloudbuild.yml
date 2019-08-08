@@ -1,0 +1,43 @@
+steps:
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'test-browser'
+  args: ['test-ci']
+  waitFor: ['yarn']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY']
+- name: 'gcr.io/google-appengine/python'
+  dir: 'python'
+  entrypoint: 'bash'
+  args: ['./build-pip-package.sh', '--test', '/tmp/tfjs-pips']
+  waitFor: ['yarn']
+- name: 'python:2'
+  dir: 'python'
+  entrypoint: 'bash'
+  args: ['./run-python-tests.sh']
+  waitFor: ['yarn']
+- name: 'python:3.6'
+  dir: 'python'
+  entrypoint: 'bash'
+  args: ['./run-python-tests.sh']
+  waitFor: ['yarn']
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'test-snippets'
+  args: ['test-snippets']
+  waitFor: ['yarn']
+secrets:
+- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+  secretEnv:
+    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'

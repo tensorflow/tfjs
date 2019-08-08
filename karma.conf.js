@@ -18,7 +18,7 @@
 module.exports = function(config) {
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
-    files: [{pattern: 'src/**/*.ts'}, {pattern: 'src/**/*.js'}],
+    files: [{pattern: 'src/**/*.ts'}],
     exclude: [
       'src/docs/**/*.ts'
     ],
@@ -33,10 +33,11 @@ module.exports = function(config) {
         declaration: false,
         module: 'commonjs'
       },
+      coverageOptions: {instrumentation: false},
       reports: {} // Do not produce coverage html.
     },
     reporters: ['progress', 'karma-typescript'],
-    browsers: ['Chrome', 'Firefox'],
+    browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY
@@ -54,7 +55,10 @@ module.exports = function(config) {
       bs_firefox_mac: {
         base: 'BrowserStack',
         browser: 'firefox',
-        browser_version: 'latest',
+        // TODO(cais): Change it back to 'latest' once the ongoing instability
+        // with regard to OS X and FireFox is resolved on BrowserStack:
+        // https://github.com/tensorflow/tfjs/issues/1620
+        browser_version: '66.0',
         os: 'OS X',
         os_version: 'Sierra'
       }

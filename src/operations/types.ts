@@ -16,11 +16,12 @@
  */
 import {Tensor} from '@tensorflow/tfjs-core';
 
+import * as tensorflow from '../data/compiled_api';
 import {NamedTensorsMap} from '../data/types';
 import {ExecutionContext} from '../executor/execution_context';
 
-export type ParamType =
-    'number'|'string'|'number[]'|'bool'|'shape'|'tensor'|'tensors'|'dtype';
+export type ParamType = 'number'|'string'|'string[]'|'number[]'|'bool'|'bool[]'|
+    'shape'|'shape[]'|'tensor'|'tensors'|'dtype'|'dtype[]';
 export type Category =
     'arithmetic'|'basic_math'|'control'|'convolution'|'custom'|'dynamic'|
     'evaluation'|'image'|'creation'|'graph'|'logical'|'matrices'|
@@ -31,7 +32,7 @@ export declare interface ParamMapper {
   // tensorflow.js name for the field, it should be in camelcase format.
   name: string;
   type: ParamType;
-  defaultValue?: string|string[]|number|number[]|boolean|boolean[];
+  defaultValue?: ValueType;
   notSupported?: boolean;
 }
 
@@ -72,14 +73,14 @@ export declare interface AttrParamMapper extends ParamMapper {
   tfDeprecatedName?: string;
 }
 
-export interface OpExecutor {
+export interface InternalOpExecutor {
   (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext): Tensor
       |Tensor[]|Promise<Tensor|Tensor[]>;
 }
 
 export declare interface OpMapper {
-  tfOpName?: string;
-  category?: Category;
+  tfOpName: string;
+  category: Category;
   inputs?: InputParamMapper[];
   attrs?: AttrParamMapper[];
   customExecutor?: OpExecutor;
@@ -94,6 +95,7 @@ export declare interface Node {
   inputParams: {[key: string]: InputParamValue};
   attrParams: {[key: string]: ParamValue};
   children: Node[];
+  rawAttrs?: {[k: string]: tensorflow.IAttrValue};
 }
 
 export declare interface Graph {
@@ -102,8 +104,6 @@ export declare interface Graph {
   inputs: Node[];
   outputs: Node[];
   weights: Node[];
-  withControlFlow: boolean;
-  withDynamicShape: boolean;
 }
 
 export type ValueType = string|string[]|number|number[]|number[][]|boolean|
@@ -116,4 +116,13 @@ export declare interface ParamValue {
 export declare interface InputParamValue extends ParamValue {
   inputIndexStart?: number;
   inputIndexEnd?: number;
+}
+
+export interface OpExecutor {
+  (node: GraphNode): Tensor|Tensor[]|Promise<Tensor|Tensor[]>;
+}
+
+export interface GraphNode {
+  inputs: Tensor[];
+  attrs: {[key: string]: ValueType};
 }

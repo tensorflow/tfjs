@@ -1,5 +1,3 @@
-import {OpMapper} from '../types';
-
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -16,6 +14,8 @@ import {OpMapper} from '../types';
  * limitations under the License.
  * =============================================================================
  */
+
+import {OpMapper} from '../types';
 
 export const json: OpMapper[] = [
   {
@@ -43,6 +43,29 @@ export const json: OpMapper[] = [
   },
   {
     'tfOpName': 'BatchMatMul',
+    'category': 'matrices',
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {
+        'tfName': 'adj_x',
+        'name': 'transposeA',
+        'type': 'bool',
+        'defaultValue': false
+      },
+      {
+        'tfName': 'adj_y',
+        'name': 'transposeB',
+        'type': 'bool',
+        'defaultValue': false
+      },
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
+    'tfOpName': 'BatchMatMulV2',
     'category': 'matrices',
     'inputs': [
       {'start': 0, 'name': 'a', 'type': 'tensor'},
