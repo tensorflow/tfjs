@@ -91,6 +91,27 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'Complex',
+    'category': 'basic_math',
+    'inputs': [
+      {'start': 0, 'name': 'real', 'type': 'tensor'},
+      {'start': 1, 'name': 'imag', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
+    'tfOpName': 'ComplexAbs',
+    'category': 'basic_math',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
     'tfOpName': 'Cos',
     'category': 'basic_math',
     'inputs': [
@@ -151,6 +172,21 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'Imag',
+    'category': 'basic_math',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}, {
+        'tfName': 'Tout',
+        'name': 'outputType',
+        'type': 'dtype',
+        'notSupported': true
+      }
+    ]
+  },
+  {
     'tfOpName': 'Neg',
     'category': 'basic_math',
     'inputs': [
@@ -158,6 +194,21 @@ export const json: OpMapper[] = [
     ],
     'attrs': [
       {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
+    'tfOpName': 'Real',
+    'category': 'basic_math',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}, {
+        'tfName': 'Tout',
+        'name': 'outputType',
+        'type': 'dtype',
+        'notSupported': true
+      }
     ]
   },
   {

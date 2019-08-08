@@ -85,6 +85,27 @@ describe('normalization', () => {
                 input1[0], input4[0], input5[0], input3[0], input2[0], 5);
       });
     });
+    describe('FusedBatchNormV3', () => {
+      it('should call tfc.batchNorm', () => {
+        spyOn(tfc, 'batchNorm');
+        node.op = 'FusedBatchNormV3';
+        node.inputParams.scale = createTensorAttr(1);
+        node.inputParams.offset = createTensorAttr(2);
+        node.inputParams.mean = createTensorAttr(3);
+        node.inputParams.variance = createTensorAttr(4);
+        node.attrParams.epsilon = createNumberAttr(5);
+        node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
+        const input2 = [tfc.scalar(1)];
+        const input3 = [tfc.scalar(2)];
+        const input4 = [tfc.scalar(3)];
+        const input5 = [tfc.scalar(4)];
+        executeOp(node, {input1, input2, input3, input4, input5}, context);
+
+        expect(tfc.batchNorm)
+            .toHaveBeenCalledWith(
+                input1[0], input4[0], input5[0], input3[0], input2[0], 5);
+      });
+    });
     describe('LRN', () => {
       it('should call tfc.localResponseNormalization', () => {
         spyOn(tfc, 'localResponseNormalization');

@@ -19,15 +19,26 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node, OpExecutor} from '../types';
+import {InternalOpExecutor, Node} from '../types';
+
 import {getParamValue} from './utils';
 
-export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
-                                    context: ExecutionContext):
-                                       tfc.Tensor[] => {
+export let executeOp: InternalOpExecutor = (node: Node,
+                                            tensorMap: NamedTensorsMap,
+                                            context: ExecutionContext):
+                                               tfc.Tensor[] => {
   switch (node.op) {
     case 'FusedBatchNorm':
     case 'FusedBatchNormV2': {
+      return [tfc.batchNorm(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('mean', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('variance', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('offset', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('scale', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('epsilon', node, tensorMap, context) as number)];
+    }
+    case 'FusedBatchNormV3': {
       return [tfc.batchNorm(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           getParamValue('mean', node, tensorMap, context) as tfc.Tensor,

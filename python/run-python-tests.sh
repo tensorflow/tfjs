@@ -22,14 +22,16 @@ SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 TEST_FILES="$(find "${SCRIPTS_DIR}" -name '*_test.py')"
 
-pip install -r "${SCRIPTS_DIR}/requirements.txt"
+pip install virtualenv
+
+TMP_VENV_DIR="$(mktemp -d)"
+virtualenv -p "python" "${TMP_VENV_DIR}"
+source "${TMP_VENV_DIR}/bin/activate"
+
+pip install -r "${SCRIPTS_DIR}/requirements-dev.txt"
 
 cd "${SCRIPTS_DIR}"
-
-# Generate json files from ts files in src/operations/op_list/.
-pushd ".." > /dev/null
-yarn && yarn gen-json
-popd > /dev/null
+pylint --rcfile=.pylintrc tensorflowjs
 
 export PYTHONPATH=".:${PYTHONPATH}"
 for TEST_FILE in ${TEST_FILES}; do
@@ -42,3 +44,6 @@ done
 echo
 echo "All tests passed."
 echo
+
+deactivate
+rm -rf "${TMP_VENV_DIR}"

@@ -35,6 +35,8 @@
 |ClipByValue|clipByValue|
 |Cos|cos|
 |Cosh|cosh|
+|Complex|complex|
+|ComplexAbs|abs|
 |Elu|elu|
 |Erf|erf|
 |Exp|exp|
@@ -43,10 +45,12 @@
 |LeakyRelu|leakyRelu|
 |Log|log|
 |Log1p|log1p|
+|Imag|imag|
 |Neg|neg|
 |Prod|prod|
 |Reciprocal|reciprocal|
 |Reciprocal|reciprocal|
+|Real|real|
 |Relu|relu|
 |Relu6|clipByValue|
 |Round|round|
@@ -200,6 +204,7 @@
 |---|---|
 |FusedBatchNorm|batchNormalization|
 |FusedBatchNormV2|batchNormalization|
+|FusedBatchNormV3|batchNormalization|
 |LogSoftmax|logSoftmax|
 |LRN|localResponseNormalization|
 |Softmax|softmax|

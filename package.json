@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-converter",
-  "version": "1.0.2",
+  "version": "1.2.7",
   "description": "Tensorflow model converter for javascript",
   "main": "dist/src/index.js",
   "jsnext:main": "dist/tf-converter.esm.js",
@@ -8,16 +8,18 @@
   "types": "dist/src/index.d.ts",
   "unpkg": "dist/tf-converter.min.js",
   "jsdelivr": "dist/tf-converter.min.js",
+  "miniprogram": "dist/miniprogram",
   "repository": {
     "type": "git",
     "url": "https://github.com/tensorflow/tfjs-converter.git"
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "1.0.2"
+    "@tensorflow/tfjs-core": "1.2.7"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-core": "1.0.2",
+    "@tensorflow/tfjs-core": "1.2.7",
+    "@types/deep-equal": "^1.0.1",
     "@types/jasmine": "~2.8.6",
     "@types/long": "~3.0.32",
     "@types/node-fetch": "1.6.9",
@@ -27,6 +29,7 @@
     "babel-preset-env": "~1.7.0",
     "clang-format": "~1.2.2",
     "copyfiles": "~1.2.0",
+    "deep-equal": "^1.0.1",
     "jasmine-core": "~3.1.0",
     "karma": "~4.0.1",
     "karma-browserstack-launcher": "~1.4.0",
@@ -51,17 +54,20 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "tsc && copyfiles -f src/data/compiled_api.* dist/src/data/",
+    "build": "yarn gen-json --test && tsc && copyfiles -f src/data/compiled_api.* dist/src/data/",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
-    "test": "karma start",
-    "test-travis": "karma start --singleRun --browsers='bs_firefox_mac,bs_chrome_mac' --reporters='dots,karma-typescript,BrowserStack'",
+    "test": "yarn gen-json --test && karma start",
+    "test-ci": "yarn gen-json --test && yarn build && yarn lint && yarn run-browserstack",
+    "test-snippets": "ts-node ./scripts/test_snippets.ts",
+    "run-browserstack": "karma start --singleRun --browsers='bs_firefox_mac,bs_chrome_mac' --reporters='dots,karma-typescript,BrowserStack'",
     "lint": "tslint -p . -t verbose",
     "make-version": "sh -c ./scripts/make-version",
     "gen-doc": "ts-node ./scripts/gen_doc.ts",
-    "gen-google3-proto": "rollup -c rollup.config.google.js",
     "gen-json": "ts-node ./scripts/gen_json.ts",
-    "pb2json": "ts-node ./tools/pb2json_converter.ts"
+    "pb2json": "ts-node ./tools/pb2json_converter.ts",
+    "build-pip-package": "yarn gen-json --test && cd python && ./build-pip-package.sh --test /tmp/tfjs-pips",
+    "run-python-tests": "yarn gen-json --test && cd python && ./run-python-tests.sh"
   }
 }

@@ -67,6 +67,18 @@ describe('matrices', () => {
             .toHaveBeenCalledWith(input1[0], input2[0], true, false);
       });
     });
+    describe('BatchMatMulV2', () => {
+      it('should call tfc.matMul', () => {
+        spyOn(tfc, 'matMul');
+        node.op = 'BatchMatMulV2';
+        node.attrParams.transposeA = createBoolAttr(true);
+        node.attrParams.transposeB = createBoolAttr(false);
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.matMul)
+            .toHaveBeenCalledWith(input1[0], input2[0], true, false);
+      });
+    });
     describe('Transpose', () => {
       it('should call tfc.transpose', () => {
         spyOn(tfc, 'transpose');

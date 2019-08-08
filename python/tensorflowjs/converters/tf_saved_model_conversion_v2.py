@@ -20,32 +20,33 @@ from __future__ import print_function
 
 import json
 import os
-import numpy as np
 
+import numpy as np
 import tensorflow as tf
 from tensorflow.core.protobuf import device_properties_pb2
-from tensorflow.core.protobuf import meta_graph_pb2
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.python.framework import convert_to_constants
-from tensorflow.python.framework import graph_util
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.saved_model.load import load
 from tensorflow.python.training.saver import export_meta_graph
 from google.protobuf.json_format import MessageToDict
-
 import tensorflow_hub as hub
 
 from tensorflowjs import write_weights
 from tensorflowjs.converters import common
 
+# enable eager execution for v2 APIs
+tf.compat.v1.enable_eager_execution()
 
 CLEARED_TENSOR_FIELDS = (
     'tensor_content', 'half_val', 'float_val', 'double_val', 'int_val',
     'string_val', 'scomplex_val', 'int64_val', 'bool_val',
     'resource_handle_val', 'variant_val', 'uint32_val', 'uint64_val')
 
-def load_graph(graph_filename, output_node_names):
+_HUB_V1_MODULE_PB = "tfhub_module.pb"
+
+def load_graph(graph_filename):
   """Loads GraphDef. Returns Python Graph object.
 
   Args:
@@ -58,10 +59,6 @@ def load_graph(graph_filename, output_node_names):
   with tf.Graph().as_default() as graph:
     # Set name to empty to avoid using the default name 'import'.
     tf.import_graph_def(graph_def, name='')
-
-  for node in output_node_names.split(','):
-    graph.add_to_collection('train_op',
-                            graph.get_operation_by_name(node.strip()))
 
   return graph
 
@@ -98,25 +95,26 @@ def validate(nodes, skip_op_check, strip_debug_ops):
   not_supported = {x.op for x in [x for x in nodes if x.op not in names]}
   return not_supported
 
-def optimize_graph(func,
-                   output_graph,
-                   quantization_dtype=None,
-                   skip_op_check=False,
-                   strip_debug_ops=False,
-                   graph=None):
+def optimize_graph(graph, output_node_names, output_graph, tf_version,
+                   quantization_dtype=None, skip_op_check=False,
+                   strip_debug_ops=False):
   """Takes a Python Graph object and optimizes the graph.
 
   Args:
-    func: ConcreteFunction TensorFlow function def.
+    graph: The frozen graph to optimize.
+    output_node_names: List of output node names.
+    output_graph: The location of the output graph.
+    tf_version: Tensorflow version of the input graph.
     quantization_dtype: An optional numpy dtype to quantize weights to for
       compression. Only np.uint8 and np.uint16 are supported.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
-    graph_def: tf.GraphDef TensorFlow GraphDef proto object, which represents
-      the model topology.
   """
-  if graph is None:
-    graph = func.graph
+
+  # Add a collection 'train_op' so that Grappler knows the outputs.
+  for output in output_node_names:
+    graph.add_to_collection('train_op', graph.get_operation_by_name(output))
+
   graph_def = graph.as_graph_def()
   unsupported = validate(graph_def.node, skip_op_check,
                          strip_debug_ops)
@@ -135,13 +133,6 @@ def optimize_graph(func,
   meta_graph = export_meta_graph(
       graph_def=graph_def, graph=graph)
 
-  # Add a collection 'train_op' so that Grappler knows the outputs.
-  fetch_collection = meta_graph_pb2.CollectionDef()
-  if func is not None:
-    for array in func.inputs + func.outputs:
-      fetch_collection.node_list.value.append(array.name)
-    meta_graph.collection_def["train_op"].CopyFrom(fetch_collection)
-
   optimized_graph = tf_optimizer.OptimizeGraph(
       config, meta_graph, cluster=get_cluster())
 
@@ -152,18 +143,21 @@ def optimize_graph(func,
     raise ValueError('Unsupported Ops in the model after optimization\n' +
                      ', '.join(unsupported))
 
-  extract_weights(optimized_graph, output_graph, quantization_dtype)
+  extract_weights(
+      optimized_graph, output_graph, tf_version, quantization_dtype)
   return optimize_graph
 
 
 def extract_weights(graph_def,
                     output_graph,
+                    tf_version,
                     quantization_dtype=None):
   """Takes a Python GraphDef object and extract the weights.
 
   Args:
     graph_def: tf.GraphDef TensorFlow GraphDef proto object, which represents
       the model topology.
+    tf_version: Tensorflow version of the input graph.
     quantization_dtype: An optional numpy dtype to quantize weights to for
         compression. Only np.uint8 and np.uint16 are supported.
   """
@@ -186,8 +180,9 @@ def extract_weights(graph_def,
       if not isinstance(value, np.ndarray):
         value = np.array(value)
 
-      # Restore the conditional inputs
       const_manifest.append({'name': const.name, 'data': value})
+
+      # Restore the conditional inputs
       const.input[:] = const_inputs[const.name]
 
       # Remove the binary array from tensor and save it to the external file.
@@ -195,12 +190,13 @@ def extract_weights(graph_def,
         const.attr["value"].tensor.ClearField(field_name)
 
   write_artifacts(MessageToDict(graph_def), [const_manifest], output_graph,
-                  quantization_dtype=quantization_dtype)
+                  tf_version, quantization_dtype=quantization_dtype)
 
 
 def write_artifacts(topology,
                     weights,
                     output_graph,
+                    tf_version,
                     quantization_dtype=None):
   """Writes weights and topology to the output_dir.
 
@@ -211,13 +207,14 @@ def write_artifacts(topology,
       the model topology.
     weights: an array of weight groups (as defined in tfjs write_weights).
     output_graph: the output file name to hold all the contents.
+    tf_version: Tensorflow version of the input graph.
     quantization_dtype: An optional numpy dtype to quantize weights to for
       compression. Only np.uint8 and np.uint16 are supported.
   """
   model_json = {
       common.FORMAT_KEY: common.TFJS_GRAPH_MODEL_FORMAT,
       # TODO(piyu): Add tensorflow version below by using `meta_info_def`.
-      common.GENERATED_BY_KEY: tf.__version__,
+      common.GENERATED_BY_KEY: tf_version,
       common.CONVERTED_BY_KEY: common.get_converted_by(),
   }
 
@@ -230,6 +227,28 @@ def write_artifacts(topology,
 
   with open(output_graph, 'wt') as f:
     json.dump(model_json, f)
+
+
+def _check_signature_in_model(saved_model, signature_name):
+  if signature_name not in saved_model.signatures:
+    raise ValueError("Signature '%s' does not exist. The following signatures "
+                     "are available: %s" % (signature_name,
+                                            saved_model.signatures.keys()))
+
+
+def _freeze_saved_model_v1(graph, output_node_names):
+  frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
+      tf.compat.v1.Session(), graph.as_graph_def(), output_node_names)
+
+  frozen_graph = tf.Graph()
+  with frozen_graph.as_default():
+    tf.import_graph_def(frozen_graph_def, name='')
+
+  return frozen_graph
+
+def _freeze_saved_model_v2(concrete_func):
+  return convert_to_constants.convert_variables_to_constants_v2(
+      concrete_func).graph
 
 def convert_tf_saved_model(saved_model_dir,
                            output_dir, signature_def='serving_default',
@@ -249,8 +268,9 @@ def convert_tf_saved_model(saved_model_dir,
       will consist of
       - a file named 'model.json'
       - possibly sharded binary weight files.
-    signature_def: string Tagset of the SignatureDef to load. Defaulted to
-      'serving_default'
+    signature_def: string Tagset of the SignatureDef to load. Defaults to
+      'serving_default'.
+    saved_model_tags: tags of the GraphDef to load. Defaults to 'serve'.
     quantization_dtype: An optional numpy dtype to quantize weights to for
       compression. Only np.uint8 and np.uint16 are supported.
     skip_op_check: Bool whether to skip the op check.
@@ -266,13 +286,28 @@ def convert_tf_saved_model(saved_model_dir,
 
   saved_model_tags = saved_model_tags.split(', ')
   model = load(saved_model_dir, saved_model_tags)
-  concrete_func = model.signatures[signature_def]
-  frozen_func = convert_to_constants.convert_variables_to_constants_v2(
-      concrete_func)
 
-  optimize_graph(frozen_func, output_graph,
+  _check_signature_in_model(model, signature_def)
+
+  concrete_func = model.signatures[signature_def]
+  output_node_names = []
+  for output_tensor in concrete_func.outputs:
+    output_node_names.append(output_tensor.name.split(':')[0])
+
+  # TensorFlow doesn't encode the saved model version in the graph in a reliable
+  # way. Try to freeze the graph using V2 utils. If that fails, freeze the
+  # graph using V1 utils.
+  try:
+    frozen_graph = _freeze_saved_model_v2(concrete_func)
+  except BaseException:
+    frozen_graph = _freeze_saved_model_v1(
+        concrete_func.graph, output_node_names)
+
+  optimize_graph(frozen_graph, output_node_names, output_graph,
+                 model.tensorflow_version,
                  quantization_dtype=quantization_dtype,
-                 skip_op_check=skip_op_check, strip_debug_ops=strip_debug_ops)
+                 skip_op_check=skip_op_check,
+                 strip_debug_ops=strip_debug_ops)
 
 def load_and_initialize_hub_module(module_path, signature='default'):
   """Loads graph of a TF-Hub module and initializes it into a session.
@@ -320,9 +355,9 @@ def load_and_initialize_hub_module(module_path, signature='default'):
   return graph, session, inputs, outputs
 
 
-def convert_tf_hub_module(module_path, output_dir,
-                          signature='default', quantization_dtype=None,
-                          skip_op_check=False, strip_debug_ops=False):
+def convert_tf_hub_module_v1(module_path, output_dir,
+                             signature='default', quantization_dtype=None,
+                             skip_op_check=False, strip_debug_ops=False):
   """Freeze the TF-Hub module and check compatibility with Tensorflow.js.
 
   Optimize and convert the TF-Hub module to Tensorflow.js format, if it passes
@@ -359,7 +394,7 @@ def convert_tf_hub_module(module_path, output_dir,
   print('Creating a model with inputs %s and outputs %s.' % (input_node_names,
                                                              output_node_names))
 
-  frozen_graph_def = graph_util.convert_variables_to_constants(
+  frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
       sess, graph.as_graph_def(), output_node_names)
 
   output_graph = os.path.join(output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
@@ -368,12 +403,51 @@ def convert_tf_hub_module(module_path, output_dir,
     with tf.compat.v1.gfile.GFile(frozen_file, 'wb') as f:
       f.write(frozen_graph_def.SerializeToString())
 
-    graph = load_graph(frozen_file, ','.join(output_node_names))
-    optimize_graph(None, output_graph,
-                   quantization_dtype=quantization_dtype,
-                   skip_op_check=skip_op_check, strip_debug_ops=strip_debug_ops,
-                   graph=graph)
+    frozen_graph = load_graph(frozen_file)
+    optimize_graph(frozen_graph, output_node_names, output_graph,
+                   tf.__version__, quantization_dtype=quantization_dtype,
+                   skip_op_check=skip_op_check, strip_debug_ops=strip_debug_ops)
   finally:
     # Clean up the temp files.
     if os.path.exists(frozen_file):
       os.remove(frozen_file)
+
+
+def convert_tf_hub_module(module_handle, output_dir,
+                          signature='default', saved_model_tags='serve',
+                          quantization_dtype=None, skip_op_check=False,
+                          strip_debug_ops=False):
+  """Conversion for TF Hub modules V1 and V2.
+
+  See convert_tf_hub_module and convert_tf_saved_model.
+
+  Args:
+    module_path: string Path to the module.
+    output_dir: string The name of the output directory. The directory
+      will consist of
+      - a file named 'model.json'
+      - possibly sharded binary weight files.
+    signature: string Signature to load.
+    saved_model_tags: tags of the GraphDef to load. Defaults to ''.
+    skip_op_check: Bool whether to skip the op check.
+    strip_debug_ops: Bool whether to strip debug ops.
+  """
+  module_path = hub.resolve(module_handle)
+  # TODO(vbardiovskyg): We can remove this v1 code path once loading of all v1
+  # modules is fixed on the TF side, or once the modules we cannot load become
+  # replaced with newer versions.
+  if tf.io.gfile.exists(os.path.join(module_path, _HUB_V1_MODULE_PB)):
+    print("Loading the module using TF 1.X interface from %s." % module_path)
+    convert_tf_hub_module_v1(module_path, output_dir, signature,
+                             quantization_dtype, skip_op_check, strip_debug_ops)
+  else:
+    print("Loading the module using TF 2.X interface from %s." % module_path)
+    if signature is None:
+      signature = 'default'
+    convert_tf_saved_model(saved_model_dir=module_path,
+                           output_dir=output_dir,
+                           signature_def=signature,
+                           saved_model_tags=saved_model_tags,
+                           quantization_dtype=None,
+                           skip_op_check=False,
+                           strip_debug_ops=False)

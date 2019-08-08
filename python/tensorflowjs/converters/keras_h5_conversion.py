@@ -259,7 +259,8 @@ def _get_generated_by(topology):
 def write_artifacts(topology,
                     weights,
                     output_dir,
-                    quantization_dtype=None):
+                    quantization_dtype=None,
+                    weight_shard_size_bytes=1024 * 1024 * 4):
   """Writes weights and topology to the output_dir.
 
   If `topology` is Falsy (e.g., `None`), only emit weights to output_dir.
@@ -270,11 +271,19 @@ def write_artifacts(topology,
     output_dir: the directory to hold all the contents.
     quantization_dtype: An optional numpy dtype to quantize weights to for
       compression. Only np.uint8 and np.uint16 are supported.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
   """
   # TODO(cais, nielsene): This method should allow optional arguments of
   #   `write_weights.write_weights` (e.g., shard size) and forward them.
   # We write the topology after since write_weights makes no promises about
   # preserving directory contents.
+  if not (isinstance(weight_shard_size_bytes, int) and
+          weight_shard_size_bytes > 0):
+    raise ValueError(
+        'Expected weight_shard_size_bytes to be a positive integer, '
+        'but got %s' % weight_shard_size_bytes)
+
   if os.path.isfile(output_dir):
     raise ValueError(
         'Path "%d" already exists as a file (not a directory).' % output_dir)
@@ -288,7 +297,8 @@ def write_artifacts(topology,
   model_json[common.ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
   weights_manifest = write_weights.write_weights(
       weights, output_dir, write_manifest=False,
-      quantization_dtype=quantization_dtype)
+      quantization_dtype=quantization_dtype,
+      shard_size_bytes=weight_shard_size_bytes)
   assert isinstance(weights_manifest, list)
   model_json[common.ARTIFACT_WEIGHTS_MANIFEST_KEY] = weights_manifest
 

@@ -19,13 +19,14 @@ import math
 import os
 
 import numpy as np
-from tensorflowjs import quantization
 
-_OUTPUT_DTYPES = [np.float32, np.int32, np.uint8, np.uint16, np.bool]
+from tensorflowjs import quantization
+from tensorflowjs import read_weights
+
+_OUTPUT_DTYPES = [np.float32, np.int32, np.uint8, np.uint16, np.bool, np.object]
 _AUTO_DTYPE_CONVERSION = {
     np.dtype(np.float64): np.float32,
     np.dtype(np.int64): np.int32}
-
 
 def write_weights(
     weight_groups, write_dir, shard_size_bytes=1024 * 1024 * 4,
@@ -114,6 +115,8 @@ def write_weights(
   manifest = []
 
   for group_index, group in enumerate(weight_groups):
+    for e in group:
+      _auto_convert_weight_entry(e)
     if quantization_dtype:
       group = [_quantize_entry(e, quantization_dtype) for e in group]
     group_bytes, total_bytes, _ = _stack_group_bytes(group)
@@ -166,6 +169,9 @@ def _quantize_entry(entry, quantization_dtype):
         }
   """
   data = entry['data']
+  # Strings tensors are not quantized.
+  if data.dtype == 'object':
+    return entry
   quantized_data, scale, min_val = quantization.quantize_weights(
       data, quantization_dtype)
   quantized_entry = entry.copy()
@@ -174,6 +180,52 @@ def _quantize_entry(entry, quantization_dtype):
       'min': min_val, 'scale': scale, 'original_dtype': data.dtype.name}
   return quantized_entry
 
+
+def _serialize_string_array(data):
+  """Serializes a numpy array of dtype `string` into bytes.
+
+  Each string value is preceded by 4 bytes which denote a 32-bit unsigned
+  integer in little endian that specifies the byte length of the following
+  string. This is followed by the actual string bytes. If the tensor has no
+  strings there will be no bytes reserved. Empty strings will still take 4 bytes
+  for the length.
+
+  For example, a tensor that has 2 strings will be encoded as
+  [byte length of s1][bytes of s1...][byte length of s2][bytes of s2...]
+
+  where byte length always takes 4 bytes.
+
+  Args:
+    data: A numpy array of dtype `string`.
+
+  Returns:
+    bytes of the entire string tensor to be serialized on disk.
+  """
+  strings = data.flatten().tolist()
+
+  string_bytes = io.BytesIO()
+  bytes_writer = io.BufferedWriter(string_bytes)
+
+  for x in strings:
+    encoded = x if isinstance(x, bytes) else x.encode('utf-8')
+    length_as_bytes = np.array(len(encoded),
+                               read_weights.STRING_LENGTH_DTYPE).tobytes()
+    bytes_writer.write(length_as_bytes)
+    bytes_writer.write(encoded)
+  bytes_writer.flush()
+  string_bytes.seek(0)
+  return string_bytes.read()
+
+def _serialize_numeric_array(data):
+  """Serializes a numeric numpy array into bytes.
+
+  Args:
+    data: A numeric numpy array.
+
+  Returns:
+    bytes of the array to be serialized on disk.
+  """
+  return data.tobytes()
 
 def _stack_group_bytes(group):
   """Stacks the bytes for a weight group into a flat byte array.
@@ -194,9 +246,12 @@ def _stack_group_bytes(group):
 
   for entry in group:
     _assert_valid_weight_entry(entry)
-    _auto_convert_weight_entry(entry)
     data = entry['data']
-    data_bytes = data.tobytes()
+
+    if data.dtype == np.object:
+      data_bytes = _serialize_string_array(data)
+    else:
+      data_bytes = _serialize_numeric_array(data)
     group_bytes_writer.write(data_bytes)
     total_bytes += len(data_bytes)
 
@@ -260,6 +315,9 @@ def _get_weights_manifest_for_group(group):
         'shape': list(entry['data'].shape),
         'dtype': dtype
     }
+    # String arrays have dtype 'object' and need extra metadata to parse.
+    if dtype == 'object':
+      var_manifest['dtype'] = 'string'
     if is_quantized:
       var_manifest['quantization'] = {
           'min': entry['quantization']['min'],
@@ -284,20 +342,27 @@ def _assert_no_duplicate_weight_names(weight_groups):
 def _auto_convert_weight_entry(entry):
   data = entry['data']
   if data.dtype in _AUTO_DTYPE_CONVERSION:
-    entry['data'] = _AUTO_DTYPE_CONVERSION[data.dtype](data)
+    entry['data'] = data.astype(_AUTO_DTYPE_CONVERSION[data.dtype])
     print('weight ' + entry['name'] + ' with shape ' + str(data.shape) +
           ' and dtype ' + data.dtype.name + ' was auto converted to the type ' +
           np.dtype(_AUTO_DTYPE_CONVERSION[data.dtype]).name)
 
 
 def _assert_valid_weight_entry(entry):
-  if not 'name' in entry:
+  if 'name' not in entry:
     raise ValueError('Error dumping weight, no name field found.')
-  if not 'data' in entry:
+  if 'data' not in entry:
     raise ValueError('Error dumping weight, no data field found.')
 
   name = entry['name']
   data = entry['data']
+
+  # String tensors can be backed by different numpy dtypes, thus we consolidate
+  # to a single 'np.object' dtype.
+  if data.dtype.name.startswith('str') or data.dtype.name.startswith('bytes'):
+    data = data.astype(np.object)
+    entry['data'] = data
+
 
   if not (data.dtype in _OUTPUT_DTYPES or data.dtype in _AUTO_DTYPE_CONVERSION):
     raise ValueError('Error dumping weight ' + name + ', dtype ' +
@@ -334,7 +399,9 @@ def _assert_weight_groups_valid(weight_groups):
 def _assert_shard_size_bytes_valid(shard_size_bytes):
   if shard_size_bytes < 0:
     raise ValueError(
-        'shard_size_bytes must be greater than 0, but got ' + shard_size_bytes)
+        'shard_size_bytes must be greater than 0, but got %s' %
+        shard_size_bytes)
   if not isinstance(shard_size_bytes, int):
     raise ValueError(
-        'shard_size_bytes must be an integer, but got ' + shard_size_bytes)
+        'shard_size_bytes must be an integer, but got %s' %
+        shard_size_bytes)

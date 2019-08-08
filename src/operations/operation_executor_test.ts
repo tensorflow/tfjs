@@ -15,8 +15,11 @@
  * =============================================================================
  */
 
+import {add, mul, scalar, Tensor, test_util} from '@tensorflow/tfjs-core';
+
 import {ExecutionContext} from '../executor/execution_context';
 
+import {deregisterOp, registerOp} from './custom_op/register';
 import * as arithmetic from './executors/arithmetic_executor';
 import * as basic_math from './executors/basic_math_executor';
 import * as convolution from './executors/convolution_executor';
@@ -64,5 +67,45 @@ describe('OperationExecutor', () => {
             expect(category.executeOp).toHaveBeenCalledWith(node, {}, context);
           });
         });
+  });
+
+  describe('custom op executeOp', () => {
+    it('should throw exception if custom op is not registered', () => {
+      node.category = 'custom';
+      expect(() => executeOp(node, {}, context))
+          .toThrowError('Custom op const is not registered.');
+    });
+  });
+
+  describe('custom op executeOp', () => {
+    it('should call the registered custom op', async () => {
+      registerOp('const', () => [scalar(1)]);
+      registerOp('const2', () => [scalar(2)]);
+      node.category = 'custom';
+      const result = executeOp(node, {}, context) as Tensor[];
+      test_util.expectArraysClose(await result[0].data(), [1]);
+      deregisterOp('const');
+      deregisterOp('const2');
+    });
+
+    it('should handle custom op with inputs and attrs', async () => {
+      registerOp('const', (node) => {
+        const a = node.inputs[0];
+        const b = node.inputs[1];
+        const attrC = node.attrs['c'] as Tensor;
+        const attrD = node.attrs['d'] as number;
+        return [add(mul(attrC.dataSync()[0], a), mul(attrD, b))];
+      });
+
+      node.category = 'custom';
+      node.inputNames = ['a', 'b'];
+      node.rawAttrs = {c: {tensor: {}}, d: {i: 3}};
+      const result = executeOp(
+                         node, {a: [scalar(1)], b: [scalar(2)], c: [scalar(2)]},
+                         context) as Tensor[];
+      // result = 2 * 1 + 3 * 2
+      test_util.expectArraysClose(await result[0].data(), [8]);
+      deregisterOp('const');
+    });
   });
 });

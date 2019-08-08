@@ -29,6 +29,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+from tensorflowjs import version
 from tensorflowjs.converters import converter
 from tensorflowjs.converters import keras_tfjs_loader
 
@@ -61,7 +62,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     # Load the saved weights as a JSON string.
     model_json, groups = (
-        converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+        converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
             h5_path, output_dir=self._tmp_dir))
     self.assertIsNone(model_json)
 
@@ -92,7 +93,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     # Load the saved weights as a JSON string.
     model_json, groups = (
-        converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+        converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
             h5_path, output_dir=self._tmp_dir))
     # check the model topology was stored
     self.assertIsInstance(model_json['model_config'], dict)
@@ -128,7 +129,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     # Load the saved weights as a JSON string.
     model_json, groups = (
-        converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+        converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
             h5_path, output_dir=self._tmp_dir, split_weights_by_layer=True))
     # check the model topology was stored
     self.assertIsInstance(model_json['model_config'], dict)
@@ -163,7 +164,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     # Load the saved weights as a JSON string.
     model_json, groups = (
-        converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+        converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
             h5_path, output_dir=self._tmp_dir))
     self.assertIsNone(model_json)
 
@@ -188,7 +189,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
               name='Dense1')])
       h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
       sequential_model.save_weights(h5_path)
-      converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+      converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
           h5_path, output_dir=output_dir)
 
     # Check the content of the output directory.
@@ -213,7 +214,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
 
     with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
         ValueError, r'already exists as a file'):
-      converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+      converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
           h5_path, output_dir=output_path)
 
   def testTensorflowjsToKerasConversionSucceeds(self):
@@ -226,7 +227,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
               1, use_bias=False, kernel_initializer='ones', name='Dense2')])
       h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
       sequential_model.save(h5_path)
-      converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+      converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
           h5_path, output_dir=self._tmp_dir)
       old_model_json = sequential_model.to_json()
 
@@ -256,7 +257,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
               1, use_bias=False, kernel_initializer='ones', name='Dense2')])
       h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
       sequential_model.save(h5_path)
-      converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+      converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
           h5_path, output_dir=self._tmp_dir)
 
     with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
@@ -273,6 +274,44 @@ class ConvertH5WeightsTest(unittest.TestCase):
         ValueError, r'cannot read valid JSON content from'):
       converter.dispatch_tensorflowjs_to_keras_h5_conversion(
           fake_json_path, os.path.join(self._tmp_dir, 'model.h5'))
+
+
+class ConvertKerasToTfGraphModelTest(tf.test.TestCase):
+
+  def setUp(self):
+    super(ConvertKerasToTfGraphModelTest, self).setUp()
+    self._tmp_dir = tempfile.mkdtemp()
+
+  def tearDown(self):
+    if os.path.isdir(self._tmp_dir):
+      shutil.rmtree(self._tmp_dir)
+    super(ConvertKerasToTfGraphModelTest, self).tearDown()
+
+  def testConvertKerasModelToTfGraphModel(self):
+    output_dir = os.path.join(self._tmp_dir, 'foo_model')
+    sequential_model = keras.models.Sequential([
+        keras.layers.Dense(
+            3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
+            name='Dense1')])
+    h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
+    sequential_model.save(h5_path)
+    converter.dispatch_keras_h5_to_tfjs_graph_model_conversion(
+        h5_path, output_dir=output_dir)
+
+    # Check model.json and weights manifest.
+    with open(os.path.join(output_dir, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    weights_manifest = model_json['weightsManifest']
+    self.assertEqual(len(weights_manifest), 1)
+    # Check meta-data in the artifact JSON.
+    self.assertEqual(model_json['format'], 'graph-model')
+    self.assertEqual(
+        model_json['convertedBy'],
+        'TensorFlow.js Converter v%s' % version.version)
+    self.assertEqual(model_json['generatedBy'],
+                     tf.__version__)
+    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
 
 
 class ConvertTfKerasSavedModelTest(tf.test.TestCase):
@@ -384,7 +423,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
           ValueError,
           r'Expected path to point to an HDF5 file, but it points to a '
           r'directory'):
-        converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+        converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
             self._tmp_dir, tfjs_output_dir)
 
   def testConvertTfKerasNestedSequentialSavedAsSavedModel(self):
@@ -468,6 +507,191 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
           w.size * bytes_per_num for w in model.get_weights())
       self.assertEqual(weight_file_bytes, model_weight_bytes)
 
+  def testConvertTfjsLayersModelToShardedWeights(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      model = self._createSimpleSequentialModel()
+      weights = model.get_weights()
+      total_weight_bytes = sum(np.size(w) for w in weights) * 4
+
+      # Save the keras model to a .h5 file.
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
+
+      # Convert the keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
+          h5_path, tfjs_output_dir)
+
+      weight_shard_size_bytes = int(total_weight_bytes * 0.3)
+      # Due to the shard size, there ought to be 4 shards after conversion.
+
+      # Convert the tfjs model to another tfjs model, with a specified weight
+      # shard size.
+      sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
+      converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
+          os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path,
+          weight_shard_size_bytes=weight_shard_size_bytes)
+
+      # Check the number of sharded files and their sizes.
+      weight_files = sorted(
+          glob.glob(os.path.join(sharded_model_path, 'group*.bin')))
+      self.assertEqual(len(weight_files), 4)
+      weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+      self.assertEqual(sum(weight_file_sizes), total_weight_bytes)
+      self.assertEqual(weight_file_sizes[0], weight_file_sizes[1])
+      self.assertEqual(weight_file_sizes[0], weight_file_sizes[2])
+      self.assertLess(weight_file_sizes[3], weight_file_sizes[0])
+
+  def testConvertTfjsLayersModelWithShardSizeGreaterThanTotalWeightSize(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      model = self._createSimpleSequentialModel()
+      weights = model.get_weights()
+      total_weight_bytes = sum(np.size(w) for w in weights) * 4
+
+      # Save the keras model to a .h5 file.
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
+
+      # Convert the keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
+          h5_path, tfjs_output_dir)
+
+      weight_shard_size_bytes = int(total_weight_bytes * 2)
+      # Due to the shard size, there ought to be 1 shard after conversion.
+
+      # Convert the tfjs model to another tfjs model, with a specified weight
+      # shard size.
+      sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
+      converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
+          os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path,
+          weight_shard_size_bytes=weight_shard_size_bytes)
+
+      # Check the number of sharded files and their sizes.
+      weight_files = sorted(
+          glob.glob(os.path.join(sharded_model_path, 'group*.bin')))
+      self.assertEqual(len(weight_files), 1)
+      weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+      self.assertEqual(sum(weight_file_sizes), total_weight_bytes)
+
+  def testTfjsLayer2TfjsLayersConversionWithExistingFilePathFails(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      model = self._createSimpleSequentialModel()
+
+      # Save the keras model to a .h5 file.
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
+
+      # Convert the keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
+          h5_path, tfjs_output_dir)
+
+      # Convert the tfjs model to another tfjs model, with a specified weight
+      # shard size.
+      sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
+      with open(sharded_model_path, 'wt') as f:
+        # Create a fie at the path to elicit the error.
+        f.write('hello')
+      with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
+          ValueError, r'already exists as a file'):
+        converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
+            os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path)
+
+  def testConvertTfjsLayersModelWithUint16Quantization(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      model = self._createSimpleSequentialModel()
+      weights = model.get_weights()
+      total_weight_bytes = sum(np.size(w) for w in weights) * 4
+
+      # Save the keras model to a .h5 file.
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
+
+      # Convert the keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
+          h5_path, tfjs_output_dir)
+
+      weight_shard_size_bytes = int(total_weight_bytes * 2)
+      # Due to the shard size, there ought to be 1 shard after conversion.
+
+      # Convert the tfjs model to another tfjs model, with quantization.
+      sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
+      converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
+          os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path,
+          quantization_dtype=np.uint16,
+          weight_shard_size_bytes=weight_shard_size_bytes)
+
+      # Check the number of quantized files and their sizes.
+      weight_files = sorted(
+          glob.glob(os.path.join(sharded_model_path, 'group*.bin')))
+      self.assertEqual(len(weight_files), 1)
+      weight_file_size = os.path.getsize(weight_files[0])
+
+      # The size of the saved weight file should reflect the result of the
+      # uint16 quantization.
+      self.assertEqual(weight_file_size, total_weight_bytes / 2)
+
+  def testConvertTfjsLayersModelWithUint8Quantization(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      model = self._createSimpleSequentialModel()
+      weights = model.get_weights()
+      total_weight_bytes = sum(np.size(w) for w in weights) * 4
+
+      # Save the keras model to a .h5 file.
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
+
+      # Convert the keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
+          h5_path, tfjs_output_dir)
+
+      weight_shard_size_bytes = int(total_weight_bytes * 2)
+      # Due to the shard size, there ought to be 1 shard after conversion.
+
+      # Convert the tfjs model to another tfjs model, with quantization.
+      sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
+      converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
+          os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path,
+          quantization_dtype=np.uint8,
+          weight_shard_size_bytes=weight_shard_size_bytes)
+
+      # Check the number of quantized files and their sizes.
+      weight_files = sorted(
+          glob.glob(os.path.join(sharded_model_path, 'group*.bin')))
+      self.assertEqual(len(weight_files), 1)
+      weight_file_size = os.path.getsize(weight_files[0])
+
+      # The size of the saved weight file should reflect the result of the
+      # uint16 quantization.
+      self.assertEqual(weight_file_size, total_weight_bytes / 4)
+
+  def testConvertTfjsLayersModelToKerasSavedModel(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      model = self._createSimpleSequentialModel()
+
+      # Save the keras model to a .h5 file.
+      h5_path = os.path.join(self._tmp_dir, 'model.h5')
+      model.save(h5_path)
+
+      # Convert the keras SavedModel to tfjs format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
+          h5_path, tfjs_output_dir)
+
+    # Convert the tfjs LayersModel to tf.keras SavedModel.
+    keras_saved_model_dir = os.path.join(self._tmp_dir, 'saved_model')
+    converter.dispatch_tensorflowjs_to_keras_saved_model_conversion(
+        os.path.join(tfjs_output_dir, 'model.json'), keras_saved_model_dir)
+
+    # Check the files of the keras SavedModel.
+    files = glob.glob(os.path.join(keras_saved_model_dir, '*'))
+    self.assertIn(os.path.join(keras_saved_model_dir, 'saved_model.pb'), files)
+    self.assertIn(os.path.join(keras_saved_model_dir, 'variables'), files)
+    self.assertIn(os.path.join(keras_saved_model_dir, 'assets'), files)
+
 
 if __name__ == '__main__':
-  unittest.main()
+  tf.test.main()
