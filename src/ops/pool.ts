@@ -16,7 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
-import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Tensor, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
@@ -316,7 +316,7 @@ function pool_<T extends Tensor3D|Tensor4D>(
 }
 
 /**
- * Computes the backprop of a max pool.
+ * Computes the backprop of a 2D max pool.
  *
  * @param dy The dy error, of rank 4 or rank 3 of shape
  *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
@@ -382,7 +382,7 @@ function maxPoolBackprop(
 }
 
 /**
- * Computes the backprop of an avg pool.
+ * Computes the backprop of an 2D avg pool.
  *
  * @param dy The dy error, of rank 4 or rank 3 of shape
  *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
@@ -482,6 +482,395 @@ function withSpaceToBatchBasePaddings(
   });
 }
 
+/**
+ * Computes the 3D average pooling.
+ *
+ * ```js
+ * const x = tf.tensor5d([1, 2, 3, 4, 5, 6, 7, 8], [1, 2, 2, 2, 1]);
+ * const result = tf.avgPool3d(x, 2, 1, 'valid');
+ * result.print();
+ * ```
+ *
+ * @param x The input tensor, of rank 5 or rank 4 of shape
+ *     `[batch, depth, height, width, inChannels]`.
+ * @param filterSize The filter size:
+ *     `[filterDepth, filterHeight, filterWidth]`.
+ *     If `filterSize` is a single number,
+ *     then `filterDepth == filterHeight == filterWidth`.
+ * @param strides The strides of the pooling:
+ *     `[strideDepth, strideHeight, strideWidth]`.
+ *     If `strides` is a single number,
+ *     then `strideDepth == strideHeight == strideWidth`.
+ * @param pad The type of padding algorithm.
+ *    - `same` and stride 1: output will be of same size as input,
+ *       regardless of filter size.
+ *    - `valid`: output will be smaller than input if filter is larger
+ *       than 1*1x1.
+ *    - For more info, see this guide:
+ *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
+ *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ * @param dimRoundingMode The rounding mode used when computing output
+ *     dimensions if pad is a number. If none is provided, it will not round
+ *     and error if the output is of fractional size.
+ * @param dataFormat An optional string from: "NDHWC", "NCDHW". Defaults to
+ *     "NDHWC". Specify the data format of the input and output data. With the
+ *     default format "NDHWC", the data is stored in the order of: [batch,
+ *     depth, height, width, channels]. Only "NDHWC" is currently supported.
+ * @param dilations The dilation rates:
+ *     `[dilationDepth, dilationHeight, dilationWidth]`
+ *     in which we sample input values across the depth, height and width
+ *     dimensions in dilated pooling.
+ *     Defaults to `[1, 1, 1]`. If `dilations` is a single number,
+ *     then `dilationDepth == dilationHeight == dilationWidth`.
+ *     If it is greater than 1, then all values of `strides` must be 1.
+ */
+/** @doc {heading: 'Operations', subheading: 'Convolution'} */
+function avgPool3d_<T extends Tensor4D|Tensor5D>(
+    x: T|TensorLike,
+    filterSize: [number, number, number]|number,
+    strides: [number, number, number]|number,
+    pad: 'valid'|'same'|number,
+    dimRoundingMode?: 'floor'|'round'|'ceil',
+    dataFormat: 'NDHWC'|'NCDHW' = 'NDHWC',
+    dilations?: [number, number, number]|number,
+    ): T {
+  const $x = convertToTensor(x, 'x', 'avgPool3d', 'float32');
+
+  let x5D = $x as Tensor5D;
+  let reshapedTo5D = false;
+  if ($x.rank === 4) {
+    reshapedTo5D = true;
+    x5D = $x.as5D(1, $x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]);
+  }
+
+  if (dilations == null) {
+    dilations = [1, 1, 1];
+  }
+  util.assert(
+      x5D.rank === 5,
+      () => `Error in avgPool3d: x must be rank 5 but got rank ${x5D.rank}.`);
+  util.assert(
+      dataFormat === 'NDHWC',
+      () => `Error in avgPool3d: Only NDHWC is currently supported, ` +
+          `but got dataFormat of ${dataFormat}`);
+  util.assert(
+      conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
+      () => 'Error in avgPool3d: Either strides or dilations must be 1. ' +
+          `Got strides ${strides} and dilations '${dilations}'`);
+  if (dimRoundingMode != null) {
+    util.assert(
+        util.isInt(pad as number),
+        () => `Error in avgPool3d: pad must be an integer when using, ` +
+            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+  }
+
+  const convInfo = conv_util.computePool3DInfo(
+      x5D.shape, filterSize, strides, dilations, pad, dimRoundingMode,
+      dataFormat);
+
+  const grad = (dy: Tensor5D) => {
+    return {
+      x: () => avgPool3dBackprop(
+          dy, x5D, filterSize, strides, dilations, pad, dimRoundingMode)
+    };
+  };
+
+  let res = ENGINE.runKernel(
+      backend => backend.avgPool3d(x5D, convInfo), {x: x5D}, grad);
+  res = res.cast(x5D.dtype);
+  if (reshapedTo5D) {
+    return res.as4D(res.shape[1], res.shape[2], res.shape[3], res.shape[4]) as
+        T;
+  }
+
+  return res as T;
+}
+
+/**
+ * Computes the backprop of a 3d avg pool.
+ *
+ * @param dy The dy error, of rank 5 of shape
+ *     [batchSize, depth, height, width, channels].
+ * assumed.
+ * @param input The original input image, of rank 5 or rank4 of shape
+ *     [batchSize, depth, height, width, channels].
+ * @param filterSize The filter size:
+ *     `[filterDepth, filterHeight, filterWidth]`.
+ *     `filterSize` is a single number,
+ *     then `filterDepth == filterHeight == filterWidth`.
+ * @param strides The strides of the pooling:
+ *     `[strideDepth, strideHeight, strideWidth]`. If
+ *     `strides` is a single number, then `strideHeight == strideWidth`.
+ * @param dilations The dilation rates:
+ *     `[dilationDepth, dilationHeight, dilationWidth]`
+ *     in which we sample input values across the depth, height and width
+ *     dimensions in dilated pooling.
+ *     Defaults to `[1, 1, 1]`. If `dilations` is a single number,
+ *     then `dilationDepth == dilationHeight == dilationWidth`.
+ *     If it is greater than 1, then all values of `strides` must be 1.
+ * @param pad A string from: 'same', 'valid'. The type of padding algorithm
+ *     used in the forward prop of the op.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
+ *     rounding mode used when computing output dimensions if pad is a
+ *     number. If none is provided, it will not round and error if the output
+ *     is of fractional size.
+ */
+function avgPool3dBackprop<T extends Tensor4D|Tensor5D>(
+    dy: T|TensorLike, input: T|TensorLike,
+    filterSize: [number, number, number]|number,
+    strides: [number, number, number]|number,
+    dilations: [number, number, number]|number, pad: 'valid'|'same'|number,
+    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+  const $dy = convertToTensor(dy, 'dy', 'avgPool3dBackprop');
+  const $input = convertToTensor(input, 'input', 'avgPool3dBackprop');
+
+  let dy5D = $dy as Tensor5D;
+  let input5D = $input as Tensor5D;
+  let reshapedTo5D = false;
+  if ($input.rank === 4) {
+    reshapedTo5D = true;
+    dy5D = $dy.as5D(1, $dy.shape[0], $dy.shape[1], $dy.shape[2], $dy.shape[3]);
+    input5D = $input.as5D(
+        1, $input.shape[0], $input.shape[1], $input.shape[2], $input.shape[3]);
+  }
+
+  util.assert(
+      dy5D.rank === 5,
+      () => `Error in avgPool3dBackprop: dy must be rank 5 but got rank ` +
+          `${dy5D.rank}.`);
+  util.assert(
+      input5D.rank === 5,
+      () => `Error in avgPool3dBackprop: input must be rank 5 but got rank ` +
+          `${input5D.rank}.`);
+  if (dilations == null) {
+    dilations = [1, 1, 1];
+  }
+  util.assert(
+      conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
+      () => 'Error in avgPool3dBackprop: Either strides or dilations ' +
+          `must be 1. Got strides ${strides} and dilations '${dilations}'`);
+  if (dimRoundingMode != null) {
+    util.assert(
+        util.isInt(pad as number),
+        () => `Error in maxPool3dBackprop: pad must be an integer when ` +
+            `using, dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+  }
+
+  const convInfo = conv_util.computePool3DInfo(
+      input5D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
+  const res = ENGINE.runKernel(
+      backend => backend.avgPool3dBackprop(dy5D, input5D, convInfo),
+      {dy5D, input5D});
+  if (reshapedTo5D) {
+    return res.as4D(res.shape[1], res.shape[2], res.shape[3], res.shape[4]) as
+        T;
+  }
+
+  return res as T;
+}
+
+/**
+ * Computes the 3D max pooling.
+ *
+ * ```js
+ * const x = tf.tensor5d([1, 2, 3, 4, 5, 6, 7, 8], [1, 2, 2, 2, 1]);
+ * const result = tf.maxPool3d(x, 2, 1, 'valid');
+ * result.print();
+ * ```
+ *
+ * @param x The input tensor, of rank 5 or rank 4 of shape
+ *     `[batch, depth, height, width, inChannels]`.
+ * @param filterSize The filter size:
+ *     `[filterDepth, filterHeight, filterWidth]`.
+ *     If `filterSize` is a single number,
+ *     then `filterDepth == filterHeight == filterWidth`.
+ * @param strides The strides of the pooling:
+ *     `[strideDepth, strideHeight, strideWidth]`.
+ *     If `strides` is a single number,
+ *     then `strideDepth == strideHeight == strideWidth`.
+ * @param pad The type of padding algorithm.
+ *    - `same` and stride 1: output will be of same size as input,
+ *       regardless of filter size.
+ *    - `valid`: output will be smaller than input if filter is larger
+ *       than 1*1x1.
+ *    - For more info, see this guide:
+ *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
+ *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ * @param dimRoundingMode The rounding mode used when computing output
+ *     dimensions if pad is a number. If none is provided, it will not round
+ *     and error if the output is of fractional size.
+ * @param dataFormat An optional string from: "NDHWC", "NCDHW". Defaults to
+ *     "NDHWC". Specify the data format of the input and output data. With the
+ *     default format "NDHWC", the data is stored in the order of: [batch,
+ *     depth, height, width, channels]. Only "NDHWC" is currently supported.
+ * @param dilations The dilation rates:
+ *     `[dilationDepth, dilationHeight, dilationWidth]`
+ *     in which we sample input values across the depth, height and width
+ *     dimensions in dilated pooling.
+ *     Defaults to `[1, 1, 1]`. If `dilations` is a single number,
+ *     then `dilationDepth == dilationHeight == dilationWidth`.
+ *     If it is greater than 1, then all values of `strides` must be 1.
+ */
+/** @doc {heading: 'Operations', subheading: 'Convolution'} */
+function maxPool3d_<T extends Tensor4D|Tensor5D>(
+    x: T|TensorLike, filterSize: [number, number, number]|number,
+    strides: [number, number, number]|number, pad: 'valid'|'same'|number,
+    dimRoundingMode?: 'floor'|'round'|'ceil',
+    dataFormat: 'NDHWC'|'NCDHW' = 'NDHWC',
+    dilations?: [number, number, number]|number): T {
+  const $x = convertToTensor(x, 'x', 'maxPool3d');
+
+  let x5D = $x as Tensor5D;
+  let reshapedTo5D = false;
+  if ($x.rank === 4) {
+    reshapedTo5D = true;
+    x5D = $x.as5D(1, $x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]);
+  }
+
+  if (dilations == null) {
+    dilations = [1, 1, 1];
+  }
+  util.assert(
+      x5D.rank === 5,
+      () => `Error in maxPool3d: x must be rank 5 but got rank ${x5D.rank}.`);
+  util.assert(
+      dataFormat === 'NDHWC',
+      () => `Error in maxPool3d: Only NDHWC is currently supported, ` +
+          `but got dataFormat of ${dataFormat}`);
+  util.assert(
+      conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
+      () => 'Error in maxPool3d: Either strides or dilations must be 1. ' +
+          `Got strides ${strides} and dilations '${dilations}'`);
+  if (dimRoundingMode != null) {
+    util.assert(
+        util.isInt(pad as number),
+        () => `Error in maxPool3d: pad must be an integer when using, ` +
+            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+  }
+
+  const convInfo = conv_util.computePool3DInfo(
+      x5D.shape, filterSize, strides, dilations, pad, dimRoundingMode,
+      dataFormat);
+
+  const grad = (dy: Tensor5D, saved: Tensor[]) => {
+    const [x5D, y] = saved;
+    return {
+      x: () => maxPool3dBackprop(
+          dy, x5D as Tensor5D, y as Tensor5D, filterSize, strides, dilations,
+          pad, dimRoundingMode)
+    };
+  };
+
+  const res = ENGINE.runKernel((backend, save) => {
+    const y = backend.maxPool3d(x5D, convInfo);
+    save([x5D, y]);
+    return y;
+  }, {x: x5D}, grad);
+  if (reshapedTo5D) {
+    return res.as4D(res.shape[1], res.shape[2], res.shape[3], res.shape[4]) as
+        T;
+  }
+
+  return res as T;
+}
+
+/**
+ * Computes the backprop of a 3d max pool.
+ *
+ * @param dy The dy error, of rank 5 of shape
+ *     [batchSize, depth, height, width, channels].
+ * assumed.
+ * @param input The original input image, of rank 5 or rank 4 of shape
+ *     [batchSize, depth, height, width, channels].
+ * @param output The original output image, of rank 5 of shape
+ *     [batchSize, outDepth, outHeight, outWidth, channels].
+ * @param filterSize The filter size:
+ *     `[filterDepth, filterHeight, filterWidth]`.
+ *     `filterSize` is a single number,
+ *     then `filterDepth == filterHeight == filterWidth`.
+ * @param strides The strides of the pooling:
+ *     `[strideDepth, strideHeight, strideWidth]`. If
+ *     `strides` is a single number, then `strideHeight == strideWidth`.
+ * @param dilations The dilation rates:
+ *     `[dilationDepth, dilationHeight, dilationWidth]`
+ *     in which we sample input values across the depth, height and width
+ *     dimensions in dilated pooling.
+ *     Defaults to `[1, 1, 1]`. If `dilations` is a single number,
+ *     then `dilationDepth == dilationHeight == dilationWidth`.
+ *     If it is greater than 1, then all values of `strides` must be 1.
+ * @param pad A string from: 'same', 'valid'. The type of padding algorithm
+ *     used in the forward prop of the op.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
+ *     rounding mode used when computing output dimensions if pad is a
+ *     number. If none is provided, it will not round and error if the output
+ *     is of fractional size.
+ */
+function maxPool3dBackprop<T extends Tensor4D|Tensor5D>(
+    dy: T|TensorLike, input: T|TensorLike, output: T|TensorLike,
+    filterSize: [number, number, number]|number,
+    strides: [number, number, number]|number,
+    dilations: [number, number, number]|number, pad: 'valid'|'same'|number,
+    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+  const $dy = convertToTensor(dy, 'dy', 'maxPool3dBackprop');
+  const $input = convertToTensor(input, 'input', 'maxPool3dBackprop');
+  const $output = convertToTensor(output, 'output', 'maxPool3dBackprop');
+
+  let dy5D = $dy as Tensor5D;
+  let input5D = $input as Tensor5D;
+  let output5D = $output as Tensor5D;
+  let reshapedTo5D = false;
+  if ($input.rank === 4) {
+    reshapedTo5D = true;
+    dy5D = $dy.as5D(1, $dy.shape[0], $dy.shape[1], $dy.shape[2], $dy.shape[3]);
+    input5D = $input.as5D(
+        1, $input.shape[0], $input.shape[1], $input.shape[2], $input.shape[3]);
+    output5D = $output.as5D(
+        1, $output.shape[0], $output.shape[1], $output.shape[2],
+        $output.shape[3]);
+  }
+
+  util.assert(
+      dy5D.rank === 5,
+      () => `Error in maxPool3dBackprop: dy must be rank 5 but got rank ` +
+          `${dy5D.rank}.`);
+  util.assert(
+      input5D.rank === 5,
+      () => `Error in maxPool3dBackprop: input must be rank 5 but got rank ` +
+          `${input5D.rank}.`);
+  util.assert(
+      output5D.rank === 5,
+      () => `Error in maxPool3dBackprop: output must be rank 5 but got rank ` +
+          `${output5D.rank}.`);
+  if (dilations == null) {
+    dilations = [1, 1, 1];
+  }
+  util.assert(
+      conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
+      () => 'Error in maxPool3dBackprop: Either strides or dilations ' +
+          `must be 1. Got strides ${strides} and dilations '${dilations}'`);
+  if (dimRoundingMode != null) {
+    util.assert(
+        util.isInt(pad as number),
+        () => `Error in maxPool3dBackprop: pad must be an integer when ` +
+            `using, dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+  }
+
+  const convInfo = conv_util.computePool3DInfo(
+      input5D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
+  const res = ENGINE.runKernel(
+      backend => backend.maxPool3dBackprop(dy5D, input5D, output5D, convInfo),
+      {dy5D, input5D});
+  
+  if (reshapedTo5D) {
+    return res.as4D(res.shape[1], res.shape[2], res.shape[3], res.shape[4]) as
+        T;
+  }
+
+  return res as T;
+}
+
 export const maxPool = op({maxPool_});
 export const avgPool = op({avgPool_});
 export const pool = op({pool_});
+export const maxPool3d = op({maxPool3d_});
+export const avgPool3d = op({avgPool3d_});

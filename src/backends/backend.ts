@@ -468,6 +468,19 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     throw new Error('Not yet implemented');
   }
+  avgPool3d(x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+    throw new Error('Not yet implemented');
+  }
+  avgPool3dBackprop(dy: Tensor5D, x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+    throw new Error('Not yet implemented');
+  }
+  maxPool3d(x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+    throw new Error('Not yet implemented');
+  }
+  maxPool3dBackprop(
+      dy: Tensor5D, x: Tensor5D, y: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+    throw new Error('Not yet implemented');
+  }
 
   reshape<T extends Tensor, R extends Rank>(x: T, shape: ShapeMap[R]):
       Tensor<R> {
