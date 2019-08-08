@@ -65,7 +65,6 @@
     "napi_versions": [
       3,
       4
-    ],
-    "package_name": "CPU-darwin-1.2.6.tar.gz"
+    ]
   }
 }
