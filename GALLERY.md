@@ -43,6 +43,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [Neuroglancer](https://github.com/google/neuroglancer) - A browser-based app for examining 3D volumetric neuroimaging data.
 - [Chester Radiology Assistant](https://mlmed.org/tools/xray) - A web-based tool for diagnosing chest x-ray images.
 - [Membrane](https://membrane.today) - An interactive audiovisual tone mirror that responds to nose movement, by Ashlin Aronin.
+- [Deep Image Prior](https://warlock.ai/deepimageprior) - Implementation of the deep image prior algorithm for denoising, inpainting, super-resolution and more
 
 ## Tutorials
 
