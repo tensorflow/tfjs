@@ -41,7 +41,6 @@ import {getArrayFromDType, inferDtype, now, sizeFromShape} from '../../util';
 import {BackendTimingInfo, DataStorage, EPSILON_FLOAT32, KernelBackend} from '../backend';
 import * as backend_util from '../backend_util';
 import * as complex_util from '../complex_util';
-import {inTopKImpl} from '../inTopK_impl';
 import {nonMaxSuppressionImpl} from '../non_max_suppression_impl';
 import {split} from '../split_shared';
 import {tile} from '../tile_impl';
@@ -857,18 +856,6 @@ export class MathBackendCPU implements KernelBackend {
 
     const xVals = this.readSync(x.dataId) as TypedArray;
     return topkImpl(xVals, x.shape, x.dtype as NumericDataType, k, sorted);
-  }
-
-  inTopK<T extends Tensor, U extends Tensor>(
-      predictions: T, targets: U, k: number): U {
-    this.assertNotComplex([predictions, targets], 'inTopK');
-
-    const predictionsVals = this.readSync(predictions.dataId) as TypedArray;
-    const targetsVals = this.readSync(targets.dataId) as TypedArray;
-
-    return inTopKImpl(
-               predictionsVals, predictions.shape, targetsVals, targets.shape,
-               k) as U;
   }
 
   min(x: Tensor, axes: number[]): Tensor {

@@ -48,7 +48,7 @@ export * from './gather_nd';
 export * from './diag';
 export * from './dropout';
 export * from './signal_ops';
-export * from './inTopK';
+export * from './in_top_k';
 
 export {op} from './operation';
 
