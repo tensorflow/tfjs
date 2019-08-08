@@ -595,6 +595,7 @@ export declare interface MaskingArgs extends LayerArgs {
 }
 
 export class Masking extends Layer {
+  /** @nocollapse */
   static className = 'Masking';
   maskValue: number;
 
