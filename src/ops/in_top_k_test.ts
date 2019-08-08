@@ -21,11 +21,11 @@ import {expectArraysClose} from '../test_util';
 
 import {tensor1d, tensor2d, tensor3d} from './tensor_ops';
 
-describeWithFlags('inTopK', ALL_ENVS, async () => {
+describeWithFlags('inTopKAsync', ALL_ENVS, async () => {
   it('predictions 2d array, targets 1d array, with default k', async () => {
     const predictions = tensor2d([[20, 10, 40, 30], [30, 50, -20, 10]]);
     const targets = tensor1d([2, 0]);
-    const precision = tf.inTopK(predictions, targets);
+    const precision = await tf.inTopKAsync(predictions, targets);
     expect(precision.shape).toEqual([2]);
     expect(precision.dtype).toBe('bool');
     expectArraysClose(await precision.data(), [1, 0]);
@@ -35,7 +35,7 @@ describeWithFlags('inTopK', ALL_ENVS, async () => {
     const predictions = tensor2d([[20, 10, 40, 30], [30, 50, -20, 10]]);
     const targets = tensor1d([2, 0]);
     const k = 2;
-    const precision = tf.inTopK(predictions, targets, k);
+    const precision = await tf.inTopKAsync(predictions, targets, k);
     expect(precision.shape).toEqual([2]);
     expect(precision.dtype).toBe('bool');
     expectArraysClose(await precision.data(), [1, 1]);
@@ -45,7 +45,7 @@ describeWithFlags('inTopK', ALL_ENVS, async () => {
     const predictions =
         tensor3d([[[1, 5, 2], [4, 3, 6]], [[3, 2, 1], [1, 2, 3]]]);
     const targets = tensor2d([[1, 2], [0, 1]]);
-    const precision = tf.inTopK(predictions, targets);
+    const precision = await tf.inTopKAsync(predictions, targets);
     expect(precision.shape).toEqual([2, 2]);
     expect(precision.dtype).toBe('bool');
     expectArraysClose(await precision.data(), [1, 1, 1, 0]);
@@ -56,7 +56,7 @@ describeWithFlags('inTopK', ALL_ENVS, async () => {
         tensor3d([[[1, 5, 2], [4, 3, 6]], [[3, 2, 1], [1, 2, 3]]]);
     const targets = tensor2d([[1, 2], [0, 1]]);
     const k = 2;
-    const precision = tf.inTopK(predictions, targets, k);
+    const precision = await tf.inTopKAsync(predictions, targets, k);
     expect(precision.shape).toEqual([2, 2]);
     expect(precision.dtype).toBe('bool');
     expectArraysClose(await precision.data(), [1, 1, 1, 1]);
@@ -66,13 +66,13 @@ describeWithFlags('inTopK', ALL_ENVS, async () => {
     const predictions = tensor2d([[1, 2, 2, 1]]);
 
     const targets1 = tensor1d([1]);
-    const precision1 = tf.inTopK(predictions, targets1);
+    const precision1 = await tf.inTopKAsync(predictions, targets1);
     expect(precision1.shape).toEqual([1]);
     expect(precision1.dtype).toBe('bool');
     expectArraysClose(await precision1.data(), [1]);
 
     const targets2 = tensor1d([2]);
-    const precision2 = tf.inTopK(predictions, targets2);
+    const precision2 = await tf.inTopKAsync(predictions, targets2);
     expect(precision2.shape).toEqual([1]);
     expect(precision2.dtype).toBe('bool');
     expectArraysClose(await precision2.data(), [0]);
@@ -81,28 +81,72 @@ describeWithFlags('inTopK', ALL_ENVS, async () => {
   it('accept tensor-like object, with default k', async () => {
     const predictions = [[20, 10, 40, 30], [30, 50, -20, 10]];
     const targets = [2, 0];
-    const precision = tf.inTopK(predictions, targets);
+    const precision = await tf.inTopKAsync(predictions, targets);
     expect(precision.shape).toEqual([2]);
     expect(precision.dtype).toBe('bool');
     expectArraysClose(await precision.data(), [1, 0]);
   });
 
-  it('throws when predictions_rank <2', () => {
+  it('doesnt leak tensors with tensor-like objects', async () => {
+    const numTensors = tf.memory().numTensors;
+
+    const predictions = [[20, 10, 40, 30], [30, 50, -20, 10]];
+    const targets = [2, 0];
+    const precision = await tf.inTopKAsync(predictions, targets);
+    precision.dispose();
+
+    expect(tf.memory().numTensors).toBe(numTensors);
+  });
+
+  it('throws when predictions_rank <2', async () => {
     const predictions = tensor1d([20, 10, 40, 30]);
     const targets = [2];
-    expect(() => tf.inTopK(predictions, targets)).toThrowError();
+
+    // expect(...).toThrowError() does not support async functions.
+    // See https://github.com/jasmine/jasmine/issues/1410
+    try {
+      await tf.inTopKAsync(predictions, targets);
+      throw new Error('The line above should have thrown an error');
+    } catch (ex) {
+      expect(ex.message)
+          .toEqual(
+              'inTopK() expects the predictions to ' +
+              'be of rank 2 or higher, but got 1');
+    }
   });
 
-  it('throws when prediction_rank != targets_rank + 1', () => {
+  it('throws when prediction.rank != targets.rank + 1', async () => {
     const predictions = tensor2d([[20, 10, 40, 30], [30, 50, -20, 10]]);
     const targets = tensor2d([[0], [0]]);
-    expect(() => tf.inTopK(predictions, targets)).toThrowError();
+
+    // expect(...).toThrowError() does not support async functions.
+    // See https://github.com/jasmine/jasmine/issues/1410
+    try {
+      await tf.inTopKAsync(predictions, targets);
+      throw new Error('The line above should have thrown an error');
+    } catch (ex) {
+      expect(ex.message)
+          .toEqual(
+              'predictions rank should be 1 larger than targets rank,' +
+              ' but got predictions rank 2 and targets rank 2');
+    }
   });
 
-  it('throws when k > size of last dimension of predictions', () => {
+  it('throws when k > size of last dimension of predictions', async () => {
     const predictions = tensor2d([[20, 10, 40, 30], [30, 50, -20, 10]]);
     const targets = tensor1d([2, 0]);
     const k = 5;
-    expect(() => tf.inTopK(predictions, targets, k)).toThrowError();
+
+    // expect(...).toThrowError() does not support async functions.
+    // See https://github.com/jasmine/jasmine/issues/1410
+    try {
+      await tf.inTopKAsync(predictions, targets, k);
+      throw new Error('The line above should have thrown an error');
+    } catch (ex) {
+      expect(ex.message)
+          .toEqual(
+              '\'k\' passed to inTopK() must be > 0 && <= the predictions ' +
+              'last dimension (4), but got 5');
+    }
   });
 });
