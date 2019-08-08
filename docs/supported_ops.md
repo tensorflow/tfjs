@@ -15,6 +15,7 @@
 |Mod|mod|
 |Mul|mul|
 |Pow|pow|
+|RealDiv|div|
 |SquaredDifference|squaredDifference|
 |Sub|sub|
 
@@ -44,10 +45,8 @@
 |LeakyRelu|leakyRelu|
 |Log|log|
 |Log1p|log1p|
-|Imag|imag|
 |Neg|neg|
 |Prod|prod|
-|Real|real|
 |Reciprocal|reciprocal|
 |Reciprocal|reciprocal|
 |Real|real|
