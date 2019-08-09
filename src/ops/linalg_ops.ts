@@ -215,7 +215,10 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
         const rjEnd1 = r.slice([j, j], [m - j, 1]);
         const normX = rjEnd1.norm();
         const rjj = r.slice([j, j], [1, 1]);
-        const s = rjj.sign().neg() as Tensor2D;
+
+        // The sign() function returns 0 on 0, which causes division by zero.
+        const s = tensor2d([[-1]]).where(rjj.greater(0), tensor2d([[1]]));
+
         const u1 = rjj.sub(s.mul(normX)) as Tensor2D;
         const wPre = rjEnd1.div(u1);
         if (wPre.shape[0] === 1) {

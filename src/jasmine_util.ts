@@ -40,8 +40,8 @@ export const SYNC_BACKEND_ENVS: Constraints = {
 };
 
 export const HAS_WORKER = {
-  predicate: () => typeof(Worker) !== 'undefined'
-      && typeof(Blob) !== 'undefined' && typeof(URL) !== 'undefined'
+  predicate: () => typeof (Worker) !== 'undefined' &&
+      typeof (Blob) !== 'undefined' && typeof (URL) !== 'undefined'
 };
 
 export const HAS_NODE_WORKER = {
@@ -52,7 +52,7 @@ export const HAS_NODE_WORKER = {
     } catch {
       hasWorker = false;
     }
-    return typeof(process) !== 'undefined' && hasWorker;
+    return typeof (process) !== 'undefined' && hasWorker;
   }
 };
 

@@ -140,6 +140,17 @@ describeWithFlags('qr', ALL_ENVS, () => {
         [[-8.3066, 8.3066, -2.4077], [0, 4.5826, -2.1822], [0, 0, 7.6447]]);
   });
 
+  it('3x3, zero on diagonal', async () => {
+    const x = tensor2d([[0, 2, 2], [1, 1, 1], [0, 1, 2]], [3, 3]);
+    const [q, r] = tf.linalg.qr(x);
+    expectArraysClose(await q.data(), [
+      [0., -0.89442719, 0.4472136], [1., 0., 0.], [0., -0.4472136, -0.89442719]
+    ]);
+    expectArraysClose(
+        await r.data(),
+        [[1., 1., 1.], [0., -2.23606798, -2.68328157], [0., 0., -0.89442719]]);
+  });
+
   it('3x2, fullMatrices = default false', async () => {
     const x = tensor2d([[1, 2], [3, -3], [-2, 1]], [3, 2]);
     const [q, r] = tf.linalg.qr(x);
