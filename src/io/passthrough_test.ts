@@ -115,8 +115,8 @@ describeWithFlags('Passthrough Saver', BROWSER_ENVS, () => {
 
 describeWithFlags('Passthrough Loader', BROWSER_ENVS, () => {
   it('load topology and weights: legacy signature', async () => {
-    const passthroughHandler = tf.io.fromMemory(
-        modelTopology1, weightSpecs1, weightData1);
+    const passthroughHandler =
+        tf.io.fromMemory(modelTopology1, weightSpecs1, weightData1);
     const modelArtifacts = await passthroughHandler.load();
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs).toEqual(weightSpecs1);
@@ -147,9 +147,8 @@ describeWithFlags('Passthrough Loader', BROWSER_ENVS, () => {
   });
 
   it('load model topology only', async () => {
-    const passthroughHandler = tf.io.fromMemory({
-      modelTopology: modelTopology1
-    });
+    const passthroughHandler =
+        tf.io.fromMemory({modelTopology: modelTopology1});
     const modelArtifacts = await passthroughHandler.load();
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs).toEqual(undefined);

@@ -88,7 +88,7 @@ describeWithFlags('concat1d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('concat complex input', async() => {
+  it('concat complex input', async () => {
     // [1+1j, 2+2j]
     const c1 = tf.complex([1, 2], [1, 2]);
     // [3+3j, 4+4j]
@@ -234,7 +234,7 @@ describeWithFlags('concat2d', ALL_ENVS, () => {
     expectArraysEqual(await res2.data(), []);
   });
 
-  it('concat complex input axis=0', async() => {
+  it('concat complex input axis=0', async () => {
     // [[1+1j, 2+2j], [3+3j, 4+4j]]
     const c1 = tf.complex([[1, 2], [3, 4]], [[1, 2], [3, 4]]);
     // [[5+5j, 6+6j], [7+7j, 8+8j]]
@@ -247,7 +247,7 @@ describeWithFlags('concat2d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('concat complex input axis=1', async() => {
+  it('concat complex input axis=1', async () => {
     // [[1+1j, 2+2j], [3+3j, 4+4j]]
     const c1 = tf.complex([[1, 2], [3, 4]], [[1, 2], [3, 4]]);
     // [[5+5j, 6+6j], [7+7j, 8+8j]]
@@ -500,50 +500,56 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
     expectArraysClose(await values.data(), [1, 2, 3, 4, 5, 6]);
   });
 
-  it('concat complex input axis=0', async() => {
+  it('concat complex input axis=0', async () => {
     // [[[1+1j, 2+2j], [3+3j, 4+4j], [5+5j, 6+6j]]]
-    const c1 = tf.complex(
-      [[[1, 2], [3, 4], [5, 6]]], [[[1, 2], [3, 4], [5, 6]]]);
+    const c1 =
+        tf.complex([[[1, 2], [3, 4], [5, 6]]], [[[1, 2], [3, 4], [5, 6]]]);
     // [[[7+7j, 8+8j], [9+9j, 10+10j], [11+11j, 12+12j]]]
     const c2 = tf.complex(
-      [[[7, 8], [9, 10], [11, 12]]], [[[7, 8], [9, 10], [11, 12]]]);
+        [[[7, 8], [9, 10], [11, 12]]], [[[7, 8], [9, 10], [11, 12]]]);
 
     const axis = 0;
     const result = tf.concat([c1, c2], axis);
-    const expected = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
-      7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12];
+    const expected = [
+      1, 1, 2, 2, 3, 3, 4,  4,  5,  5,  6,  6,
+      7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12
+    ];
     expect(result.dtype).toEqual('complex64');
     expectArraysClose(await result.data(), expected);
   });
 
-  it('concat complex input axis=1', async() => {
+  it('concat complex input axis=1', async () => {
     // [[[1+1j, 2+2j], [3+3j, 4+4j], [5+5j, 6+6j]]]
-    const c1 = tf.complex(
-      [[[1, 2], [3, 4], [5, 6]]], [[[1, 2], [3, 4], [5, 6]]]);
+    const c1 =
+        tf.complex([[[1, 2], [3, 4], [5, 6]]], [[[1, 2], [3, 4], [5, 6]]]);
     // [[[7+7j, 8+8j], [9+9j, 10+10j], [11+11j, 12+12j]]]
     const c2 = tf.complex(
-      [[[7, 8], [9, 10], [11, 12]]], [[[7, 8], [9, 10], [11, 12]]]);
+        [[[7, 8], [9, 10], [11, 12]]], [[[7, 8], [9, 10], [11, 12]]]);
 
     const axis = 1;
     const result = tf.concat([c1, c2], axis);
-    const expected = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
-      7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12];
+    const expected = [
+      1, 1, 2, 2, 3, 3, 4,  4,  5,  5,  6,  6,
+      7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12
+    ];
     expect(result.dtype).toEqual('complex64');
     expectArraysClose(await result.data(), expected);
   });
 
-  it('concat complex input axis=1', async() => {
+  it('concat complex input axis=1', async () => {
     // [[[1+1j, 2+2j], [3+3j, 4+4j], [5+5j, 6+6j]]]
-    const c1 = tf.complex(
-      [[[1, 2], [3, 4], [5, 6]]], [[[1, 2], [3, 4], [5, 6]]]);
+    const c1 =
+        tf.complex([[[1, 2], [3, 4], [5, 6]]], [[[1, 2], [3, 4], [5, 6]]]);
     // [[[7+7j, 8+8j], [9+9j, 10+10j], [11+11j, 12+12j]]]
     const c2 = tf.complex(
-      [[[7, 8], [9, 10], [11, 12]]], [[[7, 8], [9, 10], [11, 12]]]);
+        [[[7, 8], [9, 10], [11, 12]]], [[[7, 8], [9, 10], [11, 12]]]);
 
     const axis = 2;
     const result = tf.concat([c1, c2], axis);
-    const expected = [1, 1, 2, 2, 7, 7, 8, 8, 3, 3, 4, 4,
-      9, 9, 10, 10, 5, 5, 6, 6, 11, 11, 12, 12];
+    const expected = [
+      1, 1, 2,  2,  7, 7, 8, 8, 3,  3,  4,  4,
+      9, 9, 10, 10, 5, 5, 6, 6, 11, 11, 12, 12
+    ];
     expect(result.dtype).toEqual('complex64');
     expectArraysClose(await result.data(), expected);
   });
