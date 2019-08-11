@@ -18,6 +18,7 @@
   "[javascript]": {
     "editor.formatOnSave": true
   },
+  "editor.defaultFormatter": "xaver.clang-format",
   "editor.rulers": [80],
   "clang-format.style": "Google",
   "files.insertFinalNewline": true,
