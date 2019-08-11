@@ -55,6 +55,7 @@ import './ops/conv2d_separable_test';
 import './ops/conv2d_test';
 import './ops/conv2d_transpose_test';
 import './ops/conv3d_test';
+import './ops/conv3d_transpose_test';
 import './ops/conv_util_test';
 import './ops/diag_test';
 import './ops/dropout_test';
