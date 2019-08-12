@@ -18,8 +18,10 @@
 import {op} from '../ops/operation';
 import {Tensor, Tensor1D} from '../tensor';
 
+import {mul} from './binary_ops';
 import {concat} from './concat_split';
 import {slice} from './slice';
+import {rfft} from './spectral_ops';
 import {fill, tensor1d, tensor2d} from './tensor_ops';
 
 /**
@@ -94,6 +96,45 @@ function frame_(
   return concat(output).as2D(output.length, frameLength);
 }
 
+/**
+ * Computes the Short-time Fourier Transform of signals
+ * See: https://en.wikipedia.org/wiki/Short-time_Fourier_transform
+ *
+ * ```js
+ * const input = tf.tensor1d([1, 1, 1, 1, 1])
+ * tf.signal.stft(input, 3, 1).print();
+ * ```
+ * @param signal 1-dimensional real value tensor.
+ * @param frameLength The window length of samples.
+ * @param frameStep The number of samples to step.
+ * @param fftLength The size of the FFT to apply.
+ * @param windowFn A callable that takes a window length and returns 1-d tensor.
+ */
+/**
+ * @doc {heading: 'Operations', subheading: 'Signal', namespace: 'signal'}
+ */
+function stft_(
+    signal: Tensor1D, frameLength: number, frameStep: number,
+    fftLength?: number,
+    windowFn: (length: number) => Tensor1D = hannWindow): Tensor {
+  if (fftLength == null) {
+    fftLength = enclosingPowerOfTwo(frameLength);
+  }
+  const framedSignal = frame(signal, frameLength, frameStep);
+  const windowedSignal = mul(framedSignal, windowFn(frameLength));
+  const output: Tensor[] = [];
+  for (let i = 0; i < framedSignal.shape[0]; i++) {
+    output.push(rfft(windowedSignal.slice([i, 0], [1, frameLength]),
+      fftLength));
+  }
+  return concat(output);
+}
+
+function enclosingPowerOfTwo(value: number) {
+  // Return 2**N for integer N such that 2**N >= value.
+  return Math.floor(Math.pow(2, Math.ceil(Math.log(value) / Math.log(2.0))));
+}
+
 function cosineWindow(windowLength: number, a: number, b: number): Tensor1D {
   const even = 1 - windowLength % 2;
   const newValues = new Float32Array(windowLength);
@@ -107,3 +148,4 @@ function cosineWindow(windowLength: number, a: number, b: number): Tensor1D {
 export const hannWindow = op({hannWindow_});
 export const hammingWindow = op({hammingWindow_});
 export const frame = op({frame_});
+export const stft = op({stft_});
