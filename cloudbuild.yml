@@ -55,7 +55,8 @@ steps:
   id: 'test-webgpu'
   dir: 'tfjs-webgpu/'
   args: ['test-ci']
-  waitFor: ['-']  # start step immediately
+  # Wait for parent because subfolders look at parent node_modules.
+  waitFor: ['yarn']
 #
 # React-Native tests
 #
@@ -64,7 +65,8 @@ steps:
   id: 'test-react-native'
   dir: 'tfjs-react-native/'
   args: ['test-ci']
-  waitFor: ['-']  # start step immediately
+  # Wait for parent because subfolders look at parent node_modules.
+  waitFor: ['yarn']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
 
