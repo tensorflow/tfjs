@@ -118,6 +118,12 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
       attr: {squeeze_dims: {list: {i: ['1', '2']}}}
     },
     {
+      name: 'Squeeze2',
+      op: 'Squeeze',
+      input: ['BiasAdd'],
+      attr: {squeeze_dims: {list: {}}}
+    },
+    {
       name: 'Split',
       op: 'Split',
       input: ['image_placeholder'],
@@ -163,7 +169,7 @@ describe('operationMapper', () => {
 
       it('should find the graph output nodes', () => {
         expect(convertedGraph.outputs.map(node => node.name)).toEqual([
-          'Fill', 'Squeeze', 'Split', 'LogicalNot', 'FusedBatchNorm'
+          'Fill', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot', 'FusedBatchNorm'
         ]);
       });
 
@@ -176,7 +182,8 @@ describe('operationMapper', () => {
       it('should convert nodes', () => {
         expect(Object.keys(convertedGraph.nodes)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
-          'BiasAdd', 'Squeeze', 'Split', 'LogicalNot', 'FusedBatchNorm'
+          'BiasAdd', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot',
+          'FusedBatchNorm'
         ]);
       });
     });
@@ -214,6 +221,9 @@ describe('operationMapper', () => {
         expect(
             convertedGraph.nodes['FusedBatchNorm'].attrParams['epsilon'].value)
             .toEqual(0.0001);
+        expect(
+            convertedGraph.nodes['Squeeze2'].attrParams['axis'].value)
+            .toEqual([]);
       });
 
       it('should map the placeholder attribute params', () => {
