@@ -22,6 +22,7 @@ import argparse
 import json
 import os
 import shutil
+import sys
 import tempfile
 
 import h5py
@@ -434,7 +435,8 @@ def _parse_quantization_bytes(quantization_bytes):
     raise ValueError('Unsupported quantization bytes: %s' % quantization_bytes)
 
 
-def setup_arguments():
+def get_arg_parser():
+  """Create the argument parser for the converter binary."""
   parser = argparse.ArgumentParser('TensorFlow.js model converters.')
   parser.add_argument(
       'input_path',
@@ -522,11 +524,22 @@ def setup_arguments():
       default=None,
       help='Shard size (in bytes) of the weight files. Currently applicable '
       'only to output_format=tfjs_layers_model.')
-  return parser.parse_args()
+  return parser
 
 
 def main():
-  FLAGS = setup_arguments()
+  try:
+    FLAGS
+  except NameError:
+    # This code path is added in addition to to the flags-parsing
+    # code in the `__name__ == '__main__'` branch below, because it is
+    # required by the pip-packaged binary case. The pip-packaged binary calls
+    # the `main()` method directly and therefore by passes the
+    # `__name__ == '__main__'` branch.
+    # pylint: disable=redefined-outer-name,invalid-name
+    FLAGS = get_arg_parser().parse_args()
+    # pylint: enable=redefined-outer-name,invalid-name
+
   if FLAGS.show_version:
     print('\ntensorflowjs %s\n' % version.version)
     print('Dependency versions:')
@@ -623,4 +636,7 @@ def main():
 
 
 if __name__ == '__main__':
-  main()
+  # pylint: disable=redefined-outer-name,invalid-name
+  FLAGS, unparsed = get_arg_parser().parse_known_args()
+  # pylint: enable=redefined-outer-name,invalid-name
+  tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
