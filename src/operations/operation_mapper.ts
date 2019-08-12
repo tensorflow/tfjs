@@ -373,7 +373,7 @@ export function getNumericArrayParam(
     def: number[]): number[] {
   const param = attrs[name];
   if (param) {
-    return ((param.list.f && param.list.f.length ? param.list.f : param.list.i))
+    return ((param.list.f && param.list.f.length ? param.list.f : param.list.i) || [])
                .map(
                    v => (typeof v === 'number') ? v :
                                                   parseInt(v as string, 10)) as
