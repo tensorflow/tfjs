@@ -1,8 +1,12 @@
 {
   "folders": [
     {
-      "name": "Core",
+      "name": "Common",
       "path": "."
+    },
+    {
+      "name": "Core",
+      "path": "tfjs-core"
     },
     {
       "name": "Wasm",

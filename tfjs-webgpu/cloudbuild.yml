@@ -1,0 +1,23 @@
+steps:
+# Install common dependencies.
+- name: 'node:10'
+  id: 'yarn-common'
+  entrypoint: 'yarn'
+  args: ['install']
+
+# Install webgpu dependencies.
+- name: 'node:10'
+  dir: 'tfjs-webgpu'
+  entrypoint: 'yarn'
+  id: 'test-webgpu'
+  args: ['test-ci']
+  waitFor: ['yarn-common']
+
+# General configuration
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'

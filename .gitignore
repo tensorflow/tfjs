@@ -13,6 +13,7 @@ bazel-out/
 yalc.lock
 .rpt2_cache/
 package/
+*/diff
 
 tfjs-backend-wasm/dist
 tfjs-backend-wasm/wasm-out

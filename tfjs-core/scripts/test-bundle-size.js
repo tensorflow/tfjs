@@ -15,7 +15,7 @@
 // =============================================================================
 
 const shell = require('shelljs');
-const {exec} = require('./test-util');
+const {exec} = require('../../scripts/test-util');
 
 function getFileSizeBytes(filename) {
   const gzipFilename = `${filename}.gzip}`;
