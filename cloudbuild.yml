@@ -1,85 +1,34 @@
 steps:
-#
-# Core tests
-#
-# install dependencies
+# Install top-level deps.
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-# build
-- name: 'node:10'
-  entrypoint: 'yarn'
-  id: 'build'
-  args: ['build-ci']
-  waitFor: ['yarn']
-# run unit tests
-- name: 'node:10'
-  entrypoint: 'yarn'
-  id: 'test'
-  args: ['test-ci']
-  waitFor: ['build']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
-  secretEnv: ['BROWSERSTACK_KEY']
-# Run integration tests of other packages against core
-- name: 'node:10'
-  entrypoint: 'yarn'
-  id: 'test-integration'
-  args: ['test-integration']
-  waitFor: ['build']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
-  secretEnv: ['BROWSERSTACK_KEY']
-# bundle size check
-- name: 'node:10'
-  entrypoint: 'yarn'
-  id: 'test-bundle-size'
-  args: ['test-bundle-size']
-  waitFor: ['yarn']
-# test doc snippets
-- name: 'node:10'
-  entrypoint: 'yarn'
-  args: ['test-snippets']
-  id: 'test-snippets'
-  waitFor: ['yarn']
-# test Async backends
-- name: 'node:10'
-  entrypoint: 'yarn'
-  id: 'test-async-backends'
-  args: ['test-async-backends-ci']
-  waitFor: ['build']
-#
-# WebGPU tests
-#
-- name: 'node:10'
-  entrypoint: 'yarn'
-  id: 'test-webgpu'
-  dir: 'tfjs-webgpu/'
-  args: ['test-ci']
-  # Wait for parent because subfolders look at parent node_modules.
-  waitFor: ['yarn']
-#
-# React-Native tests
-#
-- name: 'node:10'
-  entrypoint: 'yarn'
-  id: 'test-react-native'
-  dir: 'tfjs-react-native/'
-  args: ['test-ci']
-  # Wait for parent because subfolders look at parent node_modules.
-  waitFor: ['yarn']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
-  secretEnv: ['BROWSERSTACK_KEY']
 
-# General configuration
-secrets:
-- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
-  secretEnv:
-    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
-timeout: 1800s
-logsBucket: 'gs://tfjs-build-logs'
-substitutions:
-  _NIGHTLY: ''
-options:
-  logStreamingOption: 'STREAM_ON'
-  machineType: 'N1_HIGHCPU_8'
-  substitution_option: 'ALLOW_LOOSE'
+# Run diff to find modified files in each folder.
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'diff'
+  args: ['diff']
+  waitFor: ['yarn']
+
+# Core.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'core'
+  args: ['./scripts/run-build.sh', 'tfjs-core']
+  waitFor: ['diff']
+
+# WebGPU.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'webgpu'
+  args: ['./scripts/run-build.sh', 'tfjs-webgpu']
+  waitFor: ['diff']
+
+# React Native.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'react-native'
+  args: ['./scripts/run-build.sh', 'tfjs-react-native']
+  waitFor: ['diff']

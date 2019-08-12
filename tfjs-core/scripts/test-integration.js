@@ -14,7 +14,7 @@
 // limitations under the License.
 // =============================================================================
 
-const {exec} = require('./test-util');
+const {exec} = require('../../scripts/test-util');
 
 const dirName = 'tfjs-core-integration';
 
