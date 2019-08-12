@@ -44,40 +44,40 @@
       font-size: 10px;
     }
 
-    #trendline-container svg {
+    div[id*='trendline-container'] svg {
       overflow: visible;
       border-bottom: 1px solid #ccc;
       border-left: 1px solid #ccc;
     }
 
-    #trendline-container .label {
+    div[id*='trendline-container'] .label {
       font-size: 14px;
       font-weight: bold;
     }
 
-    #trendline-container path {
+    div[id*='trendline-container'] path {
       fill: none;
       stroke: #222;
     }
 
-    #trendline {
+    .trendline {
       position: relative;
       margin-top: 20px;
     }
 
-    #trendline #yMax,
-    #trendline #yMin {
+    .trendline .yMax,
+    .trendline .yMin {
       position: absolute;
       right: calc(100% + 6px);
       font-size: 11px;
       white-space: nowrap;
     }
 
-    #trendline #yMin {
+    .trendline .yMin {
       bottom: 0;
     }
 
-    #trendline #yMax {
+    .trendline .yMax {
       top: 0;
     }
 
@@ -146,11 +146,31 @@
         <tbody>
         </tbody>
       </table>
-      <div class="box" id="trendline-container">
-        <div class="label"></div>
-        <div id="trendline">
-          <div id="yMax"></div>
-          <div id="yMin">0 ms</div>
+      <div class="box" id="perf-trendline-container">
+        <div class="label">Inference times</div>
+        <div class="trendline">
+          <div class="yMax"></div>
+          <div class="yMin"></div>
+          <svg>
+            <path></path>
+          </svg>
+        </div>
+      </div>
+      <div class="box" id="mem-trendline-container">
+        <div class="label">Number of tensors</div>
+        <div class="trendline">
+          <div class="yMax"></div>
+          <div class="yMin"></div>
+          <svg>
+            <path></path>
+          </svg>
+        </div>
+      </div>
+      <div class="box" id="bytes-trendline-container">
+        <div class="label">Number of bytes used</div>
+        <div class="trendline">
+          <div class="yMax"></div>
+          <div class="yMin"></div>
           <svg>
             <path></path>
           </svg>
@@ -322,7 +342,7 @@
     const modalDiv = document.getElementById('modal-msg');
     const timeTable = document.querySelector('#timings tbody');
     const envDiv = document.getElementById('env');
-    let model, isAsync, predict;
+    let model, isAsync, predict, chartWidth;
 
     async function showMsg(message) {
       if (message != null) {
@@ -413,15 +433,30 @@
       appendRow(timeTable, 'Model load', printTime(elapsed));
     }
 
+    const chartHeight = 150;
+    function populateTrendline(node, data, forceYMinToZero = false, yFormatter = d => d) {
+      node.querySelector("svg").setAttribute("width", chartWidth);
+      node.querySelector("svg").setAttribute("height", chartHeight);
+
+      const yMax = Math.max(...data);
+      const yMin = forceYMinToZero ? 0 : Math.min(...data);
+
+      node.querySelector(".yMin").textContent = yFormatter(yMin);
+      node.querySelector(".yMax").textContent = yFormatter(yMax);
+
+      const xIncrement = chartWidth / (data.length - 1);
+      node.querySelector("path")
+        .setAttribute("d", `M${data.map((d, i) => `${i * xIncrement},${chartHeight - ((d - yMin) / (yMax - yMin)) * chartHeight}`).join('L')}`);
+    }
+
     async function measureAveragePredictTime() {
-      document.querySelector("#trendline-container .label").textContent = `Inference times over ${state.numRuns} runs`;
       await showMsg(`Running predict ${state.numRuns} times`);
-      const chartHeight = 150;
-      const chartWidth = document.querySelector("#trendline-container").getBoundingClientRect().width;
-      document.querySelector("#trendline-container svg").setAttribute("width", chartWidth);
-      document.querySelector("#trendline-container svg").setAttribute("height", chartHeight);
+      chartWidth = document.querySelector("#perf-trendline-container").getBoundingClientRect().width;
 
       const times = [];
+      const numTensors = [];
+      const numBytes = [];
+
       for (let i = 0; i < state.numRuns; i++) {
         const start = performance.now();
         let res = predict(model);
@@ -434,18 +469,21 @@
         }
 
         times.push(performance.now() - start);
+        const memInfo = tf.memory();
+        numTensors.push(memInfo.numTensors);
+        numBytes.push(memInfo.numBytes);
       }
 
-      const average = times.reduce((acc, curr) => acc + curr, 0) / times.length;
-      const max = Math.max(...times);
-      const min = Math.min(...times);
-      const xIncrement = chartWidth / times.length;
+      const forceInferenceTrendYMinToZero = true;
+      populateTrendline(document.querySelector("#perf-trendline-container"), times, forceInferenceTrendYMinToZero, printTime);
+      populateTrendline(document.querySelector("#mem-trendline-container"), numTensors);
 
-      document.querySelector("#trendline-container #yMax").textContent = printTime(max);
-      document.querySelector("#trendline-container path")
-        .setAttribute("d", `M${times.map((d, i) => `${i * xIncrement},${chartHeight - (d / max) * chartHeight}`).join('L')}`);
+      const forceBytesTrendlineYMinToZero = false;
+      populateTrendline(document.querySelector("#bytes-trendline-container"), numBytes, forceBytesTrendlineYMinToZero, d => `${(d / 1e6).toPrecision(3)}MB`);
 
       await showMsg(null);
+      const average = times.reduce((acc, curr) => acc + curr, 0) / times.length;
+      const min = Math.min(...times);
       appendRow(timeTable, `Subsequent average (${state.numRuns} runs)`, printTime(average));
       appendRow(timeTable, 'Best time', printTime(min));
     }
