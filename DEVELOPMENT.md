@@ -28,6 +28,7 @@ for auto-formatting.
 Before submitting a pull request, make sure the code passes all the tests and is clean of lint errors:
 
 ```bash
+# cd into the package directory you want to test
 $ yarn test
 $ yarn lint
 ```
