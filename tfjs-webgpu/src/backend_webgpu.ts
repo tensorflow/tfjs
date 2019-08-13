@@ -74,6 +74,11 @@ type TensorInfo = {
 
 interface DataId {}
 
+export interface CPUTimerQuery {
+  startMs: number;
+  endMs: number;
+}
+
 export type WebGPUKernelInfo = {
   name: string; query: Promise<number>;
 };
@@ -342,6 +347,20 @@ export class WebGPUBackend extends KernelBackend {
     };
   }
 
+  startTimer() {
+    return {startMs: util.now(), endMs: 0};
+  }
+
+  endTimer(query: CPUTimerQuery) {
+    query.endMs = util.now();
+    return query;
+  }
+
+  async getQueryTime(query: CPUTimerQuery): Promise<number> {
+    const timerQuery = query;
+    return timerQuery.endMs - timerQuery.startMs;
+  }
+
   private compileAndRun<
       K extends {dtype: DataType, size: number, dataId: {}, shape: number[]}>(
       program: webgpu_program.WebGPUProgram, inputs: Tensor[], output?: Tensor,
@@ -414,6 +433,12 @@ export class WebGPUBackend extends KernelBackend {
           this.device, program, inputsData, output, uniforms);
     });
 
+    const shouldTimeProgram = this.activeTimers != null;
+    let query: CPUTimerQuery;
+    if (shouldTimeProgram) {
+      query = this.startTimer();
+    }
+
     // Creating bind groups on the fly should never be a bottleneck.
     const bg = webgpu_program.makeBindGroup(
         this.device, bindGroupLayout, inputs.map(t => this.tensorToBinding(t)),
@@ -439,6 +464,12 @@ export class WebGPUBackend extends KernelBackend {
     this.releaseBuffer(
         uniforms.resource.buffer, uniformData.byteLength,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
+
+    if (shouldTimeProgram) {
+      query = this.endTimer(query);
+      this.activeTimers.push(
+          {name: program.constructor.name, query: this.getQueryTime(query)});
+    }
     return output as {} as K;
   }
 
