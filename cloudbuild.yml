@@ -15,20 +15,27 @@ steps:
 # Core.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
-  id: 'core'
+  id: 'tfjs-core'
   args: ['./scripts/run-build.sh', 'tfjs-core']
+  waitFor: ['diff']
+
+# Union.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs'
+  args: ['./scripts/run-build.sh', 'tfjs']
   waitFor: ['diff']
 
 # WebGPU.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
-  id: 'webgpu'
+  id: 'tfjs-backend-webgpu'
   args: ['./scripts/run-build.sh', 'tfjs-webgpu']
   waitFor: ['diff']
 
 # React Native.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
-  id: 'react-native'
+  id: 'tfjs-react-native'
   args: ['./scripts/run-build.sh', 'tfjs-react-native']
   waitFor: ['diff']
