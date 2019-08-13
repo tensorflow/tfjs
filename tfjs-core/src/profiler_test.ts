@@ -61,7 +61,7 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
     const result = 1;
     const resultScalar = tf.scalar(result);
 
-    profiler.profileKernel('MatMul', () => {
+    profiler.profileKernel('MatMul', {$x: null}, () => {
       kernelCalled = true;
       return resultScalar;
     });
@@ -99,8 +99,8 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
     const result = 1;
     const resultScalar = tf.scalar(result);
 
-    profiler.profileKernel('MatMul', () => {
-      const result = profiler.profileKernel('Max', () => {
+    profiler.profileKernel('MatMul', {$x: null}, () => {
+      const result = profiler.profileKernel('Max', {$x: null}, () => {
         maxKernelCalled = true;
         return resultScalar;
       });
