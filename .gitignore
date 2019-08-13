@@ -1,5 +1,4 @@
 node_modules/
-<<<<<<< HEAD
 package-lock.json
 npm-debug.log
 .DS_Store
@@ -11,7 +10,6 @@ yalc.lock
 .rpt2_cache/
 package
 release-notes.md
-=======
 coverage/
 npm-debug.log
 yarn-error.log
@@ -30,4 +28,3 @@ package/
 
 tfjs-backend-wasm/dist
 tfjs-backend-wasm/wasm-out
->>>>>>> tfjs-core/master
