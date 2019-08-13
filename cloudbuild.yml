@@ -19,6 +19,13 @@ steps:
   args: ['./scripts/run-build.sh', 'tfjs-core']
   waitFor: ['diff']
 
+# Union.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'core'
+  args: ['./scripts/run-build.sh', 'tfjs']
+  waitFor: ['diff']
+
 # WebGPU.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
