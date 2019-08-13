@@ -55,11 +55,22 @@ describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
     expect(a).toThrowError();
   });
 
-  it('debug mode errors when infinities in op output', () => {
+  fit('debug mode errors when infinities in op output', async () => {
     const a = tf.tensor1d([1, 2, 3, 4]);
     const b = tf.tensor1d([2, -1, 0, 3]);
-    const c = () => a.div(b);
-    expect(c).toThrowError();
+
+    spyOn(tf.util, 'UserException');
+
+    const c = async () => {
+      const result = a.div(b);
+      const data = await result.data();
+      return data;
+    };
+
+    c();
+
+    expect(tf.util.UserException)
+        .toHaveBeenCalledWith(`The result of the 'div' is NaN.`);
   });
 
   it('debug mode errors when nans in op output', () => {
