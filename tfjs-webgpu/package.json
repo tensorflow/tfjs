@@ -18,7 +18,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "1.2.1",
+    "@tensorflow/tfjs-core": "1.2.7",
     "@types/jasmine": "~2.5.53",
     "clang-format": "~1.2.2",
     "http-server": "~0.10.0",

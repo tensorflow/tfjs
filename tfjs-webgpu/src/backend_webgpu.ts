@@ -19,7 +19,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataMover, DataType, ENV, KernelBackend, Rank, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataMover, DataType, ENV, KernelBackend, Rank, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 import * as shaderc from '@webgpu/shaderc';
 
 import {BufferManager} from './buffer_manager';
@@ -40,11 +40,19 @@ import {UnaryOpProgram} from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
 import {WebGPUBinary} from './kernels/webgpu_program';
 
-// TODO: Delete this and import from core once new release is published.
+// START TO-IMPORT-FROM-CORE ============================
+// TODO: Delete definitions in this section and import from core once new
+// release is published.
 type MemoryInfo = {
   numTensors: number; numDataBuffers: number; numBytes: number;
   unreliable?: boolean; reasons: string[];
 };
+
+// tslint:disable-next-line:no-any
+interface RecursiveArray<T extends any> {
+  [index: number]: T|RecursiveArray<T>;
+}
+// END TO-IMPORT-FROM-CORE ==============================
 
 export interface WebGPUMemoryInfo extends MemoryInfo {
   numBytesInGPU: number;
@@ -66,6 +74,17 @@ type TensorInfo = {
 
 interface DataId {}
 
+export type WebGPUKernelInfo = {
+  name: string; query: Promise<number>;
+};
+
+export type TimerNode = RecursiveArray<WebGPUKernelInfo>|WebGPUKernelInfo;
+
+export interface WebGPUTimingInfo extends TimingInfo {
+  uploadWaitMs: number;
+  downloadWaitMs: number;
+}
+
 const DEFAULT_GPUBUFFER_USAGE =
     GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
 
@@ -85,6 +104,11 @@ export class WebGPUBackend extends KernelBackend {
   private disposalQueue: BufferInfo[] = [];
 
   private disposed = false;
+
+  private programTimersStack: TimerNode[];
+  private activeTimers: TimerNode[];
+  private uploadWaitMs = 0;
+  private downloadWaitMs = 0;
 
   constructor(device: GPUDevice, shaderc: shaderc.Shaderc) {
     super();
@@ -242,6 +266,51 @@ export class WebGPUBackend extends KernelBackend {
     this.convertAndCacheOnCPU(dataId, dataAsTypedArray);
 
     return dataAsTypedArray;
+  }
+
+  async time(f: () => void): Promise<WebGPUTimingInfo> {
+    const oldActiveTimers = this.activeTimers;
+    const newActiveTimers: TimerNode[] = [];
+
+    let outerMostTime = false;
+    if (this.programTimersStack == null) {
+      this.programTimersStack = newActiveTimers;
+      outerMostTime = true;
+    } else {
+      this.activeTimers.push(newActiveTimers);
+    }
+    this.activeTimers = newActiveTimers;
+
+    f();
+
+    const flattenedActiveTimerQueries =
+        util.flatten(this.activeTimers.map((d: WebGPUKernelInfo) => d.query))
+            .filter(d => d != null);
+    const flattenedActiveTimerNames =
+        util.flatten(this.activeTimers.map((d: WebGPUKernelInfo) => d.name))
+            .filter(d => d != null);
+
+    this.activeTimers = oldActiveTimers;
+
+    if (outerMostTime) {
+      this.programTimersStack = null;
+    }
+
+    const kernelMs = await Promise.all(flattenedActiveTimerQueries);
+
+    const res: WebGPUTimingInfo = {
+      uploadWaitMs: this.uploadWaitMs,
+      downloadWaitMs: this.downloadWaitMs,
+      kernelMs: util.sum(kernelMs),
+      getExtraProfileInfo: () =>
+          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
+              .map(d => `${d.name}: ${d.ms}`)
+              .join(', '),
+      wallMs: null
+    };
+    this.uploadWaitMs = 0;
+    this.downloadWaitMs = 0;
+    return res;
   }
 
   private getAndSavePipeline(
