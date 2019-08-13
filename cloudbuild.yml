@@ -1,0 +1,34 @@
+steps:
+# Install top-level deps.
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+
+# Run diff to find modified files in each folder.
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'diff'
+  args: ['diff']
+  waitFor: ['yarn']
+
+# Core.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'core'
+  args: ['./scripts/run-build.sh', 'tfjs-core']
+  waitFor: ['diff']
+
+# WebGPU.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'webgpu'
+  args: ['./scripts/run-build.sh', 'tfjs-webgpu']
+  waitFor: ['diff']
+
+# React Native.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'react-native'
+  args: ['./scripts/run-build.sh', 'tfjs-react-native']
+  waitFor: ['diff']

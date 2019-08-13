@@ -1,0 +1,610 @@
+<html>
+
+<head>
+  <title>TensorFlow.js Model Benchmark</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+  <style>
+    html,
+    body {
+      font-family: 'Roboto', sans-serif;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    body {
+      margin: 20px 100px;
+    }
+
+    h2 {
+      margin-bottom: 30px;
+    }
+
+    #kernels {
+      max-width: 750px;
+    }
+
+    #container {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    .box {
+      margin-right: 30px;
+      margin-bottom: 30px;
+    }
+
+    .box pre {
+      margin: 0;
+      border: 1px solid #ccc;
+      padding: 8px;
+      font-size: 10px;
+    }
+
+    div[id*='trendline-container'] svg {
+      overflow: visible;
+      border-bottom: 1px solid #ccc;
+      border-left: 1px solid #ccc;
+    }
+
+    div[id*='trendline-container'] .label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    div[id*='trendline-container'] path {
+      fill: none;
+      stroke: #222;
+    }
+
+    .trendline {
+      position: relative;
+      margin-top: 20px;
+    }
+
+    .trendline .yMax,
+    .trendline .yMin {
+      position: absolute;
+      right: calc(100% + 6px);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .trendline .yMin {
+      bottom: 0;
+    }
+
+    .trendline .yMax {
+      top: 0;
+    }
+
+    #modal-msg {
+      border-radius: 5px;
+      background-color: black;
+      color: white;
+      padding: 7px;
+      top: 15px;
+      left: 45%;
+      display: none;
+      position: absolute;
+    }
+
+    .table {
+      margin-right: 30px;
+      margin-bottom: 30px;
+      border: 1px solid #ccc;
+      border-collapse: collapse;
+      border-spacing: 0;
+    }
+
+    .table tr {
+      border-bottom: 1px solid #ddd;
+    }
+
+    .table tr:nth-child(even) {
+      background-color: #f1f1f1;
+    }
+
+    .table th {
+      font-weight: bold;
+    }
+
+    .table td,
+    th {
+      padding: 8px 8px;
+      font-size: 13px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .table td:first-child,
+    th:first-child {
+      padding-left: 16px;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.2/dat.gui.min.js"></script>
+</head>
+
+<body>
+  <h2>TensorFlow.js Model Benchmark</h2>
+  <div id="modal-msg"></div>
+  <div id="container">
+    <div id="stats">
+      <div class="box">
+        <pre id="env"></pre>
+      </div>
+      <table class="table" id="timings">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <div class="box" id="perf-trendline-container">
+        <div class="label">Inference times</div>
+        <div class="trendline">
+          <div class="yMax"></div>
+          <div class="yMin"></div>
+          <svg>
+            <path></path>
+          </svg>
+        </div>
+      </div>
+      <div class="box" id="mem-trendline-container">
+        <div class="label">Number of tensors</div>
+        <div class="trendline">
+          <div class="yMax"></div>
+          <div class="yMin"></div>
+          <svg>
+            <path></path>
+          </svg>
+        </div>
+      </div>
+      <div class="box" id="bytes-trendline-container">
+        <div class="label">Number of bytes used</div>
+        <div class="trendline">
+          <div class="yMax"></div>
+          <div class="yMin"></div>
+          <svg>
+            <path></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <table class="table" id="kernels">
+      <thead>
+        <tr>
+          <th>Kernel</th>
+          <th>Time(ms)</th>
+          <th>Output</th>
+          <th>GPUPrograms</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@1.0.0/dist/posenet.min.js"></script>
+  <script>
+    'use strict';
+
+    const sentences = [
+      'add clem burke in my playlist Pre-Party R&B Jams',
+      'Add Live from Aragon Ballroom to Trapeo',
+      'add Unite and Win to my night out',
+      'Add track to my Digster Future Hits',
+      'add the piano bar to my Cindy Wilson',
+      'Add Spanish Harlem Incident to cleaning the house',
+      'add The Greyest of Blue Skies in Indie Español my playlist',
+      'Add the name kids in the street to the plylist New Indie Mix',
+      'add album radar latino',
+      'Add Tranquility to the Latin Pop Rising playlist.',
+      'play something from the twenties',
+      'Play The View From The Afternoon by Malese Jow on Last Fm',
+      'play songs by Sammy Fain',
+      'Play music from the year 1964',
+      'Play the heinz strobl ep from 2016 on Groove Shark',
+      'Play me Leonid Soybelman on Vimeo.',
+      'Play a song from my workout playlist on Groove Shark',
+      'play some Alte Kameraden music',
+      'Will it be warm 1 week from now in DC',
+      'what is the forecast for temperate conditions in Thailand in Lopeno',
+      'Is the weather colder in Costa Rica',
+      'Will it be colder in Delaware?',
+      '"I need to know the weather for Hamorton, TN"',
+      'What will the weather be in Albania at 11:56.',
+      'Is it going to hail in Mount San Jacinto State Park',
+      'What\'s the forecast for Walker Bay Nature Reserve for next year ? ',
+      'is it supposed to be sunny here?',
+      'in California will it be cold in East Trenton Heights',
+      'What is the weather like in Wallis and Futuna? What will the weather be in Romania at 4?',
+      'What is the weather going to be like in Reidland New Mexico next Jun.?',
+      'How cold is it in Cargray, Argentina?',
+      'Is the forecast chillier in 1 hour in Mali',
+      'Tell me if there will be wind in NE Will it be cloudy not far  from Allenton Will there be a blizzard in AR what is the New Caledonia forecast for Bagnell on sep. the 5th Weather for apr. the thirteenth in Djibouti',
+      'Can you give me the weather forecast in Tajikistan? How cold is it going to be in San Marcial, AK in one second? What will the weather be in a month from now at my current location?',
+      'What is the weather like in IA in april How windy is it in Anderson Lake State Fish and Wildlife Area? Is it going to be stormy in Austin Creek State Recreation Area at 09:42?',
+      'When will the weather be temperate like it is now in Stansbury Park in Tuvalu, What is the weather in neighboring OH, What\'s the weather forecast for Spain ? ',
+      'Play the music Hands Up',
+      'Play some twenties theme music on Google Music.',
+      'How will the weather be in New Mexico around 00:09:07 am?',
+      'What will the humidity be in AR in 49 weeks and a half from now',
+      'Is it humid in Parc national de Killarney',
+      'is it supposed to get colder here on 12/28/2019',
+      'How is the forecast for OK?',
+      'what is the Posey Island State Park forecast for colder temps at meal time',
+      'Is it supposed to be chilly in Kuwait?',
+      'Tell me if it\'ll be chilly here at 0 pm',
+      'what is the forecast for colder conditions within the same area of this current place',
+      'Will it hail today in West Point at 11:36:48',
+      'Is it overcast in South Carolina',
+      'Will the sun be out close-by Admiralty Island National Monument?',
+      'What will the weather be in Wakarusa',
+      'How temperate will it be here this week?',
+      'what is the forecast for here at tea time',
+    ];
+
+    const benchmarks = {
+      'mobilenet': {
+        load: async () => {
+          const url = 'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2'
+          return tf.loadGraphModel(url, { fromTFHub: true });
+        },
+        predictFunc: () => {
+          const zeros = tf.zeros([1, 224, 224, 3]);
+          return (model) => {
+            if (isAsync) {
+              return model.executeAsync(zeros);
+            }
+            return model.predict(zeros);
+          }
+        }
+      },
+      'USE - batchsize 30': {
+        load: async () => {
+          return use.load();
+        },
+        predictFunc: () => {
+          const sentences30 = sentences.slice(0, 30);
+          return async (model) => {
+            const res = await model.embed(sentences30);
+            return await res.data();
+          }
+
+        }
+      },
+      'USE - batchsize 1': {
+        load: async () => {
+          return use.load();
+        },
+        predictFunc: () => {
+          let nextIdx = 0;
+
+          return async () => {
+            const next = [sentences[(nextIdx % sentences.length)]];
+            const res = await model.embed(next);
+            nextIdx += 1;
+            return await res.data();
+          }
+        }
+      },
+      'posenet': {
+        load: async () => {
+          const imageBucket =
+            'https://storage.googleapis.com/tfjs-models/assets/posenet/';
+
+          async function loadImage(imagePath) {
+            const image = new Image();
+            const promise = new Promise((resolve, reject) => {
+              image.crossOrigin = '';
+              image.onload = () => {
+                resolve(image);
+              };
+            });
+
+            image.src = `${imageBucket}${imagePath}`;
+            return promise;
+          }
+
+          const posenetModel = await posenet.load();
+          const image = await loadImage('tennis_standing.jpg');
+
+          posenetModel.benchmarkImage = image;
+          return posenetModel;
+        },
+        predictFunc: () => {
+          return async (model) => {
+            const image = model.benchmarkImage;
+            const pose = await model.estimateSinglePose(image);
+            return pose;
+          }
+        }
+      },
+    };
+
+    const state = {
+      numRuns: 50,
+      benchmark: 'mobilenet',
+      run: (v) => {
+        runBenchmark();
+      },
+    };
+
+    const modalDiv = document.getElementById('modal-msg');
+    const timeTable = document.querySelector('#timings tbody');
+    const envDiv = document.getElementById('env');
+    let model, isAsync, predict, chartWidth;
+
+    async function showMsg(message) {
+      if (message != null) {
+        modalDiv.innerHTML = message + '...';
+        modalDiv.style.display = 'block';
+      } else {
+        modalDiv.style.display = 'none';
+      }
+      await tf.nextFrame();
+      await tf.nextFrame();
+    }
+
+    function showVersions() {
+      envDiv.innerHTML = JSON.stringify({
+        core: tf.version_core,
+        layers: tf.version_layers,
+        converter: tf.version_converter
+      }, null, 2);
+    }
+
+    async function showEnvironment() {
+      await tf.time(() => tf.square(3).data());
+      envDiv.innerHTML += `<br/>${JSON.stringify(tf.ENV.features, null, 2)}`;
+    }
+
+    function printTime(elapsed) {
+      return elapsed.toFixed(1) + ' ms';
+    }
+
+    function printMemory(bytes) {
+      if (bytes < 1024) {
+        return bytes + ' B';
+      } else if (bytes < 1024 * 1024) {
+        return (bytes / 1024).toFixed(2) + ' KB';
+      } else {
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+      }
+    }
+
+    function appendRow(tbody, ...cells) {
+      const tr = document.createElement('tr');
+      cells.forEach(c => {
+        const td = document.createElement('td');
+        if (c instanceof HTMLElement) {
+          td.appendChild(c);
+        } else {
+          td.innerHTML = c;
+        }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+
+    async function warmUpAndRecordTime() {
+      await showMsg('Warming up');
+      const start = performance.now();
+      let res = predict(model);
+      if (res instanceof Promise) {
+        res = await res;
+      }
+
+      if (res instanceof tf.Tensor) {
+        res.dataSync();
+      }
+
+      const elapsed = performance.now() - start;
+      await showMsg(null);
+      appendRow(timeTable, '1st inference', printTime(elapsed));
+    }
+
+    function sleep(timeMs) {
+      return new Promise(resolve => setTimeout(resolve, timeMs));
+    }
+
+    async function loadAndRecordTime(benchmark) {
+      await showMsg('Loading the model');
+      const start = performance.now();
+      model = await benchmark.load();
+      predict = benchmark.predictFunc();
+      isAsync = model.executor != null && model.executor.isControlFlowModel;
+
+      const elapsed = performance.now() - start;
+      await showMsg(null);
+
+      appendRow(timeTable, `<b>Benchmark:</b> ${state.benchmark}`,
+        `<b>Runs:</b> ${state.numRuns}`);
+
+      appendRow(timeTable, 'Model load', printTime(elapsed));
+    }
+
+    const chartHeight = 150;
+    function populateTrendline(node, data, forceYMinToZero = false, yFormatter = d => d) {
+      node.querySelector("svg").setAttribute("width", chartWidth);
+      node.querySelector("svg").setAttribute("height", chartHeight);
+
+      const yMax = Math.max(...data);
+      const yMin = forceYMinToZero ? 0 : Math.min(...data);
+
+      node.querySelector(".yMin").textContent = yFormatter(yMin);
+      node.querySelector(".yMax").textContent = yFormatter(yMax);
+
+      const xIncrement = chartWidth / (data.length - 1);
+      node.querySelector("path")
+        .setAttribute("d", `M${data.map((d, i) => `${i * xIncrement},${chartHeight - ((d - yMin) / (yMax - yMin)) * chartHeight}`).join('L')}`);
+    }
+
+    async function measureAveragePredictTime() {
+      await showMsg(`Running predict ${state.numRuns} times`);
+      chartWidth = document.querySelector("#perf-trendline-container").getBoundingClientRect().width;
+
+      const times = [];
+      const numTensors = [];
+      const numBytes = [];
+
+      for (let i = 0; i < state.numRuns; i++) {
+        const start = performance.now();
+        let res = predict(model);
+        if (res instanceof Promise) {
+          await res;
+        }
+
+        if (res instanceof tf.Tensor) {
+          res.dataSync();
+        }
+
+        times.push(performance.now() - start);
+        const memInfo = tf.memory();
+        numTensors.push(memInfo.numTensors);
+        numBytes.push(memInfo.numBytes);
+      }
+
+      const forceInferenceTrendYMinToZero = true;
+      populateTrendline(document.querySelector("#perf-trendline-container"), times, forceInferenceTrendYMinToZero, printTime);
+      populateTrendline(document.querySelector("#mem-trendline-container"), numTensors);
+
+      const forceBytesTrendlineYMinToZero = false;
+      populateTrendline(document.querySelector("#bytes-trendline-container"), numBytes, forceBytesTrendlineYMinToZero, d => `${(d / 1e6).toPrecision(3)}MB`);
+
+      await showMsg(null);
+      const average = times.reduce((acc, curr) => acc + curr, 0) / times.length;
+      const min = Math.min(...times);
+      appendRow(timeTable, `Subsequent average (${state.numRuns} runs)`, printTime(average));
+      appendRow(timeTable, 'Best time', printTime(min));
+    }
+
+    async function profileMemory() {
+      await showMsg('Profile memory');
+      const start = performance.now();
+      let res;
+      const data = await tf.profile(() => res = predict(model));
+      if (res instanceof Promise) {
+        res = await res;
+      }
+
+      if (res instanceof tf.Tensor) {
+        res.dataSync();
+      }
+      const elapsed = performance.now() - start;
+      await showMsg(null);
+      appendRow(timeTable, 'Peak memory', printMemory(data.peakBytes));
+      appendRow(timeTable, '2nd inference', printTime(elapsed));
+    }
+
+    function showKernelTime(kernels) {
+      const tbody = document.querySelector('#kernels tbody');
+      kernels.forEach(k => {
+        const nameSpan = document.createElement('span');
+        nameSpan.setAttribute('title', k.scopes.slice(0, -1).join(' --> '));
+        nameSpan.textContent = k.scopes[k.scopes.length - 1];
+        appendRow(tbody, nameSpan, k.time.toFixed(2), k.output, k.gpuProgramsInfo);
+      });
+    }
+
+    async function profileKernelTime() {
+      await showMsg('Profiling kernels');
+      _tfengine.ENV.set('DEBUG', true);
+      const oldLog = console.log;
+      let kernels = [];
+      console.log = msg => {
+        let parts = [];
+        if (typeof msg === 'string') {
+          parts = msg.split('\t').map(x => x.slice(2));
+        }
+
+        if (parts.length > 2) {
+          // heuristic for determining whether we've caught a profiler
+          // log statement as opposed to a regular console.log
+          // TODO(https://github.com/tensorflow/tfjs/issues/563): return timing information as part of tf.profile
+          const scopes = parts[0].trim()
+            .split('||')
+            .filter(s => s !== 'unnamed scope');
+          kernels.push({
+            scopes: scopes,
+            time: Number.parseFloat(parts[1]),
+            output: parts[2].trim(),
+            gpuProgramsInfo: parts[4]
+          });
+        } else {
+          oldLog.call(oldLog, msg);
+        }
+      }
+      let res = predict(model);
+      if (res instanceof Promise) {
+        res = await res;
+      }
+
+      if (res instanceof tf.Tensor) {
+        res.dataSync();
+      }
+
+      await showMsg(null);
+      await sleep(10);
+      kernels = kernels.sort((a, b) => b.time - a.time);
+      appendRow(timeTable, 'Number of kernels', kernels.length);
+
+      // Add an empty row at the end of a benchmark run
+      appendRow(timeTable, '', '');
+      showKernelTime(kernels);
+      _tfengine.ENV.set('DEBUG', false);
+      // Switch back to the old log;
+      console.log = oldLog;
+    }
+
+    function queryTimerIsEnabled() {
+      return _tfengine.ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0;
+    }
+
+
+    async function runBenchmark() {
+      const benchmark = benchmarks[state.benchmark];
+      await loadAndRecordTime(benchmark);
+      await warmUpAndRecordTime();
+      await showMsg('Waiting for GC');
+      await sleep(1000);
+      await profileMemory();
+      await sleep(200);
+      await measureAveragePredictTime();
+      await sleep(200);
+      if (queryTimerIsEnabled()) {
+        await profileKernelTime();
+      } else {
+        showMsg('Skipping kernel times since query timer extension is not ' +
+          'available. <br/> Use Chrome 70+.');
+      };
+    }
+
+    async function onPageLoad() {
+      var gui = new dat.gui.GUI();
+
+      gui.add(state, 'numRuns');
+      gui.add(state, 'benchmark', ['', ...Object.keys(benchmarks)]);
+      gui.add(state, 'run');
+
+      showVersions();
+      await showEnvironment();
+
+      // Run first benchmark by default on page load.
+      runBenchmark();
+    }
+
+    onPageLoad();
+  </script>
+</body>
+
+</html>

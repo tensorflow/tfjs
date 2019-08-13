@@ -1,0 +1,69 @@
+{
+  "folders": [
+    {
+      "name": "Common",
+      "path": "."
+    },
+    {
+      "name": "Core",
+      "path": "tfjs-core"
+    },
+    {
+      "name": "Wasm",
+      "path": "tfjs-backend-wasm"
+    },
+    {
+      "name": "NodeGL",
+      "path": "tfjs-backend-nodegl"
+    },
+    {
+      "name": "ReactNative",
+      "path": "tfjs-react-native"
+    },
+    {
+      "name": "WebGPU",
+      "path": "tfjs-webgpu"
+    }
+  ],
+  "settings": {
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/coverage/": true,
+      "**/dist/": true,
+      "**/yarn.lock": true,
+      "**/.rpt2_cache/": true,
+      "**/.yalc/**/*": true
+    },
+    "tslint.configFile": "tslint.json",
+    "files.trimTrailingWhitespace": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "[typescript]": {
+      "editor.formatOnSave": true
+    },
+    "[javascript]": {
+      "editor.formatOnSave": true
+    },
+    "[cpp]": {
+      "editor.formatOnSave": true
+    },
+    "editor.defaultFormatter": "xaver.clang-format",
+    "editor.rulers": [
+      80
+    ],
+    "clang-format.style": "Google",
+    "files.insertFinalNewline": true,
+    "editor.detectIndentation": false,
+    "editor.wrappingIndent": "none",
+    "typescript.tsdk": "./node_modules/typescript/lib",
+    "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format"
+  },
+  "extensions": {
+    "recommendations": [
+      // Formats typescript, javascript and c++ code.
+      "xaver.clang-format",
+      // Lints typescipt code.
+      "ms-vscode.vscode-typescript-tslint-plugin"
+    ]
+  }
+}

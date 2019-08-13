@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig",
+  "compilerOptions": {
+    "target": "es2017",
+    "lib": [
+      "es2017"
+    ],
+    "outDir": "./dist/",
+    "skipLibCheck": true,
+  },
+  "include": [
+    "src/",
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+}
