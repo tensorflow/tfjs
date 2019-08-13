@@ -462,7 +462,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
             result = forwardFunc(this.backend, saveFunc);
           } else {
             result = this.profiler.profileKernel(
-                scopeName, () => forwardFunc(this.backend, saveFunc));
+                scopeName, inputs, () => forwardFunc(this.backend, saveFunc));
           }
         });
 

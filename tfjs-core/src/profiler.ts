@@ -17,6 +17,7 @@
 
 import {BackendTimer} from './backends/backend';
 import {Tensor} from './tensor';
+import {NamedTensorMap} from './tensor_types';
 import {TypedArray} from './types';
 import * as util from './util';
 
@@ -27,8 +28,8 @@ export class Profiler {
     }
   }
 
-  profileKernel<T extends Tensor|Tensor[]>(name: string, f: () => T | Tensor[]):
-      T {
+  profileKernel<T extends Tensor|Tensor[]>(
+      name: string, inputs: NamedTensorMap, f: () => T | Tensor[]): T {
     let result: T|Tensor[];
     const holdResultWrapperFn = () => {
       result = f();
@@ -47,7 +48,8 @@ export class Profiler {
           extraInfo = timing.getExtraProfileInfo();
         }
 
-        this.logger.logKernelProfile(name, r, vals, timing.kernelMs, extraInfo);
+        this.logger.logKernelProfile(
+            name, r, vals, timing.kernelMs, inputs, extraInfo);
       });
     });
 
@@ -58,17 +60,25 @@ export class Profiler {
 export class Logger {
   logKernelProfile(
       name: string, result: Tensor, vals: TypedArray, timeMs: number,
-      extraInfo?: string) {
+      inputs: NamedTensorMap, extraInfo?: string) {
     const time = util.rightPad(`${timeMs}ms`, 9);
     const paddedName = util.rightPad(name, 25);
     const rank = result.rank;
     const size = result.size;
     const shape = util.rightPad(result.shape.toString(), 14);
+    let inputShapesDescription = '';
+
+    for (const name in inputs) {
+      const inputShape = inputs[name].shape;
+      const inputRank = inputShape.length;
+      inputShapesDescription +=
+          `${name}: ${inputRank}D ${inputRank > 0 ? inputShape : ''} `;
+    }
 
     console.log(
         `%c${paddedName}\t%c${time}\t%c${rank}D ${shape}\t%c${size}\t%c${
-            extraInfo}`,
+            inputShapesDescription}\t%c${extraInfo}`,
         'font-weight:bold', 'color:red', 'color:blue', 'color: orange',
-        'color: green');
+        'color: green', 'color: steelblue');
   }
 }
