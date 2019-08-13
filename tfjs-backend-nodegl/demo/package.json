@@ -1,0 +1,16 @@
+{
+  "name": "tfjs-backend-nodegl-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@tensorflow-models/mobilenet": "^1.0.1",
+    "@tensorflow/tfjs": "^1.2.2",
+    "jpeg-js": "^0.3.5"
+  },
+  "author": "",
+  "license": "ISC"
+}

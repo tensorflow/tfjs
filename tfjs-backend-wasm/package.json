@@ -1,0 +1,41 @@
+{
+  "name": "@tensorflow/tfjs-backend-wasm",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "jsnext:main": "dist/tf-wasm.esm.js",
+  "module": "dist/tf-wasm.esm.js",
+  "unpkg": "dist/tf-wasm.min.js",
+  "jsdelivr": "dist/tf-wasm.min.js",
+  "scripts": {
+    "build": "rimraf dist/ && ./scripts/build-wasm.sh && tsc && cp wasm-out/*.wasm dist/",
+    "lint": "tslint -p . -t verbose",
+    "test": "./scripts/build-wasm.sh && karma start"
+  },
+  "peerDependencies": {
+    "@tensorflow/tfjs-core": "~1.2.7"
+  },
+  "devDependencies": {
+    "@tensorflow/tfjs-core": "~1.2.7",
+    "@types/emscripten": "~0.0.34",
+    "clang-format": "^1.2.4",
+    "jasmine-core": "~3.1.0",
+    "karma": "~4.0.0",
+    "karma-browserstack-launcher": "~1.4.0",
+    "karma-chrome-launcher": "~2.2.0",
+    "karma-firefox-launcher": "~1.1.0",
+    "karma-jasmine": "~1.1.1",
+    "karma-typescript": "~4.0.0",
+    "rimraf": "~2.6.2",
+    "rollup": "^1.17.0",
+    "rollup-plugin-commonjs": "^10.0.1",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^5.1.1",
+    "rollup-plugin-typescript2": "^0.22.1",
+    "tslint": "~5.11.0",
+    "tslint-no-circular-imports": "^0.5.0",
+    "typescript": "3.3.3333",
+    "yalc": "~1.0.0-pre.21"
+  },
+  "license": "Apache-2.0"
+}
