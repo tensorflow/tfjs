@@ -263,7 +263,9 @@ export async function webcam(
  * });
  * const audioData = await mic.capture();
  * const spectrogramTensor = audioData.spectrogram;
+ * spectrogramTensor.print();
  * const waveformTensor = audioData.waveform;
+ * waveformTensor.print();
  * mic.stop();
  * ```
  *
