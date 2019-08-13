@@ -182,6 +182,7 @@
         <tr>
           <th>Kernel</th>
           <th>Time(ms)</th>
+          <th>Inputs</th>
           <th>Output</th>
           <th>GPUPrograms</th>
         </tr>
@@ -512,7 +513,7 @@
         const nameSpan = document.createElement('span');
         nameSpan.setAttribute('title', k.scopes.slice(0, -1).join(' --> '));
         nameSpan.textContent = k.scopes[k.scopes.length - 1];
-        appendRow(tbody, nameSpan, k.time.toFixed(2), k.output, k.gpuProgramsInfo);
+        appendRow(tbody, nameSpan, k.time.toFixed(2), k.inputs, k.output, k.gpuProgramsInfo);
       });
     }
 
@@ -538,7 +539,8 @@
             scopes: scopes,
             time: Number.parseFloat(parts[1]),
             output: parts[2].trim(),
-            gpuProgramsInfo: parts[4]
+            inputs: parts[4],
+            gpuProgramsInfo: parts[5]
           });
         } else {
           oldLog.call(oldLog, msg);
