@@ -33,12 +33,14 @@ const minSize = getFileSizeBytes('dist/tf-core.min.js');
 
 // Clone master and get the bundle size from master.
 const dirName = '/tmp/tfjs-core-bundle';
+const coreDirName = 'tfjs-core';
 exec(
     `git clone --depth=1 --single-branch ` +
-        `https://github.com/tensorflow/tfjs-core.git ${dirName}`,
+        `https://github.com/tensorflow/tfjs ${dirName}`,
     {silent: true});
 
 shell.cd(dirName);
+shell.cd(coreDirName);
 exec(`yarn && yarn rollup -c --ci`, {silent: true});
 
 const masterMinSize = getFileSizeBytes('dist/tf-core.min.js');

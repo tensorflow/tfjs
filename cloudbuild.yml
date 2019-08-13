@@ -39,3 +39,10 @@ steps:
   id: 'tfjs-react-native'
   args: ['./scripts/run-build.sh', 'tfjs-react-native']
   waitFor: ['diff']
+
+# General settings.
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'
