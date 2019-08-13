@@ -46,6 +46,7 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
   it('profiles simple function', doneFn => {
     const delayMs = 5;
     const queryTimeMs = 10;
+    const inputs = {'x': tf.tensor1d([1])};
     const extraInfo = '';
     const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
     const logger = new TestLogger();
@@ -61,7 +62,7 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
     const result = 1;
     const resultScalar = tf.scalar(result);
 
-    profiler.profileKernel('MatMul', () => {
+    profiler.profileKernel('MatMul', inputs, () => {
       kernelCalled = true;
       return resultScalar;
     });
@@ -72,7 +73,7 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
       expect(logKernelProfileSpy.calls.count()).toBe(1);
 
       expect(logKernelProfileSpy.calls.first().args).toEqual([
-        'MatMul', resultScalar, new Float32Array([result]), queryTimeMs,
+        'MatMul', resultScalar, new Float32Array([result]), queryTimeMs, inputs,
         extraInfo
       ]);
 
@@ -84,6 +85,7 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
   it('profiles nested kernel', doneFn => {
     const delayMs = 5;
     const queryTimeMs = 10;
+    const inputs = {'x': tf.tensor1d([1])};
     const extraInfo = '';
     const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
     const logger = new TestLogger();
@@ -99,8 +101,8 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
     const result = 1;
     const resultScalar = tf.scalar(result);
 
-    profiler.profileKernel('MatMul', () => {
-      const result = profiler.profileKernel('Max', () => {
+    profiler.profileKernel('MatMul', inputs, () => {
+      const result = profiler.profileKernel('Max', inputs, () => {
         maxKernelCalled = true;
         return resultScalar;
       });
@@ -113,11 +115,12 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
 
       expect(logKernelProfileSpy.calls.count()).toBe(2);
       expect(logKernelProfileSpy.calls.first().args).toEqual([
-        'Max', resultScalar, new Float32Array([result]), queryTimeMs, extraInfo
+        'Max', resultScalar, new Float32Array([result]), queryTimeMs, inputs,
+        extraInfo
       ]);
       expect(logKernelProfileSpy.calls.argsFor(1)).toEqual([
         'MatMul', resultScalar, new Float32Array([result]), queryTimeMs * 2,
-        extraInfo
+        inputs, extraInfo
       ]);
 
       expect(matmulKernelCalled).toBe(true);
