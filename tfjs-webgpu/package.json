@@ -42,7 +42,8 @@
   },
   "dependencies": {
     "@webgpu/shaderc": "0.0.6",
-    "@webgpu/types": "0.0.6"
+    "@webgpu/types": "0.0.6",
+    "rollup-plugin-terser": "^5.1.1"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "1.2.1"

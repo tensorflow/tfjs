@@ -70,6 +70,7 @@
     </table>
   </div>
   <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
+  <script src="./tf-webgpu.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
@@ -112,8 +113,9 @@
     }
 
     async function showEnvironment() {
-      await tf.time(() => tf.square(3).data());
-      envDiv.innerHTML += `<br/>${JSON.stringify(tf.ENV.features, null, 2)}`;
+      await tf.time(() => tf.add(tf.tensor1d([1]), tf.tensor1d([1])).data());
+      envDiv.innerHTML += `<br/>${JSON.stringify(tf.ENV.features, null, 2)
+        } `;
     }
 
     function appendRow(tbody, ...cells) {
@@ -139,7 +141,7 @@
       }
 
       if (res instanceof tf.Tensor) {
-        res.dataSync();
+        res = await res.data();
       }
 
       const elapsed = performance.now() - start;
@@ -157,8 +159,8 @@
       const elapsed = performance.now() - start;
       await showMsg(null);
 
-      appendRow(timeTable, `<b>Benchmark:</b> ${state.benchmark}`,
-        `<b>Runs:</b> ${state.numRuns}`);
+      appendRow(timeTable, `< b > Benchmark:</b > ${state.benchmark} `,
+        `< b > Runs:</b > ${state.numRuns} `);
 
       appendRow(timeTable, 'Model load', printTime(elapsed));
     }
@@ -176,7 +178,7 @@
 
       const xIncrement = chartWidth / (data.length - 1);
       node.querySelector("path")
-        .setAttribute("d", `M${data.map((d, i) => `${i * xIncrement},${chartHeight - ((d - yMin) / (yMax - yMin)) * chartHeight}`).join('L')}`);
+        .setAttribute("d", `M${data.map((d, i) => `${i * xIncrement},${chartHeight - ((d - yMin) / (yMax - yMin)) * chartHeight}`).join('L')} `);
     }
 
     async function measureAveragePredictTime() {
@@ -195,7 +197,7 @@
         }
 
         if (res instanceof tf.Tensor) {
-          res.dataSync();
+          res = await res.data();
         }
 
         times.push(performance.now() - start);
@@ -209,12 +211,12 @@
       populateTrendline(document.querySelector("#mem-trendline-container"), numTensors);
 
       const forceBytesTrendlineYMinToZero = false;
-      populateTrendline(document.querySelector("#bytes-trendline-container"), numBytes, forceBytesTrendlineYMinToZero, d => `${(d / 1e6).toPrecision(3)}MB`);
+      populateTrendline(document.querySelector("#bytes-trendline-container"), numBytes, forceBytesTrendlineYMinToZero, d => `${(d / 1e6).toPrecision(3)} MB`);
 
       await showMsg(null);
       const average = times.reduce((acc, curr) => acc + curr, 0) / times.length;
       const min = Math.min(...times);
-      appendRow(timeTable, `Subsequent average (${state.numRuns} runs)`, printTime(average));
+      appendRow(timeTable, `Subsequent average(${state.numRuns} runs)`, printTime(average));
       appendRow(timeTable, 'Best time', printTime(min));
     }
 
@@ -228,7 +230,7 @@
       }
 
       if (res instanceof tf.Tensor) {
-        res.dataSync();
+        res = await res.data();
       }
       const elapsed = performance.now() - start;
       await showMsg(null);
@@ -281,7 +283,7 @@
       }
 
       if (res instanceof tf.Tensor) {
-        res.dataSync();
+        res = await res.data();
       }
 
       await showMsg(null);

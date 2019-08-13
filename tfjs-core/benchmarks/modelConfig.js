@@ -64,8 +64,19 @@ const benchmarks = {
     predictFunc: () => {
       const zeros = tf.zeros([1, 224, 224, 3]);
 
+      const lib = [];
+      for (let i = 0; i < 10; i++) {
+        lib.push(tf.randomNormal([50, 50]));
+      }
+
       return (model) => {
-        return model.predict(zeros);
+        let result = tf.randomNormal([50, 50]);
+
+        for (let i = 0; i < lib.length; i++) {
+          result = tf.matMul(result, lib[i]);
+        }
+
+        return result;
       }
     }
   },
