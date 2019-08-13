@@ -26,7 +26,7 @@ def _get_requirements(file):
         return requirements.readlines()
 
 CONSOLE_SCRIPTS = [
-    'tensorflowjs_converter = tensorflowjs.converters.converter:main',
+    'tensorflowjs_converter = tensorflowjs.converters.converter:pip_main',
 ]
 
 setuptools.setup(
