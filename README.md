@@ -11,6 +11,8 @@ This project is the JavaScript analogue of
 [tf.data](https://www.tensorflow.org/get_started/datasets_quickstart) on the
 Python/C++ side.  TF.js Data will match the tf.data API to the extent possible.
 
+To keep track of issues we use the [tensorflow/tfjs](https://github.com/tensorflow/tfjs/issues?q=is%3Aissue+is%3Aopen+label%3Acomp%3Adata) Github repo with `comp:data` tag.
+
 ## Importing
 
 There are two ways to import TensorFlow.js Data
