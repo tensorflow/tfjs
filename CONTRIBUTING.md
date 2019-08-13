@@ -15,7 +15,6 @@ You generally only need to submit a CLA once, so if you've already submitted one
 (even if it was for a different project), you probably don't need to do it
 again.
 
-<<<<<<< HEAD
 ## Code reviews
 
 All submissions, including submissions by project members, require review. We
@@ -52,7 +51,6 @@ substantial it's better to discuss your design before submitting a PR.
 If you're looking for tasks to work on, we also mark issues as ["help wanted"](https://github.com/tensorflow/tfjs/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22).
 
 
-=======
 ## Adding functionality
 
 One way to ensure that your PR will be accepted is to add functionality that
@@ -84,4 +82,3 @@ information on using pull requests.
 
 We require unit tests for most code, instructions for running our unit test
 suites are in the documentation.
->>>>>>> tfjs-core/master
