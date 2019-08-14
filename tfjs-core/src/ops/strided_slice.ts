@@ -21,7 +21,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {op} from './operation';
 import {slice} from './slice';
-import {maskToAxes, startForAxis, stopForAxis} from './slice_util';
+import {maskToAxes, startForAxis, stopForAxis, computeSize} from './slice_util';
 
 /**
  * Extracts a strided slice of a tensor.
@@ -73,9 +73,8 @@ function stridedSlice_(
     newShape.splice(axis, 0, 1);
   });
   $x = $x.reshape(newShape);
-  newAxisMask = 0;
 
-  // Normalize the start, end and strides coordinates.
+  // Normalize the start, end and strides.
   for (let axis = 0; axis < $x.rank; axis++) {
     begin[axis] = startForAxis(beginMask, begin, strides, $x.shape, axis);
     end[axis] = stopForAxis(endMask, end, strides, $x.shape, axis);
@@ -88,13 +87,9 @@ function stridedSlice_(
     end[axis] = begin[axis] + 1;
     strides[axis] = 1;
   });
-  shrinkAxisMask = 0;
 
   // Figure out the output shape.
-  const size: number[] = [];
-  for (let axis = 0; axis < $x.rank; axis++) {
-    size[axis] = Math.ceil((end[axis] - begin[axis]) / strides[axis]);
-  }
+  const size = computeSize(begin, end, strides);
   const outShape = size.filter((_, index) => shrinkAxes.indexOf(index) === -1);
   const nonStrided = strides.every(v => v === 1);
   if (nonStrided) {

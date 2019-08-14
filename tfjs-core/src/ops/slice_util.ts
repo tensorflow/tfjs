@@ -49,6 +49,15 @@ export function maskToAxes(mask: number, rank: number): number[] {
   return axes;
 }
 
+export function computeSize(begin: number[], end: number[], strides: number[]): number[] {
+  // Figure out the output shape.
+  const size = [];
+  for (let axis = 0; axis < begin.length; axis++) {
+    size[axis] = Math.ceil((end[axis] - begin[axis]) / strides[axis]);
+  }
+  return size;
+}
+
 export function startForAxis(
     beginMask: number, startIndices: number[], strides: number[],
     inputShape: number[], axis: number): number {

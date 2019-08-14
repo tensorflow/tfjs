@@ -34,7 +34,7 @@ import * as gather_nd_util from '../../ops/gather_nd_util';
 import * as reduce_util from '../../ops/reduce_util';
 import * as scatter_nd_util from '../../ops/scatter_nd_util';
 import * as segment_util from '../../ops/segment_util';
-import {computeFlatOffset, isSliceContinous} from '../../ops/slice_util';
+import {computeFlatOffset, isSliceContinous, computeSize} from '../../ops/slice_util';
 import {softmax} from '../../ops/softmax';
 import {range, scalar, tensor} from '../../ops/tensor_ops';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../../tensor';
@@ -774,11 +774,7 @@ export class MathBackendWebGL implements KernelBackend {
       return this.cpuBackend.stridedSlice(x, begin, end, strides);
     }
 
-    // Figure out the output shape.
-    const size: number[] = [];
-    for (let axis = 0; axis < x.rank; axis++) {
-      size[axis] = Math.ceil((end[axis] - begin[axis]) / strides[axis]);
-    }
+    const size = computeSize(begin, end, strides);
     
     if (size.some(axis => axis === 0)) {
       return tensor([], size) as T;
