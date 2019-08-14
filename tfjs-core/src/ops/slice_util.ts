@@ -52,8 +52,9 @@ export function maskToAxes(mask: number): number[] {
   return axes;
 }
 
-export function computeSize(begin: number[], end: number[], strides: number[]): number[] {
-  // Figure out the output shape.
+/** Computes the output shape given the strided slice params. */
+export function computeOutShape(
+    begin: number[], end: number[], strides: number[]): number[] {
   const size = [];
   for (let axis = 0; axis < begin.length; axis++) {
     size[axis] = Math.ceil((end[axis] - begin[axis]) / strides[axis]);

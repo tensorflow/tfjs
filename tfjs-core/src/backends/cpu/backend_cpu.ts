@@ -33,7 +33,7 @@ import * as ops from '../../ops/ops';
 import {buffer, scalar, tensor, tensor3d, tensor4d} from '../../ops/ops';
 import * as scatter_nd_util from '../../ops/scatter_nd_util';
 import * as selu_util from '../../ops/selu_util';
-import {computeFlatOffset, isSliceContinous, computeSize} from '../../ops/slice_util';
+import {computeFlatOffset, computeOutShape, isSliceContinous} from '../../ops/slice_util';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../../tensor';
 import {BackendValues, DataType, DataValues, NumericDataType, PixelData, Rank, ShapeMap, TypedArray, upcastType} from '../../types';
 import * as util from '../../util';
@@ -316,7 +316,7 @@ export class MathBackendCPU implements KernelBackend {
       x: T, begin: number[], end: number[], strides: number[]): T {
     this.assertNotComplex(x, 'stridedSlice');
 
-    const size = computeSize(begin, end, strides);
+    const size = computeOutShape(begin, end, strides);
 
     if (size.some(axis => axis === 0)) {
       return ops.tensor([], size) as T;
