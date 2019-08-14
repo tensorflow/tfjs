@@ -24,11 +24,8 @@ if (process.env.NIGHTLY === 'true') {
   const diffFile = 'diff';
   let diffContents = `${fs.readFileSync(diffFile)}`;
 
-  console.log(diffContents);
-
   if (diffContents.indexOf('src/version.ts') != -1) {
     shouldRunIntegration = true;
-    console.log('TOUCHED src/version!');
   }
 }
 if (shouldRunIntegration) {
