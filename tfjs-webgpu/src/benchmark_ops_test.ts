@@ -29,7 +29,7 @@ describeWebGPU('Ops benchmarks', () => {
   // WebGL and WebGPU fences at the moment.
   async function time(
       trials: number, reps: number, doRep: (r: number) => tf.Tensor[],
-      endTrial: () => Promise<void>) {
+      endTrial: () => Promise<void>, disposeAfterEachTrial = false) {
     const times = [];
 
     let toDispose: tf.Tensor[] = [];
@@ -40,11 +40,11 @@ describeWebGPU('Ops benchmarks', () => {
       toDispose = [];
     };
 
-    const trial = () => {
+    const trial = async () => {
       for (let r = 0; r < reps; ++r) {
         toDispose = toDispose.concat(doRep(r));
       }
-      return endTrial();
+      await endTrial();
     };
 
     // Warm-up. Specifically, this pre-allocates enough memory for an entire
@@ -57,7 +57,9 @@ describeWebGPU('Ops benchmarks', () => {
       const start = tf.util.now();
       await trial();
       times.push(tf.util.now() - start);
-      dispose();
+      if (disposeAfterEachTrial) {
+        dispose();
+      }
     }
 
     const mean = times.reduce((a, b) => a + b, 0) / trials;
@@ -102,7 +104,7 @@ describeWebGPU('Ops benchmarks', () => {
     const b = tf.randomNormal([500, 500]);
 
     await time(
-        5, 50,
+        50, 1,
         () => {
           const c = tf.matMul(a, b);
           const toDispose = a;
@@ -113,6 +115,24 @@ describeWebGPU('Ops benchmarks', () => {
           await a.data();
         });
   }, 60000);
+
+  // tslint:disable-next-line:ban
+  xit('add', async () => {
+    let a = tf.randomNormal([1, 65, 65, 256]);
+    const b = tf.randomNormal([1, 65, 65, 256]);
+
+    await time(
+        50, 1,
+        () => {
+          const c = tf.add(a, b);
+          const toDispose = a;
+          a = c;
+          return [toDispose];
+        },
+        async () => {
+          await a.data();
+        });
+  });
 
   // tslint:disable-next-line:ban
   xit('conv2d', async () => {
