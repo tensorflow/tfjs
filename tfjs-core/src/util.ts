@@ -405,6 +405,7 @@ export function getArrayFromDType<D extends DataType>(
   return values as DataTypeMap[D];
 }
 
+// Created a custom exception class so it could be stubbed in tests.
 export function UserException(msg: string) {
   console.error(msg);
 }

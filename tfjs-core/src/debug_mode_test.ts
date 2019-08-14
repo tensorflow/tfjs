@@ -55,7 +55,7 @@ describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
     expect(a).toThrowError();
   });
 
-  fit('debug mode errors when infinities in op output', async () => {
+  it('debug mode errors when infinities in op output', async () => {
     const a = tf.tensor1d([1, 2, 3, 4]);
     const b = tf.tensor1d([2, -1, 0, 3]);
 
@@ -63,21 +63,30 @@ describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
 
     const c = async () => {
       const result = a.div(b);
-      const data = await result.data();
-      return data;
+      // Must await result so we know exception would have happened by the time
+      // we call `expect`.
+      await result.data();
     };
 
-    c();
+    await c();
 
-    expect(tf.util.UserException)
-        .toHaveBeenCalledWith(`The result of the 'div' is NaN.`);
+    expect(tf.util.UserException).toHaveBeenCalled();
   });
 
-  it('debug mode errors when nans in op output', () => {
+  it('debug mode errors when nans in op output', async () => {
     const a = tf.tensor1d([-1, 2]);
     const b = tf.tensor1d([0.5, 1]);
-    const c = () => a.pow(b);
-    expect(c).toThrowError();
+
+    spyOn(tf.util, 'UserException');
+
+    const c = async () => {
+      const result = a.pow(b);
+      await result.data();
+    };
+
+    await c();
+
+    expect(tf.util.UserException).toHaveBeenCalled();
   });
 
   it('debug mode errors when nans in oneHot op (tensorlike), int32', () => {
