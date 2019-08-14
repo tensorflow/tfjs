@@ -157,6 +157,29 @@ describe('convolution', () => {
       });
     });
 
+    describe('Conv3d', () => {
+      it('should call tfc.conv3d', () => {
+        spyOn(tfc, 'conv3d');
+        node.op = 'Conv3D';
+        node.category = 'convolution';
+        node.inputParams['filter'] = createTensorAttr(1);
+        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 2, 1]);
+        node.attrParams['pad'] = createStrAttr('same');
+        node.attrParams['dataFormat'] = createStrAttr('NHWC');
+        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 2, 1]);
+
+        const input1 = [tfc.scalar(1.0)];
+        const input2 = [tfc.scalar(1.0)];
+        node.inputNames = ['input1', 'input2'];
+
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.conv3d)
+            .toHaveBeenCalledWith(
+                input1[0], input2[0], [2, 2, 2], 'same', 'NHWC', [2, 2, 2]);
+      });
+    });
+      
     describe('AvgPool3D', () => {
       it('should call tfc.avgPool3d', () => {
         spyOn(tfc, 'avgPool3d');
