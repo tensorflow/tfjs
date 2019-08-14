@@ -55,6 +55,42 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'AvgPool3D',
+    'category': 'convolution',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
+        'type': 'string',
+        'notSupported': true
+      },
+      {'tfName': 'ksize', 'name': 'kernelSize', 'type': 'number[]'},
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
+    'tfOpName': 'MaxPool3D',
+    'category': 'convolution',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
+        'type': 'string',
+        'notSupported': true
+      },
+      {'tfName': 'ksize', 'name': 'kernelSize', 'type': 'number[]'},
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
     'tfOpName': 'Conv1D',
     'category': 'convolution',
     'inputs': [

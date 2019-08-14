@@ -94,12 +94,14 @@
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
 |AvgPool|avgPool|
+|AvgPool3D|avgPool3d|
 |Conv1D|conv1d|
 |Conv2D|conv2d|
 |Conv2DBackpropInput|conv2dTranspose|
 |DepthwiseConv2d|depthwiseConv2d|
 |DepthwiseConv2dNative|depthwiseConv2d|
 |MaxPool|maxPool|
+|MaxPool3D|maxPool3d|
 |Not mapped|pool|
 |Not mapped|separableConv2d|
 

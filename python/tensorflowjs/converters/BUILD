@@ -101,6 +101,16 @@ py_binary(
     visibility = ["//visibility:public"],
 )
 
+py_binary(
+    name = "generate_test_model",
+    srcs = ["generate_test_model.py"],
+    testonly = True,
+    srcs_version = "PY2AND3",
+    deps = [
+        "//tensorflowjs:expect_tensorflow_installed",
+    ]
+)
+
 py_test(
     name = "converter_test",
     srcs = ["converter_test.py"],
@@ -111,5 +121,14 @@ py_test(
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
         "//tensorflowjs:version",
+    ],
+)
+
+sh_test(
+    name = "converter_binary_test",
+    srcs = ["converter_binary_test.sh"],
+    data = [
+        ":converter",
+        ":generate_test_model",
     ],
 )
