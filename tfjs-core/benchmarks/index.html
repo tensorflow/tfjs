@@ -190,11 +190,13 @@
       <tbody></tbody>
     </table>
   </div>
-  <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
+  <!-- <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script> -->
+  <script src="./tf-core.js"></script>
+  <!-- <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script> -->
+  <script src="./tf-converter.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@1.0.0/dist/posenet.min.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@1.0.0/dist/posenet.min.js"></script> -->
+  <script src="./posenet.js"></script>
   <script>
     'use strict';
 
@@ -334,7 +336,7 @@
 
     const state = {
       numRuns: 50,
-      benchmark: 'mobilenet',
+      benchmark: 'posenet',
       run: (v) => {
         runBenchmark();
       },
@@ -440,7 +442,10 @@
       node.querySelector("svg").setAttribute("height", chartHeight);
 
       const yMax = Math.max(...data);
-      const yMin = forceYMinToZero ? 0 : Math.min(...data);
+      let yMin = forceYMinToZero ? 0 : Math.min(...data);
+      if (yMin === yMax) {
+        yMin = 0;
+      }
 
       node.querySelector(".yMin").textContent = yFormatter(yMin);
       node.querySelector(".yMax").textContent = yFormatter(yMax);
