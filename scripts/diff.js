@@ -26,8 +26,7 @@ const dirs = readdirSync('.').filter(f => {
 
 exec(
     `git clone --depth=1 --single-branch ` +
-    `https://github.com/tensorflow/tfjs-core.git ${CLONE_PATH}`);
-
+    `https://github.com/tensorflow/tfjs ${CLONE_PATH}`);
 
 dirs.forEach(dir => {
   const diffCmd = `diff -rq ${CLONE_PATH}/${dir}/ ./${dir}/`;
