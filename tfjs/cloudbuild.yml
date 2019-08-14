@@ -1,9 +1,11 @@
 steps:
 - name: 'node:10'
+  dir: 'tfjs'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
 - name: 'node:10'
+  dir: 'tfjs'
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
