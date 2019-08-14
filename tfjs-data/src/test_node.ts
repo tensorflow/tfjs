@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,25 +15,17 @@
  * =============================================================================
  */
 
-function printTime(elapsed) {
-  return elapsed.toFixed(1) + ' ms';
-}
+import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-function printMemory(bytes) {
-  if (bytes < 1024) {
-    return bytes + ' B';
-  } else if (bytes < 1024 * 1024) {
-    return (bytes / 1024).toFixed(2) + ' KB';
-  } else {
-    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-  }
-}
+// tslint:disable-next-line:no-require-imports
+const jasmine = require('jasmine');
 
-function sleep(timeMs) {
-  return new Promise(resolve => setTimeout(resolve, timeMs));
-}
+process.on('unhandledRejection', e => {
+  throw e;
+});
 
-function queryTimerIsEnabled() {
-  return _tfengine.ENV.getNumber(
-             'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0;
-}
+setTestEnvs([{name: 'node', backendName: 'cpu'}]);
+
+const runner = new jasmine();
+runner.loadConfig({spec_files: ['src/**/*_test.ts'], random: false});
+runner.execute();

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,25 +15,11 @@
  * =============================================================================
  */
 
-function printTime(elapsed) {
-  return elapsed.toFixed(1) + ' ms';
-}
-
-function printMemory(bytes) {
-  if (bytes < 1024) {
-    return bytes + ' B';
-  } else if (bytes < 1024 * 1024) {
-    return (bytes / 1024).toFixed(2) + ' KB';
-  } else {
-    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-  }
-}
-
-function sleep(timeMs) {
-  return new Promise(resolve => setTimeout(resolve, timeMs));
-}
-
-function queryTimerIsEnabled() {
-  return _tfengine.ENV.getNumber(
-             'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0;
-}
+export {array, Dataset, zip} from './dataset';
+export {CSVDataset} from './datasets/csv_dataset';
+export {TextLineDataset} from './datasets/text_line_dataset';
+export {csv, func, generator, microphone, webcam} from './readers';
+export {FileDataSource} from './sources/file_data_source';
+export {URLDataSource} from './sources/url_data_source';
+export {ColumnConfig, DataElement} from './types';
+export {version as version_data} from './version';
