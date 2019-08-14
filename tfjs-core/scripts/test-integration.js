@@ -15,25 +15,18 @@
 // =============================================================================
 
 const {exec} = require('../../scripts/test-util');
-
-const dirName = 'tfjs-core-integration';
+const fs = require('fs');
 
 let shouldRunIntegration = false;
 if (process.env.NIGHTLY === 'true') {
   shouldRunIntegration = true;
 } else {
-  exec(
-      `git clone --depth=1 --single-branch ` +
-      `https://github.com/tensorflow/tfjs-core.git ${dirName}`);
-  const res = exec(
-      `git diff --name-only --diff-filter=M --no-index ${dirName}/src/ src/`,
-      {silent: true}, true);
-  let files = res.stdout.trim().split('\n');
-  files.forEach(file => {
-    if (file === 'src/version.ts') {
-      shouldRunIntegration = true;
-    }
-  });
+  const diffFile = 'diff';
+  let diffContents = `${fs.readFileSync(diffFile)}`;
+
+  if (diffContents.indexOf('src/version.ts') !== -1) {
+    shouldRunIntegration = true;
+  }
 }
 if (shouldRunIntegration) {
   exec('./scripts/test-integration.sh');

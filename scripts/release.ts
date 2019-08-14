@@ -18,10 +18,10 @@
 
 /**
  * This script creates pull requests to make releases for all the TensorFlow.js
- * repositories. The release process is split up into multiple phases. Each
+ * packages. The release process is split up into multiple phases. Each
  * phase will update the version of a package and the dependency versions and
  * send a pull request. Once the pull request is merged, you must publish the
- * packages manually from the individual repositories.
+ * packages manually from the individual packages.
  *
  * This script requires hub to be installed: https://hub.github.com/
  */
@@ -33,9 +33,9 @@ import * as fs from 'fs';
 import chalk from 'chalk';
 
 interface Phase {
-  // The list of repositories that will be updated with this change.
-  repos: string[];
-  // The list of dependencies that all of the repositories will update to.
+  // The list of packages that will be updated with this change.
+  packages: string[];
+  // The list of dependencies that all of the packages will update to.
   deps?: string[];
   // An ordered list of scripts to run after yarn is called and before the pull
   // request is sent out.
@@ -47,34 +47,34 @@ interface Phase {
 }
 
 const CORE_PHASE: Phase = {
-  repos: ['tfjs-core'],
+  packages: ['tfjs-core'],
   scripts: ['./scripts/make-version']
 };
 
 const LAYERS_CONVERTER_DATA_PHASE: Phase = {
-  repos: ['tfjs-layers', 'tfjs-converter', 'tfjs-data'],
+  packages: ['tfjs-layers', 'tfjs-converter', 'tfjs-data'],
   deps: ['tfjs-core'],
   scripts: ['./scripts/make-version']
 };
 
 const UNION_PHASE: Phase = {
-  repos: ['tfjs'],
+  packages: ['tfjs'],
   deps: ['tfjs-core', 'tfjs-layers', 'tfjs-converter', 'tfjs-data'],
   scripts: ['./scripts/make-version']
 };
 
 const NODE_PHASE: Phase = {
-  repos: ['tfjs-node'],
+  packages: ['tfjs-node'],
   deps: ['tfjs'],
   scripts: ['./scripts/make-version']
 };
 
 const VIS_PHASE: Phase = {
-  repos: ['tfjs-vis']
+  packages: ['tfjs-vis']
 };
 
 const WEBSITE_PHASE: Phase = {
-  repos: ['tfjs-website'],
+  packages: ['tfjs-website'],
   deps: ['tfjs', 'tfjs-node', 'tfjs-vis'],
   scripts: ['yarn build-prod'],
   leaveVersion: true,
@@ -91,7 +91,7 @@ const TMP_DIR = '/tmp/tfjs-release';
 function printPhase(phaseId: number) {
   const phase = PHASES[phaseId];
   console.log(chalk.green(`Phase ${phaseId}:`));
-  console.log(`  repos: ${chalk.blue(phase.repos.join(', '))}`);
+  console.log(`  packages: ${chalk.blue(phase.packages.join(', '))}`);
   if (phase.deps != null) {
     console.log(`   deps: ${phase.deps.join(', ')}`);
   }
@@ -118,11 +118,11 @@ async function main() {
   console.log();
 
   const phase = PHASES[phaseInt];
-  const repos = PHASES[phaseInt].repos;
+  const packages = PHASES[phaseInt].packages;
   const deps = PHASES[phaseInt].deps || [];
 
-  for (let i = 0; i < repos.length; i++) {
-    const repo = repos[i];
+  for (let i = 0; i < packages.length; i++) {
+    const packageName = packages[i];
 
     mkdirp(TMP_DIR, (err) => {
       if (err) {
@@ -130,24 +130,25 @@ async function main() {
         process.exit(1);
       }
     });
-    $(`rm -f -r ${TMP_DIR}/${repo}/*`);
-    $(`rm -f -r ${TMP_DIR}/${repo}`);
+    $(`rm -f -r ${TMP_DIR}/${packageName}/*`);
+    $(`rm -f -r ${TMP_DIR}/${packageName}`);
 
     const depsLatestVersion: string[] =
         deps.map(dep => $(`npm view @tensorflow/${dep} dist-tags.latest`));
 
-    const dir = `${TMP_DIR}/${repo}`;
+    const dir = `${TMP_DIR}/${packageName}`;
     $(`mkdir ${dir}`);
-    $(`git clone https://github.com/tensorflow/${repo} ${dir} --depth=1`);
+    $(`git clone https://github.com/tensorflow/tfjs ${dir} --depth=1`);
 
     shell.cd(dir);
+    shell.cd(packageName);
 
     // Update the version.
-    let pkg = `${fs.readFileSync(`${dir}/package.json`)}`;
+    let pkg = `${fs.readFileSync(`${dir}/${packageName}/package.json`)}`;
     const parsedPkg = JSON.parse(`${pkg}`);
 
     console.log(chalk.magenta.bold(
-        `~~~ Processing ${repo} (${parsedPkg.version}) ~~~`));
+        `~~~ Processing ${packageName} (${parsedPkg.version}) ~~~`));
 
     const patchUpdateVersion = getPatchUpdateVersion(parsedPkg.version);
     let newVersion = parsedPkg.version;
@@ -201,7 +202,7 @@ async function main() {
       }
     }
 
-    fs.writeFileSync(`${dir}/package.json`, pkg);
+    fs.writeFileSync(`${dir}/${packageName}/package.json`, pkg);
     $(`yarn`);
     if (phase.scripts != null) {
       phase.scripts.forEach(script => $(script));
@@ -210,10 +211,10 @@ async function main() {
     $(`git checkout -b b${newVersion}`);
     $(`git push -u origin b${newVersion}`);
     $(`git add .`);
-    $(`git commit -a -m "Update ${repo} to ${newVersion}."`);
+    $(`git commit -a -m "Update ${packageName} to ${newVersion}."`);
     $(`git push`);
     const title =
-        phase.title ? phase.title : `Update ${repo} to ${newVersion}.`;
+        phase.title ? phase.title : `Update ${packageName} to ${newVersion}.`;
     $(`hub pull-request --browse --message "${title}" --labels INTERNAL`);
     console.log();
   }
