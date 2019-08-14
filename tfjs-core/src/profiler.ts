@@ -39,6 +39,8 @@ export class Profiler {
     const results: Tensor[] =
         Array.isArray(result) ? result : [result] as Tensor[];
     results.forEach(r => {
+      // Dangling promise here because we don't want to propagate up
+      // asynchronicity.
       r.data().then(vals => {
         checkComputationForErrors(vals, r.dtype, name);
 
@@ -72,6 +74,7 @@ export function checkComputationForErrors<D extends DataType>(
   for (let i = 0; i < vals.length; i++) {
     const num = vals[i] as number;
     if (isNaN(num) || !isFinite(num)) {
+      // Throwing custom exception so behavior is testable.
       throw ProfilerException(`The result of the '${name}' is ${num}.`);
     }
   }

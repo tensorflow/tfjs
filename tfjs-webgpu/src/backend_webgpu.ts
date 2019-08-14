@@ -41,8 +41,8 @@ import * as webgpu_program from './kernels/webgpu_program';
 import {WebGPUBinary} from './kernels/webgpu_program';
 
 // START TO-IMPORT-FROM-CORE ============================
-// TODO: Delete definitions in this section and import from core once new
-// release is published.
+// TODO(annyuan): Delete definitions in this section and import from core once
+// new release is published.
 type MemoryInfo = {
   numTensors: number; numDataBuffers: number; numBytes: number;
   unreliable?: boolean; reasons: string[];
