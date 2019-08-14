@@ -17223,8 +17223,11 @@
         MathBackendWebGL.prototype.compileAndRun = function (program, inputs, output, customSetup, preventEagerUnpackingOfOutput) {
             if(window.logCompileAndRun) {
                 console.log(program.constructor.name);
+                window.crazyLogs[window.crazyLogs.length - 1].opName = program.constructor.name;
+                window.crazyLogs[window.crazyLogs.length - 1].inputShapes = []
                 inputs.forEach(input => {
                     console.log(input.shape)
+                    window.crazyLogs[window.crazyLogs.length - 1].inputShapes.push(input.shape);
                 });
             }
             var _this = this;

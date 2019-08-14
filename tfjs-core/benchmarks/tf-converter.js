@@ -4757,6 +4757,7 @@
        */
       async execute(inputs, outputs) {
           console.log("EXECUTE");
+          window.crazyLogs = [];
           const names = Object.keys(inputs).sort();
           this.checkInputs(inputs);
           this.checkInputShapeAndType(inputs);
@@ -4784,6 +4785,8 @@
                   if (!tensorsMap[node.name]) {
                       console.log("-----------------------------------");
                       console.log(node);
+                      window.crazyLogs.push({});
+                      window.crazyLogs[window.crazyLogs.length - 1].name = node.name;
 
                       window.logCompileAndRun = true;
                       const tensors = executeOp$g(node, tensorsMap, context);
@@ -4797,8 +4800,9 @@
                             await res[0].data();
                             times.push(performance.now() - start);
                         }
-                        console.log("min:", Math.min(...times));
-                        console.log("avg:", times.reduce((acc, curr) => acc + curr, 0));
+
+                        window.crazyLogs[window.crazyLogs.length - 1].min = Math.min(...times);
+                        window.crazyLogs[window.crazyLogs.length - 1].avg = times.reduce((acc, curr) => acc + curr, 0);
 
                       if (tensors instanceof Promise) {
                           throw new Error(`The execution of the op '${node.op}' returned a promise. ` +
