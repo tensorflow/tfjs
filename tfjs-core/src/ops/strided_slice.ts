@@ -56,7 +56,7 @@ import {maskToAxes, startForAxis, stopForAxis, computeSize} from './slice_util';
  */
 /** @doc {heading: 'Operations', subheading: 'Slicing and Joining'} */
 function stridedSlice_(
-    x: Tensor|TensorLike, begin: number[], end: number[], strides: number[],
+    x: Tensor|TensorLike, begin: number[], end: number[], strides?: number[],
     beginMask = 0, endMask = 0, ellipsisMask = 0, newAxisMask = 0,
     shrinkAxisMask = 0): Tensor {
   if (ellipsisMask !== 0) {
@@ -82,7 +82,7 @@ function stridedSlice_(
   }
   
   const shrinkAxes = maskToAxes(shrinkAxisMask);
-  // Adjust the ends based on the shrink mas.
+  // Adjust the ends based on the shrink mask.
   shrinkAxes.forEach(axis => {
     end[axis] = begin[axis] + 1;
     strides[axis] = 1;
@@ -90,7 +90,9 @@ function stridedSlice_(
 
   // Figure out the output shape.
   const size = computeSize(begin, end, strides);
+  // Remove the axes based on shrinkMask.
   const outShape = size.filter((_, axis) => shrinkAxes.indexOf(axis) === -1);
+  
   const nonStrided = strides.every(v => v === 1);
   if (nonStrided) {
     return slice($x, begin, size).reshape(outShape);
