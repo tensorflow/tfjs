@@ -663,23 +663,23 @@ class ResNet {
     this.outputStride = outputStride;
   }
   predict(input) {
-    return tf.tidy(() => {
-      const asFloat = toFloatIfInt$1(input);
-      const asBatch = asFloat.expandDims(0);
-      const [displacementFwd4d, displacementBwd4d, offsets4d, heatmaps4d] =
-          this.model.predict(asBatch);
-      const heatmaps = heatmaps4d.squeeze();
-      const heatmapScores = heatmaps.sigmoid();
-      const offsets = offsets4d.squeeze();
-      const displacementFwd = displacementFwd4d.squeeze();
-      const displacementBwd = displacementBwd4d.squeeze();
-      return {
-        heatmapScores,
-        offsets: offsets,
-        displacementFwd: displacementFwd,
-        displacementBwd: displacementBwd
-      };
-    });
+    // return tf.tidy(() => {
+    const asFloat = toFloatIfInt$1(input);
+    const asBatch = asFloat.expandDims(0);
+    const [displacementFwd4d, displacementBwd4d, offsets4d, heatmaps4d] =
+        this.model.predict(asBatch);
+    const heatmaps = heatmaps4d.squeeze();
+    const heatmapScores = heatmaps.sigmoid();
+    const offsets = offsets4d.squeeze();
+    const displacementFwd = displacementFwd4d.squeeze();
+    const displacementBwd = displacementBwd4d.squeeze();
+    return {
+      heatmapScores,
+      offsets: offsets,
+      displacementFwd: displacementFwd,
+      displacementBwd: displacementBwd
+    };
+    // });
   }
   dispose() {
     this.model.dispose();

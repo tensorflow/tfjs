@@ -4755,7 +4755,8 @@
        * inspect intermediate nodes of the model by adding them to the outputs
        * array.
        */
-      execute(inputs, outputs) {
+      async execute(inputs, outputs) {
+          console.log("EXECUTE");
           const names = Object.keys(inputs).sort();
           this.checkInputs(inputs);
           this.checkInputShapeAndType(inputs);
@@ -4770,7 +4771,7 @@
               this.compiledMap.set(compilationKey, orderedNodes);
           }
           const tensorArrayMap = {};
-          return tfc.tidy(() => {
+        //   return tfc.tidy(() => {
               const context = new ExecutionContext(this._weightMap, tensorArrayMap);
               const tensorsMap = Object.assign({}, this.weightMap);
               Object.keys(inputs).forEach(name => {
@@ -4781,7 +4782,24 @@
               for (let i = 0; i < orderedNodes.length; i++) {
                   const node = orderedNodes[i];
                   if (!tensorsMap[node.name]) {
+                      console.log("-----------------------------------");
+                      console.log(node);
+
+                      window.logCompileAndRun = true;
                       const tensors = executeOp$g(node, tensorsMap, context);
+                      window.logCompileAndRun = false;
+                      
+                        const times = [];
+
+                        for(let iter=0; iter<20; iter++) {
+                            const start = performance.now();
+                            const res = executeOp$g(node, tensorsMap, context);
+                            await res[0].data();
+                            times.push(performance.now() - start);
+                        }
+                        console.log("min:", Math.min(...times));
+                        console.log("avg:", times.reduce((acc, curr) => acc + curr, 0));
+
                       if (tensors instanceof Promise) {
                           throw new Error(`The execution of the op '${node.op}' returned a promise. ` +
                               `Please use model.executeAsync() instead.`);
@@ -4791,7 +4809,7 @@
                   }
               }
               return outputs.map(name => getTensor(name, tensorsMap, context));
-          });
+        //   });
       }
       getFrozenTensorIds(tensorMap) {
           const ids = [].concat.apply([], Object.keys(tensorMap)

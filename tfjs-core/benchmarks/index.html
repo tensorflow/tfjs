@@ -192,6 +192,7 @@
   </div>
   <!-- <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script> -->
   <script src="./tf-core.js"></script>
+  <script src="./tf-webgpu.js"></script>
   <!-- <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script> -->
   <script src="./tf-converter.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
@@ -319,7 +320,9 @@
           }
 
           const posenetModel = await posenet.load();
-          const image = await loadImage('tennis_standing.jpg');
+          // const image = await loadImage('tennis_standing.jpg');
+
+          const image = tf.zeros([193, 193, 3]);
 
           posenetModel.benchmarkImage = image;
           return posenetModel;
@@ -367,7 +370,7 @@
     }
 
     async function showEnvironment() {
-      await tf.time(() => tf.square(3).data());
+      // await tf.time(() => tf.add(3, 3).data());
       envDiv.innerHTML += `<br/>${JSON.stringify(tf.ENV.features, null, 2)}`;
     }
 
@@ -582,21 +585,23 @@
       const benchmark = benchmarks[state.benchmark];
       await loadAndRecordTime(benchmark);
       await warmUpAndRecordTime();
-      await showMsg('Waiting for GC');
-      await sleep(1000);
-      await profileMemory();
-      await sleep(200);
-      await measureAveragePredictTime();
-      await sleep(200);
-      if (queryTimerIsEnabled()) {
-        await profileKernelTime();
-      } else {
-        showMsg('Skipping kernel times since query timer extension is not ' +
-          'available. <br/> Use Chrome 70+.');
-      };
+      // await showMsg('Waiting for GC');
+      // await sleep(1000);
+      // await profileMemory();
+      // await sleep(200);
+      // await measureAveragePredictTime();
+      // await sleep(200);
+      // if (queryTimerIsEnabled()) {
+      //   await profileKernelTime();
+      // } else {
+      //   showMsg('Skipping kernel times since query timer extension is not ' +
+      //     'available. <br/> Use Chrome 70+.');
+      // };
     }
 
     async function onPageLoad() {
+      await tf.ready();
+
       var gui = new dat.gui.GUI();
 
       gui.add(state, 'numRuns');
