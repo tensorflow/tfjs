@@ -19,6 +19,13 @@ steps:
   args: ['./scripts/run-build.sh', 'tfjs-core']
   waitFor: ['diff']
 
+# Data.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-data'
+  args: ['./scripts/run-build.sh', 'tfjs-data']
+  waitFor: ['diff']
+
 # Union.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
@@ -40,7 +47,21 @@ steps:
   args: ['./scripts/run-build.sh', 'tfjs-react-native']
   waitFor: ['diff']
 
+# Integration tests
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'test-integration'
+  entrypoint: 'yarn'
+  args: ['test-integration']
+  waitFor: ['diff']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY']
+
 # General settings.
+secrets:
+- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+  secretEnv:
+    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
 options:
