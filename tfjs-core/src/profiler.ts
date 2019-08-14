@@ -58,6 +58,11 @@ export class Profiler {
   }
 }
 
+// Create a custom exception class so it can be stubbed in tests.
+export function ProfilerException(msg: string) {
+  console.error(msg);
+}
+
 export function checkComputationForErrors<D extends DataType>(
     vals: DataTypeMap[D], dtype: D, name: string): void {
   if (dtype !== 'float32') {
@@ -67,7 +72,7 @@ export function checkComputationForErrors<D extends DataType>(
   for (let i = 0; i < vals.length; i++) {
     const num = vals[i] as number;
     if (isNaN(num) || !isFinite(num)) {
-      throw util.UserException(`The result of the '${name}' is ${num}.`);
+      throw ProfilerException(`The result of the '${name}' is ${num}.`);
     }
   }
 }

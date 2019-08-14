@@ -59,25 +59,25 @@ describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
     const a = tf.tensor1d([1, 2, 3, 4]);
     const b = tf.tensor1d([2, -1, 0, 3]);
 
-    spyOn(tf.util, 'UserException');
+    spyOn(console, 'error');
 
     const c = async () => {
       const result = a.div(b);
-      // Must await result so we know exception would have happened by the time
-      // we call `expect`.
+      // Must await result so we know exception would have happened by the
+      // time we call `expect`.
       await result.data();
     };
 
     await c();
 
-    expect(tf.util.UserException).toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalled();
   });
 
   it('debug mode errors when nans in op output', async () => {
     const a = tf.tensor1d([-1, 2]);
     const b = tf.tensor1d([0.5, 1]);
 
-    spyOn(tf.util, 'UserException');
+    spyOn(console, 'error');
 
     const c = async () => {
       const result = a.pow(b);
@@ -86,7 +86,7 @@ describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
 
     await c();
 
-    expect(tf.util.UserException).toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalled();
   });
 
   it('debug mode errors when nans in oneHot op (tensorlike), int32', () => {
