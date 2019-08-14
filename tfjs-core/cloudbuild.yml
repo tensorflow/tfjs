@@ -31,16 +31,6 @@ steps:
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
 
-# Run integration tests of other packages against core.
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test-integration'
-  entrypoint: 'yarn'
-  args: ['test-integration']
-  waitFor: ['build']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
-  secretEnv: ['BROWSERSTACK_KEY']
-
 # bundle size check
 - name: 'node:10'
   dir: 'tfjs-core'
