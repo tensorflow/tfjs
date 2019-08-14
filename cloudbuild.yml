@@ -40,6 +40,16 @@ steps:
   args: ['./scripts/run-build.sh', 'tfjs-react-native']
   waitFor: ['diff']
 
+# Integration tests
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'test-integration'
+  entrypoint: 'yarn'
+  args: ['test-integration']
+  waitFor: ['diff']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY']
+
 # General settings.
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
