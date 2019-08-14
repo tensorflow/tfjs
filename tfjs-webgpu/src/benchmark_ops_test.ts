@@ -28,8 +28,8 @@ describeWebGPU('Ops benchmarks', () => {
   // avoided by using fences, but we don't have a common abstraction over
   // WebGL and WebGPU fences at the moment.
   async function time(
-      trials: number, reps: number, doRep: (r: number) => tf.Tensor[],
-      endTrial: () => Promise<void>, disposeAfterEachTrial = false) {
+      doRep: (r: number) => tf.Tensor[], endTrial: () => Promise<void>,
+      disposeAfterEachTrial = false, trials = 50, reps = 1) {
     const times = [];
 
     let toDispose: tf.Tensor[] = [];
@@ -80,7 +80,6 @@ describeWebGPU('Ops benchmarks', () => {
       }
 
       await time(
-          5, n,
           (r) => {
             maxes[r] = tf.argMax(tensors[r], axis);
             return [];
@@ -104,7 +103,6 @@ describeWebGPU('Ops benchmarks', () => {
     const b = tf.randomNormal([500, 500]);
 
     await time(
-        50, 1,
         () => {
           const c = tf.matMul(a, b);
           const toDispose = a;
@@ -122,7 +120,6 @@ describeWebGPU('Ops benchmarks', () => {
     const b = tf.randomNormal([1, 65, 65, 256]);
 
     await time(
-        50, 1,
         () => {
           const c = tf.add(a, b);
           const toDispose = a;
@@ -140,7 +137,6 @@ describeWebGPU('Ops benchmarks', () => {
     const b = tf.randomNormal<tf.Rank.R4>([25, 25, 4, 4]);
 
     await time(
-        5, 50,
         () => {
           const c = tf.conv2d(a, b, 1, 'same');
           const toDispose = a;
