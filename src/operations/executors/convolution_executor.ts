@@ -106,7 +106,7 @@ export let executeOp: InternalOpExecutor =
               getParamValue('filter', node, tensorMap, context) as
                   tfc.Tensor<tfc.Rank.R5>,
               [stride[1], stride[2], stride[3]], pad as 'valid' | 'same',
-              dataFormat as 'NHWC' | 'NCHW',
+              dataFormat as 'NDHWC' | 'NCDHW',
               [dilations[1], dilations[2], dilations[3]])];
         }
 
@@ -148,8 +148,7 @@ export let executeOp: InternalOpExecutor =
           return [tfc.avgPool3d(
               getParamValue('x', node, tensorMap, context) as tfc.Tensor5D,
               [kernelSize[1], kernelSize[2], kernelSize[3]],
-              [stride[1], stride[2], stride[3]],
-              pad as 'valid' | 'same')];
+              [stride[1], stride[2], stride[3]], pad as 'valid' | 'same')];
         }
 
         case 'MaxPool3D': {
@@ -162,8 +161,7 @@ export let executeOp: InternalOpExecutor =
           return [tfc.maxPool3d(
               getParamValue('x', node, tensorMap, context) as tfc.Tensor5D,
               [kernelSize[1], kernelSize[2], kernelSize[3]],
-              [stride[1], stride[2], stride[3]],
-              pad as 'valid' | 'same')];
+              [stride[1], stride[2], stride[3]], pad as 'valid' | 'same')];
         }
 
         default:
