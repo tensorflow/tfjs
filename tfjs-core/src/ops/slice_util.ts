@@ -39,12 +39,15 @@ export function assertParamsValid(
 }
 
 /** Converts a binary mask to an array of axes. Used in stridedSlice(). */
-export function maskToAxes(mask: number, rank: number): number[] {
+export function maskToAxes(mask: number): number[] {
   const axes = [];
-  for (let i = 0; i < rank; i++) {
-    if (mask & (1 << i)) {
-      axes.push(i);
+  let axis = 0;
+  while (mask > 0) {
+    if (mask & 1) {
+      axes.push(axis);
     }
+    mask /= 2;
+    axis++;
   }
   return axes;
 }

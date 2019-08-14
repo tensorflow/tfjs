@@ -65,7 +65,7 @@ function stridedSlice_(
   let $x = convertToTensor(x, 'x', 'stridedSlice');
 
   // Expand the dims of x based on the newAxisMask.
-  const expandAxes = maskToAxes(newAxisMask, $x.rank);
+  const expandAxes = maskToAxes(newAxisMask);
   const newShape = $x.shape.slice();
   expandAxes.forEach(axis => {
     begin[axis] = 0;
@@ -81,7 +81,7 @@ function stridedSlice_(
     strides[axis] = strides[axis] || 1;
   }
   
-  const shrinkAxes = maskToAxes(shrinkAxisMask, $x.rank);
+  const shrinkAxes = maskToAxes(shrinkAxisMask);
   // Adjust the ends based on the shrink mas.
   shrinkAxes.forEach(axis => {
     end[axis] = begin[axis] + 1;
