@@ -186,5 +186,23 @@ export const json: OpMapper[] = [
       },
       {'tfName': 'dilations', 'name': 'dilations', 'type': 'number[]'}
     ]
+  },
+  {
+    'tfOpName': 'Conv3D',
+    'category': 'convolution',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'filter', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
+        'type': 'string',
+        'defaultValue': 'NHWC'
+      },
+      {'tfName': 'dilations', 'name': 'dilations', 'type': 'number[]'}
+    ],
   }
 ];
