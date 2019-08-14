@@ -349,7 +349,8 @@ export function squeezeShape(shape: number[], axis?: number[]):
     {newShape: number[], keptDims: number[]} {
   const newShape: number[] = [];
   const keptDims: number[] = [];
-  const axes = axis == null ? null : parseAxisParam(axis, shape).sort();
+  const isEmptyArray = axis != null && Array.isArray(axis) && axis.length === 0;
+  const axes = (axis == null || isEmptyArray) ? null : parseAxisParam(axis, shape).sort();
   let j = 0;
   for (let i = 0; i < shape.length; ++i) {
     if (axes != null) {

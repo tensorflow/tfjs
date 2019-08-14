@@ -141,9 +141,7 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     throw new Error('Not yet implemented');
   }
   stridedSlice<T extends Tensor>(
-      x: T, begin: number[], end: number[], strides: number[],
-      beginMask: number, endMask: number, ellipsisMask: number,
-      newAxisMask: number, shrinkAxisMask: number): T {
+      x: T, begin: number[], end: number[], strides: number[]): T {
     throw new Error('Not yet implemented');
   }
   unstack(x: Tensor, axis: number): Tensor[] {

@@ -20,9 +20,11 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('stridedSlice', ALL_ENVS, () => {
-  it('stridedSlice should fail if new axis mask is set', () => {
+  it('stridedSlice with new axis mask', async () => {
     const tensor = tf.tensor1d([0, 1, 2, 3]);
-    expect(() => tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 0, 1)).toThrow();
+    const output = tf.stridedSlice(tensor, [0, 0], [1, 3], [1, 2], 0, 0, 0, 1);
+    expect(output.shape).toEqual([1, 2]);
+    expectArraysClose(await output.data(), [0, 2]);
   });
 
   it('stridedSlice should fail if ellipsis mask is set', () => {

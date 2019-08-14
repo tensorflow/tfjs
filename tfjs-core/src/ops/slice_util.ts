@@ -38,49 +38,15 @@ export function assertParamsValid(
   }
 }
 
-/**
- * Calculate the start index and output tensor shape for strided slice op.
- * @returns array of [startIndex, size, shrinkAxis]
- */
-export function getStridedSlicedInfo(
-    shape: number[], begin: number[], end: number[], strides: number[],
-    beginMask = 0, endMask = 0, ellipsisMask = 0, newAxisMask = 0,
-    shrinkAxisMask = 0): [number[], number[], number[]] {
-  if (ellipsisMask !== 0) {
-    throw new Error('ellipsis mask is not yet supported');
-  }
-  if (newAxisMask !== 0) {
-    throw new Error('new axis mask is not yet supported');
-  }
-  // Note that the axis orders are reversed for runtime ops, so the indices,
-  // strides and masks must be as well too.
-  const startIndex: number[] = [];
-  const endIndex: number[] = [];
-  const shrinkAxis: number[] = [];
-  for (let i = 0; i < shape.length; i++) {
-    startIndex[i] = startForAxis(beginMask, begin, strides, shape, i);
-    endIndex[i] = stopForAxis(endMask, end, strides, shape, i);
-    // When shrinking an axis, use startIndex + 1 for endIndex.
-    // Check the axis bit from right of shrinkAxisMask
-    if (shrinkAxisMask & 1 << i) {
-      endIndex[i] = startIndex[i] + 1;
-      shrinkAxis.push(i);
+/** Converts a binary mask to an array of axes. Used in stridedSlice(). */
+export function maskToAxes(mask: number, rank: number): number[] {
+  const axes = [];
+  for (let i = 0; i < rank; i++) {
+    if (mask & (1 << i)) {
+      axes.push(i);
     }
   }
-
-  let size = new Array(shape.length).fill(0);
-  size = size.map((d, i) => {
-    let count = 0;
-    const stride = strides[i] || 1;
-    for (let start = startIndex[i];
-         !(stride > 0 ? start >= endIndex[i] : start <= endIndex[i]);
-         start += stride) {
-      count += 1;
-    }
-    return count;
-  });
-
-  return [startIndex, size, shrinkAxis];
+  return axes;
 }
 
 export function startForAxis(

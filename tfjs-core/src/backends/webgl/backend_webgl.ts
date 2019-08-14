@@ -34,7 +34,7 @@ import * as gather_nd_util from '../../ops/gather_nd_util';
 import * as reduce_util from '../../ops/reduce_util';
 import * as scatter_nd_util from '../../ops/scatter_nd_util';
 import * as segment_util from '../../ops/segment_util';
-import {computeFlatOffset, getStridedSlicedInfo, isSliceContinous} from '../../ops/slice_util';
+import {computeFlatOffset, isSliceContinous} from '../../ops/slice_util';
 import {softmax} from '../../ops/softmax';
 import {range, scalar, tensor} from '../../ops/tensor_ops';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../../tensor';
@@ -769,26 +769,22 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   stridedSlice<T extends Tensor>(
-      x: T, begin: number[], end: number[], strides: number[],
-      beginMask: number, endMask: number, ellipsisMask: number,
-      newAxisMask: number, shrinkAxisMask: number): T {
+      x: T, begin: number[], end: number[], strides: number[]): T {
     if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.stridedSlice(
-          x, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask,
-          shrinkAxisMask);
+      return this.cpuBackend.stridedSlice(x, begin, end, strides);
     }
 
-    const [beginIndex, size, shrinkAxis] = getStridedSlicedInfo(
-        x.shape, begin, end, strides, beginMask, endMask, ellipsisMask,
-        newAxisMask, shrinkAxisMask);
-
-    const shape = size.filter((v, index) => shrinkAxis.indexOf(index) === -1);
-    if (shape.some(axis => axis === 0)) {
-      return tensor([], shape) as T;
+    // Figure out the output shape.
+    const size: number[] = [];
+    for (let axis = 0; axis < x.rank; axis++) {
+      size[axis] = Math.ceil((end[axis] - begin[axis]) / strides[axis]);
+    }
+    
+    if (size.some(axis => axis === 0)) {
+      return tensor([], size) as T;
     }
 
-    const program =
-        new StridedSliceProgram(beginIndex, strides, size, shrinkAxis);
+    const program = new StridedSliceProgram(begin, strides, size);
     return this.compileAndRun(program, [x]);
   }
 
