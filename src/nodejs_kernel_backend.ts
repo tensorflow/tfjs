@@ -1156,6 +1156,118 @@ export class NodeJSKernelBackend extends KernelBackend {
                'AvgPoolGrad', opAttrs, [origInputShape, dy]) as Tensor4D;
   }
 
+  avgPool3d(x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
+      throw new Error(
+          `TF Backend supports only 'valid' and 'same' padding ` +
+          `while padding was ${convInfo.padInfo.type}`);
+    }
+    const ksize = [1, convInfo.filterDepth, convInfo.filterHeight,
+      convInfo.filterWidth, 1];
+    const strides = [1, convInfo.strideDepth, convInfo.strideHeight,
+      convInfo.strideWidth, 1];
+    const padding = convInfo.padInfo.type;
+    const dataFormat = convInfo.dataFormat === 'channelsLast' ?
+        'NDHWC' : 'NCDHW';
+    const opAttrs = [
+      createTypeOpAttr('T', x.dtype),
+      {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding},
+      {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+    ];
+    return this.executeSingleOutput('AvgPool3D', opAttrs, [x]) as Tensor5D;
+  }
+
+  avgPool3dBackprop(
+      dy: Tensor5D, x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
+      throw new Error(
+          `TF Backend supports only 'valid' and 'same' padding ` +
+          `while padding type was ${convInfo.padInfo.type}`);
+    }
+    const ksize = [1, convInfo.filterDepth, convInfo.filterHeight,
+      convInfo.filterWidth, 1];
+    const strides = [1, convInfo.strideDepth, convInfo.strideHeight,
+      convInfo.strideWidth, 1];
+    const padding = convInfo.padInfo.type;
+    const dataFormat = convInfo.dataFormat === 'channelsLast' ?
+        'NDHWC' : 'NCDHW';
+    const opAttrs = [
+      createTypeOpAttr('T', x.dtype),
+      {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding},
+      {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+    ];
+    const origInputShape = tensor1d(x.shape, 'int32');
+    return this.executeSingleOutput(
+        'AvgPool3DGrad', opAttrs, [origInputShape, dy]) as Tensor5D;
+  }
+
+  maxPool3d(x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
+      throw new Error(
+          `TF Backend supports only 'valid' and 'same' padding ` +
+          `while padding was ${convInfo.padInfo.type}`);
+    }
+    const ksize = [1, convInfo.filterDepth, convInfo.filterHeight,
+      convInfo.filterWidth, 1];
+    const strides = [1, convInfo.strideDepth, convInfo.strideHeight,
+      convInfo.strideWidth, 1];
+    const padding = convInfo.padInfo.type;
+    const dataFormat = convInfo.dataFormat === 'channelsLast' ?
+        'NDHWC' : 'NCDHW';
+    const opAttrs = [
+      createTypeOpAttr('T', x.dtype),
+      {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      }
+    ];
+    return this.executeSingleOutput('MaxPool3D', opAttrs, [x]) as Tensor5D;
+  }
+
+  maxPool3dBackprop(
+      dy: Tensor5D, x: Tensor5D, y: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
+      throw new Error(
+          `TF Backend supports only 'valid' and 'same' padding ` +
+          `while padding type was ${convInfo.padInfo.type}`);
+    }
+    const ksize = [1, convInfo.filterDepth, convInfo.filterHeight,
+      convInfo.filterWidth, 1];
+    const strides = [1, convInfo.strideDepth, convInfo.strideHeight,
+      convInfo.strideWidth, 1];
+    const padding = convInfo.padInfo.type;
+    const dataFormat = convInfo.dataFormat === 'channelsLast' ?
+        'NDHWC' : 'NCDHW';
+    const opAttrs = [
+      createTypeOpAttr('T', x.dtype),
+      {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding},
+      {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+    ];
+    return this.executeSingleOutput('MaxPool3DGrad', opAttrs, [x, y, dy]) as
+        Tensor5D;
+  }
+
   reshape<T extends Tensor, R extends Rank>(x: T, shape: ShapeMap[R]):
       Tensor<R> {
     const shapeTensor = tensor1d(shape, 'int32');
