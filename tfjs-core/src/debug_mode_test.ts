@@ -55,18 +55,38 @@ describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
     expect(a).toThrowError();
   });
 
-  it('debug mode errors when infinities in op output', () => {
+  it('debug mode errors when infinities in op output', async () => {
     const a = tf.tensor1d([1, 2, 3, 4]);
     const b = tf.tensor1d([2, -1, 0, 3]);
-    const c = () => a.div(b);
-    expect(c).toThrowError();
+
+    spyOn(console, 'error');
+
+    const c = async () => {
+      const result = a.div(b);
+      // Must await result so we know exception would have happened by the
+      // time we call `expect`.
+      await result.data();
+    };
+
+    await c();
+
+    expect(console.error).toHaveBeenCalled();
   });
 
-  it('debug mode errors when nans in op output', () => {
+  it('debug mode errors when nans in op output', async () => {
     const a = tf.tensor1d([-1, 2]);
     const b = tf.tensor1d([0.5, 1]);
-    const c = () => a.pow(b);
-    expect(c).toThrowError();
+
+    spyOn(console, 'error');
+
+    const c = async () => {
+      const result = a.pow(b);
+      await result.data();
+    };
+
+    await c();
+
+    expect(console.error).toHaveBeenCalled();
   });
 
   it('debug mode errors when nans in oneHot op (tensorlike), int32', () => {
