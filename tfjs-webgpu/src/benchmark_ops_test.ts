@@ -74,9 +74,14 @@ describeWebGPU('Ops benchmarks', () => {
     const mean = times.reduce((a, b) => a + b, 0) / trials;
     const min = Math.min(...times);
     const fmt = (n: number) => n.toFixed(3);
-    console.log(`Mean time: ${fmt(mean)} ms -> ${fmt(mean / reps)} / rep`);
-    console.log(`Min time: ${fmt(min)} ms -> ${fmt(min / reps)} / rep`);
+    console.log(`Mean: ${fmt(mean)}, Min: ${fmt(min)}`);
+    // console.log(`Mean time: ${fmt(mean)} ms -> ${fmt(mean / reps)} / rep`);
+    // console.log(`Min time: ${fmt(min)} ms -> ${fmt(min / reps)} / rep`);
   }
+
+  beforeEach(() => {
+    tf.setBackend('webgl');
+  });
 
   // tslint:disable-next-line:ban
   xit('argMax', async () => {
@@ -124,9 +129,48 @@ describeWebGPU('Ops benchmarks', () => {
 
   // tslint:disable-next-line:ban
   fit('conv2d', async () => {
+    console.log('conv2d, [1, 128, 128, 4], [25, 25, 4, 4]');
     const a = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 4]);
     const b = tf.randomNormal<tf.Rank.R4>([25, 25, 4, 4]);
 
     await time(() => tf.conv2d(a, b, 1, 'same'));
+  });
+
+  // START POSENET OPS
+
+  fit('conv2d', async () => {
+    console.log('conv2d, [1, 263, 263, 3], [7, 7, 3, 64]');
+    const a = tf.randomNormal<tf.Rank.R4>([1, 263, 263, 3]);
+    const b = tf.randomNormal<tf.Rank.R4>([7, 7, 3, 64]);
+
+    await time(() => tf.conv2d(a, b, 1, 'same'));
+  });
+
+  fit('add', async () => {
+    console.log('add, [1, 129, 129, 64], [64]');
+    const a = tf.randomNormal([1, 129, 129, 64]);
+    const b = tf.randomNormal([64]);
+    await time(() => tf.add(a, b));
+  });
+
+  fit('relu', async () => {
+    console.log('relu, [1, 129, 129, 64]');
+    const a = tf.randomNormal([1, 129, 129, 64]);
+
+    await time(() => tf.relu(a));
+  });
+
+  fit('pad', async () => {
+    console.log('pad, [1, 129, 129, 64]');
+    const a = tf.randomNormal([1, 129, 129, 64]);
+
+    await time(() => tf.pad(a, [[0, 1], [0, 1], [0, 1], [0, 1]]));
+  });
+
+  fit('maxpool', async () => {
+    console.log('maxpool, [1, 131, 131, 64]');
+    const a = tf.randomNormal<tf.Rank.R4>([1, 131, 131, 64]);
+
+    await time(() => tf.maxPool(a, 2, 1, 'same'));
   });
 });
