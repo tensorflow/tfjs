@@ -90,7 +90,7 @@ function stridedSlice_(
 
   // Figure out the output shape.
   const size = computeSize(begin, end, strides);
-  const outShape = size.filter((_, index) => shrinkAxes.indexOf(index) === -1);
+  const outShape = size.filter((_, axis) => shrinkAxes.indexOf(axis) === -1);
   const nonStrided = strides.every(v => v === 1);
   if (nonStrided) {
     return slice($x, begin, size).reshape(outShape);
