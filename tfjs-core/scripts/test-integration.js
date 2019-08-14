@@ -15,8 +15,7 @@
 // =============================================================================
 
 const {exec} = require('../../scripts/test-util');
-
-const dirName = 'tfjs-core-integration';
+const fs = require('fs');
 
 let shouldRunIntegration = false;
 if (process.env.NIGHTLY === 'true') {
