@@ -78,8 +78,7 @@ describeWebGPU('Ops benchmarks', () => {
     console.log(`Min time: ${fmt(min)} ms -> ${fmt(min / reps)} / rep`);
   }
 
-  // tslint:disable-next-line:ban
-  xit('argMax', async () => {
+  it('argMax', async () => {
     const n = 50;
     const doTest = async (axis: number) => {
       const tensors = new Array(n);
@@ -106,24 +105,21 @@ describeWebGPU('Ops benchmarks', () => {
     await doTest(2);
   }, 60000);
 
-  // tslint:disable-next-line:ban
-  fit('matMul', async () => {
+  it('matMul', async () => {
     const a = tf.randomNormal([500, 500]);
     const b = tf.randomNormal([500, 500]);
 
     await time(() => tf.matMul(a, b));
   });
 
-  // tslint:disable-next-line:ban
-  fit('add', async () => {
+  it('add', async () => {
     const a = tf.randomNormal([1, 65, 65, 256]);
     const b = tf.randomNormal([1, 65, 65, 256]);
 
     await time(() => tf.add(a, b));
   });
 
-  // tslint:disable-next-line:ban
-  fit('conv2d', async () => {
+  it('conv2d', async () => {
     const a = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 4]);
     const b = tf.randomNormal<tf.Rank.R4>([25, 25, 4, 4]);
 
