@@ -28,8 +28,9 @@ describeWebGPU('Ops benchmarks', () => {
   // avoided by using fences, but we don't have a common abstraction over
   // WebGL and WebGPU fences at the moment.
   async function time(
-      trials: number, reps: number, doRep: (r: number) => tf.Tensor[],
-      endTrial: () => Promise<void>) {
+      doRep: (r: number) => tf.Tensor[] | tf.Tensor,
+      endTrial?: () => Promise<void>, disposeAfterEachTrial = false,
+      trials = 50, reps = 1) {
     const times = [];
 
     let toDispose: tf.Tensor[] = [];
@@ -40,11 +41,19 @@ describeWebGPU('Ops benchmarks', () => {
       toDispose = [];
     };
 
-    const trial = () => {
+    const trial = async () => {
+      let result;
       for (let r = 0; r < reps; ++r) {
-        toDispose = toDispose.concat(doRep(r));
+        result = doRep(r);
+
+        toDispose = toDispose.concat(Array.isArray(result) ? result : [result]);
       }
-      return endTrial();
+
+      if (endTrial != null) {
+        await endTrial();
+      } else {
+        await (Array.isArray(result) ? result[0] : result).data();
+      }
     };
 
     // Warm-up. Specifically, this pre-allocates enough memory for an entire
@@ -57,7 +66,9 @@ describeWebGPU('Ops benchmarks', () => {
       const start = tf.util.now();
       await trial();
       times.push(tf.util.now() - start);
-      dispose();
+      if (disposeAfterEachTrial) {
+        dispose();
+      }
     }
 
     const mean = times.reduce((a, b) => a + b, 0) / trials;
@@ -67,8 +78,7 @@ describeWebGPU('Ops benchmarks', () => {
     console.log(`Min time: ${fmt(min)} ms -> ${fmt(min / reps)} / rep`);
   }
 
-  // tslint:disable-next-line:ban
-  xit('argMax', async () => {
+  it('argMax', async () => {
     const n = 50;
     const doTest = async (axis: number) => {
       const tensors = new Array(n);
@@ -78,7 +88,6 @@ describeWebGPU('Ops benchmarks', () => {
       }
 
       await time(
-          5, n,
           (r) => {
             maxes[r] = tf.argMax(tensors[r], axis);
             return [];
@@ -96,39 +105,24 @@ describeWebGPU('Ops benchmarks', () => {
     await doTest(2);
   }, 60000);
 
-  // tslint:disable-next-line:ban
-  xit('matMul', async () => {
-    let a = tf.randomNormal([500, 500]);
+  it('matMul', async () => {
+    const a = tf.randomNormal([500, 500]);
     const b = tf.randomNormal([500, 500]);
 
-    await time(
-        5, 50,
-        () => {
-          const c = tf.matMul(a, b);
-          const toDispose = a;
-          a = c;
-          return [toDispose];
-        },
-        async () => {
-          await a.data();
-        });
-  }, 60000);
+    await time(() => tf.matMul(a, b));
+  });
 
-  // tslint:disable-next-line:ban
-  xit('conv2d', async () => {
-    let a = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 4]);
+  it('add', async () => {
+    const a = tf.randomNormal([1, 65, 65, 256]);
+    const b = tf.randomNormal([1, 65, 65, 256]);
+
+    await time(() => tf.add(a, b));
+  });
+
+  it('conv2d', async () => {
+    const a = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 4]);
     const b = tf.randomNormal<tf.Rank.R4>([25, 25, 4, 4]);
 
-    await time(
-        5, 50,
-        () => {
-          const c = tf.conv2d(a, b, 1, 'same');
-          const toDispose = a;
-          a = c;
-          return [toDispose];
-        },
-        async () => {
-          await a.data();
-        });
-  }, 60000);
+    await time(() => tf.conv2d(a, b, 1, 'same'));
+  });
 });
