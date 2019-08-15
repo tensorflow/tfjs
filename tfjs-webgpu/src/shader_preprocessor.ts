@@ -103,11 +103,11 @@ export function makeShader(
     };
   `);
 
-  const [getOutputCoords, dispatchLayoutRank] =
+  const [getOutputCoords, getCoords, dispatchLayoutRank] =
       generateGetOutputCoords(program.dispatchLayout);
   const sources = [
     SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS,
-    getOutputCoords,
+    getOutputCoords, getCoords,
     getSetOutputSnippet(outputData.shape.length, outputData.dtype)
   ];
 
@@ -273,6 +273,12 @@ function getSamplerAtOutputCoords(
       return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
       texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
     }
+
+    float get${texFuncSnippet}(${type} coords) {
+      ${coordsSnippet}
+      return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
+    }
   `;
 }
 
@@ -282,8 +288,9 @@ function getSamplerAtOutputCoords(
  */
 function generateGetOutputCoords(
     dispatchLayout: {x: number[], y?: number[], z?: number[]}):
-    [string, number] {
+    [string, string, number] {
   const {x, y = [], z = []} = dispatchLayout;
+  let initialIndex = '';
   let gatherDimensionsStr = '';
   const dims = [x, y, z];
 
@@ -299,10 +306,10 @@ function generateGetOutputCoords(
     rank += arr.length;
 
     if (arr.length === 1) {
-      gatherDimensionsStr += `uint d${arr[0]} = gl_GlobalInvocationID[${i}];`;
+      initialIndex = `uint d${arr[0]} = gl_GlobalInvocationID[${i}];`;
     } else {
       const strides = symbolicallyComputeStrides(arr, 'outShape');
-      gatherDimensionsStr += `uint index${i} =
+      initialIndex = `uint index${i} =
         gl_GlobalInvocationID[${i}];`;
       for (let j = 0; j < strides.length; j++) {
         gatherDimensionsStr += `uint d${arr[j]} = index${i} / ${strides[j]};`;
@@ -324,9 +331,17 @@ function generateGetOutputCoords(
 
   const dtype = getCoordsDataType(rank);
   const snippet = `${dtype} getOutputCoords() {
+    ${initialIndex}
     ${gatherDimensionsStr}
 
     return ${dtype}(${dimensions.join(',')});
   }`;
-  return [snippet, rank];
+
+  const genericSnippet = `${dtype} getCoords(uint index0) {
+    ${gatherDimensionsStr}
+
+    return ${dtype}(${dimensions.join(',')});
+  }`;
+
+  return [snippet, genericSnippet, rank];
 }

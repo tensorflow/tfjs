@@ -16,6 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
+import {getCoordsDataType} from '../shader_preprocessor';
 
 import {computeDispatch} from '../webgpu_util';
 
@@ -44,6 +45,7 @@ export class BinaryOpProgram implements WebGPUProgram {
 
     this.dispatchLayout = {x: this.outputShape.map((d, i) => i)};
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
+    const type = getCoordsDataType(this.outputShape.length);
     const workPerThread = 2;
 
     this.userCode = `
@@ -56,10 +58,14 @@ export class BinaryOpProgram implements WebGPUProgram {
 
         if(mod(index, ${workPerThread}) == 0) {
           for(uint i = 0; i < ${workPerThread}; i++) {
-            float a = A[index + i];
-            float b = B[index + i];
+            if(index + i < ${this.dispatch[0]}) {
+              ${type} coords = getCoords(index + i);
 
-            setOutput(index + i, binaryOperation(a, b));
+              float a = getA(coords);
+              float b = getB(coords);
+
+              setOutput(index + i, binaryOperation(a, b));
+            }
           }
         }
       }

@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
+import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
+
 import {WebGPUProgram} from './webgpu_program';
 
 export const RELU = 'return max(a, 0.0);';
@@ -33,6 +35,7 @@ export class UnaryOpProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: this.outputShape.map((d, i) => i)};
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
+    const type = getCoordsDataType(this.outputShape.length);
 
     const workPerThread = 2;
 
@@ -46,9 +49,12 @@ export class UnaryOpProgram implements WebGPUProgram {
 
         if(mod(index, ${workPerThread}) == 0) {
           for(uint i=0; i<${workPerThread}; i++) {
-            float a = A[index + i];
+            if(index + 1 < ${this.dispatch[0]}) {
+              ${type} coords = getCoords(index + i);
+              float a = getA(coords);
 
-            setOutput(index + i, unaryOperation(a));
+              setOutput(index + i, unaryOperation(a));
+            }
           }
         }
       }
