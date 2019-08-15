@@ -225,6 +225,18 @@ export function sizeToSquarishShape(size: number): [number, number] {
   return [width, Math.ceil(size / width)];
 }
 
+/**
+ * Creates a new array with randomized indicies to a given quantity.
+ *
+ * ```js
+ * const randomTen = tf.util.createShuffledIndices(10);
+ * console.log(randomTen);
+ * ```
+ *
+ * @param number Quantity of how many shuffled indicies to create.
+ */
+/** @doc {heading: 'Util', namespace: 'util'} */
+// tslint:disable-next-line:no-any
 export function createShuffledIndices(n: number): Uint32Array {
   const shuffledIndices = new Uint32Array(n);
   for (let i = 0; i < n; ++i) {
