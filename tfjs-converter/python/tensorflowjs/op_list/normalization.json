@@ -1,0 +1,231 @@
+[
+  {
+    "tfOpName": "FusedBatchNorm",
+    "category": "normalization",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "scale",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "offset",
+        "type": "tensor"
+      },
+      {
+        "start": 3,
+        "name": "mean",
+        "type": "tensor"
+      },
+      {
+        "start": 4,
+        "name": "variance",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "epsilon",
+        "name": "epsilon",
+        "type": "number",
+        "defaultValue": 0.001
+      },
+      {
+        "tfName": "data_format",
+        "name": "dataFormat",
+        "type": "string",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "FusedBatchNormV2",
+    "category": "normalization",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "scale",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "offset",
+        "type": "tensor"
+      },
+      {
+        "start": 3,
+        "name": "mean",
+        "type": "tensor"
+      },
+      {
+        "start": 4,
+        "name": "variance",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "epsilon",
+        "name": "epsilon",
+        "type": "number",
+        "defaultValue": 0.001
+      },
+      {
+        "tfName": "data_format",
+        "name": "dataFormat",
+        "type": "string",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "FusedBatchNormV3",
+    "category": "normalization",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "scale",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "offset",
+        "type": "tensor"
+      },
+      {
+        "start": 3,
+        "name": "mean",
+        "type": "tensor"
+      },
+      {
+        "start": 4,
+        "name": "variance",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "epsilon",
+        "name": "epsilon",
+        "type": "number",
+        "defaultValue": 0.001
+      },
+      {
+        "tfName": "data_format",
+        "name": "dataFormat",
+        "type": "string",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "LRN",
+    "category": "normalization",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "depth_radius",
+        "name": "radius",
+        "type": "number",
+        "defaultValue": 5
+      },
+      {
+        "tfName": "bias",
+        "name": "bias",
+        "type": "number",
+        "defaultValue": 1
+      },
+      {
+        "tfName": "alpha",
+        "name": "alpha",
+        "type": "number",
+        "defaultValue": 1
+      },
+      {
+        "tfName": "beta",
+        "name": "beta",
+        "type": "number",
+        "defaultValue": 0.5
+      }
+    ]
+  },
+  {
+    "tfOpName": "Softmax",
+    "category": "normalization",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
+    "tfOpName": "LogSoftmax",
+    "category": "normalization",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
+    "tfOpName": "SparseToDense",
+    "category": "normalization",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "sparseIndices",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "outputShape",
+        "type": "number[]"
+      },
+      {
+        "start": 2,
+        "name": "sparseValues",
+        "type": "tensor"
+      },
+      {
+        "start": 3,
+        "name": "defaultValue",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "validate_indices",
+        "name": "validateIndices",
+        "type": "bool",
+        "defaultValue": true,
+        "notSupported": true
+      }
+    ]
+  }
+]
