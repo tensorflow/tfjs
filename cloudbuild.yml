@@ -19,6 +19,13 @@ steps:
   args: ['./scripts/run-build.sh', 'tfjs-core']
   waitFor: ['diff']
 
+# Converter.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-converter'
+  args: ['./scripts/run-build.sh', 'tfjs-converter']
+  waitFor: ['diff']
+
 # Data.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
