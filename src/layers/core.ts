@@ -18,7 +18,7 @@ import {Activation as ActivationFn, getActivation, serializeActivation} from '..
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {DisposeResult, InputSpec, Layer, LayerArgs} from '../engine/topology';
-import {NotImplementedError, ValueError} from '../errors';
+import {ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {ActivationIdentifier} from '../keras_format/activation_config';
 import {Shape} from '../keras_format/common';
@@ -69,11 +69,6 @@ export class Dropout extends Layer {
     // So that the scalar doesn't get tidied up between executions.
     this.noiseShape = args.noiseShape;
     this.seed = args.seed;
-    if (this.seed != null) {
-      throw new NotImplementedError(
-          'Non-default seed is not implemented in Dropout layer yet: ' +
-          this.seed);
-    }
     this.supportsMasking = true;
   }
 
@@ -94,12 +89,6 @@ export class Dropout extends Layer {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       const input = getExactlyOneTensor(inputs);
-      if (this.noiseShape != null &&
-          !util.arraysEqual(input.shape, this.noiseShape)) {
-        throw new NotImplementedError(
-            'Non-default noise shape is not implemented in Dropout ' +
-            'layer yet: ' + JSON.stringify(this.noiseShape));
-      }
       if (0 < this.rate && this.rate < 1) {
         const training =
             kwargs['training'] == null ? false : kwargs['training'];
