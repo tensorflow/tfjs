@@ -52,8 +52,7 @@ describeMathCPUAndGPU('Dropout Layer', () => {
     const inputShape = [2, 3, 4];
     const trainingValues = [false, true];
     const dropoutRates = [0, 0.5];
-    const noiseShapes = [null, inputShape];
-    // TODO(cais): test non-default noiseShapes once they are supported.
+    const noiseShapes = [null, inputShape, [2, 3, 1]];
 
     for (const training of trainingValues) {
       for (const rate of dropoutRates) {
@@ -69,13 +68,37 @@ describeMathCPUAndGPU('Dropout Layer', () => {
             const xValue = x.dataSync();
             const yValue = y.dataSync();
             let nKept = 0;
-            for (let i = 0; i < xValue.length; ++i) {
-              if (yValue[i] !== 0) {
-                nKept++;
-                if (training) {
-                  expect(yValue[i]).toBeCloseTo(1 / (1 - rate));
-                } else {
-                  expect(yValue[i]).toBeCloseTo(1);
+            if (noiseShape === noiseShapes[2]) {  // customized noiseShape
+              for (let i = 0; i < x.shape[0]; ++i) {
+                for (let j = 0; j < x.shape[1]; ++j) {
+                  const maskedValue =
+                      yValue[i * x.shape[1] * x.shape[2] + j * x.shape[2]];
+                  for (let k = 0; k < x.shape[2]; ++k) {
+                    const indice =
+                        i * x.shape[1] * x.shape[2] + j * x.shape[2] + k;
+                    if (training) {
+                      if (maskedValue === 0) {
+                        expect(yValue[indice]).toEqual(0);
+                      } else {
+                        nKept++;
+                        expect(yValue[indice]).toBeCloseTo(1 / (1 - rate));
+                      }
+                    } else {
+                      nKept++;
+                      expect(yValue[indice]).toEqual(1);
+                    }
+                  }
+                }
+              }
+            } else {  // default noiseShape
+              for (let i = 0; i < xValue.length; ++i) {
+                if (yValue[i] !== 0) {
+                  nKept++;
+                  if (training) {
+                    expect(yValue[i]).toBeCloseTo(1 / (1 - rate));
+                  } else {
+                    expect(yValue[i]).toBeCloseTo(1);
+                  }
                 }
               }
             }
@@ -89,6 +112,20 @@ describeMathCPUAndGPU('Dropout Layer', () => {
         }
       }
     }
+  });
+
+  describe('tensor with seed get specific value', () => {
+    const training = true;
+    const rate = 0.5;
+    const noiseShape = [2, 3, 4];
+    const x = ones([2, 3, 4]);
+    const seed = 23;
+    const dropoutLayer = tfl.layers.dropout({rate, noiseShape, seed});
+    const y = dropoutLayer.apply(x, {training}) as Tensor;
+    const yValuesExpected = [
+      0, 2, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 2, 0, 2, 0, 2, 2, 2, 0
+    ];
+    expectTensorsClose(y, tensor3d(yValuesExpected, [2, 3, 4]));
   });
 });
 

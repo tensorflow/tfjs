@@ -742,6 +742,44 @@ describeMathCPUAndGPU('dropout', () => {
       }
     });
   }
+
+  it('Level=0.75, with noiseShape', () => {
+    const x = tensor2d(range(1, 21), [10, 2]);
+    const level = 0.75;
+    const noiseShape = [10, 1];
+    const y = K.dropout(x, level, noiseShape);
+    expect(y.dtype).toEqual(x.dtype);
+    expect(y.shape).toEqual(x.shape);
+    const xValue = x.dataSync();
+    const yValue = y.dataSync();
+    let nKept = 0;
+    for (let i = 0; i < x.shape[0]; i++) {
+      const maskedValue = yValue[i * x.shape[1]];
+      for (let j = 0; j < x.shape[1]; j++) {
+        const indice = i * x.shape[1] + j;
+        if (maskedValue !== 0) {
+          nKept++;
+          expect(yValue[indice]).toBeCloseTo(1 / (1 - level) * xValue[indice]);
+        } else {
+          expect(yValue[indice]).toEqual(0);
+        }
+      }
+    }
+    const numel = K.countParams(x);
+    expect(nKept).toBeLessThan(numel);
+  });
+
+  it('Level=0.75, with seed', () => {
+    const x = tensor2d(range(1, 21), [10, 2]);
+    const level = 0.75;
+    const seed = 23;
+    const y = K.dropout(x, level, null, seed);
+    expect(y.dtype).toEqual(x.dtype);
+    expect(y.shape).toEqual(x.shape);
+    const yValuesExpected =
+        [0, 0, 12, 16, 0, 0, 0, 0, 0, 0, 0, 48, 52, 0, 0, 0, 68, 0, 76, 0];
+    expectTensorsClose(y, tensor2d(yValuesExpected, [10, 2]));
+  });
 });
 
 describeMathCPUAndGPU('biasAdd', () => {
