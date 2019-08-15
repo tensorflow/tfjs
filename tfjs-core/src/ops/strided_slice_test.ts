@@ -20,9 +20,53 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('stridedSlice', ALL_ENVS, () => {
-  it('stridedSlice should fail if new axis mask is set', () => {
-    const tensor = tf.tensor1d([0, 1, 2, 3]);
-    expect(() => tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 0, 1)).toThrow();
+  it('stridedSlice with first axis being new', async () => {
+    // Python slice code: t[tf.newaxis,0:3]
+    const t = tf.tensor1d([0, 1, 2, 3]);
+    const begin = [0, 0];
+    const end = [1, 3];
+    const strides = [1, 2];
+    const beginMask = 0;
+    const endMask = 0;
+    const ellipsisMask = 0;
+    const newAxisMask = 1;
+
+    const output = tf.stridedSlice(
+        t, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask);
+    expect(output.shape).toEqual([1, 2]);
+    expectArraysClose(await output.data(), [0, 2]);
+  });
+
+  it('strided slice with several new axes', () => {
+    // Python slice code: t[1:2,tf.newaxis,0:3,tf.newaxis,2:5]
+    const t = tf.zeros([2, 3, 4, 5]);
+    const begin = [1, 0, 0, 0, 2];
+    const end = [2, 1, 3, 1, 5];
+    const strides: number[] = null;
+    const beginMask = 0;
+    const endMask = 0;
+    const ellipsisMask = 0;
+    const newAxisMask = 0b1010;
+    const output = tf.stridedSlice(
+        t, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask);
+    expect(output.shape).toEqual([1, 1, 3, 1, 2, 5]);
+  });
+
+  it('strided slice with new axes and shrink axes', () => {
+    // Python slice code: t[1:2,tf.newaxis,1,tf.newaxis,2,2:5]
+    const t = tf.zeros([2, 3, 4, 5]);
+    const begin = [1, 0, 1, 0, 2, 2];
+    const end = [2, 1, 2, 1, 3, 5];
+    const strides: number[] = null;
+    const beginMask = 0;
+    const endMask = 0;
+    const ellipsisMask = 0;
+    const newAxisMask = 0b1010;
+    const shrinkAxisMask = 0b10100;
+    const output = tf.stridedSlice(
+        t, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask,
+        shrinkAxisMask);
+    expect(output.shape).toEqual([1, 1, 1, 3]);
   });
 
   it('stridedSlice should fail if ellipsis mask is set', () => {

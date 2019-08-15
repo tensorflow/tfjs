@@ -33,7 +33,7 @@ import * as ops from '../../ops/ops';
 import {buffer, scalar, tensor, tensor3d, tensor4d} from '../../ops/ops';
 import * as scatter_nd_util from '../../ops/scatter_nd_util';
 import * as selu_util from '../../ops/selu_util';
-import {computeFlatOffset, getStridedSlicedInfo, isSliceContinous} from '../../ops/slice_util';
+import {computeFlatOffset, computeOutShape, isSliceContinous} from '../../ops/slice_util';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../../tensor';
 import {BackendValues, DataType, DataValues, NumericDataType, PixelData, Rank, ShapeMap, TypedArray, upcastType} from '../../types';
 import * as util from '../../util';
@@ -313,34 +313,28 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   stridedSlice<T extends Tensor>(
-      x: T, begin: number[], end: number[], strides: number[],
-      beginMask: number, endMask: number, ellipsisMask: number,
-      newAxisMask: number, shrinkAxisMask: number): T {
+      x: T, begin: number[], end: number[], strides: number[]): T {
     this.assertNotComplex(x, 'stridedSlice');
 
-    const [beginIndex, size, shrinkAxis] = getStridedSlicedInfo(
-        x.shape, begin, end, strides, beginMask, endMask, ellipsisMask,
-        newAxisMask, shrinkAxisMask);
+    const outShape = computeOutShape(begin, end, strides);
 
-    const shape = size.filter((v, index) => shrinkAxis.indexOf(index) === -1);
-
-    if (shape.some(axis => axis === 0)) {
-      return ops.tensor([], shape) as T;
+    if (outShape.some(axis => axis === 0)) {
+      return ops.tensor([], outShape) as T;
     }
 
-    const buffer = ops.buffer(size, x.dtype);
+    const buffer = ops.buffer(outShape, x.dtype);
     const xBuf = this.bufferSync(x);
     for (let i = 0; i < buffer.size; i++) {
       const loc = buffer.indexToLoc(i);
 
       const newLoc: number[] = new Array(loc.length);
       for (let j = 0; j < newLoc.length; j++) {
-        newLoc[j] = loc[j] * strides[j] + beginIndex[j];
+        newLoc[j] = loc[j] * strides[j] + begin[j];
       }
       buffer.set(xBuf.get(...newLoc), ...loc);
     }
 
-    return buffer.toTensor().reshape(shape) as T;
+    return buffer.toTensor() as T;
   }
 
   diag(x: Tensor): Tensor {
