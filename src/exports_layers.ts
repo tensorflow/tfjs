@@ -20,7 +20,7 @@ import {Add, Average, Concatenate, ConcatenateLayerArgs, Dot, DotLayerArgs, Maxi
 import {AlphaDropout, AlphaDropoutArgs, GaussianDropout, GaussianDropoutArgs, GaussianNoise, GaussianNoiseArgs} from './layers/noise';
 import {BatchNormalization, BatchNormalizationLayerArgs} from './layers/normalization';
 import {ZeroPadding2D, ZeroPadding2DLayerArgs} from './layers/padding';
-import {AveragePooling1D, AveragePooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerArgs, MaxPooling1D, MaxPooling2D, Pooling1DLayerArgs, Pooling2DLayerArgs} from './layers/pooling';
+import {AveragePooling1D, AveragePooling2D, AveragePooling3D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerArgs, MaxPooling1D, MaxPooling2D, MaxPooling3D, Pooling1DLayerArgs, Pooling2DLayerArgs, Pooling3DLayerArgs} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNCell, RNNLayerArgs, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs, StackedRNNCells, StackedRNNCellsArgs} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs} from './layers/wrappers';
 
@@ -919,6 +919,38 @@ export function avgPooling2d(args: Pooling2DLayerArgs): Layer {
 }
 
 /**
+ * Average pooling operation for 3D data.
+ *
+ * Input shape
+ *   - If `dataFormat === channelsLast`:
+ *       5D tensor with shape:
+ *       `[batchSize, depths, rows, cols, channels]`
+ *   - If `dataFormat === channelsFirst`:
+ *      4D tensor with shape:
+ *       `[batchSize, channels, depths, rows, cols]`
+ *
+ * Output shape
+ *   - If `dataFormat=channelsLast`:
+ *       5D tensor with shape:
+ *       `[batchSize, pooledDepths, pooledRows, pooledCols, channels]`
+ *   - If `dataFormat=channelsFirst`:
+ *       5D tensor with shape:
+ *       `[batchSize, channels, pooledDepths, pooledRows, pooledCols]`
+ */
+/** @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'} */
+export function averagePooling3d(args: Pooling3DLayerArgs): Layer {
+  return new AveragePooling3D(args);
+}
+export function avgPool3d(args: Pooling3DLayerArgs): Layer {
+  return averagePooling3d(args);
+}
+// For backwards compatibility.
+// See https://github.com/tensorflow/tfjs/issues/152
+export function avgPooling3d(args: Pooling3DLayerArgs): Layer {
+  return averagePooling3d(args);
+}
+
+/**
  * Global average pooling operation for temporal data.
  *
  * Input Shape: 3D tensor with shape: `[batchSize, steps, features]`.
@@ -1010,6 +1042,30 @@ export function maxPooling1d(args: Pooling1DLayerArgs): Layer {
 /** @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'} */
 export function maxPooling2d(args: Pooling2DLayerArgs): Layer {
   return new MaxPooling2D(args);
+}
+
+/**
+ * Max pooling operation for 3D data.
+ *
+ * Input shape
+ *   - If `dataFormat === channelsLast`:
+ *       5D tensor with shape:
+ *       `[batchSize, depths, rows, cols, channels]`
+ *   - If `dataFormat === channelsFirst`:
+ *      5D tensor with shape:
+ *       `[batchSize, channels, depths, rows, cols]`
+ *
+ * Output shape
+ *   - If `dataFormat=channelsLast`:
+ *       5D tensor with shape:
+ *       `[batchSize, pooledDepths, pooledRows, pooledCols, channels]`
+ *   - If `dataFormat=channelsFirst`:
+ *       5D tensor with shape:
+ *       `[batchSize, channels, pooledDepths, pooledRows, pooledCols]`
+ */
+/** @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'} */
+export function maxPooling3d(args: Pooling3DLayerArgs): Layer {
+  return new MaxPooling3D(args);
 }
 
 // Recurrent Layers.
