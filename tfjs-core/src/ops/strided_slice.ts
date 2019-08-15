@@ -19,9 +19,10 @@ import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
+
 import {op} from './operation';
 import {slice} from './slice';
-import {getStridedSlicedInfo} from './slice_util';
+import {computeOutShape, maskToAxes, startForAxis, stopForAxis} from './slice_util';
 
 /**
  * Extracts a strided slice of a tensor.
@@ -56,30 +57,53 @@ import {getStridedSlicedInfo} from './slice_util';
  */
 /** @doc {heading: 'Operations', subheading: 'Slicing and Joining'} */
 function stridedSlice_(
-    x: Tensor|TensorLike, begin: number[], end: number[], strides: number[],
+    x: Tensor|TensorLike, begin: number[], end: number[], strides?: number[],
     beginMask = 0, endMask = 0, ellipsisMask = 0, newAxisMask = 0,
     shrinkAxisMask = 0): Tensor {
+  if (strides == null) {
+    strides = new Array(begin.length);
+  }
   if (ellipsisMask !== 0) {
     throw new Error('ellipsis mask is not yet supported');
   }
-  if (newAxisMask !== 0) {
-    throw new Error('new axis mask is not yet supported');
+  let $x = convertToTensor(x, 'x', 'stridedSlice');
+
+  // Expand the dims of x based on the newAxisMask.
+  const expandAxes = maskToAxes(newAxisMask);
+  const newShape = $x.shape.slice();
+  expandAxes.forEach(axis => {
+    begin[axis] = 0;
+    end[axis] = 1;
+    newShape.splice(axis, 0, 1);
+  });
+  $x = $x.reshape(newShape);
+
+  // Normalize the start, end and strides.
+  for (let axis = 0; axis < $x.rank; axis++) {
+    begin[axis] = startForAxis(beginMask, begin, strides, $x.shape, axis);
+    end[axis] = stopForAxis(endMask, end, strides, $x.shape, axis);
+    strides[axis] = strides[axis] || 1;
   }
-  const $x = convertToTensor(x, 'x', 'stridedSlice');
+
+  const shrinkAxes = maskToAxes(shrinkAxisMask);
+  // Adjust the ends based on the shrink mask.
+  shrinkAxes.forEach(axis => {
+    end[axis] = begin[axis] + 1;
+    strides[axis] = 1;
+  });
+
+  // Figure out the output shape.
+  const size = computeOutShape(begin, end, strides);
+  // Remove the axes based on shrinkMask.
+  const outShape = size.filter((_, axis) => shrinkAxes.indexOf(axis) === -1);
+
   const nonStrided = strides.every(v => v === 1);
   if (nonStrided) {
-    const [beginIndex, size, shrinkAxis] = getStridedSlicedInfo(
-        $x.shape, begin, end, strides, beginMask, endMask, ellipsisMask,
-        newAxisMask, shrinkAxisMask);
-    const outShape =
-        size.filter((_, index) => shrinkAxis.indexOf(index) === -1);
-    return slice($x, beginIndex, size).reshape(outShape);
+    return slice($x, begin, size).reshape(outShape);
   }
-  return ENGINE.runKernel(
-      backend => backend.stridedSlice(
-          $x, begin, end, strides, beginMask, endMask, ellipsisMask,
-          newAxisMask, shrinkAxisMask),
-      {$x});
+  const res = ENGINE.runKernel(
+      backend => backend.stridedSlice($x, begin, end, strides), {$x});
+  return res.reshape(outShape);
 }
 
 export const stridedSlice = op({stridedSlice_});
