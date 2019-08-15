@@ -1,0 +1,6 @@
+h5py==2.8.0
+keras==2.2.4
+numpy==1.16.4
+six==1.11.0
+tensorflow==1.14.0
+tensorflow-hub==0.5.0
