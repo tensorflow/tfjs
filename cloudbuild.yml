@@ -33,6 +33,13 @@ steps:
   args: ['./scripts/run-build.sh', 'tfjs-data']
   waitFor: ['diff']
 
+# Layers.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-layers'
+  args: ['./scripts/run-build.sh', 'tfjs-layers']
+  waitFor: ['diff']
+
 # Union.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
