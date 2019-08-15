@@ -1461,6 +1461,14 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(res.shape).toEqual([0, 0]);
   });
 
+  it('squeeze can take an empty list of axis', () => {
+    const a = tf.zeros([2, 1, 3, 1, 4]);
+    const axes: number[] = [];
+    // Empty axes list means all possible axes.
+    const res = tf.squeeze(a, axes);
+    expect(res.shape).toEqual([2, 3, 4]);
+  });
+
   it('squeeze a complex64 tensor', async () => {
     const a = tf.complex([[4], [1], [5]], [[2], [3], [6]]);
     const b = a.squeeze();
