@@ -1,0 +1,41 @@
+{
+  "name": "integration_rn59",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "test": "jest",
+    "lint": "tslint -p . -t verbose"
+  },
+  "dependencies": {
+    "@react-native-community/async-storage": "^1.6.1",
+    "@tensorflow-models/mobilenet": "^1.0.1",
+    "@tensorflow/tfjs": "^1.2.7",
+    "@tensorflow/tfjs-react-native": "file:../",
+    "expo-gl": "^6.0.0",
+    "expo-gl-cpp": "^6.0.0",
+    "jpeg-js": "^0.3.5",
+    "react": "16.8.3",
+    "react-native": "0.59.10",
+    "react-native-unimodules": "^0.5.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/runtime": "^7.5.5",
+    "@types/jest": "^24.0.17",
+    "@types/react": "^16.8.24",
+    "@types/react-native": "^0.60.3",
+    "@types/react-test-renderer": "^16.8.3",
+    "babel-jest": "^24.8.0",
+    "clang-format": "~1.2.2",
+    "jest": "^24.8.0",
+    "metro-react-native-babel-preset": "^0.55.0",
+    "react-test-renderer": "16.8.3",
+    "tslint": "~5.11.0",
+    "tslint-no-circular-imports": "^0.5.0",
+    "typescript": "^3.5.3"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
