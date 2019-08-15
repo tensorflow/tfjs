@@ -316,13 +316,13 @@ export class MathBackendCPU implements KernelBackend {
       x: T, begin: number[], end: number[], strides: number[]): T {
     this.assertNotComplex(x, 'stridedSlice');
 
-    const size = computeOutShape(begin, end, strides);
+    const outShape = computeOutShape(begin, end, strides);
 
-    if (size.some(axis => axis === 0)) {
-      return ops.tensor([], size) as T;
+    if (outShape.some(axis => axis === 0)) {
+      return ops.tensor([], outShape) as T;
     }
 
-    const buffer = ops.buffer(size, x.dtype);
+    const buffer = ops.buffer(outShape, x.dtype);
     const xBuf = this.bufferSync(x);
     for (let i = 0; i < buffer.size; i++) {
       const loc = buffer.indexToLoc(i);

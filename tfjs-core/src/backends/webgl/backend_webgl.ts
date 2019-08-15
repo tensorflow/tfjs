@@ -774,13 +774,13 @@ export class MathBackendWebGL implements KernelBackend {
       return this.cpuBackend.stridedSlice(x, begin, end, strides);
     }
 
-    const size = slice_util.computeOutShape(begin, end, strides);
+    const outShape = slice_util.computeOutShape(begin, end, strides);
 
-    if (size.some(axis => axis === 0)) {
-      return tensor([], size) as T;
+    if (outShape.some(axis => axis === 0)) {
+      return tensor([], outShape) as T;
     }
 
-    const program = new StridedSliceProgram(begin, strides, size);
+    const program = new StridedSliceProgram(begin, strides, outShape);
     return this.compileAndRun(program, [x]);
   }
 

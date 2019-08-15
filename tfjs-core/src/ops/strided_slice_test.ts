@@ -61,8 +61,8 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     const beginMask = 0;
     const endMask = 0;
     const ellipsisMask = 0;
-    const newAxisMask = 10;     // 1010
-    const shrinkAxisMask = 20;  // 10100
+    const newAxisMask = 0b1010;
+    const shrinkAxisMask = 0b10100;
     const output = tf.stridedSlice(
         t, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask,
         shrinkAxisMask);
