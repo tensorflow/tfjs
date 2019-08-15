@@ -619,7 +619,7 @@ export class Tensor<R extends Rank = Rank> {
     if (this.dtype === 'string') {
       const bytes = await data as Uint8Array[];
       try {
-        return bytes.map(b => util.decodeString(b));
+        return bytes.map(b => util.decodeString(b)) as DataTypeMap[D];
       } catch {
         throw new Error(
             'Failed to decode the string bytes into utf-8. ' +
@@ -639,7 +639,8 @@ export class Tensor<R extends Rank = Rank> {
     const data = trackerFn().readSync(this.dataId);
     if (this.dtype === 'string') {
       try {
-        return (data as Uint8Array[]).map(b => util.decodeString(b));
+        return (data as Uint8Array[]).map(b => util.decodeString(b)) as
+            DataTypeMap[D];
       } catch {
         throw new Error(
             'Failed to decode the string bytes into utf-8. ' +
