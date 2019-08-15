@@ -19,7 +19,12 @@ const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
-  reports: {}
+  reports: {},
+  bundlerOptions: {
+    // worker_node_test in tfjs-core contains a conditional require statement
+    // that confuses the bundler of karma-typescript.
+    ignore: ['./worker_node_test']
+  }
 };
 
 module.exports = function(config) {
