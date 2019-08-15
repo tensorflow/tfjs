@@ -18,7 +18,7 @@
 import {BackendTimer, BackendTimingInfo} from './backends/backend';
 import * as tf from './index';
 import {describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
-import {Logger, Profiler} from './profiler';
+import {checkComputationForErrors, Logger, Profiler} from './profiler';
 import {Tensor} from './tensor';
 import {TypedArray} from './types';
 
@@ -127,5 +127,29 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
       expect(maxKernelCalled).toBe(true);
       doneFn();
     }, delayMs * 2);
+  });
+});
+
+describe('profiler.checkComputationForErrors', () => {
+  it('Float32Array has NaN', () => {
+    expect(
+        () => checkComputationForErrors(
+            new Float32Array([1, 2, 3, NaN, 4, 255]), 'float32', ''))
+        .toThrow();
+  });
+
+  it('Float32Array has Infinity', () => {
+    expect(
+        () => checkComputationForErrors(
+            new Float32Array([1, 2, 3, Infinity, 4, 255]), 'float32', ''))
+        .toThrow();
+  });
+
+  it('Float32Array no NaN', () => {
+    // Int32 and Bool NaNs should not trigger an error.
+    expect(
+        () => checkComputationForErrors(
+            new Float32Array([1, 2, 3, -1, 4, 255]), 'float32', ''))
+        .not.toThrow();
   });
 });

@@ -22,7 +22,6 @@
     "@types/node": "~9.6.1",
     "@types/shelljs": "^0.8.4",
     "babel-core": "~6.26.3",
-    "chalk": "~2.4.2",
     "clang-format": "~1.2.2",
     "commander": "~2.14.1",
     "jasmine": "3.1.0",
@@ -46,7 +45,8 @@
     "rollup-plugin-uglify": "~3.0.0",
     "shelljs": "~0.8.1",
     "ts-node": "~4.1.0",
-    "tslint": "~5.9.1",
+    "tslint": "~5.11.0",
+    "tslint-no-circular-imports": "~0.5.0",
     "typescript": "3.3.3333",
     "yalc": "~1.0.0-pre.21"
   },
@@ -58,8 +58,7 @@
     "lint": "tslint -p . -t verbose",
     "test": "ts-node ./scripts/release_notes/run_tests.ts && karma start",
     "test-ci": "./scripts/test-ci.sh",
-    "release-notes": "ts-node ./scripts/release_notes/release_notes.ts",
-    "release": "ts-node ./scripts/release.ts"
+    "release-notes": "ts-node ./scripts/release_notes/release_notes.ts"
   },
   "dependencies": {
     "@tensorflow/tfjs-converter": "1.2.7",

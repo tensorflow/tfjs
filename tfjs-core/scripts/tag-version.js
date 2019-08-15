@@ -21,7 +21,7 @@ var fs = require('fs');
 var exec = require('child_process').exec;
 
 var version = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
-var tag = `v${version}`;
+var tag = `tfjs-core-v${version}`;
 
 exec(`git tag ${tag}`, (err, stdout, stderr) => {
   console.log('\x1b[36m%s\x1b[0m', 'git tag command stdout:');

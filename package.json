@@ -1,9 +1,13 @@
 {
   "devDependencies": {
     "clang-format": "~1.2.4",
-    "shelljs": "~0.8.3"
+    "chalk": "~2.4.2",
+    "shelljs": "~0.8.3",
+    "ts-node": "~4.1.0",
+    "typescript": "3.3.3333"
   },
   "scripts": {
-    "diff": "./scripts/diff.js"
+    "diff": "./scripts/diff.js",
+    "release": "ts-node ./scripts/release.ts"
   }
 }
