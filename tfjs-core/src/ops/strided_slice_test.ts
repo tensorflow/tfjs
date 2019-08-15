@@ -38,18 +38,18 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
   });
 
   it('strided slice with several new axes', () => {
-    // Python slice code: t[1:2,tf.newaxis,0:3,tf.newaxis,tf.newaxis,2:5]
+    // Python slice code: t[1:2,tf.newaxis,0:3,tf.newaxis,2:5]
     const t = tf.zeros([2, 3, 4, 5]);
-    const begin = [1, 0, 0, 0, 0, 2];
-    const end = [2, 1, 3, 1, 1, 5];
+    const begin = [1, 0, 0, 0, 2];
+    const end = [2, 1, 3, 1, 5];
     const strides: number[] = null;
     const beginMask = 0;
     const endMask = 0;
     const ellipsisMask = 0;
-    const newAxisMask = 26;  // 11010
+    const newAxisMask = 0b1010;
     const output = tf.stridedSlice(
         t, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask);
-    expect(output.shape).toEqual([1, 1, 3, 1, 1, 2, 5]);
+    expect(output.shape).toEqual([1, 1, 3, 1, 2, 5]);
   });
 
   it('strided slice with new axes and shrink axes', () => {
