@@ -1,6 +1,8 @@
 *.tgz
-**/*.pyc
 */diff
+**/*.pyc
+**/bundle.js
+**/*.js.map
 .DS_Store
 .idea/
 .rpt2_cache/
@@ -10,8 +12,8 @@ bazel-out/
 bazel-*
 coverage/
 dist/
+integration_tests/tfjs2keras/test-data/
 local.log
-
 node_modules/
 npm-debug.log
 package
