@@ -44,6 +44,7 @@ export class BinaryOpProgram implements WebGPUProgram {
 
     this.dispatchLayout = {x: this.outputShape.map((d, i) => i)};
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
+    const workPerThread = 2;
 
     this.userCode = `
       float binaryOperation(float a, float b) {
@@ -52,9 +53,15 @@ export class BinaryOpProgram implements WebGPUProgram {
 
       void main() {
         uint index = gl_GlobalInvocationID.x;
-        float a = getAAtOutCoords();
-        float b = getBAtOutCoords();
-        setOutput(index, binaryOperation(a, b));
+
+        if(mod(index, ${workPerThread}) == 0) {
+          for(uint i = 0; i < ${workPerThread}; i++) {
+            float a = A[index + i];
+            float b = B[index + i];
+
+            setOutput(index + i, binaryOperation(a, b));
+          }
+        }
       }
     `;
   }

@@ -34,6 +34,8 @@ export class UnaryOpProgram implements WebGPUProgram {
     this.dispatchLayout = {x: this.outputShape.map((d, i) => i)};
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
 
+    const workPerThread = 2;
+
     this.userCode = `
       float unaryOperation(float a) {
         ${op}
@@ -41,8 +43,14 @@ export class UnaryOpProgram implements WebGPUProgram {
 
       void main() {
         uint index = gl_GlobalInvocationID.x;
-        float a = getAAtOutCoords();
-        setOutput(index, unaryOperation(a));
+
+        if(mod(index, ${workPerThread}) == 0) {
+          for(uint i=0; i<${workPerThread}; i++) {
+            float a = A[index + i];
+
+            setOutput(index + i, unaryOperation(a));
+          }
+        }
       }
     `;
   }
