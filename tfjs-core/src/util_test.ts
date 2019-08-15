@@ -407,30 +407,6 @@ describe('util.squeezeShape', () => {
   });
 });
 
-describe('util.checkComputationForErrors', () => {
-  it('Float32Array has NaN', () => {
-    expect(
-        () => util.checkComputationForErrors(
-            new Float32Array([1, 2, 3, NaN, 4, 255]), 'float32', ''))
-        .toThrowError();
-  });
-
-  it('Float32Array has Infinity', () => {
-    expect(
-        () => util.checkComputationForErrors(
-            new Float32Array([1, 2, 3, Infinity, 4, 255]), 'float32', ''))
-        .toThrowError();
-  });
-
-  it('Float32Array no NaN', () => {
-    // Int32 and Bool NaNs should not trigger an error.
-    expect(
-        () => util.checkComputationForErrors(
-            new Float32Array([1, 2, 3, 4, -1, 255]), 'float32', ''))
-        .not.toThrowError();
-  });
-});
-
 describe('util.checkConversionForErrors', () => {
   it('Float32Array has NaN', () => {
     expect(

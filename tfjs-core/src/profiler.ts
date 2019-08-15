@@ -18,7 +18,7 @@
 import {BackendTimer} from './backends/backend';
 import {Tensor} from './tensor';
 import {NamedTensorMap} from './tensor_types';
-import {TypedArray} from './types';
+import {DataType, DataTypeMap, TypedArray} from './types';
 import * as util from './util';
 
 export class Profiler {
@@ -39,21 +39,44 @@ export class Profiler {
     const results: Tensor[] =
         Array.isArray(result) ? result : [result] as Tensor[];
     results.forEach(r => {
-      const vals = r.dataSync();
-      util.checkComputationForErrors(vals, r.dtype, name);
+      // Dangling promise here because we don't want to propagate up
+      // asynchronicity.
+      r.data().then(vals => {
+        checkComputationForErrors(vals, r.dtype, name);
 
-      timer.then(timing => {
-        let extraInfo = '';
-        if (timing.getExtraProfileInfo != null) {
-          extraInfo = timing.getExtraProfileInfo();
-        }
+        timer.then(timing => {
+          let extraInfo = '';
+          if (timing.getExtraProfileInfo != null) {
+            extraInfo = timing.getExtraProfileInfo();
+          }
 
-        this.logger.logKernelProfile(
-            name, r, vals, timing.kernelMs, inputs, extraInfo);
+          this.logger.logKernelProfile(
+              name, r, vals, timing.kernelMs, inputs, extraInfo);
+        });
       });
     });
 
     return result as T;
+  }
+}
+
+// Create a custom exception class so it can be stubbed in tests.
+export function ProfilerException(msg: string) {
+  console.error(msg);
+}
+
+export function checkComputationForErrors<D extends DataType>(
+    vals: DataTypeMap[D], dtype: D, name: string): void {
+  if (dtype !== 'float32') {
+    // Only floating point computations will generate NaN values
+    return;
+  }
+  for (let i = 0; i < vals.length; i++) {
+    const num = vals[i] as number;
+    if (isNaN(num) || !isFinite(num)) {
+      // Throwing custom exception so behavior is testable.
+      throw ProfilerException(`The result of the '${name}' is ${num}.`);
+    }
   }
 }
 

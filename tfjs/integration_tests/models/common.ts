@@ -227,7 +227,7 @@ export async function loadLayersModel(modelName: string):
     const modelJSONPath = `${DATA_SERVER_ROOT}/${modelName}/model.json`;
     modelJSON = await (await fetch(modelJSONPath)).json();
   }
-  return await tfl.models.modelFromJSON(modelJSON['modelTopology']);
+  return tfl.models.modelFromJSON(modelJSON['modelTopology']);
 }
 
 /** Helper method for loading tf.GraphModel. */
@@ -236,10 +236,10 @@ export async function loadGraphModel(modelName: string):
   if (inNodeJS()) {
     // tslint:disable-next-line:no-require-imports
     const fileSystem = require('@tensorflow/tfjs-node/dist/io/file_system');
-    return await tfconverter.loadGraphModel(
+    return tfconverter.loadGraphModel(
         fileSystem.fileSystem(`./data/${modelName}/model.json`));
   } else {
-    return await tfconverter.loadGraphModel(
+    return tfconverter.loadGraphModel(
         `${DATA_SERVER_ROOT}/${modelName}/model.json`);
   }
 }

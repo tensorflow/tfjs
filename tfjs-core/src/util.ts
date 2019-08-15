@@ -405,20 +405,6 @@ export function getArrayFromDType<D extends DataType>(
   return values as DataTypeMap[D];
 }
 
-export function checkComputationForErrors<D extends DataType>(
-    vals: DataTypeMap[D], dtype: D, name: string): void {
-  if (dtype !== 'float32') {
-    // Only floating point computations will generate NaN values
-    return;
-  }
-  for (let i = 0; i < vals.length; i++) {
-    const num = vals[i] as number;
-    if (isNaN(num) || !isFinite(num)) {
-      throw Error(`The result of the '${name}' is ${num}.`);
-    }
-  }
-}
-
 export function checkConversionForErrors<D extends DataType>(
     vals: DataTypeMap[D]|number[], dtype: D): void {
   for (let i = 0; i < vals.length; i++) {
