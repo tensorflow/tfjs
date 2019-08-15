@@ -14,6 +14,10 @@ const tfjsNode = require('@tensorflow/tfjs-node');
 const fs = require('fs');
 const join = require('path').join;
 
+process.on('unhandledRejection', ex => {
+  throw ex;
+});
+
 /**
  * Generate random input(s), get predict() output(s), and save them along with
  * the model.
@@ -212,7 +216,7 @@ async function exportFunctionalMergeModel(exportPath) {
 
 console.log(`Using tfjs-core version: ${tfc.version_core}`);
 console.log(`Using tfjs-layers version: ${tfl.version_layers}`);
-console.log(`Using tfjs-node version: ${tfjsNode.version}`);
+console.log(`Using tfjs-node version: ${JSON.stringify(tfjsNode.version)}`);
 
 if (process.argv.length !== 3) {
   throw new Error('Usage: node tfjs_save.ts <test_data_dir>');

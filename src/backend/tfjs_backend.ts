@@ -372,75 +372,83 @@ export function randomNormal(
  * For N dimensions it is a sum product over the last axis of x and the
  * second-to-last of y:
  *
- * @param x A tensor of at least rank 2.
- * @param y A tensor of at least rank 2.
- * @param fusedActivation (optional) A string identifying the activation
+ * @param a A tensor of at least rank 2.
+ * @param b A tensor of at least rank 2.
+ * @param activation (optional) A string identifying the activation
  *   function.
  * @return Result of the dot operation.
  */
 export function dot(
-    x: Tensor, y: Tensor, fusedActivation?: tfc.fused.Activation,
+    a: Tensor, b: Tensor, activation?: tfc.fused.Activation,
     bias?: Tensor): Tensor {
-  if ((x.rank < 2) || (y.rank < 2)) {
+  if ((a.rank < 2) || (b.rank < 2)) {
     throw new NotImplementedError(
         `dot requires both inputs to be rank >= 2` +
-        ` but got x shape = ${x.shape} and y shape = ${y.shape}`);
+        ` but got x shape = ${a.shape} and y shape = ${b.shape}`);
   }
-  if (y.rank >= 3) {
-    const xLastDim = x.shape.slice(-1)[0];
-    const ySecondLastDim = y.shape.slice(-2)[0];
+  if (b.rank >= 3) {
+    const xLastDim = a.shape.slice(-1)[0];
+    const ySecondLastDim = b.shape.slice(-2)[0];
     if (xLastDim !== ySecondLastDim) {
       throw new NotImplementedError(
           `If rank y >= 3, then the second last dim` +
           ` of y must equal the last dim of x but got x shape = ${
-              x.shape} and ` +
-          ` y shape = ${y.shape}`);
+              a.shape} and ` +
+          ` y shape = ${b.shape}`);
     }
   }
   // Handle basic 2D x 2D case.
-  if ((x.rank === 2) && (y.rank === 2)) {
-    const transposeX = false;
-    const transposeY = false;
+  if ((a.rank === 2) && (b.rank === 2)) {
+    const transposeA = false;
+    const transposeB = false;
     // tfc.fused.matMul only fuses certain activation functions. Unsupported
     // activation functions are treated as 'linear' activations, which is
     // equivalent to a no-op.
-    return tfc.fused.matMul(
-        x as Tensor2D, y as Tensor2D, transposeX, transposeY,
-        bias ? reshapeBias(x.rank, bias, imageDataFormat()) : null,
-        fusedActivation);
+    return tfc.fused.matMul({
+      a,
+      b: b as Tensor2D,
+      transposeA,
+      transposeB,
+      bias: bias ? reshapeBias(a.rank, bias, imageDataFormat()) : null,
+      activation
+    });
   } else {
     // Reshape x into the analogous 2D Tensor.
-    const xFirstDims = x.shape.slice();  // Holds all but the last dim of x.
-    const xLastDim = xFirstDims.pop();
-    x = x.reshape([-1, xLastDim]);
+    const aFirstDims = a.shape.slice();  // Holds all but the last dim of x.
+    const aLastDim = aFirstDims.pop();
+    a = a.reshape([-1, aLastDim]);
 
     // Reshape y into the analogous 2D Tensor, and keep track of the
     // required dimensions to reproduce the output shape.
-    const yShape = y.shape.slice();
-    const yLastDim = yShape.pop();
-    const ySecondLastDim = yShape.pop();
-    const yOtherDims = [...yShape, yLastDim];
+    const bShape = b.shape.slice();
+    const bLastDim = bShape.pop();
+    const ySecondLastDim = bShape.pop();
+    const yOtherDims = [...bShape, bLastDim];
     // permutation should be like [r-2, 0, 1, 2, ... r-4, r-3, r-1]
     // where r is the rank of y.
-    const perm = Array.from({length: y.rank}, (_, i) => {
+    const perm = Array.from({length: b.rank}, (_, i) => {
       if (i === 0) {
-        return y.rank - 2;
-      } else if (i <= y.rank - 2) {
+        return b.rank - 2;
+      } else if (i <= b.rank - 2) {
         return i - 1;
       }
       return i;
     });
-    y = y.transpose(perm).reshape([ySecondLastDim, -1]);
+    b = b.transpose(perm).reshape([ySecondLastDim, -1]);
 
     // Multiply x and y as 2D Tensors, and then reshape back to original.
-    const outputShape = [...xFirstDims, ...yOtherDims];
-    const transposeX = false;
-    const transposeY = false;
+    const outputShape = [...aFirstDims, ...yOtherDims];
+    const transposeA = false;
+    const transposeB = false;
     return tfc.fused
-        .matMul(
-            x as Tensor2D, y as Tensor2D, transposeX, transposeY,
-            bias ? reshapeBias(x.rank, bias, imageDataFormat()) : null,
-            fusedActivation)
+        .matMul({
+          a,
+          b,
+          transposeA,
+          transposeB,
+          bias: bias ? reshapeBias(a.rank, bias, imageDataFormat()) : null,
+          activation
+        })
         .reshape(outputShape);
   }
 }
@@ -522,8 +530,8 @@ export function square(x: Tensor): Tensor {
  * Element-wise exponentiation.
  *
  * Porting Note: In PyKeras, `a` (the exponent) is a Python integer, which
- *   takes advatnage of the backend's (e.g., TensorFlow's) automatic conversion
- *   to tensor. Here we allow `a` to be either a number or a tensor.
+ *   takes advatnage of the backend's (e.g., TensorFlow's) automatic
+ * conversion to tensor. Here we allow `a` to be either a number or a tensor.
  *
  * @param x The base tensor.
  * @param a The exponent, tensor or number. If a number, it is rounded to the
@@ -688,8 +696,9 @@ export function hardSigmoid(x: Tensor): Tensor {
 /**
  * Invoke `x` in the training phase, and `alt` otherwise.
  *
- * Porting Note: We do not create placeholder tensors for the `training` boolean
- *   flag here, because there is no such thing in the TF.js imperative backend.
+ * Porting Note: We do not create placeholder tensors for the `training`
+ * boolean flag here, because there is no such thing in the TF.js imperative
+ * backend.
  *
  * @param x The function to invoke iff `training` is `true`.
  * @param alt The function to invoke iff `training` is `false`.
