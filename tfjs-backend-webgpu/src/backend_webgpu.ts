@@ -29,6 +29,7 @@ import {BinaryOpProgram} from './kernels/binary_op_webgpu';
 import {ConcatProgram} from './kernels/concat_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
+import {DepthwiseConv2DProgram} from './kernels/depthwise_conv2d_webgpu';
 import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
 import {MaxPoolProgram} from './kernels/maxpool_webgpu';
@@ -556,6 +557,13 @@ export class WebGPUBackend extends KernelBackend {
 
     return this.compileAndRun(program, [x, filter], output, dimensions) as
         Tensor4D;
+  }
+
+  depthwiseConv2D(
+      x: Tensor4D, filter: Tensor4D,
+      convInfo: backend_util.Conv2DInfo): Tensor4D {
+    const program = new DepthwiseConv2DProgram(convInfo);
+    return this.compileAndRun(program, [x, filter]);
   }
 
   private argMinMaxReduce(x: Tensor, axis: number, reduceType: 'min'|'max'):
