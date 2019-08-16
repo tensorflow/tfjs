@@ -346,6 +346,11 @@ function generateGetOutputCoords(
   return [snippet, rank];
 }
 
+/**
+ * Derives logical coordinates from a flat index. Performs integer division with
+ * each stride and decrements the index until the index equals the final
+ * dimension coordinate.
+ */
 function generateGetCoordsFromFlatIndex(shape: number[]): string {
   const rank = shape.length;
 
