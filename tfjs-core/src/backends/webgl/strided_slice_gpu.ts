@@ -24,13 +24,11 @@ export class StridedSliceProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(
-      begin: number[], strides: number[], size: number[],
-      shrinkAxis: number[]) {
-    const shape = size.filter((v, index) => shrinkAxis.indexOf(index) === -1);
-    this.outputShape = shape;
+      begin: number[], strides: number[], size: number[]) {
+    this.outputShape = size;
     const rank = size.length;
     const inputDtype = getCoordsDataType(size.length);
-    const dtype = getCoordsDataType(shape.length);
+    const dtype = getCoordsDataType(size.length);
 
     let newCoords = '';
     if (rank === 1) {
@@ -39,14 +37,10 @@ export class StridedSliceProgram implements GPGPUProgram {
       let outputAxis = 0;
       newCoords =
           size.map((_, i) => {
-                if (shrinkAxis.indexOf(i) === -1) {
-                  outputAxis++;
-                  return shape.length === 1 ?
-                      `coords * strides[${i}] + begin[${i}]` :
-                      `coords[${outputAxis - 1}] * strides[${i}] + begin[${i}]`;
-                } else {
-                  return `begin[${i}]`;
-                }
+                outputAxis++;
+                return size.length === 1 ?
+                    `coords * strides[${i}] + begin[${i}]` :
+                    `coords[${outputAxis - 1}] * strides[${i}] + begin[${i}]`;
               })
               .join(',');
     }
