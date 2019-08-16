@@ -83,8 +83,6 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
           totalTests: suiteInfo.totalSpecsDefined,
         });
       },
-      // suiteStarted: result => {},
-      // specStarted: result => { },
       specDone: result => {
         if (result.failedExpectations == null || result.failedExpectations.length === 0) {
           passedTests += 1;
@@ -103,7 +101,6 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
           });
         }
       },
-      // suiteDone: (result) => {},
       jasmineDone: () => {
         this.setState({
           testsComplete: true,
@@ -156,9 +153,6 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
           </View>
         </ScrollView>
       </Fragment>
-
-
-
     );
   }
 }
