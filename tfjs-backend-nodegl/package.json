@@ -13,7 +13,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@tensorflow/tfjs-core": "1.2.2",
-    "node-gles": "^0.0.13"
+    "node-gles": "^0.0.14"
   },
   "devDependencies": {
     "@types/jasmine": "~2.8.6",
