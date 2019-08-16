@@ -29,6 +29,11 @@ const getInputInfo = (inputs: tf.Tensor[]) => {
 };
 
 describeWebGPU('Ops benchmarks', () => {
+  beforeEach(
+      () => {
+          // tf.setBackend('webgl');
+      });
+
   fit('argMax', async () => {
     const doTest = async (axis: number) => {
       const a = tf.randomNormal([100, 100, 100]);

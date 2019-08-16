@@ -22,6 +22,15 @@ export function describeWebGPU(name: string, tests: (env: TestEnv) => void) {
   describeWithFlags('webgpu ' + name, ALL_ENVS, tests);
 }
 
+declare global {
+  interface Window {
+    records: any[];
+    testingBackend: string;
+  }
+}
+
+window.records = [];
+
 // Performs `trials` trials, of `reps` repetitions each. At the end of each
 // trial, endTrial() is run (and included in the benchmark time). This
 // allows the cost of endTrial() to be amortized across the many iterations.
@@ -73,4 +82,8 @@ export async function benchmarkAndLog(
   const min = Math.min(...times);
   const fmt = (n: number) => n.toFixed(3);
   console.log(`${name}: ${fmt(mean)} / ${fmt(min)}`);
+
+  const record = {name, mean: fmt(mean), min: fmt(min), numTrials: trials};
+  window.records.push(record);
+  window.testingBackend = tf.getBackend();
 }
