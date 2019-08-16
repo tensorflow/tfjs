@@ -14,6 +14,7 @@
     "@tensorflow/tfjs-react-native": "file:../",
     "expo-gl": "^6.0.0",
     "expo-gl-cpp": "^6.0.0",
+    "jasmine-core": "^3.4.0",
     "jpeg-js": "^0.3.5",
     "react": "16.8.3",
     "react-native": "0.59.10",
