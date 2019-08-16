@@ -16,7 +16,7 @@
  */
 
 import {getCoordsDataType} from '../shader_preprocessor';
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -33,7 +33,7 @@ export class UnaryOpProgram implements WebGPUProgram {
 
   constructor(outputShape: number[], op: string) {
     this.outputShape = outputShape;
-    this.dispatchLayout = {x: this.outputShape.map((d, i) => i)};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
     const type = getCoordsDataType(this.outputShape.length);
 
@@ -50,7 +50,7 @@ export class UnaryOpProgram implements WebGPUProgram {
         if(mod(index, ${workPerThread}) == 0) {
           for(uint i=0; i<${workPerThread}; i++) {
             if(index + 1 < ${this.dispatch[0]}) {
-              ${type} coords = getCoords(index + i);
+              ${type} coords = getCoordsFromFlatIndex(index + i);
               float a = getA(coords);
 
               setOutput(index + i, unaryOperation(a));
