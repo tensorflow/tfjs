@@ -46,7 +46,7 @@ export class BinaryOpProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
     const type = getCoordsDataType(this.outputShape.length);
-    const workPerThread = 2;
+    const workPerThread = 3;
 
     this.userCode = `
       float binaryOperation(float a, float b) {
