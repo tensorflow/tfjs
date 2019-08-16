@@ -231,7 +231,10 @@ function getSamplerAtOutputCoords(
 
   const inRank = inInfo.shape.length;
   const outRank = outShape.length;
-  const type = getCoordsDataType(outRank);
+  let type = getCoordsDataType(outRank);
+  if (type === 'int') {
+    type = 'uint';
+  }
 
   const broadcastDims = backend_util.getBroadcastDims(inInfo.shape, outShape);
   const rankDiff = outRank - inRank;
@@ -241,6 +244,10 @@ function getSamplerAtOutputCoords(
   if (inRank === 0) {
     return `
       float ${funcName}() {
+        return get${texFuncSnippet}();
+      }
+
+      float ${funcName}(${type} coords) {
         return get${texFuncSnippet}();
       }
     `;
@@ -275,7 +282,7 @@ function getSamplerAtOutputCoords(
       texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
     }
 
-    float get${texFuncSnippet}(${type} coords) {
+    float ${funcName}(${type} coords) {
       ${coordsSnippet}
       return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
       texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
@@ -341,6 +348,11 @@ function generateGetOutputCoords(
 
 function generateGetCoordsFromFlatIndex(shape: number[]): string {
   const rank = shape.length;
+
+  if (rank <= 1) {
+    return `uint getCoordsFromFlatIndex(uint index) {return index; }`;
+  }
+
   const strides = util.computeStrides(shape);
   const dtype = getCoordsDataType(rank);
   const coords: string[] = [];

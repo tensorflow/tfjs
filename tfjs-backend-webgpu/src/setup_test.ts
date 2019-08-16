@@ -72,6 +72,7 @@ const EXCLUDE_LIST: string[] = [
   'concat tensors with 0 in their shape',                // Timeout.
   'argmax test-webgpu {} accepts tensor with bool',      // Actual != Expected.
   'RFFT',                                                // Not yet implemented.
+  'fused',                                               // Not yet implemented.
 ];
 
 /**

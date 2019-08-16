@@ -35,7 +35,10 @@ export class UnaryOpProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
-    const type = getCoordsDataType(this.outputShape.length);
+    let type = getCoordsDataType(this.outputShape.length);
+    if (type === 'int') {
+      type = 'uint';
+    }
     const workPerThread = 3;
 
     this.userCode = `
@@ -50,7 +53,7 @@ export class UnaryOpProgram implements WebGPUProgram {
           for(uint i=0; i<${workPerThread}; i++) {
             if(index + 1 < ${this.dispatch[0]}) {
               ${type} coords = getCoordsFromFlatIndex(index + i);
-              float a = getA(coords);
+              float a = getAAtOutCoords(coords);
 
               setOutput(index + i, unaryOperation(a));
             }

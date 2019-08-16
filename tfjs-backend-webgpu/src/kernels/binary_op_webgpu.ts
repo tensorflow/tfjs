@@ -45,7 +45,10 @@ export class BinaryOpProgram implements WebGPUProgram {
 
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
-    const type = getCoordsDataType(this.outputShape.length);
+    let type = getCoordsDataType(this.outputShape.length);
+    if (type === 'int') {
+      type = 'uint';
+    }
     const workPerThread = 3;
 
     this.userCode = `
@@ -61,8 +64,8 @@ export class BinaryOpProgram implements WebGPUProgram {
             if(index + i < ${this.dispatch[0]}) {
               ${type} coords = getCoordsFromFlatIndex(index + i);
 
-              float a = getA(coords);
-              float b = getB(coords);
+              float a = getAAtOutCoords(coords);
+              float b = getBAtOutCoords(coords);
 
               setOutput(index + i, binaryOperation(a, b));
             }
