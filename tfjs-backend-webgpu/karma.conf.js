@@ -42,7 +42,7 @@ module.exports = function(config) {
       'src/setup_test.ts',       // Setup the environment for the tests.
       {pattern: 'src/**/*.ts'},  // Import all tests.
     ],
-    exclude: ['src/benchmark_ops_test.ts'],
+    // exclude: ['src/benchmark_ops_test.ts'],
     preprocessors: {'**/*.ts': ['karma-typescript']},
     karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],

@@ -16,153 +16,88 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {describeWebGPU} from './test_util';
+
+import {benchmarkAndLog, describeWebGPU} from './test_util';
+
+const getInputInfo = (inputs: tf.Tensor[]) => {
+  const shapes = inputs.map(input => input.shape);
+  let info = '';
+  for (let i = 0; i < shapes.length; i++) {
+    info += ` [${shapes[i].join(',')}]`;
+  }
+  return info;
+};
 
 describeWebGPU('Ops benchmarks', () => {
-  // Performs `trials` trials, of `reps` repetitions each. At the end of each
-  // trial, endTrial() is run (and included in the benchmark time). This
-  // allows the cost of endTrial() to be amortized across the many iterations.
-  // This is needed in particular because WebGPU readbacks are asynchronous
-  // and therefore always incur latency. (Plus, in Chrome right now, readbacks
-  // are very inefficient, making the problem way worse.) Readbacks could be
-  // avoided by using fences, but we don't have a common abstraction over
-  // WebGL and WebGPU fences at the moment.
-  async function time(
-      doRep: (r: number) => tf.Tensor[] | tf.Tensor,
-      endTrial?: () => Promise<void>, disposeAfterEachTrial = false,
-      trials = 50, reps = 1) {
-    const times = [];
-
-    let toDispose: tf.Tensor[] = [];
-    const dispose = () => {
-      for (const t of toDispose) {
-        t.dispose();
-      }
-      toDispose = [];
-    };
-
-    const trial = async () => {
-      let result;
-      for (let r = 0; r < reps; ++r) {
-        result = doRep(r);
-
-        toDispose = toDispose.concat(Array.isArray(result) ? result : [result]);
-      }
-
-      if (endTrial != null) {
-        await endTrial();
-      } else {
-        await (Array.isArray(result) ? result[0] : result).data();
-      }
-    };
-
-    // Warm-up. Specifically, this pre-allocates enough memory for an entire
-    // trial, ensuring that no allocations happen when timing a trial (if the
-    // backend reuses allocations).
-    await trial();
-    dispose();
-
-    for (let t = 0; t < trials; ++t) {
-      const start = tf.util.now();
-      await trial();
-      times.push(tf.util.now() - start);
-      if (disposeAfterEachTrial) {
-        dispose();
-      }
-    }
-
-    const mean = times.reduce((a, b) => a + b, 0) / trials;
-    const min = Math.min(...times);
-    const fmt = (n: number) => n.toFixed(3);
-    console.log(`Mean: ${fmt(mean)}, Min: ${fmt(min)}`);
-    // console.log(`Mean time: ${fmt(mean)} ms -> ${fmt(mean / reps)} / rep`);
-    // console.log(`Min time: ${fmt(min)} ms -> ${fmt(min / reps)} / rep`);
-  }
-
-  it('argMax', async () => {
-    const n = 50;
+  fit('argMax', async () => {
     const doTest = async (axis: number) => {
-      const tensors = new Array(n);
-      const maxes = new Array(n);
-      for (let i = 0; i < n; ++i) {
-        tensors[i] = tf.randomNormal([100, 100, 100]);
-      }
+      const a = tf.randomNormal([100, 100, 100]);
 
-      await time(
-          (r) => {
-            maxes[r] = tf.argMax(tensors[r], axis);
-            return [];
-          },
-          async () => {
-            await maxes[maxes.length - 1].data();
-            for (const t of maxes) {
-              t.dispose();
-            }
-          });
+      await benchmarkAndLog(`argMax axis=${axis}${getInputInfo([a])}`, () => {
+        return tf.argMax(a, axis);
+      });
     };
 
     await doTest(0);
     await doTest(1);
     await doTest(2);
-  }, 60000);
+  });
 
-  it('matMul', async () => {
+  fit('matMul', async () => {
     const a = tf.randomNormal([500, 500]);
     const b = tf.randomNormal([500, 500]);
 
-    await time(() => tf.matMul(a, b));
+    await benchmarkAndLog(
+        `matMul${getInputInfo([a, b])}`, () => tf.matMul(a, b));
   });
 
-  // tslint:disable-next-line:ban
   fit('add', async () => {
     const a = tf.randomNormal([1, 65, 65, 256]);
     const b = tf.randomNormal([1, 65, 65, 256]);
 
-    await time(() => tf.add(a, b));
-  });
-
-  it('conv2d', async () => {
-    const a = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 4]);
-    const b = tf.randomNormal<tf.Rank.R4>([25, 25, 4, 4]);
-
-    await time(() => tf.conv2d(a, b, 1, 'same'));
-  });
-
-  // START POSENET OPS
-
-  fit('conv2d', async () => {
-    console.log('conv2d, [1, 263, 263, 3], [7, 7, 3, 64]');
-    const a = tf.randomNormal<tf.Rank.R4>([1, 263, 263, 3]);
-    const b = tf.randomNormal<tf.Rank.R4>([7, 7, 3, 64]);
-
-    await time(() => tf.conv2d(a, b, 1, 'same'));
+    await benchmarkAndLog(`add${getInputInfo([a, b])}`, () => tf.add(a, b));
   });
 
   fit('add', async () => {
-    console.log('add, [1, 129, 129, 64], [64]');
     const a = tf.randomNormal([1, 129, 129, 64]);
     const b = tf.randomNormal([64]);
-    await time(() => tf.add(a, b));
+    await benchmarkAndLog(`add${getInputInfo([a, b])}`, () => tf.add(a, b));
+  });
+
+  fit('conv2d', async () => {
+    const a = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 4]);
+    const b = tf.randomNormal<tf.Rank.R4>([25, 25, 4, 4]);
+
+    await benchmarkAndLog(
+        `conv2d${getInputInfo([a, b])}`, () => tf.conv2d(a, b, 1, 'same'));
+  });
+
+  fit('conv2d', async () => {
+    const a = tf.randomNormal<tf.Rank.R4>([1, 263, 263, 3]);
+    const b = tf.randomNormal<tf.Rank.R4>([7, 7, 3, 64]);
+
+    await benchmarkAndLog(
+        `conv2d${getInputInfo([a, b])}`, () => tf.conv2d(a, b, 1, 'same'));
   });
 
   fit('relu', async () => {
-    console.log('relu, [1, 129, 129, 64]');
     const a = tf.randomNormal([1, 129, 129, 64]);
 
-    await time(() => tf.relu(a));
+    await benchmarkAndLog(`relu${getInputInfo([a])}`, () => tf.relu(a));
   });
 
   fit('pad', async () => {
-    console.log('pad, [1, 129, 129, 64]');
     const a = tf.randomNormal([1, 129, 129, 64]);
 
-    await time(() => tf.pad(a, [[0, 1], [0, 1], [0, 1], [0, 1]]));
+    await benchmarkAndLog(
+        `pad${getInputInfo([a])}`,
+        () => tf.pad(a, [[0, 1], [0, 1], [0, 1], [0, 1]]));
   });
 
   fit('maxpool', async () => {
-    console.log('maxpool, [1, 131, 131, 64]');
     const a = tf.randomNormal<tf.Rank.R4>([1, 131, 131, 64]);
 
-    await time(() => tf.maxPool(a, 2, 1, 'same'));
+    await benchmarkAndLog(
+        `maxPool${getInputInfo([a])}`, () => tf.maxPool(a, 2, 1, 'same'));
   });
 });

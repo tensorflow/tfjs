@@ -15,8 +15,62 @@
  * =============================================================================
  */
 
+import * as tf from '@tensorflow/tfjs-core';
 import {ALL_ENVS, describeWithFlags, TestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 export function describeWebGPU(name: string, tests: (env: TestEnv) => void) {
   describeWithFlags('webgpu ' + name, ALL_ENVS, tests);
+}
+
+// Performs `trials` trials, of `reps` repetitions each. At the end of each
+// trial, endTrial() is run (and included in the benchmark time). This
+// allows the cost of endTrial() to be amortized across the many iterations.
+export async function benchmarkAndLog(
+    name: string, doRep: (r: number) => tf.Tensor[] | tf.Tensor,
+    endTrial?: () => Promise<void>, disposeAfterEachTrial = false, trials = 50,
+    reps = 1) {
+  const times = [];
+
+  let toDispose: tf.Tensor[] = [];
+  const dispose = () => {
+    for (const t of toDispose) {
+      t.dispose();
+    }
+    toDispose = [];
+  };
+
+  const trial = async () => {
+    let result;
+    for (let r = 0; r < reps; ++r) {
+      result = doRep(r);
+
+      toDispose = toDispose.concat(Array.isArray(result) ? result : [result]);
+    }
+
+    if (endTrial != null) {
+      await endTrial();
+    } else {
+      await (Array.isArray(result) ? result[0] : result).data();
+    }
+  };
+
+  // Warm-up. Specifically, this pre-allocates enough memory for an entire
+  // trial, ensuring that no allocations happen when timing a trial (if the
+  // backend reuses allocations).
+  await trial();
+  dispose();
+
+  for (let t = 0; t < trials; ++t) {
+    const start = tf.util.now();
+    await trial();
+    times.push(tf.util.now() - start);
+    if (disposeAfterEachTrial) {
+      dispose();
+    }
+  }
+
+  const mean = times.reduce((a, b) => a + b, 0) / trials;
+  const min = Math.min(...times);
+  const fmt = (n: number) => n.toFixed(3);
+  console.log(`${name}: ${fmt(mean)} / ${fmt(min)}`);
 }
