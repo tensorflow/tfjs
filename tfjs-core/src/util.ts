@@ -349,7 +349,10 @@ export function squeezeShape(shape: number[], axis?: number[]):
     {newShape: number[], keptDims: number[]} {
   const newShape: number[] = [];
   const keptDims: number[] = [];
-  const axes = axis == null ? null : parseAxisParam(axis, shape).sort();
+  const isEmptyArray = axis != null && Array.isArray(axis) && axis.length === 0;
+  const axes = (axis == null || isEmptyArray) ?
+      null :
+      parseAxisParam(axis, shape).sort();
   let j = 0;
   for (let i = 0; i < shape.length; ++i) {
     if (axes != null) {
@@ -403,20 +406,6 @@ export function getArrayFromDType<D extends DataType>(
     throw new Error(`Unknown data type ${dtype}`);
   }
   return values as DataTypeMap[D];
-}
-
-export function checkComputationForErrors<D extends DataType>(
-    vals: DataTypeMap[D], dtype: D, name: string): void {
-  if (dtype !== 'float32') {
-    // Only floating point computations will generate NaN values
-    return;
-  }
-  for (let i = 0; i < vals.length; i++) {
-    const num = vals[i] as number;
-    if (isNaN(num) || !isFinite(num)) {
-      throw Error(`The result of the '${name}' is ${num}.`);
-    }
-  }
 }
 
 export function checkConversionForErrors<D extends DataType>(

@@ -34,7 +34,7 @@ import * as gather_nd_util from '../../ops/gather_nd_util';
 import * as reduce_util from '../../ops/reduce_util';
 import * as scatter_nd_util from '../../ops/scatter_nd_util';
 import * as segment_util from '../../ops/segment_util';
-import {computeFlatOffset, getStridedSlicedInfo, isSliceContinous} from '../../ops/slice_util';
+import * as slice_util from '../../ops/slice_util';
 import {softmax} from '../../ops/softmax';
 import {range, scalar, tensor} from '../../ops/tensor_ops';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../../tensor';
@@ -729,7 +729,7 @@ export class MathBackendWebGL implements KernelBackend {
       return tensor([], size, x.dtype) as T;
     }
     const {isPacked} = this.texData.get(x.dataId);
-    const isContinous = isSliceContinous(x.shape, begin, size);
+    const isContinous = slice_util.isSliceContinous(x.shape, begin, size);
     if (isPacked || !isContinous) {
       const program = ENV.getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
           new SlicePackedProgram(size) :
@@ -749,7 +749,7 @@ export class MathBackendWebGL implements KernelBackend {
     Object.assign(newTexData, xTexData);
     newTexData.shape = size;
     newTexData.dtype = x.dtype;
-    let flatOffset = computeFlatOffset(begin, x.strides);
+    let flatOffset = slice_util.computeFlatOffset(begin, x.strides);
     if (xTexData.slice) {
       // We are slicing an already sliced tensor, so we have to accumulate
       // the offset.
@@ -769,26 +769,18 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   stridedSlice<T extends Tensor>(
-      x: T, begin: number[], end: number[], strides: number[],
-      beginMask: number, endMask: number, ellipsisMask: number,
-      newAxisMask: number, shrinkAxisMask: number): T {
+      x: T, begin: number[], end: number[], strides: number[]): T {
     if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.stridedSlice(
-          x, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask,
-          shrinkAxisMask);
+      return this.cpuBackend.stridedSlice(x, begin, end, strides);
     }
 
-    const [beginIndex, size, shrinkAxis] = getStridedSlicedInfo(
-        x.shape, begin, end, strides, beginMask, endMask, ellipsisMask,
-        newAxisMask, shrinkAxisMask);
+    const outShape = slice_util.computeOutShape(begin, end, strides);
 
-    const shape = size.filter((v, index) => shrinkAxis.indexOf(index) === -1);
-    if (shape.some(axis => axis === 0)) {
-      return tensor([], shape) as T;
+    if (outShape.some(axis => axis === 0)) {
+      return tensor([], outShape) as T;
     }
 
-    const program =
-        new StridedSliceProgram(beginIndex, strides, size, shrinkAxis);
+    const program = new StridedSliceProgram(begin, strides, outShape);
     return this.compileAndRun(program, [x]);
   }
 

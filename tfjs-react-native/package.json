@@ -54,6 +54,6 @@
     "@react-native-community/async-storage": "^1.4.2",
     "@tensorflow/tfjs-core": ">=1.2.7",
     "expo-gl": "^5.0.1",
-    "react-native": ">=0.59.0"
+    "react-native": ">= 0.58.0 < 0.60.0"
   }
 }

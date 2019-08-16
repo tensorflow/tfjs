@@ -17,17 +17,22 @@
 const {exec} = require('../../scripts/test-util');
 const fs = require('fs');
 
-let shouldRunIntegration = false;
-if (process.env.NIGHTLY === 'true') {
-  shouldRunIntegration = true;
-} else {
-  const diffFile = 'diff';
-  let diffContents = `${fs.readFileSync(diffFile)}`;
 
-  if (diffContents.indexOf('src/version.ts') !== -1) {
-    shouldRunIntegration = true;
+function shouldRunIntegration() {
+  if (process.env.NIGHTLY === 'true') {
+    return true;
   }
+  const diffFile = 'diff';
+  if (!fs.existsSync(diffFile)) {
+    return false;
+  }
+  let diffContents = `${fs.readFileSync(diffFile)}`;
+  if (diffContents.indexOf('src/version.ts') === -1) {
+    return false;
+  }
+  return true;
 }
-if (shouldRunIntegration) {
+
+if (shouldRunIntegration()) {
   exec('./scripts/test-integration.sh');
 }

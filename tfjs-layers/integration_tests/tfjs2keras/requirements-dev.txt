@@ -1,0 +1,3 @@
+keras==2.2.4
+tensorflowjs>=1.0.0
+tf-nightly>=1.14.1.dev20190410

@@ -19,6 +19,13 @@ steps:
   args: ['./scripts/run-build.sh', 'tfjs-core']
   waitFor: ['diff']
 
+# Converter.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-converter'
+  args: ['./scripts/run-build.sh', 'tfjs-converter']
+  waitFor: ['diff']
+
 # Data.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
@@ -37,7 +44,7 @@ steps:
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   id: 'tfjs-backend-webgpu'
-  args: ['./scripts/run-build.sh', 'tfjs-webgpu']
+  args: ['./scripts/run-build.sh', 'tfjs-backend-webgpu']
   waitFor: ['diff']
 
 # React Native.
