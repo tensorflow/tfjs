@@ -20,8 +20,8 @@
 // @ts-ignore
 import jasmineRequire from 'jasmine-core/lib/jasmine-core/jasmine.js';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
-import React, { Component } from 'react';
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import React, { Component, Fragment } from 'react';
+import { StyleSheet, Text, View, ViewStyle, ScrollView } from 'react-native';
 
 interface TestRunnerProps {
 }
@@ -36,6 +36,7 @@ interface FailedTestInfo {
 interface TestRunnerState {
   passedTests: number;
   failedTests: FailedTestInfo[];
+  totalTests: number;
   testsComplete: boolean;
   testsStarted: boolean;
 }
@@ -46,6 +47,7 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
     this.state = {
       passedTests: 0,
       failedTests: [],
+      totalTests: 0,
       testsComplete: false,
       testsStarted: false,
     }
@@ -78,6 +80,7 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
       jasmineStarted: suiteInfo => {
         this.setState({
           testsStarted: true,
+          totalTests: suiteInfo.totalSpecsDefined,
         });
       },
       // suiteStarted: result => {},
@@ -120,15 +123,42 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
     env.execute();
   }
 
+  renderTestFailure(failure: FailedTestInfo) {
+    return <View style={styles.failedTest}>
+      <Text style={styles.failedTestName}>
+        {failure.testName}
+      </Text>
+      <Fragment>
+        {failure.failedExpectations.map(expecation => <Text>
+          {expecation}
+        </Text>)}
+      </Fragment>
+    </View>;
+  }
   render() {
-    const { passedTests, failedTests } = this.state;
+    const { passedTests, failedTests, totalTests } = this.state;
 
     return (
-      <View style={styles.labelArea}>
-        <Text style={styles.labelHeader}>Label</Text>
-        <Text style={styles.labelText}>{passedTests}</Text>
-        <Text style={styles.labelText}>{failedTests.length}</Text>
-      </View>
+      <Fragment>
+        <View testID='passedTests' style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Passed Tests (Count)</Text>
+          <Text style={styles.sectionTitle}>{passedTests} of {totalTests}</Text>
+        </View>
+
+        <ScrollView contentInsetAdjustmentBehavior='automatic'>
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>
+              Failed Tests ({failedTests.length})
+            </Text>
+            <View testID='passedTests'>
+              {failedTests.map(this.renderTestFailure)}
+            </View>
+          </View>
+        </ScrollView>
+      </Fragment>
+
+
+
     );
   }
 }
@@ -148,33 +178,28 @@ const containerMounted: ViewStyle = {
 const styles = StyleSheet.create({
   container,
   containerMounted,
-  row: {
-    display: 'flex',
-    flexDirection: 'row',
+  failedTest: {
+    backgroundColor: 'white',
+    margin: 5,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
-  labelArea: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    minWidth: 100,
+  failedTestName: {
+    backgroundColor: 'white',
+    fontWeight: 'bold',
   },
-  labelHeader: {
-    fontSize: 10,
-    marginRight: 4,
+  sectionContainer: {
+    marginTop: 32,
+    paddingHorizontal: 12,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
-  labelText: {
-    fontSize: 12
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: 'black',
+    marginBottom: 6,
   },
-  resultArea: {
-    marginLeft: 5,
-    paddingLeft: 5,
-    borderLeftColor: '#444',
-    borderLeftWidth: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-  },
-  resultText: {
-    fontSize: 14
-  }
 });
