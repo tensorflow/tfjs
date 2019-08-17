@@ -50,7 +50,7 @@ module.exports = function(config) {
     colors: true,
     autoWatch: false,
     browsers: ['Chrome', 'chrome_webgpu'],
-    // singleRun: true,
+    singleRun: true,
     customLaunchers: {
       chrome_webgpu: {
         base: 'Chrome',

@@ -34,7 +34,7 @@ window.records = [];
 // Performs `trials` trials, of `reps` repetitions each. At the end of each
 // trial, endTrial() is run (and included in the benchmark time). This
 // allows the cost of endTrial() to be amortized across the many iterations.
-export async function benchmarkAndLog(
+export async function benchmark(
     name: string, doRep: (r: number) => tf.Tensor[] | tf.Tensor,
     endTrial?: () => Promise<void>, disposeAfterEachTrial = false, trials = 50,
     reps = 1) {
@@ -81,9 +81,25 @@ export async function benchmarkAndLog(
   const mean = times.reduce((a, b) => a + b, 0) / trials;
   const min = Math.min(...times);
   const fmt = (n: number) => n.toFixed(3);
-  console.log(`${name}: ${fmt(mean)} / ${fmt(min)}`);
+  console.log(`${name}: ${fmt(mean)} / ${fmt(min)}`, tf.getBackend());
 
-  const record = {name, mean: fmt(mean), min: fmt(min), numTrials: trials};
+  const record = {
+    name,
+    mean: fmt(mean),
+    min: fmt(min),
+    numTrials: trials,
+    backend: tf.getBackend()
+  };
   window.records.push(record);
   window.testingBackend = tf.getBackend();
+  return;
+}
+
+export async function benchmarkAndLog(
+    name: string, doRep: (r: number) => tf.Tensor[] | tf.Tensor,
+    endTrial?: () => Promise<void>, disposeAfterEachTrial = false, trials = 50,
+    reps = 1) {
+  await benchmark(name, doRep, endTrial, disposeAfterEachTrial, trials, reps);
+  tf.setBackend('webgl');
+  await benchmark(name, doRep, endTrial, disposeAfterEachTrial, trials, reps);
 }

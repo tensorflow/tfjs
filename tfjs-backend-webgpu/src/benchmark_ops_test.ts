@@ -29,10 +29,9 @@ const getInputInfo = (inputs: tf.Tensor[]) => {
 };
 
 describeWebGPU('Ops benchmarks', () => {
-  beforeEach(
-      () => {
-          // tf.setBackend('webgl');
-      });
+  beforeEach(() => {
+    tf.setBackend('webgpu');
+  });
 
   fit('argMax', async () => {
     const doTest = async (axis: number) => {
@@ -44,7 +43,9 @@ describeWebGPU('Ops benchmarks', () => {
     };
 
     await doTest(0);
+    tf.setBackend('webgpu');
     await doTest(1);
+    tf.setBackend('webgpu');
     await doTest(2);
   });
 
@@ -66,6 +67,7 @@ describeWebGPU('Ops benchmarks', () => {
   fit('add', async () => {
     const a = tf.randomNormal([1, 129, 129, 64]);
     const b = tf.randomNormal([64]);
+
     await benchmarkAndLog(`add${getInputInfo([a, b])}`, () => tf.add(a, b));
   });
 
@@ -104,5 +106,29 @@ describeWebGPU('Ops benchmarks', () => {
 
     await benchmarkAndLog(
         `maxPool${getInputInfo([a])}`, () => tf.maxPool(a, 2, 1, 'same'));
+  });
+
+  afterAll(() => {
+    console.log('DONE');
+
+    function download(filename: string, text: string) {
+      const element = document.createElement('a');
+      element.setAttribute(
+          'href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+      element.setAttribute('download', filename);
+
+      element.style.display = 'none';
+      document.body.appendChild(element);
+
+      element.click();
+
+      document.body.removeChild(element);
+    }
+
+    // Start file download.
+    const dateObj = new Date();
+    download(
+        `${dateObj.getMonth() + 1}_${dateObj.getDate()}.json`,
+        JSON.stringify(window.records));
   });
 });
