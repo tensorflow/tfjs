@@ -123,6 +123,30 @@ describeWithFlags('frame', ALL_ENVS, () => {
     expect(output.shape).toEqual([2, 3]);
     expectArraysClose(await output.data(), [1, 2, 3, 4, 5, 100]);
   });
+
+  it('Padding all remaining frames with step=1', async () => {
+    const input = tf.tensor1d([1, 2, 3, 4, 5]);
+    const output = tf.signal.frame(input, 4, 1, true);
+    expect(output.shape).toEqual([5, 4]);
+    expectArraysClose(await output.data(), [
+      1, 2, 3, 4,
+      2, 3, 4, 5,
+      3, 4, 5, 0,
+      4, 5, 0, 0,
+      5, 0, 0, 0
+    ]);
+  });
+
+  it('Padding all remaining frames with step=2', async () => {
+    const input = tf.tensor1d([1, 2, 3, 4, 5]);
+    const output = tf.signal.frame(input, 4, 2, true);
+    expect(output.shape).toEqual([3, 4]);
+    expectArraysClose(await output.data(), [
+      1, 2, 3, 4,
+      3, 4, 5, 0,
+      5, 0, 0, 0
+    ]);
+  });
 });
 
 describeWithFlags('stft', ALL_ENVS, () => {
