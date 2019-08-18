@@ -144,7 +144,8 @@ describeWebGPU('Ops benchmarks', () => {
     // Start file download.
     const dateObj = new Date();
     download(
-        `${dateObj.getMonth() + 1}_${dateObj.getDate()}.json`,
+        `${('0' + ((dateObj.getMonth() + 1).toString())).slice(-2)}_${
+            dateObj.getDate()}.json`,
         JSON.stringify(window.records));
   });
 });
