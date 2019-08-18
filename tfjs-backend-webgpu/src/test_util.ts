@@ -35,15 +35,16 @@ window.records = [];
 // trial, endTrial() is run (and included in the benchmark time). This
 // allows the cost of endTrial() to be amortized across the many iterations.
 export async function benchmark(
-    name: string, doRep: (r: number) => tf.Tensor[] | tf.Tensor,
-    endTrial?: () => Promise<void>, disposeAfterEachTrial = false, trials = 50,
-    reps = 1) {
+    name: string, doRep: (r: number) => any, endTrial?: () => Promise<void>,
+    disposeAfterEachTrial = false, trials = 50, reps = 1) {
   const times = [];
 
   let toDispose: tf.Tensor[] = [];
   const dispose = () => {
     for (const t of toDispose) {
-      t.dispose();
+      if (typeof t.dispose === 'function') {
+        t.dispose();
+      }
     }
     toDispose = [];
   };
@@ -51,7 +52,7 @@ export async function benchmark(
   const trial = async () => {
     let result;
     for (let r = 0; r < reps; ++r) {
-      result = doRep(r);
+      result = await doRep(r);
 
       toDispose = toDispose.concat(Array.isArray(result) ? result : [result]);
     }
@@ -59,7 +60,13 @@ export async function benchmark(
     if (endTrial != null) {
       await endTrial();
     } else {
-      await (Array.isArray(result) ? result[0] : result).data();
+      if (Array.isArray(result)) {
+        await result[0].data();
+      } else {
+        if (typeof result.data === 'function') {
+          await result.data();
+        }
+      }
     }
   };
 
@@ -96,9 +103,8 @@ export async function benchmark(
 }
 
 export async function benchmarkAndLog(
-    name: string, doRep: (r: number) => tf.Tensor[] | tf.Tensor,
-    endTrial?: () => Promise<void>, disposeAfterEachTrial = false, trials = 50,
-    reps = 1) {
+    name: string, doRep: (r: number) => any, endTrial?: () => Promise<void>,
+    disposeAfterEachTrial = false, trials = 50, reps = 1) {
   await benchmark(name, doRep, endTrial, disposeAfterEachTrial, trials, reps);
   tf.setBackend('webgl');
   await benchmark(name, doRep, endTrial, disposeAfterEachTrial, trials, reps);

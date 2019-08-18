@@ -117,24 +117,13 @@ const benchmarks = {
   },
   'posenet': {
     load: async () => {
-      const imageBucket =
-          'https://storage.googleapis.com/tfjs-models/assets/posenet/';
-
-      async function loadImage(imagePath) {
-        const image = new Image();
-        const promise = new Promise((resolve, reject) => {
-          image.crossOrigin = '';
-          image.onload = () => {
-            resolve(image);
-          };
-        });
-
-        image.src = `${imageBucket}${imagePath}`;
-        return promise;
-      }
-
-      const posenetModel = await posenet.load();
-      const image = await loadImage('tennis_standing.jpg');
+      const posenetModel = await posenet.load({
+        architecture: 'ResNet50',
+        outputStride: 32,
+        inputResolution: 257,
+        quantBytes: 2
+      });
+      const image = tf.zeros([257, 257, 3]);
 
       posenetModel.benchmarkImage = image;
       return posenetModel;

@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import * as posenet from '@tensorflow-models/posenet';
 import * as tf from '@tensorflow/tfjs-core';
 
 import {benchmarkAndLog, describeWebGPU} from './test_util';
@@ -107,6 +108,21 @@ describeWebGPU('Ops benchmarks', () => {
     await benchmarkAndLog(
         `maxPool${getInputInfo([a])}`, () => tf.maxPool(a, 2, 1, 'same'));
   });
+
+  fit('posenet', async () => {
+    const posenetModel = await posenet.load({
+      architecture: 'ResNet50',
+      outputStride: 32,
+      inputResolution: 257,
+      quantBytes: 2
+    });
+    const image = tf.zeros([257, 257, 3]) as tf.Tensor3D;
+
+    await benchmarkAndLog('posenet', async () => {
+      const pose = await posenetModel.estimateSinglePose(image);
+      return pose;
+    }, null, false, 10);
+  }, 100000000000000000);
 
   afterAll(() => {
     console.log('DONE');
