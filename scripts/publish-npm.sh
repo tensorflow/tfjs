@@ -18,8 +18,9 @@
 
 # Then:
 # 1) Checkout the master branch of this repo.
-# 2) Run this script as `./scripts/publish-npm.sh tfjs-core`
-#      from the project base dir to publish tfjs-core.
+# 2) Run this script as `./scripts/publish-npm.sh DIR_NAME`
+#      from the project base dir where DIR_NAME is the directory name of the
+#      package you want to publish, e.g. "tfjs-core".
 
 set -e
 
