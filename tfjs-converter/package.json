@@ -55,7 +55,7 @@
   },
   "scripts": {
     "build": "yarn gen-json --test && tsc && copyfiles -f src/data/compiled_api.* dist/src/data/",
-    "build-npm": "yarn build",
+    "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "test": "yarn gen-json --test && karma start",
