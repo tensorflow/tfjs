@@ -121,6 +121,7 @@ async function main() {
   const packages = PHASES[phaseInt].packages;
   const deps = PHASES[phaseInt].deps || [];
 
+  const newVersions = [];
   for (let i = 0; i < packages.length; i++) {
     const packageName = packages[i];
 
@@ -208,16 +209,21 @@ async function main() {
       phase.scripts.forEach(script => $(script));
     }
 
-    $(`git checkout -b b${newVersion}`);
-    $(`git push -u origin b${newVersion}`);
-    $(`git add .`);
-    $(`git commit -a -m "Update ${packageName} to ${newVersion}."`);
-    $(`git push`);
-    const title =
-        phase.title ? phase.title : `Update ${packageName} to ${newVersion}.`;
-    $(`hub pull-request --browse --message "${title}" --labels INTERNAL`);
-    console.log();
+    newVersions.push(newVersion);
   }
+
+  const packageNames = packages.join(', ');
+  const versionNames = newVersions.join(', ');
+  const branchName = `b${newVersions.join('-')}`;
+  $(`git checkout -b ${branchName}`);
+  $(`git push -u origin ${branchName}`);
+  $(`git add .`);
+  $(`git commit -a -m "Update ${packageNames} to ${versionNames}."`);
+  $(`git push`);
+  const title =
+      phase.title ? phase.title : `Update ${packageNames} to ${versionNames}.`;
+  $(`hub pull-request --browse --message "${title}" --labels INTERNAL`);
+  console.log();
 
   console.log(
       `Done. FYI, this script does not publish to NPM. ` +
