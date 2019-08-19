@@ -38,7 +38,7 @@
   "scripts": {
     "prep": "yarn install && yarn build",
     "build": "tsc",
-    "build-npm": "yarn build",
+    "build-npm": "./scripts/build-npm.sh",
     "format": "./tools/clang_format_ts.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",

@@ -40,7 +40,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "build-npm": "yarn build",
+    "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build-npm && yalc push",
     "test": "karma start",
