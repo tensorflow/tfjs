@@ -24,7 +24,7 @@ const dirName = process.argv[2];
 const packageJsonFile = dirName + '/package.json';
 if (!fs.existsSync(packageJsonFile)) {
   console.log(packageJsonFile, 'does not exist. Please call this script as follows:');
-  console.log('./scripts/make-version DIR_NAME');
+  console.log('./scripts/make-version.js DIR_NAME');
   process.exit(1);
 }
 
