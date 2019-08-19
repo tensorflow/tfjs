@@ -14,8 +14,11 @@
  * limitations under the License.
  * =============================================================================
  */
+import {util} from '@tensorflow/tfjs-core';
 
-import {computeDispatch} from '../webgpu_util';
+import {getCoordsDataType} from '../shader_preprocessor';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+
 import {WebGPUProgram} from './webgpu_program';
 
 export const RELU = 'return max(a, 0.0);';
@@ -28,11 +31,18 @@ export class UnaryOpProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A'];
+  workPerThread = 4;
+  workGroupSize: [number, number, number] = [1, 1, 1];
 
   constructor(outputShape: number[], op: string) {
     this.outputShape = outputShape;
-    this.dispatchLayout = {x: this.outputShape.map((d, i) => i)};
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
+    const size = util.sizeFromShape(this.outputShape);
+
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
+    const type = getCoordsDataType(this.outputShape.length);
 
     this.userCode = `
       float unaryOperation(float a) {
@@ -40,9 +50,18 @@ export class UnaryOpProgram implements WebGPUProgram {
       }
 
       void main() {
-        uint index = gl_GlobalInvocationID.x;
-        float a = getAAtOutCoords();
-        setOutput(index, unaryOperation(a));
+        int index = int(gl_GlobalInvocationID.x);
+
+        for(int i = 0; i < ${this.workPerThread}; i++) {
+          int flatIndex = index * ${this.workPerThread} + i;
+
+          if(flatIndex < ${size}) {
+            ${type} coords = getCoordsFromFlatIndex(flatIndex);
+
+            float a = getAAtOutCoords(coords);
+            setOutput(flatIndex, unaryOperation(a));
+          }
+        }
       }
     `;
   }

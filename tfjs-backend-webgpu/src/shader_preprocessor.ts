@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataType} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, util} from '@tensorflow/tfjs-core';
 
 import {symbolicallyComputeStrides} from './shader_util';
 
@@ -105,9 +105,10 @@ export function makeShader(
 
   const [getOutputCoords, dispatchLayoutRank] =
       generateGetOutputCoords(program.dispatchLayout);
+  const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
   const sources = [
     SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS,
-    getOutputCoords,
+    getOutputCoords, getCoords,
     getSetOutputSnippet(outputData.shape.length, outputData.dtype)
   ];
 
@@ -242,6 +243,10 @@ function getSamplerAtOutputCoords(
       float ${funcName}() {
         return get${texFuncSnippet}();
       }
+
+      float ${funcName}(${type} coords) {
+        return get${texFuncSnippet}();
+      }
     `;
   } else {
     if (outRank < 2 && broadcastDims.length >= 1) {
@@ -269,6 +274,12 @@ function getSamplerAtOutputCoords(
   return `
     float ${funcName}() {
       ${type} coords = getOutputCoords();
+      ${coordsSnippet}
+      return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
+    }
+
+    float ${funcName}(${type} coords) {
       ${coordsSnippet}
       return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
       texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
@@ -328,5 +339,44 @@ function generateGetOutputCoords(
 
     return ${dtype}(${dimensions.join(',')});
   }`;
+
   return [snippet, rank];
+}
+
+/**
+ * Derives logical coordinates from a flat index. Performs integer division with
+ * each stride and decrements the index until the index equals the final
+ * dimension coordinate.
+ */
+function generateGetCoordsFromFlatIndex(shape: number[]): string {
+  const rank = shape.length;
+
+  if (rank <= 1) {
+    return `int getCoordsFromFlatIndex(int index) {return index; }`;
+  }
+
+  const strides = util.computeStrides(shape);
+  const dtype = getCoordsDataType(rank);
+  const coords: string[] = [];
+  for (let i = 0; i < rank; i++) {
+    coords.push(`d${i}`);
+  }
+
+  const snippet =
+      strides
+          .map((stride, i) => {
+            const line1 = `uint ${coords[i]} = index / ${stride}`;
+            const line2 = i === strides.length - 1 ?
+                `uint ${coords[i + 1]} = index - ${coords[i]} * ${stride}` :
+                `index -= ${coords[i]} * ${stride}`;
+            return `${line1}; ${line2};`;
+          })
+          .join('');
+
+  return `
+    ${dtype} getCoordsFromFlatIndex(uint index) {
+      ${snippet}
+      return ${dtype}(${coords.join(',')});
+    }
+  `;
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2018 Google LLC. All Rights Reserved.
+# Copyright 2017 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+
+################################################################################
+# NOTE: This does *not* publish the GPU package. Please run
+# ./scripts/publish-npm-gpu.sh separately to publish the GPU package.
+################################################################################
 
 # Before you run this script, do this:
 # 1) Update the version in package.json
@@ -28,27 +33,27 @@ set -e
 
 BRANCH=`git rev-parse --abbrev-ref HEAD`
 ORIGIN=`git config --get remote.origin.url`
-CHANGES=`git status --porcelain`
 
-if [ "$BRANCH" != "master" ]; then
-  echo "Error: Switch to the master branch before publishing."
+if [ "$BRANCH" != "master" ] && [ "$BRANCH" != "0.3.x" ]; then
+  echo "Error: Switch to the master or a release branch before publishing."
   exit
 fi
 
-if ! [[ "$ORIGIN" =~ tensorflow/tfjs-data ]]; then
-  echo "Error: Switch to the main repo (tensorflow/tfjs-data) before publishing."
+if ! [[ "$ORIGIN" =~ tensorflow/tfjs-node ]]; then
+  echo "Error: Switch to the main repo (tensorflow/tfjs-node) before publishing."
   exit
 fi
 
-if [ ! -z "$CHANGES" ];
-then
-    echo "Make sure the master branch is clean. Found changes:"
-    echo $CHANGES
-    exit 1
-fi
-
-yarn build-npm
+# build, compress and upload pre-built addon
+yarn build-npm upload
 ./scripts/make-version # This is for safety in case you forgot to do 2).
+
+# Publish the CPU package
 npm publish
 ./scripts/tag-version
-echo 'Yay! Published a new package to npm.'
+echo 'Yay! Published the tfjs-node package to npm.'
+
+echo '#########################################################################'
+echo '# NOTE: This does *not* publish the GPU package. Please run'
+echo '# ./scripts/publish-npm-gpu.sh separately to publish the GPU package.'
+echo '#########################################################################'

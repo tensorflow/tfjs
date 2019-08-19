@@ -1,6 +1,7 @@
 steps:
 # Install common dependencies.
 - name: 'node:10'
+  dir: 'tfjs-backend-webgpu'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
