@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2018 Google LLC. All Rights Reserved.
+# Copyright 2018 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,25 +14,23 @@
 # limitations under the License.
 # =============================================================================
 
-# Before you run this script, do this:
-# 1) Update the version in package.json
-# 2) Run ./scripts/make-version from the base dir of the project.
-# 3) Commit to the master branch.
-
-# Then:
-# 4) Run this script as `./scripts/publish-npm.sh` from the master branch.
-
 set -e
 
-BRANCH=`git rev-parse --abbrev-ref HEAD`
+# The binding builds with a symlink by default, for NPM packages change the
+# download option to move libtensorflow next to the prebuilt binary.
+sed -i -e 's/symlink/move/' binding.gyp
 
-if [ "$BRANCH" != "master" ]; then
-  echo "Error: Switch to the master branch before tagging."
-  exit
-fi
+# Build GPU:
+sed -i -e 's/tfjs-node"/tfjs-node-gpu"/' package.json
+sed -i -e 's/install.js"/install.js gpu download"/' package.json
+rimraf deps/
+rimraf dist/
+rimraf lib/
+yarn build-addon "$1"
+yarn prep
+tsc --sourceMap false
+# This produces a tarball that will later be used by `npm publish`.
+npm pack
 
-yarn build-npm
-./scripts/make-version # This is for safety in case you forgot to do 2).
-./scripts/tag-version
-npm publish
-echo 'Yay! Published a new package to npm.'
+# Revert GPU changes:
+git checkout .
