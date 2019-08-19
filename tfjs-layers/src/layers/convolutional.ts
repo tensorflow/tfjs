@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy} from '@tensorflow/tfjs-core';
+import {fused, serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy} from '@tensorflow/tfjs-core';
 
 import {Activation, getActivation, serializeActivation} from '../activations';
 import {imageDataFormat} from '../backend/common';
@@ -31,6 +31,16 @@ import {convOutputLength, deconvLength, normalizeArray} from '../utils/conv_util
 import * as generic_utils from '../utils/generic_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
+
+function mapActivationToFusedKernel(activationName: string): fused.Activation {
+  if (activationName === 'relu') {
+    return 'relu';
+  }
+  if (activationName === 'linear') {
+    return 'linear';
+  }
+  return null;
+}
 
 /**
  * Transpose and cast the input before the conv2d.
@@ -163,20 +173,20 @@ export function conv2d(
     dataFormat?: DataFormat, dilationRate?: [number, number]): Tensor {
   return tidy(() => {
     checkDataFormat(dataFormat);
-    return conv2dWithBias(
+    return conv2dWithBiasActivation(
         x, kernel, null, strides, padding, dataFormat, dilationRate);
   });
 }
 
 /**
- * 2D Convolution with an added bias.
+ * 2D Convolution with an added bias and optional activation.
  * Note: This function does not exist in the Python Keras Backend. This function
  * is exactly the same as `conv2d`, except the added `bias`.
  */
-export function conv2dWithBias(
+export function conv2dWithBiasActivation(
     x: Tensor, kernel: Tensor, bias: Tensor, strides = [1, 1],
-    padding = 'valid', dataFormat?: DataFormat,
-    dilationRate?: [number, number]): Tensor {
+    padding = 'valid', dataFormat?: DataFormat, dilationRate?: [number, number],
+    activation: fused.Activation = null): Tensor {
   return tidy(() => {
     if (dataFormat == null) {
       dataFormat = imageDataFormat();
@@ -184,13 +194,13 @@ export function conv2dWithBias(
     checkDataFormat(dataFormat);
     if (x.rank !== 3 && x.rank !== 4) {
       throw new ValueError(
-          `conv2dWithBias expects input to be of rank 3 or 4, but received ` +
-          `${x.rank}.`);
+          `conv2dWithBiasActivation expects input to be of rank 3 or 4, ` +
+          `but received ${x.rank}.`);
     }
     if (kernel.rank !== 3 && kernel.rank !== 4) {
       throw new ValueError(
-          `conv2dWithBias expects kernel to be of rank 3 or 4, but received ` +
-          `${x.rank}.`);
+          `conv2dWithBiasActivation expects kernel to be of rank 3 or 4, ` +
+          `but received ${x.rank}.`);
     }
     let y = preprocessConv2DInput(x, dataFormat);
     if (padding === 'causal') {
@@ -198,13 +208,16 @@ export function conv2dWithBias(
           'The support for CAUSAL padding mode in conv1dWithBias is not ' +
           'implemented yet.');
     }
-    y = tfc.conv2d(
-        y as Tensor3D | Tensor4D, kernel as Tensor4D,
-        strides as [number, number], padding === 'same' ? 'same' : 'valid',
-        'NHWC', dilationRate);
-    if (bias != null) {
-      y = K.biasAdd(y, bias as Tensor1D);
-    }
+    y = tfc.fused.conv2d({
+      x: y as Tensor3D | Tensor4D,
+      filter: kernel as Tensor4D,
+      strides: strides as [number, number],
+      pad: padding === 'same' ? 'same' : 'valid',
+      dilations: dilationRate,
+      dataFormat: 'NHWC',
+      bias,
+      activation
+    });
     if (dataFormat === 'channelsFirst') {
       y = tfc.transpose(y, [0, 3, 1, 2]);
     }
@@ -560,28 +573,38 @@ export abstract class Conv extends BaseConv {
       inputs = getExactlyOneTensor(inputs);
       let outputs: Tensor;
       const biasValue = this.bias == null ? null : this.bias.read();
+      const fusedActivationName =
+          mapActivationToFusedKernel(this.activation.getClassName());
 
-      if (this.rank === 1) {
-        outputs = conv1dWithBias(
-            inputs, this.kernel.read(), biasValue, this.strides[0],
-            this.padding, this.dataFormat, this.dilationRate[0]);
-      } else if (this.rank === 2) {
-        // TODO(cais): Move up to constructor.
-        outputs = conv2dWithBias(
+      if (fusedActivationName != null && this.rank === 2) {
+        outputs = conv2dWithBiasActivation(
             inputs, this.kernel.read(), biasValue, this.strides, this.padding,
-            this.dataFormat, this.dilationRate as [number, number]);
-      } else if (this.rank === 3) {
-        outputs = conv3dWithBias(
-            inputs, this.kernel.read(), biasValue, this.strides, this.padding,
-            this.dataFormat, this.dilationRate as [number, number, number]);
+            this.dataFormat, this.dilationRate as [number, number],
+            fusedActivationName);
       } else {
-        throw new NotImplementedError(
-            'convolutions greater than 3D are not implemented yet.');
+        if (this.rank === 1) {
+          outputs = conv1dWithBias(
+              inputs, this.kernel.read(), biasValue, this.strides[0],
+              this.padding, this.dataFormat, this.dilationRate[0]);
+        } else if (this.rank === 2) {
+          // TODO(cais): Move up to constructor.
+          outputs = conv2dWithBiasActivation(
+              inputs, this.kernel.read(), biasValue, this.strides, this.padding,
+              this.dataFormat, this.dilationRate as [number, number]);
+        } else if (this.rank === 3) {
+          outputs = conv3dWithBias(
+              inputs, this.kernel.read(), biasValue, this.strides, this.padding,
+              this.dataFormat, this.dilationRate as [number, number, number]);
+        } else {
+          throw new NotImplementedError(
+              'convolutions greater than 3D are not implemented yet.');
+        }
+
+        if (this.activation != null) {
+          outputs = this.activation.apply(outputs);
+        }
       }
 
-      if (this.activation != null) {
-        outputs = this.activation.apply(outputs);
-      }
       return outputs;
     });
   }
