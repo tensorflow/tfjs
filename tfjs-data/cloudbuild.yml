@@ -1,9 +1,11 @@
 steps:
 - name: 'node:10'
+  dir: 'tfjs-data'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
 - name: 'node:10'
+  dir: 'tfjs-data'
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
@@ -11,6 +13,7 @@ steps:
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 - name: 'node:10'
+  dir: 'tfjs-data'
   entrypoint: 'yarn'
   id: 'test-snippets'
   args: ['test-snippets']

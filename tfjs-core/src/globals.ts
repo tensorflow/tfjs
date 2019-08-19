@@ -84,7 +84,7 @@ export function disposeVariables(): void {
  *   (e.g. `a.reshape(newShape)` makes a new Tensor that shares the same
  *   data buffer with `a`).
  * - `unreliable`: True if the memory usage is unreliable. See `reasons` when
- *    `unrealible` is true.
+ *    `unreliable` is true.
  * - `reasons`: `string[]`, reasons why the memory is unreliable, present if
  *    `unreliable` is true.
  */
