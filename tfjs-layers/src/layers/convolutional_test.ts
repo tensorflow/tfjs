@@ -21,7 +21,7 @@ import {ActivationIdentifier} from '../keras_format/activation_config';
 import {DataFormat, PaddingMode, Shape} from '../keras_format/common';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {conv1d, conv1dWithBias, conv2d, conv2dWithBias, conv3d, conv3dWithBias} from './convolutional';
+import {conv1d, conv1dWithBias, conv2d, conv2dWithBiasActivation, conv3d, conv3dWithBias} from './convolutional';
 
 
 describeMathCPUAndGPU('conv1dWithBias', () => {
@@ -206,7 +206,7 @@ describeMathCPUAndGPU('conv2dWithBias', () => {
                 tensor4d(kernelData, [outChannels, 2, 2, 1]), [1, 2, 3, 0]);
             const bias = tensor1d(biasData);
 
-            const y = conv2dWithBias(
+            const y = conv2dWithBiasActivation(
                 x, kernel, bias, [stride, stride], 'valid', dataFormat);
 
             let yExpectedShape: [number, number, number, number];
@@ -403,7 +403,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
 
   const dilationRateValues: Array<number|[number, number]> = [2, [2, 2]];
   for (const dilationRate of dilationRateValues) {
-    it(`CHANNEL_LAST, dilationRate=${dilationRate}`, () => {
+    fit(`CHANNEL_LAST, dilationRate=${dilationRate}`, () => {
       const x = tensor4d(
           [[
             [
@@ -443,6 +443,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
         dilationRate
       });
       const y = conv2dLayer.apply(x) as Tensor;
+      y.print();
       const yExpected = tensor4d(
           [[
             [[1.8854014], [1.4984605], [1.6973702]],
