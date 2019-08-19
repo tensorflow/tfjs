@@ -22,7 +22,7 @@
     },
     {
       "name": "WebGPU",
-      "path": "tfjs-webgpu"
+      "path": "tfjs-backend-webgpu"
     }
   ],
   "settings": {

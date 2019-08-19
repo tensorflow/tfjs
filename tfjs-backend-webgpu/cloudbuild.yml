@@ -7,7 +7,7 @@ steps:
 
 # Install webgpu dependencies.
 - name: 'node:10'
-  dir: 'tfjs-webgpu'
+  dir: 'tfjs-backend-webgpu'
   entrypoint: 'yarn'
   id: 'test-webgpu'
   args: ['test-ci']

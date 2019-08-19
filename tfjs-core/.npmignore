@@ -1,5 +1,5 @@
 # Ignore other packages in the mono-repo.
-tfjs-webgpu/
+tfjs-backend-webgpu/
 tfjs-backend-nodegl/
 tfjs-react-native/
 
