@@ -44,6 +44,17 @@ describeMathCPU('Built-in Regularizers', () => {
     expectTensorsClose(
         score, scalar(1 * (1 + 2 + 3 + 4) + 2 * (1 + 4 + 9 + 16)));
   });
+  it('Using number arg for constructor leads to error', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tfl.regularizers.l1(0.001 as any))
+        .toThrowError(/expected.*object.*received.*0\.001/);
+    // tslint:disable-next-line:no-any
+    expect(() => tfl.regularizers.l2(0.001 as any))
+        .toThrowError(/expected.*object.*received.*0\.001/);
+        // tslint:disable-next-line:no-any
+    expect(() => tfl.regularizers.l1l2(0.001 as any))
+        .toThrowError(/expected.*object.*received.*0\.001/);
+  });
 });
 
 describeMathCPU('regularizers.get', () => {
