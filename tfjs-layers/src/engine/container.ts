@@ -59,6 +59,8 @@ export abstract class Container extends Layer {
   layersByDepth: {[depth: string]: Layer[]};
   nodesByDepth: {[depth: string]: Node[]};
 
+  internalContainerRefs: Container[];
+
   containerNodes = new Set<string>();
 
   // TODO(michaelterry): Add cache support
@@ -138,6 +140,12 @@ export abstract class Container extends Layer {
       Includes input and output layers.
     */
     this.layers = [];
+
+    /*
+      References to container layers that were constructed internally. We need
+      these to properly dispose of tensors from nested containers.
+    */
+    this.internalContainerRefs = [];
 
     // TODO(michaelterry): Determine if caching still needed with eager
     // backend.
@@ -379,6 +387,9 @@ export abstract class Container extends Layer {
         return 0;
       });
       for (const layer of layersForDepth) {
+        if (layer instanceof Container) {
+          this.internalContainerRefs.push(layer);
+        }
         this.layers.push(layer);
       }
     }
@@ -499,6 +510,12 @@ export abstract class Container extends Layer {
     if (--this._refCount === 0) {
       for (const layer of this.layers) {
         result.numDisposedVariables += layer.dispose().numDisposedVariables;
+      }
+
+      // Call dispose on each internally created container layer again to ensure
+      // their refCounts hit zero and their tensors are subsequently deleted.
+      for (const container of this.internalContainerRefs) {
+        result.numDisposedVariables += container.dispose().numDisposedVariables;
       }
     }
     result.refCountAfterDispose = this._refCount;
