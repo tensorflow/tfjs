@@ -32,10 +32,11 @@ import * as generic_utils from '../utils/generic_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
-function mapActivationToFusedKernel(className: string): fused.Activation {
-  if (className === 'relu') {
+function mapActivationToFusedKernel(activationName: string): fused.Activation {
+  if (activationName === 'relu') {
     return 'relu';
-  } else if (className === 'linear') {
+  }
+  if (activationName === 'linear') {
     return 'linear';
   }
   return null;

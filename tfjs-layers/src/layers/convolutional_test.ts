@@ -170,7 +170,7 @@ describeMathCPUAndGPU('conv2d', () => {
   });
 });
 
-describeMathCPUAndGPU('conv2dWithBias', () => {
+describeMathCPUAndGPU('conv2dWithBiasActivation', () => {
   const x4by4Data = [[[
     [10, 30, 50, 70], [20, 40, 60, 80], [-10, -30, -50, -70],
     [-20, -40, -60, -80]
