@@ -14,7 +14,7 @@
 // limitations under the License.
 // =============================================================================
 
-// Run this script from the base directory (not the script directory):
+// Run this script from the base directory (not the package directory):
 // ./scripts/make-version.js DIR_NAME
 // Where DIR_NAME is the directory name for the package you want to make a
 // version for.

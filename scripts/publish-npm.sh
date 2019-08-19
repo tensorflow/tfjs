@@ -52,11 +52,12 @@ then
     exit 1
 fi
 
+./scripts/make-version.js $1
+
 cd $1
 yarn build-npm
 cd ..
 
-./scripts/make-version.js $1
 ./scripts/tag-version.js $1
 
 cd $1
