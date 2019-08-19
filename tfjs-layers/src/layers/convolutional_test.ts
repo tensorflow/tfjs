@@ -403,7 +403,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
 
   const dilationRateValues: Array<number|[number, number]> = [2, [2, 2]];
   for (const dilationRate of dilationRateValues) {
-    fit(`CHANNEL_LAST, dilationRate=${dilationRate}`, () => {
+    it(`CHANNEL_LAST, dilationRate=${dilationRate}`, () => {
       const x = tensor4d(
           [[
             [
@@ -443,7 +443,6 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
         dilationRate
       });
       const y = conv2dLayer.apply(x) as Tensor;
-      y.print();
       const yExpected = tensor4d(
           [[
             [[1.8854014], [1.4984605], [1.6973702]],

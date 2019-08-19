@@ -212,6 +212,7 @@ export function conv2dWithBiasActivation(
       filter: kernel as Tensor4D,
       strides: strides as [number, number],
       pad: padding === 'same' ? 'same' : 'valid',
+      dilations: dilationRate,
       dataFormat: 'NHWC',
       bias,
       activation
