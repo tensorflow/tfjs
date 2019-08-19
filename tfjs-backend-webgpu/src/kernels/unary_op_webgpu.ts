@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import {util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
@@ -30,16 +31,21 @@ export class UnaryOpProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A'];
+  workPerThread = 4;
+  workGroupSize: [number, number, number] = [1, 1, 1];
 
   constructor(outputShape: number[], op: string) {
     this.outputShape = outputShape;
+    const size = util.sizeFromShape(this.outputShape);
+
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
     let type = getCoordsDataType(this.outputShape.length);
     if (type === 'int') {
       type = 'uint';
     }
-    const workPerThread = 3;
 
     this.userCode = `
       float unaryOperation(float a) {
@@ -49,14 +55,14 @@ export class UnaryOpProgram implements WebGPUProgram {
       void main() {
         uint index = gl_GlobalInvocationID.x;
 
-        if(mod(index, ${workPerThread}) == 0) {
-          for(uint i=0; i<${workPerThread}; i++) {
-            if(index + 1 < ${this.dispatch[0]}) {
-              ${type} coords = getCoordsFromFlatIndex(index + i);
-              float a = getAAtOutCoords(coords);
+        for(uint i = 0; i < ${this.workPerThread}; i++) {
+          uint flatIndex = index * ${this.workPerThread} + i;
 
-              setOutput(index + i, unaryOperation(a));
-            }
+          if(flatIndex < ${size}) {
+            ${type} coords = getCoordsFromFlatIndex(flatIndex);
+
+            float a = getAAtOutCoords(coords);
+            setOutput(flatIndex, unaryOperation(a));
           }
         }
       }

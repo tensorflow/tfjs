@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util} from '@tensorflow/tfjs-core';
+import {backend_util, util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
 
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
@@ -39,17 +39,21 @@ export class BinaryOpProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
+  workPerThread = 4;
+  workGroupSize: [number, number, number] = [1, 1, 1];
 
   constructor(op: string, aShape: number[], bShape: number[]) {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
+    const size = util.sizeFromShape(this.outputShape);
 
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
     let type = getCoordsDataType(this.outputShape.length);
     if (type === 'int') {
       type = 'uint';
     }
-    const workPerThread = 3;
 
     this.userCode = `
       float binaryOperation(float a, float b) {
@@ -59,16 +63,15 @@ export class BinaryOpProgram implements WebGPUProgram {
       void main() {
         uint index = gl_GlobalInvocationID.x;
 
-        if(mod(index, ${workPerThread}) == 0) {
-          for(uint i = 0; i < ${workPerThread}; i++) {
-            if(index + i < ${this.dispatch[0]}) {
-              ${type} coords = getCoordsFromFlatIndex(index + i);
+        for(uint i = 0; i < ${this.workPerThread}; i++) {
+          uint flatIndex = index * ${this.workPerThread} + i;
 
-              float a = getAAtOutCoords(coords);
-              float b = getBAtOutCoords(coords);
+          if(flatIndex < ${size}) {
+            ${type} coords = getCoordsFromFlatIndex(flatIndex);
 
-              setOutput(index + i, binaryOperation(a, b));
-            }
+            float a = getAAtOutCoords(coords);
+            float b = getBAtOutCoords(coords);
+            setOutput(flatIndex, binaryOperation(a, b));
           }
         }
       }
