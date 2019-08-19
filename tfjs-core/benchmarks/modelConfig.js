@@ -71,15 +71,19 @@ const sentences = [
   'what is the forecast for here at tea time',
 ];
 
+let zeros;
 const benchmarks = {
   'mobilenet': {
     load: async () => {
-      const url =
-          'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2'
-      return tf.loadGraphModel(url, {fromTFHub: true});
+      zeros = tf.browser.fromPixels(document.getElementById('img'), 1)
+                  .expandDims(0);
+      zeros = zeros.div(255);
+      const url = `https://facemesh.s3.amazonaws.com/facessd/model.json`;
+      // const url =
+      //     'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2'
+      return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const zeros = tf.zeros([1, 224, 224, 3]);
       return (model) => {
         if (isAsync) {
           return model.executeAsync(zeros);
