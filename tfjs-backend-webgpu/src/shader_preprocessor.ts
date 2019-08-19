@@ -231,10 +231,7 @@ function getSamplerAtOutputCoords(
 
   const inRank = inInfo.shape.length;
   const outRank = outShape.length;
-  let type = getCoordsDataType(outRank);
-  if (type === 'int') {
-    type = 'uint';
-  }
+  const type = getCoordsDataType(outRank);
 
   const broadcastDims = backend_util.getBroadcastDims(inInfo.shape, outShape);
   const rankDiff = outRank - inRank;
@@ -355,7 +352,7 @@ function generateGetCoordsFromFlatIndex(shape: number[]): string {
   const rank = shape.length;
 
   if (rank <= 1) {
-    return `uint getCoordsFromFlatIndex(uint index) {return index; }`;
+    return `int getCoordsFromFlatIndex(int index) {return index; }`;
   }
 
   const strides = util.computeStrides(shape);

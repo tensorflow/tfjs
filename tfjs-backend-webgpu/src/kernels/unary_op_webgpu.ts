@@ -42,10 +42,7 @@ export class UnaryOpProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    let type = getCoordsDataType(this.outputShape.length);
-    if (type === 'int') {
-      type = 'uint';
-    }
+    const type = getCoordsDataType(this.outputShape.length);
 
     this.userCode = `
       float unaryOperation(float a) {
@@ -53,10 +50,10 @@ export class UnaryOpProgram implements WebGPUProgram {
       }
 
       void main() {
-        uint index = gl_GlobalInvocationID.x;
+        int index = int(gl_GlobalInvocationID.x);
 
-        for(uint i = 0; i < ${this.workPerThread}; i++) {
-          uint flatIndex = index * ${this.workPerThread} + i;
+        for(int i = 0; i < ${this.workPerThread}; i++) {
+          int flatIndex = index * ${this.workPerThread} + i;
 
           if(flatIndex < ${size}) {
             ${type} coords = getCoordsFromFlatIndex(flatIndex);
