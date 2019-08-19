@@ -28,6 +28,7 @@ steps:
   args: ['./run-python-tests.sh']
   waitFor: ['yarn']
 - name: 'node:10'
+  dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'test-snippets'
   args: ['test-snippets']
