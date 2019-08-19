@@ -194,7 +194,7 @@ describeWithFlags('slice2d', ALL_ENVS, () => {
     expectArraysClose(vals, new Float32Array([2, 3, 6, 7, 10, 11]));
   });
 
-  it('flatten a sliced tensor that was continous in memory', async () => {
+  it('flatten a sliced tensor that was continuous in memory', async () => {
     const a = [
       [1, 2, 3, 4],
       [5, 6, 7, 8],
@@ -205,7 +205,7 @@ describeWithFlags('slice2d', ALL_ENVS, () => {
     expectArraysClose(await b.data(), [5, 6, 7, 8, 9, 10, 11, 12]);
   });
 
-  it('slice a tensor that was not continous in memory', async () => {
+  it('slice a tensor that was not continuous in memory', async () => {
     const a = [
       [1, 2, 3, 4],
       [5, 6, 7, 8],
@@ -216,7 +216,7 @@ describeWithFlags('slice2d', ALL_ENVS, () => {
     expectArraysClose(await b.data(), [2, 3, 4, 6, 7, 8, 10, 11, 12]);
   });
 
-  it('flatten a sliced tensor that was not continous in memory', async () => {
+  it('flatten a sliced tensor that was not continuous in memory', async () => {
     const a = [
       [1, 2, 3, 4],
       [5, 6, 7, 8],
@@ -227,7 +227,7 @@ describeWithFlags('slice2d', ALL_ENVS, () => {
     expectArraysClose(await b.data(), [2, 3, 4, 6, 7, 8, 10, 11, 12]);
   });
 
-  it('flatten a sliced tensor not continous in memory and run program',
+  it('flatten a sliced tensor not continuous in memory and run program',
      async () => {
        const a = [
          [1, 2, 3, 4],
