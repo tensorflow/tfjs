@@ -236,7 +236,6 @@ export function sizeToSquarishShape(size: number): [number, number] {
  * @param number Quantity of how many shuffled indicies to create.
  */
 /** @doc {heading: 'Util', namespace: 'util'} */
-// tslint:disable-next-line:no-any
 export function createShuffledIndices(n: number): Uint32Array {
   const shuffledIndices = new Uint32Array(n);
   for (let i = 0; i < n; ++i) {
