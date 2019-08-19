@@ -316,7 +316,7 @@ export class MathBackendWebGL implements KernelBackend {
           throw new Error(
               'The DOM is not ready yet. Please call ' +
               'tf.browser.fromPixels() once the DOM is ready. One way to ' +
-              'do that is to add an event listener for `DOMContentLoaded` ' +
+              'do that is to add an event listener for `load` ' +
               'on the document object');
         }
         //@ts-ignore
