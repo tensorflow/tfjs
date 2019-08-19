@@ -1,9 +1,11 @@
 steps:
 - name: 'node:10'
+  dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
 - name: 'node:10'
+  dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'test-browser'
   args: ['test-ci']
@@ -11,17 +13,17 @@ steps:
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 - name: 'gcr.io/google-appengine/python'
-  dir: 'python'
+  dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./build-pip-package.sh', '--test', '/tmp/tfjs-pips']
   waitFor: ['yarn']
 - name: 'python:2'
-  dir: 'python'
+  dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./run-python-tests.sh']
   waitFor: ['yarn']
 - name: 'python:3.6'
-  dir: 'python'
+  dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./run-python-tests.sh']
   waitFor: ['yarn']
