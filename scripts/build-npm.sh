@@ -16,16 +16,25 @@
 
 set -e
 
-yarn rimraf dist/
+PACKAGE_JSON_FILE="$1/package.json"
+if ! test -f "$PACKAGE_JSON_FILE"; then
+  echo "$PACKAGE_JSON_FILE does not exist."
+  echo "Please pass the package name as the first argument."
+  exit 1
+fi
+
+yarn rimraf $1/dist/
+
+cd $1
 yarn
 
-yarn build
-yarn build-test-snippets
+yarn build-npm
 yarn rollup -c --visualize
 
 # Use minified files for miniprogram
 mkdir dist/miniprogram
-cp dist/tf-core.min.js dist/miniprogram/index.js
-cp dist/tf-core.min.js.map dist/miniprogram/index.js.map
+MIN_NAME=${1/tfjs/tf}
+cp dist/$MIN_NAME.min.js dist/miniprogram/index.js
+cp dist/$MIN_NAME.min.js.map dist/miniprogram/index.js.map
 
-echo "Stored standalone library at dist/tf-core(.min).js"
+echo "Stored standalone library at dist/$MIN_NAME(.min).js"

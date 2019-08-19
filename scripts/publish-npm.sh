@@ -54,7 +54,11 @@ fi
 
 cd $1
 yarn build-npm
-./scripts/make-version # This is for safety in case you forgot to do 2).
-./scripts/tag-version.js
+cd ..
+
+./scripts/make-version.js $1
+./scripts/tag-version.js $1
+
+cd $1
 npm publish
 echo 'Yay! Published a new package to npm.'

@@ -55,7 +55,7 @@
     "build-ci": "./scripts/enumerate-tests.js --ci && tsc",
     "build": "./scripts/enumerate-tests.js && tsc",
     "build:bazel": "bazel build //...",
-    "build-npm": "./scripts/build-npm.sh",
+    "build-npm": "yarn build && yarn build-test-snippets",
     "build-test-snippets": "yarn tsc --project ./scripts/test_snippets/tsconfig.json",
     "format-all": "clang-format -i -style=Google --glob=src/**/*.ts",
     "link-local": "yalc link",
