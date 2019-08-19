@@ -32,7 +32,8 @@
       "**/dist/": true,
       "**/yarn.lock": true,
       "**/.rpt2_cache/": true,
-      "**/.yalc/**/*": true
+      "**/.yalc/**/*": true,
+      "**/.cache/**/*": true
     },
     "tslint.configFile": "tslint.json",
     "files.trimTrailingWhitespace": true,
@@ -48,14 +49,12 @@
       "editor.formatOnSave": true
     },
     "editor.defaultFormatter": "xaver.clang-format",
-    "editor.rulers": [
-      80
-    ],
+    "editor.rulers": [80],
     "clang-format.style": "Google",
     "files.insertFinalNewline": true,
     "editor.detectIndentation": false,
     "editor.wrappingIndent": "none",
-    "typescript.tsdk": "./node_modules/typescript/lib",
+    "typescript.tsdk": "${workspaceRoot}/node_modules/typescript/lib",
     "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format"
   },
   "extensions": {

@@ -9,5 +9,5 @@
  */
 
 // This code is auto-generated, do not modify this file!
-const version = '1.2.7';
+const version = '1.2.8';
 export {version};
