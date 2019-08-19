@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2018 Google LLC. All Rights Reserved.
+# Copyright 2017 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,16 +16,16 @@
 
 set -e
 
-rimraf dist/
+yarn rimraf dist/
 yarn
 
 yarn build
-rollup -c
+yarn build-test-snippets
+yarn rollup -c --visualize
 
 # Use minified files for miniprogram
 mkdir dist/miniprogram
-cp dist/tf-data.min.js dist/miniprogram/index.js
-cp dist/tf-data.min.js.map dist/miniprogram/index.js.map
+cp dist/tf-core.min.js dist/miniprogram/index.js
+cp dist/tf-core.min.js.map dist/miniprogram/index.js.map
 
-echo "Stored standalone library at dist/tfjs-data(.min).js"
-npm pack
+echo "Stored standalone library at dist/tf-core(.min).js"

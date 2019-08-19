@@ -52,7 +52,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "build-npm": "./scripts/build-npm.sh",
+    "build-npm": "yarn build && yarn rollup -c --visualize",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "lint": "tslint -p . -t verbose",
