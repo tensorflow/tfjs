@@ -1,0 +1,20 @@
+steps:
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'test'
+  args: ['test-ci']
+  waitFor: ['yarn']
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'test-ts-integration'
+  args: ['test-ts-integration']
+  waitFor: ['yarn', 'test']
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'
