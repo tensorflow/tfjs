@@ -67,11 +67,6 @@ export class Conv2DMMProgram implements WebGPUProgram {
     this.userCode = `
         ${matMulSource}
 
-        bool coordIsValid(ivec4 coord, ivec4 shape) {
-          return all(greaterThanEqual(coord, ivec4(0))) &&
-              all(lessThan(coord, shape));
-        }
-
         int batch;
 
         float mm_readA(uint row, uint col) {

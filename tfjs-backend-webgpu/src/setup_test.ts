@@ -30,7 +30,7 @@ const env = jasmine.getEnv();
 const INCLUDE_LIST: string[] = [
   'matmul', 'add ', 'subtract ', 'mul ', 'conv2d', 'pad', 'pool', 'maxPool',
   'floor divide ', 'resizeBilinear', 'relu', 'transpose', 'concat', 'argmax',
-  'fromPixels'
+  'fromPixels', 'depthwise'
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
@@ -72,6 +72,7 @@ const EXCLUDE_LIST: string[] = [
   'concat tensors with 0 in their shape',                // Timeout.
   'argmax test-webgpu {} accepts tensor with bool',      // Actual != Expected.
   'RFFT',                                                // Not yet implemented.
+  'fused',                                               // Not yet implemented.
 ];
 
 /**
