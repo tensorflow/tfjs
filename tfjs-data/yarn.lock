@@ -14,10 +14,10 @@
     node-fetch "~2.1.2"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-layers@1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.2.1.tgz#78f28e90ee95ec206e69d5e2432b677e28c70c45"
-  integrity sha512-h3uFYRHzEGqtyzC4PLHcXGn2tbPcozk9H6yMEtdI1yLJZXBKTh4Yjs9B/yN9HRxp31pc2hCFrqU7ViNYAg/vYw==
+"@tensorflow/tfjs-layers@1.2.8":
+  version "1.2.8"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.2.8.tgz#6d696dcfa530708b1fdb0cd7614a0d2a1c8ae58a"
+  integrity sha512-NMcA44U0rvVpo/VUTMpqkBP3jbvNhRXV7K8KovLi/WZ9FG/u5XIbIqFkcT3QXBDUyjDUNFToYQM/59dtnaut9Q==
 
 "@types/estree@0.0.38":
   version "0.0.38"
