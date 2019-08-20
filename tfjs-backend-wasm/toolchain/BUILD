@@ -32,7 +32,6 @@ cc_toolchain(
    toolchain_config = ":asmjs_toolchain_config",
    all_files = ":all",
    compiler_files = ":all",
-   cpu = "asmjs",
    dwp_files = ":empty",
    linker_files = ":all",
    objcopy_files = ":empty",

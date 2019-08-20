@@ -21,7 +21,7 @@ export TEMP_DIR="tmp"
 cp -r toolchain/emscripten_cache/* tmp/emscripten_cache
 
 # Run emscripten to compile and link
-python external/emscripten_toolchain/emcc.py "$@"
+python2 external/emscripten_toolchain/emcc.py "$@"
 
 # Remove the first line of .d file
 find . -name "*.d" -exec sed -i '2d' {} \;

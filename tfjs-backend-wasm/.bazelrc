@@ -1,12 +1,13 @@
 # Use our custom-configured c++ toolchain.
-
 build:asmjs --crosstool_top=//toolchain:emscripten
 
 # Use --cpu as a differentiator.
-
 build:asmjs --cpu=asmjs
 
 # Use the default Bazel C++ toolchain to build the tools used during the
 # build.
-
 build:asmjs --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+
+build:asmjs --cxxopt="-std=c++11"
+build:asmjs --cxxopt="-fno-rtti"
+build:asmjs --cxxopt="-fno-exceptions"
