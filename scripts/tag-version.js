@@ -23,12 +23,12 @@ const fs = require('fs');
 const dirName = process.argv[2];
 const packageJsonFile = dirName + '/package.json';
 if (!fs.existsSync(packageJsonFile)) {
-  console.log(packageJsonFile, 'does not exist. Please call this script as follows:');
+  console.log(
+      packageJsonFile, 'does not exist. Please call this script as follows:');
   console.log('./scripts/tag-version.js DIR_NAME');
   process.exit(1);
 }
 
-var fs = require('fs');
 var exec = require('child_process').exec;
 
 var version = JSON.parse(fs.readFileSync(packageJsonFile, 'utf8')).version;
