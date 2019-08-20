@@ -17,6 +17,7 @@
     "@tensorflow/tfjs-core": "~1.2.7"
   },
   "devDependencies": {
+    "@bazel/bazel": "^0.28.0",
     "@tensorflow/tfjs-core": "~1.2.7",
     "@types/emscripten": "~0.0.34",
     "clang-format": "^1.2.4",
