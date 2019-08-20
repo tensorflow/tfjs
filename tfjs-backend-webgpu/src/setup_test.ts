@@ -25,6 +25,7 @@ setTestEnvs([{
 }]);
 
 const env = jasmine.getEnv();
+const grepFilter = env.specFilter;
 
 /** Tests that have these substrings in their name will be included. */
 const INCLUDE_LIST: string[] = [
@@ -82,7 +83,12 @@ const EXCLUDE_LIST: string[] = [
  * will be exluded.
  */
 env.specFilter = spec => {
+  if (!grepFilter(spec)) {
+    return false;
+  }
+
   const name = spec.getFullName();
+
   // Return false (skip the test) if the test is in the exclude list.
   for (let i = 0; i < EXCLUDE_LIST.length; ++i) {
     if (name.indexOf(EXCLUDE_LIST[i]) > -1) {
