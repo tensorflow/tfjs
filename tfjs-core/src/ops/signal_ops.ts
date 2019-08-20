@@ -68,6 +68,9 @@ function hammingWindow_(windowLength: number): Tensor1D {
  * @param signal The input tensor to be expanded
  * @param frameLength Length of each frame
  * @param frameStep The frame hop size in samples.
+ * @param padEnd Whether to pad the end of signal with padValue.
+ * @param padValue An number to use where the input signal does
+ *     not exist when padEnd is True.
  */
 /**
  * @doc {heading: 'Operations', subheading: 'Signal', namespace: 'signal'}
@@ -83,10 +86,14 @@ function frame_(
   }
 
   if (padEnd) {
-    const padLen = (start + frameLength) - signal.size;
-    const pad = concat(
-        [slice(signal, start, frameLength - padLen), fill([padLen], padValue)]);
-    output.push(pad);
+    while (start < signal.size) {
+      const padLen = (start + frameLength) - signal.size;
+      const pad = concat(
+          [slice(signal, start, frameLength - padLen),
+           fill([padLen], padValue)]);
+      output.push(pad);
+      start += frameStep;
+    }
   }
 
   if (output.length === 0) {
