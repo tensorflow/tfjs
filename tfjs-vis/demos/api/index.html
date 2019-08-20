@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<!--
+  @license
+  Copyright 2018 Google LLC. All Rights Reserved.
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  =============================================================================
+  -->
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <!-- <script src="../../dist/tfjs-vis.umd.min.js"></script> -->
+  <script src="./index.js"></script>
+
+
+  <style>
+    article {
+      max-width: 960px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      padding: 40px;
+    }
+
+    script.show-script {
+      display: block;
+      max-width: 720px;
+      background-color: floralwhite;
+      font-family: "Lucida Console", Monaco, "Courier New", Courier, monospace;
+      font-size: 12px;
+      margin-left: -40px;
+      white-space: pre;
+    }
+
+    article div {
+      margin-bottom: 25px;
+    }
+
+    h3 {
+      margin-top: 60px;
+    }
+  </style>
+</head>
+
+<body>
+  <article>
+    <h1>tfjs-vis kitchen sink</h1>
+
+    <section>
+      <p>
+        tfjs-vis is a small set of visualization utilities to make it easier to understand what is going on with your
+        tfjs models.
+        It is designed in a way to work along side regular web apps. This page is a testbed for the api.
+      </p>
+      <script class='show-script' type="module">
+        // import * as tfvis from 'tfjs-vis'
+      </script>
+    </section>
+
+    <section>
+      <h2>Visor</h2>
+      <script class='show-script'>
+        {
+          visorInstance = tfvis.visor();
+          visorInstance.surface({ name: 'Surface 1' });
+          visorInstance.surface({ name: 'Surface 2' });
+
+          visorInstance.surface({ name: 'Surface 3', tab: 'Tab 2' });
+
+          visorInstance.surface({ name: 'Just a surface', tab: 'A really long tab name' });
+        }
+      </script>
+    </section>
+
+    <hr>
+
+    <section>
+      <h2>Render Functions</h2>
+
+      <h3>render.barchart(data, container, options)</h3>
+      <div id='barchart-cont'></div>
+      <script class='show-script'>
+        {
+          const data = [
+            { index: 0, value: 50 },
+            { index: 1, value: 100 },
+            { index: 2, value: 150 },
+          ];
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Barchart', tab: 'Charts' });
+          tfvis.render.barchart(surface, data, {});
+
+          // Render to page
+          const container = document.getElementById('barchart-cont');
+          tfvis.render.barchart(container, data, {
+            xLabel: 'my x axis',
+            yLabel: 'values',
+            width: 500,
+            height: 250,
+            fontSize: 14
+          });
+        }
+      </script>
+
+      <h4>Re-rendering</h4>
+      <p>You can update a bar chart by calling
+        <code>render.barchart</code> again with the same
+        <code>container</code>.
+      </p>
+
+      <p>
+        This is also true for any render.* function, to re-render or update just call the function with new data and
+        the same container.
+      </p>
+
+      <div id='barchart-multi'></div>
+      <script class='show-script'>
+        async function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function renderBarchartMultipleTimes(numRenders, numVals) {
+          const genData = function (numVals) {
+            return Array(numVals).fill(0).map((d, i) => {
+              return { index: i, value: (Math.random() * 50) + 50 };
+            });
+          };
+
+          console.time(`renderBarchart:${numVals}:${numRenders}`);
+          for (let i = 0; i < numRenders; i++) {
+            const data = genData(numVals);
+            const container = document.getElementById('barchart-multi');
+            await tfvis.render.barchart(container, data, {
+              xLabel: 'my x axis',
+              yLabel: 'values',
+              width: 800,
+              height: 250,
+            });
+            await sleep(20);
+          }
+          console.timeEnd(`renderBarchart:${numVals}:${numRenders}`);
+
+        }
+
+        const numRenders = 30;
+        const numVals = 20;
+        renderBarchartMultipleTimes(numRenders, numVals);
+      </script>
+
+      <hr>
+
+      <h3>render.table(data, container)</h3>
+
+      <div id='table-cont'></div>
+
+      <script class='show-script'>
+        {
+          const headers = [
+            'Col1',
+            'Col 2',
+            '<em>Column 3</em>',
+          ];
+
+          const values = [
+            [1, 2, 3],
+            ['4', '5', '6'],
+            ['<strong>7</strong>', true, false],
+          ];
+
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Table', tab: 'Charts' });
+          tfvis.render.table(surface, { headers, values });
+
+          // Render to page
+          const container = document.getElementById('table-cont');
+          tfvis.render.table(container, { headers, values }, {
+            fontSize: 14
+          });
+        }
+      </script>
+
+      <hr>
+
+      <h3>render.histogram(data, container, opts)</h3>
+
+      <div id='histogram-cont'></div>
+
+      <script class='show-script'>
+        {
+          const data = Array(100).fill(0)
+            .map(x => Math.random() * 100 - (Math.random() * 50))
+
+          // Push some special values for the stats table.
+          data.push(Infinity);
+          data.push(NaN);
+          data.push(0);
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Histogram', tab: 'Charts' });
+          tfvis.render.histogram(surface, data);
+
+          // Render to page
+          const container = document.getElementById('histogram-cont');
+          tfvis.render.histogram(container, data);
+        }
+      </script>
+
+      <h3>
+        re-render histogram
+      </h3>
+
+      <div id='histogram-multi'></div>
+      <script class='show-script'>
+        async function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function renderHistogramMultipleTimes(numRenders, numVals) {
+          const genData = function (numVals) {
+            return Array(numVals).fill(0).map((d, i) => {
+              return (Math.random() * 50) + 50;
+            });
+          };
+
+          console.time(`renderHistogram:${numVals}:${numRenders}`);
+          for (let i = 0; i < numRenders; i++) {
+            const data = genData(numVals);
+            const container = document.getElementById('histogram-multi');
+            await tfvis.render.histogram(container, data, {
+              stats: false,
+            });
+
+            const surface = { name: 'Histogram', tab: 'Re-renders' };
+            await tfvis.render.histogram(surface, data, {
+              stats: false,
+            });
+            await sleep(20);
+          }
+          console.timeEnd(`renderHistogram:${numVals}:${numRenders}`);
+
+        }
+
+        renderHistogramMultipleTimes(30, 20);
+      </script>
+
+      <hr>
+
+      <h3>render.linechart(data, container, opts)</h3>
+
+      <div id='linechart-cont'></div>
+
+      <script class='show-script'>
+        {
+          const series1 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 50))
+            .map((y, x) => ({ x, y, }));
+
+          const series2 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 150))
+            .map((y, x) => ({ x, y, }));
+
+
+          const series = ['First', 'Second'];
+          const data = { values: [series1, series2], series }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Linechart', tab: 'Charts' });
+          tfvis.render.linechart(surface, data);
+
+          // Render to page
+          const container = document.getElementById('linechart-cont');
+          tfvis.render.linechart(container, data);
+        }
+      </script>
+
+      <h4>Zoom to fit linechart</h4>
+
+      <div id='zoomed-linechart-cont'></div>
+      <script class='show-script'>
+        {
+          const series1 = Array(100).fill(0)
+            .map(y => Math.random() * 100 + 50)
+            .map((y, x) => ({ x, y, }));
+
+          const data = { values: [series1] }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Zoomed Line Chart', tab: 'Charts' });
+          tfvis.render.linechart(surface, data, { zoomToFit: true });
+
+          // Render to page
+          const container = document.getElementById('zoomed-linechart-cont');
+          tfvis.render.linechart(container, data, { zoomToFit: true });
+        }
+      </script>
+
+      <h4>Truncated linechart: Custom y axis domain</h4>
+      <div id='truncated-linechart-cont'></div>
+
+      <script class='show-script'>
+        {
+          const series1 = Array(100).fill(0)
+            .map(y => Math.random() * 100 + 50)
+            .map((y, x) => ({ x, y, }));
+
+          const series2 = Array(100).fill(0)
+            .map(y => Math.random() * 100 + 50)
+            .map((y, x) => ({ x, y, }));
+
+          const data = { values: [series1, series2] }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'truncated Line Chart', tab: 'Charts' });
+          tfvis.render.linechart(surface, data, { yAxisDomain: [80, 120] });
+
+          // Render to page
+          const container = document.getElementById('truncated-linechart-cont');
+          tfvis.render.linechart(container, data, { yAxisDomain: [80, 120] });
+        }
+      </script>
+
+      <hr>
+
+      <h3>render.scatterplot(data, container, opts)</h3>
+
+      <div id='scatterplot-cont'></div>
+
+      <script class='show-script'>
+        {
+          const series1 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 50))
+            .map((y, x) => ({ x, y, }));
+
+          const series2 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 150))
+            .map((y, x) => ({ x, y, }));
+
+
+          const series = ['First', 'Second'];
+          const data = { values: [series1, series2], series }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Scatterplot', tab: 'Charts' });
+          tfvis.render.scatterplot(surface, data);
+
+          // Render to page
+          const container = document.getElementById('scatterplot-cont');
+          tfvis.render.scatterplot(container, data, { width: 500, height: 500 });
+        }
+      </script>
+
+
+      <h4>Zoom to fit scatter plot</h4>
+      <div id='zoomed-scatterplot-cont'></div>
+
+      <script class='show-script'>
+        {
+          const series1 = Array(100).fill(0)
+            .map(y => Math.random() * 100 + (Math.random() * 50))
+            .map((y, x) => ({ x: x + 50, y: y + 50, }));
+
+          const series2 = Array(100).fill(0)
+            .map(y => Math.random() * 100 + (Math.random() * 150))
+            .map((y, x) => ({ x: x + 50, y: y + 50, }));
+
+
+          const series = ['First', 'Second'];
+          const data = { values: [series1, series2], series }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Zoomed Scatterplot', tab: 'Charts' });
+          tfvis.render.scatterplot(surface, data, { zoomToFit: true });
+
+          // Render to page
+          const container = document.getElementById('zoomed-scatterplot-cont');
+          tfvis.render.scatterplot(container, data, {
+            width: 500,
+            height: 500,
+            zoomToFit: true,
+          });
+        }
+      </script>
+
+      <h4>Custom domain scatter plot</h4>
+      <div id='customdomain-scatterplot-cont'></div>
+
+      <script class='show-script'>
+        {
+          const series1 = Array(100).fill(0)
+            .map(y => Math.random() * 100 + (Math.random() * 50))
+            .map((y, x) => ({ x: x + 50, y: y + 50, }));
+
+          const series2 = Array(100).fill(0)
+            .map(y => Math.random() * 100 + (Math.random() * 150))
+            .map((y, x) => ({ x: x + 50, y: y + 50, }));
+
+
+          const series = ['First', 'Second'];
+          const data = { values: [series1, series2], series }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Custom Domain Scatterplot', tab: 'Charts' });
+          tfvis.render.scatterplot(surface, data, {
+            xAxisDomain: [-20, 200],
+            yAxisDomain: [-50, 125]
+          });
+
+          // Render to page
+          const container = document.getElementById('customdomain-scatterplot-cont');
+          tfvis.render.scatterplot(container, data, {
+            width: 500,
+            height: 500,
+            xAxisDomain: [-20, 200],
+            yAxisDomain: [-50, 125]
+          });
+        }
+      </script>
+
+      <hr>
+
+      <h3>render.confusionMatrix</h3>
+
+      <div id='confmatrix-cont'></div>
+
+      <script class='show-script'>
+        {
+
+          const rows = 50;
+          const cols = 50;
+          const values = [];
+          for (let i = 0; i < rows; i++) {
+            const row = []
+            for (let j = 0; j < cols; j++) {
+              row.push(Math.round(Math.random() * 50));
+            }
+            values.push(row);
+          }
+          const data = { values };
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Confusion Matrix', tab: 'Charts' });
+          tfvis.render.confusionMatrix(surface, data, {
+            showTextOverlay: false
+          });
+
+          // Render to page
+          const container = document.getElementById('confmatrix-cont');
+          tfvis.render.confusionMatrix(container, data, { width: 800, height: 800 });
+        }
+      </script>
+
+      <p>The diagonal can also be excluded from shading.</p>
+
+      <div id='confmatrix-cont2'></div>
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
+            // We also generate 'labels' if none are passed.
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({
+            name: 'Confusion Matrix with Excluded Diagonal', tab: 'Charts'
+          });
+          tfvis.render.confusionMatrix(surface, data, {
+            shadeDiagonal: false
+          });
+
+          // Render to page
+          const container = document.getElementById('confmatrix-cont2');
+          tfvis.render.confusionMatrix(container, data, {
+            width: 500,
+            height: 500,
+            shadeDiagonal: false,
+          });
+        }
+      </script>
+
+      <p>Perfect classification.</p>
+
+      <div id='confmatrix-cont3'></div>
+
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: [[8, 0, 0], [0, 8, 0], [0, 0, 8]],
+            // We also generate 'labels' if none are passed.
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({
+            name: 'Confusion Matrix with perfect classification', tab: 'Charts'
+          });
+          tfvis.render.confusionMatrix(surface, data);
+
+          // Render to page
+          const container = document.getElementById('confmatrix-cont3');
+          tfvis.render.confusionMatrix(container, data, {
+            width: 500,
+            height: 500,
+          });
+
+
+        }
+      </script>
+
+      <p>In a perfect classification scenario where shadeDiagonal is false the chart
+        will override that option as all values lie on the diagonal.
+      </p>
+
+      <div id='confmatrix-cont4'></div>
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: [[8, 0, 0], [0, 8, 0], [0, 0, 8]],
+            // We also generate 'labels' if none are passed.
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({
+            name: 'Confusion Matrix with perfect classification shadeDiagonal=false', tab: 'Charts'
+          });
+          tfvis.render.confusionMatrix(surface, data, {
+            shadeDiagonal: false,
+          });
+
+          // Render to page
+          const container = document.getElementById('confmatrix-cont4');
+          tfvis.render.confusionMatrix(container, data, {
+            width: 500,
+            height: 500,
+            shadeDiagonal: false,
+          });
+        }
+      </script>
+
+      <hr>
+
+      <h3>render.heatmap(data, container, opts)</h3>
+
+      <div id='heatmap-cont'></div>
+
+      <script class='show-script'>
+        {
+          const rows = 50;
+          const cols = 20;
+          const values = [];
+          for (let i = 0; i < rows; i++) {
+            const row = []
+            for (let j = 0; j < cols; j++) {
+              row.push(i * j)
+            }
+            values.push(row);
+          }
+          const data = { values };
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Heatmap', tab: 'Charts' });
+          tfvis.render.heatmap(surface, data);
+
+          // Render to page
+          const container = document.getElementById('heatmap-cont');
+          tfvis.render.heatmap(container, data, { width: 500, height: 500 });
+        }
+      </script>
+
+      <p>
+        We can also pass in custom labels
+      </p>
+      <div id='heatmap-cont2'></div>
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: [[4, 2, 8, 20], [1, 7, 2, 10], [3, 3, 20, 13]],
+            xLabels: ['cheese', 'pig', 'font'],
+            yLabels: ['speed', 'smoothness', 'dexterity', 'mana'],
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Heatmap w Custom Labels', tab: 'Charts' });
+          tfvis.render.heatmap(surface, data);
+
+          // Render to page
+          const container = document.getElementById('heatmap-cont2');
+          tfvis.render.heatmap(container, data, { width: 500, height: 500 });
+        }
+      </script>
+
+      <p>
+        Alternate color maps are also supported.
+      </p>
+      <div id='heatmap-cont3'></div>
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: [[4, 2, 8, 20], [1, 7, 2, 10], [3, 3, 20, 13]],
+            xTickLabels: ['cheese', 'pig', 'font'],
+            yTickLabels: ['speed', 'smoothness', 'dexterity', 'mana'],
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Heatmap w Custom Colormap', tab: 'Charts' });
+          tfvis.render.heatmap(surface, data, {
+            colorMap: 'greyscale',
+          });
+
+          // Render to page
+          const container = document.getElementById('heatmap-cont3');
+          tfvis.render.heatmap(container, data, {
+            colorMap: 'greyscale',
+            width: 500,
+            height: 500
+          });
+        }
+      </script>
+
+      <p>
+        Tensor2D's are also supported
+      </p>
+      <div id='heatmap-cont4'></div>
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: tf.tensor2d([[4, 2, 8, 20], [1, 7, 2, 10], [3, 3, 20, 13]]),
+            xTickLabels: ['cheese', 'pig', 'font'],
+            yTickLabels: ['speed', 'smoothness', 'dexterity', 'mana'],
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Heatmap', tab: 'Tensor Charts' });
+          tfvis.render.heatmap(surface, data, {
+            xLabel: 'Thing',
+            yLabel: 'Property',
+          });
+
+          // Render to page
+          const container = document.getElementById('heatmap-cont4');
+          tfvis.render.heatmap(container, data, {
+            width: 500,
+            height: 500,
+            xLabel: 'Thing',
+            yLabel: 'Property',
+          });
+        }
+      </script>
+    </section>
+
+  </article>
+
+</body>
+
+</html>
