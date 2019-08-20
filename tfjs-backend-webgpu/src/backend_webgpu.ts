@@ -693,7 +693,9 @@ export class WebGPUBackend extends KernelBackend {
             ` or {data: Uint32Array, width: number, height: number}, ` +
             `but was ${(pixels as {}).constructor.name}`);
       }
-      if (pixels instanceof HTMLVideoElement) {
+      if (pixels instanceof HTMLVideoElement ||
+          pixels instanceof HTMLImageElement ||
+          pixels instanceof HTMLCanvasElement) {
         if (this.fromPixels2DContext == null) {
           this.fromPixels2DContext =
               document.createElement('canvas').getContext('2d');

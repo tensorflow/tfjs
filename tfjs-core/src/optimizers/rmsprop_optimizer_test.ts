@@ -148,7 +148,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(1);
   });
 
-  it('Save and load weigths: centered = false', async () => {
+  it('Save and load weights: centered = false', async () => {
     const learningRate = 0.1;
     const moment = 0.1;
     const rho = 0.95;
@@ -174,7 +174,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     expect(optimizer2.iterations).toEqual(2);
   });
 
-  it('Save, load weigths and continue training: centered = true', async () => {
+  it('Save, load weights and continue training: centered = true', async () => {
     const learningRate = 0.1;
     const moment = 0.1;
     const rho = 0.95;
