@@ -44,6 +44,8 @@ filesWhitelistToTriggerBuild.forEach(fileToTriggerBuild => {
     whitelistDiffOutput.push(diffOutput);
   }
 });
+
+// Break up the console for readability.
 console.log();
 
 let triggeredBuilds = [];
@@ -63,6 +65,7 @@ dirs.forEach(dir => {
   }
 });
 
+// Break up the console for readability.
 console.log();
 
 // Filter the triggered builds to log by whether a cloudbuild.yml file exists
