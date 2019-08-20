@@ -136,6 +136,11 @@ const SHADER_PREFIX = `#version 450
     }
     return res;
   }
+
+  bool coordIsValid(ivec4 coord, ivec4 shape) {
+    return all(greaterThanEqual(coord, ivec4(0))) &&
+        all(lessThan(coord, shape));
+  }
 `;
 
 const SAMPLING_SNIPPETS = `
