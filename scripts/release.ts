@@ -47,26 +47,22 @@ interface Phase {
 }
 
 const CORE_PHASE: Phase = {
-  packages: ['tfjs-core'],
-  scripts: ['./scripts/make-version']
+  packages: ['tfjs-core']
 };
 
 const LAYERS_CONVERTER_DATA_PHASE: Phase = {
   packages: ['tfjs-layers', 'tfjs-converter', 'tfjs-data'],
-  deps: ['tfjs-core'],
-  scripts: ['./scripts/make-version']
+  deps: ['tfjs-core']
 };
 
 const UNION_PHASE: Phase = {
   packages: ['tfjs'],
-  deps: ['tfjs-core', 'tfjs-layers', 'tfjs-converter', 'tfjs-data'],
-  scripts: ['./scripts/make-version']
+  deps: ['tfjs-core', 'tfjs-layers', 'tfjs-converter', 'tfjs-data']
 };
 
 const NODE_PHASE: Phase = {
   packages: ['tfjs-node'],
-  deps: ['tfjs'],
-  scripts: ['./scripts/make-version']
+  deps: ['tfjs']
 };
 
 const VIS_PHASE: Phase = {
@@ -207,8 +203,9 @@ async function main() {
       phase.scripts.forEach(script => $(script));
     }
 
-    newVersions.push(newVersion);
     shell.cd('..');
+    $(`./scripts/make-version.js ${packageName}`);
+    newVersions.push(newVersion);
   }
 
   const packageNames = packages.join(', ');
