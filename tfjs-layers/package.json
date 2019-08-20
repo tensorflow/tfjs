@@ -40,7 +40,6 @@
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
     "format": "./tools/clang_format_ts.sh",
-    "publish-npm": "./scripts/publish-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "test": "karma start",

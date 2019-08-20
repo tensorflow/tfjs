@@ -52,10 +52,10 @@
     "yargs": "~13.2.2"
   },
   "scripts": {
-    "build-ci": "./scripts/enumerate-tests.js --ci && tsc",
+    "build-ci": "./scripts/enumerate-tests.js --ci && tsc && yarn build-test-snippets",
     "build": "./scripts/enumerate-tests.js && tsc",
-    "build:bazel": "bazel build //...",
     "build-npm": "./scripts/build-npm.sh",
+    "build:bazel": "bazel build //...",
     "build-test-snippets": "yarn tsc --project ./scripts/test_snippets/tsconfig.json",
     "format-all": "clang-format -i -style=Google --glob=src/**/*.ts",
     "link-local": "yalc link",
