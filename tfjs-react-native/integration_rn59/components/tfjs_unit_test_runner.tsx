@@ -22,14 +22,16 @@ import jasmineRequire from 'jasmine-core/lib/jasmine-core/jasmine.js';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 import React, { Component, Fragment } from 'react';
 import { StyleSheet, Text, View, ViewStyle, ScrollView } from 'react-native';
+import * as tf from '@tensorflow/tfjs-core';
 
 interface TestRunnerProps {
+  backend: string;
 }
 
 interface FailedTestInfo {
   suiteName?: string;
   testName: string;
-  failedExpectations: string[]
+  failedExpectations: string[];
   message?: string;
 }
 
@@ -39,6 +41,7 @@ interface TestRunnerState {
   totalTests: number;
   testsComplete: boolean;
   testsStarted: boolean;
+  backendName?: string;
 }
 
 export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
@@ -50,7 +53,7 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
       totalTests: 0,
       testsComplete: false,
       testsStarted: false,
-    }
+    };
   }
 
   /**
@@ -58,12 +61,20 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
    * numRun times and report the result and timing info.
    */
   async componentDidMount() {
+    const backendName = tf.getBackend();
+    this.setState({
+      backendName,
+    });
+
     let passedTests = 0;
     const failedTests: FailedTestInfo[] = [];
 
     // Helper function for adding jasmine functionlaity to global.
+    // tslint:disable-next-line: no-any
     function extend(destination: any, source: any) {
-      for (var property in source) destination[property] = source[property];
+      for (const property in source) {
+        destination[property] = source[property];
+      }
       return destination;
     }
 
@@ -78,13 +89,17 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
     // Custom reporter to collect the test results
     const reactReporter: jasmine.CustomReporter = {
       jasmineStarted: suiteInfo => {
+        // The console.warn below seems necessary in order for the spy on 
+        // console.warn defined in one of the tests to run corrently.
+        console.warn('starting tests');
         this.setState({
           testsStarted: true,
           totalTests: suiteInfo.totalSpecsDefined,
         });
       },
       specDone: result => {
-        if (result.failedExpectations == null || result.failedExpectations.length === 0) {
+        if (result.failedExpectations == null ||
+          result.failedExpectations.length === 0) {
           passedTests += 1;
           this.setState({
             passedTests,
@@ -95,6 +110,9 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
             testName: result.fullName,
             failedExpectations: result.failedExpectations.map(f => f.message),
           };
+          // Log to console to make it easier to view these in dev tools.
+          console.log('Test Failure');
+          console.log(JSON.stringify(failureInfo, null, 2));
           failedTests.push(failureInfo);
           this.setState({
             failedTests,
@@ -104,14 +122,20 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
       jasmineDone: () => {
         this.setState({
           testsComplete: true,
+          failedTests,
         });
       }
     };
     env.addReporter(reactReporter);
 
-    // TODO. Fix
     jasmine_util.setTestEnvs(
-      [{ name: 'test-rn', backendName: 'cpu', flags: {} }]);
+      [{
+        name: 'test-rn',
+        backendName: this.props.backend,
+        flags: {
+          'WEBGL_CPU_FORWARD': false, 'WEBGL_SIZE_UPLOAD_UNIFORM': 0,
+        }
+      }]);
 
     // import tests
     require('@tensorflow/tfjs-core/dist/tests');
@@ -120,25 +144,32 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
     env.execute();
   }
 
-  renderTestFailure(failure: FailedTestInfo) {
-    return <View style={styles.failedTest}>
+  renderTestFailure(failure: FailedTestInfo, key: number) {
+    return <View style={styles.failedTest} key={key}>
       <Text style={styles.failedTestName}>
         {failure.testName}
       </Text>
       <Fragment>
-        {failure.failedExpectations.map(expecation => <Text>
+        {failure.failedExpectations.map((expecation, i) => <Text key={i}>
           {expecation}
         </Text>)}
       </Fragment>
     </View>;
   }
   render() {
-    const { passedTests, failedTests, totalTests } = this.state;
+    const { passedTests, failedTests, totalTests, backendName, testsComplete }
+      = this.state;
 
     return (
       <Fragment>
+        <View testID='info' style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Info</Text>
+          <Text>backend={backendName}</Text>
+          <Text>testsComplete={String(testsComplete)}</Text>
+          <Text>tf.ENV.platformName={tf.ENV.platformName}</Text>
+        </View>
         <View testID='passedTests' style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Passed Tests (Count)</Text>
+          <Text style={styles.sectionTitle}>Passed Tests</Text>
           <Text style={styles.sectionTitle}>{passedTests} of {totalTests}</Text>
         </View>
 
@@ -168,7 +199,8 @@ const container: ViewStyle = {
 const containerMounted: ViewStyle = {
   ...container,
   backgroundColor: '#C8E6C9',
-}
+};
+
 const styles = StyleSheet.create({
   container,
   containerMounted,

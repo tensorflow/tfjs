@@ -25,6 +25,9 @@ import { Diagnostic } from './components/diagnostic';
 import { MobilenetDemo } from './components/mobilenet_demo';
 import { TestRunner } from './components/tfjs_unit_test_runner';
 
+
+const BACKEND_TO_USE = 'rn-webgl';
+
 export type Screen = 'main' | 'diag' | 'demo' | 'test';
 
 interface AppState {
@@ -47,7 +50,7 @@ export class App extends React.Component<{}, AppState> {
   }
 
   async componentDidMount() {
-    await tf.setBackend('rn-webgl');
+    await tf.setBackend(BACKEND_TO_USE);
     await tf.ready();
     this.setState({
       isTfReady: true,
@@ -113,8 +116,8 @@ export class App extends React.Component<{}, AppState> {
 
   renderTestScreen() {
     return <Fragment>
-      <TestRunner />
-    </Fragment>
+      <TestRunner backend={BACKEND_TO_USE} />
+    </Fragment>;
   }
 
   renderLoadingTF() {
