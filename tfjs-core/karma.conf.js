@@ -142,6 +142,13 @@ module.exports = function(config) {
         os_version: '12.2',
         real_mobile: true
       },
+      bs_android_9: {
+        base: 'BrowserStack',
+        device: 'Pixel 3',
+        os: 'Android',
+        os_version: '9.0',
+        real_mobile: true
+      },
       win_10_chrome: {
         base: 'BrowserStack',
         browser: 'chrome',
