@@ -215,6 +215,14 @@ function getFloatTextureSetRGBASnippet(glsl: GLSL): string {
 }
 
 function getShaderPrefix(glsl: GLSL): string {
+  const WEBGL1_NAN_SNIPPET = `
+    #define isnan(value) isnan_custom(value)
+    ${glsl.defineSpecialNaN}
+    bvec4 isnan_custom(vec4 val) {
+      return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));
+    }
+  `;
+
   const SHADER_PREFIX = `${glsl.version}
     precision highp float;
     precision highp int;
@@ -243,11 +251,8 @@ function getShaderPrefix(glsl: GLSL): string {
     };
 
     uniform float NAN;
-    #define isnan(value) isnan_custom(value)
-    ${glsl.defineSpecialNaN}
-    bvec4 isnan_custom(vec4 val) {
-      return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));
-    }
+
+    ${glsl.defineSpecialNaN.length > 0 ? WEBGL1_NAN_SNIPPET : ''}
 
     ${glsl.defineSpecialInf}
     ${glsl.defineRound}
