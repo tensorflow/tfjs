@@ -1,3 +1,5 @@
+package com.integration_rn59;
+
 /**
  * @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -14,8 +16,6 @@
  * limitations under the License.
  * =============================================================================
  */
-
-package com.integration_rn59;
 
 import com.facebook.react.ReactActivity;
 
