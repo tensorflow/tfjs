@@ -1,9 +1,11 @@
 steps:
 - name: 'node:10'
+  dir: 'tfjs-layers'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['prep']
 - name: 'node:10'
+  dir: 'tfjs-layers'
   entrypoint: 'yarn'
   id: 'test-browser'
   args: ['test-ci']
@@ -21,6 +23,7 @@ steps:
 #   args: ['-c', './scripts/tfjs2keras-py.sh --stable && ./scripts/tfjs2keras-py.sh --stable --tfkeras && ./scripts/tfjs2keras-py.sh --dev --tfkeras']
 #   waitFor: ['tfjs2keras-js']
 - name: 'node:10'
+  dir: 'tfjs-layers'
   entrypoint: 'yarn'
   id: 'test-snippets'
   args: ['test-snippets']

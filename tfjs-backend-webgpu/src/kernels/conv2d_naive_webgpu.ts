@@ -44,11 +44,6 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
         () => 'TODO: Dilation is unimplemented');
 
     this.userCode = `
-      bool coordIsValid(ivec4 coord, ivec4 shape) {
-        return all(greaterThanEqual(coord, ivec4(0))) &&
-            all(lessThan(coord, shape));
-      }
-
       float readInp(uint batch, uint row, uint col, uint chan) {
         ivec4 coord = ivec4(batch, row, col, chan);
         return coordIsValid(coord, xShape) ? getX(coord) : 0;

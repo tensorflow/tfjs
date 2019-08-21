@@ -15,6 +15,14 @@ import {abs, add, Scalar, serialization, sum, Tensor, tidy, zeros} from '@tensor
 import * as K from './backend/tfjs_backend';
 import {deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
 
+function assertObjectArgs(args: L1Args | L2Args | L1L2Args): void {
+  if (args != null && typeof args !== 'object') {
+    throw new Error(
+        `Argument to L1L2 regularizer's constructor is expected to be an ` +
+        `object, but received: ${args}`);
+  }
+}
+
 /**
  * Regularizer base class.
  */
@@ -49,6 +57,8 @@ export class L1L2 extends Regularizer {
   private readonly hasL2: boolean;
   constructor(args?: L1L2Args) {
     super();
+
+    assertObjectArgs(args);
 
     this.l1 = args == null || args.l1 == null ? 0.01 : args.l1;
     this.l2 = args == null || args.l2 == null ? 0.01 : args.l2;
@@ -88,10 +98,12 @@ export class L1L2 extends Regularizer {
 serialization.registerClass(L1L2);
 
 export function l1(args?: L1Args) {
+  assertObjectArgs(args);
   return new L1L2({l1: args != null ? args.l1 : null, l2: 0});
 }
 
 export function l2(args: L2Args) {
+  assertObjectArgs(args);
   return new L1L2({l2: args != null ? args.l2 : null, l1: 0});
 }
 

@@ -47,26 +47,22 @@ interface Phase {
 }
 
 const CORE_PHASE: Phase = {
-  packages: ['tfjs-core'],
-  scripts: ['./scripts/make-version']
+  packages: ['tfjs-core']
 };
 
 const LAYERS_CONVERTER_DATA_PHASE: Phase = {
   packages: ['tfjs-layers', 'tfjs-converter', 'tfjs-data'],
-  deps: ['tfjs-core'],
-  scripts: ['./scripts/make-version']
+  deps: ['tfjs-core']
 };
 
 const UNION_PHASE: Phase = {
   packages: ['tfjs'],
-  deps: ['tfjs-core', 'tfjs-layers', 'tfjs-converter', 'tfjs-data'],
-  scripts: ['./scripts/make-version']
+  deps: ['tfjs-core', 'tfjs-layers', 'tfjs-converter', 'tfjs-data']
 };
 
 const NODE_PHASE: Phase = {
   packages: ['tfjs-node'],
-  deps: ['tfjs'],
-  scripts: ['./scripts/make-version']
+  deps: ['tfjs']
 };
 
 const VIS_PHASE: Phase = {
@@ -121,27 +117,26 @@ async function main() {
   const packages = PHASES[phaseInt].packages;
   const deps = PHASES[phaseInt].deps || [];
 
+  const dir = `${TMP_DIR}/tfjs`;
+  mkdirp(TMP_DIR, err => {
+    if (err) {
+      console.log('Error creating temp dir', TMP_DIR);
+      process.exit(1);
+    }
+  });
+  $(`rm -f -r ${dir}/*`);
+  $(`rm -f -r ${dir}`);
+  $(`mkdir ${dir}`);
+  $(`git clone https://github.com/tensorflow/tfjs ${dir} --depth=1`);
+  shell.cd(dir);
+
+  const newVersions = [];
   for (let i = 0; i < packages.length; i++) {
     const packageName = packages[i];
-
-    mkdirp(TMP_DIR, (err) => {
-      if (err) {
-        console.log('Error creating temp dir', TMP_DIR);
-        process.exit(1);
-      }
-    });
-    $(`rm -f -r ${TMP_DIR}/${packageName}/*`);
-    $(`rm -f -r ${TMP_DIR}/${packageName}`);
+    shell.cd(packageName);
 
     const depsLatestVersion: string[] =
         deps.map(dep => $(`npm view @tensorflow/${dep} dist-tags.latest`));
-
-    const dir = `${TMP_DIR}/${packageName}`;
-    $(`mkdir ${dir}`);
-    $(`git clone https://github.com/tensorflow/tfjs ${dir} --depth=1`);
-
-    shell.cd(dir);
-    shell.cd(packageName);
 
     // Update the version.
     let pkg = `${fs.readFileSync(`${dir}/${packageName}/package.json`)}`;
@@ -208,16 +203,23 @@ async function main() {
       phase.scripts.forEach(script => $(script));
     }
 
-    $(`git checkout -b b${newVersion}`);
-    $(`git push -u origin b${newVersion}`);
-    $(`git add .`);
-    $(`git commit -a -m "Update ${packageName} to ${newVersion}."`);
-    $(`git push`);
-    const title =
-        phase.title ? phase.title : `Update ${packageName} to ${newVersion}.`;
-    $(`hub pull-request --browse --message "${title}" --labels INTERNAL`);
-    console.log();
+    shell.cd('..');
+    $(`./scripts/make-version.js ${packageName}`);
+    newVersions.push(newVersion);
   }
+
+  const packageNames = packages.join(', ');
+  const versionNames = newVersions.join(', ');
+  const branchName = `b${newVersions.join('-')}`;
+  $(`git checkout -b ${branchName}`);
+  $(`git push -u origin ${branchName}`);
+  $(`git add .`);
+  $(`git commit -a -m "Update ${packageNames} to ${versionNames}."`);
+  $(`git push`);
+  const title =
+      phase.title ? phase.title : `Update ${packageNames} to ${versionNames}.`;
+  $(`hub pull-request --browse --message "${title}" --labels INTERNAL`);
+  console.log();
 
   console.log(
       `Done. FYI, this script does not publish to NPM. ` +

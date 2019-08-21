@@ -1,0 +1,19 @@
+{
+    "extension": [
+      ".ts"
+    ],
+    "reporter": [
+      "html",
+      "text-summary"
+    ],
+    "include": [
+      "src/**/*"
+    ],
+    "exclude": [
+      "src/run_tests.ts",
+      "src/**/*_test.ts"
+    ],
+    "cache": false,
+    "sourceMap": true,
+    "instrument": true
+}
