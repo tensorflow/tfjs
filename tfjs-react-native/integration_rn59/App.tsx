@@ -25,8 +25,7 @@ import { Diagnostic } from './components/diagnostic';
 import { MobilenetDemo } from './components/mobilenet_demo';
 import { TestRunner } from './components/tfjs_unit_test_runner';
 
-
-const BACKEND_TO_USE = 'rn-webgl';
+const BACKEND_TO_USE = 'cpu';
 
 export type Screen = 'main' | 'diag' | 'demo' | 'test';
 

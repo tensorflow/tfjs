@@ -31,7 +31,7 @@ interface TestRunnerProps {
 interface FailedTestInfo {
   suiteName?: string;
   testName: string;
-  failedExpectations: string[];
+  failedExpectations: Array<{ message: string, stack: string }>;
   message?: string;
 }
 
@@ -69,6 +69,10 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
     let passedTests = 0;
     const failedTests: FailedTestInfo[] = [];
 
+    // A lot of the code below is adapted from 
+    // node_modules/jasmine-core/lib/jasmine-core/boot.js
+    // it provides a custom way to start jasmine in the RN app.
+
     // Helper function for adding jasmine functionlaity to global.
     // tslint:disable-next-line: no-any
     function extend(destination: any, source: any) {
@@ -86,12 +90,17 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
     const jasmineInterface = jasmineRequire.interface(jasmine, env);
     extend(global, jasmineInterface);
 
+    //@ts-ignore
+    env.configure({ random: false });
+
     // Custom reporter to collect the test results
     const reactReporter: jasmine.CustomReporter = {
       jasmineStarted: suiteInfo => {
         // The console.warn below seems necessary in order for the spy on 
         // console.warn defined in one of the tests to run corrently.
         console.warn('starting tests');
+        //@ts-ignore
+        console.reportErrorsAsExceptions = false;
         this.setState({
           testsStarted: true,
           totalTests: suiteInfo.totalSpecsDefined,
@@ -108,7 +117,13 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
         else if (result.failedExpectations.length > 0) {
           const failureInfo: FailedTestInfo = {
             testName: result.fullName,
-            failedExpectations: result.failedExpectations.map(f => f.message),
+            failedExpectations: result.failedExpectations.map(f => {
+
+              return {
+                message: f.message,
+                stack: f.stack,
+              };
+            }),
           };
           // Log to console to make it easier to view these in dev tools.
           console.log('Test Failure');
@@ -120,6 +135,8 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
         }
       },
       jasmineDone: () => {
+        //@ts-ignore
+        console.reportErrorsAsExceptions = true;
         this.setState({
           testsComplete: true,
           failedTests,
@@ -151,7 +168,7 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
       </Text>
       <Fragment>
         {failure.failedExpectations.map((expecation, i) => <Text key={i}>
-          {expecation}
+          {expecation.message}
         </Text>)}
       </Fragment>
     </View>;

@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "react-native start --reset-cache",    
+    "start": "react-native start --reset-cache",
     "lint": "tslint -p . -t verbose",
     "prep-tests": "ts-node scripts/prep_tests.ts",
-    "postinstall": "npm prep-tests"
+    "postinstall": "npm run prep-tests"
   },
   "dependencies": {
     "@react-native-community/async-storage": "^1.6.1",
@@ -24,6 +24,7 @@
   "devDependencies": {
     "@babel/core": "^7.5.5",
     "@babel/runtime": "^7.5.5",
+    "@types/jasmine": "^3.4.0",
     "@types/jest": "^24.0.17",
     "@types/react": "^16.8.24",
     "@types/react-native": "^0.60.3",
@@ -33,9 +34,9 @@
     "jest": "^24.8.0",
     "metro-react-native-babel-preset": "^0.55.0",
     "react-test-renderer": "16.8.3",
+    "ts-node": "~4.1.0",
     "tslint": "~5.11.0",
     "tslint-no-circular-imports": "^0.5.0",
-    "ts-node": "~4.1.0",
     "typescript": "^3.5.3"
   },
   "jest": {
