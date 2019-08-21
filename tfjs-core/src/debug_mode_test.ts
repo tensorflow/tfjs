@@ -59,7 +59,7 @@ describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
     const a = tf.tensor1d([1, 2, 3, 4]);
     const b = tf.tensor1d([2, -1, 0, 3]);
 
-    spyOn(console, 'error');
+    spyOn(console, 'warn');
 
     const c = async () => {
       const result = a.div(b);
@@ -70,14 +70,14 @@ describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
 
     await c();
 
-    expect(console.error).toHaveBeenCalled();
+    expect(console.warn).toHaveBeenCalled();
   });
 
   it('debug mode errors when nans in op output', async () => {
     const a = tf.tensor1d([-1, 2]);
     const b = tf.tensor1d([0.5, 1]);
 
-    spyOn(console, 'error');
+    spyOn(console, 'warn');
 
     const c = async () => {
       const result = a.pow(b);
@@ -86,7 +86,7 @@ describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
 
     await c();
 
-    expect(console.error).toHaveBeenCalled();
+    expect(console.warn).toHaveBeenCalled();
   });
 
   it('debug mode errors when nans in oneHot op (tensorlike), int32', () => {
