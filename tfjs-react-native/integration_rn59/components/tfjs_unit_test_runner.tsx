@@ -16,7 +16,6 @@
  * =============================================================================
  */
 
-// import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 // @ts-ignore
 import jasmineRequire from 'jasmine-core/lib/jasmine-core/jasmine.js';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
@@ -69,7 +68,7 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
     let passedTests = 0;
     const failedTests: FailedTestInfo[] = [];
 
-    // A lot of the code below is adapted from 
+    // A lot of the code below is adapted from
     // node_modules/jasmine-core/lib/jasmine-core/boot.js
     // it provides a custom way to start jasmine in the RN app.
 
@@ -96,7 +95,7 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
     // Custom reporter to collect the test results
     const reactReporter: jasmine.CustomReporter = {
       jasmineStarted: suiteInfo => {
-        // The console.warn below seems necessary in order for the spy on 
+        // The console.warn below seems necessary in order for the spy on
         // console.warn defined in one of the tests to run corrently.
         console.warn('starting tests');
         //@ts-ignore
