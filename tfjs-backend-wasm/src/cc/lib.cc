@@ -18,8 +18,8 @@
 #include <map>
 #include <vector>
 
-#include "kernels.h"
-#include "util.h"
+#include "src/cc/kernels.h"
+#include "src/cc/util.h"
 
 namespace tfjs {
 

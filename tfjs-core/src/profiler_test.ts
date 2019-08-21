@@ -132,24 +132,22 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
 
 describe('profiler.checkComputationForErrors', () => {
   it('Float32Array has NaN', () => {
-    expect(
-        () => checkComputationForErrors(
-            new Float32Array([1, 2, 3, NaN, 4, 255]), 'float32', ''))
-        .toThrow();
+    expect(checkComputationForErrors(
+               new Float32Array([1, 2, 3, NaN, 4, 255]), 'float32', 'test'))
+        .toBe(true);
   });
 
   it('Float32Array has Infinity', () => {
     expect(
-        () => checkComputationForErrors(
-            new Float32Array([1, 2, 3, Infinity, 4, 255]), 'float32', ''))
-        .toThrow();
+        checkComputationForErrors(
+            new Float32Array([1, 2, 3, Infinity, 4, 255]), 'float32', 'test'))
+        .toBe(true);
   });
 
   it('Float32Array no NaN', () => {
     // Int32 and Bool NaNs should not trigger an error.
-    expect(
-        () => checkComputationForErrors(
-            new Float32Array([1, 2, 3, -1, 4, 255]), 'float32', ''))
-        .not.toThrow();
+    expect(checkComputationForErrors(
+               new Float32Array([1, 2, 3, -1, 4, 255]), 'float32', 'test'))
+        .toBe(false);
   });
 });

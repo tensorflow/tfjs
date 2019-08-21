@@ -23,8 +23,11 @@ import '@tensorflow/tfjs-react-native';
 
 import { Diagnostic } from './components/diagnostic';
 import { MobilenetDemo } from './components/mobilenet_demo';
+import { TestRunner } from './components/tfjs_unit_test_runner';
 
-export type Screen = 'main' | 'diag' | 'demo';
+const BACKEND_TO_USE = 'cpu';
+
+export type Screen = 'main' | 'diag' | 'demo' | 'test';
 
 interface AppState {
   isTfReady: boolean;
@@ -42,10 +45,11 @@ export class App extends React.Component<{}, AppState> {
     this.showDiagnosticScreen = this.showDiagnosticScreen.bind(this);
     this.showDemoScreen = this.showDemoScreen.bind(this);
     this.showMainScreen = this.showMainScreen.bind(this);
+    this.showTestScreen = this.showTestScreen.bind(this);
   }
 
   async componentDidMount() {
-    await tf.setBackend('rn-webgl');
+    await tf.setBackend(BACKEND_TO_USE);
     await tf.ready();
     this.setState({
       isTfReady: true,
@@ -64,6 +68,10 @@ export class App extends React.Component<{}, AppState> {
     this.setState({ currentScreen: 'main' });
   }
 
+  showTestScreen() {
+    this.setState({ currentScreen: 'test' });
+  }
+
   renderMainScreen() {
     return <Fragment>
       <View style={styles.sectionContainer}>
@@ -78,6 +86,13 @@ export class App extends React.Component<{}, AppState> {
         <Button
           onPress={this.showDemoScreen}
           title='Show Demo Screen'
+        />
+      </View>
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>tfjs-core unit tests</Text>
+        <Button
+          onPress={this.showTestScreen}
+          title='Show Test Screen'
         />
       </View>
     </Fragment>;
@@ -95,6 +110,12 @@ export class App extends React.Component<{}, AppState> {
       <MobilenetDemo
         image={image}
         returnToMain={this.showMainScreen} />
+    </Fragment>;
+  }
+
+  renderTestScreen() {
+    return <Fragment>
+      <TestRunner backend={BACKEND_TO_USE} />
     </Fragment>;
   }
 
@@ -116,6 +137,8 @@ export class App extends React.Component<{}, AppState> {
           return this.renderDiagnosticScreen();
         case 'demo':
           return this.renderDemoScreen();
+        case 'test':
+          return this.renderTestScreen();
         default:
           return this.renderMainScreen();
       }

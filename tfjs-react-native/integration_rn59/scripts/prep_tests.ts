@@ -15,11 +15,15 @@
  * =============================================================================
  */
 
-apply from: '../node_modules/react-native-unimodules/gradle.groovy'
-includeUnimodulesProjects()
-include ':@react-native-community_async-storage'
-project(':@react-native-community_async-storage').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-community/async-storage/android')
+// This script edits node_modules/@tensorflow/tfjs-core/dist/tests.jss to remove
+// tests that are incompatible with react native.
 
-rootProject.name = 'integration_rn59'
+import * as fs from 'fs';
+import * as path from 'path';
 
-include ':app'
+const testsFilePath = path.resolve(
+    __dirname, '../node_modules/@tensorflow/tfjs-core/dist/tests.js');
+const fileContents = fs.readFileSync(testsFilePath, 'utf-8');
+
+const newContents = fileContents.replace('require("./worker_node_test");', '');
+fs.writeFileSync(testsFilePath, newContents);
