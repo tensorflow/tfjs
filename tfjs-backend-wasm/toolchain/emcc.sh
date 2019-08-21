@@ -17,11 +17,5 @@ export EM_EXCLUSIVE_CACHE_ACCESS=1
 export EMCC_SKIP_SANITY_CHECK=1
 export EMCC_WASM_BACKEND=0
 
-# TODO(smilkov): Figure out the gnu sed vs mac os sed
-export PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
-
 # Run emscripten to compile and link
 python2 external/emsdk/emsdk/fastcomp/emscripten/emcc.py "$@"
-
-# Remove the first line of .d file
-# find . -name "*.d" -exec gsed -i '2d' {} \;
