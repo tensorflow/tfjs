@@ -14,14 +14,25 @@
 // limitations under the License.
 // =============================================================================
 
-// Run this script from the base directory (not the script directory):
-// ./scripts/tag-version.js
+// Run this script from the base directory (not the package directory):
+// ./scripts/tag-version.js DIR_NAME
+// Where DIR_NAME is the directory name for the package you want to make a
+// version for.
+const fs = require('fs');
 
-var fs = require('fs');
+const dirName = process.argv[2];
+const packageJsonFile = dirName + '/package.json';
+if (!fs.existsSync(packageJsonFile)) {
+  console.log(
+      packageJsonFile, 'does not exist. Please call this script as follows:');
+  console.log('./scripts/tag-version.js DIR_NAME');
+  process.exit(1);
+}
+
 var exec = require('child_process').exec;
 
-var version = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
-var tag = `tfjs-core-v${version}`;
+var version = JSON.parse(fs.readFileSync(packageJsonFile, 'utf8')).version;
+var tag = `${dirName}-v${version}`;
 
 exec(`git tag ${tag}`, (err, stdout, stderr) => {
   console.log('\x1b[36m%s\x1b[0m', 'git tag command stdout:');

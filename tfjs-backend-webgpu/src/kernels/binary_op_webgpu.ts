@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util} from '@tensorflow/tfjs-core';
+import {backend_util, util} from '@tensorflow/tfjs-core';
+import {getCoordsDataType} from '../shader_preprocessor';
 
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -38,12 +39,18 @@ export class BinaryOpProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
+  workPerThread = 4;
+  workGroupSize: [number, number, number] = [1, 1, 1];
 
   constructor(op: string, aShape: number[], bShape: number[]) {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
+    const size = util.sizeFromShape(this.outputShape);
 
-    this.dispatchLayout = {x: this.outputShape.map((d, i) => i)};
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
+    const type = getCoordsDataType(this.outputShape.length);
 
     this.userCode = `
       float binaryOperation(float a, float b) {
@@ -51,10 +58,19 @@ export class BinaryOpProgram implements WebGPUProgram {
       }
 
       void main() {
-        uint index = gl_GlobalInvocationID.x;
-        float a = getAAtOutCoords();
-        float b = getBAtOutCoords();
-        setOutput(index, binaryOperation(a, b));
+        int index = int(gl_GlobalInvocationID.x);
+
+        for(int i = 0; i < ${this.workPerThread}; i++) {
+          int flatIndex = index * ${this.workPerThread} + i;
+
+          if(flatIndex < ${size}) {
+            ${type} coords = getCoordsFromFlatIndex(flatIndex);
+
+            float a = getAAtOutCoords(coords);
+            float b = getBAtOutCoords(coords);
+            setOutput(flatIndex, binaryOperation(a, b));
+          }
+        }
       }
     `;
   }
