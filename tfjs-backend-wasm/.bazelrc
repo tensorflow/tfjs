@@ -1,14 +1,21 @@
+# Use the wasm config by default.
+build --config=wasm
+
 # Use our custom-configured c++ toolchain.
-build:asmjs --crosstool_top=//toolchain:emscripten
+build:wasm --crosstool_top=//toolchain:emscripten
 
 # Use --cpu as a differentiator.
-build:asmjs --cpu=asmjs
+build:wasm --cpu=wasm
 
-# Use the default Bazel C++ toolchain to build the tools used during the
-# build.
-build:asmjs --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+# Use the default C++ toolchain to build the tools used during the build.
+build:wasm --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
 
-build:asmjs --cxxopt="-std=c++11"
-build:asmjs --cxxopt="-fno-rtti"
-build:asmjs --cxxopt="-fno-exceptions"
-build:asmjs --spawn_strategy=local
+# Use c++11 to be compatible with internal Google code and disable exceptions
+# and run-time type information.
+build:wasm --cxxopt="-std=c++11"
+build:wasm --cxxopt="-fno-rtti"
+build:wasm --cxxopt="-fno-exceptions"
+
+# Disable sandbox environment because emsdk caches files by writing to
+# home directory.
+build:wasm --spawn_strategy=local

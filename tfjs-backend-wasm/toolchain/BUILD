@@ -2,12 +2,12 @@ package(default_visibility = ["//visibility:public"])
 
 load(":cc_toolchain_config.bzl", "cc_toolchain_config")
 
-cc_toolchain_config(name = "asmjs_toolchain_config")
+cc_toolchain_config(name = "wasm_toolchain_config")
 
 cc_toolchain_suite(
     name = "emscripten",
     toolchains = {
-        "asmjs": ":asmjs_toolchain",
+        "wasm": ":wasm_toolchain",
     },
 )
 
@@ -22,9 +22,9 @@ filegroup(
 )
 
 cc_toolchain(
-   name = "asmjs_toolchain",
-   toolchain_identifier = "asmjs-toolchain",
-   toolchain_config = ":asmjs_toolchain_config",
+   name = "wasm_toolchain",
+   toolchain_identifier = "wasm-toolchain",
+   toolchain_config = ":wasm_toolchain_config",
    all_files = ":all",
    compiler_files = ":all",
    dwp_files = ":empty",
