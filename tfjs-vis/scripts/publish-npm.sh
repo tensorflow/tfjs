@@ -14,52 +14,23 @@
 # limitations under the License.
 # =============================================================================
 
-# Before you run this script, run `yarn release` and commit the PRs.
+# Before you run this script, do this:
+# 1) Update the version in package.json
+# 2) Run ./scripts/build-npm from the base dir of the project.
 
 # Then:
-# 1) Checkout the master branch of this repo.
-# 2) Run this script as `./scripts/publish-npm.sh DIR_NAME`
-#      from the project base dir where DIR_NAME is the directory name of the
-#      package you want to publish, e.g. "tfjs-core".
+# 3) Checkout the master branch of this repo.
+# 4) Run this script as `./scripts/publish-npm.sh` from the project base dir.
 
 set -e
 
 BRANCH=`git rev-parse --abbrev-ref HEAD`
-ORIGIN=`git config --get remote.origin.url`
-CHANGES=`git status --porcelain`
-
-PACKAGE_JSON_FILE="$1/package.json"
-if ! test -f "$PACKAGE_JSON_FILE"; then
-  echo "$PACKAGE_JSON_FILE does not exist."
-  echo "Please pass the package name as the first argument."
-  exit 1
-fi
 
 if [ "$BRANCH" != "master" ]; then
   echo "Error: Switch to the master branch before publishing."
   exit
 fi
 
-if ! [[ "$ORIGIN" =~ tensorflow/tfjs ]]; then
-  echo "Error: Switch to the main repo (tensorflow/tfjs) before publishing."
-  exit
-fi
-
-if [ ! -z "$CHANGES" ];
-then
-    echo "Make sure the master branch is clean. Found changes:"
-    echo $CHANGES
-    exit 1
-fi
-
-./scripts/make-version.js $1
-
-cd $1
 yarn build-npm
-cd ..
-
-./scripts/tag-version.js $1
-
-cd $1
 npm publish
 echo 'Yay! Published a new package to npm.'
