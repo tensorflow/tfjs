@@ -3,7 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/src/**",
+                "${workspaceFolder}",
                 "~/emsdk/fastcomp/emscripten/system/include/**"
             ],
             "defines": [],
