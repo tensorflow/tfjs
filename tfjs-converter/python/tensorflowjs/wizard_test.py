@@ -64,6 +64,14 @@ class CliTest(unittest.TestCase):
     print(h5_path)
     model.save_weights(h5_path)
 
+  def _create_keras_saved_model(self):
+    model = keras.Sequential()
+    model.add(keras.layers.Reshape([2, 3], input_shape=[6]))
+    model.add(keras.layers.LSTM(10))
+    model.add(keras.layers.Dense(1, activation='sigmoid'))
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    keras.experimental.export_saved_model(model, save_dir)
+
   def _create_saved_model(self):
     """Test a basic model with functions to make sure functions are inlined."""
     input_data = tf.constant(1., shape=[1])
@@ -124,7 +132,7 @@ class CliTest(unittest.TestCase):
   def testValidateInputPathForKerasSavedModel(self):
     self.assertNotEqual(True, wizard.validate_input_path(
         self._tmp_dir, 'keras_saved_model'))
-    self._create_saved_model()
+    self._create_keras_saved_model()
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     self.assertEqual(True, wizard.validate_input_path(
         save_dir, 'keras_saved_model'))

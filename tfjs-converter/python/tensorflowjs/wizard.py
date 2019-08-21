@@ -17,7 +17,6 @@
 from __future__ import print_function, unicode_literals
 
 import json
-import logging
 import os
 import re
 import sys
@@ -72,6 +71,8 @@ def get_tfjs_model_type(model_file):
       return common.TFJS_LAYERS_MODEL_FORMAT
 
 def detect_saved_model(input_path):
+  if os.path.exists(os.path.join(input_path, 'assets', 'saved_model.json')):
+    return common.KERAS_SAVED_MODEL
   saved_model = loader_impl.parse_saved_model(input_path)
   graph_def = saved_model.meta_graphs[0].object_graph_def
   if graph_def.nodes:
@@ -233,7 +234,7 @@ def is_saved_model(input_format):
   Returns:
     bool: whether this is for a saved model conversion.
   """
-  return input_format in (common.TF_SAVED_MODEL)
+  return input_format == common.TF_SAVED_MODEL
 
 def available_output_formats(answers):
   """Generate the output formats for given input format.
@@ -284,7 +285,8 @@ def available_signature_names(answers):
   Args:
     ansowers: user selected parameter dict.
   """
-  if is_saved_model(answers[common.INPUT_FORMAT]) and common.SAVED_MODEL_TAGS in answers:
+  if (is_saved_model(answers[common.INPUT_FORMAT]) and
+      common.SAVED_MODEL_TAGS in answers):
     path = answers[common.INPUT_PATH]
     tags = answers[common.SAVED_MODEL_TAGS]
     saved_model = loader_impl.parse_saved_model(path)
@@ -342,7 +344,8 @@ def input_format_message(detected_input_format):
 
 def update_output_path(output_path, params):
   output_path = os.path.expanduser(output_path.strip())
-  if common.OUTPUT_FORMAT in params and params[common.OUTPUT_FORMAT] == common.KERAS_MODEL:
+  if (common.OUTPUT_FORMAT in params and
+      params[common.OUTPUT_FORMAT] == common.KERAS_MODEL):
     if os.path.isdir(output_path):
       output_path = os.path.join(output_path, 'model.H5')
   return output_path
