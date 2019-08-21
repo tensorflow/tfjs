@@ -26,6 +26,7 @@ while true; do
     IS_TFJS_NODE_GPU=1
     shift
   elif [[ "$1" == "--log" ]]; then
+    HASH="$(git rev-parse HEAD)"
     LOG_FLAG="--log"
     shift
   elif [[ -z "$1" ]]; then
@@ -38,8 +39,6 @@ done
 
 cd ${SCRIPT_DIR}
 
-HASH="$(git rev-parse HEAD)"
-
 yarn
 yarn upgrade \
     @tensorflow/tfjs-core \
@@ -51,7 +50,6 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
     rm -rf tfjs-node/
   fi
   cp -r ../../tfjs-node .
-
 
   cd tfjs-node
   rm -rf dist/
