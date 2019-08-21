@@ -62,7 +62,6 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
   yarn
   rm -f tensorflow-tfjs-*.tgz
 
-  echo "_________________________RUNNING BUILD NPM GPU__________________"
   if [[ "${IS_TFJS_NODE_GPU}" == "1" ]]; then
     yarn build-npm-gpu
     TAR_BALL="$(find ./ -name "tensorflow-tfjs-node-gpu-*.tgz")"
