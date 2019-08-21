@@ -7,7 +7,12 @@
     "**/yarn.lock": true,
     "**/.rpt2_cache/": true,
     "**/.yalc/**/*": true,
-    "**/.cache/**/*": true
+    "**/.cache/**/*": true,
+    "**/bazel-bin/**/*": true,
+    "**/bazel-out/**/*": true,
+    "**/bazel-genfiles/**/*": true,
+    "**/bazel-testlogs/**/*": true,
+    "**/bazel-tfjs*/**/*": true,
   },
   "files.trimTrailingWhitespace": true,
   "editor.tabSize": 2,
