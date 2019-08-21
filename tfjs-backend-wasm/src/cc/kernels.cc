@@ -12,7 +12,7 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include "kernels.h"
+#include "src/cc/kernels.h"
 
 #include <algorithm>
 

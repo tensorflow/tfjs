@@ -20,8 +20,9 @@ filegroup(
     name = "all",
     srcs = [
         "emcc.sh",
-        "@emscripten_clang//:all",
-        "@emscripten_toolchain//:all",
+        "emar.sh",
+        "false.sh",
+        "@emsdk//:all",
         ":emscripten_cache_content",
     ],
 )

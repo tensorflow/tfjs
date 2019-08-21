@@ -1,4 +1,3 @@
-# toolchain/cc_toolchain_config.bzl:
 load("@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
      "feature",
      "flag_group",
@@ -18,27 +17,27 @@ def _impl(ctx):
         ),
         tool_path(
             name = "ar",
-            path = "/bin/false",
+            path = "emar.sh",
         ),
         tool_path(
             name = "cpp",
-            path = "/bin/false",
+            path = "false.sh",
         ),
         tool_path(
             name = "gcov",
-            path = "/bin/false",
+            path = "false.sh",
         ),
         tool_path(
             name = "nm",
-            path = "/bin/false",
+            path = "NOT_USED",
         ),
         tool_path(
             name = "objdump",
-            path = "/bin/false",
+            path = "false.sh",
         ),
         tool_path(
             name = "strip",
-            path = "/bin/false",
+            path = "NOT_USED",
         ),
     ]
     toolchain_include_directories_feature = feature(
@@ -47,24 +46,26 @@ def _impl(ctx):
         flag_sets = [
             flag_set(
                 actions = [
-                    ACTION_NAMES.assemble,
-                    ACTION_NAMES.preprocess_assemble,
-                    ACTION_NAMES.linkstamp_compile,
-                    ACTION_NAMES.c_compile,
-                    ACTION_NAMES.cpp_compile,
-                    ACTION_NAMES.cpp_header_parsing,
-                    ACTION_NAMES.cpp_module_compile,
-                    ACTION_NAMES.cpp_module_codegen,
-                    ACTION_NAMES.lto_backend,
-                    ACTION_NAMES.clif_match,
+                  ACTION_NAMES.assemble,
+                  ACTION_NAMES.preprocess_assemble,
+                  ACTION_NAMES.linkstamp_compile,
+                  ACTION_NAMES.c_compile,
+                  ACTION_NAMES.cpp_compile,
+                  ACTION_NAMES.cpp_header_parsing,
+                  ACTION_NAMES.cpp_module_compile,
+                  ACTION_NAMES.cpp_module_codegen,
+                  ACTION_NAMES.lto_backend,
+                  ACTION_NAMES.clif_match,
                 ],
                 flag_groups = [
                     flag_group(
                         flags = [
                             "-isystem",
-                            "external/emscripten_toolchain/system/include/libcxx",
+                            "external/emsdk/emsdk/fastcomp/emscripten/system/include/libcxx",
                             "-isystem",
-                            "external/emscripten_toolchain/system/include/libc",
+                            "external/emsdk/emsdk/fastcomp/emscripten/system/include/libc",
+                            "-isystem",
+                            "external/emsdk/emsdk/fastcomp/emscripten/system/include/emscripten",
                         ],
                     ),
                 ],
@@ -91,3 +92,18 @@ cc_toolchain_config = rule(
     attrs = {},
     provides = [CcToolchainConfigInfo],
 )
+
+def _emsdk_impl(ctx):
+  path = '%s/emsdk' % ctx.os.environ['HOME']
+  ctx.symlink(path, "emsdk")
+  ctx.file("BUILD", """
+filegroup(
+    name = "all",
+    srcs = glob(["emsdk/**"]),
+    visibility = ["//visibility:public"],
+)
+""")
+
+emsdk_configure = repository_rule(
+    implementation=_emsdk_impl,
+    local = True)
