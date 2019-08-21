@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2019 Google LLC. All Rights Reserved.
+# Copyright 2017 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,18 +14,10 @@
 # limitations under the License.
 # =============================================================================
 
-# Exit immediately if a command exits with a non-zero status.
 set -e
 
 rimraf dist/
 yarn
 yarn build
-rollup -c --visualize
-
-# Use minified files for miniprogram
-mkdir dist/miniprogram
-cp dist/tf-layers.min.js dist/miniprogram/index.js
-cp dist/tf-layers.min.js.map dist/miniprogram/index.js.map
-
-echo "Stored standalone library at dist/tf-layers(.min).js"
+yarn lint
 npm pack

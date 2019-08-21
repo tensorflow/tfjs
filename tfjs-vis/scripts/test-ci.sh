@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2019 Google LLC. All Rights Reserved.
+# Copyright 2018 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
 # limitations under the License.
 # =============================================================================
 
-# Exit immediately if a command exits with a non-zero status.
 set -e
 
-rimraf dist/
 yarn
 yarn build
-rollup -c --visualize
+yarn lint
 
-# Use minified files for miniprogram
-mkdir dist/miniprogram
-cp dist/tf-layers.min.js dist/miniprogram/index.js
-cp dist/tf-layers.min.js.map dist/miniprogram/index.js.map
+# Run the first karma separately so it can download the BrowserStack binary
+# without conflicting with others.
+yarn run-browserstack --browsers=bs_chrome_mac
 
-echo "Stored standalone library at dist/tf-layers(.min).js"
-npm pack
+# Run the rest of the karma tests in parallel. These runs will reuse the
+# already downloaded binary.
+npm-run-all -p -c --aggregate-output \
+  "run-browserstack --browsers=bs_firefox_mac" \
+  "run-browserstack --browsers=bs_safari_mac"
