@@ -1,9 +1,10 @@
-load("@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
-     "feature",
-     "flag_group",
-     "flag_set",
-     "tool_path",
-     "with_feature_set",
+load(
+    "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
+    "feature",
+    "flag_group",
+    "flag_set",
+    "tool_path",
+    "with_feature_set",
 )
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 
@@ -93,44 +94,52 @@ def _impl(ctx):
     )
 
     crosstool_default_flag_sets = [
-      flag_set(
-          actions = preprocessor_compile_actions,
-          flag_groups = [flag_group(flags = ["-DNDEBUG"])],
-          with_features = [with_feature_set(features = ["opt"])],
-      ),
-      flag_set(
-          actions = all_compile_actions,
-          flag_groups = [flag_group(flags = ["-fomit-frame-pointer"])],
-          with_features = [with_feature_set(features = ["opt"])],
-      ),
-      flag_set(
-          actions = all_compile_actions + all_link_actions,
-          flag_groups = [flag_group(flags = ["-O3"])],
-          with_features = [with_feature_set(features = ["opt"])],
-      ),
+        # Opt.
+        flag_set(
+            actions = preprocessor_compile_actions,
+            flag_groups = [flag_group(flags = ["-DNDEBUG"])],
+            with_features = [with_feature_set(features = ["opt"])],
+        ),
+        flag_set(
+            actions = all_compile_actions + all_link_actions,
+            flag_groups = [flag_group(flags = ["-g0", "-O3"])],
+            with_features = [with_feature_set(features = ["opt"])],
+        ),
+        # Fastbuild.
+        flag_set(
+            actions = all_compile_actions + all_link_actions,
+            flag_groups = [flag_group(flags = ["-O2"])],
+            with_features = [with_feature_set(features = ["fastbuild"])],
+        ),
+        # Dbg.
+        flag_set(
+            actions = all_compile_actions + all_link_actions,
+            flag_groups = [flag_group(flags = ["-g2", "-O0"])],
+            with_features = [with_feature_set(features = ["dbg"])],
+        ),
     ]
 
     features = [
-      toolchain_include_directories_feature,
-      # These 3 features will be automatically enabled by blaze in the
-      # corresponding build mode.
-      feature(
-          name = "opt",
-          provides = ["variant:crosstool_build_mode"],
-      ),
-      feature(
-          name = "dbg",
-          provides = ["variant:crosstool_build_mode"],
-      ),
-      feature(
-          name = "fastbuild",
-          provides = ["variant:crosstool_build_mode"],
-      ),
-      feature(
-        name = "crosstool_default_flags",
-        enabled = True,
-        flag_sets = crosstool_default_flag_sets,
-      )
+        toolchain_include_directories_feature,
+        # These 3 features will be automatically enabled by blaze in the
+        # corresponding build mode.
+        feature(
+            name = "opt",
+            provides = ["variant:crosstool_build_mode"],
+        ),
+        feature(
+            name = "dbg",
+            provides = ["variant:crosstool_build_mode"],
+        ),
+        feature(
+            name = "fastbuild",
+            provides = ["variant:crosstool_build_mode"],
+        ),
+        feature(
+            name = "crosstool_default_flags",
+            enabled = True,
+            flag_sets = crosstool_default_flag_sets,
+        ),
     ]
 
     return cc_common.create_cc_toolchain_config_info(
@@ -154,9 +163,9 @@ cc_toolchain_config = rule(
 )
 
 def _emsdk_impl(ctx):
-  path = '%s/emsdk' % ctx.os.environ['HOME']
-  ctx.symlink(path, "emsdk")
-  ctx.file("BUILD", """
+    path = "%s/emsdk" % ctx.os.environ["HOME"]
+    ctx.symlink(path, "emsdk")
+    ctx.file("BUILD", """
 filegroup(
     name = "all",
     srcs = glob(["emsdk/**"]),
@@ -165,5 +174,6 @@ filegroup(
 """)
 
 emsdk_configure = repository_rule(
-    implementation=_emsdk_impl,
-    local = True)
+    implementation = _emsdk_impl,
+    local = True,
+)

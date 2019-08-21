@@ -14,22 +14,22 @@ cc_toolchain_suite(
 filegroup(
     name = "all",
     srcs = [
-        "emcc.sh",
         "emar.sh",
+        "emcc.sh",
         "false.sh",
         "@emsdk//:all",
     ],
 )
 
 cc_toolchain(
-   name = "wasm_toolchain",
-   toolchain_identifier = "wasm-toolchain",
-   toolchain_config = ":wasm_toolchain_config",
-   all_files = ":all",
-   compiler_files = ":all",
-   dwp_files = ":empty",
-   linker_files = ":all",
-   objcopy_files = ":empty",
-   strip_files = ":empty",
-   supports_param_files = 0,
+    name = "wasm_toolchain",
+    all_files = ":all",
+    compiler_files = ":all",
+    dwp_files = ":empty",
+    linker_files = ":all",
+    objcopy_files = ":empty",
+    strip_files = ":empty",
+    supports_param_files = 0,
+    toolchain_config = ":wasm_toolchain_config",
+    toolchain_identifier = "wasm-toolchain",
 )
