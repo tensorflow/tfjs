@@ -29,7 +29,7 @@ export class Profiler {
   }
 
   profileKernel<T extends Tensor|Tensor[]>(
-      opName: string, inputs: NamedTensorMap, f: () => T | Tensor[]): T {
+      kernelName: string, inputs: NamedTensorMap, f: () => T | Tensor[]): T {
     let result: T|Tensor[];
     const holdResultWrapperFn = () => {
       result = f();
@@ -42,7 +42,7 @@ export class Profiler {
       // Dangling promise here because we don't want to propagate up
       // asynchronicity.
       r.data().then(vals => {
-        checkComputationForErrors(vals, r.dtype, opName);
+        checkComputationForErrors(vals, r.dtype, kernelName);
 
         timer.then(timing => {
           let extraInfo = '';
@@ -51,7 +51,7 @@ export class Profiler {
           }
 
           this.logger.logKernelProfile(
-              opName, r, vals, timing.kernelMs, inputs, extraInfo);
+              kernelName, r, vals, timing.kernelMs, inputs, extraInfo);
         });
       });
     });
@@ -61,7 +61,7 @@ export class Profiler {
 }
 
 export function checkComputationForErrors<D extends DataType>(
-    vals: DataTypeMap[D], dtype: D, opName: string): boolean {
+    vals: DataTypeMap[D], dtype: D, kernelName: string): boolean {
   if (dtype !== 'float32') {
     // Only floating point computations will generate NaN values
     return false;
@@ -70,7 +70,7 @@ export function checkComputationForErrors<D extends DataType>(
     const num = vals[i] as number;
     if (isNaN(num) || !isFinite(num)) {
       // Throwing custom exception so behavior is testable.
-      console.warn(`Found ${num} in the result of '${opName}'`);
+      console.warn(`Found ${num} in the result of '${kernelName}'`);
       return true;
     }
   }
