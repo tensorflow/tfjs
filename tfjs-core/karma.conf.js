@@ -144,7 +144,7 @@ module.exports = function(config) {
       },
       bs_android_9: {
         base: 'BrowserStack',
-        device: 'pixel 3',
+        device: 'Pixel3',
         os: 'Android',
         os_version: '9.0',
         real_mobile: true
