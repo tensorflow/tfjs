@@ -73,14 +73,13 @@ const sentences = [
 
 let zeros;
 const benchmarks = {
-  'mobilenet': {
+  'facessd': {
+    // the one I converted
     load: async () => {
       zeros = tf.browser.fromPixels(document.getElementById('img'), 1)
                   .expandDims(0);
       zeros = zeros.div(255);
       const url = `https://facemesh.s3.amazonaws.com/facessd/model.json`;
-      // const url =
-      //     'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2'
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
@@ -89,6 +88,25 @@ const benchmarks = {
           return model.executeAsync(zeros);
         }
         return model.predict(zeros);
+      }
+    }
+  },
+  'facessd_g3': {
+    // this is the one Athena is using
+    load: async () => {
+      zeros =
+          tf.browser.fromPixels(document.getElementById('img')).expandDims(0);
+      zeros = zeros.div(255);
+      const url =
+          `https://facemesh.s3.amazonaws.com/facessd_g3_ts_module/model.json`;
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      return (model) => {
+        return model.executeAsync({image_tensor: zeros}, [
+          'num_detections', 'detection_scores', 'detection_boxes',
+          'detection_keypoints'
+        ]);
       }
     }
   },
