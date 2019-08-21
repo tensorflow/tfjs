@@ -42,39 +42,6 @@ def _impl(ctx):
             path = "NOT_USED",
         ),
     ]
-    toolchain_include_directories_feature = feature(
-        name = "toolchain_include_directories",
-        enabled = True,
-        flag_sets = [
-            flag_set(
-                actions = [
-                  ACTION_NAMES.assemble,
-                  ACTION_NAMES.preprocess_assemble,
-                  ACTION_NAMES.linkstamp_compile,
-                  ACTION_NAMES.c_compile,
-                  ACTION_NAMES.cpp_compile,
-                  ACTION_NAMES.cpp_header_parsing,
-                  ACTION_NAMES.cpp_module_compile,
-                  ACTION_NAMES.cpp_module_codegen,
-                  ACTION_NAMES.lto_backend,
-                  ACTION_NAMES.clif_match,
-                ],
-                flag_groups = [
-                    flag_group(
-                        flags = [
-                            "-isystem",
-                            "external/emsdk/emsdk/fastcomp/emscripten/system/include/libcxx",
-                            "-isystem",
-                            "external/emsdk/emsdk/fastcomp/emscripten/system/include/libc",
-                            "-isystem",
-                            "external/emsdk/emsdk/fastcomp/emscripten/system/include/emscripten",
-                        ],
-                    ),
-                ],
-            ),
-        ],
-    )
-
     preprocessor_compile_actions = [
         ACTION_NAMES.c_compile,
         ACTION_NAMES.cpp_compile,
@@ -103,6 +70,27 @@ def _impl(ctx):
         ACTION_NAMES.clif_match,
         ACTION_NAMES.lto_backend,
     ]
+    toolchain_include_directories_feature = feature(
+        name = "toolchain_include_directories",
+        enabled = True,
+        flag_sets = [
+            flag_set(
+                actions = all_compile_actions,
+                flag_groups = [
+                    flag_group(
+                        flags = [
+                            "-isystem",
+                            "external/emsdk/emsdk/fastcomp/emscripten/system/include/libcxx",
+                            "-isystem",
+                            "external/emsdk/emsdk/fastcomp/emscripten/system/include/libc",
+                            "-isystem",
+                            "external/emsdk/emsdk/fastcomp/emscripten/system/include/emscripten",
+                        ],
+                    ),
+                ],
+            ),
+        ],
+    )
 
     crosstool_default_flag_sets = [
       flag_set(
