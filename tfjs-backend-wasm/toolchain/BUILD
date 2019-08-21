@@ -2,11 +2,6 @@ package(default_visibility = ["//visibility:public"])
 
 load(":cc_toolchain_config.bzl", "cc_toolchain_config")
 
-filegroup(
-  name = "emscripten_cache_content",
-  srcs = glob(["emscripten_cache/**/*"]),
-)
-
 cc_toolchain_config(name = "asmjs_toolchain_config")
 
 cc_toolchain_suite(
@@ -23,7 +18,6 @@ filegroup(
         "emar.sh",
         "false.sh",
         "@emsdk//:all",
-        ":emscripten_cache_content",
     ],
 )
 
