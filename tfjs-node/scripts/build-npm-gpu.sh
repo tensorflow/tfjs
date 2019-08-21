@@ -33,4 +33,6 @@ tsc --sourceMap false
 npm pack
 
 # Revert GPU changes:
-git checkout .
+sed -i -e 's/move/symlink/' binding.gyp
+sed -i -e 's/tfjs-node-gpu"/tfjs-node"/' package.json
+sed -i -e 's/install.js gpu download"/install.js"/' package.json
