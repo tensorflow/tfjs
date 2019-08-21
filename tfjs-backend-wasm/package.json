@@ -9,6 +9,7 @@
   "jsdelivr": "dist/tf-wasm.min.js",
   "scripts": {
     "build": "rimraf dist/ && ./scripts/build-wasm.sh && tsc && cp wasm-out/*.wasm dist/",
+    "build-npm": "./scripts/build-npm.sh",
     "lint": "tslint -p . -t verbose",
     "test": "./scripts/build-wasm.sh && karma start"
   },

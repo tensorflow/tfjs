@@ -13,7 +13,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@tensorflow/tfjs-core": "1.2.8",
-    "@tensorflow/tfjs-layers": "1.2.1",
+    "@tensorflow/tfjs-layers": "1.2.8",
     "@types/jasmine": "~2.5.53",
     "@types/seedrandom": "^2.4.27",
     "@types/utf8": "~2.1.6",
@@ -41,7 +41,6 @@
   "scripts": {
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
-    "publish-npm": "./scripts/publish-npm.sh",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build-npm && yalc push",
     "test": "karma start",

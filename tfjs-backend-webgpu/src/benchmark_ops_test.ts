@@ -148,4 +148,14 @@ describeWebGPU('Ops benchmarks', () => {
             dateObj.getDate()}_${dateObj.getFullYear()}.json`,
         JSON.stringify(window.records));
   });
+
+  it('depthwiseconv2d', async () => {
+    const x = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 1]);
+    const w = tf.tensor4d(
+        [0.303873, 0.229223, 0.144333, 0.803373],
+        [2, 2, 1, 1],
+    );
+
+    await time(() => tf.depthwiseConv2d(x, w, 1, 'valid'));
+  });
 });

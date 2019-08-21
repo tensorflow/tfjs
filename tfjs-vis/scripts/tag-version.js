@@ -18,11 +18,13 @@
 // Run this script from the base directory (not the script directory):
 // ./scripts/tag-version
 
-var fs = require('fs');
-var exec = require('child_process').exec;
+// tslint:disable-next-line:no-require-imports
+const fs = require('fs');
+// tslint:disable-next-line:no-require-imports
+const exec = require('child_process').exec;
 
-var version = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
-var tag = `v${version}`;
+const version = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
+const tag = `v${version}`;
 
 exec(`git tag ${tag}`, err => {
   if (err) {
