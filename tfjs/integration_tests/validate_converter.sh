@@ -26,6 +26,7 @@ while true; do
     IS_TFJS_NODE_GPU=1
     shift
   elif [[ "$1" == "--log" ]]; then
+    HASH="$(git rev-parse HEAD)"
     LOG_FLAG="--log"
     shift
   elif [[ -z "$1" ]]; then
@@ -45,12 +46,12 @@ yarn upgrade \
     @tensorflow/tfjs
 
 if [[ "${IS_TFJS_NODE}" == "1" ]]; then
-  if [[ ! -d "tfjs-node" ]]; then
-    echo 'Use latest version of tfjs-node'
-    git clone https://github.com/tensorflow/tfjs-node.git --depth 5
+  if [[ -d "tfjs-node" ]]; then
+    rm -rf tfjs-node/
   fi
+  cp -r ../../tfjs-node .
+
   cd tfjs-node
-  HASH_NODE="$(git rev-parse HEAD)"
   rm -rf dist/
   if [[ "${IS_TFJS_NODE_GPU}" == "1" ]]; then
     yarn node scripts/install.js gpu download
@@ -68,25 +69,24 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
   yarn && yarn build-addon-from-source
   cd ../../..
 else
-  # Download the tfjs repositories, build them, and link them.
-  if [[ ! -d "tfjs-core" ]]; then
-    echo 'Use latest version of tfjs-core'
-    git clone https://github.com/tensorflow/tfjs-core.git --depth 5
+  if [[ -d "tfjs-core" ]]; then
+    rm -rf tfjs-core/
   fi
+  cp -r ../../tfjs-core .
+
   cd tfjs-core
-  HASH_CORE="$(git rev-parse HEAD)"
   rm -rf dist/ node_modules/ && yarn
   yarn build && yarn yalc publish
 
   cd ..
   yarn yalc link '@tensorflow/tfjs-core'
 
-  if [[ ! -d "tfjs-converter" ]]; then
-    echo 'Use latest version of tfjs-converter'
-    git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
+  if [[ -d "tfjs-converter" ]]; then
+    rm -rf tfjs-converter/
   fi
+  cp -r ../../tfjs-converter .
+
   cd tfjs-converter
-  HASH_CONVERTER="$(git rev-parse HEAD)"
   rm -rf dist/ node_modules/ && yarn
   yarn build && yarn yalc publish
 
@@ -147,10 +147,10 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
       --filename "models/validation.ts" \
       ${GPU_FLAG} \
       ${LOG_FLAG} \
-      --hashes "{\"tfjs-node\": \"${HASH_NODE}\"}"
+      --hashes "{\"tfjs-node\": \"${HASH}\"}"
 else
   echo "Starting validation karma tests in the browser..."
   yarn karma start karma.conf.validations.js \
       "${LOG_FLAG}" \
-      --hashes="{\"tfjs-core\":\"${HASH_CORE}\",\"tfjs-converter\":\"${HASH_CONVERTER}\"}"
+      --hashes="{\"tfjs-core\":\"${HASH}\",\"tfjs-converter\":\"${HASH}\"}"
 fi

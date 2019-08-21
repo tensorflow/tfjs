@@ -31,10 +31,11 @@ then
   echo 'Run first karma.'
   yarn run-browserstack --browsers=bs_safari_mac --grep=matmul
 
-  if [[ ! -d "tfjs-core" ]]; then
-    echo 'Use latest version of tfjs-core'
-    git clone https://github.com/tensorflow/tfjs-core.git --depth 5
+  if [[ -d "tfjs-core" ]]; then
+    rm -rf tfjs-core/
   fi
+  cp -r ../../tfjs-core .
+
   cd tfjs-core
   HASH_CORE=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
@@ -42,10 +43,11 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-core'
 
-  if [[ ! -d "tfjs-layers" ]]; then
-    echo 'Use latest version of tfjs-layers'
-    git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
+  if [[ -d "tfjs-layers" ]]; then
+    rm -rf tfjs-layers/
   fi
+  cp -r ../../tfjs-layers .
+
   cd tfjs-layers
   HASH_LAYERS=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
@@ -53,10 +55,11 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-layers'
 
-  if [[ ! -d "tfjs-converter" ]]; then
-    echo 'Use latest version of tfjs-converter'
-    git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
+  if [[ -d "tfjs-converter" ]]; then
+    rm -rf tfjs-converter/
   fi
+  cp -r ../../tfjs-converter .
+
   cd tfjs-converter
   HASH_CONVERTER=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
@@ -64,10 +67,11 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-converter'
 
-  if [[ ! -d "tfjs-data" ]]; then
-    echo 'Use latest version of tfjs-data'
-    git clone https://github.com/tensorflow/tfjs-data.git --depth 5
+  if [[ -d "tfjs-data" ]]; then
+    rm -rf tfjs-data/
   fi
+  cp -r ../../tfjs-data .
+
   cd tfjs-data
   HASH_DATA=`git rev-parse HEAD`
   rm -rf dist/ && yarn && yarn build && rollup -c && yalc push
