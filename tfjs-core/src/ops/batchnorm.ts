@@ -270,7 +270,7 @@ function batchNorm_<R extends Rank>(
   } else if ($x.rank === 2) {
     x4D = $x.as4D(1, 1, $x.shape[0], $x.shape[1]);
   } else if ($x.rank === 3) {
-    x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]) as Tensor4D;
+    x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
   } else {
     x4D = $x as Tensor4D;
   }

@@ -56,14 +56,14 @@ describeWithFlags('gramSchmidt-tiny', ALL_ENVS, () => {
   });
 
   it('3x3, Matrix', async () => {
-    const xs = tf.randomNormal([3, 3], 0, 1, 'float32', 1) as Tensor2D;
+    const xs: Tensor2D = tf.randomNormal([3, 3], 0, 1, 'float32', 1);
     const y = tf.linalg.gramSchmidt(xs) as Tensor2D;
     expectArraysClose(
         await y.transpose().matMul(y).array(), await tf.eye(3).array());
   });
 
   it('2x3, Matrix', async () => {
-    const xs = tf.randomNormal([2, 3], 0, 1, 'float32', 1) as Tensor2D;
+    const xs: Tensor2D = tf.randomNormal([2, 3], 0, 1, 'float32', 1);
     const y = tf.linalg.gramSchmidt(xs) as Tensor2D;
     expectArraysClose(
         await y.matMul(y.transpose()).array(), await tf.eye(2).array());

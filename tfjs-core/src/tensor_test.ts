@@ -32,7 +32,7 @@ function encodeStrings(a: RecursiveArray<{}>): RecursiveArray<Uint8Array> {
       a[i] = encodeString(val as string);
     }
   }
-  return a;
+  return a as RecursiveArray<Uint8Array>;
 }
 
 describeWithFlags('tensor', ALL_ENVS, () => {

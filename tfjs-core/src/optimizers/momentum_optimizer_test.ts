@@ -27,7 +27,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
 
     const x = tf.tensor1d([1, 2]).variable();
 
-    const f = () => x.square().sum() as tf.Scalar;
+    const f: () => tf.Scalar = () => x.square().sum();
 
     let numTensors = tf.memory().numTensors;
 
@@ -77,7 +77,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
 
     const x = tf.tensor1d([1, 2]).variable();
 
-    const f = () => x.square().sum() as tf.Scalar;
+    const f: () => tf.Scalar = () => x.square().sum();
 
     let numTensors = tf.memory().numTensors;
 
@@ -129,7 +129,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     const optimizer1 = tf.train.momentum(learningRate, momentum, useNesterov);
 
     const x = tf.tensor1d([1, 2]).variable();
-    const f = () => x.square().sum() as tf.Scalar;
+    const f: () => tf.Scalar = () => x.square().sum();
 
     let cost = optimizer1.minimize(f, /* returnCost */ true);
 

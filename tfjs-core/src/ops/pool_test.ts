@@ -1367,7 +1367,7 @@ describeWithFlags('avgPool3d', ALL_ENVS, () => {
 describeWithFlags('avgPool3dBackprop', ALL_ENVS, () => {
   it('gradient x=[2,2,2,1] f=[1,1,1] s=1', async () => {
     const dy = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2, 1]);
-    const x = tf.ones([2, 2, 2, 1]) as tf.Tensor4D;
+    const x: tf.Tensor4D = tf.ones([2, 2, 2, 1]);
     const expected = [1, 2, 3, 4, 5, 6, 7, 8];
 
     const dx = tf.grad((x: tf.Tensor4D) => tf.avgPool3d(x, 1, 1, 0))(x, dy);
@@ -1378,7 +1378,7 @@ describeWithFlags('avgPool3dBackprop', ALL_ENVS, () => {
 
   it('gradient x=[1,2,2,2,1] f=[1,1,1] s=1', async () => {
     const dy = tf.tensor5d([1, 2, 3, 4, 5, 6, 7, 8], [1, 2, 2, 2, 1]);
-    const x = tf.ones([1, 2, 2, 2, 1]) as tf.Tensor5D;
+    const x: tf.Tensor5D = tf.ones([1, 2, 2, 2, 1]);
     const expected = [1, 2, 3, 4, 5, 6, 7, 8];
 
     const dx = tf.grad((x: tf.Tensor5D) => tf.avgPool3d(x, 1, 1, 0))(x, dy);
@@ -1389,7 +1389,7 @@ describeWithFlags('avgPool3dBackprop', ALL_ENVS, () => {
 
   it('gradient x=[1,2,2,2,1] f=[2,2,2] s=2', async () => {
     const dy = tf.tensor5d([8], [1, 1, 1, 1, 1]);
-    const x = tf.ones([1, 2, 2, 2, 1]) as tf.Tensor5D;
+    const x: tf.Tensor5D = tf.ones([1, 2, 2, 2, 1]);
     const expected = [1, 1, 1, 1, 1, 1, 1, 1];
 
     const dx = tf.grad((x: tf.Tensor5D) => tf.avgPool3d(x, 2, 1, 0))(x, dy);
@@ -1400,7 +1400,7 @@ describeWithFlags('avgPool3dBackprop', ALL_ENVS, () => {
 
   it('gradient with clone x=[1,2,2,2,1] f=[2,2,2] s=1', async () => {
     const dy = tf.tensor5d([8], [1, 1, 1, 1, 1]);
-    const x = tf.ones([1, 2, 2, 2, 1]) as tf.Tensor5D;
+    const x: tf.Tensor5D = tf.ones([1, 2, 2, 2, 1]);
     const expected = [1, 1, 1, 1, 1, 1, 1, 1];
 
     const dx = tf.grad(
@@ -1412,7 +1412,7 @@ describeWithFlags('avgPool3dBackprop', ALL_ENVS, () => {
 
   it('gradient x=[1,3,3,3,1] f=[2,2,2] s=1', async () => {
     const dy = tf.tensor5d([1, 2, 3, 4, 5, 6, 7, 8], [1, 2, 2, 2, 1]);
-    const x = tf.ones([1, 3, 3, 3, 1]) as tf.Tensor5D;
+    const x: tf.Tensor5D = tf.ones([1, 3, 3, 3, 1]);
     const expected = [
       0.125, 0.375, 0.25, 0.5, 1.25, 0.75, 0.375, 0.875, 0.5,
       0.75,  1.75,  1,    2,   4.5,  2.5,  1.25,  2.75,  1.5,
@@ -1427,7 +1427,7 @@ describeWithFlags('avgPool3dBackprop', ALL_ENVS, () => {
 
   it('gradient x=[1,4,4,4,1] f=[2,2,2] s=2', async () => {
     const dy = tf.tensor5d([1, 2, 3, 4, 5, 6, 7, 8], [1, 2, 2, 2, 1]);
-    const x = tf.ones([1, 4, 4, 4, 1]) as tf.Tensor5D;
+    const x: tf.Tensor5D = tf.ones([1, 4, 4, 4, 1]);
     const expected = [
       0.125, 0.125, 0.25,  0.25,  0.125, 0.125, 0.25,  0.25,  0.375, 0.375,
       0.5,   0.5,   0.375, 0.375, 0.5,   0.5,   0.125, 0.125, 0.25,  0.25,
@@ -1448,7 +1448,7 @@ describeWithFlags('avgPool3dBackprop', ALL_ENVS, () => {
     const dy = tf.tensor5d(
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
         [1, 2, 2, 2, 2]);
-    const x = tf.ones([1, 3, 3, 3, 2]) as tf.Tensor5D;
+    const x: tf.Tensor5D = tf.ones([1, 3, 3, 3, 2]);
     const expected = [
       0.125, 0.25,  0.5,  0.75,  0.375, 0.5,   0.75, 1,     2,     2.5,  1.25,
       1.5,   0.625, 0.75, 1.5,   1.75,  0.875, 1,    1.25,  1.5,   3,    3.5,
@@ -1467,7 +1467,7 @@ describeWithFlags('avgPool3dBackprop', ALL_ENVS, () => {
     const dy = tf.tensor5d(
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
         [2, 2, 2, 2, 1]);
-    const x = tf.ones([2, 3, 3, 3, 1]) as tf.Tensor5D;
+    const x: tf.Tensor5D = tf.ones([2, 3, 3, 3, 1]);
     const expected = [
       0.125, 0.375, 0.25,  0.5,   1.25, 0.75,  0.375, 0.875, 0.5,   0.75, 1.75,
       1,     2,     4.5,   2.5,   1.25, 2.75,  1.5,   0.625, 1.375, 0.75, 1.5,

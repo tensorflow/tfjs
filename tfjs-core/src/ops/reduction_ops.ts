@@ -329,7 +329,7 @@ function min_<T extends Tensor>(
     const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
     res = res.reshape(newShape) as T;
   }
-  return res as T;
+  return res;
 }
 
 /**
