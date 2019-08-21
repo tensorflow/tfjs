@@ -61,6 +61,13 @@ steps:
   args: ['./scripts/run-build.sh', 'tfjs-react-native']
   waitFor: ['diff']
 
+# Node.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-node'
+  args: ['./scripts/run-build.sh', 'tfjs-node']
+  waitFor: ['diff']
+
 # Integration tests
 - name: 'node:10'
   dir: 'tfjs-core'
