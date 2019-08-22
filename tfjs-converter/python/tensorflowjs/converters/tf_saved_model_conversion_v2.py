@@ -51,12 +51,15 @@ INPUT_ORDER = {
     "BatchNormWithGlobalNormalization": [
         "conv_op", "mean_op", "var_op", "beta_op", "gamma_op"
     ],
+    # Order of inputs for FusedBatchNorm.
+    "FusedBatchNorm": ["conv_op", "gamma_op", "beta_op", "mean_op", "var_op"],
     # Order of inputs for FusedBatchNormV3.
     "FusedBatchNormV3": ["conv_op", "gamma_op", "beta_op", "mean_op", "var_op"]
 }
 # Name of the attribute epsilon value is stored in.
 EPSILON_ATTR = {
     "BatchNormWithGlobalNormalization": "variance_epsilon",
+    "FusedBatchNorm": "epsilon",
     "FusedBatchNormV3": "epsilon"
 }
 
@@ -158,6 +161,7 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
   optimized_graph = tf_optimizer.OptimizeGraph(
       config, meta_graph, cluster=get_cluster())
 
+  print(optimized_graph.node)
   # batch norm folding
   optimized_graph = fold_batch_norms(optimized_graph)
 
@@ -171,9 +175,11 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
       'remap',
       'constfold', 'arithmetic', 'dependency'
   ]
+  meta_graph = export_meta_graph(
+      graph_def=optimized_graph, graph=graph)
+
   optimized_graph = tf_optimizer.OptimizeGraph(
       config, meta_graph, cluster=get_cluster())
-
   unsupported = validate(optimized_graph.node, skip_op_check,
                          strip_debug_ops)
 
@@ -524,7 +530,8 @@ def fold_batch_norms(input_graph_def):
   nodes_to_skip = {}
   new_ops = []
   for node in input_graph_def.node:
-    if node.op not in ("BatchNormWithGlobalNormalization", "FusedBatchNormV3"):
+    if (node.op not in ("BatchNormWithGlobalNormalization",
+                        "FusedBatchNorm", "FusedBatchNormV3")):
       continue
 
     conv_op = node_from_map(input_node_map,
