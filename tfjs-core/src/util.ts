@@ -568,7 +568,7 @@ export function toTypedArray(
   } else if (dtype === 'bool') {
     const bool = new Uint8Array((a as number[]).length);
     for (let i = 0; i < bool.length; ++i) {
-      if (Math.round((a as number[])[i] as number) !== 0) {
+      if (Math.round((a as number[])[i]) !== 0) {
         bool[i] = 1;
       }
     }

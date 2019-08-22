@@ -132,7 +132,7 @@ function matMul_<T extends Tensor>({
     if (activation == null || activation === 'linear') {
       dyActivation = dy;
     } else if (activation === 'relu') {
-      dyActivation = dy.mul(y.step()) as Tensor3D;
+      dyActivation = dy.mul(y.step());
     } else {
       throw new Error(
           `Gradient for activation ${activation} has not been ` +
@@ -358,7 +358,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
     if (activation == null || activation === 'linear') {
       dyActivation = dy;
     } else if (activation === 'relu') {
-      dyActivation = dy.mul(y.step()) as Tensor4D;
+      dyActivation = dy.mul(y.step());
     } else {
       throw new Error(
           `Gradient for activation ${activation} has not been ` +

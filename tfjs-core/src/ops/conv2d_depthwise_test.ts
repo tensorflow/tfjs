@@ -235,7 +235,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
         ],
         [1, 3, 3, inDepth]);
 
-    const w =
+    const w: tf.Tensor4D =
         tf.stack(
               [
                 tf.tensor2d(
@@ -244,12 +244,12 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
                     [0.0582746, 0.426481, 0.872743, 0.765767], [fSize, fSize])
               ],
               2)
-            .expandDims(3) as tf.Tensor4D;
+            .expandDims(3);
 
     // adding a dilation rate is equivalent to using a filter
     // with 0s for the dilation rate
     const fSizeDilated = fSize + (fSize - 1) * (dilation - 1);
-    const wDilated =
+    const wDilated: tf.Tensor4D =
         tf.stack(
               [
                 tf.tensor2d(
@@ -260,7 +260,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
                     [fSizeDilated, fSizeDilated])
               ],
               2)
-            .expandDims(3) as tf.Tensor4D;
+            .expandDims(3);
 
     expect(wDilated.shape).toEqual([fSizeDilated, fSizeDilated, inDepth, 1]);
 

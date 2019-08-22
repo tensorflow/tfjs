@@ -2473,7 +2473,7 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
   it('has gradient', async () => {
     const a = tf.tensor1d([3, 2, 5]);
     const b = tf.tensor1d([4, 1, 5]);
-    const dy = tf.ones([3], 'float32') as tf.Tensor1D;
+    const dy = tf.ones([3], 'float32');
     const da = tf.grad((a: tf.Tensor1D) => tf.greaterEqual(a, b))(a, dy);
 
     expect(da.dtype).toBe('float32');
@@ -2484,7 +2484,7 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
   it('gradient with clones', async () => {
     const a = tf.tensor1d([3, 2, 5]);
     const b = tf.tensor1d([4, 1, 5]);
-    const dy = tf.ones([3], 'float32') as tf.Tensor1D;
+    const dy = tf.ones([3], 'float32');
     const da = tf.grad(
         (a: tf.Tensor1D) => tf.greaterEqual(a.clone(), b.clone()).clone())(
         a, dy);

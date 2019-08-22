@@ -301,7 +301,7 @@ function cropAndResize_(
           $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
 
   const res = ENGINE.runKernel(forward, {$image, $boxes});
-  return res as Tensor4D;
+  return res;
 }
 
 export const resizeBilinear = op({resizeBilinear_});

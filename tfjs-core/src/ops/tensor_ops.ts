@@ -504,8 +504,7 @@ function linspace(start: number, stop: number, num: number): Tensor1D {
   if (num <= 0) {
     throw new Error('The number of values should be positive.');
   }
-  return ENGINE.runKernel(backend => backend.linspace(start, stop, num), {}) as
-      Tensor1D;
+  return ENGINE.runKernel(backend => backend.linspace(start, stop, num), {});
 }
 
 /**

@@ -155,9 +155,9 @@ function where_<T extends Tensor>(
     const [$condition] = saved;
     return {
       $condition: () => zerosLike($condition).toFloat(),
-      $a: () => dy.mul($condition.cast(dy.dtype)) as T,
-      $b: () => dy.mul($condition.logicalNot().cast(dy.dtype)) as T
-    };
+      $a: () => dy.mul($condition.cast(dy.dtype)),
+      $b: () => dy.mul($condition.logicalNot().cast(dy.dtype))
+    } as {$a: () => T, $b: () => T, $condition: () => T};
   };
 
   return ENGINE.runKernel((backend, save) => {

@@ -418,12 +418,12 @@ describeWithFlags('conv to matmul', PACKED_ENVS, () => {
     const pad = 'same';
     const stride: [number, number] = [1, 1];
 
-    let x = tf.randomNormal(inputShape) as tf.Tensor3D;
+    let x: tf.Tensor3D = tf.randomNormal(inputShape);
     x = x.add(1);  // this packs x so we can test the case where we mistakenly
                    // want to avoid expensive reshape in pointwise conv2d even
                    // though matmul is unpacked
-    const w =
-        tf.randomNormal([fSize, fSize, inputDepth, outputDepth]) as tf.Tensor4D;
+    const w: tf.Tensor4D =
+        tf.randomNormal([fSize, fSize, inputDepth, outputDepth]);
 
     expect(() => tf.conv2d(x, w, stride, pad)).not.toThrow();
   });
@@ -435,7 +435,7 @@ describeWithFlags('gramSchmidt-non-tiny', WEBGL_ENVS, () => {
   it('8x16', async () => {
     // Part of this test's point is that operation on a matrix of this size
     // can complete in the timeout limit of the unit test.
-    const xs = tf.randomUniform([8, 16]) as Tensor2D;
+    const xs: Tensor2D = tf.randomUniform([8, 16]);
     const y = tf.linalg.gramSchmidt(xs) as Tensor2D;
     expectArraysClose(
         await y.matMul(y.transpose()).data(), await tf.eye(8).data());

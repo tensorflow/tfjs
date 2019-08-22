@@ -101,10 +101,4 @@ describeWithFlags('diag', ALL_ENVS, () => {
     expect(diag.dtype).toBe('bool');
     expectArraysEqual(await diag.data(), [1, 0, 0, 1]);
   });
-  it('complex', () => {
-    const real = tf.tensor1d([2.25]);
-    const imag = tf.tensor1d([4.75]);
-    const m = tf.complex(real, imag);
-    expect(() => tf.diag(m)).toThrowError();
-  });
 });
