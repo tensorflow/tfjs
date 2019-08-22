@@ -650,7 +650,7 @@ def pip_main():
 
 
 def main(argv):
-  convert(argv)
+  convert(argv[0].split(' '))
 
 if __name__ == '__main__':
   tf.app.run(main=main, argv=[' '.join(sys.argv[1:])])
