@@ -43,7 +43,7 @@
     "rollup-plugin-uglify": "~3.0.0",
     "tslint": "~5.11.0",
     "tslint-no-circular-imports": "^0.5.0",
-    "typescript": "3.3.3333",
+    "typescript": "3.5.3",
     "yalc": "^1.0.0-pre.32"
   },
   "dependencies": {

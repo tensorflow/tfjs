@@ -43,6 +43,7 @@
     "no-string-throw": true,
     "no-unused-expression": true,
     "no-var-keyword": true,
+    "no-unnecessary-type-assertion": true,
     "object-literal-shorthand": true,
     "only-arrow-functions": [true, "allow-declarations", "allow-named-functions"],
     "prefer-const": true,

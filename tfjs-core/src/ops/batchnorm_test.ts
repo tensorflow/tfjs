@@ -29,9 +29,9 @@ describeWithFlags('batchNorm4D', ALL_ENVS, () => {
     const result = tf.batchNorm4d(
         xT, meanT, varianceT, undefined, undefined, varianceEpsilon);
 
-    const x = await xT.array() as number[][][][];
-    const mean = await meanT.array() as number[];
-    const variance = await varianceT.array() as number[];
+    const x = await xT.array();
+    const mean = await meanT.array();
+    const variance = await varianceT.array();
     expectArraysClose(await result.data(), [
       (x[0][0][0][0] - mean[0]) * 1 / Math.sqrt(variance[0] + varianceEpsilon),
       (x[0][0][0][1] - mean[1]) * 1 / Math.sqrt(variance[1] + varianceEpsilon),
@@ -571,10 +571,10 @@ describeWithFlags('batchNorm2D', ALL_ENVS, () => {
     const result = tf.batchNorm2d(
         xT, meanT, varianceT, offsetT, undefined, varianceEpsilon);
 
-    const offset = await offsetT.array() as number[];
-    const mean = await meanT.array() as number[];
-    const variance = await varianceT.array() as number[];
-    const x = await xT.array() as number[][];
+    const offset = await offsetT.array();
+    const mean = await meanT.array();
+    const variance = await varianceT.array();
+    const x = await xT.array();
 
     expectArraysClose(await result.data(), [
       offset[0] +
@@ -600,11 +600,11 @@ describeWithFlags('batchNorm2D', ALL_ENVS, () => {
     const result =
         tf.batchNorm2d(xT, meanT, varianceT, offsetT, scaleT, varianceEpsilon);
 
-    const offset = await offsetT.array() as number[];
-    const mean = await meanT.array() as number[];
-    const variance = await varianceT.array() as number[];
-    const scale = await scaleT.array() as number[];
-    const x = await xT.array() as number[][];
+    const offset = await offsetT.array();
+    const mean = await meanT.array();
+    const variance = await varianceT.array();
+    const scale = await scaleT.array();
+    const x = await xT.array();
 
     expectArraysClose(await result.data(), [
       offset[0] +
@@ -917,11 +917,11 @@ describeWithFlags('deprecated batchNormalization', ALL_ENVS, () => {
     const result = tf.batchNormalization(
         xT, meanT, varianceT, varianceEpsilon, scaleT, offsetT);
 
-    const offset = await offsetT.array() as number[];
-    const mean = await meanT.array() as number[];
-    const variance = await varianceT.array() as number[];
-    const scale = await scaleT.array() as number[];
-    const x = await xT.array() as number[][];
+    const offset = await offsetT.array();
+    const mean = await meanT.array();
+    const variance = await varianceT.array();
+    const scale = await scaleT.array();
+    const x = await xT.array();
 
     expectArraysClose(await result.data(), [
       offset[0] +

@@ -51,9 +51,7 @@ yarn upgrade \
     @tensorflow/tfjs
 
 if [[ "${IS_TFJS_NODE}" == "1" ]]; then
-  if [[ -d "tfjs-node" ]]; then
-    rm -rf tfjs-node/
-  fi
+  rm -rf tfjs-node/
   cp -r ../../tfjs-node .
 
   pushd tfjs-node
@@ -97,9 +95,7 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
   popd
 else
   # Copy the tfjs repositories, build them, and link them.
-  if [[ -d "tfjs-core" ]]; then
-    rm -rf tfjs-core/
-  fi
+  rm -rf tfjs-core/
   cp -r ../../tfjs-core .
 
   cd tfjs-core
@@ -110,9 +106,7 @@ else
   cd ..
   yarn yalc link '@tensorflow/tfjs-core'
 
-  if [[ -d "tfjs-layers" ]]; then
-    rm -rf tfjs-layers/
-  fi
+  rm -rf tfjs-layers/
   cp -r ../../tfjs-layers .
 
   cd tfjs-layers
@@ -131,9 +125,7 @@ else
   cd ..
   yarn yalc link '@tensorflow/tfjs-layers'
 
-  if [[ -d "tfjs-converter" ]]; then
-    rm -rf tfjs-converter/
-  fi
+  rm -rf tfjs-converter/
   cp -r ../../tfjs-converter .
 
   cd tfjs-converter
@@ -144,9 +136,7 @@ else
   cd ..
   yarn yalc link '@tensorflow/tfjs-converter'
 
-  if [[ -d "tfjs-data" ]]; then
-    rm -rf tfjs-data/
-  fi
+  rm -rf tfjs-data/
   cp -r ../../tfjs-data .
 
   cd tfjs-data

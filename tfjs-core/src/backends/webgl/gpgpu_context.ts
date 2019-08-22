@@ -460,8 +460,7 @@ export class GPGPUContext {
                                 // may poll for the query timer indefinitely
             this.isQueryAvailable(
                 query,
-                ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') as
-                    number));
+                ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION')));
     return this.getQueryTime(
         query, ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION'));
   }

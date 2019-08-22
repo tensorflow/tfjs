@@ -50,7 +50,7 @@ export function castTensor<T extends Tensor>(
   if (!hasEncodingLoss(x.dtype, dtype)) {
     // We don't change the underlying data, since we cast to higher
     // precision.
-    return Tensor.make(x.shape, {dataId: x.dataId}, dtype) as T;
+    return Tensor.make(x.shape, {dataId: x.dataId}, dtype);
   }
   if (x.dtype === 'complex64') {
     const real = backend.real(x);

@@ -31,9 +31,7 @@ then
   echo 'Run first karma.'
   yarn run-browserstack --browsers=bs_safari_mac --grep=matmul
 
-  if [[ -d "tfjs-core" ]]; then
-    rm -rf tfjs-core/
-  fi
+  rm -rf tfjs-core/
   cp -r ../../tfjs-core .
 
   cd tfjs-core
@@ -43,9 +41,7 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-core'
 
-  if [[ -d "tfjs-layers" ]]; then
-    rm -rf tfjs-layers/
-  fi
+  rm -rf tfjs-layers/
   cp -r ../../tfjs-layers .
 
   cd tfjs-layers
@@ -55,9 +51,7 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-layers'
 
-  if [[ -d "tfjs-converter" ]]; then
-    rm -rf tfjs-converter/
-  fi
+  rm -rf tfjs-converter/
   cp -r ../../tfjs-converter .
 
   cd tfjs-converter
@@ -67,9 +61,7 @@ then
   cd ..
   yarn link-local '@tensorflow/tfjs-converter'
 
-  if [[ -d "tfjs-data" ]]; then
-    rm -rf tfjs-data/
-  fi
+  rm -rf tfjs-data/
   cp -r ../../tfjs-data .
 
   cd tfjs-data
