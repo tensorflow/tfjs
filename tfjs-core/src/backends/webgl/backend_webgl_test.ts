@@ -36,9 +36,8 @@ describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
   let webglCpuForwardFlagSaved: boolean;
 
   beforeAll(() => {
-    webglLazilyUnpackFlagSaved =
-        tf.ENV.getBool('WEBGL_LAZILY_UNPACK') as boolean;
-    webglCpuForwardFlagSaved = tf.ENV.getBool('WEBGL_CPU_FORWARD') as boolean;
+    webglLazilyUnpackFlagSaved = tf.ENV.getBool('WEBGL_LAZILY_UNPACK');
+    webglCpuForwardFlagSaved = tf.ENV.getBool('WEBGL_CPU_FORWARD');
     tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
     tf.ENV.set('WEBGL_CPU_FORWARD', false);
   });

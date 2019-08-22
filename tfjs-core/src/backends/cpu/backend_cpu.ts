@@ -92,8 +92,7 @@ export class MathBackendCPU implements KernelBackend {
       const canvas = createCanvas();
       if (canvas !== null) {
         this.fromPixels2DContext =
-            canvas.getContext('2d') as CanvasRenderingContext2D |
-            OffscreenCanvasRenderingContext2D;
+            canvas.getContext('2d') as CanvasRenderingContext2D;
       }
     }
     this.data = new DataStorage(this, ENGINE);
@@ -254,7 +253,7 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   complex<T extends Tensor>(real: T, imag: T): T {
-    const result = Tensor.make(real.shape, {}, 'complex64') as T;
+    const result = Tensor.make(real.shape, {}, 'complex64');
 
     const resultData = this.data.get(result.dataId);
     // The backend owns the reference to the underlying real and imaginary
@@ -265,7 +264,7 @@ export class MathBackendCPU implements KernelBackend {
       imag: ENGINE.keep(imag.clone())
     };
 
-    return result;
+    return result as T;
   }
   real<T extends Tensor>(input: T): T {
     const resultData = this.data.get(input.dataId);
@@ -434,15 +433,15 @@ export class MathBackendCPU implements KernelBackend {
   add(a: Tensor, b: Tensor): Tensor {
     if (a.dtype === 'complex64' || b.dtype === 'complex64') {
       return this.broadcastedBinaryComplexOp(
-                 a.cast('complex64'), b.cast('complex64'),
-                 (aReal, aImag, bReal, bImag) => {
-                   return {real: aReal + bReal, imag: aImag + bImag};
-                 }) as Tensor;
+          a.cast('complex64'), b.cast('complex64'),
+          (aReal, aImag, bReal, bImag) => {
+            return {real: aReal + bReal, imag: aImag + bImag};
+          });
     }
 
     return this.broadcastedBinaryOp(
-               a, b, upcastType(a.dtype, b.dtype),
-               (aValue, bValue) => aValue + bValue) as Tensor;
+        a, b, upcastType(a.dtype, b.dtype),
+        (aValue, bValue) => aValue + bValue);
   }
 
   addN<T extends Tensor>(tensors: T[]): T {
@@ -463,15 +462,15 @@ export class MathBackendCPU implements KernelBackend {
   subtract(a: Tensor, b: Tensor): Tensor {
     if (a.dtype === 'complex64' || b.dtype === 'complex64') {
       return this.broadcastedBinaryComplexOp(
-                 a.cast('complex64'), b.cast('complex64'),
-                 (aReal, aImag, bReal, bImag) => {
-                   return {real: aReal - bReal, imag: aImag - bImag};
-                 }) as Tensor;
+          a.cast('complex64'), b.cast('complex64'),
+          (aReal, aImag, bReal, bImag) => {
+            return {real: aReal - bReal, imag: aImag - bImag};
+          });
     }
 
     return this.broadcastedBinaryOp(
-               a, b, upcastType(a.dtype, b.dtype),
-               (aValue, bValue) => aValue - bValue) as Tensor;
+        a, b, upcastType(a.dtype, b.dtype),
+        (aValue, bValue) => aValue - bValue);
   }
 
   pow<T extends Tensor>(a: T, b: Tensor): T {
@@ -551,18 +550,18 @@ export class MathBackendCPU implements KernelBackend {
   multiply(a: Tensor, b: Tensor): Tensor {
     if (a.dtype === 'complex64' || b.dtype === 'complex64') {
       return this.broadcastedBinaryComplexOp(
-                 a.cast('complex64'), b.cast('complex64'),
-                 (aReal, aImag, bReal, bImag) => {
-                   return {
-                     real: aReal * bReal - aImag * bImag,
-                     imag: aReal * bImag + aImag * bReal
-                   };
-                 }) as Tensor;
+          a.cast('complex64'), b.cast('complex64'),
+          (aReal, aImag, bReal, bImag) => {
+            return {
+              real: aReal * bReal - aImag * bImag,
+              imag: aReal * bImag + aImag * bReal
+            };
+          });
     }
 
     return this.broadcastedBinaryOp(
-               a, b, upcastType(a.dtype, b.dtype),
-               (aValue, bValue) => aValue * bValue) as Tensor;
+        a, b, upcastType(a.dtype, b.dtype),
+        (aValue, bValue) => aValue * bValue);
   }
 
   realDivide(a: Tensor, b: Tensor): Tensor {
@@ -570,7 +569,7 @@ export class MathBackendCPU implements KernelBackend {
 
     const op = (a: number, b: number) => a / b;
     const outputDtype = 'float32';
-    return this.broadcastedBinaryOp(a, b, outputDtype, op) as Tensor;
+    return this.broadcastedBinaryOp(a, b, outputDtype, op);
   }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {
@@ -578,7 +577,7 @@ export class MathBackendCPU implements KernelBackend {
 
     const op = (a: number, b: number) => Math.floor(a / b);
     const outputDtype = 'int32';
-    return this.broadcastedBinaryOp(a, b, outputDtype, op) as Tensor;
+    return this.broadcastedBinaryOp(a, b, outputDtype, op);
   }
 
   sum(x: Tensor, axes: number[]): Tensor {
@@ -794,7 +793,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = values[i] ? 0 : 1;
     }
-    return Tensor.make(x.shape, {values: newValues}, 'bool') as T;
+    return Tensor.make(x.shape, {values: newValues}, 'bool');
   }
 
   logicalAnd(a: Tensor, b: Tensor): Tensor {
@@ -992,7 +991,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = Math.ceil(values[i]);
     }
-    return Tensor.make(x.shape, {values: newValues}) as T;
+    return Tensor.make(x.shape, {values: newValues});
   }
 
   floor<T extends Tensor>(x: T): T {
@@ -1003,7 +1002,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = Math.floor(values[i]);
     }
-    return Tensor.make(x.shape, {values: newValues}) as T;
+    return Tensor.make(x.shape, {values: newValues});
   }
 
   sign<T extends Tensor>(x: T): T {
@@ -1020,7 +1019,7 @@ export class MathBackendCPU implements KernelBackend {
         newValues[i] = 0;
       }
     }
-    return Tensor.make(x.shape, {values: newValues}) as T;
+    return Tensor.make(x.shape, {values: newValues});
   }
 
   isNaN<T extends Tensor>(x: T): T {
@@ -1033,7 +1032,7 @@ export class MathBackendCPU implements KernelBackend {
         newValues[i] = 1;
       }
     }
-    return Tensor.make(x.shape, {values: newValues}, 'bool') as T;
+    return Tensor.make(x.shape, {values: newValues}, 'bool');
   }
 
   isInf<T extends Tensor>(x: T): T {
@@ -1046,7 +1045,7 @@ export class MathBackendCPU implements KernelBackend {
         newValues[i] = 1;
       }
     }
-    return Tensor.make(x.shape, {values: newValues}, 'bool') as T;
+    return Tensor.make(x.shape, {values: newValues}, 'bool');
   }
 
   isFinite<T extends Tensor>(x: T): T {
@@ -1059,7 +1058,7 @@ export class MathBackendCPU implements KernelBackend {
         newValues[i] = 1;
       }
     }
-    return Tensor.make(x.shape, {values: newValues}, 'bool') as T;
+    return Tensor.make(x.shape, {values: newValues}, 'bool');
   }
 
   round<T extends Tensor>(x: T): T {
@@ -1082,7 +1081,7 @@ export class MathBackendCPU implements KernelBackend {
         }
       }
     }
-    return Tensor.make(x.shape, {values: newValues}) as T;
+    return Tensor.make(x.shape, {values: newValues});
   }
 
   exp<T extends Tensor>(x: T): T {
@@ -1093,7 +1092,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = Math.exp(values[i]);
     }
-    return Tensor.make(x.shape, {values: newValues}) as T;
+    return Tensor.make(x.shape, {values: newValues});
   }
 
   expm1<T extends Tensor>(x: T): T {
@@ -1104,7 +1103,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = Math.expm1(values[i]);
     }
-    return Tensor.make(x.shape, {values: newValues}) as T;
+    return Tensor.make(x.shape, {values: newValues});
   }
 
   log<T extends Tensor>(x: T): T {
@@ -1116,7 +1115,7 @@ export class MathBackendCPU implements KernelBackend {
       const value = values[i];
       newValues[i] = Math.log(value);
     }
-    return Tensor.make(x.shape, {values: newValues}) as T;
+    return Tensor.make(x.shape, {values: newValues});
   }
 
   log1p<T extends Tensor>(x: T): T {
@@ -1128,7 +1127,7 @@ export class MathBackendCPU implements KernelBackend {
       const value = values[i];
       newValues[i] = Math.log1p(value);
     }
-    return Tensor.make(x.shape, {values: newValues}) as T;
+    return Tensor.make(x.shape, {values: newValues});
   }
 
   sqrt<T extends Tensor>(x: T): T {
@@ -1140,7 +1139,7 @@ export class MathBackendCPU implements KernelBackend {
       const value = values[i];
       newValues[i] = Math.sqrt(value);
     }
-    return Tensor.make(x.shape, {values: newValues}) as T;
+    return Tensor.make(x.shape, {values: newValues});
   }
 
   rsqrt<T extends Tensor>(x: T): T {
@@ -1152,7 +1151,7 @@ export class MathBackendCPU implements KernelBackend {
       const value = values[i];
       newValues[i] = 1 / Math.sqrt(value);
     }
-    return Tensor.make(x.shape, {values: newValues}) as T;
+    return Tensor.make(x.shape, {values: newValues});
   }
 
   square<T extends Tensor>(x: T): T {
@@ -1164,7 +1163,7 @@ export class MathBackendCPU implements KernelBackend {
       const value = values[i];
       newValues[i] = value * value;
     }
-    return Tensor.make(x.shape, {values: newValues}) as T;
+    return Tensor.make(x.shape, {values: newValues});
   }
 
   reciprocal<T extends Tensor>(x: T): T {
@@ -1175,7 +1174,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = 1 / values[i];
     }
-    return Tensor.make(x.shape, {values: newValues}) as T;
+    return Tensor.make(x.shape, {values: newValues});
   }
 
   linear<T extends Tensor>(x: T): T {
@@ -1215,7 +1214,7 @@ export class MathBackendCPU implements KernelBackend {
         resultValues[i] = (Math.exp(v) - 1);
       }
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   eluDer<T extends Tensor>(dy: T, y: T): T {
@@ -1232,7 +1231,7 @@ export class MathBackendCPU implements KernelBackend {
         resultValues[i] = dyValues[i] * (v + 1);
       }
     }
-    return Tensor.make(y.shape, {values: resultValues}) as T;
+    return Tensor.make(y.shape, {values: resultValues});
   }
 
   selu<T extends Tensor>(x: T): T {
@@ -1253,7 +1252,7 @@ export class MathBackendCPU implements KernelBackend {
         resultValues[i] = scaleAlpha * (Math.exp(v) - 1);
       }
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   clip<T extends Tensor>(x: T, min: number, max: number): T {
@@ -1265,7 +1264,7 @@ export class MathBackendCPU implements KernelBackend {
       const v = values[i];
       resultValues[i] = v > max ? max : (v < min ? min : v);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   abs<T extends Tensor>(x: T): T {
@@ -1275,7 +1274,7 @@ export class MathBackendCPU implements KernelBackend {
       resultValues[i] = Math.abs(values[i]);
     }
 
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   complexAbs<T extends Tensor>(x: T): T {
@@ -1287,7 +1286,7 @@ export class MathBackendCPU implements KernelBackend {
       const imag = values[i * 2 + 1];
       resultValues[i] = Math.hypot(real, imag);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   int<T extends Tensor>(x: T): T {
@@ -1309,7 +1308,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = 1 / (1 + Math.exp(-values[i]));
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   softplus<T extends Tensor>(x: T): T {
@@ -1347,7 +1346,7 @@ export class MathBackendCPU implements KernelBackend {
       }
       resultValues[i] = result;
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   sin<T extends Tensor>(x: T): T {
@@ -1358,7 +1357,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.sin(values[i]);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   cos<T extends Tensor>(x: T): T {
@@ -1369,7 +1368,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.cos(values[i]);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   tan<T extends Tensor>(x: T): T {
@@ -1380,7 +1379,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.tan(values[i]);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   asin<T extends Tensor>(x: T): T {
@@ -1391,7 +1390,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.asin(values[i]);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   acos<T extends Tensor>(x: T): T {
@@ -1402,7 +1401,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.acos(values[i]);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   atan<T extends Tensor>(x: T): T {
@@ -1413,7 +1412,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.atan(values[i]);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   atan2<T extends Tensor>(a: T, b: T): T {
@@ -1432,7 +1431,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.sinh(values[i]);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   cosh<T extends Tensor>(x: T): T {
@@ -1443,7 +1442,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.cosh(values[i]);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   tanh<T extends Tensor>(x: T): T {
@@ -1454,7 +1453,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = util.tanh(values[i]);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   asinh<T extends Tensor>(x: T): T {
@@ -1465,7 +1464,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.asinh(values[i]);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   acosh<T extends Tensor>(x: T): T {
@@ -1476,7 +1475,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.acosh(values[i]);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   atanh<T extends Tensor>(x: T): T {
@@ -1487,7 +1486,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.atanh(values[i]);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   erf<T extends Tensor>(x: T): T {
@@ -1508,7 +1507,7 @@ export class MathBackendCPU implements KernelBackend {
           (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
               Math.exp(-v * v);
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   step<T extends Tensor>(x: T, alpha = 0): T {
@@ -1524,7 +1523,7 @@ export class MathBackendCPU implements KernelBackend {
         resultValues[i] = value > 0 ? 1 : alpha;
       }
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(x.shape, {values: resultValues});
   }
 
   fusedConv2d(
@@ -2685,7 +2684,7 @@ export class MathBackendCPU implements KernelBackend {
         }
       }
     }
-    return dx.toTensor() as Tensor5D;
+    return dx.toTensor();
   }
 
   maxPool3d(x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
@@ -2849,7 +2848,7 @@ export class MathBackendCPU implements KernelBackend {
         }
       }
     }
-    return dx.toTensor() as Tensor5D;
+    return dx.toTensor();
   }
 
   cast<T extends Tensor>(x: T, dtype: DataType): T {

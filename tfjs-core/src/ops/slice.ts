@@ -165,7 +165,7 @@ function slice_<R extends Rank, T extends Tensor<R>>(
     return {$x: () => dy.pad(paddings)};
   };
   return ENGINE.runKernel(
-             backend => backend.slice($x, begin_, size_), {$x}, grad) as T;
+      backend => backend.slice($x, begin_, size_), {$x}, grad);
 }
 
 export const slice = op({slice_});

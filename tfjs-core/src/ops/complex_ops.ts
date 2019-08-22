@@ -49,7 +49,7 @@ function complex_<T extends Tensor>(real: T|TensorLike, imag: T|TensorLike): T {
           `must match in call to tf.complex().`);
 
   return ENGINE.runKernel(
-             backend => backend.complex($real, $imag), {$real, $imag}) as T;
+      backend => backend.complex($real, $imag), {$real, $imag});
 }
 
 /**
@@ -69,7 +69,7 @@ function complex_<T extends Tensor>(real: T|TensorLike, imag: T|TensorLike): T {
 function real_<T extends Tensor>(input: T|TensorLike): T {
   const $input = convertToTensor(input, 'input', 'real');
 
-  return ENGINE.runKernel(backend => backend.real($input), {$input}) as T;
+  return ENGINE.runKernel(backend => backend.real($input), {$input});
 }
 
 /**
@@ -88,7 +88,7 @@ function real_<T extends Tensor>(input: T|TensorLike): T {
 function imag_<T extends Tensor>(input: T|TensorLike): T {
   const $input = convertToTensor(input, 'input', 'imag');
 
-  return ENGINE.runKernel(backend => backend.imag($input), {$input}) as T;
+  return ENGINE.runKernel(backend => backend.imag($input), {$input});
 }
 
 export const complex = op({complex_});
