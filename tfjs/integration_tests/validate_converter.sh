@@ -27,6 +27,12 @@ while true; do
     shift
   elif [[ "$1" == "--log" ]]; then
     HASH="$(git rev-parse HEAD)"
+
+    if [[ -z "${HASH}" ]]; then
+      echo "ERROR: Failed to retrieve git commit hash" 1>&2
+      exit 1
+    fi
+
     LOG_FLAG="--log"
     shift
   elif [[ -z "$1" ]]; then
@@ -46,9 +52,7 @@ yarn upgrade \
     @tensorflow/tfjs
 
 if [[ "${IS_TFJS_NODE}" == "1" ]]; then
-  if [[ -d "tfjs-node" ]]; then
-    rm -rf tfjs-node/
-  fi
+  rm -rf tfjs-node/
   cp -r ../../tfjs-node .
 
   cd tfjs-node
@@ -69,9 +73,7 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
   yarn && yarn build-addon-from-source
   cd ../../..
 else
-  if [[ -d "tfjs-core" ]]; then
-    rm -rf tfjs-core/
-  fi
+  rm -rf tfjs-core/
   cp -r ../../tfjs-core .
 
   cd tfjs-core
@@ -81,9 +83,7 @@ else
   cd ..
   yarn yalc link '@tensorflow/tfjs-core'
 
-  if [[ -d "tfjs-converter" ]]; then
-    rm -rf tfjs-converter/
-  fi
+  rm -rf tfjs-converter/
   cp -r ../../tfjs-converter .
 
   cd tfjs-converter
