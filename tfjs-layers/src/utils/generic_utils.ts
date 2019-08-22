@@ -97,7 +97,7 @@ export function objectListUid(objs: any|any[]): string {
     if (retVal !== '') {
       retVal = retVal + ', ';
     }
-    retVal = retVal + Math.abs(obj.id).toString();
+    retVal = `${retVal}${Math.abs(obj.id)}`;
   }
   return retVal;
 }
