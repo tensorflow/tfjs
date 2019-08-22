@@ -431,6 +431,10 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleInput('Neg', a) as T;
   }
 
+  diag(x: Tensor): Tensor {
+    return this.executeSingleInput('Diag', x);
+  }
+
   add(a: Tensor, b: Tensor): Tensor {
     const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Add', opAttrs, [a, b]);
