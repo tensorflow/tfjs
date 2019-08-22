@@ -72,7 +72,7 @@ export class PadProgram implements WebGPUProgram {
             ${type} outC = getCoordsFromFlatIndex(flatIndex);
 
             if(${leftPadCondition} || ${rightPadCondition}) {
-              setOutput(index, ${constantValue});
+              setOutput(flatIndex, ${constantValue});
             } else {
               ${type} coords = outC - start;
               setOutput(flatIndex, getX(${unpackedCoords}));
