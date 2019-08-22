@@ -577,9 +577,8 @@ export async function evaluateDataset<T>(
         for (let i = 0; i < batchOuts.length; ++i) {
           const batchOut = batchOuts[i];
           const oldScalar = outs[i];
-          outs[i] = tfc.tidy(
-              () =>
-                  tfc.add(outs[i], tfc.mul(batchSize, batchOut)) as tfc.Scalar);
+          outs[i] =
+              tfc.tidy(() => tfc.add(outs[i], tfc.mul(batchSize, batchOut)));
           if (batch > 0) {
             tfc.dispose(oldScalar);
           }

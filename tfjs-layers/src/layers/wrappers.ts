@@ -332,7 +332,7 @@ export class Bidirectional extends Wrapper {
     } else {
       outputShape = layerShapes[0];
     }
-    outputShape = outputShape as Shape;
+    outputShape = outputShape;
     if (this.mergeMode === 'concat') {
       outputShape[outputShape.length - 1] *= 2;
       outputShapes = [outputShape];
@@ -363,7 +363,7 @@ export class Bidirectional extends Wrapper {
     }
     const standardized =
         standardizeArgs(inputs, initialState, constants, this.numConstants);
-    inputs = standardized.inputs as Tensor | SymbolicTensor;
+    inputs = standardized.inputs;
     initialState = standardized.initialState;
     constants = standardized.constants;
 
@@ -459,7 +459,7 @@ export class Bidirectional extends Wrapper {
       let states: Tensor[];
       if (this.returnState) {
         if (Array.isArray(y)) {
-          states = (y as Tensor[]).slice(1).concat((yRev as Tensor[]).slice(1));
+          states = y.slice(1).concat((yRev as Tensor[]).slice(1));
         } else {
         }
         y = (y as Tensor[])[0];

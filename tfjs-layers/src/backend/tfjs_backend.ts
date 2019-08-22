@@ -546,7 +546,7 @@ export function pow(x: Tensor, a: Tensor|number): Tensor {
       throw new NotImplementedError(
           `Non-int32 dtype (${a.dtype}) is not supported by pow() yet`);
     }
-    return tfc.pow(x, a as Tensor);
+    return tfc.pow(x, a);
   });
 }
 

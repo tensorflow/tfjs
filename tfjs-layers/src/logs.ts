@@ -34,7 +34,7 @@ export async function resolveScalarsInLogs(logs: UnresolvedLogs) {
   for (const key in logs) {
     const value = logs[key];
     if (typeof value !== 'number') {
-      const valueScalar = value as Scalar;
+      const valueScalar = value;
       promises.push(valueScalar.data());
       keys.push(key);
       scalarsToDispose.push(valueScalar);

@@ -52,7 +52,7 @@ export function getExactlyOneTensor(xs: Tensor|Tensor[]): Tensor {
     }
     x = xs[0];
   } else {
-    x = xs as Tensor;
+    x = xs;
   }
   return x;
 }

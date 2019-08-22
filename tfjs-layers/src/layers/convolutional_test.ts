@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {scalar, Tensor, tensor1d, tensor3d, Tensor4D, tensor4d, tensor5d, util} from '@tensorflow/tfjs-core';
+import {scalar, Tensor, tensor1d, tensor3d, tensor4d, tensor5d, util} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
@@ -1302,8 +1302,7 @@ describeMathGPU('SeparableConv2D Layer: Tensor', () => {
             it(testTitle, () => {
               let x = tensor4d(x5by5Data, [1, 5, 5, 1]);
               if (dataFormat === 'channelsFirst') {
-                x = tfc.transpose(x, [0, 3, 1, 2]) as
-                    Tensor4D;  // NHWC -> NCHW.
+                x = tfc.transpose(x, [0, 3, 1, 2]);  // NHWC -> NCHW.
               }
 
               const conv2dLayer = tfl.layers.separableConv2d({
@@ -1342,8 +1341,8 @@ describeMathGPU('SeparableConv2D Layer: Tensor', () => {
                   tensor4d(yExpectedData, [1, 3, 3, 1]) :
                   tensor4d(yExpectedData, [1, 4, 4, 1]);
               if (dataFormat === 'channelsFirst') {
-                yExpected = tfc.transpose(yExpected, [0, 3, 1, 2]) as
-                    Tensor4D;  // NHWC -> NCHW.
+                // NHWC -> NCHW.
+                yExpected = tfc.transpose(yExpected, [0, 3, 1, 2]);
               }
               expectTensorsClose(y, yExpected);
             });

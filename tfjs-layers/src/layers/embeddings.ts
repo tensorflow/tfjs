@@ -143,7 +143,7 @@ export class Embedding extends Layer {
         return null;
       } else {
         inputs = getExactlyOneTensor(inputs);
-        return notEqual(inputs, zerosLike(inputs as Tensor));
+        return notEqual(inputs, zerosLike(inputs));
       }
     });
   }

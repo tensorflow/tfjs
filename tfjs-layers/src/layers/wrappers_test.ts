@@ -327,8 +327,7 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
         .toEqual('concat');
   });
   it('mergeMode defaults to concat', () => {
-    const bidi = tfl.layers.bidirectional({layer: new SimpleRNN({units: 3})}) as
-        Bidirectional;
+    const bidi = tfl.layers.bidirectional({layer: new SimpleRNN({units: 3})});
     expect(bidi.mergeMode).toEqual('concat');
     expect(bidi.getConfig().mergeMode).toEqual('concat');
   });

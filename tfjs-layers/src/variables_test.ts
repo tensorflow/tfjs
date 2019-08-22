@@ -437,8 +437,7 @@ describeMathCPUAndGPU('batchSetValue', () => {
 describeMathCPUAndGPU('gradients', () => {
   it('Simple mean: 1 variable', () => {
     const var1 = new V.LayerVariable(tfc.mul(scalar(2.0), tfc.ones([2, 2])));
-    const gradients =
-        V.gradients(() => tfc.mean(var1.read()) as tfc.Scalar, [var1]);
+    const gradients = V.gradients(() => tfc.mean(var1.read()), [var1]);
     expect(gradients.length).toEqual(1);
     expectTensorsClose(
         tensor2d([[0.25, 0.25], [0.25, 0.25]], [2, 2]), gradients[0]);
@@ -447,8 +446,7 @@ describeMathCPUAndGPU('gradients', () => {
     const var1 = new V.LayerVariable(tensor2d([[1, 0], [0, 0]], [2, 2]));
     const var2 = new V.LayerVariable(tensor2d([[1, 0], [0, 1]], [2, 2]));
     const gradients = V.gradients(
-        () => tfc.mean(K.dot(var1.read(), var2.read())) as tfc.Scalar,
-        [var1, var2]);
+        () => tfc.mean(K.dot(var1.read(), var2.read())), [var1, var2]);
     expect(gradients.length).toEqual(2);
     // d(loss) / d(var1).
     expectTensorsClose(

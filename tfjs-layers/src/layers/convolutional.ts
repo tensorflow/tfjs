@@ -454,8 +454,7 @@ export abstract class BaseConv extends Layer {
         args.dilationRate == null ? 1 : args.dilationRate, rank,
         'dilationRate');
     if (this.rank === 1 &&
-        (Array.isArray(this.dilationRate) &&
-         (this.dilationRate as number[]).length !== 1)) {
+        (Array.isArray(this.dilationRate) && this.dilationRate.length !== 1)) {
       throw new ValueError(
           `dilationRate must be a number or an array of a single number ` +
           `for 1D convolution, but received ` +
@@ -811,7 +810,7 @@ export class Conv2DTranspose extends Conv2D {
           input as Tensor4D, this.kernel.read() as Tensor4D, outputShape,
           this.strides as [number, number], this.padding as 'same' | 'valid');
       if (this.dataFormat !== 'channelsLast') {
-        outputs = tfc.transpose(outputs, [0, 3, 1, 2]) as Tensor4D;
+        outputs = tfc.transpose(outputs, [0, 3, 1, 2]);
       }
 
       if (this.bias != null) {
@@ -1143,7 +1142,7 @@ export class Cropping2D extends Layer {
           [[args.cropping, args.cropping], [args.cropping, args.cropping]];
     } else if (typeof args.cropping[0] === 'number') {
       this.cropping = [
-        [args.cropping[0] as number, args.cropping[0] as number],
+        [args.cropping[0], args.cropping[0]],
         [args.cropping[1] as number, args.cropping[1] as number]
       ];
     } else {

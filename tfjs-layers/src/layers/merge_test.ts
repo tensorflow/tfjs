@@ -14,7 +14,7 @@
 
 import {ones, serialization, Tensor, tensor1d, Tensor2D, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
-import {Layer, SymbolicTensor} from '../engine/topology';
+import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
 import {Shape} from '../keras_format/common';
 import {deserialize} from '../layers/serialization';
@@ -72,12 +72,11 @@ describeMathCPU('Merge Layers Except Concatenate: Symbolic', () => {
 
 describeMathCPUAndGPU('Add-Functional', () => {
   it('Calling without arg returns Layer', () => {
-    expect((tfl.layers.add() as Layer).getClassName()).toEqual('Add');
+    expect((tfl.layers.add()).getClassName()).toEqual('Add');
   });
 
   it('Calling with config arg returns Layer', () => {
-    expect(
-        (tfl.layers.add({name: 'addLayer'}) as Layer).name.indexOf('addLayer'))
+    expect((tfl.layers.add({name: 'addLayer'})).name.indexOf('addLayer'))
         .toEqual(0);
   });
 
@@ -114,11 +113,11 @@ describeMathCPUAndGPU('Add-Functional', () => {
 
 describeMathCPUAndGPU('Multiply-Functional', () => {
   it('Calling without arg returns Layer', () => {
-    expect((tfl.layers.multiply() as Layer).getClassName()).toEqual('Multiply');
+    expect(tfl.layers.multiply().getClassName()).toEqual('Multiply');
   });
 
   it('Calling with config arg returns Layer', () => {
-    expect((tfl.layers.multiply({name: 'multiplyLayer'}) as Layer)
+    expect(tfl.layers.multiply({name: 'multiplyLayer'})
                .name.indexOf('multiplyLayer'))
         .toEqual(0);
   });
@@ -141,12 +140,12 @@ describeMathCPUAndGPU('Multiply-Functional', () => {
 
 describeMathCPUAndGPU('Average-Functional', () => {
   it('Calling without arg returns Layer', () => {
-    expect((tfl.layers.average() as Layer).getClassName()).toEqual('Average');
+    expect(tfl.layers.average().getClassName()).toEqual('Average');
   });
 
   it('Calling with config arg returns Layer', () => {
-    expect((tfl.layers.average({name: 'averageLayer'}) as Layer)
-               .name.indexOf('averageLayer'))
+    expect(
+        tfl.layers.average({name: 'averageLayer'}).name.indexOf('averageLayer'))
         .toEqual(0);
   });
 
@@ -168,12 +167,12 @@ describeMathCPUAndGPU('Average-Functional', () => {
 
 describeMathCPUAndGPU('Maximum-Functional', () => {
   it('Calling without arg returns Layer', () => {
-    expect((tfl.layers.maximum() as Layer).getClassName()).toEqual('Maximum');
+    expect(tfl.layers.maximum().getClassName()).toEqual('Maximum');
   });
 
   it('Calling with config arg returns Layer', () => {
-    expect((tfl.layers.maximum({name: 'maximumLayer'}) as Layer)
-               .name.indexOf('maximumLayer'))
+    expect(
+        tfl.layers.maximum({name: 'maximumLayer'}).name.indexOf('maximumLayer'))
         .toEqual(0);
   });
 
@@ -195,12 +194,12 @@ describeMathCPUAndGPU('Maximum-Functional', () => {
 
 describeMathCPUAndGPU('Minimum-Functional', () => {
   it('Calling without arg returns Layer', () => {
-    expect((tfl.layers.minimum() as Layer).getClassName()).toEqual('Minimum');
+    expect(tfl.layers.minimum().getClassName()).toEqual('Minimum');
   });
 
   it('Calling with config arg returns Layer', () => {
-    expect((tfl.layers.minimum({name: 'minimumLayer'}) as Layer)
-               .name.indexOf('minimumLayer'))
+    expect(
+        tfl.layers.minimum({name: 'minimumLayer'}).name.indexOf('minimumLayer'))
         .toEqual(0);
   });
 
@@ -222,12 +221,11 @@ describeMathCPUAndGPU('Minimum-Functional', () => {
 
 describeMathCPUAndGPU('Concatenate-Functional', () => {
   it('Calling without arg returns Layer', () => {
-    expect((tfl.layers.concatenate() as Layer).getClassName())
-        .toEqual('Concatenate');
+    expect(tfl.layers.concatenate().getClassName()).toEqual('Concatenate');
   });
 
   it('Calling with config arg returns Layer', () => {
-    expect((tfl.layers.concatenate({name: 'concatenateLayer'}) as Layer)
+    expect(tfl.layers.concatenate({name: 'concatenateLayer'})
                .name.indexOf('concatenateLayer'))
         .toEqual(0);
   });

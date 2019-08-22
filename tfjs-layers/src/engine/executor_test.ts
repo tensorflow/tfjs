@@ -152,8 +152,7 @@ describeMathCPUAndGPU('Executor', () => {
       const xValue = ones([2, 2]);
       const feedDict = new FeedDict().add(x, xValue);
       expectTensorsClose(
-          execute(x as tfl.SymbolicTensor, feedDict) as Tensor,
-          tensor2d([1, 1, 1, 1], [2, 2]));
+          execute(x, feedDict) as Tensor, tensor2d([1, 1, 1, 1], [2, 2]));
     });
     it('Input to Dense', () => {
       const xValue = ones([2, 2]);
@@ -190,8 +189,7 @@ describeMathCPUAndGPU('Executor', () => {
         y = tfl.layers.reshape({targetShape:　i % 2 === 0 ? [6] : [3, 2]})
                 .apply(y) as tfl.SymbolicTensor;
       }
-      const feedDict = new FeedDict(
-          [{key: input as tfl.SymbolicTensor, value: zeros([4, 2, 3])}]);
+      const feedDict = new FeedDict([{key: input, value: zeros([4, 2, 3])}]);
       const numTensors0 = memory().numTensors;
       const probe: ExecutionProbe = {};
       dispose(execute(y, feedDict, null, probe));
