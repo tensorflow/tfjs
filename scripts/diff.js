@@ -17,6 +17,12 @@
 const {exec} = require('./test-util');
 const {readdirSync, statSync, writeFileSync} = require('fs');
 const {join} = require('path');
+const fs = require('fs');
+
+const filesWhitelistToTriggerBuild = [
+  'cloudbuild.yml', 'package.json', 'tsconfig.json', 'tslint.json',
+  'scripts/diff.js', 'scripts/run-build.sh'
+];
 
 const CLONE_PATH = 'clone';
 
@@ -28,14 +34,47 @@ exec(
     `git clone --depth=1 --single-branch ` +
     `https://github.com/tensorflow/tfjs ${CLONE_PATH}`);
 
-dirs.forEach(dir => {
-  const diffCmd = `diff -rq ${CLONE_PATH}/${dir}/ ./${dir}/`;
-  const diffOutput = exec(diffCmd, {silent: true}, true).stdout.trim();
+let triggerAllBuilds = false;
+let whitelistDiffOutput = [];
+filesWhitelistToTriggerBuild.forEach(fileToTriggerBuild => {
+  const diffOutput = diff(fileToTriggerBuild);
+  if (diffOutput !== '') {
+    console.log(fileToTriggerBuild, 'has changed. Triggering all builds.');
+    triggerAllBuilds = true;
+    whitelistDiffOutput.push(diffOutput);
+  }
+});
 
+// Break up the console for readability.
+console.log();
+
+let triggeredBuilds = [];
+dirs.forEach(dir => {
+  const diffOutput = diff(`${dir}/`);
   if (diffOutput !== '') {
     console.log(`${dir} has modified files.`);
-    writeFileSync(join(dir, 'diff'), diffOutput);
   } else {
     console.log(`No modified files found in ${dir}`);
   }
+
+  const shouldDiff = diffOutput !== '' || triggerAllBuilds;
+  if (shouldDiff) {
+    const diffContents = whitelistDiffOutput.join('\n') + '\n' + diffOutput;
+    writeFileSync(join(dir, 'diff'), diffContents);
+    triggeredBuilds.push(dir);
+  }
 });
+
+// Break up the console for readability.
+console.log();
+
+// Filter the triggered builds to log by whether a cloudbuild.yml file exists
+// for that directory.
+triggeredBuilds = triggeredBuilds.filter(
+    triggeredBuild => fs.existsSync(triggeredBuild + '/cloudbuild.yml'));
+console.log('Triggering builds for ', triggeredBuilds.join(', '));
+
+function diff(fileOrDirName) {
+  const diffCmd = `diff -rq ${CLONE_PATH}/${fileOrDirName} ./${fileOrDirName}`;
+  return exec(diffCmd, {silent: true}, true).stdout.trim();
+}
