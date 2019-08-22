@@ -97,7 +97,7 @@ function basicLSTMCell_(
 
   const combined = $data.concat($h, 1);
   const weighted = combined.matMul($lstmKernel);
-  const res = weighted.add($lstmBias) as Tensor2D;
+  const res: Tensor2D = weighted.add($lstmBias);
 
   // i = input_gate, j = new_input, f = forget_gate, o = output_gate
   const batchSize = res.shape[0];

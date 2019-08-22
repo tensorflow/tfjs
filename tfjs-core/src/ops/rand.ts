@@ -194,7 +194,7 @@ export class UniformRandom implements RandomBase {
       throw new Error(
           `The difference between ${min} - ${max} <= 1 and dtype is not float`);
     }
-    this.random = seedrandom.alea(seed as string);
+    this.random = seedrandom.alea(seed);
   }
 
   /** Handles proper rounding for non floating point numbers. */

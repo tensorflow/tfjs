@@ -346,7 +346,7 @@ function throwIfNull<T>(
   if (tOrNull == null) {
     throw new Error(failureMessage);
   }
-  return tOrNull as T;
+  return tOrNull;
 }
 
 function validateTextureUnit(gl: WebGLRenderingContext, textureUnit: number) {

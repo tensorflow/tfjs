@@ -112,7 +112,7 @@ function logSoftmax_<T extends Tensor>(logits: T|TensorLike, axis = -1): T {
     const xMax = logits.max(axis, true);
     const shifted = logits.sub(xMax);
     const value =
-        shifted.toFloat().sub(shifted.exp().sum(axis, keepDims).log()) as T;
+        shifted.toFloat().sub(shifted.exp().sum(axis, keepDims).log());
     save([value]);
     const gradFunc = (dy: T, saved: Tensor[]) => {
       const [value] = saved;
@@ -123,7 +123,7 @@ function logSoftmax_<T extends Tensor>(logits: T|TensorLike, axis = -1): T {
     return {value, gradFunc};
   });
 
-  return customOp($logits);
+  return customOp($logits) as T;
 }
 
 export const softmax = op({softmax_});

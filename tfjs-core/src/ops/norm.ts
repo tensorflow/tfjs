@@ -100,7 +100,7 @@ function normImpl(
     }
     if (p === 'euclidean' || p === 2) {
       // norm(x, 2) = sum(abs(xi) ^ 2) ^ 1/2
-      return x.abs().pow(scalar(2, 'int32')).sum(axis).sqrt() as Tensor;
+      return x.abs().pow(scalar(2, 'int32')).sum(axis).sqrt();
     }
 
     throw new Error(`Error in norm: invalid ord value: ${p}`);

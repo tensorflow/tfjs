@@ -367,7 +367,7 @@ function mulStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'mul');
   const $b = convertToTensor(b, 'b', 'mul');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in multiplyStrict: ');
-  return $a.mul($b) as T;
+  return $a.mul($b);
 }
 
 /**
@@ -423,8 +423,8 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
       if (reduceAxes.length > 0) {
         res = res.sum(reduceAxes).reshape($b.shape);
       }
-      const tmp = $b.square() as Tensor;
-      return res.div(tmp.toFloat()).neg() as Tensor;
+      const tmp = $b.square();
+      return res.div(tmp.toFloat()).neg();
     };
     return {$a: derA, $b: derB};
   };
@@ -484,8 +484,8 @@ function floorDiv_<T extends Tensor>(
       if (reduceAxes.length > 0) {
         res = res.sum(reduceAxes).reshape($b.shape);
       }
-      const tmp = $b.square() as Tensor;
-      return res.div(tmp.toFloat()).neg() as Tensor;
+      const tmp = $b.square();
+      return res.div(tmp.toFloat()).neg();
     };
     return {$a: derA, $b: derB};
   };
@@ -507,7 +507,7 @@ function divStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'div');
   const $b = convertToTensor(b, 'b', 'div');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in divideStrict: ');
-  return $a.div($b) as T;
+  return $a.div($b);
 }
 
 /**
@@ -817,7 +817,7 @@ function atan2_<T extends Tensor>(
       return res.reshape($a.shape);
     };
     const derB = () => {
-      const d = add($a.square(), $b.square()) as T;
+      const d = add($a.square(), $b.square());
       let res = neg(dy.mul($a.div(d)));
       const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
       if (reduceAxes.length > 0) {
