@@ -161,7 +161,6 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
   optimized_graph = tf_optimizer.OptimizeGraph(
       config, meta_graph, cluster=get_cluster())
 
-  print(optimized_graph.node)
   # batch norm folding
   optimized_graph = fold_batch_norms(optimized_graph)
 
