@@ -47,13 +47,6 @@ steps:
   args: ['./scripts/run-build.sh', 'tfjs']
   waitFor: ['diff']
 
-# Vis.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs-vis'
-  args: ['./scripts/run-build.sh', 'tfjs-vis']
-  waitFor: ['diff']
-
 # WebGPU.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
@@ -66,6 +59,13 @@ steps:
   entrypoint: 'bash'
   id: 'tfjs-react-native'
   args: ['./scripts/run-build.sh', 'tfjs-react-native']
+  waitFor: ['diff']
+
+# Node.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-node'
+  args: ['./scripts/run-build.sh', 'tfjs-node']
   waitFor: ['diff']
 
 # Integration tests

@@ -131,11 +131,19 @@ export class PlatformReactNative implements Platform {
    * encoding.
    */
   encode(text: string, encoding: string): Uint8Array {
-    throw new Error('not yet implemented');
+    // See https://www.w3.org/TR/encoding/#utf-16le
+    if (encoding === 'utf-16') {
+      encoding = 'utf16le';
+    }
+    return new Uint8Array(Buffer.from(text, encoding as BufferEncoding));
   }
   /** Decode the provided bytes into a string using the provided encoding. */
   decode(bytes: Uint8Array, encoding: string): string {
-    throw new Error('not yet implemented');
+    // See https://www.w3.org/TR/encoding/#utf-16le
+    if (encoding === 'utf-16') {
+      encoding = 'utf16le';
+    }
+    return Buffer.from(bytes).toString(encoding);
   }
 
   now(): number {
