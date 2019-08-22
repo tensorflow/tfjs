@@ -537,9 +537,8 @@ describe('util.encodeString', () => {
     expect(res).toEqual(new Uint8Array([]));
   });
 
-  it('Encode an empty string, encoding must be utf-8', () => {
-    expect(() => util.encodeString('', 'utf-16'))
-        .toThrowError(/only supports utf-8, but got utf-16/);
+  it('Encode an empty string, invalid decoding', () => {
+    expect(() => util.encodeString('', 'foobarbax')).toThrowError();
   });
 
   it('Encode cyrillic letters', () => {
@@ -574,6 +573,17 @@ describe('util.decodeString', () => {
   it('decode utf-16', () => {
     const s = util.decodeString(
         new Uint8Array([255, 254, 237, 139, 0, 138, 4, 89, 6, 116]), 'utf-16');
-    expect(s).toEqual('语言处理');
+
+    // UTF-16 allows optional presence of byte-order-mark (BOM)
+    // Construct string for '语言处理', with and without BOM
+    const expected = String.fromCodePoint(0x8bed, 0x8a00, 0x5904, 0x7406);
+    const expectedBOM =
+        String.fromCodePoint(0xfeff, 0x8bed, 0x8a00, 0x5904, 0x7406);
+
+    if (s.codePointAt(0) === 0xfeff) {
+      expect(s).toEqual(expectedBOM);
+    } else {
+      expect(s).toEqual(expected);
+    }
   });
 });
