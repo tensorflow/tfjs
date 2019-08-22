@@ -30,7 +30,7 @@ while true; do
 
     if [[ -z "${HASH}" ]]; then
       echo "ERROR: Failed to retrieve git commit hash" 1>&2
-      exit o
+      exit 1
     fi
 
     LOG_FLAG="--log"
