@@ -26,6 +26,8 @@ export class PadProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
+  workPerThread = 4;
+  workGroupSize: [number, number, number] = [1, 1, 1];
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
