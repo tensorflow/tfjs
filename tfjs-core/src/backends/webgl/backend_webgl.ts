@@ -387,9 +387,14 @@ export class MathBackendWebGL implements KernelBackend {
 
   readSync(dataId: DataId): BackendValues {
     const texData = this.texData.get(dataId);
-    const {values, dtype, complexTensors, slice, shape} = texData;
+    const {values, dtype, complexTensors, slice, shape, isPacked} = texData;
     if (slice != null) {
-      const program = new UnaryOpProgram(shape, unary_op.CLONE);
+      let program;
+      if (isPacked) {
+        program = new UnaryOpPackedProgram(shape, unary_packed_op.CLONE);
+      } else {
+        program = new UnaryOpProgram(shape, unary_op.CLONE);
+      }
       const res = this.compileAndRun(program, [{dataId, shape, dtype}]);
       const data = this.readSync(res.dataId);
       (res as Tensor).dispose();
@@ -428,10 +433,15 @@ export class MathBackendWebGL implements KernelBackend {
       return new Promise<TypedArray>(resolve => subscribers.push(resolve));
     }
     const texData = this.texData.get(dataId);
-    const {values, shape, slice, dtype, complexTensors} = texData;
+    const {values, shape, slice, dtype, complexTensors, isPacked} = texData;
 
     if (slice != null) {
-      const program = new UnaryOpProgram(shape, unary_op.CLONE);
+      let program;
+      if (isPacked) {
+        program = new UnaryOpPackedProgram(shape, unary_packed_op.CLONE);
+      } else {
+        program = new UnaryOpProgram(shape, unary_op.CLONE);
+      }
       const res = this.compileAndRun(program, [{dataId, shape, dtype}]);
       const data = this.read(res.dataId);
       (res as Tensor).dispose();
@@ -1471,6 +1481,12 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun<Tensor>(program, [a, b], output);
   }
 
+  private packedUnaryOp(x: TensorHandle, op: string, dtype: DataType) {
+    const program = new UnaryOpPackedProgram(x.shape, op);
+    const output = this.makePackedTensor(program.outputShape, dtype) as Tensor;
+    return this.compileAndRun<Tensor>(program, [x], output);
+  }
+
   private packedBinaryOp(
       a: TensorHandle, b: TensorHandle, op: string, dtype: DataType,
       checkOutOfBounds = false) {
@@ -1722,6 +1738,14 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   abs<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.abs(x);
+    }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_packed_op.ABS, x.dtype) as T;
+    }
+
     const program = new UnaryOpProgram(x.shape, unary_op.ABS);
     return this.compileAndRun(program, [x]) as T;
   }
