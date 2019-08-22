@@ -135,4 +135,11 @@ describeWebGPU('Ops benchmarks', () => {
 
     await time(() => tf.depthwiseConv2d(x, w, 1, 'valid'));
   });
+
+  fit('pad', async () => {
+    // master: 39 / 43
+    const a = tf.randomNormal([1, 129, 129, 64]);
+
+    await time(() => tf.pad(a, [[0, 1], [0, 1], [0, 1], [0, 1]]));
+  });
 });
