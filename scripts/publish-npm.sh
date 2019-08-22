@@ -28,6 +28,13 @@ BRANCH=`git rev-parse --abbrev-ref HEAD`
 ORIGIN=`git config --get remote.origin.url`
 CHANGES=`git status --porcelain`
 
+# Yarn in the top-level and in the directory,
+yarn
+cd $1
+# Yarn above the other checks to make sure yarn doesn't change the lock file.
+yarn
+cd ..
+
 PACKAGE_JSON_FILE="$1/package.json"
 if ! test -f "$PACKAGE_JSON_FILE"; then
   echo "$PACKAGE_JSON_FILE does not exist."
