@@ -65,13 +65,13 @@ export class PadProgram implements WebGPUProgram {
       void main() {
         int index = int(gl_GlobalInvocationID.x);
 
-        for(int i=0; i<${this.workPerThread}; i++) {
+        for (int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
 
-          if(flatIndex < ${size}) {
+          if (flatIndex < ${size}) {
             ${type} outC = getCoordsFromFlatIndex(flatIndex);
 
-            if(${leftPadCondition} || ${rightPadCondition}) {
+            if (${leftPadCondition} || ${rightPadCondition}) {
               setOutput(flatIndex, ${constantValue});
             } else {
               ${type} coords = outC - start;
