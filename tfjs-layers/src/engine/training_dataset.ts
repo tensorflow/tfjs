@@ -216,7 +216,7 @@ function standardizeDataIteratorOutput(
           'objects of the form `{xs: xVal, ys: yVal}`, where the two ' +
           'values may be `tf.Tensor`, an array of Tensors, or a map of ' +
           'string to Tensor.  The provided Dataset instead generates ' +
-          iteratorOut);
+          `${iteratorOut}`);
 
   const flattenedXs: tfc.Tensor[] =
       flattenTensorOrArrayOrMap('input', model.inputNames, xs);

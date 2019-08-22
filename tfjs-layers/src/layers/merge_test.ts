@@ -16,8 +16,8 @@ import {ones, serialization, Tensor, tensor1d, Tensor2D, tensor2d, tensor3d} fro
 
 import {Layer, SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
-import {deserialize} from '../layers/serialization';
 import {Shape} from '../keras_format/common';
+import {deserialize} from '../layers/serialization';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
@@ -249,7 +249,6 @@ describeMathCPUAndGPU('Concatenate-Functional', () => {
   });
 });
 
-
 describeMathCPU('Concatenate Layer: Symbolic', () => {
   it('All known shapes', () => {
     const x1 = new tfl.SymbolicTensor('float32', [2, 3, 4], null, [], null);
@@ -447,8 +446,9 @@ describeMathCPUAndGPU('Concatenate Layer: Tensor', () => {
     const layer = tfl.layers.concatenate();
     const x1 = tensor2d([[1], [0], [1]]);
     const x2 = tensor2d([[1], [0], [0]]);
-    const mask = layer.computeMask(
-        [x1, x2], [x1.asType('bool'), x2.asType('bool')]) as Tensor;
+    const mask =
+        layer.computeMask([x1, x2], [x1.asType('bool'), x2.asType('bool')]) as
+        Tensor;
     expectTensorsClose(mask, tensor1d([true, false, false], 'bool'));
   });
 
@@ -501,48 +501,52 @@ describeMathCPUAndGPU('Concatenate Layer: Tensor', () => {
   it('With masking', () => {
     const input1 = tfl.input({shape: [4]});
     const input2 = tfl.input({shape: [4]});
-    let y1 = tfl.layers.embedding({
-      inputDim: 10,
-      outputDim: 3,
-      inputLength: 4,
-      maskZero: true,
-      embeddingsInitializer: 'ones'
-    }).apply(input1) as SymbolicTensor;
-    y1 = tfl.layers.lstm({
-      units: 3,
-      recurrentInitializer: 'ones',
-      kernelInitializer: 'ones',
-      biasInitializer: 'zeros'
-    }).apply(y1) as SymbolicTensor;
-    let y2 = tfl.layers.embedding({
-      inputDim: 10,
-      outputDim: 3,
-      inputLength: 4,
-      maskZero: true,
-      embeddingsInitializer: 'ones'
-    }).apply(input2) as SymbolicTensor;
-    y2 = tfl.layers.lstm({
-      units: 3,
-      recurrentInitializer: 'ones',
-      kernelInitializer: 'ones',
-      biasInitializer: 'zeros'
-    }).apply(y2) as SymbolicTensor;
+    let y1 = tfl.layers
+                 .embedding({
+                   inputDim: 10,
+                   outputDim: 3,
+                   inputLength: 4,
+                   maskZero: true,
+                   embeddingsInitializer: 'ones'
+                 })
+                 .apply(input1) as SymbolicTensor;
+    y1 = tfl.layers
+             .lstm({
+               units: 3,
+               recurrentInitializer: 'ones',
+               kernelInitializer: 'ones',
+               biasInitializer: 'zeros'
+             })
+             .apply(y1) as SymbolicTensor;
+    let y2 = tfl.layers
+                 .embedding({
+                   inputDim: 10,
+                   outputDim: 3,
+                   inputLength: 4,
+                   maskZero: true,
+                   embeddingsInitializer: 'ones'
+                 })
+                 .apply(input2) as SymbolicTensor;
+    y2 = tfl.layers
+             .lstm({
+               units: 3,
+               recurrentInitializer: 'ones',
+               kernelInitializer: 'ones',
+               biasInitializer: 'zeros'
+             })
+             .apply(y2) as SymbolicTensor;
     let y = tfl.layers.concatenate().apply([y1, y2]) as SymbolicTensor;
-    y = tfl.layers.dense({
-      units: 1,
-      kernelInitializer: 'ones',
-      biasInitializer: 'zeros'
-    }).apply(y) as SymbolicTensor;
-    const model = tfl.model({
-      inputs: [input1, input2],
-      outputs: y
-    });
+    y = tfl.layers
+            .dense(
+                {units: 1, kernelInitializer: 'ones', biasInitializer: 'zeros'})
+            .apply(y) as SymbolicTensor;
+    const model = tfl.model({inputs: [input1, input2], outputs: y});
 
-    const xs1 = tensor2d(
-        [[0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0], [1, 2, 3, 0]]);
+    const xs1 =
+        tensor2d([[0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0], [1, 2, 3, 0]]);
     // Notice the mask of xs2 is different from that of xs1.
-    const xs2 = tensor2d(
-        [[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0]]);
+    const xs2 =
+        tensor2d([[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0]]);
     const ys = model.predict([xs1, xs2]) as Tensor;
     expectTensorsClose(
         ys, tensor2d([[0], [2.2785282], [5.169547], [5.8760333]]));
@@ -958,48 +962,52 @@ describeMathCPUAndGPU('Dot-Layer: Tensor', () => {
   it('With masking', () => {
     const input1 = tfl.input({shape: [4]});
     const input2 = tfl.input({shape: [4]});
-    let y1 = tfl.layers.embedding({
-      inputDim: 10,
-      outputDim: 3,
-      inputLength: 4,
-      maskZero: true,
-      embeddingsInitializer: 'ones'
-    }).apply(input1) as SymbolicTensor;
-    y1 = tfl.layers.lstm({
-      units: 3,
-      recurrentInitializer: 'ones',
-      kernelInitializer: 'ones',
-      biasInitializer: 'zeros'
-    }).apply(y1) as SymbolicTensor;
-    let y2 = tfl.layers.embedding({
-      inputDim: 10,
-      outputDim: 3,
-      inputLength: 4,
-      maskZero: true,
-      embeddingsInitializer: 'ones'
-    }).apply(input2) as SymbolicTensor;
-    y2 = tfl.layers.lstm({
-      units: 3,
-      recurrentInitializer: 'ones',
-      kernelInitializer: 'ones',
-      biasInitializer: 'zeros'
-    }).apply(y2) as SymbolicTensor;
+    let y1 = tfl.layers
+                 .embedding({
+                   inputDim: 10,
+                   outputDim: 3,
+                   inputLength: 4,
+                   maskZero: true,
+                   embeddingsInitializer: 'ones'
+                 })
+                 .apply(input1) as SymbolicTensor;
+    y1 = tfl.layers
+             .lstm({
+               units: 3,
+               recurrentInitializer: 'ones',
+               kernelInitializer: 'ones',
+               biasInitializer: 'zeros'
+             })
+             .apply(y1) as SymbolicTensor;
+    let y2 = tfl.layers
+                 .embedding({
+                   inputDim: 10,
+                   outputDim: 3,
+                   inputLength: 4,
+                   maskZero: true,
+                   embeddingsInitializer: 'ones'
+                 })
+                 .apply(input2) as SymbolicTensor;
+    y2 = tfl.layers
+             .lstm({
+               units: 3,
+               recurrentInitializer: 'ones',
+               kernelInitializer: 'ones',
+               biasInitializer: 'zeros'
+             })
+             .apply(y2) as SymbolicTensor;
     let y = tfl.layers.dot({axes: [-1, -1]}).apply([y1, y2]) as SymbolicTensor;
-    y = tfl.layers.dense({
-      units: 1,
-      kernelInitializer: 'ones',
-      biasInitializer: 'zeros'
-    }).apply(y) as SymbolicTensor;
-    const model = tfl.model({
-      inputs: [input1, input2],
-      outputs: y
-    });
+    y = tfl.layers
+            .dense(
+                {units: 1, kernelInitializer: 'ones', biasInitializer: 'zeros'})
+            .apply(y) as SymbolicTensor;
+    const model = tfl.model({inputs: [input1, input2], outputs: y});
 
-    const xs1 = tensor2d(
-        [[0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0], [1, 2, 3, 0]]);
+    const xs1 =
+        tensor2d([[0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0], [1, 2, 3, 0]]);
     // Notice the mask of xs2 is different from that of xs1.
-    const xs2 = tensor2d(
-        [[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0]]);
+    const xs2 =
+        tensor2d([[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0]]);
     const ys = model.predict([xs1, xs2]) as Tensor;
     expectTensorsClose(ys, tensor2d([[0], [0], [2.195756], [2.8765779]]));
   });

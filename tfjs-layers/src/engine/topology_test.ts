@@ -313,7 +313,6 @@ describeMathCPU('Layer', () => {
     });
   });
 
-
   it('can be set to built.', () => {
     const layer = new LayerForTest({});
     layer.built = true;

@@ -26,7 +26,6 @@ import {RNN, SimpleRNN} from './recurrent';
 import {deserialize} from './serialization';
 import {Bidirectional, checkBidirectionalMergeMode, TimeDistributed} from './wrappers';
 
-
 describeMathCPU('TimeDistributed Layer: Symbolic', () => {
   it('3D input: Dense', () => {
     const input = new tfl.SymbolicTensor('float32', [10, 8, 2], null, [], null);
@@ -121,7 +120,6 @@ describeMathCPUAndGPU('TimeDistributed Layer: Tensor', () => {
                          [0.33333334, 0.33333334, 0.33333334]
                        ]]));
   });
-
 
   // Reference Python code:
   // ```py

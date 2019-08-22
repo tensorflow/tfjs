@@ -28,7 +28,6 @@ import {LayerVariable} from '../variables';
 import {rnn, RNN, standardizeArgs} from './recurrent';
 import {deserialize} from './serialization';
 
-
 export declare interface WrapperLayerArgs extends LayerArgs {
   /**
    * The layer to be wrapped.

@@ -21,7 +21,6 @@ import * as tfl from './index';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 import * as V from './variables';
 
-
 /**
  * Unit tests for Variable.
  */
@@ -119,7 +118,6 @@ describeMathCPU('Variable', () => {
     v.write(tensor1d([-10, 10]));
     expect(v.read().dataSync()).toEqual(new Float32Array([0, 10]));
   });
-
 
   it('Update value: Incompatible shape', () => {
     const v = new V.LayerVariable(zeros([2, 2]), null, 'qux');

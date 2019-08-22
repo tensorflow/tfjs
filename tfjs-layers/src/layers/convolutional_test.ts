@@ -23,7 +23,6 @@ import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsCl
 
 import {conv1d, conv1dWithBias, conv2d, conv2dWithBiasActivation, conv3d, conv3dWithBias} from './convolutional';
 
-
 describeMathCPUAndGPU('conv1dWithBias', () => {
   const xLength4Data = [10, 20, 40, 80];
   const kernelLength2Data = [1, -1];
@@ -237,7 +236,6 @@ describeMathCPUAndGPU('conv2dWithBiasActivation', () => {
     }
   }
 });
-
 
 describeMathCPU('Conv2D Layers: Symbolic', () => {
   const filtersArray = [1, 64];
@@ -626,7 +624,6 @@ describeMathCPUAndGPU('conv3d', () => {
     }
   }
 });
-
 
 describeMathCPU('Conv3D Layers: Symbolic', () => {
   const filtersArray = [1, 64];
@@ -1412,7 +1409,6 @@ describeMathCPUAndGPU('Cropping2D Layer', () => {
     expectTensorsClose(layer.apply(x, null) as Tensor, y);
   });
 
-
   it('check with channels first', () => {
     const layer = tfl.layers.cropping2D(
         {cropping: [[1, 1], [1, 1]], dataFormat: 'channelsFirst'});
@@ -1547,7 +1543,6 @@ describeMathCPUAndGPU('UpSampling2D Layer', () => {
     expectTensorsClose(layer.apply(x, null) as Tensor, y);
   });
 
-
   it('channels last', () => {
     const layer =
         tfl.layers.upSampling2d({size: [2, 2], dataFormat: 'channelsLast'});
@@ -1568,7 +1563,6 @@ describeMathCPUAndGPU('UpSampling2D Layer', () => {
 
     expectTensorsClose(layer.apply(x, null) as Tensor, y);
   });
-
 
   it('channels first', () => {
     const layer =

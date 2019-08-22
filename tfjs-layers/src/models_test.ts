@@ -574,7 +574,7 @@ describeMathCPU('loadLayersModel from URL', () => {
         setupFakeWeightFiles(fileBufferMap);
         // Use a randomly generated layer name to prevent interaction with
         // other unit tests that load the same sample JSON.
-        const denseLayerName = 'dense_' + Math.floor(Math.random() * 1e9);
+        const denseLayerName = `dense_${Math.floor(Math.random() * 1e9)}`;
         const weightsManifest: io.WeightsManifestConfig = [
           {
             'paths': ['weight_0'],
@@ -986,7 +986,6 @@ describeMathCPU('loadLayersModel from URL', () => {
     expectTensorsClose(weightValues[3], ones([1]));
   });
 
-
   it('load topology and weights with browserHTTPRequest with requestInit',
      async () => {
        const modelTopology =
@@ -1129,7 +1128,7 @@ describeMathCPU('loadLayersModel from URL', () => {
     });
     // Use a randomly generated layer name to prevent interaction with other
     // unit tests that load the same sample JSON.
-    const denseLayerName = 'dense_' + Math.floor(Math.random() * 1e9);
+    const denseLayerName = `dense_${Math.floor(Math.random() * 1e9)}`;
     const weightsManifest: io.WeightsManifestConfig = [
       {
         'paths': ['weight_0'],
@@ -2495,7 +2494,6 @@ const fakeRNNModel: ModelAndWeightsConfig = {
     }
   }
 } */
-
 
 const fakeNonSequentialModel: ModelAndWeightsConfig = {
   modelTopology: {

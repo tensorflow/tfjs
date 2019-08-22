@@ -25,7 +25,6 @@ import {DataFormat, Shape} from '../keras_format/common';
 import {Kwargs} from '../types';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 
-
 /**
  * Pads the middle dimension of a 3D tensor.
  *

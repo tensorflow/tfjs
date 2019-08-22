@@ -183,7 +183,6 @@ describeMathCPUAndGPU('Executor', () => {
          expect(() => execute(y as tfl.SymbolicTensor, feedDict)).toThrow();
        });
 
-
     it('Maximum memory use under linear graph topology', () => {
       const input = tfl.input({shape: [2, 3]});
       let y: tfl.SymbolicTensor = input;

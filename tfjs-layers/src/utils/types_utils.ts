@@ -15,7 +15,6 @@ import {ValueError} from '../errors';
 import {Shape} from '../keras_format/common';
 // tslint:enable
 
-
 /**
  * Determine whether the input is an Array of Shapes.
  */

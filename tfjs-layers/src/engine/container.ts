@@ -108,7 +108,7 @@ export abstract class Container extends Layer {
       throw new ValueError(
           'The list of inputs passed to the model is ' +
           'redundant. All inputs should only appear once. Found: ' +
-          this.inputs.map(x => x.name));
+          `${this.inputs.map(x => x.name)}`);
     }
 
     // Check for redundancy in outputs.
@@ -116,7 +116,7 @@ export abstract class Container extends Layer {
       console.warn(
           'The list of outputs passed to the model is redundant. ' +
           'All outputs should only appear once. Found: ' +
-          this.outputs.map(x => x.name));
+          `${this.outputs.map(x => x.name)}`);
     }
 
     /*

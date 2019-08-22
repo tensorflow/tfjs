@@ -862,7 +862,6 @@ describeMathCPUAndGPU('1D Global Pooling Layers: Tensor', () => {
   }
 });
 
-
 describe('2D Global pooling Layers: Symbolic', () => {
   const globalPoolingLayers =
       [tfl.layers.globalAveragePooling2d, tfl.layers.globalMaxPooling2d];

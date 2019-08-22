@@ -30,7 +30,6 @@ import {LayerVariable} from '../variables';
 
 import {BaseConv, BaseConvLayerArgs, ConvLayerArgs, preprocessConv2DInput} from './convolutional';
 
-
 /**
  * 2D convolution with separable filters.
  * @param x Input tensor.

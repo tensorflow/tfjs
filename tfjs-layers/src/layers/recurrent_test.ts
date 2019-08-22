@@ -194,7 +194,6 @@ describeMathCPUAndGPU('rnn', () => {
   });
 });
 
-
 /**
  * A simplistic RNNCell for testing.
  *
@@ -1105,7 +1104,6 @@ describeMathCPU('GRU Symbolic', () => {
        expect(gru.weights.length).toEqual(3);
      });
 
-
   for (const implementation of [1, 2]) {
     it('Serialization round trip', () => {
       const layer = tfl.layers.gru({units: 4, implementation});
@@ -1644,7 +1642,6 @@ describeMathCPU('LSTM Symbolic', () => {
        expect(lstm.nonTrainableWeights.length).toEqual(0);
        expect(lstm.weights.length).toEqual(3);
      });
-
 
   for (const implementation of [1, 2]) {
     it('Serialization round trip', () => {

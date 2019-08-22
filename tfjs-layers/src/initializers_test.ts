@@ -23,7 +23,6 @@ import * as math_utils from './utils/math_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectNoLeakedTensors, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
 
-
 describeMathCPU('Zeros initializer', () => {
   it('1D', () => {
     const init = getInitializer('zeros');
@@ -151,7 +150,6 @@ describeMathCPU('Identity initializer', () => {
     expectTensorsClose(weights, tensor2d([5, 0, 0, 5], [2, 2]));
   });
 });
-
 
 describeMathCPU('RandomUniform initializer', () => {
   const shape = [7, 2];
@@ -523,7 +521,6 @@ describe('Invalid intializer identifier', () => {
     }).toThrowError();
   });
 });
-
 
 describe('checkFanMode', () => {
   it('Valid values', () => {

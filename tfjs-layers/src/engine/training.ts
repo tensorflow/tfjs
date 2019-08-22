@@ -43,7 +43,6 @@ import {evaluateDataset, fitDataset, ModelEvaluateDatasetArgs, ModelFitDatasetAr
 import {checkBatchSize, disposeNewTensors, ensureTensorsRank2OrHigher, fitTensors, makeBatches, ModelFitArgs, sliceArrays, sliceArraysByIndices} from './training_tensors';
 import {ClassWeight, ClassWeightMap, computeWeightedLoss, standardizeClassWeights, standardizeWeights} from './training_utils';
 
-
 /**
  * Helper function for polymorphic input data: 1. singleton Tensor.
  */
@@ -374,7 +373,7 @@ export function collectMetrics(
   } else {
     throw new TypeError(
         'Type of metrics argument not understood. Expected an string,' +
-        'function, Array, or Object, found: ' + metrics);
+        `function, Array, or Object, found: ${metrics}`);
   }
 
   if (Array.isArray(wrappedMetrics)) {
