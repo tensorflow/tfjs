@@ -56,7 +56,8 @@ const IGNORE_LIST: string[] = [
   'maxPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
   'avgPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
   // libtensorflow doesn't support 6D ArgMax yet.
-  'Reduction: argmax test-tensorflow {} 6D, axis=0'
+  'Reduction: argmax test-tensorflow {} 6D, axis=0',
+  'diag test-tensorflow {} complex', 'NCHW'
 ];
 
 if (process.platform === 'win32') {
