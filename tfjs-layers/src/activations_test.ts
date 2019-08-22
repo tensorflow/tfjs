@@ -284,29 +284,13 @@ describeMathCPUAndGPU('logsoftmax activation', () => {
     expectTensorsClose(logsoftmax(initX), expectedVals);
   });
   it('2D', () => {
-    const initX = tensor2d([
-      [
-        0,
-        1,
-        3,
-        9,
-      ],
-      [0, 1, 3, 9]
-    ]);
+    const initX = tensor2d([[0, 1, 3, 9], [0, 1, 3, 9]]);
     const expectedVals = tensor2d(
         [[-9.003, -8.003, -6.003, -0.003], [-9.003, -8.003, -6.003, -0.003]]);
     expectTensorsClose(logsoftmax(initX), expectedVals);
   });
   it('3D', () => {
-    const initX = tensor3d([[
-      [
-        0,
-        1,
-        3,
-        9,
-      ],
-      [0, 1, 3, 9]
-    ]]);
+    const initX = tensor3d([[[0, 1, 3, 9], [0, 1, 3, 9]]]);
     const expectedVals = tensor3d(
         [[[-9.003, -8.003, -6.003, -0.003], [-9.003, -8.003, -6.003, -0.003]]]);
     expectTensorsClose(logsoftmax(initX), expectedVals);
