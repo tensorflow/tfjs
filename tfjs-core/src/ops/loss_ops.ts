@@ -420,7 +420,7 @@ function softmaxCrossEntropyWithLogits_<T extends Tensor, O extends Tensor>(
         save([labels, logResult]);
 
         const costVector = logResult.mul(labels).neg();
-        const value = costVector.sum([dim]) as O;
+        const value: O = costVector.sum([dim]);
 
         const gradFunc = (dy: O, saved: Tensor[]) => {
           const [labels, logResult] = saved;

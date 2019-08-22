@@ -1,5 +1,6 @@
 steps:
 - name: 'node:10'
+  dir: 'tfjs-vis'
   entrypoint: 'yarn'
   args: ['test-ci']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']

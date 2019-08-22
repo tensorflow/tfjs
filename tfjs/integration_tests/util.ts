@@ -34,11 +34,11 @@ export async function asyncBenchmark(
     asyncBenchmarkFn: () =>
         Promise<tf.Tensor>| Promise<tf.Tensor[]>): Promise<number> {
   const start = performance.now();
-  const result = await asyncBenchmarkFn() as tf.Tensor[] | tf.Tensor;
+  const result = await asyncBenchmarkFn();
 
-  const outRes = Array.isArray(result) ? (result as tf.Tensor[])[0] : result;
-  await (outRes as tf.Tensor).data();
-  (outRes as tf.Tensor).dispose();
+  const outRes = Array.isArray(result) ? result[0] : result;
+  await outRes.data();
+  outRes.dispose();
 
   return performance.now() - start;
 }

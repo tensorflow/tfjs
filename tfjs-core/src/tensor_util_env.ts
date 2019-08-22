@@ -17,14 +17,14 @@
 
 import {ENV} from './environment';
 import {Tensor} from './tensor';
-import {DataType, TensorLike, TypedArray} from './types';
+import {DataType, TensorLike} from './types';
 import {assert, flatten, inferDtype, isTypedArray, toTypedArray} from './util';
 
 export function inferShape(val: TensorLike, dtype?: DataType): number[] {
   let firstElem: typeof val = val;
 
   if (isTypedArray(val)) {
-    return dtype === 'string' ? [] : [(val as TypedArray).length];
+    return dtype === 'string' ? [] : [val.length];
   }
   if (!Array.isArray(val)) {
     return [];  // Scalar.
