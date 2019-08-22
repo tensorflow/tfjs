@@ -69,7 +69,7 @@ export class PadProgram implements WebGPUProgram {
           int flatIndex = index * ${this.workPerThread} + i;
 
           if(flatIndex < ${size}) {
-            ${type} outC = getOutputCoords();
+            ${type} outC = getCoordsFromFlatIndex(flatIndex);
 
             if(${leftPadCondition} || ${rightPadCondition}) {
               setOutput(index, ${constantValue});
