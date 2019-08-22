@@ -131,7 +131,7 @@ export class BrowserIndexedDB implements IOHandler {
       openRequest.onupgradeneeded = () => setUpDatabase(openRequest);
 
       openRequest.onsuccess = () => {
-        const db = openRequest.result as IDBDatabase;
+        const db = openRequest.result;
 
         if (modelArtifacts == null) {
           // Read model out from object store.
@@ -262,7 +262,7 @@ export class BrowserIndexedDBManager implements ModelStoreManager {
           openRequest.onupgradeneeded = () => setUpDatabase(openRequest);
 
           openRequest.onsuccess = () => {
-            const db = openRequest.result as IDBDatabase;
+            const db = openRequest.result;
             const tx = db.transaction(INFO_STORE_NAME, 'readonly');
             const store = tx.objectStore(INFO_STORE_NAME);
             // tslint:disable:max-line-length
@@ -298,7 +298,7 @@ export class BrowserIndexedDBManager implements ModelStoreManager {
       openRequest.onupgradeneeded = () => setUpDatabase(openRequest);
 
       openRequest.onsuccess = () => {
-        const db = openRequest.result as IDBDatabase;
+        const db = openRequest.result;
         const infoTx = db.transaction(INFO_STORE_NAME, 'readwrite');
         const infoStore = infoTx.objectStore(INFO_STORE_NAME);
 

@@ -89,7 +89,7 @@ function gramSchmidt_(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
           `number of dimensions (${(xs as Tensor1D[])[0].shape[0]}).`);
 
   const ys: Tensor1D[] = [];
-  const xs1d = xs as Tensor1D[];
+  const xs1d = xs;
   for (let i = 0; i < xs.length; ++i) {
     ys.push(ENGINE.tidy(() => {
       let x = xs1d[i];
@@ -197,8 +197,8 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
     const m = x.shape[0];
     const n = x.shape[1];
 
-    let q = eye(m) as Tensor2D;  // Orthogonal transform so far.
-    let r = x.clone();           // Transformed matrix so far.
+    let q = eye(m);     // Orthogonal transform so far.
+    let r = x.clone();  // Transformed matrix so far.
 
     const one2D = tensor2d([[1]], [1, 1]);
     let w: Tensor2D = one2D.clone();
@@ -219,7 +219,7 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
         // The sign() function returns 0 on 0, which causes division by zero.
         const s = tensor2d([[-1]]).where(rjj.greater(0), tensor2d([[1]]));
 
-        const u1 = rjj.sub(s.mul(normX)) as Tensor2D;
+        const u1 = rjj.sub(s.mul(normX));
         const wPre = rjEnd1.div(u1);
         if (wPre.shape[0] === 1) {
           w = one2D.clone();
@@ -233,25 +233,21 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
 
         // -- R := HR, Q := QH.
         const rjEndAll = r.slice([j, 0], [m - j, n]);
-        const tauTimesW = tau.mul(w) as Tensor2D;
+        const tauTimesW: Tensor2D = tau.mul(w);
         if (j === 0) {
           r = rjEndAll.sub(tauTimesW.matMul(w.transpose().matMul(rjEndAll)));
         } else {
-          r = r.slice([0, 0], [j, n])
-                  .concat(
-                      rjEndAll.sub(tauTimesW.matMul(
-                          w.transpose().matMul(rjEndAll))) as Tensor2D,
-                      0) as Tensor2D;
+          const rTimesTau: Tensor2D =
+              rjEndAll.sub(tauTimesW.matMul(w.transpose().matMul(rjEndAll)));
+          r = r.slice([0, 0], [j, n]).concat(rTimesTau, 0);
         }
         const qAllJEnd = q.slice([0, j], [m, q.shape[1] - j]);
         if (j === 0) {
           q = qAllJEnd.sub(qAllJEnd.matMul(w).matMul(tauTimesW.transpose()));
         } else {
-          q = q.slice([0, 0], [m, j])
-                  .concat(
-                      qAllJEnd.sub(qAllJEnd.matMul(w).matMul(
-                          tauTimesW.transpose())) as Tensor2D,
-                      1) as Tensor2D;
+          const qTimesTau: Tensor2D =
+              qAllJEnd.sub(qAllJEnd.matMul(w).matMul(tauTimesW.transpose()));
+          q = q.slice([0, 0], [m, j]).concat(qTimesTau, 1);
         }
         return [w, r, q];
       });

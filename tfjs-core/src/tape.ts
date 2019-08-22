@@ -110,7 +110,7 @@ export function getFilteredNodesXToY(
       }
 
       // Copy the node and overwrite inputsAndArgs to the pruned version.
-      const prunedNode = Object.assign({}, node) as TapeNode;
+      const prunedNode = Object.assign({}, node);
       prunedNode.inputs = prunedInputs;
       prunedNode.outputs = node.outputs;
 

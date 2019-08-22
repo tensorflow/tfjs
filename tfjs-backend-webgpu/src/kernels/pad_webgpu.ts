@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {util} from '@tensorflow/tfjs-core';
+
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
@@ -26,6 +28,8 @@ export class PadProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
+  workPerThread = 8;
+  workGroupSize: [number, number, number] = [1, 1, 1];
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
@@ -33,9 +37,12 @@ export class PadProgram implements WebGPUProgram {
     this.outputShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
     const rank = xShape.length;
+    const size = util.sizeFromShape(this.outputShape);
     const type = getCoordsDataType(rank);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
 
     const start = paddings.map(p => p[0]).join(',');
     const end = paddings.map((p, i) => p[0] + xShape[i]).join(',');
@@ -56,14 +63,21 @@ export class PadProgram implements WebGPUProgram {
       ${type} end = ${endValue};
 
       void main() {
-        uint index = gl_GlobalInvocationID.x;
-        ${type} outC = getOutputCoords();
+        int index = int(gl_GlobalInvocationID.x);
 
-        if(${leftPadCondition} || ${rightPadCondition}) {
-          setOutput(index, ${constantValue});
-        } else {
-          ${type} coords = outC - start;
-          setOutput(index, getX(${unpackedCoords}));
+        for (int i = 0; i < ${this.workPerThread}; i++) {
+          int flatIndex = index * ${this.workPerThread} + i;
+
+          if (flatIndex < ${size}) {
+            ${type} outC = getCoordsFromFlatIndex(flatIndex);
+
+            if (${leftPadCondition} || ${rightPadCondition}) {
+              setOutput(flatIndex, ${constantValue});
+            } else {
+              ${type} coords = outC - start;
+              setOutput(flatIndex, getX(${unpackedCoords}));
+            }
+          }
         }
       }
     `;
