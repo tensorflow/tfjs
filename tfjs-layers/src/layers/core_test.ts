@@ -106,7 +106,7 @@ describeMathCPUAndGPU('Dropout Layer', () => {
             if (rate === 0 || !training) {
               expect(nKept).toEqual(numel);
             } else {
-              expect(nKept).toBeLessThan(numel);
+              expect(nKept).toBeLessThanOrEqual(numel);
             }
           });
         }
@@ -764,11 +764,8 @@ describeMathCPUAndGPU('Masking Layer: Tensor', () => {
   it('3D, default maskValue', () => {
     const model = tfl.sequential();
     model.add(tfl.layers.masking({inputShape: [3, 2]}));
-    model.add(tfl.layers.simpleRNN({
-      units: 1,
-      recurrentInitializer: 'ones',
-      kernelInitializer: 'ones'
-    }));
+    model.add(tfl.layers.simpleRNN(
+        {units: 1, recurrentInitializer: 'ones', kernelInitializer: 'ones'}));
 
     const xs = tensor3d([[[1, 1], [1, 0], [0, 0]]]);
     const ys = model.predict(xs) as Tensor;
@@ -796,11 +793,8 @@ describeMathCPUAndGPU('Masking Layer: Tensor', () => {
   it('3D, custom maskValue', () => {
     const model = tfl.sequential();
     model.add(tfl.layers.masking({maskValue: -1, inputShape: [3, 2]}));
-    model.add(tfl.layers.simpleRNN({
-      units: 1,
-      recurrentInitializer: 'ones',
-      kernelInitializer: 'ones'
-    }));
+    model.add(tfl.layers.simpleRNN(
+        {units: 1, recurrentInitializer: 'ones', kernelInitializer: 'ones'}));
 
     const xs = tensor3d([[[1, 1], [1, -1], [-1, -1]]]);
     const ys = model.predict(xs) as Tensor;
