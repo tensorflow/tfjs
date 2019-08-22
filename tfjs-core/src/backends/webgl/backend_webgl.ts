@@ -391,7 +391,7 @@ export class MathBackendWebGL implements KernelBackend {
     if (slice != null) {
       let program;
       if (isPacked) {
-        program = new UnaryOpPackedProgram(shape, unary_packed_op.CLONE);
+        program = new UnaryOpPackedProgram(shape, unary_op.CLONE);
       } else {
         program = new UnaryOpProgram(shape, unary_op.CLONE);
       }
@@ -438,7 +438,7 @@ export class MathBackendWebGL implements KernelBackend {
     if (slice != null) {
       let program;
       if (isPacked) {
-        program = new UnaryOpPackedProgram(shape, unary_packed_op.CLONE);
+        program = new UnaryOpPackedProgram(shape, unary_op.CLONE);
       } else {
         program = new UnaryOpProgram(shape, unary_op.CLONE);
       }
@@ -840,6 +840,13 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   neg<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.neg(x);
+    }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_op.NEG, x.dtype) as T;
+    }
     const program = new UnaryOpProgram(x.shape, unary_op.NEG);
     return this.compileAndRun(program, [x]) as T;
   }
@@ -1596,11 +1603,27 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   ceil<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.ceil(x);
+    }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_op.CEIL, x.dtype) as T;
+    }
+
     const program = new UnaryOpProgram(x.shape, unary_op.CEIL);
     return this.compileAndRun(program, [x]) as T;
   }
 
   floor<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.floor(x);
+    }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_op.FLOOR, x.dtype) as T;
+    }
+
     const program = new UnaryOpProgram(x.shape, unary_op.FLOOR);
     return this.compileAndRun(program, [x]) as T;
   }
@@ -1632,27 +1655,41 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   exp<T extends Tensor>(x: T): T {
-    let program: UnaryOpProgram|UnaryOpPackedProgram;
-    if (ENV.getBool('WEBGL_PACK')) {
-      program = new UnaryOpPackedProgram(x.shape, unary_op.EXP);
-    } else {
-      program = new UnaryOpProgram(x.shape, unary_op.EXP);
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.exp(x);
     }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_op.EXP, x.dtype) as T;
+    }
+
+    const program = new UnaryOpProgram(x.shape, unary_op.EXP);
     return this.compileAndRun(program, [x]) as T;
   }
 
   expm1<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.expm1(x);
+    }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_op.EXPM1, x.dtype) as T;
+    }
+
     const program = new UnaryOpProgram(x.shape, unary_op.EXPM1);
     return this.compileAndRun(program, [x]) as T;
   }
 
   log<T extends Tensor>(x: T): T {
-    let program: UnaryOpProgram|UnaryOpPackedProgram;
-    if (ENV.getBool('WEBGL_PACK')) {
-      program = new UnaryOpPackedProgram(x.shape, unary_packed_op.LOG);
-    } else {
-      program = new UnaryOpProgram(x.shape, unary_op.LOG);
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.log(x);
     }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_packed_op.LOG, x.dtype) as T;
+    }
+
+    const program = new UnaryOpProgram(x.shape, unary_op.LOG);
     return this.compileAndRun(program, [x]) as T;
   }
 
@@ -1743,7 +1780,7 @@ export class MathBackendWebGL implements KernelBackend {
     }
 
     if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
-      return this.packedUnaryOp(x, unary_packed_op.ABS, x.dtype) as T;
+      return this.packedUnaryOp(x, unary_op.ABS, x.dtype) as T;
     }
 
     const program = new UnaryOpProgram(x.shape, unary_op.ABS);

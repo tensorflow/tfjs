@@ -19,10 +19,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export const LINEAR = `return x;`;
 
-export const CLONE = `return x;`;
-
-export const ABS = `return abs(x);`;
-
 export const LOG = `
   vec4 result = log(x);
   vec4 isNaN = vec4(lessThan(x, vec4(0.0)));
