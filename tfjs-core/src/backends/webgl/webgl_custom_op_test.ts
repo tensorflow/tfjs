@@ -57,21 +57,22 @@ describeWithFlags('custom-op webgl', WEBGL_ENVS, () => {
   }
 
   function squareAndAdd<T extends tf.Tensor>(x: T): T {
-    const fn = tf.customGrad((x: tf.Tensor, save: tf.GradSaveFunc) => {
+    const fn = tf.customGrad((x: T, save: tf.GradSaveFunc) => {
       save([x]);
       const webglBackend = tf.backend() as tf.webgl.MathBackendWebGL;
       const program = new SquareAndAddKernel(x.shape);
       const backpropProgram = new SquareAndAddBackpropKernel(x.shape);
 
-      const value = webglBackend.compileAndRun(program, [x]) as tf.Tensor;
+      const value: T = webglBackend.compileAndRun(program, [x]);
 
       const gradFunc = (dy: T, saved: Tensor[]) => {
         const [x] = saved;
-        return (webglBackend.compileAndRun(backpropProgram, [x]) as T).mul(dy);
+        const back: T = webglBackend.compileAndRun(backpropProgram, [x]);
+        return back.mul(dy);
       };
       return {value, gradFunc};
     });
-    return fn(x) as T;
+    return fn(x);
   }
 
   it('lets users use custom operations', async () => {
