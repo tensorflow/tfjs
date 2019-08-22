@@ -46,9 +46,8 @@ function clone_<T extends Tensor>(x: T|TensorLike): T {
   };
 
   return ENGINE.runKernel(
-             backend =>
-                 Tensor.make($x.shape, {dataId: $x.dataId}, $x.dtype) as T,
-             {$x}, der) as T;
+      backend => Tensor.make($x.shape, {dataId: $x.dataId}, $x.dtype), {$x},
+      der);
 }
 
 /**
@@ -425,7 +424,7 @@ function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
   const grad = (dy: T) => {
     return {$x: () => dy.clone()};
   };
-  return ENGINE.runKernel(backend => backend.cast($x, dtype), {$x}, grad) as T;
+  return ENGINE.runKernel(backend => backend.cast($x, dtype), {$x}, grad);
 }
 
 /**
@@ -613,8 +612,7 @@ function pad_<T extends Tensor>(
     return {$x: () => dy.slice(begin, $x.shape)};
   };
   return ENGINE.runKernel(
-             backend => backend.pad($x, paddings, constantValue), {$x}, grad) as
-      T;
+      backend => backend.pad($x, paddings, constantValue), {$x}, grad);
 }
 
 /**

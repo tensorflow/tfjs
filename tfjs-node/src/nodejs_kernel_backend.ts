@@ -19,7 +19,8 @@
 import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
-import {Activation} from '@tensorflow/tfjs-core/dist/ops/fused_util';
+// tslint:disable-next-line:max-line-length
+import {Activation, FusedBatchMatMulConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
@@ -369,9 +370,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   fusedBatchMatMul(
-      a: Tensor3D, b: Tensor3D, transposeA: boolean, transposeB: boolean,
-      bias?: Tensor, activation?: Activation,
-      preluActivationWeights?: Tensor): Tensor3D {
+      {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
+          FusedBatchMatMulConfig): Tensor3D {
     // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
     // achieve the same results:
     let result = this.batchMatMul(a, b, transposeA, transposeB);
@@ -429,6 +429,10 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   neg<T extends Tensor>(a: T): T {
     return this.executeSingleInput('Neg', a) as T;
+  }
+
+  diag(x: Tensor): Tensor {
+    return this.executeSingleInput('Diag', x);
   }
 
   add(a: Tensor, b: Tensor): Tensor {
@@ -1162,13 +1166,15 @@ export class NodeJSKernelBackend extends KernelBackend {
           `TF Backend supports only 'valid' and 'same' padding ` +
           `while padding was ${convInfo.padInfo.type}`);
     }
-    const ksize = [1, convInfo.filterDepth, convInfo.filterHeight,
-      convInfo.filterWidth, 1];
-    const strides = [1, convInfo.strideDepth, convInfo.strideHeight,
-      convInfo.strideWidth, 1];
+    const ksize = [
+      1, convInfo.filterDepth, convInfo.filterHeight, convInfo.filterWidth, 1
+    ];
+    const strides = [
+      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
+    ];
     const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ?
-        'NDHWC' : 'NCDHW';
+    const dataFormat =
+        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
     const opAttrs = [
       createTypeOpAttr('T', x.dtype),
       {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
@@ -1183,20 +1189,21 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('AvgPool3D', opAttrs, [x]) as Tensor5D;
   }
 
-  avgPool3dBackprop(
-      dy: Tensor5D, x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+  avgPool3dBackprop(dy: Tensor5D, x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
           `while padding type was ${convInfo.padInfo.type}`);
     }
-    const ksize = [1, convInfo.filterDepth, convInfo.filterHeight,
-      convInfo.filterWidth, 1];
-    const strides = [1, convInfo.strideDepth, convInfo.strideHeight,
-      convInfo.strideWidth, 1];
+    const ksize = [
+      1, convInfo.filterDepth, convInfo.filterHeight, convInfo.filterWidth, 1
+    ];
+    const strides = [
+      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
+    ];
     const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ?
-        'NDHWC' : 'NCDHW';
+    const dataFormat =
+        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
     const opAttrs = [
       createTypeOpAttr('T', x.dtype),
       {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
@@ -1210,7 +1217,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     const origInputShape = tensor1d(x.shape, 'int32');
     return this.executeSingleOutput(
-        'AvgPool3DGrad', opAttrs, [origInputShape, dy]) as Tensor5D;
+               'AvgPool3DGrad', opAttrs, [origInputShape, dy]) as Tensor5D;
   }
 
   maxPool3d(x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
@@ -1219,13 +1226,15 @@ export class NodeJSKernelBackend extends KernelBackend {
           `TF Backend supports only 'valid' and 'same' padding ` +
           `while padding was ${convInfo.padInfo.type}`);
     }
-    const ksize = [1, convInfo.filterDepth, convInfo.filterHeight,
-      convInfo.filterWidth, 1];
-    const strides = [1, convInfo.strideDepth, convInfo.strideHeight,
-      convInfo.strideWidth, 1];
+    const ksize = [
+      1, convInfo.filterDepth, convInfo.filterHeight, convInfo.filterWidth, 1
+    ];
+    const strides = [
+      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
+    ];
     const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ?
-        'NDHWC' : 'NCDHW';
+    const dataFormat =
+        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
     const opAttrs = [
       createTypeOpAttr('T', x.dtype),
       {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
@@ -1246,13 +1255,15 @@ export class NodeJSKernelBackend extends KernelBackend {
           `TF Backend supports only 'valid' and 'same' padding ` +
           `while padding type was ${convInfo.padInfo.type}`);
     }
-    const ksize = [1, convInfo.filterDepth, convInfo.filterHeight,
-      convInfo.filterWidth, 1];
-    const strides = [1, convInfo.strideDepth, convInfo.strideHeight,
-      convInfo.strideWidth, 1];
+    const ksize = [
+      1, convInfo.filterDepth, convInfo.filterHeight, convInfo.filterWidth, 1
+    ];
+    const strides = [
+      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
+    ];
     const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ?
-        'NDHWC' : 'NCDHW';
+    const dataFormat =
+        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
     const opAttrs = [
       createTypeOpAttr('T', x.dtype),
       {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
