@@ -1488,7 +1488,7 @@ export class MathBackendWebGL implements KernelBackend {
 
   private packedUnaryOp(x: TensorHandle, op: string, dtype: DataType) {
     const program = new UnaryOpPackedProgram(x.shape, op);
-    const output = this.makePackedTensor(program.outputShape, dtype) as Tensor;
+    const output = this.makePackedTensor(program.outputShape, dtype);
     return this.compileAndRun<Tensor>(program, [x], output);
   }
 
@@ -1685,13 +1685,9 @@ export class MathBackendWebGL implements KernelBackend {
     if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
       return this.packedUnaryOp(x, unary_packed_op.LOG, x.dtype) as T;
     }
-<<<<<<< HEAD
 
     const program = new UnaryOpProgram(x.shape, unary_op.LOG);
-    return this.compileAndRun(program, [x]) as T;
-=======
     return this.compileAndRun(program, [x]);
->>>>>>> master
   }
 
   log1p<T extends Tensor>(x: T): T {
