@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {randomNormal, Scalar, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
+import {randomNormal, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
@@ -36,7 +36,7 @@ import {GRU, LSTM, rnn, RNN, RNNCell} from './recurrent';
  * @param states
  */
 function rnnStepForTest(inputs: Tensor, states: Tensor[]): [Tensor, Tensor[]] {
-  const mean = tfc.mean(inputs) as Scalar;
+  const mean = tfc.mean(inputs);
   const newStates = states.map(state => tfc.add(mean, state));
   const output = tfc.neg(newStates[0]);
   return [output, newStates];
@@ -194,7 +194,6 @@ describeMathCPUAndGPU('rnn', () => {
   });
 });
 
-
 /**
  * A simplistic RNNCell for testing.
  *
@@ -216,7 +215,7 @@ class RNNCellForTest extends RNNCell {
     inputs = inputs as Tensor[];
     const dataInputs = inputs[0];
     const states = inputs.slice(1);
-    const mean = tfc.mean(dataInputs) as Scalar;
+    const mean = tfc.mean(dataInputs);
     const newStates = states.map(state => tfc.add(mean, state));
     const output = tfc.neg(newStates[0]);
     return [output].concat(newStates);
@@ -1105,7 +1104,6 @@ describeMathCPU('GRU Symbolic', () => {
        expect(gru.weights.length).toEqual(3);
      });
 
-
   for (const implementation of [1, 2]) {
     it('Serialization round trip', () => {
       const layer = tfl.layers.gru({units: 4, implementation});
@@ -1644,7 +1642,6 @@ describeMathCPU('LSTM Symbolic', () => {
        expect(lstm.nonTrainableWeights.length).toEqual(0);
        expect(lstm.weights.length).toEqual(3);
      });
-
 
   for (const implementation of [1, 2]) {
     it('Serialization round trip', () => {

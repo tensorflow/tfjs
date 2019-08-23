@@ -24,7 +24,7 @@ export abstract class Callback extends BaseCallback {
     if (!(model instanceof LayersModel)) {
       throw new Error('model must be a LayersModel, not some other Container');
     }
-    this.model = model as LayersModel;
+    this.model = model;
   }
 }
 

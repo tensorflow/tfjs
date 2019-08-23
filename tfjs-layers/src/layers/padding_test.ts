@@ -23,7 +23,6 @@ import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../uti
 
 import {spatial2dPadding, temporalPadding, ZeroPadding2D, ZeroPadding2DLayerArgs} from './padding';
 
-
 describeMathCPUAndGPU('temporalPadding', () => {
   it('default padding 1-1', () => {
     const x = tensor3d([[[1, 2], [3, 4]], [[-1, -2], [-3, -4]]]);
@@ -74,7 +73,6 @@ describeMathCPUAndGPU('spatial2dPadding', () => {
         tfc.slice(y, [0, 0, 0, 0], [2, 7, 3, 3]), tfc.zeros([2, 7, 3, 3]));
   });
 });
-
 
 describeMathCPU('ZeroPadding2D: Symbolic', () => {
   const dataFormats: DataFormat[] =

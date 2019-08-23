@@ -93,7 +93,7 @@ export function getUniqueTensorName(scopedName: string): string {
   nameMap.set(scopedName, nameMap.get(scopedName) + 1);
 
   if (index > 0) {
-    const result = scopedName + '_' + index;
+    const result = `${scopedName}_${index}`;
     // Mark the composed name as used in case someone wants
     // to call getUniqueTensorName("name_1").
     nameMap.set(result, 1);

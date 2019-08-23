@@ -370,7 +370,7 @@ export class RNN extends Layer {
     } else {
       cell = args.cell;
     }
-    if ((cell as RNNCell).stateSize == null) {
+    if (cell.stateSize == null) {
       throw new ValueError(
           'The RNN cell should have an attribute `stateSize` (tuple of ' +
           'integers, one integer per RNN state).');
@@ -514,10 +514,10 @@ export class RNN extends Layer {
 
     // Set or validate stateSpec.
     let stateSize: number[];
-    if (Array.isArray((this.cell as RNNCell).stateSize)) {
-      stateSize = this.cell.stateSize as number[];
+    if (Array.isArray(this.cell.stateSize)) {
+      stateSize = this.cell.stateSize;
     } else {
-      stateSize = [this.cell.stateSize as number];
+      stateSize = [this.cell.stateSize];
     }
 
     if (this.stateSpec != null) {
@@ -1983,7 +1983,7 @@ export class LSTM extends RNN {
   /** @nocollapse */
   static className = 'LSTM';
   constructor(args: LSTMLayerArgs) {
-    if (args.implementation as number === 0) {
+    if (args.implementation === 0) {
       console.warn(
           '`implementation=0` has been deprecated, and now defaults to ' +
           '`implementation=1`. Please update your layer call.');
