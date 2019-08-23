@@ -317,8 +317,8 @@ export function concatAlongFirstAxis(a: Tensor, b: Tensor): Tensor {
       return tfc.concat4d([a as Tensor4D, b as Tensor4D], 0);
     default:
       throw new ValueError(
-          'concatAlongFirstAxis() received an unsupported tensor rank: ' +
-          a.rank);
+          `concatAlongFirstAxis() received an unsupported ` +
+          `tensor rank: ${a.rank}`);
   }
 }
 
@@ -342,7 +342,6 @@ export function tile(x: Tensor, n: number|number[]): Tensor {
 }
 
 /* Creation of random tensors. */
-
 
 /**
  * Get a tensor with normal distribution of values.
@@ -547,7 +546,7 @@ export function pow(x: Tensor, a: Tensor|number): Tensor {
       throw new NotImplementedError(
           `Non-int32 dtype (${a.dtype}) is not supported by pow() yet`);
     }
-    return tfc.pow(x, a as Tensor);
+    return tfc.pow(x, a);
   });
 }
 
@@ -559,8 +558,8 @@ function reshapeBias(xRank: number, bias: Tensor, dataFormat: string) {
 
   if (bias.rank !== 1 && bias.rank !== xRank) {
     throw new ValueError(
-        'Unexpected bias dimensions: ' + bias.rank +
-        '; expected it to be 1 or ' + xRank);
+        `Unexpected bias dimensions: ${bias.rank}` +
+        `; expected it to be 1 or ${xRank}`);
   }
 
   if (xRank === 5) {

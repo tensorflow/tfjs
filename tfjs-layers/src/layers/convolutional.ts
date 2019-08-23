@@ -289,7 +289,6 @@ export function conv3dWithBias(
   });
 }
 
-
 /**
  * Base LayerConfig for depthwise and non-depthwise convolutional layers.
  */
@@ -455,8 +454,7 @@ export abstract class BaseConv extends Layer {
         args.dilationRate == null ? 1 : args.dilationRate, rank,
         'dilationRate');
     if (this.rank === 1 &&
-        (Array.isArray(this.dilationRate) &&
-         (this.dilationRate as number[]).length !== 1)) {
+        (Array.isArray(this.dilationRate) && this.dilationRate.length !== 1)) {
       throw new ValueError(
           `dilationRate must be a number or an array of a single number ` +
           `for 1D convolution, but received ` +
@@ -486,11 +484,13 @@ export abstract class BaseConv extends Layer {
     generic_utils.assert(
         'kernelSize' in args, `required key 'kernelSize' not in config`);
     if (typeof args.kernelSize !== 'number' &&
-        !generic_utils.checkArrayTypeAndLength(args.kernelSize, 'number', 1, 3))
+        !generic_utils.checkArrayTypeAndLength(
+            args.kernelSize, 'number', 1, 3)) {
       throw new ValueError(
           `BaseConv expects config.kernelSize to be number or number[] with ` +
           `length 1, 2, or 3, but received ${
               JSON.stringify(args.kernelSize)}.`);
+    }
   }
 
   getConfig(): serialization.ConfigDict {
@@ -674,10 +674,12 @@ export class Conv2D extends Conv {
   protected static verifyArgs(args: ConvLayerArgs) {
     // config.kernelSize must be a number or array of numbers.
     if ((typeof args.kernelSize !== 'number') &&
-        !generic_utils.checkArrayTypeAndLength(args.kernelSize, 'number', 1, 2))
+        !generic_utils.checkArrayTypeAndLength(
+            args.kernelSize, 'number', 1, 2)) {
       throw new ValueError(
           `Conv2D expects config.kernelSize to be number or number[] with ` +
           `length 1 or 2, but received ${JSON.stringify(args.kernelSize)}.`);
+    }
   }
 }
 serialization.registerClass(Conv2D);
@@ -700,11 +702,12 @@ export class Conv3D extends Conv {
     // config.kernelSize must be a number or array of numbers.
     if (typeof args.kernelSize !== 'number') {
       if (!(Array.isArray(args.kernelSize) &&
-            (args.kernelSize.length === 1 || args.kernelSize.length === 3)))
+            (args.kernelSize.length === 1 || args.kernelSize.length === 3))) {
         throw new ValueError(
             `Conv3D expects config.kernelSize to be number or` +
             ` [number, number, number], but received ${
                 JSON.stringify(args.kernelSize)}.`);
+      }
     }
   }
 }
@@ -807,7 +810,7 @@ export class Conv2DTranspose extends Conv2D {
           input as Tensor4D, this.kernel.read() as Tensor4D, outputShape,
           this.strides as [number, number], this.padding as 'same' | 'valid');
       if (this.dataFormat !== 'channelsLast') {
-        outputs = tfc.transpose(outputs, [0, 3, 1, 2]) as Tensor4D;
+        outputs = tfc.transpose(outputs, [0, 3, 1, 2]);
       }
 
       if (this.bias != null) {
@@ -898,7 +901,6 @@ export declare interface SeparableConvLayerArgs extends ConvLayerArgs {
    */
   pointwiseConstraint?: ConstraintIdentifier|Constraint;
 }
-
 
 export class SeparableConv extends Conv {
   /** @nocollapse */
@@ -1087,10 +1089,12 @@ export class Conv1D extends Conv {
   protected static verifyArgs(args: ConvLayerArgs) {
     // config.kernelSize must be a number or array of numbers.
     if (typeof args.kernelSize !== 'number' &&
-        !generic_utils.checkArrayTypeAndLength(args.kernelSize, 'number', 1, 1))
+        !generic_utils.checkArrayTypeAndLength(
+            args.kernelSize, 'number', 1, 1)) {
       throw new ValueError(
           `Conv1D expects config.kernelSize to be number or number[] with ` +
           `length 1, but received ${JSON.stringify(args.kernelSize)}.`);
+    }
   }
 }
 serialization.registerClass(Conv1D);
@@ -1133,34 +1137,36 @@ export class Cropping2D extends Layer {
 
   constructor(args: Cropping2DLayerArgs) {
     super(args);
-    if (typeof args.cropping === 'number')
+    if (typeof args.cropping === 'number') {
       this.cropping =
           [[args.cropping, args.cropping], [args.cropping, args.cropping]];
-    else if (typeof args.cropping[0] === 'number')
+    } else if (typeof args.cropping[0] === 'number') {
       this.cropping = [
-        [args.cropping[0] as number, args.cropping[0] as number],
+        [args.cropping[0], args.cropping[0]],
         [args.cropping[1] as number, args.cropping[1] as number]
       ];
-    else
+    } else {
       this.cropping = args.cropping as [[number, number], [number, number]];
+    }
     this.dataFormat =
         args.dataFormat === undefined ? 'channelsLast' : args.dataFormat;
     this.inputSpec = [{ndim: 4}];
   }
 
   computeOutputShape(inputShape: Shape): Shape {
-    if (this.dataFormat === 'channelsFirst')
+    if (this.dataFormat === 'channelsFirst') {
       return [
         inputShape[0], inputShape[1],
         inputShape[2] - this.cropping[0][0] - this.cropping[0][1],
         inputShape[3] - this.cropping[1][0] - this.cropping[1][1]
       ];
-    else
+    } else {
       return [
         inputShape[0],
         inputShape[1] - this.cropping[0][0] - this.cropping[0][1],
         inputShape[2] - this.cropping[1][0] - this.cropping[1][1], inputShape[3]
       ];
+    }
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {

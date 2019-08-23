@@ -57,7 +57,6 @@ export interface SeparableConvLayerConfig extends ConvLayerConfig {
 export type SeparableConv2DLayerSerialization =
     BaseLayerSerialization<'SeparableConv2D', ConvLayerConfig>;
 
-
 export interface Cropping2DLayerConfig extends LayerConfig {
   cropping: number|[number, number]|[[number, number], [number, number]];
   data_format?: DataFormatSerialization;

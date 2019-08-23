@@ -21,7 +21,6 @@ import {SymbolicTensor} from './engine/topology';
 import {LayersModel} from './engine/training';
 import {loadLayersModelInternal, Sequential, SequentialArgs} from './models';
 
-
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable
 //   (b/74074458).

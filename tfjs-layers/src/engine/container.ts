@@ -108,7 +108,7 @@ export abstract class Container extends Layer {
       throw new ValueError(
           'The list of inputs passed to the model is ' +
           'redundant. All inputs should only appear once. Found: ' +
-          this.inputs.map(x => x.name));
+          `${this.inputs.map(x => x.name)}`);
     }
 
     // Check for redundancy in outputs.
@@ -116,7 +116,7 @@ export abstract class Container extends Layer {
       console.warn(
           'The list of outputs passed to the model is redundant. ' +
           'All outputs should only appear once. Found: ' +
-          this.outputs.map(x => x.name));
+          `${this.outputs.map(x => x.name)}`);
     }
 
     /*
@@ -156,7 +156,7 @@ export abstract class Container extends Layer {
       const layer = x.sourceLayer;
       const nodeIndex = x.nodeIndex;
       const tensorIndex = x.tensorIndex;
-      this.outputLayers.push(layer as Layer);
+      this.outputLayers.push(layer);
       this.outputLayersNodeIndices.push(nodeIndex);
       this.outputLayersTensorIndices.push(tensorIndex);
     }
@@ -174,7 +174,7 @@ export abstract class Container extends Layer {
       */
       generic_utils.assert(nodeIndex === 0, 'input layer has >1 nodes');
       generic_utils.assert(tensorIndex === 0, 'input layer has >1 tensors');
-      this.inputLayers.push(layer as Layer);
+      this.inputLayers.push(layer);
       this.inputLayersNodeIndices.push(nodeIndex);
       this.inputLayersTensorIndices.push(tensorIndex);
     }
@@ -243,7 +243,7 @@ export abstract class Container extends Layer {
         (tensor: SymbolicTensor, finishedNodes: Node[], nodesInProgress: Node[],
          layer?: Layer, nodeIndex?: number, tensorIndex?: number) => {
           if (layer == null || nodeIndex == null || tensorIndex == null) {
-            layer = tensor.sourceLayer as Layer;
+            layer = tensor.sourceLayer;
             nodeIndex = tensor.nodeIndex;
             tensorIndex = tensor.tensorIndex;
           }

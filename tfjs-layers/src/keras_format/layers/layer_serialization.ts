@@ -20,7 +20,6 @@ import {paddingLayerClassNames, PaddingLayerSerialization} from './padding_seria
 import {poolingLayerClassNames, PoolingLayerSerialization} from './pooling_serialization';
 import {recurrentLayerClassNames, RecurrentLayerSerialization} from './recurrent_serialization';
 
-
 export type LayerSerialization = AdvancedActivationLayerSerialization|
     ConvolutionalDepthwiseLayerSerialization|ConvolutionalLayerSerialization|
     CoreLayerSerialization|EmbeddingLayerSerialization|MergeLayerSerialization|

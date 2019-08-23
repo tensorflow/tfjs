@@ -10,8 +10,6 @@
 
 import {BaseLayerSerialization, LayerConfig} from '../topology_config';
 
-
-
 export type AddLayerSerialization = BaseLayerSerialization<'Add', LayerConfig>;
 
 export type MultiplyLayerSerialization =
