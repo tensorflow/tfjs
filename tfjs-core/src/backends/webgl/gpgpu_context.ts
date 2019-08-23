@@ -63,7 +63,8 @@ export class GPGPUContext {
       this.colorBufferFloatExtension =
           this.gl.getExtension('WEBGL_color_buffer_float');
 
-      if (!ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED')) {
+      if (!ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED') ||
+          ENV.getBool('WEBGL_ALWAYS_USE_F16_TEXTURES')) {
         this.textureHalfFloatExtension = webgl_util.getExtensionOrThrow(
             this.gl, this.debug, 'OES_texture_half_float');
         this.colorBufferHalfFloatExtension =
