@@ -20,13 +20,8 @@ import { StyleSheet, View, Image, Text, TouchableHighlight, TouchableOpacity } f
 import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import {StyleTranfer} from './style_transfer';
-import {imageUrlToTensor, tensorToImageUrl, resizeImage} from './image_utils';
+import {base64ImageToTensor, tensorToImageUrl, resizeImage, toDataUri} from './image_utils';
 import * as tf from '@tensorflow/tfjs';
-
-// import * as tf from '@tensorflow/tfjs';
-// import { fetch } from '@tensorflow/tfjs-react-native';
-// import * as mobilenet from '@tensorflow-models/mobilenet';
-// import * as jpeg from 'jpeg-js';
 
 interface ScreenProps {
   returnToMain: () => void;
@@ -38,12 +33,8 @@ interface ScreenState {
   styleImage?: string;
   contentImage?: string;
   hasCameraPermission?: boolean;
+  // tslint:disable-next-line: no-any
   cameraType: any;
-}
-
-interface ImageInfo {
-  uri: string;
-  base64?: string;
 }
 
 export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
@@ -55,9 +46,6 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     this.state = {
       mode: 'results',
       cameraType: Camera.Constants.Type.front,
-      styleImage: 'http://placekitten.com/100/150',
-      contentImage: 'http://placekitten.com/100/150',
-      resultImage: 'http://placekitten.com/200/400'
     };
     this.styler = new StyleTranfer();
   }
@@ -89,63 +77,91 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     });
   }
 
+  renderStyleImagePreview() {
+    const {styleImage} = this.state;
+    if(styleImage == null) {
+      return (
+        <View>
+          <Text style={styles.instructionText}>Style</Text>
+          <Text style={{fontSize: 48, paddingLeft: 0}}>💅🏽</Text>
+        </View>
+      );
+    } else {
+      return (
+        <View>
+          <Image
+            style={styles.imagePreview}
+            source={{uri: toDataUri(styleImage)}} />
+            <Text style={styles.centeredText}>Style</Text>
+        </View>
+      );
+    }
+  }
 
+  renderContentImagePreview() {
+    const {contentImage} = this.state;
+    if(contentImage == null) {
+      return (
+        <View>
+          <Text style={styles.instructionText}>Stuff</Text>
+          <Text style={{fontSize: 48, paddingLeft: 0}}>🖼️</Text>
+        </View>
+      );
+    } else {
+      return (
+        <View>
+          <Image
+            style={styles.imagePreview}
+            source={{uri: toDataUri(contentImage)}} />
+            <Text style={styles.centeredText}>Stuff</Text>
+        </View>
+      );
+    }
+  }
 
-  async stylize(contentImage: ImageInfo,
-    styleImage: ImageInfo) {
-    console.log('YYY- In stylize');
-    const contentTensor = await imageUrlToTensor(contentImage.uri,
-      contentImage.base64);
-    console.log('YYY- Converted content', contentTensor.shape);
-    const styleTensor = await imageUrlToTensor(styleImage.uri,
-      styleImage.base64);
-    console.log('YYY- Converted style', styleTensor.shape);
-    const stylizedResult = this.styler.stylize(styleTensor, contentTensor);
-    console.log('YYY- finished stylization', stylizedResult.shape);
-    const stylizedImage = tensorToImageUrl(stylizedResult);
-    console.log('YYY- converted stylization');
+  async stylize(contentImage: string, styleImage: string, strength?: number):
+    Promise<string> {
+    const contentTensor = await base64ImageToTensor(contentImage);
+    const styleTensor = await base64ImageToTensor(styleImage);
+    const stylizedResult = this.styler.stylize(
+      styleTensor, contentTensor, strength);
+    const stylizedImage = await tensorToImageUrl(stylizedResult);
     tf.dispose([contentTensor, styleTensor, stylizedResult]);
-    console.log('YYY- done with stylize.');
     return stylizedImage;
   }
 
   async handleCameraCapture() {
-    const {mode, styleImage, contentImage, resultImage} = this.state;
-    let image = await this.camera!.takePictureAsync();
-    image = await resizeImage(image.uri, 150);
-    console.log('YYY --- image resized', image.uri, image.width, image.height);
-    if(mode === 'newStyleImage') {
-      // Compute new stylized result image
-      let newResultImage;
-      if (contentImage != null) {
-        // newResultImage =
-        //  `http://placekitten.com/200/${Math.floor(Math.random()*300) + 100}`;
-        newResultImage = await this.stylize(
-          {uri: contentImage},
-          {uri: image.uri, base64: image.base64});
-      }
+    const {mode} = this.state;
+    let {styleImage, contentImage, resultImage} = this.state;
+    let image = await this.camera!.takePictureAsync({
+      skipProcessing: true,
+    });
+    image = await resizeImage(image.uri, 240);
 
+    if(mode === 'newStyleImage') {
+      styleImage = image.base64!;
       this.setState({
-        styleImage: image.uri,
+        styleImage,
         mode: 'results',
-        resultImage: newResultImage != null ? newResultImage : resultImage,
+      });
+
+      resultImage = contentImage == null ? resultImage :
+        await this.stylize(contentImage, image.base64!, 0.2),
+      this.setState({
+        resultImage,
       });
     } else if (mode === 'newContentImage') {
-      let newResultImage;
-      // TODO compute result
-      if (styleImage != null) {
-        // Compute new stylized result image
-        // newResultImage =
-        //  `http://placekitten.com/200/${Math.floor(Math.random()*300) + 100}`;
-        newResultImage = await this.stylize(
-          {uri: image.uri, base64: image.base64},
-          {uri: styleImage});
-      }
+      contentImage = image.base64!;
+      this.setState({
+        contentImage,
+        mode: 'results',
+      });
+
+      resultImage = styleImage == null ? resultImage :
+        await this.stylize(image.base64!, styleImage, 0.2);
 
       this.setState({
-        contentImage: image.uri,
-        mode: 'results',
-        resultImage: newResultImage != null ? newResultImage : resultImage,
+        resultImage,
       });
     }
   }
@@ -194,37 +210,33 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
   }
 
   renderResults() {
-    const {styleImage, contentImage, resultImage} = this.state;
+    const {resultImage} = this.state;
     return (
       <View>
         <View style={styles.resultImageContainer}>
-          <Image
-            style={styles.resultImage}
-            resizeMode='contain'
-            source={{uri: resultImage}} />
-
+          {resultImage == null ?
+            <Text style={styles.introText}>
+              Tap the squares below to add style and content
+              images and see the magic!
+            </Text>
+            :
+            <Image
+              style={styles.resultImage}
+              resizeMode='contain'
+              source={{uri: toDataUri(resultImage)}} />
+          }
           <TouchableHighlight
             style={styles.styleImageContainer}
             onPress={() => this.takeStyleImage()}
             underlayColor='white'>
-              <View>
-                <Image
-                  style={{width: 120, height: 150}}
-                  source={{uri: styleImage}} />
-                  <Text style={styles.centeredText}>Style</Text>
-              </View>
+              {this.renderStyleImagePreview()}
           </TouchableHighlight>
 
           <TouchableHighlight
             style={styles.contentImageContainer}
             onPress={() => this.takeContentImage()}
             underlayColor='white'>
-            <View >
-              <Image
-                style={{width: 120, height: 150}}
-                source={{uri: contentImage}} />
-                <Text style={styles.centeredText}>Content</Text>
-            </View>
+            {this.renderContentImagePreview()}
           </TouchableHighlight>
 
         </View>
@@ -312,30 +324,52 @@ const styles = StyleSheet.create({
     height: '100%',
     padding:0,
     margin:0,
-    backgroundColor: '#fcc',
+    backgroundColor: '#fff',
     zIndex: 1,
   },
   resultImage: {
     width: '100%',
     height: '100%',
   },
-  styleImageContainer :{
+  styleImageContainer: {
     position:'absolute',
-    bottom: 20,
+    width: 80,
+    height: 150,
+    bottom: 30,
     left: 20,
     zIndex: 10,
-    backgroundColor: '#812',
-    borderColor: '#812',
-    borderWidth: 2
+    borderRadius:10,
+    backgroundColor: 'rgba(176, 222, 255, 0.5)',
+    borderWidth: 1,
+    borderColor: 'rgba(176, 222, 255, 0.7)',
   },
-  contentImageContainer :{
+  contentImageContainer: {
     position:'absolute',
-    bottom: 20,
+    width: 80,
+    height: 150,
+    bottom:30,
     right: 20,
     zIndex: 10,
-    backgroundColor: '#244',
-    borderColor: '#244',
-    borderWidth: 3
+    borderRadius:10,
+    backgroundColor: 'rgba(255, 197, 161, 0.5)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 197, 161, 0.7)',
   },
+  imagePreview: {
+    width: 78,
+    height: 148,
+    borderRadius:10,
+  },
+  instructionText: {
+    fontSize: 28,
+    fontWeight:'bold',
+    paddingLeft: 5
+  },
+  introText: {
+    fontSize: 52,
+    fontWeight:'bold',
+    padding: 20,
+    textAlign: 'left',
+  }
 
 });

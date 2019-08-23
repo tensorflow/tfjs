@@ -8,7 +8,7 @@ export class StyleTranfer {
 
   async init() {
     await Promise.all([this.loadStyleModel(), this.loadTransformerModel()]);
-    // this.testStylization();
+    this.testStylization();
   }
 
   async loadStyleModel() {
@@ -30,13 +30,10 @@ export class StyleTranfer {
   }
 
   testStylization() {
-    const styleT = tf.randomNormal([256, 256, 3]) as tf.Tensor3D;
-    const contentT = tf.randomNormal([256, 256, 3]) as tf.Tensor3D;
-
-    const res = this.stylize(styleT, contentT);
-    const resData = Array.from(res.dataSync());
-    console.log('yyy testStylization result', resData.slice(0, 10));
-    tf.dispose([styleT, contentT, res]);
+    // Also warmup
+    const input = tf.randomNormal([240, 320, 3]) as tf.Tensor3D;
+    const res = this.stylize(input, input);
+    tf.dispose([input, res]);
   }
 
   /**
@@ -61,20 +58,10 @@ export class StyleTranfer {
    */
   private produceStylized(contentImage: tf.Tensor3D, bottleneck: tf.Tensor4D):
       tf.Tensor3D {
-    // console.log(
-    //     'yyy bottleneck', bottleneck.shape, bottleneck.dataSync().length,
-    //     Array.from(bottleneck.dataSync()).slice(0, 10));
     return tf.tidy(() => {
       const input = contentImage.toFloat().div(tf.scalar(255)).expandDims();
-      // console.log(
-      //     'yyy input', input.shape, input.dataSync().length,
-      //     Array.from(input.dataSync()).slice(0, 10));
       const image: tf.Tensor4D =
           this.transformNet!.predict([input, bottleneck]) as tf.Tensor4D;
-      // console.log('yyy predict output');
-      // console.log(
-      //     'yyy predict output', image.dataSync().length,
-      //     Array.from(image.dataSync()).slice(0, 10));
       return image.mul(255).squeeze();
     });
   }
@@ -83,17 +70,8 @@ export class StyleTranfer {
       styleImage: tf.Tensor3D, contentImage: tf.Tensor3D,
       strength?: number): tf.Tensor3D {
     const start = Date.now();
-    // console.log('yyy in styletransfer.stylize');
-    // console.log(
-    //     'yyy input', styleImage.shape, contentImage.shape,
-    //     Array.from(styleImage.dataSync().slice(0, 10)),
-    //     Array.from(contentImage.dataSync().slice(0, 10)));
     let styleRepresentation = this.predictStyleParameters(styleImage);
-    // console.log('stylerepresentation');
-    // styleRepresentation.print();
 
-    // console.log('contentImage');
-    // contentImage.print();
     // if (strength != null) {
     //   styleRepresentation = tf.tidy(
     //       () => styleRepresentation.mul(tf.scalar(strength))
@@ -102,16 +80,7 @@ export class StyleTranfer {
     // }
 
     const stylized = this.produceStylized(contentImage, styleRepresentation);
-
-    const transposed = stylized.transpose([1, 0, 2]);
-    // console.log(
-    //     'yyy stylized',
-    //     Array.from(stylized.dataSync().slice(0, 10)),
-    // );
-    // console.log(
-    //     'yyy transposed', Array.from(transposed.dataSync().slice(0, 10)));
-
-    tf.dispose([styleRepresentation, transposed]);
+    tf.dispose([styleRepresentation]);
     const end = Date.now();
     console.log('yyy stylization complete', end - start);
     return stylized;

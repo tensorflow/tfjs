@@ -1,9 +1,10 @@
 import * as tf from '@tensorflow/tfjs';
-import {fetch} from '@tensorflow/tfjs-react-native';
 import * as ImageManipulator from 'expo-image-manipulator';
-// import * as FileSystem from 'expo-file-system';
 import * as jpeg from 'jpeg-js';
-import {Image} from 'react-native';
+
+export function toDataUri(base64: string): string {
+  return `data:image/jpeg;base64,${base64}`;
+}
 
 export async function resizeImage(
     imageUrl: string, width: number): Promise<ImageManipulator.ImageResult> {
@@ -13,32 +14,19 @@ export async function resizeImage(
     },
   }];
   const saveOptions = {
-    compress: 0.8,
+    compress: 0.75,
     format: ImageManipulator.SaveFormat.JPEG,
     base64: true,
   };
   const res =
       await ImageManipulator.manipulateAsync(imageUrl, actions, saveOptions);
-  console.log('image manip res', res.uri, res.base64);
   return res;
 }
 
-export async function imageUrlToTensor(
-    imageUrl: string, base64?: string): Promise<tf.Tensor3D> {
-  let rawImageData;
-  if (base64 != null) {
-    rawImageData = tf.util.encodeString(base64, 'base64');
-  } else {
-    const imageAssetPath = Image.resolveAssetSource({uri: imageUrl});
-    try {
-      const response = await fetch(imageAssetPath.uri, {}, {isBinary: true});
-      rawImageData = await response.arrayBuffer();
-    } catch (e) {
-      console.log(`Error fetching ${imageUrl}`, e);
-      throw e;
-    }
-  }
-
+export async function base64ImageToTensor(base64: string):
+    Promise<tf.Tensor3D> {
+  const start = Date.now();
+  const rawImageData = tf.util.encodeString(base64, 'base64');
   const TO_UINT8ARRAY = true;
   const {width, height, data} = jpeg.decode(rawImageData, TO_UINT8ARRAY);
   // Drop the alpha channel info
@@ -52,13 +40,19 @@ export async function imageUrlToTensor(
     offset += 4;
   }
 
+  const end = Date.now();
+  console.log('yyy base64ImageToTensor', end - start);
   return tf.tensor3d(buffer, [height, width, 3]);
 }
 
 export async function tensorToImageUrl(imageTensor: tf.Tensor3D):
     Promise<string> {
+  const start = Date.now();
   const [height, width] = imageTensor.shape;
   const buffer = await imageTensor.toInt().data();
+
+  const download = Date.now();
+  console.log('yyy tensorToImageUrl:download', download - start);
   const frameData = new Uint8Array(width * height * 4);
 
   let offset = 0;
@@ -76,11 +70,13 @@ export async function tensorToImageUrl(imageTensor: tf.Tensor3D):
     width,
     height,
   };
-  const jpegImageData = jpeg.encode(rawImageData, 80);
-
-  // Write to temporary file.
+  const copy = Date.now();
+  console.log('yyy tensorToImageUrl:copy', copy - download);
+  const jpegImageData = jpeg.encode(rawImageData, 75);
+  const encode = Date.now();
+  console.log('yyy tensorToImageUrl:jpegencode', encode - copy);
   const base64Encoding = tf.util.decodeString(jpegImageData.data, 'base64');
-  console.log(
-      'yyy base64encoding', base64Encoding.length, base64Encoding.slice(0, 20));
-  return `data:image/jpeg;base64,${base64Encoding}`;
+  const end = Date.now();
+  console.log('yyy tensorToImageUrl:base64', end - encode);
+  return base64Encoding;
 }
