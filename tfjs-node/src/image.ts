@@ -204,7 +204,7 @@ export async function encodeJpeg(
       imageData, image.shape, format, quality, progressive, optimizeSize,
       chromaDownsampling, densityUnit, xDensity, yDensity, xmpMetadata);
 
-    return encodeImage(image, backendEncodeImage);
+  return encodeImage(image, backendEncodeImage);
 }
 
 export async function encodePng(
