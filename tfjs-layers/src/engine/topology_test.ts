@@ -313,7 +313,6 @@ describeMathCPU('Layer', () => {
     });
   });
 
-
   it('can be set to built.', () => {
     const layer = new LayerForTest({});
     layer.built = true;
@@ -1000,7 +999,7 @@ describeMathCPUAndGPU('Layer-dispose', () => {
   });
 
   it('dispose() call works on Input Layer', () => {
-    const input = tfl.layers.input({shape: [2, 3]}) as tfl.SymbolicTensor;
+    const input = tfl.layers.input({shape: [2, 3]});
     const output = tfl.layers.reshape({targetShape: [3, 2]}).apply(input) as
         tfl.SymbolicTensor;
     const model = tfl.model({inputs: [input], outputs: [output]});

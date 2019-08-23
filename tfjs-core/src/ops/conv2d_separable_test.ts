@@ -377,8 +377,8 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
   it('Incorrect input rank raises error', () => {
     // tslint:disable-next-line:no-any
     const x = tf.zeros([4, 4]) as any;
-    const depthwiseFilter = tf.zeros([2, 2, 1, 3]) as tf.Tensor4D;
-    const pointwiseFilter = tf.zeros([1, 1, 2, 4]) as tf.Tensor4D;
+    const depthwiseFilter: tf.Tensor4D = tf.zeros([2, 2, 1, 3]);
+    const pointwiseFilter: tf.Tensor4D = tf.zeros([1, 1, 2, 4]);
     expect(
         () =>
             tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
@@ -386,10 +386,10 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
   });
 
   it('Incorrect depthwise filter rank raises error', () => {
-    const x = tf.zeros([1, 4, 4, 1]) as tf.Tensor4D;
+    const x: tf.Tensor4D = tf.zeros([1, 4, 4, 1]);
     // tslint:disable-next-line:no-any
     const depthwiseFilter = tf.zeros([2, 2, 1]) as any;
-    const pointwiseFilter = tf.zeros([1, 1, 2, 4]) as tf.Tensor4D;
+    const pointwiseFilter: tf.Tensor4D = tf.zeros([1, 1, 2, 4]);
     expect(
         () =>
             tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
@@ -397,8 +397,8 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
   });
 
   it('Incorrect depthwise filter rank raises error', () => {
-    const x = tf.zeros([1, 4, 4, 1]) as tf.Tensor4D;
-    const depthwiseFilter = tf.zeros([2, 2, 1, 3]) as tf.Tensor4D;
+    const x: tf.Tensor4D = tf.zeros([1, 4, 4, 1]);
+    const depthwiseFilter: tf.Tensor4D = tf.zeros([2, 2, 1, 3]);
     // tslint:disable-next-line:no-any
     const pointwiseFilter = tf.zeros([1, 1, 2]) as any;
     expect(
@@ -408,9 +408,9 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
   });
 
   it('Incorrect point filter 1st dimension raises error', () => {
-    const x = tf.zeros([1, 4, 4, 1]) as tf.Tensor4D;
-    const depthwiseFilter = tf.zeros([2, 2, 1, 3]) as tf.Tensor4D;
-    const pointwiseFilter = tf.zeros([2, 1, 3, 6]) as tf.Tensor4D;
+    const x: tf.Tensor4D = tf.zeros([1, 4, 4, 1]);
+    const depthwiseFilter: tf.Tensor4D = tf.zeros([2, 2, 1, 3]);
+    const pointwiseFilter: tf.Tensor4D = tf.zeros([2, 1, 3, 6]);
     expect(
         () =>
             tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
@@ -418,9 +418,9 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
   });
 
   it('Incorrect point filter 2nd dimension raises error', () => {
-    const x = tf.zeros([1, 4, 4, 1]) as tf.Tensor4D;
-    const depthwiseFilter = tf.zeros([2, 2, 1, 3]) as tf.Tensor4D;
-    const pointwiseFilter = tf.zeros([1, 5, 3, 6]) as tf.Tensor4D;
+    const x: tf.Tensor4D = tf.zeros([1, 4, 4, 1]);
+    const depthwiseFilter: tf.Tensor4D = tf.zeros([2, 2, 1, 3]);
+    const pointwiseFilter: tf.Tensor4D = tf.zeros([1, 5, 3, 6]);
     expect(
         () =>
             tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
@@ -428,9 +428,9 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
   });
 
   it('Incorrect pointwise filter 3rd dimension raises error', () => {
-    const x = tf.zeros([1, 4, 4, 1]) as tf.Tensor4D;
-    const depthwiseFilter = tf.zeros([2, 2, 1, 3]) as tf.Tensor4D;
-    const pointwiseFilter = tf.zeros([1, 1, 4, 6]) as tf.Tensor4D;
+    const x: tf.Tensor4D = tf.zeros([1, 4, 4, 1]);
+    const depthwiseFilter: tf.Tensor4D = tf.zeros([2, 2, 1, 3]);
+    const pointwiseFilter: tf.Tensor4D = tf.zeros([1, 1, 4, 6]);
     expect(
         () =>
             tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))

@@ -14,7 +14,6 @@ import {RegularizerSerialization} from '../regularizer_config';
 import {BaseLayerSerialization} from '../topology_config';
 import {BaseConvLayerConfig} from './convolutional_serialization';
 
-
 export interface DepthwiseConv2DLayerConfig extends BaseConvLayerConfig {
   kernel_size: number|[number, number];
   depth_multiplier?: number;

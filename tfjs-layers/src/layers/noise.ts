@@ -12,7 +12,6 @@
  * TensorFlow.js Layers: Noise Layers.
  */
 
-
 import {greaterEqual, randomUniform, serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
@@ -25,7 +24,6 @@ export declare interface GaussianNoiseArgs extends LayerArgs {
   /** Standard Deviation.  */
   stddev: number;
 }
-
 
 export class GaussianNoise extends Layer {
   /** @nocollapse */
@@ -56,8 +54,7 @@ export class GaussianNoise extends Layer {
       const noised = () =>
           K.randomNormal(input.shape, 0, this.stddev).add(input);
       const output =
-          K.inTrainPhase(noised, () => input, kwargs['training'] || false) as
-          Tensor;
+          K.inTrainPhase(noised, () => input, kwargs['training'] || false);
       return output;
     });
   }

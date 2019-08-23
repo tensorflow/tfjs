@@ -27,7 +27,7 @@ describeWithFlags('AdadeltaOptimizer', ALL_ENVS, () => {
 
     const x = tf.tensor1d([1, 2]).variable();
 
-    const f = () => x.square().sum() as tf.Scalar;
+    const f: () => tf.Scalar = () => x.square().sum();
 
     let numTensors = tf.memory().numTensors;
 
@@ -82,7 +82,7 @@ describeWithFlags('AdadeltaOptimizer', ALL_ENVS, () => {
     const optimizer1 = tf.train.adadelta(learningRate, rho);
 
     const x = tf.tensor1d([1, 2]).variable();
-    const f = () => x.square().sum() as tf.Scalar;
+    const f: () => tf.Scalar = () => x.square().sum();
 
     let cost = optimizer1.minimize(f, /* returnCost */ true);
     expectArraysClose(await cost.data(), 5);
