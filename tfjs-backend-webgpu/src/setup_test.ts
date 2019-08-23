@@ -80,7 +80,8 @@ const EXCLUDE_LIST: string[] = [
  * Filter method that returns boolean, if a given test should run or be
  * ignored based on its name. The exclude list has priority over the include
  * list. Thus, if a test matches both the exclude and the include list, it
- * will be exluded.
+ * will be exluded. Also accounts for --grep flag passed to karma by first
+ * running test through the saved specFilter.
  */
 env.specFilter = spec => {
   if (!grepFilter(spec)) {
