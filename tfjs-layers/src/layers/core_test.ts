@@ -53,6 +53,7 @@ describeMathCPUAndGPU('Dropout Layer', () => {
     const trainingValues = [false, true];
     const dropoutRates = [0, 0.5];
     const noiseShapes = [null, inputShape, [2, 3, 1]];
+    const seed = 0;
 
     for (const training of trainingValues) {
       for (const rate of dropoutRates) {
@@ -61,7 +62,7 @@ describeMathCPUAndGPU('Dropout Layer', () => {
               `noiseShape=${JSON.stringify(noiseShape)}`;
           it(testTitle, () => {
             const x = ones(inputShape);
-            const dropoutLayer = tfl.layers.dropout({rate, noiseShape});
+            const dropoutLayer = tfl.layers.dropout({rate, noiseShape, seed});
             const y = dropoutLayer.apply(x, {training}) as Tensor;
             expect(x.dtype).toEqual(y.dtype);
             expect(x.shape).toEqual(y.shape);
@@ -764,11 +765,8 @@ describeMathCPUAndGPU('Masking Layer: Tensor', () => {
   it('3D, default maskValue', () => {
     const model = tfl.sequential();
     model.add(tfl.layers.masking({inputShape: [3, 2]}));
-    model.add(tfl.layers.simpleRNN({
-      units: 1,
-      recurrentInitializer: 'ones',
-      kernelInitializer: 'ones'
-    }));
+    model.add(tfl.layers.simpleRNN(
+        {units: 1, recurrentInitializer: 'ones', kernelInitializer: 'ones'}));
 
     const xs = tensor3d([[[1, 1], [1, 0], [0, 0]]]);
     const ys = model.predict(xs) as Tensor;
@@ -796,11 +794,8 @@ describeMathCPUAndGPU('Masking Layer: Tensor', () => {
   it('3D, custom maskValue', () => {
     const model = tfl.sequential();
     model.add(tfl.layers.masking({maskValue: -1, inputShape: [3, 2]}));
-    model.add(tfl.layers.simpleRNN({
-      units: 1,
-      recurrentInitializer: 'ones',
-      kernelInitializer: 'ones'
-    }));
+    model.add(tfl.layers.simpleRNN(
+        {units: 1, recurrentInitializer: 'ones', kernelInitializer: 'ones'}));
 
     const xs = tensor3d([[[1, 1], [1, -1], [-1, -1]]]);
     const ys = model.predict(xs) as Tensor;

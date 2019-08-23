@@ -26,7 +26,6 @@ import * as math_utils from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
-
 /**
  * Applies batch normalization on x given mean, var, beta and gamma.
  *

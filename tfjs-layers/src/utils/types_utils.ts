@@ -15,7 +15,6 @@ import {ValueError} from '../errors';
 import {Shape} from '../keras_format/common';
 // tslint:enable
 
-
 /**
  * Determine whether the input is an Array of Shapes.
  */
@@ -53,7 +52,7 @@ export function getExactlyOneTensor(xs: Tensor|Tensor[]): Tensor {
     }
     x = xs[0];
   } else {
-    x = xs as Tensor;
+    x = xs;
   }
   return x;
 }
