@@ -84,9 +84,9 @@ limitations under the License.
       <tbody></tbody>
     </table>
   </div>
-  <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
+  <script src="./tf-core.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-layers@1.2.8/dist/tf-layers.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-converter@1.2.8/dist/tf-converter.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@1.0.0/dist/posenet.min.js"></script>
   <script src="./modelConfig.js"></script>
@@ -96,7 +96,7 @@ limitations under the License.
 
     const state = {
       numRuns: 50,
-      benchmark: 'mobilenet',
+      benchmark: 'posenet',
       run: (v) => {
         runBenchmark();
       },
@@ -337,7 +337,7 @@ limitations under the License.
     async function onPageLoad() {
       var gui = new dat.gui.GUI();
 
-      await tf.ready();
+      // await tf.ready();
 
       gui.add(state, 'numRuns');
       gui.add(state, 'benchmark', ['', ...Object.keys(benchmarks)]);
