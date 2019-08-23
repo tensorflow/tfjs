@@ -22,6 +22,7 @@
 import {tensorBoard} from './callbacks';
 // tslint:disable-next-line:max-line-length
 import {decodeBmp, decodeGif, decodeImage, decodeJpeg, decodePng} from './decode_image';
+import {encodeJpeg, encodePng} from './encode_image';
 import {summaryFileWriter} from './tensorboard';
 
 export const node = {
@@ -30,6 +31,8 @@ export const node = {
   decodeGif,
   decodePng,
   decodeJpeg,
+  encodeJpeg,
+  encodePng,
   summaryFileWriter,
   tensorBoard
 };

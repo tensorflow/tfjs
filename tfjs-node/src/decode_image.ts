@@ -18,7 +18,7 @@
 import {Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {ensureTensorflowBackend, nodeBackend} from './ops/op_utils';
 
-enum ImageType {
+export enum ImageType {
   JPEG = 'jpeg',
   PNG = 'png',
   GIF = 'gif',
@@ -193,7 +193,7 @@ export function decodeImage(
 /**
  * Helper function to get image type based on starting bytes of the image file.
  */
-function getImageType(content: Uint8Array): string {
+export function getImageType(content: Uint8Array): string {
   // Classify the contents of a file based on starting bytes (aka magic number:
   // tslint:disable-next-line:max-line-length
   // https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files)

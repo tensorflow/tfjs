@@ -232,7 +232,7 @@ describe('decode images', () => {
   });
 });
 
-async function getUint8ArrayFromImage(path: string) {
+export async function getUint8ArrayFromImage(path: string) {
   const image = await readFile(path);
   const buf = Buffer.from(image);
   return new Uint8Array(buf);
