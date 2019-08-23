@@ -2645,15 +2645,17 @@ export class MathBackendWebGL implements KernelBackend {
   floatPrecision(): 16|32 {
     if (this.floatPrecisionValue == null) {
       this.floatPrecisionValue = tidy(() => {
-        // Momentarily switching DEBUG flag to false so we don't throw an error
-        // trying to upload a small value.
-        const debugFlag = ENV.getBool('DEBUG');
-        ENV.set('DEBUG', false);
-        const underflowCheckValue = this.abs(scalar(1e-8)).dataSync()[0];
-        ENV.set('DEBUG', debugFlag);
+        if (!ENV.get('WEBGL_ALWAYS_USE_F16_TEXTURES')) {
+          // Momentarily switching DEBUG flag to false so we don't throw an
+          // error trying to upload a small value.
+          const debugFlag = ENV.getBool('DEBUG');
+          ENV.set('DEBUG', false);
+          const underflowCheckValue = this.abs(scalar(1e-8)).dataSync()[0];
+          ENV.set('DEBUG', debugFlag);
 
-        if (underflowCheckValue > 0) {
-          return 32;
+          if (underflowCheckValue > 0) {
+            return 32;
+          }
         }
         return 16;
       });
