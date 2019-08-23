@@ -312,7 +312,7 @@ describe('getLossOrMetricName', () => {
 
   it('function not included in losses map or metrics map', async () => {
     const fakeMetric: LossOrMetricFn = (yTrue: Tensor, yPred: Tensor) =>
-        tensor([1]) as Tensor;
+        tensor([1]);
     const fnName = getLossOrMetricName(fakeMetric);
     expect(fnName).toEqual('fakeMetric');
   });

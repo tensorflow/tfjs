@@ -154,7 +154,6 @@ describeMathCPUAndGPU('logcosh', () => {
   });
 });
 
-
 describeMathCPUAndGPU('categoricalCrossentropy ', () => {
   it('from logits', () => {
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
@@ -292,7 +291,6 @@ describeMathCPUAndGPU('sigmoidCrossEntropyWithLogits', () => {
   });
 });
 
-
 describeMathCPUAndGPU('categoricalCrossentropy', () => {
   it('2D', () => {
     const yTrue = tensor2d([[1, 0], [0, 1]], [2, 2]);
@@ -380,7 +378,6 @@ describeMathCPUAndGPU('cosineProximity', () => {
   });
 });
 
-
 describe('losses get', () => {
   for (const lossName
            of ['meanSquaredError', 'meanAbsoluteError',
@@ -426,7 +423,7 @@ describeMathCPUAndGPU('l2Normalize', () => {
     const result = losses.l2Normalize(x);
     expectTensorsClose(result, x);
   });
-  
+
   it('normalizes casts int32 as float32.', () => {
     const x = tensor2d([[1, 2], [3, 4]], [2, 2], 'int32');
     const norm = Math.sqrt(1 * 1 + 2 * 2 + 3 * 3 + 4 * 4);
@@ -435,12 +432,11 @@ describeMathCPUAndGPU('l2Normalize', () => {
     const result = losses.l2Normalize(x);
     expectTensorsClose(result, expected);
   });
-  
+
   it('normalizes casts bool as float32.', () => {
     const x = tensor2d([[1, 1]], [1, 2], 'bool');
     const norm = Math.sqrt(1 * 1 + 1 * 1);
-    const expected =
-        tensor2d([[1 / norm, 1 / norm]], [1, 2]);
+    const expected = tensor2d([[1 / norm, 1 / norm]], [1, 2]);
     const result = losses.l2Normalize(x);
     expectTensorsClose(result, expected);
   });

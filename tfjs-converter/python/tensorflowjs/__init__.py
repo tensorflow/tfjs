@@ -21,5 +21,6 @@ from __future__ import print_function
 from tensorflowjs import converters
 from tensorflowjs import quantization
 from tensorflowjs import version
+from tensorflowjs import wizard
 
 __version__ = version.version

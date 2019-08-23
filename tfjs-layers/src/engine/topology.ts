@@ -1418,7 +1418,7 @@ export abstract class Layer extends serialization.Serializable {
        * TODO(michaelterry): Keras adds this value to tensors; it's not
        * clear whether we'll use this or not.
        */
-      inboundLayers.push(x.sourceLayer as Layer);
+      inboundLayers.push(x.sourceLayer);
       nodeIndices.push(x.nodeIndex);
       tensorIndices.push(x.tensorIndex);
     }

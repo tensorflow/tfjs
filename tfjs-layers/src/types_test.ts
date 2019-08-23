@@ -12,9 +12,7 @@
  * Unit tests for -specific types.
  */
 
-
 import {SymbolicTensor} from './engine/topology';
-
 
 /**
  * Unit tests for SymbolicTensor.
