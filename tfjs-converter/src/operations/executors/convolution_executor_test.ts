@@ -211,7 +211,7 @@ describe('convolution', () => {
     });
 
     describe('_FusedConv2d', () => {
-      it('should call tfc.fused.conv2d', () => {
+      it('with bias and activation func', () => {
         spyOn(tfc.fused, 'conv2d');
         node.op = '_FusedConv2D';
         node.inputParams['filter'] = createTensorAttr(1);
@@ -240,6 +240,55 @@ describe('convolution', () => {
           activation: 'relu',
           preluActivationWeights: undefined
         });
+      });
+      it('bias add', () => {
+        spyOn(tfc.fused, 'conv2d');
+        node.op = '_FusedConv2D';
+        node.inputParams['filter'] = createTensorAttr(1);
+        node.inputParams['args'] = createTensorsAttr(2, 0);
+        node.attrParams['fusedOps'] = createStrArrayAttr(['biasadd']);
+        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['pad'] = createStrAttr('same');
+        node.attrParams['dataFormat'] = createStrAttr('NHWC');
+        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['numArgs'] = createNumberAttr(1);
+        const input1 = [tfc.scalar(1.0)];
+        const input2 = [tfc.scalar(2.0)];
+        const input3 = [tfc.scalar(3.0)];
+
+        node.inputNames = ['input1', 'input2', 'input3'];
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(tfc.fused.conv2d).toHaveBeenCalledWith({
+          x: input1[0],
+          filter: input2[0],
+          strides: [2, 2],
+          pad: 'same',
+          dataFormat: 'NHWC',
+          dilations: [2, 2],
+          bias: input3[0],
+          activation: undefined,
+          preluActivationWeights: undefined
+        });
+      });
+      it('fail with batchnorm', () => {
+        spyOn(tfc.fused, 'conv2d');
+        node.op = '_FusedConv2D';
+        node.inputParams['filter'] = createTensorAttr(1);
+        node.inputParams['args'] = createTensorsAttr(2, 0);
+        node.attrParams['fusedOps'] = createStrArrayAttr(['fusedbatchnorm']);
+        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['pad'] = createStrAttr('same');
+        node.attrParams['dataFormat'] = createStrAttr('NHWC');
+        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['numArgs'] = createNumberAttr(1);
+        const input1 = [tfc.scalar(1.0)];
+        const input2 = [tfc.scalar(2.0)];
+        const input3 = [tfc.scalar(3.0)];
+
+        node.inputNames = ['input1', 'input2', 'input3'];
+        expect(() => executeOp(node, {input1, input2, input3}, context))
+            .toThrow();
       });
     });
   });

@@ -60,17 +60,15 @@ export let executeOp: InternalOpExecutor = (node: Node,
           dataFormat as 'NHWC' | 'NCHW', [dilations[1], dilations[2]])];
     }
     case '_FusedConv2D': {
-      const fusedOps =
+      const [extraOp, activationFunc] =
           (getParamValue('fusedOps', node, tensorMap, context) as string[]);
 
-      const isBiasAdd = fusedOps[0] === 'biasadd';
-      const isPrelu = fusedOps[1] === 'prelu';
-      const isBatchNorm = fusedOps[0] === 'fusedbatchnorm';
-      const activationFunc = fusedOps[1];
+      const isBiasAdd = extraOp === 'biasadd';
+      const isBatchNorm = extraOp === 'fusedbatchnorm';
 
       const numArgs =
           (getParamValue('numArgs', node, tensorMap, context) as number);
-      if (isBiasAdd && !isPrelu && numArgs !== 1) {
+      if (isBiasAdd && numArgs !== 1) {
         throw new Error(
             'Fused Conv2d with BiasAdd must have one extra argument: bias.');
       }
@@ -85,7 +83,7 @@ export let executeOp: InternalOpExecutor = (node: Node,
               .toUpperCase();
       const dilations =
           getParamValue('dilations', node, tensorMap, context) as number[];
-      const args =
+      const [biasArg, preluArg] =
           getParamValue('args', node, tensorMap, context) as tfc.Tensor[];
       return [tfc.fused.conv2d({
         x: getParamValue('x', node, tensorMap, context) as tfc.Tensor3D |
@@ -96,9 +94,9 @@ export let executeOp: InternalOpExecutor = (node: Node,
         pad: pad as 'valid' | 'same',
         dataFormat: dataFormat as 'NHWC' | 'NCHW',
         dilations: [dilations[1], dilations[2]],
-        bias: args[0],
+        bias: biasArg,
         activation: activationFunc as tfc.fused.Activation,
-        preluActivationWeights: args[1]
+        preluActivationWeights: preluArg
       })];
     }
     case 'Conv2DBackpropInput':
