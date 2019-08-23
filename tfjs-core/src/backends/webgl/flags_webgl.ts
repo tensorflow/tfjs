@@ -44,6 +44,9 @@ ENV.registerFlag(
 /** Whether the WebGL backend will sometimes forward ops to the CPU. */
 ENV.registerFlag('WEBGL_CPU_FORWARD', () => true);
 
+/** Whether the WebGL backend will always use f16 textures for rendering. */
+ENV.registerFlag('WEBGL_ALWAYS_USE_F16_TEXTURES', () => true);
+
 /** Whether to turn all packing related flags on. */
 ENV.registerFlag('WEBGL_PACK', () => ENV.getBool('HAS_WEBGL'));
 

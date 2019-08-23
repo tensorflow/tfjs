@@ -367,6 +367,13 @@ export class MathBackendWebGL implements KernelBackend {
       for (let i = 0; i < values.length; i++) {
         const num = values[i] as number;
         if (!webgl_util.canBeRepresented(num)) {
+          if (ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED') &&
+              ENV.getBool('WEBGL_ALWAYS_USE_F16_TEXTURES')) {
+            throw Error(
+                `The value ${num} cannot be represented with your ` +
+                `current settings. Consider enabling float32 rendering: ` +
+                `'tf.ENV.set('WEBGL_ALWAYS_USE_F16_TEXTURES', false);'`);
+          }
           throw Error(`The value ${num} cannot be represented on this device.`);
         }
       }
