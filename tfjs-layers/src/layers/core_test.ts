@@ -53,6 +53,7 @@ describeMathCPUAndGPU('Dropout Layer', () => {
     const trainingValues = [false, true];
     const dropoutRates = [0, 0.5];
     const noiseShapes = [null, inputShape, [2, 3, 1]];
+    const seed = 0;
 
     for (const training of trainingValues) {
       for (const rate of dropoutRates) {
@@ -61,7 +62,7 @@ describeMathCPUAndGPU('Dropout Layer', () => {
               `noiseShape=${JSON.stringify(noiseShape)}`;
           it(testTitle, () => {
             const x = ones(inputShape);
-            const dropoutLayer = tfl.layers.dropout({rate, noiseShape});
+            const dropoutLayer = tfl.layers.dropout({rate, noiseShape, seed});
             const y = dropoutLayer.apply(x, {training}) as Tensor;
             expect(x.dtype).toEqual(y.dtype);
             expect(x.shape).toEqual(y.shape);
@@ -106,7 +107,7 @@ describeMathCPUAndGPU('Dropout Layer', () => {
             if (rate === 0 || !training) {
               expect(nKept).toEqual(numel);
             } else {
-              expect(nKept).toBeLessThanOrEqual(numel);
+              expect(nKept).toBeLessThan(numel);
             }
           });
         }
