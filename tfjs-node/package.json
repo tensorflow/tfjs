@@ -49,7 +49,7 @@
     "yalc": "~1.0.0-pre.21"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "~1.2.7",
+    "@tensorflow/tfjs": "1.2.8",
     "adm-zip": "^0.4.11",
     "https-proxy-agent": "^2.2.1",
     "node-pre-gyp": "0.13.0",

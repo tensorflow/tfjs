@@ -2859,7 +2859,7 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
 
   it('has gradient', async () => {
     const a = tf.tensor1d([0, 1, 2], 'int32');
-    const dy = tf.ones([3, 3], 'float32') as tf.Tensor2D;
+    const dy = tf.ones([3, 3], 'float32');
     const da = tf.grad((x: tf.Tensor1D) => tf.oneHot(x, 3))(a, dy);
 
     expect(da.dtype).toBe('float32');
@@ -2869,7 +2869,7 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
 
   it('gradient with clones', async () => {
     const a = tf.tensor1d([0, 1, 2], 'int32');
-    const dy = tf.ones([3, 3], 'float32') as tf.Tensor2D;
+    const dy = tf.ones([3, 3], 'float32');
     const da =
         tf.grad((x: tf.Tensor1D) => tf.oneHot(x.clone(), 3).clone())(a, dy);
 

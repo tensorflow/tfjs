@@ -190,10 +190,10 @@ function irfft_(input: Tensor): Tensor {
 
     const realConjugate =
         realInput.slice([0, 1], [batch, innerDimensionSize - 2]).reverse(1);
-    const imagConjugate =
+    const imagConjugate: Tensor2D =
         imagInput.slice([0, 1], [batch, innerDimensionSize - 2])
             .reverse(1)
-            .mul(scalar(-1)) as Tensor2D;
+            .mul(scalar(-1));
 
     const r = realInput.concat(realConjugate, 1);
     const i = imagInput.concat(imagConjugate, 1);

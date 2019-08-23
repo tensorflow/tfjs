@@ -48,8 +48,8 @@ function scatterND_<R extends Rank>(
   scatter_nd_util.validateInput($updates, $indices, shape);
 
   return ENGINE.runKernel(
-             backend => backend.scatterND($indices, $updates, shape),
-             {$indices, $updates}) as Tensor<R>;
+      backend => backend.scatterND($indices, $updates, shape),
+      {$indices, $updates});
 }
 
 export const scatterND = op({scatterND_});

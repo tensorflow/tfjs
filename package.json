@@ -4,7 +4,7 @@
     "chalk": "~2.4.2",
     "shelljs": "~0.8.3",
     "ts-node": "~4.1.0",
-    "typescript": "3.3.3333"
+    "typescript": "3.5.3"
   },
   "scripts": {
     "diff": "./scripts/diff.js",

@@ -16,9 +16,9 @@
  * =============================================================================
  */
 import * as tfconverter from '@tensorflow/tfjs-converter';
+import * as tfc from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {NamedTensorMap} from '@tensorflow/tfjs-core';
-import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers';
 import * as detectBrowser from 'detect-browser';
 
@@ -64,7 +64,7 @@ export function getCommitHashesFromArgs(args?: string[]) {
       if (args[i + 1] == null) {
         throw new Error('Missing value for flag --hashes');
       }
-      return JSON.parse(args[i + 1] as string);
+      return JSON.parse(args[i + 1]);
     }
   }
 }
@@ -97,7 +97,7 @@ export function getChronologicalModelNames(suiteLog: SuiteLog): string[] {
   const modelNamesAndTimestamps: Array<{modelName: string, timestamp: number}> =
       [];
   for (const modelName in suiteLog.data) {
-    const taskGroupLog = suiteLog.data[modelName] as MultiFunctionModelTaskLog;
+    const taskGroupLog = suiteLog.data[modelName];
     const functionNames = Object.keys(taskGroupLog);
     if (functionNames.length === 0) {
       continue;
@@ -152,7 +152,7 @@ export function getRandomInputsAndOutputs(
 export async function syncData(tensors: tfc.Tensor|tfc.Tensor[]|
                                NamedTensorMap) {
   if (tensors instanceof tfc.Tensor) {
-    await (tensors as tfc.Tensor).data();
+    await tensors.data();
   } else if (Array.isArray(tensors)) {
     const promises = tensors.map(tensor => tensor.data());
     await Promise.all(promises);

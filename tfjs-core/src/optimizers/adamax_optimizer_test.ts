@@ -30,7 +30,7 @@ describeWithFlags('AdamaxOptimizer', ALL_ENVS, () => {
 
     const x = tf.tensor1d([2, 4]).variable();
 
-    const f = () => x.square().sum() as tf.Scalar;
+    const f: () => tf.Scalar = () => x.square().sum();
 
     let numTensors = tf.memory().numTensors;
 
