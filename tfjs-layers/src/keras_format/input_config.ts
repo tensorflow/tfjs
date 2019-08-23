@@ -12,7 +12,6 @@ import {DataType} from '@tensorflow/tfjs-core';
 import {Shape} from './common';
 import {BaseLayerSerialization} from './topology_config';
 
-
 export type InputLayerConfig = {
   name?: string;
   input_shape?: Shape;

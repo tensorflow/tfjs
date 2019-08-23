@@ -82,7 +82,6 @@ describe('convertPythonToTs', () => {
   });
 });
 
-
 describe('convertTsToPythonic', () => {
   it('primitives', () => {
     expect(convertTsToPythonic(null)).toEqual(null);

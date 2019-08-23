@@ -96,7 +96,6 @@ describeMathCPU('mean', () => {
   });
 });
 
-
 describeMathCPU('variance', () => {
   it('Number array', () => {
     expect(math_utils.variance([-100, -200, 150, 50])).toEqual(18125);
