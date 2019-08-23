@@ -505,10 +505,10 @@ def fold_batch_norms(input_graph_def):
   addition, rather than the more expensive multiple ops, and even bake the
   scaling into the convolution weights. This function identifies the typical
   pattern of batch normalization subgraphs, and performs the transformation to
-  fold the computations down into a simpler form. It currently only spots batch
-  normalization that's performed by the BatchNormWithGlobalNormalization and
-  FusedBatchNormV3 ops, and will need to be extended in the future to handle the
-  newer style.
+  fold the computations down into a simpler form. It currently only supports
+  batch normalization that's performed by the BatchNormWithGlobalNormalization
+  FusedBatchNorm and FusedBatchNormV3 ops, and will need to be extended in the
+  future to handle the newer style.
 
   Args:
     input_graph_def: A GraphDef containing a model.
