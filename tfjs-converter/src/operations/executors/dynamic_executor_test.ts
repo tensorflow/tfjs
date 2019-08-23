@@ -18,7 +18,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import * as dynamic from '../op_list/dynamic';
-import {Node, OpMapper} from '../types';
+import {Node} from '../types';
 
 import {executeOp} from './dynamic_executor';
 // tslint:disable-next-line:max-line-length
@@ -72,8 +72,7 @@ describe('dynamic', () => {
         node.inputParams['scoreThreshold'] = createNumberAttrFromIndex(4);
         node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
 
-        expect(validateParam(
-                   node, dynamic.json as OpMapper[], 'NonMaxSuppressionV3'))
+        expect(validateParam(node, dynamic.json, 'NonMaxSuppressionV3'))
             .toBeTruthy();
       });
     });
@@ -106,8 +105,7 @@ describe('dynamic', () => {
         node.inputParams['scoreThreshold'] = createNumberAttrFromIndex(4);
         node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
 
-        expect(validateParam(
-                   node, dynamic.json as OpMapper[], 'NonMaxSuppressionV3'))
+        expect(validateParam(node, dynamic.json, 'NonMaxSuppressionV3'))
             .toBeTruthy();
       });
     });
@@ -127,7 +125,7 @@ describe('dynamic', () => {
         node.op = 'Where';
         node.inputParams = {'condition': createTensorAttr(0)};
 
-        expect(validateParam(node, dynamic.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, dynamic.json)).toBeTruthy();
       });
     });
 
@@ -149,7 +147,7 @@ describe('dynamic', () => {
         node.inputNames = ['input1', 'input2'];
         node.inputParams = {'x': createTensorAttr(0), 'y': createTensorAttr(1)};
 
-        expect(validateParam(node, dynamic.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, dynamic.json)).toBeTruthy();
       });
     });
   });

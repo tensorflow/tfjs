@@ -18,7 +18,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import * as basic_math from '../op_list/basic_math';
-import {Node, OpMapper} from '../types';
+import {Node} from '../types';
 
 import {executeOp} from './basic_math_executor';
 // tslint:disable-next-line:max-line-length
@@ -59,8 +59,7 @@ describe('basic math', () => {
           it('should match op def', () => {
             node.op = op;
 
-            expect(validateParam(node, basic_math.json as OpMapper[]))
-                .toBeTruthy();
+            expect(validateParam(node, basic_math.json)).toBeTruthy();
           });
         });
     describe('Relu6', () => {
@@ -79,7 +78,7 @@ describe('basic math', () => {
         node.attrParams['clipValueMax'] = createNumberAttr(6);
         node.attrParams['clipValueMin'] = createNumberAttr(0);
 
-        expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
       });
     });
     describe('Prod', () => {
@@ -97,7 +96,7 @@ describe('basic math', () => {
         node.op = 'Prod';
         node.inputParams['axes'] = createNumericArrayAttrFromIndex(1);
 
-        expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
       });
     });
     describe('Rsqrt', () => {
@@ -112,7 +111,7 @@ describe('basic math', () => {
       it('should match op def', () => {
         node.op = 'Rsqrt';
 
-        expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
       });
     });
     describe('LeakyRelu', () => {
@@ -128,7 +127,7 @@ describe('basic math', () => {
       it('should match op def', () => {
         node.op = 'LeakyRelu';
         node.attrParams['alpha'] = createNumberAttr(1);
-        expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
       });
     });
     describe('Atan2', () => {
@@ -146,7 +145,7 @@ describe('basic math', () => {
         node.op = 'Atan2';
         node.inputParams['y'] = createTensorAttr(1);
 
-        expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
       });
     });
     describe('ComplexAbs', () => {
@@ -161,7 +160,7 @@ describe('basic math', () => {
       it('should match op def', () => {
         node.op = 'ComplexAbs';
 
-        expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
       });
     });
     describe('Complex', () => {
@@ -185,7 +184,7 @@ describe('basic math', () => {
           imag: createTensorAttr(1)
         };
 
-        expect(validateParam(node, basic_math.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
       });
     });
   });
