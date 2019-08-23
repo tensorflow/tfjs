@@ -237,17 +237,21 @@ describe('encode images', () => {
   it('encodeJpeg', async () => {
     const imageTensor = tf.tensor3d(new Uint8Array(
       [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
+    const beforeNumTensors = memory().numTensors;
     const jpegEncodedData = await tf.node.encodeJpeg(imageTensor);
-    imageTensor.dispose();
+    expect(memory().numTensors).toBe(beforeNumTensors);
     expect(getImageType(jpegEncodedData)).toEqual(ImageType.JPEG);
+    imageTensor.dispose();
   });
 
   it('encodeJpeg grayscale', async () => {
     const imageTensor = tf.tensor3d(new Uint8Array(
       [239, 0, 47, 0]), [2, 2, 1]);
+    const beforeNumTensors = memory().numTensors;
     const jpegEncodedData = await tf.node.encodeJpeg(imageTensor, 'grayscale');
-    imageTensor.dispose();
+    expect(memory().numTensors).toBe(beforeNumTensors);
     expect(getImageType(jpegEncodedData)).toEqual(ImageType.JPEG);
+    imageTensor.dispose();
   });
 
   it('encodeJpeg with parameters', async () => {
@@ -262,27 +266,33 @@ describe('encode images', () => {
     const xDensity = 500;
     const yDensity = 500;
 
+    const beforeNumTensors = memory().numTensors;
     const jpegEncodedData = await tf.node.encodeJpeg(imageTensor, format,
       quality, progressive, optimizeSize, chromaDownsampling, densityUnit,
       xDensity, yDensity);
-    imageTensor.dispose();
+    expect(memory().numTensors).toBe(beforeNumTensors);
     expect(getImageType(jpegEncodedData)).toEqual(ImageType.JPEG);
+    imageTensor.dispose();
   });
 
   it('encodePng', async () => {
     const imageTensor = tf.tensor3d(new Uint8Array(
       [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
+    const beforeNumTensors = memory().numTensors;
     const pngEncodedData = await tf.node.encodePng(imageTensor);
-    imageTensor.dispose();
+    expect(memory().numTensors).toBe(beforeNumTensors);
     expect(getImageType(pngEncodedData)).toEqual(ImageType.PNG);
+    imageTensor.dispose();
   });
 
   it('encodePng grayscale', async () => {
     const imageTensor = tf.tensor3d(new Uint8Array(
       [239, 0, 47, 0]), [2, 2, 1]);
+    const beforeNumTensors = memory().numTensors;
     const pngEncodedData = await tf.node.encodePng(imageTensor);
-    imageTensor.dispose();
+    expect(memory().numTensors).toBe(beforeNumTensors);
     expect(getImageType(pngEncodedData)).toEqual(ImageType.PNG);
+    imageTensor.dispose();
   });
 
   it('encodePng with parameters', async () => {
@@ -290,9 +300,11 @@ describe('encode images', () => {
       [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
     const compression = 4;
 
+    const beforeNumTensors = memory().numTensors;
     const pngEncodedData = await tf.node.encodePng(imageTensor, compression);
-    imageTensor.dispose();
+    expect(memory().numTensors).toBe(beforeNumTensors);
     expect(getImageType(pngEncodedData)).toEqual(ImageType.PNG);
+    imageTensor.dispose();
   });
 });
 
