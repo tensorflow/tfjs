@@ -18,7 +18,6 @@ import * as tfl from '../index';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
-
 describeMathCPU('ReLU: Symbolic', () => {
   it('Correct output shape', () => {
     const layer = tfl.layers.reLU({});
@@ -69,10 +68,8 @@ describeMathCPU('PReLU: Symbolic', () => {
   });
 
   it('Serialization round trip', () => {
-    const layer = tfl.layers.prelu({
-      alphaInitializer: 'ones',
-      sharedAxes: [1, 2]
-    });
+    const layer =
+        tfl.layers.prelu({alphaInitializer: 'ones', sharedAxes: [1, 2]});
     const pythonicConfig = convertTsToPythonic(layer.getConfig());
     // tslint:disable-next-line:no-any
     const tsConfig = convertPythonicToTs(pythonicConfig) as any;
@@ -109,24 +106,15 @@ describeMathCPUAndGPU('PReLU: Tensor', () => {
   // ```
   it('Training: no sharedAxes', async () => {
     const model = tfl.sequential();
-    model.add(tfl.layers.dense({
-      units: 3,
-      kernelInitializer: 'ones',
-      inputShape: [4]
-    }));
+    model.add(tfl.layers.dense(
+        {units: 3, kernelInitializer: 'ones', inputShape: [4]}));
     model.add(tfl.layers.prelu({alphaInitializer: 'ones'}));
     model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
-    model.compile({
-      optimizer: 'sgd',
-      loss: 'meanSquaredError'
-    });
+    model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
 
     const xs = ones([2, 4]).neg();
     const ys = zeros([2, 1]);
-    const history = await model.fit(xs, ys, {
-      batchSize: 2,
-      epochs: 3
-    });
+    const history = await model.fit(xs, ys, {batchSize: 2, epochs: 3});
     expect(history.history.loss.length).toEqual(3);
     expect(history.history.loss[0]).toBeCloseTo(144);
     expect(history.history.loss[1]).toBeCloseTo(0.051329);
@@ -155,27 +143,15 @@ describeMathCPUAndGPU('PReLU: Tensor', () => {
   // ```
   it('Training, with sharedAxes', async () => {
     const model = tfl.sequential();
-    model.add(tfl.layers.dense({
-      units: 3,
-      kernelInitializer: 'ones',
-      inputShape: [2, 2]
-    }));
-    model.add(tfl.layers.prelu({
-      alphaInitializer: 'ones',
-      sharedAxes: [1]
-    }));
+    model.add(tfl.layers.dense(
+        {units: 3, kernelInitializer: 'ones', inputShape: [2, 2]}));
+    model.add(tfl.layers.prelu({alphaInitializer: 'ones', sharedAxes: [1]}));
     model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
-    model.compile({
-      optimizer: 'sgd',
-      loss: 'meanSquaredError'
-    });
+    model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
 
     const xs = ones([2, 2, 2]).neg();
     const ys = zeros([2, 2, 1]);
-    const history = await model.fit(xs, ys, {
-      batchSize: 2,
-      epochs: 3
-    });
+    const history = await model.fit(xs, ys, {batchSize: 2, epochs: 3});
     expect(history.history.loss.length).toEqual(3);
     expect(history.history.loss[0]).toBeCloseTo(36);
     expect(history.history.loss[1]).toBeCloseTo(7.408153);

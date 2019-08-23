@@ -25,7 +25,6 @@ import {DataFormat, Shape} from '../keras_format/common';
 import {Kwargs} from '../types';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 
-
 /**
  * Pads the middle dimension of a 3D tensor.
  *
@@ -153,8 +152,7 @@ export class ZeroPadding2D extends Layer {
       this.padding =
           [[args.padding, args.padding], [args.padding, args.padding]];
     } else {
-      args.padding = args.padding as [number, number] |
-          [[number, number], [number, number]];
+      args.padding = args.padding;
       if (args.padding.length !== 2) {
         throw new ValueError(
             `ZeroPadding2D expects padding to be a length-2 array, but ` +
@@ -164,7 +162,7 @@ export class ZeroPadding2D extends Layer {
       let heightPadding: [number, number];
       let widthPadding: [number, number];
       if (typeof args.padding[0] === 'number') {
-        heightPadding = [args.padding[0] as number, args.padding[0] as number];
+        heightPadding = [args.padding[0], args.padding[0]];
         widthPadding = [args.padding[1] as number, args.padding[1] as number];
       } else {
         args.padding = args.padding as [[number, number], [number, number]];

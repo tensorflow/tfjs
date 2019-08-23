@@ -27,9 +27,8 @@ import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsCl
 
 // TODO(bileschi): Use external version of Layer.
 import {Layer, SymbolicTensor} from './topology';
-import {checkArrayLengths, isDataArray, isDataDict, isDataTensor, standardizeInputData, collectMetrics} from './training';
+import {checkArrayLengths, collectMetrics, isDataArray, isDataDict, isDataTensor, standardizeInputData} from './training';
 import {makeBatches, sliceArraysByIndices} from './training_tensors';
-
 
 describeMathCPU('isDataTensor', () => {
   const x = tfc.tensor2d([[3.14]]);
@@ -124,7 +123,6 @@ describeMathCPU('standardizeInputData', () => {
   });
 });
 
-
 describeMathCPU('checkArrayLengths', () => {
   it('Batch mismatch in inputs', () => {
     const inputs = [zeros([2, 1]), zeros([3, 1])];
@@ -155,7 +153,6 @@ describeMathCPUAndGPU('collectMetrics', () => {
     expect(collectedMetrics.length).toEqual(1);
     expect(collectedMetrics[0].length).toEqual(1);
     expect(collectedMetrics[0][0]).toEqual('mse');
-
   });
   it('metric function', () => {
     const metrics = tfl.metrics.meanSquaredError;
@@ -908,44 +905,48 @@ describeMathCPUAndGPU('LayersModel.fit', () => {
   }
 
   it('categoricalCrossentropy model, validationSplit = 0.2, ' +
-      'tf.metrics.meanSquareError metric function', async () => {
-    createDenseCategoricalModelAndData();
-    model.compile({
-      optimizer: 'SGD',
-      loss: 'categoricalCrossentropy',
-      metrics: tfl.metrics.meanSquaredError});
-    expect(model.metricsNames).toEqual(['loss', 'meanSquaredError']);
-    const history = await model.fit(
-        inputs, targets,
-        {batchSize: numSamples, epochs: 2, validationSplit: 0.2});
-    const losses = history.history['loss'];
-    expectTensorsClose(
-        losses as number[], [0.6931471824645996, 0.6918979287147522]);
-    const meanSquareError = history.history['meanSquaredError'];
-    expectTensorsClose(
-        meanSquareError as number[], [12.5, 12.495024681091309]);
-  });
+         'tf.metrics.meanSquareError metric function',
+     async () => {
+       createDenseCategoricalModelAndData();
+       model.compile({
+         optimizer: 'SGD',
+         loss: 'categoricalCrossentropy',
+         metrics: tfl.metrics.meanSquaredError
+       });
+       expect(model.metricsNames).toEqual(['loss', 'meanSquaredError']);
+       const history = await model.fit(
+           inputs, targets,
+           {batchSize: numSamples, epochs: 2, validationSplit: 0.2});
+       const losses = history.history['loss'];
+       expectTensorsClose(
+           losses as number[], [0.6931471824645996, 0.6918979287147522]);
+       const meanSquareError = history.history['meanSquaredError'];
+       expectTensorsClose(
+           meanSquareError as number[], [12.5, 12.495024681091309]);
+     });
 
   it('categoricalCrossentropy model, validationSplit = 0.2, ' +
-      'tf.metrics.meanSquareError metric function && acc', async () => {
-    createDenseCategoricalModelAndData();
-    model.compile({
-      optimizer: 'SGD',
-      loss: 'categoricalCrossentropy',
-      metrics: [tfl.metrics.meanSquaredError, 'acc']});
-    expect(model.metricsNames).toEqual(['loss', 'meanSquaredError', 'acc']);
-    const history = await model.fit(
-        inputs, targets,
-        {batchSize: numSamples, epochs: 2, validationSplit: 0.2});
-    const losses = history.history['loss'];
-    expectTensorsClose(
-        losses as number[], [0.6931471824645996, 0.6918979287147522]);
-    const meanSquareError = history.history['meanSquaredError'];
-    expectTensorsClose(
-        meanSquareError as number[], [12.5, 12.495024681091309]);
-    const acc = history.history['acc'];
-    expectTensorsClose(acc as number[], [0, 1]);
-  });
+         'tf.metrics.meanSquareError metric function && acc',
+     async () => {
+       createDenseCategoricalModelAndData();
+       model.compile({
+         optimizer: 'SGD',
+         loss: 'categoricalCrossentropy',
+         metrics: [tfl.metrics.meanSquaredError, 'acc']
+       });
+       expect(model.metricsNames).toEqual(['loss', 'meanSquaredError', 'acc']);
+       const history = await model.fit(
+           inputs, targets,
+           {batchSize: numSamples, epochs: 2, validationSplit: 0.2});
+       const losses = history.history['loss'];
+       expectTensorsClose(
+           losses as number[], [0.6931471824645996, 0.6918979287147522]);
+       const meanSquareError = history.history['meanSquaredError'];
+       expectTensorsClose(
+           meanSquareError as number[], [12.5, 12.495024681091309]);
+       const acc = history.history['acc'];
+       expectTensorsClose(acc as number[], [0, 1]);
+     });
 
   it('Two layers, freeze one layer', async () => {
     // The golden values used below can be obtained with the following PyKeras
