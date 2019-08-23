@@ -91,6 +91,7 @@ py_binary(
     srcs = ["converter.py"],
     srcs_version = "PY2AND3",
     deps = [
+        ":common",
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
         ":tf_saved_model_conversion_v2",

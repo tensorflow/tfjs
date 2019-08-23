@@ -49,6 +49,13 @@ py_library(
 )
 
 py_library(
+    name = "expect_PyInquirer_installed",
+    # This is a dummy rule used as a PyInquirer dependency in open-source.
+    # We expect PyInquirer to already be installed on the system, e.g. via
+    # `pip install PyInquirer`.
+)
+
+py_library(
     name = "quantization",
     srcs = ["quantization.py"],
     srcs_version = "PY2AND3",
@@ -113,6 +120,29 @@ py_test(
         ":read_weights",
         ":write_weights",
         "//tensorflowjs:expect_numpy_installed",
+    ],
+)
+
+py_test(
+    name = "wizard_test",
+    srcs = ["wizard_test.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":expect_numpy_installed",
+        ":wizard",
+    ],
+)
+
+py_binary(
+    name = "wizard",
+    srcs = ["wizard.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":converters/common",
+        ":converters/converter",
+        "//tensorflowjs:expect_h5py_installed",
+        "//tensorflowjs:expect_keras_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
