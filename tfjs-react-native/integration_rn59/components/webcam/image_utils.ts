@@ -55,20 +55,6 @@ export async function imageUrlToTensor(
   return tf.tensor3d(buffer, [height, width, 3]);
 }
 
-// export async function tensorToImageUrl(imageTensor: tf.Tensor3D):
-//     Promise<string> {
-//   const [width, height] = imageTensor.shape;
-//   const buffer = await imageTensor.cast('int32').data();
-
-//   const rawImageData = {
-//     data: buffer,
-//     width,
-//     height,
-//   };
-//   const jpegImageData = jpeg.encode(rawImageData, 50);
-//   console.log(jpegImageData);
-// }
-
 export async function tensorToImageUrl(imageTensor: tf.Tensor3D):
     Promise<string> {
   const [height, width] = imageTensor.shape;
