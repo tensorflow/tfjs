@@ -255,7 +255,6 @@ class ConvertTest(tf.test.TestCase):
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
-      print(model_json)
     self.assertTrue(model_json['modelTopology'])
     nodes = model_json['modelTopology']['node']
 
