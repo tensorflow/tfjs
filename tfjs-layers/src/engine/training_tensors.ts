@@ -162,7 +162,6 @@ export function checkBatchSize(batchSize: number) {
           batchSize}`);
 }
 
-
 /**
  * Slice an Tensor or an Array of Tensors, by start and stop indices.
  *
@@ -459,13 +458,11 @@ export async function fitTensors(
       }
 
       const checkBatchAxis = true;
-      const valStandardized = await model.standardizeUserData(
-            inputValX,
-            inputValY,
-            null,  /** Unused sample weights. */
-            null,  /** Unused class weights. */
-            checkBatchAxis,
-            batchSize) as [Tensor[], Tensor[], Tensor[]];
+      const valStandardized =
+          await model.standardizeUserData(
+              inputValX, inputValY, null, /** Unused sample weights. */
+              null,                       /** Unused class weights. */
+              checkBatchAxis, batchSize) as [Tensor[], Tensor[], Tensor[]];
       valX = valStandardized[0];
       valY = valStandardized[1];
       valIns = valX.concat(valY);

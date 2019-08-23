@@ -19,7 +19,6 @@ import {describeMathCPU, expectTensorsClose} from '../utils/test_utils';
 
 const expectArraysClose = test_util.expectArraysClose;
 
-
 describeMathCPU('Embedding Layers: Symbolic 1D, 2D & 3D', () => {
   const inputShapes = [[1], [5], [1, 20], [2, 3, 4]];
   const outputDims = [1, 7, 47];
@@ -81,7 +80,6 @@ describeMathCPU('Embedding Layers: With explicit inputLength', () => {
     });
   }
 });
-
 
 describeMathCPU('Embedding Layers: Tensor', () => {
   it('check value equality', () => {
