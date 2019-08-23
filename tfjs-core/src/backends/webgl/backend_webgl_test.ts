@@ -31,6 +31,50 @@ function decodeStrings(bytes: Uint8Array[]): string[] {
   return bytes.map(b => decodeString(b));
 }
 
+const RENDER_FLOAT32_ENVS = {
+  flags: {'WEBGL_RENDER_FLOAT32_ENABLED': true},
+  predicate: WEBGL_ENVS.predicate
+};
+
+describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
+  let forcedF16RenderFlagSaved: boolean;
+
+  beforeAll(() => {
+    console.log('BEFORE ALL');
+    forcedF16RenderFlagSaved =
+        tf.ENV.get('WEBGL_ALWAYS_USE_F16_TEXTURES') as boolean;
+    tf.ENV.set('WEBGL_ALWAYS_USE_F16_TEXTURES', true);
+  });
+
+  afterAll(() => {
+    tf.ENV.set('WEBGL_ALWAYS_USE_F16_TEXTURES', forcedF16RenderFlagSaved);
+  });
+
+  fit('should overflow if larger than 66k', async () => {
+    const a = tf.tensor1d([Math.pow(2, 17)], 'float32');
+    const b = tf.relu(a);
+    const bData = await b.data();
+    console.log('--------------');
+    console.log(tf.ENV.get('WEBGL_VERSION'));
+    console.log(bData);
+  });
+
+  // fit('should be within 0.1 (some arithmetic test)',
+  //     () => {
+
+  //     });
+
+  // fit('should error in debug mode',
+  //     () => {
+  //       const savedRenderFloat32Flag =
+  //       tf.ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED');
+  //   tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+  //   const a = () => tf.tensor1d([2, Math.pow(2, 17)], 'float32');
+  //   expect(a).toThrowError();
+  //   tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
+  //     });
+});
+
 describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
   let webglLazilyUnpackFlagSaved: boolean;
   let webglCpuForwardFlagSaved: boolean;
