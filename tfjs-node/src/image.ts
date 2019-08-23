@@ -195,26 +195,30 @@ export function decodeImage(
  * Encodes an image tensor to JPEG.
  *
  * @param image A 3-D uint8 Tensor of shape [height, width, channels].
- * @param format An optional string from: "", "grayscale", "rgb". Defaults to "".
- *     Per pixel image format.
+ * @param format An optional string from: "", "grayscale", "rgb".
+ *     Defaults to "". Per pixel image format.
  *     - '': Use a default format based on the number of channels in the image.
- *     - grayscale: Output a grayscale JPEG image. The channels dimension of image
- *       must be 1.
- *     - rgb: Output an RGB JPEG image. The channels dimension of image must be 3.
+ *     - grayscale: Output a grayscale JPEG image. The channels dimension of
+ *       image must be 1.
+ *     - rgb: Output an RGB JPEG image. The channels dimension of image must
+ *       be 3.
  * @param quality An optional int. Defaults to 95. Quality of the compression
  *     from 0 to 100 (higher is better and slower).
- * @param progressive An optional bool. Defaults to False. If True, create a JPEG
- *     that loads progressively (coarse to fine).
- * @param optimizeSize An optional bool. Defaults to False. If True, spend CPU/RAM
- *     to reduce size with no quality change.
+ * @param progressive An optional bool. Defaults to False. If True, create a
+ *     JPEG that loads progressively (coarse to fine).
+ * @param optimizeSize An optional bool. Defaults to False. If True, spend
+ *     CPU/RAM to reduce size with no quality change.
  * @param chromaDownsampling  An optional bool. Defaults to True.
  *     See http://en.wikipedia.org/wiki/Chroma_subsampling.
- * @param densityUnit An optional string from: "in", "cm". Defaults to "in". Unit
- *     used to specify x_density and y_density: pixels per inch ('in') or centimeter ('cm').
- * @param xDensity An optional int. Defaults to 300. Horizontal pixels per density unit.
- * @param yDensity An optional int. Defaults to 300. Vertical pixels per density unit.
- * @param xmpMetadata An optional string. Defaults to "". If not empty, embed this XMP
- *     metadata in the image header.
+ * @param densityUnit An optional string from: "in", "cm". Defaults to "in".
+ *     Unit used to specify x_density and y_density: pixels per inch ('in') or
+ *     centimeter ('cm').
+ * @param xDensity An optional int. Defaults to 300. Horizontal pixels per
+ *     density unit.
+ * @param yDensity An optional int. Defaults to 300. Vertical pixels per
+ *     density unit.
+ * @param xmpMetadata An optional string. Defaults to "". If not empty, embed
+ *     this XMP metadata in the image header.
  * @returns The JPEG encoded data as an Uint8Array.
  */
 /**

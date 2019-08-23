@@ -308,7 +308,6 @@ describe('encode images', () => {
   });
 });
 
-
 async function getUint8ArrayFromImage(path: string) {
   const image = await readFile(path);
   const buf = Buffer.from(image);
