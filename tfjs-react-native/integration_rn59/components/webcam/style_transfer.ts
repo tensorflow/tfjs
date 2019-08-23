@@ -8,7 +8,7 @@ export class StyleTranfer {
 
   async init() {
     await Promise.all([this.loadStyleModel(), this.loadTransformerModel()]);
-    this.testStylization();
+    await this.testStylization();
   }
 
   async loadStyleModel() {
@@ -29,10 +29,11 @@ export class StyleTranfer {
     }
   }
 
-  testStylization() {
+  async testStylization() {
     // Also warmup
-    const input = tf.randomNormal([240, 320, 3]) as tf.Tensor3D;
+    const input = tf.randomNormal([320, 240, 3]) as tf.Tensor3D;
     const res = this.stylize(input, input);
+    await res.data();
     tf.dispose([input, res]);
   }
 
@@ -70,6 +71,7 @@ export class StyleTranfer {
       styleImage: tf.Tensor3D, contentImage: tf.Tensor3D,
       strength?: number): tf.Tensor3D {
     const start = Date.now();
+    console.log(styleImage.shape, contentImage.shape);
     let styleRepresentation = this.predictStyleParameters(styleImage);
 
     // if (strength != null) {
