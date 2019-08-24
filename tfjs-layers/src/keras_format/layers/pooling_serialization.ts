@@ -11,7 +11,6 @@
 import {DataFormatSerialization, PaddingMode} from '../common';
 import {BaseLayerSerialization, LayerConfig} from '../topology_config';
 
-
 export interface Pooling1DLayerConfig extends LayerConfig {
   pool_size?: [number];
   strides?: [number];

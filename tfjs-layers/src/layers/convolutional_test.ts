@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {scalar, Tensor, tensor1d, tensor3d, Tensor4D, tensor4d, tensor5d, util} from '@tensorflow/tfjs-core';
+import {scalar, Tensor, tensor1d, tensor3d, tensor4d, tensor5d, util} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
@@ -22,7 +22,6 @@ import {DataFormat, PaddingMode, Shape} from '../keras_format/common';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {conv1d, conv1dWithBias, conv2d, conv2dWithBiasActivation, conv3d, conv3dWithBias} from './convolutional';
-
 
 describeMathCPUAndGPU('conv1dWithBias', () => {
   const xLength4Data = [10, 20, 40, 80];
@@ -237,7 +236,6 @@ describeMathCPUAndGPU('conv2dWithBiasActivation', () => {
     }
   }
 });
-
 
 describeMathCPU('Conv2D Layers: Symbolic', () => {
   const filtersArray = [1, 64];
@@ -626,7 +624,6 @@ describeMathCPUAndGPU('conv3d', () => {
     }
   }
 });
-
 
 describeMathCPU('Conv3D Layers: Symbolic', () => {
   const filtersArray = [1, 64];
@@ -1305,8 +1302,7 @@ describeMathGPU('SeparableConv2D Layer: Tensor', () => {
             it(testTitle, () => {
               let x = tensor4d(x5by5Data, [1, 5, 5, 1]);
               if (dataFormat === 'channelsFirst') {
-                x = tfc.transpose(x, [0, 3, 1, 2]) as
-                    Tensor4D;  // NHWC -> NCHW.
+                x = tfc.transpose(x, [0, 3, 1, 2]);  // NHWC -> NCHW.
               }
 
               const conv2dLayer = tfl.layers.separableConv2d({
@@ -1345,8 +1341,8 @@ describeMathGPU('SeparableConv2D Layer: Tensor', () => {
                   tensor4d(yExpectedData, [1, 3, 3, 1]) :
                   tensor4d(yExpectedData, [1, 4, 4, 1]);
               if (dataFormat === 'channelsFirst') {
-                yExpected = tfc.transpose(yExpected, [0, 3, 1, 2]) as
-                    Tensor4D;  // NHWC -> NCHW.
+                // NHWC -> NCHW.
+                yExpected = tfc.transpose(yExpected, [0, 3, 1, 2]);
               }
               expectTensorsClose(y, yExpected);
             });
@@ -1411,7 +1407,6 @@ describeMathCPUAndGPU('Cropping2D Layer', () => {
 
     expectTensorsClose(layer.apply(x, null) as Tensor, y);
   });
-
 
   it('check with channels first', () => {
     const layer = tfl.layers.cropping2D(
@@ -1547,7 +1542,6 @@ describeMathCPUAndGPU('UpSampling2D Layer', () => {
     expectTensorsClose(layer.apply(x, null) as Tensor, y);
   });
 
-
   it('channels last', () => {
     const layer =
         tfl.layers.upSampling2d({size: [2, 2], dataFormat: 'channelsLast'});
@@ -1568,7 +1562,6 @@ describeMathCPUAndGPU('UpSampling2D Layer', () => {
 
     expectTensorsClose(layer.apply(x, null) as Tensor, y);
   });
-
 
   it('channels first', () => {
     const layer =

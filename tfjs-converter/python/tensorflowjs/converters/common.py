@@ -30,6 +30,27 @@ TFJS_LAYERS_MODEL_FORMAT = 'layers-model'
 GENERATED_BY_KEY = 'generatedBy'
 CONVERTED_BY_KEY = 'convertedBy'
 
+# Model formats.
+KERAS_SAVED_MODEL = 'keras_saved_model'
+KERAS_MODEL = 'keras'
+TF_SAVED_MODEL = 'tf_saved_model'
+TF_HUB_MODEL = 'tf_hub'
+TFJS_GRAPH_MODEL = 'tfjs_graph_model'
+TFJS_LAYERS_MODEL = 'tfjs_layers_model'
+
+# CLI argument strings.
+INPUT_PATH = 'input_path'
+OUTPUT_PATH = 'output_path'
+INPUT_FORMAT = 'input_format'
+OUTPUT_FORMAT = 'output_format'
+SIGNATURE_NAME = 'signature_name'
+SAVED_MODEL_TAGS = 'saved_model_tags'
+QUANTIZATION_BYTES = 'quantization_bytes'
+SPLIT_WEIGHTS_BY_LAYER = 'split_weights_by_layer'
+VERSION = 'version'
+SKIP_OP_CHECK = 'skip_op_check'
+STRIP_DEBUG_OPS = 'strip_debug_ops'
+WEIGHT_SHARD_SIZE_BYTES = 'weight_shard_size_bytes'
 
 def get_converted_by():
   """Get the convertedBy string for storage in model artifacts."""

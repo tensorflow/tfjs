@@ -25,6 +25,7 @@ setTestEnvs([{
 }]);
 
 const env = jasmine.getEnv();
+const grepFilter = env.specFilter;
 
 /** Tests that have these substrings in their name will be included. */
 const INCLUDE_LIST: string[] = [
@@ -79,10 +80,16 @@ const EXCLUDE_LIST: string[] = [
  * Filter method that returns boolean, if a given test should run or be
  * ignored based on its name. The exclude list has priority over the include
  * list. Thus, if a test matches both the exclude and the include list, it
- * will be exluded.
+ * will be exluded. Also accounts for --grep flag passed to karma by first
+ * running test through the saved specFilter.
  */
 env.specFilter = spec => {
+  if (!grepFilter(spec)) {
+    return false;
+  }
+
   const name = spec.getFullName();
+
   // Return false (skip the test) if the test is in the exclude list.
   for (let i = 0; i < EXCLUDE_LIST.length; ++i) {
     if (name.indexOf(EXCLUDE_LIST[i]) > -1) {

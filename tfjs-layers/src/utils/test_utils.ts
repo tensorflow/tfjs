@@ -75,7 +75,6 @@ export function expectTensorsValuesInRange(
   test_util.expectValuesInRange(actual.dataSync(), low, high);
 }
 
-
 /**
  * Describe tests to be run on CPU and GPU.
  * @param testName

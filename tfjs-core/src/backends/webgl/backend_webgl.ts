@@ -387,9 +387,14 @@ export class MathBackendWebGL implements KernelBackend {
 
   readSync(dataId: DataId): BackendValues {
     const texData = this.texData.get(dataId);
-    const {values, dtype, complexTensors, slice, shape} = texData;
+    const {values, dtype, complexTensors, slice, shape, isPacked} = texData;
     if (slice != null) {
-      const program = new UnaryOpProgram(shape, unary_op.CLONE);
+      let program;
+      if (isPacked) {
+        program = new UnaryOpPackedProgram(shape, unary_op.CLONE);
+      } else {
+        program = new UnaryOpProgram(shape, unary_op.CLONE);
+      }
       const res = this.compileAndRun(program, [{dataId, shape, dtype}]);
       const data = this.readSync(res.dataId);
       (res as Tensor).dispose();
@@ -428,10 +433,15 @@ export class MathBackendWebGL implements KernelBackend {
       return new Promise<TypedArray>(resolve => subscribers.push(resolve));
     }
     const texData = this.texData.get(dataId);
-    const {values, shape, slice, dtype, complexTensors} = texData;
+    const {values, shape, slice, dtype, complexTensors, isPacked} = texData;
 
     if (slice != null) {
-      const program = new UnaryOpProgram(shape, unary_op.CLONE);
+      let program;
+      if (isPacked) {
+        program = new UnaryOpPackedProgram(shape, unary_op.CLONE);
+      } else {
+        program = new UnaryOpProgram(shape, unary_op.CLONE);
+      }
       const res = this.compileAndRun(program, [{dataId, shape, dtype}]);
       const data = this.read(res.dataId);
       (res as Tensor).dispose();
@@ -830,6 +840,13 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   neg<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.neg(x);
+    }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_op.NEG, x.dtype) as T;
+    }
     const program = new UnaryOpProgram(x.shape, unary_op.NEG);
     return this.compileAndRun(program, [x]);
   }
@@ -1469,6 +1486,12 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun<Tensor>(program, [a, b], output);
   }
 
+  private packedUnaryOp(x: TensorHandle, op: string, dtype: DataType) {
+    const program = new UnaryOpPackedProgram(x.shape, op);
+    const output = this.makePackedTensor(program.outputShape, dtype);
+    return this.compileAndRun<Tensor>(program, [x], output);
+  }
+
   private packedBinaryOp(
       a: TensorHandle, b: TensorHandle, op: string, dtype: DataType,
       checkOutOfBounds = false) {
@@ -1577,11 +1600,27 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   ceil<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.ceil(x);
+    }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_op.CEIL, x.dtype) as T;
+    }
+
     const program = new UnaryOpProgram(x.shape, unary_op.CEIL);
     return this.compileAndRun(program, [x]);
   }
 
   floor<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.floor(x);
+    }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_op.FLOOR, x.dtype) as T;
+    }
+
     const program = new UnaryOpProgram(x.shape, unary_op.FLOOR);
     return this.compileAndRun(program, [x]);
   }
@@ -1613,27 +1652,41 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   exp<T extends Tensor>(x: T): T {
-    let program: UnaryOpProgram|UnaryOpPackedProgram;
-    if (ENV.getBool('WEBGL_PACK')) {
-      program = new UnaryOpPackedProgram(x.shape, unary_op.EXP);
-    } else {
-      program = new UnaryOpProgram(x.shape, unary_op.EXP);
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.exp(x);
     }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_op.EXP, x.dtype) as T;
+    }
+
+    const program = new UnaryOpProgram(x.shape, unary_op.EXP);
     return this.compileAndRun(program, [x]);
   }
 
   expm1<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.expm1(x);
+    }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_op.EXPM1, x.dtype) as T;
+    }
+
     const program = new UnaryOpProgram(x.shape, unary_op.EXPM1);
     return this.compileAndRun(program, [x]);
   }
 
   log<T extends Tensor>(x: T): T {
-    let program: UnaryOpProgram|UnaryOpPackedProgram;
-    if (ENV.getBool('WEBGL_PACK')) {
-      program = new UnaryOpPackedProgram(x.shape, unary_packed_op.LOG);
-    } else {
-      program = new UnaryOpProgram(x.shape, unary_op.LOG);
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.log(x);
     }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_packed_op.LOG, x.dtype) as T;
+    }
+
+    const program = new UnaryOpProgram(x.shape, unary_op.LOG);
     return this.compileAndRun(program, [x]);
   }
 
@@ -1719,6 +1772,14 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   abs<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.abs(x);
+    }
+
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_op.ABS, x.dtype) as T;
+    }
+
     const program = new UnaryOpProgram(x.shape, unary_op.ABS);
     return this.compileAndRun(program, [x]);
   }

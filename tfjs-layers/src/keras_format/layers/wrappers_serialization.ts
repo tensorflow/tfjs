@@ -13,7 +13,6 @@ import {BaseLayerSerialization, LayerConfig} from '../topology_config';
 import {LayerSerialization} from './layer_serialization';
 import {RecurrentLayerSerialization} from './recurrent_serialization';
 
-
 export type TimeDistributedLayerSerialization =
     BaseLayerSerialization<'TimeDistributed', TimeDistributedLayerConfig>;
 

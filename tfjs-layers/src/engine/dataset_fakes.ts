@@ -137,7 +137,7 @@ class FakeNumericIterator extends LazyIterator<FitDatasetElement> {
 
       let xs: tfc.Tensor|{[name: string]: tfc.Tensor};
       if (Array.isArray(this.xTensorValues)) {
-        xs = (this.xTensorValues as tfc.Tensor[])[index];
+        xs = this.xTensorValues[index];
         tfc.util.assert(
             tfc.util.arraysEqual(xs.shape, this.xBatchShape as Shape),
             () => `Shape mismatch: expected: ${
@@ -158,7 +158,7 @@ class FakeNumericIterator extends LazyIterator<FitDatasetElement> {
       let ys: tfc.Tensor|{[name: string]: tfc.Tensor};
       if (Array.isArray(this.yTensorValues)) {
         // Get preset ys tensors for single-output models.
-        ys = (this.yTensorValues as tfc.Tensor[])[index];
+        ys = this.yTensorValues[index];
         tfc.util.assert(
             tfc.util.arraysEqual(ys.shape, this.yBatchShape as Shape),
             () => `Shape mismatch: expected: ${
@@ -171,8 +171,7 @@ class FakeNumericIterator extends LazyIterator<FitDatasetElement> {
         for (const key in this.yTensorValues) {
           ys[key] = this.yTensorValues[key][index];
           tfc.util.assert(
-              tfc.util.arraysEqual(
-                  ys[key].shape, this.yBatchShape[key] as Shape),
+              tfc.util.arraysEqual(ys[key].shape, this.yBatchShape[key]),
               () => `Shape mismatch: expected: ${
                         JSON.stringify(this.yBatchShape)}; ` +
                   `actual: ${

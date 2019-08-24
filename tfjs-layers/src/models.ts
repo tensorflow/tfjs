@@ -64,13 +64,11 @@ export async function modelFromJSON(
     modelAndWeightsConfig: ModelAndWeightsConfig|PyJsonDict,
     customObjects?: serialization.ConfigDict): Promise<LayersModel> {
   if (!('modelTopology' in modelAndWeightsConfig)) {
-    modelAndWeightsConfig = {
-      modelTopology: modelAndWeightsConfig as PyJsonDict
-    };
+    modelAndWeightsConfig = {modelTopology: modelAndWeightsConfig};
   }
   modelAndWeightsConfig = modelAndWeightsConfig as ModelAndWeightsConfig;
 
-  let modelTopology = modelAndWeightsConfig.modelTopology as PyJsonDict;
+  let modelTopology = modelAndWeightsConfig.modelTopology;
   if (modelTopology['model_config'] != null) {
     // If the model-topology JSON contains a 'model_config' field, then it is
     // a full model JSON (e.g., from `keras.Model.save()`), which contains
@@ -87,11 +85,9 @@ export async function modelFromJSON(
     // Load the weight values keyed by the original tensor names in the model
     // file that was loaded.  These should match the keys of the weight
     // manifest.
-    const weightValues =
-        await io.loadWeights(
-            modelAndWeightsConfig.weightsManifest,
-            modelAndWeightsConfig.pathPrefix,
-            model.weights.map(weight => weight.originalName)) as NamedTensorMap;
+    const weightValues = await io.loadWeights(
+        modelAndWeightsConfig.weightsManifest, modelAndWeightsConfig.pathPrefix,
+        model.weights.map(weight => weight.originalName));
 
     // Map the weights to the unique tensor names generated during model loading
     const uniqueWeightValues: NamedTensorMap = {};
@@ -258,8 +254,7 @@ export async function loadLayersModelInternal(
     }
     pathOrIOHandler = handlers[0];
   }
-  return loadLayersModelFromIOHandler(
-      pathOrIOHandler as io.IOHandler, undefined, options);
+  return loadLayersModelFromIOHandler(pathOrIOHandler, undefined, options);
 }
 
 /**

@@ -35,6 +35,11 @@ module.exports = function(config) {
   if (config.flags) {
     args.push('--flags', config.flags);
   }
+  let exclude = [];
+  if (config.excludeTest != null) {
+    exclude.push(config.excludeTest);
+  }
+
   config.set({
     basePath: '',
     frameworks: ['jasmine', 'karma-typescript'],
@@ -42,7 +47,7 @@ module.exports = function(config) {
       'src/setup_test.ts',       // Setup the environment for the tests.
       {pattern: 'src/**/*.ts'},  // Import all tests.
     ],
-    // exclude: ['src/benchmark_ops_test.ts'],
+    exclude,
     preprocessors: {'**/*.ts': ['karma-typescript']},
     karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
