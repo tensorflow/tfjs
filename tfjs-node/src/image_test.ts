@@ -280,8 +280,12 @@ describe('encode images', () => {
       [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
     const beforeNumTensors = memory().numTensors;
     const pngEncodedData = await tf.node.encodePng(imageTensor);
+    const pngDecodedTensor = await tf.node.decodePng(pngEncodedData);
+    const pngDecodedData = await pngDecodedTensor.data();
+    pngDecodedTensor.dispose();
     expect(memory().numTensors).toBe(beforeNumTensors);
     expect(getImageType(pngEncodedData)).toEqual(ImageType.PNG);
+    test_util.expectArraysEqual(await imageTensor.data(), pngDecodedData);
     imageTensor.dispose();
   });
 
