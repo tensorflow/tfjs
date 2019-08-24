@@ -61,6 +61,10 @@ ENV.registerFlag('WEBGL_PACK_DEPTHWISECONV', () => false);
 ENV.registerFlag(
     'WEBGL_PACK_BINARY_OPERATIONS', () => ENV.getBool('WEBGL_PACK'));
 
+/** Whether we will pack unary ops. */
+ENV.registerFlag(
+    'WEBGL_PACK_UNARY_OPERATIONS', () => ENV.getBool('WEBGL_PACK'));
+
 /** Whether we will pack array ops. */
 ENV.registerFlag(
     'WEBGL_PACK_ARRAY_OPERATIONS', () => ENV.getBool('WEBGL_PACK'));
