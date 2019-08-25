@@ -466,13 +466,12 @@ describe('File system IOHandler', () => {
 
     const xs = tfc.tensor2d([1, 2, 3, 4], [4, 1]);
     const ys = tfc.tensor2d([-1, -3, -5, -7], [4, 1]);
-    const history = await model.fit(xs, ys, {
+    await model.fit(xs, ys, {
       epochs: 2,
       shuffle: false,
       verbose: 0
     });
 
-    const testDir = await mkdtemp('tfjs_node_fs_test');
     const saveURL = `file://${testDir}`;
     const loadURL = `file://${testDir}/model.json`;
 
@@ -495,14 +494,13 @@ describe('File system IOHandler', () => {
     expect(history2.history.loss[1]).toBeCloseTo(18.603);
   });
 
-  fit('Save and load model with user-defined metadata', async () => {
+  it('Save and load model with user-defined metadata', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.dense({units: 3, inputShape: [4]}));
     model.setUserDefinedMetadata({
       'outputLabels': ['Label1', 'Label2', 'Label3']
     });
 
-    const testDir = await mkdtemp('tfjs_node_fs_test');
     const saveURL = `file://${testDir}`;
     const loadURL = `file://${testDir}/model.json`;
 
