@@ -87,7 +87,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
       width = sizeof(int32_t);
       break;
     case napi_uint8_array:
-      if (dtype != TF_BOOL) {
+      if (dtype != TF_BOOL && dtype != TF_UINT8) {
         NAPI_THROW_ERROR(env, "Tensor type does not match Uint8Array");
         return nullptr;
       }
