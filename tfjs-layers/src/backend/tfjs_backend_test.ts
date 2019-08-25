@@ -22,7 +22,6 @@ import {LayerVariable} from '../variables';
 
 import * as K from './tfjs_backend';
 
-
 describe('TensorMath', () => {
   it('Setting and getting backend', () => {
     // Default deeplearn.js backend is WebGL (GPU).
@@ -318,7 +317,6 @@ describeMathCPUAndGPU('sliceAlongLastAxis', () => {
   });
 });
 
-
 describeMathCPUAndGPU('sliceAlongAxis', () => {
   it('1D', () => {
     const array1DData = [10, 20, 30, 40];
@@ -358,7 +356,6 @@ describeMathCPUAndGPU('sliceAlongAxis', () => {
         K.sliceAlongAxis(x, 0, 1, 3),
         tensor3d([[[1], [3]], [[5], [7]]], [2, 2, 1]));
   });
-
 
   it('4D', () => {
     const array4DData = [[[[10, 1]]], [[[20, 2]]], [[[30, 3]]], [[[40, 4]]]];
@@ -673,7 +670,6 @@ describeMathCPUAndGPU('Gather', () => {
         tensor2d([[20], [40], [60]], [3, 1]));
   });
 });
-
 
 describeMathCPUAndGPU('Square', () => {
   it('Element-wise square', () => {

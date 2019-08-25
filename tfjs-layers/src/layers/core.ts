@@ -94,10 +94,9 @@ export class Dropout extends Layer {
         const training =
             kwargs['training'] == null ? false : kwargs['training'];
         const noiseShape = this.getNoiseShape(input);
-        const output =
-            K.inTrainPhase(
-                () => K.dropout(input, this.rate, noiseShape, this.seed),
-                () => input, training) as Tensor;
+        const output = K.inTrainPhase(
+            () => K.dropout(input, this.rate, noiseShape, this.seed),
+            () => input, training);
         return output;
       }
       return inputs;

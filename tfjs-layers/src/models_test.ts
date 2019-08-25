@@ -305,8 +305,8 @@ describeMathCPU('Nested model topology', () => {
   });
 
   it('Attempt to nest two-input functional model fails', () => {
-    const input1 = tfl.input({shape: [4]}) as tfl.SymbolicTensor;
-    const input2 = tfl.input({shape: [5]}) as tfl.SymbolicTensor;
+    const input1 = tfl.input({shape: [4]});
+    const input2 = tfl.input({shape: [5]});
     const output =
         tfl.layers.concatenate().apply([input1, input2]) as tfl.SymbolicTensor;
     const innerModel = tfl.model({inputs: [input1, input2], outputs: output});
@@ -333,7 +333,7 @@ describeMathCPU('Nested model topology', () => {
   });
 
   it('Attempt to nest two-output functional model fails', () => {
-    const input = tfl.input({shape: [12]}) as tfl.SymbolicTensor;
+    const input = tfl.input({shape: [12]});
     const output1 = tfl.layers.reshape({targetShape: [2, 6]}).apply(input) as
         tfl.SymbolicTensor;
     const output2 = tfl.layers.reshape({targetShape: [3, 4]}).apply(input) as
@@ -574,7 +574,7 @@ describeMathCPU('loadLayersModel from URL', () => {
         setupFakeWeightFiles(fileBufferMap);
         // Use a randomly generated layer name to prevent interaction with
         // other unit tests that load the same sample JSON.
-        const denseLayerName = 'dense_' + Math.floor(Math.random() * 1e9);
+        const denseLayerName = `dense_${Math.floor(Math.random() * 1e9)}`;
         const weightsManifest: io.WeightsManifestConfig = [
           {
             'paths': ['weight_0'],
@@ -986,7 +986,6 @@ describeMathCPU('loadLayersModel from URL', () => {
     expectTensorsClose(weightValues[3], ones([1]));
   });
 
-
   it('load topology and weights with browserHTTPRequest with requestInit',
      async () => {
        const modelTopology =
@@ -1129,7 +1128,7 @@ describeMathCPU('loadLayersModel from URL', () => {
     });
     // Use a randomly generated layer name to prevent interaction with other
     // unit tests that load the same sample JSON.
-    const denseLayerName = 'dense_' + Math.floor(Math.random() * 1e9);
+    const denseLayerName = `dense_${Math.floor(Math.random() * 1e9)}`;
     const weightsManifest: io.WeightsManifestConfig = [
       {
         'paths': ['weight_0'],
@@ -2031,7 +2030,7 @@ describeMathCPUAndGPU('Sequential', () => {
       const embModel = tfl.sequential();
       embModel.add(
           tfl.layers.embedding({inputShape: [1], inputDim: 10, outputDim: 2}));
-      const x = tensor2d([[0], [0], [1]], [3, 1], dtype as DataType);
+      const x = tensor2d([[0], [0], [1]], [3, 1], dtype);
       const y = embModel.predict(x) as Tensor;
       expect(y.dtype).toBe('float32');
     });
@@ -2041,7 +2040,7 @@ describeMathCPUAndGPU('Sequential', () => {
       embModel.add(
           tfl.layers.embedding({inputShape: [1], inputDim: 10, outputDim: 2}));
       embModel.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
-      const x = tensor2d([[0]], [1, 1], dtype as DataType);
+      const x = tensor2d([[0]], [1, 1], dtype);
       const y = tensor3d([[[0.5, 0.5]]], [1, 1, 2], 'float32');
       await embModel.fit(x, y);
     });
@@ -2495,7 +2494,6 @@ const fakeRNNModel: ModelAndWeightsConfig = {
     }
   }
 } */
-
 
 const fakeNonSequentialModel: ModelAndWeightsConfig = {
   modelTopology: {
@@ -3042,7 +3040,7 @@ describeMathCPU('Functional-model saving and loading', () => {
 
     const model1JSON = model1.toJSON(null, false) as PyJsonDict;
     const model2 =
-        await modelFromJSON({modelTopology: model1JSON}) as tfl.LayersModel;
+        await modelFromJSON({modelTopology: model1JSON});
 
     expect(model2.inputs.length).toEqual(model1.inputs.length);
     expect(model2.inputs[0].shape).toEqual(model1.inputs[0].shape);
@@ -3077,7 +3075,7 @@ describeMathCPU('Functional-model saving and loading', () => {
 
     const model1JSON = model1.toJSON(null, false) as PyJsonDict;
     const model2 =
-        await modelFromJSON({modelTopology: model1JSON}) as tfl.LayersModel;
+        await modelFromJSON({modelTopology: model1JSON});
     expect(model2.toJSON(null, false)).toEqual(model1JSON);
 
     const ys2 = model2.predict(xs) as Tensor;
@@ -3099,7 +3097,7 @@ describeMathCPU('Functional-model saving and loading', () => {
         // tslint:disable-next-line:max-line-length
         `{"modelTopology":{"keras_version":"2.1.6","backend":"tensorflow","model_config":{"class_name":"Model","config":{"input_layers":[["input_1",0,0],["s0",0,0],["c0",0,0]],"name":"model_1","layers":[{"class_name":"InputLayer","inbound_nodes":[],"name":"input_1","config":{"dtype":"float32","name":"input_1","sparse":false,"batch_input_shape":[null,30,38]}},{"class_name":"InputLayer","inbound_nodes":[],"name":"s0","config":{"dtype":"float32","name":"s0","sparse":false,"batch_input_shape":[null,64]}},{"class_name":"Bidirectional","inbound_nodes":[[["input_1",0,0,{}]]],"name":"bidirectional_1","config":{"trainable":true,"name":"bidirectional_1","merge_mode":"concat","layer":{"class_name":"LSTM","config":{"stateful":false,"units":32,"activation":"tanh","recurrent_activation":"hard_sigmoid","dropout":0,"recurrent_dropout":0,"use_bias":true,"trainable":true,"recurrent_initializer":{"class_name":"Orthogonal","config":{"seed":null,"gain":1}},"bias_constraint":null,"unroll":false,"kernel_initializer":{"class_name":"VarianceScaling","config":{"seed":null,"distribution":"uniform","mode":"fan_avg","scale":1}},"unit_forget_bias":true,"bias_initializer":{"class_name":"Zeros","config":{}},"kernel_constraint":null,"activity_regularizer":null,"return_sequences":true,"recurrent_constraint":null,"recurrent_regularizer":null,"bias_regularizer":null,"go_backwards":false,"implementation":1,"name":"lstm_2","kernel_regularizer":null,"return_state":false}}}},{"class_name":"RepeatVector","inbound_nodes":[[["s0",0,0,{}]],[["lstm_1",0,0,{}]],[["lstm_1",1,0,{}]],[["lstm_1",2,0,{}]],[["lstm_1",3,0,{}]],[["lstm_1",4,0,{}]],[["lstm_1",5,0,{}]],[["lstm_1",6,0,{}]],[["lstm_1",7,0,{}]],[["lstm_1",8,0,{}]]],"name":"repeat_vector_1","config":{"n":30,"trainable":true,"name":"repeat_vector_1"}},{"class_name":"Concatenate","inbound_nodes":[[["bidirectional_1",0,0,{}],["repeat_vector_1",0,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",1,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",2,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",3,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",4,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",5,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",6,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",7,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",8,0,{}]],[["bidirectional_1",0,0,{}],["repeat_vector_1",9,0,{}]]],"name":"concatenate_1","config":{"trainable":true,"name":"concatenate_1","axis":-1}},{"class_name":"Dense","inbound_nodes":[[["concatenate_1",0,0,{}]],[["concatenate_1",1,0,{}]],[["concatenate_1",2,0,{}]],[["concatenate_1",3,0,{}]],[["concatenate_1",4,0,{}]],[["concatenate_1",5,0,{}]],[["concatenate_1",6,0,{}]],[["concatenate_1",7,0,{}]],[["concatenate_1",8,0,{}]],[["concatenate_1",9,0,{}]]],"name":"dense_1","config":{"bias_constraint":null,"kernel_constraint":null,"units":10,"activity_regularizer":null,"use_bias":true,"bias_regularizer":null,"trainable":true,"activation":"tanh","name":"dense_1","kernel_initializer":{"class_name":"VarianceScaling","config":{"seed":null,"distribution":"uniform","mode":"fan_avg","scale":1}},"kernel_regularizer":null,"bias_initializer":{"class_name":"Zeros","config":{}}}},{"class_name":"Dense","inbound_nodes":[[["dense_1",0,0,{}]],[["dense_1",1,0,{}]],[["dense_1",2,0,{}]],[["dense_1",3,0,{}]],[["dense_1",4,0,{}]],[["dense_1",5,0,{}]],[["dense_1",6,0,{}]],[["dense_1",7,0,{}]],[["dense_1",8,0,{}]],[["dense_1",9,0,{}]]],"name":"dense_2","config":{"bias_constraint":null,"kernel_constraint":null,"units":1,"activity_regularizer":null,"use_bias":true,"bias_regularizer":null,"trainable":true,"activation":"relu","name":"dense_2","kernel_initializer":{"class_name":"VarianceScaling","config":{"seed":null,"distribution":"uniform","mode":"fan_avg","scale":1}},"kernel_regularizer":null,"bias_initializer":{"class_name":"Zeros","config":{}}}},{"class_name":"Activation","inbound_nodes":[[["dense_2",0,0,{}]],[["dense_2",1,0,{}]],[["dense_2",2,0,{}]],[["dense_2",3,0,{}]],[["dense_2",4,0,{}]],[["dense_2",5,0,{}]],[["dense_2",6,0,{}]],[["dense_2",7,0,{}]],[["dense_2",8,0,{}]],[["dense_2",9,0,{}]]],"name":"attention_weights","config":{"trainable":true,"activation":"softmax","name":"attention_weights"}},{"class_name":"Dot","inbound_nodes":[[["attention_weights",0,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",1,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",2,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",3,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",4,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",5,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",6,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",7,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",8,0,{}],["bidirectional_1",0,0,{}]],[["attention_weights",9,0,{}],["bidirectional_1",0,0,{}]]],"name":"dot_1","config":{"trainable":true,"name":"dot_1","normalize":false,"axes":1}},{"class_name":"InputLayer","inbound_nodes":[],"name":"c0","config":{"dtype":"float32","name":"c0","sparse":false,"batch_input_shape":[null,64]}},{"class_name":"LSTM","inbound_nodes":[[["dot_1",0,0,{}],["s0",0,0,{}],["c0",0,0,{}]],[["dot_1",1,0,{}],["lstm_1",0,0,{}],["lstm_1",0,2,{}]],[["dot_1",2,0,{}],["lstm_1",1,0,{}],["lstm_1",1,2,{}]],[["dot_1",3,0,{}],["lstm_1",2,0,{}],["lstm_1",2,2,{}]],[["dot_1",4,0,{}],["lstm_1",3,0,{}],["lstm_1",3,2,{}]],[["dot_1",5,0,{}],["lstm_1",4,0,{}],["lstm_1",4,2,{}]],[["dot_1",6,0,{}],["lstm_1",5,0,{}],["lstm_1",5,2,{}]],[["dot_1",7,0,{}],["lstm_1",6,0,{}],["lstm_1",6,2,{}]],[["dot_1",8,0,{}],["lstm_1",7,0,{}],["lstm_1",7,2,{}]],[["dot_1",9,0,{}],["lstm_1",8,0,{}],["lstm_1",8,2,{}]]],"name":"lstm_1","config":{"stateful":false,"units":64,"activation":"tanh","recurrent_activation":"hard_sigmoid","dropout":0,"recurrent_dropout":0,"use_bias":true,"trainable":true,"recurrent_initializer":{"class_name":"Orthogonal","config":{"seed":null,"gain":1}},"bias_constraint":null,"unroll":false,"kernel_initializer":{"class_name":"VarianceScaling","config":{"seed":null,"distribution":"uniform","mode":"fan_avg","scale":1}},"unit_forget_bias":true,"bias_initializer":{"class_name":"Zeros","config":{}},"kernel_constraint":null,"activity_regularizer":null,"return_sequences":false,"recurrent_constraint":null,"recurrent_regularizer":null,"bias_regularizer":null,"go_backwards":false,"implementation":1,"name":"lstm_1","kernel_regularizer":null,"return_state":true}},{"class_name":"Dense","inbound_nodes":[[["lstm_1",0,0,{}]],[["lstm_1",1,0,{}]],[["lstm_1",2,0,{}]],[["lstm_1",3,0,{}]],[["lstm_1",4,0,{}]],[["lstm_1",5,0,{}]],[["lstm_1",6,0,{}]],[["lstm_1",7,0,{}]],[["lstm_1",8,0,{}]],[["lstm_1",9,0,{}]]],"name":"dense_3","config":{"bias_constraint":null,"kernel_constraint":null,"units":11,"activity_regularizer":null,"use_bias":true,"bias_regularizer":null,"trainable":true,"activation":"softmax","name":"dense_3","kernel_initializer":{"class_name":"VarianceScaling","config":{"seed":null,"distribution":"uniform","mode":"fan_avg","scale":1}},"kernel_regularizer":null,"bias_initializer":{"class_name":"Zeros","config":{}}}}],"output_layers":[["dense_3",0,0],["dense_3",1,0],["dense_3",2,0],["dense_3",3,0],["dense_3",4,0],["dense_3",5,0],["dense_3",6,0],["dense_3",7,0],["dense_3",8,0],["dense_3",9,0]]}},"training_config":{"loss":"categorical_crossentropy","sample_weight_mode":null,"metrics":["accuracy"],"optimizer_config":{"class_name":"Adam","config":{"beta_1":0.8999999761581421,"decay":0.009999999776482582,"beta_2":0.9990000128746033,"lr":0.004999999888241291,"amsgrad":false,"epsilon":1e-7}},"loss_weights":null}},"weightsManifest":[{"paths":["group1-shard1of1"],"weights":[{"shape":[38,128],"dtype":"float32","name":"bidirectional_1/forward_lstm_2/kernel"},{"shape":[32,128],"dtype":"float32","name":"bidirectional_1/forward_lstm_2/recurrent_kernel"},{"shape":[128],"dtype":"float32","name":"bidirectional_1/forward_lstm_2/bias"},{"shape":[38,128],"dtype":"float32","name":"bidirectional_1/backward_lstm_2/kernel"},{"shape":[32,128],"dtype":"float32","name":"bidirectional_1/backward_lstm_2/recurrent_kernel"},{"shape":[128],"dtype":"float32","name":"bidirectional_1/backward_lstm_2/bias"},{"shape":[128,10],"dtype":"float32","name":"dense_1/kernel"},{"shape":[10],"dtype":"float32","name":"dense_1/bias"},{"shape":[10,1],"dtype":"float32","name":"dense_2/kernel"},{"shape":[1],"dtype":"float32","name":"dense_2/bias"},{"shape":[64,11],"dtype":"float32","name":"dense_3/kernel"},{"shape":[11],"dtype":"float32","name":"dense_3/bias"},{"shape":[64,256],"dtype":"float32","name":"lstm_1/kernel"},{"shape":[64,256],"dtype":"float32","name":"lstm_1/recurrent_kernel"},{"shape":[256],"dtype":"float32","name":"lstm_1/bias"}]}]}`);
     const modelTopology = modelJSON.modelTopology;
-    const model = await modelFromJSON({modelTopology}) as tfl.LayersModel;
+    const model = await modelFromJSON({modelTopology});
 
     expect(model.inputs.length).toEqual(3);
     expect(model.inputs[0].shape).toEqual([null, 30, 38]);

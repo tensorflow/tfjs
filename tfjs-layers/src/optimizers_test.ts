@@ -12,11 +12,10 @@
  * Unit tests for optimizers.ts.
  */
 
-import {AdagradOptimizer, AdadeltaOptimizer, AdamOptimizer, AdamaxOptimizer, RMSPropOptimizer, SGDOptimizer} from '@tensorflow/tfjs-core';
+import {AdadeltaOptimizer, AdagradOptimizer, AdamaxOptimizer, AdamOptimizer, RMSPropOptimizer, SGDOptimizer} from '@tensorflow/tfjs-core';
 
 import {getOptimizer} from './optimizers';
 import {describeMathCPU} from './utils/test_utils';
-
 
 describeMathCPU('getOptimizer', () => {
   // TODO(nsthorat): Assert defaults by getting config from the optimizer.
@@ -71,7 +70,6 @@ describeMathCPU('getOptimizer', () => {
   });
   it('throws for non-existent optimizer', () => {
     expect(() => getOptimizer('not an optimizer'))
-      .toThrowError(/Unknown Optimizer/);
+        .toThrowError(/Unknown Optimizer/);
   });
-
 });
