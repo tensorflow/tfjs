@@ -40,7 +40,7 @@ function standardizeSampleOrClassWeights(
   }
   if (numOutputs === 1) {
     if (Array.isArray(xWeight) && xWeight.length === 1) {
-      return xWeight as ClassWeight[];
+      return xWeight;
     } else if (typeof xWeight === 'object' && outputNames[0] in xWeight) {
       return [(xWeight as ClassWeightMap)[outputNames[0]]];
     } else {
@@ -54,7 +54,7 @@ function standardizeSampleOrClassWeights(
           `element(s), but the model has ${numOutputs} outputs. ` +
           `Make sure a set of weights is provided for each model output.`);
     }
-    return xWeight as ClassWeight[];
+    return xWeight;
   } else if (
       typeof xWeight === 'object' && Object.keys(xWeight).length > 0 &&
       typeof (xWeight as ClassWeightMap)[Object.keys(xWeight)[0]] ===

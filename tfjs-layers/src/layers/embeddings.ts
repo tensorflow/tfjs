@@ -27,7 +27,6 @@ import * as generic_utils from '../utils/generic_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
-
 export declare interface EmbeddingLayerArgs extends LayerArgs {
   /**
    * Integer > 0. Size of the vocabulary, i.e. maximum integer index + 1.
@@ -144,7 +143,7 @@ export class Embedding extends Layer {
         return null;
       } else {
         inputs = getExactlyOneTensor(inputs);
-        return notEqual(inputs, zerosLike(inputs as Tensor));
+        return notEqual(inputs, zerosLike(inputs));
       }
     });
   }

@@ -16,7 +16,6 @@ import * as tfl from './index';
 import {deserializeRegularizer, getRegularizer, serializeRegularizer} from './regularizers';
 import {describeMathCPU, expectTensorsClose} from './utils/test_utils';
 
-
 describeMathCPU('Built-in Regularizers', () => {
   it('l1_l2', () => {
     const x = tensor1d([1, -2, 3, -4]);
@@ -51,7 +50,7 @@ describeMathCPU('Built-in Regularizers', () => {
     // tslint:disable-next-line:no-any
     expect(() => tfl.regularizers.l2(0.001 as any))
         .toThrowError(/expected.*object.*received.*0\.001/);
-        // tslint:disable-next-line:no-any
+    // tslint:disable-next-line:no-any
     expect(() => tfl.regularizers.l1l2(0.001 as any))
         .toThrowError(/expected.*object.*received.*0\.001/);
   });

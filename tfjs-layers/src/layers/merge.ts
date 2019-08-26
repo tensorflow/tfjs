@@ -261,7 +261,7 @@ export class Add extends Merge {
   /** @nocollapse */
   static className = 'Add';
   constructor(args?: LayerArgs) {
-    super(args as LayerArgs);
+    super(args);
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
@@ -326,9 +326,7 @@ export function add(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
     SymbolicTensor|Tensor {
   if (Array.isArray(config)) {
     const layer = new Add({});
-    return layer.apply(config as SymbolicTensor[] | Tensor[]) as
-        SymbolicTensor |
-        Tensor;
+    return layer.apply(config) as SymbolicTensor | Tensor;
   } else {
     return new Add(config);
   }
@@ -403,9 +401,7 @@ export function multiply(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
     SymbolicTensor|Tensor {
   if (Array.isArray(config)) {
     const layer = new Multiply({});
-    return layer.apply(config as SymbolicTensor[] | Tensor[]) as
-        SymbolicTensor |
-        Tensor;
+    return layer.apply(config) as SymbolicTensor | Tensor;
   } else {
     return new Multiply(config);
   }
@@ -481,9 +477,7 @@ export function average(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
     SymbolicTensor|Tensor {
   if (Array.isArray(config)) {
     const layer = new Average({});
-    return layer.apply(config as SymbolicTensor[] | Tensor[]) as
-        SymbolicTensor |
-        Tensor;
+    return layer.apply(config) as SymbolicTensor | Tensor;
   } else {
     return new Average(config);
   }
@@ -558,9 +552,7 @@ export function maximum(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
     SymbolicTensor|Tensor {
   if (Array.isArray(config)) {
     const layer = new Maximum({});
-    return layer.apply(config as SymbolicTensor[] | Tensor[]) as
-        SymbolicTensor |
-        Tensor;
+    return layer.apply(config) as SymbolicTensor | Tensor;
   } else {
     return new Maximum(config);
   }
@@ -635,9 +627,7 @@ export function minimum(config?: SymbolicTensor[]|Tensor[]|LayerArgs): Layer|
     SymbolicTensor|Tensor {
   if (Array.isArray(config)) {
     const layer = new Minimum({});
-    return layer.apply(config as SymbolicTensor[] | Tensor[]) as
-        SymbolicTensor |
-        Tensor;
+    return layer.apply(config) as SymbolicTensor | Tensor;
   } else {
     return new Minimum(config);
   }
@@ -842,9 +832,7 @@ export function concatenate(config?: SymbolicTensor[]|Tensor[]|
                             ConcatenateLayerArgs): Layer|SymbolicTensor|Tensor {
   if (Array.isArray(config)) {
     const layer = new Concatenate({});
-    return layer.apply(config as SymbolicTensor[] | Tensor[]) as
-        SymbolicTensor |
-        Tensor;
+    return layer.apply(config) as SymbolicTensor | Tensor;
   } else {
     return new Concatenate(config);
   }

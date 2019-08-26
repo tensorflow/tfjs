@@ -76,7 +76,6 @@ describeMathCPU('standardizeWeights', () => {
         .toMatch(/classWeight must contain all classes.* class 4 .*/);
   });
 
-
   it('classWeights with 2D one-hot target: missing weight', async () => {
     const y = tensor2d([[0, 0, 0, 1], [0, 0, 1, 0], [1, 0, 0, 0]]);
     const classWeight: ClassWeight = {0: 10, 1: 1, 3: 0.01};

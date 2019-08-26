@@ -21,7 +21,6 @@ import * as tfl from './index';
 import {disposeTensorsInLogs, Logs, resolveScalarsInLogs, UnresolvedLogs} from './logs';
 import {describeMathCPUAndGPU} from './utils/test_utils';
 
-
 describe('BaseLogger Callback', () => {
   it('Records and averages losses in an epoch', async () => {
     const baseLogger = new BaseLogger();
@@ -169,7 +168,6 @@ describeMathCPUAndGPU('disposeTensorsInLogs', () => {
     expect((logs['d'] as any).isDisposed).toEqual(true);
   });
 });
-
 
 describe('History Callback', () => {
   it('onTrainBegin', async () => {

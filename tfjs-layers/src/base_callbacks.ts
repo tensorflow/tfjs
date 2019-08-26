@@ -252,9 +252,9 @@ export class BaseLogger extends BaseCallback {
         } else {
           this.totals[key] = 0;
         }
-        this.totals[key] = tidy(
-            () => add((this.totals[key] as Scalar), mul(value, batchSize)) as
-                Scalar);
+        const total: Scalar =
+            tidy(() => add((this.totals[key]), mul(value, batchSize)));
+        this.totals[key] = total;
         if (oldTotalsToDispose != null) {
           oldTotalsToDispose.dispose();
         }
@@ -272,8 +272,8 @@ export class BaseLogger extends BaseCallback {
           logs[key] = this.totals[key] as number / this.seen;
         } else {
           tidy(() => {
-            logs[key] = mul(div(1, this.seen) as Scalar,
-                            this.totals[key] as Scalar) as Scalar;
+            const log: Scalar = mul(div(1, this.seen), this.totals[key]);
+            logs[key] = log;
             (this.totals[key] as Tensor).dispose();
             keep(logs[key] as Scalar);
           });
@@ -470,7 +470,7 @@ export function standardizeCallbacks(
     callbacks = {} as BaseCallback;
   }
   if (callbacks instanceof BaseCallback) {
-    return [callbacks as BaseCallback];
+    return [callbacks];
   }
   if (Array.isArray(callbacks) && callbacks[0] instanceof BaseCallback) {
     return callbacks as BaseCallback[];
