@@ -1796,6 +1796,72 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor<Rank.R4>;
   }
 
+  executeEncodeImageOp(
+    name: string, opAttrs: TFEOpAttr[], imageData: Uint8Array,
+    imageShape: number[]): Tensor<Rank> {
+    const inputTensorId = this.binding.createTensor(
+      imageShape, this.binding.TF_UINT8, imageData);
+    const outputMetadata = this.binding.executeOp(
+      name, opAttrs, [inputTensorId], 1);
+    const outputTensorInfo = outputMetadata[0];
+    // prevent the tensor data from being converted to a UTF8 string, since
+    // the encoded data is not valid UTF8
+    outputTensorInfo.dtype = this.binding.TF_UINT8;
+    return this.createOutputTensor(outputTensorInfo);
+  }
+
+  encodeJpeg(
+      imageData: Uint8Array, imageShape: number[],
+      format: '' | 'grayscale' | 'rgb', quality: number, progressive: boolean,
+      optimizeSize: boolean, chromaDownsampling: boolean,
+      densityUnit: 'in' | 'cm', xDensity: number, yDensity: number,
+      xmpMetadata: string
+      ): Tensor<Rank> {
+    const opAttrs = [
+      {name: 'format', type: this.binding.TF_ATTR_STRING, value: format},
+      {name: 'quality', type: this.binding.TF_ATTR_INT, value: quality},
+      {
+        name: 'progressive',
+        type: this.binding.TF_ATTR_BOOL,
+        value: progressive
+      },
+      {
+        name: 'optimize_size',
+        type: this.binding.TF_ATTR_BOOL,
+        value: optimizeSize
+      },
+      {
+        name: 'chroma_downsampling',
+        type: this.binding.TF_ATTR_BOOL,
+        value: chromaDownsampling
+      },
+      {
+        name: 'density_unit',
+        type: this.binding.TF_ATTR_STRING,
+        value: densityUnit
+      },
+      {name: 'x_density', type: this.binding.TF_ATTR_INT, value: xDensity},
+      {name: 'y_density', type: this.binding.TF_ATTR_INT, value: yDensity},
+      {
+        name: 'xmp_metadata',
+        type: this.binding.TF_ATTR_STRING,
+        value: xmpMetadata
+      }
+    ];
+    return this.executeEncodeImageOp(
+      'EncodeJpeg', opAttrs, imageData, imageShape);
+  }
+
+  encodePng(
+      imageData: Uint8Array, imageShape: number[], compression: number
+      ): Tensor<Rank> {
+    const opAttrs = [
+      {name: 'compression', type: this.binding.TF_ATTR_INT, value: compression}
+    ];
+    return this.executeEncodeImageOp(
+      'EncodePng', opAttrs, imageData, imageShape);
+  }
+
   // ------------------------------------------------------------
   // TensorBoard-related (tfjs-node-specific) backend kernels.
 
