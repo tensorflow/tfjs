@@ -19,6 +19,7 @@ import {memory, setBackend, test_util} from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
 import {promisify} from 'util';
 import * as tf from './index';
+import {getImageType, ImageType} from './image';
 
 const readFile = promisify(fs.readFile);
 
@@ -229,6 +230,85 @@ describe('decode images', () => {
       setBackend('tensorflow');
       done();
     }
+  });
+});
+
+describe('encode images', () => {
+  it('encodeJpeg', async () => {
+    const imageTensor = tf.tensor3d(new Uint8Array(
+      [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
+    const beforeNumTensors = memory().numTensors;
+    const jpegEncodedData = await tf.node.encodeJpeg(imageTensor);
+    expect(memory().numTensors).toBe(beforeNumTensors);
+    expect(getImageType(jpegEncodedData)).toEqual(ImageType.JPEG);
+    imageTensor.dispose();
+  });
+
+  it('encodeJpeg grayscale', async () => {
+    const imageTensor = tf.tensor3d(new Uint8Array(
+      [239, 0, 47, 0]), [2, 2, 1]);
+    const beforeNumTensors = memory().numTensors;
+    const jpegEncodedData = await tf.node.encodeJpeg(imageTensor, 'grayscale');
+    expect(memory().numTensors).toBe(beforeNumTensors);
+    expect(getImageType(jpegEncodedData)).toEqual(ImageType.JPEG);
+    imageTensor.dispose();
+  });
+
+  it('encodeJpeg with parameters', async () => {
+    const imageTensor = tf.tensor3d(new Uint8Array(
+      [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
+    const format = 'rgb';
+    const quality = 50;
+    const progressive = true;
+    const optimizeSize = true;
+    const chromaDownsampling = false;
+    const densityUnit = 'cm';
+    const xDensity = 500;
+    const yDensity = 500;
+
+    const beforeNumTensors = memory().numTensors;
+    const jpegEncodedData = await tf.node.encodeJpeg(imageTensor, format,
+      quality, progressive, optimizeSize, chromaDownsampling, densityUnit,
+      xDensity, yDensity);
+    expect(memory().numTensors).toBe(beforeNumTensors);
+    expect(getImageType(jpegEncodedData)).toEqual(ImageType.JPEG);
+    imageTensor.dispose();
+  });
+
+  it('encodePng', async () => {
+    const imageTensor = tf.tensor3d(new Uint8Array(
+      [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
+    const beforeNumTensors = memory().numTensors;
+    const pngEncodedData = await tf.node.encodePng(imageTensor);
+    const pngDecodedTensor = await tf.node.decodePng(pngEncodedData);
+    const pngDecodedData = await pngDecodedTensor.data();
+    pngDecodedTensor.dispose();
+    expect(memory().numTensors).toBe(beforeNumTensors);
+    expect(getImageType(pngEncodedData)).toEqual(ImageType.PNG);
+    test_util.expectArraysEqual(await imageTensor.data(), pngDecodedData);
+    imageTensor.dispose();
+  });
+
+  it('encodePng grayscale', async () => {
+    const imageTensor = tf.tensor3d(new Uint8Array(
+      [239, 0, 47, 0]), [2, 2, 1]);
+    const beforeNumTensors = memory().numTensors;
+    const pngEncodedData = await tf.node.encodePng(imageTensor);
+    expect(memory().numTensors).toBe(beforeNumTensors);
+    expect(getImageType(pngEncodedData)).toEqual(ImageType.PNG);
+    imageTensor.dispose();
+  });
+
+  it('encodePng with parameters', async () => {
+    const imageTensor = tf.tensor3d(new Uint8Array(
+      [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
+    const compression = 4;
+
+    const beforeNumTensors = memory().numTensors;
+    const pngEncodedData = await tf.node.encodePng(imageTensor, compression);
+    expect(memory().numTensors).toBe(beforeNumTensors);
+    expect(getImageType(pngEncodedData)).toEqual(ImageType.PNG);
+    imageTensor.dispose();
   });
 });
 
