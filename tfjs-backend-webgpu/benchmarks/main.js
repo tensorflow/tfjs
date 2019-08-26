@@ -22,7 +22,8 @@ const swatches = {
   'webgl_mean': '#025952'
 };
 
-const startDate = moment('2019-08-16', 'YYYY-MM-DD');
+const START_LOGGING_DATE = '2019-08-16';
+const startDate = moment(START_LOGGING_DATE, 'YYYY-MM-DD');
 const endDate = moment();
 const files = [];
 let dateFormats = [];
