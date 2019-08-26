@@ -82,10 +82,10 @@ class FoldBatchNormsTest(tf.test.TestCase):
       self.assertNotEqual("BatchNormWithGlobalNormalization", node.op)
 
   def testFoldFusedBatchNorms(self):
-    for data_format, use_gpu, conv2d_func in [
-        ("NHWC", False, nn_ops.conv2d), ("NCHW", True, nn_ops.conv2d),
-        ("NHWC", False, nn_ops.depthwise_conv2d_native),
-        ("NCHW", True, nn_ops.depthwise_conv2d_native)
+    for data_format, conv2d_func in [
+        ("NHWC", nn_ops.conv2d), ("NCHW", nn_ops.conv2d),
+        ("NHWC", nn_ops.depthwise_conv2d_native),
+        ("NCHW", nn_ops.depthwise_conv2d_native)
     ]:
       with tf.compat.v1.Session() as sess:
         inputs = [1, 4, 2, 5, 3, 6, -1, -4, -2, -5, -3, -6]
@@ -142,10 +142,10 @@ class FoldBatchNormsTest(tf.test.TestCase):
         self.assertNotEqual("FusedBatchNorm", node.op)
 
   def testFoldFusedBatchNormsV3(self):
-    for data_format, use_gpu, conv2d_func in [
-        ("NHWC", False, nn_ops.conv2d), ("NCHW", True, nn_ops.conv2d),
-        ("NHWC", False, nn_ops.depthwise_conv2d_native),
-        ("NCHW", True, nn_ops.depthwise_conv2d_native)
+    for data_format, conv2d_func in [
+        ("NHWC", nn_ops.conv2d), ("NCHW", nn_ops.conv2d),
+        ("NHWC", nn_ops.depthwise_conv2d_native),
+        ("NCHW", nn_ops.depthwise_conv2d_native)
     ]:
       with tf.compat.v1.Session() as sess:
         inputs = [1, 4, 2, 5, 3, 6, -1, -4, -2, -5, -3, -6]
