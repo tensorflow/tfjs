@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Convert Tensorflow SavedModel to TensorFlow.js web format."""
+"""Folding the BatchNorm op into Conv2D."""
 
 from __future__ import absolute_import
 from __future__ import division
