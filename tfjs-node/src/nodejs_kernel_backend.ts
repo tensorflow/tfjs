@@ -27,6 +27,7 @@ import {isNullOrUndefined} from 'util';
 import {Int64Scalar} from './int64_tensors';
 // tslint:disable-next-line:max-line-length
 import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType} from './ops/op_utils';
+import {TFSavedModel} from './saved_model';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorInfo = {
@@ -42,6 +43,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
+  private savedModelMap = new WeakMap<DataId, TFSavedModel>();
 
   constructor(binding: TFJSBinding, packageName: string) {
     super();
@@ -1797,12 +1799,12 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   executeEncodeImageOp(
-    name: string, opAttrs: TFEOpAttr[], imageData: Uint8Array,
-    imageShape: number[]): Tensor<Rank> {
-    const inputTensorId = this.binding.createTensor(
-      imageShape, this.binding.TF_UINT8, imageData);
-    const outputMetadata = this.binding.executeOp(
-      name, opAttrs, [inputTensorId], 1);
+      name: string, opAttrs: TFEOpAttr[], imageData: Uint8Array,
+      imageShape: number[]): Tensor<Rank> {
+    const inputTensorId =
+        this.binding.createTensor(imageShape, this.binding.TF_UINT8, imageData);
+    const outputMetadata =
+        this.binding.executeOp(name, opAttrs, [inputTensorId], 1);
     const outputTensorInfo = outputMetadata[0];
     // prevent the tensor data from being converted to a UTF8 string, since
     // the encoded data is not valid UTF8
@@ -1811,16 +1813,13 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   encodeJpeg(
-      imageData: Uint8Array, imageShape: number[],
-      format: '' | 'grayscale' | 'rgb', quality: number, progressive: boolean,
-      optimizeSize: boolean, chromaDownsampling: boolean,
-      densityUnit: 'in' | 'cm', xDensity: number, yDensity: number,
-      xmpMetadata: string
-      ): Tensor<Rank> {
+      imageData: Uint8Array, imageShape: number[], format: ''|'grayscale'|'rgb',
+      quality: number, progressive: boolean, optimizeSize: boolean,
+      chromaDownsampling: boolean, densityUnit: 'in'|'cm', xDensity: number,
+      yDensity: number, xmpMetadata: string): Tensor<Rank> {
     const opAttrs = [
       {name: 'format', type: this.binding.TF_ATTR_STRING, value: format},
-      {name: 'quality', type: this.binding.TF_ATTR_INT, value: quality},
-      {
+      {name: 'quality', type: this.binding.TF_ATTR_INT, value: quality}, {
         name: 'progressive',
         type: this.binding.TF_ATTR_BOOL,
         value: progressive
@@ -1841,25 +1840,23 @@ export class NodeJSKernelBackend extends KernelBackend {
         value: densityUnit
       },
       {name: 'x_density', type: this.binding.TF_ATTR_INT, value: xDensity},
-      {name: 'y_density', type: this.binding.TF_ATTR_INT, value: yDensity},
-      {
+      {name: 'y_density', type: this.binding.TF_ATTR_INT, value: yDensity}, {
         name: 'xmp_metadata',
         type: this.binding.TF_ATTR_STRING,
         value: xmpMetadata
       }
     ];
     return this.executeEncodeImageOp(
-      'EncodeJpeg', opAttrs, imageData, imageShape);
+        'EncodeJpeg', opAttrs, imageData, imageShape);
   }
 
-  encodePng(
-      imageData: Uint8Array, imageShape: number[], compression: number
-      ): Tensor<Rank> {
+  encodePng(imageData: Uint8Array, imageShape: number[], compression: number):
+      Tensor<Rank> {
     const opAttrs = [
       {name: 'compression', type: this.binding.TF_ATTR_INT, value: compression}
     ];
     return this.executeEncodeImageOp(
-      'EncodePng', opAttrs, imageData, imageShape);
+        'EncodePng', opAttrs, imageData, imageShape);
   }
 
   // ------------------------------------------------------------
@@ -1929,6 +1926,18 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   // ~ TensorBoard-related (tfjs-node-specific) backend kernels.
   // ------------------------------------------------------------
+
+  async loadSavedModel(path: string) {
+    const newId = {};
+    const id = this.binding.loadSavedModel(path);
+    const session = new TFSavedModel(id, this);
+    this.savedModelMap.set(newId, session);
+    return session;
+  }
+
+  deleteSavedModel(savedModelId: number): void {
+    this.binding.deleteSavedModel(savedModelId);
+  }
 
   memory() {
     // Due to automatic garbage collection, the numbers are unreliable.

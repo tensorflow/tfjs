@@ -985,9 +985,16 @@ napi_value TFJSBackend::LoadSavedModel(napi_env env,
   TF_Session *session = TF_LoadSessionFromSavedModel(
       session_options, run_options, export_dir, tags, tags_leng, graph,
       metagraph, tf_status.status);
+  // Delete objects that are necessary when loading the SavedModel but not gonna
+  // be used later.
+  TF_DeleteSessionOptions(session_options);
+  TF_DeleteBuffer(run_options);
+  TF_DeleteBuffer(metagraph);
 
   if (TF_GetCode(tf_status.status) != TF_OK) {
-    printf("Load SavedModel failed: %s", TF_Message(tf_status.status));
+    NAPI_THROW_ERROR(env, "Faile to load SavedModel: %s",
+                     TF_Message(tf_status.status));
+    return nullptr;
   }
 
   napi_value output_session_id;
@@ -1006,9 +1013,10 @@ void TFJSBackend::DeleteSavedModel(napi_env env,
   auto savedmodel_entry = tf_savedmodel_map_.find(savedmodel_id);
   if (savedmodel_entry == tf_savedmodel_map_.end()) {
     NAPI_THROW_ERROR(
-        env, "Delete called on a SavedModel not referenced (savedmodel_id: %d)",
-        savedmodel_id);
-    return;
+        env, "Delete called on a SavedModel not referenced (savedmodel_id:
+                 % d)
+    ", savedmodel_id);
+        return;
   }
 
   TF_AutoStatus tf_status;
@@ -1016,6 +1024,7 @@ void TFJSBackend::DeleteSavedModel(napi_env env,
   if (TF_GetCode(tf_status.status) != TF_OK) {
     NAPI_THROW_ERROR(env, "Fail to delete SavedModel: %s",
                      TF_Message(tf_status.status));
+    return;
   }
   TF_DeleteGraph(savedmodel_entry->second.second);
   tf_savedmodel_map_.erase(savedmodel_entry);

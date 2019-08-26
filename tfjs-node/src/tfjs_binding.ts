@@ -26,7 +26,7 @@ export declare class TensorMetadata {
 export declare class TFEOpAttr {
   name: string;
   type: number;
-  value: boolean | number | object | string | number[];
+  value: boolean|number|object|string|number[];
 }
 
 export interface TFJSBinding {
@@ -40,12 +40,23 @@ export interface TFJSBinding {
   deleteTensor(tensorId: number): void;
 
   // Reads data-sync from a tensor on the backend:
-  tensorDataSync(tensorId: number): Float32Array | Int32Array | Uint8Array;
+  tensorDataSync(tensorId: number): Float32Array|Int32Array|Uint8Array;
 
   // Executes an Op on the backend, returns an array of output TensorMetadata:
   executeOp(
-    opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
-    numOutputs: number): TensorMetadata[];
+      opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
+      numOutputs: number): TensorMetadata[];
+
+  // load a SavedModel from a path:
+  loadSavedModel(exportDir: string): number;
+
+  // run a SavedModel:
+  runSavedModel(
+      sessionId: number, inputTensorIds: number[], inputOpNames: string,
+      outputOpNames: string): TensorMetadata[];
+
+  // delete a SavedModel:
+  deleteSavedModel(savedModelId: number): void;
 
   // TF Types
   TF_FLOAT: number;
