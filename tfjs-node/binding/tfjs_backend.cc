@@ -87,7 +87,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
       width = sizeof(int32_t);
       break;
     case napi_uint8_array:
-      if (dtype != TF_BOOL && dtype != TF_UINT8) {
+      if (dtype != TF_BOOL) {
         NAPI_THROW_ERROR(env, "Tensor type does not match Uint8Array");
         return nullptr;
       }
@@ -695,7 +695,8 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
   }
 }
 
-TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
+TFJSBackend::TFJSBackend(napi_env env)
+    : next_tensor_id_(0), next_savedmodel_id_(0) {
   TF_AutoStatus tf_status;
   TFE_ContextOptions *tfe_options = TFE_NewContextOptions();
   tfe_context_ = TFE_NewContext(tfe_options, tf_status.status);
@@ -743,6 +744,10 @@ TFJSBackend::~TFJSBackend() {
   for (auto &kv : tfe_handle_map_) {
     TFE_DeleteTensorHandle(kv.second);
   }
+  for (auto &kv : tf_savedmodel_map_) {
+    TF_AutoStatus tf_status;
+    TF_DeleteSession(kv.second.first, tf_status.status);
+  }
   if (tfe_context_ != nullptr) {
     TFE_DeleteContext(tfe_context_);
   }
@@ -752,6 +757,14 @@ TFJSBackend *TFJSBackend::Create(napi_env env) { return new TFJSBackend(env); }
 
 int32_t TFJSBackend::InsertHandle(TFE_TensorHandle *tfe_handle) {
   return tfe_handle_map_.insert(std::make_pair(next_tensor_id_++, tfe_handle))
+      .first->first;
+}
+
+int32_t TFJSBackend::InsertSavedModel(TF_Session *tf_session,
+                                      TF_Graph *tf_graph) {
+  return tf_savedmodel_map_
+      .insert(std::make_pair(next_savedmodel_id_++,
+                             std::make_pair(tf_session, tf_graph)))
       .first->first;
 }
 
@@ -945,6 +958,67 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   }
 
   return output_tensor_infos;
+}
+
+napi_value TFJSBackend::LoadSavedModel(napi_env env,
+                                       napi_value export_dir_value) {
+  TF_SessionOptions *session_options = TF_NewSessionOptions();
+
+  TF_Buffer *run_options = TF_NewBufferFromString("", 0);
+
+  std::string export_dir_string;
+  napi_status nstatus;
+  nstatus = GetStringParam(env, export_dir_value, export_dir_string);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  const char *export_dir = export_dir_string.c_str();
+
+  constexpr char kSavedModelTagServe[] = "serve";
+  const char *tags[] = {kSavedModelTagServe};
+  int tags_leng = 1;
+
+  TF_Graph *graph = TF_NewGraph();
+
+  TF_Buffer *metagraph = TF_NewBuffer();
+
+  TF_AutoStatus tf_status;
+
+  TF_Session *session = TF_LoadSessionFromSavedModel(
+      session_options, run_options, export_dir, tags, tags_leng, graph,
+      metagraph, tf_status.status);
+
+  if (TF_GetCode(tf_status.status) != TF_OK) {
+    printf("Load SavedModel failed: %s", TF_Message(tf_status.status));
+  }
+
+  napi_value output_session_id;
+  nstatus = napi_create_int32(env, InsertSavedModel(session, graph),
+                              &output_session_id);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  return output_session_id;
+}
+
+void TFJSBackend::DeleteSavedModel(napi_env env,
+                                   napi_value savedmodel_id_value) {
+  int32_t savedmodel_id;
+  ENSURE_NAPI_OK(
+      env, napi_get_value_int32(env, savedmodel_id_value, &savedmodel_id));
+
+  auto savedmodel_entry = tf_savedmodel_map_.find(savedmodel_id);
+  if (savedmodel_entry == tf_savedmodel_map_.end()) {
+    NAPI_THROW_ERROR(
+        env, "Delete called on a SavedModel not referenced (savedmodel_id: %d)",
+        savedmodel_id);
+    return;
+  }
+
+  TF_AutoStatus tf_status;
+  TF_DeleteSession(savedmodel_entry->second.first, tf_status.status);
+  if (TF_GetCode(tf_status.status) != TF_OK) {
+    NAPI_THROW_ERROR(env, "Fail to delete SavedModel: %s",
+                     TF_Message(tf_status.status));
+  }
+  TF_DeleteGraph(savedmodel_entry->second.second);
+  tf_savedmodel_map_.erase(savedmodel_entry);
 }
 
 }  // namespace tfnodejs
