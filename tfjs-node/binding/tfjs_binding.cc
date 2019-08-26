@@ -19,24 +19,27 @@
 #include "tfjs_backend.h"
 #include "utils.h"
 
-namespace tfnodejs {
+namespace tfnodejs
+{
 
-TFJSBackend* gBackend = nullptr;
+TFJSBackend *gBackend = nullptr;
 
 static void AssignIntProperty(napi_env env, napi_value exports,
-                              const char* name, int32_t value) {
+                              const char *name, int32_t value)
+{
   napi_value js_value;
   napi_status nstatus = napi_create_int32(env, value, &js_value);
   ENSURE_NAPI_OK(env, nstatus);
 
-  napi_property_descriptor property = {name,         nullptr, nullptr,
-                                       nullptr,      nullptr, js_value,
+  napi_property_descriptor property = {name, nullptr, nullptr,
+                                       nullptr, nullptr, js_value,
                                        napi_default, nullptr};
   nstatus = napi_define_properties(env, exports, 1, &property);
   ENSURE_NAPI_OK(env, nstatus);
 }
 
-static napi_value CreateTensor(napi_env env, napi_callback_info info) {
+static napi_value CreateTensor(napi_env env, napi_callback_info info)
+{
   napi_status nstatus;
 
   // Create tensor takes 3 params: shape, dtype, typed-array/array:
@@ -46,7 +49,8 @@ static napi_value CreateTensor(napi_env env, napi_callback_info info) {
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  if (argc < 3) {
+  if (argc < 3)
+  {
     NAPI_THROW_ERROR(env, "Invalid number of args passed to createTensor()");
     return nullptr;
   }
@@ -58,14 +62,16 @@ static napi_value CreateTensor(napi_env env, napi_callback_info info) {
   bool is_typed_array;
   nstatus = napi_is_typedarray(env, args[2], &is_typed_array);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-  if (!is_typed_array) {
+  if (!is_typed_array)
+  {
     ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[2], nullptr);
   }
 
   return gBackend->CreateTensor(env, args[0], args[1], args[2]);
 }
 
-static napi_value DeleteTensor(napi_env env, napi_callback_info info) {
+static napi_value DeleteTensor(napi_env env, napi_callback_info info)
+{
   napi_status nstatus;
 
   // Delete tensor takes 1 param: tensor ID;
@@ -75,7 +81,8 @@ static napi_value DeleteTensor(napi_env env, napi_callback_info info) {
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
 
-  if (argc < 1) {
+  if (argc < 1)
+  {
     NAPI_THROW_ERROR(env, "Invalid number of args passed to deleteTensor()");
     return js_this;
   }
@@ -86,7 +93,8 @@ static napi_value DeleteTensor(napi_env env, napi_callback_info info) {
   return js_this;
 }
 
-static napi_value TensorDataSync(napi_env env, napi_callback_info info) {
+static napi_value TensorDataSync(napi_env env, napi_callback_info info)
+{
   napi_status nstatus;
 
   // Tensor data-sync takes 1 param: tensor ID;
@@ -96,7 +104,8 @@ static napi_value TensorDataSync(napi_env env, napi_callback_info info) {
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
 
-  if (argc < 1) {
+  if (argc < 1)
+  {
     NAPI_THROW_ERROR(env, "Invalid number of args passed to tensorDataSync()");
     return nullptr;
   }
@@ -106,7 +115,8 @@ static napi_value TensorDataSync(napi_env env, napi_callback_info info) {
   return gBackend->GetTensorData(env, args[0]);
 }
 
-static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
+static napi_value ExecuteOp(napi_env env, napi_callback_info info)
+{
   napi_status nstatus;
 
   // Create tensor takes 3 params: op-name, op-attrs, input-tensor-ids,
@@ -117,7 +127,8 @@ static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  if (argc < 4) {
+  if (argc < 4)
+  {
     NAPI_THROW_ERROR(env, "Invalid number of args passed to executeOp()");
     return nullptr;
   }
@@ -130,7 +141,54 @@ static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
   return gBackend->ExecuteOp(env, args[0], args[1], args[2], args[3]);
 }
 
-static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
+static napi_value LoadSavedModel(napi_env env, napi_callback_info info)
+{
+  napi_status nstatus;
+
+  // Load saved model takes 1 params: export_dir:
+  size_t argc = 1;
+  napi_value args[1];
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  if (argc < 1)
+  {
+    NAPI_THROW_ERROR(env, "Invalid number of args passed to LoadSavedModel()");
+    return nullptr;
+  }
+
+  ENSURE_VALUE_IS_STRING_RETVAL(env, args[0], nullptr);
+
+  return gBackend->LoadSavedModel(env, args[0]);
+}
+
+static napi_value DeleteSavedModel(napi_env env, napi_callback_info info)
+{
+  napi_status nstatus;
+
+  // Delete SavedModel takes 1 param: savedModel ID;
+  size_t argc = 1;
+  napi_value args[1];
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  if (argc < 1)
+  {
+    NAPI_THROW_ERROR(env,
+                     "Invalid number of args passed to deleteSavedModel()");
+    return js_this;
+  }
+
+  ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[0], js_this);
+
+  gBackend->DeleteSavedModel(env, args[0]);
+  return js_this;
+}
+
+static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports)
+{
   napi_status nstatus;
 
   gBackend = TFJSBackend::Create(env);
@@ -151,6 +209,10 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
        napi_default, nullptr},
       {"executeOp", nullptr, ExecuteOp, nullptr, nullptr, nullptr, napi_default,
        nullptr},
+      {"loadSavedModel", nullptr, LoadSavedModel, nullptr, nullptr, nullptr,
+       napi_default, nullptr},
+      {"deleteSavedModel", nullptr, DeleteSavedModel, nullptr, nullptr, nullptr,
+       napi_default, nullptr},
       {"TF_Version", nullptr, nullptr, nullptr, nullptr, tf_version,
        napi_default, nullptr},
   };
@@ -184,4 +246,4 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
 
 NAPI_MODULE(tfe_binding, InitTFNodeJSBinding)
 
-}  // namespace tfnodejs
+} // namespace tfnodejs
