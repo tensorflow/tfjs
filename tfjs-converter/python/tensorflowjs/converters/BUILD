@@ -60,6 +60,28 @@ py_test(
     ],
 )
 
+py_library(
+    name = "fold_batch_norms",
+    srcs = ["fold_batch_norms.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":common",
+        "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
+py_test(
+    name = "fold_batch_norms_test",
+    srcs = ["fold_batch_norms_test.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":fold_batch_norms",
+        "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
 py_test(
     name = "tf_saved_model_conversion_v2_test",
     srcs = ["tf_saved_model_conversion_v2_test.py"],
@@ -83,6 +105,7 @@ py_library(
         "//tensorflowjs:version",
         "//tensorflowjs:write_weights",
         "//tensorflowjs/converters:common",
+        "//tensorflowjs/converters:fold_batch_norms",
     ],
 )
 
