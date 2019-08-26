@@ -23,8 +23,8 @@ coverage/
 demo/train-*
 deps/
 dist/
-integration_tests/tfjs2keras/test-data/
-integration/typescript/yarn.lock
+tfjs-layers/integration_tests/tfjs2keras/test-data/
+tfjs-layers/integration/typescript/yarn.lock
 lib/
 local.log
 node_modules/
