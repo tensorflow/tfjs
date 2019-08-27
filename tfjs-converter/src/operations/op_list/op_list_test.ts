@@ -60,7 +60,9 @@ describe('OpListTest', () => {
   Object.keys(mappersJson).forEach(key => {
     it('should satisfy the schema: ' + key, () => {
       const valid = validator(mappersJson[key].json);
-      if (!valid) console.log(validator.errors);
+      if (!valid) {
+        console.log(validator.errors);
+      }
       expect(valid).toBeTruthy();
     });
   });
