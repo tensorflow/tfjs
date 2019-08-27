@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import * as tf from '../../../src/index';
 import * as device_util from '../../device_util';
 import {ENV} from '../../environment';
+import * as tf from '../../index';
 import {webgl_util} from '../../webgl';
 
 import * as canvas_util from './canvas_util';
