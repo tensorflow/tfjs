@@ -217,7 +217,6 @@ async function main() {
       phase.scripts.forEach(script => $(script));
     }
 
-    shell.cd('..');
     if (phase.repo == null) {
       shell.cd('..');
     }
