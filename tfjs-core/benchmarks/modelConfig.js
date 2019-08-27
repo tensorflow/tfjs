@@ -71,21 +71,7 @@ const sentences = [
   'what is the forecast for here at tea time',
 ];
 
-const rnnInput = tf.zeros([1, 20, 20]);
-
 const benchmarks = {
-  'rnn': {
-    load: async () => {
-      const url =
-          'https://outpaintingweights.s3.amazonaws.com/simple-rnn/model.json';
-      return tf.loadLayersModel(url);
-    },
-    predictFunc: () => {
-      return (model) => {
-        return model.predict(rnnInput);
-      }
-    }
-  },
   'mobilenet': {
     load: async () => {
       const url =
