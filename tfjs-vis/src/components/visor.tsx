@@ -130,7 +130,7 @@ export class VisorComponent extends Component<VisorProps, VisorState> {
     let surface: SurfaceComponent;
 
     if (this.surfaces.has(surfaceId)) {
-      surface = this.surfaces.get(surfaceId) as SurfaceComponent;
+      surface = this.surfaces.get(surfaceId);
     } else {
       throw Error(`Surface not found with id: ${surfaceId}`);
     }

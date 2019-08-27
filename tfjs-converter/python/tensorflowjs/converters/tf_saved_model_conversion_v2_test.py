@@ -14,6 +14,7 @@
 # ==============================================================================
 """Unit tests for artifact conversion to and from Tensorflow SavedModel v2."""
 
+import base64
 import glob
 import json
 import os
@@ -31,15 +32,13 @@ from tensorflow.python.ops import variables
 from tensorflow.python.training.tracking import tracking
 from tensorflow.python.saved_model.save import save
 import tensorflow_hub as hub
-
 from tensorflowjs import version
 from tensorflowjs.converters import tf_saved_model_conversion_v2
 
 SAVED_MODEL_DIR = 'saved_model'
 HUB_MODULE_DIR = 'hub_module'
 
-
-class ConvertTest(unittest.TestCase):
+class ConvertTest(tf.test.TestCase):
   def setUp(self):
     super(ConvertTest, self).setUp()
     self._tmp_dir = tempfile.mkdtemp()
@@ -80,6 +79,20 @@ class ConvertTest(unittest.TestCase):
             assets_collection=None)
 
       builder.save()
+
+  def _create_saved_model_with_fusable_conv2d(self):
+    """Test a basic model with fusable conv2d."""
+    layers = [
+        tf.keras.layers.Conv2D(
+            16, [3, 3], padding='same', use_bias=False),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU()
+    ]
+    model = tf.keras.Sequential(layers)
+    model.predict(tf.ones((1, 224, 224, 3)))
+    tf.keras.backend.set_learning_phase(0)
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tf.saved_model.save(model, save_dir)
 
   def _create_saved_model(self):
     """Test a basic model with functions to make sure functions are inlined."""
@@ -224,6 +237,35 @@ class ConvertTest(unittest.TestCase):
                             weights[0]['paths'])
       self.assertCountEqual(weights_manifest[0]['weights'],
                             weights[0]['weights'])
+
+  def test_convert_saved_model_with_fused_conv2d(self):
+    self._create_saved_model_with_fusable_conv2d()
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    )
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    nodes = model_json['modelTopology']['node']
+
+    fusedOp = None
+    for node in nodes:
+      self.assertTrue(not 'BatchNorm' in node['op'])
+      self.assertTrue(not 'Relu' in node['op'])
+      self.assertTrue(not 'BiasAdd' in node['op'])
+      if node['op'] == '_FusedConv2D':
+        fusedOp = node
+    self.assertTrue(fusedOp is not None)
+    self.assertEqual(
+        base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][0]),
+        b'BiasAdd')
+    self.assertEqual(
+        base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][1]),
+        b'Relu')
 
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')

@@ -47,7 +47,7 @@ export async function executeOp(
           getParamValue('condition', node, tensorMap, context) as tfc.Tensor)];
     }
     case 'ListDiff': {
-      return await tfc.setdiff1dAsync(
+      return tfc.setdiff1dAsync(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           getParamValue('y', node, tensorMap, context) as tfc.Tensor);
     }

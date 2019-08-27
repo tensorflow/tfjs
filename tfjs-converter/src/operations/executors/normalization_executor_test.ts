@@ -18,10 +18,9 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import * as normalization from '../op_list/normalization';
-import {Node, OpMapper} from '../types';
+import {Node} from '../types';
 
 import {executeOp} from './normalization_executor';
-// tslint:disable-next-line:max-line-length
 import {createNumberAttr, createNumericArrayAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
 
 describe('normalization', () => {
@@ -127,8 +126,7 @@ describe('normalization', () => {
         node.attrParams.alpha = createNumberAttr(3);
         node.attrParams.beta = createNumberAttr(4);
 
-        expect(validateParam(node, normalization.json as OpMapper[]))
-            .toBeTruthy();
+        expect(validateParam(node, normalization.json)).toBeTruthy();
       });
     });
 
@@ -144,8 +142,7 @@ describe('normalization', () => {
       it('should match json def', () => {
         node.op = 'Softmax';
 
-        expect(validateParam(node, normalization.json as OpMapper[]))
-            .toBeTruthy();
+        expect(validateParam(node, normalization.json)).toBeTruthy();
       });
     });
 
@@ -161,8 +158,7 @@ describe('normalization', () => {
       it('should match json def', () => {
         node.op = 'LogSoftmax';
 
-        expect(validateParam(node, normalization.json as OpMapper[]))
-            .toBeTruthy();
+        expect(validateParam(node, normalization.json)).toBeTruthy();
       });
     });
     describe('SparseToDense', () => {
@@ -190,8 +186,7 @@ describe('normalization', () => {
         node.inputParams.sparseValues = createTensorAttr(2);
         node.inputParams.defaultValue = createTensorAttr(3);
 
-        expect(validateParam(node, normalization.json as OpMapper[]))
-            .toBeTruthy();
+        expect(validateParam(node, normalization.json)).toBeTruthy();
       });
     });
   });
