@@ -21,14 +21,8 @@ const rimraf = require('rimraf');
 const util = require('util');
 const cp = require('child_process');
 const os = require('os');
-const {
-  depsPath,
-  depsLibPath,
-  depsLibTensorFlowPath,
-  getLibTensorFlowMajorDotMinorVersion,
-  LIBTENSORFLOW_VERSION,
-  modulePath
-} = require('./deps-constants.js');
+
+const {getConstants} = require('./deps-constants.js');
 const resources = require('./resources');
 const {addonName} = require('./get-addon-name.js');
 
@@ -36,6 +30,24 @@ const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
 const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
+
+const platform = os.platform();
+let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
+let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
+
+const {
+  depsPath,
+  depsLibPath,
+  depsLibTensorFlowFrameworkName,
+  depsLibTensorFlowFrameworkPath,
+  depsLibTensorFlowName,
+  depsLibTensorFlowPath,
+  destLibTensorFlowFrameworkName,
+  destLibTensorFlowName,
+  getLibTensorFlowMajorDotMinorVersion,
+  modulePath,
+  LIBTENSORFLOW_VERSION
+} = getConstants(libType);
 
 const BASE_URI =
     'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
@@ -50,10 +62,6 @@ const GPU_WINDOWS = `gpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
 const TF_WIN_HEADERS_URI =
     `https://storage.googleapis.com/tf-builds/tensorflow-headers-` +
     `${getLibTensorFlowMajorDotMinorVersion()}.zip`;
-
-const platform = os.platform();
-let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
-let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 
 let packageJsonFile;
 

@@ -1,5 +1,5 @@
 {
-  "name": "@tensorflow/tfjs-node-gpu",
+  "name": "@tensorflow/tfjs-node",
   "version": "1.2.8",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,7 +20,7 @@
     "coverage": "nyc ts-node src/run_tests.ts",
     "enable-gpu": "node scripts/install.js gpu download && yarn && yarn build-addon-from-source",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
-    "install": "node scripts/install.js gpu download",
+    "install": "node scripts/install.js",
     "install-from-source": "yarn clean-deps && yarn && yarn build-addon-from-source",
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
