@@ -20,7 +20,6 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './convolution_executor';
-// tslint:disable-next-line:max-line-length
 import {createNumberAttr, createNumericArrayAttr, createStrArrayAttr, createStrAttr, createTensorAttr, createTensorsAttr} from './test_helper';
 
 describe('convolution', () => {

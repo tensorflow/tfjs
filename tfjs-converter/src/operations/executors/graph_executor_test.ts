@@ -21,7 +21,6 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './graph_executor';
-// tslint:disable-next-line:max-line-length
 import {createNumberAttr, createStrAttr, createTensorAttr, createTensorsAttr} from './test_helper';
 
 describe('graph', () => {

@@ -18,10 +18,9 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import * as image from '../op_list/image';
-import {Node, OpMapper} from '../types';
+import {Node} from '../types';
 
 import {executeOp} from './image_executor';
-// tslint:disable-next-line:max-line-length
 import {createBoolAttr, createNumberAttr, createNumericArrayAttrFromIndex, createStrAttr, createTensorAttr, validateParam} from './test_helper';
 
 describe('image', () => {
@@ -62,7 +61,7 @@ describe('image', () => {
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
 
-        expect(validateParam(node, image.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, image.json)).toBeTruthy();
       });
     });
     describe('ResizeNearestNeighbor', () => {
@@ -84,7 +83,7 @@ describe('image', () => {
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
 
-        expect(validateParam(node, image.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, image.json)).toBeTruthy();
       });
     });
     describe('CropAndResize', () => {
@@ -119,7 +118,7 @@ describe('image', () => {
         node.attrParams['extrapolationValue'] = createNumberAttr(0.5);
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
 
-        expect(validateParam(node, image.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, image.json)).toBeTruthy();
       });
     });
   });

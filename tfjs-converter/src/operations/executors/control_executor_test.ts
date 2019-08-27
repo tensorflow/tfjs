@@ -21,10 +21,9 @@ import {test_util} from '@tensorflow/tfjs-core';
 import {ExecutionContext} from '../../executor/execution_context';
 import {TensorArray} from '../../executor/tensor_array';
 import * as control from '../op_list/control';
-import {Node, OpMapper} from '../types';
+import {Node} from '../types';
 
 import {executeOp} from './control_executor';
-// tslint:disable-next-line:max-line-length
 import {createBoolAttr, createDtypeAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createStrAttr, createTensorAttr, createTensorShapeAttr, validateParam} from './test_helper';
 
 describe('control', () => {
@@ -74,7 +73,7 @@ describe('control', () => {
         node.inputParams['pred'] = createTensorAttr(1);
         node.inputParams['data'] = createTensorAttr(0);
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
     describe('Merge', () => {
@@ -100,7 +99,7 @@ describe('control', () => {
       it('should match json def', () => {
         node.op = 'Merge';
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
 
@@ -121,7 +120,7 @@ describe('control', () => {
         node.op = 'Enter';
         node.inputParams['tensor'] = createTensorAttr(0);
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
     describe('Exit', () => {
@@ -140,7 +139,7 @@ describe('control', () => {
         node.op = 'Exit';
         node.inputParams['tensor'] = createTensorAttr(0);
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
     describe('NextIteration', () => {
@@ -159,7 +158,7 @@ describe('control', () => {
         node.op = 'NextIteration';
         node.inputParams['tensor'] = createTensorAttr(0);
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
 
@@ -189,7 +188,7 @@ describe('control', () => {
         node.attrParams['clearAfterRead'] = createBoolAttr(true);
         node.attrParams['identicalElementShapes'] = createBoolAttr(true);
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
 
@@ -215,7 +214,7 @@ describe('control', () => {
         node.inputParams['index'] = createNumberAttrFromIndex(1);
         node.inputParams['tensor'] = createTensorAttr(2);
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
 
@@ -242,7 +241,7 @@ describe('control', () => {
         node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
         node.inputParams['index'] = createNumberAttrFromIndex(1);
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
 
@@ -273,7 +272,7 @@ describe('control', () => {
         node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['dtype'] = createDtypeAttr('int32');
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
 
@@ -301,7 +300,7 @@ describe('control', () => {
         node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
         node.inputParams['tensor'] = createTensorAttr(2);
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
 
@@ -328,7 +327,7 @@ describe('control', () => {
         node.inputParams['tensor'] = createTensorAttr(1);
         node.inputParams['lengths'] = createNumericArrayAttrFromIndex(2);
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
 
@@ -356,7 +355,7 @@ describe('control', () => {
         node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
         node.attrParams['dtype'] = createDtypeAttr('int32');
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
 
@@ -381,7 +380,7 @@ describe('control', () => {
         node.op = 'TensorArraySizeV3';
         node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
 
@@ -404,7 +403,7 @@ describe('control', () => {
         node.op = 'TensorArrayCloseV3';
         node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
 
-        expect(validateParam(node, control.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
   });
