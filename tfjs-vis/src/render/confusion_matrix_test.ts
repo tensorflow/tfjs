@@ -33,7 +33,7 @@ describe('renderConfusionMatrix', () => {
       tickLabels: ['cheese', 'pig', 'font'],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await confusionMatrix(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -45,7 +45,7 @@ describe('renderConfusionMatrix', () => {
       tickLabels: ['cheese', 'pig', 'font'],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await confusionMatrix(container, data, {shadeDiagonal: true});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -56,7 +56,7 @@ describe('renderConfusionMatrix', () => {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
 
     await confusionMatrix(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -68,7 +68,7 @@ describe('renderConfusionMatrix', () => {
       tickLabels: ['cheese', 'pig', 'font'],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
 
     await confusionMatrix(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -88,12 +88,12 @@ describe('renderConfusionMatrix', () => {
       tickLabels: ['cheese', 'pig', 'font'],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await confusionMatrix(container, data, {width: 400});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
-    expect(document.querySelector('canvas')!.width).toBe(400 * pixelRatio);
+    expect(document.querySelector('canvas').width).toBe(400 * pixelRatio);
   });
 
   it('sets height of chart', async () => {
@@ -102,11 +102,11 @@ describe('renderConfusionMatrix', () => {
       tickLabels: ['cheese', 'pig', 'font'],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await confusionMatrix(container, data, {height: 200});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
-    expect(document.querySelector('canvas')!.height).toBe(200 * pixelRatio);
+    expect(document.querySelector('canvas').height).toBe(200 * pixelRatio);
   });
 });
