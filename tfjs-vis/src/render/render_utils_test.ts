@@ -81,7 +81,7 @@ describe('getDrawArea', () => {
   });
 
   it('works with HTMLElement', async () => {
-    const el = document.getElementById('container') as HTMLElement;
+    const el = document.getElementById('container');
     expect(getDrawArea(el)).toEqual(el);
   });
 

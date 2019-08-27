@@ -34,7 +34,7 @@ describe('renderHeatmap', () => {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await heatmap(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -47,7 +47,7 @@ describe('renderHeatmap', () => {
 
     const numTensorsBefore = tf.memory().numTensors;
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await heatmap(container, data, {rowMajor: true});
 
     const numTensorsAfter = tf.memory().numTensors;
@@ -65,7 +65,7 @@ describe('renderHeatmap', () => {
 
     const numTensorsBefore = tf.memory().numTensors;
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await heatmap(container, data, {rowMajor: true});
 
     const numTensorsAfter = tf.memory().numTensors;
@@ -80,7 +80,7 @@ describe('renderHeatmap', () => {
       values,
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await heatmap(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -94,7 +94,7 @@ describe('renderHeatmap', () => {
       values,
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
 
     let threw = false;
     try {
@@ -113,7 +113,7 @@ describe('renderHeatmap', () => {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await heatmap(container, data, {colorMap: 'greyscale'});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -124,7 +124,7 @@ describe('renderHeatmap', () => {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await heatmap(container, data, {domain: [0, 30]});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -137,7 +137,7 @@ describe('renderHeatmap', () => {
       yTickLabels: ['speed', 'dexterity', 'roundness'],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await heatmap(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -148,7 +148,7 @@ describe('renderHeatmap', () => {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
 
     await heatmap(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -166,12 +166,12 @@ describe('renderHeatmap', () => {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await heatmap(container, data, {width: 400});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
-    expect(document.querySelector('canvas')!.width).toBe(400 * pixelRatio);
+    expect(document.querySelector('canvas').width).toBe(400 * pixelRatio);
   });
 
   it('sets height of chart', async () => {
@@ -179,11 +179,11 @@ describe('renderHeatmap', () => {
       values: [[4, 2, 8], [1, 7, 2], [3, 3, 20]],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await heatmap(container, data, {height: 200});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
-    expect(document.querySelector('canvas')!.height).toBe(200 * pixelRatio);
+    expect(document.querySelector('canvas').height).toBe(200 * pixelRatio);
   });
 });
