@@ -42,6 +42,14 @@ export let executeOp: InternalOpExecutor = (node: Node,
       const num = getParamValue('num', node, tensorMap, context) as number;
       return [tfc.linspace(start, stop, num)];
     }
+    case 'Multinomial': {
+      const logits =
+          getParamValue('logits', node, tensorMap, context) as tfc.Tensor1D;
+      const numSamples =
+          getParamValue('numSamples', node, tensorMap, context) as number;
+      const seed = getParamValue('seed', node, tensorMap, context) as number;
+      return [tfc.multinomial(logits, numSamples, seed)];
+    }
     case 'OneHot': {
       const indices =
           getParamValue('indices', node, tensorMap, context) as tfc.Tensor1D;

@@ -34,7 +34,7 @@ import * as sliceJoin from './op_list/slice_join';
 import * as spectral from './op_list/spectral';
 import * as transformation from './op_list/transformation';
 import {OperationMapper} from './operation_mapper';
-import {Graph, OpMapper} from './types';
+import {Graph} from './types';
 
 const ops = [
   arithmetic, basicMath, control, convolution, creation, dynamic, evaluation,
@@ -142,7 +142,7 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
 describe('completeness check', () => {
   it('should convert all op categories', () => {
     ops.forEach(op => {
-      (op.json as OpMapper[]).forEach(tfOp => {
+      op.json.forEach(tfOp => {
         const graph = {
           node: [{name: tfOp.tfOpName, op: tfOp.tfOpName, attr: {}}]
         };
@@ -221,8 +221,7 @@ describe('operationMapper', () => {
         expect(
             convertedGraph.nodes['FusedBatchNorm'].attrParams['epsilon'].value)
             .toEqual(0.0001);
-        expect(
-            convertedGraph.nodes['Squeeze2'].attrParams['axis'].value)
+        expect(convertedGraph.nodes['Squeeze2'].attrParams['axis'].value)
             .toEqual([]);
       });
 
