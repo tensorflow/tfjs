@@ -40,7 +40,6 @@ describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
   let forcedF16RenderFlagSaved: boolean;
 
   beforeAll(() => {
-    console.log('BEFORE ALL');
     forcedF16RenderFlagSaved =
         tf.ENV.get('WEBGL_ALWAYS_USE_F16_TEXTURES') as boolean;
     tf.ENV.set('WEBGL_ALWAYS_USE_F16_TEXTURES', true);
@@ -50,19 +49,11 @@ describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
     tf.ENV.set('WEBGL_ALWAYS_USE_F16_TEXTURES', forcedF16RenderFlagSaved);
   });
 
-  fit('should overflow if larger than 66k', async () => {
+  it('should overflow if larger than 66k', async () => {
     const a = tf.tensor1d([Math.pow(2, 17)], 'float32');
     const b = tf.relu(a);
-    const bData = await b.data();
-    console.log('--------------');
-    console.log(tf.ENV.get('WEBGL_VERSION'));
-    console.log(bData);
+    expect(await b.data()).toBeLessThan(Math.pow(2, 17));
   });
-
-  // fit('should be within 0.1 (some arithmetic test)',
-  //     () => {
-
-  //     });
 
   // fit('should error in debug mode',
   //     () => {
