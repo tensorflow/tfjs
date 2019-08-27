@@ -24,7 +24,6 @@ import * as control from '../op_list/control';
 import {Node} from '../types';
 
 import {executeOp} from './control_executor';
-// tslint:disable-next-line:max-line-length
 import {createBoolAttr, createDtypeAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createStrAttr, createTensorAttr, createTensorShapeAttr, validateParam} from './test_helper';
 
 describe('control', () => {

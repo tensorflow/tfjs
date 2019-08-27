@@ -20,7 +20,6 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './matrices_executor';
-// tslint:disable-next-line:max-line-length
 import {createBoolAttr, createNumericArrayAttr, createTensorAttr} from './test_helper';
 
 describe('matrices', () => {

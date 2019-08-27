@@ -21,7 +21,6 @@ import * as image from '../op_list/image';
 import {Node} from '../types';
 
 import {executeOp} from './image_executor';
-// tslint:disable-next-line:max-line-length
 import {createBoolAttr, createNumberAttr, createNumericArrayAttrFromIndex, createStrAttr, createTensorAttr, validateParam} from './test_helper';
 
 describe('image', () => {

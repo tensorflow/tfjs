@@ -21,7 +21,6 @@ import * as basic_math from '../op_list/basic_math';
 import {Node} from '../types';
 
 import {executeOp} from './basic_math_executor';
-// tslint:disable-next-line:max-line-length
 import {createNumberAttr, createNumericArrayAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
 
 describe('basic math', () => {

@@ -21,7 +21,6 @@ import * as normalization from '../op_list/normalization';
 import {Node} from '../types';
 
 import {executeOp} from './normalization_executor';
-// tslint:disable-next-line:max-line-length
 import {createNumberAttr, createNumericArrayAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
 
 describe('normalization', () => {

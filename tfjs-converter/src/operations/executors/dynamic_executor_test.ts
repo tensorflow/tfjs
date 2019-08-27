@@ -21,7 +21,6 @@ import * as dynamic from '../op_list/dynamic';
 import {Node} from '../types';
 
 import {executeOp} from './dynamic_executor';
-// tslint:disable-next-line:max-line-length
 import {createNumberAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
 
 describe('dynamic', () => {

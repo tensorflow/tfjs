@@ -21,7 +21,6 @@ import * as creation from '../op_list/creation';
 import {Node} from '../types';
 
 import {executeOp} from './creation_executor';
-// tslint:disable-next-line:max-line-length
 import {createDtypeAttr, createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
 
 describe('creation', () => {
@@ -277,7 +276,7 @@ describe('creation', () => {
         node.inputParams['logits'] = createTensorAttr(0);
         node.inputParams['numSamples'] = createNumberAttrFromIndex(1);
         node.attrParams['seed'] = createNumberAttr(2);
-        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
   });

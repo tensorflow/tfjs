@@ -21,7 +21,6 @@ import * as slice_join from '../op_list/slice_join';
 import {Node} from '../types';
 
 import {executeOp} from './slice_join_executor';
-// tslint:disable-next-line:max-line-length
 import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
 
 describe('slice join', () => {
