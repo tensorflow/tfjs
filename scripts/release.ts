@@ -216,11 +216,12 @@ async function main() {
     if (phase.scripts != null) {
       phase.scripts.forEach(script => $(script));
     }
-
     if (phase.repo == null) {
       shell.cd('..');
     }
-    $(`./scripts/make-version.js ${packageName}`);
+    if (!phase.leaveVersion) {
+      $(`./scripts/make-version.js ${packageName}`);
+    }
     newVersions.push(newVersion);
   }
 
