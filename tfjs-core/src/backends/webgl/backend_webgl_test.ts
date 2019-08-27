@@ -55,15 +55,13 @@ describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
     expect(await b.data()).toBeLessThan(Math.pow(2, 17));
   });
 
-  // fit('should error in debug mode',
-  //     () => {
-  //       const savedRenderFloat32Flag =
-  //       tf.ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED');
-  //   tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false);
-  //   const a = () => tf.tensor1d([2, Math.pow(2, 17)], 'float32');
-  //   expect(a).toThrowError();
-  //   tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
-  //     });
+  it('should error in debug mode', () => {
+    const savedDebugFlag = tf.ENV.getBool('DEBUG');
+    tf.ENV.set('DEBUG', true);
+    const a = () => tf.tensor1d([2, Math.pow(2, 17)], 'float32');
+    expect(a).toThrowError();
+    tf.ENV.set('DEBUG', savedDebugFlag);
+  });
 });
 
 describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
