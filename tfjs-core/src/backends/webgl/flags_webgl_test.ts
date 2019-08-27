@@ -27,7 +27,7 @@ describe('WEBGL_ALWAYS_USE_F16_TEXTURES', () => {
   afterAll(() => ENV.reset());
 
   it('is togglable via enableHalfFloat utility', () => {
-    tf.webgl.enableHalfFloat();
+    tf.webgl.forceHalfFloat();
     expect(ENV.getBool('WEBGL_ALWAYS_USE_F16_TEXTURES')).toBe(true);
   });
 });
