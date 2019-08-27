@@ -15,10 +15,12 @@
  * =============================================================================
  */
 
+import {InferenceModel, ModelPredictConfig, NamedTensorMap, Tensor} from '@tensorflow/tfjs';
+import {TensorInfo} from '@tensorflow/tfjs-converter/dist/src/data/types';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 import {ensureTensorflowBackend, nodeBackend} from './ops/op_utils';
 
-export class TFSavedModel {
+export class TFSavedModel implements InferenceModel {
   private readonly id: number;
   private readonly backend: NodeJSKernelBackend;
   private deleted: boolean;
@@ -29,6 +31,20 @@ export class TFSavedModel {
     this.deleted = false;
   }
 
+  /** Placeholder function. */
+  get inputs(): TensorInfo[] {
+    throw new Error('SavedModel inputs information is not available yet.');
+  }
+
+  /** Placeholder function. */
+  get outputs(): TensorInfo[] {
+    throw new Error('SavedModel outputs information is not available yet.');
+  }
+
+  /**
+   * Delete the SavedModel from nodeBackend and delete corresponding object in
+   * the C++ backend.
+   */
   delete() {
     if (!this.deleted) {
       this.deleted = true;
@@ -37,6 +53,28 @@ export class TFSavedModel {
       throw new Error('This SavedModel has been deleted.');
     }
   }
+
+  /**
+   * Placeholder function.
+   * @param inputs
+   * @param config
+   */
+  predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
+      Tensor|Tensor[]|NamedTensorMap {
+    throw new Error(
+        'predict() function of TFSavedModel is not implemented yet.');
+  }
+
+  /**
+   * Placeholder function.
+   * @param inputs
+   * @param outputs
+   */
+  execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs: string|string[]):
+      Tensor|Tensor[] {
+    throw new Error(
+        'Execute() function of TFSavedModel is not implemented yet.');
+  };
 }
 
 /**
