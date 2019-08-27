@@ -34,7 +34,7 @@ describe('renderScatterplot', () => {
       ]
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await scatterplot(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -56,7 +56,7 @@ describe('renderScatterplot', () => {
       ]
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
 
     await scatterplot(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -82,7 +82,7 @@ describe('renderScatterplot', () => {
       series: ['First', 'Second'],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
 
     await scatterplot(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -105,7 +105,7 @@ describe('renderScatterplot', () => {
       series: ['First', 'Second'],
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
 
     await scatterplot(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -141,12 +141,12 @@ describe('renderScatterplot', () => {
       ]
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await scatterplot(container, data, {width: 400});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
-    expect(document.querySelector('canvas')!.width).toBe(400 * pixelRatio);
+    expect(document.querySelector('canvas').width).toBe(400 * pixelRatio);
   });
 
   it('sets height of chart', async () => {
@@ -158,11 +158,11 @@ describe('renderScatterplot', () => {
       ]
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await scatterplot(container, data, {height: 200});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
-    expect(document.querySelector('canvas')!.height).toBe(200 * pixelRatio);
+    expect(document.querySelector('canvas').height).toBe(200 * pixelRatio);
   });
 });

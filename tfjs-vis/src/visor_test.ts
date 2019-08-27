@@ -47,11 +47,11 @@ describe('Visor Singleton', () => {
     const visorInstance = visor();
     visorInstance.surface({name: 'surface 1', tab: 'tab 1'});
     expect(document.querySelectorAll('.tf-surface').length).toBe(1);
-    expect(document.querySelector('.tf-surface')!.textContent)
+    expect(document.querySelector('.tf-surface').textContent)
         .toEqual('surface 1');
 
     expect(document.querySelectorAll('.tf-tab').length).toBe(1);
-    expect(document.querySelector('.tf-tab')!.textContent).toEqual('tab 1');
+    expect(document.querySelector('.tf-tab').textContent).toEqual('tab 1');
   });
 
   it('requires a surface name', () => {
@@ -76,12 +76,12 @@ describe('Visor Singleton', () => {
     const visorInstance = visor();
     const s1 = visorInstance.surface({name: 'surface 1', tab: 'tab 1'});
     expect(document.querySelectorAll('.tf-surface').length).toBe(1);
-    expect(document.querySelector('.tf-surface')!.textContent)
+    expect(document.querySelector('.tf-surface').textContent)
         .toEqual('surface 1');
 
     const s2 = visorInstance.surface({name: 'surface 1', tab: 'tab 1'});
     expect(document.querySelectorAll('.tf-surface').length).toBe(1);
-    expect(document.querySelector('.tf-surface')!.textContent)
+    expect(document.querySelector('.tf-surface').textContent)
         .toEqual('surface 1');
 
     expect(s1).toEqual(s2);
@@ -92,7 +92,7 @@ describe('Visor Singleton', () => {
     visorInstance.surface({name: 'surface1'});
 
     expect(document.querySelectorAll('.tf-tab').length).toBe(1);
-    expect(document.querySelector('.tf-tab')!.textContent).toEqual('Visor');
+    expect(document.querySelector('.tf-tab').textContent).toEqual('Visor');
   });
 
   it('adds two surfaces', () => {
@@ -133,19 +133,19 @@ describe('Visor Singleton', () => {
   it('closes/opens', async () => {
     const visorInstance = visor();
 
-    expect(document.querySelector('.visor')!.getAttribute('data-isopen'))
+    expect(document.querySelector('.visor').getAttribute('data-isopen'))
         .toBe('true');
     expect(visorInstance.isOpen()).toBe(true);
 
     visorInstance.close();
     await tick();
-    expect(document.querySelector('.visor')!.getAttribute('data-isopen'))
+    expect(document.querySelector('.visor').getAttribute('data-isopen'))
         .toBeFalsy();
     expect(visorInstance.isOpen()).toBe(false);
 
     visorInstance.open();
     await tick();
-    expect(document.querySelector('.visor')!.getAttribute('data-isopen'))
+    expect(document.querySelector('.visor').getAttribute('data-isopen'))
         .toBe('true');
     expect(visorInstance.isOpen()).toBe(true);
   });
@@ -153,19 +153,19 @@ describe('Visor Singleton', () => {
   it('toggles', async () => {
     const visorInstance = visor();
 
-    expect(document.querySelector('.visor')!.getAttribute('data-isopen'))
+    expect(document.querySelector('.visor').getAttribute('data-isopen'))
         .toBe('true');
     expect(visorInstance.isOpen()).toBe(true);
 
     visorInstance.toggle();
     await tick();
-    expect(document.querySelector('.visor')!.getAttribute('data-isopen'))
+    expect(document.querySelector('.visor').getAttribute('data-isopen'))
         .toBeFalsy();
     expect(visorInstance.isOpen()).toBe(false);
 
     visorInstance.toggle();
     await tick();
-    expect(document.querySelector('.visor')!.getAttribute('data-isopen'))
+    expect(document.querySelector('.visor').getAttribute('data-isopen'))
         .toBe('true');
     expect(visorInstance.isOpen()).toBe(true);
   });
@@ -174,17 +174,17 @@ describe('Visor Singleton', () => {
     const visorInstance = visor();
     expect(visorInstance.isOpen()).toBe(true);
 
-    expect(document.querySelector('.visor')!.getAttribute('data-isfullscreen'))
+    expect(document.querySelector('.visor').getAttribute('data-isfullscreen'))
         .toBeFalsy();
 
     visorInstance.toggleFullScreen();
     await tick();
-    expect(document.querySelector('.visor')!.getAttribute('data-isfullscreen'))
+    expect(document.querySelector('.visor').getAttribute('data-isfullscreen'))
         .toBe('true');
 
     visorInstance.toggleFullScreen();
     await tick();
-    expect(document.querySelector('.visor')!.getAttribute('data-isfullscreen'))
+    expect(document.querySelector('.visor').getAttribute('data-isfullscreen'))
         .toBeFalsy();
   });
 

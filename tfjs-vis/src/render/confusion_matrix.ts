@@ -221,7 +221,7 @@ export async function confusionMatrix(
   return Promise.resolve();
 }
 
-const defaultOpts = {
+const defaultOpts: ConfusionMatrixOptions = {
   xLabel: null,
   yLabel: null,
   xType: 'nominal',
