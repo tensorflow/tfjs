@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {Tensor3D, Tensor4D, tidy, util, Rank} from '@tensorflow/tfjs-core';
-import {ensureTensorflowBackend, nodeBackend} from './ops/op_utils';
 import {Tensor} from '@tensorflow/tfjs';
+import {Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+import {ensureTensorflowBackend, nodeBackend} from './nodejs_kernel_backend';
 
 export enum ImageType {
   JPEG = 'jpeg',
@@ -225,17 +225,16 @@ export function decodeImage(
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
  */
 export async function encodeJpeg(
-  image: Tensor3D, format: '' | 'grayscale' | 'rgb' = '', quality = 95,
-  progressive = false, optimizeSize = false,
-  chromaDownsampling = true, densityUnit: 'in' | 'cm' = 'in',
-  xDensity = 300, yDensity = 300, xmpMetadata = ''
-  ): Promise<Uint8Array> {
+    image: Tensor3D, format: ''|'grayscale'|'rgb' = '', quality = 95,
+    progressive = false, optimizeSize = false, chromaDownsampling = true,
+    densityUnit: 'in'|'cm' = 'in', xDensity = 300, yDensity = 300,
+    xmpMetadata = ''): Promise<Uint8Array> {
   ensureTensorflowBackend();
 
   const backendEncodeImage = (imageData: Uint8Array) =>
-    nodeBackend().encodeJpeg(
-      imageData, image.shape, format, quality, progressive, optimizeSize,
-      chromaDownsampling, densityUnit, xDensity, yDensity, xmpMetadata);
+      nodeBackend().encodeJpeg(
+          imageData, image.shape, format, quality, progressive, optimizeSize,
+          chromaDownsampling, densityUnit, xDensity, yDensity, xmpMetadata);
 
   return encodeImage(image, backendEncodeImage);
 }
@@ -251,24 +250,24 @@ export async function encodeJpeg(
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
  */
 export async function encodePng(
-  image: Tensor3D, compression = 1
-  ): Promise<Uint8Array> {
+    image: Tensor3D, compression = 1): Promise<Uint8Array> {
   ensureTensorflowBackend();
 
-  const backendEncodeImage = (imageData: Uint8Array) => nodeBackend().encodePng(
-    imageData, image.shape, compression);
+  const backendEncodeImage = (imageData: Uint8Array) =>
+      nodeBackend().encodePng(imageData, image.shape, compression);
   return encodeImage(image, backendEncodeImage);
 }
 
 async function encodeImage(
-  image: Tensor3D, backendEncodeImage: (imageData: Uint8Array) => Tensor<Rank>
-  ): Promise<Uint8Array> {
-  const encodedDataTensor = backendEncodeImage(new Uint8Array(
-    await image.data()));
+    image: Tensor3D, backendEncodeImage: (imageData: Uint8Array) => Tensor):
+    Promise<Uint8Array> {
+  const encodedDataTensor =
+      backendEncodeImage(new Uint8Array(await image.data()));
 
-  const encodedPngData = (
-    // tslint:disable-next-line:no-any
-    await encodedDataTensor.data())[0] as any as Uint8Array;
+  const encodedPngData =
+      (
+          // tslint:disable-next-line:no-any
+          await encodedDataTensor.data())[0] as any as Uint8Array;
   encodedDataTensor.dispose();
   return encodedPngData;
 }
@@ -278,10 +277,8 @@ async function encodeImage(
  */
 export function getImageType(content: Uint8Array): string {
   // Classify the contents of a file based on starting bytes (aka magic number:
-  // tslint:disable-next-line:max-line-length
   // https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files)
   // This aligns with TensorFlow Core code:
-  // tslint:disable-next-line:max-line-length
   // https://github.com/tensorflow/tensorflow/blob/4213d5c1bd921f8d5b7b2dc4bbf1eea78d0b5258/tensorflow/core/kernels/decode_image_op.cc#L44
   if (content.length > 3 && content[0] === 255 && content[1] === 216 &&
       content[2] === 255) {

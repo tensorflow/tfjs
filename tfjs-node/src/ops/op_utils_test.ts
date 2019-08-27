@@ -16,9 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
-// tslint:disable-next-line:max-line-length
-import {createTensorsTypeOpAttr, createTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend} from './op_utils';
+import {NodeJSKernelBackend, nodeBackend, ensureTensorflowBackend, getTFDType, createTypeOpAttr, createTensorsTypeOpAttr} from '../nodejs_kernel_backend';
 
 describe('Exposes Backend for internal Op execution.', () => {
   it('Provides the Node backend over a function', () => {
