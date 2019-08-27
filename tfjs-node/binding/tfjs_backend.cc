@@ -87,7 +87,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
       width = sizeof(int32_t);
       break;
     case napi_uint8_array:
-      if (dtype != TF_BOOL) {
+      if (dtype != TF_BOOL && dtype != TF_UINT8) {
         NAPI_THROW_ERROR(env, "Tensor type does not match Uint8Array");
         return nullptr;
       }
@@ -1013,10 +1013,9 @@ void TFJSBackend::DeleteSavedModel(napi_env env,
   auto savedmodel_entry = tf_savedmodel_map_.find(savedmodel_id);
   if (savedmodel_entry == tf_savedmodel_map_.end()) {
     NAPI_THROW_ERROR(
-        env, "Delete called on a SavedModel not referenced (savedmodel_id:
-                 % d)
-    ", savedmodel_id);
-        return;
+        env, "Delete called on a SavedModel not referenced (savedmodel_id: %d)",
+        savedmodel_id);
+    return;
   }
 
   TF_AutoStatus tf_status;

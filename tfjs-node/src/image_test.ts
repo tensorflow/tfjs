@@ -18,8 +18,8 @@
 import {memory, setBackend, test_util} from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
 import {promisify} from 'util';
-import * as tf from './index';
 import {getImageType, ImageType} from './image';
+import * as tf from './index';
 
 const readFile = promisify(fs.readFile);
 
@@ -27,7 +27,7 @@ describe('decode images', () => {
   it('decode png', async () => {
     const beforeNumTensors: number = memory().numTensors;
     const uint8array =
-        await getUint8ArrayFromImage('test_images/image_png_test.png');
+        await getUint8ArrayFromImage('test_objects/image_png_test.png');
     const imageTensor = await tf.node.decodePng(uint8array);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([2, 2, 3]);
@@ -40,7 +40,7 @@ describe('decode images', () => {
   it('decode png 1 channels', async () => {
     const beforeNumTensors: number = memory().numTensors;
     const uint8array =
-        await getUint8ArrayFromImage('test_images/image_png_test.png');
+        await getUint8ArrayFromImage('test_objects/image_png_test.png');
     const imageTensor = await tf.node.decodeImage(uint8array, 1);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([2, 2, 1]);
@@ -51,7 +51,7 @@ describe('decode images', () => {
   it('decode png 3 channels', async () => {
     const beforeNumTensors: number = memory().numTensors;
     const uint8array =
-        await getUint8ArrayFromImage('test_images/image_png_test.png');
+        await getUint8ArrayFromImage('test_objects/image_png_test.png');
     const imageTensor = await tf.node.decodeImage(uint8array);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([2, 2, 3]);
@@ -64,7 +64,7 @@ describe('decode images', () => {
   it('decode png 4 channels', async () => {
     const beforeNumTensors: number = memory().numTensors;
     const uint8array = await getUint8ArrayFromImage(
-        'test_images/image_png_4_channel_test.png');
+        'test_objects/image_png_4_channel_test.png');
     const imageTensor = await tf.node.decodeImage(uint8array, 4);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([2, 2, 4]);
@@ -77,7 +77,7 @@ describe('decode images', () => {
   it('decode bmp', async () => {
     const beforeNumTensors: number = memory().numTensors;
     const uint8array =
-        await getUint8ArrayFromImage('test_images/image_bmp_test.bmp');
+        await getUint8ArrayFromImage('test_objects/image_bmp_test.bmp');
     const imageTensor = await tf.node.decodeBmp(uint8array);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([2, 2, 3]);
@@ -90,7 +90,7 @@ describe('decode images', () => {
   it('decode bmp through decodeImage', async () => {
     const beforeNumTensors: number = memory().numTensors;
     const uint8array =
-        await getUint8ArrayFromImage('test_images/image_bmp_test.bmp');
+        await getUint8ArrayFromImage('test_objects/image_bmp_test.bmp');
     const imageTensor = await tf.node.decodeImage(uint8array);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([2, 2, 3]);
@@ -103,7 +103,7 @@ describe('decode images', () => {
   it('decode jpg', async () => {
     const beforeNumTensors: number = memory().numTensors;
     const uint8array =
-        await getUint8ArrayFromImage('test_images/image_jpeg_test.jpeg');
+        await getUint8ArrayFromImage('test_objects/image_jpeg_test.jpeg');
     const imageTensor = await tf.node.decodeJpeg(uint8array);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([2, 2, 3]);
@@ -116,7 +116,7 @@ describe('decode images', () => {
   it('decode jpg 1 channel', async () => {
     const beforeNumTensors: number = memory().numTensors;
     const uint8array =
-        await getUint8ArrayFromImage('test_images/image_jpeg_test.jpeg');
+        await getUint8ArrayFromImage('test_objects/image_jpeg_test.jpeg');
     const imageTensor = await tf.node.decodeImage(uint8array, 1);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([2, 2, 1]);
@@ -127,7 +127,7 @@ describe('decode images', () => {
   it('decode jpg 3 channels', async () => {
     const beforeNumTensors: number = memory().numTensors;
     const uint8array =
-        await getUint8ArrayFromImage('test_images/image_jpeg_test.jpeg');
+        await getUint8ArrayFromImage('test_objects/image_jpeg_test.jpeg');
     const imageTensor = await tf.node.decodeImage(uint8array, 3);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([2, 2, 3]);
@@ -142,7 +142,7 @@ describe('decode images', () => {
      async () => {
        const beforeNumTensors: number = memory().numTensors;
        const uint8array =
-           await getUint8ArrayFromImage('test_images/image_jpeg_test.jpeg');
+           await getUint8ArrayFromImage('test_objects/image_jpeg_test.jpeg');
        const imageTensor = await tf.node.decodeImage(uint8array);
        expect(imageTensor.dtype).toBe('int32');
        expect(imageTensor.shape).toEqual([2, 2, 3]);
@@ -155,7 +155,7 @@ describe('decode images', () => {
   it('decode jpg with downscale', async () => {
     const beforeNumTensors: number = memory().numTensors;
     const uint8array =
-        await getUint8ArrayFromImage('test_images/image_jpeg_test.jpeg');
+        await getUint8ArrayFromImage('test_objects/image_jpeg_test.jpeg');
     const imageTensor = await tf.node.decodeJpeg(uint8array, 0, 2);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([1, 1, 3]);
@@ -165,7 +165,8 @@ describe('decode images', () => {
 
   it('decode gif', async () => {
     const beforeNumTensors: number = memory().numTensors;
-    const uint8array = await getUint8ArrayFromImage('test_images/gif_test.gif');
+    const uint8array =
+        await getUint8ArrayFromImage('test_objects/gif_test.gif');
     const imageTensor = await tf.node.decodeImage(uint8array);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([2, 2, 2, 3]);
@@ -178,7 +179,8 @@ describe('decode images', () => {
 
   it('decode gif with no expandAnimation', async () => {
     const beforeNumTensors: number = memory().numTensors;
-    const uint8array = await getUint8ArrayFromImage('test_images/gif_test.gif');
+    const uint8array =
+        await getUint8ArrayFromImage('test_objects/gif_test.gif');
     const imageTensor =
         await tf.node.decodeImage(uint8array, 3, 'int32', false);
     expect(imageTensor.dtype).toBe('int32');
@@ -192,7 +194,7 @@ describe('decode images', () => {
   it('throw error if request non int32 dtype', async done => {
     try {
       const uint8array =
-          await getUint8ArrayFromImage('test_images/image_png_test.png');
+          await getUint8ArrayFromImage('test_objects/image_png_test.png');
       await tf.node.decodeImage(uint8array, 0, 'uint8');
       done.fail();
     } catch (error) {
@@ -221,7 +223,7 @@ describe('decode images', () => {
     try {
       setBackend('cpu');
       const uint8array =
-          await getUint8ArrayFromImage('test_images/image_png_test.png');
+          await getUint8ArrayFromImage('test_objects/image_png_test.png');
       await tf.node.decodeImage(uint8array);
       done.fail();
     } catch (err) {
@@ -235,8 +237,9 @@ describe('decode images', () => {
 
 describe('encode images', () => {
   it('encodeJpeg', async () => {
-    const imageTensor = tf.tensor3d(new Uint8Array(
-      [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
+    const imageTensor = tf.tensor3d(
+        new Uint8Array([239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]),
+        [2, 2, 3]);
     const beforeNumTensors = memory().numTensors;
     const jpegEncodedData = await tf.node.encodeJpeg(imageTensor);
     expect(memory().numTensors).toBe(beforeNumTensors);
@@ -245,8 +248,7 @@ describe('encode images', () => {
   });
 
   it('encodeJpeg grayscale', async () => {
-    const imageTensor = tf.tensor3d(new Uint8Array(
-      [239, 0, 47, 0]), [2, 2, 1]);
+    const imageTensor = tf.tensor3d(new Uint8Array([239, 0, 47, 0]), [2, 2, 1]);
     const beforeNumTensors = memory().numTensors;
     const jpegEncodedData = await tf.node.encodeJpeg(imageTensor, 'grayscale');
     expect(memory().numTensors).toBe(beforeNumTensors);
@@ -255,8 +257,9 @@ describe('encode images', () => {
   });
 
   it('encodeJpeg with parameters', async () => {
-    const imageTensor = tf.tensor3d(new Uint8Array(
-      [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
+    const imageTensor = tf.tensor3d(
+        new Uint8Array([239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]),
+        [2, 2, 3]);
     const format = 'rgb';
     const quality = 50;
     const progressive = true;
@@ -267,17 +270,18 @@ describe('encode images', () => {
     const yDensity = 500;
 
     const beforeNumTensors = memory().numTensors;
-    const jpegEncodedData = await tf.node.encodeJpeg(imageTensor, format,
-      quality, progressive, optimizeSize, chromaDownsampling, densityUnit,
-      xDensity, yDensity);
+    const jpegEncodedData = await tf.node.encodeJpeg(
+        imageTensor, format, quality, progressive, optimizeSize,
+        chromaDownsampling, densityUnit, xDensity, yDensity);
     expect(memory().numTensors).toBe(beforeNumTensors);
     expect(getImageType(jpegEncodedData)).toEqual(ImageType.JPEG);
     imageTensor.dispose();
   });
 
   it('encodePng', async () => {
-    const imageTensor = tf.tensor3d(new Uint8Array(
-      [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
+    const imageTensor = tf.tensor3d(
+        new Uint8Array([239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]),
+        [2, 2, 3]);
     const beforeNumTensors = memory().numTensors;
     const pngEncodedData = await tf.node.encodePng(imageTensor);
     const pngDecodedTensor = await tf.node.decodePng(pngEncodedData);
@@ -290,8 +294,7 @@ describe('encode images', () => {
   });
 
   it('encodePng grayscale', async () => {
-    const imageTensor = tf.tensor3d(new Uint8Array(
-      [239, 0, 47, 0]), [2, 2, 1]);
+    const imageTensor = tf.tensor3d(new Uint8Array([239, 0, 47, 0]), [2, 2, 1]);
     const beforeNumTensors = memory().numTensors;
     const pngEncodedData = await tf.node.encodePng(imageTensor);
     expect(memory().numTensors).toBe(beforeNumTensors);
@@ -300,8 +303,9 @@ describe('encode images', () => {
   });
 
   it('encodePng with parameters', async () => {
-    const imageTensor = tf.tensor3d(new Uint8Array(
-      [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
+    const imageTensor = tf.tensor3d(
+        new Uint8Array([239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]),
+        [2, 2, 3]);
     const compression = 4;
 
     const beforeNumTensors = memory().numTensors;

@@ -19,22 +19,9 @@ import {loadSavedModel} from './saved_model';
 
 describe('SavedModel', () => {
   it('load saved model and delete it', async () => {
-    console.log('1   ', process.memoryUsage().external);
-    console.log('2   ', process.memoryUsage().external);
-    console.log('3   ', process.memoryUsage().external);
-    console.log('4   ', process.memoryUsage().external);
-    console.log('5   ', process.memoryUsage().external);
-    await new Promise(resolve => {
-      setTimeout(resolve, 1000);
-    });
     const model = await loadSavedModel(
         __dirname.slice(0, -3) + 'test_objects/times_two_int');
-    console.log('6   ', process.memoryUsage().external);
     await model.delete();
-    await new Promise(resolve => {
-      setTimeout(resolve, 3000);
-    });
-    console.log('7   ', process.memoryUsage().external);
   });
 
   it('load wrong path', async done => {

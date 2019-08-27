@@ -1930,9 +1930,9 @@ export class NodeJSKernelBackend extends KernelBackend {
   async loadSavedModel(path: string) {
     const newId = {};
     const id = this.binding.loadSavedModel(path);
-    const session = new TFSavedModel(id, this);
-    this.savedModelMap.set(newId, session);
-    return session;
+    const model = new TFSavedModel(id, this);
+    this.savedModelMap.set(newId, model);
+    return model;
   }
 
   deleteSavedModel(savedModelId: number): void {
