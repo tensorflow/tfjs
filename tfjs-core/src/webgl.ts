@@ -18,9 +18,17 @@
 import * as gpgpu_util from './backends/webgl/gpgpu_util';
 import * as webgl_util from './backends/webgl/webgl_util';
 
+import {ENV} from './environment';
 export {MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backends/webgl/backend_webgl';
 export {setWebGLContext} from './backends/webgl/canvas_util';
 export {GPGPUContext} from './backends/webgl/gpgpu_context';
 export {GPGPUProgram} from './backends/webgl/gpgpu_math';
 // WebGL specific utils.
 export {gpgpu_util, webgl_util};
+
+/**
+ * Enforce use of half precision textures for performance.
+ */
+export function enableHalfFloat(): void {
+  ENV.set('WEBGL_ALWAYS_USE_F16_TEXTURES', true);
+}

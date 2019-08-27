@@ -15,11 +15,22 @@
  * =============================================================================
  */
 
+import * as tf from '../../../src/index';
 import * as device_util from '../../device_util';
 import {ENV} from '../../environment';
 import {webgl_util} from '../../webgl';
 
 import * as canvas_util from './canvas_util';
+
+describe('WEBGL_ALWAYS_USE_F16_TEXTURES', () => {
+  beforeEach(() => ENV.reset());
+  afterAll(() => ENV.reset());
+
+  it('is togglable via enableHalfFloat utility', () => {
+    tf.webgl.enableHalfFloat();
+    expect(ENV.getBool('WEBGL_ALWAYS_USE_F16_TEXTURES')).toBe(true);
+  });
+});
 
 describe('HAS_WEBGL', () => {
   beforeEach(() => ENV.reset());
