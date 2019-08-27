@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-backend-webgpu",
-  "version": "0.0.1",
+  "version": "0.0.1-alpha.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/tf-webgpu.esm.js",
@@ -9,6 +9,7 @@
   "jsdelivr": "dist/tf-webgpu.min.js",
   "scripts": {
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
+    "publish-npm": "./scripts/publish-npm.sh",
     "build": "tsc",
     "link-local": "yalc link",
     "unlink-local": "yalc remove",

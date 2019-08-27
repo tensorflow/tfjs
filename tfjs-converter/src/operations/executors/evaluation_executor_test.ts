@@ -20,7 +20,6 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './evaluation_executor';
-// tslint:disable-next-line:max-line-length
 import {createBoolAttr, createNumberAttrFromIndex, createTensorAttr} from './test_helper';
 
 describe('evaluation', () => {

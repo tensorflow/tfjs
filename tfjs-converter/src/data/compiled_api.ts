@@ -16,6 +16,8 @@
  * =============================================================================
  */
 
+/* tslint:disable */
+
 /** Properties of an Any. */
 export declare interface IAny {
   /** Any typeUrl */

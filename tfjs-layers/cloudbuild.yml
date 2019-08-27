@@ -12,16 +12,18 @@ steps:
   waitFor: ['yarn']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
-# - name: 'node:10'  # TODO(cais):  Reinstate the tests after new tfjs-node release and/or smarting linking.
-#   entrypoint: 'yarn'
-#   id: 'tfjs2keras-js'
-#   args: ['tfjs2keras-js']
-#   waitFor: ['yarn']
-# - name: 'python:2'
-#   entrypoint: 'bash'
-#   id: 'tfjs2keras-py'
-#   args: ['-c', './scripts/tfjs2keras-py.sh --stable && ./scripts/tfjs2keras-py.sh --stable --tfkeras && ./scripts/tfjs2keras-py.sh --dev --tfkeras']
-#   waitFor: ['tfjs2keras-js']
+- name: 'node:10'
+  dir: 'tfjs-layers'
+  entrypoint: 'yarn'
+  id: 'tfjs2keras-js'
+  args: ['tfjs2keras-js']
+  waitFor: ['yarn']
+- name: 'python:2'
+  dir: 'tfjs-layers'
+  entrypoint: 'bash'
+  id: 'tfjs2keras-py'
+  args: ['-c', './scripts/tfjs2keras-py.sh --stable && ./scripts/tfjs2keras-py.sh --stable --tfkeras && ./scripts/tfjs2keras-py.sh --dev --tfkeras']
+  waitFor: ['tfjs2keras-js']
 - name: 'node:10'
   dir: 'tfjs-layers'
   entrypoint: 'yarn'
