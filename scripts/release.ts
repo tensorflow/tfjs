@@ -218,6 +218,9 @@ async function main() {
     }
 
     shell.cd('..');
+    if (phase.repo == null) {
+      shell.cd('..');
+    }
     $(`./scripts/make-version.js ${packageName}`);
     newVersions.push(newVersion);
   }
