@@ -261,5 +261,24 @@ describe('creation', () => {
         expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
+    describe('Multinomial', () => {
+      it('should call tfc.multinomial', () => {
+        spyOn(tfc, 'multinomial');
+        node.op = 'Multinomial';
+        node.inputParams['logits'] = createTensorAttr(0);
+        node.inputParams['numSamples'] = createNumberAttrFromIndex(1);
+        node.attrParams['seed'] = createNumberAttr(2);
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.multinomial).toHaveBeenCalledWith(input1[0], 1, 2);
+      });
+      it('should match json def', () => {
+        node.op = 'Multinomial';
+        node.inputParams['logits'] = createTensorAttr(0);
+        node.inputParams['numSamples'] = createNumberAttrFromIndex(1);
+        node.attrParams['seed'] = createNumberAttr(2);
+        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+      });
+    });
   });
 });
