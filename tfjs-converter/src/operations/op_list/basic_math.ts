@@ -216,7 +216,7 @@ export const json: OpMapper[] = [
     'category': 'basic_math',
     'inputs': [
       {'start': 0, 'name': 'x', 'type': 'tensor'},
-      {'start': 0, 'name': 'alpha', 'type': 'tensor'},
+      {'start': 1, 'name': 'alpha', 'type': 'tensor'},
     ],
     'attrs': [
       {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
