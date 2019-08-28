@@ -20,13 +20,12 @@ import * as fs from 'fs';
 import {dirname, join, resolve} from 'path';
 import {promisify} from 'util';
 
+import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
+
 const stat = promisify(fs.stat);
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
 const mkdir = promisify(fs.mkdir);
-
-// tslint:disable-next-line:max-line-length
-import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
 
 function doesNotExistHandler(name: string): (e: NodeJS.ErrnoException) =>
     never {
@@ -99,10 +98,19 @@ export class NodeFileSystem implements tfc.io.IOHandler {
         paths: [this.WEIGHTS_BINARY_FILENAME],
         weights: modelArtifacts.weightSpecs
       }];
-      const modelJSON = {
+      const modelJSON: tfc.io.ModelJSON = {
         modelTopology: modelArtifacts.modelTopology,
         weightsManifest,
+        format: modelArtifacts.format,
+        generatedBy: modelArtifacts.generatedBy,
+        convertedBy: modelArtifacts.convertedBy
       };
+      if (modelArtifacts.trainingConfig != null) {
+        modelJSON.trainingConfig = modelArtifacts.trainingConfig;
+      }
+      if (modelArtifacts.userDefinedMetadata != null) {
+        modelJSON.userDefinedMetadata = modelArtifacts.userDefinedMetadata;
+      }
       const modelJSONPath = join(this.path, this.MODEL_JSON_FILENAME);
       await writeFile(modelJSONPath, JSON.stringify(modelJSON), 'utf8');
       await writeFile(
@@ -165,12 +173,21 @@ export class NodeFileSystem implements tfc.io.IOHandler {
 
       const modelArtifacts: tfc.io.ModelArtifacts = {
         modelTopology: modelJSON.modelTopology,
+        format: modelJSON.format,
+        generatedBy: modelJSON.generatedBy,
+        convertedBy: modelJSON.convertedBy
       };
       if (modelJSON.weightsManifest != null) {
         const [weightSpecs, weightData] =
             await this.loadWeights(modelJSON.weightsManifest, path);
         modelArtifacts.weightSpecs = weightSpecs;
         modelArtifacts.weightData = weightData;
+      }
+      if (modelJSON.trainingConfig != null) {
+        modelArtifacts.trainingConfig = modelJSON.trainingConfig;
+      }
+      if (modelJSON.userDefinedMetadata != null) {
+        modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;
       }
       return modelArtifacts;
     } else {

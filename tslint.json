@@ -27,7 +27,7 @@
     "forin": false,
     "label-position": true,
     "max-line-length": {
-      "options": {"limit": 80, "ignore-pattern": "^import |^export "}
+      "options": {"limit": 80, "ignore-pattern": "^import |^export |https?://"}
     },
     "new-parens": true,
     "no-angle-bracket-type-assertion": true,
@@ -43,6 +43,7 @@
     "no-string-throw": true,
     "no-unused-expression": true,
     "no-var-keyword": true,
+    "no-unnecessary-type-assertion": true,
     "object-literal-shorthand": true,
     "only-arrow-functions": [true, "allow-declarations", "allow-named-functions"],
     "prefer-const": true,

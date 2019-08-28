@@ -159,5 +159,19 @@ export const json: OpMapper[] = [
       {'start': 0, 'name': 'x', 'type': 'tensor'},
     ],
     'attrs': [{'tfName': 'T', 'name': 'dtype', 'type': 'dtype'}]
+  },
+  {
+    'tfOpName': 'Multinomial',
+    'category': 'creation',
+    'inputs': [
+      {'start': 0, 'name': 'logits', 'type': 'tensor'},
+      {'start': 1, 'name': 'numSamples', 'type': 'number'},
+    ],
+    'attrs': [
+      {'tfName': 'seed', 'name': 'seed', 'type': 'number'},
+      {'tfName': 'seed2', 'name': 'seed2', 'type': 'number'},
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype'},
+      {'tfName': 'output_dtype', 'name': 'output_dtype', 'type': 'dtype'}
+    ]
   }
 ];

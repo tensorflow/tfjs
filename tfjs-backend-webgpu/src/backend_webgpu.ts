@@ -243,7 +243,7 @@ export class WebGPUBackend extends KernelBackend {
       backend_util.TypedArray {
     const info = this.tensorMap.get(dataId);
     info.values = data;
-    return info.values as backend_util.TypedArray;
+    return info.values;
   }
 
   // TODO: Remove once this is fixed:
@@ -329,7 +329,7 @@ export class WebGPUBackend extends KernelBackend {
 
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
       T {
-    return Tensor.make(shape, {}, dtype, this) as T;
+    return Tensor.make(shape, {}, dtype, this);
   }
 
   private tensorToBinding(tensor?: Tensor): webgpu_program.BindingInfo {
@@ -495,8 +495,7 @@ export class WebGPUBackend extends KernelBackend {
   maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
     const program = new MaxPoolProgram(convInfo);
 
-    const output =
-        this.makeOutputArray(program.outputShape, x.dtype) as Tensor4D;
+    const output = this.makeOutputArray(program.outputShape, x.dtype);
 
     const dimensions = [
       convInfo.padInfo.left, convInfo.padInfo.top,      // Padding.
@@ -510,13 +509,12 @@ export class WebGPUBackend extends KernelBackend {
     return this.compileAndRun(program, [x], output, dimensions);
   }
 
-  private binaryOp(a: Tensor, b: Tensor, op: string) {
+  private binaryOp(a: Tensor, b: Tensor, op: string): Tensor {
     const dtype = backend_util.upcastType(a.dtype, b.dtype);
     const program = new BinaryOpProgram(op, a.shape, b.shape);
-    const output = Tensor.make(program.outputShape, {}, dtype) as Tensor;
+    const output = Tensor.make(program.outputShape, {}, dtype);
 
-    const result = this.compileAndRun(program, [a, b], output) as Tensor;
-    return result;
+    return this.compileAndRun(program, [a, b], output);
   }
 
   add(a: Tensor, b: Tensor): Tensor {
@@ -529,8 +527,7 @@ export class WebGPUBackend extends KernelBackend {
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
-    const output =
-        Tensor.make(convInfo.outShape, {}, x.dtype, this) as Tensor4D;
+    const output = Tensor.make(convInfo.outShape, {}, x.dtype, this);
     let program: Conv2DMMProgram|Conv2DNaiveProgram;
 
     const workPerThread = ENV.get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
@@ -555,8 +552,7 @@ export class WebGPUBackend extends KernelBackend {
       convInfo.strideHeight, convInfo.strideWidth
     ];
 
-    return this.compileAndRun(program, [x, filter], output, dimensions) as
-        Tensor4D;
+    return this.compileAndRun(program, [x, filter], output, dimensions);
   }
 
   depthwiseConv2D(
@@ -569,8 +565,8 @@ export class WebGPUBackend extends KernelBackend {
   private argMinMaxReduce(x: Tensor, axis: number, reduceType: 'min'|'max'):
       Tensor {
     const program = new ArgMinMaxProgram(x.shape, axis, reduceType);
-    const output = this.makeOutputArray(program.outputShape, 'int32') as Tensor;
-    return this.compileAndRun(program, [x], output, [axis]) as Tensor;
+    const output = this.makeOutputArray(program.outputShape, 'int32');
+    return this.compileAndRun(program, [x], output, [axis]);
   }
 
   argMin(x: Tensor, axis: number): Tensor {
@@ -595,12 +591,12 @@ export class WebGPUBackend extends KernelBackend {
     // }
     const outShape =
         backend_util.computeOutShape(tensors.map(t => t.shape), axis);
-    const tensors2D = tensors.map(t => t.reshape([
+    const tensors2D: Tensor2D[] = tensors.map(t => t.reshape([
       util.sizeFromShape(t.shape.slice(0, axis)),
       util.sizeFromShape(t.shape.slice(axis))
-    ]) as Tensor2D);
+    ]));
     const program = new ConcatProgram(tensors2D.map(t => t.shape));
-    const res = this.compileAndRun(program, tensors2D) as Tensor;
+    const res: Tensor = this.compileAndRun(program, tensors2D);
     return res.reshape(outShape);
   }
 
@@ -614,12 +610,12 @@ export class WebGPUBackend extends KernelBackend {
 
   sigmoid<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
-    return this.compileAndRun(program, [x]) as T;
+    return this.compileAndRun(program, [x]);
   }
 
   relu<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.RELU);
-    return this.compileAndRun(program, [x]) as T;
+    return this.compileAndRun(program, [x]);
   }
 
   resizeBilinear(
@@ -628,10 +624,9 @@ export class WebGPUBackend extends KernelBackend {
     const program =
         new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
 
-    const output =
-        this.makeOutputArray(program.outputShape, x.dtype) as Tensor4D;
+    const output: Tensor4D = this.makeOutputArray(program.outputShape, x.dtype);
 
-    return this.compileAndRun(program, [x], output) as Tensor4D;
+    return this.compileAndRun(program, [x], output);
   }
 
   reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
@@ -657,9 +652,8 @@ export class WebGPUBackend extends KernelBackend {
     const outerShapeB = b.shape[2];
     const [batch, , ] = a.shape;
 
-    const output =
-        Tensor.make([batch, outerShapeA, outerShapeB], {}, a.dtype, this) as
-        Tensor3D;
+    const output: Tensor3D =
+        Tensor.make([batch, outerShapeA, outerShapeB], {}, a.dtype, this);
 
     let program: MatMulProgram|MatMulPackedProgram;
     // TODO: We should eventually use the blocked version, but keeping around
@@ -672,9 +666,7 @@ export class WebGPUBackend extends KernelBackend {
           output.shape, ENV.get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
     }
 
-    const result = this.compileAndRun(program, [a, b], output) as Tensor3D;
-
-    return result;
+    return this.compileAndRun(program, [a, b], output);
   }
 
   fromPixels(
@@ -694,7 +686,7 @@ export class WebGPUBackend extends KernelBackend {
           !(pixels instanceof HTMLImageElement) &&
           !(pixels instanceof HTMLCanvasElement) &&
           !(pixels instanceof ImageData) &&
-          !((pixels as backend_util.PixelData).data instanceof Uint8Array)) {
+          !(pixels.data instanceof Uint8Array)) {
         throw new Error(
             'pixels passed to tf.browser.fromPixels() must be either an ' +
             `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData` +

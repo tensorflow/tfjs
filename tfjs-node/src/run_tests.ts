@@ -18,13 +18,13 @@
 // We import index.ts so that the Node backend gets registered.
 import './index';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {nodeBackend} from './nodejs_kernel_backend';
 
 Error.stackTraceLimit = Infinity;
 
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
 // tslint:disable-next-line:no-require-imports
-import {nodeBackend} from './ops/op_utils';
 
 process.on('unhandledRejection', e => {
   throw e;
@@ -55,8 +55,20 @@ const IGNORE_LIST: string[] = [
   // https://github.com/tensorflow/tfjs/issues/1077
   'maxPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
   'avgPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
+  // tslint:disable-next-line:max-line-length
+  'avgPool3d test-tensorflow {} x=[1,2,2,2,1] f=[2,2,2] s=1 p=1 roundingMode=floor',
+  // tslint:disable-next-line:max-line-length
+  'maxPool3d test-tensorflow {} x=[1,2,2,2,1] f=[2,2,2] s=1 p=1 roundingMode=floor',
   // libtensorflow doesn't support 6D ArgMax yet.
-  'Reduction: argmax test-tensorflow {} 6D, axis=0'
+  'Reduction: argmax test-tensorflow {} 6D, axis=0',
+  'diag test-tensorflow {} complex', 'diag test-tensorflow {} bool',
+  // See https://github.com/tensorflow/tfjs/issues/1891
+  'conv2d test-tensorflow {} x=[2,1,2,2] f=[1,1,1,1] s=1 d=1 p=0 NCHW',
+  'conv2d test-tensorflow {} x=[1,2,2] f=[2,2,1,1] s=1 d=1 p=same NCHW',
+  'conv2d test-tensorflow {} x=[2,2,2] f=[2,2,2,1] s=1 d=1 p=same NCHW',
+  'conv2d test-tensorflow {} x=[2,1,2,2] f=[2,2,1,1] s=1 d=1 p=same NCHW',
+  'conv2d test-tensorflow {} gradient x=[1,1,3,3] f=[2,2,1,1] s=1 p=0 NCHW',
+  'conv2d test-tensorflow {} gradient x=[2,1,3,3] f=[2,2,1,1] s=1 p=0 NCHW'
 ];
 
 if (process.platform === 'win32') {

@@ -216,7 +216,7 @@ function standardizeDataIteratorOutput(
           'objects of the form `{xs: xVal, ys: yVal}`, where the two ' +
           'values may be `tf.Tensor`, an array of Tensors, or a map of ' +
           'string to Tensor.  The provided Dataset instead generates ' +
-          iteratorOut);
+          `${iteratorOut}`);
 
   const flattenedXs: tfc.Tensor[] =
       flattenTensorOrArrayOrMap('input', model.inputNames, xs);
@@ -577,9 +577,8 @@ export async function evaluateDataset<T>(
         for (let i = 0; i < batchOuts.length; ++i) {
           const batchOut = batchOuts[i];
           const oldScalar = outs[i];
-          outs[i] = tfc.tidy(
-              () =>
-                  tfc.add(outs[i], tfc.mul(batchSize, batchOut)) as tfc.Scalar);
+          outs[i] =
+              tfc.tidy(() => tfc.add(outs[i], tfc.mul(batchSize, batchOut)));
           if (batch > 0) {
             tfc.dispose(oldScalar);
           }

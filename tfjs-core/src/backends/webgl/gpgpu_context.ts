@@ -63,12 +63,10 @@ export class GPGPUContext {
       this.colorBufferFloatExtension =
           this.gl.getExtension('WEBGL_color_buffer_float');
 
-      if (!ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED')) {
-        this.textureHalfFloatExtension = webgl_util.getExtensionOrThrow(
-            this.gl, this.debug, 'OES_texture_half_float');
-        this.colorBufferHalfFloatExtension =
-            this.gl.getExtension('EXT_color_buffer_half_float');
-      }
+      this.textureHalfFloatExtension = webgl_util.getExtensionOrThrow(
+          this.gl, this.debug, 'OES_texture_half_float');
+      this.colorBufferHalfFloatExtension =
+          this.gl.getExtension('EXT_color_buffer_half_float');
     } else {
       const COLOR_BUFFER_FLOAT = 'EXT_color_buffer_float';
       const COLOR_BUFFER_HALF_FLOAT = 'EXT_color_buffer_half_float';
@@ -460,8 +458,7 @@ export class GPGPUContext {
                                 // may poll for the query timer indefinitely
             this.isQueryAvailable(
                 query,
-                ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') as
-                    number));
+                ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION')));
     return this.getQueryTime(
         query, ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION'));
   }

@@ -18,10 +18,9 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import * as creation from '../op_list/creation';
-import {Node, OpMapper} from '../types';
+import {Node} from '../types';
 
 import {executeOp} from './creation_executor';
-// tslint:disable-next-line:max-line-length
 import {createDtypeAttr, createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
 
 describe('creation', () => {
@@ -62,7 +61,7 @@ describe('creation', () => {
         node.inputParams['value'] = createNumberAttrFromIndex(1);
         node.attrParams['dtype'] = createDtypeAttr('int32');
 
-        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
     describe('LinSpace', () => {
@@ -85,7 +84,7 @@ describe('creation', () => {
         node.inputParams['stop'] = createNumberAttrFromIndex(1);
         node.inputParams['num'] = createNumberAttrFromIndex(2);
 
-        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
     describe('OneHot', () => {
@@ -111,7 +110,7 @@ describe('creation', () => {
         node.inputParams['onValue'] = createNumberAttrFromIndex(2);
         node.inputParams['offValue'] = createNumberAttrFromIndex(3);
 
-        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
     describe('Ones', () => {
@@ -129,7 +128,7 @@ describe('creation', () => {
         node.inputParams['shape'] = createNumericArrayAttrFromIndex(0);
         node.attrParams['dtype'] = createDtypeAttr('float32');
 
-        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
     describe('OnesLike', () => {
@@ -145,7 +144,7 @@ describe('creation', () => {
         node.op = 'OnesLike';
         node.inputParams['x'] = createTensorAttr(0);
 
-        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
     describe('Range', () => {
@@ -170,7 +169,7 @@ describe('creation', () => {
         node.inputParams['step'] = createNumberAttrFromIndex(2);
         node.attrParams['dtype'] = createDtypeAttr('float32');
 
-        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
     describe('RandomUniform', () => {
@@ -198,7 +197,7 @@ describe('creation', () => {
         node.attrParams['dtype'] = createDtypeAttr('float32');
         node.attrParams['seed'] = createNumberAttr(0);
 
-        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
     describe('TruncatedNormal', () => {
@@ -226,7 +225,7 @@ describe('creation', () => {
         node.attrParams['dtype'] = createDtypeAttr('float32');
         node.attrParams['seed'] = createNumberAttr(0);
 
-        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
     describe('Zeros', () => {
@@ -243,7 +242,7 @@ describe('creation', () => {
         node.op = 'Zeros';
         node.inputParams['shape'] = createNumericArrayAttrFromIndex(0);
         node.attrParams['dtype'] = createDtypeAttr('float32');
-        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
     describe('ZerosLike', () => {
@@ -258,7 +257,26 @@ describe('creation', () => {
       it('should match json def', () => {
         node.op = 'ZerosLike';
         node.inputParams['x'] = createTensorAttr(0);
-        expect(validateParam(node, creation.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, creation.json)).toBeTruthy();
+      });
+    });
+    describe('Multinomial', () => {
+      it('should call tfc.multinomial', () => {
+        spyOn(tfc, 'multinomial');
+        node.op = 'Multinomial';
+        node.inputParams['logits'] = createTensorAttr(0);
+        node.inputParams['numSamples'] = createNumberAttrFromIndex(1);
+        node.attrParams['seed'] = createNumberAttr(2);
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.multinomial).toHaveBeenCalledWith(input1[0], 1, 2);
+      });
+      it('should match json def', () => {
+        node.op = 'Multinomial';
+        node.inputParams['logits'] = createTensorAttr(0);
+        node.inputParams['numSamples'] = createNumberAttrFromIndex(1);
+        node.attrParams['seed'] = createNumberAttr(2);
+        expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
   });

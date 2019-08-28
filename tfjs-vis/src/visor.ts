@@ -59,13 +59,13 @@ export function visor(): Visor {
   function renderVisor(
       domNode: HTMLElement,
       surfaceList: Map<string, SurfaceInfoStrict>): VisorComponent {
-    let visorInstance: VisorComponent;
+    let visorInstance: VisorComponent = null;
     renderRoot = VisorComponent.render(domNode, renderRoot, {
       ref: (r: VisorComponent) => visorInstance = r,
       surfaceList: Array.from(surfaceList.values()),
     });
     // Side effect of VisorComponent.render() is to assign visorInstance
-    return visorInstance!;
+    return visorInstance;
   }
 
   // TODO: consider changing this type. Possibly lift into top level state
@@ -153,7 +153,7 @@ export class Visor {
       this.surfaceList.set(key, finalOptions);
     }
 
-    this.renderVisor(this.el as HTMLElement, this.surfaceList);
+    this.renderVisor(this.el, this.surfaceList);
     return this.visorComponent.getSurface(name, tab);
   }
 

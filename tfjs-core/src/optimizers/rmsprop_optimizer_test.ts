@@ -28,11 +28,11 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
 
     const x = tf.tensor1d([1, 2]).variable();
 
-    const f = () => x.square().sum() as tf.Scalar;
+    const f = () => x.square().sum();
 
     let numTensors = tf.memory().numTensors;
 
-    let cost = optimizer.minimize(f, /* returnCost */ true);
+    let cost = optimizer.minimize(f as () => tf.Scalar, /* returnCost */ true);
 
     // Cost & 2 accumulators should be the only additional arrays.
     expect(tf.memory().numTensors).toBe(numTensors + 3);
@@ -56,7 +56,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     cost.dispose();
     numTensors = tf.memory().numTensors;
 
-    cost = optimizer.minimize(f, /* returnCost */ false);
+    cost = optimizer.minimize(f as () => tf.Scalar, /* returnCost */ false);
 
     // x = [0.55279, 1.55279]
     // de/dx = [1.10558, 3.10558]
@@ -89,11 +89,11 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
 
     const x = tf.tensor1d([1, 2]).variable();
 
-    const f = () => x.square().sum() as tf.Scalar;
+    const f = () => x.square().sum();
 
     let numTensors = tf.memory().numTensors;
 
-    let cost = optimizer.minimize(f, /* returnCost */ true);
+    let cost = optimizer.minimize(f as () => tf.Scalar, /* returnCost */ true);
 
     // Cost & 3 accumulators should be the only additional arrays.
     expect(tf.memory().numTensors).toBe(numTensors + 4);
@@ -122,7 +122,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     cost.dispose();
     numTensors = tf.memory().numTensors;
 
-    cost = optimizer.minimize(f, /* returnCost */ false);
+    cost = optimizer.minimize(f as () => tf.Scalar, /* returnCost */ false);
 
     // x = [0.54117, 1.541169]
     // de/dx = [1.08234, 3.082338]
@@ -155,7 +155,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     const optimizer1 = tf.train.rmsprop(learningRate, rho, moment);
 
     const x = tf.tensor1d([1, 2]).variable();
-    const f = () => x.square().sum() as tf.Scalar;
+    const f: () => tf.Scalar = () => x.square().sum();
 
     let cost = optimizer1.minimize(f, /* returnCost */ true);
     expectArraysClose(await cost.data(), 5);
@@ -184,9 +184,9 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
         tf.train.rmsprop(learningRate, rho, moment, epsilon, centered);
 
     const x = tf.tensor1d([1, 2]).variable();
-    const f = () => x.square().sum() as tf.Scalar;
+    const f = () => x.square().sum();
 
-    let cost = optimizer1.minimize(f, /* returnCost */ true);
+    let cost = optimizer1.minimize(f as () => tf.Scalar, /* returnCost */ true);
     expectArraysClose(await cost.data(), 5);
     expectArraysClose(await x.data(), [0.5411684, 1.5411685]);
 
@@ -198,7 +198,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
         tf.train.rmsprop(learningRate, rho, moment, epsilon, centered);
     await optimizer2.setWeights(weights);
 
-    cost = optimizer2.minimize(f, /* returnCost */ true);
+    cost = optimizer2.minimize(f as () => tf.Scalar, /* returnCost */ true);
     expectArraysClose(await cost.data(), 2.668063);
     expectArraysClose(await x.data(), [0.2677834, 1.2035918]);
     expect(optimizer2.iterations).toEqual(2);
@@ -206,7 +206,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     const optimizer3 =
         tf.train.rmsprop(learningRate, rho, moment, epsilon, centered);
     await optimizer3.setWeights(await optimizer2.getWeights());
-    cost = optimizer3.minimize(f, /* returnCost */ true);
+    cost = optimizer3.minimize(f as () => tf.Scalar, /* returnCost */ true);
     expectArraysClose(await cost.data(), 1.520341);
     expect(optimizer3.iterations).toEqual(3);
   });

@@ -71,7 +71,7 @@ export abstract class Optimizer extends Serializable {
     dispose(grads);
 
     if (returnCost) {
-      return value as Scalar;
+      return value;
     } else {
       value.dispose();
       return null;

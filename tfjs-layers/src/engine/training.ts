@@ -43,7 +43,6 @@ import {evaluateDataset, fitDataset, ModelEvaluateDatasetArgs, ModelFitDatasetAr
 import {checkBatchSize, disposeNewTensors, ensureTensorsRank2OrHigher, fitTensors, makeBatches, ModelFitArgs, sliceArrays, sliceArraysByIndices} from './training_tensors';
 import {ClassWeight, ClassWeightMap, computeWeightedLoss, standardizeClassWeights, standardizeWeights} from './training_utils';
 
-
 /**
  * Helper function for polymorphic input data: 1. singleton Tensor.
  */
@@ -374,7 +373,7 @@ export function collectMetrics(
   } else {
     throw new TypeError(
         'Type of metrics argument not understood. Expected an string,' +
-        'function, Array, or Object, found: ' + metrics);
+        `function, Array, or Object, found: ${metrics}`);
   }
 
   if (Array.isArray(wrappedMetrics)) {
@@ -388,9 +387,9 @@ export function collectMetrics(
       let outputMetrics: string|LossOrMetricFn|Array<string|LossOrMetricFn> =
           wrappedMetrics.hasOwnProperty(name) ? wrappedMetrics[name] : [];
       if (!Array.isArray(outputMetrics)) {
-        outputMetrics = [outputMetrics as string | LossOrMetricFn];
+        outputMetrics = [outputMetrics];
       }
-      nestedMetrics.push(outputMetrics as Array<string|LossOrMetricFn>);
+      nestedMetrics.push(outputMetrics);
     }
     return nestedMetrics;
   }
@@ -937,28 +936,28 @@ export class LayersModel extends Container implements tfc.InferenceModel {
     }
 
     const outputsIsArray = Array.isArray(outputs);
-    const outputNames = (outputsIsArray ? outputs as string[] :
-                                          [outputs as string]) as string[];
+    const outputNames =
+        (outputsIsArray ? outputs as string[] : [outputs as string]);
     const outputSymbolicTensors = this.retrieveSymbolicTensors(outputNames);
 
     // Format the input into a FeedDict.
     const feedDict = new FeedDict();
     if (inputs instanceof Tensor) {
-      inputs = [inputs as Tensor];
+      inputs = [inputs];
     }
     if (Array.isArray(inputs)) {
-      if ((inputs as Tensor[]).length !== this.inputs.length) {
+      if (inputs.length !== this.inputs.length) {
         throw new ValueError(
-            `The number of inputs provided (${(inputs as Tensor[]).length}) ` +
+            `The number of inputs provided (${inputs.length}) ` +
             `does not match the number of inputs of this model ` +
             `(${this.inputs.length}).`);
       }
       for (let i = 0; i < this.inputs.length; ++i) {
-        feedDict.add(this.inputs[i], (inputs as Tensor[])[i]);
+        feedDict.add(this.inputs[i], inputs[i]);
       }
     } else {
       for (const input of this.inputs) {
-        const tensorValue = (inputs as NamedTensorMap)[input.name];
+        const tensorValue = inputs[input.name];
         if (tensorValue == null) {
           throw new ValueError(
               `No value is provided for the model's input ${input.name}`);
@@ -981,9 +980,8 @@ export class LayersModel extends Container implements tfc.InferenceModel {
         pyListRepeat(null, symbolicTensorNames.length);
     let outputsRemaining = symbolicTensorNames.length;
     for (const layer of this.layers) {
-      const layerOutputs: SymbolicTensor[] = Array.isArray(layer.output) ?
-          layer.output as SymbolicTensor[] :
-          [layer.output as SymbolicTensor];
+      const layerOutputs: SymbolicTensor[] =
+          Array.isArray(layer.output) ? layer.output : [layer.output];
       const layerOutputNames = layerOutputs.map(output => output.name);
       for (let i = 0; i < symbolicTensorNames.length; ++i) {
         const index = layerOutputNames.indexOf(symbolicTensorNames[i]);
@@ -1162,10 +1160,9 @@ export class LayersModel extends Container implements tfc.InferenceModel {
       }
     }
     x = standardizeInputData(
-            x, this.feedInputNames, this.feedInputShapes, false, 'input') as
-        Tensor[];
+        x, this.feedInputNames, this.feedInputShapes, false, 'input');
     y = standardizeInputData(
-            y, this.feedOutputNames, outputShapes, false, 'target') as Tensor[];
+        y, this.feedOutputNames, outputShapes, false, 'target');
     // TODO(cais): Standardize sampleWeights & classWeights.
     checkArrayLengths(x, y, null);
     // TODO(cais): Check sampleWeights as well.
@@ -1255,12 +1252,11 @@ export class LayersModel extends Container implements tfc.InferenceModel {
           for (let i = 0; i < batchOuts.length; ++i) {
             const batchOut = batchOuts[i];
             outs[i] =
-                tfc.add(outs[i], tfc.mul(batchEnd - batchStart, batchOut)) as
-                Scalar;
+                tfc.add(outs[i], tfc.mul(batchEnd - batchStart, batchOut));
           }
         }
         for (let i = 0; i < outs.length; ++i) {
-          outs[i] = tfc.div(outs[i], numSamples) as Scalar;
+          outs[i] = tfc.div(outs[i], numSamples);
         }
       }
       return outs;
@@ -1330,7 +1326,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
           }
 
           // TODO(cais): push Scalar instead.
-          const meanLoss = tfc.mean(loss) as Scalar;
+          const meanLoss: Scalar = tfc.mean(loss);
           // TODO(cais): Use a scope() instead, to avoid ownership.
           lossValues.push(meanLoss);
           if (i === 0) {
@@ -1352,8 +1348,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
             const metric = this.metricsTensors[i][0];
             const outputIndex = this.metricsTensors[i][1];
             weightedMetric =
-                tfc.mean(metric(targets[outputIndex], outputs[outputIndex])) as
-                Scalar;
+                tfc.mean(metric(targets[outputIndex], outputs[outputIndex]));
           }
 
           tfc.keep(weightedMetric);
@@ -1405,11 +1400,11 @@ export class LayersModel extends Container implements tfc.InferenceModel {
           const lossFunction = this.lossFunctions[i];
           // TODO(cais): Add sample weighting and replace the simple
           // averaging.
-          const loss = tfc.mean(lossFunction(targets[i], outputs[i])) as Scalar;
+          const loss: Scalar = tfc.mean(lossFunction(targets[i], outputs[i]));
           if (i === 0) {
             totalLoss = loss;
           } else {
-            totalLoss = tfc.add(totalLoss, loss) as Scalar;
+            totalLoss = tfc.add(totalLoss, loss);
           }
           valOutputs.push(totalLoss);
         }
@@ -1672,8 +1667,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
       const metricsIdentifiers: {[key: string]: MetricsIdentifier} = {};
       for (const key in this.metrics) {
         metricsIdentifiers[key] =
-            toSnakeCase(Metrics.getLossOrMetricName(this.metrics[key])) as
-            MetricsIdentifier;
+            toSnakeCase(Metrics.getLossOrMetricName(this.metrics[key]));
       }
       return metricsIdentifiers;
     }
@@ -1726,8 +1720,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
     } else if (trainingConfig.metrics != null) {
       metrics = {} as {[outputName: string]: MetricsIdentifier};
       for (const key in trainingConfig.metrics) {
-        metrics[key] =
-            toCamelCase(trainingConfig.metrics[key]) as MetricsIdentifier;
+        metrics[key] = toCamelCase(trainingConfig.metrics[key]);
       }
     }
 

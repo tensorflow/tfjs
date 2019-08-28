@@ -47,6 +47,13 @@ steps:
   args: ['./scripts/run-build.sh', 'tfjs']
   waitFor: ['diff']
 
+# Vis.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-vis'
+  args: ['./scripts/run-build.sh', 'tfjs-vis']
+  waitFor: ['diff']
+
 # WebGPU.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
