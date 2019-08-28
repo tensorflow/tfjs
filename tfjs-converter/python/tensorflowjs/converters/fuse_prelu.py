@@ -69,7 +69,6 @@ def fuse_ops_for_prelu(input_graph_def):
       raise ValueError("Duplicate node names detected for ", node.name)
 
   nodes_to_skip = {}
-  new_ops = []
   for node in input_graph_def.node:
     if (node.op not in ("Add", "AddV2") or len(node.input) != 2):
       continue
@@ -83,10 +82,10 @@ def fuse_ops_for_prelu(input_graph_def):
     if (not mul_op or mul_op.op != 'Mul' or len(mul_op.input) != 2):
       continue
 
-    neg_alpha_tensor_name = mul_op.input[0]
     neg_alpha_op = common.node_from_map(input_node_map, mul_op.input[0])
     if (not neg_alpha_op or len(neg_alpha_op.input) != 1):
       continue
+    alpha_tensor_name = neg_alpha_op.input[0]
 
     relu_neg_input_op = common.node_from_map(input_node_map, mul_op.input[1])
     if (not relu_neg_input_op or len(relu_neg_input_op.input) != 1 or
@@ -104,17 +103,9 @@ def fuse_ops_for_prelu(input_graph_def):
     if relu_input_op.input[0] != final_input_op.input[0]:
       continue
 
-    # Construct a tensor for positive alpha (double negative).
-    alpha_tensor_name = neg_alpha_tensor_name + "_neg"
-
-    neg_neg_alpha_op = node_def_pb2.NodeDef()
-    neg_neg_alpha_op.op = "Neg"
-    neg_neg_alpha_op.input[:] = [neg_alpha_tensor_name]
-    neg_neg_alpha_op.attr["dtype"].CopyFrom(neg_alpha_op.attr["dtype"])
-    new_ops.append(neg_neg_alpha_op)
-
     relu_input_op.op = 'Prelu'
     relu_input_op.input.extend([alpha_tensor_name])
+    relu_input_op.ClearField('attr')
 
     node.op = 'Identity'
     del node.input[:]
@@ -132,7 +123,6 @@ def fuse_ops_for_prelu(input_graph_def):
     new_node.CopyFrom(node)
     result_graph_def.node.extend([new_node])
 
-  result_graph_def.node.extend(new_ops)
   return result_graph_def
 
 register_prelu_op()

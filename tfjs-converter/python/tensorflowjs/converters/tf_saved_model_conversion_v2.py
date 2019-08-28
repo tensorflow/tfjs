@@ -26,6 +26,7 @@ import tensorflow as tf
 from tensorflow.core.protobuf import device_properties_pb2
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.python.framework import convert_to_constants
+from tensorflow.python.framework import function
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.saved_model.load import load
@@ -36,6 +37,7 @@ import tensorflow_hub as hub
 from tensorflowjs import write_weights
 from tensorflowjs.converters import common
 from tensorflowjs.converters import fold_batch_norms
+from tensorflowjs.converters import fuse_prelu
 
 # enable eager execution for v2 APIs
 tf.compat.v1.enable_eager_execution()
@@ -118,6 +120,14 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
   """
+  temp_graph = tf.Graph()
+  # Create a function for Prelu op
+  @function.Defun(tf.float32, tf.float32, func_name='Prelu')
+  def prelu_fn(*args):
+    return tf.constant([1.0])
+  # Insert the function into graph
+  with graph.as_default():
+    prelu_fn(tf.constant(1.0), tf.constant(1.0))
 
   # Add a collection 'train_op' so that Grappler knows the outputs.
   for output in output_node_names:
@@ -198,6 +208,15 @@ def extract_weights(graph_def,
   const_manifest = []
 
   graph = tf.Graph()
+  # Create a function for Prelu op
+  @function.Defun(tf.float32, tf.float32, func_name='Prelu')
+  def prelu_fn(*args):
+    return tf.constant([1.0])
+  # Insert the function into graph
+  with graph.as_default():
+    prelu_fn(tf.constant(1.0), tf.constant(1.0))
+
+
   with tf.compat.v1.Session(graph=graph) as sess:
     tf.import_graph_def(graph_def, name='')
     for const in constants:
