@@ -9,6 +9,9 @@
 
 set -e
 
+cat cloudbuild.yml
+cat scripts/install.js
+
 yarn build-addon-from-source
 yarn build
 yarn lint
