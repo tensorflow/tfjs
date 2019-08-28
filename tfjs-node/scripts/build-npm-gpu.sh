@@ -18,11 +18,9 @@ set -e
 
 # The binding builds with a symlink by default, for NPM packages change the
 # download option to move libtensorflow next to the prebuilt binary.
-sed -i -e 's/symlink/move/' binding.gyp
+sed -i -e 's/symlink/move/' ../tfjs-node-gpu/binding.gyp
 
 # Build GPU:
-sed -i -e 's/tfjs-node"/tfjs-node-gpu"/' package.json
-sed -i -e 's/install.js"/install.js gpu download"/' package.json
 rimraf deps/
 rimraf dist/
 rimraf lib/
@@ -33,6 +31,4 @@ tsc --sourceMap false
 npm pack
 
 # Revert GPU changes:
-sed -i -e 's/move/symlink/' binding.gyp
-sed -i -e 's/tfjs-node-gpu"/tfjs-node"/' package.json
-sed -i -e 's/install.js gpu download"/install.js"/' package.json
+sed -i -e 's/move/symlink/' ../tfjs-node-gpu/binding.gyp

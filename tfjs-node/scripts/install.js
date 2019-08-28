@@ -85,7 +85,7 @@ async function revertAddonName() {
   const stringFile = JSON.stringify(packageJsonFile, null, 2);
   fs.writeFile((`${__dirname}/../package.json`), stringFile, err => {
     if (err) {
-      console.log('Faile to update addon name in package.json: ' + err);
+      console.log('Failed to update addon name in package.json: ' + err);
     }
   });
 }

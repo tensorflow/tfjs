@@ -28,5 +28,3 @@ rimraf lib/
 yarn build-addon "$1"
 yarn prep
 tsc --sourceMap false
-# This produces a tarball that will later be used by `npm publish`.
-npm pack
