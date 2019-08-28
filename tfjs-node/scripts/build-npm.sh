@@ -25,6 +25,6 @@ rimraf dist/
 rimraf deps/
 rimraf lib/
 # Build and upload pre-built addon
-yarn build-addon "$1"
+yarn build-addon cpu "$1"
 yarn prep
 tsc --sourceMap false

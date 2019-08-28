@@ -79,7 +79,7 @@ Publishing this package requires uploading objects to GCP bucket. Developers nee
 #### Build and upload node addon to Google Cloud Platform
 
 ```sh
-$ yarn build-addon upload
+$ yarn build-addon cpu for-publish
 ```
 
 This command will compile, compress, and upload a new node addon to GCP bucket. Please read [build-and-upload-addon.sh](./scripts/build-and-upload-addon.sh) for details.

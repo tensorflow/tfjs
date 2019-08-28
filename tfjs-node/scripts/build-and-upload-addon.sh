@@ -22,13 +22,13 @@
 set -e
 
 # get package name based on os and processor
-PACKAGE_NAME=$(node scripts/get-addon-name.js)
+PACKAGE_NAME=$(node scripts/get-addon-name.js $1)
 # get NAPI version
 NAPI_VERSION=`node -p "process.versions.napi"`
 # remove the pre-built addon tarball if it already exist
 rm -f $PACKAGE_NAME
 yarn install-from-source
-if [ "$1" = "for-publish" ]; then
+if [ "$2" = "for-publish" ]; then
   # build a new pre-built addon tarball
   tar -czvf $PACKAGE_NAME -C lib napi-v$NAPI_VERSION/tfjs_binding.node
   # upload pre-built addon tarball to gcloud

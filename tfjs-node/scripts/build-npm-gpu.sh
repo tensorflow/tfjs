@@ -24,7 +24,7 @@ sed -i -e 's/symlink/move/' ../tfjs-node-gpu/binding.gyp
 rimraf deps/
 rimraf dist/
 rimraf lib/
-yarn build-addon "$1"
+yarn build-addon gpu "$1"
 yarn prep
 tsc --sourceMap false
 # This produces a tarball that will later be used by `npm publish`.

@@ -22,9 +22,9 @@ const util = require('util');
 const cp = require('child_process');
 const os = require('os');
 
-const {getConstants} = require('./deps-constants.js');
+const {getConstants} = require('./deps-constants');
 const resources = require('./resources');
-const {addonName} = require('./get-addon-name.js');
+const {getAddonName} = require('./get-addon-name-util');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -48,6 +48,9 @@ const {
   modulePath,
   LIBTENSORFLOW_VERSION
 } = getConstants(libType);
+const addonName = getAddonName(libType);
+const libName = 'tfjs-node' + (libType === 'gpu' ? '-gpu' : '');
+const packageDir = `${__dirname}/../../${libName}`;
 
 const BASE_URI =
     'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
@@ -67,13 +70,13 @@ let packageJsonFile;
 
 async function setPackageJsonFile() {
   packageJsonFile =
-      JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
+      JSON.parse(fs.readFileSync(`${packageDir}/package.json`).toString());
 }
 
 async function updateAddonName() {
   packageJsonFile['binary']['package_name'] = addonName;
   const stringFile = JSON.stringify(packageJsonFile, null, 2);
-  fs.writeFile((`${__dirname}/../package.json`), stringFile, err => {
+  fs.writeFile((`${packageDir}/package.json`), stringFile, err => {
     if (err) {
       console.log('Failed to update addon name in package.json: ' + err);
     }
@@ -83,7 +86,7 @@ async function updateAddonName() {
 async function revertAddonName() {
   delete packageJsonFile['binary']['package_name'];
   const stringFile = JSON.stringify(packageJsonFile, null, 2);
-  fs.writeFile((`${__dirname}/../package.json`), stringFile, err => {
+  fs.writeFile((`${packageDir}/package.json`), stringFile, err => {
     if (err) {
       console.log('Failed to update addon name in package.json: ' + err);
     }
