@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import React, { Fragment } from 'react';
-import { StyleSheet, View, Image, Text, TouchableHighlight, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { ActivityIndicator, StyleSheet, View, Image, Text, TouchableHighlight } from 'react-native';
 import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import {StyleTranfer} from './style_transfer';
@@ -35,6 +35,7 @@ interface ScreenState {
   hasCameraPermission?: boolean;
   // tslint:disable-next-line: no-any
   cameraType: any;
+  isLoading: boolean;
 }
 
 export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
@@ -46,6 +47,7 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     this.state = {
       mode: 'results',
       cameraType: Camera.Constants.Type.front,
+      isLoading: true,
     };
     this.styler = new StyleTranfer();
   }
@@ -53,7 +55,10 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
   async componentDidMount() {
     await this.styler.init();
     const { status } = await Permissions.askAsync(Permissions.CAMERA);
-    this.setState({ hasCameraPermission: status === 'granted' });
+    this.setState({
+      hasCameraPermission: status === 'granted',
+      isLoading: false
+    });
   }
 
   showResults() {
@@ -119,12 +124,12 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     }
   }
 
-  async stylize(contentImage: string, styleImage: string, strength?: number):
+  async stylize(contentImage: string, styleImage: string):
     Promise<string> {
     const contentTensor = await base64ImageToTensor(contentImage);
     const styleTensor = await base64ImageToTensor(styleImage);
     const stylizedResult = this.styler.stylize(
-      styleTensor, contentTensor, strength);
+      styleTensor, contentTensor);
     const stylizedImage = await tensorToImageUrl(stylizedResult);
     tf.dispose([contentTensor, styleTensor, stylizedResult]);
     return stylizedImage;
@@ -133,36 +138,48 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
   async handleCameraCapture() {
     const {mode} = this.state;
     let {styleImage, contentImage, resultImage} = this.state;
+    this.setState({
+      isLoading: true,
+    });
     let image = await this.camera!.takePictureAsync({
       skipProcessing: true,
     });
     image = await resizeImage(image.uri, 240);
 
-    if(mode === 'newStyleImage') {
-      styleImage = image.base64!;
-      this.setState({
-        styleImage,
-        mode: 'results',
-      });
-
-      resultImage = contentImage == null ? resultImage :
-        await this.stylize(contentImage, image.base64!, 0.2),
-      this.setState({
-        resultImage,
-      });
-    } else if (mode === 'newContentImage') {
-      contentImage = image.base64!;
-      this.setState({
-        contentImage,
-        mode: 'results',
-      });
-
-      resultImage = styleImage == null ? resultImage :
-        await this.stylize(image.base64!, styleImage, 0.2);
-
-      this.setState({
-        resultImage,
-      });
+    if(mode === 'newStyleImage' && image.base64 != null) {
+      styleImage = image.base64;
+      if(contentImage == null) {
+        this.setState({
+          styleImage,
+          mode: 'results',
+          isLoading: false,
+        });
+      } else {
+        resultImage = await this.stylize(contentImage, styleImage),
+        this.setState({
+          styleImage,
+          resultImage,
+          mode: 'results',
+          isLoading: false,
+        });
+      }
+    } else if (mode === 'newContentImage' && image.base64 != null) {
+      contentImage = image.base64;
+      if(styleImage == null) {
+        this.setState({
+          contentImage,
+          mode: 'results',
+          isLoading: false,
+        });
+      } else {
+        resultImage = await this.stylize(contentImage, styleImage);
+        this.setState({
+          contentImage,
+          resultImage,
+          mode: 'results',
+          isLoading: false,
+        });
+      }
     }
   }
 
@@ -174,37 +191,39 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     } else if (hasCameraPermission === false) {
       return <Text>No access to camera</Text>;
     }
-
     return (
-      <View  style={{backgroundColor: '#ee2'}}>
+      <View  style={styles.cameraContainer}>
         <Camera
           style={styles.camera}
           type={this.state.cameraType}
           ref={ref => { this.camera = ref; }}>
-          <View style={styles.cameraControls}>
-            <TouchableOpacity
-              style={styles.flipCameraBtn}
-              onPress={() => {this.flipCamera();}}>
-              <Text style={{fontSize: 18, color: 'white'}}>
-                  Flip
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.takeImageBtn}
-              onPress={() => { this.handleCameraCapture(); }}>
-              <Text style={{fontSize: 18, color: 'white'}}>
-                  Take
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={() => {this.showResults(); }}>
-              <Text style={{fontSize: 18,  color: 'white'}}>
-                  Cancel
-              </Text>
-            </TouchableOpacity>
-          </View>
         </Camera>
+        <View style={styles.cameraControls}>
+            <TouchableHighlight
+              style={styles.flipCameraBtn}
+              onPress={() => {this.flipCamera();}}
+              underlayColor='#FFDE03'>
+              <Text style={{fontSize: 16, color: 'white'}}>
+                FLIP
+              </Text>
+            </TouchableHighlight>
+            <TouchableHighlight
+              style={styles.takeImageBtn}
+              onPress={() => { this.handleCameraCapture(); }}
+              underlayColor='#FFDE03'>
+              <Text style={{fontSize: 16, color: 'white', fontWeight: 'bold'}}>
+                TAKE
+              </Text>
+            </TouchableHighlight>
+            <TouchableHighlight
+              style={styles.cancelBtn}
+              onPress={() => {this.showResults(); }}
+              underlayColor='#FFDE03'>
+              <Text style={{fontSize: 16, color: 'white'}}>
+                BACK
+              </Text>
+            </TouchableHighlight>
+          </View>
         </View>
     );
   }
@@ -245,12 +264,15 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
   }
 
   render() {
-    const {mode} = this.state;
+    const {mode, isLoading} = this.state;
     return (
-      <Fragment>
+      <View style={{width:'100%'}}>
+        {isLoading ? <View style={[styles.loadingIndicator]}>
+          <ActivityIndicator size='large' color='#FF0266' />
+        </View> : null}
         {mode === 'results' ?
               this.renderResults() : this.renderCameraCapture()}
-      </Fragment>
+      </View>
     );
   }
 }
@@ -270,37 +292,54 @@ const styles = StyleSheet.create({
     color: 'black',
     marginBottom: 6
   },
-  camera : {
+  loadingIndicator: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    // flexDirection: 'row',
+    // justifyContent: 'flex-end',
+    zIndex: 200,
+    // width: '100%'
+  },
+  cameraContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     width: '100%',
     height: '100%',
-    padding:0,
-    margin:0,
-    backgroundColor: 'transparent',
+    backgroundColor: '#fff',
+  },
+  camera : {
+    display: 'flex',
+    width: '92%',
+    height: '64%',
+    backgroundColor: '#f0F',
     zIndex: 1,
+    borderWidth: 20,
+    borderRadius: 40,
+    borderColor: '#f0f',
   },
   cameraControls: {
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    position:'absolute',
-    bottom: 50,
+    width: '92%',
+    justifyContent: 'space-between',
+    marginTop: 40,
     zIndex: 100,
     backgroundColor: 'transparent',
-    width: '100%',
-    height: 75,
   },
   flipCameraBtn: {
-    backgroundColor: '#884040',
+    backgroundColor: '#424242',
     width: 75,
     height: 75,
-    borderRadius:50,
+    borderRadius:16,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
   takeImageBtn: {
-    backgroundColor: '#884040',
+    backgroundColor: '#FF0266',
     width: 75,
     height: 75,
     borderRadius:50,
@@ -310,10 +349,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelBtn: {
-    backgroundColor: '#884040',
+    backgroundColor: '#424242',
     width: 75,
     height: 75,
-    borderRadius:50,
+    borderRadius:4,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
@@ -322,14 +361,14 @@ const styles = StyleSheet.create({
   resultImageContainer : {
     width: '100%',
     height: '100%',
-    padding:0,
+    padding:5,
     margin:0,
     backgroundColor: '#fff',
     zIndex: 1,
   },
   resultImage: {
-    width: '100%',
-    height: '100%',
+    width: '98%',
+    height: '98%',
   },
   styleImageContainer: {
     position:'absolute',
