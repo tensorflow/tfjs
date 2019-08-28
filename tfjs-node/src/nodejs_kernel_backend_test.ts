@@ -17,9 +17,9 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
-// tslint:disable-next-line:max-line-length
 import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
-import {NodeJSKernelBackend} from './nodejs_kernel_backend';
+
+import {createTensorsTypeOpAttr, createTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 describe('delayed upload', () => {
   it('should handle data before op execution', async () => {
@@ -48,8 +48,8 @@ describe('type casting', () => {
 
 describe('conv3d dilations', () => {
   it('CPU should throw error on dilations >1', () => {
-    const input = tf.ones([1, 2, 2, 2, 1]) as Tensor5D;
-    const filter = tf.ones([1, 1, 1, 1, 1]) as Tensor5D;
+    const input: Tensor5D = tf.ones([1, 2, 2, 2, 1]);
+    const filter: Tensor5D = tf.ones([1, 1, 1, 1, 1]);
     expect(() => {
       tf.conv3d(input, filter, 1, 'same', 'NDHWC', [2, 2, 2]);
     }).toThrowError();
@@ -58,9 +58,90 @@ describe('conv3d dilations', () => {
     // This test can only run locally with CUDA bindings and GPU package
     // installed.
     if ((tf.backend() as NodeJSKernelBackend).isGPUPackage) {
-      const input = tf.ones([1, 2, 2, 2, 1]) as Tensor5D;
-      const filter = tf.ones([1, 1, 1, 1, 1]) as Tensor5D;
+      const input: Tensor5D = tf.ones([1, 2, 2, 2, 1]);
+      const filter: Tensor5D = tf.ones([1, 1, 1, 1, 1]);
       tf.conv3d(input, filter, 1, 'same', 'NDHWC', [2, 2, 2]);
     }
+  });
+});
+
+describe('Exposes Backend for internal Op execution.', () => {
+  it('Provides the Node backend over a function', () => {
+    const backend = nodeBackend();
+    expect(backend instanceof NodeJSKernelBackend).toBeTruthy();
+  });
+
+  it('Provides internal access to the binding', () => {
+    expect(nodeBackend().binding).toBeDefined();
+  });
+
+  it('throw error if backend is not tensorflow', async done => {
+    try {
+      tf.setBackend('cpu');
+      ensureTensorflowBackend();
+      done.fail();
+    } catch (err) {
+      expect(err.message)
+          .toBe('Expect the current backend to be "tensorflow", but got "cpu"');
+      tf.setBackend('tensorflow');
+      done();
+    }
+  });
+});
+
+describe('getTFDType()', () => {
+  const binding = nodeBackend().binding;
+
+  it('handles float32', () => {
+    expect(getTFDType('float32')).toBe(binding.TF_FLOAT);
+  });
+  it('handles int32', () => {
+    expect(getTFDType('int32')).toBe(binding.TF_INT32);
+  });
+  it('handles bool', () => {
+    expect(getTFDType('bool')).toBe(binding.TF_BOOL);
+  });
+  it('handles unknown types', () => {
+    expect(() => getTFDType(null)).toThrowError();
+  });
+});
+
+describe('createTypeOpAttr()', () => {
+  const binding = nodeBackend().binding;
+
+  it('Creates a valid type attribute', () => {
+    const attr = createTypeOpAttr('foo', 'float32');
+    expect(attr.name).toBe('foo');
+    expect(attr.type).toBe(binding.TF_ATTR_TYPE);
+    expect(attr.value).toBe(binding.TF_FLOAT);
+  });
+
+  it('handles unknown dtypes', () => {
+    expect(() => createTypeOpAttr('foo', null)).toThrowError();
+  });
+});
+
+describe('Returns TFEOpAttr for a Tensor or list of Tensors', () => {
+  const binding = nodeBackend().binding;
+
+  it('handles a single Tensor', () => {
+    const result = createTensorsTypeOpAttr('T', tf.scalar(13, 'float32'));
+    expect(result.name).toBe('T');
+    expect(result.type).toBe(binding.TF_ATTR_TYPE);
+    expect(result.value).toBe(binding.TF_FLOAT);
+  });
+  it('handles a list of Tensors', () => {
+    const tensors = [tf.scalar(1, 'int32'), tf.scalar(20.1, 'float32')];
+    const result = createTensorsTypeOpAttr('T', tensors);
+    expect(result.name).toBe('T');
+    expect(result.type).toBe(binding.TF_ATTR_TYPE);
+    expect(result.value).toBe(binding.TF_INT32);
+  });
+  it('handles null', () => {
+    expect(() => createTensorsTypeOpAttr('T', null)).toThrowError();
+  });
+  it('handles list of null', () => {
+    const inputs = [null, null] as tf.Tensor[];
+    expect(() => createTensorsTypeOpAttr('T', inputs)).toThrowError();
   });
 });
