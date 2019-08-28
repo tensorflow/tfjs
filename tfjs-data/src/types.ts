@@ -17,8 +17,6 @@
  */
 
 import {DataType, TensorContainer} from '@tensorflow/tfjs-core';
-import {Dataset} from './dataset';
-import {LazyIterator} from './iterators/lazy_iterator';
 
 /**
  * @deprecated Use `TensorContainer` from `@tensorflow/tfjs-core` instead.
@@ -36,16 +34,6 @@ export interface ContainerObject<T> {
   [x: string]: ContainerOrT<T>;
 }
 export interface ContainerArray<T> extends Array<ContainerOrT<T>> {}
-
-/**
- * A nested structure of Datasets, used as the input to zip().
- */
-export type DatasetContainer = Container<Dataset<DataElement>>;
-
-/**
- * A nested structure of LazyIterators, used as the input to zip().
- */
-export type IteratorContainer = Container<LazyIterator<DataElement>>;
 
 /**
  * Types supported by FileChunkIterator in both Browser and Node Environment.

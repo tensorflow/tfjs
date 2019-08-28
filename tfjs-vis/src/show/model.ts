@@ -215,8 +215,8 @@ function addHistogramSelector(
   parent.innerHTML = content;
 
   // Add listeners
-  const buttonEl = parent.querySelector('button')!;
-  const selectEl = parent.querySelector('select')!;
+  const buttonEl = parent.querySelector('button');
+  const selectEl = parent.querySelector('select');
 
   buttonEl.addEventListener('click', () => {
     selectionHandler(selectEl.selectedOptions[0].label);

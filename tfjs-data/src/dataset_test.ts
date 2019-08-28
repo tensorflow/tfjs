@@ -18,10 +18,9 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import {TensorContainerObject} from '@tensorflow/tfjs-core';
-import {array} from './dataset';
+import {array, DatasetContainer} from './dataset';
 import * as tfd from './index';
 import {iteratorFromItems, LazyIterator} from './iterators/lazy_iterator';
-import {DatasetContainer} from './types';
 import {describeAllEnvs} from './util/test_utils';
 
 class TestObjectIterator extends LazyIterator<{}> {

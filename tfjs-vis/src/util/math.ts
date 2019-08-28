@@ -108,7 +108,7 @@ export async function tensorStats(input: Tensor): Promise<HistogramStats> {
     return [min, max, numZeros];
   });
 
-  return await Promise
+  return Promise
       .all([input.data(), min.data(), max.data(), numZeros.data()])
       .then(([tensorVal, minVal, maxVal, numZerosVal]) => {
         // We currently need to count NaNs on CPU.
@@ -195,7 +195,7 @@ export async function confusionMatrix(
           const max =
               maximum(labelsInt.max(), predictionsInt.max()).cast('int32');
           return max.dataSync()[0] + 1;
-        }) as number;
+        });
   }
 
   let weightsPromise: Promise<null|TypedArray> = Promise.resolve(null);
@@ -207,7 +207,7 @@ export async function confusionMatrix(
       .then(([labelsArray, predsArray, weightsArray]) => {
         const result: number[][] = Array(numClasses).fill(0);
         // Initialize the matrix
-        for (let i = 0; i < numClasses!; i++) {
+        for (let i = 0; i < numClasses; i++) {
           result[i] = Array(numClasses).fill(0);
         }
 

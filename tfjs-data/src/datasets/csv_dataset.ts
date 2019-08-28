@@ -239,7 +239,7 @@ export class CSVDataset extends Dataset<TensorContainer> {
               parsedValue = this.getBoolean(value);
             } else {
               // Set value as string
-              parsedValue = value as string;
+              parsedValue = value;
             }
           } else if (!config || !config.dtype) {
             // If this value is a number and no type config is provided, return
