@@ -144,8 +144,7 @@ export class TextureManager {
 
 function getPhysicalTextureForRendering(isPacked: boolean):
     PhysicalTextureType {
-  if (ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED') &&
-      !ENV.getBool('WEBGL_ALWAYS_USE_F16_TEXTURES')) {
+  if (ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED')) {
     if (isPacked) {
       return PhysicalTextureType.PACKED_2X2_FLOAT32;
     }

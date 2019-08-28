@@ -42,9 +42,7 @@ const MIN_FLOAT16 = 5.96e-8;
 const MAX_FLOAT16 = 65504;
 
 export function canBeRepresented(num: number): boolean {
-  const renderingToF32 = ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED') &&
-      !ENV.getBool('WEBGL_ALWAYS_USE_F16_TEXTURES');
-  if (renderingToF32 || num === 0 ||
+  if (ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED') || num === 0 ||
       (MIN_FLOAT16 < Math.abs(num) && Math.abs(num) < MAX_FLOAT16)) {
     return true;
   }

@@ -23,12 +23,19 @@ import {webgl_util} from '../../webgl';
 import * as canvas_util from './canvas_util';
 
 describe('WEBGL_ALWAYS_USE_F16_TEXTURES', () => {
-  beforeEach(() => ENV.reset());
+  beforeEach(() => {
+    ENV.reset();
+    tf.webgl.forceHalfFloat();
+  });
+
   afterAll(() => ENV.reset());
 
   it('can be activated via forceHalfFloat utility', () => {
-    tf.webgl.forceHalfFloat();
     expect(ENV.getBool('WEBGL_ALWAYS_USE_F16_TEXTURES')).toBe(true);
+  });
+
+  it('toggles WEBGL_RENDER_FLOAT32_ENABLED', () => {
+    expect(ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED')).toBe(true);
   });
 });
 

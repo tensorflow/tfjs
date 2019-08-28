@@ -367,12 +367,11 @@ export class MathBackendWebGL implements KernelBackend {
       for (let i = 0; i < values.length; i++) {
         const num = values[i] as number;
         if (!webgl_util.canBeRepresented(num)) {
-          if (ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED') &&
-              ENV.getBool('WEBGL_ALWAYS_USE_F16_TEXTURES')) {
+          if (ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE')) {
             throw Error(
                 `The value ${num} cannot be represented with your ` +
                 `current settings. Consider enabling float32 rendering: ` +
-                `'tf.ENV.set('WEBGL_ALWAYS_USE_F16_TEXTURES', false);'`);
+                `'tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', true);'`);
           }
           throw Error(`The value ${num} cannot be represented on this device.`);
         }
@@ -2706,7 +2705,7 @@ export class MathBackendWebGL implements KernelBackend {
   floatPrecision(): 16|32 {
     if (this.floatPrecisionValue == null) {
       this.floatPrecisionValue = tidy(() => {
-        if (!ENV.get('WEBGL_ALWAYS_USE_F16_TEXTURES')) {
+        if (!ENV.get('WEBGL_RENDER_FLOAT32_ENABLED')) {
           // Momentarily switching DEBUG flag to false so we don't throw an
           // error trying to upload a small value.
           const debugFlag = ENV.getBool('DEBUG');

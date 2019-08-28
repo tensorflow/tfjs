@@ -122,13 +122,22 @@ ENV.registerFlag(
         !device_util.isMobile());
 
 /**
+ * Whether the device is physically capable of rendering to float32 textures.
+ */
+ENV.registerFlag(
+    'WEBGL_RENDER_FLOAT32_CAPABLE',
+    () => webgl_util.isRenderToFloatTextureEnabled(
+        ENV.getNumber('WEBGL_VERSION')));
+
+/**
  * Whether rendering to float32 textures is enabled. If disabled, renders to
  * float16 textures.
  */
 ENV.registerFlag(
     'WEBGL_RENDER_FLOAT32_ENABLED',
-    () => webgl_util.isRenderToFloatTextureEnabled(
-        ENV.getNumber('WEBGL_VERSION')));
+    () => ENV.getBool('WEBGL_ALWAYS_USE_F16_TEXTURES') ?
+        true :
+        ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE'));
 
 /**
  * Whether downloading float textures is enabled (16 or 32 bit). If disabled,
