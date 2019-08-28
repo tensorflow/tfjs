@@ -45,7 +45,8 @@
     "tmp": "^0.0.33",
     "ts-node": "^5.0.1",
     "tslint": "~5.9.1",
-    "typescript": "3.3.3333",
+    "tslint-no-circular-imports": "^0.7.0",
+    "typescript": "3.5.3",
     "yalc": "~1.0.0-pre.21"
   },
   "dependencies": {

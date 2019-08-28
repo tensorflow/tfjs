@@ -20,13 +20,12 @@ import * as fs from 'fs';
 import {dirname, join, resolve} from 'path';
 import {promisify} from 'util';
 
+import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
+
 const stat = promisify(fs.stat);
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
 const mkdir = promisify(fs.mkdir);
-
-// tslint:disable-next-line:max-line-length
-import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
 
 function doesNotExistHandler(name: string): (e: NodeJS.ErrnoException) =>
     never {
