@@ -133,11 +133,11 @@ ENV.registerFlag(
  * Whether rendering to float32 textures is enabled. If disabled, renders to
  * float16 textures.
  */
-ENV.registerFlag(
-    'WEBGL_RENDER_FLOAT32_ENABLED',
-    () => ENV.getBool('WEBGL_FORCE_F16_TEXTURES') ?
-        true :
-        ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE'));
+ENV.registerFlag('WEBGL_RENDER_FLOAT32_ENABLED', () => {
+  return ENV.getBool('WEBGL_FORCE_F16_TEXTURES') ?
+      false :
+      ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE');
+});
 
 /**
  * Whether downloading float textures is enabled (16 or 32 bit). If disabled,

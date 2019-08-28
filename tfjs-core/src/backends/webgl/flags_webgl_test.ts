@@ -25,18 +25,15 @@ import {WEBGL_ENVS} from './backend_webgl_test_registry';
 import * as canvas_util from './canvas_util';
 
 describe('WEBGL_FORCE_F16_TEXTURES', () => {
-  beforeEach(() => {
-    ENV.reset();
-  });
-
   afterAll(() => ENV.reset());
 
   it('can be activated via forceHalfFloat utility', () => {
     tf.webgl.forceHalfFloat();
-    expect(ENV.getBool('WEBGL_ALWAYS_USE_F16_TEXTURES')).toBe(true);
+    expect(ENV.getBool('WEBGL_FORCE_F16_TEXTURES')).toBe(true);
   });
 
   it('turns off WEBGL_RENDER_FLOAT32_ENABLED', () => {
+    ENV.reset();
     tf.webgl.forceHalfFloat();
     expect(ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED')).toBe(false);
   });
