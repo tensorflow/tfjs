@@ -45,7 +45,7 @@ ENV.registerFlag(
 ENV.registerFlag('WEBGL_CPU_FORWARD', () => true);
 
 /** Whether the WebGL backend will always use f16 textures for rendering. */
-ENV.registerFlag('WEBGL_ALWAYS_USE_F16_TEXTURES', () => false);
+ENV.registerFlag('WEBGL_FORCE_F16_TEXTURES', () => false);
 
 /** Whether to turn all packing related flags on. */
 ENV.registerFlag('WEBGL_PACK', () => ENV.getBool('HAS_WEBGL'));
@@ -135,7 +135,7 @@ ENV.registerFlag(
  */
 ENV.registerFlag(
     'WEBGL_RENDER_FLOAT32_ENABLED',
-    () => ENV.getBool('WEBGL_ALWAYS_USE_F16_TEXTURES') ?
+    () => ENV.getBool('WEBGL_FORCE_F16_TEXTURES') ?
         true :
         ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE'));
 

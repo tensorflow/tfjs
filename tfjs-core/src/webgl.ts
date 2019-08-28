@@ -27,8 +27,9 @@ export {GPGPUProgram} from './backends/webgl/gpgpu_math';
 export {gpgpu_util, webgl_util};
 
 /**
- * Enforce use of half precision textures for performance.
+ * Enforce use of half precision textures if available on the platform.
  */
+/** @doc {heading: 'Environment'} */
 export function forceHalfFloat(): void {
-  ENV.set('WEBGL_ALWAYS_USE_F16_TEXTURES', true);
+  ENV.set('WEBGL_FORCE_F16_TEXTURES', true);
 }

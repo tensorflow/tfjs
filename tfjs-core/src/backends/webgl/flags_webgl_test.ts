@@ -22,7 +22,7 @@ import {webgl_util} from '../../webgl';
 
 import * as canvas_util from './canvas_util';
 
-describe('WEBGL_ALWAYS_USE_F16_TEXTURES', () => {
+describe('WEBGL_FORCE_F16_TEXTURES', () => {
   beforeEach(() => {
     ENV.reset();
     tf.webgl.forceHalfFloat();
