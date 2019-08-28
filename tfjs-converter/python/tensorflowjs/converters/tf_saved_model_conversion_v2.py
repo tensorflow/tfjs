@@ -30,10 +30,8 @@ from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.saved_model.load import load
 from tensorflow.python.training.saver import export_meta_graph
-from tensorflow.python.framework import op_def_registry
 from google.protobuf.json_format import MessageToDict
 import tensorflow_hub as hub
-from tensorflow.core.framework import op_def_pb2
 
 from tensorflowjs import write_weights
 from tensorflowjs.converters import common
@@ -48,13 +46,6 @@ CLEARED_TENSOR_FIELDS = (
     'resource_handle_val', 'variant_val', 'uint32_val', 'uint64_val')
 
 _HUB_V1_MODULE_PB = "tfhub_module.pb"
-
-def register_prelu_op():
-  prelu_op_def = op_def_pb2.OpDef()
-  prelu_op_def.name = 'Prelu'
-  missing_op_list = op_def_pb2.OpList()
-  missing_op_list.op.extend([prelu_op_def])
-  op_def_registry.register_op_list(missing_op_list)
 
 def load_graph(graph_filename):
   """Loads GraphDef. Returns Python Graph object.
@@ -140,6 +131,9 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
     raise ValueError('Unsupported Ops in the model before optimization\n' +
                      ', '.join(unsupported))
 
+  # fuse ops for prelu
+  optimized_graph = fuse_prelu.fuse_ops_for_prelu(graph_def)
+
   # first pass of grappler optimization, this is needed for batch norm folding.
   config = config_pb2.ConfigProto()
   rewriter_config = config.graph_options.rewrite_options
@@ -150,7 +144,7 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
   if strip_debug_ops:
     rewriter_config.optimizers.insert(0, 'debug_stripper')
 
-  optimized_graph = _run_grappler(config, graph_def, graph)
+  optimized_graph = _run_grappler(config, optimized_graph, graph)
 
   # batch norm folding
   optimized_graph = fold_batch_norms.fold_batch_norms(optimized_graph)

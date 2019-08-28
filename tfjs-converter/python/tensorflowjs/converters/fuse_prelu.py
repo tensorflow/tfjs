@@ -21,19 +21,20 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import math
-import re
-
-import numpy as np
-from tensorflow.core.framework import attr_value_pb2
 from tensorflow.core.framework import graph_pb2
 from tensorflow.core.framework import node_def_pb2
-from tensorflow.python.framework import tensor_util
-from tensorflow.python.platform import tf_logging
+from tensorflow.core.framework import op_def_pb2
+from tensorflow.python.framework import op_def_registry
 
 from tensorflowjs.converters import common
 
-# pylint: disable=R0915
+def register_prelu_op():
+  prelu_op_def = op_def_pb2.OpDef()
+  prelu_op_def.name = 'Prelu'
+  missing_op_list = op_def_pb2.OpList()
+  missing_op_list.op.extend([prelu_op_def])
+  op_def_registry.register_op_list(missing_op_list)
+
 def fuse_ops_for_prelu(input_graph_def):
   """The formula of PReLU is:
  f(x) = alpha * x for x < 0, f(x) = x for x >= 0.
@@ -97,10 +98,10 @@ def fuse_ops_for_prelu(input_graph_def):
                                         relu_neg_input_op.input[0])
     if (not neg_input_op or len(neg_input_op.input) != 1 or
         neg_input_op.op != 'Neg'):
-        continue
+      continue
     final_input_op = neg_input_op
 
-    if (relu_input_op.input[0] != final_input_op.input[0]):
+    if relu_input_op.input[0] != final_input_op.input[0]:
       continue
 
     # Construct a tensor for positive alpha (double negative).
@@ -133,3 +134,5 @@ def fuse_ops_for_prelu(input_graph_def):
 
   result_graph_def.node.extend(new_ops)
   return result_graph_def
+
+register_prelu_op()

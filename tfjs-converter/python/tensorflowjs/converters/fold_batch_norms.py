@@ -19,7 +19,6 @@ from __future__ import division
 from __future__ import print_function
 
 import math
-import re
 
 import numpy as np
 from tensorflow.core.framework import attr_value_pb2
@@ -85,8 +84,9 @@ def fold_batch_norms(input_graph_def):
                         "FusedBatchNorm", "FusedBatchNormV3")):
       continue
 
-    conv_op = common.node_from_map(input_node_map,
-                            node.input[INPUT_ORDER[node.op].index("conv_op")])
+    conv_op = common.node_from_map(
+        input_node_map,
+        node.input[INPUT_ORDER[node.op].index("conv_op")])
     if conv_op.op != "Conv2D" and conv_op.op != "DepthwiseConv2dNative":
       tf_logging.warning("Didn't find expected Conv2D or DepthwiseConv2dNative"
                          " input to '%s'" % node.name)
@@ -104,22 +104,24 @@ def fold_batch_norms(input_graph_def):
     elif conv_op.op == "DepthwiseConv2dNative":
       channel_count = weights.shape[2] * weights.shape[3]
 
-    mean_op = common.node_from_map(input_node_map,
-                            node.input[INPUT_ORDER[node.op].index("mean_op")])
+    mean_op = common.node_from_map(
+        input_node_map,
+        node.input[INPUT_ORDER[node.op].index("mean_op")])
     if mean_op.op != "Const":
       tf_logging.warning("Didn't find expected mean Constant input to '%s',"
                          " found %s instead. Maybe because freeze_graph wasn't"
                          " run first?" % (node.name, mean_op))
       continue
-    mean_value = values_from_const(mean_op)
+    mean_value = common.values_from_const(mean_op)
     if mean_value.shape != (channel_count,):
       tf_logging.warning("Incorrect shape for mean, found %s, expected %s,"
                          " for node %s" % (str(mean_value.shape), str(
                              (channel_count,)), node.name))
       continue
 
-    var_op = common.node_from_map(input_node_map,
-                           node.input[INPUT_ORDER[node.op].index("var_op")])
+    var_op = common.node_from_map(
+        input_node_map,
+        node.input[INPUT_ORDER[node.op].index("var_op")])
     if var_op.op != "Const":
       tf_logging.warning("Didn't find expected var Constant input to '%s',"
                          " found %s instead. Maybe because freeze_graph wasn't"
@@ -132,8 +134,9 @@ def fold_batch_norms(input_graph_def):
                              (channel_count,)), node.name))
       continue
 
-    beta_op = common.node_from_map(input_node_map,
-                            node.input[INPUT_ORDER[node.op].index("beta_op")])
+    beta_op = common.node_from_map(
+        input_node_map,
+        node.input[INPUT_ORDER[node.op].index("beta_op")])
     if beta_op.op != "Const":
       tf_logging.warning("Didn't find expected beta Constant input to '%s',"
                          " found %s instead. Maybe because freeze_graph wasn't"
@@ -146,8 +149,9 @@ def fold_batch_norms(input_graph_def):
                              (channel_count,)), node.name))
       continue
 
-    gamma_op = common.node_from_map(input_node_map,
-                             node.input[INPUT_ORDER[node.op].index("gamma_op")])
+    gamma_op = common.node_from_map(
+        input_node_map,
+        node.input[INPUT_ORDER[node.op].index("gamma_op")])
     if gamma_op.op != "Const":
       tf_logging.warning("Didn't find expected gamma Constant input to '%s',"
                          " found %s instead. Maybe because freeze_graph wasn't"

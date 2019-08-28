@@ -18,15 +18,7 @@ import os
 import shutil
 import tempfile
 
-import numpy as np
 import tensorflow as tf
-from tensorflow.python.framework import constant_op
-from tensorflow.python.framework import dtypes
-from tensorflow.python.framework import importer
-from tensorflow.python.framework import ops
-from tensorflow.python.framework import test_util
-from tensorflow.python.ops import gen_nn_ops
-from tensorflow.python.ops import nn_ops
 from tensorflowjs.converters import fuse_prelu
 
 class FusePreluTest(tf.test.TestCase):
@@ -54,14 +46,15 @@ class FusePreluTest(tf.test.TestCase):
     def execute_model(tensor):
       return model(tensor)
 
-    graph_def = execute_model.get_concrete_function(input_tensor).graph.as_graph_def()
+    graph_def = execute_model.get_concrete_function(
+        input_tensor).graph.as_graph_def()
     optimized_graph_def = fuse_prelu.fuse_ops_for_prelu(graph_def)
-    
+
     prelu_op_count = 0
     for node in optimized_graph_def.node:
       self.assertNotEqual("Relu", node.op)
       if node.op == 'Prelu':
-          prelu_op_count += 1
+        prelu_op_count += 1
     self.assertEqual(prelu_op_count, 2)
 
 if __name__ == '__main__':

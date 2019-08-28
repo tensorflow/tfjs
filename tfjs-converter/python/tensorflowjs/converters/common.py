@@ -15,12 +15,7 @@
 
 import re
 
-import numpy as np
-from tensorflow.core.framework import attr_value_pb2
-from tensorflow.core.framework import graph_pb2
-from tensorflow.core.framework import node_def_pb2
 from tensorflow.python.framework import tensor_util
-from tensorflow.python.platform import tf_logging
 
 from tensorflowjs import version
 
