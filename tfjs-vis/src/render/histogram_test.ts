@@ -34,7 +34,7 @@ describe('renderHistogram', () => {
       {value: 100},
     ];
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await histogram(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -48,7 +48,7 @@ describe('renderHistogram', () => {
   it('renders a histogram with number array', async () => {
     const data = [50, 100, 100];
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await histogram(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -62,7 +62,7 @@ describe('renderHistogram', () => {
   it('renders a histogram with typed array', async () => {
     const data = new Int32Array([50, 100, 100]);
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await histogram(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -80,7 +80,7 @@ describe('renderHistogram', () => {
       {value: 100},
     ];
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
 
     await histogram(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -96,7 +96,7 @@ describe('renderHistogram', () => {
       {value: 100},
     ];
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
 
     await histogram(container, data);
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -123,7 +123,7 @@ describe('renderHistogram', () => {
       {value: NaN},
     ];
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await histogram(container, data);
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -142,7 +142,7 @@ describe('renderHistogram', () => {
   it('does not throw on empty data', async () => {
     const data: Array<{value: number}> = [];
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     expect(async () => {
       await histogram(container, data);
     }).not.toThrow();
@@ -166,7 +166,7 @@ describe('renderHistogram', () => {
       numNans: 5,
     };
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await histogram(container, data, {stats});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
@@ -189,12 +189,12 @@ describe('renderHistogram', () => {
       {value: 230},
     ];
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await histogram(container, data, {width: 400});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
-    expect(document.querySelector('canvas')!.width).toBe(400 * pixelRatio);
+    expect(document.querySelector('canvas').width).toBe(400 * pixelRatio);
   });
 
   it('sets height of chart', async () => {
@@ -204,11 +204,11 @@ describe('renderHistogram', () => {
       {value: 230},
     ];
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     await histogram(container, data, {height: 200});
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
-    expect(document.querySelector('canvas')!.height).toBe(200 * pixelRatio);
+    expect(document.querySelector('canvas').height).toBe(200 * pixelRatio);
   });
 });
