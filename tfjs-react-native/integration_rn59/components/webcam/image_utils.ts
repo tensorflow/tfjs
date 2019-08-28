@@ -25,7 +25,6 @@ export async function resizeImage(
 
 export async function base64ImageToTensor(base64: string):
     Promise<tf.Tensor3D> {
-  const start = Date.now();
   const rawImageData = tf.util.encodeString(base64, 'base64');
   const TO_UINT8ARRAY = true;
   const {width, height, data} = jpeg.decode(rawImageData, TO_UINT8ARRAY);
@@ -39,9 +38,6 @@ export async function base64ImageToTensor(base64: string):
 
     offset += 4;
   }
-
-  const end = Date.now();
-  console.log('yyy base64ImageToTensor', end - start);
   return tf.tensor3d(buffer, [height, width, 3]);
 }
 
