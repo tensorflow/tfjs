@@ -1,5 +1,5 @@
 {
-  "name": "@tensorflow/tfjs-node",
+  "name": "@tensorflow/tfjs-node-gpu",
   "version": "1.2.8",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,6 +19,7 @@
     "clean-deps": "rm -rf deps && rm -rf lib",
     "coverage": "nyc ts-node src/run_tests.ts",
     "enable-gpu": "node scripts/install.js gpu download && yarn && yarn build-addon-from-source",
+    "ensure-cpu-gpu-packages-align": "node scripts/ensure-cpu-gpu-packages-align.js",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "install": "node scripts/install.js gpu download",
     "install-from-source": "yarn clean-deps && yarn && yarn build-addon-from-source",
