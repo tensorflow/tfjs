@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "ts-node": "^8.0.3",
-    "typescript": "3.3.3333",
+    "typescript": "3.5.3",
     "yalc": "^1.0.0-pre.27"
   }
 }

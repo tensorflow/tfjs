@@ -44,6 +44,9 @@ ENV.registerFlag(
 /** Whether the WebGL backend will sometimes forward ops to the CPU. */
 ENV.registerFlag('WEBGL_CPU_FORWARD', () => true);
 
+/** Whether the WebGL backend will always use f16 textures for rendering. */
+ENV.registerFlag('WEBGL_FORCE_F16_TEXTURES', () => false);
+
 /** Whether to turn all packing related flags on. */
 ENV.registerFlag('WEBGL_PACK', () => ENV.getBool('HAS_WEBGL'));
 
@@ -119,13 +122,22 @@ ENV.registerFlag(
         !device_util.isMobile());
 
 /**
+ * Whether the device is physically capable of rendering to float32 textures.
+ */
+ENV.registerFlag(
+    'WEBGL_RENDER_FLOAT32_CAPABLE',
+    () => webgl_util.isCapableOfRenderingToFloatTexture(
+        ENV.getNumber('WEBGL_VERSION')));
+
+/**
  * Whether rendering to float32 textures is enabled. If disabled, renders to
  * float16 textures.
  */
-ENV.registerFlag(
-    'WEBGL_RENDER_FLOAT32_ENABLED',
-    () => webgl_util.isRenderToFloatTextureEnabled(
-        ENV.getNumber('WEBGL_VERSION')));
+ENV.registerFlag('WEBGL_RENDER_FLOAT32_ENABLED', () => {
+  return ENV.getBool('WEBGL_FORCE_F16_TEXTURES') ?
+      false :
+      ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE');
+});
 
 /**
  * Whether downloading float textures is enabled (16 or 32 bit). If disabled,

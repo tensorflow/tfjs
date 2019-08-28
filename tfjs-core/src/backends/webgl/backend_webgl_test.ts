@@ -31,6 +31,39 @@ function decodeStrings(bytes: Uint8Array[]): string[] {
   return bytes.map(b => decodeString(b));
 }
 
+const RENDER_FLOAT32_ENVS = {
+  flags: {'WEBGL_RENDER_FLOAT32_ENABLED': true},
+  predicate: WEBGL_ENVS.predicate
+};
+
+describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
+  let renderToF32FlagSaved: boolean;
+
+  beforeAll(() => {
+    renderToF32FlagSaved =
+        tf.ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') as boolean;
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+  });
+
+  afterAll(() => {
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', renderToF32FlagSaved);
+  });
+
+  it('should overflow if larger than 66k', async () => {
+    const a = tf.tensor1d([Math.pow(2, 17)], 'float32');
+    const b = tf.relu(a);
+    expect(await b.data()).toBeLessThan(Math.pow(2, 17));
+  });
+
+  it('should error in debug mode', () => {
+    const savedDebugFlag = tf.ENV.getBool('DEBUG');
+    tf.ENV.set('DEBUG', true);
+    const a = () => tf.tensor1d([2, Math.pow(2, 17)], 'float32');
+    expect(a).toThrowError();
+    tf.ENV.set('DEBUG', savedDebugFlag);
+  });
+});
+
 describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
   let webglLazilyUnpackFlagSaved: boolean;
   let webglCpuForwardFlagSaved: boolean;

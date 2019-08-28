@@ -18,13 +18,13 @@
 // We import index.ts so that the Node backend gets registered.
 import './index';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {nodeBackend} from './nodejs_kernel_backend';
 
 Error.stackTraceLimit = Infinity;
 
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
 // tslint:disable-next-line:no-require-imports
-import {nodeBackend} from './ops/op_utils';
 
 process.on('unhandledRejection', e => {
   throw e;
