@@ -19,6 +19,7 @@
       ["Number", "Use 'number' instead."],
       ["Boolean", "Use 'boolean' instead."]
     ],
+    "no-import-from-dist": true,
     "no-return-await": true,
     "class-name": true,
     "curly": true,
