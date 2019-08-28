@@ -21,14 +21,19 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import tensorflow as tf
+
 from tensorflow.core.framework import graph_pb2
 from tensorflow.core.framework import node_def_pb2
 from tensorflow.core.framework import op_def_pb2
+from tensorflow.python.framework import function
 from tensorflow.python.framework import op_def_registry
 
 from tensorflowjs.converters import common
 
 def register_prelu_op():
+  """global registry of PReLU op for python"""
+
   prelu_op_def = op_def_pb2.OpDef()
   prelu_op_def.name = 'Prelu'
   missing_op_list = op_def_pb2.OpList()
@@ -124,5 +129,19 @@ def fuse_ops_for_prelu(input_graph_def):
     result_graph_def.node.extend([new_node])
 
   return result_graph_def
+
+def register_prelu_func(graph):
+  """Register Prelu op with function def.
+  Args:
+    graph: A tf.Graph object to insert prelu function into.
+  """
+
+  # Create a function for Prelu op
+  @function.Defun(tf.float32, tf.float32, func_name='Prelu')
+  def prelu_fn(*args):
+    return tf.add(args[0], args[1])
+  # Insert the function into graph
+  with graph.as_default():
+    prelu_fn(tf.constant(1.0), tf.constant(1.0))
 
 register_prelu_op()
