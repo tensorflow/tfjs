@@ -29,7 +29,7 @@ export {gpgpu_util, webgl_util};
 /**
  * Enforce use of half precision textures if available on the platform.
  */
-/** @doc {heading: 'Environment'} */
+/** @doc {heading: 'Environment', namespace: 'webgl'} */
 export function forceHalfFloat(): void {
   ENV.set('WEBGL_FORCE_F16_TEXTURES', true);
 }
