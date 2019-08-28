@@ -47,12 +47,8 @@ export async function base64ImageToTensor(base64: string):
 
 export async function tensorToImageUrl(imageTensor: tf.Tensor3D):
     Promise<string> {
-  const start = Date.now();
   const [height, width] = imageTensor.shape;
   const buffer = await imageTensor.toInt().data();
-
-  const download = Date.now();
-  console.log('yyy tensorToImageUrl:download', download - start);
   const frameData = new Uint8Array(width * height * 4);
 
   let offset = 0;
@@ -70,13 +66,7 @@ export async function tensorToImageUrl(imageTensor: tf.Tensor3D):
     width,
     height,
   };
-  const copy = Date.now();
-  console.log('yyy tensorToImageUrl:copy', copy - download);
   const jpegImageData = jpeg.encode(rawImageData, 75);
-  const encode = Date.now();
-  console.log('yyy tensorToImageUrl:jpegencode', encode - copy);
   const base64Encoding = tf.util.decodeString(jpegImageData.data, 'base64');
-  const end = Date.now();
-  console.log('yyy tensorToImageUrl:base64', end - encode);
   return base64Encoding;
 }

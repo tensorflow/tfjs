@@ -31,7 +31,7 @@ export class StyleTranfer {
 
   async warmup() {
     // Also warmup
-    const input = tf.randomNormal([320, 240, 3]) as tf.Tensor3D;
+    const input: tf.Tensor3D = tf.randomNormal([320, 240, 3]);
     const res = this.stylize(input, input);
     await res.data();
     tf.dispose([input, res]);
