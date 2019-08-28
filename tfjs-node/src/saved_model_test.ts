@@ -26,8 +26,7 @@ describe('SavedModel', () => {
 
   it('load wrong path', async done => {
     try {
-      const model =
-          await loadSavedModel(__dirname.slice(0, -3) + 'no_save_model');
+      const model = await loadSavedModel('/tmp/no_save_model');
       model.delete();
       done.fail();
     } catch (error) {
@@ -35,8 +34,7 @@ describe('SavedModel', () => {
           .toBe(
               'Faile to load SavedModel: Could not find SavedModel .pb ' +
               'or .pbtxt at supplied export directory path: ' +
-              '/usr/local/google/home/kangyizhang/tensorflow/tfjs/' +
-              'tfjs-node/no_save_model');
+              '/tmp/no_save_model');
       done();
     }
   });
