@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line:max-line-length
 import {InferenceModel, ModelPredictConfig, NamedTensorMap, Tensor} from '@tensorflow/tfjs';
 import {TensorInfo} from '@tensorflow/tfjs-converter/dist/src/data/types';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
@@ -74,7 +75,7 @@ export class TFSavedModel implements InferenceModel {
       Tensor|Tensor[] {
     throw new Error(
         'Execute() function of TFSavedModel is not implemented yet.');
-  };
+  }
 }
 
 /**
