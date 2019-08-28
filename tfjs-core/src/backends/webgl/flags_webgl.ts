@@ -126,7 +126,7 @@ ENV.registerFlag(
  */
 ENV.registerFlag(
     'WEBGL_RENDER_FLOAT32_CAPABLE',
-    () => webgl_util.isRenderToFloatTextureEnabled(
+    () => webgl_util.isCapableOfRenderingToFloatTexture(
         ENV.getNumber('WEBGL_VERSION')));
 
 /**
