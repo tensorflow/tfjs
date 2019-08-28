@@ -37,16 +37,16 @@ const RENDER_FLOAT32_ENVS = {
 };
 
 describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
-  let forcedF16RenderFlagSaved: boolean;
+  let renderToF32FlagSaved: boolean;
 
   beforeAll(() => {
-    forcedF16RenderFlagSaved =
-        tf.ENV.get('WEBGL_ALWAYS_USE_F16_TEXTURES') as boolean;
-    tf.ENV.set('WEBGL_ALWAYS_USE_F16_TEXTURES', true);
+    renderToF32FlagSaved =
+        tf.ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') as boolean;
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false);
   });
 
   afterAll(() => {
-    tf.ENV.set('WEBGL_ALWAYS_USE_F16_TEXTURES', forcedF16RenderFlagSaved);
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', renderToF32FlagSaved);
   });
 
   it('should overflow if larger than 66k', async () => {
