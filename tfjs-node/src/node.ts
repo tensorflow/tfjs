@@ -20,7 +20,6 @@
  */
 
 import {tensorBoard} from './callbacks';
-// tslint:disable-next-line:max-line-length
 import {decodeBmp, decodeGif, decodeImage, decodeJpeg, decodePng, encodeJpeg, encodePng} from './image';
 import {summaryFileWriter} from './tensorboard';
 
