@@ -16,6 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+import * as tfl from '@tensorflow/tfjs-layers';
 import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -449,6 +450,65 @@ describe('File system IOHandler', () => {
     const handler = tfn.io.fileSystem(testDir);
     expect(typeof handler.save).toEqual('function');
     expect(typeof handler.load).toEqual('function');
+  });
+
+  it('Save and load model with loss and optimizer', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({
+      units: 1,
+      kernelInitializer: 'zeros',
+      inputShape: [1]
+    }));
+    model.compile({
+      loss: 'meanSquaredError',
+      optimizer: tfc.train.adam(2.5e-2)
+    });
+
+    const xs = tfc.tensor2d([1, 2, 3, 4], [4, 1]);
+    const ys = tfc.tensor2d([-1, -3, -5, -7], [4, 1]);
+    await model.fit(xs, ys, {
+      epochs: 2,
+      shuffle: false,
+      verbose: 0
+    });
+
+    const saveURL = `file://${testDir}`;
+    const loadURL = `file://${testDir}/model.json`;
+
+    await model.save(saveURL, {includeOptimizer: true});
+    const model2 = await tfl.loadLayersModel(loadURL);
+    const optimizerConfig = model2.optimizer.getConfig();
+    expect(model2.optimizer.getClassName()).toEqual('Adam');
+    expect(optimizerConfig['learningRate']).toEqual(2.5e-2);
+
+    // Test that model2 can be trained immediately, without a compile() call
+    // due to the loaded optimizer and loss information.
+    const history2 = await model2.fit(xs, ys, {
+      epochs: 2,
+      shuffle: false,
+      verbose: 0
+    });
+    // The final loss value from training the model twice, 2 epochs
+    // at a time, should be equal to the final loss of trainig the
+    // model only once with 4 epochs.
+    expect(history2.history.loss[1]).toBeCloseTo(18.603);
+  });
+
+  it('Save and load model with user-defined metadata', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 3, inputShape: [4]}));
+    model.setUserDefinedMetadata({
+      'outputLabels': ['Label1', 'Label2', 'Label3']
+    });
+
+    const saveURL = `file://${testDir}`;
+    const loadURL = `file://${testDir}/model.json`;
+
+    await model.save(saveURL);
+    const model2 = await tfl.loadLayersModel(loadURL);
+    expect(model2.getUserDefinedMetadata()).toEqual({
+      'outputLabels': ['Label1', 'Label2', 'Label3']
+    });
   });
 
   describe('nodeFileSystemRouter', () => {
