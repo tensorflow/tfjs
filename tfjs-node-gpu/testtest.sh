@@ -9,6 +9,6 @@
 
 set -e
 
-ls -al
+ls -al scripts
 cat cloudbuild.yml
 cat scripts/install.js
