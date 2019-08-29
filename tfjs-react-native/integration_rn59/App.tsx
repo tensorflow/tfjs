@@ -24,7 +24,7 @@ import '@tensorflow/tfjs-react-native';
 import { Diagnostic } from './components/diagnostic';
 import { MobilenetDemo } from './components/mobilenet_demo';
 import { TestRunner } from './components/tfjs_unit_test_runner';
-import { WebcamDemo} from './components/webcam/webcam_demo';
+import { WebcamDemo } from './components/webcam/webcam_demo';
 
 const BACKEND_TO_USE = 'rn-webgl';
 
