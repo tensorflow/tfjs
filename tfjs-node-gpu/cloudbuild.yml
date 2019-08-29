@@ -5,6 +5,13 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
+# Unit tests.sadfasdf
+- name: 'node:10'
+  dir: 'tfjs-node'
+  entrypoint: 'yarn'
+  id: 'testtest'
+  args: ['testtest']
+
 # Install tfjs-node dependencies.
 - name: 'node:10'
   dir: 'tfjs-node-gpu'
@@ -13,12 +20,7 @@ steps:
   args: ['install']
   waitFor: ['yarn-common', 'testtest']
 
-# Unit tests.sadfasdf
-- name: 'node:10'
-  dir: 'tfjs-node'
-  entrypoint: 'yarn'
-  id: 'testtest'
-  args: ['testtest']
+
 
 # Unit tests.
 - name: 'node:10'
