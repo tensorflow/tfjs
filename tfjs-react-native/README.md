@@ -72,6 +72,10 @@ module.exports = {
 - Install @tensorflow/tfjs - `npm install @tensorflow/tfjs`
 - Install @tensorflow/tfjs-react-native - `npm install @tensorflow/tfjs-react-native`
 
+### Step 4.5: (Optional) Install and configure async-storage
+
+- If you want use `asyncStorageIO` (see below) to save and load models, add [async-storage](https://github.com/react-native-community/async-storage) to your project.
+
 ### Step 5: Test that it is working
 
 Before using tfjs in a react native app, you need to set the backend to `rn-webgl`. This is an **async
@@ -120,10 +124,6 @@ The [Webcam demo folder](integration_rn70/components/webcam) has an example of a
 ![style transfer app initial screen](images/rn-styletransfer_2.jpg)
 ![style transfer app initial screen](images/rn-styletransfer_3.jpg)
 ![style transfer app initial screen](images/rn-styletransfer_4.jpg)
-
-### Optional Steps
-
-- If you want use `asyncStorageIO` (see below) to save and load models, add [async-storage](https://github.com/react-native-community/async-storage) to your project.
 
 
 ## API Docs
