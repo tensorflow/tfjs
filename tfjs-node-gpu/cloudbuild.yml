@@ -13,13 +13,21 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
+# Unit tests.sadfasdf
+- name: 'node:10'
+  dir: 'tfjs-node'
+  entrypoint: 'yarn'
+  id: 'testtest'
+  args: ['testtest']
+  waitFor: ['yarn']
+
 # Unit tests.
 - name: 'node:10'
   dir: 'tfjs-node-gpu'
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
-  waitFor: ['yarn']
+  waitFor: ['yarn', 'testtest']
 
 # Integration test.
 - name: 'node:10'
