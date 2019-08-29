@@ -9,7 +9,6 @@
   "unpkg": "dist/tf-react-native.min.js",
   "jsdelivr": "dist/tf-react-native.min.js",
   "license": "Apache-2.0",
-  "private": true,
   "scripts": {
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "build": "tsc",
