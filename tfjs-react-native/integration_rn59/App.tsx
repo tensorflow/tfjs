@@ -16,7 +16,7 @@
  */
 
 import React, { Fragment } from 'react';
-import { Button, SafeAreaView, StyleSheet, ScrollView, View, Text, StatusBar } from 'react-native';
+import { Button, SafeAreaView, StyleSheet, View, Text, StatusBar } from 'react-native';
 
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-react-native';
@@ -24,10 +24,11 @@ import '@tensorflow/tfjs-react-native';
 import { Diagnostic } from './components/diagnostic';
 import { MobilenetDemo } from './components/mobilenet_demo';
 import { TestRunner } from './components/tfjs_unit_test_runner';
+import { WebcamDemo } from './components/webcam/webcam_demo';
 
-const BACKEND_TO_USE = 'cpu';
+const BACKEND_TO_USE = 'rn-webgl';
 
-export type Screen = 'main' | 'diag' | 'demo' | 'test';
+export type Screen = 'main' | 'diag' | 'demo' | 'test' | 'webcam';
 
 interface AppState {
   isTfReady: boolean;
@@ -46,6 +47,7 @@ export class App extends React.Component<{}, AppState> {
     this.showDemoScreen = this.showDemoScreen.bind(this);
     this.showMainScreen = this.showMainScreen.bind(this);
     this.showTestScreen = this.showTestScreen.bind(this);
+    this.showWebcamDemo= this.showWebcamDemo.bind(this);
   }
 
   async componentDidMount() {
@@ -72,6 +74,10 @@ export class App extends React.Component<{}, AppState> {
     this.setState({ currentScreen: 'test' });
   }
 
+  showWebcamDemo() {
+    this.setState({ currentScreen: 'webcam' });
+  }
+
   renderMainScreen() {
     return <Fragment>
       <View style={styles.sectionContainer}>
@@ -93,6 +99,13 @@ export class App extends React.Component<{}, AppState> {
         <Button
           onPress={this.showTestScreen}
           title='Show Test Screen'
+        />
+      </View>
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>Webcam Demo</Text>
+        <Button
+          onPress={this.showWebcamDemo}
+          title='Show Webcam Demo'
         />
       </View>
     </Fragment>;
@@ -119,6 +132,12 @@ export class App extends React.Component<{}, AppState> {
     </Fragment>;
   }
 
+  renderWebcamDemo() {
+    return <Fragment>
+      <WebcamDemo returnToMain={this.showMainScreen}/>
+    </Fragment>;
+  }
+
   renderLoadingTF() {
     return <Fragment>
       <View style={styles.sectionContainer}>
@@ -139,6 +158,8 @@ export class App extends React.Component<{}, AppState> {
           return this.renderDemoScreen();
         case 'test':
           return this.renderTestScreen();
+        case 'webcam':
+          return this.renderWebcamDemo();
         default:
           return this.renderMainScreen();
       }
@@ -153,13 +174,9 @@ export class App extends React.Component<{}, AppState> {
       <Fragment>
         <StatusBar barStyle='dark-content' />
         <SafeAreaView>
-          <ScrollView
-            contentInsetAdjustmentBehavior='automatic'
-            style={styles.scrollView}>
-            <View style={styles.body}>
-              {this.renderContent()}
-            </View>
-          </ScrollView>
+          <View style={styles.body}>
+            {this.renderContent()}
+          </View>
         </SafeAreaView>
       </Fragment>
     );
