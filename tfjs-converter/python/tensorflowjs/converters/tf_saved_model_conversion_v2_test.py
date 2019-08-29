@@ -305,18 +305,21 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(model_json['modelTopology'])
     nodes = model_json['modelTopology']['node']
 
-    preluOp = None
-    fusedOp = None
+    prelu_op = None
+    fused_op = None
     for node in nodes:
       if node['op'] == 'Prelu':
-        preluOp = node
+        prelu_op = node
       if node['op'] == '_FusedConv2D':
-        fusedOp = node
-    self.assertTrue(preluOp is None)
-    self.assertTrue(fusedOp is not None)
-    self.assertEqual(fusedOp['attr']['fused_ops']['list']['s'],
-        [base64.b64encode(b'BiasAdd'), base64.b64encode(b'Prelu')])
-    self.assertEqual(fusedOp['attr']['num_args']['i'], 2)
+        fused_op = node
+
+    self.assertTrue(prelu_op is None)
+    self.assertTrue(fused_op is not None)
+
+    fused_ops = list(map(lambda x: base64.b64decode(x),
+                    fused_op['attr']['fused_ops']['list']['s']))
+    self.assertEqual(fused_ops, [b'BiasAdd', b'Prelu'])
+    self.assertEqual(fused_op['attr']['num_args']['i'], '2')
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
     self.assertEqual(
