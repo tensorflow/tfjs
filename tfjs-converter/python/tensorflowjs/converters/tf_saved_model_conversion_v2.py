@@ -164,6 +164,10 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
   ]
 
   optimized_graph = _run_grappler(config, optimized_graph, graph)
+
+  # fuse Prelu with _FusedConv2d
+  optimized_graph = fuse_prelu.fuse_prelu_with_fused_conv2d(optimized_graph)
+
   unsupported = validate(optimized_graph.node, skip_op_check,
                          strip_debug_ops)
 

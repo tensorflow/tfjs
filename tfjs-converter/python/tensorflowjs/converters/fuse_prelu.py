@@ -23,9 +23,11 @@ from __future__ import print_function
 
 import tensorflow as tf
 
+from tensorflow.core.framework import attr_value_pb2
 from tensorflow.core.framework import graph_pb2
 from tensorflow.core.framework import node_def_pb2
 from tensorflow.core.framework import op_def_pb2
+from tensorflow.core.framework import types_pb2
 from tensorflow.python.framework import function
 from tensorflow.python.framework import op_def_registry
 
@@ -34,8 +36,15 @@ from tensorflowjs.converters import common
 def register_prelu_op():
   """global registry of PReLU op for python"""
 
+  value = attr_value_pb2.AttrValue()
+  value.list.type.extend([types_pb2.DataType.DT_FLOAT])
+  attr = op_def_pb2.OpDef.AttrDef()
+  attr.name = 'T'
+  attr.type = 'type'
+  attr.allowed_values.CopyFrom(value)
   prelu_op_def = op_def_pb2.OpDef()
   prelu_op_def.name = 'Prelu'
+  prelu_op_def.attr.extend([attr])
   missing_op_list = op_def_pb2.OpList()
   missing_op_list.op.extend([prelu_op_def])
   op_def_registry.register_op_list(missing_op_list)
@@ -110,7 +119,6 @@ def fuse_ops_for_prelu(input_graph_def):
 
     relu_input_op.op = 'Prelu'
     relu_input_op.input.extend([alpha_tensor_name])
-    relu_input_op.ClearField('attr')
 
     node.op = 'Identity'
     del node.input[:]
@@ -129,6 +137,57 @@ def fuse_ops_for_prelu(input_graph_def):
     result_graph_def.node.extend([new_node])
 
   return result_graph_def
+
+def fuse_prelu_with_fused_conv2d(input_graph_def):
+  """The formula of PReLU is:
+ f(x) = alpha * x for x < 0, f(x) = x for x >= 0.
+
+ `x` is the input, and `alpha` is a trainable tensor which can be broadcasted
+ to the shape of `x`.
+
+ There's no native PRelu op in TensorFlow, so Keras generates the following
+ structure which does the equivalent calculation:
+ f(x) = Relu(x) + (-alpha * Relu(-x))
+
+ Practically, alpha is always a constant in the inference graph, and grappler
+ can have other graph transformations which fold the activation functions to
+ other ops. Therefore, we're looking for the structure:
+
+ f(x) = Relu(x) + (negative_alpha * Neg(x, activation=Relu))
+
+  Args:
+    input_graph_def: A GraphDef containing a model.
+
+  Returns:
+    Modified graph with Prelu ops fused with _FusedConv2D as activation function
+
+  Raises:
+    ValueError: If the graph is badly formed with duplicate node names.
+  """
+  input_node_map = {}
+  for node in input_graph_def.node:
+    if node.name not in input_node_map:
+      input_node_map[node.name] = node
+    else:
+      raise ValueError("Duplicate node names detected for ", node.name)
+
+  for node in input_graph_def.node:
+    if (node.op != "Prelu" or len(node.input) != 2):
+      continue
+
+    fused_conv_op = common.node_from_map(input_node_map, node.input[0])
+    if (not fused_conv_op or fused_conv_op.op != "_FusedConv2D"):
+      continue
+
+    alpha_tensor_name = node.input[1]
+
+    fused_conv_op.input.extend([alpha_tensor_name])
+    fused_conv_op.attr['fused_ops'].list.s.extend([b'Prelu'])
+    fused_conv_op.attr['num_args'].i = fused_conv_op.attr['num_args'].i + 1
+    node.op = 'Identity'
+    node.input[:] = [node.input[0]]
+
+  return input_graph_def
 
 def register_prelu_func(graph):
   """Register Prelu op with function def.

@@ -98,8 +98,7 @@ class ConvertTest(tf.test.TestCase):
     """Test a basic model with fusable conv2d."""
     layers = [
         tf.keras.layers.Conv2D(
-            16, [3, 3], padding='same', use_bias=False),
-        tf.keras.layers.BatchNormalization(),
+            16, [3, 3], padding='same', use_bias=True),
         tf.keras.layers.PReLU()
     ]
     model = tf.keras.Sequential(layers)
@@ -307,11 +306,17 @@ class ConvertTest(tf.test.TestCase):
     nodes = model_json['modelTopology']['node']
 
     preluOp = None
+    fusedOp = None
     for node in nodes:
       if node['op'] == 'Prelu':
         preluOp = node
-    self.assertTrue(preluOp is not None)
-
+      if node['op'] == '_FusedConv2D':
+        fusedOp = node
+    self.assertTrue(preluOp is None)
+    self.assertTrue(fusedOp is not None)
+    self.assertEqual(fusedOp['attr']['fused_ops']['list']['s'],
+        [base64.b64encode(b'BiasAdd'), base64.b64encode(b'Prelu')])
+    self.assertEqual(fusedOp['attr']['num_args']['i'], 2)
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
     self.assertEqual(
