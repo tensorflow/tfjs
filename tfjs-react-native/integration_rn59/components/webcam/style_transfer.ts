@@ -17,9 +17,9 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-const styleNetUrl =
+const STYLENET_URL =
     'https://cdn.jsdelivr.net/gh/reiinakano/arbitrary-image-stylization-tfjs@master/saved_model_style_js/model.json';
-const transformNetUrl =
+const TRANSFORMNET_URL =
     'https://cdn.jsdelivr.net/gh/reiinakano/arbitrary-image-stylization-tfjs@master/saved_model_transformer_separable_js/model.json';
 
 export class StyleTranfer {
@@ -35,14 +35,14 @@ export class StyleTranfer {
 
   async loadStyleModel() {
     if (this.styleNet == null) {
-      this.styleNet = await tf.loadGraphModel(styleNetUrl);
+      this.styleNet = await tf.loadGraphModel(STYLENET_URL);
       console.log('stylenet loaded');
     }
   }
 
   async loadTransformerModel() {
     if (this.transformNet == null) {
-      this.transformNet = await tf.loadGraphModel(transformNetUrl);
+      this.transformNet = await tf.loadGraphModel(TRANSFORMNET_URL);
       console.log('transformnet loaded');
     }
   }
