@@ -11,7 +11,7 @@ steps:
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn-common', 'testtest']
 
 # Unit tests.sadfasdf
 - name: 'node:10'
@@ -19,7 +19,6 @@ steps:
   entrypoint: 'yarn'
   id: 'testtest'
   args: ['testtest']
-  waitFor: ['yarn']
 
 # Unit tests.
 - name: 'node:10'
