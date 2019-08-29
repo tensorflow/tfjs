@@ -18,54 +18,67 @@
 import {GraphModel, loadGraphModel} from '@tensorflow/tfjs-converter';
 import {browser, image, Tensor, Tensor3D, tidy} from '@tensorflow/tfjs-core';
 
-export interface ClassificationPrediction {
-  label: string;
-  probabilities: number[];
-}
+import {ClassificationPrediction, ImageClassificationOptions, ImageInput} from './types';
 
-export interface ImageClassificationOptions {
-  centerCrop: boolean;
-}
-
+/** Input size as expected by the model. */
 const IMG_SIZE: [number, number] = [224, 224];
+// Constants used to normalize the image between -1 and 1.
+const DIV_FACTOR = 127.5;
+const SUB_FACTOR = 1;
 
 export class ImageClassificationModel {
-  constructor(private model: GraphModel) {}
+  constructor(public graphModel: GraphModel, public dictionary: string[]) {}
 
-  async predict(input: ImageInput, options?: ImageClassificationOptions):
+  async classify(input: ImageInput, options?: ImageClassificationOptions):
       Promise<ClassificationPrediction> {
-    options = options || {} as ImageClassificationOptions;
-    if (options.centerCrop == null) {
-      options.centerCrop = true;
-    }
-    // Preprocessing involves center crop and normalizing between [-1, 1].
-    const scores = tidy(() => {
-      const img = imageToTensor(input);
-      const croppedImg = options.centerCrop ?
-          centerCrop(img) :
-          image.resizeBilinear(img, IMG_SIZE);
-      const normalizedImg = croppedImg.div(127.5).sub(1);
-      return this.model.predict(normalizedImg) as Tensor;
-    });
-    const probabilities = await scores.data();
+    options = sanitizeOptions(options);
 
-    return {
-      probabilities, label
-    }
+    const scores = tidy(() => {
+      const preprocessedImg = this.preprocess(input, options);
+      return this.graphModel.predict(preprocessedImg) as Tensor;
+    });
+    const probabilities = await scores.data() as Float32Array;
+    scores.dispose();
+    const result = Array.from(probabilities)
+                       .map((prob, i) => ({label: this.dictionary[i], prob}));
+    return result;
+  }
+
+  private preprocess(input: ImageInput, options: ImageClassificationOptions) {
+    // Preprocessing involves center crop and normalizing between [-1, 1].
+    const img = imageToTensor(input);
+    const croppedImg = options.centerCrop ? centerCrop(img) :
+                                            image.resizeBilinear(img, IMG_SIZE);
+    return croppedImg.div(DIV_FACTOR).sub(SUB_FACTOR);
   }
 }
 
-export type ImageInput =
-    ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|Tensor3D;
-
 export async function loadImageClassification(modelUrl: string):
     Promise<ImageClassificationModel> {
-  const model = await loadGraphModel(modelUrl);
-  return new ImageClassificationModel(model);
+  const [model, dict] =
+      await Promise.all([loadGraphModel(modelUrl), loadDictionary(modelUrl)]);
+  return new ImageClassificationModel(model, dict);
 }
 
-export function imageToTensor(img: ImageInput): Tensor3D {
+function imageToTensor(img: ImageInput): Tensor3D {
   return img instanceof Tensor ? img : browser.fromPixels(img);
+}
+
+function sanitizeOptions(options: ImageClassificationOptions) {
+  options = options || {} as ImageClassificationOptions;
+  if (options.centerCrop == null) {
+    options.centerCrop = true;
+  }
+  return options;
+}
+
+/** Loads and parses the dictionary. */
+async function loadDictionary(modelUrl: string): Promise<string[]> {
+  const prefixUrl = modelUrl.slice(0, modelUrl.lastIndexOf('/'));
+  const dictUrl = `${prefixUrl}/dict.txt`;
+  const response = await fetch(dictUrl);
+  const text = await response.text();
+  return text.split('\n');
 }
 
 /** Center crops an image */
