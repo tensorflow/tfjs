@@ -316,8 +316,8 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(prelu_op is None)
     self.assertTrue(fused_op is not None)
 
-    fused_ops = list(map(lambda x: base64.b64decode(x),
-                    fused_op['attr']['fused_ops']['list']['s']))
+    fused_ops = list(map(base64.b64decode,
+                         fused_op['attr']['fused_ops']['list']['s']))
     self.assertEqual(fused_ops, [b'BiasAdd', b'Prelu'])
     self.assertEqual(fused_op['attr']['num_args']['i'], '2')
     # Check meta-data in the artifact JSON.
