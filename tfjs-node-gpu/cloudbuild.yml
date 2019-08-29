@@ -7,7 +7,7 @@ steps:
 
 # Unit tests.sadfasdf
 - name: 'node:10'
-  dir: 'tfjs-node'
+  dir: 'tfjs-node-gpu'
   entrypoint: 'yarn'
   id: 'testtest'
   args: ['testtest']
@@ -19,8 +19,6 @@ steps:
   id: 'yarn'
   args: ['install']
   waitFor: ['yarn-common', 'testtest']
-
-
 
 # Unit tests.
 - name: 'node:10'
@@ -40,7 +38,7 @@ steps:
 
 # CPU / GPU package alignment.
 - name: 'node:10'
-  dir: 'tfjs-node'
+  dir: 'tfjs-node-gpu'
   entrypoint: 'yarn'
   id: 'ensure-cpu-gpu-packages-align'
   args: ['ensure-cpu-gpu-packages-align']
