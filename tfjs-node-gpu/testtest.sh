@@ -10,5 +10,6 @@
 set -e
 
 ls -al scripts
+cat tslint.json
 cat cloudbuild.yml
 cat scripts/install.js
