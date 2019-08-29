@@ -206,6 +206,7 @@ async function build() {
       // Move libtensorflow to module path, where tfjs_binding.node locates.
       cp.exec('node scripts/deps-stage.js symlink ' + modulePath);
     }
+    revertAddonName();
   });
 }
 
@@ -226,7 +227,6 @@ async function run() {
     await cleanDeps();
     await downloadLibtensorflow(build);
   }
-  revertAddonName();
 }
 
 run();

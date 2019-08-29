@@ -208,7 +208,7 @@ function getValues(
     }
     return points;
   } else {
-    return (history.history[metric] as number[]).map((y, x) => ({x, y}));
+    return history.history[metric].map((y, x) => ({x, y}));
   }
 }
 

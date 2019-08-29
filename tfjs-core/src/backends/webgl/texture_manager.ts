@@ -142,19 +142,27 @@ export class TextureManager {
   }
 }
 
+function getPhysicalTextureForRendering(isPacked: boolean):
+    PhysicalTextureType {
+  if (ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED')) {
+    if (isPacked) {
+      return PhysicalTextureType.PACKED_2X2_FLOAT32;
+    }
+    return PhysicalTextureType.UNPACKED_FLOAT32;
+  }
+
+  if (isPacked) {
+    return PhysicalTextureType.PACKED_2X2_FLOAT16;
+  }
+  return PhysicalTextureType.UNPACKED_FLOAT16;
+}
+
 function getPhysicalFromLogicalTextureType(
     logicalTexType: TextureUsage, isPacked: boolean): PhysicalTextureType {
   if (logicalTexType === TextureUsage.UPLOAD) {
     return PhysicalTextureType.PACKED_2X2_FLOAT32;
   } else if (logicalTexType === TextureUsage.RENDER || logicalTexType == null) {
-    if (isPacked) {
-      return ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED') ?
-          PhysicalTextureType.PACKED_2X2_FLOAT32 :
-          PhysicalTextureType.PACKED_2X2_FLOAT16;
-    }
-    return ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED') ?
-        PhysicalTextureType.UNPACKED_FLOAT32 :
-        PhysicalTextureType.UNPACKED_FLOAT16;
+    return getPhysicalTextureForRendering(isPacked);
   } else if (
       logicalTexType === TextureUsage.DOWNLOAD ||
       logicalTexType === TextureUsage.PIXELS) {
