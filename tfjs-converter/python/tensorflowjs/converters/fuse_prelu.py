@@ -34,7 +34,9 @@ from tensorflow.python.framework import op_def_registry
 from tensorflowjs.converters import common
 
 def register_prelu_op():
-  """global registry of PReLU op for python"""
+  """global registry of PReLU op for python, this allow metagraph to be
+  properly generated with unregistered Prelu op
+  """
 
   value = attr_value_pb2.AttrValue()
   value.list.type.extend([types_pb2.DataType.DT_FLOAT])
@@ -176,7 +178,8 @@ def fuse_prelu_with_fused_conv2d(input_graph_def):
       continue
 
     fused_conv_op = common.node_from_map(input_node_map, node.input[0])
-    if (not fused_conv_op or fused_conv_op.op != "_FusedConv2D"):
+    if (not fused_conv_op or fused_conv_op.op != "_FusedConv2D" or
+        len(fused_conv_op.attr['fused_ops'].list.s) > 1):
       continue
 
     alpha_tensor_name = node.input[1]
@@ -190,7 +193,8 @@ def fuse_prelu_with_fused_conv2d(input_graph_def):
   return input_graph_def
 
 def register_prelu_func(graph):
-  """Register Prelu op with function def.
+  """Register Prelu op with function def, this is need for importing graph_def
+  with unregistered Prelu op'
   Args:
     graph: A tf.Graph object to insert prelu function into.
   """
