@@ -158,6 +158,7 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
         resultImage = await this.stylize(contentImage, styleImage),
         this.setState({
           styleImage,
+          contentImage,
           resultImage,
           mode: 'results',
           isLoading: false,
@@ -175,6 +176,7 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
         resultImage = await this.stylize(contentImage, styleImage);
         this.setState({
           contentImage,
+          styleImage,
           resultImage,
           mode: 'results',
           isLoading: false,
