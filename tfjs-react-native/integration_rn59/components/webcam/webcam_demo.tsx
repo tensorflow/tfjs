@@ -46,7 +46,7 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     super(props);
     this.state = {
       mode: 'results',
-      cameraType: Camera.Constants.Type.front,
+      cameraType: Camera.Constants.Type.back,
       isLoading: true,
     };
     this.styler = new StyleTranfer();

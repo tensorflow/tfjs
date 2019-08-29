@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs-core';
 import {io} from '@tensorflow/tfjs-core';
 import {Image, ImageSourcePropType} from 'react-native';
+import {fetch} from './platform_react_native';
 
 class BundleResourceHandler implements io.IOHandler {
   constructor(
@@ -60,11 +60,8 @@ class BundleResourceHandler implements io.IOHandler {
     const weightsAssetPath =
         Image.resolveAssetSource(this.modelWeightsId as ImageSourcePropType);
 
-    const response = await tf.util.fetch(weightsAssetPath.uri, {
-      headers: {
-        responseType: 'arraybuffer',
-      }
-    });
+    const response =
+        await fetch(weightsAssetPath.uri, undefined, {isBinary: true});
     const weightData = await response.arrayBuffer();
 
     if (modelJson.weightsManifest.length > 1) {

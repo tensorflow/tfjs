@@ -1,14 +1,11 @@
 {
   "name": "@tensorflow/tfjs-react-native",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "TensorFlow.js platform implementation for React Native",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "jsnext:main": "dist/tf-react-native.esm.js",
-  "module": "dist/tf-react-native.esm.js",
-  "unpkg": "dist/tf-react-native.min.js",
-  "jsdelivr": "dist/tf-react-native.min.js",
   "license": "Apache-2.0",
+  "keywords": ["tensorflow", "tensorflowjs", "machine learning", "deep learning", "neural networks", "react native"],
   "scripts": {
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "build": "tsc",
