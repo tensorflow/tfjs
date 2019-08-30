@@ -5,6 +5,14 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
+# Install tfjs-node dependencies because we use scripts from that dir.
+- name: 'node:10'
+  id: 'yarn-tfjs-node'
+  dir: 'tfjs-node'
+  entrypoint: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
 # Install tfjs-node dependencies.
 - name: 'node:10'
   dir: 'tfjs-node-gpu'
@@ -19,7 +27,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
-  waitFor: ['yarn']
+  waitFor: ['yarn', 'yarn-tfjs-node']
 
 # Integration test.
 - name: 'node:10'
@@ -27,7 +35,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-ts-integration'
   args: ['test-ts-integration']
-  waitFor: ['yarn', 'test']
+  waitFor: ['yarn', 'yarn-tfjs-node', 'test']
 
 # CPU / GPU package alignment.
 - name: 'node:10'
