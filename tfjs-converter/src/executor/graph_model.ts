@@ -15,12 +15,10 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs-core';
 import {InferenceModel, io, ModelPredictConfig, NamedTensorMap, Tensor} from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
 import {NamedTensorsMap, TensorInfo} from '../data/types';
-import {getRegisteredOp, registerOp} from '../operations/custom_op/register';
 import {OperationMapper} from '../operations/operation_mapper';
 
 import {GraphExecutor} from './graph_executor';
@@ -79,25 +77,6 @@ export class GraphModel implements InferenceModel {
       private loadOptions: io.LoadOptions = {}) {
     if (loadOptions == null) {
       this.loadOptions = {};
-    }
-  }
-
-  /**
-   * There's no native PRelu op in TensorFlow, so Keras generates the following
-   * structure which does the equivalent calculation:
-   * f(x) = Relu(x) + (-alpha * Relu(-x))
-   * Since tfjs-core has a prelu op, this method will fuse the TensorFlow
-   * generated ops into prelu op. It will also try to register a custom op that
-   * supports prelu op.
-   */
-  public fusePrelu() {
-    this.executor.fusePrelu();
-    if (getRegisteredOp('Prelu') == null) {
-      registerOp('Prelu', (node) => {
-        const x = node.inputs[0];
-        const alpha = node.inputs[1];
-        return tf.prelu(x, alpha);
-      });
     }
   }
 
