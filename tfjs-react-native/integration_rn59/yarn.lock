@@ -883,10 +883,10 @@
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.2.8.tgz#6d696dcfa530708b1fdb0cd7614a0d2a1c8ae58a"
   integrity sha512-NMcA44U0rvVpo/VUTMpqkBP3jbvNhRXV7K8KovLi/WZ9FG/u5XIbIqFkcT3QXBDUyjDUNFToYQM/59dtnaut9Q==
 
-"@tensorflow/tfjs-react-native@0.1.0-alpha.1":
-  version "0.1.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-react-native/-/tfjs-react-native-0.1.0-alpha.1.tgz#7bb93d835b2aa5e11e2ceb95c4bcd9cb4630d409"
-  integrity sha512-mdDfYqRbT10CjMqYrjY/CQFp/8A7Qc7ZLmMH2bThz32+oGs04Hhis0xheRhy0yU48NqfUD8ZUXGiHnbZtiHiSA==
+"@tensorflow/tfjs-react-native@0.1.0-alpha.2":
+  version "0.1.0-alpha.2"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-react-native/-/tfjs-react-native-0.1.0-alpha.2.tgz#83e4efd6b8ff4e454df6cb3ccc56330b7547b5be"
+  integrity sha512-VRatwALllGbJuo/8dov9LmGcmwcNItQwc8YEnQDLnEw4x5rpCSfcigvKmm0J4EcdFHgzh65j0ODzbO00QK9Z1g==
   dependencies:
     base64-js "^1.3.0"
     buffer "^5.2.1"

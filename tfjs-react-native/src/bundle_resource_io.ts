@@ -59,9 +59,9 @@ class BundleResourceHandler implements io.IOHandler {
     // Load the weights
     const weightsAssetPath =
         Image.resolveAssetSource(this.modelWeightsId as ImageSourcePropType);
-
+    const requestInit: undefined = undefined;
     const response =
-        await fetch(weightsAssetPath.uri, undefined, {isBinary: true});
+        await fetch(weightsAssetPath.uri, requestInit, {isBinary: true});
     const weightData = await response.arrayBuffer();
 
     if (modelJson.weightsManifest.length > 1) {

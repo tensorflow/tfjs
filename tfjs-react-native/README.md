@@ -15,7 +15,7 @@ to try it and give us feedback.
 
 ## Setting up a React Native app with tfjs-react-native
 
-These instructions assume that you are generally familiar with [react native](https://facebook.github.io/react-native/) developement. This library has only been tested with React Native 0.58.X & 0.59.X. React Native 0.60 is not supported.
+These instructions **assume that you are generally familiar with [react native](https://facebook.github.io/react-native/) developement**. This library has only been tested with React Native 0.58.X & 0.59.X. React Native 0.60 is not supported.
 
 ### Step 1. Create your react native app.
 
@@ -70,7 +70,7 @@ module.exports = {
 ### Step 4: Install TensorFlow.js and tfjs-react-native
 
 - Install @tensorflow/tfjs - `npm install @tensorflow/tfjs`
-- Install @tensorflow/tfjs-react-native - `npm install @tensorflow/tfjs-react-native`
+- Install @tensorflow/tfjs-react-native - `npm install @tensorflow/tfjs-react-native@alpha`
 
 ### Step 4.5: (Optional) Install and configure async-storage
 
@@ -78,8 +78,9 @@ module.exports = {
 
 ### Step 5: Test that it is working
 
-Before using tfjs in a react native app, you need to set the backend to `rn-webgl`. This is an **async
-function** so you might want to do this in a `componentDidMount` or before the app is rendered.
+Before using tfjs in a react native app, you need to call `tf.ready()` and wait for it to complete.
+This is an **async function** so you might want to do this in a `componentDidMount` or before
+the app is rendered.
 
 The example below uses a flag in the App state to indicate that TensorFlow is ready.
 
@@ -97,8 +98,6 @@ export class App extends React.Component {
   }
 
   async componentDidMount() {
-    // Set the backend.
-    tf.setBackend('rn-webgl');
     // Wait for tf to be ready.
     await tf.ready();
     // Signal to the app that tensorflow.js can now be used.
@@ -115,7 +114,7 @@ export class App extends React.Component {
 
 ```
 
-After gathering feedback in the alpoha release we will add an example to the [tensorflow/tfjs-examples](https://github.com/tensorflow/tfjs-examples) repository.
+After gathering feedback in the alpha release we will add an example to the [tensorflow/tfjs-examples](https://github.com/tensorflow/tfjs-examples) repository.
 
 For now you can take a look at [`integration_rn59/App.tsx`](integration_rn59/App.tsx) for an example of what using tfjs-react-native looks like.
 The [Webcam demo folder](integration_rn70/components/webcam) has an example of a style transfer app.
@@ -183,6 +182,6 @@ can use the asyncStorageIO handler to save to AsyncStorage.
 tfjs react native exports a custom fetch function that is able to correctly load binary files into
 `arrayBuffer`'s. The first two parameters are the same as regular [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). The 3rd paramater is an optional custom `options` object, it currently has one option
 
-- options.isBinary: boolean — Is this request for a binary file.
+- options.isBinary: A boolean indicating if this is request for a binary file.
 
 This is needed because the response from `fetch` as currently implemented in React Native does not support the `arrayBuffer()` call.

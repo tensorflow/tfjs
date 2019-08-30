@@ -162,7 +162,7 @@ function setupGlobals() {
 
 function registerWebGLBackend() {
   try {
-    const PRIORITY = 1;
+    const PRIORITY = 5;
     tf.registerBackend('rn-webgl', async () => {
       const glContext = await GLView.createContextAsync();
 
