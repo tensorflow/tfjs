@@ -15,8 +15,21 @@
  * =============================================================================
  */
 
-// Image classification API.
-export {ImageClassificationModel, loadImageClassification} from './img_classification';
-export {ClassificationPrediction, ImageClassificationOptions, ImageInput} from './types';
+import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-export {version} from './version';
+// Run browser tests againts both the cpu and webgl backends.
+setTestEnvs([
+  // WebGL.
+  {
+    name: 'test-webgl',
+    backendName: 'webgl',
+    flags: {
+      'WEBGL_VERSION': 2,
+      'WEBGL_CPU_FORWARD': false,
+      'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+    },
+    isDataSync: true
+  },
+  // CPU.
+  {name: 'cpu', backendName: 'cpu'}
+]);

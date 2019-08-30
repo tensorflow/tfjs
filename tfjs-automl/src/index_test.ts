@@ -15,8 +15,12 @@
  * =============================================================================
  */
 
-// Image classification API.
-export {ImageClassificationModel, loadImageClassification} from './img_classification';
-export {ClassificationPrediction, ImageClassificationOptions, ImageInput} from './types';
+import * as automl from './index';
 
-export {version} from './version';
+describe('public API', () => {
+  it('exported version matches package version', () => {
+    // tslint:disable-next-line:no-require-imports
+    const expected = require('../package.json').version;
+    expect(automl.version).toBe(expected);
+  });
+});

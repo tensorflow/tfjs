@@ -20,7 +20,7 @@
 import * as automl from '../../src/index';
 
 const MODEL_URL =
-    'https://storage.googleapis.com/learnjs-data/automl/img_classification/model.json';
+    'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
 
 async function run() {
   const model = await automl.loadImageClassification(MODEL_URL);

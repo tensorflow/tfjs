@@ -15,8 +15,18 @@
  * =============================================================================
  */
 
-// Image classification API.
-export {ImageClassificationModel, loadImageClassification} from './img_classification';
-export {ClassificationPrediction, ImageClassificationOptions, ImageInput} from './types';
+import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-export {version} from './version';
+// tslint:disable-next-line:no-require-imports
+const jasmine = require('jasmine');
+
+process.on('unhandledRejection', e => {
+  throw e;
+});
+
+// Run node tests againts the cpu backend.
+setTestEnvs([{name: 'node', backendName: 'cpu'}]);
+
+const runner = new jasmine();
+runner.loadConfig({spec_files: ['src/**/*_test.ts'], random: false});
+runner.execute();

@@ -19,7 +19,8 @@ const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
-  reports: {}
+  reports: {},
+  bundlerOptions: {sourceMap: true}
 };
 
 module.exports = function(config) {
@@ -34,15 +35,17 @@ module.exports = function(config) {
   config.set({
     basePath: '',
     frameworks: ['jasmine', 'karma-typescript'],
-    files: [{pattern: 'src/**/*.ts'}],
+    files: [
+      'src/test_browser.ts',
+      {pattern: 'src/**/*.ts'},
+    ],
+    exclude: ['src/test_node.ts'],
     preprocessors: {'**/*.ts': ['karma-typescript']},
     karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
     port: 9876,
     colors: true,
-    autoWatch: false,
     browsers: ['Chrome'],
-    singleRun: true,
     client: {jasmine: {random: false}, args: args}
   })
 }
