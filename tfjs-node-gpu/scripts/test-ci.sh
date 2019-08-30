@@ -9,7 +9,6 @@
 
 set -e
 
-yarn clean-deps
 yarn build-addon-from-source
 yarn build
 yarn lint
