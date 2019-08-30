@@ -10,6 +10,7 @@
 .idea/
 .nyc_output/
 .rpt2_cache/
+.cache/
 .yalc/
 .vscode/ipch/
 /compiled_api.js
