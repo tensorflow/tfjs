@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {GraphModel} from '@tensorflow/tfjs-converter';
 import * as tf from '@tensorflow/tfjs-core';
 import {Tensor3D, test_util} from '@tensorflow/tfjs-core';
 import {BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
@@ -28,7 +29,7 @@ const MODEL_URL =
 const DAISY_URL =
     'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/daisy.jpg';
 
-describeWithFlags('nodejs+browser integration', {}, () => {
+describeWithFlags('integration', {}, () => {
   let model: automl.ImageClassificationModel = null;
 
   beforeAll(async () => {
@@ -65,6 +66,21 @@ describeWithFlags('nodejs+browser integration', {}, () => {
     await model.classify(img);
     const numTensorsAfter = tf.memory().numTensors;
     expect(numTensorsAfter).toEqual(numTensorsBefore);
+  });
+
+  it('has access to dictionary', () => {
+    expect(model.dictionary).toEqual([
+      'daisy', 'dandelion', 'roses', 'sunflowers', 'tulips'
+    ]);
+  });
+
+  it('can access the underlying graph model', () => {
+    expect(model.graphModel instanceof GraphModel).toBe(true);
+    expect(model.graphModel.inputNodes).toEqual(['image']);
+    expect(model.graphModel.outputNodes).toEqual(['scores']);
+    const img: tf.Tensor = tf.zeros([1, 224, 224, 3]);
+    const scores = model.graphModel.predict(img) as tf.Tensor;
+    expect(scores.shape).toEqual([1, 5]);
   });
 });
 
