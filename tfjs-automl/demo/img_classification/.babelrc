@@ -4,7 +4,6 @@
       "env",
       {
         "esmodules": false,
-        "corejs": 2,
         "targets": {
           "browsers": [
             "> 3%"

@@ -5,9 +5,8 @@
   "description": "Demo of using automl client",
   "main": "index.js",
   "scripts": {
-    "prep": "mkdirp dist && cp -r static dist/",
-    "watch": "yarn prep && cross-env NODE_ENV=development parcel index.html --no-hmr --open ",
-    "build": "yarn prep && cross-env NODE_ENV=production parcel build index.html --public-url ./"
+    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open ",
+    "build": "cross-env NODE_ENV=production parcel build index.html --public-url ./"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

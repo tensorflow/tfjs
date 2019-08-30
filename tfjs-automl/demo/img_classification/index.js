@@ -19,8 +19,11 @@
 // is released.
 import * as automl from '../../src/index';
 
+const MODEL_URL =
+    'https://storage.googleapis.com/learnjs-data/automl/img_classification/model.json';
+
 async function run() {
-  const model = await automl.loadImageClassification('static/model.json');
+  const model = await automl.loadImageClassification(MODEL_URL);
   const image = document.getElementById('daisy');
   const predictions = await model.classify(image);
   console.log(predictions);

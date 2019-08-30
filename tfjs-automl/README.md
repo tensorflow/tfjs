@@ -56,6 +56,7 @@ const model = automl.loadImageClassification(modelUrl);
 ### Making a prediction
 The input `img` can be
 [`HTMLImageElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement),
+[`HTMLCanvasElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement),
 [`HTMLVideoElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement),
 [`ImageData`](https://developer.mozilla.org/en-US/docs/Web/API/ImageData) or
 a 3D [`Tensor`](https://js.tensorflow.org/api/latest/#class:Tensor):
