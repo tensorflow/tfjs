@@ -1607,6 +1607,32 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     const data = await res.data();
     expect(data.length).toEqual(10 * 10 * 3);
   });
+  it('fromPixels for HTMLVideolement', async () => {
+    const video = document.createElement('video');
+    video.width = 1;
+    video.height = 1;
+    const source = document.createElement('source');
+    video.appendChild(source);
+    source.src = 'data:image/gif;base64' +
+        ',R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
+    await new Promise(resolve => {
+      video.addEventListener('loadeddata', () => resolve());
+    });
+    const res = tf.browser.fromPixels(video);
+    expect(res.shape).toEqual([1, 1, 3]);
+    const data = await res.data();
+    expect(data.length).toEqual(1 * 1 * 3);
+    document.body.removeChild(video);
+  });
+
+  it('fromPixels for HTMLVideolement throws without loadeddata', async () => {
+    const video = document.createElement('video');
+    video.width = 1;
+    video.height = 1;
+    video.src = 'data:image/gif;base64' +
+        ',R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
+    expect(() => tf.browser.fromPixels(video)).toThrowError();
+  });
 
   it('throws when passed a primitive number', () => {
     const msg = /pixels passed to tf.browser.fromPixels\(\) must be either/;
