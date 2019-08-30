@@ -312,7 +312,7 @@ export class MathBackendWebGL implements KernelBackend {
 
     if (isImage || isVideo) {
       if (this.fromPixels2DContext == null) {
-        if (document.readyState !== 'complete') {
+        if (isVideo && document.readyState !== 'complete') {
           throw new Error(
               'The DOM is not ready yet. Please call ' +
               'tf.browser.fromPixels() once the DOM is ready. One way to ' +
