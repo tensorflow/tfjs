@@ -78,9 +78,7 @@ module.exports = {
 
 ### Step 5: Test that it is working
 
-Before using tfjs in a react native app, you need to call `tf.ready()` and wait for it to complete.
-This is an **async function** so you might want to do this in a `componentDidMount` or before
-the app is rendered.
+Before using tfjs in a react native app, you need to call `tf.ready()` and wait for it to complete. This is an **async function** so you might want to do this in a `componentDidMount` or before the app is rendered.
 
 The example below uses a flag in the App state to indicate that TensorFlow is ready.
 

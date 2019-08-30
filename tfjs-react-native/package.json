@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@react-native-community/async-storage": "^1.4.2",
-    "@tensorflow/tfjs-core": "^1.2.8",
+    "@tensorflow/tfjs-core": ">=1.2.8",
     "@types/base64-js": "^1.2.5",
     "@types/jasmine": "~2.5.53",
     "@types/react-native": "^0.60.2",
