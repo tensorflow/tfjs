@@ -240,6 +240,38 @@ describe('convolution', () => {
           preluActivationWeights: undefined
         });
       });
+
+      it('with bias and prelu activation func', () => {
+        spyOn(tfc.fused, 'conv2d');
+        node.op = '_FusedConv2D';
+        node.inputParams['filter'] = createTensorAttr(1);
+        node.inputParams['args'] = createTensorsAttr(2, 0);
+        node.attrParams['fusedOps'] = createStrArrayAttr(['biasadd', 'prelu']);
+        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['pad'] = createStrAttr('same');
+        node.attrParams['dataFormat'] = createStrAttr('NHWC');
+        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['numArgs'] = createNumberAttr(2);
+        const input1 = [tfc.scalar(1.0)];
+        const input2 = [tfc.scalar(2.0)];
+        const input3 = [tfc.scalar(3.0)];
+        const input4 = [tfc.scalar(4.0)];
+        node.inputNames = ['input1', 'input2', 'input3', 'input4'];
+        executeOp(node, {input1, input2, input3, input4}, context);
+
+        expect(tfc.fused.conv2d).toHaveBeenCalledWith({
+          x: input1[0],
+          filter: input2[0],
+          strides: [2, 2],
+          pad: 'same',
+          dataFormat: 'NHWC',
+          dilations: [2, 2],
+          bias: input3[0],
+          activation: 'prelu',
+          preluActivationWeights: input4[0]
+        });
+      });
+
       it('bias add', () => {
         spyOn(tfc.fused, 'conv2d');
         node.op = '_FusedConv2D';

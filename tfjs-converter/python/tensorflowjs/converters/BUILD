@@ -61,6 +61,28 @@ py_test(
 )
 
 py_library(
+    name = "fuse_prelu",
+    srcs = ["fuse_prelu.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":common",
+        "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
+py_test(
+    name = "fuse_prelu_test",
+    srcs = ["fuse_prelu_test.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":fuse_prelu",
+        "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
+py_library(
     name = "fold_batch_norms",
     srcs = ["fold_batch_norms.py"],
     srcs_version = "PY2AND3",
