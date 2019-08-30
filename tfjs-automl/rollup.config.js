@@ -85,7 +85,7 @@ module.exports = cmdOptions => {
   bundles.push(config({
     output: {
       format: 'umd',
-      name: 'tf',
+      name: 'tf.automl',
       extend: true,
       file: 'dist/tf-automl.js',
     }
@@ -96,7 +96,7 @@ module.exports = cmdOptions => {
     plugins: [terser({output: {preamble: PREAMBLE}})],
     output: {
       format: 'umd',
-      name: 'tf',
+      name: 'tf.automl',
       extend: true,
       file: 'dist/tf-automl.min.js',
     }

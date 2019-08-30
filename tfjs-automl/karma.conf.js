@@ -19,12 +19,7 @@ const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
-  reports: {},
-  bundlerOptions: {
-    // worker_node_test in tfjs-core contains a conditional require statement
-    // that confuses the bundler of karma-typescript.
-    ignore: ['./worker_node_test']
-  }
+  reports: {}
 };
 
 module.exports = function(config) {
@@ -35,33 +30,19 @@ module.exports = function(config) {
   if (config.flags) {
     args.push('--flags', config.flags);
   }
-  let exclude = [];
-  if (config.excludeTest != null) {
-    exclude.push(config.excludeTest);
-  }
 
   config.set({
     basePath: '',
     frameworks: ['jasmine', 'karma-typescript'],
-    files: [
-      'src/setup_test.ts',       // Setup the environment for the tests.
-      {pattern: 'src/**/*.ts'},  // Import all tests.
-    ],
-    exclude,
+    files: [{pattern: 'src/**/*.ts'}],
     preprocessors: {'**/*.ts': ['karma-typescript']},
     karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
     port: 9876,
     colors: true,
     autoWatch: false,
-    browsers: ['Chrome', 'chrome_webgpu'],
+    browsers: ['Chrome'],
     singleRun: true,
-    customLaunchers: {
-      chrome_webgpu: {
-        base: 'Chrome',
-        flags: ['--enable-unsafe-webgpu'],
-      }
-    },
     client: {jasmine: {random: false}, args: args}
   })
 }
