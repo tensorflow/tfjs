@@ -52,7 +52,7 @@ def register_prelu_op():
   op_def_registry.register_op_list(missing_op_list)
 
 def fuse_ops_for_prelu(input_graph_def):
-  """Modifiies the provided grpah by fusing a set of ops into a single Prelu op.
+  """Modifies the provided graph by fusing a set of ops into a single Prelu op.
   The formula of PReLU is:
   f(x) = alpha * x for x < 0, f(x) = x for x >= 0.
 
