@@ -72,7 +72,7 @@ export let executeOp: InternalOpExecutor = (node: Node,
       if (isBiasAdd) {
         if (isPrelu && numArgs !== 2) {
           throw new Error(
-              'Fused Conv2d with BiasAdd must have two ' +
+              'Fused Conv2d with BiasAdd and Prelu must have two ' +
               'extra arguments: bias and alpha.');
         }
         if (!isPrelu && numArgs !== 1) {
