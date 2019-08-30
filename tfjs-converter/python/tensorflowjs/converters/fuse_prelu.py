@@ -141,21 +141,10 @@ def fuse_ops_for_prelu(input_graph_def):
   return result_graph_def
 
 def fuse_prelu_with_fused_conv2d(input_graph_def):
-  """The formula of PReLU is:
- f(x) = alpha * x for x < 0, f(x) = x for x >= 0.
-
- `x` is the input, and `alpha` is a trainable tensor which can be broadcasted
- to the shape of `x`.
-
- There's no native PRelu op in TensorFlow, so Keras generates the following
- structure which does the equivalent calculation:
- f(x) = Relu(x) + (-alpha * Relu(-x))
-
- Practically, alpha is always a constant in the inference graph, and grappler
- can have other graph transformations which fold the activation functions to
- other ops. Therefore, we're looking for the structure:
-
- f(x) = Relu(x) + (negative_alpha * Neg(x, activation=Relu))
+  """Tensorflow does not support Prelu op, and the grappler remap optimizer
+  will not fuse the prelu op with _FusedConv2D op. This method searches for
+  the pattern and fuse the (_FusedConv2D + Prelu) nodes into a single
+  _FusedConv2D op with activation information.
 
   Args:
     input_graph_def: A GraphDef containing a model.
