@@ -1,0 +1,1 @@
+../tfjs-node/scripts/print-full-package-host.js

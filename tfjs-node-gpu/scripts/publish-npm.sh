@@ -1,0 +1,1 @@
+../tfjs-node/scripts/publish-npm.sh
