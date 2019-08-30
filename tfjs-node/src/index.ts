@@ -27,7 +27,7 @@ import * as nodeVersion from './version';
 // tslint:disable-next-line:no-require-imports
 const binary = require('node-pre-gyp');
 const bindingPath =
-    binary.find(path.resolve(path.join(__dirname, '/../package.json')));
+    binary.find(path.resolve(path.join(process.cwd(), '/package.json')));
 // tslint:disable-next-line:no-require-imports
 const bindings = require(bindingPath);
 
