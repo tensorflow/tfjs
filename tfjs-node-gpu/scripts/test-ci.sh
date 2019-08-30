@@ -1,1 +1,1 @@
-../tfjs-node/scripts/test-ci.sh
+../../tfjs-node/scripts/test-ci.sh

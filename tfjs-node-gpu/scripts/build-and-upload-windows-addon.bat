@@ -1,1 +1,1 @@
-../tfjs-node/scripts/build-and-upload-windows-addon.bat
+../../tfjs-node/scripts/build-and-upload-windows-addon.bat

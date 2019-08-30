@@ -1,1 +1,1 @@
-../tfjs-node/scripts/resources.js
+../../tfjs-node/scripts/resources.js

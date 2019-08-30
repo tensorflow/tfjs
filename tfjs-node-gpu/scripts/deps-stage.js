@@ -1,1 +1,1 @@
-../tfjs-node/scripts/deps-stage.js
+../../tfjs-node/scripts/deps-stage.js

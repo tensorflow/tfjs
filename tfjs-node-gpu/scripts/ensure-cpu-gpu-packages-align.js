@@ -1,1 +1,1 @@
-../tfjs-node/scripts/ensure-cpu-gpu-packages-align.js
+../../tfjs-node/scripts/ensure-cpu-gpu-packages-align.js

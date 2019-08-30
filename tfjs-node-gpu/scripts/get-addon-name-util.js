@@ -1,1 +1,1 @@
-../tfjs-node/scripts/get-addon-name-util.js
+../../tfjs-node/scripts/get-addon-name-util.js

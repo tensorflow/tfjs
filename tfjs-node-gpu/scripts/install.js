@@ -1,1 +1,1 @@
-../tfjs-node/scripts/install.js
+../../tfjs-node/scripts/install.js

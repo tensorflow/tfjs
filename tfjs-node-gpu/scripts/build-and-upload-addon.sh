@@ -1,1 +1,1 @@
-../tfjs-node/scripts/build-and-upload-addon.sh
+../../tfjs-node/scripts/build-and-upload-addon.sh

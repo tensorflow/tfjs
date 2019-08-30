@@ -1,1 +1,1 @@
-../tfjs-node/scripts/test-ts-integration.sh
+../../tfjs-node/scripts/test-ts-integration.sh

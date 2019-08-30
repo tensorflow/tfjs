@@ -1,1 +1,1 @@
-../tfjs-node/scripts/build-and-upload-windows-addon-gpu.bat
+../../tfjs-node/scripts/build-and-upload-windows-addon-gpu.bat

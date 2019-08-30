@@ -1,1 +1,1 @@
-../tfjs-node/scripts/build-npm-gpu.sh
+../../tfjs-node/scripts/build-npm-gpu.sh

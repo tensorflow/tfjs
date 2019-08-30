@@ -1,1 +1,1 @@
-../tfjs-node/scripts/publish-npm.sh
+../../tfjs-node/scripts/publish-npm.sh

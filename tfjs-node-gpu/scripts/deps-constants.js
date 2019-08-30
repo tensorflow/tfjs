@@ -1,1 +1,1 @@
-../tfjs-node/scripts/deps-constants.js
+../../tfjs-node/scripts/deps-constants.js
