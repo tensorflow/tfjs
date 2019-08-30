@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import {Tensor3D, test_util} from '@tensorflow/tfjs-core';
-import {BROWSER_ENVS, describeWithFlags, NODE_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import * as automl from './index';
 import {ClassificationPrediction} from './types';
@@ -28,7 +28,7 @@ const MODEL_URL =
 const DAISY_URL =
     'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/daisy.jpg';
 
-describeWithFlags('nodejs integration', NODE_ENVS, () => {
+describeWithFlags('nodejs+browser integration', {}, () => {
   let model: automl.ImageClassificationModel = null;
 
   beforeAll(async () => {
@@ -58,6 +58,14 @@ describeWithFlags('nodejs integration', NODE_ENVS, () => {
     test_util.expectNumbersClose(predictions[1].prob, 0.32249659);
     test_util.expectNumbersClose(predictions[2].prob, 0.0283515);
   });
+
+  it('no memory leak when making a prediction', async () => {
+    const img: Tensor3D = tf.zeros([100, 80, 3]);
+    const numTensorsBefore = tf.memory().numTensors;
+    await model.classify(img);
+    const numTensorsAfter = tf.memory().numTensors;
+    expect(numTensorsAfter).toEqual(numTensorsBefore);
+  });
 });
 
 describeWithFlags('browser integration', BROWSER_ENVS, () => {
@@ -83,15 +91,8 @@ describeWithFlags('browser integration', BROWSER_ENVS, () => {
     tf.test_util.expectNumbersClose(predictions[2].prob, probs[2]);
   }
 
-  it('make prediction from image element', async () => {
+  it('make prediction from an image element', async () => {
     const predictions = await model.classify(daisyImg);
-    assertTop3PredsForDaisy(predictions, true /* centerCrop */);
-  });
-
-  it('make prediction from a tensor', async () => {
-    const tensor = tf.browser.fromPixels(daisyImg);
-    expect(tensor.shape).toEqual([250, 320, 3]);
-    const predictions = await model.classify(tensor);
     assertTop3PredsForDaisy(predictions, true /* centerCrop */);
   });
 

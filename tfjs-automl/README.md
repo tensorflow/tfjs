@@ -20,9 +20,9 @@ If you are using CDN:
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-automl"></script>
 ```
 
-Currently we support two types of AutoML Edge models:
+We support the following types of AutoML Edge models:
 1) [Image classification](#image-classification)
-2) [Object detection](#object-detection)
+2) **[In progress]** [Object detection](#object-detection)
 
 ## Image classification
 
@@ -50,7 +50,7 @@ This will start a local HTTP server on port 1234 that serves the demo.
 ```js
 import * as automl from '@tensorflow/tfjs-automl';
 const modelUrl = 'model.json'; // URL to the model.json file.
-const model = automl.loadImageClassification(modelUrl);
+const model = await automl.loadImageClassification(modelUrl);
 ```
 
 ### Making a prediction
@@ -68,7 +68,7 @@ a 3D [`Tensor`](https://js.tensorflow.org/api/latest/#class:Tensor):
 ```js
 const img = document.getElementById('img');
 const options = {};
-const predictions = model.classify(img, options);
+const predictions = await model.classify(img, options);
 ```
 
 `options` is optional and has the following properties:
@@ -90,4 +90,4 @@ probabilities:
 
 ## Object detection
 
-TODO(smilkov): Write this when you get a model.
+TODO(smilkov): Write this when object detection is ready.

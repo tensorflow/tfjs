@@ -28,9 +28,6 @@ module.exports = function(config) {
   if (config.grep) {
     args.push('--grep', config.grep);
   }
-  if (config.flags) {
-    args.push('--flags', config.flags);
-  }
 
   config.set({
     basePath: '',
