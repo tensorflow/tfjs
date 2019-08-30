@@ -127,7 +127,7 @@ The [Webcam demo folder](integration_rn70/components/webcam) has an example of a
 
 ## API Docs
 
-`tfjs-react-native` exports a number of utility functions
+`tfjs-react-native` exports a number of utility functions:
 
 ### asyncStorageIO(modelKey: string)
 
