@@ -40,8 +40,9 @@ const karmaTypescriptConfig = {
 
 const baseConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
+  autoWatch: true,
   files: [
-    './src/**/*.ts',
+    {pattern: 'src/**/*.ts'},
   ],
   preprocessors: {
     'src/**/*.ts': ['karma-typescript'],
@@ -54,6 +55,7 @@ const browserstackConfig = {
   ...baseConfig,
   reporters: ['dots'],
   singleRun: true,
+  autoWatch: false,
   hostname: 'bs-local.com',
   browserStack: {
     username: process.env.BROWSERSTACK_USERNAME,

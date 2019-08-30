@@ -16,8 +16,11 @@
  */
 
 import './platform_react_native';
+
 import * as tf from '@tensorflow/tfjs-core';
+
 import {bundleResourceIO} from './bundle_resource_io';
+import * as tfjsRn from './platform_react_native';
 
 describe('BundleResourceIO', () => {
   // Test data.
@@ -85,7 +88,7 @@ describe('BundleResourceIO', () => {
 
   it('loads model artifacts', async () => {
     const response = new Response(weightData1);
-    spyOn(tf.ENV.platform, 'fetch').and.returnValue(response);
+    spyOn(tfjsRn, 'fetch').and.returnValue(response);
 
     const modelJson: tf.io.ModelJSON = {
       modelTopology: modelTopology1,
