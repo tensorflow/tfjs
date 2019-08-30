@@ -9,6 +9,7 @@
 
 set -e
 
+yarn build-addon-from-source
 yarn build
 yarn lint
 yarn test
