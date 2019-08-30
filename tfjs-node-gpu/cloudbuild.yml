@@ -19,7 +19,7 @@ steps:
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn']
 
 # Unit tests.
 - name: 'node:10'
@@ -27,7 +27,8 @@ steps:
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
-  waitFor: ['yarn', 'yarn-tfjs-node']
+  waitFor: ['yarn-tfjs-node']
+
 
 # Integration test.
 - name: 'node:10'
@@ -35,7 +36,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-ts-integration'
   args: ['test-ts-integration']
-  waitFor: ['yarn', 'yarn-tfjs-node', 'test']
+  waitFor: ['yarn-tfjs-node', 'test']
 
 # CPU / GPU package alignment.
 - name: 'node:10'
@@ -43,7 +44,7 @@ steps:
   entrypoint: 'yarn'
   id: 'ensure-cpu-gpu-packages-align'
   args: ['ensure-cpu-gpu-packages-align']
-  waitFor: ['yarn']
+  waitFor: ['yarn-tfjs-node']
 
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
