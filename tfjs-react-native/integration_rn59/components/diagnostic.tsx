@@ -20,7 +20,7 @@ import { Button, SafeAreaView, StyleSheet, ScrollView, View, StatusBar } from 'r
 
 import * as tf from '@tensorflow/tfjs';
 import { Run } from './run';
-import { simpleOpRunner, precisionTestRunner, mobilenetRunner, localModelRunner, trainModelRunner } from './ml';
+import { simpleOpRunner, precisionTestRunner, mobilenetRunner, localModelRunner, trainModelRunner, saveModelRunner } from './ml';
 
 interface ScreenProps {
   returnToMain: () => void;
@@ -75,10 +75,12 @@ export class Diagnostic extends React.Component<ScreenProps> {
                   getRunner={precisionTestRunner} numRuns={1}></Run>
                 <Run label='mobilenet'
                   getRunner={mobilenetRunner} numRuns={1}></Run>
-                <Run label='local model run'
+                <Run label='bundleStorageIO'
                   getRunner={localModelRunner} numRuns={1}></Run>
                 <Run label='train model'
                   getRunner={trainModelRunner} numRuns={1}></Run>
+                <Run label='asyncStorareIO'
+                  getRunner={saveModelRunner} numRuns={1}></Run>
               </View>
             </View>
           </ScrollView>

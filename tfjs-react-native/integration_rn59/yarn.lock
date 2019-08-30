@@ -853,15 +853,15 @@
   resolved "https://registry.yarnpkg.com/@tensorflow-models/mobilenet/-/mobilenet-1.0.1.tgz#e0dfdfd4941bae780dfe09e927ebdeea00926d12"
   integrity sha512-VaxVRCmJLK09yp2Qn/LvT29joZPT4aCBrSD4DwIkWghfJF7M/DGqxsiZSnjnUnYjzkZdNv7JCVJ4EY1PCmufQw==
 
-"@tensorflow/tfjs-converter@1.2.7":
-  version "1.2.7"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.2.7.tgz#3a1cf6d636667586010c4df79e861293ce10c4c8"
-  integrity sha512-7MRH21zNgOOYGuztcrZwx6eXhg8gn/QvIZWljsmTJ33fnIyWLSAIHXsp5WgWalfAsj40yU92TnxaIyRuPeD/mw==
+"@tensorflow/tfjs-converter@1.2.8":
+  version "1.2.8"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.2.8.tgz#86fa47be3e92a90d4191956f08015a17b93c3ef9"
+  integrity sha512-weHzkNRVgnY9TcbA3XTneNgCyuIXLjF8ks8YbFA+81i2w6qO90xiAdWtP2YmR+F9K9S4WR3bSSB0AQKZAp+mPQ==
 
-"@tensorflow/tfjs-core@1.2.7":
-  version "1.2.7"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.2.7.tgz#522328de16470aa9f7c15b91e4b68616f425002a"
-  integrity sha512-RsXavYKMc0MOcCmOyD7HE8am1tWlDGXl0nJbsdib7ubmvMuH6KnrZ302eTYV7k1RMq+/ukkioJmCcw13hopuHQ==
+"@tensorflow/tfjs-core@1.2.8":
+  version "1.2.8"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.2.8.tgz#d6873b88522f8cf25d34c10afd095866578d7d92"
+  integrity sha512-lWV4vAnXAAmahXpCWBwdGGW9HO6iNw9pUeVYih7pDXeJahMk3OJs6SgjRNhwn+ldsGwRoorR0/RHg0yNLmqWxQ==
   dependencies:
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
@@ -870,34 +870,36 @@
     node-fetch "~2.1.2"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-data@1.2.7":
-  version "1.2.7"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.2.7.tgz#06f5315a045ca680e721688e64976a418f43f979"
-  integrity sha512-Q274DhAHkN6wJNEeNkKj7p++lueVd0QZXWTIVoyuzN7o25dJooStjomYjZimWIi1f81/3m2AoMtfA7y0uPGDiA==
+"@tensorflow/tfjs-data@1.2.8":
+  version "1.2.8"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.2.8.tgz#04325ad01167b0168ca8e34e85bc6a475aa5e8a0"
+  integrity sha512-KUJy55mRx33OodlDKy6Emt2vvV9EadumZ6JzbtZCf1ADK5ddRpRLhCrEmGauCk+Ay1Zj+p6MYx6CLYqhJsENFQ==
   dependencies:
     "@types/node-fetch" "^2.1.2"
     node-fetch "~2.1.2"
 
-"@tensorflow/tfjs-layers@1.2.7":
-  version "1.2.7"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.2.7.tgz#4d9ad8966b5f1833ddabd2581c282cd288a69968"
-  integrity sha512-qc9qRmJsizRon2HyIKKtWnZOQFMKdaWDeLlHyZUkrOn7YxqjFvxLs9BXsjKR1IuBliOljEe+ZEePDpasUtYLng==
+"@tensorflow/tfjs-layers@1.2.8":
+  version "1.2.8"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.2.8.tgz#6d696dcfa530708b1fdb0cd7614a0d2a1c8ae58a"
+  integrity sha512-NMcA44U0rvVpo/VUTMpqkBP3jbvNhRXV7K8KovLi/WZ9FG/u5XIbIqFkcT3QXBDUyjDUNFToYQM/59dtnaut9Q==
 
-"@tensorflow/tfjs-react-native@file:..":
-  version "0.1.0"
+"@tensorflow/tfjs-react-native@0.1.0-alpha.2":
+  version "0.1.0-alpha.2"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-react-native/-/tfjs-react-native-0.1.0-alpha.2.tgz#83e4efd6b8ff4e454df6cb3ccc56330b7547b5be"
+  integrity sha512-VRatwALllGbJuo/8dov9LmGcmwcNItQwc8YEnQDLnEw4x5rpCSfcigvKmm0J4EcdFHgzh65j0ODzbO00QK9Z1g==
   dependencies:
     base64-js "^1.3.0"
     buffer "^5.2.1"
 
-"@tensorflow/tfjs@^1.2.7":
-  version "1.2.7"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-1.2.7.tgz#5da167a56cda8d0fb6aa2f7cf1b1d6b36a99a7f7"
-  integrity sha512-C5wCPic5kWDHLEoDCJsuypfge/vw9CVYpHAOzM57PXhVdYBNQRFNi2mA4KhB6jg8gs/e9u5Ei4lA1I0rhPorAQ==
+"@tensorflow/tfjs@^1.2.8":
+  version "1.2.8"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-1.2.8.tgz#441b78294f1e2f7174c5773f82424b8d963f0f60"
+  integrity sha512-pNgLMWNpzWn8AIaTV+1MOjg0a99IBgGjDLLhgDBJ6m6/mzfDdFv2TxcYtF0kdF4asSd4cHaupuELeOzSF2coFw==
   dependencies:
-    "@tensorflow/tfjs-converter" "1.2.7"
-    "@tensorflow/tfjs-core" "1.2.7"
-    "@tensorflow/tfjs-data" "1.2.7"
-    "@tensorflow/tfjs-layers" "1.2.7"
+    "@tensorflow/tfjs-converter" "1.2.8"
+    "@tensorflow/tfjs-core" "1.2.8"
+    "@tensorflow/tfjs-data" "1.2.8"
+    "@tensorflow/tfjs-layers" "1.2.8"
 
 "@types/babel__core@^7.1.0":
   version "7.1.2"
@@ -2322,6 +2324,14 @@ expo-asset@~6.0.0:
     path-browserify "^1.0.0"
     url-parse "^1.4.4"
 
+expo-camera@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/expo-camera/-/expo-camera-6.0.0.tgz#74db78874f87de7adcd63db0e96591c331fefd28"
+  integrity sha512-/yI/w2wumKVzRfiyTj84+WkRjO2srJyApjN2yFQwIIo+SncOUp5268ao2UKu4zsl3xdj6WQ7ZJeThOX/C75WRQ==
+  dependencies:
+    lodash "^4.6.0"
+    prop-types "^15.6.0"
+
 expo-constants@~6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/expo-constants/-/expo-constants-6.0.0.tgz#ff4598985ba006e24949be3f05be7429e5bedacf"
@@ -2348,6 +2358,11 @@ expo-gl@^6.0.0:
   dependencies:
     expo-gl-cpp "~6.0.0"
     prop-types "^15.6.2"
+
+expo-image-manipulator@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/expo-image-manipulator/-/expo-image-manipulator-6.0.0.tgz#f638691cb0d30a653a9234bb5d2e804d844a0fe8"
+  integrity sha512-kZL7m5I3XCBDzupUJyuVsBQrdbp1Z9RwJaE8fbPH/lZRM7iX++0Vnx0jhE5KR6adI22sBqIkd5Gd/Cc2Nk1fLA==
 
 expo-permissions@~6.0.0:
   version "6.0.0"
@@ -3915,7 +3930,7 @@ lodash.throttle@^4.1.1:
   resolved "https://registry.yarnpkg.com/lodash.throttle/-/lodash.throttle-4.1.1.tgz#c23e91b710242ac70c37f1e1cda9274cc39bf2f4"
   integrity sha1-wj6RtxAkKscMN/HhzaknTMOb8vQ=
 
-lodash@^4.17.11, lodash@^4.17.13, lodash@^4.17.14, lodash@^4.17.5, lodash@^4.3.0, lodash@^4.5.0, lodash@^4.6.1:
+lodash@^4.17.11, lodash@^4.17.13, lodash@^4.17.14, lodash@^4.17.5, lodash@^4.3.0, lodash@^4.5.0, lodash@^4.6.0, lodash@^4.6.1:
   version "4.17.15"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
   integrity sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==
@@ -5103,7 +5118,7 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.3"
 
-prop-types@^15.5.8, prop-types@^15.6.1, prop-types@^15.6.2:
+prop-types@^15.5.8, prop-types@^15.6.0, prop-types@^15.6.1, prop-types@^15.6.2:
   version "15.7.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
