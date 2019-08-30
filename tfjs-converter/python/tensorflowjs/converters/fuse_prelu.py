@@ -52,21 +52,22 @@ def register_prelu_op():
   op_def_registry.register_op_list(missing_op_list)
 
 def fuse_ops_for_prelu(input_graph_def):
-  """The formula of PReLU is:
- f(x) = alpha * x for x < 0, f(x) = x for x >= 0.
+  """Modifiies the provided grpah by fusing a set of ops into a single Prelu op.
+  The formula of PReLU is:
+  f(x) = alpha * x for x < 0, f(x) = x for x >= 0.
 
- `x` is the input, and `alpha` is a trainable tensor which can be broadcasted
- to the shape of `x`.
+  `x` is the input, and `alpha` is a trainable tensor which can be broadcasted
+  to the shape of `x`.
 
- There's no native PRelu op in TensorFlow, so Keras generates the following
- structure which does the equivalent calculation:
- f(x) = Relu(x) + (-alpha * Relu(-x))
+  There's no native PRelu op in TensorFlow, so Keras generates the following
+  structure which does the equivalent calculation:
+  f(x) = Relu(x) + (-alpha * Relu(-x))
 
- Practically, alpha is always a constant in the inference graph, and grappler
- can have other graph transformations which fold the activation functions to
- other ops. Therefore, we're looking for the structure:
+  Practically, alpha is always a constant in the inference graph, and grappler
+  can have other graph transformations which fold the activation functions to
+  other ops. Therefore, we're looking for the structure:
 
- f(x) = Relu(x) + (negative_alpha * Neg(x, activation=Relu))
+  f(x) = Relu(x) + (negative_alpha * Neg(x, activation=Relu))
 
   Args:
     input_graph_def: A GraphDef containing a model.
@@ -183,7 +184,7 @@ def fuse_prelu_with_fused_conv2d(input_graph_def):
 
 def register_prelu_func(graph):
   """Register Prelu op with function def, this is need for importing graph_def
-  with unregistered Prelu op'
+  with unregistered Prelu op.
   Args:
     graph: A tf.Graph object to insert prelu function into.
   """

@@ -169,7 +169,7 @@ def fold_batch_norms(input_graph_def):
     nodes_to_skip[weights_op.name] = True
     nodes_to_skip[conv_op.name] = True
 
-    if common.scale_after_normalization(node):
+    if scale_after_normalization(node):
       scale_value = (
           (1.0 / np.vectorize(math.sqrt)(var_value + variance_epsilon_value)) *
           gamma_value)
@@ -226,3 +226,9 @@ def fold_batch_norms(input_graph_def):
 
   result_graph_def.node.extend(new_ops)
   return result_graph_def
+
+# Whether to scale by gamma after normalization.
+def scale_after_normalization(node):
+  if node.op == "BatchNormWithGlobalNormalization":
+    return node.attr["scale_after_normalization"].b
+  return True
