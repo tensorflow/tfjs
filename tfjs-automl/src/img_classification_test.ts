@@ -17,11 +17,10 @@
 
 import {GraphModel} from '@tensorflow/tfjs-converter';
 import * as tf from '@tensorflow/tfjs-core';
-import {Tensor3D, test_util} from '@tensorflow/tfjs-core';
+import {test_util} from '@tensorflow/tfjs-core';
 import {BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import * as automl from './index';
-import {ClassificationPrediction} from './types';
 
 const MODEL_URL =
     'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
@@ -37,7 +36,7 @@ describeWithFlags('integration', {}, () => {
   });
 
   it('make prediction from a tensor', async () => {
-    const img: Tensor3D = tf.zeros([100, 80, 3]);
+    const img: tf.Tensor3D = tf.zeros([100, 80, 3]);
     const predictions = await model.classify(img);
     expect(predictions[0].label).toBe('daisy');
     expect(predictions[1].label).toBe('dandelion');
@@ -49,7 +48,7 @@ describeWithFlags('integration', {}, () => {
   });
 
   it('make prediction from a tensor without cropping', async () => {
-    const img: Tensor3D = tf.zeros([100, 80, 3]);
+    const img: tf.Tensor3D = tf.zeros([100, 80, 3]);
     const predictions = await model.classify(img, {centerCrop: false});
     expect(predictions[0].label).toBe('daisy');
     expect(predictions[1].label).toBe('dandelion');
@@ -61,7 +60,7 @@ describeWithFlags('integration', {}, () => {
   });
 
   it('no memory leak when making a prediction', async () => {
-    const img: Tensor3D = tf.zeros([100, 80, 3]);
+    const img: tf.Tensor3D = tf.zeros([100, 80, 3]);
     const numTensorsBefore = tf.memory().numTensors;
     await model.classify(img);
     const numTensorsAfter = tf.memory().numTensors;
@@ -94,7 +93,7 @@ describeWithFlags('browser integration', BROWSER_ENVS, () => {
   });
 
   function assertTop3PredsForDaisy(
-      predictions: ClassificationPrediction, centerCrop: boolean) {
+      predictions: automl.ClassificationPrediction, centerCrop: boolean) {
     const probs = centerCrop ? [0.9310929, 0.0273733, 0.0130559] :
                                [0.8411523, 0.0729438, 0.03020708];
     expect(predictions[0].label).toBe('daisy');
