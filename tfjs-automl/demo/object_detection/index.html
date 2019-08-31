@@ -6,7 +6,26 @@
   </style>
 </head>
 <body>
-  <img id="daisy" crossorigin="anonymous" src="https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/test_image.jpg">
+  <div id="imgDiv" style="position:relative;">
+    <img id="salad" width="500" crossorigin="anonymous" src="https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/test_image.jpg" />
+    <svg width="500" height="375" style="position: absolute;top:0;left:0;">
+      <style>
+        .box {
+          stroke-width: 2;
+          fill: none;
+          stroke: red;
+        }
+        .label {
+          font-size: 12px;
+          fill: white;
+          text-anchor: middle;
+        }
+        .label-rect {
+          fill: black;
+        }
+      </style>
+    </svg>
+  </div>
   <script src="index.js"></script>
 </body>
 </html>
