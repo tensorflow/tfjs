@@ -88,6 +88,15 @@ probabilities:
 ]
 ```
 
+### Advanced usage
+
+Advanced users can access the underlying
+[`GraphModel`](https://js.tensorflow.org/api/latest/#class:GraphModel) via
+`model.graphModel`. The `GraphModel` allows users to call lower level methods
+such as `predict()`, `execute()` and `executeAsync()` which return tensors.
+
+`model.dictionary` gives you access to the ordered list of labels.
+
 ## Object detection
 
 TODO(smilkov): Write this when object detection is ready.
