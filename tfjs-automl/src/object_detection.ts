@@ -25,22 +25,41 @@ const DEFAULT_TOPK = 20;
 const DEFAULT_IOU_THRESHOLD = 0.5;
 const DEFAULT_SCORE_THRESHOLD = 0.5;
 
+// TODO(smilkov): Change the name of the input nodes once we get a new model
+// from Cloud.
 const INPUT_NODE_NAME = 'ToFloat';
 const OUTPUT_NODE_NAMES =
     ['Postprocessor/convert_scores', 'Postprocessor/Decode/transpose_1'];
 
 export interface ObjectDetectionOptions {
+  /**
+   * Only the `topk` most likely objects are returned. The actual number of
+   * objects might be less than this number.
+   */
   topk: number;
+  /**
+   * Intersection over union threshold. IoU is a metric between 0 and 1 used to
+   * measure the overlap of two boxes. The predicted boxes will not overlap more
+   * than the specified threshold.
+   */
   iou: number;
+  /** Boxes with score lower than this threshold will be ignored. */
   score: number;
 }
 
+/** Contains the coordinates of a bounding box. */
 export interface Box {
+  /** Number of pixels from the top of the image (top padding). */
   top: number;
+  /** Number of pixels from the left of the image (left padding). */
   left: number;
+  /** The width of the box. */
   width: number;
+  /** The height of the box. */
   height: number;
 }
+
+/** The predicted object, which holds the score, label and bounding box. */
 export interface PredictedObject {
   box: Box;
   score: number;
@@ -89,7 +108,7 @@ export class ObjectDetectionModel {
   }
 }
 
-export async function loadObjectDetectionModel(modelUrl: string):
+export async function loadObjectDetection(modelUrl: string):
     Promise<ObjectDetectionModel> {
   const [model, dict] =
       await Promise.all([loadGraphModel(modelUrl), loadDictionary(modelUrl)]);

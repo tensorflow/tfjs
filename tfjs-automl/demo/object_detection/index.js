@@ -23,7 +23,7 @@ const MODEL_URL =
     'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
 
 async function run() {
-  const model = await automl.loadObjectDetectionModel(MODEL_URL);
+  const model = await automl.loadObjectDetection(MODEL_URL);
   const image = document.getElementById('salad');
   // These are the default options.
   const options = {score: 0.5, iou: 0.5, topk: 20};

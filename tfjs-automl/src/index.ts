@@ -19,7 +19,7 @@
 export {ClassificationPrediction, ImageClassificationModel, ImageClassificationOptions, loadImageClassification} from './img_classification';
 
 // Object detection API.
-export {Box, loadObjectDetectionModel, ObjectDetectionModel, ObjectDetectionOptions, PredictedObject} from './object_detection';
+export {Box, loadObjectDetection, ObjectDetectionModel, ObjectDetectionOptions, PredictedObject} from './object_detection';
 
 // Shared API.
 export {ImageInput} from './types';
