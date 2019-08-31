@@ -15,13 +15,18 @@
  * =============================================================================
  */
 
-// Image classification API.
-export {ClassificationPrediction, ImageClassificationModel, ImageClassificationOptions, loadImageClassification} from './img_classification';
+// TODO(smilkov): Import from "@tensoflow/tfjs-automl" when the package
+// is released.
+import * as automl from '../../src/index';
 
-// Object detection API.
-export {loadObjectDetectionModel, ObjectDetectionModel, ObjectDetectionOptions, ObjectDetectionPrediction} from './object_detection';
+const MODEL_URL =
+    'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
 
-// Shared API.
-export {ImageInput} from './types';
+async function run() {
+  const model = await automl.loadObjectDetectionModel(MODEL_URL);
+  const image = document.getElementById('daisy');
+  const predictions = await model.detect(image);
+  console.log(predictions);
+}
 
-export {version} from './version';
+run();

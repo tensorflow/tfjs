@@ -1,8 +1,8 @@
 {
-  "name": "automl-img-classification-demo",
+  "name": "automl-object-detection-demo",
   "version": "0.0.1",
   "private": true,
-  "description": "Image classification demo using the AutoML NPM library",
+  "description": "Object detection demo using the AutoML NPM library",
   "main": "index.js",
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open ",

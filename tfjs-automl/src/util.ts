@@ -15,13 +15,18 @@
  * =============================================================================
  */
 
-// Image classification API.
-export {ClassificationPrediction, ImageClassificationModel, ImageClassificationOptions, loadImageClassification} from './img_classification';
+import {browser, Tensor, Tensor3D, util} from '@tensorflow/tfjs-core';
+import {ImageInput} from './types';
 
-// Object detection API.
-export {loadObjectDetectionModel, ObjectDetectionModel, ObjectDetectionOptions, ObjectDetectionPrediction} from './object_detection';
+export function imageToTensor(img: ImageInput): Tensor3D {
+  return img instanceof Tensor ? img : browser.fromPixels(img);
+}
 
-// Shared API.
-export {ImageInput} from './types';
-
-export {version} from './version';
+/** Loads and parses the dictionary. */
+export async function loadDictionary(modelUrl: string): Promise<string[]> {
+  const prefixUrl = modelUrl.slice(0, modelUrl.lastIndexOf('/'));
+  const dictUrl = `${prefixUrl}/dict.txt`;
+  const response = await util.fetch(dictUrl);
+  const text = await response.text();
+  return text.trim().split('\n');
+}
