@@ -94,6 +94,19 @@ class ConvertTest(tf.test.TestCase):
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     tf.saved_model.save(model, save_dir)
 
+  def _create_saved_model_with_prelu(self):
+    """Test a basic model with fusable conv2d."""
+    layers = [
+        tf.keras.layers.Conv2D(
+            16, [3, 3], padding='same', use_bias=True),
+        tf.keras.layers.PReLU()
+    ]
+    model = tf.keras.Sequential(layers)
+    model.predict(tf.ones((1, 224, 224, 3)))
+    tf.keras.backend.set_learning_phase(0)
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tf.saved_model.save(model, save_dir)
+
   def _create_saved_model(self):
     """Test a basic model with functions to make sure functions are inlined."""
     input_data = constant_op.constant(1., shape=[1])
@@ -267,6 +280,46 @@ class ConvertTest(tf.test.TestCase):
         base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][1]),
         b'Relu')
 
+    # Check meta-data in the artifact JSON.
+    self.assertEqual(model_json['format'], 'graph-model')
+    self.assertEqual(
+        model_json['convertedBy'],
+        'TensorFlow.js Converter v%s' % version.version)
+    self.assertEqual(model_json['generatedBy'],
+                     tf.__version__)
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_saved_model_with_prelu(self):
+    self._create_saved_model_with_prelu()
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    )
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    nodes = model_json['modelTopology']['node']
+
+    prelu_op = None
+    fused_op = None
+    for node in nodes:
+      if node['op'] == 'Prelu':
+        prelu_op = node
+      if node['op'] == '_FusedConv2D':
+        fused_op = node
+
+    self.assertTrue(prelu_op is None)
+    self.assertTrue(fused_op is not None)
+
+    fused_ops = list(map(base64.b64decode,
+                         fused_op['attr']['fused_ops']['list']['s']))
+    self.assertEqual(fused_ops, [b'BiasAdd', b'Prelu'])
+    self.assertEqual(fused_op['attr']['num_args']['i'], '2')
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
     self.assertEqual(
