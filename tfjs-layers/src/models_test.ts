@@ -9,7 +9,6 @@
  */
 
 import {DataType, ENV, io, memory, ones, randomNormal, Scalar, scalar, serialization, sum, Tensor, tensor1d, tensor2d, tensor3d, train, zeros} from '@tensorflow/tfjs-core';
-import {ConfigDict} from '@tensorflow/tfjs-core/dist/serialization';
 
 import {LayersModel} from './engine/training';
 import * as tfl from './index';
@@ -534,8 +533,9 @@ describeMathCPU('modelFromJSON', () => {
       'backend': 'tensorflow'
     };
     const model =
-        deserialize(convertPythonicToTs(modelTopology) as ConfigDict) as
-        LayersModel;
+        deserialize(
+          convertPythonicToTs(modelTopology) as serialization.ConfigDict
+        ) as LayersModel;
 
     expect(model.name.indexOf('BarSequential123')).toEqual(0);
     expect(model.inputs.length).toEqual(1);

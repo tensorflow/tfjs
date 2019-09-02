@@ -17,7 +17,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers';
-import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
@@ -224,7 +223,7 @@ describe('File system IOHandler', () => {
                 dtype: 'float32',
               }
             ]);
-            expectArraysClose(
+            tfc.test_util.expectArraysClose(
                 new Float32Array(modelArtifacts.weightData),
                 new Float32Array([-1.1, -3.3, -3.3, -7.7]));
             done();
@@ -347,7 +346,7 @@ describe('File system IOHandler', () => {
           new NodeFileSystem([`${modelPath}`, `${modelManifestJSONPath}`]);
       handler.load()
           .then(modelArtifacts => {
-            expectArraysClose(
+            tfc.test_util.expectArraysClose(
                 new Uint8Array(modelArtifacts.modelTopology as ArrayBuffer),
                 new Uint8Array(modelData));
             expect(modelArtifacts.weightSpecs).toEqual([
@@ -362,7 +361,7 @@ describe('File system IOHandler', () => {
                 dtype: 'float32',
               }
             ]);
-            expectArraysClose(
+            tfc.test_util.expectArraysClose(
                 new Float32Array(modelArtifacts.weightData),
                 new Float32Array([-1.1, -3.3, -3.3, -7.7]));
             done();

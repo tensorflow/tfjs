@@ -11,8 +11,7 @@
 /* Original Source: engine/training.py */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {io, ModelPredictConfig as ModelPredictArgs, NamedTensorMap, Optimizer, Scalar, scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
-import {NamedTensor} from '@tensorflow/tfjs-core/dist/tensor_types';
+import {io, ModelPredictConfig as ModelPredictArgs, NamedTensor, NamedTensorMap, Optimizer, Scalar, scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {History, ModelLoggingVerbosity} from '../base_callbacks';

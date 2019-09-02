@@ -3,6 +3,7 @@
     "clang-format": "~1.2.4",
     "chalk": "~2.4.2",
     "shelljs": "~0.8.3",
+    "tslint": "^5.11.0",
     "ts-node": "~4.1.0",
     "typescript": "3.5.3"
   },

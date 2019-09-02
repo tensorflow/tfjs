@@ -15,18 +15,19 @@
  * =============================================================================
  */
 
-import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
-import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
-import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
+import {BackendTimingInfo, backend_util, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, Tensor5D, tidy, util} from '@tensorflow/tfjs-core';
 import * as tfc from '@tensorflow/tfjs-core';
 
-import {Activation, FusedBatchMatMulConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
-import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
-import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined, isArray} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
+
+type Activation = backend_util.Activation;
+type BackendValues = backend_util.BackendValues;
+type Conv2DInfo = backend_util.Conv2DInfo;
+type Conv3DInfo = backend_util.Conv3DInfo;
+type FusedBatchMatMulConfig = backend_util.FusedBatchMatMulConfig;
 
 type TensorInfo = {
   shape: number[],
@@ -36,6 +37,9 @@ type TensorInfo = {
 };
 
 interface DataId {}
+
+const { upcastType } = backend_util;
+const EPSILON_FLOAT32 = 1e-7;
 
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;

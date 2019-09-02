@@ -10,8 +10,7 @@
 
 /* Original source keras/models.py */
 
-import {dispose, io, NamedTensorMap, Optimizer, Scalar, serialization, Tensor, util} from '@tensorflow/tfjs-core';
-import {NamedTensor} from '@tensorflow/tfjs-core/dist/tensor_types';
+import {dispose, io, NamedTensor, NamedTensorMap, Optimizer, Scalar, serialization, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {getUid} from './backend/state';
 import {History} from './base_callbacks';

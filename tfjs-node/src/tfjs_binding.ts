@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {BackendValues} from '@tensorflow/tfjs-core/dist/types';
+import {backend_util} from '@tensorflow/tfjs-core';
+type BackendValues = backend_util.BackendValues;
 
 export declare class TensorMetadata {
   id: number;
