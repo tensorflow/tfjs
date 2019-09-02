@@ -47,6 +47,7 @@ prompt_style = PyInquirer.style_from_dict({
     PyInquirer.Token.Question: '',
 })
 
+
 def value_in_list(answers, key, values):
   """Determine user's answer for the key is in the value list.
   Args:
@@ -70,6 +71,7 @@ def get_tfjs_model_type(model_file):
     else: # Default to layers model
       return common.TFJS_LAYERS_MODEL_FORMAT
 
+
 def detect_saved_model(input_path):
   if os.path.exists(os.path.join(input_path, 'assets', 'saved_model.json')):
     return common.KERAS_SAVED_MODEL
@@ -79,6 +81,7 @@ def detect_saved_model(input_path):
     if 'tf_keras' in graph_def.nodes[0].user_object.identifier:
       return common.KERAS_SAVED_MODEL
   return common.TF_SAVED_MODEL
+
 
 def detect_input_format(input_path):
   """Determine the input format from model's input path or file.
