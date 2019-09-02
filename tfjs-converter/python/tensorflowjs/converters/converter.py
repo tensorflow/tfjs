@@ -24,6 +24,7 @@ import os
 import shutil
 import sys
 import tempfile
+import traceback
 
 import h5py
 import numpy as np
@@ -639,6 +640,7 @@ def convert(arguments):
         'Unsupported input_format - output_format pair: %s - %s' %
         (input_format, output_format))
 
+
 def pip_main():
   """Entry point for pip-packaged binary.
 
@@ -650,7 +652,29 @@ def pip_main():
 
 
 def main(argv):
-  convert(argv[0].split(' '))
+  if not argv or not argv[0]:
+    # No argument is provided. Run the wizard.
+
+    try:
+      from tensorflowjs.converters import wizard
+    except BaseException:
+      # Failed to import wizard. Fall back to the help message.
+      convert([])
+
+    try:
+      dryrun, arguments, output_path = wizard.run()
+      if not dryrun:
+        convert(arguments)
+        wizard.print_output_files(output_path)
+    except BaseException:
+      exc_type, exc_value, exc_traceback = sys.exc_info()
+      lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+      with open(log_file, 'a') as writer:
+        writer.write(''.join(line for line in lines))
+      print('Conversion failed, please check error log file %s.' % log_file)
+
+  else:
+    convert(argv[0].split(' '))
 
 
 if __name__ == '__main__':

@@ -27,7 +27,6 @@ def _get_requirements(file):
 
 CONSOLE_SCRIPTS = [
     'tensorflowjs_converter = tensorflowjs.converters.converter:pip_main',
-    'tensorflowjs_wizard = tensorflowjs.wizard:pip_main',
 ]
 
 setuptools.setup(
