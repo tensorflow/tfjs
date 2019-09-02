@@ -116,9 +116,15 @@ export class MathBackendCPU implements KernelBackend {
       }
     }
     if (this.data.has(dataId)) {
-      throw new Error(`Data buffer is already registered`);
+      // Already registered.
+      return;
     }
     this.data.set(dataId, {dtype});
+  }
+  newData(dtype: DataType, values: BackendValues): DataId {
+    const dataId = {};
+    this.data.set(dataId, {dtype, values});
+    return dataId;
   }
   write(dataId: DataId, values: BackendValues): void {
     if (values == null) {

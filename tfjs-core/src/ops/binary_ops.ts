@@ -324,34 +324,35 @@ function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $b = convertToTensor(b, 'b', 'mul');
   [$a, $b] = makeTypesMatch($a, $b);
 
-  const outShape =
-      broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
+  // const outShape =
+  //     broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    const derA = () => {
-      const res = dy.mul($b.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
-      if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape($a.shape);
-      }
-      return res;
-    };
-    const derB = () => {
-      const res = dy.mul($a.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
-      if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape($b.shape);
-      }
-      return res;
-    };
-    return {$a: derA, $b: derB};
-  };
-  return ENGINE.runKernel((backend, save) => {
-    const res = backend.multiply($a, $b);
-    save([$a, $b]);
-    return res;
-  }, {$a, $b}, der) as T;
+  // const der = (dy: Tensor, saved: Tensor[]) => {
+  //   const [$a, $b] = saved;
+  //   const derA = () => {
+  //     const res = dy.mul($b.toFloat());
+  //     const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
+  //     if (reduceAxes.length > 0) {
+  //       return res.sum(reduceAxes).reshape($a.shape);
+  //     }
+  //     return res;
+  //   };
+  //   const derB = () => {
+  //     const res = dy.mul($a.toFloat());
+  //     const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
+  //     if (reduceAxes.length > 0) {
+  //       return res.sum(reduceAxes).reshape($b.shape);
+  //     }
+  //     return res;
+  //   };
+  //   return {$a: derA, $b: derB};
+  // };
+  return ENGINE.run('Mul', {a: $a, b: $b}, {}) as T;
+  // return ENGINE.runKernel((backend, save) => {
+  //   const res = backend.multiply($a, $b);
+  //   save([$a, $b]);
+  //   return res;
+  // }, {$a, $b}, der) as T;
 }
 
 /**
