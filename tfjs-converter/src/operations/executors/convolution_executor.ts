@@ -64,13 +64,21 @@ export let executeOp: InternalOpExecutor = (node: Node,
           (getParamValue('fusedOps', node, tensorMap, context) as string[]);
 
       const isBiasAdd = extraOp === 'biasadd';
+      const isPrelu = activationFunc === 'prelu';
       const isBatchNorm = extraOp === 'fusedbatchnorm';
 
       const numArgs =
           (getParamValue('numArgs', node, tensorMap, context) as number);
-      if (isBiasAdd && numArgs !== 1) {
-        throw new Error(
-            'Fused Conv2d with BiasAdd must have one extra argument: bias.');
+      if (isBiasAdd) {
+        if (isPrelu && numArgs !== 2) {
+          throw new Error(
+              'Fused Conv2d with BiasAdd and Prelu must have two ' +
+              'extra arguments: bias and alpha.');
+        }
+        if (!isPrelu && numArgs !== 1) {
+          throw new Error(
+              'Fused Conv2d with BiasAdd must have one extra argument: bias.');
+        }
       }
       if (isBatchNorm) {
         throw new Error('Fused Conv2d with FusedBatchNorm is not supported.');

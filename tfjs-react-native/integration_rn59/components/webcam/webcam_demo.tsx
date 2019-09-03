@@ -46,7 +46,7 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     super(props);
     this.state = {
       mode: 'results',
-      cameraType: Camera.Constants.Type.front,
+      cameraType: Camera.Constants.Type.back,
       isLoading: true,
     };
     this.styler = new StyleTranfer();
@@ -158,6 +158,7 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
         resultImage = await this.stylize(contentImage, styleImage),
         this.setState({
           styleImage,
+          contentImage,
           resultImage,
           mode: 'results',
           isLoading: false,
@@ -175,6 +176,7 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
         resultImage = await this.stylize(contentImage, styleImage);
         this.setState({
           contentImage,
+          styleImage,
           resultImage,
           mode: 'results',
           isLoading: false,

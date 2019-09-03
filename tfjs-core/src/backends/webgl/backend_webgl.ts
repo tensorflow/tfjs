@@ -488,9 +488,10 @@ export class MathBackendWebGL implements KernelBackend {
     // Download the values from the GPU.
     let vals: Float32Array;
     if (dtype === 'complex64') {
-      const ps =
-          Promise.all([complexTensors.real.data(), complexTensors.imag.data()]);
-      const [realValues, imagValues] = await ps;
+      const ps = await Promise.all(
+          [complexTensors.real.data(), complexTensors.imag.data()]);
+      const realValues = ps[0];
+      const imagValues = ps[1];
       vals = mergeRealAndImagArrays(
           realValues as Float32Array, imagValues as Float32Array);
     } else if (buffer == null) {
