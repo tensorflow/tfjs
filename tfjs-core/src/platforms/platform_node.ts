@@ -24,13 +24,13 @@ export const getNodeFetch = {
   importFetch: () => require('node-fetch')
 };
 
+type FetchFn = (url: string, init?: RequestInit) => Promise<Response>;
 let systemFetch: FetchFn;
 // These getters and setters are for testing so we don't export a mutable
 // variable.
 export function resetSystemFetch() {
   systemFetch = null;
 }
-type FetchFn = (url: string, init?: RequestInit) => Promise<Response>;
 export function setSystemFetch(fetchFn: FetchFn) {
   systemFetch = fetchFn;
 }
