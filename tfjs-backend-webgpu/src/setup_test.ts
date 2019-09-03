@@ -74,6 +74,8 @@ const EXCLUDE_LIST: string[] = [
   'argmax test-webgpu {} accepts tensor with bool',      // Actual != Expected.
   'RFFT',                                                // Not yet implemented.
   'fused',                                               // Not yet implemented.
+  'NCHW',                                                // Not yet implemented.
+  'maxPool3d'                                            // Not yet implemented.
 ];
 
 /**
