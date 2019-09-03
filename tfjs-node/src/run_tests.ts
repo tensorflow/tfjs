@@ -17,7 +17,10 @@
 
 // We import index.ts so that the Node backend gets registered.
 import './index';
+
+import {getBackend} from '@tensorflow/tfjs-core';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
+
 import {nodeBackend} from './nodejs_kernel_backend';
 
 Error.stackTraceLimit = Infinity;
@@ -30,6 +33,7 @@ process.on('unhandledRejection', e => {
   throw e;
 });
 
+console.log('RUNNING TESTS SETTING TEST ENVIRONMENT', getBackend());
 jasmine_util.setTestEnvs(
     [{name: 'test-tensorflow', backendName: 'tensorflow', flags: {}}]);
 
@@ -84,13 +88,14 @@ if (process.platform === 'win32') {
       'maxPool test-tensorflow {} [x=[3,3,1] f=[2,2] s=1 ignores NaNs');
 }
 
+// Run the core tests from the tfjs-node package so we don't have a double
+// import of tfjs-core.
+const coreTests = process.cwd() +
+    '/../tfjs-node/node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
+const nodeTests = process.cwd() + '/src/**/*_test.ts';
+
 const runner = new jasmineCtor();
-runner.loadConfig({
-  spec_files: [
-    'src/**/*_test.ts', 'node_modules/@tensorflow/tfjs-core/dist/**/*_test.js'
-  ],
-  random: false
-});
+runner.loadConfig({spec_files: [nodeTests, coreTests], random: false});
 
 if (process.env.JASMINE_SEED) {
   runner.seed(process.env.JASMINE_SEED);

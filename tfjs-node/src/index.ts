@@ -26,8 +26,8 @@ import * as nodeVersion from './version';
 
 // tslint:disable-next-line:no-require-imports
 const binary = require('node-pre-gyp');
-const bindingPath =
-    binary.find(path.resolve(path.join(process.cwd(), '/package.json')));
+const packageJsonPath = path.resolve(path.join(process.cwd(), '/package.json'));
+const bindingPath = binary.find(packageJsonPath);
 // tslint:disable-next-line:no-require-imports
 const bindings = require(bindingPath);
 
@@ -46,7 +46,7 @@ export * from '@tensorflow/tfjs';
 export * from './node';
 
 // tslint:disable-next-line:no-require-imports
-const pjson = require('../package.json');
+const pjson = require(packageJsonPath);
 
 tf.registerBackend('tensorflow', () => {
   return new NodeJSKernelBackend(bindings as TFJSBinding, pjson.name);

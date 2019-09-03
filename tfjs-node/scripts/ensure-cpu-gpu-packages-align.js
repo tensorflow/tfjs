@@ -18,7 +18,7 @@
 /**
  * Ensures that the GPU and CPU packages align.
  */
-
+const fs = require('fs');
 const cpuPackage = require('../../tfjs-node/package.json');
 const gpuPackage = require('../../tfjs-node-gpu/package.json');
 
@@ -74,4 +74,4 @@ cpuPackageKeys.forEach(key => {
   }
 });
 
-// Ensure binding.gyp aligns.
+// Ensure
