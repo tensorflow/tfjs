@@ -1123,7 +1123,7 @@ function print<T extends Tensor>(x: T, verbose = false): void {
  *    console.log('unique value: ');
  *    results[0].print();
  *    console.log('index value:');
- *    results[1].pritn();
+ *    results[1].print();
  * });
  * ```
  * @param x The tensor to be uniqued.
