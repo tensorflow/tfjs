@@ -36,9 +36,12 @@ for (let i = 0; i <= daysElapsed; i++) {
 
 Promise
     .all(files.map(
-        d => fetch(`https://tfjswebgpubench.s3.amazonaws.com/logs/${d}.json`)
-                 .then(d => d.json())
-                 .catch(err => console.log(err))))
+        d =>
+            fetch(
+                `https://storage.googleapis.com/learnjs-data/webgpu_benchmark_logs/${
+                    d}.json`)
+                .then(d => d.json())
+                .catch(err => console.log(err))))
     .then(responses => {
       dateFormats = dateFormats.filter((d, i) => responses[i] != null);
 
