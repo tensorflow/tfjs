@@ -318,15 +318,6 @@ export class MathBackendWebGL implements KernelBackend {
     }
 
     if (isImage || isVideo) {
-      const HAVE_CURRENT_DATA_READY_STATE = 2;
-      if (isVideo &&
-          (pixels as HTMLVideoElement).readyState <
-              HAVE_CURRENT_DATA_READY_STATE) {
-        throw new Error(
-            'The video element has not loaded data yet. Please wait for ' +
-            '`loadeddata` event on the <video> element.');
-      }
-
       if (this.fromPixels2DContext == null) {
         //@ts-ignore
         this.fromPixels2DContext =

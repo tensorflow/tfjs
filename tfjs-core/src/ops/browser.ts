@@ -52,6 +52,18 @@ function fromPixels_(
     throw new Error(
         'Cannot construct Tensor with more than 4 channels from pixels.');
   }
+  const isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
+      pixels instanceof HTMLVideoElement;
+  if (isVideo) {
+    const HAVE_CURRENT_DATA_READY_STATE = 2;
+    if (isVideo &&
+        (pixels as HTMLVideoElement).readyState <
+            HAVE_CURRENT_DATA_READY_STATE) {
+      throw new Error(
+          'The video element has not loaded data yet. Please wait for ' +
+          '`loadeddata` event on the <video> element.');
+    }
+  }
   return ENGINE.fromPixels(pixels, numChannels);
 }
 
