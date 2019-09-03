@@ -24,7 +24,7 @@ import {getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {concat} from './concat_split';
 import {op} from './operation';
 import {MPRandGauss, RandGamma, UniformRandom} from './rand';
-import {zeros, zerosLike} from './tensor_ops';
+import {zeros, zerosLike, tensor} from './tensor_ops';
 
 /**
  * Creates a new tensor with the same values and shape as the specified
@@ -1114,6 +1114,24 @@ function print<T extends Tensor>(x: T, verbose = false): void {
   console.log(x.toString(verbose));
 }
 
+/**
+ * Finds unique elements in a 1-D tensor.
+ *
+ * ```js
+ * const t = tf.tensor([1,1,2,2]);
+ * const [values, idx] = t;
+ * ```
+ * @param x The tensor to be uniqued.
+ */
+/** @doc {heading: 'Tensors', subheading: 'Creation'} */
+async function unique_(x: Tensor|TensorLike): Promise<[Tensor, Tensor]> {
+  const $x = convertToTensor(x, 'x', 'clone', null);
+  const data = await $x.data();
+  const values = Array.from(new Set(data)).sort();
+  const idx = data.map((it: number) => values.indexOf(it));
+  return [tensor(values), tensor(idx).cast('int32')];
+}
+
 export {
   buffer,  // Not wrapped in op() since no tensors.
   print    // Not wrapped in op() since no need to increase stack trace.
@@ -1144,4 +1162,5 @@ export const stack = op({stack_});
 export const tile = op({tile_});
 export const truncatedNormal = op({truncatedNormal_});
 export const unstack = op({unstack_});
+export const unique = unique_;
 export const setdiff1dAsync = setdiff1dAsync_;
