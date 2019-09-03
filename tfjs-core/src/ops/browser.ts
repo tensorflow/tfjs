@@ -97,8 +97,9 @@ export async function toPixels(
   const data = await $img.data();
   const minTensor = $img.min();
   const maxTensor = $img.max();
-  const [minVals, maxVals] =
-      await Promise.all([minTensor.data(), maxTensor.data()]);
+  const vals = await Promise.all([minTensor.data(), maxTensor.data()]);
+  const minVals = vals[0];
+  const maxVals = vals[1];
   const min = minVals[0];
   const max = maxVals[0];
   minTensor.dispose();
