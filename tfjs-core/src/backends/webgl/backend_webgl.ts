@@ -176,6 +176,8 @@ function mapActivationToShaderProgram(
       return unary_packed_op.RELU;
     }
     return unary_op.RELU;
+  } else if (activation === 'elu') {
+    return unary_op.ELU;
   } else if (activation === 'prelu') {
     if (packed) {
       return binaryop_packed_gpu.PRELU;
