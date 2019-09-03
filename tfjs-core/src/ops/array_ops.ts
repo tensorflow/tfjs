@@ -1119,7 +1119,12 @@ function print<T extends Tensor>(x: T, verbose = false): void {
  *
  * ```js
  * const t = tf.tensor([1,1,2,2]);
- * const [values, idx] = await tf.unique(t);
+ * tf.unique(t).then((results) => {
+ *    console.log('unique value: ');
+ *    results[0].print();
+ *    console.log('index value:');
+ *    result[1].pritn();
+ * });
  * ```
  * @param x The tensor to be uniqued.
  */
