@@ -369,10 +369,8 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
       activation: 'elu'
     });
     expect(result.shape).toEqual([2, 2, 2, 2]);
-    const expected = [
-      -0.99326, 2, -0.99998, 5, -0.9999999, 8, -1, 11, -1, 14, -1, 17, -1, 20,
-      -1, 23
-    ];
+    const expected =
+        [-0.99326, 2, -1, 5, -1, 8, -1, 11, -1, 14, -1, 17, -1, 20, -1, 23];
 
     expectArraysClose(await result.data(), expected);
   });
