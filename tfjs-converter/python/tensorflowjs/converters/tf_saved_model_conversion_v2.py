@@ -35,6 +35,8 @@ import tensorflow_hub as hub
 
 from tensorflowjs import write_weights
 from tensorflowjs.converters import common
+from tensorflowjs.converters import fold_batch_norms
+from tensorflowjs.converters import fuse_prelu
 
 # enable eager execution for v2 APIs
 tf.compat.v1.enable_eager_execution()
@@ -95,6 +97,13 @@ def validate(nodes, skip_op_check, strip_debug_ops):
   not_supported = {x.op for x in [x for x in nodes if x.op not in names]}
   return not_supported
 
+def _run_grappler(config, graph_def, graph):
+  meta_graph = export_meta_graph(
+      graph_def=graph_def, graph=graph)
+
+  return tf_optimizer.OptimizeGraph(
+      config, meta_graph, cluster=get_cluster())
+
 def optimize_graph(graph, output_node_names, output_graph, tf_version,
                    quantization_dtype=None, skip_op_check=False,
                    strip_debug_ops=False):
@@ -110,31 +119,56 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
   """
+  fuse_prelu.register_prelu_func(graph)
 
   # Add a collection 'train_op' so that Grappler knows the outputs.
   for output in output_node_names:
     graph.add_to_collection('train_op', graph.get_operation_by_name(output))
 
   graph_def = graph.as_graph_def()
+
   unsupported = validate(graph_def.node, skip_op_check,
                          strip_debug_ops)
   if unsupported:
     raise ValueError('Unsupported Ops in the model before optimization\n' +
                      ', '.join(unsupported))
 
+  # Because TF break the Prelu op into 6 ops, for performance we are
+  # fusing those ops into a single prelu
+  optimized_graph = fuse_prelu.fuse_ops_for_prelu(graph_def)
+
+  # first pass of grappler optimization, this is needed for batch norm folding.
   config = config_pb2.ConfigProto()
   rewriter_config = config.graph_options.rewrite_options
   rewriter_config.optimizers[:] = [
-      'pruning', 'constfold', 'arithmetic', 'dependency', 'pruning', 'remap',
+      'pruning', 'constfold', 'arithmetic', 'dependency', 'pruning',
       'constfold', 'arithmetic', 'dependency'
   ]
   if strip_debug_ops:
     rewriter_config.optimizers.insert(0, 'debug_stripper')
-  meta_graph = export_meta_graph(
-      graph_def=graph_def, graph=graph)
 
-  optimized_graph = tf_optimizer.OptimizeGraph(
-      config, meta_graph, cluster=get_cluster())
+  optimized_graph = _run_grappler(config, optimized_graph, graph)
+
+  # batch norm folding
+  optimized_graph = fold_batch_norms.fold_batch_norms(optimized_graph)
+
+  # set the device to CPU for all Conv2d nodes, since grappler remap optimizer
+  # only support FusedConv2D for CPU.
+  for node in optimized_graph.node:
+    if node.op == 'Conv2D':
+      node.device = '/device:CPU:0'
+
+  # rerun grappler to fuse conv2d
+  config.graph_options.rewrite_options.optimizers[:] = [
+      'remap',
+      'constfold', 'arithmetic', 'dependency'
+  ]
+
+  optimized_graph = _run_grappler(config, optimized_graph, graph)
+
+  # Since the grappler remap optimizer doe snot support prelu as the activation
+  # function for _FusedConv2D op, we are doing it manually here.
+  optimized_graph = fuse_prelu.fuse_prelu_with_fused_conv2d(optimized_graph)
 
   unsupported = validate(optimized_graph.node, skip_op_check,
                          strip_debug_ops)
@@ -172,6 +206,8 @@ def extract_weights(graph_def,
   const_manifest = []
 
   graph = tf.Graph()
+  fuse_prelu.register_prelu_func(graph)
+
   with tf.compat.v1.Session(graph=graph) as sess:
     tf.import_graph_def(graph_def, name='')
     for const in constants:

@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
+import {Tensor} from '@tensorflow/tfjs';
 import {Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
-import {ensureTensorflowBackend, nodeBackend} from './ops/op_utils';
+import {ensureTensorflowBackend, nodeBackend} from './nodejs_kernel_backend';
 
-enum ImageType {
+export enum ImageType {
   JPEG = 'jpeg',
   PNG = 'png',
   GIF = 'gif',
@@ -191,14 +192,93 @@ export function decodeImage(
 }
 
 /**
+ * Encodes an image tensor to JPEG.
+ *
+ * @param image A 3-D uint8 Tensor of shape [height, width, channels].
+ * @param format An optional string from: "", "grayscale", "rgb".
+ *     Defaults to "". Per pixel image format.
+ *     - '': Use a default format based on the number of channels in the image.
+ *     - grayscale: Output a grayscale JPEG image. The channels dimension of
+ *       image must be 1.
+ *     - rgb: Output an RGB JPEG image. The channels dimension of image must
+ *       be 3.
+ * @param quality An optional int. Defaults to 95. Quality of the compression
+ *     from 0 to 100 (higher is better and slower).
+ * @param progressive An optional bool. Defaults to False. If True, create a
+ *     JPEG that loads progressively (coarse to fine).
+ * @param optimizeSize An optional bool. Defaults to False. If True, spend
+ *     CPU/RAM to reduce size with no quality change.
+ * @param chromaDownsampling  An optional bool. Defaults to True.
+ *     See http://en.wikipedia.org/wiki/Chroma_subsampling.
+ * @param densityUnit An optional string from: "in", "cm". Defaults to "in".
+ *     Unit used to specify x_density and y_density: pixels per inch ('in') or
+ *     centimeter ('cm').
+ * @param xDensity An optional int. Defaults to 300. Horizontal pixels per
+ *     density unit.
+ * @param yDensity An optional int. Defaults to 300. Vertical pixels per
+ *     density unit.
+ * @param xmpMetadata An optional string. Defaults to "". If not empty, embed
+ *     this XMP metadata in the image header.
+ * @returns The JPEG encoded data as an Uint8Array.
+ */
+/**
+ * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
+ */
+export async function encodeJpeg(
+    image: Tensor3D, format: ''|'grayscale'|'rgb' = '', quality = 95,
+    progressive = false, optimizeSize = false, chromaDownsampling = true,
+    densityUnit: 'in'|'cm' = 'in', xDensity = 300, yDensity = 300,
+    xmpMetadata = ''): Promise<Uint8Array> {
+  ensureTensorflowBackend();
+
+  const backendEncodeImage = (imageData: Uint8Array) =>
+      nodeBackend().encodeJpeg(
+          imageData, image.shape, format, quality, progressive, optimizeSize,
+          chromaDownsampling, densityUnit, xDensity, yDensity, xmpMetadata);
+
+  return encodeImage(image, backendEncodeImage);
+}
+
+/**
+ * Encodes an image tensor to PNG.
+ *
+ * @param image A 3-D uint8 Tensor of shape [height, width, channels].
+ * @param compression An optional int. Defaults to -1. Compression level.
+ * @returns The PNG encoded data as an Uint8Array.
+ */
+/**
+ * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
+ */
+export async function encodePng(
+    image: Tensor3D, compression = 1): Promise<Uint8Array> {
+  ensureTensorflowBackend();
+
+  const backendEncodeImage = (imageData: Uint8Array) =>
+      nodeBackend().encodePng(imageData, image.shape, compression);
+  return encodeImage(image, backendEncodeImage);
+}
+
+async function encodeImage(
+    image: Tensor3D, backendEncodeImage: (imageData: Uint8Array) => Tensor):
+    Promise<Uint8Array> {
+  const encodedDataTensor =
+      backendEncodeImage(new Uint8Array(await image.data()));
+
+  const encodedPngData =
+      (
+          // tslint:disable-next-line:no-any
+          await encodedDataTensor.data())[0] as any as Uint8Array;
+  encodedDataTensor.dispose();
+  return encodedPngData;
+}
+
+/**
  * Helper function to get image type based on starting bytes of the image file.
  */
-function getImageType(content: Uint8Array): string {
+export function getImageType(content: Uint8Array): string {
   // Classify the contents of a file based on starting bytes (aka magic number:
-  // tslint:disable-next-line:max-line-length
   // https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files)
   // This aligns with TensorFlow Core code:
-  // tslint:disable-next-line:max-line-length
   // https://github.com/tensorflow/tensorflow/blob/4213d5c1bd921f8d5b7b2dc4bbf1eea78d0b5258/tensorflow/core/kernels/decode_image_op.cc#L44
   if (content.length > 3 && content[0] === 255 && content[1] === 216 &&
       content[2] === 255) {

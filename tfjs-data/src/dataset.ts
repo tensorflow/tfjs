@@ -20,8 +20,13 @@ import * as tf from '@tensorflow/tfjs-core';
 import {TensorLike} from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
 import {iteratorFromConcatenated, iteratorFromFunction, iteratorFromItems, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './iterators/lazy_iterator';
-import {DatasetContainer} from './types';
+import {Container, DataElement} from './types';
 import {canTensorify, deepMapAndAwaitAll, DeepMapResult, isIterable} from './util/deep_map';
+
+/**
+ * A nested structure of Datasets, used as the input to zip().
+ */
+export type DatasetContainer = Container<Dataset<DataElement>>;
 
 // TODO(soergel): consider vectorized operations within the pipeline.
 
