@@ -1617,9 +1617,11 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     video.appendChild(source);
     document.body.appendChild(video);
 
-    await new Promise(resolve => {
-      video.addEventListener('loadeddata', () => resolve());
-    });
+    if (video.readyState < 2) {
+      await new Promise(resolve => {
+        video.addEventListener('loadeddata', () => resolve());
+      });
+    }
 
     const res = tf.browser.fromPixels(video);
     expect(res.shape).toEqual([90, 160, 3]);
