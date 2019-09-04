@@ -472,12 +472,12 @@ export class MathBackendWebGL implements KernelBackend {
     }
 
     let buffer = null;
+    let tmpDownloadTarget: TensorHandle;
+
     if (dtype !== 'complex64' && ENV.get('WEBGL_BUFFER_SUPPORTED')) {
       // Possibly copy the texture into a buffer before inserting a fence.
-      const tmpTarget = this.decode(dataId);
-
-      dataId = tmpTarget.dataId;
-      const tmpData = this.texData.get(tmpTarget.dataId);
+      tmpDownloadTarget = this.decode(dataId);
+      const tmpData = this.texData.get(tmpDownloadTarget.dataId);
 
       buffer = this.gpgpu.createBufferFromTexture(
           tmpData.texture, ...tex_util.getDenseTexShape(shape));
@@ -503,9 +503,10 @@ export class MathBackendWebGL implements KernelBackend {
       vals = this.getValuesFromTexture(dataId);
     } else {
       const size = util.sizeFromShape(shape);
-
       vals = this.gpgpu.downloadFloat32MatrixFromBuffer(buffer, size);
-      this.disposeData(dataId);
+    }
+    if (tmpDownloadTarget != null) {
+      this.disposeData(tmpDownloadTarget.dataId);
     }
     const dTypeVals = this.convertAndCacheOnCPU(dataId, vals);
 
@@ -688,6 +689,14 @@ export class MathBackendWebGL implements KernelBackend {
   getTexture(dataId: DataId): WebGLTexture {
     this.uploadToGPU(dataId);
     return this.texData.get(dataId).texture;
+  }
+
+  /**
+   * Returns internal information for the specific data bucket. Used in unit
+   * tests.
+   */
+  getDataInfo(dataId: DataId): TextureData {
+    return this.texData.get(dataId);
   }
 
   private getCPUBackend(): KernelBackend|null {
