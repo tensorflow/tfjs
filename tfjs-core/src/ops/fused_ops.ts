@@ -28,7 +28,6 @@ import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {Activation} from './fused_util';
 
-
 /**
  * Computes the dot product of two matrices with optional activation and bias.
  *
@@ -535,13 +534,44 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
         () => 'Error in gradient of fused depthwiseConv2d: dilation rates ' +
             `greater than 1 are not yet supported. Got dilations ` +
             `'${dilations}'`);
-    const [x4D, $filter] = saved;
-    return {
-      x: () => depthwiseConv2dDerInput(
-          (x4D as Tensor4D).shape, dy, $filter as Tensor4D, convInfo),
-      $filter: () => depthwiseConv2dDerFilter(
-          x4D as Tensor4D, dy, ($filter as Tensor4D).shape, convInfo),
-    };
+    const [x4D, $filter, y] = saved;
+
+    let dyActivation: Tensor4D;
+    if (activation == null || activation === 'linear') {
+      dyActivation = dy;
+    } else if (activation === 'relu') {
+      dyActivation = dy.mul(y.step());
+    } else {
+      throw new Error(
+          `Gradient for activation ${activation} has not been ` +
+          `implemented yet.`);
+    }
+
+    let biasGradient = {};
+    if (bias != null) {
+      biasGradient = {
+        $bias: () => {
+          let res = dyActivation;
+          const reduceAxes =
+              broadcast_util.getReductionAxes($bias.shape, dyActivation.shape);
+          if (reduceAxes.length > 0) {
+            res = res.sum(reduceAxes);
+          }
+          return res.reshape($bias.shape);
+        }
+      };
+    }
+
+    return Object.assign(
+        {
+          x: () => depthwiseConv2dDerInput(
+              (x4D as Tensor4D).shape, dyActivation, $filter as Tensor4D,
+              convInfo),
+          $filter: () => depthwiseConv2dDerFilter(
+              x4D as Tensor4D, dyActivation, ($filter as Tensor4D).shape,
+              convInfo),
+        },
+        biasGradient);
   };
 
   const inputs: {x: Tensor, $filter: Tensor,
