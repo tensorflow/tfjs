@@ -18,5 +18,9 @@
     "parcel-bundler": "~1.10.3",
     "yalc": "~1.0.0-pre.27"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@tensorflow/tfjs-converter": "^1.2.8",
+    "@tensorflow/tfjs-core": "^1.2.8"
+  }
 }

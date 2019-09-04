@@ -16,7 +16,7 @@
  */
 
 import {GraphModel, loadGraphModel} from '@tensorflow/tfjs-converter';
-import {dispose, getBackend, image, setBackend, Tensor, Tensor2D, tidy} from '@tensorflow/tfjs-core';
+import {dispose, image, Tensor, Tensor2D, tidy} from '@tensorflow/tfjs-core';
 
 import {ImageInput} from './types';
 import {imageToTensor, loadDictionary} from './util';
@@ -86,17 +86,13 @@ export class ObjectDetectionModel {
     const {boxScores, boxLabels} =
         calculateMostLikelyLabels(scores as Float32Array, numBoxes, numClasses);
 
-    // Run post process in cpu for speed.
-    const prevBackend = getBackend();
-    setBackend('cpu');
     // Sort the boxes by score, ignoring overlapping boxes.
-    const selectedBoxesTensor = image.nonMaxSuppression(
+    const selectedBoxesTensor = await image.nonMaxSuppressionAsync(
         boxesTensor as Tensor2D, boxScores, options.topk, options.iou,
         options.score);
-    const selectedBoxes = selectedBoxesTensor.dataSync() as Int32Array;
+    const selectedBoxes = await selectedBoxesTensor.data() as Int32Array;
     dispose([img, scoresTensor, boxesTensor, selectedBoxesTensor]);
-    // Restore the previous backend.
-    setBackend(prevBackend);
+
     const result = buildDetectedObjects(
         width, height, boxes as Float32Array, boxScores, boxLabels,
         selectedBoxes, this.dictionary);
