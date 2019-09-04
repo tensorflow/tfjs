@@ -141,7 +141,7 @@ a 3D [`Tensor`](https://js.tensorflow.org/api/latest/#class:Tensor):
 ```js
 const img = document.getElementById('img');
 const options = {score: 0.5, iou: 0.5, topk: 20};
-const predictions = await model.classify(img, options);
+const predictions = await model.detect(img, options);
 ```
 
 `options` is optional and has the following properties:
