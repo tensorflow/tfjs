@@ -16,7 +16,7 @@
  */
 
 import * as tf from '../../index';
-import {describeWithFlags} from '../../jasmine_util';
+import {Constraints, describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../../test_util';
 import {decodeString, encodeString} from '../../util';
 
@@ -506,7 +506,14 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
   });
 });
 
-describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
+const WEBGL_WITHOUT_CPU_FORWARD: Constraints = {
+  predicate: testEnv => {
+    return testEnv.backendName === 'webgl' &&
+        !testEnv.flags['WEBGL_CPU_FORWARD'];
+  }
+};
+
+describeWithFlags('caching on cpu', WEBGL_WITHOUT_CPU_FORWARD, () => {
   it('caches on cpu after async read', async () => {
     const backend = new MathBackendWebGL();
     tf.registerBackend('cache-on-cpu', () => backend);
