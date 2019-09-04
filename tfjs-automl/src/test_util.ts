@@ -15,24 +15,19 @@
  * =============================================================================
  */
 
-import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
-
-// Increase test timeout since we are fetching the model files from GCS.
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
-
-// Run browser tests againts both the cpu and webgl backends.
-setTestEnvs([
-  // WebGL.
-  {
-    name: 'test-webgl',
-    backendName: 'webgl',
-    flags: {
-      'WEBGL_VERSION': 2,
-      'WEBGL_CPU_FORWARD': false,
-      'WEBGL_SIZE_UPLOAD_UNIFORM': 0
-    },
-    isDataSync: true
-  },
-  // CPU.
-  {name: 'cpu', backendName: 'cpu'}
-]);
+export async function fetchImage(url: string): Promise<HTMLImageElement> {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  const img = new Image();
+  const blobUrl = URL.createObjectURL(blob);
+  return new Promise((resolve, reject) => {
+    img.onload = () => {
+      URL.revokeObjectURL(blobUrl);
+      resolve(img);
+    };
+    img.onerror = (evt /* Arg is an event, not error. Can't rethrow it */) => {
+      reject(new Error('Failed to load blob as image.'));
+    };
+    img.src = blobUrl;
+  });
+}
