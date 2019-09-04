@@ -346,6 +346,31 @@ describeWithFlags('fused depthwiseConv2d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
+  fit('basic with bias and relu', async () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const strides = 1;
+    const chMul = 1;
+    const inDepth = 1;
+
+    const x = tf.tensor4d(
+        [
+          0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
+          0.0741907, 0.409265, 0.351377
+        ],
+        [1, 3, 3, inDepth]);
+    const w = tf.tensor4d(
+        [-0.303873, -0.229223, 0.144333, 0.803373],
+        [fSize, fSize, inDepth, chMul],
+    );
+
+    const result = tf.fused.depthwiseConv2d(
+        {x, filter: w, strides, pad, bias: tf.scalar(1), activation: 'relu'});
+    expect(result.shape).toEqual([1, 2, 2, 1]);
+    const expected = [1.47737, 1.40018, 1.00859, 0.90385];
+    expectArraysClose(await result.data(), expected);
+  });
+
   // basic with bias and relu
 
   // add prelu activation weights

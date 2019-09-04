@@ -1975,14 +1975,16 @@ export class MathBackendCPU implements KernelBackend {
 
   fusedDepthwiseConv2D(
       x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
-      activation?: Activation): Tensor4D {
+      activation?: Activation, preluActivationWeights?: Tensor): Tensor4D {
     let result = this.depthwiseConv2D(x, filter, convInfo);
 
     if (bias) {
       result = this.add(result, bias) as Tensor4D;
     }
     if (activation) {
-      result = mapActivation(this, result, activation) as Tensor4D;
+      result =
+          mapActivation(this, result, activation, preluActivationWeights) as
+          Tensor4D;
     }
     return result;
   }
