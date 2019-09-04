@@ -15,24 +15,18 @@
  * =============================================================================
  */
 
-import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {browser, Tensor, Tensor3D, util} from '@tensorflow/tfjs-core';
+import {ImageInput} from './types';
 
-// Increase test timeout since we are fetching the model files from GCS.
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
+export function imageToTensor(img: ImageInput): Tensor3D {
+  return img instanceof Tensor ? img : browser.fromPixels(img);
+}
 
-// Run browser tests againts both the cpu and webgl backends.
-setTestEnvs([
-  // WebGL.
-  {
-    name: 'test-webgl',
-    backendName: 'webgl',
-    flags: {
-      'WEBGL_VERSION': 2,
-      'WEBGL_CPU_FORWARD': false,
-      'WEBGL_SIZE_UPLOAD_UNIFORM': 0
-    },
-    isDataSync: true
-  },
-  // CPU.
-  {name: 'cpu', backendName: 'cpu'}
-]);
+/** Loads and parses the dictionary. */
+export async function loadDictionary(modelUrl: string): Promise<string[]> {
+  const prefixUrl = modelUrl.slice(0, modelUrl.lastIndexOf('/'));
+  const dictUrl = `${prefixUrl}/dict.txt`;
+  const response = await util.fetch(dictUrl);
+  const text = await response.text();
+  return text.trim().split('\n');
+}
