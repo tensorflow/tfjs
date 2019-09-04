@@ -17,11 +17,5 @@
 
 import {Tensor3D} from '@tensorflow/tfjs-core';
 
-export type ClassificationPrediction = Array<{prob: number, label: string}>;
-
-export interface ImageClassificationOptions {
-  centerCrop: boolean;
-}
-
 export type ImageInput =
     ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|Tensor3D;

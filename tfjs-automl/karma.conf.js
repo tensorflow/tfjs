@@ -43,6 +43,7 @@ module.exports = function(config) {
     port: 9876,
     colors: true,
     browsers: ['Chrome'],
+    reportSlowerThan: 5000,
     client: {jasmine: {random: false}, args: args}
   })
 }
