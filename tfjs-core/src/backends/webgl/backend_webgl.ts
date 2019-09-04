@@ -2115,6 +2115,27 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x, dy]);
   }
 
+  fusedDepthwiseConv2D(
+      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
+      activation?: Activation): Tensor4D {
+    const hasBias = bias != null;
+    const fusedActivation =
+        activation ? mapActivationToShaderProgram(activation, true) : null;
+
+    let program: DepthwiseConv2DProgram|DepthwiseConvPacked2DProgram;
+    if (ENV.getBool('WEBGL_PACK_DEPTHWISECONV') && convInfo.strideWidth <= 2 &&
+        convInfo.outChannels / convInfo.inChannels === 1) {
+      program =
+          new DepthwiseConvPacked2DProgram(convInfo, hasBias, fusedActivation);
+      return this.compileAndRun(
+          program, [x, filter],
+          this.makePackedTensor(convInfo.outShape, x.dtype));
+    }
+
+    program = new DepthwiseConv2DProgram(convInfo, hasBias, fusedActivation);
+    return this.compileAndRun(program, [x, filter]);
+  }
+
   depthwiseConv2D(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
     let program: DepthwiseConv2DProgram|DepthwiseConvPacked2DProgram;

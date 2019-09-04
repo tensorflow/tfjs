@@ -1973,6 +1973,20 @@ export class MathBackendCPU implements KernelBackend {
     return dw.toTensor();
   }
 
+  fusedDepthwiseConv2D(
+      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
+      activation?: Activation): Tensor4D {
+    let result = this.depthwiseConv2D(x, filter, convInfo);
+
+    if (bias) {
+      result = this.add(result, bias) as Tensor4D;
+    }
+    if (activation) {
+      result = mapActivation(this, result, activation) as Tensor4D;
+    }
+    return result;
+  }
+
   depthwiseConv2D(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
     this.assertNotComplex([x, filter], 'depthwiseConv2D');
