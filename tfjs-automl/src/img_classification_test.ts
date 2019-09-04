@@ -17,10 +17,10 @@
 
 import {GraphModel} from '@tensorflow/tfjs-converter';
 import * as tf from '@tensorflow/tfjs-core';
-import {test_util} from '@tensorflow/tfjs-core';
 import {BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import * as automl from './index';
+import {fetchImage} from './test_util';
 
 const MODEL_URL =
     'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
@@ -28,7 +28,7 @@ const MODEL_URL =
 const DAISY_URL =
     'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/daisy.jpg';
 
-describeWithFlags('integration', {}, () => {
+describeWithFlags('image classification', {}, () => {
   let model: automl.ImageClassificationModel = null;
 
   beforeAll(async () => {
@@ -42,9 +42,9 @@ describeWithFlags('integration', {}, () => {
     expect(predictions[1].label).toBe('dandelion');
     expect(predictions[2].label).toBe('roses');
 
-    test_util.expectNumbersClose(predictions[0].prob, 0.5806022);
-    test_util.expectNumbersClose(predictions[1].prob, 0.32249659);
-    test_util.expectNumbersClose(predictions[2].prob, 0.0283515);
+    tf.test_util.expectNumbersClose(predictions[0].prob, 0.5806022);
+    tf.test_util.expectNumbersClose(predictions[1].prob, 0.32249659);
+    tf.test_util.expectNumbersClose(predictions[2].prob, 0.0283515);
   });
 
   it('make prediction from a tensor without cropping', async () => {
@@ -54,9 +54,9 @@ describeWithFlags('integration', {}, () => {
     expect(predictions[1].label).toBe('dandelion');
     expect(predictions[2].label).toBe('roses');
 
-    test_util.expectNumbersClose(predictions[0].prob, 0.5806022);
-    test_util.expectNumbersClose(predictions[1].prob, 0.32249659);
-    test_util.expectNumbersClose(predictions[2].prob, 0.0283515);
+    tf.test_util.expectNumbersClose(predictions[0].prob, 0.5806022);
+    tf.test_util.expectNumbersClose(predictions[1].prob, 0.32249659);
+    tf.test_util.expectNumbersClose(predictions[2].prob, 0.0283515);
   });
 
   it('no memory leak when making a prediction', async () => {
@@ -83,7 +83,7 @@ describeWithFlags('integration', {}, () => {
   });
 });
 
-describeWithFlags('browser integration', BROWSER_ENVS, () => {
+describeWithFlags('image classification browser', BROWSER_ENVS, () => {
   let model: automl.ImageClassificationModel = null;
   let daisyImg: HTMLImageElement;
 
@@ -93,7 +93,7 @@ describeWithFlags('browser integration', BROWSER_ENVS, () => {
   });
 
   function assertTop3PredsForDaisy(
-      predictions: automl.ClassificationPrediction, centerCrop: boolean) {
+      predictions: automl.ImagePrediction[], centerCrop: boolean) {
     const probs = centerCrop ? [0.9310929, 0.0273733, 0.0130559] :
                                [0.8411523, 0.0729438, 0.03020708];
     expect(predictions[0].label).toBe('daisy');
@@ -128,20 +128,3 @@ describeWithFlags('browser integration', BROWSER_ENVS, () => {
     assertTop3PredsForDaisy(predictions, false /* centerCrop */);
   });
 });
-
-async function fetchImage(url: string): Promise<HTMLImageElement> {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  const img = new Image();
-  const blobUrl = URL.createObjectURL(blob);
-  return new Promise((resolve, reject) => {
-    img.onload = () => {
-      URL.revokeObjectURL(blobUrl);
-      resolve(img);
-    };
-    img.onerror = (evt /* Arg is an event, not error. Can't rethrow it */) => {
-      reject(new Error('Failed to load blob as image.'));
-    };
-    img.src = blobUrl;
-  });
-}

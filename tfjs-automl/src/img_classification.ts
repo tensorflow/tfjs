@@ -20,7 +20,10 @@ import {image, Tensor, Tensor3D, tidy} from '@tensorflow/tfjs-core';
 import {ImageInput} from './types';
 import {imageToTensor, loadDictionary} from './util';
 
-export type ClassificationPrediction = Array<{prob: number, label: string}>;
+export interface ImagePrediction {
+  prob: number;
+  label: string;
+}
 
 export interface ImageClassificationOptions {
   centerCrop: boolean;
@@ -36,7 +39,7 @@ export class ImageClassificationModel {
   constructor(public graphModel: GraphModel, public dictionary: string[]) {}
 
   async classify(input: ImageInput, options?: ImageClassificationOptions):
-      Promise<ClassificationPrediction> {
+      Promise<ImagePrediction[]> {
     options = sanitizeOptions(options);
 
     const scores = tidy(() => {

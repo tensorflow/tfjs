@@ -36,15 +36,15 @@ export interface ObjectDetectionOptions {
    * Only the `topk` most likely objects are returned. The actual number of
    * objects might be less than this number.
    */
-  topk: number;
+  topk?: number;
   /**
    * Intersection over union threshold. IoU is a metric between 0 and 1 used to
    * measure the overlap of two boxes. The predicted boxes will not overlap more
    * than the specified threshold.
    */
-  iou: number;
+  iou?: number;
   /** Boxes with score lower than this threshold will be ignored. */
-  score: number;
+  score?: number;
 }
 
 /** Contains the coordinates of a bounding box. */
