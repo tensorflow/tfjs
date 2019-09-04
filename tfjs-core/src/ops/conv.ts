@@ -523,9 +523,9 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
             `'${dilations}'`);
     const [x4D, $filter] = saved;
     return {
-      x: () => depthwiseConv2dDerInput(
+      x: () => depthwiseConv2dDerInput_(
           (x4D as Tensor4D).shape, dy, $filter as Tensor4D, convInfo),
-      $filter: () => depthwiseConv2dDerFilter(
+      $filter: () => depthwiseConv2dDerFilter_(
           x4D as Tensor4D, dy, ($filter as Tensor4D).shape, convInfo),
     };
   };
@@ -675,7 +675,7 @@ function eitherStridesOrDilationsAreOne(
   return tupleValuesAreOne(strides) || tupleValuesAreOne(dilations);
 }
 
-function depthwiseConv2dDerInput<T extends Tensor3D|Tensor4D>(
+function depthwiseConv2dDerInput_<T extends Tensor3D|Tensor4D>(
     xShape: [number, number, number, number]|[number, number, number], dy: T,
     filter: Tensor4D, convInfo: conv_util.Conv2DInfo): T {
   let dy4D = dy as Tensor4D;
@@ -693,7 +693,7 @@ function depthwiseConv2dDerInput<T extends Tensor3D|Tensor4D>(
   return res as T;
 }
 
-function depthwiseConv2dDerFilter<T extends Tensor3D|Tensor4D>(
+function depthwiseConv2dDerFilter_<T extends Tensor3D|Tensor4D>(
     x: T, dy: T, filterShape: [number, number, number, number],
     convInfo: conv_util.Conv2DInfo): Tensor4D {
   let x4D = x as Tensor4D;
@@ -973,6 +973,8 @@ export const conv3d = op({conv3d_});
 export const conv2dDerFilter = op({conv2dDerFilter_});
 export const conv2dDerInput = op({conv2dDerInput_});
 export const depthwiseConv2d = op({depthwiseConv2d_});
+export const depthwiseConv2dDerInput = op({depthwiseConv2dDerInput_});
+export const depthwiseConv2dDerFilter = op({depthwiseConv2dDerFilter_});
 export const separableConv2d = op({separableConv2d_});
 export const conv2dTranspose = op({conv2dTranspose_});
 export const conv3dTranspose = op({conv3dTranspose_});
