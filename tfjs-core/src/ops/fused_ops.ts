@@ -480,7 +480,8 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   dilations = [1, 1],
   dimRoundingMode,
   bias,
-  activation = 'linear'
+  activation = 'linear',
+  preluActivationWeights
 }: {
   x: T|TensorLike,
   filter: Tensor4D|TensorLike,
@@ -490,7 +491,8 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   dilations?: [number, number]|number,
   dimRoundingMode?: 'floor'|'round'|'ceil',
   bias?: Tensor|TensorLike,
-  activation?: Activation
+  activation?: Activation,
+  preluActivationWeights?: Tensor
 }): T {
   const $x = convertToTensor(x, 'x', 'depthwiseConv2d');
   const $filter = convertToTensor(filter, 'filter', 'depthwiseConv2d');
@@ -542,6 +544,12 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
     broadcast_util.assertAndGetBroadcastShape(convInfo.outShape, $bias.shape);
   }
 
+  let $preluActivationWeights: Tensor;
+  if (preluActivationWeights != null) {
+    $preluActivationWeights = convertToTensor(
+        preluActivationWeights, 'prelu weights', 'fused depthwiseConv2d');
+  }
+
   const grad = (dy: Tensor4D, saved: Tensor[]) => {
     util.assert(
         conv_util.tupleValuesAreOne(dilations),
@@ -588,10 +596,17 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
         biasGradient);
   };
 
-  const inputs: {x: Tensor, $filter: Tensor,
-                 $bias?: Tensor} = {x: x4D, $filter};
+  const inputs: {
+    x: Tensor,
+    $filter: Tensor,
+    $bias?: Tensor,
+    $preluActivationWeights?: Tensor
+  } = {x: x4D, $filter};
   if (bias != null) {
     inputs.$bias = $bias;
+  }
+  if (preluActivationWeights != null) {
+    inputs.$preluActivationWeights = $preluActivationWeights;
   }
 
   const res = ENGINE.runKernel((backend, save) => {
