@@ -508,7 +508,7 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
 
 describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
   it('caches on cpu after async read', async () => {
-    const backend = new MathBackendWebGL(null);
+    const backend = new MathBackendWebGL();
     tf.registerBackend('cache-on-cpu', () => backend);
     tf.setBackend('cache-on-cpu');
 
@@ -521,7 +521,7 @@ describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
   });
 
   it('caches on cpu after sync read', () => {
-    const backend = new MathBackendWebGL(null);
+    const backend = new MathBackendWebGL();
     tf.registerBackend('cache-on-cpu', () => backend);
     tf.setBackend('cache-on-cpu');
 
