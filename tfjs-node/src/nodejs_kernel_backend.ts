@@ -47,8 +47,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     this.binding = binding;
     this.isGPUPackage = packageName === '@tensorflow/tfjs-node-gpu';
     this.isUsingGpuDevice = this.binding.isUsingGpuDevice();
-
-    console.log('has gpu device', this.isUsingGpuDevice);
   }
 
   setDataMover(dataMover: DataMover): void {

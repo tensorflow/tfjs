@@ -18,7 +18,6 @@
 // We import index.ts so that the Node backend gets registered.
 import './index';
 
-import {getBackend} from '@tensorflow/tfjs-core';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {nodeBackend} from './nodejs_kernel_backend';
@@ -33,7 +32,6 @@ process.on('unhandledRejection', e => {
   throw e;
 });
 
-console.log('RUNNING TESTS SETTING TEST ENVIRONMENT', getBackend());
 jasmine_util.setTestEnvs(
     [{name: 'test-tensorflow', backendName: 'tensorflow', flags: {}}]);
 
