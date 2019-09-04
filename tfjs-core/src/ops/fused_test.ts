@@ -296,6 +296,63 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
   });
 });
 
+describeWithFlags('fused depthwiseConv2d', ALL_ENVS, () => {
+  fit('basic', async () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const strides = 1;
+    const chMul = 1;
+    const inDepth = 1;
+
+    const x = tf.tensor4d(
+        [
+          0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
+          0.0741907, 0.409265, 0.351377
+        ],
+        [1, 3, 3, inDepth]);
+    const w = tf.tensor4d(
+        [-0.303873, -0.229223, 0.144333, 0.803373],
+        [fSize, fSize, inDepth, chMul],
+    );
+
+    const result = tf.fused.depthwiseConv2d({x, filter: w, strides, pad});
+    expect(result.shape).toEqual([1, 2, 2, 1]);
+    const expected = [0.47737, 0.40018, 0.00859, -0.09615];
+    expectArraysClose(await result.data(), expected);
+  });
+
+  fit('basic with relu', async () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const strides = 1;
+    const chMul = 1;
+    const inDepth = 1;
+
+    const x = tf.tensor4d(
+        [
+          0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
+          0.0741907, 0.409265, 0.351377
+        ],
+        [1, 3, 3, inDepth]);
+    const w = tf.tensor4d(
+        [-0.303873, -0.229223, 0.144333, 0.803373],
+        [fSize, fSize, inDepth, chMul],
+    );
+
+    const result = tf.fused.depthwiseConv2d(
+        {x, filter: w, strides, pad, activation: 'relu'});
+    expect(result.shape).toEqual([1, 2, 2, 1]);
+    const expected = [0.47737, 0.40018, 0.00859, 0];
+    expectArraysClose(await result.data(), expected);
+  });
+
+  // basic with bias and relu
+
+  // add prelu activation weights
+
+  // gradients
+});
+
 describeWithFlags('fused conv2d', ALL_ENVS, () => {
   it('basic', async () => {
     const inputDepth = 2;

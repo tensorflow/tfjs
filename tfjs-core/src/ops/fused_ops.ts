@@ -471,13 +471,27 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
  * @param activation Name of activation kernel (defaults to `linear`).
  */
 /** @doc {heading: 'Operations', subheading: 'Convolution'} */
-function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
-    x: T|TensorLike, filter: Tensor4D|TensorLike,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
-    dataFormat: 'NHWC'|'NCHW' = 'NHWC',
-    dilations: [number, number]|number = [1, 1],
-    dimRoundingMode?: 'floor'|'round'|'ceil', bias?: Tensor|TensorLike,
-    activation: Activation = 'linear'): T {
+function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
+  x,
+  filter,
+  strides,
+  pad,
+  dataFormat = 'NHWC',
+  dilations = [1, 1],
+  dimRoundingMode,
+  bias,
+  activation = 'linear'
+}: {
+  x: T|TensorLike,
+  filter: Tensor4D|TensorLike,
+  strides: [number, number]|number,
+  pad: 'valid'|'same'|number,
+  dataFormat?: 'NHWC'|'NCHW',
+  dilations?: [number, number]|number,
+  dimRoundingMode?: 'floor'|'round'|'ceil',
+  bias?: Tensor|TensorLike,
+  activation?: Activation
+}): T {
   const $x = convertToTensor(x, 'x', 'depthwiseConv2d');
   const $filter = convertToTensor(filter, 'filter', 'depthwiseConv2d');
 
