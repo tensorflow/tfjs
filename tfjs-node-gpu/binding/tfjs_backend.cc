@@ -735,6 +735,9 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
   // If no GPU devices found, fallback to host CPU:
   if (device_name.empty()) {
     device_name = cpu_device_name;
+    is_gpu_device = false;
+  } else {
+    is_gpu_device = true;
   }
   TF_DeleteDeviceList(device_list);
 }
@@ -945,16 +948,6 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   }
 
   return output_tensor_infos;
-}
-
-bool TFJSBackend::IsUsingGPUDevice(napi_env env) {
-  bool is_gpu_device = false;
-
-  if (device_name.compare("GPU") == 0) {
-    is_gpu_device = true;
-  }
-
-  return is_gpu_device;
 }
 
 }  // namespace tfnodejs

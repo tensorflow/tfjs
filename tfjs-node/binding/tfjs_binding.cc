@@ -131,12 +131,10 @@ static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
 }
 
 static napi_value IsUsingGPUDevice(napi_env env, napi_callback_info info) {
-  bool is_gpu_device = gBackend->IsUsingGPUDevice(env);
-
   napi_value result;
 
   napi_status nstatus;
-  nstatus = napi_get_boolean(env, is_gpu_device, &result);
+  nstatus = napi_get_boolean(env, gBackend->is_gpu_device, &result);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   return result;
