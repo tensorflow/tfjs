@@ -16,7 +16,7 @@
  */
 
 import * as tf from '../../index';
-import {Constraints, describeWithFlags} from '../../jasmine_util';
+import {describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../../test_util';
 import {decodeString, encodeString} from '../../util';
 
@@ -506,22 +506,25 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
   });
 });
 
-const WEBGL_WITHOUT_CPU_FORWARD: Constraints = {
-  predicate: testEnv => {
-    return testEnv.backendName === 'webgl' &&
-        !testEnv.flags['WEBGL_CPU_FORWARD'];
-  }
-};
+describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
+  beforeAll(() => {
+    tf.ENV.set('WEBGL_CPU_FORWARD', false);
+  });
 
-describeWithFlags('caching on cpu', WEBGL_WITHOUT_CPU_FORWARD, () => {
   it('caches on cpu after async read', async () => {
     const backend = new MathBackendWebGL();
     tf.registerBackend('cache-on-cpu', () => backend);
     tf.setBackend('cache-on-cpu');
 
     const t = tf.square(2);
-    await t.data();
     const info = backend.getDataInfo(t.dataId);
+
+    // Make sure the tensor is on the GPU.
+    expect(info.values == null).toBe(true);
+
+    await t.data();
+
+    // Make sure the tensor is cached on CPU.
     expect(info.values).not.toBe(null);
 
     tf.removeBackend('cache-on-cpu');
@@ -533,8 +536,14 @@ describeWithFlags('caching on cpu', WEBGL_WITHOUT_CPU_FORWARD, () => {
     tf.setBackend('cache-on-cpu');
 
     const t = tf.square(2);
-    t.dataSync();
     const info = backend.getDataInfo(t.dataId);
+
+    // Make sure the tensor is on the GPU.
+    expect(info.values == null).toBe(true);
+
+    t.dataSync();
+
+    // Make sure the tensor is cached on CPU.
     expect(info.values).not.toBe(null);
 
     tf.removeBackend('cache-on-cpu');
