@@ -176,6 +176,11 @@ function mapActivationToShaderProgram(
       return unary_packed_op.RELU;
     }
     return unary_op.RELU;
+  } else if (activation === 'elu') {
+    if (packed) {
+      return unary_packed_op.ELU;
+    }
+    return unary_op.ELU;
   } else if (activation === 'prelu') {
     if (packed) {
       return binaryop_packed_gpu.PRELU;
@@ -286,8 +291,6 @@ export class MathBackendWebGL implements KernelBackend {
       throw new Error(
           'pixels passed to tf.browser.fromPixels() can not be null');
     }
-    const texShape: [number, number] = [pixels.height, pixels.width];
-    const outShape = [pixels.height, pixels.width, numChannels];
 
     const isCanvas = (typeof (OffscreenCanvas) !== 'undefined' &&
                       pixels instanceof OffscreenCanvas) ||
@@ -300,6 +303,15 @@ export class MathBackendWebGL implements KernelBackend {
         pixels instanceof HTMLVideoElement;
     const isImage = typeof (HTMLImageElement) !== 'undefined' &&
         pixels instanceof HTMLImageElement;
+    const [width, height] = isVideo ?
+        [
+          (pixels as HTMLVideoElement).videoWidth,
+          (pixels as HTMLVideoElement).videoHeight
+        ] :
+        [pixels.width, pixels.height];
+
+    const texShape: [number, number] = [height, width];
+    const outShape = [height, width, numChannels];
 
     if (!isCanvas && !isPixelData && !isImageData && !isVideo && !isImage) {
       throw new Error(
@@ -312,21 +324,15 @@ export class MathBackendWebGL implements KernelBackend {
 
     if (isImage || isVideo) {
       if (this.fromPixels2DContext == null) {
-        if (document.readyState !== 'complete') {
-          throw new Error(
-              'The DOM is not ready yet. Please call ' +
-              'tf.browser.fromPixels() once the DOM is ready. One way to ' +
-              'do that is to add an event listener for `load` ' +
-              'on the document object');
-        }
         //@ts-ignore
         this.fromPixels2DContext =
             createCanvas(ENV.getNumber('WEBGL_VERSION')).getContext('2d');
       }
-      this.fromPixels2DContext.canvas.width = pixels.width;
-      this.fromPixels2DContext.canvas.height = pixels.height;
+
+      this.fromPixels2DContext.canvas.width = width;
+      this.fromPixels2DContext.canvas.height = height;
       this.fromPixels2DContext.drawImage(
-          pixels as HTMLVideoElement, 0, 0, pixels.width, pixels.height);
+          pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
       //@ts-ignore
       pixels = this.fromPixels2DContext.canvas;
     }
@@ -487,9 +493,10 @@ export class MathBackendWebGL implements KernelBackend {
     // Download the values from the GPU.
     let vals: Float32Array;
     if (dtype === 'complex64') {
-      const ps =
-          Promise.all([complexTensors.real.data(), complexTensors.imag.data()]);
-      const [realValues, imagValues] = await ps;
+      const ps = await Promise.all(
+          [complexTensors.real.data(), complexTensors.imag.data()]);
+      const realValues = ps[0];
+      const imagValues = ps[1];
       vals = mergeRealAndImagArrays(
           realValues as Float32Array, imagValues as Float32Array);
     } else if (buffer == null) {
@@ -1743,6 +1750,9 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   elu<T extends Tensor>(x: T): T {
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_packed_op.ELU, x.dtype) as T;
+    }
     const program = new UnaryOpProgram(x.shape, unary_op.ELU);
     return this.compileAndRun(program, [x]);
   }

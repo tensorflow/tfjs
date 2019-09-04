@@ -56,7 +56,7 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
         // Convolve x(?, ?, d1) with w(:, :, d1, q) to get y(yR, yC, d2).
         // ? = to be determined. : = across all values in that axis.
         float dotProd = 0.0;
-        // TODO(dsmilkov): Flatten the two for loops and vec4 the operations.
+        // TO DO(dsmilkov): Flatten the two for loops and vec4 the operations.
         for (int wR = 0; wR < ${filterHeight}; wR++) {
           int xR = xRCorner + wR * ${dilationHeight};
 
