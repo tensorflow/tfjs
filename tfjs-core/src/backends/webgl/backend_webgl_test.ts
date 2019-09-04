@@ -506,6 +506,34 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
   });
 });
 
+describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
+  it('caches on cpu after async read', async () => {
+    const backend = new MathBackendWebGL(null);
+    tf.registerBackend('cache-on-cpu', () => backend);
+    tf.setBackend('cache-on-cpu');
+
+    const t = tf.square(2);
+    await t.data();
+    const info = backend.getDataInfo(t.dataId);
+    expect(info.values).not.toBe(null);
+
+    tf.removeBackend('cache-on-cpu');
+  });
+
+  it('caches on cpu after sync read', () => {
+    const backend = new MathBackendWebGL(null);
+    tf.registerBackend('cache-on-cpu', () => backend);
+    tf.setBackend('cache-on-cpu');
+
+    const t = tf.square(2);
+    t.dataSync();
+    const info = backend.getDataInfo(t.dataId);
+    expect(info.values).not.toBe(null);
+
+    tf.removeBackend('cache-on-cpu');
+  });
+});
+
 describe('WebGL backend has sync init', () => {
   it('can do matmul without waiting for ready', async () => {
     tf.registerBackend('my-webgl', () => {
