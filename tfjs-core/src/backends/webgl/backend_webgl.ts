@@ -176,6 +176,11 @@ function mapActivationToShaderProgram(
       return unary_packed_op.RELU;
     }
     return unary_op.RELU;
+  } else if (activation === 'elu') {
+    if (packed) {
+      return unary_packed_op.ELU;
+    }
+    return unary_op.ELU;
   } else if (activation === 'prelu') {
     if (packed) {
       return binaryop_packed_gpu.PRELU;
@@ -1745,6 +1750,9 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   elu<T extends Tensor>(x: T): T {
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_packed_op.ELU, x.dtype) as T;
+    }
     const program = new UnaryOpProgram(x.shape, unary_op.ELU);
     return this.compileAndRun(program, [x]);
   }
