@@ -43,7 +43,7 @@ describe('renderTable', () => {
       ['<strong>7</strong>', true, false],
     ];
 
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     table(container, {headers, values});
 
     expect(document.querySelectorAll('.tf-table').length).toBe(1);
@@ -67,7 +67,7 @@ describe('renderTable', () => {
   });
 
   it('requires necessary param', () => {
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
 
     // @ts-ignore
     expect(() => table({headers: []}, container)).toThrow();
@@ -78,7 +78,7 @@ describe('renderTable', () => {
   });
 
   it('should not throw on empty table', () => {
-    const container = document.getElementById('container') as HTMLElement;
+    const container = document.getElementById('container');
     const headers: string[] = [];
     const values: string[][] = [];
 

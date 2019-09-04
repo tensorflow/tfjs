@@ -18,10 +18,9 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import * as slice_join from '../op_list/slice_join';
-import {Node, OpMapper} from '../types';
+import {Node} from '../types';
 
 import {executeOp} from './slice_join_executor';
-// tslint:disable-next-line:max-line-length
 import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
 
 describe('slice join', () => {
@@ -61,8 +60,7 @@ describe('slice join', () => {
         node.inputParams.tensors = createTensorsAttr(1, 0);
         node.inputParams.axis = createNumberAttrFromIndex(0);
 
-        expect(validateParam(node, slice_join.json as OpMapper[], 'Concat'))
-            .toBeTruthy();
+        expect(validateParam(node, slice_join.json, 'Concat')).toBeTruthy();
       });
       it('ConcatV2', () => {
         const spy = spyOn(tfc, 'concat');
@@ -78,8 +76,7 @@ describe('slice join', () => {
         node.inputParams.tensors = createTensorsAttr(0, -1);
         node.inputParams.axis = createNumberAttrFromIndex(-1);
 
-        expect(validateParam(node, slice_join.json as OpMapper[], 'ConcatV2'))
-            .toBeTruthy();
+        expect(validateParam(node, slice_join.json, 'ConcatV2')).toBeTruthy();
       });
       it('should call tfc.unstack', () => {
         const spy = spyOn(tfc, 'unstack');
@@ -95,7 +92,7 @@ describe('slice join', () => {
         node.inputParams.tensor = createTensorAttr(0);
         node.attrParams.axis = createNumberAttr(4);
 
-        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, slice_join.json)).toBeTruthy();
       });
       it('should call tfc.stack', () => {
         const spy = spyOn(tfc, 'stack');
@@ -114,7 +111,7 @@ describe('slice join', () => {
         node.inputParams.tensors = createTensorsAttr(0, 0);
         node.attrParams.axis = createNumberAttr(4);
 
-        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, slice_join.json)).toBeTruthy();
       });
       it('should reshape tensors for tfc.stack', () => {
         const spy = spyOn(tfc, 'stack');
@@ -169,8 +166,7 @@ describe('slice join', () => {
         node.op = 'Reverse';
         node.inputParams.axis = createNumericArrayAttrFromIndex(1);
 
-        expect(validateParam(node, slice_join.json as OpMapper[], 'ReverseV2'))
-            .toBeTruthy();
+        expect(validateParam(node, slice_join.json, 'ReverseV2')).toBeTruthy();
       });
       it('should call tfc.reverse', () => {
         spyOn(tfc, 'reverse');
@@ -185,8 +181,7 @@ describe('slice join', () => {
         node.op = 'ReverseV2';
         node.inputParams.axis = createNumericArrayAttrFromIndex(1);
 
-        expect(validateParam(node, slice_join.json as OpMapper[], 'ReverseV2'))
-            .toBeTruthy();
+        expect(validateParam(node, slice_join.json, 'ReverseV2')).toBeTruthy();
       });
       it('should call tfc.tile', () => {
         spyOn(tfc, 'tile');
@@ -201,7 +196,7 @@ describe('slice join', () => {
         node.op = 'Tile';
         node.inputParams.reps = createNumericArrayAttrFromIndex(1);
 
-        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, slice_join.json)).toBeTruthy();
       });
       it('should call tfc.slice', () => {
         spyOn(tfc, 'slice');
@@ -219,7 +214,7 @@ describe('slice join', () => {
         node.inputParams.begin = createNumericArrayAttrFromIndex(1);
         node.inputParams.size = createNumericArrayAttrFromIndex(2);
 
-        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, slice_join.json)).toBeTruthy();
       });
       it('should call tfc.stridedSlice', () => {
         spyOn(tfc, 'stridedSlice');
@@ -249,7 +244,7 @@ describe('slice join', () => {
         node.attrParams.newAxisMask = createNumberAttr(2);
         node.attrParams.shrinkAxisMask = createNumberAttr(3);
 
-        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, slice_join.json)).toBeTruthy();
       });
       it('should call tfc.gather', () => {
         spyOn(tfc, 'gather');
@@ -270,8 +265,7 @@ describe('slice join', () => {
         node.inputParams.indices = createTensorAttr(1);
         node.inputParams.axis = createNumberAttrFromIndex(2);
 
-        expect(validateParam(node, slice_join.json as OpMapper[], 'GatherV2'))
-            .toBeTruthy();
+        expect(validateParam(node, slice_join.json, 'GatherV2')).toBeTruthy();
       });
       it('should call tfc.gather', () => {
         spyOn(tfc, 'gather');
@@ -306,8 +300,7 @@ describe('slice join', () => {
         node.inputParams.indices = createTensorAttr(1);
         node.inputParams.axis = createNumberAttrFromIndex(2);
 
-        expect(validateParam(node, slice_join.json as OpMapper[], 'GatherV2'))
-            .toBeTruthy();
+        expect(validateParam(node, slice_join.json, 'GatherV2')).toBeTruthy();
       });
       it('should call tfc.split', () => {
         spyOn(tfc, 'split');
@@ -326,8 +319,7 @@ describe('slice join', () => {
         node.inputParams.x = createTensorAttr(1);
         node.attrParams.numOrSizeSplits = createNumberAttr(2);
 
-        expect(validateParam(node, slice_join.json as OpMapper[], 'Split'))
-            .toBeTruthy();
+        expect(validateParam(node, slice_join.json, 'Split')).toBeTruthy();
       });
       it('should call tfc.split', () => {
         spyOn(tfc, 'split');
@@ -346,8 +338,7 @@ describe('slice join', () => {
         node.inputParams.numOrSizeSplits = createNumericArrayAttrFromIndex(1);
         node.inputParams.axis = createNumberAttrFromIndex(2);
 
-        expect(validateParam(node, slice_join.json as OpMapper[], 'SplitV'))
-            .toBeTruthy();
+        expect(validateParam(node, slice_join.json, 'SplitV')).toBeTruthy();
       });
       it('should call tfc.scatterND', () => {
         spyOn(tfc, 'scatterND');
@@ -367,7 +358,7 @@ describe('slice join', () => {
         node.inputParams.values = createTensorAttr(1);
         node.inputParams.shape = createNumericArrayAttrFromIndex(2);
 
-        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, slice_join.json)).toBeTruthy();
       });
       it('should call tfc.gatherND', () => {
         spyOn(tfc, 'gatherND');
@@ -384,7 +375,7 @@ describe('slice join', () => {
         node.inputParams.x = createTensorAttr(0);
         node.inputParams.indices = createTensorAttr(1);
 
-        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, slice_join.json)).toBeTruthy();
       });
       it('should call tfc.sparseToDense', () => {
         spyOn(tfc, 'sparseToDense');
@@ -425,7 +416,7 @@ describe('slice join', () => {
         node.inputParams.sparseValues = createTensorAttr(2);
         node.inputParams.defaultValue = createTensorAttr(3);
 
-        expect(validateParam(node, slice_join.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, slice_join.json)).toBeTruthy();
       });
     });
   });

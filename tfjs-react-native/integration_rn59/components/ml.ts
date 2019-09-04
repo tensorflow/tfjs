@@ -71,7 +71,7 @@ export async function localModelRunner() {
       await tf.loadLayersModel(bundleResourceIO(modelJson, modelWeights));
 
   return async () => {
-    const res = model.predict(tf.randomNormal([1, 28, 28, 1])) as tf.Tensor;
+    const res = model.predict(tf.randomNormal([1, 10])) as tf.Tensor;
     const data = await res.data();
     return JSON.stringify(data);
   };

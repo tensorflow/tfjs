@@ -29,6 +29,10 @@ export function createStrAttr(str: string): ParamValue {
   return {value: str, type: 'string'};
 }
 
+export function createStrArrayAttr(strs: string[]): ParamValue {
+  return {value: strs, type: 'string[]'};
+}
+
 export function createBoolAttr(value: boolean): ParamValue {
   return {value, type: 'bool'};
 }

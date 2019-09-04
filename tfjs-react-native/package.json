@@ -1,15 +1,11 @@
 {
-  "name": "@tensorflow/tfjs-platform-react-native",
-  "version": "0.1.0",
+  "name": "@tensorflow/tfjs-react-native",
+  "version": "0.1.0-alpha.2",
   "description": "TensorFlow.js platform implementation for React Native",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "jsnext:main": "dist/tf-react-native.esm.js",
-  "module": "dist/tf-react-native.esm.js",
-  "unpkg": "dist/tf-react-native.min.js",
-  "jsdelivr": "dist/tf-react-native.min.js",
   "license": "Apache-2.0",
-  "private": true,
+  "keywords": ["tensorflow", "tensorflowjs", "machine learning", "deep learning", "neural networks", "react native"],
   "scripts": {
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "build": "tsc",
@@ -21,7 +17,7 @@
   },
   "devDependencies": {
     "@react-native-community/async-storage": "^1.4.2",
-    "@tensorflow/tfjs-core": "^1.2.7",
+    "@tensorflow/tfjs-core": ">=1.2.8",
     "@types/base64-js": "^1.2.5",
     "@types/jasmine": "~2.5.53",
     "@types/react-native": "^0.60.2",
@@ -52,7 +48,7 @@
   },
   "peerDependencies": {
     "@react-native-community/async-storage": "^1.4.2",
-    "@tensorflow/tfjs-core": ">=1.2.7",
+    "@tensorflow/tfjs-core": ">=1.2.8",
     "expo-gl": "^5.0.1",
     "react-native": ">= 0.58.0 < 0.60.0"
   }

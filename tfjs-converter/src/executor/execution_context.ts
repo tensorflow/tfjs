@@ -140,8 +140,7 @@ export class ExecutionContext {
       this.contexts = this.contexts.slice();
       this.lastId++;
       const context =
-          Object.assign({}, this.contexts[this.contexts.length - 1]) as
-          ExecutionContextInfo;
+          Object.assign({}, this.contexts[this.contexts.length - 1]);
       context.iterationId += 1;
       context.id = this.lastId;
       this.contexts.splice(-1, 1, context);

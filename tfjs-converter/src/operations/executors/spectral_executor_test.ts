@@ -18,7 +18,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import * as spectral from '../op_list/spectral';
-import {Node, OpMapper} from '../types';
+import {Node} from '../types';
 
 import {executeOp} from './spectral_executor';
 import {createTensorAttr, validateParam} from './test_helper';
@@ -53,7 +53,7 @@ describe('spectral', () => {
       it('should match json def', () => {
         node.op = 'FFT';
 
-        expect(validateParam(node, spectral.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, spectral.json)).toBeTruthy();
       });
     });
     describe('IFFT', () => {
@@ -67,7 +67,7 @@ describe('spectral', () => {
       it('should match json def', () => {
         node.op = 'IFFT';
 
-        expect(validateParam(node, spectral.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, spectral.json)).toBeTruthy();
       });
     });
     describe('RFFT', () => {
@@ -81,7 +81,7 @@ describe('spectral', () => {
       it('should match json def', () => {
         node.op = 'RFFT';
 
-        expect(validateParam(node, spectral.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, spectral.json)).toBeTruthy();
       });
     });
     describe('IRFFT', () => {
@@ -95,7 +95,7 @@ describe('spectral', () => {
       it('should match json def', () => {
         node.op = 'IRFFT';
 
-        expect(validateParam(node, spectral.json as OpMapper[])).toBeTruthy();
+        expect(validateParam(node, spectral.json)).toBeTruthy();
       });
     });
   });

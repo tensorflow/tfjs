@@ -513,6 +513,13 @@ describeWithFlags('slice ergonomics', ALL_ENVS, () => {
 
     expect(tf.slice(b, 0).dtype).toEqual('float32');
   });
+
+  it('throws when begin is negative', async () => {
+    const a = [[1, 2], [3, 4]];  // 2x2
+    expect(() => tf.slice(a, [-1, 1], [
+      1, 1
+    ])).toThrowError(/slice\(\) does not support negative begin indexing./);
+  });
 });
 
 describeWithFlags('shallow slicing', ALL_ENVS, () => {

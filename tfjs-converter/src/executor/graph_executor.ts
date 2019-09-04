@@ -24,7 +24,6 @@ import {Graph, Node} from '../operations/types';
 
 import {ExecutionContext, ExecutionContextInfo} from './execution_context';
 import {getExecutionSubgraph, getNodesInTopologicalOrder, isControlFlow} from './model_analysis';
-import {rewritePrelu} from './model_rewrite';
 
 interface NodeWithContexts {
   contexts: ExecutionContextInfo[];
@@ -123,9 +122,6 @@ export class GraphExecutor {
         this.graph, this.weightMap, executionInfo);
   }
 
-  fusePrelu() {
-    rewritePrelu(this.graph, this.weightMap);
-  }
   /**
    * Executes the inference for given input tensors.
    * @param inputs Tensor map for the model inputs, keyed by the input node
