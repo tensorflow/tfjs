@@ -45,6 +45,7 @@ describeWithFlags('object detection', {}, () => {
     const img: tf.Tensor3D = tf.zeros([100, 80, 3]);
     const options = {score: 0.11};
     const predictions = await model.detect(img, options);
+    expect(predictions.length).toBe(1);
     const {box: {left, top, width, height}, label, score} = predictions[0];
 
     expect(label).toBe('Salad');

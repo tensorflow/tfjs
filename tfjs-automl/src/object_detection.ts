@@ -154,10 +154,12 @@ function buildDetectedObjects(
     boxLabels: number[], selectedBoxes: Int32Array,
     dictionary: string[]): PredictedObject[] {
   const objects: PredictedObject[] = [];
+  // Each 2d rectangle is fully described with 4 coordinates.
+  const numBoxCoords = 4;
   for (let i = 0; i < selectedBoxes.length; i++) {
     const boxIndex = selectedBoxes[i];
-    const [top, left, bottom, right] =
-        Array.from(boxes.slice(boxIndex * 4, boxIndex * 4 + 4));
+    const [top, left, bottom, right] = Array.from(boxes.slice(
+        boxIndex * numBoxCoords, boxIndex * numBoxCoords + numBoxCoords));
     objects.push({
       box: {
         left: left * width,
