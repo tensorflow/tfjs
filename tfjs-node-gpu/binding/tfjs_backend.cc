@@ -947,4 +947,14 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   return output_tensor_infos;
 }
 
+bool TFJSBackend::IsUsingGPUDevice(napi_env env) {
+  bool is_gpu_device = false;
+
+  if (device_name.compare("GPU") == 0) {
+    is_gpu_device = true;
+  }
+
+  return is_gpu_device;
+}
+
 }  // namespace tfnodejs

@@ -16,6 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 

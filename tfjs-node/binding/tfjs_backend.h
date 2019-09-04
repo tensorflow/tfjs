@@ -59,6 +59,8 @@ class TFJSBackend {
                        napi_value op_attr_inputs, napi_value input_tensor_ids,
                        napi_value num_output_values);
 
+  bool IsUsingGPUDevice(napi_env env);
+
  private:
   TFJSBackend(napi_env env);
   ~TFJSBackend();

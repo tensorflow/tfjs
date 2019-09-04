@@ -15,15 +15,14 @@
  * =============================================================================
  */
 
+import * as tfc from '@tensorflow/tfjs-core';
 import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
-import * as tfc from '@tensorflow/tfjs-core';
-
 import {Activation, FusedBatchMatMulConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
-import {isNullOrUndefined, isArray} from 'util';
+import {isArray, isNullOrUndefined} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
@@ -40,12 +39,16 @@ interface DataId {}
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
+  isUsingGpuDevice: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
   constructor(binding: TFJSBinding, packageName: string) {
     super();
     this.binding = binding;
     this.isGPUPackage = packageName === '@tensorflow/tfjs-node-gpu';
+    this.isUsingGpuDevice = this.binding.isUsingGpuDevice();
+
+    console.log('has gpu device', this.isUsingGpuDevice);
   }
 
   setDataMover(dataMover: DataMover): void {
