@@ -22,7 +22,7 @@ If you are using CDN:
 
 We support the following types of AutoML Edge models:
 1) [Image classification](#image-classification)
-2) **[In progress]** [Object detection](#object-detection)
+2) [Object detection](#object-detection)
 
 ## Image classification
 
