@@ -371,9 +371,7 @@ describeWithFlags('fused depthwiseConv2d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  // basic with bias and relu
-
-  // add prelu activation weights
+  // prelu activation
 
   // gradients
 });
