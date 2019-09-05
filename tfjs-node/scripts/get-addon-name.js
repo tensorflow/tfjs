@@ -16,7 +16,6 @@
  */
 const {getAddonName} = require('./get-addon-name-util');
 
-console.log(`process ${process.argv}`);
 // Print out the addon tarball name so that it can be used in bash script when
 // uploading the tarball to GCP bucket.
 const addonName = getAddonName(process.argv[2]);
