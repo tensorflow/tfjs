@@ -16,7 +16,7 @@
  */
 
 import {Conv2DInfo, Conv3DInfo} from '../ops/conv_util';
-import {Activation, FusedBatchMatMulConfig} from '../ops/fused_util';
+import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../ops/fused_util';
 import {Backend, DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
 import {BackendValues, DataType, PixelData, Rank, ShapeMap} from '../types';
 
@@ -427,8 +427,8 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   }
 
   fusedDepthwiseConv2D(
-      input: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
-      activation?: Activation, preluActivationWeights?: Tensor): Tensor4D {
+      {input, filter, convInfo, bias, activation, preluActivationWeights}:
+          FusedConv2DConfig): Tensor4D {
     throw new Error('Not yet implemented');
   }
 

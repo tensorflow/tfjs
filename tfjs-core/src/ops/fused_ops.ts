@@ -614,9 +614,14 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   }
 
   const res = ENGINE.runKernel((backend, save) => {
-    const res = backend.fusedDepthwiseConv2D(
-        x4D, $filter, convInfo, $bias as Tensor4D, activation,
-        $preluActivationWeights);
+    const res = backend.fusedDepthwiseConv2D({
+      input: x4D,
+      filter: $filter,
+      convInfo,
+      bias: $bias,
+      activation,
+      preluActivationWeights: $preluActivationWeights
+    });
     save([x4D, $filter, res]);
     return res;
   }, inputs, grad);

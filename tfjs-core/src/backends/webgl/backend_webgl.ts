@@ -29,7 +29,7 @@ import * as axis_util from '../../ops/axis_util';
 import {complex, imag, real} from '../../ops/complex_ops';
 import {computeOutShape} from '../../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
-import {Activation, FusedBatchMatMulConfig} from '../../ops/fused_util';
+import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../ops/fused_util';
 import * as gather_nd_util from '../../ops/gather_nd_util';
 import * as reduce_util from '../../ops/reduce_util';
 import * as scatter_nd_util from '../../ops/scatter_nd_util';
@@ -2125,15 +2125,15 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   fusedDepthwiseConv2D(
-      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
-      activation?: Activation, preluActivationWeights?: Tensor4D): Tensor4D {
+      {input, filter, convInfo, bias, activation, preluActivationWeights}:
+          FusedConv2DConfig): Tensor4D {
     const shouldPackDepthwiseConv = ENV.getBool('WEBGL_PACK_DEPTHWISECONV') &&
         convInfo.strideWidth <= 2 &&
         convInfo.outChannels / convInfo.inChannels === 1;
     const fusedActivation = activation ?
         mapActivationToShaderProgram(activation, shouldPackDepthwiseConv) :
         null;
-    const inputs = [x, filter];
+    const inputs: Tensor[] = [input, filter];
 
     const hasBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
@@ -2149,7 +2149,8 @@ export class MathBackendWebGL implements KernelBackend {
       program = new DepthwiseConvPacked2DProgram(
           convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
       return this.compileAndRun(
-          program, inputs, this.makePackedTensor(convInfo.outShape, x.dtype));
+          program, inputs,
+          this.makePackedTensor(convInfo.outShape, input.dtype));
     }
 
     program = new DepthwiseConv2DProgram(
