@@ -17,7 +17,7 @@
 
 import {Tensor, Tensor3D} from '../tensor';
 
-export type Activation = 'linear'|'relu'|'prelu';
+export type Activation = 'linear'|'relu'|'prelu'|'elu';
 
 export type FusedBatchMatMulConfig = {
   a: Tensor3D,

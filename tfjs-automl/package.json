@@ -33,6 +33,7 @@
     "rollup-plugin-terser": "^5.1.1",
     "rollup-plugin-typescript2": "0.13.0",
     "rollup-plugin-uglify": "~3.0.0",
+    "ts-lint": "^4.5.1",
     "ts-node": "^8.3.0",
     "tslint": "~5.11.0",
     "tslint-no-circular-imports": "^0.5.0",
