@@ -34,7 +34,7 @@ interface SurfaceProps extends SurfaceInfoStrict {
 export class SurfaceComponent extends Component<SurfaceProps> {
 
   static defaultStyles: Partial<StyleOptions> = {
-    maxWidth: '580px',
+    maxWidth: '550px',
     maxHeight: '580px',
     height: 'auto',
     width: 'auto',
