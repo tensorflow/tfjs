@@ -411,11 +411,15 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
   }
 
   const res = ENGINE.runKernel((backend, save) => {
-    const res = backend.fusedConv2d(
-        x4D, $filter, convInfo, $bias as Tensor4D, activation,
-        $preluActivationWeights);
+    const res = backend.fusedConv2d({
+      input: x4D,
+      filter: $filter,
+      convInfo,
+      bias: $bias,
+      activation,
+      preluActivationWeights: $preluActivationWeights
+    });
     save([$filter, x4D, res]);
-
     return res;
   }, inputs, grad);
 
