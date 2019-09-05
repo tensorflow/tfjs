@@ -10,7 +10,7 @@
   "unpkg": "dist/tfjs-vis.umd.min.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc && webpack --config webpack.config.js",
+    "build": "tsc && NODE_ENV=production webpack",
     "lint": "tslint -p . -t verbose",
     "test": "karma start",
     "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --hostname='bs-local.com'",

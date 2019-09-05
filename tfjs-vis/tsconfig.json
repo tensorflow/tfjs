@@ -20,6 +20,7 @@
     "jsx": "react",
     "jsxFactory": "h",
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "outDir": "./dist"
   }
 }
