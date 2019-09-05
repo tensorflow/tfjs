@@ -16,7 +16,10 @@
  */
 
 // Image classification API.
-export {ImageClassificationModel, loadImageClassification} from './img_classification';
-export {ClassificationPrediction, ImageClassificationOptions, ImageInput} from './types';
+export {ImageClassificationModel, ImageClassificationOptions, ImagePrediction, loadImageClassification} from './img_classification';
+// Object detection API.
+export {Box, loadObjectDetection, ObjectDetectionModel, ObjectDetectionOptions, PredictedObject} from './object_detection';
 
+// Shared API.
+export {ImageInput} from './types';
 export {version} from './version';
