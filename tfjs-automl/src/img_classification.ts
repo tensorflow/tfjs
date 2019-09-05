@@ -16,8 +16,18 @@
  */
 
 import {GraphModel, loadGraphModel} from '@tensorflow/tfjs-converter';
-import {browser, image, Tensor, Tensor3D, tidy, util} from '@tensorflow/tfjs-core';
-import {ClassificationPrediction, ImageClassificationOptions, ImageInput} from './types';
+import {image, Tensor, Tensor3D, tidy} from '@tensorflow/tfjs-core';
+import {ImageInput} from './types';
+import {imageToTensor, loadDictionary} from './util';
+
+export interface ImagePrediction {
+  prob: number;
+  label: string;
+}
+
+export interface ImageClassificationOptions {
+  centerCrop: boolean;
+}
 
 /** Input size as expected by the model. */
 const IMG_SIZE: [number, number] = [224, 224];
@@ -29,7 +39,7 @@ export class ImageClassificationModel {
   constructor(public graphModel: GraphModel, public dictionary: string[]) {}
 
   async classify(input: ImageInput, options?: ImageClassificationOptions):
-      Promise<ClassificationPrediction> {
+      Promise<ImagePrediction[]> {
     options = sanitizeOptions(options);
 
     const scores = tidy(() => {
@@ -60,25 +70,12 @@ export async function loadImageClassification(modelUrl: string):
   return new ImageClassificationModel(model, dict);
 }
 
-function imageToTensor(img: ImageInput): Tensor3D {
-  return img instanceof Tensor ? img : browser.fromPixels(img);
-}
-
 function sanitizeOptions(options: ImageClassificationOptions) {
   options = options || {} as ImageClassificationOptions;
   if (options.centerCrop == null) {
     options.centerCrop = true;
   }
   return options;
-}
-
-/** Loads and parses the dictionary. */
-async function loadDictionary(modelUrl: string): Promise<string[]> {
-  const prefixUrl = modelUrl.slice(0, modelUrl.lastIndexOf('/'));
-  const dictUrl = `${prefixUrl}/dict.txt`;
-  const response = await util.fetch(dictUrl);
-  const text = await response.text();
-  return text.trim().split('\n');
 }
 
 /** Center crops an image */
