@@ -203,9 +203,14 @@ describeBrowserEnvs('WebcamIterator', () => {
 
     await webcamIterator.start();
     await replaceHTMLVideoElementSource(videoElement);
-    const result3 = await webcamIterator.next();
-    expect(result3.done).toBeFalsy();
-    expect(result3.value.shape).toEqual([90, 160, 3]);
+    // Skip validation when it's in Firefox and Mac OS, because BrowserStack for
+    // Firefox does not trigger the readyState event when restarting.
+    if (navigator.userAgent.search('Firefox') < 0 &&
+        navigator.userAgent.search('OS X') < 0) {
+      const result3 = await webcamIterator.next();
+      expect(result3.done).toBeFalsy();
+      expect(result3.value.shape).toEqual([90, 160, 3]);
+    }
   });
 
   it('capture with cropAndResize has no memory leaks', async () => {
