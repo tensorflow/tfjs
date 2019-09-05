@@ -273,7 +273,9 @@ function matMul_<T extends Tensor>({
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
  */
-/** @doc {heading: 'Operations', subheading: 'Convolution'} */
+/**
+ * @doc {heading: 'Operations', subheading: 'Convolution', namespace: 'fused'}
+ */
 function conv2d_<T extends Tensor3D|Tensor4D>({
   x,
   filter,
@@ -430,7 +432,8 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
 }
 
 /**
- * Depthwise 2D convolution.
+ * Computes depthwise 2D convolution, optionally fused with adding a
+ * bias and applying an activation.
  *
  * Given a 4D `input` array and a `filter` array of shape
  * `[filterHeight, filterWidth, inChannels, channelMultiplier]` containing
@@ -478,7 +481,9 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
  */
-/** @doc {heading: 'Operations', subheading: 'Convolution'} */
+/**
+ * @doc {heading: 'Operations', subheading: 'Convolution', namespace: 'fused'}
+ */
 function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   x,
   filter,
