@@ -1,0 +1,1 @@
+../../tfjs-node/src/version.ts
