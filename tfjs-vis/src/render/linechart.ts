@@ -193,9 +193,6 @@ export async function linechart(
     defaultStyle: false,
   };
 
-  console.log('linespec', spec);
-  console.log('linedata', vlChartValues);
-
   await embed(drawArea, spec as VisualizationSpec, embedOpts);
   return Promise.resolve();
 }
