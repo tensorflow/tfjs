@@ -176,6 +176,11 @@ function mapActivationToShaderProgram(
       return unary_packed_op.RELU;
     }
     return unary_op.RELU;
+  } else if (activation === 'elu') {
+    if (packed) {
+      return unary_packed_op.ELU;
+    }
+    return unary_op.ELU;
   } else if (activation === 'prelu') {
     if (packed) {
       return binaryop_packed_gpu.PRELU;
@@ -286,8 +291,6 @@ export class MathBackendWebGL implements KernelBackend {
       throw new Error(
           'pixels passed to tf.browser.fromPixels() can not be null');
     }
-    const texShape: [number, number] = [pixels.height, pixels.width];
-    const outShape = [pixels.height, pixels.width, numChannels];
 
     const isCanvas = (typeof (OffscreenCanvas) !== 'undefined' &&
                       pixels instanceof OffscreenCanvas) ||
@@ -300,6 +303,15 @@ export class MathBackendWebGL implements KernelBackend {
         pixels instanceof HTMLVideoElement;
     const isImage = typeof (HTMLImageElement) !== 'undefined' &&
         pixels instanceof HTMLImageElement;
+    const [width, height] = isVideo ?
+        [
+          (pixels as HTMLVideoElement).videoWidth,
+          (pixels as HTMLVideoElement).videoHeight
+        ] :
+        [pixels.width, pixels.height];
+
+    const texShape: [number, number] = [height, width];
+    const outShape = [height, width, numChannels];
 
     if (!isCanvas && !isPixelData && !isImageData && !isVideo && !isImage) {
       throw new Error(
@@ -312,21 +324,15 @@ export class MathBackendWebGL implements KernelBackend {
 
     if (isImage || isVideo) {
       if (this.fromPixels2DContext == null) {
-        if (document.readyState !== 'complete') {
-          throw new Error(
-              'The DOM is not ready yet. Please call ' +
-              'tf.browser.fromPixels() once the DOM is ready. One way to ' +
-              'do that is to add an event listener for `load` ' +
-              'on the document object');
-        }
         //@ts-ignore
         this.fromPixels2DContext =
             createCanvas(ENV.getNumber('WEBGL_VERSION')).getContext('2d');
       }
-      this.fromPixels2DContext.canvas.width = pixels.width;
-      this.fromPixels2DContext.canvas.height = pixels.height;
+
+      this.fromPixels2DContext.canvas.width = width;
+      this.fromPixels2DContext.canvas.height = height;
       this.fromPixels2DContext.drawImage(
-          pixels as HTMLVideoElement, 0, 0, pixels.width, pixels.height);
+          pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
       //@ts-ignore
       pixels = this.fromPixels2DContext.canvas;
     }
@@ -466,12 +472,12 @@ export class MathBackendWebGL implements KernelBackend {
     }
 
     let buffer = null;
+    let tmpDownloadTarget: TensorHandle;
+
     if (dtype !== 'complex64' && ENV.get('WEBGL_BUFFER_SUPPORTED')) {
       // Possibly copy the texture into a buffer before inserting a fence.
-      const tmpTarget = this.decode(dataId);
-
-      dataId = tmpTarget.dataId;
-      const tmpData = this.texData.get(tmpTarget.dataId);
+      tmpDownloadTarget = this.decode(dataId);
+      const tmpData = this.texData.get(tmpDownloadTarget.dataId);
 
       buffer = this.gpgpu.createBufferFromTexture(
           tmpData.texture, ...tex_util.getDenseTexShape(shape));
@@ -497,9 +503,10 @@ export class MathBackendWebGL implements KernelBackend {
       vals = this.getValuesFromTexture(dataId);
     } else {
       const size = util.sizeFromShape(shape);
-
       vals = this.gpgpu.downloadFloat32MatrixFromBuffer(buffer, size);
-      this.disposeData(dataId);
+    }
+    if (tmpDownloadTarget != null) {
+      this.disposeData(tmpDownloadTarget.dataId);
     }
     const dTypeVals = this.convertAndCacheOnCPU(dataId, vals);
 
@@ -682,6 +689,14 @@ export class MathBackendWebGL implements KernelBackend {
   getTexture(dataId: DataId): WebGLTexture {
     this.uploadToGPU(dataId);
     return this.texData.get(dataId).texture;
+  }
+
+  /**
+   * Returns internal information for the specific data bucket. Used in unit
+   * tests.
+   */
+  getDataInfo(dataId: DataId): TextureData {
+    return this.texData.get(dataId);
   }
 
   private getCPUBackend(): KernelBackend|null {
@@ -1744,6 +1759,9 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   elu<T extends Tensor>(x: T): T {
+    if (ENV.getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_packed_op.ELU, x.dtype) as T;
+    }
     const program = new UnaryOpProgram(x.shape, unary_op.ELU);
     return this.compileAndRun(program, [x]);
   }

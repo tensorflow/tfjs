@@ -22,7 +22,7 @@ If you are using CDN:
 
 We support the following types of AutoML Edge models:
 1) [Image classification](#image-classification)
-2) **[In progress]** [Object detection](#object-detection)
+2) [Object detection](#object-detection)
 
 ## Image classification
 
@@ -67,7 +67,7 @@ a 3D [`Tensor`](https://js.tensorflow.org/api/latest/#class:Tensor):
 
 ```js
 const img = document.getElementById('img');
-const options = {};
+const options = {centerCrop: true};
 const predictions = await model.classify(img, options);
 ```
 
@@ -88,6 +88,90 @@ probabilities:
 ]
 ```
 
+### Advanced usage
+
+Advanced users can access the underlying
+[`GraphModel`](https://js.tensorflow.org/api/latest/#class:GraphModel) via
+`model.graphModel`. The `GraphModel` allows users to call lower level methods
+such as `predict()`, `execute()` and `executeAsync()` which return tensors.
+
+`model.dictionary` gives you access to the ordered list of labels.
+
 ## Object detection
 
-TODO(smilkov): Write this when object detection is ready.
+AutoML Object detection model will output the following set of files:
+- `model.json`, the model topology
+- `dict.txt`, a newline-separated list of labels
+- One or more of `*.bin` files which hold the weights
+
+Make sure you can access those files as static assets from your web app by serving them locally or on Google Cloud Storage.
+
+### Demo
+
+The object detection demo lives in
+[demo/object_classification](./demo/object_classification). To run it:
+
+```sh
+cd demo/object_detection
+yarn
+yarn watch
+```
+
+This will start a local HTTP server on port 1234 that serves the demo.
+
+### Loading the model
+```js
+import * as automl from '@tensorflow/tfjs-automl';
+const modelUrl = 'model.json'; // URL to the model.json file.
+const model = await automl.loadObjectDetection(modelUrl);
+```
+
+### Making a prediction
+The input `img` can be
+[`HTMLImageElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement),
+[`HTMLCanvasElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement),
+[`HTMLVideoElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement),
+[`ImageData`](https://developer.mozilla.org/en-US/docs/Web/API/ImageData) or
+a 3D [`Tensor`](https://js.tensorflow.org/api/latest/#class:Tensor):
+
+```html
+<img id="img" src="PATH_TO_IMAGE" />
+```
+
+```js
+const img = document.getElementById('img');
+const options = {score: 0.5, iou: 0.5, topk: 20};
+const predictions = await model.detect(img, options);
+```
+
+`options` is optional and has the following properties:
+- `score` - Probability score between 0 and 1. Defaults to 0.5. Boxes with score lower than this threshold will be ignored.
+- `topk` - Only the `topk` most likely objects are returned. The actual number of objects might be less than this number.
+- `iou` - Intersection over union threshold. IoU is a metric between 0 and 1 used to measure the overlap of two boxes. The predicted boxes will not overlap more than the specified threshold.
+
+The result `predictions` is a sorted list of predicted objects:
+
+```js
+[
+  {
+    box: {
+      left: 105.1,
+      top: 22.2,
+      width: 70.6,
+      height: 55.7
+    },
+    label: "Tomato",
+    score: 0.972
+  },
+  ...
+]
+```
+
+### Advanced usage
+
+Advanced users can access the underlying
+[`GraphModel`](https://js.tensorflow.org/api/latest/#class:GraphModel) via
+`model.graphModel`. The `GraphModel` allows users to call lower level methods
+such as `predict()`, `execute()` and `executeAsync()` which return tensors.
+
+`model.dictionary` gives you access to the ordered list of labels.

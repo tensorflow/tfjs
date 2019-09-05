@@ -459,12 +459,15 @@ export class WebGPUBackend extends KernelBackend {
     });
     this.commandQueueOwnedIds.add(output.dataId);
 
+    const uniformInfo = {
+      byteSize: uniformData.byteLength,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
+      buffer: uniforms.resource.buffer};
+    this.disposalQueue.push(uniformInfo);
+
     if (ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED')) {
       this.submitQueue();
     }
-    this.releaseBuffer(
-        uniforms.resource.buffer, uniformData.byteLength,
-        GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
 
     if (shouldTimeProgram) {
       query = this.endTimer(query);
