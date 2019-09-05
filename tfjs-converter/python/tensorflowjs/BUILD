@@ -123,29 +123,6 @@ py_test(
     ],
 )
 
-py_test(
-    name = "wizard_test",
-    srcs = ["wizard_test.py"],
-    srcs_version = "PY2AND3",
-    deps = [
-        ":expect_numpy_installed",
-        ":wizard",
-    ],
-)
-
-py_binary(
-    name = "wizard",
-    srcs = ["wizard.py"],
-    srcs_version = "PY2AND3",
-    deps = [
-        ":converters/common",
-        ":converters/converter",
-        "//tensorflowjs:expect_h5py_installed",
-        "//tensorflowjs:expect_keras_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
-    ],
-)
-
 # A filegroup BUILD target that includes all the op list json files in the
 # the op_list/ folder. The op_list folder itself is a symbolic link to the
 # actual op_list folder under src/.
