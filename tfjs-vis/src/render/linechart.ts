@@ -118,11 +118,7 @@ export async function linechart(
     return {
       // data will be defined at the chart level.
       'data': undefined,
-      // Add custom filter to support custom yAxisDomain
-      'transform': options.yAxisDomain ?
-          [{'filter': {'field': seriesName, 'range': options.yAxisDomain}}] :
-          undefined,
-      'mark': {'type': 'line'},
+      'mark': {'type': 'line', 'clip': true},
       'encoding': {
         // Note: the encoding for 'x' is shared
         // Add a y encoding for this series
@@ -131,7 +127,6 @@ export async function linechart(
           'type': options.yType,
           'title': options.yLabel,
           'scale': yScale(),
-
         },
         'color': {
           'field': `${seriesName}-name`,
@@ -197,6 +192,9 @@ export async function linechart(
     mode: 'vega-lite' as Mode,
     defaultStyle: false,
   };
+
+  console.log('linespec', spec);
+  console.log('linedata', vlChartValues);
 
   await embed(drawArea, spec as VisualizationSpec, embedOpts);
   return Promise.resolve();
