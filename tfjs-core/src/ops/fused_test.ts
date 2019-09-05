@@ -43,6 +43,19 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await c.data(), [0, 8, 0, 20]);
   });
 
+  it('A x B with elu', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const c = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: null, activation: 'elu'});
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0, 8, -0.9502, 20]);
+  });
+
   it('A x B with prelu', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
@@ -104,6 +117,21 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
 
     expect(d.shape).toEqual([2, 2]);
     expectArraysClose(await d.data(), [1, 9, 0, 21]);
+  });
+
+  it('A x B with elu and broadcasted bias', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const c = tf.tensor1d([1, 1]);
+    const act: tf.fused.Activation = 'elu';
+    const transposeA = false;
+    const transposeB = false;
+
+    const d = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: c, activation: act});
+
+    expect(d.shape).toEqual([2, 2]);
+    expectArraysClose(await d.data(), [1, 9, -0.8647, 21]);
   });
 
   it('A x B with relu and broadcasted bias different rank', async () => {
@@ -314,6 +342,35 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     });
     expect(result.shape).toEqual([2, 2, 2, 2]);
     const expected = [0, 2, 0, 5, 0, 8, 0, 11, 0, 14, 0, 17, 0, 20, 0, 23];
+
+    expectArraysClose(await result.data(), expected);
+  });
+
+  it('basic with elu', async () => {
+    const inputDepth = 2;
+    const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
+    const outputDepth = 2;
+    const fSize = 1;
+    const pad = 0;
+    const stride = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inShape);
+    const w =
+        tf.tensor4d([-1, 1, -2, 0.5], [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.fused.conv2d({
+      x,
+      filter: w,
+      strides: stride,
+      pad,
+      dataFormat: 'NHWC',
+      dilations: [1, 1],
+      activation: 'elu'
+    });
+    expect(result.shape).toEqual([2, 2, 2, 2]);
+    const expected =
+        [-0.99326, 2, -1, 5, -1, 8, -1, 11, -1, 14, -1, 17, -1, 20, -1, 23];
 
     expectArraysClose(await result.data(), expected);
   });
