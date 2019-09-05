@@ -27,7 +27,8 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(
-      convInfo: Conv2DInfo, addBias = false, activation: string = null) {
+      convInfo: Conv2DInfo, addBias = false, activation: string = null,
+      hasPreluActivation = false) {
     this.outputShape = convInfo.outShape;
 
     const xNumRows = convInfo.inHeight;
@@ -264,11 +265,16 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (activation) {
-      activationSnippet = `
-        float activation(float x) {
+      if (hasPreluActivation) {
+        activationSnippet = `vec4 activation(vec4 a) {
+          vec4 b = getPreluActivationWeightsAtOutCoords();
           ${activation}
-        }
-      `;
+        }`;
+      } else {
+        activationSnippet = `vec4 activation(vec4 x) {
+          ${activation}
+        }`;
+      }
 
       applyActivationSnippet = `result = activation(result);`;
     }
@@ -276,6 +282,10 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
     const addBiasSnippet = addBias ? 'result += getBiasAtOutCoords();' : '';
     if (addBias) {
       this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivation) {
+      this.variableNames.push('preluActivationWeights');
     }
 
     this.userCode = `

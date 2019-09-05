@@ -2127,7 +2127,6 @@ export class MathBackendWebGL implements KernelBackend {
   fusedDepthwiseConv2D(
       x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
       activation?: Activation, preluActivationWeights?: Tensor4D): Tensor4D {
-    const hasBias = bias != null;
     const shouldPackDepthwiseConv = ENV.getBool('WEBGL_PACK_DEPTHWISECONV') &&
         convInfo.strideWidth <= 2 &&
         convInfo.outChannels / convInfo.inChannels === 1;
@@ -2135,22 +2134,26 @@ export class MathBackendWebGL implements KernelBackend {
         mapActivationToShaderProgram(activation, shouldPackDepthwiseConv) :
         null;
     const inputs = [x, filter];
-    if (bias) {
+
+    const hasBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
+    if (hasBias) {
       inputs.push(bias);
     }
-    if (preluActivationWeights) {
+    if (hasPreluActivationWeights) {
       inputs.push(preluActivationWeights);
     }
 
     let program: DepthwiseConv2DProgram|DepthwiseConvPacked2DProgram;
     if (shouldPackDepthwiseConv) {
-      program =
-          new DepthwiseConvPacked2DProgram(convInfo, hasBias, fusedActivation);
+      program = new DepthwiseConvPacked2DProgram(
+          convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
       return this.compileAndRun(
           program, inputs, this.makePackedTensor(convInfo.outShape, x.dtype));
     }
 
-    program = new DepthwiseConv2DProgram(convInfo, hasBias, fusedActivation);
+    program = new DepthwiseConv2DProgram(
+        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
     return this.compileAndRun(program, inputs);
   }
 
