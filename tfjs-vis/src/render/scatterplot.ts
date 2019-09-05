@@ -18,7 +18,7 @@
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
 import {Drawable, Point2D, XYPlotData, XYPlotOptions} from '../types';
-
+import {getDefaultHeight, getDefaultWidth} from '../util/dom';
 import {getDrawArea} from './render_utils';
 
 /**
@@ -89,8 +89,8 @@ export async function scatterplot(
   };
 
   const spec: VisualizationSpec = {
-    'width': options.width || drawArea.clientWidth,
-    'height': options.height || drawArea.clientHeight,
+    'width': options.width || getDefaultWidth(drawArea),
+    'height': options.height || getDefaultHeight(drawArea),
     'padding': 0,
     'autosize': {
       'type': 'fit',
