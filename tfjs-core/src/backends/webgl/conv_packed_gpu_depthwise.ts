@@ -309,7 +309,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
 
         ${mainLoop}
 
-        float result = dotProd;
+        vec4 result = dotProd;
         ${addBiasSnippet}
         ${applyActivationSnippet}
         setOutput(result);
