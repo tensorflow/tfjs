@@ -16,8 +16,11 @@
  */
 
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
+import {TopLevelSpec} from 'vega-lite';
 
 import {Drawable, Point2D, XYPlotData, XYPlotOptions} from '../types';
+import {getDefaultHeight, getDefaultWidth} from '../util/dom';
+import {assert} from '../util/utils';
 
 import {getDrawArea} from './render_utils';
 
@@ -57,32 +60,33 @@ import {getDrawArea} from './render_utils';
 export async function linechart(
     container: Drawable, data: XYPlotData,
     opts: XYPlotOptions = {}): Promise<void> {
-  let inputArray = data.values;
-  const _series = data.series == null ? [] : data.series;
-
   // Nest data if necessary before further processing
-  inputArray = Array.isArray(inputArray[0]) ? inputArray as Point2D[][] :
-                                              [inputArray] as Point2D[][];
+  const _data = Array.isArray(data.values[0]) ? data.values as Point2D[][] :
+                                                [data.values] as Point2D[][];
+  const numValues = _data[0].length;
 
-  const values: Point2D[] = [];
-  const seriesNames = new Set();
-  inputArray.forEach((seriesData, i) => {
-    const seriesName: string =
-        _series[i] != null ? _series[i] : `Series ${i + 1}`;
-    seriesNames.add(seriesName);
-    const seriesVals =
-        seriesData.map(v => Object.assign({}, v, {series: seriesName}));
-    values.push(...seriesVals);
-  });
+  // Create series names if none were passed in.
+  const _series: string[] =
+      data.series ? data.series : _data.map((_, i) => `Series ${i + 1}`);
+  assert(
+      _series.length === _data.length,
+      'Must have an equal number of series labels as there are data series');
 
-  const drawArea = getDrawArea(container);
+  const vlChartValues: VLChartValue[] = [];
+  for (let valueIdx = 0; valueIdx < numValues; valueIdx++) {
+    const v: VLChartValue = {
+      x: valueIdx,
+    };
+
+    _series.forEach((seriesName, seriesIdx) => {
+      const seriesValue = _data[seriesIdx][valueIdx].y;
+      v[seriesName] = seriesValue;
+      v[`${seriesName}-name`] = seriesName;
+    });
+    vlChartValues.push(v);
+  }
+
   const options = Object.assign({}, defaultOpts, opts);
-
-  const embedOpts = {
-    actions: false,
-    mode: 'vega-lite' as Mode,
-    defaultStyle: false,
-  };
 
   const yScale = (): {}|undefined => {
     if (options.zoomToFit) {
@@ -93,36 +97,71 @@ export async function linechart(
     return undefined;
   };
 
-  // tslint:disable-next-line:no-any
-  const encodings: any = {
-    'x': {
-      'field': 'x',
-      'type': options.xType,
-      'title': options.xLabel,
+  const sharedEncoding = {
+    x: {
+      field: 'x',
+      type: options.xType,
+      title: options.xLabel,
     },
-    'y': {
-      'field': 'y',
-      'type': options.yType,
-      'title': options.yLabel,
-      'scale': yScale(),
-    },
-    'color': {
-      'field': 'series',
-      'type': 'nominal',
-      'legend': {'values': Array.from(seriesNames)}
-    },
+    tooltip: [
+      {field: 'x', type: 'quantitative'},
+      ..._series.map(seriesName => {
+        return {
+          field: seriesName,
+          type: 'quantitative',
+        };
+      }),
+    ]
   };
 
-  // tslint:disable-next-line:no-any
-  let domainFilter: any;
-  if (options.yAxisDomain != null) {
-    domainFilter = {'filter': {'field': 'y', 'range': options.yAxisDomain}};
-  }
+  const lineLayers: TopLevelSpec[] = _series.map((seriesName) => {
+    return {
+      // data will be defined at the chart level.
+      'data': undefined,
+      'mark': {'type': 'line', 'clip': true},
+      'encoding': {
+        // Note: the encoding for 'x' is shared
+        // Add a y encoding for this series
+        'y': {
+          'field': seriesName,
+          'type': options.yType,
+          'title': options.yLabel,
+          'scale': yScale(),
+        },
+        'color': {
+          'field': `${seriesName}-name`,
+          'type': 'nominal',
+          'legend': {'values': _series, title: null}
+        },
+      }
+    };
+  });
 
-  const spec: VisualizationSpec = {
+  const tooltipLayer = {
+    'mark': 'rule',
+    'selection': {
+      'hover': {
+        'type': 'single',
+        'on': 'mouseover',
+        'nearest': true,
+        clear: 'mouseout',
+      }
+    },
+    'encoding': {
+      'color': {
+        'value': 'grey',
+        'condition': {
+          'selection': {'not': 'hover'},
+          'value': 'transparent',
+        }
+      }
+    }
+  };
 
-    'width': options.width || drawArea.clientWidth,
-    'height': options.height || drawArea.clientHeight,
+  const drawArea = getDrawArea(container);
+  const spec = {
+    'width': options.width || getDefaultWidth(drawArea),
+    'height': options.height || getDefaultHeight(drawArea),
     'padding': 0,
     'autosize': {
       'type': 'fit',
@@ -140,83 +179,21 @@ export async function linechart(
         'titleFontSize': options.fontSize,
       }
     },
-    'data': {'values': values},
+    'data': {'values': vlChartValues},
+    'encoding': sharedEncoding,
     'layer': [
-      {
-        // Render the main line chart
-        'mark': {
-          'type': 'line',
-          'clip': true,
-        },
-        'encoding': encodings,
-      },
-      {
-        // Render invisible points for all the the data to make selections
-        // easier
-        'mark': {'type': 'point'},
-        // 'encoding': encodings,
-        // If a custom domain is set, filter out the values that will not
-        // fit we do this on the points and not the line so that the line
-        // still appears clipped for values outside the domain but we can
-        // still operate on an unclipped set of points.
-        'transform': options.yAxisDomain ? [domainFilter] : undefined,
-        'selection': {
-          'nearestPoint': {
-            'type': 'single',
-            'on': 'mouseover',
-            'nearest': true,
-            'empty': 'none',
-            'encodings': ['x'],
-          },
-        },
-        'encoding': Object.assign({}, encodings, {
-          'opacity': {
-            'value': 0,
-            'condition': {
-              'selection': 'nearestPoint',
-              'value': 1,
-            },
-          }
-        }),
-      },
-      {
-        // Render a tooltip where the selection is
-        'transform': [
-          {'filter': {'selection': 'nearestPoint'}},
-          domainFilter
-        ].filter(Boolean),  // remove undefineds from array
-        'mark': {
-          'type': 'text',
-          'align': 'left',
-          'dx': 5,
-          'dy': -5,
-          'color': 'black',
-        },
-        'encoding': Object.assign({}, encodings, {
-          'text': {
-            'type': options.xType,
-            'field': 'y',
-            'format': '.6f',
-          },
-          // Unset text color to improve readability
-          'color': undefined,
-        }),
-      },
-      {
-        // Draw a vertical line where the selection is
-        'transform': [{'filter': {'selection': 'nearestPoint'}}],
-        'mark': {'type': 'rule', 'color': 'gray'},
-        'encoding': {
-          'x': {
-            'type': options.xType,
-            'field': 'x',
-          }
-        }
-      },
+      ...lineLayers,
+      tooltipLayer,
     ],
   };
 
-  await embed(drawArea, spec, embedOpts);
+  const embedOpts = {
+    actions: false,
+    mode: 'vega-lite' as Mode,
+    defaultStyle: false,
+  };
+
+  await embed(drawArea, spec as VisualizationSpec, embedOpts);
   return Promise.resolve();
 }
 
@@ -228,3 +205,8 @@ const defaultOpts = {
   zoomToFit: false,
   fontSize: 11,
 };
+
+interface VLChartValue {
+  x: number;
+  [key: string]: string|number;
+}
