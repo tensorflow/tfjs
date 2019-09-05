@@ -613,7 +613,7 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
     const res = backend.fusedDepthwiseConv2D(
         x4D, $filter, convInfo, $bias as Tensor4D, activation,
         $preluActivationWeights);
-    save([x4D, $filter]);
+    save([x4D, $filter, res]);
     return res;
   }, inputs, grad);
   if (reshapedTo4D) {
