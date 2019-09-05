@@ -202,10 +202,11 @@ describeBrowserEnvs('WebcamIterator', () => {
     expect(result2.value).toBeNull();
 
     await webcamIterator.start();
-    await replaceHTMLVideoElementSource(videoElement);
-    // Skip validation when it's in Firefox, because BrowserStack for
+    // Skip validation when it's in Firefox and Mac OS, because BrowserStack for
     // Firefox does not trigger the readyState event when restarting.
-    if (navigator.userAgent.search('Firefox') < 0) {
+    if (navigator.userAgent.search('Firefox') < 0 &&
+        navigator.userAgent.search('OS X') < 0) {
+      await replaceHTMLVideoElementSource(videoElement);
       const result3 = await webcamIterator.next();
       expect(result3.done).toBeFalsy();
       expect(result3.value.shape).toEqual([90, 160, 3]);
