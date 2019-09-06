@@ -33,6 +33,7 @@ const dirs = readdirSync('.').filter(f => {
 
 let commitSha = process.env['COMMIT_SHA'];
 let branchName = process.env['BRANCH_NAME'];
+console.log('process env', process.env);
 if (commitSha == null) {
   commitSha = exec(`git rev-parse HEAD`).stdout.trim();
 
