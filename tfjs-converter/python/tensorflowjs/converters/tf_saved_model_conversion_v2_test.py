@@ -255,9 +255,7 @@ class ConvertTest(tf.test.TestCase):
         'TensorFlow.js Converter v%s' % version.version)
     self.assertEqual(model_json['generatedBy'],
                      tf.__version__)
-    self.assertTrue(
-        glob.glob(
-            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
 
   def test_convert_saved_model_v1_with_hashtable(self):
     self._create_saved_model_v1_with_hashtable()
@@ -287,9 +285,7 @@ class ConvertTest(tf.test.TestCase):
         'TensorFlow.js Converter v%s' % version.version)
     self.assertEqual(model_json['generatedBy'],
                      tf.__version__)
-    self.assertTrue(
-        glob.glob(
-            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
 
   def test_convert_saved_model(self):
     self._create_saved_model()
