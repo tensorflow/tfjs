@@ -54,7 +54,10 @@ exec(`git clone https://github.com/tensorflow/tfjs ${CLONE_CURRENT_PATH}`);
 shell.cd(CLONE_CURRENT_PATH);
 exec(`git checkout ${branchName}`);
 const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
-exec(`git checkout ${commitSha}`);
+const res = shell.exec(`git checkout ${commitSha}`, opt);
+if (!ignoreCode && res.code !== 0) {
+  console.log(`${commitSha} does not exist. PR coming from a fork.`)
+}
 shell.cd('..');
 
 console.log('mergeBase: ', mergeBase);
