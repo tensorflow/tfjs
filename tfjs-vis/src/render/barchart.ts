@@ -18,7 +18,7 @@
 import embed, {Mode, Result as EmbedRes, VisualizationSpec} from 'vega-embed';
 
 import {Drawable, VisOptions} from '../types';
-
+import {getDefaultHeight, getDefaultWidth} from '../util/dom';
 import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
 
 /**
@@ -81,8 +81,8 @@ export async function barchart(
   };
 
   const spec: VisualizationSpec = {
-    'width': options.width || drawArea.clientWidth,
-    'height': options.height || drawArea.clientHeight,
+    'width': options.width || getDefaultWidth(drawArea),
+    'height': options.height || getDefaultHeight(drawArea),
     'padding': 0,
     'autosize': {
       'type': 'fit',

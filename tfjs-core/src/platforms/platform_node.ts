@@ -24,7 +24,19 @@ export const getNodeFetch = {
   importFetch: () => require('node-fetch')
 };
 
-export let systemFetch: (url: string, init?: RequestInit) => Promise<Response>;
+type FetchFn = (url: string, init?: RequestInit) => Promise<Response>;
+let systemFetch: FetchFn;
+// These getters and setters are for testing so we don't export a mutable
+// variable.
+export function resetSystemFetch() {
+  systemFetch = null;
+}
+export function setSystemFetch(fetchFn: FetchFn) {
+  systemFetch = fetchFn;
+}
+export function getSystemFetch(): FetchFn {
+  return systemFetch;
+}
 
 export class PlatformNode implements Platform {
   private textEncoder: TextEncoder;

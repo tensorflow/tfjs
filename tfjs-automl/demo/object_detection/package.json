@@ -1,8 +1,8 @@
 {
-  "name": "automl-img-classification-demo",
+  "name": "automl-object-detection-demo",
   "version": "0.0.1",
   "private": true,
-  "description": "Image classification demo using the AutoML NPM library",
+  "description": "Object detection demo using the AutoML NPM library",
   "main": "index.js",
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open ",
@@ -18,9 +18,9 @@
     "parcel-bundler": "~1.10.3",
     "yalc": "~1.0.0-pre.27"
   },
+  "license": "Apache-2.0",
   "dependencies": {
     "@tensorflow/tfjs-converter": "^1.2.8",
     "@tensorflow/tfjs-core": "^1.2.8"
-  },
-  "license": "Apache-2.0"
+  }
 }
