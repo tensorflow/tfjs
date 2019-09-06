@@ -15,6 +15,7 @@
 // =============================================================================
 
 const {exec} = require('./test-util');
+const shell = require('shelljs');
 const {readdirSync, statSync, writeFileSync} = require('fs');
 const {join} = require('path');
 const fs = require('fs');
@@ -43,18 +44,17 @@ if (branchName == null) {
   branchName = exec(`git rev-parse --abbrev-ref HEAD`).stdout.trim();
 }
 
-const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
 
 //${branchName}`).stdout.trim(); console.log('merge base', mergeBase);
 
-exec(
-    `git clone --depth=1 --single-branch --branch ${branchName} ` +
-    `https://github.com/tensorflow/tfjs ${CLONE_CURRENT_PATH}`);
-exec(
-    `cd ${CLONE_CURRENT_PATH} && ` +
-    `git checkout ${branchName} &&` +
-    `git checkout ${commitSha} && ` +
-    `cd ..`);
+exec(`git clone https://github.com/tensorflow/tfjs ${CLONE_CURRENT_PATH}`);
+
+shell.cd(CLONE_CURRENT_PATH);
+// exec(`git fetch origin ${branchName}`)
+exec(`git checkout ${branchName}`);
+const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
+exec(`git checkout ${commitSha}`);
+shell.cd('..');
 
 exec(
     `git clone --depth=1 --single-branch ` +
@@ -99,8 +99,8 @@ dirs.forEach(dir => {
 // Break up the console for readability.
 console.log();
 
-// Filter the triggered builds to log by whether a cloudbuild.yml file exists
-// for that directory.
+// Filter the triggered builds to log by whether a cloudbuild.yml file
+// exists for that directory.
 triggeredBuilds = triggeredBuilds.filter(
     triggeredBuild => fs.existsSync(triggeredBuild + '/cloudbuild.yml'));
 console.log('Triggering builds for ', triggeredBuilds.join(', '));
