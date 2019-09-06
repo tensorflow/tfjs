@@ -299,7 +299,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     const endTensor = tensor1d(end, 'int32');
     const stridesTensor = tensor1d(strides, 'int32');
     // All of the masks have already been accounted for in the high level op,
-    // so the actual backend does need to deal with it.
+    // so the backend does NOT need to deal with masks.
     const opAttrs = [
       createTypeOpAttr('T', x.dtype), createTypeOpAttr('Index', 'int32'),
       {name: 'begin_mask', type: this.binding.TF_ATTR_INT, value: 0},
