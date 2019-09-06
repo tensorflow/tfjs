@@ -26,6 +26,8 @@ deps/
 dist/
 tfjs-layers/integration_tests/tfjs2keras/test-data/
 tfjs-layers/integration/typescript/yarn.lock
+# Ignore the src of tfjs-node-gpu since it is copied over when building.
+/tfjs-node-gpu/src
 lib/
 local.log
 node_modules/
