@@ -19,7 +19,8 @@ bazel-*
 build-tmp-napi-v3/
 build-tmp-napi-v4/
 build/
-clone/
+clone-current/
+clone-master/
 coverage/
 demo/train-*
 deps/

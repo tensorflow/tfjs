@@ -11,6 +11,8 @@ steps:
   id: 'diff'
   args: ['diff']
   waitFor: ['yarn']
+  env:
+  - 'COMMIT_SHA=$COMMIT_SHA'
 
 # Core.
 - name: 'gcr.io/cloud-builders/gcloud'

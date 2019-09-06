@@ -24,22 +24,39 @@ const filesWhitelistToTriggerBuild = [
   'scripts/diff.js', 'scripts/run-build.sh'
 ];
 
-const CLONE_PATH = 'clone';
+const CLONE_MASTER_PATH = 'clone-master';
+const CLONE_CURRENT_PATH = 'clone-current';
 
 const dirs = readdirSync('.').filter(f => {
   return f !== 'node_modules' && f !== '.git' && statSync(f).isDirectory();
 });
 
-const branchName = exec(`git rev-parse --abbrev-ref HEAD`).stdout.trim();
-console.log('MY BRANCH', branchName);
+let commitSha = process.env['COMMIT_SHA'];
+let branchName = process.env['BRANCH_NAME'];
+if (commitSha == null) {
+  commitSha = exec(`git rev-parse HEAD`).stdout.trim();
+
+  // TODO(merge base origin master)
+}
+if (branchName == null) {
+  branchName = exec(`git rev-parse --abbrev-ref HEAD`).stdout.trim();
+}
 
 const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
-console.log('merge base', mergeBase);
+
+//${branchName}`).stdout.trim(); console.log('merge base', mergeBase);
+
+exec(
+    `git clone --depth=1 --single-branch --branch ${branchName} ` +
+    `https://github.com/tensorflow/tfjs ${CLONE_CURRENT_PATH}`);
+exec(
+    `cd ${CLONE_CURRENT_PATH} && git checkout ${branchName} ` +
+    `&& git checkout ${commitSha} && cd ..`);
 
 exec(
     `git clone --depth=1 --single-branch ` +
-    `https://github.com/tensorflow/tfjs ${CLONE_PATH}`);
-exec(`cd clone && git checkout ${mergeBase} && cd ..`);
+    `https://github.com/tensorflow/tfjs ${CLONE_MASTER_PATH}`);
+exec(`cd ${CLONE_MASTER_PATH} && git fetch origin ${mergeBase} && cd ..`);
 
 let triggerAllBuilds = false;
 let whitelistDiffOutput = [];
@@ -82,6 +99,7 @@ triggeredBuilds = triggeredBuilds.filter(
 console.log('Triggering builds for ', triggeredBuilds.join(', '));
 
 function diff(fileOrDirName) {
-  const diffCmd = `diff -rq ${CLONE_PATH}/${fileOrDirName} ./${fileOrDirName}`;
+  const diffCmd =
+      `diff -rq ${CLONE_MASTER_PATH}/${fileOrDirName} ./${fileOrDirName}`;
   return exec(diffCmd, {silent: true}, true).stdout.trim();
 }
