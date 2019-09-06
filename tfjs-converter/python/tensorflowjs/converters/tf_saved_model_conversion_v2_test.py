@@ -230,22 +230,24 @@ class ConvertTest(tf.test.TestCase):
   def test_convert_saved_model_v1(self):
     self._create_saved_model_v1()
 
+    input_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    output_dir = os.path.join(input_dir, 'js')
     tf_saved_model_conversion_v2.convert_tf_saved_model(
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+        input_dir,
+        output_dir
     )
 
-    weights = [{
+    expected_weights_manifest = [{
         'paths': ['group1-shard1of1.bin'],
         'weights': [{'dtype': 'float32', 'name': 'w', 'shape': [2, 2]}]}]
 
-    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'js')
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    self.assertEqual(weights_manifest, expected_weights_manifest)
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
     self.assertEqual(
@@ -260,22 +262,24 @@ class ConvertTest(tf.test.TestCase):
   def test_convert_saved_model_v1_with_hashtable(self):
     self._create_saved_model_v1_with_hashtable()
 
+    input_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    output_dir = os.path.join(input_dir, 'js')
     tf_saved_model_conversion_v2.convert_tf_saved_model(
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+        input_dir,
+        output_dir
     )
 
-    weights = [{
+    expected_weights_manifest = [{
         'paths': ['group1-shard1of1.bin'],
         'weights': [{'dtype': 'float32', 'name': 'w', 'shape': [2, 2]}]}]
 
-    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'js')
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    self.assertEqual(weights_manifest, expected_weights_manifest)
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
     self.assertEqual(

@@ -276,10 +276,10 @@ def _check_signature_in_model(saved_model, signature_name):
 
 def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
                            output_node_names):
-  input_graph_def = saved_model_utils.get_meta_graph_def(
-      saved_model_dir, ','.join(saved_model_tags)).graph_def
   with tf.compat.v1.Session() as sess:
-    _ = loader.load(sess, saved_model_tags, saved_model_dir)
+    loader.load(sess, saved_model_tags, saved_model_dir)
+    input_graph_def = saved_model_utils.get_meta_graph_def(
+        saved_model_dir, ','.join(saved_model_tags)).graph_def
     frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
         sess, input_graph_def, output_node_names)
 
