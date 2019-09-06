@@ -34,23 +34,19 @@ const dirs = readdirSync('.').filter(f => {
 
 let commitSha = process.env['COMMIT_SHA'];
 let branchName = process.env['BRANCH_NAME'];
-console.log('process env', process.env);
+// If commit sha or branch name are null we are running this locally and are in
+// a git repository.
 if (commitSha == null) {
   commitSha = exec(`git rev-parse HEAD`).stdout.trim();
-
-  // TODO(merge base origin master)
 }
 if (branchName == null) {
   branchName = exec(`git rev-parse --abbrev-ref HEAD`).stdout.trim();
 }
 
-
-//${branchName}`).stdout.trim(); console.log('merge base', mergeBase);
-
 exec(`git clone https://github.com/tensorflow/tfjs ${CLONE_CURRENT_PATH}`);
 
+// Get the merge base from the current commit and master.
 shell.cd(CLONE_CURRENT_PATH);
-// exec(`git fetch origin ${branchName}`)
 exec(`git checkout ${branchName}`);
 const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
 exec(`git checkout ${commitSha}`);
@@ -106,7 +102,8 @@ triggeredBuilds = triggeredBuilds.filter(
 console.log('Triggering builds for ', triggeredBuilds.join(', '));
 
 function diff(fileOrDirName) {
-  const diffCmd =
-      `diff -rq ${CLONE_MASTER_PATH}/${fileOrDirName} ./${fileOrDirName}`;
+  const diffCmd = `diff -rq ` +
+      `${CLONE_MASTER_PATH}/${fileOrDirName} ` +
+      `${CLONE_CURRENT_PATH}/${fileOrDirName}`;
   return exec(diffCmd, {silent: true}, true).stdout.trim();
 }
