@@ -32,6 +32,7 @@ const dirs = readdirSync('.').filter(f => {
   return f !== 'node_modules' && f !== '.git' && statSync(f).isDirectory();
 });
 
+console.log('REPO NAME', process.env['REPO_NAME']);
 let commitSha = process.env['COMMIT_SHA'];
 let branchName = process.env['BRANCH_NAME'];
 // If commit sha or branch name are null we are running this locally and are in
