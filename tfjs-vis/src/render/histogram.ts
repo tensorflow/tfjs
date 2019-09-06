@@ -19,7 +19,7 @@ import {format as d3Format} from 'd3-format';
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
 import {Drawable, HistogramOpts, HistogramStats, TypedArray} from '../types';
-import {subSurface} from '../util/dom';
+import {getDefaultHeight, getDefaultWidth, subSurface} from '../util/dom';
 import {arrayStats} from '../util/math';
 
 import {table} from './table';
@@ -86,8 +86,8 @@ export async function histogram(
 
   const histogramSpec: VisualizationSpec = {
 
-    'width': options.width || histogramContainer.clientWidth,
-    'height': options.height || histogramContainer.clientHeight,
+    'width': options.width || getDefaultWidth(histogramContainer),
+    'height': options.height || getDefaultHeight(histogramContainer),
     'padding': 0,
     'autosize': {
       'type': 'fit',

@@ -70,6 +70,25 @@ export function subSurface(parent: Drawable, name: string, opts: Options = {}) {
   return sub;
 }
 
+export function getDefaultWidth(element: HTMLElement) {
+  const DEFAULT_PADDING = 50;
+  let padding = 0;
+  let current = element;
+  while (current && current.clientWidth === 0) {
+    current = current.parentElement;
+    padding = DEFAULT_PADDING;
+  }
+  return (current.clientWidth - padding);
+}
+
+export function getDefaultHeight(element: HTMLElement) {
+  if (element.clientHeight === 0) {
+    return 200;
+  } else {
+    return element.clientHeight;
+  }
+}
+
 interface Options {
   prepend?: boolean;
   title?: string;
