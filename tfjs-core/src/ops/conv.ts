@@ -194,10 +194,9 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
             `are not yet supported in gradients. Got dilations '${dilations}'`);
 
     return {
-      x: () =>
-          conv2dDerInput_(x4D.shape, dy, $filter, strides, pad, dataFormat),
+      x: () => conv2dDerInput(x4D.shape, dy, $filter, strides, pad, dataFormat),
       $filter: () =>
-          conv2dDerFilter_(x4D, dy, $filter.shape, strides, pad, dataFormat)
+          conv2dDerFilter(x4D, dy, $filter.shape, strides, pad, dataFormat)
     };
   };
 
@@ -523,9 +522,9 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
             `'${dilations}'`);
     const [x4D, $filter] = saved;
     return {
-      x: () => depthwiseConv2dDerInput_(
+      x: () => depthwiseConv2dDerInput(
           (x4D as Tensor4D).shape, dy, $filter as Tensor4D, convInfo),
-      $filter: () => depthwiseConv2dDerFilter_(
+      $filter: () => depthwiseConv2dDerFilter(
           x4D as Tensor4D, dy, ($filter as Tensor4D).shape, convInfo),
     };
   };
