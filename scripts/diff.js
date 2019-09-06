@@ -61,11 +61,11 @@ console.log('~~~~~~~~~~~~~~~~~~~~~~');
 exec(
     `git clone --depth=1 --single-branch ` +
     `https://github.com/tensorflow/tfjs ${CLONE_MASTER_PATH}`);
-exec(
-    `cd ${CLONE_MASTER_PATH} && ` +
-    `git fetch origin ${mergeBase} && ` +
-    `git checkout ${mergeBase} && ` +
-    `cd ..`);
+
+shell.cd(CLONE_MASTER_PATH);
+exec(`git fetch origin ${mergeBase}`);
+exec(`git checkout ${mergeBase}`);
+shell.cd('..');
 
 let triggerAllBuilds = false;
 let whitelistDiffOutput = [];
