@@ -17,3 +17,4 @@
 set -e
 
 cp -R ../tfjs-node/src ./src
+cp -R ../tfjs-node/binding ./binding
