@@ -23,7 +23,9 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(convInfo: Conv2DInfo) {
+  constructor(
+      convInfo: Conv2DInfo, addBias = false, activation: string = null,
+      hasPreluActivation = false) {
     this.outputShape = convInfo.outShape;
 
     const xNumRows = convInfo.inHeight;
@@ -38,7 +40,36 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
     const filterWidth = convInfo.filterWidth;
     const channelMul = convInfo.outChannels / convInfo.inChannels;
 
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (activation) {
+      if (hasPreluActivation) {
+        activationSnippet = `float activation(float a) {
+          float b = getPreluActivationWeightsAtOutCoords();
+          ${activation}
+        }`;
+      } else {
+        activationSnippet = `
+          float activation(float x) {
+            ${activation}
+          }
+        `;
+      }
+
+      applyActivationSnippet = `result = activation(result);`;
+    }
+
+    const addBiasSnippet = addBias ? 'result += getBiasAtOutCoords();' : '';
+    if (addBias) {
+      this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivation) {
+      this.variableNames.push('preluActivationWeights');
+    }
+
     this.userCode = `
+      ${activationSnippet}
+
       const ivec2 strides = ivec2(${strideHeight}, ${strideWidth});
       const ivec2 pads = ivec2(${padTop}, ${padLeft});
 
@@ -76,7 +107,11 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
             dotProd += xVal * wVal;
           }
         }
-        setOutput(dotProd);
+
+        float result = dotProd;
+        ${addBiasSnippet}
+        ${applyActivationSnippet}
+        setOutput(result);
       }
     `;
   }
