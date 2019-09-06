@@ -80,16 +80,21 @@ class ConvertTest(tf.test.TestCase):
 
       builder.save()
 
-  def _create_saved_model_v1_with_reference_vars(self):
-    """Create a TensorFlow SavedModel V1 with reference vars for testing."""
+  def _create_saved_model_v1_with_hashtable(self):
+    """Create a TensorFlow SavedModel V1 with unused hash table for testing."""
 
     graph = tf.Graph()
     with graph.as_default():
-      x = tf.compat.v1.constant([[37.0, -23.0], [1.0, 4.0]])
-      # Use reference variable instead of resource.
-      w = tf.compat.v1.get_variable('w', shape=[2, 2], use_resource=False)
+      x = tf.placeholder('float32', [2, 2])
+      w = tf.compat.v1.get_variable('w', shape=[2, 2])
       output = tf.compat.v1.matmul(x, w)
       init_op = w.initializer
+
+      # Add a hash table that is not used by the output.
+      keys = tf.constant(['key'])
+      values = tf.constant([1])
+      initializer = tf.contrib.lookup.KeyValueTensorInitializer(keys, values)
+      table = tf.contrib.lookup.HashTable(initializer, -1)
 
       # Create a builder.
       save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
@@ -98,6 +103,7 @@ class ConvertTest(tf.test.TestCase):
       with tf.compat.v1.Session() as sess:
         # Run the initializer on `w`.
         sess.run(init_op)
+        table.init.run()
 
         builder.add_meta_graph_and_variables(
             sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
@@ -251,8 +257,8 @@ class ConvertTest(tf.test.TestCase):
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
-  def test_convert_saved_model_v1_with_reference_vars(self):
-    self._create_saved_model_v1_with_reference_vars()
+  def test_convert_saved_model_v1_with_hashtable(self):
+    self._create_saved_model_v1_with_hashtable()
 
     tf_saved_model_conversion_v2.convert_tf_saved_model(
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
