@@ -58,6 +58,8 @@ exec(`git fetch origin ${mergeBase}`);
 exec(`git checkout ${mergeBase}`);
 shell.cd('..');
 
+console.log(shell.exec(`cat ./tfjs-node/diff`).stdout);
+
 console.log('mergeBase: ', mergeBase);
 
 let triggerAllBuilds = false;
