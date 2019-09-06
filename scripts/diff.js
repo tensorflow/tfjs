@@ -59,7 +59,7 @@ console.log('mergeBase: ', mergeBase);
 console.log('~~~~~~~~~~~~~~~~~~~~~~');
 
 exec(
-    `git clone ` +
+    `git clone --single-branch ` +
     `https://github.com/tensorflow/tfjs ${CLONE_MASTER_PATH}`);
 
 shell.cd(CLONE_MASTER_PATH);
