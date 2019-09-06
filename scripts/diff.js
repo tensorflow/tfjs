@@ -42,6 +42,7 @@ if (commitSha == null) {
 if (branchName == null) {
   branchName = exec(`git rev-parse --abbrev-ref HEAD`).stdout.trim();
 }
+console.log('~~~~~~~~~~~~~~~~~~~~~~');
 console.log('commitSha: ', commitSha);
 console.log('branchName: ', branchName);
 
@@ -53,6 +54,9 @@ exec(`git checkout ${branchName}`);
 const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
 exec(`git checkout ${commitSha}`);
 shell.cd('..');
+
+console.log('mergeBase: ', mergeBase);
+console.log('~~~~~~~~~~~~~~~~~~~~~~');
 
 exec(
     `git clone --depth=1 --single-branch ` +
