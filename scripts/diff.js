@@ -15,6 +15,7 @@
 // =============================================================================
 
 const {exec} = require('./test-util');
+const shell = require('shelljs');
 const {readdirSync, statSync, writeFileSync} = require('fs');
 const {join} = require('path');
 const fs = require('fs');
@@ -24,15 +25,48 @@ const filesWhitelistToTriggerBuild = [
   'scripts/diff.js', 'scripts/run-build.sh'
 ];
 
-const CLONE_PATH = 'clone';
+const CLONE_MASTER_PATH = 'clone-master';
+const CLONE_CURRENT_PATH = 'clone-current';
 
 const dirs = readdirSync('.').filter(f => {
   return f !== 'node_modules' && f !== '.git' && statSync(f).isDirectory();
 });
 
+let commitSha = process.env['COMMIT_SHA'];
+let branchName = process.env['BRANCH_NAME'];
+// If commit sha or branch name are null we are running this locally and are in
+// a git repository.
+if (commitSha == null) {
+  commitSha = exec(`git rev-parse HEAD`).stdout.trim();
+}
+if (branchName == null) {
+  branchName = exec(`git rev-parse --abbrev-ref HEAD`).stdout.trim();
+}
+console.log('commitSha: ', commitSha);
+console.log('branchName: ', branchName);
+
+// We cannot do --depth=1 or --single-branch here because we need multiple
+// branches at older commits.
+exec(`git clone https://github.com/tensorflow/tfjs ${CLONE_CURRENT_PATH}`);
+
+// Get the merge base from the current commit and master.
+shell.cd(CLONE_CURRENT_PATH);
+exec(`git checkout ${branchName}`);
+const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
+exec(`git checkout ${commitSha}`);
+shell.cd('..');
+
+console.log('mergeBase: ', mergeBase);
+
+// We cannot do --depth=1 here because we need to check out an old merge base.
 exec(
-    `git clone --depth=1 --single-branch ` +
-    `https://github.com/tensorflow/tfjs ${CLONE_PATH}`);
+    `git clone --single-branch ` +
+    `https://github.com/tensorflow/tfjs ${CLONE_MASTER_PATH}`);
+
+shell.cd(CLONE_MASTER_PATH);
+exec(`git fetch origin ${mergeBase}`);
+exec(`git checkout ${mergeBase}`);
+shell.cd('..');
 
 let triggerAllBuilds = false;
 let whitelistDiffOutput = [];
@@ -68,13 +102,15 @@ dirs.forEach(dir => {
 // Break up the console for readability.
 console.log();
 
-// Filter the triggered builds to log by whether a cloudbuild.yml file exists
-// for that directory.
+// Filter the triggered builds to log by whether a cloudbuild.yml file
+// exists for that directory.
 triggeredBuilds = triggeredBuilds.filter(
     triggeredBuild => fs.existsSync(triggeredBuild + '/cloudbuild.yml'));
 console.log('Triggering builds for ', triggeredBuilds.join(', '));
 
 function diff(fileOrDirName) {
-  const diffCmd = `diff -rq ${CLONE_PATH}/${fileOrDirName} ./${fileOrDirName}`;
+  const diffCmd = `diff -rq ` +
+      `${CLONE_MASTER_PATH}/${fileOrDirName} ` +
+      `${CLONE_CURRENT_PATH}/${fileOrDirName}`;
   return exec(diffCmd, {silent: true}, true).stdout.trim();
 }
