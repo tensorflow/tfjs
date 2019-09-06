@@ -34,6 +34,13 @@ exec(
     `git clone --depth=1 --single-branch ` +
     `https://github.com/tensorflow/tfjs ${CLONE_PATH}`);
 
+
+const result = exec(`git branch`);
+console.log('MY BRANCH', result);
+
+const mergeBase = exec(`git merge-base master ${result}`);
+console.log('merge base', mergeBase);
+
 let triggerAllBuilds = false;
 let whitelistDiffOutput = [];
 filesWhitelistToTriggerBuild.forEach(fileToTriggerBuild => {
