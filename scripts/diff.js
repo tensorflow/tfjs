@@ -42,6 +42,8 @@ if (commitSha == null) {
 if (branchName == null) {
   branchName = exec(`git rev-parse --abbrev-ref HEAD`).stdout.trim();
 }
+console.log('commitSha: ', commitSha);
+console.log('branchName: ', branchName);
 
 exec(`git clone https://github.com/tensorflow/tfjs ${CLONE_CURRENT_PATH}`);
 
