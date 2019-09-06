@@ -50,13 +50,19 @@ exec(
     `git clone --depth=1 --single-branch --branch ${branchName} ` +
     `https://github.com/tensorflow/tfjs ${CLONE_CURRENT_PATH}`);
 exec(
-    `cd ${CLONE_CURRENT_PATH} && git checkout ${branchName} ` +
-    `&& git checkout ${commitSha} && cd ..`);
+    `cd ${CLONE_CURRENT_PATH} && ` +
+    `git checkout ${branchName} &&` +
+    `git checkout ${commitSha} && ` +
+    `cd ..`);
 
 exec(
     `git clone --depth=1 --single-branch ` +
     `https://github.com/tensorflow/tfjs ${CLONE_MASTER_PATH}`);
-exec(`cd ${CLONE_MASTER_PATH} && git fetch origin ${mergeBase} && cd ..`);
+exec(
+    `cd ${CLONE_MASTER_PATH} && ` +
+    `git fetch origin ${mergeBase} && ` +
+    `git checkout ${mergeBase} && ` +
+    `cd ..`);
 
 let triggerAllBuilds = false;
 let whitelistDiffOutput = [];
