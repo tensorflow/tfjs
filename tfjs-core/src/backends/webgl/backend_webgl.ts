@@ -29,7 +29,7 @@ import * as axis_util from '../../ops/axis_util';
 import {complex, imag, real} from '../../ops/complex_ops';
 import {computeOutShape} from '../../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
-import {Activation, FusedBatchMatMulConfig} from '../../ops/fused_util';
+import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../ops/fused_util';
 import * as gather_nd_util from '../../ops/gather_nd_util';
 import * as reduce_util from '../../ops/reduce_util';
 import * as scatter_nd_util from '../../ops/scatter_nd_util';
@@ -1909,7 +1909,7 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   private conv2dByMatMul(
-      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
+      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor,
       activation?: Activation, preluActivationWeights?: Tensor): Tensor4D {
     // Reshapes conv2D input to 2D tensors, uses matMul and then reshape the
     // result from 2D to 4D.
@@ -2008,7 +2008,7 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   private conv2dWithIm2Row(
-      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
+      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor,
       activation?: Activation, preluActivationWeights?: Tensor): Tensor4D {
     // Rearranges conv2d input so each block to be convolved over forms the
     // column of a new matrix with shape [filterWidth * filterHeight *
@@ -2067,19 +2067,19 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   fusedConv2d(
-      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
-      activation?: Activation, preluActivationWeights?: Tensor): Tensor4D {
+      {input, filter, convInfo, bias, activation, preluActivationWeights}:
+          FusedConv2DConfig): Tensor4D {
     if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
         convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
         convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
         (convInfo.padInfo.type === 'SAME' ||
          convInfo.padInfo.type === 'VALID')) {
       return this.conv2dByMatMul(
-          x, filter, convInfo, bias, activation, preluActivationWeights);
+          input, filter, convInfo, bias, activation, preluActivationWeights);
     }
-    if (ENV.getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
+    if (ENV.getBool('WEBGL_CONV_IM2COL') && input.shape[0] === 1) {
       return this.conv2dWithIm2Row(
-          x, filter, convInfo, bias, activation, preluActivationWeights);
+          input, filter, convInfo, bias, activation, preluActivationWeights);
     }
 
     const hasBias = bias != null;
@@ -2088,7 +2088,7 @@ export class MathBackendWebGL implements KernelBackend {
         activation ? mapActivationToShaderProgram(activation, false) : null;
     const program = new Conv2DProgram(
         convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
-    const inputs: TensorHandle[] = [x, filter];
+    const inputs: TensorHandle[] = [input, filter];
     if (bias) {
       inputs.push(bias);
     }
@@ -2122,6 +2122,40 @@ export class MathBackendWebGL implements KernelBackend {
   conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     const program = new Conv2DDerFilterProgram(convInfo);
     return this.compileAndRun(program, [x, dy]);
+  }
+
+  fusedDepthwiseConv2D(
+      {input, filter, convInfo, bias, activation, preluActivationWeights}:
+          FusedConv2DConfig): Tensor4D {
+    const shouldPackDepthwiseConv = ENV.getBool('WEBGL_PACK_DEPTHWISECONV') &&
+        convInfo.strideWidth <= 2 &&
+        convInfo.outChannels / convInfo.inChannels === 1;
+    const fusedActivation = activation ?
+        mapActivationToShaderProgram(activation, shouldPackDepthwiseConv) :
+        null;
+    const inputs: Tensor[] = [input, filter];
+
+    const hasBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
+    if (hasBias) {
+      inputs.push(bias);
+    }
+    if (hasPreluActivationWeights) {
+      inputs.push(preluActivationWeights);
+    }
+
+    let program: DepthwiseConv2DProgram|DepthwiseConvPacked2DProgram;
+    if (shouldPackDepthwiseConv) {
+      program = new DepthwiseConvPacked2DProgram(
+          convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+      return this.compileAndRun(
+          program, inputs,
+          this.makePackedTensor(convInfo.outShape, input.dtype));
+    }
+
+    program = new DepthwiseConv2DProgram(
+        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+    return this.compileAndRun(program, inputs);
   }
 
   depthwiseConv2D(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
