@@ -46,6 +46,8 @@ console.log('~~~~~~~~~~~~~~~~~~~~~~');
 console.log('commitSha: ', commitSha);
 console.log('branchName: ', branchName);
 
+// We cannot do --depth=1 or --single-branch here because we need multiple
+// branches at older commits.
 exec(`git clone https://github.com/tensorflow/tfjs ${CLONE_CURRENT_PATH}`);
 
 // Get the merge base from the current commit and master.
@@ -58,6 +60,7 @@ shell.cd('..');
 console.log('mergeBase: ', mergeBase);
 console.log('~~~~~~~~~~~~~~~~~~~~~~');
 
+// We cannot do --depth=1 here because we need to check out an old merge base.
 exec(
     `git clone --single-branch ` +
     `https://github.com/tensorflow/tfjs ${CLONE_MASTER_PATH}`);
