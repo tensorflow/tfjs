@@ -25,8 +25,7 @@ const filesWhitelistToTriggerBuild = [
   'scripts/diff.js', 'scripts/run-build.sh'
 ];
 
-const CLONE_MASTER_PATH = 'clone-master';
-const CLONE_CURRENT_PATH = 'clone-current';
+const CLONE_PATH = 'clone';
 
 const dirs = readdirSync('.').filter(f => {
   return f !== 'node_modules' && f !== '.git' && statSync(f).isDirectory();
@@ -46,33 +45,13 @@ if (branchName == null) {
 console.log('commitSha: ', commitSha);
 console.log('branchName: ', branchName);
 
-// We cannot do --depth=1 or --single-branch here because we need multiple
-// branches at older commits.
-// exec(`git clone https://github.com/tensorflow/tfjs ${CLONE_CURRENT_PATH}`);
-
-// // Get the merge base from the current commit and master.
-// shell.cd(CLONE_CURRENT_PATH);
-// exec(`git checkout ${branchName}`);
-// const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
-// const res = shell.exec(`git checkout ${commitSha}`);
-// let CURRENT_DIFF_PATH = CLONE_CURRENT_PATH;
-// if (res.code !== 0) {
-//   console.log(`${commitSha} does not exist. PR coming from a fork.`);
-
-//   // Since we're coming from a fork we can't clone the fork so we'll diff
-//   // against what's checked out locally.
-//   CURRENT_DIFF_PATH = '.';
-// }
-// shell.cd('..');
-
-
 // We cannot do --depth=1 here because we need to check out an old merge base.
 // We cannot do --single-branch here because we need multiple branches.
 exec(
     `git clone ` +
-    `https://github.com/tensorflow/tfjs ${CLONE_MASTER_PATH}`);
+    `https://github.com/tensorflow/tfjs ${CLONE_PATH}`);
 
-shell.cd(CLONE_MASTER_PATH);
+shell.cd(CLONE_PATH);
 exec(`git checkout ${branchName}`);
 const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
 exec(`git fetch origin ${mergeBase}`);
@@ -97,7 +76,7 @@ console.log();
 
 let triggeredBuilds = [];
 dirs.forEach(dir => {
-  shell.rm(`${dir}/diff`);
+  shell.rm('-f', `${dir}/diff`);
   const diffOutput = diff(`${dir}/`);
   if (diffOutput !== '') {
     console.log(`${dir} has modified files.`);
@@ -124,7 +103,7 @@ console.log('Triggering builds for ', triggeredBuilds.join(', '));
 
 function diff(fileOrDirName) {
   const diffCmd = `diff -rq ` +
-      `${CLONE_MASTER_PATH}/${fileOrDirName} ` +
+      `${CLONE_PATH}/${fileOrDirName} ` +
       `${fileOrDirName}`;
   return exec(diffCmd, {silent: true}, true).stdout.trim();
 }
