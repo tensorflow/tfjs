@@ -30,16 +30,16 @@ const dirs = readdirSync('.').filter(f => {
   return f !== 'node_modules' && f !== '.git' && statSync(f).isDirectory();
 });
 
+const branchName = exec(`git rev-parse --abbrev-ref HEAD`).stdout.trim();
+console.log('MY BRANCH', branchName);
+
+const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
+console.log('merge base', mergeBase);
+
 exec(
     `git clone --depth=1 --single-branch ` +
     `https://github.com/tensorflow/tfjs ${CLONE_PATH}`);
-
-
-const result = exec(`git branch`);
-console.log('MY BRANCH', result);
-
-const mergeBase = exec(`git merge-base master ${result}`);
-console.log('merge base', mergeBase);
+exec(`cd clone && git checkout ${mergeBase} && cd ..`);
 
 let triggerAllBuilds = false;
 let whitelistDiffOutput = [];
