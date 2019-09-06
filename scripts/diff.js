@@ -32,6 +32,7 @@ const dirs = readdirSync('.').filter(f => {
   return f !== 'node_modules' && f !== '.git' && statSync(f).isDirectory();
 });
 
+console.log('REPO NAME', process.env['REPO_NAME']);
 let commitSha = process.env['COMMIT_SHA'];
 let branchName = process.env['BRANCH_NAME'];
 // If commit sha or branch name are null we are running this locally and are in
@@ -42,33 +43,43 @@ if (commitSha == null) {
 if (branchName == null) {
   branchName = exec(`git rev-parse --abbrev-ref HEAD`).stdout.trim();
 }
-console.log('~~~~~~~~~~~~~~~~~~~~~~');
 console.log('commitSha: ', commitSha);
 console.log('branchName: ', branchName);
 
 // We cannot do --depth=1 or --single-branch here because we need multiple
 // branches at older commits.
-exec(`git clone https://github.com/tensorflow/tfjs ${CLONE_CURRENT_PATH}`);
+// exec(`git clone https://github.com/tensorflow/tfjs ${CLONE_CURRENT_PATH}`);
 
-// Get the merge base from the current commit and master.
-shell.cd(CLONE_CURRENT_PATH);
-exec(`git checkout ${branchName}`);
-const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
-exec(`git checkout ${commitSha}`);
-shell.cd('..');
+// // Get the merge base from the current commit and master.
+// shell.cd(CLONE_CURRENT_PATH);
+// exec(`git checkout ${branchName}`);
+// const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
+// const res = shell.exec(`git checkout ${commitSha}`);
+// let CURRENT_DIFF_PATH = CLONE_CURRENT_PATH;
+// if (res.code !== 0) {
+//   console.log(`${commitSha} does not exist. PR coming from a fork.`);
 
-console.log('mergeBase: ', mergeBase);
-console.log('~~~~~~~~~~~~~~~~~~~~~~');
+//   // Since we're coming from a fork we can't clone the fork so we'll diff
+//   // against what's checked out locally.
+//   CURRENT_DIFF_PATH = '.';
+// }
+// shell.cd('..');
+
 
 // We cannot do --depth=1 here because we need to check out an old merge base.
+// We cannot do --single-branch here because we need multiple branches.
 exec(
-    `git clone --single-branch ` +
+    `git clone ` +
     `https://github.com/tensorflow/tfjs ${CLONE_MASTER_PATH}`);
 
 shell.cd(CLONE_MASTER_PATH);
+exec(`git checkout ${branchName}`);
+const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
 exec(`git fetch origin ${mergeBase}`);
 exec(`git checkout ${mergeBase}`);
 shell.cd('..');
+
+console.log('mergeBase: ', mergeBase);
 
 let triggerAllBuilds = false;
 let whitelistDiffOutput = [];
@@ -86,6 +97,7 @@ console.log();
 
 let triggeredBuilds = [];
 dirs.forEach(dir => {
+  shell.rm(`${dir}/diff`);
   const diffOutput = diff(`${dir}/`);
   if (diffOutput !== '') {
     console.log(`${dir} has modified files.`);
@@ -113,6 +125,6 @@ console.log('Triggering builds for ', triggeredBuilds.join(', '));
 function diff(fileOrDirName) {
   const diffCmd = `diff -rq ` +
       `${CLONE_MASTER_PATH}/${fileOrDirName} ` +
-      `${CLONE_CURRENT_PATH}/${fileOrDirName}`;
+      `${fileOrDirName}`;
   return exec(diffCmd, {silent: true}, true).stdout.trim();
 }
