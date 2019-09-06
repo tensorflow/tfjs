@@ -27,7 +27,7 @@ import {complex, imag, real} from '../../ops/complex_ops';
 import * as concat_util from '../../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
 import * as erf_util from '../../ops/erf_util';
-import {Activation, FusedBatchMatMulConfig} from '../../ops/fused_util';
+import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../ops/fused_util';
 import * as gather_nd_util from '../../ops/gather_nd_util';
 import * as ops from '../../ops/ops';
 import {buffer, scalar, tensor, tensor3d, tensor4d} from '../../ops/ops';
@@ -1531,9 +1531,9 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   fusedConv2d(
-      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
-      activation?: Activation, preluActivationWeights?: Tensor): Tensor4D {
-    let result = this.conv2d(x, filter, convInfo);
+      {input, filter, convInfo, bias, activation, preluActivationWeights}:
+          FusedConv2DConfig): Tensor4D {
+    let result = this.conv2d(input, filter, convInfo);
 
     if (bias) {
       result = this.add(result, bias) as Tensor4D;
@@ -1971,6 +1971,22 @@ export class MathBackendCPU implements KernelBackend {
       }
     }
     return dw.toTensor();
+  }
+
+  fusedDepthwiseConv2D(
+      {input, filter, convInfo, bias, activation, preluActivationWeights}:
+          FusedConv2DConfig): Tensor4D {
+    let result = this.depthwiseConv2D(input, filter, convInfo);
+
+    if (bias) {
+      result = this.add(result, bias) as Tensor4D;
+    }
+    if (activation) {
+      result =
+          mapActivation(this, result, activation, preluActivationWeights) as
+          Tensor4D;
+    }
+    return result;
   }
 
   depthwiseConv2D(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
