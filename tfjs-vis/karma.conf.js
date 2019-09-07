@@ -18,6 +18,26 @@
 const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
   reports: {},
+  bundlerOptions: {
+    acornOptions: {
+      ecmaVersion: 8,
+    },
+    transforms: [
+      require('karma-typescript-es6-transform')({
+        presets: [[
+          'env', {
+            targets: {
+              browsers: [
+                'last 10 Chrome versions',
+                'last 10 Firefox versions',
+                'last 5 Safari versions',
+              ]
+            }
+          }
+        ]]
+      }),
+    ]
+  }
 };
 
 // Enable coverage reports and instrumentation under KARMA_COVERAGE=1 env

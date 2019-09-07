@@ -28,7 +28,7 @@ from tensorflow.python.ops import variables
 from tensorflow.python.training.tracking import tracking
 from tensorflow.python.saved_model import save
 
-from tensorflowjs import wizard
+from tensorflowjs.converters import wizard
 
 SAVED_MODEL_DIR = 'saved_model'
 SAVED_MODEL_NAME = 'saved_model.pb'

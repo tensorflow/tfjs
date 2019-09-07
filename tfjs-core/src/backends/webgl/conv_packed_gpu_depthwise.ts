@@ -26,7 +26,9 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(convInfo: Conv2DInfo) {
+  constructor(
+      convInfo: Conv2DInfo, addBias = false, activation: string = null,
+      hasPreluActivation = false) {
     this.outputShape = convInfo.outShape;
 
     const xNumRows = convInfo.inHeight;
@@ -257,11 +259,38 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
 
     for (let r = 0; r < filterHeight; r++) {
       for (let c = 0; c < filterWidth; c++) {
-        mainLoop += `result += xR${r}C${c} * wR${r}C${c};`;
+        mainLoop += `dotProd += xR${r}C${c} * wR${r}C${c};`;
       }
     }
 
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (activation) {
+      if (hasPreluActivation) {
+        activationSnippet = `vec4 activation(vec4 a) {
+          vec4 b = getPreluActivationWeightsAtOutCoords();
+          ${activation}
+        }`;
+      } else {
+        activationSnippet = `vec4 activation(vec4 x) {
+          ${activation}
+        }`;
+      }
+
+      applyActivationSnippet = `result = activation(result);`;
+    }
+
+    const addBiasSnippet = addBias ? 'result += getBiasAtOutCoords();' : '';
+    if (addBias) {
+      this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivation) {
+      this.variableNames.push('preluActivationWeights');
+    }
+
     this.userCode = `
+      ${activationSnippet}
+
       const ivec2 strides = ivec2(${strideHeight}, ${strideWidth});
       const ivec2 pads = ivec2(${padTop}, ${padLeft});
 
@@ -276,10 +305,13 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
         int xRCorner = xRCCorner.x;
         int xCCorner = xRCCorner.y;
 
-        vec4 result = vec4(0.);
+        vec4 dotProd = vec4(0.);
 
         ${mainLoop}
 
+        vec4 result = dotProd;
+        ${addBiasSnippet}
+        ${applyActivationSnippet}
         setOutput(result);
       }
     `;
