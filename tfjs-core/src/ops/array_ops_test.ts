@@ -4438,4 +4438,17 @@ describeWithFlags('unique', ALL_ENVS, () => {
     expectArraysEqual(await y.data(), [1,2,3,4]);
     expectArraysEqual(await idx.data(), [0,0,2,2,2,3,3,1,1]);
   });
+
+  it('1m+ elements tensor', async () => {
+    const x = tf.randomNormal([1000000], 5, 2, 'int32');
+    const [y, idx] = await tf.unique(x);
+    expect(idx.dtype).toBe('int32');
+    expect(idx.shape).toEqual(x.shape);
+    const temp = await y.data();
+    let map = await idx.data();
+    map = map.map((it: number) => {
+      return temp[it];
+    });
+    expectArraysEqual(map, await x.data());
+  });
 });
