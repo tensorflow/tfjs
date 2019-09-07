@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line:no-imports-from-dist
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // Run browser tests againts both the cpu and webgl backends.

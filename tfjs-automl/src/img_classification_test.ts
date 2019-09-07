@@ -17,6 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import {Tensor3D, test_util} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line:no-imports-from-dist
 import {BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import * as automl from './index';

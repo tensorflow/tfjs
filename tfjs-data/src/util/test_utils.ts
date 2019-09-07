@@ -16,6 +16,7 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line:no-imports-from-dist
 import {ALL_ENVS, BROWSER_ENVS, describeWithFlags, NODE_ENVS, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // Provide fake video stream

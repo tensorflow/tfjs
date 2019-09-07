@@ -16,6 +16,8 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
+
+// tslint:disable-next-line:no-imports-from-dist
 import {Layer} from '@tensorflow/tfjs-layers/dist/engine/topology';
 
 import {histogram} from '../render/histogram';

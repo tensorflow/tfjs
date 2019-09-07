@@ -16,6 +16,7 @@
  */
 
 // We import index.ts so that the Node backend gets registered.
+// tslint:disable-next-line:no-imports-from-dist
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as tf from '@tensorflow/tfjs-core';
 

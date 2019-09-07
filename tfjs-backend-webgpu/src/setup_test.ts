@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line:no-imports-from-dist
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 setTestEnvs([{
@@ -119,4 +120,5 @@ env.specFilter = spec => {
 };
 
 // Import and run all the tests from core.
+// tslint:disable-next-line:no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/tests';
