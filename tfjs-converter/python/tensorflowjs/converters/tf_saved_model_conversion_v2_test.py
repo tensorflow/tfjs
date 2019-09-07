@@ -80,6 +80,44 @@ class ConvertTest(tf.test.TestCase):
 
       builder.save()
 
+  def _create_saved_model_v1_with_hashtable(self):
+    """Create a TensorFlow SavedModel V1 with unused hash table for testing."""
+
+    graph = tf.Graph()
+    with graph.as_default():
+      x = tf.placeholder('float32', [2, 2])
+      w = tf.compat.v1.get_variable('w', shape=[2, 2])
+      output = tf.compat.v1.matmul(x, w)
+      init_op = w.initializer
+
+      # Add a hash table that is not used by the output.
+      keys = tf.constant(['key'])
+      values = tf.constant([1])
+      initializer = tf.contrib.lookup.KeyValueTensorInitializer(keys, values)
+      table = tf.contrib.lookup.HashTable(initializer, -1)
+
+      # Create a builder.
+      save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+      builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(save_dir)
+
+      with tf.compat.v1.Session() as sess:
+        # Run the initializer on `w`.
+        sess.run(init_op)
+        table.init.run()
+
+        builder.add_meta_graph_and_variables(
+            sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
+            signature_def_map={
+                "serving_default":
+                    tf.compat.v1.saved_model \
+                        .signature_def_utils.predict_signature_def(
+                            inputs={"x": x},
+                            outputs={"output": output})
+            },
+            assets_collection=None)
+
+      builder.save()
+
   def _create_saved_model_with_fusable_conv2d(self):
     """Test a basic model with fusable conv2d."""
     layers = [
@@ -192,22 +230,24 @@ class ConvertTest(tf.test.TestCase):
   def test_convert_saved_model_v1(self):
     self._create_saved_model_v1()
 
+    input_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    output_dir = os.path.join(input_dir, 'js')
     tf_saved_model_conversion_v2.convert_tf_saved_model(
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+        input_dir,
+        output_dir
     )
 
-    weights = [{
+    expected_weights_manifest = [{
         'paths': ['group1-shard1of1.bin'],
         'weights': [{'dtype': 'float32', 'name': 'w', 'shape': [2, 2]}]}]
 
-    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'js')
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    self.assertEqual(weights_manifest, expected_weights_manifest)
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
     self.assertEqual(
@@ -215,9 +255,37 @@ class ConvertTest(tf.test.TestCase):
         'TensorFlow.js Converter v%s' % version.version)
     self.assertEqual(model_json['generatedBy'],
                      tf.__version__)
-    self.assertTrue(
-        glob.glob(
-            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
+
+  def test_convert_saved_model_v1_with_hashtable(self):
+    self._create_saved_model_v1_with_hashtable()
+
+    input_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    output_dir = os.path.join(input_dir, 'js')
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        input_dir,
+        output_dir
+    )
+
+    expected_weights_manifest = [{
+        'paths': ['group1-shard1of1.bin'],
+        'weights': [{'dtype': 'float32', 'name': 'w', 'shape': [2, 2]}]}]
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'js')
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    weights_manifest = model_json['weightsManifest']
+    self.assertEqual(weights_manifest, expected_weights_manifest)
+    # Check meta-data in the artifact JSON.
+    self.assertEqual(model_json['format'], 'graph-model')
+    self.assertEqual(
+        model_json['convertedBy'],
+        'TensorFlow.js Converter v%s' % version.version)
+    self.assertEqual(model_json['generatedBy'],
+                     tf.__version__)
+    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
 
   def test_convert_saved_model(self):
     self._create_saved_model()

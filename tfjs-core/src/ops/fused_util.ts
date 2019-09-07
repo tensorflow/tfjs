@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {Tensor, Tensor3D} from '../tensor';
+import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Conv2DInfo} from './conv_util';
 
 export type Activation = 'linear'|'relu'|'prelu'|'elu';
 
@@ -24,6 +25,15 @@ export type FusedBatchMatMulConfig = {
   b: Tensor3D,
   transposeA: boolean,
   transposeB: boolean,
+  bias?: Tensor,
+  activation?: Activation,
+  preluActivationWeights?: Tensor
+};
+
+export type FusedConv2DConfig = {
+  input: Tensor4D,
+  filter: Tensor4D,
+  convInfo: Conv2DInfo,
   bias?: Tensor,
   activation?: Activation,
   preluActivationWeights?: Tensor

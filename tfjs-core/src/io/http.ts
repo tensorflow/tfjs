@@ -101,6 +101,7 @@ export class HTTPRequest implements IOHandler {
       format: modelArtifacts.format,
       generatedBy: modelArtifacts.generatedBy,
       convertedBy: modelArtifacts.convertedBy,
+      userDefinedMetadata: modelArtifacts.userDefinedMetadata,
       weightsManifest
     };
 
