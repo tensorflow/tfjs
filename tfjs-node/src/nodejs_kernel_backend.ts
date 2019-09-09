@@ -23,9 +23,9 @@ import {Activation, FusedBatchMatMulConfig} from '@tensorflow/tfjs-core/dist/ops
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isArray, isNullOrUndefined} from 'util';
-
 import {Int64Scalar} from './int64_tensors';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
+
 
 type TensorInfo = {
   shape: number[],
@@ -352,6 +352,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         // No-op
       } else if (activation === 'relu') {
         result = this.relu(result);
+      } else if (activation === 'relu6') {
+        result = this.relu6(result);
       } else if (activation === 'prelu') {
         result = this.prelu(result, preluActivationWeights) as Tensor4D;
       } else if (activation === 'elu') {
@@ -379,6 +381,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         // No-op
       } else if (activation === 'relu') {
         result = this.relu(result);
+      } else if (activation === 'relu6') {
+        result = this.relu6(result);
       } else if (activation === 'prelu') {
         result = this.prelu(result, preluActivationWeights) as Tensor3D;
       } else if (activation === 'elu') {
@@ -668,6 +672,10 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   relu<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Relu', x) as T;
+  }
+
+  relu6<T extends Tensor>(x: T): T {
+    return this.executeSingleInput('Relu6', x) as T;
   }
 
   prelu<T extends Tensor>(x: T, a: T): T {
