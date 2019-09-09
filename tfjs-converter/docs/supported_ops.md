@@ -266,6 +266,13 @@
 |Not mapped|ifft|
 |Not mapped|rfft|
 
+## Operations - Strings
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|DecodeBase64|decodeBase64|
+|EncodeBase64|encodeBase64|
+
 ## Tensors - Transformations
 
 |Tensorflow Op Name|Tensorflow.js Op Name|

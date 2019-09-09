@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +25,7 @@ export type ParamType = 'number'|'string'|'string[]'|'number[]'|'bool'|'bool[]'|
 export type Category =
     'arithmetic'|'basic_math'|'control'|'convolution'|'custom'|'dynamic'|
     'evaluation'|'image'|'creation'|'graph'|'logical'|'matrices'|
-    'normalization'|'reduction'|'slice_join'|'spectral'|'transformation';
+    'normalization'|'reduction'|'slice_join'|'spectral'|'string'|'transformation';
 
 // For mapping input or attributes of NodeDef into TensorFlow.js op param.
 export declare interface ParamMapper {
