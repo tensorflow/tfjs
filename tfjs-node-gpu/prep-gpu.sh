@@ -16,9 +16,9 @@
 
 set -e
 
-rm -r ./src
-rm -r ./binding
-rm -r ./scripts
+rm -rf ./src
+rm -rf ./binding
+rm -rf ./scripts
 
 cp -R ../tfjs-node/src ./src
 cp -R ../tfjs-node/binding ./binding
