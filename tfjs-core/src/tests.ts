@@ -89,6 +89,7 @@ import './ops/softmax_test';
 import './ops/sparse_to_dense_test';
 import './ops/spectral_ops_test';
 import './ops/strided_slice_test';
+import './ops/string_ops_test';
 import './ops/topk_test';
 import './ops/transpose_test';
 import './ops/unary_ops_test';
