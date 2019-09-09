@@ -24,42 +24,42 @@ export function makeMatMulPackedSource(workPerThread: number): string {
   return `
     ${matMulHeader}
 
-    const uint WorkGroupSize = gl_WorkGroupSize.x;  // .x == .y
-    const uint WorkPerThread = ${workPerThread};
-    const uint MatTileSize = WorkGroupSize * WorkPerThread;
+    const int WorkGroupSize = gl_WorkGroupSize.x;  // .x == .y
+    const int WorkPerThread = ${workPerThread};
+    const int MatTileSize = WorkGroupSize * WorkPerThread;
 
     shared float mm_Asub[MatTileSize][MatTileSize];
     shared float mm_Bsub[MatTileSize][MatTileSize];
 
-    void mm_matMul(uint dimAOuter, uint dimInner, uint dimBOuter) {
+    void mm_matMul(int dimAOuter, int dimInner, int dimBOuter) {
       // These are 0..MatTileSize, in increments of WorkPerThread.
-      uint tileRow = gl_LocalInvocationID.y * WorkPerThread;
-      uint tileCol = gl_LocalInvocationID.x * WorkPerThread;
+      int tileRow = gl_LocalInvocationID.y * WorkPerThread;
+      int tileCol = gl_LocalInvocationID.x * WorkPerThread;
 
       // These are 0..AOuter, in increments of WorkPerThread.
-      uint globalRow = gl_GlobalInvocationID.y * WorkPerThread;
-      uint globalCol = gl_GlobalInvocationID.x * WorkPerThread;
+      int globalRow = gl_GlobalInvocationID.y * WorkPerThread;
+      int globalCol = gl_GlobalInvocationID.x * WorkPerThread;
 
-      uint numTiles = (dimInner - 1) / MatTileSize + 1;
+      int numTiles = (dimInner - 1) / MatTileSize + 1;
 
       float acc[WorkPerThread][WorkPerThread];
       float ACached;
       float BCached[WorkPerThread];
 
       // Without this initialization strange values show up in acc.
-      for (uint innerRow = 0; innerRow < WorkPerThread; innerRow++) {
-        for (uint innerCol = 0; innerCol < WorkPerThread; innerCol++) {
+      for (int innerRow = 0; innerRow < WorkPerThread; innerRow++) {
+        for (int innerCol = 0; innerCol < WorkPerThread; innerCol++) {
           acc[innerRow][innerCol] = 0.0;
         }
       }
 
       // Loop over shared dimension.
-      for (uint t = 0; t < numTiles; t++) {
+      for (int t = 0; t < numTiles; t++) {
         // Load one tile of A and B into local memory.
-        for (uint innerRow = 0; innerRow < WorkPerThread; innerRow++) {
-          for (uint innerCol = 0; innerCol < WorkPerThread; innerCol++) {
-            uint inputRow = tileRow + innerRow;
-            uint inputCol = tileCol + innerCol;
+        for (int innerRow = 0; innerRow < WorkPerThread; innerRow++) {
+          for (int innerCol = 0; innerCol < WorkPerThread; innerCol++) {
+            int inputRow = tileRow + innerRow;
+            int inputCol = tileCol + innerCol;
 
             mm_Asub[inputRow][inputCol] = mm_readA(
                 globalRow + innerRow,
@@ -73,14 +73,14 @@ export function makeMatMulPackedSource(workPerThread: number): string {
         barrier();
 
         // Compute acc values for a single thread.
-        for (uint k = 0; k < MatTileSize; k++) {
-          for (uint inner = 0; inner < WorkPerThread; inner++) {
+        for (int k = 0; k < MatTileSize; k++) {
+          for (int inner = 0; inner < WorkPerThread; inner++) {
             BCached[inner] = mm_Bsub[k][tileCol + inner];
           }
 
-          for (uint innerRow = 0; innerRow < WorkPerThread; innerRow++) {
+          for (int innerRow = 0; innerRow < WorkPerThread; innerRow++) {
             ACached = mm_Asub[tileRow + innerRow][k];
-            for (uint innerCol = 0; innerCol < WorkPerThread; innerCol++) {
+            for (int innerCol = 0; innerCol < WorkPerThread; innerCol++) {
               acc[innerRow][innerCol] += ACached * BCached[innerCol];
             }
           }
@@ -89,9 +89,9 @@ export function makeMatMulPackedSource(workPerThread: number): string {
         barrier();
       }
 
-      for (uint innerRow = 0; innerRow < WorkPerThread; innerRow++) {
-        for (uint innerCol = 0; innerCol < WorkPerThread; innerCol++) {
-          uint globalFlatIndex =
+      for (int innerRow = 0; innerRow < WorkPerThread; innerRow++) {
+        for (int innerCol = 0; innerCol < WorkPerThread; innerCol++) {
+          int globalFlatIndex =
             (globalRow + innerRow) * dimBOuter + (globalCol + innerCol);
 
           if ((globalCol + innerCol) < dimBOuter &&
@@ -128,13 +128,13 @@ export class MatMulPackedProgram implements WebGPUProgram {
     // about boundary conditions when loading from Asub / Bsub when tiles fit
     // neatly inside of output. May slightly improve performance.
     this.userCode = `
-      uint dimAOuter = aShape[1];
-      uint dimInner = aShape[2];
-      uint dimBOuter = bShape[2];
+      int dimAOuter = aShape[1];
+      int dimInner = aShape[2];
+      int dimBOuter = bShape[2];
 
       ${makeMatMulPackedSource(workPerThread)}
 
-      float mm_readA(uint row, uint col) {
+      float mm_readA(int row, int col) {
         if (row < dimAOuter && col < dimInner) {
           return A[row * dimInner + col];
         } else {
@@ -142,7 +142,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
         }
       }
 
-      float mm_readB(uint row, uint col) {
+      float mm_readB(int row, int col) {
         if (row < dimInner && col < dimBOuter) {
           return B[row * dimBOuter + col];
         } else {
@@ -150,7 +150,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
         }
       }
 
-      void mm_write(uint row, uint col, float value) {
+      void mm_write(int row, int col, float value) {
         setOutput(row * dimBOuter + col, value);
       }
 
