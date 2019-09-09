@@ -29,9 +29,7 @@ describe('decode images', () => {
     const beforeNumTensors = memory().numTensors;
     const uint8array =
         await getUint8ArrayFromImage('test_images/image_png_test.png');
-    console.log('backend', tf.getBackend());
     const imageTensor = tf.node.decodePng(uint8array);
-    console.log('backend2', tf.getBackend());
 
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([2, 2, 3]);
