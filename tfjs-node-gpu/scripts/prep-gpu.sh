@@ -1,1 +1,0 @@
-../../tfjs-node/scripts/prep-gpu.sh

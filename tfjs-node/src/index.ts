@@ -48,6 +48,7 @@ export * from './node';
 // tslint:disable-next-line:no-require-imports
 const pjson = require(packageJsonPath);
 
+console.log('--------------REGISTERING BACKEND----------------------');
 tf.registerBackend('tensorflow', () => {
   return new NodeJSKernelBackend(bindings as TFJSBinding, pjson.name);
 }, 3 /* priority */);

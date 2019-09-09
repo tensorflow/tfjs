@@ -13,6 +13,14 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
+# Copy resources from tfjs-node.
+- name: 'node:10'
+  dir: 'tfjs-node-gpu'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-tfjs-node']
+
 # Install tfjs-node dependencies.
 - name: 'node:10'
   dir: 'tfjs-node-gpu'

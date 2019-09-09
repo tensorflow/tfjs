@@ -88,12 +88,15 @@ if (process.platform === 'win32') {
 
 // Run the core tests from the tfjs-node package so we don't have a double
 // import of tfjs-core.
-const coreTests = process.cwd() +
-    '/../tfjs-node/node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
-const nodeTests = process.cwd() + '/src/**/*_test.ts';
+// const coreTests = process.cwd() +
+//  '/../tfjs-node/node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
+// const nodeTests = process.cwd() + '/src/**/*_test.ts';
+
+const coreTests = './node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
+const nodeTests = './src/**/*_test.ts';
 
 const runner = new jasmineCtor();
-runner.loadConfig({spec_files: [nodeTests, coreTests], random: false});
+runner.loadConfig({spec_files: [coreTests, nodeTests], random: false});
 
 if (process.env.JASMINE_SEED) {
   runner.seed(process.env.JASMINE_SEED);
