@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -367,6 +367,8 @@ export interface OpHandler {
     fft(x: Tensor): Tensor; ifft(x: Tensor): Tensor; rfft(x: Tensor): Tensor;
     irfft(x: Tensor): Tensor
   };
+  encodeBase64<T extends StringTensor>(x: T, pad: boolean): T;
+  decodeBase64<T extends StringTensor>(x: T): T;
 }
 
 // For tracking tensor creation and disposal.
@@ -1425,6 +1427,16 @@ export class Tensor<R extends Rank = Rank> {
   irfft(this: Tensor): Tensor {
     this.throwIfDisposed();
     return opHandler.spectral.irfft(this);
+  }
+
+  encodeBase64<T extends StringTensor>(this: T, pad = false): T {
+    this.throwIfDisposed();
+    return opHandler.encodeBase64(this, pad);
+  }
+
+  decodeBase64<T extends StringTensor>(this: T): T {
+    this.throwIfDisposed();
+    return opHandler.decodeBase64(this);
   }
 }
 Object.defineProperty(Tensor, Symbol.hasInstance, {
