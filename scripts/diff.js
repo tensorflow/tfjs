@@ -31,7 +31,6 @@ const dirs = readdirSync('.').filter(f => {
   return f !== 'node_modules' && f !== '.git' && statSync(f).isDirectory();
 });
 
-console.log('REPO NAME', process.env['REPO_NAME']);
 let commitSha = process.env['COMMIT_SHA'];
 let branchName = process.env['BRANCH_NAME'];
 // If commit sha or branch name are null we are running this locally and are in
@@ -47,19 +46,30 @@ console.log('branchName: ', branchName);
 
 // We cannot do --depth=1 here because we need to check out an old merge base.
 // We cannot do --single-branch here because we need multiple branches.
-exec(
-    `git clone ` +
-    `https://github.com/tensorflow/tfjs ${CLONE_PATH}`);
+exec(`git clone https://github.com/tensorflow/tfjs ${CLONE_PATH}`);
+
+console.log();  // Break up the console for readability.
 
 shell.cd(CLONE_PATH);
-exec(`git checkout ${branchName}`);
-const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
-exec(`git fetch origin ${mergeBase}`);
-exec(`git checkout ${mergeBase}`);
+
+// If we cannot check out the commit then this PR is coming from a fork.
+const res = shell.exec(`git checkout ${commitSha}`, {silent: true});
+const isPullRequestFromFork = res.code !== 0;
+
+// Only checkout the merge base if the pull requests comes from a
+// tensorflow/tfjs branch. Otherwise clone master and diff against master.
+if (!isPullRequestFromFork) {
+  console.log('PR is coming from tensorflow/tfjs. Finding the merge base...');
+  exec(`git checkout ${branchName}`);
+  const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
+  exec(`git fetch origin ${mergeBase}`);
+  exec(`git checkout ${mergeBase}`);
+  console.log('mergeBase: ', mergeBase);
+} else {
+  console.log('PR is coming from a fork. Diffing against master.');
+}
 shell.cd('..');
-
-
-console.log('mergeBase: ', mergeBase);
+console.log();  // Break up the console for readability.
 
 let triggerAllBuilds = false;
 let whitelistDiffOutput = [];
@@ -72,8 +82,7 @@ filesWhitelistToTriggerBuild.forEach(fileToTriggerBuild => {
   }
 });
 
-// Break up the console for readability.
-console.log();
+console.log();  // Break up the console for readability.
 
 let triggeredBuilds = [];
 dirs.forEach(dir => {
@@ -93,8 +102,7 @@ dirs.forEach(dir => {
   }
 });
 
-// Break up the console for readability.
-console.log();
+console.log();  // Break up the console for readability.
 
 // Filter the triggered builds to log by whether a cloudbuild.yml file
 // exists for that directory.
@@ -108,5 +116,3 @@ function diff(fileOrDirName) {
       `${fileOrDirName}`;
   return exec(diffCmd, {silent: true}, true).stdout.trim();
 }
-
-console.log(shell.exec(`cat ./tfjs-node/diff`).stdout);
