@@ -30,7 +30,9 @@ process.on('unhandledRejection', e => {
  * Ensure package.json aligns.
  */
 const FIELDS_TO_IGNORE = [
-    'name', 'scripts/build-npm', 'scripts/install', 'scripts/test'];
+  'name', 'scripts/build-npm', 'scripts/install', 'scripts/test',
+  'scripts/prepare', 'scripts/prep'
+];
 
 const cpuPackageKeys = Object.keys(cpuPackage);
 const gpuPackageKeys = Object.keys(gpuPackage);
