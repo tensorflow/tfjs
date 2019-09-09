@@ -18,9 +18,10 @@
 // We import index.ts so that the Node backend gets registered.
 import './index';
 
+import * as tf from '@tensorflow/tfjs';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-import {nodeBackend} from './nodejs_kernel_backend';
+import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 Error.stackTraceLimit = Infinity;
 
@@ -86,14 +87,8 @@ if (process.platform === 'win32') {
       'maxPool test-tensorflow {} [x=[3,3,1] f=[2,2] s=1 ignores NaNs');
 }
 
-// Run the core tests from the tfjs-node package so we don't have a double
-// import of tfjs-core.
-// const coreTests = process.cwd() +
-//  '/../tfjs-node/node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
-// const nodeTests = process.cwd() + '/src/**/*_test.ts';
-
-const coreTests = './node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
-const nodeTests = './src/**/*_test.ts';
+const coreTests = 'node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
+const nodeTests = 'src/**/image_test.ts';
 
 const runner = new jasmineCtor();
 runner.loadConfig({spec_files: [coreTests, nodeTests], random: false});
@@ -117,6 +112,6 @@ env.specFilter = spec => {
 };
 
 // TODO(kreeger): Consider moving to C-code.
-console.log(
-    `Running tests against TensorFlow: ${nodeBackend().binding.TF_Version}`);
+console.log(`Running tests against TensorFlow: ${
+    (tf.backend() as NodeJSKernelBackend).binding.TF_Version}`);
 runner.execute();

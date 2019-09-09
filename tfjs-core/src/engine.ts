@@ -265,6 +265,9 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
       throw new Error(
           `Cannot initialize backend ${backendName}, no registration found.`);
     }
+    if (this.registry[backendName] != null) {
+      return {success: true, asyncInit: false};
+    }
 
     try {
       const backend = registryFactoryEntry.factory();

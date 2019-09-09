@@ -25,10 +25,10 @@
     "install-from-source": "yarn clean-deps && yarn && yarn build-addon-from-source",
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
-    "prep": "./prep-gpu.sh && cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
+    "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
     "preinstall": "./prep-gpu.sh",
     "publish-local": "yarn prep && yalc push",
-    "test": "ts-node src/run_tests.ts gpu",
+    "test": "ts-node src/run_tests.ts",
     "test-ci": "yarn prep && ./scripts/test-ci.sh",
     "test-ts-integration": "./scripts/test-ts-integration.sh",
     "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat",
@@ -68,7 +68,6 @@
     "napi_versions": [
       3,
       4
-    ],
-    "package_name": "GPU-linux-1.2.8.tar.gz"
+    ]
   }
 }
