@@ -5,21 +5,13 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# Install tfjs-node dependencies because we use scripts from that dir.
-- name: 'node:10'
-  id: 'yarn-tfjs-node'
-  dir: 'tfjs-node'
-  entrypoint: 'yarn'
-  args: ['install']
-  waitFor: ['yarn-common']
-
 # Install tfjs-node dependencies.
 - name: 'node:10'
   dir: 'tfjs-node-gpu'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['yarn-tfjs-node']
+  waitFor: ['yarn-common']
 
 # Unit tests.
 - name: 'node:10'
