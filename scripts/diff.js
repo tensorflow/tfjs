@@ -53,7 +53,7 @@ console.log();  // Break up the console for readability.
 shell.cd(CLONE_PATH);
 
 // If we cannot check out the commit then this PR is coming from a fork.
-const res = shell.exec(`git checkout ${commitSha}`);
+const res = shell.exec(`git checkout ${commitSha}`, {silent: true});
 const isPullRequestFromFork = res.code !== 0;
 
 // Only checkout the merge base if the pull requests comes from a
@@ -68,8 +68,8 @@ if (!isPullRequestFromFork) {
 } else {
   console.log('PR is coming from a fork. Diffing against master.');
 }
-
 shell.cd('..');
+console.log();  // Break up the console for readability.
 
 let triggerAllBuilds = false;
 let whitelistDiffOutput = [];
