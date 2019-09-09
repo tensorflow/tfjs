@@ -61,11 +61,14 @@ const isPullRequestFromFork = res.code !== 0;
 // Only checkout the merge base if the pull requests comes from a
 // tensorflow/tfjs branch. Otherwise clone master and diff against master.
 if (!isPullRequestFromFork) {
+  console.log('PR is coming from tensorflow/tfjs. Finding the merge base...');
   exec(`git checkout ${branchName}`);
   const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
   exec(`git fetch origin ${mergeBase}`);
   exec(`git checkout ${mergeBase}`);
   console.log('mergeBase: ', mergeBase);
+} else {
+  console.log('PR is coming from a fork. Diffing against master.');
 }
 
 shell.cd('..');
