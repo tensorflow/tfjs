@@ -15,7 +15,6 @@ steps:
   - 'COMMIT_SHA=$COMMIT_SHA'
   - 'BRANCH_NAME=$BRANCH_NAME'
   - 'REPO_NAME=$REPO_NAME'
-  - 'REPO_OWNER=$REPO_OWNER'
 
 # Core.
 - name: 'gcr.io/cloud-builders/gcloud'

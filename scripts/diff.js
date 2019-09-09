@@ -31,7 +31,6 @@ const dirs = readdirSync('.').filter(f => {
   return f !== 'node_modules' && f !== '.git' && statSync(f).isDirectory();
 });
 
-console.log(process.env);
 console.log('REPO NAME', process.env['REPO_NAME']);
 let commitSha = process.env['COMMIT_SHA'];
 let branchName = process.env['BRANCH_NAME'];
@@ -53,14 +52,23 @@ exec(
     `https://github.com/tensorflow/tfjs ${CLONE_PATH}`);
 
 shell.cd(CLONE_PATH);
-exec(`git checkout ${branchName}`);
-const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
-exec(`git fetch origin ${mergeBase}`);
-exec(`git checkout ${mergeBase}`);
+
+// If we cannot check out the commit given by cloud CI then this PR is coming
+// from a fork.
+const res = shell.exec(`git checkout ${commitSha}`);
+const isPullRequestFromFork = res.code !== 0;
+
+// Only checkout the merge base if the pull requests comes from a
+// tensorflow/tfjs branch. Otherwise clone master and diff against master.
+if (!isPullRequestFromFork) {
+  exec(`git checkout ${branchName}`);
+  const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
+  exec(`git fetch origin ${mergeBase}`);
+  exec(`git checkout ${mergeBase}`);
+  console.log('mergeBase: ', mergeBase);
+}
+
 shell.cd('..');
-
-
-console.log('mergeBase: ', mergeBase);
 
 let triggerAllBuilds = false;
 let whitelistDiffOutput = [];
@@ -109,5 +117,3 @@ function diff(fileOrDirName) {
       `${fileOrDirName}`;
   return exec(diffCmd, {silent: true}, true).stdout.trim();
 }
-
-console.log(shell.exec(`cat ./tfjs-node/diff`).stdout);
