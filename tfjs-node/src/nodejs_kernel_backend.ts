@@ -289,30 +289,26 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   stridedSlice<T extends Tensor>(
-      x: T, begin: number[], end: number[], strides: number[],
-      beginMask: number, endMask: number, ellipsisMask: number,
-      newAxisMask: number, shrinkAxisMask: number): T {
+      x: T, begin: number[], end: number[], strides: number[]): T {
     const beginTensor = tensor1d(begin, 'int32');
+    for (let axis = 0; axis < end.length; axis++) {
+      // Unlike Numpy, when the strides are negative, TF C uses -n-1 instead of
+      // -1 as the "end" in order to include the first element.
+      if (strides[axis] < 0 && end[axis] === -1) {
+        end[axis] -= x.shape[axis];
+      }
+    }
     const endTensor = tensor1d(end, 'int32');
     const stridesTensor = tensor1d(strides, 'int32');
+    // All of the masks have already been accounted for in the high level op,
+    // so the backend does NOT need to deal with masks.
     const opAttrs = [
       createTypeOpAttr('T', x.dtype), createTypeOpAttr('Index', 'int32'),
-      {name: 'begin_mask', type: this.binding.TF_ATTR_INT, value: beginMask},
-      {name: 'end_mask', type: this.binding.TF_ATTR_INT, value: endMask}, {
-        name: 'ellipsis_mask',
-        type: this.binding.TF_ATTR_INT,
-        value: ellipsisMask
-      },
-      {
-        name: 'new_axis_mask',
-        type: this.binding.TF_ATTR_INT,
-        value: newAxisMask
-      },
-      {
-        name: 'shrink_axis_mask',
-        type: this.binding.TF_ATTR_INT,
-        value: shrinkAxisMask
-      }
+      {name: 'begin_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'end_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'ellipsis_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'new_axis_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'shrink_axis_mask', type: this.binding.TF_ATTR_INT, value: 0}
     ];
     return this.executeSingleOutput(
                'StridedSlice', opAttrs,
@@ -360,6 +356,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         result = this.relu(result);
       } else if (activation === 'prelu') {
         result = this.prelu(result, preluActivationWeights) as Tensor4D;
+      } else if (activation === 'elu') {
+        result = this.elu(result);
       } else {
         throw new Error(`Activation: ${
             activation} has not been implemented for the Node.js backend`);
@@ -385,6 +383,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         result = this.relu(result);
       } else if (activation === 'prelu') {
         result = this.prelu(result, preluActivationWeights) as Tensor3D;
+      } else if (activation === 'elu') {
+        result = this.elu(result);
       } else {
         throw new Error(`Activation: ${
             activation} has not been implemented for the Node.js backend`);

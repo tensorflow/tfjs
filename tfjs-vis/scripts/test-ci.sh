@@ -17,8 +17,8 @@
 set -e
 
 yarn
-yarn build
 yarn lint
+yarn build
 
 # Run the first karma separately so it can download the BrowserStack binary
 # without conflicting with others.
