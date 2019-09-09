@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "prep": "cd node_modules/@tensorflow/tfjs-node-gpu && yarn clean-deps && yarn",
+    "prep": "yalc link @tensorflow/tfjs-node && cd node_modules/@tensorflow/tfjs-node-gpu && yarn clean-deps && yarn",
     "test": "ts-node src/test.ts && tsc && node dist/test.js"
   },
   "dependencies": {
