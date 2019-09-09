@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,7 @@ import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank,
 import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {Activation, FusedBatchMatMulConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
-import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
+import {StringTensor, Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isArray, isNullOrUndefined} from 'util';
 
@@ -1705,6 +1705,20 @@ export class NodeJSKernelBackend extends KernelBackend {
       scalar(start, 'float32'), scalar(stop, 'float32'), scalar(num, 'int32')
     ];
     return this.executeSingleOutput('LinSpace', opAttrs, inputs) as Tensor1D;
+  }
+
+  encodeBase64<T extends StringTensor>(str: StringTensor|Tensor, pad = false):
+      T {
+    const opAttrs =
+        [{name: 'pad', type: this.binding.TF_ATTR_BOOL, value: pad}];
+    return this.executeSingleOutput('EncodeBase64', opAttrs, [str as Tensor]) as
+        T;
+  }
+
+  decodeBase64<T extends StringTensor>(str: StringTensor|Tensor): T {
+    const opAttrs: TFEOpAttr[] = [];
+    return this.executeSingleOutput('DecodeBase64', opAttrs, [str as Tensor]) as
+        T;
   }
 
   fromPixels(
