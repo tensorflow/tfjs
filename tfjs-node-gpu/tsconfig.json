@@ -23,7 +23,7 @@
     "allowUnreachableCode": false
   },
   "include": [
-    "../tfjs-node/src/"
+    "src/"
   ],
   "exclude": [
     "node_modules/"
