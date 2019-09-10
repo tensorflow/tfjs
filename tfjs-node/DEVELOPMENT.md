@@ -112,7 +112,6 @@ This command compiles a new node addon, upload it to GCP, then builds and publis
 
 ```sh
 $ yarn upload-windows-addon
-$ yarn upload-windows-addon-gpu
 ```
 
 Most times the NPM package is published on Linux machine, and only the Linux node addon is compiled and uploaded to GCP bucket. To build and upload the native node addon for Windows, developers should run the above commands on Windows machine. Please read [build-and-upload-windows-addon.bat](./scripts/build-and-upload-windows-addon.bat) for details.

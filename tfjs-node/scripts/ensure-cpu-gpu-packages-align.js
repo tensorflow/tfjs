@@ -30,7 +30,8 @@ process.on('unhandledRejection', e => {
  * Ensure package.json aligns.
  */
 const FIELDS_TO_IGNORE = [
-  'name', 'scripts/install', 'scripts/test', 'scripts/prepare', 'scripts/prep'
+  'name', 'scripts/install', 'scripts/test', 'scripts/prepare', 'scripts/prep',
+  'scripts/upload-windows-addon'
 ];
 
 const cpuPackageKeys = Object.keys(cpuPackage);

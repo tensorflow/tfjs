@@ -25,3 +25,5 @@ rimraf lib/
 yarn build-addon $1
 yarn prep
 tsc --sourceMap false
+
+npm pack
