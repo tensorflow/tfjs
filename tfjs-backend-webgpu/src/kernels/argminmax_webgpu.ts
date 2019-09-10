@@ -128,7 +128,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       // add back the index along the reduced dimension to |outputCoords|.
       // This function outputs the offset to the first value along
       // |axis| and the stride to get the next value of the input along |axis|.
-      vec2 getInputCoordInfo() {
+      ivec2 getInputCoordInfo() {
         const ${outputCoordsType} outputCoords = getOutputCoords();
         int i = ${this.outputShape.length - 1};
 
@@ -146,15 +146,15 @@ export class ArgMinMaxProgram implements WebGPUProgram {
           stride *= length;
         }
 
-        return vec2(offset, inputStride);
+        return ivec2(offset, inputStride);
       }
 
-      int getInputIndex(vec2 coordInfo, int index) {
+      int getInputIndex(ivec2 coordInfo, int index) {
         return coordInfo[0] + coordInfo[1] * index;
       }
 
       void main() {
-        const vec2 coordInfo = getInputCoordInfo();
+        const ivec2 coordInfo = getInputCoordInfo();
 
         int bestIndex = 0;
         float bestValue = x[getInputIndex(coordInfo, bestIndex)];
