@@ -27,7 +27,7 @@ import {complex, imag, real} from '../../ops/complex_ops';
 import * as concat_util from '../../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
 import * as erf_util from '../../ops/erf_util';
-import {Activation, FusedBatchMatMulConfig} from '../../ops/fused_util';
+import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../ops/fused_util';
 import * as gather_nd_util from '../../ops/gather_nd_util';
 import * as ops from '../../ops/ops';
 import {buffer, scalar, tensor, tensor3d, tensor4d} from '../../ops/ops';
@@ -54,6 +54,8 @@ function mapActivation(
     return backend.linear(x);
   } else if (activation === 'relu') {
     return backend.relu(x);
+  } else if (activation === 'elu') {
+    return backend.elu(x);
   } else if (activation === 'prelu') {
     return backend.prelu(x, preluActivationWeights);
   }
@@ -148,7 +150,12 @@ export class MathBackendCPU implements KernelBackend {
         pixels instanceof HTMLVideoElement;
     const isImage = typeof (HTMLImageElement) !== 'undefined' &&
         pixels instanceof HTMLImageElement;
-
+    const [width, height] = isVideo ?
+        [
+          (pixels as HTMLVideoElement).videoWidth,
+          (pixels as HTMLVideoElement).videoHeight
+        ] :
+        [pixels.width, pixels.height];
     let vals: Uint8ClampedArray|Uint8Array;
     // tslint:disable-next-line:no-any
     if (ENV.get('IS_NODE') && (pixels as any).getContext == null) {
@@ -161,7 +168,7 @@ export class MathBackendCPU implements KernelBackend {
       // tslint:disable-next-line:no-any
       vals = (pixels as any)
                  .getContext('2d')
-                 .getImageData(0, 0, pixels.width, pixels.height)
+                 .getImageData(0, 0, width, height)
                  .data;
     } else if (isImageData || isPixelData) {
       vals = (pixels as PixelData | ImageData).data;
@@ -171,13 +178,11 @@ export class MathBackendCPU implements KernelBackend {
             'Can\'t read pixels from HTMLImageElement outside ' +
             'the browser.');
       }
-      this.fromPixels2DContext.canvas.width = pixels.width;
-      this.fromPixels2DContext.canvas.height = pixels.height;
+      this.fromPixels2DContext.canvas.width = width;
+      this.fromPixels2DContext.canvas.height = height;
       this.fromPixels2DContext.drawImage(
-          pixels as HTMLVideoElement, 0, 0, pixels.width, pixels.height);
-      vals = this.fromPixels2DContext
-                 .getImageData(0, 0, pixels.width, pixels.height)
-                 .data;
+          pixels as HTMLVideoElement, 0, 0, width, height);
+      vals = this.fromPixels2DContext.getImageData(0, 0, width, height).data;
     } else {
       throw new Error(
           'pixels passed to tf.browser.fromPixels() must be either an ' +
@@ -189,7 +194,7 @@ export class MathBackendCPU implements KernelBackend {
     if (numChannels === 4) {
       values = new Int32Array(vals);
     } else {
-      const numPixels = pixels.width * pixels.height;
+      const numPixels = width * height;
       values = new Int32Array(numPixels * numChannels);
       for (let i = 0; i < numPixels; i++) {
         for (let channel = 0; channel < numChannels; ++channel) {
@@ -197,8 +202,7 @@ export class MathBackendCPU implements KernelBackend {
         }
       }
     }
-    const outShape: [number, number, number] =
-        [pixels.height, pixels.width, numChannels];
+    const outShape: [number, number, number] = [height, width, numChannels];
     return tensor3d(values, outShape, 'int32');
   }
   async read(dataId: DataId): Promise<BackendValues> {
@@ -1533,9 +1537,9 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   fusedConv2d(
-      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
-      activation?: Activation, preluActivationWeights?: Tensor): Tensor4D {
-    let result = this.conv2d(x, filter, convInfo);
+      {input, filter, convInfo, bias, activation, preluActivationWeights}:
+          FusedConv2DConfig): Tensor4D {
+    let result = this.conv2d(input, filter, convInfo);
 
     if (bias) {
       result = this.add(result, bias) as Tensor4D;
@@ -1973,6 +1977,22 @@ export class MathBackendCPU implements KernelBackend {
       }
     }
     return dw.toTensor();
+  }
+
+  fusedDepthwiseConv2D(
+      {input, filter, convInfo, bias, activation, preluActivationWeights}:
+          FusedConv2DConfig): Tensor4D {
+    let result = this.depthwiseConv2D(input, filter, convInfo);
+
+    if (bias) {
+      result = this.add(result, bias) as Tensor4D;
+    }
+    if (activation) {
+      result =
+          mapActivation(this, result, activation, preluActivationWeights) as
+          Tensor4D;
+    }
+    return result;
   }
 
   depthwiseConv2D(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):

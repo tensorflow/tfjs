@@ -27,6 +27,7 @@ import {layer, modelSummary} from './show/model';
 import {showPerClassAccuracy} from './show/quality';
 import {valuesDistribution} from './show/tensor';
 import {accuracy, confusionMatrix as metricsConfusionMatrix, perClassAccuracy} from './util/math';
+import {version} from './version';
 
 const render = {
   barchart,
@@ -57,5 +58,6 @@ export {visor} from './visor';
 export {render};
 export {metrics};
 export {show};
+export {version as version_vis};
 
 export * from './types';

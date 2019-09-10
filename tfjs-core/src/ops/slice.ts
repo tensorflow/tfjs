@@ -131,6 +131,10 @@ function slice_<R extends Rank, T extends Tensor<R>>(
   } else {
     begin_ = begin.slice();
   }
+  begin_.forEach(d => {
+    util.assert(
+        d !== -1, () => 'slice() does not support negative begin indexing.');
+  });
   let size_: number[];
   if (size == null) {
     size_ = new Array($x.rank).fill(-1);
@@ -145,7 +149,10 @@ function slice_<R extends Rank, T extends Tensor<R>>(
     if (d >= 0) {
       return d;
     } else {
-      util.assert(d === -1, () => 'Bad value in size');
+      util.assert(
+          d === -1,
+          () => `Negative size values should be exactly -1 but got ` +
+              `${d} for the slice() size at index ${i}.`);
       return $x.shape[i] - begin_[i];
     }
   });
