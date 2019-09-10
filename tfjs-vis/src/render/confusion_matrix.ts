@@ -95,7 +95,7 @@ export async function confusionMatrix(
         values.push({
           label,
           prediction,
-          diagCount: count,
+          count,
           noFill: true,
         });
       } else {
@@ -103,6 +103,7 @@ export async function confusionMatrix(
           label,
           prediction,
           count,
+          scaleCount: count,
         });
         // When not shading the diagonal we want to check if there is a non
         // zero value. If all values are zero we will not color them as the
@@ -122,7 +123,7 @@ export async function confusionMatrix(
     for (const val of values) {
       if (val.noFill === true) {
         val.noFill = false;
-        val.count = val.diagCount;
+        val.scaleCount = val.count;
       }
     }
   }
@@ -171,33 +172,49 @@ export async function confusionMatrix(
     'layer': [
       {
         // The matrix
+        'transform': [
+          {'filter': 'datum.noFill != true'},
+        ],
         'mark': {
           'type': 'rect',
         },
         'encoding': {
-          'fill': {
-            'condition': {
-              'test': 'datum["noFill"] == true',
-              'value': 'white',
-            },
-            'field': 'count',
+          'color': {
+            'field': 'scaleCount',
             'type': 'quantitative',
             'scale': {'range': ['#f7fbff', '#4292c6']},
           },
-          'tooltip': {
-            'condition': {
-              'test': 'datum["noFill"] == true',
-              'field': 'diagCount',
-              'type': 'nominal',
-            },
-            'field': 'count',
-            'type': 'nominal',
-          }
+          'tooltip': [
+            {'field': 'label', 'type': 'nominal'},
+            {'field': 'prediction', 'type': 'nominal'},
+            {'field': 'count', 'type': 'quantitative'},
+          ]
         },
-
       },
     ]
   };
+
+  if (options.shadeDiagonal === false) {
+    spec.layer.push(
+        {
+          // render unfilled rects for the diagonal
+          'transform': [
+            {'filter': 'datum.noFill == true'},
+          ],
+          'mark': {
+            'type': 'rect',
+            'fill': 'white',
+          },
+          'encoding': {
+            'tooltip': [
+              {'field': 'label', 'type': 'nominal'},
+              {'field': 'prediction', 'type': 'nominal'},
+              {'field': 'count', 'type': 'quantitative'},
+            ]
+          },
+        },
+    );
+  }
 
   if (options.showTextOverlay) {
     spec.layer.push({
@@ -205,11 +222,6 @@ export async function confusionMatrix(
       'mark': {'type': 'text', 'baseline': 'middle'},
       'encoding': {
         'text': {
-          'condition': {
-            'test': 'datum["noFill"] == true',
-            'field': 'diagCount',
-            'type': 'nominal',
-          },
           'field': 'count',
           'type': 'nominal',
         },
@@ -218,7 +230,6 @@ export async function confusionMatrix(
   }
 
   await embed(drawArea, spec, embedOpts);
-  return Promise.resolve();
 }
 
 const defaultOpts: ConfusionMatrixOptions = {
@@ -235,7 +246,9 @@ const defaultOpts: ConfusionMatrixOptions = {
 interface MatrixEntry {
   label: string;
   prediction: string;
-  count?: number;
-  diagCount?: number;
+  // The displayed count
+  count: number;
+  // The count values used to compute the color scale
+  scaleCount?: number;
   noFill?: boolean;
 }
