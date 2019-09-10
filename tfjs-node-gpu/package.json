@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "build-npm": "yarn prep && ./scripts/build-npm-gpu.sh",
+    "build-npm": "./scripts/build-npm.sh",
     "build-addon": "./scripts/build-and-upload-addon.sh",
     "build-addon-from-source": "node-pre-gyp install --build-from-source",
     "clean-deps": "rm -rf deps && rm -rf lib",

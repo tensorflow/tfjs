@@ -16,15 +16,12 @@
 
 set -e
 
-# The binding builds with a symlink by default, for NPM packages change the
-# download option to move libtensorflow next to the prebuilt binary.
-sed -i -e 's/symlink/move/' binding.gyp
-
 # Build CPU:
 rimraf dist/
 rimraf deps/
 rimraf lib/
+
 # Build and upload pre-built addon
-yarn build-addon cpu "$1"
+yarn build-addon
 yarn prep
 tsc --sourceMap false

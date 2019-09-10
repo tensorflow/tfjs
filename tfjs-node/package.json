@@ -66,6 +66,7 @@
     "napi_versions": [
       3,
       4
-    ]
+    ],
+    "package_name": "CPU-linux-1.2.9.tar.gz"
   }
 }

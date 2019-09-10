@@ -26,9 +26,10 @@ const GPU_LINUX = `GPU-linux-${version}.tar.gz`;
 const CPU_WINDOWS = `CPU-windows-${version}.zip`;
 const GPU_WINDOWS = `GPU-windows-${version}.zip`;
 
+const libType = process.argv[2];
 let addonName;
 
-if (name.includes('gpu')) {
+if (libType === 'gpu') {
   if (platform === 'linux') {
     addonName = GPU_LINUX;
   } else if (platform === 'win32') {
