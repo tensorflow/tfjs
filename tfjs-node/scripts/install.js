@@ -67,7 +67,7 @@ async function updateAddonName() {
   const stringFile = JSON.stringify(packageJsonFile, null, 2);
   fs.writeFile((`${__dirname}/../package.json`), stringFile, err => {
     if (err) {
-      console.log('Failed to update addon name in package.json: ' + err);
+      console.log('Faile to update addon name in package.json: ' + err);
     }
   });
 }
@@ -195,6 +195,7 @@ async function build() {
       // Move libtensorflow to module path, where tfjs_binding.node locates.
       cp.exec('node scripts/deps-stage.js symlink ' + modulePath);
     }
+    revertAddonName();
   });
 }
 
@@ -215,7 +216,6 @@ async function run() {
     await cleanDeps();
     await downloadLibtensorflow(build);
   }
-  revertAddonName();
 }
 
 run();

@@ -19,7 +19,10 @@ set -e
 rm -rf ./src
 rm -rf ./binding
 rm -rf ./scripts
+rm -f binding.gyp
 
 cp -R ../tfjs-node/src ./src
 cp -R ../tfjs-node/binding ./binding
 cp -R ../tfjs-node/scripts ./scripts
+cp -R ../tfjs-node/binding.gyp .
+

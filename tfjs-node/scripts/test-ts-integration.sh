@@ -21,7 +21,7 @@ function print_status() {
 }
 
 function test() {
-  yarn && yarn build-addon-from-source && yarn build-npm && yarn yalc publish
+  yarn && yarn build-addon-from-source && yarn build && yarn yalc publish
 
   cd integration/typescript
   yarn && yarn prep && yarn test
