@@ -29,15 +29,15 @@ export function makeMatMulSource(): string {
   return `
     ${matMulHeader}
 
-    const int MatTileSize = gl_WorkGroupSize.x;  // .x == .y
+    const int MatTileSize = int(gl_WorkGroupSize.x);  // .x == .y
     shared float mm_Asub[MatTileSize][MatTileSize];
     shared float mm_Bsub[MatTileSize][MatTileSize];
 
     void mm_matMul(int dimAOuter, int dimInner, int dimBOuter) {
-        int localRow = gl_LocalInvocationID.y;  // 0..MatTileSize
-        int localCol = gl_LocalInvocationID.x;  // 0..MatTileSize
-        int globalRow = gl_GlobalInvocationID.y;  // AOuter
-        int globalCol = gl_GlobalInvocationID.x;  // Inner
+        int localRow = int(gl_LocalInvocationID.y);  // 0..MatTileSize
+        int localCol = int(gl_LocalInvocationID.x);  // 0..MatTileSize
+        int globalRow = int(gl_GlobalInvocationID.y);  // AOuter
+        int globalCol = int(gl_GlobalInvocationID.x);  // Inner
 
         float acc = 0.0;
 

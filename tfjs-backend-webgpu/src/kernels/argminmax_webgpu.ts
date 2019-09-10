@@ -77,7 +77,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         barrier();
 
         for (int w = 0; w < ${reductionFactor}; ++w) {
-          int i = gl_LocalInvocationID.x * ${reductionFactor} + w;
+          int i = int(gl_LocalInvocationID.x) * ${reductionFactor} + w;
           if (i < currentSize) {
             int candidateIndex = xBestIndices[i];
             float candidate = xBestValues[i];
@@ -120,7 +120,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     this.userCode = `
       #define DIV_CEIL(x, y) (((x) - 1) / (y) + 1)
 
-      const int WorkGroupSize = gl_WorkGroupSize.x;
+      const int WorkGroupSize = int(gl_WorkGroupSize.x);
 
       ${reduceInSharedMemory ? sharedMemorySnippet : ''}
 
@@ -163,7 +163,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         const int WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
 
         for (int w = 0; w < WorkPerThread; ++w) {
-          int i = gl_GlobalInvocationID.x * WorkPerThread + w;
+          int i = int(gl_GlobalInvocationID.x) * WorkPerThread + w;
           if (i < Length) {
             float candidate = x[getInputIndex(coordInfo, i)];
             if (candidate ${op} bestValue && !isnan(candidate)) {
@@ -173,7 +173,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
           }
         }
 
-        const int flatOutputIndex = gl_GlobalInvocationID.y;
+        const int flatOutputIndex = int(gl_GlobalInvocationID.y);
         ${
         reduceInSharedMemory ? sharedMemoryReduceSnippet :
                                'setOutput(flatOutputIndex, int(bestIndex));'}

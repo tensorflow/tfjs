@@ -24,7 +24,7 @@ export function makeMatMulPackedSource(workPerThread: number): string {
   return `
     ${matMulHeader}
 
-    const int WorkGroupSize = gl_WorkGroupSize.x;  // .x == .y
+    const int WorkGroupSize = int(gl_WorkGroupSize.x);  // .x == .y
     const int WorkPerThread = ${workPerThread};
     const int MatTileSize = WorkGroupSize * WorkPerThread;
 
@@ -33,12 +33,12 @@ export function makeMatMulPackedSource(workPerThread: number): string {
 
     void mm_matMul(int dimAOuter, int dimInner, int dimBOuter) {
       // These are 0..MatTileSize, in increments of WorkPerThread.
-      int tileRow = gl_LocalInvocationID.y * WorkPerThread;
-      int tileCol = gl_LocalInvocationID.x * WorkPerThread;
+      int tileRow = int(gl_LocalInvocationID.y) * WorkPerThread;
+      int tileCol = int(gl_LocalInvocationID.x) * WorkPerThread;
 
       // These are 0..AOuter, in increments of WorkPerThread.
-      int globalRow = gl_GlobalInvocationID.y * WorkPerThread;
-      int globalCol = gl_GlobalInvocationID.x * WorkPerThread;
+      int globalRow = int(gl_GlobalInvocationID.y) * WorkPerThread;
+      int globalCol = int(gl_GlobalInvocationID.x) * WorkPerThread;
 
       int numTiles = (dimInner - 1) / MatTileSize + 1;
 

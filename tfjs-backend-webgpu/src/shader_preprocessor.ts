@@ -315,11 +315,11 @@ function generateGetOutputCoords(
     rank += arr.length;
 
     if (arr.length === 1) {
-      gatherDimensionsStr += `int d${arr[0]} = gl_GlobalInvocationID[${i}];`;
+      gatherDimensionsStr += `int d${arr[0]} = int(gl_GlobalInvocationID[${i}]);`;
     } else {
       const strides = symbolicallyComputeStrides(arr, 'outShape');
       gatherDimensionsStr += `int index${i} =
-        gl_GlobalInvocationID[${i}];`;
+        int(gl_GlobalInvocationID[${i}]);`;
       for (let j = 0; j < strides.length; j++) {
         gatherDimensionsStr += `int d${arr[j]} = index${i} / ${strides[j]};`;
 
