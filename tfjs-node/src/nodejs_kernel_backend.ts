@@ -19,7 +19,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
-import {Activation, FusedBatchMatMulConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
+import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isArray, isNullOrUndefined} from 'util';
@@ -342,9 +342,9 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   fusedConv2d(
-      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
-      activation?: Activation, preluActivationWeights?: Tensor): Tensor4D {
-    let result = this.conv2d(x, filter, convInfo);
+      {input, filter, convInfo, bias, activation, preluActivationWeights}:
+          FusedConv2DConfig): Tensor4D {
+    let result = this.conv2d(input, filter, convInfo);
     if (bias != null) {
       result = this.add(result, bias) as Tensor4D;
     }
@@ -354,6 +354,36 @@ export class NodeJSKernelBackend extends KernelBackend {
         // No-op
       } else if (activation === 'relu') {
         result = this.relu(result);
+      } else if (activation === 'relu6') {
+        result = this.relu6(result);
+      } else if (activation === 'prelu') {
+        result = this.prelu(result, preluActivationWeights) as Tensor4D;
+      } else if (activation === 'elu') {
+        result = this.elu(result);
+      } else {
+        throw new Error(`Activation: ${
+            activation} has not been implemented for the Node.js backend`);
+      }
+    }
+
+    return result;
+  }
+
+  fusedDepthwiseConv2D(
+      {input, filter, convInfo, bias, activation, preluActivationWeights}:
+          FusedConv2DConfig): Tensor4D {
+    let result = this.depthwiseConv2D(input, filter, convInfo);
+    if (bias != null) {
+      result = this.add(result, bias) as Tensor4D;
+    }
+
+    if (activation != null) {
+      if (activation === 'linear') {
+        // No-op
+      } else if (activation === 'relu') {
+        result = this.relu(result);
+      } else if (activation === 'relu6') {
+        result = this.relu6(result);
       } else if (activation === 'prelu') {
         result = this.prelu(result, preluActivationWeights) as Tensor4D;
       } else if (activation === 'elu') {
@@ -381,6 +411,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         // No-op
       } else if (activation === 'relu') {
         result = this.relu(result);
+      } else if (activation === 'relu6') {
+        result = this.relu6(result);
       } else if (activation === 'prelu') {
         result = this.prelu(result, preluActivationWeights) as Tensor3D;
       } else if (activation === 'elu') {
@@ -670,6 +702,10 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   relu<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Relu', x) as T;
+  }
+
+  relu6<T extends Tensor>(x: T): T {
+    return this.executeSingleInput('Relu6', x) as T;
   }
 
   prelu<T extends Tensor>(x: T, a: T): T {
@@ -965,6 +1001,8 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput(
                'DepthwiseConv2dNative', opAttrs, [input, filter]) as Tensor4D;
   }
+
+
 
   conv3d(x: Tensor<Rank.R5>, filter: Tensor<Rank.R5>, convInfo: Conv3DInfo):
       Tensor<Rank.R5> {
