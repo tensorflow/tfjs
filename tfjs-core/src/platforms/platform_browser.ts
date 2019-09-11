@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+
 import {ENV} from '../environment';
 import {Platform} from './platform';
 
@@ -21,9 +22,11 @@ export class PlatformBrowser implements Platform {
   private textEncoder: TextEncoder;
 
   constructor() {
-    // According to the spec, the built-in encoder can do only UTF-8 encoding.
-    // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
-    this.textEncoder = new TextEncoder();
+    // Workaround for IE11 compatibility
+    // More info: https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder
+    if (window.TextEncoder) {
+      this.textEncoder = new TextEncoder();
+    }
   }
 
   fetch(path: string, init?: RequestInit): Promise<Response> {
@@ -36,11 +39,22 @@ export class PlatformBrowser implements Platform {
 
   encode(text: string, encoding: string): Uint8Array {
     if (encoding !== 'utf-8' && encoding !== 'utf8') {
-      throw new Error(
-          `Browser's encoder only supports utf-8, but got ${encoding}`);
+        throw new Error(
+            `Browser's encoder only supports utf-8, but got ${encoding}`);
+      }
+    if (window.TextEncoder) {
+      return this.textEncoder.encode(text);
+    } else {
+        // Workaround for IE11 compatibility
+        const utf8 = unescape(encodeURIComponent(text));
+        const result = new Uint8Array(utf8.length);
+        for (let i = 0; i < utf8.length; i++) {
+          result[i] = utf8.charCodeAt(i);
+        }
+      return result;
     }
-    return this.textEncoder.encode(text);
   }
+
   decode(bytes: Uint8Array, encoding: string): string {
     return new TextDecoder(encoding).decode(bytes);
   }
