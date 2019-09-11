@@ -75,7 +75,7 @@ function relu6_<T extends Tensor>(x: T|TensorLike): T {
   }
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    const mask = $x.greater(scalar(6)).mul($x.step());
+    const mask = $x.lessEqual(scalar(6)).mul($x.step());
     return {$x: () => dy.mulStrict(mask.toFloat() as T)};
   };
   return ENGINE.runKernel((backend, save) => {
