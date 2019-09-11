@@ -32,7 +32,7 @@ const grepFilter = env.specFilter;
 const INCLUDE_LIST: string[] = [
   'matmul', 'add ', 'subtract ', 'mul ', 'conv2d', 'pad', 'pool', 'maxPool',
   'floor divide ', 'resizeBilinear', 'relu', 'transpose', 'concat', 'argmax',
-  'fromPixels', 'depthwise', 'div'
+  'fromPixels', 'depthwise', 'div', 'greater'
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
@@ -78,7 +78,9 @@ const EXCLUDE_LIST: string[] = [
   'NCHW',                                                // Not yet implemented.
   'maxPool3d',                                           // Not yet implemented.
   'frame',                                               // Not yet implemented.
-  'HTMLVideolement'
+  'HTMLVideolement',
+  'works with 0 sized tensors',                          // AbortError.
+  'NaNs in Tensor'                                       // Not yet implemented.
 ];
 
 /**
