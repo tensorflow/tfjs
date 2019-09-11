@@ -1517,11 +1517,12 @@ export class MathBackendCPU implements KernelBackend {
     const a4 = erf_util.ERF_A4;
     const a5 = erf_util.ERF_A5;
     for (let i = 0; i < values.length; ++i) {
-      const v = values[i];
+      const sign = Math.sign(values[i]);
+      const v = Math.abs(values[i]);
       const t = 1.0 / (1.0 + p * v);
-      resultValues[i] = 1.0 -
-          (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
-              Math.exp(-v * v);
+      resultValues[i] = sign * (1.0 -
+        (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
+        Math.exp(-v * v));
     }
     return Tensor.make(x.shape, {values: resultValues});
   }
