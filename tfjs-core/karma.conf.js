@@ -137,9 +137,9 @@ module.exports = function(config) {
       },
       bs_ios_11: {
         base: 'BrowserStack',
-        device: 'iPhone X',
-        os: 'iOS',
-        os_version: '11.0',
+        device: 'iPhone XS Max',
+        os: 'ios',
+        os_version: '12.0',
         real_mobile: true
       },
       bs_android_9: {
