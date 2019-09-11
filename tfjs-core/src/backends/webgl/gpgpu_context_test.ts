@@ -22,6 +22,7 @@ import {WEBGL_ENVS} from './backend_webgl_test_registry';
 import {getGlslDifferences} from './glsl_version';
 import {GPGPUContext, linearSearchLastTrue} from './gpgpu_context';
 import * as tex_util from './tex_util';
+import {getActiveContext} from './webgl_context_manager';
 
 const DOWNLOAD_FLOAT_ENVS = {
   flags: {'WEBGL_DOWNLOAD_FLOAT_ENABLED': true},
@@ -57,7 +58,8 @@ describeWithFlags(
         const output = gpgpu.createFloat32MatrixTexture(rows, columns);
         gpgpu.setOutputMatrixTexture(output, rows, columns);
         const expected = new Int32Array([0, 0, columns, rows]);
-        expect(gpgpu.gl.getParameter(gpgpu.gl.VIEWPORT)).toEqual(expected);
+        const gl = getActiveContext();
+        expect(gl.getParameter(gl.VIEWPORT)).toEqual(expected);
         gpgpu.deleteMatrixTexture(output);
       });
     });
@@ -95,7 +97,8 @@ describeWithFlags(
         const [width, height] =
             tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
         const expected = new Int32Array([0, 0, width, height]);
-        expect(gpgpu.gl.getParameter(gpgpu.gl.VIEWPORT)).toEqual(expected);
+        const gl = getActiveContext();
+        expect(gl.getParameter(gl.VIEWPORT)).toEqual(expected);
       });
     });
 
@@ -133,7 +136,8 @@ describeWithFlags(
 
       it('sets the scissor box to the requested parameters', () => {
         gpgpu.setOutputMatrixWriteRegion(0, 1, 2, 3);
-        const scissorBox = gpgpu.gl.getParameter(gpgpu.gl.SCISSOR_BOX);
+        const gl = getActiveContext();
+        const scissorBox = gl.getParameter(gl.SCISSOR_BOX);
         expect(scissorBox[0]).toEqual(2);
         expect(scissorBox[1]).toEqual(0);
         expect(scissorBox[2]).toEqual(3);
@@ -155,12 +159,6 @@ describeWithFlags('GPGPUContext', DOWNLOAD_FLOAT_ENVS, () => {
     gpgpu.dispose();
   });
 
-  it('throws an error if used after dispose', () => {
-    const gpgpuContext = new GPGPUContext();
-    gpgpuContext.dispose();
-    expect(gpgpuContext.dispose).toThrowError();
-  });
-
   it('throws an error if validation is on and framebuffer incomplete', () => {
     const glsl = getGlslDifferences();
     const src = `${glsl.version}
@@ -174,6 +172,14 @@ describeWithFlags('GPGPUContext', DOWNLOAD_FLOAT_ENVS, () => {
     gpgpu.deleteMatrixTexture(result);
     expect(gpgpu.executeProgram).toThrowError();
     gpgpu.deleteProgram(program);
+  });
+});
+
+describeWithFlags('GPGPUContext dispose', DOWNLOAD_FLOAT_ENVS, () => {
+  it('throws an error if used after dispose', () => {
+    const gpgpuContext = new GPGPUContext();
+    gpgpuContext.dispose();
+    expect(gpgpuContext.dispose).toThrowError();
   });
 });
 

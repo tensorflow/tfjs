@@ -24,6 +24,7 @@ import {GPGPUContext} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';
 import {InputInfo, ShapeInfo} from './shader_compiler';
 import {TextureData} from './tex_util';
+import {getActiveContext} from './webgl_context_manager';
 
 export interface GPGPUProgram {
   variableNames: string[];
@@ -162,14 +163,15 @@ export function runProgram<T extends Tensor, K extends Tensor>(
   }
   gpgpu.setProgram(binary.webGLProgram);
 
+  const gl = getActiveContext();
   // Set special uniforms (NAN, INFINITY)
   if (ENV.getNumber('WEBGL_VERSION') === 1) {
     if (binary.infLoc !== null) {
-      gpgpu.gl.uniform1f(binary.infLoc, Infinity);
+      gl.uniform1f(binary.infLoc, Infinity);
     }
   }
   if (binary.nanLoc !== null) {
-    gpgpu.gl.uniform1f(binary.nanLoc, NaN);
+    gl.uniform1f(binary.nanLoc, NaN);
   }
 
   // Set user-defined inputs
@@ -186,20 +188,20 @@ export function runProgram<T extends Tensor, K extends Tensor>(
     if (input.isUniform) {
       // Upload the values of the tensor as uniform.
       if (util.sizeFromShape(input.shape) < 2) {
-        gpgpu.gl.uniform1f(varLoc, input.uniformValues[0]);
+        gl.uniform1f(varLoc, input.uniformValues[0]);
       } else {
         let vals = input.uniformValues;
         if (!(vals instanceof Float32Array)) {
           vals = new Float32Array(vals);
         }
-        gpgpu.gl.uniform1fv(varLoc, vals);
+        gl.uniform1fv(varLoc, vals);
       }
       return;
     }
 
     // If the input was sliced, upload the flat offset index.
     if (input.texData.slice != null && varOffsetLoc != null) {
-      gpgpu.gl.uniform1i(varOffsetLoc, input.texData.slice.flatOffset);
+      gl.uniform1i(varOffsetLoc, input.texData.slice.flatOffset);
     }
 
     gpgpu.setInputMatrixTexture(input.texData.texture, varLoc, i);

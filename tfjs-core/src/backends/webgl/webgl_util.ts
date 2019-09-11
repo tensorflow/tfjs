@@ -18,8 +18,8 @@
 import {ENV} from '../../environment';
 import * as util from '../../util';
 
-import {getWebGLContext} from './canvas_util';
 import {getTextureConfig} from './tex_util';
+import {getContextByVersion} from './webgl_context_manager';
 
 export function callAndCheck<T>(
     gl: WebGLRenderingContext, debugMode: boolean, func: () => T): T {
@@ -30,7 +30,7 @@ export function callAndCheck<T>(
   return returnValue;
 }
 
-function checkWebGLError(gl: WebGLRenderingContext) {
+export function checkWebGLError(gl: WebGLRenderingContext) {
   const error = gl.getError();
   if (error !== gl.NO_ERROR) {
     throw new Error('WebGL Error: ' + getWebGLErrorMessage(gl, error));
@@ -221,8 +221,9 @@ export function validateTextureSize(width: number, height: number) {
 
 export function createFramebuffer(
     gl: WebGLRenderingContext, debug: boolean): WebGLFramebuffer {
+  console.log(' --- is debug: ' + debug);
   return throwIfNull<WebGLFramebuffer>(
-      gl, debug, () => gl.createFramebuffer(),
+      gl, true, () => gl.createFramebuffer(),
       'Unable to create WebGLFramebuffer.');
 }
 
@@ -503,7 +504,7 @@ let MAX_TEXTURES_IN_SHADER: number;
 
 export function getWebGLMaxTextureSize(webGLVersion: number): number {
   if (MAX_TEXTURE_SIZE == null) {
-    const gl = getWebGLContext(webGLVersion);
+    const gl = getContextByVersion(webGLVersion);
     MAX_TEXTURE_SIZE = gl.getParameter(gl.MAX_TEXTURE_SIZE);
   }
   return MAX_TEXTURE_SIZE;
@@ -518,7 +519,7 @@ export function resetMaxTexturesInShader() {
 
 export function getMaxTexturesInShader(webGLVersion: number): number {
   if (MAX_TEXTURES_IN_SHADER == null) {
-    const gl = getWebGLContext(webGLVersion);
+    const gl = getContextByVersion(webGLVersion);
     MAX_TEXTURES_IN_SHADER = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
   }
   // We cap at 16 to avoid spurious runtime "memory exhausted" error.
@@ -532,7 +533,7 @@ export function getWebGLDisjointQueryTimerVersion(webGLVersion: number):
   }
 
   let queryTimerVersion: number;
-  const gl = getWebGLContext(webGLVersion);
+  const gl = getContextByVersion(webGLVersion);
 
   if (hasExtension(gl, 'EXT_disjoint_timer_query_webgl2') &&
       webGLVersion === 2) {
@@ -547,12 +548,18 @@ export function getWebGLDisjointQueryTimerVersion(webGLVersion: number):
 
 export function hasExtension(gl: WebGLRenderingContext, extensionName: string) {
   const ext = gl.getExtension(extensionName);
+  try {
+    checkWebGLError(gl);
+  } catch (e) {
+    console.log('exception getting: ' + extensionName);
+    throw e;
+  }
   return ext != null;
 }
 
 export function isWebGLVersionEnabled(webGLVersion: 1|2) {
   try {
-    const gl = getWebGLContext(webGLVersion);
+    const gl = getContextByVersion(webGLVersion);
     if (gl != null) {
       return true;
     }
@@ -568,7 +575,7 @@ export function isCapableOfRenderingToFloatTexture(webGLVersion: number):
     return false;
   }
 
-  const gl = getWebGLContext(webGLVersion);
+  const gl = getContextByVersion(webGLVersion);
 
   if (webGLVersion === 1) {
     if (!hasExtension(gl, 'OES_texture_float')) {
@@ -598,7 +605,7 @@ export function isDownloadFloatTextureEnabled(webGLVersion: number): boolean {
     return false;
   }
 
-  const gl = getWebGLContext(webGLVersion);
+  const gl = getContextByVersion(webGLVersion);
 
   if (webGLVersion === 1) {
     if (!hasExtension(gl, 'OES_texture_float')) {
@@ -689,7 +696,14 @@ export function isWebGLFenceEnabled(webGLVersion: number) {
   if (webGLVersion !== 2) {
     return false;
   }
-  const gl = getWebGLContext(webGLVersion);
+  const gl = getContextByVersion(webGLVersion);
+
+  // TODO - fix this
+  // webgl_util.callAndCheck(
+  //   gl, debug,
+  //   () => gl.texImage2D(
+  //       tex2d, 0, internalFormat, width, height, 0, textureFormat,
+  //       textureType, null));
 
   // tslint:disable-next-line:no-any
   const isEnabled = (gl as any).fenceSync != null;

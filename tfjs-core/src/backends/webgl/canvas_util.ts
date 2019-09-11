@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-const contexts: {[key: string]: WebGLRenderingContext} = {};
-
 const WEBGL_ATTRIBUTES: WebGLContextAttributes = {
   alpha: false,
   antialias: false,
@@ -26,34 +24,6 @@ const WEBGL_ATTRIBUTES: WebGLContextAttributes = {
   stencil: false,
   failIfMajorPerformanceCaveat: true
 };
-
-export function setWebGLContext(
-    webGLVersion: number, gl: WebGLRenderingContext) {
-  contexts[webGLVersion] = gl;
-}
-
-export function getWebGLContext(webGLVersion: number): WebGLRenderingContext {
-  if (!(webGLVersion in contexts)) {
-    contexts[webGLVersion] = getWebGLRenderingContext(webGLVersion);
-  }
-  const gl = contexts[webGLVersion];
-  if (gl.isContextLost()) {
-    delete contexts[webGLVersion];
-    return getWebGLContext(webGLVersion);
-  }
-
-  gl.disable(gl.DEPTH_TEST);
-  gl.disable(gl.STENCIL_TEST);
-  gl.disable(gl.BLEND);
-  gl.disable(gl.DITHER);
-  gl.disable(gl.POLYGON_OFFSET_FILL);
-  gl.disable(gl.SAMPLE_COVERAGE);
-  gl.enable(gl.SCISSOR_TEST);
-  gl.enable(gl.CULL_FACE);
-  gl.cullFace(gl.BACK);
-
-  return contexts[webGLVersion];
-}
 
 export function createCanvas(webGLVersion: number) {
   if (typeof OffscreenCanvas !== 'undefined' && webGLVersion === 2) {
@@ -65,7 +35,19 @@ export function createCanvas(webGLVersion: number) {
   }
 }
 
-function getWebGLRenderingContext(webGLVersion: number): WebGLRenderingContext {
+export function cleanupDOMCanvasWebGLRenderingContext(
+    context: WebGLRenderingContext) {
+  if (context == null) {
+    throw new Error('Shold not hit this case');
+  }
+  const canvas = context.canvas;
+  if (canvas != null && canvas.remove != null) {
+    canvas.remove();
+  }
+}
+
+export function createDOMCanvasWebGLRenderingContext(webGLVersion: number):
+    WebGLRenderingContext {
   if (webGLVersion !== 1 && webGLVersion !== 2) {
     throw new Error('Cannot get WebGL rendering context, WebGL is disabled.');
   }
@@ -73,7 +55,6 @@ function getWebGLRenderingContext(webGLVersion: number): WebGLRenderingContext {
 
   canvas.addEventListener('webglcontextlost', (ev: Event) => {
     ev.preventDefault();
-    delete contexts[webGLVersion];
   }, false);
   if (webGLVersion === 1) {
     return (canvas.getContext('webgl', WEBGL_ATTRIBUTES) ||
