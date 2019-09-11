@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import {DataType} from '@tensorflow/tfjs-core';
 
 const arrayProduct = (arr: number[]) => {
   let product = 1;
@@ -47,4 +48,14 @@ export function computeDispatch(
 
 export function flatDispatchLayout(shape: number[]) {
   return {x: shape.map((d, i) => i)};
+}
+
+export function bytesPerElement(dtype: DataType): number {
+  if (dtype === 'float32' || dtype === 'int32' || dtype === 'bool') {
+    return 4;
+  } else if (dtype === 'complex64') {
+    return 8;
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
 }
