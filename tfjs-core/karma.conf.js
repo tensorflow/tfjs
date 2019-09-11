@@ -135,11 +135,18 @@ module.exports = function(config) {
         os: 'OS X',
         os_version: 'High Sierra'
       },
-      bs_ios_11: {
+      bs_ios_12: {
         base: 'BrowserStack',
-        device: 'iPhone X',
+        device: 'iPhone XS',
         os: 'iOS',
-        os_version: '11.0',
+        os_version: '12.0',
+        real_mobile: true
+      },
+      bs_android_9: {
+        base: 'BrowserStack',
+        device: 'Pixel 3',
+        os: 'android',
+        os_version: '9.0',
         real_mobile: true
       },
       win_10_chrome: {
