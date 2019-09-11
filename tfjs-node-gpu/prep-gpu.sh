@@ -16,23 +16,13 @@
 
 set -e
 
-# The binding builds with a symlink by default, for NPM packages change the
-# download option to move libtensorflow next to the prebuilt binary.
-sed -i -e 's/symlink/move/' binding.gyp
+rm -rf ./src
+rm -rf ./binding
+rm -rf ./scripts
+rm -f binding.gyp
 
-# Build GPU:
-sed -i -e 's/tfjs-node"/tfjs-node-gpu"/' package.json
-sed -i -e 's/install.js"/install.js gpu download"/' package.json
-rimraf deps/
-rimraf dist/
-rimraf lib/
-yarn build-addon "$1"
-yarn prep
-tsc --sourceMap false
-# This produces a tarball that will later be used by `npm publish`.
-npm pack
+cp -R ../tfjs-node/src ./src
+cp -R ../tfjs-node/binding ./binding
+cp -R ../tfjs-node/scripts ./scripts
+cp -R ../tfjs-node/binding.gyp .
 
-# Revert GPU changes:
-sed -i -e 's/move/symlink/' binding.gyp
-sed -i -e 's/tfjs-node-gpu"/tfjs-node"/' package.json
-sed -i -e 's/install.js gpu download"/install.js"/' package.json
