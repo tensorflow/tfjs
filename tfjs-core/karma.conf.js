@@ -135,11 +135,11 @@ module.exports = function(config) {
         os: 'OS X',
         os_version: 'High Sierra'
       },
-      bs_ios_12: {
+      bs_ios_11: {
         base: 'BrowserStack',
         device: 'iPhone XS',
         os: 'ios',
-        os_version: '12',
+        os_version: '11',
         real_mobile: true
       },
       bs_android_9: {
