@@ -1197,6 +1197,18 @@ export class MathBackendCPU implements KernelBackend {
     return res as T;
   }
 
+  relu6<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'relu');
+
+    const res = ops.zeros(x.shape, x.dtype);
+    const resVals = this.readSync(res.dataId) as TypedArray;
+    const inVals = this.readSync(x.dataId) as TypedArray;
+    for (let i = 0; i < inVals.length; ++i) {
+      resVals[i] = Math.min(Math.max(0, inVals[i]), 6);
+    }
+    return res as T;
+  }
+
   prelu<T extends Tensor>(x: T, a: T): T {
     this.assertNotComplex([x, a], 'prelu');
 
