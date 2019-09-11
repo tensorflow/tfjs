@@ -3653,10 +3653,10 @@ describeWithFlags('atanh', ALL_ENVS, () => {
 
 describeWithFlags('erf', ALL_ENVS, () => {
   it('basic', async () => {
-    const values = [-0.25, 0.25, 0.5, .75, -0.4];
+    const values = [-5.5, -3, 0.0, 0.8, 5];
     const a = tf.tensor1d(values);
     const result = tf.erf(a);
-    const expected = [-0.2763264, 0.2763264, 0.5204999, 0.7111556, -0.4283924];
+    const expected = [-1, -0.9999779, 0, 0.7421009, 1];
     expectArraysClose(await result.data(), expected);
   });
 
