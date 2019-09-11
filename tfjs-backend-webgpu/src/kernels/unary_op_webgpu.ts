@@ -32,7 +32,7 @@ export class UnaryOpProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A'];
   workPerThread = 4;
-  workGroupSize: [number, number, number] = [1, 1, 1];
+  workGroupSize: [number, number, number] = [16, 1, 1];
 
   constructor(outputShape: number[], op: string) {
     this.outputShape = outputShape;

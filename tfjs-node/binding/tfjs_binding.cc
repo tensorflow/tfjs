@@ -130,6 +130,16 @@ static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
   return gBackend->ExecuteOp(env, args[0], args[1], args[2], args[3]);
 }
 
+static napi_value IsUsingGPUDevice(napi_env env, napi_callback_info info) {
+  napi_value result;
+
+  napi_status nstatus;
+  nstatus = napi_get_boolean(env, gBackend->is_gpu_device, &result);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  return result;
+}
+
 static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   napi_status nstatus;
 
@@ -152,6 +162,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
       {"executeOp", nullptr, ExecuteOp, nullptr, nullptr, nullptr, napi_default,
        nullptr},
       {"TF_Version", nullptr, nullptr, nullptr, nullptr, tf_version,
+       napi_default, nullptr},
+      {"isUsingGpuDevice", nullptr, IsUsingGPUDevice, nullptr, nullptr, nullptr,
        napi_default, nullptr},
   };
   nstatus = napi_define_properties(env, exports, ARRAY_SIZE(exports_properties),
