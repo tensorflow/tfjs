@@ -1002,8 +1002,6 @@ export class NodeJSKernelBackend extends KernelBackend {
                'DepthwiseConv2dNative', opAttrs, [input, filter]) as Tensor4D;
   }
 
-
-
   conv3d(x: Tensor<Rank.R5>, filter: Tensor<Rank.R5>, convInfo: Conv3DInfo):
       Tensor<Rank.R5> {
     const strides = [
