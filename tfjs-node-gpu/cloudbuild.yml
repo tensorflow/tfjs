@@ -7,7 +7,7 @@ steps:
 
 # Install tfjs-node dependencies.
 - name: 'node:10'
-  dir: 'tfjs-node'
+  dir: 'tfjs-node-gpu'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
@@ -15,7 +15,7 @@ steps:
 
 # Unit tests.
 - name: 'node:10'
-  dir: 'tfjs-node'
+  dir: 'tfjs-node-gpu'
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
@@ -23,7 +23,7 @@ steps:
 
 # Integration test.
 - name: 'node:10'
-  dir: 'tfjs-node'
+  dir: 'tfjs-node-gpu'
   entrypoint: 'yarn'
   id: 'test-ts-integration'
   args: ['test-ts-integration']
@@ -31,11 +31,11 @@ steps:
 
 # CPU / GPU package alignment.
 - name: 'node:10'
-  dir: 'tfjs-node'
+  dir: 'tfjs-node-gpu'
   entrypoint: 'yarn'
   id: 'ensure-cpu-gpu-packages-align'
   args: ['ensure-cpu-gpu-packages-align']
-  waitFor: ['yarn']
+  waitFor: ['yarn', 'test']
 
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
