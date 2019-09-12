@@ -54,8 +54,5 @@ export class ConcatProgram implements GPGPUProgram {
         ${snippets.join('\n        ')}
       }
     `;
-
-    console.log('concat: snippets:', snippets);
-    console.log('concat: userprogram:', this.userCode);
   }
 }
