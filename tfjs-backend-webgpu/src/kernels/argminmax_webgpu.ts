@@ -29,7 +29,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'uint axis;';
+  uniforms = 'int axis;';
 
   constructor(inputShape: number[], axis: number, reduceType: 'min'|'max') {
     const axes = [axis];
@@ -64,7 +64,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     // Thes results are stored in shared memory and iteratively reduced.
     const reduceInSharedMemory = xThreads > 1;
     const sharedMemorySnippet = `
-      shared uint xBestIndices[WorkGroupSize];
+      shared int xBestIndices[WorkGroupSize];
       shared float xBestValues[WorkGroupSize];
     `;
 
@@ -72,14 +72,14 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       xBestIndices[gl_LocalInvocationID.x] = bestIndex;
       xBestValues[gl_LocalInvocationID.x] = bestValue;
 
-      uint currentSize = WorkGroupSize;
+      int currentSize = WorkGroupSize;
       while (currentSize > 1) {
         barrier();
 
-        for (uint w = 0; w < ${reductionFactor}; ++w) {
-          uint i = gl_LocalInvocationID.x * ${reductionFactor} + w;
+        for (int w = 0; w < ${reductionFactor}; ++w) {
+          int i = int(gl_LocalInvocationID.x) * ${reductionFactor} + w;
           if (i < currentSize) {
-            uint candidateIndex = xBestIndices[i];
+            int candidateIndex = xBestIndices[i];
             float candidate = xBestValues[i];
             if (candidate ${op} bestValue && !isnan(candidate)) {
               bestValue = candidate;
@@ -120,7 +120,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     this.userCode = `
       #define DIV_CEIL(x, y) (((x) - 1) / (y) + 1)
 
-      const uint WorkGroupSize = gl_WorkGroupSize.x;
+      const int WorkGroupSize = int(gl_WorkGroupSize.x);
 
       ${reduceInSharedMemory ? sharedMemorySnippet : ''}
 
@@ -128,16 +128,16 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       // add back the index along the reduced dimension to |outputCoords|.
       // This function outputs the offset to the first value along
       // |axis| and the stride to get the next value of the input along |axis|.
-      uvec2 getInputCoordInfo() {
+      ivec2 getInputCoordInfo() {
         const ${outputCoordsType} outputCoords = getOutputCoords();
-        uint i = ${this.outputShape.length - 1};
+        int i = ${this.outputShape.length - 1};
 
-        uint stride = 1;
-        uint inputStride = 1;
-        uint offset = 0;
+        int stride = 1;
+        int inputStride = 1;
+        int offset = 0;
 
-        for (uint r = 1; r <= ${inputShape.length}; ++r) {
-          uint length = ${indexInputShape(`${inputShape.length} - r`)};
+        for (int r = 1; r <= ${inputShape.length}; ++r) {
+          int length = ${indexInputShape(`${inputShape.length} - r`)};
           if (${inputShape.length} - r == axis) {
             inputStride = stride;
           } else {
@@ -146,24 +146,24 @@ export class ArgMinMaxProgram implements WebGPUProgram {
           stride *= length;
         }
 
-        return uvec2(offset, inputStride);
+        return ivec2(offset, inputStride);
       }
 
-      uint getInputIndex(uvec2 coordInfo, uint index) {
+      int getInputIndex(ivec2 coordInfo, int index) {
         return coordInfo[0] + coordInfo[1] * index;
       }
 
       void main() {
-        const uvec2 coordInfo = getInputCoordInfo();
+        const ivec2 coordInfo = getInputCoordInfo();
 
-        uint bestIndex = 0;
+        int bestIndex = 0;
         float bestValue = x[getInputIndex(coordInfo, bestIndex)];
 
-        const uint Length = ${indexInputShape('axis')};
-        const uint WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
+        const int Length = ${indexInputShape('axis')};
+        const int WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
 
-        for (uint w = 0; w < WorkPerThread; ++w) {
-          uint i = gl_GlobalInvocationID.x * WorkPerThread + w;
+        for (int w = 0; w < WorkPerThread; ++w) {
+          int i = int(gl_GlobalInvocationID.x) * WorkPerThread + w;
           if (i < Length) {
             float candidate = x[getInputIndex(coordInfo, i)];
             if (candidate ${op} bestValue && !isnan(candidate)) {
@@ -173,7 +173,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
           }
         }
 
-        const uint flatOutputIndex = gl_GlobalInvocationID.y;
+        const int flatOutputIndex = int(gl_GlobalInvocationID.y);
         ${
         reduceInSharedMemory ? sharedMemoryReduceSnippet :
                                'setOutput(flatOutputIndex, int(bestIndex));'}
