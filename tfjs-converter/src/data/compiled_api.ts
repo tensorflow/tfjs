@@ -16,6 +16,14 @@
  * =============================================================================
  */
 
+// This incantation makes Closure think that exported symbols are mutable.
+// Mutable file-level exports are disallowed per style and won't reliably
+// work.  This hack also has a cost in terms of code size, and is only used
+// to preserve the preexisting behavior of this code.
+// tslint:disable-next-line:ban-ts-ignore see above
+// @ts-ignore
+exports = {};
+
 /* tslint:disable */
 
 /** Properties of an Any. */
