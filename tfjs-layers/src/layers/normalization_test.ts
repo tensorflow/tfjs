@@ -14,11 +14,11 @@
 
 import {onesLike, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
 
-import * as tfl from '../index';
 import {SymbolicTensor} from '../engine/topology';
+import * as tfl from '../index';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
-import {batchNormalization, normalizeBatchInTraining} from './normalization';
 
+import {batchNormalization, normalizeBatchInTraining} from './normalization';
 
 describeMathCPUAndGPU('normalizeBatchInTraining', () => {
   // The reference values for assertion below can be obtained with Python code
@@ -418,7 +418,7 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
     const betaValue = layer1.getWeights()[1];
     expectTensorsClose(
         betaValue,
-        [2.9802322e-10,  1.4901161e-10,  9.1269614e-10, -7.4505802e-10]);
+        [2.9802322e-10, 1.4901161e-10, 9.1269614e-10, -7.4505802e-10]);
     const movingMeanValue = layer1.getWeights()[2];
     expectTensorsClose(
         movingMeanValue, [0.09949999, 0.11276666, 0.12603334, 0.13929999]);
@@ -475,10 +475,10 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
         dense1KernelValue,
         tensor2d(
             [
-            [0.99999833, 0.99999833, 0.99999833, 0.99999833],
-            [0.9999987, 0.9999987, 0.9999987, 0.9999987],
-            [0.999999, 0.999999, 0.999999, 0.999999],
-            [0.99999934, 0.99999934, 0.99999934, 0.99999934]
+              [0.99999833, 0.99999833, 0.99999833, 0.99999833],
+              [0.9999987, 0.9999987, 0.9999987, 0.9999987],
+              [0.999999, 0.999999, 0.999999, 0.999999],
+              [0.99999934, 0.99999934, 0.99999934, 0.99999934]
             ],
             [4, 4]));
     const gammaValue = layer2.getWeights()[0];
@@ -494,13 +494,12 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
         movingMeanValue, [0.7128234, 0.7128234, 0.7128234, 0.7128234]);
     const movingVarianceValue = layer2.getWeights()[3];
     expectTensorsClose(
-        movingVarianceValue,[6.276868, 6.276868, 6.276868, 6.276868]);
+        movingVarianceValue, [6.276868, 6.276868, 6.276868, 6.276868]);
     const dense2KernelValue = layer3.getWeights()[0];
     expectTensorsClose(
         dense2KernelValue,
         tensor2d(
-            [[0.18779878], [0.18779878], [0.18779878], [0.18779878]],
-            [4, 1]));
+            [[0.18779878], [0.18779878], [0.18779878], [0.18779878]], [4, 1]));
   });
 
   // Python reference code:
@@ -540,11 +539,8 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
     }));
     model.add(tfl.layers.batchNormalization());
     model.add(tfl.layers.flatten());
-    model.add(tfl.layers.dense({
-      units: 1,
-      kernelInitializer: 'ones',
-      biasInitializer: 'zeros'
-    }));
+    model.add(tfl.layers.dense(
+        {units: 1, kernelInitializer: 'ones', biasInitializer: 'zeros'}));
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
 
     const xsData = [];
@@ -601,11 +597,8 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
     }));
     model.add(tfl.layers.batchNormalization());
     model.add(tfl.layers.flatten());
-    model.add(tfl.layers.dense({
-      units: 1,
-      kernelInitializer: 'ones',
-      biasInitializer: 'zeros'
-    }));
+    model.add(tfl.layers.dense(
+        {units: 1, kernelInitializer: 'ones', biasInitializer: 'zeros'}));
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
 
     const xsData = [];
@@ -622,17 +615,16 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
     const weights = model.layers[1].getWeights();
     expect(weights.length).toEqual(4);
     expectTensorsClose(
-        weights[0],
-        tensor1d([7661.0874, 7661.0874, 7661.0874, 7661.0874]), 1e-2);
+        weights[0], tensor1d([7661.0874, 7661.0874, 7661.0874, 7661.0874]),
+        1e-2);
     expectTensorsClose(
-        weights[1],
-        tensor1d([-118.35103, -118.35103, -118.35103, -118.35103]), 1e-2);
+        weights[1], tensor1d([-118.35103, -118.35103, -118.35103, -118.35103]),
+        1e-2);
     expectTensorsClose(
         weights[2],
         tensor1d([-0.00026271, -0.00026271, -0.00026271, -0.00026271]));
     expectTensorsClose(
-        weights[3],
-        tensor1d([0.98333836, 0.98333836, 0.98333836, 0.98333836]));
+        weights[3], tensor1d([0.98333836, 0.98333836, 0.98333836, 0.98333836]));
   });
 
   // Use the following Python code to get the reference values for assertion:

@@ -17,7 +17,6 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-// tslint:disable-next-line:max-line-length
 import {getDisplayDecimalPlaces, getSuccinctNumberDisplay, progressBarHelper} from './callbacks';
 
 describe('progbarLogger', () => {

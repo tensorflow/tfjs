@@ -10,6 +10,7 @@
 .idea/
 .nyc_output/
 .rpt2_cache/
+.cache/
 .yalc/
 .vscode/ipch/
 /compiled_api.js
@@ -18,12 +19,21 @@ bazel-*
 build-tmp-napi-v3/
 build-tmp-napi-v4/
 build/
+clone/
 coverage/
 demo/train-*
 deps/
 dist/
-integration_tests/tfjs2keras/test-data/
-integration/typescript/yarn.lock
+tfjs-layers/integration_tests/tfjs2keras/test-data/
+tfjs-layers/integration/typescript/yarn.lock
+
+# Ignore the src, binding, scripts of tfjs-node-gpu since it is copied over when
+# building.
+/tfjs-node-gpu/src
+/tfjs-node-gpu/binding
+/tfjs-node-gpu/scripts
+/tfjs-node-gpu/binding.gyp
+
 lib/
 local.log
 node_modules/

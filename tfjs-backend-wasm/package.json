@@ -9,6 +9,7 @@
   "jsdelivr": "dist/tf-wasm.min.js",
   "scripts": {
     "build": "rimraf dist/ && ./scripts/build-wasm.sh && tsc && cp wasm-out/*.wasm dist/",
+    "build-npm": "./scripts/build-npm.sh",
     "lint": "tslint -p . -t verbose",
     "test": "./scripts/build-wasm.sh && karma start"
   },
@@ -16,7 +17,9 @@
     "@tensorflow/tfjs-core": "~1.2.7"
   },
   "devDependencies": {
+    "@bazel/bazel": "^0.28.0",
     "@tensorflow/tfjs-core": "~1.2.7",
+    "@types/jasmine": "~2.8.6",
     "@types/emscripten": "~0.0.34",
     "clang-format": "^1.2.4",
     "jasmine-core": "~3.1.0",
@@ -34,7 +37,7 @@
     "rollup-plugin-typescript2": "^0.22.1",
     "tslint": "~5.11.0",
     "tslint-no-circular-imports": "^0.5.0",
-    "typescript": "3.3.3333",
+    "typescript": "3.5.3",
     "yalc": "~1.0.0-pre.21"
   },
   "license": "Apache-2.0"

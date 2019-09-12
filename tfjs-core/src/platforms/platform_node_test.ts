@@ -42,11 +42,10 @@ describeWithFlags('PlatformNode', NODE_ENVS, () => {
 
     const platform = new PlatformNode();
 
-    const savedFetch = platform_node.systemFetch;
+    const savedFetch = platform_node.getSystemFetch();
 
     // Null out the system fetch so we force it to require node-fetch.
-    // @ts-ignore
-    platform_node.systemFetch = null;
+    platform_node.resetSystemFetch();
 
     const testFetch = {fetch: (url: string, init: RequestInit) => {}};
 
@@ -63,8 +62,7 @@ describeWithFlags('PlatformNode', NODE_ENVS, () => {
     expect(platform_node.getNodeFetch.importFetch).toHaveBeenCalled();
     expect(testFetch.fetch).toHaveBeenCalledWith('test/url', {method: 'GET'});
 
-    // @ts-ignore
-    platform_node.systemFetch = savedFetch;
+    platform_node.setSystemFetch(savedFetch);
     ENV.global.fetch = globalFetch;
   });
 

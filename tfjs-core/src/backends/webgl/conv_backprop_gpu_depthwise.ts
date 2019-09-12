@@ -43,7 +43,7 @@ export class DepthwiseConv2DDerFilterProgram implements GPGPUProgram {
 
         float dotProd = 0.0;
 
-        // TODO: Vec4 over the batch size
+        // TO DO: Vec4 over the batch size
         for (int b = 0; b < ${convInfo.batchSize}; b++) {
           for (int yR = 0; yR < ${convInfo.outHeight}; yR++) {
             int xR = wR + yR * ${strideHeight} - ${padTop};
@@ -122,7 +122,7 @@ export class DepthwiseConv2DDerInputProgram implements GPGPUProgram {
 
             int wCPerm = ${filterWidth} - 1 - wC;
 
-            // TODO: Vec4 over the channelMul
+            // TO DO: Vec4 over the channelMul
             for (int dm = 0; dm < ${channelMul}; dm++) {
               int d2 = d1 * ${channelMul} + dm;
               float xValue = getDy(batch, idyR, idyC, d2);

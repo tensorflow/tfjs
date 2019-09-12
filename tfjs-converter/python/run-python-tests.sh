@@ -24,7 +24,7 @@ TEST_FILES="$(find "${SCRIPTS_DIR}" -name '*_test.py')"
 
 pip install virtualenv
 
-TMP_VENV_DIR="$(mktemp -d --suffix=_venv)"
+TMP_VENV_DIR="$(mktemp -u).venv"
 virtualenv -p "python" "${TMP_VENV_DIR}"
 source "${TMP_VENV_DIR}/bin/activate"
 

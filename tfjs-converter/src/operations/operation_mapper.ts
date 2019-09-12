@@ -93,12 +93,16 @@ export class OperationMapper {
         node.inputs.push(nodes[nodeName]);
         nodes[nodeName].children.push(node);
       });
-      if (node.inputs.length === 0) inputs.push(node);
+      if (node.inputs.length === 0) {
+        inputs.push(node);
+      }
     });
 
     allNodes.forEach(key => {
       const node = nodes[key];
-      if (node.children.length === 0) outputs.push(node);
+      if (node.children.length === 0) {
+        outputs.push(node);
+      }
     });
 
     return {nodes, inputs, outputs, weights, placeholders};
@@ -255,8 +259,7 @@ export class OperationMapper {
 }
 
 export function decodeBase64(text: string): string {
-  // tslint:disable-next-line:no-any
-  const global = ENV.global as any;
+  const global = ENV.global;
   if (typeof global.atob !== 'undefined') {
     return global.atob(text);
   } else if (typeof Buffer !== 'undefined') {
@@ -297,8 +300,7 @@ export function getNumberParam(
   const param = attrs[name] || {};
   const value =
       param['i'] != null ? param['i'] : (param['f'] != null ? param['f'] : def);
-  return (typeof value === 'number') ? value :
-                                       parseInt(value as string, 10) as number;
+  return (typeof value === 'number') ? value : parseInt(value, 10);
 }
 
 export function parseDtypeParam(value: string|tensorflow.DataType): DataType {
@@ -351,9 +353,8 @@ export function parseTensorShapeParam(shape: tensorflow.ITensorShape): number[]|
   }
   if (shape.dim != null) {
     return shape.dim.map(
-        dim => (typeof dim.size === 'number') ?
-            dim.size :
-            parseInt(dim.size as string, 10));
+        dim =>
+            (typeof dim.size === 'number') ? dim.size : parseInt(dim.size, 10));
   }
   return [];
 }
@@ -373,11 +374,10 @@ export function getNumericArrayParam(
     def: number[]): number[] {
   const param = attrs[name];
   if (param) {
-    return ((param.list.f && param.list.f.length ? param.list.f : param.list.i) || [])
-               .map(
-                   v => (typeof v === 'number') ? v :
-                                                  parseInt(v as string, 10)) as
-        number[];
+    return ((param.list.f && param.list.f.length ? param.list.f :
+                                                   param.list.i) ||
+            [])
+        .map(v => (typeof v === 'number') ? v : parseInt(v, 10));
   }
   return def;
 }
@@ -389,7 +389,7 @@ export function getStringArrayParam(
   if (param && param.list && param.list.s) {
     return param.list.s.map((v) => {
       return parseStringParam(v, keepCase);
-    }) as string[];
+    });
   }
   return def;
 }
@@ -401,7 +401,7 @@ export function getTensorShapeArrayParam(
   if (param && param.list && param.list.shape) {
     return param.list.shape.map((v) => {
       return parseTensorShapeParam(v);
-    }) as number[][];
+    });
   }
   return def;
 }

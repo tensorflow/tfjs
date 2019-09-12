@@ -23,6 +23,7 @@
     "jasmine": "~3.1.0",
     "ts-node": "^8.1.0",
     "tslint": "~5.9.1",
-    "typescript": "^3.4.5"
+    "tslint-no-circular-imports": "^0.5.0",
+    "typescript": "3.5.3"
   }
 }

@@ -346,7 +346,7 @@ function throwIfNull<T>(
   if (tOrNull == null) {
     throw new Error(failureMessage);
   }
-  return tOrNull as T;
+  return tOrNull;
 }
 
 function validateTextureUnit(gl: WebGLRenderingContext, textureUnit: number) {
@@ -562,7 +562,8 @@ export function isWebGLVersionEnabled(webGLVersion: 1|2) {
   return false;
 }
 
-export function isRenderToFloatTextureEnabled(webGLVersion: number): boolean {
+export function isCapableOfRenderingToFloatTexture(webGLVersion: number):
+    boolean {
   if (webGLVersion === 0) {
     return false;
   }

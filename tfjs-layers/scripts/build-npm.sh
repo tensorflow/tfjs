@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2018 Google LLC. All Rights Reserved.
+# Copyright 2019 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ set -e
 rimraf dist/
 yarn
 yarn build
-rollup -c
+rollup -c --visualize
 
 # Use minified files for miniprogram
 mkdir dist/miniprogram

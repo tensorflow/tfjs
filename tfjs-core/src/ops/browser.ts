@@ -52,6 +52,18 @@ function fromPixels_(
     throw new Error(
         'Cannot construct Tensor with more than 4 channels from pixels.');
   }
+  const isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
+      pixels instanceof HTMLVideoElement;
+  if (isVideo) {
+    const HAVE_CURRENT_DATA_READY_STATE = 2;
+    if (isVideo &&
+        (pixels as HTMLVideoElement).readyState <
+            HAVE_CURRENT_DATA_READY_STATE) {
+      throw new Error(
+          'The video element has not loaded data yet. Please wait for ' +
+          '`loadeddata` event on the <video> element.');
+    }
+  }
   return ENGINE.fromPixels(pixels, numChannels);
 }
 
@@ -97,8 +109,9 @@ export async function toPixels(
   const data = await $img.data();
   const minTensor = $img.min();
   const maxTensor = $img.max();
-  const [minVals, maxVals] =
-      await Promise.all([minTensor.data(), maxTensor.data()]);
+  const vals = await Promise.all([minTensor.data(), maxTensor.data()]);
+  const minVals = vals[0];
+  const maxVals = vals[1];
   const min = minVals[0];
   const max = maxVals[0];
   minTensor.dispose();

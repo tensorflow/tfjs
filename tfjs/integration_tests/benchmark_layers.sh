@@ -51,16 +51,15 @@ yarn upgrade \
     @tensorflow/tfjs
 
 if [[ "${IS_TFJS_NODE}" == "1" ]]; then
-  npm install -g node-gyp
-  if [[ ! -d "tfjs-node" ]]; then
-    echo 'Use latest version of tfjs-node'
-    git clone https://github.com/tensorflow/tfjs-node.git --depth 5
-  fi
+  rm -rf tfjs-node/
+  cp -r ../../tfjs-node .
+
   pushd tfjs-node
   HASH_NODE="$(git rev-parse HEAD)"
   rm -rf dist/
   yarn
   rm -f tensorflow-tfjs-*.tgz
+
   if [[ "${IS_TFJS_NODE_GPU}" == "1" ]]; then
     yarn build-npm-gpu
     TAR_BALL="$(find ./ -name "tensorflow-tfjs-node-gpu-*.tgz")"
@@ -95,11 +94,10 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
   popd
   popd
 else
-  # Download the tfjs repositories, build them, and link them.
-  if [[ ! -d "tfjs-core" ]]; then
-    echo 'Use latest version of tfjs-core'
-    git clone https://github.com/tensorflow/tfjs-core.git --depth 5
-  fi
+  # Copy the tfjs repositories, build them, and link them.
+  rm -rf tfjs-core/
+  cp -r ../../tfjs-core .
+
   cd tfjs-core
   HASH_CORE="$(git rev-parse HEAD)"
   rm -rf dist/ node_modules/ && yarn
@@ -108,10 +106,9 @@ else
   cd ..
   yarn yalc link '@tensorflow/tfjs-core'
 
-  if [[ ! -d "tfjs-layers" ]]; then
-    echo 'Use latest version of tfjs-layers'
-    git clone https://github.com/tensorflow/tfjs-layers.git --depth 5
-  fi
+  rm -rf tfjs-layers/
+  cp -r ../../tfjs-layers .
+
   cd tfjs-layers
   HASH_LAYERS="$(git rev-parse HEAD)"
   # TODO(cais): This should ideally call:
@@ -128,10 +125,9 @@ else
   cd ..
   yarn yalc link '@tensorflow/tfjs-layers'
 
-  if [[ ! -d "tfjs-converter" ]]; then
-    echo 'Use latest version of tfjs-converter'
-    git clone https://github.com/tensorflow/tfjs-converter.git --depth 5
-  fi
+  rm -rf tfjs-converter/
+  cp -r ../../tfjs-converter .
+
   cd tfjs-converter
   HASH_CONVERTER="$(git rev-parse HEAD)"
   rm -rf dist/ node_modules/ && yarn
@@ -140,10 +136,9 @@ else
   cd ..
   yarn yalc link '@tensorflow/tfjs-converter'
 
-  if [[ ! -d "tfjs-data" ]]; then
-    echo 'Use latest version of tfjs-data'
-    git clone https://github.com/tensorflow/tfjs-data.git --depth 5
-  fi
+  rm -rf tfjs-data/
+  cp -r ../../tfjs-data .
+
   cd tfjs-data
   HASH_DATA="$(git rev-parse HEAD)"
   rm -rf dist/ && yarn && yarn build && yalc publish

@@ -15,17 +15,16 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
+import * as tfc from '@tensorflow/tfjs-core';
 import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
-import {Activation} from '@tensorflow/tfjs-core/dist/ops/fused_util';
+import {Activation, FusedBatchMatMulConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
-import {isNullOrUndefined} from 'util';
+import {isArray, isNullOrUndefined} from 'util';
+
 import {Int64Scalar} from './int64_tensors';
-// tslint:disable-next-line:max-line-length
-import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType} from './ops/op_utils';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorInfo = {
@@ -40,12 +39,14 @@ interface DataId {}
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
+  isUsingGpuDevice: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
   constructor(binding: TFJSBinding, packageName: string) {
     super();
     this.binding = binding;
     this.isGPUPackage = packageName === '@tensorflow/tfjs-node-gpu';
+    this.isUsingGpuDevice = this.binding.isUsingGpuDevice();
   }
 
   setDataMover(dataMover: DataMover): void {
@@ -288,37 +289,33 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   stridedSlice<T extends Tensor>(
-      x: T, begin: number[], end: number[], strides: number[],
-      beginMask: number, endMask: number, ellipsisMask: number,
-      newAxisMask: number, shrinkAxisMask: number): T {
+      x: T, begin: number[], end: number[], strides: number[]): T {
     const beginTensor = tensor1d(begin, 'int32');
+    for (let axis = 0; axis < end.length; axis++) {
+      // Unlike Numpy, when the strides are negative, TF C uses -n-1 instead of
+      // -1 as the "end" in order to include the first element.
+      if (strides[axis] < 0 && end[axis] === -1) {
+        end[axis] -= x.shape[axis];
+      }
+    }
     const endTensor = tensor1d(end, 'int32');
     const stridesTensor = tensor1d(strides, 'int32');
+    // All of the masks have already been accounted for in the high level op,
+    // so the backend does NOT need to deal with masks.
     const opAttrs = [
       createTypeOpAttr('T', x.dtype), createTypeOpAttr('Index', 'int32'),
-      {name: 'begin_mask', type: this.binding.TF_ATTR_INT, value: beginMask},
-      {name: 'end_mask', type: this.binding.TF_ATTR_INT, value: endMask}, {
-        name: 'ellipsis_mask',
-        type: this.binding.TF_ATTR_INT,
-        value: ellipsisMask
-      },
-      {
-        name: 'new_axis_mask',
-        type: this.binding.TF_ATTR_INT,
-        value: newAxisMask
-      },
-      {
-        name: 'shrink_axis_mask',
-        type: this.binding.TF_ATTR_INT,
-        value: shrinkAxisMask
-      }
+      {name: 'begin_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'end_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'ellipsis_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'new_axis_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'shrink_axis_mask', type: this.binding.TF_ATTR_INT, value: 0}
     ];
     return this.executeSingleOutput(
                'StridedSlice', opAttrs,
                [x, beginTensor, endTensor, stridesTensor]) as T;
   }
 
-  unstack(x: Tensor<Rank>, axis: number): Tensor[] {
+  unstack(x: Tensor, axis: number): Tensor[] {
     if (axis >= x.shape.length) {
       throw new Error(
           `Invalid axis supplied: ${axis} shape length: ${x.shape.length}`);
@@ -359,6 +356,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         result = this.relu(result);
       } else if (activation === 'prelu') {
         result = this.prelu(result, preluActivationWeights) as Tensor4D;
+      } else if (activation === 'elu') {
+        result = this.elu(result);
       } else {
         throw new Error(`Activation: ${
             activation} has not been implemented for the Node.js backend`);
@@ -369,9 +368,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   fusedBatchMatMul(
-      a: Tensor3D, b: Tensor3D, transposeA: boolean, transposeB: boolean,
-      bias?: Tensor, activation?: Activation,
-      preluActivationWeights?: Tensor): Tensor3D {
+      {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
+          FusedBatchMatMulConfig): Tensor3D {
     // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
     // achieve the same results:
     let result = this.batchMatMul(a, b, transposeA, transposeB);
@@ -385,6 +383,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         result = this.relu(result);
       } else if (activation === 'prelu') {
         result = this.prelu(result, preluActivationWeights) as Tensor3D;
+      } else if (activation === 'elu') {
+        result = this.elu(result);
       } else {
         throw new Error(`Activation: ${
             activation} has not been implemented for the Node.js backend`);
@@ -429,6 +429,10 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   neg<T extends Tensor>(a: T): T {
     return this.executeSingleInput('Neg', a) as T;
+  }
+
+  diag(x: Tensor): Tensor {
+    return this.executeSingleInput('Diag', x);
   }
 
   add(a: Tensor, b: Tensor): Tensor {
@@ -491,7 +495,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         'Sum', this.createReductionOpAttrs(x), [x, axisTensor]);
   }
 
-  prod(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
+  prod(x: Tensor, axes: number[]): Tensor {
     const axesTensor = tensor1d(axes, 'int32');
     const opAttrs = [
       {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
@@ -668,7 +672,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleInput('Relu', x) as T;
   }
 
-  prelu<T extends Tensor<Rank>>(x: T, a: T): T {
+  prelu<T extends Tensor>(x: T, a: T): T {
     const pos = this.relu(x);
     const neg = a.mul(x.sub(this.abs(x))).mul(0.5);
     return pos.add(neg);
@@ -1162,13 +1166,15 @@ export class NodeJSKernelBackend extends KernelBackend {
           `TF Backend supports only 'valid' and 'same' padding ` +
           `while padding was ${convInfo.padInfo.type}`);
     }
-    const ksize = [1, convInfo.filterDepth, convInfo.filterHeight,
-      convInfo.filterWidth, 1];
-    const strides = [1, convInfo.strideDepth, convInfo.strideHeight,
-      convInfo.strideWidth, 1];
+    const ksize = [
+      1, convInfo.filterDepth, convInfo.filterHeight, convInfo.filterWidth, 1
+    ];
+    const strides = [
+      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
+    ];
     const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ?
-        'NDHWC' : 'NCDHW';
+    const dataFormat =
+        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
     const opAttrs = [
       createTypeOpAttr('T', x.dtype),
       {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
@@ -1183,20 +1189,21 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('AvgPool3D', opAttrs, [x]) as Tensor5D;
   }
 
-  avgPool3dBackprop(
-      dy: Tensor5D, x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+  avgPool3dBackprop(dy: Tensor5D, x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
           `while padding type was ${convInfo.padInfo.type}`);
     }
-    const ksize = [1, convInfo.filterDepth, convInfo.filterHeight,
-      convInfo.filterWidth, 1];
-    const strides = [1, convInfo.strideDepth, convInfo.strideHeight,
-      convInfo.strideWidth, 1];
+    const ksize = [
+      1, convInfo.filterDepth, convInfo.filterHeight, convInfo.filterWidth, 1
+    ];
+    const strides = [
+      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
+    ];
     const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ?
-        'NDHWC' : 'NCDHW';
+    const dataFormat =
+        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
     const opAttrs = [
       createTypeOpAttr('T', x.dtype),
       {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
@@ -1210,7 +1217,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     const origInputShape = tensor1d(x.shape, 'int32');
     return this.executeSingleOutput(
-        'AvgPool3DGrad', opAttrs, [origInputShape, dy]) as Tensor5D;
+               'AvgPool3DGrad', opAttrs, [origInputShape, dy]) as Tensor5D;
   }
 
   maxPool3d(x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
@@ -1219,13 +1226,15 @@ export class NodeJSKernelBackend extends KernelBackend {
           `TF Backend supports only 'valid' and 'same' padding ` +
           `while padding was ${convInfo.padInfo.type}`);
     }
-    const ksize = [1, convInfo.filterDepth, convInfo.filterHeight,
-      convInfo.filterWidth, 1];
-    const strides = [1, convInfo.strideDepth, convInfo.strideHeight,
-      convInfo.strideWidth, 1];
+    const ksize = [
+      1, convInfo.filterDepth, convInfo.filterHeight, convInfo.filterWidth, 1
+    ];
+    const strides = [
+      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
+    ];
     const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ?
-        'NDHWC' : 'NCDHW';
+    const dataFormat =
+        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
     const opAttrs = [
       createTypeOpAttr('T', x.dtype),
       {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
@@ -1246,13 +1255,15 @@ export class NodeJSKernelBackend extends KernelBackend {
           `TF Backend supports only 'valid' and 'same' padding ` +
           `while padding type was ${convInfo.padInfo.type}`);
     }
-    const ksize = [1, convInfo.filterDepth, convInfo.filterHeight,
-      convInfo.filterWidth, 1];
-    const strides = [1, convInfo.strideDepth, convInfo.strideHeight,
-      convInfo.strideWidth, 1];
+    const ksize = [
+      1, convInfo.filterDepth, convInfo.filterHeight, convInfo.filterWidth, 1
+    ];
+    const strides = [
+      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
+    ];
     const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ?
-        'NDHWC' : 'NCDHW';
+    const dataFormat =
+        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
     const opAttrs = [
       createTypeOpAttr('T', x.dtype),
       {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
@@ -1329,7 +1340,7 @@ export class NodeJSKernelBackend extends KernelBackend {
                'GatherV2', opAttrs, [x, indices, axisTensor]) as T;
   }
 
-  gatherND(x: Tensor<Rank>, indices: Tensor<Rank>): Tensor<Rank> {
+  gatherND(x: Tensor, indices: Tensor): Tensor {
     const opAttrs = [
       createTypeOpAttr('Tparams', x.dtype),
       createTypeOpAttr('Tindices', 'int32')
@@ -1338,8 +1349,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   scatterND<R extends Rank>(
-      indices: Tensor<Rank>, updates: Tensor<Rank>,
-      shape: ShapeMap[R]): Tensor<R> {
+      indices: Tensor, updates: Tensor, shape: ShapeMap[R]): Tensor<R> {
     const opAttrs = [
       createTypeOpAttr('T', updates.dtype),
       createTypeOpAttr('Tindices', 'int32')
@@ -1448,7 +1458,7 @@ export class NodeJSKernelBackend extends KernelBackend {
       if (scale != null) {
         inv = inv.mul(scale);
       }
-      const xNorm = x.sub(mean).mul(inv) as Tensor4D;
+      const xNorm: Tensor4D = x.sub(mean).mul(inv);
       return offset != null ? xNorm.add(offset) : xNorm;
     }
     const dataFormat = 'NHWC';
@@ -1469,10 +1479,10 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     const numOutputs = 5;
     if (scale == null) {
-      scale = fill([depth], 1) as Tensor1D;
+      scale = fill<Rank.R1>([depth], 1);
     }
     if (offset == null) {
-      offset = fill([depth], 0) as Tensor1D;
+      offset = fill<Rank.R1>([depth], 0);
     }
     return this.executeMultipleOutputs(
                'FusedBatchNorm', opAttrs, [x, scale, offset, mean, variance],
@@ -1577,7 +1587,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('IFFT', opAttrs, [x]) as Tensor2D;
   }
 
-  complex<T extends Tensor<Rank>>(real: T, imag: T): T {
+  complex<T extends Tensor>(real: T, imag: T): T {
     const opAttrs = [
       createTensorsTypeOpAttr('T', real),
       {
@@ -1590,7 +1600,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Complex', opAttrs, inputs) as T;
   }
 
-  real<T extends Tensor<Rank>>(input: T): T {
+  real<T extends Tensor>(input: T): T {
     const opAttrs = [
       createTensorsTypeOpAttr('T', input), {
         name: 'Tout',
@@ -1602,7 +1612,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Real', opAttrs, inputs) as T;
   }
 
-  imag<T extends Tensor<Rank>>(input: T): T {
+  imag<T extends Tensor>(input: T): T {
     const opAttrs = [
       {
         name: 'T',
@@ -1656,8 +1666,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor<Rank.R4>;
   }
 
-  split<T extends Tensor<Rank>>(value: T, sizeSplits: number[], axis: number):
-      T[] {
+  split<T extends Tensor>(value: T, sizeSplits: number[], axis: number): T[] {
     const opAttrs = [
       {
         name: 'num_split',
@@ -1678,8 +1687,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   sparseToDense<R extends Rank>(
-      sparseIndices: Tensor<Rank>, sparseValues: Tensor<Rank>,
-      outputShape: ShapeMap[R], defaultValue: Tensor<Rank.R0>): Tensor<R> {
+      sparseIndices: Tensor, sparseValues: Tensor, outputShape: ShapeMap[R],
+      defaultValue: Tensor<Rank.R0>): Tensor<R> {
     const opAttrs = [
       {name: 'validate_indices', type: this.binding.TF_ATTR_BOOL, value: true},
       createTypeOpAttr('T', sparseValues.dtype),
@@ -1767,6 +1776,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     const opAttrs =
         [{name: 'channels', type: this.binding.TF_ATTR_INT, value: channels}];
     const inputArgs = [scalar(contents, 'string')];
+
     return this.executeSingleOutput('DecodePng', opAttrs, inputArgs) as
         Tensor<Rank.R3>;
   }
@@ -1783,6 +1793,67 @@ export class NodeJSKernelBackend extends KernelBackend {
     const inputArgs = [scalar(contents, 'string')];
     return this.executeSingleOutput('DecodeGif', [], inputArgs) as
         Tensor<Rank.R4>;
+  }
+
+  executeEncodeImageOp(
+      name: string, opAttrs: TFEOpAttr[], imageData: Uint8Array,
+      imageShape: number[]): Tensor {
+    const inputTensorId =
+        this.binding.createTensor(imageShape, this.binding.TF_UINT8, imageData);
+    const outputMetadata =
+        this.binding.executeOp(name, opAttrs, [inputTensorId], 1);
+    const outputTensorInfo = outputMetadata[0];
+    // prevent the tensor data from being converted to a UTF8 string, since
+    // the encoded data is not valid UTF8
+    outputTensorInfo.dtype = this.binding.TF_UINT8;
+    return this.createOutputTensor(outputTensorInfo);
+  }
+
+  encodeJpeg(
+      imageData: Uint8Array, imageShape: number[], format: ''|'grayscale'|'rgb',
+      quality: number, progressive: boolean, optimizeSize: boolean,
+      chromaDownsampling: boolean, densityUnit: 'in'|'cm', xDensity: number,
+      yDensity: number, xmpMetadata: string): Tensor {
+    const opAttrs = [
+      {name: 'format', type: this.binding.TF_ATTR_STRING, value: format},
+      {name: 'quality', type: this.binding.TF_ATTR_INT, value: quality}, {
+        name: 'progressive',
+        type: this.binding.TF_ATTR_BOOL,
+        value: progressive
+      },
+      {
+        name: 'optimize_size',
+        type: this.binding.TF_ATTR_BOOL,
+        value: optimizeSize
+      },
+      {
+        name: 'chroma_downsampling',
+        type: this.binding.TF_ATTR_BOOL,
+        value: chromaDownsampling
+      },
+      {
+        name: 'density_unit',
+        type: this.binding.TF_ATTR_STRING,
+        value: densityUnit
+      },
+      {name: 'x_density', type: this.binding.TF_ATTR_INT, value: xDensity},
+      {name: 'y_density', type: this.binding.TF_ATTR_INT, value: yDensity}, {
+        name: 'xmp_metadata',
+        type: this.binding.TF_ATTR_STRING,
+        value: xmpMetadata
+      }
+    ];
+    return this.executeEncodeImageOp(
+        'EncodeJpeg', opAttrs, imageData, imageShape);
+  }
+
+  encodePng(imageData: Uint8Array, imageShape: number[], compression: number):
+      Tensor {
+    const opAttrs = [
+      {name: 'compression', type: this.binding.TF_ATTR_INT, value: compression}
+    ];
+    return this.executeEncodeImageOp(
+        'EncodePng', opAttrs, imageData, imageShape);
   }
 
   // ------------------------------------------------------------
@@ -1868,4 +1939,87 @@ export class NodeJSKernelBackend extends KernelBackend {
     const elapsed = process.hrtime(start);
     return {kernelMs: elapsed[0] * 1000 + elapsed[1] / 1000000};
   }
+}
+
+/** Returns an instance of the Node.js backend. */
+export function nodeBackend(): NodeJSKernelBackend {
+  return tfc.findBackend('tensorflow') as NodeJSKernelBackend;
+}
+
+/** Returns the TF dtype for a given DataType. */
+export function getTFDType(dataType: tfc.DataType): number {
+  const binding = nodeBackend().binding;
+  switch (dataType) {
+    case 'float32':
+      return binding.TF_FLOAT;
+    case 'int32':
+      return binding.TF_INT32;
+    case 'bool':
+      return binding.TF_BOOL;
+    case 'complex64':
+      return binding.TF_COMPLEX64;
+    case 'string':
+      return binding.TF_STRING;
+    // tslint:disable-next-line:no-any
+    case 'int64' as any:
+      // int64 is not a generally supported dtype in TensorFlow.js
+      // (tfjs-core). However, it needs to be included here for the purpose of
+      // writing the `step` value to TensorBoard via WriteScalarSummary and
+      // other op kernels.
+      return binding.TF_INT64;
+    default:
+      const errorMessage = `Unknown dtype: ${dataType}`;
+      throw new Error(errorMessage);
+  }
+}
+
+/**
+ * Creates a TFEOpAttr for a 'type' OpDef attribute.
+ * @deprecated Please use createTensorsTypeOpAttr() going forward.
+ */
+export function createTypeOpAttr(
+    attrName: string, dtype: tfc.DataType): TFEOpAttr {
+  return {
+    name: attrName,
+    type: nodeBackend().binding.TF_ATTR_TYPE,
+    value: getTFDType(dtype)
+  };
+}
+
+/**
+ * Creates a TFEOpAttr for a 'type' OpDef attribute from a Tensor or list of
+ * Tensors.
+ */
+export function createTensorsTypeOpAttr(
+    attrName: string, tensors: tfc.Tensor|tfc.Tensor[]) {
+  if (isNullOrUndefined(tensors)) {
+    throw new Error('Invalid input tensors value.');
+  }
+  return {
+    name: attrName,
+    type: nodeBackend().binding.TF_ATTR_TYPE,
+    value: getTFDTypeForInputs(tensors)
+  };
+}
+
+/** Returns the dtype number for a single or list of input Tensors. */
+function getTFDTypeForInputs(tensors: tfc.Tensor|tfc.Tensor[]): number {
+  if (isNullOrUndefined(tensors)) {
+    throw new Error('Invalid input tensors value.');
+  }
+  if (isArray(tensors)) {
+    for (let i = 0; i < tensors.length; i++) {
+      return getTFDType(tensors[i].dtype);
+    }
+    return -1;
+  } else {
+    return getTFDType(tensors.dtype);
+  }
+}
+
+export function ensureTensorflowBackend() {
+  tfc.util.assert(
+      tfc.getBackend() === 'tensorflow',
+      () => `Expect the current backend to be "tensorflow", but got "${
+          tfc.getBackend()}"`);
 }

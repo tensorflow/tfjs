@@ -16,25 +16,9 @@
 
 set -e
 
-SRCS="src/lib.cc src/kernels.cc"
-
-# Add these optimization flags in production: -g0 -O3 --llvm-lto 3
-
-emcc $SRCS \
-  -std=c++11 \
-  -fno-rtti \
-  -g \
-  -fno-exceptions \
-  -I./src/ \
-  -o wasm-out/tfjs-backend-wasm.js \
-  -s ALLOW_MEMORY_GROWTH=1 \
-  -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[] \
-  -s DISABLE_EXCEPTION_CATCHING=1 \
-  -s FILESYSTEM=0 \
-  -s EXIT_RUNTIME=0 \
-  -s EXPORTED_FUNCTIONS='["_malloc"]' \
-  -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap"]' \
-  -s ENVIRONMENT=web \
-  -s MODULARIZE=1 \
-  -s EXPORT_NAME=WasmBackendModule \
-  -s MALLOC=emmalloc
+yarn bazel build -c opt //src/cc:tfjs-backend-wasm.js
+# The typescript code and karma config expect the output of emscripten to be in
+# wasm-out/ so we copy the bazel output there.
+cp -f bazel-bin/src/cc/tfjs-backend-wasm.js \
+      bazel-bin/src/cc/tfjs-backend-wasm.wasm \
+      wasm-out/

@@ -300,6 +300,7 @@ export interface OpHandler {
   erf<T extends Tensor>(x: T): T;
   step<T extends Tensor>(x: T, alpha: number): T;
   relu<T extends Tensor>(x: T): T;
+  relu6<T extends Tensor>(x: T): T;
   elu<T extends Tensor>(x: T): T;
   selu<T extends Tensor>(x: T): T;
   leakyRelu<T extends Tensor>(x: T, alpha: number): T;
@@ -569,7 +570,7 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   asType<T extends this>(this: T, dtype: DataType): T {
     this.throwIfDisposed();
-    return opHandler.cast(this, dtype) as T;
+    return opHandler.cast(this, dtype);
   }
 
   get rank(): number {
@@ -803,12 +804,12 @@ export class Tensor<R extends Rank = Rank> {
 
   tile<T extends this>(this: T, reps: number[]): T {
     this.throwIfDisposed();
-    return opHandler.tile(this, reps) as T;
+    return opHandler.tile(this, reps);
   }
 
   gather<T extends this>(this: T, indices: Tensor|TensorLike, axis = 0): T {
     this.throwIfDisposed();
-    return opHandler.gather(this, indices, axis) as T;
+    return opHandler.gather(this, indices, axis);
   }
 
   matMul<T extends Tensor>(
@@ -930,7 +931,7 @@ export class Tensor<R extends Rank = Rank> {
   // Transformations
   cast<T extends this>(dtype: DataType): T {
     this.throwIfDisposed();
-    return opHandler.cast(this as T, dtype) as T;
+    return opHandler.cast(this as T, dtype);
   }
 
   // Binary ops.
@@ -941,11 +942,11 @@ export class Tensor<R extends Rank = Rank> {
   }
   addStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.addStrict(this, x) as T;
+    return opHandler.addStrict(this, x);
   }
   atan2<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.atan2(this, x) as T;
+    return opHandler.atan2(this, x);
   }
   sub<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
@@ -953,7 +954,7 @@ export class Tensor<R extends Rank = Rank> {
   }
   subStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.subStrict(this, x) as T;
+    return opHandler.subStrict(this, x);
   }
   pow<T extends Tensor>(this: T, exp: Tensor|TensorLike): T {
     this.throwIfDisposed();
@@ -969,7 +970,7 @@ export class Tensor<R extends Rank = Rank> {
   }
   mulStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.mulStrict(this, x) as T;
+    return opHandler.mulStrict(this, x);
   }
   div<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
@@ -981,7 +982,7 @@ export class Tensor<R extends Rank = Rank> {
   }
   divStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.divStrict(this, x) as T;
+    return opHandler.divStrict(this, x);
   }
   minimum<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
@@ -989,7 +990,7 @@ export class Tensor<R extends Rank = Rank> {
   }
   minimumStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.minimumStrict(this, x) as T;
+    return opHandler.minimumStrict(this, x);
   }
   maximum<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
@@ -997,7 +998,7 @@ export class Tensor<R extends Rank = Rank> {
   }
   maximumStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.maximumStrict(this, x) as T;
+    return opHandler.maximumStrict(this, x);
   }
   mod<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
@@ -1005,7 +1006,7 @@ export class Tensor<R extends Rank = Rank> {
   }
   modStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.modStrict(this, x) as T;
+    return opHandler.modStrict(this, x);
   }
   squaredDifference<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
@@ -1013,7 +1014,7 @@ export class Tensor<R extends Rank = Rank> {
   }
   squaredDifferenceStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.squaredDifferenceStrict(this, x) as T;
+    return opHandler.squaredDifferenceStrict(this, x);
   }
   transpose<T extends Tensor>(this: T, perm?: number[]): T {
     this.throwIfDisposed();
@@ -1028,7 +1029,7 @@ export class Tensor<R extends Rank = Rank> {
   }
   notEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.notEqualStrict(this, x) as T;
+    return opHandler.notEqualStrict(this, x);
   }
   less<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
@@ -1036,7 +1037,7 @@ export class Tensor<R extends Rank = Rank> {
   }
   lessStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.lessStrict(this, x) as T;
+    return opHandler.lessStrict(this, x);
   }
   equal<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
@@ -1044,7 +1045,7 @@ export class Tensor<R extends Rank = Rank> {
   }
   equalStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.equalStrict(this, x) as T;
+    return opHandler.equalStrict(this, x);
   }
   lessEqual<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
@@ -1052,7 +1053,7 @@ export class Tensor<R extends Rank = Rank> {
   }
   lessEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.lessEqualStrict(this, x) as T;
+    return opHandler.lessEqualStrict(this, x);
   }
   greater<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
@@ -1060,7 +1061,7 @@ export class Tensor<R extends Rank = Rank> {
   }
   greaterStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.greaterStrict(this, x) as T;
+    return opHandler.greaterStrict(this, x);
   }
   greaterEqual<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
@@ -1068,7 +1069,7 @@ export class Tensor<R extends Rank = Rank> {
   }
   greaterEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
-    return opHandler.greaterEqualStrict(this, x) as T;
+    return opHandler.greaterEqualStrict(this, x);
   }
 
   // Compare ops.
@@ -1165,6 +1166,10 @@ export class Tensor<R extends Rank = Rank> {
   relu<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
     return opHandler.relu(this);
+  }
+  relu6<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return opHandler.relu6(this);
   }
   elu<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
@@ -1264,11 +1269,11 @@ export class Tensor<R extends Rank = Rank> {
   }
   softmax<T extends this>(this: T, dim = -1): T {
     this.throwIfDisposed();
-    return opHandler.softmax(this, dim) as T;
+    return opHandler.softmax(this, dim);
   }
   logSoftmax<T extends this>(this: T, axis = -1): T {
     this.throwIfDisposed();
-    return opHandler.logSoftmax(this, axis) as T;
+    return opHandler.logSoftmax(this, axis);
   }
 
   // Image ops.
@@ -1509,7 +1514,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
       initialValue: Tensor<R>, trainable = true, name?: string,
       dtype?: DataType): Variable<R> {
     if (dtype != null && dtype !== initialValue.dtype) {
-      initialValue = initialValue.asType(dtype) as Tensor<R>;
+      initialValue = initialValue.asType(dtype);
     }
     return new Variable(initialValue, trainable, name);
   }

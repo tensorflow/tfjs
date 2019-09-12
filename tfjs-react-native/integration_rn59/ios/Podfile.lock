@@ -2,6 +2,13 @@ PODS:
   - boost-for-react-native (1.63.0)
   - DoubleConversion (1.1.6)
   - EXAppLoaderProvider (6.0.0)
+  - EXCamera (6.0.0):
+    - UMBarCodeScannerInterface
+    - UMCore
+    - UMFaceDetectorInterface
+    - UMFileSystemInterface
+    - UMImageLoaderInterface
+    - UMPermissionsInterface
   - EXConstants (6.0.0):
     - UMConstantsInterface
     - UMCore
@@ -16,6 +23,10 @@ PODS:
   - EXGL-CPP (6.0.0):
     - EXGL-CPP/UEXGL (= 6.0.0)
   - EXGL-CPP/UEXGL (6.0.0)
+  - EXImageManipulator (6.0.0):
+    - UMCore
+    - UMFileSystemInterface
+    - UMImageLoaderInterface
   - EXPermissions (6.0.0):
     - UMCore
     - UMPermissionsInterface
@@ -91,10 +102,12 @@ PODS:
 DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXAppLoaderProvider (from `../node_modules/expo-app-loader-provider/ios`)
+  - EXCamera (from `../node_modules/expo-camera/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXGL (from `../node_modules/expo-gl/ios`)
   - EXGL-CPP (from `../node_modules/expo-gl-cpp/cpp`)
+  - EXImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
@@ -131,6 +144,9 @@ EXTERNAL SOURCES:
   EXAppLoaderProvider:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-app-loader-provider/ios"
+  EXCamera:
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-camera/ios"
   EXConstants:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-constants/ios"
@@ -143,6 +159,9 @@ EXTERNAL SOURCES:
   EXGL-CPP:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-gl-cpp/cpp"
+  EXImageManipulator:
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-image-manipulator/ios"
   EXPermissions:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-permissions/ios"
@@ -197,10 +216,12 @@ SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   DoubleConversion: bb338842f62ab1d708ceb63ec3d999f0f3d98ecd
   EXAppLoaderProvider: 7a8185228d8ba9e689a0e2d6d957fe9bdd49c8a0
+  EXCamera: 54623e310d33bccbb8d8fbc84a0081523d0436be
   EXConstants: 5d81e84ca71b9a552529889cc798b4a04e9e22b3
   EXFileSystem: 091907902fcec9f9182b656fdead41a82f30986a
   EXGL: dc4ae6520b142a74e28e6f4472d27a26fc211f37
   EXGL-CPP: 06949fa99656c36b488ff51155ca865c871f3d3d
+  EXImageManipulator: b2e17bdbd0872cc59b43b76756f76fdb8a849831
   EXPermissions: 99e52dc3e5f8e55153f1958004f6df2a30a1f2f5
   Folly: de497beb10f102453a1afa9edbf8cf8a251890de
   glog: aefd1eb5dda2ab95ba0938556f34b98e2da3a60d
@@ -220,6 +241,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 8664abd37a00715727e60df9ecd65e42ba47b548
   yoga: 684513b14b03201579ba3cee20218c9d1298b0cc
 
-PODFILE CHECKSUM: 74eeb73e8bdc6071cc3560bc9ec4fe471ccc3d49
+PODFILE CHECKSUM: 236ac212ac30a81233d69258ce08d49f9bee58bf
 
 COCOAPODS: 1.7.2

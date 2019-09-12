@@ -67,14 +67,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
     this.userCode = `
         ${matMulSource}
 
-        bool coordIsValid(ivec4 coord, ivec4 shape) {
-          return all(greaterThanEqual(coord, ivec4(0))) &&
-              all(lessThan(coord, shape));
-        }
-
         int batch;
 
-        float mm_readA(uint row, uint col) {
+        float mm_readA(int row, int col) {
           int r = int(row), c = int(col);
           ivec4 coord = ivec4(
               (c / filterDims[1]) % filterDims[0],
@@ -86,7 +81,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
           return coordIsValid(coord, shape) ? W[getFlatIndex(coord, shape)] : 0;
         }
 
-        float mm_readB(uint row, uint col) {
+        float mm_readB(int row, int col) {
           int r = int(row), c = int(col);
           int outRow = c / outShape[2];
           int outCol = c % outShape[2];
@@ -103,7 +98,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
               x[getFlatIndex(coord, xShape)] : 0;
         }
 
-        void mm_write(uint row, uint col, float value) {
+        void mm_write(int row, int col, float value) {
           ivec4 outCoord = ivec4(
               batch,
               col / outShape[2],

@@ -23,7 +23,9 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(convInfo: Conv2DInfo) {
+  constructor(
+      convInfo: Conv2DInfo, addBias = false, activation: string = null,
+      hasPreluActivation = false) {
     this.outputShape = convInfo.outShape;
 
     const xNumRows = convInfo.inHeight;
@@ -38,7 +40,36 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
     const filterWidth = convInfo.filterWidth;
     const channelMul = convInfo.outChannels / convInfo.inChannels;
 
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (activation) {
+      if (hasPreluActivation) {
+        activationSnippet = `float activation(float a) {
+          float b = getPreluActivationWeightsAtOutCoords();
+          ${activation}
+        }`;
+      } else {
+        activationSnippet = `
+          float activation(float x) {
+            ${activation}
+          }
+        `;
+      }
+
+      applyActivationSnippet = `result = activation(result);`;
+    }
+
+    const addBiasSnippet = addBias ? 'result += getBiasAtOutCoords();' : '';
+    if (addBias) {
+      this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivation) {
+      this.variableNames.push('preluActivationWeights');
+    }
+
     this.userCode = `
+      ${activationSnippet}
+
       const ivec2 strides = ivec2(${strideHeight}, ${strideWidth});
       const ivec2 pads = ivec2(${padTop}, ${padLeft});
 
@@ -56,7 +87,7 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
         // Convolve x(?, ?, d1) with w(:, :, d1, q) to get y(yR, yC, d2).
         // ? = to be determined. : = across all values in that axis.
         float dotProd = 0.0;
-        // TODO(dsmilkov): Flatten the two for loops and vec4 the operations.
+        // TO DO(dsmilkov): Flatten the two for loops and vec4 the operations.
         for (int wR = 0; wR < ${filterHeight}; wR++) {
           int xR = xRCorner + wR * ${dilationHeight};
 
@@ -76,7 +107,11 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
             dotProd += xVal * wVal;
           }
         }
-        setOutput(dotProd);
+
+        float result = dotProd;
+        ${addBiasSnippet}
+        ${applyActivationSnippet}
+        setOutput(result);
       }
     `;
   }

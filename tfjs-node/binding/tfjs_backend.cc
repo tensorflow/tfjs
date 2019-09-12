@@ -87,7 +87,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
       width = sizeof(int32_t);
       break;
     case napi_uint8_array:
-      if (dtype != TF_BOOL) {
+      if (dtype != TF_BOOL && dtype != TF_UINT8) {
         NAPI_THROW_ERROR(env, "Tensor type does not match Uint8Array");
         return nullptr;
       }
@@ -735,6 +735,9 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
   // If no GPU devices found, fallback to host CPU:
   if (device_name.empty()) {
     device_name = cpu_device_name;
+    is_gpu_device = false;
+  } else {
+    is_gpu_device = true;
   }
   TF_DeleteDeviceList(device_list);
 }

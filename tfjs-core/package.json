@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-core",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "description": "Hardware-accelerated JavaScript library for machine intelligence",
   "private": false,
   "main": "dist/index.js",
@@ -46,16 +46,16 @@
     "ts-node": "~7.0.0",
     "tslint": "~5.11.0",
     "tslint-no-circular-imports": "~0.5.0",
-    "typescript": "3.3.3333",
+    "typescript": "3.5.3",
     "watchify": "~3.11.1",
     "yalc": "~1.0.0-pre.21",
     "yargs": "~13.2.2"
   },
   "scripts": {
-    "build-ci": "./scripts/enumerate-tests.js --ci && tsc",
+    "build-ci": "./scripts/enumerate-tests.js --ci && tsc && yarn build-test-snippets",
     "build": "./scripts/enumerate-tests.js && tsc",
-    "build:bazel": "bazel build //...",
     "build-npm": "./scripts/build-npm.sh",
+    "build:bazel": "bazel build //...",
     "build-test-snippets": "yarn tsc --project ./scripts/test_snippets/tsconfig.json",
     "format-all": "clang-format -i -style=Google --glob=src/**/*.ts",
     "link-local": "yalc link",

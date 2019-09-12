@@ -191,8 +191,8 @@ async function nonMaxSuppressionAsync_(
   iouThreshold = inputs.iouThreshold;
   scoreThreshold = inputs.scoreThreshold;
 
-  const boxesVals = await $boxes.data();
-  const scoresVals = await $scores.data();
+  const [boxesVals, scoresVals] =
+      await Promise.all([$boxes.data(), $scores.data()]);
   const res = nonMaxSuppressionImpl(
       boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   if ($boxes !== boxes) {
@@ -301,7 +301,7 @@ function cropAndResize_(
           $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
 
   const res = ENGINE.runKernel(forward, {$image, $boxes});
-  return res as Tensor4D;
+  return res;
 }
 
 export const resizeBilinear = op({resizeBilinear_});

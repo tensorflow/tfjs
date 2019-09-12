@@ -1,3 +1,5 @@
+package com.integration_rn59;
+
 /**
  * @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -15,16 +17,14 @@
  * =============================================================================
  */
 
-package com.integration_rn59;
-
 import android.app.Application;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
-import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
 import com.integration_rn59.generated.BasePackageList;
+import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
 import java.util.Arrays;
 import java.util.List;
 import org.unimodules.adapters.react.ModuleRegistryAdapter;

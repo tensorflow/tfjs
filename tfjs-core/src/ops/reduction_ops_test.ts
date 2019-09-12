@@ -578,7 +578,7 @@ describeWithFlags('Reduction: argmax', ALL_ENVS, () => {
 
   it('has gradient', async () => {
     const a = tf.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
-    const dy = tf.ones([3], 'float32') as tf.Tensor1D;
+    const dy = tf.ones([3], 'float32');
     const da = tf.grad((x: tf.Tensor2D) => tf.argMax(x))(a, dy);
 
     expect(da.dtype).toBe('float32');
@@ -588,7 +588,7 @@ describeWithFlags('Reduction: argmax', ALL_ENVS, () => {
 
   it('gradient with clones', async () => {
     const a = tf.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
-    const dy = tf.ones([3], 'float32') as tf.Tensor1D;
+    const dy = tf.ones([3], 'float32');
     const da = tf.grad((x: tf.Tensor2D) => tf.argMax(x.clone()).clone())(a, dy);
 
     expect(da.dtype).toBe('float32');
@@ -708,7 +708,7 @@ describeWithFlags('Reduction: argmin', ALL_ENVS, () => {
 
   it('has gradient', async () => {
     const a = tf.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
-    const dy = tf.ones([3], 'float32') as tf.Tensor1D;
+    const dy = tf.ones([3], 'float32');
     const da = tf.grad((x: tf.Tensor2D) => tf.argMin(x))(a, dy);
 
     expect(da.dtype).toBe('float32');
@@ -718,7 +718,7 @@ describeWithFlags('Reduction: argmin', ALL_ENVS, () => {
 
   it('gradient with clones', async () => {
     const a = tf.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
-    const dy = tf.ones([3], 'float32') as tf.Tensor1D;
+    const dy = tf.ones([3], 'float32');
     const da = tf.grad((x: tf.Tensor2D) => tf.argMin(x.clone()).clone())(a, dy);
 
     expect(da.dtype).toBe('float32');

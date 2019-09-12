@@ -28,6 +28,13 @@ BRANCH=`git rev-parse --abbrev-ref HEAD`
 ORIGIN=`git config --get remote.origin.url`
 CHANGES=`git status --porcelain`
 
+# Yarn in the top-level and in the directory,
+yarn
+cd $1
+# Yarn above the other checks to make sure yarn doesn't change the lock file.
+yarn
+cd ..
+
 PACKAGE_JSON_FILE="$1/package.json"
 if ! test -f "$PACKAGE_JSON_FILE"; then
   echo "$PACKAGE_JSON_FILE does not exist."
@@ -52,9 +59,14 @@ then
     exit 1
 fi
 
+./scripts/make-version.js $1
+
 cd $1
-yarn build-npm
-./scripts/make-version # This is for safety in case you forgot to do 2).
-./scripts/tag-version.js
+yarn build-npm for-publish
+cd ..
+
+./scripts/tag-version.js $1
+
+cd $1
 npm publish
 echo 'Yay! Published a new package to npm.'

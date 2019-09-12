@@ -49,6 +49,13 @@ py_library(
 )
 
 py_library(
+    name = "expect_PyInquirer_installed",
+    # This is a dummy rule used as a PyInquirer dependency in open-source.
+    # We expect PyInquirer to already be installed on the system, e.g. via
+    # `pip install PyInquirer`.
+)
+
+py_library(
     name = "quantization",
     srcs = ["quantization.py"],
     srcs_version = "PY2AND3",

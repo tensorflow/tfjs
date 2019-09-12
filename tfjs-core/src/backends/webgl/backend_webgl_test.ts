@@ -31,14 +31,46 @@ function decodeStrings(bytes: Uint8Array[]): string[] {
   return bytes.map(b => decodeString(b));
 }
 
+const RENDER_FLOAT32_ENVS = {
+  flags: {'WEBGL_RENDER_FLOAT32_ENABLED': true},
+  predicate: WEBGL_ENVS.predicate
+};
+
+describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
+  let renderToF32FlagSaved: boolean;
+
+  beforeAll(() => {
+    renderToF32FlagSaved =
+        tf.ENV.get('WEBGL_RENDER_FLOAT32_ENABLED') as boolean;
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+  });
+
+  afterAll(() => {
+    tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', renderToF32FlagSaved);
+  });
+
+  it('should overflow if larger than 66k', async () => {
+    const a = tf.tensor1d([Math.pow(2, 17)], 'float32');
+    const b = tf.relu(a);
+    expect(await b.data()).toBeLessThan(Math.pow(2, 17));
+  });
+
+  it('should error in debug mode', () => {
+    const savedDebugFlag = tf.ENV.getBool('DEBUG');
+    tf.ENV.set('DEBUG', true);
+    const a = () => tf.tensor1d([2, Math.pow(2, 17)], 'float32');
+    expect(a).toThrowError();
+    tf.ENV.set('DEBUG', savedDebugFlag);
+  });
+});
+
 describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
   let webglLazilyUnpackFlagSaved: boolean;
   let webglCpuForwardFlagSaved: boolean;
 
   beforeAll(() => {
-    webglLazilyUnpackFlagSaved =
-        tf.ENV.getBool('WEBGL_LAZILY_UNPACK') as boolean;
-    webglCpuForwardFlagSaved = tf.ENV.getBool('WEBGL_CPU_FORWARD') as boolean;
+    webglLazilyUnpackFlagSaved = tf.ENV.getBool('WEBGL_LAZILY_UNPACK');
+    webglCpuForwardFlagSaved = tf.ENV.getBool('WEBGL_CPU_FORWARD');
     tf.ENV.set('WEBGL_LAZILY_UNPACK', true);
     tf.ENV.set('WEBGL_CPU_FORWARD', false);
   });
@@ -471,6 +503,50 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
     expect(time.downloadWaitMs === 0);
     expect(time.kernelMs > 0);
     expect(time.wallMs >= time.kernelMs);
+  });
+});
+
+describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
+  beforeAll(() => {
+    tf.ENV.set('WEBGL_CPU_FORWARD', false);
+  });
+
+  it('caches on cpu after async read', async () => {
+    const backend = new MathBackendWebGL();
+    tf.registerBackend('cache-on-cpu', () => backend);
+    tf.setBackend('cache-on-cpu');
+
+    const t = tf.square(2);
+    const info = backend.getDataInfo(t.dataId);
+
+    // Make sure the tensor is on the GPU.
+    expect(info.values == null).toBe(true);
+
+    await t.data();
+
+    // Make sure the tensor is cached on CPU.
+    expect(info.values).not.toBe(null);
+
+    tf.removeBackend('cache-on-cpu');
+  });
+
+  it('caches on cpu after sync read', () => {
+    const backend = new MathBackendWebGL();
+    tf.registerBackend('cache-on-cpu', () => backend);
+    tf.setBackend('cache-on-cpu');
+
+    const t = tf.square(2);
+    const info = backend.getDataInfo(t.dataId);
+
+    // Make sure the tensor is on the GPU.
+    expect(info.values == null).toBe(true);
+
+    t.dataSync();
+
+    // Make sure the tensor is cached on CPU.
+    expect(info.values).not.toBe(null);
+
+    tf.removeBackend('cache-on-cpu');
   });
 });
 
