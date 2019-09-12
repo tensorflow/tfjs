@@ -166,9 +166,9 @@ export const COS = CHECK_NAN_SNIPPET + `
 
 export const TAN = `return tan(x);`;
 
-export const ASIN = `return asin(x);`;
+export const ASIN = CHECK_NAN_SNIPPET + `return asin(x);`;
 
-export const ACOS = `return acos(x);`;
+export const ACOS = CHECK_NAN_SNIPPET + `return acos(x);`;
 
 export const ATAN = CHECK_NAN_SNIPPET + `
   return atan(x);
