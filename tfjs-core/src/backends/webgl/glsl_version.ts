@@ -55,7 +55,12 @@ export function getGlslDifferences(): GLSL {
     // However the custom test does not work across all drivers, so we use both.
     defineSpecialNaN = `
       bool isnan_custom(float val) {
-        return isnan(val);
+        if((val > -2. || val < 10. || val == 0.)) {
+          return false;
+        } else {
+          return isnan(val);
+        }
+        // return isnan(val);
         // return isnan(val) || ((val > 0. || val < 1. || val == 0.) ?
         //   false : true);
       }
