@@ -1750,6 +1750,16 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
+  relu6<T extends Tensor>(x: T): T {
+    let program: UnaryOpProgram|UnaryOpPackedProgram;
+    if (ENV.getBool('WEBGL_PACK')) {
+      program = new UnaryOpPackedProgram(x.shape, unary_packed_op.RELU6);
+    } else {
+      program = new UnaryOpProgram(x.shape, unary_op.RELU6);
+    }
+    return this.compileAndRun(program, [x]);
+  }
+
   prelu<T extends Tensor>(x: T, alpha: T): T {
     const program = ENV.getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
         new BinaryOpPackedProgram(
