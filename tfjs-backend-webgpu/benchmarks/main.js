@@ -29,13 +29,20 @@ const strokes = {
   'webgl_mean': '0'
 };
 
+const MAX_NUM_LOGS = 50;
 const START_LOGGING_DATE = '2019-08-16';
 const startDate = moment(START_LOGGING_DATE, 'YYYY-MM-DD');
 const endDate = moment();
 const files = [];
 let dateFormats = [];
-const daysElapsed = endDate.diff(startDate, 'd')
-for (let i = 0; i <= daysElapsed; i++) {
+const daysElapsed = endDate.diff(startDate, 'd');
+let interval = 1;
+
+while (daysElapsed / interval > MAX_NUM_LOGS) {
+  interval += 1;
+}
+
+for (let i = 0; i <= daysElapsed; i += interval) {
   const current = startDate.clone().add(i, 'days');
   files.push(`${current.format('MM_DD_YYYY')}`);
   dateFormats.push(current.format('M/DD'));
