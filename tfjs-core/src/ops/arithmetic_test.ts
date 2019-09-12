@@ -51,6 +51,15 @@ describeWithFlags('div', ALL_ENVS, () => {
         [0, 5.0, -8.0, -8.0, 5.714285850524902, -3.3333332538604736]);
   });
 
+  it('division by zero results in infinity', async () => {
+    const a = tf.tensor2d([1, 2], [2, 1]);
+    const c = tf.tensor2d([3, 0], [2, 1]);
+
+    const r = tf.div(a, c);
+
+    expectArraysClose(await r.data(), [1 / 3, Infinity]);
+  });
+
   it('integer division implements floor divide', async () => {
     const a = tf.tensor1d([-6, -6, -5, -4, -3, -3, 3, 3, 2], 'int32');
     const c = tf.tensor1d([-2, 2, 3, 2, -3, 3, 2, 3, 2], 'int32');
