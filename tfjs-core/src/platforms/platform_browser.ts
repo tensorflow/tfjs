@@ -69,7 +69,8 @@ if (ENV.get('IS_BROWSER')) {
  * Tests if the user is in an Internet Explorer browser window.
  */
 function isIE() {
-  const ua = window.navigator.userAgent;
+
+  const ua = navigator.userAgent;
   const msie = ua.indexOf('MSIE '); // IE 10 or older
   const trident = ua.indexOf('Trident/'); //IE 11
 
