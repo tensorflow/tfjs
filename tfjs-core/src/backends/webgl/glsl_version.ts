@@ -50,18 +50,21 @@ export function getGlslDifferences(): GLSL {
     texture2D = 'texture';
     output = 'outputColor';
     defineOutput = 'out vec4 outputColor;';
-    // WebGL2 defines a built in isnan function however some drivers
-    // have buggy implementations so we also define a custom test to detect
-    // nans in those drivers. The custom test on its own however does not work
-    // across all drivers.
+    // Some drivers have buggy implementations if the built in isnan so we
+    // also define a custom test to detect nans in those drivers.
+    // However the custom test does not work across all drivers, so we use both.
     defineSpecialNaN = `
-      #define isnan(value) (isnan(value) || isnan_custom(value))
       bool isnan_custom(float val) {
-        return (val > 0. || val < 0. || val == 0.) ? false : true;
+        return isnan(val) || !(val > 0. || val < 0. || val == 0.);
       }
+
       bvec4 isnan_custom(vec4 val) {
-        return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));
+        return bvec4(isnan_custom(val.x),
+          isnan_custom(val.y), isnan_custom(val.z), isnan_custom(val.w));
       }
+      // Add the text substitution here to allow custom function to call
+      // original one.
+      #define isnan(value) isnan_custom(value)
     `;
     // In webgl 2 we do not need to specify a custom isinf so there is no
     // need for a special INFINITY constant.
@@ -88,7 +91,7 @@ export function getGlslDifferences(): GLSL {
     defineSpecialNaN = `
       #define isnan(value) isnan_custom(value)
       bool isnan_custom(float val) {
-        return (val > 0. || val < 1. || val == 0.) ? false : true;
+        return !(val > 0. || val < 1. || val == 0.);
       }
       bvec4 isnan_custom(vec4 val) {
         return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));

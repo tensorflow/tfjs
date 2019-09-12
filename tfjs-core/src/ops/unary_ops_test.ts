@@ -1524,7 +1524,7 @@ describeWithFlags('sign', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [1, 0, 0, -1]);
   });
 
-  it('propagates NaNs', async () => {
+  it('does not propagate NaNs', async () => {
     const a = tf.tensor1d([1.5, NaN, -1.4]);
     const r = tf.sign(a);
     expectArraysClose(await r.data(), [1, 0, -1]);
