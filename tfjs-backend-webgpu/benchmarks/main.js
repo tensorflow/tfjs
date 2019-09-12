@@ -16,10 +16,17 @@
  */
 
 const swatches = {
-  'webgpu_min': '#FCA521',
+  'webgpu_min': '#F1523E',
   'webgpu_mean': '#F1523E',
-  'webgl_min': '#03A698',
-  'webgl_mean': '#025952'
+  'webgl_min': '#3f51b5',
+  'webgl_mean': '#3f51b5'
+};
+
+const strokes = {
+  'webgpu_min': '2',
+  'webgpu_mean': '0',
+  'webgl_min': '2',
+  'webgl_mean': '0'
 };
 
 const START_LOGGING_DATE = '2019-08-16';
@@ -32,6 +39,20 @@ for (let i = 0; i <= daysElapsed; i++) {
   const current = startDate.clone().add(i, 'days');
   files.push(`${current.format('MM_DD_YYYY')}`);
   dateFormats.push(current.format('M/DD'));
+}
+
+function getSwatchBackground(swatch, stroke) {
+  let background = swatch;
+  if (stroke > 0) {
+    background = `repeating-linear-gradient(
+      to right,
+      ${swatch},
+      ${swatch} 2px,
+      white 2px,
+      white 4px
+    );`;
+  }
+  return background;
 }
 
 Promise
@@ -143,7 +164,6 @@ Promise
               }
 
               const xIncrement = chartWidth / (test.entries.length - 1);
-
               const template =  // template trendlines
                   `<div class='test'>
             <h4 class='test-name'>${test.name}</h4>
@@ -151,8 +171,12 @@ Promise
                       Object.keys(params)
                           .map((param, i) => {
                             return `<div class='swatch'>
-                                <div class='color' style='background-color:
-                                ${swatches[param]}'></div> <div class='label'>${
+                                <div class='color' style='background:
+                                ${
+                                getSwatchBackground(
+                                    swatches[param],
+                                    strokes
+                                        [param])}'></div> <div class='label'>${
                                 param}</div>
                               </div>`;
                           })
@@ -165,8 +189,9 @@ Promise
               <svg data-index=${i} class='graph' width='${
                       chartWidth}' height='${chartHeight}'>${
                       Object.keys(params).map(
-                          (param,
-                           i) => `<path stroke='${swatches[param]}' d='M${
+                          (param, i) => `<path stroke-dasharray='${
+                              strokes[param]}' stroke='${
+                              swatches[param]}' d='M${
                               params[param]
                                   .map(
                                       (d, i) => `${i * xIncrement},${
@@ -229,8 +254,9 @@ Promise
                     .params
                     .map(
                         (d, i) => {return `<div class='label-wrapper'>
-                          <div class='color' style='background-color: ${
-                            swatches[d.name]}'></div>
+                          <div class='color' style='background: ${
+                            getSwatchBackground(
+                                swatches[d.name], strokes[d.name])}'></div>
                           <div class='label'>${d.ms}</div>
                         </div>`})
                     .join(' ')}
