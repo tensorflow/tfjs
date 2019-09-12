@@ -78,7 +78,6 @@ export function getContextByVersion(version: number): WebGLRenderingContext {
     disposeWebGLContext(version);
     return getContextByVersion(version);
   }
-  checkWebGLError(contexts[version]);
   return contexts[version];
 }
 
