@@ -52,12 +52,10 @@ describeWithFlags('div', ALL_ENVS, () => {
   });
 
   it('division by zero results in infinity', async () => {
-    const a = tf.tensor2d([1, 2], [2, 1]);
-    const c = tf.tensor2d([3, 0], [2, 1]);
+    const r = tf.div(1, 0);
+    const rData = await r.data();
 
-    const r = tf.div(a, c);
-
-    expectArraysClose(await r.data(), [1 / 3, Infinity]);
+    expect(Array.from(rData)).toEqual([Infinity]);
   });
 
   it('integer division implements floor divide', async () => {
