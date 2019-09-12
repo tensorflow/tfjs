@@ -55,7 +55,8 @@ export function getGlslDifferences(): GLSL {
     // However the custom test does not work across all drivers, so we use both.
     defineSpecialNaN = `
       bool isnan_custom(float val) {
-        return isnan(val) || ((val > 0. || val < 1. || val == 0.) ? false : true);
+        return isnan(val) || ((val > 0. || val < 1. || val == 0.) ?
+          false : true);
       }
 
       bvec4 isnan_custom(vec4 val) {
