@@ -243,6 +243,8 @@ function getShaderPrefix(glsl: GLSL): string {
     };
 
     uniform float NAN;
+    uniform float LTNAN;
+    uniform float GTNAN;
     ${glsl.defineSpecialNaN}
     ${glsl.defineSpecialInf}
     ${glsl.defineRound}
