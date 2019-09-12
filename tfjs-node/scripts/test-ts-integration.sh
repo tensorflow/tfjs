@@ -24,7 +24,7 @@ function test() {
   yarn && yarn build-addon-from-source && yarn build && yarn yalc publish
 
   cd integration/typescript
-  yarn && yarn yalc add '@tensorflow/tfjs-node' && yarn prep && yarn test
+  yarn && yarn prep && yarn test
   TS_INTEGRATION_TEST_EXIT_CODE=$?
   git checkout package.json
 

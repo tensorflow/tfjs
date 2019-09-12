@@ -20,7 +20,7 @@ import {TFEOpAttr, TFJSBinding} from './tfjs_binding';
 // tslint:disable-next-line:no-require-imports
 const binary = require('node-pre-gyp');
 const bindingPath =
-    binary.find(path.resolve(path.join(__dirname, '/../package.json')));
+    binary.find(path.resolve(path.join(__dirname, '../package.json')));
 // tslint:disable-next-line:no-require-imports
 const bindings = require(bindingPath);
 const binding = bindings as TFJSBinding;
