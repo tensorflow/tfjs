@@ -20,40 +20,40 @@ import {computeDispatch} from '../webgpu_util';
 import {WebGPUProgram} from './webgpu_program';
 
 export const matMulHeader = `
-  float mm_readA(uint row, uint col);
-  float mm_readB(uint row, uint col);
-  void mm_write(uint row, uint col, float value);
-  void mm_matMul(uint dimAOuter, uint dimInner, uint dimBOuter);`;
+  float mm_readA(int row, int col);
+  float mm_readB(int row, int col);
+  void mm_write(int row, int col, float value);
+  void mm_matMul(int dimAOuter, int dimInner, int dimBOuter);`;
 
 export function makeMatMulSource(): string {
   return `
     ${matMulHeader}
 
-    const uint MatTileSize = gl_WorkGroupSize.x;  // .x == .y
+    const int MatTileSize = int(gl_WorkGroupSize.x);  // .x == .y
     shared float mm_Asub[MatTileSize][MatTileSize];
     shared float mm_Bsub[MatTileSize][MatTileSize];
 
-    void mm_matMul(uint dimAOuter, uint dimInner, uint dimBOuter) {
-        uint localRow = gl_LocalInvocationID.y;  // 0..MatTileSize
-        uint localCol = gl_LocalInvocationID.x;  // 0..MatTileSize
-        uint globalRow = gl_GlobalInvocationID.y;  // AOuter
-        uint globalCol = gl_GlobalInvocationID.x;  // Inner
+    void mm_matMul(int dimAOuter, int dimInner, int dimBOuter) {
+        int localRow = int(gl_LocalInvocationID.y);  // 0..MatTileSize
+        int localCol = int(gl_LocalInvocationID.x);  // 0..MatTileSize
+        int globalRow = int(gl_GlobalInvocationID.y);  // AOuter
+        int globalCol = int(gl_GlobalInvocationID.x);  // Inner
 
         float acc = 0.0;
 
-        uint numTiles = (dimInner - 1) / MatTileSize + 1;
+        int numTiles = (dimInner - 1) / MatTileSize + 1;
 
-        for (uint t = 0; t < numTiles; t++) {
+        for (int t = 0; t < numTiles; t++) {
           // Load one tile of A and B into local memory
-          uint tiledACol = MatTileSize * t + localCol;
-          uint tiledBRow = MatTileSize * t + localRow;
+          int tiledACol = MatTileSize * t + localCol;
+          int tiledBRow = MatTileSize * t + localRow;
           mm_Asub[localRow][localCol] = mm_readA(globalRow, tiledACol);
           mm_Bsub[localRow][localCol] = mm_readB(tiledBRow, globalCol);
 
           // Synchronise to make sure the tile is loaded
           barrier();
 
-          for (uint k = 0; k < MatTileSize; k++) {
+          for (int k = 0; k < MatTileSize; k++) {
             acc += mm_Asub[localRow][k] * mm_Bsub[k][localCol];
           }
 
@@ -83,13 +83,13 @@ export class MatMulProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.userCode = `
-      uint dimAOuter = aShape[1];
-      uint dimInner = aShape[2];
-      uint dimBOuter = bShape[2];
+      int dimAOuter = aShape[1];
+      int dimInner = aShape[2];
+      int dimBOuter = bShape[2];
 
       ${makeMatMulSource()}
 
-      float mm_readA(uint row, uint col) {
+      float mm_readA(int row, int col) {
         if (row < dimAOuter && col < dimInner) {
           return A[row * dimInner + col];
         } else {
@@ -97,7 +97,7 @@ export class MatMulProgram implements WebGPUProgram {
         }
       }
 
-      float mm_readB(uint row, uint col) {
+      float mm_readB(int row, int col) {
         if (row < dimInner && col < dimBOuter) {
           return B[row * dimBOuter + col];
         } else {
@@ -105,7 +105,7 @@ export class MatMulProgram implements WebGPUProgram {
         }
       }
 
-      void mm_write(uint row, uint col, float value) {
+      void mm_write(int row, int col, float value) {
         setOutput(row * dimBOuter + col, value);
       }
 
