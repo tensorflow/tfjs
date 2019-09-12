@@ -52,6 +52,10 @@ export const RELU = CHECK_NAN_SNIPPET + `
   return (x < 0.0) ? 0.0 : x;
 `;
 
+export const RELU6 = CHECK_NAN_SNIPPET + `
+  return (x < 0.0) ? 0.0 : min(6.0, x);
+`;
+
 export const ELU = `return (x >= 0.0) ? x : (exp(x) - 1.0);`;
 
 export const SELU = `

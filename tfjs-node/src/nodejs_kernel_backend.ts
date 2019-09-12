@@ -39,12 +39,14 @@ interface DataId {}
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
+  isUsingGpuDevice: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
   constructor(binding: TFJSBinding, packageName: string) {
     super();
     this.binding = binding;
     this.isGPUPackage = packageName === '@tensorflow/tfjs-node-gpu';
+    this.isUsingGpuDevice = this.binding.isUsingGpuDevice();
   }
 
   setDataMover(dataMover: DataMover): void {
@@ -1788,6 +1790,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     const opAttrs =
         [{name: 'channels', type: this.binding.TF_ATTR_INT, value: channels}];
     const inputArgs = [scalar(contents, 'string')];
+
     return this.executeSingleOutput('DecodePng', opAttrs, inputArgs) as
         Tensor<Rank.R3>;
   }
@@ -1952,14 +1955,9 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 }
 
-let gBackend: NodeJSKernelBackend = null;
-
 /** Returns an instance of the Node.js backend. */
 export function nodeBackend(): NodeJSKernelBackend {
-  if (gBackend === null) {
-    gBackend = tfc.findBackend('tensorflow') as NodeJSKernelBackend;
-  }
-  return gBackend;
+  return tfc.findBackend('tensorflow') as NodeJSKernelBackend;
 }
 
 /** Returns the TF dtype for a given DataType. */
@@ -2034,9 +2032,6 @@ function getTFDTypeForInputs(tensors: tfc.Tensor|tfc.Tensor[]): number {
 }
 
 export function ensureTensorflowBackend() {
-  if (gBackend === null) {
-    nodeBackend();
-  }
   tfc.util.assert(
       tfc.getBackend() === 'tensorflow',
       () => `Expect the current backend to be "tensorflow", but got "${
