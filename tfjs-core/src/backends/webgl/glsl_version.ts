@@ -50,9 +50,17 @@ export function getGlslDifferences(): GLSL {
     texture2D = 'texture';
     output = 'outputColor';
     defineOutput = 'out vec4 outputColor;';
+    // WebGL2 defines a built in isnan function however some drivers
+    // have buggy implementations so we also define a custom test to detect
+    // nans in those drivers. The custom test on its own however does not work
+    // across all drivers.
     defineSpecialNaN = `
+      #define isnan(value) (isnan(value) || isnan_custom(value))
       bool isnan_custom(float val) {
         return (val > 0. || val < 0. || val == 0.) ? false : true;
+      }
+      bvec4 isnan_custom(vec4 val) {
+        return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));
       }
     `;
     // In webgl 2 we do not need to specify a custom isinf so there is no
@@ -76,9 +84,14 @@ export function getGlslDifferences(): GLSL {
     texture2D = 'texture2D';
     output = 'gl_FragColor';
     defineOutput = '';
+    // WebGL1 has no built in isnan so we define one here.
     defineSpecialNaN = `
+      #define isnan(value) isnan_custom(value)
       bool isnan_custom(float val) {
         return (val > 0. || val < 1. || val == 0.) ? false : true;
+      }
+      bvec4 isnan_custom(vec4 val) {
+        return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));
       }
     `;
     defineSpecialInf = `
