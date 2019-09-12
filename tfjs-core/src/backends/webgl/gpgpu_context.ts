@@ -107,16 +107,12 @@ export class GPGPUContext {
     const gl = getActiveContext();
     checkWebGLError(gl);
     callAndCheck(gl, debug, () => gl.finish());
-    // TODO(kreeger): This bind framebuffer call can throw an INVALID_OPERATION
-    // error on WebGL2 - fix this.
     callAndCheck(gl, debug, () => gl.bindFramebuffer(gl.FRAMEBUFFER, null));
     callAndCheck(gl, debug, () => gl.deleteFramebuffer(this.framebuffer));
     callAndCheck(gl, debug, () => gl.bindBuffer(gl.ARRAY_BUFFER, null));
     callAndCheck(gl, debug, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null));
     callAndCheck(gl, debug, () => gl.deleteBuffer(this.indexBuffer));
     this.disposed = true;
-    // TODO(kreeger): Needed or used?
-    // disposeWebGLContext();
   }
 
   public createFloat32MatrixTexture(rows: number, columns: number):
@@ -177,7 +173,6 @@ export class GPGPUContext {
           getActiveContext(), this.debug, this.framebuffer);
       this.outputTexture = null;
     }
-    // console.log('    texture: ' + texture);
     callAndCheck(
         getActiveContext(), true,
         () => getActiveContext().deleteTexture(texture));

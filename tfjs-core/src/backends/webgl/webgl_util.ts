@@ -660,13 +660,6 @@ export function isWebGLFenceEnabled(webGLVersion: number) {
   }
   const gl = getContextByVersion(webGLVersion);
 
-  // TODO - fix this
-  // webgl_util.callAndCheck(
-  //   gl, debug,
-  //   () => gl.texImage2D(
-  //       tex2d, 0, internalFormat, width, height, 0, textureFormat,
-  //       textureType, null));
-
   // tslint:disable-next-line:no-any
   const isEnabled = (gl as any).fenceSync != null;
   return isEnabled;

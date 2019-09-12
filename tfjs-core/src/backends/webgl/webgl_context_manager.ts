@@ -17,7 +17,7 @@
 import {ENV} from '../../environment';
 
 import {cleanupDOMCanvasWebGLRenderingContext, createDOMCanvasWebGLRenderingContext} from './canvas_util';
-import {callAndCheck, checkWebGLError} from './webgl_check';
+import {checkWebGLError} from './webgl_check';
 
 let count = 0;
 const contexts: {[key: string]: WebGLRenderingContext} = {};
@@ -59,7 +59,7 @@ export function getContextByVersion(version: number): WebGLRenderingContext {
   // Default to browser context creation is running in the browser.
   if (contextFactory == null) {
     if (ENV.getBool('IS_BROWSER')) {
-      // TODO(kreeger): Is there a better place to register this?
+      // TODO(kreeger): Consider moving to global space.
       contextFactory = createDOMCanvasWebGLRenderingContext;
     } else {
       throw new Error('Default WebGLRenderingContext factory was not set!');
@@ -85,7 +85,7 @@ function disposeWebGLContext(version: number) {
   if ((version in contexts)) {
     if (contextCleanup == null) {
       if (ENV.getBool('IS_BROWSER')) {
-        // TODO(kreeger): Is there a better place to register this?
+      // TODO(kreeger): Consider moving to global space.
         contextCleanup = cleanupDOMCanvasWebGLRenderingContext;
       }
     }
@@ -97,9 +97,7 @@ function disposeWebGLContext(version: number) {
 }
 
 function bootstrapWebGLContext(gl: WebGLRenderingContext) {
-  // TODO - check GL calls here too.
-  callAndCheck(gl, ENV.getBool('DEBUG'), () => gl.disable(gl.DEPTH_TEST));
-  // gl.disable(gl.DEPTH_TEST);
+  gl.disable(gl.DEPTH_TEST);
   gl.disable(gl.STENCIL_TEST);
   gl.disable(gl.BLEND);
   gl.disable(gl.DITHER);
@@ -109,24 +107,3 @@ function bootstrapWebGLContext(gl: WebGLRenderingContext) {
   gl.enable(gl.CULL_FACE);
   gl.cullFace(gl.BACK);
 }
-
-// function traceGLCalls(ctx: WebGLRenderingContext, idx: number) {
-//   const handler = {
-//     // tslint:disable-next-line:no-any
-//     get(target: any, prop: PropertyKey, receiver: any): any {
-//       const propValue = target[prop];
-
-//       if (typeof (propValue) === 'function') {
-//         console.log(
-//             '    gl.' + prop.toString() + ' = ' + target.constructor.name +
-//             ' ' + idx);
-//         // tslint:disable-next-line:only-arrow-functions
-//         return function() {
-//           return propValue.apply(target, arguments);
-//         };
-//       }
-//       return propValue;
-//     },
-//   };
-//   return new Proxy(ctx, handler);
-// }
