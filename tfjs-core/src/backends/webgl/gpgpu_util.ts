@@ -20,6 +20,7 @@ import {PixelData, TypedArray} from '../../types';
 import {getGlslDifferences} from './glsl_version';
 import * as tex_util from './tex_util';
 import {TextureConfig} from './tex_util';
+import {callAndCheck} from './webgl_check';
 import * as webgl_util from './webgl_util';
 
 export function createVertexShader(
@@ -61,25 +62,25 @@ function createAndConfigureTexture(
   const texture = webgl_util.createTexture(gl, debug);
 
   const tex2d = gl.TEXTURE_2D;
-  webgl_util.callAndCheck(gl, debug, () => gl.bindTexture(tex2d, texture));
-  webgl_util.callAndCheck(
+  callAndCheck(gl, debug, () => gl.bindTexture(tex2d, texture));
+  callAndCheck(
       gl, debug,
       () => gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE));
-  webgl_util.callAndCheck(
+  callAndCheck(
       gl, debug,
       () => gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE));
-  webgl_util.callAndCheck(
+  callAndCheck(
       gl, debug,
       () => gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST));
-  webgl_util.callAndCheck(
+  callAndCheck(
       gl, debug,
       () => gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST));
-  webgl_util.callAndCheck(
+  callAndCheck(
       gl, debug,
       () => gl.texImage2D(
           tex2d, 0, internalFormat, width, height, 0, textureFormat,
           textureType, null));
-  webgl_util.callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));
+  callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));
   return texture;
 }
 
@@ -138,8 +139,7 @@ export function bindVertexProgramAttributeStreams(
   const posOffset = 0;               // x is the first buffer element
   const uvOffset = 3 * 4;            // uv comes after [x y z]
   const stride = (3 * 4) + (2 * 4);  // xyz + uv, each entry is 4-byte float.
-  webgl_util.callAndCheck(
-      gl, debug, () => gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer));
+  callAndCheck(gl, debug, () => gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer));
   const success = webgl_util.bindVertexBufferToProgramAttribute(
       gl, debug, program, 'clipSpacePos', vertexBuffer, 3, stride, posOffset);
   return success &&
@@ -151,8 +151,7 @@ export function uploadDenseMatrixToTexture(
     gl: WebGLRenderingContext, debug: boolean, texture: WebGLTexture,
     width: number, height: number, data: TypedArray,
     textureConfig: TextureConfig) {
-  webgl_util.callAndCheck(
-      gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, texture));
+  callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, texture));
 
   let dataForUpload: TypedArray, texelDataType: number, internalFormat: number;
   if (data instanceof Uint8Array) {
@@ -167,29 +166,28 @@ export function uploadDenseMatrixToTexture(
 
   dataForUpload.set(data);
 
-  webgl_util.callAndCheck(
+  callAndCheck(
       gl, debug,
       () => gl.texImage2D(
           gl.TEXTURE_2D, 0, internalFormat, width, height, 0, gl.RGBA,
           texelDataType, dataForUpload));
 
-  webgl_util.callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));
+  callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));
 }
 
 export function uploadPixelDataToTexture(
     gl: WebGLRenderingContext, debug: boolean, texture: WebGLTexture,
     pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
     HTMLVideoElement) {
-  webgl_util.callAndCheck(
-      gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, texture));
+  callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, texture));
   if ((pixels as PixelData).data instanceof Uint8Array) {
-    webgl_util.callAndCheck(
+    callAndCheck(
         gl, debug,
         () => gl.texImage2D(
             gl.TEXTURE_2D, 0, gl.RGBA, pixels.width, pixels.height, 0, gl.RGBA,
             gl.UNSIGNED_BYTE, (pixels as PixelData).data));
   } else {
-    webgl_util.callAndCheck(
+    callAndCheck(
         gl, debug,
         () => gl.texImage2D(
             gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
@@ -197,7 +195,7 @@ export function uploadPixelDataToTexture(
                 HTMLVideoElement));
   }
 
-  webgl_util.callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));
+  callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));
 }
 
 export function createBufferFromOutputTexture(
@@ -205,27 +203,25 @@ export function createBufferFromOutputTexture(
     textureConfig: TextureConfig): WebGLBuffer {
   // Create and bind the buffer.
   const buffer = gl2.createBuffer();
-  webgl_util.callAndCheck(
-      gl2, debug, () => gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, buffer));
+  callAndCheck(gl2, debug, () => gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, buffer));
 
   // Initialize the buffer to the size of the texture in bytes.
   const bytesPerFloat = 4;
   const valuesPerTexel = 4;
   const bufferSizeBytes = bytesPerFloat * valuesPerTexel * rows * columns;
 
-  webgl_util.callAndCheck(
+  callAndCheck(
       gl2, debug,
       () => gl2.bufferData(
           gl2.PIXEL_PACK_BUFFER, bufferSizeBytes, gl2.STREAM_READ));
 
   // Enqueue a command on the GPU command queue to copy of texture into the
   // buffer.
-  webgl_util.callAndCheck(
+  callAndCheck(
       gl2, debug,
       () => gl2.readPixels(0, 0, columns, rows, gl2.RGBA, gl2.FLOAT, 0));
 
-  webgl_util.callAndCheck(
-      gl2, debug, () => gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, null));
+  callAndCheck(gl2, debug, () => gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, null));
 
   return buffer;
 }
@@ -254,7 +250,7 @@ export function downloadByteEncodedFloatMatrixFromOutputTexture(
   const downloadTarget = new Uint8Array(
       tex_util.getUnpackedArraySizeFromMatrixSize(rows * columns, numChannels));
 
-  webgl_util.callAndCheck(
+  callAndCheck(
       gl, debug,
       () => gl.readPixels(
           0, 0, w, h, textureConfig.downloadTextureFormat, gl.UNSIGNED_BYTE,
@@ -286,7 +282,7 @@ export function downloadMatrixFromPackedOutputTexture(
     gl: WebGLRenderingContext, debug: boolean, physicalRows: number,
     physicalCols: number): Float32Array {
   const packedRGBA = new Float32Array(physicalRows * physicalCols * 4);
-  webgl_util.callAndCheck(
+  callAndCheck(
       gl, debug,
       () => gl.readPixels(
           0, 0, physicalCols, physicalRows, gl.RGBA, gl.FLOAT, packedRGBA));

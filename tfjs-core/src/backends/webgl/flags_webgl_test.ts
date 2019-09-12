@@ -20,9 +20,8 @@ import {ENV} from '../../environment';
 import * as tf from '../../index';
 import {describeWithFlags} from '../../jasmine_util';
 import {webgl_util} from '../../webgl';
-
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
-// import * as canvas_util from './canvas_util';
+import * as webgl_context_manager from './webgl_context_manager';
 
 describe('WEBGL_FORCE_F16_TEXTURES', () => {
   afterAll(() => ENV.reset());
@@ -50,15 +49,11 @@ const RENDER_FLOAT16_ENVS = {
 };
 
 describeWithFlags('WEBGL_RENDER_FLOAT32_CAPABLE', RENDER_FLOAT32_ENVS, () => {
-  beforeEach(() => {
-    ENV.reset();
-  });
-
-  afterAll(() => ENV.reset());
-
   it('should be independent of forcing f16 rendering', () => {
     tf.webgl.forceHalfFloat();
     expect(ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE')).toBe(true);
+    // Undo the forcing of half float.
+    delete ENV.getFlags()['WEBGL_FORCE_F16_TEXTURES'];
   });
 
   it('if user is not forcing f16, device should render to f32', () => {
@@ -256,22 +251,20 @@ describe('WEBGL_CONV_IM2COL', () => {
 
 describe('WEBGL_MAX_TEXTURE_SIZE', () => {
   beforeEach(() => {
-    ENV.reset();
     webgl_util.resetMaxTextureSize();
 
-    // TODO(kreeger): Fix this.
-    //spyOn(canvas_util, 'getWebGLContext').and.returnValue({
-    //  MAX_TEXTURE_SIZE: 101,
-    //  getParameter: (param: number) => {
-    //    if (param === 101) {
-    //      return 50;
-    //    }
-    //    throw new Error(`Got undefined param ${param}.`);
-    //  }
-    //});
+    spyOn(webgl_context_manager, 'getContextByVersion').and.returnValue({
+      MAX_TEXTURE_SIZE: 101,
+      getParameter: (param: number) => {
+        if (param === 101) {
+          return 50;
+        }
+        throw new Error(`Got undefined param ${param}.`);
+      }
+    });
   });
+
   afterAll(() => {
-    ENV.reset();
     webgl_util.resetMaxTextureSize();
   });
 
@@ -281,36 +274,36 @@ describe('WEBGL_MAX_TEXTURE_SIZE', () => {
 });
 
 describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
-  // let maxTextures: number;
+  let maxTextures: number;
   beforeEach(() => {
-    ENV.reset();
     webgl_util.resetMaxTexturesInShader();
+    // Forge the max textures flag between different tests.
+    delete ENV.getFlags()['WEBGL_MAX_TEXTURES_IN_SHADER'];
 
-    // TODO(kreeger): Fix this.
-    // spyOn(canvas_util, 'getWebGLContext').and.callFake(() => {
-    //   return {
-    //     MAX_TEXTURE_IMAGE_UNITS: 101,
-    //     getParameter: (param: number) => {
-    //       if (param === 101) {
-    //         return maxTextures;
-    //       }
-    //       throw new Error(`Got undefined param ${param}.`);
-    //     }
-    //   };
-    // });
+    spyOn(webgl_context_manager, 'getContextByVersion').and.callFake(() => {
+      return {
+        MAX_TEXTURE_IMAGE_UNITS: 101,
+        getParameter: (param: number) => {
+          if (param === 101) {
+            return maxTextures;
+          }
+          throw new Error(`Got undefined param ${param}.`);
+        }
+      };
+    });
   });
+
   afterAll(() => {
-    ENV.reset();
     webgl_util.resetMaxTexturesInShader();
   });
 
   it('is a function of gl.getParameter(MAX_TEXTURE_IMAGE_UNITS)', () => {
-    // maxTextures = 10;
+    maxTextures = 10;
     expect(ENV.getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')).toBe(10);
   });
 
   it('is capped at 16', () => {
-    // maxTextures = 20;
+    maxTextures = 20;
     expect(ENV.getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')).toBe(16);
   });
 });

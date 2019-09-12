@@ -48,13 +48,16 @@ describe('webgl_context_manager create/cleanup', () => {
     let created = false;
     let cleanedup = false;
     let contextLost = false;
+    const noErrorCode = 1;
     const contextFake = {
       disable: (cap: number) => {},
       enable: (cap: number) => {},
       cullFace: (cap: number) => {},
       isContextLost: () => {
         return contextLost;
-      }
+      },
+      NO_ERROR: noErrorCode,
+      getError: () => noErrorCode
     } as WebGLRenderingContext;
 
     setContextFactory((version: number) => {

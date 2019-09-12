@@ -19,23 +19,8 @@ import {ENV} from '../../environment';
 import * as util from '../../util';
 
 import {getTextureConfig} from './tex_util';
+import {callAndCheck, checkWebGLError} from './webgl_check';
 import {getContextByVersion} from './webgl_context_manager';
-
-export function callAndCheck<T>(
-    gl: WebGLRenderingContext, debugMode: boolean, func: () => T): T {
-  const returnValue = func();
-  if (debugMode) {
-    checkWebGLError(gl);
-  }
-  return returnValue;
-}
-
-export function checkWebGLError(gl: WebGLRenderingContext) {
-  const error = gl.getError();
-  if (error !== gl.NO_ERROR) {
-    throw new Error('WebGL Error: ' + getWebGLErrorMessage(gl, error));
-  }
-}
 
 // https://en.wikipedia.org/wiki/Half-precision_floating-point_format
 const MIN_FLOAT16 = 5.96e-8;
@@ -47,28 +32,6 @@ export function canBeRepresented(num: number): boolean {
     return true;
   }
   return false;
-}
-
-export function getWebGLErrorMessage(
-    gl: WebGLRenderingContext, status: number): string {
-  switch (status) {
-    case gl.NO_ERROR:
-      return 'NO_ERROR';
-    case gl.INVALID_ENUM:
-      return 'INVALID_ENUM';
-    case gl.INVALID_VALUE:
-      return 'INVALID_VALUE';
-    case gl.INVALID_OPERATION:
-      return 'INVALID_OPERATION';
-    case gl.INVALID_FRAMEBUFFER_OPERATION:
-      return 'INVALID_FRAMEBUFFER_OPERATION';
-    case gl.OUT_OF_MEMORY:
-      return 'OUT_OF_MEMORY';
-    case gl.CONTEXT_LOST_WEBGL:
-      return 'CONTEXT_LOST_WEBGL';
-    default:
-      return `Unknown error code ${status}`;
-  }
 }
 
 export function getExtensionOrThrow(
@@ -221,7 +184,6 @@ export function validateTextureSize(width: number, height: number) {
 
 export function createFramebuffer(
     gl: WebGLRenderingContext, debug: boolean): WebGLFramebuffer {
-  console.log(' --- is debug: ' + debug);
   return throwIfNull<WebGLFramebuffer>(
       gl, true, () => gl.createFramebuffer(),
       'Unable to create WebGLFramebuffer.');

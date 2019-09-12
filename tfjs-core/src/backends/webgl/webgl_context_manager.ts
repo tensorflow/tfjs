@@ -17,7 +17,7 @@
 import {ENV} from '../../environment';
 
 import {cleanupDOMCanvasWebGLRenderingContext, createDOMCanvasWebGLRenderingContext} from './canvas_util';
-import {callAndCheck, checkWebGLError} from './webgl_util';
+import {callAndCheck, checkWebGLError} from './webgl_check';
 
 let count = 0;
 const contexts: {[key: string]: WebGLRenderingContext} = {};
@@ -67,7 +67,7 @@ export function getContextByVersion(version: number): WebGLRenderingContext {
   }
 
   if (!(version in contexts)) {
-    contexts[version] = traceGLCalls(contextFactory(version), ++count);
+    contexts[version] = contextFactory(version), ++count;
     bootstrapWebGLContext(contexts[version]);
     checkWebGLError(contexts[version]);
   }
@@ -111,23 +111,23 @@ function bootstrapWebGLContext(gl: WebGLRenderingContext) {
   gl.cullFace(gl.BACK);
 }
 
-function traceGLCalls(ctx: WebGLRenderingContext, idx: number) {
-  const handler = {
-    // tslint:disable-next-line:no-any
-    get(target: any, prop: PropertyKey, receiver: any): any {
-      const propValue = target[prop];
+// function traceGLCalls(ctx: WebGLRenderingContext, idx: number) {
+//   const handler = {
+//     // tslint:disable-next-line:no-any
+//     get(target: any, prop: PropertyKey, receiver: any): any {
+//       const propValue = target[prop];
 
-      if (typeof (propValue) === 'function') {
-        console.log(
-            '    gl.' + prop.toString() + ' = ' + target.constructor.name +
-            ' ' + idx);
-        // tslint:disable-next-line:only-arrow-functions
-        return function() {
-          return propValue.apply(target, arguments);
-        };
-      }
-      return propValue;
-    },
-  };
-  return new Proxy(ctx, handler);
-}
+//       if (typeof (propValue) === 'function') {
+//         console.log(
+//             '    gl.' + prop.toString() + ' = ' + target.constructor.name +
+//             ' ' + idx);
+//         // tslint:disable-next-line:only-arrow-functions
+//         return function() {
+//           return propValue.apply(target, arguments);
+//         };
+//       }
+//       return propValue;
+//     },
+//   };
+//   return new Proxy(ctx, handler);
+// }

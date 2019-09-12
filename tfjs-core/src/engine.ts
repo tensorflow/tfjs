@@ -904,7 +904,6 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
     this.pendingBackendInitId++;
 
     this.state.dispose();
-    this.ENV.reset();
     this.state = new EngineState();
 
     for (const backendName in this.registry) {
@@ -914,6 +913,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
     this.backendName = null;
     this.backendInstance = null;
     this.pendingBackendInit = null;
+    this.ENV.reset();
   }
 }
 

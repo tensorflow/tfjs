@@ -21,8 +21,9 @@ import * as util from '../../util';
 
 import * as gpgpu_util from './gpgpu_util';
 import * as tex_util from './tex_util';
-import {getActiveContext} from './webgl_context_manager';
 import {TextureConfig} from './tex_util';
+import {callAndCheck, checkWebGLError} from './webgl_check';
+import {getActiveContext} from './webgl_context_manager';
 import {WebGL1DisjointQueryTimerExtension, WebGL2DisjointQueryTimerExtension} from './webgl_types';
 import * as webgl_util from './webgl_util';
 
@@ -51,8 +52,8 @@ export class GPGPUContext {
     const gl = getActiveContext();
     // WebGL 2.0 enables texture floats without an extension.
     if (ENV.getNumber('WEBGL_VERSION') === 1) {
-      this.textureFloatExtension = webgl_util.getExtensionOrThrow(
-          gl, this.debug, 'OES_texture_float');
+      this.textureFloatExtension =
+          webgl_util.getExtensionOrThrow(gl, this.debug, 'OES_texture_float');
       this.colorBufferFloatExtension =
           gl.getExtension('WEBGL_color_buffer_float');
 
@@ -64,8 +65,7 @@ export class GPGPUContext {
       const COLOR_BUFFER_FLOAT = 'EXT_color_buffer_float';
       const COLOR_BUFFER_HALF_FLOAT = 'EXT_color_buffer_half_float';
       if (webgl_util.hasExtension(gl, COLOR_BUFFER_FLOAT)) {
-        this.colorBufferFloatExtension =
-            gl.getExtension(COLOR_BUFFER_FLOAT);
+        this.colorBufferFloatExtension = gl.getExtension(COLOR_BUFFER_FLOAT);
       } else if (webgl_util.hasExtension(gl, COLOR_BUFFER_HALF_FLOAT)) {
         this.colorBufferHalfFloatExtension =
             gl.getExtension(COLOR_BUFFER_HALF_FLOAT);
@@ -105,19 +105,15 @@ export class GPGPUContext {
     }
     const debug = true;
     const gl = getActiveContext();
-    webgl_util.checkWebGLError(gl);
-    webgl_util.callAndCheck(gl, debug, () => gl.finish());
+    checkWebGLError(gl);
+    callAndCheck(gl, debug, () => gl.finish());
     // TODO(kreeger): This bind framebuffer call can throw an INVALID_OPERATION
     // error on WebGL2 - fix this.
-    webgl_util.callAndCheck(
-        gl, debug, () => gl.bindFramebuffer(gl.FRAMEBUFFER, null));
-    webgl_util.callAndCheck(
-        gl, debug, () => gl.deleteFramebuffer(this.framebuffer));
-    webgl_util.callAndCheck(
-        gl, debug, () => gl.bindBuffer(gl.ARRAY_BUFFER, null));
-    webgl_util.callAndCheck(
-        gl, debug, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null));
-    webgl_util.callAndCheck(gl, debug, () => gl.deleteBuffer(this.indexBuffer));
+    callAndCheck(gl, debug, () => gl.bindFramebuffer(gl.FRAMEBUFFER, null));
+    callAndCheck(gl, debug, () => gl.deleteFramebuffer(this.framebuffer));
+    callAndCheck(gl, debug, () => gl.bindBuffer(gl.ARRAY_BUFFER, null));
+    callAndCheck(gl, debug, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null));
+    callAndCheck(gl, debug, () => gl.deleteBuffer(this.indexBuffer));
     this.disposed = true;
     // TODO(kreeger): Needed or used?
     // disposeWebGLContext();
@@ -181,8 +177,8 @@ export class GPGPUContext {
           getActiveContext(), this.debug, this.framebuffer);
       this.outputTexture = null;
     }
-    console.log('    texture: ' + texture);
-    webgl_util.callAndCheck(
+    // console.log('    texture: ' + texture);
+    callAndCheck(
         getActiveContext(), true,
         () => getActiveContext().deleteTexture(texture));
   }
@@ -280,9 +276,8 @@ export class GPGPUContext {
         gl,
         this.debug,
     );
-    webgl_util.callAndCheck(
-        gl, this.debug, () => gl.attachShader(program, vertexShader));
-    webgl_util.callAndCheck(
+    callAndCheck(gl, this.debug, () => gl.attachShader(program, vertexShader));
+    callAndCheck(
         gl, this.debug, () => gl.attachShader(program, fragmentShader));
     webgl_util.linkProgram(gl, this.debug, program);
     if (this.debug) {
@@ -302,7 +297,7 @@ export class GPGPUContext {
       this.program = null;
     }
     if (program != null) {
-      webgl_util.callAndCheck(
+      callAndCheck(
           getActiveContext(), this.debug,
           () => getActiveContext().deleteProgram(program));
     }
@@ -314,7 +309,7 @@ export class GPGPUContext {
     if ((this.program != null) && this.debug) {
       webgl_util.validateProgram(getActiveContext(), this.debug, this.program);
     }
-    webgl_util.callAndCheck(
+    callAndCheck(
         getActiveContext(), this.debug,
         () => getActiveContext().useProgram(program));
   }
@@ -335,7 +330,7 @@ export class GPGPUContext {
   public getAttributeLocation(program: WebGLProgram, attribute: string):
       number {
     this.throwIfDisposed();
-    return webgl_util.callAndCheck(
+    return callAndCheck(
         getActiveContext(), this.debug,
         () => getActiveContext().getAttribLocation(program, attribute));
   }
@@ -396,14 +391,14 @@ export class GPGPUContext {
     if (this.debug) {
       this.debugValidate();
     }
-    webgl_util.callAndCheck(
+    callAndCheck(
         gl, this.debug,
         () => gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0));
   }
 
   public blockUntilAllProgramsCompleted() {
     this.throwIfDisposed();
-    webgl_util.callAndCheck(
+    callAndCheck(
         getActiveContext(), this.debug, () => getActiveContext().finish());
   }
 
@@ -595,16 +590,14 @@ export class GPGPUContext {
       webgl_util.validateFramebuffer(gl);
     }
     this.outputTexture = outputMatrixTextureMaybePacked;
-    webgl_util.callAndCheck(
-        gl, this.debug, () => gl.viewport(0, 0, width, height));
-    webgl_util.callAndCheck(
-        gl, this.debug, () => gl.scissor(0, 0, width, height));
+    callAndCheck(gl, this.debug, () => gl.viewport(0, 0, width, height));
+    callAndCheck(gl, this.debug, () => gl.scissor(0, 0, width, height));
   }
 
   private setOutputMatrixWriteRegionDriver(
       x: number, y: number, width: number, height: number) {
     this.throwIfDisposed();
-    webgl_util.callAndCheck(
+    callAndCheck(
         getActiveContext(), this.debug,
         () => getActiveContext().scissor(x, y, width, height));
   }
