@@ -56,6 +56,36 @@ function relu_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
+ * Computes rectified linear 6 element-wise: `min(max(x, 0), 6)`.
+ *
+ * ```js
+ * const x = tf.tensor1d([-1, 2, -3, 8]);
+ *
+ * x.relu6().print();  // or tf.relu6(x)
+ * ```
+ * @param x The input tensor. If the dtype is `bool`, the output dtype will be
+ *     `int32'.
+ */
+/** @doc {heading: 'Operations', subheading: 'Basic math'} */
+function relu6_<T extends Tensor>(x: T|TensorLike): T {
+  const $x = convertToTensor(x, 'x', 'relu6');
+
+  if ($x.dtype === 'bool') {
+    return $x.toInt();
+  }
+  const grad = (dy: T, saved: Tensor[]) => {
+    const [$x] = saved;
+    const mask = $x.lessEqual(6).mul($x.step());
+    return {$x: () => dy.mulStrict(mask.toFloat() as T)};
+  };
+  return ENGINE.runKernel((backend, save) => {
+    const res = backend.relu6($x);
+    save([$x]);
+    return res;
+  }, {$x}, grad);
+}
+
+/**
  * Computes exponential linear element-wise: `x > 0 ? e ^ x - 1 : 0`.
  *
  * ```js
@@ -189,4 +219,5 @@ export const elu = op({elu_});
 export const leakyRelu = op({leakyRelu_});
 export const prelu = op({prelu_});
 export const relu = op({relu_});
+export const relu6 = op({relu6_});
 export const selu = op({selu_});
