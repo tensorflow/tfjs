@@ -56,6 +56,8 @@ function mapActivation(
     return backend.relu(x);
   } else if (activation === 'elu') {
     return backend.elu(x);
+  } else if (activation === 'relu6') {
+    return backend.relu6(x);
   } else if (activation === 'prelu') {
     return backend.prelu(x, preluActivationWeights);
   }

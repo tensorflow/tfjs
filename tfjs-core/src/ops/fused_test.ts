@@ -56,6 +56,19 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await c.data(), [0, 8, -0.9502, 20]);
   });
 
+  fit('A x B with relu6', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const c = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: null, activation: 'relu6'});
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0, 6, 0, 6]);
+  });
+
   it('A x B with prelu', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
