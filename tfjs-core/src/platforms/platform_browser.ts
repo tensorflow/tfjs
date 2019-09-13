@@ -20,13 +20,9 @@ import {Platform} from './platform';
 
 export class PlatformBrowser implements Platform {
 
-  private textEncoder: TextEncoder;
-
-  constructor() {
   // According to the spec, the built-in encoder can do only UTF-8 encoding.
   // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
-  this.textEncoder = null;
-  }
+  private textEncoder: TextEncoder;
 
   fetch(path: string, init?: RequestInit): Promise<Response> {
     return fetch(path, init);
