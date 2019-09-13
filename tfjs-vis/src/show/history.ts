@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Logs} from '@tensorflow/tfjs-layers/dist/logs';
+import {Logs} from '@tensorflow/tfjs-layers';
 
 import {linechart} from '../render/linechart';
 import {getDrawArea, nextFrame} from '../render/render_utils';
