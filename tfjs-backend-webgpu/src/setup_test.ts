@@ -31,7 +31,8 @@ const grepFilter = env.specFilter;
 const INCLUDE_LIST: string[] = [
   'matmul', 'add ', 'subtract ', 'mul ', 'conv2d', 'pad', 'pool', 'maxPool',
   'floor divide ', 'resizeBilinear', 'relu', 'transpose', 'concat', 'argmax',
-  'fromPixels', 'depthwise', 'div'
+  // 'fromPixels',
+  'depthwise', 'div'
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
@@ -75,7 +76,8 @@ const EXCLUDE_LIST: string[] = [
   'RFFT',                                                // Not yet implemented.
   'fused',                                               // Not yet implemented.
   'NCHW',                                                // Not yet implemented.
-  'maxPool3d'                                            // Not yet implemented.
+  'maxPool3d',                                           // Not yet implemented.
+  'frame'                                                // Not yet implemented.
 ];
 
 /**
