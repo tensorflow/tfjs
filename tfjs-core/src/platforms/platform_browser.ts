@@ -20,6 +20,14 @@ import {Platform} from './platform';
 
 export class PlatformBrowser implements Platform {
 
+  private textEncoder: TextEncoder;
+
+  constructor() {
+  // According to the spec, the built-in encoder can do only UTF-8 encoding.
+  // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
+  this.textEncoder = null;
+  }
+
   fetch(path: string, init?: RequestInit): Promise<Response> {
     return fetch(path, init);
   }
@@ -33,7 +41,10 @@ export class PlatformBrowser implements Platform {
       throw new Error(
           `Browser's encoder only supports utf-8, but got ${encoding}`);
     }
-    return new TextEncoder().encode(text);
+    if (this.textEncoder == null) {
+      this.textEncoder = new TextEncoder();
+    }
+    return this.textEncoder().encode(text);
   }
   decode(bytes: Uint8Array, encoding: string): string {
     return new TextDecoder(encoding).decode(bytes);
