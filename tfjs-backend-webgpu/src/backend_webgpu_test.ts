@@ -138,8 +138,7 @@ describeWebGPU('backend webgpu', () => {
     tf.matMul(c, f);
     const freeBuffersAfterFirstMatMul = bufferManager.getNumFreeBuffers();
     const usedBuffersAfterFirstMatMul = bufferManager.getNumUsedBuffers();
-    expect(freeBuffersAfterFirstMatMul - freeBuffersAfterFirstMul)
-        .toEqual(0);
+    expect(freeBuffersAfterFirstMatMul - freeBuffersAfterFirstMul).toEqual(0);
     expect(usedBuffersAfterFirstMatMul - usedBuffersAfterFirstMul).toEqual(3);
 
     const a2 = tf.tensor2d([2, 4, 6, 8], [2, 2]);
@@ -148,8 +147,7 @@ describeWebGPU('backend webgpu', () => {
     const c2 = tf.mul(a2, b2);
     const freeBuffersAfterSecondMul = bufferManager.getNumFreeBuffers();
     const usedBuffersAfterSecondMul = bufferManager.getNumUsedBuffers();
-    expect(freeBuffersAfterSecondMul - freeBuffersAfterFirstMatMul)
-        .toEqual(0);
+    expect(freeBuffersAfterSecondMul - freeBuffersAfterFirstMatMul).toEqual(0);
     expect(usedBuffersAfterSecondMul - usedBuffersAfterFirstMatMul).toEqual(4);
 
     const f2 = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
