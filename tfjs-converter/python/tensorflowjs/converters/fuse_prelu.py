@@ -39,7 +39,7 @@ def register_prelu_op():
   """
 
   value = attr_value_pb2.AttrValue()
-  value.list.type.extend([types_pb2.DT_FLOAT])
+  value.list.type.extend([types_pb2.DataType.DT_FLOAT])
   attr = op_def_pb2.OpDef.AttrDef()
   attr.name = 'T'
   attr.type = 'type'
