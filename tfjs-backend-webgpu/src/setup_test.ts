@@ -75,7 +75,9 @@ const EXCLUDE_LIST: string[] = [
   'RFFT',                                                // Not yet implemented.
   'fused',                                               // Not yet implemented.
   'NCHW',                                                // Not yet implemented.
-  'maxPool3d'                                            // Not yet implemented.
+  'maxPool3d',                                           // Not yet implemented.
+  'frame',                                               // Not yet implemented.
+  'HTMLVideolement'
 ];
 
 /**
