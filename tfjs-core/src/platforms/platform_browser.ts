@@ -19,16 +19,6 @@ import {ENV} from '../environment';
 import {Platform} from './platform';
 
 export class PlatformBrowser implements Platform {
-  private textEncoder: TextEncoder;
-
-  constructor() {
-
-    // Workaround for IE11 compatibility
-    // More info: https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder
-    if (!isIE()) {
-      this.textEncoder = new TextEncoder();
-    }
-  }
 
   fetch(path: string, init?: RequestInit): Promise<Response> {
     return fetch(path, init);
@@ -40,22 +30,11 @@ export class PlatformBrowser implements Platform {
 
   encode(text: string, encoding: string): Uint8Array {
     if (encoding !== 'utf-8' && encoding !== 'utf8') {
-        throw new Error(
-            `Browser's encoder only supports utf-8, but got ${encoding}`);
-      }
-   if (!isIE()) {
-      return this.textEncoder.encode(text);
-    } else {
-        // Workaround for IE11 compatibility
-        const utf8 = unescape(encodeURIComponent(text));
-        const result = new Uint8Array(utf8.length);
-        for (let i = 0; i < utf8.length; i++) {
-          result[i] = utf8.charCodeAt(i);
-        }
-      return result;
+      throw new Error(
+          `Browser's encoder only supports utf-8, but got ${encoding}`);
     }
+    return new TextEncoder.encode(text);
   }
-
   decode(bytes: Uint8Array, encoding: string): string {
     return new TextDecoder(encoding).decode(bytes);
   }
@@ -63,14 +42,4 @@ export class PlatformBrowser implements Platform {
 
 if (ENV.get('IS_BROWSER')) {
   ENV.setPlatform('browser', new PlatformBrowser());
-}
-
-/**
- * Tests if the user is in an Internet Explorer browser window.
- */
-function isIE() {
-  const ua = navigator.userAgent;
-  const msie = ua.indexOf('MSIE '); // IE 10 or older
-  const trident = ua.indexOf('Trident/'); //IE 11
-  return (msie > 0 || trident > 0);
 }
