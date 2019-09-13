@@ -5,7 +5,7 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# Install dependencies.
+# Install webgpu dependencies.
 - name: 'node:10'
   dir: 'tfjs-backend-webgpu'
   id: 'yarn'
@@ -13,7 +13,7 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Install webgpu dependencies.
+# Run tests.
 - name: 'node:10'
   dir: 'tfjs-backend-webgpu'
   entrypoint: 'yarn'
