@@ -1,10 +1,17 @@
 steps:
 # Install common dependencies.
 - name: 'node:10'
-  dir: 'tfjs-backend-webgpu'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
+
+# Install dependencies.
+- name: 'node:10'
+  dir: 'tfjs-backend-webgpu'
+  id: 'yarn'
+  entrypoint: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
 
 # Install webgpu dependencies.
 - name: 'node:10'
@@ -12,7 +19,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-webgpu'
   args: ['test-ci']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn']
 
 # General configuration
 timeout: 1800s
