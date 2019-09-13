@@ -56,6 +56,8 @@ function mapActivation(
     return backend.relu(x);
   } else if (activation === 'elu') {
     return backend.elu(x);
+  } else if (activation === 'relu6') {
+    return backend.relu6(x);
   } else if (activation === 'prelu') {
     return backend.prelu(x, preluActivationWeights);
   }
@@ -1193,6 +1195,18 @@ export class MathBackendCPU implements KernelBackend {
     const inVals = this.readSync(x.dataId) as TypedArray;
     for (let i = 0; i < inVals.length; ++i) {
       resVals[i] = Math.max(0, inVals[i]);
+    }
+    return res as T;
+  }
+
+  relu6<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'relu');
+
+    const res = ops.zeros(x.shape, x.dtype);
+    const resVals = this.readSync(res.dataId) as TypedArray;
+    const inVals = this.readSync(x.dataId) as TypedArray;
+    for (let i = 0; i < inVals.length; ++i) {
+      resVals[i] = Math.min(Math.max(0, inVals[i]), 6);
     }
     return res as T;
   }

@@ -42,6 +42,18 @@ export const RELU = `
   return result;
 `;
 
+export const RELU6 = `
+  vec4 result = min(x, vec4(6.)) * vec4(greaterThanEqual(x, vec4(0.0)));
+  bvec4 isNaN = isnan(x);
+
+  result.r = isNaN.r ? x.r : result.r;
+  result.g = isNaN.g ? x.g : result.g;
+  result.b = isNaN.b ? x.b : result.b;
+  result.a = isNaN.a ? x.a : result.a;
+
+  return result;
+`;
+
 export const ELU = `
   vec4 result;
 

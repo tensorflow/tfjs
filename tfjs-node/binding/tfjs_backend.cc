@@ -735,6 +735,9 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
   // If no GPU devices found, fallback to host CPU:
   if (device_name.empty()) {
     device_name = cpu_device_name;
+    is_gpu_device = false;
+  } else {
+    is_gpu_device = true;
   }
   TF_DeleteDeviceList(device_list);
 }
