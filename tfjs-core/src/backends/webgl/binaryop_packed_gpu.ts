@@ -35,24 +35,16 @@ export const DIV = `
   // vec4 one = vec4(equal(a, b));
   // return one + (vec4(1.0) - one) * a / b;
   vec4 result = a / b;
-  if(b.x == 0.0) {
-    result.x = NAN;
-  } else if(a.x == b.x) {
+  if(a.x == b.x) {
     result.x = 1.;
   }
-  if(b.y == 0.0) {
-    result.y = NAN;
-  } else if(a.y == b.y) {
+  if(a.y == b.y) {
     result.y = 1.;
   }
-  if(b.z == 0.0) {
-    result.z = NAN;
-  } else if(a.z == b.z) {
+  if(a.z == b.z) {
     result.z = 1.;
   }
-  if(b.w == 0.0) {
-    result.w = NAN;
-  } else if(a.w == b.w) {
+  if(a.w == b.w) {
     result.w = 1.;
   }
 

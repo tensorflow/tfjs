@@ -31,9 +31,6 @@ export const MUL = 'return a * b;';
 // Without the equality check div produces 0.9999 for a = b, which when
 // floored can cause errors.
 export const DIV = `
-if (b == 0.0) {
-  return NAN;
-}
 if (a == b) {
   return 1.0;
 };
