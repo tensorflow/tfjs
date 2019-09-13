@@ -44,7 +44,7 @@ export class PlatformBrowser implements Platform {
     if (this.textEncoder == null) {
       this.textEncoder = new TextEncoder();
     }
-    return this.textEncoder().encode(text);
+    return this.textEncoder.encode(text);
   }
   decode(bytes: Uint8Array, encoding: string): string {
     return new TextDecoder(encoding).decode(bytes);
