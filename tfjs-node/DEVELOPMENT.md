@@ -79,7 +79,7 @@ Publishing this package requires uploading objects to GCP bucket. Developers nee
 #### Build and upload node addon to Google Cloud Platform
 
 ```sh
-$ yarn build-addon upload
+$ yarn build-addon cpu for-publish
 ```
 
 This command will compile, compress, and upload a new node addon to GCP bucket. Please read [build-and-upload-addon.sh](./scripts/build-and-upload-addon.sh) for details.
@@ -112,7 +112,6 @@ This command compiles a new node addon, upload it to GCP, then builds and publis
 
 ```sh
 $ yarn upload-windows-addon
-$ yarn upload-windows-addon-gpu
 ```
 
 Most times the NPM package is published on Linux machine, and only the Linux node addon is compiled and uploaded to GCP bucket. To build and upload the native node addon for Windows, developers should run the above commands on Windows machine. Please read [build-and-upload-windows-addon.bat](./scripts/build-and-upload-windows-addon.bat) for details.

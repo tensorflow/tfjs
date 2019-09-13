@@ -28,7 +28,7 @@ import {io} from '@tensorflow/tfjs-core';
 export function nodeHTTPRequest(
     path: string, requestInit?: RequestInit,
     weightPathPrefix?: string): io.IOHandler {
-  return io.browserHTTPRequest(path as string, {requestInit, weightPathPrefix});
+  return io.browserHTTPRequest(path, {requestInit, weightPathPrefix});
 }
 
 export const nodeHTTPRequestRouter = (url: string) => {

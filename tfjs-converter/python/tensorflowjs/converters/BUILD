@@ -61,6 +61,29 @@ py_test(
 )
 
 py_library(
+    name = "fuse_prelu",
+    srcs = ["fuse_prelu.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":common",
+        "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
+py_test(
+    name = "fuse_prelu_test",
+    srcs = ["fuse_prelu_test.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":fuse_prelu",
+        ":tf_saved_model_conversion_v2",
+        "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
+py_library(
     name = "fold_batch_norms",
     srcs = ["fold_batch_norms.py"],
     srcs_version = "PY2AND3",
@@ -99,13 +122,37 @@ py_library(
     data = ["//tensorflowjs:op_list_jsons"],
     srcs_version = "PY2AND3",
     deps = [
+        ":common",
+        ":fold_batch_norms",
+        ":fuse_prelu",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
         "//tensorflowjs:expect_tensorflow_hub_installed",
         "//tensorflowjs:version",
         "//tensorflowjs:write_weights",
-        "//tensorflowjs/converters:common",
-        "//tensorflowjs/converters:fold_batch_norms",
+    ],
+)
+
+py_test(
+    name = "wizard_test",
+    srcs = ["wizard_test.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":wizard",
+        "//tensorflowjs:expect_numpy_installed",
+    ],
+)
+
+py_binary(
+    name = "wizard",
+    srcs = ["wizard.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":common",
+        ":converter",
+        ":fuse_prelu",
+        "//tensorflowjs:expect_h5py_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
     ],
 )
 

@@ -34,7 +34,7 @@ interface SurfaceProps extends SurfaceInfoStrict {
 export class SurfaceComponent extends Component<SurfaceProps> {
 
   static defaultStyles: Partial<StyleOptions> = {
-    maxWidth: '580px',
+    maxWidth: '550px',
     maxHeight: '580px',
     height: 'auto',
     width: 'auto',
@@ -99,16 +99,16 @@ export class SurfaceComponent extends Component<SurfaceProps> {
     return (
       <div
         className={`${surfaceStyle} tf-surface`}
-        ref={(r) => this.container = r!}
+        ref={(r) => this.container = r}
         data-visible={visible}
       >
-        <div className={`${labelStyle} tf-label`} ref={(r) => this.label = r!}>
+        <div className={`${labelStyle} tf-label`} ref={(r) => this.label = r}>
           {name}
         </div>
 
         <div
           className={`${drawAreaStyle} tf-draw-area`}
-          ref={(r) => this.drawArea = r!}
+          ref={(r) => this.drawArea = r}
         />
       </div>
     );

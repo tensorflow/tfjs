@@ -29,6 +29,8 @@ from tensorflow.python.framework import convert_to_constants
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.saved_model.load import load
+from tensorflow.python.saved_model import loader
+from tensorflow.python.tools import saved_model_utils
 from tensorflow.python.training.saver import export_meta_graph
 from google.protobuf.json_format import MessageToDict
 import tensorflow_hub as hub
@@ -36,6 +38,7 @@ import tensorflow_hub as hub
 from tensorflowjs import write_weights
 from tensorflowjs.converters import common
 from tensorflowjs.converters import fold_batch_norms
+from tensorflowjs.converters import fuse_prelu
 
 # enable eager execution for v2 APIs
 tf.compat.v1.enable_eager_execution()
@@ -118,6 +121,7 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
   """
+  fuse_prelu.register_prelu_func(graph)
 
   # Add a collection 'train_op' so that Grappler knows the outputs.
   for output in output_node_names:
@@ -131,6 +135,10 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
     raise ValueError('Unsupported Ops in the model before optimization\n' +
                      ', '.join(unsupported))
 
+  # Because TF break the Prelu op into 6 ops, for performance we are
+  # fusing those ops into a single prelu
+  optimized_graph = fuse_prelu.fuse_ops_for_prelu(graph_def)
+
   # first pass of grappler optimization, this is needed for batch norm folding.
   config = config_pb2.ConfigProto()
   rewriter_config = config.graph_options.rewrite_options
@@ -141,7 +149,7 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
   if strip_debug_ops:
     rewriter_config.optimizers.insert(0, 'debug_stripper')
 
-  optimized_graph = _run_grappler(config, graph_def, graph)
+  optimized_graph = _run_grappler(config, optimized_graph, graph)
 
   # batch norm folding
   optimized_graph = fold_batch_norms.fold_batch_norms(optimized_graph)
@@ -159,6 +167,11 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
   ]
 
   optimized_graph = _run_grappler(config, optimized_graph, graph)
+
+  # Since the grappler remap optimizer doe snot support prelu as the activation
+  # function for _FusedConv2D op, we are doing it manually here.
+  optimized_graph = fuse_prelu.fuse_prelu_with_fused_conv2d(optimized_graph)
+
   unsupported = validate(optimized_graph.node, skip_op_check,
                          strip_debug_ops)
 
@@ -195,6 +208,8 @@ def extract_weights(graph_def,
   const_manifest = []
 
   graph = tf.Graph()
+  fuse_prelu.register_prelu_func(graph)
+
   with tf.compat.v1.Session(graph=graph) as sess:
     tf.import_graph_def(graph_def, name='')
     for const in constants:
@@ -259,15 +274,20 @@ def _check_signature_in_model(saved_model, signature_name):
                                             saved_model.signatures.keys()))
 
 
-def _freeze_saved_model_v1(graph, output_node_names):
-  frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
-      tf.compat.v1.Session(), graph.as_graph_def(), output_node_names)
+def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
+                           output_node_names):
+  with tf.compat.v1.Session() as sess:
+    loader.load(sess, saved_model_tags, saved_model_dir)
+    input_graph_def = saved_model_utils.get_meta_graph_def(
+        saved_model_dir, ','.join(saved_model_tags)).graph_def
+    frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
+        sess, input_graph_def, output_node_names)
 
-  frozen_graph = tf.Graph()
-  with frozen_graph.as_default():
-    tf.import_graph_def(frozen_graph_def, name='')
+    frozen_graph = tf.Graph()
+    with frozen_graph.as_default():
+      tf.import_graph_def(frozen_graph_def, name='')
 
-  return frozen_graph
+    return frozen_graph
 
 def _freeze_saved_model_v2(concrete_func):
   return convert_to_constants.convert_variables_to_constants_v2(
@@ -323,8 +343,8 @@ def convert_tf_saved_model(saved_model_dir,
   try:
     frozen_graph = _freeze_saved_model_v2(concrete_func)
   except BaseException:
-    frozen_graph = _freeze_saved_model_v1(
-        concrete_func.graph, output_node_names)
+    frozen_graph = _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
+                                          output_node_names)
 
   optimize_graph(frozen_graph, output_node_names, output_graph,
                  model.tensorflow_version,

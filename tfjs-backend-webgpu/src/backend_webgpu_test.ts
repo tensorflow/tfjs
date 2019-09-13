@@ -43,7 +43,7 @@ describeWebGPU('backend webgpu', () => {
 
     expect(endNumBytes - startNumBytes).toEqual(48);
     expect(endNumTensors - startNumTensors).toEqual(2);
-    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(48);
+    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(24);
 
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
@@ -120,7 +120,7 @@ describeWebGPU('backend webgpu', () => {
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 
-  it('should recycle buffers in delayed mode', () => {
+  it('should not recycle buffers in delayed mode', () => {
     const savedFlag = tf.ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', false);
     const backend = tf.backend() as WebGPUBackend;
@@ -138,9 +138,8 @@ describeWebGPU('backend webgpu', () => {
     tf.matMul(c, f);
     const freeBuffersAfterFirstMatMul = bufferManager.getNumFreeBuffers();
     const usedBuffersAfterFirstMatMul = bufferManager.getNumUsedBuffers();
-    expect(freeBuffersAfterFirstMatMul - freeBuffersAfterFirstMul)
-        .toEqual(1);  // from released uniform
-    expect(usedBuffersAfterFirstMatMul - usedBuffersAfterFirstMul).toEqual(2);
+    expect(freeBuffersAfterFirstMatMul - freeBuffersAfterFirstMul).toEqual(0);
+    expect(usedBuffersAfterFirstMatMul - usedBuffersAfterFirstMul).toEqual(3);
 
     const a2 = tf.tensor2d([2, 4, 6, 8], [2, 2]);
     const b2 = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
@@ -148,16 +147,15 @@ describeWebGPU('backend webgpu', () => {
     const c2 = tf.mul(a2, b2);
     const freeBuffersAfterSecondMul = bufferManager.getNumFreeBuffers();
     const usedBuffersAfterSecondMul = bufferManager.getNumUsedBuffers();
-    expect(freeBuffersAfterSecondMul - freeBuffersAfterFirstMatMul)
-        .toEqual(0);  // released a uniform buffer and reused a buffer
-    expect(usedBuffersAfterSecondMul - usedBuffersAfterFirstMatMul).toEqual(3);
+    expect(freeBuffersAfterSecondMul - freeBuffersAfterFirstMatMul).toEqual(0);
+    expect(usedBuffersAfterSecondMul - usedBuffersAfterFirstMatMul).toEqual(4);
 
     const f2 = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     tf.matMul(c2, f2);
     const freeBuffersAfterSecondMatMul = bufferManager.getNumFreeBuffers();
     const usedBuffersAfterSecondMatMul = bufferManager.getNumUsedBuffers();
     expect(freeBuffersAfterSecondMatMul - freeBuffersAfterSecondMul).toEqual(0);
-    expect(usedBuffersAfterSecondMatMul - usedBuffersAfterSecondMul).toEqual(2);
+    expect(usedBuffersAfterSecondMatMul - usedBuffersAfterSecondMul).toEqual(3);
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 

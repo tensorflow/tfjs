@@ -42,6 +42,29 @@ export const RELU = `
   return result;
 `;
 
+export const RELU6 = `
+  vec4 result = min(x, vec4(6.)) * vec4(greaterThanEqual(x, vec4(0.0)));
+  bvec4 isNaN = isnan(x);
+
+  result.r = isNaN.r ? x.r : result.r;
+  result.g = isNaN.g ? x.g : result.g;
+  result.b = isNaN.b ? x.b : result.b;
+  result.a = isNaN.a ? x.a : result.a;
+
+  return result;
+`;
+
+export const ELU = `
+  vec4 result;
+
+  result.r = (x.r >= 0.0) ? x.r : (exp(x.r) - 1.0);
+  result.g = (x.g >= 0.0) ? x.g : (exp(x.g) - 1.0);
+  result.b = (x.b >= 0.0) ? x.b : (exp(x.b) - 1.0);
+  result.a = (x.a >= 0.0) ? x.a : (exp(x.a) - 1.0);
+
+  return result;
+`;
+
 export class UnaryOpPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;

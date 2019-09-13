@@ -4,12 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "prep": "cd node_modules/@tensorflow/tfjs-node && yarn clean-deps && yarn",
+    "prep": "yalc link @tensorflow/tfjs-node && cd node_modules/@tensorflow/tfjs-node && yarn clean-deps && yarn",
     "test": "ts-node src/test.ts && tsc && node dist/test.js"
   },
   "dependencies": {
     "ts-node": "^8.0.3",
-    "typescript": "3.3.3333",
+    "typescript": "3.5.3",
     "yalc": "^1.0.0-pre.27"
   }
 }

@@ -17,9 +17,71 @@
 
 import * as device_util from '../../device_util';
 import {ENV} from '../../environment';
+import * as tf from '../../index';
+import {describeWithFlags} from '../../jasmine_util';
 import {webgl_util} from '../../webgl';
 
+import {WEBGL_ENVS} from './backend_webgl_test_registry';
 import * as canvas_util from './canvas_util';
+
+describe('WEBGL_FORCE_F16_TEXTURES', () => {
+  afterAll(() => ENV.reset());
+
+  it('can be activated via forceHalfFloat utility', () => {
+    tf.webgl.forceHalfFloat();
+    expect(ENV.getBool('WEBGL_FORCE_F16_TEXTURES')).toBe(true);
+  });
+
+  it('turns off WEBGL_RENDER_FLOAT32_ENABLED', () => {
+    ENV.reset();
+    tf.webgl.forceHalfFloat();
+    expect(ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED')).toBe(false);
+  });
+});
+
+const RENDER_FLOAT32_ENVS = {
+  flags: {'WEBGL_RENDER_FLOAT32_CAPABLE': true},
+  predicate: WEBGL_ENVS.predicate
+};
+
+const RENDER_FLOAT16_ENVS = {
+  flags: {'WEBGL_RENDER_FLOAT32_CAPABLE': false},
+  predicate: WEBGL_ENVS.predicate
+};
+
+describeWithFlags('WEBGL_RENDER_FLOAT32_CAPABLE', RENDER_FLOAT32_ENVS, () => {
+  beforeEach(() => {
+    ENV.reset();
+  });
+
+  afterAll(() => ENV.reset());
+
+  it('should be independent of forcing f16 rendering', () => {
+    tf.webgl.forceHalfFloat();
+    expect(ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE')).toBe(true);
+  });
+
+  it('if user is not forcing f16, device should render to f32', () => {
+    expect(ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED')).toBe(true);
+  });
+});
+
+describeWithFlags('WEBGL_RENDER_FLOAT32_CAPABLE', RENDER_FLOAT16_ENVS, () => {
+  beforeEach(() => {
+    ENV.reset();
+  });
+
+  afterAll(() => ENV.reset());
+
+  it('should be independent of forcing f16 rendering', () => {
+    tf.webgl.forceHalfFloat();
+    expect(ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE')).toBe(false);
+  });
+
+  it('should be reflected in WEBGL_RENDER_FLOAT32_ENABLED', () => {
+    expect(ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED')).toBe(false);
+  });
+});
 
 describe('HAS_WEBGL', () => {
   beforeEach(() => ENV.reset());

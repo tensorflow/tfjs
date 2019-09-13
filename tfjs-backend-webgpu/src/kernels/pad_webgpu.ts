@@ -29,7 +29,7 @@ export class PadProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   workPerThread = 8;
-  workGroupSize: [number, number, number] = [1, 1, 1];
+  workGroupSize: [number, number, number] = [16, 1, 1];
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,

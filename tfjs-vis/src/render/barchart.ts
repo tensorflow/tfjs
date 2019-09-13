@@ -18,7 +18,7 @@
 import embed, {Mode, Result as EmbedRes, VisualizationSpec} from 'vega-embed';
 
 import {Drawable, VisOptions} from '../types';
-
+import {getDefaultHeight, getDefaultWidth} from '../util/dom';
 import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
 
 /**
@@ -52,7 +52,7 @@ export async function barchart(
   // If we have rendered this chart before with the same options we can do a
   // data only update, else  we do a regular re-render.
   if (instances.has(drawArea)) {
-    const instanceInfo = instances.get(drawArea)!;
+    const instanceInfo = instances.get(drawArea);
     if (shallowEquals(options, instanceInfo.lastOptions)) {
       await nextFrame();
       const view = instanceInfo.view;
@@ -81,8 +81,8 @@ export async function barchart(
   };
 
   const spec: VisualizationSpec = {
-    'width': options.width || drawArea.clientWidth,
-    'height': options.height || drawArea.clientHeight,
+    'width': options.width || getDefaultWidth(drawArea),
+    'height': options.height || getDefaultHeight(drawArea),
     'padding': 0,
     'autosize': {
       'type': 'fit',

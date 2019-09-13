@@ -35,6 +35,8 @@ import chalk from 'chalk';
 interface Phase {
   // The list of packages that will be updated with this change.
   packages: string[];
+  // The repository *only if it is not the same as tfjs*.
+  repo?: string;
   // The list of dependencies that all of the packages will update to.
   deps?: string[];
   // An ordered list of scripts to run after yarn is called and before the pull
@@ -70,6 +72,7 @@ const VIS_PHASE: Phase = {
 };
 
 const WEBSITE_PHASE: Phase = {
+  repo: 'tfjs-website',
   packages: ['tfjs-website'],
   deps: ['tfjs', 'tfjs-node', 'tfjs-vis'],
   scripts: ['yarn build-prod'],
@@ -117,7 +120,7 @@ async function main() {
   const packages = PHASES[phaseInt].packages;
   const deps = PHASES[phaseInt].deps || [];
 
-  const dir = `${TMP_DIR}/tfjs`;
+  const dir = `${TMP_DIR}/${phase.repo == null ? `tfjs` : phase.repo}`;
   mkdirp(TMP_DIR, err => {
     if (err) {
       console.log('Error creating temp dir', TMP_DIR);
@@ -127,19 +130,30 @@ async function main() {
   $(`rm -f -r ${dir}/*`);
   $(`rm -f -r ${dir}`);
   $(`mkdir ${dir}`);
-  $(`git clone https://github.com/tensorflow/tfjs ${dir} --depth=1`);
-  shell.cd(dir);
+
+  if (phase.repo != null) {
+    $(`git clone https://github.com/tensorflow/${phase.repo} ${dir} --depth=1`);
+    shell.cd(dir);
+  } else {
+    $(`git clone https://github.com/tensorflow/tfjs ${dir} --depth=1`);
+    shell.cd(dir);
+  }
 
   const newVersions = [];
   for (let i = 0; i < packages.length; i++) {
     const packageName = packages[i];
-    shell.cd(packageName);
+    if (phase.repo == null) {
+      shell.cd(packageName);
+    }
 
     const depsLatestVersion: string[] =
         deps.map(dep => $(`npm view @tensorflow/${dep} dist-tags.latest`));
 
     // Update the version.
-    let pkg = `${fs.readFileSync(`${dir}/${packageName}/package.json`)}`;
+    const packageJsonPath = phase.repo == null ?
+        `${dir}/${packageName}/package.json` :
+        `${dir}/package.json`
+    let pkg = `${fs.readFileSync(packageJsonPath)}`;
     const parsedPkg = JSON.parse(`${pkg}`);
 
     console.log(chalk.magenta.bold(
@@ -197,14 +211,17 @@ async function main() {
       }
     }
 
-    fs.writeFileSync(`${dir}/${packageName}/package.json`, pkg);
+    fs.writeFileSync(packageJsonPath, pkg);
     $(`yarn`);
     if (phase.scripts != null) {
       phase.scripts.forEach(script => $(script));
     }
-
-    shell.cd('..');
-    $(`./scripts/make-version.js ${packageName}`);
+    if (phase.repo == null) {
+      shell.cd('..');
+    }
+    if (!phase.leaveVersion) {
+      $(`./scripts/make-version.js ${packageName}`);
+    }
     newVersions.push(newVersion);
   }
 

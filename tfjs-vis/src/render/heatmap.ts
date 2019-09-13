@@ -19,6 +19,7 @@ import * as tf from '@tensorflow/tfjs';
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
 import {Drawable, HeatmapData, HeatmapOptions} from '../types';
+import {getDefaultHeight, getDefaultWidth} from '../util/dom';
 import {assert} from '../util/utils';
 
 import {getDrawArea} from './render_utils';
@@ -148,7 +149,7 @@ export async function heatmap(
           number of xTickLabels (${xTickLabels.length})`);
     }
 
-    const inputArray = inputValues as number[][];
+    const inputArray = inputValues;
     for (let row = 0; row < inputArray.length; row++) {
       const x = xTickLabels ? xTickLabels[row] : row;
       if (yTickLabels) {
@@ -172,8 +173,8 @@ export async function heatmap(
   };
 
   const spec: VisualizationSpec = {
-    'width': options.width || drawArea.clientWidth,
-    'height': options.height || drawArea.clientHeight,
+    'width': options.width || getDefaultWidth(drawArea),
+    'height': options.height || getDefaultHeight(drawArea),
     'padding': 0,
     'autosize': {
       'type': 'fit',
@@ -231,13 +232,13 @@ export async function heatmap(
   }
 
   if (colorRange !== 'viridis') {
-    const fill = spec.encoding!.fill;
+    const fill = spec.encoding.fill;
     // @ts-ignore
     fill.scale = {'range': colorRange};
   }
 
   if (options.domain) {
-    const fill = spec.encoding!.fill;
+    const fill = spec.encoding.fill;
     // @ts-ignore
     if (fill.scale != null) {
       // @ts-ignore
@@ -251,7 +252,7 @@ export async function heatmap(
   await embed(drawArea, spec, embedOpts);
 }
 
-const defaultOpts = {
+const defaultOpts: HeatmapOptions = {
   xLabel: null,
   yLabel: null,
   xType: 'ordinal',

@@ -19,7 +19,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataMover, DataType, ENV, KernelBackend, Rank, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataMover, DataType, ENV, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 import * as shaderc from '@webgpu/shaderc';
 
 import {BufferManager} from './buffer_manager';
@@ -41,21 +41,7 @@ import {UnaryOpProgram} from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
 import {WebGPUBinary} from './kernels/webgpu_program';
 
-// START TO-IMPORT-FROM-CORE ============================
-// TODO(annyuan): Delete definitions in this section and import from core once
-// new release is published.
-type MemoryInfo = {
-  numTensors: number; numDataBuffers: number; numBytes: number;
-  unreliable?: boolean; reasons: string[];
-};
-
-// tslint:disable-next-line:no-any
-interface RecursiveArray<T extends any> {
-  [index: number]: T|RecursiveArray<T>;
-}
-// END TO-IMPORT-FROM-CORE ==============================
-
-export interface WebGPUMemoryInfo extends MemoryInfo {
+export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
   numBytesInGPU: number;
   unreliable: boolean;
 }
@@ -459,12 +445,16 @@ export class WebGPUBackend extends KernelBackend {
     });
     this.commandQueueOwnedIds.add(output.dataId);
 
+    const uniformInfo = {
+      byteSize: uniformData.byteLength,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
+      buffer: uniforms.resource.buffer
+    };
+    this.disposalQueue.push(uniformInfo);
+
     if (ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED')) {
       this.submitQueue();
     }
-    this.releaseBuffer(
-        uniforms.resource.buffer, uniformData.byteLength,
-        GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
 
     if (shouldTimeProgram) {
       query = this.endTimer(query);
@@ -602,6 +592,10 @@ export class WebGPUBackend extends KernelBackend {
 
   multiply(a: Tensor, b: Tensor): Tensor {
     return this.binaryOp(a, b, binary_op.MUL);
+  }
+
+  realDivide(a: Tensor, b: Tensor): Tensor {
+    return this.binaryOp(a, b, binary_op.DIV);
   }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {

@@ -19,7 +19,8 @@ export * from './batchnorm';
 export * from './boolean_mask';
 export * from './complex_ops';
 export * from './concat_split';
-export * from './conv';
+// Selectively exporting to avoid exposing gradient ops.
+export {conv1d, conv2d, conv3d, depthwiseConv2d, separableConv2d, conv2dTranspose, conv3dTranspose} from './conv';
 export * from './matmul';
 export * from './reverse';
 export * from './pool';

@@ -18,7 +18,7 @@
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
 import {ConfusionMatrixData, ConfusionMatrixOptions, Drawable,} from '../types';
-
+import {getDefaultHeight, getDefaultWidth} from '../util/dom';
 import {getDrawArea} from './render_utils';
 
 /**
@@ -134,8 +134,8 @@ export async function confusionMatrix(
   };
 
   const spec: VisualizationSpec = {
-    'width': options.width || drawArea.clientWidth,
-    'height': options.height || drawArea.clientHeight,
+    'width': options.width || getDefaultWidth(drawArea),
+    'height': options.height || getDefaultHeight(drawArea),
     'padding': 0,
     'autosize': {
       'type': 'fit',
@@ -221,7 +221,7 @@ export async function confusionMatrix(
   return Promise.resolve();
 }
 
-const defaultOpts = {
+const defaultOpts: ConfusionMatrixOptions = {
   xLabel: null,
   yLabel: null,
   xType: 'nominal',

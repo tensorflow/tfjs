@@ -52,6 +52,10 @@ export const RELU = CHECK_NAN_SNIPPET + `
   return (x < 0.0) ? 0.0 : x;
 `;
 
+export const RELU6 = CHECK_NAN_SNIPPET + `
+  return (x < 0.0) ? 0.0 : min(6.0, x);
+`;
+
 export const ELU = `return (x >= 0.0) ? x : (exp(x) - 1.0);`;
 
 export const SELU = `
@@ -206,8 +210,10 @@ export const ERF = `
   float a4 = ${erf_util.ERF_A4};
   float a5 = ${erf_util.ERF_A5};
 
+  float sign = sign(x);
+  x = abs(x);
   float t = 1.0 / (1.0 + p * x);
-  return 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x);
+  return sign * (1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x));
 `;
 
 export const SQUARE = `return x * x;`;
