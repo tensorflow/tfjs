@@ -33,7 +33,7 @@ export class PlatformBrowser implements Platform {
       throw new Error(
           `Browser's encoder only supports utf-8, but got ${encoding}`);
     }
-    return new TextEncoder.encode(text);
+    return new TextEncoder().encode(text);
   }
   decode(bytes: Uint8Array, encoding: string): string {
     return new TextDecoder(encoding).decode(bytes);
