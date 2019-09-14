@@ -16,14 +16,15 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+import {test_util} from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers';
-import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
 import {promisify} from 'util';
 
 import * as tfn from '../index';
+
 import {NodeFileSystem, nodeFileSystemRouter} from './file_system';
 
 describe('File system IOHandler', () => {
@@ -224,7 +225,7 @@ describe('File system IOHandler', () => {
                 dtype: 'float32',
               }
             ]);
-            expectArraysClose(
+            test_util.expectArraysClose(
                 new Float32Array(modelArtifacts.weightData),
                 new Float32Array([-1.1, -3.3, -3.3, -7.7]));
             done();
@@ -347,7 +348,7 @@ describe('File system IOHandler', () => {
           new NodeFileSystem([`${modelPath}`, `${modelManifestJSONPath}`]);
       handler.load()
           .then(modelArtifacts => {
-            expectArraysClose(
+            test_util.expectArraysClose(
                 new Uint8Array(modelArtifacts.modelTopology as ArrayBuffer),
                 new Uint8Array(modelData));
             expect(modelArtifacts.weightSpecs).toEqual([
@@ -362,7 +363,7 @@ describe('File system IOHandler', () => {
                 dtype: 'float32',
               }
             ]);
-            expectArraysClose(
+            test_util.expectArraysClose(
                 new Float32Array(modelArtifacts.weightData),
                 new Float32Array([-1.1, -3.3, -3.3, -7.7]));
             done();
@@ -454,23 +455,14 @@ describe('File system IOHandler', () => {
 
   it('Save and load model with loss and optimizer', async () => {
     const model = tfl.sequential();
-    model.add(tfl.layers.dense({
-      units: 1,
-      kernelInitializer: 'zeros',
-      inputShape: [1]
-    }));
-    model.compile({
-      loss: 'meanSquaredError',
-      optimizer: tfc.train.adam(2.5e-2)
-    });
+    model.add(tfl.layers.dense(
+        {units: 1, kernelInitializer: 'zeros', inputShape: [1]}));
+    model.compile(
+        {loss: 'meanSquaredError', optimizer: tfc.train.adam(2.5e-2)});
 
     const xs = tfc.tensor2d([1, 2, 3, 4], [4, 1]);
     const ys = tfc.tensor2d([-1, -3, -5, -7], [4, 1]);
-    await model.fit(xs, ys, {
-      epochs: 2,
-      shuffle: false,
-      verbose: 0
-    });
+    await model.fit(xs, ys, {epochs: 2, shuffle: false, verbose: 0});
 
     const saveURL = `file://${testDir}`;
     const loadURL = `file://${testDir}/model.json`;
@@ -483,11 +475,8 @@ describe('File system IOHandler', () => {
 
     // Test that model2 can be trained immediately, without a compile() call
     // due to the loaded optimizer and loss information.
-    const history2 = await model2.fit(xs, ys, {
-      epochs: 2,
-      shuffle: false,
-      verbose: 0
-    });
+    const history2 =
+        await model2.fit(xs, ys, {epochs: 2, shuffle: false, verbose: 0});
     // The final loss value from training the model twice, 2 epochs
     // at a time, should be equal to the final loss of trainig the
     // model only once with 4 epochs.
@@ -497,9 +486,8 @@ describe('File system IOHandler', () => {
   it('Save and load model with user-defined metadata', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.dense({units: 3, inputShape: [4]}));
-    model.setUserDefinedMetadata({
-      'outputLabels': ['Label1', 'Label2', 'Label3']
-    });
+    model.setUserDefinedMetadata(
+        {'outputLabels': ['Label1', 'Label2', 'Label3']});
 
     const saveURL = `file://${testDir}`;
     const loadURL = `file://${testDir}/model.json`;
