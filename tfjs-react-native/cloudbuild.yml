@@ -1,7 +1,6 @@
 steps:
 # Install common dependencies.
 - name: 'node:10'
-  dir: 'tfjs-react-native'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
@@ -9,12 +8,20 @@ steps:
 # Install react native dependencies.
 - name: 'node:10'
   dir: 'tfjs-react-native'
+  id: 'yarn'
+  entrypoint: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
+# Run react native tests.
+- name: 'node:10'
+  dir: 'tfjs-react-native'
   entrypoint: 'yarn'
   id: 'test-react-native'
   args: ['test-ci']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn']
 
 # General configuration
 secrets:

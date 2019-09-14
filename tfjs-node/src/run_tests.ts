@@ -19,6 +19,7 @@
 import './index';
 
 import * as tf from '@tensorflow/tfjs';
+// tslint:disable-next-line: no-imports-from-dist
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
