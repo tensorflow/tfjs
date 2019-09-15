@@ -12,7 +12,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import {io, ModelPredictConfig as ModelPredictArgs, NamedTensorMap, Optimizer, Scalar, scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
-import {NamedTensor} from '@tensorflow/tfjs-core/dist/tensor_types';
 
 import * as K from '../backend/tfjs_backend';
 import {History, ModelLoggingVerbosity} from '../base_callbacks';
@@ -26,7 +25,7 @@ import {deserialize} from '../layers/serialization';
 import * as losses from '../losses';
 import * as Metrics from '../metrics';
 import * as optimizers from '../optimizers';
-import {LossOrMetricFn} from '../types';
+import {LossOrMetricFn, NamedTensor} from '../types';
 import {checkUserDefinedMetadata} from '../user_defined_metadata';
 import {count, pyListRepeat, singletonOrArray, toCamelCase, toSnakeCase, unique} from '../utils/generic_utils';
 import {printSummary} from '../utils/layer_utils';

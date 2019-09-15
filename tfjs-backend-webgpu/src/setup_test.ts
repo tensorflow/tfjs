@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 setTestEnvs([{
@@ -75,7 +76,9 @@ const EXCLUDE_LIST: string[] = [
   'RFFT',                                                // Not yet implemented.
   'fused',                                               // Not yet implemented.
   'NCHW',                                                // Not yet implemented.
-  'maxPool3d'                                            // Not yet implemented.
+  'maxPool3d',                                           // Not yet implemented.
+  'frame',                                               // Not yet implemented.
+  'HTMLVideolement'
 ];
 
 /**
@@ -121,4 +124,5 @@ env.specFilter = spec => {
 };
 
 // Import and run all the tests from core.
+// tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/tests';
