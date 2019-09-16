@@ -43,6 +43,11 @@ export function getGlslDifferences(): GLSL {
   let defineRound: string;
 
   if (ENV.getNumber('WEBGL_VERSION') === 2) {
+    // if (ENV.getBool('WEBGL2_HAS_IS_NAN')) {
+    //   console.log('HAS IS NAN WOOO!!');
+    // } else {
+    //   console.log('does NOT HAVE it :(');
+    // }
     version = '#version 300 es';
     attribute = 'in';
     varyingVs = 'out';
@@ -54,15 +59,26 @@ export function getGlslDifferences(): GLSL {
     // also define a custom test to detect nans in those drivers.
     // However the custom test does not work across all drivers, so we use both.
     defineSpecialNaN = `
+      // bool isnan_custom(float val) {
+      //   if((val > LTNAN || val < GTNAN || val == LTNAN)) {
+      //     return false;
+      //   } else {
+      //     return isnan(val);
+      //   }
+      //   // return isnan(val);
+      //   // return isnan(val) || ((val > 0. || val < 1. || val == 0.) ?
+      //   //   false : true);
+      // }
+
+      uniform float INFINITY;
       bool isnan_custom(float val) {
-        if((val > LTNAN || val < GTNAN || val == LTNAN)) {
+        float plusinf = abs(val) + INFINITY;
+        bool res = isinf(plusinf);
+        if(res) {
           return false;
         } else {
-          return isnan(val);
+          return true;
         }
-        // return isnan(val);
-        // return isnan(val) || ((val > 0. || val < 1. || val == 0.) ?
-        //   false : true);
       }
 
       bvec4 isnan_custom(vec4 val) {
