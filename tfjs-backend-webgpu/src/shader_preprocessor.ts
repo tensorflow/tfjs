@@ -33,12 +33,21 @@ export function getCoordsDataType(rank: number): string {
   }
 }
 
-type GLSLDataType = 'float'|'int';
-function mapToGlslTypes(type: DataType): GLSLDataType|DataType {
+type GLSLDataType = 'float'|'int'|'vec4'|'ivec4';
+function mapToGlslTypes(
+    type: DataType, isVec4: boolean): GLSLDataType|DataType {
   if (type === 'float32') {
+    if (isVec4)
+    {
+      return 'vec4';
+    }
     return 'float';
   }
   if (type === 'int32') {
+    if (isVec4)
+    {
+      return 'ivec4';
+    }
     return 'int';
   }
   return type;
@@ -50,6 +59,7 @@ interface ProgramParams {
   variableNames: string[];
   uniforms?: string;
   userCode: string;
+  isVec4?: boolean;
 }
 
 export interface InputInfo {
@@ -74,7 +84,7 @@ export function makeShader(
   // Output buffer.
   prefixSnippets.push(`
     layout(std430, set = 0, binding = 0) writeonly buffer ssbOut {
-      ${mapToGlslTypes(outputData.dtype)} result[];
+      ${mapToGlslTypes(outputData.dtype, program.isVec4)} result[];
     };
   `);
 
@@ -84,7 +94,7 @@ export function makeShader(
         x.charAt(0).toLowerCase() + x.slice(1)}Shape; `;
     prefixSnippets.push(`
       layout(std430, set = 0, binding = ${1 + i}) readonly buffer ssb${x} {
-        ${mapToGlslTypes(inputInfo[i].dtype)} ${x}[];
+        ${mapToGlslTypes(inputInfo[i].dtype, program.isVec4)} ${x}[];
       };
     `);
   });
@@ -109,15 +119,16 @@ export function makeShader(
   const sources = [
     SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS,
     getOutputCoords, getCoords,
-    getSetOutputSnippet(outputData.shape.length, outputData.dtype)
+    getSetOutputSnippet(
+        outputData.shape.length, outputData.dtype, program.isVec4)
   ];
 
   if (dispatchLayoutRank === outputData.shape.length) {
     // Input sampling snippet is only meaningful when the output isn't getting
     // implicitly reshaped (like it does in conv2d_matmul).
     const inputSamplingSnippet =
-        inputInfo.map(x => getInputSamplingSnippet(x, outputData.shape))
-            .join('\n');
+        inputInfo.map(x => getInputSamplingSnippet(
+            x, outputData.shape, program.isVec4)).join('\n');
     sources.push(inputSamplingSnippet);
   }
 
@@ -162,21 +173,56 @@ const SAMPLING_SNIPPETS = `
   }
 `;
 
-function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
-  let snippet = `void setOutput(int flatIndex, float value) {
+function getSetOutputSnippet(
+      outRank: number, outBufferType: DataType, isVec4: boolean): string {
+  let snippet;
+  if (isVec4)
+  {
+    snippet = `void setOutput(uint flatIndex, vec4 value) {
       result[flatIndex] = ${
-      mapToGlslTypes(outBufferType) === 'int' ? 'int(value)' : 'value'};
+      mapToGlslTypes(outBufferType, isVec4) === 'ivec4' ? 'ivec4(value)' :
+                                                          'value'};
+    }
+    void setOutput(uint flatIndex, ivec4 value) {
+      result[flatIndex] = ${
+      mapToGlslTypes(outBufferType, isVec4) === 'vec4' ? 'vec4(value)' :
+                                                         'value'};
+    }`;
+  }
+  else
+  {
+    snippet = `void setOutput(uint flatIndex, float value) {
+      result[flatIndex] = ${
+      mapToGlslTypes(outBufferType, isVec4) === 'int' ? 'int(value)' :
+                                                        'value'};
     }
     void setOutput(int flatIndex, int value) {
       result[flatIndex] = ${
-      mapToGlslTypes(outBufferType) === 'float' ? 'float(value)' : 'value'};
+      mapToGlslTypes(outBufferType, isVec4) === 'float' ? 'float(value)' :
+                                                          'value'};
     }`;
+  }
 
   if (outRank >= 2) {
     const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, outRank);
     const type = getCoordsDataType(outRank);
 
-    snippet += `
+    if (isVec4)
+    {
+      snippet += `
+      void setOutput(${dims.map(d => `int ${d}`).join(', ')}, vec4 value) {
+        uint flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
+        setOutput(flatIndex, value);
+      }
+      void setOutput(${dims.map(d => `int ${d}`).join(', ')}, ivec4 value) {
+        uint flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
+        setOutput(flatIndex, value);
+      }
+    `;
+    }
+    else
+    {
+      snippet += `
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, float value) {
         int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
         setOutput(flatIndex, value);
@@ -186,24 +232,25 @@ function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
         setOutput(flatIndex, value);
       }
     `;
+    }
   }
 
   return snippet;
 }
 
 function getInputSamplingSnippet(
-    inInfo: InputInfo, outShape: number[]): string {
-  let res = getSamplerFromInInfo(inInfo);
+    inInfo: InputInfo, outShape: number[], isVec4: boolean): string {
+  let res = getSamplerFromInInfo(inInfo, isVec4);
 
   const inShape = inInfo.shape;
   if (inShape.length <= outShape.length) {
-    res += getSamplerAtOutputCoords(inInfo, outShape);
+    res += getSamplerAtOutputCoords(inInfo, outShape, isVec4);
   }
 
   return res;
 }
 
-function getSamplerFromInInfo(inInfo: InputInfo): string {
+function getSamplerFromInInfo(inInfo: InputInfo, isVec4: boolean): string {
   const texName = inInfo.name;
   const rank = inInfo.shape.length;
   const type = getCoordsDataType(rank);
@@ -212,11 +259,30 @@ function getSamplerFromInInfo(inInfo: InputInfo): string {
   const inputs = dims.map(d => `int ${d}`).join(', ');
 
   if (rank < 1) {
+    if (isVec4)
+    {
+      return `
+        vec4 ${funcName}() {
+          return ${texName}[0];
+        }
+      `;
+    }
+
     return `
       float ${funcName}() {
         return ${texName}[0];
       }
     `;
+  }
+
+  if (isVec4)
+  {
+    return `
+    vec4 ${funcName}(${inputs}) {
+      return ${texName}[getFlatIndex(${type}(${dims.join(',')}),
+        ${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape) / 4];
+    }
+  `;
   }
 
   return `
@@ -228,7 +294,7 @@ function getSamplerFromInInfo(inInfo: InputInfo): string {
 }
 
 function getSamplerAtOutputCoords(
-    inInfo: InputInfo, outShape: number[]): string {
+    inInfo: InputInfo, outShape: number[], isVec4: boolean): string {
   const texName = inInfo.name;
   const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
 
@@ -244,6 +310,18 @@ function getSamplerAtOutputCoords(
   let coordsSnippet = '';
 
   if (inRank === 0) {
+    if (isVec4)
+    {
+      return `
+      vec4 ${funcName}() {
+        return get${texFuncSnippet}();
+      }
+
+      vec4 ${funcName}(${type} coords) {
+        return get${texFuncSnippet}();
+      }
+    `;
+    }
     return `
       float ${funcName}() {
         return get${texFuncSnippet}();
@@ -274,6 +352,24 @@ function getSamplerAtOutputCoords(
     } else {
       unpackedCoordsSnippet = 'coords';
     }
+  }
+
+  if (isVec4)
+  {
+    return `
+      vec4 ${funcName}() {
+        ${type} coords = getOutputCoords();
+        ${coordsSnippet}
+        return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+        texName.charAt(0).toLowerCase() + texName.slice(1)}Shape) / 4];
+      }
+
+      vec4 ${funcName}(${type} coords) {
+        ${coordsSnippet}
+        return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+        texName.charAt(0).toLowerCase() + texName.slice(1)}Shape) / 4];
+      }
+    `;
   }
 
   return `
