@@ -70,9 +70,9 @@ export function getGlslDifferences(): GLSL {
       //   //   false : true);
       // }
 
-      uniform float INFINITY;
+      #define isnan(value) isnan_custom(value)
       bool isnan_custom(float val) {
-        float plusinf = abs(val) + INFINITY;
+        float plusinf = abs(val) + 1./0.;
         bool res = isinf(plusinf);
         if(res) {
           return false;
@@ -85,9 +85,6 @@ export function getGlslDifferences(): GLSL {
         return bvec4(isnan_custom(val.x),
           isnan_custom(val.y), isnan_custom(val.z), isnan_custom(val.w));
       }
-      // Add the text substitution here to allow custom function to call
-      // original one.
-      #define isnan(value) isnan_custom(value)
     `;
     // In webgl 2 we do not need to specify a custom isinf so there is no
     // need for a special INFINITY constant.
