@@ -1,0 +1,188 @@
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
+import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
+
+import {WebGPUProgram} from './webgpu_program';
+
+export function makeMatMulPackedVec4Source(workPerThread: number[]): string {
+  return `
+    vec4 mm_readA(int row, int col);
+    vec4 mm_readB(int row, int col);
+    void mm_write(int row, int col, vec4 value);
+
+    const int RowPerThread = ${workPerThread[1]};
+    const int ColPerThread = ${workPerThread[0]};
+    const int TileAOuter = int(gl_WorkGroupSize.y) * RowPerThread;
+    const int TileBOuter = int(gl_WorkGroupSize.x) * ColPerThread;
+    const int TileInner = TileBOuter;
+
+    shared vec4 mm_Asub[TileAOuter][TileInner / ColPerThread];
+    shared vec4 mm_Bsub[TileInner][TileBOuter / ColPerThread];
+
+    void mm_matMul(int dimAOuter, int dimInner, int dimBOuter) {
+      int tileRow = int(gl_LocalInvocationID.y) * RowPerThread;
+      int tileCol = int(gl_LocalInvocationID.x);
+
+      int globalRow = int(gl_GlobalInvocationID.y) * RowPerThread;
+      int globalCol = int(gl_GlobalInvocationID.x);
+
+      int numTiles = (dimInner * ColPerThread - 1) / TileInner + 1;
+
+      vec4 acc[RowPerThread];
+      vec4 ACached;
+      vec4 BCached[4];
+
+      // Without this initialization strange values show up in acc.
+      for (int innerRow = 0; innerRow < RowPerThread; innerRow++) {
+          acc[innerRow] = vec4(0.0, 0.0, 0.0, 0.0);
+      }
+
+      // Loop over shared dimension.
+      int globalColA = tileCol;
+      int tileRowB = int(gl_LocalInvocationID.y) * ColPerThread;
+      for (int t = 0; t < numTiles; t++) {
+        // Load one tile of A into local memory.
+        for (int innerRow = 0; innerRow < RowPerThread; innerRow++) {
+            int inputRow = tileRow + innerRow;
+            int inputCol = tileCol;
+
+            mm_Asub[inputRow][inputCol] = mm_readA(
+                globalRow + innerRow,
+                globalColA);
+        }
+        globalColA += TileInner / ColPerThread;
+
+        // Load one tile of B into local memory.
+        for (int innerRow = 0; innerRow < ColPerThread; innerRow++) {
+            int inputRow = tileRowB + innerRow;
+            int inputCol = tileCol;
+
+            mm_Bsub[inputRow][inputCol] = mm_readB(
+              t * TileInner + inputRow,
+              globalCol);
+        }
+
+        barrier();
+
+        // Compute acc values for a single thread.
+        for (int k = 0; k < TileInner / ColPerThread; k++) {
+          BCached[0] = mm_Bsub[k * ColPerThread][tileCol];
+          BCached[1] = mm_Bsub[k * ColPerThread + 1][tileCol];
+          BCached[2] = mm_Bsub[k * ColPerThread + 2][tileCol];
+          BCached[3] = mm_Bsub[k * ColPerThread + 3][tileCol];
+
+          for (int i = 0; i < RowPerThread; i++) {
+            ACached = mm_Asub[tileRow + i][k];
+            acc[i] = BCached[0] * ACached.x + acc[i];
+            acc[i] = BCached[1] * ACached.y + acc[i];
+            acc[i] = BCached[2] * ACached.z + acc[i];
+            acc[i] = BCached[3] * ACached.w + acc[i];
+          }
+        }
+        barrier();
+      }
+
+      for (int innerRow = 0; innerRow < RowPerThread; innerRow++) {
+        mm_write(globalRow + innerRow,
+          globalCol,
+          acc[innerRow]);
+      }
+    }
+  `;
+}
+
+export class MatMulPackedVec4Program implements WebGPUProgram {
+  outputShape: number[];
+  shaderKey: string;
+  userCode: string;
+  dispatchLayout: {x: number[], y: number[], z: number[]};
+  dispatch: [number, number, number];
+  workPerThread: number;
+  variableNames = ['A', 'B'];
+  workGroupSize: [number, number, number] = [16, 16, 1];  // x, y must be equal.
+  isVec4 = true;
+
+  constructor(
+      aShape: [number, number, number], outputShape: [number, number, number],
+      workPerThread: number) {
+    const dimInner = aShape[2];
+    const dimBOuter = outputShape[2];
+    const bShape = [outputShape[0], dimInner, dimBOuter];
+    this.outputShape = outputShape;
+    this.dispatchLayout = {x: [2], y: [1], z: [0]};
+    const vecSize = 4;
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [vecSize, workPerThread, 1]);
+
+    this.workPerThread = workPerThread;
+    const tileAOuter = this.workGroupSize[1] * workPerThread;
+    const tileBOuter = this.workGroupSize[0] * vecSize;
+    const tileInner = tileBOuter;  // Make sure tileInner is divided by 4.
+
+    const tileSizeA = [tileAOuter, tileInner];
+    const tileSizeB = [tileInner, tileBOuter];
+    const fitA = tilesFitEvenlyIntoShape(tileSizeA, aShape.slice(1));
+    const batchASize = aShape[1] * aShape[2] / vecSize;
+    const batchBSize = bShape[1] * bShape[2] / vecSize;
+    const batchSize = outputShape[1] * outputShape[2] / vecSize;
+    const sampleA = fitA ?
+        `A[batch * ${batchASize} + row * dimInner + col]` :
+        `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
+            A[batch * ${
+            batchASize} + row * dimInner + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
+
+    const fitB = tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1));
+    const sampleB = fitB ?
+        `B[batch * ${batchBSize} + row * dimBOuter + col]` :
+        `coordsInBounds(ivec2(row, col), ivec2(dimInner * 4, dimBOuter)) ?
+            B[batch * ${
+            batchBSize} + row * dimBOuter + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
+
+    this.userCode = `
+      int dimAOuter = ${aShape[1]};
+      int dimInner = ${aShape[2] / vecSize};
+      int dimBOuter = ${bShape[2] / vecSize};
+      int batch;
+
+      ${makeMatMulPackedVec4Source([
+      vecSize, workPerThread, 1
+    ])}
+
+      vec4 mm_readA(int row, int col) {
+        return ${sampleA};
+      }
+
+      vec4 mm_readB(int row, int col) {
+        return ${sampleB};
+      }
+
+      void mm_write(int row, int col, vec4 value) {
+        if (row < dimAOuter && col < dimBOuter)
+        {
+          result[batch * ${batchSize} + row * dimBOuter + col] = value;
+        }
+      }
+
+      void main() {
+        batch = int(gl_GlobalInvocationID.z);
+        mm_matMul(dimAOuter, dimInner, dimBOuter);
+      }
+    `;
+  }
+}
