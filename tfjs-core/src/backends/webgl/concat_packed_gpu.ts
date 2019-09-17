@@ -94,6 +94,6 @@ export class ConcatPackedProgram implements GPGPUProgram {
     console.log('ConcatPackedProgram:channels', channels);
     console.log('ConcatPackedProgram:offsets', offsets);
     console.log('ConcatPackedProgram:coords', coords);
-    console.log('ConcatPackedProgram:userProgram', this.userCode);
+    // console.log('ConcatPackedProgram:userProgram', this.userCode);
   }
 }
