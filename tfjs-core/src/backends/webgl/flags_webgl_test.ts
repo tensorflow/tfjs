@@ -279,39 +279,39 @@ describe('WEBGL_MAX_TEXTURE_SIZE', () => {
   });
 });
 
-// describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
-//   let maxTextures: number;
-//   beforeEach(() => {
-//     ENV.reset();
-//     webgl_util.resetMaxTexturesInShader();
+describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
+  let maxTextures: number;
+  beforeEach(() => {
+    ENV.reset();
+    webgl_util.resetMaxTexturesInShader();
 
-//     spyOn(canvas_util, 'getWebGLContext').and.callFake(() => {
-//       return {
-//         MAX_TEXTURE_IMAGE_UNITS: 101,
-//         getParameter: (param: number) => {
-//           if (param === 101) {
-//             return maxTextures;
-//           }
-//           throw new Error(`Got undefined param ${param}.`);
-//         }
-//       };
-//     });
-//   });
-//   afterAll(() => {
-//     ENV.reset();
-//     webgl_util.resetMaxTexturesInShader();
-//   });
+    spyOn(canvas_util, 'getWebGLContext').and.callFake(() => {
+      return {
+        MAX_TEXTURE_IMAGE_UNITS: 101,
+        getParameter: (param: number) => {
+          if (param === 101) {
+            return maxTextures;
+          }
+          throw new Error(`Got undefined param ${param}.`);
+        }
+      };
+    });
+  });
+  afterAll(() => {
+    ENV.reset();
+    webgl_util.resetMaxTexturesInShader();
+  });
 
-//   it('is a function of gl.getParameter(MAX_TEXTURE_IMAGE_UNITS)', () => {
-//     maxTextures = 10;
-//     expect(ENV.getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')).toBe(10);
-//   });
+  it('is a function of gl.getParameter(MAX_TEXTURE_IMAGE_UNITS)', () => {
+    maxTextures = 10;
+    expect(ENV.getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')).toBe(10);
+  });
 
-//   it('is capped at 16', () => {
-//     maxTextures = 20;
-//     expect(ENV.getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')).toBe(16);
-//   });
-// });
+  it('is capped at 16', () => {
+    maxTextures = 20;
+    expect(ENV.getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')).toBe(16);
+  });
+});
 
 describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
   beforeEach(() => ENV.reset());

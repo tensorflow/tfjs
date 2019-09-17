@@ -46,22 +46,28 @@ export class ConcatPackedProgram implements GPGPUProgram {
     const lastChannels = 'vec2(' + channels.slice(-2).join() + ')';
     const allChannels = channels.join();
 
-    let getValueSnippet = `if (${channel} < ${offsets[0]})
-          return getChannel(getT0(${allChannels}), ${lastChannels});`;
+    let getValueSnippet = `if (${channel} < ${offsets[0]}) {
+          return getChannel(getT0(${allChannels}), ${lastChannels});
+    }`;
     for (let i = 1; i < offsets.length; i++) {
       const shift = offsets[i - 1];
+      const shiftedAllChannels = `${allChannels} - ${shift}`;
       getValueSnippet += `
         else if (${channel} < ${offsets[i]}) {
-          ${channel} -= ${shift};
-          return getChannel(getT${i}(${allChannels}), ${lastChannels});
+          vec2 shiftedLastChannels = vec2(x, y - ${shift});
+          vec2 shiftedAllChannelsExpr = vec2(x, y - ${shift});
+          return getChannel(getT${i}(${shiftedAllChannels}),
+            shiftedLastChannels);
         }`;
     }
     const lastIndex = offsets.length;
     const shift = offsets[offsets.length - 1];
+    const shiftedAllChannels = `${allChannels} - ${shift}`;
     getValueSnippet += `
         else {
-          ${channel} -= ${shift};
-          return getChannel(getT${lastIndex}(${allChannels}), ${lastChannels});
+          vec2 shiftedLastChannels = vec2(x, y - ${shift});
+          return getChannel(getT${lastIndex}(${shiftedAllChannels}),
+            shiftedLastChannels);
         }`;
 
     this.userCode = `
@@ -72,28 +78,23 @@ export class ConcatPackedProgram implements GPGPUProgram {
       void main() {
         ${dtype} coords = getOutputCoords();
         vec4 result = vec4(getValue(${coords}), 0., 0., 0.);
-        if (++${coords[rank - 1]} < ${shape[rank - 1]}) {
+
+        ${coords[rank - 1]} = ${coords[rank - 1]} + 1;
+        if (${coords[rank - 1]} < ${shape[rank - 1]}) {
           result.g = getValue(${coords});
         }
-        if (++${coords[rank - 2]} < ${shape[rank - 2]}) {
+
+        ${coords[rank - 2]} = ${coords[rank - 2]} + 1;
+        if (${coords[rank - 2]} < ${shape[rank - 2]}) {
           result.a = getValue(${coords});
         }
+
         if (${coords[rank - 2]} < ${shape[rank - 2]} &&
-            --${coords[rank - 1]} < ${shape[rank - 1]}) {
+            ${coords[rank - 1]} - 1 < ${shape[rank - 1]}) {
           result.b = getValue(${coords});
         }
         setOutput(result);
       }
     `;
-
-    console.log('Created new ConcatPackedProgram:');
-    console.log('ConcatPackedProgram:shapes', shapes);
-    console.log('ConcatPackedProgram:axis', axis);
-    console.log('ConcatPackedProgram:outputShape', this.outputShape);
-    console.log('ConcatPackedProgram:rank', rank);
-    console.log('ConcatPackedProgram:channels', channels);
-    console.log('ConcatPackedProgram:offsets', offsets);
-    console.log('ConcatPackedProgram:coords', coords);
-    // console.log('ConcatPackedProgram:userProgram', this.userCode);
   }
 }
