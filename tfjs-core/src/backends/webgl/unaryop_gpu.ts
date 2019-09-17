@@ -167,14 +167,14 @@ export const COS = CHECK_NAN_SNIPPET + `
 export const TAN = `return tan(x);`;
 
 export const ASIN = CHECK_NAN_SNIPPET + `
-if (abs(x) > 1) {
+if (abs(x) > 1.) {
     return NAN;
   }
   return asin(x);
 `;
 
 export const ACOS = CHECK_NAN_SNIPPET + `
-  if (abs(x) > 1) {
+  if (abs(x) > 1.) {
     return NAN;
   }
   return acos(x);
