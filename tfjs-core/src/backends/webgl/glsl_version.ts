@@ -70,14 +70,23 @@ export function getGlslDifferences(): GLSL {
       //   //   false : true);
       // }
 
-      #define isnan(value) isnan_custom(value)
+
+
+      // bool isnan_custom(float val) {
+      //   float plusinf = abs(val) + 1./0.;
+      //   bool res = isinf(plusinf);
+      //   if(res) {
+      //     return false;
+      //   } else {
+      //     return true;
+      //   }
+      // }
+
       bool isnan_custom(float val) {
-        float plusinf = abs(val) + 1./0.;
-        bool res = isinf(plusinf);
-        if(res) {
-          return false;
+        if(isnan(NAN)) {
+          return isnan(val);
         } else {
-          return true;
+          return (val > 0. || val < 1. || val == 0.) ? false : true;
         }
       }
 
@@ -85,6 +94,8 @@ export function getGlslDifferences(): GLSL {
         return bvec4(isnan_custom(val.x),
           isnan_custom(val.y), isnan_custom(val.z), isnan_custom(val.w));
       }
+
+      #define isnan(value) isnan_custom(value)
     `;
     // In webgl 2 we do not need to specify a custom isinf so there is no
     // need for a special INFINITY constant.
