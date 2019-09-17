@@ -41,8 +41,6 @@ export interface GPGPUBinary {
   outShapeInfo: ShapeInfo;
   infLoc: WebGLUniformLocation;
   nanLoc: WebGLUniformLocation;
-  ltNanLoc: WebGLUniformLocation;
-  gtNanLoc: WebGLUniformLocation;
 }
 
 export interface TensorData {
@@ -87,8 +85,6 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
   // Add special uniforms (NAN, INFINITY)
   let infLoc: WebGLUniformLocation = null;
   const nanLoc = gpgpu.getUniformLocation(webGLProgram, 'NAN', false);
-  const ltNanLoc = gpgpu.getUniformLocation(webGLProgram, 'LTNAN', false);
-  const gtNanLoc = gpgpu.getUniformLocation(webGLProgram, 'GTNAN', false);
   if (ENV.getNumber('WEBGL_VERSION') === 1) {
     infLoc = gpgpu.getUniformLocation(webGLProgram, 'INFINITY', false);
   }
@@ -113,8 +109,6 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     outShapeInfo,
     infLoc,
     nanLoc,
-    ltNanLoc,
-    gtNanLoc,
   };
 }
 
@@ -176,12 +170,6 @@ export function runProgram<T extends Tensor, K extends Tensor>(
   }
   if (binary.nanLoc !== null) {
     gpgpu.gl.uniform1f(binary.nanLoc, NaN);
-  }
-  if (binary.ltNanLoc !== null) {
-    gpgpu.gl.uniform1f(binary.ltNanLoc, 0.0);
-  }
-  if (binary.gtNanLoc !== null) {
-    gpgpu.gl.uniform1f(binary.gtNanLoc, 1.0);
   }
 
   // Set user-defined inputs

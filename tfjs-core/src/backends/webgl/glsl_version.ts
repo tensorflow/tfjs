@@ -55,41 +55,14 @@ export function getGlslDifferences(): GLSL {
     texture2D = 'texture';
     output = 'outputColor';
     defineOutput = 'out vec4 outputColor;';
-    // Some drivers have buggy implementations if the built in isnan so we
-    // also define a custom test to detect nans in those drivers.
-    // However the custom test does not work across all drivers, so we use both.
+
+    // Use custom isnan definition to work across differences between
+    // implementations on various platforms. While this should happen in ANGLE
+    // we still see differences between android and windows (on chrome) when
+    // using isnan directly.
     defineSpecialNaN = `
-      // bool isnan_custom(float val) {
-      //   if((val > LTNAN || val < GTNAN || val == LTNAN)) {
-      //     return false;
-      //   } else {
-      //     return isnan(val);
-      //   }
-      //   // return isnan(val);
-      //   // return isnan(val) || ((val > 0. || val < 1. || val == 0.) ?
-      //   //   false : true);
-      // }
-
-
-
-      // bool isnan_custom(float val) {
-      //   float plusinf = abs(val) + 1./0.;
-      //   bool res = isinf(plusinf);
-      //   if(res) {
-      //     return false;
-      //   } else {
-      //     return true;
-      //   }
-      // }
-
       bool isnan_custom(float val) {
         return (val > 0.0 || val < 0.0) ? false : val != 0.0;
-        // if(isnan(NAN)) {
-        //   // return isnan(val);
-
-        // } else {
-        //   return (val > 0. || val < 1. || val == 0.) ? false : true;
-        // }
       }
 
       bvec4 isnan_custom(vec4 val) {
