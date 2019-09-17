@@ -529,12 +529,24 @@ describeWithFlags('where', ALL_ENVS, () => {
   });
 
   it('Tensor3D with scalar condition', async () => {
-    const c = tf.ones([1], 'bool');
     const a = tf.ones([1, 3, 3]);
-    const b = tf.ones([1, 3, 3]);
+    const b = tf.zeros([1, 3, 3]);
 
     expectArraysClose(
-      await tf.where(c, a, b).data(), [1, 1, 1, 1, 1, 1, 1, 1, 1]);
+      await tf.where(tf.ones([1], 'bool'), a, b).data(),
+        [1, 1, 1, 1, 1, 1, 1, 1, 1]);
+    expectArraysClose(
+      await tf.where(tf.zeros([1], 'bool'), a, b).data(),
+        [0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  });
+
+  it('1D condition with higher rank a and b', async () => {
+    const condition = tf.tensor1d([1, 0, 0, 1, 1], 'bool');
+    const a = tf.ones([5, 2, 2]);
+    const b = tf.fill([5, 2, 2], 3);
+
+    expectArraysClose(await tf.where(condition, a, b).data(),
+      [1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1]);
   });
 
   it('Tensor3D different a/b shapes', () => {
