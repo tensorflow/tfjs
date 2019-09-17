@@ -47,7 +47,7 @@ steps:
   args: ['test-snippets']
   waitFor: ['yarn']
 
-test Async backends
+# test Async backends
 - name: 'node:10'
   dir: 'tfjs-core'
   id: 'test-async-backends'
