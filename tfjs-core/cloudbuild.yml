@@ -48,12 +48,12 @@ steps:
   waitFor: ['yarn']
 
 # test Async backends
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test-async-backends'
-  entrypoint: 'yarn'
-  args: ['test-async-backends-ci']
-  waitFor: ['build']
+# - name: 'node:10'
+#   dir: 'tfjs-core'
+#   id: 'test-async-backends'
+#   entrypoint: 'yarn'
+#   args: ['test-async-backends-ci']
+#   waitFor: ['build']
 
 # General configuration
 secrets:
