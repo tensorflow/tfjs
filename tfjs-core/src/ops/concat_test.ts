@@ -343,7 +343,8 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
     expectArraysClose(await res.data(), expected);
   });
 
-  it('concat a large number of tensors, axis=1', async () => {
+  // tslint:disable-next-line: ban
+  fit('concat a large number of tensors, axis=1', async () => {
     const tensors = [];
     const expected = [];
     for (let i = 0; i < 100; i++) {
@@ -355,7 +356,7 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
     expect(res.shape).toEqual([1, 100]);
     expect(res.dtype).toBe('float32');
     console.log('QQ — concat a large number of tensors, axis=1: res.data');
-    console.log(await res.data());
+    console.log(Array.from(await res.data()));
     expectArraysClose(await res.data(), expected);
   });
 

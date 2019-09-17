@@ -85,5 +85,14 @@ export class ConcatPackedProgram implements GPGPUProgram {
         setOutput(result);
       }
     `;
+
+    console.log('Created new ConcatPackedProgram:');
+    console.log('ConcatPackedProgram:shapes', shapes);
+    console.log('ConcatPackedProgram:axis', axis);
+    console.log('ConcatPackedProgram:outputShape', this.outputShape);
+    console.log('ConcatPackedProgram:rank', rank);
+    console.log('ConcatPackedProgram:channels', channels);
+    console.log('ConcatPackedProgram:offsets', offsets);
+    console.log('ConcatPackedProgram:userProgram', this.userCode);
   }
 }
