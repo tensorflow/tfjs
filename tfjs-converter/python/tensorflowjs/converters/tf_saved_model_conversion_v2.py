@@ -30,7 +30,7 @@ from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.saved_model.load import load
 from tensorflow.python.saved_model import loader
-from tensorflow.python.tools import saved_model_utils
+from tensorflow.tools.graph_transforms import TransformGraph
 from tensorflow.python.training.saver import export_meta_graph
 from google.protobuf.json_format import MessageToDict
 import tensorflow_hub as hub
@@ -274,20 +274,22 @@ def _check_signature_in_model(saved_model, signature_name):
                                             saved_model.signatures.keys()))
 
 
-def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
+def _freeze_saved_model_v1(saved_model_dir, saved_model_tags, input_node_names,
                            output_node_names):
-  with tf.compat.v1.Session() as sess:
-    loader.load(sess, saved_model_tags, saved_model_dir)
-    input_graph_def = saved_model_utils.get_meta_graph_def(
-        saved_model_dir, ','.join(saved_model_tags)).graph_def
-    frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
-        sess, input_graph_def, output_node_names)
+  g = tf.Graph()
+  with g.as_default():
+    with tf.compat.v1.Session() as sess:
+      loader.load(sess, saved_model_tags, saved_model_dir)
+      subgraph_def = TransformGraph(g.as_graph_def(), input_node_names,
+                                    output_node_names, ['strip_unused_nodes'])
+      frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
+          sess, subgraph_def, output_node_names)
 
-    frozen_graph = tf.Graph()
-    with frozen_graph.as_default():
-      tf.import_graph_def(frozen_graph_def, name='')
+      frozen_graph = tf.Graph()
+      with frozen_graph.as_default():
+        tf.import_graph_def(frozen_graph_def, name='')
 
-    return frozen_graph
+      return frozen_graph
 
 def _freeze_saved_model_v2(concrete_func):
   return convert_to_constants.convert_variables_to_constants_v2(
@@ -333,18 +335,22 @@ def convert_tf_saved_model(saved_model_dir,
   _check_signature_in_model(model, signature_def)
 
   concrete_func = model.signatures[signature_def]
+  input_node_names = []
+  for input_tensor in concrete_func.inputs:
+    if input_tensor.dtype != tf.resource:
+      input_node_names.append(input_tensor.name.split(':')[0])
   output_node_names = []
   for output_tensor in concrete_func.outputs:
     output_node_names.append(output_tensor.name.split(':')[0])
 
   # TensorFlow doesn't encode the saved model version in the graph in a reliable
-  # way. Try to freeze the graph using V2 utils. If that fails, freeze the
-  # graph using V1 utils.
+  # way. Try to freeze the graph using V1 utils. If that fails, freeze the
+  # graph using V2 utils.
   try:
-    frozen_graph = _freeze_saved_model_v2(concrete_func)
-  except BaseException:
     frozen_graph = _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
-                                          output_node_names)
+                                          input_node_names, output_node_names)
+  except BaseException:
+    frozen_graph = _freeze_saved_model_v2(concrete_func)
 
   optimize_graph(frozen_graph, output_node_names, output_graph,
                  model.tensorflow_version,
