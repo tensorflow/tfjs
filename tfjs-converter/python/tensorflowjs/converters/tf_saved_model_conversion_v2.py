@@ -86,8 +86,8 @@ def validate(nodes, skip_op_check, strip_debug_ops):
   if skip_op_check:
     return set()
   ops = []
-  op_list_path = os.path.join(
-      os.path.dirname(os.path.abspath(__file__)), '../op_list/')
+  op_list_path = os.path.abspath(os.path.join(
+      os.path.dirname(os.path.abspath(__file__)), '../op_list/'))
   for filename in os.listdir(op_list_path):
     if os.path.splitext(filename)[1] == '.json':
       with open(os.path.join(op_list_path, filename)) as json_data:
