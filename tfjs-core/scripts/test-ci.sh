@@ -29,7 +29,7 @@ yarn run-browserstack --browsers=bs_safari_mac,bs_ios_11 --testEnv webgl1 --flag
 # "run-browserstack --browsers=bs_safari_mac,bs_ios_11,bs_android_9 --flags '{\"HAS_WEBGL\": false}' --testEnv cpu" \
 # "run-browserstack --browsers=bs_firefox_mac,bs_chrome_mac" \
 npm-run-all -p -c --aggregate-output \
-  "run-browserstack --browsers=bs_chrome_mac,win_10_chrome,bs_android_9 --testEnv webgl2 --flags '{\"WEBGL_CPU_FORWARD\": false, \"WEBGL_SIZE_UPLOAD_UNIFORM\": 0}' --grep=\"concat a large number of tensors, axis=1\""
+  "run-browserstack --browsers=bs_chrome_mac,win_10_chrome,bs_android_9 --testEnv webgl2 --flags '{\"WEBGL_CPU_FORWARD\": false, \"WEBGL_SIZE_UPLOAD_UNIFORM\": 0}' --grep=\"concat a large number of tensors, axis=1\"" \
   "run-browserstack --browsers=bs_chrome_mac,win_10_chrome,bs_android_9 --testEnv webgl2 --flags '{\"WEBGL_CPU_FORWARD\": false, \"WEBGL_SIZE_UPLOAD_UNIFORM\": 0, \"WEBGL_PACK\": false}' --grep=\"concat a large number of tensors, axis=1\""
 
 
