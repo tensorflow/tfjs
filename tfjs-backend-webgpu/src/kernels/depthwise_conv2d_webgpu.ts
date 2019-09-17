@@ -94,7 +94,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
 
             float xVal = getX(batch, xR, xC, d1);
             float wVal = getW(wR, wC, d1, q);
-            dotProd += xVal * wVal;
+            fma(xVal, wVal, dotProd);
           }
         }
         writeResult(batch, coords[1], coords[2], d2, dotProd);
