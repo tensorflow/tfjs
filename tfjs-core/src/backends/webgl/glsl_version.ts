@@ -96,7 +96,7 @@ export function getGlslDifferences(): GLSL {
           isnan_custom(val.y), isnan_custom(val.z), isnan_custom(val.w));
       }
 
-      #define isnan(value) isnan_custom(value)
+
     `;
     // In webgl 2 we do not need to specify a custom isinf so there is no
     // need for a special INFINITY constant.
