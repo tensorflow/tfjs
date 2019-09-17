@@ -21,6 +21,7 @@ import './flags_webgpu';
 
 import {backend_util, DataMover, DataType, ENV, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 import * as shaderc from '@webgpu/shaderc';
+import * as webgpu_util from './webgpu_util';
 
 import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
@@ -173,7 +174,8 @@ export class WebGPUBackend extends KernelBackend {
 
   register(dataId: object, shape: number[], dtype: DataType): void {
     if (!this.tensorMap.has(dataId)) {
-      const byteSize = util.sizeFromShape(shape) * util.bytesPerElement(dtype);
+      const byteSize = util.sizeFromShape(shape) *
+          webgpu_util.GPUBytesPerElement(dtype);
       const buffer = this.acquireBuffer(byteSize);
       this.tensorMap.set(dataId, {
         values: null,
@@ -252,9 +254,8 @@ export class WebGPUBackend extends KernelBackend {
     }
     const info = this.tensorMap.get(dataId);
     const data = await this.getBufferData(info);
-
     const dataAsTypedArray =
-        info.dtype === 'int32' ? new Int32Array(data) : new Float32Array(data);
+        webgpu_util.ArrayBufferToTypedArray(data, info.dtype);
     this.convertAndCacheOnCPU(dataId, dataAsTypedArray);
 
     return dataAsTypedArray;
@@ -513,6 +514,21 @@ export class WebGPUBackend extends KernelBackend {
 
   subtract(a: Tensor, b: Tensor): Tensor {
     return this.binaryOp(a, b, binary_op.SUB);
+  }
+
+  private binaryCompareOp(a: Tensor, b: Tensor, op: string): Tensor {
+    const program = new BinaryOpProgram(op, a.shape, b.shape);
+    const output = Tensor.make(program.outputShape, {}, 'bool');
+
+    return this.compileAndRun(program, [a, b], output);
+  }
+
+  greater(a: Tensor, b: Tensor): Tensor {
+    return this.binaryCompareOp(a, b, binary_op.GREATER);
+  }
+
+  greaterEqual(a: Tensor, b: Tensor): Tensor {
+    return this.binaryCompareOp(a, b, binary_op.GREATER_EQUAL);
   }
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
