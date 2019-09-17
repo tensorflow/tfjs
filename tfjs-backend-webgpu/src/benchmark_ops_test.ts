@@ -32,6 +32,7 @@ const getInputInfo = (inputs: tf.Tensor[]) => {
 describeWebGPU('Ops benchmarks', () => {
   beforeEach(() => {
     tf.setBackend('webgpu');
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 999999999;
   });
 
   fit('argMax', async () => {
