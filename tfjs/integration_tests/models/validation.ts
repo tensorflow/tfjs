@@ -38,17 +38,6 @@ describe('TF.js converter validation', () => {
   it('validate GraphModels', async () => {
     const isNodeJS = common.inNodeJS();
     console.log(`isNodeJS = ${isNodeJS}`);
-    // if (isNodeJS) {
-    //   if (common.usingNodeGPU()) {
-    //     // tslint:disable-next-line:no-require-imports
-    //     require('@tensorflow/tfjs-node-gpu');
-    //     console.log('Using tfjs-node-gpu');
-    //   } else {
-    //     // tslint:disable-next-line:no-require-imports
-    //     require('@tensorflow/tfjs-node');
-    //     console.log('Using tfjs-node');
-    //   }
-    // }
 
     let suiteLog: common.SuiteLog;
     if (isNodeJS) {
