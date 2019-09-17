@@ -344,7 +344,6 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
   });
 
   it('concat a large number of tensors, axis=1', async () => {
-    console.log('QQQ: concat a large number of tensors, axis=1');
     const tensors = [];
     const expected = [];
     for (let i = 0; i < 100; i++) {
