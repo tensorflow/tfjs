@@ -43,11 +43,6 @@ export function getGlslDifferences(): GLSL {
   let defineRound: string;
 
   if (ENV.getNumber('WEBGL_VERSION') === 2) {
-    // if (ENV.getBool('WEBGL2_HAS_IS_NAN')) {
-    //   console.log('HAS IS NAN WOOO!!');
-    // } else {
-    //   console.log('does NOT HAVE it :(');
-    // }
     version = '#version 300 es';
     attribute = 'in';
     varyingVs = 'out';
