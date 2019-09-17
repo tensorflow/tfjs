@@ -84,7 +84,8 @@ export function getGlslDifferences(): GLSL {
 
       bool isnan_custom(float val) {
         if(isnan(NAN)) {
-          return isnan(val);
+          // return isnan(val);
+          return (val > 0.0 || val < 0.0) ? false : val != 0.0;
         } else {
           return (val > 0. || val < 1. || val == 0.) ? false : true;
         }
