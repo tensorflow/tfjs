@@ -343,8 +343,7 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
     expectArraysClose(await res.data(), expected);
   });
 
-  // tslint:disable-next-line: ban
-  fit('concat a large number of tensors, axis=1', async () => {
+  it('concat a large number of tensors, axis=1', async () => {
     const tensors = [];
     const expected = [];
     for (let i = 0; i < 100; i++) {
