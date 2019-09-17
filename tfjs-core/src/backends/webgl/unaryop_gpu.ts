@@ -167,10 +167,16 @@ export const COS = CHECK_NAN_SNIPPET + `
 export const TAN = `return tan(x);`;
 
 export const ASIN = CHECK_NAN_SNIPPET + `
+if (abs(x) > 1) {
+    return NAN;
+  }
   return asin(x);
 `;
 
 export const ACOS = CHECK_NAN_SNIPPET + `
+  if (abs(x) > 1) {
+    return NAN;
+  }
   return acos(x);
 `;
 
@@ -193,7 +199,7 @@ export const TANH = `
   return sign(x) * (1.0 - e2x) / (1.0 + e2x);
 `;
 
-export const ASINH = `return log(x + sqrt(x * x + 1.0));`;
+export const ASINH = CHECK_NAN_SNIPPET + `return log(x + sqrt(x * x + 1.0));`;
 
 export const ACOSH = CHECK_NAN_SNIPPET + `
   if (x < 1.0) return NAN;

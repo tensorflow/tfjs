@@ -83,12 +83,13 @@ export function getGlslDifferences(): GLSL {
       // }
 
       bool isnan_custom(float val) {
-        if(isnan(NAN)) {
-          // return isnan(val);
-          return (val > 0.0 || val < 0.0) ? false : val != 0.0;
-        } else {
-          return (val > 0. || val < 1. || val == 0.) ? false : true;
-        }
+        return (val > 0.0 || val < 0.0) ? false : val != 0.0;
+        // if(isnan(NAN)) {
+        //   // return isnan(val);
+
+        // } else {
+        //   return (val > 0. || val < 1. || val == 0.) ? false : true;
+        // }
       }
 
       bvec4 isnan_custom(vec4 val) {
@@ -96,7 +97,7 @@ export function getGlslDifferences(): GLSL {
           isnan_custom(val.y), isnan_custom(val.z), isnan_custom(val.w));
       }
 
-
+      #define isnan(value) isnan_custom(value)
     `;
     // In webgl 2 we do not need to specify a custom isinf so there is no
     // need for a special INFINITY constant.
