@@ -528,6 +528,15 @@ describeWithFlags('where', ALL_ENVS, () => {
     expectArraysClose(await tf.where(c, a, b).data(), [5, 3, 5, 3, 3, 3]);
   });
 
+  it('Tensor3D with scalar condition', async () => {
+    const c = tf.ones([1], 'bool');
+    const a = tf.ones([1, 3, 3]);
+    const b = tf.ones([1, 3, 3]);
+
+    expectArraysClose(
+      await tf.where(c, a, b).data(), [1, 1, 1, 1, 1, 1, 1, 1, 1]);
+  });
+
   it('Tensor3D different a/b shapes', () => {
     const c =
         tf.tensor3d([[[1], [0], [1]], [[0], [0], [0]]], [2, 3, 1], 'bool');
