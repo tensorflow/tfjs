@@ -354,6 +354,8 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
     const res = tf.concat(tensors, axis);
     expect(res.shape).toEqual([1, 100]);
     expect(res.dtype).toBe('float32');
+    console.log('QQ — concat a large number of tensors, axis=1: res.data');
+    console.log(await res.data());
     expectArraysClose(await res.data(), expected);
   });
 
