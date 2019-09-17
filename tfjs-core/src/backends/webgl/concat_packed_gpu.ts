@@ -55,7 +55,6 @@ export class ConcatPackedProgram implements GPGPUProgram {
       getValueSnippet += `
         else if (${channel} < ${offsets[i]}) {
           vec2 shiftedLastChannels = vec2(x, y - ${shift});
-          vec2 shiftedAllChannelsExpr = vec2(x, y - ${shift});
           return getChannel(getT${i}(${shiftedAllChannels}),
             shiftedLastChannels);
         }`;
