@@ -53,7 +53,7 @@ export class ConcatPackedProgram implements GPGPUProgram {
     for (let i = 1; i < offsets.length; i++) {
       const shift = offsets[i - 1];
       getValueSnippet += `
-        else if (${channel} == ${offsets[i - 1]}) {
+        if (${channel} < ${offsets[i]}) {
           // ${channel} = ${channel} - ${shift};
           return getChannel(
             getT${i}(${shiftedChannels(channels, channel, shift)}),
@@ -63,12 +63,10 @@ export class ConcatPackedProgram implements GPGPUProgram {
     const lastIndex = offsets.length;
     const shift = offsets[offsets.length - 1];
     getValueSnippet += `
-        else {
-          // ${channel} = ${channel} - ${shift};
-          return getChannel(
-            getT${lastIndex}(${shiftedChannels(channels, channel, shift)}),
-            vec2(${shiftedChannels(lastChannels, channel, shift)}));
-        }`;
+        // ${channel} = ${channel} - ${shift};
+        return getChannel(
+          getT${lastIndex}(${shiftedChannels(channels, channel, shift)}),
+          vec2(${shiftedChannels(lastChannels, channel, shift)}));`;
 
     this.userCode = `
       float getValue(${channels.map(x => 'int ' + x)}) {
