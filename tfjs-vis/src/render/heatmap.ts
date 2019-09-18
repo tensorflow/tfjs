@@ -72,14 +72,14 @@ export async function heatmap(
 
   // Data validation
   const {xTickLabels, yTickLabels} = data;
-  if (xTickLabels) {
+  if (xTickLabels != null) {
     const dimension = 0;
     assertLabelsMatchShape(inputValues, xTickLabels, dimension);
   }
 
   // Note that we will only do a check on the first element of the second
   // dimension. We do not protect users against passing in a ragged array.
-  if (yTickLabels) {
+  if (yTickLabels != null) {
     const dimension = 1;
     assertLabelsMatchShape(inputValues, yTickLabels, dimension);
   }
