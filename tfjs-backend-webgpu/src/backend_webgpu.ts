@@ -19,7 +19,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataStorage, DataType, ENV, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, ENV, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 // TODO(annxingyuan): get ENGINE from tf.engine() once core 1.3.0 is released.
 // tslint:disable-next-line: no-imports-from-dist
 import {ENGINE} from '@tensorflow/tfjs-core/dist/engine';
@@ -81,6 +81,10 @@ export interface WebGPUTimingInfo extends TimingInfo {
   downloadWaitMs: number;
 }
 
+// Empirically determined constant used to determine size threshold for handing
+// off execution to the CPU.
+const CPU_HANDOFF_SIZE_THRESHOLD = 128;
+
 const DEFAULT_GPUBUFFER_USAGE =
     GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
 
@@ -107,6 +111,7 @@ export class WebGPUBackend extends KernelBackend {
   private activeTimers: TimerNode[];
   private uploadWaitMs = 0;
   private downloadWaitMs = 0;
+  private cpuBackend: KernelBackend;
 
   constructor(device: GPUDevice, shaderc: shaderc.Shaderc) {
     super();
@@ -515,6 +520,27 @@ export class WebGPUBackend extends KernelBackend {
     };
   }
 
+  private getCPUBackend(): KernelBackend|null {
+    if (!ENV.getBool('WEBGL_CPU_FORWARD')) {
+      return null;
+    }
+
+    if (this.cpuBackend == null) {
+      this.cpuBackend = findBackend('cpu');
+    }
+
+    return this.cpuBackend;
+  }
+
+  private shouldExecuteOnCPU(
+      inputs: Tensor[], sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
+    return this.getCPUBackend() != null &&
+        inputs.every(
+            input =>
+                this.tensorMap.get(input.dataId).bufferInfo.buffer == null &&
+                input.size < sizeThreshold);
+  }
+
   pad<T extends Tensor>(
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
     const program = new PadProgram(x.shape, paddings, constantValue);
@@ -548,10 +574,16 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   add(a: Tensor, b: Tensor): Tensor {
+    if (this.shouldExecuteOnCPU([a, b])) {
+      return this.cpuBackend.add(a, b);
+    }
     return this.binaryOp(a, b, binary_op.ADD);
   }
 
   subtract(a: Tensor, b: Tensor): Tensor {
+    if (this.shouldExecuteOnCPU([a, b])) {
+      return this.cpuBackend.subtract(a, b);
+    }
     return this.binaryOp(a, b, binary_op.SUB);
   }
 
@@ -563,10 +595,16 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   greater(a: Tensor, b: Tensor): Tensor {
+    if (this.shouldExecuteOnCPU([a, b])) {
+      return this.cpuBackend.greater(a, b);
+    }
     return this.binaryCompareOp(a, b, binary_op.GREATER);
   }
 
   greaterEqual(a: Tensor, b: Tensor): Tensor {
+    if (this.shouldExecuteOnCPU([a, b])) {
+      return this.cpuBackend.greaterEqual(a, b);
+    }
     return this.binaryCompareOp(a, b, binary_op.GREATER_EQUAL);
   }
 
@@ -623,6 +661,10 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   concat(tensors: Tensor[], axis: number): Tensor {
+    if (this.shouldExecuteOnCPU(tensors)) {
+      return this.cpuBackend.concat(tensors, axis);
+    }
+
     if (tensors.length === 1) {
       return tensors[0];
     }
@@ -646,6 +688,9 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   multiply(a: Tensor, b: Tensor): Tensor {
+    if (this.shouldExecuteOnCPU([a, b])) {
+      return this.cpuBackend.multiply(a, b);
+    }
     return this.binaryOp(a, b, binary_op.MUL);
   }
 
@@ -687,6 +732,9 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   transpose<T extends Tensor>(x: T, perm: number[]): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.transpose(x, perm);
+    }
     const program = new TransposeProgram(x.shape, perm);
     return this.compileAndRun(program, [x]);
   }
