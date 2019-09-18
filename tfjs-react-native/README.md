@@ -72,11 +72,11 @@ module.exports = {
 - Install @tensorflow/tfjs - `npm install @tensorflow/tfjs`
 - Install @tensorflow/tfjs-react-native - `npm install @tensorflow/tfjs-react-native@alpha`
 
-### Step 4.5: (Optional) Install and configure async-storage
+### Step 5: Install and configure async-storage
 
-- If you want use `asyncStorageIO` (see below) to save and load models, add [async-storage](https://github.com/react-native-community/async-storage) to your project.
+- Install and configure [async-storage](https://github.com/react-native-community/async-storage)
 
-### Step 5: Test that it is working
+### Step 6: Test that it is working
 
 Before using tfjs in a react native app, you need to call `tf.ready()` and wait for it to complete. This is an **async function** so you might want to do this in a `componentDidMount` or before the app is rendered.
 

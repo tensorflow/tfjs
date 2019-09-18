@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {BackendValues} from '@tensorflow/tfjs-core/dist/types';
+import {backend_util} from '@tensorflow/tfjs-core';
 
 export declare class TensorMetadata {
   id: number;
@@ -26,7 +26,7 @@ export declare class TensorMetadata {
 export declare class TFEOpAttr {
   name: string;
   type: number;
-  value: boolean | number | object | string | number[];
+  value: boolean|number|object|string|number[];
 }
 
 export interface TFJSBinding {
@@ -34,18 +34,22 @@ export interface TFJSBinding {
   TFEOpAttr: typeof TFEOpAttr;
 
   // Creates a tensor with the backend:
-  createTensor(shape: number[], dtype: number, buffer: BackendValues): number;
+  createTensor(
+      shape: number[], dtype: number,
+      buffer: backend_util.BackendValues): number;
 
   // Deletes a tensor with the backend:
   deleteTensor(tensorId: number): void;
 
   // Reads data-sync from a tensor on the backend:
-  tensorDataSync(tensorId: number): Float32Array | Int32Array | Uint8Array;
+  tensorDataSync(tensorId: number): Float32Array|Int32Array|Uint8Array;
 
   // Executes an Op on the backend, returns an array of output TensorMetadata:
   executeOp(
-    opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
-    numOutputs: number): TensorMetadata[];
+      opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
+      numOutputs: number): TensorMetadata[];
+
+  isUsingGpuDevice(): boolean;
 
   // TF Types
   TF_FLOAT: number;

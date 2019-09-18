@@ -300,6 +300,7 @@ export interface OpHandler {
   erf<T extends Tensor>(x: T): T;
   step<T extends Tensor>(x: T, alpha: number): T;
   relu<T extends Tensor>(x: T): T;
+  relu6<T extends Tensor>(x: T): T;
   elu<T extends Tensor>(x: T): T;
   selu<T extends Tensor>(x: T): T;
   leakyRelu<T extends Tensor>(x: T, alpha: number): T;
@@ -1165,6 +1166,10 @@ export class Tensor<R extends Rank = Rank> {
   relu<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
     return opHandler.relu(this);
+  }
+  relu6<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return opHandler.relu6(this);
   }
   elu<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
