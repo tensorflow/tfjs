@@ -54,7 +54,7 @@ export function makeMatMulSource(): string {
           barrier();
 
           for (int k = 0; k < MatTileSize; k++) {
-            acc += mm_Asub[localRow][k] * mm_Bsub[k][localCol];
+            fma(mm_Asub[localRow][k], mm_Bsub[k][localCol], acc);
           }
 
           // Synchronise before loading the next tile
