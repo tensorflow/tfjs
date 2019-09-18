@@ -30,6 +30,7 @@ from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.saved_model.load import load
 from tensorflow.python.saved_model import loader
+from tensorflow.python.tools import saved_model_utils
 from tensorflow.tools.graph_transforms import TransformGraph
 from tensorflow.python.training.saver import export_meta_graph
 from google.protobuf.json_format import MessageToDict
@@ -333,16 +334,24 @@ def convert_tf_saved_model(saved_model_dir,
   model = load(saved_model_dir, saved_model_tags)
 
   _check_signature_in_model(model, signature_def)
+  meta_graph = saved_model_utils.get_meta_graph_def(saved_model_dir,
+                                                    ','.join(saved_model_tags))
+  signature = meta_graph.signature_def[signature_def]
 
-  concrete_func = model.signatures[signature_def]
   input_node_names = []
-  for input_tensor in concrete_func.inputs:
-    if input_tensor.dtype != tf.resource:
-      input_node_names.append(input_tensor.name.split(':')[0])
+  for input in signature.inputs.values():
+    input_node_names.append(input.name.split(':')[0])
   output_node_names = []
-  for output_tensor in concrete_func.outputs:
-    output_node_names.append(output_tensor.name.split(':')[0])
-
+  for output in signature.outputs.values():
+    output_node_names.append(output.name.split(':')[0])
+  print('~~~~~~~~~~~~~~')
+  print('conrete_func.output', model.signatures[signature_def].outputs[0].name)
+  print('meta_graph output', signature.outputs)
+  tensor = model.signatures[signature_def].graph.get_tensor_by_name(output_node_names[0] + ':0')
+  print(tensor)
+  print('outout_node_names', output_node_names)
+  print(model.signatures[signature_def].graph.as_graph_def())
+  print('~~~~~~~~~~~~~~')
   # TensorFlow doesn't encode the saved model version in the graph in a reliable
   # way. Try to freeze the graph using V1 utils. If that fails, freeze the
   # graph using V2 utils.
@@ -350,8 +359,14 @@ def convert_tf_saved_model(saved_model_dir,
     frozen_graph = _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
                                           input_node_names, output_node_names)
   except BaseException:
+    concrete_func = model.signatures[signature_def]
     frozen_graph = _freeze_saved_model_v2(concrete_func)
 
+  print('=======================')
+  print(frozen_graph.as_graph_def())
+  #tensor = frozen_graph.get_tensor_by_name(output_node_names[0] + ':0')
+  #print(tensor)
+  print('=======================')
   optimize_graph(frozen_graph, output_node_names, output_graph,
                  model.tensorflow_version,
                  quantization_dtype=quantization_dtype,
