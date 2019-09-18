@@ -53,7 +53,7 @@ export class ConcatPackedProgram implements GPGPUProgram {
     for (let i = 1; i < offsets.length; i++) {
       const shift = offsets[i - 1];
       getValueSnippet += `
-        if (${channel} < ${offsets[i]}) {
+        if (${channel} < ${offsets[i]}  && ${channel} >= ${offsets[i - 1]}) {
           // ${channel} = ${channel} - ${shift};
           return getChannel(
             getT${i}(${shiftedChannels(channels, channel, shift)}),
