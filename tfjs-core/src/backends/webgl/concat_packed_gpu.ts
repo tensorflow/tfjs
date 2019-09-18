@@ -53,7 +53,7 @@ export class ConcatPackedProgram implements GPGPUProgram {
     for (let i = 1; i < offsets.length; i++) {
       const shift = offsets[i - 1];
       getValueSnippet += `
-        else if (${channel} < ${offsets[i]}) {
+        else if (${channel} == ${offsets[i - 1]}) {
           // ${channel} = ${channel} - ${shift};
           return getChannel(
             getT${i}(${shiftedChannels(channels, channel, shift)}),
@@ -97,6 +97,8 @@ export class ConcatPackedProgram implements GPGPUProgram {
         setOutput(result);
       }
     `;
+
+    // console.log(this.userCode);
   }
 }
 
