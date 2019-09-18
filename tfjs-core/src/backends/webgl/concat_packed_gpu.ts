@@ -43,30 +43,31 @@ export class ConcatPackedProgram implements GPGPUProgram {
     }
 
     const channel = channels[axis];
-    const lastChannels = 'vec2(' + channels.slice(-2).join() + ')';
+    const lastChannels = channels.slice(-2);
     const allChannels = channels.join();
 
     let getValueSnippet = `if (${channel} < ${offsets[0]}) {
-          return getChannel(getT0(${allChannels}), ${lastChannels});
-    }`;
+        return getChannel(
+            getT0(${allChannels}), vec2(${lastChannels.join()}));
+        }`;
     for (let i = 1; i < offsets.length; i++) {
       const shift = offsets[i - 1];
-      const shiftedAllChannels = `${allChannels} - ${shift}`;
       getValueSnippet += `
         else if (${channel} < ${offsets[i]}) {
-          vec2 shiftedLastChannels = vec2(x, y - ${shift});
-          return getChannel(getT${i}(${shiftedAllChannels}),
-            shiftedLastChannels);
+          // ${channel} = ${channel} - ${shift};
+          return getChannel(
+            getT${i}(${shiftedChannels(channels, channel, shift)}),
+            vec2(${shiftedChannels(lastChannels, channel, shift)}));
         }`;
     }
     const lastIndex = offsets.length;
     const shift = offsets[offsets.length - 1];
-    const shiftedAllChannels = `${allChannels} - ${shift}`;
     getValueSnippet += `
         else {
-          vec2 shiftedLastChannels = vec2(x, y - ${shift});
-          return getChannel(getT${lastIndex}(${shiftedAllChannels}),
-            shiftedLastChannels);
+          // ${channel} = ${channel} - ${shift};
+          return getChannel(
+            getT${lastIndex}(${shiftedChannels(channels, channel, shift)}),
+            vec2(${shiftedChannels(lastChannels, channel, shift)}));
         }`;
 
     this.userCode = `
@@ -88,12 +89,25 @@ export class ConcatPackedProgram implements GPGPUProgram {
           result.a = getValue(${coords});
         }
 
+        ${coords[rank - 1]} = ${coords[rank - 1]} - 1;
         if (${coords[rank - 2]} < ${shape[rank - 2]} &&
-            ${coords[rank - 1]} - 1 < ${shape[rank - 1]}) {
+            ${coords[rank - 1]} < ${shape[rank - 1]}) {
           result.b = getValue(${coords});
         }
         setOutput(result);
       }
     `;
   }
+}
+
+function shiftedChannels(channels: string[], channel: string, shift: number) {
+  const channelIdx = channels.indexOf(channel);
+  const res = channels.map((c, idx) => {
+    if (idx === channelIdx) {
+      return `${c} - ${shift}`;
+    } else {
+      return c;
+    }
+  });
+  return res.join();
 }
