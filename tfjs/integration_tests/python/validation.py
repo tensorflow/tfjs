@@ -97,7 +97,7 @@ def _create_saved_model_v1(save_dir):
 def _create_saved_model_v2(save_dir):
   """Test a basic TF V2 model with functions to make sure functions are inlined.
 
-    Args:
+  Args:
     save_dir: directory name of where the saved model will be stored.
   """
   input_data = constant_op.constant(1., shape=[1])
@@ -119,7 +119,7 @@ def _create_saved_model_v2(save_dir):
 def _create_saved_model_v2_with_control_flow(save_dir):
   """Test a basic TF v2 model with control flow to inlined.
 
-    Args:
+  Args:
     save_dir: directory name of where the saved model will be stored.
   """
   @tf.function
@@ -145,9 +145,9 @@ def _create_saved_model_v2_with_control_flow(save_dir):
       "inputs": {"v": {"value": 3, "shape": [], "dtype": 'float32'}},
       "outputs": {"Identity:0": {"value": [9], "shape": [], "dtype": "float32"}}}
 
-def _create_saved_model_with_fusable_conv2d(save_dir):
+def _create_saved_model_with_conv2d(save_dir):
   """Test a basic model with fusable conv2d.
-    Args:
+  Args:
     save_dir: directory name of where the saved model will be stored.
   """
   layers = [
@@ -158,6 +158,8 @@ def _create_saved_model_with_fusable_conv2d(save_dir):
   ]
   model = tf.keras.Sequential(layers)
   result = model.predict(tf.ones((1, 24, 24, 3)))
+  # set the learning phase to avoid keara learning placeholder, which
+  # will cause error when saving. 
   tf.keras.backend.set_learning_phase(0)
   tf.saved_model.save(model, save_dir)
   return {
@@ -174,7 +176,7 @@ def _create_saved_model_with_fusable_conv2d(save_dir):
 
 def _create_saved_model_with_prelu(save_dir):
   """Test a basic model with prelu activation.
-    Args:
+  Args:
     save_dir: directory name of where the saved model will be stored.
   """
   layers = [
@@ -309,9 +311,9 @@ def main():
       ('saved_model_v2_control_flow',
        _create_saved_model_v2_with_control_flow,
        'Saved model v2 with control flow'),
-      ('saved_model_v2_fuseable_conv2d',
-       _create_saved_model_with_fusable_conv2d,
-       'Saved model v2 with fusable conv2d'),
+      ('saved_model_v2_conv2d',
+       _create_saved_model_with_conv2d,
+       'Saved model v2 with conv2d'),
       ('saved_model_v2_prelu',
        _create_saved_model_with_prelu,
        'Saved model v2 with prelu activation')
