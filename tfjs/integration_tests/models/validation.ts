@@ -104,6 +104,7 @@ describe('TF.js converter validation', () => {
             if (!Array.isArray(predictOut)) {
               predictOut = [predictOut];
             }
+            
             outputs.map((key, index) => {
               expect(predictOut[index].dtype).toEqual(task.outputs[key].dtype);
               expect(predictOut[index].shape).toEqual(task.outputs[key].shape);

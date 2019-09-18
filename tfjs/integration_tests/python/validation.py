@@ -133,7 +133,7 @@ def _create_saved_model_v2_with_control_flow(save_dir):
   root = tracking.AutoTrackable()
   root.f = square_if_positive
   to_save = root.f.get_concrete_function(
-      tensor_spec.TensorSpec([], dtypes.int32))
+      tensor_spec.TensorSpec([], dtypes.float32))
 
   save(root, save_dir, to_save)
   print(square_if_positive(tf.constant(-2)))
@@ -142,8 +142,8 @@ def _create_saved_model_v2_with_control_flow(save_dir):
   print(to_save.structured_outputs)
   return {
       "async": True,
-      "inputs": {"v": {"value": 3, "shape": [], "dtype": 'int32'}},
-      "outputs": {"Identity:0": {"value": [9], "shape": [], "dtype": "int32"}}}
+      "inputs": {"v": {"value": 3, "shape": [], "dtype": 'float32'}},
+      "outputs": {"Identity:0": {"value": [9], "shape": [], "dtype": "float32"}}}
 
 def _create_saved_model_with_fusable_conv2d(save_dir):
   """Test a basic model with fusable conv2d.
@@ -157,14 +157,14 @@ def _create_saved_model_with_fusable_conv2d(save_dir):
       tf.keras.layers.ReLU()
   ]
   model = tf.keras.Sequential(layers)
-  result = model.predict(tf.ones((1, 224, 224, 3)))
+  result = model.predict(tf.ones((1, 24, 24, 3)))
   tf.keras.backend.set_learning_phase(0)
   tf.saved_model.save(model, save_dir)
   return {
       "async": False,
       "inputs": {
-          "input_1": {"value": np.ones((1, 224, 224, 3)).tolist(),
-                "shape": [1, 224, 224, 3],
+          "input_1": {"value": np.ones((1, 24, 24, 3)).tolist(),
+                "shape": [1, 24, 24, 3],
                 "dtype": 'float32'}},
       "outputs": {
           "Identity:0": {"value": result.tolist(),
@@ -183,14 +183,14 @@ def _create_saved_model_with_prelu(save_dir):
       tf.keras.layers.PReLU()
   ]
   model = tf.keras.Sequential(layers)
-  result = model.predict(tf.ones((1, 224, 224, 3)))
+  result = model.predict(tf.ones((1, 24, 24, 3)))
   tf.keras.backend.set_learning_phase(0)
   tf.saved_model.save(model, save_dir)
   return {
       "async": False,
       "inputs": {
-          "input_1": {"value": np.ones((1, 224, 224, 3)).tolist(),
-                "shape": [1, 224, 224, 3],
+          "input_1": {"value": np.ones((1, 24, 24, 3)).tolist(),
+                "shape": [1, 24, 24, 3],
                 "dtype": 'float32'}},
       "outputs": {
           "Identity:0": {"value": result.tolist(),
