@@ -101,7 +101,7 @@ export class ConcatPackedProgram implements GPGPUProgram {
 }
 
 /**
- * Return an expression for coordiantes into a vector where a given channel
+ * Return an expression for coordinates into a vector where a given channel
  * will be offset by [shift].
  *
  * @param channels the channels to consider
