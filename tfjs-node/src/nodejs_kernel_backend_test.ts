@@ -16,18 +16,16 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
-import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {createTensorsTypeOpAttr, createTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 describe('delayed upload', () => {
   it('should handle data before op execution', async () => {
     const t = tf.tensor1d([1, 2, 3]);
-    expectArraysClose(await t.data(), [1, 2, 3]);
+    tf.test_util.expectArraysClose(await t.data(), [1, 2, 3]);
 
     const r = t.add(tf.tensor1d([4, 5, 6]));
-    expectArraysClose(await r.data(), [5, 7, 9]);
+    tf.test_util.expectArraysClose(await r.data(), [5, 7, 9]);
   });
 
   it('Should not cache tensors in the tensor map for device support. ', () => {
@@ -48,8 +46,8 @@ describe('type casting', () => {
 
 describe('conv3d dilations', () => {
   it('CPU should throw error on dilations >1', () => {
-    const input: Tensor5D = tf.ones([1, 2, 2, 2, 1]);
-    const filter: Tensor5D = tf.ones([1, 1, 1, 1, 1]);
+    const input: tf.Tensor5D = tf.ones([1, 2, 2, 2, 1]);
+    const filter: tf.Tensor5D = tf.ones([1, 1, 1, 1, 1]);
     expect(() => {
       tf.conv3d(input, filter, 1, 'same', 'NDHWC', [2, 2, 2]);
     }).toThrowError();
@@ -58,8 +56,8 @@ describe('conv3d dilations', () => {
     // This test can only run locally with CUDA bindings and GPU package
     // installed.
     if ((tf.backend() as NodeJSKernelBackend).isGPUPackage) {
-      const input: Tensor5D = tf.ones([1, 2, 2, 2, 1]);
-      const filter: Tensor5D = tf.ones([1, 1, 1, 1, 1]);
+      const input: tf.Tensor5D = tf.ones([1, 2, 2, 2, 1]);
+      const filter: tf.Tensor5D = tf.ones([1, 1, 1, 1, 1]);
       tf.conv3d(input, filter, 1, 'same', 'NDHWC', [2, 2, 2]);
     }
   });

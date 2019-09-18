@@ -3660,6 +3660,14 @@ describeWithFlags('erf', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
+  it('blowup', async () => {
+    const values = [-1.4, -2.5, -3.1, -4.4];
+    const a = tf.tensor1d(values);
+    const result = tf.erf(a);
+    const expected = [-0.9522852, -0.999593, -0.9999883, -1];
+    expectArraysClose(await result.data(), expected);
+  });
+
   it('scalar', async () => {
     const a = tf.scalar(1);
     const result = tf.erf(a);

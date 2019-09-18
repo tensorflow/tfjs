@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {BackendValues} from '@tensorflow/tfjs-core/dist/types';
+import {backend_util} from '@tensorflow/tfjs-core';
 
 export declare class TensorMetadata {
   id: number;
@@ -34,7 +34,9 @@ export interface TFJSBinding {
   TFEOpAttr: typeof TFEOpAttr;
 
   // Creates a tensor with the backend:
-  createTensor(shape: number[], dtype: number, buffer: BackendValues): number;
+  createTensor(
+      shape: number[], dtype: number,
+      buffer: backend_util.BackendValues): number;
 
   // Deletes a tensor with the backend:
   deleteTensor(tensorId: number): void;
