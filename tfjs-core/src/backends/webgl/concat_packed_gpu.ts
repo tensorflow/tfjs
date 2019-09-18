@@ -43,26 +43,32 @@ export class ConcatPackedProgram implements GPGPUProgram {
     }
 
     const channel = channels[axis];
-    const lastChannels = 'vec2(' + channels.slice(-2).join() + ')';
+    const lastChannels = channels.slice(-2);
     const allChannels = channels.join();
 
-    let getValueSnippet = `if (${channel} < ${offsets[0]})
-          return getChannel(getT0(${allChannels}), ${lastChannels});`;
+    let getValueSnippet = `if (${channel} < ${offsets[0]}) {
+        return getChannel(
+            getT0(${allChannels}), vec2(${lastChannels.join()}));
+        }`;
     for (let i = 1; i < offsets.length; i++) {
       const shift = offsets[i - 1];
+      // Note: the >= comparison below may seem unnecessary given the check
+      // above but is needed to workaround branch execution issues on some
+      // devices. It makes all the conditions exclusive without relying on
+      // execution order.
       getValueSnippet += `
-        else if (${channel} < ${offsets[i]}) {
-          ${channel} -= ${shift};
-          return getChannel(getT${i}(${allChannels}), ${lastChannels});
+        if (${channel} < ${offsets[i]}  && ${channel} >= ${offsets[i - 1]}) {
+          return getChannel(
+            getT${i}(${shiftedChannels(channels, channel, shift)}),
+            vec2(${shiftedChannels(lastChannels, channel, shift)}));
         }`;
     }
     const lastIndex = offsets.length;
     const shift = offsets[offsets.length - 1];
     getValueSnippet += `
-        else {
-          ${channel} -= ${shift};
-          return getChannel(getT${lastIndex}(${allChannels}), ${lastChannels});
-        }`;
+        return getChannel(
+          getT${lastIndex}(${shiftedChannels(channels, channel, shift)}),
+          vec2(${shiftedChannels(lastChannels, channel, shift)}));`;
 
     this.userCode = `
       float getValue(${channels.map(x => 'int ' + x)}) {
@@ -72,18 +78,47 @@ export class ConcatPackedProgram implements GPGPUProgram {
       void main() {
         ${dtype} coords = getOutputCoords();
         vec4 result = vec4(getValue(${coords}), 0., 0., 0.);
-        if (++${coords[rank - 1]} < ${shape[rank - 1]}) {
+
+        ${coords[rank - 1]} = ${coords[rank - 1]} + 1;
+        if (${coords[rank - 1]} < ${shape[rank - 1]}) {
           result.g = getValue(${coords});
         }
-        if (++${coords[rank - 2]} < ${shape[rank - 2]}) {
+
+        ${coords[rank - 2]} = ${coords[rank - 2]} + 1;
+        if (${coords[rank - 2]} < ${shape[rank - 2]}) {
           result.a = getValue(${coords});
         }
+
+        ${coords[rank - 1]} = ${coords[rank - 1]} - 1;
         if (${coords[rank - 2]} < ${shape[rank - 2]} &&
-            --${coords[rank - 1]} < ${shape[rank - 1]}) {
+            ${coords[rank - 1]} < ${shape[rank - 1]}) {
           result.b = getValue(${coords});
         }
         setOutput(result);
       }
     `;
   }
+}
+
+/**
+ * Return an expression for coordinates into a vector where a given channel
+ * will be offset by [shift].
+ *
+ * @param channels the channels to consider
+ * @param channel the channel we want shifted
+ * @param shift  the amount to subtract from the channel.
+ *
+ * @returns a string of the form 'x, y-[shift], z' where any one channel can
+ * have the shift applied.
+ */
+function shiftedChannels(channels: string[], channel: string, shift: number) {
+  const channelIdx = channels.indexOf(channel);
+  const res = channels.map((c, idx) => {
+    if (idx === channelIdx) {
+      return `${c} - ${shift}`;
+    } else {
+      return c;
+    }
+  });
+  return res.join();
 }

@@ -50,10 +50,22 @@ export function getGlslDifferences(): GLSL {
     texture2D = 'texture';
     output = 'outputColor';
     defineOutput = 'out vec4 outputColor;';
+
+    // Use custom isnan definition to work across differences between
+    // implementations on various platforms. While this should happen in ANGLE
+    // we still see differences between android and windows (on chrome) when
+    // using isnan directly.
     defineSpecialNaN = `
       bool isnan_custom(float val) {
-        return (val > 0. || val < 0. || val == 0.) ? false : true;
+        return (val > 0.0 || val < 0.0) ? false : val != 0.0;
       }
+
+      bvec4 isnan_custom(vec4 val) {
+        return bvec4(isnan_custom(val.x),
+          isnan_custom(val.y), isnan_custom(val.z), isnan_custom(val.w));
+      }
+
+      #define isnan(value) isnan_custom(value)
     `;
     // In webgl 2 we do not need to specify a custom isinf so there is no
     // need for a special INFINITY constant.
@@ -76,9 +88,14 @@ export function getGlslDifferences(): GLSL {
     texture2D = 'texture2D';
     output = 'gl_FragColor';
     defineOutput = '';
+    // WebGL1 has no built in isnan so we define one here.
     defineSpecialNaN = `
+      #define isnan(value) isnan_custom(value)
       bool isnan_custom(float val) {
         return (val > 0. || val < 1. || val == 0.) ? false : true;
+      }
+      bvec4 isnan_custom(vec4 val) {
+        return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));
       }
     `;
     defineSpecialInf = `

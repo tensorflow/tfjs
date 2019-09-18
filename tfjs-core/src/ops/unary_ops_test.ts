@@ -29,6 +29,12 @@ describeWithFlags('relu', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [1, 0, 0, 3, 0]);
   });
 
+  it('basic relu6', async () => {
+    const a = tf.tensor1d([1, -2, 0, 8, -0.1]);
+    const result = tf.relu6(a);
+    expectArraysClose(await result.data(), [1, 0, 0, 6, 0]);
+  });
+
   it('5D', async () => {
     const a = tf.tensor5d([1, -2, 5, -3], [1, 2, 2, 1, 1]);
     const result = tf.relu(a);
@@ -78,6 +84,18 @@ describeWithFlags('relu', ALL_ENVS, () => {
     expectArraysClose(await da.data(), [5]);
   });
 
+  it('gradients: relu6', async () => {
+    const a = tf.scalar(8);
+    const dy = tf.scalar(5);
+
+    const grad = tf.grad(a => tf.relu6(a));
+    const da = grad(a, dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(await da.data(), [0]);
+  });
+
   it('gradient with clones', async () => {
     const a = tf.scalar(3);
     const dy = tf.scalar(5);
@@ -112,6 +130,18 @@ describeWithFlags('relu', ALL_ENVS, () => {
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
     expectArraysClose(await da.data(), [1, 0, 0, 4]);
+  });
+
+  it('gradients: relu6 array', async () => {
+    const a = tf.tensor2d([8, -1, 0, .1], [2, 2]);
+    const dy = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+
+    const grad = tf.grad(a => tf.relu6(a));
+    const da = grad(a, dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(await da.data(), [0, 0, 0, 4]);
   });
 
   it('throws when passed a non-tensor', () => {
@@ -1494,7 +1524,7 @@ describeWithFlags('sign', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [1, 0, 0, -1]);
   });
 
-  it('propagates NaNs', async () => {
+  it('does not propagate NaNs', async () => {
     const a = tf.tensor1d([1.5, NaN, -1.4]);
     const r = tf.sign(a);
     expectArraysClose(await r.data(), [1, 0, -1]);
@@ -3627,6 +3657,14 @@ describeWithFlags('erf', ALL_ENVS, () => {
     const a = tf.tensor1d(values);
     const result = tf.erf(a);
     const expected = [-0.2763264, 0.2763264, 0.5204999, 0.7111556, -0.4283924];
+    expectArraysClose(await result.data(), expected);
+  });
+
+  it('blowup', async () => {
+    const values = [-1.4, -2.5, -3.1, -4.4];
+    const a = tf.tensor1d(values);
+    const result = tf.erf(a);
+    const expected = [-0.9522852, -0.999593, -0.9999883, -1];
     expectArraysClose(await result.data(), expected);
   });
 
