@@ -52,9 +52,12 @@ export class ConcatPackedProgram implements GPGPUProgram {
         }`;
     for (let i = 1; i < offsets.length; i++) {
       const shift = offsets[i - 1];
+      // Note: the >= comparison below may seem unnecessary given the check
+      // above but is needed to workaround branch execution issues on some
+      // devices. It makes all the conditions exclusive without relying on
+      // execution order.
       getValueSnippet += `
         if (${channel} < ${offsets[i]}  && ${channel} >= ${offsets[i - 1]}) {
-          // ${channel} = ${channel} - ${shift};
           return getChannel(
             getT${i}(${shiftedChannels(channels, channel, shift)}),
             vec2(${shiftedChannels(lastChannels, channel, shift)}));
@@ -63,7 +66,6 @@ export class ConcatPackedProgram implements GPGPUProgram {
     const lastIndex = offsets.length;
     const shift = offsets[offsets.length - 1];
     getValueSnippet += `
-        // ${channel} = ${channel} - ${shift};
         return getChannel(
           getT${lastIndex}(${shiftedChannels(channels, channel, shift)}),
           vec2(${shiftedChannels(lastChannels, channel, shift)}));`;
@@ -95,11 +97,20 @@ export class ConcatPackedProgram implements GPGPUProgram {
         setOutput(result);
       }
     `;
-
-    // console.log(this.userCode);
   }
 }
 
+/**
+ * Return an expression for coordiantes into a vector where a given channel
+ * will be offset by [shift].
+ *
+ * @param channels the channels to consider
+ * @param channel the channel we want shifted
+ * @param shift  the amount to subtract from the channel.
+ *
+ * @returns a string of the form 'x, y-[shift], z' where any one channel can
+ * have the shift applied.
+ */
 function shiftedChannels(channels: string[], channel: string, shift: number) {
   const channelIdx = channels.indexOf(channel);
   const res = channels.map((c, idx) => {
