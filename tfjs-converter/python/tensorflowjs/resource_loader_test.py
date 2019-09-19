@@ -32,7 +32,7 @@ class ResourceLoaderTest(unittest.TestCase):
 
   def testListingFilesInOpList(self):
     files = resource_loader.list_dir('op_list')
-    self.assertTrue(len(files) > 0)
+    self.assertGreater(len(files), 0)
     for file in files:
       self.assertTrue(file.endswith('.json'))
 
@@ -40,8 +40,12 @@ class ResourceLoaderTest(unittest.TestCase):
     with resource_loader.open_file('op_list/arithmetic.json') as f:
       data = json.load(f)
       first_op = data[0]
-      self.assertTrue('tfOpName' in first_op)
-      self.assertTrue('category' in first_op)
+      self.assertIn('tfOpName', first_op)
+      self.assertIn('category', first_op)
+
+  def testReadingNonExistentFileRaisesError(self):
+    with self.assertRaises(IOError):
+      resource_loader.open_file('___non_existent')
 
 if __name__ == '__main__':
   unittest.main()
