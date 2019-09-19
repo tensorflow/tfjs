@@ -40,7 +40,7 @@ export class BinaryOpProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   workPerThread = 4;
-  workGroupSize: [number, number, number] = [1, 1, 1];
+  workGroupSize: [number, number, number] = [16, 1, 1];
 
   constructor(op: string, aShape: number[], bShape: number[]) {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
