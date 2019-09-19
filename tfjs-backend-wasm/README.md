@@ -2,7 +2,8 @@
 
 Install emscripten [here](https://emscripten.org/docs/getting_started/downloads.html).
 
-Make sure the "emsdk" directory is in your home directory at ~/emsdk.
+Make sure the "emsdk" directory is in your home directory at ~/emsdk and also
+in your PATH.
 
 # Building
 
