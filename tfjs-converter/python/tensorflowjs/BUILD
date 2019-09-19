@@ -136,7 +136,6 @@ py_test(
     data = [":op_list_jsons"],
     deps = [
         ":resource_loader",
-        "//tensorflowjs:expect_numpy_installed",
     ],
 )
 

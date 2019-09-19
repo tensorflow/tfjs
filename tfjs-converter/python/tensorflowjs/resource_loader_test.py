@@ -18,13 +18,7 @@ from __future__ import division
 from __future__ import print_function
 
 import json
-import os
-import shutil
 import unittest
-
-import tempfile
-
-import numpy as np
 
 from tensorflowjs import resource_loader
 
@@ -33,8 +27,8 @@ class ResourceLoaderTest(unittest.TestCase):
   def testListingFilesInOpList(self):
     files = resource_loader.list_dir('op_list')
     self.assertGreater(len(files), 0)
-    for file in files:
-      self.assertTrue(file.endswith('.json'))
+    for filename in files:
+      self.assertTrue(filename.endswith('.json'))
 
   def testReadingFileInOpList(self):
     with resource_loader.open_file('op_list/arithmetic.json') as f:
