@@ -86,6 +86,12 @@ py_library(
 )
 
 py_library(
+    name = "resource_loader",
+    srcs = ["resource_loader.py"],
+    srcs_version = "PY2AND3",
+)
+
+py_library(
     name = "version",
     srcs = ["version.py"],
     srcs_version = "PY2AND3",
