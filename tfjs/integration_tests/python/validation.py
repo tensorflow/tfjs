@@ -30,6 +30,7 @@ import sys
 import tempfile
 import time
 
+import numpy as np
 import tensorflow as tf
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
@@ -55,9 +56,8 @@ def _create_saved_model_v1(save_dir):
   graph = tf.Graph()
   with graph.as_default():
     input = tf.compat.v1.placeholder(tf.float32, shape=[2, 2])
-    x = tf.compat.v1.constant([[37.0, -23.0], [1.0, 4.0]])
     w = tf.compat.v1.get_variable('w', shape=[2, 2])
-    output = tf.compat.v1.matmul(tf.compat.v1.matmul(input, x), w)
+    output = tf.compat.v1.matmul(input, w)
     init_op = w.initializer
 
     # Create a builder.
@@ -87,7 +87,7 @@ def _create_saved_model_v1(save_dir):
             }
         },
         "outputs": {
-            "MatMul_1": {
+            "MatMul": {
                 "value": output_val.tolist(), "shape": [2, 2], "dtype": "float32"
             }
         }
@@ -97,7 +97,7 @@ def _create_saved_model_v1(save_dir):
 def _create_saved_model_v2(save_dir):
   """Test a basic TF V2 model with functions to make sure functions are inlined.
 
-    Args:
+  Args:
     save_dir: directory name of where the saved model will be stored.
   """
   input_data = constant_op.constant(1., shape=[1])
@@ -119,28 +119,85 @@ def _create_saved_model_v2(save_dir):
 def _create_saved_model_v2_with_control_flow(save_dir):
   """Test a basic TF v2 model with control flow to inlined.
 
-    Args:
+  Args:
     save_dir: directory name of where the saved model will be stored.
   """
   @tf.function
-  def find_next_odd(v):
-    v1 = v + 1
-    while tf.equal(v1 % 2, 0):
-      v1 = v1 + 1
-    return v1
+  def square_if_positive(v):
+    if v > 0:
+      v = v * v
+    else:
+      v = v + 1
+    return v
+
   root = tracking.AutoTrackable()
-  root.f = find_next_odd
+  root.f = square_if_positive
   to_save = root.f.get_concrete_function(
-      tensor_spec.TensorSpec([], dtypes.int32))
+      tensor_spec.TensorSpec([], dtypes.float32))
 
   save(root, save_dir, to_save)
+  print(square_if_positive(tf.constant(-2)))
+  print(square_if_positive(tf.constant(3)))
   print(to_save.structured_input_signature)
   print(to_save.structured_outputs)
   return {
       "async": True,
-      "inputs": {"v": {"value": 3, "shape": [], "dtype": 'int32'}},
-      "outputs": {"Identity:0": {"value": [5], "shape": [], "dtype": "int32"}}}
+      "inputs": {"v": {"value": 3, "shape": [], "dtype": 'float32'}},
+      "outputs": {"Identity:0": {"value": [9], "shape": [], "dtype": "float32"}}}
 
+def _create_saved_model_with_conv2d(save_dir):
+  """Test a basic model with fusable conv2d.
+  Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
+  layers = [
+      tf.keras.layers.Conv2D(
+          16, [3, 3], padding='same', use_bias=False),
+      tf.keras.layers.BatchNormalization(),
+      tf.keras.layers.ReLU()
+  ]
+  model = tf.keras.Sequential(layers)
+  result = model.predict(tf.ones((1, 24, 24, 3)))
+  # set the learning phase to avoid keara learning placeholder, which
+  # will cause error when saving. 
+  tf.keras.backend.set_learning_phase(0)
+  tf.saved_model.save(model, save_dir)
+  return {
+      "async": False,
+      "inputs": {
+          "input_1": {"value": np.ones((1, 24, 24, 3)).tolist(),
+                "shape": [1, 24, 24, 3],
+                "dtype": 'float32'}},
+      "outputs": {
+          "Identity:0": {"value": result.tolist(),
+                         "shape": result.shape,
+                         "dtype": "float32"}}}
+
+
+def _create_saved_model_with_prelu(save_dir):
+  """Test a basic model with prelu activation.
+  Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
+  layers = [
+      tf.keras.layers.Conv2D(
+          16, [3, 3], padding='same', use_bias=True),
+      tf.keras.layers.PReLU()
+  ]
+  model = tf.keras.Sequential(layers)
+  result = model.predict(tf.ones((1, 24, 24, 3)))
+  tf.keras.backend.set_learning_phase(0)
+  tf.saved_model.save(model, save_dir)
+  return {
+      "async": False,
+      "inputs": {
+          "input_1": {"value": np.ones((1, 24, 24, 3)).tolist(),
+                "shape": [1, 24, 24, 3],
+                "dtype": 'float32'}},
+      "outputs": {
+          "Identity:0": {"value": result.tolist(),
+                         "shape": result.shape,
+                         "dtype": "float32"}}}
 
 def save_and_convert_model(model_name,
                            description,
@@ -253,7 +310,13 @@ def main():
        'Saved model v2'),
       ('saved_model_v2_control_flow',
        _create_saved_model_v2_with_control_flow,
-       'Saved model v2 with control flow')
+       'Saved model v2 with control flow'),
+      ('saved_model_v2_conv2d',
+       _create_saved_model_with_conv2d,
+       'Saved model v2 with conv2d'),
+      ('saved_model_v2_prelu',
+       _create_saved_model_with_prelu,
+       'Saved model v2 with prelu activation')
        ]
 
   for model_name, model_fn, description in names_fns_and_descriptions:
