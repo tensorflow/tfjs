@@ -972,8 +972,8 @@ describeAllEnvs('Dataset', () => {
     expect(resultArray[0]).toBe(1);
     expect(resultArray[1]).toBe(2);
     expect(resultArray[2]).toBe(3);
-    expect(ArrayBuffer.isView(resultArray)).toBeTruthy();
-    expect(resultArray.constructor === Float32Array).toBeTruthy();
+    expect(ArrayBuffer.isView(resultArray)).toBe(true);
+    expect(resultArray.constructor === Float32Array).toBe(true);
   });
 });
 
