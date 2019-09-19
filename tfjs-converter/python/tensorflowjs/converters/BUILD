@@ -128,6 +128,7 @@ py_library(
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
         "//tensorflowjs:expect_tensorflow_hub_installed",
+        "//tensorflowjs:resource_loader",
         "//tensorflowjs:version",
         "//tensorflowjs:write_weights",
     ],
