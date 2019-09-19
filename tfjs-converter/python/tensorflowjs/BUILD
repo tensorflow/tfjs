@@ -133,6 +133,7 @@ py_test(
     name = "resource_loader_test",
     srcs = ["resource_loader_test.py"],
     srcs_version = "PY2AND3",
+    data = [":op_list_jsons"],
     deps = [
         ":resource_loader",
         "//tensorflowjs:expect_numpy_installed",
