@@ -129,6 +129,16 @@ py_test(
     ],
 )
 
+py_test(
+    name = "resource_loader_test",
+    srcs = ["resource_loader_test.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":resource_loader",
+        "//tensorflowjs:expect_numpy_installed",
+    ],
+)
+
 # A filegroup BUILD target that includes all the op list json files in the
 # the op_list/ folder. The op_list folder itself is a symbolic link to the
 # actual op_list folder under src/.
