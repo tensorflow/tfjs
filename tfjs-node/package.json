@@ -6,7 +6,7 @@
   "gypfile": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/tensorflow/tfjs-node.git"
+    "url": "https://github.com/tensorflow/tfjs.git"
   },
   "engines": {
     "node": ">=8.11.0"
@@ -14,12 +14,12 @@
   "scripts": {
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
-    "build-npm-gpu": "./scripts/build-npm-gpu.sh",
     "build-addon": "./scripts/build-and-upload-addon.sh",
     "build-addon-from-source": "node-pre-gyp install --build-from-source",
     "clean-deps": "rm -rf deps && rm -rf lib",
     "coverage": "nyc ts-node src/run_tests.ts",
     "enable-gpu": "node scripts/install.js gpu download && yarn && yarn build-addon-from-source",
+    "ensure-cpu-gpu-packages-align": "node scripts/ensure-cpu-gpu-packages-align.js",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "install": "node scripts/install.js",
     "install-from-source": "yarn clean-deps && yarn && yarn build-addon-from-source",
@@ -30,8 +30,7 @@
     "test": "ts-node src/run_tests.ts",
     "test-ci": "./scripts/test-ci.sh",
     "test-ts-integration": "./scripts/test-ts-integration.sh",
-    "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat",
-    "upload-windows-addon-gpu": "./scripts/build-and-upload-windows-addon-gpu.bat"
+    "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat"
   },
   "devDependencies": {
     "@types/jasmine": "~2.8.6",
