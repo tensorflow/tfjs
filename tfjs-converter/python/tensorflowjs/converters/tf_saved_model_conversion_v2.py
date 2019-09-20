@@ -360,8 +360,8 @@ def convert_tf_saved_model(saved_model_dir,
     output_node_names.append(output_tensor.name.split(':')[0])
 
   # TensorFlow doesn't encode the saved model version in the graph in a reliable
-  # way. Try to freeze the graph using V1 utils. If that fails, freeze the
-  # graph using V2 utils.
+  # way. Try to freeze the graph using V2 utils. If that fails, freeze the
+  # graph using V1 utils.
   try:
     frozen_graph = _freeze_saved_model_v2(concrete_func)
   except BaseException:
