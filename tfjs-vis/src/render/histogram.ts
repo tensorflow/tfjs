@@ -95,7 +95,10 @@ export async function histogram(
       'resize': true,
     },
     'data': {'values': filtered},
-    'mark': 'bar',
+    'mark': {
+      'type': 'bar',
+      'tooltip': true,
+    },
     'config': {
       'axis': {
         'labelFontSize': options.fontSize,

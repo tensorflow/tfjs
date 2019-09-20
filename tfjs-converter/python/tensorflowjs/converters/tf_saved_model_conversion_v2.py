@@ -39,6 +39,7 @@ from tensorflowjs import write_weights
 from tensorflowjs.converters import common
 from tensorflowjs.converters import fold_batch_norms
 from tensorflowjs.converters import fuse_prelu
+from tensorflowjs import resource_loader
 
 # enable eager execution for v2 APIs
 tf.compat.v1.enable_eager_execution()
@@ -86,11 +87,10 @@ def validate(nodes, skip_op_check, strip_debug_ops):
   if skip_op_check:
     return set()
   ops = []
-  op_list_path = os.path.abspath(os.path.join(
-      os.path.dirname(os.path.abspath(__file__)), '..', 'op_list'))
-  for filename in os.listdir(op_list_path):
+  for filename in resource_loader.list_dir('op_list'):
     if os.path.splitext(filename)[1] == '.json':
-      with open(os.path.join(op_list_path, filename)) as json_data:
+      with resource_loader.open_file(os.path.join('op_list',
+                                                  filename)) as json_data:
         ops += json.load(json_data)
 
   names = {x['tfOpName'] for x in ops}
