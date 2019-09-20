@@ -963,6 +963,18 @@ describeAllEnvs('Dataset', () => {
          done();
        }
      });
+
+  it('ArrayBuffer type data is not converted', async () => {
+    const a = new Float32Array([1, 2, 3]);
+    const ds = tfd.array([a]);
+    const result = await ds.toArrayForTest();
+    const resultArray = result[0];
+    expect(resultArray[0]).toBe(1);
+    expect(resultArray[1]).toBe(2);
+    expect(resultArray[2]).toBe(3);
+    expect(ArrayBuffer.isView(resultArray)).toBe(true);
+    expect(resultArray.constructor === Float32Array).toBe(true);
+  });
 });
 
 describeAllEnvs('Dataset with DEBUG mode', () => {

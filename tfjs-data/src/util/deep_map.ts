@@ -246,7 +246,7 @@ export async function deepMapAndAwaitAll(
  */
 // tslint:disable-next-line:no-any
 export function isIterable(obj: any): boolean {
-  return obj != null &&
+  return obj != null && (!ArrayBuffer.isView(obj)) &&
       (Array.isArray(obj) ||
        (typeof obj === 'object' && !(obj instanceof tf.Tensor)));
 }
