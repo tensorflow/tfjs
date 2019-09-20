@@ -303,8 +303,9 @@ def _strip_unused_nodes(frozen_graph, concrete_func, output_node_names):
     # them from the graph, so we need to ignore those.
     try:
       op = frozen_graph.get_operation_by_name(op_name)
-      if op.type != 'Const': input_node_names.append(op_name)
-    except:
+      if op.type != 'Const':
+        input_node_names.append(op_name)
+    except KeyError:
       # The original input was removed when the graph was frozen.
       continue
   stripped_graph_def = TransformGraph(
