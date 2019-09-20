@@ -295,13 +295,18 @@ def _freeze_saved_model_v2(concrete_func):
 
 
 def _strip_unused_nodes(frozen_graph, concrete_func, output_node_names):
+  # Find the names of the input nodes needed to extract the minimal subgraph.
   input_node_names = []
   for input_tensor in concrete_func.inputs:
     op_name = input_tensor.name.split(':')[0]
-    # The freezing of the graph may turn some inputs into constants, so we need
-    # to ignore those inputs.
-    if frozen_graph.get_operation_by_name(op_name).type != 'Const':
-      input_node_names.append(op_name)
+    # The graph freezing may turn the original inputs into constants, or remove
+    # them from the graph, so we need to ignore those.
+    try:
+      op = frozen_graph.get_operation_by_name(op_name)
+      if op.type != 'Const': input_node_names.append(op_name)
+    except:
+      # The original input was removed when the graph was frozen.
+      continue
   stripped_graph_def = TransformGraph(
       frozen_graph.as_graph_def(), input_node_names, output_node_names,
       ['strip_unused_nodes'])
