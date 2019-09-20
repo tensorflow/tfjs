@@ -274,16 +274,14 @@ def _check_signature_in_model(saved_model, signature_name):
                                             saved_model.signatures.keys()))
 
 
-def _freeze_saved_model_v1(saved_model_dir, saved_model_tags, input_node_names,
+def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
                            output_node_names):
   g = tf.Graph()
   with g.as_default():
     with tf.compat.v1.Session() as sess:
       loader.load(sess, saved_model_tags, saved_model_dir)
-      subgraph_def = TransformGraph(g.as_graph_def(), input_node_names,
-                                    output_node_names, ['strip_unused_nodes'])
       frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
-          sess, subgraph_def, output_node_names)
+          sess, g.as_graph_def(), output_node_names)
 
       frozen_graph = tf.Graph()
       with frozen_graph.as_default():
@@ -294,6 +292,22 @@ def _freeze_saved_model_v1(saved_model_dir, saved_model_tags, input_node_names,
 def _freeze_saved_model_v2(concrete_func):
   return convert_to_constants.convert_variables_to_constants_v2(
       concrete_func).graph
+
+
+def _strip_unused_nodes(frozen_graph, concrete_func, output_node_names):
+  input_node_names = []
+  for input_tensor in concrete_func.inputs:
+    op_name = input_tensor.name.split(':')[0]
+    # The freezing of the graph may turn some inputs into constants, so we need
+    # to ignore those inputs.
+    if frozen_graph.get_operation_by_name(op_name).type != 'Const':
+      input_node_names.append(op_name)
+  stripped_graph_def = TransformGraph(
+      frozen_graph.as_graph_def(), input_node_names, output_node_names,
+      ['strip_unused_nodes'])
+  with tf.Graph().as_default() as stripped_graph:
+    tf.import_graph_def(stripped_graph_def, name='')
+    return stripped_graph
 
 def convert_tf_saved_model(saved_model_dir,
                            output_dir, signature_def='serving_default',
@@ -335,10 +349,6 @@ def convert_tf_saved_model(saved_model_dir,
   _check_signature_in_model(model, signature_def)
 
   concrete_func = model.signatures[signature_def]
-  input_node_names = []
-  for input_tensor in concrete_func.inputs:
-    if input_tensor.dtype != tf.resource:
-      input_node_names.append(input_tensor.name.split(':')[0])
   output_node_names = []
   for output_tensor in concrete_func.outputs:
     output_node_names.append(output_tensor.name.split(':')[0])
@@ -347,12 +357,13 @@ def convert_tf_saved_model(saved_model_dir,
   # way. Try to freeze the graph using V1 utils. If that fails, freeze the
   # graph using V2 utils.
   try:
-    frozen_graph = _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
-                                          input_node_names, output_node_names)
-  except BaseException:
     frozen_graph = _freeze_saved_model_v2(concrete_func)
-
-  optimize_graph(frozen_graph, output_node_names, output_graph,
+  except BaseException:
+    frozen_graph = _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
+                                          output_node_names)
+  stripped_graph = _strip_unused_nodes(
+      frozen_graph, concrete_func, output_node_names)
+  optimize_graph(stripped_graph, output_node_names, output_graph,
                  model.tensorflow_version,
                  quantization_dtype=quantization_dtype,
                  skip_op_check=skip_op_check,
