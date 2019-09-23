@@ -500,9 +500,10 @@ export function debounce<T>(
 }
 
 /**
- * Returns the layers identifier for a fusable activation.
+ * Returns the fusable activation given a layers identifier.
  *
- * @param activationName The name of the fusable activation.
+ * @param activationName The layers identifier string.
+ * @return The name of the fusable activation.
  */
 export function mapActivationToFusedKernel(activationName: string):
   fused.Activation {
