@@ -61,7 +61,7 @@ module.exports = function(config) {
       '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm.wasm':
           '/base/wasm-out/tfjs-backend-wasm.wasm',
     },
-    reporters: ['progress', 'karma-typescript'],
+    reporters: ['dots', 'karma-typescript'],
     port: 9876,
     colors: true,
     autoWatch: true,
