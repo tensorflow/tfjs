@@ -32,16 +32,6 @@ import * as generic_utils from '../utils/generic_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
-function mapActivationToFusedKernel(activationName: string): fused.Activation {
-  if (activationName === 'relu') {
-    return 'relu';
-  }
-  if (activationName === 'linear') {
-    return 'linear';
-  }
-  return null;
-}
-
 /**
  * Transpose and cast the input before the conv2d.
  * @param x Input image tensor.
@@ -574,7 +564,7 @@ export abstract class Conv extends BaseConv {
       let outputs: Tensor;
       const biasValue = this.bias == null ? null : this.bias.read();
       const fusedActivationName =
-          mapActivationToFusedKernel(this.activation.getClassName());
+          generic_utils.mapActivationToFusedKernel(this.activation.getClassName());
 
       if (fusedActivationName != null && this.rank === 2) {
         outputs = conv2dWithBiasActivation(

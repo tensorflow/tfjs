@@ -24,20 +24,10 @@ import {ActivationIdentifier} from '../keras_format/activation_config';
 import {Shape} from '../keras_format/common';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
-import {assertPositiveInteger} from '../utils/generic_utils';
+import {assertPositiveInteger, mapActivationToFusedKernel} from '../utils/generic_utils';
 import {arrayProd, range} from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
-
-function mapActivationToFusedKernel(activationName: string): fused.Activation {
-  if (activationName === 'relu') {
-    return 'relu';
-  }
-  if (activationName === 'linear') {
-    return 'linear';
-  }
-  return null;
-}
 
 export declare interface DropoutLayerArgs extends LayerArgs {
   /** Float between 0 and 1. Fraction of the input units to drop. */
