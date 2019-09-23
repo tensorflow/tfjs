@@ -15,7 +15,7 @@ to try it and give us feedback.
 
 ## Setting up a React Native app with tfjs-react-native
 
-These instructions **assume that you are generally familiar with [react native](https://facebook.github.io/react-native/) developement**. This library has only been tested with React Native 0.58.X & 0.59.X. React Native 0.60 is not supported.
+These instructions **assume that you are generally familiar with [react native](https://facebook.github.io/react-native/) developement**.
 
 ### Step 1. Create your react native app.
 
