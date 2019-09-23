@@ -50,7 +50,7 @@ export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
 type BufferInfo = {
   byteSize: number,
   usage: GPUBufferUsage,
-  buffer: GPUBuffer
+  buffer?: GPUBuffer
 };
 
 type TensorInfo = {
@@ -176,13 +176,16 @@ export class WebGPUBackend extends KernelBackend {
     if (!this.tensorMap.has(dataId)) {
       const byteSize = util.sizeFromShape(shape) *
           webgpu_util.GPUBytesPerElement(dtype);
-      const buffer = this.acquireBuffer(byteSize);
+      // const buffer = this.acquireBuffer(byteSize);
       this.tensorMap.set(dataId, {
         values: null,
         id: -1,
         dtype,
-        bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE, buffer}
+        bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
       });
+
+      console.log("REGISTER");
+      // bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE, buffer}
     }
   }
 
@@ -193,8 +196,8 @@ export class WebGPUBackend extends KernelBackend {
 
     const info = this.tensorMap.get(dataId);
     info.values = values;
-    info.bufferInfo.buffer.setSubData(0, values);
     this.tensorMap.set(dataId, info);
+    console.log('WRITE');
   }
 
   private submitQueue() {
@@ -349,6 +352,21 @@ export class WebGPUBackend extends KernelBackend {
     return timerQuery.endMs - timerQuery.startMs;
   }
 
+  private uploadToGPU(dataId: DataId): void {
+    const info = this.tensorMap.get(dataId);
+
+    if(info.bufferInfo.buffer != null) {
+      // Already on the GPU.
+      return;
+    }
+
+    info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
+
+    if(info.values) {
+      info.bufferInfo.buffer.setSubData(0, info.values);
+    }
+  }
+
   private compileAndRun<
       K extends {dtype: DataType, size: number, dataId: {}, shape: number[]}>(
       program: webgpu_program.WebGPUProgram, inputs: Tensor[], output?: Tensor,
@@ -408,13 +426,18 @@ export class WebGPUBackend extends KernelBackend {
     const key =
         webgpu_program.makeShaderKey(program, bufferShapes.map(d => d.length));
     const inputsData =
-        inputs.map((input: Tensor, i: number) => ({
-                     // Returning dtype from tensorMap because it reflects dtype
-                     // of underlying buffer, rather than abstract dtype.
-                     dtype: this.tensorMap.get(input.dataId).dtype,
-                     shape: input.shape,
-                     name: program.variableNames[i]
-                   }));
+        inputs.map((input: Tensor, i: number) => {
+          this.uploadToGPU(input.dataId);
+
+          return {
+            // Returning dtype from tensorMap because it reflects dtype
+            // of underlying buffer, rather than abstract dtype.
+            dtype: this.tensorMap.get(input.dataId).dtype,
+            shape: input.shape,
+            name: program.variableNames[i]
+          }
+        });
+    this.uploadToGPU(output.dataId);
     const {bindGroupLayout, pipeline} = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
           this.compiler, this.shaderc.shader_kind.compute, this.compileOpts,
