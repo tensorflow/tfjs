@@ -504,7 +504,8 @@ export function debounce<T>(
  *
  * @param activationName The name of the fusable activation.
  */
-export function mapActivationToFusedKernel(activationName: string): fused.Activation {
+export function mapActivationToFusedKernel(activationName: string):
+  fused.Activation {
   if (activationName === 'relu') {
     return 'relu';
   }
