@@ -169,23 +169,21 @@ export class WebGPUBackend extends KernelBackend {
 
   private releaseBuffer(
       buffer: GPUBuffer, byteSize: number, usage: GPUBufferUsage) {
-    this.bufferManager.releaseBuffer(buffer, byteSize, usage);
+    if(buffer != null) {
+      this.bufferManager.releaseBuffer(buffer, byteSize, usage);
+    }
   }
 
   register(dataId: object, shape: number[], dtype: DataType): void {
     if (!this.tensorMap.has(dataId)) {
       const byteSize = util.sizeFromShape(shape) *
           webgpu_util.GPUBytesPerElement(dtype);
-      // const buffer = this.acquireBuffer(byteSize);
       this.tensorMap.set(dataId, {
         values: null,
         id: -1,
         dtype,
         bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
       });
-
-      console.log("REGISTER");
-      // bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE, buffer}
     }
   }
 
@@ -197,7 +195,6 @@ export class WebGPUBackend extends KernelBackend {
     const info = this.tensorMap.get(dataId);
     info.values = values;
     this.tensorMap.set(dataId, info);
-    console.log('WRITE');
   }
 
   private submitQueue() {
@@ -210,6 +207,10 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private async getBufferData(info: TensorInfo): Promise<ArrayBuffer> {
+    if(info.values != null) {
+      // Data is on the CPU.
+      return info.values;
+    }
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
@@ -364,6 +365,7 @@ export class WebGPUBackend extends KernelBackend {
 
     if(info.values) {
       info.bufferInfo.buffer.setSubData(0, info.values);
+      info.values = null;
     }
   }
 
@@ -768,6 +770,7 @@ export class WebGPUBackend extends KernelBackend {
 
     const output = this.makeOutputArray(outShape, 'int32');
     this.write(output.dataId, Int32Array.from(pixelArray));
+    this.uploadToGPU(output.dataId);
     return output as Tensor3D;
   }
 
