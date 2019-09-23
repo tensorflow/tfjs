@@ -563,8 +563,8 @@ export abstract class Conv extends BaseConv {
       inputs = getExactlyOneTensor(inputs);
       let outputs: Tensor;
       const biasValue = this.bias == null ? null : this.bias.read();
-      const fusedActivationName =
-          generic_utils.mapActivationToFusedKernel(this.activation.getClassName());
+      const fusedActivationName = generic_utils.mapActivationToFusedKernel(
+                                            this.activation.getClassName());
 
       if (fusedActivationName != null && this.rank === 2) {
         outputs = conv2dWithBiasActivation(
