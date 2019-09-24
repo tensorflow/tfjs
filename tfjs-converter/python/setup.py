@@ -58,6 +58,7 @@ setuptools.setup(
         'tensorflowjs.version',
         'tensorflowjs.quantization',
         'tensorflowjs.read_weights',
+        'tensorflowjs.resource_loader',
         'tensorflowjs.wizard',
         'tensorflowjs.write_weights',
         'tensorflowjs.converters',

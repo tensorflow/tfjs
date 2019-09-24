@@ -1524,7 +1524,7 @@ describeWithFlags('sign', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [1, 0, 0, -1]);
   });
 
-  it('propagates NaNs', async () => {
+  it('does not propagate NaNs', async () => {
     const a = tf.tensor1d([1.5, NaN, -1.4]);
     const r = tf.sign(a);
     expectArraysClose(await r.data(), [1, 0, -1]);
@@ -3657,6 +3657,14 @@ describeWithFlags('erf', ALL_ENVS, () => {
     const a = tf.tensor1d(values);
     const result = tf.erf(a);
     const expected = [-0.2763264, 0.2763264, 0.5204999, 0.7111556, -0.4283924];
+    expectArraysClose(await result.data(), expected);
+  });
+
+  it('blowup', async () => {
+    const values = [-1.4, -2.5, -3.1, -4.4];
+    const a = tf.tensor1d(values);
+    const result = tf.erf(a);
+    const expected = [-0.9522852, -0.999593, -0.9999883, -1];
     expectArraysClose(await result.data(), expected);
   });
 

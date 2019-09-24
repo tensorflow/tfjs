@@ -101,7 +101,10 @@ export async function barchart(
       }
     },
     'data': {'values': values, 'name': 'values'},
-    'mark': 'bar',
+    'mark': {
+      'type': 'bar',
+      'tooltip': true,
+    },
     'encoding': {
       'x': {'field': 'index', 'type': xType, 'axis': xAxis},
       'y': {'field': 'value', 'type': yType, 'axis': yAxis}
@@ -124,8 +127,8 @@ const defaultOpts = {
   fontSize: 11,
 };
 
-// We keep a map of containers to chart instances in order to reuse the instance
-// where possible.
+// We keep a map of containers to chart instances in order to reuse the
+// instance where possible.
 const instances: Map<HTMLElement, InstanceInfo> =
     new Map<HTMLElement, InstanceInfo>();
 

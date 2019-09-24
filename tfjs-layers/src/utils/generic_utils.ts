@@ -10,7 +10,7 @@
 
 /* Original source: utils/generic_utils.py */
 
-import {DataType, serialization, util} from '@tensorflow/tfjs-core';
+import {DataType, serialization, util, fused} from '@tensorflow/tfjs-core';
 
 import {AssertionError, ValueError} from '../errors';
 // tslint:enable
@@ -497,4 +497,24 @@ export function debounce<T>(
     return lastResult;
   };
   return f2;
+}
+
+/**
+ * Returns the fusable activation given a layers identifier.
+ *
+ * @param activationName The layers identifier string.
+ * @return The name of the fusable activation.
+ */
+export function mapActivationToFusedKernel(activationName: string):
+  fused.Activation {
+  if (activationName === 'relu') {
+    return 'relu';
+  }
+  if (activationName === 'linear') {
+    return 'linear';
+  }
+  if(activationName === 'elu') {
+    return 'elu';
+  }
+  return null;
 }
