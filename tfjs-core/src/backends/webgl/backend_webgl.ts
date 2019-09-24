@@ -182,6 +182,11 @@ function mapActivationToShaderProgram(
       return unary_packed_op.ELU;
     }
     return unary_op.ELU;
+  } else if (activation === 'relu6') {
+    if (packed) {
+      return unary_packed_op.RELU6;
+    }
+    return unary_op.RELU6;
   } else if (activation === 'prelu') {
     if (packed) {
       return binaryop_packed_gpu.PRELU;
@@ -2590,7 +2595,10 @@ export class MathBackendWebGL implements KernelBackend {
     const program = new ReshapePackedProgram(
         afterShapeAs3D as [number, number, number],
         inputAs3D.shape as [number, number, number]);
-    return this.compileAndRun<Tensor<R>>(program, [inputAs3D])
+    const preventEagerUnpackingOfOutput = true;
+    return this
+        .compileAndRun<Tensor<R>>(
+            program, [inputAs3D], null, null, preventEagerUnpackingOfOutput)
         .reshape(afterShape);
   }
 

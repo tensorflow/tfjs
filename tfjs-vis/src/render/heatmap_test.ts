@@ -186,4 +186,38 @@ describe('renderHeatmap', () => {
     expect(document.querySelectorAll('canvas').length).toBe(1);
     expect(document.querySelector('canvas').height).toBe(200 * pixelRatio);
   });
+
+  it('throws on wrong number of xTickLabels', async () => {
+    const data: HeatmapData = {
+      values: [[4, 2, 8], [1, 7, 2], [3, 3, 20], [8, 2, 8]],
+      xTickLabels: ['alpha'],
+      yTickLabels: ['first', 'second', 'third', 'fourth'],
+    };
+
+    const container = document.getElementById('container');
+    let threw = false;
+    try {
+      await heatmap(container, data, {height: 200});
+    } catch (e) {
+      threw = true;
+    }
+    expect(threw).toBe(true);
+  });
+
+  it('throws on wrong number of yTickLabels', async () => {
+    const data: HeatmapData = {
+      values: [[4, 2, 8], [1, 7, 2], [3, 3, 20], [8, 2, 8]],
+      xTickLabels: ['alpha', 'beta', 'gamma'],
+      yTickLabels: ['first'],
+    };
+
+    const container = document.getElementById('container');
+    let threw = false;
+    try {
+      await heatmap(container, data, {height: 200});
+    } catch (e) {
+      threw = true;
+    }
+    expect(threw).toBe(true);
+  });
 });

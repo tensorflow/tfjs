@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 setTestEnvs([{
@@ -31,7 +32,7 @@ const grepFilter = env.specFilter;
 const INCLUDE_LIST: string[] = [
   'matmul', 'add ', 'subtract ', 'mul ', 'conv2d', 'pad', 'pool', 'maxPool',
   'floor divide ', 'resizeBilinear', 'relu', 'transpose', 'concat', 'argmax',
-  'fromPixels', 'depthwise', 'div'
+  'fromPixels', 'depthwise', 'div', 'greater'
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
@@ -75,7 +76,11 @@ const EXCLUDE_LIST: string[] = [
   'RFFT',                                                // Not yet implemented.
   'fused',                                               // Not yet implemented.
   'NCHW',                                                // Not yet implemented.
-  'maxPool3d'                                            // Not yet implemented.
+  'maxPool3d',                                           // Not yet implemented.
+  'frame',                                               // Not yet implemented.
+  'HTMLVideolement',
+  'works with 0 sized tensors',                          // AbortError.
+  'NaNs in Tensor'                                       // Not yet implemented.
 ];
 
 /**
@@ -121,4 +126,5 @@ env.specFilter = spec => {
 };
 
 // Import and run all the tests from core.
+// tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/tests';

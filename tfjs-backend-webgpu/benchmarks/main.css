@@ -111,9 +111,8 @@ h2 {
 }
 
 .color {
-  border-radius: 50%;
-  width: 10px;
-  height: 10px;
+  width: 20px;
+  height: 2px;
   display: inline-block;
   vertical-align: middle;
 }

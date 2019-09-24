@@ -16,12 +16,11 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, Tensor5D, tidy, util} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
 import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
-import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
-import {Activation, FusedBatchMatMulConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
-import {StringTensor, Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
-import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
+// tslint:disable-next-line: no-imports-from-dist
+import {FusedBatchMatMulConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {isArray, isNullOrUndefined} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
@@ -30,7 +29,7 @@ import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 type TensorInfo = {
   shape: number[],
   dtype: number,
-  values: BackendValues,
+  values: backend_util.BackendValues,
   id: number
 };
 
@@ -199,11 +198,11 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   dispose(): void {}
 
-  async read(dataId: object): Promise<BackendValues> {
+  async read(dataId: object): Promise<backend_util.BackendValues> {
     return this.readSync(dataId);
   }
 
-  readSync(dataId: object): BackendValues {
+  readSync(dataId: object): backend_util.BackendValues {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
@@ -223,7 +222,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     this.tensorMap.delete(dataId);
   }
 
-  write(dataId: object, values: BackendValues): void {
+  write(dataId: object, values: backend_util.BackendValues): void {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
@@ -342,8 +341,9 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   fusedConv2d(
-      x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
-      activation?: Activation, preluActivationWeights?: Tensor): Tensor4D {
+      x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo,
+      bias?: Tensor4D, activation?: backend_util.Activation,
+      preluActivationWeights?: Tensor): Tensor4D {
     let result = this.conv2d(x, filter, convInfo);
     if (bias != null) {
       result = this.add(result, bias) as Tensor4D;
@@ -436,12 +436,14 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   add(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Add', opAttrs, [a, b]);
   }
 
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Select', opAttrs, [condition, a, b]);
   }
 
@@ -454,27 +456,32 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   subtract(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Sub', opAttrs, [a, b]);
   }
 
   multiply(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Mul', opAttrs, [a, b]);
   }
 
   realDivide(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('RealDiv', opAttrs, [a, b]);
   }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('FloorDiv', opAttrs, [a, b]);
   }
 
   divide(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Div', opAttrs, [a, b]);
   }
 
@@ -525,32 +532,38 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   equal(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Equal', opAttrs, [a, b]);
   }
 
   notEqual(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('NotEqual', opAttrs, [a, b]);
   }
 
   less(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Less', opAttrs, [a, b]);
   }
 
   lessEqual(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('LessEqual', opAttrs, [a, b]);
   }
 
   greater(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Greater', opAttrs, [a, b]);
   }
 
   greaterEqual(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('GreaterEqual', opAttrs, [a, b]);
   }
 
@@ -599,7 +612,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   minimum(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Minimum', opAttrs, [a, b]);
   }
 
@@ -610,7 +624,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   maximum(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Maximum', opAttrs, [a, b]);
   }
 
@@ -641,7 +656,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   pow<T extends Tensor>(a: T, b: Tensor): T {
-    const dtype = upcastType(a.dtype, b.dtype);
+    const dtype = backend_util.upcastType(a.dtype, b.dtype);
     const opAttrs = [createTypeOpAttr('T', dtype)];
     return this.executeSingleOutput(
                'Pow', opAttrs, [a.cast(dtype), b.cast(dtype)]) as T;
@@ -816,7 +831,8 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.select(nans, x, stepNoNans) as T;
   }
 
-  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
+      Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
@@ -841,8 +857,9 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Conv2D', opAttrs, [x, filter]) as Tensor4D;
   }
 
-  conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
-      Tensor4D {
+  conv2dDerInput(
+      dy: Tensor4D, filter: Tensor4D,
+      convInfo: backend_util.Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
@@ -869,7 +886,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor4D;
   }
 
-  conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+  conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo):
+      Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
@@ -896,8 +914,9 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor4D;
   }
 
-  depthwiseConv2DDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
-      Tensor4D {
+  depthwiseConv2DDerInput(
+      dy: Tensor4D, filter: Tensor4D,
+      convInfo: backend_util.Conv2DInfo): Tensor4D {
     const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
     const padding = convInfo.padInfo.type;
     const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
@@ -919,8 +938,8 @@ export class NodeJSKernelBackend extends KernelBackend {
                [inputSizes, filter, dy]) as Tensor4D;
   }
 
-  depthwiseConv2DDerFilter(x: Tensor4D, dY: Tensor4D, convInfo: Conv2DInfo):
-      Tensor4D {
+  depthwiseConv2DDerFilter(
+      x: Tensor4D, dY: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
     const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
     const padding = convInfo.padInfo.type;
     const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
@@ -941,8 +960,9 @@ export class NodeJSKernelBackend extends KernelBackend {
                [x, filterSizes, dY]) as Tensor4D;
   }
 
-  depthwiseConv2D(input: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
-      Tensor4D {
+  depthwiseConv2D(
+      input: Tensor4D, filter: Tensor4D,
+      convInfo: backend_util.Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
@@ -966,8 +986,9 @@ export class NodeJSKernelBackend extends KernelBackend {
                'DepthwiseConv2dNative', opAttrs, [input, filter]) as Tensor4D;
   }
 
-  conv3d(x: Tensor<Rank.R5>, filter: Tensor<Rank.R5>, convInfo: Conv3DInfo):
-      Tensor<Rank.R5> {
+  conv3d(
+      x: Tensor<Rank.R5>, filter: Tensor<Rank.R5>,
+      convInfo: backend_util.Conv3DInfo): Tensor<Rank.R5> {
     const strides = [
       1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
     ];
@@ -997,7 +1018,7 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   conv3dDerInput(
       dy: Tensor<Rank.R5>, filter: Tensor<Rank.R5>,
-      convInfo: Conv3DInfo): Tensor<Rank.R5> {
+      convInfo: backend_util.Conv3DInfo): Tensor<Rank.R5> {
     const strides = [
       1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
     ];
@@ -1030,7 +1051,7 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   conv3dDerFilter(
       x: Tensor<Rank.R5>, dY: Tensor<Rank.R5>,
-      convInfo: Conv3DInfo): Tensor<Rank.R5> {
+      convInfo: backend_util.Conv3DInfo): Tensor<Rank.R5> {
     const strides = [
       1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
     ];
@@ -1061,7 +1082,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor5D;
   }
 
-  maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+  maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
@@ -1084,8 +1105,9 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('MaxPool', opAttrs, [x]) as Tensor4D;
   }
 
-  maxPoolBackprop(dy: Tensor4D, x: Tensor4D, y: Tensor4D, convInfo: Conv2DInfo):
-      Tensor4D {
+  maxPoolBackprop(
+      dy: Tensor4D, x: Tensor4D, y: Tensor4D,
+      convInfo: backend_util.Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
@@ -1110,7 +1132,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor4D;
   }
 
-  avgPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+  avgPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
@@ -1134,7 +1156,8 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('AvgPool', opAttrs, [x]) as Tensor4D;
   }
 
-  avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+  avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: backend_util.Conv2DInfo):
+      Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
@@ -1160,7 +1183,7 @@ export class NodeJSKernelBackend extends KernelBackend {
                'AvgPoolGrad', opAttrs, [origInputShape, dy]) as Tensor4D;
   }
 
-  avgPool3d(x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+  avgPool3d(x: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
@@ -1189,7 +1212,8 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('AvgPool3D', opAttrs, [x]) as Tensor5D;
   }
 
-  avgPool3dBackprop(dy: Tensor5D, x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+  avgPool3dBackprop(
+      dy: Tensor5D, x: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
@@ -1220,7 +1244,7 @@ export class NodeJSKernelBackend extends KernelBackend {
                'AvgPool3DGrad', opAttrs, [origInputShape, dy]) as Tensor5D;
   }
 
-  maxPool3d(x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+  maxPool3d(x: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
@@ -1249,7 +1273,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   maxPool3dBackprop(
-      dy: Tensor5D, x: Tensor5D, y: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+      dy: Tensor5D, x: Tensor5D, y: Tensor5D,
+      convInfo: backend_util.Conv3DInfo): Tensor5D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
