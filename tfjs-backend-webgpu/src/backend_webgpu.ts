@@ -734,9 +734,9 @@ export class WebGPUBackend extends KernelBackend {
         if (this.fromPixels2DContext == null) {
           this.fromPixels2DContext =
               document.createElement('canvas').getContext('2d');
-          this.fromPixels2DContext.canvas.width = pixels.width;
-          this.fromPixels2DContext.canvas.height = pixels.height;
-        }
+            }
+        this.fromPixels2DContext.canvas.width = pixels.width;
+        this.fromPixels2DContext.canvas.height = pixels.height;
         this.fromPixels2DContext.drawImage(
             pixels, 0, 0, pixels.width, pixels.height);
         pixels = this.fromPixels2DContext.canvas;
