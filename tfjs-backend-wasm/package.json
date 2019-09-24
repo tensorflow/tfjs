@@ -11,7 +11,8 @@
     "build": "rimraf dist/ && ./scripts/build-wasm.sh && tsc && cp wasm-out/*.wasm dist/",
     "build-npm": "./scripts/build-npm.sh",
     "lint": "tslint -p . -t verbose",
-    "test": "./scripts/build-wasm.sh && karma start"
+    "test": "./scripts/build-wasm.sh && karma start",
+    "test-ci": "./scripts/test-ci.sh"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "~1.2.7"
