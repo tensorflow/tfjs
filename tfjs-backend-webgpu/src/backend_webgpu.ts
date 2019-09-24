@@ -128,7 +128,9 @@ export class WebGPUBackend extends KernelBackend {
 
   flushDisposalQueue() {
     this.disposalQueue.forEach(d => {
-      this.releaseBuffer(d.buffer, d.byteSize, d.usage);
+      if (d.buffer != null) {
+        this.releaseBuffer(d.buffer, d.byteSize, d.usage);
+      }
     });
 
     this.disposalQueue = [];
@@ -143,9 +145,11 @@ export class WebGPUBackend extends KernelBackend {
     if (this.commandQueueOwnedIds.has(dataId)) {
       this.disposalQueue.push(info.bufferInfo);
     } else {
-      this.releaseBuffer(
-          info.bufferInfo.buffer, info.bufferInfo.byteSize,
-          info.bufferInfo.usage);
+      if (info.bufferInfo.buffer != null) {
+        this.releaseBuffer(
+            info.bufferInfo.buffer, info.bufferInfo.byteSize,
+            info.bufferInfo.usage);
+      }
     }
 
     this.tensorMap.delete(dataId);
@@ -169,9 +173,7 @@ export class WebGPUBackend extends KernelBackend {
 
   private releaseBuffer(
       buffer: GPUBuffer, byteSize: number, usage: GPUBufferUsage) {
-    if (buffer != null) {
-      this.bufferManager.releaseBuffer(buffer, byteSize, usage);
-    }
+    this.bufferManager.releaseBuffer(buffer, byteSize, usage);
   }
 
   register(dataId: object, shape: number[], dtype: DataType): void {
@@ -224,9 +226,11 @@ export class WebGPUBackend extends KernelBackend {
     const values = mapped.slice(0);
 
     staging.unmap();
-    this.releaseBuffer(
-        staging, info.bufferInfo.byteSize,
-        GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+    if (staging != null) {
+      this.releaseBuffer(
+          staging, info.bufferInfo.byteSize,
+          GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+    }
 
     return values;
   }
