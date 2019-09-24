@@ -433,9 +433,10 @@ export class WebGPUBackend extends KernelBackend {
       return {
         // Returning dtype from tensorMap because it reflects dtype
         // of underlying buffer, rather than abstract dtype.
-        dtype: this.tensorMap.get(input.dataId).dtype, shape: input.shape,
-            name: program.variableNames[i]
-      }
+        dtype: this.tensorMap.get(input.dataId).dtype,
+        shape: input.shape,
+        name: program.variableNames[i]
+      };
     });
     this.uploadToGPU(output.dataId);
     const {bindGroupLayout, pipeline} = this.getAndSavePipeline(key, () => {
