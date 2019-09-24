@@ -25,6 +25,8 @@ import {isArray, isNullOrUndefined} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
+// tslint:disable-next-line: no-imports-from-dist
+import { StringTensor } from '@tensorflow/tfjs-core/dist/tensor';
 
 type TensorInfo = {
   shape: number[],
