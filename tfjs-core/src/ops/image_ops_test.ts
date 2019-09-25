@@ -411,3 +411,54 @@ describeWithFlags('cropAndResize', ALL_ENVS, () => {
         [1, 2, 0, 3, 4, 0, 3, 4, 0, 5, 6, 6, 7, 8, 8, 0, 0, 0]);
   });
 });
+
+describeWithFlags('rgbToGrayscale', ALL_ENVS, () => {
+  it('float32 RGB image', async () => {
+    const input = tf.tensor3d(
+      [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65],
+      [2, 2, 3], 'float32'
+    );
+    const output = tf.image.rgbToGrayscale(input);
+    expect(output.dtype).toEqual('float32');
+    expect(output.shape).toEqual([2, 2, 1]);
+
+    // The output equates to:
+    // [(0.1 * 0.2989) + (0.15 * 0.5870) + (0.2 * 0.1140), ... ]
+    expectArraysClose(
+      await output.data(),
+      [0.14074, 0.290725, 0.44071, 0.590695]
+    );
+  });
+  it('int32 RGB image', async () => {
+    const input = tf.tensor3d(
+      [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120], [2, 2, 3], 'int32'
+    );
+    const output = tf.image.rgbToGrayscale(input);
+    expect(output.dtype).toEqual('int32');
+    expect(output.shape).toEqual([2, 2, 1]);
+    expectArraysClose(await output.data(), [18, 48, 78, 108]);
+  });
+  it('batch greater than 1', async () => {
+    const input = tf.tensor4d(
+      [0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3, 0.4, 0.4, 0.4,
+       0.5, 0.5, 0.5, 0.6, 0.6, 0.6, 0.7, 0.7, 0.7, 0.8, 0.8, 0.8],
+      [2, 2, 2, 3], 'float32'
+    );
+    const output = tf.image.rgbToGrayscale(input);
+    expect(output.dtype).toEqual('float32');
+    expect(output.shape).toEqual([2, 2, 2, 1]);
+    expectArraysClose(
+      await output.data(),
+      [0.0999, 0.19998, 0.29997, 0.39996, 0.49995, 0.59994, 0.69993, 0.79992]
+    );
+  });
+  it('throws when passed a non-tensor', () => {
+    const e = /Argument 'images' passed to 'rgbToGrayscale' must be a Tensor/;
+    expect(() => tf.image.rgbToGrayscale({} as tf.Tensor3D)).toThrowError(e);
+  });
+  it('throws when passed a tensor without 3 channels', () => {
+    const input = tf.tensor3d([0.1, 0.1, 0.1, 0.1], [1, 1, 4], 'float32');
+    const e = /Last dimension of `images` must be `3`/;
+    expect(() => tf.image.rgbToGrayscale(input)).toThrowError(e);
+  });
+});

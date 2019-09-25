@@ -19,6 +19,8 @@ import {nonMaxSuppressionImpl} from '../backends/non_max_suppression_impl';
 import {ENGINE, ForwardFunc} from '../engine';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
+import {dot} from './matmul';
+import {tensor2d} from './tensor_ops';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
@@ -304,8 +306,64 @@ function cropAndResize_(
   return res;
 }
 
+/**
+ * Converts one or more images from RGB to Grayscale.
+ *
+ * @param images The images, of rank 4 or rank 3, of shape
+ *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
+ *     The last dimension must have size 3 and should contain RGB values.
+ */
+/** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
+function rgbToGrayscale_<T extends Tensor3D|Tensor4D>(images: T|TensorLike) {
+  const $images = convertToTensor(images, 'images', 'rgbToGrayscale');
+  util.assert(
+      $images.rank === 3 || $images.rank === 4,
+      () => `Error in rgbToGrayscale: x must be rank 3 or 4, but got ` +
+          `rank ${$images.rank}.`);
+  util.assert(
+      $images.dtype === 'float32' || $images.dtype === 'int32',
+      () => '`images` must have `int32` or `float32` as dtype');
+  util.assert(
+      $images.shape[$images.shape.length-1] === 3,
+      () => 'Last dimension of `images` must be `3` corresponding ' +
+            'to RGB channels.');
+
+  let batchImages = $images as Tensor4D;
+  let reshapedTo4D = false;
+
+  if ($images.rank === 3) {
+    reshapedTo4D = true;
+    batchImages =
+        $images.as4D(1, $images.shape[0], $images.shape[1], $images.shape[2]);
+  }
+
+  const origDtype = $images.dtype;
+  const floatImage = batchImages.toFloat();
+
+  // Using Rec. 601 luma coefficients.
+  // See: https://en.wikipedia.org/wiki/Luma_%28video%29
+  const coefficients = tensor2d([0.2989, 0.5870, 0.1140], [3, 1]);
+
+  const reshaped = floatImage.reshape(
+    [batchImages.shape[0] * batchImages.shape[1] * batchImages.shape[2], 3]
+  );
+  let res = dot(reshaped, coefficients).reshape(
+    [batchImages.shape[0], batchImages.shape[1], batchImages.shape[2], 1]
+  );
+
+  if (origDtype === 'int32') {
+    res = res.toInt();
+  }
+
+  if (reshapedTo4D) {
+    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+  }
+  return res as T;
+}
+
 export const resizeBilinear = op({resizeBilinear_});
 export const resizeNearestNeighbor = op({resizeNearestNeighbor_});
 export const nonMaxSuppression = op({nonMaxSuppression_});
 export const nonMaxSuppressionAsync = nonMaxSuppressionAsync_;
 export const cropAndResize = op({cropAndResize_});
+export const rgbToGrayscale = op({rgbToGrayscale_});
