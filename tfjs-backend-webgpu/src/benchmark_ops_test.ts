@@ -79,7 +79,7 @@ describeWebGPU('Ops benchmarks', () => {
   }
 
   it('argMax', async () => {
-    const n = 50;
+    const n = 2;
     const doTest = async (axis: number) => {
       const tensors = new Array(n);
       const maxes = new Array(n);
@@ -97,7 +97,7 @@ describeWebGPU('Ops benchmarks', () => {
             for (const t of maxes) {
               t.dispose();
             }
-          });
+          }, false, 50, n);
     };
 
     await doTest(0);
