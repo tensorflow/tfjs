@@ -109,7 +109,7 @@ Make sure you can access those files as static assets from your web app by servi
 ### Demo
 
 The object detection demo lives in
-[demo/object_classification](./demo/object_classification). To run it:
+[demo/object_detection](./demo/object_detection). To run it:
 
 ```sh
 cd demo/object_detection

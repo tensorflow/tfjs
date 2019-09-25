@@ -14,7 +14,7 @@ To keep track of issues we use the [tensorflow/tfjs](https://github.com/tensorfl
 You can install TensorFlow.js via yarn or npm. We recommend using the
 [@tensorflow/tfjs](https://www.npmjs.com/package/@tensorflow/tfjs) npm package,
 which gives you both this Core API and the higher-level
-[Layers API](https://github.com/tensorflow/tfjs-layers):
+[Layers API](/tfjs-layers):
 
 ```js
 import * as tf from '@tensorflow/tfjs';
@@ -31,7 +31,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 // No Layers API.
 ```
 
-For info about development, check out [DEVELOPMENT.md](./DEVELOPMENT.md).
+For info about development, check out [DEVELOPMENT.md](/DEVELOPMENT.md).
 
 ## For more information
 
