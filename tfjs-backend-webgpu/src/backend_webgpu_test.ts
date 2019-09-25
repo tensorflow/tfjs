@@ -185,25 +185,25 @@ describeWebGPU('backend webgpu', () => {
     const bufferManager = backend.getBufferManager();
     const t = tf.Tensor.make([3], {}, 'float32');
     backend.write(t.dataId, new Float32Array([1, 2, 3]));
+
+    expect(bufferManager.getNumUsedBuffers()).toBe(0);
+
     backend.getBuffer(t.dataId);
     expect(bufferManager.getNumUsedBuffers()).toBe(1);
-    // overwrite.
+
     backend.write(t.dataId, new Float32Array([4, 5, 6]));
     expect(bufferManager.getNumUsedBuffers()).toBe(0);
+
     tf.test_util.expectArraysClose(
         await backend.read(t.dataId), new Float32Array([4, 5, 6]));
+
+    expect(bufferManager.getNumUsedBuffers()).toBe(0);
+
     backend.getBuffer(t.dataId);
     expect(bufferManager.getNumUsedBuffers()).toBe(1);
+
     tf.test_util.expectArraysClose(
         await backend.read(t.dataId), new Float32Array([4, 5, 6]));
     expect(bufferManager.getNumUsedBuffers()).toBe(0);
-  });
-
-  it('lol', async () => {
-    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-    const c = tf.tensor2d([1, 2, 3, 4, 2, 5], [2, 3]);
-
-    const r = tf.div(a, c);
-    tf.test_util.expectArraysClose(await r.data(), [1, 1, 1, 1, 2.5, 6 / 5]);
   });
 });
