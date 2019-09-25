@@ -171,11 +171,12 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private maybeReleaseBuffer(dataId: DataId) {
-    const {bufferInfo} = this.tensorMap.get(dataId);
-    if (bufferInfo.buffer != null) {
+    const info = this.tensorMap.get(dataId);
+    if (info != null && info.bufferInfo.buffer != null) {
       this.bufferManager.releaseBuffer(
-          bufferInfo.buffer, bufferInfo.byteSize, bufferInfo.usage);
-      bufferInfo.buffer = null;
+          info.bufferInfo.buffer, info.bufferInfo.byteSize,
+          info.bufferInfo.usage);
+      info.bufferInfo.buffer = null;
     }
   }
 
