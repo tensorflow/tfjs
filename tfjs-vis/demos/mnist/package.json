@@ -18,7 +18,7 @@
     "rimraf": "^2.6.2"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "1.0.0",
-    "@tensorflow/tfjs-vis": "1.0.3"
+    "@tensorflow/tfjs": "1.2.9",
+    "@tensorflow/tfjs-vis": "1.2.0"
   }
 }
