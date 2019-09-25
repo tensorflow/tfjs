@@ -94,7 +94,9 @@ export class WebGPUBackend extends KernelBackend {
   private fromPixels2DContext: CanvasRenderingContext2D;
   private bufferManager: BufferManager;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
-  private disposalQueue: Array<{dataId: DataId, bufferInfo: BufferInfo}> = [];
+
+  private tensorDisposalQueue: DataId[] = [];
+  private uniformDisposalQueue: BufferInfo[] = [];
 
   private disposed = false;
 
@@ -127,16 +129,12 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   flushDisposalQueue() {
-    this.disposalQueue.forEach(d => {
-      const {dataId, bufferInfo} = d;
-      if (d.dataId != null) {
-        this.maybeReleaseBuffer(dataId);
-      } else {
-        this.bufferManager.releaseBuffer(
-            bufferInfo.buffer, bufferInfo.byteSize, bufferInfo.usage);
-      }
-    });
-    this.disposalQueue = [];
+    this.tensorDisposalQueue.forEach(d => this.maybeReleaseBuffer(d));
+    this.uniformDisposalQueue.forEach(
+        d => this.bufferManager.releaseBuffer(d.buffer, d.byteSize, d.usage));
+
+    this.tensorDisposalQueue = [];
+    this.uniformDisposalQueue = [];
   }
 
   disposeData(dataId: DataId): void {
@@ -145,8 +143,7 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     if (this.commandQueueOwnedIds.has(dataId)) {
-      this.disposalQueue.push(
-          {dataId, bufferInfo: this.tensorMap.get(dataId).bufferInfo});
+      this.tensorDisposalQueue.push(dataId);
     } else {
       this.maybeReleaseBuffer(dataId);
     }
@@ -493,7 +490,7 @@ export class WebGPUBackend extends KernelBackend {
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
       buffer: uniforms.resource.buffer
     };
-    this.disposalQueue.push({dataId: null, bufferInfo: uniformInfo});
+    this.uniformDisposalQueue.push(uniformInfo);
 
     if (ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED')) {
       this.submitQueue();
