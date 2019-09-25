@@ -61,12 +61,30 @@ module.exports = function(config) {
       '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm.wasm':
           '/base/wasm-out/tfjs-backend-wasm.wasm',
     },
-    reporters: ['progress', 'karma-typescript'],
+    reporters: ['dots', 'karma-typescript'],
     port: 9876,
     colors: true,
     autoWatch: true,
     browsers: ['Chrome'],
+    browserStack: {
+      username: process.env.BROWSERSTACK_USERNAME,
+      accessKey: process.env.BROWSERSTACK_KEY
+    },
     singleRun: false,
-    client: {jasmine: {random: false}, args: args}
+    captureTimeout: 120000,
+    reportSlowerThan: 500,
+    browserNoActivityTimeout: 180000,
+    client: {jasmine: {random: false}, args: args},
+    customLaunchers: {
+      // For browserstack configs see:
+      // https://www.browserstack.com/automate/node
+      bs_chrome_mac: {
+        base: 'BrowserStack',
+        browser: 'chrome',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      }
+    }
   })
 }
