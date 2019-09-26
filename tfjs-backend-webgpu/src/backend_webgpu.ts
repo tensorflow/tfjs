@@ -22,6 +22,7 @@ import './flags_webgpu';
 import {backend_util, DataStorage, DataType, ENV, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 // TODO(annxingyuan): import ENGINE from core directly once 1.3.0 is
 // released.
+// tslint:disable-next-line: no-imports-from-dist
 import {ENGINE} from '@tensorflow/tfjs-core/dist/engine';
 import * as shaderc from '@webgpu/shaderc';
 
