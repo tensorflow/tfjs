@@ -121,7 +121,7 @@ describeWebGPU('backend webgpu', () => {
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 
-  it('should not recycle buffers in delayed mode', () => {
+  it('should not recycle buffers in delayed mode', async () => {
     const savedFlag = tf.ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', false);
     const backend = tf.backend() as WebGPUBackend;
@@ -152,11 +152,15 @@ describeWebGPU('backend webgpu', () => {
     expect(usedBuffersAfterSecondMul - usedBuffersAfterFirstMatMul).toEqual(4);
 
     const f2 = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-    tf.matMul(c2, f2);
+    const c3 = tf.matMul(c2, f2);
     const freeBuffersAfterSecondMatMul = bufferManager.getNumFreeBuffers();
     const usedBuffersAfterSecondMatMul = bufferManager.getNumUsedBuffers();
     expect(freeBuffersAfterSecondMatMul - freeBuffersAfterSecondMul).toEqual(0);
     expect(usedBuffersAfterSecondMatMul - usedBuffersAfterSecondMul).toEqual(3);
+
+    // Tests happen within a tidy so we need to read a tensor at the end of a
+    // test in delayed mode in order to force flush the disposal queue.
+    await c3.data();
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 
@@ -205,5 +209,21 @@ describeWebGPU('backend webgpu', () => {
     tf.test_util.expectArraysClose(
         await backend.read(t.dataId), new Float32Array([4, 5, 6]));
     expect(bufferManager.getNumUsedBuffers()).toBe(0);
+  });
+
+  it('should be possible to move data from webgl to webgpu', async () => {
+    tf.setBackend('webgl');
+    const a = tf.randomNormal([1, 65, 65, 256]);
+    const b = tf.randomNormal([1, 65, 65, 256]);
+    const c = tf.add(a, b);
+    await c.data();
+
+    const f = async () => {
+      tf.setBackend('webgpu');
+      const d = tf.add(a, b);
+      await d.data();
+    };
+
+    expect(f).not.toThrow();
   });
 });
