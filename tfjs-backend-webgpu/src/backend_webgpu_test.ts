@@ -16,6 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+import * as Shaderc from '@webgpu/shaderc';
 
 import {WebGPUBackend, WebGPUMemoryInfo} from './backend_webgpu';
 import {describeWebGPU} from './test_util';
@@ -43,7 +44,7 @@ describeWebGPU('backend webgpu', () => {
 
     expect(endNumBytes - startNumBytes).toEqual(48);
     expect(endNumTensors - startNumTensors).toEqual(2);
-    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(24);
+    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(0);
 
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
@@ -72,7 +73,7 @@ describeWebGPU('backend webgpu', () => {
 
     expect(endNumBytes - startNumBytes).toEqual(48);
     expect(endNumTensors - startNumTensors).toEqual(2);
-    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(48);
+    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(24);
 
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
@@ -171,5 +172,38 @@ describeWebGPU('backend webgpu', () => {
     await c.data();
     // Now that data has been downloaded to the CPU, dataSync should work.
     expect(() => c.dataSync()).not.toThrow();
+  });
+
+  it('lazily upload', async () => {
+    const shaderc = await Shaderc.instantiate();
+    const adapter = await navigator.gpu.requestAdapter({});
+    const device = await adapter.requestDevice({});
+    const backend = new WebGPUBackend(device, shaderc);
+    tf.registerBackend('test-storage', () => backend);
+    tf.setBackend('test-storage');
+
+    const bufferManager = backend.getBufferManager();
+    const t = tf.Tensor.make([3], {}, 'float32');
+    backend.write(t.dataId, new Float32Array([1, 2, 3]));
+
+    expect(bufferManager.getNumUsedBuffers()).toBe(0);
+
+    backend.getBuffer(t.dataId);
+    expect(bufferManager.getNumUsedBuffers()).toBe(1);
+
+    backend.write(t.dataId, new Float32Array([4, 5, 6]));
+    expect(bufferManager.getNumUsedBuffers()).toBe(0);
+
+    tf.test_util.expectArraysClose(
+        await backend.read(t.dataId), new Float32Array([4, 5, 6]));
+
+    expect(bufferManager.getNumUsedBuffers()).toBe(0);
+
+    backend.getBuffer(t.dataId);
+    expect(bufferManager.getNumUsedBuffers()).toBe(1);
+
+    tf.test_util.expectArraysClose(
+        await backend.read(t.dataId), new Float32Array([4, 5, 6]));
+    expect(bufferManager.getNumUsedBuffers()).toBe(0);
   });
 });
