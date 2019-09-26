@@ -48,10 +48,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     this.isUsingGpuDevice = this.binding.isUsingGpuDevice();
   }
 
-  setDataMover(dataMover: DataMover): void {
-    // TODO(kreeger, smilkov): Implement this.
-  }
-
   private getDTypeInteger(dtype: DataType): number {
     switch (dtype) {
       case 'float32':
