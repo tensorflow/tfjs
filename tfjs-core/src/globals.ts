@@ -23,7 +23,6 @@ import {setDeprecationWarningFn, Tensor} from './tensor';
 import {TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
 
-
 /**
  * Enables production mode which disables correctness checks in favor of
  * performance.
