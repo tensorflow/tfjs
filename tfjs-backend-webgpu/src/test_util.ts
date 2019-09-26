@@ -107,6 +107,6 @@ export async function benchmarkAndLog(
     name: string, doRep: (r: number) => any, endTrial?: () => Promise<void>,
     disposeAfterEachTrial = false, trials = 50, reps = 1) {
   await benchmark(name, doRep, endTrial, disposeAfterEachTrial, trials, reps);
-  tf.setBackend('webgl');
+  tf.setBackend('webgpu');
   await benchmark(name, doRep, endTrial, disposeAfterEachTrial, trials, reps);
 }

@@ -31,7 +31,7 @@ const getInputInfo = (inputs: tf.Tensor[]) => {
 
 describeWebGPU('Ops benchmarks', () => {
   beforeEach(() => {
-    tf.setBackend('webgpu');
+    tf.setBackend('webgl');
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 999999999;
   });
 
@@ -45,9 +45,9 @@ describeWebGPU('Ops benchmarks', () => {
     };
 
     await doTest(0);
-    tf.setBackend('webgpu');
+    tf.setBackend('webgl');
     await doTest(1);
-    tf.setBackend('webgpu');
+    tf.setBackend('webgl');
     await doTest(2);
   });
 
@@ -155,7 +155,7 @@ describeWebGPU('Ops benchmarks', () => {
         JSON.stringify(window.records));
   });
 
-  // it('depthwiseconv2d', async () => {
+  // fit('depthwiseconv2d', async () => {
   //   const x = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 1]);
   //   const w = tf.tensor4d(
   //       [0.303873, 0.229223, 0.144333, 0.803373],
