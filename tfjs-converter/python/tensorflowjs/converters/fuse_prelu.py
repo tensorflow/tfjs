@@ -33,9 +33,12 @@ from tensorflow.python.framework import op_def_registry
 
 from tensorflowjs.converters import common
 
+# The function is only needed for TensorFlow 1.X and 2.0. Remove once tfjs
+# no longer depends on these versions.
 def register_prelu_op():
-  """global registry of PReLU op for python, this allow metagraph to be
-  properly generated with unregistered Prelu op
+  """Register a virtual PReLU OpDef.
+
+  This allows to bypass MetaGraph validity checks on TensorFlow 1.X and 2.0.
   """
 
   value = attr_value_pb2.AttrValue()
@@ -197,4 +200,6 @@ def register_prelu_func(graph):
   with graph.as_default():
     prelu_fn(tf.constant(1.0), tf.constant(1.0))
 
-register_prelu_op()
+
+if tf.version.GIT_VERSION != 'unknown' and tf.__version__ < '2.1':
+  register_prelu_op()
