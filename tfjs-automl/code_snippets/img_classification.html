@@ -1,0 +1,12 @@
+<script src="https://unpkg.com/@tensorflow/tfjs"></script>
+<script src="https://unpkg.com/@tensorflow/tfjs-automl"></script>
+<img id="daisy" crossorigin="anonymous" src="https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/daisy.jpg">
+<script>
+async function run() {
+  const model = await tf.automl.loadImageClassification('model.json');
+  const image = document.getElementById('daisy');
+  const predictions = await model.classify(image);
+  console.log(predictions);
+}
+run();
+</script>
