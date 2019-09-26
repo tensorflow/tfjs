@@ -19,7 +19,10 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataMover, DataType, ENV, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, ENV, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
+// TODO(annxingyuan): import ENGINE from core directly once 1.3.0 is
+// released.
+import {ENGINE} from '@tensorflow/tfjs-core/dist/engine';
 import * as shaderc from '@webgpu/shaderc';
 
 import {BufferManager} from './buffer_manager';
@@ -93,7 +96,7 @@ export class WebGPUBackend extends KernelBackend {
   private binaryCache: {[key: string]: WebGPUBinary};
   private fromPixels2DContext: CanvasRenderingContext2D;
   private bufferManager: BufferManager;
-  private tensorMap = new WeakMap<DataId, TensorInfo>();
+  private tensorMap: DataStorage<TensorInfo>;
 
   private tensorDisposalQueue: DataId[] = [];
   private uniformDisposalQueue: BufferInfo[] = [];
@@ -118,14 +121,11 @@ export class WebGPUBackend extends KernelBackend {
     this.compileOpts = opts;
 
     this.bufferManager = new BufferManager(this.device);
+    this.tensorMap = new DataStorage(this, ENGINE);
   }
 
   floatPrecision(): 32 {
     return 32;
-  }
-
-  setDataMover(dataMover: DataMover): void {
-    // TODO: tfjs team to implement this. Call GPUBuffer.destroy()
   }
 
   flushDisposalQueue() {
