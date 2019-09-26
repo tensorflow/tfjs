@@ -74,7 +74,7 @@ export function disposeVariables(): void {
 }
 
 /**
- * Gets the `ENGINE` object.
+ * It returns the global engine that keeps track of all tensors and backends.
  */
 /** @doc {heading: 'Environment'} */
 export function engine(): Engine {
