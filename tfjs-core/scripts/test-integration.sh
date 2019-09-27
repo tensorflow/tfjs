@@ -32,21 +32,18 @@ yarn && yarn link-local '@tensorflow/tfjs-core'
 yarn test-ci
 LAYERS_EXIT_CODE=$?
 
-cd ..
 echo 'Testing node'
 cd ../tfjs-node
 yarn && yarn link-local '@tensorflow/tfjs-core'
 yarn test-ci
 NODE_EXIT_CODE=$?
 
-cd ..
 echo 'Testing converter'
 cd ../tfjs-converter
 yarn && yarn link-local '@tensorflow/tfjs-core'
 yarn test-ci
 CONVERTER_EXIT_CODE=$?
 
-cd ..
 echo 'Testing data'
 cd ../tfjs-data
 yarn && yarn link-local '@tensorflow/tfjs-core'
