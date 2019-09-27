@@ -125,6 +125,7 @@ def fuse_ops_for_prelu(input_graph_def):
 
     relu_input_op.op = 'Prelu'
     relu_input_op.input.extend([alpha_tensor_name])
+    del relu_input_op.attr['T']
 
     node.op = 'Identity'
     del node.input[:]
@@ -182,11 +183,14 @@ def fuse_prelu_with_fused_conv2d(input_graph_def):
     fused_conv_op.attr['num_args'].i = fused_conv_op.attr['num_args'].i + 1
     node.op = 'Identity'
     node.input[:] = [node.input[0]]
+    value = attr_value_pb2.AttrValue()
+    value.type = types_pb2.DT_FLOAT
+    node.attr['T'].CopyFrom(value)
 
   return input_graph_def
 
 def register_prelu_func(graph):
-  """Register Prelu op with function def, this is need for importing graph_def
+  """Register Prelu op with function def, this is needed for importing graph_def
   with unregistered Prelu op.
   Args:
     graph: A tf.Graph object to insert prelu function into.
