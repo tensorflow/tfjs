@@ -1550,6 +1550,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
 
     const trainableOnly = config != null && config.trainableOnly;
     const weights = trainableOnly ? this.trainableWeights : this.weights;
+    console.log(`getNamedWeights(): 100: ${weights.map(w => w.name)}`);
     const weightValues = this.getWeights(trainableOnly);
     for (let i = 0; i < weights.length; ++i) {
       if (trainableOnly && !weights[i].trainable) {

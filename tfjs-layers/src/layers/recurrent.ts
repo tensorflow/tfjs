@@ -17,6 +17,7 @@ import {DataType, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core
 
 import {Activation, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
+import {nameScope} from '../common';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, SymbolicTensor} from '../engine/topology';
 import {Layer, LayerArgs} from '../engine/topology';
@@ -30,6 +31,7 @@ import {assertPositiveInteger} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor, isArrayOfShapes} from '../utils/types_utils';
 import {batchGetValue, batchSetValue, LayerVariable} from '../variables';
+
 import {deserialize} from './serialization';
 
 /**
@@ -509,6 +511,7 @@ export class RNN extends Layer {
       throw new NotImplementedError(
           'Constants support is not implemented in RNN yet.');
     } else {
+      console.log(`this.cell = ${this.cell.constructor.name}`);  // DEBUG
       this.cell.build(stepInputShape);
     }
 
@@ -1820,10 +1823,15 @@ export class LSTMCell extends RNNCell {
     this.kernel = this.addWeight(
         'kernel', [inputDim, this.units * 4], null, this.kernelInitializer,
         this.kernelRegularizer, true, this.kernelConstraint);
+    // console.log(
+    //     `LSTMCell.build(): 200: kernel.name = ${this.kernel.name}; ` +
+    //     `original name = ${this.kernel.originalName}`);  // DEBUG
     this.recurrentKernel = this.addWeight(
         'recurrent_kernel', [this.units, this.units * 4], null,
         this.recurrentInitializer, this.recurrentRegularizer, true,
         this.recurrentConstraint);
+    // console.log(`LSTMCell.build(): 200: recurrent_kernel.name = ${
+    //     this.recurrentKernel.name}`);  // DEBUG
     let biasInitializer: Initializer;
     if (this.useBias) {
       if (this.unitForgetBias) {
@@ -2193,6 +2201,7 @@ export class StackedRNNCells extends RNNCell {
   }
 
   public build(inputShape: Shape|Shape[]): void {
+    console.log(`StackedRNNCells.build(): 100`);  // DEBUG
     if (isArrayOfShapes(inputShape)) {
       // TODO(cais): Take care of input constants.
       // const constantShape = inputShape.slice(1);
@@ -2200,16 +2209,21 @@ export class StackedRNNCells extends RNNCell {
     }
     inputShape = inputShape as Shape;
     let outputDim: number;
-    for (const cell of this.cells) {
-      // TODO(cais): Take care of input constants.
-      cell.build(inputShape);
-      if (Array.isArray(cell.stateSize)) {
-        outputDim = cell.stateSize[0];
-      } else {
-        outputDim = cell.stateSize;
-      }
-      inputShape = [inputShape[0], outputDim];
-    }
+    this.cells.forEach((cell, i) => {
+      const cellName = `RNNCell_${i}`;
+      // console.log(`cellName = ${cellName}`);  // DEBUG
+      nameScope(cellName, () => {
+        // TODO(cais): Take care of input constants.
+
+        cell.build(inputShape);
+        if (Array.isArray(cell.stateSize)) {
+          outputDim = cell.stateSize[0];
+        } else {
+          outputDim = cell.stateSize;
+        }
+        inputShape = [inputShape[0], outputDim] as Shape;
+      });
+    });
     this.built = true;
   }
 
