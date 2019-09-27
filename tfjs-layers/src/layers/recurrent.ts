@@ -31,7 +31,6 @@ import {assertPositiveInteger} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor, isArrayOfShapes} from '../utils/types_utils';
 import {batchGetValue, batchSetValue, LayerVariable} from '../variables';
-
 import {deserialize} from './serialization';
 
 /**

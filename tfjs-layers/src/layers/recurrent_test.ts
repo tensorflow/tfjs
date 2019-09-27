@@ -1658,7 +1658,6 @@ describeMathCPU('LSTM Symbolic', () => {
   it('LSTM Cells save and load', async () => {
     const inputShape = [2, 3];
     const model = tfl.sequential();
-
     model.add(tfl.layers.dense({units: 1, inputShape}));
     const cells = [
       tfl.layers.lstmCell({units: 3}),
