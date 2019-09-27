@@ -19,18 +19,19 @@ const fs = require('fs');
 
 
 function shouldRunIntegration() {
-  if (process.env.NIGHTLY === 'true') {
-    return true;
-  }
-  const diffFile = 'diff';
-  if (!fs.existsSync(diffFile)) {
-    return false;
-  }
-  let diffContents = `${fs.readFileSync(diffFile)}`;
-  if (diffContents.indexOf('src/version.ts') === -1) {
-    return false;
-  }
   return true;
+  // if (process.env.NIGHTLY === 'true') {
+  //   return true;
+  // }
+  // const diffFile = 'diff';
+  // if (!fs.existsSync(diffFile)) {
+  //   return false;
+  // }
+  // let diffContents = `${fs.readFileSync(diffFile)}`;
+  // if (diffContents.indexOf('src/version.ts') === -1) {
+  //   return false;
+  // }
+  // return true;
 }
 
 if (shouldRunIntegration()) {
