@@ -26,32 +26,28 @@ echo 'Testing layers/converter/node/data against tfjs-core@master.'
 echo '######################'
 yarn build && yarn build-test-snippets && yarn yalc publish
 
-echo 'Cloning layers'
-git clone https://github.com/tensorflow/tfjs-layers.git --depth 1
+echo 'Testing layers'
 cd tfjs-layers
 yarn && yarn link-local '@tensorflow/tfjs-core'
 yarn test-ci
 LAYERS_EXIT_CODE=$?
 
 cd ..
-echo 'Cloning node'
-git clone https://github.com/tensorflow/tfjs-node.git --depth 1
+echo 'Testing node'
 cd tfjs-node
 yarn && yarn link-local '@tensorflow/tfjs-core'
 yarn test-ci
 NODE_EXIT_CODE=$?
 
 cd ..
-echo 'Cloning converter'
-git clone https://github.com/tensorflow/tfjs-converter.git --depth 1
+echo 'Testing converter'
 cd tfjs-converter
 yarn && yarn link-local '@tensorflow/tfjs-core'
 yarn test-ci
 CONVERTER_EXIT_CODE=$?
 
 cd ..
-echo 'Cloning data'
-git clone https://github.com/tensorflow/tfjs-data.git --depth 1
+echo 'Testing data'
 cd tfjs-data
 yarn && yarn link-local '@tensorflow/tfjs-core'
 yarn test-ci
