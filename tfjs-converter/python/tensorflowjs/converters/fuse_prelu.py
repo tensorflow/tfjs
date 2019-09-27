@@ -41,15 +41,8 @@ def register_prelu_op():
   This allows to bypass MetaGraph validity checks on TensorFlow 1.X and 2.0.
   """
 
-  value = attr_value_pb2.AttrValue()
-  value.list.type.extend([types_pb2.DT_FLOAT])
-  attr = op_def_pb2.OpDef.AttrDef()
-  attr.name = 'T'
-  attr.type = 'type'
-  attr.allowed_values.CopyFrom(value)
   prelu_op_def = op_def_pb2.OpDef()
   prelu_op_def.name = 'Prelu'
-  prelu_op_def.attr.extend([attr])
   missing_op_list = op_def_pb2.OpList()
   missing_op_list.op.extend([prelu_op_def])
   op_def_registry.register_op_list(missing_op_list)
