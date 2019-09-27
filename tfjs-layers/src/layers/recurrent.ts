@@ -511,7 +511,6 @@ export class RNN extends Layer {
       throw new NotImplementedError(
           'Constants support is not implemented in RNN yet.');
     } else {
-      console.log(`this.cell = ${this.cell.constructor.name}`);  // DEBUG
       this.cell.build(stepInputShape);
     }
 
@@ -1823,15 +1822,10 @@ export class LSTMCell extends RNNCell {
     this.kernel = this.addWeight(
         'kernel', [inputDim, this.units * 4], null, this.kernelInitializer,
         this.kernelRegularizer, true, this.kernelConstraint);
-    // console.log(
-    //     `LSTMCell.build(): 200: kernel.name = ${this.kernel.name}; ` +
-    //     `original name = ${this.kernel.originalName}`);  // DEBUG
     this.recurrentKernel = this.addWeight(
         'recurrent_kernel', [this.units, this.units * 4], null,
         this.recurrentInitializer, this.recurrentRegularizer, true,
         this.recurrentConstraint);
-    // console.log(`LSTMCell.build(): 200: recurrent_kernel.name = ${
-    //     this.recurrentKernel.name}`);  // DEBUG
     let biasInitializer: Initializer;
     if (this.useBias) {
       if (this.unitForgetBias) {
@@ -2201,7 +2195,6 @@ export class StackedRNNCells extends RNNCell {
   }
 
   public build(inputShape: Shape|Shape[]): void {
-    console.log(`StackedRNNCells.build(): 100`);  // DEBUG
     if (isArrayOfShapes(inputShape)) {
       // TODO(cais): Take care of input constants.
       // const constantShape = inputShape.slice(1);
@@ -2210,9 +2203,7 @@ export class StackedRNNCells extends RNNCell {
     inputShape = inputShape as Shape;
     let outputDim: number;
     this.cells.forEach((cell, i) => {
-      const cellName = `RNNCell_${i}`;
-      // console.log(`cellName = ${cellName}`);  // DEBUG
-      nameScope(cellName, () => {
+      nameScope(`RNNCell_${i}`, () => {
         // TODO(cais): Take care of input constants.
 
         cell.build(inputShape);
