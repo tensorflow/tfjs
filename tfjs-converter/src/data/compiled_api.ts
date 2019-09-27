@@ -28,7 +28,7 @@ export declare interface IAny {
 }
 
 /** DataType enum. */
-export enum DataType {
+export declare enum DataType {
   DT_INVALID = 0,
   DT_FLOAT = 1,
   DT_DOUBLE = 2,
@@ -311,7 +311,7 @@ export declare interface ISaverDef {
 
 export namespace SaverDef {
   /** CheckpointFormatVersion enum. */
-  export enum CheckpointFormatVersion {LEGACY = 0, V1 = 1, V2 = 2}
+  export declare enum CheckpointFormatVersion {LEGACY = 0, V1 = 1, V2 = 2}
 }
 
 /** Properties of a TensorInfo. */
