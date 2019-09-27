@@ -1681,9 +1681,7 @@ describeMathCPU('LSTM Symbolic', () => {
 
     expect(model.inputs[0].shape).toEqual(loadedModel.inputs[0].shape);
     expect(model.outputs[0].shape).toEqual(loadedModel.outputs[0].shape);
-
-    const ys1 = loadedModel.predict(xs) as Tensor;
-    expectTensorsClose(ys, ys1);
+    expectTensorsClose(loadedModel.predict(xs) as Tensor, ys);
   });
 
   it('Invalid units leads to Error', () => {
