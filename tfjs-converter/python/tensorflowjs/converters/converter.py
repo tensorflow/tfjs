@@ -656,10 +656,13 @@ def main(argv):
     # No argument is provided. Run the wizard.
 
     try:
+      # In some cases, PyInquirer depended on by wizard is unavailable.
+      # We use the `except` section as a fallback.
       from tensorflowjs.converters import wizard
     except BaseException:
       # Failed to import wizard. Fall back to the help message.
       convert([])
+      sys.exit(1)
 
     try:
       dryrun, arguments, output_path = wizard.run()
