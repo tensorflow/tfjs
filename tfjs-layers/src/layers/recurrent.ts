@@ -17,6 +17,7 @@ import {DataType, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core
 
 import {Activation, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
+import {nameScope} from '../common';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, SymbolicTensor} from '../engine/topology';
 import {Layer, LayerArgs} from '../engine/topology';
@@ -2200,16 +2201,19 @@ export class StackedRNNCells extends RNNCell {
     }
     inputShape = inputShape as Shape;
     let outputDim: number;
-    for (const cell of this.cells) {
-      // TODO(cais): Take care of input constants.
-      cell.build(inputShape);
-      if (Array.isArray(cell.stateSize)) {
-        outputDim = cell.stateSize[0];
-      } else {
-        outputDim = cell.stateSize;
-      }
-      inputShape = [inputShape[0], outputDim];
-    }
+    this.cells.forEach((cell, i) => {
+      nameScope(`RNNCell_${i}`, () => {
+        // TODO(cais): Take care of input constants.
+
+        cell.build(inputShape);
+        if (Array.isArray(cell.stateSize)) {
+          outputDim = cell.stateSize[0];
+        } else {
+          outputDim = cell.stateSize;
+        }
+        inputShape = [inputShape[0], outputDim] as Shape;
+      });
+    });
     this.built = true;
   }
 
