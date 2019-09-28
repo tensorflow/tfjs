@@ -144,32 +144,35 @@ const SHADER_PREFIX = `#version 450
 `;
 
 const SAMPLING_SNIPPETS = `
-  uint getFlatIndex(uint coord, uint shape) {
+  int getFlatIndex(int coord, int shape) {
     return coord;
   }
 
-  uint getFlatIndex(ivec2 coords, ivec2 shape) {
-    return uint(dot(coords, ivec2(shape.y, 1.)));
+  int getFlatIndex(ivec2 coords, ivec2 shape) {
+    return int(dot(coords, ivec2(shape.y, 1.)));
   }
 
-  uint getFlatIndex(ivec3 coords, ivec3 shape) {
-    return uint(dot(coords, ivec3(shape.y * shape.z, shape.z, 1.)));
+  int getFlatIndex(ivec3 coords, ivec3 shape) {
+    return int(dot(coords, ivec3(shape.y * shape.z, shape.z, 1.)));
   }
 
-  uint getFlatIndex(ivec4 coords, ivec4 shape) {
-    return uint(dot(coords, ivec4(
+  int getFlatIndex(ivec4 coords, ivec4 shape) {
+    return int(dot(coords, ivec4(
       shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1.)));
   }
 `;
 
 function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
-  let snippet = `void setOutput(uint flatIndex, float value) {
+  const glslType = mapToGlslTypes(outBufferType);
+  let snippet = `void setOutput(int flatIndex, float value) {
       result[flatIndex] = ${
-      mapToGlslTypes(outBufferType) === 'int' ? 'int(value)' : 'value'};
+      glslType === 'int' ? 'int(value)' :
+        (glslType === 'bool' ? 'bool(value)' : 'value')};
     }
-    void setOutput(uint flatIndex, int value) {
+    void setOutput(int flatIndex, int value) {
       result[flatIndex] = ${
-      mapToGlslTypes(outBufferType) === 'float' ? 'float(value)' : 'value'};
+      glslType === 'float' ? 'float(value)' :
+        (glslType === 'bool' ? 'bool(value)' : 'value')};
     }`;
 
   if (outRank >= 2) {
@@ -178,11 +181,11 @@ function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
 
     snippet += `
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, float value) {
-        uint flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
+        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
         setOutput(flatIndex, value);
       }
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, int value) {
-        uint flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
+        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
         setOutput(flatIndex, value);
       }
     `;
@@ -315,16 +318,17 @@ function generateGetOutputCoords(
     rank += arr.length;
 
     if (arr.length === 1) {
-      gatherDimensionsStr += `uint d${arr[0]} = gl_GlobalInvocationID[${i}];`;
+      gatherDimensionsStr += `int d${arr[0]} =
+        int(gl_GlobalInvocationID[${i}]);`;
     } else {
       const strides = symbolicallyComputeStrides(arr, 'outShape');
-      gatherDimensionsStr += `uint index${i} =
-        gl_GlobalInvocationID[${i}];`;
+      gatherDimensionsStr += `int index${i} =
+        int(gl_GlobalInvocationID[${i}]);`;
       for (let j = 0; j < strides.length; j++) {
-        gatherDimensionsStr += `uint d${arr[j]} = index${i} / ${strides[j]};`;
+        gatherDimensionsStr += `int d${arr[j]} = index${i} / ${strides[j]};`;
 
         if (j === strides.length - 1) {
-          gatherDimensionsStr += `uint d${arr[j + 1]} = ` +
+          gatherDimensionsStr += `int d${arr[j + 1]} = ` +
               `index${i} - d${arr[j]} * ${strides[j]};`;
         } else {
           gatherDimensionsStr += `index${i} -= d${arr[j]} * ${strides[j]};`;
@@ -370,16 +374,16 @@ function generateGetCoordsFromFlatIndex(shape: number[]): string {
   const snippet =
       strides
           .map((stride, i) => {
-            const line1 = `uint ${coords[i]} = index / ${stride}`;
+            const line1 = `int ${coords[i]} = index / ${stride}`;
             const line2 = i === strides.length - 1 ?
-                `uint ${coords[i + 1]} = index - ${coords[i]} * ${stride}` :
+                `int ${coords[i + 1]} = index - ${coords[i]} * ${stride}` :
                 `index -= ${coords[i]} * ${stride}`;
             return `${line1}; ${line2};`;
           })
           .join('');
 
   return `
-    ${dtype} getCoordsFromFlatIndex(uint index) {
+    ${dtype} getCoordsFromFlatIndex(int index) {
       ${snippet}
       return ${dtype}(${coords.join(',')});
     }

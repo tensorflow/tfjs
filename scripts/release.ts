@@ -31,10 +31,13 @@ import * as readline from 'readline';
 import * as shell from 'shelljs';
 import * as fs from 'fs';
 import chalk from 'chalk';
+import * as argparse from 'argparse';
 
 interface Phase {
   // The list of packages that will be updated with this change.
   packages: string[];
+  // The repository *only if it is not the same as tfjs*.
+  repo?: string;
   // The list of dependencies that all of the packages will update to.
   deps?: string[];
   // An ordered list of scripts to run after yarn is called and before the pull
@@ -70,6 +73,7 @@ const VIS_PHASE: Phase = {
 };
 
 const WEBSITE_PHASE: Phase = {
+  repo: 'tfjs-website',
   packages: ['tfjs-website'],
   deps: ['tfjs', 'tfjs-node', 'tfjs-vis'],
   scripts: ['yarn build-prod'],
@@ -83,6 +87,13 @@ const PHASES: Phase[] = [
 ];
 
 const TMP_DIR = '/tmp/tfjs-release';
+
+const parser = new argparse.ArgumentParser();
+
+parser.addArgument('--git-protocol', {
+  action: 'storeTrue',
+  help: 'Use the git protocal rather than the http protocol when cloning repos.'
+});
 
 function printPhase(phaseId: number) {
   const phase = PHASES[phaseId];
@@ -101,6 +112,8 @@ function getPatchUpdateVersion(version: string): string {
 }
 
 async function main() {
+  const args = parser.parseArgs();
+
   PHASES.forEach((_, i) => printPhase(i));
   console.log();
 
@@ -117,7 +130,7 @@ async function main() {
   const packages = PHASES[phaseInt].packages;
   const deps = PHASES[phaseInt].deps || [];
 
-  const dir = `${TMP_DIR}/tfjs`;
+  const dir = `${TMP_DIR}/${phase.repo == null ? `tfjs` : phase.repo}`;
   mkdirp(TMP_DIR, err => {
     if (err) {
       console.log('Error creating temp dir', TMP_DIR);
@@ -127,19 +140,32 @@ async function main() {
   $(`rm -f -r ${dir}/*`);
   $(`rm -f -r ${dir}`);
   $(`mkdir ${dir}`);
-  $(`git clone https://github.com/tensorflow/tfjs ${dir} --depth=1`);
-  shell.cd(dir);
+
+  const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
+
+  if (phase.repo != null) {
+    $(`git clone ${urlBase}tensorflow/${phase.repo} ${dir} --depth=1`);
+    shell.cd(dir);
+  } else {
+    $(`git clone ${urlBase}tensorflow/tfjs ${dir} --depth=1`);
+    shell.cd(dir);
+  }
 
   const newVersions = [];
   for (let i = 0; i < packages.length; i++) {
     const packageName = packages[i];
-    shell.cd(packageName);
+    if (phase.repo == null) {
+      shell.cd(packageName);
+    }
 
     const depsLatestVersion: string[] =
         deps.map(dep => $(`npm view @tensorflow/${dep} dist-tags.latest`));
 
     // Update the version.
-    let pkg = `${fs.readFileSync(`${dir}/${packageName}/package.json`)}`;
+    const packageJsonPath = phase.repo == null ?
+        `${dir}/${packageName}/package.json` :
+        `${dir}/package.json`
+    let pkg = `${fs.readFileSync(packageJsonPath)}`;
     const parsedPkg = JSON.parse(`${pkg}`);
 
     console.log(chalk.magenta.bold(
@@ -197,14 +223,17 @@ async function main() {
       }
     }
 
-    fs.writeFileSync(`${dir}/${packageName}/package.json`, pkg);
+    fs.writeFileSync(packageJsonPath, pkg);
     $(`yarn`);
     if (phase.scripts != null) {
       phase.scripts.forEach(script => $(script));
     }
-
-    shell.cd('..');
-    $(`./scripts/make-version.js ${packageName}`);
+    if (phase.repo == null) {
+      shell.cd('..');
+    }
+    if (!phase.leaveVersion) {
+      $(`./scripts/make-version.js ${packageName}`);
+    }
     newVersions.push(newVersion);
   }
 

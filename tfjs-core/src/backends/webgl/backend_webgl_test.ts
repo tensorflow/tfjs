@@ -506,6 +506,50 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
   });
 });
 
+describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
+  beforeAll(() => {
+    tf.ENV.set('WEBGL_CPU_FORWARD', false);
+  });
+
+  it('caches on cpu after async read', async () => {
+    const backend = new MathBackendWebGL();
+    tf.registerBackend('cache-on-cpu', () => backend);
+    tf.setBackend('cache-on-cpu');
+
+    const t = tf.square(2);
+    const info = backend.getDataInfo(t.dataId);
+
+    // Make sure the tensor is on the GPU.
+    expect(info.values == null).toBe(true);
+
+    await t.data();
+
+    // Make sure the tensor is cached on CPU.
+    expect(info.values).not.toBe(null);
+
+    tf.removeBackend('cache-on-cpu');
+  });
+
+  it('caches on cpu after sync read', () => {
+    const backend = new MathBackendWebGL();
+    tf.registerBackend('cache-on-cpu', () => backend);
+    tf.setBackend('cache-on-cpu');
+
+    const t = tf.square(2);
+    const info = backend.getDataInfo(t.dataId);
+
+    // Make sure the tensor is on the GPU.
+    expect(info.values == null).toBe(true);
+
+    t.dataSync();
+
+    // Make sure the tensor is cached on CPU.
+    expect(info.values).not.toBe(null);
+
+    tf.removeBackend('cache-on-cpu');
+  });
+});
+
 describe('WebGL backend has sync init', () => {
   it('can do matmul without waiting for ready', async () => {
     tf.registerBackend('my-webgl', () => {

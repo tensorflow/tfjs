@@ -1,7 +1,7 @@
 # TensorFlow.js Layers: High-Level Machine Learning Model API
 
 A part of the TensorFlow.js ecosystem, TensorFlow.js Layers is a high-level
-API built on [TensorFlow.js Core](https://github.com/tensorflow/tfjs-core),
+API built on [TensorFlow.js Core](/tfjs-core),
 enabling users to build, train and execute deep learning models in the browser.
 TensorFlow.js Layers is modeled after
 [Keras](https://keras.io/) and

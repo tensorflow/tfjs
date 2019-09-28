@@ -22,7 +22,6 @@ import {WebGPUBackend} from './backend_webgpu';
 
 tf.registerBackend('webgpu', async () => {
   const shaderc = await Shaderc.instantiate();
-  // @ts-ignore navigator.gpu is required
   const adapter = await navigator.gpu.requestAdapter({});
   const device = await adapter.requestDevice({});
   return new WebGPUBackend(device, shaderc);

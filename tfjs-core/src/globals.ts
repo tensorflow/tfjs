@@ -16,7 +16,7 @@
  */
 
 import {KernelBackend} from './backends/backend';
-import {ENGINE, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo} from './engine';
+import {ENGINE, Engine, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo} from './engine';
 import {ENV} from './environment';
 import {Platform} from './platforms/platform';
 import {setDeprecationWarningFn, Tensor} from './tensor';
@@ -71,6 +71,14 @@ setDeprecationWarningFn(deprecationWarn);
 /** @doc {heading: 'Environment'} */
 export function disposeVariables(): void {
   ENGINE.disposeVariables();
+}
+
+/**
+ * It returns the global engine that keeps track of all tensors and backends.
+ */
+/** @doc {heading: 'Environment'} */
+export function engine(): Engine {
+  return ENGINE;
 }
 
 /**

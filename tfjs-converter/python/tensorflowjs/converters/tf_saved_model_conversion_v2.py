@@ -29,6 +29,8 @@ from tensorflow.python.framework import convert_to_constants
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.saved_model.load import load
+from tensorflow.python.saved_model import loader
+from tensorflow.tools.graph_transforms import TransformGraph
 from tensorflow.python.training.saver import export_meta_graph
 from google.protobuf.json_format import MessageToDict
 import tensorflow_hub as hub
@@ -37,6 +39,7 @@ from tensorflowjs import write_weights
 from tensorflowjs.converters import common
 from tensorflowjs.converters import fold_batch_norms
 from tensorflowjs.converters import fuse_prelu
+from tensorflowjs import resource_loader
 
 # enable eager execution for v2 APIs
 tf.compat.v1.enable_eager_execution()
@@ -84,11 +87,10 @@ def validate(nodes, skip_op_check, strip_debug_ops):
   if skip_op_check:
     return set()
   ops = []
-  op_list_path = os.path.join(
-      os.path.dirname(os.path.abspath(__file__)), '../op_list/')
-  for filename in os.listdir(op_list_path):
+  for filename in resource_loader.list_dir('op_list'):
     if os.path.splitext(filename)[1] == '.json':
-      with open(os.path.join(op_list_path, filename)) as json_data:
+      with resource_loader.open_file(os.path.join('op_list',
+                                                  filename)) as json_data:
         ops += json.load(json_data)
 
   names = {x['tfOpName'] for x in ops}
@@ -272,19 +274,46 @@ def _check_signature_in_model(saved_model, signature_name):
                                             saved_model.signatures.keys()))
 
 
-def _freeze_saved_model_v1(graph, output_node_names):
-  frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
-      tf.compat.v1.Session(), graph.as_graph_def(), output_node_names)
+def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
+                           output_node_names):
+  g = tf.Graph()
+  with g.as_default():
+    with tf.compat.v1.Session() as sess:
+      loader.load(sess, saved_model_tags, saved_model_dir)
+      frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
+          sess, g.as_graph_def(), output_node_names)
 
-  frozen_graph = tf.Graph()
-  with frozen_graph.as_default():
-    tf.import_graph_def(frozen_graph_def, name='')
+      frozen_graph = tf.Graph()
+      with frozen_graph.as_default():
+        tf.import_graph_def(frozen_graph_def, name='')
 
-  return frozen_graph
+      return frozen_graph
 
 def _freeze_saved_model_v2(concrete_func):
   return convert_to_constants.convert_variables_to_constants_v2(
       concrete_func).graph
+
+
+def _strip_unused_nodes(frozen_graph, concrete_func, output_node_names):
+  # Find the names of the input nodes needed to extract the minimal subgraph.
+  input_node_names = []
+  for input_tensor in concrete_func.inputs:
+    op_name = input_tensor.name.split(':')[0]
+    # The graph freezing may turn the original inputs into constants, or remove
+    # them from the graph, so we need to ignore those.
+    try:
+      op = frozen_graph.get_operation_by_name(op_name)
+      if op.type != 'Const':
+        input_node_names.append(op_name)
+    except KeyError:
+      # The original input was removed when the graph was frozen.
+      continue
+  stripped_graph_def = TransformGraph(
+      frozen_graph.as_graph_def(), input_node_names, output_node_names,
+      ['strip_unused_nodes'])
+  with tf.Graph().as_default() as stripped_graph:
+    tf.import_graph_def(stripped_graph_def, name='')
+    return stripped_graph
 
 def convert_tf_saved_model(saved_model_dir,
                            output_dir, signature_def='serving_default',
@@ -336,10 +365,11 @@ def convert_tf_saved_model(saved_model_dir,
   try:
     frozen_graph = _freeze_saved_model_v2(concrete_func)
   except BaseException:
-    frozen_graph = _freeze_saved_model_v1(
-        concrete_func.graph, output_node_names)
-
-  optimize_graph(frozen_graph, output_node_names, output_graph,
+    frozen_graph = _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
+                                          output_node_names)
+  stripped_graph = _strip_unused_nodes(
+      frozen_graph, concrete_func, output_node_names)
+  optimize_graph(stripped_graph, output_node_names, output_graph,
                  model.tensorflow_version,
                  quantization_dtype=quantization_dtype,
                  skip_op_check=skip_op_check,

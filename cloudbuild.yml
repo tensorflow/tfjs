@@ -11,6 +11,9 @@ steps:
   id: 'diff'
   args: ['diff']
   waitFor: ['yarn']
+  env:
+  - 'COMMIT_SHA=$COMMIT_SHA'
+  - 'BRANCH_NAME=$BRANCH_NAME'
 
 # Core.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -61,6 +64,13 @@ steps:
   args: ['./scripts/run-build.sh', 'tfjs-backend-webgpu']
   waitFor: ['diff']
 
+# WASM.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-backend-wasm'
+  args: ['./scripts/run-build.sh', 'tfjs-backend-wasm']
+  waitFor: ['diff']
+
 # React Native.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
@@ -68,11 +78,18 @@ steps:
   args: ['./scripts/run-build.sh', 'tfjs-react-native']
   waitFor: ['diff']
 
-# Node.
+# Node CPU.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   id: 'tfjs-node'
   args: ['./scripts/run-build.sh', 'tfjs-node']
+  waitFor: ['diff']
+
+# Node GPU.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-node-gpu'
+  args: ['./scripts/run-build.sh', 'tfjs-node-gpu']
   waitFor: ['diff']
 
 # Integration tests
@@ -90,7 +107,7 @@ secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:
     BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
-timeout: 1800s
+timeout: 3600s
 logsBucket: 'gs://tfjs-build-logs'
 options:
   logStreamingOption: 'STREAM_ON'

@@ -128,6 +128,7 @@ py_library(
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
         "//tensorflowjs:expect_tensorflow_hub_installed",
+        "//tensorflowjs:resource_loader",
         "//tensorflowjs:version",
         "//tensorflowjs:write_weights",
     ],
@@ -149,7 +150,6 @@ py_binary(
     srcs_version = "PY2AND3",
     deps = [
         ":common",
-        ":fuse_prelu",
         "//tensorflowjs:expect_h5py_installed",
         "//tensorflowjs:expect_tensorflow_installed",
     ],

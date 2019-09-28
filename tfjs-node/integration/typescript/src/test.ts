@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+Error.stackTraceLimit = Infinity;
+
 import * as tf from '@tensorflow/tfjs-node';
 
 const a = tf.tensor2d([1, 2, 3, 4], [2, 2], 'float32');

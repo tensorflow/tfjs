@@ -26,6 +26,14 @@ deps/
 dist/
 tfjs-layers/integration_tests/tfjs2keras/test-data/
 tfjs-layers/integration/typescript/yarn.lock
+
+# Ignore the src, binding, scripts of tfjs-node-gpu since it is copied over when
+# building.
+/tfjs-node-gpu/src
+/tfjs-node-gpu/binding
+/tfjs-node-gpu/scripts
+/tfjs-node-gpu/binding.gyp
+
 lib/
 local.log
 node_modules/
@@ -35,6 +43,7 @@ package-lock.json
 release-notes.md
 tensorflow-tfjs-*.tgz
 tfjs-backend-wasm/dist
-tfjs-backend-wasm/wasm-out
+tfjs-backend-wasm/wasm-out/*.js
+tfjs-backend-wasm/wasm-out/*.wasm
 yalc.lock
 yarn-error.log

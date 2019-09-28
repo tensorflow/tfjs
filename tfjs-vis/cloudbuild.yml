@@ -1,10 +1,27 @@
 steps:
+# Install common dependencies.
+- name: 'node:10'
+  id: 'yarn-common'
+  entrypoint: 'yarn'
+  args: ['install']
+
+# Install tfjs-vis dependencies.
+- name: 'node:10'
+  dir: 'tfjs-node'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
+# Run vis tests.
 - name: 'node:10'
   dir: 'tfjs-vis'
   entrypoint: 'yarn'
   args: ['test-ci']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
+  waitFor: ['yarn']
+
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:

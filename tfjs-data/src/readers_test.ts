@@ -16,7 +16,7 @@
  */
 
 import * as tfd from './readers';
-import {describeAllEnvs, describeBrowserEnvs, describeNodeEnvs, setupFakeVideoStream} from './util/test_utils';
+import {describeAllEnvs, describeBrowserEnvs, describeNodeEnvs, replaceHTMLVideoElementSource, setupFakeVideoStream} from './util/test_utils';
 
 describeAllEnvs('readers', () => {
   it('generate dataset from function', async () => {
@@ -138,22 +138,23 @@ describeBrowserEnvs('readers in browser', () => {
   it('generate data from webcam with HTML element', async () => {
     setupFakeVideoStream();
     const videoElement = document.createElement('video');
-    videoElement.width = 300;
-    videoElement.height = 500;
+    videoElement.width = 160;
+    videoElement.height = 90;
 
     const webcamIterator = await tfd.webcam(videoElement);
+    await replaceHTMLVideoElementSource(videoElement);
     const result = await webcamIterator.next();
     expect(result.done).toBeFalsy();
-    expect(result.value.shape).toEqual([500, 300, 3]);
+    expect(result.value.shape).toEqual([90, 160, 3]);
   });
 
   it('generate data from webcam with no HTML element', async () => {
     setupFakeVideoStream();
     const webcamIterator =
-        await tfd.webcam(null, {resizeWidth: 100, resizeHeight: 200});
+        await tfd.webcam(null, {resizeWidth: 300, resizeHeight: 150});
     const result = await webcamIterator.next();
     expect(result.done).toBeFalsy();
-    expect(result.value.shape).toEqual([200, 100, 3]);
+    expect(result.value.shape).toEqual([150, 300, 3]);
   });
 
   it('generate data from webcam with HTML element and resize', async () => {

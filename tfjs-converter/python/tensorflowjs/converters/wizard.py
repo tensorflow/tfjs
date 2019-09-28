@@ -580,26 +580,3 @@ def print_output_files(output_path):
 
   print("--------------------------------------------------")
   print("Total size:{0:24} {1}".format('', total_size))
-
-
-
-# def pip_main():  # TODO(cais): Remove.
-#   """Entry point for pip-packaged binary.
-
-#   Note that pip-packaged binary calls the entry method without
-#   any arguments, which is why this method is needed in addition to the
-#   `main` method below.
-#   """
-#   main([' '.join(sys.argv[1:])])
-
-
-# def main(argv):  # TODO(cais): Remove.
-#   if len(argv) > 2 or len(argv) == 2 and not argv[1] == '--dryrun':
-#     print("Usage: tensorflowjs_wizard [--dryrun]")
-#     sys.exit(1)
-#   dry_run = len(argv) == 2 and argv[1] == '--dryrun'
-#   run(dry_run)
-
-
-# if __name__ == '__main__':  # TODO(cais): Remove.
-#   tf.app.run(main=main, argv=[' '.join(sys.argv[1:])])
