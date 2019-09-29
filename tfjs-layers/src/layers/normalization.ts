@@ -420,3 +420,102 @@ export class BatchNormalization extends Layer {
   }
 }
 serialization.registerClass(BatchNormalization);
+
+export interface LayerNormalizationLayerArgs extends LayerArgs {
+  /**
+   * The axis or axes that should be normalized (typically, the feature axis.)
+   * Defaults to -1 (the last axis.)
+   */
+  axis?: number|number[];
+
+  /**
+   * A small positive float added to variance to avoid divison by zero.
+   * Defaults to 1e-3.
+   */
+  epsilon?: number;
+
+  /**
+   * If `true`, add offset of `beta` to normalized tensor.
+   * If `false`, `beta` is ignored.
+   * Default: `true`.
+   */
+  center?: boolean;
+
+  /**
+   * If `true`, multiply output by `gamma`.
+   * If `false`, `gamma` is not used.
+   * When the next layer is linear, this can be disabled since scaling will
+   * be done by the next layer.
+   * Default: `true`.
+   */
+  scale?: boolean;
+
+  /**
+   * Initializer for the beta weight.
+   * Default: `'zeros'`.
+   */
+  betaInitializer?: InitializerIdentifier|Initializer;
+
+  /**
+   * Initializer for the gamma weight.
+   * Default: `'ones'`.
+   */
+  gammaInitializer?: InitializerIdentifier|Initializer;
+
+  /** Regularizer for the beta weight. */
+  betaRegularizer?: RegularizerIdentifier|Regularizer;
+
+  /** Regularizer for the gamma weight. */
+  gammaRegularizer?: RegularizerIdentifier|Regularizer;
+}
+
+export class LayerNormalization extends Layer {
+  readonly axis: number|number[];
+  readonly epsilon: number;
+  readonly center: boolean;
+  readonly scale: boolean;
+  readonly betaInitializer: InitializerIdentifier|Initializer;
+  readonly gammaInitializer: InitializerIdentifier|Initializer;
+  readonly betaRegularizer: RegularizerIdentifier|Regularizer;
+  readonly gammaRegularizer: RegularizerIdentifier|Regularizer;
+
+  constructor(args?: LayerNormalizationLayerArgs) {
+    if (args == null) {
+      args = {};
+    }
+    super(args);
+
+    this.axis = args.axis == null ? -1 : args.axis;
+    if (typeof this.axis === 'number') {
+      if (!Number.isInteger(this.axis)) {
+        throw new Error(
+            `Expected axis to be a integer, but received ${this.axis}`);
+      }
+    } else if (Array.isArray(this.axis)) {
+      for (const axis of this.axis) {
+        if (!Number.isInteger(axis)) {
+          throw new Error(
+              `Expected axis to be an array of integers, ` +
+              `but received ${JSON.stringify(this.axis)}`);
+        }
+      }
+    } else {
+      throw new Error(
+          `Expected axis to be an integer or an array of integers, ` +
+          `but received ${JSON.stringify(this.axis)}`);
+    }
+
+    this.epsilon = args.epsilon == null ? 1e-3 : args.epsilon;
+    this.center = args.center == null ? true : args.center;
+    this.scale = args.scale == null ? true : args.scale;
+    this.betaInitializer =
+        args.betaInitializer == null ? 'zeros' : args.betaInitializer;
+    this.gammaInitializer =
+        args.gammaInitializer == null ? 'ones' : args.gammaInitializer;
+    this.betaRegularizer = args.betaRegularizer;
+    this.gammaRegularizer = args.gammaRegularizer;
+
+    this.supportsMasking = true;
+    // TODO(cais): Test masking support.
+  }
+}
