@@ -17,23 +17,25 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {WebGPUProgram} from './webgpu_program';
 
 export class ConcatProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
-  dispatchLayout: {x: number[], y: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames: string[];
+  workGroupSize: [number, number, number] = [64, 1, 1];
 
   constructor(shapes: Array<[number, number]>) {
     this.outputShape =
         backend_util.computeOutShape(shapes, 1 /* axis */) as [number, number];
     this.variableNames = shapes.map((_, i) => `T${i}`);
 
-    this.dispatchLayout = {x: [0], y: [1]};
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     const offsets: number[] = new Array(shapes.length - 1);
     offsets[0] = shapes[0][1];

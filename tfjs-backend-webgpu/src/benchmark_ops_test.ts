@@ -105,6 +105,19 @@ describeWebGPU('Ops benchmarks', () => {
     await doTest(2);
   }, 60000);
 
+  it('concat', async () => {
+    const a = tf.randomNormal([500, 500]);
+    const b = tf.randomNormal([500, 500]);
+
+    await time(() => tf.concat([a, b], 1));
+  });
+
+  it('resizeBilinear', async () => {
+    const input = tf.randomNormal<tf.Rank.R3>([128, 128, 4]);
+
+    await time(() => input.resizeBilinear([256, 256], false));
+  });
+
   it('matMul', async () => {
     const a = tf.randomNormal([500, 500]);
     const b = tf.randomNormal([500, 500]);

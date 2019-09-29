@@ -27,6 +27,7 @@ export class TransposeProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   rank: number;
+  workGroupSize: [number, number, number] = [64, 1, 1];
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -38,7 +39,8 @@ export class TransposeProgram implements WebGPUProgram {
     const dtype = getCoordsDataType(this.rank);
 
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     const switched = getSwitchedCoords(newDim);
 
