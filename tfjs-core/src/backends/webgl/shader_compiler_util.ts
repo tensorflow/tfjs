@@ -30,7 +30,7 @@ export function getLogicalCoordinatesFromFlatIndex(
         const line1 = `int ${coords[i]} = ${index} / ${stride}`;
         const line2 = i === strides.length - 1 ?
             `int ${coords[i + 1]} = ${index} - ${coords[i]} * ${stride}` :
-            `index -= ${coords[i]} * ${stride}`;
+            `${index} -= ${coords[i]} * ${stride}`;
         return `${line1}; ${line2};`;
       })
       .join('');

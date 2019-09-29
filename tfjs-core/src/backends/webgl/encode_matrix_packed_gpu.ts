@@ -71,7 +71,7 @@ export class EncodeMatrixPackedProgram implements GPGPUProgram {
 
               r = flatIndex / ${width};
               c = imod(flatIndex, ${width});
-              uv = (vec2(c, r) + halfCR) / vec2(${width}.0, ${height}.0);
+              uv = adjuv(vec2(c, r), ivec2(${width}, ${height}));
               values = ${glsl.texture2D}(A, uv);
 
               if(offset == 0) {

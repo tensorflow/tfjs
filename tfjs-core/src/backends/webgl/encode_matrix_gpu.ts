@@ -49,7 +49,7 @@ export class EncodeMatrixProgram implements GPGPUProgram {
         
         int r = flatIndex / ${width};
         int c = imod(flatIndex, ${width});
-        vec2 uv = (vec2(c, r) + halfCR) / vec2(${width}.0, ${height}.0);
+        vec2 uv = adjuv(vec2(c, r), ivec2(${width}, ${height}));
         vec4 values = ${glsl.texture2D}(A, uv);
 
         float result;

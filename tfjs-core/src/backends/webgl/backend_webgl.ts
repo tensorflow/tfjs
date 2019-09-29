@@ -429,6 +429,8 @@ export class MathBackendWebGL implements KernelBackend {
       start = util.now();
     }
 
+    this.gpgpu.blockUntilAllProgramsCompleted();
+
     let result: Float32Array;
     if (dtype === 'complex64') {
       const realValues = complexTensors.real.dataSync() as Float32Array;
@@ -536,7 +538,7 @@ export class MathBackendWebGL implements KernelBackend {
       const vals = this.gpgpu
                        .downloadMatrixFromPackedTexture(
                            tmpData.texture, ...tex_util.getDenseTexShape(shape))
-                       .subarray(0, size);
+                       .slice(0, size);
 
       this.disposeData(tmpTarget.dataId);
 
@@ -568,7 +570,7 @@ export class MathBackendWebGL implements KernelBackend {
         this.gpgpu
             .downloadByteEncodedFloatMatrixFromOutputTexture(
                 tmpData.texture, tmpData.texShape[0], tmpData.texShape[1])
-            .subarray(0, size);
+            .slice(0, size);
     this.disposeData(tmpTarget.dataId);
 
     return vals;
@@ -890,17 +892,25 @@ export class MathBackendWebGL implements KernelBackend {
     // because sum() is O(sqrt(N)) due to divide-and-conquer.
     if ((outerShapeA === 1 || outerShapeB === 1) &&
         sharedDim > MATMUL_SHARED_DIM_THRESHOLD) {
-      if (transposeA) {
-        a = a.transpose([0, 2, 1]);
-      }
-      if (transposeB) {
-        b = b.transpose([0, 2, 1]);
-      }
 
-      const a3D = outerShapeB === 1 ? a : a.as3D(batch, sharedDim, 1);
-      const axis = outerShapeB === 1 ? 2 : 1;
-      const b3D = outerShapeB === 1 ? b.as3D(batch, 1, sharedDim) : b;
-      return this.multiply(a3D, b3D).sum(axis, true /* keepDims */);
+        if (transposeA) {
+          a = a.transpose([0, 2, 1]);
+        }
+
+        if (!transposeB) {
+          b = b.transpose([0, 2, 1]);
+        }
+
+        const axis = 2;
+
+        if (outerShapeB === 1) {
+          const result = this.sum(this.multiply(a, b), [axis]);
+          return result.as3D(batch, outerShapeA, outerShapeB);
+        } else {
+          /* (outerShapeA === 1) */
+          const result = this.sum(this.multiply(b, a), [axis]);
+          return result.as3D(batch, outerShapeA, outerShapeB);
+        }
     }
 
     const dtype = upcastType(a.dtype, b.dtype);
@@ -1131,6 +1141,7 @@ export class MathBackendWebGL implements KernelBackend {
     if (output.shape[1] === 1) {
       return output;
     }
+
     return this.reduce(output, reduceType, dtype);
   }
 
@@ -1251,14 +1262,25 @@ export class MathBackendWebGL implements KernelBackend {
     axis_util.assertAxesAreInnerMostDims(
         'arg' + reduceType.charAt(0).toUpperCase() + reduceType.slice(1), axes,
         x.rank);
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(x.shape, axes);
+    const inSize = util.sizeFromShape(reduceShape);
+    const outSize = util.sizeFromShape(outShape);
+
     if (!ENV.getBool('WEBGL_PACK_REDUCE') || x.rank <= 2) {
-      const [outShape, reduceShape] =
-          axis_util.computeOutAndReduceShapes(x.shape, axes);
-      const inSize = util.sizeFromShape(reduceShape);
       const a2D = x.as2D(-1, inSize);
       return this.argReduce(a2D, reduceType).reshape(outShape);
     }
-    return this.argReducePacked(x, reduceType);
+
+    let a3D: Tensor = null;
+
+    if (outSize % 2 === 0) {
+      a3D = x.as3D(-1, 2, inSize);
+    } else {
+      a3D = x.as3D(-1, 1, inSize);
+    }
+
+    return this.argReducePacked(a3D, reduceType).reshape(outShape);
   }
 
   argMin(x: Tensor, axis: number): Tensor {
@@ -2314,10 +2336,12 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    const texData = this.texData.get(x.dataId);
-    if (texData.isPacked && !webgl_util.isReshapeFree(x.shape, shape) &&
-        !(texData.texture !== null &&
-          webgl_util.isReshapeFree(texData.shape, shape))) {
+    let texData = this.texData.get(x.dataId);
+    if ((texData.slice) ||
+        (x.dtype === 'complex64') || (x.dtype === 'string')) {
+      return backend_util.reshapeTensor(x, shape);
+    }
+    if (texData.isPacked && !webgl_util.isReshapeFree(x.shape, shape)) {
       return this.packedReshape(x, shape);
     }
     return backend_util.reshapeTensor(x, shape);
@@ -2596,9 +2620,8 @@ export class MathBackendWebGL implements KernelBackend {
     const shapeAs3D =
         webgl_util.getShapeAs3D(shape) as [number, number, number];
     const denseTexShape = tex_util.getDenseTexShape(shape);
-
-    const tmpTarget = this.makeTensorHandle(shape, 'float32') as TensorHandle &
-        {size: number};
+    let tmpTarget: TensorHandle & {size: number} = null;
+    tmpTarget = {...this.makeTensorHandle(shape, 'float32'), size: util.sizeFromShape(shape)};
     this.texData.get(tmpTarget.dataId).isPacked = true;
     this.texData.get(tmpTarget.dataId).dtype = dtype;
     this.texData.get(tmpTarget.dataId).texShape =

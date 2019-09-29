@@ -444,8 +444,7 @@ describeWithFlags('gramSchmidt-non-tiny', WEBGL_ENVS, () => {
 
 describeWithFlags('matmul webgl-only', WEBGL_ENVS, () => {
   it('Matrix times vector, large matrix', async () => {
-    const maxTexSize = 16000;
-    const sharedDim = maxTexSize + 4;
+    const sharedDim = 8000 + 2;
     const matrix = tf.buffer<Rank.R2>([2, sharedDim], 'float32');
     matrix.set(1, 0, sharedDim - 3);
     matrix.set(1, 0, sharedDim - 2);

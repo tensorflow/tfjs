@@ -251,6 +251,10 @@ function getShaderPrefix(glsl: GLSL): string {
       return x - y * (x / y);
     }
 
+    ivec2 ivec2mod(ivec2 x, ivec2 y) {
+      return ivec2(imod(x.x, y.x), imod(x.y, y.y));
+    }
+
     int idiv(int a, int b, float sign) {
       int res = a / b;
       int mod = imod(a, b);
@@ -258,6 +262,10 @@ function getShaderPrefix(glsl: GLSL): string {
         res -= 1;
       }
       return res;
+    }
+
+    vec2 adjuv(vec2 texCR, ivec2 texNumCR) {
+      return texCR / vec2(texNumCR);
     }
 
     //Based on the work of Dave Hoskins
@@ -282,13 +290,13 @@ const SAMPLE_1D_SNIPPET = `
 vec2 uvFromFlat(int texNumR, int texNumC, int index) {
   int texR = index / texNumC;
   int texC = index - texR * texNumC;
-  return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
+  return adjuv(vec2(texC, texR), ivec2(texNumC, texNumR));
 }
 vec2 packedUVfrom1D(int texNumR, int texNumC, int index) {
   int texelIndex = index / 2;
   int texR = texelIndex / texNumC;
   int texC = texelIndex - texR * texNumC;
-  return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
+  return adjuv(vec2(texC, texR), ivec2(texNumC, texNumR));
 }
 `;
 
@@ -298,7 +306,7 @@ vec2 packedUVfrom2D(int texelsInLogicalRow, int texNumR,
   int texelIndex = (row / 2) * texelsInLogicalRow + (col / 2);
   int texR = texelIndex / texNumC;
   int texC = texelIndex - texR * texNumC;
-  return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
+  return adjuv(vec2(texC, texR), ivec2(texNumC, texNumR));
 }
 `;
 
@@ -309,20 +317,20 @@ vec2 packedUVfrom3D(int texNumR, int texNumC,
   int index = b * texelsInBatch + (row / 2) * texelsInLogicalRow + (col / 2);
   int texR = index / texNumC;
   int texC = index - texR * texNumC;
-  return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
+  return adjuv(vec2(texC, texR), ivec2(texNumC, texNumR));
 }
 `;
 
 const SHADER_PACKED_PREFIX = `
   float getChannel(vec4 frag, vec2 innerDims) {
-    vec2 modCoord = mod(innerDims, 2.);
-    return modCoord.x == 0. ?
-      (modCoord.y == 0. ? frag.r : frag.g) :
-      (modCoord.y == 0. ? frag.b : frag.a);
+    ivec2 modCoord = ivec2mod(round(innerDims), ivec2(2));
+    return modCoord.x == 0 ?
+      (modCoord.y == 0 ? frag.r : frag.g) :
+      (modCoord.y == 0 ? frag.b : frag.a);
   }
   float getChannel(vec4 frag, int dim) {
-    float modCoord = mod(float(dim), 2.);
-    return modCoord == 0. ? frag.r : frag.g;
+    int modCoord = imod(dim, 2);
+    return modCoord == 0 ? frag.r : frag.g;
   }
 `;
 
@@ -341,7 +349,7 @@ function getOutputPacked1DCoords(
   if (packedTexShape[0] === 1) {
     return `
       int getOutputCoords() {
-        return 2 * int(resultUV.x * ${packedTexShape[1]}.0);
+        return 2 * round(resultUV.x * ${packedTexShape[1] - 1}.);
       }
     `;
   }
@@ -349,15 +357,15 @@ function getOutputPacked1DCoords(
   if (packedTexShape[1] === 1) {
     return `
       int getOutputCoords() {
-        return 2 * int(resultUV.y * ${packedTexShape[0]}.0);
+        return 2 * round(resultUV.y * ${packedTexShape[0] - 1}.);
       }
     `;
   }
 
   return `
     int getOutputCoords() {
-      ivec2 resTexRC = ivec2(resultUV.yx *
-                             vec2(${packedTexShape[0]}, ${packedTexShape[1]}));
+      ivec2 resTexRC = round(resultUV.yx *
+                             vec2(${packedTexShape[0] - 1}, ${packedTexShape[1] - 1}));
       return 2 * (resTexRC.x * ${packedTexShape[1]} + resTexRC.y);
     }
   `;
@@ -368,21 +376,21 @@ function getOutput1DCoords(
   if (texShape[0] === 1) {
     return `
       int getOutputCoords() {
-        return int(resultUV.x * ${texShape[1]}.0);
+        return round(resultUV.x * ${texShape[1] - 1}.);
       }
     `;
   }
   if (texShape[1] === 1) {
     return `
       int getOutputCoords() {
-        return int(resultUV.y * ${texShape[0]}.0);
+        return round(resultUV.y * ${texShape[0] - 1}.);
       }
     `;
   }
   return `
     int getOutputCoords() {
-      ivec2 resTexRC = ivec2(resultUV.yx *
-                             vec2(${texShape[0]}, ${texShape[1]}));
+      ivec2 resTexRC = round(resultUV.yx *
+                             vec2(${texShape[0] - 1}, ${texShape[1] - 1}));
       return resTexRC.x * ${texShape[1]} + resTexRC.y;
     }
   `;
@@ -397,8 +405,8 @@ function getOutputPacked3DCoords(
 
   return `
     ivec3 getOutputCoords() {
-      ivec2 resTexRC = ivec2(resultUV.yx *
-                             vec2(${packedTexShape[0]}, ${packedTexShape[1]}));
+      ivec2 resTexRC = round(resultUV.yx *
+                             vec2(${packedTexShape[0] - 1}, ${packedTexShape[1] - 1}));
       int index = resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
 
       int b = index / ${texelsInBatch};
@@ -419,8 +427,8 @@ function getOutput3DCoords(
 
   return `
     ivec3 getOutputCoords() {
-      ivec2 resTexRC = ivec2(resultUV.yx *
-                             vec2(${texShape[0]}, ${texShape[1]}));
+      ivec2 resTexRC = round(resultUV.yx *
+                             vec2(${texShape[0] - 1}, ${texShape[1] - 1}));
       int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
       ${coordsFromIndexSnippet}
       return ivec3(r, c, d);
@@ -451,8 +459,8 @@ function getOutputPackedNDCoords(
 
   return `
     ivec${shape.length} getOutputCoords() {
-      ivec2 resTexRC = ivec2(resultUV.yx *
-                             vec2(${packedTexShape[0]}, ${packedTexShape[1]}));
+      ivec2 resTexRC = round(resultUV.yx *
+                             vec2(${packedTexShape[0] - 1}, ${packedTexShape[1] - 1}));
       int index = resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
 
       ${batches}
@@ -476,8 +484,8 @@ function getOutput4DCoords(
 
   return `
     ivec4 getOutputCoords() {
-      ivec2 resTexRC = ivec2(resultUV.yx *
-        vec2(${texShape[0]}, ${texShape[1]}));
+      ivec2 resTexRC = round(resultUV.yx *
+        vec2(${texShape[0] - 1}, ${texShape[1] - 1}));
       int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
       ${coordsFromIndexSnippet}
       return ivec4(r, c, d, d2);
@@ -493,8 +501,8 @@ function getOutput5DCoords(
 
   return `
     ivec5 getOutputCoords() {
-      ivec2 resTexRC = ivec2(resultUV.yx * vec2(${texShape[0]},
-                             ${texShape[1]}));
+      ivec2 resTexRC = round(resultUV.yx * vec2(${texShape[0] - 1},
+                             ${texShape[1] - 1}));
 
       int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
 
@@ -514,8 +522,8 @@ function getOutput6DCoords(
 
   return `
     ivec6 getOutputCoords() {
-      ivec2 resTexRC = ivec2(resultUV.yx *
-        vec2(${texShape[0]}, ${texShape[1]}));
+      ivec2 resTexRC = round(resultUV.yx *
+        vec2(${texShape[0] - 1}, ${texShape[1] - 1}));
       int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
 
       ${coordsFromIndexSnippet}
@@ -530,14 +538,6 @@ function getOutputPacked2DCoords(
     shape: [number, number], texShape: [number, number]): string {
   const packedTexShape =
       [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
-  if (util.arraysEqual(shape, texShape)) {
-    return `
-      ivec2 getOutputCoords() {
-        return 2 * ivec2(resultUV.yx * vec2(${packedTexShape[0]}, ${
-        packedTexShape[1]}));
-      }
-    `;
-  }
 
   // texels needed to accommodate a logical row
   const texelsInLogicalRow = Math.ceil(shape[1] / 2);
@@ -553,8 +553,8 @@ function getOutputPacked2DCoords(
    */
   return `
     ivec2 getOutputCoords() {
-      ivec2 resTexRC = ivec2(resultUV.yx *
-                             vec2(${packedTexShape[0]}, ${packedTexShape[1]}));
+      ivec2 resTexRC = round(resultUV.yx *
+                             vec2(${packedTexShape[0] - 1}, ${packedTexShape[1] - 1}));
 
       int index = resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
       int r = 2 * (index / ${texelsInLogicalRow});
@@ -570,15 +570,15 @@ function getOutput2DCoords(
   if (util.arraysEqual(shape, texShape)) {
     return `
       ivec2 getOutputCoords() {
-        return ivec2(resultUV.yx * vec2(${texShape[0]}, ${texShape[1]}));
+        return round(resultUV.yx * vec2(${texShape[0] - 1}, ${texShape[1] - 1}));
       }
     `;
   }
   if (shape[1] === 1) {
     return `
       ivec2 getOutputCoords() {
-        ivec2 resTexRC = ivec2(resultUV.yx *
-                               vec2(${texShape[0]}, ${texShape[1]}));
+        ivec2 resTexRC = round(resultUV.yx *
+                               vec2(${texShape[0] - 1}, ${texShape[1] - 1}));
         int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
         return ivec2(index, 0);
       }
@@ -587,8 +587,8 @@ function getOutput2DCoords(
   if (shape[0] === 1) {
     return `
       ivec2 getOutputCoords() {
-        ivec2 resTexRC = ivec2(resultUV.yx *
-                               vec2(${texShape[0]}, ${texShape[1]}));
+        ivec2 resTexRC = round(resultUV.yx *
+                               vec2(${texShape[0] - 1}, ${texShape[1] - 1}));
         int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
         return ivec2(0, index);
       }
@@ -596,8 +596,8 @@ function getOutput2DCoords(
   }
   return `
     ivec2 getOutputCoords() {
-      ivec2 resTexRC = ivec2(resultUV.yx *
-                             vec2(${texShape[0]}, ${texShape[1]}));
+      ivec2 resTexRC = round(resultUV.yx *
+                             vec2(${texShape[0] - 1}, ${texShape[1] - 1}));
       int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
       int r = index / ${shape[1]};
       int c = index - r * ${shape[1]};
@@ -616,7 +616,7 @@ function getPackedSamplerScalar(inputInfo: InputInfo): string {
   const glsl = getGlslDifferences();
   return `
     vec4 ${funcName}() {
-      return ${glsl.texture2D}(${texName}, halfCR);
+      return ${glsl.texture2D}(${texName}, vec2(0., 0.));
     }
   `;
 }
@@ -631,7 +631,7 @@ function getSamplerScalar(inputInfo: InputInfo): string {
   if (texNumR === 1 && texNumC === 1) {
     return `
       float ${funcName}() {
-        return sampleTexture(${texName}, halfCR);
+        return sampleTexture(${texName}, vec2(0., 0.));
       }
     `;
   }
@@ -683,7 +683,7 @@ function getSampler1D(inputInfo: InputInfo): string {
   if (tNumC === 1 && tNumR === 1) {
     return `
       float ${funcName}(int index) {
-        return sampleTexture(${texName}, halfCR);
+        return sampleTexture(${texName}, vec2(0., 0.));
       }
     `;
   }
@@ -691,7 +691,7 @@ function getSampler1D(inputInfo: InputInfo): string {
   if (tNumC === 1) {
     return `
       float ${funcName}(int index) {
-        vec2 uv = vec2(0.5, (float(index + ${offset}) + 0.5) / ${tNumR}.0);
+        vec2 uv = adjuv(vec2(0, index + ${offset}), ivec2(1, ${tNumR}));
         return sampleTexture(${texName}, uv);
       }
     `;
@@ -699,7 +699,7 @@ function getSampler1D(inputInfo: InputInfo): string {
   if (tNumR === 1) {
     return `
       float ${funcName}(int index) {
-        vec2 uv = vec2((float(index + ${offset}) + 0.5) / ${tNumC}.0, 0.5);
+        vec2 uv = adjuv(vec2(index + ${offset}, 0), ivec2(${tNumC}, 1));
         return sampleTexture(${texName}, uv);
       }
     `;
@@ -717,20 +717,7 @@ function getPackedSampler2D(inputInfo: InputInfo): string {
   const texName = inputInfo.name;
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
   const texShape = inputInfo.shapeInfo.texShape;
-
-  const texNumR = texShape[0];
-  const texNumC = texShape[1];
   const glsl = getGlslDifferences();
-  if (texShape != null && util.arraysEqual(shape, texShape)) {
-    return `
-      vec4 ${funcName}(int row, int col) {
-        vec2 uv = (vec2(col, row) + halfCR) / vec2(${texNumC}.0, ${texNumR}.0);
-
-        return ${glsl.texture2D}(${texName}, uv);
-      }
-    `;
-  }
-
   const packedTexShape =
       [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
   const valuesPerRow = Math.ceil(shape[1] / 2);
@@ -755,7 +742,7 @@ function getSampler2D(inputInfo: InputInfo): string {
     const texNumC = texShape[1];
     return `
     float ${funcName}(int row, int col) {
-      vec2 uv = (vec2(col, row) + halfCR) / vec2(${texNumC}.0, ${texNumR}.0);
+      vec2 uv = adjuv(vec2(col, row), ivec2(${texNumC}, ${texNumR}));
       return sampleTexture(${texName}, uv);
     }
   `;
@@ -792,7 +779,7 @@ function getSampler2D(inputInfo: InputInfo): string {
     return `
     float ${funcName}(int row, int col) {
       float index = dot(vec3(row, col, ${offset}), vec3(${shape[1]}, 1, 1));
-      vec2 uv = vec2(0.5, (index + 0.5) / ${texNumR}.0);
+      vec2 uv = adjuv(vec2(0, index), ivec2(1, ${texNumR}));
       return sampleTexture(${texName}, uv);
     }
   `;
@@ -802,7 +789,7 @@ function getSampler2D(inputInfo: InputInfo): string {
     return `
     float ${funcName}(int row, int col) {
       float index = dot(vec3(row, col, ${offset}), vec3(${shape[1]}, 1, 1));
-      vec2 uv = vec2((index + 0.5) / ${texNumC}.0, 0.5);
+      vec2 uv = adjuv(vec2(index, 0), ivec2(${texNumC}, 1));
       return sampleTexture(${texName}, uv);
     }
   `;
@@ -896,8 +883,7 @@ function getSampler3D(inputInfo: InputInfo): string {
         float ${funcName}(int row, int col, int depth) {
           float texR = float(row);
           float texC = dot(vec2(col, depth), vec2(${stride1}, 1));
-          vec2 uv = (vec2(texC, texR) + halfCR) /
-                     vec2(${texNumC}.0, ${texNumR}.0);
+          vec2 uv = adjuv(vec2(texC, texR), ivec2(${texNumC}, ${texNumR}));
           return sampleTexture(${texName}, uv);
         }
       `;
@@ -909,7 +895,7 @@ function getSampler3D(inputInfo: InputInfo): string {
     float ${funcName}(int row, int col, int depth) {
       float texR = dot(vec2(row, col), vec2(${shape[1]}, 1));
       float texC = float(depth);
-      vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${texNumC}.0, ${texNumR}.0);
+      vec2 uv = adjuv(vec2(texC, texR), ivec2(${texNumC}, ${texNumR}));
       return sampleTexture(${texName}, uv);
     }
   `;
@@ -952,7 +938,7 @@ function getPackedSamplerND(inputInfo: InputInfo): string {
       int index = ${index};
       int texR = index / ${texNumC};
       int texC = index - texR * ${texNumC};
-      vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${texNumC}, ${texNumR});
+      vec2 uv = adjuv(vec2(texC, texR), ivec2(${texNumC}, ${texNumR}));
       return ${glsl.texture2D}(${texName}, uv);
     }
   `;
@@ -1002,8 +988,7 @@ function getSampler4D(inputInfo: InputInfo): string {
         float texC =
             dot(vec3(col, depth, depth2),
                 vec3(${stride1}, ${stride2}, 1));
-        vec2 uv = (vec2(texC, texR) + halfCR) /
-                   vec2(${texNumC}.0, ${texNumR}.0);
+        vec2 uv = adjuv(vec2(texC, texR), ivec2(${texNumC}, ${texNumR}));
         return sampleTexture(${texName}, uv);
       }
     `;
@@ -1015,8 +1000,7 @@ function getSampler4D(inputInfo: InputInfo): string {
         float texR = dot(vec3(row, col, depth),
                          vec3(${shape[1] * shape[2]}, ${shape[2]}, 1));
         float texC = float(depth2);
-        vec2 uv = (vec2(texC, texR) + halfCR) /
-                  vec2(${texNumC}.0, ${texNumR}.0);
+        vec2 uv = adjuv(vec2(texC, texR), ivec2(${texNumC}, ${texNumR}));
         return sampleTexture(${texName}, uv);
       }
     `;
@@ -1080,8 +1064,7 @@ function getSampler5D(inputInfo: InputInfo): string {
         int texR = row;
         float texC = dot(vec4(col, depth, depth2, depth3),
                          vec4(${stride1}, ${stride2}, ${stride3}, 1));
-        vec2 uv = (vec2(texC, texR) + halfCR) /
-                   vec2(${texNumC}.0, ${texNumR}.0);
+        vec2 uv = adjuv(vec2(texC, texR), ivec2(${texNumC}, ${texNumR}));
         return sampleTexture(${texName}, uv);
       }
     `;
@@ -1096,8 +1079,7 @@ function getSampler5D(inputInfo: InputInfo): string {
           vec4(${shape[1] * shape[2] * shape[3]},
                ${shape[2] * shape[3]}, ${shape[3]}, 1));
         int texC = depth3;
-        vec2 uv = (vec2(texC, texR) + halfCR) /
-                  vec2(${texNumC}.0, ${texNumR}.0);
+        vec2 uv = adjuv(vec2(texC, texR), ivec2(${texNumC}, ${texNumR}));
         return sampleTexture(${texName}, uv);
       }
     `;
@@ -1168,8 +1150,7 @@ function getSampler6D(inputInfo: InputInfo): string {
         float texC = dot(vec4(col, depth, depth2, depth3),
           vec4(${stride1}, ${stride2}, ${stride3}, ${stride4})) +
                float(depth4);
-        vec2 uv = (vec2(texC, texR) + halfCR) /
-                   vec2(${texNumC}.0, ${texNumR}.0);
+        vec2 uv = adjuv(vec2(texC, texR), ivec2(${texNumC}, ${texNumR}));
         return sampleTexture(${texName}, uv);
       }
     `;
@@ -1185,8 +1166,7 @@ function getSampler6D(inputInfo: InputInfo): string {
                ${shape[3] * shape[4]},
                ${shape[4]})) + float(depth3);
         int texC = depth4;
-        vec2 uv = (vec2(texC, texR) + halfCR) /
-                  vec2(${texNumC}.0, ${texNumR}.0);
+        vec2 uv = adjuv(vec2(texC, texR), ivec2(${texNumC}, ${texNumR}));
         return sampleTexture(${texName}, uv);
       }
     `;

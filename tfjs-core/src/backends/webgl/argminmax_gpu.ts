@@ -34,8 +34,8 @@ export class ArgMinMaxProgram implements GPGPUProgram {
     this.outputShape = [batchSize, outSize];
     const compOp = (op === 'max') ? '>' : '<';
     const indexSnippet = firstPass ?
-        'inOffset + i;' :
-        'round(getBestIndicesA(batch, inOffset + i));';
+        'inOffset + i' :
+        'round(getBestIndicesA(batch, inOffset + i))';
 
     this.userCode = `
       void main() {
@@ -43,12 +43,13 @@ export class ArgMinMaxProgram implements GPGPUProgram {
         int batch = coords[0];
         int outIdx = coords[1];
         int inOffset = outIdx * ${windowSize};
-
-        int bestIndex = inOffset;
+        int i = 0;
+        int inIdx = ${indexSnippet};
+        int bestIndex = inIdx;
         float bestValue = getA(batch, bestIndex);
 
         for (int i = 0; i < ${windowSize}; i++) {
-          int inIdx = ${indexSnippet};
+          inIdx = ${indexSnippet};
           float candidate = getA(batch, inIdx);
           if (candidate ${compOp} bestValue) {
             bestValue = candidate;

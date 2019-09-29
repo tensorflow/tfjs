@@ -73,6 +73,47 @@ export class MatMulPackedProgram implements GPGPUProgram {
           vec4 a = getMatrixA(rc.x, ${aSample});
           vec4 b = getMatrixB(rc.x, ${bSample});
 
+          if ((i == ${sharedDimensionPacked - 1}) && (${sharedDim} != ${sharedDimensionPacked * 2})) {
+            if (${transposeA}) {
+              a.z = 0.;
+              a.w = 0.;
+            } else {
+              a.y = 0.;
+              a.w = 0.;
+            }
+            if (${transposeB}) {
+              b.y = 0.;
+              b.w = 0.;
+            } else {
+              b.z = 0.;
+              b.w = 0.;
+            }
+          }
+
+          if (${transposeA}) {
+            if (rc.y + 1 >= ${aShape[2]}) {
+              a.y = 0.;
+              a.w = 0.;
+            }
+          } else {
+            if (rc.y + 1 >= ${aShape[1]}) {
+              a.z = 0.;
+              a.w = 0.;
+            }
+          }
+
+          if (${transposeB}) {
+            if (rc.z + 1 >= ${outputShape[2]}) {
+              b.z = 0.;
+              b.w = 0.;
+            }
+          } else {
+            if (rc.z + 1 >= ${outputShape[2]}) {
+              b.y = 0.;
+              b.w = 0.;
+            }
+          }
+
           // These swizzled products need to be separately added.
           // See: https://github.com/tensorflow/tfjs/issues/1735
           result += (${aSwizzle[0]} * ${bSwizzle[0]});

@@ -62,14 +62,14 @@ export class Im2ColPackedProgram implements GPGPUProgram {
 
             if(d0 < ${inputShape[rowDim]} && d0 >= 0) {
 
-              offsetX = int(mod(float(blockIndex), ${outWidth}.) * ${
-            strideWidth}. - ${left}.);
-              d1 = offsetX + ${dilationWidth} * (int(mod(float(pos), ${
-            itemsPerBlockRow}.) / ${inChannels}.));
+              offsetX = imod(blockIndex, ${outWidth}) * ${
+            strideWidth} - ${left};
+              d1 = offsetX + ${dilationWidth} * (imod(pos, ${
+            itemsPerBlockRow}) / ${inChannels});
 
               if(d1 < ${inputShape[colDim]} && d1 >= 0) {
 
-                ch = int(mod(float(pos), ${inChannels}.));
+                ch = imod(pos, ${inChannels});
 
                 if (${isChannelsLast}) {
                   innerDims = vec2(d1, ch);

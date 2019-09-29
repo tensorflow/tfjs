@@ -76,6 +76,10 @@ export function getGlslDifferences(): GLSL {
         return int(floor(value + 0.5));
       }
 
+      ivec2 newRound(vec2 value) {
+        return ivec2(floor(value + vec2(0.5)));
+      }
+
       ivec4 newRound(vec4 value) {
         return ivec4(floor(value + vec4(0.5)));
       }
@@ -111,6 +115,10 @@ export function getGlslDifferences(): GLSL {
     defineRound = `
       int round(float value) {
         return int(floor(value + 0.5));
+      }
+
+      ivec2 round(vec2 value) {
+        return ivec2(floor(value + vec2(0.5)));
       }
 
       ivec4 round(vec4 value) {
