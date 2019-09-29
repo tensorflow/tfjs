@@ -311,7 +311,7 @@ export declare interface ISaverDef {
 
 export namespace SaverDef {
   /** CheckpointFormatVersion enum. */
-  export declare enum CheckpointFormatVersion {LEGACY = 0, V1 = 1, V2 = 2}
+  export enum CheckpointFormatVersion {'LEGACY' = 0, 'V1' = 1, 'V2' = 2}
 }
 
 /** Properties of a TensorInfo. */
