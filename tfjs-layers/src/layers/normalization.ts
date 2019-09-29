@@ -576,7 +576,10 @@ export class LayerNormalization extends Layer {
     const nDims = input.shape.length;
 
     return tidy(() => {
-      const {mean, variance} = moments(input);
+      const keepDims = true;
+      const {mean, variance} = moments(input, this.axis, keepDims);
+      // console.log(`mean.shape = ${mean.shape}`);          // DEBUG
+      // console.log(`variance.shape = ${variance.shape}`);  // DEBUG
 
       const broadcastShape = generic_utils.pyListRepeat(1, nDims);
       for (const dim of this.axis as number[]) {
@@ -594,6 +597,8 @@ export class LayerNormalization extends Layer {
 
       const scale = broadcast(this.gamma.read());
       const offset = broadcast(this.beta.read());
+      // console.log(`scale.shape = ${scale.shape}`);    // DEBUG
+      // console.log(`offset.shape = ${offset.shape}`);  // DEBUG
 
       const outputs = batchNormalization(
           input, mean, variance, offset, scale, this.epsilon);

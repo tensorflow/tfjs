@@ -16,7 +16,7 @@ import {onesLike, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, train,
 
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {batchNormalization, normalizeBatchInTraining} from './normalization';
 
@@ -666,4 +666,83 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
     const movingVarianceValue = layer1.getWeights()[3];
     expectTensorsClose(movingVarianceValue, [1.3161889, 1.1835222], 1e-5);
   });
+});
+
+// TODO(cais): There are incorrect numeric values with describeMathCPU.
+// Investigate.
+describeMathGPU('LayerNormalization Layer: Tensor', () => {
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // tf.enable_eager_execution()
+  //
+  // layer = tf.keras.layers.LayerNormalization()
+  // xs = np.array([[1, 2, 3], [3, 6, 24]], dtype=np.float32)
+  // ys = layer(xs)
+  // print(ys)
+  // ```
+  fit('Forward, 2D input, default axis', () => {
+    const layer = tfl.layers.layerNormalization();
+    const xs = tensor2d([[1, 2, 3], [3, 6, 24]]);
+    const ys = layer.apply(xs) as Tensor;
+    expectTensorsClose(
+        ys,
+        tensor2d(
+            [[-1.2238274, 0, 1.2238274], [-0.8626572, -0.5391607, 1.401818]]));
+  });
+
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // tf.enable_eager_execution()
+  //
+  // layer = tf.keras.layers.LayerNormalization()
+  // xs = np.array([1, 2, 3, 6, 5, 4, 3, 6, 24, -10, 0, 5],
+  //               dtype=np.float32).reshape((2, 2, 3))
+  // ys = layer(xs)
+  // print(ys)
+  // ```
+  fit('Forward, 3D input, default axis', () => {
+    const layer = tfl.layers.layerNormalization();
+    const xs = tensor3d([1, 2, 3, 6, 5, 4, 3, 6, 24, -10, 0, 5], [2, 2, 3]);
+    const ys = layer.apply(xs) as Tensor;
+    expectTensorsClose(
+      ys,
+      tensor3d([[[-1.2238274, 0, 1.2238274],
+                 [1.2238274, 0, -1.2238274]],
+                [[-0.8626572, -0.5391607, 1.401818],
+                 [-1.3362889, 0.26725778, 1.0690311]]]));
+  });
+
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // tf.enable_eager_execution()
+  //
+  // layer = tf.keras.layers.LayerNormalization(axis=[1, 2])
+  // xs = np.array([1, 2, 3, 6, 5, 4, 3, 6, 24, -10, 0, 5],
+  //               dtype=np.float32).reshape((2, 2, 3))
+  // ys = layer(xs)
+  // print(ys)
+  // ```
+  const nonDefaultAxisValues: Array<number[]> = [[1, 2], [-2, -1]];
+  for (const nonDefaultAxis of nonDefaultAxisValues) {
+    fit(`Forward, 3D input, non-default axis: ${nonDefaultAxis}`, () => {
+      const layer = tfl.layers.layerNormalization({axis: nonDefaultAxis});
+      const xs = tensor3d([1, 2, 3, 6, 5, 4, 3, 6, 24, -10, 0, 5], [2, 2, 3]);
+      const ys = layer.apply(xs) as Tensor;
+      expectTensorsClose(
+        ys,
+        tensor3d([[[-1.4635992, -0.8781595, -0.29271984],
+                   [1.4635992, 0.8781595, 0.29271984]],
+                  [[-0.1645762, 0.13166097, 1.909084],
+                   [-1.4482707, -0.46081337, 0.03291526]]]));
+    });
+  }
 });
