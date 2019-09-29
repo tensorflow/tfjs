@@ -29,17 +29,20 @@ export class MaxPoolProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
-  workGroupSize: [number, number, number] = [4, 4, 4];
+  // TODO(jiajia.qin@intel.com): Dynamically choose different workGroupSize and
+  // workPerThead for different output shapes.
+  workGroupSize: [number, number, number] = [4, 4, 1];
+  workPerThread = 16;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
 
-    this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
+    this.dispatchLayout = {x: [0, 1], y: [2], z: [3]};
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [1, 1, this.workPerThread]);
 
-    // TODO: Parallelize max computation by thread and merge result.
     this.userCode = `
       float getValue(int batch, int xR, int xC, int d) {
         if (xC < 0 || xC >= convDims.x) {
@@ -50,15 +53,17 @@ export class MaxPoolProgram implements WebGPUProgram {
 
       void main() {
         ivec4 coords = getOutputCoords();
-        int batch = coords[0];
-        int d = coords[3];
-
         if (all(lessThan(coords, outShape))) {
+          int batch = coords[0];
           ivec2 xRCCorner = coords.yz * stride - pad;
           int xRCorner = xRCCorner.x;
           int xCCorner = xRCCorner.y;
 
-          float minMaxValue = 0.0;
+          float minMaxValue[${this.workPerThread}];
+          for (int i = 0; i < ${this.workPerThread}; i++)
+          {
+            minMaxValue[i] = 0.0;
+          }
 
           for (int wR = 0; wR < filterDims.y; wR += dilation.y) {
             int xR = xRCorner + wR;
@@ -69,14 +74,36 @@ export class MaxPoolProgram implements WebGPUProgram {
 
             for (int wC = 0; wC < filterDims.x; wC += dilation.x) {
               int xC = xCCorner + wC * dilation.x;
-              float value = getValue(batch, xR, xC, d);
-              minMaxValue = max(value, minMaxValue);
+              for (int i = 0; i < ${this.workPerThread}; i++)
+              {
+                int d = coords[3] * ${this.workPerThread} + i;
+                if (d < outShape[3])
+                {
+                  float value = getValue(batch, xR, xC, d);
+                  minMaxValue[i] = max(value, minMaxValue[i]);
+                }
+                else
+                {
+                  break;
+                }
+              }
             }
           }
-          setOutput(batch, coords[1], coords[2], d, minMaxValue);
+          for (int i = 0; i < ${this.workPerThread}; i++)
+          {
+            int d = coords[3] * ${this.workPerThread} + i;
+            if (d < outShape[3])
+            {
+              setOutput(batch, coords[1], coords[2], d, minMaxValue[i]);
+            }
+            else
+            {
+              break;
+            }
+          }
         }
       }
     `;
-   this.shaderKey = 'maxpool';
+    this.shaderKey = 'maxpool';
   }
 }
