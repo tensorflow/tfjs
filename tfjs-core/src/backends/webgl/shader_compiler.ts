@@ -365,7 +365,8 @@ function getOutputPacked1DCoords(
   return `
     int getOutputCoords() {
       ivec2 resTexRC = round(resultUV.yx *
-                             vec2(${packedTexShape[0] - 1}, ${packedTexShape[1] - 1}));
+                             vec2(${packedTexShape[0] - 1},
+                                  ${packedTexShape[1] - 1}));
       return 2 * (resTexRC.x * ${packedTexShape[1]} + resTexRC.y);
     }
   `;
@@ -406,7 +407,8 @@ function getOutputPacked3DCoords(
   return `
     ivec3 getOutputCoords() {
       ivec2 resTexRC = round(resultUV.yx *
-                             vec2(${packedTexShape[0] - 1}, ${packedTexShape[1] - 1}));
+                             vec2(${packedTexShape[0] - 1},
+                                  ${packedTexShape[1] - 1}));
       int index = resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
 
       int b = index / ${texelsInBatch};
@@ -460,7 +462,8 @@ function getOutputPackedNDCoords(
   return `
     ivec${shape.length} getOutputCoords() {
       ivec2 resTexRC = round(resultUV.yx *
-                             vec2(${packedTexShape[0] - 1}, ${packedTexShape[1] - 1}));
+                             vec2(${packedTexShape[0] - 1},
+                                  ${packedTexShape[1] - 1}));
       int index = resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
 
       ${batches}
@@ -554,7 +557,8 @@ function getOutputPacked2DCoords(
   return `
     ivec2 getOutputCoords() {
       ivec2 resTexRC = round(resultUV.yx *
-                             vec2(${packedTexShape[0] - 1}, ${packedTexShape[1] - 1}));
+                             vec2(${packedTexShape[0] - 1},
+                                  ${packedTexShape[1] - 1}));
 
       int index = resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
       int r = 2 * (index / ${texelsInLogicalRow});
@@ -570,7 +574,8 @@ function getOutput2DCoords(
   if (util.arraysEqual(shape, texShape)) {
     return `
       ivec2 getOutputCoords() {
-        return round(resultUV.yx * vec2(${texShape[0] - 1}, ${texShape[1] - 1}));
+        return round(resultUV.yx * vec2(${texShape[0] - 1},
+                                        ${texShape[1] - 1}));
       }
     `;
   }

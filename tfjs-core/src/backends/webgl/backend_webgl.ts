@@ -2336,7 +2336,7 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    let texData = this.texData.get(x.dataId);
+    const texData = this.texData.get(x.dataId);
     if ((texData.slice) ||
         (x.dtype === 'complex64') || (x.dtype === 'string')) {
       return backend_util.reshapeTensor(x, shape);
@@ -2621,7 +2621,8 @@ export class MathBackendWebGL implements KernelBackend {
         webgl_util.getShapeAs3D(shape) as [number, number, number];
     const denseTexShape = tex_util.getDenseTexShape(shape);
     let tmpTarget: TensorHandle & {size: number} = null;
-    tmpTarget = {...this.makeTensorHandle(shape, 'float32'), size: util.sizeFromShape(shape)};
+    tmpTarget = {...this.makeTensorHandle(shape, 'float32'),
+                 size: util.sizeFromShape(shape)};
     this.texData.get(tmpTarget.dataId).isPacked = true;
     this.texData.get(tmpTarget.dataId).dtype = dtype;
     this.texData.get(tmpTarget.dataId).texShape =
