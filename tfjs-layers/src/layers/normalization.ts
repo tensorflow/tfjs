@@ -496,7 +496,7 @@ export class LayerNormalization extends Layer {
     if (typeof this.axis === 'number') {
       if (!Number.isInteger(this.axis)) {
         throw new Error(
-            `Expected axis to be a integer, but received ${this.axis}`);
+            `Expected axis to be an integer, but received ${this.axis}`);
       }
     } else if (Array.isArray(this.axis)) {
       for (const axis of this.axis) {

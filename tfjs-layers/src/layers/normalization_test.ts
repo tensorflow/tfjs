@@ -668,6 +668,19 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
   });
 });
 
+describe('LayerNormalization Layer: Symbolic', () => {
+  fit('Invalid axis value leads to constructor error', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tfl.layers.layerNormalization({axis: 'foo' as any}))
+        .toThrowError(/Expected axis to be an integer/);
+    expect(() => tfl.layers.layerNormalization({axis: 1.2}))
+        .toThrowError(/Expected axis to be an integer/);
+    expect(() => tfl.layers.layerNormalization({axis: [1, 1.5]}))
+        .toThrowError(/Expected axis to be an array of integers/);
+
+  });
+});
+
 // TODO(cais): There are incorrect numeric values with describeMathCPU.
 // Investigate.
 describeMathGPU('LayerNormalization Layer: Tensor', () => {
