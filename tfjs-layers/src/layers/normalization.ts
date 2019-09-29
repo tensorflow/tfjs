@@ -13,7 +13,8 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+import {moments, serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
@@ -470,14 +471,20 @@ export interface LayerNormalizationLayerArgs extends LayerArgs {
 }
 
 export class LayerNormalization extends Layer {
-  readonly axis: number|number[];
+  /** @nocollapse */
+  static className = 'BatchNormalization';
+
+  protected axis: number|number[];
   readonly epsilon: number;
   readonly center: boolean;
   readonly scale: boolean;
-  readonly betaInitializer: InitializerIdentifier|Initializer;
-  readonly gammaInitializer: InitializerIdentifier|Initializer;
-  readonly betaRegularizer: RegularizerIdentifier|Regularizer;
-  readonly gammaRegularizer: RegularizerIdentifier|Regularizer;
+  readonly betaInitializer: Initializer;
+  readonly gammaInitializer: Initializer;
+  readonly betaRegularizer: Regularizer;
+  readonly gammaRegularizer: Regularizer;
+
+  protected gamma: LayerVariable;
+  protected beta: LayerVariable;
 
   constructor(args?: LayerNormalizationLayerArgs) {
     if (args == null) {
@@ -508,14 +515,106 @@ export class LayerNormalization extends Layer {
     this.epsilon = args.epsilon == null ? 1e-3 : args.epsilon;
     this.center = args.center == null ? true : args.center;
     this.scale = args.scale == null ? true : args.scale;
-    this.betaInitializer =
-        args.betaInitializer == null ? 'zeros' : args.betaInitializer;
-    this.gammaInitializer =
-        args.gammaInitializer == null ? 'ones' : args.gammaInitializer;
-    this.betaRegularizer = args.betaRegularizer;
-    this.gammaRegularizer = args.gammaRegularizer;
+    this.betaInitializer = getInitializer(args.betaInitializer || 'zeros');
+    this.gammaInitializer = getInitializer(args.gammaInitializer || 'ones');
+    this.betaRegularizer = getRegularizer(args.betaRegularizer);
+    this.gammaRegularizer = getRegularizer(args.gammaRegularizer);
 
     this.supportsMasking = true;
     // TODO(cais): Test masking support.
   }
+
+  public build(inputShape: Shape|Shape[]): void {
+    inputShape = getExactlyOneShape(inputShape);
+    const nDims = inputShape.length;
+
+    // Convert axis to array and resolve negatives.
+    if (typeof this.axis === 'number') {
+      this.axis = [this.axis];
+    }
+    for (let i = 0; i < this.axis.length; ++i) {
+      if (this.axis[i] < 0) {
+        this.axis[i] += nDims;
+      }
+    }
+
+    // Further validate axes.
+    for (const axis of this.axis) {
+      if (axis < 0 || axis >= nDims) {
+        throw new Error(`Invalid axis: ${axis}`);
+      }
+    }
+    if (this.axis.length !== generic_utils.unique(this.axis).length) {
+      throw new Error(`Found duplicated axes in: ${this.axis}`);
+      // TODO(cais): Unit test. DO NOT SUBMIT.
+    }
+
+    const paramShape = this.axis.map(axis => inputShape[axis]) as number[];
+
+    const trainable = true;
+    if (this.scale) {
+      this.gamma = this.addWeight(
+          'gamma', paramShape, 'float32', this.gammaInitializer,
+          this.gammaRegularizer, trainable);
+    } else {
+      this.gamma = null;
+    }
+    if (this.center) {
+      this.beta = this.addWeight(
+          'beta', paramShape, 'float32', this.betaInitializer,
+          this.betaRegularizer, trainable);
+    } else {
+      this.beta = null;
+    }
+
+    this.built = true;
+  }
+
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+    const input = getExactlyOneTensor(inputs);
+    const inputShape = input.shape;
+    const nDims = input.shape.length;
+
+    return tidy(() => {
+      const {mean, variance} = moments(input);
+
+      const broadcastShape = generic_utils.pyListRepeat(1, nDims);
+      for (const dim of this.axis as number[]) {
+        broadcastShape[dim] = inputShape[dim];
+      }
+
+      const broadcast = (v: Tensor) => {
+        if (v != null && v.shape.length !== nDims &&
+            this.axis !== [nDims - 1]) {
+          return v.reshape(broadcastShape);
+        } else {
+          return v;
+        }
+      };
+
+      const scale = broadcast(this.gamma.read());
+      const offset = broadcast(this.beta.read());
+
+      const outputs = batchNormalization(
+          input, mean, variance, offset, scale, this.epsilon);
+      return outputs;
+    });
+  }
+
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {
+      axis: this.axis,
+      epsilon: this.epsilon,
+      center: this.center,
+      scale: this.scale,
+      betaInitializer: serializeInitializer(this.betaInitializer),
+      gammaInitializer: serializeInitializer(this.gammaInitializer),
+      betaRegularizer: serializeRegularizer(this.betaRegularizer),
+      gammaRegularizer: serializeRegularizer(this.gammaRegularizer)
+    };
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
+  }
 }
+serialization.registerClass(LayerNormalization);
