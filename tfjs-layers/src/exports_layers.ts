@@ -835,7 +835,7 @@ export function batchNormalization(args?: BatchNormalizationLayerArgs): Layer {
 /**
  * Layer-normalization layer (Ba et al., 2016).
  *
- * Normalizes the activations f the previous layer for each given example in a
+ * Normalizes the activations of the previous layer for each given example in a
  * batch independently, instead of across a batch like in `batchNormalization`.
  * In other words, this layer applies a transformation that maintanis the mean
  * activation within each example close to0 and activation variance close to 1.

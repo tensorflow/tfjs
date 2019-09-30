@@ -695,8 +695,6 @@ describe('LayerNormalization Layer: Symbolic', () => {
   });
 });
 
-// TODO(cais): There are incorrect numeric values with describeMathCPU.
-// Investigate.
 describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
   // Reference Python code:
   // ```py
