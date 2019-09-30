@@ -833,8 +833,22 @@ export function batchNormalization(args?: BatchNormalizationLayerArgs): Layer {
 }
 
 /**
- * TODO(cais): Add doc string. DO NOT SUBMIT.
- * @param args
+ * Layer-normalization layer (Ba et al., 2016).
+ *
+ * Normalizes the activations f the previous layer for each given example in a
+ * batch independently, instead of across a batch like in `batchNormalization`.
+ * In other words, this layer applies a transformation that maintanis the mean
+ * activation within each example close to0 and activation variance close to 1.
+ *
+ * Input shape:
+ *   Arbitrary. Use the argument `inputShape` when using this layer as the first
+ *   layer in a model.
+ *
+ * Output shape:
+ *   Same as input.
+ *
+ * References:
+    - [Layer Normalization](https://arxiv.org/abs/1607.06450)
  */
 export function layerNormalization(args?: LayerNormalizationLayerArgs): Layer {
   return new LayerNormalization(args);
