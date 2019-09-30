@@ -20,11 +20,23 @@ import {backend_util, BackendTimingInfo, DataType, fill, KernelBackend, ones, Ra
 // tslint:disable-next-line: no-imports-from-dist
 import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 // tslint:disable-next-line: no-imports-from-dist
-import {FusedBatchMatMulConfig, FusedConv2DConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
+import {FusedBatchMatMulConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {isArray, isNullOrUndefined} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
+
+// TODO(annxingyuan): tfjs-core 1.2.10 will export FusedConv2DConfig - remove
+// this redefinition once we upgrade dep.
+type Activation = 'linear'|'relu'|'prelu'|'elu'|'relu6';
+type FusedConv2DConfig = {
+  input: Tensor4D,
+  filter: Tensor4D,
+  convInfo: tfc.backend_util.Conv2DInfo,
+  bias?: Tensor,
+  activation?: Activation,
+  preluActivationWeights?: Tensor
+};
 
 type TensorInfo = {
   shape: number[],
