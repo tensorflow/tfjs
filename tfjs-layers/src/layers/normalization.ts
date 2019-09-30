@@ -15,6 +15,7 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {moments, serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 
+import {getBackend} from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
@@ -570,19 +571,20 @@ export class LayerNormalization extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+    if (tfc.ENV.platformName === 'browser' && getBackend() != 'webgl') {
+      throw new Error(
+          `LayerNormalization doesn't support computation on the CPU backend ` +
+          `in browsers yet. Use the WebGL backend instead.`);
+    }
+
     const input = getExactlyOneTensor(inputs);
     const inputShape = input.shape;
-    const nDims = input.shape.length;
+    const nDims = inputShape.length;
+    const training: boolean = kwargs['training'] || false;
 
     return tidy(() => {
       const keepDims = true;
       let {mean, variance} = moments(input, this.axis, keepDims);
-      // TODO(cais): De-hack.
-      mean = mean.tile([1, 3]);          // HACK
-      variance = variance.tile([1, 3]);  // HACK
-      // console.log(`mean.shape = ${mean.shape}`);          // DEBUG
-      // console.log(`variance.shape = ${variance.shape}`);  // DEBUG
-
       const broadcastShape = generic_utils.pyListRepeat(1, nDims);
       for (const dim of this.axis as number[]) {
         broadcastShape[dim] = inputShape[dim];
@@ -599,18 +601,31 @@ export class LayerNormalization extends Layer {
 
       let scale = broadcast(this.gamma.read());
       let offset = broadcast(this.beta.read());
-      scale = scale.tile([3, 1]);    // HACK.
-      offset = offset.tile([3, 1]);  // HACK.
-      // console.log(`200 input.shape = ${input.shape}`);    // DEBUG
-      // input.print();                                      // DEBUG
-      // console.log(`mean.shape = ${mean.shape}`);          // DEBUG
-      // console.log(`variance.shape = ${variance.shape}`);  // DEBUG
-      // console.log(`scale.shape = ${scale.shape}`);        // DEBUG
-      // console.log(`offset.shape = ${offset.shape}`);      // DEBUG
 
-      const outputs = batchNormalization(
+      // TODO(cais): This is a workaround for the limitation of core's
+      // batchNormalization?d don't support broadcasting in their gradients.
+      // Remove this workaround once the limitation is addressed.
+      if (training) {
+        const momentsTiling: number[] = [];
+        const scaleOffsetTiling: number[] = [];
+        for (let i = 0; i < nDims; ++i) {
+          if ((this.axis as number[]).indexOf(i) !== -1) {
+            momentsTiling.push(inputShape[i]);
+            scaleOffsetTiling.push(1);
+          } else {
+            momentsTiling.push(1);
+            scaleOffsetTiling.push(inputShape[i]);
+          }
+        }
+
+        mean = mean.tile(momentsTiling);
+        variance = variance.tile(momentsTiling);
+        scale = scale.tile(scaleOffsetTiling);
+        offset = offset.tile(scaleOffsetTiling);
+      }
+
+      return batchNormalization(
           input, mean, variance, offset, scale, this.epsilon);
-      return outputs;
     });
   }
 
