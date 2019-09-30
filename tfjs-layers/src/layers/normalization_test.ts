@@ -12,8 +12,7 @@
  * Unit tests for normalization layers.
  */
 
-import {onesLike, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
-import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
+import {onesLike, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, test_util, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
 
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
@@ -806,7 +805,7 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
     const xs = tensor2d([[1, 2, 3], [3, 6, 24], [10, 5, 0]]);
     const ys = tensor2d([[0], [-1], [2]]);
     const history = await model.fit(xs, ys, {epochs: 5});
-    expectArraysClose(history.history.loss as number[], [
+    test_util.expectArraysClose(history.history.loss as number[], [
       1.6666666269302368, 1.4296358823776245, 1.2372404336929321,
       1.0793765783309937, 0.9486551880836487
     ]);
@@ -838,7 +837,7 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
     const xs = tensor2d([[1, 2, 3], [3, 6, 24], [10, 5, 0], [2, 7, 8]]);
     const ys = tensor2d([[0], [-1], [2], [3]]);
     const history = await model.fit(xs, ys, {epochs: 5});
-    expectArraysClose(history.history.loss as number[], [
+    test_util.expectArraysClose(history.history.loss as number[], [
       3.5, 3.1083502769470215, 2.8706729412078857, 2.7243311405181885,
       2.6366190910339355
     ]);
@@ -868,7 +867,7 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
     const xs = tensor3d([[[1, 2, 3], [3, 6, 24]], [[10, 5, 0], [2, 7, 8]]]);
     const ys = tensor2d([[0], [-1]]);
     const history = await model.fit(xs, ys, {epochs: 5});
-    expectArraysClose(history.history.loss as number[], [
+    test_util.expectArraysClose(history.history.loss as number[], [
       0.5, 0.33119967579841614, 0.23371894657611847, 0.171361044049263,
       0.12831644713878632
     ]);
@@ -899,7 +898,7 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
     const xs = tensor3d([[[1, 2, 3], [3, 6, 24]], [[10, 5, 0], [2, 7, 8]]]);
     const ys = tensor2d([[0], [-1]]);
     const history = await model.fit(xs, ys, {epochs: 5});
-    expectArraysClose(history.history.loss as number[], [
+    test_util.expectArraysClose(history.history.loss as number[], [
       0.5, 0.3337608873844147, 0.23789873719215393, 0.17923809587955475,
       0.1408553570508957
     ]);
