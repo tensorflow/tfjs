@@ -336,21 +336,16 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor<Rank.R3>;
   }
 
-  fusedConv2d(
-      {input, filter, convInfo, bias, activation, preluActivationWeights}:
-          FusedConv2DConfig): Tensor4D {
-    let result = this.conv2d(input, filter, convInfo);
-    if (bias != null) {
-      result = this.add(result, bias) as Tensor4D;
-    }
-
+  private applyActivation<T extends Tensor>(
+      input: T, activation: string, preluActivationWeights?: Tensor): T {
+    let result = input;
     if (activation != null) {
       if (activation === 'linear') {
         // No-op
       } else if (activation === 'relu') {
         result = this.relu(result);
       } else if (activation === 'prelu') {
-        result = this.prelu(result, preluActivationWeights) as Tensor4D;
+        result = this.prelu(result, preluActivationWeights) as T;
       } else if (activation === 'elu') {
         result = this.elu(result);
       } else if (activation === 'relu6') {
@@ -360,6 +355,18 @@ export class NodeJSKernelBackend extends KernelBackend {
             activation} has not been implemented for the Node.js backend`);
       }
     }
+    return result;
+  }
+
+  fusedConv2d(
+      {input, filter, convInfo, bias, activation, preluActivationWeights}:
+          FusedConv2DConfig): Tensor4D {
+    let result = this.conv2d(input, filter, convInfo);
+    if (bias != null) {
+      result = this.add(result, bias) as Tensor4D;
+    }
+
+    result = this.applyActivation(result, activation, preluActivationWeights);
 
     return result;
   }
@@ -373,22 +380,9 @@ export class NodeJSKernelBackend extends KernelBackend {
     if (bias != null) {
       result = this.add(result, bias) as Tensor3D;
     }
-    if (activation != null) {
-      if (activation === 'linear') {
-        // No-op
-      } else if (activation === 'relu') {
-        result = this.relu(result);
-      } else if (activation === 'prelu') {
-        result = this.prelu(result, preluActivationWeights) as Tensor3D;
-      } else if (activation === 'elu') {
-        result = this.elu(result);
-      } else if (activation === 'relu6') {
-        result = this.relu6(result);
-      } else {
-        throw new Error(`Activation: ${
-            activation} has not been implemented for the Node.js backend`);
-      }
-    }
+
+    result = this.applyActivation(result, activation, preluActivationWeights);
+
     return result;
   }
 
@@ -971,22 +965,7 @@ export class NodeJSKernelBackend extends KernelBackend {
       result = this.add(result, bias) as Tensor4D;
     }
 
-    if (activation != null) {
-      if (activation === 'linear') {
-        // No-op
-      } else if (activation === 'relu') {
-        result = this.relu(result);
-      } else if (activation === 'prelu') {
-        result = this.prelu(result, preluActivationWeights) as Tensor4D;
-      } else if (activation === 'elu') {
-        result = this.elu(result);
-      } else if (activation === 'relu6') {
-        result = this.relu6(result);
-      } else {
-        throw new Error(`Activation: ${
-            activation} has not been implemented for the Node.js backend`);
-      }
-    }
+    result = this.applyActivation(result, activation, preluActivationWeights);
 
     return result;
   }
