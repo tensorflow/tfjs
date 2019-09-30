@@ -145,8 +145,8 @@ class ConvertTest(tf.test.TestCase):
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     tf.saved_model.save(model, save_dir)
 
-  def _create_saved_model_with_simple_prelu(self):
-    """Test a basic model with fusable conv2d."""
+  def _create_saved_model_with_unfusable_prelu(self):
+    """Test a basic model with unfusable prelu."""
     layers = [
         tf.keras.layers.Conv1D(16, 3),
         tf.keras.layers.PReLU()
@@ -411,8 +411,8 @@ class ConvertTest(tf.test.TestCase):
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
-  def test_convert_saved_model_with_simple_prelu(self):
-    self._create_saved_model_with_simple_prelu()
+  def test_convert_saved_model_with_unfusable_prelu(self):
+    self._create_saved_model_with_unfusable_prelu()
     tf_saved_model_conversion_v2.convert_tf_saved_model(
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
@@ -426,12 +426,12 @@ class ConvertTest(tf.test.TestCase):
     nodes = model_json['modelTopology']['node']
 
     prelu_op = None
-    fused_op = None
     for node in nodes:
       if node['op'] == 'Prelu':
         prelu_op = node
+        break
 
-    self.assertTrue(prelu_op is not None)
+    self.assertTrue(prelu_op)
 
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')

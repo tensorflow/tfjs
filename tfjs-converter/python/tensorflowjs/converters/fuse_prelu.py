@@ -118,6 +118,8 @@ def fuse_ops_for_prelu(input_graph_def):
 
     relu_input_op.op = 'Prelu'
     relu_input_op.input.extend([alpha_tensor_name])
+    # Remove the T attr that is defined in Relu op, since our custom Prelu op
+    # definition does not have that.
     del relu_input_op.attr['T']
 
     node.op = 'Identity'
@@ -176,7 +178,9 @@ def fuse_prelu_with_fused_conv2d(input_graph_def):
     fused_conv_op.attr['num_args'].i = fused_conv_op.attr['num_args'].i + 1
     node.op = 'Identity'
     node.input[:] = [node.input[0]]
+    # Add the 'T' definition for Identity op, since Prelu op does not have that.
     value = attr_value_pb2.AttrValue()
+    # Set the type to float, since it is not used by TFJS.
     value.type = types_pb2.DT_FLOAT
     node.attr['T'].CopyFrom(value)
 
