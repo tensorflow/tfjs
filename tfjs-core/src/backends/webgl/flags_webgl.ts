@@ -16,8 +16,11 @@
  */
 
 import * as device_util from '../../device_util';
-import {ENV} from '../../environment';
+import {environment} from '../../environment';
+
 import * as webgl_util from './webgl_util';
+
+const ENV = environment();
 
 /**
  * This file contains WebGL-specific flag registrations.

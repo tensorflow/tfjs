@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {ENV} from './environment';
 import * as tf from './index';
 import {ALL_ENVS, describeWithFlags, NODE_ENVS} from './jasmine_util';
 import {expectArraysClose} from './test_util';
@@ -49,17 +48,17 @@ describe('deprecation warnings', () => {
 
 describe('Flag flipping methods', () => {
   beforeEach(() => {
-    ENV.reset();
+    tf.environment().reset();
   });
 
   it('tf.enableProdMode', () => {
     tf.enableProdMode();
-    expect(ENV.getBool('PROD')).toBe(true);
+    expect(tf.environment().getBool('PROD')).toBe(true);
   });
 
   it('tf.enableDebugMode', () => {
     tf.enableDebugMode();
-    expect(ENV.getBool('DEBUG')).toBe(true);
+    expect(tf.environment().getBool('DEBUG')).toBe(true);
   });
 });
 

@@ -15,7 +15,9 @@
  * =============================================================================
  */
 import * as device_util from './device_util';
-import {ENV} from './environment';
+import {environment} from './environment';
+
+const ENV = environment();
 
 /**
  * This file contains environment-related flag registrations.

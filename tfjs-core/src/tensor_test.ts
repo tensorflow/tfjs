@@ -1532,7 +1532,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
 describeWithFlags('tensor debug mode', ALL_ENVS, () => {
   beforeAll(() => {
-    tf.ENV.set('DEBUG', true);
+    tf.environment().set('DEBUG', true);
   });
 
   it('tf.tensor() from TypedArray + number[] fails due to wrong shape', () => {

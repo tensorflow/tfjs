@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {ENV} from '../../environment';
+import {environment} from '../../environment';
+
 import {PixelData, TypedArray} from '../../types';
 import * as util from '../../util';
 
@@ -49,7 +50,7 @@ export class GPGPUContext {
   private textureConfig: TextureConfig;
 
   constructor(gl?: WebGLRenderingContext) {
-    const glVersion = ENV.getNumber('WEBGL_VERSION');
+    const glVersion = environment().getNumber('WEBGL_VERSION');
     if (gl != null) {
       this.gl = gl;
       setWebGLContext(glVersion, gl);
@@ -57,7 +58,7 @@ export class GPGPUContext {
       this.gl = getWebGLContext(glVersion);
     }
     // WebGL 2.0 enables texture floats without an extension.
-    if (ENV.getNumber('WEBGL_VERSION') === 1) {
+    if (environment().getNumber('WEBGL_VERSION') === 1) {
       this.textureFloatExtension = webgl_util.getExtensionOrThrow(
           this.gl, this.debug, 'OES_texture_float');
       this.colorBufferFloatExtension =
@@ -90,7 +91,7 @@ export class GPGPUContext {
   }
 
   private get debug(): boolean {
-    return ENV.getBool('DEBUG');
+    return environment().getBool('DEBUG');
   }
 
   public dispose() {
@@ -225,7 +226,7 @@ export class GPGPUContext {
     let query: WebGLQuery|WebGLSync;
     let isFencePassed: () => boolean;
 
-    if (ENV.getBool('WEBGL_FENCE_API_ENABLED')) {
+    if (environment().getBool('WEBGL_FENCE_API_ENABLED')) {
       const gl2 = gl as WebGL2RenderingContext;
 
       const sync = gl2.fenceSync(gl2.SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -239,11 +240,14 @@ export class GPGPUContext {
 
       query = sync;
     } else if (
-        ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0) {
+        environment().getNumber(
+            'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0) {
       query = this.beginQuery();
       this.endQuery();
       isFencePassed = () => this.isQueryAvailable(
-          query, ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION'));
+          query,
+          environment().getNumber(
+              'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION'));
     } else {
       // If we have no way to fence, return true immediately. This will fire in
       // WebGL 1.0 when there is no disjoint query timer. In this case, because
@@ -407,8 +411,8 @@ export class GPGPUContext {
       this.disjointQueryTimerExtension =
           webgl_util.getExtensionOrThrow(
               this.gl, this.debug,
-              ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') ===
-                      2 ?
+              environment().getNumber(
+                  'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') === 2 ?
                   'EXT_disjoint_timer_query_webgl2' :
                   'EXT_disjoint_timer_query') as
               WebGL1DisjointQueryTimerExtension |
@@ -426,7 +430,8 @@ export class GPGPUContext {
   }
 
   beginQuery(): WebGLQuery {
-    if (ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') === 2) {
+    if (environment().getNumber(
+            'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') === 2) {
       const gl2 = this.gl as WebGL2RenderingContext;
       const ext = this.getQueryTimerExtensionWebGL2();
 
@@ -441,7 +446,8 @@ export class GPGPUContext {
   }
 
   endQuery() {
-    if (ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') === 2) {
+    if (environment().getNumber(
+            'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') === 2) {
       const gl2 = this.gl as WebGL2RenderingContext;
       const ext = this.getQueryTimerExtensionWebGL2();
       gl2.endQuery(ext.TIME_ELAPSED_EXT);
@@ -458,9 +464,12 @@ export class GPGPUContext {
                                 // may poll for the query timer indefinitely
             this.isQueryAvailable(
                 query,
-                ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION')));
+                environment().getNumber(
+                    'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION')));
     return this.getQueryTime(
-        query, ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION'));
+        query,
+        environment().getNumber(
+            'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION'));
   }
 
   private getQueryTime(query: WebGLQuery, queryTimerVersion: number): number {

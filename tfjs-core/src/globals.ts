@@ -17,7 +17,8 @@
 
 import {KernelBackend} from './backends/backend';
 import {ENGINE, Engine, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo} from './engine';
-import {ENV} from './environment';
+import {environment} from './environment';
+
 import {Platform} from './platforms/platform';
 import {setDeprecationWarningFn, Tensor} from './tensor';
 import {TensorContainer} from './tensor_types';
@@ -29,7 +30,7 @@ import {getTensorsInContainer} from './tensor_util';
  */
 /** @doc {heading: 'Environment'} */
 export function enableProdMode(): void {
-  ENV.set('PROD', true);
+  environment().set('PROD', true);
 }
 
 /**
@@ -46,18 +47,18 @@ export function enableProdMode(): void {
  */
 /** @doc {heading: 'Environment'} */
 export function enableDebugMode(): void {
-  ENV.set('DEBUG', true);
+  environment().set('DEBUG', true);
 }
 
 /** Globally disables deprecation warnings */
 export function disableDeprecationWarnings(): void {
-  ENV.set('DEPRECATION_WARNINGS_ENABLED', false);
+  environment().set('DEPRECATION_WARNINGS_ENABLED', false);
   console.warn(`TensorFlow.js deprecation warnings have been disabled.`);
 }
 
 /** Warn users about deprecated functionality. */
 export function deprecationWarn(msg: string) {
-  if (ENV.getBool('DEPRECATION_WARNINGS_ENABLED')) {
+  if (environment().getBool('DEPRECATION_WARNINGS_ENABLED')) {
     console.warn(
         msg + ' You can disable deprecation warnings with ' +
         'tf.disableDeprecationWarnings().');
@@ -354,5 +355,5 @@ export function backend(): KernelBackend {
  * @param platform A platform implementation.
  */
 export function setPlatform(platformName: string, platform: Platform) {
-  ENV.setPlatform(platformName, platform);
+  environment().setPlatform(platformName, platform);
 }

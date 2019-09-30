@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENV} from '../environment';
+import {environment} from '../environment';
 
 import {Platform} from './platform';
 
@@ -52,8 +52,8 @@ export class PlatformNode implements Platform {
   }
 
   fetch(path: string, requestInits?: RequestInit): Promise<Response> {
-    if (ENV.global.fetch != null) {
-      return ENV.global.fetch(path, requestInits);
+    if (environment().global.fetch != null) {
+      return environment().global.fetch(path, requestInits);
     }
 
     if (systemFetch == null) {
@@ -82,6 +82,6 @@ export class PlatformNode implements Platform {
   }
 }
 
-if (ENV.get('IS_NODE')) {
-  ENV.setPlatform('node', new PlatformNode());
+if (environment().get('IS_NODE')) {
+  environment().setPlatform('node', new PlatformNode());
 }

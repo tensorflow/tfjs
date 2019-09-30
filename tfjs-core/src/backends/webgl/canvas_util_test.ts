@@ -14,16 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {ENV} from '../../environment';
+import * as tf from '../../index';
 import {BROWSER_ENVS, describeWithFlags} from '../../jasmine_util';
 
 import {getWebGLContext} from './canvas_util';
 
 describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   it('Returns a valid canvas', () => {
-    const canvas = getWebGLContext(ENV.getNumber('WEBGL_VERSION')).canvas as (
-                       HTMLCanvasElement | OffscreenCanvas);
+    const canvas =
+        getWebGLContext(tf.environment().getNumber('WEBGL_VERSION')).canvas as
+            // tslint:disable-next-line: no-any
+            any;
     expect(
         (canvas instanceof HTMLCanvasElement) ||
         (canvas instanceof OffscreenCanvas))
@@ -31,7 +32,7 @@ describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   });
 
   it('Returns a valid gl context', () => {
-    const gl = getWebGLContext(ENV.getNumber('WEBGL_VERSION'));
+    const gl = getWebGLContext(tf.environment().getNumber('WEBGL_VERSION'));
     expect(gl.isContextLost()).toBe(false);
   });
 });

@@ -18,7 +18,8 @@
 import * as seedrandom from 'seedrandom';
 
 import {ENGINE} from '../../engine';
-import {ENV} from '../../environment';
+import {environment} from '../../environment';
+
 import {warn} from '../../log';
 import * as array_ops_util from '../../ops/array_ops_util';
 import * as axis_util from '../../ops/axis_util';
@@ -92,7 +93,7 @@ export class MathBackendCPU implements KernelBackend {
   private firstUse = true;
 
   constructor() {
-    if (ENV.get('IS_BROWSER')) {
+    if (environment().get('IS_BROWSER')) {
       const canvas = createCanvas();
       if (canvas !== null) {
         this.fromPixels2DContext =
@@ -105,7 +106,7 @@ export class MathBackendCPU implements KernelBackend {
   register(dataId: DataId, shape: number[], dtype: DataType): void {
     if (this.firstUse) {
       this.firstUse = false;
-      if (ENV.get('IS_NODE')) {
+      if (environment().get('IS_NODE')) {
         warn(
             '\n============================\n' +
             'Hi there 👋. Looks like you are running TensorFlow.js in ' +
@@ -154,7 +155,7 @@ export class MathBackendCPU implements KernelBackend {
         [pixels.width, pixels.height];
     let vals: Uint8ClampedArray|Uint8Array;
     // tslint:disable-next-line:no-any
-    if (ENV.get('IS_NODE') && (pixels as any).getContext == null) {
+    if (environment().get('IS_NODE') && (pixels as any).getContext == null) {
       throw new Error(
           'When running in node, pixels must be an HTMLCanvasElement ' +
           'like the one returned by the `canvas` npm package');
@@ -828,7 +829,8 @@ export class MathBackendCPU implements KernelBackend {
     const newValues = this.readSync(result.dataId) as TypedArray;
     let index = 0;
     const offset = condition.rank === 0 || condition.rank > 1 || a.rank === 1 ?
-        1 : util.sizeFromShape(a.shape.slice(1));
+        1 :
+        util.sizeFromShape(a.shape.slice(1));
 
     for (let i = 0; i < values.length; i++) {
       for (let j = 0; j < offset; j++) {
@@ -1522,9 +1524,10 @@ export class MathBackendCPU implements KernelBackend {
       const sign = Math.sign(values[i]);
       const v = Math.abs(values[i]);
       const t = 1.0 / (1.0 + p * v);
-      resultValues[i] = sign * (1.0 -
-        (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
-        Math.exp(-v * v));
+      resultValues[i] = sign *
+          (1.0 -
+           (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
+               Math.exp(-v * v));
     }
     return Tensor.make(x.shape, {values: resultValues});
   }

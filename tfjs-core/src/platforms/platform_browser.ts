@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {environment} from '../environment';
+
 import {Platform} from './platform';
 
 export class PlatformBrowser implements Platform {
-
   // According to the spec, the built-in encoder can do only UTF-8 encoding.
   // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
   private textEncoder: TextEncoder;
@@ -47,6 +47,6 @@ export class PlatformBrowser implements Platform {
   }
 }
 
-if (ENV.get('IS_BROWSER')) {
-  ENV.setPlatform('browser', new PlatformBrowser());
+if (environment().get('IS_BROWSER')) {
+  environment().setPlatform('browser', new PlatformBrowser());
 }

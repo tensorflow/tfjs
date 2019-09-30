@@ -17,8 +17,8 @@
 
 import * as gpgpu_util from './backends/webgl/gpgpu_util';
 import * as webgl_util from './backends/webgl/webgl_util';
+import {environment} from './environment';
 
-import {ENV} from './environment';
 export {MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backends/webgl/backend_webgl';
 export {setWebGLContext} from './backends/webgl/canvas_util';
 export {GPGPUContext} from './backends/webgl/gpgpu_context';
@@ -31,5 +31,5 @@ export {gpgpu_util, webgl_util};
  */
 /** @doc {heading: 'Environment', namespace: 'webgl'} */
 export function forceHalfFloat(): void {
-  ENV.set('WEBGL_FORCE_F16_TEXTURES', true);
+  environment().set('WEBGL_FORCE_F16_TEXTURES', true);
 }
