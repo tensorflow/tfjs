@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {randomNormal, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
+import {io, randomNormal, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
@@ -1654,6 +1654,35 @@ describeMathCPU('LSTM Symbolic', () => {
       expect(layerPrime.getConfig().implementation).toEqual(implementation);
     });
   }
+
+  it('LSTM Cells save and load', async () => {
+    const inputShape = [2, 3];
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 1, inputShape}));
+    const cells = [
+      tfl.layers.lstmCell({units: 3}),
+      tfl.layers.lstmCell({units: 4}),
+    ];
+    const rnn = tfl.layers.rnn({cell: cells, returnSequences: true});
+    model.add(rnn);
+
+    const numExamples = 5;
+    const xs = randomNormal([numExamples].concat(inputShape));
+    const ys = model.predict(xs) as Tensor;
+
+    let savedArtifacts: io.ModelArtifacts;
+    await model.save(tfc.io.withSaveHandler(async (artifacts) => {
+      savedArtifacts = artifacts;
+      return null;
+    }));
+
+    const loadedModel = await tfl.loadLayersModel(
+        tfc.io.fromMemory(savedArtifacts));
+
+    expect(model.inputs[0].shape).toEqual(loadedModel.inputs[0].shape);
+    expect(model.outputs[0].shape).toEqual(loadedModel.outputs[0].shape);
+    expectTensorsClose(loadedModel.predict(xs) as Tensor, ys);
+  });
 
   it('Invalid units leads to Error', () => {
     expect(() => tfl.layers.lstm({units: 12.5}))
