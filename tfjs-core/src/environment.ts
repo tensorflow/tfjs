@@ -17,6 +17,8 @@
 
 import {Platform} from './platforms/platform';
 
+// tslint:disable-next-line:ban-ts-ignore see above
+// @ts-ignore
 exports = {};
 
 // Expects flags from URL in the format ?tfjsflags=FLAG1:1,FLAG2:true.
