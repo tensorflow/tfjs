@@ -576,7 +576,10 @@ export class LayerNormalization extends Layer {
 
     return tidy(() => {
       const keepDims = true;
-      const {mean, variance} = moments(input, this.axis, keepDims);
+      let {mean, variance} = moments(input, this.axis, keepDims);
+      // TODO(cais): De-hack.
+      mean = mean.tile([1, 3]);          // HACK
+      variance = variance.tile([1, 3]);  // HACK
       // console.log(`mean.shape = ${mean.shape}`);          // DEBUG
       // console.log(`variance.shape = ${variance.shape}`);  // DEBUG
 
@@ -594,10 +597,16 @@ export class LayerNormalization extends Layer {
         }
       };
 
-      const scale = broadcast(this.gamma.read());
-      const offset = broadcast(this.beta.read());
-      // console.log(`scale.shape = ${scale.shape}`);    // DEBUG
-      // console.log(`offset.shape = ${offset.shape}`);  // DEBUG
+      let scale = broadcast(this.gamma.read());
+      let offset = broadcast(this.beta.read());
+      scale = scale.tile([3, 1]);    // HACK.
+      offset = offset.tile([3, 1]);  // HACK.
+      // console.log(`200 input.shape = ${input.shape}`);    // DEBUG
+      // input.print();                                      // DEBUG
+      // console.log(`mean.shape = ${mean.shape}`);          // DEBUG
+      // console.log(`variance.shape = ${variance.shape}`);  // DEBUG
+      // console.log(`scale.shape = ${scale.shape}`);        // DEBUG
+      // console.log(`offset.shape = ${offset.shape}`);      // DEBUG
 
       const outputs = batchNormalization(
           input, mean, variance, offset, scale, this.epsilon);

@@ -13,6 +13,7 @@
  */
 
 import {onesLike, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
+import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
@@ -671,7 +672,7 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
 });
 
 describe('LayerNormalization Layer: Symbolic', () => {
-  fit('Invalid axis value leads to constructor error', () => {
+  it('Invalid axis value leads to constructor error', () => {
     // tslint:disable-next-line:no-any
     expect(() => tfl.layers.layerNormalization({axis: 'foo' as any}))
         .toThrowError(/Expected axis to be an integer/);
@@ -681,7 +682,7 @@ describe('LayerNormalization Layer: Symbolic', () => {
         .toThrowError(/Expected axis to be an array of integers/);
   });
 
-  fit('Serialization round trip', async () => {
+  it('Serialization round trip', async () => {
     const layer = tfl.layers.layerNormalization({
       axis: [-2, -1],
       center: true,
@@ -710,7 +711,7 @@ describeMathGPU('LayerNormalization Layer: Tensor', () => {
   // ys = layer(xs)
   // print(ys)
   // ```
-  fit('Forward, 2D input, default axis', () => {
+  it('Forward, 2D input, default axis', () => {
     const layer = tfl.layers.layerNormalization();
     const xs = tensor2d([[1, 2, 3], [3, 6, 24]]);
     const ys = layer.apply(xs) as Tensor;
@@ -733,7 +734,7 @@ describeMathGPU('LayerNormalization Layer: Tensor', () => {
   // ys = layer(xs)
   // print(ys)
   // ```
-  fit('Forward, 3D input, default axis', () => {
+  it('Forward, 3D input, default axis', () => {
     const layer = tfl.layers.layerNormalization();
     const xs = tensor3d([1, 2, 3, 6, 5, 4, 3, 6, 24, -10, 0, 5], [2, 2, 3]);
     const ys = layer.apply(xs) as Tensor;
@@ -760,7 +761,7 @@ describeMathGPU('LayerNormalization Layer: Tensor', () => {
   // ```
   const nonDefaultAxisValues: Array<number[]> = [[1, 2], [-2, -1]];
   for (const nonDefaultAxis of nonDefaultAxisValues) {
-    fit(`Forward, 3D input, non-default axis: ${nonDefaultAxis}`, () => {
+    it(`Forward, 3D input, non-default axis: ${nonDefaultAxis}`, () => {
       const layer = tfl.layers.layerNormalization({axis: nonDefaultAxis});
       const xs = tensor3d([1, 2, 3, 6, 5, 4, 3, 6, 24, -10, 0, 5], [2, 2, 3]);
       const ys = layer.apply(xs) as Tensor;
@@ -773,7 +774,7 @@ describeMathGPU('LayerNormalization Layer: Tensor', () => {
     });
   }
 
-  fit('Duplicate items in axis leads to constructor error', () => {
+  it('Duplicate items in axis leads to constructor error', () => {
     const layers = tfl.layers.layerNormalization({axis: [-2, -1, -1]});
     const xs = tensor3d([1, 2, 3, 6, 5, 4, 3, 6, 24, -10, 0, 5], [2, 2, 3]);
     expect(() => layers.apply(xs)).toThrowError(/duplicate axes/);
@@ -784,10 +785,12 @@ describeMathGPU('LayerNormalization Layer: Tensor', () => {
     model.add(tfl.layers.layerNormalization({inputShape: [3]}));
     model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
-
-    // const xs = tensor2d([[1, 2, 3], [3, 6, 24]]);
-    // const ys = tensor2d([[0], [-1]]);
-    // const history = await model.fit(xs, ys, {epochs: 5});
-    // console.log(history.history.loss);  // DEBUG
+    const xs = tensor2d([[1, 2, 3], [3, 6, 24], [10, 5, 0]]);
+    const ys = tensor2d([[0], [-1], [2]]);
+    const history = await model.fit(xs, ys, {epochs: 5});
+    expectArraysClose(
+        history.history.loss as number[],
+        [1.6666666269302368, 1.4296358823776245, 1.2372404336929321,
+         1.0793765783309937, 0.9486551880836487]);
   });
 });
