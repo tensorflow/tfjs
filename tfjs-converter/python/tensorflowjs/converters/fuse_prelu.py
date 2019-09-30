@@ -198,5 +198,5 @@ def register_prelu_func(graph):
     prelu_fn(tf.constant(1.0), tf.constant(1.0))
 
 
-if tf.version.GIT_VERSION != 'unknown' and tf.__version__ < '2.1':
+if hasattr(op_def_registry, 'register_op_list'):
   register_prelu_op()
