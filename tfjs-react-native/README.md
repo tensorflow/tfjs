@@ -15,13 +15,13 @@ to try it and give us feedback.
 
 ## Setting up a React Native app with tfjs-react-native
 
-These instructions **assume that you are generally familiar with [react native](https://facebook.github.io/react-native/) developement**. This library has only been tested with React Native 0.58.X & 0.59.X. React Native 0.60 is not supported.
+These instructions **assume that you are generally familiar with [react native](https://facebook.github.io/react-native/) developement**.
 
 ### Step 1. Create your react native app.
 
 You can use the [React Native CLI](https://facebook.github.io/react-native/docs/getting-started) or [Expo](https://expo.io/). This library relies on a couple of dependencies from the Expo project so it may be convenient to use expo but is not mandatory.
 
-On macOS (to develop iOS applications) You will also need to use Cocoapods to install these dependencies.
+On macOS (to develop iOS applications) You will also need to use CocoaPods to install these dependencies.
 
 ### Step 2: Install expo related libraries
 
@@ -37,7 +37,7 @@ Depending on which workflow you used to set up your app you will need to install
 
 > If you are in a _managed_ expo application these libraries should be present and you should be able to skip this step.
 
-> After this point, if you are using XCode to build for ios, you should use a ‘.workspace’ file instead of the ‘.xcodeproj’
+> After this point, if you are using Xcode to build for ios, you should use a ‘.workspace’ file instead of the ‘.xcodeproj’
 
 ### Step 3: Configure [Metro](https://facebook.github.io/metro/en/)
 
@@ -115,7 +115,7 @@ export class App extends React.Component {
 After gathering feedback in the alpha release we will add an example to the [tensorflow/tfjs-examples](https://github.com/tensorflow/tfjs-examples) repository.
 
 For now you can take a look at [`integration_rn59/App.tsx`](integration_rn59/App.tsx) for an example of what using tfjs-react-native looks like.
-The [Webcam demo folder](integration_rn70/components/webcam) has an example of a style transfer app.
+The [Webcam demo folder](integration_rn59/components/webcam) has an example of a style transfer app.
 
 ![style transfer app initial screen](images/rn-styletransfer_1.jpg)
 ![style transfer app initial screen](images/rn-styletransfer_2.jpg)

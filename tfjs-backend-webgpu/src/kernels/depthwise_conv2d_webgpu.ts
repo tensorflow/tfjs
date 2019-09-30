@@ -26,7 +26,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride;';
-  workGroupSize: [number, number, number] = [4, 8, 1];
+  workGroupSize: [number, number, number] = [4, 8, 4];
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
@@ -94,7 +94,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
 
             float xVal = getX(batch, xR, xC, d1);
             float wVal = getW(wR, wC, d1, q);
-            fma(xVal, wVal, dotProd);
+            dotProd += xVal * wVal;
           }
         }
         writeResult(batch, coords[1], coords[2], d2, dotProd);

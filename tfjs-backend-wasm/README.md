@@ -1,7 +1,28 @@
 # Emscripten installation
 
-Install emscripten [here](https://emscripten.org/docs/getting_started/downloads.html)
+Install the Emscripten SDK (version 1.38.41):
 
+```sh
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+./emsdk install 1.38.41
+./emsdk activate 1.38.41
+```
+
+# Prepare the environment
+
+Before developing, make sure the environment variable `EMSDK` points to the
+emscripten directory (e.g. `~/emsdk`). Emscripten provides a script that does
+the setup for you:
+
+Cd into the emsdk directory and run:
+
+```sh
+source ./emsdk_env.sh
+```
+
+For details, see instructions
+[here](https://emscripten.org/docs/getting_started/downloads.html#installation-instructions).
 
 # Building
 
