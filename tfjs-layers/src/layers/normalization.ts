@@ -605,6 +605,7 @@ export class LayerNormalization extends Layer {
       // TODO(cais): This is a workaround for the limitation of core's
       // batchNormalization?d don't support broadcasting in their gradients.
       // Remove this workaround once the limitation is addressed.
+      // See https://github.com/tensorflow/tfjs/issues/2120.
       if (training) {
         const momentsTiling: number[] = [];
         const scaleOffsetTiling: number[] = [];
