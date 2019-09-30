@@ -15,7 +15,6 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {moments, serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 
-import {getBackend} from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
@@ -571,16 +570,9 @@ export class LayerNormalization extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    if (tfc.ENV.platformName === 'browser' && getBackend() != 'webgl') {
-      throw new Error(
-          `LayerNormalization doesn't support computation on the CPU backend ` +
-          `in browsers yet. Use the WebGL backend instead.`);
-    }
-
     const input = getExactlyOneTensor(inputs);
     const inputShape = input.shape;
     const nDims = inputShape.length;
-    const training: boolean = kwargs['training'] || false;
 
     return tidy(() => {
       const keepDims = true;
@@ -602,28 +594,27 @@ export class LayerNormalization extends Layer {
       let scale = broadcast(this.gamma.read());
       let offset = broadcast(this.beta.read());
 
-      // TODO(cais): This is a workaround for the limitation of core's
-      // batchNormalization?d don't support broadcasting in their gradients.
-      // Remove this workaround once the limitation is addressed.
+      // TODO(cais): The tiling below is a workaround for the limitation of
+      // core's batchNormalization?d don't support broadcasting in their
+      // gradients. In addition, the tiling is necessary to ensure correctness
+      // on the browser CPU backend regardless of forward or backward
+      // computation Remove this workaround once the limitation is addressed.
       // See https://github.com/tensorflow/tfjs/issues/2120.
-      if (training) {
-        const momentsTiling: number[] = [];
-        const scaleOffsetTiling: number[] = [];
-        for (let i = 0; i < nDims; ++i) {
-          if ((this.axis as number[]).indexOf(i) !== -1) {
-            momentsTiling.push(inputShape[i]);
-            scaleOffsetTiling.push(1);
-          } else {
-            momentsTiling.push(1);
-            scaleOffsetTiling.push(inputShape[i]);
-          }
+      const momentsTiling: number[] = [];
+      const scaleOffsetTiling: number[] = [];
+      for (let i = 0; i < nDims; ++i) {
+        if ((this.axis as number[]).indexOf(i) !== -1) {
+          momentsTiling.push(inputShape[i]);
+          scaleOffsetTiling.push(1);
+        } else {
+          momentsTiling.push(1);
+          scaleOffsetTiling.push(inputShape[i]);
         }
-
-        mean = mean.tile(momentsTiling);
-        variance = variance.tile(momentsTiling);
-        scale = scale.tile(scaleOffsetTiling);
-        offset = offset.tile(scaleOffsetTiling);
       }
+      mean = mean.tile(momentsTiling);
+      variance = variance.tile(momentsTiling);
+      scale = scale.tile(scaleOffsetTiling);
+      offset = offset.tile(scaleOffsetTiling);
 
       return batchNormalization(
           input, mean, variance, offset, scale, this.epsilon);

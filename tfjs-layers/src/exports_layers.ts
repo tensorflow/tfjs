@@ -848,7 +848,7 @@ export function batchNormalization(args?: BatchNormalizationLayerArgs): Layer {
  *   Same as input.
  *
  * References:
-    - [Layer Normalization](https://arxiv.org/abs/1607.06450)
+ *   - [Layer Normalization](https://arxiv.org/abs/1607.06450)
  */
 export function layerNormalization(args?: LayerNormalizationLayerArgs): Layer {
   return new LayerNormalization(args);

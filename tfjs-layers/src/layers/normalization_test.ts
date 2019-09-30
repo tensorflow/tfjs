@@ -18,7 +18,7 @@ import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {batchNormalization, normalizeBatchInTraining} from './normalization';
 
@@ -697,7 +697,7 @@ describe('LayerNormalization Layer: Symbolic', () => {
 
 // TODO(cais): There are incorrect numeric values with describeMathCPU.
 // Investigate.
-describeMathGPU('LayerNormalization Layer: Tensor', () => {
+describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
   // Reference Python code:
   // ```py
   // import numpy as np
