@@ -16,9 +16,11 @@ import {onesLike, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, train,
 
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
+import {convertTsToPythonic, convertPythonicToTs} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {batchNormalization, normalizeBatchInTraining} from './normalization';
+
 
 describeMathCPUAndGPU('normalizeBatchInTraining', () => {
   // The reference values for assertion below can be obtained with Python code
@@ -677,7 +679,19 @@ describe('LayerNormalization Layer: Symbolic', () => {
         .toThrowError(/Expected axis to be an integer/);
     expect(() => tfl.layers.layerNormalization({axis: [1, 1.5]}))
         .toThrowError(/Expected axis to be an array of integers/);
+  });
 
+  fit('Serialization round trip', async () => {
+    const layer = tfl.layers.layerNormalization({
+      axis: [-2, -1],
+      center: true,
+      scale: false
+    });
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.layerNormalization(tsConfig);
+    expect(layerPrime.getConfig()).toEqual(layer.getConfig());
   });
 });
 
@@ -758,4 +772,22 @@ describeMathGPU('LayerNormalization Layer: Tensor', () => {
                    [-1.4482707, -0.46081337, 0.03291526]]]));
     });
   }
+
+  fit('Duplicate items in axis leads to constructor error', () => {
+    const layers = tfl.layers.layerNormalization({axis: [-2, -1, -1]});
+    const xs = tensor3d([1, 2, 3, 6, 5, 4, 3, 6, 24, -10, 0, 5], [2, 2, 3]);
+    expect(() => layers.apply(xs)).toThrowError(/duplicate axes/);
+  });
+
+  fit('training: 2D', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.layerNormalization({inputShape: [3]}));
+    model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    // const xs = tensor2d([[1, 2, 3], [3, 6, 24]]);
+    // const ys = tensor2d([[0], [-1]]);
+    // const history = await model.fit(xs, ys, {epochs: 5});
+    // console.log(history.history.loss);  // DEBUG
+  });
 });

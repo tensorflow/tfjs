@@ -545,8 +545,7 @@ export class LayerNormalization extends Layer {
       }
     }
     if (this.axis.length !== generic_utils.unique(this.axis).length) {
-      throw new Error(`Found duplicated axes in: ${this.axis}`);
-      // TODO(cais): Unit test. DO NOT SUBMIT.
+      throw new Error(`Found duplicate axes in: ${this.axis}`);
     }
 
     const paramShape = this.axis.map(axis => inputShape[axis]) as number[];
