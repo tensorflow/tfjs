@@ -29,6 +29,7 @@ import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
 import * as binary_op from './kernels/binary_op_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
+import {ClipProgram} from './kernels/clip_webgpu';
 import {ConcatProgram} from './kernels/concat_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
@@ -562,6 +563,14 @@ export class WebGPUBackend extends KernelBackend {
     return this.compileAndRun(program, [a, b], output);
   }
 
+  less(a: Tensor, b: Tensor): Tensor {
+    return this.binaryCompareOp(a, b, binary_op.LESS);
+  }
+
+  lessEqual(a: Tensor, b: Tensor): Tensor {
+    return this.binaryCompareOp(a, b, binary_op.LESS_EQUAL);
+  }
+
   greater(a: Tensor, b: Tensor): Tensor {
     return this.binaryCompareOp(a, b, binary_op.GREATER);
   }
@@ -620,6 +629,11 @@ export class WebGPUBackend extends KernelBackend {
 
   argMax(x: Tensor, axis: number): Tensor {
     return this.argMinMaxReduce(x, axis, 'max');
+  }
+
+  clip<T extends Tensor>(x: T, min: number, max: number): T {
+    const program = new ClipProgram(x.shape, min, max);
+    return this.compileAndRun(program, [x]);
   }
 
   concat(tensors: Tensor[], axis: number): Tensor {
