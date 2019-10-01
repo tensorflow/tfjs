@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {environment} from '../../environment';
+import {env} from '../../environment';
 
 import {DataId, Tensor} from '../../tensor';
 import {BackendValues, DataType} from '../../types';
@@ -160,7 +160,7 @@ export function getTextureConfig(
   let textureTypeHalfFloat: number;
   let textureTypeFloat: number;
 
-  if (environment().getNumber('WEBGL_VERSION') === 2) {
+  if (env().getNumber('WEBGL_VERSION') === 2) {
     internalFormatFloat = glany.R32F;
     internalFormatHalfFloat = glany.R16F;
     internalFormatPackedHalfFloat = glany.RGBA16F;

@@ -20,24 +20,24 @@ import * as tf from './index';
 
 describe('DEBUG', () => {
   beforeEach(() => {
-    tf.environment().reset();
+    tf.env().reset();
     spyOn(console, 'warn').and.callFake((msg: string) => {});
   });
-  afterAll(() => tf.environment().reset());
+  afterAll(() => tf.env().reset());
 
   it('disabled by default', () => {
-    expect(tf.environment().getBool('DEBUG')).toBe(false);
+    expect(tf.env().getBool('DEBUG')).toBe(false);
   });
 
   it('warns when enabled', () => {
     const consoleWarnSpy = console.warn as jasmine.Spy;
-    tf.environment().set('DEBUG', true);
+    tf.env().set('DEBUG', true);
     expect(consoleWarnSpy.calls.count()).toBe(1);
     expect((consoleWarnSpy.calls.first().args[0] as string)
                .startsWith('Debugging mode is ON. '))
         .toBe(true);
 
-    expect(tf.environment().getBool('DEBUG')).toBe(true);
+    expect(tf.env().getBool('DEBUG')).toBe(true);
     expect(consoleWarnSpy.calls.count()).toBe(1);
   });
 });
@@ -45,62 +45,60 @@ describe('DEBUG', () => {
 describe('IS_BROWSER', () => {
   let isBrowser: boolean;
   beforeEach(() => {
-    tf.environment().reset();
+    tf.env().reset();
     spyOn(device_util, 'isBrowser').and.callFake(() => isBrowser);
   });
-  afterAll(() => tf.environment().reset());
+  afterAll(() => tf.env().reset());
 
   it('isBrowser: true', () => {
     isBrowser = true;
-    expect(tf.environment().getBool('IS_BROWSER')).toBe(true);
+    expect(tf.env().getBool('IS_BROWSER')).toBe(true);
   });
 
   it('isBrowser: false', () => {
     isBrowser = false;
-    expect(tf.environment().getBool('IS_BROWSER')).toBe(false);
+    expect(tf.env().getBool('IS_BROWSER')).toBe(false);
   });
 });
 
 describe('PROD', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('disabled by default', () => {
-    expect(tf.environment().getBool('PROD')).toBe(false);
+    expect(tf.env().getBool('PROD')).toBe(false);
   });
 });
 
 describe('TENSORLIKE_CHECK_SHAPE_CONSISTENCY', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('disabled when debug is disabled', () => {
-    tf.environment().set('DEBUG', false);
-    expect(tf.environment().getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY'))
-        .toBe(false);
+    tf.env().set('DEBUG', false);
+    expect(tf.env().getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')).toBe(false);
   });
 
   it('enabled when debug is enabled', () => {
-    tf.environment().set('DEBUG', true);
-    expect(tf.environment().getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY'))
-        .toBe(true);
+    tf.env().set('DEBUG', true);
+    expect(tf.env().getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')).toBe(true);
   });
 });
 
 describe('DEPRECATION_WARNINGS_ENABLED', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('enabled by default', () => {
-    expect(tf.environment().getBool('DEPRECATION_WARNINGS_ENABLED')).toBe(true);
+    expect(tf.env().getBool('DEPRECATION_WARNINGS_ENABLED')).toBe(true);
   });
 });
 
 describe('IS_TEST', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('disabled by default', () => {
-    expect(tf.environment().getBool('IS_TEST')).toBe(false);
+    expect(tf.env().getBool('IS_TEST')).toBe(false);
   });
 });

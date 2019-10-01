@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {environment} from '../environment';
+import {env} from '../environment';
 
 import {assert} from '../util';
 import {arrayBufferToBase64String, base64StringToArrayBuffer, getModelArtifactsInfoForJSON} from './io_utils';
@@ -37,7 +37,7 @@ const MODEL_METADATA_SUFFIX = 'model_metadata';
  * @returns Paths of the models purged.
  */
 export function purgeLocalStorageArtifacts(): string[] {
-  if (!environment().getBool('IS_BROWSER') ||
+  if (!env().getBool('IS_BROWSER') ||
       typeof window.localStorage === 'undefined') {
     throw new Error(
         'purgeLocalStorageModels() cannot proceed because local storage is ' +
@@ -118,7 +118,7 @@ export class BrowserLocalStorage implements IOHandler {
   static readonly URL_SCHEME = 'localstorage://';
 
   constructor(modelPath: string) {
-    if (!environment().getBool('IS_BROWSER') ||
+    if (!env().getBool('IS_BROWSER') ||
         typeof window.localStorage === 'undefined') {
       // TODO(cais): Add more info about what IOHandler subtypes are
       // available.
@@ -256,7 +256,7 @@ export class BrowserLocalStorage implements IOHandler {
 }
 
 export const localStorageRouter: IORouter = (url: string|string[]) => {
-  if (!environment().getBool('IS_BROWSER')) {
+  if (!env().getBool('IS_BROWSER')) {
     return null;
   } else {
     if (!Array.isArray(url) && url.startsWith(BrowserLocalStorage.URL_SCHEME)) {
@@ -303,7 +303,7 @@ export class BrowserLocalStorageManager implements ModelStoreManager {
 
   constructor() {
     assert(
-        environment().getBool('IS_BROWSER'),
+        env().getBool('IS_BROWSER'),
         () => 'Current environment is not a web browser');
     assert(
         typeof window.localStorage !== 'undefined',
@@ -341,7 +341,7 @@ export class BrowserLocalStorageManager implements ModelStoreManager {
   }
 }
 
-if (environment().getBool('IS_BROWSER')) {
+if (env().getBool('IS_BROWSER')) {
   // Wrap the construction and registration, to guard against browsers that
   // don't support Local Storage.
   try {

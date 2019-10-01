@@ -22,7 +22,7 @@ import {getWebGLContext} from './canvas_util';
 describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   it('Returns a valid canvas', () => {
     const canvas =
-        getWebGLContext(tf.environment().getNumber('WEBGL_VERSION')).canvas as
+        getWebGLContext(tf.env().getNumber('WEBGL_VERSION')).canvas as
             // tslint:disable-next-line: no-any
             any;
     expect(
@@ -32,7 +32,7 @@ describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   });
 
   it('Returns a valid gl context', () => {
-    const gl = getWebGLContext(tf.environment().getNumber('WEBGL_VERSION'));
+    const gl = getWebGLContext(tf.env().getNumber('WEBGL_VERSION'));
     expect(gl.isContextLost()).toBe(false);
   });
 });

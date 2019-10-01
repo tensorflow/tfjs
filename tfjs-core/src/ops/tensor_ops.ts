@@ -16,7 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
-import {environment} from '../environment';
+import {env} from '../environment';
 
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor6D} from '../tensor';
 import {convertToTensor, inferShape} from '../tensor_util_env';
@@ -108,7 +108,7 @@ function makeTensor(
 
   shape = shape || inferredShape;
   values = dtype !== 'string' ?
-      toTypedArray(values, dtype, environment().getBool('DEBUG')) :
+      toTypedArray(values, dtype, env().getBool('DEBUG')) :
       flatten(values as string[], [], true) as string[];
   return Tensor.make(shape, {values: values as TypedArray}, dtype);
 }

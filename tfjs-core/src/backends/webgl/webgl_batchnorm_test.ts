@@ -32,8 +32,8 @@ describeWithFlags('batchNorm', WEBGL_ENVS, () => {
   });
 
   it('should work when squarification results in zero padding', async () => {
-    const maxTextureSize = tf.environment().getNumber('WEBGL_MAX_TEXTURE_SIZE');
-    tf.environment().set('WEBGL_MAX_TEXTURE_SIZE', 5);
+    const maxTextureSize = tf.env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', 5);
 
     const x = tf.tensor3d(
         [
@@ -52,7 +52,7 @@ describeWithFlags('batchNorm', WEBGL_ENVS, () => {
     const result =
         tf.batchNorm3d(x, mean, variance, offset, scale, varianceEpsilon);
 
-    tf.environment().set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
 
     expectArraysClose(await result.data(), [
       0.59352049, -0.66135202, 0.5610874, -0.92077015, -1.45341019, 1.52106473,

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {environment} from '../environment';
+import {env} from '../environment';
 
 import {Platform} from './platform';
 
@@ -47,6 +47,6 @@ export class PlatformBrowser implements Platform {
   }
 }
 
-if (environment().get('IS_BROWSER')) {
-  environment().setPlatform('browser', new PlatformBrowser());
+if (env().get('IS_BROWSER')) {
+  env().setPlatform('browser', new PlatformBrowser());
 }

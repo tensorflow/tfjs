@@ -18,7 +18,7 @@
 import * as seedrandom from 'seedrandom';
 
 import {ENGINE} from '../../engine';
-import {environment} from '../../environment';
+import {env} from '../../environment';
 
 import {warn} from '../../log';
 import * as array_ops_util from '../../ops/array_ops_util';
@@ -93,7 +93,7 @@ export class MathBackendCPU implements KernelBackend {
   private firstUse = true;
 
   constructor() {
-    if (environment().get('IS_BROWSER')) {
+    if (env().get('IS_BROWSER')) {
       const canvas = createCanvas();
       if (canvas !== null) {
         this.fromPixels2DContext =
@@ -106,7 +106,7 @@ export class MathBackendCPU implements KernelBackend {
   register(dataId: DataId, shape: number[], dtype: DataType): void {
     if (this.firstUse) {
       this.firstUse = false;
-      if (environment().get('IS_NODE')) {
+      if (env().get('IS_NODE')) {
         warn(
             '\n============================\n' +
             'Hi there 👋. Looks like you are running TensorFlow.js in ' +
@@ -155,7 +155,7 @@ export class MathBackendCPU implements KernelBackend {
         [pixels.width, pixels.height];
     let vals: Uint8ClampedArray|Uint8Array;
     // tslint:disable-next-line:no-any
-    if (environment().get('IS_NODE') && (pixels as any).getContext == null) {
+    if (env().get('IS_NODE') && (pixels as any).getContext == null) {
       throw new Error(
           'When running in node, pixels must be an HTMLCanvasElement ' +
           'like the one returned by the `canvas` npm package');

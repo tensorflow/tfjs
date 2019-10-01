@@ -21,7 +21,7 @@
  * Uses [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
  */
 
-import {environment} from '../environment';
+import {env} from '../environment';
 
 import {assert} from '../util';
 import {concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
@@ -59,7 +59,7 @@ export class HTTPRequest implements IOHandler {
               'https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)');
       this.fetch = loadOptions.fetchFunc;
     } else {
-      this.fetch = environment().platform.fetch;
+      this.fetch = env().platform.fetch;
     }
 
     assert(

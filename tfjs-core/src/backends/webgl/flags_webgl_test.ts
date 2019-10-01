@@ -24,18 +24,17 @@ import {WEBGL_ENVS} from './backend_webgl_test_registry';
 import * as canvas_util from './canvas_util';
 
 describe('WEBGL_FORCE_F16_TEXTURES', () => {
-  afterAll(() => tf.environment().reset());
+  afterAll(() => tf.env().reset());
 
   it('can be activated via forceHalfFloat utility', () => {
     tf.webgl.forceHalfFloat();
-    expect(tf.environment().getBool('WEBGL_FORCE_F16_TEXTURES')).toBe(true);
+    expect(tf.env().getBool('WEBGL_FORCE_F16_TEXTURES')).toBe(true);
   });
 
   it('turns off WEBGL_RENDER_FLOAT32_ENABLED', () => {
-    tf.environment().reset();
+    tf.env().reset();
     tf.webgl.forceHalfFloat();
-    expect(tf.environment().getBool('WEBGL_RENDER_FLOAT32_ENABLED'))
-        .toBe(false);
+    expect(tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED')).toBe(false);
   });
 });
 
@@ -51,215 +50,212 @@ const RENDER_FLOAT16_ENVS = {
 
 describeWithFlags('WEBGL_RENDER_FLOAT32_CAPABLE', RENDER_FLOAT32_ENVS, () => {
   beforeEach(() => {
-    tf.environment().reset();
+    tf.env().reset();
   });
 
-  afterAll(() => tf.environment().reset());
+  afterAll(() => tf.env().reset());
 
   it('should be independent of forcing f16 rendering', () => {
     tf.webgl.forceHalfFloat();
-    expect(tf.environment().getBool('WEBGL_RENDER_FLOAT32_CAPABLE')).toBe(true);
+    expect(tf.env().getBool('WEBGL_RENDER_FLOAT32_CAPABLE')).toBe(true);
   });
 
   it('if user is not forcing f16, device should render to f32', () => {
-    expect(tf.environment().getBool('WEBGL_RENDER_FLOAT32_ENABLED')).toBe(true);
+    expect(tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED')).toBe(true);
   });
 });
 
 describeWithFlags('WEBGL_RENDER_FLOAT32_CAPABLE', RENDER_FLOAT16_ENVS, () => {
   beforeEach(() => {
-    tf.environment().reset();
+    tf.env().reset();
   });
 
-  afterAll(() => tf.environment().reset());
+  afterAll(() => tf.env().reset());
 
   it('should be independent of forcing f16 rendering', () => {
     tf.webgl.forceHalfFloat();
-    expect(tf.environment().getBool('WEBGL_RENDER_FLOAT32_CAPABLE'))
-        .toBe(false);
+    expect(tf.env().getBool('WEBGL_RENDER_FLOAT32_CAPABLE')).toBe(false);
   });
 
   it('should be reflected in WEBGL_RENDER_FLOAT32_ENABLED', () => {
-    expect(tf.environment().getBool('WEBGL_RENDER_FLOAT32_ENABLED'))
-        .toBe(false);
+    expect(tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED')).toBe(false);
   });
 });
 
 describe('HAS_WEBGL', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('false when version is 0', () => {
-    tf.environment().set('WEBGL_VERSION', 0);
-    expect(tf.environment().getBool('HAS_WEBGL')).toBe(false);
+    tf.env().set('WEBGL_VERSION', 0);
+    expect(tf.env().getBool('HAS_WEBGL')).toBe(false);
   });
 
   it('true when version is 1', () => {
-    tf.environment().set('WEBGL_VERSION', 1);
-    expect(tf.environment().getBool('HAS_WEBGL')).toBe(true);
+    tf.env().set('WEBGL_VERSION', 1);
+    expect(tf.env().getBool('HAS_WEBGL')).toBe(true);
   });
 
   it('true when version is 2', () => {
-    tf.environment().set('WEBGL_VERSION', 2);
-    expect(tf.environment().getBool('HAS_WEBGL')).toBe(true);
+    tf.env().set('WEBGL_VERSION', 2);
+    expect(tf.env().getBool('HAS_WEBGL')).toBe(true);
   });
 });
 
 describe('WEBGL_PACK', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('true when HAS_WEBGL is true', () => {
-    tf.environment().set('HAS_WEBGL', true);
-    expect(tf.environment().getBool('WEBGL_PACK')).toBe(true);
+    tf.env().set('HAS_WEBGL', true);
+    expect(tf.env().getBool('WEBGL_PACK')).toBe(true);
   });
 
   it('false when HAS_WEBGL is false', () => {
-    tf.environment().set('HAS_WEBGL', false);
-    expect(tf.environment().getBool('WEBGL_PACK')).toBe(false);
+    tf.env().set('HAS_WEBGL', false);
+    expect(tf.env().getBool('WEBGL_PACK')).toBe(false);
   });
 });
 
 describe('WEBGL_PACK_NORMALIZATION', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
-    tf.environment().set('WEBGL_PACK', true);
-    expect(tf.environment().getBool('WEBGL_PACK_NORMALIZATION')).toBe(true);
+    tf.env().set('WEBGL_PACK', true);
+    expect(tf.env().getBool('WEBGL_PACK_NORMALIZATION')).toBe(true);
   });
 
   it('false when WEBGL_PACK is false', () => {
-    tf.environment().set('WEBGL_PACK', false);
-    expect(tf.environment().getBool('WEBGL_PACK_NORMALIZATION')).toBe(false);
+    tf.env().set('WEBGL_PACK', false);
+    expect(tf.env().getBool('WEBGL_PACK_NORMALIZATION')).toBe(false);
   });
 });
 
 describe('WEBGL_PACK_CLIP', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
-    tf.environment().set('WEBGL_PACK', true);
-    expect(tf.environment().getBool('WEBGL_PACK_CLIP')).toBe(true);
+    tf.env().set('WEBGL_PACK', true);
+    expect(tf.env().getBool('WEBGL_PACK_CLIP')).toBe(true);
   });
 
   it('false when WEBGL_PACK is false', () => {
-    tf.environment().set('WEBGL_PACK', false);
-    expect(tf.environment().getBool('WEBGL_PACK_CLIP')).toBe(false);
+    tf.env().set('WEBGL_PACK', false);
+    expect(tf.env().getBool('WEBGL_PACK_CLIP')).toBe(false);
   });
 });
 
 // TODO: https://github.com/tensorflow/tfjs/issues/1679
 // describe('WEBGL_PACK_DEPTHWISECONV', () => {
-//   beforeEach(() => tf.environment().reset());
-//   afterAll(() => tf.environment().reset());
+//   beforeEach(() => tf.env().reset());
+//   afterAll(() => tf.env().reset());
 
 //   it('true when WEBGL_PACK is true', () => {
-//     tf.environment().set('WEBGL_PACK', true);
-//     expect(tf.environment().getBool('WEBGL_PACK_DEPTHWISECONV')).toBe(true);
+//     tf.env().set('WEBGL_PACK', true);
+//     expect(tf.env().getBool('WEBGL_PACK_DEPTHWISECONV')).toBe(true);
 //   });
 
 //   it('false when WEBGL_PACK is false', () => {
-//     tf.environment().set('WEBGL_PACK', false);
-//     expect(tf.environment().getBool('WEBGL_PACK_DEPTHWISECONV')).toBe(false);
+//     tf.env().set('WEBGL_PACK', false);
+//     expect(tf.env().getBool('WEBGL_PACK_DEPTHWISECONV')).toBe(false);
 //   });
 // });
 
 describe('WEBGL_PACK_BINARY_OPERATIONS', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
-    tf.environment().set('WEBGL_PACK', true);
-    expect(tf.environment().getBool('WEBGL_PACK_BINARY_OPERATIONS')).toBe(true);
+    tf.env().set('WEBGL_PACK', true);
+    expect(tf.env().getBool('WEBGL_PACK_BINARY_OPERATIONS')).toBe(true);
   });
 
   it('false when WEBGL_PACK is false', () => {
-    tf.environment().set('WEBGL_PACK', false);
-    expect(tf.environment().getBool('WEBGL_PACK_BINARY_OPERATIONS'))
-        .toBe(false);
+    tf.env().set('WEBGL_PACK', false);
+    expect(tf.env().getBool('WEBGL_PACK_BINARY_OPERATIONS')).toBe(false);
   });
 });
 
 describe('WEBGL_PACK_ARRAY_OPERATIONS', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
-    tf.environment().set('WEBGL_PACK', true);
-    expect(tf.environment().getBool('WEBGL_PACK_ARRAY_OPERATIONS')).toBe(true);
+    tf.env().set('WEBGL_PACK', true);
+    expect(tf.env().getBool('WEBGL_PACK_ARRAY_OPERATIONS')).toBe(true);
   });
 
   it('false when WEBGL_PACK is false', () => {
-    tf.environment().set('WEBGL_PACK', false);
-    expect(tf.environment().getBool('WEBGL_PACK_ARRAY_OPERATIONS')).toBe(false);
+    tf.env().set('WEBGL_PACK', false);
+    expect(tf.env().getBool('WEBGL_PACK_ARRAY_OPERATIONS')).toBe(false);
   });
 });
 
 describe('WEBGL_PACK_IMAGE_OPERATIONS', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
-    tf.environment().set('WEBGL_PACK', true);
-    expect(tf.environment().getBool('WEBGL_PACK_IMAGE_OPERATIONS')).toBe(true);
+    tf.env().set('WEBGL_PACK', true);
+    expect(tf.env().getBool('WEBGL_PACK_IMAGE_OPERATIONS')).toBe(true);
   });
 
   it('false when WEBGL_PACK is false', () => {
-    tf.environment().set('WEBGL_PACK', false);
-    expect(tf.environment().getBool('WEBGL_PACK_IMAGE_OPERATIONS')).toBe(false);
+    tf.env().set('WEBGL_PACK', false);
+    expect(tf.env().getBool('WEBGL_PACK_IMAGE_OPERATIONS')).toBe(false);
   });
 });
 
 describe('WEBGL_PACK_REDUCE', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
-    tf.environment().set('WEBGL_PACK', true);
-    expect(tf.environment().getBool('WEBGL_PACK_REDUCE')).toBe(true);
+    tf.env().set('WEBGL_PACK', true);
+    expect(tf.env().getBool('WEBGL_PACK_REDUCE')).toBe(true);
   });
 
   it('false when WEBGL_PACK is false', () => {
-    tf.environment().set('WEBGL_PACK', false);
-    expect(tf.environment().getBool('WEBGL_PACK_REDUCE')).toBe(false);
+    tf.env().set('WEBGL_PACK', false);
+    expect(tf.env().getBool('WEBGL_PACK_REDUCE')).toBe(false);
   });
 });
 
 describe('WEBGL_LAZILY_UNPACK', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
-    tf.environment().set('WEBGL_PACK', true);
-    expect(tf.environment().getBool('WEBGL_LAZILY_UNPACK')).toBe(true);
+    tf.env().set('WEBGL_PACK', true);
+    expect(tf.env().getBool('WEBGL_LAZILY_UNPACK')).toBe(true);
   });
 
   it('false when WEBGL_PACK is false', () => {
-    tf.environment().set('WEBGL_PACK', false);
-    expect(tf.environment().getBool('WEBGL_LAZILY_UNPACK')).toBe(false);
+    tf.env().set('WEBGL_PACK', false);
+    expect(tf.env().getBool('WEBGL_LAZILY_UNPACK')).toBe(false);
   });
 });
 
 describe('WEBGL_CONV_IM2COL', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
-    tf.environment().set('WEBGL_PACK', true);
-    expect(tf.environment().getBool('WEBGL_CONV_IM2COL')).toBe(true);
+    tf.env().set('WEBGL_PACK', true);
+    expect(tf.env().getBool('WEBGL_CONV_IM2COL')).toBe(true);
   });
 
   it('false when WEBGL_PACK is false', () => {
-    tf.environment().set('WEBGL_PACK', false);
-    expect(tf.environment().getBool('WEBGL_CONV_IM2COL')).toBe(false);
+    tf.env().set('WEBGL_PACK', false);
+    expect(tf.env().getBool('WEBGL_CONV_IM2COL')).toBe(false);
   });
 });
 
 describe('WEBGL_MAX_TEXTURE_SIZE', () => {
   beforeEach(() => {
-    tf.environment().reset();
+    tf.env().reset();
     webgl_util.resetMaxTextureSize();
 
     spyOn(canvas_util, 'getWebGLContext').and.returnValue({
@@ -273,19 +269,19 @@ describe('WEBGL_MAX_TEXTURE_SIZE', () => {
     });
   });
   afterAll(() => {
-    tf.environment().reset();
+    tf.env().reset();
     webgl_util.resetMaxTextureSize();
   });
 
   it('is a function of gl.getParameter(MAX_TEXTURE_SIZE)', () => {
-    expect(tf.environment().getNumber('WEBGL_MAX_TEXTURE_SIZE')).toBe(50);
+    expect(tf.env().getNumber('WEBGL_MAX_TEXTURE_SIZE')).toBe(50);
   });
 });
 
 describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
   let maxTextures: number;
   beforeEach(() => {
-    tf.environment().reset();
+    tf.env().reset();
     webgl_util.resetMaxTexturesInShader();
 
     spyOn(canvas_util, 'getWebGLContext').and.callFake(() => {
@@ -301,65 +297,61 @@ describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
     });
   });
   afterAll(() => {
-    tf.environment().reset();
+    tf.env().reset();
     webgl_util.resetMaxTexturesInShader();
   });
 
   it('is a function of gl.getParameter(MAX_TEXTURE_IMAGE_UNITS)', () => {
     maxTextures = 10;
-    expect(tf.environment().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')).toBe(10);
+    expect(tf.env().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')).toBe(10);
   });
 
   it('is capped at 16', () => {
     maxTextures = 20;
-    expect(tf.environment().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')).toBe(16);
+    expect(tf.env().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')).toBe(16);
   });
 });
 
 describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('disjoint query timer disabled', () => {
-    tf.environment().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', 0);
+    tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', 0);
 
-    expect(tf.environment().getBool(
-               'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
+    expect(tf.env().getBool('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
         .toBe(false);
   });
 
   it('disjoint query timer enabled, mobile', () => {
-    tf.environment().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', 1);
+    tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', 1);
     spyOn(device_util, 'isMobile').and.returnValue(true);
 
-    expect(tf.environment().getBool(
-               'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
+    expect(tf.env().getBool('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
         .toBe(false);
   });
 
   it('disjoint query timer enabled, not mobile', () => {
-    tf.environment().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', 1);
+    tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', 1);
 
     spyOn(device_util, 'isMobile').and.returnValue(false);
 
-    expect(tf.environment().getBool(
-               'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
+    expect(tf.env().getBool('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
         .toBe(true);
   });
 });
 
 describe('WEBGL_SIZE_UPLOAD_UNIFORM', () => {
-  beforeEach(() => tf.environment().reset());
-  afterAll(() => tf.environment().reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('is 0 when there is no float32 bit support', () => {
-    tf.environment().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
-    expect(tf.environment().getNumber('WEBGL_SIZE_UPLOAD_UNIFORM')).toBe(0);
+    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+    expect(tf.env().getNumber('WEBGL_SIZE_UPLOAD_UNIFORM')).toBe(0);
   });
 
   it('is > 0 when there is float32 bit support', () => {
-    tf.environment().set('WEBGL_RENDER_FLOAT32_ENABLED', true);
-    expect(tf.environment().getNumber('WEBGL_SIZE_UPLOAD_UNIFORM'))
-        .toBeGreaterThan(0);
+    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', true);
+    expect(tf.env().getNumber('WEBGL_SIZE_UPLOAD_UNIFORM')).toBeGreaterThan(0);
   });
 });

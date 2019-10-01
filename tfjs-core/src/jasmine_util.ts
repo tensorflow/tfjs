@@ -16,7 +16,7 @@
  */
 import {KernelBackend} from './backends/backend';
 import {ENGINE} from './engine';
-import {Environment, environment, Flags} from './environment';
+import {env, Environment, Flags} from './environment';
 
 Error.stackTraceLimit = Infinity;
 
@@ -26,13 +26,13 @@ export type Constraints = {
 };
 
 export const NODE_ENVS: Constraints = {
-  predicate: () => environment().platformName === 'node'
+  predicate: () => env().platformName === 'node'
 };
 export const CHROME_ENVS: Constraints = {
   flags: {'IS_CHROME': true}
 };
 export const BROWSER_ENVS: Constraints = {
-  predicate: () => environment().platformName === 'browser'
+  predicate: () => env().platformName === 'browser'
 };
 
 export const SYNC_BACKEND_ENVS: Constraints = {
@@ -131,8 +131,8 @@ export function describeWithFlags(
   }
 
   TEST_ENVS.forEach(testEnv => {
-    environment().setFlags(testEnv.flags);
-    if (envSatisfiesConstraints(environment(), testEnv, constraints)) {
+    env().setFlags(testEnv.flags);
+    if (envSatisfiesConstraints(env(), testEnv, constraints)) {
       const testName =
           name + ' ' + testEnv.name + ' ' + JSON.stringify(testEnv.flags);
       executeTests(testName, tests, testEnv);
@@ -174,9 +174,9 @@ function executeTests(
     beforeAll(async () => {
       ENGINE.reset();
       if (testEnv.flags != null) {
-        environment().setFlags(testEnv.flags);
+        env().setFlags(testEnv.flags);
       }
-      environment().set('IS_TEST', true);
+      env().set('IS_TEST', true);
       // Await setting the new backend since it can have async init.
       await ENGINE.setBackend(testEnv.backendName);
     });

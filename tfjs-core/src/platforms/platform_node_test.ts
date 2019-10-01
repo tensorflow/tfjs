@@ -22,25 +22,25 @@ import {PlatformNode} from './platform_node';
 
 describeWithFlags('PlatformNode', NODE_ENVS, () => {
   it('fetch should use global.fetch if defined', async () => {
-    const globalFetch = tf.environment().global.fetch;
+    const globalFetch = tf.env().global.fetch;
 
-    spyOn(tf.environment().global, 'fetch').and.returnValue(() => {});
+    spyOn(tf.env().global, 'fetch').and.returnValue(() => {});
 
     const platform = new PlatformNode();
 
     await platform.fetch('test/url', {method: 'GET'});
 
-    expect(tf.environment().global.fetch).toHaveBeenCalledWith('test/url', {
+    expect(tf.env().global.fetch).toHaveBeenCalledWith('test/url', {
       method: 'GET'
     });
 
-    tf.environment().global.fetch = globalFetch;
+    tf.env().global.fetch = globalFetch;
   });
 
-  it('fetch should use node-fetch with tf.environment().global.fetch is null',
+  it('fetch should use node-fetch with tf.env().global.fetch is null',
      async () => {
-       const globalFetch = tf.environment().global.fetch;
-       tf.environment().global.fetch = null;
+       const globalFetch = tf.env().global.fetch;
+       tf.env().global.fetch = null;
 
        const platform = new PlatformNode();
 
@@ -67,14 +67,13 @@ describeWithFlags('PlatformNode', NODE_ENVS, () => {
        });
 
        platform_node.setSystemFetch(savedFetch);
-       tf.environment().global.fetch = globalFetch;
+       tf.env().global.fetch = globalFetch;
      });
 
   it('now should use process.hrtime', async () => {
     const time = [100, 200];
     spyOn(process, 'hrtime').and.returnValue(time);
-    expect(tf.environment().platform.now())
-        .toEqual(time[0] * 1000 + time[1] / 1000000);
+    expect(tf.env().platform.now()).toEqual(time[0] * 1000 + time[1] / 1000000);
   });
 
   it('encodeUTF8 single string', () => {

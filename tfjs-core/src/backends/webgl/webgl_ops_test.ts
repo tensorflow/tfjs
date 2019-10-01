@@ -281,15 +281,15 @@ describeWithFlags('depthToSpace', WEBGL_ENVS, () => {
 
 describeWithFlags('maximum', WEBGL_ENVS, () => {
   it('works with squarification for large dimension', async () => {
-    const maxTextureSize = tf.environment().getNumber('WEBGL_MAX_TEXTURE_SIZE');
-    tf.environment().set('WEBGL_MAX_TEXTURE_SIZE', 5);
+    const maxTextureSize = tf.env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', 5);
     const a =
         tf.tensor2d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], [2, 7]);
     const b =
         tf.tensor2d([-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 7]);
 
     const result = tf.maximum(a, b);
-    tf.environment().set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
     expectArraysClose(
         await result.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
   });
@@ -334,19 +334,19 @@ describeWithFlags('conv2d webgl', WEBGL_ENVS, () => {
     const x = tf.tensor3d([1, 2, 3, 4], inputShape);
     const w = tf.tensor4d([1, 2, 3, 4], [fSize, fSize, 2, 2]);
 
-    const webglLazilyUnpackFlagSaved = tf.environment().getBool('WEBGL_LAZILY_UNPACK');
-    tf.environment().set('WEBGL_LAZILY_UNPACK', true);
+    const webglLazilyUnpackFlagSaved = tf.env().getBool('WEBGL_LAZILY_UNPACK');
+    tf.env().set('WEBGL_LAZILY_UNPACK', true);
     const webglPackBinaryOperationsFlagSaved =
-        tf.environment().getBool('WEBGL_PACK_BINARY_OPERATIONS');
-    tf.environment().set('WEBGL_PACK_BINARY_OPERATIONS', true);
+        tf.env().getBool('WEBGL_PACK_BINARY_OPERATIONS');
+    tf.env().set('WEBGL_PACK_BINARY_OPERATIONS', true);
 
     // First conv2D tests conv2D with non-packed input |x|, and the second uses
     // packed input |result|.
     const result = tf.conv2d(x, w, stride, pad);
     const result1 = tf.conv2d(result, w, stride, pad);
 
-    tf.environment().set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
-    tf.environment().set(
+    tf.env().set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
+    tf.env().set(
         'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsFlagSaved);
 
     expectArraysClose(await result.data(), [7, 10, 15, 22]);
@@ -363,17 +363,18 @@ describeWithFlags('conv2d webgl', WEBGL_ENVS, () => {
        const xInit = tf.tensor4d([0, 1], inputShape);
        const w = tf.tensor4d([1, 2, 3, 4], [fSize, fSize, 2, 2]);
 
-       const webglLazilyUnpackFlagSaved = tf.environment().getBool('WEBGL_LAZILY_UNPACK');
-       tf.environment().set('WEBGL_LAZILY_UNPACK', true);
+       const webglLazilyUnpackFlagSaved =
+           tf.env().getBool('WEBGL_LAZILY_UNPACK');
+       tf.env().set('WEBGL_LAZILY_UNPACK', true);
        const webglPackBinaryOperationsFlagSaved =
-           tf.environment().getBool('WEBGL_PACK_BINARY_OPERATIONS');
-       tf.environment().set('WEBGL_PACK_BINARY_OPERATIONS', true);
+           tf.env().getBool('WEBGL_PACK_BINARY_OPERATIONS');
+       tf.env().set('WEBGL_PACK_BINARY_OPERATIONS', true);
 
        const x = xInit.add<tf.Tensor4D>(1);
        const result = tf.conv2d(x, w, stride, pad);
 
-       tf.environment().set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
-       tf.environment().set(
+       tf.env().set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
+       tf.env().set(
            'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsFlagSaved);
 
        expectArraysClose(await result.data(), [7, 10]);
@@ -504,28 +505,28 @@ describeWithFlags('matmul', PACKED_ENVS, () => {
   });
 
   it('should work when input texture shapes != physical shape', async () => {
-    const maxTextureSize = tf.environment().getNumber('WEBGL_MAX_TEXTURE_SIZE');
-    tf.environment().set('WEBGL_MAX_TEXTURE_SIZE', 5);
+    const maxTextureSize = tf.env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', 5);
     const a = tf.tensor2d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [1, 12]);
     const b = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [12, 1]);
 
     const c = tf.matMul(a, b);
 
-    tf.environment().set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
 
     expectArraysClose(await c.data(), [572]);
   });
 
   it('should work when squarification results in zero padding', async () => {
-    const maxTextureSize = tf.environment().getNumber('WEBGL_MAX_TEXTURE_SIZE');
-    tf.environment().set('WEBGL_MAX_TEXTURE_SIZE', 3);
+    const maxTextureSize = tf.env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', 3);
     const a = tf.tensor2d([1, 2], [1, 2]);
     const b = tf.tensor2d(
         [[0, 1, 2, 3, 4, 5, 6, 7, 8], [9, 10, 11, 12, 13, 14, 15, 16, 17]]);
 
     const c = tf.matMul(a, b);
 
-    tf.environment().set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
 
     expectArraysClose(await c.data(), [18, 21, 24, 27, 30, 33, 36, 39, 42]);
   });
@@ -582,10 +583,11 @@ describeWithFlags('matmul', PACKED_ENVS, () => {
 
     const c = tf.matMul(a, b);
 
-    const webglPackBinarySaved = tf.environment().getBool('WEBGL_PACK_BINARY_OPERATIONS');
-    tf.environment().set('WEBGL_PACK_BINARY_OPERATIONS', false);
+    const webglPackBinarySaved =
+        tf.env().getBool('WEBGL_PACK_BINARY_OPERATIONS');
+    tf.env().set('WEBGL_PACK_BINARY_OPERATIONS', false);
     const d = tf.add(c, 1);
-    tf.environment().set('WEBGL_PACK_BINARY_OPERATIONS', webglPackBinarySaved);
+    tf.env().set('WEBGL_PACK_BINARY_OPERATIONS', webglPackBinarySaved);
 
     expectArraysClose(await d.data(), [1, 9, -2, 21]);
   });
@@ -600,10 +602,10 @@ describeWithFlags('matmul', PACKED_ENVS, () => {
        const d = tf.reshape(c, [1, 3, 3, 1]);
 
        const webglPackBinarySaved =
-           tf.environment().getBool('WEBGL_PACK_BINARY_OPERATIONS');
-       tf.environment().set('WEBGL_PACK_BINARY_OPERATIONS', false);
+           tf.env().getBool('WEBGL_PACK_BINARY_OPERATIONS');
+       tf.env().set('WEBGL_PACK_BINARY_OPERATIONS', false);
        const e = tf.add(d, 1);
-       tf.environment().set('WEBGL_PACK_BINARY_OPERATIONS', webglPackBinarySaved);
+       tf.env().set('WEBGL_PACK_BINARY_OPERATIONS', webglPackBinarySaved);
 
        expectArraysClose(await e.data(), [2, 3, 4, 5, 6, 7, 8, 9, 10]);
      });
@@ -621,16 +623,16 @@ describeWithFlags('matmul', PACKED_ENVS, () => {
 
 describeWithFlags('Reduction: webgl packed input', WEBGL_ENVS, () => {
   it('argmax 3D, odd number of rows, axis = -1', async () => {
-    const webglLazilyUnpackFlagSaved = tf.environment().getBool('WEBGL_LAZILY_UNPACK');
-    tf.environment().set('WEBGL_LAZILY_UNPACK', true);
+    const webglLazilyUnpackFlagSaved = tf.env().getBool('WEBGL_LAZILY_UNPACK');
+    tf.env().set('WEBGL_LAZILY_UNPACK', true);
     const webglPackBinaryOperationsFlagSaved =
-        tf.environment().getBool('WEBGL_PACK_BINARY_OPERATIONS');
-    tf.environment().set('WEBGL_PACK_BINARY_OPERATIONS', true);
+        tf.env().getBool('WEBGL_PACK_BINARY_OPERATIONS');
+    tf.env().set('WEBGL_PACK_BINARY_OPERATIONS', true);
 
     const a = tf.tensor3d([3, 2, 5, 100, -7, 2], [2, 1, 3]).add(1);
     const r = tf.argMax(a, -1);
-    tf.environment().set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
-    tf.environment().set(
+    tf.env().set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
+    tf.env().set(
         'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsFlagSaved);
 
     expect(r.dtype).toBe('int32');
@@ -638,11 +640,11 @@ describeWithFlags('Reduction: webgl packed input', WEBGL_ENVS, () => {
   });
 
   it('argmin 4D, odd number of rows, axis = -1', async () => {
-    const webglLazilyUnpackFlagSaved = tf.environment().getBool('WEBGL_LAZILY_UNPACK');
-    tf.environment().set('WEBGL_LAZILY_UNPACK', true);
+    const webglLazilyUnpackFlagSaved = tf.env().getBool('WEBGL_LAZILY_UNPACK');
+    tf.env().set('WEBGL_LAZILY_UNPACK', true);
     const webglPackBinaryOperationsFlagSaved =
-        tf.environment().getBool('WEBGL_PACK_BINARY_OPERATIONS');
-    tf.environment().set('WEBGL_PACK_BINARY_OPERATIONS', true);
+        tf.env().getBool('WEBGL_PACK_BINARY_OPERATIONS');
+    tf.env().set('WEBGL_PACK_BINARY_OPERATIONS', true);
 
     const a =
         tf.tensor4d(
@@ -650,8 +652,8 @@ describeWithFlags('Reduction: webgl packed input', WEBGL_ENVS, () => {
               [1, 2, 3, 3])
             .add(1);
     const r = tf.argMin(a, -1);
-    tf.environment().set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
-    tf.environment().set(
+    tf.env().set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
+    tf.env().set(
         'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsFlagSaved);
 
     expect(r.dtype).toBe('int32');
@@ -660,8 +662,8 @@ describeWithFlags('Reduction: webgl packed input', WEBGL_ENVS, () => {
 
   it('should not leak memory when called after unpacked op', async () => {
     const webglPackBinaryOperationsFlagSaved =
-        tf.environment().getBool('WEBGL_PACK_BINARY_OPERATIONS');
-    tf.environment().set('WEBGL_PACK_BINARY_OPERATIONS', false);
+        tf.env().getBool('WEBGL_PACK_BINARY_OPERATIONS');
+    tf.env().set('WEBGL_PACK_BINARY_OPERATIONS', false);
 
     const a =
         tf.tensor5d(
@@ -671,7 +673,7 @@ describeWithFlags('Reduction: webgl packed input', WEBGL_ENVS, () => {
     const startNumBytes = tf.memory().numBytes;
     const startNumTensors = tf.memory().numTensors;
     const r = tf.argMin(a, -1);
-    tf.environment().set(
+    tf.env().set(
         'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsFlagSaved);
     const endNumBytes = tf.memory().numBytes;
     const endNumTensors = tf.memory().numTensors;
@@ -684,8 +686,8 @@ describeWithFlags('Reduction: webgl packed input', WEBGL_ENVS, () => {
 
 describeWithFlags('slice and memory usage', WEBGL_ENVS, () => {
   beforeAll(() => {
-    tf.environment().set('WEBGL_CPU_FORWARD', false);
-    tf.environment().set('WEBGL_SIZE_UPLOAD_UNIFORM', 0);
+    tf.env().set('WEBGL_CPU_FORWARD', false);
+    tf.env().set('WEBGL_SIZE_UPLOAD_UNIFORM', 0);
   });
 
   it('slice a tensor, read it and check memory', async () => {
@@ -722,7 +724,7 @@ describeWithFlags('slice and memory usage', WEBGL_ENVS, () => {
 
 describeWithFlags('slice a packed texture', WEBGL_ENVS, () => {
   beforeAll(() => {
-    tf.environment().set('WEBGL_PACK', true);
+    tf.env().set('WEBGL_PACK', true);
   });
 
   it('slice after a matmul', async () => {
@@ -741,12 +743,12 @@ describeWithFlags('slice a packed texture', WEBGL_ENVS, () => {
 
 describeWithFlags('relu', WEBGL_ENVS, () => {
   it('works with squarification for prime number length vector', async () => {
-    const maxTextureSize = tf.environment().getNumber('WEBGL_MAX_TEXTURE_SIZE');
-    tf.environment().set('WEBGL_MAX_TEXTURE_SIZE', 5);
+    const maxTextureSize = tf.env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', 5);
     const a = tf.tensor1d([1, -2, 5, -3, -1, 4, 7]);
     const result = tf.relu(a);
 
-    tf.environment().set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', maxTextureSize);
     expectArraysClose(await result.data(), [1, 0, 5, 0, 0, 4, 7]);
   });
 });

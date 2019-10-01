@@ -41,12 +41,12 @@ describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
 
   beforeAll(() => {
     renderToF32FlagSaved =
-        tf.environment().get('WEBGL_RENDER_FLOAT32_ENABLED') as boolean;
-    tf.environment().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+        tf.env().get('WEBGL_RENDER_FLOAT32_ENABLED') as boolean;
+    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
   });
 
   afterAll(() => {
-    tf.environment().set('WEBGL_RENDER_FLOAT32_ENABLED', renderToF32FlagSaved);
+    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', renderToF32FlagSaved);
   });
 
   it('should overflow if larger than 66k', async () => {
@@ -56,11 +56,11 @@ describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
   });
 
   it('should error in debug mode', () => {
-    const savedDebugFlag = tf.environment().getBool('DEBUG');
-    tf.environment().set('DEBUG', true);
+    const savedDebugFlag = tf.env().getBool('DEBUG');
+    tf.env().set('DEBUG', true);
     const a = () => tf.tensor1d([2, Math.pow(2, 17)], 'float32');
     expect(a).toThrowError();
-    tf.environment().set('DEBUG', savedDebugFlag);
+    tf.env().set('DEBUG', savedDebugFlag);
   });
 });
 
@@ -69,16 +69,15 @@ describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
   let webglCpuForwardFlagSaved: boolean;
 
   beforeAll(() => {
-    webglLazilyUnpackFlagSaved =
-        tf.environment().getBool('WEBGL_LAZILY_UNPACK');
-    webglCpuForwardFlagSaved = tf.environment().getBool('WEBGL_CPU_FORWARD');
-    tf.environment().set('WEBGL_LAZILY_UNPACK', true);
-    tf.environment().set('WEBGL_CPU_FORWARD', false);
+    webglLazilyUnpackFlagSaved = tf.env().getBool('WEBGL_LAZILY_UNPACK');
+    webglCpuForwardFlagSaved = tf.env().getBool('WEBGL_CPU_FORWARD');
+    tf.env().set('WEBGL_LAZILY_UNPACK', true);
+    tf.env().set('WEBGL_CPU_FORWARD', false);
   });
 
   afterAll(() => {
-    tf.environment().set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
-    tf.environment().set('WEBGL_CPU_FORWARD', webglCpuForwardFlagSaved);
+    tf.env().set('WEBGL_LAZILY_UNPACK', webglLazilyUnpackFlagSaved);
+    tf.env().set('WEBGL_CPU_FORWARD', webglCpuForwardFlagSaved);
   });
 
   it('should not leak memory when lazily unpacking', () => {
@@ -94,11 +93,11 @@ describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
         (tf.memory() as tf.webgl.WebGLMemoryInfo).numBytesInGPU;
 
     const webglPackBinaryOperationsFlagSaved =
-        tf.environment().getBool('WEBGL_PACK_BINARY_OPERATIONS');
-    tf.environment().set('WEBGL_PACK_BINARY_OPERATIONS', false);
+        tf.env().getBool('WEBGL_PACK_BINARY_OPERATIONS');
+    tf.env().set('WEBGL_PACK_BINARY_OPERATIONS', false);
     // Add will unpack c before the operation to 2
     tf.add(c, 1);
-    tf.environment().set(
+    tf.env().set(
         'WEBGL_PACK_BINARY_OPERATIONS', webglPackBinaryOperationsFlagSaved);
 
     expect(tf.memory().numBytes - startNumBytes).toEqual(16);
@@ -231,20 +230,19 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
-    const webglPackFlagSaved = tf.environment().getBool('WEBGL_PACK');
-    tf.environment().set('WEBGL_PACK', true);
+    const webglPackFlagSaved = tf.env().getBool('WEBGL_PACK');
+    tf.env().set('WEBGL_PACK', true);
     const webglSizeUploadUniformSaved =
-        tf.environment().getNumber('WEBGL_SIZE_UPLOAD_UNIFORM');
-    tf.environment().set('WEBGL_SIZE_UPLOAD_UNIFORM', 0);
+        tf.env().getNumber('WEBGL_SIZE_UPLOAD_UNIFORM');
+    tf.env().set('WEBGL_SIZE_UPLOAD_UNIFORM', 0);
     const a = tf.tensor2d([1, 2], [2, 1]);
     const b = tf.tensor2d([1], [1, 1]);
     const c = tf.matMul(a, b);
     backend.readSync(c.dataId);
-    tf.environment().set('WEBGL_PACK', false);
+    tf.env().set('WEBGL_PACK', false);
     const d = tf.add(c, 1);
-    tf.environment().set('WEBGL_PACK', webglPackFlagSaved);
-    tf.environment().set(
-        'WEBGL_SIZE_UPLOAD_UNIFORM', webglSizeUploadUniformSaved);
+    tf.env().set('WEBGL_PACK', webglPackFlagSaved);
+    tf.env().set('WEBGL_SIZE_UPLOAD_UNIFORM', webglSizeUploadUniformSaved);
     expectArraysClose(await d.data(), [2, 3]);
   });
 
@@ -322,12 +320,12 @@ describeWithFlags('upload tensors as uniforms', FLOAT32_WEBGL_ENVS, () => {
 
   beforeAll(() => {
     savedUploadUniformValue =
-        tf.environment().get('WEBGL_SIZE_UPLOAD_UNIFORM') as number;
-    tf.environment().set('WEBGL_SIZE_UPLOAD_UNIFORM', SIZE_UPLOAD_UNIFORM);
+        tf.env().get('WEBGL_SIZE_UPLOAD_UNIFORM') as number;
+    tf.env().set('WEBGL_SIZE_UPLOAD_UNIFORM', SIZE_UPLOAD_UNIFORM);
   });
 
   afterAll(() => {
-    tf.environment().set('WEBGL_SIZE_UPLOAD_UNIFORM', savedUploadUniformValue);
+    tf.env().set('WEBGL_SIZE_UPLOAD_UNIFORM', savedUploadUniformValue);
   });
 
   it('small tensor gets uploaded as scalar', () => {
@@ -387,31 +385,29 @@ describeWithFlags('debug on webgl', WEBGL_ENVS, () => {
   beforeAll(() => {
     // Silences debug warnings.
     spyOn(console, 'warn');
-    tf.environment().set('DEBUG', true);
+    tf.env().set('DEBUG', true);
   });
 
   afterAll(() => {
-    tf.environment().set('DEBUG', false);
+    tf.env().set('DEBUG', false);
   });
 
   it('debug mode errors when overflow in tensor construction', () => {
     const savedRenderFloat32Flag =
-        tf.environment().getBool('WEBGL_RENDER_FLOAT32_ENABLED');
-    tf.environment().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+        tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED');
+    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
     const a = () => tf.tensor1d([2, Math.pow(2, 17)], 'float32');
     expect(a).toThrowError();
-    tf.environment().set(
-        'WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
+    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
   });
 
   it('debug mode errors when underflow in tensor construction', () => {
     const savedRenderFloat32Flag =
-        tf.environment().getBool('WEBGL_RENDER_FLOAT32_ENABLED');
-    tf.environment().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+        tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED');
+    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
     const a = () => tf.tensor1d([2, 1e-8], 'float32');
     expect(a).toThrowError();
-    tf.environment().set(
-        'WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
+    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
   });
 });
 
@@ -430,10 +426,10 @@ describeWithFlags('memory webgl', WEBGL_ENVS, () => {
 // point.
 describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
   const savedRenderFloat32Flag =
-      tf.environment().getBool('WEBGL_RENDER_FLOAT32_ENABLED');
+      tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED');
 
   beforeAll(() => {
-    tf.environment().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
   });
 
   beforeEach(() => {
@@ -445,8 +441,7 @@ describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
   });
 
   afterAll(() => {
-    tf.environment().set(
-        'WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
+    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
   });
 
   it('basic usage', async () => {
@@ -515,7 +510,7 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
 
 describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
   beforeAll(() => {
-    tf.environment().set('WEBGL_CPU_FORWARD', false);
+    tf.env().set('WEBGL_CPU_FORWARD', false);
   });
 
   it('caches on cpu after async read', async () => {

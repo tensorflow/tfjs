@@ -516,11 +516,11 @@ describeWithFlags('util.toNestedArray', ALL_ENVS, () => {
 
 describe('util.fetch', () => {
   it('should call the platform fetch', () => {
-    spyOn(tf.environment().platform, 'fetch').and.callFake(() => {});
+    spyOn(tf.env().platform, 'fetch').and.callFake(() => {});
 
     util.fetch('test/path', {method: 'GET'});
 
-    expect(tf.environment().platform.fetch).toHaveBeenCalledWith('test/path', {
+    expect(tf.env().platform.fetch).toHaveBeenCalledWith('test/path', {
       method: 'GET'
     });
   });

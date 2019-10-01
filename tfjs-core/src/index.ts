@@ -65,7 +65,7 @@ export * from './globals';
 export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
 
 export {TimingInfo, MemoryInfo} from './engine';
-export {Environment, environment, ENV} from './environment';
+export {Environment, env, ENV} from './environment';
 export {Platform} from './platforms/platform';
 
 export {version as version_core};

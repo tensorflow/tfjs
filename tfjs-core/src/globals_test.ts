@@ -48,17 +48,17 @@ describe('deprecation warnings', () => {
 
 describe('Flag flipping methods', () => {
   beforeEach(() => {
-    tf.environment().reset();
+    tf.env().reset();
   });
 
   it('tf.enableProdMode', () => {
     tf.enableProdMode();
-    expect(tf.environment().getBool('PROD')).toBe(true);
+    expect(tf.env().getBool('PROD')).toBe(true);
   });
 
   it('tf.enableDebugMode', () => {
     tf.enableDebugMode();
-    expect(tf.environment().getBool('DEBUG')).toBe(true);
+    expect(tf.env().getBool('DEBUG')).toBe(true);
   });
 });
 

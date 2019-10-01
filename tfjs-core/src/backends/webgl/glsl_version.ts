@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {environment} from '../../environment';
+import {env} from '../../environment';
 
 export type GLSL = {
   version: string,
@@ -41,7 +41,7 @@ export function getGlslDifferences(): GLSL {
   let defineSpecialInf: string;
   let defineRound: string;
 
-  if (environment().getNumber('WEBGL_VERSION') === 2) {
+  if (env().getNumber('WEBGL_VERSION') === 2) {
     version = '#version 300 es';
     attribute = 'in';
     varyingVs = 'out';
