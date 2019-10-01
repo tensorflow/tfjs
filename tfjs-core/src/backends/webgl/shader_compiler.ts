@@ -265,7 +265,7 @@ function getShaderPrefix(glsl: GLSL): string {
     }
 
     vec2 adjuv(vec2 texCR, ivec2 texNumCR) {
-      return texCR / vec2(texNumCR);
+      return (texCR + halfCR) / vec2(texNumCR);
     }
 
     //Based on the work of Dave Hoskins
@@ -621,7 +621,7 @@ function getPackedSamplerScalar(inputInfo: InputInfo): string {
   const glsl = getGlslDifferences();
   return `
     vec4 ${funcName}() {
-      return ${glsl.texture2D}(${texName}, vec2(0., 0.));
+      return ${glsl.texture2D}(${texName}, halfCR);
     }
   `;
 }
@@ -636,7 +636,7 @@ function getSamplerScalar(inputInfo: InputInfo): string {
   if (texNumR === 1 && texNumC === 1) {
     return `
       float ${funcName}() {
-        return sampleTexture(${texName}, vec2(0., 0.));
+        return sampleTexture(${texName}, halfCR);
       }
     `;
   }
@@ -688,7 +688,7 @@ function getSampler1D(inputInfo: InputInfo): string {
   if (tNumC === 1 && tNumR === 1) {
     return `
       float ${funcName}(int index) {
-        return sampleTexture(${texName}, vec2(0., 0.));
+        return sampleTexture(${texName}, halfCR);
       }
     `;
   }
