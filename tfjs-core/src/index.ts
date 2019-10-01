@@ -15,6 +15,12 @@
  * =============================================================================
  */
 
+/**
+ * @fileoverview
+ * @suppress {partialAlias} Optimization disabled due to use of module object.
+ *     See http://go/js-practices/namespaces#avoid-objects.
+ */
+
 // Engine is the global singleton that needs to be initialized before the rest
 // of the app.
 import './engine';
