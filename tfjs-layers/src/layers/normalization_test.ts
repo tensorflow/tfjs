@@ -12,7 +12,7 @@
  * Unit tests for normalization layers.
  */
 
-import {onesLike, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, test_util, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
+import {dispose, memory, onesLike, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, test_util, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
 
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
@@ -717,6 +717,15 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
             [[-1.2238274, 0, 1.2238274], [-0.8626572, -0.5391607, 1.401818]]));
   });
 
+  it('Forward: no memory leak', () => {
+    const layer = tfl.layers.layerNormalization();
+    const xs = tensor2d([[1, 2, 3], [3, 6, 24]]);
+    dispose(layer.apply(xs) as Tensor);  // Warm up.
+    const numTensors0 = memory().numTensors;
+    dispose(layer.apply(xs) as Tensor);
+    expect(memory().numTensors).toEqual(numTensors0);
+  });
+
   // Reference Python code:
   // ```py
   // import numpy as np
@@ -797,7 +806,7 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
   // history = model.fit(xs, ys, epochs=5, verbose=0)
   // print(history.history)
   // ```
-  it('training: 2D: default axis', async () => {
+  it('Training: 2D: default axis', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.layerNormalization({inputShape: [3]}));
     model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
@@ -827,7 +836,7 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
   // history = model.fit(xs, ys, epochs=5, verbose=0)
   // print(history.history)
   // ```
-  it('training: 2D: as intermediate layer: default axis', async () => {
+  it('Training: 2D: as intermediate layer: default axis', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.dense(
         {units: 10, kernelInitializer: 'ones', inputShape: [3]}));
@@ -841,6 +850,20 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
       3.5, 3.1083502769470215, 2.8706729412078857, 2.7243311405181885,
       2.6366190910339355
     ]);
+  });
+
+  it('Training: no memory leak', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.layerNormalization({inputShape: [3]}));
+    model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+    const xs = tensor2d([[1, 2, 3], [3, 6, 24], [10, 5, 0], [2, 7, 8]]);
+    const ys = tensor2d([[0], [-1], [2], [3]]);
+    await model.fit(xs, ys, {epochs: 1});  // Warm up.
+
+    const numTensors0 = memory().numTensors;
+    await model.fit(xs, ys, {epochs: 1});
+    expect(memory().numTensors).toEqual(numTensors0);
   });
 
   // Reference Python code:
@@ -858,7 +881,7 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
   // dtype=np.float32) ys = np.array([[0], [-1]], dtype=np.float32) history =
   // model.fit(xs, ys, epochs=5, verbose=0) print(history.history)
   // ```
-  it('training: 3D: default axis', async () => {
+  it('Training: 3D: default axis', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.layerNormalization({inputShape: [2, 3]}));
     model.add(tfl.layers.flatten());
@@ -888,7 +911,7 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
   // dtype=np.float32) ys = np.array([[0], [-1]], dtype=np.float32) history =
   // model.fit(xs, ys, epochs=5, verbose=0) print(history.history)
   // ```
-  it('training: 3D: non-default axis', async () => {
+  it('Training: 3D: non-default axis', async () => {
     const model = tfl.sequential();
     model.add(
         tfl.layers.layerNormalization({inputShape: [2, 3], axis: [-2, -1]}));
@@ -902,5 +925,68 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
       0.5, 0.3337608873844147, 0.23789873719215393, 0.17923809587955475,
       0.1408553570508957
     ]);
+  });
+
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // model = tf.keras.Sequential()
+  // embedding_layer = tf.keras.layers.Embedding(
+  //     input_dim=4, output_dim=3, input_length=4, mask_zero=True,
+  //     embeddings_initializer='ones')
+  // model.add(embedding_layer)
+  // model.add(tf.keras.layers.LayerNormalization())
+  //
+  // xs = np.array([[0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0], [1, 2, 3, 0]],
+  //               dtype=np.float32)
+  // model.predict(xs)
+  //
+  // embedding_layer.set_weights([
+  //     np.array([[1, 2, 3], [3, 2, 1], [2, 3, 1], [3, 1, 2]],
+  //     dtype=np.float32)])
+  // ys = model.predict(xs)
+  // print(ys)
+  // ```
+  it('Forward, with masking', () => {
+    const model = tfl.sequential();
+    const embeddingLayer = tfl.layers.embedding({
+      inputDim: 4,
+      outputDim: 3,
+      inputLength: 4,
+      maskZero: true,
+      embeddingsInitializer: 'ones'
+    });
+    model.add(embeddingLayer);
+    // model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
+    model.add(tfl.layers.layerNormalization());
+
+    const xs =
+        tensor2d([[0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0], [1, 2, 3, 0]]);
+    model.predict(xs);  // Make sure the embedding layer is built first.
+
+    embeddingLayer.setWeights(
+        [tensor2d([[1, 2, 3], [3, 2, 1], [2, 3, 1], [3, 1, 2]])]);
+    const ys = model.predict(xs) as Tensor;
+    expectTensorsClose(
+        ys, tensor3d([
+          [
+            [-1.2238274, 0, 1.2238274], [-1.2238274, 0, 1.2238274],
+            [-1.2238274, 0, 1.2238274], [-1.2238274, 0, 1.2238274]
+          ],
+          [
+            [1.2238274, 0, -1.2238274], [-1.2238274, 0, 1.2238274],
+            [-1.2238274, 0, 1.2238274], [-1.2238274, 0, 1.2238274]
+          ],
+          [
+            [1.2238274, 0, -1.2238274], [0, 1.2238274, -1.2238274],
+            [-1.2238274, 0, 1.2238274], [-1.2238274, 0, 1.2238274]
+          ],
+          [
+            [1.2238274, 0, -1.2238274], [0, 1.2238274, -1.2238274],
+            [1.2238274, -1.2238274, 0], [-1.2238274, 0, 1.2238274]
+          ]
+        ]));
   });
 });

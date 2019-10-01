@@ -850,6 +850,9 @@ export function batchNormalization(args?: BatchNormalizationLayerArgs): Layer {
  * References:
  *   - [Layer Normalization](https://arxiv.org/abs/1607.06450)
  */
+/**
+ * @doc {heading: 'Layers', subheading: 'Normalization', namespace: 'layers'}
+ */
 export function layerNormalization(args?: LayerNormalizationLayerArgs): Layer {
   return new LayerNormalization(args);
 }

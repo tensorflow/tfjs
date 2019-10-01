@@ -474,7 +474,7 @@ export class LayerNormalization extends Layer {
   /** @nocollapse */
   static className = 'BatchNormalization';
 
-  protected axis: number|number[];
+  private axis: number|number[];
   readonly epsilon: number;
   readonly center: boolean;
   readonly scale: boolean;
@@ -483,8 +483,8 @@ export class LayerNormalization extends Layer {
   readonly betaRegularizer: Regularizer;
   readonly gammaRegularizer: Regularizer;
 
-  protected gamma: LayerVariable;
-  protected beta: LayerVariable;
+  private gamma: LayerVariable;
+  private beta: LayerVariable;
 
   constructor(args?: LayerNormalizationLayerArgs) {
     if (args == null) {
@@ -521,7 +521,6 @@ export class LayerNormalization extends Layer {
     this.gammaRegularizer = getRegularizer(args.gammaRegularizer);
 
     this.supportsMasking = true;
-    // TODO(cais): Test masking support.
   }
 
   public build(inputShape: Shape|Shape[]): void {
@@ -594,12 +593,12 @@ export class LayerNormalization extends Layer {
       let scale = broadcast(this.gamma.read());
       let offset = broadcast(this.beta.read());
 
-      // TODO(cais): The tiling below is a workaround for the limitation of
-      // core's batchNormalization?d don't support broadcasting in their
-      // gradients. In addition, the tiling is necessary to ensure correctness
-      // on the browser CPU backend regardless of forward or backward
-      // computation Remove this workaround once the limitation is addressed.
-      // See https://github.com/tensorflow/tfjs/issues/2120.
+      // TODO(https://github.com/tensorflow/tfjs/issues/2120): The tiling below
+      // is a workaround for the limitation of core's batchNormalization?d don't
+      // support broadcasting in their gradients. In addition, the tiling is
+      // necessary to ensure correctness on the browser CPU backend regardless
+      // of forward or backward computation. Remove this workaround once the
+      // limitation is addressed. See .
       const momentsTiling: number[] = [];
       const scaleOffsetTiling: number[] = [];
       for (let i = 0; i < nDims; ++i) {
