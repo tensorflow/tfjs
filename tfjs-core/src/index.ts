@@ -17,8 +17,11 @@
 
 /**
  * @fileoverview
- * @suppress {partialAlias} Optimization disabled due to use of module object.
- *     See http://go/js-practices/namespaces#avoid-objects.
+ * @suppress {partialAlias} Optimization disabled due to passing the module
+ * object into a function below:
+ *
+ *   import * as ops from './ops/ops';
+ *   setOpHandler(ops);
  */
 
 // Engine is the global singleton that needs to be initialized before the rest
