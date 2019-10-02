@@ -31,6 +31,7 @@ import * as readline from 'readline';
 import * as shell from 'shelljs';
 import * as fs from 'fs';
 import chalk from 'chalk';
+import * as argparse from 'argparse';
 
 interface Phase {
   // The list of packages that will be updated with this change.
@@ -87,6 +88,13 @@ const PHASES: Phase[] = [
 
 const TMP_DIR = '/tmp/tfjs-release';
 
+const parser = new argparse.ArgumentParser();
+
+parser.addArgument('--git-protocol', {
+  action: 'storeTrue',
+  help: 'Use the git protocal rather than the http protocol when cloning repos.'
+});
+
 function printPhase(phaseId: number) {
   const phase = PHASES[phaseId];
   console.log(chalk.green(`Phase ${phaseId}:`));
@@ -104,6 +112,8 @@ function getPatchUpdateVersion(version: string): string {
 }
 
 async function main() {
+  const args = parser.parseArgs();
+
   PHASES.forEach((_, i) => printPhase(i));
   console.log();
 
@@ -131,11 +141,13 @@ async function main() {
   $(`rm -f -r ${dir}`);
   $(`mkdir ${dir}`);
 
+  const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
+
   if (phase.repo != null) {
-    $(`git clone https://github.com/tensorflow/${phase.repo} ${dir} --depth=1`);
+    $(`git clone ${urlBase}tensorflow/${phase.repo} ${dir} --depth=1`);
     shell.cd(dir);
   } else {
-    $(`git clone https://github.com/tensorflow/tfjs ${dir} --depth=1`);
+    $(`git clone ${urlBase}tensorflow/tfjs ${dir} --depth=1`);
     shell.cd(dir);
   }
 

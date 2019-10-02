@@ -163,13 +163,16 @@ const SAMPLING_SNIPPETS = `
 `;
 
 function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
+  const glslType = mapToGlslTypes(outBufferType);
   let snippet = `void setOutput(int flatIndex, float value) {
       result[flatIndex] = ${
-      mapToGlslTypes(outBufferType) === 'int' ? 'int(value)' : 'value'};
+      glslType === 'int' ? 'int(value)' :
+        (glslType === 'bool' ? 'bool(value)' : 'value')};
     }
     void setOutput(int flatIndex, int value) {
       result[flatIndex] = ${
-      mapToGlslTypes(outBufferType) === 'float' ? 'float(value)' : 'value'};
+      glslType === 'float' ? 'float(value)' :
+        (glslType === 'bool' ? 'bool(value)' : 'value')};
     }`;
 
   if (outRank >= 2) {

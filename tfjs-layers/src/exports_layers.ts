@@ -18,7 +18,7 @@ import {Activation, ActivationLayerArgs, Dense, DenseLayerArgs, Dropout, Dropout
 import {Embedding, EmbeddingLayerArgs} from './layers/embeddings';
 import {Add, Average, Concatenate, ConcatenateLayerArgs, Dot, DotLayerArgs, Maximum, Minimum, Multiply} from './layers/merge';
 import {AlphaDropout, AlphaDropoutArgs, GaussianDropout, GaussianDropoutArgs, GaussianNoise, GaussianNoiseArgs} from './layers/noise';
-import {BatchNormalization, BatchNormalizationLayerArgs} from './layers/normalization';
+import {BatchNormalization, BatchNormalizationLayerArgs, LayerNormalization, LayerNormalizationLayerArgs} from './layers/normalization';
 import {ZeroPadding2D, ZeroPadding2DLayerArgs} from './layers/padding';
 import {AveragePooling1D, AveragePooling2D, AveragePooling3D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerArgs, MaxPooling1D, MaxPooling2D, MaxPooling3D, Pooling1DLayerArgs, Pooling2DLayerArgs, Pooling3DLayerArgs} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNCell, RNNLayerArgs, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs, StackedRNNCells, StackedRNNCellsArgs} from './layers/recurrent';
@@ -830,6 +830,31 @@ export function dot(args: DotLayerArgs): Layer {
  */
 export function batchNormalization(args?: BatchNormalizationLayerArgs): Layer {
   return new BatchNormalization(args);
+}
+
+/**
+ * Layer-normalization layer (Ba et al., 2016).
+ *
+ * Normalizes the activations of the previous layer for each given example in a
+ * batch independently, instead of across a batch like in `batchNormalization`.
+ * In other words, this layer applies a transformation that maintanis the mean
+ * activation within each example close to0 and activation variance close to 1.
+ *
+ * Input shape:
+ *   Arbitrary. Use the argument `inputShape` when using this layer as the first
+ *   layer in a model.
+ *
+ * Output shape:
+ *   Same as input.
+ *
+ * References:
+ *   - [Layer Normalization](https://arxiv.org/abs/1607.06450)
+ */
+/**
+ * @doc {heading: 'Layers', subheading: 'Normalization', namespace: 'layers'}
+ */
+export function layerNormalization(args?: LayerNormalizationLayerArgs): Layer {
+  return new LayerNormalization(args);
 }
 
 // Padding Layers.

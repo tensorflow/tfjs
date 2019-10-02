@@ -86,6 +86,12 @@ py_library(
 )
 
 py_library(
+    name = "resource_loader",
+    srcs = ["resource_loader.py"],
+    srcs_version = "PY2AND3",
+)
+
+py_library(
     name = "version",
     srcs = ["version.py"],
     srcs_version = "PY2AND3",
@@ -120,6 +126,16 @@ py_test(
         ":read_weights",
         ":write_weights",
         "//tensorflowjs:expect_numpy_installed",
+    ],
+)
+
+py_test(
+    name = "resource_loader_test",
+    srcs = ["resource_loader_test.py"],
+    srcs_version = "PY2AND3",
+    data = [":op_list_jsons"],
+    deps = [
+        ":resource_loader",
     ],
 )
 

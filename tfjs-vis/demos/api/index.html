@@ -657,6 +657,44 @@
           });
         }
       </script>
+
+      <p>
+        Repeated labels are supported
+      </p>
+      <div id='heatmap-cont5'></div>
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: tf.tensor2d([
+              [10, 2, 3, 4, 5, 6],
+              [1, 20, 3, 4, 5, 6],
+              [1, 2, 30, 4, 5, 6],
+              [1, 2, 3, 40, 5, 6],
+              [1, 2, 3, 4, 50, 6],
+              [1, 2, 3, 4, 5, 60],
+            ]),
+            xTickLabels: ['a', 'token', 'in', 'a', 'sequence', 'repeat'],
+            yTickLabels: ['a', 'token', 'in', 'a', 'sequence', 'repeat'],
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Heatmap', tab: 'Tensor Charts' });
+          tfvis.render.heatmap(surface, data, {
+            xLabel: 'Thing',
+            yLabel: 'Property',
+          });
+
+          // Render to page
+          const container = document.getElementById('heatmap-cont5');
+          tfvis.render.heatmap(container, data, {
+            width: 500,
+            height: 500,
+            xLabel: 'Thing',
+            yLabel: 'Property',
+          });
+        }
+      </script>
     </section>
 
   </article>
