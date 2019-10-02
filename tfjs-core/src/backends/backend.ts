@@ -593,6 +593,9 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   fft(x: Tensor2D): Tensor2D {
     throw new Error('Not yet implemented');
   }
+  fft2d(x: Tensor2D): Tensor2D {
+    throw new Error('Not yet implemented');
+  }
   ifft(x: Tensor2D): Tensor2D {
     throw new Error('Not yet implemented');
   }

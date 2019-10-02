@@ -57,6 +57,35 @@ function fft_(input: Tensor): Tensor {
 }
 
 /**
+ * 2D fast Fourier transform.
+ *
+ * Computes the 2-dimensional discrete Fourier transform over the inner-most 2
+ * dimensions of input.
+ *
+ * ```js
+ * const real = tf.tensor2d([1, 2], [1, 2]);
+ * const imag = tf.tensor2d([1, 2], [1, 2]);
+ * const x = tf.complex(real, imag);
+ *
+ * x.fft2d().print();  // tf.spectral.fft2d(x).print();
+ * ```
+ * @param input The complex input to compute an fft2d over.
+ */
+/**
+ * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
+ */
+function fft2d_(input: Tensor2D): Tensor2D {
+  assert(
+      input.dtype === 'complex64',
+      () => `The dtype for tf.spectral.fft() must be complex64 ` +
+          `but got ${input.dtype}.`);
+
+  const ret = ENGINE.runKernel(backend => backend.fft2d(input), {input});
+
+  return ret.reshape(input.shape);
+}
+
+/**
  * Inverse fast Fourier transform.
  *
  * Computes the inverse 1-dimensional discrete Fourier transform over the
@@ -204,6 +233,7 @@ function irfft_(input: Tensor): Tensor {
 }
 
 export const fft = op({fft_});
+export const fft2d = op({fft2d_});
 export const ifft = op({ifft_});
 export const rfft = op({rfft_});
 export const irfft = op({irfft_});

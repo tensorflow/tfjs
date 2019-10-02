@@ -828,7 +828,8 @@ export class MathBackendCPU implements KernelBackend {
     const newValues = this.readSync(result.dataId) as TypedArray;
     let index = 0;
     const offset = condition.rank === 0 || condition.rank > 1 || a.rank === 1 ?
-        1 : util.sizeFromShape(a.shape.slice(1));
+        1 :
+        util.sizeFromShape(a.shape.slice(1));
 
     for (let i = 0; i < values.length; i++) {
       for (let j = 0; j < offset; j++) {
@@ -1522,9 +1523,10 @@ export class MathBackendCPU implements KernelBackend {
       const sign = Math.sign(values[i]);
       const v = Math.abs(values[i]);
       const t = 1.0 / (1.0 + p * v);
-      resultValues[i] = sign * (1.0 -
-        (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
-        Math.exp(-v * v));
+      resultValues[i] = sign *
+          (1.0 -
+           (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
+               Math.exp(-v * v));
     }
     return Tensor.make(x.shape, {values: resultValues});
   }
@@ -3381,6 +3383,10 @@ export class MathBackendCPU implements KernelBackend {
     return this.fftBatch(x, false);
   }
 
+  fft2d(x: Tensor2D): Tensor2D {
+    return this.fft2dImpl(x);
+  }
+
   ifft(x: Tensor2D): Tensor2D {
     return this.fftBatch(x, true);
   }
@@ -3437,6 +3443,41 @@ export class MathBackendCPU implements KernelBackend {
       const output = complex_util.splitRealAndImagArrays(rawOutput);
       return ops.complex(output.real, output.imag).as2D(x.shape[0], x.shape[1]);
     }
+  }
+
+  private fft2dImpl(x: Tensor2D): Tensor2D {
+    const [height, width] = x.shape;
+
+    const widthNumberLine = ops.range(0, width, 1);
+    const xyw = widthNumberLine.mul(ops.reshape(widthNumberLine, [-1, 1]));
+
+    const heightNumberLine = ops.range(0, height, 1);
+    const xyh = heightNumberLine.mul(ops.reshape(heightNumberLine, [-1, 1]));
+
+    // atan(tan(x)) != x
+    const mulWidth = -Math.atan(Math.tan(2 * Math.PI / width));
+    const mulHeight = -Math.atan(Math.tan(2 * Math.PI / height));
+
+    const inner1 = xyw.mul(mulWidth);
+
+    const twr = ops.cos(inner1);
+    const twi = ops.sin(inner1);
+
+    const inner2 = xyh.mul(mulHeight);
+
+    const thr = ops.cos(inner2);
+    const thi = ops.sin(inner2);
+
+    const xReal = ops.real(x);
+    const xImag = ops.imag(x);
+
+    const gtReal = ops.matMul(xReal, twr).sub(ops.matMul(xImag, twi));
+    const gtImag = ops.matMul(xReal, twi).add(ops.matMul(xImag, twr));
+
+    const r = ops.matMul(gtReal, thr, true).sub(ops.matMul(gtImag, thi, true));
+    const i = ops.matMul(gtReal, thi, true).add(ops.matMul(gtImag, thr, true));
+
+    return ops.complex(ops.transpose(r), ops.transpose(i)) as Tensor2D;
   }
 
   private isExponentOf2(size: number): boolean {
