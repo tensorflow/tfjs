@@ -365,7 +365,8 @@ export interface OpHandler {
       newAxisMask: number, shrinkAxisMask: number): Tensor;
   depthToSpace(x: Tensor4D, blockSize: number, dataFormat: string): Tensor4D;
   spectral: {
-    fft(x: Tensor): Tensor; ifft(x: Tensor): Tensor; rfft(x: Tensor): Tensor;
+    fft(x: Tensor): Tensor; fft2d(x: Tensor): Tensor; ifft(x: Tensor): Tensor;
+    rfft(x: Tensor): Tensor;
     irfft(x: Tensor): Tensor
   };
 }
@@ -1415,6 +1416,11 @@ export class Tensor<R extends Rank = Rank> {
   fft(this: Tensor): Tensor {
     this.throwIfDisposed();
     return opHandler.spectral.fft(this);
+  }
+
+  fft2d(this: Tensor): Tensor {
+    this.throwIfDisposed();
+    return opHandler.spectral.fft2d(this);
   }
 
   ifft(this: Tensor): Tensor {

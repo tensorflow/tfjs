@@ -384,6 +384,13 @@ describeWithFlags('3D IRFFT', ALL_ENVS, () => {
 });
 
 describeWithFlags('FFT2D', ALL_ENVS, () => {
+  it('should calculate FFT2D from Tensor directly', async () => {
+    const t1Real = tf.tensor2d([[1]]);
+    const t1Imag = tf.tensor2d([[0]]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    expectArraysClose(await t1.fft2d().data(), [1, 0]);
+  });
+
   it('should return the same value with TensorFlow (1x1)', async () => {
     const t1Real = tf.tensor2d([[1]]);
     const t1Imag = tf.tensor2d([[0]]);
