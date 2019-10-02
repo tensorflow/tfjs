@@ -348,6 +348,9 @@ def convert_tf_saved_model(saved_model_dir,
   input_node_names = []
   input_map = {}
   for tensor in concrete_func.inputs:
+    # TODO(smilkov): Fix this.
+    if tensor.dtype == 'resource':
+      continue
     name = tensor.name.split(':')[0]
     input_map[name] = build_tensor_info(tensor)
     input_node_names.append(name)
