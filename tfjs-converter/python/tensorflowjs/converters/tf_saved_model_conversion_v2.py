@@ -23,8 +23,9 @@ import os
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.core.protobuf import device_properties_pb2
 from tensorflow.core.protobuf import config_pb2
+from tensorflow.core.protobuf import device_properties_pb2
+from tensorflow.core.protobuf import meta_graph_pb2
 from tensorflow.python.framework import convert_to_constants
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
@@ -99,20 +100,34 @@ def validate(nodes, skip_op_check, strip_debug_ops):
   not_supported = {x.op for x in [x for x in nodes if x.op not in names]}
   return not_supported
 
-def _run_grappler(config, graph_def, graph):
+def _run_grappler(config, graph_def, graph, input_nodes, output_nodes):
   meta_graph = export_meta_graph(
       graph_def=graph_def, graph=graph)
+
+  signature = _meta_graph_pb2.SignatureDef()
+  for array in input_arrays:
+    signature.inputs[array.name].name = array.name
+    signature.inputs[array.name].dtype = array.dtype.as_datatype_enum
+    signature.inputs[array.name].tensor_shape.CopyFrom(array.shape.as_proto())
+
+  for array in output_arrays:
+    signature.outputs[array.name].name = array.name
+    signature.outputs[array.name].dtype = array.dtype.as_datatype_enum
+    signature.outputs[array.name].tensor_shape.CopyFrom(array.shape.as_proto())
+
+  meta_graph.signature_def["not_used_key"].CopyFrom(signature)
 
   return tf_optimizer.OptimizeGraph(
       config, meta_graph, cluster=get_cluster())
 
-def optimize_graph(graph, output_node_names, output_graph, tf_version,
-                   quantization_dtype=None, skip_op_check=False,
+def optimize_graph(graph, input_node_names, output_node_names, output_graph,
+                   tf_version, quantization_dtype=None, skip_op_check=False,
                    strip_debug_ops=False):
   """Takes a Python Graph object and optimizes the graph.
 
   Args:
     graph: The frozen graph to optimize.
+    input_node_names: List of input node names.
     output_node_names: List of output node names.
     output_graph: The location of the output graph.
     tf_version: Tensorflow version of the input graph.
