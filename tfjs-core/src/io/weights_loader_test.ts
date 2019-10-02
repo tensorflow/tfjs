@@ -24,7 +24,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     [filename: string]: Float32Array|Int32Array|ArrayBuffer|Uint8Array|
     Uint16Array
   }) => {
-    spyOn(tf.ENV.platform, 'fetch').and.callFake((path: string) => {
+    spyOn(tf.env().platform, 'fetch').and.callFake((path: string) => {
       return new Response(
           fileBufferMap[path],
           {headers: {'Content-type': 'application/octet-stream'}});
@@ -42,7 +42,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     const weightsNamesToFetch = ['weight0'];
     const weights =
         await tf.io.loadWeights(manifest, './', weightsNamesToFetch);
-    expect((tf.ENV.platform.fetch as jasmine.Spy).calls.count()).toBe(1);
+    expect((tf.env().platform.fetch as jasmine.Spy).calls.count()).toBe(1);
 
     const weightNames = Object.keys(weights);
     expect(weightNames.length).toEqual(weightsNamesToFetch.length);
@@ -66,7 +66,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
 
     // Load the first weight.
     const weights = await tf.io.loadWeights(manifest, './', ['weight0']);
-    expect((tf.ENV.platform.fetch as jasmine.Spy).calls.count()).toBe(1);
+    expect((tf.env().platform.fetch as jasmine.Spy).calls.count()).toBe(1);
 
     const weightNames = Object.keys(weights);
     expect(weightNames.length).toEqual(1);
@@ -90,7 +90,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
 
     // Load the second weight.
     const weights = await tf.io.loadWeights(manifest, './', ['weight1']);
-    expect((tf.ENV.platform.fetch as jasmine.Spy).calls.count()).toBe(1);
+    expect((tf.env().platform.fetch as jasmine.Spy).calls.count()).toBe(1);
 
     const weightNames = Object.keys(weights);
     expect(weightNames.length).toEqual(1);
@@ -115,7 +115,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     // Load all weights.
     const weights =
         await tf.io.loadWeights(manifest, './', ['weight0', 'weight1']);
-    expect((tf.ENV.platform.fetch as jasmine.Spy).calls.count()).toBe(1);
+    expect((tf.env().platform.fetch as jasmine.Spy).calls.count()).toBe(1);
 
     const weightNames = Object.keys(weights);
     expect(weightNames.length).toEqual(2);
@@ -154,7 +154,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     // Load all weights.
     const weights = await tf.io.loadWeights(
         manifest, './', ['weight0', 'weight1', 'weight2']);
-    expect((tf.ENV.platform.fetch as jasmine.Spy).calls.count()).toBe(1);
+    expect((tf.env().platform.fetch as jasmine.Spy).calls.count()).toBe(1);
 
     const weightNames = Object.keys(weights);
     expect(weightNames.length).toEqual(3);
@@ -192,7 +192,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     }];
 
     const weights = await tf.io.loadWeights(manifest, './', ['weight0']);
-    expect((tf.ENV.platform.fetch as jasmine.Spy).calls.count()).toBe(3);
+    expect((tf.env().platform.fetch as jasmine.Spy).calls.count()).toBe(3);
 
     const weightNames = Object.keys(weights);
     expect(weightNames.length).toEqual(1);
@@ -232,7 +232,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
 
     const weights =
         await tf.io.loadWeights(manifest, './', ['weight0', 'weight1']);
-    expect((tf.ENV.platform.fetch as jasmine.Spy).calls.count()).toBe(3);
+    expect((tf.env().platform.fetch as jasmine.Spy).calls.count()).toBe(3);
 
     const weightNames = Object.keys(weights);
     expect(weightNames.length).toEqual(2);
@@ -274,7 +274,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     const weights =
         await tf.io.loadWeights(manifest, './', ['weight0', 'weight1']);
     // Only the first group should be fetched.
-    expect((tf.ENV.platform.fetch as jasmine.Spy).calls.count()).toBe(1);
+    expect((tf.env().platform.fetch as jasmine.Spy).calls.count()).toBe(1);
 
     const weightNames = Object.keys(weights);
     expect(weightNames.length).toEqual(2);
@@ -316,7 +316,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     const weights =
         await tf.io.loadWeights(manifest, './', ['weight0', 'weight2']);
     // Both groups need to be fetched.
-    expect((tf.ENV.platform.fetch as jasmine.Spy).calls.count()).toBe(2);
+    expect((tf.env().platform.fetch as jasmine.Spy).calls.count()).toBe(2);
 
     const weightNames = Object.keys(weights);
     expect(weightNames.length).toEqual(2);
@@ -358,7 +358,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     // Don't pass a third argument to loadWeights to load all weights.
     const weights = await tf.io.loadWeights(manifest, './');
     // Both groups need to be fetched.
-    expect((tf.ENV.platform.fetch as jasmine.Spy).calls.count()).toBe(2);
+    expect((tf.env().platform.fetch as jasmine.Spy).calls.count()).toBe(2);
 
     const weightNames = Object.keys(weights);
     expect(weightNames.length).toEqual(4);
@@ -434,8 +434,8 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     const weightsNamesToFetch = ['weight0'];
     await tf.io.loadWeights(
         manifest, './', weightsNamesToFetch, {credentials: 'include'});
-    expect((tf.ENV.platform.fetch as jasmine.Spy).calls.count()).toBe(1);
-    expect(tf.ENV.platform.fetch)
+    expect((tf.env().platform.fetch as jasmine.Spy).calls.count()).toBe(1);
+    expect(tf.env().platform.fetch)
         .toHaveBeenCalledWith(
             './weightfile0', {credentials: 'include'}, {isBinary: true});
   });
@@ -466,7 +466,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     const weightsNamesToFetch = ['weight0', 'weight1'];
     const weights =
         await tf.io.loadWeights(manifest, './', weightsNamesToFetch);
-    expect((tf.ENV.platform.fetch as jasmine.Spy).calls.count()).toBe(1);
+    expect((tf.env().platform.fetch as jasmine.Spy).calls.count()).toBe(1);
 
     const weightNames = Object.keys(weights);
     expect(weightNames.length).toEqual(weightsNamesToFetch.length);
@@ -526,7 +526,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     const weights =
         await tf.io.loadWeights(manifest, './', ['weight0', 'weight2']);
     // Both groups need to be fetched.
-    expect((tf.ENV.platform.fetch as jasmine.Spy).calls.count()).toBe(2);
+    expect((tf.env().platform.fetch as jasmine.Spy).calls.count()).toBe(2);
 
     const weightNames = Object.keys(weights);
     expect(weightNames.length).toEqual(2);

@@ -524,7 +524,7 @@ describeWithFlags('slice ergonomics', ALL_ENVS, () => {
 
 describeWithFlags('shallow slicing', ALL_ENVS, () => {
   beforeAll(() => {
-    tf.ENV.set('WEBGL_CPU_FORWARD', false);
+    tf.env().set('WEBGL_CPU_FORWARD', false);
   });
 
   it('shallow slice an input that was cast', async () => {

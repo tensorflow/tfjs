@@ -81,7 +81,7 @@ const setupFakeWeightFiles =
       }
     },
      requestInits: {[key: string]: RequestInit}) => {
-      fetchSpy = spyOn(tf.ENV.platform, 'fetch')
+      fetchSpy = spyOn(tf.env().platform, 'fetch')
                      .and.callFake((path: string, init: RequestInit) => {
                        if (fileBufferMap[path]) {
                          requestInits[path] = init;
@@ -191,7 +191,7 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
 
   beforeEach(() => {
     requestInits = [];
-    spyOn(tf.ENV.platform, 'fetch')
+    spyOn(tf.env().platform, 'fetch')
         .and.callFake((path: string, init: RequestInit) => {
           if (path === 'model-upload-test' ||
               path === 'http://model-upload-test') {

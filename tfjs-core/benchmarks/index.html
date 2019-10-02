@@ -128,7 +128,7 @@ limitations under the License.
 
     async function showEnvironment() {
       await tf.time(() => tf.add(tf.tensor1d([1]), tf.tensor1d([1])).data());
-      envDiv.innerHTML += `<br/>${JSON.stringify(tf.ENV.features, null, 2)
+      envDiv.innerHTML += `<br/>${JSON.stringify(tf.env().features, null, 2)
         } `;
     }
 
