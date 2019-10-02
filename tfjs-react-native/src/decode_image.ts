@@ -17,7 +17,7 @@ enum ImageType {
  *     1: output a grayscale image.
  *     3: output an RGB image.
  * @param ratio An optional int. Defaults to 1. Downscaling ratio. It is used
- *     when image is type Jpeg.
+ *     when image is type Jpeg. Not yet supported.
  * @returns A 3D Tensor of dtype `int32` with shape [height, width, 1/3].
  */
 /**
