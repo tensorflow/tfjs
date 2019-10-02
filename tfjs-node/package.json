@@ -51,6 +51,7 @@
   "dependencies": {
     "@tensorflow/tfjs": "1.2.9",
     "adm-zip": "^0.4.11",
+    "google-protobuf": "3.9.2",
     "https-proxy-agent": "^2.2.1",
     "node-pre-gyp": "0.13.0",
     "progress": "^2.0.0",

@@ -16,7 +16,6 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-
 import {createTensorsTypeOpAttr, createTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 describe('delayed upload', () => {
