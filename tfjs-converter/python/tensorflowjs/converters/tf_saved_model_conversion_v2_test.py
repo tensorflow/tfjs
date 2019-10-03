@@ -529,12 +529,9 @@ class ConvertTest(tf.test.TestCase):
         strip_debug_ops=True)
 
     weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{
-            'dtype': 'float32',
-            'name': 'add',
-            'shape': [2, 2]
-        }]
+        'dtype': 'float32',
+        'name': 'add',
+        'shape': [2, 2]
     }]
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     # Check model.json and weights manifest.
@@ -543,9 +540,9 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
-                          weights[0]['paths'])
+                          ['group1-shard1of1.bin'])
     self.assertCountEqual(weights_manifest[0]['weights'],
-                          weights[0]['weights'])
+                          weights)
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
