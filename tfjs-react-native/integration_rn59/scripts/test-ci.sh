@@ -24,9 +24,7 @@ yarn
 yarn lint
 
 # Copy the built version of tfjs-core from the current checkout
-# This script assumes tfjs-core has been built by other CI steps so doesn't
-# rebuilt it to save time.
-cd ../../tfjs-core && pwd && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
+cd ../../tfjs-core && pwd && yarn build-ci && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
 
 yarn prep-tests
 
