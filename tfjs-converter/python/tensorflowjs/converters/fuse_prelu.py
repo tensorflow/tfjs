@@ -163,7 +163,7 @@ def fuse_prelu_with_fused_conv2d(input_graph_def):
       raise ValueError("Duplicate node names detected for ", node.name)
 
   for node in input_graph_def.node:
-    if (node.op != "Prelu" or len(node.input) != 2):
+    if node.op != "Prelu":
       continue
 
     fused_conv_op = common.node_from_map(input_node_map, node.input[0])

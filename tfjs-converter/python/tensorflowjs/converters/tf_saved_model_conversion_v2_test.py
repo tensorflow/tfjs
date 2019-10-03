@@ -122,7 +122,7 @@ class ConvertTest(tf.test.TestCase):
     """Test a basic model with fusable conv2d."""
     layers = [
         tf.keras.layers.Conv2D(
-            16, [3, 3], padding='same', use_bias=True),
+            16, [3, 3], padding='same', use_bias=False),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.ReLU()
     ]
@@ -392,7 +392,6 @@ class ConvertTest(tf.test.TestCase):
         prelu_op = node
       if node['op'] == '_FusedConv2D':
         fused_op = node
-
     self.assertTrue(prelu_op is None)
     self.assertTrue(fused_op is not None)
 
@@ -609,7 +608,6 @@ class ConvertTest(tf.test.TestCase):
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
-
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(weights_manifest, weights)
 
