@@ -8,6 +8,7 @@
     "prep-tests": "ts-node scripts/prep_tests.ts",
     "start-metro": "npx react-native start --reset-cache",
     "test-integration": "wdio wdio.conf.js",
+    "test-ci": "./scripts/test-ci.sh",
     "postinstall": "npm run prep-tests"
   },
   "dependencies": {

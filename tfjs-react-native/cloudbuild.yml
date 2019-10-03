@@ -23,6 +23,16 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
   waitFor: ['yarn']
 
+# Run core unit tests in react native.
+- name: 'node:10'
+  dir: 'tfjs-react-native/integration_rn59'
+  entrypoint: 'yarn'
+  id: 'test-core-with-react-native'
+  args: ['test-ci']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  secretEnv: ['BROWSERSTACK_KEY']
+  waitFor: ['yarn']
+
 # General configuration
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
