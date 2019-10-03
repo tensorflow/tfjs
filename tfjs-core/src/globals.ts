@@ -60,8 +60,8 @@ export function disableDeprecationWarnings(): void {
 export function deprecationWarn(msg: string) {
   if (env().getBool('DEPRECATION_WARNINGS_ENABLED')) {
     console.warn(
-      msg + ' You can disable deprecation warnings with ' +
-      'tf.disableDeprecationWarnings().');
+        msg + ' You can disable deprecation warnings with ' +
+        'tf.disableDeprecationWarnings().');
   }
 }
 setDeprecationWarningFn(deprecationWarn);
@@ -88,7 +88,7 @@ export function engine(): Engine {
  *
  * - `numBytes`: Number of bytes allocated (undisposed) at this time.
  * - `numBytesInGPU`: Number of bytes allocated (undisposed) in the GPU only at
- *     this time. Not present if WebGL is not being used.
+ *     this time. Not present if WebGL is not being
  * - `numTensors`: Number of unique tensors allocated.
  * - `numDataBuffers`: Number of unique data buffers allocated
  *   (undisposed) at this time, which is ≤ the number of tensors
@@ -176,7 +176,7 @@ export function profile(f: () => TensorContainer): Promise<ProfileInfo> {
  */
 /** @doc {heading: 'Performance', subheading: 'Memory'} */
 export function tidy<T extends TensorContainer>(
-  nameOrFn: string | ScopeFn<T>, fn?: ScopeFn<T>): T {
+  nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>): T {
   return ENGINE.tidy(nameOrFn, fn);
 }
 
@@ -315,7 +315,7 @@ export function findBackend(name: string): KernelBackend {
  * is not in the registry.
  */
 export function findBackendFactory(name: string): () =>
-  KernelBackend | Promise<KernelBackend> {
+  KernelBackend|Promise<KernelBackend> {
   return ENGINE.findBackendFactory(name);
 }
 
@@ -334,8 +334,8 @@ export function findBackendFactory(name: string): () =>
  */
 /** @doc {heading: 'Backends'} */
 export function registerBackend(
-  name: string, factory: () => KernelBackend | Promise<KernelBackend>,
-  priority = 1): boolean {
+    name: string, factory: () => KernelBackend | Promise<KernelBackend>,
+    priority = 1): boolean {
   return ENGINE.registerBackend(name, factory, priority);
 }
 
