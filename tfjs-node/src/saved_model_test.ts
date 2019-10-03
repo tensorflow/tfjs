@@ -119,4 +119,15 @@ describe('SavedModel', () => {
     const enumKey2 = getEnumKeyFromValue(DataType, 2);
     expect(enumKey2).toBe('DT_DOUBLE');
   });
+
+  it('read non-exist file', async done => {
+    try {
+      await readSavedModelProto('/not-exist');
+      done.fail();
+    } catch (err) {
+      expect(err.message)
+          .toBe(`ENOENT: no such file or directory, open '/not-exist'`);
+      done();
+    }
+  });
 });

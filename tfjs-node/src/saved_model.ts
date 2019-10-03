@@ -35,7 +35,11 @@ export function getEnumKeyFromValue(object: any, value: number): string {
   return Object.keys(object).find(key => object[key] === value);
 }
 
-// tslint:disable-next-line:no-any
+/**
+ * Read SavedModel proto message from path.
+ *
+ * @param path
+ */
 export async function readSavedModelProto(path: string) {
   // Load the SavedModel pb file and deserialize it into message.
   const modelFile = await readFile(path);
