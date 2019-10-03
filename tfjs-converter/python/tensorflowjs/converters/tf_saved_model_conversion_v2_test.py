@@ -466,7 +466,6 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(len(weights_manifest), len(weights))
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
     self.assertCountEqual(weights_manifest[0]['weights'],
