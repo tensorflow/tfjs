@@ -19,7 +19,6 @@ import glob
 import json
 import os
 import shutil
-import sys
 import tempfile
 import unittest
 
@@ -249,7 +248,7 @@ class ConvertTest(tf.test.TestCase):
         output_dir
     )
 
-    expected_weights_manifest = [{
+    weights = [{
         'paths': ['group1-shard1of1.bin'],
         'weights': [{'dtype': 'float32', 'name': 'w', 'shape': [2, 2]}]}]
 
@@ -259,7 +258,10 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, expected_weights_manifest)
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          weights[0]['paths'])
+    self.assertCountEqual(weights_manifest[0]['weights'],
+                          weights[0]['weights'])
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
     self.assertEqual(
@@ -320,16 +322,10 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(len(weights_manifest), len(weights))
-    if sys.version_info[0] < 3:
-      self.assertItemsEqual(weights_manifest[0]['paths'],
-                            weights[0]['paths'])
-      self.assertItemsEqual(weights_manifest[0]['weights'],
-                            weights[0]['weights'])
-    else:
-      self.assertCountEqual(weights_manifest[0]['paths'],
-                            weights[0]['paths'])
-      self.assertCountEqual(weights_manifest[0]['weights'],
-                            weights[0]['weights'])
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          weights[0]['paths'])
+    self.assertCountEqual(weights_manifest[0]['weights'],
+                          weights[0]['weights'])
 
   def test_convert_saved_model_with_fused_conv2d(self):
     self._create_saved_model_with_fusable_conv2d()
@@ -475,16 +471,10 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(len(weights_manifest), len(weights))
-    if sys.version_info[0] < 3:
-      self.assertItemsEqual(weights_manifest[0]['paths'],
-                            weights[0]['paths'])
-      self.assertItemsEqual(weights_manifest[0]['weights'],
-                            weights[0]['weights'])
-    else:
-      self.assertCountEqual(weights_manifest[0]['paths'],
-                            weights[0]['paths'])
-      self.assertCountEqual(weights_manifest[0]['weights'],
-                            weights[0]['weights'])
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          weights[0]['paths'])
+    self.assertCountEqual(weights_manifest[0]['weights'],
+                          weights[0]['weights'])
 
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
@@ -525,7 +515,10 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          weights[0]['paths'])
+    self.assertCountEqual(weights_manifest[0]['weights'],
+                          weights[0]['weights'])
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
@@ -555,7 +548,10 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          weights[0]['paths'])
+    self.assertCountEqual(weights_manifest[0]['weights'],
+                          weights[0]['weights'])
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
@@ -582,7 +578,10 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(model_json['modelTopology'])
 
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          weights[0]['paths'])
+    self.assertCountEqual(weights_manifest[0]['weights'],
+                          weights[0]['weights'])
 
     self.assertTrue(
         glob.glob(
@@ -611,7 +610,10 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(model_json['modelTopology'])
 
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          weights[0]['paths'])
+    self.assertCountEqual(weights_manifest[0]['weights'],
+                          weights[0]['weights'])
 
     self.assertTrue(
         glob.glob(
