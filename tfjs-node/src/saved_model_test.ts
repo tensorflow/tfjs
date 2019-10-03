@@ -118,5 +118,5 @@ describe('SavedModel', () => {
     expect(enumKey1).toBe('DT_FLOAT');
     const enumKey2 = getEnumKeyFromValue(DataType, 2);
     expect(enumKey2).toBe('DT_DOUBLE');
-  })
+  });
 });
