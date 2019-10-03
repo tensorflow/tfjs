@@ -150,8 +150,6 @@ py_binary(
     srcs_version = "PY2AND3",
     deps = [
         ":common",
-        ":converter",
-        ":fuse_prelu",
         "//tensorflowjs:expect_h5py_installed",
         "//tensorflowjs:expect_tensorflow_installed",
     ],
@@ -166,6 +164,7 @@ py_binary(
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
         ":tf_saved_model_conversion_v2",
+        ":wizard",
         "//tensorflowjs:expect_h5py_installed",
         "//tensorflowjs:expect_tensorflow_installed",
         "//tensorflowjs:version",
