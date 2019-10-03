@@ -309,11 +309,9 @@ class ConvertTest(tf.test.TestCase):
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     )
 
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{'dtype': 'float32',
-                     'name': 'StatefulPartitionedCall/mul',
-                     'shape': []}]}]
+    weights = [{'dtype': 'float32',
+                'name': 'StatefulPartitionedCall/mul',
+                'shape': []}]
 
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     # Check model.json and weights manifest.
@@ -323,9 +321,9 @@ class ConvertTest(tf.test.TestCase):
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(len(weights_manifest), len(weights))
     self.assertCountEqual(weights_manifest[0]['paths'],
-                          weights[0]['paths'])
+                          ['group1-shard1of1.bin'])
     self.assertCountEqual(weights_manifest[0]['weights'],
-                          weights[0]['weights'])
+                          weights)
 
   def test_convert_saved_model_with_fused_conv2d(self):
     self._create_saved_model_with_fusable_conv2d()
@@ -447,21 +445,20 @@ class ConvertTest(tf.test.TestCase):
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     )
 
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{'dtype': 'int32', 'shape': [],
-                     'name': 'StatefulPartitionedCall/while/loop_counter'},
-                    {'dtype': 'int32', 'shape': [],
-                     'name': 'StatefulPartitionedCall/while/maximum_iterations'
-                    },
-                    {'dtype': 'int32', 'shape': [],
-                     'name': 'StatefulPartitionedCall/while/cond/_3/mod/y'},
-                    {'dtype': 'int32', 'shape': [],
-                     'name': 'StatefulPartitionedCall/while/cond/_3/Equal/y'},
-                    {'dtype': 'int32', 'shape': [],
-                     'name': 'StatefulPartitionedCall/while/body/_4/add_1/y'},
-                    {'name': 'StatefulPartitionedCall/add/y',
-                     'dtype': 'int32', 'shape': []}]}]
+    weights = [
+        {'dtype': 'int32', 'shape': [],
+         'name': 'StatefulPartitionedCall/while/loop_counter'},
+        {'dtype': 'int32', 'shape': [],
+         'name': 'StatefulPartitionedCall/while/maximum_iterations'
+        },
+        {'dtype': 'int32', 'shape': [],
+         'name': 'StatefulPartitionedCall/while/cond/_3/mod/y'},
+        {'dtype': 'int32', 'shape': [],
+         'name': 'StatefulPartitionedCall/while/cond/_3/Equal/y'},
+        {'dtype': 'int32', 'shape': [],
+         'name': 'StatefulPartitionedCall/while/body/_4/add_1/y'},
+        {'name': 'StatefulPartitionedCall/add/y',
+         'dtype': 'int32', 'shape': []}]
 
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     # Check model.json and weights manifest.
@@ -471,9 +468,9 @@ class ConvertTest(tf.test.TestCase):
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(len(weights_manifest), len(weights))
     self.assertCountEqual(weights_manifest[0]['paths'],
-                          weights[0]['paths'])
+                          ['group1-shard1of1.bin'])
     self.assertCountEqual(weights_manifest[0]['weights'],
-                          weights[0]['weights'])
+                          weights)
 
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
@@ -503,11 +500,9 @@ class ConvertTest(tf.test.TestCase):
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR), skip_op_check=True
     )
 
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{'dtype': 'float32',
-                     'name': 'StatefulPartitionedCall/MatrixDiag',
-                     'shape': [2, 2, 2]}]}]
+    weights = [{'dtype': 'float32',
+                'name': 'StatefulPartitionedCall/MatrixDiag',
+                'shape': [2, 2, 2]}]
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
@@ -515,9 +510,9 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
-                          weights[0]['paths'])
+                          ['group1-shard1of1.bin'])
     self.assertCountEqual(weights_manifest[0]['weights'],
-                          weights[0]['weights'])
+                          weights)
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
@@ -563,12 +558,9 @@ class ConvertTest(tf.test.TestCase):
     tf_saved_model_conversion_v2.convert_tf_hub_module(module_path, tfjs_path)
 
     weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{
-            'shape': [2],
-            'name': 'module/Variable',
-            'dtype': 'float32'
-        }]
+        'shape': [2],
+        'name': 'module/Variable',
+        'dtype': 'float32'
     }]
 
     # Check model.json and weights manifest.
@@ -578,9 +570,9 @@ class ConvertTest(tf.test.TestCase):
 
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
-                          weights[0]['paths'])
+                          ['group1-shard1of1.bin'])
     self.assertCountEqual(weights_manifest[0]['weights'],
-                          weights[0]['weights'])
+                          weights)
 
     self.assertTrue(
         glob.glob(
@@ -595,12 +587,9 @@ class ConvertTest(tf.test.TestCase):
         module_path, tfjs_path, "serving_default", "serve")
 
     weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{
-            'shape': [],
-            'name': 'StatefulPartitionedCall/mul',
-            'dtype': 'float32'
-        }]
+        'shape': [],
+        'name': 'StatefulPartitionedCall/mul',
+        'dtype': 'float32'
     }]
 
     # Check model.json and weights manifest.
@@ -609,9 +598,9 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
-                          weights[0]['paths'])
+                          ['group1-shard1of1.bin'])
     self.assertCountEqual(weights_manifest[0]['weights'],
-                          weights[0]['weights'])
+                          weights)
 
     self.assertTrue(
         glob.glob(
