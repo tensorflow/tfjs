@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from './environment';
+import * as tf from './index';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 import {scalar, tensor2d} from './ops/ops';
 import {inferShape} from './tensor_util_env';
@@ -516,11 +516,11 @@ describeWithFlags('util.toNestedArray', ALL_ENVS, () => {
 
 describe('util.fetch', () => {
   it('should call the platform fetch', () => {
-    spyOn(ENV.platform, 'fetch').and.callFake(() => {});
+    spyOn(tf.env().platform, 'fetch').and.callFake(() => {});
 
     util.fetch('test/path', {method: 'GET'});
 
-    expect(ENV.platform.fetch).toHaveBeenCalledWith('test/path', {
+    expect(tf.env().platform.fetch).toHaveBeenCalledWith('test/path', {
       method: 'GET'
     });
   });

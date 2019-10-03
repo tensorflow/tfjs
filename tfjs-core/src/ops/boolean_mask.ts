@@ -33,7 +33,7 @@ import {gather} from './segment_ops';
  * result.print();
  * ```
  *
- * @param N-D tensor.
+ * @param tensor N-D tensor.
  * @param mask K-D boolean tensor, K <= N and K must be known statically.
  * @param axis A 0-D int Tensor representing the axis in tensor to mask from.
  *     By default, axis is 0 which will mask from the first dimension.

@@ -15,16 +15,16 @@
  * =============================================================================
  */
 
-import {ENV} from './environment';
+import {env} from './environment';
 
 export function warn(...msg: Array<{}>): void {
-  if (!ENV.getBool('IS_TEST')) {
+  if (!env().getBool('IS_TEST')) {
     console.warn(...msg);
   }
 }
 
 export function log(...msg: Array<{}>): void {
-  if (!ENV.getBool('IS_TEST')) {
+  if (!env().getBool('IS_TEST')) {
     console.log(...msg);
   }
 }
