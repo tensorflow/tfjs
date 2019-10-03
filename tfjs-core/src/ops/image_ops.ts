@@ -191,8 +191,10 @@ async function nonMaxSuppressionAsync_(
   iouThreshold = inputs.iouThreshold;
   scoreThreshold = inputs.scoreThreshold;
 
-  const [boxesVals, scoresVals] =
-      await Promise.all([$boxes.data(), $scores.data()]);
+  const boxesAndScores = await Promise.all([$boxes.data(), $scores.data()]);
+  const boxesVals = boxesAndScores[0];
+  const scoresVals = boxesAndScores[1];
+
   const res = nonMaxSuppressionImpl(
       boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   if ($boxes !== boxes) {
