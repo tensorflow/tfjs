@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-import { KernelBackend } from './backends/backend';
-import { ENGINE, Engine, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo } from './engine';
-import { env } from './environment';
+import {KernelBackend} from './backends/backend';
+import {ENGINE, Engine, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo} from './engine';
+import {env} from './environment';
 
-import { Platform } from './platforms/platform';
-import { setDeprecationWarningFn, Tensor } from './tensor';
-import { TensorContainer } from './tensor_types';
-import { getTensorsInContainer } from './tensor_util';
+import {Platform} from './platforms/platform';
+import {setDeprecationWarningFn, Tensor} from './tensor';
+import {TensorContainer} from './tensor_types';
+import {getTensorsInContainer} from './tensor_util';
 
 /**
  * Enables production mode which disables correctness checks in favor of
