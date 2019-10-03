@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-import {KernelBackend} from './backends/backend';
-import {ENGINE, Engine, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo} from './engine';
-import {env} from './environment';
+import { KernelBackend } from './backends/backend';
+import { ENGINE, Engine, MemoryInfo, ProfileInfo, ScopeFn, TimingInfo } from './engine';
+import { env } from './environment';
 
-import {Platform} from './platforms/platform';
-import {setDeprecationWarningFn, Tensor} from './tensor';
-import {TensorContainer} from './tensor_types';
-import {getTensorsInContainer} from './tensor_util';
+import { Platform } from './platforms/platform';
+import { setDeprecationWarningFn, Tensor } from './tensor';
+import { TensorContainer } from './tensor_types';
+import { getTensorsInContainer } from './tensor_util';
 
 /**
  * Enables production mode which disables correctness checks in favor of
@@ -60,8 +60,8 @@ export function disableDeprecationWarnings(): void {
 export function deprecationWarn(msg: string) {
   if (env().getBool('DEPRECATION_WARNINGS_ENABLED')) {
     console.warn(
-        msg + ' You can disable deprecation warnings with ' +
-        'tf.disableDeprecationWarnings().');
+      msg + ' You can disable deprecation warnings with ' +
+      'tf.disableDeprecationWarnings().');
   }
 }
 setDeprecationWarningFn(deprecationWarn);
@@ -87,6 +87,8 @@ export function engine(): Engine {
  * object with the following properties:
  *
  * - `numBytes`: Number of bytes allocated (undisposed) at this time.
+ * - `numBytesInGPU`: Number of bytes allocated (undisposed) in the GPU only at
+ *     this time. Not present if WebGL is not being used.
  * - `numTensors`: Number of unique tensors allocated.
  * - `numDataBuffers`: Number of unique data buffers allocated
  *   (undisposed) at this time, which is ≤ the number of tensors
@@ -174,7 +176,7 @@ export function profile(f: () => TensorContainer): Promise<ProfileInfo> {
  */
 /** @doc {heading: 'Performance', subheading: 'Memory'} */
 export function tidy<T extends TensorContainer>(
-    nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>): T {
+  nameOrFn: string | ScopeFn<T>, fn?: ScopeFn<T>): T {
   return ENGINE.tidy(nameOrFn, fn);
 }
 
@@ -313,7 +315,7 @@ export function findBackend(name: string): KernelBackend {
  * is not in the registry.
  */
 export function findBackendFactory(name: string): () =>
-    KernelBackend | Promise<KernelBackend> {
+  KernelBackend | Promise<KernelBackend> {
   return ENGINE.findBackendFactory(name);
 }
 
@@ -332,8 +334,8 @@ export function findBackendFactory(name: string): () =>
  */
 /** @doc {heading: 'Backends'} */
 export function registerBackend(
-    name: string, factory: () => KernelBackend | Promise<KernelBackend>,
-    priority = 1): boolean {
+  name: string, factory: () => KernelBackend | Promise<KernelBackend>,
+  priority = 1): boolean {
   return ENGINE.registerBackend(name, factory, priority);
 }
 
