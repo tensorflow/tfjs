@@ -24,7 +24,6 @@ import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
-
 Error.stackTraceLimit = Infinity;
 
 // tslint:disable-next-line:no-require-imports
@@ -90,12 +89,10 @@ if (process.platform === 'win32') {
 }
 
 const coreTests = 'node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
-const imageTests = 'src/**/image_test.ts';
-const savedModelTest = 'src/**/saved_model_test.ts';
+const nodeTests = 'src/**/*_test.ts';
 
 const runner = new jasmineCtor();
-runner.loadConfig(
-    {spec_files: [coreTests, imageTests, savedModelTest], random: false});
+runner.loadConfig({spec_files: [coreTests, nodeTests], random: false});
 
 if (process.env.JASMINE_SEED) {
   runner.seed(process.env.JASMINE_SEED);

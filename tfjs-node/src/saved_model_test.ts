@@ -15,10 +15,7 @@
  * =============================================================================
  */
 
-import * as fs from 'fs';
-import {promisify} from 'util';
-
-const readFile = promisify(fs.readFile);
+import {getEnumKeyFromValue, readSavedModelProto} from './saved_model';
 
 // tslint:disable-next-line:no-require-imports
 const messages = require('./proto/api_pb');
@@ -53,12 +50,8 @@ describe('SavedModel', () => {
      *  }
      * }
      */
-
-    // Load the SavedModel pb file and deserialize it into message.
-    const modelFile =
-        await readFile('./test_objects/times_three_float/saved_model.pb');
-    const array = new Uint8Array(modelFile);
-    const modelMessage = messages.SavedModel.deserializeBinary(array);
+    const modelMessage = await readSavedModelProto(
+        './test_objects/times_three_float/saved_model.pb');
 
     // This SavedModel has one MetaGraph with tag serve
     expect(modelMessage.getMetaGraphsList().length).toBe(1);
@@ -97,8 +90,8 @@ describe('SavedModel', () => {
     expect(inputsMapKey1.value).toBe('x');
     const inputTensorMessage = inputsMapMessage.get(inputsMapKey1.value);
     expect(inputTensorMessage.getName()).toBe('serving_default_x:0');
-    expect(getEnumKeyFromEnumValue(
-               messages.DataType, inputTensorMessage.getDtype()))
+    expect(
+        getEnumKeyFromValue(messages.DataType, inputTensorMessage.getDtype()))
         .toBe('DT_FLOAT');
 
     // The output op of signature serving_default is StatefulPartitionedCall,
@@ -112,14 +105,18 @@ describe('SavedModel', () => {
     expect(outputsMapKey1.value).toBe('output_0');
     const outputTensorMessage = outputsMapMessage.get(outputsMapKey1.value);
     expect(outputTensorMessage.getName()).toBe('StatefulPartitionedCall:0');
-    expect(getEnumKeyFromEnumValue(
-               messages.DataType, outputTensorMessage.getDtype()))
+    expect(
+        getEnumKeyFromValue(messages.DataType, outputTensorMessage.getDtype()))
         .toBe('DT_FLOAT');
   });
-});
 
-// TODO:(kangyizhang) move this function out of test.
-// tslint:disable-next-line:no-any
-function getEnumKeyFromEnumValue(object: any, value: number): string {
-  return Object.keys(object).find(key => object[key] === value);
-}
+  it('get enum key based on value', () => {
+    const DataType = messages.DataType;
+    const enumKey0 = getEnumKeyFromValue(DataType, 0);
+    expect(enumKey0).toBe('DT_INVALID');
+    const enumKey1 = getEnumKeyFromValue(DataType, 1);
+    expect(enumKey1).toBe('DT_FLOAT');
+    const enumKey2 = getEnumKeyFromValue(DataType, 2);
+    expect(enumKey2).toBe('DT_DOUBLE');
+  })
+});
