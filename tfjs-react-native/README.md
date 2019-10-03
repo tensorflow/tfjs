@@ -144,7 +144,7 @@ async function asyncStorageExample() {
 }
 ```
 
-The `asyncStorageIO` function returns an io handler that can be used to save an load models
+The `asyncStorageIO` function returns an io handler that can be used to save and load models
 to and from AsyncStorage.
 
 ### bundleResourceIO(modelArchitecture: Object, modelWeights: number)
