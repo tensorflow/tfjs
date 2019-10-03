@@ -23,9 +23,12 @@ trap "kill 0" EXIT
 yarn
 yarn lint
 
-# build tfjs-core from current checkout
+# Copy the built version of tfjs-core from the current checkout
+# This script assumes tfjs-core has been built by other CI steps so doesn't
+# rebuilt it to save time.
+cd ../../tfjs-core && pwd && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
 
-# copy dist folder of tfjs-core to integration_test node_modules
+yarn prep-tests
 
 # Spawn a metro bundler/asset server in the background.
 nohup yarn start-metro &>/dev/null &
