@@ -176,7 +176,7 @@ export function profile(f: () => TensorContainer): Promise<ProfileInfo> {
  */
 /** @doc {heading: 'Performance', subheading: 'Memory'} */
 export function tidy<T extends TensorContainer>(
-  nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>): T {
+    nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>): T {
   return ENGINE.tidy(nameOrFn, fn);
 }
 
@@ -315,7 +315,7 @@ export function findBackend(name: string): KernelBackend {
  * is not in the registry.
  */
 export function findBackendFactory(name: string): () =>
-  KernelBackend|Promise<KernelBackend> {
+    KernelBackend | Promise<KernelBackend> {
   return ENGINE.findBackendFactory(name);
 }
 
