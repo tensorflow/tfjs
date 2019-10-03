@@ -473,9 +473,6 @@ class ConvertTest(tf.test.TestCase):
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR), skip_op_check=True
     )
 
-    weights = [{'dtype': 'float32',
-                'name': 'StatefulPartitionedCall/MatrixDiag',
-                'shape': [2, 2, 2]}]
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
