@@ -6,6 +6,8 @@
     "start": "react-native start --reset-cache",
     "lint": "tslint -p . -t verbose",
     "prep-tests": "ts-node scripts/prep_tests.ts",
+    "start-metro": "npx react-native start --reset-cache",
+    "test-integration": "wdio wdio.conf.js",
     "postinstall": "npm run prep-tests"
   },
   "dependencies": {
@@ -26,11 +28,16 @@
   "devDependencies": {
     "@babel/core": "^7.5.5",
     "@babel/runtime": "^7.5.5",
-    "@types/jasmine": "^3.4.0",
+    "@types/jasmine": "^3.4.2",
     "@types/jest": "^24.0.17",
     "@types/react": "^16.8.24",
     "@types/react-native": "^0.60.3",
     "@types/react-test-renderer": "^16.8.3",
+    "@wdio/browserstack-service": "^5.13.2",
+    "@wdio/cli": "^5.13.2",
+    "@wdio/jasmine-framework": "^5.13.2",
+    "@wdio/local-runner": "^5.13.2",
+    "@wdio/spec-reporter": "^5.13.2",
     "babel-jest": "^24.8.0",
     "clang-format": "~1.2.2",
     "jest": "^24.8.0",
@@ -39,7 +46,8 @@
     "ts-node": "~4.1.0",
     "tslint": "~5.11.0",
     "tslint-no-circular-imports": "^0.5.0",
-    "typescript": "3.5.3"
+    "typescript": "3.5.3",
+    "webdriverio": "^5.13.2"
   },
   "jest": {
     "preset": "react-native"
