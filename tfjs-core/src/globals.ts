@@ -88,7 +88,7 @@ export function engine(): Engine {
  *
  * - `numBytes`: Number of bytes allocated (undisposed) at this time.
  * - `numBytesInGPU`: Number of bytes allocated (undisposed) in the GPU only at
- *     this time. Not present if WebGL is not being
+ *     this time. Not present if WebGL is not being used.
  * - `numTensors`: Number of unique tensors allocated.
  * - `numDataBuffers`: Number of unique data buffers allocated
  *   (undisposed) at this time, which is ≤ the number of tensors
