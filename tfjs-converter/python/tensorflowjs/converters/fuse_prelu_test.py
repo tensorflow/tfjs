@@ -20,6 +20,7 @@ import tempfile
 
 import tensorflow as tf
 from tensorflow.core.protobuf import config_pb2
+from tensorflow.core.protobuf import meta_graph_pb2
 
 from tensorflowjs.converters import fuse_prelu
 from tensorflowjs.converters import tf_saved_model_conversion_v2
@@ -92,8 +93,9 @@ class FusePreluTest(tf.test.TestCase):
     for output in ['Identity']:
       graph.add_to_collection('train_op', graph.get_operation_by_name(output))
 
+    signature = meta_graph_pb2.SignatureDef()
     graph_def = tf_saved_model_conversion_v2._run_grappler(
-        config, graph_def, graph)
+        config, graph_def, graph, signature)
 
     graph_def = fuse_prelu.fuse_ops_for_prelu(graph_def)
 

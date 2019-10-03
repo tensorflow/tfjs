@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {env} from '../environment';
+
 import {NamedTensorMap} from '../tensor_types';
 import * as util from '../util';
-
 import {decodeWeights} from './io_utils';
 import {monitorPromisesProgress} from './progress';
 import {DTYPE_VALUE_SIZE_MAP, LoadOptions, WeightsManifestConfig, WeightsManifestEntry} from './types';
@@ -40,7 +40,7 @@ export async function loadWeightsAsArrayBuffer(
     loadOptions = {};
   }
 
-  const fetchFunc = loadOptions.fetchFunc == null ? ENV.platform.fetch :
+  const fetchFunc = loadOptions.fetchFunc == null ? env().platform.fetch :
                                                     loadOptions.fetchFunc;
 
   // Create the requests for all of the weights in parallel.
