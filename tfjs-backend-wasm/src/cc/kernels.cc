@@ -29,6 +29,44 @@ void add(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf) {
   }
 }
 
+template <class T>
+void batchMatMul(T* a_buf, int a_size, T* b_buf, int sharedDim, int leftDim,
+                 int rightDim, int batchDim, int aBatch, int aOuterStep,
+                 int aInnerStep, int bBatch, int bOuterStep, int bInnerStep,
+                 int b_size, T* out_buf) {
+  int size = std::max(a_size, b_size);
+  for (int i = 0; i < size; ++i) {
+    // out_buf[i] = a_buf[i % a_size] + b_buf[i % b_size];
+  }
+
+  int blockSize = 48;
+
+  for (int b = 0; b < batchDim; b++) {
+    for (int i0 = 0; i0 < leftDim; i0 += blockSize) {
+      for (int j0 = 0; j0 < rightDim; j0 += blockSize) {
+        for (int k0 = 0; k0 < sharedDim; k0 += blockSize) {
+          // for when blockSize doesn't evenly divide the input
+          int iBlock = std::min(i0 + blockSize, leftDim);
+          int jBlock = std::min(j0 + blockSize, rightDim);
+          int kBlock = std::min(k0 + blockSize, sharedDim);
+
+          for (int i = i0; i < iBlock; i++) {
+            for (int j = j0; j < jBlock; j++) {
+              float sum = 0.0;
+
+              for (int k = k0; k < kBlock; k++) {
+                sum += a_buf[b * aBatch + i * aOuterStep + k * aInnerStep] *
+                       b_buf[k * bInnerStep + j * bOuterStep + b * bBatch];
+              }
+              out_buf[b * size + (i * rightDim + j)] += sum;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 // Templates need explicit instantiation when implemented in a .cc file.
 template void add<float>(float* a_buf, int a_size, float* b_buf, int b_size,
                          float* out_buf);
@@ -37,5 +75,10 @@ template void add<int>(int* a_buf, int a_size, int* b_buf, int b_size,
 template void add<bool>(bool* a_buf, int a_size, bool* b_buf, int b_size,
                         bool* out_buf);
 
+template void batchMatMul<float>(float* a_buf, int a_size, float* b_buf,
+                                 int sharedDim, int leftDim, int rightDim,
+                                 int batchDim, int aBatch, int aOuterStep,
+                                 int aInnerStep, int bBatch, int bOuterStep,
+                                 int bInnerStep, int b_size, float* out_buf);
 }  // namespace kernels
 }  // namespace tfjs

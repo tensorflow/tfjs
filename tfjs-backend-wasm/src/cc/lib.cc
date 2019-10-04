@@ -124,6 +124,34 @@ void add(int a_id, int b_id, int out_id) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+void batchMatMul(int a_id, int b_id, int sharedDim, int leftDim, int rightDim,
+                 int batchDim, int aBatch, int aOuterStep, int aInnerStep,
+                 int bBatch, int bOuterStep, int bInnerStep, int out_id) {
+  const auto a_info = data.at(a_id);
+  const auto b_info = data.at(b_id);
+  const auto out_info = data.at(out_id);
+  switch (a_info.dtype) {
+    case DType::float32:
+      kernels::batchMatMul(a_info.buf.f32, a_info.size, b_info.buf.f32,
+                           b_info.size, sharedDim, leftDim, rightDim, batchDim,
+                           aBatch, aOuterStep, aInnerStep, bBatch, bOuterStep,
+                           bInnerStep, out_info.buf.f32);
+      break;
+    // case DType::int32:
+    //   kernels::add(a_info.buf.i32, a_info.size, b_info.buf.i32, b_info.size,
+    //                out_info.buf.i32);
+    //   break;
+    // case DType::boolean:
+    //   kernels::add(a_info.buf.b, a_info.size, b_info.buf.b, b_info.size,
+    //                out_info.buf.b);
+    //   break;
+    default:
+      util::warn("Add for tensor ids %d and %d failed. Unknown dtype %d", a_id,
+                 b_id, a_info.dtype);
+  }
+}
+
+EMSCRIPTEN_KEEPALIVE
 void dispose() {
   for (auto const &element : data) {
     dispose_data(element.first);
