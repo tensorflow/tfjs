@@ -50,6 +50,7 @@ module.exports = function(config) {
     exclude,
     preprocessors: {'**/*.ts': ['karma-typescript']},
     karmaTypescriptConfig,
+    browserNoActivityTimeout: 3000000,
     reporters: ['progress', 'karma-typescript'],
     port: 9876,
     colors: true,
