@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "build-npm": "./scripts/build-npm.sh",
+    "build-npm": "prep-gpu && ./scripts/build-npm.sh",
     "build-addon": "./scripts/build-and-upload-addon.sh",
     "build-addon-from-source": "node-pre-gyp install --build-from-source",
     "clean-deps": "rm -rf deps && rm -rf lib",
@@ -27,7 +27,7 @@
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
-    "preinstall": "./prep-gpu.sh",
+    "prep-gpu": "./prep-gpu.sh",
     "publish-local": "yarn prep && yalc push",
     "test": "ts-node src/run_tests.ts",
     "test-ci": "./scripts/test-ci.sh",
@@ -68,6 +68,7 @@
     "napi_versions": [
       3,
       4
-    ]
+    ],
+    "package_name": "GPU-windows-1.2.10.zip"
   }
 }
