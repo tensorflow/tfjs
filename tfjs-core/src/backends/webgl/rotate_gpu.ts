@@ -13,6 +13,10 @@ export class RotateProgram implements GPGPUProgram {
     const sinFactor = Math.sin(radians);
     const cosFactor = Math.cos(radians);
     const ratio = imageWidth / imageHeight;
+    this.outputShape = imageShape;
+
+    const halfWidth = (imageWidth / 2);
+    const halfHeight = (imageHeight / 2);
 
     this.userCode = `
         void main() {
@@ -21,15 +25,15 @@ export class RotateProgram implements GPGPUProgram {
           int x = coords[2];
           int y = coords[1];
 
-          float coordX = (x - ${imageWidth / 2}) * ${cosFactor} - (y - ${
-        imageHeight / 2}) * ${sinFactor};
-          float coordY = (x - ${imageWidth / 2}) * ${sinFactor} + (y - ${
-        imageHeight / 2}) * ${cosFactor};
+          int coordX = int(float(x - ${halfWidth}) * ${cosFactor} - float(y - ${
+        halfHeight}) * ${sinFactor});
+          int coordY = int(float(x - ${halfWidth}) * ${sinFactor} + float(y - ${
+        halfHeight}) * ${cosFactor});
 
-          coordX = round(coordX + ${imageWidth / 2});
-          coordY = round((coordY + ${imageHeight / 2}) * ${ratio});
+          coordX = int(coordX + ${imageWidth / 2});
+          coordY = int(float(coordY + ${halfHeight}) * ${ratio});
 
-          float outputValue = ${fillValue};
+          float outputValue = ${fillValue.toFixed(2)};
           if(coordX > 0 && coordX < ${imageWidth} && coordY > 0 && coordY < ${
         imageHeight}) {
             outputValue = getImage(coords[0], coordY, coordX, coords[3]);
