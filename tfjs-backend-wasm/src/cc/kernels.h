@@ -22,11 +22,11 @@ template <class T>
 // Element-wise add of two tensors.
 void add(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf);
 
-template <class T>
 // Batched matrix multiply.
-void batchMatMul(T* a_buf, T* b_buf, int sharedDim, int leftDim, int rightDim,
-                 int batchDim, int aBatch, int aOuterStep, int aInnerStep,
-                 int bBatch, int bOuterStep, int bInnerStep, T* out_buf);
+void batchMatMul(float* a_buf, float* b_buf, int sharedDim, int leftDim,
+                 int rightDim, int batchDim, int aBatch, int aOuterStep,
+                 int aInnerStep, int bBatch, int bOuterStep, int bInnerStep,
+                 float* out_buf);
 }  // namespace kernels
 }  // namespace tfjs
 

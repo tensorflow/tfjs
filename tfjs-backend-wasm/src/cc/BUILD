@@ -7,15 +7,12 @@ cc_binary(
         "-s DISABLE_EXCEPTION_CATCHING=1",
         "-s FILESYSTEM=0",
         "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
+        "-s EXPORTED_FUNCTIONS='[\"_malloc\"]'",
         "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
         "-s ENVIRONMENT=web",
         "-s MODULARIZE=1",
-        "-s STACK_OVERFLOW_CHECK=1",
-        "-s TOTAL_MEMORY=512MB",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
-        "-g",
     ],
     deps = [
         ":kernels",
@@ -26,8 +23,7 @@ cc_binary(
 cc_library(
     name = "kernels",
     srcs = ["kernels.cc"],
-    hdrs = ["kernels.h"],
-    deps = [":util"]
+    hdrs = ["kernels.h"]
 )
 
 cc_library(

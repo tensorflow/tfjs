@@ -136,17 +136,10 @@ void batchMatMul(int a_id, int b_id, int sharedDim, int leftDim, int rightDim,
                            rightDim, batchDim, aBatch, aOuterStep, aInnerStep,
                            bBatch, bOuterStep, bInnerStep, out_info.buf.f32);
       break;
-    // case DType::int32:
-    //   kernels::add(a_info.buf.i32, a_info.size, b_info.buf.i32, b_info.size,
-    //                out_info.buf.i32);
-    //   break;
-    // case DType::boolean:
-    //   kernels::add(a_info.buf.b, a_info.size, b_info.buf.b, b_info.size,
-    //                out_info.buf.b);
-    //   break;
     default:
-      util::warn("Add for tensor ids %d and %d failed. Unknown dtype %d", a_id,
-                 b_id, a_info.dtype);
+      util::warn(
+          "batchMatMul for tensor ids %d and %d failed. Unknown dtype %d", a_id,
+          b_id, a_info.dtype);
   }
 }
 

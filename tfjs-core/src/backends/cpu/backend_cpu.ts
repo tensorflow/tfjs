@@ -508,7 +508,6 @@ export class MathBackendCPU implements KernelBackend {
         [b.strides[1], 1, b.strides[0]];
 
     const size = leftDim * rightDim;
-
     const result = buffer([batchDim, leftDim, rightDim], a.dtype);
     const resVals = result.values as TypedArray;
     const blockSize = this.blockSize;

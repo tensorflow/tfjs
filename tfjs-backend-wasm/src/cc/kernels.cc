@@ -15,7 +15,6 @@
 #include "src/cc/kernels.h"
 
 #include <algorithm>
-#include "util.h"
 
 namespace tfjs {
 namespace kernels {
@@ -30,17 +29,15 @@ void add(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf) {
   }
 }
 
-template <class T>
-void batchMatMul(T* a_buf, T* b_buf, int sharedDim, int leftDim, int rightDim,
-                 int batchDim, int aBatch, int aOuterStep, int aInnerStep,
-                 int bBatch, int bOuterStep, int bInnerStep, T* out_buf) {
-  int blockSize = 48;
+const int blockSize = 48;
+void batchMatMul(float* a_buf, float* b_buf, int sharedDim, int leftDim,
+                 int rightDim, int batchDim, int aBatch, int aOuterStep,
+                 int aInnerStep, int bBatch, int bOuterStep, int bInnerStep,
+                 float* out_buf) {
   int size = leftDim * rightDim;
 
   // Zero out the output buffer because it might have been used before.
-  for (int i = 0; i < size; i++) {
-    out_buf[i] = 0;
-  }
+  std::fill(out_buf, out_buf + size, 0);
 
   for (int b = 0; b < batchDim; b++) {
     for (int i0 = 0; i0 < leftDim; i0 += blockSize) {
@@ -75,11 +72,5 @@ template void add<int>(int* a_buf, int a_size, int* b_buf, int b_size,
                        int* out_buf);
 template void add<bool>(bool* a_buf, int a_size, bool* b_buf, int b_size,
                         bool* out_buf);
-
-template void batchMatMul<float>(float* a_buf, float* b_buf, int sharedDim,
-                                 int leftDim, int rightDim, int batchDim,
-                                 int aBatch, int aOuterStep, int aInnerStep,
-                                 int bBatch, int bOuterStep, int bInnerStep,
-                                 float* out_buf);
 }  // namespace kernels
 }  // namespace tfjs
