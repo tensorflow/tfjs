@@ -256,7 +256,7 @@ class ConvertTest(tf.test.TestCase):
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
-    self.assertEqual(len(weights_manifest[0]['weights']), 1)
+    self.assertIn('weights', weights_manifest[0])
 
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
@@ -313,7 +313,7 @@ class ConvertTest(tf.test.TestCase):
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
-    self.assertEqual(len(weights_manifest[0]['weights']), 1)
+    self.assertIn('weights', weights_manifest[0])
 
   def test_convert_saved_model_with_fused_conv2d(self):
     self._create_saved_model_with_fusable_conv2d()
@@ -443,7 +443,7 @@ class ConvertTest(tf.test.TestCase):
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
-    self.assertEqual(len(weights_manifest[0]['weights']), 6)
+    self.assertIn('weights', weights_manifest[0])
 
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
@@ -481,7 +481,7 @@ class ConvertTest(tf.test.TestCase):
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
-    self.assertEqual(len(weights_manifest[0]['weights']), 1)
+    self.assertIn('weights', weights_manifest[0])
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
@@ -505,7 +505,7 @@ class ConvertTest(tf.test.TestCase):
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
-    self.assertEqual(len(weights_manifest[0]['weights']), 1)
+    self.assertIn('weights', weights_manifest[0])
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
@@ -525,7 +525,7 @@ class ConvertTest(tf.test.TestCase):
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
-    self.assertEqual(len(weights_manifest[0]['weights']), 1)
+    self.assertIn('weights', weights_manifest[0])
 
     self.assertTrue(
         glob.glob(
@@ -546,7 +546,7 @@ class ConvertTest(tf.test.TestCase):
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
-    self.assertEqual(len(weights_manifest[0]['weights']), 1)
+    self.assertIn('weights', weights_manifest[0])
 
     self.assertTrue(
         glob.glob(
