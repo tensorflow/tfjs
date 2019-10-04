@@ -787,6 +787,11 @@ globals@^11.1.0:
   resolved "https://registry.yarnpkg.com/globals/-/globals-11.12.0.tgz#ab8795338868a0babd8525758018c2a7eb95c42e"
   integrity sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==
 
+google-protobuf@^3.9.2:
+  version "3.10.0"
+  resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.10.0.tgz#f36171128090615049f9b0e42252b1a10a4bc534"
+  integrity sha512-d0cMO8TJ6xtB/WrVHCv5U81L2ulX+aCD58IljyAN6mHwdHHJ2jbcauX5glvivi3s3hx7EYEo7eUA9WftzamMnw==
+
 graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0:
   version "4.2.2"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.2.tgz#6f0952605d0140c1cfdb138ed005775b92d67b02"
