@@ -23,14 +23,14 @@ import os
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.core.protobuf import device_properties_pb2
 from tensorflow.core.protobuf import config_pb2
+from tensorflow.core.protobuf import device_properties_pb2
+from tensorflow.core.protobuf import meta_graph_pb2
 from tensorflow.python.framework import convert_to_constants
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.saved_model.load import load
 from tensorflow.python.saved_model import loader
-from tensorflow.tools.graph_transforms import TransformGraph
 from tensorflow.python.training.saver import export_meta_graph
 from google.protobuf.json_format import MessageToDict
 import tensorflow_hub as hub
@@ -99,21 +99,23 @@ def validate(nodes, skip_op_check, strip_debug_ops):
   not_supported = {x.op for x in [x for x in nodes if x.op not in names]}
   return not_supported
 
-def _run_grappler(config, graph_def, graph):
+def _run_grappler(config, graph_def, graph, signature_def):
   meta_graph = export_meta_graph(
       graph_def=graph_def, graph=graph)
+
+  meta_graph.signature_def["not_used_key"].CopyFrom(signature_def)
 
   return tf_optimizer.OptimizeGraph(
       config, meta_graph, cluster=get_cluster())
 
-def optimize_graph(graph, output_node_names, output_graph, tf_version,
-                   quantization_dtype=None, skip_op_check=False,
+def optimize_graph(graph, signature_def, output_graph,
+                   tf_version, quantization_dtype=None, skip_op_check=False,
                    strip_debug_ops=False):
   """Takes a Python Graph object and optimizes the graph.
 
   Args:
     graph: The frozen graph to optimize.
-    output_node_names: List of output node names.
+    signature_def: the SignatureDef of the inference graph.
     output_graph: The location of the output graph.
     tf_version: Tensorflow version of the input graph.
     quantization_dtype: An optional numpy dtype to quantize weights to for
@@ -124,8 +126,9 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
   fuse_prelu.register_prelu_func(graph)
 
   # Add a collection 'train_op' so that Grappler knows the outputs.
-  for output in output_node_names:
-    graph.add_to_collection('train_op', graph.get_operation_by_name(output))
+  for _, output in signature_def.outputs.items():
+    name = output.name.split(':')[0]
+    graph.add_to_collection('train_op', graph.get_operation_by_name(name))
 
   graph_def = graph.as_graph_def()
 
@@ -149,7 +152,7 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
   if strip_debug_ops:
     rewriter_config.optimizers.insert(0, 'debug_stripper')
 
-  optimized_graph = _run_grappler(config, optimized_graph, graph)
+  optimized_graph = _run_grappler(config, optimized_graph, graph, signature_def)
 
   # batch norm folding
   optimized_graph = fold_batch_norms.fold_batch_norms(optimized_graph)
@@ -166,7 +169,7 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
       'constfold', 'arithmetic', 'dependency'
   ]
 
-  optimized_graph = _run_grappler(config, optimized_graph, graph)
+  optimized_graph = _run_grappler(config, optimized_graph, graph, signature_def)
 
   # Since the grappler remap optimizer doe snot support prelu as the activation
   # function for _FusedConv2D op, we are doing it manually here.
@@ -174,7 +177,6 @@ def optimize_graph(graph, output_node_names, output_graph, tf_version,
 
   unsupported = validate(optimized_graph.node, skip_op_check,
                          strip_debug_ops)
-
   if unsupported:
     raise ValueError('Unsupported Ops in the model after optimization\n' +
                      ', '.join(unsupported))
@@ -294,26 +296,30 @@ def _freeze_saved_model_v2(concrete_func):
       concrete_func).graph
 
 
-def _strip_unused_nodes(frozen_graph, concrete_func, output_node_names):
-  # Find the names of the input nodes needed to extract the minimal subgraph.
-  input_node_names = []
-  for input_tensor in concrete_func.inputs:
+def _build_signature_def(frozen_graph, input_nodes, output_nodes):
+  signature = meta_graph_pb2.SignatureDef()
+  for input_tensor in input_nodes:
     op_name = input_tensor.name.split(':')[0]
     # The graph freezing may turn the original inputs into constants, or remove
     # them from the graph, so we need to ignore those.
     try:
       op = frozen_graph.get_operation_by_name(op_name)
       if op.type != 'Const':
-        input_node_names.append(op_name)
+        signature.inputs[input_tensor.name].name = input_tensor.name
+        signature.inputs[
+            input_tensor.name].dtype = input_tensor.dtype.as_datatype_enum
+        signature.inputs[input_tensor.name].tensor_shape.CopyFrom(
+            input_tensor.shape.as_proto())
     except KeyError:
       # The original input was removed when the graph was frozen.
       continue
-  stripped_graph_def = TransformGraph(
-      frozen_graph.as_graph_def(), input_node_names, output_node_names,
-      ['strip_unused_nodes'])
-  with tf.Graph().as_default() as stripped_graph:
-    tf.import_graph_def(stripped_graph_def, name='')
-    return stripped_graph
+  for output_tensor in output_nodes:
+    signature.outputs[output_tensor.name].name = output_tensor.name
+    signature.outputs[
+        output_tensor.name].dtype = output_tensor.dtype.as_datatype_enum
+    signature.outputs[output_tensor.name].tensor_shape.CopyFrom(
+        output_tensor.shape.as_proto())
+  return signature
 
 def convert_tf_saved_model(saved_model_dir,
                            output_dir, signature_def='serving_default',
@@ -367,10 +373,11 @@ def convert_tf_saved_model(saved_model_dir,
   except BaseException:
     frozen_graph = _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
                                           output_node_names)
-  stripped_graph = _strip_unused_nodes(
-      frozen_graph, concrete_func, output_node_names)
-  optimize_graph(stripped_graph, output_node_names, output_graph,
-                 model.tensorflow_version,
+  signature = _build_signature_def(
+      frozen_graph, concrete_func.inputs, concrete_func.outputs)
+
+  optimize_graph(frozen_graph, signature,
+                 output_graph, model.tensorflow_version,
                  quantization_dtype=quantization_dtype,
                  skip_op_check=skip_op_check,
                  strip_debug_ops=strip_debug_ops)
@@ -452,9 +459,9 @@ def convert_tf_hub_module_v1(module_path, output_dir,
   input_node_names = []
   output_node_names = []
 
-  for _, input_tensor in inputs.items():
+  for input_tensor in inputs.values():
     input_node_names.append(input_tensor.name.split(':')[0])
-  for _, output_tensor in outputs.items():
+  for output_tensor in outputs.values():
     output_node_names.append(output_tensor.name.split(':')[0])
 
   print('Creating a model with inputs %s and outputs %s.' % (input_node_names,
@@ -470,8 +477,12 @@ def convert_tf_hub_module_v1(module_path, output_dir,
       f.write(frozen_graph_def.SerializeToString())
 
     frozen_graph = load_graph(frozen_file)
-    optimize_graph(frozen_graph, output_node_names, output_graph,
-                   tf.__version__, quantization_dtype=quantization_dtype,
+    signature = _build_signature_def(frozen_graph,
+                                     inputs.values(), outputs.values())
+
+    optimize_graph(frozen_graph, signature,
+                   output_graph, tf.__version__,
+                   quantization_dtype=quantization_dtype,
                    skip_op_check=skip_op_check, strip_debug_ops=strip_debug_ops)
   finally:
     # Clean up the temp files.
