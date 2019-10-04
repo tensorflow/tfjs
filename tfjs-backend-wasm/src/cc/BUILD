@@ -10,9 +10,6 @@ cc_binary(
         "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
         "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
         "-s ENVIRONMENT=web",
-        "-s ASSERTIONS=1",
-        "-s SAFE_HEAP=1",
-        "-s SAFE_HEAP_LOG=1",
         "-s MODULARIZE=1",
         "-s STACK_OVERFLOW_CHECK=1",
         "-s TOTAL_MEMORY=512MB",
@@ -30,6 +27,7 @@ cc_library(
     name = "kernels",
     srcs = ["kernels.cc"],
     hdrs = ["kernels.h"],
+    deps = [":util"]
 )
 
 cc_library(

@@ -81,22 +81,21 @@ void register_tensor(int data_id, int *shape_ptr, int shape_length, DType dtype,
 
 EMSCRIPTEN_KEEPALIVE
 void dispose_data(int data_id) {
-  // TensorInfo info = data.at(data_id);
-  // switch (info.dtype) {
-  //   case DType::float32:
-  //     free(info.buf.f32);
-  //     break;
-  //   case DType::int32:
-  //     free(info.buf.i32);
-  //     break;
-  //   case DType::boolean:
-  //     free(info.buf.b);
-  //     break;
-  //   default:
-  //     util::warn("Dispose for tensor id %d failed. Unknown dtype %d",
-  //     data_id,
-  //                info.dtype);
-  // }
+  TensorInfo info = data.at(data_id);
+  switch (info.dtype) {
+    case DType::float32:
+      free(info.buf.f32);
+      break;
+    case DType::int32:
+      free(info.buf.i32);
+      break;
+    case DType::boolean:
+      free(info.buf.b);
+      break;
+    default:
+      util::warn("Dispose for tensor id %d failed. Unknown dtype %d", data_id,
+                 info.dtype);
+  }
   data.erase(data_id);
 }
 
@@ -133,10 +132,9 @@ void batchMatMul(int a_id, int b_id, int sharedDim, int leftDim, int rightDim,
   const auto out_info = data.at(out_id);
   switch (a_info.dtype) {
     case DType::float32:
-      kernels::batchMatMul(a_info.buf.f32, a_info.size, b_info.buf.f32,
-                           b_info.size, sharedDim, leftDim, rightDim, batchDim,
-                           aBatch, aOuterStep, aInnerStep, bBatch, bOuterStep,
-                           bInnerStep, out_info.buf.f32);
+      kernels::batchMatMul(a_info.buf.f32, b_info.buf.f32, sharedDim, leftDim,
+                           rightDim, batchDim, aBatch, aOuterStep, aInnerStep,
+                           bBatch, bOuterStep, bInnerStep, out_info.buf.f32);
       break;
     // case DType::int32:
     //   kernels::add(a_info.buf.i32, a_info.size, b_info.buf.i32, b_info.size,
