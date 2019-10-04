@@ -27,7 +27,7 @@ def _get_requirements(file):
 
 CONSOLE_SCRIPTS = [
     'tensorflowjs_converter = tensorflowjs.converters.converter:pip_main',
-    'tensorflowjs_wizard = tensorflowjs.wizard:pip_main',
+    'tensorflowjs_wizard = tensorflowjs.converters.wizard:pip_main',
 ]
 
 setuptools.setup(
@@ -59,7 +59,6 @@ setuptools.setup(
         'tensorflowjs.quantization',
         'tensorflowjs.read_weights',
         'tensorflowjs.resource_loader',
-        'tensorflowjs.wizard',
         'tensorflowjs.write_weights',
         'tensorflowjs.converters',
         'tensorflowjs.converters.common',
@@ -69,6 +68,7 @@ setuptools.setup(
         'tensorflowjs.converters.keras_h5_conversion',
         'tensorflowjs.converters.keras_tfjs_loader',
         'tensorflowjs.converters.tf_saved_model_conversion_v2',
+        'tensorflowjs.converters.wizard',
     ],
     include_package_data=True,
     packages=['tensorflowjs/op_list'],
