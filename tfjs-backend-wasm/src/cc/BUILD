@@ -23,7 +23,7 @@ cc_binary(
 cc_library(
     name = "kernels",
     srcs = ["kernels.cc"],
-    hdrs = ["kernels.h"]
+    hdrs = ["kernels.h"],
 )
 
 cc_library(
