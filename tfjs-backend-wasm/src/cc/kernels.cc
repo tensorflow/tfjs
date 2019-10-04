@@ -29,34 +29,35 @@ void add(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf) {
   }
 }
 
-const int blockSize = 48;
-void batchMatMul(float* a_buf, float* b_buf, int sharedDim, int leftDim,
-                 int rightDim, int batchDim, int aBatch, int aOuterStep,
-                 int aInnerStep, int bBatch, int bOuterStep, int bInnerStep,
-                 float* out_buf) {
-  int size = leftDim * rightDim;
+const int k_block_size = 48;
+void batchMatMul(float* a_buf, float* b_buf, int shared_dim, int left_dim,
+                 int right_dim, int batch_dim, int a_batch, int a_outer_step,
+                 int a_inner_step, int b_batch, int b_outer_step,
+                 int b_inner_step, float* out_buf) {
+  int size = left_dim * right_dim;
 
   // Zero out the output buffer because it might have been used before.
   std::fill(out_buf, out_buf + size, 0);
 
-  for (int b = 0; b < batchDim; b++) {
-    for (int i0 = 0; i0 < leftDim; i0 += blockSize) {
-      for (int j0 = 0; j0 < rightDim; j0 += blockSize) {
-        for (int k0 = 0; k0 < sharedDim; k0 += blockSize) {
-          // for when blockSize doesn't evenly divide the input
-          int iBlock = std::min(i0 + blockSize, leftDim);
-          int jBlock = std::min(j0 + blockSize, rightDim);
-          int kBlock = std::min(k0 + blockSize, sharedDim);
+  for (int b = 0; b < batch_dim; b++) {
+    for (int i0 = 0; i0 < left_dim; i0 += k_block_size) {
+      for (int j0 = 0; j0 < right_dim; j0 += k_block_size) {
+        for (int k0 = 0; k0 < shared_dim; k0 += k_block_size) {
+          // for when k_block_size doesn't evenly divide the input
+          int i_block = std::min(i0 + k_block_size, left_dim);
+          int j_block = std::min(j0 + k_block_size, right_dim);
+          int k_block = std::min(k0 + k_block_size, shared_dim);
 
-          for (int i = i0; i < iBlock; i++) {
-            for (int j = j0; j < jBlock; j++) {
+          for (int i = i0; i < i_block; i++) {
+            for (int j = j0; j < j_block; j++) {
               float sum = 0.0;
 
-              for (int k = k0; k < kBlock; k++) {
-                sum += a_buf[b * aBatch + i * aOuterStep + k * aInnerStep] *
-                       b_buf[k * bInnerStep + j * bOuterStep + b * bBatch];
+              for (int k = k0; k < k_block; k++) {
+                sum +=
+                    a_buf[b * a_batch + i * a_outer_step + k * a_inner_step] *
+                    b_buf[k * b_inner_step + j * b_outer_step + b * b_batch];
               }
-              out_buf[b * size + (i * rightDim + j)] += sum;
+              out_buf[b * size + (i * right_dim + j)] += sum;
             }
           }
         }

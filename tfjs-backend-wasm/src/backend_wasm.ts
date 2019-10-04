@@ -40,8 +40,8 @@ export class BackendWasm extends KernelBackend {
   }
 
   register(dataId: DataId, shape: number[], dtype: DataType) {
-    const bytes = util.sizeFromShape(shape) * util.bytesPerElement(dtype);
-    const memoryOffset = this.wasm._malloc(bytes);
+    const numBytes = util.sizeFromShape(shape) * util.bytesPerElement(dtype);
+    const memoryOffset = this.wasm._malloc(numBytes);
     const id = this.dataIdNextNumber++;
     this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype});
 

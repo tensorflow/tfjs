@@ -23,10 +23,10 @@ template <class T>
 void add(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf);
 
 // Batched matrix multiply.
-void batchMatMul(float* a_buf, float* b_buf, int sharedDim, int leftDim,
-                 int rightDim, int batchDim, int aBatch, int aOuterStep,
-                 int aInnerStep, int bBatch, int bOuterStep, int bInnerStep,
-                 float* out_buf);
+void batchMatMul(float* a_buf, float* b_buf, int shared_dim, int left_dim,
+                 int right_dim, int batch_dim, int a_batch, int a_outer_step,
+                 int a_inner_step, int b_batch, int b_outer_step,
+                 int b_inner_step, float* out_buf);
 }  // namespace kernels
 }  // namespace tfjs
 
