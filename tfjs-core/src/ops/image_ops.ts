@@ -304,8 +304,19 @@ function cropAndResize_(
   return res;
 }
 
+function rotate_(
+    image: Tensor4D|TensorLike, radians: number, fillValue: number): Tensor4D {
+  const $image = convertToTensor(image, 'image', 'rotate', 'float32');
+
+  const forward: ForwardFunc<Tensor4D> = (backend, save) =>
+      backend.rotate($image, radians, fillValue);
+  const res = ENGINE.runKernel(forward, {$image});
+  return res;
+}
+
 export const resizeBilinear = op({resizeBilinear_});
 export const resizeNearestNeighbor = op({resizeNearestNeighbor_});
 export const nonMaxSuppression = op({nonMaxSuppression_});
 export const nonMaxSuppressionAsync = nonMaxSuppressionAsync_;
 export const cropAndResize = op({cropAndResize_});
+export const rotate = op({rotate_});
