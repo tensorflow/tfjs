@@ -550,10 +550,9 @@ export class MathBackendWebGL implements KernelBackend {
         env().getBool('WEBGL_PACK') && isPacked === true;
     const outputShape =
         shouldUsePackedProgram ? webgl_util.getShapeAs3D(shape) : shape;
-    const tmpTarget =
-        this.makeTensorHandle(outputShape, 'float32') as TensorHandle &
-        {size: number};
-    tmpTarget.size = sizeFromShape(shape);
+    let tmpTarget: TensorHandle & {size: number} = null;
+    tmpTarget = {...this.makeTensorHandle(outputShape, 'float32'),
+          size: sizeFromShape(shape)};
     this.texData.get(tmpTarget.dataId).usage = TextureUsage.DOWNLOAD;
 
     const output = tidy(() => {
@@ -2874,11 +2873,10 @@ export class MathBackendWebGL implements KernelBackend {
           this.getTexture(tempDenseInputHandle.dataId), width, height,
           values as TypedArray);
 
-      const encodedOutputTarget =
-          this.makeTensorHandle(
-              program.outputShape, tempDenseInputHandle.dtype) as TensorHandle &
-          {size: number};
-      encodedOutputTarget.size = sizeFromShape(program.outputShape);
+      let encodedOutputTarget: TensorHandle & {size: number} = null;
+      encodedOutputTarget = {...this.makeTensorHandle(
+              program.outputShape, tempDenseInputHandle.dtype
+          ), size: sizeFromShape(program.outputShape)};
       this.texData.get(encodedOutputTarget.dataId).isPacked = isPacked;
       this.compileAndRun(program, [tempDenseInputHandle], encodedOutputTarget);
 

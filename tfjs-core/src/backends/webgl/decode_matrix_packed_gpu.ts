@@ -18,6 +18,7 @@
 import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
+import * as util from '../../util';
 
 export class DecodeMatrixPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
@@ -29,6 +30,7 @@ export class DecodeMatrixPackedProgram implements GPGPUProgram {
     number, number
   ]) {
     const glsl = getGlslDifferences();
+    const size = util.sizeFromShape(outputShape);
     this.outputShape = outputShape;
 
     this.userCode = `
@@ -48,8 +50,13 @@ export class DecodeMatrixPackedProgram implements GPGPUProgram {
 
         for (int i=0; i<4; i++) {
           int flatIndex = index + i;
-          ivec3 rc = outCoordsFromFlatIndex(flatIndex);
-          result[i] = getChannel(getA(rc.x, rc.y, rc.z), vec2(rc.y, rc.z));
+
+          if (flatIndex < ${size}) {
+            ivec3 rc = outCoordsFromFlatIndex(flatIndex);
+            result[i] = getChannel(getA(rc.x, rc.y, rc.z), vec2(rc.y, rc.z));
+          } else {
+            result[i] = 0.;
+          }
         }
 
         ${glsl.output} = result;
