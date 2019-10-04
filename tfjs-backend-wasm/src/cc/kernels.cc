@@ -29,7 +29,7 @@ void add(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf) {
   }
 }
 
-const int k_block_size = 48;
+const int kBlockSize = 48;
 void batchMatMul(float* a_buf, float* b_buf, int shared_dim, int left_dim,
                  int right_dim, int batch_dim, int a_batch, int a_outer_step,
                  int a_inner_step, int b_batch, int b_outer_step,
@@ -40,13 +40,13 @@ void batchMatMul(float* a_buf, float* b_buf, int shared_dim, int left_dim,
   std::fill(out_buf, out_buf + size, 0);
 
   for (int b = 0; b < batch_dim; b++) {
-    for (int i0 = 0; i0 < left_dim; i0 += k_block_size) {
-      for (int j0 = 0; j0 < right_dim; j0 += k_block_size) {
-        for (int k0 = 0; k0 < shared_dim; k0 += k_block_size) {
-          // for when k_block_size doesn't evenly divide the input
-          int i_block = std::min(i0 + k_block_size, left_dim);
-          int j_block = std::min(j0 + k_block_size, right_dim);
-          int k_block = std::min(k0 + k_block_size, shared_dim);
+    for (int i0 = 0; i0 < left_dim; i0 += kBlockSize) {
+      for (int j0 = 0; j0 < right_dim; j0 += kBlockSize) {
+        for (int k0 = 0; k0 < shared_dim; k0 += kBlockSize) {
+          // for when kBlockSize doesn't evenly divide the input
+          int i_block = std::min(i0 + kBlockSize, left_dim);
+          int j_block = std::min(j0 + kBlockSize, right_dim);
+          int k_block = std::min(k0 + kBlockSize, shared_dim);
 
           for (int i = i0; i < i_block; i++) {
             for (int j = j0; j < j_block; j++) {
