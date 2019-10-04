@@ -115,6 +115,7 @@ import {ResizeNearestNeigborBackpropProgram} from './resize_nearest_neighbor_bac
 import {ResizeNearestNeighborProgram} from './resize_nearest_neighbor_gpu';
 import {ReverseProgram} from './reverse_gpu';
 import {ReversePackedProgram} from './reverse_packed_gpu';
+import {RotateProgram} from './rotate_gpu';
 import {ScatterProgram} from './scatter_gpu';
 import {SegmentOpProgram} from './segment_gpu';
 import {SelectProgram} from './select_gpu';
@@ -2397,6 +2398,11 @@ export class MathBackendWebGL implements KernelBackend {
     const program = new CropAndResizeProgram(
         image.shape, boxes.shape, cropSize, method, extrapolationValue);
     return this.compileAndRun(program, [image, boxes, boxIndex]);
+  }
+
+  rotate(image: Tensor4D, radians: number, fillValue: number): Tensor4D {
+    const program = new RotateProgram(image.shape, radians, fillValue);
+    return this.compileAndRun(program, [image]);
   }
 
   depthToSpace(x: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):
