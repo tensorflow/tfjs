@@ -41,12 +41,7 @@ export class BackendWasm extends KernelBackend {
 
   register(dataId: DataId, shape: number[], dtype: DataType) {
     const bytes = util.sizeFromShape(shape) * util.bytesPerElement(dtype);
-    console.log('mallocing...', bytes);
     const memoryOffset = this.wasm._malloc(bytes);
-    console.log('malloc', memoryOffset);
-    this.wasm._free(memoryOffset);
-    console.log('freed.');
-
     const id = this.dataIdNextNumber++;
     this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype});
 
@@ -148,8 +143,8 @@ export class BackendWasm extends KernelBackend {
     const outId = this.dataIdMap.get(out.dataId).id;
 
     this.wasm.tfjs.batchMatMul(
-        aId, bId, outId, sharedDim, leftDim, rightDim, batchDim, aBatch,
-        aOuterStep, aInnerStep, bBatch, bOuterStep, bInnerStep);
+        aId, bId, sharedDim, leftDim, rightDim, batchDim, aBatch, aOuterStep,
+        aInnerStep, bBatch, bOuterStep, bInnerStep, outId);
     return out;
   }
 
@@ -217,11 +212,13 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
           ]),
       disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
       dispose: wasm.cwrap('dispose', voidReturnType, []),
-      add: wasm.cwrap('add', voidReturnType, ['number, number, number']),
+      add: wasm.cwrap('add', voidReturnType, ['number', 'number', 'number']),
       batchMatMul: wasm.cwrap(
           'batchMatMul', voidReturnType,
-          ['number, number, number, number, number, ' +
-           'number, number, number, number, number']),
+          [
+            'number', 'number', 'number', 'number', 'number', 'number',
+            'number', 'number', 'number', 'number', 'number', 'number', 'number'
+          ]),
     };
     wasm.onRuntimeInitialized = () => resolve({wasm});
   });

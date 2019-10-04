@@ -57,5 +57,7 @@ describeWithFlags('wasm', ALL_ENVS, () => {
 
     expect(c.shape).toEqual([2, 2]);
     test_util.expectArraysClose(await c.data(), [0, 8, -3, 20]);
+    // a.print();
+    // b.print();
   });
 });
