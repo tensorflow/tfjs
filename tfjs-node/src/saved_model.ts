@@ -42,3 +42,97 @@ export async function readSavedModelProto(path: string) {
   const array = new Uint8Array(modelFile);
   return messages.SavedModel.deserializeBinary(array);
 }
+
+/**
+ * Inspect the contents of the SavedModel from the provided path.
+ *
+ * @param path
+ */
+export async function inspectSavedModel(path: string) {
+  const result = [];
+  const modelMessage = await readSavedModelProto(
+      './test_objects/times_three_float/saved_model.pb');
+  const metaGraphList = modelMessage.getMetaGraphsList();
+  for (let i = 0; i < metaGraphList.length; i++) {
+    const metaGraph = {} as MetaGraphInfo;
+    const tags = metaGraphList[i].getMetaInfoDef().getTagsList();
+    metaGraph.tags = tags;
+
+    const signatureDefs = [];
+    const signatureDefMap = metaGraphList[i].getSignatureDefMap();
+    const signatureDefKeys = signatureDefMap.keys();
+    while (true) {
+      const key = signatureDefKeys.next();
+      if (key.done) {
+        break;
+      }
+      const signatureDef: SignatureDefInfo = {};
+      const signatureDefEntry = signatureDefMap.get(key.value);
+      // inputs
+      const inputsMapMessage = signatureDefEntry.getInputsMap();
+      const inputsMapKeys = inputsMapMessage.keys();
+      const inputs: TensorInfo[] = [];
+      while (true) {
+        const inputsMapKey = inputsMapKeys.next();
+        if (inputsMapKey.done) {
+          break;
+        }
+        const inputTensor = inputsMapMessage.get(inputsMapKey.value);
+        const inputTensorInfo = {} as TensorInfo;
+        inputTensorInfo.dtype =
+            getEnumKeyFromValue(messages.DataType, inputTensor.getDtype());
+        inputTensorInfo.name = inputTensor.getName();
+        inputTensorInfo.shape = inputTensor.getTensorShape().getDimList();
+        inputs.push(inputTensorInfo);
+      }
+      // outputs
+      const outputsMapMessage = signatureDefEntry.getOutputsMap();
+      const outputsMapKeys = outputsMapMessage.keys();
+      const outputs: TensorInfo[] = [];
+      while (true) {
+        const outputsMapKey = outputsMapKeys.next();
+        if (outputsMapKey.done) {
+          break;
+        }
+        const outputTensor = outputsMapMessage.get(outputsMapKey.value);
+        const outputTensorInfo = {} as TensorInfo;
+        outputTensorInfo.dtype =
+            getEnumKeyFromValue(messages.DataType, outputTensor.getDtype());
+        outputTensorInfo.name = outputTensor.getName();
+        outputTensorInfo.shape = outputTensor.getTensorShape().getDimList();
+        outputs.push(outputTensorInfo);
+      }
+
+      signatureDef[key.value] = {inputs, outputs};
+      signatureDefs.push(signatureDef);
+    }
+    metaGraph.signatureDefs = signatureDefs;
+
+    result.push(metaGraph);
+  }
+  return result;
+}
+
+/**
+ * Interface for inspected SavedModel MetaGraph info..
+ */
+export interface MetaGraphInfo {
+  tags: string[];
+  signatureDefs: SignatureDefInfo[];
+}
+
+/**
+ * Interface for inspected SavedModel SignatureDef info..
+ */
+export interface SignatureDefInfo {
+  [key: string]: {inputs: TensorInfo[]; outputs: TensorInfo[];}
+}
+
+/**
+ * Interface for inspected SavedModel signature input/output Tensor info..
+ */
+export interface TensorInfo {
+  dtype: string;
+  shape: number[];
+  name: string;
+}

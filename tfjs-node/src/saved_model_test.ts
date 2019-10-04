@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getEnumKeyFromValue, readSavedModelProto} from './saved_model';
+import {getEnumKeyFromValue, inspectSavedModel, readSavedModelProto} from './saved_model';
 
 // tslint:disable-next-line:no-require-imports
 const messages = require('./proto/api_pb');
@@ -118,5 +118,57 @@ describe('SavedModel', () => {
     expect(enumKey1).toBe('DT_FLOAT');
     const enumKey2 = getEnumKeyFromValue(DataType, 2);
     expect(enumKey2).toBe('DT_DOUBLE');
+  });
+
+  it('inspect SavedModel', async () => {
+    const modelInfo = await inspectSavedModel(
+        './test_objects/times_three_float/saved_model.pb');
+    /**
+     * The inspection output should be
+     * [{
+     *  'tags': ['serve'],
+     *  'signatureDefs': [
+     *    {
+     *      '__saved_model_init_op': {
+     *        'inputs': [],
+     *        'outputs': [{'dtype': 'DT_INVALID', 'name': 'NoOp', 'shape': []}]
+     *      }
+     *    },
+     *    {
+     *      'serving_default': {
+     *        'inputs': [
+     *          {'dtype': 'DT_FLOAT', 'name': 'serving_default_x:0', 'shape':
+     * []}
+     *        ],
+     *        'outputs': [{
+     *          'dtype': 'DT_FLOAT',
+     *          'name': 'StatefulPartitionedCall:0',
+     *          'shape': []
+     *        }]
+     *      }
+     *    }
+     *  ]
+     * }]
+     */
+    expect(modelInfo.length).toBe(1);
+    expect(modelInfo[0].tags.length).toBe(1);
+    expect(modelInfo[0].tags[0]).toBe('serve');
+    expect(modelInfo[0].signatureDefs.length).toBe(2);
+    expect(Object.keys(modelInfo[0].signatureDefs[0])[0])
+        .toBe('__saved_model_init_op');
+    expect(Object.keys(modelInfo[0].signatureDefs[1])[0])
+        .toBe('serving_default');
+    expect(modelInfo[0].signatureDefs[1]['serving_default'].inputs.length)
+        .toBe(1);
+    expect(modelInfo[0].signatureDefs[1]['serving_default'].inputs[0].name)
+        .toBe('serving_default_x:0');
+    expect(modelInfo[0].signatureDefs[1]['serving_default'].inputs[0].dtype)
+        .toBe('DT_FLOAT');
+    expect(modelInfo[0].signatureDefs[1]['serving_default'].outputs.length)
+        .toBe(1);
+    expect(modelInfo[0].signatureDefs[1]['serving_default'].outputs[0].name)
+        .toBe('StatefulPartitionedCall:0');
+    expect(modelInfo[0].signatureDefs[1]['serving_default'].outputs[0].dtype)
+        .toBe('DT_FLOAT');
   });
 });
