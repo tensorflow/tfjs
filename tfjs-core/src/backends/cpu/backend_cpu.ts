@@ -828,7 +828,8 @@ export class MathBackendCPU implements KernelBackend {
     const newValues = this.readSync(result.dataId) as TypedArray;
     let index = 0;
     const offset = condition.rank === 0 || condition.rank > 1 || a.rank === 1 ?
-        1 : util.sizeFromShape(a.shape.slice(1));
+        1 :
+        util.sizeFromShape(a.shape.slice(1));
 
     for (let i = 0; i < values.length; i++) {
       for (let j = 0; j < offset; j++) {
@@ -1522,9 +1523,10 @@ export class MathBackendCPU implements KernelBackend {
       const sign = Math.sign(values[i]);
       const v = Math.abs(values[i]);
       const t = 1.0 / (1.0 + p * v);
-      resultValues[i] = sign * (1.0 -
-        (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
-        Math.exp(-v * v));
+      resultValues[i] = sign *
+          (1.0 -
+           (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
+               Math.exp(-v * v));
     }
     return Tensor.make(x.shape, {values: resultValues});
   }
@@ -3645,6 +3647,11 @@ export class MathBackendCPU implements KernelBackend {
   /** Returns the smallest representable number.  */
   epsilon(): number {
     return EPSILON_FLOAT32;
+  }
+
+  rotate(image: Tensor4D, radians: number, fillValue: number): Tensor4D {
+    // TODO(annxingyuan): Implement.
+    return image;
   }
 
   cropAndResize(
