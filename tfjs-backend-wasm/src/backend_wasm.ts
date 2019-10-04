@@ -40,8 +40,13 @@ export class BackendWasm extends KernelBackend {
   }
 
   register(dataId: DataId, shape: number[], dtype: DataType) {
-    const memoryOffset = this.wasm._malloc(
-        util.sizeFromShape(shape) * util.bytesPerElement(dtype));
+    const bytes = util.sizeFromShape(shape) * util.bytesPerElement(dtype);
+    console.log('mallocing...', bytes);
+    const memoryOffset = this.wasm._malloc(bytes);
+    console.log('malloc', memoryOffset);
+    this.wasm._free(memoryOffset);
+    console.log('freed.');
+
     const id = this.dataIdNextNumber++;
     this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype});
 
@@ -69,6 +74,10 @@ export class BackendWasm extends KernelBackend {
 
   disposeData(dataId: DataId) {
     const data = this.dataIdMap.get(dataId);
+
+    this.wasm._free(data.memoryOffset);
+    console.log(data, data.memoryOffset);
+
     this.wasm.tfjs.disposeData(data.id);
     this.dataIdMap.delete(dataId);
   }
