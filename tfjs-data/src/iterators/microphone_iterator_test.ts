@@ -134,6 +134,22 @@ describeBrowserEnvs('MicrophoneIterator', () => {
     expect((result1.value as any).spectrogram.shape).toEqual([43, 1024, 1]);
   });
 
+  fit('stops microphone multiple times', async () => {
+    const microphoneIterator = await tfd.microphone();
+    const result1 = await microphoneIterator.next();
+    expect(result1.done).toBeFalsy();
+    // tslint:disable-next-line:no-any
+    expect((result1.value as any).spectrogram.shape).toEqual([43, 1024, 1]);
+    microphoneIterator.stop();
+    const result2 = await microphoneIterator.next();
+    expect(result2.done).toBeTruthy();
+    expect(result2.value).toBeNull();
+    microphoneIterator.stop();
+    const result3 = await microphoneIterator.next();
+    expect(result3.done).toBeTruthy();
+    expect(result3.value).toBeNull();
+  });
+
   it('gets spectrogram and waveform tensor with correct value', async () => {
     const microphoneIterator = await tfd.microphone({
       numFramesPerSpectrogram: 1,
