@@ -134,7 +134,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
     expect((result1.value as any).spectrogram.shape).toEqual([43, 1024, 1]);
   });
 
-  fit('stops microphone multiple times', async () => {
+  it('stops microphone multiple times', async () => {
     const microphoneIterator = await tfd.microphone();
     const result1 = await microphoneIterator.next();
     expect(result1.done).toBeFalsy();
