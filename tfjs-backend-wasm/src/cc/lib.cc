@@ -124,6 +124,28 @@ void add(int a_id, int b_id, int out_id) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+void batchMatMul(int a_id, int b_id, int shared_dim, int left_dim,
+                 int right_dim, int batch_dim, int a_batch, int a_outer_step,
+                 int a_inner_step, int b_batch, int b_outer_step,
+                 int b_inner_step, int out_id) {
+  const auto a_info = data.at(a_id);
+  const auto b_info = data.at(b_id);
+  const auto out_info = data.at(out_id);
+  switch (a_info.dtype) {
+    case DType::float32:
+      kernels::batchMatMul(a_info.buf.f32, b_info.buf.f32, shared_dim, left_dim,
+                           right_dim, batch_dim, a_batch, a_outer_step,
+                           a_inner_step, b_batch, b_outer_step, b_inner_step,
+                           out_info.buf.f32);
+      break;
+    default:
+      util::warn(
+          "batchMatMul for tensor ids %d and %d failed. Unknown dtype %d", a_id,
+          b_id, a_info.dtype);
+  }
+}
+
+EMSCRIPTEN_KEEPALIVE
 void dispose() {
   for (auto const &element : data) {
     dispose_data(element.first);

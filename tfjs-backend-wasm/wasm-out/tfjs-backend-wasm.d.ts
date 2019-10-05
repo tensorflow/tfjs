@@ -29,6 +29,12 @@ export type BackendWasmModule = EmscriptenModule&{
 
     // Kernels.
     add(aId: number, bId: number, outId: number): void;
+
+    batchMatMul(
+        aId: number, bId: number, sharedDim: number, leftDim: number,
+        rightDim: number, batchDim: number, aBatch: number, aOuterStep: number,
+        aInnerStep: number, bBatch: number, bOuterStep: number,
+        bInnerStep: number, outId: number): void;
   }
 };
 
