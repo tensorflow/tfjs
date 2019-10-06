@@ -14,6 +14,7 @@
 
 #include <emscripten.h>
 #include <math.h>
+#include <xnnpack.h>
 #include <cstdio>
 #include <map>
 #include <vector>
@@ -53,6 +54,9 @@ std::map<int, TensorInfo> data;
 
 // We use C-style API to interface with Javascript.
 extern "C" {
+
+EMSCRIPTEN_KEEPALIVE
+void init() { xnn_initialize(); }
 
 EMSCRIPTEN_KEEPALIVE
 void register_tensor(int data_id, int *shape_ptr, int shape_length, DType dtype,
