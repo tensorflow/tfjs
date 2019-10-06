@@ -53,9 +53,9 @@ import {tensor, tensor2d} from './tensor_ops';
  * ```
  *
  * @param x Rank `k` tensor
- * @param num_lower Number of subdiagonals to keep.
+ * @param numLower Number of subdiagonals to keep.
  *   If negative, keep entire lower triangle.
- * @param num_lower Number of subdiagonals to keep.
+ * @param numUpper Number of subdiagonals to keep.
  *   If negative, keep entire upper triangle.
  * @returns Rank `k` tensor of the same shape as input.
  *   The extracted banded tensor.
@@ -65,10 +65,12 @@ import {tensor, tensor2d} from './tensor_ops';
  *       subheading:'Linear Algebra',
  *       namespace:'linalg'}
  */
-function bandPart_(x: Tensor, num_lower: number, num_upper: number): Tensor {
+function bandPart_(x: Tensor, numLower: number, numUpper: number): Tensor {
   return ENGINE.tidy(() => {
     const totalElements = x.shape.reduce((a, b) => a * b);
-    if (totalElements === 0) return tensor([], x.shape);
+    if (totalElements === 0) {
+      return tensor([], x.shape);
+    }
     const parted: number[] = x.flatten().arraySync();
     const rows = (x.rank < 2) ? 1 : x.shape[x.rank - 2];
     const cols = x.shape[x.rank - 1];
@@ -76,15 +78,15 @@ function bandPart_(x: Tensor, num_lower: number, num_upper: number): Tensor {
     for (let i = 0; i < totalElements; i += (rows * cols)) {
       for (let j = 0; j < rows; ++j) {
         for (let k = 0; k < cols; ++k) {
-          if ((num_lower > -1 && k < j - num_lower) ||
-              (num_upper > -1 && k > j + num_upper)) {
-            parted[i + j * rows + k] = 0
+          if ((numLower > -1 && k < j - numLower) ||
+              (numUpper > -1 && k > j + numUpper)) {
+            parted[i + j * rows + k] = 0;
           }
         }
       }
     }
     return tensor(parted, x.shape);
-  }) as Tensor;
+  });
 }
 
 /**
