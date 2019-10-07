@@ -2,38 +2,18 @@ load("//toolchain:cc_toolchain_config.bzl", "emsdk_configure")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-# git_repository(
-#   name = "xnnpack",
-#   commit = "dd69f0b808610da006a73f174e43dd7895b48cf1",
-#   remote = "https://github.com/google/XNNPACK.git",
-# )
-
-local_repository(
-  name = "xnnpack",
-  path = "/Users/smilkov/code/dsmilkov-xnnpack/"
-)
-
 # Make all files under $HOME/emsdk/* visible to the toolchain. The files are
 # available as external/emsdk/emsdk/*
 emsdk_configure(name = "emsdk")
 
-
-# Google Test framework, used by most unit-tests.
-http_archive(
-     name = "com_google_googletest",
-     urls = ["https://github.com/google/googletest/archive/master.zip"],
-     strip_prefix = "googletest-master",
+git_repository(
+  name = "xnnpack",
+  commit = "0c57d2a08ca62c3020a2acdb4acfe825ed2b2657",
+  remote = "https://github.com/google/XNNPACK.git",
 )
 
-# Google Benchmark library, used in micro-benchmarks.
-http_archive(
-    name = "com_google_benchmark",
-    urls = [
-        "https://github.com/google/benchmark/archive/master.zip"
-    ],
-    strip_prefix = "benchmark-master",
-    build_file = "@xnnpack//third_party:benchmark.BUILD",
-)
+# The libraries below are transitive dependencies of XNNPACK that we need to
+# explicitly enumerate here. See https://docs.bazel.build/versions/master/external.html#transitive-dependencies
 
 # FP16 library, used for half-precision conversions
 http_archive(
@@ -99,23 +79,4 @@ http_archive(
         "https://github.com/Maratyszcza/psimd/archive/4f2c53947184b56f58607b9e777416bb63ebbde1.tar.gz",
     ],
     build_file = "@xnnpack//third_party:psimd.BUILD",
-)
-
-# Abseil
-http_archive(
-     name = "com_google_absl",
-     urls = ["https://github.com/abseil/abseil-cpp/archive/master.zip"],
-     strip_prefix = "abseil-cpp-master",
-)
-
-http_archive(
-    name = "rules_cc",
-    strip_prefix = "rules_cc-master",
-    urls = ["https://github.com/bazelbuild/rules_cc/archive/master.zip"],
-)
-
-http_archive(
-    name = "rules_python",
-    strip_prefix = "rules_python-master",
-    urls = ["https://github.com/bazelbuild/rules_python/archive/master.zip"],
 )
