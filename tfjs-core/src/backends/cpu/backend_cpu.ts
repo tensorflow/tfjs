@@ -3654,8 +3654,15 @@ export class MathBackendCPU implements KernelBackend {
       image: Tensor4D, radians: number,
       fillValue: number|[number, number, number],
       center: number|[number, number]): Tensor4D {
-    // TODO(annxingyuan): Implement.
-    return image;
+    const output = ops.buffer(image.shape, image.dtype);
+    const [batch, imageHeight, imageWidth, numChannels] = image.shape;
+
+    for (let row = 0; row < imageHeight; row++) {
+      for (let col = 0; col < imageWidth; col++) {
+      }
+    }
+
+    return output.toTensor() as Tensor4D;
   }
 
   cropAndResize(
