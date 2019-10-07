@@ -454,7 +454,7 @@ export class Tensor<R extends Rank = Rank> {
 
   protected constructor(
       shape: ShapeMap[R], dtype: DataType, values?: BackendValues,
-      dataId?: DataId, backend?: Backend) {
+      dataId?: DataId) {
     this.shape = shape.slice() as ShapeMap[R];
     this.dtype = dtype || 'float32';
     this.size = util.sizeFromShape(shape);
@@ -462,10 +462,6 @@ export class Tensor<R extends Rank = Rank> {
     this.dataId = dataId != null ? dataId : {};
     this.id = trackerFn().nextTensorId();
     this.rankType = (this.rank < 5 ? this.rank.toString() : 'higher') as R;
-    trackerFn().registerTensor(this, backend);
-    if (values != null) {
-      trackerFn().write(backend, this.dataId, values);
-    }
   }
 
   /**
@@ -481,7 +477,12 @@ export class Tensor<R extends Rank = Rank> {
         util.isString(data.values[0])) {
       backendVals = (data.values as string[]).map(d => util.encodeString(d));
     }
-    return new Tensor(shape, dtype, backendVals, data.dataId, backend) as T;
+    const tensor = new Tensor(shape, dtype, backendVals, data.dataId) as T;
+    trackerFn().registerTensor(tensor, backend);
+    if (backendVals != null) {
+      trackerFn().write(backend, tensor.dataId, backendVals);
+    }
+    return tensor;
   }
 
   /** Flatten a Tensor to a 1D array. */

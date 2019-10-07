@@ -350,8 +350,7 @@ describeWithFlags('div', ALL_ENVS, () => {
 });
 
 describeWithFlags('mul', ALL_ENVS, () => {
-  // tslint:disable-next-line: ban
-  fit('strict same-shaped tensors', async () => {
+  it('strict same-shaped tensors', async () => {
     const a = tf.tensor2d([1, 2, -3, -4], [2, 2]);
     const b = tf.tensor2d([5, 3, 4, -7], [2, 2]);
     const expected = [5, 6, -12, 28];

@@ -433,37 +433,10 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
     return y;
   }
 
-  run(kernelName: string, inputs: NamedTensorMap, attrs: NamedAttrMap): Tensor
-      |Tensor[] {
-    const key = `${this.backendName}_${kernelName}`;
-    if (!(key in kernelRegistry)) {
-      throw new Error(
-          `No implementation found for kernel "${kernelName}" ` +
-          `for the "${this.backendName}" backend`);
-    }
-    const kernel = kernelRegistry[key];
-    // @ts-ignore
-    let saved: Tensor[] = [];
-    const isTapeOn = this.isTapeOn();
-    const save: GradSaveFunc = tensors => {
-      // Do not save unless we are recording to the tape. Otherwise it would
-      // cause a mem leak since we would never run backprop, which disposes
-      // the kept tensors.
-      if (!isTapeOn) {
-        return;
-      }
-      saved = tensors.map(tensor => this.keep(this.clone(tensor)));
-    };
-    const storage = this.backend;
-    const outInfo = kernel.func({inputs, attrs, storage, save}) as DataInfo;
-    return Tensor.make(outInfo.shape, {dataId: outInfo.dataId}, outInfo.dtype);
-  }
-
   runKernel<T extends Tensor|Tensor[], I extends NamedTensorMap>(
-      forwardFunc: ForwardFunc<T>,
-      inputs: I,
+      forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
-      ): T {
+      kernelName?: string, attrs?: NamedAttrMap): T {
     let result: T;
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
@@ -482,14 +455,27 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
     const startingBytecount = this.state.numBytes;
     const startingNumTensors = this.state.numTensors;
 
+    let kernelFunc = () => forwardFunc(this.backend, saveFunc);
+    const key = `${this.backendName}_${kernelName}`;
+    if ((key in kernelRegistry)) {
+      const storage = this.backend;
+      kernelFunc = () => {
+        const outInfo =
+            kernelRegistry[key].func(
+                {inputs, attrs, storage, save: saveFunc}) as DataInfo;
+        return Tensor.make(
+                   outInfo.shape, {dataId: outInfo.dataId}, outInfo.dtype) as T;
+      };
+    }
+
     // Stop recording to a tape when running a kernel.
     this.scopedRun(
         () => this.state.kernelDepth++, () => this.state.kernelDepth--, () => {
           if (!this.ENV.getBool('DEBUG')) {
-            result = forwardFunc(this.backend, saveFunc);
+            result = kernelFunc();
           } else {
             result = this.profiler.profileKernel(
-                scopeName, inputs, () => forwardFunc(this.backend, saveFunc));
+                scopeName, inputs, () => kernelFunc());
           }
         });
 
