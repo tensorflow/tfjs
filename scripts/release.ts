@@ -26,12 +26,12 @@
  * This script requires hub to be installed: https://hub.github.com/
  */
 
+import * as argparse from 'argparse';
+import chalk from 'chalk';
+import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
 import * as readline from 'readline';
 import * as shell from 'shelljs';
-import * as fs from 'fs';
-import chalk from 'chalk';
-import * as argparse from 'argparse';
 
 interface Phase {
   // The list of packages that will be updated with this change.
@@ -64,7 +64,7 @@ const UNION_PHASE: Phase = {
 };
 
 const NODE_PHASE: Phase = {
-  packages: ['tfjs-node'],
+  packages: ['tfjs-node', 'tfjs-node-gpu'],
   deps: ['tfjs']
 };
 
@@ -224,6 +224,9 @@ async function main() {
     }
 
     fs.writeFileSync(packageJsonPath, pkg);
+    if (packageName === 'tfjs-node-gpu') {
+      $(`yarn prep-gpu`);
+    }
     $(`yarn`);
     if (phase.scripts != null) {
       phase.scripts.forEach(script => $(script));
