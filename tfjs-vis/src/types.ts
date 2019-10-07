@@ -153,6 +153,10 @@ export interface XYPlotOptions extends VisOptions {
    * but allows fitting more data into view.
    */
   zoomToFit?: boolean;
+  /**
+   * Colors to for each series plotted. An array of valid CSS color strings.
+   */
+  seriesColors?: string[];
 }
 
 /**

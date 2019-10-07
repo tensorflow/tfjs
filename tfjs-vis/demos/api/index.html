@@ -280,6 +280,39 @@
         }
       </script>
 
+      <h4>render.linechart supports custom colors for lines</h4>
+
+      <div id='linechart-colors-cont'></div>
+
+      <script class='show-script'>
+        {
+          const series1 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 50))
+            .map((y, x) => ({ x, y, }));
+
+          const series2 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 150))
+            .map((y, x) => ({ x, y, }));
+
+          const series3 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 150))
+            .map((y, x) => ({ x, y, }));
+
+
+          const series = ['First', 'Second', 'Third'];
+          const data = { values: [series1, series2, series3], series }
+          const opts = { seriesColors: ['tomato', '#230000', 'purple']};
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Linechart custom colors', tab: 'Charts' });
+          tfvis.render.linechart(surface, data, opts);
+
+          // Render to page
+          const container = document.getElementById('linechart-colors-cont');
+          tfvis.render.linechart(container, data, opts);
+        }
+      </script>
+
       <h4>Zoom to fit linechart</h4>
 
       <div id='zoomed-linechart-cont'></div>
@@ -353,6 +386,43 @@
           // Render to page
           const container = document.getElementById('scatterplot-cont');
           tfvis.render.scatterplot(container, data, { width: 500, height: 500 });
+        }
+      </script>
+
+
+      <h4>render.scatterplot supports custom colors for marks</h4>
+
+      <div id='scatterplot-colors-cont'></div>
+
+      <script class='show-script'>
+        {
+          const series1 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 50))
+            .map((y, x) => ({ x, y, }));
+
+          const series2 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 150))
+            .map((y, x) => ({ x, y, }));
+
+          const series3 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 150))
+            .map((y, x) => ({ x, y, }));
+
+
+          const series = ['First', 'Second', 'Third'];
+          const data = { values: [series1, series2, series3], series }
+          const opts = {
+            seriesColors: ['tomato', '#230000', 'purple'],
+            width: 500, height: 500
+          };
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Scatterplot custom colors', tab: 'Charts' });
+          tfvis.render.scatterplot(surface, data, opts);
+
+          // Render to page
+          const container = document.getElementById('scatterplot-colors-cont');
+          tfvis.render.scatterplot(container, data, opts);
         }
       </script>
 
