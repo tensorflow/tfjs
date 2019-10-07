@@ -306,6 +306,17 @@ function cropAndResize_(
   return res;
 }
 
+/**
+ * Rotates an image.
+ *
+ * @param image The image of rank 4 (`[batch, height, width, inChannels]`) or 3
+ *     (`[height, width, inChannels]`).
+ * @param radians The amount of rotation.
+ * @param fillValue The value to fill in the empty space leftover after
+ *     rotation. Can be either a single grayscale value, or an array of three
+ * numbers `[number, number, number]` specifying the R, G, and B channels.
+ */
+/** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
 function rotate_(
     image: Tensor4D|TensorLike, radians: number, fillValue: number): Tensor4D {
   const $image = convertToTensor(image, 'image', 'rotate', 'float32');
