@@ -39,9 +39,8 @@ describe('tfjs-core unit tests', () => {
       const total = parseInt(parts.groups.total, 10);
       const failed = total - passed;
 
-      expect(passed).toEqual(total, `${failed} tests failed`);
-
       if (failed > 0) {
+        fail(`${failed} tests failed out of ${total}`);
         const failureMessages = await driver.$('~failureMessages');
         await failureMessages.waitForExist(DEFAULT_TIMEOUT);
         const failureMessagesText = await failureMessages.getText();
