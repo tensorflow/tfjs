@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line:no-imports-from-dist
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 setTestEnvs([{name: 'test-wasm', backendName: 'wasm', isDataSync: true}]);
@@ -22,7 +23,7 @@ setTestEnvs([{name: 'test-wasm', backendName: 'wasm', isDataSync: true}]);
 const env = jasmine.getEnv();
 
 /** Tests that have these substrings in their name will be included. */
-const INCLUDE_LIST: string[] = ['add '];
+const INCLUDE_LIST: string[] = ['add ', 'matmul '];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
   'complex',                    // Complex numbers not yet implemented.
@@ -31,6 +32,11 @@ const EXCLUDE_LIST: string[] = [
   'broadcast each with 1 dim',  // Same as above.
   'broadcasting same rank Tensors different shape',  // Same as above.
   'upcasts when dtypes dont match',  // Uses the 'complex' dtype.
+
+  'valueAndGradients',       // Gradients not defined yet
+  'fused matmul',            // Fused kernels aren't ready yet
+  'zero in its shape',       // Zero in shapes aren't supported yet
+  'matmul followed by mul',  // mul not supported yet
 ];
 
 /**
@@ -70,4 +76,5 @@ env.specFilter = spec => {
 };
 
 // Import and run all the tests from core.
+// tslint:disable-next-line:no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/tests';

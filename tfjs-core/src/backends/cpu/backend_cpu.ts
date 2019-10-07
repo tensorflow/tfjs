@@ -18,7 +18,8 @@
 import * as seedrandom from 'seedrandom';
 
 import {ENGINE} from '../../engine';
-import {ENV} from '../../environment';
+import {env} from '../../environment';
+
 import {warn} from '../../log';
 import * as array_ops_util from '../../ops/array_ops_util';
 import * as axis_util from '../../ops/axis_util';
@@ -56,6 +57,8 @@ function mapActivation(
     return backend.relu(x);
   } else if (activation === 'elu') {
     return backend.elu(x);
+  } else if (activation === 'relu6') {
+    return backend.relu6(x);
   } else if (activation === 'prelu') {
     return backend.prelu(x, preluActivationWeights);
   }
@@ -90,7 +93,7 @@ export class MathBackendCPU implements KernelBackend {
   private firstUse = true;
 
   constructor() {
-    if (ENV.get('IS_BROWSER')) {
+    if (env().get('IS_BROWSER')) {
       const canvas = createCanvas();
       if (canvas !== null) {
         this.fromPixels2DContext =
@@ -103,7 +106,7 @@ export class MathBackendCPU implements KernelBackend {
   register(dataId: DataId, shape: number[], dtype: DataType): void {
     if (this.firstUse) {
       this.firstUse = false;
-      if (ENV.get('IS_NODE')) {
+      if (env().get('IS_NODE')) {
         warn(
             '\n============================\n' +
             'Hi there 👋. Looks like you are running TensorFlow.js in ' +
@@ -158,7 +161,7 @@ export class MathBackendCPU implements KernelBackend {
         [pixels.width, pixels.height];
     let vals: Uint8ClampedArray|Uint8Array;
     // tslint:disable-next-line:no-any
-    if (ENV.get('IS_NODE') && (pixels as any).getContext == null) {
+    if (env().get('IS_NODE') && (pixels as any).getContext == null) {
       throw new Error(
           'When running in node, pixels must be an HTMLCanvasElement ' +
           'like the one returned by the `canvas` npm package');
@@ -833,7 +836,7 @@ export class MathBackendCPU implements KernelBackend {
     let index = 0;
     const offset = condition.rank === 0 || condition.rank > 1 || a.rank === 1 ?
         1 :
-        a.shape[1];
+        util.sizeFromShape(a.shape.slice(1));
 
     for (let i = 0; i < values.length; i++) {
       for (let j = 0; j < offset; j++) {
@@ -844,6 +847,7 @@ export class MathBackendCPU implements KernelBackend {
         }
       }
     }
+
     return result;
   }
 
@@ -1203,6 +1207,18 @@ export class MathBackendCPU implements KernelBackend {
     return res as T;
   }
 
+  relu6<T extends Tensor>(x: T): T {
+    this.assertNotComplex(x, 'relu');
+
+    const res = ops.zeros(x.shape, x.dtype);
+    const resVals = this.readSync(res.dataId) as TypedArray;
+    const inVals = this.readSync(x.dataId) as TypedArray;
+    for (let i = 0; i < inVals.length; ++i) {
+      resVals[i] = Math.min(Math.max(0, inVals[i]), 6);
+    }
+    return res as T;
+  }
+
   prelu<T extends Tensor>(x: T, a: T): T {
     this.assertNotComplex([x, a], 'prelu');
 
@@ -1511,11 +1527,13 @@ export class MathBackendCPU implements KernelBackend {
     const a4 = erf_util.ERF_A4;
     const a5 = erf_util.ERF_A5;
     for (let i = 0; i < values.length; ++i) {
-      const v = values[i];
+      const sign = Math.sign(values[i]);
+      const v = Math.abs(values[i]);
       const t = 1.0 / (1.0 + p * v);
-      resultValues[i] = 1.0 -
-          (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
-              Math.exp(-v * v);
+      resultValues[i] = sign *
+          (1.0 -
+           (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
+               Math.exp(-v * v));
     }
     return Tensor.make(x.shape, {values: resultValues});
   }

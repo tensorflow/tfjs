@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {ENV} from '../../environment';
+import {env} from '../../environment';
+
 import {GPGPUContext} from './gpgpu_context';
 import {PhysicalTextureType, TextureUsage} from './tex_util';
 
@@ -144,7 +145,7 @@ export class TextureManager {
 
 function getPhysicalTextureForRendering(isPacked: boolean):
     PhysicalTextureType {
-  if (ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED')) {
+  if (env().getBool('WEBGL_RENDER_FLOAT32_ENABLED')) {
     if (isPacked) {
       return PhysicalTextureType.PACKED_2X2_FLOAT32;
     }

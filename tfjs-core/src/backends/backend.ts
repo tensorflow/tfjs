@@ -313,7 +313,6 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   rsqrt<T extends Tensor>(x: T): T {
     throw new Error('Not yet implemented');
   }
-
   square<T extends Tensor>(x: T): T {
     throw new Error('Not yet implemented');
   }
@@ -321,6 +320,9 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     throw new Error('Not yet implemented');
   }
   relu<T extends Tensor>(x: T): T {
+    throw new Error('Not yet implemented');
+  }
+  relu6<T extends Tensor>(x: T): T {
     throw new Error('Not yet implemented');
   }
   prelu<T extends Tensor>(x: T, a: T): T {

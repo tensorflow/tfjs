@@ -1,10 +1,20 @@
 steps:
+
+# Install common dependencies.
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'yarn-common'
+  args: ['install']
+
+# Install converter dependencies
 - name: 'node:10'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
+  waitFor: ['yarn-common']
 
+# Run browser tests.
 - name: 'node:10'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
@@ -14,6 +24,7 @@ steps:
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
+# Run python tests.
 - name: 'gcr.io/google-appengine/python'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'

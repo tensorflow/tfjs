@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {ENV} from './environment';
+import {env} from './environment';
+
 import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
 
 /**
@@ -653,7 +654,7 @@ export function makeZerosTypedArray<D extends DataType>(
  */
 /** @doc {heading: 'Util', namespace: 'util'} */
 export function now(): number {
-  return ENV.platform.now();
+  return env().platform.now();
 }
 
 export function assertNonNegativeIntegerDimensions(shape: number[]) {
@@ -683,7 +684,7 @@ export function assertNonNegativeIntegerDimensions(shape: number[]) {
 /** @doc {heading: 'Util'} */
 export function fetch(
     path: string, requestInits?: RequestInit): Promise<Response> {
-  return ENV.platform.fetch(path, requestInits);
+  return env().platform.fetch(path, requestInits);
 }
 
 /**
@@ -696,7 +697,7 @@ export function fetch(
 /** @doc {heading: 'Util'} */
 export function encodeString(s: string, encoding = 'utf-8'): Uint8Array {
   encoding = encoding || 'utf-8';
-  return ENV.platform.encode(s, encoding);
+  return env().platform.encode(s, encoding);
 }
 
 /**
@@ -708,5 +709,5 @@ export function encodeString(s: string, encoding = 'utf-8'): Uint8Array {
 /** @doc {heading: 'Util'} */
 export function decodeString(bytes: Uint8Array, encoding = 'utf-8'): string {
   encoding = encoding || 'utf-8';
-  return ENV.platform.decode(bytes, encoding);
+  return env().platform.decode(bytes, encoding);
 }

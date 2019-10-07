@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Logs} from '@tensorflow/tfjs-layers/dist/logs';
+import {Logs} from '@tensorflow/tfjs-layers';
 
 import {linechart} from '../render/linechart';
 import {getDrawArea, nextFrame} from '../render/render_utils';
@@ -239,7 +239,7 @@ function getValues(
  *
  * const surface = { name: 'show.fitCallbacks', tab: 'Training' };
  * // Train for 5 epochs with batch size of 32.
- * model.fit(data, labels, {
+ * await model.fit(data, labels, {
  *    epochs: 5,
  *    batchSize: 32,
  *    callbacks: tfvis.show.fitCallbacks(surface, ['loss', 'acc']),

@@ -14,17 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENV} from '../environment';
+
+import {env} from '../environment';
+
 import {Platform} from './platform';
 
 export class PlatformBrowser implements Platform {
+  // According to the spec, the built-in encoder can do only UTF-8 encoding.
+  // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
   private textEncoder: TextEncoder;
-
-  constructor() {
-    // According to the spec, the built-in encoder can do only UTF-8 encoding.
-    // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
-    this.textEncoder = new TextEncoder();
-  }
 
   fetch(path: string, init?: RequestInit): Promise<Response> {
     return fetch(path, init);
@@ -39,6 +37,9 @@ export class PlatformBrowser implements Platform {
       throw new Error(
           `Browser's encoder only supports utf-8, but got ${encoding}`);
     }
+    if (this.textEncoder == null) {
+      this.textEncoder = new TextEncoder();
+    }
     return this.textEncoder.encode(text);
   }
   decode(bytes: Uint8Array, encoding: string): string {
@@ -46,6 +47,6 @@ export class PlatformBrowser implements Platform {
   }
 }
 
-if (ENV.get('IS_BROWSER')) {
-  ENV.setPlatform('browser', new PlatformBrowser());
+if (env().get('IS_BROWSER')) {
+  env().setPlatform('browser', new PlatformBrowser());
 }

@@ -33,20 +33,16 @@ from tensorflow.python.framework import op_def_registry
 
 from tensorflowjs.converters import common
 
+# The function is only needed for TensorFlow 1.X and 2.0. Remove once tfjs
+# no longer depends on these versions.
 def register_prelu_op():
-  """global registry of PReLU op for python, this allow metagraph to be
-  properly generated with unregistered Prelu op
+  """Register a virtual PReLU OpDef.
+
+  This allows to bypass MetaGraph validity checks on TensorFlow 1.X and 2.0.
   """
 
-  value = attr_value_pb2.AttrValue()
-  value.list.type.extend([types_pb2.DataType.DT_FLOAT])
-  attr = op_def_pb2.OpDef.AttrDef()
-  attr.name = 'T'
-  attr.type = 'type'
-  attr.allowed_values.CopyFrom(value)
   prelu_op_def = op_def_pb2.OpDef()
   prelu_op_def.name = 'Prelu'
-  prelu_op_def.attr.extend([attr])
   missing_op_list = op_def_pb2.OpList()
   missing_op_list.op.extend([prelu_op_def])
   op_def_registry.register_op_list(missing_op_list)
@@ -122,6 +118,9 @@ def fuse_ops_for_prelu(input_graph_def):
 
     relu_input_op.op = 'Prelu'
     relu_input_op.input.extend([alpha_tensor_name])
+    # Remove the T attr that is defined in Relu op, since our custom Prelu op
+    # definition does not have that.
+    del relu_input_op.attr['T']
 
     node.op = 'Identity'
     del node.input[:]
@@ -164,7 +163,7 @@ def fuse_prelu_with_fused_conv2d(input_graph_def):
       raise ValueError("Duplicate node names detected for ", node.name)
 
   for node in input_graph_def.node:
-    if (node.op != "Prelu" or len(node.input) != 2):
+    if node.op != "Prelu":
       continue
 
     fused_conv_op = common.node_from_map(input_node_map, node.input[0])
@@ -179,11 +178,16 @@ def fuse_prelu_with_fused_conv2d(input_graph_def):
     fused_conv_op.attr['num_args'].i = fused_conv_op.attr['num_args'].i + 1
     node.op = 'Identity'
     node.input[:] = [node.input[0]]
+    # Add the 'T' definition for Identity op, since Prelu op does not have that.
+    value = attr_value_pb2.AttrValue()
+    # Set the type to float, since it is not used by TFJS.
+    value.type = types_pb2.DT_FLOAT
+    node.attr['T'].CopyFrom(value)
 
   return input_graph_def
 
 def register_prelu_func(graph):
-  """Register Prelu op with function def, this is need for importing graph_def
+  """Register Prelu op with function def, this is needed for importing graph_def
   with unregistered Prelu op.
   Args:
     graph: A tf.Graph object to insert prelu function into.
@@ -197,4 +201,6 @@ def register_prelu_func(graph):
   with graph.as_default():
     prelu_fn(tf.constant(1.0), tf.constant(1.0))
 
-register_prelu_op()
+
+if hasattr(op_def_registry, 'register_op_list'):
+  register_prelu_op()

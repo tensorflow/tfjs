@@ -1,0 +1,52 @@
+steps:
+# Prepare tfjs-node-gpu folder, copy files from tfjs-node.
+- name: 'node:10'
+  dir: 'tfjs-node-gpu'
+  id: 'prep-gpu'
+  entrypoint: 'yarn'
+  args: ['prep-gpu']
+
+# Install common dependencies.
+- name: 'node:10'
+  id: 'yarn-common'
+  entrypoint: 'yarn'
+  args: ['install']
+  waitFor: ['prep-gpu']
+
+# Install tfjs-node dependencies.
+- name: 'node:10'
+  dir: 'tfjs-node-gpu'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
+# Unit tests.
+- name: 'node:10'
+  dir: 'tfjs-node-gpu'
+  entrypoint: 'yarn'
+  id: 'test'
+  args: ['test-ci']
+  waitFor: ['yarn']
+
+# Integration test.
+- name: 'node:10'
+  dir: 'tfjs-node-gpu'
+  entrypoint: 'yarn'
+  id: 'test-ts-integration'
+  args: ['test-ts-integration']
+  waitFor: ['yarn', 'test']
+
+# CPU / GPU package alignment.
+- name: 'node:10'
+  dir: 'tfjs-node-gpu'
+  entrypoint: 'yarn'
+  id: 'ensure-cpu-gpu-packages-align'
+  args: ['ensure-cpu-gpu-packages-align']
+  waitFor: ['yarn', 'test']
+
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'

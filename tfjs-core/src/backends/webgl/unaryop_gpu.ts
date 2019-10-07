@@ -52,6 +52,10 @@ export const RELU = CHECK_NAN_SNIPPET + `
   return (x < 0.0) ? 0.0 : x;
 `;
 
+export const RELU6 = CHECK_NAN_SNIPPET + `
+  return (x < 0.0) ? 0.0 : min(6.0, x);
+`;
+
 export const ELU = `return (x >= 0.0) ? x : (exp(x) - 1.0);`;
 
 export const SELU = `
@@ -162,9 +166,19 @@ export const COS = CHECK_NAN_SNIPPET + `
 
 export const TAN = `return tan(x);`;
 
-export const ASIN = `return asin(x);`;
+export const ASIN = CHECK_NAN_SNIPPET + `
+  if (abs(x) > 1.) {
+    return NAN;
+  }
+  return asin(x);
+`;
 
-export const ACOS = `return acos(x);`;
+export const ACOS = CHECK_NAN_SNIPPET + `
+  if (abs(x) > 1.) {
+    return NAN;
+  }
+  return acos(x);
+`;
 
 export const ATAN = CHECK_NAN_SNIPPET + `
   return atan(x);
@@ -185,7 +199,7 @@ export const TANH = `
   return sign(x) * (1.0 - e2x) / (1.0 + e2x);
 `;
 
-export const ASINH = `return log(x + sqrt(x * x + 1.0));`;
+export const ASINH = CHECK_NAN_SNIPPET + `return log(x + sqrt(x * x + 1.0));`;
 
 export const ACOSH = CHECK_NAN_SNIPPET + `
   if (x < 1.0) return NAN;
@@ -206,8 +220,10 @@ export const ERF = `
   float a4 = ${erf_util.ERF_A4};
   float a5 = ${erf_util.ERF_A5};
 
+  float sign = sign(x);
+  x = abs(x);
   float t = 1.0 / (1.0 + p * x);
-  return 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x);
+  return sign * (1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x));
 `;
 
 export const SQUARE = `return x * x;`;

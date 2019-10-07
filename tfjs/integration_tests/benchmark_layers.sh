@@ -90,6 +90,7 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
 
   # Compile the bindings in the tfjs-node / tfjs-node-gpu release package.
   yarn
+  yarn build-addon-from-source
 
   popd
   popd
