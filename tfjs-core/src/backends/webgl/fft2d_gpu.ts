@@ -27,25 +27,25 @@ export class FFT2DProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(op: string, inputShape: [number, number]) {
+  constructor(op: string, inputShape: [number, number, number]) {
     this.outputShape = inputShape;
 
-    const [height, width] = inputShape;
+    const [, height, width] = inputShape;
     const mulHeight = `${Math.atan(Math.tan(2 * Math.PI / height))}`;
     const mulWidth = `${Math.atan(Math.tan(2 * Math.PI / width))}`;
 
     this.userCode = `
       float mulWidth = ${mulWidth};
       float mulHeight = ${mulHeight};
-      float mulMatDFT(int y, int x) {
+      float mulMatDFT(int batch, int y, int x) {
         float resultReal = 0.0;
         float resultImag = 0.0;
         for (int r = 0; r < ${height}; r++) {
           float rowReal = 0.0;
           float rowImag = 0.0;
           for (int c = 0; c < ${width}; c++) {
-            float real1 = getReal(r, c);
-            float imag1 = getImag(r, c);
+            float real1 = getReal(batch, r, c);
+            float imag1 = getImag(batch, r, c);
             float theta = -float(x) * float(c) * mulWidth;
             float real2 = cos(theta);
             float imag2 = sin(theta);
@@ -63,8 +63,8 @@ export class FFT2DProgram implements GPGPUProgram {
       }
 
       void main() {
-        ivec2 coords = getOutputCoords();
-        setOutput(mulMatDFT(coords[0], coords[1]));
+        ivec3 coords = getOutputCoords();
+        setOutput(mulMatDFT(coords[0], coords[1], coords[2]));
       }
     `;
   }

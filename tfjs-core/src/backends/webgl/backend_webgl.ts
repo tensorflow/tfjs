@@ -2473,7 +2473,7 @@ export class MathBackendWebGL implements KernelBackend {
     return this.fftImpl(x, inverse);
   }
 
-  fft2d(x: Tensor2D): Tensor2D {
+  fft2d(x: Tensor3D): Tensor3D {
     return this.fft2dImpl(x);
   }
 
@@ -2502,7 +2502,7 @@ export class MathBackendWebGL implements KernelBackend {
     return complex;
   }
 
-  private fft2dImpl(x: Tensor2D): Tensor2D {
+  private fft2dImpl(x: Tensor3D): Tensor3D {
     const xData = this.texData.get(x.dataId);
 
     const realProgram = new FFT2DProgram(fft2d_gpu.COMPLEX_FFT.REAL, x.shape);
@@ -2514,7 +2514,8 @@ export class MathBackendWebGL implements KernelBackend {
 
     const real = this.compileAndRun<Tensor>(realProgram, inputs);
     const imag = this.compileAndRun<Tensor>(imagProgram, inputs);
-    const complex = this.complex(real, imag).as2D(x.shape[0], x.shape[1]);
+    const complex =
+        this.complex(real, imag).as3D(x.shape[0], x.shape[1], x.shape[2]);
     real.dispose();
     imag.dispose();
     return complex;

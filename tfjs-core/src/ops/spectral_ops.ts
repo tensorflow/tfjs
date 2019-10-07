@@ -18,7 +18,7 @@
 import {ENGINE} from '../engine';
 import {complex, imag, real} from '../ops/complex_ops';
 import {op} from '../ops/operation';
-import {Tensor, Tensor2D} from '../tensor';
+import {Tensor, Tensor2D, Tensor3D} from '../tensor';
 import {assert} from '../util';
 import {scalar, zeros} from './tensor_ops';
 
@@ -74,15 +74,30 @@ function fft_(input: Tensor): Tensor {
 /**
  * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
  */
-function fft2d_(input: Tensor2D): Tensor2D {
+function fft2d_<T extends Tensor2D|Tensor3D>(input: T): T {
+  let input3D = input as Tensor3D;
+  let reshapedTo3D = false;
+
+  if (input.rank === 2) {
+    reshapedTo3D = true;
+    input3D = input.as3D(1, input.shape[0], input.shape[1]);
+  }
+
   assert(
-      input.dtype === 'complex64',
-      () => `The dtype for tf.spectral.fft() must be complex64 ` +
-          `but got ${input.dtype}.`);
+      input3D.rank === 3,
+      () => `Error in fft2d: input must be rank 3, but got rank ${
+          input3D.rank}.`);
+  assert(
+      input3D.dtype === 'complex64',
+      () => `The dtype for tf.spectral.fft2d() must be complex64, ` +
+          `but got ${input3D.dtype}.`);
 
-  const ret = ENGINE.runKernel(backend => backend.fft2d(input), {input});
+  const res = ENGINE.runKernel(backend => backend.fft2d(input3D), {input3D});
 
-  return ret.reshape(input.shape);
+  if (reshapedTo3D) {
+    return res.as2D(res.shape[1], res.shape[2]) as T;
+  }
+  return res as T;
 }
 
 /**

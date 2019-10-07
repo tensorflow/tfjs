@@ -3384,8 +3384,8 @@ export class MathBackendCPU implements KernelBackend {
     return this.fftBatch(x, false);
   }
 
-  fft2d(x: Tensor2D): Tensor2D {
-    return this.fft2dImpl(x);
+  fft2d(x: Tensor3D): Tensor3D {
+    return this.fft2dBatch(x);
   }
 
   ifft(x: Tensor2D): Tensor2D {
@@ -3446,39 +3446,56 @@ export class MathBackendCPU implements KernelBackend {
     }
   }
 
-  private fft2dImpl(x: Tensor2D): Tensor2D {
-    const [height, width] = x.shape;
+  private fft2dBatch(x: Tensor3D): Tensor3D {
+    const realResult = ops.buffer(x.shape, 'float32');
+    const imagResult = ops.buffer(x.shape, 'float32');
 
-    const widthNumberLine = ops.range(0, width, 1);
-    const xyw = widthNumberLine.mul(ops.reshape(widthNumberLine, [-1, 1]));
+    const data = this.readSync(x.dataId) as Float32Array;
+    const realResultVals = realResult.values;
+    const imagResultVals = imagResult.values;
 
-    const heightNumberLine = ops.range(0, height, 1);
-    const xyh = heightNumberLine.mul(ops.reshape(heightNumberLine, [-1, 1]));
+    const [batches, rows, cols] = x.shape;
 
-    // atan(tan(x)) != x
-    const mulWidth = -Math.atan(Math.tan(2 * Math.PI / width));
-    const mulHeight = -Math.atan(Math.tan(2 * Math.PI / height));
+    const mulHeight = Math.atan(Math.tan(2 * Math.PI / rows));
+    const mulWidth = Math.atan(Math.tan(2 * Math.PI / cols));
 
-    const inner1 = xyw.mul(mulWidth);
+    let i = 0;
+    for (let b = 0; b < batches; b++) {
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          let resultReal = 0.0;
+          let resultImag = 0.0;
+          let j = 0;
+          for (let r = 0; r < rows; r++) {
+            let rowReal = 0.0;
+            let rowImag = 0.0;
+            for (let c = 0; c < cols; c++) {
+              const complex1 = complex_util.getComplexWithIndex(data, j);
+              const real1 = complex1.real;
+              const imag1 = complex1.imag;
+              const theta = -x * c * mulWidth;
+              const real2 = Math.cos(theta);
+              const imag2 = Math.sin(theta);
 
-    const twr = ops.cos(inner1);
-    const twi = ops.sin(inner1);
+              rowReal += real1 * real2 - imag1 * imag2;
+              rowImag += real1 * imag2 + imag1 * real2;
+              j++;
+            }
+            const theta = -y * r * mulHeight;
+            const real2 = Math.cos(theta);
+            const imag2 = Math.sin(theta);
+            resultReal += rowReal * real2 - rowImag * imag2;
+            resultImag += rowReal * imag2 + rowImag * real2;
+          }
+          realResultVals[i] = resultReal;
+          imagResultVals[i] = resultImag;
+          i++;
+        }
+      }
+    }
 
-    const inner2 = xyh.mul(mulHeight);
-
-    const thr = ops.cos(inner2);
-    const thi = ops.sin(inner2);
-
-    const xReal = ops.real(x);
-    const xImag = ops.imag(x);
-
-    const gtReal = ops.matMul(xReal, twr).sub(ops.matMul(xImag, twi));
-    const gtImag = ops.matMul(xReal, twi).add(ops.matMul(xImag, twr));
-
-    const r = ops.matMul(gtReal, thr, true).sub(ops.matMul(gtImag, thi, true));
-    const i = ops.matMul(gtReal, thi, true).add(ops.matMul(gtImag, thr, true));
-
-    return ops.complex(ops.transpose(r), ops.transpose(i)) as Tensor2D;
+    const t = ops.complex(realResult.toTensor(), imagResult.toTensor());
+    return t as Tensor3D;
   }
 
   private isExponentOf2(size: number): boolean {
