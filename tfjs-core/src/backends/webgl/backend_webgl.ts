@@ -2402,7 +2402,9 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [image, boxes, boxIndex]);
   }
 
-  rotate(image: Tensor4D, radians: number, fillValue: number): Tensor4D {
+  rotate(
+      image: Tensor4D, radians: number,
+      fillValue: number|[number, number, number]): Tensor4D {
     const program = new RotateProgram(image.shape, radians, fillValue);
     return this.compileAndRun(program, [image]);
   }

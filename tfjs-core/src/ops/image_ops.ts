@@ -307,21 +307,27 @@ function cropAndResize_(
 }
 
 /**
- * Rotates an image.
+ * Rotates the input image tensor.
  *
- * @param image The image of rank 4 (`[batch, height, width, inChannels]`) or 3
- *     (`[height, width, inChannels]`).
+ * @param image 4d tensor of shape `[batch, imageHeight, imageWidth, depth]`.
  * @param radians The amount of rotation.
- * @param fillValue The value to fill in the empty space leftover after
- *     rotation. Can be either a single grayscale value, or an array of three
- * numbers `[number, number, number]` specifying the R, G, and B channels.
+ * @param fillValue The value to fill in the empty space leftover
+ *     after rotation. Can be either a single grayscale value, or an array of
+ *     three numbers `[number, number, number]` specifying the R, G, and B
+ *     channels. Defaults to `0` (black).
  */
 /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
 function rotate_(
-    image: Tensor4D|TensorLike, radians: number, fillValue: number): Tensor4D {
+    image: Tensor4D|TensorLike, radians: number,
+    fillValue: number|[number, number, number] = 0): Tensor4D {
   const $image = convertToTensor(image, 'image', 'rotate', 'float32');
 
-  const forward: ForwardFunc<Tensor4D> = (backend, save) =>
+  util.assert(
+      $image.rank === 4,
+      () => 'Error in rotate: image must be rank 4,' +
+          `but got rank ${$image.rank}.`);
+
+  const forward: ForwardFunc<Tensor4D> = (backend) =>
       backend.rotate($image, radians, fillValue);
   const res = ENGINE.runKernel(forward, {$image});
   return res;

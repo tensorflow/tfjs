@@ -3650,7 +3650,9 @@ export class MathBackendCPU implements KernelBackend {
     return EPSILON_FLOAT32;
   }
 
-  rotate(image: Tensor4D, radians: number, fillValue: number): Tensor4D {
+  rotate(
+      image: Tensor4D, radians: number,
+      fillValue: number|[number, number, number]): Tensor4D {
     // TODO(annxingyuan): Implement.
     return image;
   }
