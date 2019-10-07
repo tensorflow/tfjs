@@ -37,6 +37,7 @@ export class BackendWasm extends KernelBackend {
 
   constructor(private wasm: BackendWasmModule) {
     super();
+    this.wasm.tfjs.init();
   }
 
   register(dataId: DataId, shape: number[], dtype: DataType) {
@@ -197,6 +198,7 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
+      init: wasm.cwrap('init', null, []),
       registerTensor: wasm.cwrap(
           'register_tensor', null,
           [
