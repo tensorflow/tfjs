@@ -3470,7 +3470,8 @@ export class MathBackendCPU implements KernelBackend {
             let rowReal = 0.0;
             let rowImag = 0.0;
             for (let c = 0; c < cols; c++) {
-              const complex1 = complex_util.getComplexWithIndex(data, j);
+              const complex1 =
+                  complex_util.getComplexWithIndex(data, (b * rows * cols) + j);
               const real1 = complex1.real;
               const imag1 = complex1.imag;
               const theta = -x * c * mulWidth;
