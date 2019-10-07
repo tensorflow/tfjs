@@ -17,9 +17,10 @@
 
 import embed, {Mode, Result as EmbedRes, VisualizationSpec} from 'vega-embed';
 
-import {Drawable, VisOptions} from '../types';
+import {BarChartOpts, Drawable} from '../types';
 import {getDefaultHeight, getDefaultWidth} from '../util/dom';
 import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
+
 
 /**
  * Renders a barchart.
@@ -44,7 +45,7 @@ import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
 /** @doc {heading: 'Charts', namespace: 'render'} */
 export async function barchart(
     container: Drawable, data: Array<{index: number; value: number;}>,
-    opts: VisOptions = {}): Promise<void> {
+    opts: BarChartOpts = {}): Promise<void> {
   const drawArea = getDrawArea(container);
   const values = data;
   const options = Object.assign({}, defaultOpts, opts);
@@ -107,7 +108,10 @@ export async function barchart(
     },
     'encoding': {
       'x': {'field': 'index', 'type': xType, 'axis': xAxis},
-      'y': {'field': 'value', 'type': yType, 'axis': yAxis}
+      'y': {'field': 'value', 'type': yType, 'axis': yAxis},
+      'color': {
+        'value': options.color || '#4C78A0',
+      }
     }
   };
 
@@ -135,5 +139,5 @@ const instances: Map<HTMLElement, InstanceInfo> =
 interface InstanceInfo {
   // tslint:disable-next-line:no-any
   view: any;
-  lastOptions: VisOptions;
+  lastOptions: BarChartOpts;
 }

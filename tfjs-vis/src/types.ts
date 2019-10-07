@@ -198,6 +198,21 @@ export interface HistogramOpts extends VisOptions {
    * Maximum number of bins in histogram.
    */
   maxBins?: number;
+
+  /**
+   * Fill color for bars. Should be a valid CSS color string
+   */
+  color?: string;
+}
+
+/**
+ * Bar chart options.
+ */
+export interface BarChartOpts extends VisOptions {
+  /**
+   * Fill color for bars. Should be a valid CSS color string
+   */
+  color?: string;
 }
 
 /**

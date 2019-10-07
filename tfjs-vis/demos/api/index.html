@@ -109,6 +109,33 @@
         }
       </script>
 
+      <h4>render.barchart with custom color</h3>
+      <div id='barchart-col-cont'></div>
+      <script class='show-script'>
+        {
+          const data = [
+            { index: 0, value: 50 },
+            { index: 1, value: 100 },
+            { index: 2, value: 150 },
+          ];
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Barchart Color', tab: 'Charts' });
+          tfvis.render.barchart(surface, data, {color: 'tomato'});
+
+          // Render to page
+          const container = document.getElementById('barchart-col-cont');
+          tfvis.render.barchart(container, data, {
+            xLabel: 'my x axis',
+            yLabel: 'values',
+            width: 500,
+            height: 250,
+            fontSize: 14,
+            color: 'tomato'
+          });
+        }
+      </script>
+
       <h4>Re-rendering</h4>
       <p>You can update a bar chart by calling
         <code>render.barchart</code> again with the same
@@ -209,6 +236,31 @@
           // Render to page
           const container = document.getElementById('histogram-cont');
           tfvis.render.histogram(container, data);
+        }
+      </script>
+
+      <h4>render.histogram custom color</h4>
+
+      <div id='histogram-col-cont'></div>
+
+      <script class='show-script'>
+        {
+          const data = Array(100).fill(0)
+            .map(x => Math.random() * 100 - (Math.random() * 50))
+
+          // Push some special values for the stats table.
+          data.push(Infinity);
+          data.push(NaN);
+          data.push(0);
+
+          const opts = {color: 'tomato'};
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Histogram w Color', tab: 'Charts' });
+          tfvis.render.histogram(surface, data, opts);
+
+          // Render to page
+          const container = document.getElementById('histogram-col-cont');
+          tfvis.render.histogram(container, data, opts);
         }
       </script>
 
