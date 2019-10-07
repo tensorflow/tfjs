@@ -312,14 +312,18 @@ function cropAndResize_(
  * @param image 4d tensor of shape `[batch, imageHeight, imageWidth, depth]`.
  * @param radians The amount of rotation.
  * @param fillValue The value to fill in the empty space leftover
- *     after rotation. Can be either a single grayscale value, or an array of
- *     three numbers `[number, number, number]` specifying the R, G, and B
- *     channels. Defaults to `0` (black).
+ *     after rotation. Can be either a single grayscale value (0-255), or an
+ * array of three numbers `[red, green, blue]` specifying the red, green, and
+ * blue channels. Defaults to `0` (black).
+ * @param center The center of rotation. Can be either a single value (0-1), or
+ *     an array of two numbers `[centerX, centerY]`. Defaults to `0.5` (rotates
+ * the image around its center).
  */
 /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
 function rotate_(
     image: Tensor4D|TensorLike, radians: number,
-    fillValue: number|[number, number, number] = 0): Tensor4D {
+    fillValue: number|[number, number, number] = 0,
+    center: number|[number, number] = 0.5): Tensor4D {
   const $image = convertToTensor(image, 'image', 'rotate', 'float32');
 
   util.assert(
@@ -328,7 +332,7 @@ function rotate_(
           `but got rank ${$image.rank}.`);
 
   const forward: ForwardFunc<Tensor4D> = (backend) =>
-      backend.rotate($image, radians, fillValue);
+      backend.rotate($image, radians, fillValue, center);
   const res = ENGINE.runKernel(forward, {$image});
   return res;
 }

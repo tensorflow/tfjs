@@ -7,15 +7,18 @@ export class RotateProgram implements GPGPUProgram {
 
   constructor(
       imageShape: [number, number, number, number], radians: number,
-      fillValue: number|[number, number, number]) {
+      fillValue: number|[number, number, number],
+      center: number|[number, number]) {
     const imageHeight = imageShape[1];
     const imageWidth = imageShape[2];
     const sinFactor = Math.sin(radians);
     const cosFactor = Math.cos(radians);
     this.outputShape = imageShape;
 
-    const halfWidth = (imageWidth / 2);
-    const halfHeight = (imageHeight / 2);
+    const centerX = Math.floor(
+        imageWidth * (typeof center === 'number' ? center : center[0]));
+    const centerY = Math.floor(
+        imageHeight * (typeof center === 'number' ? center : center[1]));
 
     let fillSnippet = '';
     if (typeof fillValue === 'number') {
@@ -33,13 +36,13 @@ export class RotateProgram implements GPGPUProgram {
           int x = coords[2];
           int y = coords[1];
 
-          int coordX = int(float(x - ${halfWidth}) * ${cosFactor} - float(y - ${
-        halfHeight}) * ${sinFactor});
-          int coordY = int(float(x - ${halfWidth}) * ${sinFactor} + float(y - ${
-        halfHeight}) * ${cosFactor});
+          int coordX = int(float(x - ${centerX}) * ${cosFactor} - float(y - ${
+        centerY}) * ${sinFactor});
+          int coordY = int(float(x - ${centerX}) * ${sinFactor} + float(y - ${
+        centerY}) * ${cosFactor});
 
-          coordX = int(coordX + ${halfWidth});
-          coordY = int(coordY + ${halfHeight});
+          coordX = int(coordX + ${centerX});
+          coordY = int(coordY + ${centerY});
 
           ${fillSnippet}
 

@@ -615,7 +615,8 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
 
   rotate(
       image: Tensor4D, radians: number,
-      fillValue: number|[number, number, number]): Tensor4D {
+      fillValue: number|[number, number, number],
+      center: number|[number, number]): Tensor4D {
     throw new Error('Not yet implemented');
   }
 
