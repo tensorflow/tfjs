@@ -12,7 +12,6 @@ cc_binary(
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
-        "-s DEMANGLE_SUPPORT=1",
     ],
     deps = [
         ":backend",
