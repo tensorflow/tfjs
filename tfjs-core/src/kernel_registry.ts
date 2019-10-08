@@ -17,8 +17,6 @@
 
 import {DataType} from './types';
 
-export const kernelRegistry: {[key: string]: KernelFunc} = {};
-
 export type GradSaveFunc = (save: DataId[]) => void;
 
 export type DataId = object;
@@ -76,6 +74,19 @@ export function registerKernel(
   }
   kernelRegistry[key] = kernelFunc;
 }
+
+export function unregisterKernel(
+    kernelName: string, backendName: string): void {
+  const key = makeKey(kernelName, backendName);
+  if (!(key in kernelRegistry)) {
+    throw new Error(
+        `The kernel '${kernelName}' for backend ` +
+        `'${backendName}' is not registered`);
+  }
+  delete kernelRegistry[key];
+}
+
+const kernelRegistry: {[key: string]: KernelFunc} = {};
 
 function makeKey(kernelName: string, backendName: string) {
   return `${backendName}_${kernelName}`;

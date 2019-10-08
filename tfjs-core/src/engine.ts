@@ -17,7 +17,7 @@
 
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
-import {DataInfo, kernelRegistry, NamedAttrMap} from './kernel_registry';
+import {DataInfo, getKernel, NamedAttrMap, NamedDataMap} from './kernel_registry';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, Tensor3D, TensorTracker, Variable} from './tensor';
@@ -435,6 +435,15 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
     return y;
   }
 
+  run(kernelName: string, inputs: NamedDataMap, attrs: NamedAttrMap): DataInfo
+      |DataInfo[] {
+    const forwardFunc: null = null;
+    const backwardsFunc: null = null;
+    return this.runKernel(
+        forwardFunc, inputs as NamedTensorMap, backwardsFunc, kernelName,
+        attrs);
+  }
+
   runKernel<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
@@ -458,11 +467,10 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
     const startingNumTensors = this.state.numTensors;
 
     let kernelFunc = () => forwardFunc(this.backend, saveFunc);
-    const key = `${this.backendName}_${kernelName}`;
-    if ((key in kernelRegistry)) {
+    const kernel = getKernel(kernelName, this.backendName);
+    if (kernel != null) {
       const storage = this.backend;
       kernelFunc = () => {
-        const kernel = kernelRegistry[key];
         const outInfo =
             kernel({inputs, attrs, storage, save: saveFunc}) as DataInfo;
         const tensor =
