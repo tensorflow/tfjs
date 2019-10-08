@@ -36,6 +36,7 @@ cc_library(
   deps = [
     ":add",
     ":batch_matmul",
+    ":prelu",
   ]
 )
 
@@ -52,6 +53,16 @@ cc_library(
 cc_library(
   name = "batch_matmul",
   srcs = ["batch_matmul.cc"],
+  linkstatic = 1,
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+cc_library(
+  name = "prelu",
+  srcs = ["prelu.cc"],
   linkstatic = 1,
   deps = [
     ":backend",
