@@ -15,15 +15,9 @@
  * =============================================================================
  */
 
-import {DataId, registerKernel} from '../../kernel_registry';
-import {BackendValues, DataType, TypedArray} from '../../types';
+import {registerKernel} from '../../kernel_registry';
+import {CPUStorage} from './cpu_types';
 import {assertNotComplex} from './cpu_util';
-
-export interface CPUStorage {
-  readSync(dataId: DataId): BackendValues;
-  read(dataId: DataId): Promise<BackendValues>;
-  newData(dtype: DataType, values: BackendValues): DataId;
-}
 
 registerKernel('Square', 'cpu', ({inputs, storage, save}) => {
   const {x} = inputs;
@@ -33,7 +27,7 @@ registerKernel('Square', 'cpu', ({inputs, storage, save}) => {
   // Save it for the gradient.
   save([x]);
 
-  const values = cpu.readSync(x.dataId) as TypedArray;
+  const values = cpu.data.get(x.dataId).values as Float32Array;
   const newValues = new Float32Array(values.length);
   for (let i = 0; i < values.length; ++i) {
     const value = values[i];

@@ -47,6 +47,7 @@ import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
+import {TensorData} from './cpu_types';
 import {assertNotComplex} from './cpu_util';
 
 function mapActivation(
@@ -65,15 +66,6 @@ function mapActivation(
   }
   throw new Error(
       `Activation ${activation} has not been implemented for the CPU backend.`);
-}
-
-interface TensorData<D extends DataType> {
-  values?: BackendValues;
-  dtype: D;
-  // For complex numbers, the real and imaginary parts are stored as their own
-  // individual tensors, with a parent joining the two with the
-  // complexTensors field. When this is defined, texture will be null.
-  complexTensors?: {real: Tensor, imag: Tensor};
 }
 
 function createCanvas() {

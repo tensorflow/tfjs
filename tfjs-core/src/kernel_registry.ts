@@ -57,6 +57,10 @@ export function getKernel(kernelName: string, backendName: string): KernelFunc {
   return kernelRegistry[key];
 }
 
+export function getKernelRegistry(): {[key: string]: KernelFunc} {
+  return kernelRegistry;
+}
+
 /**
  * Registers the function (forward pass) for the kernel in a global registry.
  *
