@@ -328,32 +328,30 @@ function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
       broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
 
   const der = (dy: Tensor, saved: Tensor[]) => {
-    const [a, b] = saved;
+    const [$a, $b] = saved;
     const derA = () => {
-      const res = dy.mul(b.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+      const res = dy.mul($b.toFloat());
+      const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
       if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape(a.shape);
+        return res.sum(reduceAxes).reshape($a.shape);
       }
       return res;
     };
     const derB = () => {
-      const res = dy.mul(a.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+      const res = dy.mul($a.toFloat());
+      const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
       if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape(b.shape);
+        return res.sum(reduceAxes).reshape($b.shape);
       }
       return res;
     };
-    return {a: derA, b: derB};
+    return {$a: derA, $b: derB};
   };
-  const attrs = {};
-  const kernelName = 'Mul';
   return ENGINE.runKernel((backend, save) => {
     const res = backend.multiply($a, $b);
     save([$a, $b]);
     return res;
-  }, {a: $a, b: $b}, der, kernelName, attrs) as T;
+  }, {$a, $b}, der) as T;
 }
 
 /**
