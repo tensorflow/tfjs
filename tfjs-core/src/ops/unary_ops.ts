@@ -367,10 +367,12 @@ function square_<T extends Tensor>(x: T|TensorLike): T {
     const [$x] = saved;
     return {$x: () => dy.mul($x.toFloat().mul(2))} as {$x: () => T};
   };
+  const kernelName = 'Square';
+  const attrs = {};
   return ENGINE.runKernel((backend, save) => {
     save([$x]);
     return backend.square($x);
-  }, {$x}, grad);
+  }, {$x}, grad, kernelName, attrs);
 }
 
 /**
