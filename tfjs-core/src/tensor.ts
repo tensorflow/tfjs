@@ -1486,6 +1486,9 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
   private constructor(
       initialValue: Tensor<R>, public trainable = true, name?: string) {
     super(initialValue.shape, initialValue.dtype, initialValue.dataId);
+    const registerInBackend = true;
+    const backend: Backend = null;
+    trackerFn().registerTensor(this, backend, registerInBackend);
     this.name = name;
     if (this.name == null) {
       this.name = trackerFn().nextVariableId().toString();

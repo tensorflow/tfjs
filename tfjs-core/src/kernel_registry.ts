@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {GradSaveFunc} from './tensor_types';
 import {DataType} from './types';
 
 interface Kernel {
@@ -36,6 +35,7 @@ export type ForwardFunc = (params: {
   attrs?: NamedAttrMap,
   save?: GradSaveFunc
 }) => DataInfo|DataInfo[];
+
 
 export type BackwardFunc =
     (dy: DataId, saved: DataId[], attrs: NamedAttrMap, storage: Storage) =>

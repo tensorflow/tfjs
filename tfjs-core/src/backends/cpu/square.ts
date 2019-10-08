@@ -25,10 +25,13 @@ export interface CPUStorage {
   newData(dtype: DataType, values: BackendValues): DataId;
 }
 
-registerKernel('Square', 'cpu', ({inputs, storage}) => {
+registerKernel('Square', 'cpu', ({inputs, storage, save}) => {
   const {x} = inputs;
   const cpu = storage as CPUStorage;
   assertNotComplex(x, 'square');
+
+  // Save it for the gradient.
+  save([x]);
 
   const values = cpu.readSync(x.dataId) as TypedArray;
   const newValues = new Float32Array(values.length);
