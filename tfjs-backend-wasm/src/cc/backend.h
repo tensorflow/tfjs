@@ -15,8 +15,6 @@
 #ifndef TFJS_BACKEND_H
 #define TFJS_BACKEND_H
 
-namespace tfjs {
-
 enum DType {
   float32 = 0,
   int32 = 1,
@@ -41,7 +39,10 @@ struct TensorInfo {
   int size;
 };
 
+namespace tfjs {
+namespace backend {
 TensorInfo get_tensor_info(int tensor_id);
+}  // namespace backend
 
 }  // namespace tfjs
 

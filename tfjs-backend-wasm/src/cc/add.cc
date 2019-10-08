@@ -42,9 +42,9 @@ extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
 void add(int a_id, int b_id, int out_id) {
-  const auto a_info = get_tensor_info(a_id);
-  const auto b_info = get_tensor_info(b_id);
-  const auto out_info = get_tensor_info(out_id);
+  const auto a_info = backend::get_tensor_info(a_id);
+  const auto b_info = backend::get_tensor_info(b_id);
+  const auto out_info = backend::get_tensor_info(out_id);
   switch (a_info.dtype) {
     case DType::float32:
       add_impl(a_info.buf.f32, a_info.size, b_info.buf.f32, b_info.size,
