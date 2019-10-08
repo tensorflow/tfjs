@@ -121,8 +121,7 @@ export class MathBackendCPU implements KernelBackend {
       }
     }
     if (this.data.has(dataId)) {
-      // Already registered.
-      return;
+      throw new Error(`Data buffer is already registered`);
     }
     this.data.set(dataId, {dtype});
   }

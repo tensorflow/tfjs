@@ -72,7 +72,9 @@ export interface TimingInfo extends BackendTimingInfo {
 export type ScopeFn<T extends TensorContainer> = () => T;
 
 export interface TensorManager {
-  registerTensor(a: Tensor, backend?: KernelBackend): void;
+  registerTensor(
+      a: Tensor|Variable, backend: KernelBackend,
+      registerInBackend: boolean): void;
   registerVariable(v: Variable): void;
   disposeTensor(a: Tensor): void;
   memory(): {numDataBuffers: number; numBytes: number;};
@@ -463,8 +465,11 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
         const outInfo =
             kernelRegistry[key].func(
                 {inputs, attrs, storage, save: saveFunc}) as DataInfo;
-        return Tensor.make(
-                   outInfo.shape, {dataId: outInfo.dataId}, outInfo.dtype) as T;
+        const tensor =
+            Tensor.wrap(outInfo.shape, outInfo.dtype, outInfo.dataId);
+        const registerInBackend = false;
+        this.registerTensor(tensor, this.backend, registerInBackend);
+        return tensor as T;
       };
     }
 
@@ -512,7 +517,8 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
 
   // TensorManager implementation.
 
-  registerTensor(a: Tensor|Variable, backend?: KernelBackend): void {
+  registerTensor(
+      a: Tensor|Variable, backend: KernelBackend, registerInBackend: boolean) {
     const refCount = this.state.tensorInfo.has(a.dataId) ?
         this.state.tensorInfo.get(a.dataId).refCount :
         0;
@@ -537,10 +543,12 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
         refCount: 0
       });
       this.state.numBytes += bytes;
-      if (backend != null) {
-        backend.register(a.dataId, a.shape, a.dtype);
-      } else {
-        this.backend.register(a.dataId, a.shape, a.dtype);
+      if (registerInBackend) {
+        if (backend != null) {
+          backend.register(a.dataId, a.shape, a.dtype);
+        } else {
+          this.backend.register(a.dataId, a.shape, a.dtype);
+        }
       }
     }
     this.state.tensorInfo.get(a.dataId).refCount++;

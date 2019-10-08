@@ -156,7 +156,8 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
 }
 
 export interface TensorTracker {
-  registerTensor(t: Tensor, backend?: Backend): void;
+  registerTensor(
+      a: Tensor|Variable, backend: Backend, registerInBackend: boolean): void;
   disposeTensor(t: Tensor): void;
   disposeVariable(v: Variable): void;
   write(backend: Backend, dataId: DataId, values: BackendValues): void;
@@ -452,9 +453,7 @@ export class Tensor<R extends Rank = Rank> {
    */
   readonly strides: number[];
 
-  protected constructor(
-      shape: ShapeMap[R], dtype: DataType, values?: BackendValues,
-      dataId?: DataId) {
+  protected constructor(shape: ShapeMap[R], dtype: DataType, dataId?: DataId) {
     this.shape = shape.slice() as ShapeMap[R];
     this.dtype = dtype || 'float32';
     this.size = util.sizeFromShape(shape);
@@ -477,12 +476,17 @@ export class Tensor<R extends Rank = Rank> {
         util.isString(data.values[0])) {
       backendVals = (data.values as string[]).map(d => util.encodeString(d));
     }
-    const tensor = new Tensor(shape, dtype, backendVals, data.dataId) as T;
-    trackerFn().registerTensor(tensor, backend);
+    const tensor = new Tensor(shape, dtype, data.dataId) as T;
+    const registerInBackend = true;
+    trackerFn().registerTensor(tensor, backend, registerInBackend);
     if (backendVals != null) {
       trackerFn().write(backend, tensor.dataId, backendVals);
     }
     return tensor;
+  }
+
+  static wrap(shape: number[], dtype: DataType, dataId: DataId) {
+    return new Tensor(shape, dtype, dataId);
   }
 
   /** Flatten a Tensor to a 1D array. */
@@ -1481,9 +1485,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
    */
   private constructor(
       initialValue: Tensor<R>, public trainable = true, name?: string) {
-    super(
-        initialValue.shape, initialValue.dtype, null /* values */,
-        initialValue.dataId);
+    super(initialValue.shape, initialValue.dtype, initialValue.dataId);
     this.name = name;
     if (this.name == null) {
       this.name = trackerFn().nextVariableId().toString();
@@ -1540,7 +1542,9 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
     }
     trackerFn().disposeTensor(this);
     this.dataId = newValue.dataId;
-    trackerFn().registerTensor(this);
+    const backend: Backend = null;
+    const registerInBackend = true;
+    trackerFn().registerTensor(this, backend, registerInBackend);
   }
 
   dispose(): void {
