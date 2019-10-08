@@ -52,7 +52,6 @@ echo "Today is $test_result"
 # Kill the child process explicitly so that the exit code of the script
 # isn't changed by it's eventual termination.
 kill -TERM $metro_pid
-# wait $metro_pid
 echo $metro_pid was terminated.
 
 # Return the exit code of the test
