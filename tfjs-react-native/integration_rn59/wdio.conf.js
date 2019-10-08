@@ -35,7 +35,7 @@ exports.config = {
     Object.assign(
         {
           'app': 'deeplearnjs1/tfjs-rn-integration-android',
-          'device': 'Google Pixel 3 XL',
+          'device': 'Samsung Galaxy S9 Plus',
           'os': 'android',
           'os_version': '9.0',
           'build': 'tfjs-react-native android',

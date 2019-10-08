@@ -24,7 +24,12 @@ yarn
 yarn lint
 
 # Copy the built version of tfjs-core from the current checkout
-cd ../../tfjs-core && yarn && yarn build-ci && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
+if [ "$1" == "skip-core-build" ]; then
+  echo "Skip core build"
+  cd ../../tfjs-core && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
+else
+  cd ../../tfjs-core && yarn && yarn build-ci && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
+fi
 
 yarn prep-tests
 
