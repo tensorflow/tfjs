@@ -15,65 +15,45 @@
  * =============================================================================
  */
 
-import {backend_util, util} from '@tensorflow/tfjs-core';
+import {util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
-
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
-export const MUL = 'return a * b;';
-export const ADD = 'return a + b;';
-export const SUB = 'return a - b;';
-export const DIV = 'return a / b;';
-export const GREATER = 'return float(a > b);';
-export const GREATER_EQUAL = 'return float(a >= b);';
-export const LESS = `return float(a < b);`;
-export const LESS_EQUAL = `return float(a <= b);`;
-
-export const INT_DIV = `
-  float s = sign(a) * sign(b);
-  int ia = int(round(a));
-  int ib = int(round(b));
-  return float(idiv(ia, ib, s));
-`;
-
-export class BinaryOpProgram implements WebGPUProgram {
+export class ClipProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
+  variableNames = ['A'];
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['A', 'B'];
-  workPerThread = 4;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workPerThread = 1;
+  workGroupSize: [number, number, number] = [64, 1, 1];
 
-  constructor(op: string, aShape: number[], bShape: number[]) {
-    this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
+  constructor(outputShape: number[], minVal: number, maxVal: number) {
+    this.outputShape = outputShape;
     const size = util.sizeFromShape(this.outputShape);
-
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape,
+        this.workGroupSize, [this.workPerThread, 1 ,1]);
     const type = getCoordsDataType(this.outputShape.length);
 
     this.userCode = `
-      float binaryOperation(float a, float b) {
-        ${op}
-      }
-
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-
         for(int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
-
           if(flatIndex < ${size}) {
             ${type} coords = getCoordsFromFlatIndex(flatIndex);
 
-            float a = getAAtOutCoords(coords);
-            float b = getBAtOutCoords(coords);
-            setOutput(flatIndex, binaryOperation(a, b));
+            float value = getAAtOutCoords(coords);
+            if (isnan(value)) {
+              setOutput(flatIndex, value);
+              return;
+            }
+
+            setOutput(flatIndex, clamp(value, ${minVal}, ${maxVal}));
           }
         }
       }
