@@ -23,6 +23,8 @@ const readFile = promisify(fs.readFile);
 // tslint:disable-next-line:no-require-imports
 const messages = require('./proto/api_pb');
 
+const SAVED_MODEL_FILE_NAME = '/saved_model.pb';
+
 /**
  * Get a key in an object by its value. This is used to get protobuf enum value
  * from index.
@@ -46,12 +48,11 @@ export async function readSavedModelProto(path: string) {
 /**
  * Inspect the contents of the SavedModel from the provided path.
  *
- * @param path
+ * @param path Path to SavedModel folder.
  */
 export async function inspectSavedModel(path: string) {
   const result = [];
-  const modelMessage = await readSavedModelProto(
-      './test_objects/times_three_float/saved_model.pb');
+  const modelMessage = await readSavedModelProto(path + SAVED_MODEL_FILE_NAME);
   const metaGraphList = modelMessage.getMetaGraphsList();
   for (let i = 0; i < metaGraphList.length; i++) {
     const metaGraph = {} as MetaGraphInfo;

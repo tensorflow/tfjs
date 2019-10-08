@@ -121,8 +121,8 @@ describe('SavedModel', () => {
   });
 
   it('inspect SavedModel', async () => {
-    const modelInfo = await inspectSavedModel(
-        './test_objects/times_three_float/saved_model.pb');
+    const modelInfo =
+        await inspectSavedModel('./test_objects/times_three_float');
     /**
      * The inspection output should be
      * [{
