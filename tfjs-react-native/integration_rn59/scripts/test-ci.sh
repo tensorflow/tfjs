@@ -16,9 +16,15 @@
 
 set -e
 
-# Exit all child processes when this script terminates
-trap "exit" INT TERM ERR
-trap "kill 0" EXIT
+# Exit all child processes when this script terminates.
+# While we will exit child processes on successful completion, any early exit
+# after a child process is created will be handled by this trap.
+trap cleanup INT TERM ERR
+
+cleanup() {
+  echo "Clean up metro $metro_pid"
+  kill -9 $metro_pid
+}
 
 yarn
 yarn lint
@@ -34,10 +40,20 @@ fi
 yarn prep-tests
 
 # Spawn a metro bundler/asset server in the background.
-nohup yarn start-metro &>/dev/null &
+nohup yarn start-metro &
 let metro_pid=$!
 echo "Started metro. PID=$metro_pid"
 
-# Start the test suite. Capture the output of this as the final return
-# value for this script.
+# Start the test suite.
 yarn test-integration
+test_result=$?
+echo "Today is $test_result"
+
+# Kill the child process explicitly so that the exit code of the script
+# isn't changed by it's eventual termination.
+kill -TERM $metro_pid
+# wait $metro_pid
+echo $metro_pid was terminated.
+
+# Return the exit code of the test
+exit $test_result
