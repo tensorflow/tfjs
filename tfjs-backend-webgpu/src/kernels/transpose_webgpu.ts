@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
@@ -27,6 +28,7 @@ export class TransposeProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   rank: number;
+  workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
 
   constructor(aShape: number[], newDim: number[]) {
@@ -37,18 +39,26 @@ export class TransposeProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.rank = outputShape.length;
     const dtype = getCoordsDataType(this.rank);
-
+    const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape,
+        this.workGroupSize, [this.workPerThread, 1 ,1]);
 
     const switched = getSwitchedCoords(newDim);
 
     this.userCode = `
       void main() {
-        ${dtype} resRC = getOutputCoords();
-        setOutput(getFlatIndex(resRC, outShape), A[getFlatIndex(
-          ${dtype}(${switched}), aShape)]);
+        int index = int(gl_GlobalInvocationID.x);
+
+        for(int i = 0; i < ${this.workPerThread}; i++) {
+          int flatIndex = index * ${this.workPerThread} + i;
+          if(flatIndex < ${size}) {
+            ${dtype} resRC = getCoordsFromFlatIndex(flatIndex);
+            setOutput(flatIndex, A[getFlatIndex(
+              ${dtype}(${switched}), aShape)]);
+          }
+        }
       }
     `;
   }
