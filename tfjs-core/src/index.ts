@@ -15,6 +15,15 @@
  * =============================================================================
  */
 
+/**
+ * @fileoverview
+ * @suppress {partialAlias} Optimization disabled due to passing the module
+ * object into a function below:
+ *
+ *   import * as ops from './ops/ops';
+ *   setOpHandler(ops);
+ */
+
 // Engine is the global singleton that needs to be initialized before the rest
 // of the app.
 import './engine';
@@ -30,7 +39,6 @@ import './platforms/platform_browser';
 import './platforms/platform_node';
 
 import * as backend_util from './backends/backend_util';
-import * as environment from './environment';
 // Serialization.
 import * as io from './io/io';
 import * as math from './math';
@@ -66,7 +74,7 @@ export * from './globals';
 export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
 
 export {TimingInfo, MemoryInfo} from './engine';
-export {ENV, Environment} from './environment';
+export {Environment, env, ENV} from './environment';
 export {Platform} from './platforms/platform';
 
 export {version as version_core};
@@ -77,7 +85,6 @@ export {nextFrame} from './browser_util';
 // Second level exports.
 export {
   browser,
-  environment,
   io,
   math,
   serialization,

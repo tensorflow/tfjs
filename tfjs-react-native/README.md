@@ -115,7 +115,7 @@ export class App extends React.Component {
 After gathering feedback in the alpha release we will add an example to the [tensorflow/tfjs-examples](https://github.com/tensorflow/tfjs-examples) repository.
 
 For now you can take a look at [`integration_rn59/App.tsx`](integration_rn59/App.tsx) for an example of what using tfjs-react-native looks like.
-The [Webcam demo folder](integration_rn70/components/webcam) has an example of a style transfer app.
+The [Webcam demo folder](integration_rn59/components/webcam) has an example of a style transfer app.
 
 ![style transfer app initial screen](images/rn-styletransfer_1.jpg)
 ![style transfer app initial screen](images/rn-styletransfer_2.jpg)
@@ -144,7 +144,7 @@ async function asyncStorageExample() {
 }
 ```
 
-The `asyncStorageIO` function returns an io handler that can be used to save an load models
+The `asyncStorageIO` function returns an io handler that can be used to save and load models
 to and from AsyncStorage.
 
 ### bundleResourceIO(modelArchitecture: Object, modelWeights: number)

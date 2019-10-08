@@ -14,11 +14,19 @@
 # limitations under the License.
 # =============================================================================
 
-set -euo pipefail
+set -e
 
-export EM_EXCLUSIVE_CACHE_ACCESS=1
-export EMCC_SKIP_SANITY_CHECK=1
-export EMCC_WASM_BACKEND=0
+# Install emsdk
+git clone --depth=1 --single-branch https://github.com/emscripten-core/emsdk.git
+cd emsdk
+# Need to tell emsdk where to write the .emscripten file.
+export HOME='/root'
+./emsdk install 1.38.41
+./emsdk activate 1.38.41
+source ./emsdk_env.sh
+cd ..
 
-# Run emscripten to compile and link
-python external/emsdk/emsdk/fastcomp/emscripten/emcc.py "$@"
+yarn
+yarn lint
+yarn build
+yarn karma start --singleRun --browsers=bs_chrome_mac

@@ -111,7 +111,7 @@ triggeredBuilds = triggeredBuilds.filter(
 console.log('Triggering builds for ', triggeredBuilds.join(', '));
 
 function diff(fileOrDirName) {
-  const diffCmd = `diff -rq ` +
+  const diffCmd = `diff -rq --exclude='settings.json' ` +
       `${CLONE_PATH}/${fileOrDirName} ` +
       `${fileOrDirName}`;
   return exec(diffCmd, {silent: true}, true).stdout.trim();

@@ -13,7 +13,8 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+import {moments, serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
@@ -420,3 +421,219 @@ export class BatchNormalization extends Layer {
   }
 }
 serialization.registerClass(BatchNormalization);
+
+export interface LayerNormalizationLayerArgs extends LayerArgs {
+  /**
+   * The axis or axes that should be normalized (typically, the feature axis.)
+   * Defaults to -1 (the last axis.)
+   */
+  axis?: number|number[];
+
+  /**
+   * A small positive float added to variance to avoid divison by zero.
+   * Defaults to 1e-3.
+   */
+  epsilon?: number;
+
+  /**
+   * If `true`, add offset of `beta` to normalized tensor.
+   * If `false`, `beta` is ignored.
+   * Default: `true`.
+   */
+  center?: boolean;
+
+  /**
+   * If `true`, multiply output by `gamma`.
+   * If `false`, `gamma` is not used.
+   * When the next layer is linear, this can be disabled since scaling will
+   * be done by the next layer.
+   * Default: `true`.
+   */
+  scale?: boolean;
+
+  /**
+   * Initializer for the beta weight.
+   * Default: `'zeros'`.
+   */
+  betaInitializer?: InitializerIdentifier|Initializer;
+
+  /**
+   * Initializer for the gamma weight.
+   * Default: `'ones'`.
+   */
+  gammaInitializer?: InitializerIdentifier|Initializer;
+
+  /** Regularizer for the beta weight. */
+  betaRegularizer?: RegularizerIdentifier|Regularizer;
+
+  /** Regularizer for the gamma weight. */
+  gammaRegularizer?: RegularizerIdentifier|Regularizer;
+}
+
+export class LayerNormalization extends Layer {
+  /** @nocollapse */
+  static className = 'BatchNormalization';
+
+  private axis: number|number[];
+  readonly epsilon: number;
+  readonly center: boolean;
+  readonly scale: boolean;
+  readonly betaInitializer: Initializer;
+  readonly gammaInitializer: Initializer;
+  readonly betaRegularizer: Regularizer;
+  readonly gammaRegularizer: Regularizer;
+
+  private gamma: LayerVariable;
+  private beta: LayerVariable;
+
+  constructor(args?: LayerNormalizationLayerArgs) {
+    if (args == null) {
+      args = {};
+    }
+    super(args);
+
+    this.axis = args.axis == null ? -1 : args.axis;
+    if (typeof this.axis === 'number') {
+      if (!Number.isInteger(this.axis)) {
+        throw new Error(
+            `Expected axis to be an integer, but received ${this.axis}`);
+      }
+    } else if (Array.isArray(this.axis)) {
+      for (const axis of this.axis) {
+        if (!Number.isInteger(axis)) {
+          throw new Error(
+              `Expected axis to be an array of integers, ` +
+              `but received ${JSON.stringify(this.axis)}`);
+        }
+      }
+    } else {
+      throw new Error(
+          `Expected axis to be an integer or an array of integers, ` +
+          `but received ${JSON.stringify(this.axis)}`);
+    }
+
+    this.epsilon = args.epsilon == null ? 1e-3 : args.epsilon;
+    this.center = args.center == null ? true : args.center;
+    this.scale = args.scale == null ? true : args.scale;
+    this.betaInitializer = getInitializer(args.betaInitializer || 'zeros');
+    this.gammaInitializer = getInitializer(args.gammaInitializer || 'ones');
+    this.betaRegularizer = getRegularizer(args.betaRegularizer);
+    this.gammaRegularizer = getRegularizer(args.gammaRegularizer);
+
+    this.supportsMasking = true;
+  }
+
+  public build(inputShape: Shape|Shape[]): void {
+    inputShape = getExactlyOneShape(inputShape);
+    const nDims = inputShape.length;
+
+    // Convert axis to array and resolve negatives.
+    if (typeof this.axis === 'number') {
+      this.axis = [this.axis];
+    }
+    for (let i = 0; i < this.axis.length; ++i) {
+      if (this.axis[i] < 0) {
+        this.axis[i] += nDims;
+      }
+    }
+
+    // Further validate axes.
+    for (const axis of this.axis) {
+      if (axis < 0 || axis >= nDims) {
+        throw new Error(`Invalid axis: ${axis}`);
+      }
+    }
+    if (this.axis.length !== generic_utils.unique(this.axis).length) {
+      throw new Error(`Found duplicate axes in: ${this.axis}`);
+    }
+
+    const paramShape = this.axis.map(axis => inputShape[axis]) as number[];
+
+    const trainable = true;
+    if (this.scale) {
+      this.gamma = this.addWeight(
+          'gamma', paramShape, 'float32', this.gammaInitializer,
+          this.gammaRegularizer, trainable);
+    } else {
+      this.gamma = null;
+    }
+    if (this.center) {
+      this.beta = this.addWeight(
+          'beta', paramShape, 'float32', this.betaInitializer,
+          this.betaRegularizer, trainable);
+    } else {
+      this.beta = null;
+    }
+
+    this.built = true;
+  }
+
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+    const input = getExactlyOneTensor(inputs);
+    const inputShape = input.shape;
+    const nDims = inputShape.length;
+
+    return tidy(() => {
+      const keepDims = true;
+      let {mean, variance} = moments(input, this.axis, keepDims);
+      const broadcastShape = generic_utils.pyListRepeat(1, nDims);
+      for (const dim of this.axis as number[]) {
+        broadcastShape[dim] = inputShape[dim];
+      }
+
+      const broadcast = (v: Tensor) => {
+        if (v != null && v.shape.length !== nDims &&
+            this.axis !== [nDims - 1]) {
+          return v.reshape(broadcastShape);
+        } else {
+          return v;
+        }
+      };
+
+      let scale = broadcast(this.gamma.read());
+      let offset = broadcast(this.beta.read());
+
+      // TODO(https://github.com/tensorflow/tfjs/issues/2120): The tiling below
+      // is a workaround for the limitation of core's batchNormalization?d don't
+      // support broadcasting in their gradients. In addition, the tiling is
+      // necessary to ensure correctness on the browser CPU backend regardless
+      // of forward or backward computation. Remove this workaround once the
+      // limitation is addressed. See .
+      const momentsTiling: number[] = [];
+      const scaleOffsetTiling: number[] = [];
+      for (let i = 0; i < nDims; ++i) {
+        if ((this.axis as number[]).indexOf(i) !== -1) {
+          momentsTiling.push(inputShape[i]);
+          scaleOffsetTiling.push(1);
+        } else {
+          momentsTiling.push(1);
+          scaleOffsetTiling.push(inputShape[i]);
+        }
+      }
+      mean = mean.tile(momentsTiling);
+      variance = variance.tile(momentsTiling);
+      scale = scale.tile(scaleOffsetTiling);
+      offset = offset.tile(scaleOffsetTiling);
+
+      return batchNormalization(
+          input, mean, variance, offset, scale, this.epsilon);
+    });
+  }
+
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {
+      axis: this.axis,
+      epsilon: this.epsilon,
+      center: this.center,
+      scale: this.scale,
+      betaInitializer: serializeInitializer(this.betaInitializer),
+      gammaInitializer: serializeInitializer(this.gammaInitializer),
+      betaRegularizer: serializeRegularizer(this.betaRegularizer),
+      gammaRegularizer: serializeRegularizer(this.gammaRegularizer)
+    };
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
+  }
+}
+serialization.registerClass(LayerNormalization);

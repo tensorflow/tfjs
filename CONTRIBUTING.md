@@ -23,7 +23,7 @@ use GitHub pull requests for this purpose. Consult
 information on using pull requests.
 
 ## Continuous Integration
-Continuous Integration tests run for every PR that is sent against TensorFlow.js repositories. Any time you push to the branch, they will re-run. Before asking for a review, make sure that the continous integration tests are passing.
+Continuous Integration tests run for every PR that is sent against TensorFlow.js repositories. Any time you push to the branch, they will re-run. Before asking for a review, make sure that the continuous integration tests are passing.
 
 To see the logs from the Cloud Build CI, please join either
 our [discussion](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs)
@@ -67,7 +67,7 @@ add new backends.
 ### Adding an op
 
 When adding ops to the library and deciding whether to write a kernel
-implementation in [backend.ts](https://github.com/tensorflow/tfjs-core/blob/master/src/backends/backend.ts),
+implementation in [backend.ts](/tfjs-core/src/backends/backend.ts),
 be sure to check out the TensorFlow ops list [here](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/ops/ops.pbtxt).
 This list shows the kernels available for the TensorFlow C API. To ensure that
 we can bind to this with node.js, we should ensure that our backend.ts

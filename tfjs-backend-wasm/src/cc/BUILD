@@ -24,6 +24,7 @@ cc_library(
     name = "kernels",
     srcs = ["kernels.cc"],
     hdrs = ["kernels.h"],
+    deps = ["@xnnpack//:XNNPACK"],
 )
 
 cc_library(
