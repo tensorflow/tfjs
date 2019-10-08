@@ -148,4 +148,11 @@ describeWebGPU('Ops benchmarks', () => {
 
     await time(() => tf.depthwiseConv2d(x, w, 1, 'valid'));
   });
+
+  it('maxPool', async () => {
+    const x = tf.randomNormal<tf.Rank.R4>([1, 131, 131, 64]);
+
+    await time(() => tf.maxPool(x, 2, 1, 'same'));
+  });
+
 });

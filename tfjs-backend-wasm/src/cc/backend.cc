@@ -13,46 +13,30 @@
  * ===========================================================================*/
 
 #include <emscripten.h>
-#include <math.h>
+#include <xnnpack.h>
 #include <cstdio>
 #include <map>
 #include <vector>
 
-#include "src/cc/kernels.h"
+#include "src/cc/backend.h"
 #include "src/cc/util.h"
 
-namespace tfjs {
-
-enum DType {
-  float32 = 0,
-  int32 = 1,
-  boolean = 2,
-};
-
-// A union of pointers that points to memory for a given tensor.
-union DataPtrUnion {
-  float *f32;
-  int *i32;
-  bool *b;
-};
-
-// Holds information about a tensor such as dtype, shape and pointer to its data
-// in memory.
-struct TensorInfo {
-  // Pointer to the bytes where the data is allocated.
-  DataPtrUnion buf;
-  DType dtype;
-  std::vector<int> shape;
-  // Total number of elements.
-  int size;
-};
-
+namespace {
 // Maps a unique tensor id to info about that tensor. The map owns all of its
 // entries.
 std::map<int, TensorInfo> data;
+}  // namespace
+
+namespace tfjs {
+namespace backend {
+TensorInfo get_tensor_info(int tensor_id) { return data.at(tensor_id); }
+}  // namespace backend
 
 // We use C-style API to interface with Javascript.
 extern "C" {
+
+EMSCRIPTEN_KEEPALIVE
+void init() { xnn_initialize(); }
 
 EMSCRIPTEN_KEEPALIVE
 void register_tensor(int data_id, int *shape_ptr, int shape_length, DType dtype,
@@ -97,30 +81,6 @@ void dispose_data(int data_id) {
                  info.dtype);
   }
   data.erase(data_id);
-}
-
-EMSCRIPTEN_KEEPALIVE
-void add(int a_id, int b_id, int out_id) {
-  const auto a_info = data.at(a_id);
-  const auto b_info = data.at(b_id);
-  const auto out_info = data.at(out_id);
-  switch (a_info.dtype) {
-    case DType::float32:
-      kernels::add(a_info.buf.f32, a_info.size, b_info.buf.f32, b_info.size,
-                   out_info.buf.f32);
-      break;
-    case DType::int32:
-      kernels::add(a_info.buf.i32, a_info.size, b_info.buf.i32, b_info.size,
-                   out_info.buf.i32);
-      break;
-    case DType::boolean:
-      kernels::add(a_info.buf.b, a_info.size, b_info.buf.b, b_info.size,
-                   out_info.buf.b);
-      break;
-    default:
-      util::warn("Add for tensor ids %d and %d failed. Unknown dtype %d", a_id,
-                 b_id, a_info.dtype);
-  }
 }
 
 EMSCRIPTEN_KEEPALIVE

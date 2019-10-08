@@ -84,7 +84,8 @@ describeWithFlags('getTextureShapeFromLogicalShape packed', WEBGL_ENVS, () => {
   it('textures less than 2x max size of platform preserve their shapes', () => {
     const isPacked = true;
     const logicalShape = [
-      2, util.nearestLargerEven(tf.ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE') + 1)
+      2,
+      util.nearestLargerEven(tf.env().getNumber('WEBGL_MAX_TEXTURE_SIZE') + 1)
     ];
     const texShape =
         webgl_util.getTextureShapeFromLogicalShape(logicalShape, isPacked);
@@ -101,14 +102,14 @@ describeWithFlags('getTextureShapeFromLogicalShape packed', WEBGL_ENVS, () => {
 
   it('squarified texture shapes account for packing constraints', () => {
     const isPacked = true;
-    const max = tf.ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
+    const max = tf.env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
 
-    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', 5);
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', 5);
     const logicalShape = [1, 12];
     const texShape =
         webgl_util.getTextureShapeFromLogicalShape(logicalShape, isPacked);
 
-    tf.ENV.set('WEBGL_MAX_TEXTURE_SIZE', max);
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', max);
     expect(texShape).toEqual([6, 4]);
   });
 });
