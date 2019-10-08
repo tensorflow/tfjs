@@ -85,7 +85,7 @@ function createCanvas() {
   return null;
 }
 
-export class MathBackendCPU implements KernelBackend {
+export class MathBackendCPU extends KernelBackend {
   public blockSize = 48;
 
   private data: DataStorage<TensorData<DataType>>;
@@ -94,6 +94,7 @@ export class MathBackendCPU implements KernelBackend {
   private firstUse = true;
 
   constructor() {
+    super();
     if (env().get('IS_BROWSER')) {
       const canvas = createCanvas();
       if (canvas !== null) {
@@ -1153,12 +1154,6 @@ export class MathBackendCPU implements KernelBackend {
       newValues[i] = 1 / Math.sqrt(value);
     }
     return Tensor.make(x.shape, {values: newValues});
-  }
-
-  square<T extends Tensor>(x: T): T {
-    throw new Error(
-        `'Square' not found in registry. ` +
-        `Did you forget to import that kernel?`);
   }
 
   reciprocal<T extends Tensor>(x: T): T {

@@ -17,11 +17,7 @@
 
 import {DataType} from './types';
 
-interface Kernel {
-  func: ForwardFunc;
-}
-
-export const kernelRegistry: {[name: string]: Kernel} = {};
+export const kernelRegistry: {[key: string]: KernelFunc} = {};
 
 export type GradSaveFunc = (save: DataId[]) => void;
 
@@ -29,18 +25,15 @@ export type DataId = object;
 
 export type Attribute = number|number[]|boolean|boolean[]|string|string[];
 
-export type ForwardFunc = (params: {
+/** Specifies the code to run when executing a kernel. */
+export type KernelFunc = (params: {
   inputs: NamedDataMap,
   storage: {},
   attrs?: NamedAttrMap,
   save?: GradSaveFunc
 }) => DataInfo|DataInfo[];
 
-
-export type BackwardFunc =
-    (dy: DataId, saved: DataId[], attrs: NamedAttrMap, storage: Storage) =>
-        NamedDataMap;
-
+/** Holds metadata for a given tensor. */
 export interface DataInfo {
   dataId: DataId;
   shape: number[];
@@ -55,16 +48,35 @@ export interface NamedAttrMap {
   [name: string]: Attribute;
 }
 
-export function registerKernel(
-    kernelName: string, backendName: string, func: ForwardFunc) {
-  const key = `${backendName}_${kernelName}`;
-  if (key in kernelRegistry) {
-    throw new Error(
-        `Kernel ${kernelName} for backend ` +
-        `${backendName} is already registered`);
-  }
-  kernelRegistry[key] = {func};
+/**
+ * Returns the kernel function (code) associated with the provided names.
+ *
+ * @param kernelName The official name of the kernel.
+ * @param backendName The official name of the backend.
+ */
+export function getKernel(kernelName: string, backendName: string): KernelFunc {
+  const key = makeKey(kernelName, backendName);
+  return kernelRegistry[key];
 }
 
-export function registerGradient(
-    kernelName: string, backendName: string, func: BackwardFunc) {}
+/**
+ * Registers the function (forward pass) for the kernel.
+ *
+ * @param kernelName The official name of the kernel.
+ * @param backendName The official name of the backend.
+ * @param forward The function to run during the forward pass of the kernel.
+ */
+export function registerKernel(
+    kernelName: string, backendName: string, kernelFunc: KernelFunc) {
+  const key = makeKey(kernelName, backendName);
+  if (key in kernelRegistry) {
+    throw new Error(
+        `The kernel '${kernelName}' for backend ` +
+        `'${backendName}' is already registered`);
+  }
+  kernelRegistry[key] = kernelFunc;
+}
+
+function makeKey(kernelName: string, backendName: string) {
+  return `${backendName}_${kernelName}`;
+}

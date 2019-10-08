@@ -462,11 +462,13 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
     if ((key in kernelRegistry)) {
       const storage = this.backend;
       kernelFunc = () => {
+        const kernel = kernelRegistry[key];
         const outInfo =
-            kernelRegistry[key].func(
-                {inputs, attrs, storage, save: saveFunc}) as DataInfo;
+            kernel({inputs, attrs, storage, save: saveFunc}) as DataInfo;
         const tensor =
             Tensor.wrap(outInfo.shape, outInfo.dtype, outInfo.dataId);
+        // The output originated from the kernel, thus we avoid double
+        // registration.
         const registerInBackend = false;
         this.registerTensor(tensor, this.backend, registerInBackend);
         return tensor as T;
