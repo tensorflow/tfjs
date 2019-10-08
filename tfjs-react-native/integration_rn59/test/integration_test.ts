@@ -24,8 +24,6 @@ describe('tfjs-core unit tests', () => {
       return testStatus === 'testsComplete=true';
     }, TEST_RUN_TIMEOUT, 'Unit tests timed out', TEST_POLL_INTERVAL);
 
-    console.log('Tests complete');
-
     // Get the number of passed and run tests
     const passedTestsEl = await driver.$('~passedTests');
     await passedTestsEl.waitForExist(DEFAULT_TIMEOUT);
@@ -57,7 +55,7 @@ describe('tfjs-core unit tests', () => {
         }
       }
     }
-  });
+  }, TEST_RUN_TIMEOUT);
 });
 
 // Mark as a module for ts compiler.
