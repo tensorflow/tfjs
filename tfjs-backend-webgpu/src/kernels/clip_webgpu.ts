@@ -16,6 +16,7 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
+import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -26,6 +27,7 @@ export class ClipProgram implements WebGPUProgram {
   variableNames = ['A'];
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
+  workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
 
   constructor(outputShape: number[], minVal: number, maxVal: number) {
@@ -33,19 +35,26 @@ export class ClipProgram implements WebGPUProgram {
     const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape,
+        this.workGroupSize, [this.workPerThread, 1 ,1]);
+    const type = getCoordsDataType(this.outputShape.length);
 
     this.userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-        if(index < ${size}) {
-          float value = getAAtOutCoords();
-          if (isnan(value)) {
-            setOutput(index, value);
-            return;
-          }
+        for(int i = 0; i < ${this.workPerThread}; i++) {
+          int flatIndex = index * ${this.workPerThread} + i;
+          if(flatIndex < ${size}) {
+            ${type} coords = getCoordsFromFlatIndex(flatIndex);
 
-          setOutput(index, clamp(value, ${minVal}, ${maxVal}));
+            float value = getAAtOutCoords(coords);
+            if (isnan(value)) {
+              setOutput(flatIndex, value);
+              return;
+            }
+
+            setOutput(flatIndex, clamp(value, ${minVal}, ${maxVal}));
+          }
         }
       }
     `;
