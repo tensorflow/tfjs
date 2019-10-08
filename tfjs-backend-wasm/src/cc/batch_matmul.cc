@@ -12,28 +12,41 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include "src/cc/kernels.h"
-
 #include <algorithm>
+#include <emscripten.h>
+#include <math.h>
+#include <cstdio>
+#include <map>
+#include <vector>
 
-namespace tfjs {
-namespace kernels {
-
-// TODO(smilkov): Consider inlining small methods.
-
-template <class T>
-void add(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf) {
-  int size = std::max(a_size, b_size);
-  for (int i = 0; i < size; ++i) {
-    out_buf[i] = a_buf[i % a_size] + b_buf[i % b_size];
-  }
-}
+#include "src/cc/backend.h"
+#include "src/cc/util.h"
 
 const int kBlockSize = 48;
-void batchMatMul(float* a_buf, float* b_buf, int shared_dim, int left_dim,
+
+namespace tfjs {
+  // We use C-style API to interface with Javascript.
+extern "C" {
+
+EMSCRIPTEN_KEEPALIVE
+void batchMatMul(int a_id, int b_id, int shared_dim, int left_dim,
                  int right_dim, int batch_dim, int a_batch, int a_outer_step,
                  int a_inner_step, int b_batch, int b_outer_step,
-                 int b_inner_step, float* out_buf) {
+                 int b_inner_step, int out_id) {
+  const TensorInfo a_info = tfjs::data.at(a_id);
+  const TensorInfo b_info = tfjs::data.at(b_id);
+  const TensorInfo out_info = tfjs::data.at(out_id);
+
+  if (a_info.dtype == DType::float32) {
+    util::warn(
+        "batchMatMul for tensor ids %d and %d failed. Unknown dtype %d", a_id,
+        b_id, a_info.dtype);
+  }
+
+  const float* a_buf = a_info.buf.f32;
+  const float* b_buf = b_info.buf.f32;
+  float* out_buf = out_info.buf.f32;
+
   int size = left_dim * right_dim;
 
   // Zero out the output buffer because it might have been used before.
@@ -66,12 +79,5 @@ void batchMatMul(float* a_buf, float* b_buf, int shared_dim, int left_dim,
   }
 }
 
-// Templates need explicit instantiation when implemented in a .cc file.
-template void add<float>(float* a_buf, int a_size, float* b_buf, int b_size,
-                         float* out_buf);
-template void add<int>(int* a_buf, int a_size, int* b_buf, int b_size,
-                       int* out_buf);
-template void add<bool>(bool* a_buf, int a_size, bool* b_buf, int b_size,
-                        bool* out_buf);
-}  // namespace kernels
+}  // extern "C"
 }  // namespace tfjs

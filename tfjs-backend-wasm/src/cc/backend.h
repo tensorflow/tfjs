@@ -12,22 +12,39 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef TFJS_WASM_KERNELS_H_
-#define TFJS_WASM_KERNELS_H_
+#ifndef TFJS_BACKEND_H
+#define TFJS_BACKEND_H
 
 namespace tfjs {
-namespace kernels {
 
-template <class T>
-// Element-wise add of two tensors.
-void add(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf);
+enum DType {
+  float32 = 0,
+  int32 = 1,
+  boolean = 2,
+};
 
-// Batched matrix multiply.
-void batchMatMul(float* a_buf, float* b_buf, int shared_dim, int left_dim,
-                 int right_dim, int batch_dim, int a_batch, int a_outer_step,
-                 int a_inner_step, int b_batch, int b_outer_step,
-                 int b_inner_step, float* out_buf);
-}  // namespace kernels
+// A union of pointers that points to memory for a given tensor.
+union DataPtrUnion {
+  float *f32;
+  int *i32;
+  bool *b;
+};
+
+// Holds information about a tensor such as dtype, shape and pointer to its data
+// in memory.
+struct TensorInfo {
+  // Pointer to the bytes where the data is allocated.
+  DataPtrUnion buf;
+  DType dtype;
+  std::vector<int> shape;
+  // Total number of elements.
+  int size;
+};
+
+// Maps a unique tensor id to info about that tensor. The map owns all of its
+// entries.
+extern std::map<int, TensorInfo> data;
+
 }  // namespace tfjs
 
-#endif  // TFJS_WASM_KERNELS_H_
+#endif  // TFJS_BACKEND_H
