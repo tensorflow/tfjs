@@ -12,9 +12,9 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include <algorithm>
 #include <emscripten.h>
 #include <math.h>
+#include <algorithm>
 #include <cstdio>
 #include <map>
 #include <vector>
@@ -25,22 +25,21 @@
 const int kBlockSize = 48;
 
 namespace tfjs {
-  // We use C-style API to interface with Javascript.
+// We use C-style API to interface with Javascript.
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
-void batchMatMul(int a_id, int b_id, int shared_dim, int left_dim,
-                 int right_dim, int batch_dim, int a_batch, int a_outer_step,
-                 int a_inner_step, int b_batch, int b_outer_step,
-                 int b_inner_step, int out_id) {
-  const TensorInfo a_info = tfjs::data.at(a_id);
-  const TensorInfo b_info = tfjs::data.at(b_id);
-  const TensorInfo out_info = tfjs::data.at(out_id);
+void batch_matmul(int a_id, int b_id, int shared_dim, int left_dim,
+                  int right_dim, int batch_dim, int a_batch, int a_outer_step,
+                  int a_inner_step, int b_batch, int b_outer_step,
+                  int b_inner_step, int out_id) {
+  const TensorInfo a_info = get_tensor_info(a_id);
+  const TensorInfo b_info = get_tensor_info(b_id);
+  const TensorInfo out_info = get_tensor_info(out_id);
 
-  if (a_info.dtype == DType::float32) {
-    util::warn(
-        "batchMatMul for tensor ids %d and %d failed. Unknown dtype %d", a_id,
-        b_id, a_info.dtype);
+  if (a_info.dtype != DType::float32) {
+    util::warn("batch_matmul for tensor ids %d and %d failed. Unknown dtype %d",
+               a_id, b_id, a_info.dtype);
   }
 
   const float* a_buf = a_info.buf.f32;

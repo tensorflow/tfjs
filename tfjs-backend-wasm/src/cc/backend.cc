@@ -13,7 +13,6 @@
  * ===========================================================================*/
 
 #include <emscripten.h>
-#include <math.h>
 #include <xnnpack.h>
 #include <cstdio>
 #include <map>
@@ -23,6 +22,12 @@
 #include "src/cc/util.h"
 
 namespace tfjs {
+
+// Maps a unique tensor id to info about that tensor. The map owns all of its
+// entries.
+std::map<int, TensorInfo> data;
+
+TensorInfo get_tensor_info(int tensor_id) { return data.at(tensor_id); }
 
 // We use C-style API to interface with Javascript.
 extern "C" {

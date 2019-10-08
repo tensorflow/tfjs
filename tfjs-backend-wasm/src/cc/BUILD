@@ -12,6 +12,7 @@ cc_binary(
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
+        "-s DEMANGLE_SUPPORT=1",
     ],
     deps = [
         ":backend",
@@ -23,6 +24,7 @@ cc_library(
   name = "backend",
   srcs = ["backend.cc"],
   hdrs = ["backend.h"],
+  linkstatic = 1,
   deps = [
     ":util",
     "@xnnpack//:XNNPACK",
@@ -30,16 +32,18 @@ cc_library(
 )
 
 cc_library(
-    name = "all_kernels",
-    deps = [
-      ":add",
-      ":batch_matmul",
-    ]
+  name = "all_kernels",
+  linkstatic = 1,
+  deps = [
+    ":add",
+    ":batch_matmul",
+  ]
 )
 
 cc_library(
   name = "add",
   srcs = ["add.cc"],
+  linkstatic = 1,
   deps = [
     ":backend",
     ":util",
@@ -49,6 +53,7 @@ cc_library(
 cc_library(
   name = "batch_matmul",
   srcs = ["batch_matmul.cc"],
+  linkstatic = 1,
   deps = [
     ":backend",
     ":util",
@@ -56,6 +61,7 @@ cc_library(
 )
 
 cc_library(
-    name = "util",
-    srcs = ["util.h"],
+  name = "util",
+  linkstatic = 1,
+  srcs = ["util.h"],
 )

@@ -41,9 +41,7 @@ struct TensorInfo {
   int size;
 };
 
-// Maps a unique tensor id to info about that tensor. The map owns all of its
-// entries.
-extern std::map<int, TensorInfo> data;
+TensorInfo get_tensor_info(int tensor_id);
 
 }  // namespace tfjs
 

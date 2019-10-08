@@ -29,12 +29,12 @@ void add_impl(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf) {
   }
 }
 // Templates need explicit instantiation when implemented in a .cc file.
-template void add_impl<float>(float* a_buf, int a_size, float* b_buf, int b_size,
-                         float* out_buf);
+template void add_impl<float>(float* a_buf, int a_size, float* b_buf,
+                              int b_size, float* out_buf);
 template void add_impl<int>(int* a_buf, int a_size, int* b_buf, int b_size,
-                       int* out_buf);
+                            int* out_buf);
 template void add_impl<bool>(bool* a_buf, int a_size, bool* b_buf, int b_size,
-                        bool* out_buf);
+                             bool* out_buf);
 
 namespace tfjs {
 // We use C-style API to interface with Javascript.
@@ -42,21 +42,21 @@ extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
 void add(int a_id, int b_id, int out_id) {
-  const auto a_info = tfjs::data.at(a_id);
-  const auto b_info = tfjs::data.at(b_id);
-  const auto out_info = tfjs::data.at(out_id);
+  const auto a_info = get_tensor_info(a_id);
+  const auto b_info = get_tensor_info(b_id);
+  const auto out_info = get_tensor_info(out_id);
   switch (a_info.dtype) {
     case DType::float32:
       add_impl(a_info.buf.f32, a_info.size, b_info.buf.f32, b_info.size,
-                   out_info.buf.f32);
+               out_info.buf.f32);
       break;
     case DType::int32:
       add_impl(a_info.buf.i32, a_info.size, b_info.buf.i32, b_info.size,
-                   out_info.buf.i32);
+               out_info.buf.i32);
       break;
     case DType::boolean:
       add_impl(a_info.buf.b, a_info.size, b_info.buf.b, b_info.size,
-                   out_info.buf.b);
+               out_info.buf.b);
       break;
     default:
       util::warn("Add for tensor ids %d and %d failed. Unknown dtype %d", a_id,
