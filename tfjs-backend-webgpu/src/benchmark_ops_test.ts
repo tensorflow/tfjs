@@ -119,6 +119,12 @@ describeWebGPU('Ops benchmarks', () => {
     await time(() => tf.add(a, b));
   });
 
+  it('clip', async () => {
+    const a = tf.randomNormal([1, 65, 65, 256]);
+
+    await time(() => tf.clipByValue(a, 0.1, 0.9));
+  });
+
   it('conv2d', async () => {
     const a = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 4]);
     const b = tf.randomNormal<tf.Rank.R4>([25, 25, 4, 4]);
