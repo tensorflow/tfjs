@@ -29,6 +29,12 @@ export type FlagRegistryEntry = {
   setHook?: (value: FlagValue) => void;
 };
 
+/**
+ * The environment contains evaluated flags as well as the registered platform.
+ * This is always used as a global singleton and can be retrieved with
+ * `tf.env()`.
+ */
+/** @doc {heading: 'Environment'} */
 export class Environment {
   private flags: Flags = {};
   private flagRegistry: {[flagName: string]: FlagRegistryEntry} = {};
@@ -164,6 +170,17 @@ function parseValue(flagName: string, value: string): FlagValue {
   }
   throw new Error(
       `Could not parse value flag value ${value} for flag ${flagName}.`);
+}
+
+/**
+ * Returns the current environment (a global singleton).
+ *
+ * The environment object contains the evaluated feature values as well as the
+ * active platform.
+ */
+/** @doc {heading: 'Environment'} */
+export function env() {
+  return ENV;
 }
 
 export let ENV: Environment = null;

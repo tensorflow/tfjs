@@ -12,17 +12,38 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef TFJS_WASM_KERNELS_H_
-#define TFJS_WASM_KERNELS_H_
+#ifndef TFJS_BACKEND_H
+#define TFJS_BACKEND_H
+
+enum DType {
+  float32 = 0,
+  int32 = 1,
+  boolean = 2,
+};
+
+// A union of pointers that points to memory for a given tensor.
+union DataPtrUnion {
+  float *f32;
+  int *i32;
+  bool *b;
+};
+
+// Holds information about a tensor such as dtype, shape and pointer to its data
+// in memory.
+struct TensorInfo {
+  // Pointer to the bytes where the data is allocated.
+  DataPtrUnion buf;
+  DType dtype;
+  std::vector<int> shape;
+  // Total number of elements.
+  int size;
+};
 
 namespace tfjs {
-namespace kernels {
+namespace backend {
+TensorInfo get_tensor_info(int tensor_id);
+}  // namespace backend
 
-template <class T>
-// Element-wise add of two tensors.
-void add(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf);
-
-}  // namespace kernels
 }  // namespace tfjs
 
-#endif  // TFJS_WASM_KERNELS_H_
+#endif  // TFJS_BACKEND_H

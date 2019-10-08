@@ -20,7 +20,10 @@
 // version for.
 const fs = require('fs');
 
-const dirName = process.argv[2];
+let dirName = process.argv[2];
+if (dirName.endsWith('/')) {
+  dirName = dirName.substr(0, dirName.length - 1);
+}
 const packageJsonFile = dirName + '/package.json';
 if (!fs.existsSync(packageJsonFile)) {
   console.log(
