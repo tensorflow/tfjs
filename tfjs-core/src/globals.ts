@@ -87,8 +87,6 @@ export function engine(): Engine {
  * object with the following properties:
  *
  * - `numBytes`: Number of bytes allocated (undisposed) at this time.
- * - `numBytesInGPU`: Number of bytes allocated (undisposed) in the GPU only at
- *     this time. Not present if WebGL is not being used.
  * - `numTensors`: Number of unique tensors allocated.
  * - `numDataBuffers`: Number of unique data buffers allocated
  *   (undisposed) at this time, which is ≤ the number of tensors
@@ -98,6 +96,10 @@ export function engine(): Engine {
  *    `unreliable` is true.
  * - `reasons`: `string[]`, reasons why the memory is unreliable, present if
  *    `unreliable` is true.
+ *
+ * WebGL Properties:
+ * - `numBytesInGPU`: Number of bytes allocated (undisposed) in the GPU only at
+ *     this time.
  */
 /** @doc {heading: 'Performance', subheading: 'Memory'} */
 export function memory(): MemoryInfo {
