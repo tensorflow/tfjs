@@ -50,8 +50,8 @@ describe('SavedModel', () => {
      *  }
      * }
      */
-    const modelMessage = await readSavedModelProto(
-        './test_objects/times_three_float/saved_model.pb');
+    const modelMessage =
+        await readSavedModelProto('./test_objects/times_three_float');
 
     // This SavedModel has one MetaGraph with tag serve
     expect(modelMessage.getMetaGraphsList().length).toBe(1);
@@ -72,7 +72,6 @@ describe('SavedModel', () => {
     const signatureDefMapKeys = signatureDefMapMessage.keys();
     const signatureDefMapKey1 = signatureDefMapKeys.next();
     expect(signatureDefMapKey1.done).toBe(false);
-    expect(signatureDefMapKey1.value).toBe('__saved_model_init_op');
     const signatureDefMapKey2 = signatureDefMapKeys.next();
     expect(signatureDefMapKey2.done).toBe(false);
     expect(signatureDefMapKey2.value).toBe('serving_default');
@@ -126,7 +125,7 @@ describe('SavedModel', () => {
       done.fail();
     } catch (err) {
       expect(err.message)
-          .toBe(`ENOENT: no such file or directory, open '/not-exist'`);
+          .toBe(`There is no saved_model.pb file in the directory:/not-exist`);
       done();
     }
   });

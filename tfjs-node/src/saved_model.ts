@@ -23,6 +23,8 @@ const readFile = promisify(fs.readFile);
 // tslint:disable-next-line:no-require-imports
 const messages = require('./proto/api_pb');
 
+const SAVED_MODEL_FILE_NAME = '/saved_model.pb';
+
 /**
  * Get a key in an object by its value. This is used to get protobuf enum value
  * from index.
@@ -38,11 +40,16 @@ export function getEnumKeyFromValue(object: any, value: number): string {
 /**
  * Read SavedModel proto message from path.
  *
- * @param path
+ * @param path Path to SavedModel folder.
  */
 export async function readSavedModelProto(path: string) {
   // Load the SavedModel pb file and deserialize it into message.
-  const modelFile = await readFile(path);
+  try {
+    fs.accessSync(path + SAVED_MODEL_FILE_NAME, fs.constants.R_OK);
+  } catch (error) {
+    throw new Error('There is no saved_model.pb file in the directory:' + path);
+  }
+  const modelFile = await readFile(path + SAVED_MODEL_FILE_NAME);
   const array = new Uint8Array(modelFile);
   return messages.SavedModel.deserializeBinary(array);
 }
