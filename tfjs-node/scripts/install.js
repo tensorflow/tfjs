@@ -65,21 +65,13 @@ async function setPackageJsonFile() {
 async function updateAddonName() {
   packageJsonFile['binary']['package_name'] = addonName;
   const stringFile = JSON.stringify(packageJsonFile, null, 2);
-  fs.writeFileSync((`${__dirname}/../package.json`), stringFile, err => {
-    if (err) {
-      console.log('Faile to update addon name in package.json: ' + err);
-    }
-  });
+  fs.writeFileSync((`${__dirname}/../package.json`), stringFile);
 }
 
 async function revertAddonName() {
   delete packageJsonFile['binary']['package_name'];
   const stringFile = JSON.stringify(packageJsonFile, null, 2).concat('\n');
-  fs.writeFileSync((`${__dirname}/../package.json`), stringFile, err => {
-    if (err) {
-      console.log('Faile to update addon name in package.json: ' + err);
-    }
-  });
+  fs.writeFileSync((`${__dirname}/../package.json`), stringFile);
 }
 
 /**
