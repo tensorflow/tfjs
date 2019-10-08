@@ -263,10 +263,10 @@ function matMul_<T extends Tensor>({
  *     in atrous convolution. Defaults to `[1, 1]`. If `dilations` is a single
  *     number, then `dilationHeight == dilationWidth`. If it is greater than
  *     1, then all values of `strides` must be 1.
- * @param dimRoundingMode` The rounding mode used when computing output
+ * @param dimRoundingMode The rounding mode used when computing output
  *     dimensions if pad is a number. If none is provided, it will not round
  *     and error if the output is of fractional size.
- * @param bias` Tensor to be added to the result.
+ * @param bias Tensor to be added to the result.
  * @param activation Name of activation kernel (defaults to `linear`) to be
  *     applied
  *      after biasAdd.

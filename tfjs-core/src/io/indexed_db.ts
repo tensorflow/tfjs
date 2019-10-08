@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {env} from '../environment';
+
 import {getModelArtifactsInfoForJSON} from './io_utils';
 import {ModelStoreManagerRegistry} from './model_management';
 import {IORouter, IORouterRegistry} from './router_registry';
@@ -47,7 +48,7 @@ export async function deleteDatabase(): Promise<void> {
 }
 
 function getIndexedDBFactory(): IDBFactory {
-  if (!ENV.getBool('IS_BROWSER')) {
+  if (!env().getBool('IS_BROWSER')) {
     // TODO(cais): Add more info about what IOHandler subtypes are available.
     //   Maybe point to a doc page on the web and/or automatically determine
     //   the available IOHandlers and print them in the error message.
@@ -207,7 +208,7 @@ export class BrowserIndexedDB implements IOHandler {
 }
 
 export const indexedDBRouter: IORouter = (url: string|string[]) => {
-  if (!ENV.getBool('IS_BROWSER')) {
+  if (!env().getBool('IS_BROWSER')) {
     return null;
   } else {
     if (!Array.isArray(url) && url.startsWith(BrowserIndexedDB.URL_SCHEME)) {
@@ -351,7 +352,7 @@ export class BrowserIndexedDBManager implements ModelStoreManager {
   }
 }
 
-if (ENV.getBool('IS_BROWSER')) {
+if (env().getBool('IS_BROWSER')) {
   // Wrap the construction and registration, to guard against browsers that
   // don't support Local Storage.
   try {

@@ -16,28 +16,28 @@
  */
 
 import * as device_util from './device_util';
-import {ENV} from './environment';
+import * as tf from './index';
 
 describe('DEBUG', () => {
   beforeEach(() => {
-    ENV.reset();
+    tf.env().reset();
     spyOn(console, 'warn').and.callFake((msg: string) => {});
   });
-  afterAll(() => ENV.reset());
+  afterAll(() => tf.env().reset());
 
   it('disabled by default', () => {
-    expect(ENV.getBool('DEBUG')).toBe(false);
+    expect(tf.env().getBool('DEBUG')).toBe(false);
   });
 
   it('warns when enabled', () => {
     const consoleWarnSpy = console.warn as jasmine.Spy;
-    ENV.set('DEBUG', true);
+    tf.env().set('DEBUG', true);
     expect(consoleWarnSpy.calls.count()).toBe(1);
     expect((consoleWarnSpy.calls.first().args[0] as string)
                .startsWith('Debugging mode is ON. '))
         .toBe(true);
 
-    expect(ENV.getBool('DEBUG')).toBe(true);
+    expect(tf.env().getBool('DEBUG')).toBe(true);
     expect(consoleWarnSpy.calls.count()).toBe(1);
   });
 });
@@ -45,60 +45,60 @@ describe('DEBUG', () => {
 describe('IS_BROWSER', () => {
   let isBrowser: boolean;
   beforeEach(() => {
-    ENV.reset();
+    tf.env().reset();
     spyOn(device_util, 'isBrowser').and.callFake(() => isBrowser);
   });
-  afterAll(() => ENV.reset());
+  afterAll(() => tf.env().reset());
 
   it('isBrowser: true', () => {
     isBrowser = true;
-    expect(ENV.getBool('IS_BROWSER')).toBe(true);
+    expect(tf.env().getBool('IS_BROWSER')).toBe(true);
   });
 
   it('isBrowser: false', () => {
     isBrowser = false;
-    expect(ENV.getBool('IS_BROWSER')).toBe(false);
+    expect(tf.env().getBool('IS_BROWSER')).toBe(false);
   });
 });
 
 describe('PROD', () => {
-  beforeEach(() => ENV.reset());
-  afterAll(() => ENV.reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('disabled by default', () => {
-    expect(ENV.getBool('PROD')).toBe(false);
+    expect(tf.env().getBool('PROD')).toBe(false);
   });
 });
 
 describe('TENSORLIKE_CHECK_SHAPE_CONSISTENCY', () => {
-  beforeEach(() => ENV.reset());
-  afterAll(() => ENV.reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('disabled when debug is disabled', () => {
-    ENV.set('DEBUG', false);
-    expect(ENV.getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')).toBe(false);
+    tf.env().set('DEBUG', false);
+    expect(tf.env().getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')).toBe(false);
   });
 
   it('enabled when debug is enabled', () => {
-    ENV.set('DEBUG', true);
-    expect(ENV.getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')).toBe(true);
+    tf.env().set('DEBUG', true);
+    expect(tf.env().getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')).toBe(true);
   });
 });
 
 describe('DEPRECATION_WARNINGS_ENABLED', () => {
-  beforeEach(() => ENV.reset());
-  afterAll(() => ENV.reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('enabled by default', () => {
-    expect(ENV.getBool('DEPRECATION_WARNINGS_ENABLED')).toBe(true);
+    expect(tf.env().getBool('DEPRECATION_WARNINGS_ENABLED')).toBe(true);
   });
 });
 
 describe('IS_TEST', () => {
-  beforeEach(() => ENV.reset());
-  afterAll(() => ENV.reset());
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
   it('disabled by default', () => {
-    expect(ENV.getBool('IS_TEST')).toBe(false);
+    expect(tf.env().getBool('IS_TEST')).toBe(false);
   });
 });
