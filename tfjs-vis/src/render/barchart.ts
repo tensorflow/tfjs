@@ -81,6 +81,24 @@ export async function barchart(
     defaultStyle: false,
   };
 
+  let colorEncoding;
+
+  if (options.color != null) {
+    if (Array.isArray(options.color)) {
+      colorEncoding = {
+        'field': 'index',
+        'type': 'nominal',
+        'scale': {
+          'range': options.color,
+        }
+      };
+    } else {
+      colorEncoding = {'value': options.color};
+    }
+  } else {
+    colorEncoding = {'value': '#4C78A0'};
+  }
+
   const spec: VisualizationSpec = {
     'width': options.width || getDefaultWidth(drawArea),
     'height': options.height || getDefaultHeight(drawArea),
@@ -109,11 +127,9 @@ export async function barchart(
     'encoding': {
       'x': {'field': 'index', 'type': xType, 'axis': xAxis},
       'y': {'field': 'value', 'type': yType, 'axis': yAxis},
-      'color': {
-        'value': options.color || '#4C78A0',
-      }
-    }
-  };
+      'color': colorEncoding,
+    },
+  } as VisualizationSpec;
 
   await nextFrame();
   const embedRes = await embed(drawArea, spec, embedOpts);

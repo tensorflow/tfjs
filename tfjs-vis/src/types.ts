@@ -212,7 +212,7 @@ export interface BarChartOpts extends VisOptions {
   /**
    * Fill color for bars. Should be a valid CSS color string
    */
-  color?: string;
+  color?: string|string[];
 }
 
 /**
