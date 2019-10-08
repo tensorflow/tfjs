@@ -58,7 +58,7 @@ export function getKernel(kernelName: string, backendName: string): KernelFunc {
 }
 
 /**
- * Registers the function (forward pass) for the kernel.
+ * Registers the function (forward pass) for the kernel in a global registry.
  *
  * @param kernelName The official name of the kernel.
  * @param backendName The official name of the backend.
@@ -75,6 +75,7 @@ export function registerKernel(
   kernelRegistry[key] = kernelFunc;
 }
 
+/** Removes the function (forward pass) for the kernel from the registry. */
 export function unregisterKernel(
     kernelName: string, backendName: string): void {
   const key = makeKey(kernelName, backendName);
