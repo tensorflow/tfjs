@@ -26,6 +26,7 @@ export class BufferManager {
   constructor(private device: GPUDevice) {}
 
   acquireBuffer(byteSize: number, usage: GPUBufferUsage) {
+    console.log('ACQUIRE BUFFER', byteSize);
     const key = getBufferKey(byteSize, usage);
     if (!this.freeBuffers.has(key)) {
       this.freeBuffers.set(key, []);
@@ -36,9 +37,11 @@ export class BufferManager {
     }
 
     this.numBytesUsed += byteSize;
+    console.log('numbytesused', this.numBytesUsed);
     this.numUsedBuffers++;
 
     if (this.freeBuffers.get(key).length > 0) {
+      console.log('recycle');
       this.numFreeBuffers--;
 
       const newBuffer = this.freeBuffers.get(key).shift();
@@ -53,6 +56,7 @@ export class BufferManager {
   }
 
   releaseBuffer(buffer: GPUBuffer, byteSize: number, usage: GPUBufferUsage) {
+    console.log('RELEASE BUFFER', byteSize);
     if (this.freeBuffers == null) {
       return;
     }
@@ -75,6 +79,7 @@ export class BufferManager {
     }
     bufferList.splice(bufferIndex, 1);
     this.numBytesUsed -= byteSize;
+    console.log('numbytesused', this.numBytesUsed);
   }
 
   getNumUsedBuffers(): number {
