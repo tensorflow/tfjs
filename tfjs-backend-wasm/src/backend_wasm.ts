@@ -212,7 +212,7 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
       dispose: wasm.cwrap('dispose', voidReturnType, []),
       add: wasm.cwrap('add', voidReturnType, ['number', 'number', 'number']),
       batchMatMul: wasm.cwrap(
-          'batchMatMul', voidReturnType,
+          'batch_matmul', voidReturnType,
           [
             'number', 'number', 'number', 'number', 'number', 'number',
             'number', 'number', 'number', 'number', 'number', 'number', 'number'

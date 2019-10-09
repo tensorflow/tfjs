@@ -25,6 +25,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
+  workGroupSize: [number, number, number] = [4, 4, 4];
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
@@ -33,7 +34,8 @@ export class ResizeBilinearProgram implements WebGPUProgram {
 
     this.dispatchLayout = {x: [1], y: [2], z: [0, 3]};
 
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     const adjustHeight = alignCorners && newHeight > 1;
     const adjustWidth = alignCorners && newWidth > 1;

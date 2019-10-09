@@ -15,63 +15,45 @@
  * =============================================================================
  */
 
-import {backend_util, util} from '@tensorflow/tfjs-core';
-
+import {util} from '@tensorflow/tfjs-core';
+import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+
 import {WebGPUProgram} from './webgpu_program';
 
-export class ConcatProgram implements WebGPUProgram {
+export class ClipProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
+  variableNames = ['A'];
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames: string[];
-  workPerThread = 4;
+  workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
 
-  constructor(shapes: Array<[number, number]>) {
-    this.outputShape =
-        backend_util.computeOutShape(shapes, 1 /* axis */) as [number, number];
-    this.variableNames = shapes.map((_, i) => `T${i}`);
+  constructor(outputShape: number[], minVal: number, maxVal: number) {
+    this.outputShape = outputShape;
     const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape,
         this.workGroupSize, [this.workPerThread, 1 ,1]);
-
-    const offsets: number[] = new Array(shapes.length - 1);
-    offsets[0] = shapes[0][1];
-    for (let i = 1; i < offsets.length; i++) {
-      offsets[i] = offsets[i - 1] + shapes[i][1];
-    }
-
-    const snippets = [
-      `if (yC < ${offsets[0]}) setOutput(coords.x, coords.y, getT0(yR, yC));`
-    ];
-
-    for (let i = 1; i < offsets.length; i++) {
-      const shift = offsets[i - 1];
-      snippets.push(
-          `else if (yC < ${offsets[i]}) ` +
-          `setOutput(coords.x, coords.y, getT${i}(yR, yC-${shift}));`);
-    }
-    const lastIndex = offsets.length;
-    const lastShift = offsets[offsets.length - 1];
-    snippets.push(`else setOutput(coords.x, coords.y, getT${lastIndex}(yR, yC-${
-        lastShift}));`);
+    const type = getCoordsDataType(this.outputShape.length);
 
     this.userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-
         for(int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < ${size}) {
-            ivec2 coords = getCoordsFromFlatIndex(flatIndex);
-            int yR = coords.x;
-            int yC = coords.y;
+            ${type} coords = getCoordsFromFlatIndex(flatIndex);
 
-            ${snippets.join('\n        ')}
+            float value = getAAtOutCoords(coords);
+            if (isnan(value)) {
+              setOutput(flatIndex, value);
+              return;
+            }
+
+            setOutput(flatIndex, clamp(value, ${minVal}, ${maxVal}));
           }
         }
       }
