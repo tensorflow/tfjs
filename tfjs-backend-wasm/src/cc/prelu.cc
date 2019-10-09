@@ -58,8 +58,10 @@ void prelu(int x_id, int x_size, int weights_id, int out_id) {
         xnn_create_prelu_nc_f32(channels, strides, strides, weights_buf,
                                 output_min, output_max, 0, &prelu_op);
     if (status != xnn_status_success) {
-      util::warn("Bad XNN status for xnn_create_prelu_nc_f32, status is %d",
-                 status);
+      util::warn(
+          "XNN status for xnn_create_prelu_nc_f32 is not successful. Got "
+          "status %d",
+          status);
     }
 
     operator_cache.insert({weights_id, prelu_op});
@@ -73,8 +75,10 @@ void prelu(int x_id, int x_size, int weights_id, int out_id) {
   xnn_status status = xnn_setup_prelu_nc_f32(
       prelu_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
   if (status != xnn_status_success) {
-    util::warn("Bad XNN status for xnn_setup_prelu_nc_f32, status is %d",
-               status);
+    util::warn(
+        "XNN status for xnn_setup_prelu_nc_f32 is not successful. Got "
+        "status %d",
+        status);
   }
 
   xnn_run_operator(prelu_op, nullptr /* thread pool */);

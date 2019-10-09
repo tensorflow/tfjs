@@ -26,6 +26,8 @@ namespace {
 // entries.
 std::map<int, TensorInfo> data;
 
+// Maps a tensor id to a vector of disposal functions registered on that tensor
+// id.
 std::map<int, std::vector<tfjs::backend::DisposeFunction> *> disposal_callbacks;
 }  // namespace
 
@@ -33,6 +35,7 @@ namespace tfjs {
 namespace backend {
 TensorInfo get_tensor_info(int tensor_id) { return data.at(tensor_id); }
 
+// Registers a disposal callback for a tensor id with a given callback function.
 void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
   if (disposal_callbacks.count(tensor_id) == 0) {
     auto callbacks = new std::vector<DisposeFunction>{dispose_fn};
