@@ -56,6 +56,7 @@ cc_library(
   deps = [
     ":backend",
     ":util",
+    "@xnnpack//:XNNPACK",
   ],
 )
 

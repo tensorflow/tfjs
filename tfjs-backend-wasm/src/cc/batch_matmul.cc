@@ -14,6 +14,7 @@
 
 #include <emscripten.h>
 #include <math.h>
+#include <xnnpack.h>
 #include <algorithm>
 #include <cstdio>
 #include <map>
@@ -46,36 +47,38 @@ void batch_matmul(int a_id, int b_id, int shared_dim, int left_dim,
   const float* b_buf = b_info.buf.f32;
   float* out_buf = out_info.buf.f32;
 
-  int size = left_dim * right_dim;
+  xnn_operator_t fully_connected_op = nullptr;
+  int channels = x_size;
+  int strides = channels;
+  float output_min = -std::numeric_limits<float>::infinity();
+  float output_max = std::numeric_limits<float>::infinity();
 
-  // Zero out the output buffer because it might have been used before.
-  std::fill(out_buf, out_buf + size, 0);
-
-  for (int b = 0; b < batch_dim; b++) {
-    for (int i0 = 0; i0 < left_dim; i0 += kBlockSize) {
-      for (int j0 = 0; j0 < right_dim; j0 += kBlockSize) {
-        for (int k0 = 0; k0 < shared_dim; k0 += kBlockSize) {
-          // for when kBlockSize doesn't evenly divide the input
-          int i_block = std::min(i0 + kBlockSize, left_dim);
-          int j_block = std::min(j0 + kBlockSize, right_dim);
-          int k_block = std::min(k0 + kBlockSize, shared_dim);
-
-          for (int i = i0; i < i_block; i++) {
-            for (int j = j0; j < j_block; j++) {
-              float sum = 0.0;
-
-              for (int k = k0; k < k_block; k++) {
-                sum +=
-                    a_buf[b * a_batch + i * a_outer_step + k * a_inner_step] *
-                    b_buf[k * b_inner_step + j * b_outer_step + b * b_batch];
-              }
-              out_buf[b * size + (i * right_dim + j)] += sum;
-            }
-          }
-        }
-      }
-    }
+  xnn_status status = xnn_create_fully_connected_nc_f32(
+      channels, strides, strides, weights_buf, output_min, output_max, 0,
+      &fully_connected_op);
+  if (status != xnn_status_success) {
+    util::warn(
+        "XNN status for xnn_create_prelu_nc_f32 is not successful. Got "
+        "status %d. Use -c dbg to see XNN logs.",
+        status);
   }
+
+  operator_cache.insert({weights_id, fully_connected_op});
+
+  // backend::register_disposal_callback(weights_id, *delete_xnn_operator);
+
+  int batch_size = 1;
+  xnn_status status =
+      xnn_setup_prelu_nc_f32(fully_connected_op, batch_size, x_buf, out_buf,
+                             nullptr /* thread pool */);
+  if (status != xnn_status_success) {
+    util::warn(
+        "XNN status for xnn_setup_prelu_nc_f32 is not successful. Got "
+        "status %d. Use -c dbg to see XNN logs.",
+        status);
+  }
+
+  xnn_run_operator(fully_connected_op, nullptr /* thread pool */);
 }
 
 }  // extern "C"
