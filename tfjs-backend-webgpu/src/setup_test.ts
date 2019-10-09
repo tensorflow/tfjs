@@ -21,7 +21,7 @@ import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 setTestEnvs([{
   name: 'test-webgpu',
   backendName: 'webgpu',
-  flags: {},
+  flags: {'WEBGPU_CPU_FORWARD': false},
   isDataSync: false,
 }]);
 
@@ -79,8 +79,8 @@ const EXCLUDE_LIST: string[] = [
   'maxPool3d',                                           // Not yet implemented.
   'frame',                                               // Not yet implemented.
   'HTMLVideolement',
-  'works with 0 sized tensors',                          // AbortError.
-  'NaNs in Tensor'                                       // Not yet implemented.
+  'works with 0 sized tensors',  // AbortError.
+  'NaNs in Tensor'               // Not yet implemented.
 ];
 
 /**

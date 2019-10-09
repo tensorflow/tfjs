@@ -51,7 +51,7 @@ describeWebGPU('backend webgpu', () => {
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 
-  fit('should not leak memory in immediate mode', async () => {
+  it('should not leak memory in immediate mode', async () => {
     const savedFlag = tf.ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', true);
     const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
@@ -80,7 +80,7 @@ describeWebGPU('backend webgpu', () => {
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 
-  fit('should recycle buffers in immediate mode', () => {
+  it('should recycle buffers in immediate mode', () => {
     const savedFlag = tf.ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', true);
     const backend = tf.backend() as WebGPUBackend;
@@ -121,7 +121,7 @@ describeWebGPU('backend webgpu', () => {
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 
-  fit('should not recycle buffers in delayed mode', async () => {
+  it('should not recycle buffers in delayed mode', async () => {
     const savedFlag = tf.ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', false);
     const backend = tf.backend() as WebGPUBackend;

@@ -23,6 +23,7 @@ import {backend_util, DataStorage, DataType, ENV, findBackend, KernelBackend, Ra
 // TODO(annxingyuan): get ENGINE from tf.engine() once core 1.3.0 is released.
 // tslint:disable-next-line: no-imports-from-dist
 import {ENGINE} from '@tensorflow/tfjs-core/dist/engine';
+
 import * as shaderc from '@webgpu/shaderc';
 
 import {BufferManager} from './buffer_manager';
@@ -543,7 +544,9 @@ export class WebGPUBackend extends KernelBackend {
 
   private shouldExecuteOnCPU(
       inputs: Tensor[], sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
-    return this.getCPUBackend() != null &&
+    // TODO(annxingyuan): use env() once core 1.2.11 is released.
+    return ENV.getBool('WEBGPU_CPU_FORWARD') === true &&
+        this.getCPUBackend() != null &&
         inputs.every(
             input =>
                 this.tensorMap.get(input.dataId).bufferInfo.buffer == null &&
@@ -697,9 +700,9 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   multiply(a: Tensor, b: Tensor): Tensor {
-    // if (this.shouldExecuteOnCPU([a, b])) {
-    //   return this.cpuBackend.multiply(a, b);
-    // }
+    if (this.shouldExecuteOnCPU([a, b])) {
+      return this.cpuBackend.multiply(a, b);
+    }
     return this.binaryOp(a, b, binary_op.MUL);
   }
 
