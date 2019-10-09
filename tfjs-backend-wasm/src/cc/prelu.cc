@@ -60,7 +60,7 @@ void prelu(int x_id, int x_size, int weights_id, int out_id) {
     if (status != xnn_status_success) {
       util::warn(
           "XNN status for xnn_create_prelu_nc_f32 is not successful. Got "
-          "status %d",
+          "status %d. Use -c dbg to see XNN logs.",
           status);
     }
 
@@ -77,7 +77,7 @@ void prelu(int x_id, int x_size, int weights_id, int out_id) {
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_prelu_nc_f32 is not successful. Got "
-        "status %d",
+        "status %d. Use -c dbg to see XNN logs.",
         status);
   }
 
