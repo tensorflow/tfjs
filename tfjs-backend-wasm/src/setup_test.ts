@@ -33,6 +33,7 @@ const EXCLUDE_LIST: string[] = [
   'broadcasting same rank Tensors different shape',  // Same as above.
   'upcasts when dtypes dont match',  // Uses the 'complex' dtype.
 
+  // batchMatMul
   'valueAndGradients',       // Gradients not defined yet
   'fused matmul',            // Fused kernels aren't ready yet
   'zero in its shape',       // Zero in shapes aren't supported yet

@@ -65,7 +65,7 @@ describeWithFlags('prelu cache', ALL_ENVS, () => {
     expect(result.shape).toEqual(x1.shape);
     test_util.expectArraysClose(await result.data(), [6, -0.6, 2, -0.15]);
 
-    // Dispose the weights so clearing the internal cache works.
+    // Dispose the weights to catch bugs with weights disposal of XNN operators.
     a.dispose();
   });
 });
