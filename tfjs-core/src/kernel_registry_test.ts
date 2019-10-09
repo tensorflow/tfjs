@@ -17,7 +17,7 @@
 
 import * as tf from './index';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
-import {DataInfo} from './kernel_registry';
+import {TensorInfo} from './kernel_registry';
 
 describeWithFlags('kernel_registry', ALL_ENVS, () => {
   it('register a kernel and call it', () => {
@@ -32,7 +32,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
 
     const inputs = {x: tf.zeros([2, 2])};
     const attrs = {a: 5};
-    const res = tf.engine().run('MyKernel', inputs, attrs) as DataInfo;
+    const res = tf.engine().run('MyKernel', inputs, attrs) as TensorInfo;
 
     expect(called).toBe(true);
     expect(res.dtype).toBe('float32');

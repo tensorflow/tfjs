@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {DataInfo} from '../../kernel_registry';
+import {TensorInfo} from '../../kernel_registry';
 import {assert} from '../../util';
 
 export function assertNotComplex(
-    tensor: DataInfo|DataInfo[], opName: string): void {
+    tensor: TensorInfo|TensorInfo[], opName: string): void {
   if (!Array.isArray(tensor)) {
     tensor = [tensor];
   }

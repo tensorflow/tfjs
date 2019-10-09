@@ -17,7 +17,7 @@
 
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
-import {DataInfo, getKernel, NamedAttrMap, NamedDataMap} from './kernel_registry';
+import {getKernel, NamedAttrMap, NamedDataMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, Tensor3D, TensorTracker, Variable} from './tensor';
@@ -435,8 +435,16 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
     return y;
   }
 
-  run(kernelName: string, inputs: NamedDataMap, attrs: NamedAttrMap): DataInfo
-      |DataInfo[] {
+  // TODO(smilkov): Rename this to runKernel() and rename the old runKernel().
+  /**
+   * Execute a kernel with the given name and return the output tensor info.
+   *
+   * @param kernelName The name of the kernel to execute.
+   * @param inputs A map of input names to tensor infos.
+   * @param attrs A map of attribute names to their values.
+   */
+  run(kernelName: string, inputs: NamedDataMap, attrs: NamedAttrMap): TensorInfo
+      |TensorInfo[] {
     const forwardFunc: null = null;
     const backwardsFunc: null = null;
     return this.runKernel(
@@ -472,7 +480,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
       const storage = this.backend;
       kernelFunc = () => {
         const outInfo =
-            kernel({inputs, attrs, storage, save: saveFunc}) as DataInfo;
+            kernel({inputs, attrs, storage, save: saveFunc}) as TensorInfo;
         const tensor =
             Tensor.wrap(outInfo.shape, outInfo.dtype, outInfo.dataId);
         // The output originated from the kernel, thus we avoid double

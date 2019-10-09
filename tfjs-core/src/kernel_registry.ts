@@ -29,17 +29,17 @@ export type KernelFunc = (params: {
   storage: {},
   attrs?: NamedAttrMap,
   save?: GradSaveFunc
-}) => DataInfo|DataInfo[];
+}) => TensorInfo|TensorInfo[];
 
 /** Holds metadata for a given tensor. */
-export interface DataInfo {
+export interface TensorInfo {
   dataId: DataId;
   shape: number[];
   dtype: DataType;
 }
 
 export interface NamedDataMap {
-  [name: string]: DataInfo;
+  [name: string]: TensorInfo;
 }
 
 export interface NamedAttrMap {
