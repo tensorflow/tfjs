@@ -25,11 +25,23 @@ namespace {
 // Maps a unique tensor id to info about that tensor. The map owns all of its
 // entries.
 std::map<int, TensorInfo> data;
+
+std::map<int, std::vector<tfjs::backend::DisposeFunction> *> disposal_callbacks;
 }  // namespace
 
 namespace tfjs {
 namespace backend {
 TensorInfo get_tensor_info(int tensor_id) { return data.at(tensor_id); }
+
+void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
+  if (disposal_callbacks.count(tensor_id) == 0) {
+    auto callbacks = new std::vector<DisposeFunction>{dispose_fn};
+    disposal_callbacks.insert({tensor_id, callbacks});
+  } else {
+    auto callbacks = disposal_callbacks.at(tensor_id);
+    callbacks->push_back(dispose_fn);
+  }
+}
 }  // namespace backend
 
 // We use C-style API to interface with Javascript.
@@ -39,8 +51,8 @@ EMSCRIPTEN_KEEPALIVE
 void init() { xnn_initialize(); }
 
 EMSCRIPTEN_KEEPALIVE
-void register_tensor(int data_id, int *shape_ptr, int shape_length, DType dtype,
-                     void *memory_offset) {
+void register_tensor(int tensor_id, int *shape_ptr, int shape_length,
+                     DType dtype, void *memory_offset) {
   auto shape = std::vector<int>(shape_ptr, shape_ptr + shape_length);
   auto size = util::size_from_shape(shape);
 
@@ -57,15 +69,15 @@ void register_tensor(int data_id, int *shape_ptr, int shape_length, DType dtype,
       break;
     default:
       util::warn("Failed to register tensor id %d failed. Unknown dtype %d",
-                 data_id, dtype);
+                 tensor_id, dtype);
   }
   // We move info to avoid a copy.
-  data.insert({data_id, std::move(info)});
+  data.insert({tensor_id, std::move(info)});
 }
 
 EMSCRIPTEN_KEEPALIVE
-void dispose_data(int data_id) {
-  TensorInfo info = data.at(data_id);
+void dispose_data(int tensor_id) {
+  TensorInfo info = data.at(tensor_id);
   switch (info.dtype) {
     case DType::float32:
       free(info.buf.f32);
@@ -77,10 +89,20 @@ void dispose_data(int data_id) {
       free(info.buf.b);
       break;
     default:
-      util::warn("Dispose for tensor id %d failed. Unknown dtype %d", data_id,
+      util::warn("Dispose for tensor id %d failed. Unknown dtype %d", tensor_id,
                  info.dtype);
   }
-  data.erase(data_id);
+  data.erase(tensor_id);
+
+  // Call all disposal callbacks for this tensor id.
+  if (disposal_callbacks.count(tensor_id) != 0) {
+    auto callbacks = disposal_callbacks.at(tensor_id);
+    for (auto dispose_function : *callbacks) {
+      dispose_function(tensor_id);
+    }
+
+    disposal_callbacks.erase(tensor_id);
+  }
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -89,6 +111,7 @@ void dispose() {
     dispose_data(element.first);
   }
   data.clear();
+  disposal_callbacks.clear();
 }
 
 }  // extern "C"

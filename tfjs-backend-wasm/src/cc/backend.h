@@ -42,6 +42,9 @@ struct TensorInfo {
 namespace tfjs {
 namespace backend {
 TensorInfo get_tensor_info(int tensor_id);
+typedef void (*DisposeFunction)(int);
+void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn);
+
 }  // namespace backend
 
 }  // namespace tfjs

@@ -26,7 +26,11 @@
 const int kBlockSize = 48;
 
 namespace {
+// The operator cache maps the weights id to the xnn_operator_t instantiated for
+// // this set of weights.
 std::map<int, xnn_operator_t> operator_cache;
+
+void delete_xnn_operator(int weights_id) { operator_cache.erase(weights_id); }
 }  // namespace
 
 namespace tfjs {
@@ -59,6 +63,8 @@ void prelu(int x_id, int x_size, int weights_id, int out_id) {
     }
 
     operator_cache.insert({weights_id, prelu_op});
+
+    backend::register_disposal_callback(weights_id, *delete_xnn_operator);
   } else {
     prelu_op = operator_cache.at(weights_id);
   }
