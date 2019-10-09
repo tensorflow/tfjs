@@ -40,7 +40,7 @@ fi
 yarn prep-tests
 
 # Spawn a metro bundler/asset server in the background.
-nohup yarn start-metro &> /dev/null
+yarn start-metro &
 let metro_pid=$!
 echo "Started metro. PID=$metro_pid"
 
