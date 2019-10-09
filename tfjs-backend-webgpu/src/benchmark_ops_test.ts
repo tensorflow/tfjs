@@ -170,4 +170,23 @@ describeWebGPU('Ops benchmarks', () => {
 
   //   await time(() => tf.maxPool(x, 2, 1, 'same'));
   // });
+
+  // it('concat', async () => {
+  //   const a = tf.randomNormal([500, 500]);
+  //   const b = tf.randomNormal([500, 500]);
+
+  //   await time(() => tf.concat([a, b], 1));
+  // });
+
+  // it('resizeBilinear', async () => {
+  //   const input = tf.randomNormal<tf.Rank.R3>([128, 128, 4]);
+
+  //   await time(() => input.resizeBilinear([256, 256], false));
+  // });
+
+  // it('clip', async () => {
+  //   const a = tf.randomNormal([1, 65, 65, 256]);
+
+  //   await time(() => tf.clipByValue(a, 0.1, 0.9));
+  // });
 });
