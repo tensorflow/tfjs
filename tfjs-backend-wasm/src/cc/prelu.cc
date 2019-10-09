@@ -30,7 +30,12 @@ namespace {
 // // this set of weights.
 std::map<int, xnn_operator_t> operator_cache;
 
-void delete_xnn_operator(int weights_id) { operator_cache.erase(weights_id); }
+void delete_xnn_operator(int weights_id) {
+  xnn_operator_t prelu_op = operator_cache.at(weights_id);
+  xnn_delete_operator(prelu_op);
+
+  operator_cache.erase(weights_id);
+}
 }  // namespace
 
 namespace tfjs {
