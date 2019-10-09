@@ -34,7 +34,7 @@ yarn lint
 if [ "$1" == "use-core-build" ]; then
   # Assume core has been built recently, just link it in. Use cp and not
   # yalc to avoid symlinks
-  echo "Skip core build"
+  echo "Use existing core build"
   cd ../../tfjs-core && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
 elif [ "$1" == "build-head" ]; then
   # Build head and link it in.

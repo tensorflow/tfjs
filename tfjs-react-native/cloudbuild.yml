@@ -32,8 +32,8 @@ steps:
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
   waitFor: ['yarn']
-  # After 10 mins it has probably hun
-  timeout: 900s
+  # After 20 mins it has probably hung
+  timeout: 1200s
 
 # General configuration
 secrets:
