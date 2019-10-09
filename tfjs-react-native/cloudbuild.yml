@@ -28,10 +28,12 @@ steps:
   dir: 'tfjs-react-native/integration_rn59'
   entrypoint: 'yarn'
   id: 'test-core-with-react-native'
-  args: ['test-ci']
+  args: ['test-ci', 'build-head']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
   waitFor: ['yarn']
+  # After 10 mins it has probably hun
+  timeout: 900s
 
 # General configuration
 secrets:

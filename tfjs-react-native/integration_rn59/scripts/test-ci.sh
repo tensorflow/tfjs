@@ -22,18 +22,23 @@ set -e
 trap cleanup INT TERM ERR
 
 cleanup() {
-  echo "Clean up metro $metro_pid"
   kill -9 $metro_pid
+  echo "Clean up metro $metro_pid"
 }
 
 yarn
 yarn lint
 
-# Copy the built version of tfjs-core from the current checkout
-if [ "$1" == "skip-core-build" ]; then
+# Default is to run tests against the packages specified dependencies. We can
+# optionally copy a built version of tfjs-core from the current checkout
+if [ "$1" == "use-core-build" ]; then
+  # Assume core has been built recently, just link it in. Use cp and not
+  # yalc to avoid symlinks
   echo "Skip core build"
   cd ../../tfjs-core && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
-else
+elif [ "$1" == "build-head" ]; then
+  # Build head and link it in.
+  echo "Build head from core"
   cd ../../tfjs-core && yarn && yarn build-ci && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
 fi
 
@@ -51,6 +56,7 @@ test_result=$?
 # Kill the child process explicitly so that the exit code of the script
 # isn't changed by it's eventual termination.
 kill -TERM $metro_pid
+sleep 2s
 echo $metro_pid was terminated.
 
 # Return the exit code of the test
