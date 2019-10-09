@@ -16,12 +16,12 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import * as Shaderc from '@webgpu/shaderc';
+import * as Shaderc from '@webgpu/glslang';
 
 import {WebGPUBackend} from './backend_webgpu';
 
 tf.registerBackend('webgpu', async () => {
-  const shaderc = await Shaderc.instantiate();
+  const shaderc = await Shaderc.default();
   const adapter = await navigator.gpu.requestAdapter({});
   const device = await adapter.requestDevice({});
   return new WebGPUBackend(device, shaderc);
