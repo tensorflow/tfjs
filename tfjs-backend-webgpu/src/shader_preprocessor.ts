@@ -343,11 +343,15 @@ function generateGetOutputCoords(
   }
 
   const dtype = getCoordsDataType(rank);
-  const snippet = `${dtype} getOutputCoords() {
+  let snippet = `${dtype} getOutputCoords() {
     ${gatherDimensionsStr}
-
-    return ${dtype}(${dimensions.join(',')});
-  }`;
+  `;
+  if (dimensions.length === 0)
+  {
+    snippet += `return ${dtype}(0);}`;
+  } else {
+    snippet += `return ${dtype}(${dimensions.join(',')});}`;
+  }
 
   return [snippet, rank];
 }
