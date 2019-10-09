@@ -55,7 +55,7 @@ describe('tfjs-core unit tests', () => {
         }
       }
     }
-  }, TEST_RUN_TIMEOUT);
+  }, TEST_RUN_TIMEOUT + INITIAL_LOAD_TIMEOUT);
 });
 
 // Mark as a module for ts compiler.
