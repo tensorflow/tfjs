@@ -17,7 +17,7 @@
 #endif
 
 #include <xnnpack.h>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 #include "src/cc/backend.h"
@@ -26,11 +26,12 @@
 namespace {
 // Maps a unique tensor id to info about that tensor. The map owns all of its
 // entries.
-std::map<int, TensorInfo> data;
+std::unordered_map<int, TensorInfo> data;
 
 // Maps a tensor id to a vector of disposal functions registered on that tensor
 // id.
-std::map<int, std::vector<tfjs::backend::DisposeFunction>> disposal_callbacks;
+std::unordered_map<int, std::vector<tfjs::backend::DisposeFunction>>
+    disposal_callbacks;
 }  // namespace
 
 namespace tfjs {
@@ -48,8 +49,11 @@ void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
     callbacks.push_back(dispose_fn);
   }
 }
+
+int num_tensors() { return data.size(); }
 }  // namespace backend
 
+namespace wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
@@ -129,4 +133,5 @@ void dispose() {
 }
 
 }  // extern "C"
+}  // namespace wasm
 }  // namespace tfjs

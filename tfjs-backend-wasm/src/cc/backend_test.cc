@@ -17,16 +17,27 @@
 #include "src/cc/backend.h"
 
 TEST(BACKEND, register_tensor) {
+  ASSERT_EQ(0, tfjs::backend::num_tensors());
+
   int tensor_id = 0;
   int shape[2] = {1, 2};
   int shape_length = 2;
   DType dtype = DType::float32;
   float values[2] = {1, 2};
 
-  tfjs::register_tensor(tensor_id, shape, shape_length, dtype, values);
+  tfjs::wasm::register_tensor(tensor_id, shape, shape_length, dtype, values);
+  ASSERT_EQ(1, tfjs::backend::num_tensors());
 
   TensorInfo tensor_info = tfjs::backend::get_tensor_info(tensor_id);
 
   ASSERT_EQ(dtype, tensor_info.dtype);
-  ASSERT_EQ(shape, tensor_info.shape);
+
+  ASSERT_EQ(shape[0], tensor_info.shape[0]);
+  ASSERT_EQ(shape[1], tensor_info.shape[1]);
+
+  ASSERT_EQ(values[0], tensor_info.buf.f32[0]);
+  ASSERT_EQ(values[1], tensor_info.buf.f32[1]);
+
+  tfjs::wasm::dispose_data(tensor_id);
+  ASSERT_EQ(0, tfjs::backend::num_tensors());
 }

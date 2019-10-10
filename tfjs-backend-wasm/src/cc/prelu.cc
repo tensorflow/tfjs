@@ -15,7 +15,7 @@
 #include <emscripten.h>
 #include <xnnpack.h>
 #include <cmath>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 #include "src/cc/backend.h"
@@ -24,7 +24,7 @@
 namespace {
 // The operator cache maps the weights id to the xnn_operator_t instantiated for
 // // this set of weights.
-std::map<int, xnn_operator_t> operator_cache;
+std::unordered_map<int, xnn_operator_t> operator_cache;
 
 void delete_xnn_operator(int weights_id) {
   xnn_operator_t prelu_op = operator_cache.at(weights_id);
