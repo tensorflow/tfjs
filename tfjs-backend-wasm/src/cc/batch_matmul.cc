@@ -12,7 +12,10 @@
  * limitations under the License.
  * ===========================================================================*/
 
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#endif
+
 #include <math.h>
 #include <algorithm>
 #include <map>
@@ -24,10 +27,13 @@
 const int kBlockSize = 48;
 
 namespace tfjs {
+namespace wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
+#ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
+#endif
 void batch_matmul(int a_id, int b_id, int shared_dim, int left_dim,
                   int right_dim, int batch_dim, int a_batch, int a_outer_step,
                   int a_inner_step, int b_batch, int b_outer_step,
@@ -78,4 +84,5 @@ void batch_matmul(int a_id, int b_id, int shared_dim, int left_dim,
 }
 
 }  // extern "C"
+}  // namespace wasm
 }  // namespace tfjs

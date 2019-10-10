@@ -12,9 +12,13 @@
  * limitations under the License.
  * ===========================================================================*/
 
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#endif
+
 #include <xnnpack.h>
 #include <cmath>
+#include <limits>
 #include <unordered_map>
 #include <vector>
 
@@ -29,16 +33,20 @@ std::unordered_map<int, xnn_operator_t> operator_cache;
 void delete_xnn_operator(int weights_id) {
   xnn_operator_t prelu_op = operator_cache.at(weights_id);
   xnn_delete_operator(prelu_op);
+  tfjs::backend::xnn_operator_count--;
 
   operator_cache.erase(weights_id);
 }
 }  // namespace
 
 namespace tfjs {
+namespace wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
+#ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
+#endif
 void prelu(int x_id, int x_size, int weights_id, int out_id) {
   const TensorInfo x_info = backend::get_tensor_info(x_id);
   const TensorInfo weights_info = backend::get_tensor_info(weights_id);
@@ -68,6 +76,8 @@ void prelu(int x_id, int x_size, int weights_id, int out_id) {
     operator_cache.insert({weights_id, prelu_op});
 
     backend::register_disposal_callback(weights_id, *delete_xnn_operator);
+
+    tfjs::backend::xnn_operator_count++;
   } else {
     prelu_op = operator_cache.at(weights_id);
   }
@@ -86,4 +96,5 @@ void prelu(int x_id, int x_size, int weights_id, int out_id) {
 }
 
 }  // extern "C"
+}  // namespace wasm
 }  // namespace tfjs

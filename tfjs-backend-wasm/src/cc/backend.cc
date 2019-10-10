@@ -38,6 +38,8 @@ namespace tfjs {
 namespace backend {
 TensorInfo get_tensor_info(int tensor_id) { return data.at(tensor_id); }
 
+int xnn_operator_count = 0;
+
 // Registers a disposal callback for a tensor id with a given callback function.
 void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
   if (disposal_callbacks.count(tensor_id) == 0) {
@@ -51,6 +53,7 @@ void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
 }
 
 int num_tensors() { return data.size(); }
+
 }  // namespace backend
 
 namespace wasm {
@@ -93,21 +96,6 @@ void register_tensor(int tensor_id, int *shape_ptr, int shape_length,
 EMSCRIPTEN_KEEPALIVE
 #endif
 void dispose_data(int tensor_id) {
-  TensorInfo info = data.at(tensor_id);
-  switch (info.dtype) {
-    case DType::float32:
-      free(info.buf.f32);
-      break;
-    case DType::int32:
-      free(info.buf.i32);
-      break;
-    case DType::boolean:
-      free(info.buf.b);
-      break;
-    default:
-      util::warn("Dispose for tensor id %d failed. Unknown dtype %d", tensor_id,
-                 info.dtype);
-  }
   data.erase(tensor_id);
 
   // Call all disposal callbacks for this tensor id.
@@ -130,6 +118,7 @@ void dispose() {
   }
   data.clear();
   disposal_callbacks.clear();
+  tfjs::backend::xnn_operator_count = 0;
 }
 
 }  // extern "C"

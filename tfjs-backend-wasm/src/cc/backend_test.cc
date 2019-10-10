@@ -17,6 +17,8 @@
 #include "src/cc/backend.h"
 
 TEST(BACKEND, register_tensor) {
+  tfjs::wasm::init();
+
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
   int tensor_id = 0;
@@ -39,5 +41,50 @@ TEST(BACKEND, register_tensor) {
   ASSERT_EQ(values[1], tensor_info.buf.f32[1]);
 
   tfjs::wasm::dispose_data(tensor_id);
+
   ASSERT_EQ(0, tfjs::backend::num_tensors());
+
+  tfjs::wasm::dispose();
+}
+
+bool tensor_0_callback_called = false;
+bool tensor_1_callback_called = false;
+void fake_dispose_tensor_callback(int tensor_id) {
+  if (tensor_id == 0) {
+    tensor_0_callback_called = true;
+  } else if (tensor_id == 1) {
+    tensor_1_callback_called = true;
+  }
+}
+TEST(BACKEND, disposal_callback) {
+  tfjs::wasm::init();
+
+  ASSERT_EQ(0, tfjs::backend::num_tensors());
+
+  int tensor_id_0 = 0;
+  int tensor_id_1 = 1;
+  int shape[2] = {1, 2};
+  int shape_length = 2;
+  DType dtype = DType::float32;
+  float values_0[2] = {1, 2};
+  float values_1[2] = {3, 4};
+
+  tfjs::wasm::register_tensor(tensor_id_0, shape, shape_length, dtype,
+                              values_0);
+  tfjs::wasm::register_tensor(tensor_id_1, shape, shape_length, dtype,
+                              values_1);
+
+  // Register a disposal callback on 0 but not 1.
+  tfjs::backend::register_disposal_callback(tensor_id_0,
+                                            *fake_dispose_tensor_callback);
+
+  tfjs::wasm::dispose_data(tensor_id_0);
+  tfjs::wasm::dispose_data(tensor_id_1);
+
+  ASSERT_EQ(true, tensor_0_callback_called);
+  ASSERT_EQ(false, tensor_1_callback_called);
+
+  ASSERT_EQ(0, tfjs::backend::num_tensors());
+
+  tfjs::wasm::dispose();
 }

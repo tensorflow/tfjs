@@ -12,7 +12,10 @@
  * limitations under the License.
  * ===========================================================================*/
 
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#endif
+
 #include <math.h>
 #include <map>
 #include <vector>
@@ -36,10 +39,13 @@ template void add_impl<bool>(bool* a_buf, int a_size, bool* b_buf, int b_size,
                              bool* out_buf);
 
 namespace tfjs {
+namespace wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
+#ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
+#endif
 void add(int a_id, int b_id, int out_id) {
   const auto a_info = backend::get_tensor_info(a_id);
   const auto b_info = backend::get_tensor_info(b_id);
@@ -64,4 +70,5 @@ void add(int a_id, int b_id, int out_id) {
 }
 
 }  // extern "C"
+}  // namespace wasm
 }  // namespace tfjs

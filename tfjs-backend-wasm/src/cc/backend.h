@@ -45,13 +45,16 @@ TensorInfo get_tensor_info(int tensor_id);
 typedef void (*DisposeFunction)(int);
 void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn);
 int num_tensors();
+extern int xnn_operator_count;
 }  // namespace backend
 
 namespace wasm {
 extern "C" {
+void init();
 void register_tensor(int tensor_id, int *shape_ptr, int shape_length,
                      DType dtype, void *memory_offset);
 void dispose_data(int tensor_id);
+void dispose();
 }
 
 }  // namespace wasm
