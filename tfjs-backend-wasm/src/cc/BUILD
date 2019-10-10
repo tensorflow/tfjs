@@ -6,7 +6,7 @@ cc_binary(
         "-s DISABLE_EXCEPTION_CATCHING=1",
         "-s FILESYSTEM=0",
         "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\"]'",
+        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
         "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
         "-s ENVIRONMENT=web",
         "-s MODULARIZE=1",
