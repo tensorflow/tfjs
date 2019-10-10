@@ -47,6 +47,11 @@ void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn);
 
 }  // namespace backend
 
+extern "C" {
+void register_tensor(int tensor_id, int *shape_ptr, int shape_length,
+                     DType dtype, void *memory_offset);
+}
+
 }  // namespace tfjs
 
 #endif  // TFJS_BACKEND_H

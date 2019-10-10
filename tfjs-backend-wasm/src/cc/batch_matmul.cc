@@ -15,7 +15,6 @@
 #include <emscripten.h>
 #include <math.h>
 #include <algorithm>
-#include <cstdio>
 #include <map>
 #include <vector>
 

@@ -15,15 +15,11 @@
 #include <emscripten.h>
 #include <xnnpack.h>
 #include <cmath>
-#include <cstdio>
 #include <map>
-#include <memory>
 #include <vector>
 
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
-
-const int kBlockSize = 48;
 
 namespace {
 // The operator cache maps the weights id to the xnn_operator_t instantiated for

@@ -12,9 +12,11 @@
  * limitations under the License.
  * ===========================================================================*/
 
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#endif
+
 #include <xnnpack.h>
-#include <cstdio>
 #include <map>
 #include <vector>
 
@@ -51,10 +53,14 @@ void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
+#ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
+#endif
 void init() { xnn_initialize(); }
 
+#ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
+#endif
 void register_tensor(int tensor_id, int *shape_ptr, int shape_length,
                      DType dtype, void *memory_offset) {
   auto shape = std::vector<int>(shape_ptr, shape_ptr + shape_length);
@@ -79,7 +85,9 @@ void register_tensor(int tensor_id, int *shape_ptr, int shape_length,
   data.insert({tensor_id, std::move(info)});
 }
 
+#ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
+#endif
 void dispose_data(int tensor_id) {
   TensorInfo info = data.at(tensor_id);
   switch (info.dtype) {
@@ -109,7 +117,9 @@ void dispose_data(int tensor_id) {
   }
 }
 
+#ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
+#endif
 void dispose() {
   for (auto const &element : data) {
     dispose_data(element.first);

@@ -1,3 +1,5 @@
+load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
+
 cc_binary(
     name = "tfjs-backend-wasm.js",
     linkopts = [
@@ -19,20 +21,18 @@ cc_binary(
     ],
 )
 
-cc_library(
+tfjs_cc_library(
   name = "backend",
   srcs = ["backend.cc"],
   hdrs = ["backend.h"],
-  linkstatic = 1,
   deps = [
     ":util",
     "@xnnpack//:XNNPACK",
   ],
 )
 
-cc_library(
+tfjs_cc_library(
   name = "all_kernels",
-  linkstatic = 1,
   deps = [
     ":add",
     ":batch_matmul",
@@ -40,38 +40,43 @@ cc_library(
   ]
 )
 
-cc_library(
+tfjs_cc_library(
   name = "add",
   srcs = ["add.cc"],
-  linkstatic = 1,
   deps = [
     ":backend",
     ":util",
   ],
 )
 
-cc_library(
+tfjs_cc_library(
   name = "batch_matmul",
   srcs = ["batch_matmul.cc"],
-  linkstatic = 1,
   deps = [
     ":backend",
     ":util",
   ],
 )
 
-cc_library(
+tfjs_cc_library(
   name = "prelu",
   srcs = ["prelu.cc"],
-  linkstatic = 1,
   deps = [
     ":backend",
     ":util",
   ],
 )
 
-cc_library(
+tfjs_cc_library(
   name = "util",
-  linkstatic = 1,
   srcs = ["util.h"],
+)
+
+
+tfjs_unit_test(
+  name = "backend_test",
+  srcs = ["backend_test.cc"],
+  deps = [
+    ":backend",
+  ]
 )
