@@ -40,3 +40,6 @@ ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
  * >0: conv2d_mm with matmul_packed with WPT=this
  */
 ENV.registerFlag('WEBGPU_CONV2D_WORK_PER_THREAD', () => 2);
+
+/** Whether we use low power GPU. */
+ENV.registerFlag('WEBGPU_USE_LOW_POWER_GPU', () => false);
