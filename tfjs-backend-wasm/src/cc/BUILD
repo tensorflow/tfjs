@@ -1,6 +1,5 @@
 cc_binary(
     name = "tfjs-backend-wasm.js",
-    srcs = ["lib.cc"],
     linkopts = [
         "-s ALLOW_MEMORY_GROWTH=1",
         "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
@@ -15,18 +14,53 @@ cc_binary(
         "-s MALLOC=emmalloc",
     ],
     deps = [
-        ":kernels",
-        ":util",
+        ":backend",
+        ":all_kernels",
     ],
 )
 
 cc_library(
-    name = "kernels",
-    srcs = ["kernels.cc"],
-    hdrs = ["kernels.h"],
+  name = "backend",
+  srcs = ["backend.cc"],
+  hdrs = ["backend.h"],
+  linkstatic = 1,
+  deps = [
+    ":util",
+    "@xnnpack//:XNNPACK",
+  ],
 )
 
 cc_library(
-    name = "util",
-    srcs = ["util.h"],
+  name = "all_kernels",
+  linkstatic = 1,
+  deps = [
+    ":add",
+    ":batch_matmul",
+  ]
+)
+
+cc_library(
+  name = "add",
+  srcs = ["add.cc"],
+  linkstatic = 1,
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+cc_library(
+  name = "batch_matmul",
+  srcs = ["batch_matmul.cc"],
+  linkstatic = 1,
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+cc_library(
+  name = "util",
+  linkstatic = 1,
+  srcs = ["util.h"],
 )

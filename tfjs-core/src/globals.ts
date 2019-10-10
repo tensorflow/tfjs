@@ -96,6 +96,10 @@ export function engine(): Engine {
  *    `unreliable` is true.
  * - `reasons`: `string[]`, reasons why the memory is unreliable, present if
  *    `unreliable` is true.
+ *
+ * WebGL Properties:
+ * - `numBytesInGPU`: Number of bytes allocated (undisposed) in the GPU only at
+ *     this time.
  */
 /** @doc {heading: 'Performance', subheading: 'Memory'} */
 export function memory(): MemoryInfo {

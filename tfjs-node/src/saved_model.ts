@@ -37,10 +37,20 @@ export function getEnumKeyFromValue(object: any, value: number): string {
   return Object.keys(object).find(key => object[key] === value);
 }
 
-// tslint:disable-next-line:no-any
+/**
+ * Read SavedModel proto message from path.
+ *
+ * @param path Path to SavedModel folder.
+ */
 export async function readSavedModelProto(path: string) {
   // Load the SavedModel pb file and deserialize it into message.
-  const modelFile = await readFile(path);
+  try {
+    fs.accessSync(path + SAVED_MODEL_FILE_NAME, fs.constants.R_OK);
+  } catch (error) {
+    throw new Error(
+        'There is no saved_model.pb file in the directory: ' + path);
+  }
+  const modelFile = await readFile(path + SAVED_MODEL_FILE_NAME);
   const array = new Uint8Array(modelFile);
   return messages.SavedModel.deserializeBinary(array);
 }
@@ -52,7 +62,7 @@ export async function readSavedModelProto(path: string) {
  */
 export async function inspectSavedModel(path: string) {
   const result = [];
-  const modelMessage = await readSavedModelProto(path + SAVED_MODEL_FILE_NAME);
+  const modelMessage = await readSavedModelProto(path);
   const metaGraphList = modelMessage.getMetaGraphsList();
   for (let i = 0; i < metaGraphList.length; i++) {
     const metaGraph = {} as MetaGraphInfo;

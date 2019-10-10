@@ -50,8 +50,8 @@ describe('SavedModel', () => {
      *  }
      * }
      */
-    const modelMessage = await readSavedModelProto(
-        './test_objects/times_three_float/saved_model.pb');
+    const modelMessage =
+        await readSavedModelProto('./test_objects/times_three_float');
 
     // This SavedModel has one MetaGraph with tag serve
     expect(modelMessage.getMetaGraphsList().length).toBe(1);
@@ -64,25 +64,15 @@ describe('SavedModel', () => {
         modelMessage.getMetaGraphsList()[0].getMetaInfoDef().getTagsList()[0])
         .toBe('serve');
 
-    // The SavedModel has two signatureDefs, corresponding names are
-    // __saved_model_init_op and serving_default
+    // Validate the SavedModel has signatureDef serving_default
     const signatureDefMapMessage =
         modelMessage.getMetaGraphsList()[0].getSignatureDefMap();
-    expect(signatureDefMapMessage.getLength()).toBe(2);
-    const signatureDefMapKeys = signatureDefMapMessage.keys();
-    const signatureDefMapKey1 = signatureDefMapKeys.next();
-    expect(signatureDefMapKey1.done).toBe(false);
-    expect(signatureDefMapKey1.value).toBe('__saved_model_init_op');
-    const signatureDefMapKey2 = signatureDefMapKeys.next();
-    expect(signatureDefMapKey2.done).toBe(false);
-    expect(signatureDefMapKey2.value).toBe('serving_default');
-    const signatureDefMapKey3 = signatureDefMapKeys.next();
-    expect(signatureDefMapKey3.done).toBe(true);
+    expect(signatureDefMapMessage.has('serving_default'));
 
     // The input op of signature serving_default is serving_default_x, DataType
     // is DT_FLOAT
     const inputsMapMessage =
-        signatureDefMapMessage.get(signatureDefMapKey2.value).getInputsMap();
+        signatureDefMapMessage.get('serving_default').getInputsMap();
     expect(inputsMapMessage.getLength()).toBe(1);
     const inputsMapKeys = inputsMapMessage.keys();
     const inputsMapKey1 = inputsMapKeys.next();
@@ -97,7 +87,7 @@ describe('SavedModel', () => {
     // The output op of signature serving_default is StatefulPartitionedCall,
     // DataType is DT_FLOAT
     const outputsMapMessage =
-        signatureDefMapMessage.get(signatureDefMapKey2.value).getOutputsMap();
+        signatureDefMapMessage.get('serving_default').getOutputsMap();
     expect(outputsMapMessage.getLength()).toBe(1);
     const outputsMapKeys = outputsMapMessage.keys();
     const outputsMapKey1 = outputsMapKeys.next();
@@ -118,6 +108,17 @@ describe('SavedModel', () => {
     expect(enumKey1).toBe('DT_FLOAT');
     const enumKey2 = getEnumKeyFromValue(DataType, 2);
     expect(enumKey2).toBe('DT_DOUBLE');
+  });
+
+  it('read non-exist file', async done => {
+    try {
+      await readSavedModelProto('/not-exist');
+      done.fail();
+    } catch (err) {
+      expect(err.message)
+          .toBe(`There is no saved_model.pb file in the directory: /not-exist`);
+      done();
+    }
   });
 
   it('inspect SavedModel', async () => {

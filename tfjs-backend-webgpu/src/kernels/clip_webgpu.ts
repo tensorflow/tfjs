@@ -14,53 +14,46 @@
  * limitations under the License.
  * =============================================================================
  */
-import {util} from '@tensorflow/tfjs-core';
 
+import {util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
-export const RELU = 'return max(a, 0.0);';
-export const RELU6 = 'return (a < 0.0) ? 0.0 : min(6.0, a);';
-
-export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
-
-export class UnaryOpProgram implements WebGPUProgram {
+export class ClipProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
+  variableNames = ['A'];
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['A'];
-  workPerThread = 4;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workPerThread = 1;
+  workGroupSize: [number, number, number] = [64, 1, 1];
 
-  constructor(outputShape: number[], op: string) {
+  constructor(outputShape: number[], minVal: number, maxVal: number) {
     this.outputShape = outputShape;
     const size = util.sizeFromShape(this.outputShape);
-
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape,
+        this.workGroupSize, [this.workPerThread, 1 ,1]);
     const type = getCoordsDataType(this.outputShape.length);
 
     this.userCode = `
-      float unaryOperation(float a) {
-        ${op}
-      }
-
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-
         for(int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
-
           if(flatIndex < ${size}) {
             ${type} coords = getCoordsFromFlatIndex(flatIndex);
 
-            float a = getAAtOutCoords(coords);
-            setOutput(flatIndex, unaryOperation(a));
+            float value = getAAtOutCoords(coords);
+            if (isnan(value)) {
+              setOutput(flatIndex, value);
+              return;
+            }
+
+            setOutput(flatIndex, clamp(value, ${minVal}, ${maxVal}));
           }
         }
       }
