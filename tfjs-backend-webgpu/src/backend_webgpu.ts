@@ -19,7 +19,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataStorage, DataType, ENV, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 // TODO(annxingyuan): get ENGINE from tf.engine() once core 1.3.0 is released.
 // tslint:disable-next-line: no-imports-from-dist
 import {ENGINE} from '@tensorflow/tfjs-core/dist/engine';
@@ -498,7 +498,7 @@ export class WebGPUBackend extends KernelBackend {
     };
     this.uniformDisposalQueue.push(uniformInfo);
 
-    if (ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED')) {
+    if (env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED')) {
       this.submitQueue();
     }
 
@@ -522,7 +522,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private getCPUBackend(): KernelBackend|null {
-    if (!ENV.getBool('WEBGL_CPU_FORWARD')) {
+    if (!env().getBool('WEBGPU_CPU_FORWARD')) {
       return null;
     }
 
@@ -535,9 +535,7 @@ export class WebGPUBackend extends KernelBackend {
 
   private shouldExecuteOnCPU(
       inputs: Tensor[], sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
-    // TODO(annxingyuan): use env() once core 1.2.11 is released.
-    return ENV.getBool('WEBGPU_CPU_FORWARD') === true &&
-        this.getCPUBackend() != null &&
+    return this.getCPUBackend() != null &&
         inputs.every(
             input =>
                 this.tensorMap.get(input.dataId).bufferInfo.buffer == null &&
@@ -624,7 +622,7 @@ export class WebGPUBackend extends KernelBackend {
     const output = Tensor.make(convInfo.outShape, {}, x.dtype, this);
     let program: Conv2DMMProgram|Conv2DNaiveProgram;
 
-    const workPerThread = ENV.get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
+    const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
     if (workPerThread === -1) {
       // TODO(kainino0x): This may be obsolete, but is kept for reference.
       program = new Conv2DNaiveProgram(convInfo);
@@ -728,6 +726,11 @@ export class WebGPUBackend extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
+  relu6<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.RELU6);
+    return this.compileAndRun(program, [x]);
+  }
+
   resizeBilinear(
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D {
@@ -772,11 +775,11 @@ export class WebGPUBackend extends KernelBackend {
     // TODO: We should eventually use the blocked version, but keeping around
     // the old version while we try to understand conditions under which blocked
     // is faster.
-    if (ENV.get('WEBGPU_MATMUL_WORK_PER_THREAD') === 0) {
+    if (env().get('WEBGPU_MATMUL_WORK_PER_THREAD') === 0) {
       program = new MatMulProgram(output.shape);
     } else {
       program = new MatMulPackedProgram(
-          output.shape, ENV.get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
+          output.shape, env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
     }
 
     return this.compileAndRun(program, [a, b], output);
@@ -794,7 +797,7 @@ export class WebGPUBackend extends KernelBackend {
     const outShape = [pixels.height, pixels.width, numChannels];
     let imageData = (pixels as ImageData | backend_util.PixelData).data;
 
-    if (ENV.getBool('IS_BROWSER')) {
+    if (env().getBool('IS_BROWSER')) {
       if (!(pixels instanceof HTMLVideoElement) &&
           !(pixels instanceof HTMLImageElement) &&
           !(pixels instanceof HTMLCanvasElement) &&

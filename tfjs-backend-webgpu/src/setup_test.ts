@@ -30,10 +30,11 @@ const grepFilter = env.specFilter;
 
 /** Tests that have these substrings in their name will be included. */
 const INCLUDE_LIST: string[] = [
-  'matmul',    'add ',      'subtract ', 'mul ',          'conv2d',
-  'pad',       'pool',      'maxPool',   'floor divide ', 'resizeBilinear',
-  'relu',      'transpose', 'concat',    'argmax',        'fromPixels',
-  'depthwise', 'div',       'greater',   'clip',          'less'
+  'matmul',     'add ',      'subtract ', 'mul ',          'conv2d',
+  'pad',        'pool',      'maxPool',   'floor divide ', 'resizeBilinear',
+  'relu',       'relu6',     'transpose', 'concat',        'argmax',
+  'fromPixels', 'depthwise', 'div',       'greater',       'clip',
+  'less'
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
