@@ -781,7 +781,7 @@ export class MathBackendWebGL implements KernelBackend {
 
   private shallowSlice(x: Tensor, begin: number[], size: number[]): Tensor {
     const xTexData = this.texData.get(x.dataId);
-    const t = Tensor.make(size, {}, x.dtype, this);
+    const t = Tensor.make(size, null, x.dtype, this);
     const newTexData = this.texData.get(t.dataId);
     // Copy texture data from the original tensor.
     Object.assign(newTexData, xTexData);
@@ -1978,9 +1978,8 @@ export class MathBackendWebGL implements KernelBackend {
     const targetShape = isChannelsLast ?
         xShape[0] * xShape[1] * (xShape[2] + 1) :
         xShape[0] * xShape[2] * (xShape[3] + 1);
-    const xReshaped = Tensor.make(
-        [1, targetShape, convInfo.inChannels], {dataId: x.dataId}, x.dtype,
-        this);
+    const xReshaped = Tensor.wrap(
+        [1, targetShape, convInfo.inChannels], x.dtype, x.dataId, this);
 
     // xTexData.shape gets referenced from GPGPUBinary.inShapeInfos.
     // Decrementing row count, after batchMatMul->...->compileProgram leads to
@@ -2018,9 +2017,9 @@ export class MathBackendWebGL implements KernelBackend {
     // Set the output shape - there is no need for expensive reshape as data
     // layout is already correct.
     pointwiseConvTexData.shape = convInfo.outShape;
-    return Tensor.make(
-        convInfo.outShape, {dataId: pointwiseConv.dataId}, pointwiseConv.dtype,
-        this);
+    return Tensor.wrap(
+               convInfo.outShape, pointwiseConv.dtype, pointwiseConv.dataId,
+               this) as Tensor4D;
   }
 
   private conv2dWithIm2Row(
@@ -2519,7 +2518,7 @@ export class MathBackendWebGL implements KernelBackend {
       // String type should be handled in CPU memory.
       const values = getArrayFromDType(dtype, sizeFromShape(shape));
       values.fill(value as string);
-      return Tensor.make(shape, {values}, dtype);
+      return Tensor.make(shape, values, dtype);
     } else {
       const program = new FillProgram(shape, value as number);
       const customSetup = program.getCustomSetupFunc(value as number);
@@ -2549,12 +2548,12 @@ export class MathBackendWebGL implements KernelBackend {
 
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
       T {
-    return Tensor.make(shape, {}, dtype, this);
+    return Tensor.make(shape, null, dtype, this);
   }
 
   private makePackedTensor<T extends Tensor, D extends DataType = 'float32'>(
       shape: number[], dtype?: D): T {
-    const packedTensor = Tensor.make(shape, {}, dtype, this);
+    const packedTensor = Tensor.make(shape, null, dtype, this);
     this.texData.get(packedTensor.dataId).isPacked = true;
     return packedTensor as T;
   }
@@ -2563,7 +2562,7 @@ export class MathBackendWebGL implements KernelBackend {
     const program = new UnpackProgram(input.shape);
     return this.compileAndRun(
         program, [input],
-        Tensor.make(program.outputShape, {}, input.dtype, this));
+        Tensor.make(program.outputShape, null, input.dtype, this));
   }
 
   private packTensor<T extends Tensor>(input: T|TensorHandle): T {

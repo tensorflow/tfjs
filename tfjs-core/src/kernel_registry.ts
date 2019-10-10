@@ -17,15 +17,18 @@
 
 import {DataType} from './types';
 
+const kernelRegistry: {[key: string]: KernelFunc} = {};
+
 export type GradSaveFunc = (save: DataId[]) => void;
 
 export type DataId = object;
 
+/** These are extra non-tensor/primitive params passed to kernel functions. */
 export type Attribute = number|number[]|boolean|boolean[]|string|string[];
 
 /** Specifies the code to run when executing a kernel. */
 export type KernelFunc = (params: {
-  inputs: NamedDataMap,
+  inputs: NamedTensorInfoMap,
   storage: {},
   attrs?: NamedAttrMap,
   save?: GradSaveFunc
@@ -38,7 +41,7 @@ export interface TensorInfo {
   dtype: DataType;
 }
 
-export interface NamedDataMap {
+export interface NamedTensorInfoMap {
   [name: string]: TensorInfo;
 }
 
@@ -79,7 +82,13 @@ export function registerKernel(
   kernelRegistry[key] = kernelFunc;
 }
 
-/** Removes the function (forward pass) for the kernel from the registry. */
+/**
+ * Removes the kernel function from the registry.
+ *
+ * @param kernelName The official name of the kernel.
+ * @param backendName The official name of the backend.
+ *
+ */
 export function unregisterKernel(
     kernelName: string, backendName: string): void {
   const key = makeKey(kernelName, backendName);
@@ -90,8 +99,6 @@ export function unregisterKernel(
   }
   delete kernelRegistry[key];
 }
-
-const kernelRegistry: {[key: string]: KernelFunc} = {};
 
 function makeKey(kernelName: string, backendName: string) {
   return `${backendName}_${kernelName}`;

@@ -17,7 +17,7 @@
 
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
-import {getKernel, NamedAttrMap, NamedDataMap, TensorInfo} from './kernel_registry';
+import {getKernel, NamedAttrMap, NamedTensorInfoMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, Tensor3D, TensorTracker, Variable} from './tensor';
@@ -71,15 +71,6 @@ export interface TimingInfo extends BackendTimingInfo {
 /** @docalias Function */
 export type ScopeFn<T extends TensorContainer> = () => T;
 
-export interface TensorManager {
-  registerTensor(
-      a: Tensor|Variable, backend: KernelBackend,
-      registerInBackend: boolean): void;
-  registerVariable(v: Variable): void;
-  disposeTensor(a: Tensor): void;
-  memory(): {numDataBuffers: number; numBytes: number;};
-}
-
 interface ScopeState {
   track: Tensor[];
   name: string;
@@ -129,7 +120,7 @@ class EngineState {
   }
 }
 
-export class Engine implements TensorManager, TensorTracker, DataMover {
+export class Engine implements TensorTracker, DataMover {
   state: EngineState;
   backendName: string;
   registry: {[id: string]: KernelBackend} = {};
@@ -430,7 +421,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
    * execution.
    */
   private clone(x: Tensor): Tensor {
-    const y = Tensor.make(x.shape, {dataId: x.dataId}, x.dtype);
+    const y = Tensor.wrap(x.shape, x.dtype, x.dataId);
     this.addTapeNode([x], y, dy => [dy.toFloat()]);
     return y;
   }
@@ -441,12 +432,15 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
    *
    * @param kernelName The name of the kernel to execute.
    * @param inputs A map of input names to tensor infos.
-   * @param attrs A map of attribute names to their values.
+   * @param attrs A map of attribute names to their values. An attribute is a
+   *     primitive (non-tensor) input to the kernel.
    */
-  run(kernelName: string, inputs: NamedDataMap, attrs: NamedAttrMap): TensorInfo
-      |TensorInfo[] {
+  run(kernelName: string, inputs: NamedTensorInfoMap,
+      attrs: NamedAttrMap): TensorInfo|TensorInfo[] {
     const forwardFunc: null = null;
     const backwardsFunc: null = null;
+    // Call runKernel as a stop-gap until we modularize all kernels.
+    // One we modularize all kernels, we will remove the existing runKernel().
     return this.runKernel(
         forwardFunc, inputs as NamedTensorMap, backwardsFunc, kernelName,
         attrs);
@@ -483,10 +477,6 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
             kernel({inputs, attrs, storage, save: saveFunc}) as TensorInfo;
         const tensor =
             Tensor.wrap(outInfo.shape, outInfo.dtype, outInfo.dataId);
-        // The output originated from the kernel, thus we avoid double
-        // registration.
-        const registerInBackend = false;
-        this.registerTensor(tensor, this.backend, registerInBackend);
         return tensor as T;
       };
     }
@@ -535,8 +525,12 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
 
   // TensorManager implementation.
 
-  registerTensor(
-      a: Tensor|Variable, backend: KernelBackend, registerInBackend: boolean) {
+  register(a: Tensor, backend: KernelBackend) {
+    backend = backend || this.backend;
+    backend.register(a.dataId, a.shape, a.dtype);
+  }
+
+  incRef(a: Tensor, backend: KernelBackend) {
     const refCount = this.state.tensorInfo.has(a.dataId) ?
         this.state.tensorInfo.get(a.dataId).refCount :
         0;
@@ -561,13 +555,6 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
         refCount: 0
       });
       this.state.numBytes += bytes;
-      if (registerInBackend) {
-        if (backend != null) {
-          backend.register(a.dataId, a.shape, a.dtype);
-        } else {
-          this.backend.register(a.dataId, a.shape, a.dtype);
-        }
-      }
     }
     this.state.tensorInfo.get(a.dataId).refCount++;
     if (!(a instanceof Variable)) {
@@ -958,7 +945,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
 
 function ones(shape: number[]): Tensor {
   const values = makeOnesTypedArray(sizeFromShape(shape), 'float32');
-  return Tensor.make(shape, {values});
+  return Tensor.make(shape, values);
 }
 
 let GLOBAL: {_tfengine: Engine};

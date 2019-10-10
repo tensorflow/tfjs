@@ -151,13 +151,13 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
    */
   /** @doc {heading: 'Tensors', subheading: 'Creation'} */
   toTensor(): Tensor<R> {
-    return Tensor.make(this.shape, {values: this.values}, this.dtype);
+    return Tensor.make(this.shape, this.values, this.dtype);
   }
 }
 
 export interface TensorTracker {
-  registerTensor(
-      a: Tensor|Variable, backend: Backend, registerInBackend: boolean): void;
+  incRef(a: Tensor, backend: Backend): void;
+  register(a: Tensor, backend: Backend): void;
   disposeTensor(t: Tensor): void;
   disposeVariable(v: Variable): void;
   write(backend: Backend, dataId: DataId, values: BackendValues): void;
@@ -464,29 +464,39 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Makes a new tensor with the provided shape and values. Values should be in
-   * a flat array.
+   * Internal method used by the engine (thus not private). Makes a new tensor
+   * with the provided shape, dtype and optionally values. It always creates a
+   * new data bucket and notifies the underlying backend about the bucket.
    */
   static make<T extends Tensor<R>, D extends DataType = 'float32',
                                              R extends Rank = Rank>(
-      shape: ShapeMap[R], data: TensorData<D>, dtype?: D,
+      shape: ShapeMap[R], values?: DataTypeMap[D], dtype?: D,
       backend?: Backend): T {
-    let backendVals = data.values as BackendValues;
-    if (data.values != null && dtype === 'string' &&
-        util.isString(data.values[0])) {
-      backendVals = (data.values as string[]).map(d => util.encodeString(d));
+    let backendVals = values as BackendValues;
+    if (values != null && dtype === 'string' && util.isString(values[0])) {
+      backendVals = (values as string[]).map(d => util.encodeString(d));
     }
-    const tensor = new Tensor(shape, dtype, data.dataId) as T;
-    const registerInBackend = true;
-    trackerFn().registerTensor(tensor, backend, registerInBackend);
+    const dataId = {};
+    const tensor = this.wrap(shape, dtype, dataId, backend);
+    // Register the tensor in the backend.
+    trackerFn().register(tensor, backend);
     if (backendVals != null) {
       trackerFn().write(backend, tensor.dataId, backendVals);
     }
-    return tensor;
+    return tensor as T;
   }
 
-  static wrap(shape: number[], dtype: DataType, dataId: DataId) {
-    return new Tensor(shape, dtype, dataId);
+  /**
+   * Internal method used by the engine (thus not private). Makes a new tensor
+   * that is a shallow wrapper around an existing data bucket. It doesn't create
+   * a new data bucket, only increments the ref count used in memory tracking.
+   */
+  static wrap(
+      shape: number[], dtype: DataType, dataId: DataId,
+      backend?: Backend): Tensor {
+    const tensor = new Tensor(shape, dtype, dataId);
+    trackerFn().incRef(tensor, backend);
+    return tensor;
   }
 
   /** Flatten a Tensor to a 1D array. */
@@ -1486,9 +1496,8 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
   private constructor(
       initialValue: Tensor<R>, public trainable = true, name?: string) {
     super(initialValue.shape, initialValue.dtype, initialValue.dataId);
-    const registerInBackend = true;
     const backend: Backend = null;
-    trackerFn().registerTensor(this, backend, registerInBackend);
+    trackerFn().incRef(this, backend);
     this.name = name;
     if (this.name == null) {
       this.name = trackerFn().nextVariableId().toString();
@@ -1546,8 +1555,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
     trackerFn().disposeTensor(this);
     this.dataId = newValue.dataId;
     const backend: Backend = null;
-    const registerInBackend = true;
-    trackerFn().registerTensor(this, backend, registerInBackend);
+    trackerFn().incRef(this, backend);
   }
 
   dispose(): void {
