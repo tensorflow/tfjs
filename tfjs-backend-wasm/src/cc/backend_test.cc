@@ -16,6 +16,17 @@
 
 #include "src/cc/backend.h"
 
-TEST(BACKEND, disposal_registration) {
-  tfjs::register_tensor(0, {1, 2}, 2, DType::float32, 0);
+TEST(BACKEND, register_tensor) {
+  int tensor_id = 0;
+  int shape[2] = {1, 2};
+  int shape_length = 2;
+  DType dtype = DType::float32;
+  float values[2] = {1, 2};
+
+  tfjs::register_tensor(tensor_id, shape, shape_length, dtype, values);
+
+  TensorInfo tensor_info = tfjs::backend::get_tensor_info(tensor_id);
+
+  ASSERT_EQ(dtype, tensor_info.dtype);
+  ASSERT_EQ(shape, tensor_info.shape);
 }
