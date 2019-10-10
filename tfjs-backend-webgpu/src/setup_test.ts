@@ -89,8 +89,10 @@ const EXCLUDE_LIST: string[] = [
   'derivative: 1D tensor',       // Clip test - logicalAnd not
                                  // yet implemented.
   'derivative: scalar',          // Clip test - logicalAnd not yet implemented.
-  'derivate with primitive as input'  // Clip test - logicalAnd not yet
-                                      // implemented.
+  'derivate with primitive as input',  // Clip test - logicalAnd not yet
+                                       // implemented.
+  'accepts tensor with bool values',   // Not yet implemented.
+  'propagates NaNs'                    // max(NaN, 0.) in relu produces 0.
 ];
 
 /**
