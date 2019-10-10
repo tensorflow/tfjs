@@ -47,7 +47,8 @@ export async function readSavedModelProto(path: string) {
   try {
     fs.accessSync(path + SAVED_MODEL_FILE_NAME, fs.constants.R_OK);
   } catch (error) {
-    throw new Error('There is no saved_model.pb file in the directory:' + path);
+    throw new Error(
+        'There is no saved_model.pb file in the directory: ' + path);
   }
   const modelFile = await readFile(path + SAVED_MODEL_FILE_NAME);
   const array = new Uint8Array(modelFile);
