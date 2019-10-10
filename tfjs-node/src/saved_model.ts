@@ -60,9 +60,13 @@ export async function readSavedModelProto(path: string) {
  *
  * @param path Path to SavedModel folder.
  */
-export async function inspectSavedModel(path: string) {
-  const result = [];
+export async function inspectSavedModel(path: string):
+    Promise<MetaGraphInfo[]> {
+  const result: MetaGraphInfo[] = [];
+  // Get SavedModel proto message
   const modelMessage = await readSavedModelProto(path);
+  // A SavedModel might have multiple MetaGraphs, identified by tags. Each
+  // MetaGraph also has it's own signatureDefs.
   const metaGraphList = modelMessage.getMetaGraphsList();
   for (let i = 0; i < metaGraphList.length; i++) {
     const metaGraph = {} as MetaGraphInfo;
