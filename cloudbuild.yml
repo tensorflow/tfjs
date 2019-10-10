@@ -76,7 +76,7 @@ steps:
   entrypoint: 'bash'
   id: 'tfjs-react-native'
   args: ['./scripts/run-build.sh', 'tfjs-react-native']
-  waitFor: ['diff']
+  waitFor: ['diff', 'tfjs-core']
 
 # Node CPU.
 - name: 'gcr.io/cloud-builders/gcloud'
