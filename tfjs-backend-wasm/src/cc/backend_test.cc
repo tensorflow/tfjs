@@ -87,4 +87,7 @@ TEST(BACKEND, disposal_callback) {
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
   tfjs::wasm::dispose();
+
+  tensor_0_callback_called = false;
+  tensor_1_callback_called = false;
 }
