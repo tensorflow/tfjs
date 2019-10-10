@@ -49,6 +49,17 @@ export interface TFJSBinding {
       opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
       numOutputs: number): TensorMetadata[];
 
+  // load a SavedModel from a path:
+  loadSavedModel(exportDir: string, tags: string): number;
+
+  // run a SavedModel:
+  runSavedModel(
+      sessionId: number, inputTensorIds: number[], inputOpNames: string,
+      outputOpNames: string): TensorMetadata[];
+
+  // delete a SavedModel:
+  deleteSavedModel(savedModelId: number): void;
+
   isUsingGpuDevice(): boolean;
 
   // TF Types

@@ -24,7 +24,10 @@ import {FusedBatchMatMulConfig, FusedConv2DConfig} from '@tensorflow/tfjs-core/d
 import {isArray, isNullOrUndefined} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
+import {getInputAndOutputNodeNameFromSavedModelInfo, inspectSavedModel, TFSavedModelSignature} from './saved_model';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
+
+
 
 type TensorInfo = {
   shape: number[],
@@ -40,6 +43,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   isGPUPackage: boolean;
   isUsingGpuDevice: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
+  private savedModelSignatureMap = new WeakMap<DataId, TFSavedModelSignature>();
+  private loadedSavedModelMap = new Map<string, number>();
 
   constructor(binding: TFJSBinding, packageName: string) {
     super();
@@ -1889,6 +1894,28 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     return this.executeEncodeImageOp(
         'EncodePng', opAttrs, imageData, imageShape);
+  }
+
+  async loadSavedModel(path: string, tags: string[], signature: string) {
+    let id: number;
+    const newId = {};
+    if (this.loadedSavedModelMap.has(path)) {
+      id = this.loadedSavedModelMap.get(path);
+    } else {
+      id = this.binding.loadSavedModel(path, tags.join());
+    }
+    const savedModelInfo = await inspectSavedModel(path);
+    const [inputNodeNames, outputNodeNames] =
+        getInputAndOutputNodeNameFromSavedModelInfo(
+            savedModelInfo, tags, signature);
+    const modelSignature = new TFSavedModelSignature(
+        id, path, inputNodeNames, outputNodeNames, this);
+    this.savedModelSignatureMap.set(newId, modelSignature);
+    return modelSignature;
+  }
+
+  deleteSavedModel(savedModelId: number): void {
+    this.binding.deleteSavedModel(savedModelId);
   }
 
   // ------------------------------------------------------------

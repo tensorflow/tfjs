@@ -15,8 +15,12 @@
  * =============================================================================
  */
 
+import {InferenceModel, ModelPredictConfig, Tensor} from '@tensorflow/tfjs';
+import {NamedTensorMap} from '@tensorflow/tfjs-converter/dist/src/data/types';
+import {TensorInfo} from '@tensorflow/tfjs-core/dist/tensor_types';
 import * as fs from 'fs';
 import {promisify} from 'util';
+import {ensureTensorflowBackend, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 const readFile = promisify(fs.readFile);
 
@@ -59,7 +63,7 @@ export async function inspectSavedModel(path: string) {
     const tags = metaGraphList[i].getMetaInfoDef().getTagsList();
     metaGraph.tags = tags;
 
-    const signatureDefs = [];
+    const signatureDef: SignatureDefInfo = {};
     const signatureDefMap = metaGraphList[i].getSignatureDefMap();
     const signatureDefKeys = signatureDefMap.keys();
     while (true) {
@@ -67,19 +71,18 @@ export async function inspectSavedModel(path: string) {
       if (key.done) {
         break;
       }
-      const signatureDef: SignatureDefInfo = {};
       const signatureDefEntry = signatureDefMap.get(key.value);
       // inputs
       const inputsMapMessage = signatureDefEntry.getInputsMap();
       const inputsMapKeys = inputsMapMessage.keys();
-      const inputs: TensorInfo[] = [];
+      const inputs: SavedModelTensorInfo[] = [];
       while (true) {
         const inputsMapKey = inputsMapKeys.next();
         if (inputsMapKey.done) {
           break;
         }
         const inputTensor = inputsMapMessage.get(inputsMapKey.value);
-        const inputTensorInfo = {} as TensorInfo;
+        const inputTensorInfo = {} as SavedModelTensorInfo;
         inputTensorInfo.dtype =
             getEnumKeyFromValue(messages.DataType, inputTensor.getDtype());
         inputTensorInfo.name = inputTensor.getName();
@@ -89,14 +92,14 @@ export async function inspectSavedModel(path: string) {
       // outputs
       const outputsMapMessage = signatureDefEntry.getOutputsMap();
       const outputsMapKeys = outputsMapMessage.keys();
-      const outputs: TensorInfo[] = [];
+      const outputs: SavedModelTensorInfo[] = [];
       while (true) {
         const outputsMapKey = outputsMapKeys.next();
         if (outputsMapKey.done) {
           break;
         }
         const outputTensor = outputsMapMessage.get(outputsMapKey.value);
-        const outputTensorInfo = {} as TensorInfo;
+        const outputTensorInfo = {} as SavedModelTensorInfo;
         outputTensorInfo.dtype =
             getEnumKeyFromValue(messages.DataType, outputTensor.getDtype());
         outputTensorInfo.name = outputTensor.getName();
@@ -105,13 +108,37 @@ export async function inspectSavedModel(path: string) {
       }
 
       signatureDef[key.value] = {inputs, outputs};
-      signatureDefs.push(signatureDef);
     }
-    metaGraph.signatureDefs = signatureDefs;
+    metaGraph.signatureDefs = signatureDef;
 
     result.push(metaGraph);
   }
   return result;
+}
+
+export function getInputAndOutputNodeNameFromSavedModelInfo(
+    savedModelInfo: MetaGraphInfo[], tags: string[], signature: string) {
+  for (let i = 0; i < savedModelInfo.length; i++) {
+    const metaGraphInfo = savedModelInfo[i];
+    if (tags.length === metaGraphInfo.tags.length &&
+        JSON.stringify(tags) === JSON.stringify(metaGraphInfo.tags)) {
+      if (metaGraphInfo.signatureDefs[signature] === undefined) {
+        throw new Error('The SavedModel does not have signature:' + signature);
+      }
+      const inputNodeNames: string[] = [];
+      const outputNodeNames: string[] = [];
+      for (const key of Object.keys(metaGraphInfo.signatureDefs)) {
+        metaGraphInfo.signatureDefs[key].inputs.map(tensorInfo => {
+          inputNodeNames.push(tensorInfo.name);
+        });
+        metaGraphInfo.signatureDefs[key].outputs.map(tensorInfo => {
+          outputNodeNames.push(tensorInfo.name);
+        });
+      }
+      return [inputNodeNames, outputNodeNames];
+    }
+  }
+  throw new Error('The SavedModel does not have tags:' + tags);
 }
 
 /**
@@ -119,21 +146,103 @@ export async function inspectSavedModel(path: string) {
  */
 export interface MetaGraphInfo {
   tags: string[];
-  signatureDefs: SignatureDefInfo[];
+  signatureDefs: SignatureDefInfo;
 }
 
 /**
  * Interface for inspected SavedModel SignatureDef info..
  */
 export interface SignatureDefInfo {
-  [key: string]: {inputs: TensorInfo[]; outputs: TensorInfo[];}
+  [key: string]:
+      {inputs: SavedModelTensorInfo[]; outputs: SavedModelTensorInfo[];}
 }
 
 /**
  * Interface for inspected SavedModel signature input/output Tensor info..
  */
-export interface TensorInfo {
+export interface SavedModelTensorInfo {
   dtype: string;
   shape: number[];
   name: string;
+}
+
+
+export class TFSavedModelSignature implements InferenceModel {
+  private readonly id: number;
+  private readonly backend: NodeJSKernelBackend;
+  private readonly path: string;
+  private readonly inputNodeNames: string[];
+  private readonly outputNodeNames: string[];
+  private deleted: boolean;
+
+  constructor(
+      id: number, path: string, inputNodeNames: string[],
+      outputNodeNames: string[], backend: NodeJSKernelBackend) {
+    this.id = id;
+    this.path = path;
+    this.inputNodeNames = inputNodeNames;
+    this.outputNodeNames = outputNodeNames;
+    this.backend = backend;
+    this.deleted = false;
+  }
+
+  /** Placeholder function. */
+  get inputs(): TensorInfo[] {
+    throw new Error('SavedModel inputs information is not available yet.');
+  }
+
+  /** Placeholder function. */
+  get outputs(): TensorInfo[] {
+    throw new Error('SavedModel outputs information is not available yet.');
+  }
+
+  /**
+   * Delete the SavedModel from nodeBackend and delete corresponding object in
+   * the C++ backend.
+   */
+  delete() {
+    if (!this.deleted) {
+      this.deleted = true;
+      this.backend.deleteSavedModel(this.id);
+    } else {
+      throw new Error('This SavedModel has been deleted.');
+    }
+  }
+
+  /**
+   * Placeholder function.
+   * @param inputs
+   * @param config
+   */
+  predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
+      Tensor|Tensor[]|NamedTensorMap {
+    throw new Error(
+        'predict() function of TFSavedModel is not implemented yet.');
+  }
+
+  /**
+   * Placeholder function.
+   * @param inputs
+   * @param outputs
+   */
+  execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs: string|string[]):
+      Tensor|Tensor[] {
+    throw new Error(
+        'Execute() function of TFSavedModel is not implemented yet.');
+  }
+}
+
+/**
+ * Decode a JPEG-encoded image to a 3D Tensor of dtype `int32`.
+ *
+ * @param path The path of the exported SavedModel
+ */
+/**
+ * @doc {heading: 'SavedModel', namespace: 'node'}
+ */
+export async function loadSavedModel(
+    path: string, tags: string[],
+    signature: string): Promise<TFSavedModelSignature> {
+  ensureTensorflowBackend();
+  return nodeBackend().loadSavedModel(path, tags, signature);
 }
