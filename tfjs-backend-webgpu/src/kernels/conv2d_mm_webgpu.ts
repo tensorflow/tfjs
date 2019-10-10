@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, computeWorkGroupSize} from '../webgpu_util';
 
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {makeMatMulSource} from './matmul_webgpu';
@@ -31,7 +31,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride;';
   workGroupSize: [number, number, number] = [
-    16, 16,  // must be square (for matmul)
+    16, 16,  // x % y must be zero.
     1
   ];
 
@@ -44,7 +44,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
     util.assert(
         convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1,
         () => 'TODO: Dilation is unimplemented');
-
+    this.dispatchLayout = {x: [1, 2], y: [3], z: [0]};
+    this.workGroupSize =
+        computeWorkGroupSize(this.dispatchLayout, this.outputShape);
     let elementsPerThread: [number, number, number];
     let matMulSource: string;
     if (workPerThread === 0) {
@@ -52,16 +54,11 @@ export class Conv2DMMProgram implements WebGPUProgram {
       matMulSource = makeMatMulSource();
     } else {
       elementsPerThread = [workPerThread, workPerThread, 1];
-      matMulSource = makeMatMulPackedSource(workPerThread);
+      matMulSource = makeMatMulPackedSource(workPerThread, this.workGroupSize);
     }
 
-    this.dispatchLayout = {x: [1], y: [2], z: [0]};
-    const matMulOutShape = [
-      convInfo.outShape[0], convInfo.outShape[1] * convInfo.outShape[2],
-      convInfo.outShape[3]
-    ];
     this.dispatch = computeDispatch(
-        this.dispatchLayout, matMulOutShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
         elementsPerThread);
 
     // TODO: At compile-time infer when we need coordsInBounds check and
