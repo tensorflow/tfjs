@@ -127,14 +127,11 @@ describe('SavedModel', () => {
      * The inspection output should be
      * [{
      *  'tags': ['serve'],
-     *  'signatureDefs': [
-     *    {
+     *  'signatureDefs': {
      *      '__saved_model_init_op': {
      *        'inputs': [],
      *        'outputs': [{'dtype': 'DT_INVALID', 'name': 'NoOp', 'shape': []}]
-     *      }
-     *    },
-     *    {
+     *      },
      *      'serving_default': {
      *        'inputs': [
      *          {'dtype': 'DT_FLOAT', 'name': 'serving_default_x:0', 'shape':
@@ -146,29 +143,26 @@ describe('SavedModel', () => {
      *          'shape': []
      *        }]
      *      }
-     *    }
-     *  ]
+     *   }
      * }]
      */
     expect(modelInfo.length).toBe(1);
     expect(modelInfo[0].tags.length).toBe(1);
     expect(modelInfo[0].tags[0]).toBe('serve');
-    expect(modelInfo[0].signatureDefs.length).toBe(2);
-    expect(Object.keys(modelInfo[0].signatureDefs[0])[0])
+    expect(Object.keys(modelInfo[0].signatureDefs).length).toBe(2);
+    expect(Object.keys(modelInfo[0].signatureDefs)[0])
         .toBe('__saved_model_init_op');
-    expect(Object.keys(modelInfo[0].signatureDefs[1])[0])
-        .toBe('serving_default');
-    expect(modelInfo[0].signatureDefs[1]['serving_default'].inputs.length)
-        .toBe(1);
-    expect(modelInfo[0].signatureDefs[1]['serving_default'].inputs[0].name)
+    expect(Object.keys(modelInfo[0].signatureDefs)[1]).toBe('serving_default');
+    expect(modelInfo[0].signatureDefs['serving_default'].inputs.length).toBe(1);
+    expect(modelInfo[0].signatureDefs['serving_default'].inputs[0].name)
         .toBe('serving_default_x:0');
-    expect(modelInfo[0].signatureDefs[1]['serving_default'].inputs[0].dtype)
+    expect(modelInfo[0].signatureDefs['serving_default'].inputs[0].dtype)
         .toBe('DT_FLOAT');
-    expect(modelInfo[0].signatureDefs[1]['serving_default'].outputs.length)
+    expect(modelInfo[0].signatureDefs['serving_default'].outputs.length)
         .toBe(1);
-    expect(modelInfo[0].signatureDefs[1]['serving_default'].outputs[0].name)
+    expect(modelInfo[0].signatureDefs['serving_default'].outputs[0].name)
         .toBe('StatefulPartitionedCall:0');
-    expect(modelInfo[0].signatureDefs[1]['serving_default'].outputs[0].dtype)
+    expect(modelInfo[0].signatureDefs['serving_default'].outputs[0].dtype)
         .toBe('DT_FLOAT');
   });
 });

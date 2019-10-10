@@ -59,7 +59,7 @@ export async function inspectSavedModel(path: string) {
     const tags = metaGraphList[i].getMetaInfoDef().getTagsList();
     metaGraph.tags = tags;
 
-    const signatureDefs = [];
+    const signatureDef: SignatureDefInfo = {};
     const signatureDefMap = metaGraphList[i].getSignatureDefMap();
     const signatureDefKeys = signatureDefMap.keys();
     while (true) {
@@ -67,19 +67,18 @@ export async function inspectSavedModel(path: string) {
       if (key.done) {
         break;
       }
-      const signatureDef: SignatureDefInfo = {};
       const signatureDefEntry = signatureDefMap.get(key.value);
       // inputs
       const inputsMapMessage = signatureDefEntry.getInputsMap();
       const inputsMapKeys = inputsMapMessage.keys();
-      const inputs: TensorInfo[] = [];
+      const inputs: SavedModelTensorInfo[] = [];
       while (true) {
         const inputsMapKey = inputsMapKeys.next();
         if (inputsMapKey.done) {
           break;
         }
         const inputTensor = inputsMapMessage.get(inputsMapKey.value);
-        const inputTensorInfo = {} as TensorInfo;
+        const inputTensorInfo = {} as SavedModelTensorInfo;
         inputTensorInfo.dtype =
             getEnumKeyFromValue(messages.DataType, inputTensor.getDtype());
         inputTensorInfo.name = inputTensor.getName();
@@ -89,14 +88,14 @@ export async function inspectSavedModel(path: string) {
       // outputs
       const outputsMapMessage = signatureDefEntry.getOutputsMap();
       const outputsMapKeys = outputsMapMessage.keys();
-      const outputs: TensorInfo[] = [];
+      const outputs: SavedModelTensorInfo[] = [];
       while (true) {
         const outputsMapKey = outputsMapKeys.next();
         if (outputsMapKey.done) {
           break;
         }
         const outputTensor = outputsMapMessage.get(outputsMapKey.value);
-        const outputTensorInfo = {} as TensorInfo;
+        const outputTensorInfo = {} as SavedModelTensorInfo;
         outputTensorInfo.dtype =
             getEnumKeyFromValue(messages.DataType, outputTensor.getDtype());
         outputTensorInfo.name = outputTensor.getName();
@@ -105,9 +104,8 @@ export async function inspectSavedModel(path: string) {
       }
 
       signatureDef[key.value] = {inputs, outputs};
-      signatureDefs.push(signatureDef);
     }
-    metaGraph.signatureDefs = signatureDefs;
+    metaGraph.signatureDefs = signatureDef;
 
     result.push(metaGraph);
   }
@@ -119,20 +117,21 @@ export async function inspectSavedModel(path: string) {
  */
 export interface MetaGraphInfo {
   tags: string[];
-  signatureDefs: SignatureDefInfo[];
+  signatureDefs: SignatureDefInfo;
 }
 
 /**
  * Interface for inspected SavedModel SignatureDef info..
  */
 export interface SignatureDefInfo {
-  [key: string]: {inputs: TensorInfo[]; outputs: TensorInfo[];}
+  [key: string]:
+      {inputs: SavedModelTensorInfo[]; outputs: SavedModelTensorInfo[];}
 }
 
 /**
  * Interface for inspected SavedModel signature input/output Tensor info..
  */
-export interface TensorInfo {
+export interface SavedModelTensorInfo {
   dtype: string;
   shape: number[];
   name: string;
