@@ -76,6 +76,10 @@ class Tfjs2KerasExportTest(tf.test.TestCase):
       model_json_path = os.path.join(self._tmp_dir, model_path, 'model.json')
       print('Loading model from path %s' % model_json_path)
       model = tfjs.converters.load_keras_model(model_json_path)
+      # DEBUG
+      with open(model_json_path, "rt") as f:
+        print("File %s: Content: %s" % (model_json_path, f.read()))  # DEBUG
+      # ~DEBUG
       ys_new = model.predict(xs)
       if isinstance(ys, list):
         self.assertEqual(len(ys), len(ys_new))
