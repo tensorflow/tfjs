@@ -135,9 +135,6 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   flushDisposalQueue() {
-    console.log('FLUSH DISPOSAL QUEUE');
-    console.log(this.tensorDisposalQueue.length);
-    console.log(this.uniformDisposalQueue.length);
     this.tensorDisposalQueue.forEach(d => this.maybeReleaseBuffer(d));
     this.uniformDisposalQueue.forEach(
         d => this.bufferManager.releaseBuffer(d.buffer, d.byteSize, d.usage));
@@ -147,7 +144,6 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   disposeData(dataId: DataId): void {
-    console.log('DISPOSE DATA!');
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
@@ -204,7 +200,6 @@ export class WebGPUBackend extends KernelBackend {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
-    console.log('WRITE - RELEASE BUFFER');
     const info = this.tensorMap.get(dataId);
     info.values = values;
     this.tensorMap.set(dataId, info);
@@ -238,7 +233,6 @@ export class WebGPUBackend extends KernelBackend {
     encoder.copyBufferToBuffer(
         info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
     this.commandQueue.push(encoder);
-    console.log('SUBMIT QUEUE AS PART OF READ');
     this.submitQueue();
 
     const mapped: ArrayBuffer = await staging.mapReadAsync();
@@ -258,8 +252,6 @@ export class WebGPUBackend extends KernelBackend {
       backend_util.TypedArray {
     const info = this.tensorMap.get(dataId);
 
-    console.log('CONVERT AND CACHE ON CPU');
-    console.log(data);
     this.maybeReleaseBuffer(dataId);
 
     info.values = data;
@@ -452,7 +444,6 @@ export class WebGPUBackend extends KernelBackend {
 
     const uniformData = new Int32Array(dimUniforms);
     const uniforms = this.makeUniforms(uniformData);
-    console.log('JUST MADE UNIFORM!!');
 
     const key =
         webgpu_program.makeShaderKey(program, bufferShapes.map(d => d.length));
@@ -507,7 +498,6 @@ export class WebGPUBackend extends KernelBackend {
     this.uniformDisposalQueue.push(uniformInfo);
 
     if (ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED')) {
-      console.log('submit queue as part of op execution');
       this.submitQueue();
     }
 
