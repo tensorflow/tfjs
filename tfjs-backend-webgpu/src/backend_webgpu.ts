@@ -23,7 +23,6 @@ import {backend_util, DataStorage, DataType, ENV, findBackend, KernelBackend, Ra
 // TODO(annxingyuan): get ENGINE from tf.engine() once core 1.3.0 is released.
 // tslint:disable-next-line: no-imports-from-dist
 import {ENGINE} from '@tensorflow/tfjs-core/dist/engine';
-
 import * as shaderc from '@webgpu/shaderc';
 
 import {BufferManager} from './buffer_manager';
@@ -201,6 +200,7 @@ export class WebGPUBackend extends KernelBackend {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
+
     const info = this.tensorMap.get(dataId);
     info.values = values;
     this.tensorMap.set(dataId, info);
