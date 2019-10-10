@@ -32,7 +32,7 @@ const grepFilter = env.specFilter;
 const INCLUDE_LIST: string[] = [
   'matmul', 'add ', 'subtract ', 'mul ', 'conv2d', 'pad', 'pool', 'maxPool',
   'floor divide ', 'resizeBilinear', 'relu', 'transpose', 'concat', 'argmax',
-  'fromPixels', 'depthwise', 'div', 'greater'
+  'fromPixels', 'depthwise', 'div', 'greater', 'clip', 'less'
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
@@ -65,6 +65,7 @@ const EXCLUDE_LIST: string[] = [
   'avg x=[',                              // backend.avgPool not implemented.
   'preserves zero values',                // Shader compile fails.
   'relu test-webgpu {} propagates NaNs',  // Timeout.
+  'clip test-webgpu {} derivat',          // backend.logicalAnd not implemented.
   'relu test-webgpu {} sets negative values to 0',  // Shader compile fails.
   'relu test-webgpu {} does nothing to positive',   // Shader compile fail.
   'prelu',                                          // Not yet implemented.
