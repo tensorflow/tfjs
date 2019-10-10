@@ -472,7 +472,7 @@ export interface LayerNormalizationLayerArgs extends LayerArgs {
 
 export class LayerNormalization extends Layer {
   /** @nocollapse */
-  static className = 'BatchNormalization';
+  static className = 'LayerNormalization';
 
   private axis: number|number[];
   readonly epsilon: number;
