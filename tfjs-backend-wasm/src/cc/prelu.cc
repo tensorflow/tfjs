@@ -20,7 +20,6 @@
 #include <cmath>
 #include <limits>
 #include <unordered_map>
-#include <vector>
 
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
@@ -57,15 +56,18 @@ void prelu(int x_id, int x_size, int weights_id, int out_id) {
   float* out_buf = out_info.buf.f32;
 
   xnn_operator_t prelu_op = nullptr;
-  if (operator_cache.count(weights_id) == 0) {
+
+  auto operator_cache_idx = operator_cache.find(weights_id);
+  if (operator_cache_idx == operator_cache.end()) {
     int channels = x_size;
     int strides = channels;
     float output_min = -std::numeric_limits<float>::infinity();
     float output_max = std::numeric_limits<float>::infinity();
 
+    const int flags = 0;
     xnn_status status =
         xnn_create_prelu_nc_f32(channels, strides, strides, weights_buf,
-                                output_min, output_max, 0, &prelu_op);
+                                output_min, output_max, flags, &prelu_op);
     if (status != xnn_status_success) {
       util::warn(
           "XNN status for xnn_create_prelu_nc_f32 is not successful. Got "
@@ -79,10 +81,10 @@ void prelu(int x_id, int x_size, int weights_id, int out_id) {
 
     tfjs::backend::xnn_operator_count++;
   } else {
-    prelu_op = operator_cache.at(weights_id);
+    prelu_op = operator_cache_idx->second;
   }
 
-  int batch_size = 1;
+  const int batch_size = 1;
   xnn_status status = xnn_setup_prelu_nc_f32(
       prelu_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
   if (status != xnn_status_success) {

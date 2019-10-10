@@ -21,9 +21,9 @@ TEST(BACKEND, register_tensor) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  int tensor_id = 0;
+  const int tensor_id = 0;
   int shape[2] = {1, 2};
-  int shape_length = 2;
+  const int shape_length = 2;
   DType dtype = DType::float32;
   float values[2] = {1, 2};
 
@@ -61,10 +61,10 @@ TEST(BACKEND, disposal_callback) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  int tensor_id_0 = 0;
-  int tensor_id_1 = 1;
+  const int tensor_id_0 = 0;
+  const int tensor_id_1 = 1;
   int shape[2] = {1, 2};
-  int shape_length = 2;
+  const int shape_length = 2;
   DType dtype = DType::float32;
   float values_0[2] = {1, 2};
   float values_1[2] = {3, 4};

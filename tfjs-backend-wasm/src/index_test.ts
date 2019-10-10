@@ -48,24 +48,3 @@ describeWithFlags('wasm', ALL_ENVS, () => {
     expect(memOffset1).toBe(memOffset2);
   });
 });
-
-describeWithFlags('prelu cache', ALL_ENVS, () => {
-  it('when passed the same weights prelu works', async () => {
-    const x1 = tf.tensor1d([0, 1, -2, -4]);
-    const a = tf.tensor1d([0.15, 0.2, 0.25, 0.15]);
-
-    let result = tf.prelu(x1, a);
-
-    expect(result.shape).toEqual(x1.shape);
-    test_util.expectArraysClose(await result.data(), [0, 1, -0.5, -0.6]);
-
-    const x2 = tf.tensor1d([6, -3, 2, -1]);
-    result = tf.prelu(x2, a);
-
-    expect(result.shape).toEqual(x1.shape);
-    test_util.expectArraysClose(await result.data(), [6, -0.6, 2, -0.15]);
-
-    // Dispose the weights to catch bugs with weights disposal of XNN operators.
-    a.dispose();
-  });
-});

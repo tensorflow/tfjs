@@ -15,6 +15,8 @@
 #ifndef TFJS_BACKEND_H
 #define TFJS_BACKEND_H
 
+#include <vector>
+
 enum DType {
   float32 = 0,
   int32 = 1,
