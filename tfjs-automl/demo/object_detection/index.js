@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-// TODO(smilkov): Import from "@tensoflow/tfjs-automl" when the package
-// is released.
-import * as automl from '../../src/index';
+import * as automl from '@tensoflow/tfjs-automl';
 
 const MODEL_URL =
     'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';

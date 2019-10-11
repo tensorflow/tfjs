@@ -25,8 +25,6 @@ const DEFAULT_TOPK = 20;
 const DEFAULT_IOU_THRESHOLD = 0.5;
 const DEFAULT_SCORE_THRESHOLD = 0.5;
 
-// TODO(smilkov): Change the name of the input nodes once we get a new model
-// from Cloud.
 const INPUT_NODE_NAME = 'ToFloat';
 const OUTPUT_NODE_NAMES =
     ['Postprocessor/convert_scores', 'Postprocessor/Decode/transpose_1'];
