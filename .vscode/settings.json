@@ -32,7 +32,7 @@
   "files.insertFinalNewline": true,
   "editor.detectIndentation": false,
   "editor.wrappingIndent": "none",
-  "typescript.tsdk": "${workspaceRoot}/node_modules/typescript/lib",
+  "typescript.tsdk": "node_modules/typescript/lib",
   "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format",
   "files.associations": {
     "memory": "cpp",

@@ -158,7 +158,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
-    const t = tf.Tensor.make([3], {}, 'string');
+    const t = tf.Tensor.make([3], null, 'string');
     expect(backend.readSync(t.dataId) == null).toBe(true);
   });
 
@@ -167,7 +167,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
-    const t = tf.Tensor.make([3], {}, 'string');
+    const t = tf.Tensor.make([3], null, 'string');
     backend.write(t.dataId, encodeStrings(['c', 'a', 'b']));
     expectArraysEqual(
         decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
@@ -179,7 +179,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
-    const t = tf.Tensor.make([3], {values: ['a', 'b', 'c']}, 'string');
+    const t = tf.Tensor.make([3], ['a', 'b', 'c'], 'string');
     expectArraysEqual(
         decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
         ['a', 'b', 'c']);
@@ -190,7 +190,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
-    const t = tf.Tensor.make([3], {values: ['a', 'b', 'c']}, 'string');
+    const t = tf.Tensor.make([3], ['a', 'b', 'c'], 'string');
     backend.write(t.dataId, encodeStrings(['c', 'a', 'b']));
     expectArraysEqual(
         decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
@@ -210,7 +210,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.setBackend('test-storage');
 
     const texManager = backend.getTextureManager();
-    const t = tf.Tensor.make([3], {}, 'float32');
+    const t = tf.Tensor.make([3], null, 'float32');
     backend.write(t.dataId, new Float32Array([1, 2, 3]));
     expect(texManager.getNumUsedTextures()).toBe(0);
     backend.getTexture(t.dataId);
@@ -252,7 +252,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.setBackend('test-storage');
 
     const texManager = backend.getTextureManager();
-    const t = tf.Tensor.make([3], {}, 'float32');
+    const t = tf.Tensor.make([3], null, 'float32');
     backend.write(t.dataId, new Float32Array([1, 2, 3]));
     backend.getTexture(t.dataId);
     expect(texManager.getNumUsedTextures()).toBe(1);

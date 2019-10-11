@@ -34,6 +34,8 @@ import './flags';
 // explicitly included here.
 import './backends/webgl/backend_webgl';
 import './backends/cpu/backend_cpu';
+// Import all kernels from cpu.
+import './backends/cpu/all_kernels';
 
 import './platforms/platform_browser';
 import './platforms/platform_node';
@@ -71,6 +73,7 @@ export {Reduction} from './ops/loss_ops';
 
 export * from './train';
 export * from './globals';
+export * from './kernel_registry';
 export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
 
 export {TimingInfo, MemoryInfo} from './engine';
