@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as automl from '@tensoflow/tfjs-automl';
+import * as automl from '@tensorflow/tfjs-automl';
 
 const MODEL_URL =
     'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
