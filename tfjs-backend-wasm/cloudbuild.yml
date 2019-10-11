@@ -13,20 +13,20 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Build the project.
-- name: 'node:10'
-  dir: 'tfjs-backend-wasm'
-  entrypoint: 'yarn'
-  id: 'build'
-  args: ['build-ci']
-  waitFor: ['yarn']
-
 # Run lint.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'lint'
   args: ['lint']
+  waitFor: ['yarn']
+
+# Build the project.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'build'
+  args: ['build-ci']
   waitFor: ['yarn']
 
 # Run browser tests.
