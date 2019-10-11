@@ -99,8 +99,10 @@ void dispose_data(int tensor_id) {
   data.erase(tensor_id);
 
   // Call all disposal callbacks for this tensor id.
-  if (disposal_callbacks.count(tensor_id) != 0) {
-    auto callbacks = disposal_callbacks.at(tensor_id);
+  auto disposal_callback_idx = disposal_callbacks.find(tensor_id);
+  if (disposal_callback_idx != disposal_callbacks.end()) {
+    auto callbacks = disposal_callback_idx->second;
+    util::warn("disposal callback for %d", tensor_id);
     for (auto dispose_function : callbacks) {
       dispose_function(tensor_id);
     }
@@ -113,12 +115,18 @@ void dispose_data(int tensor_id) {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void dispose() {
+  // We have to create a separate vector of tensor ids because we erase from the
+  // map while we're iterating it.
+  std::vector<int> tensor_ids_to_dispose;
   for (auto const &element : data) {
-    dispose_data(element.first);
+    tensor_ids_to_dispose.push_back(element.first);
   }
+  for (auto const tensor_id : tensor_ids_to_dispose) {
+    dispose_data(tensor_id);
+  }
+
   data.clear();
   disposal_callbacks.clear();
-  tfjs::backend::xnn_operator_count = 0;
 }
 
 }  // extern "C"

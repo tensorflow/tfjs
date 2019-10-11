@@ -18,6 +18,7 @@
 
 #include <xnnpack.h>
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <unordered_map>
 
@@ -33,9 +34,12 @@ void delete_xnn_operator(int weights_id) {
   xnn_operator_t prelu_op = operator_cache.at(weights_id);
   xnn_delete_operator(prelu_op);
   tfjs::backend::xnn_operator_count--;
+  tfjs::util::warn("REDUCING");
 
   operator_cache.erase(weights_id);
 }
+
+std::function<const int&()> F([] { return 42; });
 }  // namespace
 
 namespace tfjs {

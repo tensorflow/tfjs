@@ -82,6 +82,7 @@ tfjs_unit_test(
   srcs = ["backend_test.cc"],
   deps = [
     ":backend",
+    ":prelu",
   ]
 )
 
