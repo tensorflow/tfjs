@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../../engine';
 import * as tf from '../../index';
 import {describeWithFlags} from '../../jasmine_util';
 import {tensor2d} from '../../ops/ops';
@@ -36,7 +37,7 @@ describeWithFlags('backendCPU', CPU_ENVS, () => {
   });
 
   it('register string tensor with values', () => {
-    const t = tf.Tensor.make(['a', 'b', 'c'], [3], 'string');
+    const t = ENGINE.makeTensorFromValues(['a', 'b', 'c'], [3], 'string');
     expectArraysEqual(
         decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
         ['a', 'b', 'c']);

@@ -146,20 +146,19 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
    */
   /** @doc {heading: 'Tensors', subheading: 'Creation'} */
   toTensor(): Tensor<R> {
-    return Tensor.make(this.values, this.shape, this.dtype) as Tensor<R>;
+    return trackerFn().makeTensorFromValues(
+               this.values, this.shape, this.dtype) as Tensor<R>;
   }
 }
 
 export interface TensorTracker {
-  incRef(a: Tensor): void;
-  register(
-      values: BackendValues, shape: number[], dtype: DataType,
-      backend: Backend): DataId;
+  makeTensorFromValues(
+      values: DataValues, shape: number[], dtype: DataType,
+      backend?: Backend): Tensor;
   disposeTensor(t: Tensor): void;
   disposeVariable(v: Variable): void;
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
-  registerVariable(v: Variable): void;
   nextTensorId(): number;
   nextVariableId(): number;
 }
@@ -449,7 +448,7 @@ export class Tensor<R extends Rank = Rank> {
    */
   readonly strides: number[];
 
-  protected constructor(shape: ShapeMap[R], dtype: DataType, dataId?: DataId) {
+  constructor(shape: ShapeMap[R], dtype: DataType, dataId?: DataId) {
     this.shape = shape.slice() as ShapeMap[R];
     this.dtype = dtype || 'float32';
     this.size = util.sizeFromShape(shape);
@@ -457,37 +456,6 @@ export class Tensor<R extends Rank = Rank> {
     this.dataId = dataId != null ? dataId : {};
     this.id = trackerFn().nextTensorId();
     this.rankType = (this.rank < 5 ? this.rank.toString() : 'higher') as R;
-  }
-
-  /**
-   * Internal method used by the engine (thus not private). Makes a new tensor
-   * with the provided shape, dtype and optionally values. It always creates a
-   * new data bucket and notifies the underlying backend about the bucket.
-   */
-  static make(
-      values: DataValues, shape: number[], dtype?: DataType,
-      backend?: Backend): Tensor {
-    if (values == null) {
-      throw new Error('values is required');
-    }
-    let backendVals = values as BackendValues;
-    if (dtype === 'string' && util.isString(values[0])) {
-      backendVals = (values as string[]).map(d => util.encodeString(d));
-    }
-    // Register the tensor in the engine.
-    const dataId = trackerFn().register(backendVals, shape, dtype, backend);
-    return this.wrap(shape, dtype, dataId);
-  }
-
-  /**
-   * Internal method used by the engine (thus not private). Makes a new tensor
-   * that is a shallow wrapper around an existing data bucket. It doesn't create
-   * a new data bucket, only increments the ref count used in memory tracking.
-   */
-  static wrap(shape: number[], dtype: DataType, dataId: DataId): Tensor {
-    const tensor = new Tensor(shape, dtype, dataId);
-    trackerFn().incRef(tensor);
-    return tensor;
   }
 
   /** Flatten a Tensor to a 1D array. */
@@ -1479,24 +1447,11 @@ export type Tensor6D = Tensor<Rank.R6>;
 export class Variable<R extends Rank = Rank> extends Tensor<R> {
   name: string;
 
-  /**
-   * Private constructor since we cannot add logic before calling `super()`.
-   * Instead, we expose static `Variable.variable` method below, which will be
-   * added to global namespace.
-   */
-  private constructor(
-      initialValue: Tensor<R>, public trainable = true, name?: string) {
+  constructor(initialValue: Tensor<R>, public trainable = true, name?: string) {
     super(initialValue.shape, initialValue.dtype, initialValue.dataId);
-    trackerFn().incRef(this);
     this.name = name;
     if (this.name == null) {
       this.name = trackerFn().nextVariableId().toString();
-    }
-    try {
-      trackerFn().registerVariable(this);
-    } catch (ex) {
-      trackerFn().disposeTensor(this);
-      throw ex;
     }
   }
 
@@ -1542,9 +1497,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
           `shape of the new value (${newValue.shape}) and ` +
           `previous value (${this.shape}) must match`);
     }
-    trackerFn().disposeTensor(this);
     this.dataId = newValue.dataId;
-    trackerFn().incRef(this);
   }
 
   dispose(): void {

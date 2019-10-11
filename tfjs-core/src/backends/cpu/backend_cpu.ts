@@ -19,7 +19,7 @@ import * as seedrandom from 'seedrandom';
 
 import {ENGINE} from '../../engine';
 import {env} from '../../environment';
-
+import {TensorInfo} from '../../kernel_registry';
 import {warn} from '../../log';
 import * as array_ops_util from '../../ops/array_ops_util';
 import * as axis_util from '../../ops/axis_util';
@@ -47,8 +47,9 @@ import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
+
 import {TensorData} from './cpu_types';
-import {assertNotComplex} from './cpu_util';
+import {assertNotComplex, storeData} from './cpu_util';
 
 function mapActivation(
     backend: MathBackendCPU, x: Tensor, activation: Activation,
@@ -219,10 +220,10 @@ export class MathBackendCPU extends KernelBackend {
     return buffer(t.shape, t.dtype, decodedData) as TensorBuffer<R>;
   }
 
-  private makeTensor<T extends Tensor>(
+  private makeTensor<T extends TensorInfo>(
       values: BackendValues, shape: number[], dtype: DataType): T {
-    const dataId = this.register(values, shape, dtype);
-    return Tensor.wrap(shape, dtype, dataId) as T;
+    const dataId = storeData(this.data, dtype, values);
+    return {shape, dtype, dataId} as T;
   }
 
   disposeData(dataId: DataId): void {

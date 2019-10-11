@@ -387,11 +387,6 @@ export class MathBackendWebGL implements KernelBackend {
     return {dataId, shape, dtype};
   }
 
-  private makeTensor(shape: number[], dtype: DataType): Tensor {
-    const handle = this.makeTensorHandle(shape, dtype);
-    return Tensor.wrap(shape, dtype, handle.dataId);
-  }
-
   readSync(dataId: DataId): BackendValues {
     const texData = this.texData.get(dataId);
     const {values, dtype, complexTensors, slice, shape, isPacked} = texData;
@@ -770,7 +765,7 @@ export class MathBackendWebGL implements KernelBackend {
 
   private shallowSlice(x: Tensor, begin: number[], size: number[]): Tensor {
     const xTexData = this.texData.get(x.dataId);
-    const t = this.makeTensor(size, x.dtype);
+    const t = this.makeTensorHandle(size, x.dtype);
     const newTexData = this.texData.get(t.dataId);
     // Copy texture data from the original tensor.
     Object.assign(newTexData, xTexData);
@@ -792,7 +787,7 @@ export class MathBackendWebGL implements KernelBackend {
     const refCount = this.dataRefCount.get(newTexData.slice.origDataId) || 1;
     this.dataRefCount.set(newTexData.slice.origDataId, refCount + 1);
 
-    return t;
+    return t as Tensor;
   }
 
   stridedSlice<T extends Tensor>(
@@ -1967,8 +1962,11 @@ export class MathBackendWebGL implements KernelBackend {
     const targetShape = isChannelsLast ?
         xShape[0] * xShape[1] * (xShape[2] + 1) :
         xShape[0] * xShape[2] * (xShape[3] + 1);
-    const xReshaped =
-        Tensor.wrap([1, targetShape, convInfo.inChannels], x.dtype, x.dataId);
+    const xReshaped = {
+      shape: [1, targetShape, convInfo.inChannels],
+      dtype: x.dtype,
+      dataId: x.dataId,
+    };
 
     // xTexData.shape gets referenced from GPGPUBinary.inShapeInfos.
     // Decrementing row count, after batchMatMul->...->compileProgram leads to
@@ -2006,9 +2004,11 @@ export class MathBackendWebGL implements KernelBackend {
     // Set the output shape - there is no need for expensive reshape as data
     // layout is already correct.
     pointwiseConvTexData.shape = convInfo.outShape;
-    return Tensor.wrap(
-               convInfo.outShape, pointwiseConv.dtype, pointwiseConv.dataId) as
-        Tensor4D;
+    return {
+      shape: convInfo.outShape,
+      dtype: pointwiseConv.dtype,
+      dataId: pointwiseConv.dataId,
+    } as Tensor4D;
   }
 
   private conv2dWithIm2Row(
@@ -2509,7 +2509,7 @@ export class MathBackendWebGL implements KernelBackend {
       values.fill(value as string);
       const backendVals = values.map(d => util.encodeString(d));
       const dataId = this.register(backendVals, shape, dtype);
-      return Tensor.wrap(shape, dtype, dataId) as Tensor<R>;
+      return {shape, dtype, dataId} as Tensor<R>;
     } else {
       const program = new FillProgram(shape, value as number);
       const customSetup = program.getCustomSetupFunc(value as number);
@@ -2539,19 +2539,19 @@ export class MathBackendWebGL implements KernelBackend {
 
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
       T {
-    return this.makeTensor(shape, dtype) as T;
+    return this.makeTensorHandle(shape, dtype) as T;
   }
 
   private makePackedTensor<T extends Tensor, D extends DataType = 'float32'>(
       shape: number[], dtype?: D): T {
-    const packedTensor = this.makeTensor(shape, dtype);
+    const packedTensor = this.makeTensorHandle(shape, dtype);
     this.texData.get(packedTensor.dataId).isPacked = true;
     return packedTensor as T;
   }
 
   private unpackTensor<T extends Tensor>(input: T|TensorHandle): T {
     const program = new UnpackProgram(input.shape);
-    const output = this.makeTensor(program.outputShape, input.dtype);
+    const output = this.makeTensorHandle(program.outputShape, input.dtype);
     return this.compileAndRun(program, [input], output) as T;
   }
 
@@ -2609,8 +2609,8 @@ export class MathBackendWebGL implements KernelBackend {
     return tmpTarget;
   }
 
-  public compileAndRun<
-      K extends {dtype: DataType, size: number, dataId: {}, shape: number[]}>(
+  public compileAndRun<K
+                       extends {dtype: DataType, dataId: {}, shape: number[]}>(
       program: GPGPUProgram, inputs: TensorHandle[], output?: K,
       customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
       preventEagerUnpackingOfOutput = false): K {
@@ -2623,8 +2623,7 @@ export class MathBackendWebGL implements KernelBackend {
             {} as K;
       }
     }
-
-    if (output.size === 0) {
+    if (sizeFromShape(output.shape) === 0) {
       // Short-circuit the computation since the result is empty (has 0 in its
       // shape).
       this.texData.get(output.dataId).values =

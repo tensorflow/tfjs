@@ -23,7 +23,7 @@ import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode
 import {DataId, setTensorTracker, Tensor, Tensor3D, TensorTracker, Variable} from './tensor';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
-import {BackendValues, DataType, PixelData} from './types';
+import {BackendValues, DataType, DataValues, PixelData} from './types';
 import * as util from './util';
 import {bytesFromStringArray, makeOnesTypedArray, now, sizeFromShape} from './util';
 
@@ -436,7 +436,7 @@ export class Engine implements TensorTracker, DataMover {
    * execution.
    */
   private clone(x: Tensor): Tensor {
-    const y = Tensor.wrap(x.shape, x.dtype, x.dataId);
+    const y = this.makeTensor(x.shape, x.dtype, x.dataId);
     this.addTapeNode([x], y, dy => [dy.toFloat()]);
     return y;
   }
@@ -532,13 +532,25 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   // TensorManager implementation.
-
-  register(
-      values: BackendValues, shape: number[], dtype: DataType,
-      backend: KernelBackend): DataId {
+  makeTensorFromValues(
+      values: DataValues, shape: number[], dtype: DataType,
+      backend?: KernelBackend): Tensor {
     backend = backend || this.backend;
-    const dataId = backend.register(values, shape, dtype);
+    if (values == null) {
+      throw new Error('values is required');
+    }
+    let backendVals = values as BackendValues;
+    if (dtype === 'string' && util.isString(values[0])) {
+      backendVals = (values as string[]).map(d => util.encodeString(d));
+    }
+    const dataId = backend.register(backendVals, shape, dtype);
+    return this.makeTensorFromNewData(
+        dataId, shape, dtype, backendVals, backend);
+  }
 
+  private makeTensorFromNewData(
+      dataId: DataId, shape: number[], dtype: DataType, values: BackendValues,
+      backend: KernelBackend): Tensor {
     // Bytes for complex numbers are counted by their components. Bytes for
     // string tensors are counted differently below.
     let bytes = 0;
@@ -546,32 +558,44 @@ export class Engine implements TensorTracker, DataMover {
       bytes = sizeFromShape(shape) * util.bytesPerElement(dtype);
     }
     // Bytes for string tensors.
-    if (dtype === 'string') {
+    if (dtype === 'string' && values != null) {
       bytes = bytesFromStringArray(values as Uint8Array[]);
     }
     this.state.tensorInfo.set(
         dataId, {backend, dtype, shape, bytes, refCount: 0});
     this.state.numDataBuffers++;
     this.state.numBytes += bytes;
-    return dataId;
+    return this.makeTensor(shape, dtype, dataId);
   }
 
-  incRef(a: Tensor) {
+  private refCount(dtype: DataType, dataId: DataId) {
     this.state.numTensors++;
-    if (a.dtype === 'string') {
+    if (dtype === 'string') {
       this.state.numStringTensors++;
     }
-    if (!this.state.tensorInfo.has(a.dataId)) {
-      this.state.tensorInfo.set(
-          a.dataId, {dtype: a.dtype, shape: a.shape, bytes, refCount: 0});
-    }
-    this.state.tensorInfo.get(a.dataId).refCount++;
-    if (!(a instanceof Variable)) {
-      this.track(a);
-    }
+    this.state.tensorInfo.get(dataId).refCount++;
   }
 
-  registerVariable(v: Variable) {
+  makeVariable(
+      initialValue: Tensor, trainable = true, name?: string,
+      dtype?: DataType): Variable {
+    if (dtype != null && dtype !== initialValue.dtype) {
+      initialValue = initialValue.asType(dtype);
+    }
+    const v = new Variable(initialValue, trainable, name);
+    this.refCount(dtype, v.dataId);
+    this.registerVariable(v);
+    return v;
+  }
+
+  makeTensor(shape: number[], dtype: DataType, dataId: DataId): Tensor {
+    const t = new Tensor(shape, dtype, dataId);
+    this.refCount(dtype, dataId);
+    this.track(t);
+    return t;
+  }
+
+  private registerVariable(v: Variable) {
     if (this.state.registeredVariables[v.name] != null) {
       throw new Error(`Variable with name ${v.name} was already registered`);
     }
@@ -785,7 +809,12 @@ export class Engine implements TensorTracker, DataMover {
 
     return this.tidy('backward', () => {
       const accumulatedGradientMap: {[tensorId: number]: Tensor} = {};
-      accumulatedGradientMap[y.id] = (dy == null) ? ones(y.shape) : dy;
+      accumulatedGradientMap[y.id] = dy;
+      if (dy == null) {
+        const values = makeOnesTypedArray(sizeFromShape(y.shape), 'float32');
+        const ones = this.makeTensorFromValues(values, y.shape, 'float32');
+        accumulatedGradientMap[y.id] = ones;
+      }
 
       // Backprop gradients through the filtered nodes.
       backpropagateGradients(
@@ -926,11 +955,6 @@ export class Engine implements TensorTracker, DataMover {
     this.backendInstance = null;
     this.pendingBackendInit = null;
   }
-}
-
-function ones(shape: number[]): Tensor {
-  const values = makeOnesTypedArray(sizeFromShape(shape), 'float32');
-  return Tensor.make(shape, values);
 }
 
 let GLOBAL: {_tfengine: Engine};

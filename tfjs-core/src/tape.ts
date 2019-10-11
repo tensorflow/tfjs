@@ -142,10 +142,8 @@ export function backpropagateGradients(
         dys.push(gradTensor);
       } else {
         // This particular output is not in the back-propagation subgraph, so it
-        // does not affect the final output, thus we put zeros for its dy.
-        const dy = Tensor.make(
-            util.makeZerosTypedArray(o.size, o.dtype), o.shape, o.dtype);
-        dys.push(dy);
+        // does not affect the final output, thus we put null for its dy.
+        dys.push(null);
       }
     });
 

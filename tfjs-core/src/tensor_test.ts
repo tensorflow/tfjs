@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ENGINE} from './engine';
 import * as tf from './index';
 import {ALL_ENVS, describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
@@ -173,7 +174,8 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('indexToLoc Tensor 5D', async () => {
     const values = new Float32Array([1, 2, 3, 4]);
-    const a = await Tensor.make(values, [2, 1, 1, 1, 2]).buffer();
+    const t = ENGINE.makeTensorFromValues(values, [2, 1, 1, 1, 2], 'float32');
+    const a = await t.buffer();
     expect(a.indexToLoc(0)).toEqual([0, 0, 0, 0, 0]);
     expect(a.indexToLoc(1)).toEqual([0, 0, 0, 0, 1]);
     expect(a.indexToLoc(2)).toEqual([1, 0, 0, 0, 0]);

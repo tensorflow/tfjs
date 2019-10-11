@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../../engine';
 import * as tf from '../../index';
 import {describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../../test_util';
@@ -154,7 +155,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
-    const t = tf.Tensor.make(['a', 'b', 'c'], [3], 'string');
+    const t = ENGINE.makeTensorFromValues(['a', 'b', 'c'], [3], 'string');
     expectArraysEqual(
         decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
         ['a', 'b', 'c']);
@@ -173,7 +174,8 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.setBackend('test-storage');
 
     const texManager = backend.getTextureManager();
-    const t = tf.Tensor.make(new Float32Array([1, 2, 3]), [3], 'float32');
+    const t = ENGINE.makeTensorFromValues(
+        new Float32Array([1, 2, 3]), [3], 'float32');
     expect(texManager.getNumUsedTextures()).toBe(0);
     backend.getTexture(t.dataId);
     expect(texManager.getNumUsedTextures()).toBe(1);
