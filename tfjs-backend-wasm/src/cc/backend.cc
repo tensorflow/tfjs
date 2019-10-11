@@ -102,7 +102,6 @@ void dispose_data(int tensor_id) {
   auto disposal_callback_idx = disposal_callbacks.find(tensor_id);
   if (disposal_callback_idx != disposal_callbacks.end()) {
     auto callbacks = disposal_callback_idx->second;
-    util::warn("disposal callback for %d", tensor_id);
     for (auto dispose_function : callbacks) {
       dispose_function(tensor_id);
     }
