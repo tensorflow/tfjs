@@ -36,11 +36,7 @@ exec(
 
 shell.cd(dirName);
 shell.cd(wasmDirName);
-exec(`yarn`, {silent: true});
-// Try build-ci and then build-npm because build-ci doesn't exist at master
-// before this change merges.
-exec(`./scripts/build-ci.sh || ./scripts/build-npm.sh`, {silent: false});
-exec(`rollup -c`, {silent: false});
+exec(`yarn && ./scripts/build-ci.sh && yarn rollup -c`, {silent: true});
 
 const masterMinBundleSize = getFileSizeBytes(bundleFilename);
 const masterWasmSize = getFileSizeBytes(wasmFileName);
