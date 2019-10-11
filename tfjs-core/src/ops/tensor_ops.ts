@@ -110,7 +110,7 @@ function makeTensor(
   values = dtype !== 'string' ?
       toTypedArray(values, dtype, env().getBool('DEBUG')) :
       flatten(values as string[], [], true) as string[];
-  return Tensor.make(shape, values as TypedArray, dtype);
+  return Tensor.make(values as TypedArray, shape, dtype);
 }
 
 /**
@@ -406,7 +406,7 @@ function ones<R extends Rank>(
     return complex(real, imag);
   }
   const values = makeOnesTypedArray(sizeFromShape(shape), dtype);
-  return Tensor.make(shape, values, dtype);
+  return Tensor.make(values, shape, dtype) as Tensor<R>;
 }
 
 /**
@@ -429,7 +429,7 @@ function zeros<R extends Rank>(
     return complex(real, imag);
   }
   const values = makeZerosTypedArray(sizeFromShape(shape), dtype);
-  return Tensor.make(shape, values, dtype);
+  return Tensor.make(values, shape, dtype) as Tensor<R>;
 }
 
 /**

@@ -21,7 +21,6 @@ import './flags_webgl';
 import * as device_util from '../../device_util';
 import {ENGINE, MemoryInfo, TimingInfo} from '../../engine';
 import {env} from '../../environment';
-
 import {tidy} from '../../globals';
 import {warn} from '../../log';
 import {buffer} from '../../ops/array_ops';
@@ -282,11 +281,30 @@ export class MathBackendWebGL implements KernelBackend {
     this.texData = new DataStorage(this, ENGINE);
   }
 
-  register(dataId: DataId, shape: number[], dtype: DataType): void {
-    if (this.texData.has(dataId)) {
-      throw new Error('Data buffer is already registered');
+  register(values: BackendValues, shape: number[], dtype: DataType): DataId {
+    const dataId = {};
+    this.texData.set(dataId, {
+      shape,
+      dtype,
+      values,
+      usage: TextureUsage.UPLOAD,
+    });
+
+    if (values != null && env().getBool('DEBUG')) {
+      for (let i = 0; i < values.length; i++) {
+        const num = values[i] as number;
+        if (!webgl_util.canBeRepresented(num)) {
+          if (env().getBool('WEBGL_RENDER_FLOAT32_CAPABLE')) {
+            throw Error(
+                `The value ${num} cannot be represented with your ` +
+                `current settings. Consider enabling float32 rendering: ` +
+                `'tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', true);'`);
+          }
+          throw Error(`The value ${num} cannot be represented on this device.`);
+        }
+      }
     }
-    this.texData.set(dataId, {shape, dtype});
+    return dataId;
   }
 
   fromPixels(
@@ -365,42 +383,13 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   private makeTensorHandle(shape: number[], dtype: DataType): TensorHandle {
-    const dataId = {};
-    this.register(dataId, shape, dtype);
+    const dataId = this.register(null, shape, dtype);
     return {dataId, shape, dtype};
   }
 
-  write(dataId: DataId, values: BackendValues): void {
-    if (values == null) {
-      throw new Error('MathBackendWebGL.write(): values can not be null');
-    }
-
-    if (env().getBool('DEBUG')) {
-      for (let i = 0; i < values.length; i++) {
-        const num = values[i] as number;
-        if (!webgl_util.canBeRepresented(num)) {
-          if (env().getBool('WEBGL_RENDER_FLOAT32_CAPABLE')) {
-            throw Error(
-                `The value ${num} cannot be represented with your ` +
-                `current settings. Consider enabling float32 rendering: ` +
-                `'tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', true);'`);
-          }
-          throw Error(`The value ${num} cannot be represented on this device.`);
-        }
-      }
-    }
-
-    const texData = this.texData.get(dataId);
-    const {dtype} = texData;
-    if (dtype === 'complex64') {
-      throw new Error(
-          `Cannot write to a complex64 dtype. ` +
-          `Please use tf.complex(real, imag).`);
-    }
-
-    this.releaseGPUData(dataId);
-    texData.usage = TextureUsage.UPLOAD;
-    texData.values = values;
+  private makeTensor(shape: number[], dtype: DataType): Tensor {
+    const handle = this.makeTensorHandle(shape, dtype);
+    return Tensor.wrap(shape, dtype, handle.dataId);
   }
 
   readSync(dataId: DataId): BackendValues {
@@ -781,7 +770,7 @@ export class MathBackendWebGL implements KernelBackend {
 
   private shallowSlice(x: Tensor, begin: number[], size: number[]): Tensor {
     const xTexData = this.texData.get(x.dataId);
-    const t = Tensor.make(size, null, x.dtype, this);
+    const t = this.makeTensor(size, x.dtype);
     const newTexData = this.texData.get(t.dataId);
     // Copy texture data from the original tensor.
     Object.assign(newTexData, xTexData);
@@ -1978,8 +1967,8 @@ export class MathBackendWebGL implements KernelBackend {
     const targetShape = isChannelsLast ?
         xShape[0] * xShape[1] * (xShape[2] + 1) :
         xShape[0] * xShape[2] * (xShape[3] + 1);
-    const xReshaped = Tensor.wrap(
-        [1, targetShape, convInfo.inChannels], x.dtype, x.dataId, this);
+    const xReshaped =
+        Tensor.wrap([1, targetShape, convInfo.inChannels], x.dtype, x.dataId);
 
     // xTexData.shape gets referenced from GPGPUBinary.inShapeInfos.
     // Decrementing row count, after batchMatMul->...->compileProgram leads to
@@ -2018,8 +2007,8 @@ export class MathBackendWebGL implements KernelBackend {
     // layout is already correct.
     pointwiseConvTexData.shape = convInfo.outShape;
     return Tensor.wrap(
-               convInfo.outShape, pointwiseConv.dtype, pointwiseConv.dataId,
-               this) as Tensor4D;
+               convInfo.outShape, pointwiseConv.dtype, pointwiseConv.dataId) as
+        Tensor4D;
   }
 
   private conv2dWithIm2Row(
@@ -2518,7 +2507,9 @@ export class MathBackendWebGL implements KernelBackend {
       // String type should be handled in CPU memory.
       const values = getArrayFromDType(dtype, sizeFromShape(shape));
       values.fill(value as string);
-      return Tensor.make(shape, values, dtype);
+      const backendVals = values.map(d => util.encodeString(d));
+      const dataId = this.register(backendVals, shape, dtype);
+      return Tensor.wrap(shape, dtype, dataId) as Tensor<R>;
     } else {
       const program = new FillProgram(shape, value as number);
       const customSetup = program.getCustomSetupFunc(value as number);
@@ -2548,21 +2539,20 @@ export class MathBackendWebGL implements KernelBackend {
 
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
       T {
-    return Tensor.make(shape, null, dtype, this);
+    return this.makeTensor(shape, dtype) as T;
   }
 
   private makePackedTensor<T extends Tensor, D extends DataType = 'float32'>(
       shape: number[], dtype?: D): T {
-    const packedTensor = Tensor.make(shape, null, dtype, this);
+    const packedTensor = this.makeTensor(shape, dtype);
     this.texData.get(packedTensor.dataId).isPacked = true;
     return packedTensor as T;
   }
 
   private unpackTensor<T extends Tensor>(input: T|TensorHandle): T {
     const program = new UnpackProgram(input.shape);
-    return this.compileAndRun(
-        program, [input],
-        Tensor.make(program.outputShape, null, input.dtype, this));
+    const output = this.makeTensor(program.outputShape, input.dtype);
+    return this.compileAndRun(program, [input], output) as T;
   }
 
   private packTensor<T extends Tensor>(input: T|TensorHandle): T {

@@ -18,14 +18,10 @@
 import * as tf from '../../index';
 import {describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../../test_util';
-import {decodeString, encodeString} from '../../util';
+import {decodeString} from '../../util';
 
 import {MathBackendWebGL, WebGLMemoryInfo} from './backend_webgl';
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
-
-function encodeStrings(a: string[]): Uint8Array[] {
-  return a.map(s => encodeString(s));
-}
 
 function decodeStrings(bytes: Uint8Array[]): string[] {
   return bytes.map(b => decodeString(b));
@@ -153,48 +149,15 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.removeBackend('test-storage');
   });
 
-  it('register empty string tensor', () => {
-    const backend = new MathBackendWebGL();
-    tf.registerBackend('test-storage', () => backend);
-    tf.setBackend('test-storage');
-
-    const t = tf.Tensor.make([3], null, 'string');
-    expect(backend.readSync(t.dataId) == null).toBe(true);
-  });
-
-  it('register empty string tensor and write', () => {
-    const backend = new MathBackendWebGL();
-    tf.registerBackend('test-storage', () => backend);
-    tf.setBackend('test-storage');
-
-    const t = tf.Tensor.make([3], null, 'string');
-    backend.write(t.dataId, encodeStrings(['c', 'a', 'b']));
-    expectArraysEqual(
-        decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
-        ['c', 'a', 'b']);
-  });
-
   it('register string tensor with values', () => {
     const backend = new MathBackendWebGL();
     tf.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
-    const t = tf.Tensor.make([3], ['a', 'b', 'c'], 'string');
+    const t = tf.Tensor.make(['a', 'b', 'c'], [3], 'string');
     expectArraysEqual(
         decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
         ['a', 'b', 'c']);
-  });
-
-  it('register string tensor with values and overwrite', () => {
-    const backend = new MathBackendWebGL();
-    tf.registerBackend('test-storage', () => backend);
-    tf.setBackend('test-storage');
-
-    const t = tf.Tensor.make([3], ['a', 'b', 'c'], 'string');
-    backend.write(t.dataId, encodeStrings(['c', 'a', 'b']));
-    expectArraysEqual(
-        decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
-        ['c', 'a', 'b']);
   });
 
   it('register string tensor with values and wrong shape throws error', () => {
@@ -210,8 +173,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.setBackend('test-storage');
 
     const texManager = backend.getTextureManager();
-    const t = tf.Tensor.make([3], null, 'float32');
-    backend.write(t.dataId, new Float32Array([1, 2, 3]));
+    const t = tf.Tensor.make(new Float32Array([1, 2, 3]), [3], 'float32');
     expect(texManager.getNumUsedTextures()).toBe(0);
     backend.getTexture(t.dataId);
     expect(texManager.getNumUsedTextures()).toBe(1);
@@ -244,30 +206,6 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.env().set('WEBGL_PACK', webglPackFlagSaved);
     tf.env().set('WEBGL_SIZE_UPLOAD_UNIFORM', webglSizeUploadUniformSaved);
     expectArraysClose(await d.data(), [2, 3]);
-  });
-
-  it('delayed storage, overwriting', () => {
-    const backend = new MathBackendWebGL(null);
-    tf.registerBackend('test-storage', () => backend);
-    tf.setBackend('test-storage');
-
-    const texManager = backend.getTextureManager();
-    const t = tf.Tensor.make([3], null, 'float32');
-    backend.write(t.dataId, new Float32Array([1, 2, 3]));
-    backend.getTexture(t.dataId);
-    expect(texManager.getNumUsedTextures()).toBe(1);
-    // overwrite.
-    backend.write(t.dataId, new Float32Array([4, 5, 6]));
-    expect(texManager.getNumUsedTextures()).toBe(0);
-    expectArraysClose(
-        backend.readSync(t.dataId) as Float32Array,
-        new Float32Array([4, 5, 6]));
-    backend.getTexture(t.dataId);
-    expect(texManager.getNumUsedTextures()).toBe(1);
-    expectArraysClose(
-        backend.readSync(t.dataId) as Float32Array,
-        new Float32Array([4, 5, 6]));
-    expect(texManager.getNumUsedTextures()).toBe(0);
   });
 });
 

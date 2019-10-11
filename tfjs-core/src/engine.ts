@@ -353,6 +353,21 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   moveData(destBackend: KernelBackend, dataId: DataId) {
+    const info = this.state.tensorInfo.get(dataId);
+
+    const srcBackend = info.backend;
+    destBackend = destBackend || this.backend;
+
+    if (destBackend !== srcBackend) {
+      const values = this.readSync(dataId);
+      // Delete the tensor from the old backend and move it to the new
+      // backend.
+      srcBackend.disposeData(dataId);
+      info.backend = destBackend;
+      const newDataId = destBackend.register(values, info.shape, info.dtype);
+    }
+    destBackend.write(dataId, values);
+
     this.write(destBackend, dataId, this.readSync(dataId));
   }
 
@@ -450,7 +465,7 @@ export class Engine implements TensorTracker, DataMover {
       forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
       kernelName?: string, attrs?: NamedAttrMap): T {
-    let result: T;
+    let result: TensorInfo|TensorInfo[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
     const scopeName =
@@ -468,18 +483,10 @@ export class Engine implements TensorTracker, DataMover {
     const startingBytecount = this.state.numBytes;
     const startingNumTensors = this.state.numTensors;
 
-    let kernelFunc = () => forwardFunc(this.backend, saveFunc);
     const kernel = getKernel(kernelName, this.backendName);
-    if (kernel != null) {
-      const storage = this.backend;
-      kernelFunc = () => {
-        const outInfo =
-            kernel({inputs, attrs, storage, save: saveFunc}) as TensorInfo;
-        const tensor =
-            Tensor.wrap(outInfo.shape, outInfo.dtype, outInfo.dataId);
-        return tensor as T;
-      };
-    }
+    const kernelFunc = kernel != null ?
+        () => kernel({inputs, attrs, storage: this.backend, save: saveFunc}) :
+        () => forwardFunc(this.backend, saveFunc);
 
     // Stop recording to a tape when running a kernel.
     this.scopedRun(
@@ -488,16 +495,19 @@ export class Engine implements TensorTracker, DataMover {
             result = kernelFunc();
           } else {
             result = this.profiler.profileKernel(
-                scopeName, inputs, () => kernelFunc());
+                scopeName, inputs, () => kernelFunc() as Tensor[]);
           }
         });
-
+    const outputInfos = Array.isArray(result) ? result : [result];
+    const outputs = outputInfos.map(info => {
+      return Tensor.wrap(info.shape, info.dtype, info.dataId);
+    });
     if (isTapeOn) {
       const tapeNode: TapeNode = {
         id: this.state.nextTapeNodeId++,
         name: scopeName,
         inputs,
-        outputs: Array.isArray(result) ? result : [result] as Tensor[],
+        outputs,
         saved
       };
       if (backwardsFunc != null) {
@@ -514,9 +524,7 @@ export class Engine implements TensorTracker, DataMover {
         tensorsAdded: this.state.numTensors - startingNumTensors,
         totalTensorsSnapshot: this.state.numTensors,
         inputShapes: Object.keys(inputs).map(key => inputs[key].shape),
-        outputShape: Array.isArray(result) ?
-            (result as Tensor[]).map(item => item.shape) :
-            (result as Tensor).shape
+        outputShape: outputs.map(item => item.shape)
       });
     }
 
@@ -525,36 +533,37 @@ export class Engine implements TensorTracker, DataMover {
 
   // TensorManager implementation.
 
-  register(a: Tensor, backend: KernelBackend) {
+  register(
+      values: BackendValues, shape: number[], dtype: DataType,
+      backend: KernelBackend): DataId {
     backend = backend || this.backend;
-    backend.register(a.dataId, a.shape, a.dtype);
+    const dataId = backend.register(values, shape, dtype);
+
+    // Bytes for complex numbers are counted by their components. Bytes for
+    // string tensors are counted differently below.
+    let bytes = 0;
+    if (dtype !== 'complex64' && dtype !== 'string') {
+      bytes = sizeFromShape(shape) * util.bytesPerElement(dtype);
+    }
+    // Bytes for string tensors.
+    if (dtype === 'string') {
+      bytes = bytesFromStringArray(values as Uint8Array[]);
+    }
+    this.state.tensorInfo.set(
+        dataId, {backend, dtype, shape, bytes, refCount: 0});
+    this.state.numDataBuffers++;
+    this.state.numBytes += bytes;
+    return dataId;
   }
 
-  incRef(a: Tensor, backend: KernelBackend) {
-    const refCount = this.state.tensorInfo.has(a.dataId) ?
-        this.state.tensorInfo.get(a.dataId).refCount :
-        0;
+  incRef(a: Tensor) {
     this.state.numTensors++;
     if (a.dtype === 'string') {
       this.state.numStringTensors++;
     }
-    if (refCount === 0) {
-      this.state.numDataBuffers++;
-
-      // Bytes for complex numbers are counted by their components. Bytes for
-      // string tensors are counted when writing values.
-      let bytes = 0;
-      if (a.dtype !== 'complex64' && a.dtype !== 'string') {
-        bytes = a.size * util.bytesPerElement(a.dtype);
-      }
-      this.state.tensorInfo.set(a.dataId, {
-        backend: backend != null ? backend : this.backend,
-        dtype: a.dtype,
-        shape: a.shape,
-        bytes,
-        refCount: 0
-      });
-      this.state.numBytes += bytes;
+    if (!this.state.tensorInfo.has(a.dataId)) {
+      this.state.tensorInfo.set(
+          a.dataId, {dtype: a.dtype, shape: a.shape, bytes, refCount: 0});
     }
     this.state.tensorInfo.get(a.dataId).refCount++;
     if (!(a instanceof Variable)) {
@@ -855,30 +864,6 @@ export class Engine implements TensorTracker, DataMover {
     };
   }
 
-  // Forwarding to backend.
-  write(destBackend: KernelBackend, dataId: DataId, values: BackendValues):
-      void {
-    const info = this.state.tensorInfo.get(dataId);
-
-    const srcBackend = info.backend;
-    destBackend = destBackend || this.backend;
-
-    // Bytes for string tensors are counted when writing.
-    if (info.dtype === 'string') {
-      const newBytes = bytesFromStringArray(values as Uint8Array[]);
-      this.state.numBytes += newBytes - info.bytes;
-      info.bytes = newBytes;
-    }
-
-    if (destBackend !== srcBackend) {
-      // Delete the tensor from the old backend and move it to the new
-      // backend.
-      srcBackend.disposeData(dataId);
-      info.backend = destBackend;
-      destBackend.register(dataId, info.shape, info.dtype);
-    }
-    destBackend.write(dataId, values);
-  }
   readSync(dataId: DataId): BackendValues {
     // Route the read to the correct backend.
     const info = this.state.tensorInfo.get(dataId);

@@ -256,7 +256,7 @@ function rand_<R extends Rank>(
   for (let i = 0; i < size; i++) {
     values[i] = randFunction();
   }
-  return Tensor.make(shape, values, dtype);
+  return Tensor.make(values, shape, dtype) as Tensor<R>;
 }
 
 /**

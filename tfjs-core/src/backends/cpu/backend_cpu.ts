@@ -97,7 +97,7 @@ export class MathBackendCPU extends KernelBackend {
     this.data = new DataStorage(this, ENGINE);
   }
 
-  register(dataId: DataId, shape: number[], dtype: DataType): void {
+  register(values: BackendValues, shape: number[], dtype: DataType): DataId {
     if (this.firstUse) {
       this.firstUse = false;
       if (env().get('IS_NODE')) {
@@ -114,17 +114,11 @@ export class MathBackendCPU extends KernelBackend {
             '\n============================\n');
       }
     }
-    if (this.data.has(dataId)) {
-      throw new Error(`Data buffer is already registered`);
-    }
-    this.data.set(dataId, {dtype});
+    const dataId = {};
+    this.data.set(dataId, {dtype, values});
+    return dataId;
   }
-  write(dataId: DataId, values: BackendValues): void {
-    if (values == null) {
-      throw new Error('MathBackendCPU.write(): values can not be null');
-    }
-    this.data.get(dataId).values = values;
-  }
+
   fromPixels(
       pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
       HTMLVideoElement,
@@ -225,6 +219,12 @@ export class MathBackendCPU extends KernelBackend {
     return buffer(t.shape, t.dtype, decodedData) as TensorBuffer<R>;
   }
 
+  private makeTensor<T extends Tensor>(
+      values: BackendValues, shape: number[], dtype: DataType): T {
+    const dataId = this.register(values, shape, dtype);
+    return Tensor.wrap(shape, dtype, dataId) as T;
+  }
+
   disposeData(dataId: DataId): void {
     if (this.data.has(dataId)) {
       const {complexTensors} = this.data.get(dataId);
@@ -254,7 +254,7 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   complex<T extends Tensor>(real: T, imag: T): T {
-    const result = Tensor.make(real.shape, null, 'complex64');
+    const result = this.makeTensor(null, real.shape, 'complex64');
 
     const resultData = this.data.get(result.dataId);
     // The backend owns the reference to the underlying real and imaginary
@@ -781,7 +781,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = values[i] ? 0 : 1;
     }
-    return Tensor.make(x.shape, newValues, 'bool');
+    return this.makeTensor(values, x.shape, 'bool');
   }
 
   logicalAnd(a: Tensor, b: Tensor): Tensor {
@@ -980,7 +980,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = Math.ceil(values[i]);
     }
-    return Tensor.make(x.shape, newValues);
+    return this.makeTensor(newValues, x.shape, 'float32');
   }
 
   floor<T extends Tensor>(x: T): T {
@@ -991,7 +991,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = Math.floor(values[i]);
     }
-    return Tensor.make(x.shape, newValues);
+    return this.makeTensor(newValues, x.shape, 'float32');
   }
 
   sign<T extends Tensor>(x: T): T {
@@ -1008,7 +1008,7 @@ export class MathBackendCPU extends KernelBackend {
         newValues[i] = 0;
       }
     }
-    return Tensor.make(x.shape, newValues);
+    return this.makeTensor(newValues, x.shape, 'float32');
   }
 
   isNaN<T extends Tensor>(x: T): T {
@@ -1021,7 +1021,7 @@ export class MathBackendCPU extends KernelBackend {
         newValues[i] = 1;
       }
     }
-    return Tensor.make(x.shape, newValues, 'bool');
+    return this.makeTensor(newValues, x.shape, 'bool');
   }
 
   isInf<T extends Tensor>(x: T): T {
@@ -1034,7 +1034,7 @@ export class MathBackendCPU extends KernelBackend {
         newValues[i] = 1;
       }
     }
-    return Tensor.make(x.shape, newValues, 'bool');
+    return this.makeTensor(newValues, x.shape, 'bool');
   }
 
   isFinite<T extends Tensor>(x: T): T {
@@ -1047,7 +1047,7 @@ export class MathBackendCPU extends KernelBackend {
         newValues[i] = 1;
       }
     }
-    return Tensor.make(x.shape, newValues, 'bool');
+    return this.makeTensor(newValues, x.shape, 'bool');
   }
 
   round<T extends Tensor>(x: T): T {
@@ -1070,7 +1070,7 @@ export class MathBackendCPU extends KernelBackend {
         }
       }
     }
-    return Tensor.make(x.shape, newValues);
+    return this.makeTensor(newValues, x.shape, 'float32');
   }
 
   exp<T extends Tensor>(x: T): T {
@@ -1081,7 +1081,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = Math.exp(values[i]);
     }
-    return Tensor.make(x.shape, newValues);
+    return this.makeTensor(newValues, x.shape, 'float32');
   }
 
   expm1<T extends Tensor>(x: T): T {
@@ -1092,7 +1092,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = Math.expm1(values[i]);
     }
-    return Tensor.make(x.shape, newValues);
+    return this.makeTensor(newValues, x.shape, 'float32');
   }
 
   log<T extends Tensor>(x: T): T {
@@ -1104,7 +1104,7 @@ export class MathBackendCPU extends KernelBackend {
       const value = values[i];
       newValues[i] = Math.log(value);
     }
-    return Tensor.make(x.shape, newValues);
+    return this.makeTensor(newValues, x.shape, 'float32');
   }
 
   log1p<T extends Tensor>(x: T): T {
@@ -1116,7 +1116,7 @@ export class MathBackendCPU extends KernelBackend {
       const value = values[i];
       newValues[i] = Math.log1p(value);
     }
-    return Tensor.make(x.shape, newValues);
+    return this.makeTensor(newValues, x.shape, 'float32');
   }
 
   sqrt<T extends Tensor>(x: T): T {
@@ -1128,7 +1128,7 @@ export class MathBackendCPU extends KernelBackend {
       const value = values[i];
       newValues[i] = Math.sqrt(value);
     }
-    return Tensor.make(x.shape, newValues);
+    return this.makeTensor(newValues, x.shape, 'float32');
   }
 
   rsqrt<T extends Tensor>(x: T): T {
@@ -1140,7 +1140,7 @@ export class MathBackendCPU extends KernelBackend {
       const value = values[i];
       newValues[i] = 1 / Math.sqrt(value);
     }
-    return Tensor.make(x.shape, newValues);
+    return this.makeTensor(newValues, x.shape, 'float32');
   }
 
   reciprocal<T extends Tensor>(x: T): T {
@@ -1151,7 +1151,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = 1 / values[i];
     }
-    return Tensor.make(x.shape, newValues);
+    return this.makeTensor(newValues, x.shape, 'float32');
   }
 
   linear<T extends Tensor>(x: T): T {
@@ -1203,7 +1203,7 @@ export class MathBackendCPU extends KernelBackend {
         resultValues[i] = (Math.exp(v) - 1);
       }
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   eluDer<T extends Tensor>(dy: T, y: T): T {
@@ -1220,7 +1220,7 @@ export class MathBackendCPU extends KernelBackend {
         resultValues[i] = dyValues[i] * (v + 1);
       }
     }
-    return Tensor.make(y.shape, resultValues);
+    return this.makeTensor(resultValues, y.shape, 'float32');
   }
 
   selu<T extends Tensor>(x: T): T {
@@ -1241,7 +1241,7 @@ export class MathBackendCPU extends KernelBackend {
         resultValues[i] = scaleAlpha * (Math.exp(v) - 1);
       }
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   clip<T extends Tensor>(x: T, min: number, max: number): T {
@@ -1253,7 +1253,7 @@ export class MathBackendCPU extends KernelBackend {
       const v = values[i];
       resultValues[i] = v > max ? max : (v < min ? min : v);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   abs<T extends Tensor>(x: T): T {
@@ -1263,7 +1263,7 @@ export class MathBackendCPU extends KernelBackend {
       resultValues[i] = Math.abs(values[i]);
     }
 
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   complexAbs<T extends Tensor>(x: T): T {
@@ -1275,7 +1275,7 @@ export class MathBackendCPU extends KernelBackend {
       const imag = values[i * 2 + 1];
       resultValues[i] = Math.hypot(real, imag);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   int<T extends Tensor>(x: T): T {
@@ -1286,7 +1286,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = values[i];
     }
-    return Tensor.make(x.shape, resultValues, 'int32');
+    return this.makeTensor(resultValues, x.shape, 'int32');
   }
 
   sigmoid<T extends Tensor>(x: T): T {
@@ -1297,7 +1297,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = 1 / (1 + Math.exp(-values[i]));
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   softplus<T extends Tensor>(x: T): T {
@@ -1335,7 +1335,7 @@ export class MathBackendCPU extends KernelBackend {
       }
       resultValues[i] = result;
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   sin<T extends Tensor>(x: T): T {
@@ -1346,7 +1346,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.sin(values[i]);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   cos<T extends Tensor>(x: T): T {
@@ -1357,7 +1357,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.cos(values[i]);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   tan<T extends Tensor>(x: T): T {
@@ -1368,7 +1368,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.tan(values[i]);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   asin<T extends Tensor>(x: T): T {
@@ -1379,7 +1379,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.asin(values[i]);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   acos<T extends Tensor>(x: T): T {
@@ -1390,7 +1390,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.acos(values[i]);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   atan<T extends Tensor>(x: T): T {
@@ -1401,7 +1401,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.atan(values[i]);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   atan2<T extends Tensor>(a: T, b: T): T {
@@ -1420,7 +1420,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.sinh(values[i]);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   cosh<T extends Tensor>(x: T): T {
@@ -1431,7 +1431,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.cosh(values[i]);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   tanh<T extends Tensor>(x: T): T {
@@ -1442,7 +1442,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = util.tanh(values[i]);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   asinh<T extends Tensor>(x: T): T {
@@ -1453,7 +1453,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.asinh(values[i]);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   acosh<T extends Tensor>(x: T): T {
@@ -1464,7 +1464,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.acosh(values[i]);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   atanh<T extends Tensor>(x: T): T {
@@ -1475,7 +1475,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.atanh(values[i]);
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   erf<T extends Tensor>(x: T): T {
@@ -1498,7 +1498,7 @@ export class MathBackendCPU extends KernelBackend {
            (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
                Math.exp(-v * v));
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   step<T extends Tensor>(x: T, alpha = 0): T {
@@ -1514,7 +1514,7 @@ export class MathBackendCPU extends KernelBackend {
         resultValues[i] = value > 0 ? 1 : alpha;
       }
     }
-    return Tensor.make(x.shape, resultValues);
+    return this.makeTensor(resultValues, x.shape, 'float32');
   }
 
   fusedConv2d(
@@ -3818,7 +3818,7 @@ export class MathBackendCPU extends KernelBackend {
     dtype = dtype || inferDtype(value);
     const values = getArrayFromDType(dtype, sizeFromShape(shape)) as TypedArray;
     values.fill(value as number);
-    return Tensor.make(shape, values, dtype);
+    return this.makeTensor(values, shape, dtype);
   }
 
   onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
@@ -3832,7 +3832,7 @@ export class MathBackendCPU extends KernelBackend {
   zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
     const values =
         getArrayFromDType(x.dtype, sizeFromShape(x.shape)) as TypedArray;
-    return Tensor.make(x.shape, values, x.dtype);
+    return this.makeTensor(values, x.shape, x.dtype);
   }
 
   linspace(start: number, stop: number, num: number): Tensor1D {

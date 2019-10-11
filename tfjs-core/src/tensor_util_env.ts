@@ -115,7 +115,7 @@ export function convertToTensor<T extends Tensor>(
   const values = inferredDtype !== 'string' ?
       toTypedArray(x, inferredDtype as DataType, env().getBool('DEBUG')) :
       flatten(x as string[], [], skipTypedArray) as string[];
-  return Tensor.make(inferredShape, values, inferredDtype);
+  return Tensor.make(values, inferredShape, inferredDtype) as T;
 }
 
 export function convertToTensorArray<T extends Tensor>(

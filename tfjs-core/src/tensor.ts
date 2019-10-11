@@ -16,7 +16,7 @@
  */
 
 import {tensorToString} from './tensor_format';
-import {ArrayMap, BackendValues, DataType, DataTypeMap, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TensorLike3D, TensorLike4D, TypedArray} from './types';
+import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TensorLike3D, TensorLike4D, TypedArray} from './types';
 import * as util from './util';
 import {computeStrides, toNestedArray} from './util';
 
@@ -27,12 +27,7 @@ export interface TensorData<D extends DataType> {
 
 // This interface mimics KernelBackend (in backend.ts), which would create a
 // circular dependency if imported.
-export interface Backend {
-  read(dataId: object): Promise<BackendValues>;
-  readSync(dataId: object): BackendValues;
-  disposeData(dataId: object): void;
-  write(dataId: object, values: BackendValues): void;
-}
+export interface Backend {}
 
 /**
  * A mutable object, similar to `tf.Tensor`, that allows users to set values
@@ -151,16 +146,17 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
    */
   /** @doc {heading: 'Tensors', subheading: 'Creation'} */
   toTensor(): Tensor<R> {
-    return Tensor.make(this.shape, this.values, this.dtype);
+    return Tensor.make(this.values, this.shape, this.dtype) as Tensor<R>;
   }
 }
 
 export interface TensorTracker {
-  incRef(a: Tensor, backend: Backend): void;
-  register(a: Tensor, backend: Backend): void;
+  incRef(a: Tensor): void;
+  register(
+      values: BackendValues, shape: number[], dtype: DataType,
+      backend: Backend): DataId;
   disposeTensor(t: Tensor): void;
   disposeVariable(v: Variable): void;
-  write(backend: Backend, dataId: DataId, values: BackendValues): void;
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
   registerVariable(v: Variable): void;
@@ -468,22 +464,19 @@ export class Tensor<R extends Rank = Rank> {
    * with the provided shape, dtype and optionally values. It always creates a
    * new data bucket and notifies the underlying backend about the bucket.
    */
-  static make<T extends Tensor<R>, D extends DataType = 'float32',
-                                             R extends Rank = Rank>(
-      shape: ShapeMap[R], values?: DataTypeMap[D], dtype?: D,
-      backend?: Backend): T {
+  static make(
+      values: DataValues, shape: number[], dtype?: DataType,
+      backend?: Backend): Tensor {
+    if (values == null) {
+      throw new Error('values is required');
+    }
     let backendVals = values as BackendValues;
-    if (values != null && dtype === 'string' && util.isString(values[0])) {
+    if (dtype === 'string' && util.isString(values[0])) {
       backendVals = (values as string[]).map(d => util.encodeString(d));
     }
-    const dataId = {};
-    const tensor = this.wrap(shape, dtype, dataId, backend);
-    // Register the tensor in the backend.
-    trackerFn().register(tensor, backend);
-    if (backendVals != null) {
-      trackerFn().write(backend, tensor.dataId, backendVals);
-    }
-    return tensor as T;
+    // Register the tensor in the engine.
+    const dataId = trackerFn().register(backendVals, shape, dtype, backend);
+    return this.wrap(shape, dtype, dataId);
   }
 
   /**
@@ -491,11 +484,9 @@ export class Tensor<R extends Rank = Rank> {
    * that is a shallow wrapper around an existing data bucket. It doesn't create
    * a new data bucket, only increments the ref count used in memory tracking.
    */
-  static wrap(
-      shape: number[], dtype: DataType, dataId: DataId,
-      backend?: Backend): Tensor {
+  static wrap(shape: number[], dtype: DataType, dataId: DataId): Tensor {
     const tensor = new Tensor(shape, dtype, dataId);
-    trackerFn().incRef(tensor, backend);
+    trackerFn().incRef(tensor);
     return tensor;
   }
 
@@ -1496,8 +1487,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
   private constructor(
       initialValue: Tensor<R>, public trainable = true, name?: string) {
     super(initialValue.shape, initialValue.dtype, initialValue.dataId);
-    const backend: Backend = null;
-    trackerFn().incRef(this, backend);
+    trackerFn().incRef(this);
     this.name = name;
     if (this.name == null) {
       this.name = trackerFn().nextVariableId().toString();
@@ -1554,8 +1544,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
     }
     trackerFn().disposeTensor(this);
     this.dataId = newValue.dataId;
-    const backend: Backend = null;
-    trackerFn().incRef(this, backend);
+    trackerFn().incRef(this);
   }
 
   dispose(): void {
