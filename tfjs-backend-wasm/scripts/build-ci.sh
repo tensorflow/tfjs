@@ -26,6 +26,4 @@ export HOME='/root'
 source ./emsdk_env.sh
 cd ..
 
-yarn lint
 yarn build
-yarn karma start --singleRun --browsers=bs_chrome_mac
