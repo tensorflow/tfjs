@@ -13,7 +13,7 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Run tests.
+# Run browser tests.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
@@ -22,6 +22,22 @@ steps:
   waitFor: ['yarn']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
+
+# Run C++ tests.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'test-cc'
+  args: ['test-cc']
+  waitFor: ['yarn']
+
+# bundle size check
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  id: 'test-bundle-size'
+  entrypoint: 'yarn'
+  args: ['test-bundle-size']
+  waitFor: ['yarn']
 
 # General configuration
 secrets:
