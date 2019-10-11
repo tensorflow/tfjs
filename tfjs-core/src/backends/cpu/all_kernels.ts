@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,20 +15,7 @@
  * =============================================================================
  */
 
-import * as automl from '@tensorflow/tfjs-automl';
-
-const MODEL_URL =
-    'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
-
-async function run() {
-  const model = await automl.loadImageClassification(MODEL_URL);
-  const image = document.getElementById('daisy');
-  const predictions = await model.classify(image);
-
-  // Show the resulting object on the page.
-  const pre = document.createElement('pre');
-  pre.textContent = JSON.stringify(predictions, null, 2);
-  document.body.append(pre);
-}
-
-run();
+// We explicitly import the modular kernels so they get registered in the
+// global registry when we compile the library. A modular build would replace
+// the contents of this file and import only the kernels that are needed.
+import './square';
