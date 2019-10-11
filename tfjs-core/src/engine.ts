@@ -440,7 +440,7 @@ export class Engine implements TensorTracker, DataMover {
     const forwardFunc: null = null;
     const backwardsFunc: null = null;
     // Call runKernel as a stop-gap until we modularize all kernels.
-    // One we modularize all kernels, we will remove the existing runKernel().
+    // Once we modularize all kernels, we will remove the existing runKernel().
     return this.runKernel(
         forwardFunc, inputs as NamedTensorMap, backwardsFunc, kernelName,
         attrs);

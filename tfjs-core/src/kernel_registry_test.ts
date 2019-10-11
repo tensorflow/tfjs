@@ -101,5 +101,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
 
     tf.removeBackend('backend1');
     tf.removeBackend('backend2');
+    tf.unregisterKernel('MyKernel', 'backend1');
+    tf.unregisterKernel('MyKernel', 'backend2');
   });
 });
