@@ -90,35 +90,35 @@ export interface BackendTimer {
  */
 export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   time(f: () => void): Promise<BackendTimingInfo> {
-    throw new Error('Not yet implemented.');
+    return notYetImplemented();
   }
   read(dataId: object): Promise<BackendValues> {
-    throw new Error('Not yet implemented.');
+    return notYetImplemented();
   }
   readSync(dataId: object): BackendValues {
-    throw new Error('Not yet implemented.');
+    return notYetImplemented();
   }
   disposeData(dataId: object): void {
-    throw new Error('Not yet implemented.');
+    return notYetImplemented();
   }
   write(dataId: object, values: BackendValues): void {
-    throw new Error('Not yet implemented.');
+    return notYetImplemented();
   }
   fromPixels(
       pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
       HTMLVideoElement,
       numChannels: number): Tensor<Rank.R3> {
-    throw new Error('Not yet implemented.');
+    return notYetImplemented();
   }
   register(dataId: object, shape: number[], dtype: DataType): void {
-    throw new Error('Not yet implemented.');
+    return notYetImplemented();
   }
   memory(): {unreliable: boolean; reasons?: string[]} {
-    throw new Error('Not yet implemented.');
+    return notYetImplemented();
   }
   /** Returns the highest precision for floats in bits (e.g. 16 or 32) */
   floatPrecision(): 16|32 {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   /** Returns the smallest representable number.  */
   epsilon(): number {
@@ -128,489 +128,489 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   batchMatMul(
       a: Tensor3D, b: Tensor3D, transposeA: boolean,
       transposeB: boolean): Tensor3D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   fusedBatchMatMul(
       {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
           FusedBatchMatMulConfig): Tensor3D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   stridedSlice<T extends Tensor>(
       x: T, begin: number[], end: number[], strides: number[]): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   unstack(x: Tensor, axis: number): Tensor[] {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   reverse<T extends Tensor>(a: T, axis: number[]): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   concat(tensors: Tensor[], axis: number): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   neg<T extends Tensor>(a: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   add(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   addN<T extends Tensor>(tensors: T[]): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   subtract(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   multiply(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   realDivide(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   floorDiv(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   sum(x: Tensor, axes: number[]): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   prod(x: Tensor, axes: number[]): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   argMin(x: Tensor, axis: number): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   argMax(x: Tensor, axis: number): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   equal(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   notEqual(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   less(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   lessEqual(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   greater(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   greaterEqual(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   logicalNot<T extends Tensor>(a: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   logicalAnd(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   logicalOr(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   where(condition: Tensor): Tensor2D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   topk<T extends Tensor>(x: T, k: number, sorted: boolean): [T, T] {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   min(x: Tensor, axes: number[]): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   minimum(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   mod(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   max(x: Tensor, axes: number[]): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   maximum(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   all(x: Tensor, axes: number[]): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   any(x: Tensor, axes: number[]): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   squaredDifference(a: Tensor, b: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   ceil<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   floor<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   round<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   sign<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   isNaN<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   isInf<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   isFinite<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   pow<T extends Tensor>(a: T, b: Tensor): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   exp<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   expm1<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   log<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   log1p<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   sqrt<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   rsqrt<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   square<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   reciprocal<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   relu<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   relu6<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   prelu<T extends Tensor>(x: T, a: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   elu<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   eluDer<T extends Tensor>(dy: T, y: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   selu<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   int<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   clip<T extends Tensor>(x: T, min: number, max: number): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   abs<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   complexAbs<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   sigmoid<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   softplus<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   sin<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   cos<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   tan<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   asin<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   acos<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   atan<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   atan2<T extends Tensor>(a: T, b: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   sinh<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   cosh<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   tanh<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   asinh<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   acosh<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   atanh<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   erf<T extends Tensor>(x: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   step<T extends Tensor>(x: T, alpha: number): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   fusedConv2d(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
           FusedConv2DConfig): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   conv2dDerFilter(x: Tensor4D, dY: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   fusedDepthwiseConv2D(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
           FusedConv2DConfig): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   depthwiseConv2D(input: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   depthwiseConv2DDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   depthwiseConv2DDerFilter(x: Tensor4D, dY: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   conv3d(x: Tensor5D, filter: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   conv3dDerInput(dy: Tensor5D, filter: Tensor5D, convInfo: Conv3DInfo):
       Tensor5D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   conv3dDerFilter(x: Tensor5D, dY: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   maxPoolBackprop(dy: Tensor4D, x: Tensor4D, y: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   avgPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   avgPool3d(x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   avgPool3dBackprop(dy: Tensor5D, x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   maxPool3d(x: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   maxPool3dBackprop(
       dy: Tensor5D, x: Tensor5D, y: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   reshape<T extends Tensor, R extends Rank>(x: T, shape: ShapeMap[R]):
       Tensor<R> {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   cast<T extends Tensor>(x: T, dtype: DataType): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   tile<T extends Tensor>(x: T, reps: number[]): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   pad<T extends Tensor>(
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   transpose<T extends Tensor>(x: T, perm: number[]): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   gatherND(x: Tensor, indices: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   scatterND<R extends Rank>(
       indices: Tensor, updates: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   batchToSpaceND<T extends Tensor>(
       x: T, blockShape: number[], crops: number[][]): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   spaceToBatchND<T extends Tensor>(
       x: T, blockShape: number[], paddings: number[][]): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   resizeBilinear(
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   resizeBilinearBackprop(dy: Tensor4D, x: Tensor4D, alignCorners: boolean):
       Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   resizeNearestNeighbor(
       x: Tensor4D, newHEight: number, newWidth: number,
       alignCorners: boolean): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   resizeNearestNeighborBackprop(
       dy: Tensor4D, x: Tensor4D, alignCorners: boolean): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   batchNormalization(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
       varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
       offset?: Tensor4D|Tensor1D): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   localResponseNormalization4D(
       x: Tensor4D, radius: number, bias: number, alpha: number,
       beta: number): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   LRNGrad(
       dy: Tensor4D, inputImage: Tensor4D, outputImage: Tensor4D, radius: number,
       bias: number, alpha: number, beta: number): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   multinomial(
       logits: Tensor2D, normalized: boolean, numSamples: number,
       seed: number): Tensor2D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
       Tensor2D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   cumsum(x: Tensor, axis: number, exclusive: boolean, reverse: boolean):
       Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   nonMaxSuppression(
       boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
       iouThreshold: number, scoreThreshold?: number): Tensor1D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   fft(x: Tensor2D): Tensor2D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   ifft(x: Tensor2D): Tensor2D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   complex<T extends Tensor>(real: T, imag: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   real<T extends Tensor>(input: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
   imag<T extends Tensor>(input: T): T {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   cropAndResize(
       image: Tensor4D, boxes: Tensor2D, boxIndex: Tensor1D,
       cropSize: [number, number], method: 'bilinear'|'nearest',
       extrapolationValue: number): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   rotate(
@@ -621,22 +621,22 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   }
 
   depthToSpace(x: Tensor4D, blockSize: number, dataFormat: string): Tensor4D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   // Aligns with the "SplitV" kernel in TensorFlow.
   split<T extends Tensor>(value: T, sizeSplits: number[], axis: number): T[] {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   sparseToDense<R extends Rank>(
       sparseIndices: Tensor, sparseValues: Tensor, outputShape: ShapeMap[R],
       defaultValue: Scalar): Tensor<R> {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   diag(x: Tensor): Tensor {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   fill<R extends Rank>(
@@ -645,18 +645,24 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   }
 
   onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   linspace(start: number, stop: number, num: number): Tensor1D {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
 
   dispose(): void {
-    throw new Error('Not yet implemented');
+    return notYetImplemented();
   }
+}
+
+function notYetImplemented(): never {
+  throw new Error(
+      'Not yet implemented or not found in the registry. ' +
+      'Did you forget to import the kernel?');
 }

@@ -36,6 +36,8 @@ export type BackendWasmModule = EmscriptenModule&{
         rightDim: number, batchDim: number, aBatch: number, aOuterStep: number,
         aInnerStep: number, bBatch: number, bOuterStep: number,
         bInnerStep: number, outId: number): void,
+
+    prelu(xId: number, xSize: number, weightsId: number, outId: number): void,
   }
 };
 

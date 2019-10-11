@@ -350,30 +350,6 @@ function rsqrt_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes square of `x` element-wise: `x ^ 2`
- *
- * ```js
- * const x = tf.tensor1d([1, 2, Math.sqrt(2), -1]);
- *
- * x.square().print();  // or tf.square(x)
- * ```
- * @param x The input Tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function square_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'square');
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    return {$x: () => dy.mul($x.toFloat().mul(2))} as {$x: () => T};
-  };
-  return ENGINE.runKernel((backend, save) => {
-    save([$x]);
-    return backend.square($x);
-  }, {$x}, grad);
-}
-
-/**
  * Computes reciprocal of x element-wise: `1 / x`
  *
  * ```js
@@ -940,7 +916,6 @@ export const sin = op({sin_});
 export const sinh = op({sinh_});
 export const softplus = op({softplus_});
 export const sqrt = op({sqrt_});
-export const square = op({square_});
 export const step = op({step_});
 export const tan = op({tan_});
 export const tanh = op({tanh_});

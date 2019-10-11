@@ -2214,8 +2214,8 @@ describeMathCPUAndGPU('Sequential', () => {
   it('getConfig returns an Array', () => {
     const model = tfl.sequential({layers});
     const config = model.getConfig();
-    expect(Array.isArray(config)).toEqual(true);
-    expect(config.length).toEqual(layers.length);
+    expect(Array.isArray(config.layers)).toEqual(true);
+    expect(config.layers.length).toEqual(layers.length);
   });
 });
 
