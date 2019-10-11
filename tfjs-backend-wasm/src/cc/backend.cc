@@ -64,24 +64,7 @@ void register_tensor(int data_id, int *shape_ptr, int shape_length, DType dtype,
 }
 
 EMSCRIPTEN_KEEPALIVE
-void dispose_data(int data_id) {
-  TensorInfo info = data.at(data_id);
-  switch (info.dtype) {
-    case DType::float32:
-      free(info.buf.f32);
-      break;
-    case DType::int32:
-      free(info.buf.i32);
-      break;
-    case DType::boolean:
-      free(info.buf.b);
-      break;
-    default:
-      util::warn("Dispose for tensor id %d failed. Unknown dtype %d", data_id,
-                 info.dtype);
-  }
-  data.erase(data_id);
-}
+void dispose_data(int data_id) { data.erase(data_id); }
 
 EMSCRIPTEN_KEEPALIVE
 void dispose() {

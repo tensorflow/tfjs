@@ -70,6 +70,7 @@ export class BackendWasm extends KernelBackend {
 
   disposeData(dataId: DataId) {
     const data = this.dataIdMap.get(dataId);
+    this.wasm._free(data.memoryOffset);
     this.wasm.tfjs.disposeData(data.id);
     this.dataIdMap.delete(dataId);
   }
