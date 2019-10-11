@@ -36,7 +36,7 @@ exec(
 
 shell.cd(dirName);
 shell.cd(wasmDirName);
-exec(`yarn && yarn build && yarn rollup -c`, {silent: false});
+exec(`yarn && ./scripts/build-ci.sh && rollup -c`, {silent: false});
 
 const masterMinBundleSize = getFileSizeBytes(bundleFilename);
 const masterWasmSize = getFileSizeBytes(wasmFileName);
