@@ -216,6 +216,12 @@ describeWithFlags('nonMaxSuppressionAsync', ALL_ENVS, () => {
   });
 });
 
+describeWithFlags('rotate', ALL_ENVS, () => {
+  it('basic', async () => {
+
+  });
+});
+
 describeWithFlags('cropAndResize', ALL_ENVS, () => {
   it('1x1-bilinear', async () => {
     const image: tf.Tensor4D = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
