@@ -38,6 +38,7 @@ function summarize(argv: string[]) {
   }
 
   console.log(opCount);
+  console.log('Total ops = ' + nodes.length);
 }
 
 summarize(process.argv);
