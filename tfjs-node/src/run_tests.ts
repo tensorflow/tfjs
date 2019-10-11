@@ -89,7 +89,7 @@ if (process.platform === 'win32') {
 }
 
 const coreTests = 'node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
-const nodeTests = 'src/**/image_test.ts';
+const nodeTests = 'src/**/*_test.ts';
 
 const runner = new jasmineCtor();
 runner.loadConfig({spec_files: [coreTests, nodeTests], random: false});
