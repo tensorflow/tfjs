@@ -28,6 +28,8 @@ export const SUB = 'return a - b;';
 export const DIV = 'return a / b;';
 export const GREATER = 'return float(a > b);';
 export const GREATER_EQUAL = 'return float(a >= b);';
+export const LESS = `return float(a < b);`;
+export const LESS_EQUAL = `return float(a <= b);`;
 
 export const INT_DIV = `
   float s = sign(a) * sign(b);

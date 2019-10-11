@@ -144,8 +144,7 @@ export function backpropagateGradients(
         // This particular output is not in the back-propagation subgraph, so it
         // does not affect the final output, thus we put zeros for its dy.
         const dy = Tensor.make(
-            o.shape, {values: util.makeZerosTypedArray(o.size, o.dtype)},
-            o.dtype);
+            o.shape, util.makeZerosTypedArray(o.size, o.dtype), o.dtype);
         dys.push(dy);
       }
     });
