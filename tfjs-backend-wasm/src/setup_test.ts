@@ -23,7 +23,7 @@ setTestEnvs([{name: 'test-wasm', backendName: 'wasm', isDataSync: true}]);
 const env = jasmine.getEnv();
 
 /** Tests that have these substrings in their name will be included. */
-const INCLUDE_LIST: string[] = ['add ', 'matmul '];
+const INCLUDE_LIST: string[] = ['add ', 'matmul ', 'prelu '];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
   'complex',                    // Complex numbers not yet implemented.
@@ -33,10 +33,14 @@ const EXCLUDE_LIST: string[] = [
   'broadcasting same rank Tensors different shape',  // Same as above.
   'upcasts when dtypes dont match',  // Uses the 'complex' dtype.
 
+  // batchMatMul
   'valueAndGradients',       // Gradients not defined yet
   'fused matmul',            // Fused kernels aren't ready yet
   'zero in its shape',       // Zero in shapes aren't supported yet
   'matmul followed by mul',  // mul not supported yet
+
+  // prelu
+  'prelu test-wasm undefined derivative',
 ];
 
 /**
