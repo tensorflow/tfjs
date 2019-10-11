@@ -29,4 +29,5 @@ cd ..
 yarn
 yarn lint
 yarn build
+yarn test-cc
 yarn karma start --singleRun --browsers=bs_chrome_mac

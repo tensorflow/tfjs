@@ -126,6 +126,7 @@
     "locale": "cpp",
     "queue": "cpp",
     "stack": "cpp",
-    "*.ipp": "cpp"
+    "*.ipp": "cpp",
+    "forward_list": "cpp"
   }
 }
