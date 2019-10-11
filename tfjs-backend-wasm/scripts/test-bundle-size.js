@@ -28,15 +28,15 @@ const wasmSize = getFileSizeBytes(wasmFileName);
 
 // Clone master and get the bundle size from master.
 const dirName = '/tmp/tfjs-backend-wasm-bundle';
-const coreDirName = 'tfjs-backend-wasm';
+const wasmDirName = 'tfjs-backend-wasm';
 exec(
     `git clone --depth=1 --single-branch ` +
         `https://github.com/tensorflow/tfjs ${dirName}`,
     {silent: true});
 
 shell.cd(dirName);
-shell.cd(coreDirName);
-exec(`yarn && yarn build && yarn rollup -c`, {silent: true});
+shell.cd(wasmDirName);
+exec(`yarn && yarn build && yarn rollup -c`, {silent: false});
 
 const masterMinBundleSize = getFileSizeBytes(bundleFilename);
 const masterWasmSize = getFileSizeBytes(wasmFileName);
