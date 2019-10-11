@@ -63,8 +63,10 @@ export async function readSavedModelProto(path: string) {
 export async function inspectSavedModel(path: string):
     Promise<MetaGraphInfo[]> {
   const result: MetaGraphInfo[] = [];
+
   // Get SavedModel proto message
   const modelMessage = await readSavedModelProto(path);
+
   // A SavedModel might have multiple MetaGraphs, identified by tags. Each
   // MetaGraph also has it's own signatureDefs.
   const metaGraphList = modelMessage.getMetaGraphsList();
@@ -73,16 +75,20 @@ export async function inspectSavedModel(path: string):
     const tags = metaGraphList[i].getMetaInfoDef().getTagsList();
     metaGraph.tags = tags;
 
+    // Each MetaGraph has it's own signatureDefs map.
     const signatureDef: SignatureDefInfo = {};
     const signatureDefMap = metaGraphList[i].getSignatureDefMap();
     const signatureDefKeys = signatureDefMap.keys();
+
+    // Go through all signatureDefs
     while (true) {
       const key = signatureDefKeys.next();
       if (key.done) {
         break;
       }
       const signatureDefEntry = signatureDefMap.get(key.value);
-      // inputs
+
+      // Get all input tensors information
       const inputsMapMessage = signatureDefEntry.getInputsMap();
       const inputsMapKeys = inputsMapMessage.keys();
       const inputs: SavedModelTensorInfo[] = [];
@@ -99,7 +105,8 @@ export async function inspectSavedModel(path: string):
         inputTensorInfo.shape = inputTensor.getTensorShape().getDimList();
         inputs.push(inputTensorInfo);
       }
-      // outputs
+
+      // Get all output tensors information
       const outputsMapMessage = signatureDefEntry.getOutputsMap();
       const outputsMapKeys = outputsMapMessage.keys();
       const outputs: SavedModelTensorInfo[] = [];
@@ -139,7 +146,7 @@ export interface MetaGraphInfo {
  */
 export interface SignatureDefInfo {
   [key: string]:
-      {inputs: SavedModelTensorInfo[]; outputs: SavedModelTensorInfo[];}
+      {inputs: SavedModelTensorInfo[]; outputs: SavedModelTensorInfo[];};
 }
 
 /**
