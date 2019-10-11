@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
+// Modularized ops.
+export {square} from './square';
+
 export * from './batchnorm';
 export * from './boolean_mask';
 export * from './complex_ops';
