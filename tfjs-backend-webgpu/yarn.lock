@@ -28,10 +28,10 @@
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.2.8.tgz#86fa47be3e92a90d4191956f08015a17b93c3ef9"
   integrity sha512-weHzkNRVgnY9TcbA3XTneNgCyuIXLjF8ks8YbFA+81i2w6qO90xiAdWtP2YmR+F9K9S4WR3bSSB0AQKZAp+mPQ==
 
-"@tensorflow/tfjs-core@1.2.9":
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.2.9.tgz#125830270a0bdd0e856914778a300c4ad6f51e21"
-  integrity sha512-s0hHZSx6rGTlkkB8u8gs5n7sIPv1GXDNHmISRy+kqGzmlpkfI2kr6WXqOWQy6wFgjzopRD8cJQjBZ9USPZnYTQ==
+"@tensorflow/tfjs-core@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.2.11.tgz#6bd870338cece217610613600ed4c20fdd13e201"
+  integrity sha512-guqqD5bb5BTaTvUVWhG1xCXB0NuA5rv0indSEEOpMfqqBvtSwKp02heDGDcPOSUnmdB8V/HJbcyX2wRBXztQpA==
   dependencies:
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"

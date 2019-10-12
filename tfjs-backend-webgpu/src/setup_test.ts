@@ -21,7 +21,7 @@ import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 setTestEnvs([{
   name: 'test-webgpu',
   backendName: 'webgpu',
-  flags: {},
+  flags: {'WEBGPU_CPU_FORWARD': false},
   isDataSync: false,
 }]);
 
@@ -30,9 +30,10 @@ const grepFilter = env.specFilter;
 
 /** Tests that have these substrings in their name will be included. */
 const INCLUDE_LIST: string[] = [
-  'matmul', 'add ', 'subtract ', 'mul ', 'conv2d', 'pad', 'pool', 'maxPool',
-  'floor divide ', 'resizeBilinear', 'relu', 'transpose', 'concat', 'argmax',
-  'fromPixels', 'depthwise', 'div', 'greater', 'clip', 'less'
+  'matmul',    'add ',      'subtract ', 'mul ',          'conv2d',
+  'pad',       'pool',      'maxPool',   'floor divide ', 'resizeBilinear',
+  'relu',      'transpose', 'concat',    'argmax',        'fromPixels',
+  'depthwise', 'div',       'greater',   'clip',          'less'
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
@@ -80,8 +81,18 @@ const EXCLUDE_LIST: string[] = [
   'maxPool3d',                                           // Not yet implemented.
   'frame',                                               // Not yet implemented.
   'HTMLVideolement',
-  'works with 0 sized tensors',                          // AbortError.
-  'NaNs in Tensor'                                       // Not yet implemented.
+  'works with 0 sized tensors',  // AbortError.
+  'NaNs in Tensor',              // Not yet implemented.
+  'oneHot',                      // Not yet implemented.
+  'pad1d',                       // Not yet implemented.
+  'pad2d',                       // Not yet implemented.
+  'derivative: 1D tensor',       // Clip test - logicalAnd not
+                                 // yet implemented.
+  'derivative: scalar',          // Clip test - logicalAnd not yet implemented.
+  'derivate with primitive as input',  // Clip test - logicalAnd not yet
+                                       // implemented.
+  'accepts tensor with bool values',   // Not yet implemented.
+  'propagates NaNs'                    // max(NaN, 0.) in relu produces 0.
 ];
 
 /**
