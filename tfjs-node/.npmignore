@@ -10,7 +10,7 @@ scripts/publish-npm.sh
 build/
 integration/
 node_modules/
-test_images/
+test_objects/
 *.tgz
 .travis.yml
 .npmignore

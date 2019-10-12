@@ -50,7 +50,7 @@ export function castTensor<T extends Tensor>(
   if (!hasEncodingLoss(x.dtype, dtype)) {
     // We don't change the underlying data, since we cast to higher
     // precision.
-    return Tensor.make(x.shape, {dataId: x.dataId}, dtype);
+    return Tensor.wrap(x.shape, dtype, x.dataId) as T;
   }
   if (x.dtype === 'complex64') {
     const real = backend.real(x);
@@ -72,7 +72,7 @@ export function castTensor<T extends Tensor>(
 
 export function reshapeTensor<T extends Tensor, R extends Rank>(
     x: T, shape: ShapeMap[R]): Tensor<R> {
-  return Tensor.make(shape, {dataId: x.dataId}, x.dtype);
+  return Tensor.wrap(shape, x.dtype, x.dataId) as Tensor<R>;
 }
 
 export function linspaceImpl(start: number, stop: number, num: number) {
