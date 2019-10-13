@@ -17,7 +17,6 @@
 
 import {ENGINE} from '../engine';
 import {env} from '../environment';
-
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor6D} from '../tensor';
 import {convertToTensor, inferShape} from '../tensor_util_env';
 import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TensorLike6D, TypedArray} from '../types';
@@ -447,7 +446,9 @@ function zeros<R extends Rank>(
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function fill<R extends Rank>(
     shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-  return ENGINE.runKernel(backend => backend.fill(shape, value, dtype), {});
+  const fillValue = scalar(value);
+  dtype = dtype || inferDtype(value);
+  return ENGINE.runKernel(backend => backend.fill(shape, fillValue, dtype), {});
 }
 
 /**

@@ -16,32 +16,37 @@
  */
 
 import {BackendTimer} from './backends/backend';
-import {Tensor} from './tensor';
+import {TensorInfo} from './kernel_registry';
+import {DataId} from './tensor';
 import {NamedTensorMap} from './tensor_types';
-import {DataType, DataTypeMap, TypedArray} from './types';
+import {BackendValues, DataType} from './types';
 import * as util from './util';
+import {sizeFromShape} from './util';
 
 export class Profiler {
-  constructor(private backendTimer: BackendTimer, private logger?: Logger) {
+  constructor(
+      private backendTimer: BackendTimer,
+      private dataReader: (dataId: DataId) => Promise<BackendValues>,
+      private logger?: Logger) {
     if (logger == null) {
       this.logger = new Logger();
     }
   }
 
-  profileKernel<T extends Tensor|Tensor[]>(
-      kernelName: string, inputs: NamedTensorMap, f: () => T | Tensor[]): T {
-    let result: T|Tensor[];
+  profileKernel<T extends TensorInfo|TensorInfo[]>(
+      kernelName: string, inputs: NamedTensorMap, f: () => T): T {
+    let result: T;
     const holdResultWrapperFn = () => {
       result = f();
     };
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
-    const results: Tensor[] =
-        Array.isArray(result) ? result : [result] as Tensor[];
+    const results: TensorInfo[] =
+        (Array.isArray(result) ? result : [result]) as TensorInfo[];
     results.forEach(r => {
       // Dangling promise here because we don't want to propagate up
       // asynchronicity.
-      r.data().then(vals => {
+      this.dataReader(r.dataId).then(vals => {
         checkComputationForErrors(vals, r.dtype, kernelName);
 
         timer.then(timing => {
@@ -56,12 +61,12 @@ export class Profiler {
       });
     });
 
-    return result as T;
+    return result;
   }
 }
 
-export function checkComputationForErrors<D extends DataType>(
-    vals: DataTypeMap[D], dtype: D, kernelName: string): boolean {
+export function checkComputationForErrors(
+    vals: BackendValues, dtype: DataType, kernelName: string): boolean {
   if (dtype !== 'float32') {
     // Only floating point computations will generate NaN values
     return false;
@@ -79,12 +84,12 @@ export function checkComputationForErrors<D extends DataType>(
 
 export class Logger {
   logKernelProfile(
-      name: string, result: Tensor, vals: TypedArray, timeMs: number,
+      name: string, result: TensorInfo, vals: BackendValues, timeMs: number,
       inputs: NamedTensorMap, extraInfo?: string) {
     const time = util.rightPad(`${timeMs}ms`, 9);
     const paddedName = util.rightPad(name, 25);
-    const rank = result.rank;
-    const size = result.size;
+    const rank = result.shape.length;
+    const size = sizeFromShape(result.shape);
     const shape = util.rightPad(result.shape.toString(), 14);
     let inputShapesDescription = '';
 

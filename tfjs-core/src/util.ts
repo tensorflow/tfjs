@@ -16,8 +16,7 @@
  */
 
 import {env} from './environment';
-
-import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
+import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
@@ -403,8 +402,8 @@ export function getTypedArrayFromDType<D extends NumericDataType>(
   return values as DataTypeMap[D];
 }
 
-export function getArrayFromDType<D extends DataType>(
-    dtype: D, size: number): DataTypeMap[D] {
+export function getArrayFromDType(
+    dtype: DataType, size: number): BackendValues {
   let values = null;
   if (dtype == null || dtype === 'float32') {
     values = new Float32Array(size);
@@ -413,11 +412,11 @@ export function getArrayFromDType<D extends DataType>(
   } else if (dtype === 'bool') {
     values = new Uint8Array(size);
   } else if (dtype === 'string') {
-    values = new Array<'string'>(size);
+    values = new Array<Uint8Array>(size);
   } else {
     throw new Error(`Unknown data type ${dtype}`);
   }
-  return values as DataTypeMap[D];
+  return values;
 }
 
 export function checkConversionForErrors<D extends DataType>(

@@ -16,6 +16,7 @@
  */
 
 import {BackendTimer, BackendTimingInfo} from './backends/backend';
+import {ENGINE} from './engine';
 import * as tf from './index';
 import {describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
 import {checkComputationForErrors, Logger, Profiler} from './profiler';
@@ -50,7 +51,7 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
     const extraInfo = '';
     const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
     const logger = new TestLogger();
-    const profiler = new Profiler(timer, logger);
+    const profiler = new Profiler(timer, dataId => ENGINE.read(dataId), logger);
 
     spyOn(timer, 'time').and.callThrough();
     spyOn(logger, 'logKernelProfile').and.callThrough();
@@ -89,7 +90,7 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
     const extraInfo = '';
     const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
     const logger = new TestLogger();
-    const profiler = new Profiler(timer, logger);
+    const profiler = new Profiler(timer, dataId => ENGINE.read(dataId), logger);
 
     spyOn(timer, 'time').and.callThrough();
     spyOn(logger, 'logKernelProfile').and.callThrough();

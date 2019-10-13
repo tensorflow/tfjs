@@ -38,7 +38,7 @@ import {computeFlatOffset, computeOutShape, isSliceContinous} from '../../ops/sl
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../../tensor';
 import {BackendValues, DataType, DataValues, NumericDataType, PixelData, Rank, ShapeMap, TypedArray, upcastType} from '../../types';
 import * as util from '../../util';
-import {getArrayFromDType, inferDtype, now, sizeFromShape} from '../../util';
+import {getArrayFromDType, now, sizeFromShape} from '../../util';
 import {BackendTimingInfo, DataStorage, EPSILON_FLOAT32, KernelBackend} from '../backend';
 import * as backend_util from '../backend_util';
 import * as complex_util from '../complex_util';
@@ -85,6 +85,7 @@ export class MathBackendCPU extends KernelBackend {
   private fromPixels2DContext: CanvasRenderingContext2D|
       OffscreenCanvasRenderingContext2D;
   private firstUse = true;
+  private dataSize = 0;
 
   constructor() {
     super();
@@ -96,6 +97,16 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
     this.data = new DataStorage(this, ENGINE);
+  }
+
+  numBuckets(): number {
+    return this.dataSize;
+  }
+
+  move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
+      void {
+    this.dataSize++;
+    this.data.set(dataId, {dtype, values});
   }
 
   register(values: BackendValues, shape: number[], dtype: DataType): DataId {
@@ -116,6 +127,7 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
     const dataId = {};
+    this.dataSize++;
     this.data.set(dataId, {dtype, values});
     return dataId;
   }
@@ -223,6 +235,7 @@ export class MathBackendCPU extends KernelBackend {
   private makeTensor<T extends TensorInfo>(
       values: BackendValues, shape: number[], dtype: DataType): T {
     const dataId = storeData(this.data, dtype, values);
+    this.dataSize++;
     return {shape, dtype, dataId} as T;
   }
 
@@ -233,6 +246,7 @@ export class MathBackendCPU extends KernelBackend {
         complexTensors.real.dispose();
         complexTensors.imag.dispose();
       }
+      this.dataSize--;
       this.data.delete(dataId);
     }
   }
@@ -2238,11 +2252,14 @@ export class MathBackendCPU extends KernelBackend {
         array_ops_util.getSliceBeginCoords(crops, blockShape.length);
     const sliceSize =
         array_ops_util.getSliceSize(reshapedPermuted, crops, blockShape.length);
-
-    return x.reshape(reshaped)
-               .transpose(permuted)
-               .reshape(reshapedPermuted)
-               .slice(sliceBeginCoords, sliceSize) as T;
+    const xReshaped = this.reshape(x, reshaped);
+    const xTransposed = this.transpose(xReshaped, permuted);
+    const xReshaped2 = this.reshape(xTransposed, reshapedPermuted);
+    const xSliced = this.slice(xReshaped2, sliceBeginCoords, sliceSize);
+    this.disposeData(xReshaped);
+    this.disposeData(xTransposed);
+    this.disposeData(xReshaped2);
+    return xSliced as T;
   }
 
   spaceToBatchND<T extends Tensor>(
@@ -2860,11 +2877,21 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   cast<T extends Tensor>(x: T, dtype: DataType): T {
-    return backend_util.castTensor(x, dtype, this);
+    const dataIds: DataId[] = [];
+    const makeZeros = (shape: number[], dtype: DataType) => {
+      const vals =
+          util.makeZerosTypedArray(sizeFromShape(shape), dtype) as TypedArray;
+      const info = this.makeTensor(vals, shape, dtype);
+      dataIds.push(info.dataId);
+      return info;
+    };
+    const res = backend_util.castTensor(x, dtype, this, makeZeros) as T;
+    dataIds.forEach(dataId => this.disposeData(dataId));
+    return res;
   }
 
   reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    return backend_util.reshapeTensor(x, shape);
+    return {dataId: x.dataId, shape, dtype: x.dtype} as Tensor<R>;
   }
 
   avgPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
@@ -3814,11 +3841,12 @@ export class MathBackendCPU extends KernelBackend {
         strides, defaultValue, sumDupeIndices);
   }
 
-  fill<R extends Rank>(
-      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-    dtype = dtype || inferDtype(value);
-    const values = getArrayFromDType(dtype, sizeFromShape(shape)) as TypedArray;
-    values.fill(value as number);
+  fill<R extends Rank>(shape: ShapeMap[R], value: Scalar, dtype: DataType):
+      Tensor<R> {
+    const size = sizeFromShape(shape);
+    const val = this.readSync(value.dataId);
+    const values = getArrayFromDType(dtype, size);
+    values.fill(val[0] as number & Uint8Array);
     return this.makeTensor(values, shape, dtype);
   }
 
@@ -3826,7 +3854,10 @@ export class MathBackendCPU extends KernelBackend {
     if (x.dtype === 'string') {
       throw new Error('onesLike is not supported for string tensors');
     } else {
-      return this.fill(x.shape, 1, x.dtype);
+      const one = this.makeTensor(new Float32Array([1]), [], 'float32');
+      const res = this.fill(x.shape, one as Scalar, x.dtype);
+      this.disposeData(one.dataId);
+      return res;
     }
   }
 

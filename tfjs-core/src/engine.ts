@@ -241,7 +241,8 @@ export class Engine implements TensorTracker, DataMover {
     this.backendInstance = this.registry[backendName];
 
     // Reset the profiler.
-    this.profiler = new Profiler(this.backendInstance);
+    this.profiler =
+        new Profiler(this.backendInstance, dataId => this.read(dataId));
 
     return true;
   }
@@ -364,11 +365,8 @@ export class Engine implements TensorTracker, DataMover {
       // backend.
       srcBackend.disposeData(dataId);
       info.backend = destBackend;
-      const newDataId = destBackend.register(values, info.shape, info.dtype);
+      destBackend.move(dataId, values, info.shape, info.dtype);
     }
-    destBackend.write(dataId, values);
-
-    this.write(destBackend, dataId, this.readSync(dataId));
   }
 
   tidy<T extends TensorContainer>(nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>):
@@ -436,7 +434,7 @@ export class Engine implements TensorTracker, DataMover {
    * execution.
    */
   private clone(x: Tensor): Tensor {
-    const y = this.makeTensor(x.shape, x.dtype, x.dataId);
+    const y = this.makeTensor(x);
     this.addTapeNode([x], y, dy => [dy.toFloat()]);
     return y;
   }
@@ -488,6 +486,7 @@ export class Engine implements TensorTracker, DataMover {
         () => kernel({inputs, attrs, storage: this.backend, save: saveFunc}) :
         () => forwardFunc(this.backend, saveFunc);
 
+    const numBucketsBefore = this.backend.numBuckets();
     // Stop recording to a tape when running a kernel.
     this.scopedRun(
         () => this.state.kernelDepth++, () => this.state.kernelDepth--, () => {
@@ -499,8 +498,12 @@ export class Engine implements TensorTracker, DataMover {
           }
         });
     const outputInfos = Array.isArray(result) ? result : [result];
+    const numBucketsAfter = this.backend.numBuckets();
+    if (numBucketsAfter > numBucketsBefore + outputInfos.length) {
+      throw new Error('Internal backend memory leak');
+    }
     const outputs = outputInfos.map(info => {
-      return Tensor.wrap(info.shape, info.dtype, info.dataId);
+      return this.makeTensor(info, this.backend, null /* values */);
     });
     if (isTapeOn) {
       const tapeNode: TapeNode = {
@@ -528,7 +531,7 @@ export class Engine implements TensorTracker, DataMover {
       });
     }
 
-    return result;
+    return (outputs.length === 1 ? outputs[0] : outputs) as T;
   }
 
   // TensorManager implementation.
@@ -544,28 +547,7 @@ export class Engine implements TensorTracker, DataMover {
       backendVals = (values as string[]).map(d => util.encodeString(d));
     }
     const dataId = backend.register(backendVals, shape, dtype);
-    return this.makeTensorFromNewData(
-        dataId, shape, dtype, backendVals, backend);
-  }
-
-  private makeTensorFromNewData(
-      dataId: DataId, shape: number[], dtype: DataType, values: BackendValues,
-      backend: KernelBackend): Tensor {
-    // Bytes for complex numbers are counted by their components. Bytes for
-    // string tensors are counted differently below.
-    let bytes = 0;
-    if (dtype !== 'complex64' && dtype !== 'string') {
-      bytes = sizeFromShape(shape) * util.bytesPerElement(dtype);
-    }
-    // Bytes for string tensors.
-    if (dtype === 'string' && values != null) {
-      bytes = bytesFromStringArray(values as Uint8Array[]);
-    }
-    this.state.tensorInfo.set(
-        dataId, {backend, dtype, shape, bytes, refCount: 0});
-    this.state.numDataBuffers++;
-    this.state.numBytes += bytes;
-    return this.makeTensor(shape, dtype, dataId);
+    return this.makeTensor({dataId, shape, dtype}, backend, backendVals);
   }
 
   private refCount(dtype: DataType, dataId: DataId) {
@@ -588,7 +570,26 @@ export class Engine implements TensorTracker, DataMover {
     return v;
   }
 
-  makeTensor(shape: number[], dtype: DataType, dataId: DataId): Tensor {
+  makeTensor(info: TensorInfo, backend?: KernelBackend, values?: BackendValues):
+      Tensor {
+    const {dataId, dtype, shape} = info;
+    backend = backend || this.backend;
+    if (!this.state.tensorInfo.has(dataId)) {
+      // Bytes for complex numbers are counted by their components. Bytes for
+      // string tensors are counted differently below.
+      let bytes = 0;
+      if (dtype !== 'complex64' && dtype !== 'string') {
+        bytes = sizeFromShape(shape) * util.bytesPerElement(dtype);
+      }
+      // Bytes for string tensors.
+      if (dtype === 'string' && values != null) {
+        bytes = bytesFromStringArray(values as Uint8Array[]);
+      }
+      this.state.tensorInfo.set(
+          dataId, {backend, dtype, shape, bytes, refCount: 0});
+      this.state.numDataBuffers++;
+      this.state.numBytes += bytes;
+    }
     const t = new Tensor(shape, dtype, dataId);
     this.refCount(dtype, dataId);
     this.track(t);

@@ -39,7 +39,10 @@ export interface TensorStorage {
       HTMLVideoElement,
       numChannels: number): Tensor3D;
   register(values: BackendValues, shape: number[], dtype: DataType): DataId;
+  move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
+      void;
   memory(): {unreliable: boolean;};  // Backend-specific information.
+  numBuckets(): number;
 }
 
 /** Convenient class for storing tensor-related data. */
@@ -100,6 +103,9 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   disposeData(dataId: object): void {
     return notYetImplemented();
   }
+  numBuckets(): number {
+    return notYetImplemented();
+  }
   fromPixels(
       pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
       HTMLVideoElement,
@@ -107,6 +113,10 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     return notYetImplemented();
   }
   register(values: BackendValues, shape: number[], dtype: DataType): DataId {
+    return notYetImplemented();
+  }
+  move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
+      void {
     return notYetImplemented();
   }
   memory(): {unreliable: boolean; reasons?: string[]} {
@@ -628,8 +638,8 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     return notYetImplemented();
   }
 
-  fill<R extends Rank>(
-      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
+  fill<R extends Rank>(shape: ShapeMap[R], value: Scalar, dtype: DataType):
+      Tensor<R> {
     throw new Error('Not yet implemented.');
   }
 

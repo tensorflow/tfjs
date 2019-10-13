@@ -59,7 +59,8 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
           `a TensorBuffer for the real and imaginary parts separately and ` +
           `call tf.complex(real, imag).`);
     }
-    this.values = values || util.getArrayFromDType(dtype, this.size);
+    this.values =
+        values || util.getArrayFromDType(dtype, this.size) as DataTypeMap[D];
     this.strides = computeStrides(shape);
   }
 

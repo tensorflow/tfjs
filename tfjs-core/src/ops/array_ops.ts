@@ -45,7 +45,7 @@ function clone_<T extends Tensor>(x: T|TensorLike): T {
     return {$x: () => dy.toFloat()};
   };
   return ENGINE.runKernel(() => {
-    return ENGINE.makeTensor($x.shape, $x.dtype, $x.dataId) as T;
+    return ENGINE.makeTensor($x) as T;
   }, {$x}, der);
 }
 
@@ -242,9 +242,9 @@ function rand_<R extends Rank>(
     shape: ShapeMap[R], randFunction: () => number,
     dtype?: DataType): Tensor<R> {
   const size = util.sizeFromShape(shape);
-
+  dtype = dtype || 'float32';
   let values = null;
-  if (dtype == null || dtype === 'float32') {
+  if (dtype === 'float32') {
     values = new Float32Array(size);
   } else if (dtype === 'int32') {
     values = new Int32Array(size);

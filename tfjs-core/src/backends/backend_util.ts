@@ -15,11 +15,10 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
-import {scalar, tensor1d, zeros} from '../ops/tensor_ops';
+import {TensorInfo} from '../kernel_registry';
+import {tensor1d} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
-import {Rank} from '../types';
-import {DataType, ShapeMap} from '../types';
+import {DataType} from '../types';
 import {hasEncodingLoss, makeZerosTypedArray} from '../util';
 
 import {KernelBackend} from './backend';
@@ -35,15 +34,15 @@ export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
 export {MemoryInfo, TimingInfo} from '../engine';
 
 export function castTensor<T extends Tensor>(
-    x: T, dtype: DataType, backend: KernelBackend): T {
+    x: T, dtype: DataType, backend: KernelBackend,
+    makeZeros: (shape: number[], dtype: DataType) => TensorInfo): TensorInfo {
   if (dtype === 'complex64') {
     if (x.dtype === 'complex64') {
-      return x.clone();
+      return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
     }
-    const zerosTensor = zeros(x.shape);
+    const zerosTensor = makeZeros(x.shape, 'float32');
     const floatX = x.toFloat();
-    const result = backend.complex(floatX, zerosTensor);
-    zerosTensor.dispose();
+    const result = backend.complex(floatX, zerosTensor as Tensor);
     floatX.dispose();
     return result as T;
   }
@@ -51,7 +50,7 @@ export function castTensor<T extends Tensor>(
   if (!hasEncodingLoss(x.dtype, dtype)) {
     // We don't change the underlying data, since we cast to higher
     // precision.
-    return ENGINE.makeTensor(x.shape, dtype, x.dataId) as T;
+    return {dataId: x.dataId, shape: x.shape, dtype};
   }
   if (x.dtype === 'complex64') {
     const real = backend.real(x);
@@ -62,18 +61,12 @@ export function castTensor<T extends Tensor>(
   if (dtype === 'int32') {
     return backend.int(x);
   } else if (dtype === 'bool') {
-    const zero = scalar(0, x.dtype);
-    const result = backend.notEqual(x, zero) as T;
-    zero.dispose();
+    const zero = makeZeros([], x.dtype);
+    const result = backend.notEqual(x, zero as Tensor) as T;
     return result;
   } else {
     throw new Error(`Error in Cast: failed to cast ${x.dtype} to ${dtype}`);
   }
-}
-
-export function reshapeTensor<T extends Tensor, R extends Rank>(
-    x: T, shape: ShapeMap[R]): Tensor<R> {
-  return ENGINE.makeTensor(shape, x.dtype, x.dataId) as Tensor<R>;
 }
 
 export function linspaceImpl(start: number, stop: number, num: number) {
