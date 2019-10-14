@@ -23,7 +23,7 @@ import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode
 import {DataId, setTensorTracker, Tensor, Tensor3D, TensorTracker, Variable} from './tensor';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
-import {BackendValues, DataType, PixelData} from './types';
+import {BackendValues, DataType, DataValues, PixelData} from './types';
 import * as util from './util';
 import {bytesFromStringArray, makeOnesTypedArray, now, sizeFromShape} from './util';
 
@@ -353,7 +353,14 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   moveData(destBackend: KernelBackend, dataId: DataId) {
-    this.write(destBackend, dataId, this.readSync(dataId));
+    const info = this.state.tensorInfo.get(dataId);
+    const srcBackend = info.backend;
+    const values = this.readSync(dataId);
+    // Delete the tensor from the old backend and move it to the new
+    // backend.
+    srcBackend.disposeData(dataId);
+    info.backend = destBackend;
+    destBackend.move(dataId, values, info.shape, info.dtype);
   }
 
   tidy<T extends TensorContainer>(nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>):
@@ -421,8 +428,8 @@ export class Engine implements TensorTracker, DataMover {
    * execution.
    */
   private clone(x: Tensor): Tensor {
-    const y = Tensor.wrap(x.shape, x.dtype, x.dataId);
-    this.addTapeNode([x], y, dy => [dy.toFloat()]);
+    const y = this.makeTensorFromDataId(x.dataId, x.shape, x.dtype);
+    this.addTapeNode([x], y, dy => [(dy as Tensor).toFloat()]);
     return y;
   }
 
@@ -475,8 +482,8 @@ export class Engine implements TensorTracker, DataMover {
       kernelFunc = () => {
         const outInfo =
             kernel({inputs, attrs, storage, save: saveFunc}) as TensorInfo;
-        const tensor =
-            Tensor.wrap(outInfo.shape, outInfo.dtype, outInfo.dataId);
+        const tensor = this.makeTensorFromDataId(
+            outInfo.dataId, outInfo.shape, outInfo.dtype);
         return tensor as T;
       };
     }
@@ -523,14 +530,51 @@ export class Engine implements TensorTracker, DataMover {
     return result;
   }
 
-  // TensorManager implementation.
-
-  register(a: Tensor, backend: KernelBackend) {
+  /**
+   * Internal method used by public APIs for tensor creation. Makes a new
+   * tensor with the provided shape, dtype and values. It always
+   * creates a new data bucket and notifies the underlying backend about the
+   * bucket.
+   */
+  makeTensor(
+      values: DataValues, shape: number[], dtype: DataType,
+      backend?: KernelBackend): Tensor {
+    if (values == null) {
+      throw new Error('Values passed to engine.makeTensor() are null');
+    }
     backend = backend || this.backend;
-    backend.register(a.dataId, a.shape, a.dtype);
+    let backendVals = values as BackendValues;
+    if (dtype === 'string' && util.isString(values[0])) {
+      backendVals = (values as string[]).map(d => util.encodeString(d));
+    }
+    const dataId = backend.register(backendVals, shape, dtype);
+    const t = new Tensor(shape, dtype, dataId);
+    this.incRef(t, backend);
+
+    // Count bytes for string tensors.
+    if (dtype === 'string') {
+      const info = this.state.tensorInfo.get(dataId);
+      const newBytes = bytesFromStringArray(backendVals as Uint8Array[]);
+      this.state.numBytes += newBytes - info.bytes;
+      info.bytes = newBytes;
+    }
+    return t;
   }
 
-  incRef(a: Tensor, backend: KernelBackend) {
+  /**
+   * Internal method used by backends. Makes a new tensor
+   * that is a wrapper around an existing data. It doesn't create
+   * a new data bucket, only increments the ref count used in memory tracking.
+   */
+  makeTensorFromDataId(
+      dataId: DataId, shape: number[], dtype: DataType,
+      backend?: KernelBackend): Tensor {
+    const t = new Tensor(shape, dtype, dataId);
+    this.incRef(t, backend);
+    return t;
+  }
+
+  incRef(a: Tensor, backend: KernelBackend): void {
     const refCount = this.state.tensorInfo.has(a.dataId) ?
         this.state.tensorInfo.get(a.dataId).refCount :
         0;
@@ -548,7 +592,7 @@ export class Engine implements TensorTracker, DataMover {
         bytes = a.size * util.bytesPerElement(a.dtype);
       }
       this.state.tensorInfo.set(a.dataId, {
-        backend: backend != null ? backend : this.backend,
+        backend: backend || this.backend,
         dtype: a.dtype,
         shape: a.shape,
         bytes,
@@ -653,14 +697,25 @@ export class Engine implements TensorTracker, DataMover {
 
   private addTapeNode(
       inputs: Tensor[], result: Tensor,
-      gradientsFunc: (dy: Tensor) => Tensor[]): void {
+      gradientsFunc: (dy: Tensor|Tensor[]) => Tensor[]): void {
     const inputsMap: NamedTensorMap = {};
     inputs.forEach((input, idx) => {
       inputsMap[idx] = input;
     });
 
-    const gradient = (dy: Tensor) => {
-      const res = gradientsFunc(dy);
+    const gradient = (dys: Tensor[]) => {
+      // TODO(smilkov): To optimize back-prop, pass dys that are not used in the
+      // backprop graph to the user as null instead of zeros
+      dys = dys.map(dy => {
+        if (dy == null) {
+          const vals = util.makeZerosTypedArray(result.size, result.dtype);
+          return this.makeTensor(vals, result.shape, result.dtype);
+        }
+        return dy;
+      });
+      // Grad functions of ops with single outputs expect a dy, while ops
+      // with multiple outputs expect dys (array of dy).
+      const res = gradientsFunc(dys.length > 1 ? dys : dys[0]);
       const resMap: NamedGradientMap = {};
       res.forEach((r, idx) => {
         resMap[idx] = () => r;
@@ -855,30 +910,6 @@ export class Engine implements TensorTracker, DataMover {
     };
   }
 
-  // Forwarding to backend.
-  write(destBackend: KernelBackend, dataId: DataId, values: BackendValues):
-      void {
-    const info = this.state.tensorInfo.get(dataId);
-
-    const srcBackend = info.backend;
-    destBackend = destBackend || this.backend;
-
-    // Bytes for string tensors are counted when writing.
-    if (info.dtype === 'string') {
-      const newBytes = bytesFromStringArray(values as Uint8Array[]);
-      this.state.numBytes += newBytes - info.bytes;
-      info.bytes = newBytes;
-    }
-
-    if (destBackend !== srcBackend) {
-      // Delete the tensor from the old backend and move it to the new
-      // backend.
-      srcBackend.disposeData(dataId);
-      info.backend = destBackend;
-      destBackend.register(dataId, info.shape, info.dtype);
-    }
-    destBackend.write(dataId, values);
-  }
   readSync(dataId: DataId): BackendValues {
     // Route the read to the correct backend.
     const info = this.state.tensorInfo.get(dataId);
@@ -945,7 +976,7 @@ export class Engine implements TensorTracker, DataMover {
 
 function ones(shape: number[]): Tensor {
   const values = makeOnesTypedArray(sizeFromShape(shape), 'float32');
-  return Tensor.make(shape, values);
+  return ENGINE.makeTensor(values, shape, 'float32');
 }
 
 let GLOBAL: {_tfengine: Engine};

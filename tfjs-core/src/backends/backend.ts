@@ -34,7 +34,9 @@ export interface TensorStorage {
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
   disposeData(dataId: DataId): void;
-  write(dataId: DataId, values: BackendValues): void;
+  register(values: BackendValues, shape: number[], dtype: DataType): DataId;
+  move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
+      void;
   fromPixels(
       pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
       HTMLVideoElement,
@@ -101,16 +103,17 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   disposeData(dataId: object): void {
     return notYetImplemented();
   }
-  write(dataId: object, values: BackendValues): void {
-    return notYetImplemented();
-  }
   fromPixels(
       pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
       HTMLVideoElement,
       numChannels: number): Tensor<Rank.R3> {
     return notYetImplemented();
   }
-  register(dataId: object, shape: number[], dtype: DataType): void {
+  register(values: BackendValues, shape: number[], dtype: DataType): DataId {
+    return notYetImplemented();
+  }
+  move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
+      void {
     return notYetImplemented();
   }
   memory(): {unreliable: boolean; reasons?: string[]} {

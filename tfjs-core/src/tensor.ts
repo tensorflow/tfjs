@@ -16,7 +16,7 @@
  */
 
 import {tensorToString} from './tensor_format';
-import {ArrayMap, BackendValues, DataType, DataTypeMap, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TensorLike3D, TensorLike4D, TypedArray} from './types';
+import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TensorLike3D, TensorLike4D, TypedArray} from './types';
 import * as util from './util';
 import {computeStrides, toNestedArray} from './util';
 
@@ -27,12 +27,7 @@ export interface TensorData<D extends DataType> {
 
 // This interface mimics KernelBackend (in backend.ts), which would create a
 // circular dependency if imported.
-export interface Backend {
-  read(dataId: object): Promise<BackendValues>;
-  readSync(dataId: object): BackendValues;
-  disposeData(dataId: object): void;
-  write(dataId: object, values: BackendValues): void;
-}
+export interface Backend {}
 
 /**
  * A mutable object, similar to `tf.Tensor`, that allows users to set values
@@ -151,16 +146,18 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
    */
   /** @doc {heading: 'Tensors', subheading: 'Creation'} */
   toTensor(): Tensor<R> {
-    return Tensor.make(this.shape, this.values, this.dtype);
+    return trackerFn().makeTensor(this.values, this.shape, this.dtype) as
+        Tensor<R>;
   }
 }
 
 export interface TensorTracker {
+  makeTensor(
+      values: DataValues, shape: number[], dtype: DataType,
+      backend?: Backend): Tensor;
   incRef(a: Tensor, backend: Backend): void;
-  register(a: Tensor, backend: Backend): void;
   disposeTensor(t: Tensor): void;
   disposeVariable(v: Variable): void;
-  write(backend: Backend, dataId: DataId, values: BackendValues): void;
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
   registerVariable(v: Variable): void;
@@ -453,50 +450,14 @@ export class Tensor<R extends Rank = Rank> {
    */
   readonly strides: number[];
 
-  protected constructor(shape: ShapeMap[R], dtype: DataType, dataId?: DataId) {
+  constructor(shape: ShapeMap[R], dtype: DataType, dataId: DataId) {
     this.shape = shape.slice() as ShapeMap[R];
     this.dtype = dtype || 'float32';
     this.size = util.sizeFromShape(shape);
     this.strides = computeStrides(shape);
-    this.dataId = dataId != null ? dataId : {};
+    this.dataId = dataId;
     this.id = trackerFn().nextTensorId();
     this.rankType = (this.rank < 5 ? this.rank.toString() : 'higher') as R;
-  }
-
-  /**
-   * Internal method used by the engine (thus not private). Makes a new tensor
-   * with the provided shape, dtype and optionally values. It always creates a
-   * new data bucket and notifies the underlying backend about the bucket.
-   */
-  static make<T extends Tensor<R>, D extends DataType = 'float32',
-                                             R extends Rank = Rank>(
-      shape: ShapeMap[R], values?: DataTypeMap[D], dtype?: D,
-      backend?: Backend): T {
-    let backendVals = values as BackendValues;
-    if (values != null && dtype === 'string' && util.isString(values[0])) {
-      backendVals = (values as string[]).map(d => util.encodeString(d));
-    }
-    const dataId = {};
-    const tensor = this.wrap(shape, dtype, dataId, backend);
-    // Register the tensor in the backend.
-    trackerFn().register(tensor, backend);
-    if (backendVals != null) {
-      trackerFn().write(backend, tensor.dataId, backendVals);
-    }
-    return tensor as T;
-  }
-
-  /**
-   * Internal method used by the engine (thus not private). Makes a new tensor
-   * that is a shallow wrapper around an existing data bucket. It doesn't create
-   * a new data bucket, only increments the ref count used in memory tracking.
-   */
-  static wrap(
-      shape: number[], dtype: DataType, dataId: DataId,
-      backend?: Backend): Tensor {
-    const tensor = new Tensor(shape, dtype, dataId);
-    trackerFn().incRef(tensor, backend);
-    return tensor;
   }
 
   /** Flatten a Tensor to a 1D array. */
