@@ -3631,8 +3631,8 @@ export class MathBackendCPU extends KernelBackend {
     const centerY =
         imageHeight * (typeof center === 'number' ? center : center[1]);
 
-    const sinFactor = Math.sin(radians);
-    const cosFactor = Math.cos(radians);
+    const sinFactor = Math.sin(-radians);
+    const cosFactor = Math.cos(-radians);
     const imageVals = this.readSync(image.dataId) as TypedArray;
 
     for (let batchIdx = 0; batchIdx < batch; batchIdx++) {

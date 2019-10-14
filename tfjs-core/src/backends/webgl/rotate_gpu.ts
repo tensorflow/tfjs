@@ -11,8 +11,8 @@ export class RotateProgram implements GPGPUProgram {
       center: number|[number, number]) {
     const imageHeight = imageShape[1];
     const imageWidth = imageShape[2];
-    const sinFactor = Math.sin(radians);
-    const cosFactor = Math.cos(radians);
+    const sinFactor = Math.sin(-radians);
+    const cosFactor = Math.cos(-radians);
     this.outputShape = imageShape;
 
     const centerX = Math.floor(
