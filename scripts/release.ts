@@ -26,12 +26,12 @@
  * This script requires hub to be installed: https://hub.github.com/
  */
 
+import * as argparse from 'argparse';
+import chalk from 'chalk';
+import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
 import * as readline from 'readline';
 import * as shell from 'shelljs';
-import * as fs from 'fs';
-import chalk from 'chalk';
-import * as argparse from 'argparse';
 
 interface Phase {
   // The list of packages that will be updated with this change.
@@ -40,9 +40,11 @@ interface Phase {
   repo?: string;
   // The list of dependencies that all of the packages will update to.
   deps?: string[];
-  // An ordered list of scripts to run after yarn is called and before the pull
+  // An ordered map of scripts, key is package name, value is an object with two
+  // optional fields: `before-yarn` with scripts to run before `yarn`, and
+  // `after-yarn` with scripts to run after yarn is called and before the pull
   // request is sent out.
-  scripts?: string[];
+  scripts?: {[key: string]: {[key: string]: string[]}};
   // Whether to leave the version of the package alone. Defaults to false
   // (change the version).
   leaveVersion?: boolean;
@@ -64,8 +66,9 @@ const UNION_PHASE: Phase = {
 };
 
 const NODE_PHASE: Phase = {
-  packages: ['tfjs-node'],
-  deps: ['tfjs']
+  packages: ['tfjs-node', 'tfjs-node-gpu'],
+  deps: ['tfjs'],
+  scripts: {'tfjs-node-gpu': {'before-yarn': ['yarn prep-gpu']}}
 };
 
 const VIS_PHASE: Phase = {
@@ -76,7 +79,7 @@ const WEBSITE_PHASE: Phase = {
   repo: 'tfjs-website',
   packages: ['tfjs-website'],
   deps: ['tfjs', 'tfjs-node', 'tfjs-vis'],
-  scripts: ['yarn build-prod'],
+  scripts: {'tfjs-website': {'after-yarn': ['yarn build-prod']}},
   leaveVersion: true,
   title: 'Update website to latest dependencies.'
 };
@@ -224,9 +227,14 @@ async function main() {
     }
 
     fs.writeFileSync(packageJsonPath, pkg);
+    if (phase.scripts != null && phase.scripts[packageName] != null &&
+        phase.scripts[packageName]['before-yarn'] != null) {
+      phase.scripts[packageName]['before-yarn'].forEach(script => $(script));
+    }
     $(`yarn`);
-    if (phase.scripts != null) {
-      phase.scripts.forEach(script => $(script));
+    if (phase.scripts != null && phase.scripts[packageName] != null &&
+        phase.scripts[packageName]['after-yarn'] != null) {
+      phase.scripts[packageName]['after-yarn'].forEach(script => $(script));
     }
     if (phase.repo == null) {
       shell.cd('..');

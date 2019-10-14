@@ -43,8 +43,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   isGPUPackage: boolean;
   isUsingGpuDevice: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
-  private savedModelSignatureMap = new WeakMap<DataId, TFSavedModelSignature>();
-  private loadedSavedModelMap = new Map<string, number>();
+  private loadedSavedModelIdMap = new Map<number, number[]>();
+  private loadedSavedModelPathMap = new Map<string, number>();
 
   constructor(binding: TFJSBinding, packageName: string) {
     super();
@@ -1897,25 +1897,40 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   async loadSavedModel(path: string, tags: string[], signature: string) {
-    let id: number;
-    const newId = {};
-    if (this.loadedSavedModelMap.has(path)) {
-      id = this.loadedSavedModelMap.get(path);
-    } else {
-      id = this.binding.loadSavedModel(path, tags.join());
-    }
     const savedModelInfo = await inspectSavedModel(path);
     const [inputNodeNames, outputNodeNames] =
         getInputAndOutputNodeNameFromSavedModelInfo(
             savedModelInfo, tags, signature);
+    let id: number;
+    if (this.loadedSavedModelPathMap.has(path)) {
+      id = this.loadedSavedModelPathMap.get(path);
+    } else {
+      id = this.binding.loadSavedModel(path, tags.join());
+    }
     const modelSignature = new TFSavedModelSignature(
         id, path, inputNodeNames, outputNodeNames, this);
-    this.savedModelSignatureMap.set(newId, modelSignature);
+    if (this.loadedSavedModelIdMap.has(id)) {
+      this.loadedSavedModelIdMap.get(id).push(modelSignature.getJsid());
+    } else {
+      this.loadedSavedModelIdMap.set(id, [modelSignature.getJsid()]);
+    }
+    this.loadedSavedModelPathMap.set(path, id);
     return modelSignature;
   }
 
-  deleteSavedModel(savedModelId: number): void {
-    this.binding.deleteSavedModel(savedModelId);
+  deleteSavedModel(jsid: number, cid: number, path: string): void {
+    if (this.loadedSavedModelIdMap.get(cid).length < 2) {
+      this.loadedSavedModelIdMap.delete(cid);
+      this.loadedSavedModelPathMap.delete(path);
+      this.binding.deleteSavedModel(cid);
+    } else {
+      const jsids = this.loadedSavedModelIdMap.get(cid);
+      const indexToRemove = jsids.indexOf(jsid);
+      if (indexToRemove > -1) {
+        jsids.splice(indexToRemove, 1);
+      }
+      this.loadedSavedModelIdMap.set(cid, jsids);
+    }
   }
 
   // ------------------------------------------------------------

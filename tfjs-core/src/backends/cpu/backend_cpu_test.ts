@@ -41,12 +41,12 @@ describeWithFlags('backendCPU', CPU_ENVS, () => {
   });
 
   it('register empty string tensor', () => {
-    const t = tf.Tensor.make([3], {}, 'string');
+    const t = tf.Tensor.make([3], null, 'string');
     expect(backend.readSync(t.dataId) == null).toBe(true);
   });
 
   it('register empty string tensor and write', () => {
-    const t = tf.Tensor.make([3], {}, 'string');
+    const t = tf.Tensor.make([3], null, 'string');
     backend.write(t.dataId, encodeStrings(['c', 'a', 'b']));
     expectArraysEqual(
         decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
@@ -54,14 +54,14 @@ describeWithFlags('backendCPU', CPU_ENVS, () => {
   });
 
   it('register string tensor with values', () => {
-    const t = tf.Tensor.make([3], {values: ['a', 'b', 'c']}, 'string');
+    const t = tf.Tensor.make([3], ['a', 'b', 'c'], 'string');
     expectArraysEqual(
         decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
         ['a', 'b', 'c']);
   });
 
   it('register string tensor with values and overwrite', () => {
-    const t = tf.Tensor.make([3], {values: ['a', 'b', 'c']}, 'string');
+    const t = tf.Tensor.make([3], ['a', 'b', 'c'], 'string');
     backend.write(t.dataId, encodeStrings(['c', 'a', 'b']));
     expectArraysEqual(
         decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),

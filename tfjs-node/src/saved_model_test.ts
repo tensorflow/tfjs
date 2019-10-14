@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getEnumKeyFromValue, inspectSavedModel, readSavedModelProto} from './saved_model';
+import {getEnumKeyFromValue, inspectSavedModel, loadSavedModel, readSavedModelProto} from './saved_model';
 
 // tslint:disable-next-line:no-require-imports
 const messages = require('./proto/api_pb');
@@ -50,8 +50,8 @@ describe('SavedModel', () => {
      *  }
      * }
      */
-    const modelMessage = await readSavedModelProto(
-        './test_objects/times_three_float/saved_model.pb');
+    const modelMessage =
+        await readSavedModelProto('./test_objects/times_three_float');
 
     // This SavedModel has one MetaGraph with tag serve
     expect(modelMessage.getMetaGraphsList().length).toBe(1);
@@ -64,25 +64,15 @@ describe('SavedModel', () => {
         modelMessage.getMetaGraphsList()[0].getMetaInfoDef().getTagsList()[0])
         .toBe('serve');
 
-    // The SavedModel has two signatureDefs, corresponding names are
-    // __saved_model_init_op and serving_default
+    // Validate the SavedModel has signatureDef serving_default
     const signatureDefMapMessage =
         modelMessage.getMetaGraphsList()[0].getSignatureDefMap();
-    expect(signatureDefMapMessage.getLength()).toBe(2);
-    const signatureDefMapKeys = signatureDefMapMessage.keys();
-    const signatureDefMapKey1 = signatureDefMapKeys.next();
-    expect(signatureDefMapKey1.done).toBe(false);
-    expect(signatureDefMapKey1.value).toBe('__saved_model_init_op');
-    const signatureDefMapKey2 = signatureDefMapKeys.next();
-    expect(signatureDefMapKey2.done).toBe(false);
-    expect(signatureDefMapKey2.value).toBe('serving_default');
-    const signatureDefMapKey3 = signatureDefMapKeys.next();
-    expect(signatureDefMapKey3.done).toBe(true);
+    expect(signatureDefMapMessage.has('serving_default'));
 
     // The input op of signature serving_default is serving_default_x, DataType
     // is DT_FLOAT
     const inputsMapMessage =
-        signatureDefMapMessage.get(signatureDefMapKey2.value).getInputsMap();
+        signatureDefMapMessage.get('serving_default').getInputsMap();
     expect(inputsMapMessage.getLength()).toBe(1);
     const inputsMapKeys = inputsMapMessage.keys();
     const inputsMapKey1 = inputsMapKeys.next();
@@ -97,7 +87,7 @@ describe('SavedModel', () => {
     // The output op of signature serving_default is StatefulPartitionedCall,
     // DataType is DT_FLOAT
     const outputsMapMessage =
-        signatureDefMapMessage.get(signatureDefMapKey2.value).getOutputsMap();
+        signatureDefMapMessage.get('serving_default').getOutputsMap();
     expect(outputsMapMessage.getLength()).toBe(1);
     const outputsMapKeys = outputsMapMessage.keys();
     const outputsMapKey1 = outputsMapKeys.next();
@@ -118,6 +108,17 @@ describe('SavedModel', () => {
     expect(enumKey1).toBe('DT_FLOAT');
     const enumKey2 = getEnumKeyFromValue(DataType, 2);
     expect(enumKey2).toBe('DT_DOUBLE');
+  });
+
+  it('read non-exist file', async done => {
+    try {
+      await readSavedModelProto('/not-exist');
+      done.fail();
+    } catch (err) {
+      expect(err.message)
+          .toBe(`There is no saved_model.pb file in the directory: /not-exist`);
+      done();
+    }
   });
 
   it('inspect SavedModel', async () => {
@@ -164,5 +165,49 @@ describe('SavedModel', () => {
         .toBe('StatefulPartitionedCall:0');
     expect(modelInfo[0].signatureDefs['serving_default'].outputs[0].dtype)
         .toBe('DT_FLOAT');
+  });
+
+  it('load SavedModelSignature', async () => {
+    const savedModel = await loadSavedModel(
+        './test_objects/times_three_float', ['serve'], 'serving_default');
+    expect(savedModel.getPath()).toBe('./test_objects/times_three_float');
+  });
+
+  it('load SavedModelSignature with wrong tags', async done => {
+    try {
+      await loadSavedModel(
+          './test_objects/times_three_float', ['serve', 'gpu'],
+          'serving_default');
+      done.fail();
+    } catch (error) {
+      expect(error.message)
+          .toBe('The SavedModel does not have tags: serve,gpu');
+      done();
+    }
+  });
+
+  it('load SavedModelSignature with wrong signature', async done => {
+    try {
+      await loadSavedModel(
+          './test_objects/times_three_float', ['serve'], 'wrong_signature');
+      done.fail();
+    } catch (error) {
+      expect(error.message)
+          .toBe('The SavedModel does not have signature: wrong_signature');
+      done();
+    }
+  });
+
+  fit('load SavedModelSignature with wrong signature', async () => {
+    const signature1 = await loadSavedModel(
+        './test_objects/module_with_multiple_signatures', ['serve'],
+        'serving_default');
+    expect(signature1.getPath())
+        .toBe('./test_objects/module_with_multiple_signatures');
+    const signature2 = await loadSavedModel(
+        './test_objects/module_with_multiple_signatures', ['serve'],
+        'timestwo');
+    expect(signature2.getPath())
+        .toBe('./test_objects/module_with_multiple_signatures');
   });
 });

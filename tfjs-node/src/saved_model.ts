@@ -24,6 +24,8 @@ import {ensureTensorflowBackend, nodeBackend, NodeJSKernelBackend} from './nodej
 
 const readFile = promisify(fs.readFile);
 
+let jsid = 0;
+
 // tslint:disable-next-line:no-require-imports
 const messages = require('./proto/api_pb');
 
@@ -41,10 +43,20 @@ export function getEnumKeyFromValue(object: any, value: number): string {
   return Object.keys(object).find(key => object[key] === value);
 }
 
-// tslint:disable-next-line:no-any
+/**
+ * Read SavedModel proto message from path.
+ *
+ * @param path Path to SavedModel folder.
+ */
 export async function readSavedModelProto(path: string) {
   // Load the SavedModel pb file and deserialize it into message.
-  const modelFile = await readFile(path);
+  try {
+    fs.accessSync(path + SAVED_MODEL_FILE_NAME, fs.constants.R_OK);
+  } catch (error) {
+    throw new Error(
+        'There is no saved_model.pb file in the directory: ' + path);
+  }
+  const modelFile = await readFile(path + SAVED_MODEL_FILE_NAME);
   const array = new Uint8Array(modelFile);
   return messages.SavedModel.deserializeBinary(array);
 }
@@ -54,25 +66,35 @@ export async function readSavedModelProto(path: string) {
  *
  * @param path Path to SavedModel folder.
  */
-export async function inspectSavedModel(path: string) {
-  const result = [];
-  const modelMessage = await readSavedModelProto(path + SAVED_MODEL_FILE_NAME);
+export async function inspectSavedModel(path: string):
+    Promise<MetaGraphInfo[]> {
+  const result: MetaGraphInfo[] = [];
+
+  // Get SavedModel proto message
+  const modelMessage = await readSavedModelProto(path);
+
+  // A SavedModel might have multiple MetaGraphs, identified by tags. Each
+  // MetaGraph also has it's own signatureDefs.
   const metaGraphList = modelMessage.getMetaGraphsList();
   for (let i = 0; i < metaGraphList.length; i++) {
     const metaGraph = {} as MetaGraphInfo;
     const tags = metaGraphList[i].getMetaInfoDef().getTagsList();
     metaGraph.tags = tags;
 
+    // Each MetaGraph has it's own signatureDefs map.
     const signatureDef: SignatureDefInfo = {};
     const signatureDefMap = metaGraphList[i].getSignatureDefMap();
     const signatureDefKeys = signatureDefMap.keys();
+
+    // Go through all signatureDefs
     while (true) {
       const key = signatureDefKeys.next();
       if (key.done) {
         break;
       }
       const signatureDefEntry = signatureDefMap.get(key.value);
-      // inputs
+
+      // Get all input tensors information
       const inputsMapMessage = signatureDefEntry.getInputsMap();
       const inputsMapKeys = inputsMapMessage.keys();
       const inputs: SavedModelTensorInfo[] = [];
@@ -89,7 +111,8 @@ export async function inspectSavedModel(path: string) {
         inputTensorInfo.shape = inputTensor.getTensorShape().getDimList();
         inputs.push(inputTensorInfo);
       }
-      // outputs
+
+      // Get all output tensors information
       const outputsMapMessage = signatureDefEntry.getOutputsMap();
       const outputsMapKeys = outputsMapMessage.keys();
       const outputs: SavedModelTensorInfo[] = [];
@@ -123,7 +146,7 @@ export function getInputAndOutputNodeNameFromSavedModelInfo(
     if (tags.length === metaGraphInfo.tags.length &&
         JSON.stringify(tags) === JSON.stringify(metaGraphInfo.tags)) {
       if (metaGraphInfo.signatureDefs[signature] === undefined) {
-        throw new Error('The SavedModel does not have signature:' + signature);
+        throw new Error('The SavedModel does not have signature: ' + signature);
       }
       const inputNodeNames: string[] = [];
       const outputNodeNames: string[] = [];
@@ -138,7 +161,7 @@ export function getInputAndOutputNodeNameFromSavedModelInfo(
       return [inputNodeNames, outputNodeNames];
     }
   }
-  throw new Error('The SavedModel does not have tags:' + tags);
+  throw new Error('The SavedModel does not have tags: ' + tags);
 }
 
 /**
@@ -154,7 +177,7 @@ export interface MetaGraphInfo {
  */
 export interface SignatureDefInfo {
   [key: string]:
-      {inputs: SavedModelTensorInfo[]; outputs: SavedModelTensorInfo[];}
+      {inputs: SavedModelTensorInfo[]; outputs: SavedModelTensorInfo[];};
 }
 
 /**
@@ -168,7 +191,10 @@ export interface SavedModelTensorInfo {
 
 
 export class TFSavedModelSignature implements InferenceModel {
-  private readonly id: number;
+  // ID of the loaded session in bindings
+  private readonly cid: number;
+  // ID of the object in javascript
+  private readonly jsid: number;
   private readonly backend: NodeJSKernelBackend;
   private readonly path: string;
   private readonly inputNodeNames: string[];
@@ -176,16 +202,25 @@ export class TFSavedModelSignature implements InferenceModel {
   private deleted: boolean;
 
   constructor(
-      id: number, path: string, inputNodeNames: string[],
+      cid: number, path: string, inputNodeNames: string[],
       outputNodeNames: string[], backend: NodeJSKernelBackend) {
-    this.id = id;
+    this.cid = cid;
     this.path = path;
     this.inputNodeNames = inputNodeNames;
     this.outputNodeNames = outputNodeNames;
     this.backend = backend;
     this.deleted = false;
+    this.jsid = jsid++;
   }
 
+  getJsid() {
+    return this.jsid;
+  }
+
+
+  getPath() {
+    return this.path;
+  }
   /** Placeholder function. */
   get inputs(): TensorInfo[] {
     throw new Error('SavedModel inputs information is not available yet.');
@@ -203,7 +238,7 @@ export class TFSavedModelSignature implements InferenceModel {
   delete() {
     if (!this.deleted) {
       this.deleted = true;
-      this.backend.deleteSavedModel(this.id);
+      this.backend.deleteSavedModel(this.jsid, this.cid, this.path);
     } else {
       throw new Error('This SavedModel has been deleted.');
     }

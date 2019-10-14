@@ -17,6 +17,7 @@
 
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
+import {getKernel, NamedAttrMap, NamedTensorInfoMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, Tensor3D, TensorTracker, Variable} from './tensor';
@@ -70,13 +71,6 @@ export interface TimingInfo extends BackendTimingInfo {
 /** @docalias Function */
 export type ScopeFn<T extends TensorContainer> = () => T;
 
-export interface TensorManager {
-  registerTensor(a: Tensor, backend?: KernelBackend): void;
-  registerVariable(v: Variable): void;
-  disposeTensor(a: Tensor): void;
-  memory(): {numDataBuffers: number; numBytes: number;};
-}
-
 interface ScopeState {
   track: Tensor[];
   name: string;
@@ -126,7 +120,7 @@ class EngineState {
   }
 }
 
-export class Engine implements TensorManager, TensorTracker, DataMover {
+export class Engine implements TensorTracker, DataMover {
   state: EngineState;
   backendName: string;
   registry: {[id: string]: KernelBackend} = {};
@@ -427,16 +421,35 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
    * execution.
    */
   private clone(x: Tensor): Tensor {
-    const y = Tensor.make(x.shape, {dataId: x.dataId}, x.dtype);
+    const y = Tensor.wrap(x.shape, x.dtype, x.dataId);
     this.addTapeNode([x], y, dy => [dy.toFloat()]);
     return y;
   }
 
+  // TODO(smilkov): Rename this to runKernel() and rename the old runKernel().
+  /**
+   * Execute a kernel with the given name and return the output tensor info.
+   *
+   * @param kernelName The name of the kernel to execute.
+   * @param inputs A map of input names to tensor infos.
+   * @param attrs A map of attribute names to their values. An attribute is a
+   *     primitive (non-tensor) input to the kernel.
+   */
+  run(kernelName: string, inputs: NamedTensorInfoMap,
+      attrs: NamedAttrMap): TensorInfo|TensorInfo[] {
+    const forwardFunc: null = null;
+    const backwardsFunc: null = null;
+    // Call runKernel as a stop-gap until we modularize all kernels.
+    // Once we modularize all kernels, we will remove the existing runKernel().
+    return this.runKernel(
+        forwardFunc, inputs as NamedTensorMap, backwardsFunc, kernelName,
+        attrs);
+  }
+
   runKernel<T extends Tensor|Tensor[], I extends NamedTensorMap>(
-      forwardFunc: ForwardFunc<T>,
-      inputs: I,
+      forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
-      ): T {
+      kernelName?: string, attrs?: NamedAttrMap): T {
     let result: T;
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
@@ -455,14 +468,27 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
     const startingBytecount = this.state.numBytes;
     const startingNumTensors = this.state.numTensors;
 
+    let kernelFunc = () => forwardFunc(this.backend, saveFunc);
+    const kernel = getKernel(kernelName, this.backendName);
+    if (kernel != null) {
+      const storage = this.backend;
+      kernelFunc = () => {
+        const outInfo =
+            kernel({inputs, attrs, storage, save: saveFunc}) as TensorInfo;
+        const tensor =
+            Tensor.wrap(outInfo.shape, outInfo.dtype, outInfo.dataId);
+        return tensor as T;
+      };
+    }
+
     // Stop recording to a tape when running a kernel.
     this.scopedRun(
         () => this.state.kernelDepth++, () => this.state.kernelDepth--, () => {
           if (!this.ENV.getBool('DEBUG')) {
-            result = forwardFunc(this.backend, saveFunc);
+            result = kernelFunc();
           } else {
             result = this.profiler.profileKernel(
-                scopeName, inputs, () => forwardFunc(this.backend, saveFunc));
+                scopeName, inputs, () => kernelFunc());
           }
         });
 
@@ -499,7 +525,12 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
 
   // TensorManager implementation.
 
-  registerTensor(a: Tensor|Variable, backend?: KernelBackend): void {
+  register(a: Tensor, backend: KernelBackend) {
+    backend = backend || this.backend;
+    backend.register(a.dataId, a.shape, a.dtype);
+  }
+
+  incRef(a: Tensor, backend: KernelBackend) {
     const refCount = this.state.tensorInfo.has(a.dataId) ?
         this.state.tensorInfo.get(a.dataId).refCount :
         0;
@@ -524,11 +555,6 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
         refCount: 0
       });
       this.state.numBytes += bytes;
-      if (backend != null) {
-        backend.register(a.dataId, a.shape, a.dtype);
-      } else {
-        this.backend.register(a.dataId, a.shape, a.dtype);
-      }
     }
     this.state.tensorInfo.get(a.dataId).refCount++;
     if (!(a instanceof Variable)) {
@@ -919,7 +945,7 @@ export class Engine implements TensorManager, TensorTracker, DataMover {
 
 function ones(shape: number[]): Tensor {
   const values = makeOnesTypedArray(sizeFromShape(shape), 'float32');
-  return Tensor.make(shape, {values});
+  return Tensor.make(shape, values);
 }
 
 let GLOBAL: {_tfengine: Engine};

@@ -144,7 +144,7 @@ module.exports = function(config) {
       },
       bs_android_9: {
         base: 'BrowserStack',
-        device: 'Google Pixel 3',
+        device: 'Google Pixel 3 XL',
         os: 'android',
         os_version: '9.0',
         real_mobile: true

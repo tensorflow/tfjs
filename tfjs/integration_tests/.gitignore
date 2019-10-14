@@ -3,5 +3,6 @@ tfjs-core/
 tfjs-data/
 tfjs-layers/
 tfjs-node/
+tfjs-node-gpu/
 data/
 coverage/
