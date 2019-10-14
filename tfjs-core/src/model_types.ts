@@ -88,7 +88,7 @@ export interface InferenceModel {
 }
 
 /**
- * Interface for inspected SavedModel/GraphModel MetaGraph info.
+ * Interface for SavedModel/GraphModel MetaGraph info.
  */
 export interface MetaGraphInfo {
   tags: string[];
@@ -96,7 +96,7 @@ export interface MetaGraphInfo {
 }
 
 /**
- * Interface for inspected SavedModel/GraphModel SignatureDef info.
+ * Interface for SavedModel/GraphModel SignatureDef info.
  */
 export interface SignatureDefInfo {
   [key: string]: {
@@ -106,7 +106,7 @@ export interface SignatureDefInfo {
 }
 
 /**
- * Interface for inspected SavedModel/GraphModel signature input/output Tensor
+ * Interface for SavedModel/GraphModel signature input/output Tensor
  * info.
  */
 export interface SavedModelTensorInfo {
