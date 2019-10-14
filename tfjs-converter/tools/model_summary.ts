@@ -14,21 +14,31 @@
  * limitations under the License.
  * =============================================================================
  */
+import * as fs from 'fs';
 
-import * as automl from '@tensorflow/tfjs-automl';
+function summarize(argv: string[]) {
+  if (argv.length < 3) {
+    console.log('Usage: ts-node pb2json.ts model_file');
+    return;
+  }
 
-const MODEL_URL =
-    'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
+  const sourcePath = process.argv[2];
+  console.log('reading pb model file: ' + sourcePath);
+  const rawdata = fs.readFileSync(sourcePath);
+  const nodes: Array<any> = JSON.parse(rawdata.toString())['modelTopology']['node'];
 
-async function run() {
-  const model = await automl.loadImageClassification(MODEL_URL);
-  const image = document.getElementById('daisy');
-  const predictions = await model.classify(image);
+  const opCount: {[key: string]: number} = {};
+  for (const opNode of nodes) {
+    let count = 0;
+    const op = opNode['op'];
+    if (opCount[op]) {
+        count = opCount[op];
+    } 
+    opCount[op] = count + 1; 
+  }
 
-  // Show the resulting object on the page.
-  const pre = document.createElement('pre');
-  pre.textContent = JSON.stringify(predictions, null, 2);
-  document.body.append(pre);
+  console.log(opCount);
+  console.log('Total ops = ' + nodes.length);
 }
 
-run();
+summarize(process.argv);
