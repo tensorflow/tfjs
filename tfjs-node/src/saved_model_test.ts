@@ -121,7 +121,7 @@ describe('SavedModel', () => {
     }
   });
 
-  it('inspect SavedModel', async () => {
+  it('inspect SavedModel metagraphs', async () => {
     const modelInfo =
         await getMetaGraphsFromSavedModel('./test_objects/times_three_float');
     /**
