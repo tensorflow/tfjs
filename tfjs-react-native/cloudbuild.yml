@@ -28,6 +28,7 @@ steps:
   dir: 'tfjs-react-native/integration_rn59'
   entrypoint: 'yarn'
   id: 'test-core-with-react-native'
+  # TODO remove build-head option once the tests are in master
   args: ['test-ci', 'build-head']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
