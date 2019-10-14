@@ -9,6 +9,7 @@ describe('tfjs-core unit tests', () => {
     const driver = browser;
 
     const unitTestBtn = await driver.$('~unit-test-btn');
+    await unitTestBtn.waitForExist(INITIAL_LOAD_TIMEOUT);
     await unitTestBtn.waitForEnabled(INITIAL_LOAD_TIMEOUT);
     await unitTestBtn.click();
 
