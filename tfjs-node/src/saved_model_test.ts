@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getEnumKeyFromValue, inspectSavedModel, readSavedModelProto} from './saved_model';
+import {getEnumKeyFromValue, getMetaGraphsFromSavedModel, readSavedModelProto} from './saved_model';
 
 // tslint:disable-next-line:no-require-imports
 const messages = require('./proto/api_pb');
@@ -123,7 +123,7 @@ describe('SavedModel', () => {
 
   it('inspect SavedModel', async () => {
     const modelInfo =
-        await inspectSavedModel('./test_objects/times_three_float');
+        await getMetaGraphsFromSavedModel('./test_objects/times_three_float');
     /**
      * The inspection output should be
      * [{
