@@ -447,7 +447,7 @@ def get_arg_parser():
       type=str,
       help='Path to the input file or directory. For input format "keras", '
       'an HDF5 (.h5) file is expected. For input format "tensorflow", '
-      'a SavedModel directory, session bundle directory, frozen model file, '
+      'a SavedModel directory, frozen model file, '
       'or TF-Hub module is expected.')
   parser.add_argument(
       common.OUTPUT_PATH,
@@ -475,7 +475,7 @@ def get_arg_parser():
       'The subfolder is generated automatically by tensorflow when '
       'saving keras model in the SavedModel format. It is usually named '
       'as a Unix epoch time (e.g., 1542212752).\n'
-      'For "tf" formats, a SavedModel, frozen model, session bundle model, '
+      'For "tf" formats, a SavedModel, frozen model, '
       ' or TF-Hub module is expected.')
   parser.add_argument(
       '--%s' % common.OUTPUT_FORMAT,
@@ -532,6 +532,12 @@ def get_arg_parser():
       default=None,
       help='Shard size (in bytes) of the weight files. Currently applicable '
       'only to output_format=tfjs_layers_model.')
+  parser.add_argument(
+      '--output_node_names',
+      type=str,
+      help='The names of the output nodes, separated by commas. E.g., '
+      '"logits,activations". Applicable only if input format is '
+      '"tf_frozen_model".')
   return parser
 
 def convert(arguments):
@@ -634,6 +640,12 @@ def convert(arguments):
         quantization_dtype=_parse_quantization_bytes(args.quantization_bytes),
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops)
+  elif (input_format == common.TF_FROZEN_MODEL and
+        output_format == common.TFJS_GRAPH_MODEL):
+    tf_saved_model_conversion_v2.convert_tf_frozen_model(
+        args.input_path, args.output_path, args.output_node_names,
+        args.saved_model_tags, skip_op_check=args.skip_op_check,
+        strip_debug_ops=args.strip_debug_ops
   else:
     raise ValueError(
         'Unsupported input_format - output_format pair: %s - %s' %

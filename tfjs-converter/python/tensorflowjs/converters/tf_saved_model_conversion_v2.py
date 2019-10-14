@@ -314,12 +314,50 @@ def _build_signature_def(frozen_graph, input_nodes, output_nodes):
       # The original input was removed when the graph was frozen.
       continue
   for output_tensor in output_nodes:
-    signature.outputs[output_tensor.name].name = output_tensor.name
-    signature.outputs[
-        output_tensor.name].dtype = output_tensor.dtype.as_datatype_enum
-    signature.outputs[output_tensor.name].tensor_shape.CopyFrom(
-        output_tensor.shape.as_proto())
+    if hasattr(output_tensor, 'name'):
+      signature.outputs[output_tensor.name].name = output_tensor.name
+      signature.outputs[
+          output_tensor.name].dtype = output_tensor.dtype.as_datatype_enum
+      signature.outputs[output_tensor.name].tensor_shape.CopyFrom(
+          output_tensor.shape.as_proto())
+    else: #just the tensor name string array
+      signature.outputs[output_tensor].name = output_tensor
   return signature
+
+def convert_tf_frozen_model(frozen_model_path,
+                            output_node_names,
+                            output_dir, quantization_dtype=None,
+                            skip_op_check=False,
+                            strip_debug_ops=False):
+  """Convert frozen model and check the model compatibility with Tensorflow.js.
+  Optimize and convert the model to Tensorflow.js format, when the model passes
+  the compatiblity check.
+  Args:
+    frozen_model_path: string The path to frozen model.
+    output_node_names: string The names of the output nodes, comma separated.
+    output_dir: string The name of the output directory. The directory
+      will consist of
+      - a file named 'model.json'
+      - possibly sharded binary weight files.
+    quantization_dtype: An optional numpy dtype to quantize weights to for
+      compression. Only np.uint8 and np.uint16 are supported.
+    skip_op_check: Bool whether to skip the op check.
+    strip_debug_ops: Bool whether to strip debug ops.
+  """
+
+  if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+  output_graph = os.path.join(output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
+
+  graph = load_graph(frozen_model_path)
+  signature = _build_signature_def(
+      graph, [], output_node_names.split(','))
+
+  optimize_graph(graph, signature,
+                 output_graph, tf.__version__,
+                 quantization_dtype=quantization_dtype,
+                 skip_op_check=skip_op_check,
+                 strip_debug_ops=strip_debug_ops)
 
 def convert_tf_saved_model(saved_model_dir,
                            output_dir, signature_def='serving_default',
