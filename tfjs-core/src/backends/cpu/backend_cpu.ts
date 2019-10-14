@@ -3647,15 +3647,15 @@ export class MathBackendCPU extends KernelBackend {
             let coordX = (x - centerX) * cosFactor - (y - centerY) * sinFactor;
             let coordY = (x - centerX) * sinFactor + (y - centerY) * cosFactor;
 
-            coordX = Math.floor(coordX + centerX);
-            coordY = Math.floor(coordY + centerY);
+            coordX = Math.round(coordX + centerX);
+            coordY = Math.round(coordY + centerY);
 
             let outputValue = fillValue;
             if (typeof fillValue !== 'number') {
               outputValue = fillValue[channel];
             }
 
-            if (coordX > 0 && coordX < imageWidth && coordY > 0 &&
+            if (coordX >= 0 && coordX < imageWidth && coordY >= 0 &&
                 coordY < imageHeight) {
               const imageIdx =
                   batchIdx * imageWidth * imageHeight * numChannels +

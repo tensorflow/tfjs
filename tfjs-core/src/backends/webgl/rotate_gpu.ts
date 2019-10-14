@@ -11,8 +11,8 @@ export class RotateProgram implements GPGPUProgram {
       center: number|[number, number]) {
     const imageHeight = imageShape[1];
     const imageWidth = imageShape[2];
-    const sinFactor = Math.sin(-radians);
-    const cosFactor = Math.cos(-radians);
+    const sinFactor = Math.sin(-radians).toFixed(3);
+    const cosFactor = Math.cos(-radians).toFixed(3);
     this.outputShape = imageShape;
 
     const centerX = Math.floor(
@@ -46,7 +46,7 @@ export class RotateProgram implements GPGPUProgram {
 
           ${fillSnippet}
 
-          if(coordX > 0 && coordX < ${imageWidth} && coordY > 0 && coordY < ${
+          if(coordX >= 0 && coordX < ${imageWidth} && coordY >= 0 && coordY < ${
         imageHeight}) {
             outputValue = getImage(coords[0], coordY, coordX, coords[3]);
           }
