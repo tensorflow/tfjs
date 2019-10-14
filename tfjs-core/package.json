@@ -52,7 +52,7 @@
     "yargs": "~13.2.2"
   },
   "scripts": {
-    "build-ci": "./scripts/enumerate-tests.js --ci && tsc && yarn rollup -c && yarn build-test-snippets",
+    "build-ci": "./scripts/enumerate-tests.js --ci && tsc && yarn build-test-snippets",
     "build": "./scripts/enumerate-tests.js && tsc",
     "build-npm": "./scripts/build-npm.sh",
     "build:bazel": "bazel build //...",

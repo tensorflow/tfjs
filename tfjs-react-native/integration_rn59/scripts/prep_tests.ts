@@ -27,7 +27,7 @@ const fileContents = fs.readFileSync(testsFilePath, 'utf-8');
 
 let newContents = fileContents.replace('require("./worker_node_test");', '');
 // disable the version test as we may be testing against a version that is not
-// yet depended on by theintegration tests.
+// yet depended on by the integration tests.
 newContents = newContents.replace('require("./version_test");', '');
 
 fs.writeFileSync(testsFilePath, newContents);
