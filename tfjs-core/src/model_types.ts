@@ -86,3 +86,31 @@ export interface InferenceModel {
   execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs: string|string[]):
       Tensor|Tensor[];
 }
+
+/**
+ * Interface for inspected SavedModel/GraphModel MetaGraph info.
+ */
+export interface MetaGraphInfo {
+  tags: string[];
+  signatureDefs: SignatureDefInfo;
+}
+
+/**
+ * Interface for inspected SavedModel/GraphModel SignatureDef info.
+ */
+export interface SignatureDefInfo {
+  [key: string]: {
+    inputs: {[key: string]: SavedModelTensorInfo};
+    outputs: {[key: string]: SavedModelTensorInfo};
+  };
+}
+
+/**
+ * Interface for inspected SavedModel/GraphModel signature input/output Tensor
+ * info.
+ */
+export interface SavedModelTensorInfo {
+  dtype: string;
+  shape: number[];
+  name: string;
+}
