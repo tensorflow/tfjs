@@ -3652,7 +3652,11 @@ export class MathBackendCPU extends KernelBackend {
 
             let outputValue = fillValue;
             if (typeof fillValue !== 'number') {
-              outputValue = fillValue[channel];
+              if (channel === 3) {
+                outputValue = 255;
+              } else {
+                outputValue = fillValue[channel];
+              }
             }
 
             if (coordX >= 0 && coordX < imageWidth && coordY >= 0 &&
