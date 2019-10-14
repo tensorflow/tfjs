@@ -28,7 +28,6 @@ def tfjs_cc_library(name, srcs = [], hdrs = [], deps = []):
 
     native.cc_library(
       name = name,
-      linkstatic = True,
       srcs = srcs,
       hdrs = hdrs,
       deps = deps,
