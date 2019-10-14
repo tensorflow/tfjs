@@ -154,16 +154,21 @@ describe('SavedModel', () => {
     expect(Object.keys(modelInfo[0].signatureDefs)[0])
         .toBe('__saved_model_init_op');
     expect(Object.keys(modelInfo[0].signatureDefs)[1]).toBe('serving_default');
-    expect(modelInfo[0].signatureDefs['serving_default'].inputs.length).toBe(1);
-    expect(modelInfo[0].signatureDefs['serving_default'].inputs[0].name)
-        .toBe('serving_default_x:0');
-    expect(modelInfo[0].signatureDefs['serving_default'].inputs[0].dtype)
-        .toBe('DT_FLOAT');
-    expect(modelInfo[0].signatureDefs['serving_default'].outputs.length)
+    expect(Object.keys(modelInfo[0].signatureDefs['serving_default'].inputs)
+               .length)
         .toBe(1);
-    expect(modelInfo[0].signatureDefs['serving_default'].outputs[0].name)
+    expect(modelInfo[0].signatureDefs['serving_default'].inputs['x'].name)
+        .toBe('serving_default_x:0');
+    expect(modelInfo[0].signatureDefs['serving_default'].inputs['x'].dtype)
+        .toBe('DT_FLOAT');
+    expect(Object.keys(modelInfo[0].signatureDefs['serving_default'].outputs)
+               .length)
+        .toBe(1);
+    expect(
+        modelInfo[0].signatureDefs['serving_default'].outputs['output_0'].name)
         .toBe('StatefulPartitionedCall:0');
-    expect(modelInfo[0].signatureDefs['serving_default'].outputs[0].dtype)
+    expect(
+        modelInfo[0].signatureDefs['serving_default'].outputs['output_0'].dtype)
         .toBe('DT_FLOAT');
   });
 });

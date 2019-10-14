@@ -56,11 +56,11 @@ export async function readSavedModelProto(path: string) {
 }
 
 /**
- * Inspect the contents of the SavedModel from the provided path.
+ * Inspect the MetaGraphs of the SavedModel from the provided path.
  *
  * @param path Path to SavedModel folder.
  */
-export async function inspectSavedModel(path: string):
+export async function getMetaGraphsFromSavedModel(path: string):
     Promise<MetaGraphInfo[]> {
   const result: MetaGraphInfo[] = [];
 
@@ -91,7 +91,7 @@ export async function inspectSavedModel(path: string):
       // Get all input tensors information
       const inputsMapMessage = signatureDefEntry.getInputsMap();
       const inputsMapKeys = inputsMapMessage.keys();
-      const inputs: SavedModelTensorInfo[] = [];
+      const inputs: {[key: string]: SavedModelTensorInfo} = {};
       while (true) {
         const inputsMapKey = inputsMapKeys.next();
         if (inputsMapKey.done) {
@@ -103,13 +103,13 @@ export async function inspectSavedModel(path: string):
             getEnumKeyFromValue(messages.DataType, inputTensor.getDtype());
         inputTensorInfo.name = inputTensor.getName();
         inputTensorInfo.shape = inputTensor.getTensorShape().getDimList();
-        inputs.push(inputTensorInfo);
+        inputs[inputsMapKey.value] = inputTensorInfo;
       }
 
       // Get all output tensors information
       const outputsMapMessage = signatureDefEntry.getOutputsMap();
       const outputsMapKeys = outputsMapMessage.keys();
-      const outputs: SavedModelTensorInfo[] = [];
+      const outputs: {[key: string]: SavedModelTensorInfo} = {};
       while (true) {
         const outputsMapKey = outputsMapKeys.next();
         if (outputsMapKey.done) {
@@ -121,7 +121,7 @@ export async function inspectSavedModel(path: string):
             getEnumKeyFromValue(messages.DataType, outputTensor.getDtype());
         outputTensorInfo.name = outputTensor.getName();
         outputTensorInfo.shape = outputTensor.getTensorShape().getDimList();
-        outputs.push(outputTensorInfo);
+        outputs[outputsMapKey.value] = outputTensorInfo;
       }
 
       signatureDef[key.value] = {inputs, outputs};
@@ -145,8 +145,10 @@ export interface MetaGraphInfo {
  * Interface for inspected SavedModel SignatureDef info..
  */
 export interface SignatureDefInfo {
-  [key: string]:
-      {inputs: SavedModelTensorInfo[]; outputs: SavedModelTensorInfo[];};
+  [key: string]: {
+    inputs: {[key: string]: SavedModelTensorInfo};
+    outputs: {[key: string]: SavedModelTensorInfo};
+  };
 }
 
 /**
