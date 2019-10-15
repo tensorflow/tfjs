@@ -2,7 +2,7 @@ load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
 
 # Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
 # explicitly pointing to files with exported methods (EMSCRIPTEN_KEEPALIVE).
-KERNELS_WITH_KEEPALIVE = ['backend.cc', 'add.cc', 'batch_matmul.cc', 'prelu.cc']
+KERNELS_WITH_KEEPALIVE = ['add.cc', 'batch_matmul.cc', 'prelu.cc']
 
 cc_binary(
     name = "tfjs-backend-wasm.js",
