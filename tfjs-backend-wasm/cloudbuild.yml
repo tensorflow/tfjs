@@ -13,15 +13,47 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Run tests.
+# Run lint.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
+  waitFor: ['yarn']
+
+# Build the project.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'build'
+  args: ['build-ci']
+  waitFor: ['yarn']
+
+# Run browser tests.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'test-wasm'
-  args: ['test-ci']
-  waitFor: ['yarn']
+  args: ['test-browser-ci']
+  waitFor: ['build']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
+
+# Run C++ tests.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'test-cc'
+  args: ['test-cc']
+  waitFor: ['build']
+
+# Check bundle size.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  id: 'test-bundle-size'
+  entrypoint: 'yarn'
+  args: ['test-bundle-size']
+  waitFor: ['build']
 
 # General configuration
 secrets:

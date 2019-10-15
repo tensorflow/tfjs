@@ -60,7 +60,7 @@ function unsortedSegmentSum_<T extends Tensor>(
     };
     return {$x: derX};
   };
-  return ENGINE.runKernel((backend, save) => {
+  return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.unsortedSegmentSum($x, $segmentIds, numSegments);
     save([$segmentIds]);
     return res;
@@ -128,7 +128,7 @@ function gather_<T extends Tensor>(
     };
     return {$x: derX};
   };
-  return (ENGINE.runKernel((backend, save) => {
+  return (ENGINE.runKernelFunc((backend, save) => {
            const res = backend.gather($x, $indices.flatten(), axis);
            save([$indices]);
            return res;
