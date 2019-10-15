@@ -110,7 +110,7 @@ export class NodeJSKernelBackend extends KernelBackend {
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
     }
-    return Tensor.make(metadata.shape, {dataId: newId}, dtype);
+    return tfc.engine().makeTensorFromDataId(newId, metadata.shape, dtype);
   }
 
   // Prepares Tensor instances for Op execution.
@@ -211,6 +211,10 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   disposeData(dataId: object): void {
+    // No-op if already disposed.
+    if (!this.tensorMap.has(dataId)) {
+      return;
+    }
     const id = this.tensorMap.get(dataId).id;
     if (id != null && id >= 0) {
       this.binding.deleteTensor(id);
@@ -218,21 +222,20 @@ export class NodeJSKernelBackend extends KernelBackend {
     this.tensorMap.delete(dataId);
   }
 
-  write(dataId: object, values: backend_util.BackendValues): void {
-    if (!this.tensorMap.has(dataId)) {
-      throw new Error(`Tensor ${dataId} was not registered!`);
-    }
-
-    const info = this.tensorMap.get(dataId);
-    info.values = values;
-    this.tensorMap.set(dataId, info);
+  move(
+      dataId: object, values: backend_util.BackendValues, shape: number[],
+      dtype: DataType): void {
+    this.tensorMap.set(
+        dataId, {shape, dtype: getTFDType(dtype), values, id: -1});
   }
 
-  register(dataId: object, shape: number[], dtype: DataType): void {
-    if (!this.tensorMap.has(dataId)) {
-      this.tensorMap.set(
-          dataId, {shape, dtype: getTFDType(dtype), values: null, id: -1});
-    }
+  register(
+      values: backend_util.BackendValues, shape: number[],
+      dtype: DataType): object {
+    const dataId = {};
+    this.tensorMap.set(
+        dataId, {shape, dtype: getTFDType(dtype), values, id: -1});
+    return dataId;
   }
 
   fill<R extends Rank>(
