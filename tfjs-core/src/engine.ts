@@ -535,6 +535,7 @@ export class Engine implements TensorTracker, DataMover {
     if (values == null) {
       throw new Error('Values passed to engine.makeTensor() are null');
     }
+    dtype = dtype || 'float32';
     backend = backend || this.backend;
     let backendVals = values as BackendValues;
     if (dtype === 'string' && util.isString(values[0])) {
@@ -562,6 +563,7 @@ export class Engine implements TensorTracker, DataMover {
   makeTensorFromDataId(
       dataId: DataId, shape: number[], dtype: DataType,
       backend?: KernelBackend): Tensor {
+    dtype = dtype || 'float32';
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
     this.incRef(t, backend);
     return t;
