@@ -41,7 +41,7 @@ function square_<T extends Tensor>(x: T|TensorLike): T {
   };
   const kernelName = 'Square';
   const attrs = {};
-  return ENGINE.runKernel((backend, save) => {
+  return ENGINE.runKernelFunc((backend, save) => {
     save([$x]);
     return backend.square($x);
   }, {x: $x}, grad, kernelName, attrs);

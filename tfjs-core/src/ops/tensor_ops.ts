@@ -469,7 +469,7 @@ function zeros<R extends Rank>(
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function fill<R extends Rank>(
     shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-  return ENGINE.runKernel(backend => backend.fill(shape, value, dtype), {});
+  return ENGINE.runKernelFunc(backend => backend.fill(shape, value, dtype), {});
 }
 
 /**
@@ -491,7 +491,7 @@ function onesLike_<T extends Tensor>(x: T|TensorLike): T {
     return complex(r, i);
   }
   const der = (dy: T, saved: Tensor[]) => ({$x: () => zerosLike(dy)});
-  return ENGINE.runKernel(backend => backend.onesLike($x), {$x}, der) as T;
+  return ENGINE.runKernelFunc(backend => backend.onesLike($x), {$x}, der) as T;
 }
 
 /**
@@ -509,7 +509,7 @@ function onesLike_<T extends Tensor>(x: T|TensorLike): T {
 function zerosLike_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'zerosLike');
   const der = (dy: T, saved: Tensor[]) => ({$x: () => zerosLike(dy)});
-  return ENGINE.runKernel(backend => backend.zerosLike($x), {$x}, der) as T;
+  return ENGINE.runKernelFunc(backend => backend.zerosLike($x), {$x}, der) as T;
 }
 
 /**
@@ -527,7 +527,8 @@ function linspace(start: number, stop: number, num: number): Tensor1D {
   if (num <= 0) {
     throw new Error('The number of values should be positive.');
   }
-  return ENGINE.runKernel(backend => backend.linspace(start, stop, num), {});
+  return ENGINE.runKernelFunc(
+      backend => backend.linspace(start, stop, num), {});
 }
 
 /**
