@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {MetaGraphInfo, SavedModelTensorInfo, SignatureDefInfo} from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
 import {promisify} from 'util';
 
@@ -132,4 +131,33 @@ export async function getMetaGraphsFromSavedModel(path: string):
     result.push(metaGraph);
   }
   return result;
+}
+
+// TODO(kangyizhang): Remove the following interfaces and use the exported
+// interfaces in tfjs-core.
+/**
+ * Interface for inspected SavedModel MetaGraph info..
+ */
+export interface MetaGraphInfo {
+  tags: string[];
+  signatureDefs: SignatureDefInfo;
+}
+
+/**
+ * Interface for inspected SavedModel SignatureDef info..
+ */
+export interface SignatureDefInfo {
+  [key: string]: {
+    inputs: {[key: string]: SavedModelTensorInfo};
+    outputs: {[key: string]: SavedModelTensorInfo};
+  };
+}
+
+/**
+ * Interface for inspected SavedModel signature input/output Tensor info..
+ */
+export interface SavedModelTensorInfo {
+  dtype: string;
+  shape: number[];
+  name: string;
 }
