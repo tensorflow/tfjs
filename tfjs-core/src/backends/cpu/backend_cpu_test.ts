@@ -15,19 +15,15 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../../engine';
 import * as tf from '../../index';
 import {describeWithFlags} from '../../jasmine_util';
 import {tensor2d} from '../../ops/ops';
 import {expectArraysClose, expectArraysEqual} from '../../test_util';
-import {decodeString, encodeString} from '../../util';
+import {decodeString} from '../../util';
 
 import {MathBackendCPU} from './backend_cpu';
 import {CPU_ENVS} from './backend_cpu_test_registry';
-
-/** Private test util for encoding array of strings in utf-8. */
-function encodeStrings(a: string[]): Uint8Array[] {
-  return a.map(s => encodeString(s));
-}
 
 /** Private test util for decoding array of strings in utf-8. */
 function decodeStrings(bytes: Uint8Array[]): string[] {
@@ -40,32 +36,11 @@ describeWithFlags('backendCPU', CPU_ENVS, () => {
     backend = tf.backend() as MathBackendCPU;
   });
 
-  it('register empty string tensor', () => {
-    const t = tf.Tensor.make([3], null, 'string');
-    expect(backend.readSync(t.dataId) == null).toBe(true);
-  });
-
-  it('register empty string tensor and write', () => {
-    const t = tf.Tensor.make([3], null, 'string');
-    backend.write(t.dataId, encodeStrings(['c', 'a', 'b']));
-    expectArraysEqual(
-        decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
-        ['c', 'a', 'b']);
-  });
-
   it('register string tensor with values', () => {
-    const t = tf.Tensor.make([3], ['a', 'b', 'c'], 'string');
+    const t = ENGINE.makeTensor(['a', 'b', 'c'], [3], 'string');
     expectArraysEqual(
         decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
         ['a', 'b', 'c']);
-  });
-
-  it('register string tensor with values and overwrite', () => {
-    const t = tf.Tensor.make([3], ['a', 'b', 'c'], 'string');
-    backend.write(t.dataId, encodeStrings(['c', 'a', 'b']));
-    expectArraysEqual(
-        decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
-        ['c', 'a', 'b']);
   });
 
   it('register string tensor with values and mismatched shape', () => {

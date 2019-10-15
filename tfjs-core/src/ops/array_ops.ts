@@ -45,7 +45,8 @@ function clone_<T extends Tensor>(x: T|TensorLike): T {
     return {$x: () => dy.toFloat()};
   };
   return ENGINE.runKernel(
-      () => Tensor.wrap($x.shape, $x.dtype, $x.dataId) as T, {$x}, der);
+      () => ENGINE.makeTensorFromDataId($x.dataId, $x.shape, $x.dtype) as T,
+      {$x}, der);
 }
 
 /**
@@ -256,7 +257,7 @@ function rand_<R extends Rank>(
   for (let i = 0; i < size; i++) {
     values[i] = randFunction();
   }
-  return Tensor.make(shape, values, dtype);
+  return ENGINE.makeTensor(values, shape, dtype) as Tensor<R>;
 }
 
 /**
