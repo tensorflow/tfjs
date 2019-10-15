@@ -8,7 +8,7 @@ emsdk_configure(name = "emsdk")
 
 git_repository(
   name = "xnnpack",
-  commit = "0c57d2a08ca62c3020a2acdb4acfe825ed2b2657",
+  commit = "0cc2c533a7dd679ddc161af24b5c8c19400aa0b8",
   remote = "https://github.com/google/XNNPACK.git",
 )
 
