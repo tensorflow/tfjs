@@ -282,53 +282,6 @@ export class MathBackendWebGL implements KernelBackend {
     this.texData = new DataStorage(this, ENGINE);
   }
 
-  private checkNumericalProblems(values: BackendValues): void {
-    if (values == null) {
-      return;
-    }
-    for (let i = 0; i < values.length; i++) {
-      const num = values[i] as number;
-      if (!webgl_util.canBeRepresented(num)) {
-        if (env().getBool('WEBGL_RENDER_FLOAT32_CAPABLE')) {
-          throw Error(
-              `The value ${num} cannot be represented with your ` +
-              `current settings. Consider enabling float32 rendering: ` +
-              `'tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', true);'`);
-        }
-        throw Error(`The value ${num} cannot be represented on this device.`);
-      }
-    }
-  }
-
-  register(values: BackendValues, shape: number[], dtype: DataType): DataId {
-    if (env().getBool('DEBUG')) {
-      this.checkNumericalProblems(values);
-    }
-    if (dtype === 'complex64' && values != null) {
-      throw new Error(
-          `Cannot write to a complex64 dtype. ` +
-          `Please use tf.complex(real, imag).`);
-    }
-    const dataId = {};
-    this.texData.set(
-        dataId, {shape, dtype, values, usage: TextureUsage.UPLOAD});
-    return dataId;
-  }
-
-  move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
-      void {
-    if (env().getBool('DEBUG')) {
-      this.checkNumericalProblems(values);
-    }
-    if (dtype === 'complex64') {
-      throw new Error(
-          `Cannot write to a complex64 dtype. ` +
-          `Please use tf.complex(real, imag).`);
-    }
-    this.texData.set(
-        dataId, {shape, dtype, values, usage: TextureUsage.UPLOAD});
-  }
-
   fromPixels(
       pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
       HTMLVideoElement,
@@ -402,6 +355,35 @@ export class MathBackendWebGL implements KernelBackend {
     this.disposeData(tempPixelHandle.dataId);
 
     return res as Tensor3D;
+  }
+
+  register(values: BackendValues, shape: number[], dtype: DataType): DataId {
+    if (env().getBool('DEBUG')) {
+      this.checkNumericalProblems(values);
+    }
+    if (dtype === 'complex64' && values != null) {
+      throw new Error(
+          `Cannot write to a complex64 dtype. ` +
+          `Please use tf.complex(real, imag).`);
+    }
+    const dataId = {};
+    this.texData.set(
+        dataId, {shape, dtype, values, usage: TextureUsage.UPLOAD});
+    return dataId;
+  }
+
+  move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
+      void {
+    if (env().getBool('DEBUG')) {
+      this.checkNumericalProblems(values);
+    }
+    if (dtype === 'complex64') {
+      throw new Error(
+          `Cannot write to a complex64 dtype. ` +
+          `Please use tf.complex(real, imag).`);
+    }
+    this.texData.set(
+        dataId, {shape, dtype, values, usage: TextureUsage.UPLOAD});
   }
 
   readSync(dataId: DataId): BackendValues {
@@ -527,6 +509,24 @@ export class MathBackendWebGL implements KernelBackend {
       this.disposeData(dataId);
     }
     return dTypeVals;
+  }
+
+  private checkNumericalProblems(values: BackendValues): void {
+    if (values == null) {
+      return;
+    }
+    for (let i = 0; i < values.length; i++) {
+      const num = values[i] as number;
+      if (!webgl_util.canBeRepresented(num)) {
+        if (env().getBool('WEBGL_RENDER_FLOAT32_CAPABLE')) {
+          throw Error(
+              `The value ${num} cannot be represented with your ` +
+              `current settings. Consider enabling float32 rendering: ` +
+              `'tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', true);'`);
+        }
+        throw Error(`The value ${num} cannot be represented on this device.`);
+      }
+    }
   }
 
   private getValuesFromTexture(dataId: DataId): Float32Array {

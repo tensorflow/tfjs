@@ -720,9 +720,8 @@ export class Tensor<R extends Rank = Rank> {
    * Returns a `tf.Tensor` that has expanded rank, by inserting a dimension
    * into the tensor's shape. See `tf.expandDims` for details.
    *
-   * @param axis The dimension index at which to insert shape of 1. Defaults
-   *     to
-   *    0 (the first dimension).
+   * @param axis The dimension index at which to insert shape of 1. Defaults to
+   *     0 (the first dimension).
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   expandDims<R2 extends Rank>(axis = 0): Tensor<R2> {
