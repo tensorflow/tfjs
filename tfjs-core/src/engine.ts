@@ -426,6 +426,9 @@ export class Engine implements TensorTracker, DataMover {
    * saving a tensor for backwards pass. It makes sure to add the clone
    * operation to the tape regardless of being called inside a kernel
    * execution.
+   *
+   * This method will go away once all kernels are modularized since we won't
+   * need to turn off the tape inside runKernel().
    */
   private clone(x: Tensor): Tensor {
     const y = this.makeTensorFromDataId(x.dataId, x.shape, x.dtype);
@@ -541,7 +544,7 @@ export class Engine implements TensorTracker, DataMover {
     if (dtype === 'string' && util.isString(values[0])) {
       backendVals = (values as string[]).map(d => util.encodeString(d));
     }
-    const dataId = backend.register(backendVals, shape, dtype);
+    const dataId = backend.write(backendVals, shape, dtype);
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
     this.incRef(t, backend);
 

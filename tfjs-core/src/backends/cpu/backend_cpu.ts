@@ -97,7 +97,7 @@ export class MathBackendCPU extends KernelBackend {
     this.data = new DataStorage(this, ENGINE);
   }
 
-  register(values: BackendValues, shape: number[], dtype: DataType): DataId {
+  write(values: BackendValues, shape: number[], dtype: DataType): DataId {
     if (this.firstUse) {
       this.firstUse = false;
       if (env().get('IS_NODE')) {
@@ -226,7 +226,7 @@ export class MathBackendCPU extends KernelBackend {
 
   private makeOutput<T extends Tensor>(
       values: BackendValues, shape: number[], dtype: DataType): T {
-    const dataId = this.register(values, shape, dtype);
+    const dataId = this.write(values, shape, dtype);
     return ENGINE.makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 

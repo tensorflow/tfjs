@@ -357,7 +357,7 @@ export class MathBackendWebGL implements KernelBackend {
     return res as Tensor3D;
   }
 
-  register(values: BackendValues, shape: number[], dtype: DataType): DataId {
+  write(values: BackendValues, shape: number[], dtype: DataType): DataId {
     if (env().getBool('DEBUG')) {
       this.checkNumericalProblems(values);
     }
@@ -2543,7 +2543,7 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   private makeTensorHandle(shape: number[], dtype: DataType): TensorHandle {
-    const dataId = this.register(null, shape, dtype);
+    const dataId = this.write(null /* values */, shape, dtype);
     this.texData.get(dataId).usage = null;
     return {dataId, shape, dtype};
   }
