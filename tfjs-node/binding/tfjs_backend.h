@@ -68,6 +68,16 @@ public:
   napi_value LoadSavedModel(napi_env env, napi_value export_dir,
                             napi_value tags_value);
 
+  // Execute a session from SavedModel with the provided input/output names:
+  // - saved_model_id (number)
+  // - input_tensor_ids (array of input tensor IDs)
+  // - input_op_name (array of input op names)
+  // - output_op_name (array of output op names)
+  napi_value RunSavedModel(napi_env env, napi_value saved_model_id,
+                           napi_value input_tensor_ids,
+                           napi_value input_op_names,
+                           napi_value output_op_names);
+
   // Delete the SavedModel corresponding TF_Session and TF_Graph
   // - saved_model_id (number)
   void DeleteSavedModel(napi_env env, napi_value saved_model_id);
