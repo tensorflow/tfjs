@@ -51,10 +51,15 @@ export class Im2ColProgram implements WebGPUProgram {
       padInfo,
       outWidth,
       dilationWidth,
-      dilationHeight
+      dilationHeight,
+      dataFormat
     } = convInfo;
     const {left, top} = padInfo;
     const itemsPerBlockRow = inChannels * filterWidth;
+
+    const isChannelsLast = dataFormat === 'channelsLast';
+    const rowDim = isChannelsLast ? 0 : 1;
+    const colDim = isChannelsLast ? 1 : 2;
 
     this.userCode = `
       void main() {
@@ -69,13 +74,18 @@ export class Im2ColProgram implements WebGPUProgram {
           int offsetY = int(blockIndex / ${outWidth}) * ${strideHeight} -
             ${top};
           int d0 = offsetY + ${dilationHeight} * (pos / ${itemsPerBlockRow});
-          int offsetX = int(mod(float(blockIndex), ${outWidth}.) *
-            ${strideWidth}. - ${left}.);
-          int d1 = offsetX + ${dilationWidth} * (int(mod(float(pos),
-            ${itemsPerBlockRow}.) / ${inChannels}.));
-          int ch = int(mod(float(pos), ${inChannels}.));
-          float value = getA(d0, d1, ch);
-          setOutput(flatIndex, value);
+          if(d0 < ${inputShape[rowDim]} && d0 >= 0) {
+            int offsetX = int(mod(float(blockIndex), ${outWidth}.) *
+              ${strideWidth}. - ${left}.);
+            int d1 = offsetX + ${dilationWidth} * (int(mod(float(pos),
+              ${itemsPerBlockRow}.) / ${inChannels}.));
+            int ch = int(mod(float(pos), ${inChannels}.));
+            float value = 0.0;
+            if(d1 < ${inputShape[colDim]} && d1 >= 0) {
+              value = getA(d0, d1, ch);
+            }
+            setOutput(flatIndex, value);
+          }
         }
       }
     `;
