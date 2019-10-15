@@ -35,6 +35,7 @@ from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import tensor_spec
 from tensorflow.python.ops import variables
+from tensorflow.python.tools import freeze_graph
 from tensorflow.python.training.tracking import tracking
 from tensorflow.python.saved_model.save import save
 import tensorflow_hub as hub
