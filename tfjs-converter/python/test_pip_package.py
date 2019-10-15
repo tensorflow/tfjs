@@ -145,6 +145,44 @@ def _create_hub_module(save_path):
     sess.run(tf.compat.v1.global_variables_initializer())
     m.export(save_path, sess)
 
+def _create_frozen_model(save_path):
+  graph = tf.Graph()
+  saved_model_dir = os.path.join(save_path)
+  with graph.as_default():
+    x = tf.constant([[37.0, -23.0], [1.0, 4.0]])
+    w = tf.Variable(tf.random_uniform([2, 2]))
+    y = tf.matmul(x, w)
+    tf.nn.softmax(y)
+    init_op = w.initializer
+
+    # Create a builder
+    builder = tf.saved_model.builder.SavedModelBuilder(saved_model_dir)
+
+    with tf.Session() as sess:
+      # Run the initializer on `w`.
+      sess.run(init_op)
+
+      builder.add_meta_graph_and_variables(
+          sess, [tf.saved_model.tag_constants.SERVING],
+          signature_def_map=None,
+          assets_collection=None)
+
+    builder.save()
+
+  frozen_file = os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'model.frozen')
+  freeze_graph.freeze_graph(
+      '',
+      '',
+      True,
+      '',
+      "Softmax",
+      '',
+      '',
+      frozen_file,
+      True,
+      '',
+      saved_model_tags=tf.saved_model.tag_constants.SERVING,
+      input_saved_model_dir=saved_model_dir)
 class APIAndShellTest(tf.test.TestCase):
   """Tests for the Python API of the pip package."""
 
@@ -474,6 +512,58 @@ class APIAndShellTest(tf.test.TestCase):
                             weights[0]['paths'])
       self.assertCountEqual(weights_manifest[0]['weights'],
                             weights[0]['weights'])
+
+    # Check the content of the output directory.
+    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
+
+  def testConvertTFHubModuleWithCommandLineWorks(self):
+    output_dir = os.path.join(self._tmp_dir)
+    process = subprocess.Popen([
+        'tensorflowjs_converter', '--input_format', 'tf_hub',
+        self.tf_hub_module_dir, output_dir
+    ])
+    process.communicate()
+    self.assertEqual(0, process.returncode)
+
+    weights = [{
+        'paths': ['group1-shard1of1.bin'],
+        'weights': [{
+            'shape': [2],
+            'name': 'module/Variable',
+            'dtype': 'float32'
+        }]
+    }]
+    # Load the saved weights as a JSON string.
+    output_json = json.load(
+        open(os.path.join(output_dir, 'model.json'), 'rt'))
+    self.assertEqual(output_json['weightsManifest'], weights)
+
+    # Check the content of the output directory.
+    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
+
+  def testConvertTFFrozenModelWithCommandLineWorks(self):
+    output_dir = os.path.join(self._tmp_dir)
+    process = subprocess.Popen([
+        'tensorflowjs_converter', '--input_format', 'tf_frozen_model',
+        '--output_format', 'tfjs_graph_model', '--output_node_names',
+        'Softmax',
+        self.tf_frozen_model_dir, output_dir
+    ])
+    process.communicate()
+    self.assertEqual(0, process.returncode)
+
+    # Check model.json and weights manifest.
+    with open(os.path.join(output_dir, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    weights_manifest = model_json['weightsManifest']
+    weights_manifest = model_json['weightsManifest']
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          ['group1-shard1of1.bin'])
+    self.assertIn('weights', weights_manifest[0])
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'group*-*')))
 
     # Check the content of the output directory.
     self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))

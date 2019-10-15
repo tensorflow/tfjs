@@ -645,7 +645,7 @@ def convert(arguments):
     tf_saved_model_conversion_v2.convert_tf_frozen_model(
         args.input_path, args.output_path, args.output_node_names,
         args.saved_model_tags, skip_op_check=args.skip_op_check,
-        strip_debug_ops=args.strip_debug_ops
+        strip_debug_ops=args.strip_debug_ops)
   else:
     raise ValueError(
         'Unsupported input_format - output_format pair: %s - %s' %
