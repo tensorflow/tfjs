@@ -201,7 +201,7 @@ function matMul_<T extends Tensor>({
     inputs.$preluActivationWeights = $preluActivationWeights;
   }
 
-  const res = ENGINE.runKernel((backend, save) => {
+  const res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.fusedBatchMatMul({
       a: a3D,
       b: b3D,
@@ -412,7 +412,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
     inputs.$preluActivationWeights = $preluActivationWeights;
   }
 
-  const res = ENGINE.runKernel((backend, save) => {
+  const res = ENGINE.runKernelFunc((backend, save) => {
     const res = backend.fusedConv2d({
       input: x4D,
       filter: $filter,
@@ -622,7 +622,7 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
     inputs.$preluActivationWeights = $preluActivationWeights;
   }
 
-  const res = ENGINE.runKernel((backend, save) => {
+  const res = ENGINE.runKernelFunc((backend, save) => {
     const res = backend.fusedDepthwiseConv2D({
       input: x4D,
       filter: $filter,

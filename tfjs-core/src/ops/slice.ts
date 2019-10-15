@@ -171,7 +171,7 @@ function slice_<R extends Rank, T extends Tensor<R>>(
     }
     return {$x: () => dy.pad(paddings)};
   };
-  return ENGINE.runKernel(
+  return ENGINE.runKernelFunc(
       backend => backend.slice($x, begin_, size_), {$x}, grad);
 }
 
