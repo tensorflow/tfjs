@@ -3823,7 +3823,7 @@ export class MathBackendCPU extends KernelBackend {
     dtype = dtype || inferDtype(value);
     const values = getArrayFromDType(dtype, sizeFromShape(shape)) as TypedArray;
     values.fill(value as number);
-    return this.makeOutput(values, shape, dtype);
+    return ENGINE.makeTensor(values, shape, dtype) as Tensor<R>;
   }
 
   onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {

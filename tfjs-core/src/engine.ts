@@ -429,7 +429,10 @@ export class Engine implements TensorTracker, DataMover {
    */
   private clone(x: Tensor): Tensor {
     const y = this.makeTensorFromDataId(x.dataId, x.shape, x.dtype);
-    this.addTapeNode([x], y, dy => [(dy as Tensor).toFloat()]);
+    const inputs = {x};
+    const grad = (dy: Tensor) => ({x: () => dy.toFloat()});
+    const saved: Tensor[] = [];
+    this.addTapeNode(this.state.activeScope.name, inputs, y, grad, saved);
     return y;
   }
 
@@ -500,17 +503,7 @@ export class Engine implements TensorTracker, DataMover {
         });
 
     if (isTapeOn) {
-      const tapeNode: TapeNode = {
-        id: this.state.nextTapeNodeId++,
-        name: scopeName,
-        inputs,
-        outputs: Array.isArray(result) ? result : [result] as Tensor[],
-        saved
-      };
-      if (backwardsFunc != null) {
-        tapeNode.gradient = (dy: T) => backwardsFunc(dy, saved);
-      }
-      this.state.activeTape.push(tapeNode);
+      this.addTapeNode(scopeName, inputs, result, backwardsFunc, saved);
     }
 
     if (this.state.profiling) {
@@ -696,40 +689,34 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   private addTapeNode(
-      inputs: Tensor[], result: Tensor,
-      gradientsFunc: (dy: Tensor|Tensor[]) => Tensor[]): void {
-    const inputsMap: NamedTensorMap = {};
-    inputs.forEach((input, idx) => {
-      inputsMap[idx] = input;
-    });
-
-    const gradient = (dys: Tensor[]) => {
-      // TODO(smilkov): To optimize back-prop, pass dys that are not used in the
-      // backprop graph to the user as null instead of zeros
-      dys = dys.map(dy => {
-        if (dy == null) {
-          const vals = util.makeZerosTypedArray(result.size, result.dtype);
-          return this.makeTensor(vals, result.shape, result.dtype);
-        }
-        return dy;
-      });
-      // Grad functions of ops with single outputs expect a dy, while ops
-      // with multiple outputs expect dys (array of dy).
-      const res = gradientsFunc(dys.length > 1 ? dys : dys[0]);
-      const resMap: NamedGradientMap = {};
-      res.forEach((r, idx) => {
-        resMap[idx] = () => r;
-      });
-      return resMap;
-    };
-
+      scopeName: string, inputs: NamedTensorMap, result: Tensor|Tensor[],
+      gradientsFunc: (dy: Tensor|Tensor[], saved: Tensor[]) => NamedGradientMap,
+      saved: Tensor[]): void {
+    const results = Array.isArray(result) ? result : [result];
     const tapeNode: TapeNode = {
       id: this.state.nextTapeNodeId++,
-      name: this.state.activeScope.name,
-      inputs: inputsMap,
-      outputs: [result],
-      gradient
+      name: scopeName,
+      inputs,
+      outputs: results,
+      saved
     };
+    if (gradientsFunc != null) {
+      tapeNode.gradient = (dys: Tensor[]) => {
+        // TODO(smilkov): To optimize back-prop, pass dys that are not used in
+        // the backprop graph to the user as null instead of zeros
+        dys = dys.map((dy, i) => {
+          if (dy == null) {
+            const result = results[i];
+            const vals = util.makeZerosTypedArray(result.size, result.dtype);
+            return this.makeTensor(vals, result.shape, result.dtype);
+          }
+          return dy;
+        });
+        // Grad functions of ops with single outputs expect a dy, while ops
+        // with multiple outputs expect dys (array of dy).
+        return gradientsFunc(dys.length > 1 ? dys : dys[0], saved);
+      };
+    }
     this.state.activeTape.push(tapeNode);
   }
 

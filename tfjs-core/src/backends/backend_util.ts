@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../engine';
 import {scalar, tensor1d, zeros} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
 import {Rank} from '../types';
@@ -50,7 +51,7 @@ export function castTensor<T extends Tensor>(
   if (!hasEncodingLoss(x.dtype, dtype)) {
     // We don't change the underlying data, since we cast to higher
     // precision.
-    return Tensor.wrap(x.shape, dtype, x.dataId) as T;
+    return ENGINE.makeTensorFromDataId(x.dataId, x.shape, dtype) as T;
   }
   if (x.dtype === 'complex64') {
     const real = backend.real(x);
@@ -72,7 +73,7 @@ export function castTensor<T extends Tensor>(
 
 export function reshapeTensor<T extends Tensor, R extends Rank>(
     x: T, shape: ShapeMap[R]): Tensor<R> {
-  return Tensor.wrap(shape, x.dtype, x.dataId) as Tensor<R>;
+  return ENGINE.makeTensorFromDataId(x.dataId, shape, x.dtype) as Tensor<R>;
 }
 
 export function linspaceImpl(start: number, stop: number, num: number) {
