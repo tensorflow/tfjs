@@ -274,4 +274,62 @@ describeWebGPU('backend webgpu', () => {
 
     expect(f).not.toThrow();
   });
+
+  async function time(
+      doRep: (r: number) => tf.Tensor[] | tf.Tensor,
+      endTrial?: () => Promise<void>, disposeAfterEachTrial = false,
+      trials = 50, reps = 1) {
+    const times = [];
+
+    let toDispose: tf.Tensor[] = [];
+    const dispose = () => {
+      for (const t of toDispose) {
+        t.dispose();
+      }
+      toDispose = [];
+    };
+
+    const trial = async () => {
+      let result;
+      for (let r = 0; r < reps; ++r) {
+        result = doRep(r);
+
+        toDispose = toDispose.concat(Array.isArray(result) ? result : [result]);
+      }
+
+      if (endTrial != null) {
+        await endTrial();
+      } else {
+        await (Array.isArray(result) ? result[0] : result).data();
+      }
+    };
+
+    // Warm-up. Specifically, this pre-allocates enough memory for an entire
+    // trial, ensuring that no allocations happen when timing a trial (if the
+    // backend reuses allocations).
+    await trial();
+    dispose();
+
+    for (let t = 0; t < trials; ++t) {
+      const start = tf.util.now();
+      await trial();
+      times.push(tf.util.now() - start);
+      if (disposeAfterEachTrial) {
+        dispose();
+      }
+    }
+
+    const mean = times.reduce((a, b) => a + b, 0) / trials;
+    const min = Math.min(...times);
+    const fmt = (n: number) => n.toFixed(3);
+    console.log(`Mean time: ${fmt(mean)} ms -> ${fmt(mean / reps)} / rep`);
+    console.log(`Min time: ${fmt(min)} ms -> ${fmt(min / reps)} / rep`);
+  }
+
+  fit('conv2d', async () => {
+    const a = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 4]);
+    const b = tf.randomNormal<tf.Rank.R4>([25, 25, 4, 4]);
+
+    await time(() => tf.conv2d(a, b, 1, 'same'));
+  });
 });
