@@ -439,7 +439,6 @@ export class Engine implements TensorTracker, DataMover {
     return y;
   }
 
-  // TODO(smilkov): Rename this to runKernel() and rename the old runKernel().
   /**
    * Execute a kernel with the given name and return the output tensor info.
    *
@@ -460,6 +459,10 @@ export class Engine implements TensorTracker, DataMover {
         attrs);
   }
 
+  /**
+   * @deprecated Use `runKernel` for newly added kernels. Keep using this method
+   *     only for kernels that are not yet fully modularized.
+   */
   runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
