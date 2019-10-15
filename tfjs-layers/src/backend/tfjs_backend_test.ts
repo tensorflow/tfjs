@@ -281,6 +281,22 @@ describeMathCPUAndGPU('sliceAlongFirstAxis', () => {
         tensor4d([[[[20]]], [[[30]]]], [2, 1, 1, 1]));
   });
 
+  const array5DData = [[[[[10]]]], [[[[20]]]], [[[[30]]]], [[[[40]]]]];
+  it('5D', () => {
+    const x = tensor5d(array5DData, [4, 1, 1, 1, 1]);
+    expectTensorsClose(
+        K.sliceAlongFirstAxis(x, 1, 2),
+        tensor5d([[[[[20]]]], [[[[30]]]]], [2, 1, 1, 1, 1]));
+  });
+
+  const array6DData = [[[[[[10]]]]], [[[[[20]]]]], [[[[[30]]]]], [[[[[40]]]]]];
+  it('6D', () => {
+    const x = tensor6d(array6DData, [4, 1, 1, 1, 1, 1]);
+    expectTensorsClose(
+        K.sliceAlongFirstAxis(x, 1, 2),
+        tensor6d([[[[[[20]]]]], [[[[[30]]]]]], [2, 1, 1, 1, 1, 1]));
+  });
+
   it('Scalar leads to error', () => {
     expect(() => {
       K.sliceAlongFirstAxis(scalar(24), 0, 1);
