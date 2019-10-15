@@ -387,14 +387,6 @@ def _standardize_input_output_formats(input_format, output_format):
     A `tuple` of two strings:
       (standardized_input_format, standardized_output_format).
   """
-  # https://github.com/tensorflow/tfjs/issues/1292: Remove the logic for the
-  # explicit error message of the deprecated model type name 'tensorflowjs'
-  # at version 1.1.0.
-  if input_format == 'tensorflowjs':
-    raise ValueError(
-        '--input_format=tensorflowjs has been deprecated. '
-        'Use --input_format=tfjs_layers_model instead.')
-
   input_format_is_keras = (
       input_format in [common.KERAS_MODEL, common.KERAS_SAVED_MODEL])
   input_format_is_tf = (
@@ -407,20 +399,6 @@ def _standardize_input_output_formats(input_format, output_format):
       output_format = common.TFJS_GRAPH_MODEL
     elif input_format == common.TFJS_LAYERS_MODEL:
       output_format = common.KERAS_MODEL
-  elif output_format == 'tensorflowjs':
-    # https://github.com/tensorflow/tfjs/issues/1292: Remove the logic for the
-    # explicit error message of the deprecated model type name 'tensorflowjs'
-    # at version 1.1.0.
-    if input_format_is_keras:
-      raise ValueError(
-          '--output_format=tensorflowjs has been deprecated under '
-          '--input_format=%s. Use --output_format=tfjs_layers_model '
-          'instead.' % input_format)
-    if input_format_is_tf:
-      raise ValueError(
-          '--output_format=tensorflowjs has been deprecated under '
-          '--input_format=%s. Use --output_format=tfjs_graph_model '
-          'instead.' % input_format)
 
   return (input_format, output_format)
 
@@ -461,8 +439,7 @@ def get_arg_parser():
       default=common.TF_SAVED_MODEL,
       choices=set([common.KERAS_MODEL, common.KERAS_SAVED_MODEL,
                    common.TF_SAVED_MODEL, common.TF_HUB_MODEL,
-                   common.TFJS_LAYERS_MODEL,
-                   'tensorflowjs']),
+                   common.TFJS_LAYERS_MODEL]),
       help='Input format. '
       'For "keras", the input path can be one of the two following formats:\n'
       '  - A topology+weights combined HDF5 (e.g., generated with'
@@ -482,8 +459,7 @@ def get_arg_parser():
       type=str,
       required=False,
       choices=set([common.KERAS_MODEL, common.KERAS_SAVED_MODEL,
-                   common.TFJS_LAYERS_MODEL, common.TFJS_GRAPH_MODEL,
-                   'tensorflowjs']),
+                   common.TFJS_LAYERS_MODEL, common.TFJS_GRAPH_MODEL]),
       help='Output format. Default: tfjs_graph_model.')
   parser.add_argument(
       '--%s' % common.SIGNATURE_NAME,
