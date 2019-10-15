@@ -621,8 +621,14 @@ export class WebGPUBackend extends KernelBackend {
   private conv2dWithIm2Col(
       x: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const {filterWidth, filterHeight, inChannels, outWidth, outHeight} =
-        convInfo;
+    const {
+      filterWidth,
+      filterHeight,
+      inChannels,
+      outWidth,
+      outHeight,
+      dataFormat
+    } = convInfo;
 
     const sharedDim = filterWidth * filterHeight * inChannels;
     const numCols = outHeight * outWidth;
@@ -633,13 +639,20 @@ export class WebGPUBackend extends KernelBackend {
 
     const im2ColProgram =
         new Im2ColProgram(x2ColShape, xSqueezed.shape, convInfo);
-    let im2Col: Tensor = this.compileAndRun(im2ColProgram, [xSqueezed]);
-    im2Col = im2Col.reshape([1, x2ColShape[0], x2ColShape[1]]);
+    const im2Col =
+        (this.compileAndRun(im2ColProgram, [xSqueezed]) as Tensor).reshape([
+          1, x2ColShape[0], x2ColShape[1]
+        ]);
 
     const matMulProgram = new MatMulPackedProgram(
         [1, numCols, convInfo.outChannels],
         env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
-    return this.compileAndRun(matMulProgram, [im2Col, w2Row]);
+    const result: Tensor = this.compileAndRun(matMulProgram, [im2Col, w2Row]);
+    const isChannelsLast = dataFormat === 'channelsLast';
+    if (isChannelsLast) {
+      return result.reshape([1, outHeight, outWidth, convInfo.outChannels]);
+    }
+    return result.reshape([1, convInfo.outChannels, outHeight, outWidth]);
   }
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
