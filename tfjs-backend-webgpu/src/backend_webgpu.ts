@@ -663,7 +663,7 @@ export class WebGPUBackend extends KernelBackend {
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
-    if (1 > 0) {
+    if (x.shape[0] === 1) {
       return this.conv2dWithIm2Col(x, filter, convInfo);
     }
 
