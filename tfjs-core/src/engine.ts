@@ -412,12 +412,12 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   private static nextTensorId = 0;
-  nextTensorId(): number {
+  private nextTensorId(): number {
     return Engine.nextTensorId++;
   }
 
   private static nextVariableId = 0;
-  nextVariableId(): number {
+  private nextVariableId(): number {
     return Engine.nextVariableId++;
   }
 
@@ -541,7 +541,7 @@ export class Engine implements TensorTracker, DataMover {
       backendVals = (values as string[]).map(d => util.encodeString(d));
     }
     const dataId = backend.register(backendVals, shape, dtype);
-    const t = new Tensor(shape, dtype, dataId);
+    const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
     this.incRef(t, backend);
 
     // Count bytes for string tensors.
@@ -562,9 +562,25 @@ export class Engine implements TensorTracker, DataMover {
   makeTensorFromDataId(
       dataId: DataId, shape: number[], dtype: DataType,
       backend?: KernelBackend): Tensor {
-    const t = new Tensor(shape, dtype, dataId);
+    const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
     this.incRef(t, backend);
     return t;
+  }
+
+  makeVariable(
+      initialValue: Tensor, trainable = true, name?: string,
+      dtype?: DataType): Variable {
+    name = name || this.nextVariableId().toString();
+    if (dtype != null && dtype !== initialValue.dtype) {
+      initialValue = initialValue.asType(dtype);
+    }
+    const v = new Variable(initialValue, trainable, name, this.nextTensorId());
+    if (this.state.registeredVariables[v.name] != null) {
+      throw new Error(`Variable with name ${v.name} was already registered`);
+    }
+    this.state.registeredVariables[v.name] = v;
+    this.incRef(v, this.backend);
+    return v;
   }
 
   incRef(a: Tensor, backend: KernelBackend): void {
@@ -597,13 +613,6 @@ export class Engine implements TensorTracker, DataMover {
     if (!(a instanceof Variable)) {
       this.track(a);
     }
-  }
-
-  registerVariable(v: Variable) {
-    if (this.state.registeredVariables[v.name] != null) {
-      throw new Error(`Variable with name ${v.name} was already registered`);
-    }
-    this.state.registeredVariables[v.name] = v;
   }
 
   disposeTensor(a: Tensor): void {

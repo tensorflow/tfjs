@@ -155,14 +155,14 @@ export interface TensorTracker {
   makeTensor(
       values: DataValues, shape: number[], dtype: DataType,
       backend?: Backend): Tensor;
+  makeVariable(
+      initialValue: Tensor, trainable?: boolean, name?: string,
+      dtype?: DataType): Variable;
   incRef(a: Tensor, backend: Backend): void;
   disposeTensor(t: Tensor): void;
   disposeVariable(v: Variable): void;
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
-  registerVariable(v: Variable): void;
-  nextTensorId(): number;
-  nextVariableId(): number;
 }
 
 /**
@@ -390,7 +390,8 @@ export function setTensorTracker(fn: () => TensorTracker) {
 
 /**
  * An external consumer can register itself as the op handler. This way the
- * Tensor class can have chaining methods that call into ops via the op handler.
+ * Tensor class can have chaining methods that call into ops via the op
+ * handler.
  */
 export function setOpHandler(handler: OpHandler) {
   opHandler = handler;
@@ -450,13 +451,13 @@ export class Tensor<R extends Rank = Rank> {
    */
   readonly strides: number[];
 
-  constructor(shape: ShapeMap[R], dtype: DataType, dataId: DataId) {
+  constructor(shape: ShapeMap[R], dtype: DataType, dataId: DataId, id: number) {
     this.shape = shape.slice() as ShapeMap[R];
     this.dtype = dtype || 'float32';
     this.size = util.sizeFromShape(shape);
     this.strides = computeStrides(shape);
     this.dataId = dataId;
-    this.id = trackerFn().nextTensorId();
+    this.id = id;
     this.rankType = (this.rank < 5 ? this.rank.toString() : 'higher') as R;
   }
 
@@ -553,7 +554,9 @@ export class Tensor<R extends Rank = Rank> {
     return this.shape.length;
   }
 
-  /** Returns a promise of `tf.TensorBuffer` that holds the underlying data. */
+  /**
+   * Returns a promise of `tf.TensorBuffer` that holds the underlying data.
+   */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   async buffer<D extends DataType = 'float32'>(): Promise<TensorBuffer<R, D>> {
     const vals = await this.data<D>();
@@ -586,8 +589,8 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Asynchronously downloads the values from the `tf.Tensor`. Returns a promise
-   * of `TypedArray` that resolves when the computation has finished.
+   * Asynchronously downloads the values from the `tf.Tensor`. Returns a
+   * promise of `TypedArray` that resolves when the computation has finished.
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   async data<D extends DataType = NumericDataType>(): Promise<DataTypeMap[D]> {
@@ -607,8 +610,8 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Synchronously downloads the values from the `tf.Tensor`. This blocks the UI
-   * thread until the values are ready, which can cause performance issues.
+   * Synchronously downloads the values from the `tf.Tensor`. This blocks the
+   * UI thread until the values are ready, which can cause performance issues.
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   dataSync<D extends DataType = NumericDataType>(): DataTypeMap[D] {
@@ -717,7 +720,8 @@ export class Tensor<R extends Rank = Rank> {
    * Returns a `tf.Tensor` that has expanded rank, by inserting a dimension
    * into the tensor's shape. See `tf.expandDims` for details.
    *
-   * @param axis The dimension index at which to insert shape of 1. Defaults to
+   * @param axis The dimension index at which to insert shape of 1. Defaults
+   *     to
    *    0 (the first dimension).
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
@@ -730,9 +734,9 @@ export class Tensor<R extends Rank = Rank> {
    *
    * @param axis The axis along which to sum. Optional. Defaults to 0.
    * @param exclusive Whether to perform exclusive cumulative sum. Defaults to
-   *    false. If set to true then the sum of each tensor entry does not include
-   *    its own value, but only the values previous to it along the specified
-   *    axis.
+   *    false. If set to true then the sum of each tensor entry does not
+   * include its own value, but only the values previous to it along the
+   * specified axis.
    * @param reverse Whether to sum in the opposite direction. Defaults to
    *    false.
    */
@@ -768,7 +772,9 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.oneHot(this, depth, onValue, offValue);
   }
 
-  /** Returns a human-readable description of the tensor. Useful for logging. */
+  /**
+   * Returns a human-readable description of the tensor. Useful for logging.
+   */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   toString(verbose = false): string {
     const vals = this.dataSync();
@@ -1345,7 +1351,8 @@ export class Tensor<R extends Rank = Rank> {
 
   variable(trainable = true, name?: string, dtype?: DataType): Variable<R> {
     this.throwIfDisposed();
-    return Variable.variable(this, trainable, name, dtype);
+    return trackerFn().makeVariable(this, trainable, name, dtype) as
+        Variable<R>;
   }
 
   unsortedSegmentSum<T extends Tensor>(
@@ -1449,50 +1456,12 @@ export type Tensor6D = Tensor<Rank.R6>;
 export class Variable<R extends Rank = Rank> extends Tensor<R> {
   name: string;
 
-  /**
-   * Private constructor since we cannot add logic before calling `super()`.
-   * Instead, we expose static `Variable.variable` method below, which will be
-   * added to global namespace.
-   */
-  private constructor(
-      initialValue: Tensor<R>, public trainable = true, name?: string) {
-    super(initialValue.shape, initialValue.dtype, initialValue.dataId);
-    const backend: Backend = null;
-    trackerFn().incRef(this, backend);
+  constructor(
+      initialValue: Tensor<R>, public trainable: boolean, name: string,
+      tensorId: number) {
+    super(
+        initialValue.shape, initialValue.dtype, initialValue.dataId, tensorId);
     this.name = name;
-    if (this.name == null) {
-      this.name = trackerFn().nextVariableId().toString();
-    }
-    try {
-      trackerFn().registerVariable(this);
-    } catch (ex) {
-      trackerFn().disposeTensor(this);
-      throw ex;
-    }
-  }
-
-  /**
-   * Creates a new variable with the provided initial value.
-   * ```js
-   * const x = tf.variable(tf.tensor([1, 2, 3]));
-   * x.assign(tf.tensor([4, 5, 6]));
-   *
-   * x.print();
-   * ```
-   *
-   * @param initialValue Initial value for the tensor.
-   * @param trainable If true, optimizers are allowed to update it.
-   * @param name Name of the variable. Defaults to a unique id.
-   * @param dtype If set, initialValue will be converted to the given type.
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Creation'} */
-  static variable<R extends Rank>(
-      initialValue: Tensor<R>, trainable = true, name?: string,
-      dtype?: DataType): Variable<R> {
-    if (dtype != null && dtype !== initialValue.dtype) {
-      initialValue = initialValue.asType(dtype);
-    }
-    return new Variable(initialValue, trainable, name);
   }
 
   /**
@@ -1515,8 +1484,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
     }
     trackerFn().disposeTensor(this);
     this.dataId = newValue.dataId;
-    const backend: Backend = null;
-    trackerFn().incRef(this, backend);
+    trackerFn().incRef(this, null /* backend */);
   }
 
   dispose(): void {
@@ -1531,6 +1499,3 @@ Object.defineProperty(Variable, Symbol.hasInstance, {
         instance.assign instanceof Function;
   }
 });
-
-const variable = Variable.variable;
-export {variable};
