@@ -1,7 +1,10 @@
 load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
 
+SRCS_WITH_KEEPALIVE = ['backend.cc', 'add.cc', 'batch_matmul.cc', 'prelu.cc']
+
 cc_binary(
     name = "tfjs-backend-wasm.js",
+    srcs = SRCS_WITH_KEEPALIVE,
     linkopts = [
         "-s ALLOW_MEMORY_GROWTH=1",
         "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
