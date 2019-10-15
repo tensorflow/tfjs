@@ -147,7 +147,7 @@ def _create_hub_module(save_path):
 
 def _create_frozen_model(save_path):
   graph = tf.Graph()
-  saved_model_dir = os.path.join(save_path)
+  saved_model_dir = os.path.join(save_path, 'saved_model')
   with graph.as_default():
     x = tf.constant([[37.0, -23.0], [1.0, 4.0]])
     w = tf.Variable(tf.random_uniform([2, 2]))
@@ -169,7 +169,7 @@ def _create_frozen_model(save_path):
 
     builder.save()
 
-  frozen_file = os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'model.frozen')
+  frozen_file = os.path.join(save_path, 'frozen_model', 'model.frozen')
   freeze_graph.freeze_graph(
       '',
       '',
