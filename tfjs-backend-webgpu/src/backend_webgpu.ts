@@ -34,6 +34,7 @@ import {ConcatProgram} from './kernels/concat_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
 import {DepthwiseConv2DProgram} from './kernels/depthwise_conv2d_webgpu';
+import {Im2ColProgram} from './kernels/im2col_webgpu';
 import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
 import {MaxPoolProgram} from './kernels/maxpool_webgpu';
@@ -620,14 +621,8 @@ export class WebGPUBackend extends KernelBackend {
   private conv2dWithIm2Col(
       x: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const {
-      filterWidth,
-      filterHeight,
-      inChannels,
-      outWidth,
-      outHeight,
-      dataFormat
-    } = convInfo;
+    const {filterWidth, filterHeight, inChannels, outWidth, outHeight} =
+        convInfo;
 
     const sharedDim = filterWidth * filterHeight * inChannels;
     const numCols = outHeight * outWidth;
@@ -638,10 +633,8 @@ export class WebGPUBackend extends KernelBackend {
 
     const im2ColProgram =
         new Im2ColProgram(x2ColShape, xSqueezed.shape, convInfo);
-    const im2Col: Tensor3D =
-        this.compileAndRun(im2ColProgram, [xSqueezed]).reshape([
-          1, x2ColShape[0], x2ColShape[1]
-        ]);
+    let im2Col: Tensor = this.compileAndRun(im2ColProgram, [xSqueezed]);
+    im2Col = im2Col.reshape([1, x2ColShape[0], x2ColShape[1]]);
 
     const matMulProgram = new MatMulPackedProgram(
         [1, numCols, convInfo.outChannels],

@@ -16,14 +16,14 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
+// import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class Im2ColProgram implements WebGPUProgram {
   variableNames = ['A'];
-  outputShape: [number, number, number];
+  outputShape: number[];
   userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
@@ -32,10 +32,11 @@ export class Im2ColProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [1, 1, 1];
 
   constructor(
-      outputShape: [number, number, number], inputShape: number[],
+      outputShape: number[], inputShape: number[],
       convInfo: backend_util.Conv2DInfo) {
     this.outputShape = outputShape;
     this.rank = outputShape.length;
+    const size = util.sizeFromShape(this.outputShape);
 
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -60,18 +61,22 @@ export class Im2ColProgram implements WebGPUProgram {
         ivec2 rc = getOutputCoords();
 
         int flatIndex = int(gl_GlobalInvocationID.x);
-        int blockIndex = rc[1];
-        int pos = rc[0];
 
-        int offsetY = int(blockIndex / ${outWidth}) * ${strideHeight} - ${top};
-        int d0 = offsetY + ${dilationHeight} * (pos / ${itemsPerBlockRow});
-        int offsetX = int(mod(float(blockIndex), ${outWidth}.) *
-          ${strideWidth}. - ${left}.);
-        int d1 = offsetX + ${dilationWidth} * (int(mod(float(pos),
-          ${itemsPerBlockRow}.) / ${inChannels}.));
-        int ch = int(mod(float(pos), ${inChannels}.));
-        float value = getA(d0, d1, ch);
-        setOutput(flatIndex, value);
+        if(flatIndex < ${size}) {
+          int blockIndex = rc[1];
+          int pos = rc[0];
+
+          int offsetY = int(blockIndex / ${outWidth}) * ${strideHeight} -
+            ${top};
+          int d0 = offsetY + ${dilationHeight} * (pos / ${itemsPerBlockRow});
+          int offsetX = int(mod(float(blockIndex), ${outWidth}.) *
+            ${strideWidth}. - ${left}.);
+          int d1 = offsetX + ${dilationWidth} * (int(mod(float(pos),
+            ${itemsPerBlockRow}.) / ${inChannels}.));
+          int ch = int(mod(float(pos), ${inChannels}.));
+          float value = getA(d0, d1, ch);
+          setOutput(flatIndex, value);
+        }
       }
     `;
   }
