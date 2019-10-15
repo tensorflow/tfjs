@@ -17,9 +17,6 @@
 #endif
 
 #include <math.h>
-#include <algorithm>
-#include <map>
-#include <vector>
 
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
