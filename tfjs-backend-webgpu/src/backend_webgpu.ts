@@ -644,9 +644,15 @@ export class WebGPUBackend extends KernelBackend {
           1, x2ColShape[0], x2ColShape[1]
         ]);
 
+    const transposeA = true;
+    const transposeB = false;
+
+    // const matMulProgram = new MatMulProgram([1, numCols,
+    // convInfo.outChannels]);
     const matMulProgram = new MatMulPackedProgram(
         [1, numCols, convInfo.outChannels],
-        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
+        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
+        transposeB);
     const result: Tensor = this.compileAndRun(matMulProgram, [im2Col, w2Row]);
     const isChannelsLast = dataFormat === 'channelsLast';
     if (isChannelsLast) {

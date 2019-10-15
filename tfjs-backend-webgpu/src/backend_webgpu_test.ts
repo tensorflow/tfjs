@@ -275,12 +275,12 @@ describeWebGPU('backend webgpu', () => {
     expect(f).not.toThrow();
   });
 
-  it('x=[2,2,1] f=[2,2,1,1] s=1 d=1 p=0', async () => {
+  fit('x=[2,2,1] f=[2,2,1,1] s=1 d=1 p=0', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
     const outputDepth = 1;
     const fSize = 2;
-    const pad = 0;
+    const pad = 'same';
     const stride = 1;
     const dataFormat = 'NHWC';
     const dilation = 1;
@@ -290,9 +290,11 @@ describeWebGPU('backend webgpu', () => {
         tf.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
 
     const result = tf.conv2d(x, w, stride, pad, dataFormat, dilation);
-    const data = await result.data();
-    console.log(data);
-    // expectArraysClose(await result.data(), [20]);
+
+    const resultData = await result.data();
+    console.log(resultData);
+    // expect(result.shape).toEqual([2, 2, 1]);
+    // expectArraysClose(resultData, new Float32Array([20, 26, 13, 12]));
   });
 
   // async function time(

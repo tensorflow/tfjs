@@ -115,7 +115,9 @@ export class MatMulPackedProgram implements WebGPUProgram {
   variableNames = ['A', 'B'];
   workGroupSize: [number, number, number] = [16, 16, 1];
 
-  constructor(outputShape: [number, number, number], workPerThread: number) {
+  constructor(
+      outputShape: [number, number, number], workPerThread: number,
+      transposeA = false, transposeB = false) {
     this.outputShape = outputShape;
     this.workPerThread = workPerThread;
 
@@ -128,9 +130,9 @@ export class MatMulPackedProgram implements WebGPUProgram {
     // about boundary conditions when loading from Asub / Bsub when tiles fit
     // neatly inside of output. May slightly improve performance.
     this.userCode = `
-      int dimAOuter = aShape[1];
-      int dimInner = aShape[2];
-      int dimBOuter = bShape[2];
+      int dimAOuter = ${transposeA === true ? `aShape[2]` : `aShape[1]`};
+      int dimInner = ${transposeA === true ? `aShape[1]` : `aShape[2]`};
+      int dimBOuter = ${transposeB === true ? `bShape[1]` : `bShape[2]`};
 
       ${makeMatMulPackedSource(workPerThread)}
 
