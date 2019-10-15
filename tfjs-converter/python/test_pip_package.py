@@ -195,7 +195,7 @@ class APIAndShellTest(tf.test.TestCase):
     cls.tf_frozen_model_dir = os.path.join(cls.class_tmp_dir, 'tf_frozen_model')
     _createTensorFlowSavedModel('a', cls.tf_saved_model_dir)
     _createTensorFlowSavedModelV1('b', cls.tf_saved_model_v1_dir)
-    _createTensorFlowFrozenModel(cls.tf_frozen_model_dir)
+    _create_frozen_model(cls.tf_frozen_model_dir)
     cls.tf_hub_module_dir = os.path.join(cls.class_tmp_dir, 'tf_hub_module')
     _create_hub_module(cls.tf_hub_module_dir)
 
