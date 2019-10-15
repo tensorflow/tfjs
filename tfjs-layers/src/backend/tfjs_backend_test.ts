@@ -254,34 +254,50 @@ describeMathCPUAndGPU('batchFlatten', () => {
 
 describeMathCPUAndGPU('sliceAlongFirstAxis', () => {
   const array1DData = [10, 20, 30, 40];
-  it('1D', () => {
+  fit('1D', () => {
     const x = tensor1d(array1DData);
     expectTensorsClose(K.sliceAlongFirstAxis(x, 1, 2), tensor1d([20, 30]));
   });
 
   const array2DData = [[10, 11], [20, 21], [30, 31], [40, 41]];
-  it('2D', () => {
+  fit('2D', () => {
     const x = tensor2d(array2DData, [4, 2]);
     expectTensorsClose(
         K.sliceAlongFirstAxis(x, 1, 2), tensor2d([[20, 21], [30, 31]], [2, 2]));
   });
 
   const array3DData = [[[10]], [[20]], [[30]], [[40]]];
-  it('3D', () => {
+  fit('3D', () => {
     const x = tensor3d(array3DData, [4, 1, 1]);
     expectTensorsClose(
         K.sliceAlongFirstAxis(x, 1, 2), tensor3d([[[20]], [[30]]], [2, 1, 1]));
   });
 
   const array4DData = [[[[10]]], [[[20]]], [[[30]]], [[[40]]]];
-  it('4D', () => {
+  fit('4D', () => {
     const x = tensor4d(array4DData, [4, 1, 1, 1]);
     expectTensorsClose(
         K.sliceAlongFirstAxis(x, 1, 2),
         tensor4d([[[[20]]], [[[30]]]], [2, 1, 1, 1]));
   });
 
-  it('Scalar leads to error', () => {
+  const array5DData = [[[[[10]]]], [[[[20]]]], [[[[30]]]], [[[[40]]]]];
+  fit('5D', () => {
+    const x = tensor5d(array5DData, [4, 1, 1, 1, 1]);
+    expectTensorsClose(
+        K.sliceAlongFirstAxis(x, 1, 2),
+        tensor5d([[[[[20]]]], [[[[30]]]]], [2, 1, 1, 1, 1]));
+  });
+
+  const array6DData = [[[[[[10]]]]], [[[[[20]]]]], [[[[[30]]]]], [[[[[40]]]]]];
+  fit('6D', () => {
+    const x = tensor6d(array6DData, [4, 1, 1, 1, 1, 1]);
+    expectTensorsClose(
+        K.sliceAlongFirstAxis(x, 1, 2),
+        tensor6d([[[[[[20]]]]], [[[[[30]]]]]], [2, 1, 1, 1, 1, 1]));
+  });
+
+  fit('Scalar leads to error', () => {
     expect(() => {
       K.sliceAlongFirstAxis(scalar(24), 0, 1);
     }).toThrow();
