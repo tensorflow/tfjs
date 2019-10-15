@@ -3449,32 +3449,6 @@ export class MathBackendCPU implements KernelBackend {
   private fft2dBatch(x: Tensor3D): Tensor3D {
     const [batches, rows, cols] = x.shape;
 
-    // Use `fft` (uses `fftRadix2`) for NxN and exponent of 2 inputs.
-    if (rows === cols && this.isExponentOf2(rows)) {
-      const resReal = [];
-      const resImag = [];
-      for (let b = 0; b < batches; b++) {
-        const xReal = ops.real(x).as3D(batches, rows, cols);
-        const xImag = ops.imag(x).as3D(batches, rows, cols);
-        const real = xReal.slice([b, 0, 0], [1, rows, cols]);
-        const imag = xImag.slice([b, 0, 0], [1, rows, cols]);
-
-        const fftAcrossRows = ops.complex(real, imag).as2D(rows, cols);
-        const pass1 = this.fftBatch(fftAcrossRows, false);
-
-        const fftAcrossCols = ops.complex(
-            ops.real(pass1).transpose(), ops.imag(pass1).transpose());
-        const pass2 = this.fftBatch(fftAcrossCols, false);
-        resReal.push(ops.real(pass2).transpose());
-        resImag.push(ops.imag(pass2).transpose());
-      }
-
-      const stackedRealRes = ops.stack(resReal);
-      const stackedImagRes = ops.stack(resImag);
-      return ops.complex(stackedRealRes, stackedImagRes)
-          .as3D(batches, rows, cols);
-    }
-
     const realResult = ops.buffer(x.shape, 'float32');
     const imagResult = ops.buffer(x.shape, 'float32');
 
