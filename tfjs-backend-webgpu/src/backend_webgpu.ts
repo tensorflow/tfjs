@@ -617,8 +617,44 @@ export class WebGPUBackend extends KernelBackend {
     return this.binaryCompareOp(a, b, binary_op.GREATER_EQUAL);
   }
 
+  private conv2dWithIm2Col(
+      x: Tensor4D, filter: Tensor4D,
+      convInfo: backend_util.Conv2DInfo): Tensor4D {
+    const {
+      filterWidth,
+      filterHeight,
+      inChannels,
+      outWidth,
+      outHeight,
+      dataFormat
+    } = convInfo;
+
+    const sharedDim = filterWidth * filterHeight * inChannels;
+    const numCols = outHeight * outWidth;
+    const x2ColShape = [sharedDim, numCols];
+
+    const xSqueezed = x.squeeze([0]);
+    const w2Row = filter.reshape([1, sharedDim, -1]);
+
+    const im2ColProgram =
+        new Im2ColProgram(x2ColShape, xSqueezed.shape, convInfo);
+    const im2Col: Tensor3D =
+        this.compileAndRun(im2ColProgram, [xSqueezed]).reshape([
+          1, x2ColShape[0], x2ColShape[1]
+        ]);
+
+    const matMulProgram = new MatMulPackedProgram(
+        [1, numCols, convInfo.outChannels],
+        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
+    return this.compileAndRun(matMulProgram, [im2Col, w2Row]);
+  }
+
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
+    if (1 > 0) {
+      return this.conv2dWithIm2Col(x, filter, convInfo);
+    }
+
     const output = Tensor.make(convInfo.outShape, {}, x.dtype, this);
     let program: Conv2DMMProgram|Conv2DNaiveProgram;
 
