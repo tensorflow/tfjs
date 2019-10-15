@@ -332,4 +332,11 @@ describeWebGPU('backend webgpu', () => {
 
     await time(() => tf.conv2d(a, b, 1, 'same'));
   });
+
+  fit('conv2d', async () => {
+    const a = tf.randomNormal<tf.Rank.R4>([1, 263, 263, 3]);
+    const b = tf.randomNormal<tf.Rank.R4>([7, 7, 3, 64]);
+
+    await time(() => tf.conv2d(a, b, 1, 'same'));
+  });
 });
