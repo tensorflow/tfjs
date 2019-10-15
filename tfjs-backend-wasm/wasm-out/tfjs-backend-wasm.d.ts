@@ -19,16 +19,25 @@ export type BackendWasmModule = EmscriptenModule&{
   onRuntimeInitialized: () => void;
   // Using the tfjs namespace to avoid conflict with emscripten's API.
   tfjs: {
+    init(): void,
     registerTensor(
         dataId: number, shape: Uint8Array, shapeLength: number, dtype: number,
-        memoryOffset: number): void;
+        memoryOffset: number): void,
     // Disposes the data behind the data bucket.
-    disposeData(dataId: number): void;
+    disposeData(dataId: number): void,
     // Disposes the backend and all of its associated data.
-    dispose(): void;
+    dispose(): void,
 
     // Kernels.
-    add(aId: number, bId: number, outId: number): void;
+    add(aId: number, bId: number, outId: number): void,
+
+    batchMatMul(
+        aId: number, bId: number, sharedDim: number, leftDim: number,
+        rightDim: number, batchDim: number, aBatch: number, aOuterStep: number,
+        aInnerStep: number, bBatch: number, bOuterStep: number,
+        bInnerStep: number, outId: number): void,
+
+    prelu(xId: number, xSize: number, weightsId: number, outId: number): void,
   }
 };
 

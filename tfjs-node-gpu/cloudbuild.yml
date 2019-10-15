@@ -1,9 +1,17 @@
 steps:
+# Prepare tfjs-node-gpu folder, copy files from tfjs-node.
+- name: 'node:10'
+  dir: 'tfjs-node-gpu'
+  id: 'prep-gpu'
+  entrypoint: 'yarn'
+  args: ['prep-gpu']
+
 # Install common dependencies.
 - name: 'node:10'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
+  waitFor: ['prep-gpu']
 
 # Install tfjs-node dependencies.
 - name: 'node:10'

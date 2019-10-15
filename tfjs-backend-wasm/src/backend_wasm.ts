@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, KernelBackend, Rank, registerBackend, ShapeMap, Tensor, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, KernelBackend, Rank, registerBackend, ShapeMap, Tensor, Tensor3D, util} from '@tensorflow/tfjs-core';
 
 import wasmFactory from '../wasm-out/tfjs-backend-wasm';
 import {BackendWasmModule} from '../wasm-out/tfjs-backend-wasm';
@@ -37,11 +37,12 @@ export class BackendWasm extends KernelBackend {
 
   constructor(private wasm: BackendWasmModule) {
     super();
+    this.wasm.tfjs.init();
   }
 
   register(dataId: DataId, shape: number[], dtype: DataType) {
-    const memoryOffset = this.wasm._malloc(
-        util.sizeFromShape(shape) * util.bytesPerElement(dtype));
+    const numBytes = util.sizeFromShape(shape) * util.bytesPerElement(dtype);
+    const memoryOffset = this.wasm._malloc(numBytes);
     const id = this.dataIdNextNumber++;
     this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype});
 
@@ -69,6 +70,7 @@ export class BackendWasm extends KernelBackend {
 
   disposeData(dataId: DataId) {
     const data = this.dataIdMap.get(dataId);
+    this.wasm._free(data.memoryOffset);
     this.wasm.tfjs.disposeData(data.id);
     this.dataIdMap.delete(dataId);
   }
@@ -114,6 +116,46 @@ export class BackendWasm extends KernelBackend {
     } else {
       throw new Error('Broadcasting along inner dims is not yet supported');
     }
+  }
+
+  batchMatMul(
+      a: Tensor3D, b: Tensor3D, transposeA: boolean,
+      transposeB: boolean): Tensor3D {
+    const aId = this.dataIdMap.get(a.dataId).id;
+    const bId = this.dataIdMap.get(b.dataId).id;
+
+    const sharedDim = transposeA ? a.shape[1] : a.shape[2];
+    const leftDim = transposeA ? a.shape[2] : a.shape[1];
+    const rightDim = transposeB ? b.shape[1] : b.shape[2];
+    const batchDim = a.shape[0];
+
+    const [aBatch, aOuterStep, aInnerStep] = transposeA ?
+        [a.strides[0], 1, a.strides[1]] :
+        [a.strides[0], a.strides[1], 1];
+    const [bInnerStep, bOuterStep, bBatch] = transposeB ?
+        [1, b.strides[1], b.strides[0]] :
+        [b.strides[1], 1, b.strides[0]];
+
+    const out =
+        this.makeOutput([batchDim, leftDim, rightDim], a.dtype) as Tensor3D;
+    const outId = this.dataIdMap.get(out.dataId).id;
+
+    this.wasm.tfjs.batchMatMul(
+        aId, bId, sharedDim, leftDim, rightDim, batchDim, aBatch, aOuterStep,
+        aInnerStep, bBatch, bOuterStep, bInnerStep, outId);
+    return out;
+  }
+
+  prelu<T extends Tensor>(x: T, weights: T): T {
+    const xId = this.dataIdMap.get(x.dataId).id;
+    const weightsId = this.dataIdMap.get(weights.dataId).id;
+
+    const out = this.makeOutput(x.shape, 'float32') as T;
+    const outId = this.dataIdMap.get(out.dataId).id;
+
+    this.wasm.tfjs.prelu(xId, x.size, weightsId, outId);
+
+    return out;
   }
 
   reshape<T extends Tensor, R extends Rank>(x: T, newShape: ShapeMap[R]):
@@ -169,6 +211,7 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
+      init: wasm.cwrap('init', null, []),
       registerTensor: wasm.cwrap(
           'register_tensor', null,
           [
@@ -180,7 +223,15 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
           ]),
       disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
       dispose: wasm.cwrap('dispose', voidReturnType, []),
-      add: wasm.cwrap('add', voidReturnType, ['number, number, number']),
+      add: wasm.cwrap('add', voidReturnType, ['number', 'number', 'number']),
+      batchMatMul: wasm.cwrap(
+          'batch_matmul', voidReturnType,
+          [
+            'number', 'number', 'number', 'number', 'number', 'number',
+            'number', 'number', 'number', 'number', 'number', 'number', 'number'
+          ]),
+      prelu: wasm.cwrap(
+          'prelu', voidReturnType, ['number', 'number', 'number', 'number']),
     };
     wasm.onRuntimeInitialized = () => resolve({wasm});
   });

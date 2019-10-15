@@ -90,15 +90,15 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
-"@tensorflow/tfjs-converter@1.2.9":
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.2.9.tgz#4774dd9447ac81c0c6776f9fd186374b9fa3bf1a"
-  integrity sha512-OKmiuZicIgadT3Bv9BvM+oom7wRz9eC5rTglQnuv7VN9H0syFVuhf5oD1Ff70tGDhJjJgL+cPz01fZRxTXjRWA==
+"@tensorflow/tfjs-converter@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.2.11.tgz#c81a8bde669179e20e676dba790eeca61fa6ce0a"
+  integrity sha512-3Qg3k6x9ZbAFSCJTSC2anaM40Fs04+PGFw/uRvupWHmns6D5ni9RzTH2thef9hzBT2V/UHnlnHs7RYJqQNTThA==
 
-"@tensorflow/tfjs-core@1.2.9":
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.2.9.tgz#125830270a0bdd0e856914778a300c4ad6f51e21"
-  integrity sha512-s0hHZSx6rGTlkkB8u8gs5n7sIPv1GXDNHmISRy+kqGzmlpkfI2kr6WXqOWQy6wFgjzopRD8cJQjBZ9USPZnYTQ==
+"@tensorflow/tfjs-core@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.2.11.tgz#6bd870338cece217610613600ed4c20fdd13e201"
+  integrity sha512-guqqD5bb5BTaTvUVWhG1xCXB0NuA5rv0indSEEOpMfqqBvtSwKp02heDGDcPOSUnmdB8V/HJbcyX2wRBXztQpA==
   dependencies:
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
@@ -107,28 +107,28 @@
     node-fetch "~2.1.2"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-data@1.2.9":
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.2.9.tgz#54030a7990eb58d20288cab099d966d496710760"
-  integrity sha512-Ti9Cj3pte9butuEsK5OPq0Lcqdi4wVUdtQXm0o7iYOZ0umseRzfbIb6zbdqucc2MQzOMTnRoxN+FL7LZmncsHg==
+"@tensorflow/tfjs-data@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.2.11.tgz#408fcb1f00cf4fc6f6bf8ea9504e3b9528251490"
+  integrity sha512-xrRekVbwWgW1Cyaqh+1x0Tq3CQkePm/G94eGLcH6IbcoBp0syKKUCD0vHkaGn7GkUGFJkej5yHXsh0ujrbxd+A==
   dependencies:
     "@types/node-fetch" "^2.1.2"
     node-fetch "~2.1.2"
 
-"@tensorflow/tfjs-layers@1.2.9":
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.2.9.tgz#d30d1bdfed228a07a3d4e9dcb9a6884031ae56e7"
-  integrity sha512-OlXYaIb1rCk5dYmpaNsPEkO7R+T0oxfS3vQGIztNJB+YxrN8mwCu3hqgpbdKhAITiP+jxO0o+7bny8MsOCkOSQ==
+"@tensorflow/tfjs-layers@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.2.11.tgz#55d44374a05af2aad1d6d6621e92c7ec52fddf80"
+  integrity sha512-Ye/b0pwB9KVW5IbRP9UNSXPUvizP8VdaKVFzT2C6JJpUE97LznItbYDJjO60ND/Cl0uj7ttvxPwlYb7HYo+e6g==
 
-"@tensorflow/tfjs@1.2.9":
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-1.2.9.tgz#120f55a2826f71a5816e02b5bc0311fd583beedb"
-  integrity sha512-9UAQnSp638FyM5eedYEM+j2R7VcNajiFmkeT5EXtf7YIurmMFNEm1sbajKJx7/ckz31YcYrVoUPc/iLhhDQl2A==
+"@tensorflow/tfjs@1.2.11":
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-1.2.11.tgz#3d5a6e535069fc6139e778d28e02a84331eb753c"
+  integrity sha512-q1SIEMiR+Vqq8Fnmt/YGBC5tNq97LXDvUEl8SwWedhLtK1GJCpLMJXQA54JrkFXGLv5hK4dEb+1dx28TJUET2g==
   dependencies:
-    "@tensorflow/tfjs-converter" "1.2.9"
-    "@tensorflow/tfjs-core" "1.2.9"
-    "@tensorflow/tfjs-data" "1.2.9"
-    "@tensorflow/tfjs-layers" "1.2.9"
+    "@tensorflow/tfjs-converter" "1.2.11"
+    "@tensorflow/tfjs-core" "1.2.11"
+    "@tensorflow/tfjs-data" "1.2.11"
+    "@tensorflow/tfjs-layers" "1.2.11"
 
 "@types/events@*":
   version "3.0.0"
@@ -786,6 +786,11 @@ globals@^11.1.0:
   version "11.12.0"
   resolved "https://registry.yarnpkg.com/globals/-/globals-11.12.0.tgz#ab8795338868a0babd8525758018c2a7eb95c42e"
   integrity sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==
+
+google-protobuf@^3.9.2:
+  version "3.10.0"
+  resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.10.0.tgz#f36171128090615049f9b0e42252b1a10a4bc534"
+  integrity sha512-d0cMO8TJ6xtB/WrVHCv5U81L2ulX+aCD58IljyAN6mHwdHHJ2jbcauX5glvivi3s3hx7EYEo7eUA9WftzamMnw==
 
 graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0:
   version "4.2.2"

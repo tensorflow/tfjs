@@ -15,6 +15,15 @@
  * =============================================================================
  */
 
+/**
+ * @fileoverview
+ * @suppress {partialAlias} Optimization disabled due to passing the module
+ * object into a function below:
+ *
+ *   import * as ops from './ops/ops';
+ *   setOpHandler(ops);
+ */
+
 // Engine is the global singleton that needs to be initialized before the rest
 // of the app.
 import './engine';
@@ -25,6 +34,8 @@ import './flags';
 // explicitly included here.
 import './backends/webgl/backend_webgl';
 import './backends/cpu/backend_cpu';
+// Import all kernels from cpu.
+import './backends/cpu/all_kernels';
 
 import './platforms/platform_browser';
 import './platforms/platform_node';
@@ -42,7 +53,7 @@ import * as util from './util';
 import {version} from './version';
 import * as webgl from './webgl';
 
-export {InferenceModel, ModelPredictConfig} from './model_types';
+export {InferenceModel, MetaGraphInfo, ModelPredictConfig, SavedModelTensorInfo, SignatureDefInfo} from './model_types';
 // Optimizers.
 export {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './optimizers/adagrad_optimizer';
@@ -62,6 +73,7 @@ export {Reduction} from './ops/loss_ops';
 
 export * from './train';
 export * from './globals';
+export * from './kernel_registry';
 export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
 
 export {TimingInfo, MemoryInfo} from './engine';
