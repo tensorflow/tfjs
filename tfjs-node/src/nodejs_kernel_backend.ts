@@ -43,8 +43,10 @@ export class NodeJSKernelBackend extends KernelBackend {
   isGPUPackage: boolean;
   isUsingGpuDevice: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
-  private loadedSavedModelIdMap = new Map<number, number[]>();
-  private loadedSavedModelPathMap = new Map<string, number>();
+  // This map contains mapping information, key is TFSavedModelSignature id in
+  // JavaScript, value is a turple of path to the SavedModel, tags, and loaded
+  // Session ID in the c++ bindings.
+  private loadedSavedModelPathMap = new Map<number, [string, string, number]>();
 
   constructor(binding: TFJSBinding, packageName: string) {
     super();
@@ -1901,36 +1903,38 @@ export class NodeJSKernelBackend extends KernelBackend {
     const [inputNodeNames, outputNodeNames] =
         getInputAndOutputNodeNameFromSavedModelInfo(
             savedModelInfo, tags, signature);
-    let id: number;
-    if (this.loadedSavedModelPathMap.has(path)) {
-      id = this.loadedSavedModelPathMap.get(path);
-    } else {
-      id = this.binding.loadSavedModel(path, tags.join());
-    }
+    const sessionId = this.getSessionIdFromSavedModel(path, tags);
+
     const modelSignature = new TFSavedModelSignature(
-        id, path, inputNodeNames, outputNodeNames, this);
-    if (this.loadedSavedModelIdMap.has(id)) {
-      this.loadedSavedModelIdMap.get(id).push(modelSignature.getJsid());
-    } else {
-      this.loadedSavedModelIdMap.set(id, [modelSignature.getJsid()]);
-    }
-    this.loadedSavedModelPathMap.set(path, id);
+        sessionId, path, inputNodeNames, outputNodeNames, this);
+    this.loadedSavedModelPathMap.set(
+        modelSignature.getJsid(), [path, tags.join(), sessionId]);
     return modelSignature;
   }
 
-  deleteSavedModel(jsid: number, cid: number, path: string): void {
-    if (this.loadedSavedModelIdMap.get(cid).length < 2) {
-      this.loadedSavedModelIdMap.delete(cid);
-      this.loadedSavedModelPathMap.delete(path);
-      this.binding.deleteSavedModel(cid);
-    } else {
-      const jsids = this.loadedSavedModelIdMap.get(cid);
-      const indexToRemove = jsids.indexOf(jsid);
-      if (indexToRemove > -1) {
-        jsids.splice(indexToRemove, 1);
+  deleteSavedModel(jsid: number, cid: number): void {
+    this.loadedSavedModelPathMap.delete(jsid);
+    for (const id of Array.from(this.loadedSavedModelPathMap.keys())) {
+      const value = this.loadedSavedModelPathMap.get(id);
+      if (value[2] === cid) {
+        return;
       }
-      this.loadedSavedModelIdMap.set(cid, jsids);
     }
+    this.binding.deleteSavedModel(cid);
+  }
+
+  private getSessionIdFromSavedModel(path: string, tags: string[]): number {
+    for (const id of Array.from(this.loadedSavedModelPathMap.keys())) {
+      const value = this.loadedSavedModelPathMap.get(id);
+      if (value[0] === path && value[1] === tags.join()) {
+        return value[2];
+      }
+    }
+    return this.loadMetaGraph(path, tags);
+  }
+
+  loadMetaGraph(path: string, tags: string[]): number {
+    return this.binding.loadSavedModel(path, tags.join());
   }
 
   // ------------------------------------------------------------

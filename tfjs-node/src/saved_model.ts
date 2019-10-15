@@ -16,8 +16,7 @@
  */
 
 import {InferenceModel, ModelPredictConfig, Tensor} from '@tensorflow/tfjs';
-import {NamedTensorMap} from '@tensorflow/tfjs-converter/dist/src/data/types';
-import {TensorInfo} from '@tensorflow/tfjs-core/dist/tensor_types';
+import {NamedTensorMap, TensorInfo} from '@tensorflow/tfjs-core/dist/tensor_types';
 import * as fs from 'fs';
 import {promisify} from 'util';
 import {ensureTensorflowBackend, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
@@ -161,7 +160,7 @@ export function getInputAndOutputNodeNameFromSavedModelInfo(
       return [inputNodeNames, outputNodeNames];
     }
   }
-  throw new Error('The SavedModel does not have tags: ' + tags);
+  throw new Error(`The SavedModel does not have tags: ${tags}`);
 }
 
 /**
@@ -189,14 +188,12 @@ export interface SavedModelTensorInfo {
   name: string;
 }
 
-
 export class TFSavedModelSignature implements InferenceModel {
   // ID of the loaded session in bindings
   private readonly cid: number;
   // ID of the object in javascript
   private readonly jsid: number;
   private readonly backend: NodeJSKernelBackend;
-  private readonly path: string;
   private readonly inputNodeNames: string[];
   private readonly outputNodeNames: string[];
   private deleted: boolean;
@@ -205,7 +202,6 @@ export class TFSavedModelSignature implements InferenceModel {
       cid: number, path: string, inputNodeNames: string[],
       outputNodeNames: string[], backend: NodeJSKernelBackend) {
     this.cid = cid;
-    this.path = path;
     this.inputNodeNames = inputNodeNames;
     this.outputNodeNames = outputNodeNames;
     this.backend = backend;
@@ -217,10 +213,6 @@ export class TFSavedModelSignature implements InferenceModel {
     return this.jsid;
   }
 
-
-  getPath() {
-    return this.path;
-  }
   /** Placeholder function. */
   get inputs(): TensorInfo[] {
     throw new Error('SavedModel inputs information is not available yet.');
@@ -238,7 +230,7 @@ export class TFSavedModelSignature implements InferenceModel {
   delete() {
     if (!this.deleted) {
       this.deleted = true;
-      this.backend.deleteSavedModel(this.jsid, this.cid, this.path);
+      this.backend.deleteSavedModel(this.jsid, this.cid);
     } else {
       throw new Error('This SavedModel has been deleted.');
     }

@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {nodeBackend} from './nodejs_kernel_backend';
 import {getEnumKeyFromValue, inspectSavedModel, loadSavedModel, readSavedModelProto} from './saved_model';
 
 // tslint:disable-next-line:no-require-imports
@@ -167,47 +168,103 @@ describe('SavedModel', () => {
         .toBe('DT_FLOAT');
   });
 
-  it('load SavedModelSignature', async () => {
-    const savedModel = await loadSavedModel(
+  it('load TFSavedModelSignature', async () => {
+    const spy = spyOn(nodeBackend(), 'loadSavedModel').and.callThrough();
+    await loadSavedModel(
         './test_objects/times_three_float', ['serve'], 'serving_default');
-    expect(savedModel.getPath()).toBe('./test_objects/times_three_float');
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 
-  it('load SavedModelSignature with wrong tags', async done => {
-    try {
-      await loadSavedModel(
-          './test_objects/times_three_float', ['serve', 'gpu'],
-          'serving_default');
-      done.fail();
-    } catch (error) {
-      expect(error.message)
-          .toBe('The SavedModel does not have tags: serve,gpu');
-      done();
-    }
+  it('load TFSavedModelSignature with wrong tags throw exception',
+     async done => {
+       try {
+         await loadSavedModel(
+             './test_objects/times_three_float', ['serve', 'gpu'],
+             'serving_default');
+         done.fail();
+       } catch (error) {
+         expect(error.message)
+             .toBe('The SavedModel does not have tags: serve,gpu');
+         done();
+       }
+     });
+
+  it('load TFSavedModelSignature with wrong signature throw exception',
+     async done => {
+       try {
+         await loadSavedModel(
+             './test_objects/times_three_float', ['serve'], 'wrong_signature');
+         done.fail();
+       } catch (error) {
+         expect(error.message)
+             .toBe('The SavedModel does not have signature: wrong_signature');
+         done();
+       }
+     });
+
+  it('load TFSavedModelSignature and delete', async () => {
+    const spy = spyOn(nodeBackend(), 'loadSavedModel').and.callThrough();
+    const spy1 = spyOn(nodeBackend(), 'deleteSavedModel').and.callThrough();
+    const model = await loadSavedModel(
+        './test_objects/times_three_float', ['serve'], 'serving_default');
+    expect(spy).toHaveBeenCalledTimes(1);
+    model.delete();
+    expect(spy1).toHaveBeenCalledTimes(1);
   });
 
-  it('load SavedModelSignature with wrong signature', async done => {
-    try {
-      await loadSavedModel(
-          './test_objects/times_three_float', ['serve'], 'wrong_signature');
-      done.fail();
-    } catch (error) {
-      expect(error.message)
-          .toBe('The SavedModel does not have signature: wrong_signature');
-      done();
-    }
-  });
+  fit('delete TFSavedModelSignature multiple times throw exception',
+      async done => {
+        try {
+          const model = await loadSavedModel(
+              './test_objects/times_three_float', ['serve'], 'serving_default');
+          model.delete();
+          model.delete();
+          done.fail();
+        } catch (error) {
+          expect(error.message).toBe('This SavedModel has been deleted.');
+          done();
+        }
+      });
 
-  fit('load SavedModelSignature with wrong signature', async () => {
+  it('load multiple signatures from the same metagraph only call binding once',
+     async () => {
+       const backend = nodeBackend();
+       const spy = spyOn(backend, 'loadSavedModel').and.callThrough();
+       const spy1 = spyOn(backend, 'loadMetaGraph').and.callThrough();
+       await loadSavedModel(
+           './test_objects/module_with_multiple_signatures', ['serve'],
+           'serving_default');
+       expect(spy).toHaveBeenCalledTimes(1);
+       expect(spy1).toHaveBeenCalledTimes(1);
+       await loadSavedModel(
+           './test_objects/module_with_multiple_signatures', ['serve'],
+           'timestwo');
+       expect(spy).toHaveBeenCalledTimes(2);
+       expect(spy1).toHaveBeenCalledTimes(1);
+     });
+
+  it('load signature after delete call binding', async () => {
+    const backend = nodeBackend();
+    //
+    const spyOnNodeBackendLoad =
+        spyOn(backend, 'loadSavedModel').and.callThrough();
+    const spyOnCallBindingLoad =
+        spyOn(backend, 'loadMetaGraph').and.callThrough();
+    const spyOnNodeBackendDelete =
+        spyOn(backend, 'deleteSavedModel').and.callThrough();
     const signature1 = await loadSavedModel(
         './test_objects/module_with_multiple_signatures', ['serve'],
         'serving_default');
-    expect(signature1.getPath())
-        .toBe('./test_objects/module_with_multiple_signatures');
+    expect(spyOnNodeBackendLoad).toHaveBeenCalledTimes(1);
+    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(1);
     const signature2 = await loadSavedModel(
         './test_objects/module_with_multiple_signatures', ['serve'],
         'timestwo');
-    expect(signature2.getPath())
-        .toBe('./test_objects/module_with_multiple_signatures');
+    expect(spyOnNodeBackendLoad).toHaveBeenCalledTimes(2);
+    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(1);
+    signature1.delete();
+    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(1);
+    signature2.delete();
+    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(2);
   });
 });
