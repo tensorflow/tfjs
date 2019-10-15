@@ -170,9 +170,10 @@ describe('SavedModel', () => {
 
   it('load TFSavedModelSignature', async () => {
     const spy = spyOn(nodeBackend(), 'loadSavedModel').and.callThrough();
-    await loadSavedModel(
+    const model = await loadSavedModel(
         './test_objects/times_three_float', ['serve'], 'serving_default');
     expect(spy).toHaveBeenCalledTimes(1);
+    model.delete();
   });
 
   it('load TFSavedModelSignature with wrong tags throw exception',
@@ -212,40 +213,41 @@ describe('SavedModel', () => {
     expect(spy1).toHaveBeenCalledTimes(1);
   });
 
-  fit('delete TFSavedModelSignature multiple times throw exception',
-      async done => {
-        try {
-          const model = await loadSavedModel(
-              './test_objects/times_three_float', ['serve'], 'serving_default');
-          model.delete();
-          model.delete();
-          done.fail();
-        } catch (error) {
-          expect(error.message).toBe('This SavedModel has been deleted.');
-          done();
-        }
-      });
+  it('delete TFSavedModelSignature multiple times throw exception',
+     async done => {
+       try {
+         const model = await loadSavedModel(
+             './test_objects/times_three_float', ['serve'], 'serving_default');
+         model.delete();
+         model.delete();
+         done.fail();
+       } catch (error) {
+         expect(error.message).toBe('This SavedModel has been deleted.');
+         done();
+       }
+     });
 
   it('load multiple signatures from the same metagraph only call binding once',
      async () => {
        const backend = nodeBackend();
        const spy = spyOn(backend, 'loadSavedModel').and.callThrough();
        const spy1 = spyOn(backend, 'loadMetaGraph').and.callThrough();
-       await loadSavedModel(
+       const signature1 = await loadSavedModel(
            './test_objects/module_with_multiple_signatures', ['serve'],
            'serving_default');
        expect(spy).toHaveBeenCalledTimes(1);
        expect(spy1).toHaveBeenCalledTimes(1);
-       await loadSavedModel(
+       const signature2 = await loadSavedModel(
            './test_objects/module_with_multiple_signatures', ['serve'],
            'timestwo');
        expect(spy).toHaveBeenCalledTimes(2);
        expect(spy1).toHaveBeenCalledTimes(1);
+       signature1.delete();
+       signature2.delete();
      });
 
   it('load signature after delete call binding', async () => {
     const backend = nodeBackend();
-    //
     const spyOnNodeBackendLoad =
         spyOn(backend, 'loadSavedModel').and.callThrough();
     const spyOnCallBindingLoad =
@@ -257,14 +259,13 @@ describe('SavedModel', () => {
         'serving_default');
     expect(spyOnNodeBackendLoad).toHaveBeenCalledTimes(1);
     expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(1);
+    signature1.delete();
+    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(1);
     const signature2 = await loadSavedModel(
         './test_objects/module_with_multiple_signatures', ['serve'],
         'timestwo');
     expect(spyOnNodeBackendLoad).toHaveBeenCalledTimes(2);
-    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(1);
-    signature1.delete();
-    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(1);
+    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(2);
     signature2.delete();
-    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(2);
   });
 });
