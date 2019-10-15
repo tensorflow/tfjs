@@ -2,7 +2,10 @@ load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
 
 # Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
 # explicitly pointing to files with exported methods (EMSCRIPTEN_KEEPALIVE).
-KERNELS_WITH_KEEPALIVE = ['add.cc', 'batch_matmul.cc', 'prelu.cc']
+KERNELS_WITH_KEEPALIVE = glob(
+  ["kernels/*.cc"],
+  exclude = ["**/*_test.cc"],
+)
 
 cc_binary(
     name = "tfjs-backend-wasm.js",
@@ -47,7 +50,7 @@ tfjs_cc_library(
 
 tfjs_cc_library(
   name = "add",
-  srcs = ["add.cc"],
+  srcs = ["kernels/add.cc"],
   deps = [
     ":backend",
     ":util",
@@ -56,7 +59,7 @@ tfjs_cc_library(
 
 tfjs_cc_library(
   name = "batch_matmul",
-  srcs = ["batch_matmul.cc"],
+  srcs = ["kernels/batch_matmul.cc"],
   deps = [
     ":backend",
     ":util",
@@ -65,8 +68,8 @@ tfjs_cc_library(
 
 tfjs_cc_library(
   name = "prelu",
-  srcs = ["prelu.cc"],
-  hdrs = ["prelu.h"],
+  srcs = ["kernels/prelu.cc"],
+  hdrs = ["kernels/prelu.h"],
   deps = [
     ":backend",
     ":util",
@@ -93,7 +96,7 @@ tfjs_unit_test(
 
 tfjs_unit_test(
   name = "prelu_test",
-  srcs = ["prelu_test.cc"],
+  srcs = ["kernels/prelu_test.cc"],
   deps = [
     ":prelu",
   ]
