@@ -2514,7 +2514,7 @@ export class MathBackendWebGL implements KernelBackend {
       // String type should be handled in CPU memory.
       const values = getArrayFromDType(dtype, sizeFromShape(shape));
       values.fill(value as string);
-      return ENGINE.makeTensor(values, shape, dtype) as Tensor<R>;
+      return ENGINE.makeTensor(values, shape, dtype, this) as Tensor<R>;
     } else {
       const program = new FillProgram(shape, value as number);
       const customSetup = program.getCustomSetupFunc(value as number);

@@ -227,7 +227,7 @@ export class MathBackendCPU extends KernelBackend {
   private makeOutput<T extends Tensor>(
       values: BackendValues, shape: number[], dtype: DataType): T {
     const dataId = this.register(values, shape, dtype);
-    return ENGINE.makeTensorFromDataId(dataId, shape, dtype) as T;
+    return ENGINE.makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
   disposeData(dataId: DataId): void {
@@ -786,7 +786,7 @@ export class MathBackendCPU extends KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = values[i] ? 0 : 1;
     }
-    return ENGINE.makeTensor(newValues, x.shape, 'bool') as T;
+    return this.makeOutput(newValues, x.shape, 'bool');
   }
 
   logicalAnd(a: Tensor, b: Tensor): Tensor {
@@ -3823,7 +3823,7 @@ export class MathBackendCPU extends KernelBackend {
     dtype = dtype || inferDtype(value);
     const values = getArrayFromDType(dtype, sizeFromShape(shape)) as TypedArray;
     values.fill(value as number);
-    return ENGINE.makeTensor(values, shape, dtype) as Tensor<R>;
+    return ENGINE.makeTensor(values, shape, dtype, this) as Tensor<R>;
   }
 
   onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
