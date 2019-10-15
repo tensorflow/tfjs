@@ -16,7 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
-import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor6D} from '../tensor';
+import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
 import * as util from '../util';
@@ -79,37 +79,6 @@ function slice4d_(
       $x.rank === 4,
       () =>
           `slice4d expects a rank-4 tensor, but got a rank-${$x.rank} tensor`);
-  return slice($x, begin, size);
-}
-
-/**
- * Extracts a 5D slice from a 5D array starting at coordinates `begin` and
- * is of size `size`. See `slice` for details.
- */
-function slice5d_(
-    x: Tensor5D|TensorLike, begin: [number, number, number, number, number],
-    size: [number, number, number, number, number]): Tensor5D {
-  const $x = convertToTensor(x, 'x', 'slice5d');
-  util.assert(
-      $x.rank === 5,
-      () =>
-          `slice5d expects a rank-5 tensor, but got a rank-${$x.rank} tensor`);
-  return slice($x, begin, size);
-}
-
-/**
- * Extracts a 6D slice from a 6D array starting at coordinates `begin` and
- * is of size `size`. See `slice` for details.
- */
-function slice6d_(
-    x: Tensor6D|TensorLike,
-    begin: [number, number, number, number, number, number],
-    size: [number, number, number, number, number, number]): Tensor6D {
-  const $x = convertToTensor(x, 'x', 'slice6d');
-  util.assert(
-      $x.rank === 6,
-      () =>
-          `slice6d expects a rank-6 tensor, but got a rank-${$x.rank} tensor`);
   return slice($x, begin, size);
 }
 
@@ -211,5 +180,3 @@ export const slice1d = op({slice1d_});
 export const slice2d = op({slice2d_});
 export const slice3d = op({slice3d_});
 export const slice4d = op({slice4d_});
-export const slice5d = op({slice5d_});
-export const slice6d = op({slice6d_});
