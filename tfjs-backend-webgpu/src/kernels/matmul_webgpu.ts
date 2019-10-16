@@ -90,19 +90,11 @@ export class MatMulProgram implements WebGPUProgram {
       ${makeMatMulSource()}
 
       float mm_readA(int row, int col) {
-        if (row < dimAOuter && col < dimInner) {
-          return A[row * dimInner + col];
-        } else {
-          return 0.0;
-        }
+        return A[row * dimInner + col];
       }
 
       float mm_readB(int row, int col) {
-        if (row < dimInner && col < dimBOuter) {
-          return B[row * dimBOuter + col];
-        } else {
-          return 0.0;
-        }
+        return B[row * dimBOuter + col];
       }
 
       void mm_write(int row, int col, float value) {
