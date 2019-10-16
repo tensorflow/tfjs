@@ -137,12 +137,13 @@ const SHADER_PREFIX = `#version 450
     return res;
   }
 
-  bool coordIsValid(ivec4 coord, ivec4 shape) {
+  // Checks whether coordinates lie within the bounds of the shape.
+  bool coordsInBounds(ivec4 coord, ivec4 shape) {
     return all(greaterThanEqual(coord, ivec4(0))) &&
         all(lessThan(coord, shape));
   }
 
-  bool coordIsValid(ivec2 coord, ivec2 shape) {
+  bool coordsInBounds(ivec2 coord, ivec2 shape) {
     return all(greaterThanEqual(coord, ivec2(0))) &&
         all(lessThan(coord, shape));
   }
