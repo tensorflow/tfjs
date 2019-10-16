@@ -45,12 +45,3 @@ export interface TensorContainerObject {
   [x: string]: TensorContainer;
 }
 export interface TensorContainerArray extends Array<TensorContainer> {}
-
-export interface TensorInfo {
-  // Name of the tensor.
-  name: string;
-  // Tensor shape information, Optional.
-  shape?: number[];
-  // Data type of the tensor.
-  dtype: DataType;
-}
