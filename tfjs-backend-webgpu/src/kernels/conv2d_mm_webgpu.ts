@@ -64,6 +64,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
         this.dispatchLayout, matMulOutShape, this.workGroupSize,
         elementsPerThread);
 
+    // TODO: At compile-time infer when we need coordsInBounds check and
+    // precompile a version without checks if appropriate.
+
     this.userCode = `
         ${matMulSource}
 
@@ -78,7 +81,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
               r);
 
           ivec4 shape = ivec4(filterDims, xShape[3], outShape[3]);
-          return coordIsValid(coord, shape) ? W[getFlatIndex(coord, shape)] : 0;
+          return coordsInBounds(coord, shape) ?
+            W[getFlatIndex(coord, shape)] : 0;
         }
 
         float mm_readB(int row, int col) {
@@ -94,7 +98,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
               pad[0] + outRow * stride[0] + WRow,
               pad[1] + outCol * stride[1] + WCol,
               r / (filterDims[0] * filterDims[1]));
-          return coordIsValid(coord, xShape) ?
+          return coordsInBounds(coord, xShape) ?
               x[getFlatIndex(coord, xShape)] : 0;
         }
 
@@ -104,7 +108,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
               col / outShape[2],
               col % outShape[2],
               row);
-          if (coordIsValid(outCoord, outShape)) {
+          if (coordsInBounds(outCoord, outShape)) {
             result[getFlatIndex(outCoord, outShape)] = value;
           }
         }

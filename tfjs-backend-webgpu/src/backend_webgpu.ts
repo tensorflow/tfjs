@@ -779,7 +779,8 @@ export class WebGPUBackend extends KernelBackend {
       program = new MatMulProgram(output.shape);
     } else {
       program = new MatMulPackedProgram(
-          output.shape, env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
+          a.shape, output.shape,
+          env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
     }
 
     return this.compileAndRun(program, [a, b], output);
