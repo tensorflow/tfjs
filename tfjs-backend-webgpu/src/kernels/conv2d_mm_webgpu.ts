@@ -81,7 +81,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
               r);
 
           ivec4 shape = ivec4(filterDims, xShape[3], outShape[3]);
-          return coordsInBounds(coord, shape) ? W[getFlatIndex(coord, shape)] : 0;
+          return coordsInBounds(coord, shape) ?
+            W[getFlatIndex(coord, shape)] : 0;
         }
 
         float mm_readB(int row, int col) {
