@@ -71,6 +71,8 @@ tensorflowjs_converter \
 ```
 * __TensorFlow Frozen Model__ example:
 
+__Note:__ Frozen model is a deprecated format and support is added for backward compatibility purpose.
+
 ```bash
 $ tensorflowjs_converter \
     --input_format=tf_frozen_model \
