@@ -148,7 +148,7 @@ def _create_hub_module(save_path):
 
 def _create_frozen_model(save_path):
   graph = tf.Graph()
-  saved_model_dir = os.path.join(save_path, 'saved_model')
+  saved_model_dir = os.path.join(save_path)
   with graph.as_default():
     x = tf.constant([[37.0, -23.0], [1.0, 4.0]])
     w = tf.Variable(tf.random_uniform([2, 2]))
@@ -170,7 +170,7 @@ def _create_frozen_model(save_path):
 
     builder.save()
 
-  frozen_file = os.path.join(save_path, 'frozen_model', 'model.frozen')
+  frozen_file = os.path.join(save_path, 'frozen.pb')
   freeze_graph.freeze_graph(
       '',
       '',
@@ -546,11 +546,12 @@ class APIAndShellTest(tf.test.TestCase):
 
   def testConvertTFFrozenModelWithCommandLineWorks(self):
     output_dir = os.path.join(self._tmp_dir)
+    frozen_file = os.path.join(self.tf_frozen_model_dir, 'frozen.pb')
     process = subprocess.Popen([
         'tensorflowjs_converter', '--input_format', 'tf_frozen_model',
         '--output_format', 'tfjs_graph_model', '--output_node_names',
         'Softmax',
-        self.tf_frozen_model_dir, output_dir
+        frozen_file, output_dir
     ])
     process.communicate()
     self.assertEqual(0, process.returncode)
@@ -566,7 +567,7 @@ class APIAndShellTest(tf.test.TestCase):
     self.assertIn('weights', weights_manifest[0])
     self.assertTrue(
         glob.glob(
-            os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'group*-*')))
+            os.path.join(self._tmp_dir, 'group*-*')))
 
     # Check the content of the output directory.
     self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))

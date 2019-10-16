@@ -439,7 +439,7 @@ def get_arg_parser():
       default=common.TF_SAVED_MODEL,
       choices=set([common.KERAS_MODEL, common.KERAS_SAVED_MODEL,
                    common.TF_SAVED_MODEL, common.TF_HUB_MODEL,
-                   common.TFJS_LAYERS_MODEL]),
+                   common.TFJS_LAYERS_MODEL, common.TF_FROZEN_MODEL]),
       help='Input format. '
       'For "keras", the input path can be one of the two following formats:\n'
       '  - A topology+weights combined HDF5 (e.g., generated with'
@@ -619,8 +619,9 @@ def convert(arguments):
   elif (input_format == common.TF_FROZEN_MODEL and
         output_format == common.TFJS_GRAPH_MODEL):
     tf_saved_model_conversion_v2.convert_tf_frozen_model(
-        args.input_path, args.output_path, args.output_node_names,
-        args.saved_model_tags, skip_op_check=args.skip_op_check,
+        args.input_path, args.output_node_names, args.output_path,
+        quantization_dtype=_parse_quantization_bytes(args.quantization_bytes),
+        skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops)
   else:
     raise ValueError(
