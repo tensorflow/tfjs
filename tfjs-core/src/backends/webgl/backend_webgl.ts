@@ -228,7 +228,7 @@ function numMBBeforeWarning(): number {
 export const MATMUL_SHARED_DIM_THRESHOLD = 1000;
 
 export class MathBackendWebGL implements KernelBackend {
-  private texData: DataStorage<TextureData>;
+  texData: DataStorage<TextureData>;
   // Maps data ids that have a pending read operation, to list of subscribers.
   private pendingRead = new WeakMap<DataId, Array<(arr: TypedArray) => void>>();
   // List of data ids that are scheduled for disposal, but are waiting on a
@@ -2619,6 +2619,11 @@ export class MathBackendWebGL implements KernelBackend {
         program, [{shape: shapeAs3D, dtype, dataId}], tmpTarget, null, true);
     return tmpTarget;
   }
+
+  runWebGLProgram():
+      {
+
+      }
 
   public compileAndRun<
       K extends {dtype: DataType, size: number, dataId: {}, shape: number[]}>(
