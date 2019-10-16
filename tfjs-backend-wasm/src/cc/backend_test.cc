@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 
 #include "src/cc/backend.h"
-#include "src/cc/prelu.h"
+#include "src/cc/kernels/prelu.h"
 
 TEST(BACKEND, register_tensor) {
   tfjs::wasm::init();

@@ -115,18 +115,31 @@ export class MatMulPackedProgram implements WebGPUProgram {
   variableNames = ['A', 'B'];
   workGroupSize: [number, number, number] = [16, 16, 1];
 
-  constructor(outputShape: [number, number, number], workPerThread: number) {
+  constructor(
+      aShape: [number, number, number], outputShape: [number, number, number],
+      workPerThread: number) {
+    const bShape = [outputShape[0], aShape[2], outputShape[2]];
     this.outputShape = outputShape;
     this.workPerThread = workPerThread;
+
+    const workFitsEvenlyInA =
+        aShape.slice(1).every(d => d % this.workPerThread === 0);
+    const workFitsEvenlyInB =
+        bShape.slice(1).every(d => d % this.workPerThread === 0);
+    const sampleA = workFitsEvenlyInA ?
+        `A[row * dimInner + col]` :
+        `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
+          A[row * dimInner + col] : 0`;
+    const sampleB = workFitsEvenlyInB ?
+        `B[row * dimBOuter + col]` :
+        `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
+          B[row * dimBOuter + col] : 0`;
 
     this.dispatchLayout = {x: [1], y: [2], z: [0]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [workPerThread, workPerThread, 1]);
 
-    // Consider compiling a different version of the shader that doesn't care
-    // about boundary conditions when loading from Asub / Bsub when tiles fit
-    // neatly inside of output. May slightly improve performance.
     this.userCode = `
       int dimAOuter = aShape[1];
       int dimInner = aShape[2];
@@ -135,19 +148,11 @@ export class MatMulPackedProgram implements WebGPUProgram {
       ${makeMatMulPackedSource(workPerThread)}
 
       float mm_readA(int row, int col) {
-        if (row < dimAOuter && col < dimInner) {
-          return A[row * dimInner + col];
-        } else {
-          return 0.0;
-        }
+        return ${sampleA};
       }
 
       float mm_readB(int row, int col) {
-        if (row < dimInner && col < dimBOuter) {
-          return B[row * dimBOuter + col];
-        } else {
-          return 0.0;
-        }
+        return ${sampleB};
       }
 
       void mm_write(int row, int col, float value) {
