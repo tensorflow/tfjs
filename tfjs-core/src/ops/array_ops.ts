@@ -44,8 +44,9 @@ function clone_<T extends Tensor>(x: T|TensorLike): T {
   const der = (dy: T) => {
     return {$x: () => dy.toFloat()};
   };
-  return ENGINE.runKernel(
-      () => Tensor.wrap($x.shape, $x.dtype, $x.dataId) as T, {$x}, der);
+  return ENGINE.runKernelFunc(
+      () => ENGINE.makeTensorFromDataId($x.dataId, $x.shape, $x.dtype) as T,
+      {$x}, der);
 }
 
 /**
@@ -256,7 +257,7 @@ function rand_<R extends Rank>(
   for (let i = 0; i < size; i++) {
     values[i] = randFunction();
   }
-  return Tensor.make(shape, values, dtype);
+  return ENGINE.makeTensor(values, shape, dtype) as Tensor<R>;
 }
 
 /**
@@ -294,7 +295,7 @@ function multinomial_(
   }
   seed = seed || Math.random();
   const logits2D = origRank === 1 ? $logits.as2D(1, -1) : $logits as Tensor2D;
-  const res = ENGINE.runKernel(
+  const res = ENGINE.runKernelFunc(
       backend => backend.multinomial(logits2D, normalized, numSamples, seed),
       {logits2D});
 
@@ -332,7 +333,7 @@ function oneHot_(
   const grad = (dy: Tensor2D) => {
     return {$indices: () => zeros($indices.shape, 'float32')};
   };
-  const result = ENGINE.runKernel(
+  const result = ENGINE.runKernelFunc(
       backend => backend.oneHot($indices as Tensor1D, depth, onValue, offValue),
       {$indices}, grad);
   return result.reshape(outShape);
@@ -374,7 +375,8 @@ function reshape_<R2 extends Rank>(
   const grad = (dy: Tensor<R2>) => {
     return {$x: () => dy.reshape($x.shape)};
   };
-  return ENGINE.runKernel(backend => backend.reshape($x, shape), {$x}, grad);
+  return ENGINE.runKernelFunc(
+      backend => backend.reshape($x, shape), {$x}, grad);
 }
 
 /**
@@ -422,7 +424,7 @@ function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
   const grad = (dy: T) => {
     return {$x: () => dy.clone()};
   };
-  return ENGINE.runKernel(backend => backend.cast($x, dtype), {$x}, grad);
+  return ENGINE.runKernelFunc(backend => backend.cast($x, dtype), {$x}, grad);
 }
 
 /**
@@ -509,7 +511,7 @@ function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
     };
     return {$x: derX};
   };
-  return ENGINE.runKernel((backend, save) => {
+  return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.tile($x, reps);
     save([$x]);
     return res;
@@ -609,7 +611,7 @@ function pad_<T extends Tensor>(
   const grad = (dy: T) => {
     return {$x: () => dy.slice(begin, $x.shape)};
   };
-  return ENGINE.runKernel(
+  return ENGINE.runKernelFunc(
       backend => backend.pad($x, paddings, constantValue), {$x}, grad);
 }
 
@@ -730,7 +732,7 @@ function batchToSpaceND_<T extends Tensor>(
     return {$x: () => dy.spaceToBatchND(blockShape, crops)};
   };
 
-  return ENGINE.runKernel(
+  return ENGINE.runKernelFunc(
       backend => backend.batchToSpaceND($x, blockShape, crops), {$x}, grad);
 }
 
@@ -815,7 +817,7 @@ function spaceToBatchND_<T extends Tensor>(
     return {$x: () => dy.batchToSpaceND(blockShape, paddings)};
   };
 
-  return ENGINE.runKernel(
+  return ENGINE.runKernelFunc(
       backend => backend.spaceToBatchND($x, blockShape, paddings), {$x}, grad);
 }
 
@@ -845,7 +847,7 @@ function unstack_(x: Tensor|TensorLike, axis = 0): Tensor[] {
   const grad = (dy: Tensor[]) => {
     return {$x: () => stack(dy, axis)};
   };
-  return ENGINE.runKernel(backend => backend.unstack($x, axis), {$x}, grad);
+  return ENGINE.runKernelFunc(backend => backend.unstack($x, axis), {$x}, grad);
 }
 
 /**
@@ -885,7 +887,7 @@ function cumsum_<T extends Tensor>(
   const grad = (dy: T) => {
     return {permutedX: () => dy.cumsum(axis, exclusive, !reverse)};
   };
-  let value = ENGINE.runKernel(
+  let value = ENGINE.runKernelFunc(
                   backend => backend.cumsum(
                       permutedX, permutedAxis, exclusive, reverse),
                   {permutedX}, grad) as T;
@@ -992,7 +994,7 @@ function depthToSpace_(
           blockSize * blockSize} but is ${
           inputDepth} for depthToSpace with input shape ${$x.shape}`);
 
-  return ENGINE.runKernel(
+  return ENGINE.runKernelFunc(
       backend => backend.depthToSpace($x, blockSize, dataFormat), {$x});
 }
 
