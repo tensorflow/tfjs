@@ -64,6 +64,22 @@ export class Conv2DMMProgram implements WebGPUProgram {
         this.dispatchLayout, matMulOutShape, this.workGroupSize,
         elementsPerThread);
 
+    const sharedDim =
+        convInfo.filterWidth * convInfo.filterHeight * convInfo.inChannels;
+
+    const aShape = [sharedDim, convInfo.outWidth * convInfo.outHeight];
+    const workFitsEvenlyInA = aShape.every(d => d % workPerThread === 0);
+    const sampleA = workFitsEvenlyInA ?
+        'W[getFlatIndex(coord, shape)]' :
+        'coordIsValid(coord, shape) ? W[getFlatIndex(coord, shape)] : 0';
+
+    const bShape =
+        [sharedDim, util.sizeFromShape(convInfo.filterShape) / sharedDim];
+    const workFitsEvenlyInB = bShape.every(d => d % workPerThread === 0);
+    const sampleB = workFitsEvenlyInB ?
+        'x[getFlatIndex(coord, xShape)]' :
+        'coordIsValid(coord, xShape) ? x[getFlatIndex(coord, xShape)] : 0';
+
     this.userCode = `
         ${matMulSource}
 
@@ -78,7 +94,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
               r);
 
           ivec4 shape = ivec4(filterDims, xShape[3], outShape[3]);
-          return coordIsValid(coord, shape) ? W[getFlatIndex(coord, shape)] : 0;
+          return ${sampleA};
         }
 
         float mm_readB(int row, int col) {
@@ -94,8 +110,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
               pad[0] + outRow * stride[0] + WRow,
               pad[1] + outCol * stride[1] + WCol,
               r / (filterDims[0] * filterDims[1]));
-          return coordIsValid(coord, xShape) ?
-              x[getFlatIndex(coord, xShape)] : 0;
+
+          return ${sampleB};
         }
 
         void mm_write(int row, int col, float value) {
