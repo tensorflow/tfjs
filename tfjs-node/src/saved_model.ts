@@ -194,16 +194,12 @@ export class TFSavedModelSignature implements InferenceModel {
   // ID of the object in javascript
   private readonly jsid: number;
   private readonly backend: NodeJSKernelBackend;
-  private readonly inputNodeNames: string[];
-  private readonly outputNodeNames: string[];
   private deleted: boolean;
 
   constructor(
-      cid: number, path: string, inputNodeNames: string[],
-      outputNodeNames: string[], backend: NodeJSKernelBackend) {
+      cid: number, inputNodeNames: string[], outputNodeNames: string[],
+      backend: NodeJSKernelBackend) {
     this.cid = cid;
-    this.inputNodeNames = inputNodeNames;
-    this.outputNodeNames = outputNodeNames;
     this.backend = backend;
     this.deleted = false;
     this.jsid = jsid++;

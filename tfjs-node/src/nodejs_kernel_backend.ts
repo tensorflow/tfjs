@@ -27,8 +27,6 @@ import {Int64Scalar} from './int64_tensors';
 import {getInputAndOutputNodeNameFromSavedModelInfo, inspectSavedModel, TFSavedModelSignature} from './saved_model';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
-
-
 type TensorInfo = {
   shape: number[],
   dtype: number,
@@ -1906,7 +1904,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     const sessionId = this.getSessionIdFromSavedModel(path, tags);
 
     const modelSignature = new TFSavedModelSignature(
-        sessionId, path, inputNodeNames, outputNodeNames, this);
+        sessionId, inputNodeNames, outputNodeNames, this);
     this.loadedSavedModelPathMap.set(
         modelSignature.getJsid(), [path, tags.join(), sessionId]);
     return modelSignature;
