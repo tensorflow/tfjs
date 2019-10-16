@@ -28,8 +28,8 @@ export class Im2ColProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   rank: number;
-  workPerThread = 1;
-  workGroupSize: [number, number, number] = [1, 1, 1];
+  workPerThread = 4;
+  workGroupSize: [number, number, number] = [64, 1, 1];
 
   constructor(
       outputShape: number[], inputShape: number[],
@@ -63,28 +63,32 @@ export class Im2ColProgram implements WebGPUProgram {
 
     this.userCode = `
       void main() {
-        ivec2 rc = getOutputCoords();
+        int index = int(gl_GlobalInvocationID.x);
 
-        int flatIndex = int(gl_GlobalInvocationID.x);
+        for(int i=0; i<${this.workPerThread}; i++) {
+          int flatIndex = index * ${this.workPerThread} + i;
 
-        if(flatIndex < ${size}) {
-          int blockIndex = rc[1];
-          int pos = rc[0];
+          ivec2 rc = getCoordsFromFlatIndex(flatIndex);
 
-          int offsetY = int(blockIndex / ${outWidth}) * ${strideHeight} -
-            ${top};
-          int d0 = offsetY + ${dilationHeight} * (pos / ${itemsPerBlockRow});
-          if(d0 < ${inputShape[rowDim]} && d0 >= 0) {
-            int offsetX = int(mod(float(blockIndex), ${outWidth}.) *
-              ${strideWidth}. - ${left}.);
-            int d1 = offsetX + ${dilationWidth} * (int(mod(float(pos),
-              ${itemsPerBlockRow}.) / ${inChannels}.));
-            int ch = int(mod(float(pos), ${inChannels}.));
-            float value = 0.0;
-            if(d1 < ${inputShape[colDim]} && d1 >= 0) {
-              value = getA(d0, d1, ch);
+          if(flatIndex < ${size}) {
+            int blockIndex = rc[1];
+            int pos = rc[0];
+
+            int offsetY = int(blockIndex / ${outWidth}) * ${strideHeight} -
+              ${top};
+            int d0 = offsetY + ${dilationHeight} * (pos / ${itemsPerBlockRow});
+            if(d0 < ${inputShape[rowDim]} && d0 >= 0) {
+              int offsetX = int(mod(float(blockIndex), ${outWidth}.) *
+                ${strideWidth}. - ${left}.);
+              int d1 = offsetX + ${dilationWidth} * (int(mod(float(pos),
+                ${itemsPerBlockRow}.) / ${inChannels}.));
+              int ch = int(mod(float(pos), ${inChannels}.));
+              float value = 0.0;
+              if(d1 < ${inputShape[colDim]} && d1 >= 0) {
+                value = getA(d0, d1, ch);
+              }
+              setOutput(flatIndex, value);
             }
-            setOutput(flatIndex, value);
           }
         }
       }

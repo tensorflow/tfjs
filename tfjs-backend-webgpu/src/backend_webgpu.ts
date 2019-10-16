@@ -647,8 +647,6 @@ export class WebGPUBackend extends KernelBackend {
     const transposeA = true;
     const transposeB = false;
 
-    // const matMulProgram = new MatMulProgram([1, numCols,
-    // convInfo.outChannels]);
     const matMulProgram = new MatMulPackedProgram(
         [1, numCols, convInfo.outChannels],
         env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
