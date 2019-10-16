@@ -104,9 +104,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
               col / outShape[2],
               col % outShape[2],
               row);
-          if (coordIsValid(outCoord, outShape)) {
-            result[getFlatIndex(outCoord, outShape)] = value;
-          }
+          result[getFlatIndex(outCoord, outShape)] = value;
         }
 
         void main() {
