@@ -16,7 +16,8 @@
  */
 
 import {Tensor} from './tensor';
-import {NamedTensorMap, TensorInfo} from './tensor_types';
+import {NamedTensorMap} from './tensor_types';
+import {DataType} from './types';
 
 export interface ModelPredictConfig {
   /**
@@ -31,18 +32,30 @@ export interface ModelPredictConfig {
 }
 
 /**
+ * Interface for model input/output tensor info.
+ */
+export interface ModelTensorInfo {
+  // Name of the tensor.
+  name: string;
+  // Tensor shape information, Optional.
+  shape?: number[];
+  // Data type of the tensor.
+  dtype: DataType;
+}
+
+/**
  * Common interface for a machine learning model that can do inference.
  */
 export interface InferenceModel {
   /**
    * Return the array of input tensor info.
    */
-  readonly inputs: TensorInfo[];
+  readonly inputs: ModelTensorInfo[];
 
   /**
    * Return the array of output tensor info.
    */
-  readonly outputs: TensorInfo[];
+  readonly outputs: ModelTensorInfo[];
 
   /**
    * Execute the inference for the input tensors.
