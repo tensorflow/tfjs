@@ -141,6 +141,11 @@ const SHADER_PREFIX = `#version 450
     return all(greaterThanEqual(coord, ivec4(0))) &&
         all(lessThan(coord, shape));
   }
+
+  bool coordIsValid(ivec2 coord, ivec2 shape) {
+    return all(greaterThanEqual(coord, ivec2(0))) &&
+        all(lessThan(coord, shape));
+  }
 `;
 
 const SAMPLING_SNIPPETS = `
@@ -167,12 +172,12 @@ function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
   let snippet = `void setOutput(int flatIndex, float value) {
       result[flatIndex] = ${
       glslType === 'int' ? 'int(value)' :
-        (glslType === 'bool' ? 'bool(value)' : 'value')};
+                           (glslType === 'bool' ? 'bool(value)' : 'value')};
     }
     void setOutput(int flatIndex, int value) {
       result[flatIndex] = ${
       glslType === 'float' ? 'float(value)' :
-        (glslType === 'bool' ? 'bool(value)' : 'value')};
+                             (glslType === 'bool' ? 'bool(value)' : 'value')};
     }`;
 
   if (outRank >= 2) {
@@ -346,8 +351,7 @@ function generateGetOutputCoords(
   let snippet = `${dtype} getOutputCoords() {
     ${gatherDimensionsStr}
   `;
-  if (dimensions.length === 0)
-  {
+  if (dimensions.length === 0) {
     snippet += `return ${dtype}(0);}`;
   } else {
     snippet += `return ${dtype}(${dimensions.join(',')});}`;
