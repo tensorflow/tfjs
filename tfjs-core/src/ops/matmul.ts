@@ -110,7 +110,7 @@ function matMul_<T extends Tensor>(
     }
   };
 
-  const res = ENGINE.runKernel((backend, save) => {
+  const res = ENGINE.runKernelFunc((backend, save) => {
     const res = backend.batchMatMul(a3D, b3D, transposeA, transposeB);
     save([a3D, b3D]);
     return res;

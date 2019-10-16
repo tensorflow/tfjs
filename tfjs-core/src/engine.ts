@@ -439,7 +439,6 @@ export class Engine implements TensorTracker, DataMover {
     return y;
   }
 
-  // TODO(smilkov): Rename this to runKernel() and rename the old runKernel().
   /**
    * Execute a kernel with the given name and return the output tensor info.
    *
@@ -448,18 +447,23 @@ export class Engine implements TensorTracker, DataMover {
    * @param attrs A map of attribute names to their values. An attribute is a
    *     primitive (non-tensor) input to the kernel.
    */
-  run(kernelName: string, inputs: NamedTensorInfoMap,
+  runKernel(
+      kernelName: string, inputs: NamedTensorInfoMap,
       attrs: NamedAttrMap): TensorInfo|TensorInfo[] {
     const forwardFunc: null = null;
     const backwardsFunc: null = null;
     // Call runKernel as a stop-gap until we modularize all kernels.
     // Once we modularize all kernels, we will remove the existing runKernel().
-    return this.runKernel(
+    return this.runKernelFunc(
         forwardFunc, inputs as NamedTensorMap, backwardsFunc, kernelName,
         attrs);
   }
 
-  runKernel<T extends Tensor|Tensor[], I extends NamedTensorMap>(
+  /**
+   * @deprecated Use `runKernel` for newly added kernels. Keep using this method
+   *     only for kernels that are not yet fully modularized.
+   */
+  runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
       kernelName?: string, attrs?: NamedAttrMap): T {
@@ -874,7 +878,7 @@ export class Engine implements TensorTracker, DataMover {
       inputs.forEach((input, i) => {
         inputMap[i] = input;
       });
-      return this.runKernel(
+      return this.runKernelFunc(
           (_, save) => {
             res = f(...[...inputs, save]);
             util.assert(

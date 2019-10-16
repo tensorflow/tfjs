@@ -33,7 +33,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
 
     const inputs = {x: tf.zeros([2, 2])};
     const attrs = {a: 5};
-    const res = tf.engine().run('MyKernel', inputs, attrs) as TensorInfo;
+    const res = tf.engine().runKernel('MyKernel', inputs, attrs) as TensorInfo;
 
     expect(called).toBe(true);
     expect(res.dtype).toBe('float32');
@@ -45,7 +45,8 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
   it('errors when running non-existent kernel', () => {
     const inputs = {};
     const attrs = {};
-    expect(() => tf.engine().run('DoesNotExist', inputs, attrs)).toThrowError();
+    expect(() => tf.engine().runKernel('DoesNotExist', inputs, attrs))
+        .toThrowError();
   });
 
   it('errors when registering the same kernel twice', () => {
@@ -91,12 +92,12 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
 
     // Kernel was executed on the first backend.
     tf.setBackend('backend1');
-    tf.engine().run('MyKernel', {}, {});
+    tf.engine().runKernel('MyKernel', {}, {});
     expect(lastStorageId).toBe(1);
 
     // Kernel was executed on the second backend.
     tf.setBackend('backend2');
-    tf.engine().run('MyKernel', {}, {});
+    tf.engine().runKernel('MyKernel', {}, {});
     expect(lastStorageId).toBe(2);
 
     tf.removeBackend('backend1');
