@@ -16,6 +16,7 @@
  */
 
 import {InferenceModel, ModelPredictConfig, Tensor} from '@tensorflow/tfjs';
+// tslint:disable-next-line
 import {NamedTensorMap, TensorInfo} from '@tensorflow/tfjs-core/dist/tensor_types';
 import * as fs from 'fs';
 import {promisify} from 'util';
@@ -23,12 +24,17 @@ import {ensureTensorflowBackend, nodeBackend, NodeJSKernelBackend} from './nodej
 
 const readFile = promisify(fs.readFile);
 
-let jsid = 0;
-
 // tslint:disable-next-line:no-require-imports
 const messages = require('./proto/api_pb');
 
 const SAVED_MODEL_FILE_NAME = '/saved_model.pb';
+
+// This map contains mapping information, key is TFSavedModelSignature id in
+// JavaScript, value is a turple of path to the SavedModel, tags, and loaded
+// Session ID in the c++ bindings.
+const loadedSavedModelPathMap = new Map<number, [string, string, number]>();
+
+let tfSavedModelSignatureId = 0;
 
 /**
  * Get a key in an object by its value. This is used to get protobuf enum value
@@ -61,11 +67,11 @@ export async function readSavedModelProto(path: string) {
 }
 
 /**
- * Inspect the contents of the SavedModel from the provided path.
+ * Inspect the MetaGraphs of the SavedModel from the provided path.
  *
  * @param path Path to SavedModel folder.
  */
-export async function inspectSavedModel(path: string):
+export async function getMetaGraphsFromSavedModel(path: string):
     Promise<MetaGraphInfo[]> {
   const result: MetaGraphInfo[] = [];
 
@@ -96,7 +102,7 @@ export async function inspectSavedModel(path: string):
       // Get all input tensors information
       const inputsMapMessage = signatureDefEntry.getInputsMap();
       const inputsMapKeys = inputsMapMessage.keys();
-      const inputs: SavedModelTensorInfo[] = [];
+      const inputs: {[key: string]: SavedModelTensorInfo} = {};
       while (true) {
         const inputsMapKey = inputsMapKeys.next();
         if (inputsMapKey.done) {
@@ -108,13 +114,13 @@ export async function inspectSavedModel(path: string):
             getEnumKeyFromValue(messages.DataType, inputTensor.getDtype());
         inputTensorInfo.name = inputTensor.getName();
         inputTensorInfo.shape = inputTensor.getTensorShape().getDimList();
-        inputs.push(inputTensorInfo);
+        inputs[inputsMapKey.value] = inputTensorInfo;
       }
 
       // Get all output tensors information
       const outputsMapMessage = signatureDefEntry.getOutputsMap();
       const outputsMapKeys = outputsMapMessage.keys();
-      const outputs: SavedModelTensorInfo[] = [];
+      const outputs: {[key: string]: SavedModelTensorInfo} = {};
       while (true) {
         const outputsMapKey = outputsMapKeys.next();
         if (outputsMapKey.done) {
@@ -126,7 +132,7 @@ export async function inspectSavedModel(path: string):
             getEnumKeyFromValue(messages.DataType, outputTensor.getDtype());
         outputTensorInfo.name = outputTensor.getName();
         outputTensorInfo.shape = outputTensor.getTensorShape().getDimList();
-        outputs.push(outputTensorInfo);
+        outputs[outputsMapKey.value] = outputTensorInfo;
       }
 
       signatureDef[key.value] = {inputs, outputs};
@@ -138,7 +144,39 @@ export async function inspectSavedModel(path: string):
   return result;
 }
 
-export function getInputAndOutputNodeNameFromSavedModelInfo(
+// TODO(kangyizhang): Remove the following interfaces and use the exported
+// interfaces in tfjs-core.
+/**
+ * Interface for inspected SavedModel MetaGraph info.
+ */
+export interface MetaGraphInfo {
+  tags: string[];
+  signatureDefs: SignatureDefInfo;
+}
+
+/**
+ * Interface for inspected SavedModel SignatureDef info.
+ */
+export interface SignatureDefInfo {
+  [key: string]: {
+    inputs: {[key: string]: SavedModelTensorInfo};
+    outputs: {[key: string]: SavedModelTensorInfo};
+  };
+}
+
+/**
+ * Interface for inspected SavedModel signature input/output Tensor info.
+ */
+export interface SavedModelTensorInfo {
+  dtype: string;
+  shape: number[];
+  name: string;
+}
+
+/**
+ * Get input and output node names from SavedModel metagraphs info.
+ */
+export function getInputAndOutputNodeNameFromMetaGraphInfo(
     savedModelInfo: MetaGraphInfo[], tags: string[], signature: string) {
   for (let i = 0; i < savedModelInfo.length; i++) {
     const metaGraphInfo = savedModelInfo[i];
@@ -149,43 +187,22 @@ export function getInputAndOutputNodeNameFromSavedModelInfo(
       }
       const inputNodeNames: string[] = [];
       const outputNodeNames: string[] = [];
-      for (const key of Object.keys(metaGraphInfo.signatureDefs)) {
-        metaGraphInfo.signatureDefs[key].inputs.map(tensorInfo => {
-          inputNodeNames.push(tensorInfo.name);
-        });
-        metaGraphInfo.signatureDefs[key].outputs.map(tensorInfo => {
-          outputNodeNames.push(tensorInfo.name);
-        });
+      for (const signature of Object.keys(metaGraphInfo.signatureDefs)) {
+        for (const tensorName of Object.keys(
+                 metaGraphInfo.signatureDefs[signature].inputs)) {
+          inputNodeNames.push(
+              metaGraphInfo.signatureDefs[signature].inputs[tensorName].name);
+        }
+        for (const tensorName of Object.keys(
+                 metaGraphInfo.signatureDefs[signature].outputs)) {
+          inputNodeNames.push(
+              metaGraphInfo.signatureDefs[signature].outputs[tensorName].name);
+        }
       }
       return [inputNodeNames, outputNodeNames];
     }
   }
   throw new Error(`The SavedModel does not have tags: ${tags}`);
-}
-
-/**
- * Interface for inspected SavedModel MetaGraph info..
- */
-export interface MetaGraphInfo {
-  tags: string[];
-  signatureDefs: SignatureDefInfo;
-}
-
-/**
- * Interface for inspected SavedModel SignatureDef info..
- */
-export interface SignatureDefInfo {
-  [key: string]:
-      {inputs: SavedModelTensorInfo[]; outputs: SavedModelTensorInfo[];};
-}
-
-/**
- * Interface for inspected SavedModel signature input/output Tensor info..
- */
-export interface SavedModelTensorInfo {
-  dtype: string;
-  shape: number[];
-  name: string;
 }
 
 export class TFSavedModelSignature implements InferenceModel {
@@ -197,16 +214,13 @@ export class TFSavedModelSignature implements InferenceModel {
   private deleted: boolean;
 
   constructor(
-      cid: number, inputNodeNames: string[], outputNodeNames: string[],
-      backend: NodeJSKernelBackend) {
+      cid: number, jsid: number, inputNodeNames: string[],
+      outputNodeNames: string[], backend: NodeJSKernelBackend) {
+    // The id of corresponding session in c++ addon module.
     this.cid = cid;
     this.backend = backend;
     this.deleted = false;
-    this.jsid = jsid++;
-  }
-
-  getJsid() {
-    return this.jsid;
+    this.jsid = jsid;
   }
 
   /** Placeholder function. */
@@ -226,7 +240,15 @@ export class TFSavedModelSignature implements InferenceModel {
   delete() {
     if (!this.deleted) {
       this.deleted = true;
-      this.backend.deleteSavedModel(this.jsid, this.cid);
+
+      loadedSavedModelPathMap.delete(this.jsid);
+      for (const id of Array.from(loadedSavedModelPathMap.keys())) {
+        const value = loadedSavedModelPathMap.get(id);
+        if (value[2] === this.cid) {
+          return;
+        }
+      }
+      this.backend.deleteSavedModel(this.cid);
     } else {
       throw new Error('This SavedModel has been deleted.');
     }
@@ -267,5 +289,27 @@ export async function loadSavedModel(
     path: string, tags: string[],
     signature: string): Promise<TFSavedModelSignature> {
   ensureTensorflowBackend();
-  return nodeBackend().loadSavedModel(path, tags, signature);
+  const backend = nodeBackend();
+
+  const savedModelInfo = await getMetaGraphsFromSavedModel(path);
+  const [inputNodeNames, outputNodeNames] =
+      getInputAndOutputNodeNameFromMetaGraphInfo(
+          savedModelInfo, tags, signature);
+
+  let sessionId;
+
+  for (const id of Array.from(loadedSavedModelPathMap.keys())) {
+    const value = loadedSavedModelPathMap.get(id);
+    if (value[0] === path && value[1] === tags.join()) {
+      sessionId = value[2];
+    }
+  }
+  if (typeof sessionId === 'undefined') {
+    sessionId = backend.loadSavedModelMetaGraph(path, tags);
+  }
+  const id = tfSavedModelSignatureId++;
+  const modelSignature = new TFSavedModelSignature(
+      sessionId, id, inputNodeNames, outputNodeNames, backend);
+  loadedSavedModelPathMap.set(id, [path, tags.join(), sessionId]);
+  return modelSignature;
 }

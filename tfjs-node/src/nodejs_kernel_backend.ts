@@ -24,7 +24,6 @@ import {FusedBatchMatMulConfig, FusedConv2DConfig} from '@tensorflow/tfjs-core/d
 import {isArray, isNullOrUndefined} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
-import {getInputAndOutputNodeNameFromSavedModelInfo, inspectSavedModel, TFSavedModelSignature} from './saved_model';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorInfo = {
@@ -41,10 +40,6 @@ export class NodeJSKernelBackend extends KernelBackend {
   isGPUPackage: boolean;
   isUsingGpuDevice: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
-  // This map contains mapping information, key is TFSavedModelSignature id in
-  // JavaScript, value is a turple of path to the SavedModel, tags, and loaded
-  // Session ID in the c++ bindings.
-  private loadedSavedModelPathMap = new Map<number, [string, string, number]>();
 
   constructor(binding: TFJSBinding, packageName: string) {
     super();
@@ -1896,42 +1891,11 @@ export class NodeJSKernelBackend extends KernelBackend {
         'EncodePng', opAttrs, imageData, imageShape);
   }
 
-  async loadSavedModel(path: string, tags: string[], signature: string) {
-    const savedModelInfo = await inspectSavedModel(path);
-    const [inputNodeNames, outputNodeNames] =
-        getInputAndOutputNodeNameFromSavedModelInfo(
-            savedModelInfo, tags, signature);
-    const sessionId = this.getSessionIdFromSavedModel(path, tags);
-
-    const modelSignature = new TFSavedModelSignature(
-        sessionId, inputNodeNames, outputNodeNames, this);
-    this.loadedSavedModelPathMap.set(
-        modelSignature.getJsid(), [path, tags.join(), sessionId]);
-    return modelSignature;
+  deleteSavedModel(id: number): void {
+    this.binding.deleteSavedModel(id);
   }
 
-  deleteSavedModel(jsid: number, cid: number): void {
-    this.loadedSavedModelPathMap.delete(jsid);
-    for (const id of Array.from(this.loadedSavedModelPathMap.keys())) {
-      const value = this.loadedSavedModelPathMap.get(id);
-      if (value[2] === cid) {
-        return;
-      }
-    }
-    this.binding.deleteSavedModel(cid);
-  }
-
-  private getSessionIdFromSavedModel(path: string, tags: string[]): number {
-    for (const id of Array.from(this.loadedSavedModelPathMap.keys())) {
-      const value = this.loadedSavedModelPathMap.get(id);
-      if (value[0] === path && value[1] === tags.join()) {
-        return value[2];
-      }
-    }
-    return this.loadMetaGraph(path, tags);
-  }
-
-  loadMetaGraph(path: string, tags: string[]): number {
+  loadSavedModelMetaGraph(path: string, tags: string[]): number {
     return this.binding.loadSavedModel(path, tags.join());
   }
 

@@ -16,7 +16,7 @@
  */
 
 import {nodeBackend} from './nodejs_kernel_backend';
-import {getEnumKeyFromValue, inspectSavedModel, loadSavedModel, readSavedModelProto} from './saved_model';
+import {getEnumKeyFromValue, getMetaGraphsFromSavedModel, loadSavedModel, readSavedModelProto} from './saved_model';
 
 // tslint:disable-next-line:no-require-imports
 const messages = require('./proto/api_pb');
@@ -122,9 +122,9 @@ describe('SavedModel', () => {
     }
   });
 
-  it('inspect SavedModel', async () => {
+  it('inspect SavedModel metagraphs', async () => {
     const modelInfo =
-        await inspectSavedModel('./test_objects/times_three_float');
+        await getMetaGraphsFromSavedModel('./test_objects/times_three_float');
     /**
      * The inspection output should be
      * [{
@@ -155,21 +155,27 @@ describe('SavedModel', () => {
     expect(Object.keys(modelInfo[0].signatureDefs)[0])
         .toBe('__saved_model_init_op');
     expect(Object.keys(modelInfo[0].signatureDefs)[1]).toBe('serving_default');
-    expect(modelInfo[0].signatureDefs['serving_default'].inputs.length).toBe(1);
-    expect(modelInfo[0].signatureDefs['serving_default'].inputs[0].name)
-        .toBe('serving_default_x:0');
-    expect(modelInfo[0].signatureDefs['serving_default'].inputs[0].dtype)
-        .toBe('DT_FLOAT');
-    expect(modelInfo[0].signatureDefs['serving_default'].outputs.length)
+    expect(Object.keys(modelInfo[0].signatureDefs['serving_default'].inputs)
+               .length)
         .toBe(1);
-    expect(modelInfo[0].signatureDefs['serving_default'].outputs[0].name)
+    expect(modelInfo[0].signatureDefs['serving_default'].inputs['x'].name)
+        .toBe('serving_default_x:0');
+    expect(modelInfo[0].signatureDefs['serving_default'].inputs['x'].dtype)
+        .toBe('DT_FLOAT');
+    expect(Object.keys(modelInfo[0].signatureDefs['serving_default'].outputs)
+               .length)
+        .toBe(1);
+    expect(
+        modelInfo[0].signatureDefs['serving_default'].outputs['output_0'].name)
         .toBe('StatefulPartitionedCall:0');
-    expect(modelInfo[0].signatureDefs['serving_default'].outputs[0].dtype)
+    expect(
+        modelInfo[0].signatureDefs['serving_default'].outputs['output_0'].dtype)
         .toBe('DT_FLOAT');
   });
 
   it('load TFSavedModelSignature', async () => {
-    const spy = spyOn(nodeBackend(), 'loadSavedModel').and.callThrough();
+    const spy =
+        spyOn(nodeBackend(), 'loadSavedModelMetaGraph').and.callThrough();
     const model = await loadSavedModel(
         './test_objects/times_three_float', ['serve'], 'serving_default');
     expect(spy).toHaveBeenCalledTimes(1);
@@ -204,7 +210,8 @@ describe('SavedModel', () => {
      });
 
   it('load TFSavedModelSignature and delete', async () => {
-    const spy = spyOn(nodeBackend(), 'loadSavedModel').and.callThrough();
+    const spy =
+        spyOn(nodeBackend(), 'loadSavedModelMetaGraph').and.callThrough();
     const spy1 = spyOn(nodeBackend(), 'deleteSavedModel').and.callThrough();
     const model = await loadSavedModel(
         './test_objects/times_three_float', ['serve'], 'serving_default');
@@ -230,41 +237,34 @@ describe('SavedModel', () => {
   it('load multiple signatures from the same metagraph only call binding once',
      async () => {
        const backend = nodeBackend();
-       const spy = spyOn(backend, 'loadSavedModel').and.callThrough();
-       const spy1 = spyOn(backend, 'loadMetaGraph').and.callThrough();
+       const spy = spyOn(backend, 'loadSavedModelMetaGraph').and.callThrough();
        const signature1 = await loadSavedModel(
            './test_objects/module_with_multiple_signatures', ['serve'],
            'serving_default');
        expect(spy).toHaveBeenCalledTimes(1);
-       expect(spy1).toHaveBeenCalledTimes(1);
        const signature2 = await loadSavedModel(
            './test_objects/module_with_multiple_signatures', ['serve'],
            'timestwo');
-       expect(spy).toHaveBeenCalledTimes(2);
-       expect(spy1).toHaveBeenCalledTimes(1);
+       expect(spy).toHaveBeenCalledTimes(1);
        signature1.delete();
        signature2.delete();
      });
 
   it('load signature after delete call binding', async () => {
     const backend = nodeBackend();
-    const spyOnNodeBackendLoad =
-        spyOn(backend, 'loadSavedModel').and.callThrough();
     const spyOnCallBindingLoad =
-        spyOn(backend, 'loadMetaGraph').and.callThrough();
+        spyOn(backend, 'loadSavedModelMetaGraph').and.callThrough();
     const spyOnNodeBackendDelete =
         spyOn(backend, 'deleteSavedModel').and.callThrough();
     const signature1 = await loadSavedModel(
         './test_objects/module_with_multiple_signatures', ['serve'],
         'serving_default');
-    expect(spyOnNodeBackendLoad).toHaveBeenCalledTimes(1);
     expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(1);
     signature1.delete();
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(1);
     const signature2 = await loadSavedModel(
         './test_objects/module_with_multiple_signatures', ['serve'],
         'timestwo');
-    expect(spyOnNodeBackendLoad).toHaveBeenCalledTimes(2);
     expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(2);
     signature2.delete();
   });
