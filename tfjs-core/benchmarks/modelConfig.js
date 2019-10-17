@@ -96,7 +96,7 @@ const benchmarks = {
     },
     predictFunc: () => {
       return (model) => {
-        return model.executeAsync([]);
+        return model.executeAsync({}, ['transformer/strided_slice']);
       }
     }
   },
