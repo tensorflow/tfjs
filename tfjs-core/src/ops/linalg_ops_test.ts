@@ -17,10 +17,86 @@
 
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {Tensor1D, Tensor2D} from '../tensor';
+import {Tensor1D, Tensor2D, Tensor3D} from '../tensor';
 import {expectArraysClose} from '../test_util';
 
 import {scalar, tensor1d, tensor2d, tensor3d, tensor4d} from './ops';
+
+describeWithFlags('bandPart', ALL_ENVS, () => {
+  it('bandPart to keep tensor unchanged', async () => {
+    const x: Tensor2D = tensor2d([1, 1, 1, 1, 1, 1, 1, 1, 1], [3, 3]);
+    expectArraysClose(
+        await tf.linalg.bandPart(x, -1, -1).array(),
+        [[1, 1, 1], [1, 1, 1], [1, 1, 1]]);
+  });
+
+  it('bandPart for upper triangular matrix', async () => {
+    const x: Tensor2D = tensor2d([1, 1, 1, 1, 1, 1, 1, 1, 1], [3, 3]);
+    expectArraysClose(
+        await tf.linalg.bandPart(x, 0, -1).array(),
+        [[1, 1, 1], [0, 1, 1], [0, 0, 1]]);
+  });
+
+  it('bandPart for lower triangular matrix', async () => {
+    const x: Tensor2D = tensor2d([1, 1, 1, 1, 1, 1, 1, 1, 1], [3, 3]);
+    expectArraysClose(
+        await tf.linalg.bandPart(x, -1, 0).array(),
+        [[1, 0, 0], [1, 1, 0], [1, 1, 1]]);
+  });
+
+  it('bandPart for diagonal elements', async () => {
+    const x: Tensor2D = tensor2d([1, 1, 1, 1, 1, 1, 1, 1, 1], [3, 3]);
+    expectArraysClose(
+        await tf.linalg.bandPart(x, 0, 0).array(),
+        [[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
+  });
+
+  it('bandPart for lower triangular elements', async () => {
+    const x: Tensor2D = tensor2d([1, 1, 1, 1, 1, 1, 1, 1, 1], [3, 3]);
+    expectArraysClose(
+        await tf.linalg.bandPart(x, 1, 0).array(),
+        [[1, 0, 0], [1, 1, 0], [0, 1, 1]]);
+  });
+
+  it('bandPart for upper triangular elements', async () => {
+    const x: Tensor2D = tensor2d([1, 1, 1, 1, 1, 1, 1, 1, 1], [3, 3]);
+    expectArraysClose(
+        await tf.linalg.bandPart(x, 0, 1).array(),
+        [[1, 1, 0], [0, 1, 1], [0, 0, 1]]);
+  });
+
+  it('bandPart for 4X4 matrix - tensorflow python examples', async () => {
+    const x: Tensor2D = tensor2d(
+        [[0, 1, 2, 3], [-1, 0, 1, 2], [-2, -1, 0, 1], [-3, -2, -1, 0]]);
+    expectArraysClose(
+        await tf.linalg.bandPart(x, 1, -1).array(),
+        [[0, 1, 2, 3], [-1, 0, 1, 2], [0, -1, 0, 1], [0, 0, -1, 0]]);
+    expectArraysClose(
+        await tf.linalg.bandPart(x, 2, 1).array(),
+        [[0, 1, 0, 0], [-1, 0, 1, 0], [-2, -1, 0, 1], [0, -2, -1, 0]]);
+  });
+
+  it('bandPart for 3 dimensional matrix', async () => {
+    const x: Tensor3D = tensor3d([[[1, 1], [1, 1]], [[1, 1], [1, 1]]]);
+    expectArraysClose(
+        await tf.linalg.bandPart(x, 0, 0).array(),
+        [[[1, 0], [0, 1]], [[1, 0], [0, 1]]]);
+  });
+
+  it('bandPart for 2X3X3', async () => {
+    const x: Tensor3D = tensor3d(
+        [[[1, 1, 1], [1, 1, 1], [1, 1, 1]], [[1, 1, 1], [1, 1, 1], [1, 1, 1]]]);
+    expectArraysClose(
+        await tf.linalg.bandPart(x, 1, 2).array(),
+        [[[1, 1, 1], [1, 1, 1], [0, 1, 1]], [[1, 1, 1], [1, 1, 1], [0, 1, 1]]]);
+  });
+
+  it('bandPart for 1D tensor', async () => {
+    const x: Tensor1D = tensor1d([1, 1, 1, 1, 1]);
+    expectArraysClose(
+        await tf.linalg.bandPart(x, 1, 2).array(), [1, 1, 1, 0, 0]);
+  });
+});
 
 describeWithFlags('gramSchmidt-tiny', ALL_ENVS, () => {
   it('2x2, Array of Tensor1D', async () => {
