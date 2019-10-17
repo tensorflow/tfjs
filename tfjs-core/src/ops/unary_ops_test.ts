@@ -23,7 +23,8 @@ import * as util from '../util';
 import * as selu_util from './selu_util';
 
 describeWithFlags('relu', ALL_ENVS, () => {
-  it('basic', async () => {
+  // tslint:disable-next-line: ban
+  fit('basic', async () => {
     const a = tf.tensor1d([1, -2, 0, 3, -0.1]);
     const result = tf.relu(a);
     expectArraysClose(await result.data(), [1, 0, 0, 3, 0]);
