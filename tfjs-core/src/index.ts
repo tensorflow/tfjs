@@ -53,7 +53,7 @@ import * as util from './util';
 import {version} from './version';
 import * as webgl from './webgl';
 
-export {InferenceModel, ModelPredictConfig} from './model_types';
+export {InferenceModel, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, SavedModelTensorInfo, SignatureDefInfo} from './model_types';
 // Optimizers.
 export {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './optimizers/adagrad_optimizer';
@@ -63,7 +63,7 @@ export {MomentumOptimizer} from './optimizers/momentum_optimizer';
 export {Optimizer} from './optimizers/optimizer';
 export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './optimizers/sgd_optimizer';
-export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, variable, Variable} from './tensor';
+export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, Variable} from './tensor';
 export {GradSaveFunc, NamedTensorMap, TensorContainer, TensorContainerArray, TensorContainerObject} from './tensor_types';
 export {DataType, DataTypeMap, DataValues, Rank, RecursiveArray, ShapeMap, TensorLike} from './types';
 

@@ -112,9 +112,15 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
       }
     },
     {
+      name: 'Cast',
+      op: 'Cast',
+      input: ['BiasAdd'],
+      attr: {DstT: {type: tensorflow.DataType.DT_INT64}}
+    },
+    {
       name: 'Squeeze',
       op: 'Squeeze',
-      input: ['BiasAdd'],
+      input: ['Cast'],
       attr: {squeeze_dims: {list: {i: ['1', '2']}}}
     },
     {
@@ -182,7 +188,7 @@ describe('operationMapper', () => {
       it('should convert nodes', () => {
         expect(Object.keys(convertedGraph.nodes)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
-          'BiasAdd', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot',
+          'BiasAdd', 'Cast', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot',
           'FusedBatchNorm'
         ]);
       });
@@ -236,6 +242,10 @@ describe('operationMapper', () => {
       it('should map params with deprecated name', () => {
         expect(convertedGraph.nodes['Squeeze'].attrParams['axis'].value)
             .toEqual([1, 2]);
+      });
+      it('should map params with int64 dtype', () => {
+        expect(convertedGraph.nodes['Cast'].attrParams['dtype'].value)
+            .toEqual('int32');
       });
     });
   });
