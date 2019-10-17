@@ -32,10 +32,11 @@ const messages = require('./proto/api_pb');
 const SAVED_MODEL_FILE_NAME = '/saved_model.pb';
 
 // This map is used to keep track of loaded SavedModel metagraph mapping
-// information. When user loads multiple signature from the same SavedModel
-// metagraph, it will use the same session in C++ bindings. The key is
-// TFSavedModelSignature id in JavaScript, value is a turple of path to the
-// SavedModel, metagraph tags, and loaded Session ID in the c++ bindings.
+// information. The map key is TFSavedModelSignature id in JavaScript, value is
+// a turple of path to the SavedModel, metagraph tags, and loaded Session ID in
+// the c++ bindings. When user loads a SavedModel signature, it will go through
+// entries in this map to find if the corresponding SavedModel session has
+// already been loaded in C++ addon and will reuse it if existing.
 const loadedSavedModelPathMap = new Map<number, [string, string, number]>();
 
 let tfSavedModelSignatureId = 0;
@@ -178,7 +179,8 @@ export interface SavedModelTensorInfo {
 }
 
 /**
- * Get input and output node names from SavedModel metagraphs info.
+ * Get input and output node names from SavedModel metagraphs info. The
+ * input.output node names will be used when executing a SavedModel signature.
  */
 export function getInputAndOutputNodeNameFromMetaGraphInfo(
     savedModelInfo: MetaGraphInfo[], tags: string[], signature: string) {
@@ -288,7 +290,7 @@ export class TFSavedModelSignature implements InferenceModel {
 }
 
 /**
- * Load signature of a MetaGraph from a SavedModel as `TFSavedModelSignature`.
+ * Load a signature of a MetaGraph from a SavedModel as `TFSavedModelSignature`.
  * The loaded `TFSavedModelSignature` can be used to do inference execution.
  *
  * @param path The path to the SavedModel.

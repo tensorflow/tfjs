@@ -305,6 +305,7 @@ inline size_t GetTensorNumElements(TF_Tensor *tensor) {
   return ret;
 }
 
+// Split a string into a string array with `,` as delimiter.
 inline std::vector<std::string> split(const std::string &str) {
   std::vector<std::string> tokens;
   size_t prev = 0, pos = 0;

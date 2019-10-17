@@ -974,9 +974,6 @@ napi_value TFJSBackend::LoadSavedModel(napi_env env,
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
   const char *export_dir = export_dir_string.c_str();
 
-  // constexpr char kSavedModelTagServe[] = "serve";
-  // const char *tags[] = {kSavedModelTagServe};
-  // int tags_leng = 1;
   std::string tags;
   nstatus = GetStringParam(env, tags_value, tags);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
