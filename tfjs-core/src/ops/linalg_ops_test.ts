@@ -126,14 +126,15 @@ describeWithFlags('bandPart', ALL_ENVS, () => {
     }}
   });
 
-  const expectTensorsEqual = tf.getBackend() === 'webgl1'
-    ? expectArraysClose // <- necessary on: Mobile Safari 11.0.0 webgl1
-    : expectArraysEqual;
-
   it('works for 3x4 example', async () => {
     const a = tf.tensor2d([[1, 2, 3, 4],
                            [5, 6, 7, 8],
                            [9,10,11,12]]);
+
+    const expectTensorsEqual = tf.getBackend().startsWith('webgl')
+      ? expectArraysClose // <- necessary on: Mobile Safari 11.0.0 webgl1
+      : expectArraysEqual;
+
     expectTensorsEqual(
       await la.bandPart(a,0,0).array(),
       [[1, 0, 0, 0],
