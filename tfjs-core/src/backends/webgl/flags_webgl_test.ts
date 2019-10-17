@@ -57,6 +57,7 @@ describeWithFlags('WEBGL_RENDER_FLOAT32_CAPABLE', RENDER_FLOAT32_ENVS, () => {
   it('should be independent of forcing f16 rendering', () => {
     tf.webgl.forceHalfFloat();
     expect(tf.env().getBool('WEBGL_RENDER_FLOAT32_CAPABLE')).toBe(true);
+    delete tf.env().getFlags()['WEBGL_FORCE_F16_TEXTURES'];
   });
 
   it('if user is not forcing f16, device should render to f32', () => {
