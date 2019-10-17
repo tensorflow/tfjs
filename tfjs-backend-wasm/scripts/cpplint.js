@@ -18,14 +18,15 @@ const shell = require('shelljs');
 const {exec} = require('../../scripts/test-util');
 const fs = require('fs');
 
+const CC_FILEPATH = 'src/cc';
+
 const result = shell.find('src/cc').filter(
     fileName => fileName.endsWith('.cc') || fileName.endsWith('.h'));
 
 console.log(`C++ linting files:`);
 console.log(result);
 
-const cwd = process.cwd() + '/src/cc'
-console.log(cwd);
+const cwd = process.cwd() + '/' + CC_FILEPATH;
 
 const filenameArgument = result.join(' ');
 exec(`python tools/cpplint.py --root ${cwd} ${filenameArgument}`);
