@@ -126,36 +126,40 @@ describeWithFlags('bandPart', ALL_ENVS, () => {
     }}
   });
 
+  const expectTensorsEqual = tf.getBackend() === 'webgl1'
+    ? expectArraysClose // <- necessary on: Mobile Safari 11.0.0 webgl1
+    : expectArraysEqual;
+
   it('works for 3x4 example', async () => {
     const a = tf.tensor2d([[1, 2, 3, 4],
                            [5, 6, 7, 8],
                            [9,10,11,12]]);
-    expectArraysEqual(
+    expectTensorsEqual(
       await la.bandPart(a,0,0).array(),
       [[1, 0, 0, 0],
        [0, 6, 0, 0],
        [0, 0,11, 0]]
     );
-    expectArraysEqual(
+    expectTensorsEqual(
       await la.bandPart(a,0,1).array(),
       [[1, 2, 0, 0],
        [0, 6, 7, 0],
        [0, 0,11,12]]
     );
-    expectArraysEqual(
+    expectTensorsEqual(
       await la.bandPart(a,0,2).array(),
       [[1, 2, 3, 0],
        [0, 6, 7, 8],
        [0, 0,11,12]]
     );
-    expectArraysEqual(
+    expectTensorsEqual(
       await la.bandPart(a,0,2).array(),
       [[1, 2, 3, 0],
        [0, 6, 7, 8],
        [0, 0,11,12]]
     );
     for( const numUpper of [3,4,-1,-2] ) {
-      expectArraysEqual(
+      expectTensorsEqual(
         await la.bandPart(a,0,numUpper).array(),
         [[1, 2, 3, 4],
          [0, 6, 7, 8],
@@ -163,32 +167,32 @@ describeWithFlags('bandPart', ALL_ENVS, () => {
       );
     }
 
-    expectArraysEqual(
+    expectTensorsEqual(
       await la.bandPart(a,1,0).array(),
       [[1, 0, 0, 0],
        [5, 6, 0, 0],
        [0,10,11, 0]]
     );
-    expectArraysEqual(
+    expectTensorsEqual(
       await la.bandPart(a,1,1).array(),
       [[1, 2, 0, 0],
        [5, 6, 7, 0],
        [0,10,11,12]]
     );
-    expectArraysEqual(
+    expectTensorsEqual(
       await la.bandPart(a,1,2).array(),
       [[1, 2, 3, 0],
        [5, 6, 7, 8],
        [0,10,11,12]]
     );
-    expectArraysEqual(
+    expectTensorsEqual(
       await la.bandPart(a,1,2).array(),
       [[1, 2, 3, 0],
        [5, 6, 7, 8],
        [0,10,11,12]]
     );
     for( const numUpper of [3,4,-1,-2] ) {
-      expectArraysEqual(
+      expectTensorsEqual(
         await la.bandPart(a,1,numUpper).array(),
         [[1, 2, 3, 4],
          [5, 6, 7, 8],
@@ -198,32 +202,32 @@ describeWithFlags('bandPart', ALL_ENVS, () => {
 
     for( const numLower of [2,3,-1,-2])
     {
-      expectArraysEqual(
+      expectTensorsEqual(
         await la.bandPart(a,numLower,0).array(),
         [[1, 0, 0, 0],
          [5, 6, 0, 0],
          [9,10,11, 0]]
       );
-      expectArraysEqual(
+      expectTensorsEqual(
         await la.bandPart(a,numLower,1).array(),
         [[1, 2, 0, 0],
          [5, 6, 7, 0],
          [9,10,11,12]]
       );
-      expectArraysEqual(
+      expectTensorsEqual(
         await la.bandPart(a,numLower,2).array(),
         [[1, 2, 3, 0],
          [5, 6, 7, 8],
          [9,10,11,12]]
       );
-      expectArraysEqual(
+      expectTensorsEqual(
         await la.bandPart(a,numLower,2).array(),
         [[1, 2, 3, 0],
          [5, 6, 7, 8],
          [9,10,11,12]]
       );
       for( const numUpper of [3,4,-1,-2] ) {
-        expectArraysEqual(
+        expectTensorsEqual(
           await la.bandPart(a,numLower,numUpper).array(),
           [[1, 2, 3, 4],
            [5, 6, 7, 8],
