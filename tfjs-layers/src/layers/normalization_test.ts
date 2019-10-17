@@ -12,10 +12,11 @@
  * Unit tests for normalization layers.
  */
 
-import {onesLike, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
+import {dispose, memory, onesLike, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, test_util, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
 
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
+import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {batchNormalization, normalizeBatchInTraining} from './normalization';
@@ -665,5 +666,338 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
     expectTensorsClose(movingMeanValue, [0.11276666, 0.12603334]);
     const movingVarianceValue = layer1.getWeights()[3];
     expectTensorsClose(movingVarianceValue, [1.3161889, 1.1835222], 1e-5);
+  });
+});
+
+describe('LayerNormalization Layer: Symbolic', () => {
+  it('Invalid axis value leads to constructor error', () => {
+    expect(() => tfl.layers.layerNormalization({
+      // tslint:disable-next-line:no-any
+      axis: 'foo' as any
+    })).toThrowError(/Expected axis to be an integer/);
+    expect(() => tfl.layers.layerNormalization({
+      axis: 1.2
+    })).toThrowError(/Expected axis to be an integer/);
+    expect(() => tfl.layers.layerNormalization({
+      axis: [1, 1.5]
+    })).toThrowError(/Expected axis to be an array of integers/);
+  });
+
+  it('Serialization round trip', async () => {
+    const layer = tfl.layers.layerNormalization(
+        {axis: [-2, -1], center: true, scale: false});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.layerNormalization(tsConfig);
+    expect(layerPrime.getConfig()).toEqual(layer.getConfig());
+  });
+
+  it('Deserialize model with BatchNorm Layer', async () => {
+    // tslint:disable:max-line-length
+    const modelJSONString =
+        `{"class_name": "Sequential", "config": {"name": "sequential", "layers": [{"class_name": "Dense", "config": {"name": "dense", "trainable": true, "batch_input_shape": [null, 5], "dtype": "float32", "units": 10, "activation": "linear", "use_bias": true, "kernel_initializer": {"class_name": "GlorotUniform", "config": {"seed": null}}, "bias_initializer": {"class_name": "Zeros", "config": {}}, "kernel_regularizer": null, "bias_regularizer": null, "activity_regularizer": null, "kernel_constraint": null, "bias_constraint": null}}, {"class_name": "BatchNormalization", "config": {"name": "batch_normalization", "trainable": true, "dtype": "float32", "axis": [1], "momentum": 0.99, "epsilon": 0.001, "center": true, "scale": true, "beta_initializer": {"class_name": "Zeros", "config": {}}, "gamma_initializer": {"class_name": "Ones", "config": {}}, "moving_mean_initializer": {"class_name": "Zeros", "config": {}}, "moving_variance_initializer": {"class_name": "Ones", "config": {}}, "beta_regularizer": null, "gamma_regularizer": null, "beta_constraint": null, "gamma_constraint": null}}, {"class_name": "Dense", "config": {"name": "dense_1", "trainable": true, "dtype": "float32", "units": 1, "activation": "sigmoid", "use_bias": true, "kernel_initializer": {"class_name": "GlorotUniform", "config": {"seed": null}}, "bias_initializer": {"class_name": "Zeros", "config": {}}, "kernel_regularizer": null, "bias_regularizer": null, "activity_regularizer": null, "kernel_constraint": null, "bias_constraint": null}}]}, "keras_version": "2.2.4-tf", "backend": "tensorflow"}`;
+    // tslint:enable:max-line-length
+    const model = await tfl.models.modelFromJSON(JSON.parse(modelJSONString));
+    const ys = model.predict(zeros([3, 5])) as Tensor;
+    expect(ys.shape).toEqual([3, 1]);
+    expect(model.layers[1].getWeights().length).toEqual(4);
+  });
+});
+
+describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // tf.enable_eager_execution()
+  //
+  // layer = tf.keras.layers.LayerNormalization()
+  // xs = np.array([[1, 2, 3], [3, 6, 24]], dtype=np.float32)
+  // ys = layer(xs)
+  // print(ys)
+  // ```
+  it('Forward, 2D input, default axis', () => {
+    const layer = tfl.layers.layerNormalization();
+    const xs = tensor2d([[1, 2, 3], [3, 6, 24]]);
+    const ys = layer.apply(xs) as Tensor;
+    expectTensorsClose(
+        ys,
+        tensor2d(
+            [[-1.2238274, 0, 1.2238274], [-0.8626572, -0.5391607, 1.401818]]));
+  });
+
+  it('Forward: no memory leak', () => {
+    const layer = tfl.layers.layerNormalization();
+    const xs = tensor2d([[1, 2, 3], [3, 6, 24]]);
+    dispose(layer.apply(xs) as Tensor);  // Warm up.
+    const numTensors0 = memory().numTensors;
+    dispose(layer.apply(xs) as Tensor);
+    expect(memory().numTensors).toEqual(numTensors0);
+  });
+
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // tf.enable_eager_execution()
+  //
+  // layer = tf.keras.layers.LayerNormalization()
+  // xs = np.array([1, 2, 3, 6, 5, 4, 3, 6, 24, -10, 0, 5],
+  //               dtype=np.float32).reshape((2, 2, 3))
+  // ys = layer(xs)
+  // print(ys)
+  // ```
+  it('Forward, 3D input, default axis', () => {
+    const layer = tfl.layers.layerNormalization();
+    const xs = tensor3d([1, 2, 3, 6, 5, 4, 3, 6, 24, -10, 0, 5], [2, 2, 3]);
+    const ys = layer.apply(xs) as Tensor;
+    expectTensorsClose(
+        ys, tensor3d([
+          [[-1.2238274, 0, 1.2238274], [1.2238274, 0, -1.2238274]],
+          [
+            [-0.8626572, -0.5391607, 1.401818],
+            [-1.3362889, 0.26725778, 1.0690311]
+          ]
+        ]));
+  });
+
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // tf.enable_eager_execution()
+  //
+  // layer = tf.keras.layers.LayerNormalization(axis=[1, 2])
+  // xs = np.array([1, 2, 3, 6, 5, 4, 3, 6, 24, -10, 0, 5],
+  //               dtype=np.float32).reshape((2, 2, 3))
+  // ys = layer(xs)
+  // print(ys)
+  // ```
+  const nonDefaultAxisValues: number[][] = [[1, 2], [-2, -1]];
+  for (const nonDefaultAxis of nonDefaultAxisValues) {
+    it(`Forward, 3D input, non-default axis: ${nonDefaultAxis}`, () => {
+      const layer = tfl.layers.layerNormalization({axis: nonDefaultAxis});
+      const xs = tensor3d([1, 2, 3, 6, 5, 4, 3, 6, 24, -10, 0, 5], [2, 2, 3]);
+      const ys = layer.apply(xs) as Tensor;
+      expectTensorsClose(ys, tensor3d([
+                           [
+                             [-1.4635992, -0.8781595, -0.29271984],
+                             [1.4635992, 0.8781595, 0.29271984]
+                           ],
+                           [
+                             [-0.1645762, 0.13166097, 1.909084],
+                             [-1.4482707, -0.46081337, 0.03291526]
+                           ]
+                         ]));
+    });
+  }
+
+  it('Duplicate items in axis leads to constructor error', () => {
+    const layers = tfl.layers.layerNormalization({axis: [-2, -1, -1]});
+    const xs = tensor3d([1, 2, 3, 6, 5, 4, 3, 6, 24, -10, 0, 5], [2, 2, 3]);
+    expect(() => layers.apply(xs)).toThrowError(/duplicate axes/);
+  });
+
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // model = tf.keras.Sequential()
+  // model.add(tf.keras.layers.LayerNormalization(input_shape=(3,)))
+  // model.add(tf.keras.layers.Dense(1, kernel_initializer='ones'))
+  // model.compile(loss='mse', optimizer='sgd')
+  //
+  // xs = np.array([[1, 2, 3], [3, 6, 24], [10, 5, 0]], dtype=np.float32)
+  // ys = np.array([[0], [-1], [2]], dtype=np.float32)
+  // history = model.fit(xs, ys, epochs=5, verbose=0)
+  // print(history.history)
+  // ```
+  it('Training: 2D: default axis', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.layerNormalization({inputShape: [3]}));
+    model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+    const xs = tensor2d([[1, 2, 3], [3, 6, 24], [10, 5, 0]]);
+    const ys = tensor2d([[0], [-1], [2]]);
+    const history = await model.fit(xs, ys, {epochs: 5});
+    test_util.expectArraysClose(history.history.loss as number[], [
+      1.6666666269302368, 1.4296358823776245, 1.2372404336929321,
+      1.0793765783309937, 0.9486551880836487
+    ]);
+  });
+
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // model = tf.keras.Sequential()
+  // model.add(tf.keras.layers.Dense(10, kernel_initializer='ones',
+  // input_shape=(3,))) model.add(tf.keras.layers.LayerNormalization())
+  // model.add(tf.keras.layers.Dense(1, kernel_initializer='ones'))
+  // model.compile(loss="mse", optimizer="sgd")
+  //
+  // xs = np.array([[1, 2, 3], [3, 6, 24], [10, 5, 0], [2, 7, 8]],
+  // dtype=np.float32) ys = np.array([[0], [-1], [2], [3]], dtype=np.float32)
+  // history = model.fit(xs, ys, epochs=5, verbose=0)
+  // print(history.history)
+  // ```
+  it('Training: 2D: as intermediate layer: default axis', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense(
+        {units: 10, kernelInitializer: 'ones', inputShape: [3]}));
+    model.add(tfl.layers.layerNormalization());
+    model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+    const xs = tensor2d([[1, 2, 3], [3, 6, 24], [10, 5, 0], [2, 7, 8]]);
+    const ys = tensor2d([[0], [-1], [2], [3]]);
+    const history = await model.fit(xs, ys, {epochs: 5});
+    test_util.expectArraysClose(history.history.loss as number[], [
+      3.5, 3.1083502769470215, 2.8706729412078857, 2.7243311405181885,
+      2.6366190910339355
+    ]);
+  });
+
+  it('Training: no memory leak', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.layerNormalization({inputShape: [3]}));
+    model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+    const xs = tensor2d([[1, 2, 3], [3, 6, 24], [10, 5, 0], [2, 7, 8]]);
+    const ys = tensor2d([[0], [-1], [2], [3]]);
+    await model.fit(xs, ys, {epochs: 1});  // Warm up.
+
+    const numTensors0 = memory().numTensors;
+    await model.fit(xs, ys, {epochs: 1});
+    expect(memory().numTensors).toEqual(numTensors0);
+  });
+
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // model = tf.keras.Sequential()
+  // model.add(tf.keras.layers.LayerNormalization(input_shape=(2, 3)))
+  // model.add(tf.keras.layers.Flatten())
+  // model.add(tf.keras.layers.Dense(1, kernel_initializer='ones'))
+  // model.compile(loss='mse', optimizer='sgd')
+  //
+  // xs = np.array([[[1, 2, 3], [3, 6, 24]], [[10, 5, 0], [2, 7, 8]]],
+  // dtype=np.float32) ys = np.array([[0], [-1]], dtype=np.float32) history =
+  // model.fit(xs, ys, epochs=5, verbose=0) print(history.history)
+  // ```
+  it('Training: 3D: default axis', async () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.layerNormalization({inputShape: [2, 3]}));
+    model.add(tfl.layers.flatten());
+    model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+    const xs = tensor3d([[[1, 2, 3], [3, 6, 24]], [[10, 5, 0], [2, 7, 8]]]);
+    const ys = tensor2d([[0], [-1]]);
+    const history = await model.fit(xs, ys, {epochs: 5});
+    test_util.expectArraysClose(history.history.loss as number[], [
+      0.5, 0.33119967579841614, 0.23371894657611847, 0.171361044049263,
+      0.12831644713878632
+    ]);
+  });
+
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // model = tf.keras.Sequential()
+  // model.add(tf.keras.layers.LayerNormalization(input_shape=(2, 3), axis=[-2,
+  // -1])) model.add(tf.keras.layers.Flatten())
+  // model.add(tf.keras.layers.Dense(1, kernel_initializer='ones'))
+  // model.compile(loss='mse', optimizer='sgd')
+  //
+  // xs = np.array([[[1, 2, 3], [3, 6, 24]], [[10, 5, 0], [2, 7, 8]]],
+  // dtype=np.float32) ys = np.array([[0], [-1]], dtype=np.float32) history =
+  // model.fit(xs, ys, epochs=5, verbose=0) print(history.history)
+  // ```
+  it('Training: 3D: non-default axis', async () => {
+    const model = tfl.sequential();
+    model.add(
+        tfl.layers.layerNormalization({inputShape: [2, 3], axis: [-2, -1]}));
+    model.add(tfl.layers.flatten());
+    model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+    const xs = tensor3d([[[1, 2, 3], [3, 6, 24]], [[10, 5, 0], [2, 7, 8]]]);
+    const ys = tensor2d([[0], [-1]]);
+    const history = await model.fit(xs, ys, {epochs: 5});
+    test_util.expectArraysClose(history.history.loss as number[], [
+      0.5, 0.3337608873844147, 0.23789873719215393, 0.17923809587955475,
+      0.1408553570508957
+    ]);
+  });
+
+  // Reference Python code:
+  // ```py
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // model = tf.keras.Sequential()
+  // embedding_layer = tf.keras.layers.Embedding(
+  //     input_dim=4, output_dim=3, input_length=4, mask_zero=True,
+  //     embeddings_initializer='ones')
+  // model.add(embedding_layer)
+  // model.add(tf.keras.layers.LayerNormalization())
+  //
+  // xs = np.array([[0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0], [1, 2, 3, 0]],
+  //               dtype=np.float32)
+  // model.predict(xs)
+  //
+  // embedding_layer.set_weights([
+  //     np.array([[1, 2, 3], [3, 2, 1], [2, 3, 1], [3, 1, 2]],
+  //     dtype=np.float32)])
+  // ys = model.predict(xs)
+  // print(ys)
+  // ```
+  it('Forward, with masking', () => {
+    const model = tfl.sequential();
+    const embeddingLayer = tfl.layers.embedding({
+      inputDim: 4,
+      outputDim: 3,
+      inputLength: 4,
+      maskZero: true,
+      embeddingsInitializer: 'ones'
+    });
+    model.add(embeddingLayer);
+    // model.add(tfl.layers.dense({units: 1, kernelInitializer: 'ones'}));
+    model.add(tfl.layers.layerNormalization());
+
+    const xs =
+        tensor2d([[0, 0, 0, 0], [1, 0, 0, 0], [1, 2, 0, 0], [1, 2, 3, 0]]);
+    model.predict(xs);  // Make sure the embedding layer is built first.
+
+    embeddingLayer.setWeights(
+        [tensor2d([[1, 2, 3], [3, 2, 1], [2, 3, 1], [3, 1, 2]])]);
+    const ys = model.predict(xs) as Tensor;
+    expectTensorsClose(
+        ys, tensor3d([
+          [
+            [-1.2238274, 0, 1.2238274], [-1.2238274, 0, 1.2238274],
+            [-1.2238274, 0, 1.2238274], [-1.2238274, 0, 1.2238274]
+          ],
+          [
+            [1.2238274, 0, -1.2238274], [-1.2238274, 0, 1.2238274],
+            [-1.2238274, 0, 1.2238274], [-1.2238274, 0, 1.2238274]
+          ],
+          [
+            [1.2238274, 0, -1.2238274], [0, 1.2238274, -1.2238274],
+            [-1.2238274, 0, 1.2238274], [-1.2238274, 0, 1.2238274]
+          ],
+          [
+            [1.2238274, 0, -1.2238274], [0, 1.2238274, -1.2238274],
+            [1.2238274, -1.2238274, 0], [-1.2238274, 0, 1.2238274]
+          ]
+        ]));
   });
 });

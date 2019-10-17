@@ -90,14 +90,12 @@ describeWithFlags('gpgpu_util createFloat32MatrixTexture', WEBGL_ENVS, () => {
     const gpgpu = new GPGPUContext();
     const textureConfig = tex_util.getTextureConfig(gl);
     const debug = false;
-    const tex = gpgpu_util.createFloat32MatrixTexture(
-        gl, debug, 32, 32, textureConfig);
+    const tex =
+        gpgpu_util.createFloat32MatrixTexture(gl, debug, 32, 32, textureConfig);
     gl.bindTexture(gl.TEXTURE_2D, tex);
-    expect(gl.getTexParameter(
-               gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER))
+    expect(gl.getTexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER))
         .toEqual(gl.NEAREST);
-    expect(gl.getTexParameter(
-               gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER))
+    expect(gl.getTexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER))
         .toEqual(gl.NEAREST);
     gl.bindTexture(gl.TEXTURE_2D, null);
     gpgpu.deleteMatrixTexture(tex);
@@ -119,14 +117,12 @@ describeWithFlags('gpgpu_util createPackedMatrixTexture', WEBGL_ENVS, () => {
     const gpgpu = new GPGPUContext();
     const textureConfig = tex_util.getTextureConfig(gl);
     const debug = false;
-    const tex = gpgpu_util.createPackedMatrixTexture(
-        gl, debug, 32, 32, textureConfig);
+    const tex =
+        gpgpu_util.createPackedMatrixTexture(gl, debug, 32, 32, textureConfig);
     gl.bindTexture(gl.TEXTURE_2D, tex);
-    expect(
-        gl.getTexParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S))
+    expect(gl.getTexParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S))
         .toEqual(gl.CLAMP_TO_EDGE);
-    expect(
-        gl.getTexParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T))
+    expect(gl.getTexParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T))
         .toEqual(gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
     gpgpu.deleteMatrixTexture(tex);
@@ -137,14 +133,12 @@ describeWithFlags('gpgpu_util createPackedMatrixTexture', WEBGL_ENVS, () => {
     const gpgpu = new GPGPUContext();
     const textureConfig = tex_util.getTextureConfig(gl);
     const debug = false;
-    const tex = gpgpu_util.createPackedMatrixTexture(
-        gl, debug, 32, 32, textureConfig);
+    const tex =
+        gpgpu_util.createPackedMatrixTexture(gl, debug, 32, 32, textureConfig);
     gl.bindTexture(gl.TEXTURE_2D, tex);
-    expect(gl.getTexParameter(
-               gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER))
+    expect(gl.getTexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER))
         .toEqual(gl.NEAREST);
-    expect(gl.getTexParameter(
-               gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER))
+    expect(gl.getTexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER))
         .toEqual(gl.NEAREST);
     gl.bindTexture(gl.TEXTURE_2D, null);
     gpgpu.deleteMatrixTexture(tex);

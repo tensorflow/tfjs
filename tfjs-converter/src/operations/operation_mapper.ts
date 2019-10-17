@@ -312,6 +312,7 @@ export function parseDtypeParam(value: string|tensorflow.DataType): DataType {
     case tensorflow.DataType.DT_FLOAT:
       return 'float32';
     case tensorflow.DataType.DT_INT32:
+    case tensorflow.DataType.DT_INT64:
       return 'int32';
     case tensorflow.DataType.DT_BOOL:
       return 'bool';

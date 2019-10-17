@@ -54,7 +54,9 @@ const model = await automl.loadImageClassification(modelUrl);
 ```
 
 ### Making a prediction
-The input `img` can be
+
+The AutoML library takes care of any image preprocessing
+(normalize, resize, crop). The input `img` you provide can be
 [`HTMLImageElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement),
 [`HTMLCanvasElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement),
 [`HTMLVideoElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement),
@@ -109,7 +111,7 @@ Make sure you can access those files as static assets from your web app by servi
 ### Demo
 
 The object detection demo lives in
-[demo/object_classification](./demo/object_classification). To run it:
+[demo/object_detection](./demo/object_detection). To run it:
 
 ```sh
 cd demo/object_detection
@@ -127,7 +129,9 @@ const model = await automl.loadObjectDetection(modelUrl);
 ```
 
 ### Making a prediction
-The input `img` can be
+
+The AutoML library takes care of any image preprocessing
+(normalize, resize, crop). The input `img` you provide can be
 [`HTMLImageElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement),
 [`HTMLCanvasElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement),
 [`HTMLVideoElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement),

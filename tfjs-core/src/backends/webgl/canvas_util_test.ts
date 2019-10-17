@@ -14,17 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {ENV} from '../../environment';
+import * as tf from '../../index';
 import {BROWSER_ENVS, describeWithFlags} from '../../jasmine_util';
 
 import {createDOMCanvasWebGLRenderingContext} from './canvas_util';
 
 describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   it('Returns a valid canvas', () => {
-    const canvas =
-        createDOMCanvasWebGLRenderingContext(ENV.getNumber('WEBGL_VERSION'))
-            .canvas as (HTMLCanvasElement | OffscreenCanvas);
+    const canvas = createDOMCanvasWebGLRenderingContext(
+                       tf.env().getNumber('WEBGL_VERSION'))
+                       .canvas as (HTMLCanvasElement | OffscreenCanvas);
     expect(
         (canvas instanceof HTMLCanvasElement) ||
         (canvas instanceof OffscreenCanvas))
@@ -32,8 +31,8 @@ describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   });
 
   it('Returns a valid gl context', () => {
-    const gl =
-        createDOMCanvasWebGLRenderingContext(ENV.getNumber('WEBGL_VERSION'));
+    const gl = createDOMCanvasWebGLRenderingContext(
+        tf.env().getNumber('WEBGL_VERSION'));
     expect(gl.isContextLost()).toBe(false);
   });
 });

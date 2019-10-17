@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {ENV} from '../../environment';
+import {env} from '../../environment';
+
 import * as util from '../../util';
 
 import {getTextureConfig} from './tex_util';
@@ -27,7 +28,7 @@ const MIN_FLOAT16 = 5.96e-8;
 const MAX_FLOAT16 = 65504;
 
 export function canBeRepresented(num: number): boolean {
-  if (ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED') || num === 0 ||
+  if (env().getBool('WEBGL_RENDER_FLOAT32_ENABLED') || num === 0 ||
       (MIN_FLOAT16 < Math.abs(num) && Math.abs(num) < MAX_FLOAT16)) {
     return true;
   }
@@ -155,7 +156,7 @@ export function createStaticIndexBuffer(
 }
 
 export function getNumChannels(): number {
-  if (ENV.getNumber('WEBGL_VERSION') === 2) {
+  if (env().getNumber('WEBGL_VERSION') === 2) {
     return 1;
   }
   return 4;
@@ -168,7 +169,7 @@ export function createTexture(
 }
 
 export function validateTextureSize(width: number, height: number) {
-  const maxTextureSize = ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
+  const maxTextureSize = env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
   if ((width <= 0) || (height <= 0)) {
     const requested = `[${width}x${height}]`;
     throw new Error('Requested texture size ' + requested + ' is invalid.');
@@ -347,7 +348,7 @@ export function getShapeAs3D(shape: number[]): [number, number, number] {
 
 export function getTextureShapeFromLogicalShape(
     logShape: number[], isPacked = false): [number, number] {
-  let maxTexSize = ENV.getNumber('WEBGL_MAX_TEXTURE_SIZE');
+  let maxTexSize = env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
   if (isPacked) {
     maxTexSize = maxTexSize * 2;
 

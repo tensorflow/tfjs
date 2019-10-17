@@ -1,0 +1,69 @@
+steps:
+# Install common dependencies.
+- name: 'node:10'
+  id: 'yarn-common'
+  entrypoint: 'yarn'
+  args: ['install']
+
+# Install wasm dependencies.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  id: 'yarn'
+  entrypoint: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
+# Run lint.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
+  waitFor: ['yarn']
+
+# Build the project.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'build'
+  args: ['build-ci']
+  waitFor: ['yarn']
+
+# Run browser tests.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'test-wasm'
+  args: ['test-browser-ci']
+  waitFor: ['build']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  secretEnv: ['BROWSERSTACK_KEY']
+
+# Run C++ tests.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'test-cc'
+  args: ['test-cc']
+  waitFor: ['build']
+
+# Check bundle size.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  id: 'test-bundle-size'
+  entrypoint: 'yarn'
+  args: ['test-bundle-size']
+  waitFor: ['build']
+
+# General configuration
+secrets:
+- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+  secretEnv:
+    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'

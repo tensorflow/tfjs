@@ -1,9 +1,18 @@
 steps:
+# Install common dependencies.
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'yarn-common'
+  args: ['install']
+
+# Install layers dependencies
 - name: 'node:10'
   dir: 'tfjs-layers'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['prep']
+  waitFor: ['yarn-common']
+
 - name: 'node:10'
   dir: 'tfjs-layers'
   entrypoint: 'yarn'
@@ -12,12 +21,15 @@ steps:
   waitFor: ['yarn']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
+
+# Run python tests
 - name: 'node:10'
   dir: 'tfjs-layers'
   entrypoint: 'yarn'
   id: 'tfjs2keras-js'
   args: ['tfjs2keras-js']
-  waitFor: ['yarn']
+  waitFor: ['test-browser']
+
 - name: 'python:2'
   dir: 'tfjs-layers'
   entrypoint: 'bash'
@@ -29,7 +41,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-snippets'
   args: ['test-snippets']
-  waitFor: ['yarn']
+  waitFor: ['tfjs2keras-py']
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:

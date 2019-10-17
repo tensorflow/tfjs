@@ -15,12 +15,13 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 setTestEnvs([{
   name: 'test-webgpu',
   backendName: 'webgpu',
-  flags: {},
+  flags: {'WEBGPU_CPU_FORWARD': false},
   isDataSync: false,
 }]);
 
@@ -29,9 +30,10 @@ const grepFilter = env.specFilter;
 
 /** Tests that have these substrings in their name will be included. */
 const INCLUDE_LIST: string[] = [
-  'matmul', 'add ', 'subtract ', 'mul ', 'conv2d', 'pad', 'pool', 'maxPool',
-  'floor divide ', 'resizeBilinear', 'relu', 'transpose', 'concat', 'argmax',
-  'fromPixels', 'depthwise', 'div'
+  'matmul',    'add ',      'subtract ', 'mul ',          'conv2d',
+  'pad',       'pool',      'maxPool',   'floor divide ', 'resizeBilinear',
+  'relu',      'transpose', 'concat',    'argmax',        'fromPixels',
+  'depthwise', 'div',       'greater',   'clip',          'less'
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
@@ -64,6 +66,7 @@ const EXCLUDE_LIST: string[] = [
   'avg x=[',                              // backend.avgPool not implemented.
   'preserves zero values',                // Shader compile fails.
   'relu test-webgpu {} propagates NaNs',  // Timeout.
+  'clip test-webgpu {} derivat',          // backend.logicalAnd not implemented.
   'relu test-webgpu {} sets negative values to 0',  // Shader compile fails.
   'relu test-webgpu {} does nothing to positive',   // Shader compile fail.
   'prelu',                                          // Not yet implemented.
@@ -75,7 +78,21 @@ const EXCLUDE_LIST: string[] = [
   'RFFT',                                                // Not yet implemented.
   'fused',                                               // Not yet implemented.
   'NCHW',                                                // Not yet implemented.
-  'maxPool3d'                                            // Not yet implemented.
+  'maxPool3d',                                           // Not yet implemented.
+  'frame',                                               // Not yet implemented.
+  'HTMLVideolement',
+  'works with 0 sized tensors',  // AbortError.
+  'NaNs in Tensor',              // Not yet implemented.
+  'oneHot',                      // Not yet implemented.
+  'pad1d',                       // Not yet implemented.
+  'pad2d',                       // Not yet implemented.
+  'derivative: 1D tensor',       // Clip test - logicalAnd not
+                                 // yet implemented.
+  'derivative: scalar',          // Clip test - logicalAnd not yet implemented.
+  'derivate with primitive as input',  // Clip test - logicalAnd not yet
+                                       // implemented.
+  'accepts tensor with bool values',   // Not yet implemented.
+  'propagates NaNs'                    // max(NaN, 0.) in relu produces 0.
 ];
 
 /**
@@ -121,4 +138,5 @@ env.specFilter = spec => {
 };
 
 // Import and run all the tests from core.
+// tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/tests';

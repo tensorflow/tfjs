@@ -24,8 +24,10 @@ export function imageToTensor(img: ImageInput): Tensor3D {
 
 /** Loads and parses the dictionary. */
 export async function loadDictionary(modelUrl: string): Promise<string[]> {
-  const prefixUrl = modelUrl.slice(0, modelUrl.lastIndexOf('/'));
-  const dictUrl = `${prefixUrl}/dict.txt`;
+  const lastIndexOfSlash = modelUrl.lastIndexOf('/');
+  const prefixUrl =
+      lastIndexOfSlash >= 0 ? modelUrl.slice(0, lastIndexOfSlash + 1) : '';
+  const dictUrl = `${prefixUrl}dict.txt`;
   const response = await util.fetch(dictUrl);
   const text = await response.text();
   return text.trim().split('\n');

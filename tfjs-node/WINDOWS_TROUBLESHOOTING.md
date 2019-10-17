@@ -8,7 +8,7 @@ Currently, node-gyp requires Python 2.x to work properly. If Python 3.x is insta
 
 ## 'The system cannot find the patch specified' Exceptions
 
-This can happen for a variety of reasons. First, to inspect what is missing either `cd node_modules/@tensorflow/tfjs-node` or clone the [tensorflow/tfjs-node repo](https://github.com/tensorflow/tfjs-node).
+This can happen for a variety of reasons. First, to inspect what is missing either `cd node_modules/@tensorflow/tfjs-node` or clone the [tensorflow/tfjs repo](https://github.com/tensorflow/tfjs).
 
 After `cd`'ing or cloning, run the following command (you might need node-gyp installed globablly `npm install -g node-gyp`):
 

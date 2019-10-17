@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {ENV} from './environment';
+import {ENGINE} from './engine';
+import {env} from './environment';
 import {Tensor} from './tensor';
 import {DataType, TensorLike} from './types';
 import {assert, flatten, inferDtype, isTypedArray, toTypedArray} from './util';
@@ -36,7 +37,8 @@ export function inferShape(val: TensorLike, dtype?: DataType): number[] {
     shape.push(firstElem.length);
     firstElem = firstElem[0];
   }
-  if (Array.isArray(val) && ENV.getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')) {
+  if (Array.isArray(val) &&
+      env().getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')) {
     deepAssertShapeConsistency(val, shape, []);
   }
 
@@ -111,9 +113,9 @@ export function convertToTensor<T extends Tensor>(
   }
   const skipTypedArray = true;
   const values = inferredDtype !== 'string' ?
-      toTypedArray(x, inferredDtype as DataType, ENV.getBool('DEBUG')) :
+      toTypedArray(x, inferredDtype as DataType, env().getBool('DEBUG')) :
       flatten(x as string[], [], skipTypedArray) as string[];
-  return Tensor.make(inferredShape, {values}, inferredDtype);
+  return ENGINE.makeTensor(values, inferredShape, inferredDtype) as T;
 }
 
 export function convertToTensorArray<T extends Tensor>(

@@ -85,7 +85,7 @@ function disposeWebGLContext(version: number) {
   if ((version in contexts)) {
     if (contextCleanup == null) {
       if (ENV.getBool('IS_BROWSER')) {
-      // TODO(kreeger): Consider moving to global space.
+        // TODO(kreeger): Consider moving to global space.
         contextCleanup = cleanupDOMCanvasWebGLRenderingContext;
       }
     }

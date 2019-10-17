@@ -16,9 +16,58 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+import * as Shaderc from '@webgpu/shaderc';
 
 import {WebGPUBackend, WebGPUMemoryInfo} from './backend_webgpu';
 import {describeWebGPU} from './test_util';
+
+describeWebGPU('backend webgpu cpu forwarding turned on', () => {
+  let cpuForwardFlagSaved: boolean;
+
+  beforeAll(() => {
+    cpuForwardFlagSaved = tf.env().getBool('WEBGPU_CPU_FORWARD');
+
+    tf.env().set('WEBGPU_CPU_FORWARD', true);
+  });
+
+  afterAll(() => {
+    tf.env().set('WEBGPU_CPU_FORWARD', cpuForwardFlagSaved);
+  });
+
+  it('should not allocate GPU memory when CPU forwarding', async () => {
+    const savedFlag = tf.ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
+    tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', true);
+
+    const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
+    const b = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
+
+    const c = tf.mul(a, b);
+
+    const startNumBytes = tf.memory().numBytes;
+    const startNumTensors = tf.memory().numTensors;
+    const startNumBytesInGPU = (tf.memory() as WebGPUMemoryInfo).numBytesInGPU;
+
+    expect(startNumBytes).toEqual(48);
+    expect(startNumTensors).toEqual(3);
+    expect(startNumBytesInGPU).toEqual(0);
+
+    const f = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const d = tf.matMul(c, f);
+
+    const dData = await d.data();
+    const endNumBytes = tf.memory().numBytes;
+    const endNumTensors = tf.memory().numTensors;
+    const endNumBytesInGPU = (tf.memory() as WebGPUMemoryInfo).numBytesInGPU;
+
+    expect(endNumBytes - startNumBytes).toEqual(48);
+    expect(endNumTensors - startNumTensors).toEqual(2);
+    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(40);
+
+    tf.test_util.expectArraysClose(
+        dData, new Float32Array([9, 12, 15, 19, 26, 33]));
+    tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
+  });
+});
 
 describeWebGPU('backend webgpu', () => {
   it('should not leak memory in delayed mode', async () => {
@@ -43,7 +92,7 @@ describeWebGPU('backend webgpu', () => {
 
     expect(endNumBytes - startNumBytes).toEqual(48);
     expect(endNumTensors - startNumTensors).toEqual(2);
-    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(24);
+    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(0);
 
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
@@ -72,7 +121,7 @@ describeWebGPU('backend webgpu', () => {
 
     expect(endNumBytes - startNumBytes).toEqual(48);
     expect(endNumTensors - startNumTensors).toEqual(2);
-    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(48);
+    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(24);
 
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
@@ -120,7 +169,7 @@ describeWebGPU('backend webgpu', () => {
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 
-  it('should not recycle buffers in delayed mode', () => {
+  it('should not recycle buffers in delayed mode', async () => {
     const savedFlag = tf.ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', false);
     const backend = tf.backend() as WebGPUBackend;
@@ -138,8 +187,7 @@ describeWebGPU('backend webgpu', () => {
     tf.matMul(c, f);
     const freeBuffersAfterFirstMatMul = bufferManager.getNumFreeBuffers();
     const usedBuffersAfterFirstMatMul = bufferManager.getNumUsedBuffers();
-    expect(freeBuffersAfterFirstMatMul - freeBuffersAfterFirstMul)
-        .toEqual(0);
+    expect(freeBuffersAfterFirstMatMul - freeBuffersAfterFirstMul).toEqual(0);
     expect(usedBuffersAfterFirstMatMul - usedBuffersAfterFirstMul).toEqual(3);
 
     const a2 = tf.tensor2d([2, 4, 6, 8], [2, 2]);
@@ -148,16 +196,19 @@ describeWebGPU('backend webgpu', () => {
     const c2 = tf.mul(a2, b2);
     const freeBuffersAfterSecondMul = bufferManager.getNumFreeBuffers();
     const usedBuffersAfterSecondMul = bufferManager.getNumUsedBuffers();
-    expect(freeBuffersAfterSecondMul - freeBuffersAfterFirstMatMul)
-        .toEqual(0);
+    expect(freeBuffersAfterSecondMul - freeBuffersAfterFirstMatMul).toEqual(0);
     expect(usedBuffersAfterSecondMul - usedBuffersAfterFirstMatMul).toEqual(4);
 
     const f2 = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-    tf.matMul(c2, f2);
+    const c3 = tf.matMul(c2, f2);
     const freeBuffersAfterSecondMatMul = bufferManager.getNumFreeBuffers();
     const usedBuffersAfterSecondMatMul = bufferManager.getNumUsedBuffers();
     expect(freeBuffersAfterSecondMatMul - freeBuffersAfterSecondMul).toEqual(0);
     expect(usedBuffersAfterSecondMatMul - usedBuffersAfterSecondMul).toEqual(3);
+
+    // Tests happen within a tidy so we need to read a tensor at the end of a
+    // test in delayed mode in order to force flush the disposal queue.
+    await c3.data();
     tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 
@@ -173,5 +224,54 @@ describeWebGPU('backend webgpu', () => {
     await c.data();
     // Now that data has been downloaded to the CPU, dataSync should work.
     expect(() => c.dataSync()).not.toThrow();
+  });
+
+  it('lazily upload', async () => {
+    const shaderc = await Shaderc.instantiate();
+    const adapter = await navigator.gpu.requestAdapter({});
+    const device = await adapter.requestDevice({});
+    const backend = new WebGPUBackend(device, shaderc);
+    tf.registerBackend('test-storage', () => backend);
+    tf.setBackend('test-storage');
+
+    const bufferManager = backend.getBufferManager();
+    const t = tf.Tensor.make([3], {}, 'float32');
+    backend.write(t.dataId, new Float32Array([1, 2, 3]));
+
+    expect(bufferManager.getNumUsedBuffers()).toBe(0);
+
+    backend.getBuffer(t.dataId);
+    expect(bufferManager.getNumUsedBuffers()).toBe(1);
+
+    backend.write(t.dataId, new Float32Array([4, 5, 6]));
+    expect(bufferManager.getNumUsedBuffers()).toBe(0);
+
+    tf.test_util.expectArraysClose(
+        await backend.read(t.dataId), new Float32Array([4, 5, 6]));
+
+    expect(bufferManager.getNumUsedBuffers()).toBe(0);
+
+    backend.getBuffer(t.dataId);
+    expect(bufferManager.getNumUsedBuffers()).toBe(1);
+
+    tf.test_util.expectArraysClose(
+        await backend.read(t.dataId), new Float32Array([4, 5, 6]));
+    expect(bufferManager.getNumUsedBuffers()).toBe(0);
+  });
+
+  it('should be possible to move data from webgl to webgpu', async () => {
+    tf.setBackend('webgl');
+    const a = tf.randomNormal([1, 65, 65, 256]);
+    const b = tf.randomNormal([1, 65, 65, 256]);
+    const c = tf.add(a, b);
+    await c.data();
+
+    const f = async () => {
+      tf.setBackend('webgpu');
+      const d = tf.add(a, b);
+      await d.data();
+    };
+
+    expect(f).not.toThrow();
   });
 });

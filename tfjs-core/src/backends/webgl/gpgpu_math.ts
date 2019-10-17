@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {ENV} from '../../environment';
+import {env} from '../../environment';
+
 import {Tensor} from '../../tensor';
 import {TypedArray} from '../../types';
 import * as util from '../../util';
@@ -86,7 +87,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
   // Add special uniforms (NAN, INFINITY)
   let infLoc: WebGLUniformLocation = null;
   const nanLoc = gpgpu.getUniformLocation(webGLProgram, 'NAN', false);
-  if (ENV.getNumber('WEBGL_VERSION') === 1) {
+  if (env().getNumber('WEBGL_VERSION') === 1) {
     infLoc = gpgpu.getUniformLocation(webGLProgram, 'INFINITY', false);
   }
 
@@ -165,7 +166,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
 
   const gl = getActiveContext();
   // Set special uniforms (NAN, INFINITY)
-  if (ENV.getNumber('WEBGL_VERSION') === 1) {
+  if (env().getNumber('WEBGL_VERSION') === 1) {
     if (binary.infLoc !== null) {
       gl.uniform1f(binary.infLoc, Infinity);
     }

@@ -28,7 +28,7 @@ export class MaxPoolProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
-  workGroupSize: [number, number, number] = [4, 4, 1];
+  workGroupSize: [number, number, number] = [4, 4, 4];
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;

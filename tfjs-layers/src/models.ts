@@ -11,7 +11,6 @@
 /* Original source keras/models.py */
 
 import {dispose, io, NamedTensorMap, Optimizer, Scalar, serialization, Tensor, util} from '@tensorflow/tfjs-core';
-import {NamedTensor} from '@tensorflow/tfjs-core/dist/tensor_types';
 
 import {getUid} from './backend/state';
 import {History} from './base_callbacks';
@@ -26,7 +25,7 @@ import {Shape} from './keras_format/common';
 import {TrainingConfig} from './keras_format/training_config';
 import {PyJsonDict} from './keras_format/types';
 import {deserialize} from './layers/serialization';
-import {Kwargs} from './types';
+import {Kwargs, NamedTensor} from './types';
 import * as generic_utils from './utils/generic_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
 import {getExactlyOneShape} from './utils/types_utils';
@@ -1091,14 +1090,14 @@ export class Sequential extends LayersModel {
     //   because the `Sequential` class is a special case among `Container`
     //   subtypes in that its getConfig() method returns an Array (not a
     //   dict).
-    const config: serialization.ConfigDict[] = [];
+    const layers: serialization.ConfigDict[] = [];
     for (const layer of this.layers) {
       const dict: serialization.ConfigDict = {};
       dict['className'] = layer.getClassName();
       dict['config'] = layer.getConfig();
-      config.push(dict);
+      layers.push(dict);
     }
-    return config;
+    return {name: this.name, layers};
   }
 }
 serialization.registerClass(Sequential);

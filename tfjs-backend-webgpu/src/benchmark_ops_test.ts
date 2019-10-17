@@ -79,7 +79,7 @@ describeWebGPU('Ops benchmarks', () => {
   }
 
   it('argMax', async () => {
-    const n = 50;
+    const n = 2;
     const doTest = async (axis: number) => {
       const tensors = new Array(n);
       const maxes = new Array(n);
@@ -97,13 +97,26 @@ describeWebGPU('Ops benchmarks', () => {
             for (const t of maxes) {
               t.dispose();
             }
-          });
+          }, false, 50, n);
     };
 
     await doTest(0);
     await doTest(1);
     await doTest(2);
   }, 60000);
+
+  it('concat', async () => {
+    const a = tf.randomNormal([500, 500]);
+    const b = tf.randomNormal([500, 500]);
+
+    await time(() => tf.concat([a, b], 1));
+  });
+
+  it('resizeBilinear', async () => {
+    const input = tf.randomNormal<tf.Rank.R3>([128, 128, 4]);
+
+    await time(() => input.resizeBilinear([256, 256], false));
+  });
 
   it('matMul', async () => {
     const a = tf.randomNormal([500, 500]);
@@ -117,6 +130,12 @@ describeWebGPU('Ops benchmarks', () => {
     const b = tf.randomNormal([1, 65, 65, 256]);
 
     await time(() => tf.add(a, b));
+  });
+
+  it('clip', async () => {
+    const a = tf.randomNormal([1, 65, 65, 256]);
+
+    await time(() => tf.clipByValue(a, 0.1, 0.9));
   });
 
   it('conv2d', async () => {
@@ -135,4 +154,11 @@ describeWebGPU('Ops benchmarks', () => {
 
     await time(() => tf.depthwiseConv2d(x, w, 1, 'valid'));
   });
+
+  it('maxPool', async () => {
+    const x = tf.randomNormal<tf.Rank.R4>([1, 131, 131, 64]);
+
+    await time(() => tf.maxPool(x, 2, 1, 'same'));
+  });
+
 });

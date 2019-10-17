@@ -137,8 +137,14 @@ const SHADER_PREFIX = `#version 450
     return res;
   }
 
-  bool coordIsValid(ivec4 coord, ivec4 shape) {
+  // Checks whether coordinates lie within the bounds of the shape.
+  bool coordsInBounds(ivec4 coord, ivec4 shape) {
     return all(greaterThanEqual(coord, ivec4(0))) &&
+        all(lessThan(coord, shape));
+  }
+
+  bool coordsInBounds(ivec2 coord, ivec2 shape) {
+    return all(greaterThanEqual(coord, ivec2(0))) &&
         all(lessThan(coord, shape));
   }
 `;
@@ -163,13 +169,16 @@ const SAMPLING_SNIPPETS = `
 `;
 
 function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
+  const glslType = mapToGlslTypes(outBufferType);
   let snippet = `void setOutput(int flatIndex, float value) {
       result[flatIndex] = ${
-      mapToGlslTypes(outBufferType) === 'int' ? 'int(value)' : 'value'};
+      glslType === 'int' ? 'int(value)' :
+                           (glslType === 'bool' ? 'bool(value)' : 'value')};
     }
     void setOutput(int flatIndex, int value) {
       result[flatIndex] = ${
-      mapToGlslTypes(outBufferType) === 'float' ? 'float(value)' : 'value'};
+      glslType === 'float' ? 'float(value)' :
+                             (glslType === 'bool' ? 'bool(value)' : 'value')};
     }`;
 
   if (outRank >= 2) {
@@ -340,11 +349,14 @@ function generateGetOutputCoords(
   }
 
   const dtype = getCoordsDataType(rank);
-  const snippet = `${dtype} getOutputCoords() {
+  let snippet = `${dtype} getOutputCoords() {
     ${gatherDimensionsStr}
-
-    return ${dtype}(${dimensions.join(',')});
-  }`;
+  `;
+  if (dimensions.length === 0) {
+    snippet += `return ${dtype}(0);}`;
+  } else {
+    snippet += `return ${dtype}(${dimensions.join(',')});}`;
+  }
 
   return [snippet, rank];
 }

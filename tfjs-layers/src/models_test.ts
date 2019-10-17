@@ -9,7 +9,6 @@
  */
 
 import {DataType, ENV, io, memory, ones, randomNormal, Scalar, scalar, serialization, sum, Tensor, tensor1d, tensor2d, tensor3d, train, zeros} from '@tensorflow/tfjs-core';
-import {ConfigDict} from '@tensorflow/tfjs-core/dist/serialization';
 
 import {LayersModel} from './engine/training';
 import * as tfl from './index';
@@ -533,9 +532,9 @@ describeMathCPU('modelFromJSON', () => {
       },
       'backend': 'tensorflow'
     };
-    const model =
-        deserialize(convertPythonicToTs(modelTopology) as ConfigDict) as
-        LayersModel;
+    const model = deserialize(
+                      convertPythonicToTs(modelTopology) as
+                      serialization.ConfigDict) as LayersModel;
 
     expect(model.name.indexOf('BarSequential123')).toEqual(0);
     expect(model.inputs.length).toEqual(1);
@@ -667,65 +666,66 @@ describeMathCPU('loadLayersModel from URL', () => {
   });
 
   it('loadLayersModel: with onProgress callback from relative path',
-      async () => {
-    const modelTopology =
-        JSON.parse(JSON.stringify(fakeSequentialModel)).modelTopology;
-    const weightsManifest: io.WeightsManifestConfig = [
-      {
-        'paths': ['weight_0'],
-        'weights':
-            [{'name': `dense_6/kernel`, 'dtype': 'float32', 'shape': [32, 32]}],
-      },
-      {
-        'paths': ['weight_1'],
-        'weights':
-            [{'name': `dense_6/bias`, 'dtype': 'float32', 'shape': [32]}],
-      }
-    ];
+     async () => {
+       const modelTopology =
+           JSON.parse(JSON.stringify(fakeSequentialModel)).modelTopology;
+       const weightsManifest: io.WeightsManifestConfig = [
+         {
+           'paths': ['weight_0'],
+           'weights': [
+             {'name': `dense_6/kernel`, 'dtype': 'float32', 'shape': [32, 32]}
+           ],
+         },
+         {
+           'paths': ['weight_1'],
+           'weights':
+               [{'name': `dense_6/bias`, 'dtype': 'float32', 'shape': [32]}],
+         }
+       ];
 
-    spyOn(ENV.platform, 'fetch').and.callFake((path: string) => {
-      return new Promise((resolve, reject) => {
-        if (path === 'model/model.json') {
-          resolve(new Response(
-              JSON.stringify({
-                modelTopology,
-                weightsManifest,
-              }),
-              {'headers': {'Content-Type': JSON_TYPE}}));
-        } else if (path === 'model/weight_0') {
-          resolve(new Response(
-              ones([32, 32], 'float32').dataSync() as Float32Array,
-              {'headers': {'Content-Type': OCTET_STREAM_TYPE}}));
-        } else if (path === 'model/weight_1') {
-          resolve(new Response(
-              zeros([32], 'float32').dataSync() as Float32Array,
-              {'headers': {'Content-Type': OCTET_STREAM_TYPE}}));
-        } else {
-          reject(new Error(`Invalid path: ${path}`));
-        }
-      });
-    });
+       spyOn(ENV.platform, 'fetch').and.callFake((path: string) => {
+         return new Promise((resolve, reject) => {
+           if (path === 'model/model.json') {
+             resolve(new Response(
+                 JSON.stringify({
+                   modelTopology,
+                   weightsManifest,
+                 }),
+                 {'headers': {'Content-Type': JSON_TYPE}}));
+           } else if (path === 'model/weight_0') {
+             resolve(new Response(
+                 ones([32, 32], 'float32').dataSync() as Float32Array,
+                 {'headers': {'Content-Type': OCTET_STREAM_TYPE}}));
+           } else if (path === 'model/weight_1') {
+             resolve(new Response(
+                 zeros([32], 'float32').dataSync() as Float32Array,
+                 {'headers': {'Content-Type': OCTET_STREAM_TYPE}}));
+           } else {
+             reject(new Error(`Invalid path: ${path}`));
+           }
+         });
+       });
 
-    const progressFractions: number[] = [];
-    const model = await tfl.loadLayersModel('model/model.json', {
-      onProgress: (fraction: number) => {
-        progressFractions.push(fraction);
-      }
-    });
-    expect(model.layers.length).toEqual(2);
-    expect(model.inputs.length).toEqual(1);
-    expect(model.inputs[0].shape).toEqual([null, 32]);
-    expect(model.outputs.length).toEqual(1);
-    expect(model.outputs[0].shape).toEqual([null, 32]);
-    const weightValues = model.getWeights();
-    expect(weightValues.length).toEqual(2);
-    expectTensorsClose(weightValues[0], ones([32, 32]));
-    expectTensorsClose(weightValues[1], zeros([32]));
-    // There are three files: a JSON file and two weight files. So the progress
-    // callback should have been called four times (twice the weight files'
-    // number).
-    expect(progressFractions).toEqual([0.25, 0.5, 0.75, 1]);
-  });
+       const progressFractions: number[] = [];
+       const model = await tfl.loadLayersModel('model/model.json', {
+         onProgress: (fraction: number) => {
+           progressFractions.push(fraction);
+         }
+       });
+       expect(model.layers.length).toEqual(2);
+       expect(model.inputs.length).toEqual(1);
+       expect(model.inputs[0].shape).toEqual([null, 32]);
+       expect(model.outputs.length).toEqual(1);
+       expect(model.outputs[0].shape).toEqual([null, 32]);
+       const weightValues = model.getWeights();
+       expect(weightValues.length).toEqual(2);
+       expectTensorsClose(weightValues[0], ones([32, 32]));
+       expectTensorsClose(weightValues[1], zeros([32]));
+       // There are three files: a JSON file and two weight files. So the
+       // progress callback should have been called four times (twice the weight
+       // files' number).
+       expect(progressFractions).toEqual([0.25, 0.5, 0.75, 1]);
+     });
 
   it('loadLayersModel: with onProgress callback from URL', async () => {
     const modelTopology =
@@ -767,12 +767,11 @@ describeMathCPU('loadLayersModel from URL', () => {
     });
 
     const progressFractions: number[] = [];
-    const model = await tfl.loadLayersModel('https://url/to/model/model.json',
-        {
-          onProgress: (fraction: number) => {
-            progressFractions.push(fraction);
-          }
-        });
+    const model = await tfl.loadLayersModel('https://url/to/model/model.json', {
+      onProgress: (fraction: number) => {
+        progressFractions.push(fraction);
+      }
+    });
     expect(model.layers.length).toEqual(2);
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 32]);
@@ -841,6 +840,55 @@ describeMathCPU('loadLayersModel from URL', () => {
     // of tensors (i.e., before the model was created).
     expect(numTensors2).toEqual(numTensors0);
   });
+
+  it('loadLayersModel: no memory leak with nested LayersModel layer',
+    async() => {
+      const modelTopology =
+          JSON.parse(JSON.stringify(fakeSequentialModelWithNestedContainer))
+              .modelTopology;
+
+      const weightsManifest: io.WeightsManifestConfig = [
+        {
+          'paths': ['weight_0'],
+          'weights': [
+            {'name': `dense_1/kernel`, 'dtype': 'float32', 'shape': [4, 2]},
+            {'name': `dense_1/bias`, 'dtype': 'float32', 'shape': [2]},
+            {'name': `dense_2/kernel`, 'dtype': 'float32', 'shape': [2, 1]},
+            {'name': `dense_2/bias`, 'dtype': 'float32', 'shape': [1]}
+          ],
+        }
+      ];
+
+      spyOn(ENV.platform, 'fetch').and.callFake((path: string) => {
+        return new Promise((resolve, reject) => {
+          if (path === 'model/model.json') {
+            resolve(new Response(
+                JSON.stringify({
+                  modelTopology,
+                  weightsManifest,
+                }),
+                {'headers': {'Content-Type': JSON_TYPE}}));
+          } else if (path === 'model/weight_0') {
+            resolve(new Response(
+                new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+                {'headers': {'Content-Type': OCTET_STREAM_TYPE}}));
+          } else {
+            reject(new Error(`Invalid path: ${path}`));
+          }
+        });
+      });
+
+      const numTensors0 = memory().numTensors;
+      const model = await tfl.loadLayersModel('model/model.json');
+      const mem = await memory();
+      const numTensors1 = mem.numTensors;
+      expect(numTensors1).toEqual(numTensors0 + 4);
+
+      const disposeResult = model.dispose();
+      expect(disposeResult.numDisposedVariables).toEqual(4);
+      const numTensors2 = memory().numTensors;
+      expect(numTensors2).toEqual(numTensors0);
+    });
 
   it('load topology and weights from implicit relative http path: HDF5 format',
      async () => {
@@ -1216,11 +1264,8 @@ describeMathCPU('loadLayersModel from URL', () => {
 describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
   it('SGD', async () => {
     const model1 = tfl.sequential();
-    model1.add(tfl.layers.dense({
-      units: 1,
-      inputShape: [8],
-      kernelInitializer: 'ones'
-    }));
+    model1.add(tfl.layers.dense(
+        {units: 1, inputShape: [8], kernelInitializer: 'ones'}));
     const learningRate = 0.02;
     const optimizer = train.sgd(learningRate);
     model1.compile({loss: 'meanSquaredError', optimizer});
@@ -1234,7 +1279,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
         io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return null;
-        }), {includeOptimizer: true});
+        }),
+        {includeOptimizer: true});
 
     const trainingConfig = savedArtifacts.trainingConfig;
     expect(trainingConfig['loss']).toEqual('mean_squared_error');
@@ -1271,11 +1317,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
 
   it('RMSProp', async () => {
     const model1 = tfl.sequential();
-    model1.add(tfl.layers.dense({
-      units: 1,
-      inputShape: [8],
-      kernelInitializer: 'ones'
-    }));
+    model1.add(tfl.layers.dense(
+        {units: 1, inputShape: [8], kernelInitializer: 'ones'}));
     const learningRate = 0.02;
     const decay = 0.95;
     const optimizer = train.rmsprop(learningRate, decay);
@@ -1290,7 +1333,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
         io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return null;
-        }), {includeOptimizer: true});
+        }),
+        {includeOptimizer: true});
 
     const trainingConfig = savedArtifacts.trainingConfig;
     expect(trainingConfig['loss']).toEqual('mean_squared_error');
@@ -1333,11 +1377,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
 
   it('Adadelta', async () => {
     const model1 = tfl.sequential();
-    model1.add(tfl.layers.dense({
-      units: 1,
-      inputShape: [8],
-      kernelInitializer: 'ones'
-    }));
+    model1.add(tfl.layers.dense(
+        {units: 1, inputShape: [8], kernelInitializer: 'ones'}));
     const learningRate = 0.02;
     const optimizer = train.adadelta(learningRate);
     model1.compile({loss: 'meanSquaredError', optimizer});
@@ -1351,7 +1392,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
         io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return null;
-        }), {includeOptimizer: true});
+        }),
+        {includeOptimizer: true});
 
     const trainingConfig = savedArtifacts.trainingConfig;
     expect(trainingConfig['loss']).toEqual('mean_squared_error');
@@ -1393,11 +1435,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
 
   it('Adagrad', async () => {
     const model1 = tfl.sequential();
-    model1.add(tfl.layers.dense({
-      units: 1,
-      inputShape: [8],
-      kernelInitializer: 'ones'
-    }));
+    model1.add(tfl.layers.dense(
+        {units: 1, inputShape: [8], kernelInitializer: 'ones'}));
     const learningRate = 0.02;
     const initialAccumulatorValue = 0.15;
     const optimizer = train.adagrad(learningRate, initialAccumulatorValue);
@@ -1412,7 +1451,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
         io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return null;
-        }), {includeOptimizer: true});
+        }),
+        {includeOptimizer: true});
 
     const trainingConfig = savedArtifacts.trainingConfig;
     expect(trainingConfig['loss']).toEqual('mean_squared_error');
@@ -1454,11 +1494,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
 
   it('Adam as explicit object', async () => {
     const model1 = tfl.sequential();
-    model1.add(tfl.layers.dense({
-      units: 1,
-      inputShape: [8],
-      kernelInitializer: 'ones'
-    }));
+    model1.add(tfl.layers.dense(
+        {units: 1, inputShape: [8], kernelInitializer: 'ones'}));
     const learningRate = 0.02;
     const beta1 = 0.95;
     const beta2 = 0.98;
@@ -1474,7 +1511,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
         io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return null;
-        }), {includeOptimizer: true});
+        }),
+        {includeOptimizer: true});
 
     const trainingConfig = savedArtifacts.trainingConfig;
     expect(trainingConfig['loss']).toEqual('mean_squared_error');
@@ -1518,11 +1556,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
 
   it('Adam as string name', async () => {
     const model1 = tfl.sequential();
-    model1.add(tfl.layers.dense({
-      units: 1,
-      inputShape: [8],
-      kernelInitializer: 'ones'
-    }));
+    model1.add(tfl.layers.dense(
+        {units: 1, inputShape: [8], kernelInitializer: 'ones'}));
     model1.compile({loss: 'meanSquaredError', optimizer: 'adam'});
 
     const xs = ones([4, 8]);
@@ -1534,7 +1569,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
         io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return null;
-        }), {includeOptimizer: true});
+        }),
+        {includeOptimizer: true});
 
     const trainingConfig = savedArtifacts.trainingConfig;
     expect(trainingConfig['loss']).toEqual('mean_squared_error');
@@ -1576,11 +1612,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
 
   it('Momentum', async () => {
     const model1 = tfl.sequential();
-    model1.add(tfl.layers.dense({
-      units: 1,
-      inputShape: [8],
-      kernelInitializer: 'ones'
-    }));
+    model1.add(tfl.layers.dense(
+        {units: 1, inputShape: [8], kernelInitializer: 'ones'}));
     const learningRate = 0.02;
     const momentum = 0.91;
     const optimizer = train.momentum(learningRate, momentum);
@@ -1595,7 +1628,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
         io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return null;
-        }), {includeOptimizer: true});
+        }),
+        {includeOptimizer: true});
 
     const trainingConfig = savedArtifacts.trainingConfig;
     expect(trainingConfig['loss']).toEqual('mean_squared_error');
@@ -1641,11 +1675,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
       kernelInitializer: 'ones',
       activation: 'softmax'
     }));
-    model1.compile({
-      loss: 'categoricalCrossentropy',
-      optimizer: 'adam',
-      metrics: ['acc']
-    });
+    model1.compile(
+        {loss: 'categoricalCrossentropy', optimizer: 'adam', metrics: ['acc']});
 
     const xs = ones([4, 8]);
     const ys = tensor2d([[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1]]);
@@ -1658,7 +1689,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
         io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return null;
-        }), {includeOptimizer: true});
+        }),
+        {includeOptimizer: true});
 
     const trainingConfig = savedArtifacts.trainingConfig;
     expect(trainingConfig['loss']).toEqual('categorical_crossentropy');
@@ -1679,18 +1711,16 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
       kernelInitializer: 'ones',
       activation: 'softmax'
     }));
-    model1.compile({
-      loss: 'categoricalCrossentropy',
-      optimizer: 'adam',
-      metrics: ['acc']
-    });
+    model1.compile(
+        {loss: 'categoricalCrossentropy', optimizer: 'adam', metrics: ['acc']});
 
     let savedArtifacts: io.ModelArtifacts;
     await model1.save(
         io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return null;
-        }), {includeOptimizer: true});
+        }),
+        {includeOptimizer: true});
 
     const trainingConfig = savedArtifacts.trainingConfig;
     expect(trainingConfig['loss']).toEqual('categorical_crossentropy');
@@ -1709,22 +1739,15 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
 
   it('Saving functional model with more than one output', async () => {
     const input = tfl.input({shape: [8]});
-    const x = tfl.layers.dense({
-      units: 5,
-      kernelInitializer: 'ones',
-      activation: 'relu'
-    }).apply(input) as tfl.SymbolicTensor;
-    const outLayer1 = tfl.layers.dense({
-      units: 3,
-      kernelInitializer: 'ones',
-      activation: 'softmax'
-    });
+    const x =
+        tfl.layers
+            .dense({units: 5, kernelInitializer: 'ones', activation: 'relu'})
+            .apply(input) as tfl.SymbolicTensor;
+    const outLayer1 = tfl.layers.dense(
+        {units: 3, kernelInitializer: 'ones', activation: 'softmax'});
     const y1 = outLayer1.apply(x) as tfl.SymbolicTensor;
-    const outLayer2 = tfl.layers.dense({
-      units: 1,
-      kernelInitializer: 'ones',
-      activation: 'sigmoid'
-    });
+    const outLayer2 = tfl.layers.dense(
+        {units: 1, kernelInitializer: 'ones', activation: 'sigmoid'});
     const y2 = outLayer2.apply(x) as tfl.SymbolicTensor;
     const model1 = tfl.model({inputs: input, outputs: [y1, y2]});
     model1.compile({
@@ -1744,11 +1767,13 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
         io.withSaveHandler(async (artifacts: io.ModelArtifacts) => {
           savedArtifacts = artifacts;
           return null;
-        }), {includeOptimizer: true});
+        }),
+        {includeOptimizer: true});
 
     const trainingConfig = savedArtifacts.trainingConfig;
-    expect(trainingConfig['loss']).toEqual(
-        ['categorical_crossentropy', 'binary_crossentropy']);
+    expect(trainingConfig['loss']).toEqual([
+      'categorical_crossentropy', 'binary_crossentropy'
+    ]);
     expect(trainingConfig['metrics']).toEqual(['acc']);
 
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -2189,8 +2214,8 @@ describeMathCPUAndGPU('Sequential', () => {
   it('getConfig returns an Array', () => {
     const model = tfl.sequential({layers});
     const config = model.getConfig();
-    expect(Array.isArray(config)).toEqual(true);
-    expect(config.length).toEqual(layers.length);
+    expect(Array.isArray(config.layers)).toEqual(true);
+    expect(config.layers.length).toEqual(layers.length);
   });
 });
 
@@ -2246,6 +2271,112 @@ const fakeSequentialModel: ModelAndWeightsConfig = {
       'name': 'test'
     },
     'backend': 'tensorflow'
+  }
+};
+
+const fakeSequentialModelWithNestedContainer: ModelAndWeightsConfig = {
+  modelTopology: {
+    'keras_version': '2.2.4',
+    'backend': 'tensorflow',
+    'model_config': {
+      'class_name': 'Model',
+      'config': {
+        'name': 'model_1',
+        'layers': [{
+          'name': 'dense_1_input',
+          'class_name': 'InputLayer',
+          'config': {
+            'batch_input_shape': [null, 4],
+            'dtype': 'float32',
+            'sparse': false,
+            'name': 'dense_1_input'
+          },
+          'inbound_nodes': []
+        }, {
+          'name': 'dense_1',
+          'class_name': 'Dense',
+          'config': {
+            'name': 'dense_1',
+            'trainable': true,
+            'batch_input_shape': [null, 4],
+            'dtype': 'float32',
+            'units': 2,
+            'activation': 'relu',
+            'use_bias': true,
+            'kernel_initializer': {
+              'class_name': 'VarianceScaling',
+              'config': {
+                'scale': 1.0,
+                'mode': 'fan_avg',
+                'distribution': 'uniform',
+                'seed': null
+              }
+            },
+            'bias_initializer': {
+              'class_name': 'Zeros',
+              'config': {}
+            },
+            'kernel_regularizer': null,
+            'bias_regularizer': null,
+            'activity_regularizer': null,
+            'kernel_constraint': null,
+            'bias_constraint': null
+          },
+          'inbound_nodes': [
+            [
+              ['dense_1_input', 0, 0, {}]
+            ]
+          ]
+        }, {
+          'name': 'sequential_2',
+          'class_name': 'Sequential',
+          'config': {
+            'name': 'sequential_2',
+            'layers': [{
+              'class_name': 'Dense',
+              'config': {
+                'name': 'dense_2',
+                'trainable': true,
+                'batch_input_shape': [null, 2],
+                'dtype': 'float32',
+                'units': 1,
+                'activation': 'softmax',
+                'use_bias': true,
+                'kernel_initializer': {
+                  'class_name': 'VarianceScaling',
+                  'config': {
+                    'scale': 1.0,
+                    'mode': 'fan_avg',
+                    'distribution': 'uniform',
+                    'seed': null
+                  }
+                },
+                'bias_initializer': {
+                  'class_name': 'Zeros',
+                  'config': {}
+                },
+                'kernel_regularizer': null,
+                'bias_regularizer': null,
+                'activity_regularizer': null,
+                'kernel_constraint': null,
+                'bias_constraint': null
+              }
+            }]
+          },
+          'inbound_nodes': [
+            [
+              ['dense_1', 0, 0, {}]
+            ]
+          ]
+        }],
+        'input_layers': [
+          ['dense_1_input', 0, 0]
+        ],
+        'output_layers': [
+          ['sequential_2', 1, 0]
+        ]
+      }
+    }
   }
 };
 
@@ -3039,8 +3170,7 @@ describeMathCPU('Functional-model saving and loading', () => {
         tfl.model({inputs: [input1, input2], outputs: [output1, output2]});
 
     const model1JSON = model1.toJSON(null, false) as PyJsonDict;
-    const model2 =
-        await modelFromJSON({modelTopology: model1JSON});
+    const model2 = await modelFromJSON({modelTopology: model1JSON});
 
     expect(model2.inputs.length).toEqual(model1.inputs.length);
     expect(model2.inputs[0].shape).toEqual(model1.inputs[0].shape);
@@ -3074,8 +3204,7 @@ describeMathCPU('Functional-model saving and loading', () => {
     const ys1 = model1.predict(xs) as Tensor;
 
     const model1JSON = model1.toJSON(null, false) as PyJsonDict;
-    const model2 =
-        await modelFromJSON({modelTopology: model1JSON});
+    const model2 = await modelFromJSON({modelTopology: model1JSON});
     expect(model2.toJSON(null, false)).toEqual(model1JSON);
 
     const ys2 = model2.predict(xs) as Tensor;
@@ -3085,8 +3214,8 @@ describeMathCPU('Functional-model saving and loading', () => {
   it('Deserialization with truncated_normal', async () => {
     // From https://github.com/tensorflow/tfjs/issues/146
     const modelJSON = JSON.parse(
-       // tslint:disable-next-line:max-line-length
-       `{"modelTopology":{"class_name":"Sequential","config":[{"class_name":"Dense","config":{"units":1,"activation":"linear","use_bias":true,"kernel_initializer":{"class_name":"VarianceScaling","config":{"scale":1,"mode":"fan_avg","distribution":"truncated_normal","seed":null}},"bias_initializer":{"class_name":"Zeros","config":{}},"kernel_regularizer":null,"bias_regularizer":null,"activity_regularizer":null,"kernel_constraint":null,"bias_constraint":null,"name":"dense_Dense1","trainable":true,"batch_input_shape":[null,1],"dtype":"float32"}}],"keras_version":"tfjs-layers 1.0.2","backend":"tensor_flow.js"},"weightsManifest":[{"paths":["weights.bin"],"weights":[{"name":"dense_Dense1/kernel","shape":[1,1],"dtype":"float32"},{"name":"dense_Dense1/bias","shape":[1],"dtype":"float32"}]}]}`);
+        // tslint:disable-next-line:max-line-length
+        `{"modelTopology":{"class_name":"Sequential","config":[{"class_name":"Dense","config":{"units":1,"activation":"linear","use_bias":true,"kernel_initializer":{"class_name":"VarianceScaling","config":{"scale":1,"mode":"fan_avg","distribution":"truncated_normal","seed":null}},"bias_initializer":{"class_name":"Zeros","config":{}},"kernel_regularizer":null,"bias_regularizer":null,"activity_regularizer":null,"kernel_constraint":null,"bias_constraint":null,"name":"dense_Dense1","trainable":true,"batch_input_shape":[null,1],"dtype":"float32"}}],"keras_version":"tfjs-layers 1.0.2","backend":"tensor_flow.js"},"weightsManifest":[{"paths":["weights.bin"],"weights":[{"name":"dense_Dense1/kernel","shape":[1,1],"dtype":"float32"},{"name":"dense_Dense1/bias","shape":[1],"dtype":"float32"}]}]}`);
     const modelTopology = modelJSON.modelTopology;
     expect(() => modelFromJSON({modelTopology})).not.toThrow();
   });

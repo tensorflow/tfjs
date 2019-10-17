@@ -66,14 +66,14 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
 
   const backward = (dy: Tensor4D, saved: Tensor[]) => {
     return {
-      batchImages: () => ENGINE.runKernel(
+      batchImages: () => ENGINE.runKernelFunc(
           backend => backend.resizeBilinearBackprop(
               dy, saved[0] as Tensor4D, alignCorners),
           {})
     };
   };
 
-  const res = ENGINE.runKernel(forward, {batchImages}, backward);
+  const res = ENGINE.runKernelFunc(forward, {batchImages}, backward);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
@@ -126,14 +126,14 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
 
   const backward = (dy: Tensor4D, saved: Tensor[]) => {
     return {
-      batchImages: () => ENGINE.runKernel(
+      batchImages: () => ENGINE.runKernelFunc(
           backend => backend.resizeNearestNeighborBackprop(
               dy, saved[0] as Tensor4D, alignCorners),
           {})
     };
   };
 
-  const res = ENGINE.runKernel(forward, {batchImages}, backward);
+  const res = ENGINE.runKernelFunc(forward, {batchImages}, backward);
 
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
@@ -171,7 +171,7 @@ function nonMaxSuppression_(
   iouThreshold = inputs.iouThreshold;
   scoreThreshold = inputs.scoreThreshold;
 
-  return ENGINE.runKernel(
+  return ENGINE.runKernelFunc(
       b => b.nonMaxSuppression(
           $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold),
       {$boxes});
@@ -191,8 +191,10 @@ async function nonMaxSuppressionAsync_(
   iouThreshold = inputs.iouThreshold;
   scoreThreshold = inputs.scoreThreshold;
 
-  const [boxesVals, scoresVals] =
-      await Promise.all([$boxes.data(), $scores.data()]);
+  const boxesAndScores = await Promise.all([$boxes.data(), $scores.data()]);
+  const boxesVals = boxesAndScores[0];
+  const scoresVals = boxesAndScores[1];
+
   const res = nonMaxSuppressionImpl(
       boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   if ($boxes !== boxes) {
@@ -300,7 +302,7 @@ function cropAndResize_(
       backend.cropAndResize(
           $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
 
-  const res = ENGINE.runKernel(forward, {$image, $boxes});
+  const res = ENGINE.runKernelFunc(forward, {$image, $boxes});
   return res;
 }
 
