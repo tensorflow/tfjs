@@ -21,7 +21,6 @@ import {BarChartOpts, Drawable} from '../types';
 import {getDefaultHeight, getDefaultWidth} from '../util/dom';
 import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
 
-
 /**
  * Renders a barchart.
  *

@@ -22,7 +22,6 @@ import {getDefaultHeight, getDefaultWidth} from '../util/dom';
 import {assert} from '../util/utils';
 import {getDrawArea} from './render_utils';
 
-
 /**
  * Renders a scatter plot
  *
