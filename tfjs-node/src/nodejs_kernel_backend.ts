@@ -1895,8 +1895,8 @@ export class NodeJSKernelBackend extends KernelBackend {
     this.binding.deleteSavedModel(id);
   }
 
-  loadSavedModelMetaGraph(path: string, tags: string[]): number {
-    return this.binding.loadSavedModel(path, tags.join());
+  loadSavedModelMetaGraph(path: string, tags: string): number {
+    return this.binding.loadSavedModel(path, tags);
   }
 
   // ------------------------------------------------------------

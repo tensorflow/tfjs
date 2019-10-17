@@ -16,6 +16,8 @@
  */
 
 import {InferenceModel, ModelPredictConfig, Tensor} from '@tensorflow/tfjs';
+// TODO(kangyizhang): import ModelTensorInfo from '@tensorflow/tfjs-core' once
+// new version is released.
 // tslint:disable-next-line
 import {NamedTensorMap, TensorInfo} from '@tensorflow/tfjs-core/dist/tensor_types';
 import * as fs from 'fs';
@@ -29,9 +31,11 @@ const messages = require('./proto/api_pb');
 
 const SAVED_MODEL_FILE_NAME = '/saved_model.pb';
 
-// This map contains mapping information, key is TFSavedModelSignature id in
-// JavaScript, value is a turple of path to the SavedModel, tags, and loaded
-// Session ID in the c++ bindings.
+// This map is used to keep track of loaded SavedModel metagraph mapping
+// information. When user loads multiple signature from the same SavedModel
+// metagraph, it will use the same session in C++ bindings. The key is
+// TFSavedModelSignature id in JavaScript, value is a turple of path to the
+// SavedModel, metagraph tags, and loaded Session ID in the c++ bindings.
 const loadedSavedModelPathMap = new Map<number, [string, string, number]>();
 
 let tfSavedModelSignatureId = 0;
@@ -205,19 +209,22 @@ export function getInputAndOutputNodeNameFromMetaGraphInfo(
   throw new Error(`The SavedModel does not have tags: ${tags}`);
 }
 
+/**
+ * A `tf.TFSavedModelSignature` is a signature loaded from a SavedModel
+ * metagraph, and allows inference exeuction.
+ */
 export class TFSavedModelSignature implements InferenceModel {
-  // ID of the loaded session in bindings
-  private readonly cid: number;
-  // ID of the object in javascript
+  // ID of the loaded session in C++ bindings
+  private readonly sessionId: number;
+  // ID of the loaded signature in javascript
   private readonly jsid: number;
   private readonly backend: NodeJSKernelBackend;
   private deleted: boolean;
 
   constructor(
-      cid: number, jsid: number, inputNodeNames: string[],
+      sessionId: number, jsid: number, inputNodeNames: string[],
       outputNodeNames: string[], backend: NodeJSKernelBackend) {
-    // The id of corresponding session in c++ addon module.
-    this.cid = cid;
+    this.sessionId = sessionId;
     this.backend = backend;
     this.deleted = false;
     this.jsid = jsid;
@@ -234,8 +241,8 @@ export class TFSavedModelSignature implements InferenceModel {
   }
 
   /**
-   * Delete the SavedModel from nodeBackend and delete corresponding object in
-   * the C++ backend.
+   * Delete the SavedModel from nodeBackend and delete corresponding session in
+   * the C++ backend if the session is only used by this TFSavedModelSignature.
    */
   delete() {
     if (!this.deleted) {
@@ -244,11 +251,11 @@ export class TFSavedModelSignature implements InferenceModel {
       loadedSavedModelPathMap.delete(this.jsid);
       for (const id of Array.from(loadedSavedModelPathMap.keys())) {
         const value = loadedSavedModelPathMap.get(id);
-        if (value[2] === this.cid) {
+        if (value[2] === this.sessionId) {
           return;
         }
       }
-      this.backend.deleteSavedModel(this.cid);
+      this.backend.deleteSavedModel(this.sessionId);
     } else {
       throw new Error('This SavedModel has been deleted.');
     }
@@ -261,8 +268,12 @@ export class TFSavedModelSignature implements InferenceModel {
    */
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
-    throw new Error(
-        'predict() function of TFSavedModel is not implemented yet.');
+    if (this.deleted) {
+      throw new Error('The TFSavedModelSignature has been deleted!');
+    } else {
+      throw new Error(
+          'predict() of TFSavedModelSignature is not supported yet.');
+    }
   }
 
   /**
@@ -272,23 +283,25 @@ export class TFSavedModelSignature implements InferenceModel {
    */
   execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs: string|string[]):
       Tensor|Tensor[] {
-    throw new Error(
-        'Execute() function of TFSavedModel is not implemented yet.');
+    throw new Error('Execute() of TFSavedModelSignature is not supported yet.');
   }
 }
 
 /**
- * Decode a JPEG-encoded image to a 3D Tensor of dtype `int32`.
+ * Load signature of a MetaGraph from a SavedModel as `TFSavedModelSignature`.
+ * The loaded `TFSavedModelSignature` can be used to do inference execution.
  *
- * @param path The path of the exported SavedModel
- */
-/**
- * @doc {heading: 'SavedModel', namespace: 'node'}
+ * @param path The path to the SavedModel.
+ * @param tags The tags of the MetaGraph to load.
+ * @param signature The SignatureDef to load.
  */
 export async function loadSavedModel(
     path: string, tags: string[],
     signature: string): Promise<TFSavedModelSignature> {
   ensureTensorflowBackend();
+  // Convert metagraph tags string array to a string.
+  const tagsString = tags.join();
+
   const backend = nodeBackend();
 
   const savedModelInfo = await getMetaGraphsFromSavedModel(path);
@@ -300,16 +313,16 @@ export async function loadSavedModel(
 
   for (const id of Array.from(loadedSavedModelPathMap.keys())) {
     const value = loadedSavedModelPathMap.get(id);
-    if (value[0] === path && value[1] === tags.join()) {
+    if (value[0] === path && value[1] === tagsString) {
       sessionId = value[2];
     }
   }
   if (typeof sessionId === 'undefined') {
-    sessionId = backend.loadSavedModelMetaGraph(path, tags);
+    sessionId = backend.loadSavedModelMetaGraph(path, tagsString);
   }
   const id = tfSavedModelSignatureId++;
   const modelSignature = new TFSavedModelSignature(
       sessionId, id, inputNodeNames, outputNodeNames, backend);
-  loadedSavedModelPathMap.set(id, [path, tags.join(), sessionId]);
+  loadedSavedModelPathMap.set(id, [path, tagsString, sessionId]);
   return modelSignature;
 }

@@ -25,12 +25,10 @@
 #include "tensorflow/c/c_api.h"
 #include "tensorflow/c/eager/c_api.h"
 
-namespace tfnodejs
-{
+namespace tfnodejs {
 
-class TFJSBackend
-{
-public:
+class TFJSBackend {
+ public:
   // Creates, initializes, and returns a TFJSBackend instance. If initialization
   // fails, a nullptr is returned.
   static TFJSBackend *Create(napi_env env);
@@ -72,7 +70,7 @@ public:
   // - saved_model_id (number)
   void DeleteSavedModel(napi_env env, napi_value saved_model_id);
 
-private:
+ private:
   TFJSBackend(napi_env env);
   ~TFJSBackend();
 
@@ -86,10 +84,10 @@ private:
   int32_t next_savedmodel_id_;
   std::string device_name;
 
-public:
+ public:
   bool is_gpu_device;
 };
 
-} // namespace tfnodejs
+}  // namespace tfnodejs
 
-#endif // TF_NODEJS_TFJS_BACKEND_H_
+#endif  // TF_NODEJS_TFJS_BACKEND_H_
