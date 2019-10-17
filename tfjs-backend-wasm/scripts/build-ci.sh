@@ -16,6 +16,8 @@
 
 set -e
 
+apt-get install iwyu
+
 # Install emsdk
 git clone --depth=1 --single-branch https://github.com/emscripten-core/emsdk.git
 cd emsdk
