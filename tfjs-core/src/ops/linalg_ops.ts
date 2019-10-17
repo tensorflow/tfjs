@@ -22,13 +22,17 @@
 import {ENGINE} from '../engine';
 import {dispose} from '../globals';
 import {Tensor, Tensor1D, Tensor2D} from '../tensor';
+import {convertToTensor} from '../tensor_util_env';
+import {TensorLike} from '../types';
 import {assert} from '../util';
 import {eye, squeeze, stack, unstack} from './array_ops';
+import {sub} from './binary_ops';
 import {split} from './concat_split';
+import {logicalAnd, where} from './logical_ops';
 import {norm} from './norm';
 import {op} from './operation';
 import {sum} from './reduction_ops';
-import {tensor, tensor1d, tensor2d} from './tensor_ops';
+import {range, scalar, tensor2d, zeros} from './tensor_ops';
 
 /**
  * Copy a tensor setting everything outside a central band in each innermost
@@ -47,9 +51,15 @@ import {tensor, tensor1d, tensor2d} from './tensor_ops';
  *                        [-2, -1,  0, 1],
  *                        [-3, -2, -1, 0]]);
  * let y = tf.linalg.bandPart(x, 1, -1);
- * y.print();
+ * y.print(); // [[ 0,  1,  2, 3],
+ *            //  [-1,  0,  1, 2],
+ *            //  [ 0, -1,  0, 1],
+ *            //  [ 0, 0 , -1, 0]]
  * let z = tf.linalg.bandPart(x, 2, 1);
- * z.print();
+ * z.print(); // [[ 0,  1,  0, 0],
+ *            //  [-1,  0,  1, 0],
+ *            //  [-2, -1,  0, 1],
+ *            //  [ 0, -2, -1, 0]]
  * ```
  *
  * @param x Rank `k` tensor
@@ -65,30 +75,54 @@ import {tensor, tensor1d, tensor2d} from './tensor_ops';
  *       subheading:'Linear Algebra',
  *       namespace:'linalg'}
  */
-function bandPart_(x: Tensor, numLower: number, numUpper: number): Tensor {
-  return ENGINE.tidy(() => {
-    const totalElements = x.shape.reduce((a, b) => a * b);
-    if (totalElements === 0) {
-      return tensor([], x.shape);
-    }
-    const flattened: Tensor1D = x.flatten();
-    let band: Tensor1D = tensor1d([]);
-    const rows = (x.rank < 2) ? 1 : x.shape[x.rank - 2];
-    const cols = x.shape[x.rank - 1];
+function bandPart_<T extends Tensor>(
+  a: T|TensorLike, numLower: number, numUpper: number
+): T
+{
+  if( numLower%1 !== 0 ){
+    throw new Error(`bandPart(): numLower=${numLower} not an integer.`);
+  }
+  if( numUpper%1 !== 0 ){
+    throw new Error(`bandPart(): numUpper=${numUpper} not an integer.`);
+  }
 
-    for (let i = 0; i < totalElements; i += (rows * cols)) {
-      for (let j = 0; j < rows; ++j) {
-        for (let k = 0; k < cols; ++k) {
-          if ((numLower > -1 && k < j - numLower) ||
-              (numUpper > -1 && k > j + numUpper)) {
-            band = band.concat(tensor([0]));
-          } else {
-            band = band.concat(flattened.slice(i + j * rows + k, 1));
-          }
-        }
-      }
+  return ENGINE.tidy( () => {
+    const $a = convertToTensor(a,'a','bandPart');
+    a = undefined;
+
+    if( $a.rank < 2 ) {
+      throw new Error(`bandPart(): Rank must be at least 2.`);
     }
-    return band.reshape(x.shape);
+
+    const shape = $a.shape,
+          [M,N] = $a.shape.slice(-2);
+
+    if( !(numLower <= M) ) {
+      throw new Error(`bandPart() check failed: numLower <= #rows.`   );
+    }
+    if( !(numUpper <= N) ) {
+      throw new Error(`bandPart() check failed: numUpper <= #columns.`);
+    }
+
+    if( numLower < 0 ) { numLower = M; }
+    if( numUpper < 0 ) { numUpper = N; }
+
+    const i = range(0,M, 1, 'int32').reshape([-1,1]),
+          j = range(0,N, 1, 'int32'),
+         ij = sub(i,j);
+
+    const inBand = logicalAnd(
+      ij.   lessEqual( scalar(+numLower,'int32') ),
+      ij.greaterEqual( scalar(-numUpper,'int32') )
+    );
+
+    const zero = zeros([M,N], $a.dtype);
+
+    return stack(
+      unstack( $a.reshape([-1,M,N]) ).map(
+        mat => where(inBand, mat, zero)
+      )
+    ).reshape(shape) as T;
   });
 }
 
