@@ -163,14 +163,14 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'relu',
     excludes: [
-      'valueAndGradients',  // sum not yet implemented.
-      'gradient',           // sum not yet implemented.
-      'fused',              // Not yet implemented.
-      '5D',                 // Rank 5 is not yet implemented.
-      '6D',                 // Rank 5 is not yet implemented.
-      'propagates NaNs',    // Arrays differ.
-      'derivative',         // sum not yet implemented.
-      'gradient with clones',   // sum not yet implemented.
+      'valueAndGradients',     // sum not yet implemented.
+      'gradient',              // sum not yet implemented.
+      'fused',                 // Not yet implemented.
+      '5D',                    // Rank 5 is not yet implemented.
+      '6D',                    // Rank 5 is not yet implemented.
+      'propagates NaNs',       // Arrays differ.
+      'derivative',            // sum not yet implemented.
+      'gradient with clones',  // sum not yet implemented.
       'derivative where alpha got broadcasted',  // sum not yet implemented.
     ]
   },
@@ -226,13 +226,14 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'slice ',
     excludes: [
-      'square a sliced texture',     // abs not yet implemented.
-      'square a non-sliced texture', // abs not not yet implemented.
-      'flatten a sliced tensor not continuous',   // square not yet implemented.
-      'reshape a sliced 1d into a 2d tensor and', // square not yet implemented.
-      '5D', // Rank 5 is not yet implemented.
-      '6D', // Rank 6 is not yet implemented.
-      'strided slice with', // Rank 6 is not yet implemented.
+      'square a sliced texture',                 // abs not yet implemented.
+      'square a non-sliced texture',             // abs not not yet implemented.
+      'flatten a sliced tensor not continuous',  // square not yet implemented.
+      'reshape a sliced 1d into a 2d tensor and',  // square not yet
+                                                   // implemented.
+      '5D',                  // Rank 5 is not yet implemented.
+      '6D',                  // Rank 6 is not yet implemented.
+      'strided slice with',  // Rank 6 is not yet implemented.
     ]
   },
   {
