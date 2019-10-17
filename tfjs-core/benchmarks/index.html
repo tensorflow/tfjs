@@ -84,9 +84,11 @@ limitations under the License.
       <tbody></tbody>
     </table>
   </div>
-  <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
+  <!-- <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script> -->
+  <script src="./tf-core.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
+  <script src="./tf-converter.js"></script>
+  <!-- <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script> -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@1.0.0/dist/posenet.min.js"></script>
   <script src="./modelConfig.js"></script>
@@ -96,7 +98,7 @@ limitations under the License.
 
     const state = {
       numRuns: 50,
-      benchmark: 'mobilenet',
+      benchmark: 'music',
       run: (v) => {
         runBenchmark();
       },
@@ -167,6 +169,7 @@ limitations under the License.
       await showMsg('Loading the model');
       const start = performance.now();
       model = await benchmark.load();
+
       predict = benchmark.predictFunc();
       isAsync = model.executor != null && model.executor.isControlFlowModel;
 

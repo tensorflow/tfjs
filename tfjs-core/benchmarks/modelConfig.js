@@ -88,6 +88,35 @@ const benchmarks = {
       }
     }
   },
+  'music': {
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/learnjs-data/tfjs_graphmodel/model.json';
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      return (model) => {
+        return model.executeAsync([]);
+      }
+    }
+  },
+  'handtrack': {
+    load: async () => {
+      // Ping skeleton
+      const url =
+          'https://storage.googleapis.com/learnjs-data/handskeleton_3d_handflag_2019_08_19_v0-web_ping/model.json';
+      // Ping detector
+      // const url =
+      //     'https://storage.googleapis.com/learnjs-data/handdetector_hourglass_short_2019_05_02_v1-web_ping/model.json';
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      const zeros = tf.zeros([1, 256, 256, 3]);
+      return (model) => {
+        return model.predict(zeros);
+      }
+    }
+  },
   'USE - batchsize 30': {
     load: async () => {
       return use.load();
