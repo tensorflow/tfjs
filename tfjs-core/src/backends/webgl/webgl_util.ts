@@ -20,7 +20,7 @@ import {env} from '../../environment';
 import * as util from '../../util';
 
 import {getTextureConfig} from './tex_util';
-import {callAndCheck, checkWebGLError} from './webgl_check';
+import {callAndCheck} from './webgl_check';
 import {getContextByVersion} from './webgl_context_manager';
 
 // https://en.wikipedia.org/wiki/Half-precision_floating-point_format
@@ -186,7 +186,7 @@ export function validateTextureSize(width: number, height: number) {
 export function createFramebuffer(
     gl: WebGLRenderingContext, debug: boolean): WebGLFramebuffer {
   return throwIfNull<WebGLFramebuffer>(
-      gl, true, () => gl.createFramebuffer(),
+      gl, debug, () => gl.createFramebuffer(),
       'Unable to create WebGLFramebuffer.');
 }
 
@@ -511,12 +511,6 @@ export function getWebGLDisjointQueryTimerVersion(webGLVersion: number):
 
 export function hasExtension(gl: WebGLRenderingContext, extensionName: string) {
   const ext = gl.getExtension(extensionName);
-  try {
-    checkWebGLError(gl);
-  } catch (e) {
-    console.log('exception getting: ' + extensionName);
-    throw e;
-  }
   return ext != null;
 }
 

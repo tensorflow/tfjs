@@ -23,7 +23,7 @@ import {WEBGL_ENVS} from './backend_webgl_test_registry';
 import * as webgl_context_manager from './webgl_context_manager';
 
 describe('WEBGL_FORCE_F16_TEXTURES', () => {
-  afterAll(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('can be activated via forceHalfFloat utility', () => {
     tf.webgl.forceHalfFloat();
@@ -31,7 +31,7 @@ describe('WEBGL_FORCE_F16_TEXTURES', () => {
   });
 
   it('turns off WEBGL_RENDER_FLOAT32_ENABLED', () => {
-    tf.env().reset();
+    // tf.env().reset();
     tf.webgl.forceHalfFloat();
     expect(tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED')).toBe(false);
   });
@@ -48,11 +48,12 @@ const RENDER_FLOAT16_ENVS = {
 };
 
 describeWithFlags('WEBGL_RENDER_FLOAT32_CAPABLE', RENDER_FLOAT32_ENVS, () => {
-  beforeEach(() => {
-    tf.env().reset();
-  });
+  beforeEach(
+      () => {
+          // tf.env().reset();
+      });
 
-  afterAll(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('should be independent of forcing f16 rendering', () => {
     tf.webgl.forceHalfFloat();
@@ -66,11 +67,12 @@ describeWithFlags('WEBGL_RENDER_FLOAT32_CAPABLE', RENDER_FLOAT32_ENVS, () => {
 });
 
 describeWithFlags('WEBGL_RENDER_FLOAT32_CAPABLE', RENDER_FLOAT16_ENVS, () => {
-  beforeEach(() => {
-    tf.env().reset();
-  });
+  beforeEach(
+      () => {
+          // tf.env().reset();
+      });
 
-  afterAll(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('should be independent of forcing f16 rendering', () => {
     tf.webgl.forceHalfFloat();
@@ -83,8 +85,8 @@ describeWithFlags('WEBGL_RENDER_FLOAT32_CAPABLE', RENDER_FLOAT16_ENVS, () => {
 });
 
 describe('HAS_WEBGL', () => {
-  beforeEach(() => tf.env().reset());
-  afterAll(() => tf.env().reset());
+  // beforeEach(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('false when version is 0', () => {
     tf.env().set('WEBGL_VERSION', 0);
@@ -103,8 +105,8 @@ describe('HAS_WEBGL', () => {
 });
 
 describe('WEBGL_PACK', () => {
-  beforeEach(() => tf.env().reset());
-  afterAll(() => tf.env().reset());
+  // beforeEach(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('true when HAS_WEBGL is true', () => {
     tf.env().set('HAS_WEBGL', true);
@@ -118,8 +120,8 @@ describe('WEBGL_PACK', () => {
 });
 
 describe('WEBGL_PACK_NORMALIZATION', () => {
-  beforeEach(() => tf.env().reset());
-  afterAll(() => tf.env().reset());
+  // beforeEach(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
     tf.env().set('WEBGL_PACK', true);
@@ -133,8 +135,8 @@ describe('WEBGL_PACK_NORMALIZATION', () => {
 });
 
 describe('WEBGL_PACK_CLIP', () => {
-  beforeEach(() => tf.env().reset());
-  afterAll(() => tf.env().reset());
+  // beforeEach(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
     tf.env().set('WEBGL_PACK', true);
@@ -179,8 +181,8 @@ describe('WEBGL_PACK_BINARY_OPERATIONS', () => {
 });
 
 describe('WEBGL_PACK_ARRAY_OPERATIONS', () => {
-  beforeEach(() => tf.env().reset());
-  afterAll(() => tf.env().reset());
+  // beforeEach(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
     tf.env().set('WEBGL_PACK', true);
@@ -194,8 +196,8 @@ describe('WEBGL_PACK_ARRAY_OPERATIONS', () => {
 });
 
 describe('WEBGL_PACK_IMAGE_OPERATIONS', () => {
-  beforeEach(() => tf.env().reset());
-  afterAll(() => tf.env().reset());
+  // beforeEach(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
     tf.env().set('WEBGL_PACK', true);
@@ -209,8 +211,8 @@ describe('WEBGL_PACK_IMAGE_OPERATIONS', () => {
 });
 
 describe('WEBGL_PACK_REDUCE', () => {
-  beforeEach(() => tf.env().reset());
-  afterAll(() => tf.env().reset());
+  // beforeEach(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
     tf.env().set('WEBGL_PACK', true);
@@ -224,8 +226,8 @@ describe('WEBGL_PACK_REDUCE', () => {
 });
 
 describe('WEBGL_LAZILY_UNPACK', () => {
-  beforeEach(() => tf.env().reset());
-  afterAll(() => tf.env().reset());
+  // beforeEach(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
     tf.env().set('WEBGL_PACK', true);
@@ -239,8 +241,8 @@ describe('WEBGL_LAZILY_UNPACK', () => {
 });
 
 describe('WEBGL_CONV_IM2COL', () => {
-  beforeEach(() => tf.env().reset());
-  afterAll(() => tf.env().reset());
+  // beforeEach(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('true when WEBGL_PACK is true', () => {
     tf.env().set('WEBGL_PACK', true);
@@ -255,7 +257,7 @@ describe('WEBGL_CONV_IM2COL', () => {
 
 describe('WEBGL_MAX_TEXTURE_SIZE', () => {
   beforeEach(() => {
-    tf.env().reset();
+    // tf.env().reset();
     webgl_util.resetMaxTextureSize();
 
     spyOn(webgl_context_manager, 'getContextByVersion').and.returnValue({
@@ -270,7 +272,7 @@ describe('WEBGL_MAX_TEXTURE_SIZE', () => {
   });
 
   afterAll(() => {
-    tf.env().reset();
+    // tf.env().reset();
     webgl_util.resetMaxTextureSize();
   });
 
@@ -282,7 +284,7 @@ describe('WEBGL_MAX_TEXTURE_SIZE', () => {
 describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
   let maxTextures: number;
   beforeEach(() => {
-    tf.env().reset();
+    // tf.env().reset();
     webgl_util.resetMaxTexturesInShader();
 
     spyOn(webgl_context_manager, 'getContextByVersion').and.callFake(() => {
@@ -299,7 +301,7 @@ describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
   });
 
   afterAll(() => {
-    tf.env().reset();
+    // tf.env().reset();
     webgl_util.resetMaxTexturesInShader();
   });
 
@@ -315,8 +317,8 @@ describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
 });
 
 describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
-  beforeEach(() => tf.env().reset());
-  afterAll(() => tf.env().reset());
+  // beforeEach(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('disjoint query timer disabled', () => {
     tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', 0);
@@ -344,8 +346,8 @@ describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
 });
 
 describe('WEBGL_SIZE_UPLOAD_UNIFORM', () => {
-  beforeEach(() => tf.env().reset());
-  afterAll(() => tf.env().reset());
+  // beforeEach(() => tf.env().reset());
+  // afterAll(() => tf.env().reset());
 
   it('is 0 when there is no float32 bit support', () => {
     tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);

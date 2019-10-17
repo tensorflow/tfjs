@@ -21,9 +21,9 @@ import {browserContextFactory} from './canvas_util';
 
 describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   it('Returns a valid canvas', () => {
-    const canvas = browserContextFactory(
-                       tf.env().getNumber('WEBGL_VERSION'))
-                       .canvas as (HTMLCanvasElement | OffscreenCanvas);
+    const canvas =
+        browserContextFactory(tf.env().getNumber('WEBGL_VERSION')).canvas as (
+            HTMLCanvasElement | OffscreenCanvas);
     expect(
         (canvas instanceof HTMLCanvasElement) ||
         (canvas instanceof OffscreenCanvas))
@@ -31,8 +31,7 @@ describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   });
 
   it('Returns a valid gl context', () => {
-    const gl = browserContextFactory(
-        tf.env().getNumber('WEBGL_VERSION'));
+    const gl = browserContextFactory(tf.env().getNumber('WEBGL_VERSION'));
     expect(gl.isContextLost()).toBe(false);
   });
 });

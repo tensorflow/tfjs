@@ -23,7 +23,7 @@ import * as util from '../../util';
 import * as gpgpu_util from './gpgpu_util';
 import * as tex_util from './tex_util';
 import {TextureConfig} from './tex_util';
-import {callAndCheck, checkWebGLError} from './webgl_check';
+import {callAndCheck} from './webgl_check';
 import {getActiveContext} from './webgl_context_manager';
 import {WebGL1DisjointQueryTimerExtension, WebGL2DisjointQueryTimerExtension} from './webgl_types';
 import * as webgl_util from './webgl_util';
@@ -104,15 +104,15 @@ export class GPGPUContext {
           'matrix texture with GPGPUContext.deleteMatrixTexture before ' +
           'disposing.');
     }
-    const debug = true;
     const gl = getActiveContext();
-    checkWebGLError(gl);
-    callAndCheck(gl, debug, () => gl.finish());
-    callAndCheck(gl, debug, () => gl.bindFramebuffer(gl.FRAMEBUFFER, null));
-    callAndCheck(gl, debug, () => gl.deleteFramebuffer(this.framebuffer));
-    callAndCheck(gl, debug, () => gl.bindBuffer(gl.ARRAY_BUFFER, null));
-    callAndCheck(gl, debug, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null));
-    callAndCheck(gl, debug, () => gl.deleteBuffer(this.indexBuffer));
+    callAndCheck(gl, this.debug, () => gl.finish());
+    callAndCheck(
+        gl, this.debug, () => gl.bindFramebuffer(gl.FRAMEBUFFER, null));
+    callAndCheck(gl, this.debug, () => gl.deleteFramebuffer(this.framebuffer));
+    callAndCheck(gl, this.debug, () => gl.bindBuffer(gl.ARRAY_BUFFER, null));
+    callAndCheck(
+        gl, this.debug, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null));
+    callAndCheck(gl, this.debug, () => gl.deleteBuffer(this.indexBuffer));
     this.disposed = true;
   }
 
@@ -164,7 +164,7 @@ export class GPGPUContext {
       WebGLTexture {
     this.throwIfDisposed();
     return gpgpu_util.createPackedMatrixTexture(
-        getActiveContext(), true, rows, columns, this.textureConfig);
+        getActiveContext(), this.debug, rows, columns, this.textureConfig);
   }
 
   public deleteMatrixTexture(texture: WebGLTexture) {
@@ -175,7 +175,7 @@ export class GPGPUContext {
       this.outputTexture = null;
     }
     callAndCheck(
-        getActiveContext(), true,
+        getActiveContext(), this.debug,
         () => getActiveContext().deleteTexture(texture));
   }
 
