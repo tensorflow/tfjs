@@ -24,6 +24,8 @@ const result = shell.find('src/cc').filter(
 console.log(`C++ linting files:`);
 console.log(result);
 
-const filenameArgument = result.join(' ');
+const cwd = process.cwd() + '/src/cc'
+console.log(cwd);
 
-exec(`python tools/cpplint.py ${filenameArgument}`);
+const filenameArgument = result.join(' ');
+exec(`python tools/cpplint.py --root ${cwd} ${filenameArgument}`);
