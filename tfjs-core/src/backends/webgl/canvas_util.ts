@@ -52,9 +52,6 @@ export function browserContextFactory(webGLVersion: number):
   }
   const canvas = createCanvas(webGLVersion);
 
-  canvas.addEventListener('webglcontextlost', (ev: Event) => {
-    ev.preventDefault();
-  }, false);
   if (webGLVersion === 1) {
     return (canvas.getContext('webgl', WEBGL_ATTRIBUTES) ||
             canvas.getContext('experimental-webgl', WEBGL_ATTRIBUTES)) as
