@@ -7122,16 +7122,6 @@
    */
   /** @doc {heading: 'Tensors', subheading: 'Transformations'} */
   function reshape_(x, shape) {
-    console.log(x.shape, shape);
-    if(arraysEqual(x.shape, [1, 1, 512, 512]) && arraysEqual(shape, [1, 512])) {
-      console.log("rewrite");
-      shape = [-1, 512];
-    }
-    // [512, 512] (3) [1, 1, 512]
-    if(arraysEqual(x.shape, [512, 512]) && arraysEqual(shape, [1, 1, 512])) {
-      console.log("rewrite");
-      shape = [-1, 512];
-    }
       const $x = convertToTensor(x, 'x', 'reshape', null);
       shape = inferFromImplicitShape(shape, $x.size);
       assert($x.size === sizeFromShape(shape), () => 'new shape and old shape must have the same number of elements.');

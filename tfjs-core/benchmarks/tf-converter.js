@@ -4984,7 +4984,6 @@
         console.log("PROCESS STACK");
         console.log(inputNodes);
         console.log(stack);
-        debugger;
           const promises = [];
           while (stack.length > 0) {
               const item = stack.pop();
