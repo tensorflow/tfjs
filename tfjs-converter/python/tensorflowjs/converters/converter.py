@@ -425,7 +425,7 @@ def get_arg_parser():
       type=str,
       help='Path to the input file or directory. For input format "keras", '
       'an HDF5 (.h5) file is expected. For input format "tensorflow", '
-      'a SavedModel directory, session bundle directory, frozen model file, '
+      'a SavedModel directory, frozen model file, '
       'or TF-Hub module is expected.')
   parser.add_argument(
       common.OUTPUT_PATH,
@@ -439,7 +439,7 @@ def get_arg_parser():
       default=common.TF_SAVED_MODEL,
       choices=set([common.KERAS_MODEL, common.KERAS_SAVED_MODEL,
                    common.TF_SAVED_MODEL, common.TF_HUB_MODEL,
-                   common.TFJS_LAYERS_MODEL]),
+                   common.TFJS_LAYERS_MODEL, common.TF_FROZEN_MODEL]),
       help='Input format. '
       'For "keras", the input path can be one of the two following formats:\n'
       '  - A topology+weights combined HDF5 (e.g., generated with'
@@ -452,7 +452,7 @@ def get_arg_parser():
       'The subfolder is generated automatically by tensorflow when '
       'saving keras model in the SavedModel format. It is usually named '
       'as a Unix epoch time (e.g., 1542212752).\n'
-      'For "tf" formats, a SavedModel, frozen model, session bundle model, '
+      'For "tf" formats, a SavedModel, frozen model, '
       ' or TF-Hub module is expected.')
   parser.add_argument(
       '--%s' % common.OUTPUT_FORMAT,
@@ -508,6 +508,12 @@ def get_arg_parser():
       default=None,
       help='Shard size (in bytes) of the weight files. Currently applicable '
       'only to output_format=tfjs_layers_model.')
+  parser.add_argument(
+      '--output_node_names',
+      type=str,
+      help='The names of the output nodes, separated by commas. E.g., '
+      '"logits,activations". Applicable only if input format is '
+      '"tf_frozen_model".')
   return parser
 
 def convert(arguments):
@@ -607,6 +613,13 @@ def convert(arguments):
         output_format == common.TFJS_GRAPH_MODEL):
     dispatch_tfjs_layers_model_to_tfjs_graph_conversion(
         args.input_path, args.output_path,
+        quantization_dtype=_parse_quantization_bytes(args.quantization_bytes),
+        skip_op_check=args.skip_op_check,
+        strip_debug_ops=args.strip_debug_ops)
+  elif (input_format == common.TF_FROZEN_MODEL and
+        output_format == common.TFJS_GRAPH_MODEL):
+    tf_saved_model_conversion_v2.convert_tf_frozen_model(
+        args.input_path, args.output_node_names, args.output_path,
         quantization_dtype=_parse_quantization_bytes(args.quantization_bytes),
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops)
