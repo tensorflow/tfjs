@@ -533,10 +533,10 @@ describeWithFlags('where', ALL_ENVS, () => {
     const b = tf.zeros([1, 3, 3]);
 
     expectArraysClose(
-      await tf.where(tf.ones([1], 'bool'), a, b).data(),
+        await tf.where(tf.ones([1], 'bool'), a, b).data(),
         [1, 1, 1, 1, 1, 1, 1, 1, 1]);
     expectArraysClose(
-      await tf.where(tf.zeros([1], 'bool'), a, b).data(),
+        await tf.where(tf.zeros([1], 'bool'), a, b).data(),
         [0, 0, 0, 0, 0, 0, 0, 0, 0]);
   });
 
@@ -545,8 +545,9 @@ describeWithFlags('where', ALL_ENVS, () => {
     const a = tf.ones([5, 2, 2]);
     const b = tf.fill([5, 2, 2], 3);
 
-    expectArraysClose(await tf.where(condition, a, b).data(),
-      [1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1]);
+    expectArraysClose(
+        await tf.where(condition, a, b).data(),
+        [1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1]);
   });
 
   it('Tensor3D different a/b shapes', () => {
