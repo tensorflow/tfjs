@@ -35,10 +35,9 @@ export function createCanvas(webGLVersion: number) {
   }
 }
 
-export function cleanupDOMCanvasWebGLRenderingContext(
-    context: WebGLRenderingContext) {
+export function browserContextCleanup(context: WebGLRenderingContext) {
   if (context == null) {
-    throw new Error('Shold not hit this case');
+    throw new Error('Unexpected exception: context to be cleaned up is null!');
   }
   const canvas = context.canvas;
   if (canvas != null && canvas.remove != null) {
@@ -46,7 +45,7 @@ export function cleanupDOMCanvasWebGLRenderingContext(
   }
 }
 
-export function createDOMCanvasWebGLRenderingContext(webGLVersion: number):
+export function browserContextFactory(webGLVersion: number):
     WebGLRenderingContext {
   if (webGLVersion !== 1 && webGLVersion !== 2) {
     throw new Error('Cannot get WebGL rendering context, WebGL is disabled.');

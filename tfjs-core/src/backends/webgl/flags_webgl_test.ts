@@ -283,8 +283,6 @@ describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
   beforeEach(() => {
     tf.env().reset();
     webgl_util.resetMaxTexturesInShader();
-    // Forge the max textures flag between different tests.
-    delete ENV.getFlags()['WEBGL_MAX_TEXTURES_IN_SHADER'];
 
     spyOn(webgl_context_manager, 'getContextByVersion').and.callFake(() => {
       return {

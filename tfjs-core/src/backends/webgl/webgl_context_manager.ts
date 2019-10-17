@@ -16,7 +16,7 @@
  */
 import {ENV} from '../../environment';
 
-import {cleanupDOMCanvasWebGLRenderingContext, createDOMCanvasWebGLRenderingContext} from './canvas_util';
+import {browserContextCleanup, browserContextFactory} from './canvas_util';
 import {checkWebGLError} from './webgl_check';
 
 let count = 0;
@@ -60,7 +60,7 @@ export function getContextByVersion(version: number): WebGLRenderingContext {
   if (contextFactory == null) {
     if (ENV.getBool('IS_BROWSER')) {
       // TODO(kreeger): Consider moving to global space.
-      contextFactory = createDOMCanvasWebGLRenderingContext;
+      contextFactory = browserContextFactory;
     } else {
       throw new Error('Default WebGLRenderingContext factory was not set!');
     }
@@ -86,7 +86,7 @@ function disposeWebGLContext(version: number) {
     if (contextCleanup == null) {
       if (ENV.getBool('IS_BROWSER')) {
         // TODO(kreeger): Consider moving to global space.
-        contextCleanup = cleanupDOMCanvasWebGLRenderingContext;
+        contextCleanup = browserContextCleanup;
       }
     }
     if (contextCleanup != null) {

@@ -17,11 +17,11 @@
 import * as tf from '../../index';
 import {BROWSER_ENVS, describeWithFlags} from '../../jasmine_util';
 
-import {createDOMCanvasWebGLRenderingContext} from './canvas_util';
+import {browserContextFactory} from './canvas_util';
 
 describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   it('Returns a valid canvas', () => {
-    const canvas = createDOMCanvasWebGLRenderingContext(
+    const canvas = browserContextFactory(
                        tf.env().getNumber('WEBGL_VERSION'))
                        .canvas as (HTMLCanvasElement | OffscreenCanvas);
     expect(
@@ -31,7 +31,7 @@ describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   });
 
   it('Returns a valid gl context', () => {
-    const gl = createDOMCanvasWebGLRenderingContext(
+    const gl = browserContextFactory(
         tf.env().getNumber('WEBGL_VERSION'));
     expect(gl.isContextLost()).toBe(false);
   });
@@ -39,7 +39,7 @@ describeWithFlags('canvas_util', BROWSER_ENVS, () => {
 
 describeWithFlags('canvas_util webgl2', {flags: {WEBGL_VERSION: 2}}, () => {
   it('is ok when the user requests webgl 1 canvas', () => {
-    const canvas = createDOMCanvasWebGLRenderingContext(1).canvas;
+    const canvas = browserContextFactory(1).canvas;
     expect((canvas instanceof HTMLCanvasElement)).toBe(true);
   });
 });
