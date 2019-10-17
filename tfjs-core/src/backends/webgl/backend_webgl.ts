@@ -21,8 +21,8 @@ import './flags_webgl';
 import * as device_util from '../../device_util';
 import {ENGINE, MemoryInfo, TimingInfo} from '../../engine';
 import {env} from '../../environment';
-
 import {tidy} from '../../globals';
+import {TensorInfo} from '../../kernel_registry';
 import {warn} from '../../log';
 import {buffer} from '../../ops/array_ops';
 import * as array_ops_util from '../../ops/array_ops_util';
@@ -197,14 +197,6 @@ function mapActivationToShaderProgram(
       activation} has not been implemented for the WebGL backend.`);
 }
 
-// Combines a dataId, a shape, and a dtype without a Tensor object so that
-// programs can be executed without a full Tensor object.
-export interface TensorHandle {
-  dataId: DataId;
-  shape: number[];
-  dtype: DataType;
-}
-
 // Empirically determined constant used to determine size threshold for handing
 // off execution to the CPU.
 const CPU_HANDOFF_SIZE_THRESHOLD = 128;
@@ -336,7 +328,7 @@ export class MathBackendWebGL implements KernelBackend {
       pixels = this.fromPixels2DContext.canvas;
     }
 
-    const tempPixelHandle = this.makeTensorHandle(texShape, 'int32');
+    const tempPixelHandle = this.makeTensorInfo(texShape, 'int32');
     // This is a byte texture with pixels.
     this.texData.get(tempPixelHandle.dataId).usage = TextureUsage.PIXELS;
     this.gpgpu.uploadPixelDataToTexture(
@@ -461,7 +453,7 @@ export class MathBackendWebGL implements KernelBackend {
     }
 
     let buffer = null;
-    let tmpDownloadTarget: TensorHandle;
+    let tmpDownloadTarget: TensorInfo;
 
     if (dtype !== 'complex64' && env().get('WEBGL_BUFFER_SUPPORTED')) {
       // Possibly copy the texture into a buffer before inserting a fence.
@@ -550,7 +542,7 @@ export class MathBackendWebGL implements KernelBackend {
     const outputShape =
         shouldUsePackedProgram ? webgl_util.getShapeAs3D(shape) : shape;
     const tmpTarget =
-        this.makeTensorHandle(outputShape, 'float32') as TensorHandle &
+        this.makeTensorInfo(outputShape, 'float32') as TensorInfo &
         {size: number};
     tmpTarget.size = sizeFromShape(shape);
     this.texData.get(tmpTarget.dataId).usage = TextureUsage.DOWNLOAD;
@@ -930,7 +922,7 @@ export class MathBackendWebGL implements KernelBackend {
         a.shape, [batch, outerShapeA, outerShapeB], transposeA, transposeB,
         hasBias, fusedActivation, hasPreluActivationWeights);
     const output: Tensor3D = this.makePackedOutput(program.outputShape, dtype);
-    const inputs: TensorHandle[] = [a, b];
+    const inputs: TensorInfo[] = [a, b];
     if (bias) {
       inputs.push(bias);
     }
@@ -951,10 +943,10 @@ export class MathBackendWebGL implements KernelBackend {
           binaryop_complex_gpu.COMPLEX_MULTIPLY.IMAG, a.shape, b.shape);
 
       const inputs = [
-        this.makeComplexComponentTensorHandle(a, aData.complexTensors.real),
-        this.makeComplexComponentTensorHandle(a, aData.complexTensors.imag),
-        this.makeComplexComponentTensorHandle(b, bData.complexTensors.real),
-        this.makeComplexComponentTensorHandle(b, bData.complexTensors.imag)
+        this.makeComplexComponentTensorInfo(a, aData.complexTensors.real),
+        this.makeComplexComponentTensorInfo(a, aData.complexTensors.imag),
+        this.makeComplexComponentTensorInfo(b, bData.complexTensors.real),
+        this.makeComplexComponentTensorInfo(b, bData.complexTensors.imag)
       ];
       const real = this.compileAndRun<Tensor>(realProgram, inputs);
       const imag = this.compileAndRun<Tensor>(imagProgram, inputs);
@@ -1515,14 +1507,14 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun<Tensor>(program, [a, b], output);
   }
 
-  private packedUnaryOp(x: TensorHandle, op: string, dtype: DataType) {
+  private packedUnaryOp(x: TensorInfo, op: string, dtype: DataType) {
     const program = new UnaryOpPackedProgram(x.shape, op);
     const output = this.makePackedOutput(program.outputShape, dtype);
     return this.compileAndRun<Tensor>(program, [x], output);
   }
 
   private packedBinaryOp(
-      a: TensorHandle, b: TensorHandle, op: string, dtype: DataType,
+      a: TensorInfo, b: TensorInfo, op: string, dtype: DataType,
       checkOutOfBounds = false) {
     const program =
         new BinaryOpPackedProgram(op, a.shape, b.shape, checkOutOfBounds);
@@ -1544,8 +1536,8 @@ export class MathBackendWebGL implements KernelBackend {
     ].map(complexParts => {
       const [aPart, bPart] = complexParts;
 
-      const aHandle = this.makeComplexComponentTensorHandle(a, aPart);
-      const bHandle = this.makeComplexComponentTensorHandle(b, bPart);
+      const aHandle = this.makeComplexComponentTensorInfo(a, aPart);
+      const bHandle = this.makeComplexComponentTensorInfo(b, bPart);
 
       const program = new BinaryOpProgram(op, a.shape, b.shape);
       const output = this.makeOutput(
@@ -1560,11 +1552,11 @@ export class MathBackendWebGL implements KernelBackend {
     return complex;
   }
 
-  // Returns a TensorHandle with the complex shape and the dataId of the
+  // Returns a TensorInfo with the complex shape and the dataId of the
   // underlying part. We need to do this because a reshaped complex tensor is
   // not reflected in its parts.
-  private makeComplexComponentTensorHandle(
-      complexTensor: Tensor, complexPart: Tensor): TensorHandle {
+  private makeComplexComponentTensorInfo(
+      complexTensor: Tensor, complexPart: Tensor): TensorInfo {
     return {
       dataId: complexPart.dataId,
       dtype: complexPart.dtype,
@@ -1831,8 +1823,8 @@ export class MathBackendWebGL implements KernelBackend {
 
     const program = new ComplexAbsProgram(x.shape);
     const inputs = [
-      this.makeComplexComponentTensorHandle(x, xData.complexTensors.real),
-      this.makeComplexComponentTensorHandle(x, xData.complexTensors.imag),
+      this.makeComplexComponentTensorInfo(x, xData.complexTensors.real),
+      this.makeComplexComponentTensorInfo(x, xData.complexTensors.imag),
     ];
 
     return this.compileAndRun<Tensor>(program, inputs) as T;
@@ -2063,7 +2055,7 @@ export class MathBackendWebGL implements KernelBackend {
     const matmulProgram = new MatMulPackedProgram(
         im2Col.shape, [1, numCols, convInfo.outChannels], transposeA,
         transposeB, hasBias, fusedActivation, hasPreluActivationWeights);
-    const inputs: TensorHandle[] = [im2Col, w2Row];
+    const inputs: TensorInfo[] = [im2Col, w2Row];
     if (bias) {
       inputs.push(bias);
     }
@@ -2101,7 +2093,7 @@ export class MathBackendWebGL implements KernelBackend {
         activation ? mapActivationToShaderProgram(activation, false) : null;
     const program = new Conv2DProgram(
         convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
-    const inputs: TensorHandle[] = [input, filter];
+    const inputs: TensorInfo[] = [input, filter];
     if (bias) {
       inputs.push(bias);
     }
@@ -2479,8 +2471,8 @@ export class MathBackendWebGL implements KernelBackend {
     const imagProgram =
         new FFTProgram(fft_gpu.COMPLEX_FFT.IMAG, x.shape, inverse);
     const inputs = [
-      this.makeComplexComponentTensorHandle(x, xData.complexTensors.real),
-      this.makeComplexComponentTensorHandle(x, xData.complexTensors.imag),
+      this.makeComplexComponentTensorInfo(x, xData.complexTensors.real),
+      this.makeComplexComponentTensorInfo(x, xData.complexTensors.imag),
     ];
 
     const real = this.compileAndRun<Tensor>(realProgram, inputs);
@@ -2542,14 +2534,14 @@ export class MathBackendWebGL implements KernelBackend {
     return backend_util.linspaceImpl(start, stop, num);
   }
 
-  private makeTensorHandle(shape: number[], dtype: DataType): TensorHandle {
+  private makeTensorInfo(shape: number[], dtype: DataType): TensorInfo {
     const dataId = this.write(null /* values */, shape, dtype);
     this.texData.get(dataId).usage = null;
     return {dataId, shape, dtype};
   }
 
   private makeOutput<T extends Tensor>(shape: number[], dtype: DataType): T {
-    const {dataId} = this.makeTensorHandle(shape, dtype);
+    const {dataId} = this.makeTensorInfo(shape, dtype);
     return ENGINE.makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
@@ -2560,17 +2552,17 @@ export class MathBackendWebGL implements KernelBackend {
     return packed as T;
   }
 
-  private unpackTensor<T extends Tensor>(input: T|TensorHandle): T {
+  private unpackTensor(input: TensorInfo): TensorInfo {
     const program = new UnpackProgram(input.shape);
-    const output = this.makeOutput(program.outputShape, input.dtype);
-    return this.compileAndRun(program, [input], output) as T;
+    const output = this.makeTensorInfo(program.outputShape, input.dtype);
+    return this.compileAndRun(program, [input], output);
   }
 
-  private packTensor<T extends Tensor>(input: T|TensorHandle): T {
+  private packTensor(input: TensorInfo): TensorInfo {
     const program = new PackProgram(input.shape);
-    return this.compileAndRun(
-        program, [input], this.makePackedOutput(input.shape, input.dtype), null,
-        true);
+    const outInfo = this.makeTensorInfo(input.shape, input.dtype);
+    this.texData.get(outInfo.dataId).isPacked = true;
+    return this.compileAndRun(program, [input], outInfo, null, true);
   }
 
   private packedReshape<R extends Rank>(input: Tensor, afterShape: ShapeMap[R]):
@@ -2592,15 +2584,15 @@ export class MathBackendWebGL implements KernelBackend {
         .reshape(afterShape);
   }
 
-  private decode(dataId: DataId): TensorHandle {
+  private decode(dataId: DataId): TensorInfo {
     const texData = this.texData.get(dataId);
     const {isPacked, shape, dtype} = texData;
     const shapeAs3D =
         webgl_util.getShapeAs3D(shape) as [number, number, number];
     const denseTexShape = tex_util.getDenseTexShape(shape);
 
-    const tmpTarget = this.makeTensorHandle(shape, 'float32') as TensorHandle &
-        {size: number};
+    const tmpTarget =
+        this.makeTensorInfo(shape, 'float32') as TensorInfo & {size: number};
     this.texData.get(tmpTarget.dataId).isPacked = true;
     this.texData.get(tmpTarget.dataId).dtype = dtype;
     this.texData.get(tmpTarget.dataId).texShape =
@@ -2620,32 +2612,15 @@ export class MathBackendWebGL implements KernelBackend {
     return tmpTarget;
   }
 
-  runWebGLProgram():
-      {
-
-      }
-
-  public compileAndRun<
-      K extends {dtype: DataType, size: number, dataId: {}, shape: number[]}>(
-      program: GPGPUProgram, inputs: TensorHandle[], output?: K,
+  runWebGLProgram(
+      program: GPGPUProgram, inputs: TensorInfo[], output: TensorInfo,
       customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
-      preventEagerUnpackingOfOutput = false): K {
-    if (output == null) {
-      if (program.usesPackedTextures) {
-        output = this.makePackedOutput(program.outputShape, inputs[0].dtype) as
-            {} as K;
-      } else {
-        output =
-            this.makeOutput(program.outputShape, inputs[0].dtype) as {} as K;
-      }
-    }
-
-    if (output.size === 0) {
+      preventEagerUnpackingOfOutput = false): void {
+    if (sizeFromShape(output.shape) === 0) {
       // Short-circuit the computation since the result is empty (has 0 in its
       // shape).
       this.texData.get(output.dataId).values =
           getTypedArrayFromDType(output.dtype as 'float32', 0);
-      return output;
     }
 
     const inputsData: TensorData[] = inputs.map(input => {
@@ -2738,8 +2713,25 @@ export class MathBackendWebGL implements KernelBackend {
     if (!env().getBool('WEBGL_LAZILY_UNPACK') &&
         this.texData.get(output.dataId).isPacked &&
         preventEagerUnpackingOfOutput === false) {
-      return this.unpackTensor(output as {} as Tensor) as {} as K;
+      return this.unpackTensor(output);
     }
+  }
+
+  compileAndRun<K extends TensorInfo>(
+      program: GPGPUProgram, inputs: TensorInfo[], output?: K,
+      customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
+      preventEagerUnpackingOfOutput = false): K {
+    if (output == null) {
+      if (program.usesPackedTextures) {
+        output = this.makePackedOutput(program.outputShape, inputs[0].dtype) as
+            {} as K;
+      } else {
+        output =
+            this.makeOutput(program.outputShape, inputs[0].dtype) as {} as K;
+      }
+    }
+    this.runWebGLProgram(
+        program, inputs, output, customSetup, preventEagerUnpackingOfOutput);
     return output;
   }
 
@@ -2842,8 +2834,7 @@ export class MathBackendWebGL implements KernelBackend {
             new EncodeMatrixProgram(shapeAs3D, [height, width], isByteArray);
       }
 
-      const tempDenseInputHandle =
-          this.makeTensorHandle([height, width], dtype);
+      const tempDenseInputHandle = this.makeTensorInfo([height, width], dtype);
       if (isByteArray) {
         this.texData.get(tempDenseInputHandle.dataId).usage =
             TextureUsage.PIXELS;
@@ -2856,8 +2847,8 @@ export class MathBackendWebGL implements KernelBackend {
           values as TypedArray);
 
       const encodedOutputTarget =
-          this.makeTensorHandle(
-              program.outputShape, tempDenseInputHandle.dtype) as TensorHandle &
+          this.makeTensorInfo(
+              program.outputShape, tempDenseInputHandle.dtype) as TensorInfo &
           {size: number};
       encodedOutputTarget.size = sizeFromShape(program.outputShape);
       this.texData.get(encodedOutputTarget.dataId).isPacked = isPacked;
