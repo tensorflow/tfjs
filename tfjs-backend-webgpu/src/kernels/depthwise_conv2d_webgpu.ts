@@ -58,7 +58,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
 
       void writeResult(int batch, int row, int col, int chan, float value) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        if (coordIsValid(coord, outShape)) {
+        if (coordsInBounds(coord, outShape)) {
           setOutput(batch, row, col, chan, value);
         }
       }

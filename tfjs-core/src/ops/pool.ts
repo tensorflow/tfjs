@@ -90,7 +90,7 @@ function maxPoolImpl_<T extends Tensor3D|Tensor4D>(
     };
   };
 
-  const res = ENGINE.runKernel((backend, save) => {
+  const res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.maxPool(x4D, convInfo);
     save([x4D, y]);
     return y;
@@ -192,7 +192,7 @@ function avgPoolImpl_<T extends Tensor3D|Tensor4D>(
       x: () => avgPoolBackprop(dy, x4D, filterSize, strides, dilations, pad)
     };
   };
-  let res = ENGINE.runKernel(
+  let res = ENGINE.runKernelFunc(
       backend => backend.avgPool(x4D, convInfo), {x: x4D}, grad);
   res = res.cast($x.dtype);
   if (reshapedTo4D) {
@@ -375,7 +375,7 @@ function maxPoolBackprop(
 
   const convInfo = conv_util.computePool2DInfo(
       $input.shape, filterSize, strides, dilations, pad, dimRoundingMode);
-  const res = ENGINE.runKernel(
+  const res = ENGINE.runKernelFunc(
       backend => backend.maxPoolBackprop($dy, $input, $output, convInfo),
       {$dy, $input});
   return res;
@@ -436,7 +436,7 @@ function avgPoolBackprop<T extends Tensor3D|Tensor4D>(
 
   const convInfo = conv_util.computePool2DInfo(
       input4D.shape, filterSize, strides, dilations, pad);
-  const res = ENGINE.runKernel(
+  const res = ENGINE.runKernelFunc(
       backend => backend.avgPoolBackprop(dy4D, input4D, convInfo),
       {dy4D, input4D});
   if (reshapedTo4D) {
@@ -575,7 +575,7 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
     };
   };
 
-  let res = ENGINE.runKernel(
+  let res = ENGINE.runKernelFunc(
       backend => backend.avgPool3d(x5D, convInfo), {x: x5D}, grad);
   res = res.cast(x5D.dtype);
   if (reshapedTo5D) {
@@ -658,7 +658,7 @@ function avgPool3dBackprop<T extends Tensor4D|Tensor5D>(
 
   const convInfo = conv_util.computePool3DInfo(
       input5D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
-  const res = ENGINE.runKernel(
+  const res = ENGINE.runKernelFunc(
       backend => backend.avgPool3dBackprop(dy5D, input5D, convInfo),
       {dy5D, input5D});
   if (reshapedTo5D) {
@@ -761,7 +761,7 @@ function maxPool3d_<T extends Tensor4D|Tensor5D>(
     };
   };
 
-  const res = ENGINE.runKernel((backend, save) => {
+  const res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.maxPool3d(x5D, convInfo);
     save([x5D, y]);
     return y;
@@ -857,10 +857,10 @@ function maxPool3dBackprop<T extends Tensor4D|Tensor5D>(
 
   const convInfo = conv_util.computePool3DInfo(
       input5D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
-  const res = ENGINE.runKernel(
+  const res = ENGINE.runKernelFunc(
       backend => backend.maxPool3dBackprop(dy5D, input5D, output5D, convInfo),
       {dy5D, input5D});
-  
+
   if (reshapedTo5D) {
     return res.as4D(res.shape[1], res.shape[2], res.shape[3], res.shape[4]) as
         T;

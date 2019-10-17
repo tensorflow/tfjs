@@ -70,6 +70,7 @@ export class BackendWasm extends KernelBackend {
 
   disposeData(dataId: DataId) {
     const data = this.dataIdMap.get(dataId);
+    this.wasm._free(data.memoryOffset);
     this.wasm.tfjs.disposeData(data.id);
     this.dataIdMap.delete(dataId);
   }
@@ -145,6 +146,18 @@ export class BackendWasm extends KernelBackend {
     return out;
   }
 
+  prelu<T extends Tensor>(x: T, weights: T): T {
+    const xId = this.dataIdMap.get(x.dataId).id;
+    const weightsId = this.dataIdMap.get(weights.dataId).id;
+
+    const out = this.makeOutput(x.shape, 'float32') as T;
+    const outId = this.dataIdMap.get(out.dataId).id;
+
+    this.wasm.tfjs.prelu(xId, x.size, weightsId, outId);
+
+    return out;
+  }
+
   reshape<T extends Tensor, R extends Rank>(x: T, newShape: ShapeMap[R]):
       Tensor<R> {
     return Tensor.make(newShape, {dataId: x.dataId}, x.dtype);
@@ -217,6 +230,8 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
             'number', 'number', 'number', 'number', 'number', 'number',
             'number', 'number', 'number', 'number', 'number', 'number', 'number'
           ]),
+      prelu: wasm.cwrap(
+          'prelu', voidReturnType, ['number', 'number', 'number', 'number']),
     };
     wasm.onRuntimeInitialized = () => resolve({wasm});
   });
