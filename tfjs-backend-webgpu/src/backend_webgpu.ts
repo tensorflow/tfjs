@@ -39,6 +39,7 @@ import {PadProgram} from './kernels/pad_webgpu';
 import {ResizeBilinearProgram} from './kernels/resize_bilinear_webgpu';
 import {SelectProgram} from './kernels/select_webgpu';
 import {SliceProgram} from './kernels/slice_webgpu';
+import {TransposeSharedProgram} from './kernels/transpose_shared_webgpu';
 import {TransposeProgram} from './kernels/transpose_webgpu';
 import * as unary_op from './kernels/unary_op_webgpu';
 import {UnaryOpProgram} from './kernels/unary_op_webgpu';
@@ -850,6 +851,10 @@ export class WebGPUBackend extends KernelBackend {
   transpose<T extends Tensor>(x: T, perm: number[]): T {
     if (this.shouldExecuteOnCPU([x])) {
       return this.cpuBackend.transpose(x, perm);
+    }
+    if (x.shape.length === 2 && perm[0] === 1 && perm[1] === 0) {
+      const program = new TransposeSharedProgram(x.shape, perm);
+      return this.compileAndRun(program, [x]);
     }
     const program = new TransposeProgram(x.shape, perm);
     return this.compileAndRun(program, [x]);
