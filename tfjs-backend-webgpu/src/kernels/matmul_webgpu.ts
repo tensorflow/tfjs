@@ -76,11 +76,27 @@ export class MatMulProgram implements WebGPUProgram {
   variableNames = ['A', 'B'];
   workGroupSize: [number, number, number] = [16, 16, 1];  // Must be square.
 
-  constructor(outputShape: [number, number, number]) {
+  constructor(aShape: [number, number, number], outputShape: [
+    number, number, number
+  ]) {
+    const bShape = [outputShape[0], aShape[2], outputShape[2]];
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [1], y: [2], z: [0]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
+
+    const workFitsEvenlyInA =
+        aShape.slice(1).every((d, i) => d % this.workGroupSize[i] === 0);
+    const workFitsEvenlyInB =
+        bShape.slice(1).every((d, i) => d % this.workGroupSize[i] === 0);
+    const sampleA = workFitsEvenlyInA ?
+        `A[row * dimInner + col]` :
+        `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
+          A[row * dimInner + col] : 0`;
+    const sampleB = workFitsEvenlyInB ?
+        `B[row * dimBOuter + col]` :
+        `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
+          B[row * dimBOuter + col] : 0`;
 
     this.userCode = `
       int dimAOuter = aShape[1];
@@ -90,11 +106,11 @@ export class MatMulProgram implements WebGPUProgram {
       ${makeMatMulSource()}
 
       float mm_readA(int row, int col) {
-        return A[row * dimInner + col];
+        return ${sampleA};
       }
 
       float mm_readB(int row, int col) {
-        return B[row * dimBOuter + col];
+        return ${sampleB};
       }
 
       void mm_write(int row, int col, float value) {

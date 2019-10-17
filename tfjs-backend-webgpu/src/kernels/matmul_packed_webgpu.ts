@@ -123,9 +123,9 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.workPerThread = workPerThread;
 
     const workFitsEvenlyInA =
-        aShape.slice(1).every(d => d % this.workPerThread === 0);
+        aShape.slice(1).every((d, i) => d % this.workGroupSize[i] === 0);
     const workFitsEvenlyInB =
-        bShape.slice(1).every(d => d % this.workPerThread === 0);
+        bShape.slice(1).every((d, i) => d % this.workGroupSize[i] === 0);
     const sampleA = workFitsEvenlyInA ?
         `A[row * dimInner + col]` :
         `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
