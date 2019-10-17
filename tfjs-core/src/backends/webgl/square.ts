@@ -31,8 +31,5 @@ registerKernel('Square', 'webgl', ({inputs, storage, save}) => {
   save([x]);
 
   const program = new UnaryOpProgram(x.shape, SQUARE);
-  return this.compileAndRun(program, [x]);
-
-  const dataId = storeData(cpuStorage.data, x.dtype, newValues);
-  return {dataId, shape: x.shape, dtype: x.dtype};
+  return webglStorage.runWebGLProgram(program, [x], x.dtype);
 });

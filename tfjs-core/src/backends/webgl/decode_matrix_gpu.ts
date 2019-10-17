@@ -23,6 +23,7 @@ export class DecodeMatrixProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
   outputShape: [number, number, number];
+  usesPackedTextures = true;
 
   constructor(outputShape: [number, number, number], texShape: [
     number, number
