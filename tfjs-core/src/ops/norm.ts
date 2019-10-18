@@ -25,7 +25,7 @@ import * as axis_util from './axis_util';
 import {div} from './binary_ops';
 import {where} from './logical_ops';
 import {op} from './operation';
-import {ones, scalar} from './tensor_ops';
+import {ones} from './tensor_ops';
 
 /**
  * Computes the norm of scalar, vectors, and matrices.
@@ -97,7 +97,7 @@ function normImpl(
             return where( xMax.equal(0), one, xMax );
           }); // <- div. by largest absolute value prevents under- & overflow
 
-    const  unscaled = div(xAbs,xMax).pow(scalar(2, 'int32')).sum(axis).sqrt();
+    const  unscaled = div(xAbs,xMax).square().sum(axis).sqrt();
     return unscaled.mul( xMax.reshape(unscaled.shape) );
   };
 
