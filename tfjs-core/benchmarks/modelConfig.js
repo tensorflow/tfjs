@@ -100,6 +100,20 @@ const benchmarks = {
       }
     }
   },
+  'music_decode_input': {
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/learnjs-data/tfjs_graphmodel_decode_input/model.json';
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      return (model) => {
+        return model.executeAsync(
+            {'decode_length': tf.scalar(100, 'int32')},
+            ['transformer/strided_slice']);
+      }
+    }
+  },
   'handtrack': {
     load: async () => {
       // Ping skeleton

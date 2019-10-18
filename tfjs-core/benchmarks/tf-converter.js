@@ -3311,7 +3311,7 @@
        * Close the current TensorArray.
        */
       clearAndClose() {
-          // this.tensors.forEach(tensor => tensor.tensor.dispose());
+          this.tensors.forEach(tensor => tensor.tensor.dispose());
           this.tensors = [];
           this.closed_ = true;
       }
@@ -4885,7 +4885,7 @@
                           if (tensor && !tensorsToKeep.has(tensor.id)) {
                               const count = intermediateTensorConsumerCount[tensor.id];
                               if (count === 1) {
-                                  // tensor.dispose();
+                                  tensor.dispose();
                                   delete intermediateTensorConsumerCount[tensor.id];
                               }
                               else if (count != null) {
@@ -4918,6 +4918,7 @@
           // order, while without control flow the execution order is pre-determined
           // in the compile method.
           const tensorMap = await this.executeWithControlFlow(inputs, context, outputs);
+          window.tensorMap = tensorMap;
           const results = outputs.map(name => getTensor(name, tensorMap, context));
           // dispose all the intermediate tensors
           const outputIds = new Set(results.map(t => t.id));
@@ -4928,7 +4929,7 @@
                   if (tensor && !tensor.isDisposed && !outputIds.has(tensor.id) &&
                       !inputIds.has(tensor.id) &&
                       this.weightIds.indexOf(tensor.id) === -1) {
-                      // tensor.dispose();
+                      tensor.dispose();
                   }
               });
           });
@@ -4941,6 +4942,10 @@
        * @param context the execution context object for current execution.
        */
       async executeWithControlFlow(inputs, context, outputNames) {
+        const problemNode = this.graph.nodes['transformer/while/Reshape/shape'];
+        problemNode.inputNames = problemNode.inputNames.slice(0, 3);
+        problemNode.inputs = problemNode.inputs.slice(0, 3);
+
           const names = Object.keys(inputs);
           const inputNodes = names.map(name => this.graph.nodes[name]);
           const outputNodes = outputNames.map(name => this.graph.nodes[parseNodeName(name)[0]]);
@@ -5053,8 +5058,8 @@
        * Releases the memory used by the weight tensors.
        */
       dispose() {
-          // Object.keys(this.weightMap)
-          //     .forEach(key => this.weightMap[key].forEach(tensor => tensor.dispose()));
+          Object.keys(this.weightMap)
+              .forEach(key => this.weightMap[key].forEach(tensor => tensor.dispose()));
       }
       checkInputShapeAndType(inputs) {
           Object.keys(inputs).forEach(name => {

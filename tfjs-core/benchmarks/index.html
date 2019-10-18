@@ -96,10 +96,17 @@ limitations under the License.
   <script>
     'use strict';
 
+    // Needed for the music graphModel that takes decode_length as input.
+    tf.registerOp('BroadcastTo', node => {
+      const x = node.inputs[0];
+      const shape = node.inputs[1];
+      return x.expandDims(0);
+    });
+
     const nodeNameToTensorMapKey = {};
 
     const state = {
-      numRuns: 50,
+      numRuns: 1,
       benchmark: 'music',
       run: (v) => {
         runBenchmark();
@@ -161,6 +168,10 @@ limitations under the License.
       if (res instanceof tf.Tensor) {
         res = await res.data();
       }
+
+      console.log("FINISHED PREDICTION!");
+      console.log(res);
+      debugger;
 
       const elapsed = performance.now() - start;
       await showMsg(null);
