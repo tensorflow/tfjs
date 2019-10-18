@@ -21,6 +21,18 @@ import {DataId, Tensor} from '../../tensor';
 import {BackendValues, DataType} from '../../types';
 import * as util from '../../util';
 
+export enum PackingScheme {
+  /**
+   * All values in a single texel are densely packed without any constraints.
+   */
+  DENSE,
+  /**
+   * All values in a single texel must share the same batch, but can be from
+   * adjacent rows/columns.
+   */
+  SHARED_BATCH
+}
+
 export enum TextureUsage {
   RENDER,
   UPLOAD,

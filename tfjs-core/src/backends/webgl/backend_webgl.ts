@@ -545,9 +545,7 @@ export class MathBackendWebGL implements KernelBackend {
         new EncodeFloatPackedProgram(outputShape as [number, number, number]) :
         new EncodeFloatProgram(outputShape);
     const output = this.runWebGLProgram(
-        program, [{shape: outputShape, dtype, dataId}], 'float32',
-        null /* customSetup */, false /* preventEagerUnpackingOfOutput */, null,
-        TextureUsage.DOWNLOAD);
+        program, [{shape: outputShape, dtype, dataId}], 'float32');
     const tmpData = this.texData.get(output.dataId);
     const vals =
         this.gpgpu
@@ -2493,7 +2491,8 @@ export class MathBackendWebGL implements KernelBackend {
     const program = new PackProgram(input.shape);
     const preventEagerUnpackingOutput = true;
     return this.runWebGLProgram(
-        program, [input], input.dtype, null, preventEagerUnpackingOutput);
+        program, [input], input.dtype, null /* customSetup */,
+        preventEagerUnpackingOutput);
   }
 
   private packedReshape(input: TensorInfo, afterShape: number[]): TensorInfo {
@@ -2513,7 +2512,8 @@ export class MathBackendWebGL implements KernelBackend {
     const program = new ReshapePackedProgram(afterShapeAs3D, input3DShape);
     const preventEagerUnpackingOfOutput = true;
     const output = this.runWebGLProgram(
-        program, [input3D], input.dtype, null, preventEagerUnpackingOfOutput);
+        program, [input3D], input.dtype, null /* customSetup */,
+        preventEagerUnpackingOfOutput);
     return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
   }
 
@@ -2522,36 +2522,37 @@ export class MathBackendWebGL implements KernelBackend {
     const {isPacked, shape, dtype} = texData;
     const shapeAs3D =
         webgl_util.getShapeAs3D(shape) as [number, number, number];
-    const denseTexShape = tex_util.getDenseTexShape(shape);
-    // Decode creates a densely packed output, so we explicitly set texShape
-    // so it doesn't get assigned later according to our typical packing scheme
-    // wherein a single texel can only contain values from adjacent rows/cols.
-    const outTexShape = denseTexShape.map(d => d * 2) as [number, number];
     let program;
     if (isPacked) {
-      program = new DecodeMatrixPackedProgram(shapeAs3D, denseTexShape);
+      program = new DecodeMatrixPackedProgram(shapeAs3D);
     } else {
-      program = new DecodeMatrixProgram(shapeAs3D, denseTexShape);
+      program = new DecodeMatrixProgram(shapeAs3D);
     }
     const preventEagerUnpackingOfOutput = true;
     const out = this.runWebGLProgram(
-        program, [{shape: shapeAs3D, dtype, dataId}], dtype, null,
-        preventEagerUnpackingOfOutput, outTexShape);
+        program, [{shape: shapeAs3D, dtype, dataId}], dtype,
+        null /* customSetup */, preventEagerUnpackingOfOutput);
     return {dtype, shape, dataId: out.dataId};
   }
 
   runWebGLProgram(
       program: GPGPUProgram, inputs: TensorInfo[], outputDtype: DataType,
       customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
-      preventEagerUnpackingOfOutput = false, outTexShape?: [number, number],
-      outTexUsage?: TextureUsage): TensorInfo {
+      preventEagerUnpackingOfOutput = false): TensorInfo {
     const output = this.makeTensorInfo(program.outputShape, outputDtype);
     const outData = this.texData.get(output.dataId);
     if (program.packedOutput) {
       outData.isPacked = true;
     }
-    outData.texShape = outTexShape;
-    outData.usage = outTexUsage;
+    if (program.packingScheme === tex_util.PackingScheme.DENSE) {
+      const texelShape = tex_util.getDenseTexShape(program.outputShape);
+      // For a densely packed output, we explicitly set texShape
+      // so it doesn't get assigned later according to our typical packing
+      // scheme wherein a single texel can only contain values from adjacent
+      // rows/cols.
+      outData.texShape = texelShape.map(d => d * 2) as [number, number];
+    }
+    outData.usage = program.outTexUsage;
     if (sizeFromShape(output.shape) === 0) {
       // Short-circuit the computation since the result is empty (has 0 in its
       // shape).
@@ -2658,12 +2659,11 @@ export class MathBackendWebGL implements KernelBackend {
   compileAndRun<K extends TensorInfo>(
       program: GPGPUProgram, inputs: TensorInfo[], outputDtype?: DataType,
       customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
-      preventEagerUnpackingOfOutput = false,
-      outTexShape?: [number, number]): K {
+      preventEagerUnpackingOfOutput = false): K {
     outputDtype = outputDtype || inputs[0].dtype;
     const outInfo = this.runWebGLProgram(
         program, inputs, outputDtype, customSetup,
-        preventEagerUnpackingOfOutput, outTexShape);
+        preventEagerUnpackingOfOutput);
     return ENGINE.makeTensorFromDataId(
                outInfo.dataId, outInfo.shape, outInfo.dtype) as {} as K;
   }

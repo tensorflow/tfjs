@@ -18,6 +18,7 @@
 import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
+import {getDenseTexShape, PackingScheme} from './tex_util';
 
 export class DecodeMatrixProgram implements GPGPUProgram {
   variableNames = ['A'];
@@ -25,10 +26,10 @@ export class DecodeMatrixProgram implements GPGPUProgram {
   outputShape: [number, number, number];
   packedInputs = false;
   packedOutput = true;
+  packingScheme = PackingScheme.DENSE;
 
-  constructor(outputShape: [number, number, number], texShape: [
-    number, number
-  ]) {
+  constructor(outputShape: [number, number, number]) {
+    const texShape = getDenseTexShape(outputShape);
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
 

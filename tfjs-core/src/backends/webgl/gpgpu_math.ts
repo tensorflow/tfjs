@@ -16,7 +16,6 @@
  */
 
 import {env} from '../../environment';
-
 import {Tensor} from '../../tensor';
 import {TypedArray} from '../../types';
 import * as util from '../../util';
@@ -24,16 +23,26 @@ import * as util from '../../util';
 import {GPGPUContext} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';
 import {InputInfo, ShapeInfo} from './shader_compiler';
-import {TextureData} from './tex_util';
+import {PackingScheme, TextureData, TextureUsage} from './tex_util';
 
 export interface GPGPUProgram {
   variableNames: string[];
   outputShape: number[];
   userCode: string;
-  /** If true, the program expects packed input textures. Defaults to false. */
+  /** If true, this program expects packed input textures. Defaults to false. */
   packedInputs?: boolean;
   /** If true, this program produces a packed texture. Defaults to false. */
   packedOutput?: boolean;
+  /**
+   * Affects what type of texture we allocate for the output. Defaults to
+   * `TextureUsage.RENDER`.
+   */
+  outTexUsage?: TextureUsage;
+  /**
+   * The type of scheme to use when packing texels for the output values.
+   * See `PackingScheme` for details. Defaults to `PackingScheme.SHARED_BATCH`.
+   */
+  packingScheme?: PackingScheme;
 }
 
 export interface GPGPUBinary {
