@@ -231,6 +231,15 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
 });
 
 describeWithFlags('Custom window size', WEBGL_ENVS, () => {
+  beforeAll(() => {
+    const kernel = tf.getKernel('Square', 'webgl');
+    tf.registerKernel('Square', 'custom-webgl', kernel);
+  });
+
+  afterAll(() => {
+    tf.unregisterKernel('Square', 'custom-wegbl');
+  });
+
   it('Set screen area to be 1x1', () => {
     // This will set the screen size to 1x1 to make sure the page limit is
     // very small.
@@ -238,8 +247,6 @@ describeWithFlags('Custom window size', WEBGL_ENVS, () => {
         .and.returnValue({height: 1, width: 1});
 
     tf.registerBackend('custom-webgl', () => new MathBackendWebGL());
-    const kernel = tf.getKernel('Square', 'webgl');
-    tf.registerKernel('Square', 'custom-webgl', kernel);
     tf.setBackend('custom-webgl');
 
     // Allocate ~40KB.
@@ -474,6 +481,10 @@ describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
     tf.env().set('WEBGL_CPU_FORWARD', false);
     const kernel = tf.getKernel('Square', 'webgl');
     tf.registerKernel('Square', 'cache-on-cpu', kernel);
+  });
+
+  afterAll(() => {
+    tf.unregisterKernel('Square', 'cache-on-cpu');
   });
 
   it('caches on cpu after async read', async () => {
