@@ -75,8 +75,10 @@ registerBackend(proxyBackendName, async () => proxyBackend);
 const kernelRegistry = getKernelRegistry();
 for (const key in kernelRegistry) {
   const [backendName, kernelName] = key.split('_');
-  const kernel = getKernel(kernelName, backendName);
-  registerKernel(kernelName, proxyBackendName, kernel);
+  if (backendName === 'cpu') {
+    const kernel = getKernel(kernelName, backendName);
+    registerKernel(kernelName, proxyBackendName, kernel);
+  }
 }
 
 setTestEnvs([{
