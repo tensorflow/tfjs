@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -85,15 +85,13 @@ export class MatMulProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    const workFitsEvenlyInA =
-        aShape.slice(1).every((d, i) => d % this.workGroupSize[i] === 0);
-    const workFitsEvenlyInB =
-        bShape.slice(1).every((d, i) => d % this.workGroupSize[i] === 0);
-    const sampleA = workFitsEvenlyInA ?
+    const sampleA = tilesFitEvenlyIntoShape(
+                        this.workGroupSize.slice(0, 2), aShape.slice(1)) ?
         `A[row * dimInner + col]` :
         `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
           A[row * dimInner + col] : 0`;
-    const sampleB = workFitsEvenlyInB ?
+    const sampleB = tilesFitEvenlyIntoShape(
+                        this.workGroupSize.slice(0, 2), bShape.slice(1)) ?
         `B[row * dimBOuter + col]` :
         `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
           B[row * dimBOuter + col] : 0`;
