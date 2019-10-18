@@ -23,37 +23,34 @@ import {norm} from './norm';
 describeWithFlags('norm', ALL_ENVS, () => {
   it('computes Euclidean norm for 1D tensors correctly', async () => {
     const vectors = [
-      [13.37],
-      [2, 3],
-      [7.1, 3.3, 13.7],
-      [9.1, 17, 0.1, 0.0, 8.7],
+      [3.7],
+      [4.2, 80.085, 13.37],
       [0],
-      [0,0],
-      [0,0,0]
+      [0,0]
     ];
+    Object.freeze(vectors);
 
-    for( const p of ['euclidean', 2] as Array<'euclidean' | 2> ) {
-    for( const vec  of vectors ) {
-    for( const axis of [undefined, 0, [0]] ) {
+    for( const vec of vectors )
+    {
       const ref = Math.hypot(...vec);
+      Object.freeze(ref);
 
-      for( const keepDims of [undefined,false] ) {
-        const n = norm(vec, p, axis, keepDims);
-        expectArraysClose(await n.array(), ref);
-      }
+      for( const p of ['euclidean', 2] as Array<'euclidean' | 2> ) {
+      for( const axis of [undefined, 0, [0]] ) {
+        for( const keepDims of [undefined,false] ) {
+          const n = norm(vec, p, axis, keepDims);
+          expectArraysClose(await n.array(), ref);
+        }
 
-      const n = norm(vec, p, axis, true);
-      expectArraysClose(await n.array(), [ref]);
-    }}}
+        const n = norm(vec, p, axis, true);
+        expectArraysClose(await n.array(), [ref]);
+      }}
+    }
   });
 
   it('computes Euclidean norm for 2D tensors correctly', async () => {
     const matrices = [
       [[0]],
-
-      [[13.37]],
-
-      [[4.2, 13.37]],
 
       [[ 4.2 ],
        [13.37]],
@@ -64,34 +61,40 @@ describeWithFlags('norm', ALL_ENVS, () => {
 
     for( const p of ['euclidean', 2] as Array<'euclidean' | 2> ) {
     for( const mat of matrices ) {
-      for( const axis of [-1,1,[-1],[1]] ) {
+      {
         const ref = mat.map( row => Math.hypot(...row) );
+        Object.freeze(ref);
 
-        for( const keepDims of [undefined,false] ) {
-          const n = norm(mat, p, axis, keepDims);
-          expectArraysClose(await n.array(), ref);
+        for( const axis of [1,[-1]] ) {
+          for( const keepDims of [undefined,false] ) {
+            const n = norm(mat, p, axis, keepDims);
+            expectArraysClose(await n.array(), ref);
+          }
+
+          const n = norm(mat, p, axis, true);
+          expectArraysClose(
+            await n.array(),
+            ref.map(x => [x])
+          );
         }
-
-        const n = norm(mat, p, axis, true);
-        expectArraysClose(
-          await n.array(),
-          ref.map(x => [x])
-        );
       }
 
-      for( const axis of [-2,0,[-2],[0]] ) {
+      {
         const ref = mat.reduce(
           (norm,row) => norm.map((x,i) => Math.hypot(x,row[i])),
           /*init=*/mat[0].map(() => 0)
         );
+        Object.freeze(ref);
 
-        for( const keepDims of [undefined,false] ) {
-          const n = norm(mat, p, axis, keepDims);
-          expectArraysClose(await n.array(), ref);
+        for( const axis of [-2,[0]] ) {
+          for( const keepDims of [undefined,false] ) {
+            const n = norm(mat, p, axis, keepDims);
+            expectArraysClose(await n.array(), ref);
+          }
+
+          const n = norm(mat, p, axis, true);
+          expectArraysClose(await n.array(), [ref]);
         }
-
-        const n = norm(mat, p, axis, true);
-        expectArraysClose(await n.array(), [ref]);
       }
     }}
   });
@@ -108,65 +111,68 @@ describeWithFlags('norm', ALL_ENVS, () => {
         [0.0, 3.2]],
        [[4.7, 6.1],
         [0.0, 0.0],
-        [2.5, 8.3]]],
-
-      [[[ 0.0 ]],
-       [[13.37]]],
-
-      [[[ 0.0,  0.0 ]],
-       [[13.37, 0.0 ]]]
+        [2.5, 8.3]]]
     ];
 
     for( const p of ['euclidean', 2] as Array<'euclidean' | 2> ) {
     for( const arr of arrays ) {
-      for( const axis of [-1,2,[-1],[2]] ) {
+      {
         const ref = arr.map( mat =>
                     mat.map( row => Math.hypot(...row) ));
+        Object.freeze(ref);
 
-        for( const keepDims of [undefined,false] ) {
-          const n = norm(arr, p,  axis, keepDims);
-          expectArraysClose(await n.array(), ref);
+        for( const axis of [2,[-1]] ) {
+          for( const keepDims of [undefined,false] ) {
+            const n = norm(arr, p,  axis, keepDims);
+            expectArraysClose(await n.array(), ref);
+          }
+
+          const n = norm(arr, p, axis, true);
+          expectArraysClose(
+            await n.array(),
+            arr.map( mat =>
+            mat.map( row => [Math.hypot(...row)] ))
+          );
         }
-
-        const n = norm(arr, p, axis, true);
-        expectArraysClose(
-          await n.array(),
-          arr.map( mat =>
-          mat.map( row => [Math.hypot(...row)] ))
-        );
       }
 
-      for( const axis of [-2,1,[-2],[1]] )
       {
         const ref = arr.map( mat => mat.reduce(
           (norm,row) => norm.map((x,i) => Math.hypot(x,row[i])),
           /*init=*/mat[0].map(() => 0)
         ));
+        Object.freeze(ref);
 
-        for( const keepDims of [undefined,false] ) {
-          const n = norm(arr, p,  axis, keepDims);
-          expectArraysClose(await n.array(), ref);
+        for( const axis of [-2,[1]] )
+        {
+          for( const keepDims of [undefined,false] ) {
+            const n = norm(arr, p,  axis, keepDims);
+            expectArraysClose(await n.array(), ref);
+          }
+
+          const n = norm(arr, p, axis, true);
+          expectArraysClose( await n.array(), ref.map(x => [x]) );
         }
-
-        const n = norm(arr, p, axis, true);
-        expectArraysClose( await n.array(), ref.map(x => [x]) );
       }
 
-      for( const axis of [-3,0,[-3],[0]] )
       {
         const ref = arr.reduce(
           (nrm,mat) => nrm.map( (row,i) =>
                        row.map( (nij,j) => Math.hypot(nij,mat[i][j]) )),
           /*init=*/arr[0].map( row => row.map(() => 0) )
         );
+        Object.freeze(ref);
 
-        for( const keepDims of [undefined,false] ) {
-          const n = norm(arr, p,  axis, keepDims);
-          expectArraysClose(await n.array(), ref);
+        for( const axis of [0,[-3]] )
+        {
+          for( const keepDims of [undefined,false] ) {
+            const n = norm(arr, p,  axis, keepDims);
+            expectArraysClose(await n.array(), ref);
+          }
+
+          const n = norm(arr, p, axis, true);
+          expectArraysClose( await n.array(), [ref]);
         }
-
-        const n = norm(arr, p, axis, true);
-        expectArraysClose( await n.array(), [ref]);
       }
     }}
   });
@@ -174,10 +180,6 @@ describeWithFlags('norm', ALL_ENVS, () => {
   it('computes Frobenius norm for 2D tensors correctly', async () => {
     const matrices = [
       [[0]],
-
-      [[13.37]],
-
-      [[4.2, 13.37]],
 
       [[ 4.2 ],
        [13.37]],
@@ -189,12 +191,8 @@ describeWithFlags('norm', ALL_ENVS, () => {
     for( const p of ['euclidean', 'fro'] as Array<'euclidean' | 'fro'> ) {
     for( const mat of matrices ) {
       const axeBodySpray = [[ 0, 1],
-                            [ 0,-1],
                             [-2, 1],
-                            [-2,-1],
-                            [ 1, 0],
                             [-1, 0],
-                            [ 1,-2],
                             [-1,-2]];
       if( p === 'euclidean' ) {
         axeBodySpray.push(null);
@@ -231,20 +229,12 @@ describeWithFlags('norm', ALL_ENVS, () => {
         [0.0, 3.2]],
        [[4.7, 6.1],
         [0.0, 0.0],
-        [2.5, 8.3]]],
-
-      [[[ 0.0 ]],
-       [[13.37]]],
-
-      [[[ 0.0,  0.0 ]],
-       [[13.37, 0.0 ]]]
+        [2.5, 8.3]]]
     ];
 
     for( const p of ['euclidean', 'fro'] as Array<'euclidean' | 'fro'> ) {
     for( const arr of arrays ) {
       for( const axes of [[ 1, 2],
-                          [-1, 1],
-                          [-2, 2],
                           [-1,-2]] ) {
         const ref = arr.map( mat => Math.hypot(...Array.from(
           function*(){
@@ -266,9 +256,7 @@ describeWithFlags('norm', ALL_ENVS, () => {
         );
       }
 
-      for( const axes of [[ 0, 2],
-                          [-1, 0],
-                          [-3, 2],
+      for( const axes of [[ 2, 0],
                           [-1,-3]] )
       {
         const ref = Array.from(arr[0], (_,j) => Math.hypot(...Array.from(
@@ -292,10 +280,8 @@ describeWithFlags('norm', ALL_ENVS, () => {
         );
       }
 
-      for( const axes of [[ 0, 1],
-                          [-2, 0],
-                          [-3, 1],
-                          [-2,-3]] )
+      for( const axes of [[ 0,-2],
+                          [ 1,-3]] )
       {
         const ref = Array.from(arr[0][0], (_,k) => Math.hypot(...Array.from(
           function*(){
@@ -334,16 +320,13 @@ describeWithFlags('norm', ALL_ENVS, () => {
     const tolerance = small / 100;
 
     const vectors = [
-      [            small],
-      [          0,small],
-      [      small,    0],
-      [      small,small],
-      [    0,    0,small],
-      [    0,small,    0],
-      [    0,small,small],
-      [small,    0,small],
-      [small,small,    0],
-      [small,small,small]
+      [        small],
+      [      0,small],
+      [  small,    0],
+      [  small,small],
+      [0,    0,small],
+      [0,small,    0],
+      [0,small,small]
     ];
 
     for( const p of ['euclidean', 2] as Array<'euclidean' | 2> ) {
@@ -381,8 +364,6 @@ describeWithFlags('norm', ALL_ENVS, () => {
     const matrices = [
       [[small]],
 
-      [[small, small]],
-
       [[small],
        [small]],
 
@@ -393,12 +374,8 @@ describeWithFlags('norm', ALL_ENVS, () => {
     for( const p of ['euclidean', 'fro'] as Array<'euclidean' | 'fro'> ) {
     for( const mat of matrices ) {
       const axeBodySpray = [[ 0, 1],
-                            [ 0,-1],
                             [-2, 1],
-                            [-2,-1],
-                            [ 1, 0],
                             [-1, 0],
-                            [ 1,-2],
                             [-1,-2]];
       if( p === 'euclidean' ) {
         axeBodySpray.push(null);
