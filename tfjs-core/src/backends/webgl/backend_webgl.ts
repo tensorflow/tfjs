@@ -545,8 +545,9 @@ export class MathBackendWebGL implements KernelBackend {
         new EncodeFloatPackedProgram(outputShape as [number, number, number]) :
         new EncodeFloatProgram(outputShape);
     const output = this.runWebGLProgram(
-        program, [{shape: outputShape, dtype, dataId}], 'float32');
-    this.texData.get(output.dataId).usage = TextureUsage.DOWNLOAD;
+        program, [{shape: outputShape, dtype, dataId}], 'float32',
+        null /* customSetup */, false /* preventEagerUnpackingOfOutput */, null,
+        TextureUsage.DOWNLOAD);
     const tmpData = this.texData.get(output.dataId);
     const vals =
         this.gpgpu
@@ -2542,14 +2543,15 @@ export class MathBackendWebGL implements KernelBackend {
   runWebGLProgram(
       program: GPGPUProgram, inputs: TensorInfo[], outputDtype: DataType,
       customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
-      preventEagerUnpackingOfOutput = false,
-      outTexShape?: [number, number]): TensorInfo {
+      preventEagerUnpackingOfOutput = false, outTexShape?: [number, number],
+      outTexUsage?: TextureUsage): TensorInfo {
     const output = this.makeTensorInfo(program.outputShape, outputDtype);
     const outData = this.texData.get(output.dataId);
     if (program.packedOutput) {
       outData.isPacked = true;
     }
     outData.texShape = outTexShape;
+    outData.usage = outTexUsage;
     if (sizeFromShape(output.shape) === 0) {
       // Short-circuit the computation since the result is empty (has 0 in its
       // shape).
