@@ -386,9 +386,10 @@ export class MathBackendWebGL implements KernelBackend {
       } else {
         program = new UnaryOpProgram(shape, unary_op.CLONE);
       }
-      const res = this.compileAndRun(program, [{dataId, shape, dtype}]);
+      const res =
+          this.runWebGLProgram(program, [{dataId, shape, dtype}], dtype);
       const data = this.readSync(res.dataId);
-      (res as Tensor).dispose();
+      this.disposeData(res.dataId);
       return data;
     }
     if (values != null) {
@@ -433,9 +434,10 @@ export class MathBackendWebGL implements KernelBackend {
       } else {
         program = new UnaryOpProgram(shape, unary_op.CLONE);
       }
-      const res = this.compileAndRun(program, [{dataId, shape, dtype}]);
+      const res =
+          this.runWebGLProgram(program, [{dataId, shape, dtype}], dtype);
       const data = this.read(res.dataId);
-      (res as Tensor).dispose();
+      this.disposeData(res.dataId);
       return data;
     }
 
@@ -542,7 +544,7 @@ export class MathBackendWebGL implements KernelBackend {
     const program = shouldUsePackedProgram ?
         new EncodeFloatPackedProgram(outputShape as [number, number, number]) :
         new EncodeFloatProgram(outputShape);
-    const output = this.compileAndRun<Tensor>(
+    const output = this.runWebGLProgram(
         program, [{shape: outputShape, dtype, dataId}], 'float32');
     this.texData.get(output.dataId).usage = TextureUsage.DOWNLOAD;
     const tmpData = this.texData.get(output.dataId);
@@ -2531,7 +2533,7 @@ export class MathBackendWebGL implements KernelBackend {
       program = new DecodeMatrixProgram(shapeAs3D, denseTexShape);
     }
     const preventEagerUnpackingOfOutput = true;
-    const out = this.compileAndRun(
+    const out = this.runWebGLProgram(
         program, [{shape: shapeAs3D, dtype, dataId}], dtype, null,
         preventEagerUnpackingOfOutput, outTexShape);
     return {dtype, shape, dataId: out.dataId};
@@ -2544,7 +2546,7 @@ export class MathBackendWebGL implements KernelBackend {
       outTexShape?: [number, number]): TensorInfo {
     const output = this.makeTensorInfo(program.outputShape, outputDtype);
     const outData = this.texData.get(output.dataId);
-    if (program.usesPackedTextures) {
+    if (program.packedOutput) {
       outData.isPacked = true;
     }
     outData.texShape = outTexShape;
@@ -2567,7 +2569,7 @@ export class MathBackendWebGL implements KernelBackend {
       let texData = this.texData.get(input.dataId);
 
       if (texData.texture == null) {
-        if (!program.usesPackedTextures &&
+        if (!program.packedInputs &&
             util.sizeFromShape(input.shape) <=
                 env().getNumber('WEBGL_SIZE_UPLOAD_UNIFORM')) {
           // Upload small tensors that live on the CPU as uniforms, not as
@@ -2585,11 +2587,11 @@ export class MathBackendWebGL implements KernelBackend {
 
         // This ensures that if a packed program's inputs have not yet been
         // uploaded to the GPU, they get uploaded as packed right off the bat.
-        if (program.usesPackedTextures) {
+        if (program.packedInputs) {
           texData.isPacked = true;
           texData.shape = input.shape;
         }
-      } else if (!!texData.isPacked !== !!program.usesPackedTextures) {
+      } else if (!!texData.isPacked !== !!program.packedInputs) {
         input = texData.isPacked ? this.unpackTensor(input) :
                                    this.packTensor(input);
         dataToDispose.push(input);
@@ -2776,7 +2778,7 @@ export class MathBackendWebGL implements KernelBackend {
           values as TypedArray);
 
       const encodedOutputTarget =
-          this.compileAndRun(program, [tempDenseInputHandle]);
+          this.runWebGLProgram(program, [tempDenseInputHandle], dtype);
 
       // Have the original texture assume the identity of the encoded output.
       const outputTexData = this.texData.get(encodedOutputTarget.dataId);

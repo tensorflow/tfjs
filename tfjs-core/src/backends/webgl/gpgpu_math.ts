@@ -30,7 +30,10 @@ export interface GPGPUProgram {
   variableNames: string[];
   outputShape: number[];
   userCode: string;
-  usesPackedTextures?: boolean;
+  /** If true, the program expects packed input textures. Defaults to false. */
+  packedInputs?: boolean;
+  /** If true, this program produces a packed texture. Defaults to false. */
+  packedOutput?: boolean;
 }
 
 export interface GPGPUBinary {
@@ -79,7 +82,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     flatOffset: null
   };
   const source = shader_compiler.makeShader(
-      inputInfos, outShapeInfo, userCode, program.usesPackedTextures);
+      inputInfos, outShapeInfo, userCode, program.packedInputs);
 
   const webGLProgram = gpgpu.createProgram(source);
 

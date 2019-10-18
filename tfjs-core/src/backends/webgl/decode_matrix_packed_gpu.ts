@@ -22,7 +22,8 @@ import * as shader_util from './shader_compiler_util';
 export class DecodeMatrixPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
   outputShape: [number, number, number];
 
   constructor(outputShape: [number, number, number], texShape: [

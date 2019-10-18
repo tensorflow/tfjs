@@ -23,7 +23,8 @@ export class EncodeFloatPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
   outputShape: number[];
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = false;
 
   constructor(outputShape: [number, number, number]) {
     const glsl = getGlslDifferences();
