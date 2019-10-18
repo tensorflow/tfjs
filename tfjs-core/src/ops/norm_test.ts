@@ -318,16 +318,18 @@ describeWithFlags('norm', ALL_ENVS, () => {
   });
 
   it('computes Euclidean norm underflow-safely', async () => {
-    const small = function(){
+    const small = (() => {
       const  floatBits = ENGINE.backend.floatPrecision();
       switch(floatBits) {
         case 32: return 1e-30;
         case 16: return 1e-4;
         default:
-          throw new Error(`Test not implemented for ENV.engine.floatPrecision()=${
-            floatBits}.`);
+          throw new Error(
+            'Test not implemented for ' +
+            `ENGINE.backend.floatPrecision()=${floatBits}.`
+          );
       }
-    }();
+    })();
 
     const tolerance = small / 100;
 
@@ -361,16 +363,18 @@ describeWithFlags('norm', ALL_ENVS, () => {
   });
 
   it('computes Frobenius norm for 2D tensors correctly', async () => {
-    const small = function(){
+    const small = (() => {
       const  floatBits = ENGINE.backend.floatPrecision();
       switch(floatBits) {
         case 32: return 1e-30;
         case 16: return 1e-4;
         default:
-          throw new Error(`Test not implemented for ENV.engine.floatPrecision()=${
-            floatBits}.`);
+          throw new Error(
+            'Test not implemented for ' +
+            `ENGINE.backend.floatPrecision()=${floatBits}.`
+          );
       }
-    }();
+    })();
 
     const tolerance = small / 100;
 
@@ -419,4 +423,4 @@ describeWithFlags('norm', ALL_ENVS, () => {
       }
     }}
   });
-})
+});
