@@ -12,8 +12,8 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef TFJS_BACKEND_H
-#define TFJS_BACKEND_H
+#ifndef BACKEND_H_
+#define BACKEND_H_
 
 #include <vector>
 
@@ -79,4 +79,4 @@ void dispose();
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // TFJS_BACKEND_H
+#endif  // BACKEND_H_

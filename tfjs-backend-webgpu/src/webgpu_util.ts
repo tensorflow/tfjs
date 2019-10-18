@@ -24,6 +24,18 @@ const arrayProduct = (arr: number[]) => {
   return product;
 };
 
+export function tilesFitEvenlyIntoShape(
+    tileSize: number[], shape: number[]): boolean {
+  if (tileSize.length !== shape.length) {
+    throw new Error(
+        `Cannot compute whether rank ${tileSize.length}` +
+        ` tiles fit evenly into rank ${shape.length} shape` +
+        ` - ranks must match.`);
+  }
+  return shape.every(
+      (dim: number, dimIdx: number) => dim % tileSize[dimIdx] === 0);
+}
+
 // Computes dispatch geometry based on layout of output dimensions and
 // workGroupSize.
 export function computeDispatch(
@@ -60,12 +72,10 @@ export function GPUBytesPerElement(dtype: DataType): number {
   }
 }
 
-export function ArrayBufferToTypedArray(
-    data: ArrayBuffer, dtype: DataType) {
+export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
   if (dtype === 'float32') {
     return new Float32Array(data);
-  }
-  else if (dtype === 'int32') {
+  } else if (dtype === 'int32') {
     return new Int32Array(data);
   } else if (dtype === 'bool') {
     const dataAsInt32Array = new Int32Array(data);
