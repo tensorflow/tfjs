@@ -92,6 +92,11 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/tfjs_graphmodel/model.json';
+
+      // use below URL for extremely slow prediction of length 500 sequence
+      // const url =
+      // 'https://storage.googleapis.com/learnjs-data/tfjs_graphmodel_decode500/model.json'
+
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
