@@ -459,6 +459,31 @@ export class Engine implements TensorTracker, DataMover {
         attrs);
   }
 
+  private countNumOutputs(result: Tensor|Tensor[]): number {
+    const results = Array.isArray(result) ? result : [result];
+    let numOutputs = 0;
+    results.forEach(res => {
+      // Complex numbers allocate 3 data buckets, one for 'real', one for
+      // 'imaginary', and one for the container.
+      numOutputs += (res.dtype === 'complex64' ? 3 : 1);
+    });
+    return numOutputs;
+  }
+
+  private checkKernelForMemLeak(
+      scopeName: string, numDataBucketsBefore: number,
+      result: Tensor|Tensor[]): void {
+    const numDataBucketsAfter = this.backend.numDataBuckets();
+    const numOutputs = this.countNumOutputs(result);
+    const bucketsLeaked =
+        numDataBucketsAfter - numDataBucketsBefore - numOutputs;
+    if (bucketsLeaked > 0) {
+      throw new Error(
+          `Backend '${this.backendName}' has an internal memory leak ` +
+          `(${bucketsLeaked} leaks) after running '${scopeName}'`);
+    }
+  }
+
   /**
    * @deprecated Use `runKernel` for newly added kernels. Keep using this method
    *     only for kernels that are not yet fully modularized.
@@ -485,7 +510,13 @@ export class Engine implements TensorTracker, DataMover {
     const startingBytecount = this.state.numBytes;
     const startingNumTensors = this.state.numTensors;
 
-    let kernelFunc = () => forwardFunc(this.backend, saveFunc);
+    const numDataBucketsBefore = this.backend.numDataBuckets();
+
+    let kernelFunc = () => {
+      const res = this.tidy(() => forwardFunc(this.backend, saveFunc));
+      this.checkKernelForMemLeak(scopeName, numDataBucketsBefore, res);
+      return res;
+    };
     const kernel = getKernel(kernelName, this.backendName);
     if (kernel != null) {
       const storage = this.backend;
@@ -494,6 +525,7 @@ export class Engine implements TensorTracker, DataMover {
             kernel({inputs, attrs, storage, save: saveFunc}) as TensorInfo;
         const tensor = this.makeTensorFromDataId(
             outInfo.dataId, outInfo.shape, outInfo.dtype);
+        this.checkKernelForMemLeak(scopeName, numDataBucketsBefore, tensor);
         return tensor as T;
       };
     }

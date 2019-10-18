@@ -242,6 +242,7 @@ export class MathBackendWebGL extends KernelBackend {
   // Accumulated time spent (including blocking in downloading data from webgl.
   private downloadWaitMs = 0;
   private cpuBackend: KernelBackend;
+  private numBuckets = 0;
 
   // Number of bits of precision of this backend.
   private floatPrecisionValue: 32|16;
@@ -273,6 +274,10 @@ export class MathBackendWebGL extends KernelBackend {
     this.numMBBeforeWarning = numMBBeforeWarning();
 
     this.texData = new DataStorage(this, ENGINE);
+  }
+
+  numDataBuckets() {
+    return this.numBuckets;
   }
 
   fromPixels(
@@ -358,6 +363,7 @@ export class MathBackendWebGL extends KernelBackend {
           `Please use tf.complex(real, imag).`);
     }
     const dataId = {};
+    this.numBuckets++;
     this.texData.set(
         dataId, {shape, dtype, values, usage: TextureUsage.UPLOAD});
     return dataId;
@@ -651,6 +657,7 @@ export class MathBackendWebGL extends KernelBackend {
       complexTensors.real.dispose();
       complexTensors.imag.dispose();
     }
+    this.numBuckets--;
     this.texData.delete(dataId);
   }
 
@@ -2786,6 +2793,7 @@ export class MathBackendWebGL extends KernelBackend {
       texData.usage = outputTexData.usage;
 
       this.disposeData(tempDenseInputHandle.dataId);
+      this.numBuckets--;
       this.texData.delete(encodedOutputTarget.dataId);
 
       // Once uploaded, don't store the values on cpu.

@@ -42,6 +42,8 @@ export interface TensorStorage {
       HTMLVideoElement,
       numChannels: number): Tensor3D;
   memory(): {unreliable: boolean;};  // Backend-specific information.
+  /** Returns number of data buckets currently in the storage. */
+  numDataBuckets(): number;
 }
 
 /** Convenient class for storing tensor-related data. */
@@ -97,6 +99,9 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     return notYetImplemented();
   }
   readSync(dataId: object): BackendValues {
+    return notYetImplemented();
+  }
+  numDataBuckets(): number {
     return notYetImplemented();
   }
   disposeData(dataId: object): void {

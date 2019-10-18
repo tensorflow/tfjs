@@ -84,6 +84,7 @@ export class MathBackendCPU extends KernelBackend {
   private fromPixels2DContext: CanvasRenderingContext2D|
       OffscreenCanvasRenderingContext2D;
   private firstUse = true;
+  private numBuckets = 0;
 
   constructor() {
     super();
@@ -115,6 +116,9 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
     const dataId = {};
+    if (values != null) {
+      this.numBuckets++;
+    }
     this.data.set(dataId, {values, dtype});
     return dataId;
   }
@@ -122,6 +126,10 @@ export class MathBackendCPU extends KernelBackend {
   move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
       void {
     this.data.set(dataId, {values, dtype});
+  }
+
+  numDataBuckets(): number {
+    return this.numBuckets;
   }
 
   fromPixels(
@@ -237,6 +245,7 @@ export class MathBackendCPU extends KernelBackend {
         complexTensors.real.dispose();
         complexTensors.imag.dispose();
       }
+      this.numBuckets--;
       this.data.delete(dataId);
     }
   }
