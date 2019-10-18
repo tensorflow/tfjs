@@ -138,10 +138,6 @@ def optimize_graph(graph, signature_def, output_graph,
     raise ValueError('Unsupported Ops in the model before optimization\n' +
                      ', '.join(unsupported))
 
-  # Because TF break the Prelu op into 6 ops, for performance we are
-  # fusing those ops into a single prelu
-  optimized_graph = fuse_prelu.fuse_ops_for_prelu(graph_def)
-
   # first pass of grappler optimization, this is needed for batch norm folding.
   config = config_pb2.ConfigProto()
   rewriter_config = config.graph_options.rewrite_options
@@ -152,7 +148,7 @@ def optimize_graph(graph, signature_def, output_graph,
   if strip_debug_ops:
     rewriter_config.optimizers.insert(0, 'debug_stripper')
 
-  optimized_graph = _run_grappler(config, optimized_graph, graph, signature_def)
+  optimized_graph = _run_grappler(config, graph_def, graph, signature_def)
 
   # batch norm folding
   optimized_graph = fold_batch_norms.fold_batch_norms(optimized_graph)
@@ -170,6 +166,10 @@ def optimize_graph(graph, signature_def, output_graph,
   ]
 
   optimized_graph = _run_grappler(config, optimized_graph, graph, signature_def)
+
+  # Because TF break the Prelu op into 6 ops, for performance we are
+  # fusing those ops into a single prelu
+  optimized_graph = fuse_prelu.fuse_ops_for_prelu(optimized_graph)
 
   # Since the grappler remap optimizer doe snot support prelu as the activation
   # function for _FusedConv2D op, we are doing it manually here.
