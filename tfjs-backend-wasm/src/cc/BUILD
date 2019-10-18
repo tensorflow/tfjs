@@ -35,7 +35,7 @@ tfjs_cc_library(
   hdrs = ["backend.h"],
   deps = [
     ":util",
-    "@xnnpack//:XNNPACK",
+    "@xnnpack//:xnnpack_operators_nhwc_f32",
   ],
 )
 
