@@ -3311,7 +3311,7 @@
        * Close the current TensorArray.
        */
       clearAndClose() {
-          this.tensors.forEach(tensor => tensor.tensor.dispose());
+          // this.tensors.forEach(tensor => tensor.tensor.dispose());
           this.tensors = [];
           this.closed_ = true;
       }
@@ -4885,7 +4885,7 @@
                           if (tensor && !tensorsToKeep.has(tensor.id)) {
                               const count = intermediateTensorConsumerCount[tensor.id];
                               if (count === 1) {
-                                  tensor.dispose();
+                                  // tensor.dispose();
                                   delete intermediateTensorConsumerCount[tensor.id];
                               }
                               else if (count != null) {
@@ -4928,7 +4928,7 @@
                   if (tensor && !tensor.isDisposed && !outputIds.has(tensor.id) &&
                       !inputIds.has(tensor.id) &&
                       this.weightIds.indexOf(tensor.id) === -1) {
-                      tensor.dispose();
+                      // tensor.dispose();
                   }
               });
           });
@@ -5002,6 +5002,7 @@
                   if (!nodeName) {
                       [nodeName] = getNodeNameAndIndex(item.node.name, context);
                   }
+                  nodeNameToTensorMapKey[item.node.name] = nodeName;
                   const currentContext = context.currentContext;
                   if (tensors instanceof Promise) {
                       promises.push(tensors.then(t => {
@@ -5052,8 +5053,8 @@
        * Releases the memory used by the weight tensors.
        */
       dispose() {
-          Object.keys(this.weightMap)
-              .forEach(key => this.weightMap[key].forEach(tensor => tensor.dispose()));
+          // Object.keys(this.weightMap)
+          //     .forEach(key => this.weightMap[key].forEach(tensor => tensor.dispose()));
       }
       checkInputShapeAndType(inputs) {
           Object.keys(inputs).forEach(name => {
