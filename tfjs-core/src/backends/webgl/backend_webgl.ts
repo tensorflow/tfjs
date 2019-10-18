@@ -219,7 +219,7 @@ function numMBBeforeWarning(): number {
 // https://github.com/tensorflow/tfjs-core/pull/1379 for benchmarks.
 export const MATMUL_SHARED_DIM_THRESHOLD = 1000;
 
-export class MathBackendWebGL implements KernelBackend {
+export class MathBackendWebGL extends KernelBackend {
   texData: DataStorage<TextureData>;
   // Maps data ids that have a pending read operation, to list of subscribers.
   private pendingRead = new WeakMap<DataId, Array<(arr: TypedArray) => void>>();
@@ -253,6 +253,7 @@ export class MathBackendWebGL implements KernelBackend {
   private warnedAboutMemory = false;
 
   constructor(private gpgpu?: GPGPUContext) {
+    super();
     if (!env().getBool('HAS_WEBGL')) {
       throw new Error('WebGL is not supported on this device');
     }
@@ -1679,11 +1680,6 @@ export class MathBackendWebGL implements KernelBackend {
       return this.cpuBackend.rsqrt(x);
     }
     const program = new UnaryOpProgram(x.shape, unary_op.RSQRT);
-    return this.compileAndRun(program, [x]);
-  }
-
-  square<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SQUARE);
     return this.compileAndRun(program, [x]);
   }
 

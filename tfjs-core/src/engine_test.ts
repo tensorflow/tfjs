@@ -591,6 +591,10 @@ describeWithFlags(
       });
 
       it('single tidy multiple backends', () => {
+        const kernel = tf.getKernel('Square', 'webgl');
+        tf.registerKernel('Square', 'webgl1', kernel);
+        tf.registerKernel('Square', 'webgl2', kernel);
+
         expect(tf.memory().numTensors).toBe(0);
 
         tf.tidy(() => {
