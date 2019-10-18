@@ -2603,10 +2603,11 @@ export class MathBackendWebGL implements KernelBackend {
         {size: number};
     this.texData.get(tmpTarget.dataId).isPacked = true;
     this.texData.get(tmpTarget.dataId).dtype = dtype;
+    // Decode creates a densely packed output, so we explicitly set texShape
+    // so it doesn't get assigned later according to our typical packing scheme
+    // wherein a single texel can only contain values from adjacent rows/cols.
     this.texData.get(tmpTarget.dataId).texShape =
-        denseTexShape.map(
-            d => d * 2) as [number, number];  // To undo the effect of isPacked
-                                              // being set to true.
+        denseTexShape.map(d => d * 2) as [number, number];
 
     let program;
     if (isPacked) {
