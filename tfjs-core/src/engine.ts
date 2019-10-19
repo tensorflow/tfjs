@@ -55,7 +55,7 @@ type KernelProfile = {
   tensorsAdded: number;
   totalTensorsSnapshot: number;
   inputShapes: number[][];
-  outputShape: number[] | number[][];
+  outputShapes: number[][];
 };
 
 export type ProfileInfo = {
@@ -445,7 +445,7 @@ export class Engine implements TensorTracker, DataMover {
     const inputs = {x};
     const grad = (dy: Tensor) => ({x: () => dy.toFloat()});
     const saved: Tensor[] = [];
-    this.addTapeNode(this.state.activeScope.name, inputs, y, grad, saved);
+    this.addTapeNode(this.state.activeScope.name, inputs, [y], grad, saved);
     return y;
   }
 
@@ -475,16 +475,15 @@ export class Engine implements TensorTracker, DataMover {
 
   private checkKernelForMemLeak(
       scopeName: string, numDataIdsBefore: number,
-      result: Tensor|Tensor[]): void {
+      outInfos: TensorInfo[]): void {
     const numDataIdsAfter = this.backend.numDataIds();
-    const results = Array.isArray(result) ? result : [result];
 
     // Count the number of data ids associated with the result of the kernel.
     let numOutputDataIds = 0;
-    results.forEach(res => {
+    outInfos.forEach(info => {
       // Complex numbers allocate 3 data ids, one for 'real', one for
       // 'imaginary', and one for the container that holds the former two.
-      numOutputDataIds += (res.dtype === 'complex64' ? 3 : 1);
+      numOutputDataIds += (info.dtype === 'complex64' ? 3 : 1);
     });
 
     // Account for the number of moves during kernel execution. A "data move"
@@ -511,7 +510,7 @@ export class Engine implements TensorTracker, DataMover {
       forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
       kernelName?: string, attrs?: NamedAttrMap): T {
-    let result: T;
+    let outputs: Tensor[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
     const scopeName =
@@ -533,29 +532,31 @@ export class Engine implements TensorTracker, DataMover {
       this.state.numDataMovesStack.push(0);
     }
 
-    let kernelFunc: () => T;
+    let kernelFunc: () => Tensor[];
     const kernel = getKernel(kernelName, this.backendName);
+    let out: TensorInfo|TensorInfo[];
     if (kernel != null) {
       const storage = this.backend;
       kernelFunc = () => {
         const numDataIdsBefore = this.backend.numDataIds();
-        const outInfo =
-            kernel({inputs, attrs, storage, save: saveFunc}) as TensorInfo;
-        const tensor = this.makeTensorFromDataId(
-            outInfo.dataId, outInfo.shape, outInfo.dtype);
+        out = kernel({inputs, attrs, storage, save: saveFunc});
+        const outInfos = Array.isArray(out) ? out : [out];
         if (this.shouldCheckForMemLeaks()) {
-          this.checkKernelForMemLeak(scopeName, numDataIdsBefore, tensor);
+          this.checkKernelForMemLeak(scopeName, numDataIdsBefore, outInfos);
         }
-        return tensor as T;
+        return outInfos.map(
+            ({dataId, shape, dtype}) =>
+                this.makeTensorFromDataId(dataId, shape, dtype));
       };
     } else {
       kernelFunc = () => {
         const numDataIdsBefore = this.backend.numDataIds();
-        const res = this.tidy(() => forwardFunc(this.backend, saveFunc));
+        out = this.tidy(() => forwardFunc(this.backend, saveFunc));
+        const outs = (Array.isArray(out) ? out : [out]) as Tensor[];
         if (this.shouldCheckForMemLeaks()) {
-          this.checkKernelForMemLeak(scopeName, numDataIdsBefore, res);
+          this.checkKernelForMemLeak(scopeName, numDataIdsBefore, outs);
         }
-        return res;
+        return outs;
       };
     }
 
@@ -563,15 +564,15 @@ export class Engine implements TensorTracker, DataMover {
     this.scopedRun(
         () => this.state.kernelDepth++, () => this.state.kernelDepth--, () => {
           if (!this.ENV.getBool('DEBUG')) {
-            result = kernelFunc();
+            outputs = kernelFunc();
           } else {
-            result = this.profiler.profileKernel(
+            outputs = this.profiler.profileKernel(
                 scopeName, inputs, () => kernelFunc());
           }
         });
 
     if (isTapeOn) {
-      this.addTapeNode(scopeName, inputs, result, backwardsFunc, saved);
+      this.addTapeNode(scopeName, inputs, outputs, backwardsFunc, saved);
     }
 
     if (this.state.profiling) {
@@ -582,13 +583,10 @@ export class Engine implements TensorTracker, DataMover {
         tensorsAdded: this.state.numTensors - startingNumTensors,
         totalTensorsSnapshot: this.state.numTensors,
         inputShapes: Object.keys(inputs).map(key => inputs[key].shape),
-        outputShape: Array.isArray(result) ?
-            (result as Tensor[]).map(item => item.shape) :
-            (result as Tensor).shape
+        outputShapes: outputs.map(item => item.shape)
       });
     }
-
-    return result;
+    return (Array.isArray(out) ? outputs : outputs[0]) as T;
   }
 
   /**
@@ -767,15 +765,14 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   private addTapeNode(
-      scopeName: string, inputs: NamedTensorMap, result: Tensor|Tensor[],
+      scopeName: string, inputs: NamedTensorMap, outputs: Tensor[],
       gradientsFunc: (dy: Tensor|Tensor[], saved: Tensor[]) => NamedGradientMap,
       saved: Tensor[]): void {
-    const results = Array.isArray(result) ? result : [result];
     const tapeNode: TapeNode = {
       id: this.state.nextTapeNodeId++,
       name: scopeName,
       inputs,
-      outputs: results,
+      outputs,
       saved
     };
     if (gradientsFunc != null) {
@@ -784,9 +781,9 @@ export class Engine implements TensorTracker, DataMover {
         // the backprop graph to the user as null instead of zeros
         dys = dys.map((dy, i) => {
           if (dy == null) {
-            const result = results[i];
-            const vals = util.makeZerosTypedArray(result.size, result.dtype);
-            return this.makeTensor(vals, result.shape, result.dtype);
+            const output = outputs[i];
+            const vals = util.makeZerosTypedArray(output.size, output.dtype);
+            return this.makeTensor(vals, output.shape, output.dtype);
           }
           return dy;
         });
