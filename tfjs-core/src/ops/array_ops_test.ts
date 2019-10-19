@@ -31,7 +31,11 @@ describeWithFlags('broadcastTo', ALL_ENVS, () => {
                            [4.2, 4.2],
                            [4.2, 4.2]]);
 
-    expectArraysEqual(
+    const expectTensorsEqual = tf.getBackend().startsWith('webgl')
+      ? expectArraysClose // <- necessary on: Mobile Safari 11.0.0 webgl1
+      : expectArraysEqual;
+
+    expectTensorsEqual(
       await A.array(),
       await tf.broadcastTo(a,A.shape).array()
     );
@@ -58,7 +62,11 @@ describeWithFlags('broadcastTo', ALL_ENVS, () => {
                            [1,2],
                            [1,2]]);
 
-    expectArraysEqual(
+    const expectTensorsEqual = tf.getBackend().startsWith('webgl')
+      ? expectArraysClose // <- necessary on: Mobile Safari 11.0.0 webgl1
+      : expectArraysEqual;
+
+    expectTensorsEqual(
       await A.array(),
       await tf.broadcastTo(a,A.shape).array()
     );
@@ -87,7 +95,11 @@ describeWithFlags('broadcastTo', ALL_ENVS, () => {
                            [2,2],
                            [3,3]]);
 
-    expectArraysEqual(
+    const expectTensorsEqual = tf.getBackend().startsWith('webgl')
+      ? expectArraysClose // <- necessary on: Mobile Safari 11.0.0 webgl1
+      : expectArraysEqual;
+
+    expectTensorsEqual(
       await A.array(),
       await tf.broadcastTo(a,A.shape).array()
     );
