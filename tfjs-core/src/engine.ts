@@ -368,7 +368,7 @@ export class Engine implements TensorTracker, DataMover {
     destBackend.move(dataId, values, info.shape, info.dtype);
     if (this.shouldCheckForMemLeaks()) {
       // Track the number of moves during a kernel execution to correctly
-      // detect memory leaks during a kernel execution.
+      // detect memory leaks.
       this.state.numDataMovesStack[this.state.numDataMovesStack.length - 1]++;
     }
   }
