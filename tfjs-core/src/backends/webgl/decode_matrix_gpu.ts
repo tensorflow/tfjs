@@ -26,7 +26,7 @@ export class DecodeMatrixProgram implements GPGPUProgram {
   outputShape: [number, number, number];
   packedInputs = false;
   packedOutput = true;
-  packingScheme = PackingScheme.DENSE;
+  outPackingScheme = PackingScheme.DENSE;
 
   constructor(outputShape: [number, number, number]) {
     const texShape = getDenseTexShape(outputShape);

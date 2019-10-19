@@ -99,6 +99,11 @@ class EngineState {
   // Keep Tensors that parallel the tapes.
   activeScope: ScopeState;
   scopeStack: ScopeState[] = [];
+  /**
+   * Keeps track of the number of data moves during a kernel execution. We
+   * maintain a stack since kernels can call other kernels, recursively.
+   */
+  numDataMovesStack: number[] = [];
   nextScopeId = 0;
 
   tensorInfo = new WeakMap<DataId, {
@@ -361,6 +366,11 @@ export class Engine implements TensorTracker, DataMover {
     srcBackend.disposeData(dataId);
     info.backend = destBackend;
     destBackend.move(dataId, values, info.shape, info.dtype);
+    if (this.shouldCheckForMemLeaks()) {
+      // Track the number of moves during a kernel execution to correctly
+      // detect memory leaks during a kernel execution.
+      this.state.numDataMovesStack[this.state.numDataMovesStack.length - 1]++;
+    }
   }
 
   tidy<T extends TensorContainer>(nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>):
@@ -459,28 +469,37 @@ export class Engine implements TensorTracker, DataMover {
         attrs);
   }
 
-  private countNumOutputs(result: Tensor|Tensor[]): number {
-    const results = Array.isArray(result) ? result : [result];
-    let numOutputs = 0;
-    results.forEach(res => {
-      // Complex numbers allocate 3 data buckets, one for 'real', one for
-      // 'imaginary', and one for the container.
-      numOutputs += (res.dtype === 'complex64' ? 3 : 1);
-    });
-    return numOutputs;
+  private shouldCheckForMemLeaks(): boolean {
+    return this.ENV.getBool('IS_TEST');
   }
 
   private checkKernelForMemLeak(
-      scopeName: string, numDataBucketsBefore: number,
+      scopeName: string, numDataIdsBefore: number,
       result: Tensor|Tensor[]): void {
-    const numDataBucketsAfter = this.backend.numDataBuckets();
-    const numOutputs = this.countNumOutputs(result);
-    const bucketsLeaked =
-        numDataBucketsAfter - numDataBucketsBefore - numOutputs;
-    if (bucketsLeaked > 0) {
+    const numDataIdsAfter = this.backend.numDataIds();
+    const results = Array.isArray(result) ? result : [result];
+
+    // Count the number of data ids associated with the result of the kernel.
+    let numOutputDataIds = 0;
+    results.forEach(res => {
+      // Complex numbers allocate 3 data ids, one for 'real', one for
+      // 'imaginary', and one for the container that holds the former two.
+      numOutputDataIds += (res.dtype === 'complex64' ? 3 : 1);
+    });
+
+    // Account for the number of moves during kernel execution. A "data move"
+    // can happen in the middle of a kernel execution, placing a new (key,value)
+    // pair in the data storage. Since data moves have net zero effect (we
+    // always remove the data from the old backend), we have to cancel them out
+    // when detecting memory leaks.
+    const numMoves =
+        this.state.numDataMovesStack[this.state.numDataMovesStack.length - 1];
+    const dataIdsLeaked =
+        numDataIdsAfter - numDataIdsBefore - numOutputDataIds - numMoves;
+    if (dataIdsLeaked > 0) {
       throw new Error(
           `Backend '${this.backendName}' has an internal memory leak ` +
-          `(${bucketsLeaked} leaks) after running '${scopeName}'`);
+          `(${dataIdsLeaked} data ids) after running '${scopeName}'`);
     }
   }
 
@@ -510,23 +529,33 @@ export class Engine implements TensorTracker, DataMover {
     const startingBytecount = this.state.numBytes;
     const startingNumTensors = this.state.numTensors;
 
-    const numDataBucketsBefore = this.backend.numDataBuckets();
+    if (this.shouldCheckForMemLeaks()) {
+      this.state.numDataMovesStack.push(0);
+    }
 
-    let kernelFunc = () => {
-      const res = this.tidy(() => forwardFunc(this.backend, saveFunc));
-      this.checkKernelForMemLeak(scopeName, numDataBucketsBefore, res);
-      return res;
-    };
+    let kernelFunc: () => T;
     const kernel = getKernel(kernelName, this.backendName);
     if (kernel != null) {
       const storage = this.backend;
       kernelFunc = () => {
+        const numDataIdsBefore = this.backend.numDataIds();
         const outInfo =
             kernel({inputs, attrs, storage, save: saveFunc}) as TensorInfo;
         const tensor = this.makeTensorFromDataId(
             outInfo.dataId, outInfo.shape, outInfo.dtype);
-        this.checkKernelForMemLeak(scopeName, numDataBucketsBefore, tensor);
+        if (this.shouldCheckForMemLeaks()) {
+          this.checkKernelForMemLeak(scopeName, numDataIdsBefore, tensor);
+        }
         return tensor as T;
+      };
+    } else {
+      kernelFunc = () => {
+        const numDataIdsBefore = this.backend.numDataIds();
+        const res = this.tidy(() => forwardFunc(this.backend, saveFunc));
+        if (this.shouldCheckForMemLeaks()) {
+          this.checkKernelForMemLeak(scopeName, numDataIdsBefore, res);
+        }
+        return res;
       };
     }
 
@@ -565,8 +594,7 @@ export class Engine implements TensorTracker, DataMover {
   /**
    * Internal method used by public APIs for tensor creation. Makes a new
    * tensor with the provided shape, dtype and values. It always
-   * creates a new data bucket and notifies the underlying backend about the
-   * bucket.
+   * creates a new data id and writes the values to the underlying backend.
    */
   makeTensor(
       values: DataValues, shape: number[], dtype: DataType,
@@ -596,8 +624,8 @@ export class Engine implements TensorTracker, DataMover {
 
   /**
    * Internal method used by backends. Makes a new tensor
-   * that is a wrapper around an existing data. It doesn't create
-   * a new data bucket, only increments the ref count used in memory tracking.
+   * that is a wrapper around an existing data id. It doesn't create
+   * a new data id, only increments the ref count used in memory tracking.
    */
   makeTensorFromDataId(
       dataId: DataId, shape: number[], dtype: DataType,

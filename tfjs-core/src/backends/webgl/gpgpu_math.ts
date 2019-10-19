@@ -42,7 +42,7 @@ export interface GPGPUProgram {
    * The type of scheme to use when packing texels for the output values.
    * See `PackingScheme` for details. Defaults to `PackingScheme.SHARED_BATCH`.
    */
-  packingScheme?: PackingScheme;
+  outPackingScheme?: PackingScheme;
 }
 
 export interface GPGPUBinary {
