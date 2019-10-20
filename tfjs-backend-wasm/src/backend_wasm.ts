@@ -103,32 +103,6 @@ export class BackendWasm extends KernelBackend {
 
   // Kernels.
 
-  add(a: Tensor, b: Tensor): Tensor {
-    const aId = this.dataIdMap.get(a.dataId).id;
-    const bId = this.dataIdMap.get(b.dataId).id;
-
-    const newShape = backend_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const aBroadcastDims = backend_util.getBroadcastDims(a.shape, newShape);
-    const bBroadcastDims = backend_util.getBroadcastDims(b.shape, newShape);
-    const loopsOverAllOfA = aBroadcastDims.every((v, i) => v === i);
-    const loopsOverAllOfB = bBroadcastDims.every((v, i) => v === i);
-
-    const out = this.makeOutTensor(newShape, a.dtype);
-    const outId = this.dataIdMap.get(out.dataId).id;
-
-    // Short-circuit zero-sized tensors.
-    if (out.size === 0) {
-      return out;
-    }
-
-    if (loopsOverAllOfA && loopsOverAllOfB) {
-      this.wasm.tfjs.add(aId, bId, outId);
-      return out;
-    } else {
-      throw new Error('Broadcasting along inner dims is not yet supported');
-    }
-  }
-
   batchMatMul(
       a: Tensor3D, b: Tensor3D, transposeA: boolean,
       transposeB: boolean): Tensor3D {
@@ -229,15 +203,12 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
           ]),
       disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
       dispose: wasm.cwrap('dispose', voidReturnType, []),
-      add: wasm.cwrap('add', voidReturnType, ['number', 'number', 'number']),
       batchMatMul: wasm.cwrap(
           'batch_matmul', voidReturnType,
           [
             'number', 'number', 'number', 'number', 'number', 'number',
             'number', 'number', 'number', 'number', 'number', 'number', 'number'
           ]),
-      prelu: wasm.cwrap(
-          'prelu', voidReturnType, ['number', 'number', 'number', 'number']),
     };
     wasm.onRuntimeInitialized = () => resolve({wasm});
   });

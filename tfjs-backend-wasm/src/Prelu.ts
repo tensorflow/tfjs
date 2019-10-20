@@ -17,23 +17,29 @@
 
 import {registerKernel, util} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
-
 import {BackendWasm} from './backend_wasm';
 
 interface PreluInputs {
   x: TensorInfo;
-  weights: TensorInfo;
+  alpha: TensorInfo;
 }
 
+let wasmPrelu: (xId: number, xSize: number, weightsId: number, outId: number) =>
+    void;
+
 registerKernel('Prelu', 'wasm', ({inputs, storage}) => {
-  const {x, weights} = inputs as {} as PreluInputs;
   const backend = storage as BackendWasm;
+  if (wasmPrelu == null) {
+    wasmPrelu = backend.wasm.cwrap(
+        'prelu', null /* void */, ['number', 'number', 'number', 'number']);
+  }
+  const {x, alpha} = inputs as {} as PreluInputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
-  const weightsId = backend.dataIdMap.get(weights.dataId).id;
+  const weightsId = backend.dataIdMap.get(alpha.dataId).id;
 
   const out = backend.makeOutput(x.shape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
   const xSize = util.sizeFromShape(x.shape);
-  backend.wasm.tfjs.prelu(xId, xSize, weightsId, outId);
+  wasmPrelu(xId, xSize, weightsId, outId);
   return out;
 });
