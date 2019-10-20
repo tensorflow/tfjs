@@ -12,8 +12,8 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef TFJS_WASM_UTIL_H_
-#define TFJS_WASM_UTIL_H_
+#ifndef UTIL_H_
+#define UTIL_H_
 
 #include <string.h>
 #include <cstdarg>
@@ -85,4 +85,4 @@ inline int size_from_shape(const std::vector<int>& shape) {
 
 }  // namespace util
 }  // namespace tfjs
-#endif  // TFJS_WASM_UTIL_H_
+#endif  // UTIL_H_

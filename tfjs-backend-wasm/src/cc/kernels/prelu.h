@@ -12,8 +12,8 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef TFJS_PRELU_H
-#define TFJS_PRELU_H
+#ifndef KERNELS_PRELU_H_
+#define KERNELS_PRELU_H_
 
 namespace tfjs {
 
@@ -25,4 +25,4 @@ void prelu(int x_id, int x_size, int weights_id, int out_id);
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // TFJS_PRELU_H
+#endif  // KERNELS_PRELU_H_
