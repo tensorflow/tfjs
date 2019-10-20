@@ -27,12 +27,6 @@ export interface BackendWasmModule extends EmscriptenModule {
     disposeData(dataId: number): void,
     // Disposes the backend and all of its associated data.
     dispose(): void,
-
-    batchMatMul(
-        aId: number, bId: number, sharedDim: number, leftDim: number,
-        rightDim: number, batchDim: number, aBatch: number, aOuterStep: number,
-        aInnerStep: number, bBatch: number, bOuterStep: number,
-        bInnerStep: number, outId: number): void,
   }
 }
 

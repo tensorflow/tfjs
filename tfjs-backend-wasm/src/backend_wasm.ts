@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataStorage, DataType, engine, KernelBackend, Rank, registerBackend, ShapeMap, Tensor, Tensor3D, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, engine, KernelBackend, Rank, registerBackend, ShapeMap, Tensor, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import wasmFactory from '../wasm-out/tfjs-backend-wasm';
 import {BackendWasmModule} from '../wasm-out/tfjs-backend-wasm';
@@ -103,34 +103,6 @@ export class BackendWasm extends KernelBackend {
 
   // Kernels.
 
-  batchMatMul(
-      a: Tensor3D, b: Tensor3D, transposeA: boolean,
-      transposeB: boolean): Tensor3D {
-    const aId = this.dataIdMap.get(a.dataId).id;
-    const bId = this.dataIdMap.get(b.dataId).id;
-
-    const sharedDim = transposeA ? a.shape[1] : a.shape[2];
-    const leftDim = transposeA ? a.shape[2] : a.shape[1];
-    const rightDim = transposeB ? b.shape[1] : b.shape[2];
-    const batchDim = a.shape[0];
-
-    const [aBatch, aOuterStep, aInnerStep] = transposeA ?
-        [a.strides[0], 1, a.strides[1]] :
-        [a.strides[0], a.strides[1], 1];
-    const [bInnerStep, bOuterStep, bBatch] = transposeB ?
-        [1, b.strides[1], b.strides[0]] :
-        [b.strides[1], 1, b.strides[0]];
-
-    const out =
-        this.makeOutTensor([batchDim, leftDim, rightDim], a.dtype) as Tensor3D;
-    const outId = this.dataIdMap.get(out.dataId).id;
-
-    this.wasm.tfjs.batchMatMul(
-        aId, bId, sharedDim, leftDim, rightDim, batchDim, aBatch, aOuterStep,
-        aInnerStep, bBatch, bOuterStep, bInnerStep, outId);
-    return out;
-  }
-
   reshape<T extends Tensor, R extends Rank>(x: T, newShape: ShapeMap[R]):
       Tensor<R> {
     return engine().makeTensorFromDataId(x.dataId, newShape, x.dtype) as
@@ -203,12 +175,6 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
           ]),
       disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
       dispose: wasm.cwrap('dispose', voidReturnType, []),
-      batchMatMul: wasm.cwrap(
-          'batch_matmul', voidReturnType,
-          [
-            'number', 'number', 'number', 'number', 'number', 'number',
-            'number', 'number', 'number', 'number', 'number', 'number', 'number'
-          ]),
     };
     wasm.onRuntimeInitialized = () => resolve({wasm});
   });
