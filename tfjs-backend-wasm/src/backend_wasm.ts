@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, KernelBackend, Rank, registerBackend, ShapeMap, Tensor, Tensor3D, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, engine, KernelBackend, Rank, registerBackend, ShapeMap, Tensor, Tensor3D, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import wasmFactory from '../wasm-out/tfjs-backend-wasm';
 import {BackendWasmModule} from '../wasm-out/tfjs-backend-wasm';
 
 const WASM_PRIORITY = 2;
 
-interface TensorInfo {
+interface TensorData {
   id: number;
   memoryOffset: number;
   shape: number[];
@@ -33,27 +33,38 @@ export type DataId = object;  // object instead of {} to force non-primitive.
 
 export class BackendWasm extends KernelBackend {
   private dataIdNextNumber = 0;
-  private dataIdMap: WeakMap<DataId, TensorInfo> = new WeakMap();
+  dataIdMap: DataStorage<TensorData>;
 
-  constructor(private wasm: BackendWasmModule) {
+  constructor(public wasm: BackendWasmModule) {
     super();
     this.wasm.tfjs.init();
+    this.dataIdMap = new DataStorage(this, engine());
   }
 
-  register(dataId: DataId, shape: number[], dtype: DataType) {
+  write(values: backend_util.TypedArray, shape: number[], dtype: DataType):
+      DataId {
+    const dataId = {};
+    this.move(dataId, values, shape, dtype);
+    return dataId;
+  }
+
+  numDataIds(): number {
+    return this.dataIdMap.numDataIds();
+  }
+
+  move(
+      dataId: DataId, values: backend_util.TypedArray, shape: number[],
+      dtype: DataType): void {
     const numBytes = util.sizeFromShape(shape) * util.bytesPerElement(dtype);
     const memoryOffset = this.wasm._malloc(numBytes);
     const id = this.dataIdNextNumber++;
     this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype});
-
     const shapeBytes = new Uint8Array(new Int32Array(shape).buffer);
     this.wasm.tfjs.registerTensor(
         id, shapeBytes, shape.length, dtypeToEnumValue(dtype), memoryOffset);
-  }
-
-  write(dataId: DataId, values: backend_util.TypedArray) {
-    const {memoryOffset} = this.dataIdMap.get(dataId);
-    this.wasm.HEAPU8.set(new Uint8Array(values.buffer), memoryOffset);
+    if (values != null) {
+      this.wasm.HEAPU8.set(new Uint8Array(values.buffer), memoryOffset);
+    }
   }
 
   async read(dataId: DataId): Promise<backend_util.BackendValues> {
@@ -102,7 +113,7 @@ export class BackendWasm extends KernelBackend {
     const loopsOverAllOfA = aBroadcastDims.every((v, i) => v === i);
     const loopsOverAllOfB = bBroadcastDims.every((v, i) => v === i);
 
-    const out = this.makeOutput(newShape, a.dtype);
+    const out = this.makeOutTensor(newShape, a.dtype);
     const outId = this.dataIdMap.get(out.dataId).id;
 
     // Short-circuit zero-sized tensors.
@@ -137,7 +148,7 @@ export class BackendWasm extends KernelBackend {
         [b.strides[1], 1, b.strides[0]];
 
     const out =
-        this.makeOutput([batchDim, leftDim, rightDim], a.dtype) as Tensor3D;
+        this.makeOutTensor([batchDim, leftDim, rightDim], a.dtype) as Tensor3D;
     const outId = this.dataIdMap.get(out.dataId).id;
 
     this.wasm.tfjs.batchMatMul(
@@ -146,25 +157,14 @@ export class BackendWasm extends KernelBackend {
     return out;
   }
 
-  prelu<T extends Tensor>(x: T, weights: T): T {
-    const xId = this.dataIdMap.get(x.dataId).id;
-    const weightsId = this.dataIdMap.get(weights.dataId).id;
-
-    const out = this.makeOutput(x.shape, 'float32') as T;
-    const outId = this.dataIdMap.get(out.dataId).id;
-
-    this.wasm.tfjs.prelu(xId, x.size, weightsId, outId);
-
-    return out;
-  }
-
   reshape<T extends Tensor, R extends Rank>(x: T, newShape: ShapeMap[R]):
       Tensor<R> {
-    return Tensor.make(newShape, {dataId: x.dataId}, x.dtype);
+    return engine().makeTensorFromDataId(x.dataId, newShape, x.dtype) as
+        Tensor<R>;
   }
 
   cast<T extends Tensor>(x: T, dtype: DataType): T {
-    const out = this.makeOutput(x.shape, dtype);
+    const out = this.makeOutTensor(x.shape, dtype);
     const {memoryOffset: inOffset} = this.dataIdMap.get(x.dataId);
     const {memoryOffset: outOffset} = this.dataIdMap.get(out.dataId);
     const inVals = this.typedArrayFromHeap(inOffset, x.dtype, x.size);
@@ -188,8 +188,14 @@ export class BackendWasm extends KernelBackend {
     }
   }
 
-  private makeOutput(shape: number[], dtype: DataType): Tensor {
-    return Tensor.make(shape, {}, dtype, this);
+  makeOutput(shape: number[], dtype: DataType): TensorInfo {
+    const dataId = this.write(null, shape, dtype);
+    return {dataId, shape, dtype};
+  }
+
+  private makeOutTensor(shape: number[], dtype: DataType): Tensor {
+    const dataId = this.write(null, shape, dtype);
+    return engine().makeTensorFromDataId(dataId, shape, dtype, this);
   }
 }
 
