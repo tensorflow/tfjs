@@ -48,7 +48,7 @@ void batch_matmul(int a_id, int b_id, int shared_dim, int left_dim,
   const float* b_buf = b_info.buf.f32;
   float* out_buf = out_info.buf.f32;
 
-  int size = left_dim * right_dim;
+  int size = batch_dim * left_dim * right_dim;
 
   // Zero out the output buffer because it might have been used before.
   std::fill(out_buf, out_buf + size, 0);
