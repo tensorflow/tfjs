@@ -17,7 +17,7 @@
 
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
-import {getKernel, NamedAttrMap, NamedTensorInfoMap, TensorInfo} from './kernel_registry';
+import {getKernel, getKernelsForBackend, NamedAttrMap, NamedTensorInfoMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, Tensor3D, TensorTracker, Variable} from './tensor';
@@ -244,11 +244,20 @@ export class Engine implements TensorTracker, DataMover {
       }
     }
     this.backendInstance = this.registry[backendName];
-
+    this.setupRegisteredKernels();
     // Reset the profiler.
     this.profiler = new Profiler(this.backendInstance);
 
     return true;
+  }
+
+  private setupRegisteredKernels(): void {
+    const kernels = getKernelsForBackend(this.backendName);
+    kernels.forEach(kernel => {
+      if (kernel.setupFunc != null) {
+        kernel.setupFunc(this.backendInstance);
+      }
+    });
   }
 
   /**
@@ -536,10 +545,10 @@ export class Engine implements TensorTracker, DataMover {
     const kernel = getKernel(kernelName, this.backendName);
     let out: TensorInfo|TensorInfo[];
     if (kernel != null) {
-      const storage = this.backend;
       kernelFunc = () => {
         const numDataIdsBefore = this.backend.numDataIds();
-        out = kernel({inputs, attrs, storage, save: saveFunc});
+        out = kernel.kernelFunc(
+            {inputs, attrs, backend: this.backend, save: saveFunc});
         const outInfos = Array.isArray(out) ? out : [out];
         if (this.shouldCheckForMemLeaks()) {
           this.checkKernelForMemLeak(scopeName, numDataIdsBefore, outInfos);

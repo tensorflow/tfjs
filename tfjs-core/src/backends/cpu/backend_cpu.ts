@@ -80,7 +80,7 @@ function createCanvas() {
 export class MathBackendCPU extends KernelBackend {
   public blockSize = 48;
 
-  private data: DataStorage<TensorData<DataType>>;
+  data: DataStorage<TensorData<DataType>>;
   private fromPixels2DContext: CanvasRenderingContext2D|
       OffscreenCanvasRenderingContext2D;
   private firstUse = true;

@@ -15,10 +15,8 @@
  * =============================================================================
  */
 
-import {DataId} from '../../kernel_registry';
 import {Tensor} from '../../tensor';
 import {BackendValues, DataType} from '../../types';
-import {DataStorage} from '../backend';
 
 export interface TensorData<D extends DataType> {
   values?: BackendValues;
@@ -29,10 +27,4 @@ export interface TensorData<D extends DataType> {
   // TODO(smilkov): Replace Tensor with TensorInfo when you modularize ops
   // that work with complex tensors.
   complexTensors?: {real: Tensor, imag: Tensor};
-}
-
-export interface CPUStorage {
-  data: DataStorage<TensorData<DataType>>;
-  write(values: BackendValues, shape: number[], dtype: DataType): DataId;
-  disposeData(dataId: DataId): void;
 }
