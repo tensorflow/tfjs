@@ -197,8 +197,8 @@ function prelu_<T extends Tensor>(x: T|TensorLike, alpha: T|TensorLike): T {
     const mask = $x.greater(0);
 
     return {
-      x: () => where(mask, dy, dy.mul($alpha)) as T,
-      alpha: () => {
+      $x: () => where(mask, dy, dy.mul($alpha)) as T,
+      $alpha: () => {
         let res = where(mask, zerosLike(dy), dy.mul($x));
         const reduceAxes = getReductionAxes($alpha.shape, dy.shape);
         if (reduceAxes.length > 0) {
@@ -213,7 +213,7 @@ function prelu_<T extends Tensor>(x: T|TensorLike, alpha: T|TensorLike): T {
     const res = backend.prelu($x, $alpha);
     save([$x, $alpha]);
     return res;
-  }, {x: $x, alpha: $alpha}, grad, 'Prelu') as T;
+  }, {$x, $alpha}, grad) as T;
 }
 
 export const elu = op({elu_});
