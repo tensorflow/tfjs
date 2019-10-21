@@ -15,26 +15,28 @@
  * =============================================================================
  */
 
-import {env()} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
+
+const ENV = env();
 
 /** Whether we submit commands to the device queue immediately. */
-env().registerFlag('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', () => true);
+ENV.registerFlag('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', () => true);
 
 /**
  * Whether we forward execution to the CPU backend if tensors are small and
  * reside on the CPU.
  */
-env().registerFlag('WEBGPU_CPU_FORWARD', () => true);
+ENV.registerFlag('WEBGPU_CPU_FORWARD', () => true);
 
 /**
  * Thread register block size for matmul kernel. If 0, we use the version of
  * matMul without register blocking.
  */
-env().registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
+ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
 
 /**
  * -1: conv2d_naive
  *  0: conv2d_mm with matmul without register blocking
  * >0: conv2d_mm with matmul_packed with WPT=this
  */
-env().registerFlag('WEBGPU_CONV2D_WORK_PER_THREAD', () => 2);
+ENV.registerFlag('WEBGPU_CONV2D_WORK_PER_THREAD', () => 2);

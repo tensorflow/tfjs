@@ -267,7 +267,7 @@ limitations under the License.
 
     async function profileKernelTime() {
       await showMsg('Profiling kernels');
-      _tfengine.env().set('DEBUG', true);
+      _tfengine.ENV.set('DEBUG', true);
       const oldLog = console.log;
       let kernels = [];
       console.log = msg => {
@@ -311,7 +311,7 @@ limitations under the License.
       // Add an empty row at the end of a benchmark run
       appendRow(timeTable, '', '');
       showKernelTime(kernels);
-      _tfengine.env().set('DEBUG', false);
+      _tfengine.ENV.set('DEBUG', false);
       // Switch back to the old log;
       console.log = oldLog;
     }

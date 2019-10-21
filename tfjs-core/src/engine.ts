@@ -141,7 +141,7 @@ export class Engine implements TensorTracker, DataMover {
   private pendingBackendInit: Promise<boolean>;
   private pendingBackendInitId = 0;
 
-  constructor(public env(): Environment) {
+  constructor(public ENV: Environment) {
     this.state = new EngineState();
   }
 
@@ -495,7 +495,7 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   private shouldCheckForMemLeaks(): boolean {
-    return this.env().getBool('IS_TEST');
+    return this.ENV.getBool('IS_TEST');
   }
 
   private checkKernelForMemLeak(
@@ -592,7 +592,7 @@ export class Engine implements TensorTracker, DataMover {
     // Stop recording to a tape when running a kernel.
     this.scopedRun(
         () => this.state.kernelDepth++, () => this.state.kernelDepth--, () => {
-          if (!this.env().getBool('DEBUG')) {
+          if (!this.ENV.getBool('DEBUG')) {
             outputs = kernelFunc();
           } else {
             outputs = this.profiler.profileKernel(
@@ -1052,7 +1052,7 @@ export class Engine implements TensorTracker, DataMover {
     this.pendingBackendInitId++;
 
     this.state.dispose();
-    this.env().reset();
+    this.ENV.reset();
     this.state = new EngineState();
 
     for (const backendName in this.registry) {
@@ -1098,7 +1098,7 @@ function getOrMakeEngine(): Engine {
     const environment = new Environment(ns);
     ns._tfengine = new Engine(environment);
   }
-  setEnvironmentGlobal(ns._tfengine.env());
+  setEnvironmentGlobal(ns._tfengine.ENV);
 
   // Tell the current tensor interface that the global engine is responsible
   // for tracking.

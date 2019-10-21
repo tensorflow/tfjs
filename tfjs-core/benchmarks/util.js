@@ -34,6 +34,6 @@ function sleep(timeMs) {
 }
 
 function queryTimerIsEnabled() {
-  return _tfengine.env().getNumber(
+  return _tfengine.ENV.getNumber(
              'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0;
 }

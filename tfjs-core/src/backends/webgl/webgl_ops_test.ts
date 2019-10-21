@@ -430,7 +430,7 @@ describeWithFlags('conv to matmul', PACKED_ENVS, () => {
   });
 });
 
-// For operations on non-trivial matrix sizes, we skip the CPU-only env() and use
+// For operations on non-trivial matrix sizes, we skip the CPU-only ENV and use
 // only WebGL ENVs.
 describeWithFlags('gramSchmidt-non-tiny', WEBGL_ENVS, () => {
   it('8x16', async () => {

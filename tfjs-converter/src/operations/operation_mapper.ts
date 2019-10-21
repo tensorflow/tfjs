@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, env()} from '@tensorflow/tfjs-core';
+import {DataType, env} from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
 import {getRegisteredOp} from './custom_op/register';

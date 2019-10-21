@@ -180,10 +180,10 @@ function parseValue(flagName: string, value: string): FlagValue {
  */
 /** @doc {heading: 'Environment'} */
 export function env() {
-  return env();
+  return ENV;
 }
 
-export let env(): Environment = null;
+export let ENV: Environment = null;
 export function setEnvironmentGlobal(environment: Environment) {
-  env() = environment;
+  ENV = environment;
 }
