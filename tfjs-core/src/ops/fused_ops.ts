@@ -132,13 +132,6 @@ function matMul_<T extends Tensor>({
       dyActivation = dy;
     } else if (activation === 'relu') {
       dyActivation = dy.mul(y.step());
-    } else if (activation === 'relu6') {
-      const mask = y.lessEqual(6).mul(y.step());
-      dyActivation = dy.mul(mask);
-    } else if (activation === 'elu') {
-      const eluDer =
-          ENGINE.runKernelFunc(backend => backend.eluDer(dy, y), {dy, y});
-      dyActivation = dy.mul(eluDer);
     } else {
       throw new Error(
           `Gradient for activation ${activation} has not been ` +
@@ -365,13 +358,6 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
       dyActivation = dy;
     } else if (activation === 'relu') {
       dyActivation = dy.mul(y.step());
-    } else if (activation === 'relu6') {
-      const mask = y.lessEqual(6).mul(y.step());
-      dyActivation = dy.mul(mask);
-    } else if (activation === 'elu') {
-      const eluDer =
-          ENGINE.runKernelFunc(backend => backend.eluDer(dy, y), {dy, y});
-      dyActivation = dy.mul(eluDer);
     } else {
       throw new Error(
           `Gradient for activation ${activation} has not been ` +
@@ -583,13 +569,6 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
       dyActivation = dy;
     } else if (activation === 'relu') {
       dyActivation = dy.mul(y.step());
-    } else if (activation === 'relu6') {
-      const mask = y.lessEqual(6).mul(y.step());
-      dyActivation = dy.mul(mask);
-    } else if (activation === 'elu') {
-      const eluDer =
-          ENGINE.runKernelFunc(backend => backend.eluDer(dy, y), {dy, y});
-      dyActivation = dy.mul(eluDer);
     } else {
       throw new Error(
           `Gradient for activation ${activation} has not been ` +
