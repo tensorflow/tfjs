@@ -469,12 +469,16 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   /**
-   * Execute a kernel with the given name and return the output tensor info.
+   * Execute a kernel with the given name and return the output tensor.
    *
    * @param kernelName The name of the kernel to execute.
-   * @param inputs A map of input names to tensor infos.
+   * @param inputs A map of input names to tensors.
    * @param attrs A map of attribute names to their values. An attribute is a
    *     primitive (non-tensor) input to the kernel.
+   * @param inputsToSave A list of tensors, inputs to save for the backprop
+   *     computation.
+   * @param outputsToSave A list of booleans, specifying which output to save
+   *     for the backprop computation.
    */
   runKernel(
       kernelName: string, inputs: NamedTensorMap, attrs: NamedAttrMap,
