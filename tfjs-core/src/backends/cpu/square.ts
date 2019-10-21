@@ -26,13 +26,10 @@ interface SquareInputs {
 registerKernel({
   kernelName: 'Square',
   backendName: 'cpu',
-  kernelFunc: ({inputs, backend, save}) => {
+  kernelFunc: ({inputs, backend}) => {
     const {x} = inputs as {} as SquareInputs;
     const cpuBackend = backend as MathBackendCPU;
     assertNotComplex(x, 'square');
-
-    // Save it for the gradient.
-    save([x]);
 
     const values = cpuBackend.data.get(x.dataId).values as Float32Array;
     const newValues = new Float32Array(values.length);

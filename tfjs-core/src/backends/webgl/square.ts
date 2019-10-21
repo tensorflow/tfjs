@@ -26,12 +26,9 @@ interface SquareInputs {
 registerKernel({
   kernelName: 'Square',
   backendName: 'webgl',
-  kernelFunc: ({inputs, backend, save}) => {
+  kernelFunc: ({inputs, backend}) => {
     const {x} = inputs as {} as SquareInputs;
     const webglBackend = backend as MathBackendWebGL;
-
-    // Save it for the gradient.
-    save([x]);
     const program = new UnaryOpProgram(x.shape, SQUARE);
     return webglBackend.runWebGLProgram(program, [x], x.dtype);
   }

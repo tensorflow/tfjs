@@ -17,7 +17,7 @@
 
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
-import {getKernel, getKernelsForBackend, NamedAttrMap, NamedTensorInfoMap, TensorInfo} from './kernel_registry';
+import {getKernel, getKernelsForBackend, NamedAttrMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, Tensor3D, TensorTracker, Variable} from './tensor';
@@ -477,15 +477,16 @@ export class Engine implements TensorTracker, DataMover {
    *     primitive (non-tensor) input to the kernel.
    */
   runKernel(
-      kernelName: string, inputs: NamedTensorInfoMap,
-      attrs: NamedAttrMap): TensorInfo|TensorInfo[] {
+      kernelName: string, inputs: NamedTensorMap, attrs: NamedAttrMap,
+      inputsToSave?: Tensor[], outputsToSave?: boolean[]): Tensor|Tensor[] {
     const forwardFunc: null = null;
     const backwardsFunc: null = null;
     // Call runKernel as a stop-gap until we modularize all kernels.
-    // Once we modularize all kernels, we will remove the existing runKernel().
+    // Once we modularize all kernels, we will remove the existing
+    // `runKernelFunc`.
     return this.runKernelFunc(
-        forwardFunc, inputs as NamedTensorMap, backwardsFunc, kernelName,
-        attrs);
+        forwardFunc, inputs, backwardsFunc, kernelName, attrs, inputsToSave,
+        outputsToSave);
   }
 
   private shouldCheckForMemLeaks(): boolean {
@@ -528,7 +529,11 @@ export class Engine implements TensorTracker, DataMover {
   runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
-      kernelName?: string, attrs?: NamedAttrMap): T {
+      kernelName?: string, attrs?: NamedAttrMap, inputsToSave?: Tensor[],
+      outputsToSave?: boolean[]): T {
+    inputsToSave = inputsToSave || [];
+    outputsToSave = outputsToSave || [];
+
     let outputs: Tensor[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
@@ -557,15 +562,18 @@ export class Engine implements TensorTracker, DataMover {
     if (kernel != null) {
       kernelFunc = () => {
         const numDataIdsBefore = this.backend.numDataIds();
-        out = kernel.kernelFunc(
-            {inputs, attrs, backend: this.backend, save: saveFunc});
+        out = kernel.kernelFunc({inputs, attrs, backend: this.backend});
         const outInfos = Array.isArray(out) ? out : [out];
         if (this.shouldCheckForMemLeaks()) {
           this.checkKernelForMemLeak(scopeName, numDataIdsBefore, outInfos);
         }
-        return outInfos.map(
+        const outTensors = outInfos.map(
             ({dataId, shape, dtype}) =>
                 this.makeTensorFromDataId(dataId, shape, dtype));
+        const outsToSave = outTensors.filter((_, i) => outputsToSave[i]);
+        // Save the inputs and outputs.
+        saveFunc(inputsToSave.slice().concat(outsToSave));
+        return outTensors;
       };
     } else {
       kernelFunc = () => {
