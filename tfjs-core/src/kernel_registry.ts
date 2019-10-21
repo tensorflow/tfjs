@@ -19,8 +19,6 @@ import {DataType} from './types';
 
 const kernelRegistry: Map<string, KernelConfig> = new Map();
 
-export type GradSaveFunc = (save: DataId[]) => void;
-
 export type DataId = object;
 
 /** These are extra non-tensor/primitive params passed to kernel functions. */
@@ -31,7 +29,6 @@ export type KernelFunc = (params: {
   inputs: NamedTensorInfoMap,
   backend: {},
   attrs?: NamedAttrMap,
-  save?: GradSaveFunc
 }) => TensorInfo|TensorInfo[];
 
 /** Function that gets called after the backend initializes. */
