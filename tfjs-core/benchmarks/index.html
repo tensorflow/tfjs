@@ -99,14 +99,17 @@ limitations under the License.
     const init = async () => {
       const inputSize = 2;
       const batchSize = 4;
+
       const input = tf.layers.input({shape: [inputSize]});
       const dense1 =
-          tf.layers.dense({units: 2, kernelInitializer: 'ones', useBias: false});
-      const dropout = tf.layers.dropout({rate: 0.5});
-      const dense2 =
-          tf.layers.dense({units: 1, kernelInitializer: 'ones', useBias: false});
-      const output =
-          dense2.apply(dropout.apply(dense1.apply(input)));
+          tf.layers.dense({units: 1, kernelInitializer: 'ones', useBias: true, activation: 'relu'});
+
+      // const dropout = tf.layers.dropout({rate: 0.5});
+      // const dense2 =
+      //     tf.layers.dense({units: 1, kernelInitializer: 'ones', useBias: false});
+      // const output =
+      //     dense2.apply(dropout.apply(dense1.apply(input)));
+      const output = dense1.apply(input);
       const model = new tf.LayersModel({inputs: input, outputs: output});
       model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
       const x = tf.ones([batchSize, inputSize]);
