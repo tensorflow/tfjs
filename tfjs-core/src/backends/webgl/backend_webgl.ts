@@ -231,7 +231,7 @@ export class MathBackendWebGL extends KernelBackend {
   private dataRefCount = new WeakMap<DataId, number>();
   private numBytesInGPU = 0;
 
-  private canvas: HTMLCanvasElement;
+  private canvas: HTMLCanvasElement|OffscreenCanvas;
   private fromPixels2DContext: CanvasRenderingContext2D|
       OffscreenCanvasRenderingContext2D;
 
@@ -2687,7 +2687,9 @@ export class MathBackendWebGL extends KernelBackend {
       return;
     }
     this.textureManager.dispose();
-    if (this.canvas != null && this.canvas.remove != null) {
+    if (this.canvas != null &&
+        (typeof (HTMLCanvasElement) !== 'undefined' &&
+         this.canvas instanceof HTMLCanvasElement)) {
       this.canvas.remove();
     } else {
       this.canvas = null;
