@@ -355,7 +355,7 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
     expect(res.shape).toEqual([1, 100]);
     expect(res.dtype).toBe('float32');
     expectArraysClose(await res.data(), expected);
-  });
+  }, 20000);
 
   it('concat axis=2', async () => {
     const tensor1 = tf.tensor3d([1, 11, 2, 22, 3, 33, 4, 44], [2, 2, 2]);

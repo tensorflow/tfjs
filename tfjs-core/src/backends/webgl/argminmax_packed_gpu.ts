@@ -120,7 +120,8 @@ export class ArgMinMaxPackedProgram implements GPGPUProgram {
         ivec4 srcIdx = ivec4(sourceLocR${inChannel}, sourceLocG${inChannel},
           sourceLocB${inChannel}, sourceLocA${inChannel}) * ${windowSize};
         ivec4 inIdx = srcIdx;
-        vec4 bestIndex = vec4(inIdx);
+        ${fetchCandidateIdx}
+        ivec4 bestIndex = inIdx;
         vec4 bestValue = ${fetchValue};
 
         for (int i = 0; i < ${windowSize}; i++) {
@@ -135,10 +136,10 @@ export class ArgMinMaxPackedProgram implements GPGPUProgram {
                            replace.y  ? candidate.y : bestValue.y,
                            replace.z  ? candidate.z : bestValue.z,
                            replace.w  ? candidate.w : bestValue.w);
-          bestIndex = mix(bestIndex, vec4(inIdx), vec4(replace));
+          bestIndex = round(mix(vec4(bestIndex), vec4(inIdx), vec4(replace)));
           srcIdx++;
         }
-        setOutput(bestIndex);
+        setOutput(vec4(bestIndex));
       }
     `;
   }

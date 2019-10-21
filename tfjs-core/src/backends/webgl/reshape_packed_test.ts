@@ -76,8 +76,8 @@ describeWithFlags('expensive reshape with even columns', PACKED_ENVS, () => {
     // Setting WEBGL_MAX_TEXTURE_SIZE to 2 makes that [8, 2] tensor is packed
     // to texture of width 2 by height 2. Indices are packed as:
     // -------------
-    // | 0 1 | 4 5 |       // First row's four
-    // | 2 3 | 6 7 |       // pixels.
+    // | 0 1 | 4 5 |       // First row's two
+    // | 2 3 | 6 7 |       // texels.
     // -------------
     // ...
     const c = tf.matMul(a, b);
