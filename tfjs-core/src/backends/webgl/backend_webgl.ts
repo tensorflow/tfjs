@@ -2687,7 +2687,9 @@ export class MathBackendWebGL extends KernelBackend {
       return;
     }
     this.textureManager.dispose();
-    if (this.canvas != null && this.canvas instanceof HTMLCanvasElement) {
+    if (this.canvas != null &&
+        (typeof (HTMLCanvasElement) !== 'undefined' &&
+         this.canvas instanceof HTMLCanvasElement)) {
       this.canvas.remove();
     } else {
       this.canvas = null;
