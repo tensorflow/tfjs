@@ -72,6 +72,12 @@ export async function linechart(
       _series.length === _data.length,
       'Must have an equal number of series labels as there are data series');
 
+  if (opts.seriesColors != null) {
+    assert(
+        opts.seriesColors.length === _data.length,
+        'Must have an equal number of series colors as there are data series');
+  }
+
   const vlChartValues: VLChartValue[] = [];
   for (let valueIdx = 0; valueIdx < numValues; valueIdx++) {
     const v: VLChartValue = {
@@ -131,7 +137,10 @@ export async function linechart(
         'color': {
           'field': `${seriesName}-name`,
           'type': 'nominal',
-          'legend': {'values': _series, title: null}
+          'legend': {'values': _series, title: null},
+          'scale': {
+            'range': options.seriesColors,
+          }
         },
       }
     };
