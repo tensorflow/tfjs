@@ -28,7 +28,6 @@ const grepFilter = env.specFilter;
 const INCLUDE_LIST: string[] = ['add ', 'matmul ', 'prelu '];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
-  'version is contained',       // We depend on core@master via yalc.
   'complex',                    // Complex numbers not yet implemented.
   'gradient',                   // Gradient is missing.
   'broadcast inner dim',        // Broadcast inner dim not yet supported.
