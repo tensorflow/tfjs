@@ -5,7 +5,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
-  "keywords": ["tensorflow", "tensorflowjs", "machine learning", "deep learning", "neural networks", "react native"],
+  "keywords": [
+    "tensorflow",
+    "tensorflowjs",
+    "machine learning",
+    "deep learning",
+    "neural networks",
+    "react native"
+  ],
   "scripts": {
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "build": "tsc",
