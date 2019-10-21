@@ -17,7 +17,7 @@
  */
 
 // inspired by https://github.com/maxogden/filereader-stream
-import {env(), util} from '@tensorflow/tfjs-core';
+import {env, util} from '@tensorflow/tfjs-core';
 import {FileElement} from '../types';
 import {ByteChunkIterator} from './byte_chunk_iterator';
 

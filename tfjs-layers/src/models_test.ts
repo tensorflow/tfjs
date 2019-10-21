@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import {DataType, env(), io, memory, ones, randomNormal, Scalar, scalar, serialization, sum, Tensor, tensor1d, tensor2d, tensor3d, train, zeros} from '@tensorflow/tfjs-core';
+import {DataType, env, io, memory, ones, randomNormal, Scalar, scalar, serialization, sum, Tensor, tensor1d, tensor2d, tensor3d, train, zeros} from '@tensorflow/tfjs-core';
 
 import {LayersModel} from './engine/training';
 import * as tfl from './index';

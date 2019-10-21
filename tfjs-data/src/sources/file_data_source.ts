@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {env()} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
 import {DataSource} from '../datasource';
 import {ByteChunkIterator} from '../iterators/byte_chunk_iterator';
 import {FileChunkIterator, FileChunkIteratorOptions} from '../iterators/file_chunk_iterator';

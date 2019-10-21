@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {env()} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
 import {FileChunkIterator} from './file_chunk_iterator';
 
 const range = (start: number, end: number) => {

@@ -16,12 +16,12 @@
  * =============================================================================
  */
 
-import {env()} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
 import {isLocalPath} from './source_util';
 
 const nonPathString = 'iamnotlocalpath';
 const testData = env().get('IS_BROWSER') ? new Blob([nonPathString]) :
-                                         Buffer.from(nonPathString);
+                                           Buffer.from(nonPathString);
 
 describe('source_util', () => {
   it('returns true if it is local path', () => {

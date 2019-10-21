@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {env()} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
 import {FileChunkIterator} from './file_chunk_iterator';
 
 const lorem = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
@@ -26,7 +26,8 @@ consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
 dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,
 sunt in culpa qui officia deserunt mollit anim id est laborum.`;
 
-const testData = env().get('IS_BROWSER') ? new Blob([lorem]) : Buffer.from(lorem);
+const testData =
+    env().get('IS_BROWSER') ? new Blob([lorem]) : Buffer.from(lorem);
 
 describe('StringIterator.split()', () => {
   it('Correctly splits lines', async () => {
@@ -47,7 +48,7 @@ describe('StringIterator.split()', () => {
      async () => {
        const byteIterator = new FileChunkIterator(
            env().get('IS_BROWSER') ? new Blob(['ab def hi      pq']) :
-                                   Buffer.from('ab def hi      pq'),
+                                     Buffer.from('ab def hi      pq'),
            {chunkSize: 3});
        // Note the initial chunking will be
        //   ['ab ', 'def', ' hi', '   ', '   ', 'pq],

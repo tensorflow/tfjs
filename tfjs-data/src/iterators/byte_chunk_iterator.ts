@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {env()} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
 import {LazyIterator, OneToManyIterator} from './lazy_iterator';
 import {StringIterator} from './string_iterator';
 
@@ -86,9 +86,9 @@ class Utf8Iterator extends StringIterator {
  *   file.
  */
 class Utf8IteratorImpl extends OneToManyIterator<string> {
-  // `decoder` as `any` here to dynamically assign value based on env().
-  // tslint:disable-next-line:no-any
-  decoder:any;
+  // `decoder` as `any` here to dynamically assign value based on the
+  // environment. tslint:disable-next-line:no-any
+  decoder: any;
 
   constructor(protected readonly upstream: LazyIterator<Uint8Array>) {
     super();
@@ -96,7 +96,7 @@ class Utf8IteratorImpl extends OneToManyIterator<string> {
       this.decoder = new TextDecoder('utf-8');
     } else {
       // tslint:disable-next-line:no-require-imports
-      const { StringDecoder } = require('string_decoder');
+      const {StringDecoder} = require('string_decoder');
       this.decoder = new StringDecoder('utf8');
     }
   }
@@ -108,14 +108,14 @@ class Utf8IteratorImpl extends OneToManyIterator<string> {
     const chunkResult = await this.upstream.next();
     let chunk;
     if (chunkResult.done) {
-        return false;
+      return false;
     } else {
       chunk = chunkResult.value;
     }
 
     let text: string;
     if (env().get('IS_BROWSER')) {
-      text = this.decoder.decode(chunk, {stream:true});
+      text = this.decoder.decode(chunk, {stream: true});
     } else {
       text = this.decoder.write(Buffer.from(chunk.buffer));
     }

@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {env()} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
 import {FileDataSource} from '../sources/file_data_source';
 import {TextLineDataset} from './text_line_dataset';
 
@@ -26,7 +26,8 @@ const runes = `ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷ�
 
 const textWithDOSLineBreaks = 'abc\rdefg\r\nhijklmn\r\nopqrst';
 
-const testBlob = env().get('IS_BROWSER') ? new Blob([runes]) : Buffer.from(runes);
+const testBlob =
+    env().get('IS_BROWSER') ? new Blob([runes]) : Buffer.from(runes);
 
 const textBlobWithDOSLineBreaks = env().get('IS_BROWSER') ?
     new Blob([textWithDOSLineBreaks]) :

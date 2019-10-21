@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {env()} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
 import {FileDataSource} from '../sources/file_data_source';
 import {CSVDataset} from './csv_dataset';
 
@@ -102,10 +102,11 @@ const csvDataWithHeadersExtra = env().get('IS_BROWSER') ?
 const csvDataWithSemicolon = env().get('IS_BROWSER') ?
     new Blob([csvDataSemicolon]) :
     Buffer.from(csvDataSemicolon);
-const csvDataWithMixedType = env().get('IS_BROWSER') ? new Blob([csvMixedType]) :
-                                                     Buffer.from(csvMixedType);
+const csvDataWithMixedType = env().get('IS_BROWSER') ?
+    new Blob([csvMixedType]) :
+    Buffer.from(csvMixedType);
 const csvDataWithQuote = env().get('IS_BROWSER') ? new Blob([csvWithQuote]) :
-                                                 Buffer.from(csvWithQuote);
+                                                   Buffer.from(csvWithQuote);
 const csvDataWithMultiWhitespaces = env().get('IS_BROWSER') ?
     new Blob([csvWithMultiWhitespaces]) :
     Buffer.from(csvWithMultiWhitespaces);
