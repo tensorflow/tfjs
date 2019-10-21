@@ -20,8 +20,8 @@ import * as tfl from '@tensorflow/tfjs-layers';
 
 import * as tfn from '../index';
 
-// We still need node-fetch so that we can mock the core tfc.env().platform.fetch
-// call and return a valid response.
+// We still need node-fetch so that we can mock the core
+// tfc.env().platform.fetch call and return a valid response.
 // tslint:disable-next-line:no-require-imports
 const fetch = require('node-fetch');
 
