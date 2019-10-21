@@ -8,6 +8,7 @@
   "unpkg": "dist/tf-wasm.min.js",
   "jsdelivr": "dist/tf-wasm.min.js",
   "scripts": {
+    "preinstall": "cd ../tfjs-core && yarn && yarn build",
     "build": "rimraf dist/ && tsc && ./scripts/build-wasm.sh && cp wasm-out/*.wasm dist/",
     "build-ci": "./scripts/build-ci.sh",
     "build-npm": "./scripts/build-npm.sh",
