@@ -49,15 +49,9 @@
   resolved "https://registry.yarnpkg.com/@bazel/hide-bazel-files/-/hide-bazel-files-0.36.0.tgz#3fb7c7c5f579f46dd1efd1b3890f11351aa8e65c"
   integrity sha512-RgJWR1rOgyU4smruUK3MFA06DKt3AFCcfi9L8u/h11EjOrfLJgnzBJIGDXvW2zzhgnEJ9RRafOUHKN6blDksGg==
 
-"@tensorflow/tfjs-core@file:.yalc/@tensorflow/tfjs-core":
-  version "1.2.11-40bd6b61"
-  dependencies:
-    "@types/offscreencanvas" "~2019.3.0"
-    "@types/seedrandom" "2.4.27"
-    "@types/webgl-ext" "0.0.30"
-    "@types/webgl2" "0.0.4"
-    node-fetch "~2.1.2"
-    seedrandom "2.4.3"
+"@tensorflow/tfjs-core@link:../tfjs-core":
+  version "0.0.0"
+  uid ""
 
 "@types/emscripten@~0.0.34":
   version "0.0.34"
