@@ -18,12 +18,15 @@
 import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram} from './gpgpu_math';
 import {ENCODE_FLOAT_SNIPPET} from './shader_compiler_util';
+import {TextureUsage} from './tex_util';
 
 export class EncodeFloatPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
   outputShape: number[];
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = false;
+  outTexUsage = TextureUsage.DOWNLOAD;
 
   constructor(outputShape: [number, number, number]) {
     const glsl = getGlslDifferences();
