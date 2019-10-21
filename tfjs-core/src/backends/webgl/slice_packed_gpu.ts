@@ -23,7 +23,8 @@ import {getCoordsDataType} from './shader_compiler';
 
 export class SlicePackedProgram implements GPGPUProgram {
   variableNames = ['source'];
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
   outputShape: number[];
   userCode: string;
   rank: number;
@@ -73,7 +74,7 @@ export class SlicePackedProgram implements GPGPUProgram {
       void main() {
         ${dtype} coords = getOutputCoords();
         ${dtype} sourceLoc;
-        ${sourceLocSetup} 
+        ${sourceLocSetup}
         vec4 result = vec4(0.);
         ${upperRow}
         ${lowerRow}
