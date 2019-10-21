@@ -231,14 +231,25 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
 });
 
 describeWithFlags('Custom window size', WEBGL_ENVS, () => {
+  const customBackendName = 'custom-webgl';
+
+  beforeAll(() => {
+    const kernel = tf.getKernel('Square', 'webgl');
+    tf.registerKernel('Square', customBackendName, kernel);
+  });
+
+  afterAll(() => {
+    tf.unregisterKernel('Square', customBackendName);
+  });
+
   it('Set screen area to be 1x1', () => {
     // This will set the screen size to 1x1 to make sure the page limit is
     // very small.
     spyOnProperty(window, 'screen', 'get')
         .and.returnValue({height: 1, width: 1});
 
-    tf.registerBackend('custom-webgl', () => new MathBackendWebGL());
-    tf.setBackend('custom-webgl');
+    tf.registerBackend(customBackendName, () => new MathBackendWebGL());
+    tf.setBackend(customBackendName);
 
     // Allocate ~40KB.
     const a = tf.ones([100, 100]);
@@ -263,7 +274,7 @@ describeWithFlags('Custom window size', WEBGL_ENVS, () => {
     expect(numWarnCalls).toBe(1);
     expect((tf.memory() as tf.webgl.WebGLMemoryInfo).numBytesInGPU)
         .toBe(100 * 100 * 4 * 3);
-    tf.removeBackend('custom-webgl');
+    tf.removeBackend(customBackendName);
   });
 });
 
@@ -468,14 +479,22 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
 });
 
 describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
+  const customBackendName = 'cache-on-cpu';
+
   beforeAll(() => {
     tf.env().set('WEBGL_CPU_FORWARD', false);
+    const kernel = tf.getKernel('Square', 'webgl');
+    tf.registerKernel('Square', customBackendName, kernel);
+  });
+
+  afterAll(() => {
+    tf.unregisterKernel('Square', customBackendName);
   });
 
   it('caches on cpu after async read', async () => {
     const backend = new MathBackendWebGL();
-    tf.registerBackend('cache-on-cpu', () => backend);
-    tf.setBackend('cache-on-cpu');
+    tf.registerBackend(customBackendName, () => backend);
+    tf.setBackend(customBackendName);
 
     const t = tf.square(2);
     const info = backend.getDataInfo(t.dataId);
@@ -488,13 +507,13 @@ describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
     // Make sure the tensor is cached on CPU.
     expect(info.values).not.toBe(null);
 
-    tf.removeBackend('cache-on-cpu');
+    tf.removeBackend(customBackendName);
   });
 
   it('caches on cpu after sync read', () => {
     const backend = new MathBackendWebGL();
-    tf.registerBackend('cache-on-cpu', () => backend);
-    tf.setBackend('cache-on-cpu');
+    tf.registerBackend(customBackendName, () => backend);
+    tf.setBackend(customBackendName);
 
     const t = tf.square(2);
     const info = backend.getDataInfo(t.dataId);
@@ -507,7 +526,7 @@ describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
     // Make sure the tensor is cached on CPU.
     expect(info.values).not.toBe(null);
 
-    tf.removeBackend('cache-on-cpu');
+    tf.removeBackend(customBackendName);
   });
 });
 

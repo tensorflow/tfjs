@@ -69,6 +69,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
         id: 1,
         dispose: () => null,
         disposeData: (dataId: {}) => null,
+        numDataIds: () => 0
       } as TestStorage;
     });
     tf.registerBackend('backend2', () => {
@@ -76,6 +77,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
         id: 2,
         dispose: () => null,
         disposeData: (dataId: {}) => null,
+        numDataIds: () => 0
       } as TestStorage;
     });
 

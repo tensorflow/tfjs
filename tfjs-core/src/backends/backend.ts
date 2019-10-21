@@ -42,11 +42,14 @@ export interface TensorStorage {
       HTMLVideoElement,
       numChannels: number): Tensor3D;
   memory(): {unreliable: boolean;};  // Backend-specific information.
+  /** Returns number of data ids currently in the storage. */
+  numDataIds(): number;
 }
 
 /** Convenient class for storing tensor-related data. */
 export class DataStorage<T> {
   private data = new WeakMap<DataId, T>();
+  private dataIdsCount = 0;
 
   constructor(private backend: KernelBackend, private dataMover: DataMover) {}
 
@@ -58,6 +61,7 @@ export class DataStorage<T> {
   }
 
   set(dataId: DataId, value: T): void {
+    this.dataIdsCount++;
     this.data.set(dataId, value);
   }
 
@@ -66,7 +70,12 @@ export class DataStorage<T> {
   }
 
   delete(dataId: DataId): boolean {
+    this.dataIdsCount--;
     return this.data.delete(dataId);
+  }
+
+  numDataIds(): number {
+    return this.dataIdsCount;
   }
 }
 
@@ -97,6 +106,9 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     return notYetImplemented();
   }
   readSync(dataId: object): BackendValues {
+    return notYetImplemented();
+  }
+  numDataIds(): number {
     return notYetImplemented();
   }
   disposeData(dataId: object): void {

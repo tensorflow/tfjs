@@ -22,7 +22,8 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
   variableNames = ['x', 'W'];
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
   outputShape: number[];
   userCode: string;
 
