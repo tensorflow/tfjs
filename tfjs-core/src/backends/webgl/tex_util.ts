@@ -21,6 +21,43 @@ import {DataId, Tensor} from '../../tensor';
 import {BackendValues, DataType} from '../../types';
 import * as util from '../../util';
 
+export enum PackingScheme {
+  /**
+   * All values in a single texel are densely packed without any constraints.
+   *
+   * This is how the shader encodes a tensor with shape = [2, 3, 4]
+   * (indices are [batch, row, col]).
+   *
+   * 000|001   010|011   020|021
+   * -------   -------   -------
+   * 002|003   012|013   022|023
+   *
+   * 100|101   110|111   120|121
+   * -------   -------   -------
+   * 102|103   112|113   122|123
+   *
+   */
+  DENSE,
+
+  /**
+   * Single texels contain only values from the same batch, and from adjacent
+   * rows and columns.
+   *
+   * This is how the shader encodes a tensor with shape = [2, 3, 5]
+   * (indices are [batch, row, col]).
+   *
+   * 000|001   002|003   004|xxx   020|021   022|023   024|xxx
+   * -------   -------   -------   -------   -------   -------
+   * 010|011   012|013   014|xxx   xxx|xxx   xxx|xxx   xxx|xxx
+   *
+   * 100|101   102|103   104|xxx   120|121   122|123   124|xxx
+   * -------   -------   -------   -------   -------   -------
+   * 110|111   112|113   114|xxx   xxx|xxx   xxx|xxx   xxx|xxx
+   *
+   */
+  SHARED_BATCH
+}
+
 export enum TextureUsage {
   RENDER,
   UPLOAD,

@@ -124,6 +124,10 @@ export class MathBackendCPU extends KernelBackend {
     this.data.set(dataId, {values, dtype});
   }
 
+  numDataIds(): number {
+    return this.data.numDataIds();
+  }
+
   fromPixels(
       pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
       HTMLVideoElement,
