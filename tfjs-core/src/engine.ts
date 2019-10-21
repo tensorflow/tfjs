@@ -478,7 +478,8 @@ export class Engine implements TensorTracker, DataMover {
    * @param inputsToSave A list of tensors, inputs to save for the backprop
    *     computation.
    * @param outputsToSave A list of booleans, specifying which output to save
-   *     for the backprop computation.
+   *     for the backprop computation. These are booleans since the output
+   * tensors are not visible to the user.
    */
   runKernel(
       kernelName: string, inputs: NamedTensorMap, attrs: NamedAttrMap,
@@ -533,11 +534,8 @@ export class Engine implements TensorTracker, DataMover {
   runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
-      kernelName?: string, attrs?: NamedAttrMap, inputsToSave?: Tensor[],
-      outputsToSave?: boolean[]): T {
-    inputsToSave = inputsToSave || [];
-    outputsToSave = outputsToSave || [];
-
+      kernelName?: string, attrs?: NamedAttrMap, inputsToSave: Tensor[] = [],
+      outputsToSave: boolean[] = []): T {
     let outputs: Tensor[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
