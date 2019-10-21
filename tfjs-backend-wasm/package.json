@@ -40,8 +40,8 @@
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-terser": "^5.1.1",
     "rollup-plugin-typescript2": "^0.22.1",
-    "tslint": "~5.11.0",
-    "tslint-no-circular-imports": "^0.5.0",
+    "tslint": "^5.20.0",
+    "tslint-no-circular-imports": "^0.7.0",
     "typescript": "3.5.3",
     "yalc": "~1.0.0-pre.21"
   },
