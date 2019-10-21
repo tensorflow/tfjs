@@ -281,7 +281,7 @@ export class TFSavedModel implements InferenceModel {
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
     if (this.deleted) {
-      throw new Error('The TFSavedModel already has been deleted!');
+      throw new Error('The TFSavedModel has already been deleted!');
     } else {
       throw new Error('predict() of TFSavedModel is not supported yet.');
     }
@@ -302,7 +302,7 @@ export class TFSavedModel implements InferenceModel {
 /**
  * Load a TensorFlow SavedModel from disk. A SavedModel is a directory
  * containing serialized signatures and the states needed to run them. For more
- * information, see this guide: https://www.tensorflow.org/guide/saved_model
+ * information, see this guide: https://www.tensorflow.org/guide/saved_model.
  *
  * @param path The path to the SavedModel.
  * @param tags The tags of the MetaGraph to load.
@@ -323,9 +323,10 @@ export async function loadSavedModel(
   let sessionId: number;
 
   for (const id of Array.from(loadedSavedModelPathMap.keys())) {
-    const value = loadedSavedModelPathMap.get(id);
-    if (value.path === path && stringArraysHaveSameElements(value.tags, tags)) {
-      sessionId = value.sessionId;
+    const modelInfo = loadedSavedModelPathMap.get(id);
+    if (modelInfo.path === path &&
+        stringArraysHaveSameElements(modelInfo.tags, tags)) {
+      sessionId = modelInfo.sessionId;
     }
   }
   if (sessionId == null) {
