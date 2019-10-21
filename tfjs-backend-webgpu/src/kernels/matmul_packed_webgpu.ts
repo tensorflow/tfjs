@@ -133,7 +133,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
         `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
           B[row * dimBOuter + col] : 0`;
 
-    this.dispatchLayout = {x: [1], y: [2], z: [0]};
+    this.dispatchLayout = {x: [2], y: [1], z: [0]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [workPerThread, workPerThread, 1]);
