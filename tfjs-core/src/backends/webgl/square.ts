@@ -23,13 +23,16 @@ interface SquareInputs {
   x: TensorInfo;
 }
 
-registerKernel('Square', 'webgl', ({inputs, storage, save}) => {
-  const {x} = inputs as {} as SquareInputs;
-  const webglStorage = storage as MathBackendWebGL;
+registerKernel({
+  kernelName: 'Square',
+  backendName: 'webgl',
+  kernelFunc: ({inputs, backend, save}) => {
+    const {x} = inputs as {} as SquareInputs;
+    const webglBackend = backend as MathBackendWebGL;
 
-  // Save it for the gradient.
-  save([x]);
-
-  const program = new UnaryOpProgram(x.shape, SQUARE);
-  return webglStorage.runWebGLProgram(program, [x], x.dtype);
+    // Save it for the gradient.
+    save([x]);
+    const program = new UnaryOpProgram(x.shape, SQUARE);
+    return webglBackend.runWebGLProgram(program, [x], x.dtype);
+  }
 });
