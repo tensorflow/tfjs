@@ -1896,6 +1896,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   loadSavedModelMetaGraph(path: string, tags: string): number {
+    console.log('1111111111111');
     return this.binding.loadSavedModel(path, tags);
   }
 

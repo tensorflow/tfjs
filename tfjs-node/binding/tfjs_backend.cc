@@ -17,16 +17,15 @@
 
 #include "tfjs_backend.h"
 
-#include "napi_auto_ref.h"
-#include "tf_auto_tensor.h"
-#include "tfe_auto_op.h"
-#include "utils.h"
-
 #include <algorithm>
 #include <cstring>
 #include <memory>
 #include <set>
 #include <string>
+#include "napi_auto_ref.h"
+#include "tf_auto_tensor.h"
+#include "tfe_auto_op.h"
+#include "utils.h"
 
 namespace tfnodejs {
 
@@ -978,14 +977,7 @@ napi_value TFJSBackend::LoadSavedModel(napi_env env,
   nstatus = GetStringParam(env, tags_value, tags);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  std::vector<std::string> tags_name_array = split(tags);
-
-  std::unique_ptr<const char *[]> tags_ptrs;
-  size_t tags_len = tags_name_array.size();
-  tags_ptrs.reset(new const char *[tags_len]);
-  for (size_t i = 0; i < tags_len; ++i) {
-    tags_ptrs[i] = tags_name_array.at(i).c_str();
-  }
+  std::vector<const char *> tags_ptrs = splitStringByComma(tags);
 
   TF_Graph *graph = TF_NewGraph();
 
@@ -994,8 +986,8 @@ napi_value TFJSBackend::LoadSavedModel(napi_env env,
   TF_AutoStatus tf_status;
 
   TF_Session *session = TF_LoadSessionFromSavedModel(
-      session_options, run_options, export_dir, tags_ptrs.get(), tags_len,
-      graph, metagraph, tf_status.status);
+      session_options, run_options, export_dir, tags_ptrs.data(),
+      tags_ptrs.size(), graph, metagraph, tf_status.status);
   // Delete objects that are necessary when loading the SavedModel but not gonna
   // be used later.
   TF_DeleteSessionOptions(session_options);
@@ -1004,7 +996,7 @@ napi_value TFJSBackend::LoadSavedModel(napi_env env,
   TF_DeleteGraph(graph);
 
   if (TF_GetCode(tf_status.status) != TF_OK) {
-    NAPI_THROW_ERROR(env, "Faile to load SavedModel: %s",
+    NAPI_THROW_ERROR(env, "Failed to load SavedModel: %s",
                      TF_Message(tf_status.status));
     return nullptr;
   }
@@ -1033,7 +1025,7 @@ void TFJSBackend::DeleteSavedModel(napi_env env,
   TF_AutoStatus tf_status;
   TF_DeleteSession(savedmodel_entry->second, tf_status.status);
   if (TF_GetCode(tf_status.status) != TF_OK) {
-    NAPI_THROW_ERROR(env, "Fail to delete SavedModel: %s",
+    NAPI_THROW_ERROR(env, "Failed to delete SavedModel: %s",
                      TF_Message(tf_status.status));
     return;
   }

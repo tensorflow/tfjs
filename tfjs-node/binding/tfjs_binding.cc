@@ -47,7 +47,10 @@ static napi_value CreateTensor(napi_env env, napi_callback_info info) {
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   if (argc < 3) {
-    NAPI_THROW_ERROR(env, "Invalid number of args passed to createTensor()");
+    NAPI_THROW_ERROR(env,
+                     "Invalid number of args passed to createTensor(). "
+                     "Expecting 3 args but got %d.",
+                     argc);
     return nullptr;
   }
 
@@ -76,7 +79,10 @@ static napi_value DeleteTensor(napi_env env, napi_callback_info info) {
   ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
 
   if (argc < 1) {
-    NAPI_THROW_ERROR(env, "Invalid number of args passed to deleteTensor()");
+    NAPI_THROW_ERROR(env,
+                     "Invalid number of args passed to deleteTensor(). "
+                     "Expecting 1 arg but got %d.",
+                     argc);
     return js_this;
   }
 
@@ -97,7 +103,10 @@ static napi_value TensorDataSync(napi_env env, napi_callback_info info) {
   ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
 
   if (argc < 1) {
-    NAPI_THROW_ERROR(env, "Invalid number of args passed to tensorDataSync()");
+    NAPI_THROW_ERROR(env,
+                     "Invalid number of args passed to tensorDataSync(). "
+                     "Expecting 1 arg but got %d.",
+                     argc);
     return nullptr;
   }
 
@@ -109,7 +118,7 @@ static napi_value TensorDataSync(napi_env env, napi_callback_info info) {
 static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
-  // Create tensor takes 3 params: op-name, op-attrs, input-tensor-ids,
+  // Create tensor takes 4 params: op-name, op-attrs, input-tensor-ids,
   // num-outputs:
   size_t argc = 4;
   napi_value args[4];
@@ -118,7 +127,10 @@ static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   if (argc < 4) {
-    NAPI_THROW_ERROR(env, "Invalid number of args passed to executeOp()");
+    NAPI_THROW_ERROR(env,
+                     "Invalid number of args passed to executeOp(). Expecting "
+                     "4 args but got %d.",
+                     argc);
     return nullptr;
   }
 
@@ -151,7 +163,10 @@ static napi_value LoadSavedModel(napi_env env, napi_callback_info info) {
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   if (argc < 2) {
-    NAPI_THROW_ERROR(env, "Invalid number of args passed to LoadSavedModel()");
+    NAPI_THROW_ERROR(env,
+                     "Invalid number of args passed to LoadSavedModel(). "
+                     "Expecting 2 args but got %d.",
+                     argc);
     return nullptr;
   }
 
@@ -173,7 +188,9 @@ static napi_value DeleteSavedModel(napi_env env, napi_callback_info info) {
 
   if (argc < 1) {
     NAPI_THROW_ERROR(env,
-                     "Invalid number of args passed to deleteSavedModel()");
+                     "Invalid number of args passed to deleteSavedModel(). "
+                     "Expecting 1 arg but got %d.",
+                     argc);
     return js_this;
   }
 

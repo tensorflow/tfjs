@@ -32,14 +32,18 @@ const messages = require('./proto/api_pb');
 const SAVED_MODEL_FILE_NAME = '/saved_model.pb';
 
 // This map is used to keep track of loaded SavedModel metagraph mapping
-// information. The map key is TFSavedModelSignature id in JavaScript, value is
-// a turple of path to the SavedModel, metagraph tags, and loaded Session ID in
+// information. The map key is TFSavedModel id in JavaScript, value is
+// an object of path to the SavedModel, metagraph tags, and loaded Session ID in
 // the c++ bindings. When user loads a SavedModel signature, it will go through
 // entries in this map to find if the corresponding SavedModel session has
 // already been loaded in C++ addon and will reuse it if existing.
-const loadedSavedModelPathMap = new Map<number, [string, string, number]>();
+const loadedSavedModelPathMap =
+    new Map<number, {path: string, tags: string[], sessionId: number}>();
 
-let tfSavedModelSignatureId = 0;
+// The ID of loaded TFSavedModel. This ID is used to keep track of loaded
+// TFSavedModel, so the loaded session in c++ bindings for the corresponding
+// TFSavedModel can be properly reused/deleted.
+let nextTFSavedModelId = 0;
 
 /**
  * Get a key in an object by its value. This is used to get protobuf enum value
@@ -75,6 +79,9 @@ export async function readSavedModelProto(path: string) {
  * Inspect the MetaGraphs of the SavedModel from the provided path.
  *
  * @param path Path to SavedModel folder.
+ */
+/**
+ * @doc {heading: 'Models', subheading: 'SavedModel', namespace: 'node'}
  */
 export async function getMetaGraphsFromSavedModel(path: string):
     Promise<MetaGraphInfo[]> {
@@ -181,28 +188,35 @@ export interface SavedModelTensorInfo {
 /**
  * Get input and output node names from SavedModel metagraphs info. The
  * input.output node names will be used when executing a SavedModel signature.
+ *
+ * @param savedModelInfo The MetaGraphInfo array loaded through
+ *     getMetaGraphsFromSavedModel().
+ * @param tags The tags of the MetaGraph to get input/output node names from.
+ * @param signature The signature to get input/output node names from.
  */
 export function getInputAndOutputNodeNameFromMetaGraphInfo(
     savedModelInfo: MetaGraphInfo[], tags: string[], signature: string) {
   for (let i = 0; i < savedModelInfo.length; i++) {
     const metaGraphInfo = savedModelInfo[i];
-    if (tags.length === metaGraphInfo.tags.length &&
-        JSON.stringify(tags) === JSON.stringify(metaGraphInfo.tags)) {
-      if (metaGraphInfo.signatureDefs[signature] === undefined) {
+    if (stringArraysHaveSameElements(tags, metaGraphInfo.tags)) {
+      if (metaGraphInfo.signatureDefs[signature] == null) {
         throw new Error('The SavedModel does not have signature: ' + signature);
       }
       const inputNodeNames: string[] = [];
       const outputNodeNames: string[] = [];
-      for (const signature of Object.keys(metaGraphInfo.signatureDefs)) {
-        for (const tensorName of Object.keys(
-                 metaGraphInfo.signatureDefs[signature].inputs)) {
-          inputNodeNames.push(
-              metaGraphInfo.signatureDefs[signature].inputs[tensorName].name);
-        }
-        for (const tensorName of Object.keys(
-                 metaGraphInfo.signatureDefs[signature].outputs)) {
-          inputNodeNames.push(
-              metaGraphInfo.signatureDefs[signature].outputs[tensorName].name);
+      for (const signatureDef of Object.keys(metaGraphInfo.signatureDefs)) {
+        if (signatureDef === signature) {
+          for (const tensorName of Object.keys(
+                   metaGraphInfo.signatureDefs[signature].inputs)) {
+            inputNodeNames.push(
+                metaGraphInfo.signatureDefs[signature].inputs[tensorName].name);
+          }
+          for (const tensorName of Object.keys(
+                   metaGraphInfo.signatureDefs[signature].outputs)) {
+            outputNodeNames.push(metaGraphInfo.signatureDefs[signature]
+                                     .outputs[tensorName]
+                                     .name);
+          }
         }
       }
       return [inputNodeNames, outputNodeNames];
@@ -212,25 +226,19 @@ export function getInputAndOutputNodeNameFromMetaGraphInfo(
 }
 
 /**
- * A `tf.TFSavedModelSignature` is a signature loaded from a SavedModel
+ * A `tf.TFSavedModel` is a signature loaded from a SavedModel
  * metagraph, and allows inference exeuction.
  */
-export class TFSavedModelSignature implements InferenceModel {
-  // ID of the loaded session in C++ bindings
-  private readonly sessionId: number;
-  // ID of the loaded signature in javascript
-  private readonly jsid: number;
-  private readonly backend: NodeJSKernelBackend;
-  private deleted: boolean;
+/**
+ * @doc {heading: 'Models', subheading: 'SavedModel', namespace: 'node'}
+ */
+export class TFSavedModel implements InferenceModel {
+  private deleted = false;
 
   constructor(
-      sessionId: number, jsid: number, inputNodeNames: string[],
-      outputNodeNames: string[], backend: NodeJSKernelBackend) {
-    this.sessionId = sessionId;
-    this.backend = backend;
-    this.deleted = false;
-    this.jsid = jsid;
-  }
+      private sessionId: number, private jsid: number,
+      private inputNodeNames: string[], private outputNodeNames: string[],
+      private backend: NodeJSKernelBackend) {}
 
   /** Placeholder function. */
   get inputs(): TensorInfo[] {
@@ -244,8 +252,9 @@ export class TFSavedModelSignature implements InferenceModel {
 
   /**
    * Delete the SavedModel from nodeBackend and delete corresponding session in
-   * the C++ backend if the session is only used by this TFSavedModelSignature.
+   * the C++ backend if the session is only used by this TFSavedModel.
    */
+  /** @doc {heading: 'Models', subheading: 'SavedModel'} */
   delete() {
     if (!this.deleted) {
       this.deleted = true;
@@ -253,13 +262,13 @@ export class TFSavedModelSignature implements InferenceModel {
       loadedSavedModelPathMap.delete(this.jsid);
       for (const id of Array.from(loadedSavedModelPathMap.keys())) {
         const value = loadedSavedModelPathMap.get(id);
-        if (value[2] === this.sessionId) {
+        if (value.sessionId === this.sessionId) {
           return;
         }
       }
       this.backend.deleteSavedModel(this.sessionId);
     } else {
-      throw new Error('This SavedModel has been deleted.');
+      throw new Error('This SavedModel has already been deleted.');
     }
   }
 
@@ -268,13 +277,13 @@ export class TFSavedModelSignature implements InferenceModel {
    * @param inputs
    * @param config
    */
+  /** @doc {heading: 'Models', subheading: 'SavedModel'} */
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
     if (this.deleted) {
-      throw new Error('The TFSavedModelSignature has been deleted!');
+      throw new Error('The TFSavedModel already has been deleted!');
     } else {
-      throw new Error(
-          'predict() of TFSavedModelSignature is not supported yet.');
+      throw new Error('predict() of TFSavedModel is not supported yet.');
     }
   }
 
@@ -283,26 +292,26 @@ export class TFSavedModelSignature implements InferenceModel {
    * @param inputs
    * @param outputs
    */
+  /** @doc {heading: 'Models', subheading: 'SavedModel'} */
   execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs: string|string[]):
       Tensor|Tensor[] {
-    throw new Error('Execute() of TFSavedModelSignature is not supported yet.');
+    throw new Error('execute() of TFSavedModel is not supported yet.');
   }
 }
 
 /**
- * Load a signature of a MetaGraph from a SavedModel as `TFSavedModelSignature`.
- * The loaded `TFSavedModelSignature` can be used to do inference execution.
+ * Load a TensorFlow SavedModel from disk. A SavedModel is a directory
+ * containing serialized signatures and the states needed to run them. For more
+ * information, see this guide: https://www.tensorflow.org/guide/saved_model
  *
  * @param path The path to the SavedModel.
  * @param tags The tags of the MetaGraph to load.
  * @param signature The SignatureDef to load.
  */
+/** @doc {heading: 'Models', subheading: 'SavedModel', namespace: 'node'} */
 export async function loadSavedModel(
-    path: string, tags: string[],
-    signature: string): Promise<TFSavedModelSignature> {
+    path: string, tags: string[], signature: string): Promise<TFSavedModel> {
   ensureTensorflowBackend();
-  // Convert metagraph tags string array to a string.
-  const tagsString = tags.join();
 
   const backend = nodeBackend();
 
@@ -311,20 +320,36 @@ export async function loadSavedModel(
       getInputAndOutputNodeNameFromMetaGraphInfo(
           savedModelInfo, tags, signature);
 
-  let sessionId;
+  let sessionId: number;
 
   for (const id of Array.from(loadedSavedModelPathMap.keys())) {
     const value = loadedSavedModelPathMap.get(id);
-    if (value[0] === path && value[1] === tagsString) {
-      sessionId = value[2];
+    if (value.path === path && stringArraysHaveSameElements(value.tags, tags)) {
+      sessionId = value.sessionId;
     }
   }
-  if (typeof sessionId === 'undefined') {
+  if (sessionId == null) {
+    // Convert metagraph tags string array to a string.
+    const tagsString = tags.join();
     sessionId = backend.loadSavedModelMetaGraph(path, tagsString);
   }
-  const id = tfSavedModelSignatureId++;
-  const modelSignature = new TFSavedModelSignature(
-      sessionId, id, inputNodeNames, outputNodeNames, backend);
-  loadedSavedModelPathMap.set(id, [path, tagsString, sessionId]);
+  const id = nextTFSavedModelId++;
+  const modelSignature =
+      new TFSavedModel(sessionId, id, inputNodeNames, outputNodeNames, backend);
+  loadedSavedModelPathMap.set(id, {path, tags, sessionId});
   return modelSignature;
+}
+
+/**
+ * Compare if two unsorted arrays of string have the same elements.
+ * @param arrayA
+ * @param arrayB
+ */
+function stringArraysHaveSameElements(
+    arrayA: string[], arrayB: string[]): boolean {
+  if (arrayA.length === arrayB.length &&
+      arrayA.sort().join() === arrayB.sort().join()) {
+    return true;
+  }
+  return false;
 }

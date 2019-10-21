@@ -22,6 +22,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <cstdlib>
+#include <cstring>
 #include <vector>
 #include "tensorflow/c/c_api.h"
 #include "tf_auto_status.h"
@@ -305,16 +306,20 @@ inline size_t GetTensorNumElements(TF_Tensor *tensor) {
   return ret;
 }
 
-// Split a string into a string array with `,` as delimiter.
-inline std::vector<std::string> split(const std::string &str) {
-  std::vector<std::string> tokens;
+// Split a string into an array of characters array with `,` as delimiter.
+inline std::vector<const char *> splitStringByComma(const std::string &str) {
+  std::vector<const char *> tokens;
   size_t prev = 0, pos = 0;
   do {
     pos = str.find(',', prev);
     if (pos == std::string::npos) pos = str.length();
     std::string token = str.substr(prev, pos - prev);
-    if (!token.empty()) tokens.push_back(token);
-    prev = pos + 1;  // delim.length();
+    if (!token.empty()) {
+      char *cstr = new char[str.length() + 1];
+      std::strcpy(cstr, str.c_str());
+      tokens.push_back(cstr);
+    }
+    prev = pos + 1;
   } while (pos < str.length() && prev < str.length());
   return tokens;
 }
