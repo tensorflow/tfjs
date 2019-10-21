@@ -15,19 +15,24 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '../../kernel_registry';
-import {assert} from '../../util';
+import {registerKernel, TensorInfo} from '../../kernel_registry';
+import {MathBackendWebGL} from './backend_webgl';
+import {SQUARE, UnaryOpProgram} from './unaryop_gpu';
 
-export function assertNotComplex(
-    tensor: TensorInfo|TensorInfo[], opName: string): void {
-  if (!Array.isArray(tensor)) {
-    tensor = [tensor];
-  }
-  tensor.forEach(t => {
-    if (t != null) {
-      assert(
-          t.dtype !== 'complex64',
-          () => `${opName} does not support complex64 tensors.`);
-    }
-  });
+interface SquareInputs {
+  x: TensorInfo;
 }
+
+registerKernel({
+  kernelName: 'Square',
+  backendName: 'webgl',
+  kernelFunc: ({inputs, backend, save}) => {
+    const {x} = inputs as {} as SquareInputs;
+    const webglBackend = backend as MathBackendWebGL;
+
+    // Save it for the gradient.
+    save([x]);
+    const program = new UnaryOpProgram(x.shape, SQUARE);
+    return webglBackend.runWebGLProgram(program, [x], x.dtype);
+  }
+});

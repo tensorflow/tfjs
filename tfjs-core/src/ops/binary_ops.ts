@@ -76,10 +76,10 @@ function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
       }
       return res.reshape($b.shape);
     };
-    return {$a: derA, $b: derB};
+    return {a: derA, b: derB};
   };
-  return ENGINE.runKernelFunc(backend => backend.add($a, $b), {$a, $b}, der) as
-      T;
+  return ENGINE.runKernelFunc(
+             backend => backend.add($a, $b), {a: $a, b: $b}, der, 'Add') as T;
 }
 
 /**
