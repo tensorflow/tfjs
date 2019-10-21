@@ -48,7 +48,6 @@ import {Activation} from './fused_util';
  * - `activation` Name of activation kernel (defaults to `linear`).
  * - `preluActivationWeights` Tensor of prelu weights.
  */
-/** @doc {heading: 'Operations', subheading: 'Matrices', namespace: 'fused'} */
 function matMul_<T extends Tensor>({
   a,
   b,
@@ -273,9 +272,6 @@ function matMul_<T extends Tensor>({
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
  */
-/**
- * @doc {heading: 'Operations', subheading: 'Convolution', namespace: 'fused'}
- */
 function conv2d_<T extends Tensor3D|Tensor4D>({
   x,
   filter,
@@ -480,9 +476,6 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
  * @param activation Name of activation kernel (defaults to `linear`).
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
- */
-/**
- * @doc {heading: 'Operations', subheading: 'Convolution', namespace: 'fused'}
  */
 function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   x,
