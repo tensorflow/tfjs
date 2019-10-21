@@ -15,24 +15,22 @@
  * =============================================================================
  */
 
-import {registerKernel, TensorInfo} from '../../kernel_registry';
+import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../kernel_registry';
+
 import {MathBackendCPU} from './backend_cpu';
 import {assertNotComplex} from './cpu_util';
 
-interface SquareInputs {
+interface SquareInputs extends NamedTensorInfoMap {
   x: TensorInfo;
 }
 
 registerKernel({
   kernelName: 'Square',
   backendName: 'cpu',
-  kernelFunc: ({inputs, backend, save}) => {
-    const {x} = inputs as {} as SquareInputs;
+  kernelFunc: ({inputs, backend}) => {
+    const {x} = inputs as SquareInputs;
     const cpuBackend = backend as MathBackendCPU;
     assertNotComplex(x, 'square');
-
-    // Save it for the gradient.
-    save([x]);
 
     const values = cpuBackend.data.get(x.dataId).values as Float32Array;
     const newValues = new Float32Array(values.length);
