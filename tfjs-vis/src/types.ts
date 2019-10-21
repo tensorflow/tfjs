@@ -153,6 +153,10 @@ export interface XYPlotOptions extends VisOptions {
    * but allows fitting more data into view.
    */
   zoomToFit?: boolean;
+  /**
+   * Colors to for each series plotted. An array of valid CSS color strings.
+   */
+  seriesColors?: string[];
 }
 
 /**
@@ -194,6 +198,21 @@ export interface HistogramOpts extends VisOptions {
    * Maximum number of bins in histogram.
    */
   maxBins?: number;
+
+  /**
+   * Fill color for bars. Should be a valid CSS color string
+   */
+  color?: string;
+}
+
+/**
+ * Bar chart options.
+ */
+export interface BarChartOpts extends VisOptions {
+  /**
+   * Fill color for bars. Should be a valid CSS color string
+   */
+  color?: string|string[];
 }
 
 /**
