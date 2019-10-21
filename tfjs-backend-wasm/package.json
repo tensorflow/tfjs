@@ -8,6 +8,7 @@
   "unpkg": "dist/tf-wasm.min.js",
   "jsdelivr": "dist/tf-wasm.min.js",
   "scripts": {
+    "prepare": "cd ../tfjs-core && yarn build && yarn yalc publish",
     "build": "rimraf dist/ && tsc && ./scripts/build-wasm.sh && cp wasm-out/*.wasm dist/",
     "build-ci": "./scripts/build-ci.sh",
     "build-npm": "./scripts/build-npm.sh",
@@ -19,13 +20,13 @@
     "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "~1.2.7"
+    "@tensorflow/tfjs-core": "file:.yalc/@tensorflow/tfjs-core"
   },
   "devDependencies": {
     "@bazel/bazel": "^0.28.0",
-    "@tensorflow/tfjs-core": "~1.2.7",
-    "@types/jasmine": "~2.8.6",
+    "@tensorflow/tfjs-core": "file:.yalc/@tensorflow/tfjs-core",
     "@types/emscripten": "~0.0.34",
+    "@types/jasmine": "~2.8.6",
     "clang-format": "^1.2.4",
     "jasmine-core": "~3.1.0",
     "karma": "~4.0.0",
