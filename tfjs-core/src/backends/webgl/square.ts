@@ -15,11 +15,12 @@
  * =============================================================================
  */
 
-import {registerKernel, TensorInfo} from '../../kernel_registry';
+import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../kernel_registry';
+
 import {MathBackendWebGL} from './backend_webgl';
 import {SQUARE, UnaryOpProgram} from './unaryop_gpu';
 
-interface SquareInputs {
+interface SquareInputs extends NamedTensorInfoMap {
   x: TensorInfo;
 }
 
@@ -27,7 +28,7 @@ registerKernel({
   kernelName: 'Square',
   backendName: 'webgl',
   kernelFunc: ({inputs, backend}) => {
-    const {x} = inputs as {} as SquareInputs;
+    const {x} = inputs as SquareInputs;
     const webglBackend = backend as MathBackendWebGL;
     const program = new UnaryOpProgram(x.shape, SQUARE);
     return webglBackend.runWebGLProgram(program, [x], x.dtype);
