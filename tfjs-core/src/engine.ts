@@ -260,6 +260,15 @@ export class Engine implements TensorTracker, DataMover {
     });
   }
 
+  private disposeRegisteredKernels(backendName: string): void {
+    const kernels = getKernelsForBackend(backendName);
+    kernels.forEach(kernel => {
+      if (kernel.disposeFunc != null) {
+        kernel.disposeFunc(this.registry[backendName]);
+      }
+    });
+  }
+
   /**
    * Initializes a backend by looking up the backend name in the factory
    * registry and calling the factory method. Returns a boolean representing
@@ -325,6 +334,7 @@ export class Engine implements TensorTracker, DataMover {
     }
 
     if (backendName in this.registry) {
+      this.disposeRegisteredKernels(backendName);
       this.registry[backendName].dispose();
       delete this.registry[backendName];
     }
@@ -1036,6 +1046,7 @@ export class Engine implements TensorTracker, DataMover {
     this.state = new EngineState();
 
     for (const backendName in this.registry) {
+      this.disposeRegisteredKernels(backendName);
       this.registry[backendName].dispose();
       delete this.registry[backendName];
     }

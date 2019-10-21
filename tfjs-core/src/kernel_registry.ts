@@ -34,8 +34,10 @@ export type KernelFunc = (params: {
   save?: GradSaveFunc
 }) => TensorInfo|TensorInfo[];
 
-/** Function that gets called when the backend initializes. */
+/** Function that gets called after the backend initializes. */
 export type KernelSetupFunc = (backend: {}) => void;
+/** Function that gets called right before the backend is disposed. */
+export type KernelDisposeFunc = KernelSetupFunc;
 
 /** Config object for registering a kernel in the global registry. */
 export interface KernelConfig {
@@ -43,6 +45,7 @@ export interface KernelConfig {
   backendName: string;
   kernelFunc: KernelFunc;
   setupFunc?: KernelSetupFunc;
+  disposeFunc?: KernelDisposeFunc;
 }
 
 /** Holds metadata for a given tensor. */
@@ -97,6 +100,9 @@ export function getKernelsForBackend(backendName: string): KernelConfig[] {
  * - `kernelName` The official name of the kernel.
  * - `backendName` The official name of the backend.
  * - `kernelFunc` The function to run during the forward pass of the kernel.
+ * - `setupFunc` Optional. Gets called once, after the backend initializes.
+ * - `disposeFunc` Optional. Gets called once, right before the backend is
+ * disposed.
  */
 export function registerKernel(config: KernelConfig) {
   const {kernelName, backendName} = config;

@@ -47,7 +47,6 @@ import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
-import {TensorData} from './cpu_types';
 import {assertNotComplex} from './cpu_util';
 
 function mapActivation(
@@ -75,6 +74,17 @@ function createCanvas() {
     return document.createElement('canvas');
   }
   return null;
+}
+
+export interface TensorData<D extends DataType> {
+  values?: BackendValues;
+  dtype: D;
+  // For complex numbers, the real and imaginary parts are stored as their own
+  // individual tensors, with a parent joining the two with the
+  // complexTensors field.
+  // TODO(smilkov): Replace Tensor with TensorInfo when you modularize ops
+  // that work with complex tensors.
+  complexTensors?: {real: Tensor, imag: Tensor};
 }
 
 export class MathBackendCPU extends KernelBackend {
