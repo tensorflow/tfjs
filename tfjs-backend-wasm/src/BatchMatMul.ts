@@ -15,16 +15,16 @@
  * =============================================================================
  */
 
-import {KernelFunc, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from './backend_wasm';
 
-interface BatchMatMulInputs {
+interface BatchMatMulInputs extends NamedTensorInfoMap {
   a: TensorInfo;
   b: TensorInfo;
 }
 
-interface BatchMatMulAttrs {
+interface BatchMatMulAttrs extends NamedAttrMap {
   transposeA: boolean;
   transposeB: boolean;
 }
@@ -80,5 +80,5 @@ registerKernel({
   kernelName: 'BatchMatMul',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: batchMatMul as {} as KernelFunc
+  kernelFunc: batchMatMul
 });

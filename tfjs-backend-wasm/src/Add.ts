@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from './backend_wasm';
 
-interface AddInputs {
+interface AddInputs extends NamedTensorInfoMap {
   a: TensorInfo;
   b: TensorInfo;
 }
@@ -62,5 +62,5 @@ registerKernel({
   kernelName: 'Add',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: add as {} as KernelFunc
+  kernelFunc: add
 });

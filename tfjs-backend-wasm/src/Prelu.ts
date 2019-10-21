@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {KernelFunc, registerKernel, util} from '@tensorflow/tfjs-core';
+import {NamedTensorInfoMap, registerKernel, util} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from './backend_wasm';
 
-interface PreluInputs {
+interface PreluInputs extends NamedTensorInfoMap {
   x: TensorInfo;
   alpha: TensorInfo;
 }
@@ -50,5 +50,5 @@ registerKernel({
   kernelName: 'Prelu',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: prelu as {} as KernelFunc
+  kernelFunc: prelu
 });
