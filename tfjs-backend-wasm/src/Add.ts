@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {backend_util, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelFunc, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+
 import {BackendWasm} from './backend_wasm';
 
 interface AddInputs {
@@ -25,13 +26,14 @@ interface AddInputs {
 
 let wasmAdd: (aId: number, bId: number, outId: number) => void;
 
-registerKernel('Add', 'wasm', ({inputs, storage}) => {
-  const backend = storage as BackendWasm;
-  if (wasmAdd == null) {
-    wasmAdd = backend.wasm.cwrap(
-        'add', null /* void */, ['number', 'number', 'number']);
-  }
-  const {a, b} = inputs as {} as AddInputs;
+function setup(backend: BackendWasm): void {
+  wasmAdd = backend.wasm.cwrap(
+      'add', null /* void */, ['number', 'number', 'number']);
+}
+
+function add(args: {backend: BackendWasm, inputs: AddInputs}): TensorInfo {
+  const {backend, inputs} = args;
+  const {a, b} = inputs;
   const aId = backend.dataIdMap.get(a.dataId).id;
   const bId = backend.dataIdMap.get(b.dataId).id;
 
@@ -54,4 +56,11 @@ registerKernel('Add', 'wasm', ({inputs, storage}) => {
   } else {
     throw new Error('Broadcasting along inner dims is not yet supported');
   }
+}
+
+registerKernel({
+  kernelName: 'Add',
+  backendName: 'wasm',
+  setupFunc: setup,
+  kernelFunc: add as {} as KernelFunc
 });

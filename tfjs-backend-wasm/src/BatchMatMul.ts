@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelFunc, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+
 import {BackendWasm} from './backend_wasm';
 
 interface BatchMatMulInputs {
@@ -34,16 +35,21 @@ let wasmBatchMatMul: (
     aInnerStep: number, bBatch: number, bOuterStep: number, bInnerStep: number,
     outId: number) => void;
 
-registerKernel('BatchMatMul', 'wasm', ({inputs, storage, attrs}) => {
-  const backend = storage as BackendWasm;
-  if (wasmBatchMatMul == null) {
-    wasmBatchMatMul = backend.wasm.cwrap('batch_matmul', null /* void */, [
-      'number', 'number', 'number', 'number', 'number', 'number', 'number',
-      'number', 'number', 'number', 'number', 'number', 'number'
-    ]);
-  }
-  const {a, b} = inputs as {} as BatchMatMulInputs;
-  const {transposeA, transposeB} = attrs as {} as BatchMatMulAttrs;
+function setup(backend: BackendWasm) {
+  wasmBatchMatMul = backend.wasm.cwrap('batch_matmul', null /* void */, [
+    'number', 'number', 'number', 'number', 'number', 'number', 'number',
+    'number', 'number', 'number', 'number', 'number', 'number'
+  ]);
+}
+
+function batchMatMul(args: {
+  inputs: BatchMatMulInputs,
+  backend: BackendWasm,
+  attrs: BatchMatMulAttrs
+}) {
+  const {inputs, backend, attrs} = args;
+  const {a, b} = inputs;
+  const {transposeA, transposeB} = attrs;
   const aId = backend.dataIdMap.get(a.dataId).id;
   const bId = backend.dataIdMap.get(b.dataId).id;
 
@@ -68,4 +74,11 @@ registerKernel('BatchMatMul', 'wasm', ({inputs, storage, attrs}) => {
       aId, bId, sharedDim, leftDim, rightDim, batchDim, aBatch, aOuterStep,
       aInnerStep, bBatch, bOuterStep, bInnerStep, outId);
   return out;
+}
+
+registerKernel({
+  kernelName: 'BatchMatMul',
+  backendName: 'wasm',
+  setupFunc: setup,
+  kernelFunc: batchMatMul as {} as KernelFunc
 });
