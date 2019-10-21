@@ -17,6 +17,7 @@
 
 import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
+import {getActiveContext} from './webgl_context_manager';
 
 export class ClipPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
@@ -53,8 +54,9 @@ export class ClipPackedProgram implements GPGPUProgram {
         this.minLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'minVal');
         this.maxLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'maxVal');
       }
-      gpgpu.gl.uniform1f(this.minLoc, min);
-      gpgpu.gl.uniform1f(this.maxLoc, max);
+      const gl = getActiveContext();
+      gl.uniform1f(this.minLoc, min);
+      gl.uniform1f(this.maxLoc, max);
     };
   }
 }

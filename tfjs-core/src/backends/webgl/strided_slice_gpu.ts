@@ -23,8 +23,7 @@ export class StridedSliceProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(
-      begin: number[], strides: number[], size: number[]) {
+  constructor(begin: number[], strides: number[], size: number[]) {
     this.outputShape = size;
     const rank = size.length;
     const inputDtype = getCoordsDataType(size.length);

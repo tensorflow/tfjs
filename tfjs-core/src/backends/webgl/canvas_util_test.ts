@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,14 +17,13 @@
 import * as tf from '../../index';
 import {BROWSER_ENVS, describeWithFlags} from '../../jasmine_util';
 
-import {getWebGLContext} from './canvas_util';
+import {browserContextFactory} from './canvas_util';
 
 describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   it('Returns a valid canvas', () => {
     const canvas =
-        getWebGLContext(tf.env().getNumber('WEBGL_VERSION')).canvas as
-            // tslint:disable-next-line: no-any
-            any;
+        browserContextFactory(tf.env().getNumber('WEBGL_VERSION')).canvas as (
+            HTMLCanvasElement | OffscreenCanvas);
     expect(
         (canvas instanceof HTMLCanvasElement) ||
         (canvas instanceof OffscreenCanvas))
@@ -32,14 +31,14 @@ describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   });
 
   it('Returns a valid gl context', () => {
-    const gl = getWebGLContext(tf.env().getNumber('WEBGL_VERSION'));
+    const gl = browserContextFactory(tf.env().getNumber('WEBGL_VERSION'));
     expect(gl.isContextLost()).toBe(false);
   });
 });
 
 describeWithFlags('canvas_util webgl2', {flags: {WEBGL_VERSION: 2}}, () => {
   it('is ok when the user requests webgl 1 canvas', () => {
-    const canvas = getWebGLContext(1).canvas;
+    const canvas = browserContextFactory(1).canvas;
     expect((canvas instanceof HTMLCanvasElement)).toBe(true);
   });
 });

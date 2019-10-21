@@ -20,9 +20,9 @@ import * as webgl_util from './backends/webgl/webgl_util';
 import {env} from './environment';
 
 export {MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backends/webgl/backend_webgl';
-export {setWebGLContext} from './backends/webgl/canvas_util';
 export {GPGPUContext} from './backends/webgl/gpgpu_context';
 export {GPGPUProgram} from './backends/webgl/gpgpu_math';
+export {getActiveContext, getContextByVersion, setContextCleanup, setContextFactory} from './backends/webgl/webgl_context_manager';
 // WebGL specific utils.
 export {gpgpu_util, webgl_util};
 

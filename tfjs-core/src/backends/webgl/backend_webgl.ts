@@ -64,7 +64,7 @@ import * as binaryop_gpu from './binaryop_gpu';
 import {BinaryOpProgram} from './binaryop_gpu';
 import * as binaryop_packed_gpu from './binaryop_packed_gpu';
 import {BinaryOpPackedProgram} from './binaryop_packed_gpu';
-import {createCanvas, getWebGLContext} from './canvas_util';
+import {createCanvas} from './canvas_util';
 import {ClipProgram} from './clip_gpu';
 import {ClipPackedProgram} from './clip_packed_gpu';
 import {ComplexAbsProgram} from './complex_abs_gpu';
@@ -133,6 +133,7 @@ import {UnaryOpProgram} from './unaryop_gpu';
 import * as unary_packed_op from './unaryop_packed_gpu';
 import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
+import {getActiveContext} from './webgl_context_manager';
 import * as webgl_util from './webgl_util';
 
 type KernelInfo = {
@@ -239,7 +240,6 @@ export class MathBackendWebGL implements KernelBackend {
   private dataRefCount = new WeakMap<DataId, number>();
   private numBytesInGPU = 0;
 
-  private canvas: HTMLCanvasElement;
   private fromPixels2DContext: CanvasRenderingContext2D|
       OffscreenCanvasRenderingContext2D;
 
@@ -266,15 +266,12 @@ export class MathBackendWebGL implements KernelBackend {
     }
 
     if (gpgpu == null) {
-      const gl = getWebGLContext(env().getNumber('WEBGL_VERSION'));
       this.binaryCache = getBinaryCache(env().getNumber('WEBGL_VERSION'));
-      this.gpgpu = new GPGPUContext(gl);
-      this.canvas = gl.canvas;
+      this.gpgpu = new GPGPUContext();
       this.gpgpuCreatedLocally = true;
     } else {
       this.binaryCache = {};
       this.gpgpuCreatedLocally = false;
-      this.canvas = gpgpu.gl.canvas;
     }
     this.textureManager = new TextureManager(this.gpgpu);
     this.numMBBeforeWarning = numMBBeforeWarning();
@@ -2758,11 +2755,7 @@ export class MathBackendWebGL implements KernelBackend {
       return;
     }
     this.textureManager.dispose();
-    if (this.canvas != null && this.canvas.remove != null) {
-      this.canvas.remove();
-    } else {
-      this.canvas = null;
-    }
+
     if (this.fromPixels2DContext != null &&
         //@ts-ignore
         this.fromPixels2DContext.canvas.remove) {
@@ -2772,6 +2765,11 @@ export class MathBackendWebGL implements KernelBackend {
     if (this.gpgpuCreatedLocally) {
       this.gpgpu.program = null;
       this.gpgpu.dispose();
+    }
+
+    const gl = getActiveContext();
+    if (gl.canvas != null && gl.canvas.remove != null) {
+      gl.canvas.remove();
     }
     this.disposed = true;
   }

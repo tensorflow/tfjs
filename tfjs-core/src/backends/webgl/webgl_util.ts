@@ -19,24 +19,9 @@ import {env} from '../../environment';
 
 import * as util from '../../util';
 
-import {getWebGLContext} from './canvas_util';
 import {getTextureConfig} from './tex_util';
-
-export function callAndCheck<T>(
-    gl: WebGLRenderingContext, debugMode: boolean, func: () => T): T {
-  const returnValue = func();
-  if (debugMode) {
-    checkWebGLError(gl);
-  }
-  return returnValue;
-}
-
-function checkWebGLError(gl: WebGLRenderingContext) {
-  const error = gl.getError();
-  if (error !== gl.NO_ERROR) {
-    throw new Error('WebGL Error: ' + getWebGLErrorMessage(gl, error));
-  }
-}
+import {callAndCheck} from './webgl_check';
+import {getContextByVersion} from './webgl_context_manager';
 
 // https://en.wikipedia.org/wiki/Half-precision_floating-point_format
 const MIN_FLOAT16 = 5.96e-8;
@@ -48,28 +33,6 @@ export function canBeRepresented(num: number): boolean {
     return true;
   }
   return false;
-}
-
-export function getWebGLErrorMessage(
-    gl: WebGLRenderingContext, status: number): string {
-  switch (status) {
-    case gl.NO_ERROR:
-      return 'NO_ERROR';
-    case gl.INVALID_ENUM:
-      return 'INVALID_ENUM';
-    case gl.INVALID_VALUE:
-      return 'INVALID_VALUE';
-    case gl.INVALID_OPERATION:
-      return 'INVALID_OPERATION';
-    case gl.INVALID_FRAMEBUFFER_OPERATION:
-      return 'INVALID_FRAMEBUFFER_OPERATION';
-    case gl.OUT_OF_MEMORY:
-      return 'OUT_OF_MEMORY';
-    case gl.CONTEXT_LOST_WEBGL:
-      return 'CONTEXT_LOST_WEBGL';
-    default:
-      return `Unknown error code ${status}`;
-  }
 }
 
 export function getExtensionOrThrow(
@@ -504,7 +467,7 @@ let MAX_TEXTURES_IN_SHADER: number;
 
 export function getWebGLMaxTextureSize(webGLVersion: number): number {
   if (MAX_TEXTURE_SIZE == null) {
-    const gl = getWebGLContext(webGLVersion);
+    const gl = getContextByVersion(webGLVersion);
     MAX_TEXTURE_SIZE = gl.getParameter(gl.MAX_TEXTURE_SIZE);
   }
   return MAX_TEXTURE_SIZE;
@@ -519,7 +482,7 @@ export function resetMaxTexturesInShader() {
 
 export function getMaxTexturesInShader(webGLVersion: number): number {
   if (MAX_TEXTURES_IN_SHADER == null) {
-    const gl = getWebGLContext(webGLVersion);
+    const gl = getContextByVersion(webGLVersion);
     MAX_TEXTURES_IN_SHADER = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
   }
   // We cap at 16 to avoid spurious runtime "memory exhausted" error.
@@ -533,7 +496,7 @@ export function getWebGLDisjointQueryTimerVersion(webGLVersion: number):
   }
 
   let queryTimerVersion: number;
-  const gl = getWebGLContext(webGLVersion);
+  const gl = getContextByVersion(webGLVersion);
 
   if (hasExtension(gl, 'EXT_disjoint_timer_query_webgl2') &&
       webGLVersion === 2) {
@@ -553,7 +516,7 @@ export function hasExtension(gl: WebGLRenderingContext, extensionName: string) {
 
 export function isWebGLVersionEnabled(webGLVersion: 1|2) {
   try {
-    const gl = getWebGLContext(webGLVersion);
+    const gl = getContextByVersion(webGLVersion);
     if (gl != null) {
       return true;
     }
@@ -569,7 +532,7 @@ export function isCapableOfRenderingToFloatTexture(webGLVersion: number):
     return false;
   }
 
-  const gl = getWebGLContext(webGLVersion);
+  const gl = getContextByVersion(webGLVersion);
 
   if (webGLVersion === 1) {
     if (!hasExtension(gl, 'OES_texture_float')) {
@@ -599,7 +562,7 @@ export function isDownloadFloatTextureEnabled(webGLVersion: number): boolean {
     return false;
   }
 
-  const gl = getWebGLContext(webGLVersion);
+  const gl = getContextByVersion(webGLVersion);
 
   if (webGLVersion === 1) {
     if (!hasExtension(gl, 'OES_texture_float')) {
@@ -690,7 +653,7 @@ export function isWebGLFenceEnabled(webGLVersion: number) {
   if (webGLVersion !== 2) {
     return false;
   }
-  const gl = getWebGLContext(webGLVersion);
+  const gl = getContextByVersion(webGLVersion);
 
   // tslint:disable-next-line:no-any
   const isEnabled = (gl as any).fenceSync != null;
