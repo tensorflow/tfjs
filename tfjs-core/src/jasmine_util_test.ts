@@ -19,7 +19,7 @@ import {Environment} from './environment';
 import {envSatisfiesConstraints, parseTestEnvFromKarmaFlags, TestEnv} from './jasmine_util';
 
 describe('jasmine_util.envSatisfiesConstraints', () => {
-  it('ENV satisfies empty constraints', () => {
+  it('env() satisfies empty constraints', () => {
     const env = new Environment({});
     env.setFlags({});
 
@@ -32,7 +32,7 @@ describe('jasmine_util.envSatisfiesConstraints', () => {
         .toBe(true);
   });
 
-  it('ENV satisfies matching flag constraints no predicate', () => {
+  it('env() satisfies matching flag constraints no predicate', () => {
     const env = new Environment({});
     env.setFlags({'TEST-FLAG': true});
 
@@ -45,7 +45,7 @@ describe('jasmine_util.envSatisfiesConstraints', () => {
         .toBe(true);
   });
 
-  it('ENV satisfies matching flag and predicate is true', () => {
+  it('env() satisfies matching flag and predicate is true', () => {
     const env = new Environment({});
     env.setFlags({'TEST-FLAG': true});
 
@@ -58,7 +58,7 @@ describe('jasmine_util.envSatisfiesConstraints', () => {
         .toBe(true);
   });
 
-  it('ENV doesnt satisfy flags and predicate is true', () => {
+  it('env() doesnt satisfy flags and predicate is true', () => {
     const env = new Environment({});
     env.setFlags({'TEST-FLAG': true});
 
@@ -71,7 +71,7 @@ describe('jasmine_util.envSatisfiesConstraints', () => {
         .toBe(false);
   });
 
-  it('ENV satisfies flags and predicate is false', () => {
+  it('env() satisfies flags and predicate is false', () => {
     const env = new Environment({});
     env.setFlags({'TEST-FLAG': true});
 
@@ -84,7 +84,7 @@ describe('jasmine_util.envSatisfiesConstraints', () => {
         .toBe(false);
   });
 
-  it('ENV doesnt satiisfy flags and predicate is false', () => {
+  it('env() doesnt satiisfy flags and predicate is false', () => {
     const env = new Environment({});
     env.setFlags({'TEST-FLAG': true});
 

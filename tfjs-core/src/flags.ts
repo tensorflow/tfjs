@@ -17,14 +17,14 @@
 import * as device_util from './device_util';
 import {env} from './environment';
 
-const ENV = env();
+const env() = env();
 
 /**
  * This file contains environment-related flag registrations.
  */
 
 /** Whether to enable debug mode. */
-ENV.registerFlag('DEBUG', () => false, debugValue => {
+env().registerFlag('DEBUG', () => false, debugValue => {
   if (debugValue) {
     console.warn(
         'Debugging mode is ON. The output of every math call will ' +
@@ -34,17 +34,17 @@ ENV.registerFlag('DEBUG', () => false, debugValue => {
 });
 
 /** Whether we are in a browser (as versus, say, node.js) environment. */
-ENV.registerFlag('IS_BROWSER', () => device_util.isBrowser());
+env().registerFlag('IS_BROWSER', () => device_util.isBrowser());
 
 /** Whether we are in a browser (as versus, say, node.js) environment. */
-ENV.registerFlag(
+env().registerFlag(
     'IS_NODE',
     () => (typeof process !== 'undefined') &&
         (typeof process.versions !== 'undefined') &&
         (typeof process.versions.node !== 'undefined'));
 
 /** Whether this browser is Chrome. */
-ENV.registerFlag(
+env().registerFlag(
     'IS_CHROME',
     () => typeof navigator !== 'undefined' && navigator != null &&
         navigator.userAgent != null && /Chrome/.test(navigator.userAgent) &&
@@ -54,17 +54,17 @@ ENV.registerFlag(
  * True when the environment is "production" where we disable safety checks
  * to gain performance.
  */
-ENV.registerFlag('PROD', () => false);
+env().registerFlag('PROD', () => false);
 
 /**
  * Whether to do sanity checks when inferring a shape from user-provided
  * values, used when creating a new tensor.
  */
-ENV.registerFlag(
-    'TENSORLIKE_CHECK_SHAPE_CONSISTENCY', () => ENV.getBool('DEBUG'));
+env().registerFlag(
+    'TENSORLIKE_CHECK_SHAPE_CONSISTENCY', () => env().getBool('DEBUG'));
 
 /** Whether deprecation warnings are enabled. */
-ENV.registerFlag('DEPRECATION_WARNINGS_ENABLED', () => true);
+env().registerFlag('DEPRECATION_WARNINGS_ENABLED', () => true);
 
 /** True if running unit tests. */
-ENV.registerFlag('IS_TEST', () => false);
+env().registerFlag('IS_TEST', () => false);

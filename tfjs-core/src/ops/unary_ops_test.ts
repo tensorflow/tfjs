@@ -226,7 +226,7 @@ describeWithFlags('abs', ALL_ENVS, () => {
         small = 1e-4;
         break;
       default:
-        throw new Error(`Test not implemented for ENV.engine.floatPrecision()=${
+        throw new Error(`Test not implemented for env().engine.floatPrecision()=${
             floatBits}.`);
     }
 
