@@ -16,6 +16,8 @@
 #include <emscripten.h>
 #endif
 
+#include "src/cc/kernels/prelu.h"
+
 #include <xnnpack.h>
 #include <cmath>
 #include <limits>
