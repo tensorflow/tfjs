@@ -17,7 +17,7 @@
 
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {BackendWasm} from './backend_wasm';
+import {BackendWasm} from '../backend_wasm';
 
 interface BatchMatMulInputs extends NamedTensorInfoMap {
   a: TensorInfo;

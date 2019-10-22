@@ -15,5 +15,5 @@
  * =============================================================================
  */
 
-import './all_kernels';
+import './kernels/all_kernels';
 export {BackendWasm} from './backend_wasm';

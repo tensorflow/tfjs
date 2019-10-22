@@ -17,7 +17,7 @@
 
 import {backend_util, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {BackendWasm} from './backend_wasm';
+import {BackendWasm} from '../backend_wasm';
 
 interface AddInputs extends NamedTensorInfoMap {
   a: TensorInfo;
