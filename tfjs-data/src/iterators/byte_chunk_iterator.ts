@@ -87,7 +87,8 @@ class Utf8Iterator extends StringIterator {
  */
 class Utf8IteratorImpl extends OneToManyIterator<string> {
   // `decoder` as `any` here to dynamically assign value based on the
-  // environment. tslint:disable-next-line:no-any
+  // environment.
+  // tslint:disable-next-line:no-any
   decoder: any;
 
   constructor(protected readonly upstream: LazyIterator<Uint8Array>) {
