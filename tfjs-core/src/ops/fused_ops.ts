@@ -16,6 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
+import * as tf from '../index';
 import {conv2dDerFilter, conv2dDerInput, depthwiseConv2dDerFilter, depthwiseConv2dDerInput} from '../ops/conv';
 import * as conv_util from '../ops/conv_util';
 import {op} from '../ops/operation';
@@ -26,7 +27,7 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 
 import * as broadcast_util from './broadcast_util';
-import {Activation} from './fused_util';
+import {Activation, getDyActivation} from './fused_util';
 
 /**
  * Computes the dot product of two matrices with optional activation and bias.
@@ -110,6 +111,14 @@ function matMul_<T extends Tensor>({
   const b3D = transposeB ? $b.as3D(batchDimB, outerShapeB, innerShapeB) :
                            $b.as3D(batchDimB, innerShapeB, outerShapeB);
 
+  const gradientMode = ENGINE.state.gradientDepth > 0;
+  if (gradientMode) {
+    // const product = tf.matMul(a, b);
+    // return tf.relu(product);
+    console.log('gradient mode');
+    console.log(tf);
+  }
+
   let $bias: Tensor;
   if (bias != null) {
     $bias = convertToTensor(bias, 'bias', 'fused matMul');
@@ -126,17 +135,7 @@ function matMul_<T extends Tensor>({
 
   const grad = (dy: Tensor3D, saved: Tensor[]) => {
     const [a3D, b3D, y] = saved;
-
-    let dyActivation: Tensor3D;
-    if (activation == null || activation === 'linear') {
-      dyActivation = dy;
-    } else if (activation === 'relu') {
-      dyActivation = dy.mul(y.step());
-    } else {
-      throw new Error(
-          `Gradient for activation ${activation} has not been ` +
-          `implemented yet.`);
-    }
+    const dyActivation = getDyActivation(dy, y, activation);
 
     let biasGradient = {};
     if (bias != null) {
@@ -353,16 +352,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
   const grad = (dy: Tensor4D, saved: Tensor[]) => {
     const [$filter, x4D, y] = saved as [Tensor4D, Tensor4D, Tensor4D];
 
-    let dyActivation: Tensor4D;
-    if (activation == null || activation === 'linear') {
-      dyActivation = dy;
-    } else if (activation === 'relu') {
-      dyActivation = dy.mul(y.step());
-    } else {
-      throw new Error(
-          `Gradient for activation ${activation} has not been ` +
-          `implemented yet.`);
-    }
+    const dyActivation = getDyActivation(dy, y, activation) as Tensor4D;
 
     util.assert(
         conv_util.tupleValuesAreOne(dilations),
@@ -564,16 +554,7 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
             `'${dilations}'`);
     const [x4D, $filter, y] = saved;
 
-    let dyActivation: Tensor4D;
-    if (activation == null || activation === 'linear') {
-      dyActivation = dy;
-    } else if (activation === 'relu') {
-      dyActivation = dy.mul(y.step());
-    } else {
-      throw new Error(
-          `Gradient for activation ${activation} has not been ` +
-          `implemented yet.`);
-    }
+    const dyActivation = getDyActivation(dy, y, activation) as Tensor4D;
 
     let biasGradient = {};
     if (bias != null) {

@@ -38,3 +38,17 @@ export type FusedConv2DConfig = {
   activation?: Activation,
   preluActivationWeights?: Tensor
 };
+
+// Returns gradient for fused activation.
+export const getDyActivation =
+    (dy: Tensor, y: Tensor, activation: Activation): Tensor => {
+      if (activation == null || activation === 'linear') {
+        return dy;
+      } else if (activation === 'relu') {
+        return dy.mul(y.step());
+      } else {
+        throw new Error(
+            `Gradient for activation ${activation} has not been ` +
+            `implemented yet.`);
+      }
+    };
