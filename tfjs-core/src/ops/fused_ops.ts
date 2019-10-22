@@ -27,7 +27,7 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 
 import * as broadcast_util from './broadcast_util';
-import {Activation, getDyActivation} from './fused_util';
+import {Activation, getBiasGradient, getDyActivation} from './fused_util';
 
 /**
  * Computes the dot product of two matrices with optional activation and bias.
@@ -139,20 +139,7 @@ function matMul_<T extends Tensor>({
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {
-        $bias: () => {
-          let res = dyActivation;
-          // Using dyActivation as reference shape because outputShape does not
-          // account for the fact that we temporarily reshape inputs to 3D as
-          // part of batched matMul.
-          const reduceAxes =
-              broadcast_util.getReductionAxes($bias.shape, dyActivation.shape);
-          if (reduceAxes.length > 0) {
-            res = res.sum(reduceAxes);
-          }
-          return res.reshape($bias.shape);
-        }
-      };
+      biasGradient = {$bias: () => getBiasGradient($bias, dyActivation)};
     }
 
     if (!transposeA && !transposeB) {
@@ -362,17 +349,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {
-        $bias: () => {
-          let res = dyActivation;
-          const reduceAxes =
-              broadcast_util.getReductionAxes($bias.shape, dyActivation.shape);
-          if (reduceAxes.length > 0) {
-            res = res.sum(reduceAxes);
-          }
-          return res.reshape($bias.shape);
-        }
-      };
+      biasGradient = {$bias: () => getBiasGradient($bias, dyActivation)};
     }
 
     return Object.assign(
@@ -558,17 +535,7 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {
-        $bias: () => {
-          let res = dyActivation;
-          const reduceAxes =
-              broadcast_util.getReductionAxes($bias.shape, dyActivation.shape);
-          if (reduceAxes.length > 0) {
-            res = res.sum(reduceAxes);
-          }
-          return res.reshape($bias.shape);
-        }
-      };
+      biasGradient = {$bias: () => getBiasGradient($bias, dyActivation)};
     }
 
     return Object.assign(

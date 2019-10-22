@@ -16,6 +16,8 @@
  */
 
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import * as broadcast_util from './broadcast_util';
+
 import {Conv2DInfo} from './conv_util';
 
 export type Activation = 'linear'|'relu'|'prelu'|'elu'|'relu6';
@@ -44,11 +46,22 @@ export const getDyActivation =
     (dy: Tensor, y: Tensor, activation: Activation): Tensor => {
       if (activation == null || activation === 'linear') {
         return dy;
-      } else if (activation === 'relu') {
-        return dy.mul(y.step());
-      } else {
-        throw new Error(
-            `Gradient for activation ${activation} has not been ` +
-            `implemented yet.`);
       }
+      if (activation === 'relu') {
+        return dy.mul(y.step());
+      }
+      throw new Error(
+          `Gradient for activation ${activation} has not been ` +
+          `implemented yet.`);
     };
+
+// Returns gradient for fused bias.
+export const getBiasGradient = (bias: Tensor, dyActivation: Tensor): Tensor => {
+  let res = dyActivation;
+  const reduceAxes =
+      broadcast_util.getReductionAxes(bias.shape, dyActivation.shape);
+  if (reduceAxes.length > 0) {
+    res = res.sum(reduceAxes);
+  }
+  return res.reshape(bias.shape);
+};
