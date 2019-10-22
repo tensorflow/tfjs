@@ -36,7 +36,7 @@ let wasmBatchMatMul: (
     outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmBatchMatMul = backend.wasm.cwrap('batch_matmul', null /* void */, [
+  wasmBatchMatMul = backend.wasm.cwrap('BatchMatMul', null /* void */, [
     'number', 'number', 'number', 'number', 'number', 'number', 'number',
     'number', 'number', 'number', 'number', 'number', 'number'
   ]);

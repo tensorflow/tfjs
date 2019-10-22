@@ -28,7 +28,7 @@ let wasmAdd: (aId: number, bId: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmAdd = backend.wasm.cwrap(
-      'add', null /* void */, ['number', 'number', 'number']);
+      'Add', null /* void */, ['number', 'number', 'number']);
 }
 
 function add(args: {backend: BackendWasm, inputs: AddInputs}): TensorInfo {

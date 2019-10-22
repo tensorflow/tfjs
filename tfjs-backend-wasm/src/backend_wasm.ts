@@ -135,12 +135,12 @@ export class BackendWasm extends KernelBackend {
   }
 
   makeOutput(shape: number[], dtype: DataType): TensorInfo {
-    const dataId = this.write(null, shape, dtype);
+    const dataId = this.write(null /* values */, shape, dtype);
     return {dataId, shape, dtype};
   }
 
   private makeOutTensor(shape: number[], dtype: DataType): Tensor {
-    const dataId = this.write(null, shape, dtype);
+    const dataId = this.write(null /* values */, shape, dtype);
     return engine().makeTensorFromDataId(dataId, shape, dtype, this);
   }
 }

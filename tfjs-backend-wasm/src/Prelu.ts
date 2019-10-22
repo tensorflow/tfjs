@@ -30,7 +30,7 @@ let wasmPrelu: (xId: number, xSize: number, weightsId: number, outId: number) =>
 
 function setup(backend: BackendWasm) {
   wasmPrelu = backend.wasm.cwrap(
-      'prelu', null /* void */, ['number', 'number', 'number', 'number']);
+      'Prelu', null /* void */, ['number', 'number', 'number', 'number']);
 }
 
 function prelu(args: {inputs: PreluInputs, backend: BackendWasm}) {
