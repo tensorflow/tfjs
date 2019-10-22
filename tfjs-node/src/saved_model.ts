@@ -285,8 +285,8 @@ export class TFSavedModel implements InferenceModel {
     } else {
       throw new Error(
           'predict() of TFSavedModel is not supported yet. ' +
-          'Input node names are ' + this.inputNodeNames +
-          '. Output node names are ' + this.outputNodeNames + '.');
+          'Input node names are ' + this.inputNodeNames.toString() +
+          '. Output node names are ' + this.outputNodeNames.toString() + '.');
     }
   }
 
