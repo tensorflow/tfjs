@@ -15,8 +15,9 @@
  * =============================================================================
  */
 
+import * as tf from './index';
 import {nodeBackend} from './nodejs_kernel_backend';
-import {getEnumKeyFromValue, getInputAndOutputNodeNameFromMetaGraphInfo, getMetaGraphsFromSavedModel, loadSavedModel, readSavedModelProto} from './saved_model';
+import {getEnumKeyFromValue, getInputAndOutputNodeNameFromMetaGraphInfo, readSavedModelProto} from './saved_model';
 
 // tslint:disable-next-line:no-require-imports
 const messages = require('./proto/api_pb');
@@ -123,8 +124,8 @@ describe('SavedModel', () => {
   });
 
   it('inspect SavedModel metagraphs', async () => {
-    const modelInfo =
-        await getMetaGraphsFromSavedModel('./test_objects/times_three_float');
+    const modelInfo = await tf.node.getMetaGraphsFromSavedModel(
+        './test_objects/times_three_float');
     /**
      * The inspection output should be
      * [{
@@ -185,8 +186,8 @@ describe('SavedModel', () => {
   });
 
   it('get input and output node names from SavedModel metagraphs', async () => {
-    const modelInfo =
-        await getMetaGraphsFromSavedModel('./test_objects/times_three_float');
+    const modelInfo = await tf.node.getMetaGraphsFromSavedModel(
+        './test_objects/times_three_float');
     const inputAndOutputNodeNames = getInputAndOutputNodeNameFromMetaGraphInfo(
         modelInfo, ['serve'], 'serving_default');
     expect(inputAndOutputNodeNames.length).toBe(2);
@@ -200,15 +201,15 @@ describe('SavedModel', () => {
     const loadSavedModelMetaGraphSpy =
         spyOn(nodeBackend(), 'loadSavedModelMetaGraph').and.callThrough();
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
-    const model = await loadSavedModel(
+    const model = await tf.node.loadSavedModel(
         './test_objects/times_three_float', ['serve'], 'serving_default');
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
-    model.delete();
+    model.dispose();
   });
 
   it('load TFSavedModel with wrong tags throw exception', async done => {
     try {
-      await loadSavedModel(
+      await tf.node.loadSavedModel(
           './test_objects/times_three_float', ['serve', 'gpu'],
           'serving_default');
       done.fail();
@@ -221,7 +222,7 @@ describe('SavedModel', () => {
 
   it('load TFSavedModel with wrong signature throw exception', async done => {
     try {
-      await loadSavedModel(
+      await tf.node.loadSavedModel(
           './test_objects/times_three_float', ['serve'], 'wrong_signature');
       done.fail();
     } catch (error) {
@@ -238,21 +239,21 @@ describe('SavedModel', () => {
         spyOn(nodeBackend(), 'deleteSavedModel').and.callThrough();
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
     expect(deleteSavedModelSpy).toHaveBeenCalledTimes(0);
-    const model = await loadSavedModel(
+    const model = await tf.node.loadSavedModel(
         './test_objects/times_three_float', ['serve'], 'serving_default');
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     expect(deleteSavedModelSpy).toHaveBeenCalledTimes(0);
-    model.delete();
+    model.dispose();
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     expect(deleteSavedModelSpy).toHaveBeenCalledTimes(1);
   });
 
   it('delete TFSavedModel multiple times throw exception', async done => {
-    const model = await loadSavedModel(
+    const model = await tf.node.loadSavedModel(
         './test_objects/times_three_float', ['serve'], 'serving_default');
-    model.delete();
+    model.dispose();
     try {
-      model.delete();
+      model.dispose();
       done.fail();
     } catch (error) {
       expect(error.message).toBe('This SavedModel has already been deleted.');
@@ -266,16 +267,16 @@ describe('SavedModel', () => {
        const loadSavedModelMetaGraphSpy =
            spyOn(backend, 'loadSavedModelMetaGraph').and.callThrough();
        expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
-       const signature1 = await loadSavedModel(
+       const signature1 = await tf.node.loadSavedModel(
            './test_objects/module_with_multiple_signatures', ['serve'],
            'serving_default');
        expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
-       const signature2 = await loadSavedModel(
+       const signature2 = await tf.node.loadSavedModel(
            './test_objects/module_with_multiple_signatures', ['serve'],
            'timestwo');
        expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
-       signature1.delete();
-       signature2.delete();
+       signature1.dispose();
+       signature2.dispose();
        expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
      });
 
@@ -287,20 +288,20 @@ describe('SavedModel', () => {
         spyOn(backend, 'deleteSavedModel').and.callThrough();
     expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(0);
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(0);
-    const signature1 = await loadSavedModel(
+    const signature1 = await tf.node.loadSavedModel(
         './test_objects/module_with_multiple_signatures', ['serve'],
         'serving_default');
     expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(1);
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(0);
-    signature1.delete();
+    signature1.dispose();
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(1);
     expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(1);
-    const signature2 = await loadSavedModel(
+    const signature2 = await tf.node.loadSavedModel(
         './test_objects/module_with_multiple_signatures', ['serve'],
         'timestwo');
     expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(2);
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(1);
-    signature2.delete();
+    signature2.dispose();
     expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(2);
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(2);
   });

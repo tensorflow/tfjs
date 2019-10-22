@@ -42,7 +42,7 @@ const loadedSavedModelPathMap =
 
 // The ID of loaded TFSavedModel. This ID is used to keep track of loaded
 // TFSavedModel, so the loaded session in c++ bindings for the corresponding
-// TFSavedModel can be properly reused/deleted.
+// TFSavedModel can be properly reused/disposed.
 let nextTFSavedModelId = 0;
 
 /**
@@ -233,19 +233,25 @@ export function getInputAndOutputNodeNameFromMetaGraphInfo(
  * @doc {heading: 'Models', subheading: 'SavedModel', namespace: 'node'}
  */
 export class TFSavedModel implements InferenceModel {
-  private deleted = false;
+  private disposed = false;
 
   constructor(
       private sessionId: number, private jsid: number,
       private inputNodeNames: string[], private outputNodeNames: string[],
       private backend: NodeJSKernelBackend) {}
 
-  /** Placeholder function. */
+  /**
+   * Return the array of input tensor info.
+   */
+  /** @doc {heading: 'Models', subheading: 'SavedModel'} */
   get inputs(): TensorInfo[] {
     throw new Error('SavedModel inputs information is not available yet.');
   }
 
-  /** Placeholder function. */
+  /**
+   * Return the array of output tensor info.
+   */
+  /** @doc {heading: 'Models', subheading: 'SavedModel'} */
   get outputs(): TensorInfo[] {
     throw new Error('SavedModel outputs information is not available yet.');
   }
@@ -255,9 +261,9 @@ export class TFSavedModel implements InferenceModel {
    * the C++ backend if the session is only used by this TFSavedModel.
    */
   /** @doc {heading: 'Models', subheading: 'SavedModel'} */
-  delete() {
-    if (!this.deleted) {
-      this.deleted = true;
+  dispose() {
+    if (!this.disposed) {
+      this.disposed = true;
 
       loadedSavedModelPathMap.delete(this.jsid);
       for (const id of Array.from(loadedSavedModelPathMap.keys())) {
@@ -273,14 +279,28 @@ export class TFSavedModel implements InferenceModel {
   }
 
   /**
-   * Placeholder function.
-   * @param inputs
-   * @param config
+   * Execute the inference for the input tensors.
+   *
+   * @param input The input tensors, when there is single input for the model,
+   * inputs param should be a Tensor. For models with multiple inputs, inputs
+   * params should be in either Tensor[] if the input order is fixed, or
+   * otherwise NamedTensorMap format.
+   * For batch inference execution, the tensors for each input need to be
+   * concatenated together. For example with mobilenet, the required input shape
+   * is [1, 244, 244, 3], which represents the [batch, height, width, channel].
+   * If we are provide a batched data of 100 images, the input tensor should be
+   * in the shape of [100, 244, 244, 3].
+   *
+   * @param config Prediction configuration for specifying the batch size.
+   *
+   * @returns Inference result tensors. The output would be single Tensor if
+   * model has single output node, otherwise Tensor[] or NamedTensorMap[] will
+   * be returned for model with multiple outputs.
    */
   /** @doc {heading: 'Models', subheading: 'SavedModel'} */
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
-    if (this.deleted) {
+    if (this.disposed) {
       throw new Error('The TFSavedModel has already been deleted!');
     } else {
       throw new Error(
@@ -291,9 +311,21 @@ export class TFSavedModel implements InferenceModel {
   }
 
   /**
-   * Placeholder function.
-   * @param inputs
-   * @param outputs
+   * Single Execute the inference for the input tensors and return activation
+   * values for specified output node names without batching.
+   *
+   * @param input The input tensors, when there is single input for the model,
+   * inputs param should be a Tensor. For models with multiple inputs, inputs
+   * params should be in either Tensor[] if the input order is fixed, or
+   * otherwise NamedTensorMap format.
+   *
+   * @param outputs string|string[]. List of output node names to retrieve
+   * activation from.
+   *
+   * @returns Activation values for the output nodes result tensors. The return
+   * type matches specified parameter outputs type. The output would be single
+   * Tensor if single output is specified, otherwise Tensor[] for multiple
+   * outputs.
    */
   /** @doc {heading: 'Models', subheading: 'SavedModel'} */
   execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs: string|string[]):
@@ -303,17 +335,29 @@ export class TFSavedModel implements InferenceModel {
 }
 
 /**
- * Load a TensorFlow SavedModel from disk. A SavedModel is a directory
- * containing serialized signatures and the states needed to run them. For more
- * information, see this guide: https://www.tensorflow.org/guide/saved_model.
+ * Load a TensorFlow SavedModel from disk. TensorFlow SavedModel is different
+ * from TensorFlow.js model format. A SavedModel is a directory containing
+ * serialized signatures and the states needed to run them. The directory has a
+ * saved_model.pb (or saved_model.pbtxt) file storing the actual TensorFlow
+ * program, or model, and a set of named signatures, each identifying a
+ * function. The directory also has a variables directory contains a standard
+ * training checkpoint. The directory may also has a assets directory contains
+ * files used by the TensorFlow graph, for example text files used to initialize
+ * vocabulary tables. For more information, see this guide:
+ * https://www.tensorflow.org/guide/saved_model.
  *
  * @param path The path to the SavedModel.
- * @param tags The tags of the MetaGraph to load.
- * @param signature The SignatureDef to load.
+ * @param tags The tags of the MetaGraph to load. The available tags of a
+ *     SavedModel can be retrieved through tf.node.getMetaGraphsFromSavedModel()
+ *     API. Defaults to ['serve'].
+ * @param signature The name of the SignatureDef to load. The available
+ *     SignatureDefs of a SavedModel can be retrieved through
+ *     tf.node.getMetaGraphsFromSavedModel() API. Defaults to 'serving_default'.
  */
 /** @doc {heading: 'Models', subheading: 'SavedModel', namespace: 'node'} */
 export async function loadSavedModel(
-    path: string, tags: string[], signature: string): Promise<TFSavedModel> {
+    path: string, tags = ['serve'],
+    signature = 'serving_default'): Promise<TFSavedModel> {
   ensureTensorflowBackend();
 
   const backend = nodeBackend();
@@ -338,10 +382,10 @@ export async function loadSavedModel(
     sessionId = backend.loadSavedModelMetaGraph(path, tagsString);
   }
   const id = nextTFSavedModelId++;
-  const modelSignature =
+  const savedModel =
       new TFSavedModel(sessionId, id, inputNodeNames, outputNodeNames, backend);
   loadedSavedModelPathMap.set(id, {path, tags, sessionId});
-  return modelSignature;
+  return savedModel;
 }
 
 /**
