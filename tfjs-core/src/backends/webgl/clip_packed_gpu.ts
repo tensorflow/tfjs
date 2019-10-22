@@ -20,7 +20,8 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class ClipPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
   userCode: string;
   outputShape: number[];
 

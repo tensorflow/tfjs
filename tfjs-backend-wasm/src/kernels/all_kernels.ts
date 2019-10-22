@@ -15,21 +15,9 @@
  * =============================================================================
  */
 
-import {Tensor} from '../../tensor';
-import {BackendValues, DataType} from '../../types';
-import {DataStorage} from '../backend';
-
-export interface TensorData<D extends DataType> {
-  values?: BackendValues;
-  dtype: D;
-  // For complex numbers, the real and imaginary parts are stored as their own
-  // individual tensors, with a parent joining the two with the
-  // complexTensors field.
-  // TODO(smilkov): Replace Tensor with TensorInfo when you modularize ops
-  // that work with complex tensors.
-  complexTensors?: {real: Tensor, imag: Tensor};
-}
-
-export interface CPUStorage {
-  data: DataStorage<TensorData<DataType>>;
-}
+// We explicitly import the modular kernels so they get registered in the
+// global registry when we compile the library. A modular build would replace
+// the contents of this file and import only the kernels that are needed.
+import './Add';
+import './BatchMatMul';
+import './Prelu';

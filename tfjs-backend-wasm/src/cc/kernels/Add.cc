@@ -45,7 +45,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void add(int a_id, int b_id, int out_id) {
+void Add(int a_id, int b_id, int out_id) {
   const auto a_info = backend::get_tensor_info(a_id);
   const auto b_info = backend::get_tensor_info(b_id);
   const auto out_info = backend::get_tensor_info(out_id);

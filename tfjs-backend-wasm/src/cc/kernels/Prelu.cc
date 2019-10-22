@@ -16,6 +16,8 @@
 #include <emscripten.h>
 #endif
 
+#include "src/cc/kernels/Prelu.h"
+
 #include <xnnpack.h>
 #include <cmath>
 #include <limits>
@@ -46,7 +48,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void prelu(int x_id, int x_size, int weights_id, int out_id) {
+void Prelu(int x_id, int x_size, int weights_id, int out_id) {
   const TensorInfo x_info = backend::get_tensor_info(x_id);
   const TensorInfo weights_info = backend::get_tensor_info(weights_id);
   const TensorInfo out_info = backend::get_tensor_info(out_id);
