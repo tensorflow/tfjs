@@ -394,13 +394,13 @@ function abs_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => dy.mul($x.toFloat().step(-1))} as {$x: () => T};
+    return {x: () => dy.mul($x.toFloat().step(-1))} as {x: () => T};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.abs($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Abs');
 }
 
 /**
@@ -456,13 +456,13 @@ function sigmoid_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [y] = saved;
-    return {$x: () => dy.mul(y.mul(scalar(1).sub(y)))} as {$x: () => T};
+    return {x: () => dy.mul(y.mul(scalar(1).sub(y)))} as {x: () => T};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const y = backend.sigmoid($x);
     save([y]);
     return y;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Sigmoid');
 }
 
 /**

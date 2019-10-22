@@ -42,10 +42,20 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "all_kernels",
   deps = [
+    ":Abs",
     ":Add",
     ":BatchMatMul",
     ":Prelu",
+    ":Sigmoid",
   ]
+)
+
+tfjs_cc_library(
+  name = "Abs",
+  srcs = ["kernels/Abs.cc"],
+  deps = [
+    ":backend",
+  ],
 )
 
 tfjs_cc_library(
@@ -73,6 +83,14 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Sigmoid",
+  srcs = ["kernels/Sigmoid.cc"],
+  deps = [
+    ":backend",
   ],
 )
 
