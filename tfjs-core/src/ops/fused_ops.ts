@@ -27,7 +27,7 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 
 import * as broadcast_util from './broadcast_util';
-import {Activation, getBiasGradient, getDyActivation} from './fused_util';
+import {Activation, applyActivation, getBiasGradient, getDyActivation, shouldNotFuse} from './fused_util';
 
 /**
  * Computes the dot product of two matrices with optional activation and bias.
@@ -111,12 +111,13 @@ function matMul_<T extends Tensor>({
   const b3D = transposeB ? $b.as3D(batchDimB, outerShapeB, innerShapeB) :
                            $b.as3D(batchDimB, innerShapeB, outerShapeB);
 
-  const gradientMode = ENGINE.state.gradientDepth > 0;
-  if (gradientMode) {
-    // const product = tf.matMul(a, b);
-    // return tf.relu(product);
-    console.log('gradient mode');
-    console.log(tf);
+  if (shouldNotFuse(ENGINE.state.gradientDepth, activation)) {
+    let result = tf.matMul(a, b, transposeA, transposeB);
+    if (bias != null) {
+      result = tf.add(result, bias);
+    }
+
+    return applyActivation(result, activation, preluActivationWeights) as T;
   }
 
   let $bias: Tensor;

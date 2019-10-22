@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
+import * as tf from '../index';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
-import * as broadcast_util from './broadcast_util';
 
+import * as broadcast_util from './broadcast_util';
 import {Conv2DInfo} from './conv_util';
 
 export type Activation = 'linear'|'relu'|'prelu'|'elu'|'relu6';
@@ -65,3 +66,25 @@ export const getBiasGradient = (bias: Tensor, dyActivation: Tensor): Tensor => {
   }
   return res.reshape(bias.shape);
 };
+
+// Whether we should call non-fused ops instead.
+export const shouldNotFuse =
+    (gradientDepth: number, activation: Activation) => {
+      const gradientMode = gradientDepth > 0;
+      return gradientMode && activation !== 'linear' && activation !== 'relu';
+    };
+
+export const applyActivation =
+    (x: Tensor, activation: Activation, preluActivationWeights?: Tensor):
+        Tensor => {
+          if (activation === 'relu') {
+            return tf.relu(x);
+          } else if (activation === 'elu') {
+            return tf.elu(x);
+          } else if (activation === 'relu6') {
+            return tf.relu6(x);
+          } else if (activation === 'prelu') {
+            return tf.prelu(x, preluActivationWeights);
+          }
+          throw new Error(`Unknown fused activation ${activation}.`);
+        };
