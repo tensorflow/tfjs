@@ -42,7 +42,7 @@ const EXCLUDE_LIST: string[] = [
   'matmul followed by mul',  // mul not supported yet
 
   // prelu
-  'prelu test-wasm undefined derivative',
+  'prelu test-wasm undefined derivative',  // Missing gradient.
 
   // cast
   'shallow slice an input that was cast',  // Slice is not implemented.

@@ -18,7 +18,7 @@
 import {DataType, NamedAttrMap, NamedTensorInfoMap, registerKernel, util} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
-import {BackendWasm} from './backend_wasm';
+import {BackendWasm} from '../backend_wasm';
 
 interface CastInputs extends NamedTensorInfoMap {
   x: TensorInfo;

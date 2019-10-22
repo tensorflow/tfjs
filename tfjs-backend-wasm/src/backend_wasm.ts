@@ -27,6 +27,8 @@ interface TensorData {
   memoryOffset: number;
   shape: number[];
   dtype: DataType;
+  /** Only used for string tensors, storing encoded bytes. */
+  stringBytes?: Uint8Array[];
 }
 
 export type DataId = object;  // object instead of {} to force non-primitive.
@@ -41,7 +43,7 @@ export class BackendWasm extends KernelBackend {
     this.dataIdMap = new DataStorage(this, engine());
   }
 
-  write(values: backend_util.TypedArray, shape: number[], dtype: DataType):
+  write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
       DataId {
     const dataId = {};
     this.move(dataId, values, shape, dtype);
@@ -53,17 +55,25 @@ export class BackendWasm extends KernelBackend {
   }
 
   move(
-      dataId: DataId, values: backend_util.TypedArray, shape: number[],
+      dataId: DataId, values: backend_util.BackendValues, shape: number[],
       dtype: DataType): void {
+    const id = this.dataIdNextNumber++;
+    if (dtype === 'string') {
+      const stringBytes = values as Uint8Array[];
+      this.dataIdMap.set(
+          dataId, {id, stringBytes, shape, dtype, memoryOffset: null});
+      return;
+    }
     const numBytes = util.sizeFromShape(shape) * util.bytesPerElement(dtype);
     const memoryOffset = this.wasm._malloc(numBytes);
-    const id = this.dataIdNextNumber++;
     this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype});
     const shapeBytes = new Uint8Array(new Int32Array(shape).buffer);
     this.wasm.tfjs.registerTensor(
         id, shapeBytes, shape.length, dtypeToEnumValue(dtype), memoryOffset);
     if (values != null) {
-      this.wasm.HEAPU8.set(new Uint8Array(values.buffer), memoryOffset);
+      this.wasm.HEAPU8.set(
+          new Uint8Array((values as backend_util.TypedArray).buffer),
+          memoryOffset);
     }
   }
 
@@ -72,7 +82,11 @@ export class BackendWasm extends KernelBackend {
   }
 
   readSync(dataId: DataId): backend_util.BackendValues {
-    const {memoryOffset, dtype, shape} = this.dataIdMap.get(dataId);
+    const {memoryOffset, dtype, shape, stringBytes} =
+        this.dataIdMap.get(dataId);
+    if (dtype === 'string') {
+      return stringBytes;
+    }
     const bytes = this.wasm.HEAPU8.slice(
         memoryOffset,
         memoryOffset + util.sizeFromShape(shape) * util.bytesPerElement(dtype));
