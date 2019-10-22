@@ -28,10 +28,35 @@ import * as util from '../util';
 import {add} from './binary_ops';
 import * as broadcast_util from './broadcast_util';
 import {conv2d as unfusedConv2d, depthwiseConv2d as unfusedDepthwiseConv2d} from './conv';
-import {Activation, getBiasGradient, getDyActivation, shouldFuse} from './fused_util';
+import {Activation, shouldFuse} from './fused_util';
 import {matMul as unfusedMatMul} from './matmul';
 
 import {elu, prelu, relu, relu6} from './relu_ops';
+
+// Returns gradient for fused activation.
+const getFusedDyActivation =
+    (dy: Tensor, y: Tensor, activation: Activation): Tensor => {
+      if (activation == null || activation === 'linear') {
+        return dy;
+      }
+      if (activation === 'relu') {
+        return dy.mul(y.step());
+      }
+      throw new Error(
+          `Gradient for activation ${activation} has not been ` +
+          `implemented yet.`);
+    };
+
+// Returns gradient for fused bias.
+const getFusedBiasGradient = (bias: Tensor, dyActivation: Tensor): Tensor => {
+  let res = dyActivation;
+  const reduceAxes =
+      broadcast_util.getReductionAxes(bias.shape, dyActivation.shape);
+  if (reduceAxes.length > 0) {
+    res = res.sum(reduceAxes);
+  }
+  return res.reshape(bias.shape);
+};
 
 const applyActivation =
     (x: Tensor, activation: Activation, preluActivationWeights?: Tensor):
@@ -157,11 +182,11 @@ function matMul_<T extends Tensor>({
 
   const grad = (dy: Tensor3D, saved: Tensor[]) => {
     const [a3D, b3D, y] = saved;
-    const dyActivation = getDyActivation(dy, y, activation);
+    const dyActivation = getFusedDyActivation(dy, y, activation);
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {$bias: () => getBiasGradient($bias, dyActivation)};
+      biasGradient = {$bias: () => getFusedBiasGradient($bias, dyActivation)};
     }
 
     if (!transposeA && !transposeB) {
@@ -371,7 +396,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
   const grad = (dy: Tensor4D, saved: Tensor[]) => {
     const [$filter, x4D, y] = saved as [Tensor4D, Tensor4D, Tensor4D];
 
-    const dyActivation = getDyActivation(dy, y, activation) as Tensor4D;
+    const dyActivation = getFusedDyActivation(dy, y, activation) as Tensor4D;
 
     util.assert(
         conv_util.tupleValuesAreOne(dilations),
@@ -381,7 +406,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {$bias: () => getBiasGradient($bias, dyActivation)};
+      biasGradient = {$bias: () => getFusedBiasGradient($bias, dyActivation)};
     }
 
     return Object.assign(
@@ -573,11 +598,11 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
             `'${dilations}'`);
     const [x4D, $filter, y] = saved;
 
-    const dyActivation = getDyActivation(dy, y, activation) as Tensor4D;
+    const dyActivation = getFusedDyActivation(dy, y, activation) as Tensor4D;
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {$bias: () => getBiasGradient($bias, dyActivation)};
+      biasGradient = {$bias: () => getFusedBiasGradient($bias, dyActivation)};
     }
 
     return Object.assign(
