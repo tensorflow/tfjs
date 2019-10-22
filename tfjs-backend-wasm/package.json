@@ -8,7 +8,8 @@
   "unpkg": "dist/tf-wasm.min.js",
   "jsdelivr": "dist/tf-wasm.min.js",
   "scripts": {
-    "build": "rimraf dist/ && ./scripts/build-wasm.sh && tsc && cp wasm-out/*.wasm dist/",
+    "preinstall": "cd ../tfjs-core && yarn && yarn build",
+    "build": "rimraf dist/ && tsc && ./scripts/build-wasm.sh && cp wasm-out/*.wasm dist/",
     "build-ci": "./scripts/build-ci.sh",
     "build-npm": "./scripts/build-npm.sh",
     "cpplint": "./scripts/cpplint.js",
@@ -19,13 +20,13 @@
     "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "~1.2.7"
+    "@tensorflow/tfjs-core": "link:../tfjs-core"
   },
   "devDependencies": {
     "@bazel/bazel": "^0.28.0",
-    "@tensorflow/tfjs-core": "~1.2.7",
-    "@types/jasmine": "~2.8.6",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/emscripten": "~0.0.34",
+    "@types/jasmine": "~2.8.6",
     "clang-format": "^1.2.4",
     "jasmine-core": "~3.1.0",
     "karma": "~4.0.0",
@@ -40,8 +41,8 @@
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-terser": "^5.1.1",
     "rollup-plugin-typescript2": "^0.22.1",
-    "tslint": "~5.11.0",
-    "tslint-no-circular-imports": "^0.5.0",
+    "tslint": "^5.20.0",
+    "tslint-no-circular-imports": "^0.7.0",
     "typescript": "3.5.3",
     "yalc": "~1.0.0-pre.21"
   },

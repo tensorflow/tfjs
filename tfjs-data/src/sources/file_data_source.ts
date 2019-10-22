@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {ENV} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
 import {DataSource} from '../datasource';
 import {ByteChunkIterator} from '../iterators/byte_chunk_iterator';
 import {FileChunkIterator, FileChunkIteratorOptions} from '../iterators/file_chunk_iterator';
@@ -43,7 +43,7 @@ export class FileDataSource extends DataSource {
   }
 
   async iterator(): Promise<ByteChunkIterator> {
-    if (isLocalPath(this.input) && ENV.get('IS_NODE')) {
+    if (isLocalPath(this.input) && env().get('IS_NODE')) {
       // tslint:disable-next-line:no-require-imports
       const fs = require('fs');
       this.input = fs.readFileSync((this.input as string).substr(7));
