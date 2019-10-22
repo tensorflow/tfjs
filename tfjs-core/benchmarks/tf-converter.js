@@ -4986,9 +4986,6 @@
           return tensorsMap;
       }
       processStack(inputNodes, stack, context, tensorMap, added, tensorsToKeep, outputNames, intermediateTensorConsumerCount, usedNodes) {
-        console.log("PROCESS STACK");
-        console.log(inputNodes);
-        console.log(stack);
           const promises = [];
           while (stack.length > 0) {
               const item = stack.pop();
@@ -5007,7 +5004,6 @@
                   if (!nodeName) {
                       [nodeName] = getNodeNameAndIndex(item.node.name, context);
                   }
-                  nodeNameToTensorMapKey[item.node.name] = nodeName;
                   const currentContext = context.currentContext;
                   if (tensors instanceof Promise) {
                       promises.push(tensors.then(t => {
