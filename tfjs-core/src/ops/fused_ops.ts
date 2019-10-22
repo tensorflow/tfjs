@@ -66,6 +66,15 @@ function matMul_<T extends Tensor>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
+  if (shouldNotFuse(ENGINE.state.gradientDepth, activation)) {
+    let result = tf.matMul(a, b, transposeA, transposeB);
+    if (bias != null) {
+      result = tf.add(result, bias);
+    }
+
+    return applyActivation(result, activation, preluActivationWeights) as T;
+  }
+
   let $a = convertToTensor(a, 'a', 'fused matMul');
   let $b = convertToTensor(b, 'b', 'fused matMul');
   [$a, $b] = makeTypesMatch($a, $b);
@@ -110,15 +119,6 @@ function matMul_<T extends Tensor>({
                            $a.as3D(batchDimA, outerShapeA, innerShapeA);
   const b3D = transposeB ? $b.as3D(batchDimB, outerShapeB, innerShapeB) :
                            $b.as3D(batchDimB, innerShapeB, outerShapeB);
-
-  if (shouldNotFuse(ENGINE.state.gradientDepth, activation)) {
-    let result = tf.matMul(a, b, transposeA, transposeB);
-    if (bias != null) {
-      result = tf.add(result, bias);
-    }
-
-    return applyActivation(result, activation, preluActivationWeights) as T;
-  }
 
   let $bias: Tensor;
   if (bias != null) {
@@ -282,6 +282,16 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
+  if (shouldNotFuse(ENGINE.state.gradientDepth, activation)) {
+    let result = tf.conv2d(
+        x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
+    if (bias != null) {
+      result = tf.add(result, bias);
+    }
+
+    return applyActivation(result, activation, preluActivationWeights) as T;
+  }
+
   const $x = convertToTensor(x, 'x', 'conv2d');
   const $filter = convertToTensor(filter, 'filter', 'conv2d');
 
@@ -468,6 +478,16 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
+  if (shouldNotFuse(ENGINE.state.gradientDepth, activation)) {
+    let result = tf.depthwiseConv2d(
+        x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
+    if (bias != null) {
+      result = tf.add(result, bias);
+    }
+
+    return applyActivation(result, activation, preluActivationWeights) as T;
+  }
+
   const $x = convertToTensor(x, 'x', 'depthwiseConv2d');
   const $filter = convertToTensor(filter, 'filter', 'depthwiseConv2d');
 

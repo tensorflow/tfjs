@@ -77,7 +77,9 @@ export const shouldNotFuse =
 export const applyActivation =
     (x: Tensor, activation: Activation, preluActivationWeights?: Tensor):
         Tensor => {
-          if (activation === 'relu') {
+          if (activation === 'linear') {
+            return x;
+          } else if (activation === 'relu') {
             return tf.relu(x);
           } else if (activation === 'elu') {
             return tf.elu(x);
