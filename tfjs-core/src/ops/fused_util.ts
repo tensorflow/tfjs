@@ -66,9 +66,8 @@ export const getBiasGradient = (bias: Tensor, dyActivation: Tensor): Tensor => {
   return res.reshape(bias.shape);
 };
 
-// Whether we should call non-fused ops instead.
-export const shouldNotFuse =
-    (gradientDepth: number, activation: Activation) => {
-      const gradientMode = gradientDepth > 0;
-      return gradientMode && activation !== 'linear' && activation !== 'relu';
-    };
+// Whether we should call fused ops.
+export const shouldFuse = (gradientDepth: number, activation: Activation) => {
+  const gradientMode = gradientDepth > 0;
+  return !gradientMode && (activation === 'linear' || activation === 'relu');
+};

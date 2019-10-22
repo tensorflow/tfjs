@@ -28,7 +28,7 @@ import * as util from '../util';
 import {add} from './binary_ops';
 import * as broadcast_util from './broadcast_util';
 import {conv2d as unfusedConv2d, depthwiseConv2d as unfusedDepthwiseConv2d} from './conv';
-import {Activation, getBiasGradient, getDyActivation, shouldNotFuse} from './fused_util';
+import {Activation, getBiasGradient, getDyActivation, shouldFuse} from './fused_util';
 import {matMul as unfusedMatMul} from './matmul';
 
 import {elu, prelu, relu, relu6} from './relu_ops';
@@ -87,7 +87,7 @@ function matMul_<T extends Tensor>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
-  if (shouldNotFuse(ENGINE.state.gradientDepth, activation)) {
+  if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
     let result = unfusedMatMul(a, b, transposeA, transposeB);
     if (bias != null) {
       result = add(result, bias);
@@ -303,7 +303,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
-  if (shouldNotFuse(ENGINE.state.gradientDepth, activation)) {
+  if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
     let result = unfusedConv2d(
         x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
     if (bias != null) {
@@ -499,7 +499,7 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
-  if (shouldNotFuse(ENGINE.state.gradientDepth, activation)) {
+  if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
     let result = unfusedDepthwiseConv2d(
         x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
     if (bias != null) {
