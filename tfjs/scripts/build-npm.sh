@@ -27,5 +27,8 @@ mkdir dist/miniprogram
 cp dist/tf.min.js dist/miniprogram/index.js
 cp dist/tf.min.js.map dist/miniprogram/index.js.map
 
+# Copy the root README over.
+cp ../README.md .
+
 echo "Stored standalone library at dist/tf(.min).js"
 npm pack
