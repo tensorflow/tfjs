@@ -20,18 +20,18 @@
 #include "src/cc/util.h"
 
 template <class T>
-void add_impl(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf) {
+void mul_impl(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf) {
   int size = std::max(a_size, b_size);
   for (int i = 0; i < size; ++i) {
-    out_buf[i] = a_buf[i % a_size] + b_buf[i % b_size];
+    out_buf[i] = a_buf[i % a_size] * b_buf[i % b_size];
   }
 }
 // Templates need explicit instantiation when implemented in a .cc file.
-template void add_impl<float>(float* a_buf, int a_size, float* b_buf,
+template void mul_impl<float>(float* a_buf, int a_size, float* b_buf,
                               int b_size, float* out_buf);
-template void add_impl<int>(int* a_buf, int a_size, int* b_buf, int b_size,
+template void mul_impl<int>(int* a_buf, int a_size, int* b_buf, int b_size,
                             int* out_buf);
-template void add_impl<bool>(bool* a_buf, int a_size, bool* b_buf, int b_size,
+template void mul_impl<bool>(bool* a_buf, int a_size, bool* b_buf, int b_size,
                              bool* out_buf);
 
 namespace tfjs {
@@ -42,25 +42,25 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Add(int a_id, int b_id, int out_id) {
+void Mul(int a_id, int b_id, int out_id) {
   const auto a_info = backend::get_tensor_info(a_id);
   const auto b_info = backend::get_tensor_info(b_id);
   const auto out_info = backend::get_tensor_info(out_id);
   switch (a_info.dtype) {
     case DType::float32:
-      add_impl(a_info.buf.f32, a_info.size, b_info.buf.f32, b_info.size,
+      mul_impl(a_info.buf.f32, a_info.size, b_info.buf.f32, b_info.size,
                out_info.buf.f32);
       break;
     case DType::int32:
-      add_impl(a_info.buf.i32, a_info.size, b_info.buf.i32, b_info.size,
+      mul_impl(a_info.buf.i32, a_info.size, b_info.buf.i32, b_info.size,
                out_info.buf.i32);
       break;
     case DType::boolean:
-      add_impl(a_info.buf.b, a_info.size, b_info.buf.b, b_info.size,
+      mul_impl(a_info.buf.b, a_info.size, b_info.buf.b, b_info.size,
                out_info.buf.b);
       break;
     default:
-      util::warn("Add for tensor ids %d and %d failed. Unknown dtype %d", a_id,
+      util::warn("Mul for tensor ids %d and %d failed. Unknown dtype %d", a_id,
                  b_id, a_info.dtype);
   }
 }

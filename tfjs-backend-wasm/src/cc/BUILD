@@ -45,8 +45,11 @@ tfjs_cc_library(
     ":Abs",
     ":Add",
     ":BatchMatMul",
+    ":Div",
+    ":Mul",
     ":Prelu",
     ":Sigmoid",
+    ":Sub",
   ]
 )
 
@@ -77,6 +80,24 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "Div",
+  srcs = ["kernels/Div.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Mul",
+  srcs = ["kernels/Mul.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
   name = "Prelu",
   srcs = ["kernels/Prelu.cc"],
   hdrs = ["kernels/Prelu.h"],
@@ -89,6 +110,14 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "Sigmoid",
   srcs = ["kernels/Sigmoid.cc"],
+  deps = [
+    ":backend",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Sub",
+  srcs = ["kernels/Sub.cc"],
   deps = [
     ":backend",
   ],

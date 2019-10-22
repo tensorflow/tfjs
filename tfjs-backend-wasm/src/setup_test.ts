@@ -25,8 +25,10 @@ const env = jasmine.getEnv();
 const grepFilter = env.specFilter;
 
 /** Tests that have these substrings in their name will be included. */
-const INCLUDE_LIST: string[] =
-    ['add ', 'matmul ', 'prelu ', ' cast', 'sigmoid', 'abs '];
+const INCLUDE_LIST: string[] = [
+  'add ', 'matmul ', 'prelu ', ' cast', 'sigmoid', 'abs ', 'sub ', 'mul ',
+  'div '
+];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
   'complex',                    // Complex numbers not yet implemented.
@@ -49,7 +51,14 @@ const EXCLUDE_LIST: string[] = [
   'shallow slice an input that was cast',  // Slice is not implemented.
 
   // Sigmoid
-  'sigmoidCrossEntropy'  // Not yet implemented.
+  'sigmoidCrossEntropy',  // Not yet implemented.
+
+  // Div
+  'integer division',  // FloorDiv not yet implemented.
+
+  // Mul
+  'broadcast 5D + 2D',  // Broadcasting along inner dims not supported yet.
+  'broadcast 6D + 2D'   // Broadcasting along inner dims not supported yet.
 ];
 
 /**

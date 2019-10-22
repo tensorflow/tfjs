@@ -16,7 +16,7 @@
 #include <emscripten.h>
 #endif
 
-#include <math.h>
+#include <cmath>
 
 #include "src/cc/backend.h"
 
@@ -36,7 +36,7 @@ void Sigmoid(int x_id, int out_id) {
   float* out_buf = out_info.buf.f32;
 
   for (int i = 0; i < a_info.size; ++i) {
-    out_buf[i] = 1. / (1. + exp(-a_buf[i]));
+    out_buf[i] = 1. / (1. + std::exp(-a_buf[i]));
   }
 }
 
