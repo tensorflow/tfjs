@@ -948,4 +948,18 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
        expectArraysClose(await dfilterFused.array(), await dfilter.array());
        expectArraysClose(await dbiasFused.array(), await dbias.array());
      });
+
+  fit('non fusable activations in gradient mode --> non fused', async () => {
+    spyOn(tf, 'matMul').and.callThrough();
+
+    const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
+    const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
+    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+
+    const fusedGrads = tf.grads(
+        (a, b) => tf.fused.matMul({a, b, bias: null, activation: 'relu6'}));
+
+    fusedGrads([a, b], dy);
+    expect((tf.matMul as jasmine.Spy).calls.count()).toBe(1);
+  });
 });
