@@ -21,9 +21,11 @@ import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 setTestEnvs([{name: 'test-wasm', backendName: 'wasm', isDataSync: true}]);
 
 const env = jasmine.getEnv();
+// Account for --grep flag passed to karma by saving the existing specFilter.
+const grepFilter = env.specFilter;
 
 /** Tests that have these substrings in their name will be included. */
-const INCLUDE_LIST: string[] = ['add '];
+const INCLUDE_LIST: string[] = ['add ', 'matmul ', 'prelu ', ' cast'];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
   'complex',                    // Complex numbers not yet implemented.
@@ -32,6 +34,18 @@ const EXCLUDE_LIST: string[] = [
   'broadcast each with 1 dim',  // Same as above.
   'broadcasting same rank Tensors different shape',  // Same as above.
   'upcasts when dtypes dont match',  // Uses the 'complex' dtype.
+
+  // batchMatMul
+  'valueAndGradients',       // Gradients not defined yet
+  'fused matmul',            // Fused kernels aren't ready yet
+  'zero in its shape',       // Zero in shapes aren't supported yet
+  'matmul followed by mul',  // mul not supported yet
+
+  // prelu
+  'prelu test-wasm undefined derivative',  // Missing gradient.
+
+  // cast
+  'shallow slice an input that was cast',  // Slice is not implemented.
 ];
 
 /**
@@ -41,6 +55,11 @@ const EXCLUDE_LIST: string[] = [
  * will be exluded.
  */
 env.specFilter = spec => {
+  // Filter out tests if the --grep flag is passed.
+  if (!grepFilter(spec)) {
+    return false;
+  }
+
   const name = spec.getFullName();
   // Return false (skip the test) if the test is in the exclude list.
   for (let i = 0; i < EXCLUDE_LIST.length; ++i) {

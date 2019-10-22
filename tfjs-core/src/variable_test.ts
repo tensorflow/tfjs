@@ -17,13 +17,13 @@
 
 import * as tf from './index';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
-import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, variable, Variable} from './tensor';
+import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Variable} from './tensor';
 import {expectArraysClose} from './test_util';
 import {Rank} from './types';
 
 describeWithFlags('variable', ALL_ENVS, () => {
   it('simple assign', async () => {
-    const v = variable(tf.tensor1d([1, 2, 3]));
+    const v = tf.variable(tf.tensor1d([1, 2, 3]));
     expectArraysClose(await v.data(), [1, 2, 3]);
 
     v.assign(tf.tensor1d([4, 5, 6]));
@@ -39,28 +39,28 @@ describeWithFlags('variable', ALL_ENVS, () => {
   });
 
   it('default names are unique', () => {
-    const v = variable(tf.tensor1d([1, 2, 3]));
+    const v = tf.variable(tf.tensor1d([1, 2, 3]));
     expect(v.name).not.toBeNull();
 
-    const v2 = variable(tf.tensor1d([1, 2, 3]));
+    const v2 = tf.variable(tf.tensor1d([1, 2, 3]));
     expect(v2.name).not.toBeNull();
     expect(v.name).not.toBe(v2.name);
   });
 
   it('user provided name', () => {
-    const v = variable(tf.tensor1d([1, 2, 3]), true, 'myName');
+    const v = tf.variable(tf.tensor1d([1, 2, 3]), true, 'myName');
     expect(v.name).toBe('myName');
   });
 
   it('if name already used, throw error', () => {
-    variable(tf.tensor1d([1, 2, 3]), true, 'myName');
-    expect(() => variable(tf.tensor1d([1, 2, 3]), true, 'myName'))
+    tf.variable(tf.tensor1d([1, 2, 3]), true, 'myName');
+    expect(() => tf.variable(tf.tensor1d([1, 2, 3]), true, 'myName'))
         .toThrowError();
   });
 
   it('ops can take variables', async () => {
     const value = tf.tensor1d([1, 2, 3]);
-    const v = variable(value);
+    const v = tf.variable(value);
     const res = tf.sum(v);
     expectArraysClose(await res.data(), [6]);
   });
@@ -79,7 +79,7 @@ describeWithFlags('variable', ALL_ENVS, () => {
       const value = tf.tensor1d([1, 2, 3], 'float32');
       expect(tf.memory().numTensors).toBe(1);
 
-      v = variable(value);
+      v = tf.variable(value);
       expect(tf.memory().numTensors).toBe(2);
     });
 
@@ -172,7 +172,7 @@ describeWithFlags('variable', ALL_ENVS, () => {
 
   it('assign does not dispose old data', async () => {
     let v: Variable<Rank.R1>;
-    v = variable(tf.tensor1d([1, 2, 3]));
+    v = tf.variable(tf.tensor1d([1, 2, 3]));
 
     expect(tf.memory().numTensors).toBe(2);
     expect(tf.memory().numDataBuffers).toBe(1);
@@ -197,14 +197,14 @@ describeWithFlags('variable', ALL_ENVS, () => {
   });
 
   it('shape must match', () => {
-    const v = variable(tf.tensor1d([1, 2, 3]));
+    const v = tf.variable(tf.tensor1d([1, 2, 3]));
     expect(() => v.assign(tf.tensor1d([1, 2]))).toThrowError();
     // tslint:disable-next-line:no-any
     expect(() => v.assign(tf.tensor2d([3, 4], [1, 2]) as any)).toThrowError();
   });
 
   it('dtype must match', () => {
-    const v = variable(tf.tensor1d([1, 2, 3]));
+    const v = tf.variable(tf.tensor1d([1, 2, 3]));
     // tslint:disable-next-line:no-any
     expect(() => v.assign(tf.tensor1d([1, 1, 1], 'int32') as any))
         .toThrowError();

@@ -44,7 +44,8 @@ import {op} from './operation';
 function diag_(x: Tensor): Tensor {
   const $x = convertToTensor(x, 'x', 'diag').flatten();
   const outShape = [...x.shape, ...x.shape];
-  return ENGINE.runKernel(backend => backend.diag($x), {$x}).reshape(outShape);
+  return ENGINE.runKernelFunc(backend => backend.diag($x), {$x})
+      .reshape(outShape);
 }
 
 export const diag = op({diag_});

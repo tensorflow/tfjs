@@ -46,19 +46,19 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
     this.userCode = `
       float readInp(int batch, int row, int col, int chan) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        return coordIsValid(coord, xShape) ?
+        return coordsInBounds(coord, xShape) ?
           getX(batch, row, col, chan) : 0;
       }
 
       float readFilt(int row, int col, int xChannel, int outChannel) {
         ivec4 coord = ivec4(row, col, xChannel, outChannel);
-        return coordIsValid(coord, wShape) ?
+        return coordsInBounds(coord, wShape) ?
           getW(row, col, xChannel, outChannel) : 0;
       }
 
       void writeResult(int batch, int row, int col, int chan, float value) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        if (coordIsValid(coord, outShape)) {
+        if (coordsInBounds(coord, outShape)) {
           setOutput(batch, row, col, chan, value);
         }
       }

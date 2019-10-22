@@ -101,7 +101,7 @@ function stridedSlice_(
   if (nonStrided) {
     return slice($x, begin, size).reshape(outShape);
   }
-  const res = ENGINE.runKernel(
+  const res = ENGINE.runKernelFunc(
       backend => backend.stridedSlice($x, begin, end, strides), {$x});
   return res.reshape(outShape);
 }

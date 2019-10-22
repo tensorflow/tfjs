@@ -1,13 +1,22 @@
+load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
+
+# Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
+# explicitly pointing to files with exported methods (EMSCRIPTEN_KEEPALIVE).
+KERNELS_WITH_KEEPALIVE = glob(
+  ["kernels/*.cc"],
+  exclude = ["**/*_test.cc"],
+)
+
 cc_binary(
     name = "tfjs-backend-wasm.js",
-    srcs = ["lib.cc"],
+    srcs = ['backend.cc'] + KERNELS_WITH_KEEPALIVE,
     linkopts = [
         "-s ALLOW_MEMORY_GROWTH=1",
         "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
         "-s DISABLE_EXCEPTION_CATCHING=1",
         "-s FILESYSTEM=0",
         "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\"]'",
+        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
         "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
         "-s ENVIRONMENT=web",
         "-s MODULARIZE=1",
@@ -15,18 +24,80 @@ cc_binary(
         "-s MALLOC=emmalloc",
     ],
     deps = [
-        ":kernels",
-        ":util",
+        ":backend",
+        ":all_kernels",
     ],
 )
 
-cc_library(
-    name = "kernels",
-    srcs = ["kernels.cc"],
-    hdrs = ["kernels.h"],
+tfjs_cc_library(
+  name = "backend",
+  srcs = ["backend.cc"],
+  hdrs = ["backend.h"],
+  deps = [
+    ":util",
+    "@xnnpack//:xnnpack_operators_nhwc_f32",
+  ],
 )
 
-cc_library(
-    name = "util",
-    srcs = ["util.h"],
+tfjs_cc_library(
+  name = "all_kernels",
+  deps = [
+    ":Add",
+    ":BatchMatMul",
+    ":Prelu",
+  ]
+)
+
+tfjs_cc_library(
+  name = "Add",
+  srcs = ["kernels/Add.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "BatchMatMul",
+  srcs = ["kernels/BatchMatMul.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Prelu",
+  srcs = ["kernels/Prelu.cc"],
+  hdrs = ["kernels/Prelu.h"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "util",
+  srcs = ["util.h"],
+)
+
+test_suite(
+  name = "cc_tests"
+)
+
+tfjs_unit_test(
+  name = "backend_test",
+  srcs = ["backend_test.cc"],
+  deps = [
+    ":backend",
+    ":Prelu",
+  ]
+)
+
+tfjs_unit_test(
+  name = "Prelu_test",
+  srcs = ["kernels/Prelu_test.cc"],
+  deps = [
+    ":Prelu",
+  ]
 )

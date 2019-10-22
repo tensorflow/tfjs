@@ -15,10 +15,18 @@
  * =============================================================================
  */
 
-import {ENV} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
+
+const ENV = env();
 
 /** Whether we submit commands to the device queue immediately. */
 ENV.registerFlag('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', () => true);
+
+/**
+ * Whether we forward execution to the CPU backend if tensors are small and
+ * reside on the CPU.
+ */
+ENV.registerFlag('WEBGPU_CPU_FORWARD', () => true);
 
 /**
  * Thread register block size for matmul kernel. If 0, we use the version of

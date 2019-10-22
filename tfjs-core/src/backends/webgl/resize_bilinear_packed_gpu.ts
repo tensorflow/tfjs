@@ -19,7 +19,8 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class ResizeBilinearPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
   outputShape: number[] = [];
   userCode: string;
 
@@ -65,9 +66,9 @@ export class ResizeBilinearPackedProgram implements GPGPUProgram {
         ivec3 sourceFloorRC = ivec3(sourceFracIndexRC);
         ivec3 sourceCeilRC = ivec3(
           min(inputShapeRC - 1.0, ceil(sourceFracIndexRC)));
-        
+
         // Should we calculate next column and row elements in 2x2 packed cell.
-        bool hasNextCol = d < ${depth - 1}; 
+        bool hasNextCol = d < ${depth - 1};
         bool hasNextRow = coords.z < ${newWidth - 1};
 
         // In parallel, construct four corners for all four components in
