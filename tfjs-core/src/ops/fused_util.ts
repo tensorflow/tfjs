@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import * as tf from '../index';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
 
 import * as broadcast_util from './broadcast_util';
@@ -73,20 +72,3 @@ export const shouldNotFuse =
       const gradientMode = gradientDepth > 0;
       return gradientMode && activation !== 'linear' && activation !== 'relu';
     };
-
-export const applyActivation =
-    (x: Tensor, activation: Activation, preluActivationWeights?: Tensor):
-        Tensor => {
-          if (activation === 'linear') {
-            return x;
-          } else if (activation === 'relu') {
-            return tf.relu(x);
-          } else if (activation === 'elu') {
-            return tf.elu(x);
-          } else if (activation === 'relu6') {
-            return tf.relu6(x);
-          } else if (activation === 'prelu') {
-            return tf.prelu(x, preluActivationWeights);
-          }
-          throw new Error(`Unknown fused activation ${activation}.`);
-        };

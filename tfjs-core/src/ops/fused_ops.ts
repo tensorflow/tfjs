@@ -16,7 +16,6 @@
  */
 
 import {ENGINE} from '../engine';
-import * as tf from '../index';
 import {conv2dDerFilter, conv2dDerInput, depthwiseConv2dDerFilter, depthwiseConv2dDerInput} from '../ops/conv';
 import * as conv_util from '../ops/conv_util';
 import {op} from '../ops/operation';
@@ -26,8 +25,30 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {add} from './binary_ops';
 import * as broadcast_util from './broadcast_util';
-import {Activation, applyActivation, getBiasGradient, getDyActivation, shouldNotFuse} from './fused_util';
+import {conv2d as unfusedConv2d, depthwiseConv2d as unfusedDepthwiseConv2d} from './conv';
+import {Activation, getBiasGradient, getDyActivation, shouldNotFuse} from './fused_util';
+import {matMul as unfusedMatMul} from './matmul';
+
+import {elu, prelu, relu, relu6} from './relu_ops';
+
+const applyActivation =
+    (x: Tensor, activation: Activation, preluActivationWeights?: Tensor):
+        Tensor => {
+          if (activation === 'linear') {
+            return x;
+          } else if (activation === 'relu') {
+            return relu(x);
+          } else if (activation === 'elu') {
+            return elu(x);
+          } else if (activation === 'relu6') {
+            return relu6(x);
+          } else if (activation === 'prelu') {
+            return prelu(x, preluActivationWeights);
+          }
+          throw new Error(`Unknown fused activation ${activation}.`);
+        };
 
 /**
  * Computes the dot product of two matrices with optional activation and bias.
@@ -67,9 +88,9 @@ function matMul_<T extends Tensor>({
   preluActivationWeights?: Tensor
 }): T {
   if (shouldNotFuse(ENGINE.state.gradientDepth, activation)) {
-    let result = tf.matMul(a, b, transposeA, transposeB);
+    let result = unfusedMatMul(a, b, transposeA, transposeB);
     if (bias != null) {
-      result = tf.add(result, bias);
+      result = add(result, bias);
     }
 
     return applyActivation(result, activation, preluActivationWeights) as T;
@@ -283,10 +304,10 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
   preluActivationWeights?: Tensor
 }): T {
   if (shouldNotFuse(ENGINE.state.gradientDepth, activation)) {
-    let result = tf.conv2d(
+    let result = unfusedConv2d(
         x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
     if (bias != null) {
-      result = tf.add(result, bias);
+      result = add(result, bias);
     }
 
     return applyActivation(result, activation, preluActivationWeights) as T;
@@ -479,10 +500,10 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   preluActivationWeights?: Tensor
 }): T {
   if (shouldNotFuse(ENGINE.state.gradientDepth, activation)) {
-    let result = tf.depthwiseConv2d(
+    let result = unfusedDepthwiseConv2d(
         x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
     if (bias != null) {
-      result = tf.add(result, bias);
+      result = add(result, bias);
     }
 
     return applyActivation(result, activation, preluActivationWeights) as T;
