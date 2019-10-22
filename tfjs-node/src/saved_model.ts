@@ -283,7 +283,10 @@ export class TFSavedModel implements InferenceModel {
     if (this.deleted) {
       throw new Error('The TFSavedModel has already been deleted!');
     } else {
-      throw new Error('predict() of TFSavedModel is not supported yet.');
+      throw new Error(
+          'predict() of TFSavedModel is not supported yet. ' +
+          'Input node names are ' + this.inputNodeNames +
+          '. Output node names are ' + this.outputNodeNames + '.');
     }
   }
 
