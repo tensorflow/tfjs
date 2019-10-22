@@ -103,6 +103,13 @@ limitations under the License.
       return x.expandDims(0);
     });
 
+    tf.registerOp('MatrixBandPart', node => {
+      const x = node.inputs[0];
+      const numLower = node.inputs[1].arraySync();
+      const numUpper = node.inputs[2].arraySync();
+      return tf.linalg.bandPart(x, numLower, numUpper);
+    });
+
     const nodeNameToTensorMapKey = {};
 
     const state = {
