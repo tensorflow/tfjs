@@ -1,4 +1,4 @@
-import { Tensor3D, Tensor4D, tensor3d, util } from '@tensorflow/tfjs-core';
+import { Tensor3D, tensor3d, util } from '@tensorflow/tfjs-core';
 import * as jpeg from 'jpeg-js';
 
 enum ImageType {
@@ -13,20 +13,25 @@ enum ImageType {
  *
  * @param contents The JPEG-encoded image in an Uint8Array.
  * @param channels An optional int. Defaults to 0. Accepted values are
- *     0: use the number of channels in the PNG-encoded image.
+ *     0: use the number of channels in the JPG-encoded image.
  *     1: output a grayscale image.
  *     3: output an RGB image.
  * @param ratio An optional int. Defaults to 1. Downscaling ratio. It is used
  *     when image is type Jpeg. Not yet supported.
  * @returns A 3D Tensor of dtype `int32` with shape [height, width, 1/3].
  */
-/**
- * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
- */
-export function decodeJpeg(contents: Uint8Array | ArrayBuffer, channels: 0 | 1 | 3 = 0, ratio?: 1 | 2 | 4 | 8): Tensor3D {
+export function decodeJpeg(contents: Uint8Array, channels: 0 | 1 | 3 = 3): Tensor3D {
+  util.assert(
+    getImageType(contents) === ImageType.JPEG,
+    () => "The passed contents are not a valid JPEG image"
+  );
+  util.assert(
+    channels === 3,
+    () => "Only 3 channels is supported at this time"
+  );
   const TO_UINT8ARRAY = true;
   const { width, height, data } = jpeg.decode(contents, TO_UINT8ARRAY);
-  // Drop the alpha channel info for mobilenet
+  // Drop the alpha channel info because jpeg.decode always returns a typedArray with 255
   const buffer = new Uint8Array(width * height * 3);
   let offset = 0; // offset into original data
   for (let i = 0; i < buffer.length; i += 3) {
@@ -38,64 +43,6 @@ export function decodeJpeg(contents: Uint8Array | ArrayBuffer, channels: 0 | 1 |
   }
 
   return tensor3d(buffer, [height, width, channels]);
-}
-
-/**
- * Given the encoded bytes of an image, it returns a 3D or 4D tensor of the
- * decoded image. Supports JPEG formats, BMP, PNG, and GIF support may be added
- * at a future date.
- *
- * @param content The encoded image in an Uint8Array.
- * @param channels An optional int. Defaults to 0, use the number of channels in
- *     the image. Number of color channels for the decoded image. It is used
- *     when image is type Png, Bmp, or Jpeg.
- * @param dtype The data type of the result. Only `int32` is supported at this
- *     time.
- * @param expandAnimations A boolean which controls the shape of the returned
- *     op's output. If True, the returned op will produce a 3-D tensor for PNG,
- *     JPEG, and BMP files; and a 4-D tensor for all GIFs, whether animated or
- *     not. If, False, the returned op will produce a 3-D tensor for all file
- *     types and will truncate animated GIFs to the first frame.
- * @returns A Tensor with dtype `int32` and a 3- or 4-dimensional shape,
- *     depending on the file type. For gif file the returned Tensor shape is
- *     [num_frames, height, width, 3], and for jpeg/png/bmp the returned Tensor
- *     shape is []height, width, channels]
- */
-/**
- * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
- */
-export function decodeImage(content: Uint8Array, channels: 0 | 1 | 3 = 0, dtype = 'int32', expandAnimations = true): Tensor3D | Tensor4D {
-  util.assert(
-    dtype === 'int32',
-    () => 'decodeImage could only return Tensor of type `int32` for now.');
-
-  const imageType = getImageType(content);
-
-  // The return tensor has dtype uint8, which is not supported in
-  // TensorFlow.js, casting it to int32 which is the default dtype for image
-  // tensor. If the image is BMP, JPEG or PNG type, expanding the tensors
-  // shape so it becomes Tensor4D, which is the default tensor shape for image
-  // ([batch,imageHeight,imageWidth, depth]).
-  switch (imageType) {
-    case ImageType.JPEG:
-      return decodeJpeg(content, channels);
-    case ImageType.PNG:
-      // return decodePng(content, channels);
-      return null;
-    case ImageType.GIF:
-      // If not to expand animations, take first frame of the gif and return
-      // as a 3D tensor.
-      // return tidy(() => {
-      //   const img = decodeGif(content);
-      //   return expandAnimations ? img : img.slice(0, 1).squeeze([0]);
-      // });
-      return null;
-    case ImageType.BMP:
-      // return decodeBmp(content, channels);
-      return null;
-    default:
-      return null;
-  }
 }
 
 /**

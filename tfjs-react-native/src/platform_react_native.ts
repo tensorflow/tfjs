@@ -16,10 +16,10 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {Platform} from '@tensorflow/tfjs-core';
-import {Buffer} from 'buffer';
-import {GLView} from 'expo-gl';
-import {Platform as RNPlatform} from 'react-native';
+import { Platform } from '@tensorflow/tfjs-core';
+import { Buffer } from 'buffer';
+import { GLView } from 'expo-gl';
+import { Platform as RNPlatform } from 'react-native';
 
 // See implemetation note on fetch
 // tslint:disable-next-line:max-line-length
@@ -63,8 +63,8 @@ function parseHeaders(rawHeaders: string) {
  *     binary file.
  */
 export async function fetch(
-    path: string, init?: RequestInit,
-    options?: tf.io.RequestDetails): Promise<Response> {
+  path: string, init?: RequestInit,
+  options?: tf.io.RequestDetails): Promise<Response> {
   return new Promise((resolve, reject) => {
     const request = new Request(path, init);
     const xhr = new XMLHttpRequest();
@@ -77,8 +77,8 @@ export async function fetch(
         url: '',
       };
       reqOptions.url = 'responseURL' in xhr ?
-          xhr.responseURL :
-          reqOptions.headers.get('X-Request-URL');
+        xhr.responseURL :
+        reqOptions.headers.get('X-Request-URL');
 
       //@ts-ignore — ts belives the latter case will never occur.
       const body = 'response' in xhr ? xhr.response : xhr.responseText;
@@ -109,8 +109,8 @@ export async function fetch(
     });
 
     xhr.send(
-        //@ts-ignore
-        typeof request._bodyInit === 'undefined' ? null : request._bodyInit,
+      //@ts-ignore
+      typeof request._bodyInit === 'undefined' ? null : request._bodyInit,
     );
   });
 }
@@ -122,7 +122,7 @@ export class PlatformReactNative implements Platform {
    * see @fetch docs above.
    */
   async fetch(
-      path: string, init?: RequestInit, options?: tf.io.RequestDetails) {
+    path: string, init?: RequestInit, options?: tf.io.RequestDetails) {
     return fetch(path, init, options);
   }
 
@@ -232,7 +232,8 @@ function registerWebGLBackend() {
 }
 
 tf.ENV.registerFlag(
-    'IS_REACT_NATIVE', () => navigator && navigator.product === 'ReactNative');
+  // @ts-ignore
+  'IS_REACT_NATIVE', () => navigator && navigator.product === 'ReactNative');
 
 if (tf.ENV.getBool('IS_REACT_NATIVE')) {
   setupGlobals();
