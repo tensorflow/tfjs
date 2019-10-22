@@ -119,6 +119,22 @@ const benchmarks = {
       }
     }
   },
+  'music_decode_target': {
+    // the one that takes both target and length
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/learnjs-data/tfjs_graph_music_decode_target/model.json';
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      return (model) => {
+        return model.executeAsync({
+          'decode_length': tf.scalar(50, 'int32'),
+          'targets': tf.tensor2d([185, 290, 46, 49, 219, 292], [1, 6], 'int32')
+        });
+      }
+    }
+  },
   'handtrack': {
     load: async () => {
       // Ping skeleton
