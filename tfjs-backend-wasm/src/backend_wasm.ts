@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataStorage, DataType, engine, KernelBackend, Rank, registerBackend, ShapeMap, Tensor, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import wasmFactory from '../wasm-out/tfjs-backend-wasm';
 import {BackendWasmModule} from '../wasm-out/tfjs-backend-wasm';
@@ -101,25 +101,12 @@ export class BackendWasm extends KernelBackend {
     this.wasm = null;
   }
 
-  // Kernels.
-
-  reshape<T extends Tensor, R extends Rank>(x: T, newShape: ShapeMap[R]):
-      Tensor<R> {
-    return engine().makeTensorFromDataId(x.dataId, newShape, x.dtype) as
-        Tensor<R>;
+  makeOutput(shape: number[], dtype: DataType): TensorInfo {
+    const dataId = this.write(null /* values */, shape, dtype);
+    return {dataId, shape, dtype};
   }
 
-  cast<T extends Tensor>(x: T, dtype: DataType): T {
-    const out = this.makeOutTensor(x.shape, dtype);
-    const {memoryOffset: inOffset} = this.dataIdMap.get(x.dataId);
-    const {memoryOffset: outOffset} = this.dataIdMap.get(out.dataId);
-    const inVals = this.typedArrayFromHeap(inOffset, x.dtype, x.size);
-    const outVals = this.typedArrayFromHeap(outOffset, dtype, out.size);
-    outVals.set(inVals);
-    return out as T;
-  }
-
-  private typedArrayFromHeap(offset: number, dtype: DataType, size: number):
+  typedArrayFromHeap(offset: number, dtype: DataType, size: number):
       backend_util.TypedArray {
     const buffer = this.wasm.HEAPU8.buffer;
     switch (dtype) {
@@ -132,16 +119,6 @@ export class BackendWasm extends KernelBackend {
       default:
         throw new Error(`Uknown dtype ${dtype}`);
     }
-  }
-
-  makeOutput(shape: number[], dtype: DataType): TensorInfo {
-    const dataId = this.write(null, shape, dtype);
-    return {dataId, shape, dtype};
-  }
-
-  private makeOutTensor(shape: number[], dtype: DataType): Tensor {
-    const dataId = this.write(null, shape, dtype);
-    return engine().makeTensorFromDataId(dataId, shape, dtype, this);
   }
 }
 

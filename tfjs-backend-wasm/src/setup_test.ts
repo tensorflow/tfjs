@@ -25,7 +25,7 @@ const env = jasmine.getEnv();
 const grepFilter = env.specFilter;
 
 /** Tests that have these substrings in their name will be included. */
-const INCLUDE_LIST: string[] = ['add ', 'matmul ', 'prelu '];
+const INCLUDE_LIST: string[] = ['add ', 'matmul ', 'prelu ', ' cast'];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
   'complex',                    // Complex numbers not yet implemented.
@@ -43,6 +43,9 @@ const EXCLUDE_LIST: string[] = [
 
   // prelu
   'prelu test-wasm undefined derivative',
+
+  // cast
+  'shallow slice an input that was cast',  // Slice is not implemented.
 ];
 
 /**
