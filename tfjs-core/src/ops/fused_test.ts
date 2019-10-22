@@ -950,20 +950,27 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
      });
 
   // tslint:disable-next-line:max-line-length
-  it('calling fused op in gradient mode with activation that does not support fused gradients forwards to unfused ops instead',
+  it('calling fused op in gradient mode with activation that does not support fused gradients works',
      async () => {
-       spyOn(tf, 'matMul').and.callThrough();
-       spyOn(tf, 'relu6').and.callThrough();
-
        const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
        const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
        const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+       const transposeA = false;
+       const transposeB = false;
 
-       const fusedGrads = tf.grads(
-           (a, b) => tf.fused.matMul({a, b, bias: null, activation: 'relu6'}));
+       const fusedGrads = tf.grads((a, b) => {
+         return tf.fused.matMul(
+             {a, b, transposeA, transposeB, bias: null, activation: 'relu6'});
+       });
+       const [fusedDa, fusedDb] = fusedGrads([a, b], dy);
 
-       fusedGrads([a, b], dy);
-       expect((tf.matMul as jasmine.Spy).calls.count()).toBe(1);
-       expect((tf.relu6 as jasmine.Spy).calls.count()).toBe(1);
+       const grads = tf.grads((a, b) => {
+         const prod = tf.matMul(a, b, transposeA, transposeB);
+         return tf.relu6(prod);
+       });
+       const [da, db] = grads([a, b], dy);
+
+       expectArraysClose(await da.array(), await fusedDa.array());
+       expectArraysClose(await db.data(), await fusedDb.array());
      });
 });
