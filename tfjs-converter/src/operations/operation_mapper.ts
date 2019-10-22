@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, ENV} from '@tensorflow/tfjs-core';
+import {DataType, env} from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
 import {getRegisteredOp} from './custom_op/register';
@@ -259,7 +259,7 @@ export class OperationMapper {
 }
 
 export function decodeBase64(text: string): string {
-  const global = ENV.global;
+  const global = env().global;
   if (typeof global.atob !== 'undefined') {
     return global.atob(text);
   } else if (typeof Buffer !== 'undefined') {

@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import {ENV} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
+
+const ENV = env();
 
 /** Whether we submit commands to the device queue immediately. */
 ENV.registerFlag('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', () => true);

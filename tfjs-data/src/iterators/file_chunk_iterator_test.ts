@@ -16,14 +16,14 @@
  * =============================================================================
  */
 
-import {ENV} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
 import {FileChunkIterator} from './file_chunk_iterator';
 
 const range = (start: number, end: number) => {
   return Array.from({length: (end - start)}, (v, k) => k + start);
 };
 
-const testData = ENV.get('IS_BROWSER') ?
+const testData = env().get('IS_BROWSER') ?
     new Blob([new Uint8Array(range(0, 55))]) :
     new Uint8Array(range(0, 55));
 

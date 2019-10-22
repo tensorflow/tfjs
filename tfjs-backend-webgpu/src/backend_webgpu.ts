@@ -617,8 +617,37 @@ export class WebGPUBackend extends KernelBackend {
     return this.binaryCompareOp(a, b, binary_op.GREATER_EQUAL);
   }
 
+  private conv2dByMatMul(
+      x: Tensor4D, filter: Tensor4D,
+      convInfo: backend_util.Conv2DInfo): Tensor4D {
+    const xShape = x.shape;
+    const isChannelsLast = convInfo.dataFormat === 'channelsLast';
+    const transposeA = false;
+    const transposeB = false;
+
+    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
+                                         xShape[0] * xShape[2] * xShape[3];
+    const xReshaped = this.reshape(x, [1, targetShape, convInfo.inChannels]);
+    const filterReshaped =
+        this.reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]);
+
+    return this.reshape(
+        this.batchMatMul(
+            xReshaped as Tensor3D, filterReshaped as Tensor3D, transposeA,
+            transposeB),
+        convInfo.outShape);
+  }
+
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
+    if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
+        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
+        convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+        (convInfo.padInfo.type === 'SAME' ||
+         convInfo.padInfo.type === 'VALID')) {
+      return this.conv2dByMatMul(x, filter, convInfo);
+    }
+
     const output = Tensor.make(convInfo.outShape, {}, x.dtype, this);
     let program: Conv2DMMProgram|Conv2DNaiveProgram;
 
@@ -776,7 +805,7 @@ export class WebGPUBackend extends KernelBackend {
     // the old version while we try to understand conditions under which blocked
     // is faster.
     if (env().get('WEBGPU_MATMUL_WORK_PER_THREAD') === 0) {
-      program = new MatMulProgram(output.shape);
+      program = new MatMulProgram(a.shape, output.shape);
     } else {
       program = new MatMulPackedProgram(
           a.shape, output.shape,

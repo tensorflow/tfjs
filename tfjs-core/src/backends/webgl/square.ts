@@ -15,19 +15,22 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '../../kernel_registry';
-import {assert} from '../../util';
+import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../kernel_registry';
 
-export function assertNotComplex(
-    tensor: TensorInfo|TensorInfo[], opName: string): void {
-  if (!Array.isArray(tensor)) {
-    tensor = [tensor];
-  }
-  tensor.forEach(t => {
-    if (t != null) {
-      assert(
-          t.dtype !== 'complex64',
-          () => `${opName} does not support complex64 tensors.`);
-    }
-  });
+import {MathBackendWebGL} from './backend_webgl';
+import {SQUARE, UnaryOpProgram} from './unaryop_gpu';
+
+interface SquareInputs extends NamedTensorInfoMap {
+  x: TensorInfo;
 }
+
+registerKernel({
+  kernelName: 'Square',
+  backendName: 'webgl',
+  kernelFunc: ({inputs, backend}) => {
+    const {x} = inputs as SquareInputs;
+    const webglBackend = backend as MathBackendWebGL;
+    const program = new UnaryOpProgram(x.shape, SQUARE);
+    return webglBackend.runWebGLProgram(program, [x], x.dtype);
+  }
+});

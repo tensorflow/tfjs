@@ -110,7 +110,7 @@ describe('BundleResourceIO', () => {
 
   it('errors on string modelJSON', async () => {
     const response = new Response(weightData1);
-    spyOn(tf.ENV.platform, 'fetch').and.returnValue(response);
+    spyOn(tf.env().platform, 'fetch').and.returnValue(response);
 
     const modelJson = `{
       modelTopology: modelTopology1,
