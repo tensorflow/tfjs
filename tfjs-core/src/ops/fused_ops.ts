@@ -25,8 +25,55 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {add} from './binary_ops';
 import * as broadcast_util from './broadcast_util';
-import {Activation} from './fused_util';
+import {conv2d as unfusedConv2d, depthwiseConv2d as unfusedDepthwiseConv2d} from './conv';
+import {Activation, shouldFuse} from './fused_util';
+import {matMul as unfusedMatMul} from './matmul';
+
+import {elu, prelu, relu, relu6} from './relu_ops';
+
+// Returns gradient for fused activation.
+const getFusedDyActivation =
+    (dy: Tensor, y: Tensor, activation: Activation): Tensor => {
+      if (activation == null || activation === 'linear') {
+        return dy;
+      }
+      if (activation === 'relu') {
+        return dy.mul(y.step());
+      }
+      throw new Error(
+          `Gradient for activation ${activation} has not been ` +
+          `implemented yet.`);
+    };
+
+// Returns gradient for fused bias.
+const getFusedBiasGradient = (bias: Tensor, dyActivation: Tensor): Tensor => {
+  let res = dyActivation;
+  const reduceAxes =
+      broadcast_util.getReductionAxes(bias.shape, dyActivation.shape);
+  if (reduceAxes.length > 0) {
+    res = res.sum(reduceAxes);
+  }
+  return res.reshape(bias.shape);
+};
+
+const applyActivation =
+    (x: Tensor, activation: Activation, preluActivationWeights?: Tensor):
+        Tensor => {
+          if (activation === 'linear') {
+            return x;
+          } else if (activation === 'relu') {
+            return relu(x);
+          } else if (activation === 'elu') {
+            return elu(x);
+          } else if (activation === 'relu6') {
+            return relu6(x);
+          } else if (activation === 'prelu') {
+            return prelu(x, preluActivationWeights);
+          }
+          throw new Error(`Unknown fused activation ${activation}.`);
+        };
 
 /**
  * Computes the dot product of two matrices with optional activation and bias.
@@ -65,6 +112,15 @@ function matMul_<T extends Tensor>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
+  if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
+    let result = unfusedMatMul(a, b, transposeA, transposeB);
+    if (bias != null) {
+      result = add(result, bias);
+    }
+
+    return applyActivation(result, activation, preluActivationWeights) as T;
+  }
+
   let $a = convertToTensor(a, 'a', 'fused matMul');
   let $b = convertToTensor(b, 'b', 'fused matMul');
   [$a, $b] = makeTypesMatch($a, $b);
@@ -126,34 +182,11 @@ function matMul_<T extends Tensor>({
 
   const grad = (dy: Tensor3D, saved: Tensor[]) => {
     const [a3D, b3D, y] = saved;
-
-    let dyActivation: Tensor3D;
-    if (activation == null || activation === 'linear') {
-      dyActivation = dy;
-    } else if (activation === 'relu') {
-      dyActivation = dy.mul(y.step());
-    } else {
-      throw new Error(
-          `Gradient for activation ${activation} has not been ` +
-          `implemented yet.`);
-    }
+    const dyActivation = getFusedDyActivation(dy, y, activation);
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {
-        $bias: () => {
-          let res = dyActivation;
-          // Using dyActivation as reference shape because outputShape does not
-          // account for the fact that we temporarily reshape inputs to 3D as
-          // part of batched matMul.
-          const reduceAxes =
-              broadcast_util.getReductionAxes($bias.shape, dyActivation.shape);
-          if (reduceAxes.length > 0) {
-            res = res.sum(reduceAxes);
-          }
-          return res.reshape($bias.shape);
-        }
-      };
+      biasGradient = {$bias: () => getFusedBiasGradient($bias, dyActivation)};
     }
 
     if (!transposeA && !transposeB) {
@@ -295,6 +328,16 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
+  if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
+    let result = unfusedConv2d(
+        x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
+    if (bias != null) {
+      result = add(result, bias);
+    }
+
+    return applyActivation(result, activation, preluActivationWeights) as T;
+  }
+
   const $x = convertToTensor(x, 'x', 'conv2d');
   const $filter = convertToTensor(filter, 'filter', 'conv2d');
 
@@ -353,16 +396,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
   const grad = (dy: Tensor4D, saved: Tensor[]) => {
     const [$filter, x4D, y] = saved as [Tensor4D, Tensor4D, Tensor4D];
 
-    let dyActivation: Tensor4D;
-    if (activation == null || activation === 'linear') {
-      dyActivation = dy;
-    } else if (activation === 'relu') {
-      dyActivation = dy.mul(y.step());
-    } else {
-      throw new Error(
-          `Gradient for activation ${activation} has not been ` +
-          `implemented yet.`);
-    }
+    const dyActivation = getFusedDyActivation(dy, y, activation) as Tensor4D;
 
     util.assert(
         conv_util.tupleValuesAreOne(dilations),
@@ -372,17 +406,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {
-        $bias: () => {
-          let res = dyActivation;
-          const reduceAxes =
-              broadcast_util.getReductionAxes($bias.shape, dyActivation.shape);
-          if (reduceAxes.length > 0) {
-            res = res.sum(reduceAxes);
-          }
-          return res.reshape($bias.shape);
-        }
-      };
+      biasGradient = {$bias: () => getFusedBiasGradient($bias, dyActivation)};
     }
 
     return Object.assign(
@@ -500,6 +524,16 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
+  if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
+    let result = unfusedDepthwiseConv2d(
+        x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
+    if (bias != null) {
+      result = add(result, bias);
+    }
+
+    return applyActivation(result, activation, preluActivationWeights) as T;
+  }
+
   const $x = convertToTensor(x, 'x', 'depthwiseConv2d');
   const $filter = convertToTensor(filter, 'filter', 'depthwiseConv2d');
 
@@ -564,30 +598,11 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
             `'${dilations}'`);
     const [x4D, $filter, y] = saved;
 
-    let dyActivation: Tensor4D;
-    if (activation == null || activation === 'linear') {
-      dyActivation = dy;
-    } else if (activation === 'relu') {
-      dyActivation = dy.mul(y.step());
-    } else {
-      throw new Error(
-          `Gradient for activation ${activation} has not been ` +
-          `implemented yet.`);
-    }
+    const dyActivation = getFusedDyActivation(dy, y, activation) as Tensor4D;
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {
-        $bias: () => {
-          let res = dyActivation;
-          const reduceAxes =
-              broadcast_util.getReductionAxes($bias.shape, dyActivation.shape);
-          if (reduceAxes.length > 0) {
-            res = res.sum(reduceAxes);
-          }
-          return res.reshape($bias.shape);
-        }
-      };
+      biasGradient = {$bias: () => getFusedBiasGradient($bias, dyActivation)};
     }
 
     return Object.assign(
