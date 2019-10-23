@@ -19,46 +19,21 @@
       return tf.linalg.bandPart(x, numLower, numUpper);
     });
 
-    const state = {
-      numRuns: 1,
-      benchmark: 'music_decode_target',
-      run: (v) => {
-        runBenchmark();
-      },
-    };
-
-    let model;
-
-    async function warmUpAndRecordTime() {
-      let res = model.executeAsync({
+    async function onPageLoad() {
+      await tf.ready();
+      const url =
+          'https://storage.googleapis.com/learnjs-data/tfjs_graph_music_decode_target/model.json';
+      const model = await tf.loadGraphModel(url);
+      console.time("execute prediction")
+      let res = await model.executeAsync({
           'decode_length': tf.scalar(50, 'int32'),
           'targets': tf.tensor2d([185, 290, 46, 49, 219, 292], [1, 6], 'int32')
         });
-      if (res instanceof Promise) {
-        res = await res;
-      }
 
-      if (res instanceof tf.Tensor) {
-        res = await res.data();
-      }
+      res = await res.data();
+      console.timeEnd("execute prediction");
 
       console.log(res);
-    }
-
-    async function loadAndRecordTime() {
-      const url =
-          'https://storage.googleapis.com/learnjs-data/tfjs_graph_music_decode_target/model.json';
-      model = await tf.loadGraphModel(url);
-    }
-
-    async function runBenchmark() {
-      await loadAndRecordTime();
-      await warmUpAndRecordTime();
-    }
-
-    async function onPageLoad() {
-      await tf.ready();
-      runBenchmark();
     }
 
     onPageLoad();
