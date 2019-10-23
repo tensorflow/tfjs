@@ -28,6 +28,6 @@ yarn prep
 tsc --sourceMap false
 # Manual copy src/proto/api_pb.js until both allowJs and declaration are
 # supported in tsconfig: https://github.com/microsoft/TypeScript/pull/32372
-mkdir dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js
+mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js
 
 npm pack
