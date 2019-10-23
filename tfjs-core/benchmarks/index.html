@@ -24,14 +24,15 @@
       const url =
           'https://storage.googleapis.com/learnjs-data/tfjs_graph_music_decode_target/model.json';
       const model = await tf.loadGraphModel(url);
-      console.time("execute prediction")
+      console.log("starting prediction...")
+      console.time("time to predict")
       let res = await model.executeAsync({
           'decode_length': tf.scalar(50, 'int32'),
           'targets': tf.tensor2d([185, 290, 46, 49, 219, 292], [1, 6], 'int32')
         });
 
       res = await res.data();
-      console.timeEnd("execute prediction");
+      console.timeEnd("time to predict");
 
       console.log(res);
     }
