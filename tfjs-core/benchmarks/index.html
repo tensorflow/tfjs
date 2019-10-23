@@ -20,10 +20,12 @@
     });
 
     async function onPageLoad() {
+      console.log("loading model...");
       await tf.ready();
       const url =
           'https://storage.googleapis.com/learnjs-data/tfjs_graph_music_decode_target/model.json';
       const model = await tf.loadGraphModel(url);
+      console.log("model loaded!");
       console.log("starting prediction...")
       console.time("time to predict")
       let res = await model.executeAsync({
