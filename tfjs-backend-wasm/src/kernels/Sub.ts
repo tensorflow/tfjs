@@ -15,52 +15,5 @@
  * =============================================================================
  */
 
-import {backend_util, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
-
-import {BackendWasm} from '../backend_wasm';
-
-interface SubInputs extends NamedTensorInfoMap {
-  a: TensorInfo;
-  b: TensorInfo;
-}
-
-let wasmSub: (aId: number, bId: number, outId: number) => void;
-
-function setup(backend: BackendWasm): void {
-  wasmSub = backend.wasm.cwrap(
-      'Sub', null /* void */, ['number', 'number', 'number']);
-}
-
-function sub(args: {backend: BackendWasm, inputs: SubInputs}): TensorInfo {
-  const {backend, inputs} = args;
-  const {a, b} = inputs;
-  const aId = backend.dataIdMap.get(a.dataId).id;
-  const bId = backend.dataIdMap.get(b.dataId).id;
-
-  const newShape = backend_util.assertAndGetBroadcastShape(a.shape, b.shape);
-  const out = backend.makeOutput(newShape, a.dtype);
-  // Short-circuit zero-sized tensors.
-  if (util.sizeFromShape(newShape) === 0) {
-    return out;
-  }
-
-  const aBroadcastDims = backend_util.getBroadcastDims(a.shape, newShape);
-  const bBroadcastDims = backend_util.getBroadcastDims(b.shape, newShape);
-  const loopsOverAllOfA = aBroadcastDims.every((v, i) => v === i);
-  const loopsOverAllOfB = bBroadcastDims.every((v, i) => v === i);
-  const outId = backend.dataIdMap.get(out.dataId).id;
-
-  if (loopsOverAllOfA && loopsOverAllOfB) {
-    wasmSub(aId, bId, outId);
-    return out;
-  } else {
-    throw new Error('Broadcasting along inner dims is not yet supported');
-  }
-}
-
-registerKernel({
-  kernelName: 'Sub',
-  backendName: 'wasm',
-  setupFunc: setup,
-  kernelFunc: sub
-});
+import {registerBinaryKernel} from './binary_kernel';
+registerBinaryKernel('Sub');

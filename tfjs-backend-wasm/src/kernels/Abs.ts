@@ -15,38 +15,5 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
-
-import {BackendWasm} from '../backend_wasm';
-
-interface AbsInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-let wasmAbs: (xId: number, outId: number) => void;
-
-function setup(backend: BackendWasm): void {
-  wasmAbs = backend.wasm.cwrap('Abs', null /* void */, ['number', 'number']);
-}
-
-function abs(args: {backend: BackendWasm, inputs: AbsInputs}): TensorInfo {
-  const {backend, inputs: {x}} = args;
-  const xId = backend.dataIdMap.get(x.dataId).id;
-  const out = backend.makeOutput(x.shape, x.dtype);
-  const outId = backend.dataIdMap.get(out.dataId).id;
-
-  // Short-circuit zero-sized tensors.
-  if (util.sizeFromShape(out.shape) === 0) {
-    return out;
-  }
-
-  wasmAbs(xId, outId);
-  return out;
-}
-
-registerKernel({
-  kernelName: 'Abs',
-  backendName: 'wasm',
-  setupFunc: setup,
-  kernelFunc: abs
-});
+import {registerUnaryKernel} from './unary_kernel';
+registerUnaryKernel('Abs');
