@@ -12,7 +12,7 @@
     "node": ">=8.11.0"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && mkdir dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
     "build-npm": "yarn prep-gpu && ./scripts/build-npm.sh",
     "build-addon": "./scripts/build-and-upload-addon.sh",
     "build-addon-from-source": "node-pre-gyp install --build-from-source",
