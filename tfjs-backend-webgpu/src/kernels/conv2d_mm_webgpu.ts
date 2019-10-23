@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {computeDispatch, computeWorkGroupSize} from '../webgpu_util';
+import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d} from '../webgpu_util';
 
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {makeMatMulSource} from './matmul_webgpu';
@@ -30,10 +30,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride;';
-  workGroupSize: [number, number, number] = [
-    16, 16,  // x % y must be zero.
-    1
-  ];
+  workGroupSize: [number, number, number];
 
   constructor(convInfo: backend_util.Conv2DInfo, workPerThread: number) {
     this.outputShape = convInfo.outShape;
@@ -46,15 +43,16 @@ export class Conv2DMMProgram implements WebGPUProgram {
         () => 'TODO: Dilation is unimplemented');
     this.dispatchLayout = {x: [1, 2], y: [3], z: [0]};
     this.workGroupSize =
-        computeWorkGroupSize(this.dispatchLayout, this.outputShape);
+        computeWorkGroupSizeForConv2d(this.dispatchLayout, this.outputShape);
     let elementsPerThread: [number, number, number];
     let matMulSource: string;
     if (workPerThread === 0) {
       elementsPerThread = [1, 1, 1];
       matMulSource = makeMatMulSource();
     } else {
-      elementsPerThread = [workPerThread, workPerThread, 1];
-      matMulSource = makeMatMulPackedSource(workPerThread, this.workGroupSize);
+      elementsPerThread =
+          computeWorkPerThreadForConv2d(this.dispatchLayout, this.outputShape);
+      matMulSource = makeMatMulPackedSource(elementsPerThread);
     }
 
     this.dispatch = computeDispatch(
