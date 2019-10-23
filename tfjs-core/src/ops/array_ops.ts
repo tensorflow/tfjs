@@ -439,10 +439,11 @@ function reshape_<R2 extends Rank>(
       () => 'new shape and old shape must have the same number of elements.');
 
   const grad = (dy: Tensor<R2>) => {
-    return {$x: () => dy.reshape($x.shape)};
+    return {x: () => dy.reshape($x.shape)};
   };
+  const attrs = {shape};
   return ENGINE.runKernelFunc(
-      backend => backend.reshape($x, shape), {$x}, grad);
+      backend => backend.reshape($x, shape), {x: $x}, grad, 'Reshape', attrs);
 }
 
 /**
@@ -488,9 +489,11 @@ function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
   }
 
   const grad = (dy: T) => {
-    return {$x: () => dy.clone()};
+    return {x: () => dy.clone()};
   };
-  return ENGINE.runKernelFunc(backend => backend.cast($x, dtype), {$x}, grad);
+  const attrs = {dtype};
+  return ENGINE.runKernelFunc(
+      backend => backend.cast($x, dtype), {x: $x}, grad, 'Cast', attrs);
 }
 
 /**

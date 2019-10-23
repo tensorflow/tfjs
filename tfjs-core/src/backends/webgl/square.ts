@@ -15,21 +15,22 @@
  * =============================================================================
  */
 
-import {registerKernel, TensorInfo} from '../../kernel_registry';
+import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../kernel_registry';
+
 import {MathBackendWebGL} from './backend_webgl';
 import {SQUARE, UnaryOpProgram} from './unaryop_gpu';
 
-interface SquareInputs {
+interface SquareInputs extends NamedTensorInfoMap {
   x: TensorInfo;
 }
 
-registerKernel('Square', 'webgl', ({inputs, storage, save}) => {
-  const {x} = inputs as {} as SquareInputs;
-  const webglStorage = storage as MathBackendWebGL;
-
-  // Save it for the gradient.
-  save([x]);
-
-  const program = new UnaryOpProgram(x.shape, SQUARE);
-  return webglStorage.runWebGLProgram(program, [x], x.dtype);
+registerKernel({
+  kernelName: 'Square',
+  backendName: 'webgl',
+  kernelFunc: ({inputs, backend}) => {
+    const {x} = inputs as SquareInputs;
+    const webglBackend = backend as MathBackendWebGL;
+    const program = new UnaryOpProgram(x.shape, SQUARE);
+    return webglBackend.runWebGLProgram(program, [x], x.dtype);
+  }
 });
