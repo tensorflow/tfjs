@@ -12,29 +12,25 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
-
-#include <cmath>
-
-#include "src/cc/backend.h"
-#include "src/cc/unary.h"
-
-namespace {
-inline float oper(float val) { return 1. / (1. + std::exp(-val)); }
-}  // namespace
+#ifndef UNARY_H_
+#define UNARY_H_
 
 namespace tfjs {
 namespace wasm {
-// We use C-style API to interface with Javascript.
-extern "C" {
 
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
-void Sigmoid(int x_id, int out_id) { unary(x_id, out_id, oper); }
+inline void unary(int x_id, int out_id, float operation(float)) {
+  const TensorInfo a_info = backend::get_tensor_info(x_id);
+  const TensorInfo out_info = backend::get_tensor_info(out_id);
 
-}  // extern "C"
+  const float* a_buf = a_info.buf.f32;
+  float* out_buf = out_info.buf.f32;
+
+  for (int i = 0; i < a_info.size; ++i) {
+    out_buf[i] = operation(a_buf[i]);
+  }
+}
+
 }  // namespace wasm
 }  // namespace tfjs
+
+#endif  // UNARY_H_

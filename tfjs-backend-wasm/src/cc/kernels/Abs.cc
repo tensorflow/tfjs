@@ -19,6 +19,7 @@
 #include <cmath>
 
 #include "src/cc/backend.h"
+#include "src/cc/unary.h"
 
 namespace tfjs {
 namespace wasm {
@@ -28,17 +29,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Abs(int x_id, int out_id) {
-  const TensorInfo a_info = backend::get_tensor_info(x_id);
-  const TensorInfo out_info = backend::get_tensor_info(out_id);
-
-  const float* a_buf = a_info.buf.f32;
-  float* out_buf = out_info.buf.f32;
-
-  for (int i = 0; i < a_info.size; ++i) {
-    out_buf[i] = std::abs(a_buf[i]);
-  }
-}
+void Abs(int x_id, int out_id) { unary(x_id, out_id, std::abs); }
 
 }  // extern "C"
 }  // namespace wasm

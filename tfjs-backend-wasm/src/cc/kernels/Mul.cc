@@ -17,22 +17,15 @@
 #endif
 
 #include "src/cc/backend.h"
+#include "src/cc/binary.h"
 #include "src/cc/util.h"
 
+namespace {
 template <class T>
-void mul_impl(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf) {
-  int size = std::max(a_size, b_size);
-  for (int i = 0; i < size; ++i) {
-    out_buf[i] = a_buf[i % a_size] * b_buf[i % b_size];
-  }
+inline T mul(T a, T b) {
+  return a * b;
 }
-// Templates need explicit instantiation when implemented in a .cc file.
-template void mul_impl<float>(float* a_buf, int a_size, float* b_buf,
-                              int b_size, float* out_buf);
-template void mul_impl<int>(int* a_buf, int a_size, int* b_buf, int b_size,
-                            int* out_buf);
-template void mul_impl<bool>(bool* a_buf, int a_size, bool* b_buf, int b_size,
-                             bool* out_buf);
+}  // namespace
 
 namespace tfjs {
 namespace wasm {
@@ -44,20 +37,15 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 void Mul(int a_id, int b_id, int out_id) {
   const auto a_info = backend::get_tensor_info(a_id);
-  const auto b_info = backend::get_tensor_info(b_id);
-  const auto out_info = backend::get_tensor_info(out_id);
   switch (a_info.dtype) {
     case DType::float32:
-      mul_impl(a_info.buf.f32, a_info.size, b_info.buf.f32, b_info.size,
-               out_info.buf.f32);
+      binary_f32(a_id, b_id, out_id, mul<float>);
       break;
     case DType::int32:
-      mul_impl(a_info.buf.i32, a_info.size, b_info.buf.i32, b_info.size,
-               out_info.buf.i32);
+      binary_i32(a_id, b_id, out_id, mul<int>);
       break;
     case DType::boolean:
-      mul_impl(a_info.buf.b, a_info.size, b_info.buf.b, b_info.size,
-               out_info.buf.b);
+      binary_bool(a_id, b_id, out_id, mul<bool>);
       break;
     default:
       util::warn("Mul for tensor ids %d and %d failed. Unknown dtype %d", a_id,

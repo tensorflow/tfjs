@@ -40,6 +40,22 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "unary",
+  srcs = ["unary.h"],
+  deps = [
+    ":backend",
+  ],
+)
+
+tfjs_cc_library(
+  name = "binary",
+  srcs = ["binary.h"],
+  deps = [
+    ":backend",
+  ],
+)
+
+tfjs_cc_library(
   name = "all_kernels",
   deps = [
     ":Abs",
@@ -58,6 +74,7 @@ tfjs_cc_library(
   srcs = ["kernels/Abs.cc"],
   deps = [
     ":backend",
+    ":unary",
   ],
 )
 
@@ -66,6 +83,7 @@ tfjs_cc_library(
   srcs = ["kernels/Add.cc"],
   deps = [
     ":backend",
+    ":binary",
     ":util",
   ],
 )
@@ -84,6 +102,7 @@ tfjs_cc_library(
   srcs = ["kernels/Div.cc"],
   deps = [
     ":backend",
+    ":binary",
     ":util",
   ],
 )
@@ -93,6 +112,7 @@ tfjs_cc_library(
   srcs = ["kernels/Mul.cc"],
   deps = [
     ":backend",
+    ":binary",
     ":util",
   ],
 )
@@ -112,6 +132,7 @@ tfjs_cc_library(
   srcs = ["kernels/Sigmoid.cc"],
   deps = [
     ":backend",
+    ":unary",
   ],
 )
 
@@ -120,6 +141,8 @@ tfjs_cc_library(
   srcs = ["kernels/Sub.cc"],
   deps = [
     ":backend",
+    ":binary",
+    ":util",
   ],
 )
 
