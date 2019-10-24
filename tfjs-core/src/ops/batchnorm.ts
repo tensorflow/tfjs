@@ -242,8 +242,6 @@ function batchNorm_<R extends Rank>(
   const $x = convertToTensor(x, 'x', 'batchNorm');
   const $mean = convertToTensor(mean, 'mean', 'batchNorm');
   const $variance = convertToTensor(variance, 'variance', 'batchNorm');
-  const $varianceEpsilon =
-      convertToTensor(varianceEpsilon, 'varianceEpsilon', 'batchNorm');
   let $scale: Tensor<R>|Tensor1D;
   if (scale != null) {
     $scale = convertToTensor(scale, 'scale', 'batchNorm');
@@ -357,23 +355,8 @@ function batchNorm_<R extends Rank>(
         save([$x, $mean, $variance, $scale]);
         return res;
       },
-      {
-        x: $x,
-        mean: $mean,
-        variance: $variance,
-        scale: $scale,
-        offset: $offset,
-        varianceEpsilon: $varianceEpsilon
-      },
-      der as {} as (dy: Tensor, saved: Tensor[]) => {
-        x: () => Tensor<R>,
-        mean: () => Tensor<R>| Tensor1D,
-        variance: () => Tensor<R>| Tensor1D,
-        scale: () => Tensor<R>| Tensor1D,
-        offset: () => Tensor<R>| Tensor1D,
-        varianceEpsilon: () => Tensor
-      },
-      'BatchNormalization');
+      {x: $x, mean: $mean, variance: $variance, scale: $scale, offset: $offset},
+      der, 'BatchNormalization', {varianceEpsilon});
   return res.reshape($x.shape);
 }
 
