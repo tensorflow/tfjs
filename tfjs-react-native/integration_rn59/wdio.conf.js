@@ -25,6 +25,11 @@ exports.config = {
   maxInstances: 5,
   // Bridge network requests to the machine that started the test session.
   browserstackLocal: true,
+  browserstackOpts: {
+    // Create a local id to separate this instance of browserstack local from
+    // ones that may be created by karma.
+    localIdentifier: `rn_integration_android_${Date.now()}`,
+  },
 
   // =====================
   // Test configuration
