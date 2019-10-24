@@ -12,9 +12,16 @@
  * limitations under the License.
  * ===========================================================================*/
 
+#ifndef BINARY_H_
+#define BINARY_H_
+
+#include <algorithm>
+
 #include "src/cc/backend.h"
 
-namespace {
+namespace tfjs {
+namespace wasm {
+
 template <class T>
 inline void binary_impl(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf,
                         T operation(T, T)) {
@@ -23,10 +30,6 @@ inline void binary_impl(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf,
     out_buf[i] = operation(a_buf[i % a_size], b_buf[i % b_size]);
   }
 }
-}  // namespace
-
-namespace tfjs {
-namespace wasm {
 
 inline void binary_f32(int a_id, int b_id, int out_id,
                        float operation(float, float)) {
@@ -57,3 +60,5 @@ inline void binary_bool(int a_id, int b_id, int out_id,
 
 }  // namespace wasm
 }  // namespace tfjs
+
+#endif  // BINARY_H_
