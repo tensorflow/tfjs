@@ -23,15 +23,16 @@ enum ImageType {
 export function decodeJpeg(contents: Uint8Array, channels: 0 | 1 | 3 = 3): Tensor3D {
   util.assert(
     getImageType(contents) === ImageType.JPEG,
-    () => "The passed contents are not a valid JPEG image"
+    () => 'The passed contents are not a valid JPEG image'
   );
   util.assert(
     channels === 3,
-    () => "Only 3 channels is supported at this time"
+    () => 'Only 3 channels is supported at this time'
   );
   const TO_UINT8ARRAY = true;
   const { width, height, data } = jpeg.decode(contents, TO_UINT8ARRAY);
-  // Drop the alpha channel info because jpeg.decode always returns a typedArray with 255
+  // Drop the alpha channel info because jpeg.decode always returns a typedArray
+  // with 255
   const buffer = new Uint8Array(width * height * 3);
   let offset = 0; // offset into original data
   for (let i = 0; i < buffer.length; i += 3) {
