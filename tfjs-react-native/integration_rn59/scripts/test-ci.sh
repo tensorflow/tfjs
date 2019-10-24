@@ -39,7 +39,7 @@ if [ "$1" == "use-core-build" ]; then
 elif [ "$1" == "build-head" ]; then
   # Build head and link it in.
   echo "Build head from core"
-  cd ../../tfjs-core && yarn && yarn build-ci && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
+  cd ../../tfjs-core && yarn && yarn build-ci && npx rollup -c  && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
 fi
 
 yarn prep-tests
