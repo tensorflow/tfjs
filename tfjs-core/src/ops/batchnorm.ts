@@ -242,6 +242,8 @@ function batchNorm_<R extends Rank>(
   const $x = convertToTensor(x, 'x', 'batchNorm');
   const $mean = convertToTensor(mean, 'mean', 'batchNorm');
   const $variance = convertToTensor(variance, 'variance', 'batchNorm');
+  const $varianceEpsilon =
+      convertToTensor(varianceEpsilon, 'varianceEpsilon', 'batchNorm');
   let $scale: Tensor<R>|Tensor1D;
   if (scale != null) {
     $scale = convertToTensor(scale, 'scale', 'batchNorm');
@@ -338,22 +340,35 @@ function batchNorm_<R extends Rank>(
       return offsetDer.reshape($mean.shape as ShapeMap[R]);
     };
     return {
-      $x: derX,
-      $mean: derMean,
-      $variance: derVariance,
-      $scale: derScale,
-      $offset: derOffset
+      x: derX,
+      mean: derMean,
+      variance: derVariance,
+      scale: derScale,
+      offset: derOffset,
+      varianceEpsilon: () => {
+        return dy;
+      }
     };
   };
 
-  const res = ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.batchNormalization(
-        x4D, batchnormReshape4D($mean), batchnormReshape4D($variance),
-        varianceEpsilon, batchnormReshape4D($scale),
-        batchnormReshape4D($offset));
-    save([$x, $mean, $variance, $scale]);
-    return res;
-  }, {$x, $mean, $variance, $scale, $offset}, der);
+  const res = ENGINE.runKernelFunc(
+      (backend, save) => {
+        const res = backend.batchNormalization(
+            x4D, batchnormReshape4D($mean), batchnormReshape4D($variance),
+            varianceEpsilon, batchnormReshape4D($scale),
+            batchnormReshape4D($offset));
+        save([$x, $mean, $variance, $scale]);
+        return res;
+      },
+      {
+        x: $x,
+        mean: $mean,
+        variance: $variance,
+        scale: $scale,
+        offset: $offset,
+        varianceEpsilon: $varianceEpsilon
+      },
+      der, 'BatchNormalization');
   return res.reshape($x.shape);
 }
 

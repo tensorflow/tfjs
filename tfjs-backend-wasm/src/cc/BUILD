@@ -45,7 +45,17 @@ tfjs_cc_library(
     ":Add",
     ":BatchMatMul",
     ":Prelu",
+    ":BatchNormalization"
   ]
+)
+
+tfjs_cc_library(
+  name = "BatchNormalization",
+  srcs = ["kernels/BatchNormalization.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
 )
 
 tfjs_cc_library(
