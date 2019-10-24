@@ -17,7 +17,6 @@
 
 import { h, Component } from 'preact';
 import { css } from 'glamor';
-import { tachyons as tac } from 'glamor-tachyons';
 import { SurfaceInfoStrict, StyleOptions } from '../types';
 
 // Internal Props
@@ -89,7 +88,8 @@ export class SurfaceComponent extends Component<SurfaceProps> {
       borderBottom: '1px solid #357EDD',
       lineHeight: '2em',
       marginBottom: '20px',
-      ...tac('fw6 tc')
+      fontWeight: '600',
+      textAlign: 'center',
     });
 
     const drawAreaStyle = css({
