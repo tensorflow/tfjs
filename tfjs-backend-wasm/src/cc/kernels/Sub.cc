@@ -22,8 +22,8 @@
 
 namespace {
 template <class T>
-inline T add(T a, T b) {
-  return a + b;
+inline T sub(T a, T b) {
+  return a - b;
 }
 }  // namespace
 
@@ -35,20 +35,20 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Add(int a_id, int b_id, int out_id) {
+void Sub(int a_id, int b_id, int out_id) {
   const auto a_info = backend::get_tensor_info(a_id);
   switch (a_info.dtype) {
     case DType::float32:
-      binary_f32(a_id, b_id, out_id, add<float>);
+      binary_f32(a_id, b_id, out_id, sub<float>);
       break;
     case DType::int32:
-      binary_i32(a_id, b_id, out_id, add<int>);
+      binary_i32(a_id, b_id, out_id, sub<int>);
       break;
     case DType::boolean:
-      binary_bool(a_id, b_id, out_id, add<bool>);
+      binary_bool(a_id, b_id, out_id, sub<bool>);
       break;
     default:
-      util::warn("Add for tensor ids %d and %d failed. Unknown dtype %d", a_id,
+      util::warn("Sub for tensor ids %d and %d failed. Unknown dtype %d", a_id,
                  b_id, a_info.dtype);
   }
 }

@@ -15,5 +15,5 @@
  * =============================================================================
  */
 
-import {registerBinaryKernel} from './binary_kernel';
-registerBinaryKernel('Add');
+import {registerUnaryKernel} from './unary_kernel';
+registerUnaryKernel('Abs');

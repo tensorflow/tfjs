@@ -16,15 +16,13 @@
 #include <emscripten.h>
 #endif
 
+#include <cmath>
+
 #include "src/cc/backend.h"
-#include "src/cc/binary.h"
-#include "src/cc/util.h"
+#include "src/cc/unary.h"
 
 namespace {
-template <class T>
-inline T add(T a, T b) {
-  return a + b;
-}
+inline float oper(float val) { return 1. / (1. + std::exp(-val)); }
 }  // namespace
 
 namespace tfjs {
@@ -35,23 +33,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Add(int a_id, int b_id, int out_id) {
-  const auto a_info = backend::get_tensor_info(a_id);
-  switch (a_info.dtype) {
-    case DType::float32:
-      binary_f32(a_id, b_id, out_id, add<float>);
-      break;
-    case DType::int32:
-      binary_i32(a_id, b_id, out_id, add<int>);
-      break;
-    case DType::boolean:
-      binary_bool(a_id, b_id, out_id, add<bool>);
-      break;
-    default:
-      util::warn("Add for tensor ids %d and %d failed. Unknown dtype %d", a_id,
-                 b_id, a_info.dtype);
-  }
-}
+void Sigmoid(int x_id, int out_id) { unary(x_id, out_id, oper); }
 
 }  // extern "C"
 }  // namespace wasm
