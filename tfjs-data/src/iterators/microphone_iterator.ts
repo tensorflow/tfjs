@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {ENV, Tensor, tensor, Tensor2D, Tensor3D, TensorContainer, util} from '@tensorflow/tfjs-core';
+import {env, Tensor, tensor, Tensor2D, Tensor3D, TensorContainer, util} from '@tensorflow/tfjs-core';
 import {MicrophoneConfig} from '../types';
 import {LazyIterator} from './lazy_iterator';
 
@@ -77,7 +77,7 @@ export class MicrophoneIterator extends LazyIterator<TensorContainer> {
 
   // Construct a MicrophoneIterator and start the audio stream.
   static async create(microphoneConfig: MicrophoneConfig = {}) {
-    if (ENV.get('IS_NODE')) {
+    if (env().get('IS_NODE')) {
       throw new Error(
           'microphone API is only supported in browser environment.');
     }
@@ -197,11 +197,13 @@ export class MicrophoneIterator extends LazyIterator<TensorContainer> {
 
   // Stop the audio stream and pause the iterator.
   stop(): void {
-    this.isClosed = true;
-    this.analyser.disconnect();
-    this.audioContext.close();
-    if (this.stream != null && this.stream.getTracks().length > 0) {
-      this.stream.getTracks()[0].stop();
+    if (!this.isClosed) {
+      this.isClosed = true;
+      this.analyser.disconnect();
+      this.audioContext.close();
+      if (this.stream != null && this.stream.getTracks().length > 0) {
+        this.stream.getTracks()[0].stop();
+      }
     }
   }
 

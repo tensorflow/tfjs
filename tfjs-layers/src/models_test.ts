@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import {DataType, ENV, io, memory, ones, randomNormal, Scalar, scalar, serialization, sum, Tensor, tensor1d, tensor2d, tensor3d, train, zeros} from '@tensorflow/tfjs-core';
+import {DataType, env, io, memory, ones, randomNormal, Scalar, scalar, serialization, sum, Tensor, tensor1d, tensor2d, tensor3d, train, zeros} from '@tensorflow/tfjs-core';
 
 import {LayersModel} from './engine/training';
 import * as tfl from './index';
@@ -548,7 +548,7 @@ describeMathCPU('loadLayersModel from URL', () => {
   const setupFakeWeightFiles =
       (fileBufferMap:
            {[filename: string]: Float32Array|Int32Array|ArrayBuffer}) => {
-        spyOn(ENV.platform, 'fetch')
+        spyOn(env().platform, 'fetch')
             .and.callFake((path: string) => new Promise(resolve => {
                             resolve(new Response(fileBufferMap[path], {
                               'headers': {'Content-Type': OCTET_STREAM_TYPE}
@@ -630,7 +630,7 @@ describeMathCPU('loadLayersModel from URL', () => {
       }
     ];
 
-    spyOn(ENV.platform, 'fetch').and.callFake((path: string) => {
+    spyOn(env().platform, 'fetch').and.callFake((path: string) => {
       return new Promise((resolve, reject) => {
         if (path === 'model/model.json') {
           resolve(new Response(
@@ -683,7 +683,7 @@ describeMathCPU('loadLayersModel from URL', () => {
          }
        ];
 
-       spyOn(ENV.platform, 'fetch').and.callFake((path: string) => {
+       spyOn(env().platform, 'fetch').and.callFake((path: string) => {
          return new Promise((resolve, reject) => {
            if (path === 'model/model.json') {
              resolve(new Response(
@@ -743,7 +743,7 @@ describeMathCPU('loadLayersModel from URL', () => {
       }
     ];
 
-    spyOn(ENV.platform, 'fetch').and.callFake((path: string) => {
+    spyOn(env().platform, 'fetch').and.callFake((path: string) => {
       return new Promise((resolve, reject) => {
         if (path === 'https://url/to/model/model.json') {
           resolve(new Response(
@@ -805,7 +805,7 @@ describeMathCPU('loadLayersModel from URL', () => {
 
     const kernelData = ones([32, 32], 'float32').dataSync() as Float32Array;
     const biasData = zeros([32], 'float32').dataSync() as Float32Array;
-    spyOn(ENV.platform, 'fetch').and.callFake((path: string) => {
+    spyOn(env().platform, 'fetch').and.callFake((path: string) => {
       return new Promise((resolve, reject) => {
         if (path === 'model/model.json') {
           resolve(new Response(
@@ -859,7 +859,7 @@ describeMathCPU('loadLayersModel from URL', () => {
         }
       ];
 
-      spyOn(ENV.platform, 'fetch').and.callFake((path: string) => {
+      spyOn(env().platform, 'fetch').and.callFake((path: string) => {
         return new Promise((resolve, reject) => {
           if (path === 'model/model.json') {
             resolve(new Response(
@@ -919,7 +919,7 @@ describeMathCPU('loadLayersModel from URL', () => {
                [{'name': `dense_2/bias`, 'dtype': 'float32', 'shape': [1]}],
          }
        ];
-       spyOn(ENV.platform, 'fetch').and.callFake((path: string) => {
+       spyOn(env().platform, 'fetch').and.callFake((path: string) => {
          return new Promise((resolve, reject) => {
            if (path === 'model/model.json') {
              resolve(new Response(
@@ -988,7 +988,7 @@ describeMathCPU('loadLayersModel from URL', () => {
         'weights': [{'name': `dense_2/bias`, 'dtype': 'float32', 'shape': [1]}],
       }
     ];
-    spyOn(ENV.platform, 'fetch').and.callFake((path: string) => {
+    spyOn(env().platform, 'fetch').and.callFake((path: string) => {
       return new Promise((resolve, reject) => {
         if (path === 'model/model.json') {
           resolve(new Response(
@@ -1054,7 +1054,7 @@ describeMathCPU('loadLayersModel from URL', () => {
 
        const requestHeaders: Array<{[key: string]: string | {}}> = [];
        const requestCredentials: string[] = [];
-       spyOn(ENV.platform, 'fetch')
+       spyOn(env().platform, 'fetch')
            .and.callFake((path: string, requestInit?: RequestInit) => {
              if (requestInit != null) {
                requestHeaders.push(requestInit.headers as {});
@@ -1132,7 +1132,7 @@ describeMathCPU('loadLayersModel from URL', () => {
                  [{'name': `dense_6/bias`, 'dtype': 'float32', 'shape': [32]}],
            }
          ];
-         spyOn(ENV.platform, 'fetch').and.callFake((path: string) => {
+         spyOn(env().platform, 'fetch').and.callFake((path: string) => {
            return new Promise((resolve, reject) => {
              if (path === `${protocol}localhost:8888/models/model.json`) {
                resolve(new Response(
@@ -2214,8 +2214,8 @@ describeMathCPUAndGPU('Sequential', () => {
   it('getConfig returns an Array', () => {
     const model = tfl.sequential({layers});
     const config = model.getConfig();
-    expect(Array.isArray(config)).toEqual(true);
-    expect(config.length).toEqual(layers.length);
+    expect(Array.isArray(config.layers)).toEqual(true);
+    expect(config.layers.length).toEqual(layers.length);
   });
 });
 

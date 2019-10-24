@@ -19,7 +19,6 @@ import glob
 import json
 import os
 import shutil
-import sys
 import tempfile
 import unittest
 
@@ -30,6 +29,7 @@ from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import tensor_spec
 from tensorflow.python.ops import variables
 from tensorflow.python.training.tracking import tracking
+from tensorflow.python.tools import freeze_graph
 from tensorflow.python.saved_model.save import save
 import tensorflow_hub as hub
 from tensorflowjs import version
@@ -37,6 +37,7 @@ from tensorflowjs.converters import tf_saved_model_conversion_v2
 
 SAVED_MODEL_DIR = 'saved_model'
 HUB_MODULE_DIR = 'hub_module'
+FROZEN_MODEL_DIR = 'frozen_model'
 
 class ConvertTest(tf.test.TestCase):
   def setUp(self):
@@ -122,7 +123,7 @@ class ConvertTest(tf.test.TestCase):
     """Test a basic model with fusable conv2d."""
     layers = [
         tf.keras.layers.Conv2D(
-            16, [3, 3], padding='same', use_bias=True),
+            16, [3, 3], padding='same', use_bias=False),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.ReLU()
     ]
@@ -239,6 +240,44 @@ class ConvertTest(tf.test.TestCase):
       sess.run(tf.compat.v1.global_variables_initializer())
       m.export(os.path.join(self._tmp_dir, HUB_MODULE_DIR), sess)
 
+  def create_frozen_model(self):
+    graph = tf.Graph()
+    saved_model_dir = os.path.join(self._tmp_dir, FROZEN_MODEL_DIR)
+    with graph.as_default():
+      x = tf.constant([[37.0, -23.0], [1.0, 4.0]])
+      w = tf.Variable(tf.random_uniform([2, 2]))
+      y = tf.matmul(x, w)
+      tf.nn.softmax(y)
+      init_op = w.initializer
+
+      # Create a builder
+      builder = tf.saved_model.builder.SavedModelBuilder(saved_model_dir)
+
+      with tf.Session() as sess:
+        # Run the initializer on `w`.
+        sess.run(init_op)
+
+        builder.add_meta_graph_and_variables(
+            sess, [tf.saved_model.tag_constants.SERVING],
+            signature_def_map=None,
+            assets_collection=None)
+
+      builder.save()
+
+    frozen_file = os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'model.frozen')
+    freeze_graph.freeze_graph(
+        '',
+        '',
+        True,
+        '',
+        "Softmax",
+        '',
+        '',
+        frozen_file,
+        True,
+        '',
+        saved_model_tags=tf.saved_model.tag_constants.SERVING,
+        input_saved_model_dir=saved_model_dir)
   def test_convert_saved_model_v1(self):
     self._create_saved_model_v1()
 
@@ -249,17 +288,16 @@ class ConvertTest(tf.test.TestCase):
         output_dir
     )
 
-    expected_weights_manifest = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{'dtype': 'float32', 'name': 'w', 'shape': [2, 2]}]}]
-
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'js')
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, expected_weights_manifest)
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          ['group1-shard1of1.bin'])
+    self.assertIn('weights', weights_manifest[0])
+
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
     self.assertEqual(
@@ -307,29 +345,15 @@ class ConvertTest(tf.test.TestCase):
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     )
 
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{'dtype': 'float32',
-                     'name': 'StatefulPartitionedCall/mul',
-                     'shape': []}]}]
-
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(len(weights_manifest), len(weights))
-    if sys.version_info[0] < 3:
-      self.assertItemsEqual(weights_manifest[0]['paths'],
-                            weights[0]['paths'])
-      self.assertItemsEqual(weights_manifest[0]['weights'],
-                            weights[0]['weights'])
-    else:
-      self.assertCountEqual(weights_manifest[0]['paths'],
-                            weights[0]['paths'])
-      self.assertCountEqual(weights_manifest[0]['weights'],
-                            weights[0]['weights'])
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          ['group1-shard1of1.bin'])
+    self.assertIn('weights', weights_manifest[0])
 
   def test_convert_saved_model_with_fused_conv2d(self):
     self._create_saved_model_with_fusable_conv2d()
@@ -392,7 +416,6 @@ class ConvertTest(tf.test.TestCase):
         prelu_op = node
       if node['op'] == '_FusedConv2D':
         fused_op = node
-
     self.assertTrue(prelu_op is None)
     self.assertTrue(fused_op is not None)
 
@@ -452,39 +475,15 @@ class ConvertTest(tf.test.TestCase):
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     )
 
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{'dtype': 'int32', 'shape': [],
-                     'name': 'StatefulPartitionedCall/while/loop_counter'},
-                    {'dtype': 'int32', 'shape': [],
-                     'name': 'StatefulPartitionedCall/while/maximum_iterations'
-                    },
-                    {'dtype': 'int32', 'shape': [],
-                     'name': 'StatefulPartitionedCall/while/cond/_3/mod/y'},
-                    {'dtype': 'int32', 'shape': [],
-                     'name': 'StatefulPartitionedCall/while/cond/_3/Equal/y'},
-                    {'dtype': 'int32', 'shape': [],
-                     'name': 'StatefulPartitionedCall/while/body/_4/add_1/y'},
-                    {'name': 'StatefulPartitionedCall/add/y',
-                     'dtype': 'int32', 'shape': []}]}]
-
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(len(weights_manifest), len(weights))
-    if sys.version_info[0] < 3:
-      self.assertItemsEqual(weights_manifest[0]['paths'],
-                            weights[0]['paths'])
-      self.assertItemsEqual(weights_manifest[0]['weights'],
-                            weights[0]['weights'])
-    else:
-      self.assertCountEqual(weights_manifest[0]['paths'],
-                            weights[0]['paths'])
-      self.assertCountEqual(weights_manifest[0]['weights'],
-                            weights[0]['weights'])
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          ['group1-shard1of1.bin'])
+    self.assertIn('weights', weights_manifest[0])
 
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
@@ -514,18 +513,15 @@ class ConvertTest(tf.test.TestCase):
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR), skip_op_check=True
     )
 
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{'dtype': 'float32',
-                     'name': 'StatefulPartitionedCall/MatrixDiag',
-                     'shape': [2, 2, 2]}]}]
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          ['group1-shard1of1.bin'])
+    self.assertIn('weights', weights_manifest[0])
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
@@ -541,21 +537,15 @@ class ConvertTest(tf.test.TestCase):
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
         strip_debug_ops=True)
 
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{
-            'dtype': 'float32',
-            'name': 'add',
-            'shape': [2, 2]
-        }]
-    }]
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          ['group1-shard1of1.bin'])
+    self.assertIn('weights', weights_manifest[0])
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
@@ -567,22 +557,15 @@ class ConvertTest(tf.test.TestCase):
 
     tf_saved_model_conversion_v2.convert_tf_hub_module(module_path, tfjs_path)
 
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{
-            'shape': [2],
-            'name': 'module/Variable',
-            'dtype': 'float32'
-        }]
-    }]
-
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
 
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          ['group1-shard1of1.bin'])
+    self.assertIn('weights', weights_manifest[0])
 
     self.assertTrue(
         glob.glob(
@@ -596,26 +579,42 @@ class ConvertTest(tf.test.TestCase):
     tf_saved_model_conversion_v2.convert_tf_hub_module(
         module_path, tfjs_path, "serving_default", "serve")
 
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{
-            'shape': [],
-            'name': 'StatefulPartitionedCall/mul',
-            'dtype': 'float32'
-        }]
-    }]
-
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
-
     weights_manifest = model_json['weightsManifest']
-    self.assertEqual(weights_manifest, weights)
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          ['group1-shard1of1.bin'])
+    self.assertIn('weights', weights_manifest[0])
 
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_frozen_model(self):
+    self.create_frozen_model()
+    print(glob.glob(
+        os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, '*')))
+
+    tf_saved_model_conversion_v2.convert_tf_frozen_model(
+        os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'model.frozen'),
+        'Softmax',
+        os.path.join(self._tmp_dir, FROZEN_MODEL_DIR))
+
+    tfjs_path = os.path.join(self._tmp_dir, FROZEN_MODEL_DIR)
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    weights_manifest = model_json['weightsManifest']
+    weights_manifest = model_json['weightsManifest']
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          ['group1-shard1of1.bin'])
+    self.assertIn('weights', weights_manifest[0])
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'group*-*')))
 
 if __name__ == '__main__':
   tf.test.main()

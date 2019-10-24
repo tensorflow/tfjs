@@ -19,7 +19,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataStorage, DataType, ENV, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 // TODO(annxingyuan): get ENGINE from tf.engine() once core 1.3.0 is released.
 // tslint:disable-next-line: no-imports-from-dist
 import {ENGINE} from '@tensorflow/tfjs-core/dist/engine';
@@ -29,6 +29,7 @@ import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
 import * as binary_op from './kernels/binary_op_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
+import {ClipProgram} from './kernels/clip_webgpu';
 import {ConcatProgram} from './kernels/concat_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
@@ -497,7 +498,7 @@ export class WebGPUBackend extends KernelBackend {
     };
     this.uniformDisposalQueue.push(uniformInfo);
 
-    if (ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED')) {
+    if (env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED')) {
       this.submitQueue();
     }
 
@@ -521,7 +522,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private getCPUBackend(): KernelBackend|null {
-    if (!ENV.getBool('WEBGL_CPU_FORWARD')) {
+    if (!env().getBool('WEBGPU_CPU_FORWARD')) {
       return null;
     }
 
@@ -594,6 +595,14 @@ export class WebGPUBackend extends KernelBackend {
     return this.compileAndRun(program, [a, b], output);
   }
 
+  less(a: Tensor, b: Tensor): Tensor {
+    return this.binaryCompareOp(a, b, binary_op.LESS);
+  }
+
+  lessEqual(a: Tensor, b: Tensor): Tensor {
+    return this.binaryCompareOp(a, b, binary_op.LESS_EQUAL);
+  }
+
   greater(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.greater(a, b);
@@ -608,12 +617,41 @@ export class WebGPUBackend extends KernelBackend {
     return this.binaryCompareOp(a, b, binary_op.GREATER_EQUAL);
   }
 
+  private conv2dByMatMul(
+      x: Tensor4D, filter: Tensor4D,
+      convInfo: backend_util.Conv2DInfo): Tensor4D {
+    const xShape = x.shape;
+    const isChannelsLast = convInfo.dataFormat === 'channelsLast';
+    const transposeA = false;
+    const transposeB = false;
+
+    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
+                                         xShape[0] * xShape[2] * xShape[3];
+    const xReshaped = this.reshape(x, [1, targetShape, convInfo.inChannels]);
+    const filterReshaped =
+        this.reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]);
+
+    return this.reshape(
+        this.batchMatMul(
+            xReshaped as Tensor3D, filterReshaped as Tensor3D, transposeA,
+            transposeB),
+        convInfo.outShape);
+  }
+
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
+    if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
+        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
+        convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+        (convInfo.padInfo.type === 'SAME' ||
+         convInfo.padInfo.type === 'VALID')) {
+      return this.conv2dByMatMul(x, filter, convInfo);
+    }
+
     const output = Tensor.make(convInfo.outShape, {}, x.dtype, this);
     let program: Conv2DMMProgram|Conv2DNaiveProgram;
 
-    const workPerThread = ENV.get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
+    const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
     if (workPerThread === -1) {
       // TODO(kainino0x): This may be obsolete, but is kept for reference.
       program = new Conv2DNaiveProgram(convInfo);
@@ -658,6 +696,11 @@ export class WebGPUBackend extends KernelBackend {
 
   argMax(x: Tensor, axis: number): Tensor {
     return this.argMinMaxReduce(x, axis, 'max');
+  }
+
+  clip<T extends Tensor>(x: T, min: number, max: number): T {
+    const program = new ClipProgram(x.shape, min, max);
+    return this.compileAndRun(program, [x]);
   }
 
   concat(tensors: Tensor[], axis: number): Tensor {
@@ -712,6 +755,11 @@ export class WebGPUBackend extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
+  relu6<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.RELU6);
+    return this.compileAndRun(program, [x]);
+  }
+
   resizeBilinear(
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D {
@@ -756,11 +804,12 @@ export class WebGPUBackend extends KernelBackend {
     // TODO: We should eventually use the blocked version, but keeping around
     // the old version while we try to understand conditions under which blocked
     // is faster.
-    if (ENV.get('WEBGPU_MATMUL_WORK_PER_THREAD') === 0) {
-      program = new MatMulProgram(output.shape);
+    if (env().get('WEBGPU_MATMUL_WORK_PER_THREAD') === 0) {
+      program = new MatMulProgram(a.shape, output.shape);
     } else {
       program = new MatMulPackedProgram(
-          output.shape, ENV.get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
+          a.shape, output.shape,
+          env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
     }
 
     return this.compileAndRun(program, [a, b], output);
@@ -778,7 +827,7 @@ export class WebGPUBackend extends KernelBackend {
     const outShape = [pixels.height, pixels.width, numChannels];
     let imageData = (pixels as ImageData | backend_util.PixelData).data;
 
-    if (ENV.getBool('IS_BROWSER')) {
+    if (env().getBool('IS_BROWSER')) {
       if (!(pixels instanceof HTMLVideoElement) &&
           !(pixels instanceof HTMLImageElement) &&
           !(pixels instanceof HTMLCanvasElement) &&

@@ -17,6 +17,7 @@
 
 import * as tf from './index';
 import {ALL_ENVS, describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
+import {tensor5d} from './ops/ops';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
 import {Rank, RecursiveArray, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TypedArray} from './types';
@@ -173,7 +174,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('indexToLoc Tensor 5D', async () => {
     const values = new Float32Array([1, 2, 3, 4]);
-    const a = await Tensor.make([2, 1, 1, 1, 2], {values}).buffer();
+    const a = await tensor5d(values, [2, 1, 1, 1, 2]).buffer();
     expect(a.indexToLoc(0)).toEqual([0, 0, 0, 0, 0]);
     expect(a.indexToLoc(1)).toEqual([0, 0, 0, 0, 1]);
     expect(a.indexToLoc(2)).toEqual([1, 0, 0, 0, 0]);
