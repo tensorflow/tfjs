@@ -16,16 +16,6 @@
 
 set -e
 
-# Exit all child processes when this script terminates.
-# While we will exit child processes on successful completion, any early exit
-# after a child process is created will be handled by this trap.
-# trap cleanup INT TERM ERR
-
-# cleanup() {
-#   kill -9 $metro_pid
-#   echo "Clean up metro $metro_pid"
-# }
-
 yarn
 yarn lint
 

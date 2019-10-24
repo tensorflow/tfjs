@@ -32,14 +32,14 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
 
 # Run unit tests in react native.
-- name: 'node:10'
-  dir: 'tfjs-react-native/integration_rn59'
-  id: 'react-native-from-core'
-  entrypoint: 'yarn'
-  args: ['test-ci', 'use-core-build']
-  waitFor: ['build']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
-  secretEnv: ['BROWSERSTACK_KEY']
+# - name: 'node:10'
+#   dir: 'tfjs-react-native/integration_rn59'
+#   id: 'react-native-from-core'
+#   entrypoint: 'yarn'
+#   args: ['test-ci', 'use-core-build']
+#   waitFor: ['build']
+#   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+#   secretEnv: ['BROWSERSTACK_KEY']
 
 # bundle size check
 - name: 'node:10'
