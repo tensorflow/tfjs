@@ -4,6 +4,8 @@ const sharedCapabilities = Object.freeze({
   'browserstack.networkLogs': true,
 });
 
+const localIdentifier = `rn_integration_android_${Date.now()}`;
+
 exports.config = {
   before: function() {
     require('ts-node').register({files: true})
@@ -28,7 +30,7 @@ exports.config = {
   browserstackOpts: {
     // Create a local id to separate this instance of browserstack local from
     // ones that may be created by karma.
-    localIdentifier: `rn_integration_android_${Date.now()}`,
+    localIdentifier,
   },
 
   // =====================
