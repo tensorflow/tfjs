@@ -344,10 +344,7 @@ function batchNorm_<R extends Rank>(
       mean: derMean,
       variance: derVariance,
       scale: derScale,
-      offset: derOffset,
-      varianceEpsilon: () => {
-        return dy;
-      }
+      offset: derOffset
     };
   };
 
@@ -368,7 +365,15 @@ function batchNorm_<R extends Rank>(
         offset: $offset,
         varianceEpsilon: $varianceEpsilon
       },
-      der, 'BatchNormalization');
+      der as {} as (dy: Tensor, saved: Tensor[]) => {
+        x: () => Tensor<R>,
+        mean: () => Tensor<R>| Tensor1D,
+        variance: () => Tensor<R>| Tensor1D,
+        scale: () => Tensor<R>| Tensor1D,
+        offset: () => Tensor<R>| Tensor1D,
+        varianceEpsilon: () => Tensor
+      },
+      'BatchNormalization');
   return res.reshape($x.shape);
 }
 
