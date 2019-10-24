@@ -28,9 +28,33 @@ void batch_norm_impl(T* x_buf, int x_size, T* mean_buf, int mean_size,
                      int offset_size, T* scale_buf, int scale_size,
                      T* variance_epsilon_buf, int variance_epsilon_size,
                      T* out_buf) {
-  int size = x_size;
-  for (int i = 0; i < size; ++i) {
-    out_buf[i] = x_buf[i];
+  int offi = 0;
+  int mi = 0;
+  int si = 0;
+  int vi = 0;
+
+  for (int i = 0; i < x_size; ++i) {
+    offi = offi + 1;
+    mi = mi + 1;
+    si = si + 1;
+    vi = vi + 1;
+
+    out_buf[i] =
+        offset_buf[offi] + (x_buf[i] - mean_buf[mi]) * scale_buf[si] /
+                               sqrt(variance_buf[vi] + variance_epsilon_buf[0]);
+
+    if (offi >= offset_size) {
+      offi = 0;
+    }
+    if (mi >= mean_size) {
+      mi = 0;
+    }
+    if (si >= scale_size) {
+      si = 0;
+    }
+    if (vi >= variance_size) {
+      vi = 0;
+    }
   }
 }
 // Templates need explicit instantiation when implemented in a .cc file.
