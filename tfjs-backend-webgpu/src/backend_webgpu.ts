@@ -95,7 +95,9 @@ export class WebGPUBackend extends KernelBackend {
   shaderc: shaderc.Shaderc;
   compiler: shaderc.Compiler;
   compileOpts: shaderc.CompileOptions;
-  commandQueue: GPUCommandEncoder[];
+  commandQueue: GPUCommandBuffer[];
+  commandEncoder: GPUCommandEncoder;
+  passEncoder: GPUComputePassEncoder;
 
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private binaryCache: {[key: string]: WebGPUBinary};
@@ -208,8 +210,47 @@ export class WebGPUBackend extends KernelBackend {
     this.maybeReleaseBuffer(dataId);
   }
 
+  private getCommandEncoder(): GPUCommandEncoder {
+    // If we're in the middle of a pass, end it so we can use
+    // the command encoder.
+    if (this.passEncoder !== undefined) {
+      this.passEncoder.endPass();
+      this.passEncoder = undefined;
+    }
+
+    // Create a command encoder if we don't have one.
+    if (this.commandEncoder === undefined) {
+      this.commandEncoder = this.device.createCommandEncoder();
+    }
+
+    return this.commandEncoder;
+  }
+
+  private getComputePassEncoder(): GPUComputePassEncoder {
+    // If there's no compute pass encoder, create one.
+    if (this.passEncoder === undefined) {
+      const encoder = this.getCommandEncoder();
+      this.passEncoder = encoder.beginComputePass();
+    }
+
+    // Otherwise, return the current pass encoder.
+    return this.passEncoder;
+  }
+
   private submitQueue() {
-    this.queue.submit(this.commandQueue.map(enc => enc.finish()));
+    // If we're in the middle of a pass, end it.
+    if (this.passEncoder !== undefined) {
+      this.passEncoder.endPass();
+      this.passEncoder = undefined;
+    }
+
+    // If we're in the middle of encoding commands, finish the command buffer.
+    if (this.commandEncoder !== undefined) {
+      this.commandQueue.push(this.commandEncoder.finish());
+      this.commandEncoder = undefined;
+    }
+
+    this.queue.submit(this.commandQueue);
     this.commandQueue = [];
 
     this.commandQueueOwnedIds = new WeakSet<DataId>();
@@ -230,10 +271,9 @@ export class WebGPUBackend extends KernelBackend {
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
-    const encoder = this.device.createCommandEncoder({});
+    const encoder = this.getCommandEncoder();
     encoder.copyBufferToBuffer(
         info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
-    this.commandQueue.push(encoder);
     this.submitQueue();
 
     const mapped: ArrayBuffer = await staging.mapReadAsync();
@@ -477,14 +517,11 @@ export class WebGPUBackend extends KernelBackend {
         this.device, bindGroupLayout, inputs.map(t => this.tensorToBinding(t)),
         this.tensorToBinding(output), uniforms);
 
-    const encoder = this.device.createCommandEncoder({});
-    const pass = encoder.beginComputePass();
+    const pass = this.getComputePassEncoder();
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bg);
     pass.dispatch(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
-    pass.endPass();
-    this.commandQueue.push(encoder);
 
     inputs.forEach(input => {
       this.commandQueueOwnedIds.add(input.dataId);
