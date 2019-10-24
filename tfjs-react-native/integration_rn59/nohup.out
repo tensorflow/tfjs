@@ -1,0 +1,771 @@
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+Loading dependency graph, done.
+ DELTA  [android, dev] ./index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100.0% (1096/1096), done.
+
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+Loading dependency graph, done.
+ DELTA  [android, dev] ./index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100.0% (1096/1096), done.
+
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+Loading dependency graph, done.
+ DELTA  [android, dev] ./index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100.0% (1096/1096), done.
+
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+Loading dependency graph, done.
+ DELTA  [android, dev] ./index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100.0% (1096/1096), done.
+
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+Loading dependency graph, done.
+ DELTA  [android, dev] ./index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100.0% (1096/1096), done.
+
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+Loading dependency graph, done.
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+events.js:186
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8081
+    at Server.setupListenHandle [as _listen2] (net.js:1298:14)
+    at listenInCluster (net.js:1346:12)
+    at Server.listen (net.js:1434:7)
+    at /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:253:20
+    at new Promise (<anonymous>)
+    at Object.<anonymous> (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:252:14)
+    at Generator.next (<anonymous>)
+    at asyncGeneratorStep (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:46:24)
+    at _next (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:66:9)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.WebSocketServer._onServerError (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/ws/lib/WebSocketServer.js:82:50)
+    at Server.emit (events.js:214:15)
+    at emitErrorNT (net.js:1325:8)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  code: 'EADDRINUSE',
+  errno: 'EADDRINUSE',
+  syscall: 'listen',
+  address: '::',
+  port: 8081
+}
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+events.js:186
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8081
+    at Server.setupListenHandle [as _listen2] (net.js:1298:14)
+    at listenInCluster (net.js:1346:12)
+    at Server.listen (net.js:1434:7)
+    at /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:253:20
+    at new Promise (<anonymous>)
+    at Object.<anonymous> (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:252:14)
+    at Generator.next (<anonymous>)
+    at asyncGeneratorStep (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:46:24)
+    at _next (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:66:9)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.WebSocketServer._onServerError (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/ws/lib/WebSocketServer.js:82:50)
+    at Server.emit (events.js:214:15)
+    at emitErrorNT (net.js:1325:8)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  code: 'EADDRINUSE',
+  errno: 'EADDRINUSE',
+  syscall: 'listen',
+  address: '::',
+  port: 8081
+}
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+events.js:186
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8081
+    at Server.setupListenHandle [as _listen2] (net.js:1298:14)
+    at listenInCluster (net.js:1346:12)
+    at Server.listen (net.js:1434:7)
+    at /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:253:20
+    at new Promise (<anonymous>)
+    at Object.<anonymous> (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:252:14)
+    at Generator.next (<anonymous>)
+    at asyncGeneratorStep (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:46:24)
+    at _next (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:66:9)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.WebSocketServer._onServerError (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/ws/lib/WebSocketServer.js:82:50)
+    at Server.emit (events.js:214:15)
+    at emitErrorNT (net.js:1325:8)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  code: 'EADDRINUSE',
+  errno: 'EADDRINUSE',
+  syscall: 'listen',
+  address: '::',
+  port: 8081
+}
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+events.js:186
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8081
+    at Server.setupListenHandle [as _listen2] (net.js:1298:14)
+    at listenInCluster (net.js:1346:12)
+    at Server.listen (net.js:1434:7)
+    at /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:253:20
+    at new Promise (<anonymous>)
+    at Object.<anonymous> (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:252:14)
+    at Generator.next (<anonymous>)
+    at asyncGeneratorStep (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:46:24)
+    at _next (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:66:9)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.WebSocketServer._onServerError (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/ws/lib/WebSocketServer.js:82:50)
+    at Server.emit (events.js:214:15)
+    at emitErrorNT (net.js:1325:8)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  code: 'EADDRINUSE',
+  errno: 'EADDRINUSE',
+  syscall: 'listen',
+  address: '::',
+  port: 8081
+}
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+events.js:186
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8081
+    at Server.setupListenHandle [as _listen2] (net.js:1298:14)
+    at listenInCluster (net.js:1346:12)
+    at Server.listen (net.js:1434:7)
+    at /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:253:20
+    at new Promise (<anonymous>)
+    at Object.<anonymous> (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:252:14)
+    at Generator.next (<anonymous>)
+    at asyncGeneratorStep (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:46:24)
+    at _next (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:66:9)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.WebSocketServer._onServerError (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/ws/lib/WebSocketServer.js:82:50)
+    at Server.emit (events.js:214:15)
+    at emitErrorNT (net.js:1325:8)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  code: 'EADDRINUSE',
+  errno: 'EADDRINUSE',
+  syscall: 'listen',
+  address: '::',
+  port: 8081
+}
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+events.js:186
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8081
+    at Server.setupListenHandle [as _listen2] (net.js:1298:14)
+    at listenInCluster (net.js:1346:12)
+    at Server.listen (net.js:1434:7)
+    at /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:253:20
+    at new Promise (<anonymous>)
+    at Object.<anonymous> (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:252:14)
+    at Generator.next (<anonymous>)
+    at asyncGeneratorStep (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:46:24)
+    at _next (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:66:9)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.WebSocketServer._onServerError (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/ws/lib/WebSocketServer.js:82:50)
+    at Server.emit (events.js:214:15)
+    at emitErrorNT (net.js:1325:8)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  code: 'EADDRINUSE',
+  errno: 'EADDRINUSE',
+  syscall: 'listen',
+  address: '::',
+  port: 8081
+}
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+events.js:186
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8081
+    at Server.setupListenHandle [as _listen2] (net.js:1298:14)
+    at listenInCluster (net.js:1346:12)
+    at Server.listen (net.js:1434:7)
+    at /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:253:20
+    at new Promise (<anonymous>)
+    at Object.<anonymous> (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:252:14)
+    at Generator.next (<anonymous>)
+    at asyncGeneratorStep (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:46:24)
+    at _next (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:66:9)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.WebSocketServer._onServerError (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/ws/lib/WebSocketServer.js:82:50)
+    at Server.emit (events.js:214:15)
+    at emitErrorNT (net.js:1325:8)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  code: 'EADDRINUSE',
+  errno: 'EADDRINUSE',
+  syscall: 'listen',
+  address: '::',
+  port: 8081
+}
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+events.js:186
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8081
+    at Server.setupListenHandle [as _listen2] (net.js:1298:14)
+    at listenInCluster (net.js:1346:12)
+    at Server.listen (net.js:1434:7)
+    at /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:253:20
+    at new Promise (<anonymous>)
+    at Object.<anonymous> (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:252:14)
+    at Generator.next (<anonymous>)
+    at asyncGeneratorStep (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:46:24)
+    at _next (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:66:9)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.WebSocketServer._onServerError (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/ws/lib/WebSocketServer.js:82:50)
+    at Server.emit (events.js:214:15)
+    at emitErrorNT (net.js:1325:8)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  code: 'EADDRINUSE',
+  errno: 'EADDRINUSE',
+  syscall: 'listen',
+  address: '::',
+  port: 8081
+}
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+yarn run v1.17.3
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+events.js:186
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8081
+    at Server.setupListenHandle [as _listen2] (net.js:1298:14)
+    at listenInCluster (net.js:1346:12)
+    at Server.listen (net.js:1434:7)
+    at /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:253:20
+    at new Promise (<anonymous>)
+    at Object.<anonymous> (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:252:14)
+    at Generator.next (<anonymous>)
+    at asyncGeneratorStep (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:46:24)
+    at _next (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:66:9)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.WebSocketServer._onServerError (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/ws/lib/WebSocketServer.js:82:50)
+    at Server.emit (events.js:214:15)
+    at emitErrorNT (net.js:1325:8)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  code: 'EADDRINUSE',
+  errno: 'EADDRINUSE',
+  syscall: 'listen',
+  address: '::',
+  port: 8081
+}
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+yarn run v1.17.3
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+events.js:186
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8081
+    at Server.setupListenHandle [as _listen2] (net.js:1298:14)
+    at listenInCluster (net.js:1346:12)
+    at Server.listen (net.js:1434:7)
+    at /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:253:20
+    at new Promise (<anonymous>)
+    at Object.<anonymous> (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:252:14)
+    at Generator.next (<anonymous>)
+    at asyncGeneratorStep (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:46:24)
+    at _next (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:66:9)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.WebSocketServer._onServerError (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/ws/lib/WebSocketServer.js:82:50)
+    at Server.emit (events.js:214:15)
+    at emitErrorNT (net.js:1325:8)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  code: 'EADDRINUSE',
+  errno: 'EADDRINUSE',
+  syscall: 'listen',
+  address: '::',
+  port: 8081
+}
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+yarn run v1.17.3
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+Loading dependency graph, done.
+yarn run v1.17.3
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+Loading dependency graph, done.
+yarn run v1.17.3
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+Loading dependency graph, done.
+yarn run v1.17.3
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+events.js:186
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8081
+    at Server.setupListenHandle [as _listen2] (net.js:1298:14)
+    at listenInCluster (net.js:1346:12)
+    at Server.listen (net.js:1434:7)
+    at /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:253:20
+    at new Promise (<anonymous>)
+    at Object.<anonymous> (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:252:14)
+    at Generator.next (<anonymous>)
+    at asyncGeneratorStep (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:46:24)
+    at _next (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:66:9)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.WebSocketServer._onServerError (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/ws/lib/WebSocketServer.js:82:50)
+    at Server.emit (events.js:214:15)
+    at emitErrorNT (net.js:1325:8)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  code: 'EADDRINUSE',
+  errno: 'EADDRINUSE',
+  syscall: 'listen',
+  address: '::',
+  port: 8081
+}
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with signal "SIGTERM".
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+yarn run v1.17.3
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+Loading dependency graph, done.
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+Loading dependency graph, done.
+ DELTA  [android, dev] ./index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100.0% (1096/1096), done.
+
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+events.js:186
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8081
+    at Server.setupListenHandle [as _listen2] (net.js:1298:14)
+    at listenInCluster (net.js:1346:12)
+    at Server.listen (net.js:1434:7)
+    at /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:253:20
+    at new Promise (<anonymous>)
+    at Object.<anonymous> (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:252:14)
+    at Generator.next (<anonymous>)
+    at asyncGeneratorStep (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:46:24)
+    at _next (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/metro/src/index.js:66:9)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.WebSocketServer._onServerError (/Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59/node_modules/ws/lib/WebSocketServer.js:82:50)
+    at Server.emit (events.js:214:15)
+    at emitErrorNT (net.js:1325:8)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  code: 'EADDRINUSE',
+  errno: 'EADDRINUSE',
+  syscall: 'listen',
+  address: '::',
+  port: 8081
+}
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+$ npx react-native start --reset-cache
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│  Running Metro Bundler on port 8081.                                         │
+│                                                                              │
+│  Keep Metro running while developing on any JS projects. Feel free to        │
+│  close this tab and run your own Metro instance if you prefer.               │
+│                                                                              │
+│  https://github.com/facebook/react-native                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for JS files in
+   /Users/yassogba/projects/tfjs-mono/tfjs-react-native/integration_rn59 
+
+warning: the transform cache was reset.
+Loading dependency graph, done.
+ DELTA  [android, dev] ./index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100.0% (1096/1096), done.
+

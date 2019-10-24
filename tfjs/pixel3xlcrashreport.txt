@@ -1,0 +1,263 @@
+10-08 21:04:21.843 I/ntegration_rn5(19194): Late-enabling -Xcheck:jni
+10-08 21:04:22.103 D/SoLoader(19194): init start
+10-08 21:04:22.104 D/SoLoader(19194): adding system library source: /vendor/lib
+10-08 21:04:22.104 D/SoLoader(19194): adding system library source: /system/lib
+10-08 21:04:22.104 D/SoLoader(19194): adding application source: com.facebook.soloader.DirectorySoSource[root = /data/app/com.integration_rn59-LbOi5wckIcZ0qKUezsD4mw==/lib/arm64 flags = 0]
+10-08 21:04:22.106 D/SoLoader(19194): adding backup source from : com.facebook.soloader.ApkSoSource[root = /data/data/com.integration_rn59/lib-main flags = 1]
+10-08 21:04:22.106 D/SoLoader(19194): Preparing SO source: com.facebook.soloader.DirectorySoSource[root = /system/lib flags = 2]
+10-08 21:04:22.106 D/SoLoader(19194): Preparing SO source: com.facebook.soloader.DirectorySoSource[root = /vendor/lib flags = 2]
+10-08 21:04:22.106 D/SoLoader(19194): Preparing SO source: com.facebook.soloader.DirectorySoSource[root = /data/app/com.integration_rn59-LbOi5wckIcZ0qKUezsD4mw==/lib/arm64 flags = 0]
+10-08 21:04:22.107 D/SoLoader(19194): Preparing SO source: com.facebook.soloader.ApkSoSource[root = /data/data/com.integration_rn59/lib-main flags = 1]
+10-08 21:04:22.108 V/fb-UnpackingSoSource(19194): locked dso store /data/user/0/com.integration_rn59/lib-main
+10-08 21:04:22.109 V/fb-UnpackingSoSource(19194): deps mismatch on deps store: regenerating
+10-08 21:04:22.109 V/fb-UnpackingSoSource(19194): so store dirty: regenerating
+10-08 21:04:22.164 D/ApkSoSource(19194): not allowing consideration of lib/arm64-v8a/libc++_shared.so: deferring to libdir
+10-08 21:04:22.164 D/ApkSoSource(19194): not allowing consideration of lib/arm64-v8a/libexpo-gl.so: deferring to libdir
+10-08 21:04:22.164 D/ApkSoSource(19194): not allowing consideration of lib/arm64-v8a/libfb.so: deferring to libdir
+10-08 21:04:22.164 D/ApkSoSource(19194): not allowing consideration of lib/arm64-v8a/libfolly_json.so: deferring to libdir
+10-08 21:04:22.165 D/ApkSoSource(19194): not allowing consideration of lib/arm64-v8a/libglog.so: deferring to libdir
+10-08 21:04:22.165 D/ApkSoSource(19194): not allowing consideration of lib/arm64-v8a/libglog_init.so: deferring to libdir
+10-08 21:04:22.165 D/ApkSoSource(19194): not allowing consideration of lib/arm64-v8a/libimagepipeline.so: deferring to libdir
+10-08 21:04:22.165 D/ApkSoSource(19194): not allowing consideration of lib/arm64-v8a/libjsc.so: deferring to libdir
+10-08 21:04:22.165 D/ApkSoSource(19194): not allowing consideration of lib/arm64-v8a/libjscexecutor.so: deferring to libdir
+10-08 21:04:22.165 D/ApkSoSource(19194): not allowing consideration of lib/arm64-v8a/libjsinspector.so: deferring to libdir
+10-08 21:04:22.165 D/ApkSoSource(19194): not allowing consideration of lib/arm64-v8a/libreactnativejni.so: deferring to libdir
+10-08 21:04:22.165 D/ApkSoSource(19194): not allowing consideration of lib/arm64-v8a/libyoga.so: deferring to libdir
+10-08 21:04:22.165 V/fb-UnpackingSoSource(19194): regenerating DSO store com.facebook.soloader.ApkSoSource
+10-08 21:04:22.166 V/fb-UnpackingSoSource(19194): Finished regenerating DSO store com.facebook.soloader.ApkSoSource
+10-08 21:04:22.166 V/fb-UnpackingSoSource(19194): starting syncer worker
+10-08 21:04:22.169 V/fb-UnpackingSoSource(19194): releasing dso store lock for /data/user/0/com.integration_rn59/lib-main (from syncer thread)
+10-08 21:04:22.169 V/fb-UnpackingSoSource(19194): not releasing dso store lock for /data/user/0/com.integration_rn59/lib-main (syncer thread started)
+10-08 21:04:22.170 D/SoLoader(19194): init finish: 4 SO sources prepared
+10-08 21:04:22.170 D/SoLoader(19194): init exiting
+10-08 21:04:22.173 I/com.integration_rn59(19194): type=1400 audit(0.0:2879): avc: denied { read } for comm=45474C20496E6974 name="u:object_r:vendor_default_prop:s0" dev="tmpfs" ino=20423 scontext=u:r:untrusted_app:s0:c198,c256,c512,c768 tcontext=u:object_r:vendor_default_prop:s0 tclass=file permissive=1
+10-08 21:04:22.173 I/com.integration_rn59(19194): type=1400 audit(0.0:2880): avc: denied { open } for comm=45474C20496E6974 path="/dev/__properties__/u:object_r:vendor_default_prop:s0" dev="tmpfs" ino=20423 scontext=u:r:untrusted_app:s0:c198,c256,c512,c768 tcontext=u:object_r:vendor_default_prop:s0 tclass=file permissive=1
+10-08 21:04:22.173 I/com.integration_rn59(19194): type=1400 audit(0.0:2881): avc: denied { getattr } for comm=45474C20496E6974 path="/dev/__properties__/u:object_r:vendor_default_prop:s0" dev="tmpfs" ino=20423 scontext=u:r:untrusted_app:s0:c198,c256,c512,c768 tcontext=u:object_r:vendor_default_prop:s0 tclass=file permissive=1
+10-08 21:04:22.235 D/ReactNative(19194): ReactInstanceManager.ctor()
+10-08 21:04:22.236 D/SoLoader(19194): init exiting
+10-08 21:04:22.259 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 2426(284KB) AllocSpace objects, 0(0B) LOS objects, 52% free, 1403KB/2MB, paused 18us total 5.442ms
+10-08 21:04:22.285 D/NetworkSecurityConfig(19194): No Network Security Config specified, using platform default
+10-08 21:04:22.287 W/ntegration_rn5(19194): Accessing hidden method Ldalvik/system/CloseGuard;->get()Ldalvik/system/CloseGuard; (light greylist, reflection)
+10-08 21:04:22.287 W/ntegration_rn5(19194): Accessing hidden method Ldalvik/system/CloseGuard;->open(Ljava/lang/String;)V (light greylist, reflection)
+10-08 21:04:22.287 W/ntegration_rn5(19194): Accessing hidden method Ldalvik/system/CloseGuard;->warnIfOpen()V (light greylist, reflection)
+10-08 21:04:22.315 D/ReactNative(19194): ReactInstanceManager.createReactContextInBackground()
+10-08 21:04:22.315 D/ReactNative(19194): ReactInstanceManager.recreateReactContextInBackgroundInner()
+10-08 21:04:22.346 W/ntegration_rn5(19194): Accessing hidden method Landroid/view/View;->computeFitSystemWindows(Landroid/graphics/Rect;Landroid/graphics/Rect;)Z (light greylist, reflection)
+10-08 21:04:22.347 W/ntegration_rn5(19194): Accessing hidden method Landroid/view/ViewGroup;->makeOptionalFitsSystemWindows()V (light greylist, reflection)
+10-08 21:04:22.356 D/OpenGLRenderer(19194): Skia GL Pipeline
+10-08 21:04:22.380 W/unknown:ReactNative(19194): Packager connection already open, nooping.
+10-08 21:04:22.388 I/Adreno  (19194): QUALCOMM build                   : 3f88ca2, I42f6fe38fb
+10-08 21:04:22.388 I/Adreno  (19194): Build Date                       : 07/13/18
+10-08 21:04:22.388 I/Adreno  (19194): OpenGL ES Shader Compiler Version: EV031.24.00.00
+10-08 21:04:22.388 I/Adreno  (19194): Local Branch                     : 50.04
+10-08 21:04:22.388 I/Adreno  (19194): Remote Branch                    : 
+10-08 21:04:22.388 I/Adreno  (19194): Remote Branch                    : 
+10-08 21:04:22.388 I/Adreno  (19194): Reconstruct Branch               : 
+10-08 21:04:22.388 I/Adreno  (19194): Build Config                     : S P 4.0.10 AArch64
+10-08 21:04:22.390 I/Adreno  (19194): PFP: 0x016ee170, ME: 0x00000000
+10-08 21:04:22.394 I/ConfigStore(19194): android::hardware::configstore::V1_0::ISurfaceFlingerConfigs::hasWideColorDisplay retrieved: 1
+10-08 21:04:22.394 I/ConfigStore(19194): android::hardware::configstore::V1_0::ISurfaceFlingerConfigs::hasHDRDisplay retrieved: 1
+10-08 21:04:22.394 I/OpenGLRenderer(19194): Initialized EGL, version 1.4
+10-08 21:04:22.394 D/OpenGLRenderer(19194): Swap behavior 2
+10-08 21:04:23.648 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 16274(1076KB) AllocSpace objects, 2(40KB) LOS objects, 49% free, 1690KB/3MB, paused 29us total 9.126ms
+10-08 21:04:24.838 W/unknown:InspectorPackagerConnection(19194): Couldn't connect to packager, will silently retry
+10-08 21:04:25.076 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 11305(522KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 1759KB/3MB, paused 25us total 7.100ms
+10-08 21:04:26.403 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 8616(352KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 1743KB/3MB, paused 21us total 7.050ms
+10-08 21:04:27.798 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10441(447KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 1712KB/3MB, paused 34us total 10.695ms
+10-08 21:04:29.249 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10445(416KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 1711KB/3MB, paused 32us total 8.944ms
+10-08 21:04:30.616 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10658(434KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 1757KB/3MB, paused 20us total 6.748ms
+10-08 21:04:32.049 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 9778(419KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 1769KB/3MB, paused 30us total 10.245ms
+10-08 21:04:33.491 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10520(456KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 1745KB/3MB, paused 36us total 10.686ms
+10-08 21:04:34.914 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10161(415KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 1745KB/3MB, paused 43us total 11.737ms
+10-08 21:04:36.356 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10737(435KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 1725KB/3MB, paused 20us total 6.480ms
+10-08 21:04:37.774 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10471(400KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 1726KB/3MB, paused 19us total 6.750ms
+10-08 21:04:39.195 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10144(443KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 1746KB/3MB, paused 36us total 10.928ms
+10-08 21:04:40.594 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10344(435KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 1727KB/3MB, paused 20us total 6.562ms
+10-08 21:04:42.016 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10847(460KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 1715KB/3MB, paused 29us total 8.511ms
+10-08 21:04:43.457 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10030(404KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 1726KB/3MB, paused 45us total 12.450ms
+10-08 21:04:44.919 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10305(459KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 1747KB/3MB, paused 29us total 8.771ms
+10-08 21:04:46.253 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10031(416KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 1715KB/3MB, paused 20us total 6.563ms
+10-08 21:04:47.656 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10161(403KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 1727KB/3MB, paused 19us total 6.758ms
+10-08 21:04:49.093 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10160(412KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 1747KB/3MB, paused 34us total 10.385ms
+10-08 21:04:50.546 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10590(435KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 1727KB/3MB, paused 34us total 10.076ms
+10-08 21:04:51.902 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 426(77KB) AllocSpace objects, 0(0B) LOS objects, 50% free, 2018KB/3MB, paused 20us total 6.911ms
+10-08 21:04:53.324 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10483(669KB) AllocSpace objects, 14(448KB) LOS objects, 49% free, 2020KB/3MB, paused 20us total 8.059ms
+10-08 21:04:54.721 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 3682(177KB) AllocSpace objects, 0(0B) LOS objects, 49% free, 3MB/6MB, paused 787us total 11.013ms
+10-08 21:04:56.090 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 3416(439KB) AllocSpace objects, 11(244KB) LOS objects, 50% free, 2MB/5MB, paused 18us total 6.988ms
+10-08 21:04:57.518 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 381(88KB) AllocSpace objects, 0(0B) LOS objects, 49% free, 4MB/8MB, paused 33us total 12.369ms
+10-08 21:04:58.949 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 2187(1386KB) AllocSpace objects, 132(3MB) LOS objects, 49% free, 7MB/14MB, paused 28us total 12.320ms
+10-08 21:05:00.355 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 2430(739KB) AllocSpace objects, 138(7MB) LOS objects, 49% free, 10MB/20MB, paused 20us total 11.835ms
+10-08 21:05:00.655 D/ReactNative(19194): ReactInstanceManager.onJSBundleLoadedFromServer()
+10-08 21:05:00.656 D/ReactNative(19194): ReactInstanceManager.recreateReactContextInBackground()
+10-08 21:05:00.656 D/ReactNative(19194): ReactInstanceManager.runCreateReactContextOnNewThread()
+10-08 21:05:00.658 D/SoLoader(19194): About to load: libreactnativejni.so
+10-08 21:05:00.658 D/SoLoader(19194): libreactnativejni.so not found on /data/data/com.integration_rn59/lib-main
+10-08 21:05:00.658 D/SoLoader(19194): libreactnativejni.so found on /data/app/com.integration_rn59-LbOi5wckIcZ0qKUezsD4mw==/lib/arm64
+10-08 21:05:00.658 D/SoLoader(19194): Not resolving dependencies for libreactnativejni.so
+10-08 21:05:00.669 D/JavaScriptCore.Version(19194): 245459.0.0
+10-08 21:05:00.670 D/SoLoader(19194): Loaded: libreactnativejni.so
+10-08 21:05:00.671 D/SoLoader(19194): About to load: libfb.so
+10-08 21:05:00.671 D/SoLoader(19194): libfb.so not found on /data/data/com.integration_rn59/lib-main
+10-08 21:05:00.671 D/SoLoader(19194): libfb.so found on /data/app/com.integration_rn59-LbOi5wckIcZ0qKUezsD4mw==/lib/arm64
+10-08 21:05:00.671 D/SoLoader(19194): Not resolving dependencies for libfb.so
+10-08 21:05:00.672 D/SoLoader(19194): About to load: libfb.so
+10-08 21:05:00.672 D/SoLoader(19194): libfb.so not found on /data/data/com.integration_rn59/lib-main
+10-08 21:05:00.672 D/SoLoader(19194): libfb.so found on /data/app/com.integration_rn59-LbOi5wckIcZ0qKUezsD4mw==/lib/arm64
+10-08 21:05:00.672 D/SoLoader(19194): Not resolving dependencies for libfb.so
+10-08 21:05:00.672 I/ntegration_rn5(19194): Thread[13,tid=23082,Native,Thread*=0x7b3e5f1000,peer=0x12ccd1e8,"create_react_context"] recursive attempt to load library "/data/app/com.integration_rn59-LbOi5wckIcZ0qKUezsD4mw==/lib/arm64/libfb.so"
+10-08 21:05:00.672 D/SoLoader(19194): Loaded: libfb.so
+10-08 21:05:00.672 D/SoLoader(19194): Loaded: libfb.so
+10-08 21:05:00.673 D/SoLoader(19194): About to load: libjscexecutor.so
+10-08 21:05:00.674 D/SoLoader(19194): libjscexecutor.so not found on /data/data/com.integration_rn59/lib-main
+10-08 21:05:00.674 D/SoLoader(19194): libjscexecutor.so found on /data/app/com.integration_rn59-LbOi5wckIcZ0qKUezsD4mw==/lib/arm64
+10-08 21:05:00.674 D/SoLoader(19194): Not resolving dependencies for libjscexecutor.so
+10-08 21:05:00.675 D/SoLoader(19194): Loaded: libjscexecutor.so
+10-08 21:05:00.676 D/ReactNative(19194): ReactInstanceManager.createReactContext()
+10-08 21:05:00.713 D/ReactNative(19194): Initializing React Xplat Bridge.
+10-08 21:05:00.715 D/ReactNative(19194): Initializing React Xplat Bridge before initializeBridge
+10-08 21:05:00.720 D/ReactNative(19194): Initializing React Xplat Bridge after initializeBridge
+10-08 21:05:00.720 D/ReactNative(19194): CatalystInstanceImpl.runJSBundle()
+10-08 21:05:00.720 D/ReactNative(19194): ReactInstanceManager.setupReactContext()
+10-08 21:05:00.720 D/ReactNative(19194): CatalystInstanceImpl.initialize()
+10-08 21:05:00.722 W/unknown:ReactNative(19194): Packager connection already open, nooping.
+10-08 21:05:00.723 D/ReactNative(19194): ReactInstanceManager.attachRootViewToInstance()
+10-08 21:05:00.747 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.art.ARTGroupViewManager
+10-08 21:05:00.748 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.art.ARTGroupShadowNode
+10-08 21:05:00.750 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.art.ARTShapeViewManager
+10-08 21:05:00.750 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.art.ARTShapeShadowNode
+10-08 21:05:00.752 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.art.ARTTextViewManager
+10-08 21:05:00.752 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.art.ARTTextShadowNode
+10-08 21:05:00.753 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.checkbox.ReactCheckBoxManager
+10-08 21:05:00.755 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.uimanager.LayoutShadowNode
+10-08 21:05:00.763 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.picker.ReactDialogPickerManager
+10-08 21:05:00.765 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.drawer.ReactDrawerLayoutManager
+10-08 21:05:00.767 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.picker.ReactDropdownPickerManager
+10-08 21:05:00.767 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.scroll.ReactHorizontalScrollViewManager
+10-08 21:05:00.771 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.scroll.ReactHorizontalScrollContainerViewManager
+10-08 21:05:00.771 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.progressbar.ReactProgressBarViewManager
+10-08 21:05:00.772 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.progressbar.ProgressBarShadowNode
+10-08 21:05:00.774 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.scroll.ReactScrollViewManager
+10-08 21:05:00.777 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.slider.ReactSliderManager
+10-08 21:05:00.778 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.slider.ReactSliderManager$ReactSliderShadowNode
+10-08 21:05:00.779 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.switchview.ReactSwitchManager
+10-08 21:05:00.780 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.switchview.ReactSwitchManager$ReactSwitchShadowNode
+10-08 21:05:00.780 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.toolbar.ReactToolbarManager
+10-08 21:05:00.782 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.webview.ReactWebViewManager
+10-08 21:05:00.785 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.swiperefresh.SwipeRefreshLayoutManager
+10-08 21:05:00.786 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.art.ARTSurfaceViewManager
+10-08 21:05:00.786 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.art.ARTSurfaceViewShadowNode
+10-08 21:05:00.787 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.text.frescosupport.FrescoBasedReactTextInlineImageViewManager
+10-08 21:05:00.787 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.text.frescosupport.FrescoBasedReactTextInlineImageShadowNode
+10-08 21:05:00.789 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.image.ReactImageManager
+10-08 21:05:00.791 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.modal.ReactModalHostManager
+10-08 21:05:00.792 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.modal.ModalHostShadowNode
+10-08 21:05:00.792 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.text.ReactRawTextManager
+10-08 21:05:00.792 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.text.ReactRawTextShadowNode
+10-08 21:05:00.793 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.textinput.ReactTextInputManager
+10-08 21:05:00.797 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.textinput.ReactTextInputShadowNode
+10-08 21:05:00.799 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.text.ReactTextViewManager
+10-08 21:05:00.801 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.text.ReactTextShadowNode
+10-08 21:05:00.802 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.view.ReactViewManager
+10-08 21:05:00.804 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.viewpager.ReactViewPagerManager
+10-08 21:05:00.805 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.text.ReactVirtualTextViewManager
+10-08 21:05:00.805 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class com.facebook.react.views.text.ReactVirtualTextShadowNode
+10-08 21:05:00.806 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class org.unimodules.adapters.react.views.SimpleViewManagerAdapter
+10-08 21:05:00.807 W/unknown:ViewManagerPropertyUpdater(19194): Could not find generated setter for class org.unimodules.adapters.react.views.ViewGroupManagerAdapter
+10-08 21:05:00.817 D/SoLoader(19194): About to load: libyoga.so
+10-08 21:05:00.817 D/SoLoader(19194): libyoga.so not found on /data/data/com.integration_rn59/lib-main
+10-08 21:05:00.817 D/SoLoader(19194): libyoga.so found on /data/app/com.integration_rn59-LbOi5wckIcZ0qKUezsD4mw==/lib/arm64
+10-08 21:05:00.817 D/SoLoader(19194): Not resolving dependencies for libyoga.so
+10-08 21:05:00.819 D/SoLoader(19194): Loaded: libyoga.so
+10-08 21:05:00.837 D/SoLoader(19194): init exiting
+10-08 21:05:01.137 I/WebViewFactory(19194): Loading com.android.chrome version 76.0.3809.89 (code 380908937)
+10-08 21:05:01.164 I/cr_LibraryLoader(19194): Time to load native libraries: 2 ms (timestamps 330-332)
+10-08 21:05:01.170 I/chromium(19194): [INFO:library_loader_hooks.cc(51)] Chromium logging enabled: level = 0, default verbosity = 0
+10-08 21:05:01.170 I/cr_LibraryLoader(19194): Expected native library version number "76.0.3809.89", actual native library version number "76.0.3809.89"
+10-08 21:05:01.374 W/ReactNativeJS(19194): Require cycle: node_modules/@unimodules/react-native-adapter/build/index.js -> node_modules/@unimodules/react-native-adapter/build/errors/UnavailabilityError.js -> node_modules/@unimodules/react-native-adapter/build/index.js
+10-08 21:05:01.374 W/ReactNativeJS(19194): 
+10-08 21:05:01.374 W/ReactNativeJS(19194): Require cycles are allowed, but can result in uninitialized values. Consider refactoring to remove the need for a cycle.
+10-08 21:05:01.486 I/ReactNativeJS(19194): Running application "integration_rn59" with appParams: {"rootTag":1}. __DEV__ === true, development-level warning are ON, performance optimizations are OFF
+10-08 21:05:01.540 D/SoLoader(19194): About to load: libexpo-gl.so
+10-08 21:05:01.540 W/ntegration_rn5(19194): Accessing hidden method Landroid/text/SpannableStringInternal;->length()I (light greylist, linking)
+10-08 21:05:01.540 D/SoLoader(19194): libexpo-gl.so not found on /data/data/com.integration_rn59/lib-main
+10-08 21:05:01.540 W/ntegration_rn5(19194): Accessing hidden field Landroid/view/View;->mAccessibilityDelegate:Landroid/view/View$AccessibilityDelegate; (light greylist, reflection)
+10-08 21:05:01.540 D/SoLoader(19194): libexpo-gl.so found on /data/app/com.integration_rn59-LbOi5wckIcZ0qKUezsD4mw==/lib/arm64
+10-08 21:05:01.540 D/SoLoader(19194): Not resolving dependencies for libexpo-gl.so
+10-08 21:05:01.544 D/SoLoader(19194): Loaded: libexpo-gl.so
+10-08 21:05:01.791 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 22967(1416KB) AllocSpace objects, 3(124KB) LOS objects, 49% free, 12MB/24MB, paused 27us total 18.408ms
+10-08 21:05:02.765 W/ntegration_rn5(19194): Accessing hidden field Landroid/widget/ScrollView;->mScroller:Landroid/widget/OverScroller; (light greylist, reflection)
+10-08 21:05:02.964 W/ReactNativeJS(19194): starting tests
+10-08 21:05:03.164 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 41743(1531KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/24MB, paused 25us total 27.623ms
+10-08 21:05:04.011 W/ReactNativeJS(19194): Debugging mode is ON. The output of every math call will be downloaded to CPU and checked for NaNs. This significantly impacts performance.
+10-08 21:05:04.081 W/ReactNativeJS(19194): Debugging mode is ON. The output of every math call will be downloaded to CPU and checked for NaNs. This significantly impacts performance.
+10-08 21:05:04.569 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 17157(678KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 24us total 16.844ms
+10-08 21:05:05.981 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 16104(661KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/24MB, paused 26us total 15.340ms
+10-08 21:05:07.435 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 13357(455KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 28us total 15.779ms
+10-08 21:05:08.896 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 14855(524KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 27us total 16.151ms
+10-08 21:05:10.370 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 18579(706KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 31us total 15.673ms
+10-08 21:05:11.847 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 19369(714KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 28us total 16.382ms
+10-08 21:05:13.320 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 20056(740KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 31us total 16.305ms
+10-08 21:05:14.823 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 13376(517KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/24MB, paused 41us total 15.703ms
+10-08 21:05:16.340 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 10338(397KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 32us total 15.940ms
+10-08 21:05:17.824 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 13698(536KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 29us total 16.318ms
+10-08 21:05:19.329 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 15261(630KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 33us total 17.437ms
+10-08 21:05:20.883 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 14503(597KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 35us total 17.189ms
+10-08 21:05:22.468 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 11071(433KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 33us total 15.803ms
+10-08 21:05:22.600 W/ReactNativeJS(19194): tf.batchNormalization() is going away. Use tf.batchNorm() instead, and note the positional argument change of scale, offset, and varianceEpsilon You can disable deprecation warnings with tf.disableDeprecationWarnings().
+10-08 21:05:22.653 W/ReactNativeJS(19194): tf.batchNormalization() is going away. Use tf.batchNorm() instead, and note the positional argument change of scale, offset, and varianceEpsilon You can disable deprecation warnings with tf.disableDeprecationWarnings().
+10-08 21:05:24.058 E/unknown:ReconnectingWebSocket(19194): Error occurred, shutting down websocket connection: Websocket exception
+10-08 21:05:24.058 E/unknown:ReconnectingWebSocket(19194): java.io.EOFException
+10-08 21:05:24.058 E/unknown:ReconnectingWebSocket(19194): 	at okio.RealBufferedSource.require(RealBufferedSource.java:61)
+10-08 21:05:24.058 E/unknown:ReconnectingWebSocket(19194): 	at okio.RealBufferedSource.readByte(RealBufferedSource.java:74)
+10-08 21:05:24.058 E/unknown:ReconnectingWebSocket(19194): 	at okhttp3.internal.ws.WebSocketReader.readHeader(WebSocketReader.java:117)
+10-08 21:05:24.058 E/unknown:ReconnectingWebSocket(19194): 	at okhttp3.internal.ws.WebSocketReader.processNextFrame(WebSocketReader.java:101)
+10-08 21:05:24.058 E/unknown:ReconnectingWebSocket(19194): 	at okhttp3.internal.ws.RealWebSocket.loopReader(RealWebSocket.java:274)
+10-08 21:05:24.058 E/unknown:ReconnectingWebSocket(19194): 	at okhttp3.internal.ws.RealWebSocket$2.onResponse(RealWebSocket.java:214)
+10-08 21:05:24.058 E/unknown:ReconnectingWebSocket(19194): 	at okhttp3.RealCall$AsyncCall.execute(RealCall.java:206)
+10-08 21:05:24.058 E/unknown:ReconnectingWebSocket(19194): 	at okhttp3.internal.NamedRunnable.run(NamedRunnable.java:32)
+10-08 21:05:24.058 E/unknown:ReconnectingWebSocket(19194): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+10-08 21:05:24.058 E/unknown:ReconnectingWebSocket(19194): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+10-08 21:05:24.058 E/unknown:ReconnectingWebSocket(19194): 	at java.lang.Thread.run(Thread.java:764)
+10-08 21:05:24.058 W/unknown:ReconnectingWebSocket(19194): Couldn't connect to "ws://localhost:8081/message?device=Pixel%203%20XL%20-%209%20-%20API%2028&app=com.integration_rn59&clientid=DevSupportManagerImpl", will silently retry
+10-08 21:05:24.099 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 19192(721KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 36us total 17.765ms
+10-08 21:05:25.757 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 16527(576KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 36us total 17.347ms
+10-08 21:05:27.437 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 18820(722KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/24MB, paused 39us total 18.800ms
+10-08 21:05:29.137 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 22319(821KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 59us total 17.351ms
+10-08 21:05:30.849 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 20602(776KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/24MB, paused 40us total 17.885ms
+10-08 21:05:32.590 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 18415(740KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 42us total 16.562ms
+10-08 21:05:34.354 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 11319(418KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 41us total 16.729ms
+10-08 21:05:36.148 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 13703(526KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 44us total 17.598ms
+10-08 21:05:37.935 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 11627(431KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 45us total 16.761ms
+10-08 21:05:39.787 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 17119(664KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/25MB, paused 44us total 17.588ms
+10-08 21:05:41.632 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 12743(482KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 45us total 16.929ms
+10-08 21:05:43.501 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 17137(701KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/24MB, paused 46us total 17.223ms
+10-08 21:05:45.428 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 40341(1417KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/24MB, paused 50us total 16.532ms
+10-08 21:05:47.380 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 15955(587KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/25MB, paused 48us total 17.040ms
+10-08 21:05:49.386 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 20797(747KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/25MB, paused 59us total 18.429ms
+10-08 21:05:51.462 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 20351(706KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/25MB, paused 53us total 18.201ms
+10-08 21:05:53.582 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 13894(518KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 53us total 20.275ms
+10-08 21:05:55.710 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 15685(547KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/24MB, paused 52us total 17.266ms
+10-08 21:05:57.897 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 16720(681KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/25MB, paused 62us total 19.569ms
+10-08 21:06:00.131 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 15551(589KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/25MB, paused 57us total 26.594ms
+10-08 21:06:02.401 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 18249(672KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/24MB, paused 59us total 19.170ms
+10-08 21:06:04.736 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 18695(645KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/25MB, paused 59us total 18.111ms
+10-08 21:06:07.122 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 22420(780KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/25MB, paused 93us total 18.921ms
+10-08 21:06:09.544 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 16090(631KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/25MB, paused 60us total 20.154ms
+10-08 21:06:12.004 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 16484(657KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/25MB, paused 62us total 18.357ms
+10-08 21:06:14.550 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 17599(659KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/25MB, paused 64us total 18.778ms
+10-08 21:06:17.132 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 20589(778KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/25MB, paused 84us total 19.072ms
+10-08 21:06:19.801 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 23068(895KB) AllocSpace objects, 1(20KB) LOS objects, 50% free, 12MB/25MB, paused 100us total 19.407ms
+10-08 21:06:22.558 I/ntegration_rn5(19194): Explicit concurrent copying GC freed 25827(904KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/25MB, paused 75us total 20.733ms
+10-08 21:06:23.802 W/Adreno-GSL(19194): <gsl_ldd_control:548>: ioctl fd 49 code 0xc0080913 (IOCTL_KGSL_DRAWCTXT_CREATE) failed: errno 28 No space left on device
+10-08 21:06:23.804 W/Adreno-GSL(19194): <gsl_ldd_control:548>: ioctl fd 49 code 0xc0080913 (IOCTL_KGSL_DRAWCTXT_CREATE) failed: errno 28 No space left on device
+10-08 21:06:23.804 E/EXGL    (19194): EGL error = 0x3003
+10-08 21:06:23.805 E/libEGL  (19194): eglMakeCurrent:1017 error 3009 (EGL_BAD_MATCH)
+--------- beginning of crash
+10-08 21:06:23.811 E/AndroidRuntime(19194): FATAL EXCEPTION: Thread-203
+10-08 21:06:23.811 E/AndroidRuntime(19194): Process: com.integration_rn59, PID: 19194
+10-08 21:06:23.811 E/AndroidRuntime(19194): java.lang.RuntimeException: eglMakeCurrent failed EGL_BAD_MATCH
+10-08 21:06:23.811 E/AndroidRuntime(19194): 	at expo.modules.gl.GLContext$GLThread.makeEGLContextCurrent(GLContext.java:425)
+10-08 21:06:23.811 E/AndroidRuntime(19194): 	at expo.modules.gl.GLContext$GLThread.initEGL(GLContext.java:401)
+10-08 21:06:23.811 E/AndroidRuntime(19194): 	at expo.modules.gl.GLContext$GLThread.run(GLContext.java:336)
+10-08 21:06:23.827 I/Process (19194): Sending signal. PID: 19194 SIG: 9
+10-08 21:06:25.149 I/ActivityManager( 1191): Process com.integration_rn59 (pid 19194) has died: cch  CRE 
