@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -25,12 +25,15 @@ interface BatchNormInputs extends NamedTensorInfoMap {
   variance: TensorInfo;
   offset: TensorInfo;
   scale: TensorInfo;
-  varianceEpsilon: TensorInfo;
+}
+
+interface BatchNormAttrs extends NamedAttrMap {
+  varianceEpsilon: number;
 }
 
 let wasmBatchNorm: (
-    xId: number, meanId: number, varianceId: number, offsetId: number,
-    scaleId: number, varianceEpsilonId: number, outId: number) => void;
+    xId: number, meanId: number, varianceId: number, outId: number,
+    offsetId: number, scaleId: number, varianceEpsilon: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmBatchNorm = backend.wasm.cwrap(
@@ -39,15 +42,19 @@ function setup(backend: BackendWasm): void {
 }
 
 function batchNormalization(
-    args: {backend: BackendWasm, inputs: BatchNormInputs}): TensorInfo {
-  const {backend, inputs} = args;
-  const {x, mean, variance, offset, scale, varianceEpsilon} = inputs;
+    args:
+        {backend: BackendWasm, inputs: BatchNormInputs, attrs: BatchNormAttrs}):
+    TensorInfo {
+  console.log('IN BATCH NORMALIZATION');
+  const {backend, inputs, attrs} = args;
+  const {varianceEpsilon} = attrs;
+  console.log(varianceEpsilon);
+  const {x, mean, variance, offset, scale} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   const meanId = backend.dataIdMap.get(mean.dataId).id;
   const varianceId = backend.dataIdMap.get(variance.dataId).id;
-  const offsetId = backend.dataIdMap.get(offset.dataId).id;
-  const scaleId = backend.dataIdMap.get(scale.dataId).id;
-  const varianceEpsilonId = backend.dataIdMap.get(varianceEpsilon.dataId).id;
+  const offsetId = offset ? backend.dataIdMap.get(offset.dataId).id : null;
+  const scaleId = scale ? backend.dataIdMap.get(scale.dataId).id : null;
 
   const out = backend.makeOutput(x.shape, x.dtype);
   // Short-circuit zero-sized tensors.
@@ -58,7 +65,7 @@ function batchNormalization(
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   wasmBatchNorm(
-      xId, meanId, varianceId, offsetId, scaleId, varianceEpsilonId, outId);
+      xId, meanId, varianceId, outId, offsetId, scaleId, varianceEpsilon);
   return out;
 }
 

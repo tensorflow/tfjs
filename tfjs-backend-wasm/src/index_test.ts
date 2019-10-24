@@ -60,6 +60,8 @@ describeWithFlags('wasm', ALL_ENVS, () => {
 
     const result =
         tf.batchNorm4d(xT, meanT, varianceT, offset, scale, varianceEpsilon);
+    // const result =
+    //     tf.batchNorm4d(xT, meanT, varianceT, offset, scale, varianceEpsilon);
 
     // const x = await xT.array();
     // const mean = await meanT.array();
