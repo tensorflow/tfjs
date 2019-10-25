@@ -20,7 +20,7 @@
 #include "src/cc/unary.h"
 
 namespace {
-inline float oper(float val) { return val * val; }
+inline float square(float val) { return val * val; }
 }  // namespace
 
 namespace tfjs {
@@ -31,7 +31,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Square(int x_id, int out_id) { unary(x_id, out_id, oper); }
+void Square(int x_id, int out_id) { unary(x_id, out_id, square); }
 
 }  // extern "C"
 }  // namespace wasm

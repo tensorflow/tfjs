@@ -182,4 +182,3 @@ export const slice1d = op({slice1d_});
 export const slice2d = op({slice2d_});
 export const slice3d = op({slice3d_});
 export const slice4d = op({slice4d_});
-export {slice_util};
