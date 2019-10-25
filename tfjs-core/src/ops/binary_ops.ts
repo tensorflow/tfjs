@@ -76,9 +76,10 @@ function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
       }
       return res.reshape($b.shape);
     };
-    return {$a: derA, $b: derB};
+    return {a: derA, b: derB};
   };
-  return ENGINE.runKernel(backend => backend.add($a, $b), {$a, $b}, der) as T;
+  return ENGINE.runKernelFunc(
+             backend => backend.add($a, $b), {a: $a, b: $b}, der, 'Add') as T;
 }
 
 /**
@@ -126,7 +127,7 @@ function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
     return ders;
   };
   const inputs: NamedTensorMap = $tensors as {} as NamedTensorMap;
-  return ENGINE.runKernel(backend => backend.addN($tensors), inputs, der);
+  return ENGINE.runKernelFunc(backend => backend.addN($tensors), inputs, der);
 }
 
 /**
@@ -194,9 +195,10 @@ function sub_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
       }
       return res.neg().reshape($b.shape);
     };
-    return {$a: derA, $b: derB};
+    return {a: derA, b: derB};
   };
-  return ENGINE.runKernel(backend => backend.subtract($a, $b), {$a, $b}, der) as
+  return ENGINE.runKernelFunc(
+             backend => backend.subtract($a, $b), {a: $a, b: $b}, der, 'Sub') as
       T;
 }
 
@@ -274,7 +276,7 @@ function pow_<T extends Tensor>(base: T|TensorLike, exp: Tensor|TensorLike): T {
     };
     return {$base: derBase, $exp: derExp};
   };
-  return ENGINE.runKernel((backend, save) => {
+  return ENGINE.runKernelFunc((backend, save) => {
     const y = backend.pow($base, $exp);
     save([$base, $exp, y]);
     return y;
@@ -345,13 +347,13 @@ function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
       }
       return res;
     };
-    return {$a: derA, $b: derB};
+    return {a: derA, b: derB};
   };
-  return ENGINE.runKernel((backend, save) => {
+  return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.multiply($a, $b);
     save([$a, $b]);
     return res;
-  }, {$a, $b}, der) as T;
+  }, {a: $a, b: $b}, der, 'Mul') as T;
 }
 
 /**
@@ -426,13 +428,13 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
       const tmp = $b.square();
       return res.div(tmp.toFloat()).neg();
     };
-    return {$a: derA, $b: derB};
+    return {a: derA, b: derB};
   };
-  return ENGINE.runKernel((backend, save) => {
+  return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.realDivide($a, $b);
     save([$a, $b]);
     return res;
-  }, {$a, $b}, der) as T;
+  }, {a: $a, b: $b}, der, 'Div') as T;
 }
 
 /**
@@ -489,7 +491,7 @@ function floorDiv_<T extends Tensor>(
     };
     return {$a: derA, $b: derB};
   };
-  return ENGINE.runKernel((backend, save) => {
+  return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.floorDiv($a, $b);
     save([$a, $b]);
     return res;
@@ -563,7 +565,7 @@ function mod_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     };
     return {$a: derA, $b: derB};
   };
-  return ENGINE.runKernel((backend, save) => {
+  return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.mod($a, $b);
     save([$a, $b]);
     return res;
@@ -628,7 +630,7 @@ function minimum_<T extends Tensor>(
     const derB = () => dy.mul($a.greater($b).toFloat());
     return {$a: derA, $b: derB};
   };
-  return ENGINE.runKernel((backend, save) => {
+  return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.minimum($a, $b);
     save([$a, $b]);
     return res;
@@ -693,7 +695,7 @@ function maximum_<T extends Tensor>(
     const derB = () => dy.mul($a.less($b).toFloat());
     return {$a: derA, $b: derB};
   };
-  return ENGINE.runKernel((backend, save) => {
+  return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.maximum($a, $b);
     save([$a, $b]);
     return res;
@@ -755,7 +757,7 @@ function squaredDifference_<T extends Tensor>(
     const derB = () => dy.mul($b.sub($a).mul(two));
     return {$a: derA, $b: derB};
   };
-  return ENGINE.runKernel((backend, save) => {
+  return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.squaredDifference($a, $b);
     save([$a, $b]);
     return res;
@@ -827,7 +829,7 @@ function atan2_<T extends Tensor>(
     };
     return {$a: derA, $b: derB};
   };
-  return ENGINE.runKernel((backend, save) => {
+  return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.atan2($a, $b);
     save([$a, $b]);
     return res;

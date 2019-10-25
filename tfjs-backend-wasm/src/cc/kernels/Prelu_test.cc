@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 
 #include "src/cc/backend.h"
-#include "src/cc/prelu.h"
+#include "src/cc/kernels/Prelu.h"
 
 TEST(PRELU, xnn_operator_lifetime) {
   tfjs::wasm::init();
@@ -49,22 +49,22 @@ TEST(PRELU, xnn_operator_lifetime) {
   ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
 
   // One new xnn_operator should be created for the first call to prelu.
-  tfjs::wasm::prelu(x0_id, size, weights0_id, out_id);
+  tfjs::wasm::Prelu(x0_id, size, weights0_id, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   // No new xnn_operators should be created for the second call to prelu with
   // the same weights.
-  tfjs::wasm::prelu(x1_id, size, weights0_id, out_id);
+  tfjs::wasm::Prelu(x1_id, size, weights0_id, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   // One new xnn_operator should be created for another call to prelu with new
   // weights.
-  tfjs::wasm::prelu(x0_id, size, weights1_id, out_id);
+  tfjs::wasm::Prelu(x0_id, size, weights1_id, out_id);
   ASSERT_EQ(2, tfjs::backend::xnn_operator_count);
 
   // No new xnn_operators should be created for the next call to prelu with
   // the same weights.
-  tfjs::wasm::prelu(x1_id, size, weights1_id, out_id);
+  tfjs::wasm::Prelu(x1_id, size, weights1_id, out_id);
   ASSERT_EQ(2, tfjs::backend::xnn_operator_count);
 
   // Disposing x's should not remove xnn operators.

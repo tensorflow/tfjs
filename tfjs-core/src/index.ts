@@ -36,6 +36,8 @@ import './backends/webgl/backend_webgl';
 import './backends/cpu/backend_cpu';
 // Import all kernels from cpu.
 import './backends/cpu/all_kernels';
+// Import all kernels from webgl.
+import './backends/webgl/all_kernels';
 
 import './platforms/platform_browser';
 import './platforms/platform_node';
@@ -53,7 +55,7 @@ import * as util from './util';
 import {version} from './version';
 import * as webgl from './webgl';
 
-export {InferenceModel, MetaGraphInfo, ModelPredictConfig, SavedModelTensorInfo, SignatureDefInfo} from './model_types';
+export {InferenceModel, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, SavedModelTensorInfo, SignatureDefInfo} from './model_types';
 // Optimizers.
 export {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './optimizers/adagrad_optimizer';

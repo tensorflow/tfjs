@@ -66,7 +66,8 @@ function transpose_<T extends Tensor>(x: T|TensorLike, perm?: number[]): T {
     const undoPerm = axis_util.getUndoAxesPermutation(perm);
     return {$x: () => dy.transpose(undoPerm)};
   };
-  return ENGINE.runKernel(backend => backend.transpose($x, perm), {$x}, der);
+  return ENGINE.runKernelFunc(
+      backend => backend.transpose($x, perm), {$x}, der);
 }
 
 export const transpose = op({transpose_});

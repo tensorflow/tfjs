@@ -182,7 +182,7 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
           <Text style={styles.sectionTitle}>Info</Text>
           <Text>backend={backendName}</Text>
           <Text>testsComplete={String(testsComplete)}</Text>
-          <Text>tf.ENV.platformName={tf.ENV.platformName}</Text>
+          <Text>tf.env().platformName={tf.env().platformName}</Text>
         </View>
         <View testID='passedTests' style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Passed Tests</Text>

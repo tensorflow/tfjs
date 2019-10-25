@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 
 #include "src/cc/backend.h"
-#include "src/cc/prelu.h"
+#include "src/cc/kernels/Prelu.h"
 
 TEST(BACKEND, register_tensor) {
   tfjs::wasm::init();
@@ -118,7 +118,7 @@ TEST(BACKEND, dispose_backend) {
   ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
 
   // One new xnn_operator should be created for the first call to prelu.
-  tfjs::wasm::prelu(tensor_id_0, size, tensor_id_0, tensor_id_1);
+  tfjs::wasm::Prelu(tensor_id_0, size, tensor_id_0, tensor_id_1);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   // Dispose removes all tensors and xnn operators.

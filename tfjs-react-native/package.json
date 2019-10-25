@@ -5,7 +5,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
-  "keywords": ["tensorflow", "tensorflowjs", "machine learning", "deep learning", "neural networks", "react native"],
+  "keywords": [
+    "tensorflow",
+    "tensorflowjs",
+    "machine learning",
+    "deep learning",
+    "neural networks",
+    "react native"
+  ],
   "scripts": {
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "build": "tsc",
@@ -17,7 +24,7 @@
   },
   "devDependencies": {
     "@react-native-community/async-storage": "^1.4.2",
-    "@tensorflow/tfjs-core": ">=1.2.8",
+    "@tensorflow/tfjs-core": ">=1.2.10",
     "@types/base64-js": "^1.2.5",
     "@types/jasmine": "~2.5.53",
     "@types/react-native": "^0.60.2",
@@ -48,7 +55,7 @@
   },
   "peerDependencies": {
     "@react-native-community/async-storage": "^1.4.2",
-    "@tensorflow/tfjs-core": ">=1.2.8",
+    "@tensorflow/tfjs-core": ">=1.2.10",
     "expo-gl": "^5.0.1",
     "react-native": ">= 0.58.0"
   }

@@ -47,7 +47,6 @@ import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
-import {TensorData} from './cpu_types';
 import {assertNotComplex} from './cpu_util';
 
 function mapActivation(
@@ -77,10 +76,21 @@ function createCanvas() {
   return null;
 }
 
+export interface TensorData<D extends DataType> {
+  values?: BackendValues;
+  dtype: D;
+  // For complex numbers, the real and imaginary parts are stored as their own
+  // individual tensors, with a parent joining the two with the
+  // complexTensors field.
+  // TODO(smilkov): Replace Tensor with TensorInfo when you modularize ops
+  // that work with complex tensors.
+  complexTensors?: {real: Tensor, imag: Tensor};
+}
+
 export class MathBackendCPU extends KernelBackend {
   public blockSize = 48;
 
-  private data: DataStorage<TensorData<DataType>>;
+  data: DataStorage<TensorData<DataType>>;
   private fromPixels2DContext: CanvasRenderingContext2D|
       OffscreenCanvasRenderingContext2D;
   private firstUse = true;
@@ -97,7 +107,7 @@ export class MathBackendCPU extends KernelBackend {
     this.data = new DataStorage(this, ENGINE);
   }
 
-  register(values: BackendValues, shape: number[], dtype: DataType): DataId {
+  write(values: BackendValues, shape: number[], dtype: DataType): DataId {
     if (this.firstUse) {
       this.firstUse = false;
       if (env().get('IS_NODE')) {
@@ -122,6 +132,10 @@ export class MathBackendCPU extends KernelBackend {
   move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
       void {
     this.data.set(dataId, {values, dtype});
+  }
+
+  numDataIds(): number {
+    return this.data.numDataIds();
   }
 
   fromPixels(
@@ -226,7 +240,7 @@ export class MathBackendCPU extends KernelBackend {
 
   private makeOutput<T extends Tensor>(
       values: BackendValues, shape: number[], dtype: DataType): T {
-    const dataId = this.register(values, shape, dtype);
+    const dataId = this.write(values, shape, dtype);
     return ENGINE.makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 

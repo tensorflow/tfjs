@@ -34,20 +34,22 @@ export interface TensorStorage {
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
   disposeData(dataId: DataId): void;
-  register(values: BackendValues, shape: number[], dtype: DataType): DataId;
+  write(values: BackendValues, shape: number[], dtype: DataType): DataId;
   move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
       void;
   fromPixels(
       pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
       HTMLVideoElement,
       numChannels: number): Tensor3D;
-  register(dataId: DataId, shape: number[], dtype: DataType): void;
   memory(): {unreliable: boolean;};  // Backend-specific information.
+  /** Returns number of data ids currently in the storage. */
+  numDataIds(): number;
 }
 
 /** Convenient class for storing tensor-related data. */
 export class DataStorage<T> {
   private data = new WeakMap<DataId, T>();
+  private dataIdsCount = 0;
 
   constructor(private backend: KernelBackend, private dataMover: DataMover) {}
 
@@ -59,6 +61,7 @@ export class DataStorage<T> {
   }
 
   set(dataId: DataId, value: T): void {
+    this.dataIdsCount++;
     this.data.set(dataId, value);
   }
 
@@ -67,7 +70,12 @@ export class DataStorage<T> {
   }
 
   delete(dataId: DataId): boolean {
+    this.dataIdsCount--;
     return this.data.delete(dataId);
+  }
+
+  numDataIds(): number {
+    return this.dataIdsCount;
   }
 }
 
@@ -100,6 +108,9 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   readSync(dataId: object): BackendValues {
     return notYetImplemented();
   }
+  numDataIds(): number {
+    return notYetImplemented();
+  }
   disposeData(dataId: object): void {
     return notYetImplemented();
   }
@@ -109,7 +120,7 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
       numChannels: number): Tensor<Rank.R3> {
     return notYetImplemented();
   }
-  register(values: BackendValues, shape: number[], dtype: DataType): DataId {
+  write(values: BackendValues, shape: number[], dtype: DataType): DataId {
     return notYetImplemented();
   }
   move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
