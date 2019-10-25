@@ -40,7 +40,9 @@ The integration_rn59 app also contains some other tests and sanity checks. These
 
 ## CI Testing Infrastructure
 
-Integration tests on CI have a few moving pieces
+Integration tests on CI have a few moving pieces, the basic workflow is as follows.
 
-- A native app (.apk) that is stored on GCP and __periodically synced__ to browserstack. This app doesn't need to change unless a new native dependency is added.
-- A Google Cloud Build builder that will trigger a browserstack test (using app automate), and serve the JS bundle using metro. The tests are designed to create a tunnel between the native device and the cloud builder machine.
+1. A native app (.apk) is built manually and stored on GCP. This app doesn't need to change unless a new native dependency is added.
+2. TODO the native app is __periodically synced__ to browserstack as part of our 'nightly' tasks.
+3. On PRs a Google Cloud Build builder will trigger a browserstack test (using browserstack app automate), and serve the JS bundle to the device running in browserstack using metro. The tests are designed to create a tunnel between the native device and the cloud builder machine.
+4. The tests complete on browserstack and results are reported back to Google Cloud Build which are reported back to GitHub.
