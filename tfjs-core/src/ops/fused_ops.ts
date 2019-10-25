@@ -328,6 +328,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
+  activation = activation || 'linear';
   if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
     let result = unfusedConv2d(
         x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
