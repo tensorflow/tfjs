@@ -45,16 +45,14 @@ function batchNormalization(
     args:
         {backend: BackendWasm, inputs: BatchNormInputs, attrs: BatchNormAttrs}):
     TensorInfo {
-  console.log('IN BATCH NORMALIZATION');
   const {backend, inputs, attrs} = args;
   const {varianceEpsilon} = attrs;
-  console.log(varianceEpsilon);
   const {x, mean, variance, offset, scale} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   const meanId = backend.dataIdMap.get(mean.dataId).id;
   const varianceId = backend.dataIdMap.get(variance.dataId).id;
-  const offsetId = offset ? backend.dataIdMap.get(offset.dataId).id : null;
-  const scaleId = scale ? backend.dataIdMap.get(scale.dataId).id : null;
+  const offsetId = offset ? backend.dataIdMap.get(offset.dataId).id : -1;
+  const scaleId = scale ? backend.dataIdMap.get(scale.dataId).id : -1;
 
   const out = backend.makeOutput(x.shape, x.dtype);
   // Short-circuit zero-sized tensors.
