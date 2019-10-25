@@ -32,8 +32,8 @@ interface BatchNormAttrs extends NamedAttrMap {
 }
 
 let wasmBatchNorm: (
-    xId: number, meanId: number, varianceId: number, outId: number,
-    offsetId: number, scaleId: number, varianceEpsilon: number) => void;
+    xId: number, meanId: number, varianceId: number, offsetId: number,
+    scaleId: number, varianceEpsilon: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmBatchNorm = backend.wasm.cwrap(
@@ -63,7 +63,7 @@ function batchNormalization(
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   wasmBatchNorm(
-      xId, meanId, varianceId, outId, offsetId, scaleId, varianceEpsilon);
+      xId, meanId, varianceId, offsetId, scaleId, varianceEpsilon, outId);
   return out;
 }
 

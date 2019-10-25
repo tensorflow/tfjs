@@ -78,8 +78,8 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void BatchNormalization(int x_id, int mean_id, int variance_id, int out_id,
-                        int offset_id, int scale_id, float variance_epsilon) {
+void BatchNormalization(int x_id, int mean_id, int variance_id, int offset_id,
+                        int scale_id, float variance_epsilon, int out_id) {
   const auto x_info = backend::get_tensor_info(x_id);
   const auto mean_info = backend::get_tensor_info(mean_id);
   const auto variance_info = backend::get_tensor_info(variance_id);
