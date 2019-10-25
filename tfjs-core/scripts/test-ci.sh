@@ -27,7 +27,7 @@ yarn run-browserstack --browsers=bs_safari_mac,bs_ios_11 --testEnv webgl1 --flag
 # Run the rest of the karma tests in parallel. These runs will reuse the
 # already downloaded binary.
 npm-run-all -p -c --aggregate-output \
-  "run-browserstack --browsers=bs_safari_mac,bs_ios_11,bs_android_9 --flags '{\"HAS_WEBGL\": false}' --testEnv cpu" \
+  "run-browserstack --browsers=bs_safari_mac,bs_ios_11 --flags '{\"HAS_WEBGL\": false}' --testEnv cpu" \
   "run-browserstack --browsers=bs_firefox_mac,bs_chrome_mac" \
   "run-browserstack --browsers=bs_chrome_mac,win_10_chrome,bs_android_9 --testEnv webgl2 --flags '{\"WEBGL_CPU_FORWARD\": false, \"WEBGL_SIZE_UPLOAD_UNIFORM\": 0}'"
 
