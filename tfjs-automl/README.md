@@ -3,11 +3,6 @@
 This packages provides a set of APIs to load and run models produced by AutoML
 Edge.
 
-## Status
-
-__Early development__. This is an unpublished experimental package.
-
-
 ## Installation
 
 If you are using npm/yarn
