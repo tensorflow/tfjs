@@ -53,6 +53,9 @@ export function makeMatMulPackedSource(workPerThread: number[]): string {
         }
       }
 
+      const int RowPerThreadB = TileInner / int(gl_WorkGroupSize.y);
+      int tileRowB = int(gl_LocalInvocationID.y) * RowPerThreadB;
+
       // Loop over shared dimension.
       for (int t = 0; t < numTiles; t++) {
         // Load one tile of A into local memory.
@@ -63,12 +66,10 @@ export function makeMatMulPackedSource(workPerThread: number[]): string {
 
             mm_Asub[inputRow][inputCol] = mm_readA(
                 globalRow + innerRow,
-                t * TileInner + tileCol + innerCol);
+                t * TileInner + inputCol);
           }
         }
         // Load one tile of B into local memory.
-        const int RowPerThreadB = TileInner / int(gl_WorkGroupSize.y);
-        int tileRowB = int(gl_LocalInvocationID.y) * RowPerThreadB;
         for (int innerRow = 0; innerRow < RowPerThreadB; innerRow++) {
           for (int innerCol = 0; innerCol < ColPerThread; innerCol++) {
             int inputRow = tileRowB + innerRow;
