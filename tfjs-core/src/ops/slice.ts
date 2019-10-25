@@ -169,10 +169,12 @@ function slice_<R extends Rank, T extends Tensor<R>>(
     for (let i = 0; i < dy.rank; i++) {
       paddings.push([begin_[i], inputShape[i] - begin_[i] - size_[i]]);
     }
-    return {$x: () => dy.pad(paddings)};
+    return {x: () => dy.pad(paddings)};
   };
+  const attrs = {begin: begin_, size: size_};
   return ENGINE.runKernelFunc(
-      backend => backend.slice($x, begin_, size_), {$x}, grad);
+      backend => backend.slice($x, begin_, size_), {x: $x}, grad, 'Slice',
+      attrs);
 }
 
 export const slice = op({slice_});
@@ -180,3 +182,4 @@ export const slice1d = op({slice1d_});
 export const slice2d = op({slice2d_});
 export const slice3d = op({slice3d_});
 export const slice4d = op({slice4d_});
+export {slice_util};

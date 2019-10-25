@@ -115,6 +115,16 @@ export class BackendWasm extends KernelBackend {
     this.wasm = null;
   }
 
+  memory() {
+    return {
+      // Unreliable due to automatic gc. The numbers above are cumulative.
+      unreliable: true,
+      reasons:
+          ['The reported memory is an upper bound. Due to automatic garbage ' +
+           'collection, the true allocated memory may be less.']
+    };
+  }
+
   makeOutput(shape: number[], dtype: DataType): TensorInfo {
     const dataId = this.write(null /* values */, shape, dtype);
     return {dataId, shape, dtype};
