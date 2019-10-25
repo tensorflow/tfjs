@@ -153,7 +153,7 @@ module.exports = function(config) {
         base: 'BrowserStack',
         browser: 'chrome',
         // Latest Chrome on Windows has WebGL problems:
-        // https:  // github.com/tensorflow/tfjs/issues/2272
+        // https://github.com/tensorflow/tfjs/issues/2272
         browser_version: '77.0',
         os: 'Windows',
         os_version: '10'
