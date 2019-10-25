@@ -89,32 +89,33 @@ function matMul_<T extends Tensor>(
     const [a3D, b3D] = saved as Tensor3D[];
     if (!transposeA && !transposeB) {
       return {
-        $a: () => dy.matMul(b3D, false, true),
-        $b: () => a3D.matMul(dy, true, false)
+        a: () => dy.matMul(b3D, false, true),
+        b: () => a3D.matMul(dy, true, false)
       };
     } else if (!transposeA && transposeB) {
       return {
-        $a: () => dy.matMul(b3D, false, false),
-        $b: () => dy.matMul(a3D, true, false)
+        a: () => dy.matMul(b3D, false, false),
+        b: () => dy.matMul(a3D, true, false)
       };
     } else if (transposeA && !transposeB) {
       return {
-        $a: () => b3D.matMul(dy, false, true),
-        $b: () => a3D.matMul(dy, false, false)
+        a: () => b3D.matMul(dy, false, true),
+        b: () => a3D.matMul(dy, false, false)
       };
     } else {
       return {
-        $a: () => b3D.matMul(dy, true, true),
-        $b: () => dy.matMul(a3D, true, true)
+        a: () => b3D.matMul(dy, true, true),
+        b: () => dy.matMul(a3D, true, true)
       };
     }
   };
 
-  const res = ENGINE.runKernel((backend, save) => {
+  const attrs = {transposeA, transposeB};
+  const res = ENGINE.runKernelFunc((backend, save) => {
     const res = backend.batchMatMul(a3D, b3D, transposeA, transposeB);
     save([a3D, b3D]);
     return res;
-  }, {$a: a3D, $b: b3D}, grad);
+  }, {a: a3D, b: b3D}, grad, 'BatchMatMul', attrs);
   return res.reshape(outShape) as T;
 }
 

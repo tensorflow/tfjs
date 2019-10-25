@@ -12,8 +12,10 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef TFJS_BACKEND_H
-#define TFJS_BACKEND_H
+#ifndef BACKEND_H_
+#define BACKEND_H_
+
+#include <vector>
 
 enum DType {
   float32 = 0,
@@ -41,9 +43,40 @@ struct TensorInfo {
 
 namespace tfjs {
 namespace backend {
+// Returns the tensor information object associated with a given tensor_id
+// bucket.
 TensorInfo get_tensor_info(int tensor_id);
+
+// Registers a function callback to be called when a tensor with a given ID is
+// disposed.
+typedef void (*DisposeFunction)(int);
+void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn);
+
+// Returns the number of tensors registered and owned by the backend.
+int num_tensors();
+
+// The number of instantiated XNN operators.
+extern int xnn_operator_count;
 }  // namespace backend
 
+namespace wasm {
+extern "C" {
+// Initializes the WASM backend.
+void init();
+
+// Registers a tensor with a tensor ID, shape information, dtype, and the
+// pointer to where the tensor data lives.
+void register_tensor(int tensor_id, int *shape_ptr, int shape_length,
+                     DType dtype, void *memory_offset);
+
+// Disposes the internal bookeeping for a given tensor ID.
+void dispose_data(int tensor_id);
+
+// Disposes all internal state.
+void dispose();
+}
+
+}  // namespace wasm
 }  // namespace tfjs
 
-#endif  // TFJS_BACKEND_H
+#endif  // BACKEND_H_

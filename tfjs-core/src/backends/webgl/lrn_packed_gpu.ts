@@ -21,7 +21,8 @@ export class LRNPackedProgram implements GPGPUProgram {
   variableNames = ['x'];
   outputShape: number[] = [];
   userCode: string;
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
 
   constructor(
       xShape: number[], radius: number, bias: number, alpha: number,

@@ -346,7 +346,7 @@ function batchNorm_<R extends Rank>(
     };
   };
 
-  const res = ENGINE.runKernel((backend, save) => {
+  const res = ENGINE.runKernelFunc((backend, save) => {
     const res = backend.batchNormalization(
         x4D, batchnormReshape4D($mean), batchnormReshape4D($variance),
         varianceEpsilon, batchnormReshape4D($scale),

@@ -202,7 +202,7 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
           <Text testID='testComplete' accessibilityLabel='testComplete'>
             testsComplete={String(testsComplete)}
           </Text>
-          <Text>tf.ENV.platformName={tf.ENV.platformName}</Text>
+          <Text>tf.env().platformName={tf.env().platformName}</Text>
         </View>
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}
