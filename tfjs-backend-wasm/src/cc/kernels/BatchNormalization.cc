@@ -33,9 +33,15 @@ void batch_norm_impl(T* x_buf, int x_size, T* mean_buf, int mean_size,
   int vi = 0;
 
   if (offset_buf == nullptr) {
-    float offset_buf_replace[1] = {5};
-    offset_buf = offset_buf_replace;
+    float offset_buf_default[1] = {0};
+    offset_buf = offset_buf_default;
     offset_size = 1;
+  }
+
+  if (scale_buf == nullptr) {
+    float scale_buf_default[1] = {1};
+    scale_buf = scale_buf_default;
+    scale_size = 1;
   }
 
   for (int i = 0; i < x_size; ++i) {
