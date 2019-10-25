@@ -14,11 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
+
+// tslint:disable-next-line:no-require-imports
+const jasmine = require('jasmine');
 import {KernelBackend} from './backends/backend';
 import {ENGINE} from './engine';
 import {env, Environment, Flags} from './environment';
 
 Error.stackTraceLimit = Infinity;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
 export type Constraints = {
   flags?: Flags,
