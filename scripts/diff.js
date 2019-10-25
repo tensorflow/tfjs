@@ -77,7 +77,7 @@ filesWhitelistToTriggerBuild.forEach(fileToTriggerBuild => {
   const diffOutput = diff(fileToTriggerBuild);
   if (diffOutput !== '') {
     console.log(fileToTriggerBuild, 'has changed. Triggering all builds.');
-    triggerAllBuilds = false;
+    triggerAllBuilds = true;
     whitelistDiffOutput.push(diffOutput);
   }
 });
