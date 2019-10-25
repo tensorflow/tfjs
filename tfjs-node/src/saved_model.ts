@@ -76,7 +76,8 @@ export async function readSavedModelProto(path: string) {
 }
 
 /**
- * Inspect the MetaGraphs of the SavedModel from the provided path.
+ * Inspect the MetaGraphs of the SavedModel from the provided path. This
+ * function will return an array of `MetaGraphInfo` objects.
  *
  * @param path Path to SavedModel folder.
  */
@@ -311,7 +312,7 @@ export class TFSavedModel implements InferenceModel {
   }
 
   /**
-   * Single Execute the inference for the input tensors and return activation
+   * Execute the inference for the input tensors and return activation
    * values for specified output node names without batching.
    *
    * @param input The input tensors, when there is single input for the model,
