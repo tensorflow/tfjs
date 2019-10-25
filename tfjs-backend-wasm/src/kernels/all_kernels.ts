@@ -18,9 +18,14 @@
 // We explicitly import the modular kernels so they get registered in the
 // global registry when we compile the library. A modular build would replace
 // the contents of this file and import only the kernels that are needed.
+import './Abs';
 import './Add';
 import './BatchMatMul';
 import './BatchNormalization';
 import './Cast';
+import './Div';
+import './Mul';
 import './Prelu';
 import './Reshape';
+import './Sigmoid';
+import './Sub';

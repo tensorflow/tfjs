@@ -16,4 +16,4 @@
  */
 
 import {registerBinaryKernel} from './binary_kernel';
-registerBinaryKernel('Add');
+registerBinaryKernel('Mul');
