@@ -23,19 +23,6 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
   waitFor: ['yarn']
 
-# Run core unit tests in react native.
-- name: 'node:10'
-  dir: 'tfjs-react-native/integration_rn59'
-  entrypoint: 'yarn'
-  id: 'test-core-with-react-native'
-  # TODO remove build-head option once the tests are in master
-  args: ['test-ci', 'build-head']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
-  secretEnv: ['BROWSERSTACK_KEY']
-  waitFor: ['yarn']
-  # After 20 mins it has probably hung
-  timeout: 1200s
-
 # General configuration
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
