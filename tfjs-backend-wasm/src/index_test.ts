@@ -48,25 +48,24 @@ describeWithFlags('wasm', ALL_ENVS, () => {
     expect(memOffset1).toBe(memOffset2);
   });
 
-  fit('batchnorm test', () => {
-    console.log('testing');
-
+  fit('simple batchnorm4D, no offset or scale, 2x1x1x2', async () => {
     const xT = tf.tensor4d([2, 4, 9, 23], [2, 1, 1, 2]);
     const meanT = tf.tensor1d([1, 2]);
     const varianceT = tf.tensor1d([2, 3]);
     const varianceEpsilon = .001;
-    const scale = tf.tensor1d([4, 5]);
-    const offset = tf.tensor1d([4, 5]);
 
-    const result =
-        tf.batchNorm4d(xT, meanT, varianceT, offset, scale, varianceEpsilon);
-    // const result =
-    //     tf.batchNorm4d(xT, meanT, varianceT, offset, scale, varianceEpsilon);
+    const result = tf.batchNorm4d(
+        xT, meanT, varianceT, undefined, undefined, varianceEpsilon);
 
-    // const x = await xT.array();
-    // const mean = await meanT.array();
-    // const variance = await varianceT.array();
-
+    const x = await xT.array();
+    const mean = await meanT.array();
+    const variance = await varianceT.array();
     console.log(Array.from(result.dataSync()));
+    console.log([
+      (x[0][0][0][0] - mean[0]) * 1 / Math.sqrt(variance[0] + varianceEpsilon),
+      (x[0][0][0][1] - mean[1]) * 1 / Math.sqrt(variance[1] + varianceEpsilon),
+      (x[1][0][0][0] - mean[0]) * 1 / Math.sqrt(variance[0] + varianceEpsilon),
+      (x[1][0][0][1] - mean[1]) * 1 / Math.sqrt(variance[1] + varianceEpsilon)
+    ]);
   });
 });
