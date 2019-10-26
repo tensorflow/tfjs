@@ -131,7 +131,6 @@ export class NodeJSKernelBackend extends KernelBackend {
           info.id =
               this.binding.createTensor(info.shape, info.dtype, info.values);
           info.values = null;
-          this.tensorMap.set((tensors[i] as TensorInfo).dataId, info);
         }
         ids.push(info.id);
       }
@@ -233,8 +232,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
       object {
     const dataId = {};
-    this.tensorMap.set(
-        dataId, {shape, dtype: getTFDType(dtype), values, id: -1});
+    this.move(dataId, values, shape, dtype);
     return dataId;
   }
 
