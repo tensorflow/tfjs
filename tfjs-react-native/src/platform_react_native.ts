@@ -163,7 +163,7 @@ function setupGlobals() {
 function registerWebGLBackend() {
   try {
     const PRIORITY = 5;
-    tf.registerBackend('rn-webgl', async () => {
+    tf.registerBackend('webgl', async () => {
       const glContext = await GLView.createContextAsync();
 
       // ExpoGl getBufferSubData is not implemented yet (throws an exception).

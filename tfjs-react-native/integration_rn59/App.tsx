@@ -26,7 +26,7 @@ import { MobilenetDemo } from './components/mobilenet_demo';
 import { TestRunner } from './components/tfjs_unit_test_runner';
 import { WebcamDemo } from './components/webcam/webcam_demo';
 
-const BACKEND_TO_USE = 'rn-webgl';
+const BACKEND_TO_USE = 'webgl';
 
 export type Screen = 'main' | 'diag' | 'demo' | 'test' | 'webcam';
 
