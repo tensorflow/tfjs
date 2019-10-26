@@ -137,6 +137,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "Square",
+  srcs = ["kernels/Square.cc"],
+  deps = [
+    ":backend",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
   name = "Sub",
   srcs = ["kernels/Sub.cc"],
   deps = [
