@@ -16,7 +16,7 @@ describe('tfjs-core unit tests', () => {
     const backendNameEl = await driver.$('~backendName');
     await backendNameEl.waitForExist(DEFAULT_TIMEOUT);
     const backendName = await backendNameEl.getText();
-    expect(backendName).toEqual('backend=webgl');
+    expect(backendName).toEqual('backend=rn-webgl');
 
     // Wait for the unit tests to complete.
     const testCompleteEl = await driver.$('~testComplete');

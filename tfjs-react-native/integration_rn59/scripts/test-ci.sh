@@ -32,6 +32,9 @@ elif [ "$1" == "build-head" ]; then
   cd ../../tfjs-core && yarn && yarn build-ci && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
 fi
 
+# build tfjs-react-native from head
+cd ../ && yarn && yarn build && cp -rf dist ./integration_rn59/node_modules/@tensorflow/tfjs-react-native && cd integration_rn59
+
 yarn prep-tests
 
 # Spawn a metro bundler/asset server in the background.
