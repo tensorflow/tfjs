@@ -15,8 +15,13 @@
  * =============================================================================
  */
 
+// We use the pattern below (as opposed to require('jasmine') to create the
+// jasmine module in order to avoid loading node specific modules which may
+// be ignored in browser environments but cannot be ignored in react-native
+// due to the pre-bundling of dependencies that it must do.
 // tslint:disable-next-line:no-require-imports
-const jasmine = require('jasmine');
+const jasmineRequire = require('jasmine-core/lib/jasmine-core/jasmine.js');
+const jasmine = jasmineRequire.core(jasmineRequire);
 import {KernelBackend} from './backends/backend';
 import {ENGINE} from './engine';
 import {env, Environment, Flags} from './environment';
