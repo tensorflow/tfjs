@@ -66,6 +66,7 @@ tfjs_cc_library(
     ":Prelu",
     ":Sigmoid",
     ":Sub",
+    ":Transpose",
   ]
 )
 
@@ -151,6 +152,15 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Transpose",
+  srcs = ["kernels/Transpose.cc"],
+  deps = [
+    ":backend",
     ":util",
   ],
 )

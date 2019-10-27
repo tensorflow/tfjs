@@ -64,6 +64,14 @@ describeWithFlags('transpose', ALL_ENVS, () => {
     expectArraysClose(await t2.data(), [1, 3, 11, 33, 2, 4, 22, 44]);
   });
 
+  it('2D, shape has ones', async () => {
+    const t = tf.tensor2d([1, 2, 3, 4], [1, 4]);
+    const t2 = tf.transpose(t, [1, 0]);
+
+    expect(t2.shape).toEqual([4, 1]);
+    expectArraysClose(await t2.data(), [1, 2, 3, 4]);
+  });
+
   it('3D [r, c, d] => [d, r, c]', async () => {
     const t = tf.tensor3d([1, 11, 2, 22, 3, 33, 4, 44], [2, 2, 2]);
     const t2 = tf.transpose(t, [2, 0, 1]);
@@ -78,6 +86,25 @@ describeWithFlags('transpose', ALL_ENVS, () => {
 
     expect(t2.shape).toEqual([2, 2, 2]);
     expectArraysClose(await t2.data(), [1, 3, 2, 4, 11, 33, 22, 44]);
+  });
+
+  it('3D [r, c, d] => [d, r, c], shape has ones', async () => {
+    const perm = [2, 0, 1];
+
+    const t = tf.tensor3d([1, 2, 3, 4], [2, 1, 2]);
+    const tt = tf.transpose(t, perm);
+    expect(tt.shape).toEqual([2, 2, 1]);
+    expectArraysClose(await tt.data(), [1, 3, 2, 4]);
+
+    const t2 = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
+    const tt2 = tf.transpose(t2, perm);
+    expect(tt2.shape).toEqual([1, 2, 2]);
+    expectArraysClose(await tt2.data(), [1, 2, 3, 4]);
+
+    const t3 = tf.tensor3d([1, 2, 3, 4], [1, 2, 2]);
+    const tt3 = tf.transpose(t3, perm);
+    expect(tt3.shape).toEqual([2, 1, 2]);
+    expectArraysClose(await tt3.data(), [1, 3, 2, 4]);
   });
 
   it('5D [r, c, d, e, f] => [r, c, d, f, e]', async () => {
