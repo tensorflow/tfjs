@@ -16,7 +16,7 @@
  */
 
 
-const localIdentifier = `rn_integration_android_${Date.now()}`;
+const localIdentifier = `rn_integration_${Date.now()}`;
 
 const sharedCapabilities = Object.freeze({
   'browserstack.debug': true,
