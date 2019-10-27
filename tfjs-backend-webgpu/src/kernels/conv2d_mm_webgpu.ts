@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {makeMatMulSource} from './matmul_webgpu';
@@ -30,10 +30,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride;';
-  workGroupSize: [number, number, number] = [
-    16, 16,  // must be square (for matmul)
-    1
-  ];
+  workGroupSize: [number, number, number];
 
   constructor(convInfo: backend_util.Conv2DInfo, workPerThread: number) {
     this.outputShape = convInfo.outShape;
@@ -44,28 +41,39 @@ export class Conv2DMMProgram implements WebGPUProgram {
     util.assert(
         convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1,
         () => 'TODO: Dilation is unimplemented');
-
+    this.dispatchLayout = {x: [1, 2], y: [3], z: [0]};
+    this.workGroupSize =
+        computeWorkGroupSizeForConv2d(this.dispatchLayout, this.outputShape);
     let elementsPerThread: [number, number, number];
     let matMulSource: string;
     if (workPerThread === 0) {
       elementsPerThread = [1, 1, 1];
       matMulSource = makeMatMulSource();
     } else {
-      elementsPerThread = [workPerThread, workPerThread, 1];
-      matMulSource = makeMatMulPackedSource(workPerThread);
+      elementsPerThread =
+          computeWorkPerThreadForConv2d(this.dispatchLayout, this.outputShape);
+      matMulSource = makeMatMulPackedSource(elementsPerThread);
     }
 
-    this.dispatchLayout = {x: [1], y: [2], z: [0]};
-    const matMulOutShape = [
-      convInfo.outShape[0], convInfo.outShape[1] * convInfo.outShape[2],
-      convInfo.outShape[3]
-    ];
-    this.dispatch = computeDispatch(
-        this.dispatchLayout, matMulOutShape, this.workGroupSize,
-        elementsPerThread);
+    const tileAOuter = this.workGroupSize[1] * elementsPerThread[1];
+    const tileBOuter = this.workGroupSize[0] * elementsPerThread[0];
+    const tileInner = tileBOuter;
+    const tileSizeA = [tileAOuter, tileInner];
+    const tileSizeB = [tileInner, tileBOuter];
+    const dimAOuter = this.outputShape[3];
+    const dimBOuter = this.outputShape[1] * this.outputShape[2];
+    const dimInner =
+        convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
+    const sampleA = tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]) ?
+        `W[getFlatIndex(coord, shape)]` :
+        `coordsInBounds(coord, shape) ? W[getFlatIndex(coord, shape)] : 0`;
+    const sampleB = tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter]) ?
+        `x[getFlatIndex(coord, xShape)]` :
+        `coordsInBounds(coord, xShape) ? x[getFlatIndex(coord, xShape)] : 0`;
 
-    // TODO: At compile-time infer when we need coordsInBounds check and
-    // precompile a version without checks if appropriate.
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        elementsPerThread);
 
     this.userCode = `
         ${matMulSource}
@@ -81,8 +89,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
               r);
 
           ivec4 shape = ivec4(filterDims, xShape[3], outShape[3]);
-          return coordsInBounds(coord, shape) ?
-            W[getFlatIndex(coord, shape)] : 0;
+          return ${sampleA};
         }
 
         float mm_readB(int row, int col) {
@@ -98,8 +105,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
               pad[0] + outRow * stride[0] + WRow,
               pad[1] + outCol * stride[1] + WCol,
               r / (filterDims[0] * filterDims[1]));
-          return coordsInBounds(coord, xShape) ?
-              x[getFlatIndex(coord, xShape)] : 0;
+          return ${sampleB};
         }
 
         void mm_write(int row, int col, float value) {
