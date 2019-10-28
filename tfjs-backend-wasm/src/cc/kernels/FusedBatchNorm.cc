@@ -17,6 +17,7 @@
 #endif
 
 #include <math.h>
+#include <vector>
 #include "src/cc/backend.h"
 
 namespace tfjs {
@@ -72,7 +73,7 @@ void FusedBatchNorm(int x_id, int mean_id, int variance_id, int offset_id,
     offset_size = offset_info.size;
   }
 
-  float normalization_factor[variance_size];
+  std::vector<double> normalization_factor(variance_size);
   for (int i = 0; i < variance_size; ++i) {
     normalization_factor[i] = sqrt(variance_buf[i] + variance_epsilon);
   }
