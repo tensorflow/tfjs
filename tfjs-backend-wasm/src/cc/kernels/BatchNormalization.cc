@@ -35,9 +35,7 @@ void BatchNormalization(int x_id, int mean_id, int variance_id, int offset_id,
   const auto x_info = backend::get_tensor_info(x_id);
   const auto mean_info = backend::get_tensor_info(mean_id);
   const auto variance_info = backend::get_tensor_info(variance_id);
-  const auto scale_info = backend::get_tensor_info(scale_id);
   const auto out_info = backend::get_tensor_info(out_id);
-  const auto offset_info = backend::get_tensor_info(offset_id);
 
   float* x_buf = x_info.buf.f32;
   int x_size = x_info.size;
@@ -54,12 +52,28 @@ void BatchNormalization(int x_id, int mean_id, int variance_id, int offset_id,
   int vi = 0;
 
   float scale_buf_default[1] = {1};
-  float* scale_buf = scale_id < 0 ? scale_buf_default : scale_info.buf.f32;
-  int scale_size = scale_id < 0 ? 1 : scale_info.size;
+  float* scale_buf;
+  int scale_size;
+  if (scale_id < 0) {
+    scale_buf = scale_buf_default;
+    scale_size = 1;
+  } else {
+    const auto scale_info = backend::get_tensor_info(scale_id);
+    scale_buf = scale_info.buf.f32;
+    scale_size = scale_info.size;
+  }
 
   float offset_buf_default[1] = {0};
-  float* offset_buf = offset_id < 0 ? offset_buf_default : offset_info.buf.f32;
-  int offset_size = offset_id < 0 ? 1 : offset_info.size;
+  float* offset_buf;
+  int offset_size;
+  if (offset_id < 0) {
+    offset_buf = offset_buf_default;
+    offset_size = 1;
+  } else {
+    const auto offset_info = backend::get_tensor_info(offset_id);
+    offset_buf = offset_info.buf.f32;
+    offset_size = offset_info.size;
+  }
 
   for (int i = 0; i < x_size; ++i) {
     out_buf[i] =
