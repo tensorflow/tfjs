@@ -54,12 +54,16 @@ describeWithFlags('wasm', ALL_ENVS, () => {
     const varianceT = tf.tensor1d([2, 3]);
     const varianceEpsilon = .001;
 
-    const result = tf.batchNorm4d(
-        xT, meanT, varianceT, undefined, undefined, varianceEpsilon);
+    const result =
+        tf.batchNorm4d(xT, meanT, varianceT, null, null, varianceEpsilon);
 
     const x = await xT.array();
     const mean = await meanT.array();
     const variance = await varianceT.array();
+
+    // should be:
+    // [0.706930, 1.154508, 5.655440, 12.1223354]
+
     console.log(Array.from(result.dataSync()));
     console.log([
       (x[0][0][0][0] - mean[0]) * 1 / Math.sqrt(variance[0] + varianceEpsilon),
