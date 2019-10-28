@@ -226,6 +226,14 @@ function registerWebGLBackend() {
 
       return backend;
     }, PRIORITY);
+
+    // Register all the webgl kernels on the rn-webgl backend
+    const kernels = tf.getKernelsForBackend('webgl');
+    kernels.forEach(kernelConfig => {
+      const newKernelConfig =
+          Object.assign({}, kernelConfig, {backendName: 'rn-webgl'});
+      tf.registerKernel(newKernelConfig);
+    });
   } catch (e) {
     throw (new Error(`Failed to register Webgl backend: ${e.message}`));
   }
