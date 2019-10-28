@@ -21,6 +21,7 @@
 import './Abs';
 import './Add';
 import './BatchMatMul';
+import './FusedBatchNorm';
 import './Cast';
 import './Div';
 import './Mul';
