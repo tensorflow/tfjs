@@ -107,6 +107,14 @@ describeWithFlags('transpose', ALL_ENVS, () => {
     expectArraysClose(await tt3.data(), [1, 3, 2, 4]);
   });
 
+  it('3D [r, c, d] => [r, d, c]', async () => {
+    const perm = [0, 2, 1];
+    const t = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
+    const tt = tf.transpose(t, perm);
+    expect(tt.shape).toEqual([2, 2, 2]);
+    expectArraysClose(await tt.data(), [1, 3, 2, 4, 5, 7, 6, 8]);
+  });
+
   it('5D [r, c, d, e, f] => [r, c, d, f, e]', async () => {
     const t = tf.tensor5d(
         new Array(32).fill(0).map((x, i) => i + 1), [2, 2, 2, 2, 2]);

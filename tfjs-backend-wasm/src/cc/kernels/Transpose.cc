@@ -88,9 +88,48 @@ void transpose_3d(const T* x_data, const std::vector<int>& x_shape,
   }
 }
 
+int flatten(const std::vector<int>& x_shape, const std::vector<int>& perm,
+            std::vector<int>* new_x_shape_ptr, std::vector<int>* new_perm_ptr) {
+  auto& new_input_shape = *new_x_shape_ptr;
+  auto& new_perm = *new_perm_ptr;
+
+  // Calculate the total size of non-flatten dimensions.
+  int num_dims_to_skip = 0;
+  int rank = perm.size();
+  int flat_size = tfjs::util::size_from_shape(x_shape);
+  for (int i = 0; i < rank; ++i) {
+    if (perm[i] == i) {
+      flat_size /= x_shape[i];
+      ++num_dims_to_skip;
+    } else {
+      break;
+    }
+  }
+  // Shrink the shapes and re-calculate the perm parameter.
+  const int new_rank = rank - num_dims_to_skip;
+  new_perm.resize(new_rank);
+  new_input_shape.resize(new_rank);
+
+  for (int i = num_dims_to_skip; i < rank; ++i) {
+    new_input_shape[i - num_dims_to_skip] = x_shape[i];
+    new_perm[i - num_dims_to_skip] = perm[i];
+  }
+  for (int i = 0; i < new_rank; ++i) {
+    int min_val_idx = -1;
+    for (int j = 0; j < new_rank; ++j) {
+      if (new_perm[j] >= i &&
+          (min_val_idx == -1 || new_perm[min_val_idx] > new_perm[j])) {
+        min_val_idx = j;
+      }
+    }
+    new_perm[min_val_idx] = i;
+  }
+  return flat_size;
+}
+
 template <typename T>
-void transpose(const T* x_data, const std::vector<int>& x_shape,
-               const std::vector<int>& perm, T* out_data) {
+void transpose_impl(const T* x_data, const std::vector<int>& x_shape,
+                    const std::vector<int>& perm, T* out_data) {
   if (x_shape.size() == 2) {
     transpose_2d(x_data, x_shape, out_data);
   } else if (x_shape.size() == 3) {
@@ -100,6 +139,19 @@ void transpose(const T* x_data, const std::vector<int>& x_shape,
                      x_shape.size());
   }
 }
+
+template <typename T>
+void transpose(const T* x_data, const std::vector<int>& x_shape,
+               const std::vector<int>& perm, T* out_data) {
+  std::vector<int> new_x_shape;
+  std::vector<int> new_perm;
+  const int non_flatten_size = flatten(x_shape, perm, &new_x_shape, &new_perm);
+  const int total_size = tfjs::util::size_from_shape(x_shape);
+  for (int offset = 0; offset < total_size; offset += non_flatten_size) {
+    transpose_impl(x_data + offset, new_x_shape, new_perm, out_data + offset);
+  }
+}
+
 }  // namespace
 
 namespace tfjs {
