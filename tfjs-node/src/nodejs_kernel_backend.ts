@@ -16,7 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 // tslint:disable-next-line: no-imports-from-dist
@@ -194,11 +194,11 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   dispose(): void {}
 
-  async read(dataId: object): Promise<backend_util.BackendValues> {
+  async read(dataId: DataId): Promise<backend_util.BackendValues> {
     return this.readSync(dataId);
   }
 
-  readSync(dataId: object): backend_util.BackendValues {
+  readSync(dataId: DataId): backend_util.BackendValues {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
@@ -210,7 +210,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     }
   }
 
-  disposeData(dataId: object): void {
+  disposeData(dataId: DataId): void {
     // No-op if already disposed.
     if (!this.tensorMap.has(dataId)) {
       return;
@@ -223,14 +223,14 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   move(
-      dataId: object, values: backend_util.BackendValues, shape: number[],
+      dataId: DataId, values: backend_util.BackendValues, shape: number[],
       dtype: DataType): void {
     this.tensorMap.set(
         dataId, {shape, dtype: getTFDType(dtype), values, id: -1});
   }
 
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
-      object {
+      DataId {
     const dataId = {};
     this.move(dataId, values, shape, dtype);
     return dataId;
