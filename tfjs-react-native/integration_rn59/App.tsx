@@ -97,6 +97,8 @@ export class App extends React.Component<{}, AppState> {
       <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>tfjs-core unit tests</Text>
         <Button
+          testID='unit-test-btn'
+          accessibilityLabel='unit-test-btn'
           onPress={this.showTestScreen}
           title='Show Test Screen'
         />
