@@ -23,3 +23,10 @@ const a = tf.tensor2d([1, 2, 3, 4], [2, 2], 'float32');
 const b = tf.tensor2d([5, 6, 7, 8], [2, 2], 'float32');
 const c = a.matMul(b);
 console.log(c.dataSync());
+
+async function loadModel() {
+  const model = await tf.node.loadSavedModel(
+      '../../test_objects/times_three_float', ['serve'], 'serving_default');
+  model.dispose();
+}
+loadModel();
