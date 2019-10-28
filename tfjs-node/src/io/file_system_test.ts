@@ -92,8 +92,8 @@ describe('File system IOHandler', () => {
 
   it('save succeeds with newly created directory', async done => {
     const t0 = new Date();
-    testDir = path.join(testDir, 'save-destination');
-    const handler = tfc.io.getSaveHandlers(`file://${testDir}`)[0];
+    const dir = path.join(testDir, 'save-destination');
+    const handler = tfc.io.getSaveHandlers(`file://${dir}`)[0];
     handler
         .save({
           modelTopology: modelTopology1,
@@ -106,8 +106,8 @@ describe('File system IOHandler', () => {
           expect(saveResult.modelArtifactsInfo.modelTopologyType)
               .toEqual('JSON');
 
-          const modelJSONPath = path.join(testDir, 'model.json');
-          const weightsBinPath = path.join(testDir, 'weights.bin');
+          const modelJSONPath = path.join(dir, 'model.json');
+          const weightsBinPath = path.join(dir, 'weights.bin');
           const modelJSON = JSON.parse(await readFile(modelJSONPath, 'utf8'));
           expect(modelJSON.modelTopology).toEqual(modelTopology1);
           expect(modelJSON.weightsManifest.length).toEqual(1);
@@ -125,10 +125,10 @@ describe('File system IOHandler', () => {
   });
 
   it('save fails if path exists as a file', async done => {
-    testDir = path.join(testDir, 'save-destination');
+    const dir = path.join(testDir, 'save-destination');
     // Create a file at the locatin.
-    await writeFile(testDir, 'foo');
-    const handler = tfc.io.getSaveHandlers(`file://${testDir}`)[0];
+    await writeFile(dir, 'foo');
+    const handler = tfc.io.getSaveHandlers(`file://${dir}`)[0];
     handler
         .save({
           modelTopology: modelTopology1,
