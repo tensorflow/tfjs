@@ -37,11 +37,11 @@ let wasmBatchNorm: (
 
 function setup(backend: BackendWasm): void {
   wasmBatchNorm = backend.wasm.cwrap(
-      'BatchNormalization', null /* void */,
+      'FusedBatchNorm', null /* void */,
       ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
 }
 
-function batchNormalization(
+function fusedBatchNorm(
     args:
         {backend: BackendWasm, inputs: BatchNormInputs, attrs: BatchNormAttrs}):
     TensorInfo {
@@ -71,5 +71,5 @@ registerKernel({
   kernelName: 'BatchNormalization',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: batchNormalization
+  kernelFunc: fusedBatchNorm
 });

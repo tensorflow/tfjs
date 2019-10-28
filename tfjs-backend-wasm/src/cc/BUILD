@@ -64,15 +64,15 @@ tfjs_cc_library(
     ":Div",
     ":Mul",
     ":Prelu",
-    ":BatchNormalization",
+    ":FusedBatchNorm",
     ":Sigmoid",
     ":Sub",
   ]
 )
 
 tfjs_cc_library(
-  name = "BatchNormalization",
-  srcs = ["kernels/BatchNormalization.cc"],
+  name = "FusedBatchNorm",
+  srcs = ["kernels/FusedBatchNorm.cc"],
   deps = [
     ":backend",
     ":util",
