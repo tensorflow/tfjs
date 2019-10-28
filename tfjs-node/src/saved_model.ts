@@ -15,13 +15,10 @@
  * =============================================================================
  */
 
-import {InferenceModel, ModelPredictConfig, Tensor} from '@tensorflow/tfjs';
-// TODO(kangyizhang): import ModelTensorInfo from '@tensorflow/tfjs-core' once
-// new version is released.
-// tslint:disable-next-line
-import {NamedTensorMap, TensorInfo} from '@tensorflow/tfjs-core/dist/tensor_types';
+import {InferenceModel, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, SavedModelTensorInfo, SignatureDefInfo, Tensor} from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import {promisify} from 'util';
+
 import {ensureTensorflowBackend, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 const readFile = promisify(fs.readFile);
@@ -157,35 +154,6 @@ export async function getMetaGraphsFromSavedModel(path: string):
   return result;
 }
 
-// TODO(kangyizhang): Remove the following interfaces and use the exported
-// interfaces in tfjs-core.
-/**
- * Interface for inspected SavedModel MetaGraph info.
- */
-export interface MetaGraphInfo {
-  tags: string[];
-  signatureDefs: SignatureDefInfo;
-}
-
-/**
- * Interface for inspected SavedModel SignatureDef info.
- */
-export interface SignatureDefInfo {
-  [key: string]: {
-    inputs: {[key: string]: SavedModelTensorInfo};
-    outputs: {[key: string]: SavedModelTensorInfo};
-  };
-}
-
-/**
- * Interface for inspected SavedModel signature input/output Tensor info.
- */
-export interface SavedModelTensorInfo {
-  dtype: string;
-  shape: number[];
-  name: string;
-}
-
 /**
  * Get input and output node names from SavedModel metagraphs info. The
  * input.output node names will be used when executing a SavedModel signature.
@@ -245,7 +213,7 @@ export class TFSavedModel implements InferenceModel {
    * Return the array of input tensor info.
    */
   /** @doc {heading: 'Models', subheading: 'SavedModel'} */
-  get inputs(): TensorInfo[] {
+  get inputs(): ModelTensorInfo[] {
     throw new Error('SavedModel inputs information is not available yet.');
   }
 
@@ -253,7 +221,7 @@ export class TFSavedModel implements InferenceModel {
    * Return the array of output tensor info.
    */
   /** @doc {heading: 'Models', subheading: 'SavedModel'} */
-  get outputs(): TensorInfo[] {
+  get outputs(): ModelTensorInfo[] {
     throw new Error('SavedModel outputs information is not available yet.');
   }
 
