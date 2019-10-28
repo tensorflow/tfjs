@@ -82,10 +82,10 @@ void FusedBatchNorm(int x_id, int mean_id, int variance_id, int offset_id,
                                             scale_buf[scale_i] /
                                             normalization_factor[variance_i];
 
-    offset_i = offset_i + 1;
-    mean_i = mean_i + 1;
-    scale_i = scale_i + 1;
-    variance_i = variance_i + 1;
+    ++offset_i;
+    ++mean_i;
+    ++scale_i;
+    ++variance_i;
 
     if (offset_i >= offset_size) {
       offset_i = 0;
