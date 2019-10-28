@@ -15,73 +15,29 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
-#include <string.h>
-#include <cstdarg>
-#include <cstdio>
 #include <vector>
 
 namespace tfjs {
 namespace util {
 
-inline void print_log(const char* format, va_list args) {
-  // TODO(smilkov): Bind directly to `console.log` instead of depending on
-  // stdio, to reduce wasm binary size.
-  vfprintf(stdout, format, args);
-}
-
-inline void print_warn(const char* format, va_list args) {
-  // TODO(smilkov): Bind directly to `console.warn` instead of depending on
-  // stdio, to reduce wasm binary size.
-  vfprintf(stderr, format, args);
-}
-
-// Logs the message to the console without flushing.
-inline void print_log(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  print_log(format, args);
-}
-
-inline void print_warn(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  print_warn(format, args);
-}
-
 // Logs and flushes the message to the js console (console.log).
-inline void log(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  print_log(format, args);
-  print_log("\n");
-}
+void log(const char* format, ...);
 
 // Logs and flushes the message to the js console (console.err).
-inline void warn(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  print_warn(format, args);
-  print_warn("\n");
-}
+void warn(const char* format, ...);
 
 // Helper method to log values in a vector. Used for debugging.
 template <class T>
-inline void log_vector(const std::vector<T>& v) {
-  print_log("[", 0);
-  for (auto const& value : v) {
-    print_log("%d,", value);
-  }
-  print_log("]\n", 0);
-}
+void log_vector(const std::vector<T>& v);
 
 // Returns the size of the vector, given its shape.
-inline int size_from_shape(const std::vector<int>& shape) {
-  int prod = 1;
-  for (const auto& v : shape) {
-    prod *= v;
-  }
-  return prod;
-}
+int size_from_shape(const std::vector<int>& shape);
+
+std::vector<int> index_to_loc(int index, const std::vector<int>& strides);
+
+int loc_to_index(const std::vector<int>& loc, const std::vector<int>& strides);
+
+std::vector<int> compute_strides(const std::vector<int> shape);
 
 }  // namespace util
 }  // namespace tfjs

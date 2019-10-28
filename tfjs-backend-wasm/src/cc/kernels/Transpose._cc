@@ -19,8 +19,11 @@
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
-namespace {
+namespace tfjs {
+namespace wasm {
 
+// Optimized transpose 2D that uses direct pointer arithmetic instead of bracket
+// indexing.
 template <typename T>
 void transpose_2d(const T* x_data, const std::vector<int>& x_shape,
                   T* out_data) {
@@ -88,6 +91,31 @@ void transpose_3d(const T* x_data, const std::vector<int>& x_shape,
   }
 }
 
+template <typename T>
+void slow_transpose_nd(const T* x_data, const std::vector<int>& x_shape,
+                       const std::vector<int>& perm, T* out_data) {
+  const int size = util::size_from_shape(x_shape);
+  const auto x_strides = util::compute_strides(x_shape);
+  std::vector<int> out_shape(x_shape.size());
+  for (int i = 0; i < x_shape.size(); ++i) {
+    out_shape[i] = x_shape[perm[i]];
+  }
+  const auto out_strides = util::compute_strides(out_shape);
+
+  for (int i = 0; i < size; ++i) {
+    const auto loc = util::index_to_loc(i, x_strides);
+
+    // Permute location.
+    std::vector<int> new_loc(loc.size());
+    for (int i = 0; i < loc.size(); ++i) {
+      new_loc[i] = loc[perm[i]];
+    }
+
+    const int new_i = util::loc_to_index(new_loc, out_strides);
+    out_data[new_i] = x_data[i];
+  }
+}
+
 // Flatten finds the dimensions that can be flatten, shrinks the given shapes
 // and the given perm parameter to reflect the non-flatten dimensions, and
 // returns the total size of the non-flatten dimensions.
@@ -104,7 +132,7 @@ int flatten(const std::vector<int>& x_shape, const std::vector<int>& perm,
   // Calculate the total size of non-flatten dimensions.
   int num_dims_to_skip = 0;
   int rank = perm.size();
-  int flat_size = tfjs::util::size_from_shape(x_shape);
+  int flat_size = util::size_from_shape(x_shape);
   for (int i = 0; i < rank; ++i) {
     if (perm[i] == i) {
       flat_size /= x_shape[i];
@@ -144,8 +172,7 @@ void transpose_impl(const T* x_data, const std::vector<int>& x_shape,
     transpose_3d(x_data, x_shape, perm, out_data);
   } else {
     // TODO(smilkov): Add a 4D transpose.
-    tfjs::util::warn("WASM Transpose kernel does not yet support rank %d",
-                     x_shape.size());
+    slow_transpose_nd(x_data, x_shape, perm, out_data);
   }
 }
 
@@ -154,19 +181,15 @@ void transpose(const T* x_data, const std::vector<int>& x_shape,
                const std::vector<int>& perm, T* out_data) {
   std::vector<int> new_x_shape;
   std::vector<int> new_perm;
-  // Try to reduce the rank of the transposition by flattening any outer-most
+  // Try to reduce the rank of the transpose by flattening any outer-most
   // dimensions.
   const int non_flatten_size = flatten(x_shape, perm, &new_x_shape, &new_perm);
-  const int total_size = tfjs::util::size_from_shape(x_shape);
+  const int total_size = util::size_from_shape(x_shape);
   for (int offset = 0; offset < total_size; offset += non_flatten_size) {
     transpose_impl(x_data + offset, new_x_shape, new_perm, out_data + offset);
   }
 }
 
-}  // namespace
-
-namespace tfjs {
-namespace wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
