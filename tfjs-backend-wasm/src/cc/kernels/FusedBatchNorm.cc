@@ -17,10 +17,7 @@
 #endif
 
 #include <math.h>
-#include <vector>
-
 #include "src/cc/backend.h"
-#include "src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
@@ -46,10 +43,10 @@ void FusedBatchNorm(int x_id, int mean_id, int variance_id, int offset_id,
 
   float* out_buf = out_info.buf.f32;
 
-  int offi = 0;
-  int mi = 0;
-  int si = 0;
-  int vi = 0;
+  int offset_i = 0;
+  int mean_i = 0;
+  int scale_i = 0;
+  int variance_i = 0;
 
   float scale_buf_default[1] = {1};
   float* scale_buf;
@@ -75,27 +72,32 @@ void FusedBatchNorm(int x_id, int mean_id, int variance_id, int offset_id,
     offset_size = offset_info.size;
   }
 
+  float normalization_factor[variance_size];
+  for (int i = 0; i < variance_size; ++i) {
+    normalization_factor[i] = sqrt(variance_buf[i] + variance_epsilon);
+  }
+
   for (int i = 0; i < x_size; ++i) {
-    out_buf[i] =
-        offset_buf[offi] + (x_buf[i] - mean_buf[mi]) * scale_buf[si] /
-                               sqrt(variance_buf[vi] + variance_epsilon);
+    out_buf[i] = offset_buf[offset_i] + (x_buf[i] - mean_buf[mean_i]) *
+                                            scale_buf[scale_i] /
+                                            normalization_factor[variance_i];
 
-    offi = offi + 1;
-    mi = mi + 1;
-    si = si + 1;
-    vi = vi + 1;
+    offset_i = offset_i + 1;
+    mean_i = mean_i + 1;
+    scale_i = scale_i + 1;
+    variance_i = variance_i + 1;
 
-    if (offi >= offset_size) {
-      offi = 0;
+    if (offset_i >= offset_size) {
+      offset_i = 0;
     }
-    if (mi >= mean_size) {
-      mi = 0;
+    if (mean_i >= mean_size) {
+      mean_i = 0;
     }
-    if (si >= scale_size) {
-      si = 0;
+    if (scale_i >= scale_size) {
+      scale_i = 0;
     }
-    if (vi >= variance_size) {
-      vi = 0;
+    if (variance_i >= variance_size) {
+      variance_i = 0;
     }
   }
 }
