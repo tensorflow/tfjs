@@ -37,7 +37,7 @@ void transpose_2d(const T* x_data, const std::vector<int>& x_shape,
   }
 }
 
-// Reference:
+// Optimized transpose 3D. Reference:
 // https://github.com/tensorflow/tensorflow/blob/87388b7b6040bbf0baa67e4ef1ddc3e930ff6edd/tensorflow/lite/kernels/internal/optimized/optimized_ops.h#L7248
 template <typename T>
 void transpose_3d(const T* x_data, const std::vector<int>& x_shape,
@@ -88,6 +88,14 @@ void transpose_3d(const T* x_data, const std::vector<int>& x_shape,
   }
 }
 
+// Flatten finds the dimensions that can be flatten, shrinks the given shapes
+// and the given perm parameter to reflect the non-flatten dimensions, and
+// returns the total size of the non-flatten dimensions.
+//
+// E.g, Given shape [2, 3, 4, 5] and perm [0,1,3,2] case,
+// this method flattens the first two dimensions and returns a new shape [5,4],
+// new perm [1,0] and 4*5=20 as the total size of the non-flat dims. Reference:
+// https://github.com/tensorflow/tensorflow/blob/1f404fcaad58bf61a107d4fa7c4f6004168a50fa/tensorflow/lite/kernels/internal/transpose_utils.h#L42
 int flatten(const std::vector<int>& x_shape, const std::vector<int>& perm,
             std::vector<int>* new_x_shape_ptr, std::vector<int>* new_perm_ptr) {
   auto& new_input_shape = *new_x_shape_ptr;
@@ -135,6 +143,7 @@ void transpose_impl(const T* x_data, const std::vector<int>& x_shape,
   } else if (x_shape.size() == 3) {
     transpose_3d(x_data, x_shape, perm, out_data);
   } else {
+    // TODO(smilkov): Add a 4D transpose.
     tfjs::util::warn("WASM Transpose kernel does not yet support rank %d",
                      x_shape.size());
   }
@@ -145,6 +154,8 @@ void transpose(const T* x_data, const std::vector<int>& x_shape,
                const std::vector<int>& perm, T* out_data) {
   std::vector<int> new_x_shape;
   std::vector<int> new_perm;
+  // Try to reduce the rank of the transposition by flattening any outer-most
+  // dimensions.
   const int non_flatten_size = flatten(x_shape, perm, &new_x_shape, &new_perm);
   const int total_size = tfjs::util::size_from_shape(x_shape);
   for (int offset = 0; offset < total_size; offset += non_flatten_size) {
@@ -163,11 +174,8 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void Transpose(int x_id, int* x_shape_ptr, int x_shape_length, int out_id,
-               int* out_shape_ptr, int out_shape_length, int* perm_ptr,
-               int perm_length) {
+               int* perm_ptr, int perm_length) {
   auto x_shape = std::vector<int>(x_shape_ptr, x_shape_ptr + x_shape_length);
-  auto out_shape =
-      std::vector<int>(out_shape_ptr, out_shape_ptr + out_shape_length);
   auto perm = std::vector<int>(perm_ptr, perm_ptr + perm_length);
   const TensorInfo x_info = backend::get_tensor_info(x_id);
   const TensorInfo out_info = backend::get_tensor_info(out_id);

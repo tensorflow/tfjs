@@ -29,8 +29,7 @@ interface TransposeAttrs extends NamedAttrMap {
 
 let wasmTranspose: (
     xId: number, xShape: Uint8Array, xShapeLength: number, outId: number,
-    outShape: Uint8Array, outShapeLength: number, perm: Uint8Array,
-    permLength: number) => void;
+    perm: Uint8Array, permLength: number) => void;
 
 function setup(backend: BackendWasm) {
   wasmTranspose = backend.wasm.cwrap('Transpose', null /* void */, [
@@ -38,8 +37,6 @@ function setup(backend: BackendWasm) {
     'array',   // x.shape
     'number',  // x.shape.length
     'number',  // outId
-    'array',   // out.shape
-    'number',  // out.shape.length
     'array',   // perm
     'number',  // perm.length
   ]);
@@ -50,6 +47,8 @@ function transpose(
         {inputs: TransposeInputs, backend: BackendWasm, attrs: TransposeAttrs}):
     TensorInfo {
   const {inputs, backend, attrs} = args;
+  // Reduce any dimensions with size one. Lower-rank transpose kernel performs
+  // better due to simpler memory access pattern.
   const [reducedShape, perm] = removeOneSizeDims(inputs.x.shape, attrs.perm);
   const x = {
     dataId: inputs.x.dataId,
@@ -73,11 +72,10 @@ function transpose(
     const outId = backend.dataIdMap.get(out.dataId).id;
     const permBytes = new Uint8Array(new Int32Array(perm).buffer);
     const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
-    const outShapeBytes = new Uint8Array(new Int32Array(out.shape).buffer);
     wasmTranspose(
-        xId, xShapeBytes, x.shape.length, outId, outShapeBytes,
-        out.shape.length, permBytes, perm.length);
+        xId, xShapeBytes, x.shape.length, outId, permBytes, perm.length);
   } else {
+    // TODO(smilkov): Move the generic slow transpose to C++ for speed.
     const xVals = backend.typedArrayFromHeap(x);
     const outVals = backend.typedArrayFromHeap(out);
     genericSlowTranspose(xVals, x, outVals, out, perm);
