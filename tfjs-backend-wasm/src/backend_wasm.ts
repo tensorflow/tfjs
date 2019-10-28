@@ -115,6 +115,10 @@ export class BackendWasm extends KernelBackend {
     this.wasm = null;
   }
 
+  memory() {
+    return {unreliable: false};
+  }
+
   makeOutput(shape: number[], dtype: DataType): TensorInfo {
     const dataId = this.write(null /* values */, shape, dtype);
     return {dataId, shape, dtype};

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-// This script edits node_modules/@tensorflow/tfjs-core/dist/tests.jss to remove
+// This script edits node_modules/@tensorflow/tfjs-core/dist/tests.js to remove
 // tests that are incompatible with react native.
 
 import * as fs from 'fs';
@@ -25,5 +25,9 @@ const testsFilePath = path.resolve(
     __dirname, '../node_modules/@tensorflow/tfjs-core/dist/tests.js');
 const fileContents = fs.readFileSync(testsFilePath, 'utf-8');
 
-const newContents = fileContents.replace('require("./worker_node_test");', '');
+let newContents = fileContents.replace('require("./worker_node_test");', '');
+// disable the version test as we may be testing against a version that is not
+// yet depended on by the integration tests.
+newContents = newContents.replace('require("./version_test");', '');
+
 fs.writeFileSync(testsFilePath, newContents);

@@ -64,9 +64,19 @@ tfjs_cc_library(
     ":Div",
     ":Mul",
     ":Prelu",
+    ":FusedBatchNorm",
     ":Sigmoid",
     ":Sub",
   ]
+)
+
+tfjs_cc_library(
+  name = "FusedBatchNorm",
+  srcs = ["kernels/FusedBatchNorm.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
 )
 
 tfjs_cc_library(
@@ -130,6 +140,15 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "Sigmoid",
   srcs = ["kernels/Sigmoid.cc"],
+  deps = [
+    ":backend",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Square",
+  srcs = ["kernels/Square.cc"],
   deps = [
     ":backend",
     ":unary",
