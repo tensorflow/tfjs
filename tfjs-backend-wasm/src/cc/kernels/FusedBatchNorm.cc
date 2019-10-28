@@ -102,6 +102,6 @@ void FusedBatchNorm(int x_id, int mean_id, int variance_id, int offset_id,
   }
 }
 
-}  // namespace wasm
+}  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
