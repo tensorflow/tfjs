@@ -346,6 +346,8 @@ function batchNorm_<R extends Rank>(
     };
   };
 
+  const inputsToSave = [$x, $mean, $variance, $scale];
+
   const res = ENGINE.runKernelFunc(
       (backend, save) => {
         const res = backend.batchNormalization(
@@ -356,7 +358,7 @@ function batchNorm_<R extends Rank>(
         return res;
       },
       {x: $x, mean: $mean, variance: $variance, scale: $scale, offset: $offset},
-      der, 'BatchNormalization', {varianceEpsilon});
+      der, 'BatchNormalization', {varianceEpsilon}, inputsToSave);
   return res.reshape($x.shape);
 }
 
