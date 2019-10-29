@@ -9,7 +9,7 @@ KERNELS_WITH_KEEPALIVE = glob(
 
 cc_binary(
     name = "tfjs-backend-wasm.js",
-    # srcs = ['util.cc', 'backend.cc'] + KERNELS_WITH_KEEPALIVE,
+    srcs = ['backend.cc'] + KERNELS_WITH_KEEPALIVE,
     linkopts = [
         "-s ALLOW_MEMORY_GROWTH=1",
         "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
@@ -66,7 +66,7 @@ tfjs_cc_library(
     ":Prelu",
     ":Sigmoid",
     ":Sub",
-    # ":Transpose",
+    ":Transpose",
   ]
 )
 
@@ -156,14 +156,14 @@ tfjs_cc_library(
   ],
 )
 
-# tfjs_cc_library(
-#   name = "Transpose",
-#   srcs = ["kernels/Transpose.cc"],
-#   deps = [
-#     ":backend",
-#     ":util",
-#   ],
-# )
+tfjs_cc_library(
+  name = "Transpose",
+  srcs = ["kernels/Transpose.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
 
 tfjs_cc_library(
   name = "util",

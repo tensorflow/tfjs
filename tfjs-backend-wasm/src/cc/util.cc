@@ -12,108 +12,12 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include <string.h>
-#include <cstdarg>
-#include <cstdio>
 #include <vector>
 
 #include "src/cc/util.h"
 
 namespace tfjs {
-namespace wasm {
-inline void print_log(const char* format, va_list args) {
-  // TODO(smilkov): Bind directly to `console.log` instead of depending on
-  // stdio, to reduce wasm binary size.
-  vfprintf(stdout, format, args);
-}
-
-inline void print_warn(const char* format, va_list args) {
-  // TODO(smilkov): Bind directly to `console.warn` instead of depending on
-  // stdio, to reduce wasm binary size.
-  vfprintf(stderr, format, args);
-}
-
-// Logs the message to the console without flushing.
-inline void print_log(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  print_log(format, args);
-}
-
-inline void print_warn(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  print_warn(format, args);
-}
-
-// Logs and flushes the message to the js console (console.log).
-inline void log(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  print_log(format, args);
-  print_log("\n");
-}
-
-// Logs and flushes the message to the js console (console.err).
-inline void warn(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  print_warn(format, args);
-  print_warn("\n");
-}
-
-// Helper method to log values in a vector. Used for debugging.
-template <class T>
-inline void log_vector(const std::vector<T>& v) {
-  print_log("[", 0);
-  for (auto const& value : v) {
-    print_log("%d,", value);
-  }
-  print_log("]\n", 0);
-}
-
-// Returns the size of the vector, given its shape.
-inline int size_from_shape(const std::vector<int>& shape) {
-  int prod = 1;
-  for (const auto& v : shape) {
-    prod *= v;
-  }
-  return prod;
-}
-
-inline std::vector<int> index_to_loc(int index,
-                                     const std::vector<int>& strides) {
-  int rank = strides.size() + 1;
-  std::vector<int> loc(rank);
-  if (rank == 0) {
-    return loc;
-  } else if (rank == 1) {
-    loc[0] = index;
-    return loc;
-  }
-  for (int i = 0; i < rank - 1; ++i) {
-    int stride = strides[i];
-    loc[i] = index / stride;
-    index -= loc[i] * stride;
-  }
-  loc[rank - 1] = index;
-  return loc;
-}
-
-inline int loc_to_index(const std::vector<int>& loc,
-                        const std::vector<int>& strides) {
-  int rank = loc.size();
-  if (rank == 0) {
-    return 0;
-  } else if (rank == 1) {
-    return loc[0];
-  }
-  int index = loc[loc.size() - 1];
-  for (int i = 0; i < loc.size() - 1; ++i) {
-    index += strides[i] * loc[i];
-  }
-  return index;
-}
+namespace util {
 
 std::vector<int> compute_strides(const std::vector<int> shape) {
   int rank = shape.size();
@@ -126,5 +30,6 @@ std::vector<int> compute_strides(const std::vector<int> shape) {
   }
   return strides;
 }
-}  // namespace wasm
+
+}  // namespace util
 }  // namespace tfjs
