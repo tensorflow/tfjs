@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import {getEnumKeyFromValue, getMetaGraphsFromSavedModel, readSavedModelProto} from './saved_model';
+import * as tf from './index';
+import {nodeBackend} from './nodejs_kernel_backend';
+import {getEnumKeyFromValue, getInputAndOutputNodeNameFromMetaGraphInfo, readSavedModelProto} from './saved_model';
 
 // tslint:disable-next-line:no-require-imports
 const messages = require('./proto/api_pb');
@@ -122,27 +124,38 @@ describe('SavedModel', () => {
   });
 
   it('inspect SavedModel metagraphs', async () => {
-    const modelInfo =
-        await getMetaGraphsFromSavedModel('./test_objects/times_three_float');
+    const modelInfo = await tf.node.getMetaGraphsFromSavedModel(
+        './test_objects/times_three_float');
     /**
      * The inspection output should be
      * [{
      *  'tags': ['serve'],
      *  'signatureDefs': {
      *      '__saved_model_init_op': {
-     *        'inputs': [],
-     *        'outputs': [{'dtype': 'DT_INVALID', 'name': 'NoOp', 'shape': []}]
+     *        'inputs': {},
+     *        'outputs': {
+     *          '__saved_model_init_op': {
+     *            'dtype': 'DT_INVALID',
+     *            'name': 'NoOp',
+     *            'shape': []
+     *          }
+     *        }
      *      },
      *      'serving_default': {
-     *        'inputs': [
-     *          {'dtype': 'DT_FLOAT', 'name': 'serving_default_x:0', 'shape':
-     * []}
-     *        ],
-     *        'outputs': [{
-     *          'dtype': 'DT_FLOAT',
-     *          'name': 'StatefulPartitionedCall:0',
-     *          'shape': []
-     *        }]
+     *        'inputs': {
+     *          'x': {
+     *            'dtype': 'DT_FLOAT',
+     *            'name': 'serving_default_x:0',
+     *            'shape':[]
+     *          }
+     *        },
+     *        'outputs': {
+     *          'output_0': {
+     *            'dtype': 'DT_FLOAT',
+     *            'name': 'StatefulPartitionedCall:0',
+     *            'shape': []
+     *          }
+     *        }
      *      }
      *   }
      * }]
@@ -170,5 +183,126 @@ describe('SavedModel', () => {
     expect(
         modelInfo[0].signatureDefs['serving_default'].outputs['output_0'].dtype)
         .toBe('DT_FLOAT');
+  });
+
+  it('get input and output node names from SavedModel metagraphs', async () => {
+    const modelInfo = await tf.node.getMetaGraphsFromSavedModel(
+        './test_objects/times_three_float');
+    const inputAndOutputNodeNames = getInputAndOutputNodeNameFromMetaGraphInfo(
+        modelInfo, ['serve'], 'serving_default');
+    expect(inputAndOutputNodeNames.length).toBe(2);
+    expect(inputAndOutputNodeNames[0].length).toBe(1);
+    expect(inputAndOutputNodeNames[0][0]).toBe('serving_default_x:0');
+    expect(inputAndOutputNodeNames[1].length).toBe(1);
+    expect(inputAndOutputNodeNames[1][0]).toBe('StatefulPartitionedCall:0');
+  });
+
+  it('load TFSavedModel', async () => {
+    const loadSavedModelMetaGraphSpy =
+        spyOn(nodeBackend(), 'loadSavedModelMetaGraph').and.callThrough();
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
+    const model = await tf.node.loadSavedModel(
+        './test_objects/times_three_float', ['serve'], 'serving_default');
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    model.dispose();
+  });
+
+  it('load TFSavedModel with wrong tags throw exception', async done => {
+    try {
+      await tf.node.loadSavedModel(
+          './test_objects/times_three_float', ['serve', 'gpu'],
+          'serving_default');
+      done.fail();
+    } catch (error) {
+      expect(error.message)
+          .toBe('The SavedModel does not have tags: serve,gpu');
+      done();
+    }
+  });
+
+  it('load TFSavedModel with wrong signature throw exception', async done => {
+    try {
+      await tf.node.loadSavedModel(
+          './test_objects/times_three_float', ['serve'], 'wrong_signature');
+      done.fail();
+    } catch (error) {
+      expect(error.message)
+          .toBe('The SavedModel does not have signature: wrong_signature');
+      done();
+    }
+  });
+
+  it('load TFSavedModel and delete', async () => {
+    const loadSavedModelMetaGraphSpy =
+        spyOn(nodeBackend(), 'loadSavedModelMetaGraph').and.callThrough();
+    const deleteSavedModelSpy =
+        spyOn(nodeBackend(), 'deleteSavedModel').and.callThrough();
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
+    expect(deleteSavedModelSpy).toHaveBeenCalledTimes(0);
+    const model = await tf.node.loadSavedModel(
+        './test_objects/times_three_float', ['serve'], 'serving_default');
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    expect(deleteSavedModelSpy).toHaveBeenCalledTimes(0);
+    model.dispose();
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    expect(deleteSavedModelSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('delete TFSavedModel multiple times throw exception', async done => {
+    const model = await tf.node.loadSavedModel(
+        './test_objects/times_three_float', ['serve'], 'serving_default');
+    model.dispose();
+    try {
+      model.dispose();
+      done.fail();
+    } catch (error) {
+      expect(error.message).toBe('This SavedModel has already been deleted.');
+      done();
+    }
+  });
+
+  it('load multiple signatures from the same metagraph only call binding once',
+     async () => {
+       const backend = nodeBackend();
+       const loadSavedModelMetaGraphSpy =
+           spyOn(backend, 'loadSavedModelMetaGraph').and.callThrough();
+       expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
+       const signature1 = await tf.node.loadSavedModel(
+           './test_objects/module_with_multiple_signatures', ['serve'],
+           'serving_default');
+       expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+       const signature2 = await tf.node.loadSavedModel(
+           './test_objects/module_with_multiple_signatures', ['serve'],
+           'timestwo');
+       expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+       signature1.dispose();
+       signature2.dispose();
+       expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+     });
+
+  it('load signature after delete call binding', async () => {
+    const backend = nodeBackend();
+    const spyOnCallBindingLoad =
+        spyOn(backend, 'loadSavedModelMetaGraph').and.callThrough();
+    const spyOnNodeBackendDelete =
+        spyOn(backend, 'deleteSavedModel').and.callThrough();
+    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(0);
+    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(0);
+    const signature1 = await tf.node.loadSavedModel(
+        './test_objects/module_with_multiple_signatures', ['serve'],
+        'serving_default');
+    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(1);
+    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(0);
+    signature1.dispose();
+    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(1);
+    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(1);
+    const signature2 = await tf.node.loadSavedModel(
+        './test_objects/module_with_multiple_signatures', ['serve'],
+        'timestwo');
+    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(2);
+    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(1);
+    signature2.dispose();
+    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(2);
+    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(2);
   });
 });

@@ -152,7 +152,9 @@ module.exports = function(config) {
       win_10_chrome: {
         base: 'BrowserStack',
         browser: 'chrome',
-        browser_version: 'latest',
+        // Latest Chrome on Windows has WebGL problems:
+        // https://github.com/tensorflow/tfjs/issues/2272
+        browser_version: '77.0',
         os: 'Windows',
         os_version: '10'
       },
