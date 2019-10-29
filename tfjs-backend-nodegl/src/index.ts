@@ -25,11 +25,11 @@ const nodeGl = nodeGles.binding.createWebGLRenderingContext();
 
 // TODO(kreeger): These are hard-coded GL integration flags. These need to be
 // updated to ensure they work on all systems with proper exception reporting.
-tf.ENV.set('WEBGL_VERSION', 2);
-tf.ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', true);
-tf.ENV.set('WEBGL_DOWNLOAD_FLOAT_ENABLED', true);
-tf.ENV.set('WEBGL_FENCE_API_ENABLED', true);  // OpenGL ES 3.0 and higher..
-tf.ENV.set(
+tf.env().set('WEBGL_VERSION', 2);
+tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', true);
+tf.env().set('WEBGL_DOWNLOAD_FLOAT_ENABLED', true);
+tf.env().set('WEBGL_FENCE_API_ENABLED', true);  // OpenGL ES 3.0 and higher..
+tf.env().set(
     'WEBGL_MAX_TEXTURE_SIZE', nodeGl.getParameter(nodeGl.MAX_TEXTURE_SIZE));
 tf.webgl.setWebGLContext(2, nodeGl);
 

@@ -81,7 +81,7 @@ export class MatMulProgram implements WebGPUProgram {
   ]) {
     const bShape = [outputShape[0], aShape[2], outputShape[2]];
     this.outputShape = outputShape;
-    this.dispatchLayout = {x: [1], y: [2], z: [0]};
+    this.dispatchLayout = {x: [2], y: [1], z: [0]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 

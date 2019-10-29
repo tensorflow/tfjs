@@ -40,17 +40,39 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "unary",
+  srcs = ["unary.h"],
+  deps = [
+    ":backend",
+  ],
+)
+
+tfjs_cc_library(
+  name = "binary",
+  srcs = ["binary.h"],
+  deps = [
+    ":backend",
+  ],
+)
+
+tfjs_cc_library(
   name = "all_kernels",
   deps = [
-    ":add",
-    ":batch_matmul",
-    ":prelu",
+    ":Abs",
+    ":Add",
+    ":BatchMatMul",
+    ":Div",
+    ":Mul",
+    ":Prelu",
+    ":FusedBatchNorm",
+    ":Sigmoid",
+    ":Sub",
   ]
 )
 
 tfjs_cc_library(
-  name = "add",
-  srcs = ["kernels/add.cc"],
+  name = "FusedBatchNorm",
+  srcs = ["kernels/FusedBatchNorm.cc"],
   deps = [
     ":backend",
     ":util",
@@ -58,8 +80,27 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-  name = "batch_matmul",
-  srcs = ["kernels/batch_matmul.cc"],
+  name = "Abs",
+  srcs = ["kernels/Abs.cc"],
+  deps = [
+    ":backend",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Add",
+  srcs = ["kernels/Add.cc"],
+  deps = [
+    ":backend",
+    ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "BatchMatMul",
+  srcs = ["kernels/BatchMatMul.cc"],
   deps = [
     ":backend",
     ":util",
@@ -67,11 +108,59 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-  name = "prelu",
-  srcs = ["kernels/prelu.cc"],
-  hdrs = ["kernels/prelu.h"],
+  name = "Div",
+  srcs = ["kernels/Div.cc"],
   deps = [
     ":backend",
+    ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Mul",
+  srcs = ["kernels/Mul.cc"],
+  deps = [
+    ":backend",
+    ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Prelu",
+  srcs = ["kernels/Prelu.cc"],
+  hdrs = ["kernels/Prelu.h"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Sigmoid",
+  srcs = ["kernels/Sigmoid.cc"],
+  deps = [
+    ":backend",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Square",
+  srcs = ["kernels/Square.cc"],
+  deps = [
+    ":backend",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Sub",
+  srcs = ["kernels/Sub.cc"],
+  deps = [
+    ":backend",
+    ":binary",
     ":util",
   ],
 )
@@ -90,14 +179,14 @@ tfjs_unit_test(
   srcs = ["backend_test.cc"],
   deps = [
     ":backend",
-    ":prelu",
+    ":Prelu",
   ]
 )
 
 tfjs_unit_test(
-  name = "prelu_test",
-  srcs = ["kernels/prelu_test.cc"],
+  name = "Prelu_test",
+  srcs = ["kernels/Prelu_test.cc"],
   deps = [
-    ":prelu",
+    ":Prelu",
   ]
 )

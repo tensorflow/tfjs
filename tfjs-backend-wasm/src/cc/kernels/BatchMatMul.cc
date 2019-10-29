@@ -16,8 +16,6 @@
 #include <emscripten.h>
 #endif
 
-#include <math.h>
-
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
@@ -31,16 +29,16 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void batch_matmul(int a_id, int b_id, int shared_dim, int left_dim,
-                  int right_dim, int batch_dim, int a_batch, int a_outer_step,
-                  int a_inner_step, int b_batch, int b_outer_step,
-                  int b_inner_step, int out_id) {
+void BatchMatMul(int a_id, int b_id, int shared_dim, int left_dim,
+                 int right_dim, int batch_dim, int a_batch, int a_outer_step,
+                 int a_inner_step, int b_batch, int b_outer_step,
+                 int b_inner_step, int out_id) {
   const TensorInfo a_info = backend::get_tensor_info(a_id);
   const TensorInfo b_info = backend::get_tensor_info(b_id);
   const TensorInfo out_info = backend::get_tensor_info(out_id);
 
   if (a_info.dtype != DType::float32) {
-    util::warn("batch_matmul for tensor ids %d and %d failed. Unknown dtype %d",
+    util::warn("BatchMatMul for tensor ids %d and %d failed. Unknown dtype %d",
                a_id, b_id, a_info.dtype);
   }
 
@@ -51,7 +49,7 @@ void batch_matmul(int a_id, int b_id, int shared_dim, int left_dim,
   int size = left_dim * right_dim;
 
   // Zero out the output buffer because it might have been used before.
-  std::fill(out_buf, out_buf + size, 0);
+  std::fill(out_buf, out_buf + batch_dim * size, 0);
 
   for (int b = 0; b < batch_dim; b++) {
     for (int i0 = 0; i0 < left_dim; i0 += kBlockSize) {

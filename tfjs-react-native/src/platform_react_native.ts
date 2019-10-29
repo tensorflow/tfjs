@@ -167,7 +167,7 @@ function registerWebGLBackend() {
       const glContext = await GLView.createContextAsync();
 
       // ExpoGl getBufferSubData is not implemented yet (throws an exception).
-      tf.ENV.set('WEBGL_BUFFER_SUPPORTED', false);
+      tf.env().set('WEBGL_BUFFER_SUPPORTED', false);
 
       //
       // Mock extension support for EXT_color_buffer_float and
@@ -226,15 +226,23 @@ function registerWebGLBackend() {
 
       return backend;
     }, PRIORITY);
+
+    // Register all the webgl kernels on the rn-webgl backend
+    const kernels = tf.getKernelsForBackend('webgl');
+    kernels.forEach(kernelConfig => {
+      const newKernelConfig =
+          Object.assign({}, kernelConfig, {backendName: 'rn-webgl'});
+      tf.registerKernel(newKernelConfig);
+    });
   } catch (e) {
     throw (new Error(`Failed to register Webgl backend: ${e.message}`));
   }
 }
 
-tf.ENV.registerFlag(
+tf.env().registerFlag(
     'IS_REACT_NATIVE', () => navigator && navigator.product === 'ReactNative');
 
-if (tf.ENV.getBool('IS_REACT_NATIVE')) {
+if (tf.env().getBool('IS_REACT_NATIVE')) {
   setupGlobals();
   registerWebGLBackend();
   tf.setPlatform('react-native', new PlatformReactNative());
