@@ -201,8 +201,8 @@ def fold_batch_norms(input_graph_def):
             scaled_weights, weights.dtype.type, weights.shape)))
     # Replace the weights node with scaled weights node
     for i, weights_node in enumerate(conv_op.input):
-          if weights_node == weights_op.name:
-            conv_op.input[i] = scaled_weights_op.name
+      if weights_node == weights_op.name:
+        conv_op.input[i] = scaled_weights_op.name
 
     new_conv_op = node_def_pb2.NodeDef()
     new_conv_op.CopyFrom(conv_op)

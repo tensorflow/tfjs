@@ -210,7 +210,7 @@ def _generate_fused_batchnorm(data_format, conv2d_func, count=1):
   gamma_op = constant_op.constant(
       np.array([1.0, 2.0]), shape=[2], dtype=dtypes.float32)
   ops.get_default_graph().graph_def_versions.producer = 9
-  for x in range(count):
+  for _ in range(count):
     conv_op = conv2d_func(
         input_op,
         weights_op, [1, 1, 1, 1],
