@@ -47,7 +47,6 @@ function min(args: {backend: BackendWasm, inputs: MinInputs, attrs: MinAttrs}):
   const reduceSize = util.sizeFromShape(reduceShape);
 
   const out = backend.makeOutput(outShape, x.dtype);
-  // Short-circuit zero-sized tensors.
   if (util.sizeFromShape(x.shape) === 0) {
     return out;
   }
