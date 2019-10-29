@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -24,7 +24,7 @@ interface MaxInputs extends NamedTensorInfoMap {
 }
 
 interface MaxAttrs extends NamedAttrMap {
-  axis: number;
+  axes: number[];
 }
 
 let wasmMax: (xId: number, axis: number, outId: number) => void;
@@ -37,11 +37,16 @@ function setup(backend: BackendWasm): void {
 function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
     TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {axis} = attrs;
+  const {axes} = attrs;
   const {x} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
 
-  const out = backend.makeOutput(x.shape, x.dtype);
+  backend_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
+  const [outShape, reduceShape] =
+      backend_util.computeOutAndReduceShapes(x.shape, axes);
+  const reduceSize = util.sizeFromShape(reduceShape);
+
+  const out = backend.makeOutput(outShape, x.dtype);
   // Short-circuit zero-sized tensors.
   if (util.sizeFromShape(x.shape) === 0) {
     return out;
@@ -49,7 +54,7 @@ function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
 
   const outId = backend.dataIdMap.get(out.dataId).id;
 
-  wasmMax(xId, axis, outId);
+  wasmMax(xId, reduceSize, outId);
   return out;
 }
 
