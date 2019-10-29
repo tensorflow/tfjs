@@ -134,6 +134,9 @@ def fuse_ops_for_prelu(input_graph_def):
 
     relu_input_op.op = 'Prelu'
     relu_input_op.input.extend([alpha_tensor_name])
+    # Remove the T attr that is defined in Relu op, since our custom Prelu op
+    # definition does not have that.
+    del relu_input_op.attr['T']
 
     node.op = 'Identity'
     del node.input[:]
