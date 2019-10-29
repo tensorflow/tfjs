@@ -27,7 +27,7 @@ interface MinAttrs extends NamedAttrMap {
   axes: number[];
 }
 
-let wasmMin: (xId: number, axis: number, outId: number) => void;
+let wasmMin: (xId: number, reduceSize: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmMin =

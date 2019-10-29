@@ -28,7 +28,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Min(int x_id, int axis, int out_id) {
+void Min(int x_id, int reduce_size, int out_id) {
   const auto x_info = backend::get_tensor_info(x_id);
   const auto out_info = backend::get_tensor_info(out_id);
 
@@ -36,8 +36,19 @@ void Min(int x_id, int axis, int out_id) {
   int x_size = x_info.size;
 
   float* out_buf = out_info.buf.f32;
+  int out_size = out_info.size;
 
-  out_buf[0] = 100;
+  for (int i = 0; i < out_size; ++i) {
+    int offset = i * reduce_size;
+    float min = x_buf[offset];
+    for (int j = 0; j < reduce_size; ++j) {
+      float value = x_buf[offset + j];
+      if (value < min) {
+        min = value;
+      }
+    }
+    out_buf[i] = min;
+  }
 }
 
 }  // extern "C"

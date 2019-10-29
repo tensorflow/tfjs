@@ -27,7 +27,7 @@ interface MaxAttrs extends NamedAttrMap {
   axes: number[];
 }
 
-let wasmMax: (xId: number, axis: number, outId: number) => void;
+let wasmMax: (xId: number, reduceSize: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmMax =
