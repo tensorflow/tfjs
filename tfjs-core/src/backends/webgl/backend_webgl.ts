@@ -1923,7 +1923,9 @@ export class MathBackendWebGL extends KernelBackend {
     const targetShape = isChannelsLast ?
         xShape[0] * xShape[1] * (xShape[2] + 1) :
         xShape[0] * xShape[2] * (xShape[3] + 1);
-    const xReshaped = this.reshape(x, [1, targetShape, convInfo.inChannels]);
+
+    const xReshaped = ENGINE.makeTensorFromDataId(
+        x.dataId, [1, targetShape, convInfo.inChannels], x.dtype);
 
     // xTexData.shape gets referenced from GPGPUBinary.inShapeInfos.
     // Decrementing row count, after batchMatMul->...->compileProgram leads to
@@ -1961,7 +1963,9 @@ export class MathBackendWebGL extends KernelBackend {
     // Set the output shape - there is no need for expensive reshape as data
     // layout is already correct.
     pointwiseConvTexData.shape = convInfo.outShape;
-    return this.reshape(pointwiseConv, convInfo.outShape);
+    return ENGINE.makeTensorFromDataId(
+               pointwiseConv.dataId, convInfo.outShape, pointwiseConv.dtype) as
+        Tensor4D;
   }
 
   private conv2dWithIm2Row(
