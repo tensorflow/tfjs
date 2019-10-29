@@ -137,7 +137,8 @@ class ConvertTest(tf.test.TestCase):
     """Test a basic model with fusable conv2d."""
     layers = [
         tf.keras.layers.Conv2D(
-            16, [3, 3], padding='same', use_bias=True),
+            16, [3, 3], padding='same', use_bias=True,
+            bias_initializer=tf.initializers.constant(0.25)),
         tf.keras.layers.PReLU()
     ]
     model = tf.keras.Sequential(layers)
@@ -278,6 +279,7 @@ class ConvertTest(tf.test.TestCase):
         '',
         saved_model_tags=tf.saved_model.tag_constants.SERVING,
         input_saved_model_dir=saved_model_dir)
+
   def test_convert_saved_model_v1(self):
     self._create_saved_model_v1()
 
