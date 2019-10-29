@@ -322,7 +322,6 @@ function min_<T extends Tensor>(
       gradForMinAndMax(dy, saved[1], saved[0], origAxes, permutedAxes);
 
   const inputsToSave = [$x];
-
   let res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.min($x, axes);
     save([xOrig, y]);
@@ -378,6 +377,7 @@ function max_<T extends Tensor>(
 
   const grad = (dy: T, saved: Tensor[]) =>
       gradForMinAndMax(dy, saved[1], saved[0], origAxes, permutedAxes);
+
   const inputsToSave = [$x];
   let res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.max($x, axes);
