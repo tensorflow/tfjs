@@ -19,8 +19,7 @@
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
-namespace tfjs {
-namespace wasm {
+namespace {
 
 // Optimized transpose 2D that uses direct pointer arithmetic instead of bracket
 // indexing.
@@ -75,17 +74,94 @@ void transpose_3d(const T* x_data, const std::vector<int>& x_shape,
     p3 = s2 * s3;
   }
 
-  int o_s[3];
-  o_s[0] = x_shape[perm[0]];
-  o_s[1] = x_shape[perm[1]];
-  o_s[2] = x_shape[perm[2]];
+  int out_shape[3];
+  out_shape[0] = x_shape[perm[0]];
+  out_shape[1] = x_shape[perm[1]];
+  out_shape[2] = x_shape[perm[2]];
+  const int out_stride1 = out_shape[1] * out_shape[2];
+  const int out_stride2 = out_shape[2];
 
-  for (int i1 = 0; i1 < o_s[0]; ++i1) {
-    for (int i2 = 0; i2 < o_s[1]; ++i2) {
-      for (int i3 = 0; i3 < o_s[2]; ++i3) {
-        const int i = i1 * p1 + i2 * p2 + i3 * p3;
-        const int o = i1 * o_s[1] * o_s[2] + i2 * o_s[2] + i3;
+  for (int i1 = 0; i1 < out_shape[0]; ++i1) {
+    for (int i2 = 0; i2 < out_shape[1]; ++i2) {
+      for (int i3 = 0; i3 < out_shape[2]; ++i3) {
+        const int i = tfjs::util::offset(i1, i2, i3, 0, p1, p2, p3);
+        const int o = tfjs::util::offset(i1, i2, i3, out_stride1, out_stride2);
         out_data[o] = x_data[i];
+      }
+    }
+  }
+}
+
+// Optimized transpose 3D. Reference:
+// https://github.com/tensorflow/tensorflow/blob/87388b7b6040bbf0baa67e4ef1ddc3e930ff6edd/tensorflow/lite/kernels/internal/optimized/optimized_ops.h#L7248
+template <typename T>
+void transpose_4d(const T* x_data, const std::vector<int>& x_shape,
+                  const std::vector<int>& perm, T* out_data) {
+  int s1, s2, s3, s4;
+  s1 = x_shape[0];
+  s2 = x_shape[1];
+  s3 = x_shape[2];
+  s4 = x_shape[3];
+
+  int p1, p2, p3, p4;
+  if (perm[0] == 3) {
+    p1 = 1;
+  } else if (perm[1] == 3) {
+    p2 = 1;
+  } else if (perm[2] == 3) {
+    p3 = 1;
+  } else {
+    p4 = 1;
+  }
+
+  if (perm[0] == 2) {
+    p1 = s4;
+  } else if (perm[1] == 2) {
+    p2 = s4;
+  } else if (perm[2] == 2) {
+    p3 = s4;
+  } else {
+    p4 = s4;
+  }
+
+  if (perm[0] == 1) {
+    p1 = s3 * s4;
+  } else if (perm[1] == 1) {
+    p2 = s3 * s4;
+  } else if (perm[2] == 1) {
+    p3 = s3 * s4;
+  } else {
+    p4 = s3 * s4;
+  }
+
+  if (perm[0] == 0) {
+    p1 = s2 * s3 * s4;
+  } else if (perm[1] == 0) {
+    p2 = s2 * s3 * s4;
+  } else if (perm[2] == 0) {
+    p3 = s2 * s3 * s4;
+  } else {
+    p4 = s2 * s3 * s4;
+  }
+
+  int out_shape[4];
+  out_shape[0] = x_shape[perm[0]];
+  out_shape[1] = x_shape[perm[1]];
+  out_shape[2] = x_shape[perm[2]];
+  out_shape[3] = x_shape[perm[3]];
+  const int out_stride1 = out_shape[1] * out_shape[2] * out_shape[3];
+  const int out_stride2 = out_shape[2] * out_shape[3];
+  const int out_stride3 = out_shape[3];
+
+  for (int i1 = 0; i1 < out_shape[0]; ++i1) {
+    for (int i2 = 0; i2 < out_shape[1]; ++i2) {
+      for (int i3 = 0; i3 < out_shape[2]; ++i3) {
+        for (int i4 = 0; i4 < out_shape[3]; ++i4) {
+          const int i = tfjs::util::offset(i1, i2, i3, i4, 0, p1, p2, p3, p4);
+          const int o = tfjs::util::offset(i1, i2, i3, i4, out_stride1,
+                                           out_stride2, out_stride3);
+          out_data[o] = x_data[i];
+        }
       }
     }
   }
@@ -94,16 +170,16 @@ void transpose_3d(const T* x_data, const std::vector<int>& x_shape,
 template <typename T>
 void slow_transpose_nd(const T* x_data, const std::vector<int>& x_shape,
                        const std::vector<int>& perm, T* out_data) {
-  const int size = util::size_from_shape(x_shape);
-  const auto x_strides = util::compute_strides(x_shape);
+  const int size = tfjs::util::size_from_shape(x_shape);
+  const auto x_strides = tfjs::util::compute_strides(x_shape);
   std::vector<int> out_shape(x_shape.size());
   for (int i = 0; i < x_shape.size(); ++i) {
     out_shape[i] = x_shape[perm[i]];
   }
-  const auto out_strides = util::compute_strides(out_shape);
+  const auto out_strides = tfjs::util::compute_strides(out_shape);
 
   for (int i = 0; i < size; ++i) {
-    const auto loc = util::index_to_loc(i, x_strides);
+    const auto loc = tfjs::util::offset_to_loc(i, x_strides);
 
     // Permute location.
     std::vector<int> new_loc(loc.size());
@@ -111,7 +187,7 @@ void slow_transpose_nd(const T* x_data, const std::vector<int>& x_shape,
       new_loc[i] = loc[perm[i]];
     }
 
-    const int new_i = util::loc_to_index(new_loc, out_strides);
+    const int new_i = tfjs::util::loc_to_offset(new_loc, out_strides);
     out_data[new_i] = x_data[i];
   }
 }
@@ -132,7 +208,7 @@ int flatten(const std::vector<int>& x_shape, const std::vector<int>& perm,
   // Calculate the total size of non-flatten dimensions.
   int num_dims_to_skip = 0;
   int rank = perm.size();
-  int flat_size = util::size_from_shape(x_shape);
+  int flat_size = tfjs::util::size_from_shape(x_shape);
   for (int i = 0; i < rank; ++i) {
     if (perm[i] == i) {
       flat_size /= x_shape[i];
@@ -170,8 +246,9 @@ void transpose_impl(const T* x_data, const std::vector<int>& x_shape,
     transpose_2d(x_data, x_shape, out_data);
   } else if (x_shape.size() == 3) {
     transpose_3d(x_data, x_shape, perm, out_data);
+  } else if (x_shape.size() == 4) {
+    transpose_4d(x_data, x_shape, perm, out_data);
   } else {
-    // TODO(smilkov): Add a 4D transpose.
     slow_transpose_nd(x_data, x_shape, perm, out_data);
   }
 }
@@ -184,12 +261,16 @@ void transpose(const T* x_data, const std::vector<int>& x_shape,
   // Try to reduce the rank of the transpose by flattening any outer-most
   // dimensions.
   const int non_flatten_size = flatten(x_shape, perm, &new_x_shape, &new_perm);
-  const int total_size = util::size_from_shape(x_shape);
+  const int total_size = tfjs::util::size_from_shape(x_shape);
   for (int offset = 0; offset < total_size; offset += non_flatten_size) {
     transpose_impl(x_data + offset, new_x_shape, new_perm, out_data + offset);
   }
 }
 
+}  // namespace
+
+namespace tfjs {
+namespace wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 

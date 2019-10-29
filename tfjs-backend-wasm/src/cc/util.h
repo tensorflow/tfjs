@@ -83,8 +83,9 @@ inline int size_from_shape(const std::vector<int>& shape) {
   return prod;
 }
 
-inline std::vector<int> index_to_loc(int index,
-                                     const std::vector<int>& strides) {
+// Returns the indices of an n-dim tensor given the flat offset and its strides.
+inline std::vector<int> offset_to_loc(int index,
+                                      const std::vector<int>& strides) {
   int rank = strides.size() + 1;
   std::vector<int> loc(rank);
   if (rank == 0) {
@@ -102,8 +103,9 @@ inline std::vector<int> index_to_loc(int index,
   return loc;
 }
 
-inline int loc_to_index(const std::vector<int>& loc,
-                        const std::vector<int>& strides) {
+// Returns the flat offset of an n-dim tensor given the indices and strides.
+inline int loc_to_offset(const std::vector<int>& loc,
+                         const std::vector<int>& strides) {
   int rank = loc.size();
   if (rank == 0) {
     return 0;
@@ -117,6 +119,27 @@ inline int loc_to_index(const std::vector<int>& loc,
   return index;
 }
 
+// Returns the flat offset of a 2D tensor given the indices and the stride.
+inline int offset(int i1, int i2, int s1) { return i1 * s1 + i2; }
+
+// Returns the flat offset of a 3D tensor given the indices and the strides.
+inline int offset(int i1, int i2, int i3, int s1, int s2) {
+  return i1 * s1 + i2 * s2 + i3;
+}
+
+// Returns the flat offset of a 4D tensor given the indices and the strides.
+inline int offset(int i1, int i2, int i3, int i4, int s1, int s2, int s3) {
+  return i1 * s1 + i2 * s2 + i3 * s3 + i4;
+}
+
+// Returns the flat offset of a 5D tensor given the indices and the strides.
+inline int offset(int i1, int i2, int i3, int i4, int i5, int s1, int s2,
+                  int s3, int s4) {
+  return i1 * s1 + i2 * s2 + i3 * s3 + i4 * s4 + i5;
+}
+
+// Returns the strides of a tensor given its shape. Note that the strides
+// are of length R-1 where R is the rank of the tensor.
 std::vector<int> compute_strides(const std::vector<int> shape);
 
 }  // namespace util
