@@ -741,6 +741,7 @@ describeWithFlags('slice a packed texture', WEBGL_ENVS, () => {
   });
 });
 
+// TODO(annyuan, smilkov) Make this test pass for WEBGL_PACK=false.
 describeWithFlags('pointwise conv2d packed', WEBGL_ENVS, () => {
   beforeAll(() => {
     tf.env().set('WEBGL_SIZE_UPLOAD_UNIFORM', 0);
