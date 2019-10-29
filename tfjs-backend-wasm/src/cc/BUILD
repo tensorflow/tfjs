@@ -177,7 +177,8 @@ tfjs_cc_library(
 
 tfjs_cc_library(
   name = "util",
-  srcs = ["util.h"],
+  hdrs = ["util.h"],
+  srcs = ["util.cc"],
 )
 
 test_suite(

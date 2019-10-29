@@ -15,7 +15,7 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
-#include <string.h>
+// #include <string.h>
 #include <cstdarg>
 #include <cstdio>
 #include <vector>
@@ -82,6 +82,42 @@ inline int size_from_shape(const std::vector<int>& shape) {
   }
   return prod;
 }
+
+inline std::vector<int> index_to_loc(int index,
+                                     const std::vector<int>& strides) {
+  int rank = strides.size() + 1;
+  std::vector<int> loc(rank);
+  if (rank == 0) {
+    return loc;
+  } else if (rank == 1) {
+    loc[0] = index;
+    return loc;
+  }
+  for (int i = 0; i < rank - 1; ++i) {
+    int stride = strides[i];
+    loc[i] = index / stride;
+    index -= loc[i] * stride;
+  }
+  loc[rank - 1] = index;
+  return loc;
+}
+
+inline int loc_to_index(const std::vector<int>& loc,
+                        const std::vector<int>& strides) {
+  int rank = loc.size();
+  if (rank == 0) {
+    return 0;
+  } else if (rank == 1) {
+    return loc[0];
+  }
+  int index = loc[loc.size() - 1];
+  for (int i = 0; i < loc.size() - 1; ++i) {
+    index += strides[i] * loc[i];
+  }
+  return index;
+}
+
+std::vector<int> compute_strides(const std::vector<int> shape);
 
 }  // namespace util
 }  // namespace tfjs

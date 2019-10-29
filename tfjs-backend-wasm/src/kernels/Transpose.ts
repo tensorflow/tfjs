@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -55,7 +55,6 @@ function transpose(
     shape: reducedShape,
     dtype: inputs.x.dtype
   };
-  const rank = x.shape.length;
   let noChange = true;
   for (let i = 0; i < perm.length; i++) {
     if (perm[i] !== i) {
@@ -67,38 +66,13 @@ function transpose(
     return {dataId: x.dataId, shape: outShape, dtype: x.dtype};
   }
   const out = backend.makeOutput(outShape, x.dtype);
-  if (rank <= 3) {
-    const xId = backend.dataIdMap.get(x.dataId).id;
-    const outId = backend.dataIdMap.get(out.dataId).id;
-    const permBytes = new Uint8Array(new Int32Array(perm).buffer);
-    const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
-    wasmTranspose(
-        xId, xShapeBytes, x.shape.length, outId, permBytes, perm.length);
-  } else {
-    // TODO(smilkov): Move the generic slow transpose to C++ for speed.
-    const xVals = backend.typedArrayFromHeap(x);
-    const outVals = backend.typedArrayFromHeap(out);
-    genericSlowTranspose(xVals, x, outVals, out, perm);
-  }
+  const xId = backend.dataIdMap.get(x.dataId).id;
+  const outId = backend.dataIdMap.get(out.dataId).id;
+  const permBytes = new Uint8Array(new Int32Array(perm).buffer);
+  const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
+  wasmTranspose(
+      xId, xShapeBytes, x.shape.length, outId, permBytes, perm.length);
   return out;
-}
-
-function genericSlowTranspose(
-    xVals: backend_util.TypedArray, xInfo: TensorInfo,
-    outVals: backend_util.TypedArray, outInfo: TensorInfo,
-    perm: number[]): void {
-  const xBuf = buffer(xInfo.shape, xInfo.dtype, xVals);
-  const outBuf = buffer(outInfo.shape, outInfo.dtype, outVals);
-  for (let i = 0; i < xBuf.size; ++i) {
-    const loc = xBuf.indexToLoc(i);
-    // Permute location.
-    const newLoc: number[] = new Array(loc.length);
-    for (let i = 0; i < newLoc.length; i++) {
-      newLoc[i] = loc[perm[i]];
-    }
-    const newIndex = outBuf.locToIndex(newLoc);
-    outVals[newIndex] = xVals[i];
-  }
 }
 
 function computeOutShape(inShape: number[], perm: number[]): number[] {
