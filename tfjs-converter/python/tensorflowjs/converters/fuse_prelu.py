@@ -106,13 +106,9 @@ def fuse_ops_for_prelu(input_graph_def):
 
     if not neg_alpha_op:
       continue
-    alpha_value = -common.values_from_const(neg_alpha_op)
-    if not neg_alpha_op.name in updated_alpha:
-      neg_alpha_op.attr['value'].CopyFrom(
-          attr_value_pb2.AttrValue(tensor=tensor_util.make_tensor_proto(
-              alpha_value, alpha_value.dtype.type, alpha_value.shape)))
-      alpha_tensor_name = neg_alpha_op.name
-      updated_alpha.append(neg_alpha_op.name)
+
+    alpha_tensor_name = neg_alpha_op.name
+    _create_alpha_node(neg_alpha_op, updated_alpha)
 
     relu_neg_input_op = None
     for name in mul_op.input:
@@ -138,9 +134,6 @@ def fuse_ops_for_prelu(input_graph_def):
 
     relu_input_op.op = 'Prelu'
     relu_input_op.input.extend([alpha_tensor_name])
-    # Remove the T attr that is defined in Relu op, since our custom Prelu op
-    # definition does not have that.
-    del relu_input_op.attr['T']
 
     node.op = 'Identity'
     del node.input[:]
@@ -153,6 +146,14 @@ def fuse_ops_for_prelu(input_graph_def):
     inputs_to_remove.append(node)
 
   return _cleanup_graph_def(input_graph_def, nodes_to_skip, inputs_to_remove)
+
+def _create_alpha_node(neg_alpha_op, updated_alpha):
+  if not neg_alpha_op.name in updated_alpha:
+    alpha_value = -common.values_from_const(neg_alpha_op)
+    neg_alpha_op.attr['value'].CopyFrom(
+        attr_value_pb2.AttrValue(tensor=tensor_util.make_tensor_proto(
+            alpha_value, alpha_value.dtype.type, alpha_value.shape)))
+    updated_alpha.append(neg_alpha_op.name)
 
 def fuse_prelu_with_fused_conv2d(input_graph_def):
   """Tensorflow does not support Prelu op, and the grappler remap optimizer
