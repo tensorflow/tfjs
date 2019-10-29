@@ -47,4 +47,11 @@ describeWithFlags('wasm', ALL_ENVS, () => {
     // This should fail in case of a memory leak.
     expect(memOffset1).toBe(memOffset2);
   });
+
+  fit('min test', () => {
+    console.log('TESTING MIN');
+    const a = tf.tensor1d([3, -1, 0, 100, -7, 2]);
+    console.log(tf.min(a).dataSync());
+    // expectArraysClose(await tf.min(a).data(), -7);
+  });
 });
