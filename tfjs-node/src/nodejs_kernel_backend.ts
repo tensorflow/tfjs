@@ -1892,6 +1892,14 @@ export class NodeJSKernelBackend extends KernelBackend {
         'EncodePng', opAttrs, imageData, imageShape);
   }
 
+  deleteSavedModel(id: number): void {
+    this.binding.deleteSavedModel(id);
+  }
+
+  loadSavedModelMetaGraph(path: string, tags: string): number {
+    return this.binding.loadSavedModel(path, tags);
+  }
+
   // ------------------------------------------------------------
   // TensorBoard-related (tfjs-node-specific) backend kernels.
 

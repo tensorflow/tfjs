@@ -27,7 +27,7 @@ const grepFilter = env.specFilter;
 /** Tests that have these substrings in their name will be included. */
 const INCLUDE_LIST: string[] = [
   'add ', 'matmul ', 'prelu ', ' cast', 'sigmoid', 'abs ', 'sub ', 'mul ',
-  'div ', 'slice ', 'square ', 'concat', 'transpose'
+  'div ', 'batchNorm', 'slice ', 'square ', 'concat', 'transpose'
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [

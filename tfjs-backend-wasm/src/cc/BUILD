@@ -64,10 +64,20 @@ tfjs_cc_library(
     ":Div",
     ":Mul",
     ":Prelu",
+    ":FusedBatchNorm",
     ":Sigmoid",
     ":Sub",
     ":Transpose",
   ]
+)
+
+tfjs_cc_library(
+  name = "FusedBatchNorm",
+  srcs = ["kernels/FusedBatchNorm.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
 )
 
 tfjs_cc_library(
