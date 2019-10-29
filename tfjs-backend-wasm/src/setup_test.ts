@@ -27,7 +27,7 @@ const grepFilter = env.specFilter;
 /** Tests that have these substrings in their name will be included. */
 const INCLUDE_LIST: string[] = [
   'add ', 'matmul ', 'prelu ', ' cast', 'sigmoid', 'abs ', 'sub ', 'mul ',
-  'div ', 'slice ', 'square '
+  'div ', 'slice ', 'square ', 'conv2d '
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
@@ -58,7 +58,10 @@ const EXCLUDE_LIST: string[] = [
 
   // Mul
   'broadcast 5D + 2D',  // Broadcasting along inner dims not supported yet.
-  'broadcast 6D + 2D'   // Broadcasting along inner dims not supported yet.
+  'broadcast 6D + 2D',  // Broadcasting along inner dims not supported yet.
+
+  // Conv2D
+  'fused conv2d',  // Fused conv2d not yet implemented.
 ];
 
 /**

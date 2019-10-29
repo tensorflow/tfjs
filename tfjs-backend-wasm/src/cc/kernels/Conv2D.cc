@@ -30,8 +30,8 @@ namespace {
 std::unordered_map<int, xnn_operator_t> operator_cache;
 
 void delete_xnn_operator(int weights_id) {
-  xnn_operator_t prelu_op = operator_cache.at(weights_id);
-  xnn_delete_operator(prelu_op);
+  xnn_operator_t conv2d_op = operator_cache.at(weights_id);
+  xnn_delete_operator(conv2d_op);
   tfjs::backend::xnn_operator_count--;
 
   operator_cache.erase(weights_id);
@@ -46,55 +46,62 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void prelu(int x_id, int x_size, int weights_id, int out_id) {
+void Conv2D(int x_id, int batch_size, int input_height, int input_width,
+            int filter_id, int filter_height, int filter_width, int pad_top,
+            int pad_right, int pad_bottom, int pad_left, int dilation_height,
+            int dilation_width, int stride_height, int stride_width,
+            int input_channels, int output_channels, int out_id) {
   const TensorInfo x_info = backend::get_tensor_info(x_id);
-  const TensorInfo weights_info = backend::get_tensor_info(weights_id);
+  const TensorInfo filter_info = backend::get_tensor_info(filter_id);
   const TensorInfo out_info = backend::get_tensor_info(out_id);
 
   const float* x_buf = x_info.buf.f32;
-  const float* weights_buf = weights_info.buf.f32;
+  const float* filter_buf = filter_info.buf.f32;
   float* out_buf = out_info.buf.f32;
 
-  xnn_operator_t prelu_op = nullptr;
+  xnn_operator_t conv2d_op = nullptr;
 
-  auto operator_cache_idx = operator_cache.find(weights_id);
+  auto operator_cache_idx = operator_cache.find(filter_id);
   if (operator_cache_idx == operator_cache.end()) {
-    int channels = x_size;
-    int strides = channels;
     float output_min = -std::numeric_limits<float>::infinity();
     float output_max = std::numeric_limits<float>::infinity();
 
     const int flags = 0;
-    xnn_status status =
-        xnn_create_prelu_nc_f32(channels, strides, strides, weights_buf,
-                                output_min, output_max, flags, &prelu_op);
+    const int groups = 1;
+    const float* bias_buf = nullptr;
+    xnn_status status = xnn_create_convolution2d_nhwc_f32(
+        pad_top, pad_right, pad_bottom, pad_left, filter_height, filter_width,
+        stride_height, stride_width, dilation_height, dilation_width, groups,
+        input_channels, output_channels, input_channels, output_channels,
+        filter_buf, bias_buf, -std::numeric_limits<float>::infinity(),
+        +std::numeric_limits<float>::infinity(), flags, &conv2d_op);
     if (status != xnn_status_success) {
       util::warn(
-          "XNN status for xnn_create_prelu_nc_f32 is not successful. Got "
-          "status %d. Use -c dbg to see XNN logs.",
+          "XNN status for xnn_create_convolution2d_nhwc_f32 is not successful. "
+          "Got status %d. Use -c dbg to see XNN logs.",
           status);
     }
 
-    operator_cache.insert({weights_id, prelu_op});
+    operator_cache.insert({filter_id, conv2d_op});
 
-    backend::register_disposal_callback(weights_id, *delete_xnn_operator);
+    backend::register_disposal_callback(filter_id, *delete_xnn_operator);
 
     tfjs::backend::xnn_operator_count++;
   } else {
-    prelu_op = operator_cache_idx->second;
+    conv2d_op = operator_cache_idx->second;
   }
 
-  const int batch_size = 1;
-  xnn_status status = xnn_setup_prelu_nc_f32(
-      prelu_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
+  xnn_status status = xnn_setup_convolution2d_nhwc_f32(
+      conv2d_op, batch_size, input_height, input_width, x_buf, out_buf,
+      nullptr /* thread pool */);
   if (status != xnn_status_success) {
     util::warn(
-        "XNN status for xnn_setup_prelu_nc_f32 is not successful. Got "
-        "status %d. Use -c dbg to see XNN logs.",
+        "XNN status for xnn_setup_convolution2d_nhwc_f32 is not successful. "
+        "Got status %d. Use -c dbg to see XNN logs.",
         status);
   }
 
-  xnn_run_operator(prelu_op, nullptr /* thread pool */);
+  xnn_run_operator(conv2d_op, nullptr /* thread pool */);
 }
 
 }  // extern "C"

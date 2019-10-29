@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -68,12 +68,16 @@ function conv2d(args: {
 
   const filterHeight = attrs.filterHeight;
   const filterWidth = attrs.filterWidth;
-  const padLeft = attrs.padInfo.left;
   const padTop = attrs.padInfo.top;
+  const padRight = attrs.padInfo.right;
+  const padBottom = attrs.padInfo.bottom;
+  const padLeft = attrs.padInfo.left;
   const dilationHeight = attrs.dilationHeight;
   const dilationWidth = attrs.dilationWidth;
   const strideHeight = attrs.strideHeight;
   const strideWidth = attrs.strideWidth;
+  const inputChannels = attrs.inChannels;
+  const outputChannels = attrs.outChannels;
 
   if (attrs.dataFormat !== 'channelsLast') {
     throw new Error(
@@ -83,8 +87,11 @@ function conv2d(args: {
 
   const out = backend.makeOutput(x.shape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
-  const xSize = util.sizeFromShape(x.shape);
-  wasmConv2d(xId, x.shape[0], weightsId, outId);
+  wasmConv2d(
+      xId, x.shape[0], x.shape[1], x.shape[2], filterId, filterHeight,
+      filterWidth, padTop, padRight, padBottom, padLeft, dilationHeight,
+      dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels,
+      outId);
   return out;
 }
 
