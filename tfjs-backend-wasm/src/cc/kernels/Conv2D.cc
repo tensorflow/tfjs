@@ -39,7 +39,8 @@ std::map<operator_cache_key, xnn_operator_t> operator_cache;
 
 // Maps a filter id to a list of operator cache keys that this filter belongs
 // to.
-std::map<int, std::vector<operator_cache_key>> filter_operator_cache_key_map;
+std::unordered_map<int, std::vector<operator_cache_key>>
+    filter_operator_cache_key_map;
 
 void delete_xnn_operators(int filter_id) {
   std::vector<operator_cache_key> operator_cache_keys =
@@ -88,14 +89,13 @@ void Conv2D(int x_id, int batch_size, int input_height, int input_width,
 
     const int flags = 0;
     const int groups = 1;
-    const float* bias_buf = new float[1]();
+    const float* bias_buf = new float[output_channels]();
 
     xnn_status status = xnn_create_convolution2d_nhwc_f32(
         pad_top, pad_right, pad_bottom, pad_left, filter_height, filter_width,
         stride_height, stride_width, dilation_height, dilation_width, groups,
         input_channels, output_channels, input_channels, output_channels,
-        filter_buf, bias_buf, -std::numeric_limits<float>::infinity(),
-        +std::numeric_limits<float>::infinity(), flags, &conv2d_op);
+        filter_buf, bias_buf, output_min, output_max, flags, &conv2d_op);
     if (status != xnn_status_success) {
       util::warn(
           "XNN status for xnn_create_convolution2d_nhwc_f32 is not successful. "
