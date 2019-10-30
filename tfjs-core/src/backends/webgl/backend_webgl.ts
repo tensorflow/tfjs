@@ -276,7 +276,9 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   numDataIds() {
-    return this.texData.numDataIds();
+    return this.texData.numDataIds() +
+        (this.cpuBackend ? this.cpuBackend.numDataIds() : 0) -
+        this.pendingDeletes;
   }
 
   fromPixels(
@@ -504,6 +506,7 @@ export class MathBackendWebGL extends KernelBackend {
     if (this.pendingDisposal.has(dataId)) {
       this.pendingDisposal.delete(dataId);
       this.disposeData(dataId);
+      this.pendingDeletes--;
     }
     return dTypeVals;
   }
@@ -636,12 +639,15 @@ export class MathBackendWebGL extends KernelBackend {
     return timerQuery.endMs - timerQuery.startMs;
   }
 
+  private pendingDeletes = 0;
+
   disposeData(dataId: DataId): void {
     if (this.pendingDisposal.has(dataId)) {
       return;
     }
     if (this.pendingRead.has(dataId)) {
       this.pendingDisposal.add(dataId);
+      this.pendingDeletes++;
       return;
     }
     // No-op if already disposed.
@@ -2557,7 +2563,9 @@ export class MathBackendWebGL extends KernelBackend {
       // rows/cols.
       outData.texShape = texelShape.map(d => d * 2) as [number, number];
     }
-    outData.usage = program.outTexUsage;
+    if (program.outTexUsage != null) {
+      outData.usage = program.outTexUsage;
+    }
     if (sizeFromShape(output.shape) === 0) {
       // Short-circuit the computation since the result is empty (has 0 in its
       // shape).
@@ -2788,8 +2796,11 @@ export class MathBackendWebGL extends KernelBackend {
           this.getTexture(tempDenseInputHandle.dataId), width, height,
           values as TypedArray);
 
-      const encodedOutputTarget =
-          this.runWebGLProgram(program, [tempDenseInputHandle], dtype);
+      // We want the output to remain packed regardless of the value of
+      // WEBGL_PACK.
+      const preventEagerUnpacking = true;
+      const encodedOutputTarget = this.runWebGLProgram(
+          program, [tempDenseInputHandle], dtype, null, preventEagerUnpacking);
 
       // Have the original texture assume the identity of the encoded output.
       const outputTexData = this.texData.get(encodedOutputTarget.dataId);
