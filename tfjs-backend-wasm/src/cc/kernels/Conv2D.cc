@@ -91,6 +91,7 @@ void Conv2D(int x_id, int batch_size, int input_height, int input_width,
     const int groups = 1;
 
     // TODO(nsthorat): Make this a nullptr when xnn pack supports a null bias.
+    // Actually this needs to be fixed because it's a memory leak.
     const float* bias_buf = new float[output_channels]();
 
     xnn_status status = xnn_create_convolution2d_nhwc_f32(
