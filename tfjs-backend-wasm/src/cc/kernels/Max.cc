@@ -42,14 +42,15 @@ void Max(int x_id, int reduce_size, int out_id) {
     int offset = i * reduce_size;
     float max = x_buf[offset];
 
-    float* x_buf_pointer = x_info.buf.f32 + offset;
+    float* x_iter_end = x_info.buf.f32 + offset + reduce_size;
 
-    for (int j = 0; j < reduce_size; ++j) {
-      if (*x_buf_pointer > max) {
-        max = *x_buf_pointer;
+    for (float* x = x_info.buf.f32 + offset; x != x_iter_end; ++x) {
+      float value = *x;
+      if (value > max) {
+        max = value;
       }
-      ++x_buf_pointer;
     }
+
     out_buf[i] = max;
   }
 }
