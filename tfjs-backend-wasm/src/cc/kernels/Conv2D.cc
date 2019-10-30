@@ -17,24 +17,39 @@
 #endif
 
 #include <xnnpack.h>
+#include <array>
 #include <cmath>
 #include <limits>
+#include <map>
 #include <unordered_map>
+#include <vector>
 
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
 namespace {
-// The operator cache maps the weights id to the xnn_operator_t instantiated for
-// // this set of weights.
-std::unordered_map<int, xnn_operator_t> operator_cache;
+// 11 integer values are keys to creating the conv2d operator. We use std::array
+// instead of a vanilla array as it implements the compare operator needed for
+// std::map.
+typedef std::array<unsigned int, 11> operator_cache_key;
 
-void delete_xnn_operator(int weights_id) {
-  xnn_operator_t conv2d_op = operator_cache.at(weights_id);
-  xnn_delete_operator(conv2d_op);
-  tfjs::backend::xnn_operator_count--;
+// The operator cache maps the cache key to the xnn_operator_t instantiated for
+// this set of arguments to the xnn_operator.
+std::map<operator_cache_key, xnn_operator_t> operator_cache;
 
-  operator_cache.erase(weights_id);
+// Maps a filter id to a list of operator cache keys that this filter belongs
+// to.
+std::map<int, std::vector<operator_cache_key>> filter_operator_cache_key_map;
+
+void delete_xnn_operators(int filter_id) {
+  std::vector<operator_cache_key> operator_cache_keys =
+      filter_operator_cache_key_map.at(filter_id);
+  for (auto operator_cache_key : operator_cache_keys) {
+    xnn_operator_t conv2d_op = operator_cache.at(operator_cache_key);
+    xnn_delete_operator(conv2d_op);
+    tfjs::backend::xnn_operator_count--;
+    operator_cache.erase(operator_cache_key);
+  }
 }
 }  // namespace
 
@@ -61,14 +76,20 @@ void Conv2D(int x_id, int batch_size, int input_height, int input_width,
 
   xnn_operator_t conv2d_op = nullptr;
 
-  auto operator_cache_idx = operator_cache.find(filter_id);
+  operator_cache_key cache_key = {
+      pad_top,         pad_right,      pad_bottom,    pad_left,
+      filter_height,   filter_width,   stride_height, stride_width,
+      dilation_height, dilation_width, filter_id};
+
+  auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
     float output_min = -std::numeric_limits<float>::infinity();
     float output_max = std::numeric_limits<float>::infinity();
 
     const int flags = 0;
     const int groups = 1;
-    const float* bias_buf = nullptr;
+    const float* bias_buf = new float[1]();
+
     xnn_status status = xnn_create_convolution2d_nhwc_f32(
         pad_top, pad_right, pad_bottom, pad_left, filter_height, filter_width,
         stride_height, stride_width, dilation_height, dilation_width, groups,
@@ -82,9 +103,18 @@ void Conv2D(int x_id, int batch_size, int input_height, int input_width,
           status);
     }
 
-    operator_cache.insert({filter_id, conv2d_op});
+    operator_cache.insert({cache_key, conv2d_op});
 
-    backend::register_disposal_callback(filter_id, *delete_xnn_operator);
+    auto cache_keys_idx = filter_operator_cache_key_map.find(filter_id);
+    if (cache_keys_idx == filter_operator_cache_key_map.end()) {
+      std::vector<operator_cache_key> cache_keys = {cache_key};
+      filter_operator_cache_key_map.insert({filter_id, cache_keys});
+    } else {
+      auto cache_keys = filter_operator_cache_key_map.at(filter_id);
+      cache_keys.push_back(cache_key);
+    }
+
+    backend::register_disposal_callback(filter_id, *delete_xnn_operators);
 
     tfjs::backend::xnn_operator_count++;
   } else {

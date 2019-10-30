@@ -62,6 +62,7 @@ const EXCLUDE_LIST: string[] = [
 
   // Conv2D
   'fused conv2d',  // Fused conv2d not yet implemented.
+  'NCHW',          // xnn pack does not support channels first.
 ];
 
 /**

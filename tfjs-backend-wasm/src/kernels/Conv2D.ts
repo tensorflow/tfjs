@@ -61,31 +61,32 @@ function conv2d(args: {
   attrs: backend_util.Conv2DInfo
 }) {
   const {inputs, attrs, backend} = args;
+  const convInfo = attrs;
 
   const {x, filter} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   const filterId = backend.dataIdMap.get(filter.dataId).id;
 
-  const filterHeight = attrs.filterHeight;
-  const filterWidth = attrs.filterWidth;
-  const padTop = attrs.padInfo.top;
-  const padRight = attrs.padInfo.right;
-  const padBottom = attrs.padInfo.bottom;
-  const padLeft = attrs.padInfo.left;
-  const dilationHeight = attrs.dilationHeight;
-  const dilationWidth = attrs.dilationWidth;
-  const strideHeight = attrs.strideHeight;
-  const strideWidth = attrs.strideWidth;
-  const inputChannels = attrs.inChannels;
-  const outputChannels = attrs.outChannels;
+  const filterHeight = convInfo.filterHeight;
+  const filterWidth = convInfo.filterWidth;
+  const padTop = convInfo.padInfo.top;
+  const padRight = convInfo.padInfo.right;
+  const padBottom = convInfo.padInfo.bottom;
+  const padLeft = convInfo.padInfo.left;
+  const dilationHeight = convInfo.dilationHeight;
+  const dilationWidth = convInfo.dilationWidth;
+  const strideHeight = convInfo.strideHeight;
+  const strideWidth = convInfo.strideWidth;
+  const inputChannels = convInfo.inChannels;
+  const outputChannels = convInfo.outChannels;
 
-  if (attrs.dataFormat !== 'channelsLast') {
+  if (convInfo.dataFormat !== 'channelsLast') {
     throw new Error(
         `wasm backend does not support dataFormat:'` +
-        `${attrs.dataFormat}'. Please use 'channelsLast'.`);
+        `${convInfo.dataFormat}'. Please use 'channelsLast'.`);
   }
 
-  const out = backend.makeOutput(x.shape, 'float32');
+  const out = backend.makeOutput(convInfo.outShape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
   wasmConv2d(
       xId, x.shape[0], x.shape[1], x.shape[2], filterId, filterHeight,
