@@ -41,12 +41,16 @@ void Min(int x_id, int reduce_size, int out_id) {
   for (int i = 0; i < out_size; ++i) {
     int offset = i * reduce_size;
     float min = x_buf[offset];
-    for (int j = 0; j < reduce_size; ++j) {
-      float value = x_buf[offset + j];
+
+    float* x_iter_end = x_info.buf.f32 + offset + reduce_size;
+
+    for (float* x = x_info.buf.f32 + offset; x != x_iter_end; ++x) {
+      float value = *x;
       if (value < min) {
         min = value;
       }
     }
+
     out_buf[i] = min;
   }
 }
