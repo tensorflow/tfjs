@@ -31,7 +31,7 @@ namespace {
 // 11 integer values are keys to creating the conv2d operator. We use std::array
 // instead of a vanilla array as it implements the compare operator needed for
 // std::map.
-typedef std::array<unsigned int, 11> operator_cache_key;
+typedef std::array<int, 11> operator_cache_key;
 
 // The operator cache maps the cache key to the xnn_operator_t instantiated for
 // this set of arguments to the xnn_operator.
