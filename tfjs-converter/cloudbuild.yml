@@ -61,4 +61,4 @@ substitutions:
 options:
   logStreamingOption: 'STREAM_ON'
   substitution_option: 'ALLOW_LOOSE'
-  diskSizeGb: 100
+  machineType: 'N1_HIGHCPU_8'
