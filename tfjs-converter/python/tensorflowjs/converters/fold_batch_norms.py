@@ -194,11 +194,16 @@ def fold_batch_norms(input_graph_def):
         it.iternext()
     scaled_weights_op = node_def_pb2.NodeDef()
     scaled_weights_op.op = "Const"
-    scaled_weights_op.name = weights_op.name
+    scaled_weights_op.name = conv_op.name + '_weights'
     scaled_weights_op.attr["dtype"].CopyFrom(weights_op.attr["dtype"])
     scaled_weights_op.attr["value"].CopyFrom(
         attr_value_pb2.AttrValue(tensor=tensor_util.make_tensor_proto(
             scaled_weights, weights.dtype.type, weights.shape)))
+    # Replace the weights node with scaled weights node
+    for i, weights_node in enumerate(conv_op.input):
+      if weights_node == weights_op.name:
+        conv_op.input[i] = scaled_weights_op.name
+
     new_conv_op = node_def_pb2.NodeDef()
     new_conv_op.CopyFrom(conv_op)
     offset_op = node_def_pb2.NodeDef()
