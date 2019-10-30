@@ -41,11 +41,14 @@ void Max(int x_id, int reduce_size, int out_id) {
   for (int i = 0; i < out_size; ++i) {
     int offset = i * reduce_size;
     float max = x_buf[offset];
+
+    float* x_buf_pointer = x_info.buf.f32 + offset;
+
     for (int j = 0; j < reduce_size; ++j) {
-      float value = x_buf[offset + j];
-      if (value > max) {
-        max = value;
+      if (*x_buf_pointer > max) {
+        max = *x_buf_pointer;
       }
+      ++x_buf_pointer;
     }
     out_buf[i] = max;
   }
