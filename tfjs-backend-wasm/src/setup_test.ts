@@ -60,17 +60,21 @@ const EXCLUDE_LIST: string[] = [
   'broadcast 5D + 2D',  // Broadcasting along inner dims not supported yet.
   'broadcast 6D + 2D',  // Broadcasting along inner dims not supported yet.
 
-  // Min / max
+  // max
   'logSoftmax ',  // Not yet implemented.
   'softmax ',     // Not yet implemented.
-  'clip ',        // Not yet implemented.
-  'pool ',        // Not yet implemented.
-  '2D, axis=0',   // Permuted axes requires transpose, which is not yet
-                  // implemented.
-  'argmin',       // Not yet implemented.
   'argmax',       // Not yet implemented.
-  'argMin',       // Not yet implemented.
-  'argMax'        // Not yet implemented.
+  'argMax',       // Not yet implemented.
+  'pool ',        // Not yet implemented.
+
+  // min
+  'argmin',  // Not yet implemented.
+  'argMin',  // Not yet implemented.
+
+  // min and max
+  'clip ',       // Not yet implemented.
+  '2D, axis=0',  // Permuted axes requires transpose, which is not yet
+                 // implemented.
 ];
 
 /**
