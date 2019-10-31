@@ -27,7 +27,7 @@ const grepFilter = env.specFilter;
 /** Tests that have these substrings in their name will be included. */
 const INCLUDE_LIST: string[] = [
   'add ', 'matmul ', 'prelu ', ' cast', 'sigmoid', 'abs ', 'sub ', 'mul ',
-  'div ', 'batchNorm', 'slice ', 'square '
+  'div ', 'batchNorm', 'slice ', 'square ', ' min ', ' max '
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
@@ -58,7 +58,21 @@ const EXCLUDE_LIST: string[] = [
 
   // Mul
   'broadcast 5D + 2D',  // Broadcasting along inner dims not supported yet.
-  'broadcast 6D + 2D'   // Broadcasting along inner dims not supported yet.
+  'broadcast 6D + 2D',  // Broadcasting along inner dims not supported yet.
+
+  // max
+  'max x=[',  // Pool not yet implemented.
+  'max index corresponds to start of a non-initial window',  // argMax not yet
+                                                             // implemented.
+
+  // min
+  'min index corresponds to start of a non-initial window',  // argMin not yet
+                                                             // implemented.
+
+  // min and max
+  'derivative: 1D tensor with max or min value',  // Clip not yet implemented.
+  '2D, axis=0',  // Permuted axes requires transpose, which is not yet
+                 // implemented.
 ];
 
 /**
