@@ -27,7 +27,7 @@ const grepFilter = env.specFilter;
 /** Tests that have these substrings in their name will be included. */
 const INCLUDE_LIST: string[] = [
   'add ', 'matmul ', 'prelu ', ' cast', 'sigmoid', 'abs ', 'sub ', 'mul ',
-  'div ', 'batchNorm', 'slice ', 'square ', 'min ', 'max '
+  'div ', 'batchNorm', 'slice ', 'square ', ' min ', ' max '
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
@@ -61,15 +61,13 @@ const EXCLUDE_LIST: string[] = [
   'broadcast 6D + 2D',  // Broadcasting along inner dims not supported yet.
 
   // max
-  'logSoftmax ',  // Not yet implemented.
-  'softmax ',     // Not yet implemented.
-  'argmax',       // Not yet implemented.
-  'argMax',       // Not yet implemented.
-  'pool ',        // Not yet implemented.
+  'pool ',  // Not yet implemented.
+  'max index corresponds to start of a non-initial window',  // argMax not yet
+                                                             // implemented.
 
   // min
-  'argmin',  // Not yet implemented.
-  'argMin',  // Not yet implemented.
+  'min index corresponds to start of a non-initial window',  // argMin not yet
+                                                             // implemented.
 
   // min and max
   'clip ',       // Not yet implemented.
