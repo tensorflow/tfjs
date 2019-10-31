@@ -119,7 +119,7 @@ const INCLUDE_LIST: TestFilter[] = [
     ]
   },
   {
-    include: 'batchNorm ',
+    include: 'batchNorm',
     excludes: [
       'gradient'  // Gradient is missing.
     ]
