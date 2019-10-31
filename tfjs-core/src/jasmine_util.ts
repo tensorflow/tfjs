@@ -89,7 +89,8 @@ export function envSatisfiesConstraints(
 }
 
 export interface TestFilter {
-  include: string;
+  include?: string;
+  startsWith?: string;
   excludes?: string[];
 }
 
@@ -122,7 +123,10 @@ export function setupTestFilters(
     // in the include list.
     for (let i = 0; i < testFilters.length; ++i) {
       const testFilter = testFilters[i];
-      if (name.indexOf(testFilter.include) > -1) {
+      if ((testFilter.include != null &&
+           name.indexOf(testFilter.include) > -1) ||
+          (testFilter.startsWith != null &&
+           name.startsWith(testFilter.startsWith))) {
         if (testFilter.excludes != null) {
           for (let j = 0; j < testFilter.excludes.length; j++) {
             if (name.indexOf(testFilter.excludes[j]) > -1) {

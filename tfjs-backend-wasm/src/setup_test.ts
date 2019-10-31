@@ -119,7 +119,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'slice '}, {include: 'square '}, {
-    include: 'min ',
+    startsWith: 'min ',
     excludes: [
       'derivative: 1D tensor with max or min value',  // Clip not yet
                                                       // implemented.
@@ -130,7 +130,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    include: 'max ',
+    startsWith: 'max ',
     excludes: [
       'derivative: 1D tensor with max or min value',  // Clip not yet
                                                       // implemented.
