@@ -16,8 +16,6 @@
 #include <emscripten.h>
 #endif
 
-#include <math.h>
-#include <vector>
 #include "src/cc/backend.h"
 
 namespace tfjs {
@@ -38,18 +36,22 @@ void Max(int x_id, int reduce_size, int out_id) {
   float* out_buf = out_info.buf.f32;
   int out_size = out_info.size;
 
+  float* x_offset = x_info.buf.f32;
+
   for (int i = 0; i < out_size; ++i) {
     int offset = i * reduce_size;
     float max = x_buf[offset];
 
-    float* x_iter_end = x_info.buf.f32 + offset + reduce_size;
+    float* x_iter_end = x_offset + reduce_size;
 
-    for (float* x = x_info.buf.f32 + offset; x != x_iter_end; ++x) {
+    for (float* x = x_offset; x != x_iter_end; ++x) {
       float value = *x;
       if (value > max) {
         max = value;
       }
     }
+
+    x_offset = x_offset + reduce_size;
 
     out_buf[i] = max;
   }
