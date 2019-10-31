@@ -50,6 +50,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'conv2d ',
     excludes: [
+      'gradient',      // Gradients not defined yet.
       'fused conv2d',  // Fused conv2d not yet implemented.
       'NCHW',          // xnn pack does not support channels first.
     ]

@@ -10,7 +10,7 @@ git_repository(
   name = "xnnpack",
   commit = "f568f08ef1d1245c159969441d25bcd172183dbf",
   remote = "https://github.com/google/XNNPACK.git",
-  shallow_since = "1571339795 -0700",
+  shallow_since = "1572454666 -0700",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
@@ -22,6 +22,7 @@ http_archive(
     strip_prefix = "FP16-ba1d31f5eed2eb4a69e4dea3870a68c7c95f998f",
     sha256 = "9764297a339ad73b0717331a2c3e9c42a52105cd04cab62cb160e2b4598d2ea6",
     urls = [
+
         "https://github.com/Maratyszcza/FP16/archive/ba1d31f5eed2eb4a69e4dea3870a68c7c95f998f.tar.gz",
     ],
     build_file = "@xnnpack//third_party:FP16.BUILD",
