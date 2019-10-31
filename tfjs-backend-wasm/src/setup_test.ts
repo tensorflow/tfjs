@@ -61,7 +61,7 @@ const EXCLUDE_LIST: string[] = [
   'broadcast 6D + 2D',  // Broadcasting along inner dims not supported yet.
 
   // max
-  'pool ',  // Not yet implemented.
+  'max x=[',  // Pool not yet implemented.
   'max index corresponds to start of a non-initial window',  // argMax not yet
                                                              // implemented.
 
