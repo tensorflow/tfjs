@@ -16,6 +16,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {scalar, Tensor, tensor1d, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
 import {epsilon} from './backend/common';
+import * as tfl from './index';
 import * as losses from './losses';
 import {describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 
@@ -439,5 +440,12 @@ describeMathCPUAndGPU('l2Normalize', () => {
     const expected = tensor2d([[1 / norm, 1 / norm]], [1, 2]);
     const result = losses.l2Normalize(x);
     expectTensorsClose(result, expected);
+  });
+
+  it('access loss via string names', () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense(
+        {units: 1, activation: 'sigmoid', inputShape: [3, 1]}));
+    model.compile({loss: tfc.losses.logLoss, optimizer: 'sgd'});
   });
 });
