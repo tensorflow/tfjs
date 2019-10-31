@@ -16,21 +16,15 @@
  */
 
 // tslint:disable-next-line:no-imports-from-dist
-import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 setTestEnvs([{name: 'test-wasm', backendName: 'wasm', isDataSync: true}]);
 
-const env = jasmine.getEnv();
-// Account for --grep flag passed to karma by saving the existing specFilter.
-const grepFilter = env.specFilter;
-
-interface TestFilter {
-  include: string;
-  excludes?: string[];
-}
-
-/** Tests that have these substrings in their name will be included. */
-const INCLUDE_LIST: TestFilter[] = [
+/**
+ * Tests that have these substrings in their name will be included unless one
+ * of the strings in excludes appears in the name.
+ */
+const TEST_FILTERS: TestFilter[] = [
   {
     include: 'add ',
     excludes: [
@@ -127,48 +121,20 @@ const INCLUDE_LIST: TestFilter[] = [
   {include: 'slice '}, {include: 'square '}
 ];
 
-/**
- * Filter method that returns boolean, if a given test should run or be
- * ignored based on its name. The exclude list has priority over the
- * include list. Thus, if a test matches both the exclude and the include
- * list, it will be exluded.
- */
-env.specFilter = spec => {
-  // Filter out tests if the --grep flag is passed.
-  if (!grepFilter(spec)) {
-    return false;
-  }
-
-  const name = spec.getFullName();
-
+const customInclude = (testName: string) => {
   // Include all regular describe() tests.
-  if (name.indexOf('test-wasm') < 0) {
+  if (testName.indexOf('test-wasm') < 0) {
     return true;
   }
 
   // Include all of the wasm specific tests.
-  if (name.startsWith('wasm')) {
+  if (testName.startsWith('wasm')) {
     return true;
   }
 
-  // Include a describeWithFlags() test from tfjs-core only if the test is
-  // in the include list.
-  for (let i = 0; i < INCLUDE_LIST.length; ++i) {
-    const testFilter = INCLUDE_LIST[i];
-    if (name.indexOf(testFilter.include) > -1) {
-      if (testFilter.excludes != null) {
-        for (let j = 0; j < testFilter.excludes.length; j++) {
-          if (name.indexOf(testFilter.excludes[j]) > -1) {
-            return false;
-          }
-        }
-      }
-      return true;
-    }
-  }
-  // Otherwise ignore the test.
   return false;
 };
+setupTestFilters(TEST_FILTERS, customInclude);
 
 // Import and run all the tests from core.
 // tslint:disable-next-line:no-imports-from-dist
