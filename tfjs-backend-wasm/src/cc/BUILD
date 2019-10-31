@@ -65,6 +65,8 @@ tfjs_cc_library(
     ":Mul",
     ":Prelu",
     ":FusedBatchNorm",
+    ":Max",
+    ":Min",
     ":Sigmoid",
     ":Sub",
   ]
@@ -73,6 +75,24 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "FusedBatchNorm",
   srcs = ["kernels/FusedBatchNorm.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Max",
+  srcs = ["kernels/Max.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Min",
+  srcs = ["kernels/Min.cc"],
   deps = [
     ":backend",
     ":util",
