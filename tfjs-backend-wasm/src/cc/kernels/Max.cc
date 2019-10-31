@@ -51,7 +51,7 @@ void Max(int x_id, int reduce_size, int out_id) {
       }
     }
 
-    x_offset = x_offset + reduce_size;
+    x_offset += reduce_size;
 
     out_buf[i] = max;
   }
