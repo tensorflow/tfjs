@@ -27,7 +27,7 @@ const grepFilter = env.specFilter;
 /** Tests that have these substrings in their name will be included. */
 const INCLUDE_LIST: string[] = [
   'add ', 'matmul ', 'prelu ', ' cast', 'sigmoid', 'abs ', 'sub ', 'mul ',
-  'div ', 'slice ', 'square ', 'conv2d '
+  'div ', 'batchNorm', 'slice ', 'square ', ' min ', ' max ', 'conv2d '
 ];
 /** Tests that have these substrings in their name will be excluded. */
 const EXCLUDE_LIST: string[] = [
@@ -63,6 +63,19 @@ const EXCLUDE_LIST: string[] = [
   // Conv2D
   'fused conv2d',  // Fused conv2d not yet implemented.
   'NCHW',          // xnn pack does not support channels first.
+  // max
+  'max x=[',  // Pool not yet implemented.
+  'max index corresponds to start of a non-initial window',  // argMax not yet
+                                                             // implemented.
+
+  // min
+  'min index corresponds to start of a non-initial window',  // argMin not yet
+                                                             // implemented.
+
+  // min and max
+  'derivative: 1D tensor with max or min value',  // Clip not yet implemented.
+  '2D, axis=0',  // Permuted axes requires transpose, which is not yet
+                 // implemented.
 ];
 
 /**

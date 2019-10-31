@@ -276,7 +276,9 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   numDataIds() {
-    return this.texData.numDataIds();
+    return this.texData.numDataIds() +
+        (this.cpuBackend ? this.cpuBackend.numDataIds() : 0) -
+        this.pendingDeletes;
   }
 
   fromPixels(
@@ -504,6 +506,7 @@ export class MathBackendWebGL extends KernelBackend {
     if (this.pendingDisposal.has(dataId)) {
       this.pendingDisposal.delete(dataId);
       this.disposeData(dataId);
+      this.pendingDeletes--;
     }
     return dTypeVals;
   }
@@ -636,12 +639,15 @@ export class MathBackendWebGL extends KernelBackend {
     return timerQuery.endMs - timerQuery.startMs;
   }
 
+  private pendingDeletes = 0;
+
   disposeData(dataId: DataId): void {
     if (this.pendingDisposal.has(dataId)) {
       return;
     }
     if (this.pendingRead.has(dataId)) {
       this.pendingDisposal.add(dataId);
+      this.pendingDeletes++;
       return;
     }
     // No-op if already disposed.
@@ -1923,8 +1929,11 @@ export class MathBackendWebGL extends KernelBackend {
     const targetShape = isChannelsLast ?
         xShape[0] * xShape[1] * (xShape[2] + 1) :
         xShape[0] * xShape[2] * (xShape[3] + 1);
-    const xReshaped = this.reshape(x, [1, targetShape, convInfo.inChannels]);
-
+    const xReshaped: TensorInfo = {
+      dataId: x.dataId,
+      shape: [1, targetShape, convInfo.inChannels],
+      dtype: x.dtype
+    };
     // xTexData.shape gets referenced from GPGPUBinary.inShapeInfos.
     // Decrementing row count, after batchMatMul->...->compileProgram leads to
     // invalid row count within the reference in GPGPUBinary.inShapeInfos.
@@ -1961,7 +1970,9 @@ export class MathBackendWebGL extends KernelBackend {
     // Set the output shape - there is no need for expensive reshape as data
     // layout is already correct.
     pointwiseConvTexData.shape = convInfo.outShape;
-    return this.reshape(pointwiseConv, convInfo.outShape);
+    return ENGINE.makeTensorFromDataId(
+               pointwiseConv.dataId, convInfo.outShape, pointwiseConv.dtype) as
+        Tensor4D;
   }
 
   private conv2dWithIm2Row(
@@ -2552,7 +2563,9 @@ export class MathBackendWebGL extends KernelBackend {
       // rows/cols.
       outData.texShape = texelShape.map(d => d * 2) as [number, number];
     }
-    outData.usage = program.outTexUsage;
+    if (program.outTexUsage != null) {
+      outData.usage = program.outTexUsage;
+    }
     if (sizeFromShape(output.shape) === 0) {
       // Short-circuit the computation since the result is empty (has 0 in its
       // shape).
@@ -2651,7 +2664,9 @@ export class MathBackendWebGL extends KernelBackend {
 
     if (!env().getBool('WEBGL_LAZILY_UNPACK') && outData.isPacked &&
         preventEagerUnpackingOfOutput === false) {
-      return this.unpackTensor(output);
+      const unpacked = this.unpackTensor(output);
+      this.disposeData(output.dataId);
+      return unpacked;
     }
     return output;
   }
@@ -2781,8 +2796,11 @@ export class MathBackendWebGL extends KernelBackend {
           this.getTexture(tempDenseInputHandle.dataId), width, height,
           values as TypedArray);
 
-      const encodedOutputTarget =
-          this.runWebGLProgram(program, [tempDenseInputHandle], dtype);
+      // We want the output to remain packed regardless of the value of
+      // WEBGL_PACK.
+      const preventEagerUnpacking = true;
+      const encodedOutputTarget = this.runWebGLProgram(
+          program, [tempDenseInputHandle], dtype, null, preventEagerUnpacking);
 
       // Have the original texture assume the identity of the encoded output.
       const outputTexData = this.texData.get(encodedOutputTarget.dataId);

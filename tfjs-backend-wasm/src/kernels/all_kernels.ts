@@ -21,9 +21,12 @@
 import './Abs';
 import './Add';
 import './BatchMatMul';
+import './FusedBatchNorm';
 import './Cast';
 import './Div';
 import './Mul';
+import './Min';
+import './Max';
 import './Prelu';
 import './Reshape';
 import './Sigmoid';
