@@ -163,7 +163,6 @@ env.specFilter = spec => {
           }
         }
       }
-      console.log(name);
       return true;
     }
   }
