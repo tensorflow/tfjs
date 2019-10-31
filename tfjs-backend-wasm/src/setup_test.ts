@@ -70,7 +70,7 @@ const EXCLUDE_LIST: string[] = [
                                                              // implemented.
 
   // min and max
-  'clip ',       // Not yet implemented.
+  'derivative: 1D tensor with max or min value',  // Clip not yet implemented.
   '2D, axis=0',  // Permuted axes requires transpose, which is not yet
                  // implemented.
 ];
