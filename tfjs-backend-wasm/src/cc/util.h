@@ -15,7 +15,6 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
-// #include <string.h>
 #include <cstdarg>
 #include <cstdio>
 #include <vector>

@@ -92,8 +92,7 @@ void transpose_3d(const T* x_data, const std::vector<int>& x_shape,
   }
 }
 
-// Optimized transpose 3D. Reference:
-// https://github.com/tensorflow/tensorflow/blob/87388b7b6040bbf0baa67e4ef1ddc3e930ff6edd/tensorflow/lite/kernels/internal/optimized/optimized_ops.h#L7248
+// Optimized transpose 4D. For reference see `tranpose_3d`.
 template <typename T>
 void transpose_4d(const T* x_data, const std::vector<int>& x_shape,
                   const std::vector<int>& perm, T* out_data) {
@@ -167,6 +166,7 @@ void transpose_4d(const T* x_data, const std::vector<int>& x_shape,
   }
 }
 
+// Generic transpose implementation for n-dim tensors.
 template <typename T>
 void slow_transpose_nd(const T* x_data, const std::vector<int>& x_shape,
                        const std::vector<int>& perm, T* out_data) {
