@@ -44,7 +44,7 @@ void Min(int x_id, int reduce_size, int out_id) {
 
     float* x_iter_end = x_offset + reduce_size;
 
-    for (float* x = x_offset; x != x_iter_end; ++x) {
+    for (float* x = x_offset; x < x_iter_end; ++x) {
       float value = *x;
       if (value < min) {
         min = value;
