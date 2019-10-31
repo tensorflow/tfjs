@@ -113,7 +113,6 @@ export function setupTestFilters(
     }
 
     const name = spec.getFullName();
-    console.log(name);
 
     if (customInclude(name)) {
       return true;
