@@ -86,7 +86,7 @@ const TEST_FILTERS: TestFilter[] = [
                                     //  supported.
       'broadcasting same rank Tensors different shape',  //  Broadcasting along
                                                          //  inner dims not
-      //  supported.
+                                                         //  supported.
     ]
   },
   {
@@ -118,7 +118,26 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // Gradient is missing.
     ]
   },
-  {include: 'slice '}, {include: 'square '}
+  {include: 'slice '}, {include: 'square '}, {
+    include: 'min ',
+    excludes: [
+      'derivative: 1D tensor with max or min value',  // Clip not yet
+                                                      // implemented.
+      '2D, axis=0',  // Permuted axes requires transpose, which is not yet
+                     // implemented.
+      'index corresponds to start of a non-initial window',  // argMin not yet
+                                                             // implemented.
+    ]
+  },
+  {
+    include: 'max ',
+    excludes: [
+      'derivative: 1D tensor with max or min value',  // Clip not yet
+                                                      // implemented.
+      '2D, axis=0'  // Permuted axes requires transpose, which is not yet
+                    // implemented.
+    ]
+  }
 ];
 
 const customInclude = (testName: string) => {
