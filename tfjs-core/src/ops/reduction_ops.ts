@@ -322,11 +322,12 @@ function min_<T extends Tensor>(
       gradForMinAndMax(dy, saved[1], saved[0], origAxes, permutedAxes);
 
   const inputsToSave = [$x];
+  const outputsToSave: boolean[] = [true];
   let res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.min($x, axes);
     save([xOrig, y]);
     return y as T;
-  }, {x: $x}, grad, 'Min', {axes}, inputsToSave);
+  }, {x: $x}, grad, 'Min', {axes}, inputsToSave, outputsToSave);
   if (keepDims) {
     const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
     res = res.reshape(newShape) as T;
@@ -379,11 +380,12 @@ function max_<T extends Tensor>(
       gradForMinAndMax(dy, saved[1], saved[0], origAxes, permutedAxes);
 
   const inputsToSave = [$x];
+  const outputsToSave: boolean[] = [true];
   let res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.max($x, axes);
     save([xOrig, y]);
     return y;
-  }, {x: $x}, grad, 'Max', {axes}, inputsToSave);
+  }, {x: $x}, grad, 'Max', {axes}, inputsToSave, outputsToSave);
   if (keepDims) {
     const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
     res = res.reshape(newShape) as T;
