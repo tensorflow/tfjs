@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, util} from '@tensorflow/tfjs-core';
+import {NamedTensorInfoMap, registerKernel} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
