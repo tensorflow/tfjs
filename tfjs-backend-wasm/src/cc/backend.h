@@ -17,22 +17,14 @@
 
 #include <vector>
 
-// This enum should align with the DType defined in
+// This enum should align with the DType defined in kernels/types.ts.
 enum DType {
   float32 = 0,
   int32 = 1,
   boolean = 2,
 };
 
-// A union of pointers that points to memory for a given tensor.
-union DataPtrUnion {
-  float *f32;
-  int *i32;
-  bool *b;
-};
-
-// Holds information about a tensor such as dtype, shape and pointer to its data
-// in memory.
+// Holds the memory offset and the size of a tensor.
 struct TensorInfo {
   // Pointer to the bytes where the data is allocated.
   void *memory_offset;
