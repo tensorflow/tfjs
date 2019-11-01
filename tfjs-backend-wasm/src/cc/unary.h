@@ -22,8 +22,8 @@ inline void unary(int x_id, int out_id, float operation(float)) {
   const TensorInfo a_info = backend::get_tensor_info(x_id);
   const TensorInfo out_info = backend::get_tensor_info(out_id);
 
-  const float* a_buf = a_info.buf.f32;
-  float* out_buf = out_info.buf.f32;
+  const float* a_buf = static_cast<float*>(a_info.memory_offset);
+  float* out_buf = static_cast<float*>(out_info.memory_offset);
 
   for (int i = 0; i < a_info.size; ++i) {
     out_buf[i] = operation(a_buf[i]);

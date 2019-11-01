@@ -15,18 +15,11 @@
  * =============================================================================
  */
 
-export interface BackendWasmModule extends EmscriptenModule {
-  onRuntimeInitialized: () => void;
-  // Using the tfjs namespace to avoid conflict with emscripten's API.
-  tfjs: {
-    init(): void,
-    registerTensor(dataId: number, size: number, memoryOffset: number): void,
-    // Disposes the data behind the data bucket.
-    disposeData(dataId: number): void,
-    // Disposes the backend and all of its associated data.
-    dispose(): void,
-  }
+// This enum must align with the enum defined in cc/backend.h.
+export enum CppDType {
+  float32 = 0,
+  int32 = 1,
+  bool = 2,
+  string = 3,
+  complex64 = 4
 }
-
-declare var moduleFactory: () => BackendWasmModule;
-export default moduleFactory;

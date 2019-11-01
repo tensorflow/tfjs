@@ -17,6 +17,7 @@
 
 #include <vector>
 
+// This enum should align with the DType defined in
 enum DType {
   float32 = 0,
   int32 = 1,
@@ -34,9 +35,7 @@ union DataPtrUnion {
 // in memory.
 struct TensorInfo {
   // Pointer to the bytes where the data is allocated.
-  DataPtrUnion buf;
-  DType dtype;
-  std::vector<int> shape;
+  void *memory_offset;
   // Total number of elements.
   int size;
 };
@@ -64,10 +63,9 @@ extern "C" {
 // Initializes the WASM backend.
 void init();
 
-// Registers a tensor with a tensor ID, shape information, dtype, and the
-// pointer to where the tensor data lives.
-void register_tensor(int tensor_id, int *shape_ptr, int shape_length,
-                     DType dtype, void *memory_offset);
+// Registers a tensor with a tensor ID, size, and the pointer to where the
+// tensor data lives.
+void register_tensor(int tensor_id, int size, void *memory_offset);
 
 // Disposes the internal bookeeping for a given tensor ID.
 void dispose_data(int tensor_id);

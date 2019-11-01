@@ -37,14 +37,9 @@ void BatchMatMul(int a_id, int b_id, int shared_dim, int left_dim,
   const TensorInfo b_info = backend::get_tensor_info(b_id);
   const TensorInfo out_info = backend::get_tensor_info(out_id);
 
-  if (a_info.dtype != DType::float32) {
-    util::warn("BatchMatMul for tensor ids %d and %d failed. Unknown dtype %d",
-               a_id, b_id, a_info.dtype);
-  }
-
-  const float* a_buf = a_info.buf.f32;
-  const float* b_buf = b_info.buf.f32;
-  float* out_buf = out_info.buf.f32;
+  const float* a_buf = static_cast<float*>(a_info.memory_offset);
+  const float* b_buf = static_cast<float*>(b_info.memory_offset);
+  float* out_buf = static_cast<float*>(out_info.memory_offset);
 
   int size = left_dim * right_dim;
 

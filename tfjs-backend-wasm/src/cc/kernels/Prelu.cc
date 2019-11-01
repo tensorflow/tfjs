@@ -53,9 +53,9 @@ void Prelu(int x_id, int x_size, int weights_id, int out_id) {
   const TensorInfo weights_info = backend::get_tensor_info(weights_id);
   const TensorInfo out_info = backend::get_tensor_info(out_id);
 
-  const float* x_buf = x_info.buf.f32;
-  const float* weights_buf = weights_info.buf.f32;
-  float* out_buf = out_info.buf.f32;
+  const float* x_buf = static_cast<float*>(x_info.memory_offset);
+  const float* weights_buf = static_cast<float*>(weights_info.memory_offset);
+  float* out_buf = static_cast<float*>(out_info.memory_offset);
 
   xnn_operator_t prelu_op = nullptr;
 
