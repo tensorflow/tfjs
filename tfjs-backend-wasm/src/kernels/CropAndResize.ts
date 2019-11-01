@@ -29,10 +29,9 @@ interface CropAndResizeAttrs extends NamedAttrMap {
 
 let wasmCropAndResize: (
     imagesId: number, boxesId: number, boxIndId: number, numBoxes: number,
-    imageStrides: [number, number, number],
-    outputStrides: [number, number, number],
-    batch: [number, number, number, number], cropSize: [number, number],
-    method: number, extrapolationValue: number, outId: number) => void;
+    imageStrides: Uint8Array, outputStrides: Uint8Array,
+    imagesShape: Uint8Array, cropSize: Uint8Array, method: number,
+    extrapolationValue: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmCropAndResize = backend.wasm.cwrap('CropAndResize', null /*void*/, [
@@ -71,13 +70,18 @@ function cropAndResize(args: {
   const out = backend.makeOutput(outShape, images.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
 
+  const imageStridesBytes =
+      new Uint8Array(new Int32Array(util.computeStrides(images.shape)).buffer);
+  const outputStridesBytes =
+      new Uint8Array(new Int32Array(util.computeStrides(outShape)).buffer);
+  const imagesShapeBytes = new Uint8Array(new Int32Array(images.shape).buffer);
+  const cropSizeBytes =
+      new Uint8Array(new Int32Array(cropSize as [number, number]).buffer);
+
   wasmCropAndResize(
-      imagesId, boxesId, boxIndId, numBoxes,
-      util.computeStrides(images.shape) as [number, number, number],
-      util.computeStrides(outShape) as [number, number, number],
-      images.shape as [number, number, number, number],
-      cropSize as [number, number], method === 'bilinear' ? 1 : 0,
-      extrapolationValue as number, outId);
+      imagesId, boxesId, boxIndId, numBoxes, imageStridesBytes,
+      outputStridesBytes, imagesShapeBytes, cropSizeBytes,
+      method === 'bilinear' ? 1 : 0, extrapolationValue as number, outId);
   return out;
 }
 
