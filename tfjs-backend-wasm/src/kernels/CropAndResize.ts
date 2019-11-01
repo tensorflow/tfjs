@@ -27,7 +27,10 @@ interface CropAndResizeAttrs extends NamedAttrMap {
   axes: number[];
 }
 
-let wasmCropAndResize: (outId: number) => void;
+let wasmCropAndResize: (
+    imagesId: number, boxesId: number, boxIndId: number, batch: number,
+    imageHeight: number, imageWidth: number, cropSize: [number, number],
+    method: string, extrapolationValue: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmCropAndResize = backend.wasm.cwrap(
@@ -41,29 +44,25 @@ function cropAndResize(args: {
 }): TensorInfo {
   const {backend, inputs, attrs} = args;
   const {method, extrapolationValue, cropSize} = attrs;
-  const {images, boxes} = inputs;
+  const {images, boxes, boxInd} = inputs;
 
-  console.log('in cropandresize');
-  console.log(inputs);
-  console.log(method, extrapolationValue);
   const [batch, imageHeight, imageWidth, numChannels] = images.shape;
   const numBoxes = boxes.shape[0];
-  console.log(batch, imageHeight, imageWidth);
 
   const [cropHeight, cropWidth] = cropSize as [number, number];
-  // const xId = backend.dataIdMap.get(x.dataId).id;
-
-  // backend_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
-  // const [outShape, reduceShape] =
-  //     backend_util.computeOutAndReduceShapes(x.shape, axes);
-  // const reduceSize = util.sizeFromShape(reduceShape);
   const outShape = [numBoxes, cropHeight, cropWidth, numChannels];
 
-  const out = backend.makeOutput(outShape, images.dtype);
+  const imagesId = backend.dataIdMap.get(images.dataId).id;
+  const boxesId = backend.dataIdMap.get(boxes.dataId).id;
+  const boxIndId = backend.dataIdMap.get(boxInd.dataId).id;
 
+  const out = backend.makeOutput(outShape, images.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
 
-  wasmCropAndResize(outId);
+  wasmCropAndResize(
+      imagesId, boxesId, boxIndId, batch, imageHeight, imageWidth,
+      cropSize as [number, number], method as string,
+      extrapolationValue as number, outId);
   return out;
 }
 
