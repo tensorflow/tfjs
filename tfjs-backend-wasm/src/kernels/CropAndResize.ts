@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -28,8 +28,10 @@ interface CropAndResizeAttrs extends NamedAttrMap {
 }
 
 let wasmCropAndResize: (
-    imagesId: number, boxesId: number, boxIndId: number, batch: number,
-    imageHeight: number, imageWidth: number, cropSize: [number, number],
+    imagesId: number, boxesId: number, boxIndId: number, numBoxes: number,
+    imageStrides: [number, number, number],
+    outputStrides: [number, number, number],
+    batch: [number, number, number, number], cropSize: [number, number],
     method: number, extrapolationValue: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
@@ -37,9 +39,10 @@ function setup(backend: BackendWasm): void {
     'number',  // imagesId
     'number',  // boxesId
     'number',  // boxIndId
-    'number',  // batch
-    'number',  // imageHeight
-    'number',  // imageWidth
+    'number',  // numBoxes
+    'array',   // image strides
+    'array',   // output strides
+    'array',   // images shape
     'array',   // cropSize
     'number',  // method
     'number',  // extrapolation value
@@ -56,11 +59,10 @@ function cropAndResize(args: {
   const {method, extrapolationValue, cropSize} = attrs;
   const {images, boxes, boxInd} = inputs;
 
-  const [batch, imageHeight, imageWidth, numChannels] = images.shape;
   const numBoxes = boxes.shape[0];
 
   const [cropHeight, cropWidth] = cropSize as [number, number];
-  const outShape = [numBoxes, cropHeight, cropWidth, numChannels];
+  const outShape = [numBoxes, cropHeight, cropWidth, images.shape[3]];
 
   const imagesId = backend.dataIdMap.get(images.dataId).id;
   const boxesId = backend.dataIdMap.get(boxes.dataId).id;
@@ -70,7 +72,10 @@ function cropAndResize(args: {
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   wasmCropAndResize(
-      imagesId, boxesId, boxIndId, batch, imageHeight, imageWidth,
+      imagesId, boxesId, boxIndId, numBoxes,
+      util.computeStrides(images.shape) as [number, number, number],
+      util.computeStrides(outShape) as [number, number, number],
+      images.shape as [number, number, number, number],
       cropSize as [number, number], method === 'bilinear' ? 1 : 0,
       extrapolationValue as number, outId);
   return out;

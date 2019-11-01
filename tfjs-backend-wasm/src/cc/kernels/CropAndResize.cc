@@ -26,8 +26,10 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void CropAndResize(int images_id, int boxes_id, int box_ind_id, int batch,
-                   int image_height, int image_width,
+void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
+                   const std::vector<int>& images_strides,
+                   const std::vector<int>& output_strides,
+                   const std::vector<int>& images_shape,
                    const std::vector<int>& crop_size, int method,
                    float extrapolation_value, int out_id) {}
 
