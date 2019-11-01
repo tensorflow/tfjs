@@ -23,23 +23,17 @@ TEST(BACKEND, register_tensor) {
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
   const int tensor_id = 0;
-  int shape[2] = {1, 2};
-  const int shape_length = 2;
-  DType dtype = DType::float32;
-  float values[2] = {1, 2};
+  const int size = 2;
+  float values[size] = {1, 2};
 
-  tfjs::wasm::register_tensor(tensor_id, shape, shape_length, dtype, values);
+  tfjs::wasm::register_tensor(tensor_id, size, values);
   ASSERT_EQ(1, tfjs::backend::num_tensors());
 
   TensorInfo tensor_info = tfjs::backend::get_tensor_info(tensor_id);
 
-  ASSERT_EQ(dtype, tensor_info.dtype);
+  ASSERT_EQ(size, tensor_info.size);
 
-  ASSERT_EQ(shape[0], tensor_info.shape[0]);
-  ASSERT_EQ(shape[1], tensor_info.shape[1]);
-
-  ASSERT_EQ(values[0], tensor_info.buf.f32[0]);
-  ASSERT_EQ(values[1], tensor_info.buf.f32[1]);
+  ASSERT_EQ(values, tensor_info.memory_offset);
 
   tfjs::wasm::dispose_data(tensor_id);
 
@@ -67,16 +61,12 @@ TEST(BACKEND, disposal_callback) {
 
   const int tensor_id_0 = 0;
   const int tensor_id_1 = 1;
-  int shape[2] = {1, 2};
-  const int shape_length = 2;
-  DType dtype = DType::float32;
-  float values_0[2] = {1, 2};
-  float values_1[2] = {3, 4};
+  const int size = 2;
+  float values_0[size] = {1, 2};
+  float values_1[size] = {3, 4};
 
-  tfjs::wasm::register_tensor(tensor_id_0, shape, shape_length, dtype,
-                              values_0);
-  tfjs::wasm::register_tensor(tensor_id_1, shape, shape_length, dtype,
-                              values_1);
+  tfjs::wasm::register_tensor(tensor_id_0, size, values_0);
+  tfjs::wasm::register_tensor(tensor_id_1, size, values_1);
 
   // Register a disposal callback on 0 but not 1.
   tfjs::backend::register_disposal_callback(tensor_id_0,
@@ -103,22 +93,17 @@ TEST(BACKEND, dispose_backend) {
 
   const int tensor_id_0 = 0;
   const int tensor_id_1 = 1;
-  int shape[2] = {1, 2};
-  int size = 2;
-  const int shape_length = 2;
-  DType dtype = DType::float32;
-  float values_0[2] = {1, 2};
-  float values_1[2] = {3, 4};
+  const int size = 2;
+  float values_0[size] = {1, 2};
+  float values_1[size] = {3, 4};
 
-  tfjs::wasm::register_tensor(tensor_id_0, shape, shape_length, dtype,
-                              values_0);
-  tfjs::wasm::register_tensor(tensor_id_1, shape, shape_length, dtype,
-                              values_1);
+  tfjs::wasm::register_tensor(tensor_id_0, size, values_0);
+  tfjs::wasm::register_tensor(tensor_id_1, size, values_1);
   ASSERT_EQ(2, tfjs::backend::num_tensors());
   ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
 
   // One new xnn_operator should be created for the first call to prelu.
-  tfjs::wasm::Prelu(tensor_id_0, size, tensor_id_0, tensor_id_1);
+  tfjs::wasm::Prelu(tensor_id_0, tensor_id_0, tensor_id_1);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   // Dispose removes all tensors and xnn operators.

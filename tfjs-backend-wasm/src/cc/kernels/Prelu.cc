@@ -48,7 +48,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Prelu(int x_id, int x_size, int weights_id, int out_id) {
+void Prelu(int x_id, int weights_id, int out_id) {
   const TensorInfo x_info = backend::get_tensor_info(x_id);
   const TensorInfo weights_info = backend::get_tensor_info(weights_id);
   const TensorInfo out_info = backend::get_tensor_info(out_id);
@@ -61,7 +61,7 @@ void Prelu(int x_id, int x_size, int weights_id, int out_id) {
 
   auto operator_cache_idx = operator_cache.find(weights_id);
   if (operator_cache_idx == operator_cache.end()) {
-    int channels = x_size;
+    int channels = x_info.size;
     int strides = channels;
     float output_min = -std::numeric_limits<float>::infinity();
     float output_max = std::numeric_limits<float>::infinity();

@@ -25,12 +25,14 @@ interface PreluInputs extends NamedTensorInfoMap {
   alpha: TensorInfo;
 }
 
-let wasmPrelu: (xId: number, xSize: number, weightsId: number, outId: number) =>
-    void;
+let wasmPrelu: (xId: number, weightsId: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmPrelu = backend.wasm.cwrap(
-      'Prelu', null /* void */, ['number', 'number', 'number', 'number']);
+  wasmPrelu = backend.wasm.cwrap('Prelu', null /* void */, [
+    'number',  // x_id
+    'number',  // weights_id
+    'number'   // out_id
+  ]);
 }
 
 function prelu(args: {inputs: PreluInputs, backend: BackendWasm}) {
@@ -41,8 +43,7 @@ function prelu(args: {inputs: PreluInputs, backend: BackendWasm}) {
 
   const out = backend.makeOutput(x.shape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
-  const xSize = util.sizeFromShape(x.shape);
-  wasmPrelu(xId, xSize, weightsId, outId);
+  wasmPrelu(xId, weightsId, outId);
   return out;
 }
 
