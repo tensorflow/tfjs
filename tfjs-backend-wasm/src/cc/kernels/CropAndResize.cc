@@ -31,7 +31,32 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
                    const std::vector<int>& output_strides,
                    const std::vector<int>& images_shape,
                    const std::vector<int>& crop_size, int method,
-                   float extrapolation_value, int out_id) {}
+                   float extrapolation_value, int out_id) {
+  const auto images_info = backend::get_tensor_info(images_id);
+  const auto boxes_info = backend::get_tensor_info(boxes_id);
+  const auto box_ind_info = backend::get_tensor_info(box_ind_id);
+  const auto out_info = backend::get_tensor_info(out_id);
+
+  float* images_buf = images_info.buf.f32;
+  int images_size = images_info.size;
+
+  float* boxes_buf = boxes_info.buf.f32;
+  int boxes_size = boxes_info.size;
+
+  float* box_ind_buf = box_ind_info.buf.f32;
+  int box_ind_size = box_ind_info.size;
+
+  float* out_buf = out_info.buf.f32;
+  int out_size = out_info.size;
+
+  for (int b = 0; b < num_boxes; ++b) {
+    int startInd = b * 4;
+    int y1 = boxes_buf[startInd];
+    int x1 = boxes_buf[startInd + 1];
+    int y2 = boxes_buf[startInd + 2];
+    int x2 = boxes_buf[startInd + 3];
+  }
+}
 
 }  // extern "C"
 }  // namespace wasm
