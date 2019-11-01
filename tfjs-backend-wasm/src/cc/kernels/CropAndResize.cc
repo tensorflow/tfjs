@@ -26,7 +26,10 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void CropAndResize() {}
+void CropAndResize(int images_id, int boxes_id, int box_ind_id, int batch,
+                   int image_height, int image_width,
+                   const std::vector<int>& crop_size, int method,
+                   float extrapolation_value, int out_id) {}
 
 }  // extern "C"
 }  // namespace wasm

@@ -30,11 +30,21 @@ interface CropAndResizeAttrs extends NamedAttrMap {
 let wasmCropAndResize: (
     imagesId: number, boxesId: number, boxIndId: number, batch: number,
     imageHeight: number, imageWidth: number, cropSize: [number, number],
-    method: string, extrapolationValue: number, outId: number) => void;
+    method: number, extrapolationValue: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmCropAndResize = backend.wasm.cwrap(
-      'CropAndResize', null /*void*/, ['number, number, number']);
+  wasmCropAndResize = backend.wasm.cwrap('CropAndResize', null /*void*/, [
+    'number',  // imagesId
+    'number',  // boxesId
+    'number',  // boxIndId
+    'number',  // batch
+    'number',  // imageHeight
+    'number',  // imageWidth
+    'array',   // cropSize
+    'number',  // method
+    'number',  // extrapolation value
+    'number'   // out id
+  ]);
 }
 
 function cropAndResize(args: {
@@ -61,7 +71,7 @@ function cropAndResize(args: {
 
   wasmCropAndResize(
       imagesId, boxesId, boxIndId, batch, imageHeight, imageWidth,
-      cropSize as [number, number], method as string,
+      cropSize as [number, number], method === 'bilinear' ? 1 : 0,
       extrapolationValue as number, outId);
   return out;
 }
