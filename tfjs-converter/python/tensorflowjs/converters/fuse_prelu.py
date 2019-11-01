@@ -216,7 +216,7 @@ def _cleanup_graph_def(input_graph_def, nodes_to_skip, inputs_to_remove):
           if input_node == value.name:
             new_node.input[i] = value.input[0]
     result_graph_def.node.extend([new_node])
-
+  result_graph_def.versions.CopyFrom(input_graph_def.versions)
   return result_graph_def
 
 def register_prelu_func(graph):

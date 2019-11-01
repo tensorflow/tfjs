@@ -295,6 +295,7 @@ class ConvertTest(tf.test.TestCase):
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
+    self.assertTrue(model_json['modelTopology']['versions'])
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
@@ -328,6 +329,7 @@ class ConvertTest(tf.test.TestCase):
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
+    self.assertTrue(model_json['modelTopology']['versions'])
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(weights_manifest, expected_weights_manifest)
     # Check meta-data in the artifact JSON.
@@ -352,6 +354,7 @@ class ConvertTest(tf.test.TestCase):
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
+    self.assertTrue(model_json['modelTopology']['versions'])
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
@@ -369,6 +372,7 @@ class ConvertTest(tf.test.TestCase):
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
+    self.assertTrue(model_json['modelTopology']['versions'])
     nodes = model_json['modelTopology']['node']
 
     fusedOp = None
@@ -409,6 +413,7 @@ class ConvertTest(tf.test.TestCase):
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
+    self.assertTrue(model_json['modelTopology']['versions'])
     nodes = model_json['modelTopology']['node']
 
     prelu_op = None
@@ -448,6 +453,7 @@ class ConvertTest(tf.test.TestCase):
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
+    self.assertTrue(model_json['modelTopology']['versions'])
     nodes = model_json['modelTopology']['node']
 
     prelu_op = None
@@ -482,6 +488,7 @@ class ConvertTest(tf.test.TestCase):
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
+    self.assertTrue(model_json['modelTopology']['versions'])
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
@@ -520,6 +527,7 @@ class ConvertTest(tf.test.TestCase):
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
+    self.assertTrue(model_json['modelTopology']['versions'])
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
@@ -544,6 +552,7 @@ class ConvertTest(tf.test.TestCase):
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
+    self.assertTrue(model_json['modelTopology']['versions'])
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
@@ -563,7 +572,7 @@ class ConvertTest(tf.test.TestCase):
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
-
+    self.assertTrue(model_json['modelTopology']['versions'])
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
@@ -585,6 +594,7 @@ class ConvertTest(tf.test.TestCase):
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
+    self.assertTrue(model_json['modelTopology']['versions'])
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
@@ -609,6 +619,7 @@ class ConvertTest(tf.test.TestCase):
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
+    self.assertTrue(model_json['modelTopology']['versions'])
     weights_manifest = model_json['weightsManifest']
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
