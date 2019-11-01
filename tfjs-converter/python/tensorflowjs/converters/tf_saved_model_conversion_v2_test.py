@@ -23,6 +23,7 @@ import tempfile
 import unittest
 
 import tensorflow as tf
+from tensorflow.contrib import lookup as contrib_lookup
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
@@ -94,8 +95,8 @@ class ConvertTest(tf.test.TestCase):
       # Add a hash table that is not used by the output.
       keys = tf.constant(['key'])
       values = tf.constant([1])
-      initializer = tf.contrib.lookup.KeyValueTensorInitializer(keys, values)
-      table = tf.contrib.lookup.HashTable(initializer, -1)
+      initializer = contrib_lookup.KeyValueTensorInitializer(keys, values)
+      table = contrib_lookup.HashTable(initializer, -1)
 
       # Create a builder.
       save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
