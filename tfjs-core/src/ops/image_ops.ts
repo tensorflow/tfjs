@@ -302,7 +302,9 @@ function cropAndResize_(
       backend.cropAndResize(
           $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
 
-  const res = ENGINE.runKernelFunc(forward, {$image, $boxes});
+  const res = ENGINE.runKernelFunc(
+      forward, {image: $image, boxes: $boxes}, null, 'CropAndResize',
+      {method, extrapolationValue});
   return res;
 }
 

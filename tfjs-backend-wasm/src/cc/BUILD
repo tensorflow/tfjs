@@ -61,6 +61,7 @@ tfjs_cc_library(
     ":Abs",
     ":Add",
     ":BatchMatMul",
+    ":CropAndResize",
     ":Div",
     ":Mul",
     ":Prelu",
@@ -121,6 +122,15 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "BatchMatMul",
   srcs = ["kernels/BatchMatMul.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "CropAndResize",
+  srcs = ["kernels/CropAndResize.cc"],
   deps = [
     ":backend",
     ":util",
