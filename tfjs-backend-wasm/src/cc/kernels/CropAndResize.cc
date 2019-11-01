@@ -16,6 +16,7 @@
 #include <emscripten.h>
 #endif
 
+#include <math.h>
 #include "src/cc/backend.h"
 
 namespace tfjs {
@@ -49,12 +50,100 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   float* out_buf = out_info.buf.f32;
   int out_size = out_info.size;
 
+  int batch = images_shape[0];
+  int image_height = images_shape[1];
+  int image_width = images_shape[2];
+  int num_channels = images_shape[3];
+
+  int crop_height = crop_size[0];
+  int crop_width = crop_size[1];
+
   for (int b = 0; b < num_boxes; ++b) {
     int startInd = b * 4;
     int y1 = boxes_buf[startInd];
     int x1 = boxes_buf[startInd + 1];
     int y2 = boxes_buf[startInd + 2];
     int x2 = boxes_buf[startInd + 3];
+
+    int b_ind = box_ind_buf[b];
+    if (b_ind >= batch) {
+      continue;
+    }
+
+    float height_scale =
+        (crop_height > 1) ? (y2 - y1) * (image_height - 1) / (crop_height - 1)
+                          : 0;
+    float width_scale =
+        (crop_width > 1) ? (x2 - x1) * (image_width - 1) / (crop_width - 1) : 0;
+
+    for (int y = 0; y < crop_height; ++y) {
+      float y_ind = (crop_height > 1)
+                        ? y1 * (image_height - 1) + y * (height_scale)
+                        : 0.5 * (y1 + y2) * (image_height - 1);
+
+      if (y_ind < 0 || y_ind > image_height - 1) {
+        for (int x = 0; x < crop_width; ++x) {
+          for (int c = 0; c < num_channels; ++c) {
+            int ind = c + x * output_strides[2] + y * output_strides[1] +
+                      b * output_strides[0];
+            // out_buf[ind] = extrapolation_value;
+          }
+        }
+        continue;
+      }
+
+      if (method == 0) {  // 'bilinear'
+        int top_ind = floor(y_ind);
+        int bottom_ind = ceil(y_ind);
+        int y_lerp = y_ind - top_ind;
+
+        for (int x = 0; x < crop_width; ++x) {
+          int x_ind = (crop_width > 1)
+                          ? x1 * (image_width - 1) + x * width_scale
+                          : 0.5 * (x1 + x2) * (image_width - 1);
+
+          if (x_ind < 0 || x_ind > image_width - 1) {
+            for (int c = 0; c < num_channels; ++c) {
+              int ind = c + x * output_strides[2] + y * output_strides[1] +
+                        b * output_strides[0];
+              // out_buf[ind] = extrapolation_value;
+            }
+            continue;
+          }
+
+          int left_ind = floor(x_ind);
+          int right_ind = ceil(x_ind);
+          int x_lerp = x_ind - left_ind;
+
+          for (int c = 0; c < num_channels; ++c) {
+            int ind = c + left_ind * images_strides[2] +
+                      top_ind * images_strides[1] + b_ind * images_strides[0];
+            float top_left = images_buf[ind];
+
+            ind = c + right_ind * images_strides[2] +
+                  top_ind * images_strides[1] + b_ind * images_strides[0];
+
+            float top_right = images_buf[ind];
+
+            ind = c + left_ind * images_strides[2] +
+                  bottom_ind * images_strides[1] + b_ind * images_strides[0];
+
+            float bottom_left = images_buf[ind];
+
+            ind = c + right_ind * images_strides[2] +
+                  bottom_ind * images_strides[1] + b_ind * images_strides[0];
+
+            float bottom_right = images_buf[ind];
+
+            float top = top_left + (top_right - top_left) * x_lerp;
+            float bottom = bottom_left + (bottom_right - bottom_left) * x_lerp;
+            ind = c + x * output_strides[2] + y * output_strides[1] +
+                  b * output_strides[0];
+            // out_buf[ind] = top + ((bottom - top) * y_lerp);
+          }
+        }
+      }
+    }
   }
 }
 
