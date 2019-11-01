@@ -25,13 +25,14 @@
 #include <vector>
 
 #include "src/cc/backend.h"
+#include "src/cc/kernels/Conv2D.h"
 #include "src/cc/util.h"
 
 namespace {
-// 11 integer values are keys to creating the conv2d operator. We use std::array
+// 15 integer values are keys to creating the conv2d operator. We use std::array
 // instead of a vanilla array as it implements the compare operator needed for
 // std::map.
-typedef std::array<int, 11> operator_cache_key;
+typedef std::array<int, 15> operator_cache_key;
 
 // The operator cache maps the cache key to the xnn_operator_t instantiated for
 // this set of arguments to the xnn_operator.
@@ -77,18 +78,19 @@ void Conv2D(int x_id, int batch_size, int input_height, int input_width,
 
   xnn_operator_t conv2d_op = nullptr;
 
+  const int flags = 0;
+  const int groups = 1;
+
   operator_cache_key cache_key = {
       pad_top,         pad_right,      pad_bottom,    pad_left,
       filter_height,   filter_width,   stride_height, stride_width,
-      dilation_height, dilation_width, filter_id};
+      dilation_height, dilation_width, groups,        input_channels,
+      output_channels, filter_id,      flags};
 
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
     float output_min = -std::numeric_limits<float>::infinity();
     float output_max = std::numeric_limits<float>::infinity();
-
-    const int flags = 0;
-    const int groups = 1;
 
     const float* bias_buf = nullptr;
     xnn_status status = xnn_create_convolution2d_nhwc_f32(
