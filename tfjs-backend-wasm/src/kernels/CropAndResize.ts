@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -27,7 +27,7 @@ interface CropAndResizeAttrs extends NamedAttrMap {
   axes: number[];
 }
 
-let wasmCropAndResize: (xId: number, reduceSize: number, outId: number) => void;
+let wasmCropAndResize: (outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmCropAndResize = backend.wasm.cwrap(
@@ -40,23 +40,30 @@ function cropAndResize(args: {
   attrs: CropAndResizeAttrs
 }): TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {axes} = attrs;
-  const {x} = inputs;
-  const xId = backend.dataIdMap.get(x.dataId).id;
+  const {method, extrapolationValue, cropSize} = attrs;
+  const {images, boxes} = inputs;
 
-  backend_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
-  const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(x.shape, axes);
-  const reduceSize = util.sizeFromShape(reduceShape);
+  console.log('in cropandresize');
+  console.log(inputs);
+  console.log(method, extrapolationValue);
+  const [batch, imageHeight, imageWidth, numChannels] = images.shape;
+  const numBoxes = boxes.shape[0];
+  console.log(batch, imageHeight, imageWidth);
 
-  const out = backend.makeOutput(outShape, x.dtype);
-  if (util.sizeFromShape(x.shape) === 0) {
-    return out;
-  }
+  const [cropHeight, cropWidth] = cropSize as [number, number];
+  // const xId = backend.dataIdMap.get(x.dataId).id;
+
+  // backend_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
+  // const [outShape, reduceShape] =
+  //     backend_util.computeOutAndReduceShapes(x.shape, axes);
+  // const reduceSize = util.sizeFromShape(reduceShape);
+  const outShape = [numBoxes, cropHeight, cropWidth, numChannels];
+
+  const out = backend.makeOutput(outShape, images.dtype);
 
   const outId = backend.dataIdMap.get(out.dataId).id;
 
-  wasmCropAndResize(xId, reduceSize, outId);
+  wasmCropAndResize(outId);
   return out;
 }
 
