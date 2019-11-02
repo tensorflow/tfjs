@@ -206,10 +206,11 @@ test_suite(
 )
 
 tfjs_unit_test(
-  name = "backend_test",
-  srcs = ["backend_test.cc"],
+  name = "backend_tests",
+  srcs = glob(["*_test.cc"]),
   deps = [
     ":backend",
+    ":util",
     ":Prelu",
   ]
 )

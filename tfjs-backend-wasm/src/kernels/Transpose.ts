@@ -55,14 +55,14 @@ function transpose(
     shape: reducedShape,
     dtype: inputs.x.dtype
   };
-  let noChange = true;
+  let permIsNoOp = true;
   for (let i = 0; i < perm.length; i++) {
     if (perm[i] !== i) {
-      noChange = false;
+      permIsNoOp = false;
     }
   }
   const outShape = computeOutShape(inputs.x.shape, attrs.perm);
-  if (noChange) {
+  if (permIsNoOp) {
     return {dataId: x.dataId, shape: outShape, dtype: x.dtype};
   }
   const out = backend.makeOutput(outShape, x.dtype);

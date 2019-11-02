@@ -140,7 +140,13 @@ const TEST_FILTERS: TestFilter[] = [
                     // implemented.
     ]
   },
-  {include: 'concat'},
+  {
+    include: 'concat',
+    excludes: [
+      'complex',  // Complex numbers not supported yet
+      'gradient'  // Split is not yet implemented
+    ]
+  },
   {
     include: 'transpose',
     excludes: ['oneHot']  // oneHot not yet implemented.
