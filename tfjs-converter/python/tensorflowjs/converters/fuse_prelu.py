@@ -1,13 +1,13 @@
 # Copyright 2019 Google LLC
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
@@ -79,22 +79,21 @@ def fuse_ops_for_prelu(input_graph_def):
     if node.name not in input_node_map:
       input_node_map[node.name] = node
     else:
-      raise ValueError("Duplicate node names detected for ", node.name)
+      raise ValueError('Duplicate node names detected for ', node.name)
 
   nodes_to_skip = {}
   inputs_to_remove = []
   updated_alpha = []
   for node in input_graph_def.node:
-    if (node.op not in ("Add", "AddV2") or len(node.input) != 2):
+    if (node.op not in ('Add', 'AddV2') or len(node.input) != 2):
       continue
 
     relu_input_op = common.node_from_map(input_node_map, node.input[0])
-    if (not relu_input_op or relu_input_op.op != "Relu" or
-        len(relu_input_op.input) != 1):
+    if (not relu_input_op or relu_input_op.op != 'Relu'):
       continue
 
     mul_op = common.node_from_map(input_node_map, node.input[1])
-    if (not mul_op or mul_op.op != 'Mul' or len(mul_op.input) != 2):
+    if (not mul_op or mul_op.op != 'Mul'):
       continue
 
     neg_alpha_op = None
@@ -151,7 +150,7 @@ def fuse_ops_for_prelu(input_graph_def):
   return _cleanup_graph_def(input_graph_def, nodes_to_skip, inputs_to_remove)
 
 def _create_alpha_node(neg_alpha_op, updated_alpha):
-  if not neg_alpha_op.name in updated_alpha:
+  if neg_alpha_op.name not in updated_alpha:
     alpha_value = -common.values_from_const(neg_alpha_op)
     neg_alpha_op.attr['value'].CopyFrom(
         attr_value_pb2.AttrValue(tensor=tensor_util.make_tensor_proto(
@@ -180,14 +179,14 @@ def fuse_prelu_with_fused_conv2d(input_graph_def):
     if node.name not in input_node_map:
       input_node_map[node.name] = node
     else:
-      raise ValueError("Duplicate node names detected for ", node.name)
+      raise ValueError('Duplicate node names detected for ', node.name)
 
   for node in input_graph_def.node:
-    if node.op != "Prelu":
+    if node.op != 'Prelu':
       continue
 
     fused_conv_op = common.node_from_map(input_node_map, node.input[0])
-    if (not fused_conv_op or fused_conv_op.op != "_FusedConv2D" or
+    if (not fused_conv_op or fused_conv_op.op != '_FusedConv2D' or
         len(fused_conv_op.attr['fused_ops'].list.s) > 1):
       continue
 
@@ -216,7 +215,7 @@ def _cleanup_graph_def(input_graph_def, nodes_to_skip, inputs_to_remove):
           if input_node == value.name:
             new_node.input[i] = value.input[0]
     result_graph_def.node.extend([new_node])
-
+  result_graph_def.versions.CopyFrom(input_graph_def.versions)
   return result_graph_def
 
 def register_prelu_func(graph):

@@ -26,6 +26,8 @@ import './Cast';
 import './Concat';
 import './Div';
 import './Mul';
+import './Min';
+import './Max';
 import './Prelu';
 import './Reshape';
 import './Sigmoid';
