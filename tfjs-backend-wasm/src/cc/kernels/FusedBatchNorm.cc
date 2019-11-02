@@ -16,7 +16,7 @@
 #include <emscripten.h>
 #endif
 
-#include <math.h>
+#include <cmath>
 #include <vector>
 #include "src/cc/backend.h"
 
@@ -75,7 +75,7 @@ void FusedBatchNorm(int x_id, int mean_id, int variance_id, int offset_id,
 
   std::vector<double> normalization_factor(variance_size);
   for (int i = 0; i < variance_size; ++i) {
-    normalization_factor[i] = sqrt(variance_buf[i] + variance_epsilon);
+    normalization_factor[i] = std::sqrt(variance_buf[i] + variance_epsilon);
   }
 
   for (int i = 0; i < x_size; ++i) {

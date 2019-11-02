@@ -1,12 +1,12 @@
 # Emscripten installation
 
-Install the Emscripten SDK (version 1.38.41):
+Install the Emscripten SDK (version 1.39.1-fastcomp):
 
 ```sh
 git clone https://github.com/emscripten-core/emsdk.git
 cd emsdk
-./emsdk install 1.38.41
-./emsdk activate 1.38.41
+./emsdk install 1.39.1-fastcomp
+./emsdk activate 1.39.1-fastcomp
 ```
 
 # Prepare the environment
