@@ -12,12 +12,13 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include <gtest/gtest.h>
-
 #include "src/cc/util.h"
+
+#include <gtest/gtest.h>
 
 #include <array>
 #include <vector>
+
 namespace tfjs {
 namespace util {
 namespace {
