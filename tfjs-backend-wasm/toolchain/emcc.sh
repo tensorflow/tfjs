@@ -16,6 +16,4 @@
 
 set -euo pipefail
 
-
-# Run emscripten to compile and link
-python external/emsdk/emsdk/fastcomp/emscripten/emcc.py "$@"
+external/emsdk/emsdk/upstream/emscripten/emcc "$@"
