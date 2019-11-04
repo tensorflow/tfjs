@@ -16,7 +16,7 @@
 #include <emscripten.h>
 #endif
 
-#include <math.h>
+#include <cmath>
 #include <vector>
 #include "src/cc/backend.h"
 
@@ -35,14 +35,14 @@ void FusedBatchNorm(int x_id, int mean_id, int variance_id, int offset_id,
   const auto variance_info = backend::get_tensor_info(variance_id);
   const auto out_info = backend::get_tensor_info(out_id);
 
-  float* x_buf = x_info.buf.f32;
+  float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
   int x_size = x_info.size;
-  float* mean_buf = mean_info.buf.f32;
+  float* mean_buf = reinterpret_cast<float*>(mean_info.memory_offset);
   int mean_size = mean_info.size;
-  float* variance_buf = variance_info.buf.f32;
+  float* variance_buf = reinterpret_cast<float*>(variance_info.memory_offset);
   int variance_size = variance_info.size;
 
-  float* out_buf = out_info.buf.f32;
+  float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
 
   int offset_i = 0;
   int mean_i = 0;
@@ -57,7 +57,7 @@ void FusedBatchNorm(int x_id, int mean_id, int variance_id, int offset_id,
     scale_size = 1;
   } else {
     const auto scale_info = backend::get_tensor_info(scale_id);
-    scale_buf = scale_info.buf.f32;
+    scale_buf = reinterpret_cast<float*>(scale_info.memory_offset);
     scale_size = scale_info.size;
   }
 
@@ -69,13 +69,13 @@ void FusedBatchNorm(int x_id, int mean_id, int variance_id, int offset_id,
     offset_size = 1;
   } else {
     const auto offset_info = backend::get_tensor_info(offset_id);
-    offset_buf = offset_info.buf.f32;
+    offset_buf = reinterpret_cast<float*>(offset_info.memory_offset);
     offset_size = offset_info.size;
   }
 
   std::vector<double> normalization_factor(variance_size);
   for (int i = 0; i < variance_size; ++i) {
-    normalization_factor[i] = sqrt(variance_buf[i] + variance_epsilon);
+    normalization_factor[i] = std::sqrt(variance_buf[i] + variance_epsilon);
   }
 
   for (int i = 0; i < x_size; ++i) {

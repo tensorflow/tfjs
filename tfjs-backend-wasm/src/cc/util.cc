@@ -12,17 +12,24 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef KERNELS_PRELU_H_
-#define KERNELS_PRELU_H_
+#include <vector>
+
+#include "src/cc/util.h"
 
 namespace tfjs {
+namespace util {
 
-namespace wasm {
-extern "C" {
-void Prelu(int x_id, int weights_id, int out_id);
+std::vector<int> compute_strides(const std::vector<int> shape) {
+  int rank = shape.size();
+  std::vector<int> strides(rank - 1);
+  // Last dimension has implicit stride of 1, thus having D-1 (instead of D)
+  // strides.
+  strides[rank - 2] = shape[rank - 1];
+  for (int i = rank - 3; i >= 0; --i) {
+    strides[i] = strides[i + 1] * shape[i + 1];
+  }
+  return strides;
 }
 
-}  // namespace wasm
+}  // namespace util
 }  // namespace tfjs
-
-#endif  // KERNELS_PRELU_H_

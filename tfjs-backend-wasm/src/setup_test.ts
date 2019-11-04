@@ -126,7 +126,9 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // Gradient is missing.
     ]
   },
-  {include: 'slice '}, {include: 'square '}, {
+  {include: 'slice '},
+  {include: 'square '},
+  {
     startsWith: 'min ',
     excludes: [
       'derivative: 1D tensor with max or min value',  // Clip not yet
@@ -145,7 +147,18 @@ const TEST_FILTERS: TestFilter[] = [
       '2D, axis=0'  // Permuted axes requires transpose, which is not yet
                     // implemented.
     ]
-  }
+  },
+  {
+    include: 'concat',
+    excludes: [
+      'complex',  // Complex numbers not supported yet
+      'gradient'  // Split is not yet implemented
+    ]
+  },
+  {
+    include: 'transpose',
+    excludes: ['oneHot']  // oneHot not yet implemented.
+  },
 ];
 
 const customInclude = (testName: string) => {

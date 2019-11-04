@@ -30,13 +30,13 @@ void Max(int x_id, int reduce_size, int out_id) {
   const auto x_info = backend::get_tensor_info(x_id);
   const auto out_info = backend::get_tensor_info(out_id);
 
-  float* x_buf = x_info.buf.f32;
+  float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
   int x_size = x_info.size;
 
-  float* out_buf = out_info.buf.f32;
+  float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
   int out_size = out_info.size;
 
-  float* x_offset = x_info.buf.f32;
+  float* x_offset = x_buf;
 
   for (int i = 0; i < out_size; ++i) {
     int offset = i * reduce_size;

@@ -18,13 +18,19 @@
 import {backend_util, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {CppDType} from './types';
 
 export function registerBinaryKernel(kernelName: string) {
-  let wasmFunc: (aId: number, bId: number, outId: number) => void;
+  let wasmFunc: (aId: number, bId: number, dtype: number, outId: number) =>
+      void;
 
   function setupFunc(backend: BackendWasm): void {
-    wasmFunc = backend.wasm.cwrap(
-        kernelName, null /* void */, ['number', 'number', 'number']);
+    wasmFunc = backend.wasm.cwrap(kernelName, null /* void */, [
+      'number',  // a_id,
+      'number',  // b_id
+      'number',  // dtype
+      'number'   // out_id
+    ]);
   }
 
   function kernelFunc(args: {backend: BackendWasm, inputs: BinaryInputs}):
@@ -48,7 +54,7 @@ export function registerBinaryKernel(kernelName: string) {
     const outId = backend.dataIdMap.get(out.dataId).id;
 
     if (loopsOverAllOfA && loopsOverAllOfB) {
-      wasmFunc(aId, bId, outId);
+      wasmFunc(aId, bId, CppDType[a.dtype], outId);
       return out;
     } else {
       throw new Error('Broadcasting along inner dims is not yet supported');
