@@ -51,7 +51,7 @@ void BatchMatMul(int a_id, int b_id, int shared_dim, int left_dim,
   // Zero out the output buffer because it might have been used before.
   std::fill(out_buf, out_buf + batch_dim * size, 0);
 
-  for (int b = 0; b < batch_dim; b++) {
+  for (int b = 0; b < batch_dim; ++b) {
     for (int i0 = 0; i0 < left_dim; i0 += kBlockSize) {
       for (int j0 = 0; j0 < right_dim; j0 += kBlockSize) {
         for (int k0 = 0; k0 < shared_dim; k0 += kBlockSize) {
@@ -60,11 +60,11 @@ void BatchMatMul(int a_id, int b_id, int shared_dim, int left_dim,
           int j_block = std::min(j0 + kBlockSize, right_dim);
           int k_block = std::min(k0 + kBlockSize, shared_dim);
 
-          for (int i = i0; i < i_block; i++) {
-            for (int j = j0; j < j_block; j++) {
+          for (int i = i0; i < i_block; ++i) {
+            for (int j = j0; j < j_block; ++j) {
               float sum = 0.0;
 
-              for (int k = k0; k < k_block; k++) {
+              for (int k = k0; k < k_block; ++k) {
                 sum +=
                     a_buf[b * a_batch + i * a_outer_step + k * a_inner_step] *
                     b_buf[k * b_inner_step + j * b_outer_step + b * b_batch];

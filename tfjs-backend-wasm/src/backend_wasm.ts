@@ -124,16 +124,18 @@ export class BackendWasm extends KernelBackend {
     return {dataId, shape, dtype};
   }
 
-  typedArrayFromHeap(offset: number, dtype: DataType, size: number):
+  typedArrayFromHeap({shape, dtype, dataId}: TensorInfo):
       backend_util.TypedArray {
     const buffer = this.wasm.HEAPU8.buffer;
+    const {memoryOffset} = this.dataIdMap.get(dataId);
+    const size = util.sizeFromShape(shape);
     switch (dtype) {
       case 'float32':
-        return new Float32Array(buffer, offset, size);
+        return new Float32Array(buffer, memoryOffset, size);
       case 'int32':
-        return new Int32Array(buffer, offset, size);
+        return new Int32Array(buffer, memoryOffset, size);
       case 'bool':
-        return new Uint8Array(buffer, offset, size);
+        return new Uint8Array(buffer, memoryOffset, size);
       default:
         throw new Error(`Uknown dtype ${dtype}`);
     }
