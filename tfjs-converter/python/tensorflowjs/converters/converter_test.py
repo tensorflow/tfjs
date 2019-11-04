@@ -302,7 +302,7 @@ class ConvertKerasToTfGraphModelTest(tf.test.TestCase):
     with open(os.path.join(output_dir, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
-    self.assertTrue(model_json['modelTopology']['versions'])
+    self.assertIsNot(model_json['modelTopology']['versions'], None)
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(len(weights_manifest), 1)
     # Check meta-data in the artifact JSON.

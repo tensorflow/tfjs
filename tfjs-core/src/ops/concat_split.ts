@@ -191,8 +191,10 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
     return derTensors.map(t => () => t) as {};
   };
   const inputs = $tensors as {};
+  const attr = {axis};
   return ENGINE.runKernelFunc(
-      backend => backend.concat($tensors, axis) as T, inputs, der);
+      backend => backend.concat($tensors, axis) as T, inputs, der, 'Concat',
+      attr);
 }
 
 /**
