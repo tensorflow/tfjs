@@ -70,13 +70,6 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
 
   // printf("%d \n", images_shape[0]);
   // printf("%d \n", images_shape[1]);
-  // printf("%d \n", images_shape[2]);
-  // printf("%d \n", images_shape[3]);
-  // printf("%d \n", num_channels);
-  // printf("%d \n", num_boxes);
-  // printf("%d \n", crop_height);
-  // printf("%d \n", crop_width);
-  // printf("%d \n", method);
 
   for (int b = 0; b < num_boxes; ++b) {
     int startInd = b * 4;
@@ -91,10 +84,13 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
     }
 
     float height_scale =
-        (crop_height > 1) ? (y2 - y1) * (image_height - 1) / (crop_height - 1)
-                          : 0;
+        (crop_height > 1)
+            ? float(y2 - y1) * float(image_height - 1) / float(crop_height - 1)
+            : 0;
     float width_scale =
-        (crop_width > 1) ? (x2 - x1) * (image_width - 1) / (crop_width - 1) : 0;
+        (crop_width > 1)
+            ? float(x2 - x1) * float(image_width - 1) / float(crop_width - 1)
+            : 0;
 
     for (int y = 0; y < crop_height; ++y) {
       float y_ind = (crop_height > 1)
@@ -160,7 +156,7 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
             ind = c + x * output_strides[2] + y * output_strides[1] +
                   b * output_strides[0];
 
-            out_buf[0] = top + ((bottom - top) * y_lerp);
+            out_buf[ind] = top + ((bottom - top) * y_lerp);
           }
         }
       } else {
