@@ -48,7 +48,7 @@ void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
     // We move callbacks to avoid a copy.
     disposal_callbacks.insert({tensor_id, std::move(callbacks)});
   } else {
-    std::vector<DisposeFunction> &callbacks = disposal_callbacks.at(tensor_id);
+    std::vector<DisposeFunction> &callbacks = disposal_callbacks[tensor_id];
     callbacks.push_back(dispose_fn);
   }
 }
