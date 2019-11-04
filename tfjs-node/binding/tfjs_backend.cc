@@ -34,7 +34,7 @@ static std::set<std::string> ATTR_NAME_SET;
 
 // Callback to cleanup extra reference count for shared V8/TF tensor memory:
 static void DeallocTensor(void *data, size_t len, void *arg) {
-  NapiAutoRef *auto_ref = reinterpret_cast<NapiAutoRef *>(arg);
+  NapiAutoRef *auto_ref = static_cast<NapiAutoRef *>(arg);
   if (!auto_ref) {
 #if DEBUG
     fprintf(stderr, "Invalid NapiAutoRef reference passed to V8 cleanup\n");
@@ -339,16 +339,16 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
   ENSURE_VALUE_IS_NOT_NULL(env, tensor_data);
 
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
-  const char *limit = reinterpret_cast<const char *>(tensor_data) + byte_length;
+  const char *limit = static_cast<const char *>(tensor_data) + byte_length;
 
   size_t num_elements = GetTensorNumElements(tensor.tensor);
 
   // String values are stored in offsets.
-  const uint64_t *offsets = reinterpret_cast<const uint64_t *>(tensor_data);
+  const uint64_t *offsets = static_cast<const uint64_t *>(tensor_data);
   const size_t offsets_size = sizeof(uint64_t) * num_elements;
 
   // Skip passed the offsets and find the first string:
-  const char *data = reinterpret_cast<const char *>(tensor_data) + offsets_size;
+  const char *data = static_cast<const char *>(tensor_data) + offsets_size;
 
   TF_AutoStatus status;
 
@@ -357,7 +357,7 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
   nstatus = napi_create_array_with_length(env, num_elements, result);
 
   const size_t expected_tensor_size =
-      (limit - reinterpret_cast<const char *>(tensor_data));
+      (limit - static_cast<const char *>(tensor_data));
   if (expected_tensor_size != byte_length) {
     NAPI_THROW_ERROR(env,
                      "Invalid/corrupt TF_STRING tensor. Expected size: %zu, "
@@ -604,7 +604,7 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
           data[i] = value;
         }
         TFE_OpSetAttrIntList(tfe_op, attr_name, data.get(),
-                             reinterpret_cast<int>(length));
+                             static_cast<int>(length));
       } else {
         int64_t value;
         nstatus = napi_get_value_int64(env, js_value, &value);
@@ -628,15 +628,15 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
           double value;
           nstatus = napi_get_value_double(env, element, &value);
           ENSURE_NAPI_OK(env, nstatus);
-          data[i] = reinterpret_cast<float>(value);
+          data[i] = static_cast<float>(value);
         }
         TFE_OpSetAttrFloatList(tfe_op, attr_name, data.get(),
-                               reinterpret_cast<int>(length));
+                               static_cast<int>(length));
       } else {
         double value;
         nstatus = napi_get_value_double(env, js_value, &value);
         ENSURE_NAPI_OK(env, nstatus);
-        TFE_OpSetAttrFloat(tfe_op, attr_name, reinterpret_cast<float>(value));
+        TFE_OpSetAttrFloat(tfe_op, attr_name, static_cast<float>(value));
       }
       break;
     }
@@ -657,7 +657,7 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
           data[i] = value ? 1 : 0;
         }
         TFE_OpSetAttrBoolList(tfe_op, attr_name, data.get(),
-                              reinterpret_cast<int>(length));
+                              static_cast<int>(length));
       } else {
         bool value;
         nstatus = napi_get_value_bool(env, js_value, &value);
@@ -786,7 +786,7 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
 
   TFE_TensorHandle *tfe_handle = CreateTFE_TensorHandleFromJSValues(
       env, shape_vector.data(), shape_vector.size(),
-      reinterpret_cast<TF_DataType>(dtype_int32), array_value);
+      static_cast<TF_DataType>(dtype_int32), array_value);
 
   // Check to see if an exception exists, if so return a failure.
   if (IsExceptionPending(env)) {
