@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, NamedAttrMap, NamedTensorInfoMap, registerKernel, util} from '@tensorflow/tfjs-core';
+import {DataType, NamedAttrMap, NamedTensorInfoMap, registerKernel} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -32,11 +32,8 @@ function cast(
     args: {inputs: CastInputs, attrs: CastAttrs, backend: BackendWasm}) {
   const {inputs: {x}, attrs: {dtype}, backend} = args;
   const out = backend.makeOutput(x.shape, dtype);
-  const {memoryOffset: inOffset} = backend.dataIdMap.get(x.dataId);
-  const {memoryOffset: outOffset} = backend.dataIdMap.get(out.dataId);
-  const size = util.sizeFromShape(x.shape);
-  const inVals = backend.typedArrayFromHeap(inOffset, x.dtype, size);
-  const outVals = backend.typedArrayFromHeap(outOffset, dtype, size);
+  const inVals = backend.typedArrayFromHeap(x);
+  const outVals = backend.typedArrayFromHeap(out);
   outVals.set(inVals);
   return out;
 }

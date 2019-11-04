@@ -37,7 +37,7 @@ std::unordered_map<int, std::vector<tfjs::backend::DisposeFunction>>
 
 namespace tfjs {
 namespace backend {
-TensorInfo get_tensor_info(int tensor_id) { return data.at(tensor_id); }
+TensorInfo &get_tensor_info(int tensor_id) { return data.at(tensor_id); }
 
 int xnn_operator_count = 0;
 

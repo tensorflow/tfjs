@@ -38,7 +38,7 @@ namespace tfjs {
 namespace backend {
 // Returns the tensor information object associated with a given tensor_id
 // bucket.
-TensorInfo get_tensor_info(int tensor_id);
+TensorInfo &get_tensor_info(int tensor_id);
 
 // Registers a function callback to be called when a tensor with a given ID is
 // disposed.

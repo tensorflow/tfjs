@@ -128,6 +128,7 @@
     "stack": "cpp",
     "*.ipp": "cpp",
     "forward_list": "cpp",
-    "*.inc": "cpp"
+    "*.inc": "cpp",
+    "hash_map": "cpp"
   }
 }
