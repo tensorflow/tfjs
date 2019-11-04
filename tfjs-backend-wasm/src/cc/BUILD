@@ -70,6 +70,7 @@ tfjs_cc_library(
     ":Min",
     ":Sigmoid",
     ":Sub",
+    ":Transpose",
   ]
 )
 
@@ -196,8 +197,18 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "Transpose",
+  srcs = ["kernels/Transpose.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
   name = "util",
-  srcs = ["util.h"],
+  hdrs = ["util.h"],
+  srcs = ["util.cc"],
 )
 
 test_suite(
@@ -205,10 +216,11 @@ test_suite(
 )
 
 tfjs_unit_test(
-  name = "backend_test",
-  srcs = ["backend_test.cc"],
+  name = "backend_tests",
+  srcs = glob(["*_test.cc"]),
   deps = [
     ":backend",
+    ":util",
     ":Prelu",
   ]
 )
