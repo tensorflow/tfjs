@@ -29,26 +29,35 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
-                   const std::vector<int>& images_strides,
-                   const std::vector<int>& output_strides,
-                   const std::vector<int>& images_shape,
-                   const std::vector<int>& crop_size, int method,
+                   int* images_strides_ptr, int images_strides_length,
+                   int* output_strides_ptr, int output_strides_length,
+                   int* images_shape_ptr, int images_shape_length,
+                   int* crop_size_ptr, int crop_size_length, int method,
                    float extrapolation_value, int out_id) {
+  const std::vector<int>& images_strides = std::vector<int>(
+      images_strides_ptr, images_strides_ptr + images_strides_length);
+  const std::vector<int>& output_strides = std::vector<int>(
+      output_strides_ptr, output_strides_ptr + output_strides_length);
+  const std::vector<int>& images_shape = std::vector<int>(
+      images_shape_ptr, images_shape_ptr + images_shape_length);
+  const std::vector<int>& crop_size =
+      std::vector<int>(crop_size_ptr, crop_size_ptr + crop_size_length);
+
   const auto images_info = backend::get_tensor_info(images_id);
   const auto boxes_info = backend::get_tensor_info(boxes_id);
   const auto box_ind_info = backend::get_tensor_info(box_ind_id);
   const auto out_info = backend::get_tensor_info(out_id);
 
-  float* images_buf = images_info.buf.f32;
+  float* images_buf = reinterpret_cast<float*>(images_info.memory_offset);
   int images_size = images_info.size;
 
-  float* boxes_buf = boxes_info.buf.f32;
+  float* boxes_buf = reinterpret_cast<float*>(boxes_info.memory_offset);
   int boxes_size = boxes_info.size;
 
-  float* box_ind_buf = box_ind_info.buf.f32;
+  float* box_ind_buf = reinterpret_cast<float*>(box_ind_info.memory_offset);
   int box_ind_size = box_ind_info.size;
 
-  float* out_buf = out_info.buf.f32;
+  float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
   int out_size = out_info.size;
 
   int batch = images_shape[0];
@@ -59,11 +68,14 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   int crop_height = crop_size[0];
   int crop_width = crop_size[1];
 
-  // printf("%s \n", num_channels);
   printf("%d \n", images_shape[0]);
   printf("%d \n", images_shape[1]);
   printf("%d \n", images_shape[2]);
   printf("%d \n", images_shape[3]);
+  printf("%d \n", num_channels);
+  printf("%d \n", num_boxes);
+  printf("%d \n", crop_height);
+  printf("%d \n", crop_width);
 
   for (int b = 0; b < num_boxes; ++b) {
     int startInd = b * 4;

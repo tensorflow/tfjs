@@ -29,9 +29,11 @@ interface CropAndResizeAttrs extends NamedAttrMap {
 
 let wasmCropAndResize: (
     imagesId: number, boxesId: number, boxIndId: number, numBoxes: number,
-    imageStrides: Uint8Array, outputStrides: Uint8Array,
-    imagesShape: Uint8Array, cropSize: Uint8Array, method: number,
-    extrapolationValue: number, outId: number) => void;
+    imageStrides: Uint8Array, imageStridesLength: number,
+    outputStrides: Uint8Array, outputStridesLength: number,
+    imagesShape: Uint8Array, imagesShapeLength: number, cropSize: Uint8Array,
+    cropSizeLength: number, method: number, extrapolationValue: number,
+    outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmCropAndResize = backend.wasm.cwrap('CropAndResize', null /*void*/, [
@@ -40,9 +42,13 @@ function setup(backend: BackendWasm): void {
     'number',  // boxIndId
     'number',  // numBoxes
     'array',   // image strides
+    'number',  // image strides length
     'array',   // output strides
+    'number',  // output strides length
     'array',   // images shape
+    'number',  // images shape length
     'array',   // cropSize
+    'number',  // cropSize length
     'number',  // method
     'number',  // extrapolation value
     'number'   // out id
@@ -70,20 +76,22 @@ function cropAndResize(args: {
   const out = backend.makeOutput(outShape, images.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
 
-  const imageStridesBytes =
-      new Uint8Array(new Int32Array(util.computeStrides(images.shape)).buffer);
+  const imageStrides = util.computeStrides(images.shape);
+  const outputStrides = util.computeStrides(outShape);
+
+  const imageStridesBytes = new Uint8Array(new Int32Array(imageStrides).buffer);
   const outputStridesBytes =
-      new Uint8Array(new Int32Array(util.computeStrides(outShape)).buffer);
+      new Uint8Array(new Int32Array(outputStrides).buffer);
   const imagesShapeBytes = new Uint8Array(new Int32Array(images.shape).buffer);
   const cropSizeBytes =
       new Uint8Array(new Int32Array(cropSize as [number, number]).buffer);
-  console.log('CROP AND RESIZE');
-  console.log(images.shape);
 
   wasmCropAndResize(
       imagesId, boxesId, boxIndId, numBoxes, imageStridesBytes,
-      outputStridesBytes, imagesShapeBytes, cropSizeBytes,
-      method === 'bilinear' ? 1 : 0, extrapolationValue as number, outId);
+      imageStrides.length, outputStridesBytes, outputStrides.length,
+      imagesShapeBytes, images.shape.length, cropSizeBytes,
+      (cropSize as [number, number]).length, method === 'bilinear' ? 1 : 0,
+      extrapolationValue as number, outId);
   return out;
 }
 
