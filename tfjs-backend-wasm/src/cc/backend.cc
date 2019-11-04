@@ -43,15 +43,14 @@ int xnn_operator_count = 0;
 
 // Registers a disposal callback for a tensor id with a given callback function.
 void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
-  std::vector<DisposeFunction> callbacks;
   if (disposal_callbacks.count(tensor_id) == 0) {
-    callbacks = std::vector<DisposeFunction>{dispose_fn};
+    auto callbacks = std::vector<DisposeFunction>{dispose_fn};
+    // We move callbacks to avoid a copy.
+    disposal_callbacks.insert({tensor_id, std::move(callbacks)});
   } else {
-    callbacks = disposal_callbacks[tensor_id];
+    std::vector<DisposeFunction> &callbacks = disposal_callbacks.at(tensor_id);
     callbacks.push_back(dispose_fn);
   }
-  // We move callbacks to avoid another copy.
-  disposal_callbacks[tensor_id] = std::move(callbacks);
 }
 
 int num_tensors() { return data.size(); }
