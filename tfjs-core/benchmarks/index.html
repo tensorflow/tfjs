@@ -100,6 +100,7 @@ limitations under the License.
       run: (v) => {
         runBenchmark();
       },
+      backend: 'webgl',
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -340,14 +341,14 @@ limitations under the License.
       await tf.ready();
 
       gui.add(state, 'numRuns');
-      gui.add(state, 'benchmark', ['', ...Object.keys(benchmarks)]);
+      gui.add(state, 'benchmark', Object.keys(benchmarks));
+      gui.add(state, 'backend', ['webgl', 'cpu']).onChange(backend => {
+        tf.setBackend(backend);
+      });
       gui.add(state, 'run');
 
       showVersions();
       await showEnvironment();
-
-      // Run first benchmark by default on page load.
-      runBenchmark();
     }
 
     onPageLoad();

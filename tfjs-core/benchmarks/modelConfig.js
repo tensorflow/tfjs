@@ -72,6 +72,19 @@ const sentences = [
 ];
 
 const benchmarks = {
+  'facemesh': {
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/learnjs-data/face_mesh/model.json';
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      const zeros = tf.zeros([1, 128, 128, 3]);
+      return model => {
+        return model.predict(zeros);
+      };
+    },
+  },
   'mobilenet': {
     load: async () => {
       const url =
