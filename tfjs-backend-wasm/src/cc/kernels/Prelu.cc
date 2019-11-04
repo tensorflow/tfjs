@@ -49,9 +49,9 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void Prelu(int x_id, int weights_id, int out_id) {
-  const TensorInfo x_info = backend::get_tensor_info(x_id);
-  const TensorInfo weights_info = backend::get_tensor_info(weights_id);
-  const TensorInfo out_info = backend::get_tensor_info(out_id);
+  auto& x_info = backend::get_tensor_info(x_id);
+  auto& weights_info = backend::get_tensor_info(weights_id);
+  auto& out_info = backend::get_tensor_info(out_id);
 
   const float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
   const float* weights_buf =

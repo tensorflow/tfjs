@@ -37,7 +37,7 @@ std::unordered_map<int, std::vector<tfjs::backend::DisposeFunction>>
 
 namespace tfjs {
 namespace backend {
-TensorInfo &get_tensor_info(int tensor_id) { return data.at(tensor_id); }
+const TensorInfo &get_tensor_info(int tensor_id) { return data.at(tensor_id); }
 
 int xnn_operator_count = 0;
 
@@ -48,7 +48,7 @@ void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
     // We move callbacks to avoid a copy.
     disposal_callbacks.insert({tensor_id, std::move(callbacks)});
   } else {
-    auto callbacks = disposal_callbacks.at(tensor_id);
+    auto &callbacks = disposal_callbacks[tensor_id];
     callbacks.push_back(dispose_fn);
   }
 }
@@ -72,7 +72,7 @@ EMSCRIPTEN_KEEPALIVE
 void register_tensor(int tensor_id, int size, void *memory_offset) {
   TensorInfo info = {memory_offset, size};
   // We move info to avoid a copy.
-  data.insert({tensor_id, std::move(info)});
+  data.emplace(tensor_id, std::move(info));
 }
 
 #ifdef __EMSCRIPTEN__

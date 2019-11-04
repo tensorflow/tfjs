@@ -105,14 +105,14 @@ inline std::vector<int> offset_to_loc(int index,
 // Returns the flat offset of an n-dim tensor given the indices and strides.
 inline int loc_to_offset(const std::vector<int>& loc,
                          const std::vector<int>& strides) {
-  int rank = loc.size();
+  size_t rank = loc.size();
   if (rank == 0) {
     return 0;
   } else if (rank == 1) {
     return loc[0];
   }
-  int index = loc[loc.size() - 1];
-  for (int i = 0; i < loc.size() - 1; ++i) {
+  size_t index = loc[loc.size() - 1];
+  for (size_t i = 0; i < loc.size() - 1; ++i) {
     index += strides[i] * loc[i];
   }
   return index;
