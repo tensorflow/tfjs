@@ -36,9 +36,10 @@ inline void binary_f32(int a_id, int b_id, int out_id,
   const auto a_info = backend::get_tensor_info(a_id);
   const auto b_info = backend::get_tensor_info(b_id);
   const auto out_info = backend::get_tensor_info(out_id);
-  binary_impl<float>(static_cast<float*>(a_info.memory_offset), a_info.size,
-                     static_cast<float*>(b_info.memory_offset), b_info.size,
-                     static_cast<float*>(out_info.memory_offset), operation);
+  binary_impl<float>(
+      reinterpret_cast<float*>(a_info.memory_offset), a_info.size,
+      reinterpret_cast<float*>(b_info.memory_offset), b_info.size,
+      reinterpret_cast<float*>(out_info.memory_offset), operation);
 }
 
 inline void binary_i32(int a_id, int b_id, int out_id,
@@ -46,9 +47,9 @@ inline void binary_i32(int a_id, int b_id, int out_id,
   const auto a_info = backend::get_tensor_info(a_id);
   const auto b_info = backend::get_tensor_info(b_id);
   const auto out_info = backend::get_tensor_info(out_id);
-  binary_impl<int>(static_cast<int*>(a_info.memory_offset), a_info.size,
-                   static_cast<int*>(b_info.memory_offset), b_info.size,
-                   static_cast<int*>(out_info.memory_offset), operation);
+  binary_impl<int>(reinterpret_cast<int*>(a_info.memory_offset), a_info.size,
+                   reinterpret_cast<int*>(b_info.memory_offset), b_info.size,
+                   reinterpret_cast<int*>(out_info.memory_offset), operation);
 }
 
 inline void binary_bool(int a_id, int b_id, int out_id,
@@ -56,9 +57,9 @@ inline void binary_bool(int a_id, int b_id, int out_id,
   const auto a_info = backend::get_tensor_info(a_id);
   const auto b_info = backend::get_tensor_info(b_id);
   const auto out_info = backend::get_tensor_info(out_id);
-  binary_impl<bool>(static_cast<bool*>(a_info.memory_offset), a_info.size,
-                    static_cast<bool*>(b_info.memory_offset), b_info.size,
-                    static_cast<bool*>(out_info.memory_offset), operation);
+  binary_impl<bool>(reinterpret_cast<bool*>(a_info.memory_offset), a_info.size,
+                    reinterpret_cast<bool*>(b_info.memory_offset), b_info.size,
+                    reinterpret_cast<bool*>(out_info.memory_offset), operation);
 }
 
 }  // namespace wasm

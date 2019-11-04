@@ -22,6 +22,8 @@ enum DType {
   float32 = 0,
   int32 = 1,
   boolean = 2,
+  string = 3,
+  complex64 = 4,
 };
 
 // Holds the memory offset and the size of a tensor.

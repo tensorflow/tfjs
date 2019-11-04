@@ -37,9 +37,9 @@ void BatchMatMul(int a_id, int b_id, int shared_dim, int left_dim,
   const TensorInfo b_info = backend::get_tensor_info(b_id);
   const TensorInfo out_info = backend::get_tensor_info(out_id);
 
-  const float* a_buf = static_cast<float*>(a_info.memory_offset);
-  const float* b_buf = static_cast<float*>(b_info.memory_offset);
-  float* out_buf = static_cast<float*>(out_info.memory_offset);
+  const float* a_buf = reinterpret_cast<float*>(a_info.memory_offset);
+  const float* b_buf = reinterpret_cast<float*>(b_info.memory_offset);
+  float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
 
   int size = left_dim * right_dim;
 
