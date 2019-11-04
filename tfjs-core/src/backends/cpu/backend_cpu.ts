@@ -3692,6 +3692,7 @@ export class MathBackendCPU extends KernelBackend {
               const ind =
                   c + x * outStride[2] + y * outStride[1] + b * outStride[0];
               output.values[ind] = extrapolationValue;
+              debugger;
             }
           }
           continue;
@@ -3712,6 +3713,7 @@ export class MathBackendCPU extends KernelBackend {
                 const ind =
                     c + x * outStride[2] + y * outStride[1] + b * outStride[0];
                 output.values[ind] = extrapolationValue;
+                debugger;
               }
               continue;
             }
@@ -3742,6 +3744,7 @@ export class MathBackendCPU extends KernelBackend {
 
               ind = c + x * outStride[2] + y * outStride[1] + b * outStride[0];
               output.values[ind] = top + ((bottom - top) * yLerp);
+              debugger;
             }
           }
         } else {  // method == "nearest"

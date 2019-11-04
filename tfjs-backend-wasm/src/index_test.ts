@@ -59,5 +59,10 @@ describeWithFlags('wasm', ALL_ENVS, () => {
     console.log('HELLO');
     console.log(output.dataSync());
     // expectArraysClose(await output.data(), [2.5]);
+
+    // tf.setBackend('cpu');
+
+    // tf.image.cropAndResize(image, boxes, boxInd, [1, 1], 'bilinear',
+    // 0).print();
   });
 });

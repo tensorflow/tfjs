@@ -17,6 +17,7 @@
 #endif
 
 #include <math.h>
+#include <stdio.h>
 #include "src/cc/backend.h"
 
 namespace tfjs {
@@ -57,6 +58,12 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
 
   int crop_height = crop_size[0];
   int crop_width = crop_size[1];
+
+  // printf("%s \n", num_channels);
+  printf("%d \n", images_shape[0]);
+  printf("%d \n", images_shape[1]);
+  printf("%d \n", images_shape[2]);
+  printf("%d \n", images_shape[3]);
 
   for (int b = 0; b < num_boxes; ++b) {
     int startInd = b * 4;
@@ -140,6 +147,8 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
             ind = c + x * output_strides[2] + y * output_strides[1] +
                   b * output_strides[0];
             out_buf[ind] = top + ((bottom - top) * y_lerp);
+            // DEBUG
+            out_buf[0] = 100.;
           }
         }
       }

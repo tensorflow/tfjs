@@ -77,6 +77,8 @@ function cropAndResize(args: {
   const imagesShapeBytes = new Uint8Array(new Int32Array(images.shape).buffer);
   const cropSizeBytes =
       new Uint8Array(new Int32Array(cropSize as [number, number]).buffer);
+  console.log('CROP AND RESIZE');
+  console.log(images.shape);
 
   wasmCropAndResize(
       imagesId, boxesId, boxIndId, numBoxes, imageStridesBytes,
