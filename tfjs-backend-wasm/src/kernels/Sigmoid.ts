@@ -1,4 +1,6 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/**
+ * @license
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -10,19 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * ===========================================================================*/
+ * =============================================================================
+ */
 
-#ifndef TFJS_PRELU_H
-#define TFJS_PRELU_H
-
-namespace tfjs {
-
-namespace wasm {
-extern "C" {
-void prelu(int x_id, int x_size, int weights_id, int out_id);
-}
-
-}  // namespace wasm
-}  // namespace tfjs
-
-#endif  // TFJS_PRELU_H
+import {registerUnaryKernel} from './unary_kernel';
+registerUnaryKernel('Sigmoid');

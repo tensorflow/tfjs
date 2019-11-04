@@ -61,3 +61,4 @@ substitutions:
 options:
   logStreamingOption: 'STREAM_ON'
   substitution_option: 'ALLOW_LOOSE'
+  machineType: 'N1_HIGHCPU_8'

@@ -17,7 +17,6 @@
 
 import { h, Component } from 'preact';
 import { css } from 'glamor';
-import { tachyons as tac } from 'glamor-tachyons';
 
 interface TabsProps {
   tabNames: string[];
@@ -47,7 +46,11 @@ export class Tabs extends Component<TabsProps> {
       overflowX: 'scroll',
       overflowY: 'hidden',
       whiteSpace: 'nowrap',
-      ...tac('bb b--light-gray pb3 mt3')
+      borderBottomStyle: 'solid',
+      borderBottomWidth: '1px',
+      borderColor: '#eee',
+      paddingBottom: '1rem',
+      marginTop: '1rem',
     });
 
     return (
@@ -82,7 +85,10 @@ class Tab extends Component<TabProps> {
         color: '#357EDD'
       },
       display: 'inline-block',
-      ...tac('b f5 mr3 pa2')
+      marginRight: '1rem',
+      padding: '.5rem',
+      fontSize: '1rem',
+      fontWeight: 'bold',
     });
 
     return (

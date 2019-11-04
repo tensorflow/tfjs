@@ -16,6 +16,8 @@
 #include <emscripten.h>
 #endif
 
+#include "src/cc/kernels/Prelu.h"
+
 #include <xnnpack.h>
 #include <cmath>
 #include <limits>
@@ -46,20 +48,21 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void prelu(int x_id, int x_size, int weights_id, int out_id) {
+void Prelu(int x_id, int weights_id, int out_id) {
   const TensorInfo x_info = backend::get_tensor_info(x_id);
   const TensorInfo weights_info = backend::get_tensor_info(weights_id);
   const TensorInfo out_info = backend::get_tensor_info(out_id);
 
-  const float* x_buf = x_info.buf.f32;
-  const float* weights_buf = weights_info.buf.f32;
-  float* out_buf = out_info.buf.f32;
+  const float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
+  const float* weights_buf =
+      reinterpret_cast<float*>(weights_info.memory_offset);
+  float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
 
   xnn_operator_t prelu_op = nullptr;
 
   auto operator_cache_idx = operator_cache.find(weights_id);
   if (operator_cache_idx == operator_cache.end()) {
-    int channels = x_size;
+    int channels = x_info.size;
     int strides = channels;
     float output_min = -std::numeric_limits<float>::infinity();
     float output_max = std::numeric_limits<float>::infinity();

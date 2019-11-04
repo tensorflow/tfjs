@@ -27,7 +27,7 @@ import {setTestEnvs} from './jasmine_util';
 import {MathBackendCPU} from './backends/cpu/backend_cpu';
 import {registerBackend} from './globals';
 import {KernelBackend} from './backends/backend';
-import {getKernelRegistry, registerKernel, getKernel} from './kernel_registry';
+import {getKernelsForBackend, registerKernel} from './kernel_registry';
 
 // tslint:disable-next-line:no-require-imports
 const jasmine = require('jasmine');
@@ -72,12 +72,11 @@ registerBackend(proxyBackendName, async () => proxyBackend);
 
 // All the kernels are registered under the 'cpu' name, so we need to register
 // them also under the proxy backend name.
-const kernelRegistry = getKernelRegistry();
-for (const key in kernelRegistry) {
-  const [backendName, kernelName] = key.split('_');
-  const kernel = getKernel(kernelName, backendName);
-  registerKernel(kernelName, proxyBackendName, kernel);
-}
+const kernels = getKernelsForBackend('cpu');
+kernels.forEach(({kernelName, kernelFunc, setupFunc}) => {
+  registerKernel(
+      {kernelName, backendName: proxyBackendName, kernelFunc, setupFunc});
+});
 
 setTestEnvs([{
   name: proxyBackendName,

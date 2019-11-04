@@ -12,31 +12,24 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef TFJS_BACKEND_H
-#define TFJS_BACKEND_H
+#ifndef BACKEND_H_
+#define BACKEND_H_
 
 #include <vector>
 
+// This enum should align with the DType defined in kernels/types.ts.
 enum DType {
   float32 = 0,
   int32 = 1,
   boolean = 2,
+  str = 3,
+  complex64 = 4,
 };
 
-// A union of pointers that points to memory for a given tensor.
-union DataPtrUnion {
-  float *f32;
-  int *i32;
-  bool *b;
-};
-
-// Holds information about a tensor such as dtype, shape and pointer to its data
-// in memory.
+// Holds the memory offset and the size of a tensor.
 struct TensorInfo {
   // Pointer to the bytes where the data is allocated.
-  DataPtrUnion buf;
-  DType dtype;
-  std::vector<int> shape;
+  void *memory_offset;
   // Total number of elements.
   int size;
 };
@@ -45,7 +38,7 @@ namespace tfjs {
 namespace backend {
 // Returns the tensor information object associated with a given tensor_id
 // bucket.
-TensorInfo get_tensor_info(int tensor_id);
+TensorInfo &get_tensor_info(int tensor_id);
 
 // Registers a function callback to be called when a tensor with a given ID is
 // disposed.
@@ -64,10 +57,9 @@ extern "C" {
 // Initializes the WASM backend.
 void init();
 
-// Registers a tensor with a tensor ID, shape information, dtype, and the
-// pointer to where the tensor data lives.
-void register_tensor(int tensor_id, int *shape_ptr, int shape_length,
-                     DType dtype, void *memory_offset);
+// Registers a tensor with a tensor ID, size, and the pointer to where the
+// tensor data lives.
+void register_tensor(int tensor_id, int size, void *memory_offset);
 
 // Disposes the internal bookeeping for a given tensor ID.
 void dispose_data(int tensor_id);
@@ -79,4 +71,4 @@ void dispose();
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // TFJS_BACKEND_H
+#endif  // BACKEND_H_

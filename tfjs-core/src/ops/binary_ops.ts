@@ -76,10 +76,10 @@ function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
       }
       return res.reshape($b.shape);
     };
-    return {$a: derA, $b: derB};
+    return {a: derA, b: derB};
   };
-  return ENGINE.runKernelFunc(backend => backend.add($a, $b), {$a, $b}, der) as
-      T;
+  return ENGINE.runKernelFunc(
+             backend => backend.add($a, $b), {a: $a, b: $b}, der, 'Add') as T;
 }
 
 /**
@@ -195,10 +195,11 @@ function sub_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
       }
       return res.neg().reshape($b.shape);
     };
-    return {$a: derA, $b: derB};
+    return {a: derA, b: derB};
   };
   return ENGINE.runKernelFunc(
-             backend => backend.subtract($a, $b), {$a, $b}, der) as T;
+             backend => backend.subtract($a, $b), {a: $a, b: $b}, der, 'Sub') as
+      T;
 }
 
 /**
@@ -346,13 +347,13 @@ function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
       }
       return res;
     };
-    return {$a: derA, $b: derB};
+    return {a: derA, b: derB};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.multiply($a, $b);
     save([$a, $b]);
     return res;
-  }, {$a, $b}, der) as T;
+  }, {a: $a, b: $b}, der, 'Mul') as T;
 }
 
 /**
@@ -427,13 +428,13 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
       const tmp = $b.square();
       return res.div(tmp.toFloat()).neg();
     };
-    return {$a: derA, $b: derB};
+    return {a: derA, b: derB};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.realDivide($a, $b);
     save([$a, $b]);
     return res;
-  }, {$a, $b}, der) as T;
+  }, {a: $a, b: $b}, der, 'Div') as T;
 }
 
 /**

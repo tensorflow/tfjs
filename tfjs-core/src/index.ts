@@ -36,6 +36,8 @@ import './backends/webgl/backend_webgl';
 import './backends/cpu/backend_cpu';
 // Import all kernels from cpu.
 import './backends/cpu/all_kernels';
+// Import all kernels from webgl.
+import './backends/webgl/all_kernels';
 
 import './platforms/platform_browser';
 import './platforms/platform_node';
@@ -45,6 +47,7 @@ import * as backend_util from './backends/backend_util';
 import * as io from './io/io';
 import * as math from './math';
 import * as browser from './ops/browser';
+import * as slice_util from './ops/slice_util';
 import * as serialization from './serialization';
 import {setOpHandler} from './tensor';
 import * as tensor_util from './tensor_util';
@@ -95,7 +98,8 @@ export {
   util,
   backend_util,
   webgl,
-  tensor_util
+  tensor_util,
+  slice_util
 };
 
 // Backend specific.

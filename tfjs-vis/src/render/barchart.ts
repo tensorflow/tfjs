@@ -17,7 +17,7 @@
 
 import embed, {Mode, Result as EmbedRes, VisualizationSpec} from 'vega-embed';
 
-import {Drawable, VisOptions} from '../types';
+import {BarChartOpts, Drawable} from '../types';
 import {getDefaultHeight, getDefaultWidth} from '../util/dom';
 import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
 
@@ -44,7 +44,7 @@ import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
 /** @doc {heading: 'Charts', namespace: 'render'} */
 export async function barchart(
     container: Drawable, data: Array<{index: number; value: number;}>,
-    opts: VisOptions = {}): Promise<void> {
+    opts: BarChartOpts = {}): Promise<void> {
   const drawArea = getDrawArea(container);
   const values = data;
   const options = Object.assign({}, defaultOpts, opts);
@@ -80,6 +80,24 @@ export async function barchart(
     defaultStyle: false,
   };
 
+  let colorEncoding;
+
+  if (options.color != null) {
+    if (Array.isArray(options.color)) {
+      colorEncoding = {
+        'field': 'index',
+        'type': 'nominal',
+        'scale': {
+          'range': options.color,
+        }
+      };
+    } else {
+      colorEncoding = {'value': options.color};
+    }
+  } else {
+    colorEncoding = {'value': '#4C78A0'};
+  }
+
   const spec: VisualizationSpec = {
     'width': options.width || getDefaultWidth(drawArea),
     'height': options.height || getDefaultHeight(drawArea),
@@ -107,9 +125,10 @@ export async function barchart(
     },
     'encoding': {
       'x': {'field': 'index', 'type': xType, 'axis': xAxis},
-      'y': {'field': 'value', 'type': yType, 'axis': yAxis}
-    }
-  };
+      'y': {'field': 'value', 'type': yType, 'axis': yAxis},
+      'color': colorEncoding,
+    },
+  } as VisualizationSpec;
 
   await nextFrame();
   const embedRes = await embed(drawArea, spec, embedOpts);
@@ -135,5 +154,5 @@ const instances: Map<HTMLElement, InstanceInfo> =
 interface InstanceInfo {
   // tslint:disable-next-line:no-any
   view: any;
-  lastOptions: VisOptions;
+  lastOptions: BarChartOpts;
 }

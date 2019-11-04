@@ -19,22 +19,16 @@ module.exports = function(config) {
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
     files: [{pattern: 'src/**/*.ts'}],
-    exclude: [
-      'src/docs/**/*.ts'
-    ],
+    exclude: ['src/docs/**/*.ts'],
     preprocessors: {
       'src/**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
       'src/**/*.js': ['karma-typescript'],  // *.tsx for React Jsx
     },
     karmaTypescriptConfig: {
       tsconfig: 'tsconfig.json',
-      compilerOptions: {
-        allowJs: true,
-        declaration: false,
-        module: 'commonjs'
-      },
+      compilerOptions: {allowJs: true, declaration: false, module: 'commonjs'},
       coverageOptions: {instrumentation: false},
-      reports: {} // Do not produce coverage html.
+      reports: {}  // Do not produce coverage html.
     },
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome'],
@@ -55,16 +49,11 @@ module.exports = function(config) {
       bs_firefox_mac: {
         base: 'BrowserStack',
         browser: 'firefox',
-        // TODO(cais): Change it back to 'latest' once the ongoing instability
-        // with regard to OS X and FireFox is resolved on BrowserStack:
-        // https://github.com/tensorflow/tfjs/issues/1620
-        browser_version: '66.0',
+        browser_version: 'latest',
         os: 'OS X',
         os_version: 'Sierra'
       }
     },
-    client: {
-      args: ['--grep', config.grep || '']
-    }
+    client: {args: ['--grep', config.grep || '']}
   });
 };

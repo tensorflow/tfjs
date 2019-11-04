@@ -1,13 +1,13 @@
 # Copyright 2019 Google LLC
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
@@ -27,9 +27,9 @@ from tensorflow.core.framework import attr_value_pb2
 from tensorflow.core.framework import graph_pb2
 from tensorflow.core.framework import node_def_pb2
 from tensorflow.core.framework import op_def_pb2
-from tensorflow.core.framework import types_pb2
 from tensorflow.python.framework import function
 from tensorflow.python.framework import op_def_registry
+from tensorflow.python.framework import tensor_util
 
 from tensorflowjs.converters import common
 
@@ -79,28 +79,43 @@ def fuse_ops_for_prelu(input_graph_def):
     if node.name not in input_node_map:
       input_node_map[node.name] = node
     else:
-      raise ValueError("Duplicate node names detected for ", node.name)
+      raise ValueError('Duplicate node names detected for ', node.name)
 
   nodes_to_skip = {}
+  inputs_to_remove = []
+  updated_alpha = []
   for node in input_graph_def.node:
-    if (node.op not in ("Add", "AddV2") or len(node.input) != 2):
+    if (node.op not in ('Add', 'AddV2') or len(node.input) != 2):
       continue
 
     relu_input_op = common.node_from_map(input_node_map, node.input[0])
-    if (not relu_input_op or relu_input_op.op != "Relu" or
-        len(relu_input_op.input) != 1):
+    if (not relu_input_op or relu_input_op.op != 'Relu'):
       continue
 
     mul_op = common.node_from_map(input_node_map, node.input[1])
-    if (not mul_op or mul_op.op != 'Mul' or len(mul_op.input) != 2):
+    if (not mul_op or mul_op.op != 'Mul'):
       continue
 
-    neg_alpha_op = common.node_from_map(input_node_map, mul_op.input[0])
-    if (not neg_alpha_op or len(neg_alpha_op.input) != 1):
-      continue
-    alpha_tensor_name = neg_alpha_op.input[0]
+    neg_alpha_op = None
+    for name in mul_op.input:
+      op = common.node_from_map(input_node_map, name)
+      if op.op == 'Const':
+        neg_alpha_op = op
+        break
 
-    relu_neg_input_op = common.node_from_map(input_node_map, mul_op.input[1])
+    if not neg_alpha_op:
+      continue
+
+    alpha_tensor_name = neg_alpha_op.name
+    _create_alpha_node(neg_alpha_op, updated_alpha)
+
+    relu_neg_input_op = None
+    for name in mul_op.input:
+      op = common.node_from_map(input_node_map, name)
+      if op.op == 'Relu':
+        relu_neg_input_op = op
+        break
+
     if (not relu_neg_input_op or len(relu_neg_input_op.input) != 1 or
         relu_neg_input_op.op != 'Relu'):
       continue
@@ -129,16 +144,18 @@ def fuse_ops_for_prelu(input_graph_def):
     nodes_to_skip[mul_op.name] = True
     nodes_to_skip[relu_neg_input_op.name] = True
     nodes_to_skip[neg_input_op.name] = True
+    nodes_to_skip[node.name] = True
+    inputs_to_remove.append(node)
 
-  result_graph_def = graph_pb2.GraphDef()
-  for node in input_graph_def.node:
-    if node.name in nodes_to_skip:
-      continue
-    new_node = node_def_pb2.NodeDef()
-    new_node.CopyFrom(node)
-    result_graph_def.node.extend([new_node])
+  return _cleanup_graph_def(input_graph_def, nodes_to_skip, inputs_to_remove)
 
-  return result_graph_def
+def _create_alpha_node(neg_alpha_op, updated_alpha):
+  if neg_alpha_op.name not in updated_alpha:
+    alpha_value = -common.values_from_const(neg_alpha_op)
+    neg_alpha_op.attr['value'].CopyFrom(
+        attr_value_pb2.AttrValue(tensor=tensor_util.make_tensor_proto(
+            alpha_value, alpha_value.dtype.type, alpha_value.shape)))
+    updated_alpha.append(neg_alpha_op.name)
 
 def fuse_prelu_with_fused_conv2d(input_graph_def):
   """Tensorflow does not support Prelu op, and the grappler remap optimizer
@@ -156,18 +173,20 @@ def fuse_prelu_with_fused_conv2d(input_graph_def):
     ValueError: If the graph is badly formed with duplicate node names.
   """
   input_node_map = {}
+  nodes_to_skip = {}
+  inputs_to_remove = []
   for node in input_graph_def.node:
     if node.name not in input_node_map:
       input_node_map[node.name] = node
     else:
-      raise ValueError("Duplicate node names detected for ", node.name)
+      raise ValueError('Duplicate node names detected for ', node.name)
 
   for node in input_graph_def.node:
-    if node.op != "Prelu":
+    if node.op != 'Prelu':
       continue
 
     fused_conv_op = common.node_from_map(input_node_map, node.input[0])
-    if (not fused_conv_op or fused_conv_op.op != "_FusedConv2D" or
+    if (not fused_conv_op or fused_conv_op.op != '_FusedConv2D' or
         len(fused_conv_op.attr['fused_ops'].list.s) > 1):
       continue
 
@@ -178,13 +197,26 @@ def fuse_prelu_with_fused_conv2d(input_graph_def):
     fused_conv_op.attr['num_args'].i = fused_conv_op.attr['num_args'].i + 1
     node.op = 'Identity'
     node.input[:] = [node.input[0]]
-    # Add the 'T' definition for Identity op, since Prelu op does not have that.
-    value = attr_value_pb2.AttrValue()
-    # Set the type to float, since it is not used by TFJS.
-    value.type = types_pb2.DT_FLOAT
-    node.attr['T'].CopyFrom(value)
+    nodes_to_skip[node.name] = True
+    inputs_to_remove.append(node)
 
-  return input_graph_def
+  return _cleanup_graph_def(input_graph_def, nodes_to_skip, inputs_to_remove)
+
+def _cleanup_graph_def(input_graph_def, nodes_to_skip, inputs_to_remove):
+  result_graph_def = graph_pb2.GraphDef()
+  for node in input_graph_def.node:
+    if node.name in nodes_to_skip:
+      continue
+    new_node = node_def_pb2.NodeDef()
+    new_node.CopyFrom(node)
+    for value in inputs_to_remove:
+      if value.name in new_node.input:
+        for i, input_node in enumerate(new_node.input):
+          if input_node == value.name:
+            new_node.input[i] = value.input[0]
+    result_graph_def.node.extend([new_node])
+  result_graph_def.versions.CopyFrom(input_graph_def.versions)
+  return result_graph_def
 
 def register_prelu_func(graph):
   """Register Prelu op with function def, this is needed for importing graph_def
