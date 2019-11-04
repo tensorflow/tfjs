@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 import * as tf from './index';
 import {nodeBackend} from './nodejs_kernel_backend';
 import {getEnumKeyFromValue, getInputAndOutputNodeNameFromMetaGraphInfo, readSavedModelProto} from './saved_model';
@@ -304,5 +305,48 @@ describe('SavedModel', () => {
     signature2.dispose();
     expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(2);
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(2);
+  });
+
+  it('execute model', async () => {
+    const signature1 = await tf.node.loadSavedModel(
+        './test_objects/times_three_float', ['serve'], 'serving_default');
+    const input = tf.tensor1d([1, 2, 3]);
+    const output = signature1.predict(input) as tf.Tensor;
+    expect(output.shape).toEqual(input.shape);
+    expect(output.dtype).toBe(input.dtype);
+    expectArraysClose(await output.data(), [3, 6, 9]);
+    signature1.dispose();
+  });
+
+  it('execute multiple signatures from the same model', async () => {
+    const backend = nodeBackend();
+    const loadSavedModelMetaGraphSpy =
+        spyOn(backend, 'loadSavedModelMetaGraph').and.callThrough();
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
+
+    const signature1 = await tf.node.loadSavedModel(
+        './test_objects/module_with_multiple_signatures', ['serve'],
+        'serving_default');
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    const input1 = tf.tensor1d([1, 2, 3]);
+    const output1 = signature1.predict(input1) as tf.Tensor;
+    expect(output1.shape).toEqual(input1.shape);
+    expect(output1.dtype).toBe(input1.dtype);
+    expectArraysClose(await output1.data(), [3, 6, 9]);
+
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    const signature2 = await tf.node.loadSavedModel(
+        './test_objects/module_with_multiple_signatures', ['serve'],
+        'timestwo');
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    const input2 = tf.tensor1d([1, 2, 3]);
+    const output2 = signature2.predict(input2) as tf.Tensor;
+    expect(output2.shape).toEqual(input2.shape);
+    expect(output2.dtype).toBe(input2.dtype);
+    expectArraysClose(await output2.data(), [2, 4, 6]);
+
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    signature1.dispose();
+    signature2.dispose();
   });
 });

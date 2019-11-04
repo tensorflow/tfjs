@@ -18,8 +18,8 @@
 import {InferenceModel, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, SavedModelTensorInfo, SignatureDefInfo, Tensor} from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import {promisify} from 'util';
-
 import {ensureTensorflowBackend, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
+
 
 const readFile = promisify(fs.readFile);
 
@@ -203,11 +203,21 @@ export function getInputAndOutputNodeNameFromMetaGraphInfo(
  */
 export class TFSavedModel implements InferenceModel {
   private disposed = false;
+  private inputOpNames: Set<string>;
+  private outputOpNames: Set<string>;
 
   constructor(
-      private sessionId: number, private jsid: number,
-      private inputNodeNames: string[], private outputNodeNames: string[],
-      private backend: NodeJSKernelBackend) {}
+      private sessionId: number, private jsid: number, inputNodeNames: string[],
+      outputNodeNames: string[], private backend: NodeJSKernelBackend) {
+    this.inputOpNames = new Set();
+    inputNodeNames.map(inputName => {
+      this.inputOpNames.add(inputName.split(':')[0]);
+    });
+    this.outputOpNames = new Set();
+    outputNodeNames.map(outputName => {
+      this.outputOpNames.add(outputName.split(':')[0]);
+    });
+  }
 
   /**
    * Return the array of input tensor info.
@@ -272,10 +282,21 @@ export class TFSavedModel implements InferenceModel {
     if (this.disposed) {
       throw new Error('The TFSavedModel has already been deleted!');
     } else {
-      throw new Error(
-          'predict() of TFSavedModel is not supported yet. ' +
-          'Input node names are ' + this.inputNodeNames.toString() +
-          '. Output node names are ' + this.outputNodeNames.toString() + '.');
+      let inputTensors: Tensor[] = [];
+      if (inputs instanceof Tensor) {
+        inputTensors.push(inputs);
+        return this.backend.runSavedModel(
+            this.sessionId, inputTensors, Array.from(this.inputOpNames).join(),
+            Array.from(this.outputOpNames).join())[0];
+      } else if (Array.isArray(inputs)) {
+        inputTensors = inputs;
+        return this.backend.runSavedModel(
+            this.sessionId, inputTensors, Array.from(this.inputOpNames).join(),
+            Array.from(this.outputOpNames).join());
+      } else {
+        throw new Error(
+            'TFSavedModel predict() does not support NamedTensorMap yet.');
+      }
     }
   }
 

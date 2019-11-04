@@ -70,16 +70,26 @@ class TFJSBackend {
   // - saved_model_id (number)
   void DeleteSavedModel(napi_env env, napi_value saved_model_id);
 
+  // Execute a session from SavedModel with the provided inputs:
+  // - saved_model_id (number)
+  // - input_tensor_ids (array of input tensor IDs)
+  // - input_op_names (array of input op names)
+  // - output_op_names (array of output op names)
+  napi_value RunSavedModel(napi_env env, napi_value saved_model_id,
+                           napi_value input_tensor_ids,
+                           napi_value input_op_names,
+                           napi_value output_op_names);
+
  private:
   TFJSBackend(napi_env env);
   ~TFJSBackend();
 
   int32_t InsertHandle(TFE_TensorHandle *tfe_handle);
-  int32_t InsertSavedModel(TF_Session *tf_session);
+  int32_t InsertSavedModel(TF_Session *tf_session, TF_Graph *tf_graph);
 
   TFE_Context *tfe_context_;
   std::map<int32_t, TFE_TensorHandle *> tfe_handle_map_;
-  std::map<int32_t, TF_Session *> tf_savedmodel_map_;
+  std::map<int32_t, std::pair<TF_Session *, TF_Graph *>> tf_savedmodel_map_;
   int32_t next_tensor_id_;
   int32_t next_savedmodel_id_;
   std::string device_name;
