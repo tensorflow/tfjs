@@ -19,6 +19,6 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "1.2.9",
-    "@tensorflow/tfjs-vis": "1.2.0"
+    "@tensorflow/tfjs-vis": "1.3.0"
   }
 }
