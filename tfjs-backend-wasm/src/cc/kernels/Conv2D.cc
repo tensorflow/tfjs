@@ -96,8 +96,11 @@ void Conv2D(int x_id, int batch_size, int input_height, int input_width,
     xnn_status status = xnn_create_convolution2d_nhwc_f32(
         pad_top, pad_right, pad_bottom, pad_left, filter_height, filter_width,
         stride_height, stride_width, dilation_height, dilation_width, groups,
-        input_channels, output_channels, input_channels, output_channels,
-        filter_buf, bias_buf, output_min, output_max, flags, &conv2d_op);
+        input_channels /* group_input_channels */,
+        output_channels /* group_output_channels */,
+        input_channels /* input_pixel_stride */,
+        output_channels /* output_pixel_stride */, filter_buf, bias_buf,
+        output_min, output_max, flags, &conv2d_op);
     if (status != xnn_status_success) {
       util::warn(
           "XNN status for xnn_create_convolution2d_nhwc_f32 is not successful. "

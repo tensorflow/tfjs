@@ -106,11 +106,11 @@ TEST(CONV2D, xnn_operator_lifetime) {
                      output_channels, out_id);
   ASSERT_EQ(3, tfjs::backend::xnn_operator_count);
 
-  // Disposing the first set of weights should remove 2 operators.
+  // Disposing the first weights should remove 2 operators.
   tfjs::wasm::dispose_data(weights0_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
-  // Disposing the first set of weights should remove 2 operators.
+  // Disposing the second weights should remove the last operator.
   tfjs::wasm::dispose_data(weights1_id);
   ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
 
