@@ -40,7 +40,7 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
 
 # Run C++ tests.
-- name: 'node:10'
+- name: 'node:12'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'test-cc'
