@@ -45,13 +45,13 @@ TEST(BACKEND, register_tensor) {
 // C++ doesn't allow lambda functions with captures so we define the callback
 // outside the function. In the future we can consider changing the signature of
 // register_disposal_callback to take a std::function.
-bool tensor_0_callback_called = false;
-bool tensor_1_callback_called = false;
+int tensor_0_callback_count = 0;
+int tensor_1_callback_count = 0;
 void fake_dispose_tensor_callback(int tensor_id) {
   if (tensor_id == 0) {
-    tensor_0_callback_called = true;
+    tensor_0_callback_count++;
   } else if (tensor_id == 1) {
-    tensor_1_callback_called = true;
+    tensor_1_callback_count++;
   }
 }
 TEST(BACKEND, disposal_callback) {
@@ -68,22 +68,28 @@ TEST(BACKEND, disposal_callback) {
   tfjs::wasm::register_tensor(tensor_id_0, size, values_0);
   tfjs::wasm::register_tensor(tensor_id_1, size, values_1);
 
-  // Register a disposal callback on 0 but not 1.
+  // Register two disposal callbacks on 0 but not 1.
+  tfjs::backend::register_disposal_callback(tensor_id_0,
+                                            *fake_dispose_tensor_callback);
   tfjs::backend::register_disposal_callback(tensor_id_0,
                                             *fake_dispose_tensor_callback);
 
   tfjs::wasm::dispose_data(tensor_id_0);
+
+  ASSERT_EQ(2, tensor_0_callback_count);
+  ASSERT_EQ(0, tensor_1_callback_count);
+
   tfjs::wasm::dispose_data(tensor_id_1);
 
-  ASSERT_EQ(true, tensor_0_callback_called);
-  ASSERT_EQ(false, tensor_1_callback_called);
+  ASSERT_EQ(2, tensor_0_callback_count);
+  ASSERT_EQ(0, tensor_1_callback_count);
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
   tfjs::wasm::dispose();
 
-  tensor_0_callback_called = false;
-  tensor_1_callback_called = false;
+  tensor_0_callback_count = 0;
+  tensor_1_callback_count = 0;
 }
 
 TEST(BACKEND, dispose_backend) {
