@@ -30,10 +30,10 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 void FusedBatchNorm(int x_id, int mean_id, int variance_id, int offset_id,
                     int scale_id, float variance_epsilon, int out_id) {
-  const auto x_info = backend::get_tensor_info(x_id);
-  const auto mean_info = backend::get_tensor_info(mean_id);
-  const auto variance_info = backend::get_tensor_info(variance_id);
-  const auto out_info = backend::get_tensor_info(out_id);
+  auto& x_info = backend::get_tensor_info(x_id);
+  auto& mean_info = backend::get_tensor_info(mean_id);
+  auto& variance_info = backend::get_tensor_info(variance_id);
+  auto& out_info = backend::get_tensor_info(out_id);
 
   float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
   int x_size = x_info.size;
@@ -56,7 +56,7 @@ void FusedBatchNorm(int x_id, int mean_id, int variance_id, int offset_id,
     scale_buf = scale_buf_default;
     scale_size = 1;
   } else {
-    const auto scale_info = backend::get_tensor_info(scale_id);
+    auto& scale_info = backend::get_tensor_info(scale_id);
     scale_buf = reinterpret_cast<float*>(scale_info.memory_offset);
     scale_size = scale_info.size;
   }
@@ -68,7 +68,7 @@ void FusedBatchNorm(int x_id, int mean_id, int variance_id, int offset_id,
     offset_buf = offset_buf_default;
     offset_size = 1;
   } else {
-    const auto offset_info = backend::get_tensor_info(offset_id);
+    auto& offset_info = backend::get_tensor_info(offset_id);
     offset_buf = reinterpret_cast<float*>(offset_info.memory_offset);
     offset_size = offset_info.size;
   }

@@ -27,8 +27,8 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void Max(int x_id, int reduce_size, int out_id) {
-  const auto x_info = backend::get_tensor_info(x_id);
-  const auto out_info = backend::get_tensor_info(out_id);
+  auto& x_info = backend::get_tensor_info(x_id);
+  auto& out_info = backend::get_tensor_info(out_id);
 
   float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
   int x_size = x_info.size;
