@@ -90,7 +90,7 @@ function cropAndResize(args: {
       imagesId, boxesId, boxIndId, numBoxes, imageStridesBytes,
       imageStrides.length, outputStridesBytes, outputStrides.length,
       imagesShapeBytes, images.shape.length, cropSizeBytes,
-      (cropSize as [number, number]).length, method === 'bilinear' ? 1 : 0,
+      (cropSize as [number, number]).length, method === 'bilinear' ? 0 : 1,
       extrapolationValue as number, outId);
   return out;
 }

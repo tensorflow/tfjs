@@ -76,6 +76,7 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   printf("%d \n", num_boxes);
   printf("%d \n", crop_height);
   printf("%d \n", crop_width);
+  printf("%d \n", method);
 
   for (int b = 0; b < num_boxes; ++b) {
     int startInd = b * 4;
@@ -112,14 +113,14 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
       }
 
       if (method == 0) {  // 'bilinear'
-        int top_ind = floor(y_ind);
-        int bottom_ind = ceil(y_ind);
-        int y_lerp = y_ind - top_ind;
+        float top_ind = floor(y_ind);
+        float bottom_ind = ceil(y_ind);
+        float y_lerp = y_ind - top_ind;
 
         for (int x = 0; x < crop_width; ++x) {
-          int x_ind = (crop_width > 1)
-                          ? x1 * (image_width - 1) + x * width_scale
-                          : 0.5 * (x1 + x2) * (image_width - 1);
+          float x_ind = (crop_width > 1)
+                            ? x1 * (image_width - 1) + x * width_scale
+                            : 0.5 * (x1 + x2) * (image_width - 1);
 
           if (x_ind < 0 || x_ind > image_width - 1) {
             for (int c = 0; c < num_channels; ++c) {
@@ -130,9 +131,9 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
             continue;
           }
 
-          int left_ind = floor(x_ind);
-          int right_ind = ceil(x_ind);
-          int x_lerp = x_ind - left_ind;
+          float left_ind = floor(x_ind);
+          float right_ind = ceil(x_ind);
+          float x_lerp = x_ind - left_ind;
 
           for (int c = 0; c < num_channels; ++c) {
             int ind = c + left_ind * images_strides[2] +
@@ -158,9 +159,8 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
             float bottom = bottom_left + (bottom_right - bottom_left) * x_lerp;
             ind = c + x * output_strides[2] + y * output_strides[1] +
                   b * output_strides[0];
-            out_buf[ind] = top + ((bottom - top) * y_lerp);
-            // DEBUG
-            out_buf[0] = 100.;
+
+            out_buf[0] = top + ((bottom - top) * y_lerp);
           }
         }
       }
