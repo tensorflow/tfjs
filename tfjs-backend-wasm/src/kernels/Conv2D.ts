@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -100,5 +100,5 @@ registerKernel({
   kernelName: 'Conv2D',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: conv2d
+  kernelFunc: conv2d as {} as KernelFunc
 });

@@ -17,7 +17,7 @@
 #include "src/cc/backend.h"
 #include "src/cc/kernels/Conv2D.h"
 
-TEST(PRELU, xnn_operator_lifetime) {
+TEST(CONV2D, xnn_operator_lifetime) {
   tfjs::wasm::init();
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
@@ -32,7 +32,7 @@ TEST(PRELU, xnn_operator_lifetime) {
   const int weights_size = 8;
   float weights_values[weights_size] = {1, 2, 3, 4, 5, 6, 7, 8};
 
-  int out_id = 5;
+  int out_id = 4;
   const int out_size = 12;
   float out_values[out_size] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
