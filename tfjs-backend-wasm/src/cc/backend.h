@@ -22,7 +22,7 @@ enum DType {
   float32 = 0,
   int32 = 1,
   boolean = 2,
-  string = 3,
+  str = 3,
   complex64 = 4,
 };
 
