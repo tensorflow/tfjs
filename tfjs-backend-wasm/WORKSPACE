@@ -22,7 +22,6 @@ http_archive(
     strip_prefix = "FP16-ba1d31f5eed2eb4a69e4dea3870a68c7c95f998f",
     sha256 = "9764297a339ad73b0717331a2c3e9c42a52105cd04cab62cb160e2b4598d2ea6",
     urls = [
-
         "https://github.com/Maratyszcza/FP16/archive/ba1d31f5eed2eb4a69e4dea3870a68c7c95f998f.tar.gz",
     ],
     build_file = "@xnnpack//third_party:FP16.BUILD",

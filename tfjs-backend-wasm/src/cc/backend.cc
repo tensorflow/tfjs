@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "src/cc/backend.h"
-#include "src/cc/util.h"
 
 namespace {
 // Maps a unique tensor id to info about that tensor. The map owns all of its
@@ -43,7 +42,6 @@ int xnn_operator_count = 0;
 
 // Registers a disposal callback for a tensor id with a given callback function.
 void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
-  util::log("registering disposal for %d", tensor_id);
   if (disposal_callbacks.count(tensor_id) == 0) {
     auto callbacks = std::vector<DisposeFunction>{dispose_fn};
     // We move callbacks to avoid a copy.

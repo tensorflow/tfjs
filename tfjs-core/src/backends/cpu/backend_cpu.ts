@@ -1552,7 +1552,6 @@ export class MathBackendCPU extends KernelBackend {
     return result;
   }
 
-
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     assertNotComplex([x, filter], 'conv2d');
 
@@ -1999,7 +1998,6 @@ export class MathBackendCPU extends KernelBackend {
   depthwiseConv2D(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
     assertNotComplex([x, filter], 'depthwiseConv2D');
-
 
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
