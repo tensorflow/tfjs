@@ -19,8 +19,8 @@ namespace tfjs {
 namespace wasm {
 
 inline void unary(int x_id, int out_id, float operation(float)) {
-  const TensorInfo& a_info = backend::get_tensor_info(x_id);
-  const TensorInfo& out_info = backend::get_tensor_info(out_id);
+  auto& a_info = backend::get_tensor_info(x_id);
+  auto& out_info = backend::get_tensor_info(out_id);
 
   const float* a_buf = reinterpret_cast<float*>(a_info.memory_offset);
   float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
