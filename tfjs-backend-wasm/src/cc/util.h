@@ -67,7 +67,7 @@ inline void warn(const char* format, ...) {
 template <class T>
 inline void log_vector(const std::vector<T>& v) {
   print_log("[", 0);
-  for (auto const& value : v) {
+  for (const auto& value : v) {
     print_log("%d,", value);
   }
   print_log("]\n", 0);
@@ -83,8 +83,8 @@ inline int size_from_shape(const std::vector<int>& shape) {
 }
 
 // Returns the indices of an n-dim tensor given the flat offset and its strides.
-inline std::vector<int> offset_to_loc(int index,
-                                      const std::vector<int>& strides) {
+inline const std::vector<int> offset_to_loc(int index,
+                                            const std::vector<int>& strides) {
   int rank = strides.size() + 1;
   std::vector<int> loc(rank);
   if (rank == 0) {
@@ -105,14 +105,14 @@ inline std::vector<int> offset_to_loc(int index,
 // Returns the flat offset of an n-dim tensor given the indices and strides.
 inline int loc_to_offset(const std::vector<int>& loc,
                          const std::vector<int>& strides) {
-  int rank = loc.size();
+  size_t rank = loc.size();
   if (rank == 0) {
     return 0;
   } else if (rank == 1) {
     return loc[0];
   }
-  int index = loc[loc.size() - 1];
-  for (int i = 0; i < loc.size() - 1; ++i) {
+  size_t index = loc[loc.size() - 1];
+  for (size_t i = 0; i < loc.size() - 1; ++i) {
     index += strides[i] * loc[i];
   }
   return index;
@@ -139,7 +139,7 @@ inline int offset(int i1, int i2, int i3, int i4, int i5, int s1, int s2,
 
 // Returns the strides of a tensor given its shape. Note that the strides
 // are of length R-1 where R is the rank of the tensor.
-std::vector<int> compute_strides(const std::vector<int> shape);
+const std::vector<int> compute_strides(const std::vector<int> shape);
 
 }  // namespace util
 }  // namespace tfjs
