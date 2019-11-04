@@ -18,6 +18,7 @@
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {CppDType} from './types';
 
 interface TransposeInputs extends NamedTensorInfoMap {
   x: TensorInfo;
@@ -28,14 +29,15 @@ interface TransposeAttrs extends NamedAttrMap {
 }
 
 let wasmTranspose: (
-    xId: number, xShape: Uint8Array, xShapeLength: number, outId: number,
-    perm: Uint8Array, permLength: number) => void;
+    xId: number, xShape: Uint8Array, xShapeLength: number, dtype: CppDType,
+    outId: number, perm: Uint8Array, permLength: number) => void;
 
 function setup(backend: BackendWasm) {
   wasmTranspose = backend.wasm.cwrap('Transpose', null /* void */, [
     'number',  // xId
     'array',   // x.shape
     'number',  // x.shape.length
+    'number',  // dtype
     'number',  // outId
     'array',   // perm
     'number',  // perm.length
@@ -71,7 +73,8 @@ function transpose(
   const permBytes = new Uint8Array(new Int32Array(perm).buffer);
   const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
   wasmTranspose(
-      xId, xShapeBytes, x.shape.length, outId, permBytes, perm.length);
+      xId, xShapeBytes, x.shape.length, CppDType[x.dtype], outId, permBytes,
+      perm.length);
   return out;
 }
 

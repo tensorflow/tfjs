@@ -277,26 +277,29 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Transpose(int x_id, int* x_shape_ptr, int x_shape_length, int out_id,
-               int* perm_ptr, int perm_length) {
+void Transpose(int x_id, int* x_shape_ptr, int x_shape_length, DType dtype,
+               int out_id, int* perm_ptr, int perm_length) {
   auto x_shape = std::vector<int>(x_shape_ptr, x_shape_ptr + x_shape_length);
   auto perm = std::vector<int>(perm_ptr, perm_ptr + perm_length);
   const TensorInfo x_info = backend::get_tensor_info(x_id);
   const TensorInfo out_info = backend::get_tensor_info(out_id);
 
-  switch (x_info.dtype) {
+  switch (dtype) {
     case DType::float32:
-      transpose<float>(x_info.buf.f32, x_shape, perm, out_info.buf.f32);
+      transpose<float>(reinterpret_cast<float*>(x_info.memory_offset), x_shape,
+                       perm, reinterpret_cast<float*>(out_info.memory_offset));
       break;
     case DType::int32:
-      transpose<int>(x_info.buf.i32, x_shape, perm, out_info.buf.i32);
+      transpose<int>(reinterpret_cast<int*>(x_info.memory_offset), x_shape,
+                     perm, reinterpret_cast<int*>(out_info.memory_offset));
       break;
     case DType::boolean:
-      transpose<bool>(x_info.buf.b, x_shape, perm, out_info.buf.b);
+      transpose<bool>(reinterpret_cast<bool*>(x_info.memory_offset), x_shape,
+                      perm, reinterpret_cast<bool*>(out_info.memory_offset));
       break;
     default:
       util::warn("Transpose for tensor id %d failed. Unknown dtype %d", x_id,
-                 x_info.dtype);
+                 dtype);
   }
 }
 
