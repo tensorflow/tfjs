@@ -4,7 +4,10 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}",
-                "~/emsdk/fastcomp/emscripten/system/include/**"
+                "${workspaceFolder}/bazel-tfjs-backend-wasm/external/emsdk/emsdk/upstream/emscripten/system/include",
+                "${workspaceFolder}/bazel-tfjs-backend-wasm/external/com_google_googletest/googletest/include",
+                "${workspaceFolder}/bazel-tfjs-backend-wasm/external/xnnpack/include",
+                "${workspaceFolder}/bazel-tfjs-backend-wasm/external/pthreadpool/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",

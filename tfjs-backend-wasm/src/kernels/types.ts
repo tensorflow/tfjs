@@ -15,23 +15,11 @@
  * =============================================================================
  */
 
-// We explicitly import the modular kernels so they get registered in the
-// global registry when we compile the library. A modular build would replace
-// the contents of this file and import only the kernels that are needed.
-import './Abs';
-import './Add';
-import './BatchMatMul';
-import './FusedBatchNorm';
-import './Cast';
-import './Concat';
-import './Div';
-import './Mul';
-import './Min';
-import './Max';
-import './Prelu';
-import './Reshape';
-import './Sigmoid';
-import './Slice';
-import './Square';
-import './Sub';
-import './Transpose';
+// This enum must align with the enum defined in cc/backend.h.
+export enum CppDType {
+  float32 = 0,
+  int32 = 1,
+  bool = 2,
+  string = 3,
+  complex64 = 4
+}
