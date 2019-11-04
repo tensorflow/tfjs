@@ -68,15 +68,15 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   int crop_height = crop_size[0];
   int crop_width = crop_size[1];
 
-  printf("%d \n", images_shape[0]);
-  printf("%d \n", images_shape[1]);
-  printf("%d \n", images_shape[2]);
-  printf("%d \n", images_shape[3]);
-  printf("%d \n", num_channels);
-  printf("%d \n", num_boxes);
-  printf("%d \n", crop_height);
-  printf("%d \n", crop_width);
-  printf("%d \n", method);
+  // printf("%d \n", images_shape[0]);
+  // printf("%d \n", images_shape[1]);
+  // printf("%d \n", images_shape[2]);
+  // printf("%d \n", images_shape[3]);
+  // printf("%d \n", num_channels);
+  // printf("%d \n", num_boxes);
+  // printf("%d \n", crop_height);
+  // printf("%d \n", crop_width);
+  // printf("%d \n", method);
 
   for (int b = 0; b < num_boxes; ++b) {
     int startInd = b * 4;
@@ -161,6 +161,32 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
                   b * output_strides[0];
 
             out_buf[0] = top + ((bottom - top) * y_lerp);
+          }
+        }
+      } else {
+        for (int x = 0; x < crop_width; ++x) {
+          float x_ind = (crop_width > 1)
+                            ? x1 * (image_width - 1) + x * width_scale
+                            : 0.5 * (x1 + x2) * (image_width - 1);
+
+          if (x_ind < 0 || x_ind > image_width - 1) {
+            for (int c = 0; c < num_channels; ++c) {
+              int ind = c + x * output_strides[2] + y * output_strides[1] +
+                        b * output_strides[0];
+              out_buf[ind] = extrapolation_value;
+            }
+            continue;
+          }
+
+          float closest_x = round(x_ind);
+          float closest_y = round(y_ind);
+          for (int c = 0; c < num_channels; ++c) {
+            int in_ind = c + closest_x * images_strides[2] +
+                         closest_y * images_strides[1] +
+                         b_ind * images_strides[0];
+            int out_ind = c + x * output_strides[2] + y * output_strides[1] +
+                          b * output_strides[0];
+            out_buf[out_ind] = images_buf[in_ind];
           }
         }
       }

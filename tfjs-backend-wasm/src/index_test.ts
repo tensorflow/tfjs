@@ -51,17 +51,16 @@ describeWithFlags('wasm', ALL_ENVS, () => {
   fit('1x1-bilinear', async () => {
     const image: tf.Tensor4D = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
     const boxes: tf.Tensor2D = tf.tensor2d([0, 0, 1, 1], [1, 4]);
-
     const boxInd: tf.Tensor1D = tf.tensor1d([0], 'int32');
     const output =
-        tf.image.cropAndResize(image, boxes, boxInd, [1, 1], 'bilinear', 0);
-    expect(output.shape).toEqual([1, 1, 1, 1]);
+        tf.image.cropAndResize(image, boxes, boxInd, [3, 3], 'bilinear', 0);
     console.log('HELLO');
     console.log(output.dataSync());
     // expectArraysClose(await output.data(), [2.5]);
 
-    tf.setBackend('cpu');
+    // tf.setBackend('cpu');
 
-    tf.image.cropAndResize(image, boxes, boxInd, [1, 1], 'bilinear', 0).print();
+    // tf.image.cropAndResize(image, boxes, boxInd, [3, 3], 'bilinear',
+    // 0).print();
   });
 });
