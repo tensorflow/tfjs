@@ -1,4 +1,6 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/**
+ * @license
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -10,19 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * ===========================================================================*/
+ * =============================================================================
+ */
 
-#ifndef KERNELS_PRELU_H_
-#define KERNELS_PRELU_H_
-
-namespace tfjs {
-
-namespace wasm {
-extern "C" {
-void Prelu(int x_id, int weights_id, int out_id);
+// This enum must align with the enum defined in cc/backend.h.
+export enum CppDType {
+  float32 = 0,
+  int32 = 1,
+  bool = 2,
+  string = 3,
+  complex64 = 4
 }
-
-}  // namespace wasm
-}  // namespace tfjs
-
-#endif  // KERNELS_PRELU_H_
