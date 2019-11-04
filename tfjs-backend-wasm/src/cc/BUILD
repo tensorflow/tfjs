@@ -61,6 +61,7 @@ tfjs_cc_library(
     ":Abs",
     ":Add",
     ":BatchMatMul",
+    ":Conv2D",
     ":Div",
     ":Mul",
     ":Prelu",

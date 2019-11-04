@@ -47,7 +47,7 @@ void delete_xnn_operators(int filter_id) {
   std::vector<operator_cache_key> operator_cache_keys =
       filter_operator_cache_key_map.at(filter_id);
   for (auto operator_cache_key : operator_cache_keys) {
-    xnn_operator_t conv2d_op = operator_cache.at(operator_cache_key);
+    auto& conv2d_op = operator_cache.at(operator_cache_key);
     xnn_delete_operator(conv2d_op);
     tfjs::backend::xnn_operator_count--;
     operator_cache.erase(operator_cache_key);
@@ -72,9 +72,9 @@ void Conv2D(int x_id, int batch_size, int input_height, int input_width,
   const TensorInfo filter_info = backend::get_tensor_info(filter_id);
   const TensorInfo out_info = backend::get_tensor_info(out_id);
 
-  const float* x_buf = x_info.buf.f32;
-  const float* filter_buf = filter_info.buf.f32;
-  float* out_buf = out_info.buf.f32;
+  const float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
+  const float* filter_buf = reinterpret_cast<float*>(filter_info.memory_offset);
+  float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
 
   xnn_operator_t conv2d_op = nullptr;
 
