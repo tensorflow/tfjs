@@ -71,10 +71,8 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 void register_tensor(int tensor_id, int size, void *memory_offset) {
   TensorInfo info = {memory_offset, size};
-  // // We move info to avoid a copy.
-  // data.emplace(tensor_id, std::move(info));
-  data.insert({tensor_id, std::move(info)});
-  // data[tensor_id] = {memory_offset, size};
+  // We move info to avoid a copy.
+  data.emplace(tensor_id, std::move(info));
 }
 
 #ifdef __EMSCRIPTEN__
