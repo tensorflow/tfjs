@@ -29,7 +29,7 @@ TEST(BACKEND, register_tensor) {
   tfjs::wasm::register_tensor(tensor_id, size, values);
   ASSERT_EQ(1, tfjs::backend::num_tensors());
 
-  TensorInfo tensor_info = tfjs::backend::get_tensor_info(tensor_id);
+  auto& tensor_info = tfjs::backend::get_tensor_info(tensor_id);
 
   ASSERT_EQ(size, tensor_info.size);
 
