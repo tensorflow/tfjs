@@ -44,9 +44,8 @@ int xnn_operator_count = 0;
 // Registers a disposal callback for a tensor id with a given callback function.
 void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
   if (disposal_callbacks.count(tensor_id) == 0) {
-    auto callbacks = std::vector<DisposeFunction>{dispose_fn};
     // We move callbacks to avoid a copy.
-    disposal_callbacks.insert({tensor_id, std::move(callbacks)});
+    disposal_callbacks.insert({tensor_id, {dispose_fn}});
   } else {
     auto &callbacks = disposal_callbacks[tensor_id];
     callbacks.push_back(dispose_fn);
@@ -84,8 +83,8 @@ void dispose_data(int tensor_id) {
   // Call all disposal callbacks for this tensor id.
   auto disposal_callback_idx = disposal_callbacks.find(tensor_id);
   if (disposal_callback_idx != disposal_callbacks.end()) {
-    auto callbacks = disposal_callback_idx->second;
-    for (auto dispose_function : callbacks) {
+    auto &callbacks = disposal_callback_idx->second;
+    for (auto &dispose_function : callbacks) {
       dispose_function(tensor_id);
     }
 
@@ -100,10 +99,10 @@ void dispose() {
   // We have to create a separate vector of tensor ids because we erase from the
   // map while we're iterating it.
   std::vector<int> tensor_ids_to_dispose;
-  for (auto const &element : data) {
+  for (const auto &element : data) {
     tensor_ids_to_dispose.push_back(element.first);
   }
-  for (auto const tensor_id : tensor_ids_to_dispose) {
+  for (const auto tensor_id : tensor_ids_to_dispose) {
     dispose_data(tensor_id);
   }
 
