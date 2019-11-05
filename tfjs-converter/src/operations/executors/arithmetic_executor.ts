@@ -16,11 +16,9 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
 import {InternalOpExecutor, Node} from '../types';
-
 import {getParamValue} from './utils';
 
 export let executeOp: InternalOpExecutor = (node: Node,
@@ -51,6 +49,11 @@ export let executeOp: InternalOpExecutor = (node: Node,
     case 'RealDiv':
     case 'Div': {
       return [tfc.div(
+          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
+    }
+    case 'DivNoNan': {
+      return [tfc.divNoNan(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     }
