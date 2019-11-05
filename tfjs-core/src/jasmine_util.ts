@@ -197,7 +197,7 @@ export function describeWithFlags(
     env().setFlags(testEnv.flags);
     if (envSatisfiesConstraints(env(), testEnv, constraints)) {
       const testName =
-          name + ' ' + testEnv.name + ' ' + JSON.stringify(testEnv.flags);
+          name + ' ' + testEnv.name + ' ' + JSON.stringify(testEnv.flags || {});
       executeTests(testName, tests, testEnv);
     }
   });

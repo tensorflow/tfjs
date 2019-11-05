@@ -23,39 +23,45 @@ namespace tfjs {
 namespace wasm {
 
 template <class T>
-inline void binary_impl(T* a_buf, int a_size, T* b_buf, int b_size, T* out_buf,
-                        T operation(T, T)) {
+inline void binary_impl(const T* a_buf, const int a_size, const T* b_buf,
+                        const int b_size, T* out_buf, T operation(T, T)) {
   int size = std::max(a_size, b_size);
   for (int i = 0; i < size; ++i) {
     out_buf[i] = operation(a_buf[i % a_size], b_buf[i % b_size]);
   }
 }
 
-inline void binary_f32(int a_id, int b_id, int out_id,
+inline void binary_f32(const int a_id, const int b_id, const int out_id,
                        float operation(float, float)) {
-  const auto a_info = backend::get_tensor_info(a_id);
-  const auto b_info = backend::get_tensor_info(b_id);
-  const auto out_info = backend::get_tensor_info(out_id);
-  binary_impl<float>(a_info.buf.f32, a_info.size, b_info.buf.f32, b_info.size,
-                     out_info.buf.f32, operation);
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info(out_id);
+  binary_impl<float>(
+      reinterpret_cast<const float*>(a_info.memory_offset), a_info.size,
+      reinterpret_cast<const float*>(b_info.memory_offset), b_info.size,
+      reinterpret_cast<float*>(out_info.memory_offset), operation);
 }
 
-inline void binary_i32(int a_id, int b_id, int out_id,
+inline void binary_i32(const int a_id, const int b_id, const int out_id,
                        int operation(int, int)) {
-  const auto a_info = backend::get_tensor_info(a_id);
-  const auto b_info = backend::get_tensor_info(b_id);
-  const auto out_info = backend::get_tensor_info(out_id);
-  binary_impl<int>(a_info.buf.i32, a_info.size, b_info.buf.i32, b_info.size,
-                   out_info.buf.i32, operation);
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info(out_id);
+  binary_impl<int>(
+      reinterpret_cast<const int*>(a_info.memory_offset), a_info.size,
+      reinterpret_cast<const int*>(b_info.memory_offset), b_info.size,
+      reinterpret_cast<int*>(out_info.memory_offset), operation);
 }
 
-inline void binary_bool(int a_id, int b_id, int out_id,
+inline void binary_bool(const int a_id, const int b_id, const int out_id,
                         bool operation(bool, bool)) {
-  const auto a_info = backend::get_tensor_info(a_id);
-  const auto b_info = backend::get_tensor_info(b_id);
-  const auto out_info = backend::get_tensor_info(out_id);
-  binary_impl<bool>(a_info.buf.b, a_info.size, b_info.buf.b, b_info.size,
-                    out_info.buf.b, operation);
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info(out_id);
+  binary_impl<bool>(
+      reinterpret_cast<const bool*>(a_info.memory_offset), a_info.size,
+      reinterpret_cast<const bool*>(b_info.memory_offset), b_info.size,
+      reinterpret_cast<bool*>(out_info.memory_offset), operation);
 }
 
 }  // namespace wasm

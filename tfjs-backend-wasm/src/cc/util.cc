@@ -12,25 +12,24 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef UNARY_H_
-#define UNARY_H_
+#include <vector>
+
+#include "src/cc/util.h"
 
 namespace tfjs {
-namespace wasm {
+namespace util {
 
-inline void unary(const int x_id, const int out_id, float operation(float)) {
-  auto& a_info = backend::get_tensor_info(x_id);
-  auto& out_info = backend::get_tensor_info(out_id);
-
-  const float* a_buf = reinterpret_cast<const float*>(a_info.memory_offset);
-  float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
-
-  for (int i = 0; i < a_info.size; ++i) {
-    out_buf[i] = operation(a_buf[i]);
+const std::vector<int> compute_strides(const std::vector<int> shape) {
+  const int rank = shape.size();
+  std::vector<int> strides(rank - 1);
+  // Last dimension has implicit stride of 1, thus having D-1 (instead of D)
+  // strides.
+  strides[rank - 2] = shape[rank - 1];
+  for (int i = rank - 3; i >= 0; --i) {
+    strides[i] = strides[i + 1] * shape[i + 1];
   }
+  return strides;
 }
 
-}  // namespace wasm
+}  // namespace util
 }  // namespace tfjs
-
-#endif  // UNARY_H_
