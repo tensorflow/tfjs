@@ -1047,6 +1047,7 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
   nstatus = napi_get_value_int32(env, savedmodel_id_value, &savedmodel_id);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
+  // Get corresponding SavedModel session and graph.
   auto savedmodel_entry = tf_savedmodel_map_.find(savedmodel_id);
   if (savedmodel_entry == tf_savedmodel_map_.end()) {
     NAPI_THROW_ERROR(env, "SavedModel ID not referenced (savedmodel_id: %d)",
@@ -1061,6 +1062,7 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
   nstatus = GetStringParam(env, output_op_names_value, output_op_names);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
+  // Get input/output op names as vector
   std::vector<const char *> input_op_name_array =
       splitStringByComma(input_op_names);
   std::vector<const char *> output_op_name_array =
@@ -1084,13 +1086,13 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     nstatus = napi_get_value_int32(env, cur_input_id, &cur_input_tensor_id);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
+    // Find input tensor based on tensor id.
     auto tensor_entry = tfe_handle_map_.find(cur_input_tensor_id);
     if (tensor_entry == tfe_handle_map_.end()) {
       NAPI_THROW_ERROR(env, "Input Tensor ID not referenced (tensor_id: %d)",
                        cur_input_tensor_id);
       return nullptr;
     }
-
     TF_Tensor *inputTensor =
         TFE_TensorHandleResolve(tensor_entry->second, tf_status.status);
 
@@ -1101,9 +1103,10 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
       return nullptr;
     }
 
-    // Add input tensor
+    // Add input tensor into input values list.
     input_values.push_back(inputTensor);
 
+    // Add input op into input ops list.
     TF_Operation *input_op = TF_GraphOperationByName(
         savedmodel_entry->second.second, input_op_name_array[i]);
     if (input_op == nullptr) {
@@ -1114,6 +1117,7 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     inputs.push_back(in);
   }
 
+  // Add output op into output ops list.
   for (uint32_t i = 0; i < output_op_name_array.size(); i++) {
     TF_Operation *output_op = TF_GraphOperationByName(
         savedmodel_entry->second.second, output_op_name_array[i]);
@@ -1138,16 +1142,11 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     return nullptr;
   }
 
-  if (TF_GetCode(tf_status.status) != TF_OK) {
-    NAPI_THROW_ERROR(env, "Fail to create tfe_handle from tf_tensor: %s",
-                     TF_Message(tf_status.status));
-    return nullptr;
-  }
-
   napi_value output_tensor_infos;
   nstatus = napi_create_array_with_length(env, 1, &output_tensor_infos);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
+  // Generate output tensors for JS.
   for (uint32_t i = 0; i < output_op_name_array.size(); i++) {
     // Output tensor info object:
     napi_value tensor_info_value;
@@ -1156,6 +1155,8 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
 
     TFE_TensorHandle *tfe_handle =
         TFE_NewTensorHandle(output_values[i], tf_status.status);
+    // Deallocate output TF_Tensor in C++.
+    TF_DeleteTensor(output_values[i]);
 
     // Output tensor ID:
     napi_value output_tensor_id_value;
@@ -1186,6 +1187,11 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     // Push into output array
     nstatus = napi_set_element(env, output_tensor_infos, i, tensor_info_value);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  }
+
+  for (uint32_t i = 0; i < num_input_ids; i++) {
+    // Deallocate input TF_Tensor in C++.
+    TF_DeleteTensor(input_values[i]);
   }
 
   return output_tensor_infos;
