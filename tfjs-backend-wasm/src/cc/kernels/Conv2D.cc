@@ -21,6 +21,7 @@
 #include <cmath>
 #include <limits>
 #include <map>
+#include <memory>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -33,25 +34,24 @@ namespace {
 // These integer values are keys to creating the conv2d operator. We use
 // std::array instead of a vanilla array as it implements the compare operator
 // needed for std::map.
-typedef std::array<int, 15> operator_cache_key;
+typedef std::array<int, 15> OperatorCacheKey;
 
 // The operator cache maps the cache key to the xnn_operator_t instantiated for
 // this set of arguments to the xnn_operator.
-std::map<operator_cache_key, xnn_operator_t> operator_cache;
+std::map<OperatorCacheKey, xnn_operator_t> operator_cache;
 
 // Maps a filter id to a list of operator cache keys that this filter belongs
 // to.
-std::unordered_map<int, std::vector<operator_cache_key>>
+std::unordered_map<int, std::vector<OperatorCacheKey>>
     filter_operator_cache_key_map;
 
 void delete_xnn_operators(int filter_id) {
-  std::vector<operator_cache_key> operator_cache_keys =
-      filter_operator_cache_key_map.at(filter_id);
+  std::vector<OperatorCacheKey> operator_cache_keys =
+      filter_operator_cache_key_map[filter_id];
   for (auto& operator_cache_key : operator_cache_keys) {
-    auto conv2d_op = operator_cache.at(operator_cache_key);
-    xnn_delete_operator(conv2d_op);
-    tfjs::backend::xnn_operator_count--;
+    auto& conv2d_op = operator_cache[operator_cache_key];
     operator_cache.erase(operator_cache_key);
+    tfjs::backend::xnn_operator_count--;
   }
   filter_operator_cache_key_map.erase(filter_id);
 }
@@ -80,7 +80,9 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
   const float* filter_buf = reinterpret_cast<float*>(filter_info.memory_offset);
   float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
 
-  xnn_operator_t conv2d_op = nullptr;
+  xnn_operator_t conv2d_ptr = nullptr;
+  std::unique_ptr<xnn_operator, decltype(&xnn_delete_operator)> conv2d_op(
+      conv2d_ptr, xnn_delete_operator);
 
   int flags = 0;
   if (is_same_pad) {
@@ -90,11 +92,11 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
 
   const int groups = 1;
 
-  operator_cache_key cache_key = {
-      pad_top,         pad_right,      pad_bottom,    pad_left,
-      filter_height,   filter_width,   stride_height, stride_width,
-      dilation_height, dilation_width, groups,        input_channels,
-      output_channels, filter_id,      flags};
+  OperatorCacheKey cache_key = {pad_top,         pad_right,     pad_bottom,
+                                pad_left,        filter_height, filter_width,
+                                stride_height,   stride_width,  dilation_height,
+                                dilation_width,  groups,        input_channels,
+                                output_channels, filter_id,     flags};
 
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
@@ -121,7 +123,7 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
 
     auto cache_keys_idx = filter_operator_cache_key_map.find(filter_id);
     if (cache_keys_idx == filter_operator_cache_key_map.end()) {
-      std::vector<operator_cache_key> cache_keys = {std::move(cache_key)};
+      std::vector<OperatorCacheKey> cache_keys = {std::move(cache_key)};
       // We do a move here to avoid a copy.
       filter_operator_cache_key_map.insert({filter_id, std::move(cache_keys)});
       backend::register_disposal_callback(filter_id, *delete_xnn_operators);
