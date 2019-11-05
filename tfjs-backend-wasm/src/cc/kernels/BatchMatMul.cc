@@ -29,19 +29,21 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void BatchMatMul(int a_id, int b_id, int shared_dim, int left_dim,
-                 int right_dim, int batch_dim, int a_batch, int a_outer_step,
-                 int a_inner_step, int b_batch, int b_outer_step,
-                 int b_inner_step, int out_id) {
+void BatchMatMul(const int a_id, const int b_id, const int shared_dim,
+                 const int left_dim, const int right_dim, const int batch_dim,
+                 const int a_batch, const int a_outer_step,
+                 const int a_inner_step, const int b_batch,
+                 const int b_outer_step, const int b_inner_step,
+                 const int out_id) {
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
   auto& out_info = backend::get_tensor_info(out_id);
 
-  const float* a_buf = reinterpret_cast<float*>(a_info.memory_offset);
-  const float* b_buf = reinterpret_cast<float*>(b_info.memory_offset);
+  const float* a_buf = reinterpret_cast<const float*>(a_info.memory_offset);
+  const float* b_buf = reinterpret_cast<const float*>(b_info.memory_offset);
   float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
 
-  int size = left_dim * right_dim;
+  const int size = left_dim * right_dim;
 
   // Zero out the output buffer because it might have been used before.
   std::fill(out_buf, out_buf + batch_dim * size, 0);
@@ -51,9 +53,9 @@ void BatchMatMul(int a_id, int b_id, int shared_dim, int left_dim,
       for (int j0 = 0; j0 < right_dim; j0 += kBlockSize) {
         for (int k0 = 0; k0 < shared_dim; k0 += kBlockSize) {
           // for when kBlockSize doesn't evenly divide the input
-          int i_block = std::min(i0 + kBlockSize, left_dim);
-          int j_block = std::min(j0 + kBlockSize, right_dim);
-          int k_block = std::min(k0 + kBlockSize, shared_dim);
+          const int i_block = std::min(i0 + kBlockSize, left_dim);
+          const int j_block = std::min(j0 + kBlockSize, right_dim);
+          const int k_block = std::min(k0 + kBlockSize, shared_dim);
 
           for (int i = i0; i < i_block; ++i) {
             for (int j = j0; j < j_block; ++j) {
