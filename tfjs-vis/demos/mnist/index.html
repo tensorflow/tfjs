@@ -263,6 +263,55 @@
         document.querySelector('#start-training-2')
           .addEventListener('click', () => showTrainingHistory());
       </script>
+
+      <h3>Customizing training charts.</h3>
+      <p>
+        The <code>show.fitCallbacks</code> function is designed to help you quickly plot training behaviour
+        with reasonable defaults. If you want to customize the rendering of these charts, you can use
+        <code>render.linechart</code> function. An example that plots accuracy values at the end
+        of every epoch using custom colors and a custom yaxis domain is shown below.
+      </p>
+
+      <button id='start-training-3' disabled>Custom Training Charts</button>
+
+      <script class='show-script'>
+        // An array to hold training logs
+        const epochLogs = [];
+        async function customTrainingCharts() {
+          const callbacks = {
+            onEpochEnd: function(epoch, log) {
+              const surface = {
+                name: 'Custom Training Charts',
+                tab: 'Training',
+              };
+              const options = {
+                xLabel: 'Epoch',
+                yLabel: 'Value',
+                yAxisDomain: [0, 1],
+                seriesColors: ['teal', 'tomato']
+              };
+
+              // Prep the data
+              epochLogs.push(log);
+              const acc = epochLogs.map((log, i) => ({ x: i, y: log.acc }));
+              const valAcc = epochLogs.map((log, i) => ({ x: i, y: log.val_acc }));
+              const data = {
+                values: [acc, valAcc],
+                // Custom names for the series
+                series: ['Accuracy', 'Validation Accuracy']
+              }
+
+              // render the chart
+              tfvis.render.linechart(surface, data, options);
+            }
+          }
+          return train(model, data, callbacks);
+        }
+
+        document.querySelector('#start-training-3')
+          .addEventListener('click', () => customTrainingCharts());
+      </script>
+
     </section>
 
     <section>
