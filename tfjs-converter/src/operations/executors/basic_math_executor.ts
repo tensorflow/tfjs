@@ -163,6 +163,10 @@ export let executeOp: InternalOpExecutor = (node: Node,
       return [tfc.leakyRelu(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           getParamValue('alpha', node, tensorMap, context) as number)];
+    case 'Prelu':
+      return [tfc.prelu(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('alpha', node, tensorMap, context) as tfc.Tensor)];
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
