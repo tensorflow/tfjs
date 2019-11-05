@@ -53,8 +53,8 @@ describe('SavedModel', () => {
      *  }
      * }
      */
-    const modelMessage =
-        await readSavedModelProto('./test_objects/times_three_float');
+    const modelMessage = await readSavedModelProto(
+        './test_objects/saved_model/times_three_float');
 
     // This SavedModel has one MetaGraph with tag serve
     expect(modelMessage.getMetaGraphsList().length).toBe(1);
@@ -126,7 +126,7 @@ describe('SavedModel', () => {
 
   it('inspect SavedModel metagraphs', async () => {
     const modelInfo = await tf.node.getMetaGraphsFromSavedModel(
-        './test_objects/times_three_float');
+        './test_objects/saved_model/times_three_float');
     /**
      * The inspection output should be
      * [{
@@ -188,7 +188,7 @@ describe('SavedModel', () => {
 
   it('get input and output node names from SavedModel metagraphs', async () => {
     const modelInfo = await tf.node.getMetaGraphsFromSavedModel(
-        './test_objects/times_three_float');
+        './test_objects/saved_model/times_three_float');
     const inputAndOutputNodeNames = getInputAndOutputNodeNameFromMetaGraphInfo(
         modelInfo, ['serve'], 'serving_default');
     expect(inputAndOutputNodeNames.length).toBe(2);
@@ -203,7 +203,8 @@ describe('SavedModel', () => {
         spyOn(nodeBackend(), 'loadSavedModelMetaGraph').and.callThrough();
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
     const model = await tf.node.loadSavedModel(
-        './test_objects/times_three_float', ['serve'], 'serving_default');
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     model.dispose();
   });
@@ -211,7 +212,7 @@ describe('SavedModel', () => {
   it('load TFSavedModel with wrong tags throw exception', async done => {
     try {
       await tf.node.loadSavedModel(
-          './test_objects/times_three_float', ['serve', 'gpu'],
+          './test_objects/saved_model/times_three_float', ['serve', 'gpu'],
           'serving_default');
       done.fail();
     } catch (error) {
@@ -224,7 +225,8 @@ describe('SavedModel', () => {
   it('load TFSavedModel with wrong signature throw exception', async done => {
     try {
       await tf.node.loadSavedModel(
-          './test_objects/times_three_float', ['serve'], 'wrong_signature');
+          './test_objects/saved_model/times_three_float', ['serve'],
+          'wrong_signature');
       done.fail();
     } catch (error) {
       expect(error.message)
@@ -241,7 +243,8 @@ describe('SavedModel', () => {
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
     expect(deleteSavedModelSpy).toHaveBeenCalledTimes(0);
     const model = await tf.node.loadSavedModel(
-        './test_objects/times_three_float', ['serve'], 'serving_default');
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     expect(deleteSavedModelSpy).toHaveBeenCalledTimes(0);
     model.dispose();
@@ -251,7 +254,8 @@ describe('SavedModel', () => {
 
   it('delete TFSavedModel multiple times throw exception', async done => {
     const model = await tf.node.loadSavedModel(
-        './test_objects/times_three_float', ['serve'], 'serving_default');
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
     model.dispose();
     try {
       model.dispose();
@@ -269,12 +273,12 @@ describe('SavedModel', () => {
            spyOn(backend, 'loadSavedModelMetaGraph').and.callThrough();
        expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
        const signature1 = await tf.node.loadSavedModel(
-           './test_objects/module_with_multiple_signatures', ['serve'],
-           'serving_default');
+           './test_objects/saved_model/module_with_multiple_signatures',
+           ['serve'], 'serving_default');
        expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
        const signature2 = await tf.node.loadSavedModel(
-           './test_objects/module_with_multiple_signatures', ['serve'],
-           'timestwo');
+           './test_objects/saved_model/module_with_multiple_signatures',
+           ['serve'], 'timestwo');
        expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
        signature1.dispose();
        signature2.dispose();
@@ -290,7 +294,7 @@ describe('SavedModel', () => {
     expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(0);
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(0);
     const signature1 = await tf.node.loadSavedModel(
-        './test_objects/module_with_multiple_signatures', ['serve'],
+        './test_objects/saved_model/module_with_multiple_signatures', ['serve'],
         'serving_default');
     expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(1);
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(0);
@@ -298,7 +302,7 @@ describe('SavedModel', () => {
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(1);
     expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(1);
     const signature2 = await tf.node.loadSavedModel(
-        './test_objects/module_with_multiple_signatures', ['serve'],
+        './test_objects/saved_model/module_with_multiple_signatures', ['serve'],
         'timestwo');
     expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(2);
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(1);
@@ -307,14 +311,28 @@ describe('SavedModel', () => {
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(2);
   });
 
-  it('execute model', async () => {
+  it('execute model float times three', async () => {
     const signature1 = await tf.node.loadSavedModel(
-        './test_objects/times_three_float', ['serve'], 'serving_default');
-    const input = tf.tensor1d([1, 2, 3]);
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
+    const input = tf.tensor1d([1.0, 2, 3]);
     const output = signature1.predict(input) as tf.Tensor;
     expect(output.shape).toEqual(input.shape);
     expect(output.dtype).toBe(input.dtype);
-    expectArraysClose(await output.data(), [3, 6, 9]);
+    expect(output.dtype).toBe('float32');
+    expectArraysClose(await output.data(), await input.mul(3).data());
+    signature1.dispose();
+  });
+
+  it('execute model int times two', async () => {
+    const signature1 = await tf.node.loadSavedModel(
+        './test_objects/saved_model/times_two_int', ['serve'],
+        'serving_default');
+    const input = tf.tensor1d([1, 2, 3], 'int32');
+    const output = signature1.predict(input) as tf.Tensor;
+    expect(output.shape).toEqual(input.shape);
+    expect(output.dtype).toBe(input.dtype);
+    expectArraysClose(await output.data(), await input.mul(2).toInt().data());
     signature1.dispose();
   });
 
@@ -325,25 +343,25 @@ describe('SavedModel', () => {
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
 
     const signature1 = await tf.node.loadSavedModel(
-        './test_objects/module_with_multiple_signatures', ['serve'],
+        './test_objects/saved_model/module_with_multiple_signatures', ['serve'],
         'serving_default');
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     const input1 = tf.tensor1d([1, 2, 3]);
     const output1 = signature1.predict(input1) as tf.Tensor;
     expect(output1.shape).toEqual(input1.shape);
     expect(output1.dtype).toBe(input1.dtype);
-    expectArraysClose(await output1.data(), [3, 6, 9]);
+    expectArraysClose(await output1.data(), await input1.mul(3).data());
 
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     const signature2 = await tf.node.loadSavedModel(
-        './test_objects/module_with_multiple_signatures', ['serve'],
+        './test_objects/saved_model/module_with_multiple_signatures', ['serve'],
         'timestwo');
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     const input2 = tf.tensor1d([1, 2, 3]);
     const output2 = signature2.predict(input2) as tf.Tensor;
     expect(output2.shape).toEqual(input2.shape);
     expect(output2.dtype).toBe(input2.dtype);
-    expectArraysClose(await output2.data(), [2, 4, 6]);
+    expectArraysClose(await output2.data(), await input1.mul(2).data());
 
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     signature1.dispose();
