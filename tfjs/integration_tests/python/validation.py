@@ -181,8 +181,9 @@ def _create_saved_model_with_prelu(save_dir):
   """
   layers = [
       tf.keras.layers.Conv2D(
-          16, [3, 3], padding='same', use_bias=True),
-      tf.keras.layers.PReLU()
+          16, [3, 3], padding='same', use_bias=True,
+          bias_initializer=tf.initializers.constant(0.25)),
+      tf.keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25))
   ]
   model = tf.keras.Sequential(layers)
   result = model.predict(tf.ones((1, 24, 24, 3)))
