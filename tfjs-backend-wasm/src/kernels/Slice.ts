@@ -33,13 +33,9 @@ function slice(
     args: {inputs: SliceInputs, attrs: SliceAttrs, backend: BackendWasm}) {
   const {inputs: {x}, attrs: {begin, size}, backend} = args;
   const isContinous = slice_util.isSliceContinous(x.shape, begin, size);
-  const {memoryOffset: xOffset} = backend.dataIdMap.get(x.dataId);
-  const xVals =
-      backend.typedArrayFromHeap(xOffset, x.dtype, util.sizeFromShape(x.shape));
+  const xVals = backend.typedArrayFromHeap(x);
   const out = backend.makeOutput(size, x.dtype);
-  const {memoryOffset: outOffset} = backend.dataIdMap.get(out.dataId);
-  const outVals = backend.typedArrayFromHeap(
-      outOffset, out.dtype, util.sizeFromShape(out.shape));
+  const outVals = backend.typedArrayFromHeap(out);
   const xStrides = util.computeStrides(x.shape);
   if (isContinous) {
     const flatOffset = slice_util.computeFlatOffset(begin, xStrides);

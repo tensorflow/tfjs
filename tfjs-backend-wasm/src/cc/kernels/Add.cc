@@ -35,9 +35,9 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Add(int a_id, int b_id, int out_id) {
-  const auto a_info = backend::get_tensor_info(a_id);
-  switch (a_info.dtype) {
+void Add(int a_id, int b_id, DType dtype, int out_id) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  switch (dtype) {
     case DType::float32:
       binary_f32(a_id, b_id, out_id, add<float>);
       break;
@@ -49,7 +49,7 @@ void Add(int a_id, int b_id, int out_id) {
       break;
     default:
       util::warn("Add for tensor ids %d and %d failed. Unknown dtype %d", a_id,
-                 b_id, a_info.dtype);
+                 b_id, dtype);
   }
 }
 
