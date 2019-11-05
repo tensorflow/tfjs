@@ -43,10 +43,10 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   const std::vector<int>& crop_size =
       std::vector<int>(crop_size_ptr, crop_size_ptr + crop_size_length);
 
-  const auto images_info = backend::get_tensor_info(images_id);
-  const auto boxes_info = backend::get_tensor_info(boxes_id);
-  const auto box_ind_info = backend::get_tensor_info(box_ind_id);
-  const auto out_info = backend::get_tensor_info(out_id);
+  auto& images_info = backend::get_tensor_info(images_id);
+  auto& boxes_info = backend::get_tensor_info(boxes_id);
+  auto& box_ind_info = backend::get_tensor_info(box_ind_id);
+  auto& out_info = backend::get_tensor_info(out_id);
 
   float* images_buf = reinterpret_cast<float*>(images_info.memory_offset);
   int images_size = images_info.size;
