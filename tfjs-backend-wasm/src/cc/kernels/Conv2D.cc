@@ -33,7 +33,7 @@ namespace {
 // These integer values are keys to creating the conv2d operator. We use
 // std::array instead of a vanilla array as it implements the compare operator
 // needed for std::map.
-typedef std::array<int, 16> operator_cache_key;
+typedef std::array<int, 15> operator_cache_key;
 
 // The operator cache maps the cache key to the xnn_operator_t instantiated for
 // this set of arguments to the xnn_operator.
@@ -90,10 +90,10 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
   const int groups = 1;
 
   operator_cache_key cache_key = {
-      pad_top,        pad_right,       pad_bottom,     pad_left,
-      is_same_pad,    filter_height,   filter_width,   stride_height,
-      stride_width,   dilation_height, dilation_width, groups,
-      input_channels, output_channels, filter_id,      flags};
+      pad_top,         pad_right,      pad_bottom,    pad_left,
+      filter_height,   filter_width,   stride_height, stride_width,
+      dilation_height, dilation_width, groups,        input_channels,
+      output_channels, filter_id,      flags};
 
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
