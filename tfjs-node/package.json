@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -12,7 +12,7 @@
     "node": ">=8.11.0"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
     "build-npm": "./scripts/build-npm.sh",
     "build-addon": "./scripts/build-and-upload-addon.sh",
     "build-addon-from-source": "node-pre-gyp install --build-from-source",
@@ -51,7 +51,7 @@
     "yargs": "^14.2.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "1.3.0",
+    "@tensorflow/tfjs": "1.3.1",
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",

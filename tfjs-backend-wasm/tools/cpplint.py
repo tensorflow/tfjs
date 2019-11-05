@@ -5206,11 +5206,11 @@ def CheckCasts(filename, clean_lines, linenum, error):
         not Search(r'new\(\S+\)\s*' + matched_type, line)):
       error(filename, linenum, 'readability/casting', 4,
             'Using deprecated casting style.  '
-            'Use static_cast<%s>(...) instead' %
+            'Use reinterpret_cast<%s>(...) instead' %
             matched_type)
 
   if not expecting_function:
-    CheckCStyleCast(filename, clean_lines, linenum, 'static_cast',
+    CheckCStyleCast(filename, clean_lines, linenum, 'reinterpret_cast',
                     r'\((int|float|double|bool|char|u?int(16|32|64))\)', error)
 
   # This doesn't catch all cases. Consider (const char * const)"hello".
@@ -5231,7 +5231,7 @@ def CheckCasts(filename, clean_lines, linenum, error):
   #
   # Some non-identifier character is required before the '&' for the
   # expression to be recognized as a cast.  These are casts:
-  #   expression = &static_cast<int*>(temporary());
+  #   expression = &reinterpret_cast<int*>(temporary());
   #   function(&(int*)(temporary()));
   #
   # This is not a cast:
@@ -5276,7 +5276,7 @@ def CheckCStyleCast(filename, clean_lines, linenum, cast_type, pattern, error):
     clean_lines: A CleansedLines instance containing the file.
     linenum: The number of the line to check.
     cast_type: The string for the C++ cast to recommend.  This is either
-      reinterpret_cast, static_cast, or const_cast, depending.
+      reinterpret_cast, reinterpret_cast, or const_cast, depending.
     pattern: The regular expression used to find C-style casts.
     error: The function to call with any errors found.
 

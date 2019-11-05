@@ -49,6 +49,12 @@ function batchMatMul(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {a, b} = inputs;
+
+  if (a.dtype !== 'float32' || b.dtype !== 'float32') {
+    throw new Error(
+        `BatchMatMul for non non-float32 tensors not yet supported.`);
+  }
+
   const {transposeA, transposeB} = attrs;
   const aId = backend.dataIdMap.get(a.dataId).id;
   const bId = backend.dataIdMap.get(b.dataId).id;
