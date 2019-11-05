@@ -68,6 +68,9 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   int crop_height = crop_size[0];
   int crop_width = crop_size[1];
 
+  int image_height_m1 = image_height - 1;
+  int image_width_m1 = image_width - 1;
+
   // printf("%d \n", images_strides[0]);
   // printf("%d \n", images_strides[1]);
 
@@ -84,17 +87,13 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
     }
 
     float height_scale =
-        (crop_height > 1)
-            ? (y2 - y1) * float(image_height - 1) / float(crop_height - 1)
-            : 0;
-    float width_scale = (crop_width > 1) ? (x2 - x1) * float(image_width - 1) /
-                                               float(crop_width - 1)
-                                         : 0;
+        (crop_height > 1) ? (y2 - y1) * image_height_m1 / (crop_height - 1) : 0;
+    float width_scale =
+        (crop_width > 1) ? (x2 - x1) * image_width_m1 / (crop_width - 1) : 0;
 
     for (int y = 0; y < crop_height; ++y) {
-      float y_ind = (crop_height > 1)
-                        ? y1 * float(image_height - 1) + y * height_scale
-                        : 0.5 * (y1 + y2) * float(image_height - 1);
+      float y_ind = (crop_height > 1) ? y1 * image_height_m1 + y * height_scale
+                                      : 0.5 * (y1 + y2) * image_height_m1;
 
       if (y_ind < 0 || y_ind > image_height - 1) {
         for (int x = 0; x < crop_width; ++x) {
@@ -113,9 +112,8 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
         float y_lerp = y_ind - top_ind;
 
         for (int x = 0; x < crop_width; ++x) {
-          float x_ind = (crop_width > 1)
-                            ? x1 * float(image_width - 1) + x * width_scale
-                            : 0.5 * (x1 + x2) * float(image_width - 1);
+          float x_ind = (crop_width > 1) ? x1 * image_width_m1 + x * width_scale
+                                         : 0.5 * (x1 + x2) * image_width_m1;
 
           if (x_ind < 0 || x_ind > image_width - 1) {
             for (int c = 0; c < num_channels; ++c) {
@@ -164,9 +162,8 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
         }
       } else {
         for (int x = 0; x < crop_width; ++x) {
-          float x_ind = (crop_width > 1)
-                            ? x1 * (image_width - 1) + x * width_scale
-                            : 0.5 * (x1 + x2) * (image_width - 1);
+          float x_ind = (crop_width > 1) ? x1 * image_width_m1 + x * width_scale
+                                         : 0.5 * (x1 + x2) * image_width_m1;
 
           if (x_ind < 0 || x_ind > image_width - 1) {
             for (int c = 0; c < num_channels; ++c) {
