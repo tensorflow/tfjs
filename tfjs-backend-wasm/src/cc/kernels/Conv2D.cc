@@ -80,9 +80,7 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
   const float* filter_buf = reinterpret_cast<float*>(filter_info.memory_offset);
   float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
 
-  xnn_operator_t conv2d_ptr = nullptr;
-  std::unique_ptr<xnn_operator, decltype(&xnn_delete_operator)> conv2d_op(
-      conv2d_ptr, xnn_delete_operator);
+  xnn_operator_t conv2d_op = nullptr;
 
   int flags = 0;
   if (is_same_pad) {
@@ -119,13 +117,12 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
           status);
     }
 
-    operator_cache.insert({cache_key, conv2d_op});
+    operator_cache.emplace(cache_key, conv2d_op);
 
     auto cache_keys_idx = filter_operator_cache_key_map.find(filter_id);
     if (cache_keys_idx == filter_operator_cache_key_map.end()) {
-      std::vector<OperatorCacheKey> cache_keys = {std::move(cache_key)};
-      // We do a move here to avoid a copy.
-      filter_operator_cache_key_map.insert({filter_id, std::move(cache_keys)});
+      std::vector<OperatorCacheKey> cache_keys = {cache_key};
+      filter_operator_cache_key_map.emplace(filter_id, std::move(cache_keys));
       backend::register_disposal_callback(filter_id, *delete_xnn_operators);
 
     } else {
