@@ -22,7 +22,7 @@
 #include "src/cc/unary.h"
 
 namespace {
-inline float oper(float val) { return 1. / (1. + std::exp(-val)); }
+inline float oper(const float val) { return 1. / (1. + std::exp(-val)); }
 }  // namespace
 
 namespace tfjs {
@@ -33,7 +33,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Sigmoid(int x_id, int out_id) { unary(x_id, out_id, oper); }
+void Sigmoid(const int x_id, const int out_id) { unary(x_id, out_id, oper); }
 
 }  // extern "C"
 }  // namespace wasm
