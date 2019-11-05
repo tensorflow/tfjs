@@ -19,7 +19,7 @@ namespace tfjs {
 
 namespace wasm {
 extern "C" {
-void Prelu(int x_id, int weights_id, int out_id);
+void Prelu(const int x_id, const int weights_id, const int out_id);
 }
 
 }  // namespace wasm
