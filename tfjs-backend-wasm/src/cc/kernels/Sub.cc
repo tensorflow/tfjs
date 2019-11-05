@@ -35,7 +35,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Sub(int a_id, int b_id, DType dtype, int out_id) {
+void Sub(const int a_id, const int b_id, const DType dtype, const int out_id) {
   auto& a_info = backend::get_tensor_info(a_id);
   switch (dtype) {
     case DType::float32:
