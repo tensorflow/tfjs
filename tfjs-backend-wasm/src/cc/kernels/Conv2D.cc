@@ -30,10 +30,10 @@
 #include "src/cc/util.h"
 
 namespace {
-// 15 integer values are keys to creating the conv2d operator. We use std::array
-// instead of a vanilla array as it implements the compare operator needed for
-// std::map.
-typedef std::array<int, 15> operator_cache_key;
+// These integer values are keys to creating the conv2d operator. We use
+// std::array instead of a vanilla array as it implements the compare operator
+// needed for std::map.
+typedef std::array<int, 16> operator_cache_key;
 
 // The operator cache maps the cache key to the xnn_operator_t instantiated for
 // this set of arguments to the xnn_operator.
@@ -64,11 +64,13 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Conv2D(int x_id, int batch_size, int input_height, int input_width,
-            int filter_id, int filter_height, int filter_width, int pad_top,
-            int pad_right, int pad_bottom, int pad_left, int dilation_height,
-            int dilation_width, int stride_height, int stride_width,
-            int input_channels, int output_channels, int out_id) {
+void Conv2D(const int x_id, const int batch_size, const int input_height,
+            const int input_width, const int filter_id, const int filter_height,
+            const int filter_width, int pad_top, int pad_right, int pad_bottom,
+            int pad_left, const int is_same_pad, const int dilation_height,
+            const int dilation_width, const int stride_height,
+            const int stride_width, const int input_channels,
+            const int output_channels, const int out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& filter_info = backend::get_tensor_info(filter_id);
   auto& out_info = backend::get_tensor_info(out_id);
@@ -79,14 +81,19 @@ void Conv2D(int x_id, int batch_size, int input_height, int input_width,
 
   xnn_operator_t conv2d_op = nullptr;
 
-  const int flags = 0;
+  int flags = 0;
+  if (is_same_pad) {
+    pad_top = 0, pad_right = 0, pad_bottom = 0, pad_left = 0;
+    flags = XNN_FLAG_TENSORFLOW_SAME_PADDING;
+  }
+
   const int groups = 1;
 
   operator_cache_key cache_key = {
-      pad_top,         pad_right,      pad_bottom,    pad_left,
-      filter_height,   filter_width,   stride_height, stride_width,
-      dilation_height, dilation_width, groups,        input_channels,
-      output_channels, filter_id,      flags};
+      pad_top,        pad_right,       pad_bottom,     pad_left,
+      is_same_pad,    filter_height,   filter_width,   stride_height,
+      stride_width,   dilation_height, dilation_width, groups,
+      input_channels, output_channels, filter_id,      flags};
 
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {

@@ -27,7 +27,7 @@ interface Conv2DInputs extends NamedTensorInfoMap {
 let wasmConv2d: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
     filterId: number, filterHeight: number, filterWidth: number, padTop: number,
-    padRight: number, padBottom: number, padLeft: number,
+    padRight: number, padBottom: number, padLeft: number, isSamePad: number,
     dilationHeight: number, dilationWidth: number, strideHeight: number,
     strideWidth: number, inputChannels: number, outputChannels: number,
     outId: number) => void;
@@ -79,6 +79,7 @@ function conv2d(args: {
   const strideWidth = convInfo.strideWidth;
   const inputChannels = convInfo.inChannels;
   const outputChannels = convInfo.outChannels;
+  const isSamePad = convInfo.padInfo.type === 'SAME' ? 1 : 0;
 
   if (convInfo.dataFormat !== 'channelsLast') {
     throw new Error(
@@ -90,9 +91,9 @@ function conv2d(args: {
   const outId = backend.dataIdMap.get(out.dataId).id;
   wasmConv2d(
       xId, x.shape[0], x.shape[1], x.shape[2], filterId, filterHeight,
-      filterWidth, padTop, padRight, padBottom, padLeft, dilationHeight,
-      dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels,
-      outId);
+      filterWidth, padTop, padRight, padBottom, padLeft, isSamePad,
+      dilationHeight, dilationWidth, strideHeight, strideWidth, inputChannels,
+      outputChannels, outId);
   return out;
 }
 

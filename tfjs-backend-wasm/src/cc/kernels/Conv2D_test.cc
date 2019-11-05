@@ -22,17 +22,17 @@ TEST(CONV2D, xnn_operator_lifetime) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  int x0_id = 0;
-  int x1_id = 1;
+  const int x0_id = 0;
+  const int x1_id = 1;
   const int size = 8;
   float x_values[size] = {1, 2, 3, 4, 5, 6, 7, 8};
 
-  int weights0_id = 2;
-  int weights1_id = 3;
+  const int weights0_id = 2;
+  const int weights1_id = 3;
   const int weights_size = 8;
   float weights_values[weights_size] = {1, 2, 3, 4, 5, 6, 7, 8};
 
-  int out_id = 4;
+  const int out_id = 4;
   const int out_size = 12;
   float out_values[out_size] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -46,71 +46,91 @@ TEST(CONV2D, xnn_operator_lifetime) {
   ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
 
   // One xnn_operator should be created for the first call to conv2d.
-  int batch_size = 1;
-  int input_height = 4;
-  int input_width = 2;
-  int filter_height = 4;
-  int filter_width = 2;
-  int pad_top0 = 1;
-  int pad_right = 0;
-  int pad_bottom0 = 0;
-  int pad_left = 0;
-  int dilation_height = 1;
-  int dilation_width = 1;
-  int stride_height = 1;
-  int stride_width = 1;
-  int input_channels = 1;
-  int output_channels = 1;
+  const int batch_size = 1;
+  const int input_height = 4;
+  const int input_width = 2;
+  const int filter_height = 4;
+  const int filter_width = 2;
+  const int pad_top0 = 1;
+  const int pad_right = 0;
+  const int pad_bottom0 = 0;
+  const int pad_left = 0;
+  const int is_same_pad0 = 0;
+  const int dilation_height = 1;
+  const int dilation_width = 1;
+  const int stride_height = 1;
+  const int stride_width = 1;
+  const int input_channels = 1;
+  const int output_channels = 1;
   tfjs::wasm::Conv2D(x0_id, batch_size, input_height, input_width, weights0_id,
                      filter_height, filter_width, pad_top0, pad_right,
-                     pad_bottom0, pad_left, dilation_height, dilation_width,
-                     stride_height, stride_width, input_channels,
-                     output_channels, out_id);
+                     pad_bottom0, pad_left, is_same_pad0, dilation_height,
+                     dilation_width, stride_height, stride_width,
+                     input_channels, output_channels, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   // No new xnn_operators should be created for the second call to conv2d with
   // the same arguments.
   tfjs::wasm::Conv2D(x0_id, batch_size, input_height, input_width, weights0_id,
                      filter_height, filter_width, pad_top0, pad_right,
-                     pad_bottom0, pad_left, dilation_height, dilation_width,
-                     stride_height, stride_width, input_channels,
-                     output_channels, out_id);
+                     pad_bottom0, pad_left, is_same_pad0, dilation_height,
+                     dilation_width, stride_height, stride_width,
+                     input_channels, output_channels, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   // No new xnn_operators should be created for the second call to conv2d with
   // the same arguments but different input.
   tfjs::wasm::Conv2D(x1_id, batch_size, input_height, input_width, weights0_id,
                      filter_height, filter_width, pad_top0, pad_right,
-                     pad_bottom0, pad_left, dilation_height, dilation_width,
-                     stride_height, stride_width, input_channels,
-                     output_channels, out_id);
+                     pad_bottom0, pad_left, is_same_pad0, dilation_height,
+                     dilation_width, stride_height, stride_width,
+                     input_channels, output_channels, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   // One new xnn_operator should be created for the next call to conv2d with the
   // same weights but different arguments.
-  int pad_top1 = 0;
-  int pad_bottom1 = 1;
+  const int pad_top1 = 0;
+  const int pad_bottom1 = 1;
   tfjs::wasm::Conv2D(x0_id, batch_size, input_height, input_width, weights0_id,
                      filter_height, filter_width, pad_top1, pad_right,
-                     pad_bottom1, pad_left, dilation_height, dilation_width,
-                     stride_height, stride_width, input_channels,
-                     output_channels, out_id);
+                     pad_bottom1, pad_left, is_same_pad0, dilation_height,
+                     dilation_width, stride_height, stride_width,
+                     input_channels, output_channels, out_id);
   ASSERT_EQ(2, tfjs::backend::xnn_operator_count);
 
   // One more xnn operator should be created for the next call to conv2d with
   // new weights and same input.
   tfjs::wasm::Conv2D(x0_id, batch_size, input_height, input_width, weights1_id,
                      filter_height, filter_width, pad_top0, pad_right,
-                     pad_bottom0, pad_left, dilation_height, dilation_width,
-                     stride_height, stride_width, input_channels,
-                     output_channels, out_id);
+                     pad_bottom0, pad_left, is_same_pad0, dilation_height,
+                     dilation_width, stride_height, stride_width,
+                     input_channels, output_channels, out_id);
   ASSERT_EQ(3, tfjs::backend::xnn_operator_count);
+
+  // One more xnn operator should be created for the next call to conv2d with
+  // 'SAME' padding.
+  const int is_same_pad1 = 1;
+  tfjs::wasm::Conv2D(x0_id, batch_size, input_height, input_width, weights1_id,
+                     filter_height, filter_width, pad_top0, pad_right,
+                     pad_bottom0, pad_left, is_same_pad1, dilation_height,
+                     dilation_width, stride_height, stride_width,
+                     input_channels, output_channels, out_id);
+  ASSERT_EQ(4, tfjs::backend::xnn_operator_count);
+
+  // No new XNN operators should be created for the next call to conv2d with
+  // 'SAME' padding and different input and raw padding values.
+  tfjs::wasm::Conv2D(x1_id, batch_size, input_height, input_width, weights1_id,
+                     filter_height, filter_width, pad_top1, pad_right,
+                     pad_bottom1, pad_left, is_same_pad1, dilation_height,
+                     dilation_width, stride_height, stride_width,
+                     input_channels, output_channels, out_id);
+  ASSERT_EQ(4, tfjs::backend::xnn_operator_count);
 
   // Disposing the first weights should remove 2 operators.
   tfjs::wasm::dispose_data(weights0_id);
-  ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
+  ASSERT_EQ(2, tfjs::backend::xnn_operator_count);
 
-  // Disposing the second weights should remove the last operator.
+  // Disposing the second weights should remove the last 2 operator.
   tfjs::wasm::dispose_data(weights1_id);
   ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
 

@@ -19,11 +19,13 @@ namespace tfjs {
 
 namespace wasm {
 extern "C" {
-void Conv2D(int x_id, int batch_size, int input_height, int input_width,
-            int filter_id, int filter_height, int filter_width, int pad_top,
-            int pad_right, int pad_bottom, int pad_left, int dilation_height,
-            int dilation_width, int stride_height, int stride_width,
-            int input_channels, int output_channels, int out_id);
+void Conv2D(const int x_id, const int batch_size, const int input_height,
+            const int input_width, const int filter_id, const int filter_height,
+            const int filter_width, int pad_top, int pad_right, int pad_bottom,
+            int pad_left, const int is_same_pad, const int dilation_height,
+            const int dilation_width, const int stride_height,
+            const int stride_width, const int input_channels,
+            const int output_channels, const int out_id);
 }
 
 }  // namespace wasm
