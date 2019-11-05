@@ -112,13 +112,14 @@ void Conv2D(int x_id, int batch_size, int input_height, int input_width,
 
     auto cache_keys_idx = filter_operator_cache_key_map.find(filter_id);
     if (cache_keys_idx == filter_operator_cache_key_map.end()) {
-      std::vector<operator_cache_key> cache_keys = {cache_key};
-      filter_operator_cache_key_map.insert({filter_id, cache_keys});
+      std::vector<operator_cache_key> cache_keys = {std::move(cache_key)};
+      // We do a move here to avoid a copy.
+      filter_operator_cache_key_map.insert({filter_id, std::move(cache_keys)});
       backend::register_disposal_callback(filter_id, *delete_xnn_operators);
 
     } else {
       auto& cache_keys = filter_operator_cache_key_map.at(filter_id);
-      cache_keys.push_back(cache_key);
+      cache_keys.emplace_back(cache_key);
     }
 
     tfjs::backend::xnn_operator_count++;
