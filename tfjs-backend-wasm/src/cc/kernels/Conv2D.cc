@@ -53,6 +53,7 @@ void delete_xnn_operators(int filter_id) {
     tfjs::backend::xnn_operator_count--;
     operator_cache.erase(operator_cache_key);
   }
+  filter_operator_cache_key_map.erase(filter_id);
 }
 }  // namespace
 
