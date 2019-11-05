@@ -16,7 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, Tensor5D, tidy, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 // tslint:disable-next-line: no-imports-from-dist
@@ -28,26 +28,25 @@ import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 // tslint:disable-next-line: no-imports-from-dist
 import { StringTensor } from '@tensorflow/tfjs-core/dist/tensor';
 
-type TensorInfo = {
+type TensorData = {
   shape: number[],
   dtype: number,
   values: backend_util.BackendValues,
   id: number
 };
 
-interface DataId {}
-
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
   isUsingGpuDevice: boolean;
-  private tensorMap = new WeakMap<DataId, TensorInfo>();
+  private tensorMap: tfc.DataStorage<TensorData>;
 
   constructor(binding: TFJSBinding, packageName: string) {
     super();
     this.binding = binding;
     this.isGPUPackage = packageName === '@tensorflow/tfjs-node-gpu';
     this.isUsingGpuDevice = this.binding.isUsingGpuDevice();
+    this.tensorMap = new tfc.DataStorage<TensorData>(this, tfc.engine());
   }
 
   private getDTypeInteger(dtype: DataType): number {
@@ -112,15 +111,21 @@ export class NodeJSKernelBackend extends KernelBackend {
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
     }
-    return Tensor.make(metadata.shape, {dataId: newId}, dtype);
+    return tfc.engine().makeTensorFromDataId(newId, metadata.shape, dtype);
   }
 
   // Prepares Tensor instances for Op execution.
-  private getInputTensorIds(tensors: Array<Tensor|Int64Scalar>): number[] {
+  private getInputTensorIds(tensors: Array<TensorInfo|Int64Scalar>): number[] {
     const ids: number[] = [];
     for (let i = 0; i < tensors.length; i++) {
-      if (tensors[i] instanceof Tensor) {
-        const info = this.tensorMap.get((tensors[i] as Tensor).dataId);
+      if (tensors[i] instanceof Int64Scalar) {
+        // Then `tensors[i]` is a Int64Scalar, which we currently represent
+        // using an `Int32Array`.
+        const value = (tensors[i] as Int64Scalar).valueArray;
+        const id = this.binding.createTensor([], this.binding.TF_INT64, value);
+        ids.push(id);
+      } else {
+        const info = this.tensorMap.get((tensors[i] as TensorInfo).dataId);
         // TODO - what about ID in this case? Handle in write()??
         if (info.values != null) {
           // Values were delayed to write into the TensorHandle. Do that before
@@ -128,17 +133,8 @@ export class NodeJSKernelBackend extends KernelBackend {
           info.id =
               this.binding.createTensor(info.shape, info.dtype, info.values);
           info.values = null;
-          this.tensorMap.set((tensors[i] as Tensor).dataId, info);
         }
         ids.push(info.id);
-      } else if (tensors[i] instanceof Int64Scalar) {
-        // Then `tensors[i]` is a Int64Scalar, which we currently represent
-        // using an `Int32Array`.
-        const value = (tensors[i] as Int64Scalar).valueArray;
-        const id = this.binding.createTensor([], this.binding.TF_INT64, value);
-        ids.push(id);
-      } else {
-        throw new Error(`Invalid Tensor type: ${typeof tensors[i]}`);
       }
     }
     return ids;
@@ -171,7 +167,7 @@ export class NodeJSKernelBackend extends KernelBackend {
    * @param inputs The list of input Tensors for the Op.
    * @return A resulting Tensor from Op execution.
    */
-  executeSingleOutput(name: string, opAttrs: TFEOpAttr[], inputs: Tensor[]):
+  executeSingleOutput(name: string, opAttrs: TFEOpAttr[], inputs: TensorInfo[]):
       Tensor {
     const outputMetadata = this.binding.executeOp(
         name, opAttrs, this.getInputTensorIds(inputs), 1);
@@ -194,13 +190,17 @@ export class NodeJSKernelBackend extends KernelBackend {
     return outputMetadata.map(m => this.createOutputTensor(m));
   }
 
+  numDataIds(): number {
+    return this.tensorMap.numDataIds();
+  }
+
   dispose(): void {}
 
-  async read(dataId: object): Promise<backend_util.BackendValues> {
+  async read(dataId: DataId): Promise<backend_util.BackendValues> {
     return this.readSync(dataId);
   }
 
-  readSync(dataId: object): backend_util.BackendValues {
+  readSync(dataId: DataId): backend_util.BackendValues {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
@@ -212,7 +212,11 @@ export class NodeJSKernelBackend extends KernelBackend {
     }
   }
 
-  disposeData(dataId: object): void {
+  disposeData(dataId: DataId): void {
+    // No-op if already disposed.
+    if (!this.tensorMap.has(dataId)) {
+      return;
+    }
     const id = this.tensorMap.get(dataId).id;
     if (id != null && id >= 0) {
       this.binding.deleteTensor(id);
@@ -220,21 +224,18 @@ export class NodeJSKernelBackend extends KernelBackend {
     this.tensorMap.delete(dataId);
   }
 
-  write(dataId: object, values: backend_util.BackendValues): void {
-    if (!this.tensorMap.has(dataId)) {
-      throw new Error(`Tensor ${dataId} was not registered!`);
-    }
-
-    const info = this.tensorMap.get(dataId);
-    info.values = values;
-    this.tensorMap.set(dataId, info);
+  move(
+      dataId: DataId, values: backend_util.BackendValues, shape: number[],
+      dtype: DataType): void {
+    this.tensorMap.set(
+        dataId, {shape, dtype: getTFDType(dtype), values, id: -1});
   }
 
-  register(dataId: object, shape: number[], dtype: DataType): void {
-    if (!this.tensorMap.has(dataId)) {
-      this.tensorMap.set(
-          dataId, {shape, dtype: getTFDType(dtype), values: null, id: -1});
-    }
+  write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
+      DataId {
+    const dataId = {};
+    this.move(dataId, values, shape, dtype);
+    return dataId;
   }
 
   fill<R extends Rank>(
@@ -1905,6 +1906,14 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     return this.executeEncodeImageOp(
         'EncodePng', opAttrs, imageData, imageShape);
+  }
+
+  deleteSavedModel(id: number): void {
+    this.binding.deleteSavedModel(id);
+  }
+
+  loadSavedModelMetaGraph(path: string, tags: string): number {
+    return this.binding.loadSavedModel(path, tags);
   }
 
   // ------------------------------------------------------------

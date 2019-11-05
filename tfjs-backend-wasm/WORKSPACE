@@ -8,8 +8,9 @@ emsdk_configure(name = "emsdk")
 
 git_repository(
   name = "xnnpack",
-  commit = "0c57d2a08ca62c3020a2acdb4acfe825ed2b2657",
+  commit = "f6839e1355032ee6c78833e1693876d4cdb01436",
   remote = "https://github.com/google/XNNPACK.git",
+  shallow_since = "1571339795 -0700",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
@@ -79,4 +80,16 @@ http_archive(
         "https://github.com/Maratyszcza/psimd/archive/4f2c53947184b56f58607b9e777416bb63ebbde1.tar.gz",
     ],
     build_file = "@xnnpack//third_party:psimd.BUILD",
+)
+
+git_repository(
+  name = "com_google_googletest",
+  commit = "cd17fa2abda2a2e4111cdabd62a87aea16835014",
+  remote = "https://github.com/google/googletest.git"
+)
+
+http_archive(
+    name = "rules_cc",
+    strip_prefix = "rules_cc-master",
+    urls = ["https://github.com/bazelbuild/rules_cc/archive/master.zip"],
 )

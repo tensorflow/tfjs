@@ -122,7 +122,7 @@ function reverse_<T extends Tensor>(
     return {$x: () => dy.reverse(axes)};
   };
   const res =
-      ENGINE.runKernel(backend => backend.reverse($x, axes), {$x}, grad);
+      ENGINE.runKernelFunc(backend => backend.reverse($x, axes), {$x}, grad);
   return res.reshapeAs($x);
 }
 

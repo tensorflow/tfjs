@@ -16,64 +16,157 @@
  */
 
 // tslint:disable-next-line:no-imports-from-dist
-import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 setTestEnvs([{name: 'test-wasm', backendName: 'wasm', isDataSync: true}]);
 
-const env = jasmine.getEnv();
-
-/** Tests that have these substrings in their name will be included. */
-const INCLUDE_LIST: string[] = ['add ', 'matmul '];
-/** Tests that have these substrings in their name will be excluded. */
-const EXCLUDE_LIST: string[] = [
-  'complex',                    // Complex numbers not yet implemented.
-  'gradient',                   // Gradient is missing.
-  'broadcast inner dim',        // Broadcast inner dim not yet supported.
-  'broadcast each with 1 dim',  // Same as above.
-  'broadcasting same rank Tensors different shape',  // Same as above.
-  'upcasts when dtypes dont match',  // Uses the 'complex' dtype.
-
-  'valueAndGradients',       // Gradients not defined yet
-  'fused matmul',            // Fused kernels aren't ready yet
-  'zero in its shape',       // Zero in shapes aren't supported yet
-  'matmul followed by mul',  // mul not supported yet
+/**
+ * Tests that have these substrings in their name will be included unless one
+ * of the strings in excludes appears in the name.
+ */
+const TEST_FILTERS: TestFilter[] = [
+  {
+    include: 'add ',
+    excludes: [
+      'gradient',                   // Gradient is missing.
+      'broadcast inner dim',        // Broadcast inner dim not yet supported.
+      'broadcast each with 1 dim',  // Same as above.
+      'broadcasting same rank Tensors different shape',  // Same as above.
+      'upcasts when dtypes dont match',  // Uses the 'complex' dtype.
+      'complex',                         // Complex numbers not supported yet
+    ]
+  },
+  {
+    include: 'matmul ',
+    excludes: [
+      'valueAndGradients',       // Gradients not defined yet
+      'gradient',                // Gradients not defined yet
+      'fused matmul',            // Fused kernels aren't ready yet
+      'zero in its shape',       // Zero in shapes aren't supported yet
+      'matmul followed by mul',  // mul not supported yet
+      'upcasts',                 // Upcasting not supported yet.
+    ]
+  },
+  {
+    include: 'prelu ',
+    excludes: [
+      'gradient',   // Gradient is missing.
+      'derivative'  // Missing gradient.
+    ]
+  },
+  {
+    include: ' cast ',
+    excludes: [
+      'complex',  // Complex numbers not yet implemented.
+      'shallow slice an input that was cast'  // Slice is not implemented.
+    ]
+  },
+  {
+    include: 'sigmoid ',
+    excludes: [
+      'sigmoidCrossEntropy',  // Not yet implemented.
+      'gradient'              // Not yet implemented.
+    ]
+  },
+  {
+    include: 'abs ',
+    excludes: [
+      'gradient',  // Not yet implemented.
+      'complex'    // Complex numbers not supported yet.
+    ]
+  },
+  {
+    include: 'sub ',
+    excludes: [
+      'complex',              // Complex numbers not yet implemented.
+      'gradient',             // Not yet implemented.
+      'upcasts',              // Upcasting not supported yet.
+      'broadcast inner dim',  //  Broadcasting along inner dims not supported.
+      'broadcast each with 1 dim',  //  Broadcasting along inner dims not
+                                    //  supported.
+      'broadcasting same rank Tensors different shape',  //  Broadcasting along
+                                                         //  inner dims not
+                                                         //  supported.
+    ]
+  },
+  {
+    include: 'mul ',
+    excludes: [
+      'complex',   // Complex numbers not yet supported.
+      'gradient',  // Gradient not defined yet.
+      'broadcasting same rank Tensors different shape',  // Broadcasting along
+                                                         // inner dims not
+                                                         // supported yet.
+      'broadcast 5D + 2D',  // Broadcasting along inner dims not supported yet.
+      'broadcast 6D + 2D'   // Broadcasting along inner dims not supported yet.
+    ]
+  },
+  {
+    include: 'div ',
+    excludes: [
+      'gradient',          // Gradient not defined yet.
+      'integer division',  // FloorDiv not yet implemented.
+      'upcasts',           // Cast not supported yet.
+      'broadcasting same rank Tensors different shape',  // Broadcasting along
+                                                         // inner dims not
+                                                         // supported yet.
+    ]
+  },
+  {
+    include: 'batchNorm',
+    excludes: [
+      'gradient'  // Gradient is missing.
+    ]
+  },
+  {include: 'slice '},
+  {include: 'square '},
+  {
+    startsWith: 'min ',
+    excludes: [
+      'derivative: 1D tensor with max or min value',  // Clip not yet
+                                                      // implemented.
+      '2D, axis=0',  // Permuted axes requires transpose, which is not yet
+                     // implemented.
+      'index corresponds to start of a non-initial window',  // argMin not yet
+                                                             // implemented.
+    ]
+  },
+  {
+    startsWith: 'max ',
+    excludes: [
+      'derivative: 1D tensor with max or min value',  // Clip not yet
+                                                      // implemented.
+      '2D, axis=0'  // Permuted axes requires transpose, which is not yet
+                    // implemented.
+    ]
+  },
+  {
+    include: 'concat',
+    excludes: [
+      'complex',  // Complex numbers not supported yet
+      'gradient'  // Split is not yet implemented
+    ]
+  },
+  {
+    include: 'transpose',
+    excludes: ['oneHot']  // oneHot not yet implemented.
+  },
 ];
 
-/**
- * Filter method that returns boolean, if a given test should run or be
- * ignored based on its name. The exclude list has priority over the include
- * list. Thus, if a test matches both the exclude and the include list, it
- * will be exluded.
- */
-env.specFilter = spec => {
-  const name = spec.getFullName();
-  // Return false (skip the test) if the test is in the exclude list.
-  for (let i = 0; i < EXCLUDE_LIST.length; ++i) {
-    if (name.indexOf(EXCLUDE_LIST[i]) > -1) {
-      return false;
-    }
-  }
-
+const customInclude = (testName: string) => {
   // Include all regular describe() tests.
-  if (name.indexOf('test-wasm') < 0) {
+  if (testName.indexOf('test-wasm') < 0) {
     return true;
   }
 
   // Include all of the wasm specific tests.
-  if (name.startsWith('wasm')) {
+  if (testName.startsWith('wasm')) {
     return true;
   }
 
-  // Include a describeWithFlags() test from tfjs-core only if the test is in
-  // the include list.
-  for (let i = 0; i < INCLUDE_LIST.length; ++i) {
-    if (name.indexOf(INCLUDE_LIST[i]) > -1) {
-      return true;
-    }
-  }
-  // Otherwise ignore the test.
   return false;
 };
+setupTestFilters(TEST_FILTERS, customInclude);
 
 // Import and run all the tests from core.
 // tslint:disable-next-line:no-imports-from-dist

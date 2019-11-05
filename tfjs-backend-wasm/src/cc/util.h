@@ -12,10 +12,9 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef TFJS_WASM_UTIL_H_
-#define TFJS_WASM_UTIL_H_
+#ifndef UTIL_H_
+#define UTIL_H_
 
-#include <string.h>
 #include <cstdarg>
 #include <cstdio>
 #include <vector>
@@ -68,7 +67,7 @@ inline void warn(const char* format, ...) {
 template <class T>
 inline void log_vector(const std::vector<T>& v) {
   print_log("[", 0);
-  for (auto const& value : v) {
+  for (const auto& value : v) {
     print_log("%d,", value);
   }
   print_log("]\n", 0);
@@ -83,6 +82,65 @@ inline int size_from_shape(const std::vector<int>& shape) {
   return prod;
 }
 
+// Returns the indices of an n-dim tensor given the flat offset and its strides.
+inline const std::vector<int> offset_to_loc(int index,
+                                            const std::vector<int>& strides) {
+  int rank = strides.size() + 1;
+  std::vector<int> loc(rank);
+  if (rank == 0) {
+    return loc;
+  } else if (rank == 1) {
+    loc[0] = index;
+    return loc;
+  }
+  for (int i = 0; i < rank - 1; ++i) {
+    int stride = strides[i];
+    loc[i] = index / stride;
+    index -= loc[i] * stride;
+  }
+  loc[rank - 1] = index;
+  return loc;
+}
+
+// Returns the flat offset of an n-dim tensor given the indices and strides.
+inline int loc_to_offset(const std::vector<int>& loc,
+                         const std::vector<int>& strides) {
+  size_t rank = loc.size();
+  if (rank == 0) {
+    return 0;
+  } else if (rank == 1) {
+    return loc[0];
+  }
+  size_t index = loc[loc.size() - 1];
+  for (size_t i = 0; i < loc.size() - 1; ++i) {
+    index += strides[i] * loc[i];
+  }
+  return index;
+}
+
+// Returns the flat offset of a 2D tensor given the indices and the stride.
+inline int offset(int i1, int i2, int s1) { return i1 * s1 + i2; }
+
+// Returns the flat offset of a 3D tensor given the indices and the strides.
+inline int offset(int i1, int i2, int i3, int s1, int s2) {
+  return i1 * s1 + i2 * s2 + i3;
+}
+
+// Returns the flat offset of a 4D tensor given the indices and the strides.
+inline int offset(int i1, int i2, int i3, int i4, int s1, int s2, int s3) {
+  return i1 * s1 + i2 * s2 + i3 * s3 + i4;
+}
+
+// Returns the flat offset of a 5D tensor given the indices and the strides.
+inline int offset(int i1, int i2, int i3, int i4, int i5, int s1, int s2,
+                  int s3, int s4) {
+  return i1 * s1 + i2 * s2 + i3 * s3 + i4 * s4 + i5;
+}
+
+// Returns the strides of a tensor given its shape. Note that the strides
+// are of length R-1 where R is the rank of the tensor.
+const std::vector<int> compute_strides(const std::vector<int> shape);
+
 }  // namespace util
 }  // namespace tfjs
-#endif  // TFJS_WASM_UTIL_H_
+#endif  // UTIL_H_

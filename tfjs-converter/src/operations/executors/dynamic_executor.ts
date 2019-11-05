@@ -44,7 +44,8 @@ export async function executeOp(
     }
     case 'Where': {
       return [await tfc.whereAsync(
-          getParamValue('condition', node, tensorMap, context) as tfc.Tensor)];
+          (getParamValue('condition', node, tensorMap, context) as tfc.Tensor)
+              .asType('bool'))];
     }
     case 'ListDiff': {
       return tfc.setdiff1dAsync(

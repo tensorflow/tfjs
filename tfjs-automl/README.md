@@ -3,11 +3,6 @@
 This packages provides a set of APIs to load and run models produced by AutoML
 Edge.
 
-## Status
-
-__Early development__. This is an unpublished experimental package.
-
-
 ## Installation
 
 If you are using npm/yarn
@@ -54,7 +49,9 @@ const model = await automl.loadImageClassification(modelUrl);
 ```
 
 ### Making a prediction
-The input `img` can be
+
+The AutoML library takes care of any image preprocessing
+(normalize, resize, crop). The input `img` you provide can be
 [`HTMLImageElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement),
 [`HTMLCanvasElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement),
 [`HTMLVideoElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement),
@@ -127,7 +124,9 @@ const model = await automl.loadObjectDetection(modelUrl);
 ```
 
 ### Making a prediction
-The input `img` can be
+
+The AutoML library takes care of any image preprocessing
+(normalize, resize, crop). The input `img` you provide can be
 [`HTMLImageElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement),
 [`HTMLCanvasElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement),
 [`HTMLVideoElement`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement),

@@ -191,8 +191,10 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
     return derTensors.map(t => () => t) as {};
   };
   const inputs = $tensors as {};
-  return ENGINE.runKernel(
-      backend => backend.concat($tensors, axis) as T, inputs, der);
+  const attr = {axis};
+  return ENGINE.runKernelFunc(
+      backend => backend.concat($tensors, axis) as T, inputs, der, 'Concat',
+      attr);
 }
 
 /**
@@ -247,7 +249,7 @@ function split_<T extends Tensor>(
     splitSizes = numOrSizeSplits;
   }
   const der = (dy: T[]) => ({$x: () => concat(dy, axis)});
-  return ENGINE.runKernel(
+  return ENGINE.runKernelFunc(
       backend => backend.split($x, splitSizes, axis), {$x}, der);
 }
 

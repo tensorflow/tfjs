@@ -16,9 +16,4 @@
 
 set -euo pipefail
 
-export EM_EXCLUSIVE_CACHE_ACCESS=1
-export EMCC_SKIP_SANITY_CHECK=1
-export EMCC_WASM_BACKEND=0
-
-# Run emscripten to compile and link
-python external/emsdk/emsdk/fastcomp/emscripten/emcc.py "$@"
+external/emsdk/emsdk/upstream/emscripten/emcc "$@"
