@@ -1,4 +1,4 @@
-import { Tensor3D, tensor3d, util } from '@tensorflow/tfjs-core';
+import {Tensor3D, tensor3d, util} from '@tensorflow/tfjs-core';
 import * as jpeg from 'jpeg-js';
 
 enum ImageType {
@@ -12,29 +12,25 @@ enum ImageType {
  * Decode a JPEG-encoded image to a 3D Tensor of dtype `int32`.
  *
  * @param contents The JPEG-encoded image in an Uint8Array.
- * @param channels An optional int. Defaults to 0. Accepted values are
+ * @param channels An optional int. Defaults to 3. Accepted values are
  *     0: use the number of channels in the JPG-encoded image.
  *     1: output a grayscale image.
  *     3: output an RGB image.
- * @param ratio An optional int. Defaults to 1. Downscaling ratio. It is used
- *     when image is type Jpeg. Not yet supported.
  * @returns A 3D Tensor of dtype `int32` with shape [height, width, 1/3].
  */
-export function decodeJpeg(contents: Uint8Array, channels: 0 | 1 | 3 = 3): Tensor3D {
+export function decodeJpeg(
+    contents: Uint8Array, channels: 0|1|3 = 3): Tensor3D {
   util.assert(
-    getImageType(contents) === ImageType.JPEG,
-    () => 'The passed contents are not a valid JPEG image'
-  );
+      getImageType(contents) === ImageType.JPEG,
+      () => 'The passed contents are not a valid JPEG image');
   util.assert(
-    channels === 3,
-    () => 'Only 3 channels is supported at this time'
-  );
+      channels === 3, () => 'Only 3 channels is supported at this time');
   const TO_UINT8ARRAY = true;
-  const { width, height, data } = jpeg.decode(contents, TO_UINT8ARRAY);
+  const {width, height, data} = jpeg.decode(contents, TO_UINT8ARRAY);
   // Drop the alpha channel info because jpeg.decode always returns a typedArray
   // with 255
   const buffer = new Uint8Array(width * height * 3);
-  let offset = 0; // offset into original data
+  let offset = 0;  // offset into original data
   for (let i = 0; i < buffer.length; i += 3) {
     buffer[i] = data[offset];
     buffer[i + 1] = data[offset + 1];
@@ -57,18 +53,18 @@ function getImageType(content: Uint8Array): string {
   // tslint:disable-next-line:max-line-length
   // https://github.com/tensorflow/tensorflow/blob/4213d5c1bd921f8d5b7b2dc4bbf1eea78d0b5258/tensorflow/core/kernels/decode_image_op.cc#L44
   if (content.length > 3 && content[0] === 255 && content[1] === 216 &&
-    content[2] === 255) {
+      content[2] === 255) {
     // JPEG byte chunk starts with `ff d8 ff`
     return ImageType.JPEG;
   } else if (
-    content.length > 4 && content[0] === 71 && content[1] === 73 &&
-    content[2] === 70 && content[3] === 56) {
+      content.length > 4 && content[0] === 71 && content[1] === 73 &&
+      content[2] === 70 && content[3] === 56) {
     // GIF byte chunk starts with `47 49 46 38`
     return ImageType.GIF;
   } else if (
-    content.length > 8 && content[0] === 137 && content[1] === 80 &&
-    content[2] === 78 && content[3] === 71 && content[4] === 13 &&
-    content[5] === 10 && content[6] === 26 && content[7] === 10) {
+      content.length > 8 && content[0] === 137 && content[1] === 80 &&
+      content[2] === 78 && content[3] === 71 && content[4] === 13 &&
+      content[5] === 10 && content[6] === 26 && content[7] === 10) {
     // PNG byte chunk starts with `\211 P N G \r \n \032 \n (89 50 4E 47 0D 0A
     // 1A 0A)`
     return ImageType.PNG;
@@ -77,6 +73,6 @@ function getImageType(content: Uint8Array): string {
     return ImageType.BMP;
   } else {
     throw new Error(
-      'Expected image (JPEG, PNG, or GIF), but got unsupported image type');
+        'Expected image (JPEG, PNG, or GIF), but got unsupported image type');
   }
 }
