@@ -27,6 +27,12 @@ interface CropAndResizeAttrs extends NamedAttrMap {
   axes: number[];
 }
 
+// Must match enum in CropAndResize.cc
+enum InterpolationMethod {
+  bilinear = 0,
+  nearest = 1
+}
+
 let wasmCropAndResize: (
     imagesId: number, boxesId: number, boxIndId: number, numBoxes: number,
     imageStrides: Uint8Array, imageStridesLength: number,
@@ -90,7 +96,8 @@ function cropAndResize(args: {
       imagesId, boxesId, boxIndId, numBoxes, imageStridesBytes,
       imageStrides.length, outputStridesBytes, outputStrides.length,
       imagesShapeBytes, images.shape.length, cropSizeBytes,
-      (cropSize as [number, number]).length, method === 'bilinear' ? 0 : 1,
+      (cropSize as [number, number]).length,
+      InterpolationMethod[method as keyof typeof InterpolationMethod],
       extrapolationValue as number, outId);
   return out;
 }

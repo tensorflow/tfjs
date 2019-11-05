@@ -20,6 +20,12 @@
 #include <stdio.h>
 #include "src/cc/backend.h"
 
+// Must match enum in CropAndResize.ts
+enum InterpolationMethod {
+  bilinear = 0,
+  nearest = 1,
+};
+
 namespace tfjs {
 namespace wasm {
 // We use C-style API to interface with Javascript.
@@ -32,8 +38,9 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
                    int* images_strides_ptr, int images_strides_length,
                    int* output_strides_ptr, int output_strides_length,
                    int* images_shape_ptr, int images_shape_length,
-                   int* crop_size_ptr, int crop_size_length, int method,
-                   float extrapolation_value, int out_id) {
+                   int* crop_size_ptr, int crop_size_length,
+                   InterpolationMethod method, float extrapolation_value,
+                   int out_id) {
   const std::vector<int>& images_strides = std::vector<int>(
       images_strides_ptr, images_strides_ptr + images_strides_length);
   const std::vector<int>& output_strides = std::vector<int>(
@@ -74,12 +81,17 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   // printf("%d \n", images_strides[0]);
   // printf("%d \n", images_strides[1]);
 
+  float* boxes_buf_offset = boxes_buf;
+
   for (int b = 0; b < num_boxes; ++b) {
-    int start_ind = b * 4;
-    float y1 = boxes_buf[start_ind++];
-    float x1 = boxes_buf[start_ind++];
-    float y2 = boxes_buf[start_ind++];
-    float x2 = boxes_buf[start_ind++];
+    float y1 = *boxes_buf_offset;
+    boxes_buf_offset++;
+    float x1 = *boxes_buf_offset;
+    boxes_buf_offset++;
+    float y2 = *boxes_buf_offset;
+    boxes_buf_offset++;
+    float x2 = *boxes_buf_offset;
+    boxes_buf_offset++;
 
     int b_ind = box_ind_buf[b];
     if (b_ind >= batch) {
@@ -106,7 +118,7 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
         continue;
       }
 
-      if (method == 0) {  // 'bilinear'
+      if (method == InterpolationMethod::bilinear) {
         float top_ind = floor(y_ind);
         float bottom_ind = ceil(y_ind);
         float y_lerp = y_ind - top_ind;
