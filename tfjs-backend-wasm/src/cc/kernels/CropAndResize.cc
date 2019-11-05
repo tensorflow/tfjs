@@ -72,11 +72,11 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   // printf("%d \n", images_strides[1]);
 
   for (int b = 0; b < num_boxes; ++b) {
-    int startInd = b * 4;
-    float y1 = boxes_buf[startInd];
-    float x1 = boxes_buf[startInd + 1];
-    float y2 = boxes_buf[startInd + 2];
-    float x2 = boxes_buf[startInd + 3];
+    int start_ind = b * 4;
+    float y1 = boxes_buf[start_ind++];
+    float x1 = boxes_buf[start_ind++];
+    float y2 = boxes_buf[start_ind++];
+    float x2 = boxes_buf[start_ind++];
 
     int b_ind = box_ind_buf[b];
     if (b_ind >= batch) {
@@ -85,18 +85,16 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
 
     float height_scale =
         (crop_height > 1)
-            ? float(y2 - y1) * float(image_height - 1) / float(crop_height - 1)
+            ? (y2 - y1) * float(image_height - 1) / float(crop_height - 1)
             : 0;
-    float width_scale =
-        (crop_width > 1)
-            ? float(x2 - x1) * float(image_width - 1) / float(crop_width - 1)
-            : 0;
+    float width_scale = (crop_width > 1) ? (x2 - x1) * float(image_width - 1) /
+                                               float(crop_width - 1)
+                                         : 0;
 
     for (int y = 0; y < crop_height; ++y) {
-      float y_ind =
-          (crop_height > 1)
-              ? float(y1) * float(image_height - 1) + float(y) * height_scale
-              : 0.5 * float(y1 + y2) * float(image_height - 1);
+      float y_ind = (crop_height > 1)
+                        ? y1 * float(image_height - 1) + y * height_scale
+                        : 0.5 * (y1 + y2) * float(image_height - 1);
 
       if (y_ind < 0 || y_ind > image_height - 1) {
         for (int x = 0; x < crop_width; ++x) {
@@ -115,10 +113,9 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
         float y_lerp = y_ind - top_ind;
 
         for (int x = 0; x < crop_width; ++x) {
-          float x_ind =
-              (crop_width > 1)
-                  ? float(x1) * float(image_width - 1) + float(x) * width_scale
-                  : 0.5 * float(x1 + x2) * float(image_width - 1);
+          float x_ind = (crop_width > 1)
+                            ? x1 * float(image_width - 1) + x * width_scale
+                            : 0.5 * (x1 + x2) * float(image_width - 1);
 
           if (x_ind < 0 || x_ind > image_width - 1) {
             for (int c = 0; c < num_channels; ++c) {
