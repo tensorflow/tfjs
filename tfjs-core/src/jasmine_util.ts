@@ -14,11 +14,20 @@
  * limitations under the License.
  * =============================================================================
  */
+
+// We use the pattern below (as opposed to require('jasmine') to create the
+// jasmine module in order to avoid loading node specific modules which may
+// be ignored in browser environments but cannot be ignored in react-native
+// due to the pre-bundling of dependencies that it must do.
+// tslint:disable-next-line:no-require-imports
+const jasmineRequire = require('jasmine-core/lib/jasmine-core/jasmine.js');
+const jasmine = jasmineRequire.core(jasmineRequire);
 import {KernelBackend} from './backends/backend';
 import {ENGINE} from './engine';
 import {env, Environment, Flags} from './environment';
 
 Error.stackTraceLimit = Infinity;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
 export type Constraints = {
   flags?: Flags,

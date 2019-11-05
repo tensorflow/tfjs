@@ -16,8 +16,6 @@
 #include <emscripten.h>
 #endif
 
-#include <math.h>
-
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
