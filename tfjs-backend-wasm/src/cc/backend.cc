@@ -40,6 +40,10 @@ const TensorInfo &get_tensor_info(const int tensor_id) {
   return data.at(tensor_id);
 }
 
+TensorInfo &get_tensor_info_out(const int tensor_id) {
+  return data.at(tensor_id);
+}
+
 int xnn_operator_count = 0;
 
 // Registers a disposal callback for a tensor id with a given callback function.
