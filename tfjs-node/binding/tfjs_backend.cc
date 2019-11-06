@@ -765,6 +765,8 @@ int32_t TFJSBackend::InsertHandle(TFE_TensorHandle *tfe_handle) {
 
 int32_t TFJSBackend::InsertSavedModel(TF_Session *tf_session,
                                       TF_Graph *tf_graph) {
+  // Both TF_Session and TF_Graph are required when executing SavedModel.
+  // TF_Graph is used to find input/output operation from string name.
   return tf_savedmodel_map_
       .insert(std::make_pair(next_savedmodel_id_++,
                              std::make_pair(tf_session, tf_graph)))
