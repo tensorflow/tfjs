@@ -212,9 +212,8 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
 
           if (x_ind < 0 || x_ind > image_width - 1) {
             for (int c = 0; c < num_channels; ++c) {
-              int ind = c + x * output_strides[2] + y * output_strides[1] +
-                        b * output_strides[0];
-              out_buf[ind] = extrapolation_value;
+              *out_buf_ptr = extrapolation_value;
+              out_buf_ptr++;
             }
             continue;
           }
@@ -224,9 +223,8 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
           for (int c = 0; c < num_channels; ++c) {
             int in_ind = c + closest_x * images_strides[2] +
                          closest_y * images_strides[1] + box_ind;
-            int out_ind = c + x * output_strides[2] + y * output_strides[1] +
-                          b * output_strides[0];
-            out_buf[out_ind] = images_buf[in_ind];
+            *out_buf_ptr = images_buf[in_ind];
+            out_buf_ptr++;
           }
         }
       }
