@@ -228,9 +228,9 @@ def fold_batch_norms(input_graph_def):
     new_node = node_def_pb2.NodeDef()
     new_node.CopyFrom(node)
     retained_input = []
-    for input in new_node.input:
-      if not input.startswith('^') or input[1:] not in nodes_to_skip:
-        retained_input.append(input)
+    for input_node in new_node.input:
+      if not input_node.startswith('^') or input_node[1:] not in nodes_to_skip:
+        retained_input.append(input_node)
     new_node.input[:] = retained_input
 
     result_graph_def.node.extend([new_node])
