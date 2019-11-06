@@ -104,7 +104,7 @@
 
           // Render to page
           const container = document.getElementById('table-cont');
-          tfvis.render.barchart(container, { headers, values });
+          tfvis.render.table(container, { headers, values });
         }
       </script>
 
@@ -233,39 +233,6 @@
         const numRenders = 30;
         const numVals = 20;
         renderBarchartMultipleTimes(numRenders, numVals);
-      </script>
-
-      <hr>
-
-      <h3>render.table(data, container)</h3>
-
-      <div id='table-cont'></div>
-
-      <script class='show-script'>
-        {
-          const headers = [
-            'Col1',
-            'Col 2',
-            '<em>Column 3</em>',
-          ];
-
-          const values = [
-            [1, 2, 3],
-            ['4', '5', '6'],
-            ['<strong>7</strong>', true, false],
-          ];
-
-
-          // Render to visor
-          const surface = tfvis.visor().surface({ name: 'Table', tab: 'Charts' });
-          tfvis.render.table(surface, { headers, values });
-
-          // Render to page
-          const container = document.getElementById('table-cont');
-          tfvis.render.table(container, { headers, values }, {
-            fontSize: 14
-          });
-        }
       </script>
 
       <hr>

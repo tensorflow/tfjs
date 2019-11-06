@@ -35,8 +35,8 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Mul(int a_id, int b_id, DType dtype, int out_id) {
-  const auto a_info = backend::get_tensor_info(a_id);
+void Mul(const int a_id, const int b_id, const DType dtype, const int out_id) {
+  auto& a_info = backend::get_tensor_info(a_id);
   switch (dtype) {
     case DType::float32:
       binary_f32(a_id, b_id, out_id, mul<float>);
