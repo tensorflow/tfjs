@@ -179,10 +179,13 @@ def _create_saved_model_with_prelu(save_dir):
   Args:
     save_dir: directory name of where the saved model will be stored.
   """
+  # set the bias and alpha intitialize to make them constant and ensure grappler
+  # be able to fuse the op.
   layers = [
       tf.keras.layers.Conv2D(
-          16, [3, 3], padding='same', use_bias=True),
-      tf.keras.layers.PReLU()
+          16, [3, 3], padding='same', use_bias=True,
+          bias_initializer=tf.initializers.constant(0.25)),
+      tf.keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25))
   ]
   model = tf.keras.Sequential(layers)
   result = model.predict(tf.ones((1, 24, 24, 3)))

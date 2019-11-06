@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "src/cc/backend.h"
-#include "src/cc/util.h"
 
 namespace {
 // Maps a unique tensor id to info about that tensor. The map owns all of its
@@ -37,12 +36,15 @@ std::unordered_map<int, std::vector<tfjs::backend::DisposeFunction>>
 
 namespace tfjs {
 namespace backend {
-const TensorInfo &get_tensor_info(int tensor_id) { return data.at(tensor_id); }
+const TensorInfo &get_tensor_info(const int tensor_id) {
+  return data.at(tensor_id);
+}
 
 int xnn_operator_count = 0;
 
 // Registers a disposal callback for a tensor id with a given callback function.
-void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
+void register_disposal_callback(const int tensor_id,
+                                const DisposeFunction dispose_fn) {
   if (disposal_callbacks.count(tensor_id) == 0) {
     // We move callbacks to avoid a copy.
     disposal_callbacks.insert({tensor_id, {dispose_fn}});
@@ -52,7 +54,7 @@ void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
   }
 }
 
-int num_tensors() { return data.size(); }
+const int num_tensors() { return data.size(); }
 
 }  // namespace backend
 
@@ -68,7 +70,7 @@ void init() { xnn_initialize(); }
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void register_tensor(int tensor_id, int size, void *memory_offset) {
+void register_tensor(const int tensor_id, const int size, void *memory_offset) {
   TensorInfo info = {memory_offset, size};
   // We move info to avoid a copy.
   data.emplace(tensor_id, std::move(info));
@@ -77,7 +79,7 @@ void register_tensor(int tensor_id, int size, void *memory_offset) {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void dispose_data(int tensor_id) {
+void dispose_data(const int tensor_id) {
   data.erase(tensor_id);
 
   // Call all disposal callbacks for this tensor id.

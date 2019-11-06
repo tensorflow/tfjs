@@ -26,23 +26,23 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Min(int x_id, int reduce_size, int out_id) {
+void Min(const int x_id, const int reduce_size, const int out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info(out_id);
 
-  float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
-  int x_size = x_info.size;
+  const float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
+  const int x_size = x_info.size;
 
   float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
-  int out_size = out_info.size;
+  const int out_size = out_info.size;
 
-  float* x_offset = x_buf;
+  float* x_offset = const_cast<float*>(x_buf);
 
   for (int i = 0; i < out_size; ++i) {
-    int offset = i * reduce_size;
+    const int offset = i * reduce_size;
     float min = x_buf[offset];
 
-    float* x_iter_end = x_offset + reduce_size;
+    const float* x_iter_end = x_offset + reduce_size;
 
     for (float* x = x_offset; x < x_iter_end; ++x) {
       float value = *x;

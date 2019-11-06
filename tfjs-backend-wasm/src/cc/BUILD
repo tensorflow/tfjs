@@ -62,6 +62,7 @@ tfjs_cc_library(
     ":Add",
     ":BatchMatMul",
     ":CropAndResize",
+    ":Conv2D",
     ":Div",
     ":Mul",
     ":Prelu",
@@ -132,6 +133,16 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "CropAndResize",
   srcs = ["kernels/CropAndResize.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Conv2D",
+  srcs = ["kernels/Conv2D.cc"],
+  hdrs = ["kernels/Conv2D.h"],
   deps = [
     ":backend",
     ":util",
@@ -230,5 +241,13 @@ tfjs_unit_test(
   srcs = ["kernels/Prelu_test.cc"],
   deps = [
     ":Prelu",
+  ]
+)
+
+tfjs_unit_test(
+  name = "Conv2D_test",
+  srcs = ["kernels/Conv2D_test.cc"],
+  deps = [
+    ":Conv2D",
   ]
 )

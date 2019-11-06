@@ -22,7 +22,8 @@ const kernelRegistry: Map<string, KernelConfig> = new Map();
 export type DataId = object;
 
 /** These are extra non-tensor/primitive params passed to kernel functions. */
-export type Attribute = number|number[]|boolean|boolean[]|string|string[];
+export type Attribute =
+    number|number[]|boolean|boolean[]|string|string[]|NamedAttrMap;
 
 /** Specifies the code to run when executing a kernel. */
 export type KernelFunc = (params: {
