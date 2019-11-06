@@ -31,7 +31,7 @@ struct TensorInfo {
   // Pointer to the bytes where the data is allocated.
   void *memory_offset;
   // Total number of elements.
-  int size;
+  const int size;
 
   // Delete the copy constructor to avoid copying.
   TensorInfo(const TensorInfo &) = delete;
@@ -53,7 +53,7 @@ typedef void (*DisposeFunction)(int);
 void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn);
 
 // Returns the number of tensors registered and owned by the backend.
-int num_tensors();
+const int num_tensors();
 
 // The number of instantiated XNN operators.
 extern int xnn_operator_count;
@@ -66,10 +66,10 @@ void init();
 
 // Registers a tensor with a tensor ID, size, and the pointer to where the
 // tensor data lives.
-void register_tensor(int tensor_id, int size, void *memory_offset);
+void register_tensor(const int tensor_id, const int size, void *memory_offset);
 
 // Disposes the internal bookeeping for a given tensor ID.
-void dispose_data(int tensor_id);
+void dispose_data(const int tensor_id);
 
 // Disposes all internal state.
 void dispose();
