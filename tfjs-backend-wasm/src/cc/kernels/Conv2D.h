@@ -12,25 +12,23 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef UNARY_H_
-#define UNARY_H_
+#ifndef KERNELS_CONV2D_H_
+#define KERNELS_CONV2D_H_
 
 namespace tfjs {
+
 namespace wasm {
-
-inline void unary(const int x_id, const int out_id, float operation(float)) {
-  auto& a_info = backend::get_tensor_info(x_id);
-  auto& out_info = backend::get_tensor_info_out(out_id);
-
-  const float* a_buf = a_info.f32();
-  float* out_buf = out_info.f32_write();
-
-  for (int i = 0; i < a_info.size; ++i) {
-    out_buf[i] = operation(a_buf[i]);
-  }
+extern "C" {
+void Conv2D(const int x_id, const int batch_size, const int input_height,
+            const int input_width, const int filter_id, const int filter_height,
+            const int filter_width, int pad_top, int pad_right, int pad_bottom,
+            int pad_left, const int is_same_pad, const int dilation_height,
+            const int dilation_width, const int stride_height,
+            const int stride_width, const int input_channels,
+            const int output_channels, const int out_id);
 }
 
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // UNARY_H_
+#endif  // KERNELS_CONV2D_H_
