@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "src/cc/backend.h"
-#include "src/cc/transpose.h"
+#include "src/cc/transpose_impl.h"
 #include "src/cc/util.h"
 
 namespace tfjs {

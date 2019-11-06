@@ -12,13 +12,11 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
-
 #include <vector>
 
-namespace tfjs {
-namespace wasm {
+#include "src/cc/util.h"
+
+namespace {
 
 // Optimized transpose 2D that uses direct pointer arithmetic instead of bracket
 // indexing.
@@ -251,6 +249,10 @@ void transpose_impl(const T* x_data, const std::vector<int>& x_shape,
     slow_transpose_nd(x_data, x_shape, perm, out_data);
   }
 }
+}  // namespace
+
+namespace tfjs {
+namespace wasm {
 
 template <typename T>
 void transpose(const T* x_data, const std::vector<int>& x_shape,
