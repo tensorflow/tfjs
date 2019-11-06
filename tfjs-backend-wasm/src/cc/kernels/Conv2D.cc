@@ -116,7 +116,7 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
         input_channels /* group_input_channels */,
         output_channels /* group_output_channels */,
         input_channels /* input_pixel_stride */,
-        output_channels /* output_pixel_stride */, filter_buf, bias_buf,
+        output_channels /* output_pixel_stride */, transposed_filter, bias_buf,
         output_min, output_max, flags, &conv2d_op);
     if (status != xnn_status_success) {
       util::warn(
