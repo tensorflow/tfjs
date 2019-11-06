@@ -16,9 +16,11 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
 import {InternalOpExecutor, Node} from '../types';
+
 import {getParamValue} from './utils';
 
 export let executeOp: InternalOpExecutor = (node: Node,

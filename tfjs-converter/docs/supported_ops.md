@@ -6,8 +6,8 @@
 |---|---|
 |Add|add|
 |AddN|addN|
-|BiasAdd|add
-|Div|div||
+|BiasAdd|add|
+|Div|div|
 |DivNoNan|divNoNan|
 |FloorDiv|floorDiv|
 |FloorMod|mod|
