@@ -64,6 +64,8 @@ namespace backend {
 // Returns the tensor information object associated with a given tensor_id
 // bucket.
 const TensorInfo &get_tensor_info(int tensor_id);
+// Same as above, but gives write access to the tensor info.
+TensorInfo &get_tensor_info_out(int tensor_id);
 
 // Registers a function callback to be called when a tensor with a given ID is
 // disposed.

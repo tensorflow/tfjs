@@ -283,7 +283,7 @@ void Transpose(const int x_id, const int* x_shape_ptr, const int x_shape_length,
   auto x_shape = std::vector<int>(x_shape_ptr, x_shape_ptr + x_shape_length);
   auto perm = std::vector<int>(perm_ptr, perm_ptr + perm_length);
   auto& x_info = backend::get_tensor_info(x_id);
-  auto& out_info = const_cast<TensorInfo&>(backend::get_tensor_info(out_id));
+  auto& out_info = backend::get_tensor_info_out(out_id);
 
   switch (dtype) {
     case DType::float32:

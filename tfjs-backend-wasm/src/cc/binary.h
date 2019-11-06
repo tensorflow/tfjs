@@ -35,7 +35,7 @@ inline void binary_f32(const int a_id, const int b_id, const int out_id,
                        float operation(float, float)) {
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = const_cast<TensorInfo&>(backend::get_tensor_info(out_id));
+  auto& out_info = backend::get_tensor_info_out(out_id);
   binary_impl<float>(a_info.f32(), a_info.size, b_info.f32(), b_info.size,
                      out_info.f32_write(), operation);
 }
@@ -44,7 +44,7 @@ inline void binary_i32(const int a_id, const int b_id, const int out_id,
                        int operation(int, int)) {
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = const_cast<TensorInfo&>(backend::get_tensor_info(out_id));
+  auto& out_info = backend::get_tensor_info_out(out_id);
   binary_impl<int>(a_info.i32(), a_info.size, b_info.i32(), b_info.size,
                    out_info.i32_write(), operation);
 }
@@ -53,7 +53,7 @@ inline void binary_bool(const int a_id, const int b_id, const int out_id,
                         bool operation(bool, bool)) {
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = const_cast<TensorInfo&>(backend::get_tensor_info(out_id));
+  auto& out_info = backend::get_tensor_info_out(out_id);
   binary_impl<bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
                     out_info.b_write(), operation);
 }

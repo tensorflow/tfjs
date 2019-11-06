@@ -20,7 +20,7 @@ namespace wasm {
 
 inline void unary(const int x_id, const int out_id, float operation(float)) {
   auto& a_info = backend::get_tensor_info(x_id);
-  auto& out_info = const_cast<TensorInfo&>(backend::get_tensor_info(out_id));
+  auto& out_info = backend::get_tensor_info_out(out_id);
 
   const float* a_buf = a_info.f32();
   float* out_buf = out_info.f32_write();
