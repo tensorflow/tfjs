@@ -64,6 +64,7 @@ tfjs_cc_library(
     ":Conv2D",
     ":Div",
     ":Mul",
+    ":Pad",
     ":Prelu",
     ":FusedBatchNorm",
     ":Max",
@@ -155,6 +156,15 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Pad",
+  srcs = ["kernels/Pad.cc"],
+  deps = [
+    ":backend",
     ":util",
   ],
 )
