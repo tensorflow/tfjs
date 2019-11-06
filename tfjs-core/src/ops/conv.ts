@@ -195,17 +195,18 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
 
     return {
       x: () => conv2dDerInput(x4D.shape, dy, $filter, strides, pad, dataFormat),
-      $filter: () =>
+      filter: () =>
           conv2dDerFilter(x4D, dy, $filter.shape, strides, pad, dataFormat)
     };
   };
 
+  const inputsToSave = [$filter, x4D];
   const res = ENGINE.runKernelFunc((backend, save) => {
     const res = backend.conv2d(x4D, $filter, convInfo);
     save([$filter, x4D]);
 
     return res;
-  }, {x: x4D, $filter}, grad);
+  }, {x: x4D, filter: $filter}, grad, 'Conv2D', convInfo, inputsToSave);
 
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
