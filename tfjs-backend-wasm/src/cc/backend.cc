@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "src/cc/backend.h"
-#include "src/cc/util.h"
 
 namespace {
 // Maps a unique tensor id to info about that tensor. The map owns all of its
@@ -38,6 +37,10 @@ std::unordered_map<int, std::vector<tfjs::backend::DisposeFunction>>
 namespace tfjs {
 namespace backend {
 const TensorInfo &get_tensor_info(const int tensor_id) {
+  return data.at(tensor_id);
+}
+
+TensorInfo &get_tensor_info_out(const int tensor_id) {
   return data.at(tensor_id);
 }
 
