@@ -33,6 +33,24 @@ struct TensorInfo {
   // Total number of elements.
   const int size;
 
+  const float *f32() const {
+    return reinterpret_cast<const float *>(memory_offset);
+  }
+
+  float *f32_write() { return reinterpret_cast<float *>(memory_offset); }
+
+  const int *i32() const {
+    return reinterpret_cast<const int *>(memory_offset);
+  }
+
+  int *i32_write() { return reinterpret_cast<int *>(memory_offset); }
+
+  const bool *b() const {
+    return reinterpret_cast<const bool *>(memory_offset);
+  }
+
+  bool *b_write() { return reinterpret_cast<bool *>(memory_offset); }
+
   // Delete the copy constructor to avoid copying.
   TensorInfo(const TensorInfo &) = delete;
   void operator=(const TensorInfo &) = delete;
@@ -46,6 +64,8 @@ namespace backend {
 // Returns the tensor information object associated with a given tensor_id
 // bucket.
 const TensorInfo &get_tensor_info(int tensor_id);
+// Same as above, but gives write access to the tensor info.
+TensorInfo &get_tensor_info_out(int tensor_id);
 
 // Registers a function callback to be called when a tensor with a given ID is
 // disposed.
