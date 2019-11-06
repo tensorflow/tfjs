@@ -190,7 +190,7 @@ const imageTensor = decodeJpeg(rawImageData);
 Parameters:
 
 1. contents: raw bytes of the image as a Uint8Array
-1. channels: An optional int that indicates whether the image should be loaded as RBG, Grayscale, or autoselected based on the contents of the image. Defaults to 3. Currently only 3 channel RGB images are supported.
+1. channels: An optional int that indicates whether the image should be loaded as RBG (channels = 3), Grayscale (channels = 1), or autoselected based on the contents of the image (channels = 0). Defaults to 3. Currently only 3 channel RGB images are supported.
 
 ### fetch(path: string, init?: RequestInit, options?: tf.io.RequestDetails)
 
