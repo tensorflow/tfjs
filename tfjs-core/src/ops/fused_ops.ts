@@ -414,7 +414,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
         {
           x: () =>
               conv2dDerInput(x4D.shape, dyActivation, $filter, strides, pad),
-          $filter: () =>
+          filter: () =>
               conv2dDerFilter(x4D, dyActivation, $filter.shape, strides, pad)
         },
         biasGradient);
@@ -422,29 +422,34 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
 
   const inputs: {
     x: Tensor,
-    $filter: Tensor,
-    $bias?: Tensor,
-    $preluActivationWeights?: Tensor
-  } = {x: x4D, $filter};
+    filter: Tensor,
+    bias?: Tensor,
+    preluActivationWeights?: Tensor
+  } = {x: x4D, filter: $filter};
   if (bias != null) {
-    inputs.$bias = $bias;
+    inputs.bias = $bias;
   }
   if (preluActivationWeights != null) {
-    inputs.$preluActivationWeights = $preluActivationWeights;
+    inputs.preluActivationWeights = $preluActivationWeights;
   }
 
-  const res = ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.fusedConv2d({
-      input: x4D,
-      filter: $filter,
-      convInfo,
-      bias: $bias,
-      activation,
-      preluActivationWeights: $preluActivationWeights
-    });
-    save([$filter, x4D, res]);
-    return res;
-  }, inputs, grad);
+  const inputsToSave = [$filter, x4D];
+  const outputsToSave = [true];  // Save the only output.
+  const res = ENGINE.runKernelFunc(
+      (backend, save) => {
+        const res = backend.fusedConv2d({
+          input: x4D,
+          filter: $filter,
+          convInfo,
+          bias: $bias,
+          activation,
+          preluActivationWeights: $preluActivationWeights
+        });
+        save([$filter, x4D, res]);
+        return res;
+      },
+      inputs, grad, 'FusedConv2D', {convInfo, activation}, inputsToSave,
+      outputsToSave);
 
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
