@@ -56,6 +56,14 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "transpose",
+  srcs = ["transpose.h"],
+  deps = [
+    ":backend",
+  ],
+)
+
+tfjs_cc_library(
   name = "all_kernels",
   deps = [
     ":Abs",
@@ -203,6 +211,7 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":util",
+    ":transpose",
   ],
 )
 
