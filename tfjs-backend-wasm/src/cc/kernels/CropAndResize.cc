@@ -103,34 +103,25 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
         (crop_width > 1) ? (x2 - x1) * image_width_m1 / (crop_width - 1) : 0;
 
     bool crop_size_eq_box_size = crop_width == 1 + (x2 - x1) * image_width_m1;
-    bool requires_interpolation_y = false;
-    bool requires_interpolation_x = false;
+    bool requires_interpolation = false;
     if (method == InterpolationMethod::bilinear) {
-      float y_lerp_factor;
-      if (crop_height > 1) {
-        y_lerp_factor = y1 * image_height + height_scale;
-      } else {
-        y_lerp_factor = 0.5 * (y1 + y2) * image_height_m1;
-      }
+      float y_lerp_factor = crop_height > 1 ? y1 * image_height + height_scale
+                                            : 0.5 * (y1 + y2) * image_height_m1;
+
       if (y_lerp_factor - long(y_lerp_factor) != 0.0) {
-        requires_interpolation_y = true;
-      }
-
-      float x_lerp_factor;
-      if (crop_width > 1) {
-        x_lerp_factor = x1 * image_width_m1 + width_scale;
+        requires_interpolation = true;
       } else {
-        x_lerp_factor = 0.5 * (x1 + x2) * image_width_m1;
-      }
+        float x_lerp_factor = crop_width > 1 ? x1 * image_width_m1 + width_scale
+                                             : 0.5 * (x1 + x2) * image_width_m1;
 
-      if (x_lerp_factor - long(x_lerp_factor) != 0.0) {
-        requires_interpolation_x = true;
+        if (x_lerp_factor - long(x_lerp_factor) != 0.0) {
+          requires_interpolation = true;
+        }
       }
     }
 
     bool should_memcpy = x2 > x1 && x1 >= 0 && crop_size_eq_box_size == true &&
-                         requires_interpolation_x == false &&
-                         requires_interpolation_y == false;
+                         requires_interpolation == false;
 
     for (int y = 0; y < crop_height; ++y) {
       float y_ind = (crop_height > 1) ? y1 * image_height_m1 + y * height_scale
