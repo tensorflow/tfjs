@@ -78,9 +78,6 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   int image_height_m1 = image_height - 1;
   int image_width_m1 = image_width - 1;
 
-  // printf("%d \n", images_strides[0]);
-  // printf("%d \n", images_strides[1]);
-
   float* boxes_offset = boxes_buf;
   int* box_ind_offset = box_ind_buf;
 
