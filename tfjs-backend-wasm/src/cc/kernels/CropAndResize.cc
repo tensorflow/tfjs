@@ -136,20 +136,20 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
       float y_ind = (crop_height > 1) ? y1 * image_height_m1 + y * height_scale
                                       : 0.5 * (y1 + y2) * image_height_m1;
 
+      float* out_buf_ptr =
+          out_buf + y * output_strides[1] + b * output_strides[0];
+
       if (y_ind < 0 || y_ind > image_height - 1) {
         for (int x = 0; x < crop_width; ++x) {
           for (int c = 0; c < num_channels; ++c) {
-            int ind = c + x * output_strides[2] + y * output_strides[1] +
-                      b * output_strides[0];
-            out_buf[ind] = extrapolation_value;
+            *out_buf_ptr = extrapolation_value;
+            out_buf_ptr++;
           }
         }
         continue;
       }
 
       if (should_memcpy) {
-        float* out_buf_ptr = out_buf;
-        out_buf_ptr += (y * output_strides[1] + b * output_strides[0]);
         float* images_buf_ptr = images_buf;
         images_buf_ptr += (int(y_ind) * images_strides[1] + box_ind);
 
