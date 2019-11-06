@@ -20,7 +20,6 @@ import * as fs from 'fs';
 import {promisify} from 'util';
 import {ensureTensorflowBackend, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
 
-
 const readFile = promisify(fs.readFile);
 
 // tslint:disable-next-line:no-require-imports

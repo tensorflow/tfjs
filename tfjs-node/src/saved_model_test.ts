@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
+import {test_util} from '@tensorflow/tfjs-core';
 import * as tf from './index';
 import {nodeBackend} from './nodejs_kernel_backend';
 import {getEnumKeyFromValue, getInputAndOutputNodeNameFromMetaGraphInfo, readSavedModelProto} from './saved_model';
@@ -320,7 +320,7 @@ describe('SavedModel', () => {
     expect(output.shape).toEqual(input.shape);
     expect(output.dtype).toBe(input.dtype);
     expect(output.dtype).toBe('float32');
-    expectArraysClose(await output.data(), await input.mul(3).data());
+    test_util.expectArraysClose(await output.data(), await input.mul(3).data());
     signature1.dispose();
   });
 
@@ -332,7 +332,8 @@ describe('SavedModel', () => {
     const output = signature1.predict(input) as tf.Tensor;
     expect(output.shape).toEqual(input.shape);
     expect(output.dtype).toBe(input.dtype);
-    expectArraysClose(await output.data(), await input.mul(2).toInt().data());
+    test_util.expectArraysClose(
+        await output.data(), await input.mul(2).toInt().data());
     signature1.dispose();
   });
 
@@ -350,7 +351,8 @@ describe('SavedModel', () => {
     const output1 = signature1.predict(input1) as tf.Tensor;
     expect(output1.shape).toEqual(input1.shape);
     expect(output1.dtype).toBe(input1.dtype);
-    expectArraysClose(await output1.data(), await input1.mul(3).data());
+    test_util.expectArraysClose(
+        await output1.data(), await input1.mul(3).data());
 
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     const signature2 = await tf.node.loadSavedModel(
@@ -361,7 +363,8 @@ describe('SavedModel', () => {
     const output2 = signature2.predict(input2) as tf.Tensor;
     expect(output2.shape).toEqual(input2.shape);
     expect(output2.dtype).toBe(input2.dtype);
-    expectArraysClose(await output2.data(), await input1.mul(2).data());
+    test_util.expectArraysClose(
+        await output2.data(), await input1.mul(2).data());
 
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     signature1.dispose();
