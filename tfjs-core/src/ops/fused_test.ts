@@ -557,6 +557,7 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     const w =
         tf.tensor4d([-1, 1, -2, 0.5], [fSize, fSize, inputDepth, outputDepth]);
 
+
     const result = tf.conv2d(x, w, stride, pad);
     expect(result.shape).toEqual([2, 2, 2, 2]);
     result.print();

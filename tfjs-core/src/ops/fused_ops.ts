@@ -454,6 +454,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
+
   return res as T;
 }
 
