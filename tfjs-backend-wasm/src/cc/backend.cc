@@ -60,6 +60,11 @@ void register_disposal_callback(const int tensor_id,
 
 const int num_tensors() { return data.size(); }
 
+void delete_xnn_operator(xnn_operator_t op) {
+  xnn_operator_count--;
+  xnn_delete_operator(op);
+}
+
 }  // namespace backend
 
 namespace wasm {

@@ -15,6 +15,7 @@
 #ifndef BACKEND_H_
 #define BACKEND_H_
 
+#include <xnnpack.h>
 #include <vector>
 
 // This enum should align with the DType defined in kernels/types.ts.
@@ -74,6 +75,8 @@ void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn);
 
 // Returns the number of tensors registered and owned by the backend.
 const int num_tensors();
+
+void delete_xnn_operator(xnn_operator_t op);
 
 // The number of instantiated XNN operators.
 extern int xnn_operator_count;

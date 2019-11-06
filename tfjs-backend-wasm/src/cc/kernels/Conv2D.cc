@@ -38,7 +38,10 @@ typedef std::array<int, 15> OperatorCacheKey;
 
 // The operator cache maps the cache key to the xnn_operator_t instantiated for
 // this set of arguments to the xnn_operator.
-std::map<OperatorCacheKey, xnn_operator_t> operator_cache;
+std::map<OperatorCacheKey,
+         std::unique_ptr<xnn_operator,
+                         decltype(&tfjs::backend::delete_xnn_operator)>>
+    operator_cache;
 
 // Maps a filter id to a list of operator cache keys that this filter belongs
 // to.
@@ -51,7 +54,8 @@ void delete_xnn_operators(int filter_id) {
   for (auto& operator_cache_key : operator_cache_keys) {
     auto& conv2d_op = operator_cache[operator_cache_key];
     operator_cache.erase(operator_cache_key);
-    tfjs::backend::xnn_operator_count--;
+    // xnn_delete_operator(conv2d_op);
+    // tfjs::backend::xnn_operator_count--;
   }
   filter_operator_cache_key_map.erase(filter_id);
 }
@@ -116,8 +120,10 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
           "Got status %d. Use -c dbg to see XNN logs.",
           status);
     }
+    std::unique_ptr<xnn_operator, decltype(&tfjs::backend::delete_xnn_operator)>
+        auto_convolution_op(conv2d_op, tfjs::backend::delete_xnn_operator);
 
-    operator_cache.emplace(cache_key, conv2d_op);
+    operator_cache.emplace(cache_key, auto_convolution_op);
 
     auto cache_keys_idx = filter_operator_cache_key_map.find(filter_id);
     if (cache_keys_idx == filter_operator_cache_key_map.end()) {
@@ -132,7 +138,7 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
 
     tfjs::backend::xnn_operator_count++;
   } else {
-    conv2d_op = operator_cache_idx->second;
+    conv2d_op = operator_cache_idx->second.get();
   }
 
   xnn_status status = xnn_setup_convolution2d_nhwc_f32(
