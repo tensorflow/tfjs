@@ -476,7 +476,7 @@ function divNoNan_<T extends Tensor>(
   [$a, $b] = makeTypesMatch($a, $b);
 
   const divResult = div($a, $b);
-  const zeros = zerosLike($a);
+  const zeros = zerosLike(divResult);
   const bEqualsZero = $b.equal(zeros);
   return where(bEqualsZero, zeros, divResult) as T;
 }
