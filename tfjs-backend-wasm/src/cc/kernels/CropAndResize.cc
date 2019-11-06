@@ -105,6 +105,36 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
     float width_scale =
         (crop_width > 1) ? (x2 - x1) * image_width_m1 / (crop_width - 1) : 0;
 
+    bool crop_size_eq_box_size = crop_width == 1 + (x2 - x1) * image_width_m1;
+    bool requires_interpolation_y = false;
+    bool requires_interpolation_x = false;
+    if (method == InterpolationMethod::bilinear) {
+      float y_lerp_factor;
+      if (crop_height > 1) {
+        y_lerp_factor = y1 * image_height + height_scale;
+      } else {
+        y_lerp_factor = 0.5 * (y1 + y2) * image_height_m1;
+      }
+      if (y_lerp_factor - long(y_lerp_factor) != 0.0) {
+        requires_interpolation_y = true;
+      }
+
+      float x_lerp_factor;
+      if (crop_width > 1) {
+        x_lerp_factor = x1 * image_width_m1 + width_scale;
+      } else {
+        x_lerp_factor = 0.5 * (x1 + x2) * image_width_m1;
+      }
+
+      if (x_lerp_factor - long(x_lerp_factor) != 0.0) {
+        requires_interpolation_x = true;
+      }
+    }
+
+    bool should_memcpy = x2 > x1 && x1 >= 0 && crop_size_eq_box_size == true &&
+                         requires_interpolation_x == false &&
+                         requires_interpolation_y == false;
+
     for (int y = 0; y < crop_height; ++y) {
       float y_ind = (crop_height > 1) ? y1 * image_height_m1 + y * height_scale
                                       : 0.5 * (y1 + y2) * image_height_m1;
@@ -117,6 +147,16 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
             out_buf[ind] = extrapolation_value;
           }
         }
+        continue;
+      }
+
+      if (should_memcpy) {
+        float* out_buf_ptr = out_buf;
+        out_buf_ptr += (y * output_strides[1] + b * output_strides[0]);
+        float* images_buf_ptr = images_buf;
+        images_buf_ptr += (int(y_ind) * images_strides[1] + box_ind);
+
+        memcpy(out_buf_ptr, images_buf_ptr, sizeof(float) * crop_width);
         continue;
       }
 
@@ -166,10 +206,6 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
             float bottom = bottom_left + (bottom_right - bottom_left) * x_lerp;
             ind = c + x * output_strides[2] + y * output_strides[1] +
                   b * output_strides[0];
-
-            // printf("----------- \n");
-            // printf("%i \n", ind);
-            // printf("%f \n", top_ind);
 
             out_buf[ind] = top + ((bottom - top) * y_lerp);
           }
