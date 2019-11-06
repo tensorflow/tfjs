@@ -28,7 +28,7 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 void Max(const int x_id, const int reduce_size, const int out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
-  auto& out_info = const_cast<TensorInfo&>(backend::get_tensor_info(out_id));
+  auto& out_info = backend::get_tensor_info_out(out_id);
 
   const float* x_buf = x_info.f32();
   const int x_size = x_info.size;
@@ -36,7 +36,7 @@ void Max(const int x_id, const int reduce_size, const int out_id) {
   float* out_buf = out_info.f32_write();
   const int out_size = out_info.size;
 
-  float* x_offset = const_cast<float*>(x_buf);
+  const float* x_offset = x_buf;
 
   for (int i = 0; i < out_size; ++i) {
     const int offset = i * reduce_size;
@@ -44,7 +44,7 @@ void Max(const int x_id, const int reduce_size, const int out_id) {
 
     const float* x_iter_end = x_offset + reduce_size;
 
-    for (float* x = x_offset; x < x_iter_end; ++x) {
+    for (const float* x = x_offset; x < x_iter_end; ++x) {
       float value = *x;
       if (value > max) {
         max = value;

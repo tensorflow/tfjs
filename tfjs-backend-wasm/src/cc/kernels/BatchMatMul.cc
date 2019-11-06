@@ -37,7 +37,7 @@ void BatchMatMul(const int a_id, const int b_id, const int shared_dim,
                  const int out_id) {
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = const_cast<TensorInfo&>(backend::get_tensor_info(out_id));
+  auto& out_info = backend::get_tensor_info_out(out_id);
 
   const float* a_buf = a_info.f32();
   const float* b_buf = b_info.f32();

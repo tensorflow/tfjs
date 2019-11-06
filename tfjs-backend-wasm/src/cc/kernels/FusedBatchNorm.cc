@@ -34,7 +34,7 @@ void FusedBatchNorm(const int x_id, const int mean_id, const int variance_id,
   auto& x_info = backend::get_tensor_info(x_id);
   auto& mean_info = backend::get_tensor_info(mean_id);
   auto& variance_info = backend::get_tensor_info(variance_id);
-  auto& out_info = const_cast<TensorInfo&>(backend::get_tensor_info(out_id));
+  auto& out_info = backend::get_tensor_info_out(out_id);
 
   const float* x_buf = x_info.f32();
   const int x_size = x_info.size;
