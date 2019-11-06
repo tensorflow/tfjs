@@ -51,12 +51,11 @@ EMSCRIPTEN_KEEPALIVE
 void Prelu(const int x_id, const int weights_id, const int out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& weights_info = backend::get_tensor_info(weights_id);
-  auto& out_info = backend::get_tensor_info(out_id);
+  auto& out_info = const_cast<TensorInfo&>(backend::get_tensor_info(out_id));
 
-  const float* x_buf = reinterpret_cast<const float*>(x_info.memory_offset);
-  const float* weights_buf =
-      reinterpret_cast<float*>(weights_info.memory_offset);
-  float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
+  const float* x_buf = x_info.f32();
+  const float* weights_buf = weights_info.f32();
+  float* out_buf = out_info.f32_write();
 
   xnn_operator_t prelu_op = nullptr;
 

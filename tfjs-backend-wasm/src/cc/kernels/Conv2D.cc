@@ -74,11 +74,11 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
             const int output_channels, const int out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& filter_info = backend::get_tensor_info(filter_id);
-  auto& out_info = backend::get_tensor_info(out_id);
+  auto& out_info = const_cast<TensorInfo&>(backend::get_tensor_info(out_id));
 
-  const float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
-  const float* filter_buf = reinterpret_cast<float*>(filter_info.memory_offset);
-  float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
+  const float* x_buf = x_info.f32();
+  const float* filter_buf = filter_info.f32();
+  float* out_buf = out_info.f32_write();
 
   xnn_operator_t conv2d_op = nullptr;
 

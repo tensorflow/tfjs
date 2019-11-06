@@ -35,33 +35,27 @@ inline void binary_f32(const int a_id, const int b_id, const int out_id,
                        float operation(float, float)) {
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = backend::get_tensor_info(out_id);
-  binary_impl<float>(
-      reinterpret_cast<const float*>(a_info.memory_offset), a_info.size,
-      reinterpret_cast<const float*>(b_info.memory_offset), b_info.size,
-      reinterpret_cast<float*>(out_info.memory_offset), operation);
+  auto& out_info = const_cast<TensorInfo&>(backend::get_tensor_info(out_id));
+  binary_impl<float>(a_info.f32(), a_info.size, b_info.f32(), b_info.size,
+                     out_info.f32_write(), operation);
 }
 
 inline void binary_i32(const int a_id, const int b_id, const int out_id,
                        int operation(int, int)) {
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = backend::get_tensor_info(out_id);
-  binary_impl<int>(
-      reinterpret_cast<const int*>(a_info.memory_offset), a_info.size,
-      reinterpret_cast<const int*>(b_info.memory_offset), b_info.size,
-      reinterpret_cast<int*>(out_info.memory_offset), operation);
+  auto& out_info = const_cast<TensorInfo&>(backend::get_tensor_info(out_id));
+  binary_impl<int>(a_info.i32(), a_info.size, b_info.i32(), b_info.size,
+                   out_info.i32_write(), operation);
 }
 
 inline void binary_bool(const int a_id, const int b_id, const int out_id,
                         bool operation(bool, bool)) {
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = backend::get_tensor_info(out_id);
-  binary_impl<bool>(
-      reinterpret_cast<const bool*>(a_info.memory_offset), a_info.size,
-      reinterpret_cast<const bool*>(b_info.memory_offset), b_info.size,
-      reinterpret_cast<bool*>(out_info.memory_offset), operation);
+  auto& out_info = const_cast<TensorInfo&>(backend::get_tensor_info(out_id));
+  binary_impl<bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
+                    out_info.b_write(), operation);
 }
 
 }  // namespace wasm

@@ -33,6 +33,24 @@ struct TensorInfo {
   // Total number of elements.
   const int size;
 
+  const float *f32() const {
+    return reinterpret_cast<const float *>(memory_offset);
+  }
+
+  float *f32_write() { return reinterpret_cast<float *>(memory_offset); }
+
+  const int *i32() const {
+    return reinterpret_cast<const int *>(memory_offset);
+  }
+
+  int *i32_write() { return reinterpret_cast<int *>(memory_offset); }
+
+  const bool *b() const {
+    return reinterpret_cast<const bool *>(memory_offset);
+  }
+
+  bool *b_write() { return reinterpret_cast<bool *>(memory_offset); }
+
   // Delete the copy constructor to avoid copying.
   TensorInfo(const TensorInfo &) = delete;
   void operator=(const TensorInfo &) = delete;
