@@ -47,28 +47,4 @@ describeWithFlags('wasm', ALL_ENVS, () => {
     // This should fail in case of a memory leak.
     expect(memOffset1).toBe(memOffset2);
   });
-
-  it('1x1-bilinear', async () => {
-    const image: tf.Tensor4D = tf.tensor4d(
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
-        [2, 3, 3, 1]);
-    const boxes: tf.Tensor2D =
-        tf.tensor2d([0, 0, 0.5, 0.5, 0, 0, 0.5, 0.5], [2, 4]);
-    // const boxes: tf.Tensor2D =
-    //     tf.tensor2d([0, 0, 1, 1.5, 0, 0, 1.5, 1], [2, 4]);
-    const boxInd: tf.Tensor1D = tf.tensor1d([0, 1], 'int32');
-    const output =
-        tf.image.cropAndResize(image, boxes, boxInd, [2, 2], 'bilinear', 0);
-    // const output =
-    //     tf.image.cropAndResize(image, boxes, boxInd, cropSize, 'bilinear',
-    //     0);
-    console.log('HELLO');
-    console.log(
-        Array.from(output.dataSync()));  // [1, 1.75, 0, 2, 2.75, 0, 3, 3.75, 0,
-                                         // 5, 5.5, 6, 6.5, 7, 7.5, 0, 0, 0]
-
-    tf.setBackend('cpu');
-
-    tf.image.cropAndResize(image, boxes, boxInd, [2, 2], 'bilinear', 0).print();
-  });
 });
