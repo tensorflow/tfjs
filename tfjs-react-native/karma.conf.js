@@ -35,7 +35,8 @@ const karmaTypescriptConfig = {
         'expo-gl': './src/test_utils/gl_view_mock.ts',
       }
     }
-  }
+  },
+  exclude: ['node_modules']
 };
 
 const baseConfig = {
