@@ -31,7 +31,25 @@ struct TensorInfo {
   // Pointer to the bytes where the data is allocated.
   void *memory_offset;
   // Total number of elements.
-  int size;
+  const int size;
+
+  const float *f32() const {
+    return reinterpret_cast<const float *>(memory_offset);
+  }
+
+  float *f32_write() { return reinterpret_cast<float *>(memory_offset); }
+
+  const int *i32() const {
+    return reinterpret_cast<const int *>(memory_offset);
+  }
+
+  int *i32_write() { return reinterpret_cast<int *>(memory_offset); }
+
+  const bool *b() const {
+    return reinterpret_cast<const bool *>(memory_offset);
+  }
+
+  bool *b_write() { return reinterpret_cast<bool *>(memory_offset); }
 
   // Delete the copy constructor to avoid copying.
   TensorInfo(const TensorInfo &) = delete;
@@ -46,6 +64,8 @@ namespace backend {
 // Returns the tensor information object associated with a given tensor_id
 // bucket.
 const TensorInfo &get_tensor_info(int tensor_id);
+// Same as above, but gives write access to the tensor info.
+TensorInfo &get_tensor_info_out(int tensor_id);
 
 // Registers a function callback to be called when a tensor with a given ID is
 // disposed.
@@ -53,7 +73,7 @@ typedef void (*DisposeFunction)(int);
 void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn);
 
 // Returns the number of tensors registered and owned by the backend.
-int num_tensors();
+const int num_tensors();
 
 // The number of instantiated XNN operators.
 extern int xnn_operator_count;
@@ -66,10 +86,10 @@ void init();
 
 // Registers a tensor with a tensor ID, size, and the pointer to where the
 // tensor data lives.
-void register_tensor(int tensor_id, int size, void *memory_offset);
+void register_tensor(const int tensor_id, const int size, void *memory_offset);
 
 // Disposes the internal bookeeping for a given tensor ID.
-void dispose_data(int tensor_id);
+void dispose_data(const int tensor_id);
 
 // Disposes all internal state.
 void dispose();
