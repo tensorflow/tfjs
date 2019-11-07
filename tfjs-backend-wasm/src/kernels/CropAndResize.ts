@@ -101,8 +101,8 @@ function cropAndResize(args: {
       imageStrides.length, outputStridesBytes, outputStrides.length,
       imagesShapeBytes, images.shape.length, cropSizeBytes,
       (cropSize as [number, number]).length,
-      InterpolationMethod[method as keyof typeof InterpolationMethod],
-      extrapolationValue as number, outId);
+      InterpolationMethod[method as {} as keyof typeof InterpolationMethod],
+      extrapolationValue, outId);
   return out;
 }
 
