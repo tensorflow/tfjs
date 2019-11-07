@@ -105,10 +105,14 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
 
     // xnn pack expects weights layed out like:
     //   [output_channels, filter_height, filter_width, input_channels]
+    // TensorFlow has weights layed out like:
+    //   [filter_height, filter_width, input_channels, output_channels]
+    // This can be transposed with a 2d transpose to move output_channels to the
+    // outer most dimension.
     float* transposed_filter = new float[filter_info.size]();
-    const std::vector<int> filter_shape = {filter_height, filter_width,
-                                           input_channels, output_channels};
-    const std::vector<int> perm = {3, 0, 1, 2};
+    const std::vector<int> filter_shape = {
+        filter_height * filter_width * input_channels, output_channels};
+    const std::vector<int> perm = {1, 0};
     tfjs::wasm::transpose(filter_buf, filter_shape, perm, transposed_filter);
 
     const float* bias_buf = nullptr;
