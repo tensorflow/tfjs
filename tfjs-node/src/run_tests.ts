@@ -15,13 +15,14 @@
  * =============================================================================
  */
 
-// We import index.ts so that the Node backend gets registered.
 import * as tf from '@tensorflow/tfjs';
 // tslint:disable-next-line:no-imports-from-dist
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {argv} from 'yargs';
+// We import index.ts so that the Node backend gets registered.
 import './index';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
+
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
 
