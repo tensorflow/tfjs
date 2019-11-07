@@ -26,7 +26,6 @@ import {isArray, isNullOrUndefined} from 'util';
 import {Int64Scalar} from './int64_tensors';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
-
 type TensorData = {
   shape: number[],
   dtype: number,
