@@ -95,7 +95,7 @@ export class MobilenetDemo extends React.Component<
     return tf.tensor3d(buffer, [height, width, 3]);
   }
 
-  renderPredidction() {
+  renderPrediction() {
     const { prediction, predictionTime, imageChecksum } = this.state;
     return (
       <View>
@@ -146,7 +146,7 @@ export class MobilenetDemo extends React.Component<
                 </View>
                 {/* Result Area */}
                 <View style={styles.resultArea}>
-                  {prediction ? this.renderPredidction() : undefined}
+                  {prediction ? this.renderPrediction() : undefined}
                 </View>
               </View>
             </View>
