@@ -268,5 +268,15 @@ void transpose(const T* x_data, const std::vector<int>& x_shape,
   }
 }
 
+// Templates need explicit instantiation when implemented in a .cc file.
+template void transpose<float>(const float* x_data,
+                               const std::vector<int>& x_shape,
+                               const std::vector<int>& perm, float* out_data);
+template void transpose<int>(const int* x_data, const std::vector<int>& x_shape,
+                             const std::vector<int>& perm, int* out_data);
+template void transpose<bool>(const bool* x_data,
+                              const std::vector<int>& x_shape,
+                              const std::vector<int>& perm, bool* out_data);
+
 }  // namespace wasm
 }  // namespace tfjs
