@@ -17,12 +17,14 @@
 
 import * as util from '../util';
 
+type PadType = 'SAME'|'VALID'|'NUMBER';
+
 export type PadInfo = {
   top: number,
   left: number,
   right: number,
   bottom: number,
-  type: string
+  type: PadType
 };
 
 export type PadInfo3D = {
@@ -32,7 +34,7 @@ export type PadInfo3D = {
   bottom: number,
   front: number,
   back: number,
-  type: string
+  type: PadType
 };
 
 /**
