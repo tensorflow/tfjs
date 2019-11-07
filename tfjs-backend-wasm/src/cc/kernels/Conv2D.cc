@@ -16,6 +16,8 @@
 #include <emscripten.h>
 #endif
 
+#include "src/cc/kernels/Conv2D.h"
+
 #include <xnnpack.h>
 #include <array>
 #include <cmath>
@@ -27,7 +29,7 @@
 #include <vector>
 
 #include "src/cc/backend.h"
-#include "src/cc/kernels/Conv2D.h"
+#include "src/cc/transpose_impl.h"
 #include "src/cc/util.h"
 
 namespace {
@@ -101,6 +103,20 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
     float output_min = -std::numeric_limits<float>::infinity();
     float output_max = std::numeric_limits<float>::infinity();
 
+    // xnn pack expects weights layed out like:
+    //   [output_channels, filter_height, filter_width, input_channels]
+    // TensorFlow has weights layed out like:
+    //   [filter_height, filter_width, input_channels, output_channels]
+    // This can be transposed with a 2d transpose to move output_channels to the
+    // outer most dimension.
+    std::vector<float> transposed_filter(filter_info.size);
+
+    const std::vector<int> filter_shape = {
+        filter_height * filter_width * input_channels, output_channels};
+    const std::vector<int> perm = {1, 0};
+    tfjs::wasm::transpose(filter_buf, filter_shape, perm,
+                          transposed_filter.data());
+
     const float* bias_buf = nullptr;
     xnn_status status = xnn_create_convolution2d_nhwc_f32(
         pad_top, pad_right, pad_bottom, pad_left, filter_height, filter_width,
@@ -108,8 +124,8 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
         input_channels /* group_input_channels */,
         output_channels /* group_output_channels */,
         input_channels /* input_pixel_stride */,
-        output_channels /* output_pixel_stride */, filter_buf, bias_buf,
-        output_min, output_max, flags, &conv2d_op);
+        output_channels /* output_pixel_stride */, transposed_filter.data(),
+        bias_buf, output_min, output_max, flags, &conv2d_op);
     if (status != xnn_status_success) {
       util::warn(
           "XNN status for xnn_create_convolution2d_nhwc_f32 is not successful. "
