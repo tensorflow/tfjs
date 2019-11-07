@@ -934,6 +934,10 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   return output_tensor_infos;
 }
 
+/* Helper function to generate TensorInfo(used for JavaScript) from
+ * TFE_TensorHandle. This helper function is used by ExecuteOp() and
+ * RunSavedModel().
+ */
 napi_value TFJSBackend::GenerateOutputTensorInfo(napi_env env,
                                                  TFE_TensorHandle *handle) {
   napi_status nstatus;
