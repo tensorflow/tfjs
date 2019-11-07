@@ -563,7 +563,7 @@ class APIAndShellTest(tf.test.TestCase):
     self.assertIsNot(model_json['modelTopology']['versions'], None)
     signature = model_json['signature']
     self.assertIsNot(signature, None)
-    self.assertIsNot(signature['inputs'], None)
+    # frozen model signature has no inputs
     self.assertIsNot(signature['outputs'], None)
 
     weights_manifest = model_json['weightsManifest']
