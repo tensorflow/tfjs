@@ -27,11 +27,12 @@
     "lint": "tslint -p . -t verbose",
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
     "prep-gpu": "./prep-gpu.sh",
+    "prep-gpu-windows": "./prep-gpu-windows.bat",
     "publish-local": "yarn prep && yalc push",
     "test": "ts-node src/run_tests.ts",
     "test-ci": "./scripts/test-ci.sh",
     "test-ts-integration": "./scripts/test-ts-integration.sh",
-    "upload-windows-addon": "./scripts/build-and-upload-windows-addon-gpu.bat"
+    "upload-windows-addon": "prep-gpu-windows.bat && ./scripts/build-and-upload-windows-addon-gpu.bat"
   },
   "devDependencies": {
     "@types/jasmine": "~2.8.6",
