@@ -109,11 +109,13 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
     //   [filter_height, filter_width, input_channels, output_channels]
     // This can be transposed with a 2d transpose to move output_channels to the
     // outer most dimension.
-    float* transposed_filter = new float[filter_info.size]();
+    std::vector<float> transposed_filter(filter_info.size);
+
     const std::vector<int> filter_shape = {
         filter_height * filter_width * input_channels, output_channels};
     const std::vector<int> perm = {1, 0};
-    tfjs::wasm::transpose(filter_buf, filter_shape, perm, transposed_filter);
+    tfjs::wasm::transpose(filter_buf, filter_shape, perm,
+                          transposed_filter.data());
 
     const float* bias_buf = nullptr;
     xnn_status status = xnn_create_convolution2d_nhwc_f32(
@@ -122,16 +124,14 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
         input_channels /* group_input_channels */,
         output_channels /* group_output_channels */,
         input_channels /* input_pixel_stride */,
-        output_channels /* output_pixel_stride */, transposed_filter, bias_buf,
-        output_min, output_max, flags, &conv2d_op);
+        output_channels /* output_pixel_stride */, transposed_filter.data(),
+        bias_buf, output_min, output_max, flags, &conv2d_op);
     if (status != xnn_status_success) {
       util::warn(
           "XNN status for xnn_create_convolution2d_nhwc_f32 is not successful. "
           "Got status %d. Use -c dbg to see XNN logs.",
           status);
     }
-    // xnn pack keeps a copy of the filter so we can delete this copy.
-    delete[] transposed_filter;
 
     operator_cache.emplace(cache_key, conv2d_op);
 
