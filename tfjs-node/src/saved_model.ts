@@ -195,7 +195,7 @@ export function getInputAndOutputNodeNameFromMetaGraphInfo(
 
 /**
  * A `tf.TFSavedModel` is a signature loaded from a SavedModel
- * metagraph, and allows inference exeuction.
+ * metagraph, and allows inference execution.
  */
 /**
  * @doc {heading: 'Models', subheading: 'SavedModel', namespace: 'node'}

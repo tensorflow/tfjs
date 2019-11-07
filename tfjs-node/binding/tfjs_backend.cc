@@ -993,7 +993,7 @@ napi_value TFJSBackend::LoadSavedModel(napi_env env,
   nstatus = GetStringParam(env, tags_value, tags);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  std::vector<char *> tags_ptrs = splitStringByComma(tags);
+  std::vector<const char *> tags_ptrs = splitStringByComma(tags);
 
   TF_Graph *graph = TF_NewGraph();
 
@@ -1076,8 +1076,9 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   // Get input/output op names as vector
-  std::vector<char *> input_op_name_array = splitStringByComma(input_op_names);
-  std::vector<char *> output_op_name_array =
+  std::vector<const char *> input_op_name_array =
+      splitStringByComma(input_op_names);
+  std::vector<const char *> output_op_name_array =
       splitStringByComma(output_op_names);
 
   std::vector<TF_Output> inputs;
@@ -1125,7 +1126,9 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
 
     // The item in input_op_name_array is something like "serving_default_x:0".
     // Parse it into input op name and index for provided tensor.
-    char *input_op_name = strtok(input_op_name_array[i], ":");
+    char name[strlen(input_op_name_array[i])];
+    strcpy(name, input_op_name_array[i]);
+    char *input_op_name = strtok(name, ":");
     int input_tensor_index = atoi(strtok(NULL, ":"));
 
     // Add input op into input ops list.
@@ -1143,7 +1146,9 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
   for (uint32_t i = 0; i < output_op_name_array.size(); i++) {
     // The item in output_op_name_array is something like
     // "StatefulPartitionedCall:0". Parse it into output op name and index.
-    char *output_op_name = strtok(output_op_name_array[i], ":");
+    char name[strlen(output_op_name_array[i])];
+    strcpy(name, output_op_name_array[i]);
+    char *output_op_name = strtok(name, ":");
     int output_tensor_index = atoi(strtok(NULL, ":"));
 
     TF_Operation *output_op = TF_GraphOperationByName(

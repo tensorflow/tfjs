@@ -307,8 +307,8 @@ inline size_t GetTensorNumElements(TF_Tensor *tensor) {
 }
 
 // Split a string into an array of characters array with `,` as delimiter.
-inline std::vector<char *> splitStringByComma(const std::string &str) {
-  std::vector<char *> tokens;
+inline std::vector<const char *> splitStringByComma(const std::string &str) {
+  std::vector<const char *> tokens;
   size_t prev = 0, pos = 0;
   do {
     pos = str.find(',', prev);
