@@ -25,6 +25,64 @@ enum InterpolationMethod {
   NEAREST = 1,
 };
 
+namespace {
+template <typename T>
+void interpolate_bilinear(T* out_buf_ptr, const T* images_buf,
+                          std::vector<int> images_strides, int crop_width,
+                          int image_width, int image_width_m1, int num_channels,
+                          float extrapolation_value, int box_ind, float y_ind,
+                          float width_scale, float x1, float x2) {
+  float top_ind = floor(y_ind);
+  float bottom_ind = ceil(y_ind);
+  float y_lerp = y_ind - top_ind;
+
+  for (int x = 0; x < crop_width; ++x) {
+    float x_ind = (crop_width > 1) ? x1 * image_width_m1 + x * width_scale
+                                   : 0.5 * (x1 + x2) * image_width_m1;
+
+    if (x_ind < 0 || x_ind > image_width - 1) {
+      for (int c = 0; c < num_channels; ++c) {
+        *out_buf_ptr = extrapolation_value;
+        out_buf_ptr++;
+      }
+      continue;
+    }
+
+    float left_ind = floor(x_ind);
+    float right_ind = ceil(x_ind);
+    float x_lerp = x_ind - left_ind;
+
+    for (int c = 0; c < num_channels; ++c) {
+      int ind = c + left_ind * images_strides[2] + top_ind * images_strides[1] +
+                box_ind;
+      float top_left = images_buf[ind];
+
+      ind = c + right_ind * images_strides[2] + top_ind * images_strides[1] +
+            box_ind;
+
+      float top_right = images_buf[ind];
+
+      ind = c + left_ind * images_strides[2] + bottom_ind * images_strides[1] +
+            box_ind;
+
+      float bottom_left = images_buf[ind];
+
+      ind = c + right_ind * images_strides[2] + bottom_ind * images_strides[1] +
+            box_ind;
+
+      float bottom_right = images_buf[ind];
+
+      float top = top_left + (top_right - top_left) * x_lerp;
+      float bottom = bottom_left + (bottom_right - bottom_left) * x_lerp;
+
+      *out_buf_ptr = top + ((bottom - top) * y_lerp);
+      out_buf_ptr++;
+    }
+  }
+}
+
+}  // namespace
+
 namespace tfjs {
 namespace wasm {
 // We use C-style API to interface with Javascript.
@@ -144,53 +202,11 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
       }
 
       if (method == InterpolationMethod::BILINEAR) {
-        float top_ind = floor(y_ind);
-        float bottom_ind = ceil(y_ind);
-        float y_lerp = y_ind - top_ind;
+        interpolate_bilinear(out_buf_ptr, images_buf, images_strides,
+                             crop_width, image_width, image_width_m1,
+                             num_channels, extrapolation_value, box_ind, y_ind,
+                             width_scale, x1, x2);
 
-        for (int x = 0; x < crop_width; ++x) {
-          float x_ind = (crop_width > 1) ? x1 * image_width_m1 + x * width_scale
-                                         : 0.5 * (x1 + x2) * image_width_m1;
-
-          if (x_ind < 0 || x_ind > image_width - 1) {
-            for (int c = 0; c < num_channels; ++c) {
-              *out_buf_ptr = extrapolation_value;
-              out_buf_ptr++;
-            }
-            continue;
-          }
-
-          float left_ind = floor(x_ind);
-          float right_ind = ceil(x_ind);
-          float x_lerp = x_ind - left_ind;
-
-          for (int c = 0; c < num_channels; ++c) {
-            int ind = c + left_ind * images_strides[2] +
-                      top_ind * images_strides[1] + box_ind;
-            float top_left = images_buf[ind];
-
-            ind = c + right_ind * images_strides[2] +
-                  top_ind * images_strides[1] + box_ind;
-
-            float top_right = images_buf[ind];
-
-            ind = c + left_ind * images_strides[2] +
-                  bottom_ind * images_strides[1] + box_ind;
-
-            float bottom_left = images_buf[ind];
-
-            ind = c + right_ind * images_strides[2] +
-                  bottom_ind * images_strides[1] + box_ind;
-
-            float bottom_right = images_buf[ind];
-
-            float top = top_left + (top_right - top_left) * x_lerp;
-            float bottom = bottom_left + (bottom_right - bottom_left) * x_lerp;
-
-            *out_buf_ptr = top + ((bottom - top) * y_lerp);
-            out_buf_ptr++;
-          }
-        }
       } else {
         for (int x = 0; x < crop_width; ++x) {
           float x_ind = (crop_width > 1) ? x1 * image_width_m1 + x * width_scale
