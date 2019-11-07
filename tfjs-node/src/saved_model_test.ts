@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {test_util} from '@tensorflow/tfjs-core';
+import {NamedTensorMap, test_util} from '@tensorflow/tfjs-core';
 import * as tf from './index';
 import {nodeBackend} from './nodejs_kernel_backend';
 import {getEnumKeyFromValue, getInputAndOutputNodeNameFromMetaGraphInfo, readSavedModelProto} from './saved_model';
@@ -311,12 +311,58 @@ describe('SavedModel', () => {
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(2);
   });
 
+  it('throw error when input tensors do not match input ops', async done => {
+    try {
+      const signature1 = await tf.node.loadSavedModel(
+          './test_objects/saved_model/times_three_float', ['serve'],
+          'serving_default');
+      const input1 = tf.tensor1d([1.0, 2, 3]);
+      const input2 = tf.tensor1d([1.0, 2, 3]);
+      signature1.predict([input1, input2]);
+      done.fail();
+    } catch (error) {
+      expect(error.message)
+          .toBe('Input op names and input tensors do not match.');
+      done();
+    }
+  });
+
   it('execute model float times three', async () => {
     const signature1 = await tf.node.loadSavedModel(
         './test_objects/saved_model/times_three_float', ['serve'],
         'serving_default');
     const input = tf.tensor1d([1.0, 2, 3]);
     const output = signature1.predict(input) as tf.Tensor;
+    expect(output.shape).toEqual(input.shape);
+    expect(output.dtype).toBe(input.dtype);
+    expect(output.dtype).toBe('float32');
+    test_util.expectArraysClose(await output.data(), await input.mul(3).data());
+    signature1.dispose();
+  });
+
+  it('execute model with tensor array as input', async () => {
+    const signature1 = await tf.node.loadSavedModel(
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
+    const input = tf.tensor1d([1.0, 2, 3]);
+    const outputArray = signature1.predict([input]) as tf.Tensor[];
+    expect(outputArray.length).toBe(1);
+    const output = outputArray[0];
+    expect(output.shape).toEqual(input.shape);
+    expect(output.dtype).toBe(input.dtype);
+    expect(output.dtype).toBe('float32');
+    test_util.expectArraysClose(await output.data(), await input.mul(3).data());
+    signature1.dispose();
+  });
+
+  it('execute model with tensor array as input', async () => {
+    const signature1 = await tf.node.loadSavedModel(
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
+    const input = tf.tensor1d([1.0, 2, 3]);
+    const outputMap =
+        signature1.predict({'serving_default_x:0': input}) as NamedTensorMap;
+    const output = outputMap['StatefulPartitionedCall:0'];
     expect(output.shape).toEqual(input.shape);
     expect(output.dtype).toBe(input.dtype);
     expect(output.dtype).toBe('float32');

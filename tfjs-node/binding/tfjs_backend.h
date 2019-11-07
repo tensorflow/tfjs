@@ -86,6 +86,7 @@ class TFJSBackend {
 
   int32_t InsertHandle(TFE_TensorHandle *tfe_handle);
   int32_t InsertSavedModel(TF_Session *tf_session, TF_Graph *tf_graph);
+  napi_value GenerateOutputTensorInfo(napi_env env, TFE_TensorHandle *handle);
 
   TFE_Context *tfe_context_;
   std::map<int32_t, TFE_TensorHandle *> tfe_handle_map_;
