@@ -12,8 +12,8 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef TRANSPOSE_H_
-#define TRANSPOSE_H_
+#ifndef TRANSPOSE_IMPL_H_
+#define TRANSPOSE_IMPL_H_
 
 #include <vector>
 
@@ -26,4 +26,4 @@ void transpose(const T* x_data, const std::vector<int>& x_shape,
 
 }  // namespace wasm
 }  // namespace tfjs
-#endif  // TRANSPOSE_H_
+#endif  // TRANSPOSE_IMPL_H_

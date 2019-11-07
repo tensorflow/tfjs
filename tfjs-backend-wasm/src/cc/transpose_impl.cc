@@ -12,6 +12,8 @@
  * limitations under the License.
  * ===========================================================================*/
 
+#include "src/cc/transpose_impl.h"
+
 #include <vector>
 
 #include "src/cc/util.h"
