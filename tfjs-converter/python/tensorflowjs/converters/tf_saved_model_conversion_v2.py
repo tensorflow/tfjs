@@ -265,7 +265,7 @@ def write_artifacts(topology,
       # TODO(piyu): Add tensorflow version below by using `meta_info_def`.
       common.GENERATED_BY_KEY: tf_version,
       common.CONVERTED_BY_KEY: common.get_converted_by(),
-      common.SIGNATURE: MessageToDict(signature_def)
+      common.SIGNATURE_KEY: MessageToDict(signature_def)
   }
 
   model_json[common.ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None

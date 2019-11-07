@@ -561,7 +561,10 @@ class APIAndShellTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    self.assertIsNot(model_json['signature'], None)
+    signature = model_json['signature']
+    self.assertIsNot(signature, None)
+    self.assertIsNot(signature['inputs'], None)
+    self.assertIsNot(signature['outputs'], None)
 
     weights_manifest = model_json['weightsManifest']
     weights_manifest = model_json['weightsManifest']

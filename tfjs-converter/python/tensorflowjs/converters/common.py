@@ -34,7 +34,7 @@ TFJS_LAYERS_MODEL_FORMAT = 'layers-model'
 GENERATED_BY_KEY = 'generatedBy'
 CONVERTED_BY_KEY = 'convertedBy'
 
-SIGNATURE = 'signature'
+SIGNATURE_KEY = 'signature'
 
 # Model formats.
 KERAS_SAVED_MODEL = 'keras_saved_model'
