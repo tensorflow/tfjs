@@ -26,6 +26,7 @@ import {isArray, isNullOrUndefined} from 'util';
 import {Int64Scalar} from './int64_tensors';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
+
 type TensorData = {
   shape: number[],
   dtype: number,
@@ -477,6 +478,12 @@ export class NodeJSKernelBackend extends KernelBackend {
     const opAttrs =
         [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Div', opAttrs, [a, b]);
+  }
+
+  divNoNan(a: Tensor, b: Tensor): Tensor {
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
+    return this.executeSingleOutput('DivNoNan', opAttrs, [a, b]);
   }
 
   unsortedSegmentSum<T extends Tensor>(
