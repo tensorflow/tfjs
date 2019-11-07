@@ -16,14 +16,13 @@
 #include <emscripten.h>
 #endif
 
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
 #include "src/cc/backend.h"
 
 // Must match enum in CropAndResize.ts
 enum InterpolationMethod {
-  bilinear = 0,
-  nearest = 1,
+  BILINEAR = 0,
+  NEAREST = 1,
 };
 
 namespace tfjs {
@@ -53,18 +52,18 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   auto& images_info = backend::get_tensor_info(images_id);
   auto& boxes_info = backend::get_tensor_info(boxes_id);
   auto& box_ind_info = backend::get_tensor_info(box_ind_id);
-  auto& out_info = backend::get_tensor_info(out_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
 
-  float* images_buf = reinterpret_cast<float*>(images_info.memory_offset);
+  const float* images_buf = images_info.f32();
   int images_size = images_info.size;
 
-  float* boxes_buf = reinterpret_cast<float*>(boxes_info.memory_offset);
+  const float* boxes_buf = boxes_info.f32();
   int boxes_size = boxes_info.size;
 
-  int* box_ind_buf = reinterpret_cast<int*>(box_ind_info.memory_offset);
+  const int* box_ind_buf = box_ind_info.i32();
   int box_ind_size = box_ind_info.size;
 
-  float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
+  float* out_buf = out_info.f32_write();
   int out_size = out_info.size;
 
   int batch = images_shape[0];
@@ -78,24 +77,21 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   int image_height_m1 = image_height - 1;
   int image_width_m1 = image_width - 1;
 
-  float* boxes_offset = boxes_buf;
-  int* box_ind_offset = box_ind_buf;
-
   for (int b = 0; b < num_boxes; ++b) {
-    float y1 = *boxes_offset;
-    boxes_offset++;
-    float x1 = *boxes_offset;
-    boxes_offset++;
-    float y2 = *boxes_offset;
-    boxes_offset++;
-    float x2 = *boxes_offset;
-    boxes_offset++;
+    float y1 = *boxes_buf;
+    boxes_buf++;
+    float x1 = *boxes_buf;
+    boxes_buf++;
+    float y2 = *boxes_buf;
+    boxes_buf++;
+    float x2 = *boxes_buf;
+    boxes_buf++;
 
-    if (*box_ind_offset >= batch) {
+    if (*box_ind_buf >= batch) {
       continue;
     }
 
-    int box_ind = *box_ind_offset * images_strides[0];
+    int box_ind = *box_ind_buf * images_strides[0];
 
     float height_scale =
         (crop_height > 1) ? (y2 - y1) * image_height_m1 / (crop_height - 1) : 0;
@@ -104,7 +100,7 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
 
     bool crop_size_eq_box_size = crop_width == 1 + (x2 - x1) * image_width_m1;
     bool requires_interpolation = false;
-    if (method == InterpolationMethod::bilinear) {
+    if (method == InterpolationMethod::BILINEAR) {
       float y_lerp_factor = crop_height > 1 ? y1 * image_height + height_scale
                                             : 0.5 * (y1 + y2) * image_height_m1;
 
@@ -141,14 +137,13 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
       }
 
       if (should_memcpy) {
-        float* images_buf_ptr = images_buf;
-        images_buf_ptr += (int(y_ind) * images_strides[1] + box_ind);
+        images_buf += (int(y_ind) * images_strides[1] + box_ind);
 
-        memcpy(out_buf_ptr, images_buf_ptr, sizeof(float) * crop_width);
+        memcpy(out_buf_ptr, images_buf, sizeof(float) * crop_width);
         continue;
       }
 
-      if (method == InterpolationMethod::bilinear) {
+      if (method == InterpolationMethod::BILINEAR) {
         float top_ind = floor(y_ind);
         float bottom_ind = ceil(y_ind);
         float y_lerp = y_ind - top_ind;
@@ -221,7 +216,7 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
       }
     }
 
-    box_ind_offset++;
+    box_ind_buf++;
   }
 }
 
