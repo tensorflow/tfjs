@@ -81,6 +81,35 @@ void interpolate_bilinear(T* out_buf_ptr, const T* images_buf,
   }
 }
 
+template <typename T>
+void interpolate_nearest(T* out_buf_ptr, const T* images_buf,
+                         std::vector<int> images_strides, int crop_width,
+                         int image_width, int image_width_m1, int num_channels,
+                         float extrapolation_value, int box_ind, float y_ind,
+                         float width_scale, float x1, float x2) {
+  for (int x = 0; x < crop_width; ++x) {
+    float x_ind = (crop_width > 1) ? x1 * image_width_m1 + x * width_scale
+                                   : 0.5 * (x1 + x2) * image_width_m1;
+
+    if (x_ind < 0 || x_ind > image_width - 1) {
+      for (int c = 0; c < num_channels; ++c) {
+        *out_buf_ptr = extrapolation_value;
+        out_buf_ptr++;
+      }
+      continue;
+    }
+
+    float closest_x = round(x_ind);
+    float closest_y = round(y_ind);
+    for (int c = 0; c < num_channels; ++c) {
+      int in_ind = c + closest_x * images_strides[2] +
+                   closest_y * images_strides[1] + box_ind;
+      *out_buf_ptr = images_buf[in_ind];
+      out_buf_ptr++;
+    }
+  }
+}
+
 }  // namespace
 
 namespace tfjs {
@@ -208,27 +237,10 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
                              width_scale, x1, x2);
 
       } else {
-        for (int x = 0; x < crop_width; ++x) {
-          float x_ind = (crop_width > 1) ? x1 * image_width_m1 + x * width_scale
-                                         : 0.5 * (x1 + x2) * image_width_m1;
-
-          if (x_ind < 0 || x_ind > image_width - 1) {
-            for (int c = 0; c < num_channels; ++c) {
-              *out_buf_ptr = extrapolation_value;
-              out_buf_ptr++;
-            }
-            continue;
-          }
-
-          float closest_x = round(x_ind);
-          float closest_y = round(y_ind);
-          for (int c = 0; c < num_channels; ++c) {
-            int in_ind = c + closest_x * images_strides[2] +
-                         closest_y * images_strides[1] + box_ind;
-            *out_buf_ptr = images_buf[in_ind];
-            out_buf_ptr++;
-          }
-        }
+        interpolate_nearest(out_buf_ptr, images_buf, images_strides, crop_width,
+                            image_width, image_width_m1, num_channels,
+                            extrapolation_value, box_ind, y_ind, width_scale,
+                            x1, x2);
       }
     }
 
