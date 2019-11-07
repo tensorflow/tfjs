@@ -29,7 +29,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Abs(int x_id, int out_id) { unary(x_id, out_id, std::abs); }
+void Abs(const int x_id, const int out_id) { unary(x_id, out_id, std::abs); }
 
 }  // extern "C"
 }  // namespace wasm

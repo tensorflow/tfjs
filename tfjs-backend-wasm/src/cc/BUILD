@@ -61,6 +61,7 @@ tfjs_cc_library(
     ":Abs",
     ":Add",
     ":BatchMatMul",
+    ":Conv2D",
     ":Div",
     ":Mul",
     ":Prelu",
@@ -122,6 +123,16 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "BatchMatMul",
   srcs = ["kernels/BatchMatMul.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Conv2D",
+  srcs = ["kernels/Conv2D.cc"],
+  hdrs = ["kernels/Conv2D.h"],
   deps = [
     ":backend",
     ":util",
@@ -220,5 +231,13 @@ tfjs_unit_test(
   srcs = ["kernels/Prelu_test.cc"],
   deps = [
     ":Prelu",
+  ]
+)
+
+tfjs_unit_test(
+  name = "Conv2D_test",
+  srcs = ["kernels/Conv2D_test.cc"],
+  deps = [
+    ":Conv2D",
   ]
 )
