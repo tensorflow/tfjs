@@ -103,6 +103,8 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
     float output_min = -std::numeric_limits<float>::infinity();
     float output_max = std::numeric_limits<float>::infinity();
 
+    // xnn pack expects weights layed out like:
+    //   [output_channels, filter_height, filter_width, input_channels]
     float* transposed_filter = new float[filter_info.size]();
     const std::vector<int> filter_shape = {filter_height, filter_width,
                                            input_channels, output_channels};
@@ -124,6 +126,7 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
           "Got status %d. Use -c dbg to see XNN logs.",
           status);
     }
+    // xnn pack keeps a copy of the filter so we can delete this copy.
     delete[] transposed_filter;
 
     operator_cache.emplace(cache_key, conv2d_op);
