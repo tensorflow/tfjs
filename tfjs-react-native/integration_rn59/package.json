@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@react-native-community/async-storage": "^1.6.1",
-    "@tensorflow-models/mobilenet": "^1.0.1",
-    "@tensorflow/tfjs": "^1.2.11",
+    "@tensorflow-models/mobilenet": "^2.0.4",
+    "@tensorflow/tfjs": "1.2.11",
     "@tensorflow/tfjs-react-native": "0.1.0-alpha.2",
     "expo-camera": "^6.0.0",
     "expo-gl": "^6.0.0",
@@ -24,7 +24,9 @@
     "jpeg-js": "^0.3.5",
     "react": "16.8.3",
     "react-native": "0.59.10",
-    "react-native-unimodules": "^0.5.4"
+    "react-native-fs": "^2.16.1",
+    "react-native-unimodules": "^0.5.4",
+    "rn-fetch-blob": "^0.10.15"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",

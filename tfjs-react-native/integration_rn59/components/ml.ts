@@ -77,7 +77,6 @@ export async function localModelRunner() {
   };
 }
 
-
 /**
  * A runner that loads a model bundled with the app and runs a prediction
  * through it.
@@ -87,15 +86,11 @@ const modelWeights2 = require('../assets/graph_model/group1-shard1of1.bin');
 export async function localGraphModelRunner() {
   const model =
       await tf.loadGraphModel(bundleResourceIO(modelJson2, modelWeights2));
-
   return async () => {
-    const scores = tf.tidy(() => {
-      const preprocessedImg = tf.zeros([1, 224, 224, 3]);
-      return model.predict(preprocessedImg) as tf.Tensor;
-    });
-    const probabilities = await scores.data() as Float32Array;
-    scores.dispose();
-    return JSON.stringify(probabilities);
+    console.log('in runner');
+    const res = model.predict(tf.randomNormal([1, 10])) as tf.Tensor;
+    const data = await res.data();
+    return JSON.stringify(data);
   };
 }
 
