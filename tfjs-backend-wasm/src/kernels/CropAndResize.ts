@@ -20,11 +20,15 @@ import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from
 import {BackendWasm} from '../backend_wasm';
 
 interface CropAndResizeInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
+  images: TensorInfo;
+  boxes: TensorInfo;
+  boxInd: TensorInfo;
 }
 
 interface CropAndResizeAttrs extends NamedAttrMap {
-  axes: number[];
+  method: InterpolationMethod;
+  extrapolationValue: number;
+  cropSize: [number, number];
 }
 
 // Must match enum in CropAndResize.cc
