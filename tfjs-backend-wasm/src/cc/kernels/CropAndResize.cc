@@ -125,15 +125,16 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
-                   int* images_strides_ptr, int images_strides_length,
-                   int* images_shape_ptr, int images_shape_length,
-                   int* crop_size_ptr, int crop_size_length,
+                   int* images_strides_ptr, int* images_shape_ptr,
+                   int images_shape_length, int* crop_size_ptr,
                    InterpolationMethod method, float extrapolation_value,
                    int out_id) {
+  const int images_strides_length = 3;
   auto images_strides = std::vector<int>(
       images_strides_ptr, images_strides_ptr + images_strides_length);
   const std::vector<int>& images_shape = std::vector<int>(
       images_shape_ptr, images_shape_ptr + images_shape_length);
+  const int crop_size_length = 2;
   const std::vector<int>& crop_size =
       std::vector<int>(crop_size_ptr, crop_size_ptr + crop_size_length);
 
