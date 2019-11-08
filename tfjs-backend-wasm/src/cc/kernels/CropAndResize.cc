@@ -163,37 +163,40 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   const int image_width_m1 = image_width - 1;
 
   for (int b = 0; b < num_boxes; ++b) {
-    float y1 = *boxes_buf;
+    const float y1 = *boxes_buf;
     boxes_buf++;
-    float x1 = *boxes_buf;
+    const float x1 = *boxes_buf;
     boxes_buf++;
-    float y2 = *boxes_buf;
+    const float y2 = *boxes_buf;
     boxes_buf++;
-    float x2 = *boxes_buf;
+    const float x2 = *boxes_buf;
     boxes_buf++;
 
     if (*box_ind_buf >= batch) {
       continue;
     }
 
-    int box_ind = *box_ind_buf * images_strides[0];
+    const int box_ind = *box_ind_buf * images_strides[0];
 
-    float height_scale =
+    const float height_scale =
         (crop_height > 1) ? (y2 - y1) * image_height_m1 / (crop_height - 1) : 0;
-    float width_scale =
+    const float width_scale =
         (crop_width > 1) ? (x2 - x1) * image_width_m1 / (crop_width - 1) : 0;
 
-    bool crop_size_eq_box_size = crop_width == 1 + (x2 - x1) * image_width_m1;
+    const bool crop_size_eq_box_size =
+        crop_width == 1 + (x2 - x1) * image_width_m1;
     bool requires_interpolation = false;
     if (method == InterpolationMethod::BILINEAR) {
-      float y_lerp_factor = crop_height > 1 ? y1 * image_height + height_scale
-                                            : 0.5 * (y1 + y2) * image_height_m1;
+      const float y_lerp_factor = crop_height > 1
+                                      ? y1 * image_height + height_scale
+                                      : 0.5 * (y1 + y2) * image_height_m1;
 
       if (y_lerp_factor - long(y_lerp_factor) != 0.0) {
         requires_interpolation = true;
       } else {
-        float x_lerp_factor = crop_width > 1 ? x1 * image_width_m1 + width_scale
-                                             : 0.5 * (x1 + x2) * image_width_m1;
+        const float x_lerp_factor = crop_width > 1
+                                        ? x1 * image_width_m1 + width_scale
+                                        : 0.5 * (x1 + x2) * image_width_m1;
 
         if (x_lerp_factor - long(x_lerp_factor) != 0.0) {
           requires_interpolation = true;
@@ -201,12 +204,14 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
       }
     }
 
-    bool should_memcpy = x2 > x1 && x1 >= 0 && crop_size_eq_box_size == true &&
-                         requires_interpolation == false;
+    const bool should_memcpy = x2 > x1 && x1 >= 0 &&
+                               crop_size_eq_box_size == true &&
+                               requires_interpolation == false;
 
     for (int y = 0; y < crop_height; ++y) {
-      float y_ind = (crop_height > 1) ? y1 * image_height_m1 + y * height_scale
-                                      : 0.5 * (y1 + y2) * image_height_m1;
+      const float y_ind = (crop_height > 1)
+                              ? y1 * image_height_m1 + y * height_scale
+                              : 0.5 * (y1 + y2) * image_height_m1;
 
       float* out_buf_ptr =
           out_buf + y * output_strides[1] + b * output_strides[0];
