@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {InferenceModel, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, SavedModelTensorInfo, SignatureDefInfo, Tensor} from '@tensorflow/tfjs';
+import {DataType, InferenceModel, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, SignatureDefInfo, Tensor} from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import {promisify} from 'util';
-
 import {ensureTensorflowBackend, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
+
 
 const readFile = promisify(fs.readFile);
 
@@ -112,16 +112,17 @@ export async function getMetaGraphsFromSavedModel(path: string):
       // Get all input tensors information
       const inputsMapMessage = signatureDefEntry.getInputsMap();
       const inputsMapKeys = inputsMapMessage.keys();
-      const inputs: {[key: string]: SavedModelTensorInfo} = {};
+      const inputs: {[key: string]: ModelTensorInfo} = {};
       while (true) {
         const inputsMapKey = inputsMapKeys.next();
         if (inputsMapKey.done) {
           break;
         }
         const inputTensor = inputsMapMessage.get(inputsMapKey.value);
-        const inputTensorInfo = {} as SavedModelTensorInfo;
-        inputTensorInfo.dtype =
-            getEnumKeyFromValue(messages.DataType, inputTensor.getDtype());
+        const inputTensorInfo = {} as ModelTensorInfo;
+        inputTensorInfo.dtype = mapTFDtypeToJSDtype(
+            getEnumKeyFromValue(messages.DataType, inputTensor.getDtype()));
+
         inputTensorInfo.name = inputTensor.getName();
         inputTensorInfo.shape = inputTensor.getTensorShape().getDimList();
         inputs[inputsMapKey.value] = inputTensorInfo;
@@ -130,16 +131,16 @@ export async function getMetaGraphsFromSavedModel(path: string):
       // Get all output tensors information
       const outputsMapMessage = signatureDefEntry.getOutputsMap();
       const outputsMapKeys = outputsMapMessage.keys();
-      const outputs: {[key: string]: SavedModelTensorInfo} = {};
+      const outputs: {[key: string]: ModelTensorInfo} = {};
       while (true) {
         const outputsMapKey = outputsMapKeys.next();
         if (outputsMapKey.done) {
           break;
         }
         const outputTensor = outputsMapMessage.get(outputsMapKey.value);
-        const outputTensorInfo = {} as SavedModelTensorInfo;
-        outputTensorInfo.dtype =
-            getEnumKeyFromValue(messages.DataType, outputTensor.getDtype());
+        const outputTensorInfo = {} as ModelTensorInfo;
+        outputTensorInfo.dtype = mapTFDtypeToJSDtype(
+            getEnumKeyFromValue(messages.DataType, outputTensor.getDtype()));
         outputTensorInfo.name = outputTensor.getName();
         outputTensorInfo.shape = outputTensor.getTensorShape().getDimList();
         outputs[outputsMapKey.value] = outputTensorInfo;
@@ -369,4 +370,40 @@ function stringArraysHaveSameElements(
     return true;
   }
   return false;
+}
+export interface DataTypeMap {
+  float32: Float32Array;
+  int32: Int32Array;
+  bool: Uint8Array;
+  complex64: Float32Array;
+  string: string[];
+}
+
+function mapTFDtypeToJSDtype(tfDtype: string): DataType {
+  switch (tfDtype) {
+    case 'DT_FLOAT':
+    case 'DT_DOUBLE':
+    case 'DT_BFLOAT16':
+      return 'float32';
+    case 'DT_INT32':
+    case 'DT_UINT8':
+    case 'DT_INT16':
+    case 'DT_INT8':
+    case 'DT_INT64':
+    case 'DT_QINT8':
+    case 'DT_QUINT8':
+    case 'DT_QINT32':
+    case 'DT_QINT16':
+    case 'DT_UINT16':
+    case 'DT_UINT32':
+    case 'DT_UINT64':
+      return 'int32';
+    case 'DT_BOOL':
+      return 'bool';
+    case 'DT_COMPLEX64':
+      return 'complex64';
+    case 'DT_STRING':
+      return 'string';
+    default:
+  }
 }

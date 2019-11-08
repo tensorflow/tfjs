@@ -26,19 +26,17 @@
 
 // Engine is the global singleton that needs to be initialized before the rest
 // of the app.
-import './engine';
-// Register backend-agnostic flags.
-import './flags';
-
+// Import all kernels from cpu.
+import './backends/cpu/all_kernels';
+import './backends/cpu/backend_cpu';
+// Import all kernels from webgl.
+import './backends/webgl/all_kernels';
 // backend_cpu.ts and backend_webgl.ts are standalone files and should be
 // explicitly included here.
 import './backends/webgl/backend_webgl';
-import './backends/cpu/backend_cpu';
-// Import all kernels from cpu.
-import './backends/cpu/all_kernels';
-// Import all kernels from webgl.
-import './backends/webgl/all_kernels';
-
+import './engine';
+// Register backend-agnostic flags.
+import './flags';
 import './platforms/platform_browser';
 import './platforms/platform_node';
 
@@ -47,6 +45,7 @@ import * as backend_util from './backends/backend_util';
 import * as io from './io/io';
 import * as math from './math';
 import * as browser from './ops/browser';
+import * as ops from './ops/ops';
 import * as slice_util from './ops/slice_util';
 import * as serialization from './serialization';
 import {setOpHandler} from './tensor';
@@ -56,38 +55,35 @@ import * as util from './util';
 import {version} from './version';
 import * as webgl from './webgl';
 
-export {InferenceModel, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, SavedModelTensorInfo, SignatureDefInfo} from './model_types';
+// Backend specific.
+export {BackendTimingInfo, DataMover, DataStorage, KernelBackend} from './backends/backend';
+// Top-level method exports.
+export {nextFrame} from './browser_util';
+export {MemoryInfo, TimingInfo} from './engine';
+export {env, ENV, Environment} from './environment';
+
+export * from './globals';
+export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
+export * from './kernel_registry';
+export {InferenceModel, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, SignatureDefInfo} from './model_types';
+export {Reduction} from './ops/loss_ops';
+export {LSTMCellFunc} from './ops/lstm';
+export * from './ops/ops';
 // Optimizers.
 export {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './optimizers/adagrad_optimizer';
-export {AdamOptimizer} from './optimizers/adam_optimizer';
 export {AdamaxOptimizer} from './optimizers/adamax_optimizer';
+export {AdamOptimizer} from './optimizers/adam_optimizer';
 export {MomentumOptimizer} from './optimizers/momentum_optimizer';
 export {Optimizer} from './optimizers/optimizer';
 export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './optimizers/sgd_optimizer';
+export {Platform} from './platforms/platform';
 export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, Variable} from './tensor';
 export {GradSaveFunc, NamedTensorMap, TensorContainer, TensorContainerArray, TensorContainerObject} from './tensor_types';
-export {DataType, DataTypeMap, DataValues, Rank, RecursiveArray, ShapeMap, TensorLike} from './types';
-
-export * from './ops/ops';
-export {LSTMCellFunc} from './ops/lstm';
-export {Reduction} from './ops/loss_ops';
-
 export * from './train';
-export * from './globals';
-export * from './kernel_registry';
-export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
-
-export {TimingInfo, MemoryInfo} from './engine';
-export {Environment, env, ENV} from './environment';
-export {Platform} from './platforms/platform';
-
+export {DataType, DataTypeMap, DataValues, Rank, RecursiveArray, ShapeMap, TensorLike} from './types';
 export {version as version_core};
-
-// Top-level method exports.
-export {nextFrame} from './browser_util';
-
 // Second level exports.
 export {
   browser,
@@ -102,8 +98,6 @@ export {
   slice_util
 };
 
-// Backend specific.
-export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './backends/backend';
 
-import * as ops from './ops/ops';
+
 setOpHandler(ops);

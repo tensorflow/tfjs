@@ -173,7 +173,7 @@ describe('SavedModel', () => {
     expect(modelInfo[0].signatureDefs['serving_default'].inputs['x'].name)
         .toBe('serving_default_x:0');
     expect(modelInfo[0].signatureDefs['serving_default'].inputs['x'].dtype)
-        .toBe('DT_FLOAT');
+        .toBe('float32');
     expect(Object.keys(modelInfo[0].signatureDefs['serving_default'].outputs)
                .length)
         .toBe(1);
@@ -182,7 +182,7 @@ describe('SavedModel', () => {
         .toBe('StatefulPartitionedCall:0');
     expect(
         modelInfo[0].signatureDefs['serving_default'].outputs['output_0'].dtype)
-        .toBe('DT_FLOAT');
+        .toBe('float32');
   });
 
   it('get input and output node names from SavedModel metagraphs', async () => {
