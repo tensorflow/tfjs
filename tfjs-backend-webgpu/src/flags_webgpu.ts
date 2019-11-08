@@ -41,5 +41,8 @@ ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
  */
 ENV.registerFlag('WEBGPU_CONV2D_WORK_PER_THREAD', () => 2);
 
-/** Whether we use low power GPU. */
+/**
+ * Whether we use low power GPU. Otherwise, a high performance GPU will be
+ * requested.
+ */
 ENV.registerFlag('WEBGPU_USE_LOW_POWER_GPU', () => false);

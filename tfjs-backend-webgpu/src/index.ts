@@ -23,10 +23,12 @@ import {WebGPUBackend} from './backend_webgpu';
 
 tf.registerBackend('webgpu', async () => {
   const shaderc = await Shaderc.instantiate();
-  let gpuDescriptor: GPURequestAdapterOptions;
-  if (tf.env().get('WEBGPU_USE_LOW_POWER_GPU')) {
-    gpuDescriptor = {powerPreference: 'low-power'};
-  }
+  const gpuDescriptor: GPURequestAdapterOptions = {
+    powerPreference: tf.env().get('WEBGPU_USE_LOW_POWER_GPU') ?
+        'low-power' :
+        'high-performance'
+  };
+
   const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
   const device = await adapter.requestDevice({});
   return new WebGPUBackend(device, shaderc);
