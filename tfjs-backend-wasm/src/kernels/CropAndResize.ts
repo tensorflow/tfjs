@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -26,7 +26,7 @@ interface CropAndResizeInputs extends NamedTensorInfoMap {
 }
 
 interface CropAndResizeAttrs extends NamedAttrMap {
-  method: InterpolationMethod;
+  method: keyof InterpolationMethod;
   extrapolationValue: number;
   cropSize: [number, number];
 }
@@ -39,9 +39,8 @@ enum InterpolationMethod {
 
 let wasmCropAndResize: (
     imagesId: number, boxesId: number, boxIndId: number, numBoxes: number,
-    imageStrides: Uint8Array, imagesShape: Uint8Array,
-    imagesShapeLength: number, cropSize: Uint8Array, method: number,
-    extrapolationValue: number, outId: number) => void;
+    imagesShape: Uint8Array, imagesShapeLength: number, cropSize: Uint8Array,
+    method: number, extrapolationValue: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmCropAndResize = backend.wasm.cwrap('CropAndResize', null /*void*/, [
@@ -49,7 +48,6 @@ function setup(backend: BackendWasm): void {
     'number',  // boxesId
     'number',  // boxIndId
     'number',  // numBoxes
-    'array',   // image strides
     'array',   // images shape
     'number',  // images shape length
     'array',   // cropSize
@@ -80,16 +78,13 @@ function cropAndResize(args: {
   const out = backend.makeOutput(outShape, images.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
 
-  const imageStrides = util.computeStrides(images.shape);
-
-  const imageStridesBytes = new Uint8Array(new Int32Array(imageStrides).buffer);
   const imagesShapeBytes = new Uint8Array(new Int32Array(images.shape).buffer);
   const cropSizeBytes =
       new Uint8Array(new Int32Array(cropSize as [number, number]).buffer);
 
   wasmCropAndResize(
-      imagesId, boxesId, boxIndId, numBoxes, imageStridesBytes,
-      imagesShapeBytes, images.shape.length, cropSizeBytes,
+      imagesId, boxesId, boxIndId, numBoxes, imagesShapeBytes,
+      images.shape.length, cropSizeBytes,
       InterpolationMethod[method as {} as keyof typeof InterpolationMethod],
       extrapolationValue, outId);
   return out;

@@ -125,13 +125,10 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
-                   int* images_strides_ptr, int* images_shape_ptr,
-                   int images_shape_length, int* crop_size_ptr,
-                   InterpolationMethod method, float extrapolation_value,
-                   int out_id) {
+                   int* images_shape_ptr, int images_shape_length,
+                   int* crop_size_ptr, InterpolationMethod method,
+                   float extrapolation_value, int out_id) {
   const int images_strides_length = 3;
-  auto images_strides = std::vector<int>(
-      images_strides_ptr, images_strides_ptr + images_strides_length);
   const std::vector<int>& images_shape = std::vector<int>(
       images_shape_ptr, images_shape_ptr + images_shape_length);
   const int crop_size_length = 2;
@@ -141,6 +138,8 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   const std::vector<int>& output_shape = {num_boxes, crop_size[0], crop_size[1],
                                           images_shape[3]};
   const auto output_strides = util::compute_strides(output_shape);
+
+  const auto images_strides = util::compute_strides(images_shape);
 
   auto& images_info = backend::get_tensor_info(images_id);
   auto& boxes_info = backend::get_tensor_info(boxes_id);
