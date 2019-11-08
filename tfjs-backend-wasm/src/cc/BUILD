@@ -56,6 +56,13 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "transpose_impl",
+  hdrs = ["transpose_impl.h"],
+  srcs = ["transpose_impl.cc"],
+  deps = [":util"],
+)
+
+tfjs_cc_library(
   name = "all_kernels",
   deps = [
     ":Abs",
@@ -135,6 +142,7 @@ tfjs_cc_library(
   hdrs = ["kernels/Conv2D.h"],
   deps = [
     ":backend",
+    ":transpose_impl",
     ":util",
   ],
 )
@@ -203,6 +211,7 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":util",
+    ":transpose_impl",
   ],
 )
 

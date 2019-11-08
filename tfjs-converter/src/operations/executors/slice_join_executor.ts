@@ -30,9 +30,11 @@ export let executeOp: InternalOpExecutor = (node: Node,
   switch (node.op) {
     case 'ConcatV2':
     case 'Concat': {
+      const n = getParamValue('n', node, tensorMap, context) as number;
       const axis = getParamValue('axis', node, tensorMap, context) as number;
-      const inputs =
+      let inputs =
           getParamValue('tensors', node, tensorMap, context) as tfc.Tensor[];
+      inputs = inputs.slice(0, n);
       return [tfc.concat(inputs, axis)];
     }
     case 'GatherV2':
