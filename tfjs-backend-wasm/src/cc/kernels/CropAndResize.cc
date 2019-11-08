@@ -16,8 +16,12 @@
 #include <emscripten.h>
 #endif
 
+#include <vector>
+
 #include <cmath>
 #include "src/cc/backend.h"
+
+#include "src/cc/util.h"
 
 // Must match enum in CropAndResize.ts
 enum InterpolationMethod {
@@ -122,19 +126,20 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
                    int* images_strides_ptr, int images_strides_length,
-                   int* output_strides_ptr, int output_strides_length,
                    int* images_shape_ptr, int images_shape_length,
                    int* crop_size_ptr, int crop_size_length,
                    InterpolationMethod method, float extrapolation_value,
                    int out_id) {
-  const std::vector<int>& images_strides = std::vector<int>(
+  auto images_strides = std::vector<int>(
       images_strides_ptr, images_strides_ptr + images_strides_length);
-  const std::vector<int>& output_strides = std::vector<int>(
-      output_strides_ptr, output_strides_ptr + output_strides_length);
   const std::vector<int>& images_shape = std::vector<int>(
       images_shape_ptr, images_shape_ptr + images_shape_length);
   const std::vector<int>& crop_size =
       std::vector<int>(crop_size_ptr, crop_size_ptr + crop_size_length);
+
+  const std::vector<int>& output_shape = {num_boxes, crop_size[0], crop_size[1],
+                                          images_shape[3]};
+  const auto output_strides = util::compute_strides(output_shape);
 
   auto& images_info = backend::get_tensor_info(images_id);
   auto& boxes_info = backend::get_tensor_info(boxes_id);

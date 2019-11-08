@@ -40,7 +40,6 @@ enum InterpolationMethod {
 let wasmCropAndResize: (
     imagesId: number, boxesId: number, boxIndId: number, numBoxes: number,
     imageStrides: Uint8Array, imageStridesLength: number,
-    outputStrides: Uint8Array, outputStridesLength: number,
     imagesShape: Uint8Array, imagesShapeLength: number, cropSize: Uint8Array,
     cropSizeLength: number, method: number, extrapolationValue: number,
     outId: number) => void;
@@ -53,8 +52,6 @@ function setup(backend: BackendWasm): void {
     'number',  // numBoxes
     'array',   // image strides
     'number',  // image strides length
-    'array',   // output strides
-    'number',  // output strides length
     'array',   // images shape
     'number',  // images shape length
     'array',   // cropSize
@@ -87,19 +84,15 @@ function cropAndResize(args: {
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   const imageStrides = util.computeStrides(images.shape);
-  const outputStrides = util.computeStrides(outShape);
 
   const imageStridesBytes = new Uint8Array(new Int32Array(imageStrides).buffer);
-  const outputStridesBytes =
-      new Uint8Array(new Int32Array(outputStrides).buffer);
   const imagesShapeBytes = new Uint8Array(new Int32Array(images.shape).buffer);
   const cropSizeBytes =
       new Uint8Array(new Int32Array(cropSize as [number, number]).buffer);
 
   wasmCropAndResize(
       imagesId, boxesId, boxIndId, numBoxes, imageStridesBytes,
-      imageStrides.length, outputStridesBytes, outputStrides.length,
-      imagesShapeBytes, images.shape.length, cropSizeBytes,
+      imageStrides.length, imagesShapeBytes, images.shape.length, cropSizeBytes,
       (cropSize as [number, number]).length,
       InterpolationMethod[method as {} as keyof typeof InterpolationMethod],
       extrapolationValue, outId);
