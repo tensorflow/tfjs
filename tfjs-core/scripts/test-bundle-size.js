@@ -19,7 +19,7 @@ const {exec} = require('../../scripts/test-util');
 const {showDiff, getFileSizeBytes} = require('../../scripts/bundle-size-util');
 
 // Get the bundle sizes from this change.
-exec(`yarn rollup -c --ci`, {silent: true});
+exec(`yarn rollup -c --ci`, {silent: false});
 const minSize = getFileSizeBytes('dist/tf-core.min.js');
 
 // Clone master and get the bundle size from master.
