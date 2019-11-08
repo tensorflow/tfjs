@@ -192,10 +192,9 @@ describe('SavedModel', () => {
     const inputAndOutputNodeNames = getInputAndOutputNodeNameFromMetaGraphInfo(
         modelInfo, ['serve'], 'serving_default');
     expect(inputAndOutputNodeNames.length).toBe(2);
-    expect(inputAndOutputNodeNames[0].length).toBe(1);
-    expect(inputAndOutputNodeNames[0][0]).toBe('serving_default_x:0');
-    expect(inputAndOutputNodeNames[1].length).toBe(1);
-    expect(inputAndOutputNodeNames[1][0]).toBe('StatefulPartitionedCall:0');
+    expect(inputAndOutputNodeNames[0]['x']).toBe('serving_default_x:0');
+    expect(inputAndOutputNodeNames[1]['output_0'])
+        .toBe('StatefulPartitionedCall:0');
   });
 
   it('load TFSavedModel', async () => {
@@ -355,14 +354,13 @@ describe('SavedModel', () => {
     model.dispose();
   });
 
-  it('execute model with tensor array as input', async () => {
+  it('execute model with tensor map as input', async () => {
     const model = await tf.node.loadSavedModel(
         './test_objects/saved_model/times_three_float', ['serve'],
         'serving_default');
     const input = tf.tensor1d([1.0, 2, 3]);
-    const outputMap =
-        model.predict({'serving_default_x:0': input}) as NamedTensorMap;
-    const output = outputMap['StatefulPartitionedCall:0'];
+    const outputMap = model.predict({'x': input}) as NamedTensorMap;
+    const output = outputMap['output_0'];
     expect(output.shape).toEqual(input.shape);
     expect(output.dtype).toBe(input.dtype);
     expect(output.dtype).toBe('float32');

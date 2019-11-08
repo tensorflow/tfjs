@@ -170,20 +170,19 @@ export function getInputAndOutputNodeNameFromMetaGraphInfo(
       if (metaGraphInfo.signatureDefs[signature] == null) {
         throw new Error('The SavedModel does not have signature: ' + signature);
       }
-      const inputNodeNames: string[] = [];
-      const outputNodeNames: string[] = [];
+      const inputNodeNames: {[key: string]: string} = {};
+      const outputNodeNames: {[key: string]: string} = {};
       for (const signatureDef of Object.keys(metaGraphInfo.signatureDefs)) {
         if (signatureDef === signature) {
           for (const tensorName of Object.keys(
                    metaGraphInfo.signatureDefs[signature].inputs)) {
-            inputNodeNames.push(
-                metaGraphInfo.signatureDefs[signature].inputs[tensorName].name);
+            inputNodeNames[tensorName] =
+                metaGraphInfo.signatureDefs[signature].inputs[tensorName].name;
           }
           for (const tensorName of Object.keys(
                    metaGraphInfo.signatureDefs[signature].outputs)) {
-            outputNodeNames.push(metaGraphInfo.signatureDefs[signature]
-                                     .outputs[tensorName]
-                                     .name);
+            outputNodeNames[tensorName] =
+                metaGraphInfo.signatureDefs[signature].outputs[tensorName].name;
           }
         }
       }
@@ -205,7 +204,8 @@ export class TFSavedModel implements InferenceModel {
 
   constructor(
       private sessionId: number, private jsid: number,
-      private inputNodeNames: string[], private outputNodeNames: string[],
+      private inputNodeNames: {[key: string]: string},
+      private outputNodeNames: {[key: string]: string},
       private backend: NodeJSKernelBackend) {}
 
   /**
@@ -275,28 +275,38 @@ export class TFSavedModel implements InferenceModel {
       if (inputs instanceof Tensor) {
         inputTensors.push(inputs);
         return this.backend.runSavedModel(
-            this.sessionId, inputTensors, this.inputNodeNames.join(),
-            this.outputNodeNames.join())[0];
+            this.sessionId, inputTensors,
+            Object.values(this.inputNodeNames).join(),
+            Object.values(this.outputNodeNames).join())[0];
       } else if (Array.isArray(inputs)) {
         inputTensors = inputs;
         return this.backend.runSavedModel(
-            this.sessionId, inputTensors, this.inputNodeNames.join(),
-            this.outputNodeNames.join());
+            this.sessionId, inputTensors,
+            Object.values(this.inputNodeNames).join(),
+            Object.values(this.outputNodeNames).join());
       } else {
-        for (let i = 0; i < this.inputNodeNames.length; i++) {
-          inputTensors.push(inputs[this.inputNodeNames[i]]);
+        const inputTensorNames = Object.keys(this.inputNodeNames);
+        const inputNodeNamesArray = [];
+        for (let i = 0; i < inputTensorNames.length; i++) {
+          inputTensors.push(inputs[inputTensorNames[i]]);
+          inputNodeNamesArray.push(this.inputNodeNames[inputTensorNames[i]]);
+        }
+        const outputTensorNames = Object.keys(this.outputNodeNames);
+        const outputNodeNamesArray = [];
+        for (let i = 0; i < outputTensorNames.length; i++) {
+          outputNodeNamesArray.push(this.outputNodeNames[outputTensorNames[i]]);
         }
         const outputTensors = this.backend.runSavedModel(
-            this.sessionId, inputTensors, this.inputNodeNames.join(),
-            this.outputNodeNames.join());
+            this.sessionId, inputTensors, inputNodeNamesArray.join(),
+            outputNodeNamesArray.join());
         util.assert(
-            outputTensors.length === this.outputNodeNames.length,
+            outputTensors.length === outputNodeNamesArray.length,
             () => 'Output tensors do not match output node names, ' +
                 `receive ${outputTensors.length}) output tensors but ` +
                 `there are ${this.outputNodeNames.length} output nodes.`);
         const outputMap: NamedTensorMap = {};
-        for (let i = 0; i < this.outputNodeNames.length; i++) {
-          outputMap[this.outputNodeNames[i]] = outputTensors[i];
+        for (let i = 0; i < outputTensorNames.length; i++) {
+          outputMap[outputTensorNames[i]] = outputTensors[i];
         }
         return outputMap;
       }
