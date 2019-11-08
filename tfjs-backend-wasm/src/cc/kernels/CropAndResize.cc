@@ -59,25 +59,25 @@ void interpolate_bilinear(T* out_buf_ptr, const T* images_buf,
     for (int c = 0; c < num_channels; ++c) {
       int ind = c + left_ind * images_strides[2] + top_ind * images_strides[1] +
                 box_ind;
-      float top_left = images_buf[ind];
+      const float top_left = images_buf[ind];
 
       ind = c + right_ind * images_strides[2] + top_ind * images_strides[1] +
             box_ind;
 
-      float top_right = images_buf[ind];
+      const float top_right = images_buf[ind];
 
       ind = c + left_ind * images_strides[2] + bottom_ind * images_strides[1] +
             box_ind;
 
-      float bottom_left = images_buf[ind];
+      const float bottom_left = images_buf[ind];
 
       ind = c + right_ind * images_strides[2] + bottom_ind * images_strides[1] +
             box_ind;
 
-      float bottom_right = images_buf[ind];
+      const float bottom_right = images_buf[ind];
 
-      float top = top_left + (top_right - top_left) * x_lerp;
-      float bottom = bottom_left + (bottom_right - bottom_left) * x_lerp;
+      const float top = top_left + (top_right - top_left) * x_lerp;
+      const float bottom = bottom_left + (bottom_right - bottom_left) * x_lerp;
 
       *out_buf_ptr = top + ((bottom - top) * y_lerp);
       out_buf_ptr++;
@@ -92,8 +92,8 @@ void interpolate_nearest(T* out_buf_ptr, const T* images_buf,
                          float extrapolation_value, int box_ind, float y_ind,
                          float width_scale, float x1, float x2) {
   for (int x = 0; x < crop_width; ++x) {
-    float x_ind = (crop_width > 1) ? x1 * image_width_m1 + x * width_scale
-                                   : 0.5 * (x1 + x2) * image_width_m1;
+    const float x_ind = (crop_width > 1) ? x1 * image_width_m1 + x * width_scale
+                                         : 0.5 * (x1 + x2) * image_width_m1;
 
     if (x_ind < 0 || x_ind > image_width - 1) {
       for (int c = 0; c < num_channels; ++c) {
@@ -106,8 +106,8 @@ void interpolate_nearest(T* out_buf_ptr, const T* images_buf,
     float closest_x = round(x_ind);
     float closest_y = round(y_ind);
     for (int c = 0; c < num_channels; ++c) {
-      int in_ind = c + closest_x * images_strides[2] +
-                   closest_y * images_strides[1] + box_ind;
+      const int in_ind = c + closest_x * images_strides[2] +
+                         closest_y * images_strides[1] + box_ind;
       *out_buf_ptr = images_buf[in_ind];
       out_buf_ptr++;
     }
@@ -143,24 +143,24 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   auto& out_info = backend::get_tensor_info_out(out_id);
 
   const float* images_buf = images_info.f32();
-  int images_size = images_info.size;
+  const int images_size = images_info.size;
 
   const float* boxes_buf = boxes_info.f32();
-  int boxes_size = boxes_info.size;
+  const int boxes_size = boxes_info.size;
 
   const int* box_ind_buf = box_ind_info.i32();
-  int box_ind_size = box_ind_info.size;
+  const int box_ind_size = box_ind_info.size;
 
   float* out_buf = out_info.f32_write();
-  int out_size = out_info.size;
+  const int out_size = out_info.size;
 
-  int batch = images_shape[0];
-  int image_height = images_shape[1];
-  int image_width = images_shape[2];
-  int num_channels = images_shape[3];
+  const int batch = images_shape[0];
+  const int image_height = images_shape[1];
+  const int image_width = images_shape[2];
+  const int num_channels = images_shape[3];
 
-  int image_height_m1 = image_height - 1;
-  int image_width_m1 = image_width - 1;
+  const int image_height_m1 = image_height - 1;
+  const int image_width_m1 = image_width - 1;
 
   for (int b = 0; b < num_boxes; ++b) {
     float y1 = *boxes_buf;
