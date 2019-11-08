@@ -36,7 +36,7 @@ const TEST_FILTERS: TestFilter[] = [
       'complex',                         // Complex numbers not supported yet
     ]
   },
-  {include: 'cropAndResize', excludes: []},
+  {include: 'cropAndResize'},
   {
     include: 'matmul ',
     excludes: [
