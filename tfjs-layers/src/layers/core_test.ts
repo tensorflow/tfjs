@@ -399,6 +399,14 @@ describe('Flatten Layer: Symbolic', () => {
     const x = new tfl.SymbolicTensor('float32', [8, 4, null], null, [], null);
     expect(() => flattenLayer.apply(x)).toThrowError(/not fully defined/);
   });
+  it('Serialization round trip', () => {
+    const layer = tfl.layers.flatten({dataFormat: 'channelsFirst'});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.flatten(tsConfig);
+    expect(layerPrime.getConfig().dataFormat).toEqual('channelsFirst');
+  });
 });
 
 describeMathCPUAndGPU('Flatten Layer: Tensor', () => {
@@ -425,6 +433,19 @@ describeMathCPUAndGPU('Flatten Layer: Tensor', () => {
         [2, 2, 2, 2]);
     const expectedOutput = tensor2d(
         [10, 20, 30, 40, -10, -20, -30, -40, 1, 2, 3, 4, -1, -2, -3, -4],
+        [2, 8]);
+    expectTensorsClose(flattenLayer.apply(x, null) as Tensor, expectedOutput);
+  });
+  it('Flattens Tensor4D, channelFirst', () => {
+    const flattenLayer = tfl.layers.flatten({dataFormat: 'channelsFirst'});
+    const x = tensor4d(
+        [
+          [[[10, 20], [30, 40]], [[-10, -20], [-30, -40]]],
+          [[[1, 2], [3, 4]], [[-1, -2], [-3, -4]]]
+        ],
+        [2, 2, 2, 2]);
+    const expectedOutput = tensor2d(
+        [10, -10, 20, -20, 30, -30, 40, -40, 1, -1, 2, -2, 3, -3, 4, -4],
         [2, 8]);
     expectTensorsClose(flattenLayer.apply(x, null) as Tensor, expectedOutput);
   });
