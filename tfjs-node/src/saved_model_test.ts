@@ -374,7 +374,7 @@ describe('SavedModel', () => {
           './test_objects/saved_model/times_three_float', ['serve'],
           'serving_default');
       const input = tf.tensor1d([1.0, 2, 3]);
-      model.predict({'xyz': input}) as NamedTensorMap;
+      model.predict({'xyz': input});
       done.fail();
     } catch (error) {
       expect(error.message)
