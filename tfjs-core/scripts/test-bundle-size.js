@@ -32,7 +32,7 @@ exec(
 
 shell.cd(dirName);
 shell.cd(coreDirName);
-exec(`yarn && yarn rollup -c --ci`, {silent: true});
+exec(`yarn && yarn rollup -c --ci`, {silent: false});
 
 const masterMinSize = getFileSizeBytes('dist/tf-core.min.js');
 
