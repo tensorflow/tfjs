@@ -252,7 +252,10 @@ export class TFSavedModel implements InferenceModel {
    * @param input The input tensors, when there is single input for the model,
    * inputs param should be a Tensor. For models with multiple inputs, inputs
    * params should be in either Tensor[] if the input order is fixed, or
-   * otherwise NamedTensorMap format.
+   * otherwise NamedTensorMap format. The keys in the NamedTensorMap are the
+   * name of input tensors in SavedModel signatureDef. It can be found through
+   * `tf.node.getMetaGraphsFromSavedModel()`.
+   *
    * For batch inference execution, the tensors for each input need to be
    * concatenated together. For example with mobilenet, the required input shape
    * is [1, 244, 244, 3], which represents the [batch, height, width, channel].
@@ -286,6 +289,13 @@ export class TFSavedModel implements InferenceModel {
             Object.values(this.outputNodeNames).join());
       } else {
         const inputTensorNames = Object.keys(this.inputNodeNames);
+        const providedInputNames = Object.keys(inputs);
+        if (!stringArraysHaveSameElements(
+                inputTensorNames, providedInputNames)) {
+          throw new Error(`The model signatureDef input names are ${
+              inputTensorNames.join()}, however the provided input names are ${
+              providedInputNames.join()}.`);
+        }
         const inputNodeNamesArray = [];
         for (let i = 0; i < inputTensorNames.length; i++) {
           inputTensors.push(inputs[inputTensorNames[i]]);

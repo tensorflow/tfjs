@@ -1089,7 +1089,8 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   if (input_op_name_array.size() != num_input_ids) {
-    NAPI_THROW_ERROR(env, "Input op names and input tensors do not match.");
+    NAPI_THROW_ERROR(env,
+                     "Input op names and input tensors length does not match.");
     return nullptr;
   }
 
@@ -1129,7 +1130,13 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     char name[strlen(input_op_name_array[i])];
     strcpy(name, input_op_name_array[i]);
     char *input_op_name = strtok(name, ":");
-    int input_tensor_index = atoi(strtok(NULL, ":"));
+    char *input_op_index = strtok(NULL, ":");
+    int input_tensor_index;
+    if (strlen(input_op_index) == 0) {
+      input_tensor_index = 0;
+    } else {
+      input_tensor_index = atoi(input_op_index);
+    }
 
     // Add input op into input ops list.
     TF_Operation *input_op =
@@ -1149,7 +1156,13 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     char name[strlen(output_op_name_array[i])];
     strcpy(name, output_op_name_array[i]);
     char *output_op_name = strtok(name, ":");
-    int output_tensor_index = atoi(strtok(NULL, ":"));
+    char *output_op_index = strtok(NULL, ":");
+    int output_tensor_index;
+    if (strlen(output_op_index) == 0) {
+      output_tensor_index = 0;
+    } else {
+      output_tensor_index = atoi(output_op_index);
+    }
 
     TF_Operation *output_op = TF_GraphOperationByName(
         savedmodel_entry->second.second, output_op_name);

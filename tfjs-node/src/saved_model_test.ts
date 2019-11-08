@@ -321,7 +321,7 @@ describe('SavedModel', () => {
       done.fail();
     } catch (error) {
       expect(error.message)
-          .toBe('Input op names and input tensors do not match.');
+          .toBe('Input op names and input tensors length does not match.');
       done();
     }
   });
@@ -366,6 +366,23 @@ describe('SavedModel', () => {
     expect(output.dtype).toBe('float32');
     test_util.expectArraysClose(await output.data(), [3.0, 6.0, 9.0]);
     model.dispose();
+  });
+
+  it('execute model with wrong tensor name', async done => {
+    try {
+      const model = await tf.node.loadSavedModel(
+          './test_objects/saved_model/times_three_float', ['serve'],
+          'serving_default');
+      const input = tf.tensor1d([1.0, 2, 3]);
+      model.predict({'xyz': input}) as NamedTensorMap;
+      done.fail();
+    } catch (error) {
+      expect(error.message)
+          .toBe(
+              'The model signatureDef input names are x, however ' +
+              'the provided input names are xyz.');
+      done();
+    }
   });
 
   it('execute model int times two', async () => {
