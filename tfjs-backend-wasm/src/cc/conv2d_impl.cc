@@ -80,7 +80,7 @@ void delete_xnn_operators(int tensor_id) {
 }
 
 void associate_tensor_with_key(
-    const int tensor_id, OperatorCacheKey& cache_key,
+    const int tensor_id, const OperatorCacheKey& cache_key,
     std::unordered_map<int, std::vector<OperatorCacheKey>>&
         operator_cache_key_map) {
   auto cache_keys_idx = operator_cache_key_map.find(tensor_id);
