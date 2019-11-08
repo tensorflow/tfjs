@@ -21,13 +21,13 @@
 // due to the pre-bundling of dependencies that it must do.
 // tslint:disable-next-line:no-require-imports
 const jasmineRequire = require('jasmine-core/lib/jasmine-core/jasmine.js');
-const jasmine = jasmineRequire.core(jasmineRequire);
+const jasmineCore = jasmineRequire.core(jasmineRequire);
 import {KernelBackend} from './backends/backend';
 import {ENGINE} from './engine';
 import {env, Environment, Flags} from './environment';
 
 Error.stackTraceLimit = Infinity;
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+jasmineCore.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
 export type Constraints = {
   flags?: Flags,
@@ -88,6 +88,60 @@ export function envSatisfiesConstraints(
   return true;
 }
 
+export interface TestFilter {
+  include?: string;
+  startsWith?: string;
+  excludes?: string[];
+}
+
+export function setupTestFilters(
+    testFilters: TestFilter[], customInclude: (name: string) => boolean) {
+  const env = jasmine.getEnv();
+  // Account for --grep flag passed to karma by saving the existing specFilter.
+  const grepFilter = env.specFilter;
+
+  /**
+   * Filter method that returns boolean, if a given test should run or be
+   * ignored based on its name. The exclude list has priority over the
+   * include list. Thus, if a test matches both the exclude and the include
+   * list, it will be exluded.
+   */
+  // tslint:disable-next-line: no-any
+  env.specFilter = (spec: any) => {
+    // Filter out tests if the --grep flag is passed.
+    if (!grepFilter(spec)) {
+      return false;
+    }
+
+    const name = spec.getFullName();
+
+    if (customInclude(name)) {
+      return true;
+    }
+
+    // Include a describeWithFlags() test from tfjs-core only if the test is
+    // in the include list.
+    for (let i = 0; i < testFilters.length; ++i) {
+      const testFilter = testFilters[i];
+      if ((testFilter.include != null &&
+           name.indexOf(testFilter.include) > -1) ||
+          (testFilter.startsWith != null &&
+           name.startsWith(testFilter.startsWith))) {
+        if (testFilter.excludes != null) {
+          for (let j = 0; j < testFilter.excludes.length; j++) {
+            if (name.indexOf(testFilter.excludes[j]) > -1) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+    }
+    // Otherwise ignore the test.
+    return false;
+  };
+}
+
 export function parseTestEnvFromKarmaFlags(
     args: string[], registeredTestEnvs: TestEnv[]): TestEnv {
   let flags: Flags;
@@ -143,7 +197,7 @@ export function describeWithFlags(
     env().setFlags(testEnv.flags);
     if (envSatisfiesConstraints(env(), testEnv, constraints)) {
       const testName =
-          name + ' ' + testEnv.name + ' ' + JSON.stringify(testEnv.flags);
+          name + ' ' + testEnv.name + ' ' + JSON.stringify(testEnv.flags || {});
       executeTests(testName, tests, testEnv);
     }
   });

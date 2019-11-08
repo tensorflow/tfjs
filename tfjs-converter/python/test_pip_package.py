@@ -560,6 +560,12 @@ class APIAndShellTest(tf.test.TestCase):
     with open(os.path.join(output_dir, 'model.json'), 'rt') as f:
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
+    self.assertIsNot(model_json['modelTopology']['versions'], None)
+    signature = model_json['signature']
+    self.assertIsNot(signature, None)
+    # frozen model signature has no inputs
+    self.assertIsNot(signature['outputs'], None)
+
     weights_manifest = model_json['weightsManifest']
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],

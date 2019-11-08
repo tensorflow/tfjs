@@ -56,23 +56,52 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "transpose_impl",
+  hdrs = ["transpose_impl.h"],
+  srcs = ["transpose_impl.cc"],
+  deps = [":util"],
+)
+
+tfjs_cc_library(
   name = "all_kernels",
   deps = [
     ":Abs",
     ":Add",
     ":BatchMatMul",
+    ":Conv2D",
     ":Div",
     ":Mul",
     ":Prelu",
     ":FusedBatchNorm",
+    ":Max",
+    ":Min",
     ":Sigmoid",
     ":Sub",
+    ":Transpose",
   ]
 )
 
 tfjs_cc_library(
   name = "FusedBatchNorm",
   srcs = ["kernels/FusedBatchNorm.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Max",
+  srcs = ["kernels/Max.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Min",
+  srcs = ["kernels/Min.cc"],
   deps = [
     ":backend",
     ":util",
@@ -103,6 +132,17 @@ tfjs_cc_library(
   srcs = ["kernels/BatchMatMul.cc"],
   deps = [
     ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Conv2D",
+  srcs = ["kernels/Conv2D.cc"],
+  hdrs = ["kernels/Conv2D.h"],
+  deps = [
+    ":backend",
+    ":transpose_impl",
     ":util",
   ],
 )
@@ -166,8 +206,19 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "Transpose",
+  srcs = ["kernels/Transpose.cc"],
+  deps = [
+    ":backend",
+    ":util",
+    ":transpose_impl",
+  ],
+)
+
+tfjs_cc_library(
   name = "util",
-  srcs = ["util.h"],
+  hdrs = ["util.h"],
+  srcs = ["util.cc"],
 )
 
 test_suite(
@@ -175,10 +226,11 @@ test_suite(
 )
 
 tfjs_unit_test(
-  name = "backend_test",
-  srcs = ["backend_test.cc"],
+  name = "backend_tests",
+  srcs = glob(["*_test.cc"]),
   deps = [
     ":backend",
+    ":util",
     ":Prelu",
   ]
 )
@@ -188,5 +240,13 @@ tfjs_unit_test(
   srcs = ["kernels/Prelu_test.cc"],
   deps = [
     ":Prelu",
+  ]
+)
+
+tfjs_unit_test(
+  name = "Conv2D_test",
+  srcs = ["kernels/Conv2D_test.cc"],
+  deps = [
+    ":Conv2D",
   ]
 )

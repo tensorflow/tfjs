@@ -227,7 +227,7 @@ describe('Backend registration', () => {
     });
     tf.setBackend('async');
     await tf.ready();
-    expect(() => tf.square(2)).toThrowError(/Not yet implemented/);
+    expect(() => tf.square(2)).toThrowError(/'write' not yet implemented/);
   });
 
   it('Registering async2 (higher priority) fails, async1 becomes active',

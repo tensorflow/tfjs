@@ -14,6 +14,14 @@
         "name": "axis",
         "type": "number"
       }
+    ],
+    "attrs": [
+      {
+        "tfName": "N",
+        "name": "n",
+        "type": "number",
+        "defaultValue": 2
+      }
     ]
   },
   {
@@ -30,6 +38,14 @@
         "start": 0,
         "name": "axis",
         "type": "number"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "N",
+        "name": "n",
+        "type": "number",
+        "defaultValue": 2
       }
     ]
   },

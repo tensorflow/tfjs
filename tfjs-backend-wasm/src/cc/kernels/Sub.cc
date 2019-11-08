@@ -35,9 +35,9 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Sub(int a_id, int b_id, int out_id) {
-  const auto a_info = backend::get_tensor_info(a_id);
-  switch (a_info.dtype) {
+void Sub(const int a_id, const int b_id, const DType dtype, const int out_id) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  switch (dtype) {
     case DType::float32:
       binary_f32(a_id, b_id, out_id, sub<float>);
       break;
@@ -49,7 +49,7 @@ void Sub(int a_id, int b_id, int out_id) {
       break;
     default:
       util::warn("Sub for tensor ids %d and %d failed. Unknown dtype %d", a_id,
-                 b_id, a_info.dtype);
+                 b_id, dtype);
   }
 }
 
