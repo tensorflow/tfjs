@@ -383,17 +383,12 @@ function mapTFDtypeToJSDtype(tfDtype: string): DataType {
   switch (tfDtype) {
     case 'DT_FLOAT':
     case 'DT_DOUBLE':
-    case 'DT_BFLOAT16':
       return 'float32';
     case 'DT_INT32':
     case 'DT_UINT8':
     case 'DT_INT16':
     case 'DT_INT8':
     case 'DT_INT64':
-    case 'DT_QINT8':
-    case 'DT_QUINT8':
-    case 'DT_QINT32':
-    case 'DT_QINT16':
     case 'DT_UINT16':
     case 'DT_UINT32':
     case 'DT_UINT64':
@@ -405,5 +400,6 @@ function mapTFDtypeToJSDtype(tfDtype: string): DataType {
     case 'DT_STRING':
       return 'string';
     default:
+      throw new Error('Unsupported tensor DataType: ' + tfDtype);
   }
 }
