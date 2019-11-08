@@ -67,7 +67,8 @@ function fusedConv2d(args: {
   const {convInfo, activation} = attrs;
   if (activation !== 'linear') {
     throw new Error(
-        `${activation} activation not yet supported for FusedConv2D`);
+        `${activation} activation not yet supported for FusedConv2D ` +
+        `in the wasm backend.`);
   }
 
   const {x, filter, bias} = inputs;
