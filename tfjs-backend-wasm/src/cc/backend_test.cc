@@ -18,7 +18,7 @@
 #include "src/cc/kernels/Prelu.h"
 
 TEST(BACKEND, register_tensor) {
-  tfjs::wasm::init();
+  tfjs::wasm::init(0);
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
@@ -55,7 +55,7 @@ void fake_dispose_tensor_callback(int tensor_id) {
   }
 }
 TEST(BACKEND, disposal_callback) {
-  tfjs::wasm::init();
+  tfjs::wasm::init(0);
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
@@ -93,7 +93,7 @@ TEST(BACKEND, disposal_callback) {
 }
 
 TEST(BACKEND, dispose_backend) {
-  tfjs::wasm::init();
+  tfjs::wasm::init(0);
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 

@@ -71,7 +71,7 @@ void Prelu(const int x_id, const int weights_id, const int out_id) {
         xnn_create_prelu_nc_f32(channels, strides, strides, weights_buf,
                                 output_min, output_max, flags, &prelu_op);
     if (status != xnn_status_success) {
-      util::warn(
+      tfjs::backend::throw_js_exception(
           "XNN status for xnn_create_prelu_nc_f32 is not successful. Got "
           "status %d. Use -c dbg to see XNN logs.",
           status);
@@ -90,7 +90,7 @@ void Prelu(const int x_id, const int weights_id, const int out_id) {
   xnn_status status = xnn_setup_prelu_nc_f32(
       prelu_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
   if (status != xnn_status_success) {
-    util::warn(
+    tfjs::backend::throw_js_exception(
         "XNN status for xnn_setup_prelu_nc_f32 is not successful. Got "
         "status %d. Use -c dbg to see XNN logs.",
         status);

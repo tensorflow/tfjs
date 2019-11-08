@@ -39,7 +39,19 @@ export class BackendWasm extends KernelBackend {
 
   constructor(public wasm: BackendWasmModule) {
     super();
-    this.wasm.tfjs.init();
+    const newFuncPtr =
+        this.wasm.addFunction((strOffset: number, strSize: number) => {
+          // Convert the ASCII error string back to a JavaScript string to throw
+          // an error.
+          console.log(strOffset, 'offset');
+          const heapValue =
+              this.wasm.HEAPU8.slice(strOffset, strOffset + strSize);
+          const str =
+              Array.from(heapValue).map(x => String.fromCharCode(x)).join('');
+          throw new Error(str);
+        }, 'vii');
+    this.wasm.tfjs.init(newFuncPtr);
+
     this.dataIdMap = new DataStorage(this, engine());
   }
 
@@ -163,7 +175,11 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
-      init: wasm.cwrap('init', null, []),
+      init: wasm.cwrap(
+          'init', null,
+          [
+            'number',  // throwFnPointer
+          ]),
       registerTensor: wasm.cwrap(
           'register_tensor', null,
           [

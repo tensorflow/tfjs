@@ -37,6 +37,7 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 void Add(const int a_id, const int b_id, const DType dtype, const int out_id) {
   auto& a_info = backend::get_tensor_info(a_id);
+
   switch (dtype) {
     case DType::float32:
       binary_f32(a_id, b_id, out_id, add<float>);
@@ -48,8 +49,9 @@ void Add(const int a_id, const int b_id, const DType dtype, const int out_id) {
       binary_bool(a_id, b_id, out_id, add<bool>);
       break;
     default:
-      util::warn("Add for tensor ids %d and %d failed. Unknown dtype %d", a_id,
-                 b_id, dtype);
+      tfjs::backend::throw_js_exception(
+          "Add for tensor ids %d and %d failed. Unknown dtype %d", a_id, b_id,
+          dtype);
   }
 }
 

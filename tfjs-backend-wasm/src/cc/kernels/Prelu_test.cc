@@ -18,7 +18,7 @@
 #include "src/cc/kernels/Prelu.h"
 
 TEST(PRELU, xnn_operator_lifetime) {
-  tfjs::wasm::init();
+  tfjs::wasm::init(0);
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 

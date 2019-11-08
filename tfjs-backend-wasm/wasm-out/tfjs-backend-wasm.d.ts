@@ -17,9 +17,13 @@
 
 export interface BackendWasmModule extends EmscriptenModule {
   onRuntimeInitialized: () => void;
+  callMain: (fns: string[]) => void;
+  addFunction:
+      (fn: (strOffset: number, strSize: number) => void,
+       signature: string) => number;
   // Using the tfjs namespace to avoid conflict with emscripten's API.
   tfjs: {
-    init(): void,
+    init(throwFnPointer: number): void,
     registerTensor(dataId: number, size: number, memoryOffset: number): void,
     // Disposes the data behind the data bucket.
     disposeData(dataId: number): void,

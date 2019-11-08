@@ -127,7 +127,7 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
         output_channels /* output_pixel_stride */, transposed_filter.data(),
         bias_buf, output_min, output_max, flags, &conv2d_op);
     if (status != xnn_status_success) {
-      util::warn(
+      tfjs::backend::throw_js_exception(
           "XNN status for xnn_create_convolution2d_nhwc_f32 is not successful. "
           "Got status %d. Use -c dbg to see XNN logs.",
           status);
@@ -155,7 +155,7 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
       conv2d_op, batch_size, input_height, input_width, x_buf, out_buf,
       nullptr /* thread pool */);
   if (status != xnn_status_success) {
-    util::warn(
+    tfjs::backend::throw_js_exception(
         "XNN status for xnn_setup_convolution2d_nhwc_f32 is not successful. "
         "Got status %d. Use -c dbg to see XNN logs.",
         status);

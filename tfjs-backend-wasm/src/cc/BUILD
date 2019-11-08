@@ -22,6 +22,8 @@ cc_binary(
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
+        "-s RESERVED_FUNCTION_POINTERS=20",
+        "-s EXTRA_EXPORTED_RUNTIME_METHODS=\"[\'addFunction\', \'removeFunction\', \'cwrap\']\"",
     ],
     deps = [
         ":backend",

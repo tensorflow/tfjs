@@ -17,11 +17,14 @@
 #endif
 
 #include <xnnpack.h>
+#include <cstring>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "src/cc/backend.h"
+#include "src/cc/util.h"
 
 namespace {
 // Maps a unique tensor id to info about that tensor. The map owns all of its
@@ -32,6 +35,10 @@ std::unordered_map<int, TensorInfo> data;
 // id.
 std::unordered_map<int, std::vector<tfjs::backend::DisposeFunction>>
     disposal_callbacks;
+
+// Holds the function pointer to call back into JavaScript to throw an
+// exception.
+void (*throw_js_exception_fn)(char *str_location, int str_length);
 }  // namespace
 
 namespace tfjs {
@@ -60,6 +67,20 @@ void register_disposal_callback(const int tensor_id,
 
 const int num_tensors() { return data.size(); }
 
+void throw_js_exception(const char *format, ...) {
+  va_list args;
+  va_start(args, format);
+
+  int size = tfjs::util::buffer_size(format, args);
+
+  char *cstr = new char[size];
+  vsprintf(cstr, format, args);
+
+  throw_js_exception_fn(cstr, size);
+
+  va_end(args);
+}
+
 }  // namespace backend
 
 namespace wasm {
@@ -69,7 +90,12 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void init() { xnn_initialize(); }
+void init(int throw_js_exception_ptr) {
+  xnn_initialize();
+
+  throw_js_exception_fn =
+      reinterpret_cast<void (*)(char *, int)>(throw_js_exception_ptr);
+}
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE

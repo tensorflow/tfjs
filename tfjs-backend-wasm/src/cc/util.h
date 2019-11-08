@@ -39,12 +39,14 @@ inline void print_log(const char* format, ...) {
   va_list args;
   va_start(args, format);
   print_log(format, args);
+  va_end(args);
 }
 
 inline void print_warn(const char* format, ...) {
   va_list args;
   va_start(args, format);
   print_warn(format, args);
+  va_end(args);
 }
 
 // Logs and flushes the message to the js console (console.log).
@@ -53,6 +55,7 @@ inline void log(const char* format, ...) {
   va_start(args, format);
   print_log(format, args);
   print_log("\n");
+  va_end(args);
 }
 
 // Logs and flushes the message to the js console (console.err).
@@ -61,6 +64,7 @@ inline void warn(const char* format, ...) {
   va_start(args, format);
   print_warn(format, args);
   print_warn("\n");
+  va_end(args);
 }
 
 // Helper method to log values in a vector. Used for debugging.
@@ -80,6 +84,11 @@ inline int size_from_shape(const std::vector<int>& shape) {
     prod *= v;
   }
   return prod;
+}
+
+inline int buffer_size(const char* format, va_list args) {
+  int result = vsnprintf(NULL, 0, format, args);
+  return result;
 }
 
 // Returns the indices of an n-dim tensor given the flat offset and its strides.
