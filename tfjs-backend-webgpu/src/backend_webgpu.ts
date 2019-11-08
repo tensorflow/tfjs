@@ -58,7 +58,7 @@ type BufferInfo = {
 };
 
 type TensorInfo = {
-  values: Float32Array|Int32Array|Uint8Array,
+  values: Float32Array|Int32Array|Uint8Array|Uint8Array[],
   id: number,
   dtype: DataType,
   bufferInfo: BufferInfo
@@ -183,29 +183,44 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  register(dataId: object, shape: number[], dtype: DataType): void {
-    if (!this.tensorMap.has(dataId)) {
-      const byteSize =
-          util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
-      this.tensorMap.set(dataId, {
-        values: null,
-        id: -1,
-        dtype,
-        bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
-      });
-    }
-  }
+  // register(dataId: object, shape: number[], dtype: DataType): void {
+  //   if (!this.tensorMap.has(dataId)) {
+  //     const byteSize =
+  //         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
+  //     this.tensorMap.set(dataId, {
+  //       values: null,
+  //       id: -1,
+  //       dtype,
+  //       bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
+  //     });
+  //   }
+  // }
 
-  write(dataId: object, values: Float32Array|Int32Array|Uint8Array): void {
-    if (!this.tensorMap.has(dataId)) {
-      throw new Error(`Tensor ${dataId} was not registered!`);
-    }
+  // write(dataId: object, values: Float32Array|Int32Array|Uint8Array): void {
+  //   if (!this.tensorMap.has(dataId)) {
+  //     throw new Error(`Tensor ${dataId} was not registered!`);
+  //   }
 
-    const info = this.tensorMap.get(dataId);
-    info.values = values;
-    this.tensorMap.set(dataId, info);
+  //   const info = this.tensorMap.get(dataId);
+  //   info.values = values;
+  //   this.tensorMap.set(dataId, info);
 
-    this.maybeReleaseBuffer(dataId);
+  //   this.maybeReleaseBuffer(dataId);
+  // }
+
+  write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
+      DataId {
+    const dataId = {};
+    const byteSize =
+        util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
+
+    this.tensorMap.set(dataId, {
+      dtype,
+      values,
+      id: -1,
+      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
+    });
+    return dataId;
   }
 
   private submitQueue() {
@@ -222,7 +237,8 @@ export class WebGPUBackend extends KernelBackend {
     return this.tensorMap.get(dataId).bufferInfo.buffer;
   }
 
-  private async getBufferData(info: TensorInfo): Promise<ArrayBuffer> {
+  private async getBufferData(info: TensorInfo):
+      Promise<ArrayBuffer|Uint8Array[]> {
     if (info.values != null) {
       // Data is on the CPU.
       return info.values;
@@ -261,7 +277,7 @@ export class WebGPUBackend extends KernelBackend {
 
   // TODO: Remove once this is fixed:
   // https://github.com/tensorflow/tfjs/issues/1595
-  readSync(dataId: object): Float32Array|Int32Array|Uint8Array {
+  readSync(dataId: object): backend_util.BackendValues {
     const texData = this.tensorMap.get(dataId);
     const {values} = texData;
 
@@ -273,7 +289,7 @@ export class WebGPUBackend extends KernelBackend {
     return values;
   }
 
-  async read(dataId: object): Promise<Float32Array|Int32Array|Uint8Array> {
+  async read(dataId: object): Promise<backend_util.BackendValues> {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
