@@ -191,14 +191,14 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
                                       ? y1 * image_height + height_scale
                                       : 0.5 * (y1 + y2) * image_height_m1;
 
-      if (y_lerp_factor - long(y_lerp_factor) != 0.0) {
+      if (y_lerp_factor - floor(y_lerp_factor) != 0.0) {
         requires_interpolation = true;
       } else {
         const float x_lerp_factor = crop_width > 1
                                         ? x1 * image_width_m1 + width_scale
                                         : 0.5 * (x1 + x2) * image_width_m1;
 
-        if (x_lerp_factor - long(x_lerp_factor) != 0.0) {
+        if (x_lerp_factor - floor(x_lerp_factor) != 0.0) {
           requires_interpolation = true;
         }
       }
@@ -227,7 +227,8 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
       }
 
       if (should_memcpy) {
-        images_buf += (int(y_ind) * images_strides[1] + box_ind);
+        int y_ind_int = y_ind;
+        images_buf += (y_ind_int * images_strides[1] + box_ind);
 
         memcpy(out_buf_ptr, images_buf, sizeof(float) * crop_width);
         continue;
