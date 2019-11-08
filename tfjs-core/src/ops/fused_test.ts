@@ -614,11 +614,11 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
       pad,
       dataFormat: 'NHWC',
       dilations: [1, 1],
-      bias: tf.scalar(5)
+      bias: tf.tensor1d([5, 6])
     });
     expect(result.shape).toEqual([2, 2, 2, 2]);
     const expected =
-        [0, 7, -6, 10, -12, 13, -18, 16, -24, 19, -30, 22, -36, 25, -42, 28];
+        [0, 8, -6, 11, -12, 14, -18, 17, -24, 20, -30, 23, -36, 26, -42, 29];
 
     expectArraysClose(await result.data(), expected);
   });

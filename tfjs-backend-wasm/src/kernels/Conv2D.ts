@@ -83,7 +83,7 @@ function conv2d(args: {
 
   if (convInfo.dataFormat !== 'channelsLast') {
     throw new Error(
-        `wasm backend does not support dataFormat:'` +
+        `wasm backend Conv2D does not support dataFormat:'` +
         `${convInfo.dataFormat}'. Please use 'channelsLast'.`);
   }
 
