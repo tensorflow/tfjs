@@ -126,16 +126,12 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
                    int* images_shape_ptr, int images_shape_length,
-                   int* crop_size_ptr, InterpolationMethod method,
+                   int crop_height, int crop_width, InterpolationMethod method,
                    float extrapolation_value, int out_id) {
-  const int images_strides_length = 3;
   const std::vector<int>& images_shape = std::vector<int>(
       images_shape_ptr, images_shape_ptr + images_shape_length);
-  const int crop_size_length = 2;
-  const std::vector<int>& crop_size =
-      std::vector<int>(crop_size_ptr, crop_size_ptr + crop_size_length);
 
-  const std::vector<int>& output_shape = {num_boxes, crop_size[0], crop_size[1],
+  const std::vector<int>& output_shape = {num_boxes, crop_height, crop_width,
                                           images_shape[3]};
   const auto output_strides = util::compute_strides(output_shape);
 
@@ -162,9 +158,6 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
   int image_height = images_shape[1];
   int image_width = images_shape[2];
   int num_channels = images_shape[3];
-
-  int crop_height = crop_size[0];
-  int crop_width = crop_size[1];
 
   int image_height_m1 = image_height - 1;
   int image_width_m1 = image_width - 1;

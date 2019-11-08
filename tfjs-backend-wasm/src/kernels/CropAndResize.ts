@@ -39,8 +39,9 @@ enum InterpolationMethod {
 
 let wasmCropAndResize: (
     imagesId: number, boxesId: number, boxIndId: number, numBoxes: number,
-    imagesShape: Uint8Array, imagesShapeLength: number, cropSize: Uint8Array,
-    method: number, extrapolationValue: number, outId: number) => void;
+    imagesShape: Uint8Array, imagesShapeLength: number, cropHeight: number,
+    cropWidth: number, method: number, extrapolationValue: number,
+    outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmCropAndResize = backend.wasm.cwrap('CropAndResize', null /*void*/, [
@@ -50,7 +51,8 @@ function setup(backend: BackendWasm): void {
     'number',  // numBoxes
     'array',   // images shape
     'number',  // images shape length
-    'array',   // cropSize
+    'number',  // cropHeight
+    'number',  // cropWidth
     'number',  // method
     'number',  // extrapolation value
     'number'   // out id
@@ -79,12 +81,10 @@ function cropAndResize(args: {
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   const imagesShapeBytes = new Uint8Array(new Int32Array(images.shape).buffer);
-  const cropSizeBytes =
-      new Uint8Array(new Int32Array(cropSize as [number, number]).buffer);
 
   wasmCropAndResize(
       imagesId, boxesId, boxIndId, numBoxes, imagesShapeBytes,
-      images.shape.length, cropSizeBytes,
+      images.shape.length, cropHeight, cropWidth,
       InterpolationMethod[method as {} as keyof typeof InterpolationMethod],
       extrapolationValue, outId);
   return out;
