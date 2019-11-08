@@ -14,8 +14,11 @@
 
 #include <gtest/gtest.h>
 
+#include <string.h>
+
 #include "src/cc/backend.h"
 #include "src/cc/kernels/Prelu.h"
+#include "src/cc/util.h"
 
 TEST(BACKEND, register_tensor) {
   tfjs::wasm::init(0);
@@ -92,28 +95,22 @@ TEST(BACKEND, disposal_callback) {
   tensor_1_callback_count = 0;
 }
 
-TEST(BACKEND, dispose_backend) {
-  tfjs::wasm::init(0);
+// 100 is longer than the longest string for error messages used.
+char last_str[200];
+int last_str_size = -1;
+void throw_js_exception_fake(char* str, int str_size) {
+  strcpy(last_str, str);
+  last_str_size = str_size;
+}
 
-  ASSERT_EQ(0, tfjs::backend::num_tensors());
+TEST(BACKEND, throw_js_exception) {
+  tfjs::backend::set_throw_js_exception_fn(&throw_js_exception_fake);
 
-  const int tensor_id_0 = 0;
-  const int tensor_id_1 = 1;
-  const int size = 2;
-  float values_0[size] = {1, 2};
-  float values_1[size] = {3, 4};
+  ASSERT_STREQ(last_str, "");
+  ASSERT_EQ(last_str_size, -1);
 
-  tfjs::wasm::register_tensor(tensor_id_0, size, values_0);
-  tfjs::wasm::register_tensor(tensor_id_1, size, values_1);
-  ASSERT_EQ(2, tfjs::backend::num_tensors());
-  ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
+  tfjs::backend::throw_js_exception("fake error message %d", 22);
+  ASSERT_STREQ("fake error message 22", last_str);
 
-  // One new xnn_operator should be created for the first call to prelu.
-  tfjs::wasm::Prelu(tensor_id_0, tensor_id_0, tensor_id_1);
-  ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
-
-  // Dispose removes all tensors and xnn operators.
   tfjs::wasm::dispose();
-  ASSERT_EQ(0, tfjs::backend::num_tensors());
-  ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
 }

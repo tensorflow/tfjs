@@ -43,7 +43,6 @@ export class BackendWasm extends KernelBackend {
         this.wasm.addFunction((strOffset: number, strSize: number) => {
           // Convert the ASCII error string back to a JavaScript string to throw
           // an error.
-          console.log(strOffset, 'offset');
           const heapValue =
               this.wasm.HEAPU8.slice(strOffset, strOffset + strSize);
           const str =

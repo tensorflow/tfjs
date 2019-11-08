@@ -75,6 +75,7 @@ const int num_tensors();
 
 // Throws a JavaScript exception.
 void throw_js_exception(const char *format, ...);
+void set_throw_js_exception_fn(void (*f)(char *, int));
 
 // The number of instantiated XNN operators.
 extern int xnn_operator_count;

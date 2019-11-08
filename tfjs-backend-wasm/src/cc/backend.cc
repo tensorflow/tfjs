@@ -72,13 +72,20 @@ void throw_js_exception(const char *format, ...) {
   va_start(args, format);
 
   int size = tfjs::util::buffer_size(format, args);
+  tfjs::util::log("size %d", size);
 
-  char *cstr = new char[size];
+  char *cstr = new char[size]();
   vsprintf(cstr, format, args);
+
+  tfjs::util::log(cstr);
 
   throw_js_exception_fn(cstr, size);
 
   va_end(args);
+}
+
+void set_throw_js_exception_fn(void (*f)(char *, int)) {
+  throw_js_exception_fn = f;
 }
 
 }  // namespace backend
@@ -93,8 +100,8 @@ EMSCRIPTEN_KEEPALIVE
 void init(int throw_js_exception_ptr) {
   xnn_initialize();
 
-  throw_js_exception_fn =
-      reinterpret_cast<void (*)(char *, int)>(throw_js_exception_ptr);
+  tfjs::backend::set_throw_js_exception_fn(
+      reinterpret_cast<void (*)(char *, int)>(throw_js_exception_ptr));
 }
 
 #ifdef __EMSCRIPTEN__
