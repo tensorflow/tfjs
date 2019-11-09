@@ -540,12 +540,17 @@ export function dropout(args: DropoutLayerArgs): Layer {
  * Spatial 1D version of Dropout.
  *
  * This Layer type performs the same function as the Dropout layer, but it drops
- * entire 1D feature maps instead of individual elements. If adjacent frames
- * within feature maps are strongly correlated (as is normally the case in
- * early convolution layers), regular dropout will not regularize the activation
- * and will otherwise just result in an effective learning rate decrease. In
- * this case, `spatialDropout1d` will help promote independence among feature
- * maps and should be used instead.
+ * entire 1D feature maps instead of individual elements. For example, if an
+ * input example consists of 3 timesteps and the feature map for each timestep
+ * has a size of 4, a `spatialDropout1d` layer may zero out the feature maps
+ * of the 1st timesteps and 2nd timesteps completely while sparing all feature
+ * elements of the 3rd timestep.
+ *
+ * If adjacent frames (timesteps) are strongly correlated (as is normally the
+ * case in early convolution layers), regular dropout will not regularize the
+ * activation and will otherwise just result in merely an effective learning
+ * rate decrease. In this case, `spatialDropout1d` will help promote
+ * independence among feature maps and should be used instead.
  *
  * **Arguments:**
  *   rate: A floating-point number >=0 and <=1. Fraction of the input elements
