@@ -169,8 +169,8 @@ def _quantize_entry(entry, quantization_dtype):
         }
   """
   data = entry['data']
-  # Strings tensors are not quantized.
-  if data.dtype == 'object':
+  # Only float32 tensors are quantized.
+  if data.dtype != 'float32':
     return entry
   quantized_data, scale, min_val = quantization.quantize_weights(
       data, quantization_dtype)
