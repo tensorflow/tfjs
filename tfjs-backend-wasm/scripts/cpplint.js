@@ -29,4 +29,4 @@ console.log(result);
 const cwd = process.cwd() + '/' + CC_FILEPATH;
 
 const filenameArgument = result.join(' ');
-exec(`python tools/cpplint.py --root ${cwd} ${filenameArgument}`);
+exec(`python2 tools/cpplint.py --root ${cwd} ${filenameArgument}`);
