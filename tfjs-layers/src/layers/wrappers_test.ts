@@ -667,14 +667,14 @@ describeMathCPUAndGPU('Bidirectional with initial state', () => {
 });
 
 describeMathGPU('Bidirectional with masking', () => {
-  fit('Forward', () => {
+  it('Forward', () => {
     const model = tfl.sequential();
     model.add(tfl.layers.embedding({
       inputLength: 2,
       inputDim: 3,
       outputDim: 3,
       embeddingsInitializer: 'ones',
-      maskZero: false
+      maskZero: true
     }));
     model.add(tfl.layers.bidirectional({
       layer: tfl.layers.lstm({
@@ -689,6 +689,7 @@ describeMathGPU('Bidirectional with masking', () => {
     }));
     const xs = tensor2d([[0, 1], [0, 2], [0, 0], [1, 2]]);
     const ys = model.predict(xs) as Tensor;
-    ys.print();
+    expectTensorsClose(
+        ys, tensor2d([[6.076076], [6.076076], [0.], [7.709405]]));
   });
 });

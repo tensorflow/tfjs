@@ -435,11 +435,6 @@ export class Bidirectional extends Wrapper {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
-      if (kwargs['mask'] != null) {
-        throw new NotImplementedError(
-            'The support for masking is not implemented for ' +
-            'Bidirectional layers yet.');
-      }
       const initialState = kwargs['initialState'];
 
       let y: Tensor|Tensor[];
