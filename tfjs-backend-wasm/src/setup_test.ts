@@ -36,6 +36,7 @@ const TEST_FILTERS: TestFilter[] = [
       'complex',                         // Complex numbers not supported yet
     ]
   },
+  {include: 'cropAndResize'},
   {
     include: 'matmul ',
     excludes: [
@@ -118,6 +119,7 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting same rank Tensors different shape',  // Broadcasting along
                                                          // inner dims not
                                                          // supported yet.
+      'divNoNan'  // divNoNan not yet implemented.
     ]
   },
   {
