@@ -178,8 +178,6 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
     // outer most dimension.
     std::vector<float> transposed_filter(filter_info.size);
 
-    util::log("here!");
-
     std::vector<int> filter_shape;
     std::vector<int> perm;
 
@@ -197,7 +195,6 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
 
     tfjs::wasm::transpose(filter_buf, filter_shape, perm,
                           transposed_filter.data());
-    util::log("here2!");
 
     xnn_status status = xnn_create_convolution2d_nhwc_f32(
         pad_top, pad_right, pad_bottom, pad_left, filter_height, filter_width,
