@@ -55,7 +55,7 @@ type BufferInfo = {
 };
 
 type TensorInfo = {
-  values: Float32Array|Int32Array|Uint8Array|Uint8Array[],
+  values: backend_util.BackendValues,
   dtype: DataType,
   bufferInfo: BufferInfo
 };
@@ -221,7 +221,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private async getBufferData(info: TensorInfo):
-      Promise<ArrayBuffer|Uint8Array[]> {
+      Promise<backend_util.BackendValues> {
     if (info.values != null) {
       // Data is on the CPU.
       return info.values;
