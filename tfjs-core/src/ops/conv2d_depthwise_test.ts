@@ -209,7 +209,6 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     );
 
     const result = tf.depthwiseConv2d(x, w, stride, pad);
-    // result.print();
     expect(result.shape).toEqual([1, 5, 5, 1]);
     const expected = [
       0.684796, 1.179251, 1.680593, 0.885615, 1.152995, 1.52291,  2.540022,
@@ -304,7 +303,8 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('input=1x3x3x2,f=2,s=1,p=same,chMul=2', async () => {
+  // tslint:disable-next-line: ban
+  fit('input=1x3x3x2,f=2,s=1,p=same,chMul=2', async () => {
     const fSize = 2;
     const pad = 'same';
     const stride = 1;
@@ -387,7 +387,6 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
        const fSize = 2;
        const pad = 'same';
        const stride = 1;
-       // const chMul = 2;
        const inDepth = 2;
        const dilation = 2;
        const noDilation = 1;

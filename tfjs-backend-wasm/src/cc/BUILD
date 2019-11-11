@@ -81,6 +81,7 @@ tfjs_cc_library(
     ":BatchMatMul",
     ":CropAndResize",
     ":Conv2D",
+    ":DepthwiseConv2dNative",
     ":FusedConv2D",
     ":Div",
     ":Mul",
@@ -171,6 +172,15 @@ tfjs_cc_library(
   name = "FusedConv2D",
   srcs = ["kernels/FusedConv2D.cc"],
   hdrs = ["kernels/FusedConv2D.h"],
+  deps = [
+    ":conv2d_impl",
+  ],
+)
+
+tfjs_cc_library(
+  name = "DepthwiseConv2dNative",
+  srcs = ["kernels/DepthwiseConv2dNative.cc"],
+  hdrs = ["kernels/DepthwiseConv2dNative.h"],
   deps = [
     ":conv2d_impl",
   ],
