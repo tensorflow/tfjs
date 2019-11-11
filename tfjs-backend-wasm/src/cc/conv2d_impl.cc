@@ -188,7 +188,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
       // group_output_channels is the channel multiplier
       filter_shape = {filter_height, filter_width, groups,
                       group_output_channels};
-      perm = {2, 0, 1, 3};
+      perm = {3, 0, 1, 2};
     } else {
       filter_shape = {filter_height * filter_width * input_channels,
                       output_channels};
