@@ -235,8 +235,7 @@ describeWebGPU('backend webgpu', () => {
     tf.setBackend('test-storage');
 
     const bufferManager = backend.getBufferManager();
-    const t =
-        tf.engine().makeTensor(new Float32Array([1, 2, 3]), [3], 'float32');
+    const t = tf.tensor1d([1, 2, 3], 'float32');
 
     expect(bufferManager.getNumUsedBuffers()).toBe(0);
 
