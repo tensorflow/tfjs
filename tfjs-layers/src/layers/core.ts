@@ -22,6 +22,7 @@ import {ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {ActivationIdentifier} from '../keras_format/activation_config';
 import {DataFormat, Shape} from '../keras_format/common';
+import {LayerConfig} from '../keras_format/topology_config';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {assertPositiveInteger, mapActivationToFusedKernel} from '../utils/generic_utils';
@@ -63,7 +64,7 @@ export class Dropout extends Layer {
     this.supportsMasking = true;
   }
 
-  private getNoiseShape(input: Tensor): Shape {
+  protected getNoiseShape(input: Tensor): Shape {
     if (this.noiseShape == null) {
       return this.noiseShape;
     }
@@ -159,6 +160,30 @@ export declare interface DenseLayerArgs extends LayerArgs {
    */
   activityRegularizer?: RegularizerIdentifier|Regularizer;
 }
+
+export interface SpatialDropout1DLayerConfig extends LayerConfig {
+  /** Float between 0 and 1. Fraction of the input units to drop. */
+  rate: number;
+
+  /** An integer to use as random seed. */
+  seed?: number;
+}
+
+export class SpatialDropout1D extends Dropout {
+  /** @nocollapse */
+  static className = 'SpatialDropout1D';
+
+  constructor(args: SpatialDropout1DLayerConfig) {
+    super(args);
+    this.inputSpec = [{ndim: 3}];
+  }
+
+  protected getNoiseShape(input: Tensor): Shape {
+    const inputShape = input.shape;
+    return [inputShape[0], 1, inputShape[2]];
+  }
+}
+serialization.registerClass(SpatialDropout1D);
 
 export class Dense extends Layer {
   /** @nocollapse */

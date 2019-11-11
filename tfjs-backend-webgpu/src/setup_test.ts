@@ -35,7 +35,10 @@ const INCLUDE_LIST: string[] = [
   'relu',      'transpose', 'concat',    'argmax',        'fromPixels',
   'depthwise', 'div',       'greater',   'clip',          'less'
 ];
-/** Tests that have these substrings in their name will be excluded. */
+/**
+ * Tests that have these substrings in their name will be excluded.
+ * Use '&' to concat substrings if multiple filters are required.
+ */
 const EXCLUDE_LIST: string[] = [
   'conv to matmul',         // Shader compile fails.
   'matmulBatch',            // Shape mismatch.
@@ -58,7 +61,7 @@ const EXCLUDE_LIST: string[] = [
   'c + A',                                // Shader compile fails.
   'int32 * int32',                        // Actual != Expected.
   'conv2dTranspose',                      // DerInput is not Implemented.
-  'd=2',                                  // Dilation is not implemented.
+  'pool & d=2',                           // Pool dilation is not implemented.
   'pad1d test-webgpu {} grad',            // Needs backends.slice().
   'pad 4D arrays',                        // Actual != Expected.
   'tensor.toString',                      // readSync() is not available.
@@ -111,7 +114,8 @@ env.specFilter = spec => {
 
   // Return false (skip the test) if the test is in the exclude list.
   for (let i = 0; i < EXCLUDE_LIST.length; ++i) {
-    if (name.indexOf(EXCLUDE_LIST[i]) > -1) {
+    const arr = EXCLUDE_LIST[i].split('&');
+    if (arr.every(str => name.indexOf(str) > -1)) {
       return false;
     }
   }
