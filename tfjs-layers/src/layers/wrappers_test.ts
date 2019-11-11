@@ -19,7 +19,7 @@ import {LayersModel} from '../engine/training';
 import * as tfl from '../index';
 import {BidirectionalMergeMode, VALID_BIDIRECTIONAL_MERGE_MODES} from '../keras_format/common';
 import {convertPythonicToTs} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Dense, Reshape} from './core';
 import {RNN, SimpleRNN} from './recurrent';
@@ -663,5 +663,32 @@ describeMathCPUAndGPU('Bidirectional with initial state', () => {
     expect(() => bidi.apply(x, {
       initialState: [initState1]
     })).toThrowError(/the state should be .*RNNs/);
+  });
+});
+
+describeMathGPU('Bidirectional with masking', () => {
+  fit('Forward', () => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.embedding({
+      inputLength: 2,
+      inputDim: 3,
+      outputDim: 3,
+      embeddingsInitializer: 'ones',
+      maskZero: false
+    }));
+    model.add(tfl.layers.bidirectional({
+      layer: tfl.layers.lstm({
+        units: 4,
+        kernelInitializer: 'ones',
+        recurrentInitializer: 'ones'
+      }) as RNN
+    }));
+    model.add(tfl.layers.dense({
+      units: 1,
+      kernelInitializer: 'ones',
+    }));
+    const xs = tensor2d([[0, 1], [0, 2], [0, 0], [1, 2]]);
+    const ys = model.predict(xs) as Tensor;
+    ys.print();
   });
 });

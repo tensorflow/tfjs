@@ -509,7 +509,37 @@ export class Bidirectional extends Wrapper {
     this.built = true;
   }
 
-  // TODO(cais): Implement computeMask().
+  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor
+      |Tensor[] {
+    if (Array.isArray(mask)) {
+      mask = mask[0];
+    }
+    let outputMask: Tensor|Tensor[];
+    if (this.returnSequences) {
+      if (this.mergeMode == null) {
+        outputMask = [mask, mask];
+      } else {
+        outputMask = mask;
+      }
+    } else {
+      if (this.mergeMode == null) {
+        outputMask = [null, null];
+      } else {
+        outputMask = null;
+      }
+    }
+    if (this.returnState) {
+      const states = this.forwardLayer.states;
+      const stateMask: Tensor[] = states.map(state => null);
+      if (Array.isArray(outputMask)) {
+        return outputMask.concat(stateMask).concat(stateMask);
+      } else {
+        return [outputMask].concat(stateMask).concat(stateMask);
+      }
+    } else {
+      return outputMask;
+    }
+  }
 
   get trainableWeights(): LayerVariable[] {
     return this.forwardLayer.trainableWeights.concat(
