@@ -51,8 +51,7 @@ function config({plugins = [], output = {}, external = [], visualize = false}) {
     input: 'src/index.ts',
     plugins: [
       typescript({
-        tsconfigOverride:
-            {compilerOptions: {module: 'ES2015', moduleResolution: 'node'}},
+        tsconfigOverride: {compilerOptions: {module: 'ES2015'}},
         // See https://github.com/ezolenko/rollup-plugin-typescript2/issues/105
         objectHashIgnoreUnknownHack: visualize ? true : false,
         clean: visualize ? true : false,
