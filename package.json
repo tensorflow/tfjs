@@ -7,7 +7,7 @@
     "shelljs": "~0.8.3",
     "ts-node": "~4.1.0",
     "tslint": "~5.20.0",
-    "typescript": "3.5.3"
+    "typescript": "3.6.3"
   },
   "scripts": {
     "diff": "./scripts/diff.js",
