@@ -56,7 +56,6 @@ type BufferInfo = {
 
 type TensorInfo = {
   values: Float32Array|Int32Array|Uint8Array|Uint8Array[],
-  id: number,
   dtype: DataType,
   bufferInfo: BufferInfo
 };
@@ -180,31 +179,6 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  // register(dataId: object, shape: number[], dtype: DataType): void {
-  //   if (!this.tensorMap.has(dataId)) {
-  //     const byteSize =
-  //         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
-  //     this.tensorMap.set(dataId, {
-  //       values: null,
-  //       id: -1,
-  //       dtype,
-  //       bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
-  //     });
-  //   }
-  // }
-
-  // write(dataId: object, values: Float32Array|Int32Array|Uint8Array): void {
-  //   if (!this.tensorMap.has(dataId)) {
-  //     throw new Error(`Tensor ${dataId} was not registered!`);
-  //   }
-
-  //   const info = this.tensorMap.get(dataId);
-  //   info.values = values;
-  //   this.tensorMap.set(dataId, info);
-
-  //   this.maybeReleaseBuffer(dataId);
-  // }
-
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
       DataId {
     const dataId = {};
@@ -214,10 +188,22 @@ export class WebGPUBackend extends KernelBackend {
     this.tensorMap.set(dataId, {
       dtype,
       values,
-      id: -1,
       bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
     });
     return dataId;
+  }
+
+  move(
+      dataId: DataId, values: backend_util.BackendValues, shape: number[],
+      dtype: DataType): void {
+    const byteSize =
+        util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
+
+    this.tensorMap.set(dataId, {
+      dtype,
+      values,
+      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
+    });
   }
 
   private submitQueue() {
