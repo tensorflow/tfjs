@@ -245,7 +245,7 @@ export class WebGPUBackend extends KernelBackend {
           GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
     }
 
-    return values;
+    return values as backend_util.BackendValues;
   }
 
   private convertAndCacheOnCPU(dataId: DataId, data: backend_util.TypedArray):
