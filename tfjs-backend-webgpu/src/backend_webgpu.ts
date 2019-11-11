@@ -907,7 +907,6 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     const output = this.makeOutputArray(outShape, 'int32');
-    // this.write(output.dataId, Int32Array.from(pixelArray));
 
     const info = this.tensorMap.get(output.dataId);
     info.values = Int32Array.from(pixelArray);
@@ -915,6 +914,10 @@ export class WebGPUBackend extends KernelBackend {
 
     this.uploadToGPU(output.dataId);
     return output as Tensor3D;
+  }
+
+  numDataIds() {
+    return this.tensorMap.numDataIds();
   }
 
   dispose() {
