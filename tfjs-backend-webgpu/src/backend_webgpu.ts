@@ -573,8 +573,8 @@ export class WebGPUBackend extends KernelBackend {
     const program = new BinaryOpProgram(op, a.shape, b.shape);
 
     const dataId = this.write(null /*values*/, program.outputShape, dtype);
-    const output = engine().makeTensorFromDataId(
-                       dataId, program.outputShape, dtype, this) as Tensor;
+    const output =
+        engine().makeTensorFromDataId(dataId, program.outputShape, dtype, this);
 
     return this.compileAndRun(program, [a, b], output);
   }
