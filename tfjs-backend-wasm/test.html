@@ -1,0 +1,12 @@
+<script src="../tfjs-core/dist/tf-core.js"></script>
+<script src="./dist/tf-backend-wasm.js"></script>
+
+
+<script>
+
+tf.setBackend('wasm');
+tf.ready().then(() => {
+  tf.add(3, 3).print();
+})
+
+</script>

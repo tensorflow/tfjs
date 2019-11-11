@@ -48,8 +48,9 @@ void Sub(const int a_id, const int b_id, const DType dtype, const int out_id) {
       binary_bool(a_id, b_id, out_id, sub<bool>);
       break;
     default:
-      util::warn("Sub for tensor ids %d and %d failed. Unknown dtype %d", a_id,
-                 b_id, dtype);
+      tfjs::backend::throw_js_exception(
+          "Sub for tensor ids %d and %d failed. Unknown dtype %d", a_id, b_id,
+          dtype);
   }
 }
 

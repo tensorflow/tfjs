@@ -48,8 +48,9 @@ void Div(const int a_id, const int b_id, const DType dtype, const int out_id) {
       binary_bool(a_id, b_id, out_id, div<bool>);
       break;
     default:
-      util::warn("Mul for tensor ids %d and %d failed. Unknown dtype %d", a_id,
-                 b_id, dtype);
+      tfjs::backend::throw_js_exception(
+          "Mul for tensor ids %d and %d failed. Unknown dtype %d", a_id, b_id,
+          dtype);
   }
 }
 

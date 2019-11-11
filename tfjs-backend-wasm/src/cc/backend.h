@@ -73,6 +73,10 @@ void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn);
 // Returns the number of tensors registered and owned by the backend.
 const int num_tensors();
 
+// Throws a JavaScript exception.
+void throw_js_exception(const char *format, ...);
+void set_throw_js_exception_fn(void (*f)(char *, int));
+
 // The number of instantiated XNN operators.
 extern int xnn_operator_count;
 }  // namespace backend
@@ -80,7 +84,7 @@ extern int xnn_operator_count;
 namespace wasm {
 extern "C" {
 // Initializes the WASM backend.
-void init();
+void init(int fp);
 
 // Registers a tensor with a tensor ID, size, and the pointer to where the
 // tensor data lives.

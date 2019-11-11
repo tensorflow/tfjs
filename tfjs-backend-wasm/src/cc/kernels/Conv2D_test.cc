@@ -20,7 +20,7 @@
 #include "src/cc/util.h"
 
 TEST(CONV2D, xnn_operator_lifetime) {
-  tfjs::wasm::init();
+  tfjs::wasm::init(0);
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
