@@ -19,9 +19,9 @@
 #define TF_NODEJS_TFJS_BACKEND_H_
 
 #include <node_api.h>
-#include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include "tensorflow/c/c_api.h"
 #include "tensorflow/c/eager/c_api.h"
 
@@ -89,8 +89,9 @@ class TFJSBackend {
   napi_value GenerateOutputTensorInfo(napi_env env, TFE_TensorHandle *handle);
 
   TFE_Context *tfe_context_;
-  std::map<int32_t, TFE_TensorHandle *> tfe_handle_map_;
-  std::map<int32_t, std::pair<TF_Session *, TF_Graph *>> tf_savedmodel_map_;
+  std::unordered_map<int32_t, TFE_TensorHandle *> tfe_handle_map_;
+  std::unordered_map<int32_t, std::pair<TF_Session *, TF_Graph *>>
+      tf_savedmodel_map_;
   int32_t next_tensor_id_;
   int32_t next_savedmodel_id_;
   std::string device_name;

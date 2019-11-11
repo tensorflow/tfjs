@@ -278,15 +278,13 @@ export class TFSavedModel implements InferenceModel {
       if (inputs instanceof Tensor) {
         inputTensors.push(inputs);
         return this.backend.runSavedModel(
-            this.sessionId, inputTensors,
-            Object.values(this.inputNodeNames).join(),
-            Object.values(this.outputNodeNames).join())[0];
+            this.sessionId, inputTensors, Object.values(this.inputNodeNames),
+            Object.values(this.outputNodeNames))[0];
       } else if (Array.isArray(inputs)) {
         inputTensors = inputs;
         return this.backend.runSavedModel(
-            this.sessionId, inputTensors,
-            Object.values(this.inputNodeNames).join(),
-            Object.values(this.outputNodeNames).join());
+            this.sessionId, inputTensors, Object.values(this.inputNodeNames),
+            Object.values(this.outputNodeNames));
       } else {
         const inputTensorNames = Object.keys(this.inputNodeNames);
         const providedInputNames = Object.keys(inputs);
@@ -307,8 +305,8 @@ export class TFSavedModel implements InferenceModel {
           outputNodeNamesArray.push(this.outputNodeNames[outputTensorNames[i]]);
         }
         const outputTensors = this.backend.runSavedModel(
-            this.sessionId, inputTensors, inputNodeNamesArray.join(),
-            outputNodeNamesArray.join());
+            this.sessionId, inputTensors, inputNodeNamesArray,
+            outputNodeNamesArray);
         util.assert(
             outputTensors.length === outputNodeNamesArray.length,
             () => 'Output tensors do not match output node names, ' +

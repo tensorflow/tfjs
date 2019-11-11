@@ -1044,6 +1044,8 @@ void TFJSBackend::DeleteSavedModel(napi_env env,
                      TF_Message(tf_status.status));
     return;
   }
+  // TODO(kangyizhang): Add tests to validate TF_Session and TF_Graph are
+  // deleted.
   TF_DeleteGraph(savedmodel_entry->second.second);
   tf_savedmodel_map_.erase(savedmodel_entry);
 }
@@ -1090,7 +1092,9 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
 
   if (input_op_name_array.size() != num_input_ids) {
     NAPI_THROW_ERROR(env,
-                     "Input op names and input tensors length does not match.");
+                     "Length of input op names (%d) does not match the length "
+                     "of input tensors (%d).",
+                     input_op_name_array.size(), num_input_ids);
     return nullptr;
   }
 
@@ -1116,9 +1120,9 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
         TFE_TensorHandleResolve(tensor_entry->second, tf_status.status);
 
     if (TF_GetCode(tf_status.status) != TF_OK) {
-      NAPI_THROW_ERROR(env,
-                       "Faile to get input tensor (tensor_id: %d) for session.",
-                       cur_input_tensor_id);
+      NAPI_THROW_ERROR(
+          env, "Failed to get input tensor (tensor_id: %d) for session.",
+          cur_input_tensor_id);
       return nullptr;
     }
 
@@ -1139,6 +1143,8 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     }
 
     // Add input op into input ops list.
+    // TODO(kangyizhang): Store these TF_Operations somewhere so they don't need
+    // to be generated  every time.
     TF_Operation *input_op =
         TF_GraphOperationByName(savedmodel_entry->second.second, input_op_name);
     if (input_op == nullptr) {

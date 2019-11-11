@@ -321,7 +321,9 @@ describe('SavedModel', () => {
       done.fail();
     } catch (error) {
       expect(error.message)
-          .toBe('Input op names and input tensors length does not match.');
+          .toBe(
+              'Length of input op names (1) does not match the ' +
+              'length of input tensors (2).');
       done();
     }
   });
