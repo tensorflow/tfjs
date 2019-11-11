@@ -717,7 +717,7 @@ describeMathCPUAndGPU('Bidirectional with masking', () => {
         expectTensorsClose(
             ys, tensor2d([[7.960438], [7.960438], [0], [7.9999857]]));
       } else {
-        throw new Error(`Unexpected rnnLayerTYpe name: ${rnnLayerType.name}`);
+        throw new Error(`Unexpected rnnLayerType name: ${rnnLayerType.name}`);
       }
     });
 
@@ -777,7 +777,7 @@ describeMathCPUAndGPU('Bidirectional with masking', () => {
             history.history['loss'] as number[],
             [47.684, 35.741, 26.804, 20.115, 15.108]);
       } else {
-        throw new Error(`Unexpected rnnLayerTYpe name:
+        throw new Error(`Unexpected rnnLayerType name:
           ${rnnLayerType.name}`);
       }
     });
