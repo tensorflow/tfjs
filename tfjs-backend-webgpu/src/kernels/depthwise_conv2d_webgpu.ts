@@ -48,9 +48,6 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     util.assert(
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
-    util.assert(
-        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1,
-        () => 'TODO: Dilation is unimplemented');
 
     this.userCode = `
       const ivec2 strides = ivec2(${strideHeight}, ${strideWidth});
