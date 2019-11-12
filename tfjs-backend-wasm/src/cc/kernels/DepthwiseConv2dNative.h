@@ -12,8 +12,8 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef KERNELS_CONV2D_H_
-#define KERNELS_CONV2D_H_
+#ifndef KERNELS_DEPTHWISECONV2DNATIVE_H_
+#define KERNELS_DEPTHWISECONV2DNATIVE_H_
 
 namespace tfjs {
 
@@ -33,4 +33,4 @@ void DepthwiseConv2dNative(const int x_id, const int batch_size,
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // KERNELS_CONV2D_H_
+#endif  // KERNELS_DEPTHWISECONV2DNATIVE_H_

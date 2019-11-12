@@ -36,7 +36,9 @@ TEST(CONV2D, xnn_operator_lifetime) {
 
   const int out_id = 4;
   const int out_size = 36;
-  float out_values[out_size];
+  float out_values[out_size] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   tfjs::wasm::register_tensor(x0_id, size, x_values);
   tfjs::wasm::register_tensor(x1_id, size, x_values);
