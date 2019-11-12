@@ -170,23 +170,27 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
     float output_min = -std::numeric_limits<float>::infinity();
     float output_max = std::numeric_limits<float>::infinity();
 
-    // xnn pack expects weights layed out like:
-    //   [output_channels, filter_height, filter_width, input_channels]
-    // TensorFlow has weights layed out like:
-    //   [filter_height, filter_width, input_channels, output_channels]
-    // This can be transposed with a 2d transpose to move output_channels to the
-    // outer most dimension.
-    std::vector<float> transposed_filter(filter_info.size);
-
     const float* filter_xnn;
     if (is_depthwise) {
+      // For depthwiseConv2d, xnn pack and TensorFlow expect the same weights
+      // layout:
+      //   [filter_height, filter_width, input_channels, channel_multiplier]
       filter_xnn = filter_buf;
     } else {
+      // For regular conv2d, xnn pack expects weights layed out like:
+      //   [output_channels, filter_height, filter_width, input_channels]
+      // TensorFlow has weights layed out like:
+      //   [filter_height, filter_width, input_channels, output_channels]
+      // This can be transposed with a 2d transpose to move output_channels to
+      // the outer most dimension.
+      std::vector<float> transposed_filter(filter_info.size);
       std::vector<int> filter_shape = {
           filter_height * filter_width * input_channels, output_channels};
       std::vector<int> perm = {1, 0};
+
       tfjs::wasm::transpose(filter_buf, filter_shape, perm,
                             transposed_filter.data());
+
       filter_xnn = transposed_filter.data();
     }
 
@@ -228,7 +232,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
   }
 
   xnn_run_operator(conv2d_op, nullptr /* thread pool */);
-}  // namespace wasm
+}
 
 }  // namespace wasm
 }  // namespace tfjs
