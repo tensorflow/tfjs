@@ -32,7 +32,7 @@
     "karma-jasmine": "~1.1.1",
     "karma-typescript": "~4.1.1",
     "rimraf": "~2.6.2",
-    "rollup": "1.26.3",
+    "rollup": "~1.26.3",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-terser": "5.1.1",
