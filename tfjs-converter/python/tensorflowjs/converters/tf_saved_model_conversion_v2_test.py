@@ -297,7 +297,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['signature']
+    signature = model_json['userDefinedMetadata']['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -335,7 +335,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['signature']
+    signature = model_json['userDefinedMetadata']['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -366,7 +366,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['signature']
+    signature = model_json['userDefinedMetadata']['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -388,7 +388,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['signature']
+    signature = model_json['userDefinedMetadata']['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -434,7 +434,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['signature']
+    signature = model_json['userDefinedMetadata']['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -479,7 +479,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['signature']
+    signature = model_json['userDefinedMetadata']['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -519,7 +519,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['signature']
+    signature = model_json['userDefinedMetadata']['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -563,7 +563,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['signature']
+    signature = model_json['userDefinedMetadata']['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -593,7 +593,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['signature']
+    signature = model_json['userDefinedMetadata']['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -618,7 +618,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['signature']
+    signature = model_json['userDefinedMetadata']['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -645,7 +645,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['signature']
+    signature = model_json['userDefinedMetadata']['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -675,7 +675,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['signature']
+    signature = model_json['userDefinedMetadata']['signature']
     self.assertIsNot(signature, None)
     # frozen model signature has no input nodes.
     self.assertIsNot(signature['outputs'], None)
