@@ -1903,8 +1903,8 @@ export class NodeJSKernelBackend extends KernelBackend {
       id: number, inputs: Tensor[], inputOpNames: string[],
       outputOpNames: string[]): Tensor[] {
     const outputMetadata = this.binding.runSavedModel(
-        id, this.getInputTensorIds(inputs), inputOpNames.join(),
-        outputOpNames.join());
+        id, this.getInputTensorIds(inputs), inputOpNames.join(','),
+        outputOpNames.join(','));
     return outputMetadata.map(m => this.createOutputTensor(m));
   }
 

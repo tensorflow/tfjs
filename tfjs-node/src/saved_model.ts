@@ -389,7 +389,7 @@ export async function loadSavedModel(
   }
   if (sessionId == null) {
     // Convert metagraph tags string array to a string.
-    const tagsString = tags.join();
+    const tagsString = tags.join(',');
     sessionId = backend.loadSavedModelMetaGraph(path, tagsString);
   }
   const id = nextTFSavedModelId++;
