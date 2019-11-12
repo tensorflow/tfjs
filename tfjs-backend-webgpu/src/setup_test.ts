@@ -15,8 +15,64 @@
  * =============================================================================
  */
 
+// import {setTestEnvs, setupTestFilters, TestFilter} from
+// '@tensorflow/tfjs-core/dist/jasmine_util';
 // tslint:disable-next-line: no-imports-from-dist
-import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+interface TestFilter {
+  include?: string;
+  startsWith?: string;
+  excludes?: string[];
+}
+
+export function setupTestFilters(
+    testFilters: TestFilter[], customInclude: (name: string) => boolean) {
+  const env = jasmine.getEnv();
+  // Account for --grep flag passed to karma by saving the existing specFilter.
+  const grepFilter = env.specFilter;
+
+  /**
+   * Filter method that returns boolean, if a given test should run or be
+   * ignored based on its name. The exclude list has priority over the
+   * include list. Thus, if a test matches both the exclude and the include
+   * list, it will be exluded.
+   */
+  // tslint:disable-next-line: no-any
+  env.specFilter = (spec: any) => {
+    // Filter out tests if the --grep flag is passed.
+    if (!grepFilter(spec)) {
+      return false;
+    }
+
+    const name = spec.getFullName();
+
+    if (customInclude(name)) {
+      return true;
+    }
+
+    // Include a describeWithFlags() test from tfjs-core only if the test is
+    // in the include list.
+    for (let i = 0; i < testFilters.length; ++i) {
+      const testFilter = testFilters[i];
+      if ((testFilter.include != null &&
+           name.indexOf(testFilter.include) > -1) ||
+          (testFilter.startsWith != null &&
+           name.startsWith(testFilter.startsWith))) {
+        if (testFilter.excludes != null) {
+          for (let j = 0; j < testFilter.excludes.length; j++) {
+            if (name.indexOf(testFilter.excludes[j]) > -1) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+    }
+    // Otherwise ignore the test.
+    return false;
+  };
+}
 
 setTestEnvs([{
   name: 'test-webgpu',
