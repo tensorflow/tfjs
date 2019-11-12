@@ -132,18 +132,16 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
   int group_input_channels;
   int group_output_channels;
   const int input_pixel_stride = input_channels;
-  int output_pixel_stride;
+  const int output_pixel_stride = output_channels;
   if (is_depthwise) {
     groups = input_channels;
     group_input_channels = 1;
     group_output_channels = output_channels / input_channels;
-    output_pixel_stride = output_channels;
     flags |= XNN_FLAG_DEPTHWISE_CONVOLUTION;
   } else {
     groups = 1;
     group_input_channels = input_channels;
     group_output_channels = output_channels;
-    output_pixel_stride = output_channels;
   }
 
   OperatorCacheKey cache_key = {pad_top,
@@ -170,6 +168,9 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
     float output_min = -std::numeric_limits<float>::infinity();
     float output_max = std::numeric_limits<float>::infinity();
 
+    // This lives outside the if statement so the data survives the scope.
+    std::vector<float> transposed_filter;
+
     const float* filter_xnn;
     if (is_depthwise) {
       // For depthwiseConv2d, xnn pack and TensorFlow expect the same weights
@@ -183,7 +184,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
       //   [filter_height, filter_width, input_channels, output_channels]
       // This can be transposed with a 2d transpose to move output_channels to
       // the outer most dimension.
-      std::vector<float> transposed_filter(filter_info.size);
+      transposed_filter = std::vector<float>(filter_info.size);
       std::vector<int> filter_shape = {
           filter_height * filter_width * input_channels, output_channels};
       std::vector<int> perm = {1, 0};
