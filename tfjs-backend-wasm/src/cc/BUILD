@@ -291,6 +291,14 @@ tfjs_unit_test(
 )
 
 tfjs_unit_test(
+  name = "DepthwiseConv2dNative_test",
+  srcs = ["kernels/DepthwiseConv2dNative_test.cc"],
+  deps = [
+    ":DepthwiseConv2dNative",
+  ]
+)
+
+tfjs_unit_test(
   name = "FusedConv2D_test",
   srcs = ["kernels/FusedConv2D_test.cc"],
   deps = [

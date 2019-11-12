@@ -143,7 +143,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
     groups = 1;
     group_input_channels = input_channels;
     group_output_channels = output_channels;
-    output_pixel_stride = input_channels;
+    output_pixel_stride = output_channels;
   }
 
   OperatorCacheKey cache_key = {pad_top,
@@ -178,32 +178,24 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
     // outer most dimension.
     std::vector<float> transposed_filter(filter_info.size);
 
-    std::vector<int> filter_shape;
-    std::vector<int> perm;
-
+    const float* filter_xnn;
     if (is_depthwise) {
-      // int channel_multiplier = output_channels / input_channels;
-      // group_output_channels is the channel multiplier
-      filter_shape = {filter_height, filter_width, groups,
-                      group_output_channels};
-      perm = {3, 0, 1, 2};
+      filter_xnn = filter_buf;
     } else {
-      filter_shape = {filter_height * filter_width * input_channels,
-                      output_channels};
-      perm = {1, 0};
+      std::vector<int> filter_shape = {
+          filter_height * filter_width * input_channels, output_channels};
+      std::vector<int> perm = {1, 0};
+      tfjs::wasm::transpose(filter_buf, filter_shape, perm,
+                            transposed_filter.data());
+      filter_xnn = transposed_filter.data();
     }
-
-    tfjs::wasm::transpose(filter_buf, filter_shape, perm,
-                          transposed_filter.data());
 
     xnn_status status = xnn_create_convolution2d_nhwc_f32(
         pad_top, pad_right, pad_bottom, pad_left, filter_height, filter_width,
         stride_height, stride_width, dilation_height, dilation_width, groups,
-        group_input_channels /* group_input_channels */,
-        group_output_channels /* group_output_channels */,
-        input_pixel_stride /* input_pixel_stride */,
-        output_pixel_stride /* output_pixel_stride */, transposed_filter.data(),
-        bias_buf, output_min, output_max, flags, &conv2d_op);
+        group_input_channels, group_output_channels, input_pixel_stride,
+        output_pixel_stride, filter_xnn, bias_buf, output_min, output_max,
+        flags, &conv2d_op);
     if (status != xnn_status_success) {
       util::warn(
           "XNN status for xnn_create_convolution2d_nhwc_f32 is not successful. "

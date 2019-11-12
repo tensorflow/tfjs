@@ -303,8 +303,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  // tslint:disable-next-line: ban
-  fit('input=1x3x3x2,f=2,s=1,p=same,chMul=2', async () => {
+  it('input=1x3x3x2,f=2,s=1,p=same,chMul=2', async () => {
     const fSize = 2;
     const pad = 'same';
     const stride = 1;

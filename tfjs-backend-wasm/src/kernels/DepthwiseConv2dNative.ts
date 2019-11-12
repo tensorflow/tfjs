@@ -81,7 +81,6 @@ function depthwiseConv2d(args: {
   const inputChannels = convInfo.inChannels;
   const outputChannels = convInfo.outChannels;
   const isSamePad = convInfo.padInfo.type === 'SAME' ? 1 : 0;
-  console.log(convInfo);
 
   if (convInfo.dataFormat !== 'channelsLast') {
     throw new Error(
