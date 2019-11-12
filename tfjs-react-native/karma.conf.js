@@ -37,8 +37,7 @@ const karmaTypescriptConfig = {
         'expo-asset': './src/test_utils/expo_asset_mock.ts'
       }
     }
-  },
-  exclude: ['node_modules']
+  }
 };
 
 const baseConfig = {

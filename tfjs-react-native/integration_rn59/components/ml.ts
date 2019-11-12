@@ -87,7 +87,6 @@ export async function localGraphModelRunner() {
   const model =
       await tf.loadGraphModel(bundleResourceIO(modelJson2, modelWeights2));
   return async () => {
-    console.log('in runner');
     const res = model.predict(tf.randomNormal([1, 10])) as tf.Tensor;
     const data = await res.data();
     return JSON.stringify(data);
