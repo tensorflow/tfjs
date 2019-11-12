@@ -14,7 +14,7 @@ import {input} from './exports';
 import {ELU, ELULayerArgs, LeakyReLU, LeakyReLULayerArgs, PReLU, PReLULayerArgs, ReLU, ReLULayerArgs, Softmax, SoftmaxLayerArgs, ThresholdedReLU, ThresholdedReLULayerArgs} from './layers/advanced_activations';
 import {Conv1D, Conv2D, Conv2DTranspose, Conv3D, ConvLayerArgs, Cropping2D, Cropping2DLayerArgs, SeparableConv2D, SeparableConvLayerArgs, UpSampling2D, UpSampling2DLayerArgs} from './layers/convolutional';
 import {DepthwiseConv2D, DepthwiseConv2DLayerArgs} from './layers/convolutional_depthwise';
-import {Activation, ActivationLayerArgs, Dense, DenseLayerArgs, Dropout, DropoutLayerArgs, Flatten, Masking, MaskingArgs, Permute, PermuteLayerArgs, RepeatVector, RepeatVectorLayerArgs, Reshape, ReshapeLayerArgs} from './layers/core';
+import {Activation, ActivationLayerArgs, Dense, DenseLayerArgs, Dropout, DropoutLayerArgs, Flatten, FlattenLayerArgs, Masking, MaskingArgs, Permute, PermuteLayerArgs, RepeatVector, RepeatVectorLayerArgs, Reshape, ReshapeLayerArgs, SpatialDropout1D, SpatialDropout1DLayerConfig} from './layers/core';
 import {Embedding, EmbeddingLayerArgs} from './layers/embeddings';
 import {Add, Average, Concatenate, ConcatenateLayerArgs, Dot, DotLayerArgs, Maximum, Minimum, Multiply} from './layers/merge';
 import {AlphaDropout, AlphaDropoutArgs, GaussianDropout, GaussianDropoutArgs, GaussianNoise, GaussianNoiseArgs} from './layers/noise';
@@ -537,6 +537,41 @@ export function dropout(args: DropoutLayerArgs): Layer {
 }
 
 /**
+ * Spatial 1D version of Dropout.
+ *
+ * This Layer type performs the same function as the Dropout layer, but it drops
+ * entire 1D feature maps instead of individual elements. For example, if an
+ * input example consists of 3 timesteps and the feature map for each timestep
+ * has a size of 4, a `spatialDropout1d` layer may zero out the feature maps
+ * of the 1st timesteps and 2nd timesteps completely while sparing all feature
+ * elements of the 3rd timestep.
+ *
+ * If adjacent frames (timesteps) are strongly correlated (as is normally the
+ * case in early convolution layers), regular dropout will not regularize the
+ * activation and will otherwise just result in merely an effective learning
+ * rate decrease. In this case, `spatialDropout1d` will help promote
+ * independence among feature maps and should be used instead.
+ *
+ * **Arguments:**
+ *   rate: A floating-point number >=0 and <=1. Fraction of the input elements
+ *     to drop.
+ *
+ * **Input shape:**
+ *   3D tensor with shape `(samples, timesteps, channels)`.
+ *
+ * **Output shape:**
+ *   Same as the input shape.
+ *
+ * References:
+ *   - [Efficient Object Localization Using Convolutional
+ *      Networks](https://arxiv.org/abs/1411.4280)
+ */
+/** @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'} */
+export function spatialDropout1d(args: SpatialDropout1DLayerConfig): Layer {
+  return new SpatialDropout1D(args);
+}
+
+/**
  * Flattens the input. Does not affect the batch size.
  *
  * A `Flatten` layer flattens each batch in its inputs to 1D (making the output
@@ -554,7 +589,7 @@ export function dropout(args: DropoutLayerArgs): Layer {
  * ```
  */
 /** @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'} */
-export function flatten(args?: LayerArgs): Layer {
+export function flatten(args?: FlattenLayerArgs): Layer {
   return new Flatten(args);
 }
 
