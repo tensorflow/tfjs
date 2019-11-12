@@ -113,17 +113,7 @@ export interface MetaGraphInfo {
  */
 export interface SignatureDefInfo {
   [key: string]: {
-    inputs: {[key: string]: SavedModelTensorInfo};
-    outputs: {[key: string]: SavedModelTensorInfo};
+    inputs: {[key: string]: ModelTensorInfo};
+    outputs: {[key: string]: ModelTensorInfo};
   };
-}
-
-/**
- * Interface for SavedModel/GraphModel signature input/output Tensor
- * info.
- */
-export interface SavedModelTensorInfo {
-  dtype: string;
-  shape: number[];
-  name: string;
 }
