@@ -665,3 +665,121 @@ describeMathCPUAndGPU('Bidirectional with initial state', () => {
     })).toThrowError(/the state should be .*RNNs/);
   });
 });
+
+describeMathCPUAndGPU('Bidirectional with masking', () => {
+  for (const rnnLayerType of [tfl.layers.simpleRNN, tfl.layers.lstm]) {
+    // Reference Python TensorFlow code (v1.15.0):
+    // ```py
+    // import numpy as np
+    // import tensorflow as tf
+    //
+    // tf.enable_v2_behavior()
+    // tf.enable_eager_execution()
+    //
+    // model = tf.keras.Sequential()
+    // model.add(tf.keras.layers.Embedding(
+    //     3, 3, input_length=2, embeddings_initializer="ones", mask_zero=True))
+    // model.add(tf.keras.layers.Bidirectional(tf.keras.layers.SimpleRNN(
+    //     4,
+    //     kernel_initializer="ones",
+    //     recurrent_initializer="ones")))
+    // model.add(tf.keras.layers.Dense(1, kernel_initializer="ones"))
+    //
+    // xs = np.array([[0, 1], [0, 2], [0, 0], [1, 2]], dtype=np.int32)
+    // print(model.predict(xs))
+    // ```
+    it(`Inference ${rnnLayerType.name}`, () => {
+      const model = tfl.sequential();
+      model.add(tfl.layers.embedding({
+        inputLength: 2,
+        inputDim: 3,
+        outputDim: 3,
+        embeddingsInitializer: 'ones',
+        maskZero: true
+      }));
+      model.add(tfl.layers.bidirectional({
+        layer: rnnLayerType({
+                 units: 4,
+                 kernelInitializer: 'ones',
+                 recurrentInitializer: 'ones'
+               }) as RNN
+      }));
+      model.add(tfl.layers.dense({
+        units: 1,
+        kernelInitializer: 'ones',
+      }));
+      const xs = tensor2d([[0, 1], [0, 2], [0, 0], [1, 2]]);
+      const ys = model.predict(xs) as Tensor;
+      if (rnnLayerType.name === 'lstm') {
+        expectTensorsClose(
+            ys, tensor2d([[6.076076], [6.076076], [0], [7.709405]]));
+      } else if (rnnLayerType.name === 'simpleRNN') {
+        expectTensorsClose(
+            ys, tensor2d([[7.960438], [7.960438], [0], [7.9999857]]));
+      } else {
+        throw new Error(`Unexpected rnnLayerType name: ${rnnLayerType.name}`);
+      }
+    });
+
+    // Reference Python TensorFlow code (v1.15.0):
+    // ```py
+    // import numpy as np
+    // import tensorflow as tf
+    //
+    // tf.enable_v2_behavior()
+    // tf.enable_eager_execution()
+    //
+    // model = tf.keras.Sequential()
+    // model.add(tf.keras.layers.Embedding(
+    //     3, 3, input_length=2, embeddings_initializer="ones", mask_zero=True))
+    // model.add(tf.keras.layers.Bidirectional(tf.keras.layers.SimpleRNN(
+    //     4,
+    //     kernel_initializer="ones",
+    //     recurrent_initializer="ones")))
+    // model.add(tf.keras.layers.Dense(1, kernel_initializer="ones"))
+    // model.compile(optimizer="sgd", loss="mse")
+    //
+    // xs = np.array([[0, 1], [0, 2], [0, 0], [1, 2]], dtype=np.int32)
+    // ys = np.array([[0], [0], [0], [0]], dtype=np.float32)
+    // history = model.fit(xs, ys, epochs=5)
+    // print(history.history)
+    // ```
+    it(`Training ${rnnLayerType.name}`, async () => {
+      const model = tfl.sequential();
+      model.add(tfl.layers.embedding({
+        inputLength: 2,
+        inputDim: 3,
+        outputDim: 3,
+        embeddingsInitializer: 'ones',
+        maskZero: true
+      }));
+      model.add(tfl.layers.bidirectional({
+        layer: rnnLayerType({
+                 units: 4,
+                 kernelInitializer: 'ones',
+                 recurrentInitializer: 'ones'
+               }) as RNN
+      }));
+      model.add(tfl.layers.dense({
+        units: 1,
+        kernelInitializer: 'ones',
+      }));
+      model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+      const xs = tensor2d([[0, 1], [0, 2], [0, 0], [1, 2]]);
+      const ys = tensor2d([[0], [0], [0], [0]]);
+      const history = await model.fit(xs, ys, {epochs: 5});
+      if (rnnLayerType.name === 'lstm') {
+        expectTensorsClose(
+            history.history['loss'] as number[],
+            [33.318, 27.104, 22.058, 17.961, 14.634]);
+      } else if (rnnLayerType.name === 'simpleRNN') {
+        expectTensorsClose(
+            history.history['loss'] as number[],
+            [47.684, 35.741, 26.804, 20.115, 15.108]);
+      } else {
+        throw new Error(`Unexpected rnnLayerType name:
+          ${rnnLayerType.name}`);
+      }
+    });
+  }
+});
