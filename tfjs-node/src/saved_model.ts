@@ -382,16 +382,8 @@ export interface DataTypeMap {
 function mapTFDtypeToJSDtype(tfDtype: string): DataType {
   switch (tfDtype) {
     case 'DT_FLOAT':
-    case 'DT_DOUBLE':
       return 'float32';
     case 'DT_INT32':
-    case 'DT_UINT8':
-    case 'DT_INT16':
-    case 'DT_INT8':
-    case 'DT_INT64':
-    case 'DT_UINT16':
-    case 'DT_UINT32':
-    case 'DT_UINT64':
       return 'int32';
     case 'DT_BOOL':
       return 'bool';
