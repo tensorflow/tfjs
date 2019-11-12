@@ -117,6 +117,7 @@ export function makeMatMulPackedSource(workPerThread: number[]): string {
 
 export class MatMulPackedProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
@@ -135,12 +136,13 @@ export class MatMulPackedProgram implements WebGPUProgram {
     const tileInner = tileBOuter;
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
-
-    const sampleA = tilesFitEvenlyIntoShape(tileSizeA, aShape.slice(1)) ?
+    const fitA = tilesFitEvenlyIntoShape(tileSizeA, aShape.slice(1));
+    const sampleA = fitA ?
         `A[row * dimInner + col]` :
         `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
           A[row * dimInner + col] : 0`;
-    const sampleB = tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1)) ?
+    const fitB = tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1));
+    const sampleB = fitB ?
         `B[row * dimBOuter + col]` :
         `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
           B[row * dimBOuter + col] : 0`;
@@ -149,7 +151,6 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [workPerThread, workPerThread, 1]);
-
     this.userCode = `
       int dimAOuter = aShape[1];
       int dimInner = aShape[2];
@@ -173,5 +174,6 @@ export class MatMulPackedProgram implements WebGPUProgram {
         mm_matMul(dimAOuter, dimInner, dimBOuter);
       }
     `;
+    this.shaderKey = `matmulpacked${this.workPerThread}${fitA}${fitB}`;
   }
 }

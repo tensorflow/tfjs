@@ -21,6 +21,7 @@ import {WebGPUProgram} from './webgpu_program';
 export class FillProgram implements WebGPUProgram {
   variableNames: string[] = [];
   outputShape: number[] = [];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
@@ -46,5 +47,6 @@ export class FillProgram implements WebGPUProgram {
         }
       }
     `;
+    this.shaderKey = `fill${size}${value}`;
   }
 }

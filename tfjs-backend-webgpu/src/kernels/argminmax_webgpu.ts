@@ -24,6 +24,7 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class ArgMinMaxProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[]};
   dispatch: [number, number, number];
@@ -179,5 +180,6 @@ export class ArgMinMaxProgram implements WebGPUProgram {
                                'setOutput(flatOutputIndex, int(bestIndex));'}
       }
     `;
+    this.shaderKey = `ArgMinMax${op}${reduceInSharedMemory}`;
   }
 }

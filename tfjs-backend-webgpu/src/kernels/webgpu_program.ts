@@ -21,6 +21,7 @@ import * as shaderc from '@webgpu/shaderc';
 import * as shader_preprocessor from '../shader_preprocessor';
 
 export interface WebGPUProgram {
+  shaderKey: string;
   userCode: string;
   outputShape: number[];
   // dispatchLayout enumerates how tensor dimensions are distributed among
@@ -115,12 +116,10 @@ export const compileProgram =
       return {bindGroupLayout, pipeline};
     };
 
-// TODO: Consider allowing each program to specify its own shader key. E.g. some
-// kernels account for different work group sizes, but some don't.
 // TODO: Consider uploading shape info as vec4s regardless of rank to reduce
 // recompilation.
 export function makeShaderKey(program: WebGPUProgram, ranks: number[]): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      ranks.join(',') + program.userCode;
+      ranks.join(',') + program.shaderKey;
   return key;
 }
