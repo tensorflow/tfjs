@@ -235,28 +235,12 @@ describeWebGPU('backend webgpu', () => {
     tf.setBackend('test-storage');
 
     const bufferManager = backend.getBufferManager();
-    const t = tf.Tensor.make([3], {}, 'float32');
-    backend.write(t.dataId, new Float32Array([1, 2, 3]));
+    const t = tf.tensor1d([1, 2, 3], 'float32');
 
     expect(bufferManager.getNumUsedBuffers()).toBe(0);
 
     backend.getBuffer(t.dataId);
     expect(bufferManager.getNumUsedBuffers()).toBe(1);
-
-    backend.write(t.dataId, new Float32Array([4, 5, 6]));
-    expect(bufferManager.getNumUsedBuffers()).toBe(0);
-
-    tf.test_util.expectArraysClose(
-        await backend.read(t.dataId), new Float32Array([4, 5, 6]));
-
-    expect(bufferManager.getNumUsedBuffers()).toBe(0);
-
-    backend.getBuffer(t.dataId);
-    expect(bufferManager.getNumUsedBuffers()).toBe(1);
-
-    tf.test_util.expectArraysClose(
-        await backend.read(t.dataId), new Float32Array([4, 5, 6]));
-    expect(bufferManager.getNumUsedBuffers()).toBe(0);
   });
 
   it('should be possible to move data from webgl to webgpu', async () => {

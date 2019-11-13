@@ -13,9 +13,11 @@
  * ===========================================================================*/
 
 #include <gtest/gtest.h>
+#include <xnnpack.h>
 
 #include "src/cc/backend.h"
 #include "src/cc/kernels/Conv2D.h"
+#include "src/cc/util.h"
 
 TEST(CONV2D, xnn_operator_lifetime) {
   tfjs::wasm::init();

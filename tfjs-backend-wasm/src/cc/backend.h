@@ -15,8 +15,6 @@
 #ifndef BACKEND_H_
 #define BACKEND_H_
 
-#include <vector>
-
 // This enum should align with the DType defined in kernels/types.ts.
 enum DType {
   float32 = 0,
