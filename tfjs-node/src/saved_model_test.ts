@@ -163,10 +163,8 @@ describe('SavedModel', () => {
     expect(modelInfo.length).toBe(1);
     expect(modelInfo[0].tags.length).toBe(1);
     expect(modelInfo[0].tags[0]).toBe('serve');
-    expect(Object.keys(modelInfo[0].signatureDefs).length).toBe(2);
-    expect(Object.keys(modelInfo[0].signatureDefs)[0])
-        .toBe('__saved_model_init_op');
-    expect(Object.keys(modelInfo[0].signatureDefs)[1]).toBe('serving_default');
+    expect(Object.keys(modelInfo[0].signatureDefs).length).toBe(1);
+    expect(Object.keys(modelInfo[0].signatureDefs)[0]).toBe('serving_default');
     expect(Object.keys(modelInfo[0].signatureDefs['serving_default'].inputs)
                .length)
         .toBe(1);

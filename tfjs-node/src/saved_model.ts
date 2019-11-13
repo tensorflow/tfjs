@@ -28,6 +28,8 @@ const messages = require('./proto/api_pb');
 
 const SAVED_MODEL_FILE_NAME = '/saved_model.pb';
 
+const SAVED_MODEL_INIT_OP_KEY = '__saved_model_init_op';
+
 // This map is used to keep track of loaded SavedModel metagraph mapping
 // information. The map key is TFSavedModel id in JavaScript, value is
 // an object of path to the SavedModel, metagraph tags, and loaded Session ID in
@@ -106,6 +108,10 @@ export async function getMetaGraphsFromSavedModel(path: string):
       const key = signatureDefKeys.next();
       if (key.done) {
         break;
+      }
+      // Skip TensorFlow internal Signature '__saved_model_init_op'.
+      if (key.value === SAVED_MODEL_INIT_OP_KEY) {
+        continue;
       }
       const signatureDefEntry = signatureDefMap.get(key.value);
 
