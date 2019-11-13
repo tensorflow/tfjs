@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, InferenceModel, MetaGraph, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, SignatureDef, Tensor} from '@tensorflow/tfjs';
+import {DataType, InferenceModel, MetaGraph, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, SignatureDef, Tensor, util} from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import {promisify} from 'util';
 import {ensureTensorflowBackend, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
@@ -177,20 +177,19 @@ export function getInputAndOutputNodeNameFromMetaGraphInfo(
       if (metaGraphInfo.signatureDefs[signature] == null) {
         throw new Error('The SavedModel does not have signature: ' + signature);
       }
-      const inputNodeNames: string[] = [];
-      const outputNodeNames: string[] = [];
+      const inputNodeNames: {[key: string]: string} = {};
+      const outputNodeNames: {[key: string]: string} = {};
       for (const signatureDef of Object.keys(metaGraphInfo.signatureDefs)) {
         if (signatureDef === signature) {
           for (const tensorName of Object.keys(
                    metaGraphInfo.signatureDefs[signature].inputs)) {
-            inputNodeNames.push(
-                metaGraphInfo.signatureDefs[signature].inputs[tensorName].name);
+            inputNodeNames[tensorName] =
+                metaGraphInfo.signatureDefs[signature].inputs[tensorName].name;
           }
           for (const tensorName of Object.keys(
                    metaGraphInfo.signatureDefs[signature].outputs)) {
-            outputNodeNames.push(metaGraphInfo.signatureDefs[signature]
-                                     .outputs[tensorName]
-                                     .name);
+            outputNodeNames[tensorName] =
+                metaGraphInfo.signatureDefs[signature].outputs[tensorName].name;
           }
         }
       }
@@ -202,7 +201,7 @@ export function getInputAndOutputNodeNameFromMetaGraphInfo(
 
 /**
  * A `tf.TFSavedModel` is a signature loaded from a SavedModel
- * metagraph, and allows inference exeuction.
+ * metagraph, and allows inference execution.
  */
 /**
  * @doc {heading: 'Models', subheading: 'SavedModel', namespace: 'node'}
@@ -212,7 +211,8 @@ export class TFSavedModel implements InferenceModel {
 
   constructor(
       private sessionId: number, private jsid: number,
-      private inputNodeNames: string[], private outputNodeNames: string[],
+      private inputNodeNames: {[key: string]: string},
+      private outputNodeNames: {[key: string]: string},
       private backend: NodeJSKernelBackend) {}
 
   /**
@@ -259,7 +259,10 @@ export class TFSavedModel implements InferenceModel {
    * @param input The input tensors, when there is single input for the model,
    * inputs param should be a Tensor. For models with multiple inputs, inputs
    * params should be in either Tensor[] if the input order is fixed, or
-   * otherwise NamedTensorMap format.
+   * otherwise NamedTensorMap format. The keys in the NamedTensorMap are the
+   * name of input tensors in SavedModel signatureDef. It can be found through
+   * `tf.node.getMetaGraphsFromSavedModel()`.
+   *
    * For batch inference execution, the tensors for each input need to be
    * concatenated together. For example with mobilenet, the required input shape
    * is [1, 244, 244, 3], which represents the [batch, height, width, channel].
@@ -278,10 +281,50 @@ export class TFSavedModel implements InferenceModel {
     if (this.disposed) {
       throw new Error('The TFSavedModel has already been deleted!');
     } else {
-      throw new Error(
-          'predict() of TFSavedModel is not supported yet. ' +
-          'Input node names are ' + this.inputNodeNames.toString() +
-          '. Output node names are ' + this.outputNodeNames.toString() + '.');
+      let inputTensors: Tensor[] = [];
+      if (inputs instanceof Tensor) {
+        inputTensors.push(inputs);
+        return this.backend.runSavedModel(
+            this.sessionId, inputTensors, Object.values(this.inputNodeNames),
+            Object.values(this.outputNodeNames))[0];
+      } else if (Array.isArray(inputs)) {
+        inputTensors = inputs;
+        return this.backend.runSavedModel(
+            this.sessionId, inputTensors, Object.values(this.inputNodeNames),
+            Object.values(this.outputNodeNames));
+      } else {
+        const inputTensorNames = Object.keys(this.inputNodeNames);
+        const providedInputNames = Object.keys(inputs);
+        if (!stringArraysHaveSameElements(
+                inputTensorNames, providedInputNames)) {
+          throw new Error(`The model signatureDef input names are ${
+              inputTensorNames.join()}, however the provided input names are ${
+              providedInputNames.join()}.`);
+        }
+        const inputNodeNamesArray = [];
+        for (let i = 0; i < inputTensorNames.length; i++) {
+          inputTensors.push(inputs[inputTensorNames[i]]);
+          inputNodeNamesArray.push(this.inputNodeNames[inputTensorNames[i]]);
+        }
+        const outputTensorNames = Object.keys(this.outputNodeNames);
+        const outputNodeNamesArray = [];
+        for (let i = 0; i < outputTensorNames.length; i++) {
+          outputNodeNamesArray.push(this.outputNodeNames[outputTensorNames[i]]);
+        }
+        const outputTensors = this.backend.runSavedModel(
+            this.sessionId, inputTensors, inputNodeNamesArray,
+            outputNodeNamesArray);
+        util.assert(
+            outputTensors.length === outputNodeNamesArray.length,
+            () => 'Output tensors do not match output node names, ' +
+                `receive ${outputTensors.length}) output tensors but ` +
+                `there are ${this.outputNodeNames.length} output nodes.`);
+        const outputMap: NamedTensorMap = {};
+        for (let i = 0; i < outputTensorNames.length; i++) {
+          outputMap[outputTensorNames[i]] = outputTensors[i];
+        }
+        return outputMap;
+      }
     }
   }
 
@@ -353,7 +396,7 @@ export async function loadSavedModel(
   }
   if (sessionId == null) {
     // Convert metagraph tags string array to a string.
-    const tagsString = tags.join();
+    const tagsString = tags.join(',');
     sessionId = backend.loadSavedModelMetaGraph(path, tagsString);
   }
   const id = nextTFSavedModelId++;
