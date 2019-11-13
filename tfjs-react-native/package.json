@@ -20,8 +20,7 @@
     "unlink-local": "yalc remove",
     "lint": "tslint -p . -t verbose",
     "test": "karma start",
-    "test-ci": "./scripts/test-ci.sh",
-    "copydist": "\\cp -rf dist ./integration_rn59/node_modules/@tensorflow/tfjs-react-native"
+    "test-ci": "./scripts/test-ci.sh"
   },
   "devDependencies": {
     "@react-native-community/async-storage": "^1.4.2",

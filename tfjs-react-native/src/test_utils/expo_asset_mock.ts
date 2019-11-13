@@ -19,7 +19,7 @@
 // tslint:disable-next-line: variable-name
 export const Asset = {
   fromModule: () => {
-    // The actual response will be mocked in the test so we only need t
+    // The actual response will be mocked in the test so we only need to
     // return an object that has a uri property that matches the regex /^http/
     return {
       uri: 'http://example.com',

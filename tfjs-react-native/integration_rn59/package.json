@@ -9,7 +9,8 @@
     "start-metro": "npx react-native start --reset-cache",
     "test-integration": "wdio wdio.conf.js",
     "test-ci": "./scripts/test-ci.sh",
-    "postinstall": "npm run prep-tests"
+    "postinstall": "npm run prep-tests",
+    "copycore": "\\cp -rf ../../tfjs-core/dist node_modules/@tensorflow/tfjs-react-native"
   },
   "dependencies": {
     "@react-native-community/async-storage": "^1.6.1",
