@@ -164,17 +164,15 @@ describe('SavedModel', () => {
     expect(modelInfo.length).toBe(1);
     expect(modelInfo[0].tags.length).toBe(1);
     expect(modelInfo[0].tags[0]).toBe('serve');
-    expect(Object.keys(modelInfo[0].signatureDefs).length).toBe(2);
-    expect(Object.keys(modelInfo[0].signatureDefs)[0])
-        .toBe('__saved_model_init_op');
-    expect(Object.keys(modelInfo[0].signatureDefs)[1]).toBe('serving_default');
+    expect(Object.keys(modelInfo[0].signatureDefs).length).toBe(1);
+    expect(Object.keys(modelInfo[0].signatureDefs)[0]).toBe('serving_default');
     expect(Object.keys(modelInfo[0].signatureDefs['serving_default'].inputs)
                .length)
         .toBe(1);
     expect(modelInfo[0].signatureDefs['serving_default'].inputs['x'].name)
         .toBe('serving_default_x:0');
     expect(modelInfo[0].signatureDefs['serving_default'].inputs['x'].dtype)
-        .toBe('DT_FLOAT');
+        .toBe('float32');
     expect(Object.keys(modelInfo[0].signatureDefs['serving_default'].outputs)
                .length)
         .toBe(1);
@@ -183,7 +181,7 @@ describe('SavedModel', () => {
         .toBe('StatefulPartitionedCall:0');
     expect(
         modelInfo[0].signatureDefs['serving_default'].outputs['output_0'].dtype)
-        .toBe('DT_FLOAT');
+        .toBe('float32');
   });
 
   it('get input and output node names from SavedModel metagraphs', async () => {
