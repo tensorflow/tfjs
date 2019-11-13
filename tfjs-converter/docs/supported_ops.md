@@ -8,6 +8,7 @@
 |AddN|addN|
 |BiasAdd|add|
 |Div|div|
+|DivNoNan|divNoNan|
 |FloorDiv|floorDiv|
 |FloorMod|mod|
 |Maximum|maximum|
