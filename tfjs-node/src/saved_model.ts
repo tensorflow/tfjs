@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, InferenceModel, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, SignatureDefInfo, Tensor} from '@tensorflow/tfjs';
+import {DataType, InferenceModel, MetaGraph, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, SignatureDef, Tensor} from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import {promisify} from 'util';
 import {ensureTensorflowBackend, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
@@ -82,8 +82,8 @@ export async function readSavedModelProto(path: string) {
  * @doc {heading: 'Models', subheading: 'SavedModel', namespace: 'node'}
  */
 export async function getMetaGraphsFromSavedModel(path: string):
-    Promise<MetaGraphInfo[]> {
-  const result: MetaGraphInfo[] = [];
+    Promise<MetaGraph[]> {
+  const result: MetaGraph[] = [];
 
   // Get SavedModel proto message
   const modelMessage = await readSavedModelProto(path);
@@ -92,12 +92,12 @@ export async function getMetaGraphsFromSavedModel(path: string):
   // MetaGraph also has it's own signatureDefs.
   const metaGraphList = modelMessage.getMetaGraphsList();
   for (let i = 0; i < metaGraphList.length; i++) {
-    const metaGraph = {} as MetaGraphInfo;
+    const metaGraph = {} as MetaGraph;
     const tags = metaGraphList[i].getMetaInfoDef().getTagsList();
     metaGraph.tags = tags;
 
     // Each MetaGraph has it's own signatureDefs map.
-    const signatureDef: SignatureDefInfo = {};
+    const signatureDef: SignatureDef = {};
     const signatureDefMap = metaGraphList[i].getSignatureDefMap();
     const signatureDefKeys = signatureDefMap.keys();
 
@@ -165,7 +165,7 @@ export async function getMetaGraphsFromSavedModel(path: string):
  * @param signature The signature to get input/output node names from.
  */
 export function getInputAndOutputNodeNameFromMetaGraphInfo(
-    savedModelInfo: MetaGraphInfo[], tags: string[], signature: string) {
+    savedModelInfo: MetaGraph[], tags: string[], signature: string) {
   for (let i = 0; i < savedModelInfo.length; i++) {
     const metaGraphInfo = savedModelInfo[i];
     if (stringArraysHaveSameElements(tags, metaGraphInfo.tags)) {
@@ -370,13 +370,6 @@ function stringArraysHaveSameElements(
     return true;
   }
   return false;
-}
-export interface DataTypeMap {
-  float32: Float32Array;
-  int32: Int32Array;
-  bool: Uint8Array;
-  complex64: Float32Array;
-  string: string[];
 }
 
 function mapTFDtypeToJSDtype(tfDtype: string): DataType {
