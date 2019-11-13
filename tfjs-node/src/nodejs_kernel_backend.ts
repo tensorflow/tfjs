@@ -478,6 +478,12 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Div', opAttrs, [a, b]);
   }
 
+  divNoNan(a: Tensor, b: Tensor): Tensor {
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
+    return this.executeSingleOutput('DivNoNan', opAttrs, [a, b]);
+  }
+
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
     const opAttrs = [

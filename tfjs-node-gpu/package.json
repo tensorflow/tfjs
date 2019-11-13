@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node-gpu",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -27,11 +27,12 @@
     "lint": "tslint -p . -t verbose",
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
     "prep-gpu": "./prep-gpu.sh",
+    "prep-gpu-windows": "./prep-gpu-windows.bat",
     "publish-local": "yarn prep && yalc push",
     "test": "ts-node src/run_tests.ts",
     "test-ci": "./scripts/test-ci.sh",
     "test-ts-integration": "./scripts/test-ts-integration.sh",
-    "upload-windows-addon": "./scripts/build-and-upload-windows-addon-gpu.bat"
+    "upload-windows-addon": "prep-gpu-windows.bat && ./scripts/build-and-upload-windows-addon-gpu.bat"
   },
   "devDependencies": {
     "@types/jasmine": "~2.8.6",
@@ -53,7 +54,7 @@
     "yargs": "^14.2.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "1.3.1",
+    "@tensorflow/tfjs": "1.3.2",
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
