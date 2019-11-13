@@ -15,6 +15,7 @@
 import {mul, ones, scalar, Tensor, tensor2d, tensor3d, tensor4d, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
+import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
 import {ActivationIdentifier} from '../keras_format/activation_config';
@@ -127,6 +128,50 @@ describeMathCPUAndGPU('Dropout Layer', () => {
       0, 2, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 2, 0, 2, 0, 2, 2, 2, 0
     ];
     expectTensorsClose(y, tensor3d(yValuesExpected, [2, 3, 4]));
+  });
+});
+
+describeMathCPUAndGPU('SpatialDropout1D Layer', () => {
+  for (const training of [false, true]) {
+    for (const rate of [0.5, 0]) {
+      it(`Forward: rate=${rate}; training=${training}`, () => {
+        const layer = tfl.layers.spatialDropout1d({rate, seed: 1337});
+        const xs = ones([2, 3, 4]);
+        const ys = layer.apply(xs, {training}) as Tensor;
+        if (!training || rate === 0) {
+          expectTensorsClose(ys, xs);
+        } else {
+          expectTensorsClose(ys, tensor3d([
+                               [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                               [[0, 2, 0, 0], [0, 2, 0, 0], [0, 2, 0, 0]]
+                             ]));
+        }
+      });
+    }
+  }
+
+  it('Incorrect input shape: Symbolic', () => {
+    const layer = tfl.layers.spatialDropout1d({rate: 0.5});
+    const x = new SymbolicTensor('float32', [1, 2, 3, 4], null, [], null);
+    expect(() => layer.apply(x))
+        .toThrowError(/.*expected ndim=3.*found ndim=4.*/);
+  });
+
+  it('Incorrect input shape: Concrete Tensor', () => {
+    const layer = tfl.layers.spatialDropout1d({rate: 0.5});
+    const x = ones([1, 2, 3, 4]);
+    expect(() => layer.apply(x))
+        .toThrowError(/.*expected ndim=3.*found ndim=4.*/);
+  });
+
+  it('Serialization round trip', () => {
+    const layer = tfl.layers.spatialDropout1d({rate: 0.3, seed: 1337});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.spatialDropout1d(tsConfig);
+    expect(layerPrime.getConfig().rate).toEqual(0.3);
+    expect(layerPrime.getConfig().seed).toEqual(1337);
   });
 });
 
@@ -399,6 +444,14 @@ describe('Flatten Layer: Symbolic', () => {
     const x = new tfl.SymbolicTensor('float32', [8, 4, null], null, [], null);
     expect(() => flattenLayer.apply(x)).toThrowError(/not fully defined/);
   });
+  it('Serialization round trip', () => {
+    const layer = tfl.layers.flatten({dataFormat: 'channelsFirst'});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.flatten(tsConfig);
+    expect(layerPrime.getConfig().dataFormat).toEqual('channelsFirst');
+  });
 });
 
 describeMathCPUAndGPU('Flatten Layer: Tensor', () => {
@@ -425,6 +478,19 @@ describeMathCPUAndGPU('Flatten Layer: Tensor', () => {
         [2, 2, 2, 2]);
     const expectedOutput = tensor2d(
         [10, 20, 30, 40, -10, -20, -30, -40, 1, 2, 3, 4, -1, -2, -3, -4],
+        [2, 8]);
+    expectTensorsClose(flattenLayer.apply(x, null) as Tensor, expectedOutput);
+  });
+  it('Flattens Tensor4D, channelFirst', () => {
+    const flattenLayer = tfl.layers.flatten({dataFormat: 'channelsFirst'});
+    const x = tensor4d(
+        [
+          [[[10, 20], [30, 40]], [[-10, -20], [-30, -40]]],
+          [[[1, 2], [3, 4]], [[-1, -2], [-3, -4]]]
+        ],
+        [2, 2, 2, 2]);
+    const expectedOutput = tensor2d(
+        [10, -10, 20, -20, 30, -30, 40, -40, 1, -1, 2, -2, 3, -3, 4, -4],
         [2, 8]);
     expectTensorsClose(flattenLayer.apply(x, null) as Tensor, expectedOutput);
   });

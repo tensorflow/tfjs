@@ -24,7 +24,9 @@ export const json: OpMapper[] = [
     'inputs': [
       {'start': 0, 'end': -1, 'name': 'tensors', 'type': 'tensors'},
       {'start': -1, 'name': 'axis', 'type': 'number'}
-    ]
+    ],
+    'attrs':
+        [{'tfName': 'N', 'name': 'n', 'type': 'number', 'defaultValue': 2}]
   },
   {
     'tfOpName': 'Concat',
@@ -32,7 +34,9 @@ export const json: OpMapper[] = [
     'inputs': [
       {'start': 1, 'end': 0, 'name': 'tensors', 'type': 'tensors'},
       {'start': 0, 'name': 'axis', 'type': 'number'}
-    ]
+    ],
+    'attrs': [{'tfName': 'N', 'name': 'n', 'type': 'number', 'defaultValue': 2}]
+
   },
   {
     'tfOpName': 'GatherV2',

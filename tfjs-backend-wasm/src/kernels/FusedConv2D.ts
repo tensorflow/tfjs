@@ -19,21 +19,22 @@ import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo
 
 import {BackendWasm} from '../backend_wasm';
 
-interface Conv2DInputs extends NamedTensorInfoMap {
+interface FusedConv2DInputs extends NamedTensorInfoMap {
   x: TensorInfo;
   filter: TensorInfo;
+  bias?: TensorInfo;
 }
 
-let wasmConv2d: (
+let wasmFusedConv2d: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
-    filterId: number, filterHeight: number, filterWidth: number, padTop: number,
-    padRight: number, padBottom: number, padLeft: number, isSamePad: number,
-    dilationHeight: number, dilationWidth: number, strideHeight: number,
-    strideWidth: number, inputChannels: number, outputChannels: number,
-    outId: number) => void;
+    filterId: number, filterHeight: number, filterWidth: number, biasId: number,
+    padTop: number, padRight: number, padBottom: number, padLeft: number,
+    isSamePad: number, dilationHeight: number, dilationWidth: number,
+    strideHeight: number, strideWidth: number, inputChannels: number,
+    outputChannels: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmConv2d = backend.wasm.cwrap('Conv2D', null /* void */, [
+  wasmFusedConv2d = backend.wasm.cwrap('FusedConv2D', null /* void */, [
     'number',  // xId
     'number',  // batchSize
     'number',  // inputHeight
@@ -41,6 +42,7 @@ function setup(backend: BackendWasm) {
     'number',  // filterId
     'number',  // filterHeight
     'number',  // filterWidth
+    'number',  // biasId
     'number',  // padTop
     'number',  // padRight
     'number',  // padBottom
@@ -55,17 +57,41 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function conv2d(args: {
-  inputs: Conv2DInputs,
+function fusedConv2d(args: {
+  inputs: FusedConv2DInputs,
   backend: BackendWasm,
-  attrs: backend_util.Conv2DInfo
+  attrs:
+      {convInfo: backend_util.Conv2DInfo, activation: backend_util.Activation}
 }) {
   const {inputs, attrs, backend} = args;
-  const convInfo = attrs;
+  const {convInfo, activation} = attrs;
+  if (activation !== 'linear') {
+    throw new Error(
+        `${activation} activation not yet supported for FusedConv2D ` +
+        `in the wasm backend.`);
+  }
 
-  const {x, filter} = inputs;
+  const {x, filter, bias} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   const filterId = backend.dataIdMap.get(filter.dataId).id;
+
+  const outputChannels = convInfo.outChannels;
+
+  let biasId = -1;
+  if (bias != null) {
+    const biasData = backend.dataIdMap.get(bias.dataId);
+    if (biasData.shape.length !== 1) {
+      throw new Error(
+          `FusedConv2D only supports rank-1 bias but got ` +
+          `rank ${biasData.shape.length}.`);
+    }
+    if (biasData.shape[0] !== outputChannels) {
+      throw new Error(
+          `FusedConv2D bias shape (${biasData.shape}) does not ` +
+          `match the number of output channels (${outputChannels})`);
+    }
+    biasId = biasData.id;
+  }
 
   const filterHeight = convInfo.filterHeight;
   const filterWidth = convInfo.filterWidth;
@@ -78,28 +104,30 @@ function conv2d(args: {
   const strideHeight = convInfo.strideHeight;
   const strideWidth = convInfo.strideWidth;
   const inputChannels = convInfo.inChannels;
-  const outputChannels = convInfo.outChannels;
   const isSamePad = convInfo.padInfo.type === 'SAME' ? 1 : 0;
+  const batchSize = convInfo.batchSize;
+  const inHeight = convInfo.inHeight;
+  const inWidth = convInfo.inWidth;
 
   if (convInfo.dataFormat !== 'channelsLast') {
     throw new Error(
-        `wasm backend Conv2D does not support dataFormat:'` +
+        `wasm backend FusedConv2D does not support dataFormat:'` +
         `${convInfo.dataFormat}'. Please use 'channelsLast'.`);
   }
 
   const out = backend.makeOutput(convInfo.outShape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmConv2d(
-      xId, x.shape[0], x.shape[1], x.shape[2], filterId, filterHeight,
-      filterWidth, padTop, padRight, padBottom, padLeft, isSamePad,
-      dilationHeight, dilationWidth, strideHeight, strideWidth, inputChannels,
-      outputChannels, outId);
+  wasmFusedConv2d(
+      xId, batchSize, inHeight, inWidth, filterId, filterHeight, filterWidth,
+      biasId, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight,
+      dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels,
+      outId);
   return out;
 }
 
 registerKernel({
-  kernelName: 'Conv2D',
+  kernelName: 'FusedConv2D',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: conv2d as {} as KernelFunc
+  kernelFunc: fusedConv2d as {} as KernelFunc
 });

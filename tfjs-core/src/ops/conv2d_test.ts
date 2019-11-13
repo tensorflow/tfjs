@@ -56,6 +56,28 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
         await result.data(),
         [10, 5, 10, 50, 25, 50, -10, -5, -10, -50, -25, -50]);
   });
+
+  it('x=[2,2,2,2] f=[1,1,2,2] s=1 d=1 p=0', async () => {
+    const inputDepth = 2;
+    const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
+    const outputDepth = 2;
+    const fSize = 1;
+    const pad = 0;
+    const stride = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inShape);
+    const w =
+        tf.tensor4d([-1, 1, -2, 0.5], [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad);
+    expect(result.shape).toEqual([2, 2, 2, 2]);
+    const expected =
+        [-5, 2, -11, 5, -17, 8, -23, 11, -29, 14, -35, 17, -41, 20, -47, 23];
+
+    expectArraysClose(await result.data(), expected);
+  });
+
   it('x=[2,2,1] f=[1,1,1,2] s=1 d=1 p=0', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];

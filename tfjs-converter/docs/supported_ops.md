@@ -67,7 +67,7 @@
 |Tan|tan|
 |Tanh|tanh|
 |Not mapped|logSigmoid|
-|Not mapped|prelu|
+|Prelu|prelu|
 |Not mapped|step|
 
 ## Operations - Control Flow
