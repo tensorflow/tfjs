@@ -15,10 +15,9 @@
  * =============================================================================
  */
 
-import {InferenceModel, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, SavedModelTensorInfo, SignatureDefInfo, Tensor} from '@tensorflow/tfjs';
+import {DataType, InferenceModel, MetaGraph, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, SignatureDef, Tensor} from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import {promisify} from 'util';
-
 import {ensureTensorflowBackend, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 const readFile = promisify(fs.readFile);
@@ -27,6 +26,8 @@ const readFile = promisify(fs.readFile);
 const messages = require('./proto/api_pb');
 
 const SAVED_MODEL_FILE_NAME = '/saved_model.pb';
+
+const SAVED_MODEL_INIT_OP_KEY = '__saved_model_init_op';
 
 // This map is used to keep track of loaded SavedModel metagraph mapping
 // information. The map key is TFSavedModel id in JavaScript, value is
@@ -82,8 +83,8 @@ export async function readSavedModelProto(path: string) {
  * @doc {heading: 'Models', subheading: 'SavedModel', namespace: 'node'}
  */
 export async function getMetaGraphsFromSavedModel(path: string):
-    Promise<MetaGraphInfo[]> {
-  const result: MetaGraphInfo[] = [];
+    Promise<MetaGraph[]> {
+  const result: MetaGraph[] = [];
 
   // Get SavedModel proto message
   const modelMessage = await readSavedModelProto(path);
@@ -92,12 +93,12 @@ export async function getMetaGraphsFromSavedModel(path: string):
   // MetaGraph also has it's own signatureDefs.
   const metaGraphList = modelMessage.getMetaGraphsList();
   for (let i = 0; i < metaGraphList.length; i++) {
-    const metaGraph = {} as MetaGraphInfo;
+    const metaGraph = {} as MetaGraph;
     const tags = metaGraphList[i].getMetaInfoDef().getTagsList();
     metaGraph.tags = tags;
 
     // Each MetaGraph has it's own signatureDefs map.
-    const signatureDef: SignatureDefInfo = {};
+    const signatureDef: SignatureDef = {};
     const signatureDefMap = metaGraphList[i].getSignatureDefMap();
     const signatureDefKeys = signatureDefMap.keys();
 
@@ -107,21 +108,26 @@ export async function getMetaGraphsFromSavedModel(path: string):
       if (key.done) {
         break;
       }
+      // Skip TensorFlow internal Signature '__saved_model_init_op'.
+      if (key.value === SAVED_MODEL_INIT_OP_KEY) {
+        continue;
+      }
       const signatureDefEntry = signatureDefMap.get(key.value);
 
       // Get all input tensors information
       const inputsMapMessage = signatureDefEntry.getInputsMap();
       const inputsMapKeys = inputsMapMessage.keys();
-      const inputs: {[key: string]: SavedModelTensorInfo} = {};
+      const inputs: {[key: string]: ModelTensorInfo} = {};
       while (true) {
         const inputsMapKey = inputsMapKeys.next();
         if (inputsMapKey.done) {
           break;
         }
         const inputTensor = inputsMapMessage.get(inputsMapKey.value);
-        const inputTensorInfo = {} as SavedModelTensorInfo;
-        inputTensorInfo.dtype =
-            getEnumKeyFromValue(messages.DataType, inputTensor.getDtype());
+        const inputTensorInfo = {} as ModelTensorInfo;
+        inputTensorInfo.dtype = mapTFDtypeToJSDtype(
+            getEnumKeyFromValue(messages.DataType, inputTensor.getDtype()));
+
         inputTensorInfo.name = inputTensor.getName();
         inputTensorInfo.shape = inputTensor.getTensorShape().getDimList();
         inputs[inputsMapKey.value] = inputTensorInfo;
@@ -130,16 +136,16 @@ export async function getMetaGraphsFromSavedModel(path: string):
       // Get all output tensors information
       const outputsMapMessage = signatureDefEntry.getOutputsMap();
       const outputsMapKeys = outputsMapMessage.keys();
-      const outputs: {[key: string]: SavedModelTensorInfo} = {};
+      const outputs: {[key: string]: ModelTensorInfo} = {};
       while (true) {
         const outputsMapKey = outputsMapKeys.next();
         if (outputsMapKey.done) {
           break;
         }
         const outputTensor = outputsMapMessage.get(outputsMapKey.value);
-        const outputTensorInfo = {} as SavedModelTensorInfo;
-        outputTensorInfo.dtype =
-            getEnumKeyFromValue(messages.DataType, outputTensor.getDtype());
+        const outputTensorInfo = {} as ModelTensorInfo;
+        outputTensorInfo.dtype = mapTFDtypeToJSDtype(
+            getEnumKeyFromValue(messages.DataType, outputTensor.getDtype()));
         outputTensorInfo.name = outputTensor.getName();
         outputTensorInfo.shape = outputTensor.getTensorShape().getDimList();
         outputs[outputsMapKey.value] = outputTensorInfo;
@@ -164,7 +170,7 @@ export async function getMetaGraphsFromSavedModel(path: string):
  * @param signature The signature to get input/output node names from.
  */
 export function getInputAndOutputNodeNameFromMetaGraphInfo(
-    savedModelInfo: MetaGraphInfo[], tags: string[], signature: string) {
+    savedModelInfo: MetaGraph[], tags: string[], signature: string) {
   for (let i = 0; i < savedModelInfo.length; i++) {
     const metaGraphInfo = savedModelInfo[i];
     if (stringArraysHaveSameElements(tags, metaGraphInfo.tags)) {
@@ -369,4 +375,21 @@ function stringArraysHaveSameElements(
     return true;
   }
   return false;
+}
+
+function mapTFDtypeToJSDtype(tfDtype: string): DataType {
+  switch (tfDtype) {
+    case 'DT_FLOAT':
+      return 'float32';
+    case 'DT_INT32':
+      return 'int32';
+    case 'DT_BOOL':
+      return 'bool';
+    case 'DT_COMPLEX64':
+      return 'complex64';
+    case 'DT_STRING':
+      return 'string';
+    default:
+      throw new Error('Unsupported tensor DataType: ' + tfDtype);
+  }
 }
