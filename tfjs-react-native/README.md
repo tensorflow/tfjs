@@ -72,9 +72,10 @@ module.exports = {
 - Install @tensorflow/tfjs - `npm install @tensorflow/tfjs`
 - Install @tensorflow/tfjs-react-native - `npm install @tensorflow/tfjs-react-native@alpha`
 
-### Step 5: Install and configure async-storage
+### Step 5: Install and configure other peerDependencies
 
 - Install and configure [async-storage](https://github.com/react-native-community/async-storage)
+- Install and configure [react-native-fs](https://www.npmjs.com/package/react-native-fs)
 
 ### Step 6: Test that it is working
 

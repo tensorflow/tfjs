@@ -15,14 +15,6 @@
  * =============================================================================
  */
 
-apply from: '../node_modules/react-native-unimodules/gradle.groovy'
-includeUnimodulesProjects()
-include ':@react-native-community_async-storage'
-project(':@react-native-community_async-storage').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-community/async-storage/android')
-
-include ':react-native-fs'
-project(':react-native-fs').projectDir = new File(settingsDir, '../node_modules/react-native-fs/android')
-
-rootProject.name = 'integration_rn59'
-
-include ':app'
+// Mock react_native_fs module in browsers.
+// tslint:disable-next-line
+export default {};
