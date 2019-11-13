@@ -43,7 +43,7 @@
     "rollup-plugin-typescript2": "~0.25.2",
     "tslint": "^5.20.0",
     "tslint-no-circular-imports": "^0.7.0",
-    "typescript": "3.6.3",
+    "typescript": "3.5.3",
     "yalc": "~1.0.0-pre.21"
   },
   "license": "Apache-2.0"
