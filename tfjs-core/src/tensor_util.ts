@@ -77,8 +77,7 @@ function walkTensorContainer(
   }
   // Iteration over keys works also for arrays.
   const iterable = container as TensorContainerArray;
-  for (const k in iterable) {
-    const val = iterable[k];
+  for (const val of iterable) {
     if (!seen.has(val)) {
       seen.add(val);
       walkTensorContainer(val, list, seen);

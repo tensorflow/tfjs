@@ -78,7 +78,7 @@ describeMathCPU('ZeroPadding2D: Symbolic', () => {
   const dataFormats: DataFormat[] =
       [undefined, 'channelsFirst', 'channelsLast'];
 
-  for (const dataFormat in dataFormats) {
+  for (const dataFormat of dataFormats) {
     it('Default padding 1-1-1-1, dataFormat=' + dataFormat, () => {
       const x = new SymbolicTensor('float32', [1, 2, 3, 4], null, [], null);
       const layer = tfl.layers.zeroPadding2d();
