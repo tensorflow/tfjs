@@ -145,6 +145,25 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
   versions: {producer: 1.0}
 };
 
+const SIGNATURE: tensorflow.ISignatureDef = {
+  inputs: {
+    image: {
+      name: 'image_placeholder',
+      dtype: tensorflow.DataType.DT_INT32,
+      tensorShape: {
+
+      }
+    }
+  },
+  outputs: {
+    squeeze: {
+      name: 'Squeeze',
+      dtype: tensorflow.DataType.DT_FLOAT,
+      tensorShape: {}
+    }
+  }
+};
+
 describe('completeness check', () => {
   it('should convert all op categories', () => {
     ops.forEach(op => {
@@ -161,7 +180,7 @@ describe('completeness check', () => {
 });
 describe('operationMapper', () => {
   beforeEach(() => {
-    convertedGraph = mapper.transformGraph(SIMPLE_MODEL);
+    convertedGraph = mapper.transformGraph(SIMPLE_MODEL, SIGNATURE);
   });
   afterEach(() => {});
 
@@ -169,13 +188,19 @@ describe('operationMapper', () => {
     describe('graph level', () => {
       it('should find the graph input nodes', () => {
         expect(convertedGraph.inputs.map(node => node.name)).toEqual([
-          'image_placeholder', 'Const', 'Shape', 'Value'
+          'image_placeholder'
+        ]);
+        expect(convertedGraph.inputs.map(node => node.signatureKey)).toEqual([
+          'image'
         ]);
       });
 
       it('should find the graph output nodes', () => {
         expect(convertedGraph.outputs.map(node => node.name)).toEqual([
-          'Fill', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot', 'FusedBatchNorm'
+          'Squeeze'
+        ]);
+        expect(convertedGraph.outputs.map(node => node.signatureKey)).toEqual([
+          'squeeze'
         ]);
       });
 
