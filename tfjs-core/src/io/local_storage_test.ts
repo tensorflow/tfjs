@@ -187,10 +187,10 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
     expect(loaded.modelTopology).toEqual(modelTopology1);
     expect(loaded.weightSpecs).toEqual(weightSpecs1);
     expect(loaded.weightData).toEqual(weightData1);
-    expect(loaded.format).toEqual(undefined);
-    expect(loaded.generatedBy).toEqual(undefined);
-    expect(loaded.convertedBy).toEqual(undefined);
-    expect(loaded.userDefinedMetadata).toEqual(undefined);
+    expect(loaded.format).toBeUndefined();
+    expect(loaded.generatedBy).toBeUndefined();
+    expect(loaded.convertedBy).toBeUndefined();
+    expect(loaded.userDefinedMetadata).toBeUndefined();
   });
 
   it('Loading nonexistent model fails.', done => {
