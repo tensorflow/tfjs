@@ -168,7 +168,8 @@ export class BrowserLocalStorage implements IOHandler {
         this.LS.setItem(this.keys.modelMetadata, JSON.stringify({
           format: modelArtifacts.format,
           generatedBy: modelArtifacts.generatedBy,
-          convertedBy: modelArtifacts.convertedBy
+          convertedBy: modelArtifacts.convertedBy,
+          userDefinedMetadata: modelArtifacts.userDefinedMetadata
         }));
 
         return {modelArtifactsInfo};
