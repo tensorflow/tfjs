@@ -285,7 +285,8 @@ export class GraphExecutor {
       inputs: NamedTensorMap, context: ExecutionContext,
       outputNames: string[]): Promise<NamedTensorsMap> {
     const names = Object.keys(inputs);
-    const inputNodes = names.map(name => this.graph.nodes[name]);
+    const inputNodes =
+        names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodes =
         outputNames.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const {usedNodes, missingInputs, dynamicNode, syncInputs} =
@@ -297,7 +298,10 @@ export class GraphExecutor {
         });
     const tensorsMap: NamedTensorsMap = {...this.weightMap};
     Object.keys(inputs).forEach(name => {
-      tensorsMap[name] = [inputs[name]];
+      const [nodeName, index] = parseNodeName(name);
+      const tensors: Tensor[] = [];
+      tensors[index] = inputs[name];
+      tensorsMap[nodeName] = tensors;
     });
     const intermediateTensorConsumerCount: {[key: number]: number} = {};
     const tensorsToKeep = this.getFrozenTensorIds(tensorsMap);
