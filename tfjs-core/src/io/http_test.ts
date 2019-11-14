@@ -153,7 +153,7 @@ describeWithFlags('http-load fetch', NODE_ENVS, () => {
     expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
     expect(modelArtifacts.format).toEqual('tfjs-layers');
     expect(modelArtifacts.generatedBy).toEqual('1.15');
-    expect(modelArtifacts.generatedBy).toEqual('1.3.1');
+    expect(modelArtifacts.convertedBy).toEqual('1.3.1');
     expect(modelArtifacts.userDefinedMetadata).toEqual({});
     expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
   });
