@@ -235,11 +235,11 @@ export class BrowserLocalStorage implements IOHandler {
     // Load meta-data fields.
     const metadataString = this.LS.getItem(this.keys.modelMetadata);
     if (metadataString != null) {
-      const metadata = JSON.parse(metadataString) as
-          {format: string, generatedBy: string, convertedBy: string};
+      const metadata = JSON.parse(metadataString) as ModelArtifacts;
       out.format = metadata['format'];
       out.generatedBy = metadata['generatedBy'];
       out.convertedBy = metadata['convertedBy'];
+      out.userDefinedMetadata = metadata['userDefinedMetadata'];
     }
 
     // Load weight data.
