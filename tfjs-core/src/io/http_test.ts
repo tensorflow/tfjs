@@ -134,7 +134,11 @@ describeWithFlags('http-load fetch', NODE_ENVS, () => {
           './model.json': {
             data: JSON.stringify({
               modelTopology: modelTopology1,
-              weightsManifest: weightManifest1
+              weightsManifest: weightManifest1,
+              format: 'tfjs-layers',
+              generatedBy: '1.15',
+              convertedBy: '1.3.1',
+              userDefinedMetadata: {}
             }),
             contentType: 'application/json'
           },
@@ -147,6 +151,10 @@ describeWithFlags('http-load fetch', NODE_ENVS, () => {
     const modelArtifacts = await handler.load();
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
+    expect(modelArtifacts.format).toEqual('tfjs-layers');
+    expect(modelArtifacts.generatedBy).toEqual('1.15');
+    expect(modelArtifacts.convertedBy).toEqual('1.3.1');
+    expect(modelArtifacts.userDefinedMetadata).toEqual({});
     expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
   });
 
@@ -458,7 +466,11 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
             './model.json': {
               data: JSON.stringify({
                 modelTopology: modelTopology1,
-                weightsManifest: weightManifest1
+                weightsManifest: weightManifest1,
+                format: 'tfjs-graph-model',
+                generatedBy: '1.15',
+                convertedBy: '1.3.1',
+                userDefinedMetadata: {}
               }),
               contentType: 'application/json'
             },
@@ -471,6 +483,11 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
       expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
+      expect(modelArtifacts.format).toEqual('tfjs-graph-model');
+      expect(modelArtifacts.generatedBy).toEqual('1.15');
+      expect(modelArtifacts.convertedBy).toEqual('1.3.1');
+      expect(modelArtifacts.userDefinedMetadata).toEqual({});
+
       expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
       expect(Object.keys(requestInits).length).toEqual(2);
       // Assert that fetch is invoked with `window` as the context.
