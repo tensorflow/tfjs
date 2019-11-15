@@ -79,6 +79,7 @@ tfjs_cc_library(
     ":Abs",
     ":Add",
     ":BatchMatMul",
+    ":MaxPool",
     ":CropAndResize",
     ":Conv2D",
     ":FusedConv2D",
@@ -91,6 +92,16 @@ tfjs_cc_library(
     ":Sigmoid",
     ":Sub",
     ":Transpose",
+  ]
+)
+
+tfjs_cc_library(
+  name = "MaxPool",
+  srcs = ["kernels/MaxPool.cc"],
+  hdrs = ["kernels/MaxPool.h"],
+  deps = [
+    ":backend",
+    ":util"
   ]
 )
 

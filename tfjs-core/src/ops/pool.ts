@@ -90,11 +90,12 @@ function maxPoolImpl_<T extends Tensor3D|Tensor4D>(
     };
   };
 
+  const inputsToSave = [x4D];
   const res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.maxPool(x4D, convInfo);
     save([x4D, y]);
     return y;
-  }, {x: x4D}, grad);
+  }, {x: x4D}, grad, 'MaxPool', convInfo, inputsToSave);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
