@@ -27,10 +27,9 @@ interface MaxPoolInputs extends NamedTensorInfoMap {
 let wasmMaxPool: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
     filterHeight: number, filterWidth: number, padTop: number, padRight: number,
-    padBottom: number, padLeft: number, isSamePad: number,
-    dilationHeight: number, dilationWidth: number, strideHeight: number,
-    strideWidth: number, inputChannels: number, outputChannels: number,
-    outId: number) => void;
+    padBottom: number, padLeft: number, dilationHeight: number,
+    dilationWidth: number, strideHeight: number, strideWidth: number,
+    inputChannels: number, outputChannels: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
   wasmMaxPool = backend.wasm.cwrap('MaxPool', null /* void */, [
@@ -77,7 +76,6 @@ function maxPool(args: {
   const strideWidth = convInfo.strideWidth;
   const inputChannels = convInfo.inChannels;
   const outputChannels = convInfo.outChannels;
-  const isSamePad = convInfo.padInfo.type === 'SAME' ? 1 : 0;
 
   if (convInfo.dataFormat !== 'channelsLast') {
     throw new Error(
@@ -90,9 +88,8 @@ function maxPool(args: {
 
   wasmMaxPool(
       xId, x.shape[0], x.shape[1], x.shape[2], filterHeight, filterWidth,
-      padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight,
-      dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels,
-      outId);
+      padTop, padRight, padBottom, padLeft, dilationHeight, dilationWidth,
+      strideHeight, strideWidth, inputChannels, outputChannels, outId);
   return out;
 }
 
