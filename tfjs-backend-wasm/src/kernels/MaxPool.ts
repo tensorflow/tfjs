@@ -26,8 +26,8 @@ interface MaxPoolInputs extends NamedTensorInfoMap {
 
 let wasmMaxPool: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
-    filterId: number, filterHeight: number, filterWidth: number, padTop: number,
-    padRight: number, padBottom: number, padLeft: number, isSamePad: number,
+    filterHeight: number, filterWidth: number, padTop: number, padRight: number,
+    padBottom: number, padLeft: number, isSamePad: number,
     dilationHeight: number, dilationWidth: number, strideHeight: number,
     strideWidth: number, inputChannels: number, outputChannels: number,
     outId: number) => void;
@@ -38,7 +38,6 @@ function setup(backend: BackendWasm) {
     'number',  // batchSize
     'number',  // inputHeight
     'number',  // inputWidth
-    'number',  // filterId
     'number',  // filterHeight
     'number',  // filterWidth
     'number',  // padTop
@@ -63,9 +62,8 @@ function maxPool(args: {
   const {inputs, attrs, backend} = args;
   const convInfo = attrs;
 
-  const {x, filter} = inputs;
+  const {x} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
-  const filterId = backend.dataIdMap.get(filter.dataId).id;
 
   const filterHeight = convInfo.filterHeight;
   const filterWidth = convInfo.filterWidth;
@@ -89,11 +87,12 @@ function maxPool(args: {
 
   const out = backend.makeOutput(convInfo.outShape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
+
   wasmMaxPool(
-      xId, x.shape[0], x.shape[1], x.shape[2], filterId, filterHeight,
-      filterWidth, padTop, padRight, padBottom, padLeft, isSamePad,
-      dilationHeight, dilationWidth, strideHeight, strideWidth, inputChannels,
-      outputChannels, outId);
+      xId, x.shape[0], x.shape[1], x.shape[2], filterHeight, filterWidth,
+      padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight,
+      dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels,
+      outId);
   return out;
 }
 
