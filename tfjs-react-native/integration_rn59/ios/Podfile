@@ -40,6 +40,8 @@ target 'integration_rn59' do
 
   pod 'RNCAsyncStorage', :path => '../node_modules/@react-native-community/async-storage'
 
+  pod 'RNFS', :path => '../node_modules/react-native-fs'
+
   target 'integration_rn59Tests' do
     inherit! :search_paths
     # Pods for testing
