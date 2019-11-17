@@ -84,7 +84,7 @@ tfjs_cc_library(
     ":FusedConv2D",
     ":Div",
     ":Mul",
-    ":Pad",
+    ":PadV2",
     ":Prelu",
     ":FusedBatchNorm",
     ":Max",
@@ -198,8 +198,8 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-  name = "Pad",
-  srcs = ["kernels/Pad.cc"],
+  name = "PadV2",
+  srcs = ["kernels/PadV2.cc"],
   deps = [
     ":backend",
     ":util",
