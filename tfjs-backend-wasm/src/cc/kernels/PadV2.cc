@@ -21,6 +21,8 @@
 
 namespace {
 
+using namespace tfjs::util;
+
 // Reference:
 // https://github.com/tensorflow/tensorflow/blob/a4190274142b70f3d5b7a27f93fc14abc7448240/tensorflow/lite/kernels/internal/optimized/optimized_ops.h#L4873
 template <typename T>
@@ -110,6 +112,35 @@ void pad_4d(const T* x_data, int x_shape[4], int paddings[8], const T pad_value,
   }
 }
 
+// Generic pad implementation for n-dim tensors.
+template <typename T>
+void slow_pad_nd(const T* x_data, const std::vector<int>& x_shape,
+                 const std::vector<int>& paddings, const T pad_value,
+                 T* out_data) {
+  const int rank = x_shape.size();
+  std::vector<int> out_shape(rank);
+  for (size_t i = 0; i < rank; ++i) {
+    const int pad_left = paddings[i * 2];
+    const int pad_right = paddings[i * 2 + 1];
+    out_shape[i] = x_shape[i] + pad_left + pad_right;
+  }
+  const auto& in_strides = compute_strides(x_shape);
+  const auto& out_strides = compute_strides(out_shape);
+  const int in_size = size_from_shape(x_shape);
+  const int out_size = size_from_shape(out_shape);
+
+  typed_memset<T>(out_data, pad_value, out_size);
+
+  for (size_t i = 0; i < in_size; ++i) {
+    auto out_loc = offset_to_loc(i, in_strides);
+    for (size_t j = 0; j < rank; ++j) {
+      out_loc[j] += paddings[j * 2];
+    }
+    const int out_offset = loc_to_offset(out_loc, out_strides);
+    out_data[out_offset] = x_data[i];
+  }
+}
+
 template <typename T>
 void pad(const T* x_data, const std::vector<int>& x_shape,
          const std::vector<int>& paddings, const T pad_value, T* out_data) {
@@ -138,8 +169,7 @@ void pad(const T* x_data, const std::vector<int>& x_shape,
     }
     pad_4d(x_data, x_shape_4d, paddings_4d, pad_value, out_shape_4d, out_data);
   } else {
-    tfjs::util::warn("Padding for rank %d is not yet supported",
-                     x_shape.size());
+    slow_pad_nd(x_data, x_shape, paddings, pad_value, out_data);
   }
 }
 
