@@ -54,6 +54,11 @@ export let executeOp: InternalOpExecutor = (node: Node,
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     }
+    case 'DivNoNan': {
+      return [tfc.divNoNan(
+          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
+    }
     case 'FloorDiv': {
       return [tfc.floorDiv(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,

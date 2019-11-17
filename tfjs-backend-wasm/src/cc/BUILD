@@ -56,12 +56,32 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "transpose_impl",
+  hdrs = ["transpose_impl.h"],
+  srcs = ["transpose_impl.cc"],
+  deps = [":util"],
+)
+
+tfjs_cc_library(
+  name = "conv2d_impl",
+  hdrs = ["conv2d_impl.h"],
+  srcs = ["conv2d_impl.cc"],
+  deps = [
+    ":backend",
+    ":transpose_impl",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
   name = "all_kernels",
   deps = [
     ":Abs",
     ":Add",
     ":BatchMatMul",
+    ":CropAndResize",
     ":Conv2D",
+    ":FusedConv2D",
     ":Div",
     ":Mul",
     ":Pad",
@@ -131,12 +151,29 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "CropAndResize",
+  srcs = ["kernels/CropAndResize.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
   name = "Conv2D",
   srcs = ["kernels/Conv2D.cc"],
   hdrs = ["kernels/Conv2D.h"],
   deps = [
-    ":backend",
-    ":util",
+    ":conv2d_impl",
+  ],
+)
+
+tfjs_cc_library(
+  name = "FusedConv2D",
+  srcs = ["kernels/FusedConv2D.cc"],
+  hdrs = ["kernels/FusedConv2D.h"],
+  deps = [
+    ":conv2d_impl",
   ],
 )
 
@@ -213,6 +250,7 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":util",
+    ":transpose_impl",
   ],
 )
 
@@ -249,5 +287,13 @@ tfjs_unit_test(
   srcs = ["kernels/Conv2D_test.cc"],
   deps = [
     ":Conv2D",
+  ]
+)
+
+tfjs_unit_test(
+  name = "FusedConv2D_test",
+  srcs = ["kernels/FusedConv2D_test.cc"],
+  deps = [
+    ":FusedConv2D",
   ]
 )
