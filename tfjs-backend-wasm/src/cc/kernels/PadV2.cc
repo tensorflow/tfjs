@@ -21,7 +21,10 @@
 
 namespace {
 
-using namespace tfjs::util;
+using tfjs::util::compute_strides;
+using tfjs::util::loc_to_offset;
+using tfjs::util::offset_to_loc;
+using tfjs::util::size_from_shape;
 
 // Reference:
 // https://github.com/tensorflow/tensorflow/blob/a4190274142b70f3d5b7a27f93fc14abc7448240/tensorflow/lite/kernels/internal/optimized/optimized_ops.h#L4873
@@ -198,11 +201,11 @@ void PadV2(const int x_id, const int* x_shape_ptr, const int x_shape_length,
                  out_info.f32_write());
       break;
     case DType::int32:
-      pad<int>(x_info.i32(), x_shape, paddings, (int)pad_value,
+      pad<int>(x_info.i32(), x_shape, paddings, static_cast<int>(pad_value),
                out_info.i32_write());
       break;
     case DType::boolean:
-      pad<bool>(x_info.b(), x_shape, paddings, (bool)pad_value,
+      pad<bool>(x_info.b(), x_shape, paddings, static_cast<bool>(pad_value),
                 out_info.b_write());
       break;
     default:
