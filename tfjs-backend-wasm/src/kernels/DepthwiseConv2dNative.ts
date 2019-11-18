@@ -19,12 +19,12 @@ import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo
 
 import {BackendWasm} from '../backend_wasm';
 
-interface Conv2DInputs extends NamedTensorInfoMap {
+interface DepthwiseConv2DInputs extends NamedTensorInfoMap {
   x: TensorInfo;
   filter: TensorInfo;
 }
 
-let wasmConv2d: (
+let wasmDepthwiseConv2d: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
     filterId: number, filterHeight: number, filterWidth: number, padTop: number,
     padRight: number, padBottom: number, padLeft: number, isSamePad: number,
@@ -33,31 +33,32 @@ let wasmConv2d: (
     outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmConv2d = backend.wasm.cwrap('Conv2D', null /* void */, [
-    'number',  // xId
-    'number',  // batchSize
-    'number',  // inputHeight
-    'number',  // inputWidth
-    'number',  // filterId
-    'number',  // filterHeight
-    'number',  // filterWidth
-    'number',  // padTop
-    'number',  // padRight
-    'number',  // padBottom
-    'number',  // padLeft
-    'number',  // isSamePad
-    'number',  // dilationHeight
-    'number',  // dilationWidth
-    'number',  // strideHeight
-    'number',  // strideWidth
-    'number',  // inputChannels
-    'number',  // outputChannels
-    'number',  // outId
-  ]);
+  wasmDepthwiseConv2d =
+      backend.wasm.cwrap('DepthwiseConv2dNative', null /* void */, [
+        'number',  // xId
+        'number',  // batchSize
+        'number',  // inputHeight
+        'number',  // inputWidth
+        'number',  // filterId
+        'number',  // filterHeight
+        'number',  // filterWidth
+        'number',  // padTop
+        'number',  // padRight
+        'number',  // padBottom
+        'number',  // padLeft
+        'number',  // isSamePad
+        'number',  // dilationHeight
+        'number',  // dilationWidth
+        'number',  // strideHeight
+        'number',  // strideWidth
+        'number',  // inputChannels
+        'number',  // outputChannels
+        'number',  // outId
+      ]);
 }
 
-function conv2d(args: {
-  inputs: Conv2DInputs,
+function depthwiseConv2d(args: {
+  inputs: DepthwiseConv2DInputs,
   backend: BackendWasm,
   attrs: backend_util.Conv2DInfo
 }) {
@@ -84,13 +85,13 @@ function conv2d(args: {
 
   if (convInfo.dataFormat !== 'channelsLast') {
     throw new Error(
-        `wasm backend Conv2D does not support dataFormat:'` +
+        `wasm backend DepthwiseConv2dNative does not support dataFormat:'` +
         `${convInfo.dataFormat}'. Please use 'channelsLast'.`);
   }
 
   const out = backend.makeOutput(convInfo.outShape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmConv2d(
+  wasmDepthwiseConv2d(
       xId, x.shape[0], x.shape[1], x.shape[2], filterId, filterHeight,
       filterWidth, padTop, padRight, padBottom, padLeft, isSamePad,
       dilationHeight, dilationWidth, strideHeight, strideWidth, inputChannels,
@@ -99,8 +100,8 @@ function conv2d(args: {
 }
 
 registerKernel({
-  kernelName: 'Conv2D',
+  kernelName: 'DepthwiseConv2dNative',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: conv2d as {} as KernelFunc
+  kernelFunc: depthwiseConv2d as {} as KernelFunc
 });

@@ -16,7 +16,7 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/kernels/FusedConv2D.h"
+#include "src/cc/kernels/DepthwiseConv2dNative.h"
 
 #include "src/cc/conv2d_impl.h"
 
@@ -28,15 +28,17 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void FusedConv2D(const int x_id, const int batch_size, const int input_height,
-                 const int input_width, const int filter_id,
-                 const int filter_height, const int filter_width,
-                 const int bias_id, int pad_top, int pad_right, int pad_bottom,
-                 int pad_left, const int is_same_pad, const int dilation_height,
-                 const int dilation_width, const int stride_height,
-                 const int stride_width, const int input_channels,
-                 const int output_channels, const int out_id) {
-  const bool is_depthwise = false;
+void DepthwiseConv2dNative(const int x_id, const int batch_size,
+                           const int input_height, const int input_width,
+                           const int filter_id, const int filter_height,
+                           const int filter_width, int pad_top, int pad_right,
+                           int pad_bottom, int pad_left, const int is_same_pad,
+                           const int dilation_height, const int dilation_width,
+                           const int stride_height, const int stride_width,
+                           const int input_channels, const int output_channels,
+                           const int out_id) {
+  const int bias_id = -1;
+  const bool is_depthwise = true;
   tfjs::wasm::conv2d(x_id, batch_size, input_height, input_width, filter_id,
                      filter_height, filter_width, bias_id, pad_top, pad_right,
                      pad_bottom, pad_left, is_same_pad, dilation_height,
