@@ -430,7 +430,7 @@ export class GraphExecutor {
   private checkInputShapeAndType(inputs: NamedTensorMap) {
     Object.keys(inputs).forEach(name => {
       const input = inputs[name];
-      const [nodeName] = parseNodeName(name);
+      const [nodeName, ] = parseNodeName(name);
       const node = this.graph.nodes[nodeName];
       if (node.attrParams['shape'] && node.attrParams['shape'].value) {
         const shape = node.attrParams['shape'].value as number[];
@@ -454,17 +454,19 @@ export class GraphExecutor {
   }
 
   private mapInputs(inputs: NamedTensorMap) {
-    return Object.keys(inputs).reduce<NamedTensorMap>((prev, curr) => {
+    const result: NamedTensorMap = {};
+    for (const inputName in inputs) {
       if (this._signature != null && this._signature.inputs != null &&
-          this._signature.inputs[curr] != null) {
-        const tensor = this._signature.inputs[curr];
-        prev[tensor.name] = inputs[curr];
+          this._signature.inputs[inputName] != null) {
+        const tensor = this._signature.inputs[inputName];
+        result[tensor.name] = inputs[inputName];
       } else {
-        prev[curr] = inputs[curr];
+        result[inputName] = inputs[inputName];
       }
-      return prev;
-    }, {});
+    }
+    return result;
   }
+
   private checkInputs(inputs: NamedTensorMap) {
     const notInGraph = Object.keys(inputs).filter(name => {
       const [nodeName] = parseNodeName(name);

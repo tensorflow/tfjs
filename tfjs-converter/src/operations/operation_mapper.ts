@@ -112,6 +112,15 @@ export class OperationMapper {
           outputs.push(node);
         }
       });
+    } else {
+      Object.keys(outputNodeNameToKey).forEach(name => {
+        const [nodeName, ] = getNodeNameAndIndex(name);
+        const node = nodes[nodeName];
+        if (node != null) {
+          node.signatureKey = outputNodeNameToKey[name];
+          outputs.push(node);
+        }
+      });
     }
 
     if (Object.keys(inputNodeNameToKey).length > 0) {
@@ -125,17 +134,6 @@ export class OperationMapper {
       });
     } else {
       inputs = placeholders;
-    }
-
-    if (Object.keys(outputNodeNameToKey).length > 0) {
-      Object.keys(outputNodeNameToKey).forEach(name => {
-        const [nodeName, ] = getNodeNameAndIndex(name);
-        const node = nodes[nodeName];
-        if (node != null) {
-          node.signatureKey = outputNodeNameToKey[name];
-          outputs.push(node);
-        }
-      });
     }
 
     return {nodes, inputs, outputs, weights, placeholders, signature};
