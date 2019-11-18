@@ -298,3 +298,11 @@ tfjs_unit_test(
     ":FusedConv2D",
   ]
 )
+
+tfjs_unit_test(
+  name = "MaxPool_test",
+  srcs = ["kernels/MaxPool_test.cc"],
+  deps = [
+    ":MaxPool",
+  ]
+)
