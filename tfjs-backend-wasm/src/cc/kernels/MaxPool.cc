@@ -21,10 +21,7 @@
 #include <cmath>
 #include <limits>
 #include <map>
-#include <memory>
 #include <unordered_map>
-#include <utility>
-#include <vector>
 
 #include "src/cc/backend.h"
 #include "src/cc/kernels/MaxPool.h"
