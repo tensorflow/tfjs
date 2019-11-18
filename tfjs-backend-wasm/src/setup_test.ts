@@ -172,6 +172,7 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: ['oneHot']  // oneHot not yet implemented.
   },
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
+  {include: 'clip', excludes: ['gradient']},
 ];
 
 const customInclude = (testName: string) => {

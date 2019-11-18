@@ -152,6 +152,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "ClipByValue",
+  srcs = ["kernels/ClipByValue.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
   name = "CropAndResize",
   srcs = ["kernels/CropAndResize.cc"],
   deps = [
