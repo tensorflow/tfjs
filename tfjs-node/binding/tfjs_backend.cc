@@ -1131,7 +1131,7 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
 
     // The item in input_op_name_array is something like "serving_default_x:0".
     // Parse it into input op name and index for provided tensor.
-    char name[strlen(input_op_name_array[i])];
+    char* name;
     strcpy(name, input_op_name_array[i]);
     char *input_op_name = strtok(name, ":");
     char *input_op_index = strtok(NULL, ":");
@@ -1159,7 +1159,7 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
   for (uint32_t i = 0; i < output_op_name_array.size(); i++) {
     // The item in output_op_name_array is something like
     // "StatefulPartitionedCall:0". Parse it into output op name and index.
-    char name[strlen(output_op_name_array[i])];
+    char* name;
     strcpy(name, output_op_name_array[i]);
     char *output_op_name = strtok(name, ":");
     char *output_op_index = strtok(NULL, ":");
