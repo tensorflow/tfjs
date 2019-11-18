@@ -81,9 +81,11 @@ tfjs_cc_library(
     ":BatchMatMul",
     ":CropAndResize",
     ":Conv2D",
+    ":DepthwiseConv2dNative",
     ":FusedConv2D",
     ":Div",
     ":Mul",
+    ":PadV2",
     ":Prelu",
     ":FusedBatchNorm",
     ":Max",
@@ -177,6 +179,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "DepthwiseConv2dNative",
+  srcs = ["kernels/DepthwiseConv2dNative.cc"],
+  hdrs = ["kernels/DepthwiseConv2dNative.h"],
+  deps = [
+    ":conv2d_impl",
+  ],
+)
+
+tfjs_cc_library(
   name = "Div",
   srcs = ["kernels/Div.cc"],
   deps = [
@@ -192,6 +203,15 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "PadV2",
+  srcs = ["kernels/PadV2.cc"],
+  deps = [
+    ":backend",
     ":util",
   ],
 )
@@ -277,6 +297,14 @@ tfjs_unit_test(
   srcs = ["kernels/Conv2D_test.cc"],
   deps = [
     ":Conv2D",
+  ]
+)
+
+tfjs_unit_test(
+  name = "DepthwiseConv2dNative_test",
+  srcs = ["kernels/DepthwiseConv2dNative_test.cc"],
+  deps = [
+    ":DepthwiseConv2dNative",
   ]
 )
 
