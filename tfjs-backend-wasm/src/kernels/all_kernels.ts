@@ -22,6 +22,7 @@ import './Abs';
 import './Add';
 import './BatchMatMul';
 import './CropAndResize';
+import './MaxPool';
 import './FusedBatchNorm';
 import './Cast';
 import './Concat';
