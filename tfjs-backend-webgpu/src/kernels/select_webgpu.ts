@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,68 +14,68 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {backend_util, util} from '@tensorflow/tfjs-core';
+import {util} from '@tensorflow/tfjs-core';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {WebGPUProgram} from './webgpu_program';
 import {getCoordsDataType} from '../shader_preprocessor';
 
-import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
-
-import {WebGPUProgram} from './webgpu_program';
-
-export const MUL = 'return a * b;';
-export const ADD = 'return a + b;';
-export const SUB = 'return a - b;';
-export const DIV = 'return a / b;';
-export const GREATER = 'return float(a > b);';
-export const GREATER_EQUAL = 'return float(a >= b);';
-export const LESS = `return float(a < b);`;
-export const LESS_EQUAL = `return float(a <= b);`;
-
-export const INT_DIV = `
-  float s = sign(a) * sign(b);
-  int ia = int(round(a));
-  int ib = int(round(b));
-  return float(idiv(ia, ib, s));
-`;
-
-export const PRELU = `return (a < 0.) ? b * a : a;`;
-
-export class BinaryOpProgram implements WebGPUProgram {
+export class SelectProgram implements WebGPUProgram {
+  variableNames = ['c', 'a', 'b'];
   outputShape: number[];
   userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['A', 'B'];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [16, 1, 1];
 
-  constructor(op: string, aShape: number[], bShape: number[]) {
-    this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
+  constructor(cRank: number, shape: number[], rank: number) {
+    this.outputShape = shape;
     const size = util.sizeFromShape(this.outputShape);
-
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    const type = getCoordsDataType(this.outputShape.length);
+
+    let cCoords;
+    let abCoords;
+    if (rank > 4) {
+      throw Error(`Where for rank ${rank} is not yet supported`);
+    }
+
+    if (rank === 1) {
+      abCoords = `resRC`;
+      cCoords = `resRC`;
+    } else {
+      const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
+      const cCoordVars = [];
+      const abCoordVars = [];
+      for (let i = 0; i < shape.length; i++) {
+        abCoordVars.push(`${currentCoords[i]}`);
+        if (i < cRank) {
+          cCoordVars.push(`${currentCoords[i]}`);
+        }
+      }
+      cCoords = cCoordVars.join();
+      abCoords = abCoordVars.join();
+    }
+
+    const dtype = getCoordsDataType(rank);
 
     this.userCode = `
-      float binaryOperation(float a, float b) {
-        ${op}
-      }
-
       void main() {
         int index = int(gl_GlobalInvocationID.x);
 
-        for(int i = 0; i < ${this.workPerThread}; i++) {
+        for (int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
 
-          if(flatIndex < ${size}) {
-            ${type} coords = getCoordsFromFlatIndex(flatIndex);
-
-            float a = getAAtOutCoords(coords);
-            float b = getBAtOutCoords(coords);
-            setOutput(flatIndex, binaryOperation(a, b));
+          if (flatIndex < ${size}) {
+            ${dtype} resRC = getOutputCoords();
+            float cVal = getC(${cCoords});
+            if (cVal >= 1.0) {
+              setOutput(flatIndex,getA(${abCoords}));
+            } else {
+              setOutput(flatIndex,getB(${abCoords}));
+            }
           }
         }
       }
